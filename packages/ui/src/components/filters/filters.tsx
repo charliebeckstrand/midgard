@@ -10,7 +10,17 @@ import { FiltersContext, type FiltersContextValue } from './context'
 
 type FilterValue = Record<string, unknown>
 
-/** True when a field value counts as set: not `undefined`, `null`, `''`, or an empty array. @internal */
+/**
+ * True when a field value counts as set: not `undefined`, `null`, `''`, or an
+ * empty array.
+ *
+ * @remarks
+ * An explicit `false` counts as set, so a Checkbox or Switch filter toggled off
+ * stays in the payload and in the active count. Deliberate — an explicit "no" is
+ * a filter — but it does read against the "drops empty fields" contract.
+ *
+ * @internal
+ */
 function isActive(v: unknown): boolean {
 	if (v === undefined || v === null || v === '') return false
 
@@ -68,7 +78,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 	const [state, setState] = useControllable<T>({
 		value: valueProp,
 		defaultValue,
-		onValueChange: onValueChange && ((v) => v !== undefined && onValueChange(v)),
+		onValueChange: onValueChange && ((v) => v != null && onValueChange(v)),
 	})
 
 	const filterValue = (state ?? {}) as T

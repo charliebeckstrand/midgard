@@ -59,6 +59,10 @@ export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(
 	return () => {
 		reg.handlers.delete(wrapped)
 
+		// The emptied registry entry stays in the map: event-type names are a
+		// small bounded set, so there is nothing worth reclaiming. Contrast
+		// `media-query.ts`, which deletes its entry — query strings are
+		// unbounded and each entry pins a live `MediaQueryList`.
 		if (reg.handlers.size === 0 && reg.listener !== null) {
 			document.removeEventListener(type, reg.listener)
 

@@ -3,8 +3,8 @@
 import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import type { ComponentProps, ReactNode, RefObject } from 'react'
-import { cn } from '../../core'
-import { Density } from '../../primitives/density'
+import { cn, createContext } from '../../core'
+import { Density, densityPresets, type useDensity } from '../../primitives/density'
 import { type DensityLevel, densityToSize } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import type { SortState } from './context'
@@ -17,10 +17,12 @@ import {
 } from './engine/grid-reorder-compute'
 import { GridContextMenu } from './grid-context-menu'
 import type { GridGroupByContextValue } from './grid-group-by-button'
+import { GridManagerDialog } from './grid-manager-dialog'
 import { GridReorderContext } from './grid-reorder'
-import { GridRowManagerDialog } from './grid-row-manager-dialog'
+import { GridRowManager } from './grid-row-manager'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig, GridMenuItem } from './types'
 import type { GridRowManagerRegionResult } from './use-grid-row-manager'
+import type { GridColumnFilter } from './use-grid-table'
 
 /**
  * Locks column drags to the x-axis and bounds them to the scroll container, so
@@ -59,7 +61,7 @@ type GridRegionProps<T> = {
 	columns: GridColumn<T>[]
 	rows: T[]
 	rowKeys: (string | number)[]
-	/** Active sort columns in priority order, so the header menu can offer "Clear sort" for a sorted column. */
+	/** Active sort columns in priority order; backs the header menu's Sort items. */
 	sort: SortState[]
 	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
 	clearSort: () => void
@@ -77,6 +79,8 @@ type GridRegionProps<T> = {
 	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
 	/** Resolves the column-group band menu for a right-clicked group by id. */
 	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
+	/** The grid's column-filter model, or `null` when it has none; backs the column menu's "Filter …" item. */
+	columnFilter: GridColumnFilter | null
 	children: ReactNode
 }
 
@@ -110,6 +114,7 @@ export function GridRegion<T>({
 	exportActions,
 	rowGroupMenu,
 	columnGroupMenu,
+	columnFilter,
 	children,
 }: GridRegionProps<T>) {
 	const reordered = canReorder ? (
@@ -142,6 +147,7 @@ export function GridRegion<T>({
 			exportActions={exportActions}
 			rowGroupMenu={rowGroupMenu}
 			columnGroupMenu={columnGroupMenu}
+			columnFilter={columnFilter}
 		>
 			{reordered}
 		</GridContextMenu>
@@ -190,14 +196,13 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 	if (!region.reachable) return null
 
 	return (
-		<GridRowManagerDialog
-			open={region.open}
-			onOpenChange={region.setOpen}
-			label="Manage rows"
-			groups={region.managerGroups}
-			onRecolor={region.recolor}
-			onReorderGroups={region.reorderGroups}
-		/>
+		<GridManagerDialog open={region.open} onOpenChange={region.setOpen} label="Manage rows">
+			<GridRowManager
+				groups={region.managerGroups}
+				onRecolor={region.recolor}
+				onReorderGroups={region.reorderGroups}
+			/>
+		</GridManagerDialog>
 	)
 }
 
@@ -212,10 +217,47 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
  * `Text`) read no density; the `<table>` class down-projects those under
  * `condensed` (see `condensedTableClass`). A grid already at the ambient density
  * broadcasts its own level — a no-op. Kept a component so the branch lives here,
- * off {@link GridData}'s complexity budget. @internal
+ * off {@link GridData}'s complexity budget.
+ *
+ * Overlays mounted *above* this — the column manager, the row manager, the
+ * auto-size confirm, the header context menu — are outside the cascade already.
+ * One is not: the per-column filter surface hangs off a header cell, so it sits
+ * inside. It re-broadcasts the ambient token via {@link GridOverlayDensity}.
+ *
+ * @internal
  */
 export function DensityCascade({ level, children }: { level: DensityLevel; children: ReactNode }) {
 	return <Density scale={densityToSize[level]}>{children}</Density>
+}
+
+/**
+ * The density surrounding the grid, captured above {@link DensityCascade} — what
+ * an overlay the grid spawns must render at, rather than the tightened step its
+ * cells use. Defaults to the `md` baseline for a grid outside any provider.
+ *
+ * @internal
+ */
+export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<
+	ReturnType<typeof useDensity>
+>('GridOverlayDensity', { default: densityPresets.md })
+
+/**
+ * Restores the ambient density inside an overlay whose trigger lives in the table
+ * region, so a *dialog-sized* surface isn't sized like a *cell*.
+ *
+ * A portal is a DOM escape, not a React one: the surface stays a descendant of the
+ * trigger, so it inherits the cell cascade unless something says otherwise. Only
+ * the surface is wrapped, never the trigger — the trigger is header chrome and
+ * belongs at the header's density. @internal
+ */
+export function GridOverlayDensity({ children }: { children: ReactNode }) {
+	const ambient = useGridOverlayDensity()
+
+	return (
+		<Density space={ambient.space} size={ambient.size}>
+			{children}
+		</Density>
+	)
 }
 
 /** Props for {@link GridScrollRegion}. @internal */

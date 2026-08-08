@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, type ReactElement, type ReactNode } from 'react'
+import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
 import {
 	addImport,
 	assemble,
@@ -9,17 +9,29 @@ import {
 	elementChildren,
 	formatProps,
 	INDENT,
+	matchElementFact,
 	PLACEHOLDER,
 	readSnippet,
+	registerFactText,
 	reindent,
 	renderOpenTag,
+	resolvePreamble,
 	resolveType,
+	resolveTypeIn,
 } from './internals'
 import { defaultRegistry } from './registry'
-import type { ComponentRegistry, Context } from './types'
+import type { ComponentRegistry, Context, SourceFacts } from './types'
 
 export { defaultRegistry } from './registry'
-export type { ComponentInfo, ComponentRegistry, Context } from './types'
+export type {
+	ComponentInfo,
+	ComponentRegistry,
+	Context,
+	DeclarationFact,
+	ElementFact,
+	ImportFact,
+	SourceFacts,
+} from './types'
 
 /**
  * Walk a React children tree and produce a simplified code block showing how
@@ -31,6 +43,14 @@ export type { ComponentInfo, ComponentRegistry, Context } from './types'
  * - Imports come from build-time component tags; external components (e.g.
  *   lucide icons) resolve by `displayName` against the demos' package imports.
  *
+ * `facts` — build-time source knowledge injected by the docs plugin — lets the
+ * walk synthesize what runtime values can't express: props with no literal
+ * form (handlers, hook results, data configs) render as their authored source,
+ * render-prop children emit verbatim, and the declarations those snippets
+ * reference (`useState` lines, format helpers, data consts) assemble into a
+ * preamble between the imports and the JSX. Live primitive values still win,
+ * so control-driven demos keep reflecting their current state.
+ *
  * Returns `null` when the subtree contains no recognized components; the
  * caller then provides an explicit `code` override or omits the code block.
  *
@@ -41,19 +61,84 @@ export type { ComponentInfo, ComponentRegistry, Context } from './types'
 export function deriveCode(
 	children: ReactNode,
 	registry: ComponentRegistry = defaultRegistry,
+	facts?: SourceFacts,
 ): string | null {
 	const context: Context = {
 		registry,
 		imports: new Map(),
 		externalModules: new Set(),
 		packageName: registry.packageName,
+		facts,
+		factTexts: [],
+		pulledDecls: new Set(),
 	}
 
-	const jsx = renderNodes(Children.toArray(children), context, '')
+	let jsx = renderNodes(Children.toArray(children), context, '')
 
 	if (context.imports.size === 0) return null
 
-	return assemble(context, jsx)
+	// The consistency rule keys on declarations already pulled, but a pull can
+	// happen after the prop that should honor it renders (`<Odometer
+	// value={value} />` before the `<Button onClick={() => setValue(…)}>` that
+	// pulls the pair). A second walk sees the full pull set; it can only turn
+	// live values into source identifiers, never pull further, so it converges.
+	if (context.pulledDecls.size > 0) {
+		jsx = renderNodes(Children.toArray(children), context, '')
+	}
+
+	const preamble = resolvePreamble(context)
+
+	return assemble(context, jsx, preamble)
+}
+
+/**
+ * Whether {@link deriveCode} would produce anything for this subtree — that is,
+ * whether it holds at least one component the docs recognize.
+ *
+ * `deriveCode` returns `null` exactly when its walk collected no imports, so
+ * finding one recognized element answers the question. This short-circuits
+ * there instead of rendering the whole JSX string, resolving a preamble, and
+ * possibly walking a second pass for the consistency rule.
+ *
+ * Resolution goes through the same {@link resolveTypeIn} the real walk uses, so
+ * a tagged library component and an external one matched by `displayName` (a
+ * lucide icon, say) both count — reading tags alone would hide the code trigger
+ * on an icons-only demo.
+ *
+ * @remarks
+ * Descends `children` only. `deriveCode` also collects imports from
+ * element-valued props and from `__code` snippets, so a demo whose *only*
+ * recognized component reaches it by one of those paths still reports `false`.
+ * Both are rare next to the walk this covers, and the failure is a hidden code
+ * block rather than a broken one.
+ */
+export function hasDerivableCode(
+	children: ReactNode,
+	registry: ComponentRegistry = defaultRegistry,
+): boolean {
+	const stack: ReactNode[] = [children]
+
+	while (stack.length > 0) {
+		const node = stack.pop()
+
+		if (Array.isArray(node)) {
+			// Not `push(...node)`: a spread passes each entry as an argument and
+			// blows the call-argument ceiling on a large array.
+			for (const child of node) stack.push(child)
+
+			continue
+		}
+
+		if (!isValidElement(node)) continue
+
+		if (resolveTypeIn(registry, node.type) !== undefined) return true
+
+		const { children: nested } = node.props as { children?: ReactNode }
+
+		if (nested !== undefined) stack.push(nested)
+	}
+
+	return false
 }
 
 /**
@@ -192,9 +277,13 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 
 	if (info.module) addImport(context, info.module, info.name, info.external)
 
-	const propParts = formatProps(element.props as Record<string, unknown>, context)
+	const props = element.props as Record<string, unknown>
 
-	const childrenStr = renderChildrenContent(elementChildren(element), context, indent + INDENT)
+	const fact = matchElementFact(info.name, props, context)
+
+	const propParts = formatProps(props, context, indent, fact)
+
+	const childrenStr = renderChildren(element, context, indent + INDENT, fact)
 
 	const open = renderOpenTag(info.name, propParts, indent, childrenStr !== '')
 
@@ -210,11 +299,26 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 }
 
 /**
- * Renders the children of a recognized component via `renderNodes`. When
- * children exist but nothing renders, substitutes a `...` placeholder; the
- * parent stays `<Foo>...</Foo>`.
+ * Renders the children of a recognized component. A render-prop child — a
+ * function the walker could never invoke — emits its authored source verbatim
+ * when the element's fact carries it. Otherwise children render via
+ * `renderNodes`; when they exist but nothing renders, a `...` placeholder
+ * keeps the parent as `<Foo>...</Foo>`.
  */
-function renderChildrenContent(nodes: ReactNode[], context: Context, indent: string): string {
+function renderChildren(
+	element: ReactElement,
+	context: Context,
+	indent: string,
+	fact: { children?: string } | undefined,
+): string {
+	const raw = (element.props as { children?: unknown }).children
+
+	if (typeof raw === 'function' && fact?.children) {
+		return `${indent}{${reindent(registerFactText(fact.children, context), indent)}}`
+	}
+
+	const nodes = elementChildren(element)
+
 	if (nodes.length === 0) return ''
 
 	const rendered = renderNodes(nodes, context, indent)

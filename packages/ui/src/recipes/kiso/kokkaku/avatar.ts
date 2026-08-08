@@ -14,4 +14,4 @@ export const avatar = {
 	base: rounded.full,
 	size: shaku.avatar,
 	defaults: { size: 'md' as const },
-}
+} as const

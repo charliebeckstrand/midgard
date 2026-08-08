@@ -24,12 +24,6 @@ type ColorPickerBaseProps = {
 	 */
 	swatches?: readonly string[] | false
 	/**
-	 * Show the eyedropper button where the `EyeDropper` API is available.
-	 *
-	 * @defaultValue `true`
-	 */
-	eyedropper?: boolean
-	/**
 	 * Floating placement of the panel relative to the trigger.
 	 *
 	 * @defaultValue `'bottom-start'`
@@ -68,7 +62,6 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 	const {
 		alpha = false,
 		swatches,
-		eyedropper = true,
 		placement = 'bottom-start',
 		size,
 		disabled = false,
@@ -98,7 +91,6 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		onValueChange: (next: string | Hsva) => state.setHsva(toHsva(next) ?? state.hsva),
 		alpha,
 		...(swatches !== undefined ? { swatches } : {}),
-		eyedropper,
 		size,
 		disabled,
 	} as ColorPanelProps

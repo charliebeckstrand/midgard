@@ -23,12 +23,12 @@ export const k = {
 				glass: [...glass],
 				flat: [...surface.bg],
 			},
-			size: shaku.panel,
-			defaults: { size: 'lg', surface: 'flat' },
+			width: shaku.panel,
+			defaults: { width: 'lg', surface: 'flat' },
 		}),
 	}),
 	motion: { desktop: popover, mobile: ugoki.panel.bottom },
 }
 
-/** Recipe variant props for the {@link Dialog} panel — its styling axes (`surface`, `size`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link Dialog} panel — its styling axes (`surface`, `width`), for consumers composing custom slots. */
 export type DialogPanelVariants = VariantProps<typeof k.panel>

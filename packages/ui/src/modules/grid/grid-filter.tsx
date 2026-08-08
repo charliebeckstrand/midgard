@@ -1,6 +1,6 @@
 'use client'
 
-import { startTransition, useEffect, useRef, useState } from 'react'
+import { type SubmitEvent, startTransition, useEffect, useRef, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
 import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
 import type { GridGlobalFilterView } from './use-grid-table'
@@ -22,6 +22,10 @@ type GridFilterProps = {
  * so a fast typist settles into a single filter pass that React keeps off the
  * critical path. Clearing bypasses the debounce and applies at once, recovering
  * the hidden rows without the settle lag.
+ *
+ * The field is a lone control in a `<form>`, so pressing Enter submits it and
+ * flushes the pending query immediately — the same at-once path as clearing,
+ * for a typist who wants the result before the debounce settles.
  *
  * @internal
  */
@@ -50,8 +54,18 @@ export function GridFilter({ filter }: GridFilterProps) {
 		}, GRID_SEARCH_DEBOUNCE_MS)
 	}
 
+	// Enter submits the field: cancel the pending debounce and apply the typed
+	// text now, so a deliberate submit lands the query without the settle wait.
+	const submit = (event: SubmitEvent<HTMLFormElement>) => {
+		event.preventDefault()
+
+		clearTimeout(debounceTimer.current)
+
+		startTransition(() => filter.setValue(text))
+	}
+
 	return (
-		<div data-slot="grid-filter">
+		<form data-slot="grid-filter" onSubmit={submit}>
 			<SearchInput
 				value={text}
 				onChange={(event) => apply(event.target.value)}
@@ -59,6 +73,6 @@ export function GridFilter({ filter }: GridFilterProps) {
 				placeholder={filter.placeholder}
 				aria-label={filter.placeholder}
 			/>
-		</div>
+		</form>
 	)
 }

@@ -11,6 +11,10 @@ export type StatDeltaProps = StatDeltaVariants & {
  * Period-over-period change indicator, tinted by `trend` (up/down/flat). Static
  * leaf: renders in React Server Components. Compose `<StatDeltaSkeleton>` in the
  * loading tree.
+ *
+ * @remarks `trend` sets colour only; pair it with a textual sign or arrow in
+ * `children` (e.g. `+12%`, `↓ 3`) so direction isn't conveyed by colour alone
+ * (WCAG 1.4.1).
  */
 export function StatDelta({ trend, className, children, ...props }: StatDeltaProps) {
 	return (

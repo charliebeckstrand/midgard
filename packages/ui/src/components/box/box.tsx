@@ -2,20 +2,7 @@ import type { Ref } from 'react'
 import { cn } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
-import {
-	type BoxBg,
-	type BoxMargin,
-	type BoxOutline,
-	type BoxPadding,
-	type BoxRadius,
-	marginMap,
-	mxMap,
-	myMap,
-	paddingMap,
-	pxMap,
-	pyMap,
-	radiusMap,
-} from './variants'
+import type { BoxBg, BoxMargin, BoxOutline, BoxPadding, BoxRadius } from './variants'
 
 type BoxBaseProps = {
 	/** Padding on all sides. */
@@ -101,13 +88,13 @@ export function Box({
 			href={href}
 			render={render}
 			className={cn(
-				p !== undefined && paddingMap[p],
-				px !== undefined && pxMap[px],
-				py !== undefined && pyMap[py],
-				m !== undefined && marginMap[m],
-				mx !== undefined && mxMap[mx],
-				my !== undefined && myMap[my],
-				radius && radiusMap[radius],
+				p !== undefined && k.padding[p],
+				px !== undefined && k.px[px],
+				py !== undefined && k.py[py],
+				m !== undefined && k.margin[m],
+				mx !== undefined && k.mx[mx],
+				my !== undefined && k.my[my],
+				radius && k.radius[radius],
 				bg && k.bg[bg],
 				resolveOutline(outline),
 				className,

@@ -17,6 +17,7 @@ import { rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
+import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -295,7 +296,7 @@ type GridRowProps<T> = {
 	 */
 	expanded?: boolean
 	/**
-	 * Whether this row may expand — a grid with an `expandable` binding and a row
+	 * Whether this row can expand — a grid with an `expandable` binding and a row
 	 * the binding accepts. An expander cell on a row this rejects stays a quiet
 	 * rail. Passed as a primitive (not an object) so the memoized row holds.
 	 * @defaultValue false
@@ -474,7 +475,7 @@ function GridRowImpl<T>({
 							className={cn(k.cell.actions, pinned.className)}
 							style={pinned.style}
 						>
-							{col.actions(row)}
+							<GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 						</TableCell>
 					)
 				}

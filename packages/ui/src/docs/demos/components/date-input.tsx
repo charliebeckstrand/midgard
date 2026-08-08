@@ -4,7 +4,7 @@ import { Field, Label } from '../../../components/fieldset'
 import { Example } from '../../engine'
 
 function ControlledExample() {
-	const [value, setValue] = useState<Date | undefined>(new Date(2026, 5, 15))
+	const [value, setValue] = useState<Date | null>(new Date(2026, 5, 15))
 
 	return (
 		<Example title="Controlled">

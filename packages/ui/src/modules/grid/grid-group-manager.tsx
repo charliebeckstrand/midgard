@@ -123,6 +123,13 @@ export type GridGroupManagerProps = {
 	onGroupsChange: (groups: GridColumnGroup[]) => void
 	/** Orderable (non-frozen) data columns, in display order. */
 	columns: GridColumnManagerItem[]
+	/**
+	 * Whether a column passes the manager's filter — the whole set when no query is
+	 * typed. Resolved here to the ids that pass, which is all a zone needs: it
+	 * renders the members it holds among them and keeps its full membership behind
+	 * them, since the zone map is also what commits group membership on drop.
+	 */
+	matches: (item: GridColumnManagerItem) => boolean
 	/** The user-hidden set; a row's checkbox reflects and toggles it. */
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
@@ -142,7 +149,9 @@ export type GridGroupManagerProps = {
  * member columns), and an ungrouped pool. Columns drag between zones (pointer or
  * keyboard) to change membership; each row also carries a "Move to" menu as an
  * accessible alternative to the drag. Group edits commit through
- * `onGroupsChange`; visibility stays on the shared hidden set.
+ * `onGroupsChange`; visibility stays on the shared hidden set. Under the
+ * manager's filter each zone renders only its matching members, holding the rest
+ * in place (see `matches`).
  *
  * @internal
  */
@@ -150,6 +159,7 @@ export function GridGroupManager({
 	groups,
 	onGroupsChange,
 	columns,
+	matches,
 	hidden,
 	onToggle,
 	order,
@@ -170,6 +180,14 @@ export function GridGroupManager({
 	// overlay can resolve a column id back to its manager item.
 	const byId = useMemo(() => new Map(columns.map((c) => [String(c.id), c])), [columns])
 
+	// The filter resolved once, to the ids that pass it — so each zone selects its
+	// rows by lookup rather than re-running the predicate over its own members, and
+	// only this level knows a filter is in play.
+	const visibleColumnIds = useMemo(
+		() => new Set(columns.filter(matches).map((c) => String(c.id))),
+		[columns, matches],
+	)
+
 	const activeItem = mgr.activeId ? byId.get(mgr.activeId) : undefined
 
 	// The group zones (sortable) and the fixed ungrouped pool that trails them.
@@ -181,6 +199,7 @@ export function GridGroupManager({
 
 	const shared = {
 		byId,
+		visibleColumnIds,
 		groups,
 		hidden,
 		onToggle,
@@ -223,7 +242,7 @@ export function GridGroupManager({
 					))}
 				</SortableContext>
 
-				<Button variant="soft" onClick={mgr.addGroup} className="self-start">
+				<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
 					<Icon icon={<Plus />} />
 					{addGroupLabel}
 				</Button>
@@ -251,6 +270,8 @@ type GridGroupManagerZoneViewProps = {
 	columnIds: string[]
 	/** Shared id → item lookup (string-keyed to match the live ids). */
 	byId: Map<string, GridColumnManagerItem>
+	/** Ids passing the manager's filter; the zone renders the members it holds among them. */
+	visibleColumnIds: Set<string>
 	groups: GridColumnGroup[]
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
@@ -299,6 +320,7 @@ function GridGroupManagerZoneView({
 	zone,
 	columnIds,
 	byId,
+	visibleColumnIds,
 	groups,
 	hidden,
 	onToggle,
@@ -310,6 +332,14 @@ function GridGroupManagerZoneView({
 	handle,
 }: GridGroupManagerZoneViewProps) {
 	const { setNodeRef } = useGroupZoneDroppable(zone.id)
+
+	// The zone's matching members — all of them with no query typed. Both the render
+	// and the sortable run off these, so a drag animates over the rows on screen;
+	// `columnIds` stays whole behind them, which is what a drop commits from.
+	const visibleIds = useMemo(
+		() => columnIds.filter((id) => visibleColumnIds.has(id)),
+		[columnIds, visibleColumnIds],
+	)
 
 	// Colors already taken by other groups — offered disabled, so a color maps to
 	// at most one group. Memoized so a drag/hover re-render doesn't rescan every
@@ -348,15 +378,21 @@ function GridGroupManagerZoneView({
 			</CardHeader>
 
 			<CardBody>
-				{columnIds.length === 0 ? (
-					zone.group ? (
-						'No columns in this group'
-					) : (
-						'No ungrouped columns'
-					)
+				{visibleIds.length === 0 ? (
+					// A zone whose members are all filtered out reads as a search result, not
+					// as an empty group — it still holds the columns it holds. An `output`
+					// (implicit `role="status"`) so emptying one zone is announced even while
+					// the rest of the editor still has matches.
+					<output className={cn(k.manager.zone.empty)}>
+						{columnIds.length > 0
+							? 'No results'
+							: zone.group
+								? 'No columns in this group'
+								: 'No ungrouped columns'}
+					</output>
 				) : (
-					<SortableContext items={columnIds} strategy={verticalListSortingStrategy}>
-						{columnIds.map((id) => {
+					<SortableContext items={visibleIds} strategy={verticalListSortingStrategy}>
+						{visibleIds.map((id) => {
 							const item = byId.get(id)
 
 							if (!item) return null
@@ -426,6 +462,7 @@ function GridGroupManagerZoneHeader({
 			/>
 
 			<Button
+				type="button"
 				variant="bare"
 				color="red"
 				aria-label={`Remove group ${label}`}
@@ -502,7 +539,7 @@ function GridGroupManagerColumnRow({
 			{groups.length > 0 && (
 				<Menu placement="bottom-end">
 					<MenuTrigger>
-						<Button variant="bare" aria-label={`Move ${label}`}>
+						<Button type="button" variant="bare" aria-label={`Move ${label}`}>
 							<Icon icon={<EllipsisVertical />} />
 						</Button>
 					</MenuTrigger>

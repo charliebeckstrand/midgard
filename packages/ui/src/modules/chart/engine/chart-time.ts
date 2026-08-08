@@ -19,6 +19,7 @@ import {
 	getLocalTimeZone,
 	startOfWeek,
 } from '@internationalized/date'
+import { resolveLocale } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { GUTTER_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import type { BandScale } from './chart-scale'
@@ -39,16 +40,6 @@ const MAX_TICKS = 100
 
 /** Roughly the widest tick label ("Jan 26", "Jan 5") in characters, for the fit estimate. @internal */
 const LABEL_CHARS = 7
-
-/**
- * Coalesces an optional locale to a concrete BCP 47 tag, falling back to the
- * runtime default — the lib's locale-aware helpers require a string.
- *
- * @internal
- */
-function resolveLocale(locale?: string): string {
-	return locale ?? new Intl.DateTimeFormat().resolvedOptions().locale
-}
 
 /**
  * Parses a raw category value to an epoch-millisecond instant: a `Date`, a
@@ -277,27 +268,26 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	return ticks
 }
 
-/** A one-or-two-digit number zero-padded to two, for a numeric date field. @internal */
-function pad2(value: number): string {
-	return String(value).padStart(2, '0')
-}
-
 /**
  * A numeric date formatter for a plain category axis: when *every* category
- * value parses as a date, labels them `MM-DD` — or `MM-DD-YYYY` once any of
- * them falls outside `referenceYear` (the current year by default), so a
- * cross-year span keeps the year and a single-year one drops it. Returns `null`
- * when any value is not a date, leaving a non-date axis its raw labels; the
- * same formatter labels the axis ticks, tooltip, and data table.
+ * value parses as a date, labels them with the locale's own two-digit
+ * month/day order — gaining the year once any of them falls outside
+ * `referenceYear` (the current year by default), so a cross-year span keeps the
+ * year and a single-year one drops it. Returns `null` when any value is not a
+ * date, leaving a non-date axis its raw labels; the same formatter labels the
+ * axis ticks, tooltip, and data table.
  *
  * @param values - Each row's raw `xKey` value, in row order.
  * @param referenceYear - The year that reads without a suffix; defaults to the
  * current calendar year.
+ * @param locale - BCP 47 tag; defaults to the runtime locale, as
+ * {@link timeCategory} does.
  * @internal
  */
 export function dateCategoryFormat(
 	values: unknown[],
 	referenceYear: number = new Date().getFullYear(),
+	locale?: string,
 ): ((value: unknown) => string) | null {
 	if (values.length === 0) return null
 
@@ -315,16 +305,29 @@ export function dateCategoryFormat(
 		if (new Date(time).getFullYear() !== referenceYear) withYear = true
 	}
 
+	// One formatter across the rows, holding the locale's own field order —
+	// `MM/DD` in en-US, `DD.MM.` in de-DE — rather than a fixed month-first one.
+	//
+	// `format()` per value, not a hand-assembly from `formatToParts`: reading the
+	// token sequence once and filling it from a `Date` takes only field order and
+	// separators from the locale, and silently drops the rest. It emits ASCII
+	// digits for the Arabic-Indic and Bengali numbering systems, and Gregorian
+	// fields under the Persian, Buddhist, and Japanese calendars — all of them
+	// defaults for their locale, reachable from a browser language setting with
+	// no `-u-` extension. The per-row cost belongs to `resolveCategories`, which
+	// memoizes this whole derivation.
+	const format = new DateFormatter(resolveLocale(locale), {
+		month: '2-digit',
+		day: '2-digit',
+		...(withYear && { year: 'numeric' }),
+	})
+
 	return (value) => {
 		const time = parseInstant(value)
 
 		if (time === null) return String(value)
 
-		const date = new Date(time)
-
-		const md = `${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`
-
-		return withYear ? `${md}-${date.getFullYear()}` : md
+		return format.format(new Date(time))
 	}
 }
 

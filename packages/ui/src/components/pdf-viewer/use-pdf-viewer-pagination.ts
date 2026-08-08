@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { useControllable } from '../../hooks'
 import { clamp } from '../../utilities'
 
@@ -36,17 +37,22 @@ export function usePdfViewerPagination(input: PdfPaginationOptions): PdfPaginati
 		value: page,
 		defaultValue: defaultPage,
 		onValueChange: (next) => {
-			if (next !== undefined) onPageChange?.(next)
+			if (next != null) onPageChange?.(next)
 		},
 	})
 
 	const safePage = total > 0 ? clamp(currentPage, 1, total) : 0
 
-	const goToPage = (next: number) => {
-		if (total === 0) return
+	// Stable identity: `goToPage` flows into the PdfViewerContext memo, whose value
+	// is meant to hold steady across renders that don't touch its fields.
+	const goToPage = useCallback(
+		(next: number) => {
+			if (total === 0) return
 
-		setCurrentPage(clamp(Math.round(next), 1, total))
-	}
+			setCurrentPage(clamp(Math.round(next), 1, total))
+		},
+		[total, setCurrentPage],
+	)
 
 	return { safePage, goToPage }
 }

@@ -13,20 +13,20 @@ const baseColumns: Column[] = [
 	{ id: 'doing', title: 'Doing', items: [{ id: 'c' }] },
 ]
 
-function setup(options: { columns?: Column[]; onValueChange?: (next: Column[]) => void } = {}) {
+function setup(options: { columns?: Column[]; onReorder?: (next: Column[]) => void } = {}) {
 	const columns = options.columns ?? baseColumns.map((c) => ({ ...c, items: [...c.items] }))
 
-	const onValueChange = options.onValueChange ?? vi.fn()
+	const onReorder = options.onReorder ?? vi.fn()
 
 	const { result } = renderHook(() =>
 		useKanbanDrag<Card, Column>({
 			columns,
 			getKey: (i) => i.id,
-			onValueChange,
+			onReorder,
 		}),
 	)
 
-	return { api: result.current, columns, onValueChange, rerender: () => result.current }
+	return { api: result.current, columns, onReorder, rerender: () => result.current }
 }
 
 function makeDragStart(id: string): DragStartEvent {
@@ -67,7 +67,7 @@ describe('useKanbanDrag: state', () => {
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
 				getKey: (i) => i.id,
-				onValueChange: () => {},
+				onReorder: () => {},
 			}),
 		)
 
@@ -83,7 +83,7 @@ describe('useKanbanDrag: state', () => {
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
 				getKey: (i) => i.id,
-				onValueChange: () => {},
+				onReorder: () => {},
 			}),
 		)
 
@@ -103,7 +103,7 @@ describe('useKanbanDrag: state', () => {
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
 				getKey: (i) => i.id,
-				onValueChange: () => {},
+				onReorder: () => {},
 			}),
 		)
 
@@ -121,15 +121,15 @@ describe('useKanbanDrag: state', () => {
 
 describe('useKanbanDrag: handleDragOver cross-column moves', () => {
 	it('moves a card to the end of another column when dropped on the column', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragOver(makeDragEvent('a', 'doing'))
 
-		expect(onValueChange).toHaveBeenCalled()
+		expect(onReorder).toHaveBeenCalled()
 
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+		const next = onReorder.mock.calls[0]?.[0] as Column[]
 
 		expect(next[0]?.items.map((i) => i.id)).toEqual(['b'])
 
@@ -137,48 +137,48 @@ describe('useKanbanDrag: handleDragOver cross-column moves', () => {
 	})
 
 	it('inserts before the card being hovered in the target column', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragOver(makeDragEvent('a', 'c'))
 
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+		const next = onReorder.mock.calls[0]?.[0] as Column[]
 
 		expect(next[1]?.items.map((i) => i.id)).toEqual(['a', 'c'])
 	})
 
 	it('is a no-op when the drag is within the same column', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragOver(makeDragEvent('a', 'b'))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('is a no-op when there is no over target', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragOver(makeDragEvent('a', null))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('is a no-op when active and over are the same id', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragOver(makeDragEvent('a', 'a'))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
-	it('is a no-op when there is no onValueChange handler', () => {
+	it('is a no-op when there is no onReorder handler', () => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
@@ -192,38 +192,38 @@ describe('useKanbanDrag: handleDragOver cross-column moves', () => {
 
 describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 	it('reorders items within the same column', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragEnd(makeDragEvent('a', 'b'))
 
-		const next = onValueChange.mock.calls[0]?.[0] as Column[]
+		const next = onReorder.mock.calls[0]?.[0] as Column[]
 
 		expect(next[0]?.items.map((i) => i.id)).toEqual(['b', 'a'])
 	})
 
 	it('is a no-op when dragging across columns (already handled in dragOver)', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragEnd(makeDragEvent('a', 'c'))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('is a no-op when there is no over target', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragEnd(makeDragEvent('a', null))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
-	it('is a no-op when handleDragEnd has no onValueChange handler', () => {
+	it('is a no-op when handleDragEnd has no onReorder handler', () => {
 		const { result } = renderHook(() =>
 			useKanbanDrag<Card, Column>({
 				columns: baseColumns,
@@ -235,37 +235,37 @@ describe('useKanbanDrag: handleDragEnd same-column reorder', () => {
 	})
 
 	it('is a no-op when handleDragEnd targets an unknown active card', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		api.handleDragEnd(makeDragEvent('ghost', 'a'))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 
 	it('is a no-op when the over id resolves to no column', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		// 'unknown' is neither a column id nor a card id, so findColumn returns
 		// undefined and the handler bails at the `!activeCol || !overCol` guard.
 		api.handleDragEnd(makeDragEvent('a', 'unknown'))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 })
 
 describe('useKanbanDrag: handleDragOver edge cases', () => {
 	it('skips when the active card has no owning column', () => {
-		const onValueChange = vi.fn()
+		const onReorder = vi.fn()
 
-		const { api } = setup({ onValueChange })
+		const { api } = setup({ onReorder })
 
 		// Active id that doesn't exist in any column.
 		api.handleDragOver(makeDragEvent('ghost', 'doing'))
 
-		expect(onValueChange).not.toHaveBeenCalled()
+		expect(onReorder).not.toHaveBeenCalled()
 	})
 })

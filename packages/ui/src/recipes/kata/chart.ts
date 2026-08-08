@@ -21,6 +21,7 @@ import { mode } from '../../core/recipe'
 import { iro, kokkaku, sen, ugoki } from '../kiso'
 
 const { text } = iro
+const { duration, ease, mark } = ugoki
 
 /**
  * Per-colour mark classes: `stroke` for lines and markers, `fill` for bars,
@@ -131,12 +132,14 @@ export const k = {
 	label: ['text-sm text-left', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
-	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled. */
+	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
 	focusRing: sen.focus.ring,
+	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */
+	arrow: text.default,
 	/**
 	 * The drawing SVG's pointer posture at the resolved tier: at spark the whole
 	 * drawing goes inert — a sparkline is read-only, so no mark hover styling,
-	 * cursor, or hit target may engage. The descendant rule is the load-bearing
+	 * cursor, or hit target can engage. The descendant rule is the load-bearing
 	 * half: the hit layers re-enable themselves through `pointerEvents="all"` /
 	 * `"stroke"` presentation attributes, which win over an inherited
 	 * `pointer-events: none` but lose to any author CSS rule. Wider tiers add
@@ -160,5 +163,12 @@ export const k = {
 		},
 		slide: { layout: 'position' as const, transition: ugoki.spring },
 	},
+	/**
+	 * Motion vocabulary for the mount reveals: the shared data-viz `mark`
+	 * family plus the tempo primitives the timing specs (`chart-motion.ts`,
+	 * and `map-motion.ts` via `kata/map`) compose their module-specific
+	 * timings from.
+	 */
+	motion: { mark, duration, ease },
 	skeleton: kokkaku.chart,
 } as const

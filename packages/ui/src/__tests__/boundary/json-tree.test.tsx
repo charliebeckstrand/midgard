@@ -53,6 +53,30 @@ describe('JsonTree', () => {
 		expect(screen.getByText('"value"')).toBeInTheDocument()
 	})
 
+	it('restores a descendant expansion after its ancestor is collapsed and reopened', () => {
+		renderUI(<JsonTree data={{ outer: { inner: { leaf: 1 } } }} defaultExpandDepth={2} />)
+
+		const inner = screen.getByText('"inner"').closest('button')
+
+		if (!inner) throw new Error('inner toggle not found')
+
+		fireEvent.click(inner)
+
+		expect(screen.getByText('"leaf"')).toBeInTheDocument()
+
+		const outer = screen.getByText('"outer"').closest('button')
+
+		if (!outer) throw new Error('outer toggle not found')
+
+		// Collapsing unmounts every descendant, so a node holding its expansion
+		// only in local state loses it. The tree-level memory outlives the unmount.
+		fireEvent.click(outer)
+
+		fireEvent.click(outer)
+
+		expect(screen.getByText('"leaf"')).toBeInTheDocument()
+	})
+
 	it('shows a summary when a branch is closed', () => {
 		renderUI(<JsonTree data={{ items: [1, 2, 3] }} defaultExpandDepth={1} />)
 
@@ -214,22 +238,17 @@ describe('JsonTree', () => {
 	})
 
 	describe('virtualize', () => {
-		it('throws when virtualize is set without maxHeight', () => {
-			expect(() => renderUI(<JsonTree data={{}} virtualize />)).toThrow(/requires `maxHeight`/)
-		})
-
 		it.each<[string, () => ReactElement]>([
 			[
 				'mounts with data-slot="json-tree" when virtualized',
-				() => <JsonTree data={{ a: 1, b: 2 }} virtualize maxHeight="200px" />,
+				() => <JsonTree data={{ a: 1, b: 2 }} virtualize={{ maxHeight: '200px' }} />,
 			],
 			[
 				'mounts virtualized with a custom estimateSize and overscan',
 				() => (
 					<JsonTree
 						data={{ a: 1, b: 2 }}
-						virtualize={{ estimateSize: 40, overscan: 5 }}
-						maxHeight="200px"
+						virtualize={{ maxHeight: '200px', estimateSize: 40, overscan: 5 }}
 					/>
 				),
 			],
@@ -238,8 +257,7 @@ describe('JsonTree', () => {
 				() => (
 					<JsonTree
 						data={{ a: 1 }}
-						virtualize
-						maxHeight="200px"
+						virtualize={{ maxHeight: '200px' }}
 						expanded={new Set(['$'])}
 						onExpandedChange={() => {}}
 					/>
@@ -250,8 +268,7 @@ describe('JsonTree', () => {
 				() => (
 					<JsonTree
 						data={{ outer: { needle: 'match' } }}
-						virtualize
-						maxHeight="200px"
+						virtualize={{ maxHeight: '200px' }}
 						search={{ value: 'needle', filter: true }}
 					/>
 				),
@@ -271,8 +288,7 @@ describe('JsonTree', () => {
 				<JsonTree
 					data={{ outer: { inner: { needle: 'match' } } }}
 					defaultExpandDepth={0}
-					virtualize
-					maxHeight="200px"
+					virtualize={{ maxHeight: '200px' }}
 					search={{ value: 'needle' }}
 					onExpandedChange={onExpandedChange}
 				/>,
@@ -291,7 +307,7 @@ describe('JsonTree', () => {
 			const data = Object.fromEntries(Array.from({ length: 100 }, (_, i) => [`key_${i}`, i]))
 
 			const { container } = renderUI(
-				<JsonTree data={data} virtualize maxHeight="400px" defaultExpandDepth={1} />,
+				<JsonTree data={data} virtualize={{ maxHeight: '400px' }} defaultExpandDepth={1} />,
 			)
 
 			// jsdom reports zero viewport; react-virtual renders 0 items plus

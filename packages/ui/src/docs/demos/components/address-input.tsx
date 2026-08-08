@@ -56,7 +56,7 @@ const mockGooglePlaces: AddressProvider = async (query) => {
 }
 
 function DefaultExample() {
-	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
+	const [address, setAddress] = useState<AddressSuggestion | null>(null)
 
 	return (
 		<>
@@ -74,7 +74,7 @@ function DefaultExample() {
 }
 
 function WithInitialOptionsExample() {
-	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
+	const [address, setAddress] = useState<AddressSuggestion | null>(null)
 
 	return (
 		<>
@@ -103,7 +103,7 @@ function WithInitialOptionsExample() {
 }
 
 function CustomProviderExample() {
-	const [address, setAddress] = useState<AddressSuggestion | undefined>(undefined)
+	const [address, setAddress] = useState<AddressSuggestion | null>(null)
 
 	return (
 		<>

@@ -24,7 +24,7 @@ function Board({ onValueChange }: { onValueChange?: (next: Column[]) => void } =
 		<Kanban
 			columns={columns}
 			getKey={(item: Item) => item.id}
-			onValueChange={onValueChange}
+			onReorder={onValueChange}
 			aria-label="Board"
 		>
 			{columns.map((column) => (
@@ -68,7 +68,7 @@ function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => 
 			columns={cols}
 			getKey={(item: Item) => item.id}
 			aria-label="Board"
-			onValueChange={(next) => {
+			onReorder={(next) => {
 				setCols(next)
 
 				onValueChange?.(next)
@@ -194,7 +194,7 @@ describe('KanbanCard', () => {
 
 	it('marks cards disabled (not read-only) when the board is disabled', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id} onValueChange={() => {}} disabled>
+			<Kanban columns={columns} getKey={(item: Item) => item.id} onReorder={() => {}} disabled>
 				<KanbanColumn columnId="todo">
 					<KanbanColumnBody>
 						<KanbanCard cardId="1">One</KanbanCard>
@@ -230,7 +230,7 @@ describe('KanbanCard', () => {
 
 	it('honors a custom aria-label on an interactive card', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id} onValueChange={() => {}}>
+			<Kanban columns={columns} getKey={(item: Item) => item.id} onReorder={() => {}}>
 				<KanbanColumn columnId="todo">
 					<KanbanColumnBody>
 						<KanbanCard cardId="1" aria-label="Card One">

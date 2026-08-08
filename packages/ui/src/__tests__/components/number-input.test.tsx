@@ -209,7 +209,7 @@ describe('NumberInput', () => {
 
 		await user.clear(input)
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 	})
 
 	it('binds to a Form field by name, writing through field.setValue', async () => {

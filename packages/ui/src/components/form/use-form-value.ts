@@ -2,13 +2,15 @@
 
 import { type SetValue, useControllable } from '../../hooks/use-controllable'
 import { useFormField } from './context'
+import { hasIssues } from './form-reducer'
 
 type FormValueOptions<T> = {
 	/** Controlled value. Wins over the form field when both are present. */
 	value?: T | null
 	/** Initial value when uncontrolled and not form-bound. */
 	defaultValue?: T | (() => T)
-	onValueChange?: (value: T | undefined) => void
+	/** Fires with the committed value, or `null` once it is cleared (CONVENTIONS §7.3). */
+	onValueChange?: (value: T | null) => void
 }
 
 /** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, a `setTouched` for blur, and an `invalid` flag from any bound field's errors. */
@@ -29,7 +31,7 @@ export type FormValueResult<T> = {
  * @param name - Field key to bind; undefined leaves the hook unbound (plain
  * controlled/uncontrolled state).
  * @param options - `value` (controlled), `defaultValue` (uncontrolled seed,
- * may be a lazy initializer), and `onValueChange`.
+ * can be a lazy initializer), and `onValueChange`.
  * @returns A {@link FormValueResult} with `value`, `setValue`, `setTouched`,
  * and `invalid`.
  * @typeParam T - The control's value type.
@@ -55,7 +57,10 @@ export function useFormValue<T>(
 		defaultValue,
 		onValueChange: bound
 			? (v) => {
-					field.setValue(v)
+					// The store's "no value" is `undefined`; §7.3's `null` is a
+					// prop/callback contract, and writing it through would change
+					// submit payloads and reject `optional()` schema validators.
+					field.setValue(v ?? undefined)
 					onValueChange?.(v)
 				}
 			: onValueChange,
@@ -65,6 +70,6 @@ export function useFormValue<T>(
 		value: current,
 		setValue: setCurrent,
 		setTouched: () => field?.setTouched(),
-		invalid: field && field.errors !== undefined && field.errors.length > 0,
+		invalid: field && hasIssues(field.errors),
 	}
 }

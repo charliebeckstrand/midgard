@@ -17,7 +17,7 @@ const PRESETS = [
 ] as const
 
 function LocalProviderExample({ preset }: { preset: (typeof PRESETS)[number] }) {
-	const [amount, setAmount] = useState<number | undefined>(1234.56)
+	const [amount, setAmount] = useState<number | null>(1234.56)
 
 	return (
 		<LocaleProvider locale={preset.locale} currency={preset.currency}>

@@ -8,7 +8,8 @@ import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
-import { useMenuActions, useMenuState } from './context'
+import { useMenuActions, useMenuCapped, useMenuState } from './context'
+import { MENUITEM_SELECTOR } from './use-menu-state'
 
 /** Props for {@link MenuContent}: an optional accessible name for `static` menus. */
 export type MenuContentProps = {
@@ -36,8 +37,10 @@ export function MenuContent({
 	'aria-labelledby': ariaLabelledby,
 	children,
 }: MenuContentProps) {
-	const { open, menuId, floatingStyles, getFloatingProps, density, size } = useMenuState()
+	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, density, size } =
+		useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
+	const capped = useMenuCapped()
 	const glass = useGlass()
 
 	// The mask fading the scroll edges lives on this inner viewport, not the
@@ -46,7 +49,11 @@ export function MenuContent({
 	const scrollOverflowRef = useScrollOverflow()
 
 	const viewport = (
-		<div ref={scrollOverflowRef} data-slot="menu-viewport" className={k.viewport({ density })}>
+		<div
+			ref={scrollOverflowRef}
+			data-slot="menu-viewport"
+			className={k.viewport({ density, capped })}
+		>
 			{children}
 		</div>
 	)
@@ -58,7 +65,7 @@ export function MenuContent({
 					role="menu"
 					aria-label={ariaLabel}
 					aria-labelledby={ariaLabelledby}
-					itemSelector='[role="menuitem"]:not([data-disabled])'
+					itemSelector={MENUITEM_SELECTOR}
 					typeahead
 					glass={glass}
 					// A static menu is part of the page, not a transient overlay;
@@ -83,7 +90,21 @@ export function MenuContent({
 				<PopoverPanel
 					id={menuId}
 					role="menu"
-					itemSelector='[role="menuitem"]:not([data-disabled])'
+					itemSelector={MENUITEM_SELECTOR}
+					// A dropdown keeps focus on its trigger while open; opening never
+					// pulls focus into the panel. Seating focus on the portaled,
+					// animating panel is the path that drops to `<body>` on open in a
+					// real browser — leaving it on the trigger sidesteps that, and Tab
+					// off the trigger closes the menu (see MenuTrigger). A right-click
+					// context menu has no persistent trigger to hold focus, so it still
+					// pulls focus into the panel for keyboard navigation.
+					autoFocus={!isDropdown}
+					// Tab is held inside the panel wherever focus lives in it (a
+					// right-click context menu): the menu is left by dismissing it, and
+					// Tab walking off into the page behind an open overlay strands the
+					// user outside a surface still on screen. A dropdown is exempt — its
+					// focus stays on the trigger, where Tab out is the documented close.
+					trapTab={!isDropdown}
 					typeahead
 					glass={glass}
 					className={cn('relative', k.content, className)}

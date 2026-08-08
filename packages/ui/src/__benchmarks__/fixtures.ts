@@ -7,9 +7,10 @@
 
 import type { GridColumn } from '../modules/grid'
 import type { ColumnSizeProfile } from '../modules/grid/engine/grid-column/allocate'
-import type { QueryField, QueryGroup, QueryNode } from '../modules/query/query-builder/types'
+import type { QueryField, QueryGroup, QueryNode } from '../modules/query/engine/types'
 
-function rng(seed = 1) {
+/** The shared LCG behind every generator here and in `browser/fixtures.ts`. */
+export function rng(seed = 1) {
 	let state = seed >>> 0
 
 	return () => {
@@ -52,7 +53,7 @@ const CITIES = [
 
 const PERIODS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-export function makeShipments(count: number, seed = 1): Shipment[] {
+function buildShipments(count: number, seed = 1): Shipment[] {
 	const rand = rng(seed)
 
 	const out: Shipment[] = new Array(count)
@@ -78,6 +79,48 @@ export function makeShipments(count: number, seed = 1): Shipment[] {
 
 	return out
 }
+
+const shipmentCache = new Map<string, Shipment[]>()
+
+/**
+ * {@link makeShipments}, memoized per `(count, seed)`. Several files draw the
+ * same rows and the large rungs run to a hundred thousand, so generating them
+ * once per parameter pair keeps collection off the clock; nothing mutates the
+ * rows, so the shared array is safe to hand out.
+ */
+export function shipments(count: number, seed = 1): Shipment[] {
+	const key = `${count}:${seed}`
+
+	const hit = shipmentCache.get(key)
+
+	if (hit) return hit
+
+	const rows = buildShipments(count, seed)
+
+	shipmentCache.set(key, rows)
+
+	return rows
+}
+
+/**
+ * The eight `id`/`title` pairs every grid scenario columns over. Held as pairs
+ * rather than as a column set because each scenario decorates them
+ * differently — sortable, editable, width-pinned, with or without an explicit
+ * `cell` — and the shared thing is the field list, not the decoration.
+ */
+export const SHIPMENT_FIELDS = [
+	['id', 'ID'],
+	['reference', 'Reference'],
+	['origin', 'Origin'],
+	['destination', 'Destination'],
+	['status', 'Status'],
+	['carrier', 'Carrier'],
+	['loads', 'Loads'],
+	['weight', 'Weight'],
+] as const
+
+/** The row identity every grid scenario keys on. */
+export const shipmentKey = (row: Shipment) => row.id
 
 type Json = string | number | boolean | null | Json[] | { [k: string]: Json }
 
@@ -160,6 +203,52 @@ export function makeQueryTree(depth: number, branching: number): QueryGroup {
 	return build(depth)
 }
 
+/**
+ * The JSON trees both json-tree benches run — `json-tree` measures the pure
+ * utilities over them, `json-tree-render` the component that walks them, and
+ * the two only compare while the sizes match. Branch count grows
+ * exponentially: `branching^depth`.
+ */
+export const JSON_TREES = {
+	small: makeJsonTree(3, 5),
+	medium: makeJsonTree(4, 5),
+	large: makeJsonTree(5, 5),
+} as const
+
+/** A term every leaf path carries, and one no tree holds — the hit and miss ends. */
+export const JSON_HIT = 'value-root'
+
+export const JSON_MISS = '__absent__'
+
+/**
+ * The query trees both query benches run — `query-builder` edits them,
+ * `query-evaluate` reads them, and the two only read against each other while
+ * the sizes match, so they are declared once here.
+ *
+ * Total rules ≈ `branching^(depth+1)`.
+ */
+export const QUERY_TREES = [
+	{ label: 'shallow-wide (20 rules)', tree: makeQueryTree(1, 20) },
+	{ label: 'balanced (256 rules)', tree: makeQueryTree(3, 4) },
+	{ label: 'deep-wide (1,024 rules)', tree: makeQueryTree(4, 4) },
+] as const
+
+/** Every rule id in a query tree, in walk order — the ids a scenario targets. */
+export function collectRuleIds(group: QueryGroup): string[] {
+	const ids: string[] = []
+
+	function walk(nodes: QueryNode[]) {
+		for (const node of nodes) {
+			if (node.type === 'rule') ids.push(node.id)
+			else walk(node.children)
+		}
+	}
+
+	walk(group.children)
+
+	return ids
+}
+
 export type KanbanItem = { id: string; title: string }
 
 export function makeKanbanColumns(
@@ -189,10 +278,32 @@ export function makeListItems(count: number): { id: string; title: string }[] {
 	return items
 }
 
-export function makeComboboxOptions(count: number): { value: string; label: string }[] {
-	const options: { value: string; label: string }[] = new Array(count)
+/** One selectable option, the shape Combobox, Listbox, and `VirtualOptions` all read. */
+export type Option = { value: string; label: string }
+
+function buildOptions(count: number): Option[] {
+	const options: Option[] = new Array(count)
 
 	for (let i = 0; i < count; i++) options[i] = { value: `opt-${i}`, label: `Option ${i}` }
+
+	return options
+}
+
+const optionCache = new Map<number, Option[]>()
+
+/**
+ * Selectable options, memoized per `count`. The option benches draw the same
+ * pools and must build them outside the timed region, so the cache is the only
+ * door here too.
+ */
+export function comboboxOptions(count: number): Option[] {
+	const hit = optionCache.get(count)
+
+	if (hit) return hit
+
+	const options = buildOptions(count)
+
+	optionCache.set(count, options)
 
 	return options
 }

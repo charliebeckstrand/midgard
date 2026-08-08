@@ -36,11 +36,11 @@ export type ChartValueAxis = {
 	title?: string
 	/**
 	 * Draw this axis's ticks as the chart's grid. On a cartesian chart one axis
-	 * should carry them — two independent tick sets rarely align, and doubled
+	 * normally carries them — two independent tick sets rarely align, and doubled
 	 * hairlines read as noise — so `y` defaults on and `y2` off, standing in
 	 * only when no `y`-bound series resolves a scale; a point chart's grid
-	 * reads both ways, so both its axes default on. The chart's `grid` switch
-	 * still gates the whole layer.
+	 * reads both ways, so both its axes default on. Set an axis's `grid` false to
+	 * drop its hairlines; drop every axis's to clear the layer.
 	 * @defaultValue `true`, except a cartesian chart's `y2`
 	 */
 	grid?: boolean
@@ -70,8 +70,8 @@ export type ChartCategoryAxis = {
 	 * Format each row's category — the band-axis labels and the tooltip and data
 	 * table readout — from its raw `xKey` value. Overrides the default `String`
 	 * coercion and the automatic date normalization: with no formatter set, a band
-	 * axis whose every value parses as a date labels itself `MM-DD` (or
-	 * `MM-DD-YYYY` across years) on its own. Ignored on the ticks of a `type: 'time'`
+	 * axis whose every value parses as a date labels itself in the locale's own
+	 * numeric month/day order, gaining the year across years. Ignored on the ticks of a `type: 'time'`
 	 * axis, which places and labels its own calendar ticks, though it still formats
 	 * that axis's readout.
 	 */
@@ -87,6 +87,16 @@ export type ChartCategoryAxis = {
 	separator?: 'solid' | 'dashed'
 	/** A short title drawn along the band axis, naming what the categories enumerate. */
 	title?: string
+	/**
+	 * Tilt category labels that would otherwise collide instead of thinning them
+	 * to every nth: past that point every label draws, angled, and none are
+	 * dropped. Off by default, so an unset axis keeps thinning.
+	 * @remarks Vertical orientation only — under `orientation="horizontal"`
+	 * category labels already run down the gutter and read straight, so this has
+	 * no effect there.
+	 * @defaultValue false
+	 */
+	tickRotation?: boolean
 }
 
 /**

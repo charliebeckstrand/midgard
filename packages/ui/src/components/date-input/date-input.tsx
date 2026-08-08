@@ -5,6 +5,7 @@ import { type ReactNode, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { useLocale } from '../../providers/locale'
 import { Button } from '../button'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
@@ -20,6 +21,7 @@ import {
 	maskDateText,
 	outOfRangeMessage,
 	parseDateText,
+	resolveDateInputFormat,
 } from './date-input-utilities'
 
 /**
@@ -35,11 +37,13 @@ export type DateInputProps = Omit<
 	value?: Date | null
 	defaultValue?: Date
 	/** Fires with the parsed Date once the text is a complete in-range date; fires `undefined` when it stops being one. */
-	onValueChange?: (value: Date | undefined) => void
+	onValueChange?: (value: Date | null) => void
 	/**
 	 * Pattern that masks and parses the typed text.
 	 *
-	 * @defaultValue 'MM/DD/YYYY'
+	 * @defaultValue The layout matching the ambient `<LocaleProvider>` locale —
+	 * `'DD/MM/YYYY'` for a day-first locale, `'YYYY-MM-DD'` for a year-first one,
+	 * else `'MM/DD/YYYY'`.
 	 */
 	format?: DateInputFormat
 	/** Earliest accepted day; a complete date before it marks the input invalid and emits `undefined`. */
@@ -68,8 +72,8 @@ export type DateInputProps = Omit<
 }
 
 /**
- * Text Input that masks typed digits into a date pattern (`format`, default
- * `MM/DD/YYYY`). Emits a `Date` via `onValueChange` once the text is a
+ * Text Input that masks typed digits into a date pattern (`format`, defaulting
+ * to the ambient locale's field order). Emits a `Date` via `onValueChange` once the text is a
  * complete, real, in-range date. Marks itself invalid — and renders the
  * `invalidMessage` — when a complete entry does not parse, when it falls
  * outside `min`/`max`, or when blur leaves a partial entry behind. Controlled
@@ -88,10 +92,10 @@ export function DateInput({
 	value,
 	defaultValue,
 	onValueChange,
-	format = 'MM/DD/YYYY',
+	format: formatProp,
 	min,
 	max,
-	invalidMessage = `Enter a valid date (${format})`,
+	invalidMessage: invalidMessageProp,
 	placeholder,
 	invalid,
 	suffix,
@@ -106,6 +110,16 @@ export function DateInput({
 	...props
 }: DateInputProps) {
 	const control = useControl()
+
+	const ambient = useLocale()
+
+	// Field order follows the ambient locale unless the caller pins it, so the
+	// masked field agrees with the Calendar it pairs with inside a DatePicker.
+	const { format, invalidMessage } = resolveDateInputFormat(
+		formatProp,
+		ambient.locale,
+		invalidMessageProp,
+	)
 
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -149,6 +163,9 @@ export function DateInput({
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 
+	// Resolved eagerly though only the `typedInvalid` branch renders it: gating it
+	// buys one skipped parse of a ≤10-character text and costs this component its
+	// cognitive-complexity budget.
 	const activeMessage = resolveInvalidMessage(text, format, invalidMessage, min, max)
 
 	const { ref: setRefs, reformat } = useFormattedInput({
@@ -327,6 +344,7 @@ function dateInputSuffix({
 
 	const clear = (
 		<Button
+			type="button"
 			variant="bare"
 			className="pointer-events-auto"
 			aria-label="Clear date"

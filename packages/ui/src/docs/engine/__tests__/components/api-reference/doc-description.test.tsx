@@ -16,7 +16,7 @@ describe('DocDescription', () => {
 			<DocDescription description="Hint for a {@link CommandPaletteItem}, built on Kbd." />,
 		)
 
-		expect(bySlot(container, 'doc-description')).toBeInTheDocument()
+		expect(bySlot(container, 'markdown')).toBeInTheDocument()
 
 		// The reference collapses to plain text in flow — no badge chip, no hover
 		// card trigger.

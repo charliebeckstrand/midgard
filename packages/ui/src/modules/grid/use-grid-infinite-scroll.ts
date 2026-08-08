@@ -3,7 +3,7 @@
 import { type RefObject, useEffect, useRef } from 'react'
 
 /**
- * Pixels the scroll viewport may grow between viewport-fill fetches before the
+ * Pixels the scroll viewport can grow between viewport-fill fetches before the
  * fill is declared unbounded. A bounded container's `clientHeight` holds still
  * while rows append (give or take scrollbar/zoom rounding); a container sizing
  * to its content grows by at least a row per batch, far past this. @internal
@@ -24,7 +24,7 @@ export type LoadMoreDecision =
 	| 'unbounded'
 
 /**
- * Resolves whether the virtualized scroll may call `onLoadMore`, upholding the
+ * Resolves whether the virtualized scroll can call `onLoadMore`, upholding the
  * infinite-scroll firing invariant: *`onLoadMore` never fires more than once
  * per user scroll interaction, except for a bounded initial viewport-fill.*
  * The pure seam {@link useGridInfiniteScroll} and its tests share — fed plain
@@ -46,7 +46,7 @@ export type LoadMoreDecision =
  *   overflows. Bounded by geometry: a capped viewport can only take
  *   `maxHeight / rowHeight` rows before overflowing. When the container's cap
  *   resolved to a fixed length (`capBounded`) that termination is guaranteed
- *   — its `clientHeight` may legitimately grow *toward* the cap while
+ *   — its `clientHeight` can legitimately grow *toward* the cap while
  *   under-filled. Without a resolved cap, a `clientHeight` that grew past
  *   `fillBase` (the viewport measured when the fill began) as batches
  *   appended is a container sizing to its content — the unbounded-window

@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { JsonTree, type JsonValue } from '../../../components/json-tree'
 import { Stack } from '../../../components/stack'
-import { QueryBuilder, type QueryField, type QueryGroupNode } from '../../../modules/query'
+import {
+	QueryBuilder,
+	type QueryField,
+	type QueryGroupNode,
+	QuerySummary,
+} from '../../../modules/query'
 import { Example } from '../../engine'
 
 const fields: QueryField[] = [
@@ -25,10 +30,7 @@ const seed: QueryGroupNode = {
 	id: 'root',
 	type: 'group',
 	combinator: 'and',
-	children: [
-		{ id: 'r1', type: 'rule', field: 'name', operator: 'contains', value: 'ada' },
-		{ id: 'r2', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
-	],
+	children: [{ id: 'r1', type: 'rule', field: 'status', operator: 'equals', value: 'active' }],
 }
 
 function BuilderExample() {
@@ -38,6 +40,9 @@ function BuilderExample() {
 		<Example title="Builder">
 			<Stack gap="md">
 				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />
+				{/* The read view over the same tree: a human-readable line that updates as
+				    the builder edits and disappears when no rule constrains. */}
+				<QuerySummary root={query} fields={fields} />
 				{/* QueryGroupNode declares `value: unknown` and an optional combinator; this demo
 				    feeds string values with a combinator on every node, leaving the tree
 				    JSON-shaped. */}

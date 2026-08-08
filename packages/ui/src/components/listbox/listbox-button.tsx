@@ -23,7 +23,6 @@ type ListboxButtonProps = {
 	onBlur?: FocusEventHandler<HTMLButtonElement>
 	placeholder: string
 	truncate: boolean
-	tabularNums?: boolean
 	density: ControlSize
 	size: ControlSize
 }
@@ -51,13 +50,13 @@ export function ListboxButton({
 	onBlur,
 	placeholder,
 	truncate,
-	tabularNums,
 	density,
 	size,
 }: ListboxButtonProps) {
 	return (
 		<HeadlessProvider>
 			<Button
+				type="button"
 				id={id}
 				ref={ref}
 				role="combobox"
@@ -76,7 +75,7 @@ export function ListboxButton({
 				{...invalidAttrs(invalid)}
 				className={cn(k({ density, size }))}
 			>
-				<span className={cn(k.value({ truncate }), tabularNums && 'tabular-nums')}>
+				<span className={cn(k.value({ truncate }))}>
 					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}
 				</span>
 			</Button>

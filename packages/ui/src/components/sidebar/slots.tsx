@@ -1,7 +1,7 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { type ReactNode, use } from 'react'
+import { use } from 'react'
 import { cn, createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
 import { OffcanvasContext } from '../../primitives/offcanvas'
@@ -9,21 +9,21 @@ import { k } from '../../recipes/kata/sidebar'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
-export type SidebarHeaderProps = SlotProps<'div'> & {
-	/** Glyph for the auto-injected close button shown inside an offcanvas drawer. @defaultValue an `X` icon */
-	closeIcon?: ReactNode
-}
+/** Props for {@link SidebarHeader} (`<div>` attributes). */
+export type SidebarHeaderProps = SlotProps<'div'>
 
+/** Props for {@link SidebarBody} (`<div>` attributes). */
 export type SidebarBodyProps = SlotProps<'div'>
 
+/** Props for {@link SidebarFooter} (`<div>` attributes). */
 export type SidebarFooterProps = SlotProps<'div'>
 
 /**
  * Top region of a `Sidebar` for brand or affordances. Inside an offcanvas
  * drawer it auto-appends a close button (labeled "Close navigation") wired to
- * the drawer's dismiss; pass `closeIcon` to override its glyph.
+ * the drawer's dismiss.
  */
-export function SidebarHeader({ className, children, closeIcon, ...props }: SidebarHeaderProps) {
+export function SidebarHeader({ className, children, ...props }: SidebarHeaderProps) {
 	const offcanvas = use(OffcanvasContext)
 
 	return (
@@ -31,10 +31,11 @@ export function SidebarHeader({ className, children, closeIcon, ...props }: Side
 			{children}
 			{offcanvas && (
 				<Button
+					type="button"
 					variant="bare"
 					aria-label="Close navigation"
 					className="ml-auto"
-					prefix={closeIcon ?? <Icon icon={<X />} />}
+					prefix={<Icon icon={<X />} />}
 					onClick={offcanvas.close}
 				/>
 			)}

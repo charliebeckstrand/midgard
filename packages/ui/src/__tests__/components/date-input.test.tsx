@@ -2,13 +2,15 @@ import { createRef, type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { DateInput } from '../../components/date-input'
+import { localeDateInputFormat } from '../../components/date-input/date-input-utilities'
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
 // while the input holds in-progress text.
-function ControlledDateInput({ onValueChange }: { onValueChange?: (v: Date | undefined) => void }) {
+function ControlledDateInput({ onValueChange }: { onValueChange?: (v: Date | null) => void }) {
 	const [date, setDate] = useState<Date | null>(null)
 
 	return (
@@ -103,7 +105,7 @@ describe('DateInput', () => {
 		expect(input).toHaveFocus()
 	})
 
-	it('clears a committed date from the clear button and emits undefined', async () => {
+	it('clears a committed date from the clear button and emits null', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
@@ -120,7 +122,7 @@ describe('DateInput', () => {
 
 		expect(input.value).toBe('')
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 	})
 
 	it('omits the clear button with clearable={false}', () => {
@@ -214,7 +216,7 @@ describe('DateInput', () => {
 		expect(input.value).toBe('01/05/2026')
 	})
 
-	it('emits undefined when a complete date is edited back to partial', async () => {
+	it('emits null when a complete date is edited back to partial', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
@@ -229,7 +231,7 @@ describe('DateInput', () => {
 
 		expect(input.value).toBe('12/25/202')
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 	})
 
 	it('deletes the digit before a trailing separator on backspace', async () => {
@@ -518,7 +520,7 @@ describe('DateInput', () => {
 		// Retype the final digit: the text leaves and re-enters the held day.
 		await user.type(input, '{Backspace}')
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		const calls = onChange.mock.calls.length
 
@@ -562,5 +564,57 @@ describe('DateInput', () => {
 		expect(submitted.getMonth()).toBe(11)
 
 		expect(submitted.getDate()).toBe(25)
+	})
+})
+
+describe('DateInput locale-derived layout', () => {
+	it('derives the supported layout from the locale field order', () => {
+		expect(localeDateInputFormat('en-US')).toBe('MM/DD/YYYY')
+
+		expect(localeDateInputFormat('en-GB')).toBe('DD/MM/YYYY')
+
+		expect(localeDateInputFormat('de-DE')).toBe('DD/MM/YYYY')
+
+		expect(localeDateInputFormat('fr-FR')).toBe('DD/MM/YYYY')
+
+		expect(localeDateInputFormat('ja-JP')).toBe('YYYY-MM-DD')
+
+		expect(localeDateInputFormat('sv-SE')).toBe('YYYY-MM-DD')
+	})
+
+	it('masks a typed date day-first under a day-first locale', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onValueChange = vi.fn()
+
+		const { container } = renderUI(
+			<LocaleProvider locale="en-GB">
+				<DateInput onValueChange={onValueChange} />
+			</LocaleProvider>,
+		)
+
+		const input = bySlot(container, 'date-input') as HTMLInputElement
+
+		await user.type(input, '10062026')
+
+		// Day-first: 10 June 2026, not 6 October. The field previously masked
+		// month-first whatever the locale, so this entry read as October.
+		expect(input.value).toBe('10/06/2026')
+
+		const emitted = onValueChange.mock.calls.at(-1)?.[0] as Date
+
+		expect(emitted.getMonth()).toBe(5)
+
+		expect(emitted.getDate()).toBe(10)
+	})
+
+	it('lets an explicit format prop override the locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="en-GB">
+				<DateInput format="MM/DD/YYYY" />
+			</LocaleProvider>,
+		)
+
+		expect((bySlot(container, 'date-input') as HTMLInputElement).placeholder).toBe('MM/DD/YYYY')
 	})
 })

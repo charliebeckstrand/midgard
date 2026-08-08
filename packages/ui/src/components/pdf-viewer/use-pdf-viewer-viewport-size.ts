@@ -32,10 +32,15 @@ export function usePdfViewerViewportSize(
 		const padX = Number.parseFloat(styles.paddingLeft) + Number.parseFloat(styles.paddingRight)
 		const padY = Number.parseFloat(styles.paddingTop) + Number.parseFloat(styles.paddingBottom)
 
-		setSize({
-			width: el.clientWidth - padX,
-			height: el.clientHeight - padY,
-		})
+		const width = el.clientWidth - padX
+		const height = el.clientHeight - padY
+
+		// Keep the prior object when the content box is unchanged: a ResizeObserver
+		// callback on an unrelated reflow would otherwise re-render the viewer and
+		// recompute scale and the shared context off an identical measurement.
+		setSize((prev) =>
+			prev && prev.width === width && prev.height === height ? prev : { width, height },
+		)
 	}, [ref])
 
 	useLayoutEffect(() => {
@@ -52,10 +57,9 @@ export function usePdfViewerViewportSize(
 		return () => observer.disconnect()
 	}, [ref, measure])
 
-	// Caller-driven invalidation: re-measure after commit, before paint.
-	// `measure` reads layout via getComputedStyle / clientWidth; this runs
-	// in useLayoutEffect. The lastInvalidationKey ref skips the redundant
-	// remeasure on mount.
+	// Caller-driven invalidation: re-measure after commit, before paint, since
+	// `measure` reads layout via getComputedStyle / clientWidth. The
+	// lastInvalidationKey ref skips the redundant remeasure on mount.
 	useLayoutEffect(() => {
 		if (lastInvalidationKeyRef.current === invalidationKey) return
 

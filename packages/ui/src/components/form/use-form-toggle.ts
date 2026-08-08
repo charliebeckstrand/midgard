@@ -2,6 +2,7 @@
 
 import type { ChangeEvent, ChangeEventHandler } from 'react'
 import { useFormField } from './context'
+import { hasIssues } from './form-reducer'
 
 type FormToggleOptions = {
 	name?: string
@@ -50,6 +51,6 @@ export function useFormToggle({ name, checked, onChange }: FormToggleOptions): F
 	return {
 		checked: bound ? field?.value === true : checked,
 		onChange: bound ? handleBoundChange : onChange,
-		invalid: field && field.errors !== undefined && field.errors.length > 0,
+		invalid: field && hasIssues(field.errors),
 	}
 }

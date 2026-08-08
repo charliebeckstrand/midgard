@@ -1,7 +1,7 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu'
 import type { GridExportAction } from './engine/grid-export/types'
-import type { GridEditCell } from './grid-editing-types'
+import type { GridEditCell, GridRowActionsContext } from './grid-editing-types'
 
 /** The built-in per-column aggregation names. @see {@link GridColumn.aggFunc} */
 export type GridAggFuncName = 'sum' | 'avg' | 'min' | 'max' | 'count'
@@ -39,6 +39,7 @@ export type GridAggCellContext<T> = {
 export type GridColumn<T> = {
 	id: string | number
 	title?: ReactNode
+	/** Whether this data column is sortable. Set `false` to opt a column out; sorting flows through the grid's `sort` binding. @defaultValue true */
 	sortable?: boolean
 	/**
 	 * Client-side comparator for this column, overriding the smart default (which
@@ -77,8 +78,12 @@ export type GridColumn<T> = {
 	 * column.
 	 */
 	selectable?: boolean
-	/** Renders per-row action controls (e.g. a menu) in this column's cell. */
-	actions?: (row: T) => ReactNode
+	/**
+	 * Renders per-row action controls (e.g. a menu) in this column's cell. The
+	 * second argument carries the row's editing state and the two ways to end it,
+	 * so a save and a discard control can live beside the row they act on.
+	 */
+	actions?: (row: T, context: GridRowActionsContext) => ReactNode
 	/**
 	 * Marks this as the row drag-handle column: renders a grip that drags its row
 	 * to reorder it, rather than a cell value. Effective only while the grid is
@@ -107,7 +112,7 @@ export type GridColumn<T> = {
 	 * data column with a `field` (or an {@link GridColumn.editCell} slot) is
 	 * editable; the editor the grid mounts is inferred from the field value's
 	 * primitive type (string → text, number → number, boolean → yes/no listbox),
-	 * and the committed value flows out through {@link GridEditableConfig.onValueChange}.
+	 * and the committed value flows out through {@link GridEditableConfig.onCommit}.
 	 */
 	field?: keyof T
 	/**
@@ -277,12 +282,6 @@ export type GridColumnManagerItem = {
 	hideable?: boolean
 }
 
-/** Snapshot of column-manager state — column `order` and `hidden` ids — captured by the save-preset action. */
-export type GridColumnManagerPreset = {
-	order: (string | number)[]
-	hidden: (string | number)[]
-}
-
 /**
  * Active page coordinate: the zero-based `pageIndex` and the `pageSize`.
  * Structurally identical to TanStack Table's `PaginationState`, so it threads
@@ -395,6 +394,23 @@ export type GridSearch = {
 	 */
 	manual?: boolean
 	/**
+	 * How the query acts on the rows. `true` filters — non-matching rows drop from
+	 * the view (the default quick-search). `false` highlights instead: every row
+	 * stays, and the matched substring is marked in each cell the search scans (the
+	 * columns declaring a {@link GridColumn.value}), so a match reads as an emphasis
+	 * rather than a prune.
+	 *
+	 * @remarks Highlighting decorates the rendered value, so it marks the text a
+	 * cell renders — a plain string, or the string leaves nested inside a custom
+	 * `cell` node — while a non-text cell passes through unmarked. Independent of
+	 * {@link GridColumnFilters}, which always prune; a highlight-mode search paired
+	 * with active column filters marks matches among the rows those filters leave.
+	 * Under {@link GridSearch.manual} the grid never prunes anyway, so `filter` only
+	 * governs whether the returned rows are also marked.
+	 * @defaultValue true
+	 */
+	filter?: boolean
+	/**
 	 * Placeholder for the search input.
 	 * @defaultValue 'Search'
 	 */
@@ -428,16 +444,52 @@ export type GridColumnFilters = {
 	 * @defaultValue false
 	 */
 	manual?: boolean
+	/**
+	 * How each filterable column surfaces its filter. `'header'` (default) shows the
+	 * funnel button in every filterable column header. `'menu'` drops the resting
+	 * funnel — so it never takes header width — and offers the filter from the
+	 * column's right-click menu instead; the funnel returns only once a filter is
+	 * applied, as the edit/clear affordance.
+	 * @defaultValue 'header'
+	 */
+	affordance?: 'header' | 'menu'
 }
 
 /**
  * One entry in a Grid context menu: an actionable {@link ContextMenuItem} (a
- * `{ label, icon, onSelect }`) or a {@link ContextMenuSeparator}. The defaults
+ * `{ label, icon, onAction }`) or a {@link ContextMenuSeparator}. The defaults
  * the grid supplies — and anything a {@link GridColumnMenu} / {@link GridCellMenu}
  * builder returns — render in order through the shared context-menu renderer,
  * the same schema a chart's menu uses.
  */
 export type GridMenuItem = ContextMenuEntry
+
+/**
+ * The surfaces a grid tool offers itself on: a button in the toolbar's "Table
+ * tools" cluster, an item in the right-click menus, or both. Export
+ * ({@link GridExportConfig}) and the column manager
+ * ({@link GridColumnManagerConfig}) take the same pair, defaulted the same way —
+ * the menus carry the tool, the toolbar button is opt-in — so one idiom places
+ * every tool.
+ *
+ * @remarks Both `false` leaves the tool no chrome of its own: the column manager
+ * still answers its `open` binding, which is how a host drives the dialog from
+ * its own controls, while export contributes nothing — turn it off with
+ * `exportable={false}` instead, and keep the intent legible.
+ */
+export type GridToolSurfaces = {
+	/**
+	 * Render the tool's button in the toolbar's "Table tools" cluster.
+	 * @defaultValue false
+	 */
+	toolbar?: boolean
+	/**
+	 * Offer the tool in the grid's right-click menus. Silent while the menu that
+	 * would carry it is off (see {@link GridProps.contextMenu}).
+	 * @defaultValue true
+	 */
+	contextMenu?: boolean
+}
 
 /**
  * Context for a {@link GridContextMenu.column} builder: the right-clicked column
@@ -479,18 +531,22 @@ export type GridColumnMenuContext<T> = {
 	autoSizeColumn: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
-	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off. */
+	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off, or held back from the menus by its {@link GridToolSurfaces.contextMenu} switch. */
 	exportActions: GridExportAction[]
 }
 
 /**
- * Header context-menu config: `true` (or omit) for the default items — Sort
- * ascending, Sort descending, Clear sort (when the column is sorted), Pin left /
- * Pin right / Unpin, Group by … (when groupable), Auto-size this column (when
- * resizing is on), then Auto-size all columns (when resizing is on) and Manage
- * columns — or a builder receiving the {@link GridColumnMenuContext} and those
- * defaults, returning the final list to extend, reorder, or replace them.
- * `false` omits the header menu entirely.
+ * Header context-menu config: `true` (or omit) for the default items — the
+ * Sort menu (Sort ascending / Sort descending, less the direction the column
+ * already holds, plus Clear sort once the column is sorted), the Pin menu (Pin
+ * left / Pin right / Unpin), Group by … (when groupable), and the Auto-size
+ * menu (this column, then all columns; when resizing is on), then Manage
+ * columns and the Export menu under a separator — or a builder receiving the
+ * {@link GridColumnMenuContext} and those defaults, returning the final list to
+ * extend, reorder, or replace them. `false` omits the header menu entirely.
+ *
+ * @remarks Each of those menus is a hover-opened submenu holding its actions;
+ * one that would hold a single action renders as that action instead.
  *
  * @typeParam T - Shape of a single row.
  */
@@ -511,7 +567,7 @@ export type GridCellMenuContext<T> = {
 	value: unknown
 	/** Copies the cell value to the clipboard. */
 	copy: () => void
-	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off. */
+	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off, or held back from the menus by its {@link GridToolSurfaces.contextMenu} switch. */
 	exportActions: GridExportAction[]
 }
 
@@ -538,4 +594,13 @@ export type GridCellMenu<T> =
 export type GridContextMenu<T> = {
 	column?: GridColumnMenu<T>
 	cell?: GridCellMenu<T>
+	/**
+	 * Cap the menus at their density height, scrolling past it. Off by default —
+	 * the grid's built-in rows are a short, fixed set, so a cap clips the last one
+	 * and reads as truncation. Turn it on for a `column` / `cell` builder that adds
+	 * enough rows to run past the viewport. Applies to the column and cell menus
+	 * alike, and to their submenus.
+	 * @defaultValue false
+	 */
+	capped?: boolean
 }

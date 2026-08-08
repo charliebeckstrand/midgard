@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 
 /** Active-page rotation state returned by {@link usePdfViewerPageRotation}. @internal */
 type PageRotationResult = {
@@ -14,47 +14,38 @@ type PageRotationResult = {
 
 /**
  * Manages per-page rotation state. Each page tracks its rotation independently;
- * navigating away from a rotated page and back preserves it.
+ * navigating away from a rotated page and back preserves it. Every page starts
+ * unrotated.
  *
- * @param defaultRotation - Starting rotation; rounded to the nearest 90°.
  * @param documentKey - Identity of the current document; rotations reset when it
  * changes, so a new document starts unrotated.
  * @returns `{ rotation, isTransposed, rotate }` for the active page.
  * @internal
  */
-export function usePdfViewerPageRotation(
-	page: number,
-	defaultRotation: number,
-	documentKey?: unknown,
-): PageRotationResult {
+export function usePdfViewerPageRotation(page: number, documentKey?: unknown): PageRotationResult {
 	const [rotations, setRotations] = useState<Record<number, number>>({})
 
 	// Per-page rotations belong to one document; clear them when the document
-	// changes.
+	// changes. Reset in render (not an effect) so a document swap's first paint
+	// doesn't briefly reuse the previous document's rotation for the same page
+	// index — matching the page-size reset.
 	const prevDocumentKeyRef = useRef(documentKey)
 
-	useEffect(() => {
-		if (prevDocumentKeyRef.current === documentKey) return
-
+	if (prevDocumentKeyRef.current !== documentKey) {
 		prevDocumentKeyRef.current = documentKey
 
 		setRotations({})
-	}, [documentKey])
+	}
 
-	// Documented to snap to 90° increments; an unsnapped default (e.g. 45)
-	// puts `normalizedRotation` outside 0|90|180|270 and skews the
-	// transposition math.
-	const snappedDefault = Math.round(defaultRotation / 90) * 90
-
-	const rotation = rotations[page] ?? snappedDefault
+	const rotation = rotations[page] ?? 0
 
 	const normalizedRotation = ((rotation % 360) + 360) % 360
 
 	const isTransposed = normalizedRotation === 90 || normalizedRotation === 270
 
 	const rotate = useCallback(() => {
-		setRotations((prev) => ({ ...prev, [page]: (prev[page] ?? snappedDefault) + 90 }))
-	}, [page, snappedDefault])
+		setRotations((prev) => ({ ...prev, [page]: (prev[page] ?? 0) + 90 }))
+	}, [page])
 
 	return { rotation, isTransposed, rotate }
 }

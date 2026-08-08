@@ -61,6 +61,9 @@ export function useAddressInputSuggestions({
 		// keystroke until the debounced fetch resolves. Prior results stay
 		// visible (with the spinner) until new results arrive.
 
+		// An empty query fetches without debouncing, so a `minQueryLength: 0` field
+		// paints its unfiltered suggestions on focus rather than after `debounceMs`.
+		// Unreachable at the default `minQueryLength`, which returns above.
 		const delay = query.length === 0 ? 0 : debounceMs
 
 		const timeout = setTimeout(() => {

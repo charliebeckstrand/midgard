@@ -19,6 +19,9 @@ export type ControlFieldProps = {
  * auto-wire without the consumer setting `id` / `htmlFor`. This owns only the
  * id + context wiring; each field renders its own slot element as the child.
  *
+ * It layers nothing of its own over the cascade — `Field` is the same envelope
+ * with three overrides and a slot div.
+ *
  * @internal Not on the barrel — used by the field wrappers, not consumers.
  */
 export function ControlField({ htmlFor, children }: ControlFieldProps) {

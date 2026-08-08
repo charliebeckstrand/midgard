@@ -2,14 +2,16 @@ import { geoArea } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import {
 	dotPath,
-	geographyFeatures,
 	linePath,
 	projectPoint,
-	regionPaths,
-	rewindFeatures,
-} from '../../modules/map/map-geometry'
-import { fitMapProjection } from '../../modules/map/map-projection'
-import type { MapFeature } from '../../modules/map/types'
+	ringAnchor,
+	ringPath,
+} from '../../modules/map/engine/map-geometry/mark'
+import { regionPaths } from '../../modules/map/engine/map-geometry/region'
+import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
+import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'
+import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
+import type { MapFeature } from '../../modules/map/engine/types'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 /** Half the sphere in steradians: an exterior ring's area stays under this once rewound. */
@@ -291,5 +293,117 @@ describe('linePath', () => {
 				() => null,
 			),
 		).toBe('')
+	})
+})
+
+describe('ringPath', () => {
+	const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
+
+	const project = (position: [number, number]) => projectPoint(projection, position)
+
+	const SQUARE: [number, number][] = [
+		[2, 2],
+		[2, 8],
+		[28, 8],
+		[28, 2],
+	]
+
+	it('closes the path it draws through the points', () => {
+		const d = ringPath(SQUARE, project)
+
+		expect(d).toMatch(/^M[-\d.]+,[-\d.]+L/)
+
+		expect(d.endsWith('Z')).toBe(true)
+	})
+
+	it('is linePath plus the closing command, so the two can never diverge', () => {
+		expect(ringPath(SQUARE, project)).toBe(`${linePath(SQUARE, project)}Z`)
+	})
+
+	it('draws a ring whose closing repeat is already present', () => {
+		// A GeoJSON ring repeats its first position; the repeat costs one
+		// zero-length segment and must never open a gap.
+		const closed: [number, number][] = [...SQUARE, SQUARE[0] as [number, number]]
+
+		const d = ringPath(closed, project)
+
+		expect(d.endsWith('Z')).toBe(true)
+
+		expect(d.split('L')).toHaveLength(5)
+	})
+
+	it('skips points the projector drops', () => {
+		// One corner dropped leaves three, which still encloses an area.
+		const gappy = (position: [number, number]) =>
+			position[0] === 2 && position[1] === 8 ? null : project(position)
+
+		expect(ringPath(SQUARE, gappy).split('L')).toHaveLength(3)
+	})
+
+	it('is empty when fewer than three points survive — the fewest an area holds', () => {
+		expect(
+			ringPath(
+				[
+					[2, 2],
+					[28, 8],
+				],
+				project,
+			),
+		).toBe('')
+
+		expect(ringPath([], project)).toBe('')
+
+		expect(ringPath(SQUARE, () => null)).toBe('')
+	})
+})
+
+describe('ringAnchor', () => {
+	/** An open square about [5, 5] — the same ring every case below reads. */
+	const RING: [number, number][] = [
+		[0, 0],
+		[0, 10],
+		[10, 10],
+		[10, 0],
+	]
+
+	it('centres on the middle of the ring', () => {
+		const [anchor] = ringAnchor(RING)
+
+		expect(anchor?.[0]).toBeCloseTo(5, 5)
+
+		// The centre is spherical, so it sits a little poleward of the arithmetic
+		// mean of the latitudes — the same reading `geoCentroid` gives a region.
+		expect(anchor?.[1]).toBeCloseTo(5, 1)
+	})
+
+	it('drops the closing repeat, so one side never weighs twice', () => {
+		expect(ringAnchor([...RING, RING[0] as [number, number]])).toEqual(ringAnchor(RING))
+	})
+
+	it('drops a repeat that closes to rounding rather than exactly', () => {
+		// A traced ring — `circleRing`'s — lands its last position a rounding step
+		// off its first. Read as a fresh vertex, it would weigh that corner twice.
+		expect(ringAnchor([...RING, [4e-15, -4e-15]])).toEqual(ringAnchor(RING))
+	})
+
+	it('is empty for a ring with no points, so a caller passes it straight through', () => {
+		expect(ringAnchor([])).toEqual([])
+	})
+
+	it('anchors a lone position on itself, exactly', () => {
+		// It reads as its own closing repeat, so the centroid pass sees nothing and
+		// the fallback returns the position untouched — no round trip to drift on.
+		expect(ringAnchor([[5, 5]])).toEqual([[5, 5]])
+	})
+
+	it('stands the first vertex in where the points cancel to no centre', () => {
+		// Two antipodal points leave no spherical centre; the anchor must still be
+		// a position the projection can draw.
+		expect(
+			ringAnchor([
+				[0, 0],
+				[180, 0],
+			]),
+		).toEqual([[0, 0]])
 	})
 })

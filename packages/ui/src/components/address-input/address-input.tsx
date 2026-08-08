@@ -1,7 +1,7 @@
 'use client'
 
 import { MapPin } from 'lucide-react'
-import { type InputHTMLAttributes, useState } from 'react'
+import { useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
@@ -15,9 +15,9 @@ import { useAddressInputSuggestions } from './use-address-input-suggestions'
 /** Props for {@link AddressInput}; selection is an {@link AddressSuggestion}, controlled via `value` or uncontrolled via `defaultValue`. */
 export type AddressInputProps = {
 	id?: string
-	value?: AddressSuggestion
+	value?: AddressSuggestion | null
 	defaultValue?: AddressSuggestion
-	onValueChange?: (value: AddressSuggestion | undefined) => void
+	onValueChange?: (value: AddressSuggestion | null) => void
 	/**
 	 * Geocoding strategy resolving the query to suggestions.
 	 * @defaultValue {@link photonProvider}
@@ -36,8 +36,6 @@ export type AddressInputProps = {
 	 */
 	minQueryLength?: number
 	className?: string
-	/** @defaultValue 'off' */
-	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
 	/** Accessible name for the field. Defaults to the placeholder. */
 	'aria-label'?: string
 }
@@ -64,7 +62,6 @@ export function AddressInput({
 	debounceMs = 500,
 	minQueryLength = 3,
 	placeholder = 'Enter an address',
-	autoComplete = 'off',
 	className,
 	'aria-label': ariaLabel,
 	...props
@@ -111,7 +108,6 @@ export function AddressInput({
 			className={cn(loading && 'animate-pulse', className)}
 			placeholder={placeholder}
 			aria-label={ariaLabel ?? placeholder}
-			autoComplete={autoComplete}
 			clearOnEmpty
 			clearable
 			suffix={suffix}

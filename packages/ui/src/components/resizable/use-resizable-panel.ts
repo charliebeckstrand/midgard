@@ -60,6 +60,15 @@ function clampPair(
 	return result
 }
 
+/** Panel default sizes as percentages summing to 100; identity is not preserved. @internal */
+function normalizeSizes(configs: PanelConfig[]): number[] {
+	const raw = configs.map((c) => c.defaultSize)
+
+	const total = raw.reduce((sum, s) => sum + s, 0)
+
+	return total > 0 ? raw.map((s) => (s / total) * 100) : raw
+}
+
 type PanelResize = {
 	groupRef: RefObject<HTMLDivElement | null>
 	orientation: ResizableOrientation
@@ -92,13 +101,7 @@ export function useResizablePanel({
 	constraintsRef.current = panelConfigs
 
 	// Initialize sizes from panel defaults, normalized to 100%.
-	const [sizes, setSizes] = useState(() => {
-		const raw = panelConfigs.map((c) => c.defaultSize)
-
-		const total = raw.reduce((sum, s) => sum + s, 0)
-
-		return total > 0 ? raw.map((s) => (s / total) * 100) : raw
-	})
+	const [sizes, setSizes] = useState(() => normalizeSizes(panelConfigs))
 
 	const sizesRef = useRef(sizes)
 
@@ -112,11 +115,7 @@ export function useResizablePanel({
 	if (prevCountRef.current !== panelConfigs.length) {
 		prevCountRef.current = panelConfigs.length
 
-		const raw = panelConfigs.map((c) => c.defaultSize)
-
-		const total = raw.reduce((sum, s) => sum + s, 0)
-
-		const normalized = total > 0 ? raw.map((s) => (s / total) * 100) : raw
+		const normalized = normalizeSizes(panelConfigs)
 
 		sizesRef.current = normalized
 
@@ -179,6 +178,14 @@ export function useResizablePanel({
 			const availableSize = totalSize - handleWidth
 
 			if (availableSize <= 0) return
+
+			// A new drag supersedes any still-active one (a second pointer landing on
+			// another handle before the first lifts): tear down the prior drag's
+			// listeners first, or they outlive cleanupRef — which holds only the
+			// latest — and fire a post-unmount setSizes. Mirrors beginScrollbarDrag.
+			// Placed after the guard so a pointerdown that can't start a drag (group
+			// collapsed to <= handle size) leaves the still-live drag intact.
+			cleanupRef.current?.()
 
 			const startPos = orient === 'horizontal' ? event.clientX : event.clientY
 
@@ -253,29 +260,31 @@ export function useResizablePanel({
 
 				commitPending()
 
-				document.removeEventListener('pointermove', onMove)
-				document.removeEventListener('pointerup', onUp)
-				document.removeEventListener('pointercancel', onUp)
-				document.removeEventListener('contextmenu', onUp)
+				controller.abort()
 
 				cleanupRef.current = null
 			}
 
-			document.addEventListener('pointermove', onMove)
-			document.addEventListener('pointerup', onUp)
+			// One controller for the drag's whole listener set: `onUp` and the
+			// supersede path in `cleanupRef` tear down the same four listeners, and
+			// a single `abort()` cannot drift from the add list the way two hand-kept
+			// removal lists can.
+			const controller = new AbortController()
+
+			const { signal } = controller
+
+			document.addEventListener('pointermove', onMove, { signal })
+			document.addEventListener('pointerup', onUp, { signal })
 			// A cancelled pointer (OS gesture, pen leaving range) never fires
 			// pointerup; without this the drag flag stays set and buttonless
 			// movement keeps resizing.
-			document.addEventListener('pointercancel', onUp)
-			document.addEventListener('contextmenu', onUp)
+			document.addEventListener('pointercancel', onUp, { signal })
+			document.addEventListener('contextmenu', onUp, { signal })
 
 			cleanupRef.current = () => {
 				if (frame !== null) cancelAnimationFrame(frame)
 
-				document.removeEventListener('pointermove', onMove)
-				document.removeEventListener('pointerup', onUp)
-				document.removeEventListener('pointercancel', onUp)
-				document.removeEventListener('contextmenu', onUp)
+				controller.abort()
 			}
 		},
 		[groupRef],

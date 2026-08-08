@@ -7,6 +7,7 @@ import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
+import { Hold } from '../../primitives/mount'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
@@ -16,7 +17,9 @@ import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engi
 import { resolveCellTooltip } from './engine/grid-row/cell'
 import { cellRovingAttrs, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
+import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
+import { useGridRevealHold } from './use-grid-reveal-hold'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** A leaf cell's extra `<td>` width class and inner-wrapper layout class, by column kind. @internal */
@@ -97,7 +100,7 @@ function leafCellInner<T>(args: {
 		)
 	}
 
-	if (col.actions) return col.actions(row)
+	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 
 	const raw = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
 
@@ -130,8 +133,8 @@ type GridGroupLeafCellProps<T> = {
 	leading: boolean
 	/** The group's overlay color, coloring the leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
-	/** Whether the group is open, driving the cell's height reveal. */
-	expanded: boolean
+	/** Whether the cell's height reveal renders open — the row's reveal hold, not `expanded`. */
+	open: boolean
 	/** Density padding class for the innermost content wrapper. */
 	pad: string
 	/** Whether this data cell is a roving-tabindex item (cell-mode keyboard nav). @defaultValue false */
@@ -163,7 +166,7 @@ function GridGroupLeafCell<T>({
 	pinning,
 	leading,
 	color,
-	expanded,
+	open,
 	pad,
 	cellRoving = false,
 	cellActivate,
@@ -200,7 +203,7 @@ function GridGroupLeafCell<T>({
 			)}
 			style={{ ...NO_PADDING, ...pinned.style }}
 		>
-			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(expanded)}>
+			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>
 					<div className={cn(pad, chrome.inner)}>
 						{leafCellInner({
@@ -257,6 +260,10 @@ export function GridGroupLeafRow<T>({
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.rowGroup.reveal.pad({ density })
 
+	// Rests the row once its reveal has shrunk to nothing, so a collapsed group's
+	// leaves stop riding the visible commit.
+	const reveal = useGridRevealHold(expanded)
+
 	// The pointer handlers speak GridColumn (shared with the flat body's rows);
 	// recover the list once from the engine cells this grouped row renders by.
 	const columns = cells
@@ -264,61 +271,66 @@ export function GridGroupLeafRow<T>({
 		.filter((col): col is GridColumn<T> => col != null)
 
 	return (
-		<tr
-			// The shared row shell (attributes, pointer handlers, Enter / Space
-			// activation). Row-mode roving marks an expanded leaf an item the roving
-			// hook owns the `tabIndex` of; a collapsed leaf is `inert` and excluded
-			// by the selector, so roving is gated on expansion here.
-			{...rowShellProps({
-				columns,
-				row,
-				rowKey,
-				selected,
-				selectable,
-				rowRoving: rowRoving && expanded,
-				onRowClick,
-				onCellClick,
-				onRowDoubleClick,
-				onCellDoubleClick,
-			})}
-			// A collapsed group's leaves are visually clipped to nothing; take them out
-			// of the tab order and the accessibility tree too (WCAG 1.3.1 / 2.4.3).
-			aria-hidden={expanded ? undefined : true}
-			inert={!expanded}
-			// Row roving hands the `tabIndex` to the roving hook; without it a clickable
-			// expanded leaf stays a static stop, and cell roving leaves the row unfocusable.
-			tabIndex={rowRoving ? undefined : onRowClick && !cellRoving && expanded ? 0 : undefined}
-			className={cn(
-				rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
-			)}
-		>
-			{cells.map((cell, colIdx) => {
-				const col = cell.column.columnDef.meta?.gridColumn
+		<Hold hold={reveal.hold} name="grid-group-leaf-row">
+			<tr
+				// The shared row shell (attributes, pointer handlers, Enter / Space
+				// activation). Row-mode roving marks an expanded leaf an item the roving
+				// hook owns the `tabIndex` of; a collapsed leaf is `inert` and excluded
+				// by the selector, so roving is gated on expansion here.
+				{...rowShellProps({
+					columns,
+					row,
+					rowKey,
+					selected,
+					selectable,
+					rowRoving: rowRoving && expanded,
+					onRowClick,
+					onCellClick,
+					onRowDoubleClick,
+					onCellDoubleClick,
+				})}
+				// A collapsed group's leaves are visually clipped to nothing; take them out
+				// of the tab order and the accessibility tree too (WCAG 1.3.1 / 2.4.3).
+				// These cover the collapse from its first frame; the hold above covers
+				// its cost from the last one, once the reveal has finished shrinking.
+				aria-hidden={expanded ? undefined : true}
+				inert={!expanded}
+				onTransitionEnd={reveal.onTransitionEnd}
+				// Row roving hands the `tabIndex` to the roving hook; without it a clickable
+				// expanded leaf stays a static stop, and cell roving leaves the row unfocusable.
+				tabIndex={rowRoving ? undefined : onRowClick && !cellRoving && expanded ? 0 : undefined}
+				className={cn(
+					rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
+				)}
+			>
+				{cells.map((cell, colIdx) => {
+					const col = cell.column.columnDef.meta?.gridColumn
 
-				if (!col) return null
+					if (!col) return null
 
-				return (
-					<GridGroupLeafCell<T>
-						key={col.id}
-						col={col}
-						cell={cell}
-						row={row}
-						rowKey={rowKey}
-						selected={selected}
-						toggleRow={toggleRow}
-						rowLabel={rowLabel}
-						truncate={truncate}
-						settleKey={settleWidths[colIdx]}
-						pinning={pinning}
-						leading={colIdx === 0}
-						color={color}
-						expanded={expanded}
-						pad={pad}
-						cellRoving={cellRoving}
-						cellActivate={cellActivate}
-					/>
-				)
-			})}
-		</tr>
+					return (
+						<GridGroupLeafCell<T>
+							key={col.id}
+							col={col}
+							cell={cell}
+							row={row}
+							rowKey={rowKey}
+							selected={selected}
+							toggleRow={toggleRow}
+							rowLabel={rowLabel}
+							truncate={truncate}
+							settleKey={settleWidths[colIdx]}
+							pinning={pinning}
+							leading={colIdx === 0}
+							color={color}
+							open={reveal.open}
+							pad={pad}
+							cellRoving={cellRoving}
+							cellActivate={cellActivate}
+						/>
+					)
+				})}
+			</tr>
+		</Hold>
 	)
 }

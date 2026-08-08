@@ -14,10 +14,13 @@ export type PasswordConfirmProps = {
 	warning?: ReactNode
 	className?: string
 	children?: ReactNode
-	/** Fires when both fields become non-empty and equal; on transition only, not while the password has a form error. */
-	onPasswordMatch?: () => void
-	/** Fires when the fields transition to a confirmed mismatch (both non-empty, unequal, confirm caught up). */
-	onPasswordMismatch?: () => void
+	/**
+	 * Fires on a confirmed match/mismatch transition: `true` once both fields are
+	 * non-empty and equal, `false` once they settle non-empty and unequal.
+	 * Transitions only (no re-fire on repeats), and never while the password has
+	 * a form error.
+	 */
+	onMatchChange?: (matched: boolean) => void
 }
 
 /**
@@ -26,8 +29,7 @@ export type PasswordConfirmProps = {
  * while the password has a form error.
  */
 export function PasswordConfirm({
-	onPasswordMatch,
-	onPasswordMismatch,
+	onMatchChange,
 	warning,
 	className,
 	children,
@@ -43,8 +45,7 @@ export function PasswordConfirm({
 
 	const { status, setPassword, setConfirm, setLastEdited } = usePasswordConfirmState({
 		disabled: Boolean(passwordError),
-		onPasswordMatch,
-		onPasswordMismatch,
+		onMatchChange,
 	})
 
 	const handleInput = useCallback(
@@ -55,7 +56,10 @@ export function PasswordConfirm({
 
 	const generatedWarningId = useId()
 
-	const warningId = warning != null ? generatedWarningId : undefined
+	// Gate on truthiness, matching the render below: a falsy-but-non-null `warning`
+	// (the `cond && 'text'` idiom with `cond` false) renders no warning element, so
+	// handing the id to the confirm field's aria-describedby would dangle the idref.
+	const warningId = warning ? generatedWarningId : undefined
 
 	const context = useMemo(
 		() => ({ status, setConfirm, setConfirmName, confirmHasFormError, warningId }),

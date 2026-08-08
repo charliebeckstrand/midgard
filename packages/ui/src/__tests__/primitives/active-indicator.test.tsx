@@ -1,15 +1,17 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
-import { renderUI, screen } from '../helpers'
+import { bySlot, renderUI } from '../helpers'
 
 describe('ActiveIndicator', () => {
 	it('renders a span element', () => {
-		renderUI(<ActiveIndicator>indicator</ActiveIndicator>)
+		const { container } = renderUI(<ActiveIndicator />)
 
-		expect(screen.getByText('indicator')).toBeInTheDocument()
+		const indicator = bySlot(container, 'active-indicator')
 
-		expect(screen.getByText('indicator').tagName).toBe('SPAN')
+		expect(indicator).toBeInTheDocument()
+
+		expect(indicator?.tagName).toBe('SPAN')
 	})
 })
 

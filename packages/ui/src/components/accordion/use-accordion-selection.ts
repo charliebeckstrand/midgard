@@ -65,7 +65,9 @@ function toArray(value: string | string[] | null | undefined): string[] {
 export function useAccordionSelection(props: SingleProps | MultipleProps): AccordionSelection {
 	const isMultiple = props.type === 'multiple'
 
-	const collapsible = isMultiple ? true : (props.collapsible ?? true)
+	// Single-mode state only: the multiple-mode `toggle` branch adds and removes
+	// unconditionally and returns before any read.
+	const collapsible = isMultiple ? undefined : (props.collapsible ?? true)
 
 	// The single-mode `toArray` wrap mints a new array each call; memoization
 	// keeps the context identity stable across controlled renders.
@@ -81,12 +83,16 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 
 	const defaultValue = isMultiple ? (props.defaultValue ?? []) : toArray(props.defaultValue)
 
+	// Belt and suspenders, kept knowingly: `useControllable` already reads its
+	// own `onValueChange` off a ref behind a stable `setValue`, so an unstable
+	// inline callback would be handled without this ref or the memo below. Neither
+	// is a correctness requirement; recorded so the pairing is not re-derived.
 	const onValueChangeRef = useRef(props.onValueChange)
 
 	onValueChangeRef.current = props.onValueChange
 
 	const onControllableChange = useCallback(
-		(next: string[] | undefined) => {
+		(next: string[] | null) => {
 			const resolved = next ?? []
 
 			const onValueChange = onValueChangeRef.current

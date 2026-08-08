@@ -21,6 +21,8 @@ export type SearchInputProps = Omit<
 > & {
 	value?: string
 	defaultValue?: string
+	/** Fires with the current query text; the value-first counterpart to `onChange`. */
+	onValueChange?: (value: string) => void
 	/** Replaces the clear button with a spinner suffix while a query is in flight. */
 	loading?: boolean
 	/** Fires when the field is cleared, whether by the clear button or by emptying it. */
@@ -53,6 +55,7 @@ export function SearchInput({
 	defaultValue,
 	loading,
 	onChange,
+	onValueChange,
 	onClear,
 	onBlur,
 	name,
@@ -72,6 +75,9 @@ export function SearchInput({
 	} = useFormValue<string>(name, {
 		value,
 		defaultValue: defaultValue ?? '',
+		// An empty query is `''`, not "no value", so the cleared null never
+		// reaches the consumer.
+		onValueChange: onValueChange && ((next) => onValueChange(next ?? '')),
 	})
 
 	const currentValue = current ?? ''
@@ -110,6 +116,7 @@ export function SearchInput({
 		<LoadingSpinner />
 	) : currentValue !== '' ? (
 		<Button
+			type="button"
 			variant="bare"
 			className="pointer-events-auto"
 			aria-label="Clear search"

@@ -37,6 +37,14 @@ export type TabProps = {
 	 * click. Latched to fire at most once per tab, skipped for the active tab and
 	 * a `disabled` one; runs after any `onPointerEnter` / `onFocus` a caller also
 	 * passes. The callback owns the work — the tab stays agnostic to what loads.
+	 *
+	 * @remarks
+	 * A `mount` policy on `TabContents` covers only half of this. A held panel
+	 * rests in a hidden `<Activity>`, which renders its children, so render-phase
+	 * work warms for free: a `lazy()` chunk resolves, a `use()`d promise starts.
+	 * A hidden Activity mounts no effects, so effect-driven work does not — a
+	 * `useQuery` inside a held panel still waits to be shown. `onPreload` is what
+	 * warms that half, under every mount policy.
 	 */
 	onPreload?: (value: string | undefined) => void
 	className?: string
@@ -172,7 +180,7 @@ export function Tab({
 					data-current={dataAttr(current)}
 					role="tab"
 					id={tabId}
-					aria-selected={current ?? false}
+					aria-selected={current}
 					// Explicit-id panels stay mounted; `aria-controls` is always set.
 					// Auto panels unmount when inactive unless an all-mounted
 					// TabContents keeps them mounted (registered via context);

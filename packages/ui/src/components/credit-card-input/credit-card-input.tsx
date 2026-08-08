@@ -2,11 +2,13 @@
 
 import { CreditCard } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
+import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import {
 	type CardValidity,
+	detectCardBrand,
 	formatCardNumber,
 	validateCardNumber,
 } from './credit-card-input-utilities'
@@ -30,7 +32,7 @@ export type CreditCardInputProps = Omit<
 /**
  * Numeric Input that masks card numbers into brand-aware spaced groups as you
  * type, detecting the brand from the digits and surfacing its label as the
- * suffix. Emits the raw value, brand, and Luhn + length + pattern validity
+ * suffix. Emits the formatted value, brand, and Luhn + length + pattern validity
  * through `onValueChange`, `onBrandChange`, and `onValidityChange`, and binds
  * to an enclosing Form field by `name`. Sets `autoComplete="cc-number"`.
  *
@@ -60,7 +62,9 @@ export function CreditCardInput({
 		ref,
 	})
 
-	const { brand } = useMemo(() => formatCardNumber(masked.value), [masked.value])
+	// Brand only: `formatCardNumber` would re-run the whole grouping walk to
+	// return a `formatted` string the masked input already holds.
+	const brand = useMemo(() => detectCardBrand(digitsOnly(masked.value)), [masked.value])
 
 	return (
 		<Input

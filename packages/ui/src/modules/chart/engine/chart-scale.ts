@@ -105,7 +105,7 @@ function niceBound(
 }
 
 /**
- * The largest share of the range a headroom reservation may take per side. At
+ * The largest share of the range a headroom reservation can take per side. At
  * the cap, a both-sided reservation still leaves the data half the plot; past
  * it the plot is too short to afford labels at all, so nothing is reserved and
  * {@link headroomFits} — the same predicate — tells the layout to shed them.

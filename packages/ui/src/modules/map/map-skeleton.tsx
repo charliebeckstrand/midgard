@@ -2,9 +2,9 @@ import { AspectRatio } from '../../components/aspect-ratio'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { DEFAULT_MAP_ASPECT } from './map-constants'
-import { ratioValue } from './map-projection'
-import type { MapAspectRatio } from './types'
+import { parseAspectRatio } from '../../utilities/aspect-ratio'
+import { DEFAULT_MAP_ASPECT } from './engine/map-constants'
+import type { MapAspectRatio } from './engine/types'
 
 /** Props for {@link MapSkeleton}. */
 export type MapSkeletonProps = {
@@ -26,7 +26,7 @@ export type MapSkeletonProps = {
  * passing the plat's own `aspectRatio` when it fixes one.
  */
 export function MapSkeleton({ ratio = DEFAULT_MAP_ASPECT, className }: MapSkeletonProps) {
-	const value = ratioValue(ratio)
+	const value = parseAspectRatio(ratio)
 
 	if (value === null) return <Placeholder className={cn(k.skeleton.base, className)} />
 

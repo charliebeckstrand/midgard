@@ -39,7 +39,6 @@ export function StepperIndicator({ className, ...props }: StepperIndicatorProps)
 	return (
 		<span
 			data-slot="stepper-indicator"
-			data-display-state={state}
 			className={cn(k.indicator.base, interactive && k.indicator.interactive, className)}
 			{...props}
 		>

@@ -5,9 +5,10 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements, useControllable } from '../../hooks'
+import { useDensity } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
-import { GridContext, GridResizingContext, type SortState } from './context'
+import { GridContext, GridHighlightContext, GridResizingContext, type SortState } from './context'
 import {
 	describeColumnVisibility,
 	describePin,
@@ -35,6 +36,7 @@ import {
 	buildRovingCellActivate,
 	composeCellDoubleClick,
 } from './engine/grid-row/bridges'
+import { sortsEqual } from './engine/grid-sort/state'
 import {
 	condensedTableClass,
 	gridWrapperClass,
@@ -53,9 +55,10 @@ import {
 import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
 import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
-import { GridColumnManagerDialog } from './grid-column-manager-dialog'
+import { GridColumnManager } from './grid-column-manager'
 import { useColumnGroupMenu } from './grid-context-menu'
 import {
+	resolveActionable,
 	resolveAriaRowCount,
 	resolveFooterStats,
 	resolveGridSemantics,
@@ -67,13 +70,16 @@ import {
 	resolveVirtualization,
 } from './grid-data-resolvers'
 import type { GridDataProps, GridPinningState } from './grid-data-types'
+import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
+import { GridManagerDialog } from './grid-manager-dialog'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import {
 	DensityCascade,
+	GridOverlayDensityContext,
 	GridRegion,
 	GridRowManagerRegionDialog,
 	GridRowReorderRegion,
@@ -84,7 +90,7 @@ import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
 import { GridGrandTotalBody, useGridGrandTotal } from './grid-total-row'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
-import type { GridColumn } from './types'
+import type { GridColumn, GridSearch } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { useGridExpansion } from './use-grid-expansion'
@@ -97,7 +103,7 @@ import { useGridRowGrouping } from './use-grid-row-grouping'
 import { useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { useGridTable } from './use-grid-table'
+import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
 
 /**
  * Whether the grid's current state permits a manual row drag-reorder. A manual
@@ -112,7 +118,8 @@ import { useGridTable } from './use-grid-table'
  */
 function rowReorderPermitted(args: {
 	loading: boolean
-	hasData: boolean
+	/** Whether there are source rows to drag at all. */
+	hasRows: boolean
 	paginated: boolean
 	virtualized: boolean
 	grouped: boolean
@@ -122,7 +129,7 @@ function rowReorderPermitted(args: {
 }): boolean {
 	return (
 		!args.loading &&
-		args.hasData &&
+		args.hasRows &&
 		!args.paginated &&
 		!args.virtualized &&
 		!args.grouped &&
@@ -155,11 +162,17 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
  * Tracks whether a server-side (manual) sort is in flight — the interval between
  * the grid emitting a sort change and the consumer handing back the reordered
  * `rows` — so the body can dim its rows to a settle wash until the new order
- * lands (see `k.body.settling`). Enabled only under {@link GridSort.manual}: a
- * change to the sort with no new `rows` yet marks the grid settling; the next
- * `rows` reference (the fetched, reordered set) clears it. A consumer that swaps
- * `rows` in the same commit as the sort — a synchronous re-sort — settles at
- * once, so its rows never flash dim.
+ * lands (see `k.body.settling`). Enabled only under {@link GridSort.manual}.
+ *
+ * The grid settles while the live `sort` differs from the order the on-screen
+ * `rows` reflect — snapshotted whenever `rows` change, since they've then caught
+ * up to the sort that fetched them. The compare is by value, not identity: a
+ * rapid asc→desc→clear ends on a cleared sort whose rows are already shown (no
+ * fetch landed between the clicks), so the wash lifts rather than latching on —
+ * the reported stuck-pulse bug, which a reference-only "rows changed?" test left
+ * on because the consumer handed back the unchanged default set. A consumer that
+ * swaps `rows` in the same commit as the sort — a synchronous re-sort — snapshots
+ * the new order at once, so its rows never flash dim.
  *
  * @internal
  */
@@ -168,28 +181,21 @@ function useServerSortSettle<T>(args: { enabled: boolean; sort: SortState[]; row
 
 	const [settling, setSettling] = useState(false)
 
-	const prevSortRef = useRef(sort)
+	// The sort the on-screen rows reflect; re-snapshotted each time `rows` change.
+	const settledSortRef = useRef(sort)
 
 	const prevRowsRef = useRef(rows)
 
 	useEffect(() => {
-		const sortChanged = prevSortRef.current !== sort
-
 		const rowsChanged = prevRowsRef.current !== rows
-
-		prevSortRef.current = sort
 
 		prevRowsRef.current = rows
 
-		// New rows landed (or the mode is off): the sort has settled.
-		if (!enabled || rowsChanged) {
-			setSettling(false)
+		// Rows landed: they now reflect the live sort — take it as the settled order.
+		if (rowsChanged) settledSortRef.current = sort
 
-			return
-		}
-
-		// The sort changed but its reordered rows haven't arrived yet — in flight.
-		if (sortChanged) setSettling(true)
+		// In flight only while the live sort has moved off the settled order.
+		setSettling(enabled && !sortsEqual(settledSortRef.current, sort))
 	}, [enabled, sort, rows])
 
 	return enabled && settling
@@ -217,6 +223,75 @@ function useStableHandler<A extends unknown[]>(
 }
 
 /**
+ * The active highlight-search query: the debounced quick-search value when the
+ * search marks rather than prunes ({@link GridSearch.filter} `false`) and it holds
+ * a query, else `null`. Data cells read it through {@link GridHighlightContext} to
+ * mark their matches; `null` while the search filters, is empty, or is unset.
+ * Kept out of {@link GridData} for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function resolveHighlightQuery(
+	search: GridSearch | undefined,
+	globalFilter: GridGlobalFilterView | null,
+): string | null {
+	if (search?.filter !== false) return null
+
+	// `|| null` (not `??`) so an empty query collapses to null — no marking.
+	return globalFilter?.value || null
+}
+
+/**
+ * Whether the table can paint — latched on, once.
+ *
+ * A reload paints the server's HTML first, and the server cannot have measured anything,
+ * so its colgroup carries the declared widths and the fit that runs at hydration replaces
+ * them. That repaint is the column jump. Nothing can compute a content fit before the DOM
+ * exists, so rather than paint a width that is about to change, paint none (see
+ * {@link widthGateClass}).
+ *
+ * `settled` waits for a width pass that read real body cells, so a grid whose result is
+ * legitimately empty would never satisfy it; hence the second clause. Once the consumer
+ * has stopped loading and there are no rows, the header and the empty state are all there
+ * is to show, so show them. It is true from the first frame for any grid the autosizer
+ * does not size — not resizable, sizing controlled by the consumer, or no
+ * `ResizeObserver` (SSR and jsdom) — so those paint immediately and nothing regresses.
+ *
+ * Latched because the reveal is a one-way door: `loading` goes true again on page two, a
+ * filter, a re-sort, and blanking a table the user is already reading would be far worse
+ * than the first-paint jump this exists to prevent. Monotonic, so writing it during render
+ * stays idempotent under StrictMode's double pass. Kept out of {@link GridData} for its
+ * cognitive-complexity budget.
+ *
+ * @internal
+ */
+function useTableRevealed(settled: boolean, loading: boolean, rowCount: number): boolean {
+	const revealed = useRef(false)
+
+	if (settled || (!loading && rowCount === 0)) revealed.current = true
+
+	return revealed.current
+}
+
+/**
+ * The width gate: withholds the table's paint until its columns are fitted, while
+ * leaving it measurable.
+ *
+ * `invisible` rather than `hidden` or an unmount, because the autosizer has to *measure*
+ * this subtree in order to size it — hidden visibility keeps layout and geometry intact,
+ * so the cells lay out and report their widths exactly as they would if shown. It also
+ * keeps the box in flow, so the surrounding page doesn't reflow on reveal. Carried by the
+ * `<table>` itself rather than a wrapper: a wrapping node — even `display: contents` —
+ * would sit in the middle of the grid's own child selectors. Kept out of
+ * {@link GridData} for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+function widthGateClass(revealed: boolean): string | undefined {
+	return revealed ? undefined : 'invisible'
+}
+
+/**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
  * branch (the rules of hooks forbid a conditional early return over them).
@@ -229,7 +304,6 @@ export function GridData<T>({
 	rows,
 	getKey,
 	sort: sortConfig,
-	sortable = true,
 	selection: selectionConfig,
 	preferences,
 	columnOrder: columnOrderConfigProp,
@@ -247,6 +321,7 @@ export function GridData<T>({
 	columnFilters: columnFiltersConfig,
 	contextMenu,
 	exportable = DEFAULT_EXPORTABLE,
+	exportRows,
 	reorder = false,
 	rowReorder: rowReorderConfig,
 	navigable = false,
@@ -287,6 +362,8 @@ export function GridData<T>({
 
 	const columnSizingConfig = seedColumnSizing(columnSizingConfigProp, preferences)
 
+	// `columnManager={false}` is the feature's off switch: the seed flattens it to
+	// no bindings at all, and the menu actions read the switch off the raw prop.
 	const columnManagerConfig = seedColumnManager(columnManagerConfigProp, preferences)
 
 	// Up-front invariants for the mutually-dependent props (virtualize/maxHeight,
@@ -311,6 +388,10 @@ export function GridData<T>({
 	// resolvers, and `<Table>` unchanged.
 	const density = resolveDensity(condensed, useDensityLevel(densityProp))
 
+	// Read here, above `DensityCascade`, so it is the density *surrounding* the grid
+	// — what an overlay the grid spawns renders at (see `GridOverlayDensity`).
+	const overlayDensity = useDensity()
+
 	const {
 		enabled: virtualizeEnabled,
 		estimateSize,
@@ -321,9 +402,9 @@ export function GridData<T>({
 	// wrapper); resolved from the `header` config's `position`.
 	const stickyHeader = header?.position === 'sticky'
 
-	// Columns sort by default; bake the grid-level default into each data column
-	// that doesn't set its own, so head and engine read one resolved flag.
-	const resolvedColumns = useMemo(() => resolveSortable(columns, sortable), [columns, sortable])
+	// Columns sort by default; bake that into each data column that doesn't set
+	// its own `sortable`, so head and engine read one resolved flag.
+	const resolvedColumns = useMemo(() => resolveSortable(columns), [columns])
 
 	// Menu-applied pin changes, layered over the static `pinned` flags. Folding
 	// them into the columns here lets the column and engine hooks read one
@@ -612,6 +693,8 @@ export function GridData<T>({
 		manualRows,
 		pagination,
 		resize,
+		fitRenderedRows,
+		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,
@@ -708,15 +791,22 @@ export function GridData<T>({
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
 
-	// Column interactions stand down when there's no *source* data to act on
-	// (incl. while loading), or when an error has pre-empted the body — mirroring
-	// the empty state, since both replace the rows there's nothing to act on. They
-	// stay live when a filter or search merely empties the view, so the user can
-	// clear it and recover the rows. `showingError` tracks the body's own error
-	// branch (see `GridBody`), which loading takes precedence over.
+	// Column interactions stand down when there's no data to act on (incl. while
+	// loading), or when an error has pre-empted the body — mirroring the empty
+	// state, since both replace the rows there's nothing to act on. `showingError`
+	// tracks the body's own error branch (see `GridBody`), which loading takes
+	// precedence over.
 	const showingError = !loading && error != null && error !== false
 
-	const hasData = rows.length > 0 && !showingError
+	// `hasRowsToActOn` is the plain row-presence fact; `hasData` also holds when a
+	// filter or search is what emptied the view, so the header stays live and the rule
+	// that emptied it can be cleared (see `resolveActionable`).
+	const { hasRows: hasRowsToActOn, hasData } = resolveActionable({
+		sourceCount: rows.length,
+		showingError,
+		filters,
+		globalFilter,
+	})
 
 	// A selection column makes rows selectable, so each row exposes `aria-selected`
 	// and a true grid advertises `aria-multiselectable` (see `resolveTableProps`).
@@ -750,9 +840,23 @@ export function GridData<T>({
 	// each reading the selected rows when a selection is active, else the full
 	// filtered + sorted set (all pages) — the engine mirrors the grid's
 	// selection `Set` into its own state, so the selected subset keeps the
-	// displayed order. Shared by the toolbar's "Export" dropdown and both
-	// context menus.
-	const exportActions = useGridExport<T>({ exportable, columns: visibleColumns, table })
+	// displayed order. Both are taken over the leaf set, since under grouping the
+	// sorted model carries group headers rather than data rows. An `exportRows`
+	// source overrides both, supplying the rows the engine can't hold under
+	// server pagination. Split by surface: the toolbar's "Export" dropdown and
+	// both context menus each take the set their own switch opens.
+	const exportActions = useGridExport<T>({
+		exportable,
+		columns: visibleColumns,
+		table,
+		exportRows,
+		grouped: groupingActive,
+		manualGroupRow,
+	})
+
+	// Whether the table may paint yet; holds its first frame until the widths are
+	// settled (see `useTableRevealed`, and the width gate on the `<table>` below).
+	const showTable = useTableRevealed(widthsSettled, loading, renderRows.length)
 
 	// Fixed-layout column widths so a resize touches only its own column;
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
@@ -828,7 +932,7 @@ export function GridData<T>({
 		chooseColumns,
 	} = useGridMenuActions<T>({
 		contextMenu,
-		columnManagerConfig,
+		columnManager: columnManagerConfigProp,
 		resize,
 		setSort,
 		hasData,
@@ -880,7 +984,9 @@ export function GridData<T>({
 		rowReorder: rowReorderConfig,
 		enabled: rowReorderPermitted({
 			loading,
-			hasData,
+			// Rows, not the header's interactivity: dragging one needs a row to drag,
+			// which an emptied-by-a-filter grid hasn't got.
+			hasRows: hasRowsToActOn,
 			paginated: paginationConfig != null,
 			virtualized: virtualizeEnabled,
 			// Either grouping mode renders its own body; both stand reordering down.
@@ -1032,7 +1138,7 @@ export function GridData<T>({
 				hover={rowHover}
 				className={condensedTableClass(
 					condensed,
-					cn(tableClassName, bodyStateClass, outlineTableClass(outline)),
+					cn(tableClassName, bodyStateClass, outlineTableClass(outline), widthGateClass(showTable)),
 				)}
 				tableProps={resolveTableProps({
 					tableProps,
@@ -1116,6 +1222,7 @@ export function GridData<T>({
 									overscan,
 									scrollIntoViewRef: scrollRowIntoViewRef,
 									infiniteScroll,
+									fitRenderedRows,
 								}
 							: null
 					}
@@ -1135,105 +1242,125 @@ export function GridData<T>({
 	// table when editable; a read-only grid returns it untouched.
 	const cursorContent = cursor.wrap(tableContent)
 
+	// Highlight-mode search (`search.filter === false`): every row stays and the
+	// matched substring is marked in each searched cell instead. The debounced query
+	// flows to the body cells through context (null while filtering, empty, or
+	// unsearched), so a query change re-marks only the cells that read it.
+	const highlightQuery = resolveHighlightQuery(searchConfig, globalFilter)
+
 	const tableRegion = (
-		<GridScrollRegion active={needsScrollWrapper} scrollRef={scrollRef} maxHeight={maxHeight}>
-			{cursorContent}
-		</GridScrollRegion>
+		<GridHighlightContext value={highlightQuery}>
+			<GridScrollRegion active={needsScrollWrapper} scrollRef={scrollRef} maxHeight={maxHeight}>
+				{cursorContent}
+			</GridScrollRegion>
+		</GridHighlightContext>
 	)
 
 	return (
 		<GridContext value={context}>
-			<GridResizingContext value={resizing}>
-				<div
-					ref={wrapperRef}
-					data-slot="grid"
-					// Flags an in-flight column drag-resize so the grid paints the resize
-					// cursor grid-wide (see `k.wrapper`); head and cells read the matching
-					// `resizing` context flag to drop their hover wash and truncation tooltips.
-					data-resizing={dataAttr(resizing)}
-					className={gridWrapperClass(maxHeight === 'fill')}
-				>
-					<GridBusyStatus loading={loading} rowCount={dataRowCount} />
+			<GridOverlayDensityContext value={overlayDensity}>
+				<GridResizingContext value={resizing}>
+					<div
+						ref={wrapperRef}
+						data-slot="grid"
+						// Flags an in-flight column drag-resize so the grid paints the resize
+						// cursor grid-wide (see `k.wrapper`); head and cells read the matching
+						// `resizing` context flag to drop their hover wash and truncation tooltips.
+						data-resizing={dataAttr(resizing)}
+						className={gridWrapperClass(maxHeight === 'fill')}
+					>
+						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-					{renderDialog && (
-						<GridColumnManagerDialog
-							open={columnManagerOpen}
-							onOpenChange={setColumnManagerOpen}
-							label={managerLabel}
-							columns={managerItems}
-							order={columnOrder}
-							onOrderChange={setColumnOrder}
-							reorderable={reorderEnabled}
-							hidden={hiddenColumns}
-							onHiddenChange={handleHiddenChange}
-							onPinChange={pinColumn}
-							groups={group.editorGroups}
-							onGroupsChange={group.editorSetGroups}
-							onSavePreset={columnManagerConfig?.onSavePreset}
-						/>
-					)}
+						{/* Covers the grid — toolbar included — while an async export resolves
+						    its rows, whichever surface started it. */}
+						<GridExportOverlay active={exportActions.pending} />
 
-					<GridRowManagerRegionDialog region={rowManager} />
-
-					{confirmAutoSize && (
-						<GridAutoSizeConfirmDialog
-							open={autoSizeConfirmOpen}
-							onOpenChange={setAutoSizeConfirmOpen}
-							onConfirm={confirmAutoSize}
-						/>
-					)}
-
-					<GridToolbar
-						filter={globalFilter}
-						showColumnManager={showButton}
-						columnManagerLabel={managerLabel}
-						onManageColumns={() => setColumnManagerOpen(true)}
-						exportActions={exportActions}
-						columnFilters={filters}
-						batchActions={batchActions}
-						hasSelection={someSelected}
-						selection={selection}
-						setSelection={setSelection}
-					/>
-
-					<GridGroupByContext value={groupByContext}>
-						<GridRegion
-							canReorder={reorderActive}
-							dndContextProps={dndContextProps}
-							itemIds={itemIds}
-							strategy={strategy}
-							activeReorderId={activeId}
-							contextMenu={resolvedContextMenu}
-							contextMenuEnabled={contextMenuEnabled}
-							columns={visibleColumns}
-							rows={renderRows}
-							rowKeys={rowKeys}
-							sort={sort}
-							sortColumn={sortColumn}
-							clearSort={clearSort}
-							pinColumn={pinColumn}
-							groupBy={groupByContext}
-							autoSizeColumns={autoSizeColumns}
-							autoSizeColumn={autoSizeColumn}
-							chooseColumns={chooseColumns}
-							exportActions={exportActions}
-							rowGroupMenu={rowManager.rowGroupMenu}
-							columnGroupMenu={columnGroupMenu}
-						>
-							<GridRowReorderRegion
-								active={rowReorderActive}
-								dndContextProps={rowReorder.dndContextProps}
+						{renderDialog && (
+							<GridManagerDialog
+								open={columnManagerOpen}
+								onOpenChange={setColumnManagerOpen}
+								label={managerLabel}
 							>
-								<DensityCascade level={density}>{tableRegion}</DensityCascade>
-							</GridRowReorderRegion>
-						</GridRegion>
-					</GridGroupByContext>
+								<GridColumnManager
+									columns={managerItems}
+									filterable={columnManagerConfig?.filterable}
+									order={columnOrder}
+									onOrderChange={setColumnOrder}
+									reorderable={reorderEnabled}
+									hidden={hiddenColumns}
+									onHiddenChange={handleHiddenChange}
+									onPinChange={pinColumn}
+									groups={group.editorGroups}
+									onGroupsChange={group.editorSetGroups}
+									onSavePreset={columnManagerConfig?.onSavePreset}
+								/>
+							</GridManagerDialog>
+						)}
 
-					<GridFooterBar config={footer} stats={footerStats} />
+						<GridRowManagerRegionDialog region={rowManager} />
 
-					{pagination && <GridPaginationFooter pagination={pagination} />}
-				</div>
-			</GridResizingContext>
+						{confirmAutoSize && (
+							<GridAutoSizeConfirmDialog
+								open={autoSizeConfirmOpen}
+								onOpenChange={setAutoSizeConfirmOpen}
+								onConfirm={confirmAutoSize}
+							/>
+						)}
+
+						<GridToolbar
+							filter={globalFilter}
+							showColumnManager={showButton}
+							columnManagerLabel={managerLabel}
+							onManageColumns={() => setColumnManagerOpen(true)}
+							exportActions={exportActions.toolbar}
+							exporting={exportActions.pending}
+							columnFilters={filters}
+							batchActions={batchActions}
+							hasSelection={someSelected}
+							selection={selection}
+							setSelection={setSelection}
+						/>
+
+						<GridGroupByContext value={groupByContext}>
+							<GridRegion
+								canReorder={reorderActive}
+								dndContextProps={dndContextProps}
+								itemIds={itemIds}
+								strategy={strategy}
+								activeReorderId={activeId}
+								contextMenu={resolvedContextMenu}
+								contextMenuEnabled={contextMenuEnabled}
+								columns={visibleColumns}
+								rows={renderRows}
+								rowKeys={rowKeys}
+								sort={sort}
+								sortColumn={sortColumn}
+								clearSort={clearSort}
+								pinColumn={pinColumn}
+								groupBy={groupByContext}
+								autoSizeColumns={autoSizeColumns}
+								autoSizeColumn={autoSizeColumn}
+								chooseColumns={chooseColumns}
+								exportActions={exportActions.contextMenu}
+								rowGroupMenu={rowManager.rowGroupMenu}
+								columnGroupMenu={columnGroupMenu}
+								columnFilter={filters}
+							>
+								<GridRowReorderRegion
+									active={rowReorderActive}
+									dndContextProps={rowReorder.dndContextProps}
+								>
+									<DensityCascade level={density}>{tableRegion}</DensityCascade>
+								</GridRowReorderRegion>
+							</GridRegion>
+						</GridGroupByContext>
+
+						<GridFooterBar config={footer} stats={footerStats} />
+
+						{pagination && <GridPaginationFooter pagination={pagination} />}
+					</div>
+				</GridResizingContext>
+			</GridOverlayDensityContext>
 		</GridContext>
 	)
 }

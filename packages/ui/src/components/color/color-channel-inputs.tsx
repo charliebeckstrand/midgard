@@ -67,6 +67,10 @@ export function ColorChannelInputs() {
 				{...draftProps(channel)}
 				id={scope.sub(channel)}
 				onChange={onChange(channel)}
+				// The popover content wrapper preventDefaults mousedown to hold focus
+				// for the area/slider drag (color-picker-content.tsx); stop it here so
+				// a click focuses this input. A no-op in the inline ColorPanel.
+				onMouseDown={(event) => event.stopPropagation()}
 				disabled={disabled}
 				size={size}
 				data-slot="color-channel-input"

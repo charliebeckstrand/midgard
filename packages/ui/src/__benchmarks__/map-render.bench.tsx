@@ -1,11 +1,26 @@
-import { fireEvent, render } from '@testing-library/react'
+/**
+ * MapPlat's jsdom render cost, and the geometry cache underneath it. The
+ * competitive suite one directory down scores the module against Highcharts
+ * Maps and ECharts in a real browser; this one localizes — the mount rungs
+ * separate a pre-decoded GeoJSON from a topology that must decode first, the
+ * cold/warm pair isolates what the static-geometry cache saves on a remount,
+ * and the cascade scenarios drive a mounted plat so a hover or a legend
+ * emphasis reads as re-render cost alone.
+ */
+
+import { fireEvent } from '@testing-library/react'
+import type { ReactElement } from 'react'
 import counties from 'us-atlas/counties-10m.json'
 import states from 'us-atlas/states-10m.json'
 import { bench, describe } from 'vitest'
 import { type MapGeography, MapPlat, type MapTopology } from '../modules/map'
-import { defaultRegionId } from '../modules/map/map-categories'
-import { geographyFeatures } from '../modules/map/map-geometry'
-import { computeStaticMapGeometry, staticMapGeometry } from '../modules/map/map-geometry-cache'
+import {
+	computeStaticMapGeometry,
+	staticMapGeometry,
+} from '../modules/map/engine/map-geometry/cache'
+import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
+import { defaultRegionId } from '../modules/map/engine/map-region/identity'
+import { mountBench, persistentTree } from './harness'
 
 const statesTopo = states as unknown as MapTopology
 
@@ -13,20 +28,22 @@ const countiesTopo = counties as unknown as MapTopology
 
 const ZONES = ['Pacific', 'Mountain', 'Central', 'Eastern'] as const
 
+// Round-robins every region through the zones, so each category paints regions.
 const stateRows = geographyFeatures(statesTopo).map((feature, index) => ({
 	state: defaultRegionId(feature),
 	zone: ZONES[index % ZONES.length] as string,
 }))
 
-const countiesGeo: MapGeography = {
-	type: 'FeatureCollection',
-	features: geographyFeatures(countiesTopo),
-}
+// Decoded once: `geographyFeatures` re-walks every arc of the atlas per call,
+// and both the rows and the pre-decoded collection below want the same features.
+const countyFeatures = geographyFeatures(countiesTopo)
 
-const countyRows = geographyFeatures(countiesTopo).map((feature, index) => ({
+const countyRows = countyFeatures.map((feature, index) => ({
 	county: defaultRegionId(feature),
 	zone: ZONES[index % ZONES.length] as string,
 }))
+
+const countiesGeo: MapGeography = { type: 'FeatureCollection', features: countyFeatures }
 
 function statesPlat() {
 	return (
@@ -41,28 +58,18 @@ function statesPlat() {
 	)
 }
 
+function countiesPlat() {
+	return <MapPlat aria-label="Counties" geography={countiesGeo} width={800} />
+}
+
 describe('MapPlat · mount', () => {
-	bench('states-10m topology (52 regions, 4 categories)', () => {
-		const { unmount } = render(statesPlat())
+	mountBench('states-10m topology (52 regions, 4 categories)', statesPlat)
 
-		unmount()
-	})
+	mountBench('counties-10m pre-decoded GeoJSON (3143 regions)', countiesPlat)
 
-	bench('counties-10m pre-decoded GeoJSON (3143 regions)', () => {
-		const { unmount } = render(
-			<MapPlat aria-label="Counties" geography={countiesGeo} width={800} />,
-		)
-
-		unmount()
-	})
-
-	bench('counties-10m topology (3143 regions, incl. decode)', () => {
-		const { unmount } = render(
-			<MapPlat aria-label="Counties" geography={countiesTopo} width={800} />,
-		)
-
-		unmount()
-	})
+	mountBench('counties-10m topology (3143 regions, incl. decode)', () => (
+		<MapPlat aria-label="Counties" geography={countiesTopo} width={800} />
+	))
 })
 
 describe('static geometry · cold vs warm (states-10m)', () => {
@@ -78,45 +85,52 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 	})
 })
 
+/** Pointer moves per iteration — enough that per-move cascade work accumulates. */
+const MOVES = 10
+
+/** Mounts a plat for the whole run and hands back the elements the cascade scenarios drive. */
+function cascade(node: ReactElement) {
+	const container = persistentTree(node)
+
+	return {
+		region: container.querySelector('[data-region-index]') as Element,
+		legendItem: container.querySelector('[data-slot="map-legend-item"]') as Element,
+	}
+}
+
+/** One sweep of `MOVES` pointer moves across a single region. */
+function sweep(region: Element) {
+	for (let move = 0; move < MOVES; move++) {
+		fireEvent.pointerMove(region, { clientX: 100 + move, clientY: 100 })
+	}
+}
+
+/** One legend emphasis: enter, then leave. */
+function emphasize(legendItem: Element) {
+	fireEvent.pointerEnter(legendItem)
+
+	fireEvent.pointerLeave(legendItem)
+}
+
 describe('MapPlat · hover cascade (states, 52 regions)', () => {
-	const { container } = render(statesPlat())
+	const { region, legendItem } = cascade(statesPlat())
 
-	const region = container.querySelector('[data-region-index]') as Element
+	bench(`${MOVES} pointermoves over one region`, () => sweep(region))
 
-	const legendItem = container.querySelector('[data-slot="map-legend-item"]') as Element
-
-	bench('10 pointermoves over one region', () => {
-		for (let i = 0; i < 10; i++) {
-			fireEvent.pointerMove(region, { clientX: 100 + i, clientY: 100 })
-		}
-	})
-
-	bench('legend emphasis enter + leave', () => {
-		fireEvent.pointerEnter(legendItem)
-
-		fireEvent.pointerLeave(legendItem)
-	})
+	bench('legend emphasis enter + leave', () => emphasize(legendItem))
 })
 
 describe('MapPlat · hover cascade (counties, 3143 regions)', () => {
-	const { container } = render(
-		<MapPlat aria-label="Counties" geography={countiesGeo} width={800} />,
-	)
+	const { region } = cascade(countiesPlat())
 
-	const region = container.querySelector('[data-region-index]') as Element
-
-	bench('10 pointermoves over one region', () => {
-		for (let i = 0; i < 10; i++) {
-			fireEvent.pointerMove(region, { clientX: 100 + i, clientY: 100 })
-		}
-	})
+	bench(`${MOVES} pointermoves over one region`, () => sweep(region))
 })
 
 describe('MapPlat · legend cascade (counties, 3143 regions + legend)', () => {
 	// A legend emphasis re-renders the plat: the region layer must repaint (its
 	// fills dim) but the visually-hidden table reads neither hidden nor
 	// emphasis, so its memo holds a 3143-row re-map on every enter and leave.
-	const { container } = render(
+	const { legendItem } = cascade(
 		<MapPlat
 			aria-label="Counties"
 			geography={countiesGeo}
@@ -127,11 +141,5 @@ describe('MapPlat · legend cascade (counties, 3143 regions + legend)', () => {
 		/>,
 	)
 
-	const legendItem = container.querySelector('[data-slot="map-legend-item"]') as Element
-
-	bench('legend emphasis enter + leave', () => {
-		fireEvent.pointerEnter(legendItem)
-
-		fireEvent.pointerLeave(legendItem)
-	})
+	bench('legend emphasis enter + leave', () => emphasize(legendItem))
 })

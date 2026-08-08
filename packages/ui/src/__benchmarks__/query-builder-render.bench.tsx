@@ -1,83 +1,61 @@
-import { cleanup, render } from '@testing-library/react'
-import { bench, describe } from 'vitest'
-import type { QueryGroupNode } from '../modules/query'
-import { mapNode, QueryBuilder } from '../modules/query'
-import { makeQueryTree, QUERY_FIELDS } from './fixtures'
+/**
+ * QueryBuilder's render cost: the recursive `QueryGroup`/`QueryRule` tree in
+ * full, where `query-builder.bench.ts` measures the tree utilities alone. The
+ * edit scenario re-renders a mounted builder against a tree rebuilt through
+ * `mapNode`, the shape a controlled consumer's change handler produces.
+ */
 
-function collectRuleIds(group: QueryGroupNode): string[] {
-	const ids: string[] = []
+import { describe } from 'vitest'
+import { mapNode, QueryBuilder, type QueryGroupNode } from '../modules/query'
+import { collectRuleIds, makeQueryTree, QUERY_FIELDS } from './fixtures'
+import { mountBenches, rerenderBench } from './harness'
 
-	for (const child of group.children) {
-		if (child.type === 'rule') ids.push(child.id)
-		else ids.push(...collectRuleIds(child))
-	}
+const shallowWide = makeQueryTree(1, 10)
 
-	return ids
-}
+const balanced = makeQueryTree(2, 4)
 
-// Complements query-builder.bench.ts: this measures the full render cost of
-// the recursive QueryGroup/QueryRule tree, not the tree utilities alone.
+const deepWide = makeQueryTree(3, 4)
 
-const shallowWide = makeQueryTree(1, 10) // 10 rules
-const balanced = makeQueryTree(2, 4) // ~16 rules in 4 groups
-const deepWide = makeQueryTree(3, 4) // ~64 rules in 16 groups
+/** Edits per re-render iteration — enough that per-edit work outruns the harness. */
+const EDITS = 5
 
 describe('QueryBuilder · initial render', () => {
-	bench('shallow-wide (10 rules)', () => {
-		render(<QueryBuilder fields={QUERY_FIELDS} value={shallowWide} />)
-
-		cleanup()
-	})
-
-	bench('balanced (~16 rules)', () => {
-		render(<QueryBuilder fields={QUERY_FIELDS} value={balanced} />)
-
-		cleanup()
-	})
-
-	bench('deep-wide (~64 rules)', () => {
-		render(<QueryBuilder fields={QUERY_FIELDS} value={deepWide} />)
-
-		cleanup()
-	})
+	mountBenches(
+		[
+			{ label: 'shallow-wide (10 rules)', tree: shallowWide },
+			{ label: 'balanced (~16 rules)', tree: balanced },
+			{ label: 'deep-wide (~64 rules)', tree: deepWide },
+		],
+		({ label }) => label,
+		({ tree }) => <QueryBuilder fields={QUERY_FIELDS} value={tree} />,
+	)
 })
 
-describe('QueryBuilder · rerender after single-rule edit (5 edits/iter)', () => {
-	const balancedIds = collectRuleIds(balanced).slice(0, 5)
-	const deepWideIds = collectRuleIds(deepWide).slice(0, 5)
+describe(`QueryBuilder · rerender after single-rule edit (${EDITS} edits/iter)`, () => {
+	const built = (tree: QueryGroupNode) => <QueryBuilder fields={QUERY_FIELDS} value={tree} />
 
-	bench('balanced (~16 rules)', () => {
-		let tree = balanced
-		const { rerender } = render(<QueryBuilder fields={QUERY_FIELDS} value={tree} />)
+	for (const { label, root } of [
+		{ label: 'balanced (~16 rules)', root: balanced },
+		{ label: 'deep-wide (~64 rules)', root: deepWide },
+	]) {
+		const ids = collectRuleIds(root).slice(0, EDITS)
 
-		for (let i = 0; i < balancedIds.length; i++) {
-			const id = balancedIds[i] as string
+		rerenderBench(
+			label,
+			() => built(root),
+			(rerender, iteration) => {
+				let tree = root
 
-			tree = mapNode(tree, id, (n) =>
-				n.type === 'rule' ? { ...n, value: `v${i}` } : n,
-			) as QueryGroupNode
+				for (const [edit, id] of ids.entries()) {
+					// A fresh value string per iteration, so no edit lands on the value the
+					// rule already holds and bails on an equality guard.
+					tree = mapNode(tree, id, (node) =>
+						node.type === 'rule' ? { ...node, value: `v${iteration}-${edit}` } : node,
+					) as QueryGroupNode
 
-			rerender(<QueryBuilder fields={QUERY_FIELDS} value={tree} />)
-		}
-
-		cleanup()
-	})
-
-	bench('deep-wide (~64 rules)', () => {
-		let tree = deepWide
-
-		const { rerender } = render(<QueryBuilder fields={QUERY_FIELDS} value={tree} />)
-
-		for (let i = 0; i < deepWideIds.length; i++) {
-			const id = deepWideIds[i] as string
-
-			tree = mapNode(tree, id, (n) =>
-				n.type === 'rule' ? { ...n, value: `v${i}` } : n,
-			) as QueryGroupNode
-
-			rerender(<QueryBuilder fields={QUERY_FIELDS} value={tree} />)
-		}
-
-		cleanup()
-	})
+					rerender(built(tree))
+				}
+			},
+		)
+	}
 })

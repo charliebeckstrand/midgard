@@ -30,12 +30,6 @@ type ColorPanelBaseProps = {
 	 * @defaultValue {@link DEFAULT_SWATCHES} — a built-in palette
 	 */
 	swatches?: readonly string[] | false
-	/**
-	 * Show the eyedropper button where the `EyeDropper` API is available.
-	 *
-	 * @defaultValue `true`
-	 */
-	eyedropper?: boolean
 	/** Size step; resolves through the explicit prop, then the Density cascade, then `'md'`. */
 	size?: ControlSize
 	disabled?: boolean
@@ -64,14 +58,7 @@ export function ColorPanel(props: ColorPanelProps) {
 }
 
 function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
-	const {
-		alpha = false,
-		swatches = DEFAULT_SWATCHES,
-		eyedropper = true,
-		size,
-		disabled = false,
-		className,
-	} = props
+	const { alpha = false, swatches = DEFAULT_SWATCHES, size, disabled = false, className } = props
 
 	const { hsva, setHsva } = useColorState({
 		value: props.value,
@@ -112,7 +99,7 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 						<ColorHexInput />
 					</div>
 
-					{eyedropper && !disabled && <ColorEyedropper />}
+					{!disabled && <ColorEyedropper />}
 				</div>
 
 				<ColorChannelInputs />

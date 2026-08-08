@@ -73,6 +73,7 @@ export function GridGroupRow<T>({
 				className={cn(k.rowGroup.rail.padded, color && k.rowGroup.rail.color[color])}
 			>
 				<Button
+					type="button"
 					variant="bare"
 					onClick={row.getToggleExpandedHandler()}
 					aria-expanded={expanded}

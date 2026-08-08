@@ -92,6 +92,12 @@ describe('color conversions', () => {
 		expect(equalHsva({ h: 0, s: 100, v: 100, a: 1 }, { h: 120, s: 100, v: 100, a: 1 })).toBe(false)
 	})
 
+	it('ignores saturation at zero value, where every saturation renders black', () => {
+		expect(equalHsva({ h: 0, s: 0, v: 0, a: 1 }, { h: 200, s: 50, v: 0, a: 1 })).toBe(true)
+
+		expect(equalHsva({ h: 0, s: 100, v: 0, a: 1 }, { h: 0, s: 0, v: 0, a: 1 })).toBe(true)
+	})
+
 	it('builds a css rgba fill, dropping alpha unless requested', () => {
 		expect(hsvaToCss({ h: 0, s: 100, v: 100, a: 0.5 })).toBe('rgba(255, 0, 0, 1)')
 

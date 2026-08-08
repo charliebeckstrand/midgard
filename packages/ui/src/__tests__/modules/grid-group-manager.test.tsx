@@ -69,6 +69,19 @@ describe('group manager reducers', () => {
 		expect(reorderGroups(groups, 'missing', 'g1')).toBe(groups)
 	})
 
+	it('reorders in either direction, taking the target’s index after the pull', () => {
+		// Three groups separate a remove-then-insert from an insert-then-remove;
+		// two cannot. This is the `arrayMove` contract the engine now inlines.
+		const three: GridColumnGroup[] = [...groups, { id: 'g3', title: 'Three', columns: [] }]
+
+		expect(reorderGroups(three, 'g1', 'g3').map((g) => g.id)).toEqual(['g2', 'g3', 'g1'])
+
+		expect(reorderGroups(three, 'g3', 'g1').map((g) => g.id)).toEqual(['g3', 'g1', 'g2'])
+
+		// The source array is never mutated.
+		expect(three.map((g) => g.id)).toEqual(['g1', 'g2', 'g3'])
+	})
+
 	it('partitions orderable columns into group zones and an ungrouped pool', () => {
 		const zones = buildManagerZones(groups, ['a', 'b', 'c', 'd'])
 
@@ -127,6 +140,9 @@ describe('group manager drag helpers', () => {
 
 		// Cross-zone (already applied live in onDragOver) → unchanged.
 		expect(settleDragEnd(map, 'a', 'c')).toBe(map)
+
+		// A two-column zone cannot separate "to the end" from "swap with the last".
+		expect(settleDragEnd({ g: ['a', 'b', 'c'] }, 'a', 'g')).toEqual({ g: ['b', 'c', 'a'] })
 	})
 })
 
@@ -260,12 +276,13 @@ describe('Grid column-group editor', () => {
 				rows={rows}
 				getKey={(row) => row.id}
 				groups={{ value: groups, onValueChange: setGroups }}
-				columnManager={{ toolbarButton: true, defaultOpen: true }}
+				columnManager={{ toolbar: true, defaultOpen: true }}
 			/>
 		)
 	}
 
-	const band = (root: HTMLElement) => root.querySelector('thead th[scope="colgroup"]')
+	const band = (root: HTMLElement) =>
+		root.querySelector<HTMLTableCellElement>('thead th[scope="colgroup"]')
 
 	it('creates a group, moves a column into it, and renames it — updating the band', () => {
 		const { container } = renderUI(<Harness />)
@@ -289,6 +306,40 @@ describe('Grid column-group editor', () => {
 		fireEvent.change(nameInput, { target: { value: 'Identity' } })
 
 		expect(band(container)?.textContent).toContain('Identity')
+	})
+
+	it('narrows a zone to its matching members without touching membership', () => {
+		const { container } = renderUI(<Harness />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'New group' }))
+
+		// First and Last into the group; Email stays in the ungrouped pool.
+		fireEvent.click(screen.getByRole('button', { name: 'Move First' }))
+
+		fireEvent.click(screen.getByText('Move to New group'))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Move Last' }))
+
+		fireEvent.click(screen.getByText('Move to New group'))
+
+		fireEvent.change(screen.getByRole('searchbox', { name: 'Filter columns' }), {
+			target: { value: 'la' },
+		})
+
+		// Only the matching member of the group renders...
+		expect(screen.getByRole('checkbox', { name: 'Show Last' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('checkbox', { name: 'Show First' })).toBeNull()
+
+		// ...and a zone whose members all filter out reads as a search result, not as
+		// an empty pool.
+		expect(screen.getByText('No results')).toBeInTheDocument()
+
+		expect(screen.queryByText('No ungrouped columns')).toBeNull()
+
+		// The band still spans both members: filtering renders fewer rows, it never
+		// commits a membership change.
+		expect(band(container)?.colSpan).toBe(2)
 	})
 
 	it('seeds collapse from a controlled group’s defaultCollapsed on mount', () => {
@@ -348,7 +399,7 @@ describe('Grid column-group editor', () => {
 					rows={rows}
 					getKey={(row) => row.id}
 					groups={{ value: groups, onValueChange: setGroups }}
-					columnManager={{ toolbarButton: true, defaultOpen: true }}
+					columnManager={{ toolbar: true, defaultOpen: true }}
 				/>
 			)
 		}

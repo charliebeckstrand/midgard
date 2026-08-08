@@ -1,22 +1,8 @@
 export type { MapSeriesColor } from '../../recipes/kata/map'
-export { MapMarker, type MapMarkerProps } from './map-marker'
-export { MapPlat, type MapPlatProps } from './map-plat'
-export { MapPoint, type MapPointProps } from './map-point'
-export {
-	RangeArrow,
-	type RangeArrowProps,
-	RangeLegend,
-	type RangeLegendProps,
-} from './map-range-legend'
-export { MapRoute, type MapRouteProps } from './map-route'
-export {
-	type FetchOsrmRouteOptions,
-	type FetchValhallaRouteOptions,
-	fetchOsrmRoute,
-	fetchValhallaRoute,
-	type MapRouteResult,
-} from './map-routing'
-export { MapSkeleton, type MapSkeletonProps } from './map-skeleton'
+export { binEmphasisId } from './engine/map-region/category'
+export { type FetchOsrmRouteOptions, fetchOsrmRoute } from './engine/map-routing/osrm'
+export type { MapRouteResult } from './engine/map-routing/result'
+export { type FetchValhallaRouteOptions, fetchValhallaRoute } from './engine/map-routing/valhalla'
 export type {
 	DataKey,
 	LngLat,
@@ -27,6 +13,14 @@ export type {
 	MapGeography,
 	MapLegendPlacement,
 	MapNamedProjection,
+	MapOverlaySelection,
 	MapProjection,
 	MapTopology,
-} from './types'
+} from './engine/types'
+export { MapGeofence, type MapGeofenceProps } from './map-geofence'
+export { MapMarker, type MapMarkerProps } from './map-marker'
+export { MapPlat, type MapPlatProps } from './map-plat'
+export { MapPoint, type MapPointProps } from './map-point'
+export { type MapPointDatum, MapPoints, type MapPointsProps } from './map-points'
+export { MapRoute, type MapRouteProps } from './map-route'
+export { MapSkeleton, type MapSkeletonProps } from './map-skeleton'

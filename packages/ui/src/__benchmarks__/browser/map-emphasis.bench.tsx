@@ -10,25 +10,17 @@
  * `emphasis.focus: 'self'`, the programmatic form of the same hover link.
  */
 
-import { bench, describe } from 'vitest'
+import { describe } from 'vitest'
+import { benches, host, type Prepared, settle, WINDOW } from './harness'
 import { ecZoneEmphasisChart, zoneMapContenders } from './map-contenders'
 import { countiesAtlas, makeZones, ZONES } from './map-fixtures'
-
-const frame = () => new Promise(requestAnimationFrame)
-
-async function settle() {
-	await frame()
-
-	await frame()
-}
-
-type PreparedEmphasis = { name: string; run: () => Promise<void> }
 
 const data = makeZones(countiesAtlas)
 
 /** Row indexes of the emphasised zone — ECharts' highlight target. */
 const zoneIndexes = data.rows.flatMap((row, index) => (row.zone === ZONES[0] ? [index] : []))
 
+/** The pointer pair the ui legend chip listens for; `enter`/`leave` do not bubble. */
 function pointerPair(target: Element, over: 'over' | 'out') {
 	target.dispatchEvent(new PointerEvent(`pointer${over}`, { bubbles: true, pointerType: 'mouse' }))
 
@@ -37,101 +29,68 @@ function pointerPair(target: Element, over: 'over' | 'out') {
 	)
 }
 
-// One call, positional pick: the ui contender drives the pointer-on-chip
-// recede, Highcharts its legend-item hover.
-const [ui, hc] = zoneMapContenders(countiesAtlas)
-
-async function prepare(): Promise<PreparedEmphasis[]> {
-	const prepared: PreparedEmphasis[] = []
-
-	// ui MapPlat: pointer on its legend switchboard chip.
-	{
-		const host = document.createElement('div')
-
-		document.body.append(host)
-
-		await (ui as NonNullable<typeof ui>).mount(host, data)
-
-		const chip = host.querySelector('[data-slot="map-legend-item"]') as Element
-
-		prepared.push({
-			name: 'ui MapPlat',
-			run: async () => {
-				pointerPair(chip, 'over')
-
-				await settle()
-
-				pointerPair(chip, 'out')
-
-				await settle()
-			},
-		})
-	}
-
-	// Highcharts: mouse on its data-class legend item; the other points go
-	// inactive while it is held.
-	{
-		const host = document.createElement('div')
-
-		document.body.append(host)
-
-		await (hc as NonNullable<typeof hc>).mount(host, data)
-
-		const item = host.querySelector('.highcharts-legend-item') as Element
-
-		prepared.push({
-			name: 'Highcharts map',
-			run: async () => {
-				item.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
-
-				await settle()
-
-				item.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }))
-
-				await settle()
-			},
-		})
-	}
-
-	// ECharts: documented highlight / downplay actions over the zone's rows,
-	// with emphasis.focus 'self' blurring the rest; zrender's frame flushes
-	// inside the settled frames.
-	{
-		const host = document.createElement('div')
-
-		document.body.append(host)
-
-		const chart = ecZoneEmphasisChart(host, countiesAtlas, data)
-
-		prepared.push({
-			name: 'ECharts map',
-			run: async () => {
-				chart.dispatchAction({ type: 'highlight', seriesIndex: 0, dataIndex: zoneIndexes })
-
-				chart.getZr().flush()
-
-				await settle()
-
-				chart.dispatchAction({ type: 'downplay', seriesIndex: 0, dataIndex: zoneIndexes })
-
-				chart.getZr().flush()
-
-				await settle()
-			},
-		})
-	}
-
-	return prepared
+/** The mouse pair Highcharts' legend item listens for. */
+function mousePair(target: Element, over: 'over' | 'out') {
+	target.dispatchEvent(new MouseEvent(`mouse${over}`, { bubbles: true }))
 }
 
-const contenders = await prepare()
+/** Mounts a zone contender by index and returns the legend element it drives. */
+async function mountLegend(index: number, selector: string): Promise<Element> {
+	const box = host()
 
-// Sanity, logged once: every contender's recede must actually engage before
-// it is timed — a no-op emphasis would score an empty settle.
+	const contender = zoneMapContenders(countiesAtlas)[index]
+
+	if (!contender) throw new Error(`map emphasis bench found no contender at ${index}`)
+
+	await contender.mount(box, data)
+
+	return box.querySelector(selector) as Element
+}
+
+/** One hold-and-release cycle: emphasise, settle, release, settle. */
+function cycle(hold: (over: 'over' | 'out') => void) {
+	return async () => {
+		hold('over')
+
+		await settle()
+
+		hold('out')
+
+		await settle()
+	}
+}
+
+// The ui module drives the pointer-on-chip recede; Highcharts its legend-item
+// hover; ECharts the programmatic highlight over the zone's rows, with
+// emphasis.focus 'self' blurring the rest and zrender flushed into the frames.
+const chip = await mountLegend(0, '[data-slot="map-legend-item"]')
+
+const item = await mountLegend(1, '.highcharts-legend-item')
+
+const chart = ecZoneEmphasisChart(host(), countiesAtlas, data)
+
+const contenders: Prepared[] = [
+	{ name: 'ui MapPlat', run: cycle((over) => pointerPair(chip, over)) },
+	{ name: 'Highcharts map', run: cycle((over) => mousePair(item, over)) },
+	{
+		name: 'ECharts map',
+		run: cycle((over) => {
+			chart.dispatchAction({
+				type: over === 'over' ? 'highlight' : 'downplay',
+				seriesIndex: 0,
+				dataIndex: zoneIndexes,
+			})
+
+			chart.getZr().flush()
+		}),
+	},
+]
+
+// Sanity, logged once: every contender's recede must actually engage before it
+// is timed — a no-op emphasis would score an empty settle. The pause outwaits
+// each library's own transition before the DOM is read.
 {
 	const pause = () => new Promise((resolve) => setTimeout(resolve, 50))
-
-	const chip = document.querySelector('[data-slot="map-legend-item"]') as Element
 
 	pointerPair(chip, 'over')
 
@@ -148,9 +107,7 @@ const contenders = await prepare()
 
 	await settle()
 
-	const item = document.querySelector('.highcharts-legend-item') as Element
-
-	item.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }))
+	mousePair(item, 'over')
 
 	await settle()
 
@@ -158,7 +115,7 @@ const contenders = await prepare()
 
 	const inactive = document.querySelectorAll('.highcharts-point-inactive').length
 
-	item.dispatchEvent(new MouseEvent('mouseout', { bubbles: true }))
+	mousePair(item, 'out')
 
 	await settle()
 
@@ -167,12 +124,6 @@ const contenders = await prepare()
 	)
 }
 
-// An emphasis flip runs tens of milliseconds settled; the longer window keeps
-// samples up, matching the hover benches.
-const WINDOW = { time: 3_000 }
-
 describe('emphasis · map · counties · isolate zone + release', () => {
-	for (const { name, run } of contenders) {
-		bench(name, run, WINDOW)
-	}
+	benches(contenders, WINDOW.settled)
 })

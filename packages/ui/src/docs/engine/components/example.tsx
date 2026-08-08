@@ -1,14 +1,13 @@
 'use client'
 
-import { type ReactNode, useId, useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useRef, useState } from 'react'
 import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Stack } from '../../../components/stack'
 import { cn } from '../../../core'
-import { deriveCode } from '../derive-code'
-import { useRegisterExample } from './demo-nav'
+import { deriveCode, hasDerivableCode, type SourceFacts } from '../derive-code'
 import {
 	ExampleResizeHandle,
 	maxDefined,
@@ -25,8 +24,7 @@ import {
  * The block derives from the rendered subtree via {@link deriveCode}; an
  * explicit `code` overrides it, and when neither yields anything the block is
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
- * slots frame the preview. A titled example registers itself with the page's
- * jump nav ({@link DemoNav}) and anchors the scroll target it jumps to.
+ * slots frame the preview.
  *
  * The optional `width` and `minWidth` props size the frame, and `resize` makes
  * it horizontally draggable via a right-edge handle and switches its border to
@@ -42,6 +40,7 @@ export function Example({
 	width: initialWidth,
 	minWidth,
 	resize,
+	__facts: facts,
 	children,
 }: {
 	title?: ReactNode
@@ -65,17 +64,43 @@ export function Example({
 	 * (both auto by default) and toggles `snap` (default off).
 	 */
 	resize?: ResizeProp
+	/**
+	 * Build-time source facts injected by the docs plugin's pre-transform —
+	 * never authored by hand. {@link deriveCode} reads them to render props and
+	 * render-prop children the runtime tree can't express.
+	 *
+	 * @internal
+	 */
+	__facts?: SourceFacts
 	children: ReactNode
 }) {
-	const derived = useMemo(() => (code ? null : deriveCode(children)), [code, children])
+	const [open, setOpen] = useState(false)
+
+	// `deriveCode` walks the whole children subtree, and a demo hands `Example` a
+	// fresh tree on every render, so the old `useMemo([code, children])` re-walked
+	// for every Example on the page on any control tweak — even closed ones, whose
+	// block is never shown (`open` gates only the panel mount). Whether a block
+	// exists is stable across control tweaks, so settle it once at mount; walk for
+	// the string only while the panel is open, caching the last one so it stays
+	// visible through the close animation (`AnimatePresence` keeps the panel
+	// mounted while it slides shut).
+	//
+	// The mount probe asks `hasDerivableCode`, which stops at the first tagged
+	// element, rather than deriving the whole block to test it against `null`: a
+	// demo page mounts many Examples at once and none of them needs the string yet.
+	const [hasDerivedCode] = useState(() => !code && hasDerivableCode(children))
+
+	const derivedRef = useRef<string | null>(null)
+
+	const derived = useMemo(() => {
+		if (!code && open) derivedRef.current = deriveCode(children, undefined, facts)
+
+		return derivedRef.current
+	}, [code, open, children, facts])
 
 	const resolvedCode = code ?? derived
 
-	const [open, setOpen] = useState(false)
-
-	const anchorId = useId()
-
-	useRegisterExample(anchorId, title)
+	const showCode = Boolean(code) || hasDerivedCode
 
 	const resolvedResize = resolveResize(resize)
 
@@ -96,7 +121,6 @@ export function Example({
 	return (
 		<Stack
 			gap="sm"
-			id={anchorId}
 			data-slot="example"
 			// Reserve room for the handle's outer half, which straddles the frame's
 			// right edge, so it isn't clipped at full width.
@@ -132,14 +156,14 @@ export function Example({
 				{prefix && (
 					<div className="border-b border-zinc-200 dark:border-zinc-800 p-4">{prefix}</div>
 				)}
-				<div className="p-4 space-y-4">{children}</div>
+				<div className="flex flex-col p-4 gap-4 overflow-x-auto">{children}</div>
 				{preview && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{preview}</div>
 				)}
 				{footer && (
 					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
 				)}
-				{resolvedCode && (
+				{showCode && (
 					<Collapse animate="slide" open={open} onOpenChange={setOpen}>
 						<div className="border-t border-zinc-200 dark:border-zinc-800">
 							<CollapseTrigger className="flex text-sm px-4 py-2 focus-visible:-outline-offset-2">
@@ -147,10 +171,12 @@ export function Example({
 							</CollapseTrigger>
 						</div>
 						<CollapsePanel>
-							<CodeBlock
-								code={resolvedCode}
-								className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
-							/>
+							{resolvedCode && (
+								<CodeBlock
+									code={resolvedCode}
+									className="rounded-t-none border-t border-zinc-200 dark:border-zinc-800"
+								/>
+							)}
 						</CollapsePanel>
 					</Collapse>
 				)}

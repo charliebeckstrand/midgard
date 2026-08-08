@@ -24,8 +24,8 @@ import { geoConicConformal } from 'd3-geo'
 import * as echarts from 'echarts'
 import Highcharts from 'highcharts'
 import 'highcharts/modules/map'
+import type { MapCategory } from '../../modules/map/engine/types'
 import { MapPlat } from '../../modules/map/map-plat'
-import type { MapCategory } from '../../modules/map/types'
 import { type Contender, HEIGHT, hcContender, reactContender, WIDTH } from './contenders'
 import {
 	type JoinRow,

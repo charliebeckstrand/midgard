@@ -1,13 +1,10 @@
 {
 	"name": "ui",
 	"version": "0.1.0",
+	"private": true,
 	"type": "module",
 	"license": "MIT",
 	"sideEffects": false,
-	"files": [
-		"dist",
-		"LICENSE"
-	],
 	"exports": {
 		"./core": {
 			"types": "./src/core/index.ts",
@@ -29,10 +26,6 @@
 			"types": "./src/providers/*/index.ts",
 			"default": "./src/providers/*/index.ts"
 		},
-		"./types": {
-			"types": "./src/types/index.ts",
-			"default": "./src/types/index.ts"
-		},
 		"./modules/*": {
 			"types": "./src/modules/*/index.ts",
 			"default": "./src/modules/*/index.ts"
@@ -49,21 +42,24 @@
 		]
 	},
 	"scripts": {
-		"build": "tsup && tsc --emitDeclarationOnly --outDir dist",
+		"build": "tsup",
 		"dev": "trap 'kill 0' EXIT; tsup --watch --no-dts & vite --config vite.docs.config.ts & wait",
 		"docs": "vite --config vite.docs.config.ts",
 		"docs:build": "vite build --config vite.docs.config.ts",
 		"docs:analyze": "ANALYZE=1 vite build --config vite.docs.config.ts",
 		"docs:preview": "vite preview --config vite.docs.config.ts --port 3456",
-		"test": "vitest run",
-		"test:browser": "vitest run --config vitest.browser.config.ts",
-		"test:a11y": "vitest run src/__tests__/a11y",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
-		"test:changed": "base=$(git merge-base HEAD origin/main) && vitest run --project boundary && vitest run --passWithNoTests --changed=\"$base\"",
-		"test:related": "vitest related --run",
+		"test": "LANG=en-US vitest run",
+		"test:browser": "LANG=en-US vitest run --config vitest.browser.config.ts",
+		"test:a11y": "LANG=en-US vitest run src/__tests__/a11y",
+		"test:watch": "LANG=en-US vitest",
+		"test:coverage": "LANG=en-US vitest run --coverage",
+		"test:changed": "export LANG=en-US && base=$(git merge-base HEAD origin/main) && vitest run --project boundary && vitest run --passWithNoTests --changed=\"$base\"",
+		"test:related": "LANG=en-US vitest related --run",
 		"bench": "vitest bench --run --config vitest.bench.config.ts",
 		"bench:browser": "vitest bench --run --config vitest.bench.browser.config.ts",
+		"bench:docs": "vitest bench --run --config vitest.bench.docs.config.ts",
+		"bench:docs:vite": "tsx src/__benchmarks__/docs/vite-metrics.ts",
+		"bundle:budget": "tsx src/__benchmarks__/docs/bundle-budget.ts",
 		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p tsconfig.docs.json",
 		"lint": "biome check --config-path=../.. .",
 		"lint:fix": "biome check --write --config-path=../.. ."
@@ -110,9 +106,9 @@
 		"@types/react": "^19.2.0",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^6.0.1",
-		"@vitest/browser": "4.1.8",
-		"@vitest/browser-playwright": "4.1.8",
-		"@vitest/coverage-v8": "^4.1.8",
+		"@vitest/browser": "4.1.10",
+		"@vitest/browser-playwright": "4.1.10",
+		"@vitest/coverage-v8": "^4.1.10",
 		"ag-charts-community": "^14.0.0",
 		"ag-grid-community": "^36.0.0",
 		"echarts": "^6.1.0",
@@ -130,6 +126,6 @@
 		"typescript": "^6.0.3",
 		"us-atlas": "^3.0.1",
 		"vite": "^8.0.16",
-		"vitest": "^4.1.8"
+		"vitest": "^4.1.10"
 	}
 }

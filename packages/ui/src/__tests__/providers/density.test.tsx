@@ -91,19 +91,9 @@ describe('DensityProvider element', () => {
 		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'compact')
 	})
 
-	it('defaults the wrapper to display: contents', () => {
+	it('renders the wrapper as display: contents', () => {
 		const { container } = renderUI(<DensityProvider density="snug">content</DensityProvider>)
 
 		expect(bySlot(container, 'density')?.className).toBe('contents')
-	})
-
-	it('accepts a className override on the wrapper', () => {
-		const { container } = renderUI(
-			<DensityProvider density="snug" className="custom">
-				content
-			</DensityProvider>,
-		)
-
-		expect(bySlot(container, 'density')?.className).toBe('custom')
 	})
 })

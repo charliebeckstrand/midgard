@@ -1,7 +1,9 @@
 import type { ColumnPinningState, PaginationState, Table } from '@tanstack/react-table'
-import { isQueryActive, type QueryField, type QueryGroupNode } from '../../../query'
+import { isQueryActive } from '../../../query/engine/query-active'
+import type { QueryField, QueryGroup as QueryGroupNode } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
+import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
 
 /**
@@ -35,28 +37,26 @@ export type GridColumnResize = {
 }
 
 /**
- * Frozen-column controls over the engine's column-pinning state: which edge a
- * column is pinned to, its sticky offset from that edge, and whether it sits at
- * the inner boundary of its frozen group (where the separating shadow draws).
+ * Frozen-column controls: one lookup from a column id to the chrome it draws.
+ *
+ * @remarks Unlike its two siblings here, this one reads a resolved
+ * {@link FrozenLayout} snapshot rather than the engine. The pinned chrome rides
+ * `memo` boundaries, so a cell that holds on its props sees a frozen-layout
+ * change only through this object's identity — which a snapshot changes and a
+ * live reader does not.
  *
  * @internal
  */
 export type GridColumnPinning = {
-	/** The column's frozen edge, or `undefined` when it scrolls. */
-	side: (id: string | number) => 'left' | 'right' | undefined
-	/** Sticky offset (px) from the left edge — the summed width of the columns pinned left before it. */
-	leftOffset: (id: string | number) => number
-	/** Sticky offset (px) from the right edge — the summed width of the columns pinned right after it. */
-	rightOffset: (id: string | number) => number
-	/** Whether the column is the innermost left-pinned one (its right edge borders the scroll area). */
-	isLastLeft: (id: string | number) => boolean
-	/** Whether the column is the innermost right-pinned one (its left edge borders the scroll area). */
-	isFirstRight: (id: string | number) => boolean
+	/** The column's frozen chrome — edge, sticky offset, and boundary — or `undefined` when it scrolls. */
+	column: (id: string | number) => FrozenColumn | undefined
 }
 
 /**
- * Per-column filter controls the header filter sheets render from. Methods
- * read the engine live, so the object itself is stable across renders.
+ * Per-column filter controls the header filter sheets render from. The engine
+ * methods read the table live; the {@link GridColumnFilterEngine} half is
+ * therefore stable across renders, while the affordance and open-request ride
+ * React state and re-identify the composed object when either changes.
  *
  * @internal
  */
@@ -77,11 +77,23 @@ export type GridColumnFilter = {
 	 * Whether any column carries a filter that actually constrains rows — the same
 	 * row-constraining test the header buttons read for their active accent (a
 	 * real value or a value-less operator, not a merely-seeded rule). Drives the
-	 * toolbar's "Clear all filters" affordance.
+	 * toolbar's "Clear filters" affordance.
 	 */
 	hasActive: () => boolean
 	/** Lift every column's applied filter at once, recovering all hidden rows. */
 	clear: () => void
+	/**
+	 * How a filterable column surfaces its filter. `'header'` (default) shows the
+	 * funnel button in every filterable column header. `'menu'` drops the resting
+	 * funnel — reclaiming the header width — and offers the filter from the column's
+	 * right-click menu instead; the funnel returns only once a filter is applied, as
+	 * the edit/clear affordance.
+	 */
+	affordance: 'header' | 'menu'
+	/** The column whose filter sheet was asked to open (from the menu), or `null`. */
+	openColumn: string | number | null
+	/** Ask a column's filter sheet to open (or clear the request with `null`). */
+	requestOpen: (id: string | number | null) => void
 }
 
 /**
@@ -263,22 +275,9 @@ export function buildColumnResize<T>(
 	}
 }
 
-/**
- * Assembles the {@link GridColumnPinning} controls over a table instance:
- * each column's frozen side, its sticky offset from that edge (summed from the
- * sizes of the columns pinned before it), and whether it sits at the inner
- * boundary (for the separating shadow). Methods read the engine live.
- *
- * @internal
- */
-export function buildColumnPinning<T>(table: Table<T>): GridColumnPinning {
-	return {
-		side: (id) => table.getColumn(String(id))?.getIsPinned() || undefined,
-		leftOffset: (id) => table.getColumn(String(id))?.getStart('left') ?? 0,
-		rightOffset: (id) => table.getColumn(String(id))?.getAfter('right') ?? 0,
-		isLastLeft: (id) => table.getColumn(String(id))?.getIsLastColumn('left') ?? false,
-		isFirstRight: (id) => table.getColumn(String(id))?.getIsFirstColumn('right') ?? false,
-	}
+/** Assembles the {@link GridColumnPinning} lookup over a resolved {@link FrozenLayout}. @internal */
+export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
+	return { column: (id) => layout.get(String(id)) }
 }
 
 /**
@@ -296,8 +295,20 @@ function activeFilterField<T>(id: string, table: Table<T>): QueryField {
 	return { name: id, label: id, type: gridColumn?.filterType ?? 'text' }
 }
 
-/** Assembles the {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
-export function buildColumnFilters<T>(table: Table<T>): GridColumnFilter {
+/**
+ * The half of {@link GridColumnFilter} a table instance can answer on its own —
+ * everything but the affordance and the open-request, which are React state the
+ * hook owns. Split out so that default is spelled once, at the hook.
+ *
+ * @internal
+ */
+export type GridColumnFilterEngine = Omit<
+	GridColumnFilter,
+	'affordance' | 'openColumn' | 'requestOpen'
+>
+
+/** Assembles the engine-backed {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
+export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
 	return {
 		canFilter: (id) => table.getColumn(String(id))?.getCanFilter() ?? false,
 		getQuery: (id) => {

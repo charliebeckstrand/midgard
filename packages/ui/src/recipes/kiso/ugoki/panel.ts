@@ -6,12 +6,14 @@
  * Layer: kiso · Concern: panel motion
  */
 
+import { duration } from './base'
+
 function slide(axis: 'x' | 'y', value: string) {
 	return {
 		initial: { [axis]: value, opacity: 1 },
 		animate: { [axis]: 0, opacity: 1 },
 		exit: { [axis]: value, opacity: 1 },
-		transition: { duration: 0.15 },
+		transition: { duration: duration[150] },
 	}
 }
 

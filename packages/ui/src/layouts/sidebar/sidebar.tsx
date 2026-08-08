@@ -20,15 +20,16 @@ import { useScrollWithin } from '../../hooks'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
+import type { Step } from '../../recipes'
 import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
-	size?: 'sm' | 'md' | 'lg'
+	size?: Step
 }>('SidebarLayout', { default: {} })
 
 /** Mobile navbar padding for a Density step: `sm` → `p-4`, `lg` → `p-8`, else `p-6`. @internal */
-function navbarPaddingForSize(size: 'sm' | 'md' | 'lg'): string {
+function navbarPaddingForSize(size: Step): string {
 	if (size === 'sm') return 'p-4'
 	if (size === 'lg') return 'p-8'
 
@@ -39,10 +40,8 @@ type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
-	menuIcon?: ReactNode
 	stickyHeader?: boolean
 	floating?: boolean
-	panelClassName?: string
 }>
 
 /**
@@ -59,10 +58,8 @@ export function SidebarLayout({
 	navbar,
 	sidebar,
 	actions,
-	menuIcon,
 	stickyHeader,
 	floating,
-	panelClassName,
 	children,
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas()
@@ -94,7 +91,7 @@ export function SidebarLayout({
 			)}
 
 			{/* Sidebar on desktop: inline when locked */}
-			{!floating && <div className={cn(k.panel({ size }), panelClassName)}>{sidebar}</div>}
+			{!floating && <div className={k.panel({ size })}>{sidebar}</div>}
 
 			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
 			    peek doesn't steal focus or lock body scroll, but `backdrop` still
@@ -102,7 +99,7 @@ export function SidebarLayout({
 			{floating && (
 				<Sheet
 					side="left"
-					size="xs"
+					width="xs"
 					open={floatingOpen}
 					onOpenChange={setFloatingOpen}
 					modal={false}
@@ -126,7 +123,7 @@ export function SidebarLayout({
 				createPortal(
 					<div
 						aria-hidden
-						className="fixed top-0 bottom-0 left-80 w-10 z-100 max-lg:hidden"
+						className={k.floatingBuffer()}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={() => setFloatingOpen(false)}
 					/>,
@@ -154,9 +151,10 @@ export function SidebarLayout({
 			{/* Navbar on mobile */}
 			<Flex align="center" className={cn('lg:p-0 lg:hidden', navbarPaddingForSize(size))}>
 				<Button
+					type="button"
 					variant="bare"
 					aria-label="Open navigation"
-					prefix={menuIcon ?? <Icon icon={<Menu />} />}
+					prefix={<Icon icon={<Menu />} />}
 					onClick={() => setOpen(true)}
 				/>
 				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}

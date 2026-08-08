@@ -7,13 +7,14 @@
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
+import { panel } from '../kiso/panel'
 
 const { cursor, fg } = hannou
 const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
-const { bg } = omote
+const { backdrop, bg } = omote
 const { border, focus } = sen
 const { css, spring } = ugoki
 
@@ -289,6 +290,14 @@ export const k = {
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],
+		// The search-highlight wash behind a matched substring when `search.filter`
+		// is `false` (mark, don't prune). The same mode-aware amber the JsonTree's
+		// search highlight uses (`kata/json-tree` `highlight`), so a match reads the
+		// same across the system. `text-inherit` drops the browser's default
+		// yellow/black <mark> ink, and the wash carries no box metrics, so the marked
+		// run's width matches the plain text and the column autosizer still measures
+		// the intrinsic content width.
+		mark: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), 'rounded-sm', 'text-inherit'],
 		// Truncation tooltip surface: cap the width and let long text wrap inside.
 		tooltip: ['max-w-xs', 'whitespace-normal', 'break-words'],
 		// A roving-focusable data cell (`onCellClick`/`onCellDoubleClick`): the
@@ -676,7 +685,10 @@ export const k = {
 	// content is pushed to the far edge by `ml-auto` in the trailing cluster.
 	summary: {
 		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
-		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto'],
+		// `min-w-0` so the cluster can shrink past its content: a flex item's automatic
+		// minimum is its content width, which pinned this slot to the intrinsic width of
+		// whatever the consumer rendered, overflowing the bar instead of clipping inside it.
+		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto', 'min-w-0'],
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
@@ -708,6 +720,32 @@ export const k = {
 		clickable: ['cursor-pointer', focus.inset],
 		loading: [css.pulse, 'opacity-50'],
 	},
+	// The "Exporting" overlay: a scrim over the whole grid while an async export
+	// resolves its rows, with a centred label.
+	//
+	// It covers the grid wrapper rather than the table alone, so the search,
+	// filters, and sort that decide *what* is being exported can't be changed out
+	// from under a file mid-write. `k.wrapper` already carries `relative isolate`,
+	// so the scrim needs no positioning host of its own and its z-index is scoped
+	// to the grid's own stacking context — above the frozen header's `z-20`, and
+	// still under page chrome outside the grid.
+	exporting: {
+		scrim: ['absolute inset-0 z-30', flex.row, 'justify-center', ...backdrop.base],
+		// Reads as lifted off the scrim: the same fill + ring + shadow a floating
+		// panel takes, so the label belongs to the library's raised surfaces rather
+		// than being a bare string over a blur.
+		label: [
+			// `flex.row` centres its items already; only the gap and box are ours.
+			flex.row,
+			'gap-2',
+			'px-3 py-2',
+			rounded.md,
+			'shadow-md',
+			...panel.surface.base,
+			size.sm,
+			weight.medium,
+		],
+	},
 	// Framer transition configs (spread/passed to a `motion` element, never to
 	// `cn`). Unlike the CSS `grid-template-rows` reveals the group and detail rows
 	// use, a sort reflow moves whole rows between slots — a FLIP `layout` animation,
@@ -715,10 +753,13 @@ export const k = {
 	motion: {
 		// Layout transition for the sort row reflow: on a sort, each stable-keyed
 		// row FLIPs from its old place to its new one on the shared `layoutId`
-		// spring (snappy, lightly damped — settles fast without a bounce). Reduced
-		// motion stands the whole animation down upstream, so no `duration: 0` branch
-		// is needed here.
-		rowSort: { layout: spring },
+		// spring. Reduced motion stands the whole animation down upstream, so no
+		// `duration: 0` branch is needed here.
+		rowSort: { layout: spring.slide },
+		// The make-room glide of an in-flight column drag. Applied imperatively
+		// (`animate()` onto the shift CSS variable in `grid-reorder.ts`), never
+		// spread onto a motion element.
+		columnShift: spring.snap,
 	},
 	nav: {
 		// The `navigable` grid's `<table>` is the cursor's single tab stop; drop its
@@ -743,6 +784,11 @@ export const k = {
 		host: 'relative flex w-full items-center',
 		// The in-cell control fills the cell width.
 		input: 'w-full',
+		// The settle pair a cell-scoped session shows beside its editor. No padding
+		// of its own: `Button`'s bare icon-only floor is sized per density, and
+		// overriding it here would drop the pair under the 24x24 target minimum
+		// (WCAG 2.5.8) at every density, worst in a condensed grid.
+		settle: [flex.row, 'ml-1 shrink-0 gap-0.5'],
 		// A failed validation rings the editor and anchors a small message below it.
 		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [

@@ -3,15 +3,23 @@
 import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useMinWidth } from '../../hooks'
+import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { k, type StepperVariants } from '../../recipes/kata/stepper'
+import type { Mount } from '../../primitives/mount'
+import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../stack'
 import { StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
-/** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, recipe variants, and step children. */
-export type StepperProps = StepperVariants & {
-	value: number
+/** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
+export type StepperProps = {
+	/** Controlled current step index. Pair with `onValueChange`. */
+	value?: number
+	/**
+	 * Initial step index when uncontrolled.
+	 * @defaultValue 0
+	 */
+	defaultValue?: number
 	onValueChange?: (value: number) => void
 	/**
 	 * Restricts navigation to completed and current steps.
@@ -19,6 +27,22 @@ export type StepperProps = StepperVariants & {
 	 */
 	linear?: boolean
 	orientation?: StepperOrientation
+	/**
+	 * How {@link StepperPanel}s off the current step are held.
+	 *
+	 * @remarks
+	 * Defaults to `active` — only the current step's panel is mounted, so
+	 * stepping away discards whatever it held and stepping back rebuilds it
+	 * empty. A flow whose panels carry entry — a form split across steps — wants
+	 * `lazy`, which mounts each panel on its first visit and then holds it in
+	 * `<Activity mode="hidden">`, preserving its state (and its DOM, so scroll
+	 * position and uncontrolled inputs survive) while its effects stay torn down.
+	 * `always` mounts every panel up front, paying the whole flow's first render
+	 * before the first step is answered.
+	 *
+	 * @defaultValue 'active'
+	 */
+	mount?: Mount
 	className?: string
 	children?: ReactNode
 }
@@ -60,12 +84,25 @@ function partitionStepperChildren(children: ReactNode): {
  */
 export function Stepper({
 	value,
+	defaultValue,
 	onValueChange,
 	linear = false,
 	orientation,
+	mount = 'active',
 	className,
 	children,
 }: StepperProps) {
+	const [current = 0, setCurrent] = useControllable<number>({
+		value,
+		defaultValue: defaultValue ?? 0,
+		onValueChange: (next) => onValueChange?.(next ?? 0),
+	})
+
+	// Steps become interactive when the flow can actually advance: an
+	// uncontrolled stepper owns its own index, while a controlled one needs a
+	// handler. A `value`-only stepper stays a display-only progress readout.
+	const interactive = onValueChange !== undefined || defaultValue !== undefined
+
 	const isDesktop = useMinWidth(640)
 
 	// Defaults to vertical on mobile (horizontal overflows narrow viewports).
@@ -85,8 +122,10 @@ export function Stepper({
 		itemSelector: 'button[data-slot="stepper-step"]:not(:disabled)',
 		orientation: resolvedOrientation,
 		// Step row is a single Tab stop (role="toolbar"); arrows move across steps,
-		// resting on the current step. A no-op for display-only steppers (no buttons).
-		manageTabIndex: true,
+		// resting on the current step. Gated to interactive steppers (matching the
+		// keydown below): a display-only stepper renders no step buttons, so the
+		// tab-stop effect — a focusin listener and MutationObserver — would only spin.
+		manageTabIndex: interactive,
 		activeSelector: '[aria-current="step"]',
 	})
 
@@ -94,14 +133,15 @@ export function Stepper({
 
 	const contextValue = useMemo(
 		() => ({
-			value,
-			onValueChange,
+			value: current,
+			onValueChange: interactive ? setCurrent : undefined,
 			orientation: resolvedOrientation,
 			linear,
 			baseId,
 			hasPanels,
+			mount,
 		}),
-		[value, onValueChange, resolvedOrientation, linear, baseId, hasPanels],
+		[current, interactive, setCurrent, resolvedOrientation, linear, baseId, hasPanels, mount],
 	)
 
 	const row = (
@@ -112,7 +152,7 @@ export function Stepper({
 			role="toolbar"
 			aria-label="Steps"
 			aria-orientation={resolvedOrientation}
-			onKeyDown={onValueChange !== undefined ? handleKeyDown : undefined}
+			onKeyDown={interactive ? handleKeyDown : undefined}
 			className={cn(k.root({ orientation: resolvedOrientation }), className)}
 		>
 			{rowChildren}

@@ -104,6 +104,8 @@ function isSingleWordTitle(title: GridColumn<unknown>['title']): boolean {
 function collectCells(container: HTMLElement): {
 	headers: Map<string, HTMLElement>
 	bodies: Map<string, HTMLElement[]>
+	/** Body cells found across every column — zero when the body rendered none. */
+	cells: number
 } {
 	const headers = new Map<string, HTMLElement>()
 
@@ -115,10 +117,14 @@ function collectCells(container: HTMLElement): {
 
 	const bodies = new Map<string, HTMLElement[]>()
 
+	let cells = 0
+
 	for (const td of container.querySelectorAll<HTMLElement>('td[data-grid-col]')) {
 		const id = td.getAttribute('data-grid-col')
 
 		if (id == null) continue
+
+		cells++
 
 		const list = bodies.get(id)
 
@@ -126,7 +132,7 @@ function collectCells(container: HTMLElement): {
 		else bodies.set(id, [td])
 	}
 
-	return { headers, bodies }
+	return { headers, bodies, cells }
 }
 
 /**
@@ -239,6 +245,14 @@ export type ColumnMeasurement = {
 	fixed: number
 	/** Per-data-column hard floor (px) — held and auto-sized alike — the width a drag-resize may not cross (see {@link columnFloor}). */
 	floors: Map<string, number>
+	/**
+	 * Body cells the pass read. Zero means the body rendered none — a loading
+	 * skeleton (whose placeholder cells carry no column id), an empty result, or a
+	 * virtualized window that hasn't landed yet — so the pass saw no content at
+	 * all and every profile fell back to its header floor. Such a measurement is
+	 * provisional: the caller re-measures rather than reusing or freezing it.
+	 */
+	cells: number
 }
 
 /** Options for {@link measureColumnIntrinsics}. @internal */
@@ -269,7 +283,7 @@ type MeasureOptions<T> = {
 }
 
 /**
- * A data column's hard floor (px): the narrowest it may be sized — by the
+ * A data column's hard floor (px): the narrowest it can be sized — by the
  * allocator or a drag-resize — before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
  * never truncates; a multi-word or non-string title reserves only its affordance
@@ -389,7 +403,7 @@ export function measureColumnIntrinsics<T>({
 	runningContent,
 	uncapped,
 }: MeasureOptions<T>): ColumnMeasurement {
-	const { headers, bodies } = collectCells(container)
+	const { headers, bodies, cells } = collectCells(container)
 
 	// The header flex row's `column-gap` is identical across columns (one recipe
 	// class), so read it once for the whole pass instead of per column.
@@ -448,5 +462,5 @@ export function measureColumnIntrinsics<T>({
 		)
 	}
 
-	return { profiles, fixed, floors }
+	return { profiles, fixed, floors, cells }
 }

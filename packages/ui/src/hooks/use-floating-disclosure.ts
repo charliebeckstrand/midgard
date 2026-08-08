@@ -16,6 +16,7 @@ import {
 	type FloatingPanelOptions,
 	isFloatingOutsidePress,
 	useFloatingPanel,
+	useFloatingPortalReference,
 } from './use-floating-ui'
 
 type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
@@ -38,6 +39,18 @@ type FloatingDisclosureOptions = Omit<
 	role: FloatingDisclosureRole | null
 	/** Vetoes an open-state transition when it returns `false`. */
 	gate?: FloatingDisclosureGate
+	/**
+	 * Whether the surface answers the shared dismiss affordances: Escape through
+	 * the dismiss-layer stack, and an outside pointer press.
+	 *
+	 * Pass `false` for a surface that is not really a disclosure — an inline
+	 * static menu renders open in the document flow and has no dismissed state.
+	 * Registered, it would claim a slot on the dismiss stack, report a close it
+	 * never performs, and swallow the Escape press meant for a Dialog above it.
+	 *
+	 * @defaultValue true
+	 */
+	dismissable?: boolean
 }
 
 // Explicit return type: `@floating-ui/react-dom` is a transitive dep TS
@@ -60,7 +73,8 @@ type FloatingDisclosureResult = {
  * dismiss + role interactions every floating overlay needs. Consumers
  * layer their own interaction hooks (hover, click, clientPoint, …) over
  * the returned `context` and combine them with `dismiss` + `role` via
- * `useInteractions`.
+ * `useInteractions`. A surface that renders inline rather than as a dismissable
+ * overlay opts out of both dismiss affordances with `dismissable: false`.
  *
  * @returns `{ open, setOpen, close, triggerRef, refs, floatingStyles, context,
  * dismiss, role }`: the resolved open flag and its gated setter / `close`
@@ -74,6 +88,7 @@ export function useFloatingDisclosure({
 	onOpenChange,
 	role: roleProp,
 	gate,
+	dismissable = true,
 	...panelOptions
 }: FloatingDisclosureOptions): FloatingDisclosureResult {
 	const [open = false, setOpenInner] = useControllable<boolean>({
@@ -122,21 +137,30 @@ export function useFloatingDisclosure({
 	// `pointerdown` listener `useFloatingUI` uses, sidestepping that hatch.
 	const dismiss = useDismiss(context, { escapeKey: false, outsidePress: false })
 
-	useEscapeLayer({
-		open,
-		layered: roleProp !== 'tooltip',
-		onDismiss: close,
-	})
-
 	// Dismissals route through `context.onOpenChange` rather than `setOpen`
 	// directly, so the close reason reaches `useFloatingPanel`'s focus-return
-	// effect.
+	// effect and floating-ui's own `openchange` listeners. `'escape-key'` is
+	// what arms `useFocus`'s re-open block: a surface that restores focus to
+	// its trigger on close (an interactive Tooltip's focus trap) would
+	// otherwise re-open on the focus its own dismissal caused.
 	const onOpenChangeRef = useRef(context.onOpenChange)
 
 	onOpenChangeRef.current = context.onOpenChange
 
+	useEscapeLayer({
+		open,
+		enabled: dismissable,
+		layered: roleProp !== 'tooltip',
+		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
+	})
+
+	// Published whether or not this panel dismisses on an outside press: a
+	// sibling's test reads it to tell a nested surface from an unrelated one, and
+	// a non-dismissing panel (a tooltip) can still be the surface pressed into.
+	useFloatingPortalReference(context, refs)
+
 	useEffect(() => {
-		if (!open) return
+		if (!open || !dismissable) return
 
 		const onPointerDown = (event: PointerEvent) => {
 			if (isFloatingOutsidePress(event, refs))
@@ -144,7 +168,7 @@ export function useFloatingDisclosure({
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)
-	}, [open, refs])
+	}, [open, dismissable, refs])
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
 	// emitting no role/aria props for a component that owns its roles.

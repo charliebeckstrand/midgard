@@ -158,8 +158,8 @@ export function applyColumnReorder(
 /**
  * Resolves the {@link GridReorder} prop to its two flags: `enabled` gates the
  * reorder wiring, `handle` picks the grip vs. whole-header drag affordance. The
- * boolean shorthand keeps the grip; the object form defaults `enabled` to `true`
- * (passing the object is the opt-in) and `handle` to `true`.
+ * boolean shorthand keeps the grip; the object form is the opt-in (`enabled`
+ * true) and defaults `handle` to `true`.
  *
  * @internal
  */
@@ -169,5 +169,5 @@ export function resolveGridReorder(reorder: boolean | GridReorder): {
 } {
 	if (typeof reorder === 'boolean') return { enabled: reorder, handle: true }
 
-	return { enabled: reorder.enabled ?? true, handle: reorder.handle ?? true }
+	return { enabled: true, handle: reorder.handle ?? true }
 }

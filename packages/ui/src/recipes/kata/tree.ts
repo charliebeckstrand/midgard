@@ -1,12 +1,12 @@
 /**
  * Tree kata: object-literal surface for the `<Tree>` treeview. Size-axed
  * sub-recipes carry the `item.content` row and its `chevron`; the static slots
- * cover the `base` container, `item.base`, `affix`, `label`, and `group`. The
+ * cover the `base` container, `affix`, `label`, and `group`. The
  * `indentStep` map sets per-depth indent in rem, and `motion` is the collapse
  * transition.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, sen, ugoki } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, type Step, sen, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -16,7 +16,7 @@ const { flex } = narabi
 const { focus } = sen
 const { css, collapse } = ugoki
 
-export type TreeSize = 'sm' | 'md' | 'lg'
+export type TreeSize = Step
 
 const itemContent = defineRecipe(
 	{
@@ -61,7 +61,6 @@ export const k = {
 		'[&>[data-slot=tree-item]:last-child>[role=treeitem]]:pb-0',
 	],
 	item: {
-		base: [],
 		content: itemContent,
 	},
 	chevron,

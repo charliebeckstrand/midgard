@@ -1,14 +1,30 @@
-import { endOfMonth as calendarEndOfMonth } from '@internationalized/date'
+import { endOfMonth as calendarEndOfMonth, DateFormatter } from '@internationalized/date'
+import { resolveLocale } from '../../utilities'
 import { fromCalendarDate, toCalendarDate } from '../calendar/calendar-utilities'
 
-/** Trigger label for a single date, in the user's locale. @internal */
-export function formatDate(date: Date): string {
-	return date.toLocaleDateString()
+/**
+ * Trigger label for a single date, in `locale` — the ambient `<LocaleProvider>`
+ * tag at every call site, so the trigger reads the same locale as the calendar
+ * beside it rather than the runtime default.
+ *
+ * @internal
+ */
+export function formatDate(
+	date: Date,
+	locale?: string,
+	options?: Intl.DateTimeFormatOptions,
+): string {
+	return new DateFormatter(resolveLocale(locale), options).format(date)
 }
 
-/** Trigger label for a range, both endpoints in the user's locale. @internal */
-export function formatRange(start: Date, end: Date): string {
-	return `${formatDate(start)} – ${formatDate(end)}`
+/** Trigger label for a range, both endpoints in `locale`. @internal */
+export function formatRange(
+	start: Date,
+	end: Date,
+	locale?: string,
+	options?: Intl.DateTimeFormatOptions,
+): string {
+	return `${formatDate(start, locale, options)} – ${formatDate(end, locale, options)}`
 }
 
 /** Local midnight for a date, dropping the time of day. @internal */

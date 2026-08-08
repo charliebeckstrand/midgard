@@ -160,7 +160,7 @@ describe('Control + Input', () => {
 
 	it('sets data-invalid and aria-invalid when control is invalid', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<Input />
 			</Control>,
 		)
@@ -256,7 +256,7 @@ describe('Control + Textarea', () => {
 
 	it('sets data-invalid when control is invalid', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<Textarea />
 			</Control>,
 		)
@@ -328,16 +328,18 @@ describe('Control nesting', () => {
 		expect(bySlot(container, 'input')).toHaveAttribute('readonly')
 	})
 
-	it('parent invalid does NOT propagate to child', () => {
+	it('error severity propagates into a nested child Control', () => {
+		// severity cascades like size/variant: a nested Control inherits the
+		// parent's error unless it sets its own severity.
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<Control id="child">
 					<Input />
 				</Control>
 			</Control>,
 		)
 
-		expect(bySlot(container, 'input')).not.toHaveAttribute('data-invalid')
+		expect(bySlot(container, 'input')).toHaveAttribute('data-invalid')
 	})
 
 	it('parent required does NOT propagate to child', () => {

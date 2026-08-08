@@ -23,11 +23,47 @@ jobs:
       - uses: actions/cache@v4
         with:
           path: .turbo
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-gate-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-
+            ${{ runner.os }}-turbo-gate-
       - run: pnpm install --frozen-lockfile
-      - run: pnpm turbo run lint check-types test knip build
+      # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
+      # orders them; see bundle-budget.ts for what it asserts and why.
+      - run: pnpm turbo run lint check-types test knip build bundle:budget
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
+
+  # A separate job, not a step in `gate`: the browser suite needs a Chromium
+  # download that would otherwise serialize into every gate run. What it covers
+  # is CONVENTIONS.md §10.5.
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          # Namespaced per job. A restore key matches by prefix, so a shared
+          # `turbo-` prefix hands one job the other job's artifacts.
+          key: ${{ runner.os }}-turbo-browser-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-browser-
+      - run: pnpm install --frozen-lockfile
+      # Chromium only: vitest.browser.config.ts declares no other browser. The
+      # download is ~170MB, so cache it. The key is the lockfile, so a dependency
+      # bump re-downloads even when playwright itself did not move.
+      # `install` is idempotent — on a hit it skips the download and installs
+      # the system libraries alone.
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+      - run: pnpm --filter ui exec playwright install --with-deps chromium
+      - run: pnpm turbo run test:browser

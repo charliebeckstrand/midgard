@@ -4,9 +4,7 @@ import {
 	Fragment,
 	type MouseEvent,
 	type PointerEvent,
-	type ReactElement,
 	type ReactNode,
-	type RefObject,
 	startTransition,
 	useCallback,
 	useMemo,
@@ -18,7 +16,6 @@ import { cn, createContext } from '../../../core'
 import { usePlotFrame, useResizeObserver } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
 import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
-import { RangeArrow, RangeLegend } from '../../map'
 import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,
@@ -26,12 +23,12 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
-import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { resolveHeader } from '../engine/chart-header'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
 import { resolveRangeLegend } from '../engine/chart-legend/range'
+import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
@@ -40,7 +37,6 @@ import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import { ChartTable } from '../engine/chart-table'
 import { isSparkBox } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
-import { useChartFullscreen } from '../engine/context'
 import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 import {
 	type HeatmapChartProps,
@@ -198,12 +194,7 @@ function HeatmapRangeArrow({
 }
 
 /** Props for {@link HeatmapRangeLegend}: the scale the shared bar paints and the values its arrow reads. @internal */
-type HeatmapRangeLegendProps = {
-	colorRange: string[]
-	domain: [number, number]
-	format: (value: number) => string
-	label?: string
-	bins: number
+type HeatmapRangeLegendProps = RangeScale & {
 	values: (number | null)[][]
 	/** Which way the bar runs — vertical beside the plot, horizontal above or below it. */
 	orientation: ChartOrientation
@@ -835,56 +826,14 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	)
 
 	return (
-		<HeatmapContextFrame
+		<ChartContextMenu
 			contextMenu={contextMenu}
 			rootRef={containerRef}
 			readout={readout}
 			title={resolveHeader(header).title}
-			self={<HeatmapChart {...props} />}
+			fullscreen={<HeatmapChart {...props} />}
 		>
 			{heatmapRoot}
-		</HeatmapContextFrame>
-	)
-}
-
-/** Props for {@link HeatmapContextFrame}. @internal */
-type HeatmapContextFrameProps = {
-	contextMenu: ChartContextMenuConfig | false | undefined
-	rootRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadoutSource | null
-	title?: string
-	/** A fresh copy of the heatmap for the menu's fullscreen re-mount. */
-	self: ReactElement
-	children: ReactNode
-}
-
-/**
- * Wraps a heatmap's root in its {@link ChartContextMenu} — or returns it bare
- * when the heatmap is itself the menu's re-mounted fullscreen copy, so the
- * enlarged chart never nests a second menu. Split from {@link HeatmapChart} so
- * that gate stays off the component's own complexity budget.
- *
- * @internal
- */
-function HeatmapContextFrame({
-	contextMenu,
-	rootRef,
-	readout,
-	title,
-	self,
-	children,
-}: HeatmapContextFrameProps) {
-	if (useChartFullscreen()) return <>{children}</>
-
-	return (
-		<ChartContextMenu
-			contextMenu={contextMenu}
-			rootRef={rootRef}
-			readout={readout}
-			title={title}
-			fullscreen={self}
-		>
-			{children}
 		</ChartContextMenu>
 	)
 }

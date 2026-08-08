@@ -12,7 +12,7 @@ import {
 	usePasswordStrength,
 } from './use-password-strength'
 
-export type { PasswordRule, PasswordStrengthChange } from './use-password-strength'
+export type { PasswordRule, PasswordStrengthChange, StrengthLevel } from './use-password-strength'
 
 /** Default rule set: at least 8 characters and at least one uppercase letter, digit, and symbol. */
 export const defaultPasswordRules: readonly PasswordRule[] = [
@@ -43,11 +43,6 @@ export type PasswordStrengthProps = {
 	 * @defaultValue `true`
 	 */
 	showRules?: boolean
-	/**
-	 * Renders the textual strength label.
-	 * @defaultValue `true`
-	 */
-	showLabel?: boolean
 	/** Overrides the default level labels (Weak/Fair/Good/Strong). */
 	labels?: Partial<Record<StrengthLevel, string>>
 	/**
@@ -67,7 +62,6 @@ export function PasswordStrength({
 	value,
 	rules = defaultPasswordRules,
 	showRules = true,
-	showLabel = true,
 	labels,
 	onStrengthChange,
 	className,
@@ -103,7 +97,7 @@ export function PasswordStrength({
 					/>
 				))}
 			</div>
-			{showLabel && <div {...liveLabel}>{label}</div>}
+			<div {...liveLabel}>{label}</div>
 			{showRules && (
 				<ul className={cn(k.rules)}>
 					{results.map(({ rule, passed }) => (

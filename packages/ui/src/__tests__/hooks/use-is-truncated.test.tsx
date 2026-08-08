@@ -13,13 +13,12 @@ type Dimensions = {
 function mockLayout({ containerWidth, textWidth, paddingLeft = 0, paddingRight = 0 }: Dimensions) {
 	const originalGetBCR = Element.prototype.getBoundingClientRect
 
+	const originalRangeGetBCR = Range.prototype.getBoundingClientRect
+
 	const originalGetComputedStyle = window.getComputedStyle
 
-	Element.prototype.getBoundingClientRect = function () {
-		// The measurer span is the only SPAN the hook appends inside the container.
-		const width = this.tagName === 'SPAN' ? textWidth : containerWidth
-
-		return {
+	const rect = (width: number): DOMRect =>
+		({
 			width,
 			height: 0,
 			top: 0,
@@ -29,8 +28,13 @@ function mockLayout({ containerWidth, textWidth, paddingLeft = 0, paddingRight =
 			x: 0,
 			y: 0,
 			toJSON: () => ({}),
-		}
-	}
+		}) as DOMRect
+
+	Element.prototype.getBoundingClientRect = () => rect(containerWidth)
+
+	// jsdom implements no Range geometry; the hook feature-detects it, so the
+	// measurement path only runs once this stub supplies it.
+	Range.prototype.getBoundingClientRect = () => rect(textWidth)
 
 	window.getComputedStyle = ((el: Element) => {
 		const real = originalGetComputedStyle(el)
@@ -48,6 +52,8 @@ function mockLayout({ containerWidth, textWidth, paddingLeft = 0, paddingRight =
 
 	return () => {
 		Element.prototype.getBoundingClientRect = originalGetBCR
+
+		Range.prototype.getBoundingClientRect = originalRangeGetBCR
 
 		window.getComputedStyle = originalGetComputedStyle
 	}
@@ -197,18 +203,20 @@ describe('useIsTruncated', () => {
 			expect(results.at(-1)).toBe(true)
 		})
 
-		it('removes the measurer span on unmount', () => {
+		it('injects nothing into the measured element and never duplicates its text', () => {
 			restore = mockLayout({ containerWidth: 100, textWidth: 50 })
 
 			const { container, unmount } = render(<Probe text="cleanup" onResult={() => {}} />)
 
 			const div = container.querySelector('div')
 
-			expect(div?.querySelector('span')).not.toBeNull()
+			// A mirror node would land here as a child of a React-owned element and
+			// put a second copy of the text in the accessibility tree.
+			expect(div?.children).toHaveLength(0)
+
+			expect(div?.textContent).toBe('cleanup')
 
 			unmount()
-
-			expect(div?.querySelector('span')).toBeNull()
 		})
 	})
 })

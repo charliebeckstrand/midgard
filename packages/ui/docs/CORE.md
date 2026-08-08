@@ -1,6 +1,6 @@
 # Core
 
-> **Quick-glance index of `ui/core`.** The small, framework-level toolkit every component leans on — class composition, typed context creation, slot factories, the invalid-state attribute pair, slot queries, accessible-name resolution, and the imperative screen-reader announcer. The recipe **engine** also lives under `core/recipe/` but is internal and reached only by the recipe layer — see [`RECIPES.md`](RECIPES.md).
+> **Quick-glance index of `ui/core`.** The small, framework-level toolkit every component leans on: class composition, typed context creation, slot factories, the invalid-state attribute pair, slot queries, and the screen-reader announcer. The recipe **engine** also lives under `core/recipe/`, but it is internal and only the recipe layer reaches it — see [`RECIPES.md`](RECIPES.md).
 
 ```ts
 import { cn, createContext, createSlot, announce } from 'ui/core'
@@ -8,7 +8,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 
 | Export | Summary |
 |---|---|
-| `cn` | Class composer: `clsx` plus `tailwind-merge` extended with the project's named spacing scale. |
+| `cn` | Class composer: `clsx` plus `tailwind-merge` extended with the project's named spacing scale, memoized on its arguments. |
 | `createContext` | Creates a typed React 19 context and its consumer hook; throws, defaults, or custom-errors outside a provider. |
 | `createSlot` | Builds a thin slot component rendering an intrinsic element with `data-slot`, composed classes, and prop spread. |
 | `querySlot` | Finds the `data-slot` / `data-<attr>=id` element within a container, scoped to avoid cross-instance matches. |

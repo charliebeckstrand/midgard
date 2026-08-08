@@ -193,20 +193,6 @@ describe('Calendar', () => {
 		expect(styled).toBeDefined()
 	})
 
-	it('invokes onPickerOpenChange when openPicker is called via the ref', () => {
-		const onPickerOpenChange = vi.fn()
-
-		const ref = createRef<CalendarHandle>()
-
-		renderUI(<Calendar ref={ref} onPickerOpenChange={onPickerOpenChange} />)
-
-		act(() => {
-			ref.current?.openPicker()
-		})
-
-		expect(onPickerOpenChange).toHaveBeenCalledWith(true)
-	})
-
 	it('respects an explicit size prop on the root', () => {
 		const { container } = renderUI(<Calendar size="sm" />)
 

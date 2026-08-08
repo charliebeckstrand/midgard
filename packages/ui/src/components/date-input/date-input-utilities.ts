@@ -1,3 +1,7 @@
+import { DateFormatter } from '@internationalized/date'
+import type { ReactNode } from 'react'
+import { resolveLocale } from '../../utilities'
+
 /**
  * Supported date layout for {@link DateInput}: month/day/year order and the
  * segment separator. Drives masking, parsing, and the canonical display text.
@@ -28,6 +32,89 @@ const layouts: Record<DateInputFormat, { separator: string; segments: Segment[] 
 /** Segment separator for a format (`/` or `-`). @internal */
 export function dateInputSeparator(format: DateInputFormat): string {
 	return layouts[format].separator
+}
+
+/**
+ * Fixed reference instant for reading a locale's field order. Any date answers
+ * the question; a constant one keeps the read deterministic. @internal
+ */
+const ORDER_REFERENCE = new Date(Date.UTC(2026, 0, 2))
+
+/**
+ * Locale tag → its layout. The answer has three possible values and depends on
+ * nothing else, while `DateInput` resolves it on every render — every keystroke,
+ * since it holds the editing text as state. @internal
+ */
+const layoutByLocale = new Map<string, DateInputFormat>()
+
+/**
+ * Resolves {@link DateInput}'s layout and its default invalid message together:
+ * an unset `format` follows the ambient locale, and the message quotes whichever
+ * layout won. Only an absent message takes the default — `null` and `false`
+ * suppress it, as the prop documents.
+ *
+ * @remarks
+ * The two resolutions travel together because the message quotes the layout, so
+ * neither can be a default parameter once the layout depends on a hook. Kept out
+ * of `DateInput` for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+export function resolveDateInputFormat(
+	format: DateInputFormat | undefined,
+	locale: string | undefined,
+	invalidMessage: ReactNode,
+): { format: DateInputFormat; invalidMessage: ReactNode } {
+	const resolved = format ?? localeDateInputFormat(locale)
+
+	// Only an absent message takes the default; `null`/`false` suppress it.
+	return {
+		format: resolved,
+		invalidMessage:
+			invalidMessage === undefined ? `Enter a valid date (${resolved})` : invalidMessage,
+	}
+}
+
+/**
+ * The supported layout whose field order matches `locale`, read from `Intl`'s
+ * own part order for a numeric date: year-first locales (ja-JP, sv-SE) take
+ * `YYYY-MM-DD`, day-first ones (en-GB, de-DE, fr-FR) `DD/MM/YYYY`, and the rest
+ * `MM/DD/YYYY`.
+ *
+ * @remarks
+ * Order alone is derived, not the locale's separator — de-DE writes `10.06.2026`
+ * where this masks `10/06/2026`. Field order is what decides whether a typed
+ * date is read correctly; the separator is presentational, and each of the three
+ * supported layouts pins its own.
+ *
+ * @see {@link resolveDateInputFormat} for the prop-resolution wrapper.
+ * @internal
+ */
+export function localeDateInputFormat(locale?: string): DateInputFormat {
+	const tag = resolveLocale(locale)
+
+	const cached = layoutByLocale.get(tag)
+
+	if (cached) return cached
+
+	const parts = new DateFormatter(tag, {
+		year: 'numeric',
+		month: '2-digit',
+		day: '2-digit',
+	}).formatToParts(ORDER_REFERENCE)
+
+	// Which field leads settles it: the three supported layouts are year-, day-,
+	// and month-first, so nothing after the first field discriminates.
+	const first = parts.find(
+		(part) => part.type === 'year' || part.type === 'month' || part.type === 'day',
+	)?.type
+
+	const layout: DateInputFormat =
+		first === 'year' ? 'YYYY-MM-DD' : first === 'day' ? 'DD/MM/YYYY' : 'MM/DD/YYYY'
+
+	layoutByLocale.set(tag, layout)
+
+	return layout
 }
 
 /** Running mask state: closed segments and the segment being typed. @internal */

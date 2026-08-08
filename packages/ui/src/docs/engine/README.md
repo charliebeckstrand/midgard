@@ -13,7 +13,7 @@ it now lives inside `ui` rather than as a standalone package.
 | Demo-authoring kit | [`index.ts`](index.ts) | `Example`, the listbox/labeled/stepper controls, `code`, format helpers — the surface a library's demos import. |
 | App shell | [`host.tsx`](host.tsx), [`app.tsx`](app.tsx) | The hash-routed site chrome (`App`, sidebar, settings) plus `mount`. |
 | API reference engine | [`api-reference`](api-reference) | ts-morph extraction of props, defaults, and TSDoc from a library's source. |
-| Code derivation | [`derive-code`](derive-code) | Walks a demo's React tree into a copy-pasteable snippet. |
+| Code derivation | [`derive-code`](derive-code) | Walks a demo's React tree into a copy-pasteable snippet, merging in build-time source facts (authored prop expressions, render-prop children, referenced hook/helper declarations) extracted per `Example` by [`plugins/source-facts.ts`](plugins/source-facts.ts). |
 | Build plugin | [`plugins`](plugins), [`vite`](vite) | The Vite plugin + `defineDocsConfig` wired into `vite.docs.config.ts`. |
 
 ## How ui wires it

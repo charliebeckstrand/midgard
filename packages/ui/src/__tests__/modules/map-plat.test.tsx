@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { allBySlot, allRegions, bySlot, fireEvent, firstRegion, renderUI } from '../helpers'
+import {
+	allBySlot,
+	allRegions,
+	bySlot,
+	fireEvent,
+	firstRegion,
+	renderUI,
+	tableRows,
+} from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 type Row = (typeof FIXTURE_ROWS)[number]
@@ -231,15 +239,14 @@ describe('MapPlat', () => {
 
 		expect(alpha?.getAttribute('class')).toContain('fill-zinc-200')
 
-		// The label is the third span — the Button's hit-target sibling and the
-		// swatch lead it.
-		expect(east?.querySelector('span:nth-child(3)')?.getAttribute('class')).toContain(
+		expect(bySlot(east as HTMLElement, 'map-legend-label')?.getAttribute('class')).toContain(
 			'line-through',
 		)
 	})
 
 	it('keeps a toggled-off category tied to its value when the data reorders', () => {
-		const labelOf = (el: Element) => el.querySelector('span:nth-child(3)')?.textContent ?? ''
+		const labelOf = (el: Element) =>
+			bySlot(el as HTMLElement, 'map-legend-label')?.textContent ?? ''
 
 		const pressedByLabel = (root: HTMLElement) =>
 			Object.fromEntries(
@@ -665,7 +672,7 @@ describe('MapPlat choropleth mode', () => {
 	})
 
 	it('lays the range bar horizontal under the { type, placement } object form', () => {
-		const { container } = renderUI(choropleth({ legend: { type: 'range', placement: 'bottom' } }))
+		const { container } = renderUI(choropleth({ legend: { placement: 'bottom' } }))
 
 		const track = bySlot(container, 'map-range-track')
 
@@ -701,5 +708,272 @@ describe('MapPlat legend orientation', () => {
 		expect(bySlot(below.container, 'map-legend')?.getAttribute('aria-orientation')).toBe(
 			'horizontal',
 		)
+	})
+})
+
+describe('MapPlat region click', () => {
+	it('reports the clicked region by identity and feature index, matched or not', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(plat({ onRegionClick }))
+
+		const [, beta, gamma] = allRegions(container)
+
+		fireEvent.click(beta as Element)
+
+		expect(onRegionClick).toHaveBeenLastCalledWith('B', 1)
+
+		// Gamma matches no row: an unmatched region is still a target, so selection
+		// can reach a state with nothing to show rather than reading as inert.
+		fireEvent.click(gamma as Element)
+
+		expect(onRegionClick).toHaveBeenLastCalledWith('C', 2)
+
+		expect(onRegionClick).toHaveBeenCalledTimes(2)
+	})
+
+	it('reports identity through a regionId accessor, so a click keys the caller data', () => {
+		const onRegionClick = vi.fn()
+
+		// The id a TopoJSON consumer would otherwise re-decode the topology to
+		// recover — here the feature's name rather than its id.
+		const { container } = renderUI(
+			plat({
+				geography: FIXTURE_TOPOLOGY,
+				regionId: (feature) => String(feature.properties?.name),
+				onRegionClick,
+			}),
+		)
+
+		fireEvent.click(allRegions(container)[0] as Element)
+
+		expect(onRegionClick).toHaveBeenCalledWith('Alpha', 0)
+	})
+
+	it('ignores a click that lands on the layer but outside every region', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(plat({ onRegionClick }))
+
+		// The gap between regions carries no `data-region-index` anchor. A miss must
+		// report nothing — never coerce the absent attribute to region 0.
+		fireEvent.click(bySlot(container, 'map-regions') as Element)
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+
+	it('takes the pointer cursor and hovers every region only when clickable', () => {
+		const plain = renderUI(plat())
+
+		expect(bySlot(plain.container, 'map-regions')?.getAttribute('class')).not.toContain(
+			'cursor-pointer',
+		)
+
+		// Gamma is unmatched, so on a non-clickable layer it carries no hover emphasis.
+		expect(allRegions(plain.container)[2]?.getAttribute('class')).not.toContain('hover:')
+
+		const clickable = renderUI(plat({ onRegionClick: () => {} }))
+
+		expect(bySlot(clickable.container, 'map-regions')?.getAttribute('class')).toContain(
+			'cursor-pointer',
+		)
+
+		expect(allRegions(clickable.container)[2]?.getAttribute('class')).toContain(
+			'hover:brightness-110',
+		)
+	})
+
+	it('reports the right-clicked region, and nothing when the right-click misses one', () => {
+		const onRegionContextMenu = vi.fn()
+
+		const { container } = renderUI(plat({ onRegionContextMenu }))
+
+		fireEvent.contextMenu(allRegions(container)[1] as Element)
+
+		expect(onRegionContextMenu).toHaveBeenLastCalledWith('B', 1)
+
+		// The gap between regions carries no `data-region-index` anchor: a wrapping
+		// menu still opens, but over no region in particular.
+		fireEvent.contextMenu(bySlot(container, 'map-regions') as Element)
+
+		expect(onRegionContextMenu).toHaveBeenCalledTimes(1)
+	})
+
+	it('takes no pointer affordance for a right-click alone', () => {
+		// A right-click is not advertised by a cursor — only `onRegionClick` earns
+		// one, so a map that merely names its right-clicked region reads as inert.
+		const { container } = renderUI(plat({ onRegionContextMenu: () => {} }))
+
+		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
+	})
+
+	it('leaves the plot a role="img" leaf — the click is a pointer enhancement', () => {
+		const { container } = renderUI(plat({ onRegionClick: () => {} }))
+
+		// The keyboard and assistive path is a control the consumer supplies beside
+		// the map; the paths stay presentational, so nothing focusable hides in the
+		// sr-only readout.
+		expect(bySlot(container, 'map-plot')).toHaveAttribute('role', 'img')
+
+		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+
+		expect(container.querySelector('[data-region-index][tabindex]')).toBeNull()
+	})
+})
+
+describe('MapPlat selected region', () => {
+	it('rings the selected region by the identity a click reports', () => {
+		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
+
+		const ring = bySlot(container, 'map-region-selected')
+
+		// The ring traces the selected region's own geometry, so the two can never
+		// name different regions.
+		expect(ring?.getAttribute('d')).toBe(allRegions(container)[1]?.getAttribute('d'))
+
+		// It marks the region rather than repainting it: the fill reads through, so
+		// a selected region still shows its category colour.
+		expect(ring).toHaveAttribute('fill', 'none')
+
+		rerender(plat({ selectedRegion: 'C' }))
+
+		expect(bySlot(container, 'map-region-selected')?.getAttribute('d')).toBe(
+			allRegions(container)[2]?.getAttribute('d'),
+		)
+	})
+
+	it('rings the region a regionId accessor names, not the atlas id', () => {
+		const { container } = renderUI(
+			plat({
+				geography: FIXTURE_TOPOLOGY,
+				regionId: (feature) => String(feature.properties?.name),
+				selectedRegion: 'Alpha',
+			}),
+		)
+
+		expect(bySlot(container, 'map-region-selected')?.getAttribute('d')).toBe(
+			allRegions(container)[0]?.getAttribute('d'),
+		)
+	})
+
+	it('rings nothing unset, cleared, or named by an id no region carries', () => {
+		const { container, rerender } = renderUI(plat())
+
+		expect(bySlot(container, 'map-region-selected')).toBeNull()
+
+		// A stale id — a pick outliving the geography it was made against — must
+		// ring nothing rather than falling to region 0, the miss `indexOf` reports
+		// as -1.
+		rerender(plat({ selectedRegion: 'Z' }))
+
+		expect(bySlot(container, 'map-region-selected')).toBeNull()
+
+		rerender(plat({ selectedRegion: 'A' }))
+
+		expect(bySlot(container, 'map-region-selected')).toBeInTheDocument()
+
+		rerender(plat({ selectedRegion: null }))
+
+		expect(bySlot(container, 'map-region-selected')).toBeNull()
+	})
+
+	it('stands the ring above the layer, outside the recede and off the hit path', () => {
+		const { container } = renderUI(plat({ selectedRegion: 'B' }))
+
+		const ring = bySlot(container, 'map-region-selected')
+
+		// Outside the recede group, so a pointed mark elsewhere dims the region
+		// under the ring but never the ring: a standing pick outlasts a passing
+		// hover.
+		expect(bySlot(container, 'map-regions-recede')?.contains(ring)).toBe(false)
+
+		expect(ring).toHaveClass('pointer-events-none')
+
+		// No region anchor on the copy: the base path stays the sole hit target, so
+		// the hover resolve never reads the same region twice.
+		expect(ring).not.toHaveAttribute('data-region-index')
+
+		expect(allRegions(container)).toHaveLength(3)
+	})
+
+	it('takes no pointer affordance from a selection alone', () => {
+		// A map showing a pick made elsewhere — a Select, a route parameter — is a
+		// readout, not a picker: without `onRegionClick` there is no click to
+		// promise.
+		const { container } = renderUI(plat({ selectedRegion: 'B' }))
+
+		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
+	})
+
+	it('reads the selected region as current in the visually-hidden table', () => {
+		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
+
+		// Value parity for the pick: assistive tech reads the selection off the
+		// table, never off the ring alone.
+		expect(tableRows(container)).toEqual([
+			['Alpha', null],
+			['Beta', 'true'],
+			['Gamma', null],
+		])
+
+		rerender(plat({ selectedRegion: null }))
+
+		expect(tableRows(container)).toEqual([
+			['Alpha', null],
+			['Beta', null],
+			['Gamma', null],
+		])
+	})
+})
+
+describe('MapPlat controlled emphasis', () => {
+	it('dims every group outside a controlled emphasis, with no legend of its own', () => {
+		// One legend outside several plats drives them all through this prop, so the
+		// emphasis has to land without the plat's own legend being involved.
+		const { container } = renderUI(plat({ legend: false, emphasis: 'category:East' }))
+
+		expect(bySlot(container, 'map-legend')).toBeNull()
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+
+		// Alpha is the East region: its lit copy holds at full strength above the
+		// receded layer.
+		const lit = bySlot(container, 'map-regions-lit')
+
+		expect(lit?.querySelectorAll('path')).toHaveLength(1)
+
+		expect(lit?.querySelector('path')?.getAttribute('d')).toBe(
+			allRegions(container)[0]?.getAttribute('d'),
+		)
+	})
+
+	it('treats a controlled null as "no emphasis", not as uncontrolled', () => {
+		const { container } = renderUI(plat({ legend: false, emphasis: null }))
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('ignores an emphasis naming a group this plat has no marks for', () => {
+		// Sharing one legend across plats means an id can arrive that this plat's data
+		// never produced; dimming the whole map against nothing would read as broken.
+		const { container } = renderUI(plat({ legend: false, emphasis: 'category:Nowhere' }))
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+	})
+
+	it('lets its own legend drive the emphasis when the prop is omitted', () => {
+		const { container } = renderUI(plat())
+
+		const [east] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.pointerEnter(east as HTMLButtonElement)
+
+		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
 	})
 })

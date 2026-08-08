@@ -94,7 +94,7 @@ function ActionsExample() {
 		const id = crypto.randomUUID()
 
 		const handleUndo = () => {
-			dismiss({ id })
+			dismiss(id)
 
 			toast({ title: 'Action undone', severity: 'success' })
 		}
@@ -186,7 +186,7 @@ const ACTIONS_CODE = code`
 			<Button
 				color="amber"
 				onClick={() => {
-					dismiss({ id })
+					dismiss(id)
 					toast({ title: 'Action undone', severity: 'success' })
 				}}
 			>

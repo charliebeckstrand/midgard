@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Sheet', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -64,6 +64,18 @@ describe('Sheet', () => {
 		)
 
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
+	})
+
+	it('greys out what shows through the backdrop when desaturate is set', () => {
+		renderUI(
+			<Sheet open desaturate onOpenChange={() => {}} aria-label="Filters">
+				Filter content
+			</Sheet>,
+		)
+
+		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).toHaveClass(
+			'backdrop-grayscale',
+		)
 	})
 
 	it('names a title-less sheet via the aria-label escape hatch', () => {

@@ -2,10 +2,9 @@
 
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
-/** Props for {@link TimeAgo}: the `date` to age plus `format`/`locale`/`interval`/`absolute` overrides over the `<time>` surface. */
+/** Props for {@link TimeAgo}: the `date` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
 export type TimeAgoProps = Omit<
 	ComponentPropsWithoutRef<'time'>,
 	'dateTime' | 'children' | 'title'
@@ -17,18 +16,13 @@ export type TimeAgoProps = Omit<
 	locale?: string
 	/** Refresh cadence in ms, or `'auto'` to step coarser as the timestamp ages. */
 	interval?: number | 'auto'
-	/**
-	 * Reveal the absolute time in a tooltip on hover/focus.
-	 * @defaultValue false
-	 */
-	absolute?: boolean
 }
 
 /**
  * Self-refreshing relative timestamp rendered in a `<time>` element. Formats via
  * `Intl.RelativeTimeFormat`, falls back to a plain `<span>` for invalid dates, and
- * steps its refresh `interval` coarser as the value ages. Set `absolute` to reveal
- * the full local time in a tooltip.
+ * steps its refresh `interval` coarser as the value ages. To reveal the absolute
+ * time on hover, wrap it in a `<Tooltip>` with a `<TooltipContent>` of your own.
  *
  * @remarks
  * Client-only clock: the first render on both server and client emits an empty
@@ -41,7 +35,6 @@ export function TimeAgo({
 	format,
 	locale,
 	interval = 'auto',
-	absolute = false,
 	className,
 	...props
 }: TimeAgoProps) {
@@ -51,7 +44,7 @@ export function TimeAgo({
 	// rather than an empty <time> with no dateTime.
 	if (!valid) return <span data-slot="time-ago" className={className} {...props} />
 
-	const time = (
+	return (
 		<time
 			data-slot="time-ago"
 			dateTime={then.toISOString()}
@@ -61,15 +54,4 @@ export function TimeAgo({
 			{text}
 		</time>
 	)
-
-	if (absolute) {
-		return (
-			<Tooltip>
-				<TooltipTrigger>{time}</TooltipTrigger>
-				<TooltipContent>{then.toLocaleString(locale)}</TooltipContent>
-			</Tooltip>
-		)
-	}
-
-	return time
 }

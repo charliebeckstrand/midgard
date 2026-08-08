@@ -30,8 +30,7 @@ function renderGesture(initial: HoldGestureOptions) {
 
 describe('useHoldButtonGesture under prefers-reduced-motion', () => {
 	// Forces the reduced-motion branch via the shared mock's matchMedia read,
-	// not a per-file `vi.mock('motion/react')` (which races the global mock under
-	// the shared vmThreads module cache).
+	// not a per-file `vi.mock('motion/react')` (see setup/module-mocks.ts).
 	beforeEach(() => {
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 	})

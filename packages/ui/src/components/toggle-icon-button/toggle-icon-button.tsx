@@ -1,5 +1,8 @@
+'use client'
+
 import type { ComponentPropsWithoutRef, ReactElement, Ref } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
+import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import type { AccessibleName, Size } from '../../types'
 import { Button, type ButtonVariants } from '../button'
@@ -12,8 +15,15 @@ import { Icon } from '../icon'
  * `color`, and the label attributes.
  */
 export type ToggleIconButtonProps = AccessibleName & {
-	/** Pressed state, reflected as `aria-pressed`. */
-	pressed: boolean
+	/** Controlled pressed state, reflected as `aria-pressed`. Pair with `onPressedChange`. */
+	pressed?: boolean
+	/**
+	 * Initial pressed state when uncontrolled.
+	 * @defaultValue false
+	 */
+	defaultPressed?: boolean
+	/** Fires with the next pressed state when the button is activated. */
+	onPressedChange?: (pressed: boolean) => void
 	/** Icon shown in the unpressed state. */
 	icon: ReactElement
 	/**
@@ -42,7 +52,10 @@ export type ToggleIconButtonProps = AccessibleName & {
  * Requires `aria-label` or `aria-labelledby`.
  */
 export function ToggleIconButton({
-	pressed,
+	pressed: pressedProp,
+	defaultPressed,
+	onPressedChange,
+	onClick,
 	icon,
 	pressedIcon = icon,
 	animate = true,
@@ -50,13 +63,24 @@ export function ToggleIconButton({
 	className,
 	...props
 }: ToggleIconButtonProps) {
+	const [pressed = false, setPressed] = useControllable<boolean>({
+		value: pressedProp,
+		defaultValue: defaultPressed ?? false,
+		onValueChange: (next) => onPressedChange?.(next ?? false),
+	})
+
+	// Toggling stays on the button's own click so a consumer's handler still
+	// runs; composeEventHandlers keeps both without the caller re-wiring state.
+	const handleClick = composeEventHandlers(onClick, () => setPressed(!pressed))
 	if (!animate) {
 		return (
 			<Button
 				{...props}
+				type="button"
 				variant="bare"
 				size={size}
 				data-slot="toggle-icon-button"
+				onClick={handleClick}
 				aria-pressed={pressed}
 				className={cn(k.base, className)}
 			>
@@ -71,9 +95,11 @@ export function ToggleIconButton({
 	return (
 		<Button
 			{...props}
+			type="button"
 			variant="bare"
 			size={size}
 			data-slot="toggle-icon-button"
+			onClick={handleClick}
 			aria-pressed={pressed}
 			className={cn(k.base, className)}
 			prefix={

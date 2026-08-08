@@ -28,7 +28,7 @@ describe('editable grid header menu focus (real browser)', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(row) => row.id}
-				editable={{ rows: new Set(), onValueChange: () => {} }}
+				editable={{ rows: new Set(), onCommit: () => {} }}
 			/>,
 		)
 

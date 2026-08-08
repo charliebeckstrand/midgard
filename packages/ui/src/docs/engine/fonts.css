@@ -2,7 +2,7 @@
     font-family: 'Google Sans Flex';
     font-weight: 100 1000;
     font-display: swap;
-    src: url('./fonts/GoogleSansFlex-VariableFont_GRAD,ROND,opsz,slnt,wdth,wght.woff2') format('woff2-variations');
+    src: url('./fonts/GoogleSansFlex-VariableFont_opsz,wght.woff2') format('woff2-variations');
 }
 
 @font-face {
@@ -14,8 +14,6 @@
 
 :root {
     --font-sans: 'Google Sans Flex', sans-serif;
-
-    --font-sans--font-variation-settings: 'slnt' 0, 'wdth' 100, 'GRAD' 0, 'ROND' 0;
 
     --font-code:
         'Google Sans Code', SF Mono, SF Mono-Regular, Consolas, monospace;

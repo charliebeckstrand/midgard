@@ -1,7 +1,27 @@
 import { ts } from 'ts-morph'
+import { isFunctionType } from './ts-utils'
 
 const TYPE_FORMAT_FLAGS =
 	ts.TypeFormatFlags.NoTruncation | ts.TypeFormatFlags.UseAliasDefinedOutsideCurrentScope
+
+/**
+ * Recursion ceiling for {@link formatType}. A named type short-circuits, so a
+ * type that names itself terminates on its own; a structurally recursive
+ * *anonymous* type has nothing to stop it, and the walk descends through
+ * generic arguments, function signatures, array elements, and unions until the
+ * stack gives out. Twelve is far past any real prop type in the library — the
+ * deepest measured is under five — so the cap is a stability floor, not a
+ * formatting limit.
+ */
+const MAX_DEPTH = 12
+
+/**
+ * Current recursion depth. A module-level counter rather than a threaded
+ * parameter: seven call sites across four helpers recurse into `formatType`, and
+ * the counter guards them all without perturbing a hot path. The `finally` in
+ * `formatType` keeps it balanced even if the checker throws.
+ */
+let depth = 0
 
 /**
  * Format a `ts.Type` as a short, display-friendly string. Prefers named
@@ -21,23 +41,34 @@ const TYPE_FORMAT_FLAGS =
  * which ts-morph doesn't surface as wrapped Types.
  */
 export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
-	const named = namedTypeShortName(type, checker, location)
+	if (depth >= MAX_DEPTH) return '…'
 
-	if (named) return named
+	depth++
 
-	const generic = typeParameterFallback(type, checker, location)
+	try {
+		const named = namedTypeShortName(type, checker, location)
 
-	if (generic) return generic
+		if (named) return named
 
-	const fn = formatFunctionType(type, checker, location)
+		const generic = typeParameterFallback(type, checker, location)
 
-	if (fn) return fn
+		if (generic) return generic
 
-	return toSingleQuotes(checker.typeToString(type, location, TYPE_FORMAT_FLAGS))
+		const fn = formatFunctionType(type, checker, location)
+
+		if (fn) return fn
+
+		return toSingleQuotes(checker.typeToString(type, location, TYPE_FORMAT_FLAGS))
+	} finally {
+		depth--
+	}
 }
 
 /**
- * Same as `formatType`, but strips `| undefined` from optional unions.
+ * Same as `formatType`, but strips `| undefined` from optional unions. The two
+ * are not interchangeable: this one hands a leaf function type to
+ * `typeToString`, where `formatType` routes it through `formatFunctionType`.
+ * Merging them changes how function-typed props render.
  */
 export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
 	const named = namedTypeShortName(type, checker, location)
@@ -98,10 +129,26 @@ function formatUnionMembers(
 			continue
 		}
 
-		parts.push(formatType(member, checker, location))
+		parts.push(unionMember(member, checker, location))
 	}
 
 	return parts.join(' | ')
+}
+
+/**
+ * Format a union member, parenthesizing a bare function type so its `=>` (and
+ * any parenthesized union return) doesn't read as spanning the next arm:
+ * `(() => void) | null`, not `() => void | null`. A named function alias stays
+ * bare — it renders as its name, which needs no parentheses.
+ */
+function unionMember(
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	location: ts.Node | undefined,
+): string {
+	const rendered = formatType(type, checker, location)
+
+	return isFunctionType(type) && rendered.includes('=>') ? `(${rendered})` : rendered
 }
 
 /**
@@ -262,18 +309,40 @@ function formatFunctionType(
 	if (!sig) return null
 
 	const params = sig.getParameters().map((p) => {
-		const decl = p.valueDeclaration ?? location
+		const param = p.valueDeclaration
+
+		const decl = param ?? location
 
 		const paramType = decl
 			? checker.getTypeOfSymbolAtLocation(p, decl)
 			: checker.getDeclaredTypeOfSymbol(p)
 
-		return `${p.getName()}: ${formatType(paramType, checker, location)}`
+		// `?` / `...` live on the parameter node, not its type; without them an
+		// optional or rest parameter renders as a plain positional `(a: T)`. An
+		// optional param's type carries `| undefined`, which `?` already conveys, so
+		// strip it the way an optional prop's does.
+		const isParam = param !== undefined && ts.isParameter(param)
+
+		const rest = isParam && param.dotDotDotToken ? '...' : ''
+
+		const optional = isParam && param.questionToken ? '?' : ''
+
+		const rendered = optional
+			? formatPropType(paramType, checker, location)
+			: formatType(paramType, checker, location)
+
+		return `${rest}${p.getName()}${optional}: ${rendered}`
 	})
 
-	const ret = formatType(sig.getReturnType(), checker, location)
+	const returnType = sig.getReturnType()
 
-	return `(${params.join(', ')}) => ${ret}`
+	const ret = formatType(returnType, checker, location)
+
+	// Parenthesize a union return so a downstream union splitter doesn't read its
+	// `|` as a top-level arm: `(x) => (A | B)`, not `(x) => A | B`.
+	const wrappedRet = returnType.isUnion() && ret.includes('|') ? `(${ret})` : ret
+
+	return `(${params.join(', ')}) => ${wrappedRet}`
 }
 
 /**

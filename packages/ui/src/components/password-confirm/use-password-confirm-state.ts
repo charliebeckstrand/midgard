@@ -1,9 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { deriveStatus } from './password-confirm-utilities'
-
-type LastEdited = 'password' | 'confirm' | null
+import { deriveStatus, type LastEdited, type Status } from './password-confirm-utilities'
 
 type PasswordConfirmStateOptions = {
 	/**
@@ -12,14 +10,13 @@ type PasswordConfirmStateOptions = {
 	 * @defaultValue `false`
 	 */
 	disabled?: boolean
-	onPasswordMatch?: () => void
-	onPasswordMismatch?: () => void
+	onMatchChange?: (matched: boolean) => void
 }
 
 type PasswordConfirmStateResult = {
 	password: string
 	confirm: string
-	status: 'idle' | 'warning'
+	status: Status
 	setPassword: (value: string) => void
 	setConfirm: (value: string) => void
 	setLastEdited: (which: LastEdited) => void
@@ -32,18 +29,17 @@ type PasswordConfirmStateResult = {
  * and the setters `setPassword`, `setConfirm` (which also marks confirm as last
  * edited), and `setLastEdited`.
  * @remarks
- * `onPasswordMatch`/`onPasswordMismatch` fire from an effect on transitions
- * only (a match→match repeat won't re-fire), read through refs so a changed
- * callback identity doesn't retrigger. `disabled` suppresses both the `'match'`
- * and `'mismatch'` transitions — not mismatch alone — so a match fired while
+ * `onMatchChange(matched)` fires from an effect on transitions only (a
+ * match→match repeat won't re-fire), read through a ref so a changed callback
+ * identity doesn't retrigger. `disabled` suppresses both the `'match'` and
+ * `'mismatch'` transitions — not mismatch alone — so a match fired while
  * disabled can't pin the transition tracker and swallow the real match after
  * re-enable.
  * @internal
  */
 export function usePasswordConfirmState({
 	disabled = false,
-	onPasswordMatch,
-	onPasswordMismatch,
+	onMatchChange,
 }: PasswordConfirmStateOptions = {}): PasswordConfirmStateResult {
 	const [password, setPassword] = useState('')
 
@@ -56,13 +52,11 @@ export function usePasswordConfirmState({
 		setLastEdited('confirm')
 	}, [])
 
-	const status: 'idle' | 'warning' = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
+	const status: Status = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
 
-	const onMatchRef = useRef(onPasswordMatch)
-	const onMismatchRef = useRef(onPasswordMismatch)
+	const onMatchChangeRef = useRef(onMatchChange)
 
-	onMatchRef.current = onPasswordMatch
-	onMismatchRef.current = onPasswordMismatch
+	onMatchChangeRef.current = onMatchChange
 
 	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
 
@@ -81,8 +75,10 @@ export function usePasswordConfirmState({
 
 		prevMatchState.current = matchState
 
-		if (matchState === 'match') onMatchRef.current?.()
-		else if (matchState === 'mismatch') onMismatchRef.current?.()
+		// Fire only on a definite match/mismatch transition; a return to the
+		// indeterminate `null` state (a field cleared) reports neither.
+		if (matchState === 'match') onMatchChangeRef.current?.(true)
+		else if (matchState === 'mismatch') onMatchChangeRef.current?.(false)
 	}, [matchState])
 
 	return { password, confirm, status, setPassword, setConfirm, setLastEdited }

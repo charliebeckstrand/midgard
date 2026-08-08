@@ -1,56 +1,38 @@
 'use client'
 
-import { type RefObject, useLayoutEffect, useState } from 'react'
-
-const HIDDEN_STYLES =
-	'position:absolute;left:-9999px;top:0;visibility:hidden;pointer-events:none;white-space:nowrap;width:auto;max-width:none;'
+import { type RefObject, useEffectEvent, useLayoutEffect, useState } from 'react'
+import { isOverflowing } from './use-truncation'
 
 /**
- * True when `text` overflows the element at `ref.current`. Measures the text's
- * natural single-line width with an off-screen mirror span and compares it
- * against the element's content box, so it detects ellipsis truncation without
- * reading `scrollWidth`.
+ * True when `text` overflows the element at `ref.current`. Measures through
+ * {@link isOverflowing}, which owns the measurement and its rationale, in its
+ * padded mode — this hook takes an element the caller already rendered, which
+ * can carry padding, where `useTruncation` owns the element it measures.
  *
- * @remarks Re-measures via a `ResizeObserver` and after `document.fonts.ready`,
- * so it stays accurate across resizes and late font loads. Layout-effect based;
- * SSR yields `false` until the first client measurement.
+ * @remarks
+ * Re-measures via a `ResizeObserver` and after `document.fonts.ready`, so it
+ * stays accurate across resizes and late font loads. One observer per element,
+ * unlike `useTruncation`'s shared one — this hook's callers mount a handful of
+ * elements, not a virtualized grid of them. Layout-effect based; SSR yields
+ * `false` until the first client measurement.
  * @returns `true` while the text is truncated, else `false`.
  */
 export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string): boolean {
 	const [truncated, setTruncated] = useState(false)
 
+	const check = useEffectEvent(() => {
+		const el = ref.current
+
+		setTruncated(el != null && text !== '' && isOverflowing(el, true))
+	})
+
+	// The subscription tracks the element, not the string: re-keying it on `text`
+	// would tear down and rebuild the observer — and re-subscribe `fonts.ready` —
+	// on every character.
 	useLayoutEffect(() => {
 		const el = ref.current
 
-		if (!el || !text) {
-			setTruncated(false)
-
-			return
-		}
-
-		const measurer = document.createElement('span')
-
-		measurer.textContent = text
-
-		measurer.setAttribute('aria-hidden', 'true')
-
-		measurer.style.cssText = HIDDEN_STYLES
-
-		el.appendChild(measurer)
-
-		const check = () => {
-			const textWidth = measurer.getBoundingClientRect().width
-
-			const styles = getComputedStyle(el)
-
-			const paddingX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight)
-
-			const contentWidth = el.getBoundingClientRect().width - paddingX
-
-			setTruncated(textWidth > contentWidth)
-		}
-
-		check()
+		if (!el) return
 
 		const observer = new ResizeObserver(check)
 
@@ -66,10 +48,17 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 			fontsCancelled = true
 
 			observer.disconnect()
-
-			measurer.remove()
 		}
-	}, [ref, text])
+	}, [ref])
+
+	// A new string re-measures against the same element and subscription. `text`
+	// is the trigger rather than something this body reads — `check` reads the
+	// current string through its effect event — which is why the rule cannot see
+	// the dependency and has to be told.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `text` is the trigger; `check` reads it through the effect event
+	useLayoutEffect(() => {
+		check()
+	}, [text])
 
 	return truncated
 }

@@ -21,7 +21,6 @@ type PdfViewerOptions = {
 	onPageChange?: (page: number) => void
 	defaultZoom?: number
 	zoomLevels?: number[]
-	defaultRotation?: number
 }
 
 /** The viewer's full derived state, provided through {@link PdfViewerContext} to every sub-component. @internal */
@@ -80,7 +79,6 @@ export function usePdfViewer({
 	onPageChange,
 	defaultZoom = 1,
 	zoomLevels = DEFAULT_ZOOM_LEVELS,
-	defaultRotation = 0,
 }: PdfViewerOptions): PdfViewerResult {
 	const shouldLoadFromSrc = !pagesProp && !!src
 
@@ -120,11 +118,7 @@ export function usePdfViewer({
 
 	// `pages` is the resolved document (consumer `pages` or the src-loaded set);
 	// its identity changes on a document swap, resetting per-page rotations.
-	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(
-		safePage,
-		defaultRotation,
-		pages,
-	)
+	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, pages)
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage)
 

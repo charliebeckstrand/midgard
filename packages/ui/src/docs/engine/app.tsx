@@ -50,7 +50,12 @@ export function App() {
 
 		const cic = window.cancelIdleCallback ?? clearTimeout
 
-		const handle = ric(() => loadShiki()) as number
+		// A warm prefetch; a failed chunk fetch (offline, post-deploy 404) is
+		// harmless here — CodeBlock re-invokes loadShiki on render and shows its
+		// plain fallback — so swallow the rejection rather than leaking it.
+		const handle = ric(() => {
+			loadShiki().catch(() => {})
+		}) as number
 
 		return () => cic(handle)
 	}, [])
@@ -71,20 +76,26 @@ export function App() {
 				sidebar={<SidebarContent route={route} />}
 			>
 				<div ref={contentRef}>
-					{current ? (
-						<DemoErrorBoundary
-							key={current.id}
-							fallback={(retry) => <DemoLoadError onRetry={retry} />}
-						>
-							<Suspense fallback={null}>
+					{/* One Suspense boundary spans every route. Keeping it mounted (rather
+					    than keyed per demo) is what lets the deferred route hold the previous
+					    demo on screen while the next chunk loads; a boundary recreated per
+					    navigation has no revealed content to keep and flashes its fallback
+					    instead. The error boundary stays keyed so a load failure resets per
+					    demo. */}
+					<Suspense fallback={null}>
+						{current ? (
+							<DemoErrorBoundary
+								key={current.id}
+								fallback={(retry) => <DemoLoadError onRetry={retry} />}
+							>
 								<DemoPage demo={current} locked={locked} onToggleLocked={toggleLocked} />
-							</Suspense>
-						</DemoErrorBoundary>
-					) : (
-						<div className="p-6">
-							<Heading>Select a component</Heading>
-						</div>
-					)}
+							</DemoErrorBoundary>
+						) : (
+							<div className="p-6">
+								<Heading>Select a component</Heading>
+							</div>
+						)}
+					</Suspense>
 				</div>
 			</SidebarLayout>
 		</DensityProvider>

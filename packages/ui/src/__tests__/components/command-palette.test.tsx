@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	CommandPalette,
 	CommandPaletteDescription,
-	CommandPaletteEmpty,
 	CommandPaletteGroup,
 	CommandPaletteItem,
 	CommandPaletteLabel,
@@ -214,16 +213,6 @@ describe('CommandPaletteGroup', () => {
 		)
 
 		expect(bySlot(container, 'command-palette-group')?.className).toContain('custom')
-	})
-})
-
-describe('CommandPaletteEmpty', () => {
-	it('renders children inside an alert', () => {
-		const { container } = renderUI(<CommandPaletteEmpty>No results</CommandPaletteEmpty>)
-
-		expect(bySlot(container, 'command-palette-empty')).toBeInTheDocument()
-
-		expect(screen.getByText('No results')).toBeInTheDocument()
 	})
 })
 

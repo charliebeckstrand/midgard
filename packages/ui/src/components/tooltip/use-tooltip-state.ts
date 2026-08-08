@@ -11,7 +11,6 @@ import {
 import { useEffect, useMemo, useRef } from 'react'
 import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
-import type { Step } from '../../recipes'
 
 type TooltipStateOptions = {
 	placement?: Placement
@@ -19,8 +18,6 @@ type TooltipStateOptions = {
 	interactive?: boolean
 	enabled?: boolean
 	forceOpen?: boolean
-	size?: Step
-	className?: string
 }
 
 /**
@@ -45,7 +42,9 @@ function isReferenceDisabled(reference: unknown): boolean {
  * @remarks Hover on pointer devices, click on pointer-less ones, focus always.
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`, re-opening on hover once the
- * disabled state clears.
+ * disabled state clears. Hands the floating root context out as
+ * `floatingContext`, which an `interactive` `<TooltipContent>` mounts its focus
+ * trap on.
  * @internal
  * @see {@link isReferenceDisabled}
  * @see {@link useFloatingDisclosure}
@@ -56,8 +55,6 @@ export function useTooltipState({
 	interactive = false,
 	enabled = true,
 	forceOpen = false,
-	size,
-	className,
 }: TooltipStateOptions) {
 	// `forceOpen` controls the disclosure open — a programmatic reveal that skips
 	// the pointer, for a tooltip whose trigger can't take hover (an SVG rule the
@@ -140,25 +137,23 @@ export function useTooltipState({
 			open,
 			interactive,
 			enabled,
-			size,
-			className,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			floatingContext: context,
 		}),
 		[
 			open,
 			interactive,
 			enabled,
-			size,
-			className,
 			refs.setReference,
 			refs.setFloating,
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
+			context,
 		],
 	)
 }

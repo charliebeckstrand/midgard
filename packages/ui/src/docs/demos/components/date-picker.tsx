@@ -4,13 +4,13 @@ import { GlassProvider } from '../../../providers/glass'
 import { Example } from '../../engine'
 
 export function Demo() {
-	const [date, setDate] = useState<Date | undefined>(undefined)
-	const [footerDate, setFooterDate] = useState<Date | undefined>(undefined)
-	const [range, setRange] = useState<[Date, Date] | undefined>(undefined)
-	const [typed, setTyped] = useState<Date | undefined>(undefined)
-	const [relative, setRelative] = useState<DatePickerRelativeValue[] | undefined>(undefined)
-	const [relativeMany, setRelativeMany] = useState<DatePickerRelativeValue[] | undefined>(undefined)
-	const [glassRange, setGlassRange] = useState<[Date, Date] | undefined>(undefined)
+	const [date, setDate] = useState<Date | null>(null)
+	const [footerDate, setFooterDate] = useState<Date | null>(null)
+	const [range, setRange] = useState<[Date, Date] | null>(null)
+	const [typed, setTyped] = useState<Date | null>(null)
+	const [relative, setRelative] = useState<DatePickerRelativeValue[] | null>(null)
+	const [relativeMany, setRelativeMany] = useState<DatePickerRelativeValue[] | null>(null)
+	const [glassRange, setGlassRange] = useState<[Date, Date] | null>(null)
 
 	return (
 		<>
@@ -46,7 +46,7 @@ export function Demo() {
 
 			<Example title="Footer toggles">
 				<DatePicker
-					footer={{ clear: false }}
+					footer={{ clear: false, today: false }}
 					value={footerDate}
 					onValueChange={setFooterDate}
 					placeholder="No Clear button"

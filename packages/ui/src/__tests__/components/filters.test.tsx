@@ -270,6 +270,24 @@ describe('FiltersClear', () => {
 
 		expect(button?.className).toContain('from-wrapper')
 	})
+
+	it('renders the default Button for a bare string child', async () => {
+		const onChange = vi.fn()
+
+		renderUI(
+			<Filters aria-label="Filters" value={{ name: 'hello' }} onValueChange={onChange}>
+				<FiltersClear>Clear all</FiltersClear>
+			</Filters>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		// The documented non-element fallback: a bare string renders a default
+		// Button instead of throwing through `Children.only`.
+		await user.click(screen.getByRole('button', { name: 'Clear all' }))
+
+		expect(onChange).toHaveBeenCalled()
+	})
 })
 
 describe('useFilters', () => {

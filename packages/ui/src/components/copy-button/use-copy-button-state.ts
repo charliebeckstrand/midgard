@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useState } from 'react'
 import { announce } from '../../core'
 
 type CopyStateOptions = {
@@ -29,8 +29,9 @@ type CopyStateResult = {
  * `copy` rejects nothing: a denied permission, insecure context, or missing
  * Clipboard API is swallowed and leaves `copied` false. Success is announced via
  * a live region because screen readers skip label changes on an already-focused
- * control. `onCopiedChange` is read through a ref, so swapping the callback does
- * not restart the revert timer.
+ * control. `onCopiedChange` is raised through an effect event, so swapping the
+ * callback neither restarts the revert timer nor leaves a copy mid-flight
+ * calling the previous one.
  * @internal
  */
 export function useCopyButtonState({
@@ -40,10 +41,8 @@ export function useCopyButtonState({
 }: CopyStateOptions): CopyStateResult {
 	const [copied, setCopied] = useState(false)
 
-	const onCopiedChangeRef = useRef(onCopiedChange)
-
-	useEffect(() => {
-		onCopiedChangeRef.current = onCopiedChange
+	const notifyCopiedChange = useEffectEvent((next: boolean) => {
+		onCopiedChange?.(next)
 	})
 
 	const copy = useCallback(async () => {
@@ -55,7 +54,7 @@ export function useCopyButtonState({
 			// Screen readers skip label changes on an already-focused control; announce success explicitly.
 			announce('Copied')
 
-			onCopiedChangeRef.current?.(true)
+			notifyCopiedChange(true)
 		} catch {
 			// Clipboard write failed (denied permission, insecure context, or missing API);
 			// `copied` stays false.
@@ -68,7 +67,7 @@ export function useCopyButtonState({
 		const timer = setTimeout(() => {
 			setCopied(false)
 
-			onCopiedChangeRef.current?.(false)
+			notifyCopiedChange(false)
 		}, timeout)
 
 		return () => clearTimeout(timer)

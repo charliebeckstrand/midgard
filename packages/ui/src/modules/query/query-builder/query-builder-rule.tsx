@@ -9,10 +9,11 @@ import { ListboxOption } from '../../../components/listbox'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import { getOperators } from '../engine/query-operators'
+import type { QueryRule } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
+import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRuleValue } from './query-builder-rule-value'
-import { focusKeys, getOperators } from './query-builder-utilities'
-import type { QueryRule } from './types'
 
 /** Props for {@link QueryBuilderRule}: the rule node to render. */
 export type QueryBuilderRuleProps = {
@@ -28,8 +29,10 @@ export type QueryBuilderRuleProps = {
 
 /**
  * Renders one query rule: field and operator {@link Select}s plus a type-aware
- * value input (suppressed for `noValue` operators) and, when `removable`, a
- * remove button. Changing the field resets the operator and value. Memoized.
+ * value input — replaced, for a `noValue` operator, by its fixed `valueLabel` as
+ * static text ("is" · "Empty") or by nothing when it names none — and, when
+ * `removable`, a remove button. Changing the field resets the operator and
+ * value. Memoized.
  */
 function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilderRuleProps) {
 	const { fields, getField, disabled, hideFieldSelector } = useQueryBuilderState()
@@ -43,7 +46,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	const selectedOperator = operators.find((o) => o.value === rule.operator)
 
 	const onFieldChange = useCallback(
-		(nextFieldName: string | undefined) => {
+		(nextFieldName: string | null) => {
 			if (!nextFieldName) return
 
 			const nextField = fields.find((f) => f.name === nextFieldName)
@@ -60,7 +63,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 	)
 
 	const onOperatorChange = useCallback(
-		(v: string | undefined) => {
+		(v: string | null) => {
 			if (!v) return
 
 			// Switching between a scalar and a range operator changes the value's
@@ -141,16 +144,26 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						className="w-full"
 					/>
 				)}
+
+				{/* A value-less operator naming a fixed subject ("is" · "Empty") shows it
+				    as static text in the value column, so the rule still reads as a
+				    sentence; there is nothing to edit, hence no control. */}
+				{selectedOperator?.noValue && selectedOperator.valueLabel && (
+					<Flex align="center" full className={cn(k.value)}>
+						{selectedOperator.valueLabel}
+					</Flex>
+				)}
 			</Flex>
 
 			{removable && (
 				<Button
+					type="button"
 					ref={removeRef}
 					variant="bare"
 					color="red"
 					aria-label="Remove rule"
 					disabled={disabled}
-					className={k.rowRemove}
+					className={k.remove}
 					onClick={onRemove}
 				>
 					<Icon icon={<Trash />} />
@@ -162,7 +175,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 /**
  * Renders one query rule within a {@link QueryBuilderGroup}: field and operator
- * {@link Select}s plus a type-aware value input (suppressed for `noValue`
- * operators) and a remove button.
+ * {@link Select}s plus a type-aware value input (a `noValue` operator shows its
+ * fixed `valueLabel` as static text instead) and a remove button.
  */
 export const QueryBuilderRule = memo(QueryBuilderRuleImpl)

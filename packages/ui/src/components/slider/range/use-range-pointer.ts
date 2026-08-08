@@ -103,9 +103,7 @@ export function useRangePointer(opts: {
 	)
 
 	const closestThumb = useCallback(
-		(clientX: number): ThumbIndex => {
-			const raw = valueFromPointer(clientX)
-
+		(raw: number): ThumbIndex => {
 			const d0 = Math.abs(raw - current[0])
 
 			const d1 = Math.abs(raw - current[1])
@@ -113,7 +111,7 @@ export function useRangePointer(opts: {
 			// Prefers the higher thumb when equidistant.
 			return d0 < d1 ? 0 : 1
 		},
-		[valueFromPointer, current],
+		[current],
 	)
 
 	const onPointerDown = useCallback(
@@ -150,7 +148,7 @@ export function useRangePointer(opts: {
 				return
 			}
 
-			const thumb = closestThumb(event.clientX)
+			const thumb = closestThumb(raw)
 			draggingRef.current = thumb
 			update(thumb, raw)
 		},

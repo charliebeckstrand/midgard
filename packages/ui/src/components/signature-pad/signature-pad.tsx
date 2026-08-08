@@ -133,7 +133,8 @@ export function SignaturePad({
 				ref={canvasRef}
 				data-slot="signature-pad-canvas"
 				// `role="img"` makes the `aria-label` perceivable; a bare `<canvas>`
-				// has no implicit role. State (empty/disabled) rides the name.
+				// has no implicit role. Empty state rides the name (`, empty`);
+				// disabled/read-only is conveyed via `aria-disabled` below.
 				role="img"
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
 				aria-describedby={control?.describedBy}
@@ -143,7 +144,7 @@ export function SignaturePad({
 				tabIndex={-1}
 				// A Form field error (from `name`) forces invalid; an ambient
 				// `<Field invalid>` via Control still applies too.
-				{...invalidAttrs(control?.invalid || invalid)}
+				{...invalidAttrs(control?.severity === 'error' || invalid)}
 				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
@@ -159,6 +160,7 @@ export function SignaturePad({
 			{clearable && !disabled && !readOnly && !empty && (
 				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
 					<Button
+						type="button"
 						size="sm"
 						color="amber"
 						data-slot="signature-pad-clear"

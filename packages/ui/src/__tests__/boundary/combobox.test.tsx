@@ -6,7 +6,7 @@ import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor, within } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor, within } from '../helpers'
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {
@@ -236,9 +236,53 @@ describe('Combobox', () => {
 
 		fireEvent.click(clear)
 
-		expect(onChange).toHaveBeenCalledWith(undefined)
+		// §7.3: a cleared single selection reports `null` (controlled with no
+		// value), not `undefined` (which would read as uncontrolled if echoed).
+		expect(onChange).toHaveBeenCalledWith(null)
 
 		expect(document.activeElement).toBe(bySlot(container, 'combobox-input'))
+	})
+
+	it('hands onClear the input instead of refocusing it', () => {
+		const onClear = vi.fn<(input: HTMLInputElement | null) => void>()
+
+		// The one-liner the prop exists for: leave the field, so the clear doesn't
+		// reopen the list it just emptied.
+		const { container } = renderUI(
+			<Combobox<string>
+				clearable
+				value="v1"
+				displayValue={(v) => v}
+				onClear={(input) => {
+					onClear(input)
+
+					input?.blur()
+				}}
+			>
+				<ComboboxOption value="v1">One</ComboboxOption>
+			</Combobox>,
+		)
+
+		const input = bySlot(container, 'combobox-input')
+
+		// Focused first, as a user who typed or tabbed into the field would be. Wrapped,
+		// because focus opens the menu — the state update the clear is about to undo.
+		act(() => {
+			input?.focus()
+		})
+
+		fireEvent.mouseDown(screen.getByRole('button', { name: 'Clear selection' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		// The combobox's own input, so a consumer needs no ref of its own.
+		expect(onClear).toHaveBeenCalledWith(input)
+
+		expect(document.activeElement).not.toBe(input)
+
+		expect(input).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})
 
 	it('clears a multiple selection to an empty array', () => {
@@ -560,7 +604,7 @@ describe('Combobox active-descendant keyboard model', () => {
 		const user = userEvent.setup({ delay: null })
 
 		function ControlledNullable() {
-			const [selected, setSelected] = useState<string | undefined>(undefined)
+			const [selected, setSelected] = useState<string | null>(null)
 
 			return (
 				<Combobox<string>
@@ -586,7 +630,10 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		await user.click(screen.getByRole('option', { name: 'Apple' }))
 
-		expect(input).toHaveValue('apple')
+		// `capitalize` defaults on, so the resolved display value renders
+		// first-word-capitalized in the input's DOM value (the underlying
+		// selection stays 'apple').
+		expect(input).toHaveValue('Apple')
 
 		// Focus stayed on the input, so reopen via the chevron.
 		const icon = bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]')
@@ -702,6 +749,34 @@ describe('Combobox listbox selection semantics', () => {
 	})
 })
 
+// The `capitalize` default formats string option labels in JS at render, so
+// the accessible name matches the visual: first word only, rest untouched.
+describe('Combobox capitalize', () => {
+	it('capitalizes only the first word of a string option label', () => {
+		renderUI(
+			<Combobox<string> open>
+				<ComboboxOption value="a">
+					<ComboboxLabel>red apple</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		expect(screen.getByRole('option', { name: 'Red apple' })).toBeInTheDocument()
+	})
+
+	it('renders string option labels as authored when capitalize is off', () => {
+		renderUI(
+			<Combobox<string> open capitalize={false}>
+				<ComboboxOption value="a">
+					<ComboboxLabel>red apple</ComboboxLabel>
+				</ComboboxOption>
+			</Combobox>,
+		)
+
+		expect(screen.getByRole('option', { name: 'red apple' })).toBeInTheDocument()
+	})
+})
+
 describe('ComboboxPanel', () => {
 	function renderPanel(onClose: () => void) {
 		return renderUI(
@@ -790,7 +865,7 @@ describe('ComboboxPanel', () => {
 describe('Combobox + Control', () => {
 	it('surfaces invalid state from an enclosing Control', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<Combobox>
 					<ComboboxOption value="a">
 						<ComboboxLabel>A</ComboboxLabel>
@@ -822,7 +897,7 @@ describe('Combobox + Control', () => {
 
 	it('points aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
-			<Control id="status" invalid>
+			<Control id="status" severity="error">
 				<Description>Choose one</Description>
 				<Combobox>
 					<ComboboxOption value="a">

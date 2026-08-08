@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent, within } from '../helpers'
+import { fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
 /**
  * Row grouping (`groupBy` + a grouped column): the engine's grouped/expanded row
@@ -76,6 +76,38 @@ describe('Grid row grouping', () => {
 		await user.click(screen.getByRole('button', { name: 'Expand group Developer' }))
 
 		expect(leafRow('Wade')).not.toHaveAttribute('aria-hidden')
+	})
+
+	it('rests a collapsed group\u2019s leaves once the reveal has shrunk', async () => {
+		const user = userEvent.setup()
+
+		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
+
+		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+
+		// Still live through the reveal: `display: none` can't tween the collapse,
+		// so hiding on the toggle would snap the rows away instead of shrinking them.
+		expect(leafRow('Wade')).toBeVisible()
+
+		// The reveal lands. It bubbles from the cells that animate, and only the
+		// reveal's own property counts.
+		fireEvent.transitionEnd(leafRow('Wade') as HTMLElement, { propertyName: 'color' })
+
+		expect(leafRow('Wade')).toBeVisible()
+
+		fireEvent.transitionEnd(leafRow('Wade') as HTMLElement, {
+			propertyName: 'grid-template-rows',
+		})
+
+		// Rested: out of the visible commit, but still mounted with its state.
+		expect(leafRow('Wade')).not.toBeVisible()
+
+		expect(leafRow('Wade')).toBeInTheDocument()
+
+		// Re-expanding wakes it in the same pass, with no second landing needed.
+		await user.click(screen.getByRole('button', { name: 'Expand group Developer' }))
+
+		expect(leafRow('Wade')).toBeVisible()
 	})
 
 	it('starts collapsed under defaultExpanded: false', () => {

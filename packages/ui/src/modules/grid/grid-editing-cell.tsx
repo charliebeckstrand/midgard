@@ -1,11 +1,20 @@
 'use client'
 
+import { Check, X } from 'lucide-react'
 import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import { Button } from '../../components/button'
+import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { inferEditorKind, isColumnEditable } from './engine/grid-editing-utilities'
+import { columnLabel } from './engine/grid-column/label'
+import {
+	inferEditorKind,
+	isCellEditing,
+	isColumnEditable,
+	isSameCell,
+} from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
-import { type GridRowEditing, useGridRowEditing } from './grid-editing-context'
+import { type GridEditingSession, useGridEditingSession } from './grid-editing-context'
 import type { GridColumn } from './types'
 import { GridNavCell } from './use-grid-navigation-columns'
 
@@ -20,9 +29,54 @@ type GridEditingCellProps<T> = {
 	render: ((row: T) => ReactNode) | undefined
 }
 
-/** Props for the mounted editor: the cell plus the row-editing staging and session callbacks. @internal */
-type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
-	Pick<GridRowEditing, 'stageDraft' | 'unstageDraft' | 'commitRowEdit' | 'cancelRowEdit'>
+/** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
+type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
+	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession' | 'sessionOwned'> & {
+		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
+		held: boolean
+	}
+
+/** The two ways a cell-scoped session ends, as the controls that end it. @internal */
+const SETTLE_ACTIONS = [
+	{ outcome: 'save', verb: 'Save', color: 'green', icon: <Check /> },
+	{ outcome: 'discard', verb: 'Discard', color: 'red', icon: <X /> },
+] as const
+
+/**
+ * The save and discard pair beside the editor on the cell a cell-scoped session
+ * holds. Row scope shows none: its whole row edits at once, and the settle
+ * control there is the consumer's own row action, at the granularity that
+ * matches. Here the grid owns the session and nothing else on screen ends it, so
+ * this is the only visible way out — and the only keyboard commit available to
+ * an editor that spends its own Enter, which the inline listbox does.
+ *
+ * @internal
+ */
+function GridSettleControls({
+	label,
+	settle,
+}: {
+	/** Names the cell, so each control reads as belonging to the editor beside it. */
+	label: string
+	settle: (outcome: 'save' | 'discard') => void
+}) {
+	return (
+		<span className={cn(k.edit.settle)}>
+			{SETTLE_ACTIONS.map((action) => (
+				<Button
+					key={action.outcome}
+					type="button"
+					variant="bare"
+					color={action.color}
+					aria-label={`${action.verb} ${label}`}
+					onClick={() => settle(action.outcome)}
+				>
+					<Icon icon={action.icon} />
+				</Button>
+			))}
+		</span>
+	)
+}
 
 /**
  * A cell's in-place editor while its row is in edit mode. Owns its live display
@@ -36,14 +90,14 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render'> &
  */
 function GridCellEditor<T>({
 	rowIdx,
-	colIdx,
 	rowKey,
 	row,
 	column,
 	stageDraft,
 	unstageDraft,
-	commitRowEdit,
-	cancelRowEdit,
+	endSession,
+	sessionOwned,
+	held,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -61,16 +115,23 @@ function GridCellEditor<T>({
 		unstageDraft(rowKey, column.id)
 	}
 
-	// Grid-owned session exits (`trigger: 'doubleClick'`), bound to this row;
+	// The grid-owned save (`trigger: 'doubleClick'`), bound to this row;
 	// `undefined` under a consumer-owned session, standing the session keys down.
-	const commitRow = commitRowEdit ? () => commitRowEdit(rowKey) : undefined
+	// There is no matching abandon here: Escape reaches the session through the
+	// grid table's key surface, which every editor inherits without wiring.
+	// Gated on who owns the session, not on `endSession` being defined — the grid
+	// can always end a session, but only a grid-owned one claims Enter. Under a
+	// consumer-owned session Enter belongs to nobody here and Escape reverts the
+	// cell, which is what the absent callback tells the editor.
+	const commitRow = sessionOwned ? () => endSession(rowKey, 'save') : undefined
 
-	const cancelRow = cancelRowEdit ? () => cancelRowEdit(rowKey) : undefined
+	// Names the cell for every control in it, so the editor and the settle pair
+	// read as one thing to a screen reader rather than unrelated widgets.
+	// `columnLabel` is the module's one column-naming rule, and it degrades to the
+	// column id rather than to a position that shifts as columns move.
+	const label = `${columnLabel(column)}, row ${rowIdx + 1}`
 
-	const ariaLabel =
-		typeof column.title === 'string'
-			? `Edit ${column.title}, row ${rowIdx + 1}`
-			: `Edit row ${rowIdx + 1} column ${colIdx + 1}`
+	const ariaLabel = `Edit ${label}`
 
 	const error = column.validate ? column.validate(draft, row) : null
 
@@ -118,13 +179,16 @@ function GridCellEditor<T>({
 			errorId={errorId}
 			required={column.required}
 			commitRow={commitRow}
-			cancelRow={cancelRow}
 		/>
 	)
 
 	return (
 		<span className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
+
+			{held && (
+				<GridSettleControls label={label} settle={(outcome) => endSession(rowKey, outcome)} />
+			)}
 
 			{error && (
 				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error)}>
@@ -139,8 +203,9 @@ function GridCellEditor<T>({
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}; otherwise it
  * renders the column's display content through {@link GridNavCell} (which carries
- * the active-cursor ring). The editable set flips only on a row toggle, so cells
- * don't re-render as the user types.
+ * the active-cursor ring). A cell-scoped session (`scope: 'cell'`) narrows that
+ * to the one cell it names. The editable set and the active cell flip only on a
+ * session transition, so cells don't re-render as the user types.
  *
  * @internal
  */
@@ -152,21 +217,26 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, stageDraft, unstageDraft, commitRowEdit, cancelRowEdit } =
-		useGridRowEditing()
+	const { editableRows, activeEdit, stageDraft, unstageDraft, endSession, sessionOwned } =
+		useGridEditingSession()
 
-	if (editableRows.has(rowKey) && isColumnEditable(column)) {
+	// `isCellEditing` leads because it bails on the editable-set lookup. A cell of
+	// a row nobody is editing — every cell, most of the time — costs one probe.
+	if (
+		isCellEditing({ rowKey, columnId: column.id, editableRows, activeEdit }) &&
+		isColumnEditable(column)
+	) {
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}
-				colIdx={colIdx}
 				rowKey={rowKey}
 				row={row}
 				column={column}
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
-				commitRowEdit={commitRowEdit}
-				cancelRowEdit={cancelRowEdit}
+				endSession={endSession}
+				sessionOwned={sessionOwned}
+				held={isSameCell(activeEdit, { rowKey, columnId: column.id })}
 			/>
 		)
 	}

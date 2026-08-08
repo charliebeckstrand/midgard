@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import type { GridColumnManagerItem } from '../../../modules/grid'
-import { GridColumnManagerDialog } from '../../../modules/grid/grid-column-manager-dialog'
+import { GridColumnManager } from '../../../modules/grid/grid-column-manager'
+import { GridManagerDialog } from '../../../modules/grid/grid-manager-dialog'
 import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
- * Pin-control `Menu` dismissal inside `GridColumnManagerDialog`, against the
+ * Pin-control `Menu` dismissal inside the grid's manager dialog, against the
  * real floating engine. The dialog and the menu both portal through a bare
  * `FloatingPortal`, and `@floating-ui/react` nests a descendant portal inside
  * its nearest ancestor portal by default — so the open menu's own portal node
@@ -22,17 +23,16 @@ describe('grid column manager dialog pin menu dismiss (real browser)', () => {
 
 	it('closes the pin menu on a press elsewhere in the dialog', async () => {
 		renderUI(
-			<GridColumnManagerDialog
-				open
-				onOpenChange={() => {}}
-				label="Manage columns"
-				columns={columns}
-				order={['name', 'email']}
-				onOrderChange={() => {}}
-				hidden={new Set()}
-				onHiddenChange={() => {}}
-				onPinChange={() => {}}
-			/>,
+			<GridManagerDialog open onOpenChange={() => {}} label="Manage columns">
+				<GridColumnManager
+					columns={columns}
+					order={['name', 'email']}
+					onOrderChange={() => {}}
+					hidden={new Set()}
+					onHiddenChange={() => {}}
+					onPinChange={() => {}}
+				/>
+			</GridManagerDialog>,
 		)
 
 		await screen.findByRole('dialog')

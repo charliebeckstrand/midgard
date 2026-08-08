@@ -31,7 +31,6 @@ const SETTLE_MS = 120
  * when already clear so a page scroll far from this plot costs no render.
  * @param resolveAt - Recomputes hover at a viewport point once the scroll
  * settles: sets the mark under it, or clears when the point rests off the marks.
- * @internal
  */
 export function useHoverAcrossScroll(
 	enabled: boolean,

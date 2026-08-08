@@ -16,7 +16,7 @@ export type CurrencyInputProps = Omit<
 > & {
 	value?: number | null
 	defaultValue?: number
-	onValueChange?: (value: number | undefined) => void
+	onValueChange?: (value: number | null) => void
 	/** ISO 4217 currency code. Falls back to `<LocaleProvider currency>`, then `USD`. */
 	currency?: string
 	/** BCP 47 locale tag. Falls back to `<LocaleProvider locale>`, then the runtime default. */
@@ -83,8 +83,11 @@ export function CurrencyInput({
 
 	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 
+	// Shared by the hook and the type-at-end branch below, so the two can't drift.
+	const format = (raw: string) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits)
+
 	const { ref: setRefs, reformat } = useFormattedInput({
-		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits),
+		format,
 		meaningful: (c) => isMeaningful(c, decimal),
 		ref,
 	})
@@ -105,11 +108,23 @@ export function CurrencyInput({
 				if (event.key === 'Enter') event.currentTarget.blur()
 			})}
 			onChange={(event) => {
-				const formatted = reformat(event)
+				const raw = event.target.value
+
+				// Typing at the end: format without the meaningful-count caret
+				// restore, which would pin the caret before the leading `0` the
+				// formatter pads in (`.` → `0.`), landing the next digit in the
+				// integer part (`.5` → `5.`). Mirrors DateInput's type-at-end branch.
+				const formatted =
+					(event.target.selectionStart ?? raw.length) >= raw.length ? format(raw) : reformat(event)
 
 				setEditingText(formatted)
 
-				setNum(parseEditing(formatted, group, decimal))
+				const parsed = parseEditing(formatted, group, decimal)
+
+				// Guard like the blur path: a keystroke that changes the text but
+				// not the number — a trailing separator, a digit past `precision` —
+				// must not re-emit the value it already holds.
+				if (parsed !== num) setNum(parsed)
 			}}
 			onBlur={(event) => {
 				if (editingText !== null) {

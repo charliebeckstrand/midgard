@@ -8,8 +8,8 @@
 
 import { describe } from 'vitest'
 import { barContenders, lineContenders, scatterContenders } from './contenders'
-import { makePoints, makeTrend } from './fixtures'
-import { mountBenches, SLOW } from './harness'
+import { makeDatedTrend, makePoints, makeTrend } from './fixtures'
+import { mountBenches, WINDOW } from './harness'
 
 describe('mount · line · 100 × 1 series', () => {
 	mountBenches(lineContenders(1), makeTrend(100, 1))
@@ -20,11 +20,11 @@ describe('mount · line · 1,000 × 1 series', () => {
 })
 
 describe('mount · line · 10,000 × 1 series', () => {
-	mountBenches(lineContenders(1), makeTrend(10_000, 1), SLOW)
+	mountBenches(lineContenders(1), makeTrend(10_000, 1), WINDOW.slow)
 })
 
 describe('mount · line · 1,000 × 5 series', () => {
-	mountBenches(lineContenders(5), makeTrend(1_000, 5), SLOW)
+	mountBenches(lineContenders(5), makeTrend(1_000, 5), WINDOW.slow)
 })
 
 describe('mount · bar · 50 × 2 series', () => {
@@ -32,7 +32,7 @@ describe('mount · bar · 50 × 2 series', () => {
 })
 
 describe('mount · bar · 500 × 2 series', () => {
-	mountBenches(barContenders(2), makeTrend(500, 2), SLOW)
+	mountBenches(barContenders(2), makeTrend(500, 2), WINDOW.slow)
 })
 
 describe('mount · scatter · 1,000 points', () => {
@@ -40,5 +40,20 @@ describe('mount · scatter · 1,000 points', () => {
 })
 
 describe('mount · scatter · 10,000 points', () => {
-	mountBenches(scatterContenders(), makePoints(10_000), SLOW)
+	mountBenches(scatterContenders(), makePoints(10_000), WINDOW.slow)
+})
+
+// The same line scenarios over ISO-date categories — the time-series dashboard
+// shape, and the one the plain-label scenarios above never reach. Every
+// contender must decide how to label a date axis: the ui module probes whether
+// all categories parse as dates and formats them through `Intl` when they do,
+// where a non-date axis exits on its first value. Held beside the plain
+// scenarios of the same size, the pair prices that probe end to end.
+
+describe('mount · line · dated · 1,000 × 1 series', () => {
+	mountBenches(lineContenders(1), makeDatedTrend(1_000, 1), WINDOW.slow)
+})
+
+describe('mount · line · dated · 10,000 × 1 series', () => {
+	mountBenches(lineContenders(1), makeDatedTrend(10_000, 1), WINDOW.slow)
 })

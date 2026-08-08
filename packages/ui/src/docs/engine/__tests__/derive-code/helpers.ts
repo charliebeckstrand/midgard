@@ -46,5 +46,7 @@ export function makeContext(registry?: Partial<ComponentRegistry>): Context {
 		imports: new Map(),
 		externalModules: new Set(),
 		packageName,
+		factTexts: [],
+		pulledDecls: new Set(),
 	}
 }

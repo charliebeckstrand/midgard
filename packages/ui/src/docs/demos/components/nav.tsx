@@ -25,7 +25,7 @@ function NavItems() {
 }
 
 export function Demo() {
-	const [current, setCurrent] = useState<string | undefined>('account')
+	const [current, setCurrent] = useState<string | null>('account')
 
 	return (
 		<Tabs defaultValue="List">
@@ -90,7 +90,7 @@ export function Demo() {
 				<TabContent value="Context">
 					<Stack gap="xl">
 						<Example title="With content">
-							<NavContext value={{ value: current, onValueChange: setCurrent }}>
+							<NavContext value={{ value: current ?? undefined, onValueChange: setCurrent }}>
 								<NavList orientation="horizontal">
 									<NavItem value="account">Account</NavItem>
 									<NavItem value="notifications">Notifications</NavItem>

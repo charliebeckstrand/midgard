@@ -7,6 +7,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
@@ -26,15 +27,39 @@ import {
 	rasterizeChartImage,
 	readoutToCsv,
 } from './chart-export'
-import { ChartFullscreenContext, ChartFullscreenControlContext } from './context'
+import {
+	ChartFullscreenContext,
+	ChartFullscreenControlContext,
+	useChartFullscreen,
+} from './context'
 import type { ChartReadoutSource } from './types'
+
+/**
+ * The mark the pointer was over when the right-click landed, so a menu item can act on that mark rather
+ * than the chart as a whole. `index` is the datum's index within the chart's categories — the same index
+ * {@link ChartCartesianProps.onCategoryClick} reports — or `null` when the click landed off any mark
+ * (plot padding, the legend, the header).
+ *
+ * An index rather than a label on purpose: labels are formatted for display (the sector charts run period
+ * keys through a formatter), so a consumer that needs the underlying value must look it up in its own data
+ * by position.
+ */
+export type ChartContextMenuTarget = { index: number | null }
 
 /**
  * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
  * (custom `items`, `defaultItems`, `position`) plus the chart's own export
  * options.
  */
-export type ChartContextMenuConfig = ContextMenuConfig & {
+export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
+	/**
+	 * Custom entries to add to the menu, rendered in array order.
+	 *
+	 * Pass a function to build them from the mark under the pointer — the hook for a per-mark action
+	 * ("View the shipments behind this bar"), whose label can name the mark it will act on. It is called
+	 * with `index: null` when the right-click missed every mark, so an item that needs one can be omitted.
+	 */
+	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
 	/**
 	 * Include the legend in the downloaded PNG / JPG. Off exports the plot and
 	 * header alone, the chart reflowing to fill the space the legend leaves.
@@ -66,6 +91,14 @@ export type ChartContextMenuProps = {
 	 * dialog size rather than scaling a still. Absent, the Fullscreen item drops.
 	 */
 	fullscreen?: ReactElement
+	/**
+	 * Index of the mark under the pointer, or `null` off any mark. Reaches a
+	 * function-form `items` as the {@link ChartContextMenuTarget} it builds. The
+	 * host owns the hover state and passes it down, because this wrapper sits
+	 * outside `ChartHoverContext` — it wraps the provider — and cannot read it.
+	 * @internal
+	 */
+	targetIndex?: number | null
 	/** The chart, wrapped as the right-click surface. */
 	children: ReactNode
 }
@@ -84,7 +117,10 @@ const FULLSCREEN_CHART_CLASS = 'w-full max-h-[calc(100dvh-9rem)]'
  * @remarks Image export draws the chart through an SVG `foreignObject` so its
  * HTML chrome and SVG marks capture together, inlining computed styles so the
  * bitmap carries its colours. `contextMenu={false}` renders the chart untouched,
- * leaving the browser's native menu.
+ * leaving the browser's native menu. Inside the fullscreen dialog it renders
+ * the chart untouched for a structural reason instead: there it is its own
+ * re-mounted copy, so it refuses to wrap itself and no chart nests a second
+ * menu.
  *
  * @internal
  */
@@ -94,6 +130,7 @@ export function ChartContextMenu({
 	readout,
 	title,
 	fullscreen,
+	targetIndex,
 	children,
 }: ChartContextMenuProps) {
 	const [open, setOpen] = useState(false)
@@ -105,7 +142,27 @@ export function ChartContextMenu({
 	// neutral tab stop focused and Escape shuts it.
 	const closeRef = useRef<HTMLButtonElement>(null)
 
+	const isFullscreen = useChartFullscreen()
+
+	const items = contextMenu === false ? undefined : contextMenu?.items
+
+	// This component re-renders on every pointer move across the plot (the host's
+	// hover state). Without the memo a function-form `items` — and the icon
+	// elements it builds — would be rebuilt ~60×/s while the pointer sweeps, all
+	// of it discarded. The target object is minted here, so the memo keys on the
+	// index the host actually holds.
+	const customItems = useMemo(
+		() => (typeof items === 'function' ? items({ index: targetIndex ?? null }) : items),
+		[items, targetIndex],
+	)
+
 	if (contextMenu === false) return <>{children}</>
+
+	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
+	// copy. It renders bare, so the enlarged chart never nests a second menu or
+	// recurses. The rule lives here because this component provides
+	// `ChartFullscreenContext` — a caller cannot forget to apply it.
+	if (isFullscreen) return <>{children}</>
 
 	const includeLegend = contextMenu?.downloadLegend ?? true
 
@@ -130,7 +187,7 @@ export function ChartContextMenu({
 						key: 'fullscreen',
 						label: 'Fullscreen',
 						icon: <Maximize2 />,
-						onSelect: () => setOpen(true),
+						onAction: () => setOpen(true),
 					} satisfies ContextMenuItem,
 				]
 			: []),
@@ -138,13 +195,13 @@ export function ChartContextMenu({
 			key: 'download-png',
 			label: 'Download PNG',
 			icon: <ImageIcon />,
-			onSelect: () => void exportImage('image/png', 'png'),
+			onAction: () => void exportImage('image/png', 'png'),
 		},
 		{
 			key: 'download-jpg',
 			label: 'Download JPG',
 			icon: <ImageIcon />,
-			onSelect: () => void exportImage('image/jpeg', 'jpg'),
+			onAction: () => void exportImage('image/jpeg', 'jpg'),
 		},
 	]
 
@@ -162,13 +219,13 @@ export function ChartContextMenu({
 					key: 'download-csv',
 					label: 'Download CSV',
 					icon: <Download />,
-					onSelect: () => downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
+					onAction: () => downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
 				},
 				{
 					key: 'copy-data',
 					label: 'Copy data',
 					icon: <Clipboard />,
-					onSelect: () => copyText(exportCsv(readout)),
+					onAction: () => copyText(exportCsv(readout)),
 				},
 			]
 		: []
@@ -184,9 +241,10 @@ export function ChartContextMenu({
 		<>
 			<ContextMenu
 				defaults={defaults}
-				items={contextMenu?.items}
+				items={customItems}
 				defaultItems={contextMenu?.defaultItems}
 				position={contextMenu?.position}
+				capped={contextMenu?.capped}
 			>
 				<ChartFullscreenControlContext value={fullscreenControl}>
 					{children}
@@ -225,7 +283,7 @@ export function ChartContextMenu({
 				</div>
 
 				<DialogFooter>
-					<Button ref={closeRef} onClick={() => setOpen(false)}>
+					<Button type="button" ref={closeRef} onClick={() => setOpen(false)}>
 						Close
 					</Button>
 				</DialogFooter>

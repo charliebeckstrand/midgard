@@ -17,6 +17,7 @@ import { Density, useDensity } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
+import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
 import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
@@ -27,7 +28,6 @@ import {
 	getMonthLabels,
 	getWeekdayLabels,
 	isBeforeDay,
-	resolveLocale,
 } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
@@ -71,16 +71,27 @@ export type CalendarProps = {
 	name?: string
 	value?: Date | null
 	defaultValue?: Date
-	onValueChange?: (date: Date) => void
+	onValueChange?: (value: Date | null) => void
 	min?: Date
 	max?: Date
 	/** Externally-driven roving-focus cell, letting a parent (e.g. DatePicker) steer focus across the header, grid, and footer zones. */
 	active?: CalendarActive | null
-	onPickerOpenChange?: (open: boolean) => void
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
 	footerRef?: RefObject<HTMLElement | null>
+	/**
+	 * Id for the day `role="listbox"`, so a parent that keeps DOM focus on its
+	 * own input (e.g. DatePicker `input` mode) can point that input's
+	 * `aria-controls` at the grid the roving cursor moves through.
+	 */
+	listboxId?: string
+	/**
+	 * Id stamped on the active grid cell, so a parent that keeps DOM focus on its
+	 * own input can point that input's `aria-activedescendant` at the roved day
+	 * (the active-descendant pattern; pairs with `active` and `listboxId`).
+	 */
+	activeDescendantId?: string
 	ref?: Ref<CalendarHandle>
 	/**
 	 * BCP 47 locale tag driving the first day of the week and the weekday /
@@ -125,9 +136,10 @@ export function Calendar({
 	min,
 	max,
 	active,
-	onPickerOpenChange,
 	getDayProps,
 	footerRef,
+	listboxId,
+	activeDescendantId,
 	ref,
 	locale,
 	size,
@@ -141,13 +153,6 @@ export function Calendar({
 
 	const localeTag = resolveLocale(locale ?? ambient.locale)
 
-	const handleValueChange = useCallback(
-		(nextValue: Date | undefined) => {
-			if (nextValue) onValueChange?.(nextValue)
-		},
-		[onValueChange],
-	)
-
 	// Binds the selected date to an enclosing Form field by `name` (value-typed
 	// cascade); falls back to controlled/uncontrolled state. No invalid wiring:
 	// a bare Calendar has no Control/error surface (it gains one inside
@@ -155,7 +160,7 @@ export function Calendar({
 	const { value, setValue, setTouched } = useFormValue<Date>(name, {
 		value: valueProp,
 		defaultValue,
-		onValueChange: handleValueChange,
+		onValueChange,
 	})
 
 	// Populated after mount only; a server-rendered "today" can mismatch the
@@ -178,17 +183,9 @@ export function Calendar({
 
 	const [pickerOpen, setPickerOpen] = useState(false)
 
-	const handlePickerOpenChange = useCallback(
-		(open: boolean) => {
-			setPickerOpen(open)
-			onPickerOpenChange?.(open)
-		},
-		[onPickerOpenChange],
-	)
-
 	const openPicker = useCallback(() => {
-		handlePickerOpenChange(true)
-	}, [handlePickerOpenChange])
+		setPickerOpen(true)
+	}, [])
 
 	const isDisabled = useCallback(
 		(date: Date) => {
@@ -265,7 +262,7 @@ export function Calendar({
 					monthLabel={monthLabel}
 					monthLabels={monthLabels}
 					pickerOpen={pickerOpen}
-					onPickerOpenChange={handlePickerOpenChange}
+					onPickerOpenChange={setPickerOpen}
 					onPickerNavigate={navigateTo}
 					onPrevMonth={prevMonth}
 					onNextMonth={nextMonth}
@@ -286,6 +283,8 @@ export function Calendar({
 					onSelect={handleSelect}
 					monthLabel={monthLabel}
 					localeTag={localeTag}
+					listboxId={listboxId}
+					activeDescendantId={activeDescendantId}
 				/>
 			</div>
 		</Density>

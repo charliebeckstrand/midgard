@@ -1,7 +1,8 @@
 /**
- * Pure pointer hit tests for the cartesian marks: whether the pointer sits on
- * a bar, near a line, or inside an area fill. The hit layer feeds them into
- * the hover context so the tooltip shows only over data, while the hover
+ * Pure pointer hit tests for the cartesian marks: which bar the pointer covers,
+ * which series' line it is nearest, and which series' fill it sits inside. Each
+ * resolves to the mark or series, or `null` for a miss. The hit layer feeds them
+ * into the hover context so the tooltip shows only over data, while the hover
  * index — and any crosshair riding it — keeps tracking the whole plot.
  */
 
@@ -91,23 +92,6 @@ export function barMarkAt(
 	}
 
 	return null
-}
-
-/**
- * Whether the pointer sits on any drawn bar — the tooltip's gate, resolved
- * through {@link barMarkAt} so the hit test and the mark isolation read one
- * geometry.
- *
- * @internal
- */
-export function withinBarMarks(
-	marks: (BarMark | null)[][],
-	x: number,
-	y: number,
-	gap = 0,
-	orientation: ChartOrientation = 'vertical',
-): boolean {
-	return barMarkAt(marks, x, y, gap, orientation) !== null
 }
 
 /** Squared distance from the pointer to the segment `a`→`b`. @internal */
@@ -205,22 +189,6 @@ export function nearestSeriesLine(
 	return best?.series ?? null
 }
 
-/**
- * Whether the pointer is within `tolerance` of any series' line — the tooltip's
- * gate, resolved through {@link nearestSeriesLine} so the hit test and the mark
- * isolation read one geometry.
- *
- * @internal
- */
-export function nearSeriesLines(
-	seriesRuns: LinePoint[][][],
-	x: number,
-	y: number,
-	tolerance: number = LINE_HIT_TOLERANCE,
-): boolean {
-	return nearestSeriesLine(seriesRuns, x, y, tolerance) !== null
-}
-
 /** The run's top-edge y at `x` by chord interpolation, or `null` where the run doesn't cover `x`. @internal */
 function topEdgeY(run: LinePoint[], x: number): number | null {
 	for (let i = 0; i < run.length - 1; i++) {
@@ -272,20 +240,4 @@ export function nearestSeriesArea(
 	}
 
 	return best
-}
-
-/**
- * Whether the pointer sits inside any series' fill — the tooltip's gate,
- * resolved through {@link nearestSeriesArea} so the hit test and the mark
- * isolation read one geometry.
- *
- * @internal
- */
-export function withinSeriesAreas(
-	seriesRuns: LinePoint[][][],
-	baseline: number,
-	x: number,
-	y: number,
-): boolean {
-	return nearestSeriesArea(seriesRuns, baseline, x, y) !== null
 }

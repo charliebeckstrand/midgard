@@ -54,6 +54,7 @@ export function PdfViewerToolbar() {
 							<Tooltip>
 								<TooltipTrigger>
 									<Button
+										type="button"
 										variant="plain"
 										aria-label={sidebarToggleLabel}
 										aria-expanded={sidebarOpen}
@@ -71,6 +72,7 @@ export function PdfViewerToolbar() {
 							<Tooltip>
 								<TooltipTrigger>
 									<Button
+										type="button"
 										variant="plain"
 										aria-label="Show thumbnails"
 										aria-expanded={thumbsOpen}
@@ -89,11 +91,11 @@ export function PdfViewerToolbar() {
 								aria-label="Current page"
 								value={safePage}
 								onValueChange={(next) => {
-									if (next !== undefined) goToPage(next)
+									if (next !== null) goToPage(next)
 								}}
 								displayValue={(v) => String(v)}
 								disabled={loading}
-								tabularNums
+								className="tabular-nums"
 							>
 								{pages.map((p, index) => {
 									const pageNumber = index + 1
@@ -120,6 +122,7 @@ export function PdfViewerToolbar() {
 					<Tooltip>
 						<TooltipTrigger>
 							<Button
+								type="button"
 								variant="plain"
 								aria-label="Rotate"
 								disabled={controlsDisabled}

@@ -39,6 +39,7 @@ import type {
 	GridContextMenu as GridContextMenuConfig,
 	GridMenuItem,
 } from './types'
+import type { GridColumnFilter } from './use-grid-table'
 
 /** Props for {@link GridContextMenu}. @internal */
 type GridContextMenuProps<T> = {
@@ -57,7 +58,7 @@ type GridContextMenuProps<T> = {
 	/** Rendered rows, parallel to `rowKeys`, for resolving a cell to its row. */
 	rows: T[]
 	rowKeys: (string | number)[]
-	/** Active sort columns in priority order, so a sorted column's menu offers "Clear sort". */
+	/** Active sort columns in priority order; backs the menu's Sort items. */
 	sort: SortState[]
 	sortColumn: SortColumn
 	/** Clears the grid's active sort. */
@@ -90,6 +91,11 @@ type GridContextMenuProps<T> = {
 	 * Clear color / Manage columns items.
 	 */
 	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
+	/**
+	 * The grid's column-filter model, or `null` when it has none. Backs the column
+	 * menu's "Filter …" item under the `'menu'` filter affordance.
+	 */
+	columnFilter: GridColumnFilter | null
 	children: ReactNode
 }
 
@@ -163,11 +169,24 @@ export function GridContextMenu<T>({
 	exportActions,
 	rowGroupMenu,
 	columnGroupMenu,
+	columnFilter,
 	children,
 }: GridContextMenuProps<T>) {
 	const [open, setOpen] = useState(false)
 
 	const [items, setItems] = useState<GridMenuItem[]>([])
+
+	// Bumped on every open so the rendered list remounts. Right-clicking a second
+	// header while the menu is still open swaps the items under it, and a submenu
+	// the previous column left open — same entry key, same component instance —
+	// would otherwise carry over, showing one column's rows under another's menu.
+	const [generation, setGeneration] = useState(0)
+
+	const commitItems = useCallback((next: GridMenuItem[]) => {
+		setItems(next)
+
+		setGeneration((value) => value + 1)
+	}, [])
 
 	// The grid to restore focus to when a keyboard-opened menu closes; set only on
 	// the keyboard path, so a pointer-opened menu leaves focus where the user left it.
@@ -193,8 +212,17 @@ export function GridContextMenu<T>({
 
 			const sortDirection = sort.find((entry) => entry.column === column.id)?.direction
 
+			const filter = columnFilter
+				? {
+						canFilter: columnFilter.canFilter(column.id),
+						affordance: columnFilter.affordance,
+						openFilter: () => columnFilter.requestOpen(column.id),
+					}
+				: null
+
 			const defaults = columnMenuDefaults({
 				column,
+				sort,
 				sortDirection,
 				sortColumn,
 				clearSort,
@@ -204,6 +232,7 @@ export function GridContextMenu<T>({
 				autoSizeColumn,
 				chooseColumns,
 				exportActions,
+				filter,
 			})
 
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
@@ -242,6 +271,7 @@ export function GridContextMenu<T>({
 			autoSizeColumn,
 			chooseColumns,
 			exportActions,
+			columnFilter,
 		],
 	)
 
@@ -315,19 +345,19 @@ export function GridContextMenu<T>({
 	}, [])
 
 	return (
-		<Menu open={open} onOpenChange={handleOpenChange}>
+		<Menu open={open} onOpenChange={handleOpenChange} capped={config.capped}>
 			<GridContextMenuSurface
 				resolveItems={resolveItems}
 				resolveGroupItems={resolveGroupItems}
 				resolveColumnGroupItems={resolveColumnGroupItems}
-				setItems={setItems}
+				setItems={commitItems}
 				returnFocus={returnFocus}
 			>
 				{children}
 			</GridContextMenuSurface>
 
 			<MenuContent>
-				<ContextMenuList entries={items} />
+				<ContextMenuList key={generation} entries={items} />
 			</MenuContent>
 		</Menu>
 	)

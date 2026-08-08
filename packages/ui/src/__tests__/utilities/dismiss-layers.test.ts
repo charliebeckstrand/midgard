@@ -2,8 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { isTopDismissLayer, registerDismissLayer } from '../../utilities/dismiss-layers'
 
 // The stack is module-level state. Track every registration and drain it in
-// afterEach so a leaked layer can't corrupt a later shuffled test; the vmThreads
-// pool resets the module per file, not per test.
+// afterEach so a leaked layer can't corrupt a later shuffled test: the unit
+// project runs `isolate: false`, so nothing resets this module — not per test,
+// and not per file either.
 const registered: Array<() => void> = []
 
 function open() {

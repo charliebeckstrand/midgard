@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
@@ -57,13 +58,19 @@ export type CartesianData<T> = Pick<
 	| 'aspectRatio'
 	| 'axes'
 	| 'reference'
-	| 'tickRotation'
 	| 'onCategoryClick'
 	| 'formatValue'
 	| 'header'
 > & {
 	/** The `legend` prop already resolved to its show value — the entry component resolves it before the hook reads it. */
 	legend?: ResolvedLegend['value']
+	/** Whether the category axis tilts colliding labels, resolved from `axes.x.tickRotation`. */
+	tickRotation?: boolean
+}
+
+/** The category axis's `tickRotation` read off the `axes` union (false when unset). @internal */
+function categoryTickRotation(axes: boolean | CartesianAxes | undefined): boolean {
+	return (typeof axes === 'object' ? axes.x?.tickRotation : undefined) ?? false
 }
 
 /**
@@ -89,7 +96,7 @@ export function cartesianData<T>(
 		axes: props.axes,
 		legend,
 		reference: props.reference,
-		tickRotation: props.tickRotation,
+		tickRotation: categoryTickRotation(props.axes),
 		onCategoryClick: props.onCategoryClick,
 		formatValue: props.formatValue,
 		header: props.header,
@@ -168,7 +175,7 @@ export type CartesianChart = {
 	 */
 	tier: ChartTier
 	/**
-	 * How many rows a stacked legend may take before the rest fold into a `+N`
+	 * How many rows a stacked legend can take before the rest fold into a `+N`
 	 * chip — the frame tier's `legendRows` budget, threaded to the legend as its
 	 * `maxRows`. `0` at spark, but moot there: the frame drops the legend with the
 	 * rest of the spark chrome, so it never mounts to read a cap. A side legend
@@ -566,7 +573,7 @@ type ResolvedCategories = {
  * Resolves the band axis's category labels and readout formatter from the raw
  * `xKey` values. An explicit `formatCategory` wins for both the labels and the
  * readout; with none set, a plain axis whose every value parses as a date
- * normalizes itself to `MM-DD` (see {@link dateCategoryFormat}), while a time
+ * normalizes itself to the locale's numeric month/day order (see {@link dateCategoryFormat}), while a time
  * axis leaves its labels to its own calendar ticks and formats only its
  * readout. The formatter resolves once over every value so a whole-dataset
  * decision — the date normalization's year elision — reads the same for every
@@ -585,9 +592,12 @@ function resolveCategories<T>(
 	const categoryFormat =
 		formatCategory ?? (timeAxis ? undefined : (dateCategoryFormat(rawValues) ?? undefined))
 
+	const rawCategories = rawValues.map(String)
+
 	return {
-		categories: categoryFormat ? rawValues.map(categoryFormat) : rawValues.map(String),
-		rawCategories: rawValues.map(String),
+		// Without a formatter the labels *are* the raw categories; one pass, one array.
+		categories: categoryFormat ? rawValues.map(categoryFormat) : rawCategories,
+		rawCategories,
 		readoutCategory: categoryFormat ?? (timeAxis ? timeCategory() : undefined),
 	}
 }
@@ -868,11 +878,12 @@ export function useChartCartesian<T>(
 		policy.axisTitles,
 	)
 
-	const { categories, rawCategories, readoutCategory } = resolveCategories(
-		data,
-		xKey,
-		timeAxis,
-		axes.x?.format,
+	// Walks every row to detect a date axis, then again to label it, so it is
+	// memoized rather than re-run on every render — a hover, a legend toggle, or
+	// a resize commit does not change any of its inputs.
+	const { categories, rawCategories, readoutCategory } = useMemo(
+		() => resolveCategories(data, xKey, timeAxis, axes.x?.format),
+		[data, xKey, timeAxis, axes.x?.format],
 	)
 
 	// The public category-activation callback resolved to the hit layer's
@@ -898,7 +909,7 @@ export function useChartCartesian<T>(
 		categories,
 		bandTitle,
 		bandAxis: policy.bandAxis,
-		tickRotation: props.tickRotation,
+		tickRotation: categoryTickRotation(props.axes),
 		times,
 		count: data.length,
 		markInset: config.markInset,

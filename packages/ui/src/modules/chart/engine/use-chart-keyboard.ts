@@ -1,6 +1,7 @@
 'use client'
 
-import { type FocusEvent, type KeyboardEvent, useEffect, useRef, useState } from 'react'
+import { type FocusEvent, type KeyboardEvent, useEffect, useState } from 'react'
+import { usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
 import type { ChartHover } from './context'
 
@@ -403,13 +404,6 @@ export function useChartKeyboard(
 ): ChartKeyboardProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
 
-	// The pending "return the next Tab to the region" listener's remover, cleared
-	// when it fires or the hook unmounts. Escape drops focus to the body, so a
-	// document-level catch is the only way to reclaim the following Tab.
-	const returnTab = useRef<(() => void) | null>(null)
-
-	useEffect(() => () => returnTab.current?.(), [])
-
 	const active = enabled && targets !== undefined && hasFocusTargets(targets)
 
 	// Release what the cursor held once navigation switches off — the rules or
@@ -476,37 +470,7 @@ export function useChartKeyboard(
 		}
 	}
 
-	// Escape leaves the region the way the legend does — focus off, readout
-	// cleared — but arms the region as the next Tab's target: without it the blur
-	// strands the chart, and the following Tab steps to the stop after it rather
-	// than back onto the chart the reader was in. The catch reclaims only the
-	// forward Tab, and only while the blur still holds the body — a click or a
-	// Shift+Tab elsewhere means the reader has moved on, so it cedes the Tab.
-	const dropFocus = (region: HTMLElement) => {
-		const doc = region.ownerDocument
-
-		returnTab.current?.()
-
-		const onDocKeyDown = (keydown: globalThis.KeyboardEvent) => {
-			returnTab.current?.()
-
-			if (keydown.key !== 'Tab' || keydown.shiftKey || doc.activeElement !== doc.body) return
-
-			keydown.preventDefault()
-
-			region.focus()
-		}
-
-		doc.addEventListener('keydown', onDocKeyDown, true)
-
-		returnTab.current = () => {
-			doc.removeEventListener('keydown', onDocKeyDown, true)
-
-			returnTab.current = null
-		}
-
-		region.blur()
-	}
+	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		if (!targets) return
@@ -522,7 +486,7 @@ export function useChartKeyboard(
 		if (move.cursor === null) {
 			show(null)
 
-			dropFocus(event.currentTarget)
+			exit(event.currentTarget)
 
 			return
 		}
@@ -536,16 +500,6 @@ export function useChartKeyboard(
 		}
 
 		show(move.cursor)
-	}
-
-	// Leaving the region after navigating clears the cursor and its readout; a
-	// focus that never navigated (a click, with the pointer owning the readout)
-	// leaves that readout untouched. A blur that stays inside the region — nothing
-	// focusable does today — is not a real exit.
-	const onBlur = (event: FocusEvent<HTMLElement>) => {
-		if (event.relatedTarget && event.currentTarget.contains(event.relatedTarget)) return
-
-		if (cursor !== null) show(null)
 	}
 
 	return active ? { tabIndex: 0, onKeyDown, onBlur } : null

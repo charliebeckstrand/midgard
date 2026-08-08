@@ -3,11 +3,13 @@
  * axes — `shape` (the mark geometry: `square` box, `circle` dot, `line` bar),
  * `variant` (the fill treatment: `solid` / `outline` / `soft`), and `size`
  * (`xs`–`xl`, one scale shared by legends, tooltips, and StatusDot). The hue is
- * a caller-supplied `currentColor` class (a `text-*` utility) applied on top,
- * so the CVD-validated data-viz palette stays in `kata/chart` and never forks,
- * and any hue works: `solid` fills with it, `outline` frames with it, `soft`
- * tints with it at 15%, and — for the `line` shape — `dashed` strokes a dashed
- * line of it, mirroring a dashed reference rule in a legend.
+ * a caller-supplied `currentColor` value (a `text-*` utility, a `kata/chart`
+ * slot name, or a raw hex / `oklch()`, resolved by `Swatch`) applied on top, so
+ * the CVD-validated data-viz palette stays in `kata/chart` and never forks, and
+ * any hue works: `solid` fills with it, `outline` frames with it, `soft` tints
+ * with it at 15%, and `dashed` renders it per shape — a dashed dash run across a
+ * `line`, a dashed border around a `square` or `circle` — mirroring a dashed
+ * reference rule in a legend.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { omote } from '../kiso'
@@ -23,18 +25,16 @@ export const k = defineRecipe({
 		circle: 'rounded-full',
 		line: 'rounded-full',
 	},
-	// Fill treatment over `currentColor` (the caller's `color` text-* class):
-	// filled, tinted at 15% (the house soft weight), framed on the surface, or —
-	// for the `line` shape — dashed to mirror a dashed reference rule.
+	// Fill treatment over `currentColor` (the caller's resolved `color`): filled,
+	// tinted at 15% (the house soft weight), framed on the surface, or dashed —
+	// which is shape-specific and so lives in the compounds below to mirror a
+	// dashed reference rule on a line and a dashed stroke around a box or dot.
 	variant: {
 		solid: 'bg-current',
 		soft: 'bg-current/15',
 		outline: ['border-2 border-current', ...bg.surface],
-		// A horizontal dash run in `currentColor` — the reference rule's 3:2
-		// dash:gap halved so the pattern reads across a swatch-width line. Meant
-		// for `line`; on a box it stripes.
-		dashed:
-			'bg-[repeating-linear-gradient(to_right,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
+		// Shape-specific; the shape × dashed compounds carry the class.
+		dashed: '',
 	},
 	// Selection-only; box/bar dimensions live in the compounds.
 	size: { xs: '', sm: '', md: '', lg: '', xl: '' },
@@ -57,6 +57,26 @@ export const k = defineRecipe({
 		{ shape: 'line', size: 'md', class: 'h-0.5 w-3' },
 		{ shape: 'line', size: 'lg', class: 'h-0.5 w-3.5' },
 		{ shape: 'line', size: 'xl', class: 'h-0.5 w-4' },
+		// Dashed treatment per shape. A line paints a horizontal `currentColor`
+		// dash run — the reference rule's 3:2 dash:gap halved so the pattern reads
+		// across a swatch-width line. A box or dot has no length to run, so it
+		// frames with a dashed border over the surface, mirroring `outline`.
+		{
+			shape: 'line',
+			variant: 'dashed',
+			class:
+				'bg-[repeating-linear-gradient(to_right,currentColor_0,currentColor_3px,transparent_3px,transparent_5px)]',
+		},
+		{
+			shape: 'square',
+			variant: 'dashed',
+			class: ['border-2 border-dashed border-current', ...bg.surface],
+		},
+		{
+			shape: 'circle',
+			variant: 'dashed',
+			class: ['border-2 border-dashed border-current', ...bg.surface],
+		},
 	],
 	defaults: { shape: 'square', variant: 'solid', size: 'md' },
 })

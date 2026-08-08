@@ -44,8 +44,9 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labelled control (label/description/error slots). |
 | `useA11yPanel` | Modal-panel labelling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
-| `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis. |
+| `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists. |
 | `useA11yAutoFocus` | Moves focus to `ref.current` whenever `when` flips true; re-focuses on false→true. |
+| `useA11yHasTabbable` | Whether a node holds a tab-order descendant, re-measured as its subtree changes; gates a tabpanel's tab stop and an interactive Tooltip's focus trap. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
 | `useA11yAnnouncements` | Declaratively narrates a changing status string to the live-region announcer, skipping initial and dupes. |
 | `useAriaIds` | Composes the space-separated id list for `aria-labelledby`/`describedby`; falsy tokens drop, undefined if empty. |
@@ -56,11 +57,11 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useResizeObserver` | Observes size changes on `ref.current`, invoking `callback` per change plus once on attach. |
-| `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, container-filling, or content-fit — measuring only the axes the policy consumes; resize notifications commit as transitions, so the frame tracks its container live while a burst coalesces to the sizes the machine can afford. A notification for a node the commit already detached is skipped, so a mid-swap measurement never commits a zero size. |
+| `useResizeObserver` | Observes size changes on `ref.current` and calls `callback` per change, plus once on attach. The callback rides an effect event, so a fresh closure each render neither re-subscribes nor re-fires. |
+| `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, container-fill, or content-fit — measuring only the axes that policy consumes. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. |
-| `useIsTruncated` | True when text overflows the element, measured via an off-screen mirror span (not `scrollWidth`). |
+| `useIsTruncated` | True when text overflows the element, measured with a `Range` over its own contents (not `scrollWidth`, and injecting nothing). |
 | `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a scroll container while content extends past an edge, for CSS scroll affordances. |
 | `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. |
 | `useVirtualWindow` | Drives a vertical windowed list off `@tanstack/react-virtual`: visible items plus top/bottom spacer heights. |
@@ -94,14 +95,14 @@ The a11y hooks export their option and return shapes for consumers that thread t
 | `A11yDisclosure` / `A11yDisclosureOptions` | Return shape / options of `useA11yDisclosure` (trigger/panel ids and prop bags). |
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
+| `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 
-`usePlotFrame` and the `resolveFrameSizing` function it resolves through export their sizing policy, resolved box shape, and measuring handle, shared with the chart and map modules' own frame-sizing helpers:
+`usePlotFrame` exports the types its own signature names: the sizing policy it takes, the reserve it returns, and its measuring handle. The chart and map modules share them with their frame-sizing helpers. The resolver behind it (`resolveFrameSizing`) and that resolver's return shape stay module-private. Reach them at `hooks/use-plot-frame` from inside the package.
 
 | Type | Summary |
 |---|---|
 | `FrameSizing` | The frame's height policy: `fixed` (pixel height), `aspect` (ratio of width), `fill` (container height), or `content` (width minus a pair of margins). |
-| `FrameReserve` | How a width-derived frame reserves its height from its own width through CSS: an `aspect` ratio, or a `content` ratio shifted by a fixed pixel offset. |
-| `ResolvedFrameSizing` | A resolved frame box: the drawing height plus its `FrameReserve`, or `null` when the height is a fixed pixel value or fills the container. |
+| `FrameReserve` | How a width-derived frame reserves its height through CSS: an `aspect` ratio, or a `content` ratio with a fixed pixel offset. |
 | `PlotFrameRef` | The hook's measuring handle: a callback ref that re-targets the observer when React swaps the plot node, still readable through `.current`. |
 
 ---

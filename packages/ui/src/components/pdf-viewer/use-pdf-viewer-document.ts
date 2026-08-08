@@ -107,7 +107,12 @@ async function appendRenderedPage(
 
 	const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
 
-	if (!blob || controller.cancelled) return 'cancelled'
+	if (controller.cancelled) return 'cancelled'
+
+	// `toBlob` yields null for an oversized or tainted canvas; skip this page like
+	// a missing 2D context and keep loading the rest, rather than mistaking it for
+	// teardown and stranding `loading` at true.
+	if (!blob) return 'ok'
 
 	const url = URL.createObjectURL(blob)
 

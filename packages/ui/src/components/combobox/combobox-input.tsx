@@ -8,6 +8,7 @@ import type {
 	Ref,
 } from 'react'
 import { ariaAttr, cn } from '../../core'
+import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import type { ControlSize } from '../control/context'
@@ -33,6 +34,10 @@ type ComboboxInputProps = {
 	required?: boolean
 	value: string
 	placeholder?: string
+	/** True while the input shows the live query rather than the resolved value. */
+	editing: boolean
+	/** First-word-capitalizes the resolved display value (its first letter). */
+	capitalize: boolean
 	density: ControlSize
 	size: ControlSize
 	handlers: ComboboxInputHandlers
@@ -58,6 +63,8 @@ export function ComboboxInput({
 	required,
 	value,
 	placeholder,
+	editing,
+	capitalize,
 	density,
 	size,
 	handlers,
@@ -84,7 +91,8 @@ export function ComboboxInput({
 				disabled={disabled}
 				readOnly={readOnly}
 				required={required}
-				value={value}
+				// Transform only the resolved value; the live query renders as typed.
+				value={capitalize && !editing ? capitalizeFirst(value) : value}
 				placeholder={placeholder}
 				className={cn(k({ density, size }))}
 				{...handlers}

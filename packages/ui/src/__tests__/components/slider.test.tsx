@@ -293,7 +293,7 @@ describe('snapToStep', () => {
 describe('Slider + Control', () => {
 	it('surfaces invalid state from an enclosing Control', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<Slider />
 			</Control>,
 		)
@@ -307,7 +307,7 @@ describe('Slider + Control', () => {
 
 	it('points aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
-			<Control id="vol" invalid>
+			<Control id="vol" severity="error">
 				<Description>Pick a level</Description>
 				<Slider />
 				<Message>Required</Message>

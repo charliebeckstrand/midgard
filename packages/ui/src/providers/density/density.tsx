@@ -2,9 +2,9 @@ import type { ReactNode } from 'react'
 import { Density as DensityPrimitive, useDensityNullable } from '../../primitives/density'
 import { type DensityLevel, densityToSize, sizeToDensityLevel } from './context'
 
-type DensityProviderProps = {
+/** Props for {@link DensityProvider}: the friendly `density` level to broadcast, and `children`. */
+export type DensityProviderProps = {
 	density: DensityLevel
-	className?: string
 	children: ReactNode
 }
 
@@ -21,12 +21,12 @@ type DensityProviderProps = {
  * `<DensityProvider density="compact">` shrinks to `'sm'` without touching
  * its props.
  */
-export function DensityProvider({ density, className, children }: DensityProviderProps) {
+export function DensityProvider({ density, children }: DensityProviderProps) {
 	const step = densityToSize[density]
 
 	return (
 		<DensityPrimitive scale={step}>
-			<span data-slot="density" data-density={density} className={className ?? 'contents'}>
+			<span data-slot="density" data-density={density} className="contents">
 				{children}
 			</span>
 		</DensityPrimitive>
@@ -37,7 +37,7 @@ export function DensityProvider({ density, className, children }: DensityProvide
  * Resolves a friendly `DensityLevel`: `explicit ?? ambient ?? 'snug'`. For a
  * client component whose prop surface speaks `DensityLevel` rather than the
  * primitive `Step` (e.g. {@link Grid}, which projects density onto a `Table`
- * that itself reads no context — REFERENCE.md §2) but that should still
+ * that itself reads no context — REFERENCE.md §2) but that must still
  * inherit an enclosing `<DensityProvider>` when the prop is omitted.
  *
  * Reads the ambient token's `space` axis (the padding/gap dimension density

@@ -1,13 +1,14 @@
 'use client'
 
-import type { KeyboardEvent, MouseEvent, ReactNode } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'react'
+import { ariaAttr, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions } from './context'
 import { handleMenuItemClick, handleMenuItemKeyDown } from './menu-item-utilities'
+import { useMenuRowPointer } from './use-menu-pointer'
 
 type MenuItemBaseProps = {
 	disabled?: boolean
@@ -39,6 +40,12 @@ export function MenuItem(props: MenuItemProps) {
 
 	const { disabled, className, children, onAction } = props
 
+	// A stable id so a dropdown's `aria-activedescendant` (roving with focus on the
+	// trigger) can point at this row; a consumer-supplied id wins.
+	const reactId = useId()
+
+	const id = props.id ?? reactId
+
 	function handleSelect() {
 		if (disabled) return
 
@@ -46,6 +53,11 @@ export function MenuItem(props: MenuItemProps) {
 
 		close()
 	}
+
+	// The pointer moves the same cursor the arrows do, so the menu carries one
+	// highlight rather than a hover wash beside a stale focus ring, and a rove
+	// picks up from the row the pointer left off on.
+	const handlePointerMove = useMenuRowPointer(disabled)
 
 	const classes = cn('group/option', k.item({ density: space, size }), className)
 
@@ -56,6 +68,7 @@ export function MenuItem(props: MenuItemProps) {
 		if (disabled) {
 			return (
 				<span
+					id={id}
 					role="menuitem"
 					tabIndex={-1}
 					aria-disabled={true}
@@ -69,26 +82,32 @@ export function MenuItem(props: MenuItemProps) {
 		}
 
 		const {
+			id: _id,
 			disabled: _disabled,
 			className: _className,
 			children: _children,
 			onAction: _onAction,
 			onClick: consumerOnClick,
+			onPointerMove: consumerOnPointerMove,
 			...rest
 		} = props
 
 		return (
 			<LinkComponent
+				id={id}
+				className={classes}
+				{...rest}
+				// After the spread, like the composed onClick below: a consumer prop
+				// must not drop the row out of roving (role) or the tab model (tabIndex).
 				role="menuitem"
 				tabIndex={-1}
 				data-slot="menu-item"
-				className={classes}
-				{...rest}
 				// Composed after the spread: runs the consumer onClick, then
 				// selection (onAction/close).
 				onClick={(event: MouseEvent<HTMLAnchorElement>) =>
 					handleMenuItemClick(event, consumerOnClick, handleSelect)
 				}
+				onPointerMove={composeEventHandlers(consumerOnPointerMove, handlePointerMove)}
 			>
 				{children}
 			</LinkComponent>
@@ -96,25 +115,31 @@ export function MenuItem(props: MenuItemProps) {
 	}
 
 	const {
+		id: _id,
 		disabled: _disabled,
 		className: _className,
 		children: _children,
 		onAction: _onAction,
 		onClick: consumerOnClick,
 		onKeyDown: consumerOnKeyDown,
+		onPointerMove: consumerOnPointerMove,
 		...rest
 	} = props
 
 	return (
 		<button
-			type="button"
-			role="menuitem"
-			tabIndex={-1}
+			id={id}
 			aria-disabled={ariaAttr(disabled)}
-			data-slot="menu-item"
 			data-disabled={dataAttr(disabled)}
 			className={classes}
 			{...rest}
+			// After the spread, like the composed handlers below: a consumer prop
+			// must not drop the row out of roving (role), the tab model (tabIndex),
+			// or turn it into a form-submit (type).
+			type="button"
+			role="menuitem"
+			tabIndex={-1}
+			data-slot="menu-item"
 			// Composed after the spread: runs consumer handlers, then selection
 			// (onAction/close). The disabled guard precedes both so disabled
 			// items are inert on every input path.
@@ -124,6 +149,7 @@ export function MenuItem(props: MenuItemProps) {
 			onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) =>
 				handleMenuItemKeyDown(event, consumerOnKeyDown, handleSelect, disabled)
 			}
+			onPointerMove={composeEventHandlers(consumerOnPointerMove, handlePointerMove)}
 		>
 			{children}
 		</button>

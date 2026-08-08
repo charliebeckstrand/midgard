@@ -52,6 +52,14 @@ function KanbanCardImpl({ cardId, 'aria-label': ariaLabel, children, className }
 	// the map is populated at mount, well before any drag reads it.
 	useEffect(() => {
 		if (interactive) overlayMap.current.set(cardId, children)
+
+		// Drop the entry when the card unmounts (deleted, or moved off the board)
+		// so the map can't grow unbounded across the board's lifetime. A card moved
+		// across columns re-sets its own entry on remount within the same effect
+		// flush (cleanup runs before setup), so the overlay never sees a gap.
+		return () => {
+			overlayMap.current.delete(cardId)
+		}
 	}, [interactive, cardId, children, overlayMap])
 
 	return (

@@ -1,15 +1,16 @@
 'use client'
 
 import { type ComponentPropsWithoutRef, type ReactNode, useEffect } from 'react'
-import { cn } from '../../core'
+import { cn, type Severity } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
+import { hasIssues } from '../form/form-reducer'
 
-/** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. */
-export type MessageSeverity = 'error' | 'warning' | 'success'
+/** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. Aliases the shared {@link Severity} so the validation vocabulary stays single-sourced. */
+export type MessageSeverity = Severity
 
 /** Props for {@link Message}: `severity`, optional form-field `name` binding, and the `all`-errors flag atop native `<p>` attributes. */
 export type MessageProps = {
@@ -21,7 +22,7 @@ export type MessageProps = {
 } & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'name'>
 
 /**
- * True when the error severity should auto-render: form-bound with errors, or
+ * True when the error severity auto-renders: form-bound with errors, or
  * (unbound) given children. Other severities render their children verbatim.
  *
  * @internal
@@ -34,7 +35,7 @@ function shouldRenderError(
 ): boolean {
 	if (severity !== 'error') return false
 
-	return isFormBoundError ? (issues?.length ?? 0) > 0 : children != null
+	return isFormBoundError ? hasIssues(issues) : children != null
 }
 
 /**
@@ -106,7 +107,11 @@ export function Message({
 		return registerMessage?.(id)
 	}, [rendersError, registerMessage, id])
 
-	if (isFormBoundError && (!issues || issues.length === 0)) return null
+	// The error severity renders only when it has something to say (form-bound
+	// with issues, or unbound with children); an empty one would leave a stray
+	// `role="alert"`. `rendersError` already encodes that; warning/success always
+	// render their children.
+	if (severity === 'error' && !rendersError) return null
 
 	const elementId = resolveMessageElementId(id, severity, control)
 

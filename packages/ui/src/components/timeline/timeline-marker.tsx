@@ -1,10 +1,12 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core'
 import type { Color } from '../../recipes'
+import { pulse as pulseAnimation } from '../../recipes/kata/status'
 import { k } from '../../recipes/kata/timeline'
 import { StatusDot, type StatusDotProps } from '../status'
+import { Swatch } from '../swatch'
 import { useTimeline } from './context'
 
 /**
@@ -24,8 +26,6 @@ export type TimelineMarkerConfig = {
 
 /** Props for {@link TimelineMarker}. */
 export type TimelineMarkerProps = TimelineMarkerConfig & {
-	/** Styling hook only; the row's `<li>` carries the `aria-current` announcement. */
-	current?: boolean
 	className?: string
 	/** Custom marker content; replaces the default `<StatusDot>` and relaxes the fixed dot size. */
 	children?: ReactNode
@@ -33,10 +33,10 @@ export type TimelineMarkerProps = TimelineMarkerConfig & {
 
 /**
  * Dot and connector lines for a timeline row. With no `children`, renders a
- * `<StatusDot>` driven by `status` (semantic, labelled) or `color`
- * (decorative), styled to the orientation and variant from context. Custom
- * `children` replace the dot entirely. ARIA stays on the parent `<li>`; the
- * marker itself is decorative.
+ * semantic, labelled `<StatusDot>` when `status` is set, or a decorative
+ * `<Swatch>` dot in the requested hue when `color` is set — both styled to the
+ * orientation and variant from context. Custom `children` replace the dot
+ * entirely. ARIA stays on the parent `<li>`; the marker itself is decorative.
  */
 export function TimelineMarker({
 	status,
@@ -44,7 +44,6 @@ export function TimelineMarker({
 	pulse,
 	lineBefore,
 	lineAfter,
-	current,
 	className,
 	children,
 }: TimelineMarkerProps) {
@@ -53,13 +52,11 @@ export function TimelineMarker({
 	return (
 		<span
 			data-slot="timeline-marker"
-			// `current` is a styling hook only. ARIA stays on the TimelineItem <li>,
-			// which announces aria-current; the marker carries none.
-			data-current={dataAttr(current)}
+			// ARIA stays on the TimelineItem <li>, which announces aria-current; the
+			// decorative marker carries none.
 			className={cn(
 				k.marker.base,
 				orientation === 'vertical' ? k.marker.vertical : k.marker.horizontal,
-				color && k.marker.palette[color].dot,
 				k.marker.palette[lineBefore ?? 'zinc'].line.before,
 				k.marker.palette[lineAfter ?? 'zinc'].line.after,
 				children != null && 'size-auto',
@@ -68,6 +65,16 @@ export function TimelineMarker({
 		>
 			{children != null ? (
 				children
+			) : color != null ? (
+				// A colour-only marker is decorative: paint the dot straight from the
+				// marker hue via <Swatch>. <StatusDot> forces its own status colour and
+				// omits `color`, so the requested hue can reach the dot only this way.
+				<Swatch
+					shape="circle"
+					variant={variant}
+					color={cn(k.marker.palette[color].dot)}
+					className={cn(k.marker.dot, pulse && pulseAnimation)}
+				/>
 			) : (
 				<StatusDot
 					variant={variant}
@@ -75,7 +82,7 @@ export function TimelineMarker({
 					pulse={pulse}
 					// Names the dot when it carries a semantic status; a colour-only marker stays decorative.
 					label={status ? status.charAt(0).toUpperCase() + status.slice(1) : undefined}
-					className="z-10 relative size-full"
+					className={k.marker.dot}
 				/>
 			)}
 		</span>

@@ -71,8 +71,8 @@ export function useCalendarPicker({
 	onOpenChange,
 }: CalendarPickerOptions): CalendarPickerResult {
 	const handleOpenChange = useCallback(
-		(value: boolean | undefined) => {
-			if (value !== undefined) onOpenChange?.(value)
+		(value: boolean | null) => {
+			if (value != null) onOpenChange?.(value)
 		},
 		[onOpenChange],
 	)

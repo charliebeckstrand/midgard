@@ -59,6 +59,14 @@ describe('valueExtent', () => {
 
 		expect(valueExtent([Number.NaN])).toBeNull()
 	})
+
+	it('scans an array past the spread argument limit', () => {
+		// Guards the loop-based extent: `Math.min(...values)` overflows the
+		// engine's argument limit around 1e5 elements.
+		const values = Array.from({ length: 300_000 }, (_, i) => i % 1000)
+
+		expect(valueExtent(values)).toEqual([0, 999])
+	})
 })
 
 describe('resolveColorBins', () => {
@@ -172,5 +180,17 @@ describe('resolveQuantileBins', () => {
 		expect(bins).toHaveLength(1)
 
 		expect(bins[0]).toMatchObject({ lo: 7, hi: 7 })
+	})
+
+	it('bins an array past the spread argument limit', () => {
+		// Guards the sorted-ends extent: `Math.min(...values)` overflows the
+		// engine's argument limit around 1e5 elements.
+		const values = Array.from({ length: 300_000 }, (_, i) => i % 1000)
+
+		const { bins } = resolveQuantileBins(values, ['#000000', '#ffffff'], 4)
+
+		expect(bins[0]?.lo).toBe(0)
+
+		expect(bins.at(-1)?.hi).toBe(999)
 	})
 })

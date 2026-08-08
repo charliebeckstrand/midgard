@@ -131,6 +131,27 @@ describe('useControllable', () => {
 		expect(onValueChange).toHaveBeenNthCalledWith(2, 2)
 	})
 
+	it('reports a cleared value as null, whichever nullish clear was passed (§7.3)', () => {
+		// §7.3: the public callback must never emit `undefined` — echoed back into
+		// `value` it would read as uncontrolled. Both clears converge on `null`.
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllable<number>({ defaultValue: 1, onValueChange }))
+
+		act(() => result.current[1](undefined))
+
+		expect(onValueChange).toHaveBeenLastCalledWith(null)
+
+		act(() => result.current[1](2))
+
+		act(() => result.current[1](null))
+
+		expect(onValueChange).toHaveBeenLastCalledWith(null)
+
+		// Internally "no value" stays `undefined`, so the read side is unchanged.
+		expect(result.current[0]).toBeUndefined()
+	})
+
 	it('chains batched functional updates in controlled mode', () => {
 		const onValueChange = vi.fn()
 

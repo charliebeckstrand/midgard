@@ -2,19 +2,19 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
-import { k, type TimelineVariants } from '../../recipes/kata/timeline'
+import { k } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'
 
 /** Props for {@link Timeline}. */
-export type TimelineProps = TimelineVariants & {
+export type TimelineProps = {
 	/**
 	 * Layout axis shared with descendant items via context.
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: TimelineOrientation
 	/**
-	 * Marker/line treatment shared with descendant items; `<TimelineItem>` may override per row.
+	 * Marker/line treatment shared with descendant items; `<TimelineItem>` can override per row.
 	 * @defaultValue 'solid'
 	 */
 	variant?: TimelineVariant

@@ -1,9 +1,10 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { Status } from './password-confirm-utilities'
 
 type PasswordConfirmContextValue = {
-	status: 'idle' | 'warning'
+	status: Status
 	setConfirm: (value: string) => void
 	setConfirmName: (name: string | undefined) => void
 	confirmHasFormError: boolean

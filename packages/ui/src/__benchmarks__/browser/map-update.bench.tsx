@@ -9,7 +9,7 @@
  */
 
 import { describe } from 'vitest'
-import { prepare, SLOW, updateBenches } from './harness'
+import { benches, prepare, WINDOW } from './harness'
 import { choroplethMapContenders, zoneMapContenders } from './map-contenders'
 import { countiesAtlas, makeValues, makeZones, statesAtlas } from './map-fixtures'
 
@@ -32,13 +32,13 @@ const choropleth = await prepare(
 )
 
 describe('update · map · states · re-zone 49 regions', () => {
-	updateBenches(states)
+	benches(states)
 })
 
 describe('update · map · counties · re-zone 3,108 regions', () => {
-	updateBenches(counties, SLOW)
+	benches(counties, WINDOW.slow)
 })
 
 describe('update · map · counties choropleth · re-value 3,108 regions', () => {
-	updateBenches(choropleth, SLOW)
+	benches(choropleth, WINDOW.slow)
 })

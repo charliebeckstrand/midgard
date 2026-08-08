@@ -89,6 +89,11 @@ export function normalizeIssues(out: string | string[] | undefined): string[] | 
 	return out.length > 0 ? out : undefined
 }
 
+/** True when a normalized issue list is present and non-empty — the single definition of a field being invalid. @internal */
+export function hasIssues(issues: string[] | undefined): boolean {
+	return issues !== undefined && issues.length > 0
+}
+
 /** True for a `null`-proto or `Object.prototype` object, excluding class instances. @internal */
 function isPlainObject(value: unknown): value is Record<string, unknown> {
 	if (value === null || typeof value !== 'object') return false
@@ -192,7 +197,7 @@ export function formReducer<T extends Record<string, unknown>>(
 			for (const key in action.errors) {
 				const issues = action.errors[key]
 
-				if (issues !== undefined && issues.length > 0) nextTouched[key] = true
+				if (hasIssues(issues)) nextTouched[key] = true
 			}
 
 			return { ...state, errors: nextErrors, touched: nextTouched }

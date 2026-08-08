@@ -40,6 +40,8 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 3.8 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([REFERENCE.md](packages/ui/REFERENCE.md) §2).
 
+3.9 Spread order decides what a consumer may override. Load-bearing structural attributes — `role`, `tabIndex`, `type`, widget ARIA state, and the resolved wiring of the §7.2 binding cascade — are written *after* `{...props}`, so a stray prop can't drop a row out of roving, turn a button into a form submit, or clobber a bound field; `menu-item.tsx` is the composite precedent and `switch.tsx` the cascade one. Presentational attributes stay overridable: a leaf's `data-slot` default is destructured so a consumer can rename the anchor, and `className` merges through `cn`.
+
 ## 4. TypeScript
 
 4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary.
@@ -113,11 +115,13 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 ## 12. Documentation
 
-12.1 Public-surface symbols carry TSDoc. Every symbol a barrel re-exports (a component and its `*Props`, each hook, primitive, provider, and `ui/core` / `ui/types` export) opens with a summary-first doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2): the first sentence states what it is, then `@param` / `@returns` where the signature isn't self-evident, `@defaultValue` on defaulted optional fields, `@remarks` for caveats, `@see {@link …}` to cross-link, and `@internal` on a documented non-exported helper. Don't restate the type or document self-evident fields. Standard: [TSDoc](https://tsdoc.org).
+12.1 Public-surface symbols carry TSDoc. Every symbol a barrel re-exports (a component and its `*Props`, each hook, primitive, provider, and `ui/core` export) opens with a summary-first doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2): the first sentence states what it is, then `@param` / `@returns` where the signature isn't self-evident, `@defaultValue` on defaulted optional fields, `@remarks` for caveats, `@see {@link …}` to cross-link, and `@internal` on a documented helper that no barrel re-exports — the tag and a barrel entry are mutually exclusive, pinned by `internal-barrel-boundary.test.ts`. Don't restate the type or document self-evident fields. Standard: [TSDoc](https://tsdoc.org).
 
 12.2 The curated surface docs in [`packages/ui/docs/`](packages/ui/docs) — `COMPONENTS` · `HOOKS` · `PRIMITIVES` · `PROVIDERS` · `RECIPES` · `CORE` · `UTILITIES` — are the quick-glance index of the public surface. Adding, removing, or renaming a public export updates the matching doc in the same change: a new component lands in `COMPONENTS.md` under its domain bucket; a new hook / primitive / provider / core / utility lands in its doc with a one-line summary. [`REFERENCE.md`](packages/ui/REFERENCE.md) is the hub — keep its surface map and the §2 boundary current.
 
-12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`, edited as living records (resolve rows in place with the commit). A documentation sweep is a `{date}-DOC-AUDIT.md`.
+12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`; a documentation sweep is a `{date}-DOC-AUDIT.md`.
+
+12.4 An audit is a living record while it holds an open finding: resolve each row in place, against the pull request that closed it. Cite the pull request, not a branch commit, because a squash merge discards the branch. Delete the file once every finding is resolved, because the pull requests it names hold the history. Never name an audit from code, or from a document that outlives it; the reference dangles when the audit goes.
 
 ---
 

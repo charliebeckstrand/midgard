@@ -2,8 +2,11 @@ export { type GridContextValue, type SortState, useGrid } from './context'
 export { downloadExcel, rowsToXlsx } from './engine/grid-export/excel'
 export type {
 	GridExportAction,
+	GridExportable,
+	GridExportConfig,
 	GridExportContext,
 	GridExportEntry,
+	GridExportRows,
 	GridExportType,
 	GridExportTypeConfig,
 } from './engine/grid-export/types'
@@ -36,11 +39,13 @@ export {
 	GridColumnManager,
 	type GridColumnManagerProps,
 } from './grid-column-manager'
+export { gridExportMenuItems } from './grid-context-menu-utilities'
 export type {
 	CellChange,
 	GridEditableConfig,
 	GridEditCell,
 	GridEditCellContext,
+	GridRowActionsContext,
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'
 export type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
@@ -55,7 +60,6 @@ export type {
 	GridColumnFilterState,
 	GridColumnFilters,
 	GridColumnManagerItem,
-	GridColumnManagerPreset,
 	GridColumnMenu,
 	GridColumnMenuContext,
 	GridColumnSizing,
@@ -65,4 +69,6 @@ export type {
 	GridPagination,
 	GridPaginationState,
 	GridSearch,
+	GridToolSurfaces,
 } from './types'
+export { useGridExportActions } from './use-grid-export-actions'

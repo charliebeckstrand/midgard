@@ -13,14 +13,19 @@ type GridFooterProps = {
 }
 
 /**
- * The row-count label for {@link GridFooterConfig.rowTotal}: `'No rows'` for an
- * empty set, `'12 of 47 rows visible'` when a client-side filter narrows the
- * source, or a bare `'47 rows'` otherwise. Pluralized against the count it names.
+ * The row-count label for {@link GridFooterConfig.rowTotal}: `'12 of 47 rows
+ * visible'` when a client-side filter narrows the source, or a bare `'47 rows'`
+ * otherwise. Pluralized against the count it names.
+ *
+ * `null` for an empty set. The body already says there are no rows, in the row
+ * standing where they would be — a count restating it is a second voice adding
+ * nothing, and "No rows" under an empty body reads as a tally of the emptiness
+ * rather than as its explanation.
  *
  * @internal
  */
-function rowTotalLabel({ rows, total }: GridFooterStats): string {
-	if (rows === 0) return 'No rows'
+function rowTotalLabel({ rows, total }: GridFooterStats): string | null {
+	if (rows === 0) return null
 
 	if (total > rows) return `${rows} of ${total} rows visible`
 
@@ -50,8 +55,9 @@ function selectedLabel({ rows, selected }: GridFooterStats): string {
  * the total would otherwise show. Any custom {@link GridFooterConfig.content} is
  * pushed to the trailing edge. Renders nothing when no setting yields output, so
  * an enabled `footer` with, say, `selectedTotal` alone stays invisible until a
- * row is selected. The count is a polite live region so a filter or selection
- * change is announced without moving focus (WCAG 4.1.3).
+ * row is selected, and a `rowTotal` alone until there is a row to count. The
+ * count is a polite live region so a filter or selection change is announced
+ * without moving focus (WCAG 4.1.3).
  *
  * @internal
  */

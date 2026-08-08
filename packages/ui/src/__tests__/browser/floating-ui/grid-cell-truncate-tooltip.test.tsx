@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
 
@@ -283,9 +283,25 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		const { container } = renderAt(deadZone)
 
-		await userEvent.hover(await settledSpan(container))
+		await settledSpan(container)
+
+		// Hover a locator under the cell scope, not the span. An element gives the
+		// driver a text selector, and the driver derives that selector from the DOM
+		// as it stands. The parked pointer can open the tooltip before the selector
+		// resolves, and the tooltip content repeats the cell text. One selector then
+		// matches two nodes, which is a strict mode violation. The scope holds the
+		// portaled tooltip out, so the match stays single.
+		await page.getByRole('cell').getByText('Wade Cooper').hover()
 
 		const tip = await screen.findByRole('tooltip')
+
+		// Whichever route opened it, the tooltip must be the one this cell
+		// describes — otherwise a tooltip left over from an earlier width would
+		// satisfy the assertion and the detector would go untested. The attribute
+		// sits on the trigger, which is not always the measured span.
+		expect(container.querySelector('[aria-describedby]')?.getAttribute('aria-describedby')).toBe(
+			tip.id,
+		)
 
 		expect(tip).toHaveTextContent('Wade Cooper')
 	})

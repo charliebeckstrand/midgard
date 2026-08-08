@@ -16,10 +16,12 @@ export {
 	useA11yAutoFocus,
 	useA11yControl,
 	useA11yDisclosure,
+	useA11yHasTabbable,
 	useA11yLiveRegion,
 	useA11yPanel,
 	useA11yRoving,
 	useA11yScope,
+	type VirtualItemSource,
 } from './a11y'
 export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'
@@ -46,9 +48,6 @@ export {
 	type FrameReserve,
 	type FrameSizing,
 	type PlotFrameRef,
-	type PlotFrameSize,
-	type ResolvedFrameSizing,
-	resolveFrameSizing,
 	usePlotFrame,
 } from './use-plot-frame'
 export { useResizeObserver } from './use-resize-observer'

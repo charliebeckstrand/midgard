@@ -10,8 +10,8 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 
-/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`size`/`surface` variants. */
-export type SheetProps = SheetPanelVariants & {
+/** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
+export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
 	/** Initial open state when uncontrolled. */
@@ -20,6 +20,15 @@ export type SheetProps = SheetPanelVariants & {
 	onOpenChange?: (open: boolean) => void
 	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
+	/**
+	 * Drain the colour from whatever shows through the backdrop. Both scrims are
+	 * translucent, so the page behind stays legible while the sheet is up; this
+	 * renders it in grey, marking it as the inert surface rather than merely the
+	 * dimmed one. No effect where no backdrop renders (see `backdrop`).
+	 *
+	 * @defaultValue false
+	 */
+	desaturate?: boolean
 	className?: string
 	children: ReactNode
 	/**
@@ -73,18 +82,20 @@ export type SheetProps = SheetPanelVariants & {
  * over the `aria-label` fallback. Modal sheets (the default) trap focus, lock
  * body scroll, and render a blocking backdrop; `modal={false}` keeps the page
  * interactive and disables the full-viewport wrapper's pointer events so only
- * the panel captures them. The panel stops click propagation so taps inside it
- * never reach the backdrop dismiss handler, and shares a single open-state
- * setter with its dismiss affordances via `PanelProviders`.
+ * the panel captures them. The panel stops click propagation to keep the portal's
+ * synthetic clicks off the consumer ancestors it renders under — the backdrop is
+ * a sibling, so a panel click never reaches its dismiss handler anyway — and
+ * shares a single open-state setter with its dismiss affordances via
+ * `PanelProviders`.
  */
 export function Sheet({
 	open,
 	defaultOpen,
 	onOpenChange,
 	side = 'right',
-	size,
-	surface,
+	width,
 	glass,
+	desaturate,
 	className,
 	children,
 	container,
@@ -100,7 +111,7 @@ export function Sheet({
 		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
-	const resolvedSurface = useResolvedSurface(surface, glass)
+	const resolvedSurface = useResolvedSurface(glass)
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
@@ -112,7 +123,7 @@ export function Sheet({
 			initialFocus={initialFocus}
 			modal={modal}
 			backdrop={backdrop}
-			className={k.backdrop({ surface: resolvedSurface })}
+			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
 				{...k.motion[side]}
@@ -121,7 +132,7 @@ export function Sheet({
 				data-slot="sheet"
 				onClick={(event) => event.stopPropagation()}
 				className={cn(
-					k.panel({ side, size, surface: resolvedSurface }),
+					k.panel({ side, width, surface: resolvedSurface }),
 					// Non-modal overlays disable pointer events on the full-viewport
 					// wrapper so the page stays interactive; the panel re-enables its own.
 					modal === false && 'pointer-events-auto',

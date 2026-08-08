@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
 import type { SortState } from './context'
+import { resolveToolSurfaces, SURFACES_OFF } from './engine/grid-tools'
 import type { GridColumnManagerConfig } from './grid-data-types'
 import type { GridContextMenu as GridContextMenuConfig } from './types'
 import type { GridColumnResize } from './use-grid-table'
@@ -12,23 +13,29 @@ const DEFAULT_CONTEXT_MENU = { column: true, cell: true } as const
 
 /**
  * Resolves the column-manager gates, lifts the dialog's open state, and derives
- * the header context-menu actions (sort a column, open the manager). Column
- * management is on by default ({@link GridColumnManagerConfig.enabled}); the
- * toolbar button is opt-in ({@link GridColumnManagerConfig.toolbarButton}). Split
- * out of `GridData` so its body stays within the cognitive-complexity budget.
+ * the header context-menu actions (sort a column, open the manager). The manager
+ * takes the standard {@link GridToolSurfaces}: the context-menu item by default,
+ * the toolbar button opt-in, and `columnManager={false}` as the off switch.
+ * Split out of `GridData` so its body stays within the cognitive-complexity
+ * budget.
  *
  * @internal
  */
 export function useGridMenuActions<T>({
 	contextMenu,
-	columnManagerConfig,
+	columnManager,
 	resize,
 	setSort,
 	hasData,
 	hasSizingPreference,
 }: {
 	contextMenu: GridContextMenuConfig<T> | false | undefined
-	columnManagerConfig: GridColumnManagerConfig | undefined
+	/**
+	 * The `columnManager` prop as passed, `false` and all — the surfaces read the
+	 * off switch straight off it. Its visibility bindings are seeded elsewhere;
+	 * nothing read here is seeded.
+	 */
+	columnManager: GridColumnManagerConfig | false | undefined
 	resize: GridColumnResize | null
 	setSort: (sort: SortState[]) => void
 	/** Right-click menus stand down with no source data (its items act on rows). */
@@ -47,25 +54,31 @@ export function useGridMenuActions<T>({
 	// from under the virtualizer mid-commit (rows then never render).
 	const menu = contextMenu === false ? undefined : (contextMenu ?? DEFAULT_CONTEXT_MENU)
 
-	// Column management is on by default; `enabled: false` is the master off
-	// switch — no "Manage columns" item, no toolbar button, no dialog.
-	const managerEnabled = columnManagerConfig?.enabled ?? true
+	// `columnManager={false}` is the master off switch, and it carries itself: a
+	// manager that isn't configured has no surfaces and no `open` binding either.
+	const manager = columnManager || undefined
 
-	const managerLabel = columnManagerConfig?.label ?? 'Manage columns'
+	const surfaces = columnManager === false ? SURFACES_OFF : resolveToolSurfaces(manager)
 
-	// Two entry points to the dialog, both under the master switch: the opt-in
-	// toolbar button, and the header menu's "Manage columns" item (shown whenever
-	// a column menu is). The dialog mounts when either can reach it.
-	const showButton = managerEnabled && (columnManagerConfig?.toolbarButton ?? false)
+	const managerLabel = manager?.label ?? 'Manage columns'
 
-	const menuItemReachable = managerEnabled && Boolean(menu?.column)
+	// Two entry points to the dialog: the opt-in toolbar button, and the header
+	// menu's "Manage columns" item — on by default, but only ever shown inside a
+	// column menu, so the menu's own switch gates it too.
+	const showButton = surfaces.toolbar
 
-	const renderDialog = showButton || menuItemReachable
+	const menuItemReachable = surfaces.contextMenu && Boolean(menu?.column)
+
+	// A host that drives the dialog from its own chrome binds `open` and turns
+	// both surfaces off; the dialog still mounts, or the binding would be inert.
+	const openBound = manager?.open !== undefined || manager?.defaultOpen !== undefined
+
+	const renderDialog = showButton || menuItemReachable || openBound
 
 	const [open, setOpen] = useControllable<boolean>({
-		value: columnManagerConfig?.open,
-		defaultValue: columnManagerConfig?.defaultOpen ?? false,
-		onValueChange: (next) => columnManagerConfig?.onOpenChange?.(next ?? false),
+		value: manager?.open,
+		defaultValue: manager?.defaultOpen ?? false,
+		onValueChange: (next) => manager?.onOpenChange?.(next ?? false),
 	})
 
 	// The menu sets a single-column sort, replacing any multi-column sort; Clear
@@ -93,12 +106,13 @@ export function useGridMenuActions<T>({
 		return () => setAutoSizeConfirmOpen(true)
 	}, [sizeToFit, hasSizingPreference])
 
-	// Backs the menu's "Manage columns" item; `null` keeps it out. Non-null
-	// implies `renderDialog`, so opening is always valid (the item only ever
-	// renders inside a column menu, which the master switch already gated).
+	// Backs the menu's "Manage columns" item (the header menu's and the
+	// column-group band's alike); `null` keeps it out. Gated on the menu item
+	// rather than on `renderDialog`, so a manager placed on the toolbar alone
+	// stays off the menus — and non-null still implies a mounted dialog.
 	const chooseColumns = useMemo(
-		() => (renderDialog ? () => setOpen(true) : null),
-		[renderDialog, setOpen],
+		() => (menuItemReachable ? () => setOpen(true) : null),
+		[menuItemReachable, setOpen],
 	)
 
 	return {

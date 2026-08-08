@@ -27,15 +27,23 @@ export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
  * `href` is set, a Link anchor, with roving tabindex and the input's
  * active-descendant pointing at it. Runs the consumer `onClick` then
  * `onAction`, closing the palette afterward unless `closeOnAction` is false;
- * `disabled` items are inert on every input path.
+ * `disabled` items are inert on every input path. Pass an explicit `id`
+ * inside a `VirtualOptions` with `getOptionId` — it overrides the
+ * auto-generated one, which React's `useId` mints per instance and can't
+ * predict ahead of the row mounting.
  */
 export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const { close } = useCommandPaletteContext()
 
 	const { component: LinkComponent } = useLink()
 
+	const autoId = useId()
+
 	// Stable id; the input's aria-activedescendant points at the active item.
-	const itemId = useId()
+	// An explicit `id` wins — set it when rendering inside a `VirtualOptions`
+	// with `getOptionId`, which needs a data-driven, predictable id to point
+	// `aria-activedescendant` at before the row mounts.
+	const itemId = props.id ?? autoId
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
 

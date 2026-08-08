@@ -1,9 +1,9 @@
 'use client'
 
-import { type ReactElement, type ReactNode, type RefObject, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../../core'
 import type { AccessibleName } from '../../../types'
-import { once } from '../../../utilities'
+import { once, toNumericCell } from '../../../utilities'
 import {
 	type MapAspectRatio,
 	type MapFeature,
@@ -17,8 +17,7 @@ import { ChartContextMenu } from '../engine/chart-context-menu'
 import { resolveHeader } from '../engine/chart-header'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
-import { useChartFullscreen } from '../engine/context'
-import type { ChartHeaderConfig, ChartReadout, ChartReadoutSource, DataKey } from '../engine/types'
+import type { ChartHeaderConfig, ChartReadout, DataKey } from '../engine/types'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to
@@ -152,22 +151,6 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 }
 
 /**
- * Coerces a row's raw value to a number for the CSV, mapping the blanks a data
- * source uses for "no value" — `null`, `undefined`, and empty strings — to `NaN`
- * so they read as no-data rather than the `0` a bare {@link Number} yields.
- * Mirrors the map scale's own coercion, so the CSV agrees with the tooltip.
- *
- * @internal
- */
-function binnable(value: unknown): number {
-	if (typeof value === 'number') return value
-
-	if (typeof value === 'string' && value.trim() !== '') return Number(value)
-
-	return Number.NaN
-}
-
-/**
  * The context menu's CSV / copy readout: one column of region ids against one
  * column of formatted values, built from the input `data` — a faithful export of
  * the rows the caller passed, keyed by the `idKey` they join on. Distinct from
@@ -194,7 +177,7 @@ function choroplethReadout<T>(
 				swatchClass: '',
 				swatch: 'rect',
 				values: data.map((row) => {
-					const value = binnable(row[colorKey])
+					const value = toNumericCell(row[colorKey])
 
 					return Number.isFinite(value) ? format(value) : READOUT_GAP
 				}),
@@ -229,12 +212,22 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// rasterised wrapper, then handed back to MapPlat below.
 	const { series, formatValue, contextMenu, header, className, width, ...map } = props
 
+	// The right-clicked region, reported outward by the map (its hover state is provider-isolated, so the
+	// menu cannot read it). Set once per right-click — never per hover — so the map's render isolation
+	// holds; the wrapping div's capture-phase reset clears it first, so an off-region right-click offers
+	// the whole-widget items alone.
+	const [menuRegion, setMenuRegion] = useState<number | null>(null)
+
+	// Identity is the map's to report, but the menu target is positional — a
+	// consumer reads the underlying row out of its own data by index.
+	const onRegionContextMenu = useCallback((_id: string, index: number) => setMenuRegion(index), [])
+
 	const [primary] = series
 
 	const format = formatValue ?? formatChartValue
 
 	// Built from the input rows for the menu's CSV / copy actions; drops them when
-	// there is nothing to export. A cached thunk ({@link ChartReadoutSource}), so
+	// there is nothing to export. A cached thunk (`ChartReadoutSource`), so
 	// only a selected action materializes it.
 	const readout = once(() => choroplethReadout(props.data, primary, format))
 
@@ -266,63 +259,25 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	} as Parameters<typeof MapPlat<T>>[0]
 
 	return (
-		<ChoroplethContextFrame
+		<ChartContextMenu
 			contextMenu={contextMenu}
 			rootRef={rootRef}
 			readout={readout}
 			title={resolveHeader(header).title}
-			self={<ChoroplethChart {...props} />}
+			targetIndex={menuRegion}
+			fullscreen={<ChoroplethChart {...props} />}
 		>
 			<div
 				ref={rootRef}
 				data-slot="choropleth"
 				className={cn(width === undefined && 'w-full', className)}
 				style={width === undefined ? undefined : { width }}
+				// Capture runs before the region layer's bubbled report: an off-region
+				// right-click stays null, an on-region one overwrites with its index.
+				onContextMenuCapture={() => setMenuRegion(null)}
 			>
-				<MapPlat<T> {...mapProps} />
+				<MapPlat<T> {...mapProps} onRegionContextMenu={onRegionContextMenu} />
 			</div>
-		</ChoroplethContextFrame>
-	)
-}
-
-/** Props for {@link ChoroplethContextFrame}. @internal */
-type ChoroplethContextFrameProps = {
-	contextMenu: ChartContextMenuConfig | false | undefined
-	rootRef: RefObject<HTMLDivElement | null>
-	readout: ChartReadoutSource | null
-	title?: string
-	/** A fresh copy of the choropleth for the menu's fullscreen re-mount. */
-	self: ReactElement
-	children: ReactNode
-}
-
-/**
- * Wraps a choropleth's root in its {@link ChartContextMenu} — or returns it bare
- * when the choropleth is itself the menu's re-mounted fullscreen copy, so the
- * enlarged map never nests a second menu. The heatmap's frame, keyed to the map;
- * split from {@link ChoroplethChart} so that fullscreen gate stays off its render.
- *
- * @internal
- */
-function ChoroplethContextFrame({
-	contextMenu,
-	rootRef,
-	readout,
-	title,
-	self,
-	children,
-}: ChoroplethContextFrameProps) {
-	if (useChartFullscreen()) return <>{children}</>
-
-	return (
-		<ChartContextMenu
-			contextMenu={contextMenu}
-			rootRef={rootRef}
-			readout={readout}
-			title={title}
-			fullscreen={self}
-		>
-			{children}
 		</ChartContextMenu>
 	)
 }

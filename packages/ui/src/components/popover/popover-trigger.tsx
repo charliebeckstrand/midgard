@@ -19,12 +19,6 @@ import { usePopoverContext } from './context'
 export type PopoverTriggerProps = {
 	children: ReactNode
 	className?: string
-	/**
-	 * Suppresses the auto-wired toggle interactions, leaving open/close control
-	 * to the caller while still merging refs and ARIA wiring.
-	 * @defaultValue false
-	 */
-	manual?: boolean
 }
 
 /**
@@ -43,7 +37,7 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
  * `<button>` otherwise, stamping `aria-haspopup="dialog"`, `aria-expanded`, and
  * `aria-controls`. Clicks within a `[data-popover-ignore]` subtree are ignored.
  */
-export function PopoverTrigger({ children, className, manual = false }: PopoverTriggerProps) {
+export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	const { open, panelId, triggerRef, setReference, getReferenceProps } = usePopoverContext()
 
 	const child = isValidElement(children)
@@ -106,9 +100,7 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 	)
 
 	if (child) {
-		const referenceProps = manual
-			? child.props
-			: wrapReferenceProps(child.props as Record<string, unknown>)
+		const referenceProps = wrapReferenceProps(child.props as Record<string, unknown>)
 
 		return cloneElement(child, {
 			...(referenceProps as HTMLAttributes<HTMLElement>),
@@ -121,7 +113,7 @@ export function PopoverTrigger({ children, className, manual = false }: PopoverT
 		})
 	}
 
-	const referenceProps = manual ? {} : wrapReferenceProps()
+	const referenceProps = wrapReferenceProps()
 
 	return (
 		<button

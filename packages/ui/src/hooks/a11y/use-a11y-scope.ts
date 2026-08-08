@@ -8,6 +8,7 @@ import { useIdScope } from '../use-id-scope'
 /** Which ARIA relation a registered slot's id contributes to. */
 export type A11yRelation = 'labelledby' | 'describedby'
 
+/** Options for {@link useA11yScope}. */
 export type A11yScopeOptions<Slot extends string = never> = {
 	/** Explicit scope id; falls back to a generated one. */
 	id?: string
@@ -19,6 +20,11 @@ export type A11yScopeOptions<Slot extends string = never> = {
 	slots?: Record<Slot, A11yRelation>
 }
 
+/**
+ * Return shape of {@link useA11yScope}.
+ *
+ * @typeParam Slot - Union of the slot names the scope declares.
+ */
 export type A11yScope<Slot extends string = never> = {
 	/** Stable scope id. */
 	id: string

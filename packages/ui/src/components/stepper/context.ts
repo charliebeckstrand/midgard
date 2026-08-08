@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { Mount } from '../../primitives/mount'
 import type { Orientation } from '../../types'
 
 /** Layout axis of a {@link Stepper}'s step row: `horizontal` or `vertical`. */
@@ -18,6 +19,8 @@ type StepperContextValue = {
 	baseId: string
 	/** Whether a StepperPanels group is rendered; gates each step's aria-controls. */
 	hasPanels: boolean
+	/** How panels off the current step are held. */
+	mount: Mount
 }
 
 type StepperStepContextValue = {

@@ -1,10 +1,11 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react'
 
-import { useFloatingUI } from '../../hooks'
+import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -35,12 +36,31 @@ export function useDatePickerState({
 	footer,
 	placement = 'bottom-start',
 	disabled = false,
+	readOnly = false,
+	open: openProp,
+	defaultOpen,
+	onOpenChange: onOpenChangeProp,
+	input = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
 
+	// The trigger label reads the same ambient locale the Calendar beside it does.
+	const ambient = useLocale()
+
+	// `input` mode keeps DOM focus on the DateInput and drives the calendar via
+	// the active-descendant pattern: the input's `aria-controls` points at the
+	// day listbox and its `aria-activedescendant` at the roved cell (whose id is
+	// stamped by the grid). Generated unconditionally; only the input path reads
+	// them.
+	const listboxId = useId()
+
+	const activeDescendantId = useId()
+
 	const resolvedDisabled = disabled || control?.disabled === true
+
+	const resolvedReadOnly = readOnly || control?.readOnly === true
 
 	// Binds the selected date to an enclosing Form field by `name` (value-typed
 	// cascade); the field error merges with Control's invalid below.
@@ -55,7 +75,23 @@ export function useDatePickerState({
 		onValueChange,
 	})
 
-	const [open, setOpen] = useState(false)
+	const [open = false, setOpenInner] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: defaultOpen ?? false,
+		onValueChange: (next) => onOpenChangeProp?.(next ?? false),
+	})
+
+	// readOnly keeps the trigger focusable and the value submitted but blocks
+	// every open path; closing stays allowed so an externally-opened calendar
+	// can still dismiss (matching Listbox).
+	const setOpen = useCallback(
+		(next: boolean) => {
+			if (resolvedReadOnly && next) return
+
+			setOpenInner(next)
+		},
+		[resolvedReadOnly, setOpenInner],
+	)
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
@@ -92,7 +128,7 @@ export function useDatePickerState({
 		setOpen(true)
 
 		setActive(null)
-	}, [])
+	}, [setOpen])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
@@ -102,10 +138,12 @@ export function useDatePickerState({
 		// Closing the popover (select, clear, dismiss, or Escape) is the field's
 		// "blur" — mark it touched so validateOn="touched" rules can fire.
 		setTouched()
-	}, [setTouched])
+	}, [setTouched, setOpen])
 
 	const handleSelect = useCallback(
-		(date: Date) => {
+		(date: Date | null) => {
+			if (date === null) return
+
 			setValue(date)
 
 			closeCalendar()
@@ -207,6 +245,7 @@ export function useDatePickerState({
 	const onTriggerKeyDown = useDatePickerKeyboard({
 		disabled: resolvedDisabled,
 		open,
+		input,
 		active,
 		setActive,
 		openCalendar,
@@ -225,15 +264,26 @@ export function useDatePickerState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid || fieldInvalid,
+		invalid: control?.severity === 'error' || fieldInvalid,
 		value,
 		setValue,
 		hasValue: value != null,
 		onClear: handleClear,
-		displayValue: value ? formatDate(value) : '',
+		displayValue: value ? formatDate(value, ambient.locale, ambient.dateFormat) : '',
 		open,
 		onOpenChange,
 		onTriggerKeyDown,
+		listboxId,
+		activeDescendantId,
+		// Active-descendant wiring for the DateInput while `input` mode keeps focus
+		// on it: `aria-controls` names the day listbox once open, and
+		// `aria-activedescendant` follows the roved grid cell (the only zone whose
+		// element carries `activeDescendantId`); both drop when there is no grid
+		// highlight, so the header/footer zones and the closed state clear it.
+		inputAria: {
+			'aria-controls': open ? listboxId : undefined,
+			'aria-activedescendant': active?.zone === 'grid' ? activeDescendantId : undefined,
+		},
 		setReference,
 		setFloating,
 		triggerRef,

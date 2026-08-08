@@ -3,9 +3,10 @@ import path from 'node:path'
 import { Node, Project, SyntaxKind } from 'ts-morph'
 import ts from 'typescript'
 import type { Plugin } from 'vite'
-import { buildApi } from '../api-reference'
+import { type ApiExtractor, createApiExtractor } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { collectHelpers } from './collect-helpers'
+import { injectSourceFacts } from './source-facts'
 import { virtualJsonModules } from './virtual-json'
 
 // ---------------------------------------------------------------------------
@@ -48,22 +49,70 @@ function parseMeta(project: Project, fileName: string, source: string): DemoMeta
 	return meta
 }
 
-function generateDemoMetas(demosDir: string): Record<string, DemoMeta> {
-	if (!fs.existsSync(demosDir)) return {}
+/**
+ * Visit every demo `.tsx` under `demosDir` in a stable, sorted path order, so
+ * the virtual modules built from the walk (`demo-metas`, `component-modules`)
+ * serialize to identical bytes regardless of the filesystem's `readdir` order —
+ * a source laptop and CI otherwise produce different chunk content, defeating
+ * long-term caching.
+ */
+function forEachDemoFile(demosDir: string, visit: (fullPath: string) => void): void {
+	if (!fs.existsSync(demosDir)) return
 
+	const files = fs
+		.readdirSync(demosDir, { recursive: true, withFileTypes: true })
+		.filter((entry) => entry.isFile() && entry.name.endsWith('.tsx'))
+		.map((entry) => path.join(entry.parentPath, entry.name))
+		.sort()
+
+	for (const full of files) visit(full)
+}
+
+/** Whether `file` is a demo source the demo-derived virtual modules read. */
+function isDemoFile(file: string, demosDir: string): boolean {
+	return file.startsWith(demosDir + path.sep) && file.endsWith('.tsx')
+}
+
+/** Last parsed meta for one demo, valid while its file keeps this mtime. */
+type DemoMetaCache = Map<string, { mtimeMs: number; meta: DemoMeta }>
+
+/**
+ * One demo edit invalidates the whole `demo-metas` module, and regenerating it
+ * would re-parse every demo — ~110 of them — to pick up the one that changed.
+ * `cache` carries the previous pass's parses; an unchanged mtime reuses one,
+ * which also skips reading the file. The directory walk still runs: it is a
+ * `readdir`, and it is what notices an added or deleted demo.
+ *
+ * The cache is rebuilt rather than pruned, so it tracks the directory
+ * structurally — a demo that disappears is simply not carried over.
+ */
+function generateDemoMetas(demosDir: string, cache: DemoMetaCache): Record<string, DemoMeta> {
 	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
 
 	const result: Record<string, DemoMeta> = {}
 
-	for (const entry of fs.readdirSync(demosDir, { recursive: true, withFileTypes: true })) {
-		if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue
+	const next: DemoMetaCache = new Map()
 
-		const full = path.join(entry.parentPath, entry.name)
-
+	forEachDemoFile(demosDir, (full) => {
 		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
 
-		result[`./demos/${rel}`] = parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
-	}
+		const { mtimeMs } = fs.statSync(full)
+
+		const cached = cache.get(full)
+
+		const meta =
+			cached?.mtimeMs === mtimeMs
+				? cached.meta
+				: parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
+
+		next.set(full, { mtimeMs, meta })
+
+		result[`./demos/${rel}`] = meta
+	})
+
+	cache.clear()
+
+	for (const [key, entry] of next) cache.set(key, entry)
 
 	return result
 }
@@ -109,6 +158,30 @@ export function parseReExports(source: string, fileName: string): ReExport[] {
 	}
 
 	return result
+}
+
+/**
+ * Whether the barrel carries an export form {@link parseReExports} doesn't model
+ * — a star re-export (`export * [as ns] from …`), a local `export {…}` without a
+ * module specifier, `export default`, or a local `export const`/`function`.
+ * {@link buildTaggedBarrel} regenerates the module from the parsed named
+ * re-exports alone, so any such form would be silently dropped; the caller
+ * leaves the barrel untagged instead of losing its exports.
+ */
+export function hasUnmodeledExports(source: string, fileName: string): boolean {
+	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+
+	return sf.statements.some((stmt) => {
+		if (ts.isExportDeclaration(stmt)) {
+			return !stmt.moduleSpecifier || !stmt.exportClause || !ts.isNamedExports(stmt.exportClause)
+		}
+
+		if (ts.isExportAssignment(stmt)) return true
+
+		const modifiers = ts.canHaveModifiers(stmt) ? ts.getModifiers(stmt) : undefined
+
+		return modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false
+	})
 }
 
 function isPascalCase(name: string): boolean {
@@ -221,10 +294,14 @@ function collectDirNames(
 ): void {
 	if (!fs.existsSync(dir)) return
 
-	for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-		if (!entry.isDirectory()) continue
+	const dirs = fs
+		.readdirSync(dir, { withFileTypes: true })
+		.filter((entry) => entry.isDirectory())
+		.map((entry) => entry.name)
+		.sort()
 
-		collectIndexNames(result, path.join(dir, entry.name, 'index.ts'), moduleFor(entry.name))
+	for (const name of dirs) {
+		collectIndexNames(result, path.join(dir, name, 'index.ts'), moduleFor(name))
 	}
 }
 
@@ -235,17 +312,11 @@ function collectDirNames(
  * stays unresolvable rather than shadowing it.
  */
 function collectDemoExternals(result: Record<string, ModuleEntry>, demosDir: string): void {
-	if (!fs.existsSync(demosDir)) return
-
-	for (const entry of fs.readdirSync(demosDir, { recursive: true, withFileTypes: true })) {
-		if (!entry.isFile() || !entry.name.endsWith('.tsx')) continue
-
-		const full = path.join(entry.parentPath, entry.name)
-
+	forEachDemoFile(demosDir, (full) => {
 		for (const { name, specifier } of parseExternalImports(fs.readFileSync(full, 'utf-8'), full)) {
 			result[name] ??= { module: specifier, external: true }
 		}
-	}
+	})
 }
 
 /** The `virtual:component-modules` payload: the library's import prefix plus its name map. */
@@ -260,7 +331,7 @@ type ComponentModules = { packageName: string; names: Record<string, ModuleEntry
  * needs no extra configuration. `packageName` rides along: `assemble` reads it
  * to prefix derived imports (`<packageName>/button`).
  */
-function buildNameMap(srcDir: string, packageName: string): ComponentModules {
+function buildNameMap(srcDir: string, demosDir: string, packageName: string): ComponentModules {
 	const names: Record<string, ModuleEntry> = {}
 
 	collectDirNames(names, path.join(srcDir, 'components'), (name) => name)
@@ -271,7 +342,11 @@ function buildNameMap(srcDir: string, packageName: string): ComponentModules {
 
 	collectIndexNames(names, path.join(srcDir, 'layouts', 'index.ts'), 'layouts')
 
-	collectDemoExternals(names, path.join(srcDir, 'docs', 'demos'))
+	// `demosDir` is the plugin's resolved demos path, not `srcDir/docs/demos`: the
+	// two diverge when the `srcDir` option overrides source-root detection, and
+	// recomputing from `srcDir` there would read a non-existent directory and drop
+	// every external component from the name map.
+	collectDemoExternals(names, demosDir)
 
 	return { packageName, names }
 }
@@ -367,19 +442,22 @@ function findSrcDir(root: string): string {
 /**
  * The single Vite plugin backing the docs site. It provides:
  *
- *  - `virtual:api-reference`: prop data parsed from component sources
+ *  - `virtual:api-reference-manifest`: `{ id → () => import(perComponentModule) }`
+ *    over prop data parsed from component sources, one lazily-chunked
+ *    `virtual:api-reference/<id>` module per component
  *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
- *  - an `enforce: 'pre'` transform attaching helper `__code` to demo sources
+ *  - an `enforce: 'pre'` transform attaching helper `__code` and per-Example
+ *    `__facts` (source-facts synthesis) to demo sources
  *
  * Returns two plugin objects. Vite's `enforce` is plugin-wide; the `__code`
  * transform reads a demo's raw TSX before JSX lowering and lives in its own
  * `enforce: 'pre'` object.
  *
  * `docsPlugin({ vitest: true })` keeps the real component-modules map and the
- * tagging transform, stubs api-reference and demo-metas with empty defaults,
- * and drops the demo `__code` pre-transform.
+ * tagging transform, stubs the api-reference manifest and demo-metas with empty
+ * defaults, and drops the demo `__code` pre-transform.
  *
  * `packageName` is the documented library's import prefix (`ui`, `grid`, …),
  * baked into `virtual:component-modules` so derived snippets read
@@ -399,32 +477,68 @@ export function docsPlugin({
 	let srcDir = srcDirOption ?? ''
 	let demosDir = ''
 
+	// Per plugin instance, not module-global: the prune is keyed on this
+	// instance's `demosDir`, so a second instance in one process would evict the
+	// first's entries on every regeneration.
+	const demoMetaCache: DemoMetaCache = new Map()
+
+	// Lazily created on first read so `vitest` builds never open a Project. One
+	// long-lived extractor per plugin: it reuses its scoped ts-morph Project and
+	// re-extracts only the barrels a changed file feeds.
+	let extractor: ApiExtractor | null = null
+
+	const apiExtractor = (): ApiExtractor => {
+		extractor ??= createApiExtractor(srcDir)
+
+		return extractor
+	}
+
 	const main: Plugin = {
 		name: 'docs',
 
 		configResolved(config) {
 			srcDir = srcDirOption ?? findSrcDir(config.root)
-			demosDir = path.resolve(config.root, 'demos')
+
+			// Derive the demos dir from the resolved source root, not `config.root`:
+			// a docs build roots at `src/docs` (so `config.root/demos` happens to
+			// match), but a test run roots at the package dir, where only
+			// `srcDir/docs/demos` points at the real demos. One source keeps every
+			// consumer (metas, the name map, the `__code` transform) aligned.
+			demosDir = path.join(srcDir, 'docs', 'demos')
 		},
 
 		...virtualJsonModules([
 			{
-				id: 'virtual:api-reference',
-				generate: () => (vitest ? {} : buildApi(srcDir)),
+				// A cold or invalidated cache blocks dev first paint on a full
+				// extraction pass the open page can never read. The disk cache makes
+				// that rare, so the fix stays unwritten. To take it, key the manifest
+				// off `listBarrels` alone and defer extraction to each key read. Do
+				// that only once cold-cache starts prove common, as on fresh clones.
+				prefix: 'virtual:api-reference/',
+				manifestId: 'virtual:api-reference-manifest',
+				generate: () => (vitest ? {} : apiExtractor().getAll()),
 				shouldInvalidate: (file) =>
+					!vitest &&
 					file.startsWith(srcDir) &&
 					/\.tsx?$/.test(file) &&
-					!file.includes(`${path.sep}docs${path.sep}`),
+					!file.includes(`${path.sep}docs${path.sep}`) &&
+					apiExtractor().notifyChanged(file),
 			},
 			{
 				id: 'virtual:demo-metas',
-				generate: () => (vitest ? {} : generateDemoMetas(demosDir)),
-				shouldInvalidate: (file) => file.startsWith(demosDir) && file.endsWith('.tsx'),
+				generate: () => (vitest ? {} : generateDemoMetas(demosDir, demoMetaCache)),
+				shouldInvalidate: (file) => isDemoFile(file, demosDir),
 			},
 			{
 				id: 'virtual:component-modules',
-				generate: () => buildNameMap(srcDir, packageName),
-				shouldInvalidate: (file) => file.startsWith(srcDir),
+				generate: () => buildNameMap(srcDir, demosDir, packageName),
+				// Exactly what `buildNameMap` reads: the public barrels
+				// `moduleNameFor` recognizes, plus the demos it scans for external
+				// components. A test, a stylesheet, or a component body cannot change
+				// the map, and re-running it re-reads every barrel and re-parses every
+				// demo — so `srcDir` alone was far too wide a predicate.
+				shouldInvalidate: (file) =>
+					moduleNameFor(file, srcDir) !== null || isDemoFile(file, demosDir),
 			},
 		]),
 
@@ -436,6 +550,17 @@ export function docsPlugin({
 			const moduleName = moduleNameFor(cleanId, srcDir)
 
 			if (!moduleName) return
+
+			// Regenerating from the parsed named re-exports would drop any other
+			// export form; leave such a barrel untagged rather than silently losing
+			// its exports (a runtime break in dev and prod).
+			if (hasUnmodeledExports(code, cleanId)) {
+				console.warn(
+					`docs: ${cleanId} mixes non-re-export forms; skipping component tagging to preserve its exports`,
+				)
+
+				return
+			}
 
 			const tagged = buildTaggedBarrel(parseReExports(code, cleanId), moduleName)
 
@@ -452,24 +577,30 @@ export function docsPlugin({
 
 		enforce: 'pre',
 
-		// Attach each demo helper's full source as a `__code` static. Runs at
-		// `enforce: 'pre'` on raw TSX, before JSX lowering.
+		// Attach each demo helper's full source as a `__code` static, and inject
+		// per-Example `__facts` (authored prop sources, referenced declarations,
+		// import origins) for the walker's source-aware synthesis. Runs at
+		// `enforce: 'pre'` on raw TSX, before JSX lowering, over one shared parse.
 		transform(code, id) {
 			const cleanId = id.split('?')[0] ?? ''
 
-			if (!cleanId.startsWith(demosDir + path.sep)) return
+			if (!isDemoFile(cleanId, demosDir)) return
 
-			if (!cleanId.endsWith('.tsx')) return
+			const sf = ts.createSourceFile(cleanId, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
 
-			const helpers = collectHelpers(code)
+			const helpers = collectHelpers(code, sf)
 
-			if (helpers.length === 0) return
+			const withFacts = injectSourceFacts(code, { filePath: cleanId, srcDir }, sf)
+
+			if (helpers.length === 0 && withFacts === null) return
 
 			const tail = helpers
 				.map(({ name, code }) => `;Object.assign(${name}, { __code: ${JSON.stringify(code)} });`)
 				.join('\n')
 
-			return { code: `${code}\n\n${tail}\n`, map: null }
+			const base = withFacts ?? code
+
+			return { code: tail ? `${base}\n\n${tail}\n` : base, map: null }
 		},
 	}
 

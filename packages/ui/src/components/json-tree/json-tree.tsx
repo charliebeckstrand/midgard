@@ -10,9 +10,10 @@ import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-util
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
 
-type JsonTreeVirtualize = boolean | { estimateSize?: number; overscan?: number }
+/** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
+type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
 
-/** Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize`/`maxHeight` windowing. */
+/** Props for {@link JsonTree}: the `data` value, expansion controls, `search`, and optional `virtualize` windowing. */
 export type JsonTreeProps = {
 	/** The JSON value to render. */
 	data: JsonValue
@@ -27,14 +28,13 @@ export type JsonTreeProps = {
 	/** Search term to highlight and auto-expand matching nodes. Pass a string or `{ value, filter }` to also hide non-matching nodes. */
 	search?: Search
 	/**
-	 * Enables row virtualization. Flattens the visible tree into a linear list
-	 * and renders only the viewport slice plus overscan. Requires `maxHeight`.
+	 * Enables row virtualization with `{ maxHeight }` (the scroll-container
+	 * height) plus optional `estimateSize` / `overscan`. Flattens the visible
+	 * tree into a linear list and renders only the viewport slice plus overscan.
 	 * Expand/collapse is instant (no animation); leave this off when the
 	 * animation matters.
 	 */
 	virtualize?: JsonTreeVirtualize
-	/** Scroll-container height when `virtualize` is on. */
-	maxHeight?: string
 	className?: string
 }
 
@@ -47,7 +47,7 @@ export type JsonTreeProps = {
  * list and renders only the viewport slice plus overscan.
  *
  * @remarks
- * Client component. `virtualize` requires `maxHeight` (omitting it throws) and
+ * Client component. `virtualize` carries its own `maxHeight` and
  * disables expand/collapse animation.
  */
 export function JsonTree({
@@ -58,13 +58,19 @@ export function JsonTree({
 	onExpandedChange,
 	search,
 	virtualize,
-	maxHeight,
 	className,
 }: JsonTreeProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
+	// Outlives the nodes that write it, so a collapsed-then-reopened branch
+	// restores the expansions made inside it. See `JsonTreeContext.userOpen`.
+	const userOpen = useRef(new Map<string, boolean>())
+
 	const { value: searchValue, filter } = normalizeSearch(search)
 
+	// Keyed on `data` identity, so a structurally identical value with a new
+	// identity rebuilds the whole index. Correct as written: a content equality
+	// walk would cost more than the rebuild it avoids.
 	const searchIndex = useMemo(() => buildSearchIndex(data, searchValue), [data, searchValue])
 
 	const handleKeyDown = useA11yRoving(ref, {
@@ -72,15 +78,7 @@ export function JsonTree({
 		orientation: 'vertical',
 	})
 
-	if (virtualize && !maxHeight) {
-		throw new Error(
-			'<JsonTree virtualize> requires `maxHeight` — virtualization needs a scroll container of known size.',
-		)
-	}
-
-	const virtualizeEnabled = virtualize != null && virtualize !== false
-
-	if (virtualizeEnabled) {
+	if (virtualize != null) {
 		return (
 			<JsonTreeVirtualized
 				ref={ref}
@@ -92,8 +90,8 @@ export function JsonTree({
 				searchValue={searchValue}
 				filter={filter}
 				searchIndex={searchIndex}
-				virtualize={typeof virtualize === 'object' ? virtualize : {}}
-				maxHeight={maxHeight ?? ''}
+				virtualize={virtualize}
+				maxHeight={virtualize.maxHeight}
 				onKeyDown={handleKeyDown}
 				className={className}
 			/>
@@ -111,6 +109,7 @@ export function JsonTree({
 				path: '',
 				expanded,
 				onExpandedChange,
+				userOpen,
 			}}
 		>
 			<div

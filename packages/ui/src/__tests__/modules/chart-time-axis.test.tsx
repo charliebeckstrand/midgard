@@ -29,12 +29,12 @@ describe('chart time axis', () => {
 
 		const category = bySlot(line('category').container, 'chart-axis-x')?.textContent ?? ''
 
-		// The category axis normalizes the date keys to MM-DD and thins them; the
-		// time axis lines month boundaries, so the day-precise first key is gone and
-		// far fewer labels remain.
-		expect(category).toContain('01-01')
+		// The category axis normalizes the date keys to the locale's month/day form
+		// and thins them; the time axis lines month boundaries, so the day-precise
+		// first key is gone and far fewer labels remain.
+		expect(category).toContain('01/01')
 
-		expect(time).not.toContain('01-01')
+		expect(time).not.toContain('01/01')
 
 		expect(time.length).toBeLessThan(category.length)
 	})
@@ -48,11 +48,11 @@ describe('chart time axis', () => {
 		expect(table).not.toContain('2026-01-01')
 	})
 
-	it('leaves the axis categorical by default, normalizing the date keys to MM-DD', () => {
+	it("leaves the axis categorical by default, normalizing the date keys to the locale's form", () => {
 		const category = bySlot(line().container, 'chart-axis-x')?.textContent ?? ''
 
 		// Per-row date labels, normalized but not replaced by calendar month ticks.
-		expect(category).toContain('01-01')
+		expect(category).toContain('01/01')
 
 		expect(category).not.toContain('2026-01-01')
 	})

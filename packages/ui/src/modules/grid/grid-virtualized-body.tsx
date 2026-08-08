@@ -1,14 +1,16 @@
 'use client'
 
-import { type ReactElement, type RefObject, useCallback, useEffect } from 'react'
+import { type ReactElement, type RefObject, useCallback, useEffect, useLayoutEffect } from 'react'
 import { TableBody, TableCell } from '../../components/table'
-import { Text, TextSkeleton } from '../../components/text'
+import { Text } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import { type GridRowsProps, renderGridRow } from './grid-row'
+import { GridSkeletonCells, GridSkeletonRows } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
+import type { GridColumnPinning } from './use-grid-table'
 
 /** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
 export type GridScrollRowIntoView = (rowIndex: number) => void
@@ -28,9 +30,12 @@ export type GridScrollRowIntoView = (rowIndex: number) => void
 function GridInfiniteScrollTrailer<T>({
 	infiniteScroll,
 	columns,
+	pinning,
 }: {
 	infiniteScroll: ResolvedInfiniteScroll
 	columns: GridColumn<T>[]
+	/** Frozen-column controls, so the pending row's skeleton cells stick like the loaded rows'. `null` when none. */
+	pinning: GridColumnPinning | null
 }): ReactElement | null {
 	const { error, loadingMore, showLoadingIndicator, hasMore, endMessage, loadingIndicator } =
 		infiniteScroll
@@ -54,11 +59,7 @@ function GridInfiniteScrollTrailer<T>({
 				{loadingIndicator ? (
 					<td colSpan={colSpan}>{loadingIndicator}</td>
 				) : (
-					columns.map((col) => (
-						<TableCell key={col.id}>
-							<TextSkeleton />
-						</TableCell>
-					))
+					<GridSkeletonCells columns={columns} pinning={pinning} />
 				)}
 			</tr>
 		)
@@ -86,6 +87,12 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 	/** Infinite-scroll gates driving end-detection and the trailing loading/end/error row, or `null` when off. */
 	infiniteScroll: ResolvedInfiniteScroll | null
+	/**
+	 * Re-fits the columns once this window's rows render, for the fit that had no
+	 * rows to measure (see `useGridColumnAutoSize`). Called from a layout effect, so
+	 * the widths land before those rows paint; a no-op once a fit has read rows.
+	 */
+	fitRenderedRows: () => void
 }
 
 /**
@@ -93,13 +100,17 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
  * via {@link useVirtualWindow}, padding the leading and trailing gap with
  * aria-hidden spacer `<tr>`s so scroll height matches the full row count.
  *
+ * Until that window resolves it holds the grid's loading skeleton rather than
+ * rendering an empty body, so rows arriving after mount swap the skeleton
+ * straight for data instead of flashing a rowless table (see the guard below).
+ *
  * @remarks Drives a `@tanstack/react-virtual` measurement lifecycle; assumes
  * uniform `estimateSize` row heights and requires a scroll container of known
  * height (see {@link GridProps.maxHeight}).
  * @internal
  */
 export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
-	const { scrollRef, rows, visibleColumns, estimateSize, overscan } = props
+	const { scrollRef, rows, visibleColumns, estimateSize, overscan, pinning } = props
 
 	// Stable getter for the scroll element; the ref object never changes.
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
@@ -128,6 +139,21 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 		scrollRef,
 	})
 
+	// The autosizer measures the rendered cells, and this body renders its rows a
+	// commit or two after the ones that supplied them — the virtualizer re-attaches
+	// to its scroll element only once the refs are in place (see `useVirtualWindow`),
+	// so a grid whose rows arrive after mount fits against an empty body first. Tell
+	// the autosizer from a layout effect, before this window paints, so the rows'
+	// first frame carries content widths rather than the floor-only fit.
+	const { fitRenderedRows } = props
+
+	useLayoutEffect(() => {
+		// Read so a landed (or re-windowed) row set re-runs this effect.
+		void virtualItems.length
+
+		fitRenderedRows()
+	}, [virtualItems.length, fitRenderedRows])
+
 	// Publish a row-scroller to the cursor while this windowed body is mounted, so a
 	// keyboard jump can scroll an off-window row into the window before the cursor
 	// points `aria-activedescendant` at it; cleared when the body unmounts.
@@ -140,6 +166,18 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 			scrollIntoViewRef.current = null
 		}
 	}, [scrollToIndex, scrollIntoViewRef])
+
+	// Rows are loaded but the window has none to show: hold the loading skeleton
+	// rather than render an empty body. The window is empty until the virtualizer
+	// has resolved *and* measured its scroll element — a commit or two after the
+	// rows themselves, since it re-attaches only once the refs are in place (see
+	// `useVirtualWindow`) — and stays empty while that element measures zero (a
+	// `display: none` panel, a server render). The grid's own skeleton has just
+	// been dropped in those frames (`loading` went false with the rows), so
+	// continuing it keeps the skeleton → rows swap atomic, landing in the same
+	// commit as the fit that sizes their columns; without it the body paints as a
+	// headers-only, rowless table for a frame or two.
+	const warming = rows.length > 0 && virtualItems.length === 0
 
 	return (
 		<TableBody>
@@ -154,13 +192,17 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 			)}
 			{/* Global row indices for the windowed rows; see `ariaRowIndex` for the
 			    offset math (a paginated, virtualized window starts past prior pages). */}
-			{virtualItems.map((vr) =>
-				renderGridRow(
-					props,
-					rows[vr.index] as T,
-					vr.index,
-					ariaRowIndex(props.rowIndexOffset, vr.index),
-				),
+			{warming ? (
+				<GridSkeletonRows columns={visibleColumns} pinning={pinning} />
+			) : (
+				virtualItems.map((vr) =>
+					renderGridRow(
+						props,
+						rows[vr.index] as T,
+						vr.index,
+						ariaRowIndex(props.rowIndexOffset, vr.index),
+					),
+				)
 			)}
 			{bottomSpacer > 0 && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
@@ -175,7 +217,11 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 			    terminal states — a failed load, an in-flight batch (opt-in), or the
 			    reached end — resolved in precedence order (see the trailer). */}
 			{infiniteScroll && (
-				<GridInfiniteScrollTrailer<T> infiniteScroll={infiniteScroll} columns={visibleColumns} />
+				<GridInfiniteScrollTrailer<T>
+					infiniteScroll={infiniteScroll}
+					columns={visibleColumns}
+					pinning={pinning}
+				/>
 			)}
 		</TableBody>
 	)

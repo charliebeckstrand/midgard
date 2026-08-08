@@ -37,11 +37,6 @@ describe('FileUpload drop variant selection', () => {
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 	})
 
-	// The truncation-tooltip label mirrors its text into an off-screen,
-	// aria-hidden span (useIsTruncated); ignore it so the visible label is the
-	// single match.
-	const IGNORE_MIRROR = { ignore: 'script, style, [aria-hidden="true"]' }
-
 	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
 		const { container } = renderUI(<FileUpload />)
 
@@ -49,7 +44,7 @@ describe('FileUpload drop variant selection', () => {
 
 		expect(screen.queryByText('Drop files here or click to browse')).not.toBeInTheDocument()
 
-		expect(screen.getByText('resume.pdf', IGNORE_MIRROR)).toBeInTheDocument()
+		expect(screen.getByText('resume.pdf')).toBeInTheDocument()
 
 		expect(screen.getByRole('button', { name: 'Reset' })).toBeInTheDocument()
 	})
@@ -73,13 +68,13 @@ describe('FileUpload drop variant selection', () => {
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
-		expect(screen.getByText('2 files selected', IGNORE_MIRROR)).toBeInTheDocument()
+		expect(screen.getByText('2 files selected')).toBeInTheDocument()
 	})
 
 	it('clears the selection and restores the drop prompt when Reset is clicked', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
-		const { container } = renderUI(<FileUpload onFiles={onFiles} />)
+		const { container } = renderUI(<FileUpload onAccept={onAccept} />)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -87,7 +82,7 @@ describe('FileUpload drop variant selection', () => {
 
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 
-		expect(onFiles).toHaveBeenLastCalledWith([])
+		expect(onAccept).toHaveBeenLastCalledWith([])
 	})
 
 	it('ignores the built-in selection display when custom children are provided', () => {
@@ -173,10 +168,10 @@ describe('FileUpload input variant selection', () => {
 	})
 
 	it('clears the selection and restores the placeholder when the clear button is clicked', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload variant="input" placeholder="Choose…" onFiles={onFiles} />,
+			<FileUpload variant="input" placeholder="Choose…" onAccept={onAccept} />,
 		)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
@@ -185,7 +180,7 @@ describe('FileUpload input variant selection', () => {
 
 		expect(screen.getByPlaceholderText('Choose…')).toHaveValue('')
 
-		expect(onFiles).toHaveBeenLastCalledWith([])
+		expect(onAccept).toHaveBeenLastCalledWith([])
 	})
 })
 
@@ -244,9 +239,9 @@ describe('FileUpload button variant selection', () => {
 	})
 
 	it('clears the selection and removes Reset when Reset is clicked', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
-		const { container } = renderUI(<FileUpload variant="button" onFiles={onFiles} />)
+		const { container } = renderUI(<FileUpload variant="button" onAccept={onAccept} />)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -256,14 +251,14 @@ describe('FileUpload button variant selection', () => {
 
 		expect(screen.queryByRole('button', { name: 'Reset' })).not.toBeInTheDocument()
 
-		expect(onFiles).toHaveBeenLastCalledWith([])
+		expect(onAccept).toHaveBeenLastCalledWith([])
 	})
 })
 
 describe('FileUpload + Control', () => {
 	it('surfaces invalid and required state onto the hidden file input', () => {
 		const { container } = renderUI(
-			<Control invalid required>
+			<Control severity="error" required>
 				<FileUpload>Upload</FileUpload>
 			</Control>,
 		)
@@ -277,7 +272,7 @@ describe('FileUpload + Control', () => {
 
 	it('points the hidden file input aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
-			<Control id="doc" invalid>
+			<Control id="doc" severity="error">
 				<Description>PDF only</Description>
 				<FileUpload>Upload</FileUpload>
 				<Message>A file is required</Message>
@@ -309,10 +304,10 @@ describe('FileUpload disabled dropzone', () => {
 	})
 
 	it('ignores dropped files while disabled', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload disabled onFiles={onFiles}>
+			<FileUpload disabled onAccept={onAccept}>
 				Upload
 			</FileUpload>,
 		)
@@ -325,19 +320,19 @@ describe('FileUpload disabled dropzone', () => {
 
 		fireEvent.drop(zone, { dataTransfer: { files } })
 
-		expect(onFiles).not.toHaveBeenCalled()
+		expect(onAccept).not.toHaveBeenCalled()
 	})
 
 	it('accepts dropped files when enabled', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
-		const { container } = renderUI(<FileUpload onFiles={onFiles}>Upload</FileUpload>)
+		const { container } = renderUI(<FileUpload onAccept={onAccept}>Upload</FileUpload>)
 
 		const zone = dropzone(container)
 
 		fireEvent.drop(zone, { dataTransfer: { files: makeFileList([new File(['x'], 'resume.pdf')]) } })
 
-		expect(onFiles).toHaveBeenCalledTimes(1)
+		expect(onAccept).toHaveBeenCalledTimes(1)
 	})
 })
 
@@ -347,8 +342,8 @@ describe('FileUpload constraints', () => {
 
 	const fileOfSize = (name: string, size: number) => new File(['x'.repeat(size)], name)
 
-	it('splits a drop into accepted onFiles and rejected onReject by maxSize', () => {
-		const onFiles = vi.fn()
+	it('splits a drop into accepted onAccept and rejected onReject by maxSize', () => {
+		const onAccept = vi.fn()
 
 		const onReject = vi.fn()
 
@@ -357,25 +352,25 @@ describe('FileUpload constraints', () => {
 		const big = fileOfSize('big.txt', 500)
 
 		const { container } = renderUI(
-			<FileUpload multiple maxSize={100} onFiles={onFiles} onReject={onReject}>
+			<FileUpload multiple maxSize={100} onAccept={onAccept} onReject={onReject}>
 				Upload
 			</FileUpload>,
 		)
 
 		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([small, big]) } })
 
-		expect(onFiles).toHaveBeenCalledWith([small])
+		expect(onAccept).toHaveBeenCalledWith([small])
 
 		expect(onReject).toHaveBeenCalledWith([{ file: big, reason: 'size' }])
 	})
 
 	it('does not fire onReject when every file satisfies the constraints', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
 		const onReject = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload multiple maxCount={2} onFiles={onFiles} onReject={onReject}>
+			<FileUpload multiple maxCount={2} onAccept={onAccept} onReject={onReject}>
 				Upload
 			</FileUpload>,
 		)
@@ -384,7 +379,7 @@ describe('FileUpload constraints', () => {
 			dataTransfer: { files: makeFileList([fileOfSize('a.txt', 1), fileOfSize('b.txt', 1)]) },
 		})
 
-		expect(onFiles).toHaveBeenCalledWith([
+		expect(onAccept).toHaveBeenCalledWith([
 			expect.objectContaining({ name: 'a.txt' }),
 			expect.objectContaining({ name: 'b.txt' }),
 		])

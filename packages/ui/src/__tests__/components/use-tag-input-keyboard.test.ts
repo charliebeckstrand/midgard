@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react'
+import type { KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useTagInputKeyboard } from '../../components/tag-input/use-tag-input-keyboard'
 import { makeKeyEvent } from '../helpers'
@@ -116,6 +117,54 @@ describe('useTagInputKeyboard', () => {
 		)
 
 		result.current(makeKeyEvent<HTMLInputElement>('Backspace'))
+
+		expect(removeTag).not.toHaveBeenCalled()
+	})
+
+	it('ignores Enter mid-IME-composition so a candidate selection commits no tag', () => {
+		const addTag = vi.fn(() => true)
+
+		const clearInput = vi.fn()
+
+		const { result } = renderHook(() =>
+			useTagInputKeyboard({
+				inputValue: 'draft',
+				addTag,
+				removeTag: vi.fn(),
+				clearInput,
+				tagCount: 0,
+			}),
+		)
+
+		result.current(
+			makeKeyEvent<HTMLInputElement>('Enter', {
+				nativeEvent: { isComposing: true } as KeyboardEvent['nativeEvent'],
+			}),
+		)
+
+		expect(addTag).not.toHaveBeenCalled()
+
+		expect(clearInput).not.toHaveBeenCalled()
+	})
+
+	it('ignores Backspace mid-IME-composition so a candidate edit deletes no committed tag', () => {
+		const removeTag = vi.fn()
+
+		const { result } = renderHook(() =>
+			useTagInputKeyboard({
+				inputValue: '',
+				addTag: vi.fn(),
+				removeTag,
+				clearInput: vi.fn(),
+				tagCount: 2,
+			}),
+		)
+
+		result.current(
+			makeKeyEvent<HTMLInputElement>('Backspace', {
+				nativeEvent: { isComposing: true } as KeyboardEvent['nativeEvent'],
+			}),
+		)
 
 		expect(removeTag).not.toHaveBeenCalled()
 	})

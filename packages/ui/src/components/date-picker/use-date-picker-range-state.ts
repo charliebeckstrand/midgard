@@ -1,10 +1,11 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef } from 'react'
 
-import { useFloatingUI } from '../../hooks'
+import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -43,12 +44,21 @@ export function useDatePickerRangeState({
 	footer,
 	placement = 'bottom-start',
 	disabled = false,
+	readOnly = false,
+	open: openProp,
+	defaultOpen,
+	onOpenChange: onOpenChangeProp,
 }: DatePickerBaseProps & DatePickerRangeProps) {
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
 
+	// The trigger label reads the same ambient locale the Calendar beside it does.
+	const ambient = useLocale()
+
 	const resolvedDisabled = disabled || control?.disabled === true
+
+	const resolvedReadOnly = readOnly || control?.readOnly === true
 
 	// Binds the committed range to an enclosing Form field by `name`. The
 	// reducer holds only the in-progress selection; the final `[Date, Date]`
@@ -64,7 +74,23 @@ export function useDatePickerRangeState({
 		onValueChange,
 	})
 
-	const [open, setOpen] = useState(false)
+	const [open = false, setOpenInner] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: defaultOpen ?? false,
+		onValueChange: (next) => onOpenChangeProp?.(next ?? false),
+	})
+
+	// readOnly keeps the trigger focusable and the value submitted but blocks
+	// every open path; closing stays allowed so an externally-opened calendar
+	// can still dismiss (matching Listbox).
+	const setOpen = useCallback(
+		(next: boolean) => {
+			if (resolvedReadOnly && next) return
+
+			setOpenInner(next)
+		},
+		[resolvedReadOnly, setOpenInner],
+	)
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
@@ -118,7 +144,7 @@ export function useDatePickerRangeState({
 		resetSelection()
 
 		setOpen(true)
-	}, [resetSelection])
+	}, [resetSelection, setOpen])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
@@ -126,7 +152,7 @@ export function useDatePickerRangeState({
 		// Closing the popover is the field's "blur" — mark it touched so
 		// validateOn="touched" rules can fire.
 		setTouched()
-	}, [setTouched])
+	}, [setTouched, setOpen])
 
 	const handleClear = useCallback(() => {
 		setValue(undefined)
@@ -235,10 +261,10 @@ export function useDatePickerRangeState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid || fieldInvalid,
+		invalid: control?.severity === 'error' || fieldInvalid,
 		hasValue: value != null,
 		onClear: handleClear,
-		displayValue: value ? formatRange(value[0], value[1]) : '',
+		displayValue: value ? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat) : '',
 		open,
 		onOpenChange,
 		onTriggerKeyDown,

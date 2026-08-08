@@ -9,6 +9,7 @@ export {
 	type A11yDisclosureOptions,
 	useA11yDisclosure,
 } from './use-a11y-disclosure'
+export { useA11yHasTabbable } from './use-a11y-has-tabbable'
 export {
 	type A11yLiveLevel,
 	type A11yLiveRegionOptions,
@@ -21,7 +22,7 @@ export {
 	type A11yPanelRole,
 	useA11yPanel,
 } from './use-a11y-panel'
-export { useA11yRoving } from './use-a11y-roving'
+export { useA11yRoving, type VirtualItemSource } from './use-a11y-roving'
 export {
 	type A11yRelation,
 	type A11yScope,

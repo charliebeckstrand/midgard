@@ -1,31 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
-import type { MapSeriesColor } from '../../recipes/kata/map'
-
-/** The overlay kinds that register legend entries. @internal */
-export type MapOverlayKind = 'route' | 'point' | 'marker'
-
-/**
- * One overlay's legend registration: its identity, name, swatch shape, and
- * optional colour override and trailing detail. The surface resolves slot
- * colours across the registered order, after the region categories.
- *
- * @internal
- */
-export type MapOverlayEntry = {
-	/** Stable per-instance id (`useId`-derived); re-registering replaces in place. */
-	id: string
-	/** Legend and tooltip name. */
-	label: string
-	kind: MapOverlayKind
-	/** Swatch shape, mirroring the mark: `line` for routes and markers, `dot` for points. */
-	swatch: 'line' | 'dot'
-	/** Named mark colour override; defaults to the next slot after the categories. */
-	color?: MapSeriesColor
-	/** A trailing readout — a route's mileage, a point's value. */
-	detail?: string
-}
+import type { MapOverlayEntry } from './engine/map-overlay/entry'
 
 /**
  * The plat's overlay ledger: children register their legend entries on mount

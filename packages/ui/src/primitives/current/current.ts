@@ -3,11 +3,13 @@
 import { type RefObject, useMemo } from 'react'
 import { createContext } from '../../core'
 import { useControllable } from '../../hooks'
+import type { Mount } from '../mount'
 
 /** Value carried by `CurrentContext`: the active panel `value` and its change handler. */
 export type CurrentContextValue = {
 	value: string | undefined
-	onValueChange: ((value: string | undefined) => void) | undefined
+	/** Fires with the newly active value, or `null` once none is active (CONVENTIONS §7.3). */
+	onValueChange: ((value: string | null) => void) | undefined
 }
 
 /**
@@ -32,9 +34,10 @@ export const [CurrentContext, useCurrent] = createContext<CurrentContextValue | 
  * via `useControllable`.
  */
 export function useCurrentState(props: {
-	value?: string
+	/** Controlled active value. `undefined` leaves it uncontrolled; `null` keeps it controlled with none active (CONVENTIONS §7.3). */
+	value?: string | null
 	defaultValue?: string
-	onValueChange?: (value: string | undefined) => void
+	onValueChange?: (value: string | null) => void
 }): CurrentContextValue {
 	const [value, setValue] = useControllable({
 		value: props.value,
@@ -85,7 +88,8 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
 )
 
 /**
- * Mount policy for {@link CurrentContent} panels:
+ * Mount policy for {@link CurrentContent} panels — the shared {@link Mount}
+ * vocabulary, named for this cascade:
  *
  * - `always` — every panel is mounted up front and inactive ones are held (state
  *   preserved, effects paused).
@@ -95,21 +99,7 @@ export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<
  *   panel and resets its state — under a fading container, once its fade-out
  *   completes.
  */
-export type CurrentMount = 'always' | 'lazy' | 'active'
-
-/**
- * Resolves the effective {@link CurrentMount} for a {@link CurrentContents}: an
- * explicit `mount` wins, otherwise panels mount `active`-only — only the active
- * panel sits in the DOM. `fade` drives the height animation independently, so a
- * container that keeps inactive panels mounted opts in with `mount="always"`
- * (or `"lazy"`). Kept a function, and still taking `fade`, so the mount and
- * fade axes can re-couple in one place if that policy ever changes.
- *
- * @internal
- */
-export function resolveMount(_fade: boolean, mount: CurrentMount | undefined): CurrentMount {
-	return mount ?? 'active'
-}
+export type CurrentMount = Mount
 
 /**
  * Mount policy broadcast from {@link CurrentContents} to its {@link CurrentContent}

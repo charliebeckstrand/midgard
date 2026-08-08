@@ -1,12 +1,12 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { ugoki } from '../kiso'
+import { sou, ugoki } from '../kiso'
 
-const { toast } = ugoki
+const { spring, toast } = ugoki
 
 const viewport = defineRecipe({
 	base: [
-		// `z-[100]`: toasts are the topmost layer, above app chrome and overlays.
-		'fixed z-[100] top-0 bottom-0 flex flex-col',
+		sou.toast,
+		'fixed top-0 bottom-0 flex flex-col',
 		'max-sm:inset-x-0 max-sm:justify-end',
 		'p-4',
 		'pointer-events-none',
@@ -29,6 +29,8 @@ export const k = {
 	],
 	card: 'w-80 max-sm:w-full',
 	motion: toast,
+	/** Neighbour re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
+	spring: spring.reflow,
 	/** Inter-toast gap (px), animated to 0 on dismiss; neighbours slide in. */
 	gap: 8,
 }

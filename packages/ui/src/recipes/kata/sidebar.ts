@@ -125,12 +125,7 @@ export const k = {
 		prefix: itemPrefix,
 		suffix: itemSuffix,
 	},
-	section: {
-		base: [flex.col, 'gap-0.5'],
-		// Horizontal inset that lines a composed section label up with item text;
-		// mirrors the `padding.p` step `itemBase` applies, per density size.
-		label: { sm: padding.px('1.5'), md: padding.px('2'), lg: padding.px('2.5') },
-	},
+	section: [flex.col, 'gap-0.5'],
 	list: [flex.col, 'gap-0.5'],
 	label: ['truncate', mini.srOnly],
 	header: [flex.row, 'gap-3'],

@@ -75,12 +75,6 @@ export function getCalendarDays(year: number, month: number): Date[] {
 	return days
 }
 
-/** Coalesces an optional locale to a concrete BCP 47 tag, falling back to the
- *  runtime default. The lib's locale-aware helpers require a string. @internal */
-export function resolveLocale(locale?: string): string {
-	return locale ?? new Intl.DateTimeFormat().resolvedOptions().locale
-}
-
 /**
  * 1-based grid column of the 1st of `year`/`month`, honoring the locale's
  * first day of the week (Sunday in `en-US`, Monday in most of Europe).
@@ -111,5 +105,7 @@ export function getWeekdayLabels(locale: string): string[] {
 export function getMonthLabels(locale: string): string[] {
 	const formatter = new Intl.DateTimeFormat(locale, { month: 'short' })
 
-	return Array.from({ length: 12 }, (_, index) => formatter.format(new Date(2021, index, 1)))
+	// Same fixed-reference rule as the weekday labels, through the file's own
+	// month helper: output depends on the locale, never on the current date.
+	return Array.from({ length: 12 }, (_, index) => formatter.format(firstOfMonth(2021, index)))
 }

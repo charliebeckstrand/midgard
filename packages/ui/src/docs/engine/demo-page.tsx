@@ -1,7 +1,7 @@
 'use client'
 
 import { PanelLeft, PanelLeftDashed } from 'lucide-react'
-import { use } from 'react'
+import { Fragment, Suspense, use } from 'react'
 import { Button } from '../../components/button'
 import { Flex } from '../../components/flex'
 import { Heading } from '../../components/heading'
@@ -9,9 +9,9 @@ import { Icon } from '../../components/icon'
 import { Stack } from '../../components/stack'
 import { SidebarLayoutHeader } from '../../layouts'
 import { ApiReference } from './components/api-reference'
-import { DemoNav, DemoNavProvider } from './components/demo-nav'
+import { DemoErrorBoundary } from './components/error-boundary'
 import type { Demo } from './registry'
-import { getComponentApi, loadDemo } from './registry'
+import { hasComponentApi, loadComponentApi, loadDemo } from './registry'
 
 /**
  * The route body for one demo: its lazily-loaded component, a sidebar-lock
@@ -29,10 +29,8 @@ export function DemoPage({
 }) {
 	const Component = use(loadDemo(demo.id))
 
-	const api = getComponentApi(demo.id)
-
 	return (
-		<DemoNavProvider>
+		<Fragment>
 			<SidebarLayoutHeader>
 				<Flex align="center" gap="md">
 					<Button
@@ -43,19 +41,36 @@ export function DemoPage({
 					>
 						<Icon icon={locked ? <PanelLeftDashed /> : <PanelLeft />} />
 					</Button>
-					<DemoNav />
 					<Heading>{demo.name}</Heading>
 				</Flex>
 			</SidebarLayoutHeader>
 			<Stack gap="xl">
 				<Component />
-				{api && (
-					<Stack gap="sm">
-						<Heading level={2}>API Reference</Heading>
-						<ApiReference api={api} />
-					</Stack>
+				{hasComponentApi(demo.id) && (
+					// Its own suspense boundary so the demo paints immediately while the
+					// API data's chunk streams in, rather than suspending the whole route,
+					// and its own error boundary so a failed chunk degrades to nothing
+					// instead of replacing the already-rendered demo through the
+					// route-level boundary.
+					<DemoErrorBoundary fallback={() => null}>
+						<Suspense fallback={null}>
+							<ApiReferenceSection id={demo.id} />
+						</Suspense>
+					</DemoErrorBoundary>
 				)}
 			</Stack>
-		</DemoNavProvider>
+		</Fragment>
+	)
+}
+
+/** The API-reference section for a component, suspending on its lazy chunk. */
+function ApiReferenceSection({ id }: { id: string }) {
+	const api = use(loadComponentApi(id))
+
+	return (
+		<Stack gap="sm">
+			<Heading level={2}>API Reference</Heading>
+			<ApiReference api={api} />
+		</Stack>
 	)
 }

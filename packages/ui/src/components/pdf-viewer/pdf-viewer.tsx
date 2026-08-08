@@ -9,7 +9,7 @@ import { PdfViewerViewport } from './pdf-viewer-viewport'
 import type { PdfViewerPage } from './types'
 import { usePdfViewer } from './use-pdf-viewer'
 
-/** Props for {@link PdfViewer}: the document source (`pages` or `src`), controlled page state, and zoom/rotation defaults. */
+/** Props for {@link PdfViewer}: the document source (`pages` or `src`), controlled page state, and zoom defaults. */
 export type PdfViewerProps = {
 	/**
 	 * Pre-rendered page images, in order. When provided, drives what's rendered.
@@ -35,8 +35,6 @@ export type PdfViewerProps = {
 	defaultZoom?: number
 	/** Discrete zoom levels, ascending. Zoom in/out steps through this list. */
 	zoomLevels?: number[]
-	/** Initial rotation in degrees. Snaps to multiples of 90. */
-	defaultRotation?: number
 	className?: string
 	'aria-label'?: string
 }
@@ -51,7 +49,6 @@ export function PdfViewer({
 	onPageChange,
 	defaultZoom,
 	zoomLevels,
-	defaultRotation,
 	className,
 	'aria-label': ariaLabel = 'PDF viewer',
 }: PdfViewerProps) {
@@ -64,7 +61,6 @@ export function PdfViewer({
 		onPageChange,
 		defaultZoom,
 		zoomLevels,
-		defaultRotation,
 	})
 
 	return (

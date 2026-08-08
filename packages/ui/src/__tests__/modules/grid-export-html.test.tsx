@@ -4,6 +4,7 @@ import type { GridColumn } from '../../modules/grid'
 import { downloadExcel, rowsToXlsx } from '../../modules/grid/engine/grid-export/excel'
 import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
 import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
+import { captureAppended } from '../helpers/capture-appended'
 
 type Row = { id: number; name: string; role: string }
 
@@ -134,41 +135,23 @@ describe('rowsToPrintHtml', () => {
 
 describe('printRows', () => {
 	it('appends a hidden iframe carrying the printable document as srcdoc', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
-
-		expect(iframe.tagName).toBe('IFRAME')
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		expect(iframe.srcdoc).toBe(rowsToPrintHtml(columns, rows))
-
-		appendChild.mockRestore()
 	})
 
 	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
 
 		iframe.dispatchEvent(new Event('load'))
 
 		expect(iframe.parentNode).toBeNull()
-
-		appendChild.mockRestore()
 	})
 
 	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -184,18 +167,10 @@ describe('printRows', () => {
 
 		// Cleanup is deferred to the afterprint event, so the iframe is still attached.
 		expect(iframe.parentNode).not.toBeNull()
-
-		iframe.remove()
-
-		appendChild.mockRestore()
 	})
 
 	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const appendChild = vi.spyOn(document.body, 'appendChild')
-
-		printRows(columns, rows)
-
-		const iframe = appendChild.mock.calls.at(-1)?.[0] as HTMLIFrameElement
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
 
 		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
 
@@ -209,7 +184,5 @@ describe('printRows', () => {
 		window.dispatchEvent(new Event('focus'))
 
 		expect(iframe.parentNode).toBeNull()
-
-		appendChild.mockRestore()
 	})
 })

@@ -1,37 +1,66 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { GridActiveEdit } from './engine/grid-editing-utilities'
 
 /**
- * Row-level editing state shared with the data cells. An editable grid puts a
- * whole row into edit mode at once — every editable cell in a row whose key is in
- * `editableRows` renders its editor. Each editor stages its pending value through
- * `stageDraft` (held in the grid, not re-rendering it); the staged values flush
- * as one batch when the row leaves the set. `editableRows` flips only when a row
- * is added or removed, so cells read it without churning as the user types.
+ * The editing session shared with the data cells. A row in `editableRows` puts
+ * every editable cell of that row into edit mode at once; a cell-scoped session
+ * (`scope: 'cell'`) narrows that to `activeEdit`, where the row still enters the
+ * set but only the named cell mounts an editor. Each editor stages its pending
+ * value through `stageDraft`, held in the grid rather than re-rendering it, and
+ * the staged values commit when their editor closes. Both fields flip only on a
+ * session transition, so cells read them without churning as the user types.
  *
  * @internal
  */
-export type GridRowEditing = {
+export type GridEditingSession = {
 	/** Row keys currently in edit mode; a cell whose row key is here renders its editor. */
 	editableRows: Set<string | number>
-	/** Stage a cell's pending value (held until the row's edits flush on exit). */
+	/**
+	 * The one cell a cell-scoped session edits (`scope: 'cell'`), narrowing the
+	 * row's editors to it. `null` under the default row scope, where every
+	 * editable cell of a set row mounts its editor.
+	 */
+	activeEdit: GridActiveEdit | null
+	/** Stage a cell's pending value (held until its editor closes and the value commits). */
 	stageDraft: (rowKey: string | number, columnId: string | number, value: unknown) => void
 	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
 	unstageDraft: (rowKey: string | number, columnId: string | number) => void
 	/**
-	 * Ends a row's edit session, saving its staged changes — the grid-owned exit
-	 * (an editor's Enter) under `trigger: 'doubleClick'`. Absent when the
-	 * consumer owns the session, whose save is removing the row from the set.
+	 * Ends the grid-owned session on a row under `trigger: 'doubleClick'` —
+	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the
+	 * staged values the session owns: under cell scope that is the active cell
+	 * alone, because the cells it visited before that one already committed.
+	 * A save is removing the row from the set, which is also the consumer's own
+	 * save; a discard has no consumer-driven equivalent, and is what
+	 * {@link GridRowActionsContext.discard} hands them.
 	 */
-	commitRowEdit?: (rowKey: string | number) => void
-	/**
-	 * Ends a row's edit session, discarding every staged draft — the grid-owned
-	 * abandon (an editor's Escape) under `trigger: 'doubleClick'`. Absent when
-	 * the consumer owns the session, where Escape reverts one cell instead.
-	 */
-	cancelRowEdit?: (rowKey: string | number) => void
+	endSession: (rowKey: string | number, outcome: 'save' | 'discard') => void
+	/** Whether the grid owns entry and the session keys (`trigger: 'doubleClick'`). */
+	sessionOwned: boolean
 }
 
-export const [GridRowEditingContext, useGridRowEditing] =
-	createContext<GridRowEditing>('GridRowEditing')
+const [GridEditingSessionContext, useSession] = createContext<GridEditingSession | null>(
+	'GridEditingSession',
+	{ default: null },
+)
+
+export { GridEditingSessionContext }
+
+/** The editing session. Throws outside an editable grid, where there is none. @internal */
+export function useGridEditingSession(): GridEditingSession {
+	const session = useSession()
+
+	if (session === null)
+		throw new Error('useGridEditingSession must be used within an editable Grid')
+
+	return session
+}
+
+/**
+ * The editing session, or `null` when the grid is not editable. For the surfaces
+ * every grid renders — the row actions column — which must ask rather than
+ * assume. @internal
+ */
+export const useGridEditingSessionOrNull = useSession

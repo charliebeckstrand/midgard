@@ -8,7 +8,7 @@
  */
 
 import { defineRecipe, mode } from '../../core/recipe'
-import { kokkaku } from '../kiso'
+import { kokkaku, ugoki } from '../kiso'
 
 /**
  * Per-colour `stroke` (line / point) and `fill` (bars / area) classes. The area
@@ -43,5 +43,8 @@ export const k = defineRecipe(
 		base: ['inline-block', 'align-middle'],
 		skeleton: kokkaku.sparkline,
 	},
-	{ color },
+	// `motion` is the shared data-viz mark-reveal family — the same timings the
+	// chart module draws with, so a sparkline and a chart animating side by side
+	// read as one.
+	{ color, motion: ugoki.mark },
 )

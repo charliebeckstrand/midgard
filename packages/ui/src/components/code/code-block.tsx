@@ -8,11 +8,22 @@ import { CopyButton } from '../copy-button'
 
 const MAX_CACHE_SIZE = 200
 
-/** Token cache keyed by theme + language + code. */
+/**
+ * Token cache keyed by theme + language + code. Process-wide, so it serves every
+ * CodeBlock instance, not only a remounting one — a mount policy that keeps a
+ * hidden block alive shifts the hit rate here but never retires the cache.
+ */
 const htmlCache = new Map<string, string>()
 
 const cacheKey = (code: string, lang: string, theme: string) => `${theme}\u0000${lang}\u0000${code}`
 
+/**
+ * Stores one tokenized snippet, evicting the oldest insertion once the cache is
+ * full. Insertion-ordered, not recency-ordered: a hit doesn't move its entry, so
+ * a snippet re-read past 200 distinct others is re-tokenized.
+ *
+ * @internal
+ */
 function cacheSet(key: string, value: string) {
 	if (htmlCache.size >= MAX_CACHE_SIZE) {
 		const first = htmlCache.keys().next().value as string
@@ -62,10 +73,10 @@ export type CodeBlockProps = {
  *
  * @remarks
  * Client-only (`'use client'`): highlighting runs in an effect. Results are
- * memoized in a process-wide LRU cache (max 200 entries) keyed by theme,
- * language, and code, so repeat snippets paint synchronously. The highlighted
- * `<pre>` is made non-focusable (`tabindex="-1"`) to keep scroll containers out
- * of the tab order.
+ * memoized in a process-wide cache (max 200 entries, oldest insertion evicted)
+ * keyed by theme, language, and code, so repeat snippets paint synchronously.
+ * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`) to keep scroll
+ * containers out of the tab order.
  */
 export function CodeBlock({
 	code: rawCode,

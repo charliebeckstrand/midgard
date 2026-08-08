@@ -39,7 +39,7 @@ describe('Grid footer', () => {
 		expect(bySlot(container, 'grid-footer')?.textContent).toContain('3 rows')
 	})
 
-	it('shows a singular row and "No rows" for an empty set', () => {
+	it('shows a singular row, and no count at all for an empty set', () => {
 		const one = renderUI(
 			<Grid
 				columns={columns}
@@ -55,7 +55,9 @@ describe('Grid footer', () => {
 			<Grid columns={columns} rows={[]} getKey={getKey} footer={{ rowTotal: true }} />,
 		)
 
-		expect(bySlot(none.container, 'grid-footer')?.textContent).toContain('No rows')
+		// The body's empty state already says there are no rows; a count beside it would
+		// restate it, and a tally of nothing explains nothing.
+		expect(bySlot(none.container, 'grid-footer')).toBeNull()
 	})
 
 	it('reads "N of M rows" while a client search narrows the set', () => {

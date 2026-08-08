@@ -6,7 +6,7 @@
  * Layer: kiso · Concern: gap utilities
  */
 
-import type { Ma } from './stops'
+import type { Ma } from './scale'
 
 export const gap = {
 	xs: 'gap-1',

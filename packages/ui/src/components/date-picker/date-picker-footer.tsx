@@ -55,6 +55,7 @@ export function DatePickerFooter({
 				if (kind === 'clear') {
 					return (
 						<Button
+							type="button"
 							key={kind}
 							variant="soft"
 							color="amber"
@@ -69,6 +70,7 @@ export function DatePickerFooter({
 
 				return (
 					<Button
+						type="button"
 						key={kind}
 						variant="soft"
 						color="blue"

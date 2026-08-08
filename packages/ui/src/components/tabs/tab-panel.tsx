@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useRef } from 'react'
+import { type ComponentPropsWithoutRef, useState } from 'react'
 import { cn, createSlot } from '../../core'
 import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/tabs'
@@ -26,14 +26,15 @@ export type TabPanelProps = {
  * signals focus with the design-system blue ring rather than the browser default.
  */
 export function TabPanel({ id, className, ...props }: TabPanelProps) {
-	const ref = useRef<HTMLDivElement>(null)
+	// State, not a ref: the probe re-measures on the node React attaches.
+	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
 
 	// `0` only when the panel has no focusable child.
-	const tabIndex = useTabPanelTabIndex(ref)
+	const tabIndex = useTabPanelTabIndex(panel)
 
 	return (
 		<div
-			ref={ref}
+			ref={setPanel}
 			data-slot="tab-panel"
 			role="tabpanel"
 			id={id ? `${id}-panel` : undefined}

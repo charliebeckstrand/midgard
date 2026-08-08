@@ -11,8 +11,6 @@ type ContextMenuEscape = Pick<MouseEvent, 'ctrlKey' | 'button'>
  *
  * Callers must yield before calling `preventDefault`: suppressing the native
  * menu and then returning would defeat the escape hatch.
- *
- * @internal
  */
 export function isNativeContextMenuRequest(event: ContextMenuEscape): boolean {
 	return event.ctrlKey && event.button === 2

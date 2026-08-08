@@ -437,17 +437,23 @@ describe('Grid', () => {
 			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
 		})
 
-		it('disables sorting for every column when sortable is false', () => {
-			const plainColumns = [
-				{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
-				{ id: 'age', title: 'Age', cell: (row: { age: number }) => row.age, sortable: true },
+		it('opts a column out of sorting with sortable: false while others default in', () => {
+			const mixedColumns = [
+				{
+					id: 'name',
+					title: 'Name',
+					cell: (row: { name: string }) => row.name,
+					sortable: false,
+				},
+				{ id: 'age', title: 'Age', cell: (row: { age: number }) => row.age },
 			]
 
-			renderUI(<Grid columns={plainColumns} rows={rows} getKey={getKey} sortable={false} />)
+			renderUI(<Grid columns={mixedColumns} rows={rows} getKey={getKey} />)
 
+			// The opted-out column has no sort control.
 			expect(screen.queryByRole('button', { name: 'Sort by Name' })).not.toBeInTheDocument()
 
-			// A column opting in explicitly still overrides the grid-level default.
+			// A column that declares nothing sorts by default.
 			expect(screen.getByRole('button', { name: 'Sort by Age' })).toBeInTheDocument()
 		})
 
@@ -687,14 +693,9 @@ describe('Grid', () => {
 	})
 
 	describe('column manager', () => {
-		it('renders the toolbar button when toolbarButton is set', () => {
+		it('renders the toolbar button when toolbar is set', () => {
 			renderUI(
-				<Grid
-					columns={columns}
-					rows={rows}
-					getKey={getKey}
-					columnManager={{ toolbarButton: true }}
-				/>,
+				<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
 			)
 
 			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
@@ -706,18 +707,47 @@ describe('Grid', () => {
 			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
 		})
 
-		it('hides the toolbar button when the manager is disabled', () => {
+		it('hides the toolbar button when the manager is off', () => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} columnManager={false} />)
+
+			// `columnManager={false}` is the master switch — no button, no menu item.
+			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('keeps the manager to the toolbar when its context-menu surface is off', () => {
 			renderUI(
 				<Grid
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ enabled: false, toolbarButton: true }}
+					columnManager={{ toolbar: true, contextMenu: false }}
 				/>,
 			)
 
-			// `enabled: false` is the master switch; the button opt-in can't override it.
-			expect(screen.queryByRole('button', { name: 'Manage columns' })).not.toBeInTheDocument()
+			expect(screen.getByRole('button', { name: 'Manage columns' })).toBeInTheDocument()
+
+			const header = screen.getAllByRole('columnheader')[0]
+
+			if (!header) throw new Error('no column header')
+
+			fireEvent.contextMenu(header)
+
+			expect(screen.queryByRole('menuitem', { name: 'Manage columns' })).not.toBeInTheDocument()
+		})
+
+		it('mounts the dialog for a bound open state with both surfaces off', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnManager={{ contextMenu: false, open: true }}
+				/>,
+			)
+
+			// Neither surface offers the manager, so the `open` binding is the only
+			// way in — the dialog has to mount for it, or the binding is inert.
+			expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 		})
 
 		it('honors a custom label on the toolbar button', () => {
@@ -726,7 +756,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={rows}
 					getKey={getKey}
-					columnManager={{ toolbarButton: true, label: 'Manage' }}
+					columnManager={{ toolbar: true, label: 'Manage' }}
 				/>,
 			)
 
@@ -831,7 +861,7 @@ describe('Grid', () => {
 					rows={rows}
 					getKey={getKey}
 					columnOrder={{ onValueChange }}
-					columnManager={{ toolbarButton: true, onHiddenChange }}
+					columnManager={{ toolbar: true, onHiddenChange }}
 				/>,
 			)
 
@@ -1195,7 +1225,7 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, showLoadingIndicator: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, loadingIndicator: true }}
 				/>,
 			)
 
@@ -1214,7 +1244,7 @@ describe('Grid', () => {
 				/>,
 			)
 
-			// The indicator is opt-in (`showLoadingIndicator`); a batch loads silently.
+			// The indicator is presence-implied (`loadingIndicator`); a batch loads silently.
 			expect(bySlot(container, 'grid-loading-more')).toBeNull()
 		})
 
@@ -1226,7 +1256,7 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, showLoadingIndicator: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, loadingIndicator: true }}
 				/>,
 			)
 
@@ -1250,7 +1280,6 @@ describe('Grid', () => {
 					infiniteScroll={{
 						onLoadMore: vi.fn(),
 						loadingMore: true,
-						showLoadingIndicator: true,
 						loadingIndicator: <span data-slot="custom-loading">Loading…</span>,
 					}}
 				/>,
@@ -1273,7 +1302,7 @@ describe('Grid', () => {
 					getKey={getKey}
 					virtualize
 					maxHeight="300px"
-					infiniteScroll={{ onLoadMore: vi.fn(), showLoadingIndicator: true }}
+					infiniteScroll={{ onLoadMore: vi.fn(), loadingIndicator: true }}
 				/>,
 			)
 
@@ -1330,7 +1359,7 @@ describe('Grid', () => {
 					infiniteScroll={{
 						onLoadMore: vi.fn(),
 						loadingMore: true,
-						showLoadingIndicator: true,
+						loadingIndicator: true,
 						hasMore: false,
 						endMessage: 'No more results',
 						error: 'Could not load more',

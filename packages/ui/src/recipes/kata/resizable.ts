@@ -27,7 +27,6 @@ export const k = {
 			),
 			'group-focus-visible/handle:bg-blue-500 dark:group-focus-visible/handle:bg-blue-500',
 		],
-		dragging: '',
 		horizontal: 'h-6 w-0.5',
 		vertical: 'w-6 h-0.5',
 	},

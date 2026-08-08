@@ -12,7 +12,7 @@ import { useKanbanKeyboard } from './use-kanban-keyboard'
 
 /**
  * Props for {@link Kanban}: the ordered `columns`, an item `getKey`, the
- * `onValueChange` reorder sink, and the `disabled` interaction flag.
+ * `onReorder` reorder sink, and the `disabled` interaction flag.
  *
  * @typeParam T - Item datum carried by each column.
  * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
@@ -23,7 +23,7 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 	/** Stable key extractor for items. */
 	getKey: (item: T) => string
 	/** Called with the next columns whenever ordering changes. Omit for read-only. */
-	onValueChange?: (next: C[]) => void
+	onReorder?: (next: C[]) => void
 	/** Disable all drag / keyboard reorder interaction. */
 	disabled?: boolean
 	children?: ReactNode
@@ -34,8 +34,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 /**
  * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
  * by pointer drag (with a drag overlay) or keyboard lift, emitting the next
- * `columns` array through `onValueChange`; the board is read-only when
- * `onValueChange` is omitted or `disabled` is set. Shares drag/keyboard state
+ * `columns` array through `onReorder`; the board is read-only when
+ * `onReorder` is omitted or `disabled` is set. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
  * Compose the column header/body slots within.
  *
@@ -49,13 +49,13 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 export function Kanban<T, C extends KanbanColumnBase<T>>({
 	columns,
 	getKey,
-	onValueChange,
+	onReorder,
 	disabled,
 	children,
 	className,
 	'aria-label': ariaLabel,
 }: KanbanProps<T, C>) {
-	const interactive = !disabled && !!onValueChange
+	const interactive = !disabled && !!onReorder
 
 	const sensors = useSortableSensors({ keyboard: false })
 
@@ -67,14 +67,14 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		handleDragOver,
 		handleDragEnd,
 		handleDragCancel,
-	} = useKanbanDrag({ columns, getKey, onValueChange })
+	} = useKanbanDrag({ columns, getKey, onReorder })
 
 	const containerRef = useRef<HTMLElement>(null)
 
 	const { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur } = useKanbanKeyboard({
 		columns,
 		getKey,
-		onValueChange,
+		onReorder,
 		containerRef,
 	})
 

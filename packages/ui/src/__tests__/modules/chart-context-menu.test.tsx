@@ -53,7 +53,7 @@ describe('Chart context menu', () => {
 				data={data}
 				series={[...series]}
 				contextMenu={{
-					items: [{ key: 'inspect', label: 'Inspect', onSelect: onInspect }],
+					items: [{ key: 'inspect', label: 'Inspect', onAction: onInspect }],
 					defaultItems: false,
 				}}
 			/>,
@@ -188,5 +188,81 @@ describe('Chart context menu', () => {
 		fireEvent.contextMenu(bySlot(container, 'chart') ?? container, { ctrlKey: true, button: 0 })
 
 		expect(screen.getByRole('menu')).toBeInTheDocument()
+	})
+
+	describe('function-form items (the right-clicked mark)', () => {
+		it('builds the items from the mark under the pointer', () => {
+			const items = vi.fn(({ index }: { index: number | null }) =>
+				index === null ? [] : [{ key: 'drill', label: `Drill ${index}`, onAction: () => {} }],
+			)
+
+			const { container } = renderUI(
+				<BarChart
+					aria-label="Revenue by quarter"
+					data={data}
+					series={[...series]}
+					contextMenu={{ items }}
+				/>,
+			)
+
+			const root = bySlot(container, 'chart')
+
+			if (!root) throw new Error('no chart root')
+
+			// The frame snapshots the hovered index on the contextmenu capture phase;
+			// with no mark hovered that snapshot is null, so a per-mark item is withheld.
+			fireEvent.contextMenu(root)
+
+			expect(items).toHaveBeenCalledWith({ index: null })
+
+			expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
+		})
+
+		it('still merges an array-form items block with the defaults', () => {
+			const { container } = renderUI(
+				<BarChart
+					aria-label="Revenue by quarter"
+					data={data}
+					series={[...series]}
+					contextMenu={{ items: [{ key: 'inspect', label: 'Inspect', onAction: () => {} }] }}
+				/>,
+			)
+
+			openChartMenu(container)
+
+			expect(screen.getByRole('menuitem', { name: 'Inspect' })).toBeInTheDocument()
+
+			expect(screen.getByRole('menuitem', { name: 'Download PNG' })).toBeInTheDocument()
+		})
+	})
+
+	// `ChartContextMenu` owns this rule for every host: it reads
+	// `ChartFullscreenContext` and renders its children bare inside the dialog it
+	// opened. Pinned here, on the `ChartFrame` path that the cartesian and sector
+	// charts share, rather than in one chart type's own suite.
+	it('opens a live fullscreen copy that does not nest a second menu', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				header="Revenue"
+				data={data}
+				series={[...series]}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+
+		const dialog = screen.getByRole('dialog')
+
+		// The re-mounted copy renders bare, so a right-click inside it opens nothing.
+		const inner = dialog.querySelector<HTMLElement>('[data-slot="chart"]')
+
+		expect(inner).not.toBeNull()
+
+		if (inner) fireEvent.contextMenu(inner)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 	})
 })

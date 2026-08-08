@@ -2,18 +2,10 @@
 
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
-import type { MapPoint2D } from './map-geometry'
-import type { LngLat } from './types'
-import type { MapOverlayEntry } from './use-map-legend-registry'
-
-/**
- * What the pointer is on: a region by feature index, or an overlay (route /
- * point / marker) by its registered legend id — the map's hover targets are
- * heterogeneous where a chart's are one category axis.
- *
- * @internal
- */
-export type MapHoverTarget = { kind: 'region'; index: number } | { kind: 'entry'; id: string }
+import type { MapHoverTarget } from './engine/map-hover/target'
+import type { MapOverlayEntry } from './engine/map-overlay/entry'
+import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
+import type { MapZoom } from './use-map-zoom'
 
 /**
  * The live hover readout the tooltip anchors to: the pointed target and the
@@ -45,17 +37,6 @@ export const [MapHoverStateContext, useMapHoverState] =
 
 export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('MapHoverSet')
 
-/** Whether two hover targets name the same mark, so a redundant write can bail. @internal */
-export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): boolean {
-	if (a === b) return true
-
-	if (a === null || b === null || a.kind !== b.kind) return false
-
-	return a.kind === 'region'
-		? a.index === (b as { index: number }).index
-		: a.id === (b as { id: string }).id
-}
-
 /**
  * The mark the pointer sits on — a region or an overlay entry — taking the
  * emphasis, so everything else on the map recedes behind it: the map's twin of
@@ -75,31 +56,42 @@ export const [MapPointedMarkContext, useMapPointedMark] = createContext<MapHover
 )
 
 /**
- * Whether a mark reads dimmed under the shared emphasis: the pointed mark
- * recedes everything but itself, else the legend's focused id dims marks
- * outside its group (`groupId` — an overlay's own entry id, a region's
- * category id), else nothing dims. The pointed mark winning over a still-held
- * legend focus mirrors the chart's mark-emphasis resolution.
+ * The view transform and its gestures, or `null` on a map that does not zoom —
+ * one encoding of that bit, which the layer, the plot region, and the keyboard
+ * cursor all test the same way. Provided by {@link MapZoomProvider}, which sits
+ * below the plat so a gesture never re-renders it.
  *
  * @internal
  */
-export function mapMarkDimmed(
-	pointed: MapHoverTarget | null,
-	self: MapHoverTarget,
-	emphasis: string | null,
-	groupId: string | null,
-): boolean {
-	if (pointed !== null) return !sameTarget(pointed, self)
+export const [MapZoomContext, useMapZoomView] = createContext<MapZoom | null>('MapZoom', {
+	default: null,
+})
 
-	return emphasis !== null && emphasis !== groupId
-}
+/**
+ * What one device pixel spans in frame units under the plat's zoom: `1` at the
+ * fit, and `1 / k` under a transform. It is the marks' one reading of the zoom,
+ * and the whole of it — a mark converts a pixel spec to frame units by one
+ * multiply and never asks what the transform is.
+ *
+ * Held apart from {@link MapPlatContextValue} because a zoom step churns this
+ * value on every wheel notch: the marks that answer it (the dots' hit circles,
+ * their cluster reach, and the count inside a summary) re-render per notch, and
+ * the region layer, the legend, and the plat above them all hold. Defaults to
+ * `1`, so a mark rendered outside a zooming plat reads the frame as device
+ * pixels — which every settled unzoomed frame is.
+ *
+ * @internal
+ */
+export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('MapZoomScale', {
+	default: 1,
+})
 
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection
  * as a closure, legend registration, the resolved slot colour per registered
- * entry, and the legend's toggle / emphasis state. An overlay renders
- * nothing until its id gains a colour — the beat after its registration
- * effect runs.
+ * entry, the legend's toggle / emphasis state, and the standing pick. An
+ * overlay renders nothing until its id gains a colour — the beat after its
+ * registration effect runs.
  *
  * @internal
  */
@@ -116,6 +108,8 @@ export type MapPlatContextValue = {
 	hidden: ReadonlySet<string>
 	/** The legend id under emphasis; marks outside its group dim. */
 	emphasis: string | null
+	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */
+	selectedOverlay: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */
 	animate: boolean
 }

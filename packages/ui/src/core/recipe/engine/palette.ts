@@ -49,40 +49,60 @@ export function definePalette<M extends string, E extends string = never, C exte
 	return { matrix, overlays: merged as Record<E, ClassValue> }
 }
 
+/** The palette's `variant → color → classes` lookup, in rule order. */
+export type PalettePairs = Map<string, Map<string, ClassValue[]>>
+
 /**
- * Expands a palette config into the implicit `color` axis + compound rules.
+ * Expands a palette config into the implicit `color` axis + compound rules,
+ * alongside the nested {@link PalettePairs} lookup the compiled call path
+ * reads — the flat rules stay for `.config` introspection.
  *
  * The colour set is derived from the keys of the matrix's own entries, not a
  * fixed list: a kata reading the standard `iro.palette` expands over the five
  * standard colours, while one reading `iro.spectrum` also picks up the
  * extended set. Overlay keys (synthetic values like `inherit`) join the axis
- * with a single class shared across every variant.
+ * with a single class shared across every variant; a colour key carrying both
+ * a matrix rule and an overlay rule keeps them in that order.
  */
 export function expandPalette(config: PaletteConfig): {
 	colorScaffold: Record<string, ClassValue>
 	compound: CompoundRule[]
+	pairs: PalettePairs
 } {
 	const colorScaffold: Record<string, ClassValue> = {}
 
 	const compound: CompoundRule[] = []
 
+	const pairs: PalettePairs = new Map()
+
 	for (const [variant, entry] of Object.entries(config.matrix)) {
 		const perColor = resolveEntry(entry)
+
+		const colors = new Map<string, ClassValue[]>()
+
+		pairs.set(variant, colors)
 
 		for (const [color, classValue] of Object.entries(perColor)) {
 			colorScaffold[color] = ''
 
 			compound.push({ variant, color, class: classValue } as CompoundRule)
+
+			colors.set(color, [classValue])
 		}
 
-		for (const [extraColor, classValue] of Object.entries(config.overlays)) {
+		for (const [extraColor, classValue] of Object.entries<ClassValue>(config.overlays)) {
 			colorScaffold[extraColor] = ''
 
 			compound.push({ variant, color: extraColor, class: classValue } as CompoundRule)
+
+			const existing = colors.get(extraColor)
+
+			if (existing === undefined) colors.set(extraColor, [classValue])
+			else existing.push(classValue)
 		}
 	}
 
-	return { colorScaffold, compound }
+	return { colorScaffold, compound, pairs }
 }
 
 /** Resolves a matrix entry to a per-colour class map, merging array entries by colour key. */

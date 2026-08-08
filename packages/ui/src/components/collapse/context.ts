@@ -2,6 +2,7 @@
 
 import { createContext } from '../../core'
 import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import type { Mount } from '../../primitives/mount'
 
 type CollapseAnimation = boolean | 'fade' | 'slide'
 
@@ -9,6 +10,7 @@ type CollapseContextValue = {
 	open: boolean
 	toggle: () => void
 	animate: CollapseAnimation
+	mount: Mount
 	triggerProps: A11yDisclosure['triggerProps']
 	panelProps: A11yDisclosure['panelProps']
 }

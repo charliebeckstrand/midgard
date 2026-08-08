@@ -135,7 +135,27 @@ describe('CurrencyInput', () => {
 		expect(input.value).toBe('750.50')
 	})
 
-	it('emits undefined when cleared', async () => {
+	it('reads a leading decimal as a fraction, not an integer', async () => {
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<CurrencyInput onValueChange={onChange} />)
+
+		const input = bySlot(container, 'currency-input') as HTMLInputElement
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.click(input)
+
+		await user.type(input, '.5')
+
+		// `.5` is 0.5, not 5: the padded leading `0` must not steal the caret and
+		// push the next digit into the integer part.
+		expect(onChange).toHaveBeenLastCalledWith(0.5)
+
+		expect(input.value).toBe('0.5')
+	})
+
+	it('emits null when cleared', async () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(<CurrencyInput defaultValue={50} onValueChange={onChange} />)
@@ -150,7 +170,7 @@ describe('CurrencyInput', () => {
 
 		await user.tab()
 
-		expect(onChange).toHaveBeenLastCalledWith(undefined)
+		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		expect(input.value).toBe('')
 	})

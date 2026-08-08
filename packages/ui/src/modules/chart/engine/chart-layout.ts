@@ -6,6 +6,7 @@
  */
 
 import type { FrameSizing } from '../../../hooks'
+import { parseAspectRatio } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import {
@@ -50,17 +51,6 @@ import { timeTicks } from './chart-time'
  */
 export type ChartAspectRatio = number | `${number}/${number}` | false
 
-/** Parses a {@link ChartAspectRatio} to its numeric `width / height`, or `null` when free-form. @internal */
-function ratioValue(ratio: ChartAspectRatio): number | null {
-	if (ratio === false) return null
-
-	if (typeof ratio === 'number') return ratio > 0 ? ratio : null
-
-	const [w, h] = ratio.split('/').map(Number)
-
-	return w && h && h > 0 ? w / h : null
-}
-
 /**
  * Resolves a chart frame's sizing policy from its props. An explicit `height`
  * always wins as a fixed pixel box. Otherwise a live `aspectRatio` derives the
@@ -81,7 +71,7 @@ export function chartFrameSizing(
 ): FrameSizing {
 	if (height !== undefined) return { mode: 'fixed', height }
 
-	const ratio = ratioValue(aspectRatio)
+	const ratio = parseAspectRatio(aspectRatio)
 
 	return ratio === null ? { mode: 'fill' } : { mode: 'aspect', ratio }
 }
@@ -148,7 +138,7 @@ export function chartFrameLayout(
 ): ChartFrameLayout {
 	if (height !== undefined) return { sizing: { mode: 'fixed', height }, outerAspect: null }
 
-	const ratio = ratioValue(aspectRatio)
+	const ratio = parseAspectRatio(aspectRatio)
 
 	if (ratio === null) return { sizing: { mode: 'fill' }, outerAspect: null }
 

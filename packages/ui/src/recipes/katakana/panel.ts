@@ -5,8 +5,8 @@
  * (title / description / header / body / footer / close), referencing kiso
  * in neither value nor type.
  *
- * Each kata's panel has its own variant axes (size + surface + side for
- * sheet, surface for drawer, size + surface for dialog). Unlike
+ * Each kata's panel has its own variant axes (width + surface + side for
+ * sheet, surface for drawer, width + surface for dialog). Unlike
  * `control` / `check`, the bridge doesn't own the variants. The kata
  * defines them via its own `defineRecipe` call and hands the result to
  * `panel(t, { … })`, which composes the bundle's `layout` with caller

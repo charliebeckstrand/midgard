@@ -1,12 +1,14 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { Mount } from '../../primitives/mount'
 import type { TreeSize } from '../../recipes/kata/tree'
 
 type TreeContextValue = {
 	depth: number
 	size: TreeSize
 	indent: boolean
+	mount: Mount
 }
 
 export const [TreeContext, useTreeContext] = createContext<TreeContextValue>('Tree')

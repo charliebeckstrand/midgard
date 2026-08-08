@@ -33,7 +33,13 @@ export function PdfViewerDocumentActions({
 		<ToolbarGroup aria-label="Document">
 			<Tooltip>
 				<TooltipTrigger>
-					<Button variant="plain" aria-label="Download" disabled={disabled} onClick={download}>
+					<Button
+						type="button"
+						variant="plain"
+						aria-label="Download"
+						disabled={disabled}
+						onClick={download}
+					>
 						<Icon icon={<Download />} />
 					</Button>
 				</TooltipTrigger>
@@ -41,7 +47,13 @@ export function PdfViewerDocumentActions({
 			</Tooltip>
 			<Tooltip>
 				<TooltipTrigger>
-					<Button variant="plain" aria-label="Print" disabled={disabled} onClick={print}>
+					<Button
+						type="button"
+						variant="plain"
+						aria-label="Print"
+						disabled={disabled}
+						onClick={print}
+					>
 						<Icon icon={<Printer />} />
 					</Button>
 				</TooltipTrigger>

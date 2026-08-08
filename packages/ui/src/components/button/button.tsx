@@ -33,11 +33,6 @@ type LoadingOptions = Pick<LoadingSpinnerProps, 'color' | 'size' | 'label'>
  */
 type ButtonBaseProps = ButtonVariants & {
 	/**
-	 * Stretch to fill the inline axis (`w-full`).
-	 * @defaultValue false
-	 */
-	block?: boolean
-	/**
 	 * Apply the tap-scale press spring; collapses under prefers-reduced-motion.
 	 * @defaultValue false
 	 */
@@ -58,7 +53,7 @@ type ButtonBaseProps = ButtonVariants & {
 
 /**
  * Props for {@link Button}: visual `variant`/`color`/`size`, the
- * `block`/`spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
+ * `spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
  * the polymorphic surface — a `<button>`, or an anchor when `href` is set.
  */
 export type ButtonProps = ButtonBaseProps &
@@ -77,12 +72,17 @@ export type ButtonProps = ButtonBaseProps &
  * `<LoadingSpinner>` while `loading`, collapses to a square hit area when icon-only,
  * and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
  * in loading trees.
+ *
+ * @remarks
+ * Mirrors native `<button>` submission semantics: an untyped Button emits no
+ * `type` attribute, so the DOM applies its native `submit` default and the
+ * Button submits an enclosing `<Form>`/`<form>`. Pass `type="button"` for
+ * non-submitting actions and `type="reset"` to reset.
  */
 export function Button({
 	variant,
 	color,
 	size,
-	block = false,
 	className,
 	children,
 	href,
@@ -91,6 +91,7 @@ export function Button({
 	loading: loadingProp = false,
 	prefix,
 	suffix,
+	type,
 	'data-slot': slot = 'button',
 	...props
 }: ButtonProps) {
@@ -110,6 +111,7 @@ export function Button({
 				data-slot={slot}
 				className={className}
 				loading={loading}
+				type={type as ComponentPropsWithoutRef<'button'>['type']}
 				{...(props as ComponentPropsWithoutRef<'button'>)}
 			>
 				{children}
@@ -121,7 +123,7 @@ export function Button({
 	// (see `data-[has-label]` in the button recipe), icon-only buttons stay square.
 	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
 
-	const classes = cn(k({ variant, color, size: resolvedSize }), block && 'w-full', className)
+	const classes = cn(k({ variant, color, size: resolvedSize }), className)
 
 	// Shared across the anchor and button renders; consumer `props` spread later
 	// can still override.
@@ -173,7 +175,7 @@ export function Button({
 				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				{...sharedProps}
-				type="button"
+				type={type}
 				className={classes}
 				{...buttonProps}
 				disabled={loading || buttonProps.disabled}

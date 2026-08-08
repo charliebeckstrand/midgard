@@ -38,12 +38,25 @@ describe('Grid context menus', () => {
 		fireEvent.contextMenu(node)
 	}
 
+	/** Opens one of the menu's hover-opened parents (Sort / Pin / Export / Auto-size). */
+	const openSubmenu = (name: string) => {
+		fireEvent.click(screen.getByRole('menuitem', { name }))
+	}
+
 	it('opens a column menu with sort controls on a header right-click', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 
 		rightClick('columnheader', 'Name')
+
+		// The sort controls are consolidated under a Sort parent, not spilled onto
+		// the top level.
+		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Sort' })).toHaveAttribute('aria-haspopup', 'menu')
+
+		openSubmenu('Sort')
 
 		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
 
@@ -64,6 +77,8 @@ describe('Grid context menus', () => {
 		)
 
 		rightClick('columnheader', 'Name')
+
+		openSubmenu('Sort')
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort descending' }))
 
@@ -200,7 +215,7 @@ describe('Grid context menus', () => {
 				contextMenu={{
 					cell: ({ row, value }, defaults) => [
 						...defaults,
-						{ key: 'flag', label: `Flag ${value}`, onSelect: () => onFlag(row) },
+						{ key: 'flag', label: `Flag ${value}`, onAction: () => onFlag(row) },
 					],
 				}}
 			/>,
@@ -214,15 +229,7 @@ describe('Grid context menus', () => {
 	})
 
 	it('opens the column manager from the "Manage columns" item', () => {
-		renderUI(
-			<Grid
-				columns={columns}
-				rows={rows}
-				getKey={getKey}
-				columnManager={{ enabled: true }}
-				contextMenu={{ column: true }}
-			/>,
-		)
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />)
 
 		rightClick('columnheader', 'Name')
 
@@ -231,13 +238,13 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument()
 	})
 
-	it('omits "Manage columns" when the column manager is disabled', () => {
+	it('omits "Manage columns" when the column manager is off', () => {
 		renderUI(
 			<Grid
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				columnManager={{ enabled: false }}
+				columnManager={false}
 				contextMenu={{ column: true }}
 			/>,
 		)
@@ -245,7 +252,7 @@ describe('Grid context menus', () => {
 		rightClick('columnheader', 'Name')
 
 		// The header menu still opens its own controls; only management is gated off.
-		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Sort' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('menuitem', { name: 'Manage columns' })).not.toBeInTheDocument()
 	})
@@ -255,7 +262,7 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+		expect(screen.getByRole('menuitem', { name: 'Sort' })).toBeInTheDocument()
 
 		// "Manage columns" reaches the manager even without the toolbar button.
 		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
@@ -276,27 +283,42 @@ describe('Grid context menus', () => {
 
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 
+		openSubmenu('Export')
+
 		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 	})
 
-	it('omits "Export to CSV" from the cell menu when exportable is false', () => {
+	it('omits the Export menu from the cell menu when exportable is false', () => {
 		renderUI(<Grid exportable={false} columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('cell', 'Alice')
 
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 
-		expect(screen.queryByRole('menuitem', { name: 'Export to CSV' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Export' })).not.toBeInTheDocument()
 	})
 
-	it('adds CSV and Excel to the cell menu by default with no exportable prop', () => {
+	it('adds CSV and Excel under the cell menu Export by default with no exportable prop', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('cell', 'Alice')
 
+		openSubmenu('Export')
+
 		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Export to Excel' })).toBeInTheDocument()
+	})
+
+	it('renders a lone export type as a plain row rather than a one-item Export menu', () => {
+		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
+
+		rightClick('cell', 'Alice')
+
+		// Nothing to disambiguate, so the single action stands on its own.
+		expect(screen.queryByRole('menuitem', { name: 'Export' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Export to CSV' })).toBeInTheDocument()
 	})
 
 	it('shows no menu when contextMenu is false', () => {
@@ -348,12 +370,79 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
+		openSubmenu('Sort')
+
 		expect(screen.getByRole('menuitem', { name: 'Clear sort' })).toBeInTheDocument()
 
-		// A different, unsorted column's menu omits it.
+		// A different, unsorted column's menu omits it — and opens its own Sort
+		// menu fresh, rather than carrying the previous column's over.
 		rightClick('columnheader', 'Role')
 
 		expect(screen.queryByRole('menuitem', { name: 'Clear sort' })).not.toBeInTheDocument()
+
+		openSubmenu('Sort')
+
+		expect(screen.queryByRole('menuitem', { name: 'Clear sort' })).not.toBeInTheDocument()
+	})
+
+	it('withholds the direction a sorted column already carries', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{ defaultValue: [{ column: 'name', direction: 'asc' }] }}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		openSubmenu('Sort')
+
+		// Sorted ascending: the row that would repeat that sort stays out, leaving
+		// the other direction and Clear sort.
+		expect(screen.queryByRole('menuitem', { name: 'Sort ascending' })).not.toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
+
+		// Sorting it the other way flips which row the menu withholds.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort descending' }))
+
+		rightClick('columnheader', 'Name')
+
+		openSubmenu('Sort')
+
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Sort descending' })).not.toBeInTheDocument()
+	})
+
+	it('keeps both directions for a column sorted within a multi-column sort', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				sort={{
+					defaultValue: [
+						{ column: 'name', direction: 'asc' },
+						{ column: 'role', direction: 'asc' },
+					],
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Role')
+
+		openSubmenu('Sort')
+
+		// Role sorts ascending, but each row collapses the sort onto Role alone —
+		// neither repeats the two-column sort, so neither is withheld.
+		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Sort descending' })).toBeInTheDocument()
+
+		expect(screen.getByRole('menuitem', { name: 'Clear sort' })).toBeInTheDocument()
 	})
 
 	it('clears the active sort when "Clear sort" is chosen', () => {
@@ -370,79 +459,57 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
+		openSubmenu('Sort')
+
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear sort' }))
 
 		expect(onValueChange).toHaveBeenCalledWith([])
 	})
 
-	it('adds "Auto-size all columns" to the header menu when resizable', () => {
+	it('gathers both fits under one Auto-size menu when resizable', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
+
+		openSubmenu('Auto-size')
+
+		// The per-column fit leads; the grid-wide one follows.
+		expect(screen.getByRole('menuitem', { name: 'Auto-size this column' })).toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Auto-size all columns' })).toBeInTheDocument()
 	})
 
-	it('omits "Auto-size all columns" when resizable is off', () => {
+	it('omits the Auto-size menu when resizable is off', () => {
 		renderUI(<Grid resizable={false} columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
-		expect(
-			screen.queryByRole('menuitem', { name: 'Auto-size all columns' }),
-		).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Auto-size' })).not.toBeInTheDocument()
 	})
 
-	it('groups "Auto-size all columns" with the table-wide tools below the divider', () => {
+	it('leads with "Manage columns" and rules off nothing', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
 		const menu = screen.getByRole('menu')
 
-		// The menu items and the lone divider (an <hr>) in render order.
+		// The menu rows and any divider (an <hr>) in render order.
 		const sequence = Array.from(menu.querySelectorAll('[role="menuitem"], hr'))
 
-		const dividerIndex = sequence.findIndex((node) => node.tagName === 'HR')
-
-		const autoSizeIndex = sequence.findIndex(
-			(node) => node.textContent?.trim() === 'Auto-size all columns',
-		)
-
-		const manageIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Manage columns')
-
-		// Auto-size all sits below the divider — a grid-wide action, not the clicked
-		// column's — and leads "Manage columns".
-		expect(dividerIndex).toBeGreaterThanOrEqual(0)
-
-		expect(autoSizeIndex).toBeGreaterThan(dividerIndex)
-
-		expect(manageIndex).toBe(autoSizeIndex + 1)
+		// The table-wide manager reads first, then the clicked column's own
+		// concerns, and no rule divides the defaults — a separator in a grid's menu
+		// marks a host's custom items, nothing else.
+		expect(sequence.map((node) => node.textContent?.trim())).toEqual([
+			'Manage columns',
+			'Sort',
+			'Pin',
+			'Auto-size',
+			'Export',
+		])
 	})
 
-	it('adds "Auto-size this column" above the divider when resizable', () => {
-		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
-
-		rightClick('columnheader', 'Name')
-
-		const menu = screen.getByRole('menu')
-
-		const sequence = Array.from(menu.querySelectorAll('[role="menuitem"], hr'))
-
-		const dividerIndex = sequence.findIndex((node) => node.tagName === 'HR')
-
-		const thisColumnIndex = sequence.findIndex(
-			(node) => node.textContent?.trim() === 'Auto-size this column',
-		)
-
-		// A per-column action, so it sits with the clicked column's own actions,
-		// above the divider that sets off the grid-wide tools.
-		expect(thisColumnIndex).toBeGreaterThanOrEqual(0)
-
-		expect(thisColumnIndex).toBeLessThan(dividerIndex)
-	})
-
-	it('places "Auto-size this column" directly under "Group by {column}"', () => {
+	it('places the Auto-size menu directly under "Group by {column}"', () => {
 		renderUI(
 			<Grid
 				resizable
@@ -459,13 +526,11 @@ describe('Grid context menus', () => {
 
 		const groupIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Group by Name')
 
-		const thisColumnIndex = sequence.findIndex(
-			(node) => node.textContent?.trim() === 'Auto-size this column',
-		)
+		const autoSizeIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Auto-size')
 
 		expect(groupIndex).toBeGreaterThanOrEqual(0)
 
-		expect(thisColumnIndex).toBe(groupIndex + 1)
+		expect(autoSizeIndex).toBe(groupIndex + 1)
 	})
 
 	it('omits "Auto-size this column" when resizable is off', () => {
@@ -545,6 +610,8 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
+		openSubmenu('Pin')
+
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Pin right' })).toBeInTheDocument()
@@ -556,6 +623,8 @@ describe('Grid context menus', () => {
 		renderUI(<Grid columns={pinnedColumns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
+
+		openSubmenu('Pin')
 
 		expect(screen.getByRole('menuitem', { name: 'Unpin' })).toBeInTheDocument()
 
@@ -572,6 +641,8 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
+		openSubmenu('Pin')
+
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin left' }))
 
 		const head = headerCell(container, 'name')
@@ -587,6 +658,8 @@ describe('Grid context menus', () => {
 		expect(headerCell(container, 'name')?.className).toContain('sticky')
 
 		rightClick('columnheader', 'Name')
+
+		openSubmenu('Pin')
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Unpin' }))
 
@@ -617,6 +690,8 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
+		openSubmenu('Pin')
+
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Pin left' }))
 
 		expect(onValueChange).toHaveBeenCalledWith({ name: 'left' })
@@ -634,7 +709,7 @@ describe('Grid context menus', () => {
 						{
 							key: 'custom',
 							label: pinned ? `Pinned ${pinned}` : 'Freeze right',
-							onSelect: pinRight,
+							onAction: pinRight,
 						},
 					],
 				}}
@@ -651,7 +726,7 @@ describe('Grid context menus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Pinned right' })).toBeInTheDocument()
 	})
 
-	it('withholds pin items on a locked column', () => {
+	it('withholds the Pin menu on a locked column', () => {
 		const lockedColumns: GridColumn<Row>[] = [
 			{
 				id: 'name',
@@ -667,13 +742,10 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		// Sort items still show; the pin items are withheld — a locked freeze is immutable.
-		expect(screen.getByRole('menuitem', { name: 'Sort ascending' })).toBeInTheDocument()
+		// The Sort menu still shows; the Pin menu is withheld outright — a locked
+		// freeze is immutable.
+		expect(screen.getByRole('menuitem', { name: 'Sort' })).toBeInTheDocument()
 
-		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
-
-		expect(screen.queryByRole('menuitem', { name: 'Pin right' })).not.toBeInTheDocument()
-
-		expect(screen.queryByRole('menuitem', { name: 'Unpin' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Pin' })).not.toBeInTheDocument()
 	})
 })

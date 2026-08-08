@@ -23,7 +23,7 @@ export function ToolbarSeparator({ className }: ToolbarSeparatorProps) {
 			data-slot="toolbar-separator"
 			orientation={isHorizontal ? 'vertical' : 'horizontal'}
 			soft
-			className={cn(isHorizontal ? 'mx-1 self-stretch' : 'my-1', className)}
+			className={cn(isHorizontal ? 'mx-1' : 'my-1', className)}
 		/>
 	)
 }

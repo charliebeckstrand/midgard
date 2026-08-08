@@ -27,7 +27,7 @@ export function GridAutoSizeConfirmDialog({
 	onConfirm,
 }: GridAutoSizeConfirmDialogProps) {
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange} size="md">
+		<Dialog open={open} onOpenChange={onOpenChange} width="md">
 			<DialogTitle>Auto-size all columns?</DialogTitle>
 			<DialogBody>
 				<Text>
@@ -36,10 +36,11 @@ export function GridAutoSizeConfirmDialog({
 				</Text>
 			</DialogBody>
 			<DialogFooter>
-				<Button variant="outline" onClick={() => onOpenChange(false)}>
+				<Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
 					Keep my widths
 				</Button>
 				<Button
+					type="button"
 					color="blue"
 					onClick={() => {
 						onOpenChange(false)

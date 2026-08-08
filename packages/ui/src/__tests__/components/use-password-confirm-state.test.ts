@@ -49,10 +49,10 @@ describe('usePasswordConfirmState', () => {
 		expect(result.current.status).toBe('idle')
 	})
 
-	it('fires onPasswordMatch once when the fields converge', () => {
-		const onPasswordMatch = vi.fn()
+	it('fires onMatchChange(true) once when the fields converge', () => {
+		const onMatchChange = vi.fn()
 
-		const { result } = renderHook(() => usePasswordConfirmState({ onPasswordMatch }))
+		const { result } = renderHook(() => usePasswordConfirmState({ onMatchChange }))
 
 		act(() => {
 			result.current.setPassword('hunter2')
@@ -60,13 +60,15 @@ describe('usePasswordConfirmState', () => {
 			result.current.setConfirm('hunter2')
 		})
 
-		expect(onPasswordMatch).toHaveBeenCalledOnce()
+		expect(onMatchChange).toHaveBeenCalledOnce()
+
+		expect(onMatchChange).toHaveBeenCalledWith(true)
 	})
 
-	it('fires onPasswordMismatch once when the fields diverge', () => {
-		const onPasswordMismatch = vi.fn()
+	it('fires onMatchChange(false) once when the fields diverge', () => {
+		const onMatchChange = vi.fn()
 
-		const { result } = renderHook(() => usePasswordConfirmState({ onPasswordMismatch }))
+		const { result } = renderHook(() => usePasswordConfirmState({ onMatchChange }))
 
 		act(() => {
 			result.current.setPassword('hunter2')
@@ -74,13 +76,15 @@ describe('usePasswordConfirmState', () => {
 			result.current.setConfirm('hunter3')
 		})
 
-		expect(onPasswordMismatch).toHaveBeenCalledOnce()
+		expect(onMatchChange).toHaveBeenCalledOnce()
+
+		expect(onMatchChange).toHaveBeenCalledWith(false)
 	})
 
-	it('does not refire callbacks on rerenders that hold the same matchState', () => {
-		const onPasswordMatch = vi.fn()
+	it('does not refire the callback on rerenders that hold the same matchState', () => {
+		const onMatchChange = vi.fn()
 
-		const { result, rerender } = renderHook(() => usePasswordConfirmState({ onPasswordMatch }))
+		const { result, rerender } = renderHook(() => usePasswordConfirmState({ onMatchChange }))
 
 		act(() => {
 			result.current.setPassword('hunter2')
@@ -88,12 +92,12 @@ describe('usePasswordConfirmState', () => {
 			result.current.setConfirm('hunter2')
 		})
 
-		expect(onPasswordMatch).toHaveBeenCalledOnce()
+		expect(onMatchChange).toHaveBeenCalledOnce()
 
 		rerender()
 
 		rerender()
 
-		expect(onPasswordMatch).toHaveBeenCalledOnce()
+		expect(onMatchChange).toHaveBeenCalledOnce()
 	})
 })

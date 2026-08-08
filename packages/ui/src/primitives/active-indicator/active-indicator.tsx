@@ -28,15 +28,12 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
  * Motion `LayoutGroup` so descendant {@link ActiveIndicator}s morph against each
  * other rather than against indicators in sibling groups.
  *
- * @param id - Explicit scope id; defaults to a generated `useId` value.
  * @remarks Wraps the group in {@link ReducedMotion} so the morph degrades to a
  * fade under `prefers-reduced-motion`.
  * @see {@link useActiveIndicatorScope}
  */
-export function ActiveIndicatorScope({ children, id }: { id?: string; children: ReactNode }) {
-	const fallbackId = useId()
-
-	const scopeId = id ?? fallbackId
+export function ActiveIndicatorScope({ children }: { children: ReactNode }) {
+	const scopeId = useId()
 
 	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
 
@@ -76,11 +73,9 @@ export function useActiveIndicator() {
 
 /**
  * Visual marker that morphs between sibling items via Motion's shared-element
- * transition.
+ * transition. Resolves its morph-scope id from the nearest
+ * {@link ActiveIndicatorScope}, falling back to the global `'current-indicator'`.
  *
- * @param layoutId - Explicit morph-scope id; overrides the id resolved from the
- * nearest {@link ActiveIndicatorScope}, which in turn falls back to the global
- * `'current-indicator'`.
  * @remarks Decorative (`pointer-events-none`): it paints behind the item and
  * never intercepts presses. Defaults to an `8px` corner radius, set inline so
  * Motion's layout projection can inverse-scale it mid-morph.
@@ -88,20 +83,16 @@ export function useActiveIndicator() {
  */
 export function ActiveIndicator({
 	ref,
-	layoutId,
 	className,
 	style,
-	children,
 }: {
 	ref?: Ref<HTMLSpanElement>
-	layoutId?: string
 	className?: string
 	style?: MotionStyle
-	children?: ReactNode
 }) {
 	const scopedLayoutId = useActiveIndicatorScope()
 
-	const resolvedLayoutId = layoutId ?? scopedLayoutId ?? 'current-indicator'
+	const resolvedLayoutId = scopedLayoutId ?? 'current-indicator'
 
 	// Unique per instance, stable across renders. With `layoutDependency`
 	// constant, external reflow does not animate the indicator.
@@ -123,9 +114,7 @@ export function ActiveIndicator({
 				// `borderRadius` during the shared-element transition.
 				style={{ borderRadius: INDICATOR_RADIUS, ...style }}
 				transition={k.spring}
-			>
-				{children}
-			</motion.span>
+			/>
 		</ReducedMotion>
 	)
 }

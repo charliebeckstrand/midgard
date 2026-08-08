@@ -2,7 +2,8 @@
 
 import { type ReactNode, useCallback } from 'react'
 import { createContext } from '../../../core'
-import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './types'
+import type { QueryField, QueryGroup } from '../engine/types'
+import type { QueryTreeActions } from '../use-query-tree'
 
 /** Registers (or, with `null`, unregisters) a focusable control under `key`. */
 export type FocusRegister = (key: string, el: HTMLElement | null) => void
@@ -20,14 +21,8 @@ export type QueryBuilderStateValue = {
 	requireRule: boolean
 }
 
-/** Tree-edit actions provided to rule/group consumers; referentially stable across edits. @internal */
-export type QueryBuilderActions = {
-	updateRule: (id: string, patch: Partial<QueryRule>) => void
-	updateCombinator: (id: string, combinator: QueryCombinator) => void
-	addRule: (groupId: string) => void
-	addGroup: (groupId: string) => void
-	remove: (id: string) => void
-}
+/** Tree-edit actions provided to rule/group consumers; referentially stable across edits. Aliases the headless {@link QueryTreeActions}. @internal */
+export type QueryBuilderActions = QueryTreeActions
 
 /** Combined shape for consumers that need state + actions + the current tree. */
 export type QueryBuilderContextValue = QueryBuilderStateValue &

@@ -333,6 +333,24 @@ export const dataDisplayCases: readonly Case[] = [
 			<MapPoint label="Depot" at={[15, 5]} />
 		</MapPlat>,
 	],
+	[
+		// The same plot with the zoom on and the readout off: the gestures are the
+		// pointer's, so the scale has to stay reachable from the one tab stop the
+		// zoom earns, and nothing under the aria-hidden SVG may become focusable
+		// with it.
+		'map (zoom)',
+		<MapPlat
+			key="mz"
+			aria-label="Delivery map"
+			geography={FIXTURE_GEOJSON}
+			data={FIXTURE_ROWS}
+			regionKey="state"
+			categoryKey="zone"
+			width={400}
+			tooltip={false}
+			zoom
+		/>,
+	],
 	['avatar', <Avatar key="av" initials="WC" alt="Wade Cooper" />],
 	['kbd', <Kbd key="kb">K</Kbd>],
 	['code', <Code key="cd">pnpm install</Code>],

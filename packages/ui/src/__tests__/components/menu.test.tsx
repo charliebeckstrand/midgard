@@ -9,12 +9,13 @@ import {
 	MenuLabel,
 	MenuSection,
 	MenuSeparator,
+	MenuSub,
 	MenuTrigger,
 } from '../../components/menu'
 import { useMenuContext } from '../../components/menu/context'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
@@ -130,6 +131,29 @@ describe('MenuTrigger', () => {
 		expect(onKeyDown).toHaveBeenCalled()
 	})
 
+	it("composes the cloned child's own ref with the floating reference", () => {
+		let node: HTMLElement | null = null
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button
+						type="button"
+						ref={(el) => {
+							node = el
+						}}
+					>
+						Open
+					</button>
+				</MenuTrigger>
+			</Menu>,
+		)
+
+		// The trigger clones the child and wires its own floating ref; the child's
+		// ref must still receive the node rather than be clobbered.
+		expect(node).toBe(screen.getByText('Open'))
+	})
+
 	it('toggles open and still calls a consumer onClick on the fallback button', () => {
 		// On the plain-button fallback a consumer onClick must not clobber the
 		// open toggle.
@@ -198,6 +222,27 @@ describe('MenuContent', () => {
 		expect(screen.getByText('Item')).not.toHaveFocus()
 	})
 
+	it('leaves Escape alone when rendered as a static menu', async () => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Menu defaultOpen onOpenChange={onOpenChange}>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		await userEvent.keyboard('{Escape}')
+
+		// A static menu is page furniture: it has no dismissed state, so it must
+		// not report a close, and must not claim the Escape press that an
+		// enclosing Dialog is waiting for.
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
+	})
+
 	it('renders portal content when placement is provided and menu is open', () => {
 		renderUI(
 			<Menu placement="bottom-start">
@@ -213,6 +258,150 @@ describe('MenuContent', () => {
 		fireEvent.click(screen.getByText('Open'))
 
 		expect(screen.getByText('Item')).toBeInTheDocument()
+	})
+
+	it('keeps focus on the trigger when a dropdown opens', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		trigger.focus()
+
+		fireEvent.click(trigger)
+
+		// Opening never pulls focus into the panel; it rests on the trigger so a
+		// portaled, animating panel can't drop it to <body> (WCAG 2.4.3).
+		expect(trigger).toHaveFocus()
+
+		expect(screen.getByRole('menu')).not.toHaveFocus()
+
+		expect(screen.getByRole('menuitem', { name: 'Edit' })).not.toHaveFocus()
+	})
+
+	it('closes the menu when Tab is pressed on the trigger', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger>
+					<button type="button">Open</button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		await user.click(trigger)
+
+		expect(screen.getByRole('menu')).toBeInTheDocument()
+
+		// Tab off the trigger dismisses the menu rather than leaving it open behind
+		// the moved focus.
+		await user.tab()
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		// Focus proceeds past the trigger; it is not snapped back to it.
+		expect(trigger).not.toHaveFocus()
+	})
+
+	// A key held when focus lands on the trigger (e.g. released from a HoldButton
+	// that moved focus on completion) must not open the menu: the trigger swallows
+	// the button's native activation until a discrete, fresh press re-arms it.
+	// jsdom does not synthesize a button's keyboard click, so these assert the
+	// `preventDefault` that suppresses it (fireEvent returns false when prevented).
+	describe('requires a fresh activation key press to open (no bleed-through)', () => {
+		function closedMenu() {
+			renderUI(
+				<Menu placement="bottom-start">
+					<MenuTrigger>
+						<button type="button">Open</button>
+					</MenuTrigger>
+					<MenuContent>
+						<MenuItem>Edit</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			return screen.getByRole('button', { name: 'Open' })
+		}
+
+		it("suppresses a held Space's keyup when no fresh press armed the trigger", () => {
+			const trigger = closedMenu()
+
+			// Space activates a button on keyup; with no prior keydown here it is a
+			// release from a press that began elsewhere.
+			expect(fireEvent.keyUp(trigger, { key: ' ' })).toBe(false)
+		})
+
+		it("suppresses a held Enter's auto-repeat keydown", () => {
+			const trigger = closedMenu()
+
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+		})
+
+		it('lets a fresh, non-repeat press through so the menu still opens', () => {
+			const trigger = closedMenu()
+
+			// A discrete Space press: keydown arms, keyup is honored (the native click
+			// it triggers opens the menu).
+			expect(fireEvent.keyDown(trigger, { key: ' ' })).toBe(true)
+			expect(fireEvent.keyUp(trigger, { key: ' ' })).toBe(true)
+
+			// A discrete Enter press fires its click on keydown; not suppressed.
+			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+		})
+
+		it('re-arms only on a fresh keydown, not on a repeat after release', () => {
+			const trigger = closedMenu()
+
+			// Held press bleeds in and is swallowed…
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+
+			// …then a discrete press is honored.
+			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+		})
+
+		it('swallows auto-repeat after a fresh press so holding does not re-toggle', () => {
+			const trigger = closedMenu()
+
+			// A held Enter fires the button's native click on every repeat keydown;
+			// swallowing the repeats keeps one press to one activation (no rapid
+			// open/close), even though the fresh press itself is honored.
+			expect(fireEvent.keyDown(trigger, { key: 'Enter' })).toBe(true)
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+			expect(fireEvent.keyDown(trigger, { key: 'Enter', repeat: true })).toBe(false)
+		})
+	})
+
+	it('pulls focus into the panel when a right-click context menu opens', () => {
+		renderUI(
+			<Menu>
+				<div data-testid="surface">right-click me</div>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.contextMenu(screen.getByTestId('surface'))
+
+		// A context menu has no persistent trigger to hold focus, so — unlike a
+		// dropdown — it moves focus into the panel for keyboard navigation.
+		expect(screen.getByRole('menu')).toHaveFocus()
 	})
 
 	it('wraps items in a scroll viewport carrying the overflow affordance', () => {
@@ -233,6 +422,67 @@ describe('MenuContent', () => {
 		// jsdom reports zero scroll extent, so the content never overflows and
 		// neither edge attribute may be stamped.
 		expect(viewport).not.toHaveAttribute('data-overflow-below')
+	})
+
+	describe('capped', () => {
+		/** The menu's scroll viewport, opened `static` so no pointer work is needed. */
+		const viewportFor = (capped?: boolean) => {
+			const { container } = renderUI(
+				<Menu defaultOpen capped={capped}>
+					<MenuContent>
+						<MenuItem>Item</MenuItem>
+					</MenuContent>
+				</Menu>,
+			)
+
+			const viewport = bySlot(container, 'menu-viewport')
+
+			if (!viewport) throw new Error('no menu viewport')
+
+			return viewport
+		}
+
+		it('emits no height cap by default, so the panel grows to its content', () => {
+			// Not "emits an overriding class": tailwind-merge leaves `max-h-none`
+			// beside `max-h-52`, so the recipe withholds the cap instead. Asserting
+			// the absence of *any* max-height pins that, and can't pass on a class
+			// that merely competes with the cap.
+			expect(viewportFor().className).not.toMatch(/(^|\s)max-h-/)
+		})
+
+		it('caps at the density height when opted in', () => {
+			expect(viewportFor(true)).toHaveClass('max-h-52')
+		})
+
+		it('keeps the scroll container either way, so a capped menu still reaches its end', () => {
+			for (const viewport of [viewportFor(), viewportFor(true)]) {
+				expect(viewport).toHaveClass('overflow-y-auto')
+			}
+		})
+
+		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
+			renderUI(
+				<Menu defaultOpen capped>
+					<MenuContent>
+						<MenuSub label="More">
+							<MenuItem>Nested</MenuItem>
+						</MenuSub>
+					</MenuContent>
+				</Menu>,
+			)
+
+			fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+
+			// The submenu renders its own viewport in a portal, so it reads the
+			// policy from context rather than inheriting the parent panel's classes.
+			const panels = Array.from(document.querySelectorAll('[data-slot="menu-viewport"]'))
+
+			expect(panels.length).toBeGreaterThan(1)
+
+			for (const panel of panels) {
+				expect(panel.className).toMatch(/(^|\s)max-h-/)
+			}
+		})
 	})
 
 	it('closes the menu when Escape is pressed on the menu panel', () => {

@@ -52,7 +52,7 @@ export function CalendarPicker({
 	return (
 		<Popover placement="bottom" open={pickerOpen} onOpenChange={handlePickerOpen}>
 			<PopoverTrigger>
-				<Button variant="plain" className={triggerClassName}>
+				<Button type="button" variant="plain" className={triggerClassName}>
 					{monthLabel}
 				</Button>
 			</PopoverTrigger>

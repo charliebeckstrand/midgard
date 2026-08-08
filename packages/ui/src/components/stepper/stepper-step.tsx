@@ -3,6 +3,7 @@
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
@@ -96,6 +97,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 		linear,
 		baseId,
 		hasPanels,
+		mount,
 	} = useStepper()
 
 	const state = computeState(value, currentValue)
@@ -128,12 +130,15 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 				data-slot="stepper-step"
 				data-state={state}
 				aria-current={state === 'current' ? 'step' : undefined}
-				// aria-controls applies only while a StepperPanels group exists and
-				// this step is current; the panel id is in the DOM only then.
-				aria-controls={hasPanels && state === 'current' ? panelId : undefined}
+				// aria-controls needs the panel id to actually be in the DOM: guaranteed
+				// for the current step, and for every step under a policy that mounts
+				// them all.
+				aria-controls={
+					hasPanels && (state === 'current' || mountsEveryPanel(mount)) ? panelId : undefined
+				}
 				disabled={isDisabled}
 				onClick={() => onValueChange(value)}
-				className={cn(classes, 'cursor-pointer')}
+				className={classes}
 			>
 				{inner}
 			</button>

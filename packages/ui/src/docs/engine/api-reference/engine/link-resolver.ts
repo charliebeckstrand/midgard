@@ -4,45 +4,65 @@ import type { DocLink } from '../types'
 import type { LinkResolver } from './extract-doc'
 import { unaliasSymbol } from './ts-utils'
 
+/** One extraction pass's link index: two lookups over one walk of the program. */
+export type LinkIndex = {
+	/** A name's hover card, or `null` when nothing indexes it. Memoized, misses included. */
+	resolve: LinkResolver
+	/** The source file that declares a name, or `undefined` when nothing indexes it. */
+	targetFile: (name: string) => string | undefined
+}
+
 /**
- * A package-wide index of declarations a `{@link}` can target, keyed by name.
- * TSDoc links resolve across files without an import, so resolution can't lean
- * on lexical scope; this maps every PascalCase top-level declaration in project
- * source to its symbol, which the returned resolver turns into hover detail
- * (signature + summary) on demand. Results are memoized, including misses.
+ * Index every declaration a `{@link}` can target, keyed by name. TSDoc links
+ * resolve across files without an import, so resolution can't lean on lexical
+ * scope; this maps every PascalCase top-level declaration in project source to
+ * its symbol, which `resolve` turns into hover detail (signature + summary) on
+ * demand.
+ *
+ * One build serves both lookups, because the walk covers every file in the
+ * program. `extraction.bench.ts` measures it; measure there rather than through
+ * a pass, which varies by more than the walk costs. `extractionContext` owns
+ * how long a build lives.
  */
-export function createLinkResolver(project: Project): LinkResolver {
+export function createLinkIndex(project: Project): LinkIndex {
 	const checker = project.getTypeChecker().compilerObject
 
 	const index = buildIndex(project)
 
 	const cache = new Map<string, DocLink | null>()
 
-	return (name) => {
+	const resolve: LinkResolver = (name) => {
 		const cached = cache.get(name)
 
 		if (cached !== undefined) return cached
 
-		const symbol = index.get(name)
+		const target = index.get(name)
 
-		const link = symbol ? toDocLink(name, symbol, checker) : null
+		const link = target ? toDocLink(name, target.symbol, checker) : null
 
 		cache.set(name, link)
 
 		return link
 	}
+
+	return { resolve, targetFile: (name) => index.get(name)?.file }
 }
 
-/** Map every PascalCase top-level declaration in project source to its symbol; first declaration wins. */
-function buildIndex(project: Project): Map<string, ts.Symbol> {
-	const index = new Map<string, ts.Symbol>()
+/** One indexed link target: its resolved symbol and the source file that declares it. */
+type IndexedTarget = { symbol: ts.Symbol; file: string }
 
-	const add = (name: string | undefined, node: Node) => {
+/** Map every PascalCase top-level declaration in project source to its symbol; first declaration wins. */
+function buildIndex(project: Project): Map<string, IndexedTarget> {
+	const index = new Map<string, IndexedTarget>()
+
+	// `file` is loop-invariant across a source file's declarations, so it comes
+	// from the loop rather than a `node.getSourceFile()` call for each name.
+	const add = (name: string | undefined, node: Node, file: string) => {
 		if (!name || !/^[A-Z]/.test(name) || index.has(name)) return
 
 		const symbol = node.getSymbol()?.compilerSymbol
 
-		if (symbol) index.set(name, symbol)
+		if (symbol) index.set(name, { symbol, file })
 	}
 
 	for (const sf of project.getSourceFiles()) {
@@ -58,9 +78,9 @@ function buildIndex(project: Project): Map<string, ts.Symbol> {
 				Node.isInterfaceDeclaration(node) ||
 				Node.isEnumDeclaration(node)
 			) {
-				add(node.getName(), node)
+				add(node.getName(), node, file)
 			} else if (Node.isVariableStatement(node) && node.isExported()) {
-				for (const decl of node.getDeclarations()) add(decl.getName(), decl)
+				for (const decl of node.getDeclarations()) add(decl.getName(), decl, file)
 			}
 		}
 	}

@@ -103,7 +103,12 @@ describe('Listbox focus (real browser)', () => {
 	it('commits the highlighted option on Tab', async () => {
 		renderUI(
 			<>
-				<Listbox aria-label="pick" displayValue={(v: string) => v}>
+				{/* `capitalize={false}`: the trigger first-word-capitalizes its display
+				    string by default, which would render the committed value `b` as
+				    `B` — indistinguishable from the option's own label. Verbatim, the
+				    lowercase text can only have come from `displayValue(value)`, so the
+				    assertion still proves the commit rather than the label. */}
+				<Listbox aria-label="pick" capitalize={false} displayValue={(v: string) => v}>
 					<ListboxOption value="a">A</ListboxOption>
 					<ListboxOption value="b">B</ListboxOption>
 				</Listbox>
@@ -135,7 +140,14 @@ describe('Listbox focus (real browser)', () => {
 	it('does not clear a nullable selection when tabbing out on the selected option', async () => {
 		renderUI(
 			<>
-				<Listbox aria-label="pick" nullable defaultValue="b" displayValue={(v: string) => v}>
+				{/* Verbatim display, as above, so `b` can only be the retained value. */}
+				<Listbox
+					aria-label="pick"
+					nullable
+					defaultValue="b"
+					capitalize={false}
+					displayValue={(v: string) => v}
+				>
 					<ListboxOption value="a">A</ListboxOption>
 					<ListboxOption value="b">B</ListboxOption>
 				</Listbox>

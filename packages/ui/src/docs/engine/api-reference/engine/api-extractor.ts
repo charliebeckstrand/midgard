@@ -1,0 +1,518 @@
+import { createHash } from 'node:crypto'
+import fs from 'node:fs'
+import path from 'node:path'
+import type { Project } from 'ts-morph'
+import type { ComponentApi } from '../types'
+import { type Barrel, extractBarrel, listBarrels, openProject } from './build-api'
+import { createLinkIndex } from './link-resolver'
+
+/**
+ * An incremental, disk-cached driver over {@link extractBarrel}. The docs plugin
+ * holds one across a dev session: {@link ApiExtractor.getAll} returns the full
+ * `{ key → ComponentApi[] }` record, and {@link ApiExtractor.notifyChanged}
+ * feeds it the file a hot-update touched so the next `getAll` re-extracts only
+ * the barrels that file feeds — replacing the whole-cache invalidation and the
+ * per-request `new Project()` that re-type-checked the package on every edit.
+ *
+ * Extraction order (prop order, union member order) tracks the type checker's
+ * warmup, so it must not vary with cache state. Two rules keep it stable: an
+ * in-session re-extraction reuses the checker the first full pass warmed, and
+ * the disk cache is whole-record — a clean restart replays the stored JSON
+ * verbatim, and any source change triggers one full canonical pass.
+ */
+export type ApiExtractor = {
+	/** The full API-reference record, built (or incrementally refreshed) on demand. */
+	getAll: () => Record<string, ComponentApi[]>
+	/**
+	 * Note a changed/added/removed file; returns whether it feeds any barrel (so
+	 * the caller can bust its virtual module).
+	 *
+	 * @remarks
+	 * The report also drops the file from the content-hash memo, which keeps the
+	 * disk cache's key current; see {@link aggregateHash}.
+	 */
+	notifyChanged: (file: string) => boolean
+}
+
+export type ApiExtractorOptions = {
+	/**
+	 * Where to persist the extracted JSON keyed by an input-file hash. Defaults to
+	 * `<package>/node_modules/.cache/docs-api-reference`; pass `null` to disable
+	 * persistence (tests, one-off builds).
+	 */
+	cacheDir?: string | null
+}
+
+/** A barrel's live extraction state: its result and the project-source files that feed it. */
+type BarrelState = {
+	/** `null` once the barrel resolves to nothing documentable, so it drops from the record. */
+	api: ComponentApi[] | null
+	/**
+	 * Absolute paths of every file whose content the barrel's `api` depends on —
+	 * its import closure plus `{@link}` targets. Empty when the state came from the
+	 * disk cache (no project was opened), until the first in-session pass fills it.
+	 */
+	inputs: Set<string>
+}
+
+/** Persisted whole-record cache: the extracted record under the hash of all input files that produced it. */
+type DiskCache = { version: number; hash: string; record: Record<string, ComponentApi[]> }
+
+const CACHE_VERSION = 4
+
+const CACHE_FILE = 'api.json'
+
+/**
+ * Directories that hold no barrel input. {@link isInputFile} rejects every path
+ * under them, so the walk prunes them instead of descending and discarding —
+ * they hold about a third of the files under this package's `src`.
+ */
+const SKIPPED_DIRS = new Set(['node_modules', 'docs', '__tests__', '__benchmarks__'])
+
+/**
+ * A file that can feed a barrel's output: project source, never `node_modules`,
+ * the docs site, or test/bench fixtures — production barrels never import those,
+ * so tracking them would re-extract on every unrelated test edit.
+ */
+function isInputFile(file: string): boolean {
+	if (!/\.tsx?$/.test(file)) return false
+
+	if (file.includes('/node_modules/') || file.includes('/docs/')) return false
+
+	if (file.includes('/__tests__/') || file.includes('/__benchmarks__/')) return false
+
+	return !/\.(test|bench|stories)\.tsx?$/.test(file)
+}
+
+/** Recursively collect every {@link isInputFile} path under `dir`, past {@link SKIPPED_DIRS}. */
+function collectInputFiles(dir: string, out: string[] = []): string[] {
+	let entries: fs.Dirent[]
+
+	try {
+		entries = fs.readdirSync(dir, { withFileTypes: true })
+	} catch {
+		return out
+	}
+
+	for (const entry of entries) {
+		const full = path.join(dir, entry.name)
+
+		if (entry.isDirectory()) {
+			if (!SKIPPED_DIRS.has(entry.name)) collectInputFiles(full, out)
+		} else if (entry.isFile() && isInputFile(full)) {
+			out.push(full)
+		}
+	}
+
+	return out
+}
+
+/**
+ * Hash one input file's content, and record it in `hashes`. Returns `null` when
+ * the read fails — a deleted file, which stays out of the memo so a later add
+ * reads it again.
+ */
+function hashFile(file: string, hashes: Map<string, string>): string | null {
+	const cached = hashes.get(file)
+
+	if (cached !== undefined) return cached
+
+	let hash: string | null
+
+	try {
+		hash = createHash('sha1').update(fs.readFileSync(file)).digest('hex')
+	} catch {
+		hash = null
+	}
+
+	if (hash !== null) hashes.set(file, hash)
+
+	return hash
+}
+
+/**
+ * A digest over every input file's path and content — the disk cache's validity
+ * key. The walk runs on every call, so an added or a deleted file moves the key.
+ * Content comes from the `hashes` memo, which this function fills in place.
+ *
+ * @remarks
+ * The memo makes the key blind to an edit that never reaches
+ * {@link ApiExtractor.notifyChanged} — a watcher miss, or a write from outside
+ * the dev server. That is deliberate. The extractor refreshes its project from
+ * the same reports, so an edit that skips one is already absent from the record
+ * this key labels. The memo gives the key the same blind spot, so the key and
+ * the record agree.
+ *
+ * A key that reads disk on every call is worse: it can validate a record that
+ * the same missed edit made stale, and that pair survives every restart. A key
+ * that agrees with its record fails the check on the next start instead,
+ * because a fresh extractor starts with an empty memo.
+ *
+ * @internal
+ */
+export function aggregateHash(srcDir: string, hashes: Map<string, string>): string {
+	const files = collectInputFiles(srcDir).sort()
+
+	// The walk joins every path onto `srcDir`, so a slice yields what
+	// `path.relative` yields and saves about a quarter of the warm cost here.
+	const rootLength = srcDir.endsWith(path.sep) ? srcDir.length : srcDir.length + 1
+
+	const digest = createHash('sha1')
+
+	for (const file of files)
+		digest.update(file.slice(rootLength)).update(hashFile(file, hashes) ?? '')
+
+	return digest.digest('hex')
+}
+
+/** Create an incremental extractor for the package rooted at `srcDir`. */
+export function createApiExtractor(
+	srcDir: string,
+	options: ApiExtractorOptions = {},
+): ApiExtractor {
+	const cacheDir =
+		options.cacheDir === null
+			? null
+			: (options.cacheDir ??
+				path.resolve(srcDir, '..', 'node_modules', '.cache', 'docs-api-reference'))
+
+	// Content-hash memo for `aggregateHash`. It lives as long as the extractor:
+	// `notifyChanged` drops the path it reports, so a rebuild re-hashes those
+	// files rather than the whole tree.
+	const hashes = new Map<string, string>()
+
+	const states = new Map<string, BarrelState>()
+
+	// Reverse index (input file → barrel keys it feeds), rebuilt whenever any
+	// barrel's inputs change. Drives per-file invalidation.
+	const fileToBarrels = new Map<string, Set<string>>()
+
+	const dirty = new Set<string>()
+
+	const pendingRefresh = new Set<string>()
+
+	let project: Project | null = null
+
+	let barrels: Barrel[] = []
+
+	let loaded = false
+
+	// True once a full in-project extraction has warmed the checker in canonical
+	// order this process; only then is a per-barrel subset re-extraction stable.
+	let warmed = false
+
+	function ensureProject(): Project {
+		if (!project) project = openProject(srcDir)
+
+		return project
+	}
+
+	// The checker and link machinery are recreated per extraction pass: a
+	// refreshed source file rebuilds the underlying program, so a cached checker
+	// or link index reads stale types. One `createLinkIndex` call serves both
+	// link consumers, because the index walk is a pass's largest fixed cost.
+	function extractionContext() {
+		const proj = ensureProject()
+
+		const { resolve, targetFile } = createLinkIndex(proj)
+
+		return {
+			proj,
+			checker: proj.getTypeChecker().compilerObject,
+			resolveLink: resolve,
+			targetFile,
+		}
+	}
+
+	type Context = ReturnType<typeof extractionContext>
+
+	/** The project-source files a barrel's output depends on: its import closure plus every `{@link}` target's source. */
+	function inputsFor(
+		proj: Project,
+		barrel: Barrel,
+		api: ComponentApi[] | null,
+		targetFile: (name: string) => string | undefined,
+		directRefs: Map<string, string[]>,
+	): Set<string> {
+		const inputs = new Set<string>([barrel.indexPath])
+
+		const stack = [barrel.indexPath]
+
+		while (stack.length > 0) {
+			const file = stack.pop() as string
+
+			let refs = directRefs.get(file)
+
+			if (!refs) {
+				const sf = proj.getSourceFile(file)
+
+				refs = sf
+					? sf
+							.getReferencedSourceFiles()
+							.map((s) => s.getFilePath() as string)
+							.filter(isInputFile)
+					: []
+
+				directRefs.set(file, refs)
+			}
+
+			for (const ref of refs) {
+				if (!inputs.has(ref)) {
+					inputs.add(ref)
+
+					stack.push(ref)
+				}
+			}
+		}
+
+		// `{@link}` targets resolve by name across the package with no import edge,
+		// so their source files must be tracked explicitly.
+		for (const name of linkNames(api)) {
+			const target = targetFile(name)
+
+			if (target && isInputFile(target)) inputs.add(target)
+		}
+
+		return inputs
+	}
+
+	/** Re-extract one barrel from an open project, updating its state and inputs. */
+	function rebuildBarrel(key: string, ctx: Context, directRefs: Map<string, string[]>): void {
+		const barrel = barrels.find((b) => b.key === key)
+
+		if (!barrel) {
+			states.delete(key)
+
+			return
+		}
+
+		const api = extractBarrel(ctx.proj, ctx.checker, ctx.resolveLink, barrel.indexPath)
+
+		const inputs = inputsFor(ctx.proj, barrel, api, ctx.targetFile, directRefs)
+
+		states.set(key, { api, inputs })
+	}
+
+	/** Rebuild `fileToBarrels` from every barrel's current input set. */
+	function reindex(): void {
+		fileToBarrels.clear()
+
+		for (const [key, state] of states) {
+			for (const file of state.inputs) {
+				const set = fileToBarrels.get(file) ?? new Set<string>()
+
+				set.add(key)
+
+				fileToBarrels.set(file, set)
+			}
+		}
+	}
+
+	/** Apply queued filesystem changes to the live project so the next extraction reads fresh source. */
+	function applyRefreshes(proj: Project): void {
+		let structural = false
+
+		for (const file of pendingRefresh) {
+			const existing = proj.getSourceFile(file)
+
+			if (existing) {
+				// Synchronous: `applyRefreshes` runs inside the synchronous `getAll`
+				// pass, so the async `refreshFromFileSystem` would resolve its read only
+				// after extraction had already run against the stale in-memory AST —
+				// serving pre-edit props and persisting them under the fresh content hash.
+				existing.refreshFromFileSystemSync()
+			} else if (fs.existsSync(file)) {
+				proj.addSourceFileAtPath(file)
+
+				structural = true
+			}
+		}
+
+		// A newly added file may pull in further dependencies; re-resolve so the
+		// checker sees the complete graph.
+		if (structural) proj.resolveSourceFileDependencies()
+
+		pendingRefresh.clear()
+	}
+
+	/** Extract every barrel in canonical order, warming the checker's enumeration order for later subset passes. */
+	function fullPass(): void {
+		const ctx = extractionContext()
+
+		const directRefs = new Map<string, string[]>()
+
+		for (const barrel of barrels) rebuildBarrel(barrel.key, ctx, directRefs)
+
+		warmed = true
+
+		dirty.clear()
+	}
+
+	function snapshot(): Record<string, ComponentApi[]> {
+		const result: Record<string, ComponentApi[]> = {}
+
+		// `barrels` order is stable (listBarrels), keeping the manifest deterministic.
+		for (const { key } of barrels) {
+			const state = states.get(key)
+
+			if (state?.api) result[key] = state.api
+		}
+
+		return result
+	}
+
+	// Re-list barrels against disk before a pass and reconcile the state map: a
+	// barrel added since the last pass has no state yet, so mark it dirty to
+	// extract it; one removed drops out of both `barrels` and `states`. Keeps a
+	// component scaffolded or deleted mid-session from being stranded until
+	// restart — `barrels` is otherwise fixed at the initial load.
+	function reconcileBarrels(): void {
+		barrels = listBarrels(srcDir)
+
+		const keys = new Set(barrels.map((b) => b.key))
+
+		for (const key of keys) if (!states.has(key)) dirty.add(key)
+
+		for (const key of states.keys()) if (!keys.has(key)) states.delete(key)
+	}
+
+	function initialLoad(): void {
+		barrels = listBarrels(srcDir)
+
+		const disk = readDisk(cacheDir)
+
+		if (disk && disk.hash === aggregateHash(srcDir, hashes)) {
+			// Byte-identical source: replay the stored record. No project is opened,
+			// so `inputs` stay empty until the first edit forces a warming pass.
+			for (const [key, api] of Object.entries(disk.record))
+				states.set(key, { api, inputs: new Set() })
+		} else {
+			ensureProject()
+
+			applyRefreshes(project as Project)
+
+			fullPass()
+
+			reindex()
+
+			persist()
+		}
+
+		loaded = true
+	}
+
+	function incrementalRebuild(): void {
+		const proj = ensureProject()
+
+		reconcileBarrels()
+
+		applyRefreshes(proj)
+
+		if (warmed) {
+			const ctx = extractionContext()
+
+			const directRefs = new Map<string, string[]>()
+
+			for (const key of dirty) rebuildBarrel(key, ctx, directRefs)
+
+			dirty.clear()
+		} else {
+			// First in-process pass (the disk cache served the initial load): warm the
+			// checker with a full canonical pass so ordering matches the stored record.
+			//
+			// A cache-replayed state carries empty `inputs`, so this costs a
+			// once-per-session stall on the first edit. Do not relax the ordering
+			// rule to remove it; that rule is what makes a subset pass safe. Warm
+			// proactively instead, from the dev server in `plugins/docs.ts`.
+			fullPass()
+		}
+
+		reindex()
+
+		persist()
+	}
+
+	function persist(): void {
+		// Gate the arguments, not the write: both are whole-tree work — the key
+		// walks and hashes every input file, and the snapshot copies every barrel —
+		// and `writeDisk` would discard them.
+		if (cacheDir) writeDisk(cacheDir, aggregateHash(srcDir, hashes), snapshot())
+	}
+
+	return {
+		getAll() {
+			if (!loaded) initialLoad()
+			else if (dirty.size > 0 || pendingRefresh.size > 0) incrementalRebuild()
+
+			return snapshot()
+		},
+
+		notifyChanged(file) {
+			if (!isInputFile(file)) return false
+
+			// One report drops both views of the file — the project's AST and the
+			// memo's hash — so the key and the record lag disk by the same set.
+			pendingRefresh.add(file)
+
+			hashes.delete(file)
+
+			const affected = fileToBarrels.get(file)
+
+			if (affected) {
+				for (const key of affected) dirty.add(key)
+			} else {
+				// A file no barrel currently reads: a new module an edited import will
+				// pull in, a shared file added since the last pass, or a disk-served load
+				// whose inputs aren't mapped yet. Re-extract everything; the warming pass
+				// then maps it precisely.
+				for (const { key } of barrels) dirty.add(key)
+			}
+
+			return true
+		},
+	}
+}
+
+/** Every `{@link}` target name referenced by a barrel's components (description and prop links). */
+function linkNames(api: ComponentApi[] | null): Set<string> {
+	const names = new Set<string>()
+
+	if (!api) return names
+
+	for (const component of api) {
+		if (component.links) for (const name of Object.keys(component.links)) names.add(name)
+
+		for (const prop of component.props) {
+			if (prop.links) for (const name of Object.keys(prop.links)) names.add(name)
+		}
+	}
+
+	return names
+}
+
+function readDisk(cacheDir: string | null): DiskCache | null {
+	if (!cacheDir) return null
+
+	try {
+		const raw = fs.readFileSync(path.join(cacheDir, CACHE_FILE), 'utf-8')
+
+		const parsed = JSON.parse(raw) as DiskCache
+
+		return parsed.version === CACHE_VERSION ? parsed : null
+	} catch {
+		return null
+	}
+}
+
+function writeDisk(cacheDir: string, hash: string, record: Record<string, ComponentApi[]>): void {
+	const payload: DiskCache = { version: CACHE_VERSION, hash, record }
+
+	try {
+		fs.mkdirSync(cacheDir, { recursive: true })
+
+		fs.writeFileSync(path.join(cacheDir, CACHE_FILE), JSON.stringify(payload))
+	} catch {
+		// A read-only or full cache dir is non-fatal: extraction still works, just
+		// without cross-restart reuse.
+	}
+}

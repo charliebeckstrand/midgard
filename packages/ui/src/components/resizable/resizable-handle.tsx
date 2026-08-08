@@ -92,11 +92,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 		>
 			<span
 				aria-hidden
-				className={cn(
-					k.grip.base,
-					isHorizontal ? k.grip.horizontal : k.grip.vertical,
-					isDragging && k.grip.dragging,
-				)}
+				className={cn(k.grip.base, isHorizontal ? k.grip.horizontal : k.grip.vertical)}
 			/>
 		</div>
 	)

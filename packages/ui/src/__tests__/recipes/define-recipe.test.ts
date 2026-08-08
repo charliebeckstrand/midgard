@@ -150,4 +150,50 @@ describe('defineRecipe', () => {
 
 		expect(recipe({ color: 'inherit' })).toContain('solid-inherit')
 	})
+
+	it('memoises per variant combination without cross-talk', () => {
+		// Repeat calls read the memo; interleaved combinations must not bleed
+		// into each other's cached output.
+		const recipe = defineRecipe({
+			variant: { solid: 'v-solid', soft: 'v-soft' },
+			size: { sm: 's-sm', lg: 's-lg' },
+			defaults: { variant: 'solid', size: 'sm' },
+		})
+
+		const first = recipe({ variant: 'soft', size: 'lg' })
+
+		expect(recipe()).toContain('v-solid')
+
+		expect(recipe({ variant: 'soft', size: 'lg' })).toBe(first)
+
+		expect(first).toContain('v-soft')
+
+		expect(first).toContain('s-lg')
+	})
+
+	it('ignores props outside the declared axes when memoising', () => {
+		// A stray prop reads nothing in the pipeline, so it must neither perturb
+		// the output nor fork the memo key.
+		const recipe = defineRecipe({
+			size: { sm: 'size-sm' },
+			defaults: { size: 'sm' },
+		})
+
+		const plain = recipe({ size: 'sm' })
+
+		expect(recipe({ size: 'sm', stray: 'x' } as { size: 'sm' })).toBe(plain)
+	})
+
+	it('rejects a slot name that collides with a recipe property', () => {
+		// Function built-ins (own like `name`, inherited like `call`) would be
+		// shadowed or throw an opaque strict-mode TypeError on assignment; the
+		// engine-attached `config` / `skeleton` would be silently clobbered.
+		expect(() => defineRecipe({ slots: { name: 'x' } })).toThrow(/slot name/)
+
+		expect(() => defineRecipe({ slots: { call: 'x' } })).toThrow(/slot name/)
+
+		expect(() => defineRecipe({ slots: { config: 'x' } })).toThrow(/slot name/)
+
+		expect(() => defineRecipe({ slots: { skeleton: 'x' } })).toThrow(/slot name/)
+	})
 })

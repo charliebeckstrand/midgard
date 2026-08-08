@@ -1,5 +1,4 @@
 import { Copy, Download, Maximize2, Pencil, Share2 } from 'lucide-react'
-import { useState } from 'react'
 import { Box } from '../../../components/box'
 import { ContextMenu, type ContextMenuItem } from '../../../components/context-menu'
 import { Stack } from '../../../components/stack'
@@ -7,19 +6,15 @@ import { Text } from '../../../components/text'
 import { Example } from '../../engine'
 
 export function Demo() {
-	const [last, setLast] = useState<string | null>(null)
-
-	const act = (name: string) => () => setLast(name)
-
 	const defaults: ContextMenuItem[] = [
-		{ key: 'fullscreen', label: 'Fullscreen', icon: <Maximize2 />, onSelect: act('Fullscreen') },
-		{ key: 'download', label: 'Download', icon: <Download />, onSelect: act('Download') },
-		{ key: 'copy', label: 'Copy', icon: <Copy />, onSelect: act('Copy') },
+		{ key: 'fullscreen', label: 'Fullscreen', icon: <Maximize2 /> },
+		{ key: 'download', label: 'Download', icon: <Download /> },
+		{ key: 'copy', label: 'Copy', icon: <Copy /> },
 	]
 
 	const custom: ContextMenuItem[] = [
-		{ key: 'edit', label: 'Edit', icon: <Pencil />, onSelect: act('Edit') },
-		{ key: 'share', label: 'Share', icon: <Share2 />, onSelect: act('Share') },
+		{ key: 'edit', label: 'Edit', icon: <Pencil /> },
+		{ key: 'share', label: 'Share', icon: <Share2 /> },
 	]
 
 	const surface = (
@@ -32,8 +27,6 @@ export function Demo() {
 
 	return (
 		<Stack gap="xl">
-			<Text severity="muted">Last action: {last ?? '—'}</Text>
-
 			<Example title="Defaults">
 				<ContextMenu defaults={defaults}>{surface}</ContextMenu>
 			</Example>

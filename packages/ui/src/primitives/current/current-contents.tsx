@@ -1,19 +1,17 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/current'
 import { ReducedMotion } from '../reduced-motion'
 import {
 	CurrentFadeContext,
 	type CurrentMount,
 	CurrentMountContext,
 	CurrentSettledContext,
-	resolveMount,
 } from './current'
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
+/** Props for {@link CurrentContents}: the `slotPrefix` stamp, the `fade` height animation, and the inactive-panel `mount` policy, over `<div>` attributes. */
 export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-contents"`; pairs with `CurrentContent` siblings. */
 	slotPrefix: string
@@ -30,11 +28,12 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	 * animation).
 	 *
 	 * @remarks
-	 * With `always`/`lazy` and `fade={false}`, held-inactive panels wrap in
+	 * With `always`/`lazy`, held-inactive panels wrap in
 	 * `<Activity mode="hidden">`: kept in the DOM with state preserved, but their
-	 * effects are torn down and re-rendering is deferred until shown. `fade` and
-	 * `mount="lazy"`/`"always"` still hold panels via the opacity cross-fade
-	 * instead, since `Activity`'s `display: none` can't animate.
+	 * effects are torn down and re-rendering is deferred until shown. Under
+	 * `fade` — whose `display: none` can't animate — the Activity hold applies
+	 * only at rest: a held panel wakes for the crossfade and drops back into the
+	 * hidden Activity once its fade-out lands.
 	 *
 	 * Under `fade`, mount and unmount ride the cross-fade rather than defeating
 	 * it: a panel mounting after the container's initial render (a `lazy` first
@@ -68,9 +67,7 @@ export function CurrentContents({
 }: CurrentContentsProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const { morphTo, release } = useCurrentContentsMorph(containerRef, fade)
-
-	const resolvedMount = resolveMount(fade, mount)
+	useCurrentContentsMorph(containerRef, fade)
 
 	// Post-mount latch for entrance choreography: panels in this first commit
 	// read false and skip their entrance; panels mounting on a later value
@@ -86,7 +83,7 @@ export function CurrentContents({
 			// Re-scope the fade signal off, so panels of a non-fading container
 			// nested inside a fading one render the plain branch.
 			<CurrentFadeContext value={false}>
-				<CurrentMountContext value={resolvedMount}>
+				<CurrentMountContext value={mount}>
 					<div data-slot={`${slotPrefix}-contents`} className={className} {...props}>
 						{children}
 					</div>
@@ -97,22 +94,20 @@ export function CurrentContents({
 
 	return (
 		<CurrentFadeContext value>
-			<CurrentMountContext value={resolvedMount}>
+			<CurrentMountContext value={mount}>
 				<CurrentSettledContext value={settledRef}>
 					<ReducedMotion>
-						{/* At rest the height target is `auto`, so completed and cancelled
-						    morphs alike settle the box back into layout's hands. */}
-						<motion.div
+						{/* A plain div: the morph hook pins and tweens the inline height
+						    itself, outside React, so no render can stamp the resting
+						    `auto` back over an in-flight morph. */}
+						<div
 							ref={containerRef}
 							data-slot={`${slotPrefix}-contents`}
-							animate={{ height: morphTo ?? 'auto' }}
-							initial={false}
-							transition={k.transition}
-							onAnimationComplete={morphTo === null ? undefined : release}
 							className={cn('relative overflow-hidden', className)}
+							{...props}
 						>
 							{children}
-						</motion.div>
+						</div>
 					</ReducedMotion>
 				</CurrentSettledContext>
 			</CurrentMountContext>

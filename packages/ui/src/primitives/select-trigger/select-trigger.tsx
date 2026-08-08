@@ -7,7 +7,12 @@ import { k } from '../../recipes/kata/select'
 import { AffixContext, affixStepDown } from '../affix'
 import { ControlFrame } from '../control'
 
-type SelectTriggerProps = {
+/**
+ * Props for {@link SelectTrigger}: the floating-reference wiring the caller
+ * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
+ * presentation, and the prefix / suffix slot content.
+ */
+export type SelectTriggerProps = {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
@@ -67,10 +72,7 @@ export function SelectTrigger({
 					{...frameProps}
 				>
 					{prefix && (
-						<span
-							data-slot="prefix"
-							className={cn('peer/prefix', k.affix.base, k.affix.prefix[size])}
-						>
+						<span data-slot="prefix" className={cn(k.affix.base, k.affix.prefix[size])}>
 							{prefix}
 						</span>
 					)}

@@ -16,9 +16,10 @@ export type {
 	ScatterAxes,
 } from './engine/chart-axes/schema'
 export type { ChartSeriesColor } from './engine/chart-color/palette'
+export type { ChartContextMenuConfig, ChartContextMenuTarget } from './engine/chart-context-menu'
 export type { Crosshair } from './engine/chart-crosshair'
 export type { ChartAspectRatio } from './engine/chart-layout'
-export type { ChartRangeLegendConfig, ChartRangeLegendType } from './engine/chart-legend/range'
+export type { ChartRangeLegendConfig } from './engine/chart-legend/range'
 export type { ChartLegendConfig, ChartLegendPlacement } from './engine/chart-legend/schema'
 export type { ChartOrientation } from './engine/chart-orientation'
 export type { ChartReferenceLine } from './engine/chart-reference-lines'

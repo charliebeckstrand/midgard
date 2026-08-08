@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
+import { DensityProvider } from '../../providers/density'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid per-column filters', () => {
@@ -34,9 +35,14 @@ describe('Grid per-column filters', () => {
 	const blankRule = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'contains', value: '' }])
 
-	/** A value-less "is empty" rule: a real constraint that carries no value. */
+	/** A value-less "is Empty" rule: a real constraint that carries no value. */
 	const nameIsEmpty = () =>
 		createGroup('and', [{ ...createRule(nameField), operator: 'isEmpty', value: '' }])
+
+	// The builder's "Add rule" action now lives behind the group's "Add" menu.
+	const openAddMenu = () => fireEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+	const addRuleItem = () => screen.getByRole('menuitem', { name: 'Add rule' })
 
 	it('warns when the search and column filters request different filtering modes', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
@@ -97,16 +103,78 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+		openAddMenu()
+
+		expect(addRuleItem()).toBeInTheDocument()
 
 		// Scoped to the column: no field picker, no nested groups.
-		expect(screen.queryByRole('button', { name: 'Add group' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Add group' })).not.toBeInTheDocument()
 
 		const labels = Array.from(document.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
 			el.getAttribute('aria-label'),
 		)
 
 		expect(labels).not.toContain('Field')
+	})
+
+	// The filter surface is the one grid-spawned overlay whose trigger lives inside
+	// the table region, so it is the only one that can inherit the cell density
+	// cascade. It must not: a sheet is a dialog-sized surface, not a cell.
+	it("renders the filter sheet at the ambient density, not the grid's condensed step", () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} condensed />)
+
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		expect(screen.getByRole('button', { name: 'Apply' })).toHaveAttribute('data-size', 'md')
+
+		expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('data-size', 'md')
+	})
+
+	it('follows a surrounding DensityProvider into the filter sheet', () => {
+		renderUI(
+			<DensityProvider density="loose">
+				<Grid columns={columns} rows={rows} getKey={getKey} condensed />
+			</DensityProvider>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		expect(screen.getByRole('button', { name: 'Apply' })).toHaveAttribute('data-size', 'lg')
+	})
+
+	// The applied-state menu is the filter surface's other half, and it needs the same
+	// ambient density the sheet gets. Asserted differentially — the panel's class under
+	// a condensed grid must equal its class under a plain one — so it pins the property
+	// (density is not inherited from the cells) without hardcoding utility classes.
+	it("renders the filter menu at the ambient density, not the grid's condensed step", () => {
+		const menuViewportClass = (condensed: boolean) => {
+			const view = renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} condensed={condensed} />,
+			)
+
+			// A filter has to be applied before the trigger becomes a menu.
+			fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+			fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+				target: { value: 'Bob' },
+			})
+
+			fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+
+			fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+			const viewport = document.querySelector('[data-slot="menu-viewport"]')
+
+			if (!viewport) throw new Error('menu viewport did not render')
+
+			const className = viewport.className
+
+			view.unmount()
+
+			return className
+		}
+
+		expect(menuViewportClass(true)).toBe(menuViewportClass(false))
 	})
 
 	it('hides the remove control while a single rule remains, restoring it past one', () => {
@@ -117,7 +185,9 @@ describe('Grid per-column filters', () => {
 		// The lone seeded rule can't be removed (the filter keeps one), so no control.
 		expect(screen.queryByRole('button', { name: 'Remove rule' })).not.toBeInTheDocument()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Add rule' }))
+		openAddMenu()
+
+		fireEvent.click(addRuleItem())
 
 		// Two rules now: each can be removed.
 		expect(screen.getAllByRole('button', { name: 'Remove rule' })).toHaveLength(2)
@@ -222,6 +292,31 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('button', { name: /^Filter Name/ })).not.toHaveAttribute('data-active')
 	})
 
+	it('settles the draft when the query form is submitted, as Enter does in a rule input', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
+
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+
+		const value = screen.getByRole('textbox', { name: 'Name value' })
+
+		fireEvent.change(value, { target: { value: 'Bob' } })
+
+		// Submitting the form — the Apply button is `type="submit"`, so Enter in a
+		// rule input reaches it — settles the draft without a mouse press on Apply.
+		const form = value.closest('form')
+
+		if (!form) throw new Error('expected the query builder to be wrapped in a form')
+
+		fireEvent.submit(form)
+
+		expect(screen.getByRole('button', { name: /^Filter Name/ })).toHaveAttribute('data-active')
+
+		// The applied query constrains the rows: Alice drops, Bob stays.
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+	})
+
 	it('turns the filter button into a menu only while a filter is applied', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -230,7 +325,8 @@ describe('Grid per-column filters', () => {
 
 		expect(screen.queryByRole('menuitem', { name: 'Edit filters' })).not.toBeInTheDocument()
 
-		expect(screen.getByRole('button', { name: 'Add rule' })).toBeInTheDocument()
+		// The sheet's builder is shown: its "Add" affordance is present.
+		expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument()
 
 		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
 			target: { value: 'Bob' },
@@ -291,8 +387,8 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByRole('textbox', { name: 'Name value' })).toHaveValue('')
 	})
 
-	it('accents the button for a value-less operator (is empty)', () => {
-		// "is empty" filters without a value; it is a real constraint, so the
+	it('accents the button for a value-less operator (is Empty)', () => {
+		// "is Empty" filters without a value; it is a real constraint, so the
 		// button reads as active even though the rule has no value.
 		renderUI(
 			<Grid
@@ -364,11 +460,11 @@ describe('Grid per-column filters', () => {
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 	})
 
-	it('shows an amber "Clear all filters" toolbar button only while a filter constrains rows', () => {
+	it('shows an amber "Clear filters" toolbar button only while a filter constrains rows', () => {
 		const { rerender } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		// No active filter — no toolbar clear affordance.
-		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
 
 		// A seeded-but-blank rule constrains nothing, so the button stays hidden —
 		// the same active test the header accent reads.
@@ -381,7 +477,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
 
 		// A real constraint surfaces it, in the amber soft palette.
 		rerender(
@@ -393,7 +489,7 @@ describe('Grid per-column filters', () => {
 			/>,
 		)
 
-		expect(screen.getByRole('button', { name: 'Clear all filters' }).className).toMatch(/amber/)
+		expect(screen.getByRole('button', { name: 'Clear filters' }).className).toMatch(/amber/)
 	})
 
 	it('clears every active filter from the toolbar button, restoring hidden rows', () => {
@@ -409,12 +505,136 @@ describe('Grid per-column filters', () => {
 		// The filter hides Alice.
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 
-		fireEvent.click(screen.getByRole('button', { name: 'Clear all filters' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
 
 		// Every filter lifts: the hidden row returns and the button drops.
 		expect(screen.getByText('Alice')).toBeInTheDocument()
 
-		expect(screen.queryByRole('button', { name: 'Clear all filters' })).toBeNull()
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).toBeNull()
+	})
+	describe("affordance: 'menu'", () => {
+		/** The Name header, found by text — its accessible name carries the sort/filter chrome too. */
+		const nameHeader = () => {
+			const header = screen
+				.getAllByRole('columnheader')
+				.find((element) => element.textContent?.includes('Name'))
+
+			if (!header) throw new Error('no Name columnheader')
+
+			return header
+		}
+
+		it('drops the resting header funnel, so the column keeps its full width', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnFilters={{ affordance: 'menu' }}
+				/>,
+			)
+
+			expect(screen.queryByRole('button', { name: 'Filter Name' })).toBeNull()
+		})
+
+		it("keeps the funnel under the default 'header' affordance", () => {
+			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} columnFilters={{}} />)
+
+			expect(screen.getByRole('button', { name: 'Filter Name' })).toBeInTheDocument()
+		})
+
+		it('returns the funnel once a filter is applied, as the edit/clear affordance', () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					columnFilters={{
+						affordance: 'menu',
+						value: [{ id: 'name', value: nameContains('Ali') }],
+					}}
+				/>,
+			)
+
+			expect(screen.getByRole('button', { name: 'Filter Name, active' })).toBeInTheDocument()
+		})
+
+		it("offers the filter from the column's right-click menu instead", () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					contextMenu={{ column: true }}
+					columnFilters={{ affordance: 'menu' }}
+				/>,
+			)
+
+			fireEvent.contextMenu(nameHeader())
+
+			expect(screen.getByRole('menuitem', { name: 'Filter Name' })).toBeInTheDocument()
+
+			// Role declares no `filterable`, so its menu offers no filter row.
+			expect(screen.queryByRole('menuitem', { name: 'Filter Role' })).toBeNull()
+		})
+
+		it("withholds the menu row under the 'header' affordance, where the funnel already offers it", () => {
+			renderUI(
+				<Grid columns={columns} rows={rows} getKey={getKey} contextMenu={{ column: true }} />,
+			)
+
+			fireEvent.contextMenu(nameHeader())
+
+			expect(screen.queryByRole('menuitem', { name: 'Filter Name' })).toBeNull()
+		})
+	})
+	describe('a server-side filter that empties the grid', () => {
+		/**
+		 * What a `manual` consumer hands back once its rule matches nothing: the
+		 * filtered set, which is empty. The rule the user has to reach to recover the
+		 * rows is in the header, so the header can't stand down here — under client
+		 * filtering `rows` still held the source, so this case never arose.
+		 */
+		const emptied = (
+			<Grid
+				columns={columns}
+				rows={[]}
+				getKey={getKey}
+				columnFilters={{ manual: true, value: [{ id: 'name', value: nameContains('zzz') }] }}
+			/>
+		)
+
+		it('keeps the filtered column’s funnel, as the edit and clear affordance', () => {
+			renderUI(emptied)
+
+			expect(screen.getByRole('button', { name: /^Filter Name/ })).toBeInTheDocument()
+		})
+
+		it('keeps the header sortable, so the view is still steerable', () => {
+			renderUI(emptied)
+
+			// The title is a sort button only while the header is interactive; standing it
+			// down left an empty grid the user could neither re-sort nor unfilter.
+			expect(screen.getByRole('button', { name: 'Sort by Name' })).toBeInTheDocument()
+		})
+
+		it('keeps the header’s right-click menu reachable', () => {
+			renderUI(emptied)
+
+			fireEvent.contextMenu(screen.getByRole('columnheader', { name: /Name/ }))
+
+			expect(screen.getByRole('menu')).toBeInTheDocument()
+		})
+
+		it('still stands the header down when the grid is simply empty', () => {
+			// No filter, no search: nothing to recover, so there is nothing for the
+			// header's affordances to act on.
+			renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
+
+			fireEvent.contextMenu(screen.getByRole('columnheader', { name: /Name/ }))
+
+			expect(screen.queryByRole('menu')).toBeNull()
+		})
 	})
 })
 

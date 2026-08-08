@@ -53,6 +53,7 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 			suffix={
 				!disabled && (
 					<Button
+						type="button"
 						aria-label={`Remove ${label}`}
 						variant="bare"
 						onMouseDown={(event) => event.preventDefault()}

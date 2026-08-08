@@ -37,7 +37,6 @@ import {
 	SidebarLabel,
 	SidebarList,
 	SidebarSection,
-	SidebarSpacer,
 } from '../../../components/sidebar'
 import { Spacer } from '../../../components/spacer'
 import { Stack } from '../../../components/stack'
@@ -208,7 +207,7 @@ function SectionedSidebarExample() {
 						</SidebarList>
 					</SidebarSection>
 
-					<SidebarSpacer />
+					<Spacer />
 
 					<SidebarSection>
 						<Text severity="muted" className="text-xs uppercase tracking-wide flex-1 py-2">

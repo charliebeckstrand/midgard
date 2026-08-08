@@ -141,7 +141,6 @@ describe('useGridColumns', () => {
 			useGridColumns<Row>({
 				columns: cols,
 				columnManagerConfig: {
-					enabled: true,
 					defaultHidden: new Set(['select', 'name', 'pinned-status', 'actions']),
 				},
 			}),
@@ -163,7 +162,7 @@ describe('useGridColumns', () => {
 		]
 
 		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns: cols, columnManagerConfig: { enabled: true } }),
+			useGridColumns<Row>({ columns: cols, columnManagerConfig: {} }),
 		)
 
 		const ids = result.current.managerItems.map((m) => m.id)
@@ -175,7 +174,7 @@ describe('useGridColumns', () => {
 		const cols: GridColumn<Row>[] = [{ id: 'name', cell: (r) => r.name }]
 
 		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns: cols, columnManagerConfig: { enabled: true } }),
+			useGridColumns<Row>({ columns: cols, columnManagerConfig: {} }),
 		)
 
 		expect(result.current.managerItems[0]?.title).toBe('name')
@@ -189,7 +188,7 @@ describe('useGridColumns', () => {
 		]
 
 		const { result } = renderHook(() =>
-			useGridColumns<Row>({ columns: cols, columnManagerConfig: { enabled: true } }),
+			useGridColumns<Row>({ columns: cols, columnManagerConfig: {} }),
 		)
 
 		const items = result.current.managerItems
@@ -226,7 +225,7 @@ describe('useGridColumns', () => {
 				columnOrderConfig: { onValueChange },
 				// The locked column is listed as hidden but always shows: it's excluded
 				// from the visibility map, like a pinned column.
-				columnManagerConfig: { enabled: true, defaultHidden: new Set(['name']) },
+				columnManagerConfig: { defaultHidden: new Set(['name']) },
 			}),
 		)
 

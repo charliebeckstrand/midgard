@@ -32,10 +32,13 @@ export function LoadingDots({
 	className,
 	...props
 }: LoadingDotsProps) {
+	// One recipe call for all three dots: `size` is constant across them.
+	const dotClass = k.dot({ size })
+
 	return (
 		<output data-slot="loading-dots" className={cn(k({ size, color }), className)} {...props}>
 			{DOT_DELAYS.map((delay) => (
-				<span key={delay} aria-hidden="true" className={cn(k.dot({ size }), delay)} />
+				<span key={delay} aria-hidden="true" className={cn(dotClass, delay)} />
 			))}
 			<span className="sr-only">{label}</span>
 		</output>

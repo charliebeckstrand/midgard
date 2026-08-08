@@ -8,27 +8,13 @@ import {
 import { Field, Label, Message } from '../../../components/fieldset'
 import { Flex } from '../../../components/flex'
 import { Stack } from '../../../components/stack'
-import { code, Example } from '../../engine'
+import { Example } from '../../engine'
 
 function ControlledExample() {
 	const [value, setValue] = useState('')
 
 	return (
-		<Example
-			title="Controlled"
-			code={code`
-				import { useState } from 'react'
-				import { Field, Label } from 'ui/fieldset'
-				import { CreditCardInput } from 'ui/credit-card-input'
-
-				const [value, setValue] = useState('')
-				
-				<Field>
-					<Label>Card number</Label>
-					<CreditCardInput value={value} onValueChange={setValue} />
-				</Field>
-			`}
-		>
+		<Example title="Controlled">
 			<Field>
 				<Label>Card number</Label>
 				<CreditCardInput value={value} onValueChange={setValue} />

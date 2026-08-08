@@ -6,10 +6,10 @@ import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('Popover', () => {
-	it('renders a default button when PopoverTrigger has non-element manual children', () => {
+	it('renders a default button when PopoverTrigger has non-element children', () => {
 		const { container } = renderUI(
 			<Popover>
-				<PopoverTrigger manual>Open</PopoverTrigger>
+				<PopoverTrigger>Open</PopoverTrigger>
 			</Popover>,
 		)
 
@@ -22,10 +22,10 @@ describe('Popover', () => {
 		expect(trigger?.textContent).toBe('Open')
 	})
 
-	it('preserves the original child element when manual is set on an element trigger', () => {
+	it('preserves the original child element on an element trigger', () => {
 		const { container } = renderUI(
 			<Popover>
-				<PopoverTrigger manual>
+				<PopoverTrigger>
 					<button type="button" data-testid="manual-child">
 						Open
 					</button>
@@ -180,11 +180,9 @@ describe('Popover open/close control', () => {
 		expect(popoverContent()).toBeNull()
 	})
 
-	it('accepts an onExitComplete callback prop without throwing', () => {
-		const onExitComplete = vi.fn()
-
+	it('opens uncontrolled from defaultOpen, with the trigger reflecting it', () => {
 		renderUI(
-			<Popover open onExitComplete={onExitComplete}>
+			<Popover defaultOpen>
 				<PopoverTrigger>
 					<button type="button">Open</button>
 				</PopoverTrigger>
@@ -192,7 +190,11 @@ describe('Popover open/close control', () => {
 			</Popover>,
 		)
 
+		// Uncontrolled: the panel starts open with no `open` prop, and the
+		// disclosure's state reaches the trigger's aria-expanded.
 		expect(popoverContent()).not.toBeNull()
+
+		expect(document.querySelector('button')).toHaveAttribute('aria-expanded', 'true')
 	})
 })
 

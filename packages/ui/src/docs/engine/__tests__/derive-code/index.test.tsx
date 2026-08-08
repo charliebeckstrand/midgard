@@ -9,9 +9,9 @@ import { tag } from './helpers'
 // and external-icon resolution are exercised without scanning ui. It pairs the
 // real `byType` tag reader (so `tag()` stand-ins resolve) with a hand-built
 // `byName` map, and is injected into `deriveCode` per call. Injection rather
-// than `vi.mock`-ing `virtual:component-modules` on purpose: that module-level
-// mock bleeds across files under the shared-worker vmThreads pool and corrupts
-// the real-registry integration test (src/__tests__/docs/component-modules).
+// than `vi.mock`-ing `virtual:component-modules` on purpose — see `readTag`'s
+// remarks for why, and src/__tests__/docs/component-modules for the
+// real-registry test that mock would corrupt.
 // Real-library integration (the map populated from ui, real barrel tagging)
 // lives in ui.
 const registry: ComponentRegistry = {
@@ -219,7 +219,7 @@ describe('deriveCode + __code', () => {
 					'',
 					'\treturn (',
 					'\t\t<Stack>',
-					'\t\t\t<FileUpload accept="image/*" onFiles={setFiles} />',
+					'\t\t\t<FileUpload accept="image/*" onAccept={setFiles} />',
 					'\t\t</Stack>',
 					'\t)',
 					'}',
@@ -236,7 +236,7 @@ describe('deriveCode + __code', () => {
 			'function AreaDemo() {\n\tconst [files, setFiles] = useState<File[]>([])',
 		)
 
-		expect(result).toContain('<FileUpload accept="image/*" onFiles={setFiles} />')
+		expect(result).toContain('<FileUpload accept="image/*" onAccept={setFiles} />')
 
 		// Component imports inferred from JSX, under the library prefix.
 		expect(result).toMatch(/import \{.*Stack.*\} from 'ui\/stack'/)

@@ -148,7 +148,7 @@ describe('ChoroplethChart context menu', () => {
 				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
 				width={400}
 				contextMenu={{
-					items: [{ key: 'inspect', label: 'Inspect', onSelect: onInspect }],
+					items: [{ key: 'inspect', label: 'Inspect', onAction: onInspect }],
 					defaultItems: false,
 				}}
 			/>,

@@ -65,10 +65,10 @@ describe('useFileUploadHandlers', () => {
 		expect(click).not.toHaveBeenCalled()
 	})
 
-	it('handleChange updates files and invokes onFiles with an array', () => {
-		const onFiles = vi.fn()
+	it('handleChange updates files and invokes onAccept with an array', () => {
+		const onAccept = vi.fn()
 
-		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onAccept }))
 
 		const file = makeFile()
 
@@ -82,13 +82,13 @@ describe('useFileUploadHandlers', () => {
 
 		expect(result.current.files).toEqual([file])
 
-		expect(onFiles).toHaveBeenCalledWith([file])
+		expect(onAccept).toHaveBeenCalledWith([file])
 	})
 
 	it('handleChange resets the input value so the same file can be reselected', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
-		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onAccept }))
 
 		// A native file input does not fire `change` when the chosen file matches
 		// its current value, so the value must be cleared after each selection.
@@ -103,15 +103,15 @@ describe('useFileUploadHandlers', () => {
 			result.current.handleChange(event)
 		})
 
-		expect(onFiles).toHaveBeenCalledTimes(1)
+		expect(onAccept).toHaveBeenCalledTimes(1)
 
 		expect(target.value).toBe('')
 	})
 
 	it('handleChange is a no-op when target.files is null', () => {
-		const onFiles = vi.fn()
+		const onAccept = vi.fn()
 
-		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onAccept }))
 
 		const event = makeChangeEvent<HTMLInputElement>({
 			target: { files: null } as HTMLInputElement,
@@ -121,7 +121,7 @@ describe('useFileUploadHandlers', () => {
 			result.current.handleChange(event)
 		})
 
-		expect(onFiles).not.toHaveBeenCalled()
+		expect(onAccept).not.toHaveBeenCalled()
 	})
 
 	it('handleDragEnter sets dragOver and prevents default', () => {
@@ -196,10 +196,10 @@ describe('useFileUploadHandlers', () => {
 		expect(result.current.dragOver).toBe(false)
 	})
 
-	it('clearFiles empties the selection and invokes onFiles with an empty array', () => {
-		const onFiles = vi.fn()
+	it('clearFiles empties the selection and invokes onAccept with an empty array', () => {
+		const onAccept = vi.fn()
 
-		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onAccept }))
 
 		const file = makeFile()
 
@@ -219,7 +219,7 @@ describe('useFileUploadHandlers', () => {
 
 		expect(result.current.files).toEqual([])
 
-		expect(onFiles).toHaveBeenLastCalledWith([])
+		expect(onAccept).toHaveBeenLastCalledWith([])
 	})
 
 	it('clearFiles resets the input value so a cleared file can be reselected', () => {
@@ -238,10 +238,10 @@ describe('useFileUploadHandlers', () => {
 		expect(input.value).toBe('')
 	})
 
-	it('handleDrop clears dragOver and passes files to onFiles', () => {
-		const onFiles = vi.fn()
+	it('handleDrop clears dragOver and passes files to onAccept', () => {
+		const onAccept = vi.fn()
 
-		const { result } = renderHook(() => useFileUploadHandlers({ onFiles }))
+		const { result } = renderHook(() => useFileUploadHandlers({ onAccept }))
 
 		const file = makeFile('drop.txt')
 
@@ -255,6 +255,6 @@ describe('useFileUploadHandlers', () => {
 
 		expect(result.current.dragOver).toBe(false)
 
-		expect(onFiles).toHaveBeenCalledWith([file])
+		expect(onAccept).toHaveBeenCalledWith([file])
 	})
 })

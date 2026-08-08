@@ -11,7 +11,7 @@ import { Button, type ButtonProps } from '../button'
  */
 export function PaginationNavButton({ slot, children, ...props }: { slot: string } & ButtonProps) {
 	return (
-		<Button data-slot={slot} variant="plain" {...props}>
+		<Button type="button" data-slot={slot} variant="plain" {...props}>
 			{children}
 		</Button>
 	)

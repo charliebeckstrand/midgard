@@ -2,8 +2,11 @@ import type { ReactNode } from 'react'
 
 /**
  * A single committed cell write: the new `value` for `columnId` on the row keyed
- * by `rowKey`. A saved row emits one per changed cell, batched into a single
- * {@link GridEditableConfig.onValueChange} call.
+ * by `rowKey`. Cells commit when their editor closes, batched per row into a
+ * single {@link GridEditableConfig.onCommit} call. A saved row therefore emits
+ * one per changed cell. A cell-scoped session emits one per move, because it
+ * holds one editor open — unless it narrowed a row that was already open, where
+ * the editors it closes emit together.
  */
 export type CellChange = {
 	rowKey: string | number
@@ -28,10 +31,10 @@ export type GridEditCellContext<T> = {
 	onValueUpdate: (next: unknown) => void
 	/**
 	 * Stage `next` (when given) and, when the grid owns the edit session
-	 * ({@link GridEditableConfig.trigger} `'doubleClick'`), save the row — the
-	 * same one-batch commit removing it from the editable set. Under the default
-	 * consumer-owned session it only stages: the row's save flushes the staged
-	 * values, so there is no per-cell close.
+	 * ({@link GridEditableConfig.trigger} `'doubleClick'`), end that session — the
+	 * same one-batch commit, removing the row from the editable set. Under the
+	 * default consumer-owned session it only stages: the row's save flushes the
+	 * staged values, so there is no per-cell close.
 	 */
 	commit: (next?: unknown) => void
 	/** Discard the edit and close the editor. */
@@ -53,11 +56,35 @@ export type GridEditCellContext<T> = {
 export type GridEditCell<T> = (context: GridEditCellContext<T>) => ReactNode
 
 /**
+ * What a row's {@link GridColumn.actions} slot is told about editing, and what it
+ * can do about it. Every grid passes one; a grid with no `editable` binding
+ * reports `editing: false` and its callbacks do nothing, so an actions column
+ * needs no guard of its own.
+ *
+ * @remarks `discard` is the one transition a consumer cannot drive through
+ * `rows`. Removing a row from the set is a save — that is what flushes its
+ * staged cells — so closing a row and dropping its edits has to come from here.
+ */
+export type GridRowActionsContext = {
+	/** Whether this row is in edit mode. */
+	editing: boolean
+	/** Close the row, committing its changed cells through `onCommit`. */
+	save: () => void
+	/** Close the row, dropping its staged cells. Nothing reaches `onCommit`. */
+	discard: () => void
+}
+
+/**
  * Editing binding for {@link GridProps.editable}: marks which rows are in edit
  * mode and sinks their committed cell values. Setting it bakes per-row editing
  * into the grid — a row in the set puts all of its editable cells into edit mode
  * at once. Edits stage live; removing the row from the set saves its changed
- * cells as one batch through `onValueChange` (Escape reverts a cell).
+ * cells as one batch through `onCommit` (Escape reverts a cell).
+ *
+ * A grid-owned session ({@link GridEditableConfig.trigger} `'doubleClick'`) can
+ * narrow to the entered cell instead of its whole row through {@link
+ * GridEditableConfig.scope}; the set and the batch sink stay the model either
+ * way.
  *
  * @remarks The editable-row set is a controllable `Set<key>`, mirroring
  * {@link GridSelection}: flip a row in (e.g. from a row-action pencil) to put it
@@ -82,16 +109,50 @@ export type GridEditableConfig = {
 	 * Enter on the keyboard cursor's active cell — puts its row into edit mode
 	 * and focuses that cell's editor; Enter in an inferred text/number editor
 	 * then saves the row (the same one-batch commit), and Escape abandons the
-	 * row's staged edits. Every entry and exit still flows through
-	 * `rows`/`onRowsChange`, so a controlled binding stays the source of truth.
+	 * row's staged edits. Entering and leaving a row flows through
+	 * `rows`/`onRowsChange`, so a controlled binding stays the source of truth for
+	 * which rows edit. Under {@link GridEditableConfig.scope} `'cell'` a move
+	 * between cells of one row leaves that set alone, and the grid holds the
+	 * active cell itself.
 	 * @defaultValue 'manual'
 	 */
 	trigger?: 'manual' | 'doubleClick'
 	/**
-	 * Called when an editing row is saved (removed from the set), with one
-	 * {@link CellChange} per changed cell in that row, batched into a single call.
-	 * Unchanged and `validate`-failing cells are dropped. Apply each change to your
-	 * own row data and feed it back as `rows`.
+	 * How much of a grid-owned session enters edit mode. `'row'` — the default —
+	 * mounts an editor in every editable cell of the entered row at once. That is
+	 * the shape a form-like "edit this record" grid wants. `'cell'` narrows the
+	 * session to the entered cell alone. Only that cell mounts an editor, and
+	 * moving to another cell commits the one it leaves, so a session that opened
+	 * its own row commits one {@link CellChange} at a time — the spreadsheet
+	 * shape. Narrowing a row the consumer had already opened is the exception: the
+	 * editors that close with the narrowing commit together, in one batch. Escape under
+	 * `'cell'` drops the active cell's draft alone, because the cells before it
+	 * already committed. The setting needs a grid-owned session ({@link
+	 * GridEditableConfig.trigger} `'doubleClick'`). Under `'manual'` the consumer
+	 * names a row, never a cell, so the row's editors all mount as under `'row'`.
+	 * A row the consumer opens through `rows` reads the same way until the grid
+	 * narrows it: its editors all mount, and entering one of its cells starts the
+	 * session that closes the rest. A session narrows the one row it sits on, so a
+	 * row opened beside it stays whole. It also gives that row back when it moves
+	 * on: a row the session found in `rows` returns to its row-shaped state, and
+	 * only a row the session added to `rows` itself leaves with it. The held cell
+	 * carries a save and a discard control beside its editor, because the grid
+	 * owns this session and nothing else on screen ends it. Row scope shows none:
+	 * its settle control is the consumer's own row action, at the granularity that
+	 * matches.
+	 * @defaultValue 'row'
 	 */
-	onValueChange: (changes: CellChange[]) => void
+	scope?: 'row' | 'cell'
+	/**
+	 * Called when staged cells commit, with one {@link CellChange} per changed cell
+	 * of a row, batched into a single call. Cells commit when their editor closes.
+	 * Saving a row — removing it from the set — closes all of them at once; a
+	 * cell-scoped session usually closes one as it moves on. Read the batch rather
+	 * than its first entry: a session narrowing an already-open row closes several
+	 * at once. Three kinds of cell are dropped: unchanged ones, ones whose
+	 * {@link GridColumn.validate} rejects the value, and ones whose column stopped
+	 * being editable while the editor was open. Apply each change to your own row
+	 * data and feed it back as `rows`.
+	 */
+	onCommit: (changes: CellChange[]) => void
 }

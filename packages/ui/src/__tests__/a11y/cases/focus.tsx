@@ -7,14 +7,6 @@ import {
 	CommandPaletteLabel,
 } from '../../../components/command-palette'
 import { Field, Label } from '../../../components/fieldset'
-import {
-	Menu,
-	MenuContent,
-	MenuItem,
-	MenuLabel,
-	MenuSection,
-	MenuTrigger,
-} from '../../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { screen } from '../../helpers'
@@ -35,14 +27,15 @@ const openFrom = (label: string, surface: () => Promise<unknown>) => async (user
 /**
  * Focus corpus: dismissable surfaces that move keyboard focus programmatically
  * (an explicit `.focus()` call) on open, observable in jsdom: the command
- * palette's search input, an `autoFocus` popover, and the dropdown panels
- * (menu, select's listbox). The gate (`focus.test.tsx`) asserts focus leaves the
- * trigger for the surface.
+ * palette's search input, an `autoFocus` popover, and the select's listbox
+ * panel. The gate (`focus.test.tsx`) asserts focus leaves the trigger for the
+ * surface.
  *
  * The modal Overlay family (dialog/drawer/sheet/confirm) is excluded: its trap
  * finds the first tabbable via floating-ui's layout-dependent `tabbable` pass,
  * which jsdom can't evaluate (no geometry); covered in the real-browser suite.
- * Combobox is excluded: that pattern keeps focus on the input.
+ * Combobox and Menu are excluded: both keep focus on the trigger (the Menu opens
+ * without pulling focus into the panel), so neither moves focus to a surface.
  */
 export const focus: readonly FocusCase[] = [
 	[
@@ -80,26 +73,6 @@ export const focus: readonly FocusCase[] = [
 			</PopoverContent>
 		</Popover>,
 		openFrom('Open popover', () => screen.findByRole('dialog', { name: 'Details' })),
-	],
-	[
-		// Dropdown menu: the panel auto-focuses its first item on open.
-		'menu',
-		<Menu key="fmn">
-			<MenuTrigger>
-				<Button variant="outline">Options</Button>
-			</MenuTrigger>
-			<MenuContent>
-				<MenuSection>
-					<MenuItem>
-						<MenuLabel>Edit</MenuLabel>
-					</MenuItem>
-					<MenuItem>
-						<MenuLabel>Duplicate</MenuLabel>
-					</MenuItem>
-				</MenuSection>
-			</MenuContent>
-		</Menu>,
-		openFrom('Options', () => screen.findByRole('menu')),
 	],
 	[
 		// Select: clicking the combobox trigger opens its listbox popover, whose

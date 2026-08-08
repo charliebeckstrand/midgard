@@ -1,7 +1,15 @@
 'use client'
 
 import type { Table } from '@tanstack/react-table'
-import { type RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import {
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
 import { allocateColumnWidths } from './engine/grid-column/allocate'
@@ -22,7 +30,7 @@ type GridColumnAutoSizeOptions<T> = {
 	/**
 	 * Fingerprint of the rendered rows (count and end keys), supplied by the
 	 * caller from data it already holds: a page turn, filter, or sort that
-	 * changes the visible rows re-measures (new content may be wider), without
+	 * changes the visible rows re-measures (new content can be wider), without
 	 * this hook forcing the engine's Row-per-datum model just to fingerprint a
 	 * measurement.
 	 */
@@ -60,7 +68,12 @@ type GridColumnAutoSizeOptions<T> = {
 }
 
 /** Empty measurement; the resolved value before the first DOM read. @internal */
-const EMPTY_MEASUREMENT: ColumnMeasurement = { profiles: [], fixed: 0, floors: new Map() }
+const EMPTY_MEASUREMENT: ColumnMeasurement = {
+	profiles: [],
+	fixed: 0,
+	floors: new Map(),
+	cells: 0,
+}
 
 /**
  * The columns a fit measures uncapped: a user-invoked "Auto-size all columns"
@@ -104,6 +117,34 @@ function writeAutoSize(
 }
 
 /**
+ * The table's horizontal border chrome (px). Hairline `outline` borders render the
+ * table a pixel or two past the summed column widths, which would raise a phantom
+ * horizontal scrollbar if the columns filled the full width, so a fit reserves it.
+ * Kept out of `run` for its cognitive-complexity budget. @internal
+ */
+function tableChrome(container: HTMLElement, totalSize: number): number {
+	const element = container.querySelector('table')
+
+	if (!element) return 0
+
+	return Math.max(0, Math.round(element.getBoundingClientRect().width - totalSize))
+}
+
+/**
+ * Whether `next` moves any column off `prev`. A height-only resize tick — or any
+ * change landing on the same pixels — must not allocate a fresh sizing object and
+ * re-render the head, body, and footer for nothing. Kept out of `run` for its
+ * cognitive-complexity budget. @internal
+ */
+function sizingMoved(prev: Record<string, number>, next: Record<string, number>): boolean {
+	for (const id in next) {
+		if (prev[id] !== next[id]) return true
+	}
+
+	return false
+}
+
+/**
  * Auto-sizes a resizable grid's data columns to their content within the
  * container width. Each pass measures the columns' intrinsic widths from the
  * rendered DOM (see {@link measureColumnIntrinsics}) and distributes the
@@ -111,12 +152,20 @@ function writeAutoSize(
  * their content, a column whose data would truncate gains room while columns that
  * don't need it settle at a shared width, and when the content can't fit the
  * table overflows horizontally rather than shrinking below it. A single-word
- * header never truncates; a multi-word one may.
+ * header never truncates; a multi-word one can.
  *
  * Runs synchronously before paint (so the first frame carries real widths, not
  * the engine's default), again on container resize (`ResizeObserver`), when the
  * columns / density / rendered rows change, and once web fonts settle. It stands
  * down when the consumer controls `columnSizing` or the grid is not resizable.
+ *
+ * A pass that finds no body cells — a loading skeleton, an empty result, a
+ * windowed body whose rows haven't landed — measures no content, so every column
+ * falls back to its header floor. That fit is provisional: it is never reused and
+ * never frozen, and `fitRenderedRows` re-fits from the body's own layout effect
+ * the moment real rows render, before they paint. A grid whose rows arrive after
+ * mount therefore shows its content widths in the first frame that shows the
+ * content, and holds them from there.
  *
  * A `width`-seeded column holds its explicit width, sitting out the fit while the
  * rest fill around it. The first time the user manually resizes a column — a drag
@@ -146,6 +195,9 @@ export function useGridColumnAutoSize<T>({
 	sizeToFit: () => void
 	resetColumn: (id: string | number) => void
 	holdManualWidths: () => void
+	fitRenderedRows: () => void
+	/** Whether the first width pass has happened; the table paints once it has. */
+	settled: boolean
 } {
 	const enabled = resizable && !controlled
 
@@ -153,6 +205,27 @@ export function useGridColumnAutoSize<T>({
 	// keyboard) adds every column here at once, so resizing one never reflows the
 	// rest; `sizeToFit` clears the set to re-arm auto-fit. Seeded from any restored
 	// `columnSizing` so persisted widths hold on reload instead of being re-fit.
+	/**
+	 * Whether the first width pass has happened, so the table can be held back until it
+	 * has.
+	 *
+	 * The synchronous fit below already keeps a *client-side* mount from flashing the
+	 * engine's default colgroup. A reload is the case it cannot reach: the browser paints
+	 * the server's HTML — whose widths are the declared ones, since no measurement has
+	 * happened yet — and only then does React hydrate and this fit correct them. That
+	 * repaint is the column jump. Nothing can compute a content fit before the DOM
+	 * exists, so the fix is to not paint a width that is about to change.
+	 *
+	 * Flips on the first pass that measures real body cells, not merely the first pass:
+	 * a reload arrives with a cold query cache, so the fit at hydration sees only the
+	 * header and is provisional by the same test `freezeOnRowChange` uses. The consumer
+	 * supplies the escape for a grid that legitimately has no rows to measure.
+	 */
+	// Seeded from `enabled`, so a grid this hook never sizes is settled on the server too
+	// — layout effects don't run there, so a `false` seed would have hidden every
+	// non-resizable and consumer-controlled grid until hydration for no reason.
+	const [settled, setSettled] = useState(!enabled)
+
 	const manualPinnedRef = useRef<Set<string>>(new Set(Object.keys(initialSizing ?? {})))
 
 	// `width`-seeded columns the user released via "Auto-size all columns"; they rejoin
@@ -190,8 +263,14 @@ export function useGridColumnAutoSize<T>({
 			const width = container?.clientWidth ?? 0
 
 			// No layout (jsdom, display:none, a collapsed panel): leave the columns be;
-			// the ResizeObserver's first non-zero tick performs the initial fit.
-			if (!enabled || !container || !width) return
+			// the ResizeObserver's first non-zero tick performs the initial fit. Settle
+			// anyway — there is no measurement to wait for, and holding the paint would hide
+			// the table for good in an environment that will never report a width.
+			if (!enabled || !container || !width) {
+				setSettled(true)
+
+				return
+			}
 
 			// A drag-resize owns the widths while it's in flight; don't fight it.
 			if (table.getState().columnSizingInfo.isResizingColumn) return
@@ -204,7 +283,12 @@ export function useGridColumnAutoSize<T>({
 				structSigRef.current = structSig
 			}
 
-			if (forceMeasure || structChanged || measurementRef.current.profiles.length === 0) {
+			// A pass that read no body cells measured no content (see
+			// `ColumnMeasurement.cells`), so it is never reused — the next trigger, even a
+			// width-only resize tick, reads the DOM again in case the rows have landed.
+			const provisional = measurementRef.current.cells === 0
+
+			if (forceMeasure || structChanged || provisional) {
 				measurementRef.current = measureColumnIntrinsics({
 					table,
 					columns,
@@ -225,28 +309,23 @@ export function useGridColumnAutoSize<T>({
 			// last floor.
 			for (const [id, floor] of floors) columnFloors.set(id, floor)
 
-			// Reserve the table's horizontal border chrome — hairline `outline` borders
-			// render the table a pixel or two past the summed column widths, which would
-			// raise a phantom horizontal scrollbar if the columns filled the full width.
-			const tableEl = container?.querySelector('table')
-
-			const chrome = tableEl
-				? Math.max(0, Math.round(tableEl.getBoundingClientRect().width - table.getTotalSize()))
-				: 0
+			// Reserve the table's horizontal border chrome (see `tableChrome`).
+			const chrome = tableChrome(container, table.getTotalSize())
 
 			const sizing = allocateColumnWidths(profiles, width - chrome - fixed)
 
-			// Skip the write when nothing moved: a height-only resize tick (or any change
-			// landing on the same pixels) must not allocate a fresh sizing object and
-			// re-render the head, body, and footer for nothing.
-			writeAutoSize(autoSizingRef, emit, () =>
-				table.setColumnSizing((prev) => {
-					for (const id in sizing) {
-						if (prev[id] !== sizing[id]) return { ...prev, ...sizing }
-					}
+			// Settled only once a pass has read real body cells. A provisional pass — the
+			// floor-only fit made against a loading skeleton, before the rows arrive — is
+			// the one `freezeOnRowChange` below already refuses to trust, and revealing on
+			// it is what still let the columns jump: a reload measures headers, paints, and
+			// then re-fits the moment the rows land.
+			if (measurementRef.current.cells > 0) setSettled(true)
 
-					return prev
-				}),
+			// Skip the write when nothing moved (see `sizingMoved`).
+			writeAutoSize(autoSizingRef, emit, () =>
+				table.setColumnSizing((prev) =>
+					sizingMoved(prev, sizing) ? { ...prev, ...sizing } : prev,
+				),
 			)
 		},
 		[enabled, table, columns, containerRef, structSig, columnFloors, autoSizingRef],
@@ -320,11 +399,31 @@ export function useGridColumnAutoSize<T>({
 
 		// Frozen widths (infinite scroll's stable columns) hold against an appended
 		// batch: a rows-only re-fire re-measures nothing and the columns keep their
-		// initial fit. A structural change — columns or density — still re-fits.
-		if (freezeOnRowChange && !structChanged) return
+		// initial fit. A structural change — columns or density — still re-fits. The
+		// freeze arms on the fit that first measured rendered rows, not on a
+		// provisional one (see `ColumnMeasurement.cells`): a grid whose rows arrive
+		// after mount would otherwise freeze the floor-only fit it made against the
+		// loading skeleton and hold every column there for good.
+		if (freezeOnRowChange && !structChanged && measurementRef.current.cells > 0) return
 
 		run(true)
 	}, [enabled, run, rowsSig, structSig, freezeOnRowChange])
+
+	// Fit when the body's rendered rows change and the last pass had none to measure.
+	// A windowed body renders its rows in a later commit than the one that supplied
+	// them — the virtualizer resolves its scroll element only once the refs have
+	// attached (see `useVirtualWindow`) — and that commit moves neither the rows
+	// signature nor the struct signature, so nothing above would re-measure it. The
+	// body calls this from a layout effect, so the fit lands before those rows paint:
+	// their first frame carries the content widths instead of the floor-only fit the
+	// empty body measured, and the widths never move again under the user's eyes.
+	// Once a pass has read rows this is a bail, leaving the windowed scroll — and
+	// `freezeOnRowChange` — to behave exactly as before.
+	const fitRenderedRows = useCallback(() => {
+		if (!enabled || measurementRef.current.cells > 0) return
+
+		runRef.current(true)
+	}, [enabled])
 
 	// Own the ResizeObserver in its own effect, keyed only on enablement and the
 	// container, so a width-only container resize is the one thing that recreates it
@@ -333,8 +432,19 @@ export function useGridColumnAutoSize<T>({
 	useLayoutEffect(() => {
 		const element = containerRef?.current
 
-		if (!enabled || !element || typeof ResizeObserver === 'undefined') return
+		// Nothing here will ever size these columns — not resizable, sizing controlled by
+		// the consumer, or no `ResizeObserver` (SSR, jsdom). There is nothing to wait for,
+		// so let the table paint immediately.
+		if (!enabled || !element || typeof ResizeObserver === 'undefined') {
+			setSettled(true)
 
+			return
+		}
+
+		// Settling is `run`'s to decide, and only on a pass that measured real body cells.
+		// A zero-width container (a collapsed panel, a tab parked in a hidden `Activity`)
+		// bails inside `run` without settling, and the observer below fits it the moment it
+		// has a width — which is the first moment it could be seen anyway.
 		runRef.current(true)
 
 		const observer = new ResizeObserver(() => runRef.current(false))
@@ -438,5 +548,5 @@ export function useGridColumnAutoSize<T>({
 		[enabled, table, columns, containerRef, columnFloors],
 	)
 
-	return { sizeToFit, resetColumn, holdManualWidths }
+	return { sizeToFit, resetColumn, holdManualWidths, fitRenderedRows, settled }
 }

@@ -12,10 +12,10 @@ import { k } from '../../recipes/kata/popover'
 import { Box, type BoxPadding } from '../box'
 import { usePopoverContext } from './context'
 
-// Surface padding scales with the resolved Density size; overridable per-instance via `p`.
+// Surface padding scales with the resolved Density size.
 const paddingForSize = { sm: 'md', md: 'lg', lg: 'xl' } satisfies Record<Step, BoxPadding>
 
-/** Props for {@link PopoverContent}: focus behavior (`autoFocus`/`modal`), padding/size, and the accessible name. */
+/** Props for {@link PopoverContent}: focus behavior (`autoFocus`/`modal`), `size`, and the accessible name. */
 export type PopoverContentProps = {
 	className?: string
 	/**
@@ -31,7 +31,6 @@ export type PopoverContentProps = {
 	 * @defaultValue false
 	 */
 	modal?: boolean
-	p?: BoxPadding
 	/**
 	 * Size step that propagates to descendants via the Density context.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
@@ -60,21 +59,13 @@ export function PopoverContent({
 	className,
 	autoFocus = false,
 	modal = false,
-	p,
 	size,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	children,
 }: PopoverContentProps) {
-	const {
-		open,
-		panelId,
-		setFloating,
-		floatingStyles,
-		getFloatingProps,
-		floatingContext,
-		onExitComplete,
-	} = usePopoverContext()
+	const { open, panelId, setFloating, floatingStyles, getFloatingProps, floatingContext } =
+		usePopoverContext()
 
 	const contentRef = useRef<HTMLDivElement | null>(null)
 
@@ -83,7 +74,7 @@ export function PopoverContent({
 
 	const resolvedSize = size ?? inherited.size
 
-	const resolvedPadding: BoxPadding = p ?? paddingForSize[resolvedSize]
+	const resolvedPadding: BoxPadding = paddingForSize[resolvedSize]
 
 	useA11yAutoFocus(contentRef, open && autoFocus)
 
@@ -94,7 +85,6 @@ export function PopoverContent({
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
 			trapFocusContext={modal ? floatingContext : undefined}
-			onExitComplete={onExitComplete}
 		>
 			<motion.div
 				{...k.panel.motion}

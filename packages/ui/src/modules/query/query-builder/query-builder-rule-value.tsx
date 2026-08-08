@@ -7,7 +7,7 @@ import { ListboxOption } from '../../../components/listbox'
 import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
-import type { QueryField } from './types'
+import type { QueryField } from '../engine/types'
 
 /** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */
 export type QueryBuilderRuleValueProps = {
@@ -95,7 +95,7 @@ export function QueryBuilderRuleValue({
 			<Select
 				value={(value as string | undefined) ?? ''}
 				displayValue={(v: string) => field.options?.find((o) => o.value === v)?.label ?? ''}
-				onValueChange={(v: string | undefined) => onValueChange(v ?? '')}
+				onValueChange={(v: string | null) => onValueChange(v ?? '')}
 				placeholder="Value"
 				aria-label={label}
 				className={className}

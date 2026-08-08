@@ -6,6 +6,7 @@ import type { KeybindingsMap } from 'tinykeys'
 import { cn } from '../../core'
 import { useKeybindings } from '../../hooks/use-keybindings'
 import { QueryContext, useQueryValue } from '../../primitives/query'
+import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { k } from '../../recipes/kata/command-palette'
 import { Button } from '../button'
 import { Dialog, DialogBody, type DialogPanelVariants } from '../dialog'
@@ -18,8 +19,8 @@ import { useCommandPaletteState } from './use-command-palette-state'
 // Stable filter for `useKeybindings`; the shortcut fires even inside form fields.
 const IGNORE_NOTHING = () => false
 
-/** Props for {@link CommandPalette}; inherits the Dialog `size` variant. */
-export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
+/** Props for {@link CommandPalette}; inherits the Dialog `width` variant. */
+export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/**
@@ -29,7 +30,6 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	 * @defaultValue 'Type a command or search'
 	 */
 	placeholder?: string
-	icon?: ReactNode
 	/** Close the palette when the backdrop is clicked. @defaultValue true */
 	dismissOnBackdrop?: boolean
 	className?: string
@@ -46,9 +46,13 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'size'> & {
 	/**
 	 * Items to render in the palette. Read the live and deferred query with
 	 * {@link useCommandPaletteQuery}; filter against `deferredQuery` to keep
-	 * typing responsive. CommandPalette does not virtualize; keep the rendered
-	 * set to a few hundred items, or wrap children in your own windowed renderer
-	 * for larger sets.
+	 * typing responsive. Wrap the filtered items in `VirtualOptions` with
+	 * `getOptionId` for large lists: arrow then navigates the full set by
+	 * index, reaching items outside the rendered window. Unlike
+	 * `Combobox`/`Listbox`, whose panel already carries a fixed max-height,
+	 * `DialogBody` sizes to its content — give `VirtualOptions` a wrapper with
+	 * an explicit, definite height (not just `max-height`) and `overflow-y:
+	 * auto`, e.g. `<div style={{ height: 320, overflow: 'auto' }}>`.
 	 */
 	children: ReactNode
 }
@@ -63,15 +67,17 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * `initialFocus`; arrow keys drive a virtual roving highlight via
  * `aria-activedescendant` while focus stays on the input. The listbox owns only
  * options (`aria-required-children`), so the no-results message lives in a
- * sibling live `<output>` that announces when the filtered set empties.
+ * sibling live `<output>` that announces when the filtered set empties. A
+ * `VirtualOptions` inside `children` registers its windowed item source
+ * automatically, so the highlight reaches items outside the rendered window.
+ * Roving type-ahead stays off: the search input owns every printable key.
  */
 export function CommandPalette({
 	open,
 	onOpenChange,
 	placeholder = 'Type a command or search',
-	icon,
 	dismissOnBackdrop = true,
-	size = '2xl',
+	width = '2xl',
 	className,
 	triggerShortcut = DEFAULT_TRIGGER_SHORTCUT,
 	children,
@@ -86,6 +92,7 @@ export function CommandPalette({
 		onKeyDown,
 		close,
 		context,
+		virtualSourceRef,
 	} = useCommandPaletteState({ open, onOpenChange })
 
 	const triggerBindings = useMemo<KeybindingsMap>(() => {
@@ -112,7 +119,7 @@ export function CommandPalette({
 			onOpenChange={onOpenChange}
 			placement="top"
 			dismissOnBackdrop={dismissOnBackdrop}
-			size={size}
+			width={width}
 			className={className}
 			initialFocus={inputRef}
 			// Names the dialog directly; the palette has no visible heading.
@@ -123,7 +130,7 @@ export function CommandPalette({
 					<Flex gap="sm">
 						<Input
 							ref={inputRef}
-							prefix={icon ?? <Icon icon={<Search />} />}
+							prefix={<Icon icon={<Search />} />}
 							role="combobox"
 							aria-label={placeholder}
 							aria-expanded={open}
@@ -136,7 +143,7 @@ export function CommandPalette({
 							onChange={(event) => setQuery(event.target.value)}
 							onKeyDown={onKeyDown}
 						/>
-						<Button variant="plain" aria-label="Close" onClick={close}>
+						<Button type="button" variant="plain" aria-label="Close" onClick={close}>
 							<Icon icon={<X />} />
 						</Button>
 					</Flex>
@@ -149,7 +156,9 @@ export function CommandPalette({
 							data-slot="command-palette-list"
 							className={cn(k.list)}
 						>
-							{children}
+							<VirtualItemSourceContext value={virtualSourceRef}>
+								{children}
+							</VirtualItemSourceContext>
 						</div>
 						{/* The listbox owns only options (`aria-required-children`). The
 					    no-results status is a sibling `<output>` that announces when the

@@ -1,15 +1,9 @@
 import type { PropsWithChildren, Ref } from 'react'
-import type { ResponsiveGap } from '../components/flex/variants'
 import { Stack } from '../components/stack'
 import { cn } from '../core'
 
 type StackedLayoutProps = PropsWithChildren<{
 	className?: string
-	/**
-	 * Vertical gap between stacked children.
-	 * @defaultValue 'lg'
-	 */
-	gap?: ResponsiveGap
 }>
 
 /**
@@ -18,9 +12,9 @@ type StackedLayoutProps = PropsWithChildren<{
  * {@link StackedLayoutFooter}. The header and footer stay fixed-height while the
  * body flexes and scrolls.
  */
-export function StackedLayout({ gap = 'lg', children, className }: StackedLayoutProps) {
+export function StackedLayout({ children, className }: StackedLayoutProps) {
 	return (
-		<Stack direction="col" gap={gap} className={cn('min-h-0', className)}>
+		<Stack direction="col" gap="lg" className={cn('min-h-0', className)}>
 			{children}
 		</Stack>
 	)

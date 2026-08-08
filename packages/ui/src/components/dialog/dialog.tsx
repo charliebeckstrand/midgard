@@ -10,8 +10,8 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
-/** Props for {@link Dialog}: open-state control, surface/sizing variants, placement, dismissal, and accessible naming. */
-export type DialogProps = DialogPanelVariants & {
+/** Props for {@link Dialog}: open-state control, `width` variant, placement, dismissal, and accessible naming. */
+export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
 	/** Initial open state when uncontrolled. */
@@ -22,7 +22,7 @@ export type DialogProps = DialogPanelVariants & {
 	placement?: 'center' | 'top'
 	/** Whether clicking the backdrop closes the dialog. @defaultValue true */
 	dismissOnBackdrop?: boolean
-	/** Opt into the glass surface treatment, overriding the resolved `surface` variant. */
+	/** Opt into the glass surface treatment. */
 	glass?: boolean
 	className?: string
 	children: ReactNode
@@ -70,8 +70,7 @@ export function Dialog({
 	onOpenChange,
 	placement = 'center',
 	dismissOnBackdrop = true,
-	surface,
-	size,
+	width,
 	glass,
 	className,
 	children,
@@ -88,7 +87,7 @@ export function Dialog({
 		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
-	const resolvedSurface = useResolvedSurface(surface, glass)
+	const resolvedSurface = useResolvedSurface(glass)
 
 	const isDesktop = useMinWidth(640)
 
@@ -118,7 +117,7 @@ export function Dialog({
 					data-slot={slot}
 					className={cn(
 						'pointer-events-auto',
-						k.panel({ surface: resolvedSurface, size }),
+						k.panel({ surface: resolvedSurface, width }),
 						className,
 					)}
 				>

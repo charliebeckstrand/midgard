@@ -1,16 +1,18 @@
 'use client'
 
-import { type CSSProperties, useRef } from 'react'
+import { type CSSProperties, type Ref, useRef } from 'react'
 import { cn, dataAttr } from '../../../core'
-import { useControllable } from '../../../hooks/use-controllable'
 import { useDensity } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
+import { useFormValue } from '../../form/use-form-value'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
 
 /** Props for {@link RangeSlider}: the `[start, end]` controllable triad, `min`/`max`/`step` bounds, `allowCross` overlap policy, per-thumb `labels` and `getValueText` for assistive tech, plus `size`/`color` variants. */
 export type RangeSliderProps = {
+	/** Binds the range to an enclosing Form field. Seed `Form.defaultValues` with a `[number, number]`. */
+	name?: string
 	value?: [number, number]
 	defaultValue?: [number, number]
 	onValueChange?: (value: [number, number]) => void
@@ -39,6 +41,7 @@ export type RangeSliderProps = {
 	getValueText?: (value: number, thumb: 0 | 1) => string
 	className?: string
 	style?: CSSProperties
+	ref?: Ref<HTMLDivElement>
 }
 
 /**
@@ -51,6 +54,7 @@ export type RangeSliderProps = {
  * `labels` name, with optional `getValueText` for `aria-valuetext`.
  */
 export function RangeSlider({
+	name,
 	value,
 	defaultValue,
 	onValueChange,
@@ -65,13 +69,14 @@ export function RangeSlider({
 	getValueText,
 	className,
 	style,
+	ref,
 }: RangeSliderProps) {
-	const [range, setRange] = useControllable<[number, number]>({
+	const { value: range, setValue: setRange } = useFormValue<[number, number]>(name, {
 		value,
 		defaultValue: defaultValue ?? [min, max],
 		onValueChange: onValueChange
 			? (v) => {
-					if (v !== undefined) onValueChange(v)
+					if (v != null) onValueChange(v)
 				}
 			: undefined,
 	})
@@ -117,6 +122,7 @@ export function RangeSlider({
 
 	return (
 		<div
+			ref={ref}
 			data-slot="slider-range"
 			data-disabled={dataAttr(disabled)}
 			className={cn(k.root({ size: resolvedSize, color }), className)}

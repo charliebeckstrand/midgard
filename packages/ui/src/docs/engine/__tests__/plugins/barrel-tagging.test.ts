@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildTaggedBarrel, parseReExports } from '../../plugins/docs'
+import { buildTaggedBarrel, hasUnmodeledExports, parseReExports } from '../../plugins/docs'
 
 // Representative public barrels: a component (value + type specifiers) and a
 // provider (a PascalCase context alongside non-PascalCase hooks).
@@ -80,5 +80,25 @@ describe('buildTaggedBarrel', () => {
 		expect(out).toContain('export const GlassProvider = __ct_tag(')
 
 		expect(out).toContain('export const GlassContext = __ct_tag(')
+	})
+})
+
+describe('hasUnmodeledExports', () => {
+	it('accepts a barrel of only named re-exports', () => {
+		expect(hasUnmodeledExports(BUTTON_BARREL, 'index.ts')).toBe(false)
+
+		expect(hasUnmodeledExports(GLASS_BARREL, 'index.ts')).toBe(false)
+	})
+
+	// buildTaggedBarrel regenerates from the parsed named re-exports alone, so any
+	// of these would vanish from the emitted barrel — the guard keeps such a
+	// barrel untagged rather than dropping the export.
+	it.each([
+		['a star re-export', `export * from './use-button-group'`],
+		['a namespaced star re-export', `export * as group from './use-button-group'`],
+		['a local value export', `export const BUTTON_ID = 'button'`],
+		['a default export', `export default 42`],
+	])('flags %s', (_label, source) => {
+		expect(hasUnmodeledExports(source, 'index.ts')).toBe(true)
 	})
 })

@@ -32,8 +32,15 @@ type GridToolbarProps = {
 	 */
 	exportActions: GridExportAction[]
 	/**
+	 * Whether an async export is in flight — from this dropdown or from a right-click
+	 * menu, since the grid counts them in one place (see {@link useGridExport}). Swaps
+	 * the trigger's download icon for a spinner and gates re-activation until it
+	 * settles; the grid's own "Exporting" overlay reads the same fact.
+	 */
+	exporting: boolean
+	/**
 	 * Per-column filter controls, or `null` when no column is filterable. Backs the
-	 * "Clear all filters" button, shown only while a filter constrains rows.
+	 * "Clear filters" button, shown only while a filter constrains rows.
 	 */
 	columnFilters: GridColumnFilter | null
 	/** Batch-action builder; its controls fill the second row while a row is selected. */
@@ -49,10 +56,12 @@ type GridToolbarProps = {
 /**
  * The Grid's toolbar region: the single place its above-table controls are
  * assembled. The top row carries the quick-search field at the start — joined,
- * while a column filter constrains rows, by an amber "Clear all filters" button
+ * while a column filter constrains rows, by an amber "Clear filters" button
  * that lifts them all — and a "Table tools" cluster at the end: the
  * column-manager trigger and, when any export type is active, an "Export"
- * dropdown listing one item per action; a second row hosts the batch actions
+ * dropdown listing one item per action — its trigger swaps the download icon
+ * for a spinner while an async export is in flight, from this dropdown or from a
+ * right-click menu; a second row hosts the batch actions
  * while a row is selected, so the search stays reachable beside them. The tools
  * and batch actions are each their own
  * labelled {@link Toolbar} — "Table tools" and "Batch actions" — while the
@@ -70,6 +79,7 @@ export function GridToolbar({
 	columnManagerLabel,
 	onManageColumns,
 	exportActions,
+	exporting,
 	columnFilters,
 	batchActions,
 	hasSelection,
@@ -97,15 +107,25 @@ export function GridToolbar({
 					{/* Grouped with the search on the row's start (filter-related), across
 					    from the table tools; surfaces only while a filter constrains rows. */}
 					{hasActiveFilters && (
-						<Button variant="soft" color="amber" onClick={() => columnFilters?.clear()}>
-							Clear all filters
+						<Button
+							type="button"
+							variant="soft"
+							color="amber"
+							onClick={() => columnFilters?.clear()}
+						>
+							Clear filters
 						</Button>
 					)}
 
 					{showTools && (
 						<Toolbar aria-label="Table tools" className={cn(k.toolbar.actions)}>
 							{showColumnManager && (
-								<Button variant="plain" aria-haspopup="dialog" onClick={onManageColumns}>
+								<Button
+									type="button"
+									variant="plain"
+									aria-haspopup="dialog"
+									onClick={onManageColumns}
+								>
 									<Icon icon={<SlidersHorizontal />} />
 									{columnManagerLabel}
 								</Button>
@@ -114,13 +134,23 @@ export function GridToolbar({
 							{showExport && (
 								<Menu placement="bottom-start">
 									<MenuTrigger>
-										<Button variant="plain">
-											<Icon icon={<Download />} />
+										{/* The download icon rides the prefix slot so `loading`
+										    replaces it with the spinner rather than adding one
+										    beside it. */}
+										<Button
+											type="button"
+											variant="plain"
+											prefix={<Icon icon={<Download />} />}
+											loading={exporting}
+										>
 											Export
 										</Button>
 									</MenuTrigger>
 									<MenuContent>
 										{exportActions.map((action) => (
+											// The action carries its own pending tracking, so firing it is all
+											// this item does — the trigger's spinner and the grid's overlay both
+											// follow from the count it flips.
 											<MenuItem key={action.type} onAction={action.run}>
 												<MenuLabel>{action.label}</MenuLabel>
 											</MenuItem>

@@ -242,8 +242,9 @@ type FlattenTreeOptions = {
  * filtered) children, and a `branch-close` row.
  *
  * When `search` is set and `filter` is true, non-matching leaves are omitted
- * and branches that don't contain a match collapse to a single `branch-open`
- * row with `open=false` (caller can render a summary).
+ * and each branch keeps only children on a match path; a branch's open state
+ * still follows `expanded`. (Unlike the recursive renderer, this flatten pass
+ * does not force match-free branches closed.)
  *
  * @internal
  */

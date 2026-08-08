@@ -2,6 +2,7 @@ export { useMenuActions } from './context'
 export { Menu, type MenuProps } from './menu'
 export { MenuContent, type MenuContentProps } from './menu-content'
 export { MenuItem, type MenuItemProps } from './menu-item'
+export { MenuSub, type MenuSubProps } from './menu-sub'
 export { MenuTrigger, type MenuTriggerProps } from './menu-trigger'
 export {
 	MenuDescription,

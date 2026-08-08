@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { type FrameSizing, resolveFrameSizing, usePlotFrame } from '../../hooks'
+import { type FrameSizing, usePlotFrame } from '../../hooks'
+import { resolveFrameSizing } from '../../hooks/use-plot-frame'
 import { act, mockDomGeometry, renderUI, screen } from '../helpers'
 
 type StubInstance = {

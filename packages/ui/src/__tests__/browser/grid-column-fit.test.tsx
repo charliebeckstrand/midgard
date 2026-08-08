@@ -1,7 +1,19 @@
+import { useEffect, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, waitFor } from '../helpers'
+
+/** Opens the header menu's Auto-size parent, which holds both fits. */
+const openAutoSizeMenu = () => {
+	const parent = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
+		(el) => el.textContent?.trim() === 'Auto-size',
+	)
+
+	if (!parent) throw new Error('no Auto-size menu')
+
+	fireEvent.click(parent)
+}
 
 /**
  * Content-aware column auto-sizing against a real layout engine. The autosizer
@@ -183,15 +195,21 @@ describe('grid column auto-sizing (real browser)', () => {
 		// the width the chips want; only the batched max-content pass can see their
 		// natural row. (A lone Badge inherits the leaf's nowrap and measures true even
 		// clipped; the wrapper is the case that breaks without the pass.)
+		//
+		// The chip labels are sized to land the natural row between the 240px frame
+		// below and `DEFAULT_CONTENT_MAX` (480px) above: wide enough that the column
+		// must overflow the frame to show them, narrow enough that the automatic
+		// pass's runaway-cell cap never binds. Lengthen them and this measures the
+		// cap instead — which the uncapped "Auto-size all columns" case covers.
 		const { container, table, scroll } = render(240, [
 			{
 				id: 'status',
 				title: 'Status',
 				cell: () => (
 					<div style={{ display: 'flex', gap: '4px' }}>
-						<Badge>Verification pending review</Badge>
+						<Badge>Pending review</Badge>
 
-						<Badge>Escalated to compliance team</Badge>
+						<Badge>Escalated to compliance</Badge>
 					</div>
 				),
 			},
@@ -238,6 +256,8 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		fireEvent.contextMenu(header('big'))
 
+		openAutoSizeMenu()
+
 		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
 			el.textContent?.includes('Auto-size all columns'),
 		)
@@ -263,6 +283,8 @@ describe('grid column auto-sizing (real browser)', () => {
 		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeGreaterThan(250))
 
 		fireEvent.contextMenu(header('name'))
+
+		openAutoSizeMenu()
 
 		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
 			el.textContent?.includes('Auto-size this column'),
@@ -302,6 +324,8 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		fireEvent.contextMenu(header('big'))
 
+		openAutoSizeMenu()
+
 		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
 			el.textContent?.includes('Auto-size this column'),
 		)
@@ -340,5 +364,103 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		// The bordered table lands on the container exactly — no horizontal scrollbar.
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth)
+	})
+})
+
+/**
+ * Auto-sizing a grid whose rows arrive after mount — the potential-lates /
+ * carriers shape: a loading skeleton, then a virtualized window fed by infinite
+ * scroll with `stableColumnWidths`. The first fit has no body cells to read (the
+ * skeleton's placeholders carry no column id, and the window resolves its scroll
+ * element a commit later), so it measures no content and every column falls back
+ * to its header floor. A frozen column is held at that floor rather than lifted by
+ * the surplus, which is what used to leave a locked `Load ID` truncated to its
+ * `minWidth` until the user ran "Auto-size all columns" by hand.
+ */
+describe('grid column auto-sizing with async rows (real browser)', () => {
+	type Row = { id: number; loadId: string; customer: string }
+
+	const rows: Row[] = Array.from({ length: 40 }, (_, i) => ({
+		id: i + 1,
+		loadId: `${5026910 + i}`,
+		customer: 'ICP Group',
+	}))
+
+	// `Load ID` is multi-word, so its floor reserves only its affordances and a text
+	// allowance — the column is free to sit at `minWidth` when nothing measures wider.
+	const columns: GridColumn<Row>[] = [
+		{ id: 'loadId', title: 'Load ID', minWidth: 68, locked: 'left', cell: (row) => row.loadId },
+		{ id: 'customer', title: 'Customer', cell: (row) => row.customer },
+	]
+
+	/** The app's shape: skeleton first, then rows into a virtualized infinite-scroll body. */
+	function AsyncGrid({ stable }: { stable: boolean }) {
+		const [loaded, setLoaded] = useState(false)
+
+		useEffect(() => {
+			const timer = setTimeout(() => setLoaded(true), 30)
+
+			return () => clearTimeout(timer)
+		}, [])
+
+		return (
+			<div style={{ width: '900px' }}>
+				<Grid
+					columns={columns}
+					rows={loaded ? rows : []}
+					getKey={(row) => row.id}
+					loading={!loaded}
+					maxHeight="240px"
+					virtualize
+					infiniteScroll={{
+						onLoadMore: () => {},
+						hasMore: false,
+						stableColumnWidths: stable,
+					}}
+				/>
+			</div>
+		)
+	}
+
+	const leafOf = (container: HTMLElement) =>
+		container.querySelector<HTMLElement>('td[data-grid-col="loadId"] [data-grid-content]')
+
+	for (const stable of [false, true]) {
+		it(`fits a locked column to the rows that arrive after mount (stableColumnWidths: ${stable})`, async () => {
+			const { container } = renderUI(<AsyncGrid stable={stable} />)
+
+			await waitFor(() => expect(leafOf(container)).not.toBeNull())
+
+			// The load numbers show whole: the fit that saw the rendered rows superseded
+			// the floor-only one, and `stableColumnWidths` — which freezes the widths
+			// against later batches — never armed on a fit that had measured nothing.
+			const leaf = leafOf(container) as HTMLElement
+
+			expect(leaf.scrollWidth).toBeLessThanOrEqual(leaf.clientWidth + 1)
+		})
+	}
+
+	it('never moves the columns once the rows are on screen', async () => {
+		const { container } = renderUI(<AsyncGrid stable />)
+
+		const header = () =>
+			container.querySelector<HTMLElement>('th[data-grid-col="loadId"]') as HTMLElement
+
+		// Sample every frame across the skeleton → rows transition, keeping the width
+		// each frame that had rendered rows in it.
+		const widths = new Set<number>()
+
+		for (let frame = 0; frame < 40; frame++) {
+			await new Promise((resolve) => requestAnimationFrame(resolve))
+
+			if (leafOf(container)) widths.add(Math.round(header().getBoundingClientRect().width))
+		}
+
+		expect(leafOf(container)).not.toBeNull()
+
+		// One width across every frame that showed data: the fit runs in the body's
+		// layout effect, so the widths are already final in the rows' first painted
+		// frame and never shift under the reader afterwards.
+		expect([...widths]).toHaveLength(1)
 	})
 })

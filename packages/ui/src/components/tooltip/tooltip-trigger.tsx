@@ -44,9 +44,17 @@ function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
  * The child's own ref merges with the floating ref. The non-element fallback
  * renders a plain `<div>`; a `<button>` fallback nested inside interactive
  * content is invalid markup.
+ *
+ * @remarks The clone also stamps `k.trigger` (`inline-flex`) on the child, ahead
+ * of the child's own `className` — so a child that needs a different display box
+ * restates it and wins the merge. A truncating child needs exactly that: an
+ * ellipsis paints against a block box, not a flex container, which is why every
+ * truncating trigger in the library carries `block` (`k.cell.truncate`,
+ * `k.head.title`, the date-picker `value` recipe, the chart header and legend).
+ * Reversing the merge order would silently drop the ellipsis at all of them.
  */
 export function TooltipTrigger({ children }: TooltipTriggerProps) {
-	const { setReference, getReferenceProps, enabled, className } = useTooltipContext()
+	const { setReference, getReferenceProps, enabled } = useTooltipContext()
 
 	const child = isValidElement(children)
 		? (children as ReactElement<
@@ -60,7 +68,9 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	// React 19 skips the null call on unmount when the ref callback returns a
 	// cleanup. `setReference(null)` during deletion effects fires a state
 	// update that can cascade into a "Maximum update depth" error while
-	// ancestor state is in flux.
+	// ancestor state is in flux. The shared `useComposedRef` (floating-ui's
+	// `useMergeRefs`) still calls a cleanup-less ref like `setReference` with
+	// `null` on unmount, so folding this onto it would reintroduce the cascade.
 	const mergeRefs = useCallback(
 		(node: HTMLElement | null) => {
 			setReference(node)
@@ -73,7 +83,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 		[setReference, childRef],
 	)
 
-	const triggerClassName = cn(k.trigger, enabled && k.cursor, className)
+	const triggerClassName = cn(k.trigger, enabled && k.cursor)
 
 	if (child) {
 		return cloneElement(child, {
@@ -88,7 +98,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	return (
 		<div
-			ref={setReference}
+			ref={mergeRefs}
 			data-slot="tooltip-trigger"
 			className={triggerClassName}
 			{...(getReferenceProps() as HTMLAttributes<HTMLDivElement>)}

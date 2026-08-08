@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import type { ReactElement } from 'react'
+import { type ReactElement, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/date-picker'
@@ -25,13 +25,15 @@ import { useDatePickerState } from './use-date-picker-state'
 export type DatePickerSingleProps = {
 	range?: false
 	relative?: false
-	value?: Date
+	value?: Date | null
 	defaultValue?: Date
-	onValueChange?: (value: Date | undefined) => void
+	onValueChange?: (value: Date | null) => void
 	/**
 	 * Renders a typed DateInput in place of the popover trigger. The calendar
 	 * icon becomes a labeled suffix button that opens the calendar, and a
-	 * picked date writes back into the input.
+	 * picked date writes back into the input. Opening keeps focus on the input;
+	 * ArrowDown opens and the arrow keys then rove the grid through the input's
+	 * `aria-activedescendant`, and Enter commits the highlighted day.
 	 */
 	input?: boolean
 	/**
@@ -46,9 +48,9 @@ export type DatePickerSingleProps = {
 export type DatePickerRangeProps = {
 	range: true
 	relative?: false
-	value?: [Date, Date]
+	value?: [Date, Date] | null
 	defaultValue?: [Date, Date]
-	onValueChange?: (value: [Date, Date] | undefined) => void
+	onValueChange?: (value: [Date, Date] | null) => void
 }
 
 /**
@@ -71,9 +73,9 @@ export type DatePickerRangeProps = {
 export type DatePickerRelativeProps = {
 	relative: true | DatePickerRelativeConfig
 	range?: false
-	value?: DatePickerRelativeValue[]
+	value?: DatePickerRelativeValue[] | null
 	defaultValue?: DatePickerRelativeValue[]
-	onValueChange?: (value: DatePickerRelativeValue[] | undefined) => void
+	onValueChange?: (value: DatePickerRelativeValue[] | null) => void
 }
 
 /**
@@ -146,6 +148,14 @@ export type DatePickerBaseProps = {
 	footer?: DatePickerFooterConfig
 	className?: string
 	disabled?: boolean
+	/** Keeps the trigger focusable and the value submitted, but blocks opening the calendar and changing the value. */
+	readOnly?: boolean
+	/** Controlled calendar open state. Pair with `onOpenChange`. */
+	open?: boolean
+	/** Initial calendar open state when uncontrolled. */
+	defaultOpen?: boolean
+	/** Fires when the calendar opens or closes (trigger, dismiss, Escape, selection). */
+	onOpenChange?: (open: boolean) => void
 	/** Accessible name for the trigger when no Field/Label wraps the picker. */
 	'aria-label'?: string
 	'data-group'?: string
@@ -174,9 +184,12 @@ export type DatePickerProps = DatePickerBaseProps &
  * @remarks
  * In the calendar variants, keyboard navigation runs on a virtual highlight
  * rather than DOM focus: the open dialog itself holds focus and routes
- * arrow/Page keys to the active zone. `input` mode keeps the editable reference
- * group out of the modal trap's `aria-hidden` marking and closes its own Tab
- * cycle. The `relative` variant's preset list uses real focusable toggle buttons
+ * arrow/Page keys to the active zone. `input` mode instead keeps DOM focus on
+ * the editable DateInput on open and drives the grid through the input's
+ * `aria-activedescendant` (the active-descendant pattern, as on Combobox), so a
+ * keyboard user never loses the field; it also keeps the reference group out of
+ * the modal trap's `aria-hidden` marking and closes its own Tab cycle. The
+ * `relative` variant's preset list uses real focusable toggle buttons
  * shown as chips in the trigger, swapping to Start/End `input`-mode date fields
  * for a custom range.
  *
@@ -228,6 +241,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 
 	const state = useDatePickerState(props)
 
+	// The DateInput's native input; `input` mode seeds dialog-open focus here so
+	// the user can type and the keydown stream roves the grid.
+	const inputRef = useRef<HTMLInputElement>(null)
+
 	const inputTab = useDatePickerInputTab({
 		open: state.open,
 		triggerRef: state.triggerRef,
@@ -249,6 +266,11 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			context={state.context}
 			size={size}
 			onKeyDown={onContentKeyDown}
+			// `input` mode seeds open-focus on the editable DateInput (not the dialog
+			// container) so the user can type and the same keydown stream roves the
+			// grid via the input's `aria-activedescendant`. The button-trigger variant
+			// keeps the container-focus virtual-highlight default.
+			initialFocusRef={input ? inputRef : undefined}
 			// The reference group stays editable (and Tab-reachable via
 			// useDatePickerInputTab) while open, so it must stay out of the modal
 			// trap's aria-hidden marking. Non-input mode keeps the standard
@@ -265,6 +287,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				max={props.max}
 				active={state.calendar.active}
 				footerRef={state.calendar.footerRef}
+				listboxId={state.listboxId}
+				activeDescendantId={state.activeDescendantId}
 			/>
 			<DatePickerFooter {...state.footer} />
 		</DatePickerContent>
@@ -280,6 +304,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 					{...state.getReferenceProps({ onKeyDown: inputTab.onReferenceKeyDown })}
 				>
 					<DateInput
+						ref={inputRef}
 						data-slot="datepicker-input"
 						value={state.value ?? null}
 						onValueChange={state.setValue}
@@ -291,6 +316,11 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						clearable={clearable}
 						placeholder={props.placeholder}
 						aria-label={ariaLabel}
+						// Focus stays on the input while the calendar is open, so the same
+						// keydown stream drives the grid highlight; DateInput composes this
+						// ahead of its own Enter-to-commit, which a handled key skips.
+						onKeyDown={state.onTriggerKeyDown}
+						{...state.inputAria}
 						suffix={
 							<DatePickerCalendarButton
 								open={state.open}

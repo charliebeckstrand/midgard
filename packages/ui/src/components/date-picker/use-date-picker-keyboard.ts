@@ -12,6 +12,14 @@ type FooterAction = (kind: FooterButton) => void
 type DatePickerKeyDownParams = {
 	disabled: boolean
 	open: boolean
+	/**
+	 * `input` mode keeps DOM focus on the editable DateInput rather than the
+	 * dialog, so the same keydown stream drives the calendar and the text field.
+	 * Enter/Space are left to the input (Enter commits, Space is inert) except
+	 * when a grid day is highlighted, and only the vertical arrows open a closed
+	 * calendar — the button-trigger variant opens on Enter/Space too.
+	 */
+	input?: boolean
 	active: CalendarActive | null
 	setActive: (next: CalendarActive | null) => void
 	openCalendar: () => void
@@ -55,9 +63,22 @@ function isArrowKey(key: string): boolean {
 	return key === 'ArrowLeft' || key === 'ArrowRight' || key === 'ArrowUp' || key === 'ArrowDown'
 }
 
-/** While closed, ArrowDown/ArrowUp/Enter/Space open the calendar. @internal */
-function handleClosedKey(event: KeyboardEvent<HTMLElement>, openCalendar: () => void) {
-	if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(event.key)) {
+/**
+ * While closed, opens the calendar. The button-trigger variant opens on
+ * ArrowDown/ArrowUp/Enter/Space; `input` mode opens only on the vertical arrows,
+ * leaving Enter (commit typed text) and Space (inert in the numeric field) to
+ * the DateInput.
+ *
+ * @internal
+ */
+function handleClosedKey(
+	event: KeyboardEvent<HTMLElement>,
+	openCalendar: () => void,
+	input: boolean,
+) {
+	const openKeys = input ? ['ArrowDown', 'ArrowUp'] : ['ArrowDown', 'ArrowUp', 'Enter', ' ']
+
+	if (openKeys.includes(event.key)) {
 		event.preventDefault()
 
 		openCalendar()
@@ -122,9 +143,18 @@ function handleOpenGlobalKey(
  * Handles keys with no highlight yet: the first arrow seeds the grid,
  * Enter/Space selects the initial date, everything else is inert.
  *
+ * In `input` mode "no highlight" means the user is editing text, not roving the
+ * grid, so Enter is left to the DateInput (commit/blur) and Space is inert; a
+ * lingering-open calendar is closed on the committing Enter so it does not hang
+ * behind the field. The arrow keys still seed the grid.
+ *
  * @internal
  */
-function handleNoActiveKey(event: KeyboardEvent<HTMLElement>, ctx: DatePickerKeyContext) {
+function handleNoActiveKey(
+	event: KeyboardEvent<HTMLElement>,
+	ctx: DatePickerKeyContext,
+	input: boolean,
+) {
 	if (isArrowKey(event.key)) {
 		event.preventDefault()
 
@@ -134,6 +164,14 @@ function handleNoActiveKey(event: KeyboardEvent<HTMLElement>, ctx: DatePickerKey
 	}
 
 	if (event.key === 'Enter' || event.key === ' ') {
+		if (input) {
+			// Do not `preventDefault`: the DateInput's own Enter handler must still
+			// run to commit/blur (`composeEventHandlers` skips it once defaulted).
+			if (event.key === 'Enter') ctx.closeCalendar()
+
+			return
+		}
+
 		event.preventDefault()
 
 		ctx.handleSelect(ctx.getInitialActiveDate())
@@ -289,6 +327,7 @@ function handleFooterKey(
 export function useDatePickerKeyboard({
 	disabled,
 	open,
+	input = false,
 	active,
 	setActive,
 	openCalendar,
@@ -306,7 +345,7 @@ export function useDatePickerKeyboard({
 			if (disabled) return
 
 			if (!open) {
-				handleClosedKey(event, openCalendar)
+				handleClosedKey(event, openCalendar, input)
 
 				return
 			}
@@ -326,7 +365,7 @@ export function useDatePickerKeyboard({
 			if (handleOpenGlobalKey(event, ctx)) return
 
 			if (active === null) {
-				handleNoActiveKey(event, ctx)
+				handleNoActiveKey(event, ctx, input)
 
 				return
 			}
@@ -348,6 +387,7 @@ export function useDatePickerKeyboard({
 		[
 			disabled,
 			open,
+			input,
 			active,
 			setActive,
 			openCalendar,

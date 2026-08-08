@@ -3,8 +3,10 @@
 import { useMemo } from 'react'
 import { cn } from '../../core'
 
+/** Announcement urgency. */
 export type A11yLiveLevel = 'polite' | 'assertive'
 
+/** Options for {@link useA11yLiveRegion}. */
 export type A11yLiveRegionOptions = {
 	/** Announcement urgency. `'assertive'` interrupts; `'polite'` waits. @defaultValue 'polite' */
 	level?: A11yLiveLevel
@@ -16,6 +18,7 @@ export type A11yLiveRegionOptions = {
 	className?: string
 }
 
+/** Return shape of {@link useA11yLiveRegion}: the bag to spread onto the region element. */
 export type A11yLiveRegionProps = {
 	role: 'status' | 'alert'
 	'aria-live': A11yLiveLevel

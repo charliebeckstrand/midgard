@@ -6,21 +6,7 @@ import { Swatch, type SwatchProps } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
-
-/** One legend entry: a category or overlay named by its mark-mirroring swatch. @internal */
-export type MapLegendItem = {
-	/** The toggle / emphasis key: `category:<value>` or a registered overlay id. */
-	id: string
-	label: string
-	/** currentColor class carrying the entry's colour (categorical slots and overlays). */
-	swatchClass?: string
-	/** Inline CSS colour carrying the entry's colour (numeric choropleth bins). */
-	swatchColor?: string
-	/** Swatch shape, mirroring the mark: `rect` for regions, `line` for routes and markers, `dot` for points. */
-	swatch: 'rect' | 'line' | 'dot'
-	/** A trailing readout — a route's mileage, a point's value. */
-	detail?: string
-}
+import type { MapLegendItem } from './engine/map-legend/items'
 
 /** Props for {@link MapLegend}. @internal */
 export type MapLegendProps = {
@@ -98,6 +84,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 
 				return (
 					<Button
+						type="button"
 						key={item.id}
 						size="sm"
 						variant="plain"
@@ -116,28 +103,36 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 							className={cn(off && 'opacity-40')}
 						/>
 
-						<Text
-							as="span"
-							severity="muted"
-							size="sm"
-							className={cn('text-left leading-tight', off && 'line-through opacity-60')}
-						>
-							{item.label}
-						</Text>
-
-						{item.detail && (
+						{/* Label over detail, not beside it: the two share the entry's width,
+						    so a readout no longer squeezes the name into a wrap — which the
+						    side panel's fixed column reaches first, and which turned a
+						    one-line entry into two for the sake of a trailing count. */}
+						<span className="flex flex-col items-start gap-0.5">
 							<Text
 								as="span"
+								data-slot="map-legend-label"
 								severity="muted"
 								size="sm"
-								className={cn(
-									'text-left leading-tight whitespace-nowrap tabular-nums',
-									off && 'opacity-60',
-								)}
+								className={cn('text-left leading-tight', off && 'line-through opacity-60')}
 							>
-								{item.detail}
+								{item.label}
 							</Text>
-						)}
+
+							{item.detail && (
+								// A step under the label, so the readout reads as subordinate to
+								// the name it trails rather than as a second name.
+								<Text
+									as="span"
+									severity="muted"
+									className={cn(
+										'text-left leading-tight whitespace-nowrap tabular-nums font-normal',
+										off && 'opacity-60',
+									)}
+								>
+									{item.detail}
+								</Text>
+							)}
+						</span>
 					</Button>
 				)
 			})}

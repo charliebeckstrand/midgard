@@ -10,7 +10,11 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { queryItems, setVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import {
+	seedVirtualTopMatch,
+	useA11yRoving,
+	type VirtualItemSource,
+} from '../../hooks/a11y/use-a11y-roving'
 
 type CommandPaletteStateOptions = {
 	open: boolean
@@ -24,7 +28,10 @@ const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
  * the search value plus the refs and `onKeyDown` that drive
  * `aria-activedescendant` highlighting over options while focus stays on the
  * input. Resets the query on close and keeps the highlight on the top result as
- * the filtered set changes.
+ * the filtered set changes. `virtualSourceRef` is the registration point a
+ * `VirtualOptions` (with `getOptionId`) inside `children` publishes into, so the
+ * arrow keys reach items outside a windowed list. Navigation is arrow-only —
+ * roving `typeahead` stays off, since the search input owns printable keys.
  *
  * @internal
  * @see {@link useA11yRoving}
@@ -44,10 +51,21 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 	const listRef = useRef<HTMLDivElement>(null)
 
+	// Registered by a `VirtualOptions` (with `getOptionId`) inside `children`,
+	// via `VirtualItemSourceContext`; null for a non-virtualized palette, which
+	// keeps the DOM-query roving below unchanged.
+	const virtualSourceRef = useRef<VirtualItemSource | null>(null)
+
+	// Logical active index for the virtual source; see `Combobox` for why this
+	// can't be read back off the DOM.
+	const activeIndexRef = useRef(-1)
+
 	const rovingKeyDown = useA11yRoving(listRef, {
 		mode: 'virtual',
 		itemSelector: ITEM_SELECTOR,
 		activeDescendantRef: inputRef,
+		itemSource: virtualSourceRef,
+		activeIndexRef,
 	})
 
 	// The roving handler drives an `aria-activedescendant` highlight while focus
@@ -68,7 +86,9 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 	// On each filter change, moves the keyboard highlight to the top result so
 	// `data-active` / `aria-selected` / `aria-activedescendant` point at a live
 	// option (or are cleared when nothing matches). Skipped on the initial
-	// value; the first arrow key on open picks the first item.
+	// value; the first arrow key on open picks the first item. Under a
+	// registered `virtualSourceRef`, index math replaces the DOM query (a
+	// windowed-out item isn't in the DOM to find).
 	const lastDeferredRef = useRef(deferredQuery)
 
 	useEffect(() => {
@@ -76,18 +96,39 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 
 		lastDeferredRef.current = deferredQuery
 
-		const items = queryItems(listRef.current, ITEM_SELECTOR)
+		// A closing palette resets its own highlight in the render-phase branch
+		// below. Don't re-seed on the close-time query→'' transition: the options
+		// are still mounted through the exit animation, so seeding would write the
+		// index back to 0 and reopen at the second item. `deferredQuery` lags
+		// `query`, so this transition's effect can run while `open` is already
+		// false; guard on it directly.
+		if (!open) return
 
-		setVirtualActive(items, items.length > 0 ? 0 : -1, inputRef)
-	}, [deferredQuery])
+		seedVirtualTopMatch(
+			listRef.current,
+			ITEM_SELECTOR,
+			virtualSourceRef.current,
+			activeIndexRef,
+			inputRef,
+		)
+	}, [deferredQuery, open])
 
-	// Resets query when closed; done during render, not in an effect.
+	// Resets the query and the virtual-highlight index when closed; done during
+	// render, not in an effect. Clearing `activeIndexRef` stops a virtualized
+	// palette from resuming navigation at the prior session's index on reopen:
+	// the closed dialog unmounts its options, so there's no DOM `data-active` to
+	// read the index back off of, and a stale ref would make the first arrow land
+	// at `index + 1` instead of the first item (mirrors Combobox's close reset).
 	const prevOpenRef = useRef(open)
 
 	if (open !== prevOpenRef.current) {
 		prevOpenRef.current = open
 
-		if (!open) setQuery('')
+		if (!open) {
+			setQuery('')
+
+			activeIndexRef.current = -1
+		}
 	}
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
@@ -104,5 +145,6 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 		onKeyDown,
 		close,
 		context,
+		virtualSourceRef,
 	}
 }

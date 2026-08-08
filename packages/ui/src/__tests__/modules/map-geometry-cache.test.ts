@@ -1,8 +1,11 @@
 import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
-import { computeStaticMapGeometry, staticMapGeometry } from '../../modules/map/map-geometry-cache'
-import { fitMapProjection } from '../../modules/map/map-projection'
+import {
+	computeStaticMapGeometry,
+	staticMapGeometry,
+} from '../../modules/map/engine/map-geometry/cache'
+import { fitMapProjection } from '../../modules/map/engine/map-projection/resolve'
 import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 describe('staticMapGeometry', () => {

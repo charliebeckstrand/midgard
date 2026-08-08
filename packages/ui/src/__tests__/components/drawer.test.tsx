@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
 import { DensityProvider } from '../../providers/density'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Drawer', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -42,6 +42,30 @@ describe('Drawer', () => {
 		expect(screen.getByRole('dialog')).toHaveAccessibleName('Filters')
 	})
 
+	it('greys out what shows through the backdrop when desaturate is set', () => {
+		renderUI(
+			<Drawer open desaturate onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).toHaveClass(
+			'backdrop-grayscale',
+		)
+	})
+
+	it('leaves the backdrop in colour by default', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).not.toHaveClass(
+			'backdrop-grayscale',
+		)
+	})
+
 	it('moves initial focus to the initialFocus element on open', () => {
 		const ref = createRef<HTMLInputElement>()
 
@@ -53,6 +77,103 @@ describe('Drawer', () => {
 		)
 
 		expect(screen.getByLabelText('Composer')).toHaveFocus()
+	})
+})
+
+describe('Drawer enter animation', () => {
+	// The motion mock surfaces `initial.y` as `data-initial-y`, so the enter offset —
+	// the slide the panel starts from — is observable without an animation runtime.
+	const panel = () => present(bySlot(document.body, 'drawer'), 'drawer panel')
+
+	it('slides the panel up from the bottom edge on mount', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(panel()).toHaveAttribute('data-initial-y', '100%')
+	})
+
+	it('mounts an arriving drawer already in place when animateOnMount is false', () => {
+		renderUI(
+			<Drawer open animateOnMount={false} onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>,
+		)
+
+		expect(panel()).not.toHaveAttribute('data-initial-y')
+	})
+
+	it('slides on a reopen even while animateOnMount stays false', () => {
+		const drawer = (open: boolean) => (
+			<Drawer open={open} animateOnMount={false} onOpenChange={() => {}} aria-label="Resolve">
+				content
+			</Drawer>
+		)
+
+		const { rerender } = renderUI(drawer(true))
+
+		// Minimize, then maximize: the panel unmounts while closed, so the flag would
+		// otherwise suppress the slide on every trip back up for the life of the mount.
+		rerender(drawer(false))
+		rerender(drawer(true))
+
+		expect(panel()).toHaveAttribute('data-initial-y', '100%')
+	})
+})
+
+/*
+ * `onOpenComplete` says the panel is up, not that an animation ran — so the arrival that
+ * plays no slide has to report too, and that is the arrival these cases hold: the motion
+ * mock models animations as instant but deliberately does not fire a mount's, the way the
+ * library behaves under `initial={false}`.
+ *
+ * The slide's own landing rides on `onAnimationComplete`, and no suite exercises it. The
+ * mock is global in jsdom and both browser instances keep it, so no real animation ever
+ * resolves anywhere in the library's coverage.
+ */
+describe('Drawer onOpenComplete', () => {
+	const drawer = (props: {
+		open: boolean
+		animateOnMount?: boolean
+		onOpenComplete: () => void
+	}) => (
+		<Drawer {...props} onOpenChange={() => {}} aria-label="Resolve">
+			content
+		</Drawer>
+	)
+
+	it('reports a panel that arrives already in place, once per arrival not once per render', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(drawer({ open: true, animateOnMount: false, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+
+		rerender(drawer({ open: true, animateOnMount: false, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('says nothing while the drawer is closed', () => {
+		const onOpenComplete = vi.fn()
+
+		renderUI(drawer({ open: false, animateOnMount: false, onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+
+	it('says nothing on the way out', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(drawer({ open: true, animateOnMount: false, onOpenComplete }))
+
+		rerender(drawer({ open: false, animateOnMount: false, onOpenComplete }))
+
+		// Leaving is not arriving. A reopen reports again — but it slides to get there, and
+		// that landing is uncovered (see this block's note).
+		expect(onOpenComplete).toHaveBeenCalledOnce()
 	})
 })
 

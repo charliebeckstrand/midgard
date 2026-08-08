@@ -120,16 +120,57 @@ function collectTypeNames(text: string): string[] {
 	return names
 }
 
+/**
+ * Type-visible symbols at a node, indexed by name. `getSymbolsInScope` returns
+ * thousands of symbols and is the dominant per-component cost; every top-level
+ * name resolves from the same `callable` node and every transitively discovered
+ * name from the same declaration, so one scan per node — memoized here — serves
+ * every lookup against it, and the `name → symbol` map turns each lookup from a
+ * linear scan into O(1). Keyed first by checker so entries never outlive the
+ * program that produced them (each program yields fresh nodes and its own
+ * checker); the inner `WeakMap` lets scopes be reclaimed with their nodes.
+ */
+const scopeCache = new WeakMap<ts.TypeChecker, WeakMap<ts.Node, Map<string, ts.Symbol>>>()
+
+function scopeIndex(location: ts.Node, checker: ts.TypeChecker): Map<string, ts.Symbol> {
+	let byNode = scopeCache.get(checker)
+
+	if (!byNode) {
+		byNode = new WeakMap()
+
+		scopeCache.set(checker, byNode)
+	}
+
+	const cached = byNode.get(location)
+
+	if (cached) return cached
+
+	const index = new Map<string, ts.Symbol>()
+
+	// Type-only imports (`import { type Foo } from '…'`) bind as alias symbols,
+	// not direct type symbols; the `Alias` flag includes them.
+	for (const symbol of checker.getSymbolsInScope(
+		location,
+		ts.SymbolFlags.Type | ts.SymbolFlags.Alias,
+	)) {
+		// First binding wins, mirroring the previous `find`: a name shadowed in an
+		// inner scope keeps the symbol nearest the lookup site.
+		const symbolName = symbol.getName()
+
+		if (!index.has(symbolName)) index.set(symbolName, symbol)
+	}
+
+	byNode.set(location, index)
+
+	return index
+}
+
 function resolveAliasDefinition(
 	name: string,
 	location: ts.Node,
 	checker: ts.TypeChecker,
 ): { text: string; declaration: ts.Node } | null {
-	// Type-only imports (`import { type Foo } from '…'`) bind as alias symbols,
-	// not direct type symbols; the `Alias` flag includes them.
-	const symbols = checker.getSymbolsInScope(location, ts.SymbolFlags.Type | ts.SymbolFlags.Alias)
-
-	const symbol = symbols.find((s) => s.getName() === name)
+	const symbol = scopeIndex(location, checker).get(name)
 
 	if (!symbol) return null
 

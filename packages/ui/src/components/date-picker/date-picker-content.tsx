@@ -2,7 +2,13 @@
 
 import { FloatingFocusManager, type FloatingRootContext } from '@floating-ui/react'
 import { motion } from 'motion/react'
-import { type CSSProperties, type KeyboardEvent, type ReactNode, useRef } from 'react'
+import {
+	type CSSProperties,
+	type KeyboardEvent,
+	type ReactNode,
+	type RefObject,
+	useRef,
+} from 'react'
 
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
@@ -41,6 +47,11 @@ type DatePickerContentProps = {
 	 * lives on the trigger and, via this prop, on the dialog itself; initial
 	 * focus lands on the dialog, not its first tabbable button, and the model
 	 * keeps working once a real browser moves focus into the modal trap.
+	 *
+	 * Presence is the contract: passing a handler declares that the dialog owns
+	 * navigation keys, so the shell reclaims DOM focus on them. Omit it for a
+	 * variant whose content owns its own keyboard (the relative custom range's
+	 * editable fields), and the shell leaves focus alone.
 	 */
 	onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void
 	/**
@@ -51,6 +62,15 @@ type DatePickerContentProps = {
 	 * the rest of the page remains hidden.
 	 */
 	getInsideElements?: () => Element[]
+	/**
+	 * Element to seed DOM focus on when the dialog opens. Defaults to the dialog
+	 * container for the virtual-highlight model. `input` mode passes the editable
+	 * DateInput so focus lands there — the user can type, and the same keydown
+	 * stream roves the grid through the input's `aria-activedescendant`. The input
+	 * sits inside the reference (`getInsideElements`), so the modal focus manager
+	 * treats it as related and does not self-close.
+	 */
+	initialFocusRef?: RefObject<HTMLElement | null>
 	onExitComplete?: () => void
 	/**
 	 * Accessible name for the dialog.
@@ -83,6 +103,7 @@ export function DatePickerContent({
 	size,
 	onKeyDown,
 	getInsideElements,
+	initialFocusRef,
 	onExitComplete,
 	label = 'Choose date',
 	children,
@@ -92,8 +113,11 @@ export function DatePickerContent({
 	// Focus lands on the dialog container (tabIndex -1) instead of floating-ui's
 	// default, the first tabbable, i.e. the "Previous month" button. The picker
 	// uses a virtual highlight; seeding DOM focus on a button both misleads AT
-	// and orphans the arrow-key model.
-	const initialFocusRef = useRef<HTMLElement | null>(null)
+	// and orphans the arrow-key model. `input` mode overrides this with the
+	// editable DateInput via `initialFocusRef`.
+	const dialogRef = useRef<HTMLElement | null>(null)
+
+	const focusRef = initialFocusRef ?? dialogRef
 
 	return (
 		<PresencePortal open={open} onExitComplete={onExitComplete}>
@@ -104,14 +128,14 @@ export function DatePickerContent({
 				context={context}
 				modal
 				returnFocus={false}
-				initialFocus={initialFocusRef}
+				initialFocus={focusRef}
 				getInsideElements={getInsideElements}
 			>
 				<div
 					ref={(node) => {
 						setFloating(node)
 
-						initialFocusRef.current = node
+						dialogRef.current = node
 					}}
 					role="dialog"
 					aria-modal="true"
@@ -123,6 +147,11 @@ export function DatePickerContent({
 						// Composed through floating-ui; its own handlers merge
 						// rather than clobber.
 						onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+							// No handler: this content owns its own keyboard (see the
+							// `onKeyDown` prop doc) — skip the routing guards and the
+							// focus reclaim, which would steal from the field typed in.
+							if (!onKeyDown) return
+
 							// Keys from portaled descendants (the month/year picker
 							// popover) bubble here through the React tree, not the
 							// DOM. That surface owns its keyboard; acting here would
@@ -148,7 +177,7 @@ export function DatePickerContent({
 								event.currentTarget.focus()
 							}
 
-							onKeyDown?.(event)
+							onKeyDown(event)
 						},
 					})}
 				>

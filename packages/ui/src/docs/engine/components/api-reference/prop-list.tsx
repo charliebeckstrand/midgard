@@ -40,7 +40,12 @@ function PropRow({ prop }: { prop: PropDef }) {
 			>
 				<span>
 					{prop.name}
-					{prop.required && <span className="text-red-600 dark:text-red-500"> *</span>}
+					{prop.required && (
+						<span className="text-red-600 dark:text-red-500">
+							<span aria-hidden> *</span>
+							<span className="sr-only"> required</span>
+						</span>
+					)}
 					{prop.default && (
 						<>
 							{' '}

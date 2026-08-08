@@ -1,3 +1,4 @@
+export { parseAspectRatio } from './aspect-ratio'
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
 export {
@@ -41,4 +42,6 @@ export { noop } from './noop'
 export { once } from './once'
 export { pct } from './pct'
 export { rangeKeys } from './range-keys'
+export { resolveLocale } from './resolve-locale'
+export { toNumericCell } from './to-numeric-cell'
 export { toggleItem } from './toggle-item'

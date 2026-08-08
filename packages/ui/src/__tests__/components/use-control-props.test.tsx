@@ -32,7 +32,7 @@ describe('useControlProps', () => {
 				disabled: true,
 				required: true,
 				readOnly: true,
-				invalid: true,
+				severity: 'error',
 			}),
 		})
 
@@ -85,9 +85,9 @@ describe('useControlProps', () => {
 		expect(result.current.invalid).toBe(true)
 	})
 
-	it('OR-merges Control invalid with the form-bound flag', () => {
+	it('OR-merges an ambient error severity with the form-bound flag', () => {
 		const { result } = renderHook(() => useControlProps({ invalid: false }), {
-			wrapper: withControl({ id: 'x', invalid: true }),
+			wrapper: withControl({ id: 'x', severity: 'error' }),
 		})
 
 		expect(result.current.invalid).toBe(true)

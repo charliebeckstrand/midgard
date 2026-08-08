@@ -128,7 +128,7 @@ describe('HeatmapChart', () => {
 				data={ROWS}
 				series={SERIES}
 				width={400}
-				legend={{ type: 'range', placement: 'left' }}
+				legend={{ placement: 'left' }}
 			/>,
 		)
 

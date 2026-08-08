@@ -13,8 +13,9 @@ type Tagged = { __module?: string; __name?: string }
  * @remarks Exported so agnostic-engine tests can assemble a synthetic
  * {@link ComponentRegistry} (the real tag reader + their own `byName` map) and
  * pass it into `deriveCode`, instead of `vi.mock`-ing `virtual:component-modules`
- * — a module-level mock that bleeds across files under the shared-worker
- * `vmThreads` pool and corrupts the real-registry integration test.
+ * — a module-level mock that bleeds across files under the unit project's
+ * shared module registry (`isolate: false`) and corrupts the real-registry
+ * integration test.
  */
 export function readTag(type: unknown): ComponentInfo | undefined {
 	if (type == null) return undefined

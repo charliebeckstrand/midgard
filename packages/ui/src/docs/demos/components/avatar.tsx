@@ -65,10 +65,11 @@ export function Demo() {
 				title="Group"
 				actions={<SizeListbox sizes={sizes} value={groupSize} onValueChange={setGroupSize} />}
 			>
-				<AvatarGroup size={groupSize} extra={3}>
+				<AvatarGroup size={groupSize}>
 					{groupAvatars.map((initials) => (
 						<Avatar key={initials} initials={initials} />
 					))}
+					<Avatar initials="+3" alt="3 more" />
 				</AvatarGroup>
 			</Example>
 

@@ -240,32 +240,32 @@ type GridRowGroupMenuArgs = {
  */
 function buildRowGroupMenu(args: GridRowGroupMenuArgs): GridMenuItem[] {
 	const items: GridMenuItem[] = [
-		{ key: 'manage-rows', label: args.manageLabel, icon: <ListTree />, onSelect: args.onManage },
+		{ key: 'manage-rows', label: args.manageLabel, icon: <ListTree />, onAction: args.onManage },
 		{ key: 'group-sep', separator: true },
 		{
 			key: 'toggle-group',
 			label: args.expanded ? 'Collapse group' : 'Expand group',
 			icon: args.expanded ? <ChevronsDownUp /> : <ChevronsUpDown />,
-			onSelect: args.onToggle,
+			onAction: args.onToggle,
 		},
 		{
 			key: 'expand-all',
 			label: 'Expand all groups',
 			icon: <ChevronsUpDown />,
-			onSelect: args.onExpandAll,
+			onAction: args.onExpandAll,
 		},
 		{
 			key: 'collapse-all',
 			label: 'Collapse all groups',
 			icon: <ChevronsDownUp />,
-			onSelect: args.onCollapseAll,
+			onAction: args.onCollapseAll,
 		},
 	]
 
 	if (args.color) {
 		items.push(
 			{ key: 'color-sep', separator: true },
-			{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onSelect: args.onClearColor },
+			{ key: 'clear-color', label: 'Clear color', icon: <Ban />, onAction: args.onClearColor },
 		)
 	}
 

@@ -3,8 +3,9 @@
 import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
 
-import { useFloatingUI } from '../../hooks'
+import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useLocale } from '../../providers/locale'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
@@ -68,12 +69,21 @@ export function useDatePickerRelativeState({
 	footer,
 	placement = 'bottom-start',
 	disabled = false,
+	readOnly = false,
+	open: openProp,
+	defaultOpen,
+	onOpenChange: onOpenChangeProp,
 }: DatePickerBaseProps & DatePickerRelativeProps) {
 	const control = useControl()
 
 	const scope = useIdScope({ id: control?.id })
 
+	// Custom-range chip labels read the same ambient locale the Calendar does.
+	const ambient = useLocale()
+
 	const resolvedDisabled = disabled || control?.disabled === true
+
+	const resolvedReadOnly = readOnly || control?.readOnly === true
 
 	// Single-select unless `relative.multiple` opts in; drives the toggle behavior
 	// (replace vs. accumulate). The value is an array in both modes.
@@ -92,7 +102,23 @@ export function useDatePickerRelativeState({
 		onValueChange,
 	})
 
-	const [open, setOpen] = useState(false)
+	const [open = false, setOpenInner] = useControllable<boolean>({
+		value: openProp,
+		defaultValue: defaultOpen ?? false,
+		onValueChange: (next) => onOpenChangeProp?.(next ?? false),
+	})
+
+	// readOnly keeps the trigger focusable and the value submitted but blocks
+	// every open path; closing stays allowed so an externally-opened calendar
+	// can still dismiss (matching Listbox).
+	const setOpen = useCallback(
+		(next: boolean) => {
+			if (resolvedReadOnly && next) return
+
+			setOpenInner(next)
+		},
+		[resolvedReadOnly, setOpenInner],
+	)
 
 	const [mode, setMode] = useState<DatePickerRelativeMode>('list')
 
@@ -174,7 +200,7 @@ export function useDatePickerRelativeState({
 		setMode('list')
 
 		setOpen(true)
-	}, [])
+	}, [setOpen])
 
 	const closePicker = useCallback(() => {
 		setOpen(false)
@@ -182,7 +208,7 @@ export function useDatePickerRelativeState({
 		// Closing the popover is the field's "blur" — mark it touched so
 		// validateOn="touched" rules can fire.
 		setTouched()
-	}, [setTouched])
+	}, [setTouched, setOpen])
 
 	// Clears every span but keeps the popover open: a selection is still being
 	// edited after a reset, so the dialog stays put (dismiss closes it). Also wipes
@@ -263,12 +289,12 @@ export function useDatePickerRelativeState({
 	)
 
 	const setCustomStart = useCallback(
-		(date: Date | undefined) => applyDraft({ ...draftRef.current, from: date }),
+		(date: Date | null) => applyDraft({ ...draftRef.current, from: date ?? undefined }),
 		[applyDraft],
 	)
 
 	const setCustomEnd = useCallback(
-		(date: Date | undefined) => applyDraft({ ...draftRef.current, to: date }),
+		(date: Date | null) => applyDraft({ ...draftRef.current, to: date ?? undefined }),
 		[applyDraft],
 	)
 
@@ -360,8 +386,9 @@ export function useDatePickerRelativeState({
 	// --- Display derivations ---
 
 	const chips = useMemo<RelativeChip[]>(
-		() => relativeChips(value, presets, nowRef.current, pickedIds),
-		[value, presets, pickedIds],
+		() =>
+			relativeChips(value, presets, nowRef.current, pickedIds, ambient.locale, ambient.dateFormat),
+		[value, presets, pickedIds, ambient.locale, ambient.dateFormat],
 	)
 
 	const selectedIds = useMemo(
@@ -374,7 +401,7 @@ export function useDatePickerRelativeState({
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		required: control?.required,
-		invalid: control?.invalid || fieldInvalid,
+		invalid: control?.severity === 'error' || fieldInvalid,
 		value,
 		hasValue,
 		onClear: handleClear,

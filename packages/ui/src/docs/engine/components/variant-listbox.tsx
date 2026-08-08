@@ -1,6 +1,5 @@
 'use client'
 
-import { capitalize } from './format'
 import { OptionsListbox } from './options-listbox'
 
 type VariantListboxProps<T extends string> = {
@@ -10,16 +9,9 @@ type VariantListboxProps<T extends string> = {
 	onValueChange: (value: T) => void
 }
 
-/** A demo control for picking a component's `variant` from a fixed set, each option title-cased. */
+/** A demo control for picking a component's `variant` from a fixed set, each option title-cased by the Listbox. */
 export function VariantListbox<T extends string>({ variants, ...rest }: VariantListboxProps<T>) {
-	const options = variants.map((value) => ({ value, label: capitalize(value) }))
+	const options = variants.map((value) => ({ value, label: value }))
 
-	return (
-		<OptionsListbox
-			options={options}
-			className="capitalize"
-			optionClassName="capitalize"
-			{...rest}
-		/>
-	)
+	return <OptionsListbox options={options} {...rest} />
 }

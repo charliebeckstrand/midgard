@@ -25,7 +25,6 @@ export const progress = {
 			sm: 'size-12',
 			md: 'size-16',
 			lg: 'size-20',
-			xl: 'size-24',
 		},
 		defaults: { size: 'md' as const },
 	},

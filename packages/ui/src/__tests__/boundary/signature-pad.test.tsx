@@ -204,7 +204,7 @@ describe('drawSnapshot', () => {
 describe('SignaturePad + Control', () => {
 	it('surfaces invalid state from an enclosing Control onto the canvas', () => {
 		const { container } = renderUI(
-			<Control invalid>
+			<Control severity="error">
 				<SignaturePad />
 			</Control>,
 		)
@@ -218,7 +218,7 @@ describe('SignaturePad + Control', () => {
 
 	it('points the canvas aria-describedby at the control description and message', () => {
 		const { container } = renderUI(
-			<Control id="sig" invalid>
+			<Control id="sig" severity="error">
 				<Description>Sign above the line</Description>
 				<SignaturePad />
 				<Message>Signature required</Message>

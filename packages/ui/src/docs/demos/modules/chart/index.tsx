@@ -104,7 +104,8 @@ const freight: FreightMonth[] = [
 ]
 
 // A short daily run keyed by ISO date — a plain category axis normalizes these
-// to MM-DD on its own, a distinct shape from the 118-day time-axis series above.
+// to the locale's month/day order on its own, a distinct shape from the 118-day
+// time-axis series above.
 const signups: { day: string; count: number }[] = [
 	{ day: '2026-03-02', count: 32 },
 	{ day: '2026-03-03', count: 41 },
@@ -161,12 +162,12 @@ const LegendPlacementExample = ({
 					<Listbox
 						aria-label="Legend placement"
 						value={placement}
-						displayValue={(value) => value.at(0)?.toUpperCase() + value.slice(1)}
+						displayValue={(value) => value}
 						onValueChange={(value) => setPlacement(value as LegendPlacement)}
 					>
 						{(['right', 'left', 'top', 'bottom'] as LegendPlacement[]).map((option) => (
 							<ListboxOption key={option} value={option}>
-								{option.charAt(0).toUpperCase() + option.slice(1)}
+								{option}
 							</ListboxOption>
 						))}
 					</Listbox>
@@ -483,10 +484,10 @@ export function Demo() {
 
 							<Example title="Date labels" code={code`<LineChart … />`}>
 								{/* A plain category axis whose every key parses as a date labels
-								    itself MM-DD on its own — no time axis, so the per-row labels
-								    stay, just normalized. */}
+								    itself in the locale's month/day order on its own — no time axis,
+								    so the per-row labels stay, just normalized. */}
 								<LineChart
-									aria-label="Signups per day, dates normalized to MM-DD"
+									aria-label="Signups per day, dates normalized to the locale's month/day order"
 									data={signups}
 									series={[{ xKey: 'day', yKey: 'count', yName: 'Signups' }]}
 									points

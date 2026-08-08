@@ -18,7 +18,7 @@ export type NumberInputProps = Omit<
 	value?: number | null
 	defaultValue?: number
 	/** Fires with the parsed value, or `undefined` when the field is cleared. */
-	onValueChange?: (value: number | undefined) => void
+	onValueChange?: (value: number | null) => void
 	min?: number
 	max?: number
 	/**
@@ -74,6 +74,8 @@ export function NumberInput({
 	// Clamp AFTER rounding: `toFixed` rounds half-up, and rounding a clamped
 	// value can land past min/max (e.g. max 10.05 at precision 1 → 10.1).
 	const change = (delta: number) => {
+		// From an empty field both steppers seed to `clamp(0, …)`, so Decrease lands
+		// on 0 (or `min`) rather than `-step`. Deliberate and test-pinned.
 		const next = current === undefined ? clampValue(round(0)) : clampValue(round(current + delta))
 
 		setCurrent(next)
@@ -140,6 +142,7 @@ export function NumberInput({
 				// preventDefault cancels only the focus move; the click still fires.
 				<span className="pointer-events-auto flex items-center gap-0.5">
 					<Button
+						type="button"
 						variant="bare"
 						spring={false}
 						tabIndex={-1}
@@ -151,6 +154,7 @@ export function NumberInput({
 						<Icon icon={<Minus />} />
 					</Button>
 					<Button
+						type="button"
 						variant="bare"
 						spring={false}
 						tabIndex={-1}

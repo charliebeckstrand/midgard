@@ -19,7 +19,15 @@ import {
 	useReactTable,
 	type VisibilityState,
 } from '@tanstack/react-table'
-import { type ReactNode, type RefObject, useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
 import type { SortState } from './context'
@@ -71,7 +79,7 @@ import {
 	type GridPaginationView,
 	toColumnPinningState,
 } from './engine/grid-table/views'
-import { useVisibleColumns } from './grid-table-views'
+import { useFrozenLayout, useVisibleColumns } from './grid-table-views'
 import type {
 	GridColumn,
 	GridColumnFilters,
@@ -82,6 +90,7 @@ import type {
 	GridSearch,
 } from './types'
 import { useGridColumnAutoSize } from './use-grid-column-auto-size'
+import { useGridPinnedOffsets } from './use-grid-pinned-offsets'
 
 export type {
 	GridColumnFilter,
@@ -184,6 +193,22 @@ type UseGridTableResult<T> = {
 	pagination: GridPaginationView | null
 	/** Column-resize controls, or `null` when `resizable` is off. */
 	resize: GridColumnResize | null
+	/**
+	 * Re-fits the columns when the body's rendered rows change and the last fit had
+	 * none to measure — the windowed body's case, whose rows land in a later commit
+	 * than the one that supplied them. Call from the body's layout effect, so the
+	 * fit precedes the rows' first paint; a no-op once a fit has read rows, and when
+	 * the autosizer stands down.
+	 */
+	fitRenderedRows: () => void
+	/**
+	 * Whether the first column-width pass has happened.
+	 *
+	 * `false` only between hydration and that pass, and only for a grid whose widths this
+	 * hook sizes. The table holds its paint until it flips, so a reload never shows the
+	 * declared widths and then replaces them with fitted ones — see `useGridColumnAutoSize`.
+	 */
+	widthsSettled: boolean
 	/** Global-filter view, or `null` when filtering is not configured. */
 	globalFilter: GridGlobalFilterView | null
 	/** Per-column filter controls, or `null` when no column is filterable. */
@@ -323,12 +348,10 @@ function useGridRowModel<T>(args: {
 	// Under manual grouping the display rows are the consumer's grouped sequence;
 	// the leaf set drops the group-header rows so selection identity and the data
 	// counts track the actual data rows.
-	const leafRows = useMemo<Row<T>[] | null>(() => {
-		if (displayRows && manualGroupRow)
-			return displayRows.filter((row) => !manualGroupRow(row.original))
-
-		return deriveLeafRows(displayRows, grouped)
-	}, [displayRows, grouped, manualGroupRow])
+	const leafRows = useMemo<Row<T>[] | null>(
+		() => deriveLeafRows(displayRows, grouped, manualGroupRow),
+		[displayRows, grouped, manualGroupRow],
+	)
 
 	// The top-level group-header rows, in display order. Each carries every one of
 	// its leaves on `subRows` (regardless of expansion), so the body can keep the
@@ -653,6 +676,10 @@ export function useGridTable<T>({
 		onValueChange: (next) => columnFiltersConfig?.onValueChange?.(next ?? []),
 	})
 
+	// Which column's filter sheet the right-click menu asked to open (the `'menu'`
+	// affordance), or `null`. Lives here because a table instance holds no such state.
+	const [openFilterColumn, setOpenFilterColumn] = useState<string | number | null>(null)
+
 	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
 
 	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
@@ -661,13 +688,14 @@ export function useGridTable<T>({
 		[setColumnFiltersState],
 	)
 
-	const { clientSort, filterMode } = resolveTransformModes({
+	const { clientSort, filterMode, globalHighlights } = resolveTransformModes({
 		manualGrouped: manualGroupRow != null,
 		sortManual,
 		globalConfigured,
 		hasColumnFilters,
 		globalManual: globalFilterConfig?.manual,
 		columnManual: columnFiltersConfig?.manual,
+		globalFiltersRows: globalFilterConfig?.filter,
 	})
 
 	// The engine filters the global search and the column filters through one
@@ -746,6 +774,7 @@ export function useGridTable<T>({
 		...filterOptions<T>({
 			configured: filterMode.configured,
 			manual: filterMode.manual,
+			globalHighlight: globalHighlights,
 			onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
 			onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
 		}),
@@ -768,6 +797,7 @@ export function useGridTable<T>({
 		paginationManual: manual,
 		filterMode,
 		globalFilter: resolvedGlobalFilter,
+		globalHighlights,
 		columnFilters: resolvedColumnFilters,
 		grouped,
 	})
@@ -806,7 +836,13 @@ export function useGridTable<T>({
 
 	// Auto-size resizable columns to fill the container, unless widths are
 	// controlled; `sizeToFit` also backs the header "Auto-size all columns" action.
-	const { sizeToFit, resetColumn, holdManualWidths } = useGridColumnAutoSize<T>({
+	const {
+		sizeToFit,
+		resetColumn,
+		holdManualWidths,
+		fitRenderedRows,
+		settled: widthsSettled,
+	} = useGridColumnAutoSize<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
@@ -866,13 +902,42 @@ export function useGridTable<T>({
 	)
 
 	const filters = useMemo<GridColumnFilter | null>(
-		() => (hasColumnFilters ? buildColumnFilters(table) : null),
-		[hasColumnFilters, table],
+		() =>
+			hasColumnFilters
+				? {
+						...buildColumnFilters(table),
+						affordance: columnFiltersConfig?.affordance ?? 'header',
+						openColumn: openFilterColumn,
+						requestOpen: setOpenFilterColumn,
+					}
+				: null,
+		[hasColumnFilters, table, columnFiltersConfig?.affordance, openFilterColumn],
 	)
 
+	// A frozen column sticks at the summed width of the frozen columns ahead of it,
+	// which the engine can supply only while it also sets those widths — through the
+	// fixed-layout colgroup a resizable grid lays out from its size model. A
+	// non-resizable grid lays out `auto` and sizes each column to its content, so
+	// there the offsets are measured from the rendered header instead; without that
+	// a stack of frozen columns spreads apart by the difference and the scrolling
+	// columns show through the gaps.
+	const pinnedOffsets = useGridPinnedOffsets({
+		frozen: hasPinned,
+		engineSized: resizable,
+		table,
+		columns: visibleColumns,
+		containerRef,
+	})
+
+	// Resolve the frozen columns to a snapshot — each one's edge, sticky offset, and
+	// whether it holds the group's boundary — rather than let the controls below
+	// read the engine at call time, which the memoized header cells and body rows
+	// cannot see through (see `FrozenLayout`).
+	const frozen = useFrozenLayout(hasPinned, table, pinnedOffsets)
+
 	const pinning = useMemo<GridColumnPinning | null>(
-		() => (hasPinned ? buildColumnPinning(table) : null),
-		[hasPinned, table],
+		() => (hasPinned ? buildColumnPinning(frozen) : null),
+		[hasPinned, frozen],
 	)
 
 	return {
@@ -885,6 +950,8 @@ export function useGridTable<T>({
 		manualRows,
 		pagination,
 		resize,
+		fitRenderedRows,
+		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,

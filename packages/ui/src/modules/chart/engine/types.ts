@@ -103,7 +103,7 @@ export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'
  * One scatter series: numeric fields on both axes, each row one point. Unlike
  * the band-axis charts the x field is read as a number and positioned on a
  * linear scale, so rows need no shared category set, arrive in any order, and
- * may repeat an x value. An optional `sizeKey` adds the bubble encoding.
+ * can repeat an x value. An optional `sizeKey` adds the bubble encoding.
  *
  * @remarks Both fields are read as `Number(datum[key])`; a non-finite result
  * on either drops the point — never the scale — so agent-generated or
@@ -290,7 +290,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * The right-click context menu. By default a chart offers Fullscreen (a live,
 	 * interactive copy in a large dialog), image downloads (PNG / JPG, legend
 	 * included), and — where a data readout exists — Download CSV / Copy data. Pass
-	 * a config to add custom `items` (each a `{ label, icon, onSelect }`), place
+	 * a config to add custom `items` (each a `{ label, icon, onAction }`), place
 	 * them `'before'` or `'after'` the defaults, or drop the defaults with
 	 * `defaultItems: false`; a separator divides the two groups when both show. Set
 	 * `downloadLegend: false` to export images without the legend. `false` disables
@@ -324,12 +324,6 @@ export type CartesianFrameProps = {
 	 */
 	axes?: boolean | CartesianAxes
 	/**
-	 * Draw the grid: hairlines at the value ticks. Which axis's ticks rule it
-	 * is each axis's own `grid` switch; this one gates the whole layer.
-	 * @defaultValue true
-	 */
-	grid?: boolean
-	/**
 	 * Draw a hover crosshair. `true` (the shorthand) draws both rules — a
 	 * horizontal value rule and a vertical category rule; a {@link Crosshair}
 	 * object snaps them to the nearest point (`snap`) or drops one (`x` / `y` set
@@ -344,16 +338,6 @@ export type CartesianFrameProps = {
 	 * itself in it as a static identity chip.
 	 */
 	reference?: ChartReferenceLine[]
-	/**
-	 * Tilt category labels that would otherwise collide instead of thinning them
-	 * to every nth: past that point every label draws, angled, and none are
-	 * dropped. Off by default, so an unset chart keeps thinning.
-	 * @remarks Vertical orientation only — under `orientation="horizontal"`
-	 * category labels already run down the gutter and read straight, so this has
-	 * no effect there.
-	 * @defaultValue false
-	 */
-	tickRotation?: boolean
 	/**
 	 * Fires when a click lands on a category's band — the whole band is the
 	 * target, the same generous hit the tooltip reads — with the category's label
@@ -421,7 +405,7 @@ export type ChartReadout = {
  * A chart's readout as a cached thunk ({@link once}), not a value: building
  * one formats every category × series cell through `Intl`, which at dense
  * sizes costs more than drawing the marks — so nothing on the mount-critical
- * render may materialize it. The first consumer that needs the values — a
+ * render can materialize it. The first consumer that needs the values — a
  * hover's tooltip, the deferred data table, a CSV export — calls the thunk
  * off that path and every later reader shares the cache. A chart that can
  * cheaply tell it has no readout passes `null` in its place, so presence

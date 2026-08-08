@@ -7,65 +7,39 @@
  * iteration settles when the expected extreme rows paint at the top.
  */
 
-import { bench, describe } from 'vitest'
-import { makeShipments, type Shipment } from '../fixtures'
-import { GRID_HEIGHT, GRID_WIDTH, gridContenders, painted } from './grid-contenders'
-
-/** All scenarios see slow iterations; a longer window keeps samples up. */
-const SLOW = { time: 2_000 }
-
-type PreparedBench = { name: string; run: () => Promise<void> }
+import { describe } from 'vitest'
+import { type Shipment, shipments } from '../fixtures'
+import { painted } from './grid-contenders'
+import { prepareGrids, viewportMarkers } from './grid-harness'
+import { benches, WINDOW } from './harness'
 
 /** Mounts every contender and closes each over an asc/desc sort flip. */
-async function prepare(rows: Shipment[]): Promise<PreparedBench[]> {
-	const first = [rows[0]?.id ?? '', rows[8]?.id ?? '']
+function sortFlip(rows: Shipment[]) {
+	const first = viewportMarkers(rows)
 
 	const last = [rows[rows.length - 1]?.id ?? '', rows[rows.length - 9]?.id ?? '']
 
-	const prepared: PreparedBench[] = []
-
-	for (const contender of gridContenders()) {
-		const host = document.createElement('div')
-
-		host.style.width = `${GRID_WIDTH}px`
-
-		host.style.height = `${GRID_HEIGHT}px`
-
-		document.body.append(host)
-
-		const grid = contender.mount(host, rows)
-
-		await painted(host, first)
-
+	return prepareGrids(rows, (grid, box) => {
 		let descending = false
 
-		prepared.push({
-			name: contender.name,
-			run: async () => {
-				descending = !descending
+		return async () => {
+			descending = !descending
 
-				grid.sort(descending ? 'desc' : 'asc')
+			grid.sort(descending ? 'desc' : 'asc')
 
-				await painted(host, descending ? last : first)
-			},
-		})
-	}
-
-	return prepared
+			await painted(box, descending ? last : first)
+		}
+	})
 }
 
-const rows10k = await prepare(makeShipments(10_000))
+const rows10k = await sortFlip(shipments(10_000))
 
-const rows100k = await prepare(makeShipments(100_000))
+const rows100k = await sortFlip(shipments(100_000))
 
 describe('grid sort · 10,000 rows · asc/desc flip', () => {
-	for (const { name, run } of rows10k) {
-		bench(name, run, SLOW)
-	}
+	benches(rows10k, WINDOW.slow)
 })
 
 describe('grid sort · 100,000 rows · asc/desc flip', () => {
-	for (const { name, run } of rows100k) {
-		bench(name, run, SLOW)
-	}
+	benches(rows100k, WINDOW.slow)
 })

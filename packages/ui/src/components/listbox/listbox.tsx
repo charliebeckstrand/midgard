@@ -11,12 +11,18 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { useAriaIds, useFloatingUI, useSelectableValueChange } from '../../hooks'
+import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
+import {
+	capitalizeFirst,
+	resolveCapitalize,
+	type SelectCapitalize,
+} from '../../primitives/select-trigger/capitalize'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { ListboxContext } from './context'
@@ -38,7 +44,8 @@ type ListboxBaseProps = {
 	/** Marks the field required; surfaces `aria-required` on the trigger. */
 	required?: boolean
 	className?: string
-	inputId?: string
+	/** Id for the trigger; matches the `id` prop on Combobox. Resolves through the explicit prop, then an enclosing `<Control>`/`<Field>`. */
+	id?: string
 	/**
 	 * Names the trigger directly when no `<Field>`/`<Label>` wraps it. The
 	 * combobox trigger's text is its value, not its name; a bare Listbox
@@ -50,8 +57,6 @@ type ListboxBaseProps = {
 	'aria-labelledby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
-	/** Renders the selected value with tabular numerals; digit changes do not shift layout. */
-	tabularNums?: boolean
 	/**
 	 * Truncates the selected-value label when it overflows the trigger.
 	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
@@ -61,6 +66,14 @@ type ListboxBaseProps = {
 	truncate?: boolean
 	/** Show a clear button in place of the chevron when a value is selected. */
 	clearable?: boolean
+	/**
+	 * Capitalizes the first letter (first word only) of the selected
+	 * `displayValue` and of each option's string label; custom label nodes
+	 * render as authored. Pass an object to target each surface independently.
+	 * Display-only: the underlying value is untouched.
+	 * @defaultValue true
+	 */
+	capitalize?: SelectCapitalize
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -73,10 +86,12 @@ type ListboxBaseProps = {
 }
 
 type ListboxSingleProps<T> = {
-	multiple?: false
-	value?: T
+	/** Controlled value. `undefined` leaves the listbox uncontrolled; `null` keeps it controlled with no selection (CONVENTIONS §7.3). */
+	value?: T | null
 	defaultValue?: T
-	onValueChange?: (value: T | undefined) => void
+	/** Fires with the new selection, or `null` when it is cleared. */
+	onValueChange?: (value: T | null) => void
+	multiple?: false
 }
 
 type ListboxMultipleProps<T> = {
@@ -96,27 +111,6 @@ type ListboxMultipleProps<T> = {
 export type ListboxProps<T> = ListboxBaseProps & {
 	displayValue?: (value: T) => string
 } & (ListboxSingleProps<T> | ListboxMultipleProps<T>)
-
-/** Resolves field-level state from explicit props, falling back to an enclosing `<Control>`. @internal */
-function resolveControlState(
-	control:
-		| { id?: string; disabled?: boolean; readOnly?: boolean; required?: boolean }
-		| null
-		| undefined,
-	overrides: { inputId?: string; disabled?: boolean; readOnly?: boolean; required?: boolean },
-): {
-	id: string | undefined
-	disabled: boolean | undefined
-	readOnly: boolean | undefined
-	required: boolean | undefined
-} {
-	return {
-		id: overrides.inputId ?? control?.id,
-		disabled: overrides.disabled ?? control?.disabled,
-		readOnly: overrides.readOnly ?? control?.readOnly,
-		required: overrides.required ?? control?.required,
-	}
-}
 
 /** True when the listbox holds a selection: a non-empty array in `multiple` mode, else a defined scalar. @internal */
 function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): boolean {
@@ -139,7 +133,9 @@ export function Listbox<T>({
 	displayValue,
 	onValueChange,
 	multiple = false,
-	nullable = valueProp === undefined && defaultValue === undefined,
+	// Derived per render: while no value is held on either channel, clicking the
+	// selected option clears it.
+	nullable = valueProp == null && defaultValue == null,
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	prefix,
@@ -149,10 +145,10 @@ export function Listbox<T>({
 	readOnly,
 	required,
 	className,
-	inputId,
-	tabularNums,
+	id,
 	truncate = true,
 	clearable = false,
+	capitalize = true,
 	open: openProp,
 	onOpenChange,
 	'data-group': dataGroup,
@@ -167,21 +163,29 @@ export function Listbox<T>({
 	const control = useControl()
 	const token = useControlSize(size)
 
+	// The shared control cascade: explicit props win, then the enclosing
+	// `<Control>`. It also merges the consumer `aria-describedby` with the field's
+	// registered ids and resolves `invalid` off the ambient severity, matching
+	// Input/Textarea/Slider.
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
-	} = resolveControlState(control, { inputId, disabled, readOnly, required })
-
-	// Merges a consumer aria-describedby with the field's registered ids,
-	// matching Input/Textarea/Checkbox.
-	const describedBy = useAriaIds(ariaDescribedBy, control?.describedBy)
+		invalid: resolvedInvalid,
+		'aria-describedby': describedBy,
+	} = useControlProps({
+		id,
+		disabled,
+		readOnly,
+		required,
+		'aria-describedby': ariaDescribedBy,
+	})
 
 	const resolvedSize = token.size
 
 	const handleValueChange = useSelectableValueChange<T>(
-		onValueChange as ((value: T | T[] | undefined) => void) | undefined,
+		onValueChange as ((value: T | T[] | null) => void) | undefined,
 		multiple,
 	)
 
@@ -257,7 +261,14 @@ export function Listbox<T>({
 		setTouched()
 	}
 
-	const label = resolveLabel({ value, displayValue, multiple })
+	const capitalization = resolveCapitalize(capitalize)
+
+	const resolvedLabel = resolveLabel({ value, displayValue, multiple })
+
+	// First-word-capitalize the resolved display string at the source; the
+	// trigger button renders it verbatim (`undefined` skips the placeholder).
+	const label =
+		capitalization.displayValue && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
 
 	const hasValue = hasListboxValue(value, multiple)
 
@@ -265,6 +276,7 @@ export function Listbox<T>({
 
 	const clearSuffix = showClear ? (
 		<Button
+			type="button"
 			variant="bare"
 			className="pointer-events-auto"
 			aria-label="Clear selection"
@@ -287,8 +299,13 @@ export function Listbox<T>({
 	// menu reads `selectionValue`, which stays frozen until the panel finishes
 	// closing, keeping the selected row stable during the exit animation.
 	const contextValue = useMemo(
-		() => ({ value: selectionValue, multiple, onSelect: select as (v: unknown) => void }),
-		[selectionValue, multiple, select],
+		() => ({
+			value: selectionValue,
+			multiple,
+			onSelect: select as (v: unknown) => void,
+			capitalize: capitalization.options,
+		}),
+		[selectionValue, multiple, select, capitalization.options],
 	)
 
 	return (
@@ -342,12 +359,11 @@ export function Listbox<T>({
 						disabled={resolvedDisabled}
 						readOnly={resolvedReadOnly}
 						required={resolvedRequired}
-						invalid={control?.invalid}
+						invalid={resolvedInvalid}
 						label={label}
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}
 						truncate={truncate}
-						tabularNums={tabularNums}
 						density={token.space}
 						size={token.size}
 					/>

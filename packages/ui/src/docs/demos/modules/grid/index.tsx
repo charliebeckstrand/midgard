@@ -20,7 +20,7 @@ import {
 	type SortState,
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
-import { BulkEditExample, EditableExample, EditorTypesExample } from './editable'
+import { BulkEditExample, CellScopeExample, EditableExample, EditorTypesExample } from './editable'
 import { ServerGroupingExample } from './server-grouping'
 
 type Person = {
@@ -442,12 +442,12 @@ const SmartSortExample = () => (
 )
 
 const ContextMenuExample = () => (
-	// Context menus are on by default. Right-click a header for sort controls,
-	// "Clear sort" (once the column is sorted), pin controls (Pin left / Pin right
-	// / Unpin), and "Manage columns" (which opens the manager without a toolbar
-	// button); right-click a body cell for "Copy". Hold Ctrl while right-clicking
-	// for the browser's standard menu. Pass `contextMenu={false}` to disable, or a
-	// builder to reshape the items.
+	// Context menus are on by default. Right-click a header for the Sort, Pin, and
+	// Auto-size menus — each opening its actions on hover — plus "Manage columns"
+	// (which opens the manager without a toolbar button) and the Export menu;
+	// right-click a body cell for "Copy". Hold Ctrl while right-clicking for the
+	// browser's standard menu. Pass `contextMenu={false}` to disable, or a builder
+	// to reshape the items.
 	<Grid columns={columns} rows={people} getKey={(row) => row.id} />
 )
 
@@ -484,7 +484,7 @@ const BatchActionsExample = () => {
 						<HoldButton
 							color="red"
 							variant="soft"
-							onComplete={() => {
+							onHoldComplete={() => {
 								setRows((prev) => prev.filter((row) => !selection.has(row.id)))
 
 								setSelection(new Set())
@@ -824,7 +824,7 @@ const LockedLeftExample = () => (
 		columns={lockedLeftColumns}
 		rows={employees}
 		getKey={(row) => row.id}
-		columnManager={{ toolbarButton: true }}
+		columnManager={{ toolbar: true }}
 	/>
 )
 
@@ -839,7 +839,7 @@ const LockedWithPinnedExample = () => (
 		columns={lockedMixedColumns}
 		rows={employees}
 		getKey={(row) => row.id}
-		columnManager={{ toolbarButton: true }}
+		columnManager={{ toolbar: true }}
 	/>
 )
 
@@ -853,7 +853,7 @@ const LockedBothEdgesExample = () => (
 		columns={lockedBothColumns}
 		rows={employees}
 		getKey={(row) => row.id}
-		columnManager={{ toolbarButton: true }}
+		columnManager={{ toolbar: true }}
 	/>
 )
 
@@ -870,6 +870,26 @@ const SearchExample = () => {
 	)
 }
 
+const SearchHighlightExample = () => {
+	const [query, setQuery] = useState('')
+
+	return (
+		<Grid
+			columns={searchableColumns}
+			rows={people}
+			getKey={(row) => row.id}
+			// `filter: false` marks matches in place instead of pruning the non-matching
+			// rows, so the query reads as an emphasis rather than a filter.
+			search={{
+				value: query,
+				onValueChange: setQuery,
+				filter: false,
+				placeholder: 'Highlight people',
+			}}
+		/>
+	)
+}
+
 const ColumnFiltersExample = () => (
 	<Grid columns={filterableColumns} rows={people} getKey={(row) => row.id} />
 )
@@ -880,11 +900,15 @@ const DateBooleanFilterExample = () => (
 
 const ColumnManagerExample = () => {
 	// Column management is on by default (the header right-click menu's "Manage
-	// columns" opens the dialog); `toolbarButton` adds the standalone button
-	// shown here. Toggle a column's checkbox to hide it, or use a row's pin control
-	// to freeze it left/right (left columns sort to the top of the list, right
-	// columns to the bottom). Drag-to-reorder in the manager follows `reorder`, so
-	// it's set here to enable the handles. Pass `columnManager={{ enabled: false }}`
+	// columns" opens the dialog); `toolbar` adds the standalone button shown here,
+	// and `contextMenu: false` drops the menu item — the same two switches
+	// `exportable` takes. Toggle a column's checkbox to hide it, or use a row's pin
+	// control to freeze it left/right (left columns sort to the top of the list,
+	// right columns to the bottom). Drag-to-reorder in the manager follows
+	// `reorder`, so it's set here to enable the handles. The dialog's filter field
+	// narrows the list to the columns matching what's typed, and only narrows what
+	// renders — hiding, pinning, and reordering under a query commit as they would
+	// unfiltered — with `filterable: false` to drop it. Pass `columnManager={false}`
 	// to turn management off entirely.
 	return (
 		<Grid
@@ -892,7 +916,7 @@ const ColumnManagerExample = () => {
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			columnManager={{ toolbarButton: true }}
+			columnManager={{ toolbar: true }}
 		/>
 	)
 }
@@ -947,20 +971,40 @@ const GroupManagerExample = () => {
 			rows={people}
 			getKey={(row) => row.id}
 			groups={{ value: groups, onValueChange: setGroups }}
-			columnManager={{ toolbarButton: true }}
+			columnManager={{ toolbar: true }}
 		/>
 	)
 }
 
 // `exportable` adds one item per export type to the header and cell right-click
-// menus, plus an "Export" toolbar dropdown listing them; each downloads (or, for
-// `print`, opens the print dialog over) the filtered/sorted rows — or just the
-// selected rows when a selection is active — every column read through its
-// `value`. `true` enables the full default set (CSV, Excel, print); an explicit
-// array picks a subset instead.
+// menus; each downloads (or, for `print`, opens the print dialog over) the
+// filtered/sorted rows — or just the selected rows when a selection is active —
+// every column read through its `value`. `true` enables the full default set
+// (CSV, Excel, print); an explicit array picks a subset instead. The object form
+// takes that same list under `types`, plus the two surface switches: `toolbar`
+// adds the "Export" dropdown shown here (opt-in, like the column manager's
+// button), and `contextMenu: false` would leave the dropdown as the only way in.
+//
+// These rows are already in hand, so each export downloads on the click. Where
+// the rows come from an async `exportRows` instead, the grid covers itself with
+// an "Exporting" overlay until they land — whichever surface ran the export.
 const ExportExample = () => (
 	<Grid
-		exportable={['csv', 'excel']}
+		exportable={{ types: ['csv', 'excel'], toolbar: true }}
+		columns={filterableColumns}
+		rows={people}
+		getKey={(row) => row.id}
+	/>
+)
+
+// Each surface stands on its own: this grid carries the "Export" dropdown alone,
+// so a right-click on a header or cell offers everything but export. Flip the two
+// switches to place export wherever it belongs — the column manager takes the
+// same pair.
+const ExportSurfacesExample = () => (
+	<Grid
+		exportable={{ types: ['csv', 'excel'], toolbar: true, contextMenu: false }}
+		columnManager={{ toolbar: true, contextMenu: false }}
 		columns={filterableColumns}
 		rows={people}
 		getKey={(row) => row.id}
@@ -976,7 +1020,7 @@ const ExportWithSelectionExample = () => {
 
 	return (
 		<Grid
-			exportable={['csv', 'excel']}
+			exportable={{ types: ['csv', 'excel'], toolbar: true }}
 			columns={[{ id: 'select', selectable: true }, ...filterableColumns]}
 			rows={people}
 			getKey={(row) => row.id}
@@ -1074,7 +1118,7 @@ const fetchServerRows = (offset: number): Promise<Person[]> =>
 // Server-side rendered infinite scroll: the first page stands in for the server-rendered
 // initial rows, and the client appends each subsequent page as the scroll nears
 // the end. `loadingMore` holds a pending flag across the async fetch — it won't
-// re-request until the batch lands, and `showLoadingIndicator` opts the trailing
+// re-request until the batch lands, and `loadingIndicator: true` opts the trailing
 // skeleton row in. `stableColumnWidths` holds the columns steady as batches append,
 // and `endMessage` closes the list once the whole set has loaded. The backend's
 // `totalRows` derives `hasMore`, keeps `aria-rowcount` determinate, and reports
@@ -1106,7 +1150,7 @@ const ServerInfiniteScrollExample = () => {
 				onLoadMore: loadMore,
 				totalRows: SERVER_TOTAL,
 				loadingMore,
-				showLoadingIndicator: true,
+				loadingIndicator: true,
 				stableColumnWidths: true,
 				endMessage: 'No more results',
 			}}
@@ -1443,7 +1487,7 @@ export function Demo() {
 
 									<Example
 										title="Group editor"
-										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbarButton: true }} />`}
+										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbar: true }} />`}
 									>
 										<GroupManagerExample />
 									</Example>
@@ -1543,6 +1587,13 @@ export function Demo() {
 						</Example>
 
 						<Example
+							title="Search highlight"
+							code={code`<Grid search={{ value, onValueChange, filter: false }} />`}
+						>
+							<SearchHighlightExample />
+						</Example>
+
+						<Example
 							title="Column filters"
 							code={code`<Grid columns={[{ ...col, filterable: true }]} />`}
 						>
@@ -1600,15 +1651,25 @@ export function Demo() {
 
 				<TabContent value="Export">
 					<Stack gap="xl">
-						<Example title="Export" code={code`<Grid exportable={['csv', 'excel']} />`}>
+						<Example
+							title="Export"
+							code={code`<Grid exportable={{ types: ['csv', 'excel'], toolbar: true }} />`}
+						>
 							<ExportExample />
 						</Example>
 
 						<Example
 							title="Export with selection"
-							code={code`<Grid exportable={['csv', 'excel']} selection={{ value, onValueChange }} />`}
+							code={code`<Grid exportable={{ types: ['csv', 'excel'], toolbar: true }} selection={{ value, onValueChange }} />`}
 						>
 							<ExportWithSelectionExample />
+						</Example>
+
+						<Example
+							title="Toolbar only"
+							code={code`<Grid exportable={{ toolbar: true, contextMenu: false }} columnManager={{ toolbar: true, contextMenu: false }} />`}
+						>
+							<ExportSurfacesExample />
 						</Example>
 					</Stack>
 				</TabContent>
@@ -1658,7 +1719,7 @@ export function Demo() {
 								<Stack gap="xl">
 									<Example
 										title="Server infinite scroll"
-										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, totalRows, loadingMore, showLoadingIndicator: true, stableColumnWidths: true, endMessage: 'No more results' }} />`}
+										code={code`<Grid virtualize infiniteScroll={{ onLoadMore, totalRows, loadingMore, loadingIndicator: true, stableColumnWidths: true, endMessage: 'No more results' }} />`}
 									>
 										<ServerInfiniteScrollExample />
 									</Example>
@@ -1688,14 +1749,21 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example
 							title="Editable"
-							code={code`<Grid editable={{ rows, onRowsChange, onValueChange }} />`}
+							code={code`<Grid editable={{ rows, onRowsChange, onCommit }} />`}
 						>
 							<EditableExample />
 						</Example>
 
 						<Example
+							title="Cell scope"
+							code={code`<Grid editable={{ trigger: 'doubleClick', scope: 'cell', onCommit }} />`}
+						>
+							<CellScopeExample />
+						</Example>
+
+						<Example
 							title="Editor types"
-							code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onValueChange }} />`}
+							code={code`<Grid columns={[{ ...col, field, editCell }]} editable={{ rows, onCommit }} />`}
 						>
 							<EditorTypesExample />
 						</Example>

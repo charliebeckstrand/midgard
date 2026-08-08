@@ -1,9 +1,9 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { type ComponentPropsWithoutRef, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { CurrentContent, CurrentContents, resolveMount } from '../../primitives/current'
+import { CurrentContent, CurrentContents } from '../../primitives/current'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
@@ -26,11 +26,16 @@ export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentConten
  * unmount waits for the panel's fade-out, so the cross-fade still plays. `fade`
  * (default `true`) animates the container height across the swap either way.
  * Set `mount` to hold inactive panels: `mount="lazy"` defers never-visited
- * panels, and `mount="always"` keeps them all mounted — via the opacity
- * cross-fade under `fade`, or `<Activity mode="hidden">` (state preserved,
- * effects paused) when `fade={false}`.
+ * panels, and `mount="always"` keeps them all mounted. Held panels rest in
+ * `<Activity mode="hidden">` (state preserved, effects paused); under `fade`
+ * they wake for the opacity cross-fade and rest again once it lands.
+ *
+ * A held panel still renders, so holding warms render-phase work — a `lazy()`
+ * chunk, a `use()`d promise. It mounts no effects, so it does not warm
+ * effect-driven work; a `useQuery` in a held panel waits to be shown. Pair a
+ * mount policy with `Tab`'s `onPreload` to warm that half.
  */
-export function TabContents({ fade = true, mount, ...props }: TabContentsProps) {
+export function TabContents({ mount, ...props }: TabContentsProps) {
 	const tabsContext = useTabsContext()
 
 	const registerMountedPanels = tabsContext?.registerMountedPanels
@@ -39,7 +44,7 @@ export function TabContents({ fade = true, mount, ...props }: TabContentsProps) 
 	// DOM, which is guaranteed only when every inactive panel is held — mount
 	// `always`. Register that with the Tabs context; `lazy`/`active` leave an
 	// inactive tab without the reference until (or unless) its panel mounts.
-	const allMounted = resolveMount(fade, mount) === 'always'
+	const allMounted = mount === 'always'
 
 	useEffect(() => {
 		if (!allMounted) return
@@ -47,7 +52,7 @@ export function TabContents({ fade = true, mount, ...props }: TabContentsProps) 
 		return registerMountedPanels?.()
 	}, [allMounted, registerMountedPanels])
 
-	return <CurrentContents slotPrefix="tab" fade={fade} mount={mount} {...props} />
+	return <CurrentContents slotPrefix="tab" mount={mount} {...props} />
 }
 
 /**
@@ -65,14 +70,16 @@ export function TabContent({ value, className, ...props }: TabContentProps) {
 
 	const auto = value !== undefined && tabsContext?.baseId !== undefined
 
-	const ref = useRef<HTMLDivElement>(null)
+	// State, not a ref: the probe re-measures on the node React attaches, which
+	// a `mount` policy that swaps panels in and out recreates.
+	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
 
 	// `0` only when the panel has no focusable child (APG).
-	const tabIndex = useTabPanelTabIndex(ref)
+	const tabIndex = useTabPanelTabIndex(panel)
 
 	return (
 		<CurrentContent
-			ref={ref}
+			ref={setPanel}
 			slotPrefix="tab"
 			value={value}
 			className={cn(k.panel, className)}

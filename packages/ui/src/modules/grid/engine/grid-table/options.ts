@@ -24,7 +24,7 @@ import {
 	type VisibilityState,
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities'
-import { evaluateQuery } from '../../../query'
+import { evaluateQuery } from '../../../query/engine/query-evaluate'
 import type { SortState } from '../../context'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
@@ -124,6 +124,16 @@ const queryFilterFn: FilterFn<unknown> = (row: Row<unknown>, columnId, filterVal
 	!isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
 
 queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
+
+/**
+ * Highlight-mode global filter: matches every row, so the quick-search query
+ * marks cells (see {@link GridSearch.filter}) without pruning any row. The value
+ * still lives in engine state for the highlighter to read, and column filters
+ * keep their own {@link queryFilterFn}, so they prune independently of the search.
+ *
+ * @internal
+ */
+const passThroughGlobalFilterFn: FilterFn<unknown> = () => true
 
 /**
  * Each row's decorated {@link SortKey}, cached per column on the row. A sort
@@ -310,13 +320,17 @@ export function paginationOptions<T>(args: {
 export function filterOptions<T>(args: {
 	configured: boolean
 	manual: boolean
+	/** Highlight mode: the global search marks rather than prunes, so its filter matches every row. */
+	globalHighlight?: boolean
 	onGlobalFilterChange?: OnChangeFn<string>
 	onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>
 }): Partial<TableOptions<T>> {
 	if (!args.configured) return {}
 
 	return {
-		globalFilterFn: 'includesString',
+		globalFilterFn: args.globalHighlight
+			? (passThroughGlobalFilterFn as FilterFn<T>)
+			: 'includesString',
 		...(args.onGlobalFilterChange ? { onGlobalFilterChange: args.onGlobalFilterChange } : {}),
 		...(args.onColumnFiltersChange ? { onColumnFiltersChange: args.onColumnFiltersChange } : {}),
 		// Client filtering also faceted: a select filter can offer the column's own

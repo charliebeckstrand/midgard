@@ -122,7 +122,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 			<Sheet
 				open={viewChat !== null}
 				onOpenChange={(open) => !open && setViewChat(null)}
-				size="3xl"
+				width="3xl"
 			>
 				<Flex justify="between" className="mr-2.5">
 					<Stack className="gap-0">

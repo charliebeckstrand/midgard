@@ -15,63 +15,39 @@
  * inside the timed region.
  */
 
-import { createRoot, type Root } from 'react-dom/client'
-import { bench, describe } from 'vitest'
+import { createRoot } from 'react-dom/client'
+import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { makeShipments, type Shipment } from '../fixtures'
+import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
 import { painted } from './grid-contenders'
+import { benches, host, type Prepared, settle, WINDOW } from './harness'
 
 // Explicit `cell` renderers so content paints synchronously (a bare column's
 // default content resolver defers to a layout pass that a headless mount races);
 // the truncating span still wraps this output, so the resize truncation is real.
-const COLUMNS: GridColumn<Shipment>[] = [
-	{ id: 'id', title: 'ID', cell: (r) => r.id },
-	{ id: 'reference', title: 'Reference', cell: (r) => r.reference },
-	{ id: 'origin', title: 'Origin', cell: (r) => r.origin },
-	{ id: 'destination', title: 'Destination', cell: (r) => r.destination },
-	{ id: 'status', title: 'Status', cell: (r) => r.status },
-	{ id: 'carrier', title: 'Carrier', cell: (r) => r.carrier },
-	{ id: 'loads', title: 'Loads', cell: (r) => String(r.loads) },
-	{ id: 'weight', title: 'Weight', cell: (r) => String(r.weight) },
-]
-
-const getKey = (row: Shipment) => row.id
+const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
+	id,
+	title,
+	cell: (row) => String(row[id]),
+}))
 
 /** The narrow width truncates the origin city names; the wide one fits them. */
 const NARROW = 48
 
 const WIDE = 320
 
-/** Slow, layout-heavy iterations; a longer window keeps the sample count up. */
-const SLOW = { time: 2_000 }
-
-type PreparedBench = { name: string; run: () => Promise<void> }
-
-/** Settles the resize: React commits, the browser reflows, the rAF backstop measures. */
-async function settle(): Promise<void> {
-	await new Promise(requestAnimationFrame)
-
-	await new Promise(requestAnimationFrame)
-
-	await new Promise(requestAnimationFrame)
-}
-
 /**
  * Mounts one non-virtualized grid per `truncate` setting and closes each over a
  * narrow/wide resize toggle, awaiting the first paint before the bench registers
  * (the browser harness races a synchronous mount during collection otherwise).
  */
-async function prepare(rows: Shipment[]): Promise<PreparedBench[]> {
-	const prepared: PreparedBench[] = []
+async function prepare(rows: Shipment[]): Promise<Prepared[]> {
+	const prepared: Prepared[] = []
 
 	for (const truncate of [true, false]) {
-		const host = document.createElement('div')
+		const box = host({ width: 640 })
 
-		host.style.width = '640px'
-
-		document.body.append(host)
-
-		const root: Root = createRoot(host)
+		const root = createRoot(box)
 
 		let wide = false
 
@@ -80,7 +56,7 @@ async function prepare(rows: Shipment[]): Promise<PreparedBench[]> {
 				<Grid
 					columns={COLUMNS}
 					rows={rows}
-					getKey={getKey}
+					getKey={shipmentKey}
 					resizable
 					truncate={truncate}
 					columnSizing={{ value: { origin: wide ? WIDE : NARROW } }}
@@ -89,7 +65,7 @@ async function prepare(rows: Shipment[]): Promise<PreparedBench[]> {
 
 		draw()
 
-		await painted(host, [rows[0]?.id ?? ''])
+		await painted(box, [rows[0]?.id ?? ''])
 
 		prepared.push({
 			name: truncate ? 'truncate' : 'truncate={false}',
@@ -98,7 +74,9 @@ async function prepare(rows: Shipment[]): Promise<PreparedBench[]> {
 
 				draw()
 
-				await settle()
+				// Three frames: React commits, the browser reflows, then the
+				// truncation hook's deferred re-measure backstop lands.
+				await settle(3)
 			},
 		})
 	}
@@ -106,14 +84,14 @@ async function prepare(rows: Shipment[]): Promise<PreparedBench[]> {
 	return prepared
 }
 
-const rows1k = await prepare(makeShipments(1_000))
+const rows1k = await prepare(shipments(1_000))
 
-const rows3k = await prepare(makeShipments(3_000))
+const rows3k = await prepare(shipments(3_000))
 
 describe('grid resize · 1,000 rows · un-windowed · mass truncation', () => {
-	for (const { name, run } of rows1k) bench(name, run, SLOW)
+	benches(rows1k, WINDOW.slow)
 })
 
 describe('grid resize · 3,000 rows · un-windowed · mass truncation', () => {
-	for (const { name, run } of rows3k) bench(name, run, SLOW)
+	benches(rows3k, WINDOW.slow)
 })

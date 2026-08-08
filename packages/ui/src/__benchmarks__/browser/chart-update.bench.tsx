@@ -10,7 +10,7 @@
 import { describe } from 'vitest'
 import { barContenders, lineContenders, scatterContenders } from './contenders'
 import { makePoints, makeTrend } from './fixtures'
-import { prepare, SLOW, updateBenches } from './harness'
+import { benches, prepare, WINDOW } from './harness'
 
 const line1k = await prepare(lineContenders(1), makeTrend(1_000, 1, 1), makeTrend(1_000, 1, 2))
 
@@ -23,21 +23,21 @@ const bar500 = await prepare(barContenders(2), makeTrend(500, 2, 1), makeTrend(5
 const points10k = await prepare(scatterContenders(), makePoints(10_000, 1), makePoints(10_000, 2))
 
 describe('update · line · 1,000 × 1 series', () => {
-	updateBenches(line1k)
+	benches(line1k)
 })
 
 describe('update · line · 10,000 × 1 series', () => {
-	updateBenches(line10k, SLOW)
+	benches(line10k, WINDOW.slow)
 })
 
 describe('update · line · 1,000 × 5 series', () => {
-	updateBenches(line1k5, SLOW)
+	benches(line1k5, WINDOW.slow)
 })
 
 describe('update · bar · 500 × 2 series', () => {
-	updateBenches(bar500, SLOW)
+	benches(bar500, WINDOW.slow)
 })
 
 describe('update · scatter · 10,000 points', () => {
-	updateBenches(points10k, SLOW)
+	benches(points10k, WINDOW.slow)
 })

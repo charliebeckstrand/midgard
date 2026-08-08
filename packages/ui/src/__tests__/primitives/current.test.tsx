@@ -160,7 +160,7 @@ describe('CurrentContent mount policy', () => {
 		onSetup?: () => void
 		onCleanup?: () => void
 	}) {
-		const [value, setValue] = useState<string | undefined>(initial)
+		const [value, setValue] = useState<string | null>(initial)
 
 		return (
 			<>
@@ -170,7 +170,7 @@ describe('CurrentContent mount policy', () => {
 				<button type="button" onClick={() => setValue('b')}>
 					go-b
 				</button>
-				<CurrentContext value={{ value, onValueChange: setValue }}>
+				<CurrentContext value={{ value: value ?? undefined, onValueChange: setValue }}>
 					<CurrentContents slotPrefix="test" fade={fade} mount={mount}>
 						<CurrentContent slotPrefix="test" value="a">
 							Content A

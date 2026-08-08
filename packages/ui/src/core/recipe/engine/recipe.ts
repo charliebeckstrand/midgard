@@ -4,13 +4,17 @@
  * @remarks Per-call composition order is `base` → matching `variants` →
  * `compound` rules; `slots` pre-merge at creation, `palette` expands into the
  * `color` axis (`palette.ts`), and `skeleton` rides through as `k.skeleton`.
+ * The call path is compiled once at creation (entries hoisted, defaults
+ * pre-stringified, palette pairs folded into an O(1) lookup) and its output
+ * memoised per variant combination, so render-hot call sites pay a key join
+ * and a map hit after the first call with a given combination.
  */
 
 import type { ClassValue } from 'clsx'
 import clsx from 'clsx'
 
 import { twMerge } from '../../tw-merge'
-import { expandPalette } from './palette'
+import { expandPalette, type PalettePairs } from './palette'
 import type {
 	CompoundRule,
 	ComputedProps,
@@ -31,6 +35,48 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
 ])
 
 /**
+ * Memo entries per recipe. Combinations of declared axis values stay far
+ * below this; the cap only guards a caller feeding unbounded dynamic strings
+ * into a variant prop, resetting the memo instead of growing it.
+ */
+const MEMO_CAP = 1024
+
+/** A compound rule pre-split into its conditions and class payload. @internal */
+type CompiledRule = {
+	conditions: [key: string, required: unknown][]
+	class: ClassValue
+}
+
+/** The per-call execution plan {@link compile} derives once at creation. @internal */
+type Plan = {
+	base: ClassValue
+	/** `Object.entries(variants)`, hoisted out of the call path. */
+	variantEntries: [axis: string, axisMap: Record<string, ClassValue>][]
+	/** The palette's pair lookup from {@link expandPalette}; empty without a palette. */
+	palette: PalettePairs
+	/** User compound rules in declaration order, conditions pre-split. */
+	rules: CompiledRule[]
+	/** Defaults pre-coerced to their axis-lookup strings. */
+	defaults: Record<string, string | undefined>
+	/** Every key the output can depend on: axis names plus rule condition keys. */
+	relevantKeys: string[]
+	/** The constant key a no-props call resolves to, precomputed. */
+	defaultKey: string
+}
+
+/**
+ * What {@link expand} hands {@link compile}: the public resolved config plus
+ * the palette pair lookup and the user compound rules, pre-separated.
+ *
+ * @internal
+ */
+type Expansion = {
+	resolved: ResolvedConfig
+	palettePairs: PalettePairs
+	userCompound: CompoundRule[]
+}
+
+/**
  * Builds a callable recipe from a `RecipeConfig`: `base`, `variants`,
  * `compound`, and `defaults` apply per call through `clsx` + `tailwind-merge`,
  * `slots` pre-merge onto the recipe as direct properties, `palette` expands
@@ -38,11 +84,18 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
  * siblings. The kata binds the result as `k`: `k(...)` for the variant call,
  * `k.title` for slot classes.
  *
+ * @remarks Calls are memoised per resolved variant combination: the first
+ * call with a given combination composes and merges classes, every later one
+ * returns the cached string.
+ *
  * @param config - Recipe definition; reserved fields (`base`, `palette`,
  * `compound`, `slots`, `defaults`, `skeleton`) are special-cased, every other
  * top-level field becomes a variant axis.
  * @param extras - Optional kata-shaped siblings (`motion`, sub-recipes,
  * fragment maps) attached as direct properties; the recipe stays callable.
+ * @throws If a slot name collides with a recipe property — a function
+ * built-in (`name`, `length`, `call`, …) or the engine-attached `config` /
+ * `skeleton`.
  * @see {@link expandPalette}
  */
 export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
@@ -54,18 +107,43 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	config: C,
 	extras?: X,
 ): Recipe<C> | (Recipe<C> & X) {
-	const resolved = expand(config)
+	const expansion = expand(config)
+
+	const { resolved } = expansion
+
+	const plan = compile(expansion)
+
+	const memo = new Map<string, string>()
+
+	function recipe(props?: ComputedProps<C>): string {
+		const raw = props as Record<string, unknown> | undefined
+
+		const key = raw === undefined ? plan.defaultKey : memoKey(plan, raw)
+
+		const hit = memo.get(key)
+
+		if (hit !== undefined) return hit
+
+		const result = twMerge(clsx(collectRecipeClasses(plan, buildRecipeValues(plan, raw))))
+
+		if (memo.size >= MEMO_CAP) memo.clear()
+
+		memo.set(key, result)
+
+		return result
+	}
 
 	const slotCache: Record<string, string> = {}
 
 	for (const [slot, value] of Object.entries(resolved.slots)) {
+		// `in` sees the function built-ins (`name`, `length`, `call`, …) through
+		// the prototype chain before anything is assigned; `config` and
+		// `skeleton` are attached by the engine below.
+		if (slot in recipe || slot === 'config' || slot === 'skeleton') {
+			throw new Error(`defineRecipe: slot name "${slot}" collides with a recipe property`)
+		}
+
 		slotCache[slot] = twMerge(clsx(value))
-	}
-
-	function recipe(props?: ComputedProps<C>): string {
-		const values = buildRecipeValues(resolved, props as Record<string, unknown> | undefined)
-
-		return twMerge(clsx(collectRecipeClasses(resolved, values)))
 	}
 
 	Object.assign(recipe, slotCache)
@@ -81,11 +159,58 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 	return recipe as Recipe<C> & X
 }
 
-/** True when every keyed condition in `rule` (ignoring `class`) equals the resolved value. @internal */
-function matches(rule: CompoundRule, values: Record<string, string | undefined>): boolean {
-	for (const [key, required] of Object.entries(rule)) {
-		if (key === 'class') continue
+/**
+ * Resolves the value the pipeline reads for `key`: the caller's own prop when
+ * present (nullish falls back), else the pre-stringified default.
+ *
+ * @internal
+ */
+function resolveValue(
+	plan: Plan,
+	props: Record<string, unknown> | undefined,
+	key: string,
+): string | undefined {
+	// A plain read: relevant keys are config-declared names, so an inherited
+	// `Object.prototype` member can never alias one.
+	const raw = props === undefined ? undefined : props[key]
 
+	return raw === undefined || raw === null ? plan.defaults[key] : String(raw)
+}
+
+/**
+ * The memo key for a call: the resolved value of every relevant key joined on
+ * `\u0000`, with `\u0001` marking absent values. Exact because the composed
+ * output reads nothing outside `relevantKeys`.
+ *
+ * @internal
+ */
+function memoKey(plan: Plan, props: Record<string, unknown> | undefined): string {
+	let key = ''
+
+	for (const k of plan.relevantKeys) {
+		const value = resolveValue(plan, props, k)
+
+		key += value === undefined ? '\u0001\u0000' : `${value}\u0000`
+	}
+
+	return key
+}
+
+/** Materialises the resolved values map for a memo miss. @internal */
+function buildRecipeValues(
+	plan: Plan,
+	props: Record<string, unknown> | undefined,
+): Record<string, string | undefined> {
+	const values: Record<string, string | undefined> = {}
+
+	for (const key of plan.relevantKeys) values[key] = resolveValue(plan, props, key)
+
+	return values
+}
+
+/** True when every pre-split condition in `rule` equals the resolved value. @internal */
+function matches(rule: CompiledRule, values: Record<string, string | undefined>): boolean {
+	for (const [key, required] of rule.conditions) {
 		if (required !== values[key]) return false
 	}
 
@@ -93,50 +218,31 @@ function matches(rule: CompoundRule, values: Record<string, string | undefined>)
 }
 
 /**
- * Merges defaults with props (skipping null / undefined), coercing booleans and
- * numbers to strings for axis lookup.
- *
- * @internal
- */
-function buildRecipeValues(
-	resolved: ResolvedConfig,
-	props: Record<string, unknown> | undefined,
-): Record<string, string | undefined> {
-	const values: Record<string, string | undefined> = {}
-
-	for (const [key, value] of Object.entries(resolved.defaults)) {
-		values[key] = value === undefined || value === null ? undefined : String(value)
-	}
-
-	if (props) {
-		for (const [key, value] of Object.entries(props)) {
-			if (value === undefined || value === null) continue
-
-			values[key] = String(value)
-		}
-	}
-
-	return values
-}
-
-/**
- * Composes base + matching variant axes + compound rules into the class list.
+ * Composes base + matching variant axes + the palette pair + compound rules
+ * into the class list. Order matches the pre-compiled engine: palette classes
+ * land before user compound classes, so user rules still win merge conflicts.
  *
  * @internal
  */
 function collectRecipeClasses(
-	resolved: ResolvedConfig,
+	plan: Plan,
 	values: Record<string, string | undefined>,
 ): ClassValue[] {
-	const acc: ClassValue[] = [resolved.base]
+	const acc: ClassValue[] = [plan.base]
 
-	for (const [axis, axisMap] of Object.entries(resolved.variants)) {
+	for (const [axis, axisMap] of plan.variantEntries) {
 		const value = values[axis]
 
 		if (value !== undefined && value in axisMap) acc.push(axisMap[value])
 	}
 
-	for (const rule of resolved.compound) {
+	if (values.variant !== undefined && values.color !== undefined) {
+		const paletteClasses = plan.palette.get(values.variant)?.get(values.color)
+
+		if (paletteClasses !== undefined) acc.push(paletteClasses)
+	}
+
+	for (const rule of plan.rules) {
 		if (matches(rule, values)) acc.push(rule.class)
 	}
 
@@ -144,17 +250,65 @@ function collectRecipeClasses(
 }
 
 /**
+ * Derives the per-call execution plan once at creation: variant entries
+ * hoisted, defaults pre-stringified, the palette pair lookup taken straight
+ * from {@link expandPalette}, and user rules pre-split so matching allocates
+ * nothing.
+ *
+ * @internal
+ */
+function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
+	const defaults: Record<string, string | undefined> = {}
+
+	for (const [key, value] of Object.entries(resolved.defaults)) {
+		defaults[key] = value === undefined || value === null ? undefined : String(value)
+	}
+
+	const rules: CompiledRule[] = userCompound.map((rule) => ({
+		conditions: Object.entries(rule).filter(([key]) => key !== 'class'),
+		class: rule.class,
+	}))
+
+	const relevant = new Set(Object.keys(resolved.variants))
+
+	for (const rule of rules) for (const [key] of rule.conditions) relevant.add(key)
+
+	// The palette lookup reads `variant` and `color`; declare that dependency
+	// here rather than leaning on the axis splice in `applyPaletteToVariants`.
+	if (palettePairs.size > 0) {
+		relevant.add('variant')
+
+		relevant.add('color')
+	}
+
+	const plan: Plan = {
+		base: resolved.base,
+		variantEntries: Object.entries(resolved.variants),
+		palette: palettePairs,
+		rules,
+		defaults,
+		relevantKeys: [...relevant],
+		defaultKey: '',
+	}
+
+	plan.defaultKey = memoKey(plan, undefined)
+
+	return plan
+}
+
+/**
  * Splices a palette into the `variant` and `color` axes (mutating `variants`)
- * and returns its compound rules. Palette-matrix variant keys absent from an
- * explicit `variant:` axis join it as empty entries — valid values with no
- * structural class; the `color` axis becomes the palette's colour scaffold.
+ * and returns its compound rules and pair lookup. Palette-matrix variant keys
+ * absent from an explicit `variant:` axis join it as empty entries — valid
+ * values with no structural class; the `color` axis becomes the palette's
+ * colour scaffold.
  *
  * @internal
  */
 function applyPaletteToVariants(
 	variants: Record<string, Record<string, ClassValue>>,
 	palette: NonNullable<RecipeConfig['palette']>,
-): CompoundRule[] {
+): { compound: CompoundRule[]; pairs: PalettePairs } {
 	const ex = expandPalette(palette)
 
 	const variantAxis = variants.variant ?? {}
@@ -167,17 +321,19 @@ function applyPaletteToVariants(
 
 	variants.color = ex.colorScaffold
 
-	return ex.compound
+	return { compound: ex.compound, pairs: ex.pairs }
 }
 
 /**
  * Collects each non-reserved top-level field as a variant axis, then splices
  * `palette` into the `variant` / `color` axes and compounds via
- * {@link applyPaletteToVariants}.
+ * {@link applyPaletteToVariants}. Hands {@link compile} the palette pair
+ * lookup and the user rules pre-separated; the resolved config keeps the
+ * full flat rule list for `.config` introspection.
  *
  * @internal
  */
-function expand(config: RecipeConfig): ResolvedConfig {
+function expand(config: RecipeConfig): Expansion {
 	const variants: Record<string, Record<string, ClassValue>> = {}
 
 	for (const [key, value] of Object.entries(config)) {
@@ -186,16 +342,22 @@ function expand(config: RecipeConfig): ResolvedConfig {
 		variants[key] = { ...(value as VariantAxis) }
 	}
 
-	const compound = config.palette ? applyPaletteToVariants(variants, config.palette) : []
+	const paletteExpansion: { compound: CompoundRule[]; pairs: PalettePairs } = config.palette
+		? applyPaletteToVariants(variants, config.palette)
+		: { compound: [], pairs: new Map() }
 
-	// User compounds follow palette compounds; later rules take precedence.
-	compound.push(...(config.compound ?? []))
+	const userCompound = config.compound ?? []
 
 	return {
-		base: config.base,
-		variants,
-		compound,
-		slots: config.slots ?? {},
-		defaults: config.defaults ?? {},
+		resolved: {
+			base: config.base,
+			variants,
+			// User compounds follow palette compounds; later rules take precedence.
+			compound: [...paletteExpansion.compound, ...userCompound],
+			slots: config.slots ?? {},
+			defaults: config.defaults ?? {},
+		},
+		palettePairs: paletteExpansion.pairs,
+		userCompound,
 	}
 }

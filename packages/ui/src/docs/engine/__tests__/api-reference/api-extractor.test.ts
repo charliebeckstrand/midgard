@@ -1,0 +1,349 @@
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
+import { afterEach, describe, expect, it } from 'vitest'
+import { buildApi, createApiExtractor } from '../../api-reference'
+import { aggregateHash } from '../../api-reference/engine/api-extractor'
+
+/**
+ * Foo's source with the given props signature. {@link BASE} and {@link writeFoo}
+ * both build from here, so one template defines the component every test edits.
+ */
+function fooSource(props: string): string {
+	return [
+		`/** A foo. */`,
+		`export function Foo(props: { ${props} }) {`,
+		`\treturn null`,
+		`}`,
+		'',
+	].join('\n')
+}
+
+/** The two component barrels every fixture starts from, keyed by path under `src`. */
+const BASE: Record<string, string> = {
+	'components/foo/index.ts': `export { Foo } from './foo'\n`,
+	'components/foo/foo.tsx': fooSource('label?: string'),
+	'components/bar/index.ts': `export { Bar } from './bar'\n`,
+	'components/bar/bar.tsx': [
+		`/** A bar. */`,
+		`export function Bar(props: { count?: number }) {`,
+		`\treturn null`,
+		`}`,
+		'',
+	].join('\n'),
+}
+
+/**
+ * Route a type Bar documents through Foo's directory, so an edit to Foo must
+ * re-extract Bar even though no directory ownership links them.
+ */
+const BAR_DEPENDS_ON_FOO: Record<string, string> = {
+	'components/foo/shared.ts': `export type Tone = 'a' | 'b'\n`,
+	'components/bar/bar.tsx': [
+		`import type { Tone } from '../foo/shared'`,
+		`/** A bar. */`,
+		`export function Bar(props: { tone?: Tone }) {`,
+		`\treturn props.tone ?? null`,
+		`}`,
+		'',
+	].join('\n'),
+}
+
+/** Put Foo's `{@link}` target under `src/primitives`, outside the roots `openProject` seeds. */
+const FOO_LINKS_OUTSIDE_ROOTS: Record<string, string> = {
+	'primitives/tone/tone.ts': [`/** A tone. */`, `export type Tone = 'a' | 'b'`, ''].join('\n'),
+	'components/foo/foo.tsx': [
+		`import type { Tone } from '../../primitives/tone/tone'`,
+		`/** A foo. */`,
+		`export function Foo(props: {`,
+		`\t/** Its tone, per {@link Tone}. */`,
+		`\ttone?: Tone`,
+		`}) {`,
+		`\treturn props.tone ?? null`,
+		`}`,
+		'',
+	].join('\n'),
+}
+
+/**
+ * Lay down a throwaway package the extractor can open: a `tsconfig.json` one
+ * level above `src` (what {@link openProject} resolves), then {@link BASE} with
+ * `extra` merged over it. A variant that replaces a base file lists it again.
+ */
+function writeFixture(root: string, extra: Record<string, string> = {}): string {
+	const src = path.join(root, 'src')
+
+	fs.writeFileSync(
+		path.join(root, 'tsconfig.json'),
+		JSON.stringify({
+			compilerOptions: {
+				strict: true,
+				jsx: 'react-jsx',
+				module: 'ESNext',
+				moduleResolution: 'Bundler',
+				lib: ['ES2022'],
+			},
+		}),
+	)
+
+	for (const [rel, text] of Object.entries({ ...BASE, ...extra })) {
+		const full = path.join(src, rel)
+
+		fs.mkdirSync(path.dirname(full), { recursive: true })
+
+		fs.writeFileSync(full, text)
+	}
+
+	return src
+}
+
+/**
+ * Retype Foo on disk, over the copy {@link writeFixture} laid down, and return
+ * the file's path — so an edit reports the file it changed.
+ */
+function writeFoo(srcDir: string, props: string): string {
+	const file = path.join(srcDir, 'components', 'foo', 'foo.tsx')
+
+	fs.writeFileSync(file, fooSource(props))
+
+	return file
+}
+
+/** The extractor's persisted cache file, inside the cache dir it was given. */
+const CACHE_FILE = 'api.json'
+
+/** The hash a persisted cache carries — the key `aggregateHash` produced for it. */
+function cacheKey(cacheDir: string): string {
+	const raw = fs.readFileSync(path.join(cacheDir, CACHE_FILE), 'utf-8')
+
+	return (JSON.parse(raw) as { hash: string }).hash
+}
+
+const roots: string[] = []
+
+function fixture(extra?: Record<string, string>): { srcDir: string; cacheDir: string } {
+	const root = fs.mkdtempSync(path.join(os.tmpdir(), 'api-extractor-'))
+
+	roots.push(root)
+
+	return { srcDir: writeFixture(root, extra), cacheDir: path.join(root, '.cache') }
+}
+
+afterEach(() => {
+	for (const root of roots.splice(0)) fs.rmSync(root, { recursive: true, force: true })
+})
+
+describe('createApiExtractor', () => {
+	it('extracts every documentable barrel keyed by directory name', () => {
+		const { srcDir } = fixture()
+
+		const result = createApiExtractor(srcDir, { cacheDir: null }).getAll()
+
+		expect(Object.keys(result).sort()).toEqual(['bar', 'foo'])
+
+		expect(result.foo).toEqual([
+			{ name: 'Foo', description: 'A foo.', props: [{ name: 'label', type: 'string' }] },
+		])
+
+		expect(result.bar?.[0]?.props).toEqual([{ name: 'count', type: 'number' }])
+	})
+
+	it('ignores non-source, docs, and test files', () => {
+		const { srcDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		extractor.getAll()
+
+		expect(extractor.notifyChanged(path.join(srcDir, 'README.md'))).toBe(false)
+
+		expect(extractor.notifyChanged(path.join(srcDir, 'docs', 'demos', 'x.tsx'))).toBe(false)
+
+		expect(extractor.notifyChanged(path.join(srcDir, 'components', 'foo', 'foo.test.tsx'))).toBe(
+			false,
+		)
+
+		expect(extractor.notifyChanged(path.join(srcDir, 'components', 'foo', 'foo.tsx'))).toBe(true)
+	})
+
+	it('re-extracts only the barrels a changed file feeds', () => {
+		const { srcDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		const first = extractor.getAll()
+
+		extractor.notifyChanged(path.join(srcDir, 'components', 'foo', 'foo.tsx'))
+
+		const second = extractor.getAll()
+
+		// Foo re-extracts (new array); Bar, which never reaches Foo, is untouched.
+		expect(second.foo).not.toBe(first.foo)
+
+		expect(second.bar).toBe(first.bar)
+	})
+
+	it('reads fresh source for an in-session edit to an already-warmed barrel', () => {
+		const { srcDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		extractor.getAll()
+
+		// Retype Foo's prop on disk. The live project still holds the pre-edit AST,
+		// so the refresh must apply synchronously before the next extraction reads it.
+		extractor.notifyChanged(writeFoo(srcDir, 'label?: number'))
+
+		expect(extractor.getAll().foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
+	})
+
+	it('surfaces a component barrel added after the initial load', () => {
+		const { srcDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		expect(Object.keys(extractor.getAll()).sort()).toEqual(['bar', 'foo'])
+
+		// Scaffold a new barrel mid-session; `barrels` must re-list so it isn't
+		// stranded until a restart.
+		const bazDir = path.join(srcDir, 'components', 'baz')
+
+		fs.mkdirSync(bazDir, { recursive: true })
+
+		fs.writeFileSync(path.join(bazDir, 'index.ts'), `export { Baz } from './baz'\n`)
+
+		fs.writeFileSync(
+			path.join(bazDir, 'baz.tsx'),
+			[
+				`/** A baz. */`,
+				`export function Baz(props: { open?: boolean }) {`,
+				`\treturn null`,
+				`}`,
+				'',
+			].join('\n'),
+		)
+
+		extractor.notifyChanged(path.join(bazDir, 'index.ts'))
+
+		expect(Object.keys(extractor.getAll()).sort()).toEqual(['bar', 'baz', 'foo'])
+	})
+
+	it('re-extracts a barrel when a cross-directory dependency it reads changes', () => {
+		const { srcDir } = fixture(BAR_DEPENDS_ON_FOO)
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		const first = extractor.getAll()
+
+		// Bar documents `Tone`, declared under Foo's directory; editing it must
+		// invalidate Bar even though directory ownership wouldn't connect them.
+		extractor.notifyChanged(path.join(srcDir, 'components', 'foo', 'shared.ts'))
+
+		const second = extractor.getAll()
+
+		expect(second.bar).not.toBe(first.bar)
+	})
+
+	it('replays the disk cache on a fresh extractor when nothing changed', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		const first = createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		expect(fs.existsSync(path.join(cacheDir, CACHE_FILE))).toBe(true)
+
+		const replay = createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		expect(replay).toEqual(first)
+	})
+
+	it('invalidates the disk cache when an input file changes on disk', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		writeFoo(srcDir, 'label?: string; hidden?: boolean')
+
+		const result = createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		expect(result.foo?.[0]?.props.map((p) => p.name)).toEqual(['label', 'hidden'])
+	})
+
+	it('leaves the cache key alone when a file under __tests__ changes', () => {
+		const { srcDir } = fixture()
+
+		const before = aggregateHash(srcDir, new Map())
+
+		// A plain source name, so the directory alone excludes it. The walk prunes
+		// `__tests__` rather than descending and discarding, and the two rules must
+		// agree that nothing under there feeds a barrel.
+		const testsDir = path.join(srcDir, 'components', 'foo', '__tests__')
+
+		fs.mkdirSync(testsDir, { recursive: true })
+
+		fs.writeFileSync(path.join(testsDir, 'helpers.ts'), `export const helper = 1\n`)
+
+		expect(aggregateHash(srcDir, new Map())).toBe(before)
+	})
+
+	it('moves the disk cache key when notifyChanged reports a same-session edit', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir })
+
+		extractor.getAll()
+
+		const before = cacheKey(cacheDir)
+
+		// The content-hash memo outlives the pass, so a reported path must drop out
+		// of it; a retained entry freezes the key.
+		extractor.notifyChanged(writeFoo(srcDir, 'label?: number'))
+
+		extractor.getAll()
+
+		expect(cacheKey(cacheDir)).not.toBe(before)
+	})
+
+	it('holds the disk cache key when an edit skips notifyChanged, and recovers on the next start', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir })
+
+		extractor.getAll()
+
+		const before = cacheKey(cacheDir)
+
+		// Edit Foo behind the extractor's back — a watcher miss, or a write from
+		// outside the dev server. The report names Bar, not the file that changed,
+		// so a pass runs and persists while Foo's edit stays unreported.
+		writeFoo(srcDir, 'label?: number')
+
+		extractor.notifyChanged(path.join(srcDir, 'components', 'bar', 'bar.tsx'))
+
+		const second = extractor.getAll()
+
+		// The record misses the edit, because `applyRefreshes` reads reported paths
+		// alone. The retained memo holds the key to the tree that record describes,
+		// so the pair stays consistent and does not validate a stale record.
+		expect(second.foo?.[0]?.props).toEqual([{ name: 'label', type: 'string' }])
+
+		expect(cacheKey(cacheDir)).toBe(before)
+
+		// A fresh extractor starts with an empty memo, so it hashes the real content
+		// on disk, the stale key fails, and the missed edit lands.
+		const restart = createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		expect(restart.foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
+	})
+})
+
+describe('buildApi', () => {
+	// Pins `openProject`'s `resolveSourceFileDependencies` call, which is what
+	// puts a link target outside the seeded roots into the index. See its TSDoc.
+	it('resolves a link to a target outside the seeded roots', () => {
+		const { srcDir } = fixture(FOO_LINKS_OUTSIDE_ROOTS)
+
+		expect(buildApi(srcDir).foo?.[0]?.props[0]?.links).toEqual({
+			Tone: { signature: 'type Tone', summary: 'A tone.' },
+		})
+	})
+})

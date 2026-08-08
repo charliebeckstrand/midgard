@@ -37,6 +37,7 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 			<Tooltip>
 				<TooltipTrigger>
 					<Button
+						type="button"
 						variant="plain"
 						aria-label="Zoom out"
 						disabled={disabled || zoom.value <= minZoom}
@@ -50,6 +51,7 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 			<Tooltip>
 				<TooltipTrigger>
 					<Button
+						type="button"
 						variant="plain"
 						aria-label="Zoom in"
 						disabled={disabled || zoom.value >= maxZoom}
@@ -63,6 +65,7 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 			<Tooltip>
 				<TooltipTrigger>
 					<Button
+						type="button"
 						variant="plain"
 						aria-label="Fit to page"
 						disabled={disabled || zoom.value === 1}

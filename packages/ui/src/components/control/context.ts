@@ -1,9 +1,10 @@
 'use client'
 
 import { createContext, type Severity } from '../../core'
+import type { Step } from '../../recipes'
 
-/** Control density step: `sm`, `md`, or `lg`. Feeds the Density cascade and each field's recipe size. */
-export type ControlSize = 'sm' | 'md' | 'lg'
+/** Control density step: `sm`, `md`, or `lg`. Aliases the recipe-layer {@link Step} so the control and recipe size scales cannot drift. Feeds the Density cascade and each field's recipe size. */
+export type ControlSize = Step
 
 /** Visual treatment shared across a Control's fields: `default` (filled) or `outline`. */
 export type ControlVariant = 'default' | 'outline'
@@ -22,7 +23,6 @@ export type ControlContextValue = {
 	id: string
 	autoComplete?: string
 	disabled?: boolean
-	invalid?: boolean
 	readOnly?: boolean
 	required?: boolean
 	/** Validation / status severity from `<Control severity>` / `<Field severity>`; control-aware fields map it to the matching `data-*` validation ring (and `error` additionally to `aria-invalid`). */
@@ -47,7 +47,7 @@ export type ControlContextValue = {
 
 /**
  * Form-field cascade. Provided by `<Control>` (and `<Field>` on its behalf).
- * Carries id, autoComplete, disabled, invalid, readOnly, required, size,
+ * Carries id, autoComplete, disabled, readOnly, required, severity, size,
  * variant: every prop a nested form field can inherit. Also the data bridge
  * between `<Field>` (label, help, errors, validation) and the underlying
  * form field.

@@ -332,22 +332,6 @@ describe('SidebarHeader', () => {
 
 		expect(close).toHaveBeenCalledOnce()
 	})
-
-	it('uses a custom closeIcon when provided in an offcanvas surface', () => {
-		const close = vi.fn()
-
-		renderUI(
-			<OffcanvasContext value={{ close }}>
-				<Sidebar>
-					<SidebarHeader closeIcon={<span data-testid="custom-close">x</span>}>
-						Header
-					</SidebarHeader>
-				</Sidebar>
-			</OffcanvasContext>,
-		)
-
-		expect(screen.getByTestId('custom-close')).toBeInTheDocument()
-	})
 })
 
 describe('SidebarLabel', () => {
@@ -391,7 +375,7 @@ describe('SidebarItem', () => {
 		expect(inner).toHaveAttribute('aria-current', 'page')
 	})
 
-	it('renders an icon prop through the createNavItem icon slot', () => {
+	it('renders an icon prop through the SidebarItem icon slot', () => {
 		const { container } = renderUI(
 			<Sidebar>
 				<SidebarItem icon={<svg data-testid="sidebar-icon" />}>Home</SidebarItem>

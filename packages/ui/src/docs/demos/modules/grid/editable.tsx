@@ -1,4 +1,4 @@
-import { Check, Info, Pencil, Trash2 } from 'lucide-react'
+import { Check, Info, Pencil, Trash2, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
@@ -20,7 +20,6 @@ import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
 import { NumberInput } from '../../../../components/number-input'
 import { Stack } from '../../../../components/stack'
-import { SubmitButton } from '../../../../components/submit-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import {
 	type CellChange,
@@ -32,7 +31,7 @@ import { useFormat } from '../../../../providers/locale'
 
 // Applies committed cell changes onto the row state: each change patches one
 // field on the row it keys. The grid emits these (as one batch per row) through
-// `editable.onValueChange` when an editing row is saved.
+// `editable.onCommit` when an editing row is saved.
 function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]): T[] {
 	if (!changes.length) return rows
 
@@ -156,6 +155,39 @@ const roleOptions = ['Developer', 'Designer', 'Manager', 'Analyst'].map((role) =
 	value: role,
 }))
 
+// The data columns both scope examples show, so the pair reads as one grid under
+// two settings rather than two grids that drifted apart. `name`/`email` infer a
+// text editor and `active` a yes/no listbox from their value type; `role`
+// overrides with a listbox slot. Module-level because nothing here closes over
+// component state — a fresh array each render would rebuild every column and
+// re-render every cell.
+const personColumns: GridColumn<Person>[] = [
+	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
+	{
+		id: 'role',
+		title: 'Role',
+		field: 'role',
+		cell: (row) => row.role,
+		editCell: (ctx) => (
+			<CellListbox
+				value={String(ctx.value ?? '')}
+				options={roleOptions}
+				onValueUpdate={ctx.onValueUpdate}
+				ariaLabel={ctx.ariaLabel}
+			/>
+		),
+	},
+	{
+		id: 'active',
+		title: 'Active',
+		field: 'active',
+		cell: (row) => (
+			<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
+		),
+	},
+]
+
 export function EditableExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
 
@@ -170,50 +202,29 @@ export function EditableExample() {
 			return next
 		})
 
-	// `name`/`email` infer a text editor and `active` a yes/no listbox from their
-	// value type; `role` overrides with a listbox slot. The pencil swaps the whole
-	// row into edit mode (every cell becomes an editor); the check saves the row's
-	// edits together. `trigger: 'doubleClick'` adds the grid-owned session over
-	// the same binding: double-click a cell (or press Enter on the cursor's active
-	// cell) to start editing its row, Enter in an editor to save, Escape to
-	// discard.
+	// The pencil swaps the whole row into edit mode (every cell becomes an editor);
+	// the check saves the row's edits together. `trigger: 'doubleClick'` adds the
+	// grid-owned session over the same binding: double-click a cell (or press Enter
+	// on the cursor's active cell) to start editing its row, Enter in an editor to
+	// save, Escape to discard.
 	const columns: GridColumn<Person>[] = [
-		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
-		{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
-		{
-			id: 'role',
-			title: 'Role',
-			field: 'role',
-			cell: (row) => row.role,
-			editCell: (ctx) => (
-				<CellListbox
-					value={String(ctx.value ?? '')}
-					options={roleOptions}
-					onValueUpdate={ctx.onValueUpdate}
-					ariaLabel={ctx.ariaLabel}
-				/>
-			),
-		},
-		{
-			id: 'active',
-			title: 'Active',
-			field: 'active',
-			cell: (row) => (
-				<Badge color={row.active ? 'green' : 'zinc'}>{row.active ? 'Active' : 'Inactive'}</Badge>
-			),
-		},
+		...personColumns,
 		{
 			id: 'actions',
-			actions: (row) =>
-				editing.has(row.id) ? (
-					<Button
-						variant="bare"
-						color="green"
-						aria-label="Save row"
-						onClick={() => setRowEditing(row.id, false)}
-					>
-						<Icon icon={<Check />} />
-					</Button>
+			// The slot's context carries the row's editing state and both ways out.
+			// `discard` is the one a consumer cannot drive through `rows`: removing a
+			// row from the set is what commits it, so dropping a row's edits has to
+			// come from here.
+			actions: (row, { editing: rowEditing, save, discard }) =>
+				rowEditing ? (
+					<Flex gap="sm">
+						<Button variant="bare" color="green" aria-label="Save row" onClick={save}>
+							<Icon icon={<Check />} />
+						</Button>
+						<Button variant="bare" color="red" aria-label="Discard row edits" onClick={discard}>
+							<Icon icon={<X />} />
+						</Button>
+					</Flex>
 				) : (
 					<Flex gap="sm">
 						<Button
@@ -251,7 +262,36 @@ export function EditableExample() {
 					rows: editing,
 					onRowsChange: setEditing,
 					trigger: 'doubleClick',
-					onValueChange: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
+export function CellScopeExample() {
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	// `scope: 'cell'` narrows the grid-owned session to the cell the user entered:
+	// one editor at a time, the cell committing as the session moves on. The
+	// columns are the ones the row-scoped example shows, over the same batch sink,
+	// so only the reach of a session changes.
+	return (
+		<>
+			<EditHelp label="Editing help">
+				Double-click a cell (or press Enter on the cursor's cell) to edit that cell alone. The check
+				and cross beside the editor settle it either way, and Tab reaches them. Enter also saves a
+				text or number cell, and Escape discards from anywhere in the grid. Role and Active keep
+				Enter for their own listbox menus, so the check is their save.
+			</EditHelp>
+			<Grid
+				columns={personColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				editable={{
+					trigger: 'doubleClick',
+					scope: 'cell',
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
 		</>
@@ -342,7 +382,7 @@ export function EditorTypesExample() {
 				editable={{
 					rows: editing,
 					// Required sink; inert here because no row leaves the editable set.
-					onValueChange: () => {},
+					onCommit: () => {},
 				}}
 			/>
 		</>
@@ -484,10 +524,12 @@ export function BulkEditExample() {
 							</Stack>
 						</DialogBody>
 						<DialogFooter>
-							<Button variant="plain" onClick={() => setEditOpen(false)}>
+							<Button type="button" variant="plain" onClick={() => setEditOpen(false)}>
 								Cancel
 							</Button>
-							<SubmitButton color="blue">Apply</SubmitButton>
+							<Button type="submit" color="blue">
+								Apply
+							</Button>
 						</DialogFooter>
 					</DialogContent>
 				</Form>
