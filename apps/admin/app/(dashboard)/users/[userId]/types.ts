@@ -4,9 +4,7 @@
  *
  * @remarks
  * The field names are the wire's own, so `page.tsx` casts the parsed JSON to
- * this type and maps nothing. The shape lives here rather than in `ui` because
- * no `ui` component reads it: the chat module draws messages, and the
- * conversation record belongs to the gateway — like `User` in `auth/user`.
+ * this type and maps nothing.
  */
 export type Chat = {
 	id: string

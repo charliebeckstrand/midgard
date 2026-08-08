@@ -10,7 +10,7 @@ import { useChatScroll } from './use-chat-scroll'
 export type ChatTranscriptProps = {
 	/** The transcript, oldest first. */
 	messages: ChatContent[]
-	/** Whether a reply is currently streaming; pulses the latest agent bubble. */
+	/** Whether a reply is currently streaming; marks the latest assistant bubble. */
 	streaming?: boolean
 	className?: string
 }

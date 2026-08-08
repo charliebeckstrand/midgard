@@ -60,7 +60,7 @@ export type UseChatSendOptions = {
 export type UseChatSend = {
 	/** The live message list (optimistic user message + streamed assistant reply). */
 	messages: ChatContent[]
-	/** True while a reply is in flight; feeds `ChatPrompt` and `ChatTranscript`, which spell it the same way. */
+	/** True while a reply is in flight. */
 	streaming: boolean
 	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
 	send: (content: string) => Promise<void>

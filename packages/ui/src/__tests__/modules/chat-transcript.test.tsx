@@ -46,8 +46,10 @@ describe('ChatTranscript', () => {
 	it('pulses only the last assistant bubble while streaming', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} streaming />)
 
-		const pulsing = allBySlot(container, 'markdown').filter((el) =>
-			el.classList.contains('motion-safe:animate-pulse'),
+		// The bubble carries the streaming look and projects the pulse onto its
+		// Markdown child, so the marked element is the bubble.
+		const pulsing = allBySlot(container, 'chat-message-bubble').filter((el) =>
+			el.classList.contains('[&>[data-slot=markdown]]:motion-safe:animate-pulse'),
 		)
 
 		expect(pulsing).toHaveLength(1)

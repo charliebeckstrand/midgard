@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
 import { bySlot, renderUI, screen } from '../helpers'
 
-// The rendered pulse class, motion-safe gated per the package's animation
-// policy (WCAG 2.3.3). Spelled out rather than imported from the kata, so the
-// assertion states the class the reader gets.
-const PULSE = 'motion-safe:animate-pulse'
+// The streaming look the bubble projects onto its Markdown child, and the
+// standing dim that replaces the pulse under `prefers-reduced-motion`.
+const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-pulse'
+const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-50'
 
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
@@ -25,9 +25,11 @@ describe('ChatMessage', () => {
 
 		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'markdown')).not.toHaveClass(PULSE)
-
-		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass('cursor-progress')
+		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass(
+			'cursor-progress',
+			PULSE,
+			PULSE_REDUCED,
+		)
 	})
 
 	it('reflects the role prop on data-role', () => {
@@ -48,19 +50,16 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('pulses the content and shows the progress cursor while streaming', () => {
+	it('carries the whole streaming look on the bubble: cursor, pulse, reduced-motion dim', () => {
 		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
 
-		const markdown = bySlot(container, 'markdown')
+		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(
+			'cursor-progress',
+			PULSE,
+			PULSE_REDUCED,
+		)
 
-		// The pulse is motion-safe gated, so a reduced-motion reader keeps the
-		// cursor as the signal. The cursor rides the bubble, not the whole
-		// message, so an actions-rail control keeps its own.
-		expect(markdown).toHaveClass(PULSE)
-
-		expect(markdown).toHaveTextContent('content')
-
-		expect(bySlot(container, 'chat-message-bubble')).toHaveClass('cursor-progress')
+		expect(bySlot(container, 'markdown')).toHaveTextContent('content')
 	})
 
 	it('renders the actions slot when provided', () => {
@@ -86,7 +85,7 @@ describe('ChatMessage', () => {
 	it('renders streaming content as Markdown, pulsing while it arrives', () => {
 		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
 
-		expect(bySlot(container, 'markdown')).toHaveClass(PULSE)
+		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(PULSE)
 
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})

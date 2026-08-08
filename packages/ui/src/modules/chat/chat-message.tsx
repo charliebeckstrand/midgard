@@ -1,11 +1,7 @@
 import { memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
-import {
-	type ChatMessageVariants,
-	k,
-	pulse as pulseAnimation,
-} from '../../recipes/kata/chat-message'
+import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 
 /** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
@@ -26,10 +22,6 @@ export type ChatMessageProps = ChatMessageVariants & {
  * `timestamp`, `actions` rail, and a `streaming` pulse over its content.
  *
  * @remarks
- * `role` is the module's one speaker axis: {@link ChatContent} spells it the
- * same way, so a transcript passes the message's own `role` through and maps
- * nothing.
- *
  * Side and color alone convey the speaker visually, so a visually hidden author
  * label ("You said", "Assistant said", or "System") announces it to assistive
  * tech.
@@ -38,9 +30,9 @@ export type ChatMessageProps = ChatMessageVariants & {
  * syntax-highlighted code fences). {@link Markdown} sets no color of its own,
  * so the prose inherits the bubble's foreground for free — white on the user
  * bubble's blue fill, the default tone on the assistant bubble, muted on the
- * system bubble — in both light and dark mode. While `streaming`, the content
- * pulses and the bubble takes the progress cursor, settling to a steady bubble
- * the moment streaming ends. The kata holds why each one is shaped as it is.
+ * system bubble — in both light and dark mode. While `streaming`, the bubble
+ * takes the progress cursor and projects a pulse onto that prose, settling to a
+ * steady bubble the moment streaming ends. The kata holds the whole look.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering — and re-lexing their Markdown — while only the streaming
@@ -68,7 +60,7 @@ export const ChatMessage = memo(function ChatMessage({
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				<Markdown className={cn(streaming && pulseAnimation)}>{children}</Markdown>
+				<Markdown>{children}</Markdown>
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>
