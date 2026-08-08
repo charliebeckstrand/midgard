@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest'
-import { cn, cnMemoNodes } from '../../core/cn'
 import { defineSlots } from '../../core/recipe'
 
 describe('defineSlots', () => {
@@ -32,15 +31,17 @@ describe('defineSlots', () => {
 		expect(defineSlots({ cell: ['px-3 py-2', 'px-6'] })).toEqual({ cell: 'py-2 px-6' })
 	})
 
-	it('yields slots cn can memoise, which an array leaf would not', () => {
-		const k = defineSlots({ th: ['font-semibold', 'border-b'] })
+	it('leaves every slot in the shape cn can memoise', () => {
+		const k = defineSlots({ th: ['font-semibold', 'border-b'], heading: { 1: ['text-xl'] } })
 
-		// A cold keyable call records one memo node per argument; an array fails
-		// `keyable` and returns from the plain merge without recording anything.
-		const before = cnMemoNodes()
+		// `cn` keys its memo on string arguments only, so the collapse is what lets
+		// a per-element call hit it; an array argument fails `keyable` and takes the
+		// plain merge every time (`core/cn.ts`). Asserted as the shape rather than
+		// as a rise in `cnMemoNodes()`: the memo is module-level and shared across
+		// files, and `core/cn.test.ts` deliberately drives it past `MEMO_CAP`, after
+		// which no call records a node.
+		expect(typeof k.th).toBe('string')
 
-		cn(k.th)
-
-		expect(cnMemoNodes()).toBeGreaterThan(before)
+		expect(typeof k.heading[1]).toBe('string')
 	})
 })
