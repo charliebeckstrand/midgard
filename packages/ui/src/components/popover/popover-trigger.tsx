@@ -12,6 +12,7 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
+import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { k } from '../../recipes/kata/popover'
 import { usePopoverContext } from './context'
 
@@ -19,16 +20,6 @@ import { usePopoverContext } from './context'
 export type PopoverTriggerProps = {
 	children: ReactNode
 	className?: string
-}
-
-/**
- * Writes a node into a callback or object ref, tolerating either form.
- *
- * @internal
- */
-function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
-	if (typeof ref === 'function') ref(node)
-	else if (ref != null) (ref as { current: T | null }).current = node
 }
 
 /**
@@ -51,24 +42,7 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	// reference; both receive the node.
 	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
-	// React 19 skips the null call on unmount when the ref callback returns a
-	// cleanup. `setReference(null)` during deletion effects fires a state
-	// update that can cascade into a "Maximum update depth" error while
-	// ancestor state is in flux.
-	const mergeRefs = useCallback(
-		(node: HTMLElement | null) => {
-			triggerRef.current = node as HTMLButtonElement | null
-
-			setReference(node)
-			assignRef(childRef, node)
-
-			return () => {
-				triggerRef.current = null
-				assignRef(childRef, null)
-			}
-		},
-		[triggerRef, setReference, childRef],
-	)
+	const mergeRefs = useFloatingReference<HTMLElement>(setReference, triggerRef, childRef)
 
 	const shouldIgnore = useCallback((event: SyntheticEvent<HTMLElement>): boolean => {
 		return event.target instanceof Element && event.target.closest('[data-popover-ignore]') !== null

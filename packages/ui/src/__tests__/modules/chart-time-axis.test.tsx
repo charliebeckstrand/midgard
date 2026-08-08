@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LineChart } from '../../modules/chart/line-chart'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI } from '../helpers'
 
 /** A quarter of daily rows keyed by ISO date, `2026-01-01` onward. */
@@ -20,6 +21,23 @@ function line(type?: 'category' | 'time') {
 			width={600}
 			axes={type ? { x: { type } } : true}
 		/>,
+	)
+}
+
+/** The same chart over a single June date, under an explicit ambient locale. */
+function localized(locale: string) {
+	return renderUI(
+		<LocaleProvider locale={locale}>
+			<LineChart
+				aria-label="Visits by day"
+				data={[
+					{ day: '2026-06-10', visits: 100 },
+					{ day: '2026-06-11', visits: 120 },
+				]}
+				series={[{ xKey: 'day', yKey: 'visits', yName: 'Visits' }]}
+				width={600}
+			/>
+		</LocaleProvider>,
 	)
 }
 
@@ -55,5 +73,22 @@ describe('chart time axis', () => {
 		expect(category).toContain('01/01')
 
 		expect(category).not.toContain('2026-01-01')
+	})
+
+	it('takes the field order from <LocaleProvider>, not the runtime locale', () => {
+		// The 10th of June: the one date whose two numeric orders read differently,
+		// so the assertion cannot pass on the runtime locale by accident. `LANG` is
+		// pinned to `en-US` by the test scripts, which is the day-second order.
+		const gb = bySlot(localized('en-GB').container, 'chart-axis-x')?.textContent ?? ''
+
+		const us = bySlot(localized('en-US').container, 'chart-axis-x')?.textContent ?? ''
+
+		expect(gb).toContain('10/06')
+
+		expect(gb).not.toContain('06/10')
+
+		expect(us).toContain('06/10')
+
+		expect(us).not.toContain('10/06')
 	})
 })

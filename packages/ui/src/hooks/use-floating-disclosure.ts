@@ -59,7 +59,7 @@ type FloatingDisclosureResult = {
 	open: boolean
 	setOpen: (open: boolean) => void
 	close: () => void
-	triggerRef: RefObject<HTMLButtonElement | null>
+	triggerRef: RefObject<HTMLElement | null>
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
@@ -113,7 +113,7 @@ export function useFloatingDisclosure({
 
 	const close = useCallback(() => setOpen(false), [setOpen])
 
-	const triggerRef = useRef<HTMLButtonElement>(null)
+	const triggerRef = useRef<HTMLElement | null>(null)
 
 	const { refs, floatingStyles, context } = useFloatingPanel({
 		...panelOptions,

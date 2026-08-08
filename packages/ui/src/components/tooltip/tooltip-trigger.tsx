@@ -8,9 +8,9 @@ import {
 	type ReactNode,
 	type Ref,
 	type RefAttributes,
-	useCallback,
 } from 'react'
 import { cn } from '../../core'
+import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
@@ -22,16 +22,6 @@ export type TooltipTriggerProps = {
 	 * a `<div>`.
 	 */
 	children: ReactNode
-}
-
-/**
- * Writes a node into a callback or object ref, tolerating either form.
- *
- * @internal
- */
-function assignRef<T>(ref: Ref<T> | undefined, node: T | null) {
-	if (typeof ref === 'function') ref(node)
-	else if (ref != null) (ref as { current: T | null }).current = node
 }
 
 /**
@@ -65,23 +55,9 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 
 	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
-	// React 19 skips the null call on unmount when the ref callback returns a
-	// cleanup. `setReference(null)` during deletion effects fires a state
-	// update that can cascade into a "Maximum update depth" error while
-	// ancestor state is in flux. The shared `useComposedRef` (floating-ui's
-	// `useMergeRefs`) still calls a cleanup-less ref like `setReference` with
-	// `null` on unmount, so folding this onto it would reintroduce the cascade.
-	const mergeRefs = useCallback(
-		(node: HTMLElement | null) => {
-			setReference(node)
-			assignRef(childRef, node)
-
-			return () => {
-				assignRef(childRef, null)
-			}
-		},
-		[setReference, childRef],
-	)
+	// No trigger ref of its own: the tooltip reads its reference through
+	// floating-ui alone.
+	const mergeRefs = useFloatingReference<HTMLElement>(setReference, undefined, childRef)
 
 	const triggerClassName = cn(k.trigger, enabled && k.cursor)
 

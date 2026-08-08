@@ -10,7 +10,7 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
-import { useComposedRef } from '../../hooks'
+import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useMenuActions, useMenuState } from './context'
 import { useMenuPointer } from './use-menu-pointer'
 
@@ -42,10 +42,10 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// target) rather than have it clobbered — matching `TooltipTrigger`/
 	// `PopoverTrigger`.
 	const childRef = isValidElement(children)
-		? ((children.props as { ref?: Ref<HTMLButtonElement> }).ref ?? undefined)
+		? ((children.props as { ref?: Ref<HTMLElement> }).ref ?? undefined)
 		: undefined
 
-	const mergeRefs = useComposedRef<HTMLButtonElement>(triggerRef, setReference, childRef)
+	const mergeRefs = useFloatingReference<HTMLElement>(setReference, triggerRef, childRef)
 
 	// The menu opens once per discrete activation-key press on the trigger. The
 	// trigger keeps native timing — Enter fires the button's click on keydown,

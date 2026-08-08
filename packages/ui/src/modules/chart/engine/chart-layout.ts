@@ -382,6 +382,12 @@ export type CartesianLayoutInput = {
 	 * the band axis is a time axis; `undefined` leaves it categorical.
 	 */
 	times?: (number | null)[]
+	/**
+	 * BCP 47 tag for the time axis's calendar ticks: it sets both their label
+	 * format and the first weekday a week tick floors to. `undefined` falls back
+	 * to the runtime locale.
+	 */
+	locale?: string
 	count: number
 	/** Visible series' values with their axis binding, series-major — the per-category snap points. */
 	visibleValues: VisibleValues[]
@@ -644,6 +650,7 @@ function bandAxisTicks(
 			band,
 			tickTarget: input.tickTarget,
 			axisLength,
+			locale: input.locale,
 		})
 
 		if (ticks) return ticks

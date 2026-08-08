@@ -14,7 +14,8 @@ import {
 	useState,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { useComposedRef, useFloatingUI, useScrollOverflow } from '../../hooks'
+import { useFloatingUI, useScrollOverflow } from '../../hooks'
+import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
@@ -192,7 +193,14 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 		openSubmenu(subKey)
 	}, [open, enterSubmenu, openSubmenu, subKey])
 
-	const setTrigger = useComposedRef<HTMLButtonElement>(triggerRef, refs.setReference)
+	// Its own `<button>`, so no cloned child's ref joins here. A submenu unmounts
+	// inside its parent menu's deletion, which is exactly where nulling the
+	// reference can cascade, so it takes the guarded composition too.
+	const setTrigger = useFloatingReference<HTMLButtonElement>(
+		refs.setReference,
+		triggerRef,
+		undefined,
+	)
 
 	// The positioned wrapper doubles as the panel's rect for the level's travel
 	// triangle; it shrink-wraps the panel (see the `relative` note below), so the

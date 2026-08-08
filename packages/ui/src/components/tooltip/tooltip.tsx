@@ -21,6 +21,8 @@ export type TooltipProps = {
 	 * Keep the content open while the pointer travels into it (safe-polygon),
 	 * letting users interact with its contents.
 	 * @defaultValue false
+	 * @remarks The travel must read as deliberate: a pointer that crosses slower
+	 * than 0.1 px/ms reads as a drift and closes the content anyway.
 	 */
 	interactive?: boolean
 	/**
