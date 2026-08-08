@@ -6,7 +6,7 @@ import { ActiveIndicator } from '../../primitives/active-indicator'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/chat-list-item'
-import { useChatList } from './context'
+import { useInChatList } from './context'
 
 /** Props for {@link ChatListItem}. */
 export type ChatListItemProps = {
@@ -54,7 +54,7 @@ export function ChatListItem({
 	className,
 }: ChatListItemProps) {
 	// Inside a ChatList the row is a list item; standalone it is a plain row.
-	const inList = useChatList()
+	const inList = useInChatList()
 
 	const Wrapper = inList ? 'li' : 'div'
 

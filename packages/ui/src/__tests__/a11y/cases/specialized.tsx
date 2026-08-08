@@ -17,7 +17,7 @@ const pdfPages: PdfViewerPage[] = [
 export const specializedCases: readonly Case[] = [
 	[
 		'chat message',
-		<ChatMessage key="cm" type="assistant" timestamp="11:10 AM">
+		<ChatMessage key="cm" role="assistant" timestamp="11:10 AM">
 			How can I help you today?
 		</ChatMessage>,
 	],

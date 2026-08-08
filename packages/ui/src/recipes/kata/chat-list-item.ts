@@ -27,8 +27,7 @@ export const k = defineRecipe({
 		'has-[[data-slot=chat-list-item-select]:focus-visible]:ring-2 has-[[data-slot=chat-list-item-select]:focus-visible]:ring-blue-600',
 	],
 	slots: {
-		// The selectable region (title, preview, and — when shown — timestamp,
-		// stacked in that order); the component renders it as a `<button>` when
+		// The selectable region (title over preview); the component renders it as a `<button>` when
 		// `onSelect` is set, a plain `<span>` otherwise. `actions` sit beside it
 		// so a focusable control never nests inside the select button. Its ring is
 		// suppressed — the row draws it. The pointer cursor is restated here: a
@@ -47,10 +46,6 @@ export const k = defineRecipe({
 		overlay: ['after:absolute after:inset-0'],
 		title: ['truncate', 'font-medium', size.md, ...mode('text-zinc-950', 'dark:text-white')],
 		preview: ['truncate', size.sm, ...text.muted],
-		// Spacing for the timestamp Badge under the preview — the Badge owns its
-		// own type, color, and padding. Shown per `timestamp`'s `show`; nested
-		// inside `select`, so it already sits above the active indicator.
-		timestamp: ['mt-1'],
 		// `relative z-10` lifts the action controls above the active indicator and the
 		// select overlay so they stay clickable.
 		actions: ['shrink-0', flex.row, 'gap-0.5', 'relative z-10'],

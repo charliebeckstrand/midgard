@@ -12,16 +12,16 @@ import {
 	truncateToLastUserMessage,
 	userMessage,
 } from './engine/chat-transcript'
-import type { ChatContent } from './types'
+import type { ChatContent } from './engine/types'
 
 /**
- * Produces an agent reply for a sent message as a stream of cumulative snapshots.
+ * Produces an assistant reply for a sent message as a stream of cumulative snapshots.
  *
  * @remarks
- * Each yielded string is the *full* reply so far (not a delta), so the agent
- * bubble is replaced — not appended — on every chunk; this mirrors SSE
+ * Each yielded string is the *full* reply so far (not a delta), so the
+ * assistant bubble is replaced — not appended — on every chunk; this mirrors SSE
  * transports that emit the running text. Yield once for a non-streaming reply.
- * Throwing (or rejecting) rolls back the empty agent placeholder and triggers
+ * Throwing (or rejecting) rolls back the empty assistant placeholder and triggers
  * {@link UseChatSendOptions.onError}. `signal` aborts when {@link UseChatSend.stop}
  * is called; forward it to the underlying request (e.g. `fetch(url, { signal })`)
  * so the transport stops producing, not just the hook consuming — a transport
@@ -40,9 +40,17 @@ export type ChatTransport = (
 export type UseChatSendOptions = {
 	/** Seed messages; each is assigned a client id. */
 	initialMessages?: ChatContent[]
-	/** Streams the agent reply for a sent message. See {@link ChatTransport}. */
+	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
 	transport: ChatTransport
-	/** Called with the trimmed content once a send completes without error. */
+	/**
+	 * Called with the trimmed content once a send completes without error.
+	 *
+	 * @remarks
+	 * This reports the completed send, not the submit gesture. The gesture is
+	 * `useChatDraft`'s `onSubmit`, which fires when the composer submits; this
+	 * fires after the transport's last snapshot lands. A stop or a transport
+	 * failure skips it.
+	 */
 	onSent?: (content: string) => void
 	/** Called when the transport throws or the stream fails. */
 	onError?: (error: unknown) => void
@@ -50,15 +58,15 @@ export type UseChatSendOptions = {
 
 /** Return shape of {@link useChatSend}. */
 export type UseChatSend = {
-	/** The live message list (optimistic user message + streamed agent reply). */
+	/** The live message list (optimistic user message + streamed assistant reply). */
 	messages: ChatContent[]
 	/** True while a reply is in flight. */
-	sending: boolean
+	streaming: boolean
 	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
 	send: (content: string) => Promise<void>
 	/**
 	 * Regenerates the reply to the last user message: drops it and anything
-	 * after it (an existing agent reply, or nothing if the prior send errored),
+	 * after it (an existing assistant reply, or nothing if the prior send errored),
 	 * then streams a fresh one for the same content. No-ops with no user
 	 * message in the transcript, or while a send is already in flight.
 	 */
@@ -73,7 +81,7 @@ export type UseChatSend = {
 	/**
 	 * Aborts the in-flight send, retry, or edit, via the {@link ChatTransport}'s
 	 * `signal`. No-ops when nothing is in flight. Whatever snapshot already
-	 * landed in the agent bubble stays; `onError` and `onSent` do not fire.
+	 * landed in the assistant bubble stays; `onError` and `onSent` do not fire.
 	 */
 	stop: () => void
 	/** Escape hatch for direct list edits (e.g. seeding history or clearing). */
@@ -81,10 +89,10 @@ export type UseChatSend = {
 }
 
 /**
- * Drives a chat's message list and streams agent replies through an injected transport.
+ * Drives a chat's message list and streams assistant replies through an injected transport.
  *
  * @remarks
- * `send` optimistically appends the user message, opens an empty agent bubble,
+ * `send` optimistically appends the user message, opens an empty assistant bubble,
  * then replaces that bubble's text with each snapshot the {@link ChatTransport}
  * yields. {@link UseChatSend.retry} and {@link UseChatSend.edit} share that same
  * streaming path — re-pointed at the last user message's content, or an edited
@@ -110,7 +118,7 @@ export function useChatSend({
 		(initialMessages ?? []).map((message) => ({ ...message, id: crypto.randomUUID() })),
 	)
 
-	const [sending, setSending] = useState(false)
+	const [streaming, setStreaming] = useState(false)
 
 	// The in-flight send's controller, so `stop` can reach it; null between sends.
 	const controllerRef = useRef<AbortController | null>(null)
@@ -119,7 +127,7 @@ export function useChatSend({
 	// committed via setMessages — the one path all three share.
 	const runTransport = useCallback(
 		async (text: string) => {
-			setSending(true)
+			setStreaming(true)
 
 			const controller = new AbortController()
 
@@ -153,7 +161,7 @@ export function useChatSend({
 			} finally {
 				controllerRef.current = null
 
-				setSending(false)
+				setStreaming(false)
 			}
 		},
 		[transport, onSent, onError],
@@ -165,7 +173,7 @@ export function useChatSend({
 
 	const send = useCallback(
 		async (content: string) => {
-			if (sending) return
+			if (streaming) return
 
 			const text = draftContent(content)
 
@@ -178,11 +186,11 @@ export function useChatSend({
 
 			await runTransport(text)
 		},
-		[sending, runTransport],
+		[streaming, runTransport],
 	)
 
 	const retry = useCallback(async () => {
-		if (sending) return
+		if (streaming) return
 
 		const lastUser = lastUserMessage(messages)
 
@@ -191,11 +199,11 @@ export function useChatSend({
 		setMessages((prev) => truncateToLastUserMessage(prev))
 
 		await runTransport(lastUser.content)
-	}, [sending, messages, runTransport])
+	}, [streaming, messages, runTransport])
 
 	const edit = useCallback(
 		async (id: string, content: string) => {
-			if (sending) return
+			if (streaming) return
 
 			const text = draftContent(content)
 
@@ -207,8 +215,8 @@ export function useChatSend({
 
 			await runTransport(text)
 		},
-		[sending, messages, runTransport],
+		[streaming, messages, runTransport],
 	)
 
-	return { messages, sending, send, retry, edit, stop, setMessages }
+	return { messages, streaming, send, retry, edit, stop, setMessages }
 }

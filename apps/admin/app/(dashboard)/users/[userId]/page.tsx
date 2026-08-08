@@ -1,7 +1,7 @@
 import { bifrost } from 'auth'
 import type { User } from 'auth/user'
-import type { Chat } from 'ui/modules/chat'
 import { UserDetailsClient } from './client'
+import type { Chat } from './types'
 
 /**
  * Fetches a user's record and their chats from the gateway in parallel.

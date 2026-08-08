@@ -22,7 +22,7 @@ describe('useChatSend', () => {
 		expect(result.current.messages[0]?.id).toBeTypeOf('string')
 	})
 
-	it('appends the user message and streams the agent reply, keeping the last snapshot', async () => {
+	it('appends the user message and streams the assistant reply, keeping the last snapshot', async () => {
 		const onSent = vi.fn()
 
 		const { result } = renderHook(() =>
@@ -37,9 +37,9 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'hi' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'Hello' })
+		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'Hello' })
 
-		expect(result.current.sending).toBe(false)
+		expect(result.current.streaming).toBe(false)
 
 		expect(onSent).toHaveBeenCalledWith('hi')
 	})
@@ -58,7 +58,7 @@ describe('useChatSend', () => {
 		expect(result.current.messages).toHaveLength(0)
 	})
 
-	it('rolls back the empty agent placeholder and keeps the user message on failure', async () => {
+	it('rolls back the empty assistant placeholder and keeps the user message on failure', async () => {
 		const onError = vi.fn()
 
 		const transport: ChatTransport = () =>
@@ -79,7 +79,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'hi' })
 
-		expect(result.current.sending).toBe(false)
+		expect(result.current.streaming).toBe(false)
 	})
 
 	it('retry regenerates the reply to the last user message, dropping the previous reply', async () => {
@@ -106,10 +106,10 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'hi' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'second reply' })
+		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'second reply' })
 	})
 
-	it('retry resends after a failed send, with no prior agent reply to drop', async () => {
+	it('retry resends after a failed send, with no prior assistant reply to drop', async () => {
 		let call = 0
 
 		const transport: ChatTransport = (content, signal) => {
@@ -139,7 +139,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages).toHaveLength(2)
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'recovered' })
+		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'recovered' })
 	})
 
 	it('retry no-ops with no user message in the transcript', async () => {
@@ -180,7 +180,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages[0]).toMatchObject({ role: 'user', content: 'edited message' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'second reply' })
+		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'second reply' })
 	})
 
 	it('edit no-ops for an unknown id, a non-user message, or empty content', async () => {
@@ -191,21 +191,21 @@ describe('useChatSend', () => {
 				transport,
 				initialMessages: [
 					{ role: 'user', content: 'hi' },
-					{ role: 'agent', content: 'hello' },
+					{ role: 'assistant', content: 'hello' },
 				],
 			}),
 		)
 
 		const userId = result.current.messages[0]?.id as string
 
-		const agentId = result.current.messages[1]?.id as string
+		const assistantId = result.current.messages[1]?.id as string
 
 		await act(async () => {
 			await result.current.edit('unknown-id', 'x')
 		})
 
 		await act(async () => {
-			await result.current.edit(agentId, 'x')
+			await result.current.edit(assistantId, 'x')
 		})
 
 		await act(async () => {
@@ -244,7 +244,7 @@ describe('useChatSend', () => {
 			firstSend = result.current.send('hi')
 		})
 
-		expect(result.current.sending).toBe(true)
+		expect(result.current.streaming).toBe(true)
 
 		const userId = result.current.messages[0]?.id as string
 
@@ -276,7 +276,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
 
-		expect(result.current.messages[1]).toMatchObject({ role: 'agent', content: 'reply' })
+		expect(result.current.messages[1]).toMatchObject({ role: 'assistant', content: 'reply' })
 	})
 
 	it('stop aborts the in-flight send, keeping the last snapshot and skipping onError/onSent', async () => {
@@ -328,7 +328,7 @@ describe('useChatSend', () => {
 		// stays at the last snapshot applied before the abort.
 		expect(result.current.messages[1]).toMatchObject({ content: 'first' })
 
-		expect(result.current.sending).toBe(false)
+		expect(result.current.streaming).toBe(false)
 
 		expect(onError).not.toHaveBeenCalled()
 
@@ -340,7 +340,7 @@ describe('useChatSend', () => {
 
 		expect(() => result.current.stop()).not.toThrow()
 
-		expect(result.current.sending).toBe(false)
+		expect(result.current.streaming).toBe(false)
 	})
 
 	it('a send after a stopped send still completes normally', async () => {
@@ -372,7 +372,7 @@ describe('useChatSend', () => {
 			firstSend = result.current.send('hi')
 		})
 
-		await waitFor(() => expect(result.current.sending).toBe(true))
+		await waitFor(() => expect(result.current.streaming).toBe(true))
 
 		act(() => {
 			result.current.stop()
@@ -388,8 +388,11 @@ describe('useChatSend', () => {
 			await result.current.send('again')
 		})
 
-		expect(result.current.messages.at(-1)).toMatchObject({ role: 'agent', content: 'second reply' })
+		expect(result.current.messages.at(-1)).toMatchObject({
+			role: 'assistant',
+			content: 'second reply',
+		})
 
-		expect(result.current.sending).toBe(false)
+		expect(result.current.streaming).toBe(false)
 	})
 })

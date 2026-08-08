@@ -7,7 +7,7 @@ import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 export type ChatMessageProps = ChatMessageVariants & {
 	/** Wall-clock label shown below the bubble. */
 	timestamp?: ReactNode
-	/** Pulses the bubble content while a response streams in. */
+	/** Pulses the bubble content and shows the progress cursor, while a response streams in. */
 	streaming?: boolean
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode
@@ -17,7 +17,7 @@ export type ChatMessageProps = ChatMessageVariants & {
 }
 
 /**
- * Conversational message bubble sided and colored by `type` (`user`,
+ * Conversational message bubble sided and colored by `role` (`user`,
  * `assistant`, or `system`; defaults to `assistant`), with an optional
  * `timestamp`, `actions` rail, and a `streaming` pulse over its content.
  *
@@ -30,16 +30,16 @@ export type ChatMessageProps = ChatMessageVariants & {
  * syntax-highlighted code fences). {@link Markdown} sets no color of its own,
  * so the prose inherits the bubble's foreground for free — white on the user
  * bubble's blue fill, the default tone on the assistant bubble, muted on the
- * system bubble — in both light and dark mode. While `streaming`, the content
- * pulses (`animate-pulse`) to signal the response is still arriving, settling
- * to a steady bubble the moment streaming ends.
+ * system bubble — in both light and dark mode. While `streaming`, the bubble
+ * takes the progress cursor and projects a pulse onto that prose, settling to a
+ * steady bubble the moment streaming ends. The kata holds the whole look.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering — and re-lexing their Markdown — while only the streaming
  * bubble's `children` actually changes from chunk to chunk.
  */
 export const ChatMessage = memo(function ChatMessage({
-	type,
+	role,
 	timestamp,
 	streaming,
 	actions,
@@ -49,18 +49,18 @@ export const ChatMessage = memo(function ChatMessage({
 	// Bubble side/color alone convey the speaker visually; a visually hidden
 	// author label names it for assistive technology. System messages are status
 	// lines, not an utterance; they get a plain "System" attribution.
-	const resolvedType = type ?? 'assistant'
+	const resolvedRole = role ?? 'assistant'
 
 	const author =
-		resolvedType === 'user' ? 'You said' : resolvedType === 'system' ? 'System' : 'Assistant said'
+		resolvedRole === 'user' ? 'You said' : resolvedRole === 'system' ? 'System' : 'Assistant said'
 
 	return (
-		<div data-slot="chat-message" data-type={resolvedType} className={cn(k({ type }), className)}>
-			<div data-slot="chat-message-bubble" className={cn(k.bubble({ type }))}>
+		<div data-slot="chat-message" data-role={resolvedRole} className={cn(k({ role }), className)}>
+			<div data-slot="chat-message-bubble" className={cn(k.bubble({ role, streaming }))}>
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				<Markdown className={streaming ? 'animate-pulse' : ''}>{children}</Markdown>
+				<Markdown>{children}</Markdown>
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>

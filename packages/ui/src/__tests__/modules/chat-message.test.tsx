@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest'
 import { ChatMessage } from '../../modules/chat'
 import { bySlot, renderUI, screen } from '../helpers'
 
+// The streaming look the bubble projects onto its Markdown child, and the
+// standing dim that replaces the pulse under `prefers-reduced-motion`.
+const PULSE = '[&>[data-slot=markdown]]:motion-safe:animate-pulse'
+const PULSE_REDUCED = '[&>[data-slot=markdown]]:motion-reduce:opacity-50'
+
 describe('ChatMessage', () => {
 	it('renders children inside the bubble slot', () => {
 		const { container } = renderUI(<ChatMessage>Hello</ChatMessage>)
@@ -11,24 +16,28 @@ describe('ChatMessage', () => {
 		expect(bySlot(container, 'chat-message-bubble')).toBeInTheDocument()
 	})
 
-	it('defaults to an assistant message with no timestamp and no streaming pulse', () => {
+	it('defaults to a settled assistant message: no timestamp, no pulse, no progress cursor', () => {
 		const { container } = renderUI(<ChatMessage>content</ChatMessage>)
 
 		const el = bySlot(container, 'chat-message')
 
-		expect(el).toHaveAttribute('data-type', 'assistant')
+		expect(el).toHaveAttribute('data-role', 'assistant')
 
 		expect(bySlot(container, 'chat-message-timestamp')).not.toBeInTheDocument()
 
-		expect(bySlot(container, 'markdown')).not.toHaveClass('animate-pulse')
+		expect(bySlot(container, 'chat-message-bubble')).not.toHaveClass(
+			'cursor-progress',
+			PULSE,
+			PULSE_REDUCED,
+		)
 	})
 
-	it('reflects the type prop on data-type', () => {
-		const { container } = renderUI(<ChatMessage type="user">content</ChatMessage>)
+	it('reflects the role prop on data-role', () => {
+		const { container } = renderUI(<ChatMessage role="user">content</ChatMessage>)
 
 		const el = bySlot(container, 'chat-message')
 
-		expect(el).toHaveAttribute('data-type', 'user')
+		expect(el).toHaveAttribute('data-role', 'user')
 	})
 
 	it('renders the timestamp slot when provided', () => {
@@ -41,14 +50,16 @@ describe('ChatMessage', () => {
 		expect(timestamp).toHaveTextContent('11:12 AM')
 	})
 
-	it('pulses the bubble content while streaming', () => {
+	it('carries the whole streaming look on the bubble: cursor, pulse, reduced-motion dim', () => {
 		const { container } = renderUI(<ChatMessage streaming>content</ChatMessage>)
 
-		const markdown = bySlot(container, 'markdown')
+		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(
+			'cursor-progress',
+			PULSE,
+			PULSE_REDUCED,
+		)
 
-		expect(markdown).toHaveClass('animate-pulse')
-
-		expect(markdown).toHaveTextContent('content')
+		expect(bySlot(container, 'markdown')).toHaveTextContent('content')
 	})
 
 	it('renders the actions slot when provided', () => {
@@ -74,7 +85,7 @@ describe('ChatMessage', () => {
 	it('renders streaming content as Markdown, pulsing while it arrives', () => {
 		const { container } = renderUI(<ChatMessage streaming>Some **bold** text</ChatMessage>)
 
-		expect(bySlot(container, 'markdown')).toHaveClass('animate-pulse')
+		expect(bySlot(container, 'chat-message-bubble')).toHaveClass(PULSE)
 
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
@@ -83,8 +94,8 @@ describe('ChatMessage', () => {
 		'user',
 		'assistant',
 		'system',
-	] as const)('injects no color override onto Markdown for the %s bubble — the prose inherits the bubble foreground', (type) => {
-		const { container } = renderUI(<ChatMessage type={type}>content</ChatMessage>)
+	] as const)('injects no color override onto Markdown for the %s bubble — the prose inherits the bubble foreground', (role) => {
+		const { container } = renderUI(<ChatMessage role={role}>content</ChatMessage>)
 
 		// Markdown is color-agnostic and the bubble sets its own foreground, so
 		// ChatMessage must not pour any `text-*` color (nor a per-element

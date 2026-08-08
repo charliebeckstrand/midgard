@@ -5,11 +5,11 @@ import { allBySlot, bySlot, present, renderUI, screen } from '../helpers'
 
 const messages: ChatContent[] = [
 	{ id: '1', role: 'user', content: 'Hi there' },
-	{ id: '2', role: 'agent', content: 'Hello!' },
+	{ id: '2', role: 'assistant', content: 'Hello!' },
 ]
 
 describe('ChatTranscript', () => {
-	it('renders each message, mapping agent role to an assistant bubble', () => {
+	it('renders each message, passing its role straight to the bubble', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} />)
 
 		expect(screen.getByText('Hi there')).toBeInTheDocument()
@@ -18,9 +18,9 @@ describe('ChatTranscript', () => {
 
 		const bubbles = allBySlot(container, 'chat-message')
 
-		expect(present(bubbles[0], 'user bubble')).toHaveAttribute('data-type', 'user')
+		expect(present(bubbles[0], 'user bubble')).toHaveAttribute('data-role', 'user')
 
-		expect(present(bubbles[1], 'assistant bubble')).toHaveAttribute('data-type', 'assistant')
+		expect(present(bubbles[1], 'assistant bubble')).toHaveAttribute('data-role', 'assistant')
 	})
 
 	it('renders nothing in the list when there are no messages', () => {
@@ -43,11 +43,13 @@ describe('ChatTranscript', () => {
 		expect(transcript.className).toContain('focus-visible:ring-blue-600')
 	})
 
-	it('pulses only the last agent bubble while streaming', () => {
+	it('pulses only the last assistant bubble while streaming', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} streaming />)
 
-		const pulsing = allBySlot(container, 'markdown').filter((el) =>
-			el.classList.contains('animate-pulse'),
+		// The bubble carries the streaming look and projects the pulse onto its
+		// Markdown child, so the marked element is the bubble.
+		const pulsing = allBySlot(container, 'chat-message-bubble').filter((el) =>
+			el.classList.contains('[&>[data-slot=markdown]]:motion-safe:animate-pulse'),
 		)
 
 		expect(pulsing).toHaveLength(1)

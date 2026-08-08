@@ -169,18 +169,18 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 
 | # | Finding | Evidence | Fix | Status |
 |---|---|---|---|---|
-| P1 | Speaker axis: `role: 'user'\|'agent'` (data) vs `type: 'user'\|'assistant'\|'system'` (component/recipe), hand-mapped (T6) | `modules/chat/types.ts:13`, `chat-message.tsx:7`, `chat-transcript.tsx:40` | `role` with `user\|assistant\|system` throughout | ◯ OPEN |
-| P2 | `Chat` is the package's only snake_case public type | `types.ts:4-6` | camelCase, or move the wire shape out of `ui` (§4.1) | ◯ OPEN |
-| P3 | `sending` (hook) vs `streaming` (every component it feeds) | `use-chat-send.ts:45` vs `chat-prompt.tsx:27` | Rename hook field `streaming` | ◯ OPEN |
+| P1 | Speaker axis: `role: 'user'\|'agent'` (data) vs `type: 'user'\|'assistant'\|'system'` (component/recipe), hand-mapped (T6) | `modules/chat/types.ts:13`, `chat-message.tsx:7`, `chat-transcript.tsx:40` | `role` with `user\|assistant\|system` throughout | ✅ RESOLVED (`role: user\|assistant\|system` across data, component, and recipe; the hand-map is gone) |
+| P2 | `Chat` is the package's only snake_case public type | `types.ts:4-6` | camelCase, or move the wire shape out of `ui` (§4.1) | ✅ RESOLVED (moved out of `ui`; the wire shape lives with the route that fetches it) |
+| P3 | `sending` (hook) vs `streaming` (every component it feeds) | `use-chat-send.ts:45` vs `chat-prompt.tsx:27` | Rename hook field `streaming` | ✅ RESOLVED (hook field renamed `streaming`) |
 | P4 | Provider `*Props`/config types unexported: Density, Locale (`LocaleConfig`), Toast (`ToastInput`, `ToastSeverity`, `ToastPosition`), UI (T9) | barrels at `density/index.ts`, `locale/index.ts:1-3`, `toast/index.ts:1-2`, `ui/index.ts` | Export all | ◯ OPEN |
 | P5 | Nested-provider semantics diverge: UIProvider per-binding, LocaleProvider full-replace, undocumented | `ui.tsx:39-46` vs `locale.tsx:23-27` | Fold ambient config in, or document | ◯ OPEN |
 | P6 | `@internal` hooks in the public barrel (T9) | `use-hover-across-scroll.ts:34-36`, `use-plot-frame.ts:204-206` vs `hooks/index.ts:36,46-53` | Unbarrel or de-internal | ◯ OPEN |
 | P7 | Hook option-type naming: three schemes, most unexported (T9) | `use-chat-draft.ts:6,14` vs `hooks/a11y/index.ts` vs `use-dismissable.ts:7` | One scheme; export options/results of every public hook | ◯ OPEN |
 | P8 | ChatPrompt controlled-only (T3) | `chat-prompt.tsx:15-17` | Add `defaultValue`, or document the contract | ◯ OPEN |
-| P9 | `onSubmit` vs `onSent` for one lifecycle (T4) | `use-chat-draft.ts:8` vs `use-chat-send.ts:35` | `onSubmit` = gesture; rename/document `onSent` | ◯ OPEN |
-| P10 | chat-list-item recipe ships a `timestamp` slot no prop feeds (§5.2) | `recipes/kata/chat-list-item.ts:50-53` vs `chat-list-item.tsx:12-24` | Delete or restore the prop | ◯ OPEN |
+| P9 | `onSubmit` vs `onSent` for one lifecycle (T4) | `use-chat-draft.ts:8` vs `use-chat-send.ts:35` | `onSubmit` = gesture; rename/document `onSent` | ✅ RESOLVED (`onSent` documented as the completed send, against `onSubmit` the gesture) |
+| P10 | chat-list-item recipe ships a `timestamp` slot no prop feeds (§5.2) | `recipes/kata/chat-list-item.ts:50-53` vs `chat-list-item.tsx:12-24` | Delete or restore the prop | ✅ RESOLVED (dead slot deleted) |
 | P11 | Density primitive doc names the wrong level labels | `primitives/density/density.tsx:25-26` | Fix the comment | ◯ OPEN |
-| P12 | `useChatList(): boolean` reads as a state accessor, returns a nesting flag | `modules/chat/context.ts:10` | `useInChatList`, or unbarrel | ◯ OPEN |
+| P12 | `useChatList(): boolean` reads as a state accessor, returns a nesting flag | `modules/chat/context.ts:10` | `useInChatList`, or unbarrel | ✅ RESOLVED (renamed `useInChatList`) |
 
 ## Verified consistent — recorded so the next audit doesn't relitigate
 

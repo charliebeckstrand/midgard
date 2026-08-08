@@ -51,6 +51,26 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": [
+				"**/src/modules/chat/**",
+				"**/src/docs/demos/modules/chat.tsx",
+				"**/src/__tests__/modules/chat-*",
+				"**/src/__tests__/a11y/cases/specialized.tsx"
+			],
+			"linter": {
+				"rules": {
+					"a11y": {
+						"useValidAriaRole": {
+							"level": "error",
+							"options": {
+								"allowInvalidRoles": ["user", "assistant", "system"]
+							}
+						}
+					}
+				}
+			}
 		}
 	],
 	"files": {

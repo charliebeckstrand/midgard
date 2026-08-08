@@ -31,13 +31,13 @@ export function appendUserMessage(
 }
 
 /**
- * The transcript with an empty agent bubble at its end. The bubble holds the
- * reply the transport is about to stream.
+ * The transcript with an empty assistant bubble at its end. The bubble holds
+ * the reply the transport is about to stream.
  *
  * @internal
  */
 export function openReply(messages: ChatContent[], id: string): ChatContent[] {
-	return [...messages, { id, role: 'agent', content: '' }]
+	return [...messages, { id, role: 'assistant', content: '' }]
 }
 
 /**
