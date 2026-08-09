@@ -134,7 +134,9 @@ The uniqueness half is settled too, and this file said otherwise for one commit 
 
 The rename landed before increment 4 rather than after, for the reason increment 2 landed second — a breaking name costs one commit now and every later increment writes it once. It carries no alias, as the speaker vocabulary did not.
 
-**Which live channel carries a reply in increment 6?** `role="log"` implies polite semantics over content as it is added, and [`core/announcer.ts`](../../core/announcer.ts) writes one whole string into a shared `aria-atomic` region. Two channels over one reply is a double read. No content model settles this.
+**Which live channel carries a reply in increment 6?** Settled: the announcer, alone. `role="log"` implies polite semantics over content as it is added, and [`core/announcer.ts`](../../core/announcer.ts) writes one whole string into a shared `aria-atomic` region, so two channels over one reply is the double read this question named. The transcript now takes `role="log"` with `aria-live="off"`, which keeps the role's structure — a reader finds the region and knows its entries arrive in order — and leaves one thing speaking.
+
+No content model settled it, and none had to: package practice did. `role="log"` appears nowhere else in `ui`, and every narration in the package goes through the announcer, grid's sort and selection among them. The announcement itself is a pure rule in [`chat-announcements.ts`](engine/chat-announcements.ts), so what a reader is told is unit-testable without a render, as the grid's already was.
 
 **Who fixes the receiving half?** The retraction is written, so the first backlog entry now names both blockers. Whether map and chart gain a multi-target selection is a decision for those modules, and the citation cannot land before they do.
 

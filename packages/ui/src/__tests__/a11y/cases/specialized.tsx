@@ -1,6 +1,11 @@
 import { Input } from '../../../components/input'
 import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
-import { ChatMessage, ChatPrompt } from '../../../modules/chat'
+import {
+	ChatMessage,
+	type ChatMessageData,
+	ChatPrompt,
+	ChatTranscript,
+} from '../../../modules/chat'
 import { HeadlessProvider } from '../../../providers/headless'
 import type { Case } from './types'
 
@@ -13,6 +18,25 @@ const pdfPages: PdfViewerPage[] = [
 	{ id: 'p2', src: 'page-2.png', label: 'Page 2' },
 ]
 
+const transcript: ChatMessageData[] = [
+	{ id: 'u1', role: 'user', content: 'How are late stops trending?' },
+	{ id: 'a1', role: 'assistant', content: 'Late stops rose from **4** to **14**.' },
+]
+
+// A reply naming a renderer nothing is registered under, so the stated fallback
+// draws. It is muted text on the assistant bubble's fill, which is a contrast
+// pair no other case covers.
+const unclaimedEmbed: ChatMessageData[] = [
+	{
+		id: 'a1',
+		role: 'assistant',
+		content: [
+			{ kind: 'text', id: 't1', text: 'Here are those stops on the map.' },
+			{ kind: 'embed', id: 'e1', name: 'stops-map', data: null },
+		],
+	},
+]
+
 /** Domain & specialized surfaces, plus the headless escape hatch. */
 export const specializedCases: readonly Case[] = [
 	[
@@ -20,6 +44,16 @@ export const specializedCases: readonly Case[] = [
 		<ChatMessage key="cm" role="assistant" timestamp="11:10 AM">
 			How can I help you today?
 		</ChatMessage>,
+	],
+	[
+		// The `log` region increment 6 gave the transcript, with its own aria-live
+		// off so the shared announcer stays the one channel.
+		'chat transcript',
+		<ChatTranscript key="ct" messages={transcript} />,
+	],
+	[
+		'chat transcript with an unclaimed embed',
+		<ChatTranscript key="cte" messages={unclaimedEmbed} />,
 	],
 	[
 		// Controlled prompt composer; the textarea is the labelled control.

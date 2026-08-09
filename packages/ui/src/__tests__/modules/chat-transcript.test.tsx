@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import type { ChatMessageData } from '../../modules/chat'
 import { ChatTranscript } from '../../modules/chat'
-import { allBySlot, bySlot, present, renderUI, screen } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	liveRegion,
+	present,
+	renderUI,
+	screen,
+} from '../helpers'
 
 const messages: ChatMessageData[] = [
 	{ id: '1', role: 'user', content: 'Hi there' },
@@ -55,5 +63,74 @@ describe('ChatTranscript', () => {
 		expect(pulsing).toHaveLength(1)
 
 		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
+	})
+
+	describe('the reply a reader cannot see', () => {
+		it('is a log whose own aria-live is off, so the announcer is the only channel', () => {
+			// The role says what the region is. Leaving it live as well would put a
+			// second channel over one reply and read it twice.
+			const { container } = renderUI(<ChatTranscript messages={messages} />)
+
+			const transcript = present(bySlot(container, 'chat-transcript'), 'transcript')
+
+			expect(transcript).toHaveAttribute('role', 'log')
+
+			expect(transcript).toHaveAttribute('aria-live', 'off')
+		})
+
+		it('stays silent when it mounts with its history in hand', () => {
+			// The announcer creates its region on the first announcement, so no
+			// region at all is the proof that a reloaded transcript reads nothing.
+			renderUI(<ChatTranscript messages={messages} />)
+
+			expect(liveRegion()).toBeNull()
+		})
+
+		it('says a reply started, then says the reply once it settles', async () => {
+			const sent: ChatMessageData[] = [{ id: '1', role: 'user', content: 'Hi there' }]
+
+			const { rerender } = renderUI(<ChatTranscript messages={sent} />)
+
+			expect(liveRegion()).toBeNull()
+
+			rerender(
+				<ChatTranscript
+					messages={[...sent, { id: '2', role: 'assistant', content: '' }]}
+					streaming
+				/>,
+			)
+
+			await expectAnnouncement('Assistant is replying')
+
+			rerender(
+				<ChatTranscript
+					messages={[...sent, { id: '2', role: 'assistant', content: 'Twelve stops are late.' }]}
+				/>,
+			)
+
+			await expectAnnouncement('Twelve stops are late.')
+		})
+
+		it('says nothing per chunk while the reply rewrites itself', async () => {
+			const sent: ChatMessageData[] = [{ id: '1', role: 'user', content: 'Hi there' }]
+
+			const streamed = (content: string) => (
+				<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} streaming />
+			)
+
+			const { rerender } = renderUI(<ChatTranscript messages={sent} />)
+
+			rerender(streamed('Twelve'))
+
+			await expectAnnouncement('Assistant is replying')
+
+			rerender(streamed('Twelve stops'))
+
+			rerender(streamed('Twelve stops are late.'))
+
+			// Still the start line: no chunk reached the region, and the settled
+			// reply has not been spoken because the reply has not settled.
+			expect(liveRegion()).toHaveTextContent('Assistant is replying')
+		})
 	})
 })
