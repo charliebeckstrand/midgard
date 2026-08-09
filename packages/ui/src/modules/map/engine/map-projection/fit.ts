@@ -6,10 +6,10 @@
  * refit only sharpens strokes rather than reshaping the geography.
  */
 
-import { type GeoProjection, geoPath } from 'd3-geo'
+import type { GeoProjection } from 'd3-geo'
 import { MAP_CANONICAL_WIDTH } from '../map-constants'
 import type { MapFeature, MapNamedProjection, MapProjection } from '../types'
-import { collection, fitMapProjection, resolveMapProjection } from './resolve'
+import { collection, fitMapProjection, fitProjectionWidth, resolveMapProjection } from './resolve'
 
 /**
  * A projection fit to the canonical {@link MAP_CANONICAL_WIDTH}-wide frame,
@@ -28,9 +28,9 @@ export type MapCanonicalFit = {
 
 /**
  * Fits the projection once to a fixed {@link MAP_CANONICAL_WIDTH}-wide frame and
- * measures the fitted bounds. `fitWidth` aligns those bounds to the frame's
- * top-left, so the returned `width` × `height` is a clean viewBox the geography
- * fills. Pure and synchronous — no container measurement — so the same fit
+ * reports the frame it fills, aligned to that frame's top-left, so the returned
+ * `width` × `height` is a clean viewBox the geography fills. Pure and
+ * synchronous — no container measurement — so the same fit
  * serves both the CSS aspect reservation (through {@link MapCanonicalFit.aspect})
  * and the geography's first, measurement-free paint. `null` with nothing to fit.
  *
@@ -39,19 +39,13 @@ export type MapCanonicalFit = {
 export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCanonicalFit | null {
 	if (features.length === 0) return null
 
-	const shape = collection(features)
+	const projection = resolveMapProjection(spec)
 
-	const projection = resolveMapProjection(spec).fitWidth(MAP_CANONICAL_WIDTH, shape)
+	const frame = fitProjectionWidth(projection, collection(features), MAP_CANONICAL_WIDTH)
 
-	const [[x0, y0], [x1, y1]] = geoPath(projection).bounds(shape)
+	if (frame === null) return null
 
-	const width = x1 - x0
-
-	const height = y1 - y0
-
-	if (width <= 0 || height <= 0) return null
-
-	return { projection, width, height, aspect: width / height }
+	return { projection, ...frame, aspect: frame.width / frame.height }
 }
 
 /**

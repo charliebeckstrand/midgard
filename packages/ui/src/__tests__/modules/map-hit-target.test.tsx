@@ -150,9 +150,12 @@ describe('dot hit targets', () => {
 
 	it('holds a dot precise while a neighbour stands inside its coarse reach', () => {
 		const { container } = renderUI(
-			// Two stops ~15px apart in a 400px frame: clear of the merge distance, so
-			// each draws its own dot, and well inside a 44px target.
-			plat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.05, 5] }]} />),
+			// Two stops 16px apart in a 400px frame, which is the middle of the window
+			// this case needs: past the 14px merge distance, so each draws its own dot,
+			// and inside the 22px coarse reach, so each stands in the other's target.
+			// Spaced off the merge distance rather than onto it — the pair sat at
+			// 14.000000000000012px, which any change to the fit's last bit merges.
+			plat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.2, 5] }]} />),
 		)
 
 		const targets = allBySlot(container, 'map-points-hit')
