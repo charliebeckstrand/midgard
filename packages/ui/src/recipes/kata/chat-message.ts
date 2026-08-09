@@ -56,6 +56,19 @@ export const k = defineRecipe(
 		slots: {
 			timestamp: [size.xs, 'mt-1', ...text.muted],
 			actions: ['mt-1', flex.row, 'gap-0.5'],
+			// A bubble of parts stacks one block per part, and each block collapses
+			// its own outer margins, so the gap between two of them is this slot's.
+			// It matches the markdown kata's `my-3` paragraph rhythm, so prose split
+			// across two parts reads as prose split across two paragraphs. Carried by
+			// every part after the first, because the first sits flush.
+			part: 'mt-3',
+			// The embed's own box holds no look — the registered renderer draws a
+			// chart, a grid, or a map, and dictating a border or a fill here would
+			// fight it. It only refuses to push the bubble wider than the bubble is.
+			embed: 'max-w-full',
+			// The line a block draws when no renderer claims its name: quiet, because
+			// it reports a gap rather than an error the reader can act on.
+			embedFallback: [size.sm, ...text.muted],
 		},
 		defaults: { role: 'assistant' },
 	},

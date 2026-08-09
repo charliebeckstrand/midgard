@@ -3,10 +3,13 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
 import { Icon } from '../../../components/icon'
+import { Sparkline } from '../../../components/sparkline'
 import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import {
+	ChatEmbedProvider,
+	type ChatEmbedRenderer,
 	ChatList,
 	ChatListItem,
 	ChatMessage,
@@ -45,6 +48,45 @@ const transcript: ChatMessageData[] = [
 		role: 'assistant',
 		content: 'Looking forward to it!',
 		timestamp: '11:12 AM',
+	},
+]
+
+// The chat imports no chart. The app names one renderer, and a reply that
+// carries a `stops-trend` block draws through it — hoisted out of the render,
+// because a fresh record each render is a fresh registry.
+const embedRenderers = {
+	'stops-trend': (part) => (
+		<Sparkline
+			data={part.data as number[]}
+			variant="bar"
+			color="blue"
+			width={160}
+			aria-label="Late stops per day over the last week"
+		/>
+	),
+} satisfies Record<string, ChatEmbedRenderer>
+
+const embedded: ChatMessageData[] = [
+	{ id: '1', role: 'user', content: 'How are late stops trending this week?' },
+	{
+		id: '2',
+		role: 'assistant',
+		content: [
+			{ kind: 'text', id: 't1', text: 'Late stops rose from **4** to **14** across the week.' },
+			{ kind: 'embed', id: 'e1', name: 'stops-trend', data: [4, 6, 5, 9, 12, 11, 14] },
+			{ kind: 'text', id: 't2', text: 'Most of the rise sits on the north routes.' },
+		],
+	},
+]
+
+const unregistered: ChatMessageData[] = [
+	{
+		id: '1',
+		role: 'assistant',
+		content: [
+			{ kind: 'text', id: 't1', text: 'Here are those twelve stops on the map.' },
+			{ kind: 'embed', id: 'e1', name: 'stops-map', data: null },
+		],
 	},
 ]
 
@@ -120,6 +162,7 @@ export function Demo() {
 			<TabList aria-label="Chat module">
 				<Tab value="Message">Message</Tab>
 				<Tab value="Transcript">Transcript</Tab>
+				<Tab value="Embeds">Embeds</Tab>
 				<Tab value="List">List</Tab>
 				<Tab value="Prompt">Prompt</Tab>
 			</TabList>
@@ -183,6 +226,22 @@ export function Demo() {
 					<Example title="Transcript">
 						<ChatTranscript messages={transcript} />
 					</Example>
+				</TabContent>
+
+				<TabContent value="Embeds">
+					<Stack gap="xl">
+						<Example title="Registered renderer">
+							<ChatEmbedProvider renderers={embedRenderers}>
+								<ChatTranscript messages={embedded} />
+							</ChatEmbedProvider>
+						</Example>
+
+						<Example title="Unregistered name">
+							<ChatEmbedProvider renderers={embedRenderers}>
+								<ChatTranscript messages={unregistered} />
+							</ChatEmbedProvider>
+						</Example>
+					</Stack>
 				</TabContent>
 
 				<TabContent value="List">

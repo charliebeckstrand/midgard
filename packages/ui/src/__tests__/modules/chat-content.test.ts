@@ -5,11 +5,20 @@ import {
 	toChatParts,
 } from '../../modules/chat/engine/chat-content/normalize'
 import { chatContentText, chatPartsText } from '../../modules/chat/engine/chat-content/text'
-import type { ChatPart, ChatTextPart } from '../../modules/chat/engine/chat-content/types'
+import type {
+	ChatEmbedPart,
+	ChatPart,
+	ChatTextPart,
+} from '../../modules/chat/engine/chat-content/types'
 
 /** A text part, in the shape the normalization mints one. */
 function text(value: string, id = TEXT_PART_ID): ChatTextPart {
 	return { kind: 'text', id, text: value }
+}
+
+/** An embed part naming a renderer the caller registered. */
+function embed(name: string, id = name): ChatEmbedPart {
+	return { kind: 'embed', id, name, data: { rows: 12 } }
 }
 
 /**
@@ -79,6 +88,19 @@ describe('chatPartsText', () => {
 			'First block.\n\nSecond block.',
 		)
 	})
+
+	it('projects an embed to nothing, so the prose around it closes up', () => {
+		// The renderer holds an embed's text — a chart ships its own data table —
+		// and this projection cannot reach it. A guess would put a name the reader
+		// never saw into the clipboard, the search index, and the announcement.
+		expect(chatPartsText([text('Twelve stops are late.'), embed('stops-map')])).toBe(
+			'Twelve stops are late.',
+		)
+	})
+
+	it('projects an embed alone to an empty string', () => {
+		expect(chatPartsText([embed('stops-map')])).toBe('')
+	})
 })
 
 describe('isEmptyContent', () => {
@@ -103,6 +125,21 @@ describe('isEmptyContent', () => {
 
 	it('reads one part with text as not empty, whatever sits beside it', () => {
 		expect(isEmptyContent([text(''), text('Second block.', 'b')])).toBe(false)
+	})
+
+	it('reads a reply that arrived as an embed alone as not empty', () => {
+		// The pair that proves the rule reads structure rather than the
+		// projection: this content projects to '' and must survive the rollback,
+		// because a chart with no prose around it is a reply that landed.
+		const content = [embed('stops-map')]
+
+		expect(chatPartsText(content)).toBe('')
+
+		expect(isEmptyContent(content)).toBe(false)
+	})
+
+	it('reads an embed beside an empty text part as not empty', () => {
+		expect(isEmptyContent([text(''), embed('stops-map')])).toBe(false)
 	})
 })
 

@@ -43,6 +43,11 @@ function isEmptyPart(part: ChatPart): boolean {
 	switch (part.kind) {
 		case 'text':
 			return part.text === ''
+		// An embed holds something the moment it names a renderer. It draws no
+		// prose, so the projection reads it as nothing; the rollback must not, or a
+		// reply that arrived as a chart alone would be discarded as an empty one.
+		case 'embed':
+			return false
 	}
 }
 
