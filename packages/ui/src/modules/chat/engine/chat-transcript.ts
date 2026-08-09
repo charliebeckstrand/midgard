@@ -12,7 +12,7 @@
 
 import { isEmptyContent } from './chat-content/normalize'
 import type { ChatPart } from './chat-content/types'
-import { applyChunk } from './chat-stream'
+import { applyChunk, failRunningTools } from './chat-stream'
 import type { ChatMessageData } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
@@ -96,27 +96,22 @@ export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMes
  * this rule in its `finally`, which every exit takes — the last chunk, a stop,
  * or a throw — so no step outlives the stream that opened it.
  *
- * Failed, and not some third state for a stop. The transport is what knows a
- * call succeeded, and a call the reader stopped produced no result it can be
- * asked for; naming that anything other than failure would leave the reader to
- * guess whether the answer above it used the step's output.
+ * The settle itself is [`failRunningTools`](chat-stream.ts), beside the fold a
+ * chunk takes. This rule only finds the reply, as `applyReplyChunk` above it
+ * only finds the reply: what an end-of-stream means to the content it lands in
+ * belongs in one place, with the switch over part kinds that a later kind
+ * extends.
  *
  * @internal
  */
-export function failRunningTools(messages: ChatMessageData[], id: string): ChatMessageData[] {
+export function failReplyTools(messages: ChatMessageData[], id: string): ChatMessageData[] {
 	const reply = messages.find((message) => message.id === id)
 
-	if (!reply || typeof reply.content === 'string') return messages
+	if (!reply) return messages
 
-	if (!reply.content.some((part) => part.kind === 'tool' && part.status === 'running')) {
-		return messages
-	}
+	const settled = failRunningTools(reply.content)
 
-	const settled = reply.content.map((part) =>
-		part.kind === 'tool' && part.status === 'running'
-			? { ...part, status: 'failed' as const }
-			: part,
-	)
+	if (settled === reply.content) return messages
 
 	return messages.map((message) => (message.id === id ? { ...message, content: settled } : message))
 }

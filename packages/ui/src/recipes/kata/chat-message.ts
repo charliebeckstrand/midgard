@@ -1,9 +1,10 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, narabi } from '../kiso'
+import { iro, ji, narabi, sen } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
 const { flex } = narabi
+const { focus } = sen
 
 const bubble = defineRecipe({
 	base: [
@@ -64,7 +65,9 @@ const tool = {
 	base: ['rounded-xl border border-current/20 px-3 py-2'],
 	head: [flex.row, 'w-full items-center gap-2 text-left', size.sm],
 	// A disclosure head is a button: give it the pointer and the package's own
-	// focus ring rather than the UA outline.
+	// focus ring rather than the UA outline. `inset` and not `ring`, because the
+	// step is a bordered box — the case `sen.focus`'s own doc names for it, and
+	// the reason `Collapse`'s bare trigger takes the outset one instead.
 	//
 	// The colour reset is load-bearing. The collapse kata paints its trigger
 	// `text.muted` with a `fg.hover`, which is right on the page and wrong in
@@ -72,11 +75,7 @@ const tool = {
 	// fill is 3.8:1. These classes land after the collapse kata's, so the head
 	// goes back to inheriting the bubble — hover included, or the pointer would
 	// walk it into a fixed neutral on the user bubble's blue.
-	trigger: [
-		'cursor-pointer rounded-lg',
-		'text-inherit hover:text-inherit',
-		'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
-	],
+	trigger: ['cursor-pointer rounded-lg', 'text-inherit hover:text-inherit', focus.inset],
 	name: [weight.semibold],
 	summary: ['min-w-0 flex-1 truncate font-normal'],
 	details: ['mt-2', size.sm],

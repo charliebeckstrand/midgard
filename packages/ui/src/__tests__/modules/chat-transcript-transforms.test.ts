@@ -5,7 +5,7 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
-	failRunningTools,
+	failReplyTools,
 	lastUserMessage,
 	openReply,
 	seedMessages,
@@ -98,7 +98,7 @@ describe('applyReplyChunk', () => {
 	})
 })
 
-describe('failRunningTools', () => {
+describe('failReplyTools', () => {
 	const step = (status: 'running' | 'done' | 'failed', id = 't1'): ChatPart => ({
 		kind: 'tool',
 		id,
@@ -114,7 +114,7 @@ describe('failRunningTools', () => {
 	it('marks a step still running as failed', () => {
 		// The rule that lets a `tool` block carry a running status at all: nothing
 		// else stops the spinner when the stream ends without settling it.
-		expect(failRunningTools(replyHolding(step('running')), 'r1')).toEqual(
+		expect(failReplyTools(replyHolding(step('running')), 'r1')).toEqual(
 			replyHolding(step('failed')),
 		)
 	})
@@ -122,7 +122,7 @@ describe('failRunningTools', () => {
 	it('leaves a settled step alone', () => {
 		const messages = replyHolding(step('done'), step('failed', 't2'))
 
-		expect(failRunningTools(messages, 'r1')).toBe(messages)
+		expect(failReplyTools(messages, 'r1')).toBe(messages)
 	})
 
 	it('settles every running step, and touches nothing beside them', () => {
@@ -133,7 +133,7 @@ describe('failRunningTools', () => {
 			step('running', 't3'),
 		)
 
-		expect(failRunningTools(messages, 'r1')).toEqual(
+		expect(failReplyTools(messages, 'r1')).toEqual(
 			replyHolding(
 				{ kind: 'text', id: 'x', text: 'Working.' },
 				step('failed'),
@@ -148,13 +148,13 @@ describe('failRunningTools', () => {
 		// — must cost no re-render.
 		const messages = [user('u1', 'hi'), assistant('r1', 'Twelve stops are late.')]
 
-		expect(failRunningTools(messages, 'r1')).toBe(messages)
+		expect(failReplyTools(messages, 'r1')).toBe(messages)
 	})
 
 	it('changes nothing for an id that names no message', () => {
 		const messages = replyHolding(step('running'))
 
-		expect(failRunningTools(messages, 'absent')).toBe(messages)
+		expect(failReplyTools(messages, 'absent')).toBe(messages)
 	})
 
 	it('leaves a running step in another reply alone', () => {
@@ -163,7 +163,7 @@ describe('failRunningTools', () => {
 			{ id: 'r1', role: 'assistant', content: [step('running', 't2')] },
 		]
 
-		expect(failRunningTools(messages, 'r1')[0]?.content).toEqual([step('running')])
+		expect(failReplyTools(messages, 'r1')[0]?.content).toEqual([step('running')])
 	})
 })
 

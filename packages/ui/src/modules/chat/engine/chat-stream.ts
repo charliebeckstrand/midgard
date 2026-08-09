@@ -100,3 +100,35 @@ export function applyChunk(
 
 	return mergeParts(startingParts(content), chunk)
 }
+
+/**
+ * The reply's content with every step still marked running marked failed —
+ * what a stream that ended owes any step it opened and never closed.
+ *
+ * Returns the content it read, by reference, when nothing was running. A reply
+ * of prose takes the string arm and never allocates, which is what lets the
+ * shell run this after every send rather than only after one that ran a step.
+ *
+ * Failed, and not some third state for a stop. The transport is what knows a
+ * call succeeded, and a call the reader stopped produced no result it can be
+ * asked for; naming that anything else would leave the reader to guess whether
+ * the answer above it used the step's output.
+ *
+ * @internal
+ * @param content - The reply as the stream left it.
+ */
+export function failRunningTools(content: string | ChatPart[]): string | ChatPart[] {
+	if (typeof content === 'string') return content
+
+	let changed = false
+
+	const settled = content.map((part) => {
+		if (part.kind !== 'tool' || part.status !== 'running') return part
+
+		changed = true
+
+		return { ...part, status: 'failed' as const }
+	})
+
+	return changed ? settled : content
+}

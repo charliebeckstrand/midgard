@@ -8,6 +8,7 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failReplyTools,
 	openReply,
 	seedMessages,
 	truncateToLastUserMessage,
@@ -80,6 +81,15 @@ describe('chat-transcript · the send path (once per send)', () => {
 	for (const { label, messages } of STREAMING) {
 		bench(`${label} · dropEmptyReply`, () => {
 			dropEmptyReply(messages, 'reply')
+		})
+	}
+
+	// Runs in the `finally` of every send, not only one that ran a step, so the
+	// number that matters is this one — a reply of prose, where the rule finds
+	// its reply and returns the transcript by reference without walking content.
+	for (const { label, messages } of STREAMING) {
+		bench(`${label} · failReplyTools (nothing to settle)`, () => {
+			failReplyTools(messages, 'reply')
 		})
 	}
 })

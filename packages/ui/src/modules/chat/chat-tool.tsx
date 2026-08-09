@@ -30,25 +30,6 @@ export type ChatToolProps = {
 	className?: string
 }
 
-/** The step's head: how it ended, what ran, and the line saying what it did. @internal */
-function ChatToolHead({ part }: { part: ChatToolPart }) {
-	const { status, label, pulse } = STATUS[part.status]
-
-	return (
-		<>
-			<StatusDot size="sm" status={status} pulse={pulse} label={label} />
-			<span data-slot="chat-tool-name" className={cn(k.tool.name)}>
-				{part.name}
-			</span>
-			{part.summary !== undefined && (
-				<span data-slot="chat-tool-summary" className={cn(k.tool.summary)}>
-					{part.summary}
-				</span>
-			)}
-		</>
-	)
-}
-
 /**
  * Draws one `tool` block: a step the assistant took, as a line naming what ran
  * and how it ended, over the detail it opens to.
@@ -72,17 +53,31 @@ function ChatToolHead({ part }: { part: ChatToolPart }) {
  * @internal
  */
 export function ChatTool({ part, className }: ChatToolProps) {
+	const { status, label, pulse } = STATUS[part.status]
+
+	// How it ended, what ran, and the line saying what it did — the same content
+	// whether it heads a plain line or a disclosure trigger.
+	const head = (
+		<>
+			<StatusDot size="sm" status={status} pulse={pulse} label={label} />
+			<span data-slot="chat-tool-name" className={cn(k.tool.name)}>
+				{part.name}
+			</span>
+			{part.summary !== undefined && (
+				<span data-slot="chat-tool-summary" className={cn(k.tool.summary)}>
+					{part.summary}
+				</span>
+			)}
+		</>
+	)
+
 	return (
 		<div data-slot="chat-tool" data-status={part.status} className={cn(k.tool.base, className)}>
 			{part.detail === undefined ? (
-				<div className={cn(k.tool.head)}>
-					<ChatToolHead part={part} />
-				</div>
+				<div className={cn(k.tool.head)}>{head}</div>
 			) : (
 				<Collapse mount="lazy">
-					<CollapseTrigger className={cn(k.tool.head, k.tool.trigger)}>
-						<ChatToolHead part={part} />
-					</CollapseTrigger>
+					<CollapseTrigger className={cn(k.tool.head, k.tool.trigger)}>{head}</CollapseTrigger>
 					<CollapsePanel>
 						<div data-slot="chat-tool-detail" className={cn(k.tool.details)}>
 							<Markdown>{part.detail}</Markdown>

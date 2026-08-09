@@ -53,6 +53,8 @@ afterEach(() => {
 	window.IntersectionObserver = original
 
 	reveal = undefined
+
+	chart.mockClear()
 })
 
 const chart = vi.fn(() => <div data-testid="chart">drawn</div>)
@@ -65,10 +67,6 @@ const embed = (overrides: Partial<ChatEmbedPart> = {}): ChatEmbedPart => ({
 	name: 'trend',
 	data: null,
 	...overrides,
-})
-
-afterEach(() => {
-	chart.mockClear()
 })
 
 describe('a held-back embed', () => {

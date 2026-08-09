@@ -9,7 +9,7 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
-	failRunningTools,
+	failReplyTools,
 	lastUserMessage,
 	openReply,
 	seedMessages,
@@ -232,7 +232,7 @@ export function useChatSend({
 				// A step still marked running would otherwise draw a spinner nothing
 				// ever stops, the defect that kept a per-part status out of the design
 				// until the shell could settle one.
-				setMessages((prev) => failRunningTools(prev, replyId))
+				setMessages((prev) => failReplyTools(prev, replyId))
 
 				controllerRef.current = null
 
