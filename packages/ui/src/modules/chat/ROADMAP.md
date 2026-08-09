@@ -12,7 +12,7 @@ The vocabulary is settled. Increment 2 made `role: 'user' | 'assistant' | 'syste
 
 The proof is still the thinnest in the package. Chat holds 11 test files against query's 15, map's 36, chart's 52, and grid's 88, and it holds no benchmark at all against 3 to 15 for every other module. That is not a coverage number; it is a statement about which rules have a name. Increment 7 is where the missing benchmark lands.
 
-The content model is the ceiling over everything else. `chat-content/` holds `ChatPart`, the normalization, and the plain-text projection, but no message carries a part list yet: `ChatContent.content` is still a `string`, and the transcript still draws that string. An embedded chart, a tool call, a citation, and an attachment preview each need the wiring in increment 3, and none of them can be added one at a time on top of a string.
+The content model is wired. `ChatContent.content` is `string | ChatPart[]`, `ChatPart` and `ChatTextPart` reach the barrel beside `chatContentText`, and the rollback rule reads the content's structure rather than `content === ''`. The union holds one kind, because increment 3 owns `text` alone. An embedded chart, a tool call, a citation, and an attachment preview each add their kind in the increment that owns it, and each is now one more member of a union rather than a second meaning for a string.
 
 ## Engine — the substrate
 
@@ -44,13 +44,19 @@ The fix is an override in [`biome.json`](../../../../../biome.json) that allows 
 
 The scoped allowlist is the answer rather than a placeholder. Narrowing `ToggleGroup` and `PopoverPanel` to literal role unions is worth doing on its own — it turns a lint check into a compiler check with a better message — but it does not make `ignoreNonDom` safe, because the pass-through props on `Button`, `Input`, and `Flex` are `AriaRole` by design and cannot narrow. The override's globs are wider than today's three violating files on purpose, so that a later `role="log"` on the transcript (increment 6) needs no edit. A caller who lints with the same rule needs the same allowance.
 
-### 3. The content model — engine landed, wiring open
+### 3. The content model — done
 
-`chat-content/` already holds the union, the normalization, and the projection, and a pure suite proves all three. Nothing outside that suite reads them yet: `ChatContent.content` is still a `string`, `ChatPart` is `@internal` and absent from [`index.ts`](index.ts), and the transcript still draws the string. What remains is the wiring, which is the breaking half.
+A message became parts. `ChatPart` is a discriminated union — `text` first, then `embed`, `tool`, `file`, and `citation` as later increments add them — and a message carries `string | ChatPart[]`. The engine normalizes, so `content: string` keeps working as one text part and no caller rewrote its transcript to adopt the union. `chat-content/` owns the union, the normalization, and the plain-text projection that copy, search, and the announcement in increment 6 all read.
 
-A message becomes parts. `ChatPart` is a discriminated union — `text` first, then `embed`, `tool`, `file`, and `citation` as later increments add them — and a message carries `ChatPart[]`. The engine normalizes, so `content: string` keeps working as one text part and no caller rewrites its transcript to adopt the union. `chat-content/` owns the union, the normalization, and the plain-text projection that copy, search, and the announcement in increment 6 all read.
+The increment shipped `text` alone, which is what its own sentence above always said. Every kind after it is additive, so nothing here has to be torn up to add one. The one field that could not wait is `id`: a part's position is not its identity, and once parts persist, a required field is a breaking addition. `TEXT_PART_ID` names the one part a string normalizes to, and it is fixed rather than minted, because the engine reads no clock and no random source.
 
-Every premium feature below waits on this, and the increment is deliberately dull: no new rendering, no new prop, one union and the functions over it. Prove it by the transcript that renders byte-identically before and after.
+Two rules moved with it. `dropEmptyReply` reads `isEmptyContent` rather than `content === ''`, because a reply that holds a block with no text of its own projects to an empty string and is not an empty reply. `chatContentText` is the one bridge over both arms, which `retry` and the bubble share, so the string the transport gets and the string the reader sees cannot drift.
+
+The increment was deliberately dull, and the proof holds: [`chat-transcript.tsx`](chat-transcript.tsx) changed no line, `content` reaches the bubble unnormalized so no render allocates and the memo holds for a settled bubble, and the four suites over the transcript, the transforms, the bubble, and the send hook all passed unedited.
+
+The inline citation is held for the first backlog entry, and the reason is not the content model. A citation anchored to a phrase needs a renderer that can honour a range: [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) builds only elements it controls and offers no injection slot, `marked` yields no absolute offsets for an inline token, and `safeUrl` strips a `cite:` href. The blocker is in `components/markdown`, so an anchor added here would address a range that nothing can draw.
+
+Three shapes were measured against this increment and refuted. A Markdown-encoded model, which scored highest and streamed best, is spoofable — a user message that holds the vocabulary is byte-identical to an assistant's — and its projection returns the source that [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) drops by design to the clipboard and the screen reader. An open discriminant surrenders the compiler-checked switch and buys nothing a `name` field does not. A projection parameterized by purpose dies at `retry`, whose string is the wire payload. For the whole record, see [`CONTENT-MODEL.md`](CONTENT-MODEL.md).
 
 ### 4. The embed seam
 
@@ -62,7 +68,11 @@ Callers who want the three wired for them get `ui/modules/chat/embeds`, a second
 
 ### 5. A stream of parts
 
-`ChatTransport` yields `string`, and each string is the whole reply so far. An embed that arrives part-way through a reply cannot be expressed that way, so the transport widens to yield a part list beside the string. The string arm keeps its exact meaning — cumulative text, replace the bubble — so every transport written today still runs. `chat-stream/` owns both reconciliations: a string replaces the text part, and a part list merges by index, so a chart that arrives after two paragraphs does not discard them.
+`ChatTransport` yields `string`, and each string is the whole reply so far. An embed that arrives part-way through a reply cannot be expressed that way, so the transport widens to yield a part list beside the string. The string arm keeps its exact meaning — cumulative text, replace the bubble — so every transport written today still runs. `chat-stream/` owns both reconciliations: a string replaces the part `TEXT_PART_ID` names, and a part list merges by id, so a chart that arrives after two paragraphs does not discard them.
+
+Merge by id, and never by index. A late citation, a tool part that turns from running to done, or any insertion moves every index after it, so a positional merge reads a different part after each change. Increment 3 put the id on every part for this.
+
+A per-part completeness flag was refuted, and increment 5 must not reintroduce one without settling it. Nothing in the shell settles such a flag today: `stop` returns early with no transform, the catch path only drops the empty reply, and `finally` only clears the controller and the flag. A stopped or failed reply would strand a part as forever unfinished, which draws as a permanent skeleton.
 
 This is the increment that makes an agent reply a document rather than a message. It lands after the registry, because a part that names an unregistered embed must already have somewhere to land.
 
@@ -82,7 +92,9 @@ Virtualization is the obvious answer and must not ship before the measurement sa
 
 In priority order, after the increments. Each entry names the gap, the shape of the fix, and where it lands.
 
-- **One selection across the chat and the dashboard.** This is the feature a logistics chat exists for, and it is nearly free once the parts land. An agent says twelve stops are late; a point on that sentence must ring those twelve stops on the map beside it. Every module already holds the receiving half — map takes `selectedRegion` and `selectedOverlay`, grid holds row selection, chart reports `onCategoryClick` — so nothing new is needed in them. The shape is a `citation` part carrying an embed name and a selector, and an adapter per module that maps the selector onto that module's own selection prop. It lands in `chat-content/` plus the adapters from increment 4, and it must read one direction first: the chat drives the dashboard, and the reverse — a picked region that writes a message — waits for a second consumer to ask.
+- **One selection across the chat and the dashboard.** This is the feature a logistics chat exists for, and it is the largest item here rather than a cheap one. An agent says twelve stops are late; a point on that sentence must ring those twelve stops on the map beside it. The shape is a `citation` carrying an embed name and a selector, and an adapter per module that maps the selector onto that module's own selection prop. It must read one direction first: the chat drives the dashboard, and the reverse — a picked region that writes a message — waits for a second consumer to ask.
+
+  Two blockers sit under it, and an earlier draft of this entry claimed neither. The receiving half is not there: map's `selectedRegion` takes one id and `selectedOverlay` takes one `{ id; index? }`, and chart exposes `onCategoryClick` as an output with no selection input at all, so twelve stops cannot be handed to either. Both modules need work of their own before an adapter has anything to call. The anchor is not renderable either, per increment 3: a citation on a phrase needs a range that [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) cannot draw. Fix the renderer first, then the receivers, then write the citation against something that can honour it.
 
 - **Agent steps and tool calls.** A reply that ran a query must be able to show it, both because a reader needs to trust the answer and because a wrong filter is otherwise invisible. The shape is a `tool` part rendered as a collapsible step, over the `Collapse` the package already ships. The leverage is query: `formatQuerySummary` already turns a query tree into a plain line, so a tool call that filtered data renders its own filter with no new formatter. It lands as a part kind plus one renderer.
 
@@ -91,6 +103,8 @@ In priority order, after the increments. Each entry names the gap, the shape of 
 - **Composer commands and mentions.** A dashboard agent needs a scope, and typing it in prose is the worst way to give one. The shape is a token model in `chat-command/` — a trigger character, a token span, and a resolved value — with the picker over `CommandPalette`, which already exists and already holds the keyboard model. `ChatPrompt` has an `actions` slot but no model behind it, so this is the missing half rather than a new surface. `@dataset` scopes a question; `/command` runs one.
 
 - **Persistence and resume.** `Chat` is a wire shape with no adapter, so a conversation survives a reload only if the app writes that path itself. The shape is a history port beside the transport — load a page of messages, append on send — and a resume rule for a stream a reload cut, which needs the reply id to outlive the session. It lands beside `ChatTransport`, and it must stay a port rather than an implementation, for the reason the transport already is one.
+
+  One half of the id question is settled already: `useChatSend` keeps the id a seed message carries, so a message and its parts hold the same address after a reload. What a resume still needs is a durable position in a reply the reload cut, which no part carries.
 
 - **Attachment previews through the embed seam.** The composer surfaces attachments as chips and nothing renders what they hold. A CSV preview is a grid and an image preview is an image, so this must reuse the registry from increment 4 rather than open a second path to the same three modules. It lands as a `file` part with a preview resolved by media type.
 

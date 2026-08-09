@@ -3,8 +3,10 @@ import {
 	appendUserMessage,
 	applyReplySnapshot,
 	dropEmptyReply,
+	duplicateMessageIds,
 	lastUserMessage,
 	openReply,
+	seedMessages,
 	truncateToEditedMessage,
 	truncateToLastUserMessage,
 	userMessage,
@@ -214,5 +216,112 @@ describe('truncateToEditedMessage', () => {
 		expect(truncateToEditedMessage(messages, 'u1', 'edited')).not.toBe(messages)
 
 		expect(messages[0]).toEqual(user('u1', 'hi'))
+	})
+})
+
+describe('seedMessages', () => {
+	/** Names each message the rule assigns an id, in order. */
+	function mintIds(): () => string {
+		let next = 0
+
+		return () => `minted-${++next}`
+	}
+
+	it('keeps the id a message carries, so a persisted id survives the mount', () => {
+		const messages = [user('server-1', 'hi'), assistant('server-2', 'hello')]
+
+		expect(seedMessages(messages, mintIds()).map((message) => message.id)).toEqual([
+			'server-1',
+			'server-2',
+		])
+	})
+
+	it('returns a message that carries an id by reference, allocating nothing', () => {
+		const messages = [user('server-1', 'hi')]
+
+		expect(seedMessages(messages, mintIds())[0]).toBe(messages[0])
+	})
+
+	it('assigns an id only to the message that carries none', () => {
+		const messages: ChatContent[] = [
+			user('server-1', 'hi'),
+			{ role: 'assistant', content: 'hello' },
+		]
+
+		expect(seedMessages(messages, mintIds()).map((message) => message.id)).toEqual([
+			'server-1',
+			'minted-1',
+		])
+	})
+
+	it('mints once per message that carries none, so two never share an id', () => {
+		const messages: ChatContent[] = [
+			{ role: 'user', content: 'hi' },
+			{ role: 'assistant', content: 'hello' },
+		]
+
+		expect(seedMessages(messages, mintIds()).map((message) => message.id)).toEqual([
+			'minted-1',
+			'minted-2',
+		])
+	})
+
+	it('reads an empty id as no id, the rule duplicateMessageIds reads', () => {
+		const messages: ChatContent[] = [{ id: '', role: 'user', content: 'hi' }]
+
+		expect(seedMessages(messages, mintIds())[0]?.id).toBe('minted-1')
+	})
+
+	it('leaves the transcript it read intact', () => {
+		const messages: ChatContent[] = [{ role: 'user', content: 'hi' }]
+
+		expect(seedMessages(messages, mintIds())).not.toBe(messages)
+
+		expect(messages[0]?.id).toBeUndefined()
+	})
+})
+
+describe('duplicateMessageIds', () => {
+	it('reports nothing when every message names itself', () => {
+		expect(duplicateMessageIds([user('u1', 'hi'), assistant('r1', 'first')])).toEqual([])
+	})
+
+	it('reports the id two messages share', () => {
+		expect(duplicateMessageIds([user('u1', 'hi'), assistant('u1', 'first')])).toEqual(['u1'])
+	})
+
+	it('reports an id once, whatever the count', () => {
+		expect(
+			duplicateMessageIds([user('u1', 'hi'), assistant('u1', 'first'), user('u1', 'again')]),
+		).toEqual(['u1'])
+	})
+
+	it('reports each shared id, in the order a second message claims it', () => {
+		const messages = [
+			user('u2', 'hi'),
+			user('u1', 'hello'),
+			assistant('u1', 'first'),
+			assistant('u2', 'second'),
+		]
+
+		expect(duplicateMessageIds(messages)).toEqual(['u1', 'u2'])
+	})
+
+	it('skips a message with no id, because the shell assigns it one', () => {
+		const messages: ChatContent[] = [
+			{ role: 'user', content: 'hi' },
+			{ role: 'assistant', content: 'first' },
+		]
+
+		expect(duplicateMessageIds(messages)).toEqual([])
+	})
+
+	it('reads an empty id as no id, matching the rule the seeding reads', () => {
+		const messages: ChatContent[] = [
+			{ id: '', role: 'user', content: 'hi' },
+			{ id: '', role: 'assistant', content: 'first' },
+		]
+
+		expect(duplicateMessageIds(messages)).toEqual([])
 	})
 })

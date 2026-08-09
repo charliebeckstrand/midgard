@@ -1,18 +1,53 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { chatContentText } from './engine/chat-content/text'
 import { draftContent } from './engine/chat-draft'
 import {
 	appendUserMessage,
 	applyReplySnapshot,
 	dropEmptyReply,
+	duplicateMessageIds,
 	lastUserMessage,
 	openReply,
+	seedMessages,
 	truncateToEditedMessage,
 	truncateToLastUserMessage,
 	userMessage,
 } from './engine/chat-transcript'
 import type { ChatContent } from './engine/types'
+
+/**
+ * Fails loud in dev — once per mount — when two seed messages share an id.
+ *
+ * The hook cannot repair this. Minting a fresh id for the second message would
+ * discard the id a store persisted, which is the defect the seeding rule exists
+ * to avoid, so the guard reports and leaves the transcript as the caller built
+ * it.
+ *
+ * Read once, because the seed is read once: a later `initialMessages` does not
+ * reach the state, so a later scan would report a list the hook never held. It
+ * also keeps the scan off the streaming path, where it would run per chunk.
+ *
+ * @internal
+ */
+function useDuplicateSeedIdWarning(seed: ChatContent[] | undefined): void {
+	const warned = useRef(false)
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production' || warned.current) return
+
+		warned.current = true
+
+		const duplicates = duplicateMessageIds(seed ?? [])
+
+		if (duplicates.length === 0) return
+
+		console.warn(
+			`useChatSend({ initialMessages }): ${duplicates.map((id) => `"${id}"`).join(', ')} names more than one message. Every rule over the transcript reads an id rather than a position, so messages under one id are edited, truncated, and rolled back together. Give each message its own id.`,
+		)
+	}, [seed])
+}
 
 /**
  * Produces an assistant reply for a sent message as a stream of cumulative snapshots.
@@ -38,7 +73,22 @@ export type ChatTransport = (
 
 /** Options for {@link useChatSend}. */
 export type UseChatSendOptions = {
-	/** Seed messages; each is assigned a client id. */
+	/**
+	 * Seed messages. A message that carries an id keeps it, and a message that
+	 * carries none is assigned a client id.
+	 *
+	 * @remarks
+	 * The id a seed message carries is the one a store persisted, so the hook
+	 * keeps it. Every target the transcript holds is named by it: a React key, an
+	 * {@link UseChatSend.edit} call, and — once a message holds parts — the
+	 * message half of a part's address. A hook that minted a fresh id here would
+	 * re-key the whole conversation at each mount, and a target written before a
+	 * reload would name a message that no longer exists.
+	 *
+	 * An id must be unique in the transcript, because every rule over the
+	 * transcript reads it. Two messages under one id are edited, truncated, and
+	 * rolled back together, so a duplicate warns once in development.
+	 */
 	initialMessages?: ChatContent[]
 	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
 	transport: ChatTransport
@@ -115,8 +165,10 @@ export function useChatSend({
 	onError,
 }: UseChatSendOptions): UseChatSend {
 	const [messages, setMessages] = useState<ChatContent[]>(() =>
-		(initialMessages ?? []).map((message) => ({ ...message, id: crypto.randomUUID() })),
+		seedMessages(initialMessages ?? [], () => crypto.randomUUID()),
 	)
+
+	useDuplicateSeedIdWarning(initialMessages)
 
 	const [streaming, setStreaming] = useState(false)
 
@@ -198,7 +250,7 @@ export function useChatSend({
 
 		setMessages((prev) => truncateToLastUserMessage(prev))
 
-		await runTransport(lastUser.content)
+		await runTransport(chatContentText(lastUser.content))
 	}, [streaming, messages, runTransport])
 
 	const edit = useCallback(
