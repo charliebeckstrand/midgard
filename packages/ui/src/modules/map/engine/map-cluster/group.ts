@@ -15,7 +15,7 @@
 
 import { POINT_CLUSTER_GAP, POINT_RADIUS } from '../map-constants'
 import type { LngLat, MapPoint2D } from '../types'
-import { bucket, cellOf, walkNear } from './grid'
+import { bucket, cellOf, squared, walkNear } from './grid'
 import { clusterRadius, MAX_CLUSTER_RADIUS } from './radius'
 
 /**
@@ -352,15 +352,6 @@ function nearestSeed(
 	})
 
 	return nearest
-}
-
-/** The squared distance between two frame points, so a comparison takes no square root. @internal */
-function squared(a: MapPoint2D, b: MapPoint2D): number {
-	const dx = a.x - b.x
-
-	const dy = a.y - b.y
-
-	return dx * dx + dy * dy
 }
 
 /**

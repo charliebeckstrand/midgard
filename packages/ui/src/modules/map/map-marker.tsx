@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { fineMarks } from './engine/map-cluster/crowd'
 import { PIN_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
@@ -53,13 +54,23 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// crossing.
 	const points = useMemo(() => (path && path.length > 0 ? path : [start, end]), [path, start, end])
 
-	const { slot, hidden, project, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =
-		useMapOverlay({
-			...shared,
-			kind: 'marker',
-			swatch: 'line',
-			stops: () => lineAnchor(points),
-		})
+	const {
+		slot,
+		hidden,
+		project,
+		covered,
+		unitsPerPixel,
+		animate,
+		dim,
+		selected,
+		onPointerLeave,
+		hit,
+	} = useMapOverlay({
+		...shared,
+		kind: 'marker',
+		swatch: 'line',
+		stops: () => lineAnchor(points),
+	})
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole connector;
@@ -72,6 +83,20 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	const to = project(end)
 
 	if (slot === undefined || hidden || (d === '' && from === null && to === null)) return null
+
+	// The shared rule, over the pair at once: the pins are each other's
+	// neighbours, so a short leg is this mark's own crowding case — a target on one
+	// end covering the other would take that pin's readout with it. Resolved below
+	// the guard, so a marker the legend has toggled off pays nothing on the pointer
+	// crossings that still re-render it.
+	const [fineStart = false, fineEnd = false] = fineMarks(
+		[
+			{ at: from, radius: PIN_RADIUS },
+			{ at: to, radius: PIN_RADIUS },
+		],
+		unitsPerPixel,
+		covered,
+	)
 
 	const paint = k.series[slot]
 
@@ -162,6 +187,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							hit: hit(),
 							scale: unitsPerPixel,
 							radius: PIN_RADIUS,
+							fine: fineStart,
 						})}
 					/>
 				)}
@@ -174,6 +200,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							hit: hit(),
 							scale: unitsPerPixel,
 							radius: PIN_RADIUS,
+							fine: fineEnd,
 						})}
 					/>
 				)}

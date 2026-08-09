@@ -91,8 +91,12 @@ export const POINT_HIT_RADIUS = 22
  *
  * Under WCAG 2.5.8's 24px minimum on purpose. A mark carries three other ways to
  * its datum — its legend row, the keyboard cursor's stop, and its `MapTable` row
- * — so the dot is never the only route to it. The zone under the dot has no such
- * second route, so the dot keeps the pixels it paints and gives back the rest.
+ * — so the dot is never the only route to it. What the dot gives its pixels back
+ * to has no such second route: a zone under it answers the pointer or nothing
+ * does, and a neighbouring dot swallowed by the reach reports another mark's
+ * readout in place of its own. A dot with neither beneath it keeps the full
+ * {@link POINT_HIT_RADIUS} instead, since precision a reader gains nothing from
+ * is only reach taken from them — `dotHitProps` states when each applies.
  *
  * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
  * since only CSS can answer the modality; the attribute carries the coarse

@@ -36,7 +36,10 @@ export const k = {
 	 * Takes a mark's hit circle from the coarse reach its `r` attribute carries —
 	 * 44px for a finger, WCAG 2.5.5's enhanced target — down to the fine-pointer
 	 * one, in the one form an SVG shape allows: only CSS can read the input
-	 * modality. `dotHitProps` sets the radius itself on {@link k.hitRadius}.
+	 * modality. `dotHitProps` sets the radius itself on {@link k.hitRadius}, and
+	 * carries this class on the dots that have ground to give back — a dot standing
+	 * clear of every zone and every neighbour keeps the coarse target on both
+	 * pointers.
 	 *
 	 * It is what lets a small area mark be pointed at: a `MapGeofence` drawn tight
 	 * around a `MapPoint` sits wholly inside a finger-sized circle, so without this

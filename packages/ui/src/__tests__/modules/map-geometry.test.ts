@@ -2,12 +2,14 @@ import { geoArea } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import {
 	areaAnchor,
-	areaPath,
+	areaCovers,
 	dotPath,
 	linePath,
+	projectArea,
 	projectPoint,
 	ringAnchor,
 	ringPath,
+	ringsPath,
 } from '../../modules/map/engine/map-geometry/mark'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
@@ -410,10 +412,18 @@ describe('ringAnchor', () => {
 	})
 })
 
-describe('areaPath', () => {
+/**
+ * An area's projection and the path strung from it. One geometry answers both,
+ * so the shape a reader points at and the ground `areaCovers` reads are built
+ * from one pass.
+ */
+describe('projectArea and ringsPath', () => {
 	const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 	const project = (position: [number, number]) => projectPoint(projection, position)
+
+	/** The path an area draws, in the one call the cases below read it through. */
+	const areaPath = (polygons: [number, number][][][]) => ringsPath(projectArea(polygons, project))
 
 	/** An outer ring with a hole inside it — one polygon, two rings. */
 	const DONUT: [number, number][][] = [
@@ -432,7 +442,7 @@ describe('areaPath', () => {
 	]
 
 	it('draws every ring of every polygon, each closed', () => {
-		const d = areaPath([DONUT], project)
+		const d = areaPath([DONUT])
 
 		expect(d.match(/Z/g)).toHaveLength(2)
 
@@ -442,15 +452,13 @@ describe('areaPath', () => {
 	it('is the rings concatenated, so one ring draws exactly what ringPath draws', () => {
 		const [outer = []] = DONUT
 
-		expect(areaPath([[outer]], project)).toBe(ringPath(outer, project))
+		expect(areaPath([[outer]])).toBe(ringPath(outer, project))
 	})
 
 	it('draws separate parts in one string, so a split territory is one mark', () => {
 		const [outer = [], hole = []] = DONUT
 
-		expect(areaPath([[outer], [hole]], project)).toBe(
-			ringPath(outer, project) + ringPath(hole, project),
-		)
+		expect(areaPath([[outer], [hole]])).toBe(ringPath(outer, project) + ringPath(hole, project))
 	})
 
 	it('drops a ring the projection keeps too little of, and keeps the rest', () => {
@@ -460,11 +468,132 @@ describe('areaPath', () => {
 		// with one surviving point — too few for an area — and the outer ring whole.
 		const clipped = (position: [number, number]) => (position[0] > 10 ? null : project(position))
 
-		expect(areaPath([DONUT], clipped)).toBe(ringPath(outer, clipped))
+		expect(ringsPath(projectArea([DONUT], clipped))).toBe(ringPath(outer, clipped))
 	})
 
 	it('draws nothing from no polygons', () => {
-		expect(areaPath([], project)).toBe('')
+		expect(areaPath([])).toBe('')
+	})
+
+	it('bounds each ring by the points it kept', () => {
+		const [outer = []] = DONUT
+
+		const [ring] = projectArea([[outer]], project)
+
+		const points = ring?.points ?? []
+
+		// The box the coverage test rejects a far-off position with, so it has to
+		// hold every point the ring draws through and nothing wider.
+		expect(ring?.box.left).toBe(Math.min(...points.map((at) => at.x)))
+
+		expect(ring?.box.right).toBe(Math.max(...points.map((at) => at.x)))
+
+		expect(ring?.box.top).toBe(Math.min(...points.map((at) => at.y)))
+
+		expect(ring?.box.bottom).toBe(Math.max(...points.map((at) => at.y)))
+	})
+})
+
+/**
+ * Which ground an area holds, on the rings it draws. It is what a dot over a zone
+ * asks before it gives back the pixels it does not paint, so it has to answer the
+ * shape a reader can point at — the same even-odd reading the wash fills by.
+ */
+describe('areaCovers', () => {
+	/** One frame unit per degree, so a position reads straight off the coordinates. */
+	const flat = (position: [number, number]) => ({ x: position[0], y: position[1] })
+
+	/** An outer ring with a hole inside it — one polygon, two rings. */
+	const DONUT: [number, number][][] = [
+		[
+			[0, 0],
+			[0, 10],
+			[30, 10],
+			[30, 0],
+		],
+		[
+			[10, 4],
+			[10, 6],
+			[20, 6],
+			[20, 4],
+		],
+	]
+
+	const rings = projectArea([DONUT], flat)
+
+	it('holds a position inside the face', () => {
+		expect(areaCovers(rings, { x: 5, y: 5 })).toBe(true)
+	})
+
+	it('holds none outside it', () => {
+		expect(areaCovers(rings, { x: 40, y: 5 })).toBe(false)
+	})
+
+	it('leaves a hole to whatever lies under it', () => {
+		// The even-odd rule the wash fills by, and the rule the zone's own hit path
+		// answers the pointer under: a ring inside a ring is a hole, so a dot standing
+		// in one has no zone beneath it to yield its target to.
+		expect(areaCovers(rings, { x: 15, y: 5 })).toBe(false)
+	})
+
+	it('reads a hole as a hole whichever way either ring winds', () => {
+		// A dissolved territory arrives in the winding its arcs held, and no pass
+		// rewinds it — so the answer may not depend on the direction.
+		const reversed = projectArea([DONUT.map((ring) => [...ring].reverse())], flat)
+
+		expect(areaCovers(reversed, { x: 5, y: 5 })).toBe(true)
+
+		expect(areaCovers(reversed, { x: 15, y: 5 })).toBe(false)
+	})
+
+	it('holds a position in either part of a split territory', () => {
+		const [outer = []] = DONUT
+
+		// A second part standing clear of the first, the way a coverage area in two
+		// separate clusters does — where a ring inside another is a hole, this is not.
+		const apart: [number, number][] = [
+			[40, 0],
+			[40, 10],
+			[50, 10],
+			[50, 0],
+		]
+
+		const parts = projectArea([[outer], [apart]], flat)
+
+		expect(areaCovers(parts, { x: 5, y: 5 })).toBe(true)
+
+		expect(areaCovers(parts, { x: 45, y: 5 })).toBe(true)
+
+		// And the ground between them belongs to neither.
+		expect(areaCovers(parts, { x: 35, y: 5 })).toBe(false)
+	})
+
+	it('counts a vertex the ray passes through once, not twice', () => {
+		// A ray leaving a position at the height of a vertex meets two edges there.
+		// Counted both ways it reads a point inside the ring as outside it.
+		const triangle = projectArea(
+			[
+				[
+					[
+						[0, 0],
+						[10, 5],
+						[0, 10],
+					],
+				],
+			],
+			flat,
+		)
+
+		expect(areaCovers(triangle, { x: 2, y: 5 })).toBe(true)
+	})
+
+	it('holds nothing from a ring the projection dropped', () => {
+		expect(
+			areaCovers(
+				projectArea([DONUT], () => null),
+				{ x: 5, y: 5 },
+			),
+		).toBe(false)
 	})
 })
 
