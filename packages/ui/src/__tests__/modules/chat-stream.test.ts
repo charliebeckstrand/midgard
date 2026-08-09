@@ -136,6 +136,19 @@ describe('applyChunk — a part chunk', () => {
 		expect(applyChunk([running('Hello')], [])).toEqual([running('Hello')])
 	})
 
+	it('folds a reply that already held two blocks under one id down to one', () => {
+		// An id is an address, so two blocks under one of them is malformed. The
+		// fold keeps the first block's place and the last block's content, which is
+		// the same rule it applies to a chunk that names a block twice.
+		const held: ChatPart[] = [text('t1', 'first'), embed('e1'), text('t1', 'second')]
+
+		expect(applyChunk(held, [embed('e2')])).toEqual([
+			text('t1', 'second'),
+			embed('e1'),
+			embed('e2'),
+		])
+	})
+
 	it('leaves the content it read intact', () => {
 		const held: ChatPart[] = [running('Hello')]
 

@@ -66,6 +66,19 @@ describe('ChatTranscript', () => {
 	})
 
 	describe('the reply a reader cannot see', () => {
+		/** A transcript holding the reader's own message, with no reply to it yet. */
+		const sent: ChatMessageData[] = [{ id: '1', role: 'user', content: 'Hi there' }]
+
+		/** That transcript mid-reply, at whatever the bubble holds so far. */
+		const arriving = (content: string) => (
+			<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} streaming />
+		)
+
+		/** The same transcript once the reply settled. */
+		const settled = (content: string) => (
+			<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} />
+		)
+
 		it('is a log whose own aria-live is off, so the announcer is the only channel', () => {
 			// The role says what the region is. Leaving it live as well would put a
 			// second channel over one reply and read it twice.
@@ -87,46 +100,29 @@ describe('ChatTranscript', () => {
 		})
 
 		it('says a reply started, then says the reply once it settles', async () => {
-			const sent: ChatMessageData[] = [{ id: '1', role: 'user', content: 'Hi there' }]
-
 			const { rerender } = renderUI(<ChatTranscript messages={sent} />)
 
 			expect(liveRegion()).toBeNull()
 
-			rerender(
-				<ChatTranscript
-					messages={[...sent, { id: '2', role: 'assistant', content: '' }]}
-					streaming
-				/>,
-			)
+			rerender(arriving(''))
 
 			await expectAnnouncement('Assistant is replying')
 
-			rerender(
-				<ChatTranscript
-					messages={[...sent, { id: '2', role: 'assistant', content: 'Twelve stops are late.' }]}
-				/>,
-			)
+			rerender(settled('Twelve stops are late.'))
 
 			await expectAnnouncement('Twelve stops are late.')
 		})
 
 		it('says nothing per chunk while the reply rewrites itself', async () => {
-			const sent: ChatMessageData[] = [{ id: '1', role: 'user', content: 'Hi there' }]
-
-			const streamed = (content: string) => (
-				<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} streaming />
-			)
-
 			const { rerender } = renderUI(<ChatTranscript messages={sent} />)
 
-			rerender(streamed('Twelve'))
+			rerender(arriving('Twelve'))
 
 			await expectAnnouncement('Assistant is replying')
 
-			rerender(streamed('Twelve stops'))
+			rerender(arriving('Twelve stops'))
 
-			rerender(streamed('Twelve stops are late.'))
+			rerender(arriving('Twelve stops are late.'))
 
 			// Still the start line: no chunk reached the region, and the settled
 			// reply has not been spoken because the reply has not settled.

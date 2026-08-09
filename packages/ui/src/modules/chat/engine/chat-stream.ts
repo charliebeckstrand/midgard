@@ -59,17 +59,20 @@ function setRunningText(parts: ChatPart[], text: string): ChatPart[] {
  * call that turns from running to done sends the block it has become, and a
  * field-wise merge would leave the fields it dropped standing.
  *
+ * A `Map` keyed by id is the whole rule: it holds insertion order, a `set` on a
+ * key it already holds writes in place, and a `set` on a new one appends. Every
+ * clause above falls out of that, including the block named twice — and so does
+ * one the old two-structure form did not state, that a reply holding two blocks
+ * under one id folds to one, which is the right end for an address.
+ *
  * @internal
  */
 function mergeParts(parts: ChatPart[], arriving: ChatPart[]): ChatPart[] {
-	const arrivingById = new Map(arriving.map((part) => [part.id, part]))
+	const merged = new Map(parts.map((part) => [part.id, part]))
 
-	const held = new Set(parts.map((part) => part.id))
+	for (const part of arriving) merged.set(part.id, part)
 
-	return [
-		...parts.map((part) => arrivingById.get(part.id) ?? part),
-		...[...arrivingById.values()].filter((part) => !held.has(part.id)),
-	]
+	return [...merged.values()]
 }
 
 /**
