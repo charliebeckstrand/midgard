@@ -11,7 +11,7 @@ export { ChatTranscript, type ChatTranscriptProps } from './chat-transcript'
 export { useInChatList } from './context'
 export { chatContentText } from './engine/chat-content/text'
 export type { ChatPart, ChatTextPart } from './engine/chat-content/types'
-export type { ChatContent } from './engine/types'
+export type { ChatMessageData } from './engine/types'
 export { type UseChatDraft, type UseChatDraftOptions, useChatDraft } from './use-chat-draft'
 export { useChatScroll } from './use-chat-scroll'
 export {

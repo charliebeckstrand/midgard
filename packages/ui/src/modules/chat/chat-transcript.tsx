@@ -3,13 +3,13 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chat-transcript'
 import { ChatMessage } from './chat-message'
-import type { ChatContent } from './engine/types'
+import type { ChatMessageData } from './engine/types'
 import { useChatScroll } from './use-chat-scroll'
 
 /** Props for {@link ChatTranscript}. */
 export type ChatTranscriptProps = {
 	/** The transcript, oldest first. */
-	messages: ChatContent[]
+	messages: ChatMessageData[]
 	/** Whether a reply is currently streaming; marks the latest assistant bubble. */
 	streaming?: boolean
 	className?: string

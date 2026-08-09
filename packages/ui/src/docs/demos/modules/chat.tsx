@@ -7,10 +7,10 @@ import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import {
-	type ChatContent,
 	ChatList,
 	ChatListItem,
 	ChatMessage,
+	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
 } from '../../../modules/chat'
@@ -23,7 +23,7 @@ const conversations = [
 	{ id: '4', title: 'Architecture design', timestamp: '3d' },
 ]
 
-const transcript: ChatContent[] = [
+const transcript: ChatMessageData[] = [
 	{
 		id: '1',
 		role: 'user',

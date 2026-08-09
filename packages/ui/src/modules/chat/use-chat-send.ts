@@ -15,7 +15,7 @@ import {
 	truncateToLastUserMessage,
 	userMessage,
 } from './engine/chat-transcript'
-import type { ChatContent } from './engine/types'
+import type { ChatMessageData } from './engine/types'
 
 /**
  * Fails loud in dev — once per mount — when two seed messages share an id.
@@ -31,7 +31,7 @@ import type { ChatContent } from './engine/types'
  *
  * @internal
  */
-function useDuplicateSeedIdWarning(seed: ChatContent[] | undefined): void {
+function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
 	const warned = useRef(false)
 
 	useEffect(() => {
@@ -89,7 +89,7 @@ export type UseChatSendOptions = {
 	 * transcript reads it. Two messages under one id are edited, truncated, and
 	 * rolled back together, so a duplicate warns once in development.
 	 */
-	initialMessages?: ChatContent[]
+	initialMessages?: ChatMessageData[]
 	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
 	transport: ChatTransport
 	/**
@@ -109,7 +109,7 @@ export type UseChatSendOptions = {
 /** Return shape of {@link useChatSend}. */
 export type UseChatSend = {
 	/** The live message list (optimistic user message + streamed assistant reply). */
-	messages: ChatContent[]
+	messages: ChatMessageData[]
 	/** True while a reply is in flight. */
 	streaming: boolean
 	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
@@ -135,7 +135,7 @@ export type UseChatSend = {
 	 */
 	stop: () => void
 	/** Escape hatch for direct list edits (e.g. seeding history or clearing). */
-	setMessages: React.Dispatch<React.SetStateAction<ChatContent[]>>
+	setMessages: React.Dispatch<React.SetStateAction<ChatMessageData[]>>
 }
 
 /**
@@ -164,7 +164,7 @@ export function useChatSend({
 	onSent,
 	onError,
 }: UseChatSendOptions): UseChatSend {
-	const [messages, setMessages] = useState<ChatContent[]>(() =>
+	const [messages, setMessages] = useState<ChatMessageData[]>(() =>
 		seedMessages(initialMessages ?? [], () => crypto.randomUUID()),
 	)
 

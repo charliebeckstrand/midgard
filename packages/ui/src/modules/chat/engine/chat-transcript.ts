@@ -11,10 +11,10 @@
  */
 
 import { isEmptyContent } from './chat-content/normalize'
-import type { ChatContent } from './types'
+import type { ChatMessageData } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
-function lastUserIndex(messages: ChatContent[]): number {
+function lastUserIndex(messages: ChatMessageData[]): number {
 	return messages.findLastIndex((message) => message.role === 'user')
 }
 
@@ -25,10 +25,10 @@ function lastUserIndex(messages: ChatContent[]): number {
  * @internal
  */
 export function appendUserMessage(
-	messages: ChatContent[],
+	messages: ChatMessageData[],
 	id: string,
 	content: string,
-): ChatContent[] {
+): ChatMessageData[] {
 	return [...messages, { id, role: 'user', content }]
 }
 
@@ -38,7 +38,7 @@ export function appendUserMessage(
  *
  * @internal
  */
-export function openReply(messages: ChatContent[], id: string): ChatContent[] {
+export function openReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
 	return [...messages, { id, role: 'assistant', content: '' }]
 }
 
@@ -50,10 +50,10 @@ export function openReply(messages: ChatContent[], id: string): ChatContent[] {
  * @internal
  */
 export function applyReplySnapshot(
-	messages: ChatContent[],
+	messages: ChatMessageData[],
 	id: string,
 	snapshot: string,
-): ChatContent[] {
+): ChatMessageData[] {
 	return messages.map((message) =>
 		message.id === id ? { ...message, content: snapshot } : message,
 	)
@@ -73,7 +73,7 @@ export function applyReplySnapshot(
  *
  * @internal
  */
-export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent[] {
+export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
 	return messages.filter((message) => !(message.id === id && isEmptyContent(message.content)))
 }
 
@@ -87,7 +87,7 @@ export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent
  *
  * @internal
  */
-function hasMessageId(message: ChatContent): message is ChatContent & { id: string } {
+function hasMessageId(message: ChatMessageData): message is ChatMessageData & { id: string } {
 	return Boolean(message.id)
 }
 
@@ -107,7 +107,7 @@ function hasMessageId(message: ChatContent): message is ChatContent & { id: stri
  * @internal
  * @param mintId - Returns the id for one message that carries none.
  */
-export function seedMessages(messages: ChatContent[], mintId: () => string): ChatContent[] {
+export function seedMessages(messages: ChatMessageData[], mintId: () => string): ChatMessageData[] {
 	return messages.map((message) => (hasMessageId(message) ? message : { ...message, id: mintId() }))
 }
 
@@ -122,7 +122,7 @@ export function seedMessages(messages: ChatContent[], mintId: () => string): Cha
  *
  * @internal
  */
-export function duplicateMessageIds(messages: ChatContent[]): string[] {
+export function duplicateMessageIds(messages: ChatMessageData[]): string[] {
 	const seen = new Set<string>()
 
 	const duplicates = new Set<string>()
@@ -143,7 +143,7 @@ export function duplicateMessageIds(messages: ChatContent[]): string[] {
  *
  * @internal
  */
-export function lastUserMessage(messages: ChatContent[]): ChatContent | undefined {
+export function lastUserMessage(messages: ChatMessageData[]): ChatMessageData | undefined {
 	const index = lastUserIndex(messages)
 
 	return index === -1 ? undefined : messages[index]
@@ -156,7 +156,7 @@ export function lastUserMessage(messages: ChatContent[]): ChatContent | undefine
  *
  * @internal
  */
-export function truncateToLastUserMessage(messages: ChatContent[]): ChatContent[] {
+export function truncateToLastUserMessage(messages: ChatMessageData[]): ChatMessageData[] {
 	const index = lastUserIndex(messages)
 
 	return index === -1 ? messages : messages.slice(0, index + 1)
@@ -168,7 +168,7 @@ export function truncateToLastUserMessage(messages: ChatContent[]): ChatContent[
  *
  * @internal
  */
-export function userMessage(messages: ChatContent[], id: string): ChatContent | undefined {
+export function userMessage(messages: ChatMessageData[], id: string): ChatMessageData | undefined {
 	return messages.find((message) => message.id === id && message.role === 'user')
 }
 
@@ -180,10 +180,10 @@ export function userMessage(messages: ChatContent[], id: string): ChatContent | 
  * @internal
  */
 export function truncateToEditedMessage(
-	messages: ChatContent[],
+	messages: ChatMessageData[],
 	id: string,
 	content: string,
-): ChatContent[] {
+): ChatMessageData[] {
 	const index = messages.findIndex((message) => message.id === id)
 
 	// An id no message carries reads as -1, and `messages[-1]` is undefined, so

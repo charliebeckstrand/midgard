@@ -11,11 +11,15 @@ import {
 	truncateToLastUserMessage,
 	userMessage,
 } from '../../modules/chat/engine/chat-transcript'
-import type { ChatContent } from '../../modules/chat/engine/types'
+import type { ChatMessageData } from '../../modules/chat/engine/types'
 
-const user = (id: string, content: string): ChatContent => ({ id, role: 'user', content })
+const user = (id: string, content: string): ChatMessageData => ({ id, role: 'user', content })
 
-const assistant = (id: string, content: string): ChatContent => ({ id, role: 'assistant', content })
+const assistant = (id: string, content: string): ChatMessageData => ({
+	id,
+	role: 'assistant',
+	content,
+})
 
 describe('appendUserMessage', () => {
 	it('appends the message under the id the caller supplies', () => {
@@ -194,7 +198,7 @@ describe('truncateToEditedMessage', () => {
 	})
 
 	it('keeps the message’s other fields', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ id: 'u1', role: 'user', content: 'hi', timestamp: '2026-08-08T00:00:00Z' },
 			assistant('r1', 'first'),
 		]
@@ -243,7 +247,7 @@ describe('seedMessages', () => {
 	})
 
 	it('assigns an id only to the message that carries none', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			user('server-1', 'hi'),
 			{ role: 'assistant', content: 'hello' },
 		]
@@ -255,7 +259,7 @@ describe('seedMessages', () => {
 	})
 
 	it('mints once per message that carries none, so two never share an id', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ role: 'user', content: 'hi' },
 			{ role: 'assistant', content: 'hello' },
 		]
@@ -267,13 +271,13 @@ describe('seedMessages', () => {
 	})
 
 	it('reads an empty id as no id, the rule duplicateMessageIds reads', () => {
-		const messages: ChatContent[] = [{ id: '', role: 'user', content: 'hi' }]
+		const messages: ChatMessageData[] = [{ id: '', role: 'user', content: 'hi' }]
 
 		expect(seedMessages(messages, mintIds())[0]?.id).toBe('minted-1')
 	})
 
 	it('leaves the transcript it read intact', () => {
-		const messages: ChatContent[] = [{ role: 'user', content: 'hi' }]
+		const messages: ChatMessageData[] = [{ role: 'user', content: 'hi' }]
 
 		expect(seedMessages(messages, mintIds())).not.toBe(messages)
 
@@ -308,7 +312,7 @@ describe('duplicateMessageIds', () => {
 	})
 
 	it('skips a message with no id, because the shell assigns it one', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ role: 'user', content: 'hi' },
 			{ role: 'assistant', content: 'first' },
 		]
@@ -317,7 +321,7 @@ describe('duplicateMessageIds', () => {
 	})
 
 	it('reads an empty id as no id, matching the rule the seeding reads', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ id: '', role: 'user', content: 'hi' },
 			{ id: '', role: 'assistant', content: 'first' },
 		]

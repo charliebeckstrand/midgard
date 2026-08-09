@@ -12,7 +12,9 @@ The vocabulary is settled. Increment 2 made `role: 'user' | 'assistant' | 'syste
 
 The proof is still the thinnest in the package. Chat holds 11 test files against query's 15, map's 36, chart's 52, and grid's 88, and it holds no benchmark at all against 3 to 15 for every other module. That is not a coverage number; it is a statement about which rules have a name. Increment 7 is where the missing benchmark lands.
 
-The content model is wired. `ChatContent.content` is `string | ChatPart[]`, `ChatPart` and `ChatTextPart` reach the barrel beside `chatContentText`, and the rollback rule reads the content's structure rather than `content === ''`. The union holds one kind, because increment 3 owns `text` alone. An embedded chart, a tool call, a citation, and an attachment preview each add their kind in the increment that owns it, and each is now one more member of a union rather than a second meaning for a string.
+The content model is wired. `ChatMessageData.content` is `string | ChatPart[]`, `ChatPart` and `ChatTextPart` reach the barrel beside `chatContentText`, and the rollback rule reads the content's structure rather than `content === ''`. The union holds one kind, because increment 3 owns `text` alone. An embedded chart, a tool call, a citation, and an attachment preview each add their kind in the increment that owns it, and each is now one more member of a union rather than a second meaning for a string.
+
+The message type is named for what it is. `ChatContent` became `ChatMessageData` before increment 4, which closes the naming row [`CONTENT-MODEL.md`](CONTENT-MODEL.md) opened: the type is a message, and the old name put it on the same axis as its own `content` field and the `chat-content/` directory that types that field. It is a breaking rename with no alias, and it landed first so that every increment after it writes the new name once.
 
 ## Engine — the substrate
 

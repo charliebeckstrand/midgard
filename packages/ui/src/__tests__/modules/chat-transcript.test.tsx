@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import type { ChatContent } from '../../modules/chat'
+import type { ChatMessageData } from '../../modules/chat'
 import { ChatTranscript } from '../../modules/chat'
 import { allBySlot, bySlot, present, renderUI, screen } from '../helpers'
 
-const messages: ChatContent[] = [
+const messages: ChatMessageData[] = [
 	{ id: '1', role: 'user', content: 'Hi there' },
 	{ id: '2', role: 'assistant', content: 'Hello!' },
 ]

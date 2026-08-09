@@ -4,7 +4,7 @@
 
 ## Status
 
-Increment 3 shipped the verdict below. `ChatContent.content` is `string | ChatPart[]`, the union holds `text` alone, every part carries an `id`, and `dropEmptyReply` reads the content's structure. The requirements and the refutations in this file stand for the increments that come after.
+Increment 3 shipped the verdict below. `ChatMessageData.content` is `string | ChatPart[]`, the union holds `text` alone, every part carries an `id`, and `dropEmptyReply` reads the content's structure. The requirements and the refutations in this file stand for the increments that come after.
 
 ## Requirements the later increments place on the model
 
@@ -126,11 +126,13 @@ These are calls the judgement cannot make, and each is a decision for the repo o
 
 **Does an id survive the client?** Settled for a message. `useChatSend` used to overwrite a seed message's id with a fresh `crypto.randomUUID()`, so a persisted conversation was re-keyed at each mount and a target written before a reload named a message that no longer existed. It now keeps the id a seed message carries, and assigns one only to a message that carries none. A part's id inside `content` was never rewritten, so a part's whole address — the message id and the part id — now survives a reload.
 
-Two halves of this remain open. A reply cut mid-stream still has no durable position, so a resume restarts it. And nothing checks that a seed id is unique; the contract states it, and a store that returns two messages under one id would have them edited, truncated, and rolled back together.
+The uniqueness half is settled too, and this file said otherwise for one commit longer than it was true. `duplicateMessageIds` is the rule, and `useChatSend` reads it once per mount to warn in development; the hook does not repair a collision, because a fresh id for the second message would discard the id a store persisted. One half stays open: a reply cut mid-stream has no durable position, so a resume restarts it.
 
 **Does the gateway payload get a parse boundary?** The admin route casts the fetched JSON with no runtime validation. Today a wrong wire shape gives a wrong string in a bubble; after the widening, a gateway that starts returning arrays type-checks in silence.
 
-**Is `ChatContent` the right name?** Its own TSDoc says "A single message in a chat", so it is a message and not content, and it holds a field named `content` whose type lives in a directory named `chat-content/`. A reader meets three names on one axis.
+**Is `ChatContent` the right name?** Settled: no, and it is now `ChatMessageData`. Its own TSDoc said "A single message in a chat", so it was a message and not content, and it held a field named `content` whose type lives in a directory named `chat-content/` — three names on one axis, and a reader had to work out which one a sentence meant. The new name says message, pairs the data to the `ChatMessage` that draws it, and leaves `content` and `chat-content/` to mean the one thing they name. `ToastData` is the precedent: one item's data, named for the component that draws it.
+
+The rename landed before increment 4 rather than after, for the reason increment 2 landed second — a breaking name costs one commit now and every later increment writes it once. It carries no alias, as the speaker vocabulary did not.
 
 **Which live channel carries a reply in increment 6?** `role="log"` implies polite semantics over content as it is added, and [`core/announcer.ts`](../../core/announcer.ts) writes one whole string into a shared `aria-atomic` region. Two channels over one reply is a double read. No content model settles this.
 
