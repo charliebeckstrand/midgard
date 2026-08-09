@@ -9,10 +9,22 @@
  * One block of prose, written as GitHub-flavored Markdown. A `content` string
  * normalizes to exactly one of these, and it is the only kind the transcript
  * draws today.
- *
- * @internal
  */
-export type ChatTextPart = { kind: 'text'; text: string }
+export type ChatTextPart = {
+	kind: 'text'
+	/**
+	 * Names this block in its own message. The name is unique in the message and
+	 * not in the conversation, because a message carries its own id.
+	 *
+	 * A block holds an identity because its position is not one. A stream that
+	 * replaces one block, or that puts a block between two others, moves every
+	 * block after it, and a rule that reads a position then reads a different
+	 * block after each change. The id is what a merge names, what a React key
+	 * reads, and what a citation points to after a reload.
+	 */
+	id: string
+	text: string
+}
 
 /**
  * One block of a chat message. `kind` names the block, and it reaches the
@@ -24,6 +36,10 @@ export type ChatTextPart = { kind: 'text'; text: string }
  * package read — `MapRouteFailure`, `QuerySummaryToken`, `CellTooltip`. It also
  * holds the block axis apart from the speaker axis a message already carries.
  *
- * @internal
+ * The kinds are closed and this module owns them. That is what keeps each rule
+ * over them a compiler check and not a lookup table. A caller does not add a
+ * kind. Increment 4 adds `embed`, and that kind's `name` field is the open
+ * axis: a caller registers a renderer under a name, which is a field and not
+ * the discriminant.
  */
 export type ChatPart = ChatTextPart

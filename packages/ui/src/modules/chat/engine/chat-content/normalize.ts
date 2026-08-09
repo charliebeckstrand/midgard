@@ -1,6 +1,21 @@
 import type { ChatPart } from './types'
 
 /**
+ * The id of the one text part a string normalizes to.
+ *
+ * A fixed name, and not a minted one, because the engine mints no id and reads
+ * no random source. A message that holds a string holds one block, so one name
+ * is enough, and no two messages share a part list.
+ *
+ * The fixed name also makes a cumulative snapshot unambiguous. Increment 5
+ * replaces the text this name points to, so a string chunk that arrives after a
+ * chart can neither delete that chart nor open a second running text.
+ *
+ * @internal
+ */
+export const TEXT_PART_ID = 'text'
+
+/**
  * A message's content as parts. A `string` becomes exactly one text part, so a
  * caller keeps the transcript of strings it holds and rewrites nothing. A part
  * list passes through by reference, so a memoized bubble reads the same array
@@ -14,5 +29,35 @@ import type { ChatPart } from './types'
  * @param content - The message content: a plain string, or a part list.
  */
 export function toChatParts(content: string | ChatPart[]): ChatPart[] {
-	return typeof content === 'string' ? [{ kind: 'text', text: content }] : content
+	return typeof content === 'string' ? [{ kind: 'text', id: TEXT_PART_ID, text: content }] : content
+}
+
+/**
+ * Whether one part holds nothing yet. The switch holds every kind and has no
+ * default arm, so a kind added later must state what empty means for it, and
+ * the compiler asks. This is the rule `partText` already stands on.
+ *
+ * @internal
+ */
+function isEmptyPart(part: ChatPart): boolean {
+	switch (part.kind) {
+		case 'text':
+			return part.text === ''
+	}
+}
+
+/**
+ * Whether the content holds nothing yet. `dropEmptyReply` reads this to roll a
+ * failed send back.
+ *
+ * The rule reads the structure, and never the plain-text projection. The
+ * projection drops a part that projects to nothing, so a reply that holds only
+ * an embedded chart projects to an empty string. A rule that read the
+ * projection would then discard a reply that had already started.
+ *
+ * @internal
+ * @param content - The message content: a plain string, or a part list.
+ */
+export function isEmptyContent(content: string | ChatPart[]): boolean {
+	return typeof content === 'string' ? content === '' : content.every(isEmptyPart)
 }

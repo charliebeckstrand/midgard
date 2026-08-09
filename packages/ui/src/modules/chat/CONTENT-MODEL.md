@@ -1,12 +1,10 @@
 # Chat content model — design record
 
-> **The open question under increment 3: is `ChatPart` the right shape?** [`ROADMAP.md`](ROADMAP.md) §3 plans to grow `ChatPart` into a flat, block-level union of five kinds. The engine landed; no wiring did. This file records the requirements the model must meet, the defects found in the planned shape, the four candidates measured against it, and what stays true whichever candidate wins. Read it before you write the wiring.
+> **Why the chat's content model has the shape it has.** [`ROADMAP.md`](ROADMAP.md) §3 planned to grow `ChatPart` into a flat, block-level union of five kinds. Four candidate models were built against the requirements the later increments place on it, and each was attacked on four lenses. This file records what the model must satisfy, the defects found in the planned shape, why the highest-scoring candidate lost, and what the judgement refuted. Read it before you add a kind.
 
 ## Status
 
-Nothing reads `chat-content/` yet, so the model is still free to change. `ChatContent.content` is a `string` ([`engine/types.ts`](engine/types.ts):7), `ChatPart` is `@internal` and absent from [`index.ts`](index.ts), and the transcript draws the string ([`chat-transcript.tsx`](chat-transcript.tsx):50). Only the pure suite ([`chat-content.test.ts`](../../__tests__/modules/chat-content.test.ts)) would need a rewrite.
-
-The design work is not complete. Four candidates exist and one is fully judged; the record below states what is settled and what is not.
+Increment 3 shipped the verdict below. `ChatContent.content` is `string | ChatPart[]`, the union holds `text` alone, every part carries an `id`, and `dropEmptyReply` reads the content's structure. The requirements and the refutations in this file stand for the increments that come after.
 
 ## Requirements the later increments place on the model
 
@@ -24,7 +22,7 @@ Each requirement is testable, and each comes from a roadmap increment rather tha
 
 ## Nine defects in a flat, block-level list
 
-1. **Inline anchoring is unexpressible.** The roadmap's headline feature puts the citation *inside* a sentence ([`ROADMAP.md`](ROADMAP.md):85). A flat block list makes the citation its own block, which renders after the sentence and is a weaker feature.
+1. **Inline anchoring is unexpressible.** The roadmap's headline feature puts the citation *inside* a sentence ([`ROADMAP.md`](ROADMAP.md) §Backlog). A flat block list makes the citation its own block, which renders after the sentence and is a weaker feature.
 
 2. **There is no renderer seam even given offsets.** [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) builds only elements it controls, drops raw HTML, and clears an href that is not `http(s)`, `mailto`, or `tel`. A part list does not change that; each part stays string-in, tree-out.
 
@@ -44,11 +42,11 @@ Each requirement is testable, and each comes from a roadmap increment rather tha
 
 ## Three corrections to the roadmap
 
-The roadmap says a second entry point needs a `package.json` change ([`ROADMAP.md`](ROADMAP.md):61). It does not: `exports` maps `./modules/*` to `./src/modules/*/index.ts`, and a Node subpath pattern matches across `/`, so `ui/modules/chat/embeds` already resolves.
+[`ROADMAP.md`](ROADMAP.md) §Increments 4 says a second entry point needs a `package.json` change. It does not: `exports` maps `./modules/*` to `./src/modules/*/index.ts`, and a Node subpath pattern matches across `/`, so `ui/modules/chat/embeds` already resolves.
 
-The roadmap says to extend [`use-map-legend-registry.ts`](../map/use-map-legend-registry.ts) ([`ROADMAP.md`](ROADMAP.md):57). That hook is a mount-time ledger of children that register themselves, keyed by id. `ChatEmbedProvider` is a caller-supplied record read by key. They are different patterns.
+The same increment says to extend [`use-map-legend-registry.ts`](../map/use-map-legend-registry.ts). That hook is a mount-time ledger of children that register themselves, keyed by id. `ChatEmbedProvider` is a caller-supplied record read by key. They are different patterns.
 
-The roadmap says every module holds the receiving half of a shared selection and that "nothing new is needed in them" ([`ROADMAP.md`](ROADMAP.md):85). Retract that for map and chart, per defect 9.
+The first backlog entry said every module holds the receiving half of a shared selection, so "nothing new is needed in them". That is false for map and chart, per defect 9. The entry now records both blockers.
 
 ## The four candidates
 
@@ -72,7 +70,7 @@ The scores did not decide it, and the spread shows why: 3 points separate the be
 
 Three facts decided it, and each is verifiable in the repo.
 
-**The roadmap already fixed the inventory, and every candidate overran it.** [`ROADMAP.md`](ROADMAP.md):51 reads "`text` first, then `embed`, `tool`, `file`, and `citation` as later increments add them". Increment 3 ships `text`. The four candidates shipped between two and five kinds.
+**The roadmap already fixed the inventory, and every candidate overran it.** [`ROADMAP.md`](ROADMAP.md) §Increments 3 reads "`text` first, then `embed`, `tool`, `file`, and `citation` as later increments add them". Increment 3 ships `text`. The four candidates shipped between two and five kinds.
 
 **The deferral is free, which is the question that matters.** Sort the proposed surface by what can be retrofitted. The `id` cannot: once parts persist, a required field is a breaking addition, and the merge, React keys, per-part view state, feedback, and citation targets all key on it. The widening cannot: it *is* the breaking change. The emptiness rule cannot. Everything else is an optional field or an optional parameter, so it can arrive later without a break.
 
@@ -134,7 +132,7 @@ These are calls the judgement cannot make, and each is a decision for the repo o
 
 **Which live channel carries a reply in increment 6?** `role="log"` implies polite semantics over content as it is added, and [`core/announcer.ts`](../../core/announcer.ts) writes one whole string into a shared `aria-atomic` region. Two channels over one reply is a double read. No content model settles this.
 
-**When is the map and chart retraction written?** [`ROADMAP.md`](ROADMAP.md):85 is wrong today, per defect 9. Retract it now, or when the adapters land.
+**Who fixes the receiving half?** The retraction is written, so the first backlog entry now names both blockers. Whether map and chart gain a multi-target selection is a decision for those modules, and the citation cannot land before they do.
 
 ---
 

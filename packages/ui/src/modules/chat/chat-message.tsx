@@ -2,6 +2,8 @@ import { memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
+import { chatContentText } from './engine/chat-content/text'
+import type { ChatPart } from './engine/chat-content/types'
 
 /** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
@@ -12,8 +14,11 @@ export type ChatMessageProps = ChatMessageVariants & {
 	/** Action rail below the bubble (copy, retry, edit, …). */
 	actions?: ReactNode
 	className?: string
-	/** Message text, rendered as GitHub-flavored Markdown. */
-	children: string
+	/**
+	 * Message content, rendered as GitHub-flavored Markdown: prose, or the blocks
+	 * it is built from.
+	 */
+	children: string | ChatPart[]
 }
 
 /**
@@ -33,6 +38,10 @@ export type ChatMessageProps = ChatMessageVariants & {
  * system bubble — in both light and dark mode. While `streaming`, the bubble
  * takes the progress cursor and projects a pulse onto that prose, settling to a
  * steady bubble the moment streaming ends. The kata holds the whole look.
+ *
+ * A part list projects to one Markdown body, so a bubble draws one
+ * {@link Markdown} whichever arm it gets. One wrapper holds the prose rhythm,
+ * as it does for a string. Increment 4 gives each block its own renderer.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering — and re-lexing their Markdown — while only the streaming
@@ -60,7 +69,7 @@ export const ChatMessage = memo(function ChatMessage({
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				<Markdown>{children}</Markdown>
+				<Markdown>{chatContentText(children)}</Markdown>
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>

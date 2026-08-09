@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useRef, useState } from 'react'
+import { chatContentText } from './engine/chat-content/text'
 import { draftContent } from './engine/chat-draft'
 import {
 	appendUserMessage,
@@ -198,7 +199,7 @@ export function useChatSend({
 
 		setMessages((prev) => truncateToLastUserMessage(prev))
 
-		await runTransport(lastUser.content)
+		await runTransport(chatContentText(lastUser.content))
 	}, [streaming, messages, runTransport])
 
 	const edit = useCallback(

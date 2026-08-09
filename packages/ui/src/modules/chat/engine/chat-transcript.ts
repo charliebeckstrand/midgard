@@ -9,6 +9,7 @@
  * that one send opened.
  */
 
+import { isEmptyContent } from './chat-content/normalize'
 import type { ChatContent } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
@@ -65,10 +66,14 @@ export function applyReplySnapshot(
  * @remarks The rule reads the id rather than the empty content, so an empty
  * bubble another send opened stays. An id that opened no reply drops nothing.
  *
+ * Empty is read from the content's structure, and never from its plain-text
+ * projection. A reply that holds a block with no text of its own projects to an
+ * empty string, and it is not an empty reply.
+ *
  * @internal
  */
 export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent[] {
-	return messages.filter((message) => !(message.id === id && message.content === ''))
+	return messages.filter((message) => !(message.id === id && isEmptyContent(message.content)))
 }
 
 /**

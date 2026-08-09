@@ -40,3 +40,16 @@ export function chatPartsText(parts: ChatPart[]): string {
 		.filter((text) => text !== '')
 		.join(BLOCK_SEPARATOR)
 }
+
+/**
+ * The content as plain text, from either arm. A string is its own projection,
+ * so a transcript of strings reads byte for byte as it does today.
+ *
+ * `retry` sends this to the transport, and the bubble draws it. One named
+ * function keeps the two readers from drifting apart.
+ *
+ * @param content - The message content: a plain string, or a part list.
+ */
+export function chatContentText(content: string | ChatPart[]): string {
+	return typeof content === 'string' ? content : chatPartsText(content)
+}

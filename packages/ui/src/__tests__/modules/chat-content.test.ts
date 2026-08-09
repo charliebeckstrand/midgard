@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { toChatParts } from '../../modules/chat/engine/chat-content/normalize'
-import { chatPartsText } from '../../modules/chat/engine/chat-content/text'
+import {
+	isEmptyContent,
+	TEXT_PART_ID,
+	toChatParts,
+} from '../../modules/chat/engine/chat-content/normalize'
+import { chatContentText, chatPartsText } from '../../modules/chat/engine/chat-content/text'
 import type { ChatPart, ChatTextPart } from '../../modules/chat/engine/chat-content/types'
 
 /** A text part, in the shape the normalization mints one. */
-function text(value: string): ChatTextPart {
-	return { kind: 'text', text: value }
+function text(value: string, id = TEXT_PART_ID): ChatTextPart {
+	return { kind: 'text', id, text: value }
 }
 
 /**
@@ -25,14 +29,20 @@ const CONTENT = [
 describe('toChatParts', () => {
 	it('turns a string into exactly one text part', () => {
 		expect(toChatParts('Twelve stops are late.')).toEqual([
-			{ kind: 'text', text: 'Twelve stops are late.' },
+			{ kind: 'text', id: TEXT_PART_ID, text: 'Twelve stops are late.' },
 		])
 	})
 
 	it('turns an empty string into one empty text part rather than no part', () => {
 		// The transcript opens an empty reply while an answer arrives. That reply
 		// holds one block with nothing in it yet, not a message with no block.
-		expect(toChatParts('')).toEqual([{ kind: 'text', text: '' }])
+		expect(toChatParts('')).toEqual([{ kind: 'text', id: TEXT_PART_ID, text: '' }])
+	})
+
+	it('names the one part it mints with a fixed id, so the engine reads no random source', () => {
+		// Increment 5 replaces the text this name points to, so a string chunk
+		// arriving after a chart neither deletes it nor opens a second running text.
+		expect(toChatParts('Twelve stops are late.')[0]?.id).toBe(TEXT_PART_ID)
 	})
 
 	it('passes a part list through by reference', () => {
@@ -65,6 +75,45 @@ describe('chatPartsText', () => {
 
 	it('drops a part that projects to nothing rather than leave a blank gap', () => {
 		expect(chatPartsText([text('First block.'), text(''), text('Second block.')])).toBe(
+			'First block.\n\nSecond block.',
+		)
+	})
+})
+
+describe('isEmptyContent', () => {
+	// The rollback rule reads this. It reads structure and never the projection,
+	// because a reply that holds a block with no text of its own projects to an
+	// empty string and is not an empty reply.
+	it('reads an empty string as empty', () => {
+		expect(isEmptyContent('')).toBe(true)
+	})
+
+	it('reads a string with text as not empty', () => {
+		expect(isEmptyContent('Twelve stops are late.')).toBe(false)
+	})
+
+	it('reads the one empty text part an opened reply holds as empty', () => {
+		expect(isEmptyContent(toChatParts(''))).toBe(true)
+	})
+
+	it('reads no parts as empty', () => {
+		expect(isEmptyContent([])).toBe(true)
+	})
+
+	it('reads one part with text as not empty, whatever sits beside it', () => {
+		expect(isEmptyContent([text(''), text('Second block.', 'b')])).toBe(false)
+	})
+})
+
+describe('chatContentText', () => {
+	it('returns a string arm unchanged, by reference', () => {
+		const content = 'Twelve stops are late.'
+
+		expect(chatContentText(content)).toBe(content)
+	})
+
+	it('projects a part arm through the part projection', () => {
+		expect(chatContentText([text('First block.'), text('Second block.', 'b')])).toBe(
 			'First block.\n\nSecond block.',
 		)
 	})
