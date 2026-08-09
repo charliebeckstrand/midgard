@@ -1,12 +1,13 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { chatContentText } from './engine/chat-content/text'
 import { draftContent } from './engine/chat-draft'
 import {
 	appendUserMessage,
 	applyReplySnapshot,
 	dropEmptyReply,
+	duplicateMessageIds,
 	lastUserMessage,
 	openReply,
 	truncateToEditedMessage,
@@ -14,6 +15,38 @@ import {
 	userMessage,
 } from './engine/chat-transcript'
 import type { ChatContent } from './engine/types'
+
+/**
+ * Fails loud in dev — once per mount — when two seed messages share an id.
+ *
+ * The hook cannot repair this. Minting a fresh id for the second message would
+ * discard the id a store persisted, which is the defect the seeding rule exists
+ * to avoid, so the guard reports and leaves the transcript as the caller built
+ * it.
+ *
+ * Read once, because the seed is read once: a later `initialMessages` does not
+ * reach the state, so a later scan would report a list the hook never held. It
+ * also keeps the scan off the streaming path, where it would run per chunk.
+ *
+ * @internal
+ */
+function useDuplicateSeedIdWarning(seed: ChatContent[] | undefined): void {
+	const warned = useRef(false)
+
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production' || warned.current) return
+
+		warned.current = true
+
+		const duplicates = duplicateMessageIds(seed ?? [])
+
+		if (duplicates.length === 0) return
+
+		console.warn(
+			`useChatSend({ initialMessages }): ${duplicates.map((id) => `"${id}"`).join(', ')} names more than one message. Every rule over the transcript reads an id rather than a position, so messages under one id are edited, truncated, and rolled back together. Give each message its own id.`,
+		)
+	}, [seed])
+}
 
 /**
  * Produces an assistant reply for a sent message as a stream of cumulative snapshots.
@@ -53,7 +86,9 @@ export type UseChatSendOptions = {
 	 *
 	 * An id must be unique in the transcript, because every rule over the
 	 * transcript reads it. Two messages under one id are edited, truncated, and
-	 * rolled back together.
+	 * rolled back together, so a duplicate warns in development. The hook reports
+	 * rather than repairs: a minted replacement would discard the id a store
+	 * persisted, which is what the seeding rule exists to keep.
 	 */
 	initialMessages?: ChatContent[]
 	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
@@ -138,6 +173,8 @@ export function useChatSend({
 			message.id ? message : { ...message, id: crypto.randomUUID() },
 		),
 	)
+
+	useDuplicateSeedIdWarning(initialMessages)
 
 	const [streaming, setStreaming] = useState(false)
 

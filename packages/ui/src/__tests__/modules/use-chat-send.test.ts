@@ -55,6 +55,49 @@ describe('useChatSend', () => {
 		expect(result.current.messages[1]?.id).not.toBe('server-1')
 	})
 
+	it('warns once when two seed messages share an id, and leaves the transcript as it got it', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const { result, rerender } = renderHook(() =>
+			useChatSend({
+				transport: streamOf('ok'),
+				initialMessages: [
+					{ id: 'server-1', role: 'user', content: 'hi' },
+					{ id: 'server-1', role: 'assistant', content: 'hello' },
+				],
+			}),
+		)
+
+		rerender()
+
+		expect(warn).toHaveBeenCalledTimes(1)
+		expect(warn.mock.calls[0]?.[0]).toContain('"server-1"')
+
+		// The hook reports rather than repairs: a minted replacement would discard
+		// the id a store persisted.
+		expect(result.current.messages.map((message) => message.id)).toEqual(['server-1', 'server-1'])
+
+		warn.mockRestore()
+	})
+
+	it('stays quiet when every seed message names itself', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderHook(() =>
+			useChatSend({
+				transport: streamOf('ok'),
+				initialMessages: [
+					{ id: 'server-1', role: 'user', content: 'hi' },
+					{ role: 'assistant', content: 'hello' },
+				],
+			}),
+		)
+
+		expect(warn).not.toHaveBeenCalled()
+
+		warn.mockRestore()
+	})
+
 	it('edits a seed message by the id it was persisted under', async () => {
 		// The end the fix exists for: a target written before a reload still
 		// reaches its message after one.

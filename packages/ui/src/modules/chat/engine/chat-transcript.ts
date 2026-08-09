@@ -77,6 +77,35 @@ export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent
 }
 
 /**
+ * The ids that more than one message carries, in the order a second message
+ * claims each. An empty list means every message names itself.
+ *
+ * Every rule here reads an id rather than a position, so two messages under one
+ * id are edited, truncated, and rolled back together. The shell warns on this in
+ * development; the rule is here because it is a fact about a transcript, and a
+ * pure test can state it.
+ *
+ * A message with no id is skipped, because the shell assigns it one. That is the
+ * same rule the seeding reads, so the two cannot disagree about what an id is.
+ *
+ * @internal
+ */
+export function duplicateMessageIds(messages: ChatContent[]): string[] {
+	const seen = new Set<string>()
+
+	const duplicates = new Set<string>()
+
+	for (const message of messages) {
+		if (!message.id) continue
+
+		if (seen.has(message.id)) duplicates.add(message.id)
+		else seen.add(message.id)
+	}
+
+	return [...duplicates]
+}
+
+/**
  * The last user message in the transcript, or `undefined` when it holds none.
  * `retry` reads its content to send again.
  *

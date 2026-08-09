@@ -3,6 +3,7 @@ import {
 	appendUserMessage,
 	applyReplySnapshot,
 	dropEmptyReply,
+	duplicateMessageIds,
 	lastUserMessage,
 	openReply,
 	truncateToEditedMessage,
@@ -214,5 +215,50 @@ describe('truncateToEditedMessage', () => {
 		expect(truncateToEditedMessage(messages, 'u1', 'edited')).not.toBe(messages)
 
 		expect(messages[0]).toEqual(user('u1', 'hi'))
+	})
+})
+
+describe('duplicateMessageIds', () => {
+	it('reports nothing when every message names itself', () => {
+		expect(duplicateMessageIds([user('u1', 'hi'), assistant('r1', 'first')])).toEqual([])
+	})
+
+	it('reports the id two messages share', () => {
+		expect(duplicateMessageIds([user('u1', 'hi'), assistant('u1', 'first')])).toEqual(['u1'])
+	})
+
+	it('reports an id once, whatever the count', () => {
+		expect(
+			duplicateMessageIds([user('u1', 'hi'), assistant('u1', 'first'), user('u1', 'again')]),
+		).toEqual(['u1'])
+	})
+
+	it('reports each shared id, in the order a second message claims it', () => {
+		const messages = [
+			user('u2', 'hi'),
+			user('u1', 'hello'),
+			assistant('u1', 'first'),
+			assistant('u2', 'second'),
+		]
+
+		expect(duplicateMessageIds(messages)).toEqual(['u1', 'u2'])
+	})
+
+	it('skips a message with no id, because the shell assigns it one', () => {
+		const messages: ChatContent[] = [
+			{ role: 'user', content: 'hi' },
+			{ role: 'assistant', content: 'first' },
+		]
+
+		expect(duplicateMessageIds(messages)).toEqual([])
+	})
+
+	it('reads an empty id as no id, matching the rule the seeding reads', () => {
+		const messages: ChatContent[] = [
+			{ id: '', role: 'user', content: 'hi' },
+			{ id: '', role: 'assistant', content: 'first' },
+		]
+
+		expect(duplicateMessageIds(messages)).toEqual([])
 	})
 })
