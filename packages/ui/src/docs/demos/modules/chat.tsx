@@ -3,14 +3,17 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
 import { Icon } from '../../../components/icon'
+import { Sparkline } from '../../../components/sparkline'
 import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import {
-	type ChatContent,
+	ChatEmbedProvider,
+	type ChatEmbedRenderer,
 	ChatList,
 	ChatListItem,
 	ChatMessage,
+	type ChatMessageData,
 	ChatPrompt,
 	ChatTranscript,
 } from '../../../modules/chat'
@@ -23,7 +26,7 @@ const conversations = [
 	{ id: '4', title: 'Architecture design', timestamp: '3d' },
 ]
 
-const transcript: ChatContent[] = [
+const transcript: ChatMessageData[] = [
 	{
 		id: '1',
 		role: 'user',
@@ -45,6 +48,85 @@ const transcript: ChatContent[] = [
 		role: 'assistant',
 		content: 'Looking forward to it!',
 		timestamp: '11:12 AM',
+	},
+]
+
+// The chat imports no chart. The app names one renderer, and a reply that
+// carries a `stops-trend` block draws through it — hoisted out of the render,
+// because a fresh record each render is a fresh registry.
+const embedRenderers = {
+	'stops-trend': (part) => (
+		<Sparkline
+			data={part.data as number[]}
+			variant="bar"
+			color="blue"
+			width={160}
+			aria-label="Late stops per day over the last week"
+		/>
+	),
+} satisfies Record<string, ChatEmbedRenderer>
+
+const embedded: ChatMessageData[] = [
+	{ id: '1', role: 'user', content: 'How are late stops trending this week?' },
+	{
+		id: '2',
+		role: 'assistant',
+		content: [
+			{ kind: 'text', id: 't1', text: 'Late stops rose from **4** to **14** across the week.' },
+			{ kind: 'embed', id: 'e1', name: 'stops-trend', data: [4, 6, 5, 9, 12, 11, 14] },
+			{ kind: 'text', id: 't2', text: 'Most of the rise sits on the north routes.' },
+		],
+	},
+]
+
+const steps: ChatMessageData[] = [
+	{ id: '1', role: 'user', content: 'Which shipments are late on the north routes?' },
+	{
+		id: '2',
+		role: 'assistant',
+		content: [
+			{
+				kind: 'tool',
+				id: 's1',
+				name: 'Filter shipments',
+				status: 'done',
+				// `formatQuerySummary` from the query module renders a query tree to
+				// exactly this line, so a step over a query writes no formatter.
+				summary: 'status is late AND lane is north',
+				detail:
+					'Matched **12** of 240 shipments.\n\n- Route 12 — 5\n- Route 30 — 4\n- Route 41 — 3',
+			},
+			{ kind: 'text', id: 't1', text: 'Twelve are late, and Route 12 carries most of them.' },
+		],
+	},
+]
+
+const stepStates: ChatMessageData[] = [
+	{
+		id: '1',
+		role: 'assistant',
+		content: [
+			{ kind: 'tool', id: 's1', name: 'Load atlas', status: 'done', summary: '3,108 counties' },
+			{ kind: 'tool', id: 's2', name: 'Score routes', status: 'running' },
+			{
+				kind: 'tool',
+				id: 's3',
+				name: 'Fetch weather',
+				status: 'failed',
+				summary: 'the provider did not answer',
+			},
+		],
+	},
+]
+
+const unregistered: ChatMessageData[] = [
+	{
+		id: '1',
+		role: 'assistant',
+		content: [
+			{ kind: 'text', id: 't1', text: 'Here are those twelve stops on the map.' },
+			{ kind: 'embed', id: 'e1', name: 'stops-map', data: null },
+		],
 	},
 ]
 
@@ -120,6 +202,8 @@ export function Demo() {
 			<TabList aria-label="Chat module">
 				<Tab value="Message">Message</Tab>
 				<Tab value="Transcript">Transcript</Tab>
+				<Tab value="Embeds">Embeds</Tab>
+				<Tab value="Steps">Steps</Tab>
 				<Tab value="List">List</Tab>
 				<Tab value="Prompt">Prompt</Tab>
 			</TabList>
@@ -183,6 +267,32 @@ export function Demo() {
 					<Example title="Transcript">
 						<ChatTranscript messages={transcript} />
 					</Example>
+				</TabContent>
+
+				<TabContent value="Embeds">
+					<ChatEmbedProvider renderers={embedRenderers}>
+						<Stack gap="xl">
+							<Example title="Registered renderer">
+								<ChatTranscript messages={embedded} />
+							</Example>
+
+							<Example title="Unregistered name">
+								<ChatTranscript messages={unregistered} />
+							</Example>
+						</Stack>
+					</ChatEmbedProvider>
+				</TabContent>
+
+				<TabContent value="Steps">
+					<Stack gap="xl">
+						<Example title="A step behind the answer">
+							<ChatTranscript messages={steps} />
+						</Example>
+
+						<Example title="Every state">
+							<ChatTranscript messages={stepStates} />
+						</Example>
+					</Stack>
 				</TabContent>
 
 				<TabContent value="List">

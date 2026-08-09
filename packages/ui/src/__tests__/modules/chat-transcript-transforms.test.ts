@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
+import type { ChatPart } from '../../modules/chat/engine/chat-content/types'
 import {
 	appendUserMessage,
-	applyReplySnapshot,
+	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failReplyTools,
 	lastUserMessage,
 	openReply,
 	seedMessages,
@@ -11,11 +13,15 @@ import {
 	truncateToLastUserMessage,
 	userMessage,
 } from '../../modules/chat/engine/chat-transcript'
-import type { ChatContent } from '../../modules/chat/engine/types'
+import type { ChatMessageData } from '../../modules/chat/engine/types'
 
-const user = (id: string, content: string): ChatContent => ({ id, role: 'user', content })
+const user = (id: string, content: string): ChatMessageData => ({ id, role: 'user', content })
 
-const assistant = (id: string, content: string): ChatContent => ({ id, role: 'assistant', content })
+const assistant = (id: string, content: string): ChatMessageData => ({
+	id,
+	role: 'assistant',
+	content,
+})
 
 describe('appendUserMessage', () => {
 	it('appends the message under the id the caller supplies', () => {
@@ -43,13 +49,13 @@ describe('openReply', () => {
 	})
 })
 
-describe('applyReplySnapshot', () => {
-	it('replaces the named reply’s content, because a snapshot is cumulative', () => {
+describe('applyReplyChunk', () => {
+	it('replaces the named reply’s prose, because a string chunk is cumulative', () => {
 		const opened = openReply([user('u1', 'hi')], 'r1')
 
-		const first = applyReplySnapshot(opened, 'r1', 'Hel')
+		const first = applyReplyChunk(opened, 'r1', 'Hel')
 
-		expect(applyReplySnapshot(first, 'r1', 'Hello')).toEqual([
+		expect(applyReplyChunk(first, 'r1', 'Hello')).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'Hello'),
 		])
@@ -63,7 +69,7 @@ describe('applyReplySnapshot', () => {
 			assistant('r2', ''),
 		]
 
-		expect(applyReplySnapshot(messages, 'r2', 'second')).toEqual([
+		expect(applyReplyChunk(messages, 'r2', 'second')).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'first'),
 			user('u2', 'again'),
@@ -74,7 +80,90 @@ describe('applyReplySnapshot', () => {
 	it('changes nothing for an id that names no message', () => {
 		const messages = [user('u1', 'hi'), assistant('r1', '')]
 
-		expect(applyReplySnapshot(messages, 'absent', 'Hello')).toEqual(messages)
+		expect(applyReplyChunk(messages, 'absent', 'Hello')).toEqual(messages)
+	})
+
+	it('folds a part chunk into the named reply, and leaves the rest alone', () => {
+		// The transform finds the reply; `applyChunk` decides what the chunk means
+		// to the content it lands in. This states only the first half.
+		const chart: ChatPart = { kind: 'embed', id: 'e1', name: 'stops-map', data: null }
+
+		const messages = [user('u1', 'hi'), assistant('r1', 'first'), assistant('r2', '')]
+
+		expect(applyReplyChunk(messages, 'r2', [chart])).toEqual([
+			user('u1', 'hi'),
+			assistant('r1', 'first'),
+			{ id: 'r2', role: 'assistant', content: [chart] },
+		])
+	})
+})
+
+describe('failReplyTools', () => {
+	const step = (status: 'running' | 'done' | 'failed', id = 't1'): ChatPart => ({
+		kind: 'tool',
+		id,
+		name: 'Filter shipments',
+		status,
+	})
+
+	const replyHolding = (...parts: ChatPart[]): ChatMessageData[] => [
+		user('u1', 'hi'),
+		{ id: 'r1', role: 'assistant', content: parts },
+	]
+
+	it('marks a step still running as failed', () => {
+		// The rule that lets a `tool` block carry a running status at all: nothing
+		// else stops the spinner when the stream ends without settling it.
+		expect(failReplyTools(replyHolding(step('running')), 'r1')).toEqual(
+			replyHolding(step('failed')),
+		)
+	})
+
+	it('leaves a settled step alone', () => {
+		const messages = replyHolding(step('done'), step('failed', 't2'))
+
+		expect(failReplyTools(messages, 'r1')).toBe(messages)
+	})
+
+	it('settles every running step, and touches nothing beside them', () => {
+		const messages = replyHolding(
+			{ kind: 'text', id: 'x', text: 'Working.' },
+			step('running'),
+			step('done', 't2'),
+			step('running', 't3'),
+		)
+
+		expect(failReplyTools(messages, 'r1')).toEqual(
+			replyHolding(
+				{ kind: 'text', id: 'x', text: 'Working.' },
+				step('failed'),
+				step('done', 't2'),
+				step('failed', 't3'),
+			),
+		)
+	})
+
+	it('returns the transcript by reference when it settled nothing', () => {
+		// The shell runs this on every send, so the common case — a reply of prose
+		// — must cost no re-render.
+		const messages = [user('u1', 'hi'), assistant('r1', 'Twelve stops are late.')]
+
+		expect(failReplyTools(messages, 'r1')).toBe(messages)
+	})
+
+	it('changes nothing for an id that names no message', () => {
+		const messages = replyHolding(step('running'))
+
+		expect(failReplyTools(messages, 'absent')).toBe(messages)
+	})
+
+	it('leaves a running step in another reply alone', () => {
+		const messages: ChatMessageData[] = [
+			{ id: 'r0', role: 'assistant', content: [step('running')] },
+			{ id: 'r1', role: 'assistant', content: [step('running', 't2')] },
+		]
+
+		expect(failReplyTools(messages, 'r1')[0]?.content).toEqual([step('running')])
 	})
 })
 
@@ -194,7 +283,7 @@ describe('truncateToEditedMessage', () => {
 	})
 
 	it('keeps the message’s other fields', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ id: 'u1', role: 'user', content: 'hi', timestamp: '2026-08-08T00:00:00Z' },
 			assistant('r1', 'first'),
 		]
@@ -243,7 +332,7 @@ describe('seedMessages', () => {
 	})
 
 	it('assigns an id only to the message that carries none', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			user('server-1', 'hi'),
 			{ role: 'assistant', content: 'hello' },
 		]
@@ -255,7 +344,7 @@ describe('seedMessages', () => {
 	})
 
 	it('mints once per message that carries none, so two never share an id', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ role: 'user', content: 'hi' },
 			{ role: 'assistant', content: 'hello' },
 		]
@@ -267,13 +356,13 @@ describe('seedMessages', () => {
 	})
 
 	it('reads an empty id as no id, the rule duplicateMessageIds reads', () => {
-		const messages: ChatContent[] = [{ id: '', role: 'user', content: 'hi' }]
+		const messages: ChatMessageData[] = [{ id: '', role: 'user', content: 'hi' }]
 
 		expect(seedMessages(messages, mintIds())[0]?.id).toBe('minted-1')
 	})
 
 	it('leaves the transcript it read intact', () => {
-		const messages: ChatContent[] = [{ role: 'user', content: 'hi' }]
+		const messages: ChatMessageData[] = [{ role: 'user', content: 'hi' }]
 
 		expect(seedMessages(messages, mintIds())).not.toBe(messages)
 
@@ -308,7 +397,7 @@ describe('duplicateMessageIds', () => {
 	})
 
 	it('skips a message with no id, because the shell assigns it one', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ role: 'user', content: 'hi' },
 			{ role: 'assistant', content: 'first' },
 		]
@@ -317,7 +406,7 @@ describe('duplicateMessageIds', () => {
 	})
 
 	it('reads an empty id as no id, matching the rule the seeding reads', () => {
-		const messages: ChatContent[] = [
+		const messages: ChatMessageData[] = [
 			{ id: '', role: 'user', content: 'hi' },
 			{ id: '', role: 'assistant', content: 'first' },
 		]

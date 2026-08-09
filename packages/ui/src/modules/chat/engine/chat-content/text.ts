@@ -14,6 +14,18 @@ function partText(part: ChatPart): string {
 	switch (part.kind) {
 		case 'text':
 			return part.text
+		// An embed is a view and not prose. Its renderer holds the text — a chart
+		// ships its own data table — and this projection cannot reach it, so a
+		// guess here would put a name the reader never saw into the clipboard, the
+		// search index, and the announcement. Nothing is the honest answer.
+		case 'embed':
+			return ''
+		// A step is already prose, which is what separates it from an embed: the
+		// module wrote the line, so the clipboard, the search index, and the
+		// announcement can all have it. The detail stays out — it is the body
+		// behind a disclosure the reader has not opened.
+		case 'tool':
+			return part.summary ? `${part.name}: ${part.summary}` : part.name
 	}
 }
 

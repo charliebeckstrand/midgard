@@ -8,7 +8,7 @@ import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
-import type { ChatContent } from 'ui/modules/chat'
+import type { ChatMessageData } from 'ui/modules/chat'
 import { ChatTranscript } from 'ui/modules/chat'
 import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
@@ -33,7 +33,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 	const [chats, setChats] = useState(initialChats)
 	const [confirmDeleteChat, setConfirmDeleteChat] = useState<string | null>(null)
 	const [viewChat, setViewChat] = useState<string | null>(null)
-	const [chatMessages, setChatMessages] = useState<ChatContent[]>([])
+	const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([])
 	const [loadingMessages, setLoadingMessages] = useState(false)
 
 	const fetchChatMessages = useCallback(async (chatId: string) => {
@@ -44,7 +44,7 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 		const res = await fetch(`/api/chat/${chatId}`).catch(() => null)
 
 		if (res?.ok) {
-			const { messages } = (await res.json()) as { messages: ChatContent[] }
+			const { messages } = (await res.json()) as { messages: ChatMessageData[] }
 
 			setChatMessages(messages ?? [])
 		}

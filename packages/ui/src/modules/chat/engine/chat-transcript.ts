@@ -11,10 +11,12 @@
  */
 
 import { isEmptyContent } from './chat-content/normalize'
-import type { ChatContent } from './types'
+import type { ChatPart } from './chat-content/types'
+import { applyChunk, failRunningTools } from './chat-stream'
+import type { ChatMessageData } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
-function lastUserIndex(messages: ChatContent[]): number {
+function lastUserIndex(messages: ChatMessageData[]): number {
 	return messages.findLastIndex((message) => message.role === 'user')
 }
 
@@ -25,10 +27,10 @@ function lastUserIndex(messages: ChatContent[]): number {
  * @internal
  */
 export function appendUserMessage(
-	messages: ChatContent[],
+	messages: ChatMessageData[],
 	id: string,
 	content: string,
-): ChatContent[] {
+): ChatMessageData[] {
 	return [...messages, { id, role: 'user', content }]
 }
 
@@ -38,24 +40,28 @@ export function appendUserMessage(
  *
  * @internal
  */
-export function openReply(messages: ChatContent[], id: string): ChatContent[] {
+export function openReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
 	return [...messages, { id, role: 'assistant', content: '' }]
 }
 
 /**
- * The transcript with one cumulative snapshot in the reply `id` names. A
- * snapshot is the full reply so far, so it replaces the bubble's content rather
- * than extends it. An id that names no message changes nothing.
+ * The transcript with one transport chunk folded into the reply `id` names. An
+ * id that names no message changes nothing.
+ *
+ * The fold itself is [`applyChunk`](chat-stream.ts): a string is the full reply
+ * so far and replaces the running text, and a part list carries the blocks that
+ * changed and merges by id. This rule only finds the reply the chunk belongs
+ * to; what a chunk means to the content it lands in belongs to one place.
  *
  * @internal
  */
-export function applyReplySnapshot(
-	messages: ChatContent[],
+export function applyReplyChunk(
+	messages: ChatMessageData[],
 	id: string,
-	snapshot: string,
-): ChatContent[] {
+	chunk: string | ChatPart[],
+): ChatMessageData[] {
 	return messages.map((message) =>
-		message.id === id ? { ...message, content: snapshot } : message,
+		message.id === id ? { ...message, content: applyChunk(message.content, chunk) } : message,
 	)
 }
 
@@ -73,8 +79,41 @@ export function applyReplySnapshot(
  *
  * @internal
  */
-export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent[] {
+export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMessageData[] {
 	return messages.filter((message) => !(message.id === id && isEmptyContent(message.content)))
+}
+
+/**
+ * The transcript with every still-running step in the reply `id` names marked
+ * failed. An id that names no message, and a reply holding no running step,
+ * both change nothing — and return the transcript by reference, so the settle
+ * costs a re-render only where it settled something.
+ *
+ * This is what lets a `tool` block carry a `running` status at all. The chat
+ * roadmap refuted a per-part completeness flag on the grounds that nothing in
+ * the shell settles one, so a stopped or failed reply would strand a part as
+ * forever unfinished and draw a spinner that never stops. `useChatSend` runs
+ * this rule in its `finally`, which every exit takes — the last chunk, a stop,
+ * or a throw — so no step outlives the stream that opened it.
+ *
+ * The settle itself is [`failRunningTools`](chat-stream.ts), beside the fold a
+ * chunk takes. This rule only finds the reply, as `applyReplyChunk` above it
+ * only finds the reply: what an end-of-stream means to the content it lands in
+ * belongs in one place, with the switch over part kinds that a later kind
+ * extends.
+ *
+ * @internal
+ */
+export function failReplyTools(messages: ChatMessageData[], id: string): ChatMessageData[] {
+	const reply = messages.find((message) => message.id === id)
+
+	if (!reply) return messages
+
+	const settled = failRunningTools(reply.content)
+
+	if (settled === reply.content) return messages
+
+	return messages.map((message) => (message.id === id ? { ...message, content: settled } : message))
 }
 
 /**
@@ -87,7 +126,7 @@ export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent
  *
  * @internal
  */
-function hasMessageId(message: ChatContent): message is ChatContent & { id: string } {
+function hasMessageId(message: ChatMessageData): message is ChatMessageData & { id: string } {
 	return Boolean(message.id)
 }
 
@@ -107,7 +146,7 @@ function hasMessageId(message: ChatContent): message is ChatContent & { id: stri
  * @internal
  * @param mintId - Returns the id for one message that carries none.
  */
-export function seedMessages(messages: ChatContent[], mintId: () => string): ChatContent[] {
+export function seedMessages(messages: ChatMessageData[], mintId: () => string): ChatMessageData[] {
 	return messages.map((message) => (hasMessageId(message) ? message : { ...message, id: mintId() }))
 }
 
@@ -122,7 +161,7 @@ export function seedMessages(messages: ChatContent[], mintId: () => string): Cha
  *
  * @internal
  */
-export function duplicateMessageIds(messages: ChatContent[]): string[] {
+export function duplicateMessageIds(messages: ChatMessageData[]): string[] {
 	const seen = new Set<string>()
 
 	const duplicates = new Set<string>()
@@ -143,7 +182,7 @@ export function duplicateMessageIds(messages: ChatContent[]): string[] {
  *
  * @internal
  */
-export function lastUserMessage(messages: ChatContent[]): ChatContent | undefined {
+export function lastUserMessage(messages: ChatMessageData[]): ChatMessageData | undefined {
 	const index = lastUserIndex(messages)
 
 	return index === -1 ? undefined : messages[index]
@@ -156,7 +195,7 @@ export function lastUserMessage(messages: ChatContent[]): ChatContent | undefine
  *
  * @internal
  */
-export function truncateToLastUserMessage(messages: ChatContent[]): ChatContent[] {
+export function truncateToLastUserMessage(messages: ChatMessageData[]): ChatMessageData[] {
 	const index = lastUserIndex(messages)
 
 	return index === -1 ? messages : messages.slice(0, index + 1)
@@ -168,7 +207,7 @@ export function truncateToLastUserMessage(messages: ChatContent[]): ChatContent[
  *
  * @internal
  */
-export function userMessage(messages: ChatContent[], id: string): ChatContent | undefined {
+export function userMessage(messages: ChatMessageData[], id: string): ChatMessageData | undefined {
 	return messages.find((message) => message.id === id && message.role === 'user')
 }
 
@@ -180,10 +219,10 @@ export function userMessage(messages: ChatContent[], id: string): ChatContent | 
  * @internal
  */
 export function truncateToEditedMessage(
-	messages: ChatContent[],
+	messages: ChatMessageData[],
 	id: string,
 	content: string,
-): ChatContent[] {
+): ChatMessageData[] {
 	const index = messages.findIndex((message) => message.id === id)
 
 	// An id no message carries reads as -1, and `messages[-1]` is undefined, so

@@ -1,9 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import type { ChatContent } from '../../modules/chat'
+import type { ChatMessageData } from '../../modules/chat'
 import { ChatTranscript } from '../../modules/chat'
-import { allBySlot, bySlot, present, renderUI, screen } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	liveRegion,
+	present,
+	renderUI,
+	screen,
+} from '../helpers'
 
-const messages: ChatContent[] = [
+const messages: ChatMessageData[] = [
 	{ id: '1', role: 'user', content: 'Hi there' },
 	{ id: '2', role: 'assistant', content: 'Hello!' },
 ]
@@ -55,5 +63,70 @@ describe('ChatTranscript', () => {
 		expect(pulsing).toHaveLength(1)
 
 		expect(present(pulsing[0], 'streaming bubble')).toHaveTextContent('Hello!')
+	})
+
+	describe('the reply a reader cannot see', () => {
+		/** A transcript holding the reader's own message, with no reply to it yet. */
+		const sent: ChatMessageData[] = [{ id: '1', role: 'user', content: 'Hi there' }]
+
+		/** That transcript mid-reply, at whatever the bubble holds so far. */
+		const arriving = (content: string) => (
+			<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} streaming />
+		)
+
+		/** The same transcript once the reply settled. */
+		const settled = (content: string) => (
+			<ChatTranscript messages={[...sent, { id: '2', role: 'assistant', content }]} />
+		)
+
+		it('is a log whose own aria-live is off, so the announcer is the only channel', () => {
+			// The role says what the region is. Leaving it live as well would put a
+			// second channel over one reply and read it twice.
+			const { container } = renderUI(<ChatTranscript messages={messages} />)
+
+			const transcript = present(bySlot(container, 'chat-transcript'), 'transcript')
+
+			expect(transcript).toHaveAttribute('role', 'log')
+
+			expect(transcript).toHaveAttribute('aria-live', 'off')
+		})
+
+		it('stays silent when it mounts with its history in hand', () => {
+			// The announcer creates its region on the first announcement, so no
+			// region at all is the proof that a reloaded transcript reads nothing.
+			renderUI(<ChatTranscript messages={messages} />)
+
+			expect(liveRegion()).toBeNull()
+		})
+
+		it('says a reply started, then says the reply once it settles', async () => {
+			const { rerender } = renderUI(<ChatTranscript messages={sent} />)
+
+			expect(liveRegion()).toBeNull()
+
+			rerender(arriving(''))
+
+			await expectAnnouncement('Assistant is replying')
+
+			rerender(settled('Twelve stops are late.'))
+
+			await expectAnnouncement('Twelve stops are late.')
+		})
+
+		it('says nothing per chunk while the reply rewrites itself', async () => {
+			const { rerender } = renderUI(<ChatTranscript messages={sent} />)
+
+			rerender(arriving('Twelve'))
+
+			await expectAnnouncement('Assistant is replying')
+
+			rerender(arriving('Twelve stops'))
+
+			rerender(arriving('Twelve stops are late.'))
+
+			// Still the start line: no chunk reached the region, and the settled
+			// reply has not been spoken because the reply has not settled.
+			expect(liveRegion()).toHaveTextContent('Assistant is replying')
+		})
 	})
 })

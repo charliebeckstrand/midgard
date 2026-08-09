@@ -1,7 +1,15 @@
 import type { ChatPart } from './chat-content/types'
 
-/** A single message in a chat. */
-export type ChatContent = {
+/**
+ * A single message in a chat: the data a `ChatMessage` draws, as a transcript
+ * holds it.
+ *
+ * The name says message, because that is what the type is. It held `content`
+ * until this rename, which put three names on one axis — the message, its
+ * `content` field, and the `chat-content/` directory that types the field — and
+ * left a reader to work out which one a sentence meant.
+ */
+export type ChatMessageData = {
 	/**
 	 * Names the message in its transcript. A server id where the store holds one,
 	 * and absent for a client-only message until it is persisted; `useChatSend`

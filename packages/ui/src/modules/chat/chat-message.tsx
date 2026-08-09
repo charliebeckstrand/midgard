@@ -2,8 +2,31 @@ import { memo, type ReactNode } from 'react'
 import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
-import { chatContentText } from './engine/chat-content/text'
+import { ChatEmbed } from './chat-embed'
+import { ChatTool } from './chat-tool'
 import type { ChatPart } from './engine/chat-content/types'
+
+/**
+ * One block of a message. The switch holds every kind, so a kind added later
+ * cannot reach the bubble undrawn — the compiler asks for its arm, as it does
+ * for the projection and the emptiness rule.
+ *
+ * A text block lexes on its own rather than joined to its neighbours. Each
+ * `Markdown` is then memoized on its own string, so a settled block above a
+ * streaming one skips its re-lex on every chunk.
+ *
+ * @internal
+ */
+function ChatMessageBlock({ part, className }: { part: ChatPart; className?: string }) {
+	switch (part.kind) {
+		case 'text':
+			return <Markdown className={className}>{part.text}</Markdown>
+		case 'embed':
+			return <ChatEmbed part={part} className={className} />
+		case 'tool':
+			return <ChatTool part={part} className={className} />
+	}
+}
 
 /** Props for {@link ChatMessage}. */
 export type ChatMessageProps = ChatMessageVariants & {
@@ -39,9 +62,15 @@ export type ChatMessageProps = ChatMessageVariants & {
  * takes the progress cursor and projects a pulse onto that prose, settling to a
  * steady bubble the moment streaming ends. The kata holds the whole look.
  *
- * A part list projects to one Markdown body, so a bubble draws one
- * {@link Markdown} whichever arm it gets. One wrapper holds the prose rhythm,
- * as it does for a string. Increment 4 gives each block its own renderer.
+ * A part list draws one block per part, each keyed by the part's own id: a text
+ * block is its own {@link Markdown}, and an `embed` block is whatever renderer
+ * {@link ChatEmbedProvider} registered under its name. The string arm still
+ * draws exactly one {@link Markdown} over the string itself, so a transcript of
+ * prose allocates nothing per render and lexes once, as it did before parts
+ * existed.
+ *
+ * The pulse rides each drawn {@link Markdown}, so a streaming reply that has
+ * already landed a chart pulses its prose and leaves the chart steady.
  *
  * Memoized on its (shallow-equal) props, so a transcript's settled bubbles skip
  * re-rendering — and re-lexing their Markdown — while only the streaming
@@ -69,7 +98,17 @@ export const ChatMessage = memo(function ChatMessage({
 				<span data-slot="chat-message-author" className="sr-only">
 					{author}:{' '}
 				</span>
-				<Markdown>{chatContentText(children)}</Markdown>
+				{typeof children === 'string' ? (
+					<Markdown>{children}</Markdown>
+				) : (
+					children.map((part, index) => (
+						<ChatMessageBlock
+							key={part.id}
+							part={part}
+							className={index === 0 ? undefined : cn(k.part)}
+						/>
+					))
+				)}
 			</div>
 			{timestamp !== undefined && (
 				<div data-slot="chat-message-timestamp" className={cn(k.timestamp)}>

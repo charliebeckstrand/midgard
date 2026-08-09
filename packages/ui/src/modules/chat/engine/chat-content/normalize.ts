@@ -43,6 +43,16 @@ function isEmptyPart(part: ChatPart): boolean {
 	switch (part.kind) {
 		case 'text':
 			return part.text === ''
+		// An embed holds something the moment it names a renderer. It draws no
+		// prose, so the projection reads it as nothing; the rollback must not, or a
+		// reply that arrived as a chart alone would be discarded as an empty one.
+		case 'embed':
+			return false
+		// A step holds something the moment it names what ran, which it always
+		// does. A reply that opened with a running query and then failed is not an
+		// empty reply — it is a reply that shows the query it was running.
+		case 'tool':
+			return false
 	}
 }
 

@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { chatContentText } from './engine/chat-content/text'
+import type { ChatPart } from './engine/chat-content/types'
 import { draftContent } from './engine/chat-draft'
 import {
 	appendUserMessage,
-	applyReplySnapshot,
+	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failReplyTools,
 	lastUserMessage,
 	openReply,
 	seedMessages,
@@ -15,7 +17,7 @@ import {
 	truncateToLastUserMessage,
 	userMessage,
 } from './engine/chat-transcript'
-import type { ChatContent } from './engine/types'
+import type { ChatMessageData } from './engine/types'
 
 /**
  * Fails loud in dev — once per mount — when two seed messages share an id.
@@ -31,7 +33,7 @@ import type { ChatContent } from './engine/types'
  *
  * @internal
  */
-function useDuplicateSeedIdWarning(seed: ChatContent[] | undefined): void {
+function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
 	const warned = useRef(false)
 
 	useEffect(() => {
@@ -50,26 +52,38 @@ function useDuplicateSeedIdWarning(seed: ChatContent[] | undefined): void {
 }
 
 /**
- * Produces an assistant reply for a sent message as a stream of cumulative snapshots.
+ * Produces an assistant reply for a sent message as a stream of chunks.
  *
  * @remarks
- * Each yielded string is the *full* reply so far (not a delta), so the
- * assistant bubble is replaced — not appended — on every chunk; this mirrors SSE
- * transports that emit the running text. Yield once for a non-streaming reply.
+ * A chunk is a string or a list of {@link ChatPart}s, and the two mean
+ * different things. Each yielded *string* is the full reply's prose so far (not
+ * a delta), so it replaces the bubble's running text rather than extends it;
+ * this mirrors SSE transports that emit the running text, and a transport that
+ * yields only strings behaves exactly as it did before parts existed. Each
+ * yielded *part list* carries the blocks that changed, and it merges into the
+ * reply by part id — so a chart yielded after two paragraphs joins them instead
+ * of replacing them, and a later string chunk keeps writing the prose without
+ * touching the chart. Yield once for a non-streaming reply.
+ *
+ * Name every part. A merge reads a part's id and never its position, because an
+ * insertion moves every position after it. A part yielded under an id the reply
+ * already holds replaces that block whole, which is how a tool call that turns
+ * from running to done reports itself.
+ *
  * Throwing (or rejecting) rolls back the empty assistant placeholder and triggers
  * {@link UseChatSendOptions.onError}. `signal` aborts when {@link UseChatSend.stop}
  * is called; forward it to the underlying request (e.g. `fetch(url, { signal })`)
  * so the transport stops producing, not just the hook consuming — a transport
- * that ignores it still has its snapshots dropped, but keeps running underneath.
+ * that ignores it still has its chunks dropped, but keeps running underneath.
  *
  * @param content - The trimmed user message being sent.
  * @param signal - Aborts when the send is stopped.
- * @returns An async iterable of cumulative reply snapshots.
+ * @returns An async iterable of reply chunks.
  */
 export type ChatTransport = (
 	content: string,
 	signal: AbortSignal,
-) => AsyncIterable<string> | Promise<AsyncIterable<string>>
+) => AsyncIterable<string | ChatPart[]> | Promise<AsyncIterable<string | ChatPart[]>>
 
 /** Options for {@link useChatSend}. */
 export type UseChatSendOptions = {
@@ -89,7 +103,7 @@ export type UseChatSendOptions = {
 	 * transcript reads it. Two messages under one id are edited, truncated, and
 	 * rolled back together, so a duplicate warns once in development.
 	 */
-	initialMessages?: ChatContent[]
+	initialMessages?: ChatMessageData[]
 	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
 	transport: ChatTransport
 	/**
@@ -98,7 +112,7 @@ export type UseChatSendOptions = {
 	 * @remarks
 	 * This reports the completed send, not the submit gesture. The gesture is
 	 * `useChatDraft`'s `onSubmit`, which fires when the composer submits; this
-	 * fires after the transport's last snapshot lands. A stop or a transport
+	 * fires after the transport's last chunk lands. A stop or a transport
 	 * failure skips it.
 	 */
 	onSent?: (content: string) => void
@@ -109,7 +123,7 @@ export type UseChatSendOptions = {
 /** Return shape of {@link useChatSend}. */
 export type UseChatSend = {
 	/** The live message list (optimistic user message + streamed assistant reply). */
-	messages: ChatContent[]
+	messages: ChatMessageData[]
 	/** True while a reply is in flight. */
 	streaming: boolean
 	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
@@ -130,12 +144,12 @@ export type UseChatSend = {
 	edit: (id: string, content: string) => Promise<void>
 	/**
 	 * Aborts the in-flight send, retry, or edit, via the {@link ChatTransport}'s
-	 * `signal`. No-ops when nothing is in flight. Whatever snapshot already
+	 * `signal`. No-ops when nothing is in flight. Whatever the reply already
 	 * landed in the assistant bubble stays; `onError` and `onSent` do not fire.
 	 */
 	stop: () => void
 	/** Escape hatch for direct list edits (e.g. seeding history or clearing). */
-	setMessages: React.Dispatch<React.SetStateAction<ChatContent[]>>
+	setMessages: React.Dispatch<React.SetStateAction<ChatMessageData[]>>
 }
 
 /**
@@ -143,15 +157,16 @@ export type UseChatSend = {
  *
  * @remarks
  * `send` optimistically appends the user message, opens an empty assistant bubble,
- * then replaces that bubble's text with each snapshot the {@link ChatTransport}
- * yields. {@link UseChatSend.retry} and {@link UseChatSend.edit} share that same
+ * then folds each chunk the {@link ChatTransport} yields into that bubble — a
+ * string replaces its running prose, a part list merges into its blocks by id.
+ * {@link UseChatSend.retry} and {@link UseChatSend.edit} share that same
  * streaming path — re-pointed at the last user message's content, or an edited
  * one — after trimming the transcript back to (and, for `edit`, including) that
  * message. Across all three, a transport failure drops the still-empty
  * placeholder (keyed by id, so concurrent or prior empty bubbles are untouched),
  * keeps the user message, and fires `onError`. {@link UseChatSend.stop} aborts
- * whichever of the three is in flight, leaving the bubble at its last-applied
- * snapshot without treating the stop as an error. The transport is supplied by
+ * whichever of the three is in flight, leaving the bubble at its last-folded
+ * chunk without treating the stop as an error. The transport is supplied by
  * the caller, keeping this hook free of any framework, endpoint, or wire-format
  * assumptions.
  *
@@ -164,7 +179,7 @@ export function useChatSend({
 	onSent,
 	onError,
 }: UseChatSendOptions): UseChatSend {
-	const [messages, setMessages] = useState<ChatContent[]>(() =>
+	const [messages, setMessages] = useState<ChatMessageData[]>(() =>
 		seedMessages(initialMessages ?? [], () => crypto.randomUUID()),
 	)
 
@@ -193,13 +208,14 @@ export function useChatSend({
 
 				setMessages((prev) => openReply(prev, replyId))
 
-				for await (const snapshot of stream) {
-					// Checked first so a stop mid-stream leaves the bubble at its last
-					// snapshot; breaking here also calls the async iterator's `return`,
-					// so a well-behaved transport's cleanup (e.g. releasing a reader) runs.
+				for await (const chunk of stream) {
+					// Checked first so a stop mid-stream leaves the bubble at the last
+					// chunk it folded; breaking here also calls the async iterator's
+					// `return`, so a well-behaved transport's cleanup (e.g. releasing a
+					// reader) runs.
 					if (controller.signal.aborted) break
 
-					setMessages((prev) => applyReplySnapshot(prev, replyId, snapshot))
+					setMessages((prev) => applyReplyChunk(prev, replyId, chunk))
 				}
 
 				if (!controller.signal.aborted) onSent?.(text)
@@ -211,6 +227,13 @@ export function useChatSend({
 
 				onError?.(error)
 			} finally {
+				// Every exit lands here — the last chunk, a stop, a throw — which is
+				// what keeps a `tool` block from outliving the stream that opened it.
+				// A step still marked running would otherwise draw a spinner nothing
+				// ever stops, the defect that kept a per-part status out of the design
+				// until the shell could settle one.
+				setMessages((prev) => failReplyTools(prev, replyId))
+
 				controllerRef.current = null
 
 				setStreaming(false)
