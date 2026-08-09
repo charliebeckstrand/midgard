@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat, useMapZoomScale } from './context'
-import { crowdedMarks } from './engine/map-cluster/crowd'
+import { fineMarks } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { clusterGap, clusterPoints, groupsByMember } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
@@ -238,16 +238,15 @@ export function MapPoints({
 	// the zoom on the beat the grouping does: the pair a zoom has just parted sits
 	// ~15px apart, well inside a 44px target, and stays precise until the view
 	// carries them clear of one another.
-	const fine = useMemo(() => {
-		const crowded = crowdedMarks(
-			groups.map((group) => ({ at: group.at, radius: clusterRadius(group.members.length) })),
-			unitsPerPixel,
-		)
-
-		return groups.map(
-			(group, index) => crowded[index] === true || (group.at !== null && covered(group.at)),
-		)
-	}, [groups, covered, unitsPerPixel])
+	const fine = useMemo(
+		() =>
+			fineMarks(
+				groups.map((group) => ({ at: group.at, radius: clusterRadius(group.members.length) })),
+				unitsPerPixel,
+				covered,
+			),
+		[groups, covered, unitsPerPixel],
+	)
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.

@@ -2,6 +2,7 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { fineMarks } from './engine/map-cluster/crowd'
 import { POINT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { LngLat } from './engine/types'
@@ -85,9 +86,13 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 						hit: hit(),
 						scale: unitsPerPixel,
 						radius: POINT_RADIUS,
-						// The mark draws one dot, so a zone under it is the whole question:
-						// it has no neighbour of its own to swallow.
-						fine: covered(position),
+						// The shared rule, through the one dot this mark draws. A lone dot has
+						// no neighbour of its own, so a zone under it is what can answer — but
+						// the rule stays in one place, and a third reason to give the ground
+						// back would reach this mark without it being edited.
+						fine:
+							fineMarks([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, covered)[0] ===
+							true,
 					})}
 				/>
 			</g>

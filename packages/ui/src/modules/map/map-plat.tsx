@@ -609,11 +609,16 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// stable, so a zone redrawn in place keeps this identity and the dots reading
 	// it hold through a refit rather than re-testing every dot per pointer
 	// crossing.
+	// A loop rather than a `some` closure: every dot on the map calls this, and the
+	// callback would be a fresh allocation per call rather than per rebuild.
 	const covered = useCallback(
-		(at: MapPoint2D) =>
-			entries.some(
-				(entry) => entry.covers !== undefined && !hidden.has(entry.id) && entry.covers(at),
-			),
+		(at: MapPoint2D) => {
+			for (const entry of entries) {
+				if (entry.covers !== undefined && !hidden.has(entry.id) && entry.covers(at)) return true
+			}
+
+			return false
+		},
 		[entries, hidden],
 	)
 

@@ -42,6 +42,22 @@ export function cellOf(at: MapPoint2D, reach: number): number {
 	return cellKey(Math.floor(at.x / reach), Math.floor(at.y / reach))
 }
 
+/**
+ * The squared distance between two frame points, so a comparison takes no square
+ * root. Held here with the grid rather than in either pass that reads it: the
+ * clustering rule and the crowding rule both measure marks against a reach, and
+ * one copy each is one place for the two to drift.
+ *
+ * @internal
+ */
+export function squared(a: MapPoint2D, b: MapPoint2D): number {
+	const dx = a.x - b.x
+
+	const dy = a.y - b.y
+
+	return dx * dx + dy * dy
+}
+
 /** The bucket for a cell, created empty on first use. @internal */
 export function bucket<T>(cells: Map<number, T[]>, key: number): T[] {
 	const held = cells.get(key)

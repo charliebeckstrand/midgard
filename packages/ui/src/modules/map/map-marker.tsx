@@ -4,11 +4,11 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { crowdedMarks } from './engine/map-cluster/crowd'
+import { fineMarks } from './engine/map-cluster/crowd'
 import { PIN_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
-import type { LngLat, MapPoint2D } from './engine/types'
+import type { LngLat } from './engine/types'
 import { dotHitProps, MapDot } from './map-dot'
 import { MapDotHalo, MapHalo } from './map-halo'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -25,38 +25,6 @@ export type MapMarkerProps = MapOverlayProps & {
 	 * empty (a totals-only routed leg).
 	 */
 	path?: LngLat[]
-}
-
-/**
- * Whether each pin gives back the ground a finger-sized target over it would
- * claim. The pins are each other's neighbours, so a short leg is this mark's own
- * crowding case: a target on one end covering the other would take that pin's
- * readout with it, and the pin a reader can see would answer nothing. A zone
- * either pin stands on earns it the same way, as it does for a lone point.
- *
- * Resolved for the pair at once, because crowding is a fact about the leg rather
- * than about one end of it.
- *
- * @internal
- */
-function pinTargets(
-	from: MapPoint2D | null,
-	to: MapPoint2D | null,
-	unitsPerPixel: number,
-	covered: (at: MapPoint2D) => boolean,
-): { start: boolean; end: boolean } {
-	const pins = [
-		{ at: from, radius: PIN_RADIUS },
-		{ at: to, radius: PIN_RADIUS },
-	]
-
-	const crowded = crowdedMarks(pins, unitsPerPixel)
-
-	const [start = false, end = false] = pins.map(
-		(pin, index) => crowded[index] === true || (pin.at !== null && covered(pin.at)),
-	)
-
-	return { start, end }
 }
 
 /**
@@ -114,9 +82,21 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 
 	const to = project(end)
 
-	const fine = pinTargets(from, to, unitsPerPixel, covered)
-
 	if (slot === undefined || hidden || (d === '' && from === null && to === null)) return null
+
+	// The shared rule, over the pair at once: the pins are each other's
+	// neighbours, so a short leg is this mark's own crowding case — a target on one
+	// end covering the other would take that pin's readout with it. Resolved below
+	// the guard, so a marker the legend has toggled off pays nothing on the pointer
+	// crossings that still re-render it.
+	const [fineStart = false, fineEnd = false] = fineMarks(
+		[
+			{ at: from, radius: PIN_RADIUS },
+			{ at: to, radius: PIN_RADIUS },
+		],
+		unitsPerPixel,
+		covered,
+	)
 
 	const paint = k.series[slot]
 
@@ -207,7 +187,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							hit: hit(),
 							scale: unitsPerPixel,
 							radius: PIN_RADIUS,
-							fine: fine.start,
+							fine: fineStart,
 						})}
 					/>
 				)}
@@ -220,7 +200,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							hit: hit(),
 							scale: unitsPerPixel,
 							radius: PIN_RADIUS,
-							fine: fine.end,
+							fine: fineEnd,
 						})}
 					/>
 				)}

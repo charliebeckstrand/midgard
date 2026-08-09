@@ -181,7 +181,7 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		'data-slot': 'map-geofence-wash',
 		d,
 		stroke: 'none',
-		// See `areaPath` for why even-odd; a single-ring zone fills the same under
+		// See `ringsPath` for why even-odd; a single-ring zone fills the same under
 		// both rules, so the circle and the lone boundary are unaffected.
 		fillRule: 'evenodd' as const,
 		fillOpacity: GEOFENCE_FILL_OPACITY,
