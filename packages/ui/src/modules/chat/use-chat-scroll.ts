@@ -14,9 +14,11 @@ import { useScrollWithin } from '../../hooks'
  * that, whenever `dependency` changes — pass the message list (or its length)
  * — the sentinel smooth-scrolls to the bottom on the next animation frame,
  * after the appended content has laid out, so streamed chunks stay in view.
- * The scroll is scoped to the nearest overflowing ancestor (via
- * {@link useScrollWithin}), so an outer page or layout container is never
- * dragged out of view. `scrollToBottom` is exposed for imperative scrolls
+ * The scroll is confined to the transcript's own scroll container (via
+ * {@link useScrollWithin}'s `confine`), so an outer page or layout container is
+ * never dragged out of view — including when the transcript is short enough not
+ * to overflow, where an unconfined walk would pass through it and scroll
+ * whatever container outside it does. `scrollToBottom` is exposed for imperative scrolls
  * (e.g. after an attachment renders).
  *
  * @typeParam T - The watched dependency's type; identity changes drive the scroll.
@@ -30,13 +32,13 @@ export function useChatScroll<T>(dependency?: T) {
 
 	const scrollToBottom = useCallback(() => {
 		requestAnimationFrame(() => {
-			scrollWithin(ref.current, { block: 'end', behavior: 'smooth' })
+			scrollWithin(ref.current, { block: 'end', behavior: 'smooth', confine: true })
 		})
 	}, [scrollWithin])
 
 	// Runs before paint so the initial position is the bottom, not a glide toward it.
 	useLayoutEffect(() => {
-		scrollWithin(ref.current, { block: 'end', behavior: 'auto' })
+		scrollWithin(ref.current, { block: 'end', behavior: 'auto', confine: true })
 	}, [scrollWithin])
 
 	const mounted = useRef(false)

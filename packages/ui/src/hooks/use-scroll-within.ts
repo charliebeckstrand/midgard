@@ -3,6 +3,14 @@
 type ScrollWithinOptions = {
 	behavior?: ScrollBehavior
 	block?: 'start' | 'center' | 'end' | 'nearest'
+	/**
+	 * Treat the first ancestor that *declares* a scroll style as the boundary,
+	 * even while it has nothing to scroll. Off by default, which keeps the walk
+	 * looking outward for a container that can actually move.
+	 *
+	 * @defaultValue false
+	 */
+	confine?: boolean
 }
 
 /**
@@ -12,9 +20,16 @@ type ScrollWithinOptions = {
  * never meant to touch (e.g. a short sidebar inside a clipped frame scrolling
  * the whole page on mount).
  *
+ * `confine` closes the other way out. An ancestor that declares `auto` but does
+ * not currently overflow neither scrolls nor clips, so the plain walk passes
+ * straight through it and can land on the page — and whether it overflows is a
+ * property of the content, so the same call scrolls its own container on a long
+ * list and the page on a short one. A caller that owns its scroller wants it as
+ * the boundary either way.
+ *
  * @internal
  */
-function findScrollAncestor(node: HTMLElement): HTMLElement | null {
+function findScrollAncestor(node: HTMLElement, confine: boolean): HTMLElement | null {
 	let scroller = node.parentElement
 
 	while (scroller) {
@@ -22,9 +37,13 @@ function findScrollAncestor(node: HTMLElement): HTMLElement | null {
 
 		const scrollable = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
 
-		// Require the ancestor to overflow, not merely declare a scroll style;
-		// scrollTo no-ops on a non-overflowing wrapper.
-		if (scrollable && scroller.scrollHeight > scroller.clientHeight) return scroller
+		if (scrollable) {
+			// Require the ancestor to overflow, not merely declare a scroll style;
+			// scrollTo no-ops on a non-overflowing wrapper.
+			if (scroller.scrollHeight > scroller.clientHeight) return scroller
+
+			if (confine) return null
+		}
 
 		if (overflowY === 'hidden' || overflowY === 'clip') return null
 
@@ -38,9 +57,9 @@ function findScrollAncestor(node: HTMLElement): HTMLElement | null {
 function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {}) {
 	if (!node) return
 
-	const { behavior = 'auto', block = 'nearest' } = options
+	const { behavior = 'auto', block = 'nearest', confine = false } = options
 
-	const scroller = findScrollAncestor(node)
+	const scroller = findScrollAncestor(node, confine)
 
 	if (!scroller) return
 
@@ -82,10 +101,12 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
  * scrollable ancestor, without affecting any outer scroll containers.
  * Mirrors the `block`/`behavior` options of native `scrollIntoView`.
  *
- * @returns A stable `(node, { block?, behavior? }?) => void`. It walks up to
- * the first overflowing ancestor and stops at any clipping (`overflow:
- * hidden`/`clip`) boundary, so a node in a non-overflowing wrapper never
- * scrolls the page.
+ * @returns A stable `(node, { block?, behavior?, confine? }?) => void`. It walks
+ * up to the first overflowing ancestor and stops at any clipping (`overflow:
+ * hidden`/`clip`) boundary. Pass `confine` for a caller that owns its scroll
+ * container: the walk then also stops at an ancestor that declares a scroll
+ * style but has nothing to scroll, rather than passing through it to whatever
+ * outer container happens to overflow.
  */
 export function useScrollWithin() {
 	return scrollWithin

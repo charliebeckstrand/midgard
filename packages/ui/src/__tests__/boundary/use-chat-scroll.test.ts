@@ -25,7 +25,11 @@ describe('useChatScroll', () => {
 
 		renderHook(() => useChatScroll('a'))
 
-		expect(scrollWithin).toHaveBeenCalledWith(null, { block: 'end', behavior: 'auto' })
+		expect(scrollWithin).toHaveBeenCalledWith(null, {
+			block: 'end',
+			behavior: 'auto',
+			confine: true,
+		})
 	})
 
 	it('does not also queue a smooth scroll on the mount pass', () => {
@@ -73,6 +77,10 @@ describe('useChatScroll', () => {
 
 		act(() => rafCallback?.(0))
 
-		expect(scrollWithin).toHaveBeenCalledWith(null, { block: 'end', behavior: 'smooth' })
+		expect(scrollWithin).toHaveBeenCalledWith(null, {
+			block: 'end',
+			behavior: 'smooth',
+			confine: true,
+		})
 	})
 })
