@@ -59,7 +59,9 @@ function releasePdf(controller: PdfLoadController) {
 	controller.renderTask?.cancel()
 	controller.renderTask = null
 
-	controller.doc?.destroy()
+	// Destroy through the loading task: pdf.js 6 removed `PDFDocumentProxy.destroy`,
+	// which was an alias for this. It aborts the network requests and the worker.
+	controller.doc?.loadingTask.destroy()
 	controller.doc = null
 }
 
