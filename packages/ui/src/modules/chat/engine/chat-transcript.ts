@@ -5,8 +5,9 @@
  * drives the transport.
  *
  * No rule here reads a clock or a random source, because the caller supplies
- * each id. That is what makes the drop rule provable: a test can name the reply
- * that one send opened.
+ * each id — as an argument, or through the function `seedMessages` calls. That
+ * is what makes the drop rule provable: a test can name the reply that one send
+ * opened.
  */
 
 import { isEmptyContent } from './chat-content/normalize'
@@ -77,6 +78,40 @@ export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent
 }
 
 /**
+ * Whether a message names itself. An empty id is no id: a rule that matched on
+ * `''` would name every message that carries none.
+ *
+ * `seedMessages` and `duplicateMessageIds` both read this, so the rule that
+ * assigns an id and the rule that reports a collision cannot disagree about what
+ * an id is.
+ *
+ * @internal
+ */
+function hasMessageId(message: ChatContent): message is ChatContent & { id: string } {
+	return Boolean(message.id)
+}
+
+/**
+ * The transcript with an id on every message: one that carries an id keeps it,
+ * and one that carries none takes the next id `mintId` returns.
+ *
+ * A seed message's id is the one a store persisted. Every target the transcript
+ * holds is named by it, so a fresh id would re-key the whole conversation at
+ * each mount, and a target written before a reload would name a message that no
+ * longer exists.
+ *
+ * The caller mints, as it does for every rule here. It mints through a function
+ * rather than an argument, because the rule cannot know how many ids it needs
+ * until it reads the list — and a test can still name every id it assigns.
+ *
+ * @internal
+ * @param mintId - Returns the id for one message that carries none.
+ */
+export function seedMessages(messages: ChatContent[], mintId: () => string): ChatContent[] {
+	return messages.map((message) => (hasMessageId(message) ? message : { ...message, id: mintId() }))
+}
+
+/**
  * The ids that more than one message carries, in the order a second message
  * claims each. An empty list means every message names itself.
  *
@@ -84,9 +119,6 @@ export function dropEmptyReply(messages: ChatContent[], id: string): ChatContent
  * id are edited, truncated, and rolled back together. The shell warns on this in
  * development; the rule is here because it is a fact about a transcript, and a
  * pure test can state it.
- *
- * A message with no id is skipped, because the shell assigns it one. That is the
- * same rule the seeding reads, so the two cannot disagree about what an id is.
  *
  * @internal
  */
@@ -96,7 +128,7 @@ export function duplicateMessageIds(messages: ChatContent[]): string[] {
 	const duplicates = new Set<string>()
 
 	for (const message of messages) {
-		if (!message.id) continue
+		if (!hasMessageId(message)) continue
 
 		if (seen.has(message.id)) duplicates.add(message.id)
 		else seen.add(message.id)

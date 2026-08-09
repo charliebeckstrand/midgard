@@ -10,6 +10,7 @@ import {
 	duplicateMessageIds,
 	lastUserMessage,
 	openReply,
+	seedMessages,
 	truncateToEditedMessage,
 	truncateToLastUserMessage,
 	userMessage,
@@ -86,9 +87,7 @@ export type UseChatSendOptions = {
 	 *
 	 * An id must be unique in the transcript, because every rule over the
 	 * transcript reads it. Two messages under one id are edited, truncated, and
-	 * rolled back together, so a duplicate warns in development. The hook reports
-	 * rather than repairs: a minted replacement would discard the id a store
-	 * persisted, which is what the seeding rule exists to keep.
+	 * rolled back together, so a duplicate warns once in development.
 	 */
 	initialMessages?: ChatContent[]
 	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
@@ -165,13 +164,8 @@ export function useChatSend({
 	onSent,
 	onError,
 }: UseChatSendOptions): UseChatSend {
-	// A seed message keeps the id it carries, because that id is what a store
-	// persisted and what every later target names. Only a message with none is
-	// assigned one, so the transcript still holds an id on every message.
 	const [messages, setMessages] = useState<ChatContent[]>(() =>
-		(initialMessages ?? []).map((message) =>
-			message.id ? message : { ...message, id: crypto.randomUUID() },
-		),
+		seedMessages(initialMessages ?? [], () => crypto.randomUUID()),
 	)
 
 	useDuplicateSeedIdWarning(initialMessages)

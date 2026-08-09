@@ -39,10 +39,11 @@ describe('toChatParts', () => {
 		expect(toChatParts('')).toEqual([{ kind: 'text', id: TEXT_PART_ID, text: '' }])
 	})
 
-	it('names the one part it mints with a fixed id, so the engine reads no random source', () => {
-		// Increment 5 replaces the text this name points to, so a string chunk
-		// arriving after a chart neither deletes it nor opens a second running text.
-		expect(toChatParts('Twelve stops are late.')[0]?.id).toBe(TEXT_PART_ID)
+	it('names every string it normalizes with the same id, because the id is fixed', () => {
+		// The engine reads no random source, so increment 5 can replace the text
+		// this one name points to: a string chunk arriving after a chart neither
+		// deletes that chart nor opens a second running text.
+		expect(toChatParts('first')[0]?.id).toBe(toChatParts('second')[0]?.id)
 	})
 
 	it('passes a part list through by reference', () => {
