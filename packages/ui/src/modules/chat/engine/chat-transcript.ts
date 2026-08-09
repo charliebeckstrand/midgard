@@ -11,6 +11,8 @@
  */
 
 import { isEmptyContent } from './chat-content/normalize'
+import type { ChatPart } from './chat-content/types'
+import { applyChunk } from './chat-stream'
 import type { ChatMessageData } from './types'
 
 /** The index of the last user message, or `-1` when the transcript holds none. */
@@ -43,19 +45,23 @@ export function openReply(messages: ChatMessageData[], id: string): ChatMessageD
 }
 
 /**
- * The transcript with one cumulative snapshot in the reply `id` names. A
- * snapshot is the full reply so far, so it replaces the bubble's content rather
- * than extends it. An id that names no message changes nothing.
+ * The transcript with one transport chunk folded into the reply `id` names. An
+ * id that names no message changes nothing.
+ *
+ * The fold itself is [`applyChunk`](chat-stream.ts): a string is the full reply
+ * so far and replaces the running text, and a part list carries the blocks that
+ * changed and merges by id. This rule only finds the reply the chunk belongs
+ * to; what a chunk means to the content it lands in belongs to one place.
  *
  * @internal
  */
-export function applyReplySnapshot(
+export function applyReplyChunk(
 	messages: ChatMessageData[],
 	id: string,
-	snapshot: string,
+	chunk: string | ChatPart[],
 ): ChatMessageData[] {
 	return messages.map((message) =>
-		message.id === id ? { ...message, content: snapshot } : message,
+		message.id === id ? { ...message, content: applyChunk(message.content, chunk) } : message,
 	)
 }
 

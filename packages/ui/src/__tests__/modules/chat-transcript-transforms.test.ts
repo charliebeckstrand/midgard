@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import type { ChatPart } from '../../modules/chat/engine/chat-content/types'
 import {
 	appendUserMessage,
-	applyReplySnapshot,
+	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
 	lastUserMessage,
@@ -47,13 +48,13 @@ describe('openReply', () => {
 	})
 })
 
-describe('applyReplySnapshot', () => {
-	it('replaces the named reply’s content, because a snapshot is cumulative', () => {
+describe('applyReplyChunk', () => {
+	it('replaces the named reply’s prose, because a string chunk is cumulative', () => {
 		const opened = openReply([user('u1', 'hi')], 'r1')
 
-		const first = applyReplySnapshot(opened, 'r1', 'Hel')
+		const first = applyReplyChunk(opened, 'r1', 'Hel')
 
-		expect(applyReplySnapshot(first, 'r1', 'Hello')).toEqual([
+		expect(applyReplyChunk(first, 'r1', 'Hello')).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'Hello'),
 		])
@@ -67,7 +68,7 @@ describe('applyReplySnapshot', () => {
 			assistant('r2', ''),
 		]
 
-		expect(applyReplySnapshot(messages, 'r2', 'second')).toEqual([
+		expect(applyReplyChunk(messages, 'r2', 'second')).toEqual([
 			user('u1', 'hi'),
 			assistant('r1', 'first'),
 			user('u2', 'again'),
@@ -78,7 +79,21 @@ describe('applyReplySnapshot', () => {
 	it('changes nothing for an id that names no message', () => {
 		const messages = [user('u1', 'hi'), assistant('r1', '')]
 
-		expect(applyReplySnapshot(messages, 'absent', 'Hello')).toEqual(messages)
+		expect(applyReplyChunk(messages, 'absent', 'Hello')).toEqual(messages)
+	})
+
+	it('folds a part chunk into the named reply, and leaves the rest alone', () => {
+		// The transform finds the reply; `applyChunk` decides what the chunk means
+		// to the content it lands in. This states only the first half.
+		const chart: ChatPart = { kind: 'embed', id: 'e1', name: 'stops-map', data: null }
+
+		const messages = [user('u1', 'hi'), assistant('r1', 'first'), assistant('r2', '')]
+
+		expect(applyReplyChunk(messages, 'r2', [chart])).toEqual([
+			user('u1', 'hi'),
+			assistant('r1', 'first'),
+			{ id: 'r2', role: 'assistant', content: [chart] },
+		])
 	})
 })
 

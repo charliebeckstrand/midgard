@@ -1,12 +1,12 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { type ChatTransport, useChatSend } from '../../modules/chat'
+import { type ChatPart, type ChatTransport, useChatSend } from '../../modules/chat'
 
-/** A transport that yields the given cumulative snapshots in order. */
-function streamOf(...snapshots: string[]): ChatTransport {
+/** A transport that yields the given chunks in order: cumulative prose, or blocks. */
+function streamOf(...chunks: (string | ChatPart[])[]): ChatTransport {
 	return () =>
 		(async function* () {
-			for (const snapshot of snapshots) yield snapshot
+			for (const chunk of chunks) yield chunk
 		})()
 }
 
@@ -490,5 +490,127 @@ describe('useChatSend', () => {
 		})
 
 		expect(result.current.streaming).toBe(false)
+	})
+})
+
+describe('useChatSend over a stream of parts', () => {
+	const chart: ChatPart = { kind: 'embed', id: 'e1', name: 'stops-trend', data: [4, 14] }
+
+	it('lands a reply that arrives as blocks alone', async () => {
+		const { result } = renderHook(() => useChatSend({ transport: streamOf([chart]) }))
+
+		await act(async () => {
+			await result.current.send('how are stops trending?')
+		})
+
+		expect(result.current.messages.at(-1)).toMatchObject({
+			role: 'assistant',
+			content: [chart],
+		})
+	})
+
+	it('keeps prose already streamed when a block arrives after it', async () => {
+		const { result } = renderHook(() =>
+			useChatSend({ transport: streamOf('Late stops rose.', [chart]) }),
+		)
+
+		await act(async () => {
+			await result.current.send('how are stops trending?')
+		})
+
+		expect(result.current.messages.at(-1)?.content).toEqual([
+			{ kind: 'text', id: 'text', text: 'Late stops rose.' },
+			chart,
+		])
+	})
+
+	it('keeps writing prose after a block, without touching it', async () => {
+		// The whole point of the widening: one reply holds prose that streams
+		// beside a chart that arrived once.
+		const { result } = renderHook(() =>
+			useChatSend({ transport: streamOf('Late stops', [chart], 'Late stops rose to 14.') }),
+		)
+
+		await act(async () => {
+			await result.current.send('how are stops trending?')
+		})
+
+		expect(result.current.messages.at(-1)?.content).toEqual([
+			{ kind: 'text', id: 'text', text: 'Late stops rose to 14.' },
+			chart,
+		])
+	})
+
+	it('leaves a string-only transport rendering exactly as it did', async () => {
+		// The compatibility claim. A transport written before parts existed yields
+		// strings, and the reply it builds stays a string.
+		const { result } = renderHook(() => useChatSend({ transport: streamOf('Hel', 'Hello') }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		expect(result.current.messages.at(-1)?.content).toBe('Hello')
+	})
+
+	it('rolls a failed send back when the reply arrived as no block at all', async () => {
+		const transport: ChatTransport = () =>
+			(async function* () {
+				yield []
+
+				throw new Error('gateway down')
+			})()
+
+		const { result } = renderHook(() => useChatSend({ transport, onError: () => {} }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		expect(result.current.messages).toHaveLength(1)
+
+		expect(result.current.messages[0]).toMatchObject({ role: 'user' })
+	})
+
+	it('keeps a reply that arrived as a block when the send then fails', async () => {
+		// `isEmptyContent` reads structure, so a chart with no prose around it is a
+		// reply that landed and the rollback must not discard it.
+		const transport: ChatTransport = () =>
+			(async function* () {
+				yield [chart]
+
+				throw new Error('gateway down')
+			})()
+
+		const { result } = renderHook(() => useChatSend({ transport, onError: () => {} }))
+
+		await act(async () => {
+			await result.current.send('hi')
+		})
+
+		expect(result.current.messages.at(-1)).toMatchObject({
+			role: 'assistant',
+			content: [chart],
+		})
+	})
+
+	it('sends the prose of a block reply again on retry, dropping what it cannot carry', async () => {
+		// `retry` re-sends the last *user* message, which holds prose, so the
+		// projection is lossless here. Stated so the boundary is on the record.
+		const transport = vi.fn(streamOf([chart]))
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		await act(async () => {
+			await result.current.send('how are stops trending?')
+		})
+
+		await act(async () => {
+			await result.current.retry()
+		})
+
+		expect(transport).toHaveBeenLastCalledWith('how are stops trending?', expect.anything())
+
+		expect(result.current.messages.at(-1)).toMatchObject({ content: [chart] })
 	})
 })
