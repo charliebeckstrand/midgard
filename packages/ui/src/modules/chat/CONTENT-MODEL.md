@@ -60,41 +60,81 @@ The roadmap says every module holds the receiving half of a shared selection and
 
 **D. Open envelope, closed forms.** Close the union at two *forms*, prose and block, and hold the openness in the block's `kind` string. A block is an opaque envelope that chat can always draw, project, and roll back on, and a registry entry keyed by that string supplies the renderer, the per-purpose text, the announcement, and the export form as one definition. Its own author states the condition it needs — kinds authored outside this repo — is not met by the roadmap, and that on the roadmap as written the closed union wins.
 
-## Judgement so far
+## Judgement
 
-Four lenses score each candidate out of 10: streaming, projection and a11y, dependency and migration, and simplicity and altitude. No lens has found a fatal defect in any candidate.
+Four lenses scored each candidate out of 10: streaming, projection and a11y, dependency and migration, and simplicity and altitude. B scored highest at 24.5, then A at 22.5, then C at 22, then D at 21.5 with one fatal defect.
 
-Candidate A scored 22.5/40 on all four lenses: dependency and migration 7, streaming 6, projection and a11y 5, simplicity and altitude 4.5. The altitude lens states the sharpest verdict: *survives as an architecture; fails as increment 3*. Its `id` on every part and its structural emptiness rule are forced rather than speculative; the purpose enum and the two-axis projection are not.
+The scores did not decide it, and the spread shows why: 3 points separate the best from the worst, and every simplicity lens returned 4.5, 4, 4, and 3. Four adversarial reviews reached the same charge in the same words — *roughly two increments too early*. Two candidates convicted themselves in their own closing paragraphs.
 
-Candidate B scored 17/30 on three lenses, and the dependency lens did not run. Streaming 8 is the highest single score any candidate holds: a byte-by-byte trace of 94 frames shows a paragraph before an open fence stays byte-identical in every frame, so a chart cannot discard the prose before it, and the rollback rule needs no change. Projection and a11y 5 found that the design's two readers had *already* drifted inside the proposal: the projection parses a directive with one regular expression and the renderer keys the same node with a different one, and the two disagree on three of four test info strings. Simplicity and altitude 4 states that B has no shippable increment 3 at all — its first landable unit rewrites the chat engine, adds a public prop to the shared `Markdown`, refactors `MarkdownRenderer` into a factory, and adds the registry, the hook, and a `ChatMessage` prop together.
+## Verdict
 
-Candidate C scored 6.5 on streaming alone; three lenses did not run. Its id-keyed merge and its memo behaviour survived, but its completeness axis fails: `status` is declared in the type and never written by the shell, so an embed that finished streaming stays open and renders as a permanent skeleton.
+**Keep the closed union and cut it to increment 3.** `ChatPart` stays a closed `kind`-discriminated union with `text` as its only member. Every part gains an `id`. The wiring lands: `content: string | ChatPart[]`, a structural emptiness rule in place of `content === ''`, and one plain-text bridge that `retry` and the bubble share. Marks, the `embed` / `tool` / `file` kinds, the purpose enum, the completeness flag, and the merge all defer to the increments that own them.
 
-Candidate D is proposed but not judged. Its own author states the condition it needs is not met by the roadmap as written.
+Three facts decided it, and each is verifiable in the repo.
 
-Judgement stopped here by request. What is missing: the dependency lens on B, three lenses on C, all four on D, and the synthesis.
+**The roadmap already fixed the inventory, and every candidate overran it.** [`ROADMAP.md`](ROADMAP.md):51 reads "`text` first, then `embed`, `tool`, `file`, and `citation` as later increments add them". Increment 3 ships `text`. The four candidates shipped between two and five kinds.
 
-## What holds whichever candidate wins
+**The deferral is free, which is the question that matters.** Sort the proposed surface by what can be retrofitted. The `id` cannot: once parts persist, a required field is a breaking addition, and the merge, React keys, per-part view state, feedback, and citation targets all key on it. The widening cannot: it *is* the breaking change. The emptiness rule cannot. Everything else is an optional field or an optional parameter, so it can arrive later without a break.
 
-Four items appear in every candidate and in every lens, so adopt them separately from the choice.
+**The headline feature is not blocked by any content model, so buying it now buys nothing.** All three inline-citation forms fail at the same place: [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) offers no injection slot, `marked` yields no absolute offsets for inline tokens, and `safeUrl` strips a `cite:` href. The blocker is the Markdown pipeline, which sits outside chat and outside every candidate. Shipping an address with no renderer is dead public API — the same charge this file levels at today's dead `chat-content/`, repeated at four times the size.
 
-1. **An id on every part**, minted by the shell, not the engine. It kills merge-by-index and gives a citation a target, a collapsible step a key, and an embed a stable React key.
+## Why the highest score lost
 
-2. **Emptiness is structural, not projected.** Name a predicate in the engine. `dropEmptyReply` reads `content === ''` today, and that read has no honest port to a list.
+Candidate B took 24.5/40 and the best streaming verdict on the table, 8/10, on a byte-by-byte trace of 94 frames. Three findings killed it, and none is patchable.
 
-3. **The projection takes a purpose.** Copy, search index, announcement, export, and the transport want different strings from the same parts.
+It is **spoofable**. A user message that holds the fence vocabulary is byte-identical to an assistant's, so the transcript draws a live embed from user-authored text. The proposal's own mitigation makes the same string render differently by role. For a product where an agent's output drives dashboard selection, the message text must not be the control channel. A constructed part list cannot be spoofed, because it is constructed and not parsed.
 
-4. **Normalize at the state boundary, not in render.** `applyReplySnapshot` mints a new object for the streaming message only, so settled bubbles keep prop identity and skip the Markdown re-lex. `toChatParts` passes an array through by reference for that reason, but a string normalized inside the transcript's `map` mints a fresh array each chunk and re-lexes every bubble.
+Its **projection reverses an a11y guarantee**. The projection pushes `token.raw` for every non-directive token, so `'<script>alert(1)</script>'` reaches the shared polite region and the clipboard verbatim. [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) drops html, whitespace, and link-definition tokens by design; the projection puts them back through the a11y channel.
+
+It needs a **`renderers` prop on the shared `Markdown`**, which is a new caller-supplied rendering pattern in a static leaf with six consumers. The house forms are a per-item render prop, a builder that receives defaults, or a component through `UIProvider`.
+
+## What the judgement refuted
+
+Record these, so no later increment re-proposes them without new evidence.
+
+**The purpose-parameterized projection** (`'copy' | 'index' | 'announce'`), proposed by three candidates, dies at the first call site each one converts. `retry` becomes `chatContentText(lastUser.content)` with the purpose defaulted to copy, and that string is the wire payload sent back to the model. The transport is a fourth reader with needs unlike the three enumerated, so a user message holding a file part would retry to the model as `[report.csv](https://…)`. The multi-reader problem is real; this is the wrong cut of it.
+
+**Per-part completeness flags** (`partial`, `status`, `closed`) die in all four candidates for one reason: nothing settles them. `stop` returns early at [`use-chat-send.ts`](use-chat-send.ts):156 with no transform, the catch path only drops the empty reply, and `finally` only clears the controller and the flag. A stopped or failed reply strands a part as forever unfinished, which renders as a permanent skeleton.
+
+**An open discriminant** dies on a substitution test: `{ id; kind: string; alt; data }` and `{ id; kind: 'embed'; name: string; alt; data }` are field-for-field identical and differ only in whether the registry key is spelled `kind` or `name`. The open form surrenders the compiler-checked exhaustive switch and buys nothing.
+
+**Shipping `tool` and `file` kinds now** fails on the module's own send path: `appendUserMessage` and `truncateToEditedMessage` take `content: string`, so a file part is unconstructible by the path that would create it and silently deleted by the path that edits it.
+
+**Keeping what is on disk** was considered and refuted. `chat-content/` is dead — nothing outside its own test imports it — and increment 4 cannot land without somewhere to put an embed.
+
+## The three items that hold
+
+Adopt these whatever else changes. An earlier draft of this file named a fourth, a purpose on the projection; the judgement refuted it, and the section above records why.
+
+1. **An id on every part.** For the string arm the engine uses a fixed `TEXT_PART_ID`, not a minted one, so the engine keeps its no-clock, no-random rule and a cumulative snapshot stays unambiguous: increment 5 replaces the text that one name points to, so a string chunk arriving after a chart can neither delete the chart nor open a second running text.
+
+2. **Emptiness is structural.** Write it as a private switch with no default arm, so a later kind cannot join the emptiness rule as silence — the discipline `partText` already documents.
+
+3. **Normalize at the state boundary, not in render.** [`chat-transcript.tsx`](chat-transcript.tsx) changes zero lines: `message.content` passes through unnormalized, which keeps the shallow memo intact for 5,000 settled bubbles at zero per-render allocation.
+
+## The change the verdict asks for
+
+Eleven files, one of them a test, and the commit is `feat(ui)!`.
+
+`engine/chat-content/types.ts` gains the `id` field and drops `@internal`. `normalize.ts` gains `TEXT_PART_ID`, the private `isEmptyPart` switch, and the exported `isEmptyContent`. `text.ts` gains `chatContentText(content: string | ChatPart[])`; `partText` and `chatPartsText` are not edited. `engine/types.ts`:7 becomes `content: string | ChatPart[]`. `engine/chat-transcript.ts`:71 swaps `content === ''` for `isEmptyContent`, and the other six transforms are untouched. `chat-message.tsx` widens `children` and renders one `<Markdown>` over the bridge. `use-chat-send.ts`:201 wraps `lastUser.content` in the bridge, and nothing else in the streaming path moves. `index.ts` gains three names.
+
+The proof the roadmap asked for becomes literally true rather than hoped for: one wrapper, one lex, one `data-slot`, one margin scope. `chat-transcript-transforms.test.ts`, `use-chat-send.test.ts`, `chat-transcript.test.tsx`, and `chat-message.test.tsx` all pass unedited, because their fixtures build string content throughout. Only `chat-content.test.ts` is edited.
+
+No change is needed to [`docs/MODULES.md`](../../../docs/MODULES.md) — it indexes module names, not symbols — nor to `package.json`, `biome.json`, or the admin route.
 
 ## Open decisions
 
-The decisive question is narrow: is a model-emitted block kind that the UI has never heard of a build failure or a runtime miss? A build failure takes the closed union and pays for increment 5. A runtime miss opens the model.
+These are calls the judgement cannot make, and each is a decision for the repo owner.
 
-Is the inline citation the feature that justifies this work? If yes, judge every candidate against a renderer that can honour a range, and fix [`markdown-renderer.tsx`](../../components/markdown/markdown-renderer.tsx) first. If no, the block half of candidate C stands alone in three files.
+**Does a part id survive the client?** [`use-chat-send.ts`](use-chat-send.ts):118 overwrites a caller-supplied id with a fresh `crypto.randomUUID()` when it seeds `initialMessages`, so a conversation persisted with part ids and reloaded through the hook is re-keyed at mount. That defeats every per-part target the id exists to hold.
 
-Does a part id come from the client or the server? A conversation that is persisted, reloaded, and re-minted breaks every citation target.
+**Does the gateway payload get a parse boundary?** The admin route casts the fetched JSON with no runtime validation. Today a wrong wire shape gives a wrong string in a bubble; after the widening, a gateway that starts returning arrays type-checks in silence.
 
-Is the wiring one increment or two? Candidate D merges increments 3 and 4, which the roadmap holds apart on purpose.
+**Is `ChatContent` the right name?** Its own TSDoc says "A single message in a chat", so it is a message and not content, and it holds a field named `content` whose type lives in a directory named `chat-content/`. A reader meets three names on one axis.
+
+**Which live channel carries a reply in increment 6?** `role="log"` implies polite semantics over content as it is added, and [`core/announcer.ts`](../../core/announcer.ts) writes one whole string into a shared `aria-atomic` region. Two channels over one reply is a double read. No content model settles this.
+
+**When is the map and chart retraction written?** [`ROADMAP.md`](ROADMAP.md):85 is wrong today, per defect 9. Retract it now, or when the adapters land.
 
 ---
 
