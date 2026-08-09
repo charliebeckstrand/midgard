@@ -26,13 +26,18 @@ const stopsMap: ChatEmbedRenderer = (part) => (
 
 const renderers = { 'stops-map': stopsMap }
 
+/** A bubble holding one embed, under the one renderer this suite registers. */
+function renderEmbed(name: string) {
+	return renderUI(
+		<ChatEmbedProvider renderers={renderers}>
+			<ChatMessage>{[embed('e1', name)]}</ChatMessage>
+		</ChatEmbedProvider>,
+	)
+}
+
 describe('ChatEmbedProvider', () => {
 	it('draws a part through the renderer registered under its name', () => {
-		renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed('e1', 'stops-map')]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		renderEmbed('stops-map')
 
 		expect(screen.getByTestId('stops-map')).toHaveTextContent('{"stops":12}')
 	})
@@ -55,11 +60,7 @@ describe('ChatEmbedProvider', () => {
 	})
 
 	it('stamps the embed name on the block, so a caller can style or find one', () => {
-		const { container } = renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed('e1', 'stops-map')]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
+		const { container } = renderEmbed('stops-map')
 
 		expect(bySlot(container, 'chat-embed')).toHaveAttribute('data-embed', 'stops-map')
 	})
@@ -68,11 +69,7 @@ describe('ChatEmbedProvider', () => {
 		it('states the block rather than draws nothing', () => {
 			// A silent gap reads as a reply that stopped. The reader is told a block
 			// is there, and the name tells the developer which one to register.
-			const { container } = renderUI(
-				<ChatEmbedProvider renderers={renderers}>
-					<ChatMessage>{[embed('e1', 'late-grid')]}</ChatMessage>
-				</ChatEmbedProvider>,
-			)
+			const { container } = renderEmbed('late-grid')
 
 			expect(bySlot(container, 'chat-embed-fallback')).toHaveTextContent(
 				'This chat cannot show a “late-grid” block.',

@@ -229,19 +229,17 @@ export function Demo() {
 				</TabContent>
 
 				<TabContent value="Embeds">
-					<Stack gap="xl">
-						<Example title="Registered renderer">
-							<ChatEmbedProvider renderers={embedRenderers}>
+					<ChatEmbedProvider renderers={embedRenderers}>
+						<Stack gap="xl">
+							<Example title="Registered renderer">
 								<ChatTranscript messages={embedded} />
-							</ChatEmbedProvider>
-						</Example>
+							</Example>
 
-						<Example title="Unregistered name">
-							<ChatEmbedProvider renderers={embedRenderers}>
+							<Example title="Unregistered name">
 								<ChatTranscript messages={unregistered} />
-							</ChatEmbedProvider>
-						</Example>
-					</Stack>
+							</Example>
+						</Stack>
+					</ChatEmbedProvider>
 				</TabContent>
 
 				<TabContent value="List">
