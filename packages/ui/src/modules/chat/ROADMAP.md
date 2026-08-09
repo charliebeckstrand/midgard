@@ -1,6 +1,6 @@
 # Chat roadmap
 
-> **Goal: an agent surface for logistics dashboards, where a reply can carry a chart, a grid, or a map.** The module ships `ChatTranscript`, `ChatMessage`, `ChatPrompt`, and the `ChatList` sidebar, over three hooks and an injected transport. It is the one module with no pure core, no benchmark, and an open row for each of its public names. This file records what ships today, the engine that must come first, and what the module must absorb after it.
+> **Goal: an agent surface for logistics dashboards, where a reply can carry a chart, a grid, or a map.** The module ships `ChatTranscript`, `ChatMessage`, `ChatPrompt`, and the `ChatList` sidebar, over three hooks and an injected transport. All seven increments have landed: it has a pure core, a settled vocabulary, a message built from parts, an embed seam, a transport that streams those parts, an announcement for the reader who cannot see them, and benchmarks that say where it stops holding. This file records what ships today and what the module must absorb next.
 
 ## Status
 
@@ -10,7 +10,7 @@ The engine landed with increment 1. `engine/` holds the vocabulary, the trim-and
 
 The vocabulary is settled. Increment 2 made `role: 'user' | 'assistant' | 'system'` the one speaker axis across the data, the component, and the recipe, so the transcript passes a message's own `role` through and maps nothing, and `system` is expressible in data. The hook reports `streaming`, as every component it feeds does. `Chat` left `ui` for the route that fetches it. Audit rows P1, P2, P3, P9, P10, and P12 are closed; P7 and P8 stay open, because neither is a speaker-axis question.
 
-The proof is still the thinnest in the package. Chat holds 14 test files against query's 15, map's 36, chart's 52, and grid's 88, and it holds no benchmark at all against 3 to 15 for every other module. That is not a coverage number; it is a statement about which rules have a name. Increment 7 is where the missing benchmark lands.
+The proof has caught up. Chat holds 14 test files against query's 15, map's 36, chart's 52, and grid's 88, and it is no longer the module with no benchmark: increment 7 added a pure-core bench and a jsdom render bench, on the ladder the chart and grid roadmaps set. What the test count still reports is which rules have a name, and every rule the increments added has one.
 
 The content model is wired. `ChatMessageData.content` is `string | ChatPart[]`, `ChatPart` and `ChatTextPart` reach the barrel beside `chatContentText`, and the rollback rule reads the content's structure rather than `content === ''`. The union holds one kind, because increment 3 owns `text` alone. An embedded chart, a tool call, a citation, and an attachment preview each add their kind in the increment that owns it, and each is now one more member of a union rather than a second meaning for a string.
 
@@ -20,7 +20,9 @@ The seam is open, and it streams. Increment 4 made `embed` the union's second ki
 
 The reply reaches a reader who cannot see it. Increment 6 gave the transcript `role="log"` with its own `aria-live` off, and one status string through the shared announcer: a reply started, then the reply once it settles, never a chunk. An embedded view is counted rather than named, because its own readout belongs to the renderer.
 
-The proof under all three is in [`chat-stream.test.ts`](../../__tests__/modules/chat-stream.test.ts), [`chat-embed.test.tsx`](../../__tests__/modules/chat-embed.test.tsx), and [`chat-announcements.test.ts`](../../__tests__/modules/chat-announcements.test.ts), and the module now holds 14 test files. The a11y corpus holds the transcript for the first time, in both the jsdom gate and the Chromium one. It still holds no benchmark, which increment 7 owns.
+The proof under all three is in [`chat-stream.test.ts`](../../__tests__/modules/chat-stream.test.ts), [`chat-embed.test.tsx`](../../__tests__/modules/chat-embed.test.tsx), and [`chat-announcements.test.ts`](../../__tests__/modules/chat-announcements.test.ts), and the module now holds 14 test files. The a11y corpus holds the transcript for the first time, in both the jsdom gate and the Chromium one.
+
+The transcript is measured, and it does not hold at 5,000 messages. Increment 7's benches put a streamed chunk at 0.88 ms over 50 messages, 3.4 ms over 500, and 41 ms over 5,000, against a 16 ms frame; a mount at 5,000 takes 1.9 s. The engine under it is clear — the worst pure transform on the streaming path costs 0.054 ms at 5,000, and the announcement is flat at every size. The cost that remains is the transcript rebuilding every element per chunk, which no further memoization reaches, so virtualization is now a measured requirement rather than an assumption, and it heads the backlog.
 
 ## Engine — the substrate
 
@@ -104,15 +106,27 @@ Three quieter rules fell out. A transcript ending on the reader's own message sa
 
 The corpus gained the transcript, which it had never held. That is what caught the contrast defect increment 4 shipped: the fallback line used `text.muted`, whose token contract is AA against the page and the card, and on the assistant bubble's own fill it measured 3.8:1. It now inherits the bubble's foreground and reads as an aside by slant, the same bargain the markdown kata takes. The jsdom gate could never have found it — it has no layout and no colour — so the case earns its place in the Chromium gate.
 
-### 7. Measure the transcript
+### 7. Measure the transcript — done
 
-Chat has no benchmark, so every claim about a long conversation is a guess. `ChatMessage` is memoized and settled bubbles skip their Markdown re-lex, which is the optimization the module already made; what is unmeasured is the transcript around them — a list that maps every message on every chunk, and a scroll effect that runs per change. Add mount, stream, and scroll benches over a 50-, 500-, and 5,000-message fixture, on the ladder the chart and grid roadmaps set: a pure-core bench for the engine transforms, a jsdom bench for the effect path, and a browser bench if a number justifies one.
+Chat had no benchmark, so every claim about a long conversation was a guess. It now holds two: [`chat-compute.bench.ts`](../../__benchmarks__/chat-compute.bench.ts) over the pure transforms in node, and [`chat-render.bench.tsx`](../../__benchmarks__/chat-render.bench.tsx) over the React tree in jsdom, both on a 50-, 500-, and 5,000-message LCG-seeded fixture. The numbers below are jsdom on one machine: read them against each other, never as absolutes.
 
-Virtualization is the obvious answer and must not ship before the measurement says so. The chart roadmap's record holds two refuted avenues, and they are the reason its numbers are trustworthy; chat must earn the same. Measure first, and if the transcript holds at 5,000 messages, write that down and move on.
+The engine is not the problem, and one rule in it is flat where flatness is the whole claim. `applyReplyChunk` runs per streamed chunk and maps the transcript to reach one reply, so it grows with the list — 0.0007 ms at 50, 0.008 ms at 500, 0.054 ms at 5,000, and a part chunk prices the same as a string one. Even the worst of those is a rounding error against a frame. `describeTranscript` measures 0.0001 ms streaming and 0.0002 ms settled at every size, which holds increment 6's claim that a hundred chunks are one announcement: the streaming arm returns before it reads the list at all. The rest of the send path costs less than `applyReplyChunk`; the only rule that approaches visible is `duplicateMessageIds` at 0.62 ms for 5,000 messages, paid once per mount and only in development.
+
+The render is the problem, and the transcript does not hold at 5,000. Mounting costs 38 ms at 50 messages, 224 ms at 500, and 1,921 ms at 5,000. A streamed chunk costs 0.88 ms at 50, 3.4 ms at 500, and 41 ms at 5,000 — and a chunk arrives many times a second, so at five thousand messages every chunk overruns a 16 ms frame by more than double. The transcript is comfortable at 500 and fails somewhere between 500 and 5,000.
+
+The memo is working, and it is what keeps the failure from being far worse. A chunk at 5,000 messages costs 41 ms against the same size's 1,921 ms mount, so the memo elides about 98% of the per-message work — five thousand Markdown re-lexes do not happen. What remains is the `.map` that rebuilds five thousand elements and React's bail-out check on each, and neither is reachable by memoizing harder. That is the measurement's real finding: the cost that stays is structural, so the fix has to be structural too.
+
+So virtualization is earned rather than assumed, and it is the next item rather than part of this one — the increment was to measure, and shipping the answer inside it would be the thing the section warns against. It lands as its own entry in the backlog, carrying the threshold these numbers set.
 
 ## Backlog
 
 In priority order, after the increments. Each entry names the gap, the shape of the fix, and where it lands.
+
+- **Virtualize the transcript.** Increment 7 measured what this costs to skip: a streamed chunk at 5,000 messages re-renders in 41 ms, past a frame by more than double, and a mount takes 1.9 s. It is the only backlog entry a number put here. The bar it has to clear is the one the same benches already print — hold the 500-message chunk cost, about 3.4 ms, out to 5,000 — and the benches are the acceptance test, not a follow-up.
+
+  Three things make this harder than virtualizing a grid, and an entry that does not name them is understating it. A chat row has no fixed height: a bubble wraps to its content, so the windowing needs measurement and a cache, where a grid row's height is a prop. The transcript pins itself to the bottom through [`use-chat-scroll.ts`](use-chat-scroll.ts), and a window whose items change height as they measure fights a sentinel that scrolls to the end. And the `role="log"` region increment 6 added addresses the whole transcript, so a reader who navigates it must not find only the visible slice — the announcer is unaffected, since it speaks a string rather than the DOM, but the region's contents are.
+
+  Grid already virtualizes, so read its window before writing a second one; the honest question this entry opens is whether that machinery generalizes to variable heights or only looks like it should.
 
 - **One selection across the chat and the dashboard.** This is the feature a logistics chat exists for, and it is the largest item here rather than a cheap one. An agent says twelve stops are late; a point on that sentence must ring those twelve stops on the map beside it. The shape is a `citation` carrying an embed name and a selector, and an adapter per module that maps the selector onto that module's own selection prop. It must read one direction first: the chat drives the dashboard, and the reverse — a picked region that writes a message — waits for a second consumer to ask.
 
@@ -138,9 +152,11 @@ In priority order, after the increments. Each entry names the gap, the shape of 
 
 ## Principle
 
-Extract before extending. The module's whole backlog is blocked on two things — a core the rules can live in, and a message that can hold more than a string — and every premium feature above is small once both exist and impossible before. That ordering is the roadmap's only real claim, and it is the one query's extraction already proved: `QuerySummary` was a second view over an extracted core, and it cost one file.
+Extract before extending. The module's backlog was blocked on two things — a core the rules can live in, and a message that can hold more than a string — and every premium feature below is small now that both exist and would have been impossible before. That ordering was the roadmap's only real claim, and the increments bore it out: the embed seam cost three files over a union that already carried an id, and the part stream cost one, because increment 3 had already put the id there for it.
 
 Do not ship the dependency the caller did not ask for. A chat that imports chart, grid, and map to support an embed nobody used is the failure mode this design exists to avoid, and the registry is what prevents it.
+
+Measure before rebuilding. Virtualization was the obvious answer to a long transcript for as long as this file has existed, and it stayed out of the increments until a bench said which size breaks and by how much. It is in the backlog now because 41 ms against a 16 ms frame put it there, and the same benches are what will say whether the rebuild worked.
 
 ---
 

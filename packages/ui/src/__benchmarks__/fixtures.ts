@@ -5,6 +5,7 @@
  * and run-to-run variance reflects the code under test, not the data.
  */
 
+import type { ChatMessageData } from '../modules/chat'
 import type { GridColumn } from '../modules/grid'
 import type { ColumnSizeProfile } from '../modules/grid/engine/grid-column/allocate'
 import type { QueryField, QueryGroup, QueryNode } from '../modules/query/engine/types'
@@ -364,6 +365,51 @@ export function makeEscapeHeavyRows(count: number): Record<string, string>[] {
 		const noisy = `a,"b"\n<c>&${i}`
 
 		out[i] = { a: noisy, b: noisy, c: noisy, d: noisy, e: noisy, f: noisy, g: noisy, h: noisy }
+	}
+
+	return out
+}
+
+/** Prose blocks a generated reply draws from, at the lengths a real one runs to. */
+const REPLY_PROSE = [
+	'Twelve stops are late.',
+	'Late stops rose from **4** to **14** across the week, and most of the rise sits on the north routes.',
+	'Here is what I found:\n\n- Route 12 is late on four of seven days\n- Route 30 is late on three\n- Every other route held',
+	'The carrier reports a depot delay. I can re-sequence the affected loads, or hold them for the next window — say which.',
+]
+
+/** Questions a generated transcript's reader asks. */
+const READER_PROSE = [
+	'How are late stops trending?',
+	'Which routes are worst?',
+	'Can you break that down by carrier?',
+	'Re-sequence them.',
+]
+
+/**
+ * A settled transcript of `count` messages, alternating reader and reply, with
+ * an id on every message.
+ *
+ * Deterministic through the shared LCG, so a run-to-run difference is the code
+ * under test rather than the prose. The reply bodies carry Markdown — a list, a
+ * bold run, a blank-line block break — because the bubble lexes what it is
+ * given and a transcript of bare words would price the wrong render.
+ */
+export function makeTranscript(count: number, seed = 7): ChatMessageData[] {
+	const rand = rng(seed)
+
+	const out: ChatMessageData[] = new Array(count)
+
+	for (let i = 0; i < count; i++) {
+		const reader = i % 2 === 0
+
+		const pool = reader ? READER_PROSE : REPLY_PROSE
+
+		out[i] = {
+			id: `m-${i}`,
+			role: reader ? 'user' : 'assistant',
+			content: pool[Math.floor(rand() * pool.length)] ?? '',
+		}
 	}
 
 	return out
