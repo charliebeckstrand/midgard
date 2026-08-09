@@ -1,6 +1,11 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { type ChatPart, type ChatTransport, useChatSend } from '../../modules/chat'
+import {
+	type ChatPart,
+	type ChatToolPart,
+	type ChatTransport,
+	useChatSend,
+} from '../../modules/chat'
 
 /** A transport that yields the given chunks in order: cumulative prose, or blocks. */
 function streamOf(...chunks: (string | ChatPart[])[]): ChatTransport {
@@ -612,5 +617,102 @@ describe('useChatSend over a stream of parts', () => {
 		expect(transport).toHaveBeenLastCalledWith('how are stops trending?', expect.anything())
 
 		expect(result.current.messages.at(-1)).toMatchObject({ content: [chart] })
+	})
+})
+
+describe('useChatSend settling a running step', () => {
+	const running: ChatToolPart = {
+		kind: 'tool',
+		id: 't1',
+		name: 'Filter shipments',
+		status: 'running',
+	}
+
+	/** The step as the shell leaves it once the stream is over without settling it. */
+	const settled: ChatToolPart = { ...running, status: 'failed' }
+
+	const lastContent = (result: { current: { messages: { content: unknown }[] } }) =>
+		result.current.messages.at(-1)?.content
+
+	it('marks a step the transport left running as failed when the stream ends', async () => {
+		// The rule that lets a `tool` block carry a running status at all. Without
+		// it the step draws a spinner nothing ever stops.
+		const { result } = renderHook(() => useChatSend({ transport: streamOf([running]) }))
+
+		await act(async () => {
+			await result.current.send('which are late?')
+		})
+
+		expect(lastContent(result)).toEqual([settled])
+	})
+
+	it('marks it failed when the transport throws after opening it', async () => {
+		const transport: ChatTransport = () =>
+			(async function* () {
+				yield [running]
+
+				throw new Error('gateway down')
+			})()
+
+		const { result } = renderHook(() => useChatSend({ transport, onError: () => {} }))
+
+		await act(async () => {
+			await result.current.send('which are late?')
+		})
+
+		expect(lastContent(result)).toEqual([settled])
+	})
+
+	it('marks it failed when the reader stops the reply', async () => {
+		let release: (() => void) | undefined
+
+		const gate = new Promise<void>((resolve) => {
+			release = resolve
+		})
+
+		const transport: ChatTransport = () =>
+			(async function* () {
+				yield [running]
+
+				await gate
+
+				yield [{ ...running, status: 'done' } satisfies ChatToolPart]
+			})()
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		let sending!: Promise<void>
+
+		act(() => {
+			sending = result.current.send('which are late?')
+		})
+
+		await waitFor(() => expect(result.current.streaming).toBe(true))
+
+		act(() => {
+			result.current.stop()
+		})
+
+		release?.()
+
+		await act(async () => {
+			await sending
+		})
+
+		// A call the reader stopped produced no result it can be asked for, so the
+		// step says failed rather than leaving them to guess.
+		expect(lastContent(result)).toEqual([settled])
+	})
+
+	it('leaves a step the transport settled alone', async () => {
+		const finished: ChatToolPart = { ...running, status: 'done' }
+
+		const { result } = renderHook(() => useChatSend({ transport: streamOf([finished]) }))
+
+		await act(async () => {
+			await result.current.send('which are late?')
+		})
+
+		expect(lastContent(result)).toEqual([finished])
 	})
 })

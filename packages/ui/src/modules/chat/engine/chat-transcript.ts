@@ -84,6 +84,44 @@ export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMes
 }
 
 /**
+ * The transcript with every still-running step in the reply `id` names marked
+ * failed. An id that names no message, and a reply holding no running step,
+ * both change nothing — and return the transcript by reference, so the settle
+ * costs a re-render only where it settled something.
+ *
+ * This is what lets a `tool` block carry a `running` status at all. The chat
+ * roadmap refuted a per-part completeness flag on the grounds that nothing in
+ * the shell settles one, so a stopped or failed reply would strand a part as
+ * forever unfinished and draw a spinner that never stops. `useChatSend` runs
+ * this rule in its `finally`, which every exit takes — the last chunk, a stop,
+ * or a throw — so no step outlives the stream that opened it.
+ *
+ * Failed, and not some third state for a stop. The transport is what knows a
+ * call succeeded, and a call the reader stopped produced no result it can be
+ * asked for; naming that anything other than failure would leave the reader to
+ * guess whether the answer above it used the step's output.
+ *
+ * @internal
+ */
+export function failRunningTools(messages: ChatMessageData[], id: string): ChatMessageData[] {
+	const reply = messages.find((message) => message.id === id)
+
+	if (!reply || typeof reply.content === 'string') return messages
+
+	if (!reply.content.some((part) => part.kind === 'tool' && part.status === 'running')) {
+		return messages
+	}
+
+	const settled = reply.content.map((part) =>
+		part.kind === 'tool' && part.status === 'running'
+			? { ...part, status: 'failed' as const }
+			: part,
+	)
+
+	return messages.map((message) => (message.id === id ? { ...message, content: settled } : message))
+}
+
+/**
  * Whether a message names itself. An empty id is no id: a rule that matched on
  * `''` would name every message that carries none.
  *

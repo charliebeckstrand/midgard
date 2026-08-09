@@ -48,6 +48,11 @@ function isEmptyPart(part: ChatPart): boolean {
 		// reply that arrived as a chart alone would be discarded as an empty one.
 		case 'embed':
 			return false
+		// A step holds something the moment it names what ran, which it always
+		// does. A reply that opened with a running query and then failed is not an
+		// empty reply — it is a reply that shows the query it was running.
+		case 'tool':
+			return false
 	}
 }
 

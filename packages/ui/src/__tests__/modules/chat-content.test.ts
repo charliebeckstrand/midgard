@@ -9,6 +9,7 @@ import type {
 	ChatEmbedPart,
 	ChatPart,
 	ChatTextPart,
+	ChatToolPart,
 } from '../../modules/chat/engine/chat-content/types'
 
 /** A text part, in the shape the normalization mints one. */
@@ -19,6 +20,19 @@ function text(value: string, id = TEXT_PART_ID): ChatTextPart {
 /** An embed part naming a renderer the caller registered. */
 function embed(name: string, id = name): ChatEmbedPart {
 	return { kind: 'embed', id, name, data: { rows: 12 } }
+}
+
+/** A step the assistant took, with its one-line summary and a body behind it. */
+function tool(overrides: Partial<ChatToolPart> = {}): ChatToolPart {
+	return {
+		kind: 'tool',
+		id: 't1',
+		name: 'Filter shipments',
+		status: 'done',
+		summary: 'status is late and lane is north',
+		detail: 'Matched **12** of 240 rows.',
+		...overrides,
+	}
 }
 
 /**
@@ -101,6 +115,21 @@ describe('chatPartsText', () => {
 	it('projects an embed alone to an empty string', () => {
 		expect(chatPartsText([embed('stops-map')])).toBe('')
 	})
+
+	it('projects a step to its own line, because the module wrote that line', () => {
+		// The difference from an embed: a step describes itself in text, so the
+		// clipboard, the search index, and the announcement can all have it.
+		expect(chatPartsText([tool()])).toBe('Filter shipments: status is late and lane is north')
+	})
+
+	it('projects a step with no summary to its name alone', () => {
+		expect(chatPartsText([tool({ summary: undefined })])).toBe('Filter shipments')
+	})
+
+	it('leaves a step’s detail out of the projection', () => {
+		// The detail is the body behind a disclosure the reader has not opened.
+		expect(chatPartsText([tool()])).not.toContain('240 rows')
+	})
 })
 
 describe('isEmptyContent', () => {
@@ -140,6 +169,12 @@ describe('isEmptyContent', () => {
 
 	it('reads an embed beside an empty text part as not empty', () => {
 		expect(isEmptyContent([text(''), embed('stops-map')])).toBe(false)
+	})
+
+	it('reads a reply that opened with a running step as not empty', () => {
+		// A reply showing the query it is running is not an empty reply, so a
+		// failure after it must keep the step rather than roll the reply back.
+		expect(isEmptyContent([tool({ status: 'running', detail: undefined })])).toBe(false)
 	})
 })
 

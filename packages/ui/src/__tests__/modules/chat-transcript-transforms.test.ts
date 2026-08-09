@@ -5,6 +5,7 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failRunningTools,
 	lastUserMessage,
 	openReply,
 	seedMessages,
@@ -94,6 +95,75 @@ describe('applyReplyChunk', () => {
 			assistant('r1', 'first'),
 			{ id: 'r2', role: 'assistant', content: [chart] },
 		])
+	})
+})
+
+describe('failRunningTools', () => {
+	const step = (status: 'running' | 'done' | 'failed', id = 't1'): ChatPart => ({
+		kind: 'tool',
+		id,
+		name: 'Filter shipments',
+		status,
+	})
+
+	const replyHolding = (...parts: ChatPart[]): ChatMessageData[] => [
+		user('u1', 'hi'),
+		{ id: 'r1', role: 'assistant', content: parts },
+	]
+
+	it('marks a step still running as failed', () => {
+		// The rule that lets a `tool` block carry a running status at all: nothing
+		// else stops the spinner when the stream ends without settling it.
+		expect(failRunningTools(replyHolding(step('running')), 'r1')).toEqual(
+			replyHolding(step('failed')),
+		)
+	})
+
+	it('leaves a settled step alone', () => {
+		const messages = replyHolding(step('done'), step('failed', 't2'))
+
+		expect(failRunningTools(messages, 'r1')).toBe(messages)
+	})
+
+	it('settles every running step, and touches nothing beside them', () => {
+		const messages = replyHolding(
+			{ kind: 'text', id: 'x', text: 'Working.' },
+			step('running'),
+			step('done', 't2'),
+			step('running', 't3'),
+		)
+
+		expect(failRunningTools(messages, 'r1')).toEqual(
+			replyHolding(
+				{ kind: 'text', id: 'x', text: 'Working.' },
+				step('failed'),
+				step('done', 't2'),
+				step('failed', 't3'),
+			),
+		)
+	})
+
+	it('returns the transcript by reference when it settled nothing', () => {
+		// The shell runs this on every send, so the common case — a reply of prose
+		// — must cost no re-render.
+		const messages = [user('u1', 'hi'), assistant('r1', 'Twelve stops are late.')]
+
+		expect(failRunningTools(messages, 'r1')).toBe(messages)
+	})
+
+	it('changes nothing for an id that names no message', () => {
+		const messages = replyHolding(step('running'))
+
+		expect(failRunningTools(messages, 'absent')).toBe(messages)
+	})
+
+	it('leaves a running step in another reply alone', () => {
+		const messages: ChatMessageData[] = [
+			{ id: 'r0', role: 'assistant', content: [step('running')] },
+			{ id: 'r1', role: 'assistant', content: [step('running', 't2')] },
+		]
+
+		expect(failRunningTools(messages, 'r1')[0]?.content).toEqual([step('running')])
 	})
 })
 

@@ -20,6 +20,12 @@ function partText(part: ChatPart): string {
 		// search index, and the announcement. Nothing is the honest answer.
 		case 'embed':
 			return ''
+		// A step is already prose, which is what separates it from an embed: the
+		// module wrote the line, so the clipboard, the search index, and the
+		// announcement can all have it. The detail stays out — it is the body
+		// behind a disclosure the reader has not opened.
+		case 'tool':
+			return part.summary ? `${part.name}: ${part.summary}` : part.name
 	}
 }
 

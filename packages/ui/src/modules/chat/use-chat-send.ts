@@ -9,6 +9,7 @@ import {
 	applyReplyChunk,
 	dropEmptyReply,
 	duplicateMessageIds,
+	failRunningTools,
 	lastUserMessage,
 	openReply,
 	seedMessages,
@@ -226,6 +227,13 @@ export function useChatSend({
 
 				onError?.(error)
 			} finally {
+				// Every exit lands here — the last chunk, a stop, a throw — which is
+				// what keeps a `tool` block from outliving the stream that opened it.
+				// A step still marked running would otherwise draw a spinner nothing
+				// ever stops, the defect that kept a per-part status out of the design
+				// until the shell could settle one.
+				setMessages((prev) => failRunningTools(prev, replyId))
+
 				controllerRef.current = null
 
 				setStreaming(false)

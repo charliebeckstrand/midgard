@@ -79,6 +79,46 @@ const embedded: ChatMessageData[] = [
 	},
 ]
 
+const steps: ChatMessageData[] = [
+	{ id: '1', role: 'user', content: 'Which shipments are late on the north routes?' },
+	{
+		id: '2',
+		role: 'assistant',
+		content: [
+			{
+				kind: 'tool',
+				id: 's1',
+				name: 'Filter shipments',
+				status: 'done',
+				// `formatQuerySummary` from the query module renders a query tree to
+				// exactly this line, so a step over a query writes no formatter.
+				summary: 'status is late AND lane is north',
+				detail:
+					'Matched **12** of 240 shipments.\n\n- Route 12 — 5\n- Route 30 — 4\n- Route 41 — 3',
+			},
+			{ kind: 'text', id: 't1', text: 'Twelve are late, and Route 12 carries most of them.' },
+		],
+	},
+]
+
+const stepStates: ChatMessageData[] = [
+	{
+		id: '1',
+		role: 'assistant',
+		content: [
+			{ kind: 'tool', id: 's1', name: 'Load atlas', status: 'done', summary: '3,108 counties' },
+			{ kind: 'tool', id: 's2', name: 'Score routes', status: 'running' },
+			{
+				kind: 'tool',
+				id: 's3',
+				name: 'Fetch weather',
+				status: 'failed',
+				summary: 'the provider did not answer',
+			},
+		],
+	},
+]
+
 const unregistered: ChatMessageData[] = [
 	{
 		id: '1',
@@ -163,6 +203,7 @@ export function Demo() {
 				<Tab value="Message">Message</Tab>
 				<Tab value="Transcript">Transcript</Tab>
 				<Tab value="Embeds">Embeds</Tab>
+				<Tab value="Steps">Steps</Tab>
 				<Tab value="List">List</Tab>
 				<Tab value="Prompt">Prompt</Tab>
 			</TabList>
@@ -240,6 +281,18 @@ export function Demo() {
 							</Example>
 						</Stack>
 					</ChatEmbedProvider>
+				</TabContent>
+
+				<TabContent value="Steps">
+					<Stack gap="xl">
+						<Example title="A step behind the answer">
+							<ChatTranscript messages={steps} />
+						</Example>
+
+						<Example title="Every state">
+							<ChatTranscript messages={stepStates} />
+						</Example>
+					</Stack>
 				</TabContent>
 
 				<TabContent value="List">

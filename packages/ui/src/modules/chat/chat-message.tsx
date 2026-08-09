@@ -3,6 +3,7 @@ import { Markdown } from '../../components/markdown'
 import { cn } from '../../core'
 import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ChatEmbed } from './chat-embed'
+import { ChatTool } from './chat-tool'
 import type { ChatPart } from './engine/chat-content/types'
 
 /**
@@ -22,6 +23,8 @@ function ChatMessageBlock({ part, className }: { part: ChatPart; className?: str
 			return <Markdown className={className}>{part.text}</Markdown>
 		case 'embed':
 			return <ChatEmbed part={part} className={className} />
+		case 'tool':
+			return <ChatTool part={part} className={className} />
 	}
 }
 

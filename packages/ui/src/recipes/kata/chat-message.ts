@@ -2,7 +2,7 @@ import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, narabi } from '../kiso'
 
 const { text } = iro
-const { size } = ji
+const { size, weight } = ji
 const { flex } = narabi
 
 const bubble = defineRecipe({
@@ -45,6 +45,43 @@ const bubble = defineRecipe({
 	defaults: { role: 'assistant', streaming: false },
 })
 
+/**
+ * A step the assistant took, drawn inside the bubble: the box, its head, and
+ * the parts of that head.
+ *
+ * A fragment map rather than six `tool*` slots, because the pieces only ever
+ * appear together and a flat list of them reads as six unrelated axes. It also
+ * makes `name` expressible — a top-level slot cannot take that name, since it
+ * collides with the recipe function's own `name`, and nesting puts it on a
+ * plain object where it is just a key.
+ *
+ * Nothing here sets a foreground colour. The bubble's fill differs by speaker,
+ * and a neutral that clears AA against one does not clear it against another —
+ * the defect the embed fallback shipped with. The rule rides `currentColor` at
+ * a low alpha, and the summary de-emphasizes by weight and truncation instead.
+ */
+const tool = {
+	base: ['rounded-xl border border-current/20 px-3 py-2'],
+	head: [flex.row, 'w-full items-center gap-2 text-left', size.sm],
+	// A disclosure head is a button: give it the pointer and the package's own
+	// focus ring rather than the UA outline.
+	//
+	// The colour reset is load-bearing. The collapse kata paints its trigger
+	// `text.muted` with a `fg.hover`, which is right on the page and wrong in
+	// here for the third time in this file: zinc-500 on the assistant bubble's
+	// fill is 3.8:1. These classes land after the collapse kata's, so the head
+	// goes back to inheriting the bubble — hover included, or the pointer would
+	// walk it into a fixed neutral on the user bubble's blue.
+	trigger: [
+		'cursor-pointer rounded-lg',
+		'text-inherit hover:text-inherit',
+		'outline-none focus-visible:ring-2 focus-visible:ring-blue-600',
+	],
+	name: [weight.semibold],
+	summary: ['min-w-0 flex-1 truncate font-normal'],
+	details: ['mt-2', size.sm],
+} as const
+
 export const k = defineRecipe(
 	{
 		base: flex.col,
@@ -77,7 +114,7 @@ export const k = defineRecipe(
 		},
 		defaults: { role: 'assistant' },
 	},
-	{ bubble },
+	{ bubble, tool },
 )
 
 /** Recipe variant props for {@link ChatMessage} — the styling axes its kata exposes (`role`), for consumers composing custom slots. */

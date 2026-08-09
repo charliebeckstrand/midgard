@@ -26,6 +26,27 @@ const transcript: ChatMessageData[] = [
 // A reply naming a renderer nothing is registered under, so the stated fallback
 // draws. It is muted text on the assistant bubble's fill, which is a contrast
 // pair no other case covers.
+/** A reply showing its working: one step open to a detail, and all three states. */
+const toolSteps: ChatMessageData[] = [
+	{
+		id: 'a1',
+		role: 'assistant',
+		content: [
+			{
+				kind: 'tool',
+				id: 's1',
+				name: 'Filter shipments',
+				status: 'done',
+				summary: 'status is late',
+				detail: 'Matched **12** of 240 rows.',
+			},
+			{ kind: 'tool', id: 's2', name: 'Score routes', status: 'running' },
+			{ kind: 'tool', id: 's3', name: 'Fetch weather', status: 'failed' },
+			{ kind: 'text', id: 't1', text: 'Twelve are late.' },
+		],
+	},
+]
+
 const unclaimedEmbed: ChatMessageData[] = [
 	{
 		id: 'a1',
@@ -54,6 +75,13 @@ export const specializedCases: readonly Case[] = [
 	[
 		'chat transcript with an unclaimed embed',
 		<ChatTranscript key="cte" messages={unclaimedEmbed} />,
+	],
+	[
+		// A step is a disclosure inside the bubble: its trigger has to clear
+		// target-size, and its status dot conveys state by hue alone, so the dot
+		// carries the word as its accessible name.
+		'chat transcript with steps',
+		<ChatTranscript key="cts" messages={toolSteps} />,
 	],
 	[
 		// Controlled prompt composer; the textarea is the labelled control.
