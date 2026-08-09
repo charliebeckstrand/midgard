@@ -38,6 +38,7 @@ import type {
 	MapFeature,
 	MapGeography,
 	MapOverlaySelection,
+	MapPoint2D,
 	MapProjection,
 } from './engine/types'
 import { MapChrome } from './map-chrome'
@@ -603,6 +604,19 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[regionCategory, categoryMetas, hidden],
 	)
 
+	// Which ground the drawn zones hold, for the marks over them. Rebuilt only as
+	// the ledger or the legend's toggles change — the predicates themselves are
+	// stable, so a zone redrawn in place keeps this identity and the dots reading
+	// it hold through a refit rather than re-testing every dot per pointer
+	// crossing.
+	const covered = useCallback(
+		(at: MapPoint2D) =>
+			entries.some(
+				(entry) => entry.covers !== undefined && !hidden.has(entry.id) && entry.covers(at),
+			),
+		[entries, hidden],
+	)
+
 	const plat = useMemo<MapPlatContextValue>(
 		() => ({
 			project: shape.project,
@@ -610,11 +624,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			colors,
 			order,
 			hidden,
+			covered,
 			emphasis,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[shape.project, register, colors, order, hidden, emphasis, animate, markSelection],
+		[shape.project, register, colors, order, hidden, covered, emphasis, animate, markSelection],
 	)
 
 	const tooltipEntries = useMemo(

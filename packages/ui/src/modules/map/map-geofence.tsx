@@ -4,13 +4,14 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { useMapPlat } from './context'
 import {
 	GEOFENCE_FILL_OPACITY,
 	GEOFENCE_STROKE_WIDTH,
 	ROUTE_HIT_WIDTH,
 } from './engine/map-constants'
 import { circleRing } from './engine/map-geofence'
-import { areaAnchor, areaPath } from './engine/map-geometry/mark'
+import { areaAnchor, areaCovers, projectArea, ringsPath } from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
 import type { LngLat, MapPolygons } from './engine/types'
 import { MapHalo } from './map-halo'
@@ -110,6 +111,12 @@ export type MapGeofenceProps = MapOverlayProps &
  * what the pointer is on there, so a clickable map's regions answer outside its
  * zones and the zones answer within them.
  *
+ * A dot standing on the face gives the zone the ground it does not paint: a
+ * {@link MapPoint}, a {@link MapPoints} dot, or a {@link MapMarker} pin over a
+ * drawn zone narrows to what it draws for a mouse, so a depot never claims the
+ * middle of its own catchment. Toggling the zone off in the legend hands those
+ * pixels back — the dot is alone on its ground again, and takes the full target.
+ *
  * The boundary rides device pixels (a non-scaling stroke), so a resize scales
  * the geography under it without thickening the outline. Under the plat's
  * `animate` the outline draws itself in (`pathLength` 0 → 1) and the wash then
@@ -136,21 +143,35 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		return [[circleRing([lon, lat], radius)]]
 	}, [area, boundary, lon, lat, radius])
 
-	const { slot, hidden, project, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
+	// The projector, read here rather than off the registration below: the ground
+	// this zone holds is a fact about the projected frame, and the mark registers
+	// that ground — so the rings have to resolve before the registration does.
+	const { project } = useMapPlat()
+
+	// Memoised so a hover-driven re-render (the plat's pointer state churns the
+	// hover context) doesn't re-project the whole territory; `project` identity
+	// holds until the measured refit, a circle's rings hold on the primitives
+	// above, and a `boundary` or an `area` is the caller's own stable ref.
+	const rings = useMemo(() => projectArea(polygons, project), [polygons, project])
+
+	// Held on the rings rather than strung beside them: the wash, the boundary,
+	// the hit stroke, and the halo all trace this one string, and the ground the
+	// zone answers for is the points it was strung from — so the shape a reader
+	// sees and the shape a dot yields to can never diverge.
+	const d = useMemo(() => ringsPath(rings), [rings])
+
+	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'geofence',
 		swatch: 'rect',
 		// A circle knows its own centre, so it never pays a centroid pass to find
 		// one; drawn rings resolve their middle from the vertices.
 		stops: () => (at === undefined ? areaAnchor(polygons) : [at]),
+		// A dot standing on this face keeps its target down to the dot it paints, so
+		// the zone under it stays pointable — and takes the finger-sized one back the
+		// moment the legend puts this zone away.
+		covers: (position) => areaCovers(rings, position),
 	})
-
-	// Memoised so a hover-driven re-render (the plat's pointer state churns the
-	// hover context) doesn't re-project and re-stringify the whole territory;
-	// `project` identity holds until the measured refit, a circle's rings hold on
-	// the primitives above, and a `boundary` or an `area` is the caller's own
-	// stable ref.
-	const d = useMemo(() => areaPath(polygons, project), [polygons, project])
 
 	if (slot === undefined || hidden || d === '') return null
 

@@ -25,6 +25,12 @@ export type MapPointProps = MapOverlayProps & {
  * cursor picks the point with Enter or Space; the plat's `selectedOverlay`
  * haloes the dot for as long as it names this mark.
  *
+ * That circle is a finger-sized target, and for a mouse it narrows to the drawn
+ * dot while the point stands on a {@link MapGeofence} the map is drawing — so the
+ * zone under it keeps its own face pointable. Toggle that zone off in the legend
+ * and the point has its ground to itself again, so the target goes back to the
+ * full size.
+ *
  * @remarks Renders only inside {@link MapPlat}, and renders nothing when the
  * projection has no image for its position (the US composite drops points
  * outside its insets). The dot rides device pixels (a non-scaling stroke),
@@ -37,6 +43,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		slot,
 		hidden,
 		project,
+		covered,
 		unitsPerPixel,
 		animate,
 		order,
@@ -78,6 +85,9 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 						hit: hit(),
 						scale: unitsPerPixel,
 						radius: POINT_RADIUS,
+						// The mark draws one dot, so a zone under it is the whole question:
+						// it has no neighbour of its own to swallow.
+						fine: covered(position),
 					})}
 				/>
 			</g>

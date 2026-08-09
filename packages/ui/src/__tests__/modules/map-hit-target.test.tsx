@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
-import { MapMarker, MapPlat, MapPoint, MapPoints } from '../../modules/map'
+import { MapGeofence, MapMarker, MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import {
 	POINT_HIT_RADIUS,
@@ -8,7 +8,7 @@ import {
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
 import { k } from '../../recipes/kata/map'
-import { allBySlot, bySlot, present, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 function plat(children: ReactNode) {
@@ -19,16 +19,33 @@ function plat(children: ReactNode) {
 	)
 }
 
+/** The catchment the depot cases stand in, wide enough to hold the frame's middle. */
+function catchment(children: ReactNode) {
+	return plat(
+		<>
+			<MapGeofence label="Catchment" at={[15, 5]} radius={300_000} />
+
+			{children}
+		</>,
+	)
+}
+
+/** Whether a target has given the ground it does not paint back to what lies under it. */
+function fine(target: Element | null) {
+	return (target?.getAttribute('class') ?? '').includes(k.hitFine)
+}
+
 /**
  * The pointer target on the dot-shaped marks. The size is a rule about the input
- * device, not about the mark, so every dot target reads one rule: the `r`
- * attribute carries the coarse reach, and the class reads the fine one off a
- * custom property the factory sets to the dot's own drawn radius — a target
- * narrower than its own dot would leave the dot a dead rim.
+ * device and about what stands under the mark, not about the mark itself: the `r`
+ * attribute carries the coarse reach on every dot, and the class takes a dot down
+ * to what it draws — through a custom property the factory sets to the dot's own
+ * drawn radius, since a target narrower than its own dot would leave the dot a
+ * dead rim — but only where something under it needs those pixels.
  *
  * The class only resolves in a real browser, so `browser/map-hit-target-modality`
- * gates what it computes to; these cases gate what is rendered and how the two
- * numbers relate.
+ * gates what it computes to; these cases gate what is rendered, how the two
+ * numbers relate, and which dots earn the narrower one.
  */
 describe('dot hit targets', () => {
 	it('spells the same fine radius in the class as the constant names', () => {
@@ -53,9 +70,9 @@ describe('dot hit targets', () => {
 		expect(POINT_HIT_RADIUS_FINE).toBe(POINT_RADIUS)
 	})
 
-	it('applies one rule to every dot-shaped target', () => {
+	it('carries the coarse reach on the attribute of every dot-shaped target', () => {
 		const { container } = renderUI(
-			plat(
+			catchment(
 				<>
 					<MapPoint label="Depot" at={[8, 5]} />
 
@@ -77,18 +94,94 @@ describe('dot hit targets', () => {
 		expect(targets.length).toBeGreaterThanOrEqual(5)
 
 		for (const target of targets) {
-			// The attribute is the fallback a browser resolving no CSS `r` keeps.
+			// One rule for every dot: the attribute is the reach a finger takes, and
+			// the fallback a browser resolving no CSS `r` keeps.
 			expect(target.getAttribute('r')).toBe(String(POINT_HIT_RADIUS))
-
-			expect(target.getAttribute('class')).toContain(k.hitFine)
 		}
+	})
+
+	it('gives the ground back where a mark stands on a drawn zone', () => {
+		const { container } = renderUI(catchment(<MapPoint label="Depot" at={[15, 5]} />))
+
+		const target = bySlot(container, 'map-point-hit')
+
+		expect(fine(target)).toBe(true)
+
+		// The dot's own drawn radius, so the target covers the mark and no more.
+		expect(present(target, 'point hit target').style.getPropertyValue(k.hitRadius)).toBe(
+			`${POINT_RADIUS}px`,
+		)
+	})
+
+	it('keeps the whole target where a lone dot stands on open geography', () => {
+		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
+
+		const target = bySlot(container, 'map-point-hit')
+
+		// Nothing under the dot to yield to, so it holds the reach a finger needs on
+		// both pointers — and carries no property for a class that isn't there.
+		expect(fine(target)).toBe(false)
+
+		expect(present(target, 'point hit target').style.getPropertyValue(k.hitRadius)).toBe('')
+	})
+
+	it('leaves a dot outside a drawn zone on the whole target', () => {
+		// The zone sits at 15°; the depot stands well clear of its 300 km radius.
+		const { container } = renderUI(catchment(<MapPoint label="Depot" at={[28, 8]} />))
+
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
+	})
+
+	it('hands the pixels back when the legend puts the zone away', () => {
+		const { container } = renderUI(catchment(<MapPoint label="Depot" at={[15, 5]} />))
+
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(true)
+
+		const zone = allBySlot(container, 'map-legend-item').find((item) =>
+			item.textContent?.includes('Catchment'),
+		)
+
+		fireEvent.click(present(zone, 'catchment legend entry'))
+
+		// The point is all that is still drawn on that ground, so it takes the
+		// typical target back.
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
+	})
+
+	it('holds a dot precise while a neighbour stands inside its coarse reach', () => {
+		const { container } = renderUI(
+			// Two stops ~15px apart in a 400px frame: clear of the merge distance, so
+			// each draws its own dot, and well inside a 44px target.
+			plat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.05, 5] }]} />),
+		)
+
+		const targets = allBySlot(container, 'map-points-hit')
+
+		expect(targets).toHaveLength(2)
+
+		// Neither dot may claim the other's face: the target over one would take the
+		// readout of the mark beside it, and that mark would answer nothing.
+		for (const target of targets) expect(fine(target)).toBe(true)
+	})
+
+	it('leaves the dots of a spread-out set on the whole target', () => {
+		const { container } = renderUI(
+			plat(<MapPoints label="Stops" points={[{ at: [2, 2] }, { at: [28, 8] }]} />),
+		)
+
+		const targets = allBySlot(container, 'map-points-hit')
+
+		expect(targets).toHaveLength(2)
+
+		for (const target of targets) expect(fine(target)).toBe(false)
 	})
 
 	it('carries a summary’s own radius on the property the target reads', () => {
 		const { container } = renderUI(
 			// Two stops ~4px apart in a 400px frame, so they merge into one summary —
-			// drawn at the first cluster grade, wider than the dot a lone stop draws.
-			plat(<MapPoints label="Stops" points={[{ at: [8, 5] }, { at: [8.3, 5] }]} />),
+			// drawn at the first cluster grade, wider than the dot a lone stop draws —
+			// standing on the zone that holds the target to what it draws.
+			catchment(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.3, 5] }]} />),
 		)
 
 		expect(bySlot(container, 'map-points-cluster')).not.toBeNull()
@@ -112,7 +205,9 @@ describe('dot hit targets', () => {
 	})
 
 	it('composes the mark’s own hit class with the target class rather than replacing it', () => {
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={[8, 5]} onClick={() => {}} />))
+		const { container } = renderUI(
+			catchment(<MapPoint label="Depot" at={[15, 5]} onClick={() => {}} />),
+		)
 
 		const className = bySlot(container, 'map-point-hit')?.getAttribute('class') ?? ''
 
@@ -120,5 +215,25 @@ describe('dot hit targets', () => {
 		expect(className).toContain(k.hitFine)
 
 		expect(className).toContain(k.clickable)
+	})
+
+	it('holds a marker’s pins precise where a short leg draws them within reach', () => {
+		const { container } = renderUI(
+			// About 15px apart in a 400px frame — each pin's coarse target would cover
+			// the other's face.
+			plat(<MapMarker label="Shuttle" start={[15, 5]} end={[16.05, 5]} />),
+		)
+
+		expect(fine(bySlot(container, 'map-marker-start-hit'))).toBe(true)
+
+		expect(fine(bySlot(container, 'map-marker-end-hit'))).toBe(true)
+	})
+
+	it('leaves a long haul’s pins on the whole target', () => {
+		const { container } = renderUI(plat(<MapMarker label="Haul" start={[2, 2]} end={[28, 8]} />))
+
+		expect(fine(bySlot(container, 'map-marker-start-hit'))).toBe(false)
+
+		expect(fine(bySlot(container, 'map-marker-end-hit'))).toBe(false)
 	})
 })

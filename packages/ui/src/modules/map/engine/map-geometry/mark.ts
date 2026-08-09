@@ -1,9 +1,10 @@
 /**
  * What the overlay marks draw: one lon/lat projected to the frame, the path
- * strings a dot, a polyline, and a closed ring paint from it, and the anchor
- * each shape offers the keyboard cursor. Held apart from `region.ts` because the
- * marks project point by point through a closure the plat hands down, where the
- * region layer projects whole features through `d3-geo`'s own path generator.
+ * strings a dot, a polyline, and a closed ring paint from it, the anchor each
+ * shape offers the keyboard cursor, and which ground an area's own face holds.
+ * Held apart from `region.ts` because the marks project point by point through a
+ * closure the plat hands down, where the region layer projects whole features
+ * through `d3-geo`'s own path generator.
  *
  * That point-by-point walk is what bounds the ring: it draws each edge straight
  * in the frame, where `geoPath` would resample the edge along the sphere and
@@ -177,9 +178,37 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
 }
 
 /**
- * An area's SVG path: every ring of every polygon, each closed, in one string.
- * {@link ringPath}'s contract for the shape that holds more than one ring — a
- * territory of several separate parts, any of which can enclose a hole.
+ * The frame rings an area projects to: every ring of every polygon, with the
+ * points the projector drops left out and any ring left under three of them
+ * dropped whole — {@link ringPath}'s bound, so an inset that clips half a
+ * territory away keeps the half it kept.
+ *
+ * The rings come back as points rather than as a string, because two readers ask
+ * the same geometry two questions: {@link ringsPath} draws it, and
+ * {@link areaCovers} asks which ground it holds. Projecting once for both is what
+ * keeps the drawn shape and the covered ground from ever disagreeing.
+ *
+ * @internal
+ */
+export function projectArea(
+	polygons: MapPolygons,
+	project: (position: LngLat) => MapPoint2D | null,
+): MapPoint2D[][] {
+	const rings: MapPoint2D[][] = []
+
+	for (const polygon of polygons) {
+		for (const ring of polygon) {
+			const projected = projectRun(ring, project)
+
+			if (projected.length >= 3) rings.push(projected)
+		}
+	}
+
+	return rings
+}
+
+/**
+ * The SVG path through projected rings, each closed, in one string.
  *
  * The rings concatenate and nothing marks which is which, because nothing has
  * to: the mark paints under the even-odd fill rule, where a ring inside another
@@ -188,9 +217,21 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
  * the winding its arcs held, and no pass has to sort outers from inners or
  * rewind either.
  *
- * A ring the projection keeps fewer than three points of is dropped, as
- * {@link ringPath} drops it, so an inset that clips half a territory away draws
- * the half it kept.
+ * @internal
+ */
+export function ringsPath(rings: readonly MapPoint2D[][]): string {
+	let path = ''
+
+	for (const ring of rings) path += `${polylineCommands(ring)}Z`
+
+	return path
+}
+
+/**
+ * An area's SVG path: every ring of every polygon, each closed, in one string.
+ * {@link ringPath}'s contract for the shape that holds more than one ring — a
+ * territory of several separate parts, any of which can enclose a hole. The
+ * projection and the stringing, in the one call a caller that draws alone wants.
  *
  * @internal
  */
@@ -198,13 +239,55 @@ export function areaPath(
 	polygons: MapPolygons,
 	project: (position: LngLat) => MapPoint2D | null,
 ): string {
-	let path = ''
+	return ringsPath(projectArea(polygons, project))
+}
 
-	for (const polygon of polygons) {
-		for (const ring of polygon) path += ringPath(ring, project)
+/**
+ * Whether an area's own face holds a frame position — the ground the zone
+ * covers, and the question a mark drawn over it asks before it claims pixels the
+ * zone would otherwise answer for.
+ *
+ * Under the even-odd rule, so it reads the shape {@link ringsPath} paints: a
+ * position inside an odd number of rings is inside the area, which makes a ring
+ * within a ring a hole whichever way either winds. That is the rule the wash and
+ * the zone's own hit path already fill by, so a hole answers no pointer here for
+ * the same reason it answers none there.
+ *
+ * In frame units on the projected rings, not in lon/lat on the source ones: the
+ * mark draws each edge straight in the frame, so the drawn shape is the only one
+ * a reader can point at — and the dots asking this hold projected positions
+ * already, so neither side pays a projection to be compared.
+ *
+ * @param rings - The projected rings, from {@link projectArea}.
+ * @param at - The frame position to place.
+ * @returns Whether the position falls inside the area's face.
+ *
+ * @internal
+ */
+export function areaCovers(rings: readonly MapPoint2D[][], at: MapPoint2D): boolean {
+	let inside = false
+
+	for (const ring of rings) {
+		// The ray crossing count, from each edge to the one that closes the ring —
+		// hence `previous` starting on the last point. A ring is closed by
+		// construction here, so the walk needs no repeat of the first position.
+		for (let index = 0, previous = ring.length - 1; index < ring.length; previous = index++) {
+			const to = ring[index]
+
+			const from = ring[previous]
+
+			if (to === undefined || from === undefined) continue
+
+			// The half-open test on `y`: an edge counts where it spans the ray's own
+			// latitude with its lower end included and its upper end excluded, so a
+			// vertex the ray passes exactly through counts once rather than twice.
+			if (to.y > at.y === from.y > at.y) continue
+
+			if (at.x < ((from.x - to.x) * (at.y - to.y)) / (from.y - to.y) + to.x) inside = !inside
+		}
 	}
 
-	return path
+	return inside
 }
 
 /** The sphere's whole area in steradians — what a backwards ring measures against. @internal */

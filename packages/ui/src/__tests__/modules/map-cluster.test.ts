@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
+import { crowdedMarks, type MapDotMark } from '../../modules/map/engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
 import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
-import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
+import { clusterRadius, MAX_CLUSTER_RADIUS } from '../../modules/map/engine/map-cluster/radius'
 import { POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 
@@ -219,5 +220,56 @@ describe('groupsByMember', () => {
 			[1, 0],
 			[2, 1],
 		])
+	})
+})
+
+/**
+ * Which drawn dots have a neighbour close enough that a finger-sized target over
+ * one would cover the face of the other. Clustering has already merged the marks
+ * that draw over one another; this asks the wider question the hit targets read,
+ * so a pair a zoom has just parted stays separately aimable.
+ */
+describe('crowdedMarks', () => {
+	/** A dot of the default size at one frame position. */
+	const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS })
+
+	it('reads a dot with a neighbour inside the coarse reach as crowded', () => {
+		// The gap a zoom leaves the moment a summary parts: well inside 44px.
+		expect(crowdedMarks([dot(0), dot(15)])).toEqual([true, true])
+	})
+
+	it('leaves dots standing clear of one another on the whole target', () => {
+		// Past the reach plus the neighbour's own radius, so neither covers the face
+		// of the other and each keeps every pixel a finger needs.
+		expect(crowdedMarks([dot(0), dot(40)])).toEqual([false, false])
+	})
+
+	it('answers for each dot rather than for the set', () => {
+		expect(crowdedMarks([dot(0), dot(15), dot(400)])).toEqual([true, true, false])
+	})
+
+	it('measures the neighbour’s own width, so a summary reaches further than a dot', () => {
+		const summary: MapDotMark = { at: { x: 30, y: 0 }, radius: MAX_CLUSTER_RADIUS }
+
+		// 30px apart: the summary's face reaches inside the dot's target, while the
+		// dot's own face stays clear of the summary's. Each answers for what it
+		// would swallow, not for what would swallow it.
+		expect(crowdedMarks([dot(0), summary])).toEqual([true, false])
+	})
+
+	it('holds every reach in device pixels through a zoom', () => {
+		// Under the transform one device pixel spans two frame units, so the pair a
+		// zoom has carried 30 frame units apart still draws 15px apart on screen.
+		expect(crowdedMarks([dot(0), dot(30)], 2)).toEqual([true, true])
+	})
+
+	it('crowds nothing with a dot the projection dropped', () => {
+		expect(crowdedMarks([{ at: null, radius: POINT_RADIUS }, dot(1)])).toEqual([false, false])
+	})
+
+	it('leaves a lone dot alone', () => {
+		expect(crowdedMarks([dot(0)])).toEqual([false])
+
+		expect(crowdedMarks([])).toEqual([])
 	})
 })

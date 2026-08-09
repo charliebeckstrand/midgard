@@ -52,13 +52,17 @@ function zoomToCeiling(plot: Element, onStep?: () => void) {
  * computes to, the way `grid-target-size` does: a real layout engine is the only
  * thing that can resolve one target through another.
  *
- * The relations between the two radii are pinned in jsdom
- * (`modules/map-hit-target`); this file says what only a browser can.
+ * The relations between the two radii, and which dots earn the narrower one, are
+ * pinned in jsdom (`modules/map-hit-target`); this file says what only a browser
+ * can — so every case here puts something under the dot that the narrower target
+ * is for.
  */
 describe('dot hit target by pointer modality', () => {
 	it('resolves to the fine target while the coarse reach stays on the attribute', () => {
 		renderUI(
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
+				<MapGeofence label="Catchment" at={[8, 5]} radius={300_000} />
+
 				<MapPoint label="Depot" at={[8, 5]} />
 			</MapPlat>,
 		)
@@ -71,6 +75,20 @@ describe('dot hit target by pointer modality', () => {
 		// The used value is what hit-testing reads — and what the class sets.
 		// `SVGCircleElement.r.baseVal` reflects the attribute, so it cannot say this.
 		expect(getComputedStyle(hit).r).toBe(`${POINT_HIT_RADIUS_FINE}px`)
+	})
+
+	it('resolves to the coarse reach where nothing stands under the dot', () => {
+		renderUI(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
+				<MapPoint label="Depot" at={[8, 5]} />
+			</MapPlat>,
+		)
+
+		const hit = present(bySlot(document.body, 'map-point-hit'), 'point hit target')
+
+		// No class to narrow it, so the used value is the attribute's own: a mouse
+		// gets the same reach a finger does where the pixels have nowhere to go.
+		expect(getComputedStyle(hit).r).toBe(`${POINT_HIT_RADIUS}px`)
 	})
 
 	it('leaves a depot at a catchment’s centre pointing at the zone a few pixels out', () => {
@@ -111,8 +129,11 @@ describe('dot hit target by pointer modality', () => {
 
 	it('sizes a summary’s target to the summary rather than to the reach', () => {
 		const { container } = renderUI(
-			// Two stops ~4px apart, so they merge into one summary at the first grade.
+			// Two stops ~4px apart, so they merge into one summary at the first grade,
+			// on a zone that holds the target to what the summary draws.
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
+				<MapGeofence label="Catchment" at={[8, 5]} radius={300_000} />
+
 				<MapPoints label="Stops" points={[{ at: [8, 5] }, { at: [8.3, 5] }]} />
 			</MapPlat>,
 		)
@@ -127,6 +148,8 @@ describe('dot hit target by pointer modality', () => {
 	it('holds that target at one size through every scale the view takes', () => {
 		const { container } = renderUI(
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
+				<MapGeofence label="Catchment" at={[15, 5]} radius={300_000} />
+
 				<MapPoint label="Depot" at={[15, 5]} />
 			</MapPlat>,
 		)
@@ -170,7 +193,9 @@ describe('dot hit target by pointer modality', () => {
 
 		// A scaling target was 43.8px per dot across a 14.9px gap, so each one covered
 		// the other's centre and the topmost took both readouts — the zoom handed the
-		// reader two stops and one of them answered to nothing.
+		// reader two stops and one of them answered to nothing. The pair earns the
+		// narrow target on each other rather than on a zone: a neighbour that close
+		// is the whole reason a dot gives its reach back.
 		for (const target of targets) {
 			const { x, y } = centreOf(target)
 

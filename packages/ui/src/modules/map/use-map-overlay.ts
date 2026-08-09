@@ -88,6 +88,12 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		stops: () => LngLat[]
 		/**
+		 * Whether this mark's own face holds a frame position — see
+		 * {@link MapOverlayEntry.covers}. Passed by the area-shaped marks alone, and
+		 * read live like {@link stops}, so a redrawn zone never re-registers.
+		 */
+		covers?: (at: MapPoint2D) => boolean
+		/**
 		 * Per-dot readouts for a plural mark, absent on a singular one. Plain data,
 		 * because the table draws it — see {@link MapOverlayEntry.stopRows}. Keyed
 		 * by content below, so an inline `points` never loops the ledger.
@@ -109,6 +115,13 @@ export type MapOverlay = {
 	slot: MapSeriesColor | undefined
 	/** Whether the legend has toggled this mark off. */
 	hidden: boolean
+	/**
+	 * Whether a drawn zone holds a frame position — the plat's whole ledger asked
+	 * at one point. A dot-shaped mark reads it per dot to size its hit target: the
+	 * pixels a dot does not paint go back to the zone under it, and come back to
+	 * the dot the moment the legend takes that zone away.
+	 */
+	covered: (at: MapPoint2D) => boolean
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
 	project: (position: LngLat) => MapPoint2D | null
 	/**
@@ -177,6 +190,7 @@ export function useMapOverlay({
 	kind,
 	swatch,
 	stops,
+	covers,
 	stopRows,
 	stopOf,
 }: MapOverlayConfig): MapOverlay {
@@ -184,7 +198,7 @@ export function useMapOverlay({
 
 	const id = given ?? generated
 
-	const { project, register, colors, order, hidden, emphasis, animate, selectedOverlay } =
+	const { project, register, colors, order, hidden, covered, emphasis, animate, selectedOverlay } =
 		useMapPlat()
 
 	const set = useMapHoverSet()
@@ -203,11 +217,13 @@ export function useMapOverlay({
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, stopRows, resolveStop })
+	const live = useRef({ stops, onClick, stopRows, resolveStop, covers })
 
-	live.current = { stops, onClick, stopRows, resolveStop }
+	live.current = { stops, onClick, stopRows, resolveStop, covers }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
+
+	const coversAt = useCallback((at: MapPoint2D) => live.current.covers?.(at) ?? false, [])
 
 	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
@@ -220,6 +236,12 @@ export function useMapOverlay({
 	const pickable = onClick !== undefined
 
 	const activate = pickable ? pick : undefined
+
+	// Registered only where the mark covers ground, on the same terms as
+	// `activate`: its presence is what the plat's resolver asks of an entry, so a
+	// dot never tests itself against a mark that holds no face. The wrapper rides
+	// the ref, so this depends on whether there is one — a fact fixed per mark kind.
+	const cover = covers === undefined ? undefined : coversAt
 
 	// The standing pick, resolved off the live mapper rather than the ref the
 	// ledger rides: a refit that regroups a plural mark moves the picked dot, and
@@ -248,9 +270,10 @@ export function useMapOverlay({
 				stopsAt,
 				stopRows,
 				activate,
+				covers: cover,
 				stopOf: stopAt,
 			}),
-		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, stopAt],
+		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, cover, stopAt],
 	)
 
 	// One handler set per mark, not one per hit shape: each reads its own stop
@@ -282,6 +305,7 @@ export function useMapOverlay({
 		slot: colors.get(id),
 		hidden: hidden.has(id),
 		project,
+		covered,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,

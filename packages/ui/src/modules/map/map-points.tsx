@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat, useMapZoomScale } from './context'
+import { crowdedMarks } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import { clusterGap, clusterPoints, groupsByMember } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
@@ -96,6 +97,12 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * picked. An invisible hit circle per dot keeps each aimable. The plat's
  * `selectedOverlay` haloes the dot holding the picked point — the summary it
  * merged into where the frame draws one.
+ *
+ * Those circles are finger-sized targets, and for a mouse a dot narrows to what
+ * it draws while it has a neighbour that close or stands on a drawn
+ * {@link MapGeofence} — so the dots a zoom has just parted stay separately
+ * aimable, and a zone under a dot keeps its own face. A dot standing clear of
+ * both keeps the full target.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
  * position past a handful: `MapPoint` registers its own legend entry, so two
@@ -199,7 +206,7 @@ export function MapPoints({
 		}
 	}
 
-	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
+	const { slot, hidden, covered, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
@@ -220,6 +227,27 @@ export function MapPoints({
 	// summary haloes the summary, and separates onto its own dot as the frame
 	// widens around it.
 	const picked = selected === null ? null : groups[selected]
+
+	// Which dots give the ground back that a finger-sized target would claim: the
+	// ones standing on a drawn zone, and the ones with a neighbour close enough
+	// that the target over one would cover the face of the other.
+	//
+	// Memoised on the grouping and the plat's zone resolver, neither of which a
+	// pointer crossing moves — where this mark re-renders on every crossing of
+	// every mark on the map. The crowding half reads the drawn frame, so it answers
+	// the zoom on the beat the grouping does: the pair a zoom has just parted sits
+	// ~15px apart, well inside a 44px target, and stays precise until the view
+	// carries them clear of one another.
+	const fine = useMemo(() => {
+		const crowded = crowdedMarks(
+			groups.map((group) => ({ at: group.at, radius: clusterRadius(group.members.length) })),
+			unitsPerPixel,
+		)
+
+		return groups.map(
+			(group, index) => crowded[index] === true || (group.at !== null && covered(group.at)),
+		)
+	}, [groups, covered, unitsPerPixel])
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
 	// every time, which is the cost this mark exists to remove.
@@ -288,6 +316,7 @@ export function MapPoints({
 									hit: hit(index),
 									scale: unitsPerPixel,
 									radius,
+									fine: fine[index] === true,
 								})}
 							/>
 						</Fragment>
