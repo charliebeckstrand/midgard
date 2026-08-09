@@ -39,7 +39,22 @@ export type ChatTransport = (
 
 /** Options for {@link useChatSend}. */
 export type UseChatSendOptions = {
-	/** Seed messages; each is assigned a client id. */
+	/**
+	 * Seed messages. A message that carries an id keeps it, and a message that
+	 * carries none is assigned a client id.
+	 *
+	 * @remarks
+	 * The id a seed message carries is the one a store persisted, so the hook
+	 * keeps it. Every target the transcript holds is named by it: a React key, an
+	 * {@link UseChatSend.edit} call, and — once a message holds parts — the
+	 * message half of a part's address. A hook that minted a fresh id here would
+	 * re-key the whole conversation at each mount, and a target written before a
+	 * reload would name a message that no longer exists.
+	 *
+	 * An id must be unique in the transcript, because every rule over the
+	 * transcript reads it. Two messages under one id are edited, truncated, and
+	 * rolled back together.
+	 */
 	initialMessages?: ChatContent[]
 	/** Streams the assistant reply for a sent message. See {@link ChatTransport}. */
 	transport: ChatTransport
@@ -115,8 +130,13 @@ export function useChatSend({
 	onSent,
 	onError,
 }: UseChatSendOptions): UseChatSend {
+	// A seed message keeps the id it carries, because that id is what a store
+	// persisted and what every later target names. Only a message with none is
+	// assigned one, so the transcript still holds an id on every message.
 	const [messages, setMessages] = useState<ChatContent[]>(() =>
-		(initialMessages ?? []).map((message) => ({ ...message, id: crypto.randomUUID() })),
+		(initialMessages ?? []).map((message) =>
+			message.id ? message : { ...message, id: crypto.randomUUID() },
+		),
 	)
 
 	const [streaming, setStreaming] = useState(false)

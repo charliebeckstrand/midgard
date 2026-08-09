@@ -104,6 +104,8 @@ In priority order, after the increments. Each entry names the gap, the shape of 
 
 - **Persistence and resume.** `Chat` is a wire shape with no adapter, so a conversation survives a reload only if the app writes that path itself. The shape is a history port beside the transport — load a page of messages, append on send — and a resume rule for a stream a reload cut, which needs the reply id to outlive the session. It lands beside `ChatTransport`, and it must stay a port rather than an implementation, for the reason the transport already is one.
 
+  One half of the id question is settled already: `useChatSend` keeps the id a seed message carries, so a message and its parts hold the same address after a reload. What a resume still needs is a durable position in a reply the reload cut, which no part carries.
+
 - **Attachment previews through the embed seam.** The composer surfaces attachments as chips and nothing renders what they hold. A CSV preview is a grid and an image preview is an image, so this must reuse the registry from increment 4 rather than open a second path to the same three modules. It lands as a `file` part with a preview resolved by media type.
 
 - **Conversation search.** `ChatList` takes rows and offers no filter, so a sidebar of two hundred conversations is a scroll. The plain-text projection from increment 3 is the index, and the query module is the filter. It lands as a prop on the list rather than a new component.

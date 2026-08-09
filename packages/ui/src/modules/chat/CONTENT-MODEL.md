@@ -124,7 +124,9 @@ No change is needed to [`docs/MODULES.md`](../../../docs/MODULES.md) — it inde
 
 These are calls the judgement cannot make, and each is a decision for the repo owner.
 
-**Does a part id survive the client?** [`use-chat-send.ts`](use-chat-send.ts):118 overwrites a caller-supplied id with a fresh `crypto.randomUUID()` when it seeds `initialMessages`, so a conversation persisted with part ids and reloaded through the hook is re-keyed at mount. That defeats every per-part target the id exists to hold.
+**Does an id survive the client?** Settled for a message. `useChatSend` used to overwrite a seed message's id with a fresh `crypto.randomUUID()`, so a persisted conversation was re-keyed at each mount and a target written before a reload named a message that no longer existed. It now keeps the id a seed message carries, and assigns one only to a message that carries none. A part's id inside `content` was never rewritten, so a part's whole address — the message id and the part id — now survives a reload.
+
+Two halves of this remain open. A reply cut mid-stream still has no durable position, so a resume restarts it. And nothing checks that a seed id is unique; the contract states it, and a store that returns two messages under one id would have them edited, truncated, and rolled back together.
 
 **Does the gateway payload get a parse boundary?** The admin route casts the fetched JSON with no runtime validation. Today a wrong wire shape gives a wrong string in a bubble; after the widening, a gateway that starts returning arrays type-checks in silence.
 

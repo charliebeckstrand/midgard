@@ -22,6 +22,59 @@ describe('useChatSend', () => {
 		expect(result.current.messages[0]?.id).toBeTypeOf('string')
 	})
 
+	it('keeps the id a seed message carries, so a reload does not re-key the transcript', () => {
+		// The persisted id is what a React key, an `edit` call, and a part's
+		// address all name. Minting a fresh one here would break every target
+		// written before the reload.
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport: streamOf('ok'),
+				initialMessages: [
+					{ id: 'server-1', role: 'user', content: 'seed' },
+					{ id: 'server-2', role: 'assistant', content: 'reply' },
+				],
+			}),
+		)
+
+		expect(result.current.messages.map((message) => message.id)).toEqual(['server-1', 'server-2'])
+	})
+
+	it('assigns an id only to the seed message that carries none', () => {
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport: streamOf('ok'),
+				initialMessages: [
+					{ id: 'server-1', role: 'user', content: 'seed' },
+					{ role: 'assistant', content: 'reply' },
+				],
+			}),
+		)
+
+		expect(result.current.messages[0]?.id).toBe('server-1')
+		expect(result.current.messages[1]?.id).toBeTypeOf('string')
+		expect(result.current.messages[1]?.id).not.toBe('server-1')
+	})
+
+	it('edits a seed message by the id it was persisted under', async () => {
+		// The end the fix exists for: a target written before a reload still
+		// reaches its message after one.
+		const transport = vi.fn(streamOf('x'))
+
+		const { result } = renderHook(() =>
+			useChatSend({
+				transport,
+				initialMessages: [{ id: 'server-1', role: 'user', content: 'seed' }],
+			}),
+		)
+
+		await act(async () => {
+			await result.current.edit('server-1', 'edited')
+		})
+
+		expect(transport).toHaveBeenCalledWith('edited', expect.anything())
+		expect(result.current.messages[0]).toMatchObject({ id: 'server-1', content: 'edited' })
+	})
+
 	it('appends the user message and streams the assistant reply, keeping the last snapshot', async () => {
 		const onSent = vi.fn()
 
