@@ -7,7 +7,6 @@ import {
 } from '../../modules/map/engine/map-projection/aspect'
 import {
 	canonicalFit,
-	mapAutoAspect,
 	measuredMapFit,
 	scaleCanonicalFit,
 } from '../../modules/map/engine/map-projection/fit'
@@ -217,9 +216,9 @@ describe('measuredMapFit', () => {
 	})
 })
 
-describe('mapAutoAspect', () => {
+describe('canonicalFit · the reserved aspect', () => {
 	it('measures the projected width / height ratio', () => {
-		const aspect = mapAutoAspect('mercator', FEATURES)
+		const aspect = canonicalFit('mercator', FEATURES)?.aspect
 
 		// 30° wide by 10° tall near the equator: roughly 3:1 under mercator.
 		expect(aspect).toBeGreaterThan(2.5)
@@ -228,7 +227,7 @@ describe('mapAutoAspect', () => {
 	})
 
 	it('is null with no features to measure', () => {
-		expect(mapAutoAspect('mercator', [])).toBeNull()
+		expect(canonicalFit('mercator', [])).toBeNull()
 	})
 })
 

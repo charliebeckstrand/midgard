@@ -31,8 +31,8 @@ export type MapCanonicalFit = {
  * measures the fitted bounds. `fitWidth` aligns those bounds to the frame's
  * top-left, so the returned `width` × `height` is a clean viewBox the geography
  * fills. Pure and synchronous — no container measurement — so the same fit
- * serves both the CSS aspect reservation (through {@link mapAutoAspect} below) and the
- * geography's first, measurement-free paint. `null` with nothing to fit.
+ * serves both the CSS aspect reservation (through {@link MapCanonicalFit.aspect})
+ * and the geography's first, measurement-free paint. `null` with nothing to fit.
  *
  * @internal
  */
@@ -111,16 +111,4 @@ export function measuredMapFit(
 	return typeof projection === 'string'
 		? scaleCanonicalFit(projection, canonical, width, height)
 		: fitMapProjection(projection, features, width, height)
-}
-
-/**
- * The geography's own projected aspect ratio (`width / height`), for
- * `aspectRatio: 'auto'`: the {@link canonicalFit}'s fitted bounds. Pure and
- * synchronous, so the CSS aspect box is reservable before the frame's width is;
- * `null` with nothing to measure.
- *
- * @internal
- */
-export function mapAutoAspect(spec: MapProjection, features: MapFeature[]): number | null {
-	return canonicalFit(spec, features)?.aspect ?? null
 }
