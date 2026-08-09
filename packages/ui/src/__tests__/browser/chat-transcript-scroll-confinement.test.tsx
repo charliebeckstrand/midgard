@@ -5,20 +5,21 @@ import { renderUI } from '../helpers'
 
 /**
  * A transcript's auto-scroll must move its own scroll container and nothing
- * else. The mount-time jump reaches for the sentinel's nearest *overflowing*
- * ancestor, and a transcript short enough not to overflow is not one — so
- * without confinement the walk passes straight through it and lands on whatever
- * container outside it does overflow, scrolling the page out from under the
- * reader.
+ * else.
  *
- * That failed in the docs: switching to the chat demo's Embeds tab scrolled the
- * whole content panel by 89 px. Only that tab, because a deferred embed's
- * reserved height was what tipped the panel into overflowing — the transcript's
- * escape had been latent on every tab before it.
+ * It used to reach for the nearest *overflowing* ancestor of a sentinel at the
+ * transcript's end — and a transcript short enough not to overflow is not that
+ * ancestor, so the search passed through it and scrolled whatever container
+ * outside it did. In the docs, switching to the chat demo's Embeds tab scrolled
+ * the whole content panel by 89 px; only that tab, because a deferred embed's
+ * reserved height was what tipped the panel into overflowing.
+ *
+ * The hook now writes to the container it is handed, so no search can escape.
+ * These cases hold the property rather than the mechanism: they would have
+ * caught the old bug and they still pass if the mechanism changes again.
  *
  * Real browser, because the whole rule is layout: jsdom reports every
- * `scrollHeight` and `clientHeight` as zero, so the walk it exercises is not the
- * one that ships.
+ * `scrollHeight` and `clientHeight` as zero.
  */
 
 const short: ChatMessageData[] = [

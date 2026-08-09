@@ -47,30 +47,31 @@ export type ChatTranscriptProps = {
  * reply just landed.
  */
 export function ChatTranscript({ messages, streaming, className }: ChatTranscriptProps) {
-	const { ref } = useChatScroll(messages)
+	const { containerRef } = useChatScroll(messages)
 
 	useA11yAnnouncements(describeTranscript(messages, streaming))
 
 	return (
-		<div data-slot="chat-transcript" role="log" aria-live="off" className={cn(k(), className)}>
+		<div
+			ref={containerRef}
+			data-slot="chat-transcript"
+			role="log"
+			aria-live="off"
+			className={cn(k(), className)}
+		>
 			{messages.length > 0 && (
-				<>
-					<div className="flex flex-col gap-6 mx-auto">
-						{messages.map((message, index) => (
-							<ChatMessage
-								key={message.id ?? index}
-								role={message.role}
-								streaming={
-									streaming && message.role === 'assistant' && index === messages.length - 1
-								}
-								timestamp={message.timestamp}
-							>
-								{message.content}
-							</ChatMessage>
-						))}
-					</div>
-					<div ref={ref} />
-				</>
+				<div className="flex flex-col gap-6 mx-auto">
+					{messages.map((message, index) => (
+						<ChatMessage
+							key={message.id ?? index}
+							role={message.role}
+							streaming={streaming && message.role === 'assistant' && index === messages.length - 1}
+							timestamp={message.timestamp}
+						>
+							{message.content}
+						</ChatMessage>
+					))}
+				</div>
 			)}
 		</div>
 	)
