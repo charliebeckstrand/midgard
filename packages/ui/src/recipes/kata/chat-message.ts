@@ -68,7 +68,7 @@ export const k = defineRecipe(
 			embed: 'max-w-full',
 			// The line a block draws when no renderer claims its name: quiet, because
 			// it reports a gap rather than an error the reader can act on.
-			embedFallback: [size.sm, ...text.muted],
+			embedFallback: [size.md, ...text.muted],
 		},
 		defaults: { role: 'assistant' },
 	},
