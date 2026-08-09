@@ -30,13 +30,35 @@ if (typeof window.ResizeObserver !== 'function') {
 	window.ResizeObserver = StubResizeObserver
 }
 
+// Reports every observed target as intersecting, once, on observe.
+//
+// jsdom lays nothing out, so it cannot answer whether an element is on screen.
+// A stub that stays silent answers "nothing is ever visible", which is the
+// wrong default: a viewport gate defers work that is otherwise correct, so a
+// silent observer hides content from every test that renders behind one. Same
+// reasoning as `useInView`'s no-observer branch — when the environment cannot
+// tell, show it. A suite that needs to drive intersection itself replaces this
+// with its own stub, as `chat-embed-lazy.test.tsx` does.
 if (typeof window.IntersectionObserver !== 'function') {
 	class StubIntersectionObserver implements IntersectionObserver {
 		readonly root: Element | Document | null = null
 		readonly rootMargin: string = '0px'
 		readonly scrollMargin: string = '0px'
 		readonly thresholds: ReadonlyArray<number> = [0]
-		observe(_target: Element): void {}
+
+		private readonly callback: IntersectionObserverCallback
+
+		constructor(callback: IntersectionObserverCallback) {
+			this.callback = callback
+		}
+
+		observe(target: Element): void {
+			this.callback(
+				[{ target, isIntersecting: true } as IntersectionObserverEntry],
+				this as IntersectionObserver,
+			)
+		}
+
 		unobserve(_target: Element): void {}
 		disconnect(): void {}
 		takeRecords(): IntersectionObserverEntry[] {

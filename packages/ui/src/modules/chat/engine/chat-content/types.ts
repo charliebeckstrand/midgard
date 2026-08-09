@@ -55,6 +55,16 @@ export type ChatEmbedPart = {
 	 * registration, which is where the cast belongs.
 	 */
 	data: unknown
+	/**
+	 * How tall the view will be, in pixels, for the space to hold open while its
+	 * renderer is held back under the `lazy` mount policy.
+	 *
+	 * Only the caller knows this — the module has not drawn the view yet, and
+	 * asking the renderer would mean mounting the thing being deferred. Absent
+	 * takes the module's default, which a view of another height makes the
+	 * transcript settle by that difference the first time a reader reaches it.
+	 */
+	height?: number
 }
 
 /** How a tool call ended, as the reader is shown it. */

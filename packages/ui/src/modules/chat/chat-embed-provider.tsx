@@ -39,15 +39,21 @@ export type ChatEmbedProviderProps = ChatEmbedRegistry & {
  *     <ChatTranscript messages={messages} />
  *   </ChatEmbedProvider>
  */
-export function ChatEmbedProvider({ renderers, fallback, children }: ChatEmbedProviderProps) {
+export function ChatEmbedProvider({
+	renderers,
+	fallback,
+	mount,
+	children,
+}: ChatEmbedProviderProps) {
 	const outer = useChatEmbeds()
 
 	const value = useMemo<ChatEmbedRegistry>(
 		() => ({
 			renderers: { ...outer.renderers, ...renderers },
 			fallback: fallback ?? outer.fallback,
+			mount: mount ?? outer.mount,
 		}),
-		[outer, renderers, fallback],
+		[outer, renderers, fallback, mount],
 	)
 
 	return <ChatEmbedContext value={value}>{children}</ChatEmbedContext>
