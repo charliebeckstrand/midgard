@@ -5,15 +5,13 @@ import {
 	type MouseEvent,
 	type PointerEvent,
 	type ReactNode,
-	startTransition,
-	useCallback,
 	useMemo,
-	useRef,
 	useState,
 } from 'react'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { cn, createContext } from '../../../core'
-import { usePlotFrame, useResizeObserver } from '../../../hooks'
+import { usePlotFrame } from '../../../hooks'
+import { useMeasuredWidth } from '../../../hooks/use-measured-width'
 import { k } from '../../../recipes/kata/chart'
 import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
@@ -703,25 +701,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	// plot: a side bar shrinks the plot, so keying the move to the plot's width
 	// would feed it back on itself and oscillate. A fixed `width` reads
 	// deterministically (SSR, tests); otherwise the observer tracks the container.
-	const containerRef = useRef<HTMLDivElement>(null)
-
-	const [measuredWidth, setMeasuredWidth] = useState(0)
-
-	const measureContainer = useCallback(() => {
-		const el = containerRef.current
-
-		if (!el) return
-
-		const next = Math.round(el.clientWidth)
-
-		// Commit as a transition — the plot frame's own refit priority — so a resize
-		// burst coalesces rather than this urgent write preempting it.
-		startTransition(() => setMeasuredWidth((prev) => (prev === next ? prev : next)))
-	}, [])
-
-	useResizeObserver(containerRef, measureContainer)
-
-	const containerWidth = width ?? measuredWidth
+	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
 	const rangeLegend = resolveRangeLegend(legend, containerWidth, frameHeight)
 

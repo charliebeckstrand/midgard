@@ -1,16 +1,8 @@
 'use client'
 
-import {
-	type ReactNode,
-	startTransition,
-	useCallback,
-	useDeferredValue,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useResizeObserver } from '../../hooks'
+import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
@@ -749,28 +741,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// The range bar's placement follows the chart's tier, so it reads the
 	// container width — not the plot's, which a side bar shrinks, feeding the move
-	// back on itself. A fixed `width` reads deterministically (SSR, tests);
-	// otherwise the observer tracks the container the frame's outer box measures.
-	const containerRef = useRef<HTMLDivElement>(null)
-
-	const [measuredWidth, setMeasuredWidth] = useState(0)
-
-	const measureContainer = useCallback(() => {
-		const el = containerRef.current
-
-		if (!el) return
-
-		const next = Math.round(el.clientWidth)
-
-		// Commit as a transition — the same priority the plot's own refit rides — so
-		// a resize burst coalesces rather than this urgent write preempting and
-		// stranding the refit at an intermediate frame (which would fatten strokes).
-		startTransition(() => setMeasuredWidth((prev) => (prev === next ? prev : next)))
-	}, [])
-
-	useResizeObserver(containerRef, measureContainer)
-
-	const containerWidth = width ?? measuredWidth
+	// back on itself. The heatmap places its own bar by the same reading, so the
+	// measure is one hook.
+	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
 	const {
 		show: showLegend,
