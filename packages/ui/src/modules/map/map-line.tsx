@@ -50,7 +50,8 @@ type MapLineProps = {
  * been kept in step by hand for a while.
  *
  * A zone states a `width` of its own, because it reads as context behind the
- * marks rather than as another route drawn around them. Nothing else varies.
+ * marks rather than as another route drawn around them; a marker's leg delays
+ * its `transition` until its pins have popped. Nothing else varies.
  *
  * `className` rather than the kata paint object, so this file takes no
  * dependency on the series colour vocabulary and stays a shape.
@@ -100,9 +101,10 @@ export function MapLine({
  * reason its doccomment records: a fiber per hit shape was measured and
  * rejected.
  *
- * The band is a finger's width in device pixels, so it rides the same
- * non-scaling stroke the line does: a zoom must widen the ground it covers,
- * never the target itself.
+ * The band is {@link ROUTE_HIT_WIDTH} in device pixels — WCAG 2.5.8's minimum,
+ * which the constant explains a line takes in place of the 44px a dot claims —
+ * so it rides the same non-scaling stroke the line does: a zoom must widen the
+ * ground the mark covers, never the target itself.
  *
  * @param slot - the `data-slot` naming this target.
  * @param d - the path it traces, which is the mark's own.

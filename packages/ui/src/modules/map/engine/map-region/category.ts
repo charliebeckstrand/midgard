@@ -18,6 +18,10 @@ import type { DataKey, MapCategory } from '../types'
  * choropleth bin carries a single CSS `color` value from the consumer's
  * `colorRange`, applied as the region's `fill` attribute / the swatch's inline colour.
  *
+ * The three projections below it are the map's half of what `chart-color/paint`
+ * names for the union it mirrors from here. Without them every reader spelled
+ * the discriminant itself, and two of them spelled it identically.
+ *
  * @internal
  */
 export type MapReadoutPaint =
@@ -29,9 +33,8 @@ export type MapReadoutPaint =
  * colour is a value the consumer's `colorRange` produced and can only ride the
  * `fill` attribute.
  *
- * The three projections below are the map's half of what `chart-color/paint`
- * names for the union it mirrors from here. Without them every reader spelled
- * the discriminant itself, and two of them spelled it identically.
+ * The raw list rather than a joined string, unlike the two below it: its one
+ * reader spreads it into a wider `cn` alongside the layer's own tokens.
  *
  * @internal
  */

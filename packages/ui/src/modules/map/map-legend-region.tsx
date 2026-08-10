@@ -16,13 +16,8 @@ import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
  */
 const LEGEND_BOX_PANEL = cn(...k.legendBox.panel)
 
-/**
- * The row's, joined the same way for symmetry — it is a lone string, so the
- * call returns it unchanged and saves nothing on its own.
- *
- * @internal
- */
-const LEGEND_BOX_ROW = cn(k.legendBox.row)
+/** The centered row's, already a lone class and so joined by nothing. @internal */
+const LEGEND_BOX_ROW = k.legendBox.row
 
 /** Props for {@link MapLegendSlot}: the reserved box and the toolbar it holds. @internal */
 type MapLegendSlotProps = {

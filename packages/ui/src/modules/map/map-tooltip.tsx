@@ -8,7 +8,12 @@ import { useMapHoverState } from './context'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { markReadout } from './engine/map-overlay/readout'
-import { categoryLegendId, type MapCategoryMeta } from './engine/map-region/category'
+import {
+	categoryLegendId,
+	type MapCategoryMeta,
+	paintColor,
+	paintText,
+} from './engine/map-region/category'
 import type { MapSwatchShape } from './engine/types'
 import { mapSwatchShapes } from './map-swatch'
 
@@ -97,9 +102,8 @@ function resolve(
 		title: regionNames[target.index] ?? '',
 		row: {
 			swatch: 'rect',
-			...(paint.kind === 'value'
-				? { swatchColor: paint.color }
-				: { swatchClass: cn(...paint.text) }),
+			swatchClass: paintText(paint),
+			swatchColor: paintColor(paint),
 			// A region's own value in numeric mode (its bin only drives the colour);
 			// the category label otherwise.
 			text: regionValues[target.index] ?? meta.label,
