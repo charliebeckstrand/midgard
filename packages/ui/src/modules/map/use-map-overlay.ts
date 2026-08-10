@@ -332,11 +332,13 @@ export function useMapOverlay({
 	// resolve reads. A plural mark draws one shape per dot, so building these per
 	// shape would allocate them by the hundred on every render.
 	//
-	// Held across renders, so a mark's hit props are the same objects from one
-	// crossing to the next and a plural mark's dots can sit behind a memo. Both
-	// reporters ride the `live` ref for it: a consumer's inline handler is a fresh
-	// identity every render, and what this depends on instead is whether there is
-	// one at all — a boolean a consumer changes by adding or dropping the prop.
+	// The factory itself is held across renders, which is what lets a plural
+	// mark's dots sit behind a memo — the memo holds, so the dots never call it
+	// again at all. (Each call still returns a fresh object; nothing compares
+	// those.) Both reporters ride the `live` ref for it: a consumer's inline
+	// handler is a fresh identity every render, and what this depends on instead
+	// is whether there is one at all — a boolean a consumer changes by adding or
+	// dropping the prop.
 	const hit = useCallback(
 		(stop = 0) => ({
 			'data-entry-id': id,

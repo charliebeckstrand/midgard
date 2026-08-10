@@ -74,7 +74,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					slot="map-point"
 					at={position}
 					radius={POINT_RADIUS}
-					className={cn(k.series[slot].stroke)}
+					className={cn(...k.series[slot].stroke)}
 					animate={animate}
 					transition={pointPop(order)}
 				/>

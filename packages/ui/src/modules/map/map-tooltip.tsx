@@ -12,6 +12,14 @@ import { categoryLegendId, type MapCategoryMeta } from './engine/map-region/cate
 import type { MapSwatchShape } from './engine/types'
 import { mapSwatchShapes } from './map-swatch'
 
+/**
+ * The readout value's ink. Resolved once at module scope: it takes no dynamic
+ * input, and this file re-renders on every pointer move the map answers.
+ *
+ * @internal
+ */
+const VALUE_INK = cn(...k.value)
+
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
 	label: string
@@ -89,7 +97,9 @@ function resolve(
 		title: regionNames[target.index] ?? '',
 		row: {
 			swatch: 'rect',
-			...(paint.kind === 'value' ? { swatchColor: paint.color } : { swatchClass: cn(paint.text) }),
+			...(paint.kind === 'value'
+				? { swatchColor: paint.color }
+				: { swatchClass: cn(...paint.text) }),
 			// A region's own value in numeric mode (its bin only drives the colour);
 			// the category label otherwise.
 			text: regionValues[target.index] ?? meta.label,
@@ -126,7 +136,7 @@ export function MapTooltip(props: MapTooltipProps) {
 		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{content && (
 				<div aria-hidden="true">
-					<div className={cn(k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
+					<div className={cn(...k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
 						{content.title}
 					</div>
 
@@ -139,7 +149,7 @@ export function MapTooltip(props: MapTooltipProps) {
 								style={content.row.swatchColor ? { color: content.row.swatchColor } : undefined}
 							/>
 
-							<span className={cn(k.value)}>{content.row.text}</span>
+							<span className={VALUE_INK}>{content.row.text}</span>
 						</div>
 					)}
 				</div>

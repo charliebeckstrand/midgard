@@ -98,8 +98,8 @@ export function useMapShape({
 	graticule,
 	sphere,
 }: MapFrameShapeOptions): MapFrameShape {
-	// The mount-critical geometry — decode, the measurement-free canonical fit,
-	// — memoised across instances and mounts (see
+	// The mount-critical geometry — the decode and the measurement-free canonical
+	// fit — memoised across instances and mounts (see
 	// `engine/map-geometry/cache`), so a tab switch, a second plat on the same
 	// atlas, or a route revisit paints on the first commit instead of re-paying it.
 	// Canonical output is deterministic, so the server and the first client

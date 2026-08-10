@@ -17,7 +17,17 @@ import type { MapLegendPlacement } from '../types'
  * `{ type: 'range', placement }` naming that bar's placement — the same shape a
  * chart's range legend takes, so the choropleth and heatmap read alike.
  */
-export type MapLegendInput = boolean | MapLegendPlacement | 'range' | ChartRangeLegendConfig
+export type MapLegendInput = boolean | MapLegendPlacement | MapRangeLegendInput
+
+/**
+ * The forms that ask for the continuous scale bar rather than the binned
+ * switchboard: the discriminator, and the object form that places the bar.
+ *
+ * Named so the two readers of the distinction cannot drift — {@link
+ * isRangeLegend} narrows to it, and the region-data union subtracts it to state
+ * that only the numeric branch can paint one.
+ */
+export type MapRangeLegendInput = 'range' | ChartRangeLegendConfig
 
 /**
  * Whether a `legend` prop asks for the continuous range bar rather than the
@@ -30,9 +40,7 @@ export type MapLegendInput = boolean | MapLegendPlacement | 'range' | ChartRange
  *
  * @internal
  */
-export function isRangeLegend(
-	legend: MapLegendInput | undefined,
-): legend is 'range' | ChartRangeLegendConfig {
+export function isRangeLegend(legend: MapLegendInput | undefined): legend is MapRangeLegendInput {
 	if (legend === 'range') return true
 
 	// The only object form is the range config, so any object asks for the bar.

@@ -5,16 +5,13 @@ import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapPlat } from './context'
-import {
-	GEOFENCE_FILL_OPACITY,
-	GEOFENCE_STROKE_WIDTH,
-	ROUTE_HIT_WIDTH,
-} from './engine/map-constants'
+import { GEOFENCE_FILL_OPACITY, GEOFENCE_STROKE_WIDTH } from './engine/map-constants'
 import { circleRing } from './engine/map-geofence'
 import { areaAnchor, areaCovers, projectArea, ringsPath } from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
 import type { LngLat, MapPolygons } from './engine/types'
 import { MapHalo } from './map-halo'
+import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** A geofence around one centre, at a fixed distance across the ground. @internal */
@@ -189,19 +186,7 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		// (`MapDotCount`, the halo, the lit region copies): the hit shape below is
 		// this mark's sole target, so the hover resolve can never read one zone twice.
 		pointerEvents: 'none' as const,
-		className: cn(paint.fill),
-	}
-
-	const edge = {
-		'data-slot': 'map-geofence',
-		d,
-		fill: 'none',
-		strokeWidth: GEOFENCE_STROKE_WIDTH,
-		strokeLinejoin: 'round' as const,
-		// Width in device pixels, as the region borders: a resize whose refit
-		// lands late scales the geometry but must not thicken the outline.
-		vectorEffect: 'non-scaling-stroke' as const,
-		className: cn(paint.stroke),
+		className: cn(...paint.fill),
 	}
 
 	return (
@@ -222,39 +207,24 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 					<path {...wash} />
 				)}
 
-				{animate ? (
-					<motion.path
-						{...edge}
-						initial={{ pathLength: 0 }}
-						animate={{ pathLength: 1 }}
-						transition={ROUTE_DRAW}
-					/>
-				) : (
-					<path {...edge} />
-				)}
+				{/* The boundary is a stroked line like a route's, drawn at the zone's own
+				    width: same non-scaling stroke, same round join, same self-drawing
+				    reveal on the same timing. Its round linecap never renders here —
+				    `ringsPath` closes every ring with a `Z`, so the path has no ends. */}
+				<MapLine
+					slot="map-geofence"
+					d={d}
+					width={GEOFENCE_STROKE_WIDTH}
+					className={cn(...paint.stroke)}
+					animate={animate}
+					transition={ROUTE_DRAW}
+				/>
 
-				{/* The whole zone answers the pointer — its face, and a 24px band around
-				    the boundary so the edge stays aimable where the fill ends. `all` rather
-				    than the painted default, so the transparent fill counts as a target.
+				{/* The whole zone answers the pointer — its face, and the shared band
+				    around the boundary so the edge stays aimable where the fill ends.
 				    Marks inside the zone still take their own hits: they draw after it,
 				    and the topmost shape at a point wins. */}
-				<path
-					data-slot="map-geofence-hit"
-					d={d}
-					fill="transparent"
-					// The wash's own rule, so the target is the ground the zone covers and
-					// not its bounding shape: a hole answers no pointer, and the region
-					// under it keeps its own hover.
-					fillRule="evenodd"
-					stroke="transparent"
-					strokeWidth={ROUTE_HIT_WIDTH}
-					// The band is a finger's width in device pixels, so it rides the same
-					// non-scaling stroke the boundary does: a zoom widens the ground the
-					// zone covers, never the target around its edge.
-					vectorEffect="non-scaling-stroke"
-					pointerEvents="all"
-					{...hit()}
-				/>
+				<path {...lineHitProps({ slot: 'map-geofence-hit', d, hit: hit(), face: true })} />
 			</g>
 		</>
 	)

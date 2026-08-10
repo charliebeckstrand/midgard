@@ -104,6 +104,15 @@ export function MapFrame({
 	)
 }
 
+/**
+ * The focus ring a navigable plot region carries, with the rounded corner the
+ * outline follows. Joined once — it takes no dynamic input, and the region it
+ * dresses re-renders for every notch of a zoom gesture.
+ *
+ * @internal
+ */
+const PLOT_FOCUS = cn('rounded-sm', ...k.focus)
+
 /** Props for {@link MapPlotRegion}: the measured box holding the SVG and the tooltip. @internal */
 type MapPlotRegionProps = AccessibleName & {
 	shape: MapFrameShape
@@ -153,7 +162,9 @@ export function MapPlotRegion({
 				'relative',
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.
-				keyboard && ['rounded-sm', k.focus],
+				// Joined at module scope: nested inline, the whole call is unkeyable
+				// and `cn` re-merges it on every wheel notch and tracked pointer move.
+				keyboard && PLOT_FOCUS,
 				// A zooming plot claims its own touch gestures: one finger pans and two
 				// pinch, so neither reaches the page's scroller. A modifier map makes
 				// the same bargain touch that it makes the wheel — one finger scrolls

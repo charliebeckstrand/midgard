@@ -410,7 +410,7 @@ export const MapRegions = memo(function MapRegions({
 					vectorEffect="non-scaling-stroke"
 					// No region anchor and no pointer events: the base path stays the
 					// sole hit target, the discipline the lit copies keep.
-					className={cn('pointer-events-none', k.region.selected)}
+					className={cn('pointer-events-none', ...k.region.selected)}
 				/>
 			)}
 		</g>

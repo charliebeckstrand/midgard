@@ -100,6 +100,9 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 
 	const paint = k.series[slot]
 
+	// Joined once: the three shapes below all draw in it.
+	const stroke = cn(...paint.stroke)
+
 	return (
 		<>
 			{/* One pick, three shapes: a marker is its pair of pins and the leg
@@ -120,7 +123,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					<MapLine
 						slot="map-marker-path"
 						d={d}
-						className={cn(paint.stroke)}
+						className={stroke}
 						animate={animate}
 						transition={MARKER_DRAW}
 					/>
@@ -131,7 +134,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						slot="map-marker-start"
 						at={from}
 						radius={PIN_RADIUS}
-						className={cn(paint.stroke)}
+						className={stroke}
 						animate={animate}
 						transition={POINT_POP}
 					/>
@@ -142,7 +145,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						slot="map-marker-end"
 						at={to}
 						radius={PIN_RADIUS}
-						className={cn(paint.stroke)}
+						className={stroke}
 						animate={animate}
 						transition={MARKER_END_POP}
 					/>

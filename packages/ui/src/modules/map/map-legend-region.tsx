@@ -6,6 +6,18 @@ import type { MapLegendItem } from './engine/map-legend/items'
 import { MapLegend } from './map-legend'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 
+/**
+ * The legend box's two reserved shapes, joined once each. The side panel's is an
+ * array and the row's a string, so the ternary between them can be neither
+ * spread nor keyed by `cn` — and neither takes a dynamic input worth re-merging
+ * per render of the plat.
+ *
+ * @internal
+ */
+const LEGEND_BOX_PANEL = cn(...k.legendBox.panel)
+
+const LEGEND_BOX_ROW = cn(k.legendBox.row)
+
 /** Props for {@link MapLegendSlot}: the reserved box and the toolbar it holds. @internal */
 type MapLegendSlotProps = {
 	/** Mount the box at all; `false` renders nothing (legend off). */
@@ -29,7 +41,7 @@ function MapLegendSlot({ show, aside, items, hidden, onToggle, onFocus }: MapLeg
 	if (!show) return null
 
 	return (
-		<div data-slot="map-legend-box" className={cn(aside ? k.legendBox.panel : k.legendBox.row)}>
+		<div data-slot="map-legend-box" className={aside ? LEGEND_BOX_PANEL : LEGEND_BOX_ROW}>
 			{items.length > 0 && (
 				<MapLegend
 					items={items}

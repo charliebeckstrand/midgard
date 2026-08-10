@@ -11,6 +11,13 @@ type MapLineHitSpec = {
 	slot: string
 	/** The path it traces, which is the line's own. */
 	d: string
+	/**
+	 * Whether the mark's own face is a target too, not just the band around its
+	 * edge. A zone is a place, so pointing anywhere inside it names it; a route
+	 * is a line, and a fill across the ground it spans would swallow every mark
+	 * between its ends.
+	 */
+	face?: boolean
 	/** The mark's own hit props — `useMapOverlay`'s `hit()` return. */
 	hit: MapOverlayHit
 }
@@ -21,6 +28,11 @@ type MapLineProps = {
 	slot: string
 	/** The path the line traces. */
 	d: string
+	/**
+	 * The stroke's device-pixel width.
+	 * @defaultValue {@link ROUTE_STROKE_WIDTH}
+	 */
+	width?: number
 	/** The resolved currentColor stroke class carrying the mark's slot colour. */
 	className: string
 	/** Whether the line draws itself in on mount. */
@@ -46,12 +58,19 @@ type MapLineProps = {
  *
  * @internal
  */
-export function MapLine({ slot, d, className, animate, transition }: MapLineProps) {
+export function MapLine({
+	slot,
+	d,
+	width = ROUTE_STROKE_WIDTH,
+	className,
+	animate,
+	transition,
+}: MapLineProps) {
 	const shape = {
 		'data-slot': slot,
 		d,
 		fill: 'none',
-		strokeWidth: ROUTE_STROKE_WIDTH,
+		strokeWidth: width,
 		strokeLinecap: 'round' as const,
 		strokeLinejoin: 'round' as const,
 		vectorEffect: 'non-scaling-stroke' as const,
@@ -85,15 +104,19 @@ export function MapLine({ slot, d, className, animate, transition }: MapLineProp
  *
  * @internal
  */
-export function lineHitProps({ slot, d, hit }: MapLineHitSpec) {
+export function lineHitProps({ slot, d, hit, face = false }: MapLineHitSpec) {
 	return {
 		'data-slot': slot,
 		d,
-		fill: 'none',
+		// A face target fills under the even-odd rule, the wash's own, so the ground
+		// it claims is the shape a reader can point at: a hole answers no pointer,
+		// and the region under it keeps its own hover.
+		fill: face ? 'transparent' : 'none',
+		...(face ? { fillRule: 'evenodd' as const } : {}),
 		stroke: 'transparent',
 		strokeWidth: ROUTE_HIT_WIDTH,
 		vectorEffect: 'non-scaling-stroke' as const,
-		pointerEvents: 'stroke' as const,
+		pointerEvents: face ? ('all' as const) : ('stroke' as const),
 		...hit,
 	}
 }

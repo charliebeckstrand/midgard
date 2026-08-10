@@ -72,7 +72,7 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 				<MapLine
 					slot="map-route"
 					d={d}
-					className={cn(k.series[slot].stroke)}
+					className={cn(...k.series[slot].stroke)}
 					animate={animate}
 					transition={ROUTE_DRAW}
 				/>
