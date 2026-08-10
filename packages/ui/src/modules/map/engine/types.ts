@@ -1,4 +1,4 @@
-import type { GeoProjection } from 'd3-geo'
+import type { GeoGeometryObjects, GeoProjection } from 'd3-geo'
 import type { MapSeriesColor } from '../../../recipes/kata/map'
 
 /** `[longitude, latitude]`: GeoJSON order, opposite of the idiomatic "lat / lng". */
@@ -63,14 +63,20 @@ export type MapShape = {
 
 /**
  * A GeoJSON feature, structurally: enough shape for region identity and
- * drawing without pulling `@types/geojson` into consumer graphs. Atlas data
- * (`us-atlas`, `world-atlas`) and Photon results satisfy it as-is.
+ * drawing. Atlas data (`us-atlas`, `world-atlas`) and Photon results satisfy it
+ * as-is.
+ *
+ * @remarks The geometry is `d3-geo`'s own union rather than an opaque `object`,
+ * so a reader that walks it narrows on `type` where it used to cast. Holding it
+ * opaque was meant to keep `@types/geojson` out of a consumer's graph, which it
+ * never did: `@types/d3-geo` declares that package as its own dependency and
+ * `packages/ui` depends on `@types/d3-geo` directly.
  */
 export type MapFeature = {
 	type: 'Feature'
 	id?: string | number
 	properties?: Record<string, unknown> | null
-	geometry: object | null
+	geometry: GeoGeometryObjects | null
 }
 
 /** A GeoJSON feature collection of {@link MapFeature}s. */

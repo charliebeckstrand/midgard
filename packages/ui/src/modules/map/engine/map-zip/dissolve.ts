@@ -106,11 +106,13 @@ function isArea(shape: MapShape): boolean {
 
 /** A feature's rings, in the polygon-then-ring shape both geometry kinds flatten to. @internal */
 function featureRings(shape: MapFeature): MapPolygons {
-	const geometry = shape.geometry as { type?: string; coordinates?: unknown } | null
+	const geometry = shape.geometry
 
-	if (geometry?.type === 'Polygon') return [geometry.coordinates as MapPolygons[number]]
+	if (geometry === null) return []
 
-	if (geometry?.type === 'MultiPolygon') return geometry.coordinates as MapPolygons
+	if (geometry.type === 'Polygon') return [geometry.coordinates as MapPolygons[number]]
+
+	if (geometry.type === 'MultiPolygon') return geometry.coordinates as MapPolygons
 
 	return []
 }

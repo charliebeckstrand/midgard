@@ -189,7 +189,7 @@ describe('rewindFeatures', () => {
 		const point: MapFeature = {
 			type: 'Feature',
 			id: 'P',
-			geometry: { type: 'Point', coordinates: [5, 5] } as unknown as object,
+			geometry: { type: 'Point', coordinates: [5, 5] },
 		}
 
 		const features = [point]
