@@ -1,6 +1,6 @@
 'use client'
 
-import { Swatch, type SwatchProps } from '../../components/swatch'
+import { Swatch } from '../../components/swatch'
 import { TooltipPointer } from '../../components/tooltip/tooltip-pointer'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
@@ -10,6 +10,7 @@ import type { MapStopRow } from './engine/map-overlay/entry'
 import { markReadout } from './engine/map-overlay/readout'
 import { categoryLegendId, type MapCategoryMeta } from './engine/map-region/category'
 import type { MapSwatchShape } from './engine/types'
+import { mapSwatchShapes } from './map-swatch'
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
@@ -51,12 +52,6 @@ type MapTooltipContent = {
 		text: string
 	}
 }
-
-/** Maps a mark shape to its {@link Swatch} shape. */
-const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const satisfies Record<
-	MapSwatchShape,
-	NonNullable<SwatchProps['shape']>
->
 
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
@@ -140,7 +135,7 @@ export function MapTooltip(props: MapTooltipProps) {
 					{content.row && (
 						<div className="flex items-center gap-1.5 whitespace-nowrap">
 							<Swatch
-								shape={SWATCH_SHAPE[content.row.swatch]}
+								shape={mapSwatchShapes[content.row.swatch]}
 								size="sm"
 								color={content.row.swatchClass}
 								style={content.row.swatchColor ? { color: content.row.swatchColor } : undefined}
