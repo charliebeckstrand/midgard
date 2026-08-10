@@ -8,7 +8,6 @@ import {
 	projectArea,
 	projectPoint,
 	ringAnchor,
-	ringPath,
 	ringsPath,
 } from '../../modules/map/engine/map-geometry/mark'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
@@ -300,7 +299,7 @@ describe('linePath', () => {
 	})
 })
 
-describe('ringPath', () => {
+describe('ringsPath · one ring', () => {
 	const projection = fitMapProjection('mercator', FIXTURE_GEOJSON.features, 300, 100)
 
 	const project = (position: [number, number]) => projectPoint(projection, position)
@@ -312,8 +311,14 @@ describe('ringPath', () => {
 		[28, 2],
 	]
 
+	/** The pair a geofence draws one ring through: project it, then draw it. */
+	const ring = (
+		points: [number, number][],
+		projector: (position: [number, number]) => { x: number; y: number } | null = project,
+	) => ringsPath(projectArea([[points]], projector))
+
 	it('closes the path it draws through the points', () => {
-		const d = ringPath(SQUARE, project)
+		const d = ring(SQUARE)
 
 		expect(d).toMatch(/^M[-\d.]+,[-\d.]+L/)
 
@@ -321,7 +326,7 @@ describe('ringPath', () => {
 	})
 
 	it('is linePath plus the closing command, so the two can never diverge', () => {
-		expect(ringPath(SQUARE, project)).toBe(`${linePath(SQUARE, project)}Z`)
+		expect(ring(SQUARE)).toBe(`${linePath(SQUARE, project)}Z`)
 	})
 
 	it('draws a ring whose closing repeat is already present', () => {
@@ -329,7 +334,7 @@ describe('ringPath', () => {
 		// zero-length segment and must never open a gap.
 		const closed: [number, number][] = [...SQUARE, SQUARE[0] as [number, number]]
 
-		const d = ringPath(closed, project)
+		const d = ring(closed)
 
 		expect(d.endsWith('Z')).toBe(true)
 
@@ -341,23 +346,20 @@ describe('ringPath', () => {
 		const gappy = (position: [number, number]) =>
 			position[0] === 2 && position[1] === 8 ? null : project(position)
 
-		expect(ringPath(SQUARE, gappy).split('L')).toHaveLength(3)
+		expect(ring(SQUARE, gappy).split('L')).toHaveLength(3)
 	})
 
 	it('is empty when fewer than three points survive — the fewest an area holds', () => {
 		expect(
-			ringPath(
-				[
-					[2, 2],
-					[28, 8],
-				],
-				project,
-			),
+			ring([
+				[2, 2],
+				[28, 8],
+			]),
 		).toBe('')
 
-		expect(ringPath([], project)).toBe('')
+		expect(ring([])).toBe('')
 
-		expect(ringPath(SQUARE, () => null)).toBe('')
+		expect(ring(SQUARE, () => null)).toBe('')
 	})
 })
 
@@ -449,26 +451,31 @@ describe('projectArea and ringsPath', () => {
 		expect(d.match(/M/g)).toHaveLength(2)
 	})
 
-	it('is the rings concatenated, so one ring draws exactly what ringPath draws', () => {
+	it('is the rings concatenated, so one ring draws exactly one closed run', () => {
 		const [outer = []] = DONUT
 
-		expect(areaPath([[outer]])).toBe(ringPath(outer, project))
+		expect(areaPath([[outer]])).toBe(`${linePath(outer, project)}Z`)
 	})
 
 	it('draws separate parts in one string, so a split territory is one mark', () => {
 		const [outer = [], hole = []] = DONUT
 
-		expect(areaPath([[outer], [hole]])).toBe(ringPath(outer, project) + ringPath(hole, project))
+		expect(areaPath([[outer], [hole]])).toBe(
+			`${linePath(outer, project)}Z${linePath(hole, project)}Z`,
+		)
 	})
 
 	it('drops a ring the projection keeps too little of, and keeps the rest', () => {
 		const [outer = []] = DONUT
 
-		// A projector that drops everything past the tenth meridian leaves the hole
-		// with one surviving point — too few for an area — and the outer ring whole.
-		const clipped = (position: [number, number]) => (position[0] > 10 ? null : project(position))
+		// Drops two of the hole's four positions, leaving it two — too few for an
+		// area — while every position of the outer ring survives. A meridian cut
+		// cannot express that: the hole sits inside the outer ring on both axes, so
+		// any threshold that reaches the hole has already cut the ring around it.
+		const clipped = (position: [number, number]) =>
+			position[0] >= 10 && position[0] <= 20 && position[1] < 6 ? null : project(position)
 
-		expect(ringsPath(projectArea([DONUT], clipped))).toBe(ringPath(outer, clipped))
+		expect(ringsPath(projectArea([DONUT], clipped))).toBe(`${linePath(outer, clipped)}Z`)
 	})
 
 	it('draws nothing from no polygons', () => {

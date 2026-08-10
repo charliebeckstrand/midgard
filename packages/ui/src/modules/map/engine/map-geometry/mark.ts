@@ -73,27 +73,6 @@ export function linePath(
 }
 
 /**
- * A closed ring's SVG path through the projected points, skipping any the
- * projector drops; empty when fewer than three survive, which is the fewest an
- * area can hold. {@link linePath} with a `Z`, so a geofence's fill, its
- * boundary, its hit stroke, and its halo all trace one string and can never
- * diverge.
- *
- * The ring a caller hands in repeats its first position at the end, as a GeoJSON
- * ring does. The `Z` closes the path either way, so the repeat costs one
- * zero-length segment and never a gap.
- *
- * @internal
- */
-export function ringPath(ring: LngLat[], project: (position: LngLat) => MapPoint2D | null): string {
-	const projected = projectRun(ring, project)
-
-	if (projected.length < 3) return ''
-
-	return `${polylineCommands(projected)}Z`
-}
-
-/**
  * The geographic middle of a line of points, as the stop list a line-shaped mark
  * registers: the cursor lands on the mark rather than at one end, where several
  * routes out of one depot would stack on the shared origin. A list, and empty
@@ -234,8 +213,8 @@ function boundPoints(points: readonly MapPoint2D[]): MapFrameBox {
 /**
  * The frame rings an area projects to: every ring of every polygon, with the
  * points the projector drops left out and any ring left under three of them
- * dropped whole — {@link ringPath}'s bound, so an inset that clips half a
- * territory away keeps the half it kept.
+ * dropped whole — three being the fewest an area can hold, so an inset that
+ * clips half a territory away keeps the half it kept.
  *
  * The rings come back as points rather than as a string, because two readers ask
  * the same geometry two questions: {@link ringsPath} draws it, and
