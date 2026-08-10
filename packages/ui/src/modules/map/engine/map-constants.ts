@@ -103,9 +103,16 @@ export const POINT_HIT_RADIUS = 22
  * radius, so a browser that resolves no `r` in CSS keeps the larger target. This
  * is the default size alone: `dotHitProps` sets each shape's own drawn radius, so
  * a summary dot is covered by the grade it draws at.
+ *
+ * A literal rather than {@link POINT_RADIUS} itself, though it is that figure by
+ * definition. Nothing reads this at runtime — the number ships inside
+ * `hitFine`'s class string, which Tailwind can only scan whole — so the constant
+ * is that literal's documented name, and binding it to another export makes the
+ * two one export under two names, which knip rejects. `map-hit-target` holds the
+ * pair equal instead, which is what a tie between two literals costs.
  * @internal
  */
-export const POINT_HIT_RADIUS_FINE = POINT_RADIUS
+export const POINT_HIT_RADIUS_FINE = 5.5
 
 /**
  * The clear space, in frame units, two point marks keep between their edges

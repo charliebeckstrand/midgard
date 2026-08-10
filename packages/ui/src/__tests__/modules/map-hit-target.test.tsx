@@ -67,9 +67,12 @@ describe('dot hit targets', () => {
 		// The drawn dot exactly — no reach past what the mark paints, and no dead
 		// rim inside it. This is the class's fallback; `dotHitProps` sets each
 		// shape's own radius, so a summary is covered by the grade it draws at.
-		// Derived from `POINT_RADIUS` rather than repeated, so the line above is
-		// what holds the figure and the two can no longer drift apart.
-		expect(POINT_RADIUS * 2).toBe(11)
+		//
+		// Two literals held equal here rather than one derived from the other: the
+		// fine radius ships inside `hitFine`'s class string and nothing reads the
+		// constant at runtime, so binding it to `POINT_RADIUS` would leave one
+		// export under two names. This assertion is the tie.
+		expect(POINT_HIT_RADIUS_FINE).toBe(POINT_RADIUS)
 	})
 
 	it('carries the coarse reach on the attribute of every dot-shaped target', () => {
