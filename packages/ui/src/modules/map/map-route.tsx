@@ -1,14 +1,14 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
+import { ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { ROUTE_DRAW } from './engine/map-motion'
 import type { LngLat } from './engine/types'
 import { MapHalo } from './map-halo'
+import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** Props for {@link MapRoute}. */
@@ -64,50 +64,20 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 
 	if (slot === undefined || hidden || d === '') return null
 
-	const paint = k.series[slot]
-
-	const shape = {
-		'data-slot': 'map-route',
-		d,
-		fill: 'none',
-		strokeWidth: ROUTE_STROKE_WIDTH,
-		strokeLinecap: 'round' as const,
-		strokeLinejoin: 'round' as const,
-		// Width in device pixels, as the region borders: a resize whose refit
-		// lands late scales the geometry but must not thicken the line with it.
-		vectorEffect: 'non-scaling-stroke' as const,
-		className: cn(paint.stroke),
-	}
-
 	return (
 		<>
 			{selected !== null && <MapHalo slot="map-route-selected" d={d} width={ROUTE_STROKE_WIDTH} />}
 
 			<g className={dim} onPointerLeave={onPointerLeave}>
-				{animate ? (
-					<motion.path
-						{...shape}
-						initial={{ pathLength: 0 }}
-						animate={{ pathLength: 1 }}
-						transition={ROUTE_DRAW}
-					/>
-				) : (
-					<path {...shape} />
-				)}
-
-				<path
-					data-slot="map-route-hit"
+				<MapLine
+					slot="map-route"
 					d={d}
-					fill="none"
-					stroke="transparent"
-					strokeWidth={ROUTE_HIT_WIDTH}
-					// The band is a finger's width in device pixels, so it rides the same
-					// non-scaling stroke the line does: a zoom must widen the ground it
-					// covers, never the target itself.
-					vectorEffect="non-scaling-stroke"
-					pointerEvents="stroke"
-					{...hit()}
+					className={cn(k.series[slot].stroke)}
+					animate={animate}
+					transition={ROUTE_DRAW}
 				/>
+
+				<path {...lineHitProps({ slot: 'map-route-hit', d, hit: hit() })} />
 			</g>
 		</>
 	)
