@@ -85,6 +85,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 						variant="plain"
 						data-slot="map-legend-item"
 						aria-pressed={!off}
+						className="gap-2"
 						onClick={() => onToggle(item.id)}
 						onPointerEnter={() => onFocus(item.id)}
 						onPointerLeave={() => onFocus(null)}
@@ -107,7 +108,6 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 								as="span"
 								data-slot="map-legend-label"
 								severity="muted"
-								size="sm"
 								className={cn('text-left leading-tight', off && 'line-through opacity-60')}
 							>
 								{item.label}
@@ -118,6 +118,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 								// the name it trails rather than as a second name.
 								<Text
 									as="span"
+									data-slot="map-legend-detail"
 									severity="muted"
 									className={cn(
 										'text-left leading-tight whitespace-nowrap tabular-nums font-normal',
