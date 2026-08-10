@@ -50,8 +50,23 @@ import { rewindFeatures } from './winding'
 export type StaticMapGeometry = {
 	features: MapFeature[]
 	canonical: MapCanonicalFit | null
-	/** Region path `d`s under the canonical projection, `null` where a feature has no geometry. */
-	canonicalPaths: (string | null)[]
+	/**
+	 * Region path `d`s under the canonical projection, `null` where a feature has
+	 * no geometry.
+	 *
+	 * Resolved on the first read and held after it, because a `deferPaint` map
+	 * never reads it at all: that mode holds an empty frame until the container
+	 * is measured and then draws from the measured paths alone, so projecting
+	 * the atlas canonically would build a set of paths nothing ever draws. It is
+	 * not a rare mode — `ChoroplethChart` sets `deferPaint` on every chart it
+	 * renders. Read eagerly by the map that paints before it is measured, which
+	 * is the mount this cache exists for.
+	 *
+	 * Lazy, so a spread or an `Object.keys` walk over this object forces the
+	 * pass; nothing does either, and treating the geometry as read-only is
+	 * already the rule here.
+	 */
+	readonly canonicalPaths: (string | null)[]
 }
 
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
@@ -132,9 +147,23 @@ export function computeStaticMapGeometry(
 
 	const canonical = canonicalFit(projection, features)
 
-	const canonicalPaths = canonical === null ? [] : regionPaths(features, canonical.projection)
+	// Held in the closure rather than resolved here, so a deferred map pays for
+	// the decode and the fit and stops there. One slot per entry, so the paths a
+	// drawing map reads keep their identity across every read — the region layer
+	// is memoised on that array.
+	let paths: (string | null)[] | null = null
 
-	return { features, canonical, canonicalPaths }
+	return {
+		features,
+		canonical,
+		get canonicalPaths() {
+			if (paths === null) {
+				paths = canonical === null ? [] : regionPaths(features, canonical.projection)
+			}
+
+			return paths
+		},
+	}
 }
 
 /**

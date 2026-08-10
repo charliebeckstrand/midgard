@@ -19,6 +19,15 @@ import type {
 	MapProjection,
 } from './engine/types'
 
+/**
+ * The paths a frame with nothing drawn hands back: one shared array, so the
+ * memoised region layer compares equal across the beats a deferred map holds
+ * its frame empty.
+ *
+ * @internal
+ */
+const EMPTY_PATHS: (string | null)[] = []
+
 /** What {@link useMapShape} resolves: the reserved box, the active draw frame, and its geometry. @internal */
 export type MapShape = {
 	ref: RefObject<HTMLDivElement | null>
@@ -127,7 +136,7 @@ export function useMapShape({
 	// `null`, so the map holds the canonical draw (or the neutral frame) rather
 	// than projecting through an unfitted default.
 	const view = useMemo(() => {
-		const { features, canonical, canonicalPaths } = statics
+		const { features, canonical } = statics
 
 		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
 
@@ -135,8 +144,14 @@ export function useMapShape({
 		// the measurement lands, so the geography paints once at the measured aspect
 		// with the legend already resolved rather than flashing the canonical fit and
 		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile.
+		//
+		// `statics.canonicalPaths` is deliberately unread on this branch, and the
+		// destructure above deliberately leaves it out: the getter behind it
+		// projects every region in the atlas, and this branch draws none of them.
+		// Reading it here to hand back paths nothing renders is what the laziness
+		// exists to stop.
 		if (!measured && deferPaint) {
-			return { viewWidth: 0, viewHeight: 0, paths: canonicalPaths, fit: null, project: () => null }
+			return { viewWidth: 0, viewHeight: 0, paths: EMPTY_PATHS, fit: null, project: () => null }
 		}
 
 		// Draw from the measured fit once it lands, the canonical fit until then, so
@@ -148,7 +163,7 @@ export function useMapShape({
 			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
 			paths: measured
 				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
-				: canonicalPaths,
+				: statics.canonicalPaths,
 			fit: fitted,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 		}

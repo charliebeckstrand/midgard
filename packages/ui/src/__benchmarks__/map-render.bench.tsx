@@ -77,7 +77,12 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 	staticMapGeometry(statesTopo, undefined, 'albers-usa')
 
 	bench('cold: decode + canonical fit + paths (every mount, uncached)', () => {
-		computeStaticMapGeometry(statesTopo, undefined, 'albers-usa')
+		// The paths are lazy, so the bar has to read them or it measures two
+		// thirds of what it names — the decode and the fit, which is where a
+		// `deferPaint` mount genuinely stops.
+		const { canonicalPaths } = computeStaticMapGeometry(statesTopo, undefined, 'albers-usa')
+
+		if (canonicalPaths.length === 0) throw new Error('fixture drew no paths')
 	})
 
 	bench('warm: cache hit (a remount / second plat on the same atlas)', () => {
