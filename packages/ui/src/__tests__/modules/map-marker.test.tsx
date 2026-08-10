@@ -25,15 +25,15 @@ describe('MapMarker', () => {
 
 		const end = bySlot(container, 'map-marker-end')
 
-		// Both pins are solid dots — zero-length round caps in the slot colour,
-		// stroke-painted so the non-scaling stroke holds device-pixel size.
+		// Both pins are solid dots — zero-length round caps in the slot colour, sized
+		// by the mark rather than by a stroke space the browser resolves.
 		expect(start?.getAttribute('class')).toContain('stroke-blue-600')
 
-		expect(start?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		expect(start?.getAttribute('vector-effect')).toBeNull()
 
 		expect(end?.getAttribute('class')).toContain('stroke-blue-600')
 
-		expect(end?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		expect(end?.getAttribute('vector-effect')).toBeNull()
 
 		const connector = bySlot(container, 'map-marker-path')
 
@@ -41,9 +41,8 @@ describe('MapMarker', () => {
 
 		expect(connector?.getAttribute('class')).toContain('stroke-blue-600')
 
-		// The connector's width rides device pixels too — a late refit scales the
-		// geometry, never the line.
-		expect(connector?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		// The connector converts its width the same way its pins do.
+		expect(connector?.getAttribute('vector-effect')).toBeNull()
 	})
 
 	it('follows routed path geometry through intermediate waypoints', () => {

@@ -2,6 +2,7 @@ import { geoAlbersUsa, geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import {
+	CHROME_STROKE_WIDTH,
 	GRATICULE_MIN_STEP_DEGREES,
 	GRATICULE_STEP_DEGREES,
 } from '../../modules/map/engine/map-constants'
@@ -149,7 +150,12 @@ describe('MapPlat chrome', () => {
 
 		expect(graticule).toHaveAttribute('fill', 'none')
 
-		expect(graticule).toHaveAttribute('vector-effect', 'non-scaling-stroke')
+		// The hairline is stated in device pixels and converted to frame units by the
+		// chrome itself — two paths, so it reads the scale rather than inheriting it
+		// the way the atlas below it does.
+		expect(graticule).toHaveAttribute('stroke-width', String(CHROME_STROKE_WIDTH))
+
+		expect(graticule).not.toHaveAttribute('vector-effect')
 
 		// Paint order is document order: the chrome group precedes the region layer,
 		// so a region fill covers the hairlines that cross it.

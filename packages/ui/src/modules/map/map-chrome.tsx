@@ -25,6 +25,7 @@
 import { memo, useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { useMapZoomScale } from './context'
 import { CHROME_STROKE_WIDTH } from './engine/map-constants'
 import type { MapChromePaths } from './engine/map-geometry/chrome'
 
@@ -52,17 +53,22 @@ type ChromeLineProps = {
  * @internal
  */
 function ChromeLine({ part, d, clip }: ChromeLineProps) {
+	const unitsPerPixel = useMapZoomScale()
+
 	return (
 		<path
 			data-slot={`map-${part}`}
 			d={d}
 			clipPath={clip}
 			fill="none"
-			strokeWidth={CHROME_STROKE_WIDTH}
 			// Device pixels, not viewBox units — the region border's discipline: a
-			// resize whose refit lands a beat late scales the geometry crisply and
-			// must not fatten a hairline with it.
-			vectorEffect="non-scaling-stroke"
+			// zoom must widen the ground a meridian crosses and never the hairline
+			// ruling it. Stated here rather than inherited, because the seam the
+			// region layer publishes to its own group is a different constant that
+			// happens to share a value, and chrome draws outside that group anyway.
+			// Two paths, so the per-notch re-render this read costs is two fibers
+			// against a `d` string that keeps its reference and writes no DOM.
+			strokeWidth={CHROME_STROKE_WIDTH * unitsPerPixel}
 			className={cn(...k.chrome[part])}
 		/>
 	)

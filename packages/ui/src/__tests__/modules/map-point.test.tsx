@@ -19,15 +19,18 @@ describe('MapPoint', () => {
 
 		const dot = bySlot(container, 'map-point')
 
-		// A solid dot: a zero-length round cap in the slot colour, stroke-painted so
-		// the non-scaling stroke holds it at device-pixel size through a resize.
+		// A solid dot: a zero-length round cap in the slot colour, whose width is the
+		// dot's own diameter converted to frame units — one to one at the fit.
 		expect(dot?.getAttribute('class')).toContain('stroke-blue-600')
 
 		expect(dot?.getAttribute('stroke-width')).toBe(String(POINT_RADIUS * 2))
 
 		expect(dot?.getAttribute('stroke-linecap')).toBe('round')
 
-		expect(dot?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		// The mark sizes itself and asks the browser for no stroke space of its own:
+		// a `vector-effect` here would put the drawn size back on a transform the
+		// module does not control.
+		expect(dot?.getAttribute('vector-effect')).toBeNull()
 
 		const at = dot?.getAttribute('d')?.match(/^M([\d.]+),([\d.]+)l0,0$/)
 

@@ -43,6 +43,8 @@ type MapDotProps = {
 	at: MapPoint2D
 	/** The dot's radius in device pixels; drawn as half the cap's stroke width. */
 	radius: number
+	/** Frame units per device pixel under the plat's zoom; the drawn width converts through it. */
+	scale: number
 	/** The slot's stroke paint class — the cap is stroke-painted, so `stroke-*` carries the colour. */
 	className: string
 	/**
@@ -57,25 +59,39 @@ type MapDotProps = {
 
 /**
  * A solid dot mark — a point, a marker pin — drawn as a zero-length
- * round-capped stroke so `vector-effect="non-scaling-stroke"` holds it at
- * device-pixel size. A `<circle>`'s radius lives in viewBox units: a resize
- * whose refit lands a beat late (the box stretched past the frame the marks
- * were built against) scales the geography crisply but would balloon the dot
- * with it — the same failure the region borders pin against.
+ * round-capped stroke, so the disc's radius is half the cap's width.
+ *
+ * The width converts to frame units through {@link MapDotProps.scale}, the
+ * conversion every other pixel spec on a mark already takes — the hit circles
+ * here, the cluster reach, the zone budget. A `vector-effect` asked the browser
+ * for that conversion instead, which put the drawn size of every mark on a
+ * stroke transform this module does not control: Chrome 151 and 152 leave the
+ * display's scale factor in it and paint a non-scaling stroke at half the width
+ * it asked for. Owning the multiply keeps the answer arithmetic.
  *
  * @remarks Under `animate` the pop grows the stroke width (0 → diameter)
- * rather than a transform scale, which the non-scaling stroke would ignore.
+ * rather than a transform scale, so a dot revealed mid-gesture still lands on
+ * the size the view calls for.
  *
  * @internal
  */
-export function MapDot({ slot, at, radius, className, animate = false, transition }: MapDotProps) {
+export function MapDot({
+	slot,
+	at,
+	radius,
+	scale,
+	className,
+	animate = false,
+	transition,
+}: MapDotProps) {
+	const width = radius * 2 * scale
+
 	const shared = {
 		'data-slot': slot,
 		d: dotPath(at),
 		fill: 'none',
-		strokeWidth: radius * 2,
+		strokeWidth: width,
 		strokeLinecap: 'round' as const,
-		vectorEffect: 'non-scaling-stroke' as const,
 		className,
 	}
 
@@ -85,7 +101,7 @@ export function MapDot({ slot, at, radius, className, animate = false, transitio
 		<motion.path
 			{...shared}
 			initial={{ opacity: 0, strokeWidth: 0 }}
-			animate={{ opacity: 1, strokeWidth: radius * 2 }}
+			animate={{ opacity: 1, strokeWidth: width }}
 			transition={transition}
 		/>
 	)
@@ -109,9 +125,10 @@ type MapDotCountProps = {
 /**
  * Where the count sits: its own coordinates at rest, and a counter-scaled frame
  * of its own under a zoom. Text sizes in user units, so a transform that scales
- * the frame would grow the number while the dot beneath it — a non-scaling
- * stroke — held its size, and the count would climb out of the mark it belongs
- * to. Scaling the frame back by the same factor pins the two together.
+ * the frame would grow the number while the dot beneath it held its size, and
+ * the count would climb out of the mark it belongs to. Scaling the frame back by
+ * the same factor pins the two together — the dot's own multiply, in the one
+ * form a glyph takes it.
  *
  * The rest case keeps the plain `x` / `y` pair rather than an identity
  * transform, so an unzoomed map draws the attributes it always drew.

@@ -101,9 +101,10 @@ describe('MapGeofence', () => {
 
 		expect(edge?.getAttribute('class')).toContain('stroke-blue-600')
 
-		// The outline's width rides device pixels — a late refit scales the
-		// geometry, never the stroke.
-		expect(edge?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		// The outline's width is stated in device pixels and converted by the mark,
+		// so the ring draws whole under a zoom rather than losing the arc a dashed
+		// reveal in stroke space would drop.
+		expect(edge?.getAttribute('vector-effect')).toBeNull()
 
 		const wash = bySlot(container, 'map-geofence-wash')
 

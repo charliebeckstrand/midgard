@@ -150,10 +150,10 @@ export type MapOverlay = {
 	project: (position: LngLat) => MapPoint2D | null
 	/**
 	 * What one device pixel spans in frame units under the plat's zoom — `1` at
-	 * rest. Every pixel spec a mark draws in frame units rather than in a
-	 * non-scaling stroke multiplies by it: the hit circles, and a summary's count.
-	 * Published here so a mark reads the rule off the seam it already consumes,
-	 * rather than each one remembering to reach for the scale itself.
+	 * rest. Every pixel spec a mark draws multiplies by it: its stroke widths,
+	 * its hit shapes, and a summary's count. Published here so a mark reads the
+	 * rule off the seam it already consumes, rather than each one remembering to
+	 * reach for the scale itself. `MapZoomScaleContext` states the rule.
 	 */
 	unitsPerPixel: number
 	/** Whether the plat animates; the mark picks its motion renderers off it. */

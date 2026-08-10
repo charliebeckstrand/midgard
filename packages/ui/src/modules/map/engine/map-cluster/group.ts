@@ -106,8 +106,8 @@ type MapClusterMark = {
  * `unitsPerPixel` is what one device pixel spans in frame units — `1` at rest,
  * and `1 / k` under the zoom layer's transform, which scales the drawn frame
  * without refitting the projection. The gap and the marks' own radii are both
- * pixel measures (the marks paint as non-scaling strokes), so this converts
- * them once on the way in and every comparison below reads frame units alone. A
+ * pixel measures, as every mark spec in the module is, so this converts them
+ * once on the way in and every comparison below reads frame units alone. A
  * zoom that spreads the dots apart on screen therefore separates them here on
  * the same beat.
  *

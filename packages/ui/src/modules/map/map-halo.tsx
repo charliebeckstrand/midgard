@@ -11,8 +11,10 @@
  * answers the pointer: the mark's own hit shape stays the sole target, so the
  * hover resolve can't read one mark twice.
  *
- * Widths ride device pixels, like every other mark spec, so a resize whose refit
- * lands a beat late never fattens a halo past the mark it sits behind.
+ * Widths are stated in device pixels, like every other mark spec, and convert to
+ * frame units through the plat's zoom scale — the multiply {@link MapDot}
+ * records. A halo takes the same `scale` its mark took, so the band around the
+ * edge holds at every view rather than closing up as the mark grows.
  */
 
 import { cn } from '../../core'
@@ -32,19 +34,20 @@ type MapHaloProps = {
 	d: string
 	/** The mark's own stroke width in device pixels; the halo takes it plus the clear space either side. */
 	width: number
+	/** Frame units per device pixel under the plat's zoom; the drawn width converts through it. */
+	scale: number
 }
 
 /** A picked line's halo — a route, a marker's connector. @internal */
-export function MapHalo({ slot, d, width }: MapHaloProps) {
+export function MapHalo({ slot, d, width, scale }: MapHaloProps) {
 	return (
 		<path
 			data-slot={slot}
 			d={d}
 			fill="none"
-			strokeWidth={width + MARK_SELECTED_HALO * 2}
+			strokeWidth={(width + MARK_SELECTED_HALO * 2) * scale}
 			strokeLinecap="round"
 			strokeLinejoin="round"
-			vectorEffect="non-scaling-stroke"
 			className={HALO}
 		/>
 	)
@@ -58,17 +61,27 @@ type MapDotHaloProps = {
 	at: MapPoint2D
 	/** The dot's own radius in device pixels; the halo takes it plus the clear space. */
 	radius: number
+	/** Frame units per device pixel under the plat's zoom, passed through to the dot. */
+	scale: number
 }
 
 /**
  * A picked dot's halo — a point, a marker pin, one of a `MapPoints` set. It is
  * the dot itself, one clear space wider and in the selection ink: drawing it
- * through {@link MapDot} keeps the dot's own spec — a zero-length round-capped
- * stroke, so the radius holds at device-pixel size where a `<circle>`'s would
- * scale with the viewBox — in the one file that owns it.
+ * through {@link MapDot} keeps the dot's own spec — the zero-length round-capped
+ * stroke, and the one multiply that converts its radius — in the one file that
+ * owns it.
  *
  * @internal
  */
-export function MapDotHalo({ slot, at, radius }: MapDotHaloProps) {
-	return <MapDot slot={slot} at={at} radius={radius + MARK_SELECTED_HALO} className={HALO} />
+export function MapDotHalo({ slot, at, radius, scale }: MapDotHaloProps) {
+	return (
+		<MapDot
+			slot={slot}
+			at={at}
+			radius={radius + MARK_SELECTED_HALO}
+			scale={scale}
+			className={HALO}
+		/>
+	)
 }

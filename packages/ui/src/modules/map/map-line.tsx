@@ -18,6 +18,8 @@ type MapLineHitSpec = {
 	 * between its ends.
 	 */
 	face?: boolean
+	/** Frame units per device pixel under the plat's zoom; the band's width converts through it. */
+	scale: number
 	/** The mark's own hit props — `useMapOverlay`'s `hit()` return. */
 	hit: MapOverlayHit
 }
@@ -33,6 +35,8 @@ type MapLineProps = {
 	 * @defaultValue {@link ROUTE_STROKE_WIDTH}
 	 */
 	width?: number
+	/** Frame units per device pixel under the plat's zoom; the drawn width converts through it. */
+	scale: number
 	/** The resolved currentColor stroke class carrying the mark's slot colour. */
 	className: string
 	/** Whether the line draws itself in on mount. */
@@ -45,9 +49,8 @@ type MapLineProps = {
  * The stroked line the map's line-shaped marks draw: a route's whole polyline,
  * a marker's leg between its pins, and a geofence's closed boundary. All three
  * hand-wrote it before this — the same round cap and join, the same
- * non-scaling stroke, the same self-drawing reveal, down to the comment
- * explaining the stroke — which is how copies of one spec read once they have
- * been kept in step by hand for a while.
+ * self-drawing reveal, down to the comment explaining the stroke — which is how
+ * copies of one spec read once they have been kept in step by hand for a while.
  *
  * A zone states a `width` of its own, because it reads as context behind the
  * marks rather than as another route drawn around them; a marker's leg delays
@@ -56,10 +59,12 @@ type MapLineProps = {
  * `className` rather than the kata paint object, so this file takes no
  * dependency on the series colour vocabulary and stays a shape.
  *
- * @remarks The width rides device pixels, as the region borders do: a resize
- * whose refit lands late scales the geometry but must not thicken the line with
- * it. Under `animate` the line draws itself in (`pathLength` 0 → 1), the chart
- * module's own line reveal.
+ * @remarks The width is stated in device pixels and converted to frame units
+ * here, through {@link MapLineProps.scale} — the multiply `MapDot` takes, and
+ * for the reason recorded there. The reveal is why a line cares twice over:
+ * `pathLength` 0 → 1 (the chart module's own line reveal) draws by dash, and a
+ * dash under a non-scaling stroke covers only 1/k of its path, so a zoomed
+ * route lost the far end of itself for as long as the view held.
  *
  * @internal
  */
@@ -67,6 +72,7 @@ export function MapLine({
 	slot,
 	d,
 	width = ROUTE_STROKE_WIDTH,
+	scale,
 	className,
 	animate,
 	transition,
@@ -75,10 +81,9 @@ export function MapLine({
 		'data-slot': slot,
 		d,
 		fill: 'none',
-		strokeWidth: width,
+		strokeWidth: width * scale,
 		strokeLinecap: 'round' as const,
 		strokeLinejoin: 'round' as const,
-		vectorEffect: 'non-scaling-stroke' as const,
 		className,
 	}
 
@@ -103,18 +108,19 @@ export function MapLine({
  *
  * The band is {@link ROUTE_HIT_WIDTH} in device pixels — WCAG 2.5.8's minimum,
  * which the constant explains a line takes in place of the 44px a dot claims —
- * so it rides the same non-scaling stroke the line does: a zoom must widen the
- * ground the mark covers, never the target itself.
+ * and it converts to frame units the way the drawn line does, so a zoom widens
+ * the ground the mark covers and never the target itself.
  *
  * @param slot - the `data-slot` naming this target.
  * @param d - the path it traces, which is the mark's own.
+ * @param scale - frame units per device pixel, which the band converts through.
  * @param hit - the mark's pointer plumbing, spread last so its handlers win.
  * @param face - whether the mark's enclosed ground answers too, not just the
  * band around its edge.
  *
  * @internal
  */
-export function lineHitProps({ slot, d, hit, face = false }: MapLineHitSpec) {
+export function lineHitProps({ slot, d, scale, hit, face = false }: MapLineHitSpec) {
 	return {
 		'data-slot': slot,
 		d,
@@ -124,8 +130,7 @@ export function lineHitProps({ slot, d, hit, face = false }: MapLineHitSpec) {
 		fill: face ? 'transparent' : 'none',
 		fillRule: face ? ('evenodd' as const) : undefined,
 		stroke: 'transparent',
-		strokeWidth: ROUTE_HIT_WIDTH,
-		vectorEffect: 'non-scaling-stroke' as const,
+		strokeWidth: ROUTE_HIT_WIDTH * scale,
 		pointerEvents: face ? ('all' as const) : ('stroke' as const),
 		...hit,
 	}

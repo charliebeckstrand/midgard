@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
+import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import {
 	REGION_FADE,
 	REGION_STAGGER,
@@ -650,15 +651,23 @@ describe('MapPlat choropleth mode', () => {
 		return <MapPlat {...props} />
 	}
 
-	it('strokes region borders with a non-scaling stroke so a stale refit cannot fatten them', () => {
+	it('states the region seam once on the layer, for every path to inherit', () => {
 		const { container } = renderUI(choropleth())
 
-		// The border rides device pixels, not viewBox units: a resize that lands the
-		// refit late (box grown past the built-against frame) must not scale the
-		// hairline up with the geometry.
+		// Thousands of paths carry no width of their own, so a zoom can move the
+		// seam with one attribute instead of re-rendering the atlas. The layer
+		// states it even unzoomed, where the scale is 1 — the constant governs both
+		// views from the one expression, rather than an unzoomed map falling through
+		// to the SVG's initial width and agreeing by coincidence.
 		const region = firstRegion(container)
 
-		expect(region?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		expect(region?.getAttribute('stroke-width')).toBeNull()
+
+		expect(region?.getAttribute('vector-effect')).toBeNull()
+
+		expect(bySlot(container, 'map-regions')?.getAttribute('stroke-width')).toBe(
+			String(REGION_STROKE_WIDTH),
+		)
 	})
 
 	it('fills regions with the colorRange colour for their bin, as a fill attribute', () => {

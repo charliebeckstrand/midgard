@@ -781,8 +781,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					{/* Inside the zoom, above the marks layer. Inside, because a meridian
 					    is a position on the globe like every other: it draws in frame
 					    units, so it must travel and scale with the geography it rules
-					    rather than hang over a map moving under it — its hairlines hold
-					    their width through `vectorEffect`, as every other stroke here
+					    rather than hang over a map moving under it — its hairlines convert
+					    their width through the same zoom scale every other mark here
 					    does. Above the marks layer rather than within it, because chrome
 					    is frame and not data: it never animates on, and it joins no
 					    motion group. */}

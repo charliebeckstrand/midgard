@@ -73,12 +73,20 @@ export const [MapZoomContext, useMapZoomView] = createContext<MapZoom | null>('M
  * and the whole of it — a mark converts a pixel spec to frame units by one
  * multiply and never asks what the transform is.
  *
+ * Every device-pixel spec the module draws takes that multiply: the stroke width
+ * of each mark and each hairline, a dot's radius (which is half its cap's
+ * width), the hit circles and hit bands, the cluster reach, and the count inside
+ * a summary. Nothing asks the browser to hold a size for it. A
+ * `vector-effect="non-scaling-stroke"` did once, which put the drawn size of
+ * every mark on a stroke transform this module cannot reach — see `MapDot` for
+ * what that cost.
+ *
  * Held apart from {@link MapPlatContextValue} because a zoom step churns this
- * value on every wheel notch: the marks that answer it (the dots' hit circles,
- * their cluster reach, and the count inside a summary) re-render per notch, and
- * the region layer, the legend, and the plat above them all hold. Defaults to
- * `1`, so a mark rendered outside a zooming plat reads the frame as device
- * pixels — which every settled unzoomed frame is.
+ * value on every wheel notch: the marks that answer it re-render per notch,
+ * while the legend and the plat above them hold, and the region layer answers on
+ * one group rather than per region. Defaults to `1`, so a mark rendered outside
+ * a zooming plat reads the frame as device pixels — which every settled unzoomed
+ * frame is.
  *
  * @internal
  */
