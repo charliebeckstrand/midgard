@@ -11,7 +11,7 @@ import type { MapLegendPlacement } from './engine/types'
 import { MapHoverProvider } from './map-hover-provider'
 import { MapZoomProvider } from './map-zoom-provider'
 import { type MapKeyboardOptions, useMapKeyboard } from './use-map-keyboard'
-import type { MapShape } from './use-map-shape'
+import type { MapFrameShape } from './use-map-shape'
 import type { MapZoomOptions } from './use-map-zoom'
 
 /** Props for {@link MapFrame}: the assembled parts laid out around the plot. @internal */
@@ -106,7 +106,7 @@ export function MapFrame({
 
 /** Props for {@link MapPlotRegion}: the measured box holding the SVG and the tooltip. @internal */
 type MapPlotRegionProps = AccessibleName & {
-	shape: MapShape
+	shape: MapFrameShape
 	aside: boolean
 	tooltip: ReactNode
 	/** What the keyboard cursor needs; the plat resolves it, this element hosts it. */

@@ -28,8 +28,16 @@ import type {
  */
 const EMPTY_PATHS: (string | null)[] = []
 
-/** What {@link useMapShape} resolves: the reserved box, the active draw frame, and its geometry. @internal */
-export type MapShape = {
+/**
+ * What {@link useMapShape} resolves: the reserved box, the active draw frame, and
+ * its geometry. Named for the frame rather than for the hook, because the module
+ * already has a `MapShape` — `engine/types`' pre-decode shape identity — and one
+ * name over two unrelated types made the import path the only way to tell which
+ * a reader had.
+ *
+ * @internal
+ */
+export type MapFrameShape = {
 	ref: RefObject<HTMLDivElement | null>
 	/** The plot box's drawing height in px (`0` until measured); the reserve holds the space meanwhile. */
 	boxHeight: number
@@ -56,7 +64,7 @@ export type MapShape = {
  *
  * @internal
  */
-export type MapShapeOptions = {
+export type MapFrameShapeOptions = {
 	geography: MapGeography | null | undefined
 	geographyObject: string | undefined
 	projection: MapProjection
@@ -97,7 +105,7 @@ export function useMapShape({
 	deferPaint,
 	graticule,
 	sphere,
-}: MapShapeOptions): MapShape {
+}: MapFrameShapeOptions): MapFrameShape {
 	// The mount-critical geometry — decode, the measurement-free canonical fit,
 	// and its region paths — memoised across instances and mounts (see
 	// `engine/map-geometry/cache`), so a tab switch, a second plat on the same

@@ -8,7 +8,7 @@ import {
 	type MapAspectRatio,
 	type MapFeature,
 	type MapGeography,
-	type MapLegendPlacement,
+	type MapLegendInput,
 	MapPlat,
 	type MapPlatProps,
 	type MapProjection,
@@ -16,7 +16,6 @@ import {
 import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
-import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import type { ChartReadout, DataKey } from '../engine/types'
 
@@ -119,7 +118,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * a horizontal row under the plot. Defaults to the right for the choropleth.
 	 * @defaultValue 'right'
 	 */
-	legend?: boolean | MapLegendPlacement | 'range' | ChartRangeLegendConfig
+	legend?: MapLegendInput
 	/**
 	 * Show the hover tooltip naming the pointed region and its value.
 	 * @defaultValue true
