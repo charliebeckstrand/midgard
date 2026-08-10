@@ -18,7 +18,7 @@ import { collection, fitMapProjection, fitProjectionWidth, resolveMapProjection 
 export type MapCanonicalFit = {
 	/** The fitted projection, ready to draw the neutral geography. */
 	projection: GeoProjection
-	/** Frame width in projected units — the canonical width, barring degenerate geometry. */
+	/** Frame width in projected units; always {@link MAP_CANONICAL_WIDTH}, which the fit maps the geography onto exactly. */
 	width: number
 	/** Frame height in projected units, from the fitted geography's bounds. */
 	height: number
@@ -41,11 +41,16 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
 
 	const projection = resolveMapProjection(spec)
 
-	const frame = fitProjectionWidth(projection, collection(features), MAP_CANONICAL_WIDTH)
+	const height = fitProjectionWidth(projection, collection(features), MAP_CANONICAL_WIDTH)
 
-	if (frame === null) return null
+	if (height === null) return null
 
-	return { projection, ...frame, aspect: frame.width / frame.height }
+	return {
+		projection,
+		width: MAP_CANONICAL_WIDTH,
+		height,
+		aspect: MAP_CANONICAL_WIDTH / height,
+	}
 }
 
 /**
@@ -56,8 +61,8 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
  * centring the remainder frames the geography the way `fitSize` would — without
  * the bounds pass that re-projects every coordinate, the bulk of a refit's cost
  * on every resize. It lands within `fitSize`'s adaptive-resampling margin
- * (sub-percent: `fitSize` measures bounds at its probe scale, the canonical fit
- * at drawing scale), and under the canonical aspect it is a pure zoom of the
+ * (sub-percent, from the resampling each pass runs at its own scale), and
+ * under the canonical aspect it is a pure zoom of the
  * canonical paint, so a refit never reshapes the geography. Only the named
  * projections qualify: a passed d3 instance is stateful, so its canonical fit
  * is never cached to derive from.

@@ -3,7 +3,7 @@
 import type { Transition } from 'motion/react'
 import { motion } from 'motion/react'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
-import type { MapOverlay } from './use-map-overlay'
+import type { MapOverlayHit } from './use-map-overlay'
 
 /** What {@link lineHitProps} needs to build one band. @internal */
 type MapLineHitSpec = {
@@ -12,11 +12,11 @@ type MapLineHitSpec = {
 	/** The path it traces, which is the line's own. */
 	d: string
 	/** The mark's own hit props — `useMapOverlay`'s `hit()` return. */
-	hit: ReturnType<MapOverlay['hit']>
+	hit: MapOverlayHit
 }
 
 /** What {@link MapLine} draws. @internal */
-export type MapLineProps = {
+type MapLineProps = {
 	/** The `data-slot` naming this line — each mark keeps its own part name. */
 	slot: string
 	/** The path the line traces. */

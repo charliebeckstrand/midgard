@@ -219,6 +219,9 @@ const MapRegionsBase = memo(function MapRegionsBase({
 		[set],
 	)
 
+	// Fixed across the pass, so it is resolved once rather than per region.
+	const onTrack = interactive ? track : undefined
+
 	return (
 		<>
 			{paths.map((d, index) => {
@@ -235,7 +238,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						className={paint.className}
 						fillColor={paint.fillColor}
 						style={washStyle(index, wash)}
-						onTrack={interactive ? track : undefined}
+						onTrack={onTrack}
 					/>
 				)
 			})}

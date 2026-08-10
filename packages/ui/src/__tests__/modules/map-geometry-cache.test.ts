@@ -2,6 +2,7 @@ import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import {
+	cachedCanonicalPaths,
 	computeStaticMapGeometry,
 	staticMapGeometry,
 } from '../../modules/map/engine/map-geometry/cache'
@@ -10,19 +11,17 @@ import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 
 describe('staticMapGeometry', () => {
 	it('decodes, fits, and draws the canonical geometry', () => {
-		const { features, canonical, canonicalPaths } = staticMapGeometry(
-			FIXTURE_TOPOLOGY,
-			undefined,
-			'mercator',
-		)
+		const geometry = staticMapGeometry(FIXTURE_TOPOLOGY, undefined, 'mercator')
 
-		expect(features.map((entry) => entry.id)).toEqual(['A', 'B', 'C'])
+		expect(geometry.features.map((entry) => entry.id)).toEqual(['A', 'B', 'C'])
 
-		expect(canonical).not.toBeNull()
+		expect(geometry.canonical).not.toBeNull()
 
-		expect(canonicalPaths).toHaveLength(3)
+		const paths = cachedCanonicalPaths(geometry)
 
-		for (const d of canonicalPaths) expect(d).toMatch(/^M/)
+		expect(paths).toHaveLength(3)
+
+		for (const d of paths) expect(d).toMatch(/^M/)
 	})
 
 	it('matches the uncached pipeline value for value', () => {
@@ -30,7 +29,7 @@ describe('staticMapGeometry', () => {
 
 		const direct = computeStaticMapGeometry(FIXTURE_GEOJSON, undefined, 'mercator')
 
-		expect(cached.canonicalPaths).toEqual(direct.canonicalPaths)
+		expect(cachedCanonicalPaths(cached)).toEqual(cachedCanonicalPaths(direct))
 
 		expect(cached.canonical?.aspect).toBe(direct.canonical?.aspect)
 
@@ -48,7 +47,7 @@ describe('staticMapGeometry', () => {
 
 		expect(second.features).toBe(first.features)
 
-		expect(second.canonicalPaths).toBe(first.canonicalPaths)
+		expect(cachedCanonicalPaths(second)).toBe(cachedCanonicalPaths(first))
 	})
 
 	it('keys the cache on the projection', () => {
@@ -86,8 +85,8 @@ describe('staticMapGeometry', () => {
 		expect(fromEmpty).not.toBe(fromDefault)
 
 		// Each still matches its own uncached computation.
-		expect(fromEmpty.canonicalPaths).toEqual(
-			computeStaticMapGeometry(FIXTURE_TOPOLOGY, '', 'mercator').canonicalPaths,
+		expect(cachedCanonicalPaths(fromEmpty)).toEqual(
+			cachedCanonicalPaths(computeStaticMapGeometry(FIXTURE_TOPOLOGY, '', 'mercator')),
 		)
 	})
 
@@ -98,7 +97,7 @@ describe('staticMapGeometry', () => {
 
 		const before = geometry.canonical?.projection(probe)
 
-		const paths = geometry.canonicalPaths.slice()
+		const paths = cachedCanonicalPaths(geometry).slice()
 
 		// The per-instance measured refit MapPlat runs on mount must build a fresh
 		// projection, never re-fit the shared cached one that siblings and SSR
@@ -109,7 +108,7 @@ describe('staticMapGeometry', () => {
 
 		expect(geometry.canonical?.projection(probe)).toEqual(before)
 
-		expect(geometry.canonicalPaths).toEqual(paths)
+		expect(cachedCanonicalPaths(geometry)).toEqual(paths)
 	})
 
 	it('misses for a distinct atlas object of the same shape', () => {
@@ -122,7 +121,7 @@ describe('staticMapGeometry', () => {
 		// Same values, different identity: the WeakMap keys on the atlas object.
 		expect(cloned).not.toBe(original)
 
-		expect(cloned.canonicalPaths).toEqual(original.canonicalPaths)
+		expect(cachedCanonicalPaths(cloned)).toEqual(cachedCanonicalPaths(original))
 	})
 
 	it('bypasses the cache for a passed d3 projection instance', () => {
@@ -135,7 +134,7 @@ describe('staticMapGeometry', () => {
 		// A mutable instance can't key a shared entry — computed fresh each call.
 		expect(second).not.toBe(first)
 
-		expect(second.canonicalPaths).toEqual(first.canonicalPaths)
+		expect(cachedCanonicalPaths(second)).toEqual(cachedCanonicalPaths(first))
 	})
 
 	it('yields the empty geometry for absent geography', () => {
@@ -145,6 +144,6 @@ describe('staticMapGeometry', () => {
 
 		expect(empty.canonical).toBeNull()
 
-		expect(empty.canonicalPaths).toEqual([])
+		expect(cachedCanonicalPaths(empty)).toEqual([])
 	})
 })

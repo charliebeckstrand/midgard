@@ -8,14 +8,7 @@ import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type { MapPoint2D } from './engine/types'
-import type { MapOverlay } from './use-map-overlay'
-
-/**
- * The hit props a mark hands in — `useMapOverlay`'s own `hit()` return, named
- * here so the factory below takes exactly what a mark produces and nothing a
- * caller could use to widen the target. @internal
- */
-type MapOverlayHit = ReturnType<MapOverlay['hit']>
+import type { MapOverlayHit } from './use-map-overlay'
 
 /** What {@link dotHitProps} covers: one dot, at one size, under one view. @internal */
 type MapDotHitSpec = {

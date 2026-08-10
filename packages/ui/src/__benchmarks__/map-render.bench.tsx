@@ -15,6 +15,7 @@ import states from 'us-atlas/states-10m.json'
 import { bench, describe } from 'vitest'
 import { type MapGeography, MapPlat, type MapTopology } from '../modules/map'
 import {
+	cachedCanonicalPaths,
 	computeStaticMapGeometry,
 	staticMapGeometry,
 } from '../modules/map/engine/map-geometry/cache'
@@ -77,12 +78,15 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 	staticMapGeometry(statesTopo, undefined, 'albers-usa')
 
 	bench('cold: decode + canonical fit + paths (every mount, uncached)', () => {
-		// The paths are lazy, so the bar has to read them or it measures two
-		// thirds of what it names — the decode and the fit, which is where a
-		// `deferPaint` mount genuinely stops.
-		const { canonicalPaths } = computeStaticMapGeometry(statesTopo, undefined, 'albers-usa')
+		// The paths are a call of their own, so the bar has to make it or it
+		// measures two thirds of what it names — the decode and the fit, which is
+		// where a `deferPaint` mount genuinely stops. Uncached by construction: the
+		// geometry is a fresh object each iteration, so it misses the paths memo.
+		const paths = cachedCanonicalPaths(
+			computeStaticMapGeometry(statesTopo, undefined, 'albers-usa'),
+		)
 
-		if (canonicalPaths.length === 0) throw new Error('fixture drew no paths')
+		if (paths.length === 0) throw new Error('fixture drew no paths')
 	})
 
 	bench('warm: cache hit (a remount / second plat on the same atlas)', () => {

@@ -12,11 +12,9 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * 140.4 ms. It is not a corner of the API either: `ChoroplethChart` sets
  * `deferPaint` on every chart it draws.
  *
- * Two separate things hold it, and each is useless alone. `canonicalPaths` is a
- * lazy getter on the cached geometry, so building the entry no longer runs the
- * pass; and `use-map-shape` leaves that field out of its destructure on the
- * deferred branch, so reading the frame no longer forces the getter. A spread of
- * the geometry object would force it too, which is why nothing spreads it.
+ * `cachedCanonicalPaths` holds it: the paths are memoised beside the geometry
+ * entry rather than on it, so a caller that does not want the pass simply does
+ * not call — there is no field for a spread or a key walk to force.
  *
  * The mount benchmarks cannot guard this: they warm the cross-instance caches in
  * uncounted iterations, so the pass is already paid by the time they time

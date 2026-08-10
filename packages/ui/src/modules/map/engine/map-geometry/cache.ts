@@ -2,9 +2,10 @@
  * The map's cross-instance memos, over results that are pure functions of an
  * atlas and cost tens of milliseconds to rebuild.
  *
- * The mount-critical trio leads: decoding the geography, fitting the
- * measurement-free canonical projection, and stringifying its region paths.
- * Every {@link MapPlat} mount pays that trio afresh on the render path before
+ * The mount-critical pair leads: decoding the geography and fitting the
+ * measurement-free canonical projection, with that fit's region paths a call
+ * away for the map that paints before it is measured. Every {@link MapPlat}
+ * mount pays them afresh on the render path before
  * the geography can paint — tens of milliseconds on a US states atlas, more on
  * a county one. Two plats drawing one atlas (the docs' Route tab renders two; a
  * dashboard's small multiples) and a remount of the same map (a tab switch
@@ -41,36 +42,21 @@ import { rewindFeatures } from './winding'
 
 /**
  * The mount-critical geometry a {@link MapPlat} draws from on its first,
- * measurement-free commit: the decoded features, the canonical fit (`null` with
- * nothing to fit), and the canonical region paths, index-aligned with the
- * features. Shared across instances, so treat every field as read-only.
+ * measurement-free commit: the decoded features and the canonical fit (`null`
+ * with nothing to fit). The paths that fit draws are memoised beside it rather
+ * than on it ({@link cachedCanonicalPaths}), because a deferred map wants the
+ * fit and never the paths. Shared across instances, so treat every field as
+ * read-only.
  *
  * @internal
  */
 export type StaticMapGeometry = {
 	features: MapFeature[]
 	canonical: MapCanonicalFit | null
-	/**
-	 * Region path `d`s under the canonical projection, `null` where a feature has
-	 * no geometry.
-	 *
-	 * Resolved on the first read and held after it, because a `deferPaint` map
-	 * never reads it at all: that mode holds an empty frame until the container
-	 * is measured and then draws from the measured paths alone, so projecting
-	 * the atlas canonically would build a set of paths nothing ever draws. It is
-	 * not a rare mode — `ChoroplethChart` sets `deferPaint` on every chart it
-	 * renders. Read eagerly by the map that paints before it is measured, which
-	 * is the mount this cache exists for.
-	 *
-	 * Lazy, so a spread or an `Object.keys` walk over this object forces the
-	 * pass; nothing does either, and treating the geometry as read-only is
-	 * already the rule here.
-	 */
-	readonly canonicalPaths: (string | null)[]
 }
 
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
-const EMPTY: StaticMapGeometry = { features: [], canonical: null, canonicalPaths: [] }
+const EMPTY: StaticMapGeometry = { features: [], canonical: null }
 
 // Atlas → object name → its decoded, rewound features. Held apart from the trio
 // below because two readers want it and only one of them wants the fit: the
@@ -147,23 +133,7 @@ export function computeStaticMapGeometry(
 
 	const canonical = canonicalFit(projection, features)
 
-	// Held in the closure rather than resolved here, so a deferred map pays for
-	// the decode and the fit and stops there. One slot per entry, so the paths a
-	// drawing map reads keep their identity across every read — the region layer
-	// is memoised on that array.
-	let paths: (string | null)[] | null = null
-
-	return {
-		features,
-		canonical,
-		get canonicalPaths() {
-			if (paths === null) {
-				paths = canonical === null ? [] : regionPaths(features, canonical.projection)
-			}
-
-			return paths
-		},
-	}
+	return { features, canonical }
 }
 
 /**
@@ -298,6 +268,37 @@ export function cachedChromePaths(
 	const paths = chromePaths(fitted, step)
 
 	chrome.set(fitted, { width, height, step, paths })
+
+	return paths
+}
+
+// The canonical-fit paths per shared geometry. Held apart from the entry rather
+// than on it, because a `deferPaint` map never asks for them: that mode holds an
+// empty frame until the container is measured and then draws from the measured
+// fit alone, so building them with the entry would project the whole atlas for a
+// set of paths nothing draws — and `ChoroplethChart` defers on every chart it
+// renders. A function rather than a lazy property for the reason the rest of
+// this file is functions: there is no field for a spread, a clone, or a key walk
+// to force, so a caller that does not want the pass simply does not call.
+const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
+
+/**
+ * Region paths under the canonical fit, memoised on the shared
+ * {@link StaticMapGeometry} entry — one pass per atlas, object, and projection,
+ * however many plats draw it. Empty where there was nothing to fit.
+ *
+ * @internal
+ */
+export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | null)[] {
+	const hit = canonicalPaths.get(geometry)
+
+	if (hit !== undefined) return hit
+
+	const { features, canonical } = geometry
+
+	const paths = canonical === null ? [] : regionPaths(features, canonical.projection)
+
+	canonicalPaths.set(geometry, paths)
 
 	return paths
 }

@@ -24,8 +24,10 @@ const PROBE_SCALE = 150
 
 /**
  * The feature-collection wrapper d3-geo fits and measures against. The cast
- * bridges the module's minimal structural feature type to d3's GeoJSON
- * types — same shapes, stricter `geometry` unions there.
+ * bridges the module's minimal structural feature type to d3's own: the
+ * geometry is d3's union already, but `MapFeature` leaves `properties`
+ * optional where `ExtendedFeature` requires it, which is what still parts the
+ * two.
  *
  * @internal
  */
@@ -72,8 +74,8 @@ export function fitMapProjection(
 
 /**
  * Fits `projection` so the geography spans `width` exactly, aligned to the
- * frame's top-left, and reports the frame it fills. `null` where the bounds
- * collapse on either axis — no geography, or a lone point.
+ * frame's top-left, and reports the height that frame comes to. `null` where
+ * the bounds collapse on either axis — no geography, or a lone point.
  *
  * d3's `fitWidth` runs one probe pass to measure the geography and then keeps
  * only the scale and translate it derives, so a caller that needs the frame as
@@ -98,7 +100,7 @@ export function fitProjectionWidth(
 	projection: GeoProjection,
 	shape: GeoPermissibleObjects,
 	width: number,
-): { width: number; height: number } | null {
+): number | null {
 	const clip = projection.clipExtent?.() ?? null
 
 	projection.scale(PROBE_SCALE).translate([0, 0])
@@ -122,5 +124,5 @@ export function fitProjectionWidth(
 	// lifts the geography's top edge onto y 0.
 	projection.scale(PROBE_SCALE * k).translate([(width - k * (x1 + x0)) / 2, -k * y0])
 
-	return { width, height: spanY * k }
+	return spanY * k
 }

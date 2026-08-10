@@ -2,9 +2,7 @@ import { AspectRatio } from '../../components/aspect-ratio'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { parseAspectRatio } from '../../utilities/aspect-ratio'
-import { DEFAULT_MAP_ASPECT } from './engine/map-constants'
-import { projectionFallbackAspect } from './engine/map-projection/aspect'
+import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import type { MapAspectRatio, MapProjection } from './engine/types'
 
 /** Props for {@link MapSkeleton}. */
@@ -45,19 +43,22 @@ export type MapSkeletonProps = {
  * otherwise so the two reserve the same box.
  */
 export function MapSkeleton({ ratio, projection, className }: MapSkeletonProps) {
-	// The plat's own reserve, in its own order: an explicit ratio, then what the
-	// projection knows before its atlas lands, then the generic fallback. Read
-	// through the engine function `use-map-shape` reads, so the two cannot answer
-	// differently.
-	const reserved =
-		ratio ?? (projection && projectionFallbackAspect(projection)) ?? DEFAULT_MAP_ASPECT
+	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function
+	// `use-map-shape` resolves the frame through, so the order — an explicit
+	// ratio, then what the projection knows before its atlas lands, then the
+	// generic fallback — and the rule that an unparseable ratio fills instead of
+	// reserving are both stated once. Sharing only `projectionFallbackAspect`
+	// would share the number and duplicate the policy over it.
+	const sizing = mapFrameSizing(
+		undefined,
+		ratio ?? 'auto',
+		projection === undefined ? null : projectionFallbackAspect(projection),
+	)
 
-	const value = parseAspectRatio(reserved)
-
-	if (value === null) return <Placeholder className={cn(k.skeleton.base, className)} />
+	if (sizing.mode !== 'aspect') return <Placeholder className={cn(k.skeleton.base, className)} />
 
 	return (
-		<AspectRatio ratio={value} className={className}>
+		<AspectRatio ratio={sizing.ratio} className={className}>
 			<Placeholder className={cn(k.skeleton.base)} />
 		</AspectRatio>
 	)

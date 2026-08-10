@@ -122,6 +122,16 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		stopOf?: (index: number) => number | null
 	}
 
+/**
+ * The DOM props one of a mark's hit shapes spreads — {@link MapOverlay.hit}'s
+ * return. Named here so the hit-props factories take exactly what a mark
+ * produces and nothing a caller could widen the target with, and named once so
+ * the dot's factory and the line's read one type.
+ *
+ * @internal
+ */
+export type MapOverlayHit = ReturnType<MapOverlay['hit']>
+
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
 export type MapOverlay = {
 	/** The slot colour, `undefined` until registration lands — the mark renders nothing meanwhile. */
@@ -303,10 +313,10 @@ export function useMapOverlay({
 		[set, id],
 	)
 
-	const clickMark = useCallback(
-		(event: MouseEvent<SVGElement>) => live.current.onClick?.(id, stopFrom(event)),
-		[id],
-	)
+	// The pointer's route to the reporter the keyboard already reaches through
+	// `pick`: one spelling of the call, so an activation cannot come to mean two
+	// different things depending on which input made it.
+	const clickMark = useCallback((event: MouseEvent<SVGElement>) => pick(stopFrom(event)), [pick])
 
 	// Bubbles, and never prevents default: a wrapping menu still opens, and this
 	// only names which mark it opened over.
@@ -317,6 +327,8 @@ export function useMapOverlay({
 
 	const menuable = onContextMenu !== undefined
 
+	const onPointerLeave = useCallback(() => set(null, null), [set])
+
 	// One handler set per mark, not one per hit shape: each reads its own stop
 	// back off the element it fired on, through the same anchor the scroll-settle
 	// resolve reads. A plural mark draws one shape per dot, so building these per
@@ -325,28 +337,19 @@ export function useMapOverlay({
 	// Held across renders, so a mark's hit props are the same objects from one
 	// crossing to the next and a plural mark's dots can sit behind a memo. Both
 	// reporters ride the `live` ref for it: a consumer's inline handler is a fresh
-	// identity every render, and what these depend on instead is whether there is
+	// identity every render, and what this depends on instead is whether there is
 	// one at all — a boolean a consumer changes by adding or dropping the prop.
-	const handlers = useMemo(
-		() => ({
-			onPointerEnter: track,
-			onPointerMove: track,
-			onClick: pickable ? clickMark : undefined,
-			onContextMenu: menuable ? menuMark : undefined,
-		}),
-		[track, pickable, clickMark, menuable, menuMark],
-	)
-
-	const onPointerLeave = useCallback(() => set(null, null), [set])
-
 	const hit = useCallback(
 		(stop = 0) => ({
 			'data-entry-id': id,
 			'data-entry-stop': stop,
 			className: pickable ? k.clickable : undefined,
-			...handlers,
+			onPointerEnter: track,
+			onPointerMove: track,
+			onClick: pickable ? clickMark : undefined,
+			onContextMenu: menuable ? menuMark : undefined,
 		}),
-		[id, pickable, handlers],
+		[id, pickable, track, clickMark, menuable, menuMark],
 	)
 
 	return {

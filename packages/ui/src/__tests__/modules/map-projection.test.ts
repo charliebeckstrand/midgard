@@ -136,8 +136,8 @@ describe('scaleCanonicalFit', () => {
 			expect(y0 + y1).toBeCloseTo(height, 0)
 
 			// And it lands where a direct fitSize would, within the sub-percent
-			// margin of d3's adaptive resampling — fitSize measures bounds at its
-			// probe scale, the canonical fit at drawing scale.
+			// margin of d3's adaptive resampling, which refines each pass's curves
+			// at the scale that pass runs at.
 			const direct = fitMapProjection(spec, features, width, height)
 
 			expect(Math.abs(derived.scale() / direct.scale() - 1)).toBeLessThan(0.01)

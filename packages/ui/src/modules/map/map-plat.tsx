@@ -688,10 +688,23 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// categories still count: a legend toggle must not take the table or the tab
 	// stop away under the reader. Memoised on the join, so the scan a map with no
 	// match pays in full runs once per readout rather than once per render.
-	const hasReadout = useMemo(
-		() => regionCategory.some((category) => category !== null) || entries.length > 0,
-		[regionCategory, entries],
+	// The region half alone, held apart because the region layer gates on it and
+	// the layer must not answer the ledger. Overlays register from an effect, so
+	// a backdrop map carrying marks reads `false` on its first commit and `true`
+	// on the next — and gating three thousand paths on a bit that flips a beat
+	// after mount fails the layer's memo and re-maps the whole atlas a second
+	// time. Nothing an overlay registers can make a region read out, so the
+	// layer reads the join and nothing else.
+	const regionsRead = useMemo(
+		() => regionCategory.some((category) => category !== null),
+		[regionCategory],
 	)
+
+	const hasReadout = regionsRead || entries.length > 0
+
+	// `tooltip` asks and `hasReadout` answers; the readout channels all want the
+	// pair. Bound once rather than spelled at each of them.
+	const readable = tooltip && hasReadout
 
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
 	// readout alone would leave `tooltip={false}` with `onRegionClick` — a
@@ -717,7 +730,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// one. `tooltip` is a request, and a map with nothing to read out silences on
 	// all three channels — no tooltip, no emphasis, no table — so the prop alone
 	// would hand a backdrop map a stop that answers every key with nothing.
-	const navigable = ((tooltip && hasReadout) || pickable || zoomable) && shape.viewWidth > 0
+	const navigable = (readable || pickable || zoomable) && shape.viewWidth > 0
 
 	const numeric = valueKey !== undefined
 
@@ -773,7 +786,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							paths={shape.paths}
 							regionCategory={regionCategory}
 							categories={categoryMetas}
-							interactive={hasReadout}
+							interactive={regionsRead}
 							hidden={hidden}
 							emphasis={emphasis}
 							animate={animate}
@@ -863,11 +876,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						svgRef,
 					}}
 					tooltip={
-						// The request and the answer both, the way the tab stop and the
-						// table already read it: `tooltip` asks, and `hasReadout` says
-						// whether anything can answer. A backdrop map mounted a Tooltip
-						// that resolved `null` for every region it was ever pointed at.
-						tooltip && hasReadout ? (
+						// A backdrop map mounted a Tooltip that resolved `null` for every
+						// region it was ever pointed at.
+						readable ? (
 							<MapTooltip
 								regionNames={regionNames}
 								regionCategory={regionCategory}
@@ -894,7 +905,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				subject: shape.features,
 			}}
 			containerRef={containerRef}
-			tooltip={tooltip && hasReadout}
+			tooltip={readable}
 			regionActive={regionActive}
 			table={deferredTable}
 			width={width}

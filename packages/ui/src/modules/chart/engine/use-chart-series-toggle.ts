@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
-import { toggleItem } from '../../../utilities/toggle-item'
+import { toggleItem } from '../../../utilities'
 
 /** A toggleable set of hidden indexes — the primitive under both switchboards. @internal */
 export type ChartToggleSet = {
