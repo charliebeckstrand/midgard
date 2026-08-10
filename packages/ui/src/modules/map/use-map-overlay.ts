@@ -12,7 +12,6 @@ import {
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat, useMapPointedMark, useMapZoomScale } from './context'
-import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
@@ -249,7 +248,11 @@ export function useMapOverlay({
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
 	const spareAt = useCallback(
-		(at: MapPoint2D) => live.current.ownSpare?.(at) ?? POINT_HIT_RADIUS,
+		// The identity of the minimum the plat folds these into, so the fallback and
+		// the resolver state one rule rather than two. It cannot fire in fact — only a
+		// mark that passed a resolver registers this wrapper — but a mark that claims
+		// nothing and a mark that never claimed have to answer alike either way.
+		(at: MapPoint2D) => live.current.ownSpare?.(at) ?? Number.POSITIVE_INFINITY,
 		[],
 	)
 

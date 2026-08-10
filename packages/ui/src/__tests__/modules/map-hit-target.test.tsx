@@ -26,11 +26,15 @@ function plat(children: ReactNode) {
 	)
 }
 
-/** The catchment the depot cases stand in, wide enough to hold the frame's middle. */
-function catchment(children: ReactNode) {
+/**
+ * The zone the depot cases stand on. The default is wide enough to hold the
+ * frame's middle with room to spare; a narrower radius makes a zone the marks
+ * over it are wider than, which is the other side of the rule.
+ */
+function catchment(children: ReactNode, radius = 300_000) {
 	return plat(
 		<>
-			<MapGeofence label="Catchment" at={[15, 5]} radius={300_000} />
+			<MapGeofence label="Catchment" at={[15, 5]} radius={radius} />
 
 			{children}
 		</>,
@@ -127,9 +131,11 @@ describe('dot hit targets', () => {
 		// A share of the room the zone holds, not the dot's own radius: the depot
 		// keeps a target a mouse can aim at, and the catchment keeps a band around
 		// it wide enough to answer for itself.
-		expect(budget(target, 'point hit target')).toBeGreaterThan(POINT_RADIUS)
+		const room = budget(target, 'point hit target')
 
-		expect(budget(target, 'point hit target')).toBeLessThan(POINT_HIT_RADIUS)
+		expect(room).toBeGreaterThan(POINT_RADIUS)
+
+		expect(room).toBeLessThan(POINT_HIT_RADIUS)
 	})
 
 	it('budgets every corner of a zone drawn through its own marks alike', () => {
@@ -237,16 +243,10 @@ describe('dot hit targets', () => {
 
 	it('floors a summary’s target at the grade it draws, however little the zone spares', () => {
 		const { container } = renderUI(
-			plat(
-				<>
-					{/* A 60 km yard — narrower on the frame than the summary drawn on it. */}
-					<MapGeofence label="Yard" at={[15, 5]} radius={60_000} />
-
-					{/* Two stops ~4px apart, so they merge into one summary at the first
-					    cluster grade, wider than the dot a lone stop draws. */}
-					<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.3, 5] }]} />
-				</>,
-			),
+			// A 60 km zone, narrower on the frame than the summary drawn over it, and
+			// two stops ~4px apart so they merge into one summary at the first cluster
+			// grade — wider than the dot a lone stop draws.
+			catchment(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.3, 5] }]} />, 60_000),
 		)
 
 		expect(bySlot(container, 'map-points-cluster')).not.toBeNull()

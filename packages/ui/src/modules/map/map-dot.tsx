@@ -25,8 +25,14 @@ type MapDotHitSpec = {
 	 * answer over everything that claims the ground under this dot: a drawn zone it
 	 * stands on, and the neighbours inside its coarse reach. {@link POINT_HIT_RADIUS}
 	 * where nothing does, which is what makes the fine target opt-in.
+	 *
+	 * Required, so no dot can be drawn without the rule being asked. Its type admits
+	 * `undefined` only because `markTargets` answers index for index and a caller
+	 * reads that array under `noUncheckedIndexedAccess` — the whole target is what
+	 * an index off the end would have meant anyway, so the default lands here rather
+	 * than at each of the four places a mark unpacks the answer.
 	 */
-	target: number
+	target: number | undefined
 }
 
 /** Props for {@link MapDot}. @internal */
@@ -209,7 +215,7 @@ export function MapDotCount({
  *
  * @internal
  */
-export function dotHitProps({ slot, at, hit, scale, target }: MapDotHitSpec) {
+export function dotHitProps({ slot, at, hit, scale, target = POINT_HIT_RADIUS }: MapDotHitSpec) {
 	// A target at the coarse reach is a dot with nothing to give back, and the two
 	// pointers want the same circle — so the narrowing rides one comparison rather
 	// than a flag the callers each have to derive.

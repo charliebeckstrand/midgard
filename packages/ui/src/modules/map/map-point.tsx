@@ -3,7 +3,7 @@
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
-import { POINT_HIT_RADIUS, POINT_RADIUS } from './engine/map-constants'
+import { POINT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { LngLat } from './engine/types'
 import { dotHitProps, MapDot } from './map-dot'
@@ -90,9 +90,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 						// no neighbour of its own, so a zone under it is what can answer — but
 						// the rule stays in one place, and a third claim on the ground would
 						// reach this mark without it being edited.
-						target:
-							markTargets([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, spare)[0] ??
-							POINT_HIT_RADIUS,
+						target: markTargets([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, spare)[0],
 					})}
 				/>
 			</g>

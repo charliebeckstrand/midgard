@@ -12,7 +12,6 @@ import {
 	MapZoomScaleContext,
 	useMapZoomView,
 } from './context'
-import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -598,7 +597,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// the callback would be a fresh allocation per call rather than per rebuild.
 	const spare = useCallback(
 		(at: MapPoint2D) => {
-			let room = POINT_HIT_RADIUS
+			// The identity of the minimum, not a size: a map with no zones on it claims
+			// nothing here, and `markTargets` is the one place that knows what a target
+			// caps at.
+			let room = Number.POSITIVE_INFINITY
 
 			for (const entry of entries) {
 				if (entry.spare === undefined || hidden.has(entry.id)) continue

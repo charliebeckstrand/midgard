@@ -14,7 +14,7 @@ import {
 	type MapPointCluster,
 } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
-import { POINT_HIT_RADIUS } from './engine/map-constants'
+
 import { pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import type { LngLat } from './engine/types'
@@ -130,7 +130,7 @@ const MapPointsDots = memo(function MapPointsDots({
 								at: position,
 								hit: hit(index),
 								scale: unitsPerPixel,
-								target: targets[index] ?? POINT_HIT_RADIUS,
+								target: targets[index],
 							})}
 						/>
 					</Fragment>

@@ -4,7 +4,7 @@ import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
-import { PIN_RADIUS, POINT_HIT_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
+import { PIN_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
 import type { LngLat } from './engine/types'
@@ -89,7 +89,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// end covering the other would take that pin's readout with it. Resolved below
 	// the guard, so a marker the legend has toggled off pays nothing on the pointer
 	// crossings that still re-render it.
-	const [startTarget = POINT_HIT_RADIUS, endTarget = POINT_HIT_RADIUS] = markTargets(
+	const [startTarget, endTarget] = markTargets(
 		[
 			{ at: from, radius: PIN_RADIUS },
 			{ at: to, radius: PIN_RADIUS },

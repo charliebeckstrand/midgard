@@ -235,6 +235,10 @@ const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS 
  * already merged the marks that draw over one another; this asks the wider
  * question the hit targets read, so a pair a zoom has just parted stays
  * separately aimable.
+ *
+ * A dot with no neighbour inside its reach answers `Infinity` rather than the
+ * finger target: this pass states a claim on the ground, and `markTargets` is the
+ * one place that knows what a target caps at.
  */
 describe('neighbourRoom', () => {
 	it('leaves a dot only the gap to a neighbour inside the coarse reach', () => {
@@ -244,14 +248,14 @@ describe('neighbourRoom', () => {
 		expect(neighbourRoom([dot(0), dot(15)])).toEqual([9.5, 9.5])
 	})
 
-	it('leaves dots standing clear of one another the whole target', () => {
+	it('claims nothing of dots standing clear of one another', () => {
 		// Past the reach plus the neighbour's own radius, so neither covers the face
-		// of the other and each keeps every pixel a finger needs.
-		expect(neighbourRoom([dot(0), dot(40)])).toEqual([POINT_HIT_RADIUS, POINT_HIT_RADIUS])
+		// of the other and neither has anything to say about the other's target.
+		expect(neighbourRoom([dot(0), dot(40)])).toEqual([Infinity, Infinity])
 	})
 
 	it('answers for each dot rather than for the set', () => {
-		expect(neighbourRoom([dot(0), dot(15), dot(400)])).toEqual([9.5, 9.5, POINT_HIT_RADIUS])
+		expect(neighbourRoom([dot(0), dot(15), dot(400)])).toEqual([9.5, 9.5, Infinity])
 	})
 
 	it('measures the neighbour’s own width, so a summary reaches further than a dot', () => {
@@ -260,7 +264,7 @@ describe('neighbourRoom', () => {
 		// 30px apart: the summary's face reaches inside the dot's target, while the
 		// dot's own face stays clear of the summary's. Each answers for what it
 		// would swallow, not for what would swallow it.
-		expect(neighbourRoom([dot(0), summary])).toEqual([30 - MAX_CLUSTER_RADIUS, POINT_HIT_RADIUS])
+		expect(neighbourRoom([dot(0), summary])).toEqual([30 - MAX_CLUSTER_RADIUS, Infinity])
 	})
 
 	it('holds every reach in device pixels through a zoom', () => {
@@ -271,13 +275,13 @@ describe('neighbourRoom', () => {
 
 	it('crowds nothing with a dot the projection dropped', () => {
 		expect(neighbourRoom([{ at: null, radius: POINT_RADIUS }, dot(1)])).toEqual([
-			POINT_HIT_RADIUS,
-			POINT_HIT_RADIUS,
+			Infinity,
+			Infinity,
 		])
 	})
 
 	it('leaves a lone dot alone', () => {
-		expect(neighbourRoom([dot(0)])).toEqual([POINT_HIT_RADIUS])
+		expect(neighbourRoom([dot(0)])).toEqual([Infinity])
 
 		expect(neighbourRoom([])).toEqual([])
 	})
@@ -293,10 +297,12 @@ describe('markTargets', () => {
 	/** A zone that spares every dot the same room, whatever the position. */
 	const spares = (room: number) => () => room
 
-	/** The plat's answer where no zone is drawn at all. */
-	const open = spares(POINT_HIT_RADIUS)
+	/** The plat's answer where no zone is drawn at all — the identity of its fold. */
+	const open = spares(Number.POSITIVE_INFINITY)
 
 	it('keeps the whole target where nothing claims the ground', () => {
+		// Both claims arrive unbounded, so the cap is the only thing left to answer —
+		// which is what says the cap lives here and nowhere below.
 		expect(markTargets([dot(0)], 1, open)).toEqual([POINT_HIT_RADIUS])
 	})
 

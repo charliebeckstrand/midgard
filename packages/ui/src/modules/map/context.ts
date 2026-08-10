@@ -109,8 +109,10 @@ export type MapPlatContextValue = {
 	/**
 	 * How much reach the drawn zones leave a mark at a frame position, in device
 	 * pixels — the tightest budget any registered zone the legend still shows will
-	 * allow, since a dot standing over two of them has to satisfy both. A dot reads
-	 * it to size its own target.
+	 * allow, since a dot standing over two of them has to satisfy both. `Infinity`
+	 * where no zone claims that ground, which `markTargets` caps: this layer states
+	 * the claim and never the size a target settles at. A dot reads it to size its
+	 * own target.
 	 *
 	 * Resolved here rather than by each dot, because the question is about the
 	 * plat's whole ledger and the answer changes with the legend. It reads the

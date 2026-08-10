@@ -80,10 +80,12 @@ export type MapOverlayEntry = {
 	activate?: (stop: number) => void
 	/**
 	 * The reach, in device pixels, a dot at this frame position may take before it
-	 * starts eating ground this mark needs to stay pointable — `POINT_HIT_RADIUS`
-	 * where the dot competes with nothing here. Registered by the area-shaped
-	 * marks alone, so its presence is the question a dot asks of the ledger: a
-	 * mark that holds no ground has none to be taken from it.
+	 * starts eating ground this mark needs to stay pointable — `Infinity` where the
+	 * dot competes with nothing here, the identity of the minimum the plat folds
+	 * these into. Registered by the area-shaped marks alone, which spares the plat
+	 * a call per dot for every mark that holds no ground; absence and a claim of
+	 * `Infinity` are the same answer, so the gate is a cost the ledger declines to
+	 * pay rather than a distinction the rule reads.
 	 *
 	 * A measure rather than a membership, because the question a dot is really
 	 * asking is how much room it has, and the in-or-out form could not answer it

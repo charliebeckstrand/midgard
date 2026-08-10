@@ -9,6 +9,7 @@ import {
 	projectArea,
 	projectPoint,
 	ringAnchor,
+	ringsNear,
 	ringsPath,
 } from '../../modules/map/engine/map-geometry/mark'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
@@ -503,6 +504,56 @@ describe('projectArea and ringsPath', () => {
 })
 
 /**
+ * The cheap reject a zone tries before anything measures: which of an area's
+ * rings draw within a margin of a position. It reads the boxes `projectArea`
+ * already walked, so a dot standing nowhere near a territory costs four compares
+ * per ring rather than a pass over its vertices.
+ */
+describe('ringsNear', () => {
+	/** One frame unit per degree, so a position reads straight off the coordinates. */
+	const flat = (position: [number, number]) => ({ x: position[0], y: position[1] })
+
+	/** A square of `side` units with its lower corner at `shift`. */
+	const square = (side: number, shift = 0): [number, number][] => [
+		[shift, 0],
+		[shift, side],
+		[shift + side, side],
+		[shift + side, 0],
+	]
+
+	it('parts the two readings on the margin alone', () => {
+		const rings = projectArea([[square(10)]], flat)
+
+		// With none, the box is the whole question; with a reach, a position that far
+		// out still counts as competing for the ring's ground.
+		expect(ringsNear(rings, { x: 16, y: 5 }, 0)).toBe(false)
+
+		expect(ringsNear(rings, { x: 16, y: 5 }, 10)).toBe(true)
+	})
+
+	it('reads every ring, so either part of a split territory answers', () => {
+		const parts = projectArea([[square(10)], [square(10, 40)]], flat)
+
+		expect(ringsNear(parts, { x: 5, y: 5 }, 0)).toBe(true)
+
+		expect(ringsNear(parts, { x: 45, y: 5 }, 0)).toBe(true)
+
+		// And the ground between the two clusters belongs to neither.
+		expect(ringsNear(parts, { x: 25, y: 5 }, 0)).toBe(false)
+	})
+
+	it('finds nothing near a territory the projection dropped', () => {
+		expect(
+			ringsNear(
+				projectArea([[square(10)]], () => null),
+				{ x: 5, y: 5 },
+				1000,
+			),
+		).toBe(false)
+	})
+})
+
+/**
  * How much room an area holds, on the rings it draws. It is the budget a dot over
  * a zone sizes its pointer target against, so it has to measure the shape a
  * reader can point at rather than the coordinates behind it.
@@ -560,7 +611,7 @@ describe('areaReach', () => {
 	it('measures the same whichever way a ring winds', () => {
 		// A dissolved territory arrives in the winding its arcs held, and no pass
 		// rewinds it — so the measure may not depend on the direction.
-		expect(reachOf([[[...square(10)].reverse()]])).toBe(5)
+		expect(reachOf([[square(10).reverse()]])).toBe(5)
 	})
 
 	it('measures nothing where the projection dropped every ring', () => {

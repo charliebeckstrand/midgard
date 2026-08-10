@@ -1,7 +1,7 @@
 /**
  * What the overlay marks draw: one lon/lat projected to the frame, the path
  * strings a dot, a polyline, and a closed ring paint from it, the anchor each
- * shape offers the keyboard cursor, and which ground an area's own face holds.
+ * shape offers the keyboard cursor, and how much room an area's own face holds.
  * Held apart from `region.ts` because the marks project point by point through a
  * closure the plat hands down, where the region layer projects whole features
  * through `d3-geo`'s own path generator.
@@ -179,6 +179,44 @@ export type MapAreaRing = {
 	box: MapFrameBox
 }
 
+/**
+ * Whether any of an area's rings draws within `margin` frame units of a position
+ * — the cheap reject, on the boxes {@link projectArea} already measured, before
+ * anything walks an edge. It is how a zone tells a dot standing nowhere near it
+ * from one competing for its ground.
+ *
+ * The margin grows every box rather than shrinking the question, so one call
+ * answers both readings a caller could want: `0` asks which rings the position
+ * could fall inside, and a reach asks which it could be crowded by.
+ *
+ * A box holding the position does not mean the ring does — a box is a superset of
+ * the shape inside it. That is the whole of what this claims, and it is why the
+ * answer is a reject rather than a placement.
+ *
+ * @param rings - The projected rings, from {@link projectArea}.
+ * @param at - The frame position to place.
+ * @param margin - How far outside a box still counts, in frame units.
+ * @returns Whether the position falls in any grown box.
+ *
+ * @internal
+ */
+export function ringsNear(rings: readonly MapAreaRing[], at: MapPoint2D, margin: number): boolean {
+	// A loop rather than `some`: every dot on a map asks this of every zone, and a
+	// callback would be a fresh allocation per call rather than per zone.
+	for (const { box } of rings) {
+		if (
+			at.x >= box.left - margin &&
+			at.x <= box.right + margin &&
+			at.y >= box.top - margin &&
+			at.y <= box.bottom + margin
+		) {
+			return true
+		}
+	}
+
+	return false
+}
+
 /** The box around a run of frame points, walked as they are collected. @internal */
 function boundPoints(points: readonly MapPoint2D[]): MapFrameBox {
 	const box = {
@@ -273,11 +311,13 @@ export function ringsPath(rings: readonly MapAreaRing[]): string {
  *
  * Every ring counts, holes included, so a zone drawn as a band around a large
  * hole reads the room its outer ring would hold rather than the band's own width.
- * That is the bound of staying winding-blind: telling an outer ring from an inner
- * one is the sorting pass the whole module declines to make, and the reading errs
- * generous — the dot keeps more of its target, which is where it stood before any
- * of this. A zone of that shape is rare enough to pay for the rule holding
- * everywhere else without a nesting pass.
+ * The cause is the shape this reads, not the winding: {@link projectArea} flattens
+ * the polygons to one ring list, because {@link ringsPath} needs no more than
+ * that, so which ring opened a polygon is gone before this measures. Keeping that
+ * grouping is what a band would need — the outer ring's area less its holes', over
+ * the whole boundary — and it costs the flat list every other reader here wants.
+ * The reading errs generous, so the dot keeps more of its target rather than less,
+ * and a zone of that shape is rare enough to leave the grouping unbuilt.
  *
  * @param rings - The projected rings, from {@link projectArea}.
  * @returns The inscribed reach in frame units, `0` for an area with no extent.
@@ -303,7 +343,15 @@ export function areaReach(rings: readonly MapAreaRing[]): number {
 
 			twiceArea += from.x * to.y - to.x * from.y
 
-			perimeter += Math.hypot(to.x - from.x, to.y - from.y)
+			const runX = to.x - from.x
+
+			const runY = to.y - from.y
+
+			// `Math.hypot` buys overflow safety these viewport-sized coordinates never
+			// need, at several times the cost of the products — the chart module's own
+			// verdict (`chart-geometry/scatter.ts`), and this is the only transcendental
+			// in a walk that reads every vertex of a dissolved territory.
+			perimeter += Math.sqrt(runX * runX + runY * runY)
 		}
 
 		if (perimeter > 0) widest = Math.max(widest, Math.abs(twiceArea) / perimeter)

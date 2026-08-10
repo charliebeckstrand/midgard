@@ -5,22 +5,11 @@ import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapPlat, useMapZoomScale } from './context'
-import {
-	GEOFENCE_FILL_OPACITY,
-	GEOFENCE_STROKE_WIDTH,
-	POINT_HIT_RADIUS,
-	ZONE_SPARE_FRACTION,
-} from './engine/map-constants'
-import { circleRing } from './engine/map-geofence'
-import {
-	areaAnchor,
-	areaReach,
-	type MapAreaRing,
-	projectArea,
-	ringsPath,
-} from './engine/map-geometry/mark'
+import { GEOFENCE_FILL_OPACITY, GEOFENCE_STROKE_WIDTH } from './engine/map-constants'
+import { circleRing, zoneBudget, zoneSpare } from './engine/map-geofence'
+import { areaAnchor, projectArea, ringsPath } from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
-import type { LngLat, MapPoint2D, MapPolygons } from './engine/types'
+import type { LngLat, MapPolygons } from './engine/types'
 import { MapHalo } from './map-halo'
 import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -84,41 +73,6 @@ type MapGeofenceArea = {
 	at?: undefined
 	radius?: undefined
 	boundary?: undefined
-}
-
-/**
- * How much reach a dot at a frame position may take from this zone: the zone's
- * share of its own inscribed room where the dot competes for it, and the whole
- * finger target where it does not.
- *
- * One budget for the whole zone rather than a measure per dot, so every mark on
- * one zone points alike — which is the thing a reader sees, and the thing four
- * corners of one corridor did not do while the rule asked whether each was
- * inside. The reach is a device-pixel figure and the rings are frame units, so
- * the zone's own measure divides by the zoom scale on the way out.
- *
- * The competition test is the ring boxes grown by a whole target, so a dot just
- * outside a small zone is budgeted too — its target would blanket that zone as
- * surely as one standing in the middle of it. Being generous there costs a dot
- * nothing it can see: a zone with room to spare hands back the whole target
- * anyway.
- *
- * @internal
- */
-function zoneSpare(rings: readonly MapAreaRing[], at: MapPoint2D, unitsPerPixel: number): number {
-	const reach = POINT_HIT_RADIUS * unitsPerPixel
-
-	const near = rings.some(
-		({ box }) =>
-			at.x >= box.left - reach &&
-			at.x <= box.right + reach &&
-			at.y >= box.top - reach &&
-			at.y <= box.bottom + reach,
-	)
-
-	if (!near) return POINT_HIT_RADIUS
-
-	return Math.min(POINT_HIT_RADIUS, (areaReach(rings) / unitsPerPixel) * ZONE_SPARE_FRACTION)
 }
 
 /**
@@ -212,6 +166,13 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// sees and the shape a dot yields to can never diverge.
 	const d = useMemo(() => ringsPath(rings), [rings])
 
+	// Measured once for the whole zone rather than once per dot asking. The budget
+	// depends on nothing but the rings and the scale, both memoised above, while
+	// the resolver below runs for every dot on the map against every visible zone —
+	// so an inline measure walked every vertex of a dissolved territory once per
+	// dot, on the beat a wheel notch rebuilds them.
+	const budget = useMemo(() => zoneBudget(rings, unitsPerPixel), [rings, unitsPerPixel])
+
 	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'geofence',
@@ -224,7 +185,7 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		// moment the legend puts this zone away. A share rather than a yes-or-no,
 		// because a zone drawn through its own marks puts them on its boundary,
 		// where inside-or-out has no answer and a ray cast reads the winding.
-		spare: (position) => zoneSpare(rings, position, unitsPerPixel),
+		spare: (position) => zoneSpare(budget, position),
 	})
 
 	if (slot === undefined || hidden || d === '') return null
