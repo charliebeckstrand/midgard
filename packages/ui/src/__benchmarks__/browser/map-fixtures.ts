@@ -9,7 +9,12 @@
 import countiesRaw from 'us-atlas/counties-10m.json'
 import statesRaw from 'us-atlas/states-10m.json'
 import { geographyFeatures } from '../../modules/map/engine/map-geometry/topology'
-import type { MapFeatureCollection, MapTopology } from '../../modules/map/engine/types'
+import type {
+	LngLat,
+	MapFeatureCollection,
+	MapPolygons,
+	MapTopology,
+} from '../../modules/map/engine/types'
 import { rng } from '../fixtures'
 
 /** One prepared atlas: the same geometry in every contender's natural form. */
@@ -150,3 +155,27 @@ export const LATTICE_DOTS = Array.from({ length: 200 }, (_, index) => ({
 	label: `Stop ${index + 1}`,
 	detail: `${index} pallets`,
 }))
+
+/**
+ * One coverage territory over the whole lower forty-eight: every conterminous
+ * state's rings under one `MapGeofence`. It stands in for what `useMapCoverage`
+ * dissolves out of a national ZIP-code selection, and runs a little heavier than
+ * the real thing — a dissolve drops the interior seams these keep — which is the
+ * direction a fixture should err.
+ *
+ * Its size is the whole point. 140 rings and ~9,900 vertices, under
+ * {@link LATTICE_DOTS}, every one of whose two hundred dots stands on it: a zone
+ * measured per dot rather than once walks all of that two hundred times over, on
+ * every beat that rebuilds the targets. A circular zone is far too small to show
+ * that — its 64 segments make the same mistake cost a twentieth of a millisecond
+ * — so the bench that guards the rule has to draw a territory.
+ */
+export const COVERAGE_AREA: MapPolygons = statesAtlas.geoJson.features.flatMap((shape) => {
+	const geometry = shape.geometry
+
+	if (geometry?.type === 'Polygon') return [geometry.coordinates as LngLat[][]]
+
+	if (geometry?.type === 'MultiPolygon') return geometry.coordinates as LngLat[][][]
+
+	return []
+})
