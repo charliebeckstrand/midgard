@@ -1,6 +1,14 @@
 'use client'
 
-import { type MouseEvent, type PointerEvent, useCallback, useEffect, useId, useRef } from 'react'
+import {
+	type MouseEvent,
+	type PointerEvent,
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat, useMapPointedMark, useMapZoomScale } from './context'
@@ -9,6 +17,11 @@ import { mapMarkDimmed } from './engine/map-hover/target'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
 import type { LngLat, MapPoint2D, MapSwatchShape } from './engine/types'
+
+/** The stop a hit shape names, read back off the element the event fired on. @internal */
+function stopFrom(event: { currentTarget: Element }): number {
+	return markAnchorAt(event.currentTarget)?.stop ?? 0
+}
 
 /**
  * The props every overlay mark shares: its identity, its legend text and paint,
@@ -217,9 +230,9 @@ export function useMapOverlay({
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, stopRows, resolveStop, covers })
+	const live = useRef({ stops, onClick, onContextMenu, stopRows, resolveStop, covers })
 
-	live.current = { stops, onClick, stopRows, resolveStop, covers }
+	live.current = { stops, onClick, onContextMenu, stopRows, resolveStop, covers }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
@@ -253,9 +266,16 @@ export function useMapOverlay({
 	// reach the ledger to reach the screen. Keyed by content rather than by the
 	// array's identity: an inline `points` would otherwise re-register on every
 	// render, and each registration re-renders this mark — a loop.
-	const rowsKey = stopRows
-		?.map((row) => `${row.label ?? ''}\u001f${row.detail ?? ''}`)
-		.join('\u001e')
+	//
+	// Memoised on the array itself: a plural mark hands a memoised one, so the
+	// join runs when its content can actually have changed rather than on each of
+	// the pointed-mark crossings that re-render this hook. An inline array is
+	// unchanged by the memo — it rebuilds either way, which is what the content
+	// key is for.
+	const rowsKey = useMemo(
+		() => stopRows?.map((row) => `${row.label ?? ''}\u001f${row.detail ?? ''}`).join('\u001e'),
+		[stopRows],
+	)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: `stopRows` is keyed by `rowsKey`, its content
 	useEffect(
@@ -276,30 +296,58 @@ export function useMapOverlay({
 		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, cover, stopAt],
 	)
 
+	const track = useCallback(
+		(event: PointerEvent<SVGElement>) => {
+			set({ kind: 'entry', id, stop: stopFrom(event) }, { x: event.clientX, y: event.clientY })
+		},
+		[set, id],
+	)
+
+	const clickMark = useCallback(
+		(event: MouseEvent<SVGElement>) => live.current.onClick?.(id, stopFrom(event)),
+		[id],
+	)
+
+	// Bubbles, and never prevents default: a wrapping menu still opens, and this
+	// only names which mark it opened over.
+	const menuMark = useCallback(
+		(event: MouseEvent<SVGElement>) => live.current.onContextMenu?.(id, stopFrom(event)),
+		[id],
+	)
+
+	const menuable = onContextMenu !== undefined
+
 	// One handler set per mark, not one per hit shape: each reads its own stop
 	// back off the element it fired on, through the same anchor the scroll-settle
 	// resolve reads. A plural mark draws one shape per dot, so building these per
 	// shape would allocate them by the hundred on every render.
-	const stopFrom = (event: { currentTarget: Element }) =>
-		markAnchorAt(event.currentTarget)?.stop ?? 0
+	//
+	// Held across renders, so a mark's hit props are the same objects from one
+	// crossing to the next and a plural mark's dots can sit behind a memo. Both
+	// reporters ride the `live` ref for it: a consumer's inline handler is a fresh
+	// identity every render, and what these depend on instead is whether there is
+	// one at all — a boolean a consumer changes by adding or dropping the prop.
+	const handlers = useMemo(
+		() => ({
+			onPointerEnter: track,
+			onPointerMove: track,
+			onClick: pickable ? clickMark : undefined,
+			onContextMenu: menuable ? menuMark : undefined,
+		}),
+		[track, pickable, clickMark, menuable, menuMark],
+	)
 
-	const track = (event: PointerEvent<SVGElement>) => {
-		set({ kind: 'entry', id, stop: stopFrom(event) }, { x: event.clientX, y: event.clientY })
-	}
+	const onPointerLeave = useCallback(() => set(null, null), [set])
 
-	const handlers = {
-		onPointerEnter: track,
-		onPointerMove: track,
-		onClick: pickable
-			? (event: MouseEvent<SVGElement>) => onClick?.(id, stopFrom(event))
-			: undefined,
-		// Bubbles, and never prevents default: a wrapping menu still opens, and this
-		// only names which mark it opened over.
-		onContextMenu:
-			onContextMenu === undefined
-				? undefined
-				: (event: MouseEvent<SVGElement>) => onContextMenu(id, stopFrom(event)),
-	}
+	const hit = useCallback(
+		(stop = 0) => ({
+			'data-entry-id': id,
+			'data-entry-stop': stop,
+			className: pickable ? k.clickable : undefined,
+			...handlers,
+		}),
+		[id, pickable, handlers],
+	)
 
 	return {
 		slot: colors.get(id),
@@ -311,12 +359,7 @@ export function useMapOverlay({
 		order: order.get(id) ?? 0,
 		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
 		selected,
-		onPointerLeave: () => set(null, null),
-		hit: (stop = 0) => ({
-			'data-entry-id': id,
-			'data-entry-stop': stop,
-			className: pickable ? k.clickable : undefined,
-			...handlers,
-		}),
+		onPointerLeave,
+		hit,
 	}
 }
