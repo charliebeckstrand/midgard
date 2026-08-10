@@ -240,9 +240,9 @@ export function useMapOverlay({
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, onContextMenu, stopRows, resolveStop, covers })
+	const live = useRef({ stops, onClick, onContextMenu, resolveStop, covers })
 
-	live.current = { stops, onClick, onContextMenu, stopRows, resolveStop, covers }
+	live.current = { stops, onClick, onContextMenu, resolveStop, covers }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
@@ -327,8 +327,6 @@ export function useMapOverlay({
 
 	const menuable = onContextMenu !== undefined
 
-	const onPointerLeave = useCallback(() => set(null, null), [set])
-
 	// One handler set per mark, not one per hit shape: each reads its own stop
 	// back off the element it fired on, through the same anchor the scroll-settle
 	// resolve reads. A plural mark draws one shape per dot, so building these per
@@ -360,9 +358,11 @@ export function useMapOverlay({
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,
-		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
+		// Spread, not passed whole: `cn` memoises on string arguments and sends an
+		// array straight to the merge, and this resolves per mark on every crossing.
+		dim: cn(...k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
 		selected,
-		onPointerLeave,
+		onPointerLeave: () => set(null, null),
 		hit,
 	}
 }

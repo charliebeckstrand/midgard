@@ -680,26 +680,26 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[clickRegion, entries],
 	)
 
-	// Whether anything can read out: a region the rows matched, or a registered
-	// overlay. It reads the join rather than the presence of a `data` array,
-	// because rows that match no region leave exactly the silence no rows do —
-	// the tooltip resolves nothing for an unmatched region, and the
+	// Whether any region reads out. It reads the join rather than the presence of
+	// a `data` array, because rows that match no region leave exactly the silence
+	// no rows do — the tooltip resolves nothing for an unmatched region, and the
 	// pointed-emphasis gate above lights nothing there either. Toggled-off
 	// categories still count: a legend toggle must not take the table or the tab
 	// stop away under the reader. Memoised on the join, so the scan a map with no
 	// match pays in full runs once per readout rather than once per render.
-	// The region half alone, held apart because the region layer gates on it and
-	// the layer must not answer the ledger. Overlays register from an effect, so
-	// a backdrop map carrying marks reads `false` on its first commit and `true`
-	// on the next — and gating three thousand paths on a bit that flips a beat
-	// after mount fails the layer's memo and re-maps the whole atlas a second
-	// time. Nothing an overlay registers can make a region read out, so the
-	// layer reads the join and nothing else.
+	//
+	// The region layer gates on this rather than on the wider reading below, and
+	// must: overlays register from an effect, so a bit that counted them would
+	// read `false` on a backdrop map's first commit and `true` on its next,
+	// failing the layer's memo and re-mapping the whole atlas a second time.
 	const regionsRead = useMemo(
 		() => regionCategory.some((category) => category !== null),
 		[regionCategory],
 	)
 
+	// Whether anything at all can read out — a matched region, or a registered
+	// overlay. The table and the tab stop take this wider reading: a mark's own
+	// row and its keyboard stop are outputs a map with no rows still has.
 	const hasReadout = regionsRead || entries.length > 0
 
 	// `tooltip` asks and `hasReadout` answers; the readout channels all want the

@@ -6,8 +6,9 @@
  * has to have one definition.
  */
 
+import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
 import { isRangeLegend, type MapLegendInput } from '../map-legend/plan'
-import type { DataKey, MapCategory, MapLegendPlacement } from '../types'
+import type { DataKey, MapCategory } from '../types'
 
 /**
  * Show the legend. Defaults to on when there are two or more categories or any
@@ -26,10 +27,15 @@ import type { DataKey, MapCategory, MapLegendPlacement } from '../types'
  * drops the request and draws the binned switchboard instead. It is stated in
  * the type so the request cannot be made rather than quietly ignored.
  *
+ * Subtracted from {@link MapLegendInput} rather than re-listed, and subtracted
+ * by exactly what {@link isRangeLegend} tests for — so a form added to the prop
+ * later reaches all three branches, or is refused here by name, rather than
+ * being dropped by a list that forgot to grow.
+ *
  * @internal
  */
 type MapSwitchboardLegend = {
-	legend?: boolean | MapLegendPlacement
+	legend?: Exclude<MapLegendInput, 'range' | ChartRangeLegendConfig>
 }
 
 /** The rows and the field that matches each to a region; shared by both colour modes. @internal */

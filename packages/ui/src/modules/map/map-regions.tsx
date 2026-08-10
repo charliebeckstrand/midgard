@@ -36,13 +36,18 @@ import { MapRegionsLit } from './map-regions-lit'
 export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
 	/**
-	 * Whether anything on this map reads out — a region the rows matched, or a
-	 * registered overlay. Off, the region paths take no pointer handlers at all.
-	 * A backdrop map would otherwise commit hover state on every move across
-	 * every one of its paths, re-rendering the provider and a tooltip that
-	 * resolves nothing: the pointed-emphasis gate lights no unmatched region, so
-	 * the whole cascade ends where it began. It is the same predicate that
-	 * withholds the table and the tab stop, reaching the one channel they left.
+	 * Whether any region on this map reads out — whether the rows matched one.
+	 * Off, the region paths take no pointer handlers at all. A backdrop map
+	 * would otherwise commit hover state on every move across every one of its
+	 * paths, re-rendering the provider and a tooltip that resolves nothing: the
+	 * pointed-emphasis gate lights no unmatched region, so the whole cascade
+	 * ends where it began.
+	 *
+	 * Deliberately narrower than the predicate that withholds the table and the
+	 * tab stop, which counts a registered overlay as a readout too. Nothing an
+	 * overlay registers can make a *region* read out, and overlays register from
+	 * an effect — so folding them in would flip this a beat after mount, fail
+	 * the layer's memo, and re-map the whole atlas a second time.
 	 *
 	 * A clickable map keeps its affordance either way — the pointer cursor and
 	 * the hover brightening are classes on the layer and the path, not this.
@@ -376,7 +381,7 @@ export const MapRegions = memo(function MapRegions({
 			// right-click leaves its target cleared and this only fires to overwrite it.
 			onContextMenu={regionDelegate(onRegionContextMenu)}
 		>
-			<g data-slot="map-regions-recede" className={cn(k.group(receded))}>
+			<g data-slot="map-regions-recede" className={cn(...k.group(receded))}>
 				<MapRegionsBase
 					paths={paths}
 					regionCategory={regionCategory}

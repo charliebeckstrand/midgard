@@ -13,10 +13,11 @@
  * instead of recomputing it, so the geography paints on the first commit
  * without re-paying the fit.
  *
- * The rest are deliberately off that path and resolve on their first read: the
- * decode alone, which the coverage hook wants without a fit; the region
+ * The rest resolve on their first read: the decode alone, which the coverage
+ * hook wants without a fit; the canonical region paths, which an ordinary map
+ * does pay at mount but a `deferPaint` one never asks for; the region
  * centroids, which only a keyboard cursor reads; and the chrome paths. Each
- * says in its own doccomment why it is not paid at mount.
+ * says in its own doccomment who reads it and when.
  *
  * The atlas keys a {@link WeakMap} by identity, so the cache never pins one in
  * memory and a freshly fetched atlas misses. Only named projections cache: a
@@ -58,7 +59,7 @@ export type StaticMapGeometry = {
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
 const EMPTY: StaticMapGeometry = { features: [], canonical: null }
 
-// Atlas → object name → its decoded, rewound features. Held apart from the trio
+// Atlas → object name → its decoded, rewound features. Held apart from the pair
 // below because two readers want it and only one of them wants the fit: the
 // geometry above draws the atlas, and the coverage hook filters it to the
 // regions a territory lands in. Decoding a county topology runs to tens of
@@ -196,7 +197,7 @@ const measuredPaths = new WeakMap<
 >()
 
 // Region centroids per decoded feature list. Held apart from the mount-critical
-// trio above because nothing on the mount path reads them: only the keyboard
+// pair above because nothing on the mount path reads them: only the keyboard
 // cursor does, and only once a reader tabs in. Computing them beside the paths
 // would put a per-region `geoCentroid` pass — thousands of rings on a county
 // atlas — on every mount, for a cursor most mounts never carry. The features

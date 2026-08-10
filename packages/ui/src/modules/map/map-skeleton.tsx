@@ -49,11 +49,10 @@ export function MapSkeleton({ ratio, projection, className }: MapSkeletonProps) 
 	// generic fallback — and the rule that an unparseable ratio fills instead of
 	// reserving are both stated once. Sharing only `projectionFallbackAspect`
 	// would share the number and duplicate the policy over it.
-	const sizing = mapFrameSizing(
-		undefined,
-		ratio ?? 'auto',
-		projection === undefined ? null : projectionFallbackAspect(projection),
-	)
+	// No height of its own: a fixed-height plat is mirrored with `ratio={false}`
+	// and a height class, which is the same statement made once rather than a
+	// second prop saying it again.
+	const sizing = mapFrameSizing(undefined, ratio ?? 'auto', projectionFallbackAspect(projection))
 
 	if (sizing.mode !== 'aspect') return <Placeholder className={cn(k.skeleton.base, className)} />
 
