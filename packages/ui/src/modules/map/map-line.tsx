@@ -42,11 +42,15 @@ type MapLineProps = {
 }
 
 /**
- * The stroked line the two line-shaped marks draw: a route's whole polyline and
- * a marker's leg between its pins. Both painted the same before this — same
- * width, same round cap and join, same non-scaling stroke, same self-drawing
- * reveal — down to the comment explaining the stroke, which is how two copies
- * of one spec read once they have been kept in step by hand for a while.
+ * The stroked line the map's line-shaped marks draw: a route's whole polyline,
+ * a marker's leg between its pins, and a geofence's closed boundary. All three
+ * hand-wrote it before this — the same round cap and join, the same
+ * non-scaling stroke, the same self-drawing reveal, down to the comment
+ * explaining the stroke — which is how copies of one spec read once they have
+ * been kept in step by hand for a while.
+ *
+ * A zone states a `width` of its own, because it reads as context behind the
+ * marks rather than as another route drawn around them. Nothing else varies.
  *
  * `className` rather than the kata paint object, so this file takes no
  * dependency on the series colour vocabulary and stays a shape.
@@ -90,17 +94,21 @@ export function MapLine({
 }
 
 /**
- * The invisible band that makes a thin line aimable, as props rather than as a
- * component — `dotHitProps`'s discipline, and for the reason its doccomment
- * records: a fiber per hit shape was measured and rejected.
+ * The invisible target a line-shaped mark answers on: the band around its
+ * stroke, and — for a mark that encloses ground — its face as well. Props
+ * rather than a component, which is `dotHitProps`'s discipline and for the
+ * reason its doccomment records: a fiber per hit shape was measured and
+ * rejected.
  *
  * The band is a finger's width in device pixels, so it rides the same
  * non-scaling stroke the line does: a zoom must widen the ground it covers,
  * never the target itself.
  *
- * @param slot - the `data-slot` naming this band.
- * @param d - the path it traces, which is the line's own.
+ * @param slot - the `data-slot` naming this target.
+ * @param d - the path it traces, which is the mark's own.
  * @param hit - the mark's pointer plumbing, spread last so its handlers win.
+ * @param face - whether the mark's enclosed ground answers too, not just the
+ * band around its edge.
  *
  * @internal
  */
@@ -112,7 +120,7 @@ export function lineHitProps({ slot, d, hit, face = false }: MapLineHitSpec) {
 		// it claims is the shape a reader can point at: a hole answers no pointer,
 		// and the region under it keeps its own hover.
 		fill: face ? 'transparent' : 'none',
-		...(face ? { fillRule: 'evenodd' as const } : {}),
+		fillRule: face ? ('evenodd' as const) : undefined,
 		stroke: 'transparent',
 		strokeWidth: ROUTE_HIT_WIDTH,
 		vectorEffect: 'non-scaling-stroke' as const,

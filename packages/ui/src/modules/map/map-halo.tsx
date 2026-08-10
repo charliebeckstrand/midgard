@@ -22,7 +22,7 @@ import type { MapPoint2D } from './engine/types'
 import { MapDot } from './map-dot'
 
 /** The selection ink, off the pointer — one treatment for both halo shapes. @internal */
-const HALO = cn('pointer-events-none', k.selected)
+const HALO = cn('pointer-events-none', ...k.selected)
 
 /** Props for {@link MapHalo}. @internal */
 type MapHaloProps = {

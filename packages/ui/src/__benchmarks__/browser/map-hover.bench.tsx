@@ -18,7 +18,7 @@ import { MapPoints } from '../../modules/map/map-points'
 import { type Contender, HEIGHT, reactContender, WIDTH } from './contenders'
 import { benches, prepareSweep, SWEEP, WINDOW } from './harness'
 import { zoneMapContenders } from './map-contenders'
-import { countiesAtlas, makeZones, statesAtlas, type ZoneData } from './map-fixtures'
+import { countiesAtlas, LATTICE_DOTS, makeZones, statesAtlas, type ZoneData } from './map-fixtures'
 
 /** The plot-covering element each library draws into and listens on. */
 function plotTarget(host: HTMLElement): Element {
@@ -79,13 +79,6 @@ const counties = await prepareSweep(
 	regionTargets,
 )
 
-/** Dots on a lattice across the lower forty-eight, so every one projects. */
-const DOTS = Array.from({ length: 200 }, (_, index) => ({
-	at: [-120 + (index % 20) * 3, 30 + Math.floor(index / 20) * 1.8] as [number, number],
-	label: `Stop ${index + 1}`,
-	detail: `${index} pallets`,
-}))
-
 /**
  * A zone map carrying a two-hundred-dot plural mark. The sweep crosses regions
  * and never a dot, which is the point: the pointed mark republishes on every
@@ -108,7 +101,7 @@ function overlayHoverContenders(): Contender<ZoneData>[] {
 				width={WIDTH}
 				height={HEIGHT}
 			>
-				<MapPoints label="Stops" points={DOTS} />
+				<MapPoints label="Stops" points={LATTICE_DOTS} />
 			</MapPlat>
 		)),
 	]

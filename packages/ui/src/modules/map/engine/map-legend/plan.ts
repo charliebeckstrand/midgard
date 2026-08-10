@@ -26,6 +26,8 @@ export type MapLegendInput = boolean | MapLegendPlacement | MapRangeLegendInput
  * Named so the two readers of the distinction cannot drift — {@link
  * isRangeLegend} narrows to it, and the region-data union subtracts it to state
  * that only the numeric branch can paint one.
+ *
+ * @internal
  */
 export type MapRangeLegendInput = 'range' | ChartRangeLegendConfig
 
@@ -78,7 +80,7 @@ function resolveLegendPlacement(
 	legend: MapLegendInput | undefined,
 	numeric: boolean,
 ): MapLegendPlacement {
-	if (typeof legend === 'string' && legend !== 'range') return legend
+	if (typeof legend === 'string' && !isRangeLegend(legend)) return legend
 
 	return numeric ? 'right' : 'bottom'
 }

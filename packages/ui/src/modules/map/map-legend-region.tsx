@@ -7,15 +7,21 @@ import { MapLegend } from './map-legend'
 import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 
 /**
- * The legend box's two reserved shapes, joined once each. The side panel's is an
- * array and the row's a string, so the ternary between them can be neither
- * spread nor keyed by `cn` — and neither takes a dynamic input worth re-merging
- * per render of the plat.
+ * The side panel's reserved shape. The panel's tokens are an array and the
+ * row's a string, so the ternary between the two can be neither spread nor
+ * keyed by `cn` — and neither takes a dynamic input worth re-merging per render
+ * of the plat, so both are joined here.
  *
  * @internal
  */
 const LEGEND_BOX_PANEL = cn(...k.legendBox.panel)
 
+/**
+ * The row's, joined the same way for symmetry — it is a lone string, so the
+ * call returns it unchanged and saves nothing on its own.
+ *
+ * @internal
+ */
 const LEGEND_BOX_ROW = cn(k.legendBox.row)
 
 /** Props for {@link MapLegendSlot}: the reserved box and the toolbar it holds. @internal */

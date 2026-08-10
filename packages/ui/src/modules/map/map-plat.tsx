@@ -1,10 +1,9 @@
 'use client'
 
 import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
-import { cn } from '../../core'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { k, type MapSeriesColor } from '../../recipes/kata/map'
+import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import {
@@ -17,7 +16,7 @@ import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
-import { legendItems } from './engine/map-legend/items'
+import { legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planMapLegend } from './engine/map-legend/plan'
 import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
@@ -629,7 +628,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					{
 						label: entry.label,
 						swatch: entry.swatch,
-						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
+						swatchClass: overlaySwatchClass(colors, entry.id),
 						detail: entry.detail,
 						stopRows: entry.stopRows,
 					},

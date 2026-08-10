@@ -63,7 +63,7 @@ function ChromeLine({ part, d, clip }: ChromeLineProps) {
 			// resize whose refit lands a beat late scales the geometry crisply and
 			// must not fatten a hairline with it.
 			vectorEffect="non-scaling-stroke"
-			className={cn(k.chrome[part])}
+			className={cn(...k.chrome[part])}
 		/>
 	)
 }

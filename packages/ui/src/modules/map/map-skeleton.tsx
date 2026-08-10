@@ -54,11 +54,11 @@ export function MapSkeleton({ ratio, projection, className }: MapSkeletonProps) 
 	// second prop saying it again.
 	const sizing = mapFrameSizing(undefined, ratio ?? 'auto', projectionFallbackAspect(projection))
 
-	if (sizing.mode !== 'aspect') return <Placeholder className={cn(k.skeleton.base, className)} />
+	if (sizing.mode !== 'aspect') return <Placeholder className={cn(...k.skeleton.base, className)} />
 
 	return (
 		<AspectRatio ratio={sizing.ratio} className={className}>
-			<Placeholder className={cn(k.skeleton.base)} />
+			<Placeholder className={cn(...k.skeleton.base)} />
 		</AspectRatio>
 	)
 }

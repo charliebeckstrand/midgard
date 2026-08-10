@@ -139,3 +139,14 @@ export function makeValues(atlas: MapAtlas, seed = 1): ValueData {
 		ecRows: atlas.ids.map((name, i) => ({ name, value: values[i] ?? 0 })),
 	}
 }
+
+/**
+ * Dots on a lattice across the lower forty-eight, so every one projects. Shared
+ * by the overlay mount bench and the overlay hover bench, which must draw the
+ * same set or their numbers cannot be read against each other.
+ */
+export const LATTICE_DOTS = Array.from({ length: 200 }, (_, index) => ({
+	at: [-120 + (index % 20) * 3, 30 + Math.floor(index / 20) * 1.8] as [number, number],
+	label: `Stop ${index + 1}`,
+	detail: `${index} pallets`,
+}))

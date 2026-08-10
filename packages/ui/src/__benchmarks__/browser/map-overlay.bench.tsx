@@ -16,16 +16,9 @@ import { MapPoint } from '../../modules/map/map-point'
 import { MapPoints } from '../../modules/map/map-points'
 import { type Contender, HEIGHT, reactContender, WIDTH } from './contenders'
 import { mountBenches, WINDOW } from './harness'
-import { statesAtlas } from './map-fixtures'
+import { LATTICE_DOTS, statesAtlas } from './map-fixtures'
 
-/** Dots on a lattice across the lower forty-eight, so every one projects. */
-const DOTS = Array.from({ length: 200 }, (_, index) => ({
-	at: [-120 + (index % 20) * 3, 30 + Math.floor(index / 20) * 1.8] as [number, number],
-	label: `Stop ${index + 1}`,
-	detail: `${index} pallets`,
-}))
-
-function overlayContenders(): Contender<typeof DOTS>[] {
+function overlayContenders(): Contender<typeof LATTICE_DOTS>[] {
 	return [
 		reactContender('ui MapPoints', (dots) => (
 			<MapPlat
@@ -55,5 +48,5 @@ function overlayContenders(): Contender<typeof DOTS>[] {
 }
 
 describe('mount · map overlays · 200 dots', () => {
-	mountBenches(overlayContenders(), DOTS, WINDOW.slow)
+	mountBenches(overlayContenders(), LATTICE_DOTS, WINDOW.slow)
 })

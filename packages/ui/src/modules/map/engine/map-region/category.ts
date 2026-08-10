@@ -7,6 +7,7 @@
  * unchanged.
  */
 
+import { cn } from '../../../../core'
 import { k, type MapSeriesColor } from '../../../../recipes/kata/map'
 import type { DataKey, MapCategory } from '../types'
 
@@ -22,6 +23,42 @@ import type { DataKey, MapCategory } from '../types'
 export type MapReadoutPaint =
 	| { kind: 'class'; fill: string[]; text: string[] }
 	| { kind: 'value'; color: string }
+
+/**
+ * The region fill a paint carries as a class, `undefined` for a bin — whose
+ * colour is a value the consumer's `colorRange` produced and can only ride the
+ * `fill` attribute.
+ *
+ * The three projections below are the map's half of what `chart-color/paint`
+ * names for the union it mirrors from here. Without them every reader spelled
+ * the discriminant itself, and two of them spelled it identically.
+ *
+ * @internal
+ */
+export function paintFill(paint: MapReadoutPaint): string[] | undefined {
+	return paint.kind === 'class' ? paint.fill : undefined
+}
+
+/**
+ * The currentColor class a swatch reads a paint through, joined; `undefined`
+ * for a bin, which paints through {@link paintColor} instead.
+ *
+ * @internal
+ */
+export function paintText(paint: MapReadoutPaint): string | undefined {
+	return paint.kind === 'class' ? cn(...paint.text) : undefined
+}
+
+/**
+ * A bin's own CSS colour, `undefined` for a categorical slot. It is an
+ * arbitrary value out of the consumer's ramp, so it can never become a class:
+ * every reader of it passes it as an inline style beside the class channel.
+ *
+ * @internal
+ */
+export function paintColor(paint: MapReadoutPaint): string | undefined {
+	return paint.kind === 'value' ? paint.color : undefined
+}
 
 /**
  * One resolved category or bin: its match value, display label, and readout
