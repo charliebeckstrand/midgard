@@ -157,9 +157,10 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
 }
 
 /**
- * A frame-space box around a projected ring — the cheap reject
- * {@link areaCovers} tries before it walks a ring's edges. Frame coordinates, so
- * it is named for the frame's own axes rather than for the compass, which
+ * A frame-space box around a projected ring — the cheap reject a reader tries
+ * before it walks a ring's edges, which is how a zone tells a dot standing
+ * nowhere near it from one competing for its ground. Frame coordinates, so it is
+ * named for the frame's own axes rather than for the compass, which
  * `map-geometry/locate`'s lon/lat box is.
  *
  * @internal
@@ -176,16 +177,6 @@ type MapFrameBox = { left: number; top: number; right: number; bottom: number }
 export type MapAreaRing = {
 	points: MapPoint2D[]
 	box: MapFrameBox
-}
-
-/**
- * Whether a box holds a frame position — the cheap test before the edge walk,
- * `map-geometry/locate`'s `within` on the frame's own axes.
- *
- * @internal
- */
-function holds(box: MapFrameBox, at: MapPoint2D): boolean {
-	return at.x >= box.left && at.x <= box.right && at.y >= box.top && at.y <= box.bottom
 }
 
 /** The box around a run of frame points, walked as they are collected. @internal */
@@ -218,12 +209,12 @@ function boundPoints(points: readonly MapPoint2D[]): MapFrameBox {
  *
  * The rings come back as points rather than as a string, because two readers ask
  * the same geometry two questions: {@link ringsPath} draws it, and
- * {@link areaCovers} asks which ground it holds. Projecting once for both is what
- * keeps the drawn shape and the covered ground from ever disagreeing.
+ * {@link areaReach} measures how much room it holds. Projecting once for both is
+ * what keeps the drawn shape and the ground it answers for from ever disagreeing.
  *
  * Each ring carries its own bounds, measured on the walk that collects it — free
- * here, and what lets a coverage test reject a ring it stands nowhere near
- * without touching an edge of it.
+ * here, and what lets a zone reject a dot it stands nowhere near without touching
+ * an edge of it.
  *
  * @internal
  */
@@ -265,73 +256,60 @@ export function ringsPath(rings: readonly MapAreaRing[]): string {
 }
 
 /**
- * Whether an area's own face holds a frame position — the ground the zone
- * covers, and the question a mark drawn over it asks before it claims pixels the
- * zone would otherwise answer for.
+ * How far into the area a mark can stand before its widest part reaches the
+ * boundary — the radius of the largest circle the shape holds, near enough. It
+ * is `2 · area / perimeter`, which is that radius exactly for a circle (the form
+ * `circleRing` draws, and so most zones on a map) and reads a long thin corridor
+ * as its width rather than its diagonal, which is where a bounding box goes
+ * wrong by an order of magnitude.
  *
- * Under the even-odd rule, so it reads the shape {@link ringsPath} paints: a
- * position inside an odd number of rings is inside the area, which makes a ring
- * within a ring a hole whichever way either winds. That is the rule the wash and
- * the zone's own hit path already fill by, so a hole answers no pointer here for
- * the same reason it answers none there.
+ * The largest part answers for the whole, the way {@link areaAnchor} stands on
+ * it: a territory in two distant clusters has no single measure, and the
+ * cluster a reader is looking at is the one with room in it.
  *
- * In frame units on the projected rings, not in lon/lat on the source ones: the
- * mark draws each edge straight in the frame, so the drawn shape is the only one
- * a reader can point at — and the dots asking this hold projected positions
- * already, so neither side pays a projection to be compared.
+ * Zero where nothing drew. Signed area is taken absolute rather than summed, so
+ * the winding a dissolved topology arrived in cannot flip the answer — this asks
+ * how much room the shape has, not which side of it is in.
  *
- * A ring whose box excludes the position is skipped whole, the way
- * `map-geometry/locate` tries a box before `geoContains`. It cannot change the
- * answer: the ray runs one way, so a position past the box's far edge crosses
- * that ring never, and one short of its near edge crosses a closed ring evenly —
- * either way the parity it contributes is nil. What it saves is the case that
- * hurts, a dissolved territory of many parts where every dot would otherwise walk
- * every vertex of every cluster it stands nowhere near.
+ * Every ring counts, holes included, so a zone drawn as a band around a large
+ * hole reads the room its outer ring would hold rather than the band's own width.
+ * That is the bound of staying winding-blind: telling an outer ring from an inner
+ * one is the sorting pass the whole module declines to make, and the reading errs
+ * generous — the dot keeps more of its target, which is where it stood before any
+ * of this. A zone of that shape is rare enough to pay for the rule holding
+ * everywhere else without a nesting pass.
  *
  * @param rings - The projected rings, from {@link projectArea}.
- * @param at - The frame position to place.
- * @returns Whether the position falls inside the area's face.
+ * @returns The inscribed reach in frame units, `0` for an area with no extent.
  *
  * @internal
  */
-export function areaCovers(rings: readonly MapAreaRing[], at: MapPoint2D): boolean {
-	let inside = false
+export function areaReach(rings: readonly MapAreaRing[]): number {
+	let widest = 0
 
 	for (const ring of rings) {
-		if (holds(ring.box, at) && crossesOddly(ring.points, at)) inside = !inside
+		const { points } = ring
+
+		let twiceArea = 0
+
+		let perimeter = 0
+
+		for (let index = 0, previous = points.length - 1; index < points.length; previous = index++) {
+			const to = points[index]
+
+			const from = points[previous]
+
+			if (to === undefined || from === undefined) continue
+
+			twiceArea += from.x * to.y - to.x * from.y
+
+			perimeter += Math.hypot(to.x - from.x, to.y - from.y)
+		}
+
+		if (perimeter > 0) widest = Math.max(widest, Math.abs(twiceArea) / perimeter)
 	}
 
-	return inside
-}
-
-/**
- * Whether a ray from a frame position crosses one ring an odd number of times —
- * the ring's own contribution to {@link areaCovers}'s parity.
- *
- * @internal
- */
-function crossesOddly(points: readonly MapPoint2D[], at: MapPoint2D): boolean {
-	let odd = false
-
-	// The ray crossing count, from each edge to the one that closes the ring —
-	// hence `previous` starting on the last point. A ring is closed by
-	// construction here, so the walk needs no repeat of the first position.
-	for (let index = 0, previous = points.length - 1; index < points.length; previous = index++) {
-		const to = points[index]
-
-		const from = points[previous]
-
-		if (to === undefined || from === undefined) continue
-
-		// The half-open test on `y`: an edge counts where it spans the ray's own
-		// latitude with its lower end included and its upper end excluded, so a
-		// vertex the ray passes exactly through counts once rather than twice.
-		if (to.y > at.y === from.y > at.y) continue
-
-		if (at.x < ((from.x - to.x) * (at.y - to.y)) / (from.y - to.y) + to.x) odd = !odd
-	}
-
-	return odd
+	return widest
 }
 
 /** The sphere's whole area in steradians — what a backwards ring measures against. @internal */

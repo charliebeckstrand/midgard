@@ -1,15 +1,15 @@
 /**
- * Which drawn dots keep the pointer target down to what they paint, and why.
- * Clustering has already merged everything that draws over its neighbour
- * (`group.ts`); this reads what survived that merge and asks a wider question of
- * it — not whether two marks overlap, but whether the ground under one of them
- * belongs to something else.
+ * How far each drawn dot's pointer target reaches, and why it is ever less than
+ * the whole. Clustering has already merged everything that draws over its
+ * neighbour (`group.ts`); this reads what survived that merge and asks a wider
+ * question of it — not whether two marks overlap, but how much of the ground
+ * under one of them belongs to something else.
  *
  * Two things claim that ground. A neighbour inside the coarse reach claims it,
  * because a target that covered a neighbour's face would take that neighbour's
  * readout with it and the mark a reader can see would answer nothing. A drawn
  * zone under the dot claims it, which the plat resolves across its whole ledger
- * and hands in as a predicate. {@link fineMarks} is where the two meet, so every
+ * and hands in as a budget. {@link markTargets} is where the two meet, so every
  * dot-shaped mark reads one rule rather than assembling its own.
  *
  * The crowding half reads one mark's own drawn dots — a `MapPoints`'s groups, a
@@ -55,29 +55,41 @@ export type MapDotMark = {
 const INDEX_THRESHOLD = 8
 
 /**
- * Whether a coarse target centred on `mark` would cover the face `other` paints.
- * Read one way round rather than as an overlap: the mark whose target covers a
- * neighbour is the one that has to give the ground back, and a wide summary
- * beside a small dot is not the same case as the small dot beside it.
+ * How much reach a target centred on `mark` has before it covers the face
+ * `other` paints, in device pixels — the gap between them less what the
+ * neighbour draws. Read one way round rather than as an overlap: the mark whose
+ * target reaches a neighbour is the one that gives ground back, and a wide
+ * summary beside a small dot is not the same case as the small dot beside it.
+ *
+ * {@link POINT_HIT_RADIUS} where the neighbour is beyond that reach anyway, so a
+ * caller takes the minimum across neighbours without a special case for the far
+ * ones.
  *
  * @internal
  */
-function swallows(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number): boolean {
-	if (other.at === null) return false
+function roomBeside(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number): number {
+	if (other.at === null) return POINT_HIT_RADIUS
 
 	const reach = (POINT_HIT_RADIUS + other.radius) * unitsPerPixel
 
-	return squared(mark, other.at) < reach * reach
+	const apart = squared(mark, other.at)
+
+	// The square root is paid only by the pairs that decide something; the far ones
+	// answer off the squared compare, which is what `group.ts` buckets for.
+	if (apart >= reach * reach) return POINT_HIT_RADIUS
+
+	return Math.sqrt(apart) / unitsPerPixel - other.radius
 }
 
 /**
- * Which of the drawn dots have a neighbour inside their coarse reach, index for
- * index with the marks handed in.
+ * How much reach the nearest neighbour leaves each drawn dot, index for index
+ * with the marks handed in — {@link POINT_HIT_RADIUS} where nothing stands inside
+ * that dot's coarse reach.
  *
  * `unitsPerPixel` is what one device pixel spans in frame units — `1` at rest,
  * and `1 / k` under the zoom layer's transform. Every reach here is a pixel
  * measure and every position is a frame one, so the conversion lands once, on the
- * way into {@link swallows}. A zoom that spreads the dots apart on screen frees
+ * way into {@link roomBeside}. A zoom that spreads the dots apart on screen frees
  * their targets on the same beat it separates a summary into its own dots, which
  * is the beat those dots need aiming at.
  *
@@ -87,14 +99,14 @@ function swallows(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number): b
  *
  * @param marks - The drawn dots, in the order they draw.
  * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
- * @returns Whether each dot has a neighbour whose face its coarse target covers.
+ * @returns The reach each dot's neighbours leave it, in device pixels.
  *
  * @internal
  */
-export function crowdedMarks(marks: readonly MapDotMark[], unitsPerPixel = 1): boolean[] {
-	// A mark alone on the frame has no neighbour to swallow, which is every
+export function neighbourRoom(marks: readonly MapDotMark[], unitsPerPixel = 1): number[] {
+	// A mark alone on the frame has no neighbour to give ground to, which is every
 	// `MapPoint` and every set drawing one dot.
-	if (marks.length < 2) return marks.map(() => false)
+	if (marks.length < 2) return marks.map(() => POINT_HIT_RADIUS)
 
 	if (marks.length <= INDEX_THRESHOLD) return scanned(marks, unitsPerPixel)
 
@@ -102,16 +114,20 @@ export function crowdedMarks(marks: readonly MapDotMark[], unitsPerPixel = 1): b
 }
 
 /** The pairwise pass, for a set too small for an index to pay for itself. @internal */
-function scanned(marks: readonly MapDotMark[], unitsPerPixel: number): boolean[] {
+function scanned(marks: readonly MapDotMark[], unitsPerPixel: number): number[] {
 	return marks.map(({ at }, index) => {
-		if (at === null) return false
+		if (at === null) return POINT_HIT_RADIUS
 
-		return marks.some((other, slot) => slot !== index && swallows(at, other, unitsPerPixel))
+		return marks.reduce(
+			(room, other, slot) =>
+				slot === index ? room : Math.min(room, roomBeside(at, other, unitsPerPixel)),
+			POINT_HIT_RADIUS,
+		)
 	})
 }
 
 /** The grid-indexed pass, for a set large enough that a pairwise scan is quadratic. @internal */
-function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): boolean[] {
+function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] {
 	// One cell per widest possible reach, so a mark this one could swallow can only
 	// sit in the nine cells around it — the bound `group.ts` runs its own passes on.
 	const reach = (POINT_HIT_RADIUS + MAX_CLUSTER_RADIUS) * unitsPerPixel
@@ -123,9 +139,9 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): boolean[]
 	})
 
 	return marks.map(({ at }, index) => {
-		if (at === null) return false
+		if (at === null) return POINT_HIT_RADIUS
 
-		let crowded = false
+		let room = POINT_HIT_RADIUS
 
 		walkNear(cells, at, reach, (slot) => {
 			// Its own entry answers itself, and a dot is never its own neighbour.
@@ -133,41 +149,57 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): boolean[]
 
 			const other = marks[slot]
 
-			crowded = other !== undefined && swallows(at, other, unitsPerPixel)
+			if (other !== undefined) room = Math.min(room, roomBeside(at, other, unitsPerPixel))
 
-			return crowded
+			// Every near cell is walked: the nearest neighbour decides the reach, so
+			// the pass cannot stop at the first one it finds.
+			return false
 		})
 
-		return crowded
+		return room
 	})
 }
 
 /**
- * Which drawn dots give back the ground a finger-sized target over them would
- * claim: the ones with a neighbour inside that reach, and the ones standing on
- * ground a drawn zone holds. Index for index with the marks handed in, and the
- * one place the two halves meet — a dot-shaped mark passes what it draws and
- * reads the answer, so a mark added later takes the whole rule by construction
- * rather than by memory.
+ * The radius each drawn dot's pointer target takes, in device pixels — index for
+ * index with the marks handed in, and the one place every claim on that ground
+ * meets.
+ *
+ * A dot takes the whole finger target where nothing else needs the ground under
+ * it, and gives way as something does: a neighbour close enough that the target
+ * would cover its face, or a zone it stands on with only so much room to spare.
+ * The two arrive as the same measure — a reach in device pixels — so the answer
+ * is their minimum, floored at what the dot actually paints, since a target
+ * narrower than its own dot would leave the dot a dead rim.
+ *
+ * A measure rather than the pair of booleans this replaced. The zone half asked
+ * whether a dot stood inside a zone, which has no answer on the boundary — and a
+ * zone drawn through its own marks puts every one of them exactly there, where a
+ * ray cast is decided by the ring's winding and its concavity. Asking how much
+ * room there is instead has an answer everywhere, and it is the same answer for
+ * every dot on one zone, which is what a reader sees when four corners of one
+ * corridor all point alike.
  *
  * @param marks - The drawn dots, in the order they draw.
  * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
- * @param covered - Whether a drawn zone holds a frame position — the plat's own
- * resolver over its ledger, which answers the legend as it toggles.
- * @returns Whether each dot yields the ground it does not paint.
+ * @param spare - How much reach the drawn zones leave a mark at a position — the
+ * plat's own resolver over its ledger, which answers the legend as it toggles.
+ * @returns The target radius for each dot, in device pixels.
  *
  * @internal
  */
-export function fineMarks(
+export function markTargets(
 	marks: readonly MapDotMark[],
 	unitsPerPixel: number,
-	covered: (at: MapPoint2D) => boolean,
-): boolean[] {
-	const crowded = crowdedMarks(marks, unitsPerPixel)
+	spare: (at: MapPoint2D) => number,
+): number[] {
+	const beside = neighbourRoom(marks, unitsPerPixel)
 
-	return marks.map(({ at }, index) => {
-		if (at === null) return false
+	return marks.map(({ at, radius }, index) => {
+		if (at === null) return POINT_HIT_RADIUS
 
-		return crowded[index] === true || covered(at)
+		const room = Math.min(beside[index] ?? POINT_HIT_RADIUS, spare(at))
+
+		return Math.min(POINT_HIT_RADIUS, Math.max(radius, room))
 	})
 }

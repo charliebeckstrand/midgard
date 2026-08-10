@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat, useMapZoomScale } from './context'
-import { fineMarks } from './engine/map-cluster/crowd'
+import { markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
 import {
 	clusterGap,
@@ -14,6 +14,7 @@ import {
 	type MapPointCluster,
 } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
+import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import type { LngLat } from './engine/types'
@@ -44,8 +45,8 @@ type MapPointsDotsProps = {
 	groups: MapPointCluster[]
 	/** One stable React key per drawn group. */
 	keys: string[]
-	/** Whether each dot gives back the ground a finger target would claim. */
-	fine: boolean[]
+	/** What each dot's fine-pointer target may reach, in device pixels. */
+	targets: number[]
 	/** The dots' stroke class, resolved from the mark's slot. */
 	paint: string
 	/** The ink a summary's count is written in. */
@@ -75,7 +76,7 @@ type MapPointsDotsProps = {
 const MapPointsDots = memo(function MapPointsDots({
 	groups,
 	keys,
-	fine,
+	targets,
 	paint,
 	countInk,
 	animate,
@@ -129,8 +130,7 @@ const MapPointsDots = memo(function MapPointsDots({
 								at: position,
 								hit: hit(index),
 								scale: unitsPerPixel,
-								radius,
-								fine: fine[index] === true,
+								target: targets[index] ?? POINT_HIT_RADIUS,
 							})}
 						/>
 					</Fragment>
@@ -205,10 +205,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * merged into where the frame draws one.
  *
  * Those circles are finger-sized targets, and for a mouse a dot narrows to what
- * it draws while it has a neighbour that close or stands on a drawn
- * {@link MapGeofence} — so the dots a zoom has just parted stay separately
- * aimable, and a zone under a dot keeps its own face. A dot standing clear of
- * both keeps the full target.
+ * the ground around it can spare — the gap to a neighbour that close, or the
+ * share a drawn {@link MapGeofence} under it leaves — so the dots a zoom has just
+ * parted stay separately aimable and a zone under a dot keeps a band of its own
+ * face. It never narrows past the dot it draws, and a dot standing clear of both
+ * keeps the full target.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
  * position past a handful: `MapPoint` registers its own legend entry, so two
@@ -312,7 +313,7 @@ export function MapPoints({
 		}
 	}
 
-	const { slot, hidden, covered, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
+	const { slot, hidden, spare, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
@@ -334,9 +335,9 @@ export function MapPoints({
 	// widens around it.
 	const picked = selected === null ? null : groups[selected]
 
-	// Which dots give the ground back that a finger-sized target would claim: the
-	// ones standing on a drawn zone, and the ones with a neighbour close enough
-	// that the target over one would cover the face of the other.
+	// How far each dot's target reaches: the whole of it where the dot stands
+	// clear, and less where a drawn zone under it or a neighbour inside that reach
+	// wants some of the same ground.
 	//
 	// Memoised on the grouping and the plat's zone resolver, neither of which a
 	// pointer crossing moves — where this mark re-renders on every crossing of
@@ -344,14 +345,14 @@ export function MapPoints({
 	// the zoom on the beat the grouping does: the pair a zoom has just parted sits
 	// ~15px apart, well inside a 44px target, and stays precise until the view
 	// carries them clear of one another.
-	const fine = useMemo(
+	const targets = useMemo(
 		() =>
-			fineMarks(
+			markTargets(
 				groups.map((group) => ({ at: group.at, radius: clusterRadius(group.members.length) })),
 				unitsPerPixel,
-				covered,
+				spare,
 			),
-		[groups, covered, unitsPerPixel],
+		[groups, spare, unitsPerPixel],
 	)
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
@@ -378,7 +379,7 @@ export function MapPoints({
 				<MapPointsDots
 					groups={groups}
 					keys={keys}
-					fine={fine}
+					targets={targets}
 					paint={paint}
 					countInk={countInk}
 					animate={animate}

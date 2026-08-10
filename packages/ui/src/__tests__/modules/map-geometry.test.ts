@@ -1,8 +1,9 @@
 import { geoArea } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
+import { GEOFENCE_CIRCLE_STEPS } from '../../modules/map/engine/map-constants'
 import {
 	areaAnchor,
-	areaCovers,
+	areaReach,
 	dotPath,
 	linePath,
 	projectArea,
@@ -416,7 +417,7 @@ describe('ringAnchor', () => {
 
 /**
  * An area's projection and the path strung from it. One geometry answers both,
- * so the shape a reader points at and the ground `areaCovers` reads are built
+ * so the shape a reader points at and the room `areaReach` measures are built
  * from one pass.
  */
 describe('projectArea and ringsPath', () => {
@@ -489,8 +490,8 @@ describe('projectArea and ringsPath', () => {
 
 		const points = ring?.points ?? []
 
-		// The box the coverage test rejects a far-off position with, so it has to
-		// hold every point the ring draws through and nothing wider.
+		// The box a zone rejects a far-off dot with, so it has to hold every point
+		// the ring draws through and nothing wider.
 		expect(ring?.box.left).toBe(Math.min(...points.map((at) => at.x)))
 
 		expect(ring?.box.right).toBe(Math.max(...points.map((at) => at.x)))
@@ -502,105 +503,68 @@ describe('projectArea and ringsPath', () => {
 })
 
 /**
- * Which ground an area holds, on the rings it draws. It is what a dot over a zone
- * asks before it gives back the pixels it does not paint, so it has to answer the
- * shape a reader can point at — the same even-odd reading the wash fills by.
+ * How much room an area holds, on the rings it draws. It is the budget a dot over
+ * a zone sizes its pointer target against, so it has to measure the shape a
+ * reader can point at rather than the coordinates behind it.
  */
-describe('areaCovers', () => {
-	/** One frame unit per degree, so a position reads straight off the coordinates. */
+describe('areaReach', () => {
+	/** One frame unit per degree, so a reach reads straight off the coordinates. */
 	const flat = (position: [number, number]) => ({ x: position[0], y: position[1] })
 
-	/** An outer ring with a hole inside it — one polygon, two rings. */
-	const DONUT: [number, number][][] = [
-		[
-			[0, 0],
-			[0, 10],
-			[30, 10],
-			[30, 0],
-		],
-		[
-			[10, 4],
-			[10, 6],
-			[20, 6],
-			[20, 4],
-		],
+	/** A square of `side` units with its lower corner at the origin plus `shift`. */
+	const square = (side: number, shift = 0): [number, number][] => [
+		[shift, 0],
+		[shift, side],
+		[shift + side, side],
+		[shift + side, 0],
 	]
 
-	const rings = projectArea([DONUT], flat)
+	const reachOf = (polygons: [number, number][][][]) => areaReach(projectArea(polygons, flat))
 
-	it('holds a position inside the face', () => {
-		expect(areaCovers(rings, { x: 5, y: 5 })).toBe(true)
+	it('reads a circle as its own radius', () => {
+		// `circleRing`'s form, which most zones on a map are, and the measure is exact
+		// on it: a dot at a catchment's centre has the whole radius of room around it.
+		const wheel = Array.from({ length: GEOFENCE_CIRCLE_STEPS }, (_, step): [number, number] => {
+			const turn = (step / GEOFENCE_CIRCLE_STEPS) * 2 * Math.PI
+
+			return [40 * Math.cos(turn), 40 * Math.sin(turn)]
+		})
+
+		expect(reachOf([[wheel]])).toBeCloseTo(40, 0)
 	})
 
-	it('holds none outside it', () => {
-		expect(areaCovers(rings, { x: 40, y: 5 })).toBe(false)
+	it('reads a square as half its side', () => {
+		expect(reachOf([[square(10)]])).toBe(5)
 	})
 
-	it('leaves a hole to whatever lies under it', () => {
-		// The even-odd rule the wash fills by, and the rule the zone's own hit path
-		// answers the pointer under: a ring inside a ring is a hole, so a dot standing
-		// in one has no zone beneath it to yield its target to.
-		expect(areaCovers(rings, { x: 15, y: 5 })).toBe(false)
-	})
-
-	it('reads a hole as a hole whichever way either ring winds', () => {
-		// A dissolved territory arrives in the winding its arcs held, and no pass
-		// rewinds it — so the answer may not depend on the direction.
-		const reversed = projectArea([DONUT.map((ring) => [...ring].reverse())], flat)
-
-		expect(areaCovers(reversed, { x: 5, y: 5 })).toBe(true)
-
-		expect(areaCovers(reversed, { x: 15, y: 5 })).toBe(false)
-	})
-
-	it('holds a position in either part of a split territory', () => {
-		const [outer = []] = DONUT
-
-		// A second part standing clear of the first, the way a coverage area in two
-		// separate clusters does — where a ring inside another is a hole, this is not.
-		const apart: [number, number][] = [
-			[40, 0],
-			[40, 10],
-			[50, 10],
-			[50, 0],
+	it('reads a diagonal corridor as its width, not its diagonal', () => {
+		// The case a bounding box gets wrong by an order of magnitude: the box around
+		// this band is 103 units on both axes, and the band is four units across. A
+		// dot on a corridor budgeted by the box would blanket the corridor.
+		const band: [number, number][] = [
+			[0, 0],
+			[100, 100],
+			[103, 97],
+			[3, -3],
 		]
 
-		const parts = projectArea([[outer], [apart]], flat)
-
-		expect(areaCovers(parts, { x: 5, y: 5 })).toBe(true)
-
-		expect(areaCovers(parts, { x: 45, y: 5 })).toBe(true)
-
-		// And the ground between them belongs to neither.
-		expect(areaCovers(parts, { x: 35, y: 5 })).toBe(false)
+		expect(reachOf([[band]])).toBeLessThan(5)
 	})
 
-	it('counts a vertex the ray passes through once, not twice', () => {
-		// A ray leaving a position at the height of a vertex meets two edges there.
-		// Counted both ways it reads a point inside the ring as outside it.
-		const triangle = projectArea(
-			[
-				[
-					[
-						[0, 0],
-						[10, 5],
-						[0, 10],
-					],
-				],
-			],
-			flat,
-		)
-
-		expect(areaCovers(triangle, { x: 2, y: 5 })).toBe(true)
+	it('lets the widest part answer for a territory in several parts', () => {
+		// Two clusters standing clear of one another, the way a dissolved coverage
+		// area falls: the one a reader is looking at is the one with room in it.
+		expect(reachOf([[square(10)], [square(30, 40)]])).toBe(15)
 	})
 
-	it('holds nothing from a ring the projection dropped', () => {
-		expect(
-			areaCovers(
-				projectArea([DONUT], () => null),
-				{ x: 5, y: 5 },
-			),
-		).toBe(false)
+	it('measures the same whichever way a ring winds', () => {
+		// A dissolved territory arrives in the winding its arcs held, and no pass
+		// rewinds it — so the measure may not depend on the direction.
+		expect(reachOf([[[...square(10)].reverse()]])).toBe(5)
+	})
+
+	it('measures nothing where the projection dropped every ring', () => {
+		expect(areaReach(projectArea([[square(10)]], () => null))).toBe(0)
 	})
 })
 

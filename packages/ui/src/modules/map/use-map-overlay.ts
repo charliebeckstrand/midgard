@@ -12,6 +12,7 @@ import {
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat, useMapPointedMark, useMapZoomScale } from './context'
+import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
@@ -101,11 +102,11 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		stops: () => LngLat[]
 		/**
-		 * Whether this mark's own face holds a frame position — see
-		 * {@link MapOverlayEntry.covers}. Passed by the area-shaped marks alone, and
+		 * How much reach this mark leaves a dot standing on it — see
+		 * {@link MapOverlayEntry.spare}. Passed by the area-shaped marks alone, and
 		 * read live like {@link stops}, so a redrawn zone never re-registers.
 		 */
-		covers?: (at: MapPoint2D) => boolean
+		spare?: (at: MapPoint2D) => number
 		/**
 		 * Per-dot readouts for a plural mark, absent on a singular one. Plain data,
 		 * because the table draws it — see {@link MapOverlayEntry.stopRows}. Keyed
@@ -139,12 +140,13 @@ export type MapOverlay = {
 	/** Whether the legend has toggled this mark off. */
 	hidden: boolean
 	/**
-	 * Whether a drawn zone holds a frame position — the plat's whole ledger asked
-	 * at one point. A dot-shaped mark reads it per dot to size its hit target: the
-	 * pixels a dot does not paint go back to the zone under it, and come back to
-	 * the dot the moment the legend takes that zone away.
+	 * How much reach the drawn zones leave a mark at a position — the plat's whole
+	 * ledger asked at one point, tightest budget winning. A dot-shaped mark reads
+	 * it per dot to size its hit target: a dot gives a zone only as much room as
+	 * that zone can spare, and takes it all back the moment the legend puts the
+	 * zone away.
 	 */
-	covered: (at: MapPoint2D) => boolean
+	spare: (at: MapPoint2D) => number
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
 	project: (position: LngLat) => MapPoint2D | null
 	/**
@@ -213,7 +215,7 @@ export function useMapOverlay({
 	kind,
 	swatch,
 	stops,
-	covers,
+	spare: ownSpare,
 	stopRows,
 	stopOf,
 }: MapOverlayConfig): MapOverlay {
@@ -221,7 +223,7 @@ export function useMapOverlay({
 
 	const id = given ?? generated
 
-	const { project, register, colors, order, hidden, covered, emphasis, animate, selectedOverlay } =
+	const { project, register, colors, order, hidden, spare, emphasis, animate, selectedOverlay } =
 		useMapPlat()
 
 	const set = useMapHoverSet()
@@ -240,13 +242,16 @@ export function useMapOverlay({
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, onContextMenu, resolveStop, covers })
+	const live = useRef({ stops, onClick, onContextMenu, resolveStop, ownSpare })
 
-	live.current = { stops, onClick, onContextMenu, resolveStop, covers }
+	live.current = { stops, onClick, onContextMenu, resolveStop, ownSpare }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
-	const coversAt = useCallback((at: MapPoint2D) => live.current.covers?.(at) ?? false, [])
+	const spareAt = useCallback(
+		(at: MapPoint2D) => live.current.ownSpare?.(at) ?? POINT_HIT_RADIUS,
+		[],
+	)
 
 	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
@@ -260,11 +265,11 @@ export function useMapOverlay({
 
 	const activate = pickable ? pick : undefined
 
-	// Registered only where the mark covers ground, on the same terms as
-	// `activate`: its presence is what the plat's resolver asks of an entry, so a
-	// dot never tests itself against a mark that holds no face. The wrapper rides
-	// the ref, so this depends on whether there is one — a fact fixed per mark kind.
-	const cover = covers === undefined ? undefined : coversAt
+	// Registered only where the mark holds ground, on the same terms as `activate`:
+	// its presence is what the plat's resolver asks of an entry, so a dot never
+	// measures itself against a mark that holds no face. The wrapper rides the ref,
+	// so this depends on whether there is one — a fact fixed per mark kind.
+	const budget = ownSpare === undefined ? undefined : spareAt
 
 	// The standing pick, resolved off the live mapper rather than the ref the
 	// ledger rides: a refit that regroups a plural mark moves the picked dot, and
@@ -300,10 +305,10 @@ export function useMapOverlay({
 				stopsAt,
 				stopRows,
 				activate,
-				covers: cover,
+				spare: budget,
 				stopOf: stopAt,
 			}),
-		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, cover, stopAt],
+		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, budget, stopAt],
 	)
 
 	const track = useCallback(
@@ -356,7 +361,7 @@ export function useMapOverlay({
 		slot: colors.get(id),
 		hidden: hidden.has(id),
 		project,
-		covered,
+		spare,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,

@@ -3,8 +3,8 @@
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { fineMarks } from './engine/map-cluster/crowd'
-import { PIN_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
+import { markTargets } from './engine/map-cluster/crowd'
+import { PIN_RADIUS, POINT_HIT_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
 import type { LngLat } from './engine/types'
@@ -58,7 +58,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		slot,
 		hidden,
 		project,
-		covered,
+		spare,
 		unitsPerPixel,
 		animate,
 		dim,
@@ -89,13 +89,13 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// end covering the other would take that pin's readout with it. Resolved below
 	// the guard, so a marker the legend has toggled off pays nothing on the pointer
 	// crossings that still re-render it.
-	const [fineStart = false, fineEnd = false] = fineMarks(
+	const [startTarget = POINT_HIT_RADIUS, endTarget = POINT_HIT_RADIUS] = markTargets(
 		[
 			{ at: from, radius: PIN_RADIUS },
 			{ at: to, radius: PIN_RADIUS },
 		],
 		unitsPerPixel,
-		covered,
+		spare,
 	)
 
 	const paint = k.series[slot]
@@ -160,8 +160,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							at: from,
 							hit: hit(),
 							scale: unitsPerPixel,
-							radius: PIN_RADIUS,
-							fine: fineStart,
+							target: startTarget,
 						})}
 					/>
 				)}
@@ -173,8 +172,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							at: to,
 							hit: hit(),
 							scale: unitsPerPixel,
-							radius: PIN_RADIUS,
-							fine: fineEnd,
+							target: endTarget,
 						})}
 					/>
 				)}

@@ -12,6 +12,7 @@ import {
 	MapZoomScaleContext,
 	useMapZoomView,
 } from './context'
+import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -587,20 +588,25 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[regionCategory, categoryMetas, hidden],
 	)
 
-	// Which ground the drawn zones hold, for the marks over them. Rebuilt only as
-	// the ledger or the legend's toggles change — the predicates themselves are
-	// stable, so a zone redrawn in place keeps this identity and the dots reading
-	// it hold through a refit rather than re-testing every dot per pointer
-	// crossing.
-	// A loop rather than a `some` closure: every dot on the map calls this, and the
-	// callback would be a fresh allocation per call rather than per rebuild.
-	const covered = useCallback(
+	// How much reach the drawn zones leave a mark at a position — the tightest
+	// budget any visible one allows, since a dot overlapping two zones has to
+	// satisfy both. Rebuilt only as the ledger or the legend's toggles change: the
+	// resolvers themselves are stable, so a zone redrawn in place keeps this
+	// identity and the dots reading it hold through a refit rather than
+	// re-measuring per pointer crossing.
+	// A loop rather than a `reduce` closure: every dot on the map calls this, and
+	// the callback would be a fresh allocation per call rather than per rebuild.
+	const spare = useCallback(
 		(at: MapPoint2D) => {
+			let room = POINT_HIT_RADIUS
+
 			for (const entry of entries) {
-				if (entry.covers !== undefined && !hidden.has(entry.id) && entry.covers(at)) return true
+				if (entry.spare === undefined || hidden.has(entry.id)) continue
+
+				room = Math.min(room, entry.spare(at))
 			}
 
-			return false
+			return room
 		},
 		[entries, hidden],
 	)
@@ -612,12 +618,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			colors,
 			order,
 			hidden,
-			covered,
+			spare,
 			emphasis,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[shape.project, register, colors, order, hidden, covered, emphasis, animate, markSelection],
+		[shape.project, register, colors, order, hidden, spare, emphasis, animate, markSelection],
 	)
 
 	const tooltipEntries = useMemo(

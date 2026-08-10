@@ -5,7 +5,7 @@ import {
 	MAP_ZOOM_MAX,
 	MAP_ZOOM_STEP,
 	POINT_HIT_RADIUS,
-	POINT_HIT_RADIUS_FINE,
+	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
 import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
@@ -74,7 +74,13 @@ describe('dot hit target by pointer modality', () => {
 
 		// The used value is what hit-testing reads — and what the class sets.
 		// `SVGCircleElement.r.baseVal` reflects the attribute, so it cannot say this.
-		expect(getComputedStyle(hit).r).toBe(`${POINT_HIT_RADIUS_FINE}px`)
+		// It is the share the catchment spares: past what the dot draws, and short of
+		// the reach the attribute carries.
+		const used = Number.parseFloat(getComputedStyle(hit).r)
+
+		expect(used).toBeGreaterThan(POINT_RADIUS)
+
+		expect(used).toBeLessThan(POINT_HIT_RADIUS)
 	})
 
 	it('resolves to the coarse reach where nothing stands under the dot', () => {
@@ -108,31 +114,38 @@ describe('dot hit target by pointer modality', () => {
 
 		const { x: cx, y: cy } = centreOf(dot)
 
-		// The dot keeps the pixels it draws on, out to its own rim. The target sits
-		// on the drawn radius with nothing to spare, so this is what says the dot has
-		// no dead ring inside the mark a reader can see.
-		for (const offset of [0, 4]) {
+		// Probed off the budget the depot actually took rather than off fixed
+		// offsets, so the case reads the boundary between the two marks wherever the
+		// zone's own measure puts it — which is the thing under test.
+		const used = Number.parseFloat(getComputedStyle(dot).r)
+
+		expect(used).toBeLessThan(POINT_HIT_RADIUS)
+
+		// The dot keeps every pixel of what it was budgeted, out to its own rim, so
+		// this is what says it has no dead ring inside the mark a reader can see.
+		for (const offset of [0, used - 4]) {
 			expect(document.elementFromPoint(cx + offset, cy)).toBe(dot)
 
 			expect(document.elementFromPoint(cx, cy + offset)).toBe(dot)
 		}
 
 		// And gives back the rest of the zone's middle. Both of these answered the
-		// depot at the old 12px radius, so the catchment's own centre could not be
-		// pointed at with a mouse.
-		for (const offset of [8, 12]) {
+		// depot while one dot took the whole reach, so the catchment's own centre
+		// could not be pointed at with a mouse.
+		for (const offset of [used + 4, used + 10]) {
 			expect(document.elementFromPoint(cx + offset, cy)).toBe(zone)
 
 			expect(document.elementFromPoint(cx, cy + offset)).toBe(zone)
 		}
 	})
 
-	it('sizes a summary’s target to the summary rather than to the reach', () => {
+	it('sizes a summary’s target to the summary rather than to what the zone spares', () => {
 		const { container } = renderUI(
 			// Two stops ~4px apart, so they merge into one summary at the first grade,
-			// on a zone that holds the target to what the summary draws.
+			// on a 60 km yard narrower on the frame than the summary drawn over it —
+			// so the floor is what decides the size and a browser can read it.
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
-				<MapGeofence label="Catchment" at={[8, 5]} radius={300_000} />
+				<MapGeofence label="Yard" at={[8, 5]} radius={60_000} />
 
 				<MapPoints label="Stops" points={[{ at: [8, 5] }, { at: [8.3, 5] }]} />
 			</MapPlat>,
@@ -140,12 +153,14 @@ describe('dot hit target by pointer modality', () => {
 
 		const summary = present(bySlot(container, 'map-points-hit'), 'summary hit target')
 
-		// The grade it draws at, not the 22px coarse reach the attribute carries: a
-		// summary took that whole finger target while one figure served every dot.
+		// The grade it draws at, not the 22px coarse reach the attribute carries and
+		// not the sliver the yard could spare: a summary took that whole finger target
+		// while one figure served every dot, and a target inside the summary would
+		// leave the mark a reader can see a dead rim.
 		expect(radiusOf(summary)).toBeCloseTo(clusterRadius(2), 0)
 	})
 
-	it('holds that target at one size through every scale the view takes', () => {
+	it('holds that target inside the coarse reach through every scale the view takes', () => {
 		const { container } = renderUI(
 			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} zoom>
 				<MapGeofence label="Catchment" at={[15, 5]} radius={300_000} />
@@ -162,14 +177,18 @@ describe('dot hit target by pointer modality', () => {
 
 		zoomToCeiling(plot, () => radii.push(radiusOf(dot)))
 
-		// A CSS length on an SVG shape is a user unit, so an uncorrected target rode
-		// the transform: a 5.5px radius at rest and 43.8px at the ceiling, eight times
-		// the dot a reader sees. The spread is the transform attribute's rounding.
-		expect(Math.max(...radii) - Math.min(...radii)).toBeLessThan(0.1)
+		// The target grows with the zone under it — a catchment eight times as wide
+		// on screen has eight times the room to spare — and stops at the reach a
+		// finger takes, which is the ceiling on every dot at every scale.
+		expect(Math.max(...radii)).toBeLessThanOrEqual(POINT_HIT_RADIUS + 0.1)
 
-		// Measured rather than assumed constant: a target pinned at the wrong size
-		// would also spread by nothing.
-		expect(radii[0]).toBeCloseTo(POINT_HIT_RADIUS_FINE, 1)
+		// A CSS length on an SVG shape is a user unit, so an uncorrected target rides
+		// the transform whole: the same dot measured 43.8px at the ceiling, eight
+		// times the mark a reader sees. Measured at rest rather than assumed, so a
+		// target pinned at the wrong size cannot pass by never moving.
+		expect(radii[0]).toBeGreaterThan(POINT_RADIUS)
+
+		expect(radii[0]).toBeLessThan(POINT_HIT_RADIUS)
 	})
 
 	it('keeps both stops reachable the moment a zoom separates a summary', () => {

@@ -20,15 +20,13 @@ type MapDotHitSpec = {
 	hit: MapOverlayHit
 	/** Frame units per device pixel under the plat's zoom; both reaches divide by it. */
 	scale: number
-	/** The radius the dot draws at, in device pixels. The fine target covers exactly it. */
-	radius: number
 	/**
-	 * Whether anything else needs the ground this dot's coarse target would claim:
-	 * a drawn zone the dot stands on, or a neighbouring dot inside that reach. It
-	 * is what the fine target is for, so the dot keeps the whole finger target
-	 * where the answer is no — see `POINT_HIT_RADIUS_FINE`.
+	 * What a fine pointer's target may reach, in device pixels — `markTargets`'
+	 * answer over everything that claims the ground under this dot: a drawn zone it
+	 * stands on, and the neighbours inside its coarse reach. {@link POINT_HIT_RADIUS}
+	 * where nothing does, which is what makes the fine target opt-in.
 	 */
-	fine: boolean
+	target: number
 }
 
 /** Props for {@link MapDot}. @internal */
@@ -166,10 +164,9 @@ export function MapDotCount({
 /**
  * Every attribute of the invisible circle that answers the pointer over a
  * dot-shaped mark — a point, a marker pin, one dot of a set. One rule for all of
- * them: the `r` attribute carries WCAG 2.5.5's 44px, and a mouse gives back
- * everything the dot does not paint — down to the drawn dot, through
- * `k.hitFine` — but only where something else needs that ground. A drawn zone
- * under the dot needs it, which is what lets a `MapGeofence` drawn tight around a
+ * them: the `r` attribute carries WCAG 2.5.5's 44px, and a mouse gives back the
+ * reach that something else needs, through `k.hitFine`. A drawn zone under the
+ * dot needs it, which is what lets a `MapGeofence` drawn tight around a
  * `MapPoint` still answer and keeps a depot off the middle of its own catchment;
  * a neighbouring dot inside the reach needs it too, or the target over one mark
  * would take the readout of the mark beside it.
@@ -178,9 +175,10 @@ export function MapDotCount({
  * catchment the legend has just put away — there is nothing under the dot to
  * yield to, and it keeps the full target on every pointer. Precision costs a
  * mouse user reach, so the dot only pays it where the pixels have somewhere to
- * go. The caller resolves both halves and hands the answer in as {@link fine},
- * because each is a fact about the mark's own neighbourhood; the rule about what
- * to do with it stays here.
+ * go. `markTargets` weighs both claims and hands the answer in as
+ * {@link MapDotHitSpec.target}, because each is a fact about the mark's own
+ * neighbourhood; the rule about what to do with it stays here, in the one
+ * comparison below.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
  * these per dot: a component's own fiber priced 200 of them at ~1 µs each, +14%
@@ -211,14 +209,19 @@ export function MapDotCount({
  *
  * @internal
  */
-export function dotHitProps({ slot, at, hit, scale, radius, fine }: MapDotHitSpec) {
+export function dotHitProps({ slot, at, hit, scale, target }: MapDotHitSpec) {
+	// A target at the coarse reach is a dot with nothing to give back, and the two
+	// pointers want the same circle — so the narrowing rides one comparison rather
+	// than a flag the callers each have to derive.
+	const fine = target < POINT_HIT_RADIUS
+
 	return {
 		'data-slot': slot,
 		cx: at.x,
 		cy: at.y,
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
-		style: fine ? ({ [k.hitRadius]: `${radius * scale}px` } as CSSProperties) : undefined,
+		style: fine ? ({ [k.hitRadius]: `${target * scale}px` } as CSSProperties) : undefined,
 		...hit,
 		className: cn(fine ? k.hitFine : undefined, hit.className),
 	}

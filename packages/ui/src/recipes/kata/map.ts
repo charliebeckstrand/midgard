@@ -44,20 +44,20 @@ export const k = {
 	 * It is what lets a small area mark be pointed at: a `MapGeofence` drawn tight
 	 * around a `MapPoint` sits wholly inside a finger-sized circle, so without this
 	 * the dot claims the zone's whole face and the two can never be told apart. The
-	 * mouse target sits under WCAG 2.5.8's 24px minimum deliberately, and
+	 * mouse target can sit under WCAG 2.5.8's 24px minimum deliberately, and
 	 * `POINT_HIT_RADIUS_FINE` states why.
 	 *
 	 * The fallback is spelled out rather than read from that constant, because
 	 * Tailwind scans source for whole class strings; `map-hit-target.test.tsx` pins
-	 * the two together. It is the radius a dot of the default size draws at, which
-	 * is what an unzoomed plat resolves to.
+	 * the two together. It is the floor a budget can never take a target under —
+	 * the radius a dot of the default size draws at.
 	 */
 	hitFine: 'pointer-fine:[r:var(--map-hit-radius,5.5px)]',
 	/**
-	 * The custom property {@link k.hitFine} reads its radius from: the dot the
-	 * target covers, divided by the plat's zoom scale so the target holds one
-	 * device-pixel size at every scale. Named here beside the class that reads it,
-	 * so the setter and the reader hold one spelling.
+	 * The custom property {@link k.hitFine} reads its radius from: what the ground
+	 * under the dot can spare it, divided by the plat's zoom scale so the target
+	 * holds one device-pixel size at every scale. Named here beside the class that
+	 * reads it, so the setter and the reader hold one spelling.
 	 */
 	hitRadius: '--map-hit-radius',
 	/**

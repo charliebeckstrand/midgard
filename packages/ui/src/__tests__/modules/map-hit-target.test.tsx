@@ -1,6 +1,13 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
-import { MapGeofence, MapMarker, MapPlat, MapPoint, MapPoints } from '../../modules/map'
+import {
+	type LngLat,
+	MapGeofence,
+	MapMarker,
+	MapPlat,
+	MapPoint,
+	MapPoints,
+} from '../../modules/map'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import {
 	POINT_HIT_RADIUS,
@@ -35,13 +42,18 @@ function fine(target: Element | null) {
 	return (target?.getAttribute('class') ?? '').includes(k.hitFine)
 }
 
+/** What a target budgets a fine pointer, in device pixels, off the property it rides. */
+function budget(target: Element | null, name: string) {
+	return Number.parseFloat(present(target, name).style.getPropertyValue(k.hitRadius))
+}
+
 /**
  * The pointer target on the dot-shaped marks. The size is a rule about the input
  * device and about what stands under the mark, not about the mark itself: the `r`
- * attribute carries the coarse reach on every dot, and the class takes a dot down
- * to what it draws — through a custom property the factory sets to the dot's own
- * drawn radius, since a target narrower than its own dot would leave the dot a
- * dead rim — but only where something under it needs those pixels.
+ * attribute carries the coarse reach on every dot, and the class takes a mouse
+ * down to what the ground under the dot can spare — through a custom property the
+ * factory sets from that budget — but only where something under it needs those
+ * pixels.
  *
  * The class only resolves in a real browser, so `browser/map-hit-target-modality`
  * gates what it computes to; these cases gate what is rendered, how the two
@@ -64,9 +76,9 @@ describe('dot hit targets', () => {
 		// a `MapGeofence` drawn around a `MapPoint` is what the pixels go back to.
 		expect(POINT_HIT_RADIUS_FINE * 2).toBe(11)
 
-		// The drawn dot exactly — no reach past what the mark paints, and no dead
-		// rim inside it. This is the class's fallback; `dotHitProps` sets each
-		// shape's own radius, so a summary is covered by the grade it draws at.
+		// The drawn dot exactly — the floor a budget can never take a target under,
+		// since a target narrower than its own dot would leave the dot a dead rim.
+		// This is the class's fallback; `dotHitProps` sets each shape's own figure.
 		//
 		// Two literals held equal here rather than one derived from the other: the
 		// fine radius ships inside `hitFine`'s class string and nothing reads the
@@ -112,10 +124,49 @@ describe('dot hit targets', () => {
 
 		expect(fine(target)).toBe(true)
 
-		// The dot's own drawn radius, so the target covers the mark and no more.
-		expect(present(target, 'point hit target').style.getPropertyValue(k.hitRadius)).toBe(
-			`${POINT_RADIUS}px`,
+		// A share of the room the zone holds, not the dot's own radius: the depot
+		// keeps a target a mouse can aim at, and the catchment keeps a band around
+		// it wide enough to answer for itself.
+		expect(budget(target, 'point hit target')).toBeGreaterThan(POINT_RADIUS)
+
+		expect(budget(target, 'point hit target')).toBeLessThan(POINT_HIT_RADIUS)
+	})
+
+	it('budgets every corner of a zone drawn through its own marks alike', () => {
+		// The reading this replaced asked whether a dot stood inside the zone, and a
+		// zone strung between the marks it holds puts every one of them on its
+		// boundary — where inside-or-out has no answer and a ray cast is decided by
+		// the winding. The three corners on the hull read as outside and the reflex
+		// one read as inside, so one dot of four pointed differently. A share of the
+		// zone's room has an answer everywhere, and it is one answer per zone.
+		const CORNERS: LngLat[] = [
+			[4, 2],
+			[26, 2],
+			[26, 8],
+			[15, 5],
+		]
+
+		const { container } = renderUI(
+			plat(
+				<>
+					<MapGeofence label="Region" boundary={CORNERS} />
+
+					<MapPoints label="Metros" points={CORNERS.map((at) => ({ at }))} cluster={false} />
+				</>,
+			),
 		)
+
+		const targets = allBySlot(container, 'map-points-hit')
+
+		expect(targets).toHaveLength(4)
+
+		// Every corner stands the same distance from the zone's own measure, because
+		// the measure is the zone's and not the corner's.
+		const budgets = new Set(targets.map((target) => budget(target, 'metro hit target')))
+
+		expect(budgets.size).toBe(1)
+
+		for (const target of targets) expect(fine(target)).toBe(true)
 	})
 
 	it('keeps the whole target where a lone dot stands on open geography', () => {
@@ -184,12 +235,18 @@ describe('dot hit targets', () => {
 		for (const target of targets) expect(fine(target)).toBe(false)
 	})
 
-	it('carries a summary’s own radius on the property the target reads', () => {
+	it('floors a summary’s target at the grade it draws, however little the zone spares', () => {
 		const { container } = renderUI(
-			// Two stops ~4px apart in a 400px frame, so they merge into one summary —
-			// drawn at the first cluster grade, wider than the dot a lone stop draws —
-			// standing on the zone that holds the target to what it draws.
-			catchment(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.3, 5] }]} />),
+			plat(
+				<>
+					{/* A 60 km yard — narrower on the frame than the summary drawn on it. */}
+					<MapGeofence label="Yard" at={[15, 5]} radius={60_000} />
+
+					{/* Two stops ~4px apart, so they merge into one summary at the first
+					    cluster grade, wider than the dot a lone stop draws. */}
+					<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [15.3, 5] }]} />
+				</>,
+			),
 		)
 
 		expect(bySlot(container, 'map-points-cluster')).not.toBeNull()
@@ -198,12 +255,11 @@ describe('dot hit targets', () => {
 
 		expect(targets).toHaveLength(1)
 
-		// A 5.5px target inside a 9px dot would leave the dot a dead rim, so the
-		// property carries the grade the summary draws at rather than one figure for
-		// every dot. `clusterRadius` is what the mark itself passes.
-		expect(present(targets[0], 'summary hit target').style.getPropertyValue(k.hitRadius)).toBe(
-			`${clusterRadius(2)}px`,
-		)
+		// The yard's share is narrower than the mark, and a target inside its own dot
+		// would leave the dot a dead rim — so the zone is what gives way, since a dot
+		// no one can point at reports nothing at all. The grade the summary draws at
+		// rather than one figure for every dot: `clusterRadius` is what the mark passes.
+		expect(budget(targets[0] ?? null, 'summary hit target')).toBe(clusterRadius(2))
 	})
 
 	it('keeps the hit target a transparent fill, so it answers where the dot does not paint', () => {

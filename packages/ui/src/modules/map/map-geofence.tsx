@@ -4,12 +4,23 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapPlat } from './context'
-import { GEOFENCE_FILL_OPACITY, GEOFENCE_STROKE_WIDTH } from './engine/map-constants'
+import { useMapPlat, useMapZoomScale } from './context'
+import {
+	GEOFENCE_FILL_OPACITY,
+	GEOFENCE_STROKE_WIDTH,
+	POINT_HIT_RADIUS,
+	ZONE_SPARE_FRACTION,
+} from './engine/map-constants'
 import { circleRing } from './engine/map-geofence'
-import { areaAnchor, areaCovers, projectArea, ringsPath } from './engine/map-geometry/mark'
+import {
+	areaAnchor,
+	areaReach,
+	type MapAreaRing,
+	projectArea,
+	ringsPath,
+} from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
-import type { LngLat, MapPolygons } from './engine/types'
+import type { LngLat, MapPoint2D, MapPolygons } from './engine/types'
 import { MapHalo } from './map-halo'
 import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
@@ -76,6 +87,41 @@ type MapGeofenceArea = {
 }
 
 /**
+ * How much reach a dot at a frame position may take from this zone: the zone's
+ * share of its own inscribed room where the dot competes for it, and the whole
+ * finger target where it does not.
+ *
+ * One budget for the whole zone rather than a measure per dot, so every mark on
+ * one zone points alike — which is the thing a reader sees, and the thing four
+ * corners of one corridor did not do while the rule asked whether each was
+ * inside. The reach is a device-pixel figure and the rings are frame units, so
+ * the zone's own measure divides by the zoom scale on the way out.
+ *
+ * The competition test is the ring boxes grown by a whole target, so a dot just
+ * outside a small zone is budgeted too — its target would blanket that zone as
+ * surely as one standing in the middle of it. Being generous there costs a dot
+ * nothing it can see: a zone with room to spare hands back the whole target
+ * anyway.
+ *
+ * @internal
+ */
+function zoneSpare(rings: readonly MapAreaRing[], at: MapPoint2D, unitsPerPixel: number): number {
+	const reach = POINT_HIT_RADIUS * unitsPerPixel
+
+	const near = rings.some(
+		({ box }) =>
+			at.x >= box.left - reach &&
+			at.x <= box.right + reach &&
+			at.y >= box.top - reach &&
+			at.y <= box.bottom + reach,
+	)
+
+	if (!near) return POINT_HIT_RADIUS
+
+	return Math.min(POINT_HIT_RADIUS, (areaReach(rings) / unitsPerPixel) * ZONE_SPARE_FRACTION)
+}
+
+/**
  * Props for {@link MapGeofence}. The three geometries are mutually exclusive: a
  * circle takes its centre and its radius, a polygon takes its own ring, and an
  * area takes the nested rings of a territory in several parts.
@@ -108,11 +154,15 @@ export type MapGeofenceProps = MapOverlayProps &
  * what the pointer is on there, so a clickable map's regions answer outside its
  * zones and the zones answer within them.
  *
- * A dot standing on the face gives the zone the ground it does not paint: a
- * {@link MapPoint}, a {@link MapPoints} dot, or a {@link MapMarker} pin over a
- * drawn zone narrows to what it draws for a mouse, so a depot never claims the
- * middle of its own catchment. Toggling the zone off in the legend hands those
- * pixels back — the dot is alone on its ground again, and takes the full target.
+ * A dot on the zone gives back the ground the zone needs to answer for itself: a
+ * {@link MapPoint}, a {@link MapPoints} dot, or a {@link MapMarker} pin on a
+ * drawn zone takes half the room the zone holds for a mouse, so a depot never
+ * claims the middle of its own catchment and a zone drawn small around a mark
+ * still answers under it. A share of the zone's own room rather than a yes-or-no,
+ * so every mark on one zone points alike however the ring runs through them, and
+ * a zone wide enough to spare the whole target spares it. Toggling the zone off
+ * in the legend hands the pixels back too — the dot is alone on its ground again,
+ * and takes the full target.
  *
  * The boundary rides device pixels (a non-scaling stroke), so a resize scales
  * the geography under it without thickening the outline. Under the plat's
@@ -145,6 +195,11 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// that ground — so the rings have to resolve before the registration does.
 	const { project } = useMapPlat()
 
+	// Read here rather than off the registration below, for the same reason the
+	// projector is: the budget this zone publishes is a device-pixel figure over a
+	// frame measure, so it needs the scale before it registers.
+	const unitsPerPixel = useMapZoomScale()
+
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project the whole territory; `project` identity
 	// holds until the measured refit, a circle's rings hold on the primitives
@@ -164,10 +219,12 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		// A circle knows its own centre, so it never pays a centroid pass to find
 		// one; drawn rings resolve their middle from the vertices.
 		stops: () => (at === undefined ? areaAnchor(polygons) : [at]),
-		// A dot standing on this face keeps its target down to the dot it paints, so
-		// the zone under it stays pointable — and takes the finger-sized one back the
-		// moment the legend puts this zone away.
-		covers: (position) => areaCovers(rings, position),
+		// A dot standing on this zone takes a share of the room the zone has, so the
+		// zone stays pointable under it — and takes the whole finger target back the
+		// moment the legend puts this zone away. A share rather than a yes-or-no,
+		// because a zone drawn through its own marks puts them on its boundary,
+		// where inside-or-out has no answer and a ray cast reads the winding.
+		spare: (position) => zoneSpare(rings, position, unitsPerPixel),
 	})
 
 	if (slot === undefined || hidden || d === '') return null
