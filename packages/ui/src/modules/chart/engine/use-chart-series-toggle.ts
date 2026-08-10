@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useState } from 'react'
+import { toggleItem } from '../../../utilities/toggle-item'
 
 /** A toggleable set of hidden indexes — the primitive under both switchboards. @internal */
 export type ChartToggleSet = {
@@ -22,17 +23,7 @@ function useChartToggleSet(): ChartToggleSet {
 	const [hidden, setHidden] = useState<ReadonlySet<number>>(() => new Set())
 
 	const toggle = useCallback((index: number) => {
-		setHidden((current) => {
-			const next = new Set(current)
-
-			if (next.has(index)) {
-				next.delete(index)
-			} else {
-				next.add(index)
-			}
-
-			return next
-		})
+		setHidden((current) => toggleItem(current, index))
 	}, [])
 
 	return { hidden, toggle }
