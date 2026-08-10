@@ -558,9 +558,19 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// ids a click reports — so the pick a consumer echoes back always rings the
 	// region that produced it. An id naming no feature resolves to nothing
 	// rather than to region 0, the miss `indexOf` would otherwise report as -1.
-	const selectedIndex = selectedRegion == null ? -1 : regionIds.indexOf(selectedRegion)
+	//
+	// Memoised like every sibling derivation here, and for the reason `hasReadout`
+	// below states: this component re-renders on each legend point and leave, each
+	// toggle, each overlay registration, and each resize commit, and the scan is
+	// linear in the atlas. A counties map holding a pick read three thousand ids
+	// on every one of them, against a selection that had not moved.
+	const selected = useMemo(() => {
+		if (selectedRegion == null) return null
 
-	const selected = selectedIndex === -1 ? null : selectedIndex
+		const index = regionIds.indexOf(selectedRegion)
+
+		return index === -1 ? null : index
+	}, [regionIds, selectedRegion])
 
 	const markSelection = useMarkSelection(selectedOverlay)
 
