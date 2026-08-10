@@ -53,8 +53,13 @@ export type MapOverlayEntry = {
 	 * A getter rather than a value, and stable across renders, so a mark that
 	 * moves — a route whose geometry lands from the network — needs no
 	 * re-registration, and an inline `at={[lon, lat]}` never churns the ledger.
+	 *
+	 * Required, like the sibling `stopOf`: one hook registers every mark on the
+	 * map and it always passes this, so an optional field only bought the reader
+	 * a fallback for a mark that cannot exist. A mark with no geometry yet
+	 * answers with the empty list.
 	 */
-	stopsAt?: () => LngLat[]
+	stopsAt: () => LngLat[]
 	/**
 	 * What each of this mark's stops reads out, where that differs from the mark's
 	 * own `label` and `detail` — a plural mark's dots, each naming its own stop.

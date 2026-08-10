@@ -25,16 +25,15 @@ export type MapReadoutPaint =
 
 /**
  * One resolved category or bin: its match value, display label, and readout
- * paint. `color` names the source slot for a categorical entry; a numeric bin
- * omits it (its colour is a data-driven value in `paint`). The render path
- * reads only `paint` and `label`.
+ * paint. The slot a categorical entry took is spent building that paint and
+ * kept nowhere: nothing downstream asks which slot a category drew from, only
+ * what it paints and what it is called.
  *
  * @internal
  */
 export type MapCategoryMeta = {
 	value: string
 	label: string
-	color?: MapSeriesColor
 	paint: MapReadoutPaint
 }
 
@@ -108,7 +107,6 @@ export function resolveCategories<T>(
 		return {
 			value: entry.value,
 			label: entry.label ?? entry.value,
-			color,
 			paint: { kind: 'class', fill: k.series[color].fill, text: k.series[color].text },
 		}
 	})

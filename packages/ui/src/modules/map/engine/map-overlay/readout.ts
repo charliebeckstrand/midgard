@@ -15,7 +15,6 @@ import type { MapStopRow } from './entry'
 type MapReadableMark = {
 	label: string
 	detail?: string
-	kind: string
 	stopRows?: MapStopRow[]
 }
 
@@ -83,7 +82,7 @@ export function markRowKey(id: string, stop: number): string {
  *
  * @internal
  */
-export function markRows(mark: MapReadableMark & { id: string }): MapMarkRow[] {
+export function markRows(mark: MapReadableMark & { id: string; kind: string }): MapMarkRow[] {
 	const count = mark.stopRows?.length ?? 0
 
 	return Array.from({ length: Math.max(count, 1) }, (_, stop) => {

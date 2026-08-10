@@ -657,7 +657,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						swatch: entry.swatch,
 						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
 						detail: entry.detail,
-						kind: entry.kind,
 						stopRows: entry.stopRows,
 					},
 				]),

@@ -12,6 +12,7 @@ const ROUTE: MapOverlayEntry = {
 	label: 'Leg',
 	kind: 'route',
 	swatch: 'line',
+	stopsAt: () => [],
 	stopOf: ownStop,
 }
 
@@ -25,6 +26,7 @@ const FLEET: MapOverlayEntry = {
 	kind: 'point',
 	swatch: 'dot',
 	stopRows: [{ label: 'Stops' }, { label: 'Yard' }],
+	stopsAt: () => [],
 	stopOf: (index) => [0, 0, 1][index] ?? null,
 }
 

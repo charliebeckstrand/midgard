@@ -66,7 +66,7 @@ export function mapStops(
 		// A mark holds one stop, or one per dot where it is plural — and the stop
 		// keeps its own ordinal even when an earlier one drops off the projection,
 		// so the index the cursor reports always names the caller's own point.
-		for (const [stop, at] of (entry.stopsAt?.() ?? []).entries()) {
+		for (const [stop, at] of entry.stopsAt().entries()) {
 			const point = project(at)
 
 			if (point !== null) stops.push({ target: { kind: 'entry', id: entry.id, stop }, at: point })

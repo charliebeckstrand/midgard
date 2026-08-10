@@ -19,8 +19,6 @@ export type MapTooltipEntry = {
 	/** currentColor class carrying the entry's colour. */
 	swatchClass: string
 	detail?: string
-	/** The mark kind, the value a mark with no detail anywhere falls back to. */
-	kind: string
 	/** Per-dot readouts for a plural mark; absent on a singular one. */
 	stopRows?: MapStopRow[]
 }

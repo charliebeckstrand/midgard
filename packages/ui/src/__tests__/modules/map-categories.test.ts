@@ -4,7 +4,20 @@ import {
 	resolveCategories,
 	slotColor,
 } from '../../modules/map/engine/map-region/category'
+import type { MapSeriesColor } from '../../recipes/kata/map'
+import { k } from '../../recipes/kata/map'
 import { FIXTURE_ROWS } from '../helpers/map-geography'
+
+/**
+ * The paint a category resolved from a given slot. The slot itself is spent
+ * building this and kept nowhere, so the paint is where a colour assertion
+ * reads it back.
+ */
+const slotPaint = (color: MapSeriesColor) => ({
+	kind: 'class',
+	fill: k.series[color].fill,
+	text: k.series[color].text,
+})
 
 describe('slotColor', () => {
 	it('walks the fixed order and wraps past the eighth slot', () => {
@@ -28,7 +41,7 @@ describe('resolveCategories', () => {
 
 		expect(metas.map((meta) => meta.value)).toEqual(['b', 'a'])
 
-		expect(metas.map((meta) => meta.color)).toEqual(['blue', 'orange'])
+		expect(metas.map((meta) => meta.paint)).toEqual([slotPaint('blue'), slotPaint('orange')])
 	})
 
 	it('lets an explicit list set the order, labels, and colours', () => {
@@ -37,10 +50,10 @@ describe('resolveCategories', () => {
 			{ value: 'East' },
 		])
 
-		expect(metas[0]).toMatchObject({ value: 'West', label: 'Western', color: 'rose' })
+		expect(metas[0]).toMatchObject({ value: 'West', label: 'Western', paint: slotPaint('rose') })
 
 		// An explicit colour still occupies its slot position.
-		expect(metas[1]).toMatchObject({ value: 'East', label: 'East', color: 'orange' })
+		expect(metas[1]).toMatchObject({ value: 'East', label: 'East', paint: slotPaint('orange') })
 	})
 })
 
