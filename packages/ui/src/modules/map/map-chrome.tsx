@@ -25,6 +25,7 @@
 import { memo, useId } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { useMapZoomScale } from './context'
 import { CHROME_STROKE_WIDTH } from './engine/map-constants'
 import type { MapChromePaths } from './engine/map-geometry/chrome'
 
@@ -52,17 +53,21 @@ type ChromeLineProps = {
  * @internal
  */
 function ChromeLine({ part, d, clip }: ChromeLineProps) {
+	const unitsPerPixel = useMapZoomScale()
+
 	return (
 		<path
 			data-slot={`map-${part}`}
 			d={d}
 			clipPath={clip}
 			fill="none"
-			strokeWidth={CHROME_STROKE_WIDTH}
 			// Device pixels, not viewBox units — the region border's discipline: a
-			// resize whose refit lands a beat late scales the geometry crisply and
-			// must not fatten a hairline with it.
-			vectorEffect="non-scaling-stroke"
+			// zoom must widen the ground a meridian crosses and never the hairline
+			// ruling it. The scale is read here rather than inherited from the zoom
+			// layer, as the region seams below are: chrome is two paths, so paying a
+			// re-render per notch to keep the width stated where it is drawn costs
+			// nothing, where the atlas would pay it per region.
+			strokeWidth={CHROME_STROKE_WIDTH * unitsPerPixel}
 			className={cn(...k.chrome[part])}
 		/>
 	)

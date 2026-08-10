@@ -38,23 +38,23 @@ export type MapRouteProps = MapOverlayProps & {
  * or Space; the plat's `selectedOverlay` haloes the whole line for as long as
  * it names this mark.
  *
- * @remarks Renders only inside {@link MapPlat}. The line's width rides
- * device pixels (a non-scaling stroke), so a resize scales the geography
- * under it without thickening the line. Under the plat's `animate` the route
- * draws itself in (`pathLength` 0 → 1), the same self-drawing reveal as the
- * chart module's lines.
+ * @remarks Renders only inside {@link MapPlat}. The line's width is stated in
+ * device pixels, so a zoom widens the ground the route covers and never the
+ * line. Under the plat's `animate` the route draws itself in (`pathLength`
+ * 0 → 1), the same self-drawing reveal as the chart module's lines.
  */
 export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 	// The drawn geometry: a routed `path` with coordinates wins; an empty one — a
 	// `false`-overview leg carries totals but no line — falls back to the stops.
 	const points = path && path.length > 0 ? path : (stops ?? [])
 
-	const { slot, hidden, project, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
-		...shared,
-		kind: 'route',
-		swatch: 'line',
-		stops: () => lineAnchor(points),
-	})
+	const { slot, hidden, project, unitsPerPixel, animate, dim, selected, onPointerLeave, hit } =
+		useMapOverlay({
+			...shared,
+			kind: 'route',
+			swatch: 'line',
+			stops: () => lineAnchor(points),
+		})
 
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole polyline;
@@ -66,18 +66,21 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 
 	return (
 		<>
-			{selected !== null && <MapHalo slot="map-route-selected" d={d} width={ROUTE_STROKE_WIDTH} />}
+			{selected !== null && (
+				<MapHalo slot="map-route-selected" d={d} width={ROUTE_STROKE_WIDTH} scale={unitsPerPixel} />
+			)}
 
 			<g className={dim} onPointerLeave={onPointerLeave}>
 				<MapLine
 					slot="map-route"
 					d={d}
+					scale={unitsPerPixel}
 					className={cn(...k.series[slot].stroke)}
 					animate={animate}
 					transition={ROUTE_DRAW}
 				/>
 
-				<path {...lineHitProps({ slot: 'map-route-hit', d, hit: hit() })} />
+				<path {...lineHitProps({ slot: 'map-route-hit', d, scale: unitsPerPixel, hit: hit() })} />
 			</g>
 		</>
 	)

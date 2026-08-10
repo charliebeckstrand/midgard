@@ -35,10 +35,10 @@ export type MapPointProps = MapOverlayProps & {
  *
  * @remarks Renders only inside {@link MapPlat}, and renders nothing when the
  * projection has no image for its position (the US composite drops points
- * outside its insets). The dot rides device pixels (a non-scaling stroke),
- * so a resize scales the geography under it without changing its size. Under
- * the plat's `animate` the dot pops in, staggered by its registration order
- * so a cluster of points reveals in sequence.
+ * outside its insets). The dot is sized in device pixels, so a zoom widens the
+ * ground under it and never the dot. Under the plat's `animate` the dot pops
+ * in, staggered by its registration order so a cluster of points reveals in
+ * sequence.
  */
 export function MapPoint({ at, ...shared }: MapPointProps) {
 	const {
@@ -67,7 +67,12 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 	return (
 		<>
 			{selected !== null && (
-				<MapDotHalo slot="map-point-selected" at={position} radius={POINT_RADIUS} />
+				<MapDotHalo
+					slot="map-point-selected"
+					at={position}
+					radius={POINT_RADIUS}
+					scale={unitsPerPixel}
+				/>
 			)}
 
 			<g className={dim} onPointerLeave={onPointerLeave}>
@@ -75,6 +80,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					slot="map-point"
 					at={position}
 					radius={POINT_RADIUS}
+					scale={unitsPerPixel}
 					className={cn(...k.series[slot].stroke)}
 					animate={animate}
 					transition={pointPop(order)}

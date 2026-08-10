@@ -118,10 +118,10 @@ export type MapGeofenceProps = MapOverlayProps &
  * in the legend hands the pixels back too — the dot is alone on its ground again,
  * and takes the full target.
  *
- * The boundary rides device pixels (a non-scaling stroke), so a resize scales
- * the geography under it without thickening the outline. Under the plat's
- * `animate` the outline draws itself in (`pathLength` 0 → 1) and the wash then
- * settles inside it, so the shape reads before the colour does.
+ * The boundary is stated in device pixels, so a zoom widens the ground the zone
+ * covers and never the outline. Under the plat's `animate` the outline draws
+ * itself in (`pathLength` 0 → 1) and the wash then settles inside it, so the
+ * shape reads before the colour does.
  */
 export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofenceProps) {
 	// Held on the centre's own numbers rather than on its identity: an inline
@@ -210,7 +210,12 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	return (
 		<>
 			{selected !== null && (
-				<MapHalo slot="map-geofence-selected" d={d} width={GEOFENCE_STROKE_WIDTH} />
+				<MapHalo
+					slot="map-geofence-selected"
+					d={d}
+					width={GEOFENCE_STROKE_WIDTH}
+					scale={unitsPerPixel}
+				/>
 			)}
 
 			<g className={dim} onPointerLeave={onPointerLeave}>
@@ -226,13 +231,15 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 				)}
 
 				{/* The boundary is a stroked line like a route's, drawn at the zone's own
-				    width: same non-scaling stroke, same round join, same self-drawing
-				    reveal on the same timing. Its round linecap never renders here —
-				    `ringsPath` closes every ring with a `Z`, so the path has no ends. */}
+				    width: same conversion to frame units, same round join, same
+				    self-drawing reveal on the same timing. Its round linecap never renders
+				    here — `ringsPath` closes every ring with a `Z`, so the path has no
+				    ends. */}
 				<MapLine
 					slot="map-geofence"
 					d={d}
 					width={GEOFENCE_STROKE_WIDTH}
+					scale={unitsPerPixel}
 					className={cn(...paint.stroke)}
 					animate={animate}
 					transition={ROUTE_DRAW}
@@ -242,7 +249,15 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 				    around the boundary so the edge stays aimable where the fill ends.
 				    Marks inside the zone still take their own hits: they draw after it,
 				    and the topmost shape at a point wins. */}
-				<path {...lineHitProps({ slot: 'map-geofence-hit', d, hit: hit(), face: true })} />
+				<path
+					{...lineHitProps({
+						slot: 'map-geofence-hit',
+						d,
+						scale: unitsPerPixel,
+						hit: hit(),
+						face: true,
+					})}
+				/>
 			</g>
 		</>
 	)

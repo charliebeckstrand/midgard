@@ -650,15 +650,18 @@ describe('MapPlat choropleth mode', () => {
 		return <MapPlat {...props} />
 	}
 
-	it('strokes region borders with a non-scaling stroke so a stale refit cannot fatten them', () => {
+	it('leaves the region seam to be inherited rather than stated per region', () => {
 		const { container } = renderUI(choropleth())
 
-		// The border rides device pixels, not viewBox units: a resize that lands the
-		// refit late (box grown past the built-against frame) must not scale the
-		// hairline up with the geometry.
+		// Thousands of paths carry no width of their own: the seam is inherited, so
+		// a zoom can move it with one attribute on the group above them instead of
+		// re-rendering the atlas. An unzoomed plat mounts no such group and takes
+		// the SVG's own initial width, which is the hairline already.
 		const region = firstRegion(container)
 
-		expect(region?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		expect(region?.getAttribute('stroke-width')).toBeNull()
+
+		expect(region?.getAttribute('vector-effect')).toBeNull()
 	})
 
 	it('fills regions with the colorRange colour for their bin, as a fill attribute', () => {

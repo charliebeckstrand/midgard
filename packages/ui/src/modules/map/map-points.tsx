@@ -108,6 +108,7 @@ const MapPointsDots = memo(function MapPointsDots({
 							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
 							at={position}
 							radius={radius}
+							scale={unitsPerPixel}
 							className={paint}
 							animate={animate}
 							transition={pop}
@@ -372,6 +373,7 @@ export function MapPoints({
 					slot="map-points-selected"
 					at={picked.at}
 					radius={clusterRadius(picked.members.length)}
+					scale={unitsPerPixel}
 				/>
 			)}
 

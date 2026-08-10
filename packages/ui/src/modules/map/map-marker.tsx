@@ -38,9 +38,9 @@ export type MapMarkerProps = MapOverlayProps & {
  * `selectedOverlay` haloes both pins and the leg between them for as long as it
  * names this mark.
  *
- * @remarks Renders only inside {@link MapPlat}. Pins and connector ride
- * device pixels (non-scaling strokes), so a resize scales the geography under
- * them without changing their size. Under the plat's `animate` the journey
+ * @remarks Renders only inside {@link MapPlat}. Pins and connector are stated in
+ * device pixels, so a zoom widens the ground under them and never the marks
+ * themselves. Under the plat's `animate` the journey
  * plays in travel order — the origin pin pops, the connector draws itself in
  * from it, then the destination pin pops as the line lands — so direction
  * reads from the reveal. A pin whose position the projection drops is
@@ -110,11 +110,32 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 			    than the one anchor its stop sits at. */}
 			{selected !== null && (
 				<>
-					{d !== '' && <MapHalo slot="map-marker-selected" d={d} width={ROUTE_STROKE_WIDTH} />}
+					{d !== '' && (
+						<MapHalo
+							slot="map-marker-selected"
+							d={d}
+							width={ROUTE_STROKE_WIDTH}
+							scale={unitsPerPixel}
+						/>
+					)}
 
-					{from && <MapDotHalo slot="map-marker-start-selected" at={from} radius={PIN_RADIUS} />}
+					{from && (
+						<MapDotHalo
+							slot="map-marker-start-selected"
+							at={from}
+							radius={PIN_RADIUS}
+							scale={unitsPerPixel}
+						/>
+					)}
 
-					{to && <MapDotHalo slot="map-marker-end-selected" at={to} radius={PIN_RADIUS} />}
+					{to && (
+						<MapDotHalo
+							slot="map-marker-end-selected"
+							at={to}
+							radius={PIN_RADIUS}
+							scale={unitsPerPixel}
+						/>
+					)}
 				</>
 			)}
 
@@ -123,6 +144,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 					<MapLine
 						slot="map-marker-path"
 						d={d}
+						scale={unitsPerPixel}
 						className={stroke}
 						animate={animate}
 						transition={MARKER_DRAW}
@@ -134,6 +156,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						slot="map-marker-start"
 						at={from}
 						radius={PIN_RADIUS}
+						scale={unitsPerPixel}
 						className={stroke}
 						animate={animate}
 						transition={POINT_POP}
@@ -145,13 +168,18 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						slot="map-marker-end"
 						at={to}
 						radius={PIN_RADIUS}
+						scale={unitsPerPixel}
 						className={stroke}
 						animate={animate}
 						transition={MARKER_END_POP}
 					/>
 				)}
 
-				{d !== '' && <path {...lineHitProps({ slot: 'map-marker-hit', d, hit: hit() })} />}
+				{d !== '' && (
+					<path
+						{...lineHitProps({ slot: 'map-marker-hit', d, scale: unitsPerPixel, hit: hit() })}
+					/>
+				)}
 
 				{from && (
 					<circle

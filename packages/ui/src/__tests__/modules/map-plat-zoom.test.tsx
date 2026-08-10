@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { type MapFeatureCollection, MapPlat } from '../../modules/map'
+import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { act, bySlot, fireEvent, renderUI, withFakeTime } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
@@ -535,14 +536,42 @@ describe('MapPlat wheel zoom', () => {
 		expect(after).toEqual(before)
 	})
 
-	it('holds every stroke at a hairline through the transform', () => {
+	it('holds the region seam at a hairline through the transform', () => {
 		const { container, svg } = renderZoomable()
+
+		zoomWheel(svg, -200)
+
+		const k = scaleOf(container)
+
+		expect(k).toBeGreaterThan(1)
+
+		// The seam is inherited from the very group that carries the transform, so
+		// what the browser draws is this width scaled by the k under it. Dividing it
+		// out is the whole rule: one device pixel, at every scale the view takes.
+		// To three places, because that is where `transformAttribute` rounds the
+		// scale the width is read back against — a hairline out by a ten-thousandth.
+		const layer = bySlot(container, 'map-zoom')
+
+		expect(Number(layer?.getAttribute('stroke-width')) * k).toBeCloseTo(REGION_STROKE_WIDTH, 3)
+	})
+
+	it('moves the whole atlas on that one attribute, never per region', () => {
+		const { container, svg } = renderZoomable()
+
+		const before = container.querySelector('[data-region-index]')?.getAttribute('d')
 
 		zoomWheel(svg, -200)
 
 		const region = container.querySelector('[data-region-index]')
 
-		expect(region?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		// A region path states no width and takes no vector effect, so a notch
+		// rewrites one attribute on the group rather than thousands beneath it —
+		// and it reprojects nothing, which is what the transform is for.
+		expect(region?.getAttribute('stroke-width')).toBeNull()
+
+		expect(region?.getAttribute('vector-effect')).toBeNull()
+
+		expect(region?.getAttribute('d')).toBe(before)
 	})
 })
 

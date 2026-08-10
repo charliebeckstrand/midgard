@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapPlat, MapRoute } from '../../modules/map'
-import { ROUTE_HIT_WIDTH } from '../../modules/map/engine/map-constants'
+import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -30,9 +30,12 @@ describe('MapRoute', () => {
 
 		expect(route?.getAttribute('class')).toContain('stroke-blue-600')
 
-		// The line's width rides device pixels — a late refit scales the geometry,
-		// never the stroke.
-		expect(route?.getAttribute('vector-effect')).toBe('non-scaling-stroke')
+		// The line's width is stated in device pixels and converted to frame units by
+		// the mark, not by a `vector-effect` — which also draws the whole polyline
+		// under a zoom, where a dashed `pathLength` reveal in stroke space would not.
+		expect(route?.getAttribute('stroke-width')).toBe(String(ROUTE_STROKE_WIDTH))
+
+		expect(route?.getAttribute('vector-effect')).toBeNull()
 
 		const hit = bySlot(container, 'map-route-hit')
 

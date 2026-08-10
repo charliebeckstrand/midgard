@@ -408,9 +408,13 @@ export function areaAnchor(polygons: MapPolygons): LngLat[] {
 
 /**
  * A dot's SVG path: a zero-length segment whose round cap paints the circle.
- * Drawn as a stroke — not a `<circle>` — because only stroke width can ride
- * device pixels (`vector-effect="non-scaling-stroke"`); a radius scales with
- * the viewBox, so a resize whose refit lands late would balloon it.
+ *
+ * Drawn as a stroke — not a `<circle>` — because a stroke width could ride
+ * device pixels through `vector-effect="non-scaling-stroke"` where a radius
+ * could not. The marks size themselves now (`MapDot`), so the two shapes would
+ * draw the same and a `<circle>` would say it more plainly. The stroke stays
+ * for now: swapping it moves the pop-in, the halo, and the hit geometry with
+ * it, which is wider than the sizing change that freed it.
  *
  * @internal
  */

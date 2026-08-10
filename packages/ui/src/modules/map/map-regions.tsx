@@ -12,8 +12,8 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPointedMark } from './context'
-import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
+import { useMapHoverSet, useMapPointedMark, useMapZoomScale } from './context'
+import { REGION_SELECTED_STROKE_WIDTH } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
 import { REGION_WASH_SETTLE } from './engine/map-motion'
 import type { MapCategoryMeta } from './engine/map-region/category'
@@ -173,13 +173,13 @@ const Region = memo(function Region({
 			// of the choropleth mount. A value paint never carries a fill class, so
 			// nothing in the cascade sits above the attribute.
 			fill={fillColor}
-			strokeWidth={REGION_STROKE_WIDTH}
-			// The border rides device pixels, not viewBox units, so it stays a
-			// hairline whatever the viewBox-to-box ratio is: a resize that lands
-			// the refit a beat late (the box grown past the frame the marks were
-			// built against) scales the geometry crisply but must not fatten the
-			// stroke with it — the constant-pixel refit sharpens, this pins.
-			vectorEffect="non-scaling-stroke"
+			// No width of its own. The seam is one device pixel
+			// (`REGION_STROKE_WIDTH`), which the zoom layer states in frame units for
+			// the atlas beneath it to inherit, so the border stays a hairline at every
+			// view. Inherited rather than stated here because this path is drawn once
+			// per region: reading the scale would put every one of them through React
+			// on every notch of a gesture, which is the work this layer's memoisation
+			// exists to prevent.
 			className={className}
 			style={style}
 			onPointerEnter={onTrack}
@@ -401,18 +401,34 @@ export const MapRegions = memo(function MapRegions({
 				/>
 			)}
 
-			{selectedPath !== null && (
-				<path
-					data-slot="map-region-selected"
-					d={selectedPath}
-					fill="none"
-					strokeWidth={REGION_SELECTED_STROKE_WIDTH}
-					vectorEffect="non-scaling-stroke"
-					// No region anchor and no pointer events: the base path stays the
-					// sole hit target, the discipline the lit copies keep.
-					className={cn('pointer-events-none', ...k.region.selected)}
-				/>
-			)}
+			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
 		</g>
 	)
 })
+
+/**
+ * The ring on the picked region — a step over the seam, so it reads as a mark on
+ * the region rather than a heavier shared border.
+ *
+ * Its own component for one reason: it is the single shape in this layer whose
+ * width is not the inherited hairline, so it is the only one that has to read
+ * the zoom scale. Reading it here confines the per-notch re-render to this one
+ * path; read in {@link MapRegions} it would take the whole atlas with it.
+ *
+ * @internal
+ */
+function MapRegionSelected({ d }: { d: string }) {
+	const unitsPerPixel = useMapZoomScale()
+
+	return (
+		<path
+			data-slot="map-region-selected"
+			d={d}
+			fill="none"
+			strokeWidth={REGION_SELECTED_STROKE_WIDTH * unitsPerPixel}
+			// No region anchor and no pointer events: the base path stays the
+			// sole hit target, the discipline the lit copies keep.
+			className={cn('pointer-events-none', ...k.region.selected)}
+		/>
+	)
+}
