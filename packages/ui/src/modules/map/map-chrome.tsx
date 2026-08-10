@@ -63,10 +63,11 @@ function ChromeLine({ part, d, clip }: ChromeLineProps) {
 			fill="none"
 			// Device pixels, not viewBox units — the region border's discipline: a
 			// zoom must widen the ground a meridian crosses and never the hairline
-			// ruling it. The scale is read here rather than inherited from the zoom
-			// layer, as the region seams below are: chrome is two paths, so paying a
-			// re-render per notch to keep the width stated where it is drawn costs
-			// nothing, where the atlas would pay it per region.
+			// ruling it. Stated here rather than inherited, because the seam the
+			// region layer publishes to its own group is a different constant that
+			// happens to share a value, and chrome draws outside that group anyway.
+			// Two paths, so the per-notch re-render this read costs is two fibers
+			// against a `d` string that keeps its reference and writes no DOM.
 			strokeWidth={CHROME_STROKE_WIDTH * unitsPerPixel}
 			className={cn(...k.chrome[part])}
 		/>

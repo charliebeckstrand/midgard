@@ -125,9 +125,10 @@ type MapDotCountProps = {
 /**
  * Where the count sits: its own coordinates at rest, and a counter-scaled frame
  * of its own under a zoom. Text sizes in user units, so a transform that scales
- * the frame would grow the number while the dot beneath it — a non-scaling
- * stroke — held its size, and the count would climb out of the mark it belongs
- * to. Scaling the frame back by the same factor pins the two together.
+ * the frame would grow the number while the dot beneath it held its size, and
+ * the count would climb out of the mark it belongs to. Scaling the frame back by
+ * the same factor pins the two together — the dot's own multiply, in the one
+ * form a glyph takes it.
  *
  * The rest case keeps the plain `x` / `y` pair rather than an identity
  * transform, so an unzoomed map draws the attributes it always drew.

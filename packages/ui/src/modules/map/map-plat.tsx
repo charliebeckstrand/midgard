@@ -12,7 +12,6 @@ import {
 	MapZoomScaleContext,
 	useMapZoomView,
 } from './context'
-import { REGION_STROKE_WIDTH } from './engine/map-constants'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -345,14 +344,6 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 				data-slot="map-zoom"
 				transform={transformAttribute(zoom.transform)}
 				pointerEvents={zoom.gesturing ? 'none' : undefined}
-				// The region seam, in frame units, for the atlas beneath to inherit.
-				// Stating it once here is what keeps a wheel notch off the region layer:
-				// every other mark reads the scale and re-renders for it, while thousands
-				// of region paths — and the lit copies over them — take one attribute on
-				// the group above them and hold. An unzoomed map renders no group and
-				// needs none: the SVG's own initial `stroke-width` is already 1, which is
-				// what a device pixel is worth in a measured frame.
-				strokeWidth={REGION_STROKE_WIDTH * zoom.unitsPerPixel}
 			>
 				{children}
 			</g>

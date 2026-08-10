@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
+import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import {
 	REGION_FADE,
 	REGION_STAGGER,
@@ -650,18 +651,23 @@ describe('MapPlat choropleth mode', () => {
 		return <MapPlat {...props} />
 	}
 
-	it('leaves the region seam to be inherited rather than stated per region', () => {
+	it('states the region seam once on the layer, for every path to inherit', () => {
 		const { container } = renderUI(choropleth())
 
-		// Thousands of paths carry no width of their own: the seam is inherited, so
-		// a zoom can move it with one attribute on the group above them instead of
-		// re-rendering the atlas. An unzoomed plat mounts no such group and takes
-		// the SVG's own initial width, which is the hairline already.
+		// Thousands of paths carry no width of their own, so a zoom can move the
+		// seam with one attribute instead of re-rendering the atlas. The layer
+		// states it even unzoomed, where the scale is 1 — the constant governs both
+		// views from the one expression, rather than an unzoomed map falling through
+		// to the SVG's initial width and agreeing by coincidence.
 		const region = firstRegion(container)
 
 		expect(region?.getAttribute('stroke-width')).toBeNull()
 
 		expect(region?.getAttribute('vector-effect')).toBeNull()
+
+		expect(bySlot(container, 'map-regions')?.getAttribute('stroke-width')).toBe(
+			String(REGION_STROKE_WIDTH),
+		)
 	})
 
 	it('fills regions with the colorRange colour for their bin, as a fill attribute', () => {

@@ -49,9 +49,8 @@ type MapLineProps = {
  * The stroked line the map's line-shaped marks draw: a route's whole polyline,
  * a marker's leg between its pins, and a geofence's closed boundary. All three
  * hand-wrote it before this — the same round cap and join, the same
- * non-scaling stroke, the same self-drawing reveal, down to the comment
- * explaining the stroke — which is how copies of one spec read once they have
- * been kept in step by hand for a while.
+ * self-drawing reveal, down to the comment explaining the stroke — which is how
+ * copies of one spec read once they have been kept in step by hand for a while.
  *
  * A zone states a `width` of its own, because it reads as context behind the
  * marks rather than as another route drawn around them; a marker's leg delays

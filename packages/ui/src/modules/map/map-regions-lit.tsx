@@ -60,10 +60,8 @@ export function MapRegionsLit({
 						key={index}
 						d={paths[index] as string}
 						fill={paint.fillColor}
-						// No width of its own, as the base path it copies has none: the seam
-						// is the hairline the zoom layer states for the subtree to inherit.
-						// The copy has to match the original exactly, so it takes the width
-						// the same way rather than restating it.
+						// No width of its own, as the base path it copies has none: both
+						// inherit the seam from the group above them.
 						// The pointed copy carries the hover emphasis statically: it is
 						// the hovered region by definition, and `:hover` can't reach a
 						// pointer-events-none element.

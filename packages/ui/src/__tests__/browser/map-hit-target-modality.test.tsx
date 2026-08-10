@@ -1,14 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
-import {
-	MAP_ZOOM_MAX,
-	MAP_ZOOM_STEP,
-	POINT_HIT_RADIUS,
-	POINT_RADIUS,
-} from '../../modules/map/engine/map-constants'
-import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
+import { allBySlot, bySlot, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { zoomToCeiling } from './helpers/map-zoom'
 
 /** The centre of an element's box, in client coordinates. */
 function centreOf(element: Element) {
@@ -20,21 +16,6 @@ function centreOf(element: Element) {
 /** The drawn radius of a hit circle, which its box is twice. */
 function radiusOf(element: Element) {
 	return element.getBoundingClientRect().width / 2
-}
-
-/**
- * How many `+` presses reach the zoom ceiling, derived rather than counted, so a
- * softer step or a higher ceiling still sweeps the whole range these cases claim.
- */
-const CEILING_PRESSES = Math.ceil(Math.log(MAP_ZOOM_MAX) / Math.log(MAP_ZOOM_STEP))
-
-/** Zooms a plat to its ceiling from the keyboard. */
-function zoomToCeiling(plot: Element, onStep?: () => void) {
-	for (let press = 0; press < CEILING_PRESSES; press += 1) {
-		fireEvent.keyDown(plot, { key: '+' })
-
-		onStep?.()
-	}
 }
 
 /**

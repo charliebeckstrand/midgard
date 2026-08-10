@@ -545,12 +545,13 @@ describe('MapPlat wheel zoom', () => {
 
 		expect(k).toBeGreaterThan(1)
 
-		// The seam is inherited from the very group that carries the transform, so
-		// what the browser draws is this width scaled by the k under it. Dividing it
-		// out is the whole rule: one device pixel, at every scale the view takes.
-		// To three places, because that is where `transformAttribute` rounds the
-		// scale the width is read back against — a hairline out by a ten-thousandth.
-		const layer = bySlot(container, 'map-zoom')
+		// The seam is stated once on the region layer's own group and inherited by
+		// every path under it, so what the browser draws is this width scaled by the
+		// k the zoom applies above. Dividing it out is the whole rule: one device
+		// pixel, at every scale the view takes. To three places, because that is
+		// where `transformAttribute` rounds the scale the width is read back
+		// against — a hairline out by a ten-thousandth.
+		const layer = bySlot(container, 'map-regions')
 
 		expect(Number(layer?.getAttribute('stroke-width')) * k).toBeCloseTo(REGION_STROKE_WIDTH, 3)
 	})

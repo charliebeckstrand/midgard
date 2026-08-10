@@ -4,6 +4,7 @@ import {
 	type CSSProperties,
 	memo,
 	type PointerEvent,
+	type ReactNode,
 	startTransition,
 	useCallback,
 	useEffect,
@@ -13,7 +14,7 @@ import {
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPointedMark, useMapZoomScale } from './context'
-import { REGION_SELECTED_STROKE_WIDTH } from './engine/map-constants'
+import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
 import { REGION_WASH_SETTLE } from './engine/map-motion'
 import type { MapCategoryMeta } from './engine/map-region/category'
@@ -173,13 +174,8 @@ const Region = memo(function Region({
 			// of the choropleth mount. A value paint never carries a fill class, so
 			// nothing in the cascade sits above the attribute.
 			fill={fillColor}
-			// No width of its own. The seam is one device pixel
-			// (`REGION_STROKE_WIDTH`), which the zoom layer states in frame units for
-			// the atlas beneath it to inherit, so the border stays a hairline at every
-			// view. Inherited rather than stated here because this path is drawn once
-			// per region: reading the scale would put every one of them through React
-			// on every notch of a gesture, which is the work this layer's memoisation
-			// exists to prevent.
+			// No width of its own: the seam is inherited from `MapRegionsGroup`, which
+			// states why.
 			className={className}
 			style={style}
 			onPointerEnter={onTrack}
@@ -365,9 +361,7 @@ export const MapRegions = memo(function MapRegions({
 	const selectedPath = selected === null ? null : (paths[selected] ?? null)
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", which is itself the tab stop that carries the click's keyboard counterpart (see use-map-keyboard)
-		<g
-			data-slot="map-regions"
+		<MapRegionsGroup
 			// The cursor rides the group and inherits down, so thousands of paths carry
 			// no per-region class.
 			className={cn(clickable && k.region.clickable)}
@@ -402,9 +396,67 @@ export const MapRegions = memo(function MapRegions({
 			)}
 
 			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
-		</g>
+		</MapRegionsGroup>
 	)
 })
+
+/** What {@link MapRegionsGroup} carries: the layer's own group props, and its layers. @internal */
+type MapRegionsGroupProps = {
+	className: string
+	onPointerLeave: () => void
+	/** `regionDelegate`'s return: the delegated reporters, which read the event target alone. */
+	onClick: ((event: { target: EventTarget }) => void) | undefined
+	onContextMenu: ((event: { target: EventTarget }) => void) | undefined
+	children: ReactNode
+}
+
+/**
+ * The region layer's own group, and the one place its seam width is stated:
+ * {@link REGION_STROKE_WIDTH} in frame units, which every path beneath inherits.
+ *
+ * The width lives on a group rather than on each path because the layer draws
+ * one path per region — thousands, on a ZIP or county atlas — and a width
+ * restated per path would put all of them through React on every notch of a
+ * gesture, which is the work {@link MapRegions}' memoisation exists to prevent.
+ * It lives on *this* group rather than on the zoom layer above it so the
+ * constant governs an unzoomed map too, which mounts no zoom group at all, and
+ * so the style the browser recomputes when it changes is bounded by the layer
+ * that owns the seam.
+ *
+ * Its own component so that reading the scale re-renders this one fiber and not
+ * the atlas under it: `children` are elements {@link MapRegions} already built,
+ * so they bail — the discipline {@link MapRegionSelected} keeps for the same
+ * reason. What the browser still does per notch is not nothing: `stroke-width`
+ * inherits, so a change re-resolves style for every path beneath and re-measures
+ * each stroke's bounds. That is the cost of a hairline that holds, and it is
+ * under what the non-scaling stroke it replaced spent rebuilding a transformed
+ * copy of every path's geometry on the same notch.
+ *
+ * @internal
+ */
+function MapRegionsGroup({
+	className,
+	onPointerLeave,
+	onClick,
+	onContextMenu,
+	children,
+}: MapRegionsGroupProps) {
+	const unitsPerPixel = useMapZoomScale()
+
+	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", which is itself the tab stop that carries the click's keyboard counterpart (see use-map-keyboard)
+		<g
+			data-slot="map-regions"
+			className={className}
+			strokeWidth={REGION_STROKE_WIDTH * unitsPerPixel}
+			onPointerLeave={onPointerLeave}
+			onClick={onClick}
+			onContextMenu={onContextMenu}
+		>
+			{children}
+		</g>
+	)
+}
 
 /**
  * The ring on the picked region — a step over the seam, so it reads as a mark on
