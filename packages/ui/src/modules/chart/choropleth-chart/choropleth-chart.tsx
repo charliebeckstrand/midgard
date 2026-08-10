@@ -8,7 +8,7 @@ import {
 	type MapAspectRatio,
 	type MapFeature,
 	type MapGeography,
-	type MapLegendPlacement,
+	type MapLegendInput,
 	MapPlat,
 	type MapPlatProps,
 	type MapProjection,
@@ -16,7 +16,6 @@ import {
 import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
-import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import type { ChartReadout, DataKey } from '../engine/types'
 
@@ -119,7 +118,7 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * a horizontal row under the plot. Defaults to the right for the choropleth.
 	 * @defaultValue 'right'
 	 */
-	legend?: boolean | MapLegendPlacement | 'range' | ChartRangeLegendConfig
+	legend?: MapLegendInput
 	/**
 	 * Show the hover tooltip naming the pointed region and its value.
 	 * @defaultValue true
@@ -213,7 +212,11 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// because it belongs to the region-data branch below, which decides whether
 	// the map carries rows at all — left in the rest it would survive the branch's
 	// spread and hand a data-less map its rows back.
-	const { series, formatValue, contextMenu, title, className, width, data, ...map } = props
+	// `legend` comes out with the region-data fields rather than riding `...map`:
+	// it is part of the region-data union now, because its range form paints the
+	// scale only the numeric branch carries. The constructor below places it on
+	// whichever branch the series resolves to.
+	const { series, formatValue, contextMenu, title, className, width, data, legend, ...map } = props
 
 	// The right-clicked region, reported outward by the map (its hover state is provider-isolated, so the
 	// menu cannot read it). Set once per right-click — never per hover — so the map's render isolation
@@ -256,6 +259,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 		aspectRatio: map.aspectRatio ?? '16/9',
 		deferPaint: true,
 		...numericRegionData<T>({
+			legend,
 			data,
 			regionKey: primary?.idKey,
 			valueKey: primary?.colorKey,

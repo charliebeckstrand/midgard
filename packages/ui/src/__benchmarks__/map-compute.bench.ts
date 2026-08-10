@@ -1,11 +1,7 @@
 // @vitest-environment node
 
 import { bench, describe } from 'vitest'
-import {
-	canonicalFit,
-	mapAutoAspect,
-	scaleCanonicalFit,
-} from '../modules/map/engine/map-projection/fit'
+import { canonicalFit, scaleCanonicalFit } from '../modules/map/engine/map-projection/fit'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
 import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
 import {
@@ -74,16 +70,6 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 
 		bench(`${label} · refit to 960×600`, () => {
 			scaleCanonicalFit('albers-usa', canonical, 960, 600)
-		})
-	}
-})
-
-describe('map-projection · mapAutoAspect (the CSS reservation)', () => {
-	// Resolved before the first paint so the figure reserves its box without a
-	// measurement — on the mount critical path, ahead of everything else here.
-	for (const { label, atlas } of ATLASES) {
-		bench(`${label} · albers-usa`, () => {
-			mapAutoAspect('albers-usa', atlas.geoJson.features)
 		})
 	}
 })

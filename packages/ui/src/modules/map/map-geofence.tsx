@@ -4,17 +4,14 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapPlat } from './context'
-import {
-	GEOFENCE_FILL_OPACITY,
-	GEOFENCE_STROKE_WIDTH,
-	ROUTE_HIT_WIDTH,
-} from './engine/map-constants'
-import { circleRing } from './engine/map-geofence'
-import { areaAnchor, areaCovers, projectArea, ringsPath } from './engine/map-geometry/mark'
+import { useMapPlat, useMapZoomScale } from './context'
+import { GEOFENCE_FILL_OPACITY, GEOFENCE_STROKE_WIDTH } from './engine/map-constants'
+import { circleRing, zoneBudget, zoneSpare } from './engine/map-geofence'
+import { areaAnchor, projectArea, ringsPath } from './engine/map-geometry/mark'
 import { GEOFENCE_WASH, ROUTE_DRAW } from './engine/map-motion'
 import type { LngLat, MapPolygons } from './engine/types'
 import { MapHalo } from './map-halo'
+import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** A geofence around one centre, at a fixed distance across the ground. @internal */
@@ -111,11 +108,15 @@ export type MapGeofenceProps = MapOverlayProps &
  * what the pointer is on there, so a clickable map's regions answer outside its
  * zones and the zones answer within them.
  *
- * A dot standing on the face gives the zone the ground it does not paint: a
- * {@link MapPoint}, a {@link MapPoints} dot, or a {@link MapMarker} pin over a
- * drawn zone narrows to what it draws for a mouse, so a depot never claims the
- * middle of its own catchment. Toggling the zone off in the legend hands those
- * pixels back — the dot is alone on its ground again, and takes the full target.
+ * A dot on the zone gives back the ground the zone needs to answer for itself: a
+ * {@link MapPoint}, a {@link MapPoints} dot, or a {@link MapMarker} pin on a
+ * drawn zone takes half the room the zone holds for a mouse, so a depot never
+ * claims the middle of its own catchment and a zone drawn small around a mark
+ * still answers under it. A share of the zone's own room rather than a yes-or-no,
+ * so every mark on one zone points alike however the ring runs through them, and
+ * a zone wide enough to spare the whole target spares it. Toggling the zone off
+ * in the legend hands the pixels back too — the dot is alone on its ground again,
+ * and takes the full target.
  *
  * The boundary rides device pixels (a non-scaling stroke), so a resize scales
  * the geography under it without thickening the outline. Under the plat's
@@ -148,6 +149,11 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// that ground — so the rings have to resolve before the registration does.
 	const { project } = useMapPlat()
 
+	// Read here rather than off the registration below, for the same reason the
+	// projector is: the budget this zone publishes is a device-pixel figure over a
+	// frame measure, so it needs the scale before it registers.
+	const unitsPerPixel = useMapZoomScale()
+
 	// Memoised so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project the whole territory; `project` identity
 	// holds until the measured refit, a circle's rings hold on the primitives
@@ -160,6 +166,13 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 	// sees and the shape a dot yields to can never diverge.
 	const d = useMemo(() => ringsPath(rings), [rings])
 
+	// Measured once for the whole zone rather than once per dot asking. The budget
+	// depends on nothing but the rings and the scale, both memoised above, while
+	// the resolver below runs for every dot on the map against every visible zone —
+	// so an inline measure walked every vertex of a dissolved territory once per
+	// dot, on the beat a wheel notch rebuilds them.
+	const budget = useMemo(() => zoneBudget(rings, unitsPerPixel), [rings, unitsPerPixel])
+
 	const { slot, hidden, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'geofence',
@@ -167,10 +180,12 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		// A circle knows its own centre, so it never pays a centroid pass to find
 		// one; drawn rings resolve their middle from the vertices.
 		stops: () => (at === undefined ? areaAnchor(polygons) : [at]),
-		// A dot standing on this face keeps its target down to the dot it paints, so
-		// the zone under it stays pointable — and takes the finger-sized one back the
-		// moment the legend puts this zone away.
-		covers: (position) => areaCovers(rings, position),
+		// A dot standing on this zone takes a share of the room the zone has, so the
+		// zone stays pointable under it — and takes the whole finger target back the
+		// moment the legend puts this zone away. A share rather than a yes-or-no,
+		// because a zone drawn through its own marks puts them on its boundary,
+		// where inside-or-out has no answer and a ray cast reads the winding.
+		spare: (position) => zoneSpare(budget, position),
 	})
 
 	if (slot === undefined || hidden || d === '') return null
@@ -189,19 +204,7 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 		// (`MapDotCount`, the halo, the lit region copies): the hit shape below is
 		// this mark's sole target, so the hover resolve can never read one zone twice.
 		pointerEvents: 'none' as const,
-		className: cn(paint.fill),
-	}
-
-	const edge = {
-		'data-slot': 'map-geofence',
-		d,
-		fill: 'none',
-		strokeWidth: GEOFENCE_STROKE_WIDTH,
-		strokeLinejoin: 'round' as const,
-		// Width in device pixels, as the region borders: a resize whose refit
-		// lands late scales the geometry but must not thicken the outline.
-		vectorEffect: 'non-scaling-stroke' as const,
-		className: cn(paint.stroke),
+		className: cn(...paint.fill),
 	}
 
 	return (
@@ -222,39 +225,24 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 					<path {...wash} />
 				)}
 
-				{animate ? (
-					<motion.path
-						{...edge}
-						initial={{ pathLength: 0 }}
-						animate={{ pathLength: 1 }}
-						transition={ROUTE_DRAW}
-					/>
-				) : (
-					<path {...edge} />
-				)}
+				{/* The boundary is a stroked line like a route's, drawn at the zone's own
+				    width: same non-scaling stroke, same round join, same self-drawing
+				    reveal on the same timing. Its round linecap never renders here —
+				    `ringsPath` closes every ring with a `Z`, so the path has no ends. */}
+				<MapLine
+					slot="map-geofence"
+					d={d}
+					width={GEOFENCE_STROKE_WIDTH}
+					className={cn(...paint.stroke)}
+					animate={animate}
+					transition={ROUTE_DRAW}
+				/>
 
-				{/* The whole zone answers the pointer — its face, and a 24px band around
-				    the boundary so the edge stays aimable where the fill ends. `all` rather
-				    than the painted default, so the transparent fill counts as a target.
+				{/* The whole zone answers the pointer — its face, and the shared band
+				    around the boundary so the edge stays aimable where the fill ends.
 				    Marks inside the zone still take their own hits: they draw after it,
 				    and the topmost shape at a point wins. */}
-				<path
-					data-slot="map-geofence-hit"
-					d={d}
-					fill="transparent"
-					// The wash's own rule, so the target is the ground the zone covers and
-					// not its bounding shape: a hole answers no pointer, and the region
-					// under it keeps its own hover.
-					fillRule="evenodd"
-					stroke="transparent"
-					strokeWidth={ROUTE_HIT_WIDTH}
-					// The band is a finger's width in device pixels, so it rides the same
-					// non-scaling stroke the boundary does: a zoom widens the ground the
-					// zone covers, never the target around its edge.
-					vectorEffect="non-scaling-stroke"
-					pointerEvents="all"
-					{...hit()}
-				/>
+				<path {...lineHitProps({ slot: 'map-geofence-hit', d, hit: hit(), face: true })} />
 			</g>
 		</>
 	)

@@ -14,7 +14,7 @@ import type { CSSProperties } from 'react'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/map'
 import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from '../map-motion'
-import { categoryLegendId, type MapCategoryMeta } from './category'
+import { categoryLegendId, type MapCategoryMeta, paintColor, paintFill } from './category'
 
 /** The colour wash's transition classes under `animate`; static maps colour without one. */
 const WASH = 'transition-colors ease-out motion-reduce:transition-none'
@@ -122,18 +122,19 @@ function categoryPaint(
 
 	const applied = active && revealed && meta !== null ? meta.paint : null
 
-	const fillClass =
-		applied === null ? k.region.empty : applied.kind === 'class' ? applied.fill : undefined
+	// The neutral is the layer's own fallback rather than a paint's, so it stays
+	// beside the projection rather than inside it.
+	const fillClass = applied === null ? k.region.empty : paintFill(applied)
 
 	return {
 		groupId: active ? id : null,
-		fillColor: applied?.kind === 'value' ? applied.color : undefined,
+		fillColor: applied === null ? undefined : paintColor(applied),
 		// The hover emphasis normally marks a region carrying data. On a clickable
 		// layer every region answers a click — a no-data one included — so it reads
 		// as the target it is.
 		className: cn(
-			fillClass,
-			k.region.border,
+			...(fillClass ?? []),
+			...k.region.border,
 			(active || clickable) && k.region.hover,
 			animate && WASH,
 		),

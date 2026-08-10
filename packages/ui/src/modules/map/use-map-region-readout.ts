@@ -16,6 +16,9 @@ import {
 } from './engine/map-region/value'
 import type { MapFeature } from './engine/types'
 
+/** The names a map with no rows resolves to: one shared array, never rebuilt. @internal */
+const EMPTY_NAMES: string[] = []
+
 /** The resolved categorical or numeric readout behind the regions. @internal */
 type MapRegionReadout = {
 	categoryMetas: MapCategoryMeta[]
@@ -62,9 +65,17 @@ export function useMapRegionReadout<T>(
 	regionIds: string[],
 	regionLabel: ((feature: MapFeature) => string) | undefined,
 ): MapRegionReadout {
+	// Only a map with rows ever shows a region's name: the table prints them and
+	// the tooltip titles with them, and both fall silent where nothing matched.
+	// So a backdrop map skips the pass rather than naming three thousand counties
+	// for two readers that discard the answer. Keyed on whether rows were passed
+	// at all, never on the array — an inline `data={[…]}` hands a fresh one every
+	// render, and this must not re-map the atlas behind it.
+	const named = data !== undefined
+
 	const regionNames = useMemo(
-		() => features.map(regionLabel ?? defaultRegionLabel),
-		[features, regionLabel],
+		() => (named ? features.map(regionLabel ?? defaultRegionLabel) : EMPTY_NAMES),
+		[features, regionLabel, named],
 	)
 
 	// One resolution: the numeric branch bins by value along a ramp, the

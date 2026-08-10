@@ -1,6 +1,14 @@
 'use client'
 
-import { type MouseEvent, type PointerEvent, useCallback, useEffect, useId, useRef } from 'react'
+import {
+	type MouseEvent,
+	type PointerEvent,
+	useCallback,
+	useEffect,
+	useId,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat, useMapPointedMark, useMapZoomScale } from './context'
@@ -9,6 +17,11 @@ import { mapMarkDimmed } from './engine/map-hover/target'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
 import type { LngLat, MapPoint2D, MapSwatchShape } from './engine/types'
+
+/** The stop a hit shape names, read back off the element the event fired on. @internal */
+function stopFrom(event: { currentTarget: Element }): number {
+	return markAnchorAt(event.currentTarget)?.stop ?? 0
+}
 
 /**
  * The props every overlay mark shares: its identity, its legend text and paint,
@@ -88,11 +101,11 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 */
 		stops: () => LngLat[]
 		/**
-		 * Whether this mark's own face holds a frame position — see
-		 * {@link MapOverlayEntry.covers}. Passed by the area-shaped marks alone, and
+		 * How much reach this mark leaves a dot standing on it — see
+		 * {@link MapOverlayEntry.spare}. Passed by the area-shaped marks alone, and
 		 * read live like {@link stops}, so a redrawn zone never re-registers.
 		 */
-		covers?: (at: MapPoint2D) => boolean
+		spare?: (at: MapPoint2D) => number
 		/**
 		 * Per-dot readouts for a plural mark, absent on a singular one. Plain data,
 		 * because the table draws it — see {@link MapOverlayEntry.stopRows}. Keyed
@@ -109,6 +122,16 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		stopOf?: (index: number) => number | null
 	}
 
+/**
+ * The DOM props one of a mark's hit shapes spreads — {@link MapOverlay.hit}'s
+ * return. Named here so the hit-props factories take exactly what a mark
+ * produces and nothing a caller could widen the target with, and named once so
+ * the dot's factory and the line's read one type.
+ *
+ * @internal
+ */
+export type MapOverlayHit = ReturnType<MapOverlay['hit']>
+
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
 export type MapOverlay = {
 	/** The slot colour, `undefined` until registration lands — the mark renders nothing meanwhile. */
@@ -116,12 +139,13 @@ export type MapOverlay = {
 	/** Whether the legend has toggled this mark off. */
 	hidden: boolean
 	/**
-	 * Whether a drawn zone holds a frame position — the plat's whole ledger asked
-	 * at one point. A dot-shaped mark reads it per dot to size its hit target: the
-	 * pixels a dot does not paint go back to the zone under it, and come back to
-	 * the dot the moment the legend takes that zone away.
+	 * How much reach the drawn zones leave a mark at a position — the plat's whole
+	 * ledger asked at one point, tightest budget winning. A dot-shaped mark reads
+	 * it per dot to size its hit target: a dot gives a zone only as much room as
+	 * that zone can spare, and takes it all back the moment the legend puts the
+	 * zone away.
 	 */
-	covered: (at: MapPoint2D) => boolean
+	spare: (at: MapPoint2D) => number
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
 	project: (position: LngLat) => MapPoint2D | null
 	/**
@@ -190,7 +214,7 @@ export function useMapOverlay({
 	kind,
 	swatch,
 	stops,
-	covers,
+	spare: ownSpare,
 	stopRows,
 	stopOf,
 }: MapOverlayConfig): MapOverlay {
@@ -198,7 +222,7 @@ export function useMapOverlay({
 
 	const id = given ?? generated
 
-	const { project, register, colors, order, hidden, covered, emphasis, animate, selectedOverlay } =
+	const { project, register, colors, order, hidden, spare, emphasis, animate, selectedOverlay } =
 		useMapPlat()
 
 	const set = useMapHoverSet()
@@ -217,13 +241,20 @@ export function useMapOverlay({
 	// registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither may churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
-	const live = useRef({ stops, onClick, stopRows, resolveStop, covers })
+	const live = useRef({ stops, onClick, onContextMenu, resolveStop, ownSpare })
 
-	live.current = { stops, onClick, stopRows, resolveStop, covers }
+	live.current = { stops, onClick, onContextMenu, resolveStop, ownSpare }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
-	const coversAt = useCallback((at: MapPoint2D) => live.current.covers?.(at) ?? false, [])
+	const spareAt = useCallback(
+		// The identity of the minimum the plat folds these into, so the fallback and
+		// the resolver state one rule rather than two. It cannot fire in fact — only a
+		// mark that passed a resolver registers this wrapper — but a mark that claims
+		// nothing and a mark that never claimed have to answer alike either way.
+		(at: MapPoint2D) => live.current.ownSpare?.(at) ?? Number.POSITIVE_INFINITY,
+		[],
+	)
 
 	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
@@ -237,11 +268,11 @@ export function useMapOverlay({
 
 	const activate = pickable ? pick : undefined
 
-	// Registered only where the mark covers ground, on the same terms as
-	// `activate`: its presence is what the plat's resolver asks of an entry, so a
-	// dot never tests itself against a mark that holds no face. The wrapper rides
-	// the ref, so this depends on whether there is one — a fact fixed per mark kind.
-	const cover = covers === undefined ? undefined : coversAt
+	// Registered only where the mark holds ground, on the same terms as `activate`:
+	// its presence is what the plat's resolver asks of an entry, so a dot never
+	// measures itself against a mark that holds no face. The wrapper rides the ref,
+	// so this depends on whether there is one — a fact fixed per mark kind.
+	const budget = ownSpare === undefined ? undefined : spareAt
 
 	// The standing pick, resolved off the live mapper rather than the ref the
 	// ledger rides: a refit that regroups a plural mark moves the picked dot, and
@@ -253,9 +284,16 @@ export function useMapOverlay({
 	// reach the ledger to reach the screen. Keyed by content rather than by the
 	// array's identity: an inline `points` would otherwise re-register on every
 	// render, and each registration re-renders this mark — a loop.
-	const rowsKey = stopRows
-		?.map((row) => `${row.label ?? ''}\u001f${row.detail ?? ''}`)
-		.join('\u001e')
+	//
+	// Memoised on the array itself: a plural mark hands a memoised one, so the
+	// join runs when its content can actually have changed rather than on each of
+	// the pointed-mark crossings that re-render this hook. An inline array is
+	// unchanged by the memo — it rebuilds either way, which is what the content
+	// key is for.
+	const rowsKey = useMemo(
+		() => stopRows?.map((row) => `${row.label ?? ''}\u001f${row.detail ?? ''}`).join('\u001e'),
+		[stopRows],
+	)
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: `stopRows` is keyed by `rowsKey`, its content
 	useEffect(
@@ -270,53 +308,71 @@ export function useMapOverlay({
 				stopsAt,
 				stopRows,
 				activate,
-				covers: cover,
+				spare: budget,
 				stopOf: stopAt,
 			}),
-		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, cover, stopAt],
+		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, budget, stopAt],
 	)
+
+	const track = useCallback(
+		(event: PointerEvent<SVGElement>) => {
+			set({ kind: 'entry', id, stop: stopFrom(event) }, { x: event.clientX, y: event.clientY })
+		},
+		[set, id],
+	)
+
+	// The pointer's route to the reporter the keyboard already reaches through
+	// `pick`: one spelling of the call, so an activation cannot come to mean two
+	// different things depending on which input made it.
+	const clickMark = useCallback((event: MouseEvent<SVGElement>) => pick(stopFrom(event)), [pick])
+
+	// Bubbles, and never prevents default: a wrapping menu still opens, and this
+	// only names which mark it opened over.
+	const menuMark = useCallback(
+		(event: MouseEvent<SVGElement>) => live.current.onContextMenu?.(id, stopFrom(event)),
+		[id],
+	)
+
+	const menuable = onContextMenu !== undefined
 
 	// One handler set per mark, not one per hit shape: each reads its own stop
 	// back off the element it fired on, through the same anchor the scroll-settle
 	// resolve reads. A plural mark draws one shape per dot, so building these per
 	// shape would allocate them by the hundred on every render.
-	const stopFrom = (event: { currentTarget: Element }) =>
-		markAnchorAt(event.currentTarget)?.stop ?? 0
-
-	const track = (event: PointerEvent<SVGElement>) => {
-		set({ kind: 'entry', id, stop: stopFrom(event) }, { x: event.clientX, y: event.clientY })
-	}
-
-	const handlers = {
-		onPointerEnter: track,
-		onPointerMove: track,
-		onClick: pickable
-			? (event: MouseEvent<SVGElement>) => onClick?.(id, stopFrom(event))
-			: undefined,
-		// Bubbles, and never prevents default: a wrapping menu still opens, and this
-		// only names which mark it opened over.
-		onContextMenu:
-			onContextMenu === undefined
-				? undefined
-				: (event: MouseEvent<SVGElement>) => onContextMenu(id, stopFrom(event)),
-	}
+	//
+	// The factory itself is held across renders, which is what lets a plural
+	// mark's dots sit behind a memo — the memo holds, so the dots never call it
+	// again at all. (Each call still returns a fresh object; nothing compares
+	// those.) Both reporters ride the `live` ref for it: a consumer's inline
+	// handler is a fresh identity every render, and what this depends on instead
+	// is whether there is one at all — a boolean a consumer changes by adding or
+	// dropping the prop.
+	const hit = useCallback(
+		(stop = 0) => ({
+			'data-entry-id': id,
+			'data-entry-stop': stop,
+			className: pickable ? k.clickable : undefined,
+			onPointerEnter: track,
+			onPointerMove: track,
+			onClick: pickable ? clickMark : undefined,
+			onContextMenu: menuable ? menuMark : undefined,
+		}),
+		[id, pickable, track, clickMark, menuable, menuMark],
+	)
 
 	return {
 		slot: colors.get(id),
 		hidden: hidden.has(id),
 		project,
-		covered,
+		spare,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,
-		dim: cn(k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
+		// Spread, not passed whole: `cn` memoises on string arguments and sends an
+		// array straight to the merge, and this resolves per mark on every crossing.
+		dim: cn(...k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
 		selected,
 		onPointerLeave: () => set(null, null),
-		hit: (stop = 0) => ({
-			'data-entry-id': id,
-			'data-entry-stop': stop,
-			className: pickable ? k.clickable : undefined,
-			...handlers,
-		}),
+		hit,
 	}
 }

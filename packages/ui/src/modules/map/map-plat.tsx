@@ -1,18 +1,9 @@
 'use client'
 
-import {
-	type ReactNode,
-	startTransition,
-	useCallback,
-	useDeferredValue,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
-import { cn } from '../../core'
-import { useResizeObserver } from '../../hooks'
+import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
+import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { ReducedMotion } from '../../primitives/reduced-motion'
-import { k, type MapSeriesColor } from '../../recipes/kata/map'
+import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import {
@@ -25,8 +16,8 @@ import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
-import { legendItems } from './engine/map-legend/items'
-import { type MapLegendInput, planMapLegend } from './engine/map-legend/plan'
+import { legendItems, overlaySwatchClass } from './engine/map-legend/items'
+import { planMapLegend } from './engine/map-legend/plan'
 import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
@@ -146,24 +137,6 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * @defaultValue false
 		 */
 		sphere?: boolean
-		/**
-		 * Show the legend. Defaults to on when there are two or more categories
-		 * or any registered overlay — the identity channel colour alone must
-		 * never carry. A placement moves the centered row under the plot
-		 * (`'bottom'`) or above it (`'top'`), or a column panel beside it
-		 * (`'left'` / `'right'`), side by side from `lg` and under the map below
-		 * that. `'range'` (numeric mode only) swaps the binned switchboard for a
-		 * continuous colour-scale bar — the heatmap legend — and the object form
-		 * `{ type: 'range', placement }` places that bar explicitly. The range bar
-		 * follows its placement's orientation (vertical beside the plot, horizontal
-		 * above or below) and the chart's tier: it sheds at the spark size and, in a
-		 * box too narrow for a side rail, drops to a horizontal row under the plot.
-		 * The default placement is `'bottom'` for categorical maps and `'right'` for
-		 * the numeric choropleth. Overlay entries register from the client, so they
-		 * join the legend after hydration; the legend's box mounts ahead of them so
-		 * late-landing buttons never resize the map or shift the frame.
-		 */
-		legend?: MapLegendInput
 		/**
 		 * Show the readout naming the pointed region or overlay. It also gates
 		 * keyboard navigation, which the readout is the whole output of: turned
@@ -453,7 +426,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		geography,
 		geographyObject,
 		projection = 'mercator',
-		data,
 		categoryKey,
 		valueKey,
 		colorRange,
@@ -483,6 +455,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		// attributes. The readout takes them off `props` below, so a value bound
 		// here could only shadow it — a default written on one would never reach
 		// the join.
+		data: _data,
 		regionKey: _regionKey,
 		categories: _categories,
 		bins: _bins,
@@ -558,9 +531,19 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// ids a click reports — so the pick a consumer echoes back always rings the
 	// region that produced it. An id naming no feature resolves to nothing
 	// rather than to region 0, the miss `indexOf` would otherwise report as -1.
-	const selectedIndex = selectedRegion == null ? -1 : regionIds.indexOf(selectedRegion)
+	//
+	// Memoised like every sibling derivation here, and for the reason `hasReadout`
+	// below states: this component re-renders on each legend point and leave, each
+	// toggle, each overlay registration, and each resize commit, and the scan is
+	// linear in the atlas. A counties map holding a pick read three thousand ids
+	// on every one of them, against a selection that had not moved.
+	const selected = useMemo(() => {
+		if (selectedRegion == null) return null
 
-	const selected = selectedIndex === -1 ? null : selectedIndex
+		const index = regionIds.indexOf(selectedRegion)
+
+		return index === -1 ? null : index
+	}, [regionIds, selectedRegion])
 
 	const markSelection = useMarkSelection(selectedOverlay)
 
@@ -604,20 +587,28 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[regionCategory, categoryMetas, hidden],
 	)
 
-	// Which ground the drawn zones hold, for the marks over them. Rebuilt only as
-	// the ledger or the legend's toggles change — the predicates themselves are
-	// stable, so a zone redrawn in place keeps this identity and the dots reading
-	// it hold through a refit rather than re-testing every dot per pointer
-	// crossing.
-	// A loop rather than a `some` closure: every dot on the map calls this, and the
-	// callback would be a fresh allocation per call rather than per rebuild.
-	const covered = useCallback(
+	// How much reach the drawn zones leave a mark at a position — the tightest
+	// budget any visible one allows, since a dot overlapping two zones has to
+	// satisfy both. Rebuilt only as the ledger or the legend's toggles change: the
+	// resolvers themselves are stable, so a zone redrawn in place keeps this
+	// identity and the dots reading it hold through a refit rather than
+	// re-measuring per pointer crossing.
+	// A loop rather than a `reduce` closure: every dot on the map calls this, and
+	// the callback would be a fresh allocation per call rather than per rebuild.
+	const spare = useCallback(
 		(at: MapPoint2D) => {
+			// The identity of the minimum, not a size: a map with no zones on it claims
+			// nothing here, and `markTargets` is the one place that knows what a target
+			// caps at.
+			let room = Number.POSITIVE_INFINITY
+
 			for (const entry of entries) {
-				if (entry.covers !== undefined && !hidden.has(entry.id) && entry.covers(at)) return true
+				if (entry.spare === undefined || hidden.has(entry.id)) continue
+
+				room = Math.min(room, entry.spare(at))
 			}
 
-			return false
+			return room
 		},
 		[entries, hidden],
 	)
@@ -629,12 +620,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			colors,
 			order,
 			hidden,
-			covered,
+			spare,
 			emphasis,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[shape.project, register, colors, order, hidden, covered, emphasis, animate, markSelection],
+		[shape.project, register, colors, order, hidden, spare, emphasis, animate, markSelection],
 	)
 
 	const tooltipEntries = useMemo(
@@ -645,9 +636,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					{
 						label: entry.label,
 						swatch: entry.swatch,
-						swatchClass: cn(k.series[colors.get(entry.id) ?? 'blue'].text),
+						swatchClass: overlaySwatchClass(colors, entry.id),
 						detail: entry.detail,
-						kind: entry.kind,
 						stopRows: entry.stopRows,
 					},
 				]),
@@ -697,18 +687,31 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[clickRegion, entries],
 	)
 
-	// Whether anything can read out: a region the rows matched, or a registered
-	// overlay. It reads the join rather than the presence of a `data` array,
-	// because rows that match no region leave exactly the silence no rows do —
-	// the tooltip resolves nothing for an unmatched region, and the
+	// Whether any region reads out. It reads the join rather than the presence of
+	// a `data` array, because rows that match no region leave exactly the silence
+	// no rows do — the tooltip resolves nothing for an unmatched region, and the
 	// pointed-emphasis gate above lights nothing there either. Toggled-off
 	// categories still count: a legend toggle must not take the table or the tab
 	// stop away under the reader. Memoised on the join, so the scan a map with no
 	// match pays in full runs once per readout rather than once per render.
-	const hasReadout = useMemo(
-		() => regionCategory.some((category) => category !== null) || entries.length > 0,
-		[regionCategory, entries],
+	//
+	// The region layer gates on this rather than on the wider reading below, and
+	// must: overlays register from an effect, so a bit that counted them would
+	// read `false` on a backdrop map's first commit and `true` on its next,
+	// failing the layer's memo and re-mapping the whole atlas a second time.
+	const regionsRead = useMemo(
+		() => regionCategory.some((category) => category !== null),
+		[regionCategory],
 	)
+
+	// Whether anything at all can read out — a matched region, or a registered
+	// overlay. The table and the tab stop take this wider reading: a mark's own
+	// row and its keyboard stop are outputs a map with no rows still has.
+	const hasReadout = regionsRead || entries.length > 0
+
+	// `tooltip` asks and `hasReadout` answers; the readout channels all want the
+	// pair. Bound once rather than spelled at each of them.
+	const readable = tooltip && hasReadout
 
 	// The cursor earns a tab stop from either of its two outputs. Gating on the
 	// readout alone would leave `tooltip={false}` with `onRegionClick` — a
@@ -734,34 +737,15 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// one. `tooltip` is a request, and a map with nothing to read out silences on
 	// all three channels — no tooltip, no emphasis, no table — so the prop alone
 	// would hand a backdrop map a stop that answers every key with nothing.
-	const navigable = ((tooltip && hasReadout) || pickable || zoomable) && shape.viewWidth > 0
+	const navigable = (readable || pickable || zoomable) && shape.viewWidth > 0
 
 	const numeric = valueKey !== undefined
 
 	// The range bar's placement follows the chart's tier, so it reads the
 	// container width — not the plot's, which a side bar shrinks, feeding the move
-	// back on itself. A fixed `width` reads deterministically (SSR, tests);
-	// otherwise the observer tracks the container the frame's outer box measures.
-	const containerRef = useRef<HTMLDivElement>(null)
-
-	const [measuredWidth, setMeasuredWidth] = useState(0)
-
-	const measureContainer = useCallback(() => {
-		const el = containerRef.current
-
-		if (!el) return
-
-		const next = Math.round(el.clientWidth)
-
-		// Commit as a transition — the same priority the plot's own refit rides — so
-		// a resize burst coalesces rather than this urgent write preempting and
-		// stranding the refit at an intermediate frame (which would fatten strokes).
-		startTransition(() => setMeasuredWidth((prev) => (prev === next ? prev : next)))
-	}, [])
-
-	useResizeObserver(containerRef, measureContainer)
-
-	const containerWidth = width ?? measuredWidth
+	// back on itself. The heatmap places its own bar by the same reading, so the
+	// measure is one hook.
+	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
 	const {
 		show: showLegend,
@@ -809,6 +793,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							paths={shape.paths}
 							regionCategory={regionCategory}
 							categories={categoryMetas}
+							interactive={regionsRead}
 							hidden={hidden}
 							emphasis={emphasis}
 							animate={animate}
@@ -845,7 +830,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			hasReadout ? (
 				<MapTable
 					header={valueColumnHeader(categoryKey, valueKey, valueName)}
-					regionNames={data === undefined ? [] : regionNames}
+					regionNames={regionNames}
 					regionCategory={regionCategory}
 					regionValues={regionValues}
 					categories={categoryMetas}
@@ -859,7 +844,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			categoryKey,
 			valueKey,
 			valueName,
-			data,
 			regionNames,
 			regionCategory,
 			regionValues,
@@ -899,7 +883,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						svgRef,
 					}}
 					tooltip={
-						tooltip ? (
+						// A backdrop map mounted a Tooltip that resolved `null` for every
+						// region it was ever pointed at.
+						readable ? (
 							<MapTooltip
 								regionNames={regionNames}
 								regionCategory={regionCategory}
@@ -926,7 +912,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				subject: shape.features,
 			}}
 			containerRef={containerRef}
-			tooltip={tooltip}
+			tooltip={readable}
 			regionActive={regionActive}
 			table={deferredTable}
 			width={width}

@@ -5,7 +5,7 @@
  * memoised a layer above (`cache.ts`) rather than re-run per mount.
  */
 
-import { type GeoPermissibleObjects, type GeoProjection, geoCentroid, geoPath } from 'd3-geo'
+import { type GeoProjection, geoCentroid, geoPath } from 'd3-geo'
 import { REGION_PATH_DIGITS } from '../map-constants'
 import type { LngLat, MapFeature } from '../types'
 
@@ -18,9 +18,7 @@ import type { LngLat, MapFeature } from '../types'
 export function regionPaths(features: MapFeature[], projection: GeoProjection): (string | null)[] {
 	const path = geoPath(projection).digits(REGION_PATH_DIGITS)
 
-	return features.map((entry) =>
-		entry.geometry === null ? null : path(entry as GeoPermissibleObjects),
-	)
+	return features.map((entry) => (entry.geometry === null ? null : path(entry.geometry)))
 }
 
 /**
@@ -41,7 +39,7 @@ export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
 	return features.map((entry) => {
 		if (entry.geometry === null) return null
 
-		const [lon, lat] = geoCentroid(entry as GeoPermissibleObjects)
+		const [lon, lat] = geoCentroid(entry.geometry)
 
 		// A degenerate feature — empty rings, or rings that cancel — centres on
 		// NaN; drop it rather than let the cursor step onto a point that projects

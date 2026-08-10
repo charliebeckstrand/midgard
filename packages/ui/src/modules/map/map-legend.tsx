@@ -2,11 +2,12 @@
 
 import { type KeyboardEvent, useRef } from 'react'
 import { Button } from '../../components/button'
-import { Swatch, type SwatchProps } from '../../components/swatch'
+import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
 import type { MapLegendItem } from './engine/map-legend/items'
+import { mapSwatchShapes } from './map-swatch'
 
 /** Props for {@link MapLegend}. @internal */
 export type MapLegendProps = {
@@ -23,12 +24,6 @@ export type MapLegendProps = {
 	 */
 	panel?: boolean
 }
-
-/** Maps a mark shape to its {@link Swatch} shape. */
-const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const satisfies Record<
-	MapLegendItem['swatch'],
-	NonNullable<SwatchProps['shape']>
->
 
 /**
  * The map's legend — one switchboard merging the region categories with every
@@ -97,7 +92,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 						onBlur={() => onFocus(null)}
 					>
 						<Swatch
-							shape={SWATCH_SHAPE[item.swatch]}
+							shape={mapSwatchShapes[item.swatch]}
 							color={item.swatchClass}
 							style={item.swatchColor ? { color: item.swatchColor } : undefined}
 							className={cn(off && 'opacity-40')}

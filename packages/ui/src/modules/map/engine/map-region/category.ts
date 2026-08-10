@@ -7,6 +7,7 @@
  * unchanged.
  */
 
+import { cn } from '../../../../core'
 import { k, type MapSeriesColor } from '../../../../recipes/kata/map'
 import type { DataKey, MapCategory } from '../types'
 
@@ -17,6 +18,10 @@ import type { DataKey, MapCategory } from '../types'
  * choropleth bin carries a single CSS `color` value from the consumer's
  * `colorRange`, applied as the region's `fill` attribute / the swatch's inline colour.
  *
+ * The three projections below it are the map's half of what `chart-color/paint`
+ * names for the union it mirrors from here. Without them every reader spelled
+ * the discriminant itself, and two of them spelled it identically.
+ *
  * @internal
  */
 export type MapReadoutPaint =
@@ -24,17 +29,51 @@ export type MapReadoutPaint =
 	| { kind: 'value'; color: string }
 
 /**
+ * The region fill a paint carries as a class, `undefined` for a bin — whose
+ * colour is a value the consumer's `colorRange` produced and can only ride the
+ * `fill` attribute.
+ *
+ * The raw list rather than a joined string, unlike the two below it: its one
+ * reader spreads it into a wider `cn` alongside the layer's own tokens.
+ *
+ * @internal
+ */
+export function paintFill(paint: MapReadoutPaint): string[] | undefined {
+	return paint.kind === 'class' ? paint.fill : undefined
+}
+
+/**
+ * The currentColor class a swatch reads a paint through, joined; `undefined`
+ * for a bin, which paints through {@link paintColor} instead.
+ *
+ * @internal
+ */
+export function paintText(paint: MapReadoutPaint): string | undefined {
+	return paint.kind === 'class' ? cn(...paint.text) : undefined
+}
+
+/**
+ * A bin's own CSS colour, `undefined` for a categorical slot. It is an
+ * arbitrary value out of the consumer's ramp, so it can never become a class:
+ * every reader of it passes it as an inline style beside the class channel.
+ *
+ * @internal
+ */
+export function paintColor(paint: MapReadoutPaint): string | undefined {
+	return paint.kind === 'value' ? paint.color : undefined
+}
+
+/**
  * One resolved category or bin: its match value, display label, and readout
- * paint. `color` names the source slot for a categorical entry; a numeric bin
- * omits it (its colour is a data-driven value in `paint`). The render path
- * reads only `paint` and `label`.
+ * paint. The slot a categorical entry took is spent building that paint and
+ * kept nowhere: nothing downstream asks which slot a category drew from, only
+ * what it paints and what it is called.
  *
  * @internal
  */
 export type MapCategoryMeta = {
 	value: string
 	label: string
-	color?: MapSeriesColor
 	paint: MapReadoutPaint
 }
 
@@ -108,7 +147,6 @@ export function resolveCategories<T>(
 		return {
 			value: entry.value,
 			label: entry.label ?? entry.value,
-			color,
 			paint: { kind: 'class', fill: k.series[color].fill, text: k.series[color].text },
 		}
 	})

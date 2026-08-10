@@ -16,20 +16,21 @@ import type { MapAspectRatio, MapProjection } from '../types'
  * States, so its frame holds the US ratio through a lazy load and never shifts
  * height. The world projections (`mercator`, `equal-earth`) and a passed
  * instance frame arbitrary geography, so they have none — the caller falls back
- * to the generic {@link DEFAULT_MAP_ASPECT}.
+ * to the generic {@link DEFAULT_MAP_ASPECT}. An unstated projection answers the
+ * same way, so a caller holding an optional one needs no guard of its own.
  *
  * @internal
  */
-export function projectionFallbackAspect(spec: MapProjection): number | null {
+export function projectionFallbackAspect(spec: MapProjection | undefined): number | null {
 	return spec === 'albers-usa' ? ALBERS_USA_ASPECT : null
 }
 
 /**
  * Resolves the map frame's sizing policy, the chart contract with an `'auto'`
  * branch: an explicit `height` always wins as a fixed pixel box; `'auto'`
- * derives from the geography's own projected ratio (from
- * `mapAutoAspect` (`fit.ts`), with a wide fallback when there is nothing to
- * measure), so it never falls through to `fill`; a numeric or `"w/h"` ratio
+ * derives from the geography's own projected ratio (`canonicalFit`'s `aspect`
+ * (`fit.ts`), with a wide fallback when there is nothing to measure), so it
+ * never falls through to `fill`; a numeric or `"w/h"` ratio
  * reserves that; `false` leaves the frame free-form to fill its container.
  *
  * @internal

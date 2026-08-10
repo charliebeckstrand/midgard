@@ -103,9 +103,11 @@ function walk(node: unknown, box: MapBounds): void {
  * @internal
  */
 export function featureBounds(shape: MapFeature): MapBounds | null {
-	const geometry = shape.geometry as { coordinates?: unknown } | null
+	const geometry = shape.geometry
 
-	if (geometry?.coordinates === undefined) return null
+	// A sphere and a geometry collection carry no coordinates of their own, and
+	// neither bounds to anything a placement could read.
+	if (geometry === null || !('coordinates' in geometry)) return null
 
 	const box: MapBounds = {
 		west: Number.POSITIVE_INFINITY,
@@ -235,7 +237,9 @@ export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngL
 		for (const region of candidates) {
 			if (!within(index.bounds[region] ?? null, at)) continue
 
-			if (geoContains(features[region] as Parameters<typeof geoContains>[0], at)) return region
+			const geometry = features[region]?.geometry
+
+			if (geometry != null && geoContains(geometry, at)) return region
 		}
 
 		return -1

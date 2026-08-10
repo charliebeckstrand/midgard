@@ -6,7 +6,35 @@
  * has to have one definition.
  */
 
+import { isRangeLegend, type MapLegendInput, type MapRangeLegendInput } from '../map-legend/plan'
 import type { DataKey, MapCategory } from '../types'
+
+/**
+ * Show the legend. Defaults to on when there are two or more categories or any
+ * registered overlay — the identity channel colour alone must never carry. A
+ * placement moves the centered row under the plot (`'bottom'`) or above it
+ * (`'top'`), or a column panel beside it (`'left'` / `'right'`), side by side
+ * from `lg` and under the map below that. The default placement is `'bottom'`
+ * for categorical maps and `'right'` for the numeric choropleth.
+ *
+ * Overlay entries register from the client, so they join the legend after
+ * hydration; the legend's box mounts ahead of them so late-landing buttons
+ * never resize the map or shift the frame.
+ *
+ * The continuous range bar is the numeric branch's own form and is absent here:
+ * a scale bar with no scale behind it has nothing to paint, and the resolver
+ * drops the request and draws the binned switchboard instead. It is stated in
+ * the type so the request cannot be made rather than quietly ignored.
+ *
+ * Subtracted from {@link MapLegendInput} by the very type {@link isRangeLegend}
+ * narrows to, so a form added to the prop later reaches all three branches, or
+ * is refused here, without either side being re-listed by hand.
+ *
+ * @internal
+ */
+type MapSwitchboardLegend = {
+	legend?: Exclude<MapLegendInput, MapRangeLegendInput>
+}
 
 /** The rows and the field that matches each to a region; shared by both colour modes. @internal */
 type MapRegionRows<T> = {
@@ -29,7 +57,8 @@ type MapNumericAbsent = {
 
 /** Regions coloured by a categorical field, its slot colours resolved in a fixed order. @internal */
 type MapCategoricalData<T> = MapRegionRows<T> &
-	MapNumericAbsent & {
+	MapNumericAbsent &
+	MapSwitchboardLegend & {
 		/** The field holding the row's category value. */
 		categoryKey: DataKey<T>
 		/**
@@ -66,22 +95,41 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	valueFormat?: (value: number) => string
 	/** The value's display name; the table's value-column header. */
 	valueName?: string
+	/**
+	 * Show the legend, in any form — this is the branch that carries a scale, so
+	 * it is the branch that can paint one. Beyond the switchboard's boolean and
+	 * placement, `'range'` swaps the binned switchboard for a continuous
+	 * colour-scale bar — the heatmap legend — and the object form
+	 * `{ type: 'range', placement }` places that bar explicitly. The bar follows
+	 * its placement's orientation (vertical beside the plot, horizontal above or
+	 * below) and the chart's tier: it sheds at the spark size and, in a box too
+	 * narrow for a side rail, drops to a horizontal row under the plot.
+	 *
+	 * @see the switchboard forms on the other two branches for what a legend
+	 * shows by default and when it shows at all.
+	 */
+	legend?: MapLegendInput
 	categoryKey?: undefined
 	categories?: undefined
 }
 
 /** A data-less map: it draws its geography in the neutral fill as a backdrop for overlays. @internal */
-type MapNoData = MapNumericAbsent & {
-	data?: undefined
-	regionKey?: undefined
-	categoryKey?: undefined
-	categories?: undefined
-}
+type MapNoData = MapNumericAbsent &
+	MapSwitchboardLegend & {
+		data?: undefined
+		regionKey?: undefined
+		categoryKey?: undefined
+		categories?: undefined
+	}
 
 /**
  * The region-data the map colours by: a categorical field, a numeric field (a
  * choropleth), or nothing. The category and value keys are mutually exclusive;
  * each mode's fields travel together or not at all.
+ *
+ * `legend` rides the union rather than the props around it because one of its
+ * forms is a mode: the continuous range bar paints a scale, and only the
+ * numeric branch has one.
  *
  * @internal
  */
@@ -117,13 +165,19 @@ export function numericRegionData<T>(fields: MapNumericInput<T>): MapRegionData<
 	// fields that came in, because a partial numeric object is exactly what the
 	// union exists to refuse; nothing reads differently for it, since rows with
 	// no `regionKey` to join on already resolve neutral (`useMapRegionReadout`).
+	//
+	// The legend crosses, because a placement is a layout the caller asked for
+	// and holds whether a scale landed or not. Only its range form is dropped:
+	// that form paints the scale this branch does not have, and the resolver was
+	// already dropping it — this is the same silence, one layer earlier, where it
+	// keeps the returned object inside a branch of the union.
 	if (
 		data === undefined ||
 		regionKey === undefined ||
 		valueKey === undefined ||
 		colorRange === undefined
 	) {
-		return {}
+		return { legend: isRangeLegend(fields.legend) ? undefined : fields.legend }
 	}
 
 	return { ...fields, data, regionKey, valueKey, colorRange }

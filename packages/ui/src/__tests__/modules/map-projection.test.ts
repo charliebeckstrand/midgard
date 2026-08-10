@@ -7,7 +7,6 @@ import {
 } from '../../modules/map/engine/map-projection/aspect'
 import {
 	canonicalFit,
-	mapAutoAspect,
 	measuredMapFit,
 	scaleCanonicalFit,
 } from '../../modules/map/engine/map-projection/fit'
@@ -137,8 +136,8 @@ describe('scaleCanonicalFit', () => {
 			expect(y0 + y1).toBeCloseTo(height, 0)
 
 			// And it lands where a direct fitSize would, within the sub-percent
-			// margin of d3's adaptive resampling — fitSize measures bounds at its
-			// probe scale, the canonical fit at drawing scale.
+			// margin of d3's adaptive resampling, which refines each pass's curves
+			// at the scale that pass runs at.
 			const direct = fitMapProjection(spec, features, width, height)
 
 			expect(Math.abs(derived.scale() / direct.scale() - 1)).toBeLessThan(0.01)
@@ -217,9 +216,9 @@ describe('measuredMapFit', () => {
 	})
 })
 
-describe('mapAutoAspect', () => {
+describe('canonicalFit · the reserved aspect', () => {
 	it('measures the projected width / height ratio', () => {
-		const aspect = mapAutoAspect('mercator', FEATURES)
+		const aspect = canonicalFit('mercator', FEATURES)?.aspect
 
 		// 30° wide by 10° tall near the equator: roughly 3:1 under mercator.
 		expect(aspect).toBeGreaterThan(2.5)
@@ -228,7 +227,7 @@ describe('mapAutoAspect', () => {
 	})
 
 	it('is null with no features to measure', () => {
-		expect(mapAutoAspect('mercator', [])).toBeNull()
+		expect(canonicalFit('mercator', [])).toBeNull()
 	})
 })
 

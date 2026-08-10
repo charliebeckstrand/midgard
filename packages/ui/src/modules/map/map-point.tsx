@@ -2,7 +2,7 @@
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { fineMarks } from './engine/map-cluster/crowd'
+import { markTargets } from './engine/map-cluster/crowd'
 import { POINT_RADIUS } from './engine/map-constants'
 import { pointPop } from './engine/map-motion'
 import type { LngLat } from './engine/types'
@@ -26,11 +26,12 @@ export type MapPointProps = MapOverlayProps & {
  * cursor picks the point with Enter or Space; the plat's `selectedOverlay`
  * haloes the dot for as long as it names this mark.
  *
- * That circle is a finger-sized target, and for a mouse it narrows to the drawn
- * dot while the point stands on a {@link MapGeofence} the map is drawing — so the
- * zone under it keeps its own face pointable. Toggle that zone off in the legend
- * and the point has its ground to itself again, so the target goes back to the
- * full size.
+ * That circle is a finger-sized target, and for a mouse it narrows to what the
+ * ground under it can spare while the point stands on a {@link MapGeofence} the
+ * map is drawing — half the room that zone holds, so the zone keeps a band of its
+ * own face pointable and a zone wide enough to spare the whole target gives the
+ * whole target. Toggle the zone off in the legend and the point has its ground to
+ * itself again, so the target goes back to the full size.
  *
  * @remarks Renders only inside {@link MapPlat}, and renders nothing when the
  * projection has no image for its position (the US composite drops points
@@ -44,7 +45,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		slot,
 		hidden,
 		project,
-		covered,
+		spare,
 		unitsPerPixel,
 		animate,
 		order,
@@ -74,7 +75,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 					slot="map-point"
 					at={position}
 					radius={POINT_RADIUS}
-					className={cn(k.series[slot].stroke)}
+					className={cn(...k.series[slot].stroke)}
 					animate={animate}
 					transition={pointPop(order)}
 				/>
@@ -85,14 +86,11 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 						at: position,
 						hit: hit(),
 						scale: unitsPerPixel,
-						radius: POINT_RADIUS,
 						// The shared rule, through the one dot this mark draws. A lone dot has
 						// no neighbour of its own, so a zone under it is what can answer — but
-						// the rule stays in one place, and a third reason to give the ground
-						// back would reach this mark without it being edited.
-						fine:
-							fineMarks([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, covered)[0] ===
-							true,
+						// the rule stays in one place, and a third claim on the ground would
+						// reach this mark without it being edited.
+						target: markTargets([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, spare)[0],
 					})}
 				/>
 			</g>

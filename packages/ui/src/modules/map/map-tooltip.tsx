@@ -1,6 +1,6 @@
 'use client'
 
-import { Swatch, type SwatchProps } from '../../components/swatch'
+import { Swatch } from '../../components/swatch'
 import { TooltipPointer } from '../../components/tooltip/tooltip-pointer'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
@@ -8,8 +8,22 @@ import { useMapHoverState } from './context'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import { markReadout } from './engine/map-overlay/readout'
-import { categoryLegendId, type MapCategoryMeta } from './engine/map-region/category'
+import {
+	categoryLegendId,
+	type MapCategoryMeta,
+	paintColor,
+	paintText,
+} from './engine/map-region/category'
 import type { MapSwatchShape } from './engine/types'
+import { mapSwatchShapes } from './map-swatch'
+
+/**
+ * The readout value's ink. Resolved once at module scope: it takes no dynamic
+ * input, and this file re-renders on every pointer move the map answers.
+ *
+ * @internal
+ */
+const VALUE_INK = cn(...k.value)
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
@@ -18,8 +32,6 @@ export type MapTooltipEntry = {
 	/** currentColor class carrying the entry's colour. */
 	swatchClass: string
 	detail?: string
-	/** The mark kind, the value a mark with no detail anywhere falls back to. */
-	kind: string
 	/** Per-dot readouts for a plural mark; absent on a singular one. */
 	stopRows?: MapStopRow[]
 }
@@ -51,12 +63,6 @@ type MapTooltipContent = {
 		text: string
 	}
 }
-
-/** Maps a mark shape to its {@link Swatch} shape. */
-const SWATCH_SHAPE = { rect: 'square', line: 'line', dot: 'circle' } as const satisfies Record<
-	MapSwatchShape,
-	NonNullable<SwatchProps['shape']>
->
 
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
@@ -96,7 +102,8 @@ function resolve(
 		title: regionNames[target.index] ?? '',
 		row: {
 			swatch: 'rect',
-			...(paint.kind === 'value' ? { swatchColor: paint.color } : { swatchClass: cn(paint.text) }),
+			swatchClass: paintText(paint),
+			swatchColor: paintColor(paint),
 			// A region's own value in numeric mode (its bin only drives the colour);
 			// the category label otherwise.
 			text: regionValues[target.index] ?? meta.label,
@@ -133,20 +140,20 @@ export function MapTooltip(props: MapTooltipProps) {
 		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{content && (
 				<div aria-hidden="true">
-					<div className={cn(k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
+					<div className={cn(...k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
 						{content.title}
 					</div>
 
 					{content.row && (
 						<div className="flex items-center gap-1.5 whitespace-nowrap">
 							<Swatch
-								shape={SWATCH_SHAPE[content.row.swatch]}
+								shape={mapSwatchShapes[content.row.swatch]}
 								size="sm"
 								color={content.row.swatchClass}
 								style={content.row.swatchColor ? { color: content.row.swatchColor } : undefined}
 							/>
 
-							<span className={cn(k.value)}>{content.row.text}</span>
+							<span className={VALUE_INK}>{content.row.text}</span>
 						</div>
 					)}
 				</div>

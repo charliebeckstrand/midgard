@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { crowdedMarks, type MapDotMark } from '../../modules/map/engine/map-cluster/crowd'
+import {
+	type MapDotMark,
+	markTargets,
+	neighbourRoom,
+} from '../../modules/map/engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
 import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
 import { clusterRadius, MAX_CLUSTER_RADIUS } from '../../modules/map/engine/map-cluster/radius'
-import { POINT_RADIUS } from '../../modules/map/engine/map-constants'
+import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import type { LngLat, MapPoint2D } from '../../modules/map/engine/types'
 
 /** One frame unit per degree, so a reach reads straight off the coordinates. */
@@ -223,29 +227,35 @@ describe('groupsByMember', () => {
 	})
 })
 
-/**
- * Which drawn dots have a neighbour close enough that a finger-sized target over
- * one would cover the face of the other. Clustering has already merged the marks
- * that draw over one another; this asks the wider question the hit targets read,
- * so a pair a zoom has just parted stays separately aimable.
- */
-describe('crowdedMarks', () => {
-	/** A dot of the default size at one frame position. */
-	const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS })
+/** A dot of the default size at one frame position. */
+const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS })
 
-	it('reads a dot with a neighbour inside the coarse reach as crowded', () => {
-		// The gap a zoom leaves the moment a summary parts: well inside 44px.
-		expect(crowdedMarks([dot(0), dot(15)])).toEqual([true, true])
+/**
+ * How much reach the nearest neighbour leaves each drawn dot. Clustering has
+ * already merged the marks that draw over one another; this asks the wider
+ * question the hit targets read, so a pair a zoom has just parted stays
+ * separately aimable.
+ *
+ * A dot with no neighbour inside its reach answers `Infinity` rather than the
+ * finger target: this pass states a claim on the ground, and `markTargets` is the
+ * one place that knows what a target caps at.
+ */
+describe('neighbourRoom', () => {
+	it('leaves a dot only the gap to a neighbour inside the coarse reach', () => {
+		// The gap a zoom leaves the moment a summary parts: well inside 44px. Each
+		// dot reaches to the other's face and stops — 15px between the centres, less
+		// the 5.5px the neighbour paints.
+		expect(neighbourRoom([dot(0), dot(15)])).toEqual([9.5, 9.5])
 	})
 
-	it('leaves dots standing clear of one another on the whole target', () => {
+	it('claims nothing of dots standing clear of one another', () => {
 		// Past the reach plus the neighbour's own radius, so neither covers the face
-		// of the other and each keeps every pixel a finger needs.
-		expect(crowdedMarks([dot(0), dot(40)])).toEqual([false, false])
+		// of the other and neither has anything to say about the other's target.
+		expect(neighbourRoom([dot(0), dot(40)])).toEqual([Infinity, Infinity])
 	})
 
 	it('answers for each dot rather than for the set', () => {
-		expect(crowdedMarks([dot(0), dot(15), dot(400)])).toEqual([true, true, false])
+		expect(neighbourRoom([dot(0), dot(15), dot(400)])).toEqual([9.5, 9.5, Infinity])
 	})
 
 	it('measures the neighbour’s own width, so a summary reaches further than a dot', () => {
@@ -254,22 +264,74 @@ describe('crowdedMarks', () => {
 		// 30px apart: the summary's face reaches inside the dot's target, while the
 		// dot's own face stays clear of the summary's. Each answers for what it
 		// would swallow, not for what would swallow it.
-		expect(crowdedMarks([dot(0), summary])).toEqual([true, false])
+		expect(neighbourRoom([dot(0), summary])).toEqual([30 - MAX_CLUSTER_RADIUS, Infinity])
 	})
 
 	it('holds every reach in device pixels through a zoom', () => {
 		// Under the transform one device pixel spans two frame units, so the pair a
 		// zoom has carried 30 frame units apart still draws 15px apart on screen.
-		expect(crowdedMarks([dot(0), dot(30)], 2)).toEqual([true, true])
+		expect(neighbourRoom([dot(0), dot(30)], 2)).toEqual([9.5, 9.5])
 	})
 
 	it('crowds nothing with a dot the projection dropped', () => {
-		expect(crowdedMarks([{ at: null, radius: POINT_RADIUS }, dot(1)])).toEqual([false, false])
+		expect(neighbourRoom([{ at: null, radius: POINT_RADIUS }, dot(1)])).toEqual([
+			Infinity,
+			Infinity,
+		])
 	})
 
 	it('leaves a lone dot alone', () => {
-		expect(crowdedMarks([dot(0)])).toEqual([false])
+		expect(neighbourRoom([dot(0)])).toEqual([Infinity])
 
-		expect(crowdedMarks([])).toEqual([])
+		expect(neighbourRoom([])).toEqual([])
+	})
+})
+
+/**
+ * The one rule every dot-shaped mark sizes its pointer target by. Two claims on
+ * the ground under a dot arrive as the same measure — a reach in device pixels —
+ * so the join is their minimum, floored at what the dot paints and capped at the
+ * reach a finger takes.
+ */
+describe('markTargets', () => {
+	/** A zone that spares every dot the same room, whatever the position. */
+	const spares = (room: number) => () => room
+
+	/** The plat's answer where no zone is drawn at all — the identity of its fold. */
+	const open = spares(Number.POSITIVE_INFINITY)
+
+	it('keeps the whole target where nothing claims the ground', () => {
+		// Both claims arrive unbounded, so the cap is the only thing left to answer —
+		// which is what says the cap lives here and nowhere below.
+		expect(markTargets([dot(0)], 1, open)).toEqual([POINT_HIT_RADIUS])
+	})
+
+	it('takes the tighter of the zone’s budget and the neighbour’s gap', () => {
+		// The neighbour leaves 9.5px and the zone spares 14px, so the neighbour
+		// decides — and the reverse pairing proves the minimum runs both ways.
+		expect(markTargets([dot(0), dot(15)], 1, spares(14))).toEqual([9.5, 9.5])
+
+		expect(markTargets([dot(0), dot(15)], 1, spares(4))).toEqual([5.5, 5.5])
+	})
+
+	it('floors the target at the radius the dot draws', () => {
+		// A zone smaller than the mark on it would leave the dot a dead rim, so the
+		// zone gives way: a dot no one can point at reports nothing at all.
+		const summary: MapDotMark = { at: { x: 0, y: 0 }, radius: MAX_CLUSTER_RADIUS }
+
+		expect(markTargets([summary], 1, spares(2))).toEqual([MAX_CLUSTER_RADIUS])
+	})
+
+	it('caps the target at the reach a finger takes', () => {
+		// A wide-open zone hands back more room than a target ever needs.
+		expect(markTargets([dot(0)], 1, spares(400))).toEqual([POINT_HIT_RADIUS])
+	})
+
+	it('gives a dot the projection dropped the whole target, unmeasured', () => {
+		// It draws nothing and stands nowhere, so no zone and no neighbour can be
+		// asked about it.
+		expect(markTargets([{ at: null, radius: POINT_RADIUS }], 1, spares(2))).toEqual([
+			POINT_HIT_RADIUS,
+		])
 	})
 })

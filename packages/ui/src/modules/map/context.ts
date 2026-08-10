@@ -107,18 +107,20 @@ export type MapPlatContextValue = {
 	/** Legend ids toggled off; a hidden overlay unmounts its marks. */
 	hidden: ReadonlySet<string>
 	/**
-	 * Whether a drawn zone's face holds a frame position — any registered mark
-	 * that covers ground and is not toggled off. A dot reads it to decide how much
-	 * of its own target to give back: the ground under it belongs to something
-	 * else, or it does not.
+	 * How much reach the drawn zones leave a mark at a frame position, in device
+	 * pixels — the tightest budget any registered zone the legend still shows will
+	 * allow, since a dot standing over two of them has to satisfy both. `Infinity`
+	 * where no zone claims that ground, which `markTargets` caps: this layer states
+	 * the claim and never the size a target settles at. A dot reads it to size its
+	 * own target.
 	 *
 	 * Resolved here rather than by each dot, because the question is about the
 	 * plat's whole ledger and the answer changes with the legend. It reads the
 	 * geometry the zones' last render left, so a zone whose ground changes without
 	 * a refit moves the targets under it on the next render of the marks — see
-	 * {@link MapOverlayEntry.covers} for why the predicate is stable.
+	 * {@link MapOverlayEntry.spare} for why the resolver is stable.
 	 */
-	covered: (at: MapPoint2D) => boolean
+	spare: (at: MapPoint2D) => number
 	/** The legend id under emphasis; marks outside its group dim. */
 	emphasis: string | null
 	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */

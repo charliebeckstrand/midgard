@@ -37,7 +37,7 @@ import {
 	regionsMeeting,
 } from '../map-geometry/locate'
 import { rewindFeatures } from '../map-geometry/winding'
-import type { LngLat, MapFeature, MapFeatureCollection } from '../types'
+import type { MapFeature, MapFeatureCollection } from '../types'
 
 /**
  * The groups a territory lands in — the states a set of covered codes covers.
@@ -77,7 +77,9 @@ export function coverageGroups(
 		// are measured at all.
 		const [wound = shape] = rewindFeatures([shape])
 
-		const at = geoCentroid(wound as Parameters<typeof geoCentroid>[0]) as LngLat
+		if (wound.geometry === null) continue
+
+		const at = geoCentroid(wound.geometry)
 
 		if (!Number.isFinite(at[0]) || !Number.isFinite(at[1])) continue
 

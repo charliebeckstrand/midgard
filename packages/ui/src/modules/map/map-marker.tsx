@@ -1,16 +1,16 @@
 'use client'
 
-import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { fineMarks } from './engine/map-cluster/crowd'
-import { PIN_RADIUS, ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from './engine/map-constants'
+import { markTargets } from './engine/map-cluster/crowd'
+import { PIN_RADIUS, ROUTE_STROKE_WIDTH } from './engine/map-constants'
 import { lineAnchor, linePath } from './engine/map-geometry/mark'
 import { MARKER_DRAW, MARKER_END_POP, POINT_POP } from './engine/map-motion'
 import type { LngLat } from './engine/types'
 import { dotHitProps, MapDot } from './map-dot'
 import { MapDotHalo, MapHalo } from './map-halo'
+import { lineHitProps, MapLine } from './map-line'
 import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** Props for {@link MapMarker}. */
@@ -58,7 +58,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		slot,
 		hidden,
 		project,
-		covered,
+		spare,
 		unitsPerPixel,
 		animate,
 		dim,
@@ -89,29 +89,19 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// end covering the other would take that pin's readout with it. Resolved below
 	// the guard, so a marker the legend has toggled off pays nothing on the pointer
 	// crossings that still re-render it.
-	const [fineStart = false, fineEnd = false] = fineMarks(
+	const [startTarget, endTarget] = markTargets(
 		[
 			{ at: from, radius: PIN_RADIUS },
 			{ at: to, radius: PIN_RADIUS },
 		],
 		unitsPerPixel,
-		covered,
+		spare,
 	)
 
 	const paint = k.series[slot]
 
-	const connector = d !== '' && {
-		'data-slot': 'map-marker-path',
-		d,
-		fill: 'none',
-		strokeWidth: ROUTE_STROKE_WIDTH,
-		strokeLinecap: 'round' as const,
-		strokeLinejoin: 'round' as const,
-		// Width in device pixels, as the region borders: a resize whose refit
-		// lands late scales the geometry but must not thicken the line with it.
-		vectorEffect: 'non-scaling-stroke' as const,
-		className: cn(paint.stroke),
-	}
+	// Joined once: the three shapes below all draw in it.
+	const stroke = cn(...paint.stroke)
 
 	return (
 		<>
@@ -129,24 +119,22 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 			)}
 
 			<g data-slot="map-marker" className={dim} onPointerLeave={onPointerLeave}>
-				{connector &&
-					(animate ? (
-						<motion.path
-							{...connector}
-							initial={{ pathLength: 0 }}
-							animate={{ pathLength: 1 }}
-							transition={MARKER_DRAW}
-						/>
-					) : (
-						<path {...connector} />
-					))}
+				{d !== '' && (
+					<MapLine
+						slot="map-marker-path"
+						d={d}
+						className={stroke}
+						animate={animate}
+						transition={MARKER_DRAW}
+					/>
+				)}
 
 				{from && (
 					<MapDot
 						slot="map-marker-start"
 						at={from}
 						radius={PIN_RADIUS}
-						className={cn(paint.stroke)}
+						className={stroke}
 						animate={animate}
 						transition={POINT_POP}
 					/>
@@ -157,27 +145,13 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 						slot="map-marker-end"
 						at={to}
 						radius={PIN_RADIUS}
-						className={cn(paint.stroke)}
+						className={stroke}
 						animate={animate}
 						transition={MARKER_END_POP}
 					/>
 				)}
 
-				{d !== '' && (
-					<path
-						data-slot="map-marker-hit"
-						d={d}
-						fill="none"
-						stroke="transparent"
-						strokeWidth={ROUTE_HIT_WIDTH}
-						// The band is a finger's width in device pixels, so it rides the
-						// same non-scaling stroke the connector does: a zoom must widen the
-						// ground it covers, never the target itself.
-						vectorEffect="non-scaling-stroke"
-						pointerEvents="stroke"
-						{...hit()}
-					/>
-				)}
+				{d !== '' && <path {...lineHitProps({ slot: 'map-marker-hit', d, hit: hit() })} />}
 
 				{from && (
 					<circle
@@ -186,8 +160,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							at: from,
 							hit: hit(),
 							scale: unitsPerPixel,
-							radius: PIN_RADIUS,
-							fine: fineStart,
+							target: startTarget,
 						})}
 					/>
 				)}
@@ -199,8 +172,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 							at: to,
 							hit: hit(),
 							scale: unitsPerPixel,
-							radius: PIN_RADIUS,
-							fine: fineEnd,
+							target: endTarget,
 						})}
 					/>
 				)}

@@ -53,8 +53,13 @@ export type MapOverlayEntry = {
 	 * A getter rather than a value, and stable across renders, so a mark that
 	 * moves — a route whose geometry lands from the network — needs no
 	 * re-registration, and an inline `at={[lon, lat]}` never churns the ledger.
+	 *
+	 * Required, like the sibling `stopOf`: one hook registers every mark on the
+	 * map and it always passes this, so an optional field only bought the reader
+	 * a fallback for a mark that cannot exist. A mark with no geometry yet
+	 * answers with the empty list.
 	 */
-	stopsAt?: () => LngLat[]
+	stopsAt: () => LngLat[]
 	/**
 	 * What each of this mark's stops reads out, where that differs from the mark's
 	 * own `label` and `detail` — a plural mark's dots, each naming its own stop.
@@ -74,17 +79,26 @@ export type MapOverlayEntry = {
 	 */
 	activate?: (stop: number) => void
 	/**
-	 * Whether this mark's own face holds a frame position — the ground it answers
-	 * the pointer over. Registered by the area-shaped marks alone, so its presence
-	 * is the question a dot asks of the ledger: a mark that covers no ground is
-	 * nothing for a dot to give pixels back to.
+	 * The reach, in device pixels, a dot at this frame position may take before it
+	 * starts eating ground this mark needs to stay pointable — `Infinity` where the
+	 * dot competes with nothing here, the identity of the minimum the plat folds
+	 * these into. Registered by the area-shaped marks alone, which spares the plat
+	 * a call per dot for every mark that holds no ground; absence and a claim of
+	 * `Infinity` are the same answer, so the gate is a cost the ledger declines to
+	 * pay rather than a distinction the rule reads.
+	 *
+	 * A measure rather than a membership, because the question a dot is really
+	 * asking is how much room it has, and the in-or-out form could not answer it
+	 * at the boundary — which is exactly where a zone drawn through its own marks
+	 * puts them. A ray cast at a vertex is decided by the ring's winding and its
+	 * concavity, so four corners of one zone answered four different ways.
 	 *
 	 * Stable like {@link stopsAt}, and reading the mark's live geometry, so a zone
 	 * that moves or is redrawn never re-registers — the ledger's every write
-	 * re-sorts it and re-renders the legend, which a coverage field typed into
-	 * would otherwise pay on each keystroke.
+	 * re-sorts it and re-renders the legend, which a field typed into would
+	 * otherwise pay on each keystroke.
 	 */
-	covers?: (at: MapPoint2D) => boolean
+	spare?: (at: MapPoint2D) => number
 	/**
 	 * Which drawn stop holds an index the mark reported — the two part on a
 	 * {@link MapPoints}, whose clicks name a dot in the caller's own points while

@@ -3,6 +3,7 @@
 import { type RefObject, useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../hooks'
 import {
+	cachedCanonicalPaths,
 	cachedChromePaths,
 	measuredRegionPaths,
 	staticMapGeometry,
@@ -19,8 +20,16 @@ import type {
 	MapProjection,
 } from './engine/types'
 
-/** What {@link useMapShape} resolves: the reserved box, the active draw frame, and its geometry. @internal */
-export type MapShape = {
+/**
+ * What {@link useMapShape} resolves: the reserved box, the active draw frame, and
+ * its geometry. Named for the frame rather than for the hook, because the module
+ * already has a `MapShape` — `engine/types`' pre-decode shape identity — and one
+ * name over two unrelated types made the import path the only way to tell which
+ * a reader had.
+ *
+ * @internal
+ */
+export type MapFrameShape = {
 	ref: RefObject<HTMLDivElement | null>
 	/** The plot box's drawing height in px (`0` until measured); the reserve holds the space meanwhile. */
 	boxHeight: number
@@ -47,7 +56,7 @@ export type MapShape = {
  *
  * @internal
  */
-export type MapShapeOptions = {
+export type MapFrameShapeOptions = {
 	geography: MapGeography | null | undefined
 	geographyObject: string | undefined
 	projection: MapProjection
@@ -88,9 +97,9 @@ export function useMapShape({
 	deferPaint,
 	graticule,
 	sphere,
-}: MapShapeOptions): MapShape {
-	// The mount-critical geometry — decode, the measurement-free canonical fit,
-	// and its region paths — memoised across instances and mounts (see
+}: MapFrameShapeOptions): MapFrameShape {
+	// The mount-critical geometry — the decode and the measurement-free canonical
+	// fit — memoised across instances and mounts (see
 	// `engine/map-geometry/cache`), so a tab switch, a second plat on the same
 	// atlas, or a route revisit paints on the first commit instead of re-paying it.
 	// Canonical output is deterministic, so the server and the first client
@@ -127,16 +136,17 @@ export function useMapShape({
 	// `null`, so the map holds the canonical draw (or the neutral frame) rather
 	// than projecting through an unfitted default.
 	const view = useMemo(() => {
-		const { features, canonical, canonicalPaths } = statics
+		const { features, canonical } = statics
 
 		const measured = measuredMapFit(projection, features, canonical, frameWidth, frameHeight)
 
 		// Deferred paint: hold the frame empty (the reserve still owns the box) until
 		// the measurement lands, so the geography paints once at the measured aspect
 		// with the legend already resolved rather than flashing the canonical fit and
-		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile.
+		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile — so this
+		// branch draws no region, and calls for no path.
 		if (!measured && deferPaint) {
-			return { viewWidth: 0, viewHeight: 0, paths: canonicalPaths, fit: null, project: () => null }
+			return { viewWidth: 0, viewHeight: 0, paths: [], fit: null, project: () => null }
 		}
 
 		// Draw from the measured fit once it lands, the canonical fit until then, so
@@ -148,7 +158,7 @@ export function useMapShape({
 			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
 			paths: measured
 				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
-				: canonicalPaths,
+				: cachedCanonicalPaths(statics),
 			fit: fitted,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 		}

@@ -1,20 +1,26 @@
 'use client'
 
-import { Fragment, useMemo } from 'react'
+import { Fragment, memo, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat, useMapZoomScale } from './context'
-import { fineMarks } from './engine/map-cluster/crowd'
+import { markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
-import { clusterGap, clusterPoints, groupsByMember } from './engine/map-cluster/group'
+import {
+	clusterGap,
+	clusterPoints,
+	groupsByMember,
+	type MapPointCluster,
+} from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
+
 import { pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
 import type { LngLat } from './engine/types'
 import { dotHitProps, MapDot, MapDotCount } from './map-dot'
 import { MapDotHalo } from './map-halo'
-import { type MapOverlayProps, useMapOverlay } from './use-map-overlay'
+import { type MapOverlay, type MapOverlayProps, useMapOverlay } from './use-map-overlay'
 
 /** One dot of a {@link MapPoints}. */
 export type MapPointDatum = {
@@ -33,6 +39,106 @@ export type MapPointDatum = {
 	 */
 	detail?: string
 }
+
+/** Props for {@link MapPointsDots}: everything the drawn dots read, none of the emphasis. @internal */
+type MapPointsDotsProps = {
+	groups: MapPointCluster[]
+	/** One stable React key per drawn group. */
+	keys: string[]
+	/** What each dot's fine-pointer target may reach, in device pixels. */
+	targets: number[]
+	/** The dots' stroke class, resolved from the mark's slot. */
+	paint: string
+	/** The ink a summary's count is written in. */
+	countInk: string
+	animate: boolean
+	/** Frame units per device pixel, which the hit radii and the counts divide by. */
+	unitsPerPixel: number
+	/** The mark's hit plumbing, per drawn group. */
+	hit: MapOverlay['hit']
+}
+
+/**
+ * The drawn dots. Deliberately blind to the pointed mark and to the legend
+ * emphasis — the recede class and the pointer-leave sit on the wrapper above —
+ * so a pointer crossing anywhere on the map re-renders that wrapper and this
+ * holds its render. It is `MapRegionsBase`'s treatment, for the same reason and
+ * at a similar count: two hundred dots each rebuild a `MapDot`, an optional
+ * count, a hit circle, and two prop objects.
+ *
+ * The crossing that matters most is the one that does not concern this mark at
+ * all. The pointed-mark context republishes on every discrete crossing, region
+ * to region included, and `dim` does not change on those — so without the memo
+ * the whole set rebuilt to produce the output it already had.
+ *
+ * @internal
+ */
+const MapPointsDots = memo(function MapPointsDots({
+	groups,
+	keys,
+	targets,
+	paint,
+	countInk,
+	animate,
+	unitsPerPixel,
+	hit,
+}: MapPointsDotsProps) {
+	return (
+		<>
+			{groups.map((group, index) => {
+				const position = group.at
+
+				if (position === null) return null
+
+				const count = group.members.length
+
+				const radius = clusterRadius(count)
+
+				// One timing for the pair: the count fades in with the dot it sits in.
+				const pop = pointPop(index)
+
+				return (
+					// A Fragment, not a group: the wrapper would carry nothing — the dim
+					// class and the pointer-leave sit on the outer group — and two hundred
+					// dead containers is what this mark exists to avoid. Keyed on the
+					// module's own row keys, since the index is also the dot's identity to
+					// the cursor and to `onClick`.
+					<Fragment key={keys[index]}>
+						<MapDot
+							slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
+							at={position}
+							radius={radius}
+							className={paint}
+							animate={animate}
+							transition={pop}
+						/>
+
+						{count > 1 && (
+							<MapDotCount
+								at={position}
+								count={count}
+								className={countInk}
+								scale={unitsPerPixel}
+								animate={animate}
+								transition={pop}
+							/>
+						)}
+
+						<circle
+							{...dotHitProps({
+								slot: 'map-points-hit',
+								at: position,
+								hit: hit(index),
+								scale: unitsPerPixel,
+								target: targets[index],
+							})}
+						/>
+					</Fragment>
+				)
+			})}
+		</>
+	)
+})
 
 /** Props for {@link MapPoints}. */
 export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> & {
@@ -99,10 +205,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * merged into where the frame draws one.
  *
  * Those circles are finger-sized targets, and for a mouse a dot narrows to what
- * it draws while it has a neighbour that close or stands on a drawn
- * {@link MapGeofence} — so the dots a zoom has just parted stay separately
- * aimable, and a zone under a dot keeps its own face. A dot standing clear of
- * both keeps the full target.
+ * the ground around it can spare — the gap to a neighbour that close, or the
+ * share a drawn {@link MapGeofence} under it leaves — so the dots a zoom has just
+ * parted stay separately aimable and a zone under a dot keeps a band of its own
+ * face. It never narrows past the dot it draws, and a dot standing clear of both
+ * keeps the full target.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
  * position past a handful: `MapPoint` registers its own legend entry, so two
@@ -206,7 +313,7 @@ export function MapPoints({
 		}
 	}
 
-	const { slot, hidden, covered, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
+	const { slot, hidden, spare, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
@@ -228,9 +335,9 @@ export function MapPoints({
 	// widens around it.
 	const picked = selected === null ? null : groups[selected]
 
-	// Which dots give the ground back that a finger-sized target would claim: the
-	// ones standing on a drawn zone, and the ones with a neighbour close enough
-	// that the target over one would cover the face of the other.
+	// How far each dot's target reaches: the whole of it where the dot stands
+	// clear, and less where a drawn zone under it or a neighbour inside that reach
+	// wants some of the same ground.
 	//
 	// Memoised on the grouping and the plat's zone resolver, neither of which a
 	// pointer crossing moves — where this mark re-renders on every crossing of
@@ -238,14 +345,14 @@ export function MapPoints({
 	// the zoom on the beat the grouping does: the pair a zoom has just parted sits
 	// ~15px apart, well inside a 44px target, and stays precise until the view
 	// carries them clear of one another.
-	const fine = useMemo(
+	const targets = useMemo(
 		() =>
-			fineMarks(
+			markTargets(
 				groups.map((group) => ({ at: group.at, radius: clusterRadius(group.members.length) })),
 				unitsPerPixel,
-				covered,
+				spare,
 			),
-		[groups, covered, unitsPerPixel],
+		[groups, spare, unitsPerPixel],
 	)
 
 	// Held across re-renders: rebuilding them would allocate one string per dot
@@ -254,9 +361,9 @@ export function MapPoints({
 
 	if (slot === undefined || hidden) return null
 
-	const paint = cn(k.series[slot].stroke)
+	const paint = cn(...k.series[slot].stroke)
 
-	const countInk = cn('text-xs font-semibold tabular-nums', k.series[slot].onFill)
+	const countInk = cn('text-xs font-semibold tabular-nums', ...k.series[slot].onFill)
 
 	return (
 		<>
@@ -269,58 +376,16 @@ export function MapPoints({
 			)}
 
 			<g data-slot="map-points" className={dim} onPointerLeave={onPointerLeave}>
-				{groups.map((group, index) => {
-					const position = group.at
-
-					if (position === null) return null
-
-					const count = group.members.length
-
-					const radius = clusterRadius(count)
-
-					// One timing for the pair: the count fades in with the dot it sits in.
-					const pop = pointPop(index)
-
-					return (
-						// A Fragment, not a group: the wrapper would carry nothing — the dim
-						// class and the pointer-leave sit on the outer group — and two hundred
-						// dead containers is what this mark exists to avoid. Keyed on the
-						// module's own row keys, since the index is also the dot's identity to
-						// the cursor and to `onClick`.
-						<Fragment key={keys[index]}>
-							<MapDot
-								slot={count === 1 ? 'map-points-dot' : 'map-points-cluster'}
-								at={position}
-								radius={radius}
-								className={paint}
-								animate={animate}
-								transition={pop}
-							/>
-
-							{count > 1 && (
-								<MapDotCount
-									at={position}
-									count={count}
-									className={countInk}
-									scale={unitsPerPixel}
-									animate={animate}
-									transition={pop}
-								/>
-							)}
-
-							<circle
-								{...dotHitProps({
-									slot: 'map-points-hit',
-									at: position,
-									hit: hit(index),
-									scale: unitsPerPixel,
-									radius,
-									fine: fine[index] === true,
-								})}
-							/>
-						</Fragment>
-					)
-				})}
+				<MapPointsDots
+					groups={groups}
+					keys={keys}
+					targets={targets}
+					paint={paint}
+					countInk={countInk}
+					animate={animate}
+					unitsPerPixel={unitsPerPixel}
+					hit={hit}
+				/>
 			</g>
 		</>
 	)

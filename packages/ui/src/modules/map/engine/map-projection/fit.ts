@@ -6,10 +6,10 @@
  * refit only sharpens strokes rather than reshaping the geography.
  */
 
-import { type GeoProjection, geoPath } from 'd3-geo'
+import type { GeoProjection } from 'd3-geo'
 import { MAP_CANONICAL_WIDTH } from '../map-constants'
 import type { MapFeature, MapNamedProjection, MapProjection } from '../types'
-import { collection, fitMapProjection, resolveMapProjection } from './resolve'
+import { collection, fitMapProjection, fitProjectionWidth, resolveMapProjection } from './resolve'
 
 /**
  * A projection fit to the canonical {@link MAP_CANONICAL_WIDTH}-wide frame,
@@ -18,7 +18,7 @@ import { collection, fitMapProjection, resolveMapProjection } from './resolve'
 export type MapCanonicalFit = {
 	/** The fitted projection, ready to draw the neutral geography. */
 	projection: GeoProjection
-	/** Frame width in projected units — the canonical width, barring degenerate geometry. */
+	/** Frame width in projected units; always {@link MAP_CANONICAL_WIDTH}, which the fit maps the geography onto exactly. */
 	width: number
 	/** Frame height in projected units, from the fitted geography's bounds. */
 	height: number
@@ -28,30 +28,29 @@ export type MapCanonicalFit = {
 
 /**
  * Fits the projection once to a fixed {@link MAP_CANONICAL_WIDTH}-wide frame and
- * measures the fitted bounds. `fitWidth` aligns those bounds to the frame's
- * top-left, so the returned `width` × `height` is a clean viewBox the geography
- * fills. Pure and synchronous — no container measurement — so the same fit
- * serves both the CSS aspect reservation (through {@link mapAutoAspect} below) and the
- * geography's first, measurement-free paint. `null` with nothing to fit.
+ * reports the frame it fills, aligned to that frame's top-left, so the returned
+ * `width` × `height` is a clean viewBox the geography fills. Pure and
+ * synchronous — no container measurement — so the same fit
+ * serves both the CSS aspect reservation (through {@link MapCanonicalFit.aspect})
+ * and the geography's first, measurement-free paint. `null` with nothing to fit.
  *
  * @internal
  */
 export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCanonicalFit | null {
 	if (features.length === 0) return null
 
-	const shape = collection(features)
+	const projection = resolveMapProjection(spec)
 
-	const projection = resolveMapProjection(spec).fitWidth(MAP_CANONICAL_WIDTH, shape)
+	const height = fitProjectionWidth(projection, collection(features), MAP_CANONICAL_WIDTH)
 
-	const [[x0, y0], [x1, y1]] = geoPath(projection).bounds(shape)
+	if (height === null) return null
 
-	const width = x1 - x0
-
-	const height = y1 - y0
-
-	if (width <= 0 || height <= 0) return null
-
-	return { projection, width, height, aspect: width / height }
+	return {
+		projection,
+		width: MAP_CANONICAL_WIDTH,
+		height,
+		aspect: MAP_CANONICAL_WIDTH / height,
+	}
 }
 
 /**
@@ -62,8 +61,8 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
  * centring the remainder frames the geography the way `fitSize` would — without
  * the bounds pass that re-projects every coordinate, the bulk of a refit's cost
  * on every resize. It lands within `fitSize`'s adaptive-resampling margin
- * (sub-percent: `fitSize` measures bounds at its probe scale, the canonical fit
- * at drawing scale), and under the canonical aspect it is a pure zoom of the
+ * (sub-percent, from the resampling each pass runs at its own scale), and
+ * under the canonical aspect it is a pure zoom of the
  * canonical paint, so a refit never reshapes the geography. Only the named
  * projections qualify: a passed d3 instance is stateful, so its canonical fit
  * is never cached to derive from.
@@ -111,16 +110,4 @@ export function measuredMapFit(
 	return typeof projection === 'string'
 		? scaleCanonicalFit(projection, canonical, width, height)
 		: fitMapProjection(projection, features, width, height)
-}
-
-/**
- * The geography's own projected aspect ratio (`width / height`), for
- * `aspectRatio: 'auto'`: the {@link canonicalFit}'s fitted bounds. Pure and
- * synchronous, so the CSS aspect box is reservable before the frame's width is;
- * `null` with nothing to measure.
- *
- * @internal
- */
-export function mapAutoAspect(spec: MapProjection, features: MapFeature[]): number | null {
-	return canonicalFit(spec, features)?.aspect ?? null
 }

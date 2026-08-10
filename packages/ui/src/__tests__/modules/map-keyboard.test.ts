@@ -88,9 +88,9 @@ describe('mapStops', () => {
 	})
 
 	it('leaves out an overlay that has registered no stop yet', () => {
-		expect(
-			mapStops([], [{ id: 'pending' }, { id: 'empty', stopsAt: () => [] }], NONE, project),
-		).toEqual([])
+		// A mark whose geometry has not landed answers with the empty list, which is
+		// the one way that state is spelled now `stopsAt` is required of every entry.
+		expect(mapStops([], [{ id: 'pending', stopsAt: () => [] }], NONE, project)).toEqual([])
 	})
 
 	it('keeps a stop ordinal aligned with the caller when an earlier one drops', () => {

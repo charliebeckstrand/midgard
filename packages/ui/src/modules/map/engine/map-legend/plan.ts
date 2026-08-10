@@ -16,13 +16,33 @@ import type { MapLegendPlacement } from '../types'
  * discriminator that swaps in the continuous scale bar, or the object form
  * `{ type: 'range', placement }` naming that bar's placement — the same shape a
  * chart's range legend takes, so the choropleth and heatmap read alike.
+ */
+export type MapLegendInput = boolean | MapLegendPlacement | MapRangeLegendInput
+
+/**
+ * The forms that ask for the continuous scale bar rather than the binned
+ * switchboard: the discriminator, and the object form that places the bar.
+ *
+ * Named so the two readers of the distinction cannot drift — {@link
+ * isRangeLegend} narrows to it, and the region-data union subtracts it to state
+ * that only the numeric branch can paint one.
  *
  * @internal
  */
-export type MapLegendInput = boolean | MapLegendPlacement | 'range' | ChartRangeLegendConfig
+export type MapRangeLegendInput = 'range' | ChartRangeLegendConfig
 
-/** Whether a `legend` prop asks for the continuous range bar rather than the binned switchboard. @internal */
-function isRangeLegend(legend: MapLegendInput | undefined): boolean {
+/**
+ * Whether a `legend` prop asks for the continuous range bar rather than the
+ * binned switchboard. Shared with the region-data union, which holds the bar a
+ * numeric-mode form: one rule for what counts as a range request, so the type
+ * that refuses it and the resolver that draws it can never disagree.
+ *
+ * A predicate rather than a boolean, so the caller that has to drop a range
+ * request is left holding the switchboard forms alone rather than a cast.
+ *
+ * @internal
+ */
+export function isRangeLegend(legend: MapLegendInput | undefined): legend is MapRangeLegendInput {
 	if (legend === 'range') return true
 
 	// The only object form is the range config, so any object asks for the bar.
@@ -60,7 +80,7 @@ function resolveLegendPlacement(
 	legend: MapLegendInput | undefined,
 	numeric: boolean,
 ): MapLegendPlacement {
-	if (typeof legend === 'string' && legend !== 'range') return legend
+	if (typeof legend === 'string' && !isRangeLegend(legend)) return legend
 
 	return numeric ? 'right' : 'bottom'
 }

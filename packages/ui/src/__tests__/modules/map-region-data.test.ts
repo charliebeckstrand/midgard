@@ -46,4 +46,27 @@ describe('numericRegionData', () => {
 	])('returns the data-less map with no %s', (_missing, fields) => {
 		expect(numericRegionData<Row>(fields)).toEqual({})
 	})
+
+	// The legend crosses to the data-less branch, because a placement is a layout
+	// the caller asked for and holds whether a scale landed or not.
+	it.each([
+		['a placement', 'left' as const],
+		['the switch off', false as const],
+	])('carries %s onto the data-less map', (_form, legend) => {
+		expect(numericRegionData<Row>({ data: ROWS, legend }).legend).toBe(legend)
+	})
+
+	// Its range forms do not: that form paints the scale this branch has none of.
+	// The resolver already dropped the request; dropping it here is the same
+	// silence one layer earlier, where it keeps the result inside a branch.
+	it.each([
+		['the discriminator', 'range' as const],
+		['the object form', { placement: 'left' } as const],
+	])('drops %s where there is no scale to paint', (_form, legend) => {
+		expect(numericRegionData<Row>({ data: ROWS, legend }).legend).toBeUndefined()
+	})
+
+	it('keeps a range request on the branch that carries a scale', () => {
+		expect(numericRegionData<Row>({ ...WHOLE, legend: 'range' }).legend).toBe('range')
+	})
 })

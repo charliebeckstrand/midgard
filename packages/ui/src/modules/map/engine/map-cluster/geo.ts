@@ -29,9 +29,7 @@ export function clusterAnchor(members: readonly number[], positions: readonly Ln
 
 	if (coordinates.length === 1) return first
 
-	const [lon, lat] = geoCentroid({ type: 'MultiPoint', coordinates } as unknown as Parameters<
-		typeof geoCentroid
-	>[0])
+	const [lon, lat] = geoCentroid({ type: 'MultiPoint', coordinates })
 
 	// Antipodal members cancel to no centre. The first member anchors the group
 	// instead, which is a position the projection can draw.

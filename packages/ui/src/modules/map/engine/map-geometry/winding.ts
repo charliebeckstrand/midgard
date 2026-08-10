@@ -11,11 +11,6 @@ import type { MapFeature } from '../types'
 /** A GeoJSON linear ring: a closed loop of `[lon, lat]` positions. @internal */
 type Ring = number[][]
 
-/** A polygonal geometry — the shapes ring-winding normalisation applies to. @internal */
-type PolygonalGeometry =
-	| { type: 'Polygon'; coordinates: Ring[] }
-	| { type: 'MultiPolygon'; coordinates: Ring[][] }
-
 /** Half the sphere in steradians: an exterior ring enclosing more is wound backwards. @internal */
 const HALF_SPHERE = 2 * Math.PI
 
@@ -36,9 +31,7 @@ const DEGENERATE_AREA_EPSILON = 1e-9
 
 /** A single ring's spherical area, measured as its own polygon. @internal */
 function ringArea(ring: Ring): number {
-	return geoArea({ type: 'Polygon', coordinates: [ring] } as unknown as Parameters<
-		typeof geoArea
-	>[0])
+	return geoArea({ type: 'Polygon', coordinates: [ring] })
 }
 
 /**
@@ -91,18 +84,9 @@ function rewindPolygon(rings: Ring[]): Ring[] | null {
 	return changed ? out : rings
 }
 
-/** Narrows a feature's opaque `geometry` to the polygonal shapes rewinding touches. @internal */
-function polygonalGeometry(geometry: object | null): PolygonalGeometry | null {
-	if (geometry === null) return null
-
-	const type = (geometry as { type?: unknown }).type
-
-	return type === 'Polygon' || type === 'MultiPolygon' ? (geometry as PolygonalGeometry) : null
-}
-
 /** Rewinds one feature's rings, returning it unchanged when nothing was rewound. @internal */
 function rewindFeature(feature: MapFeature): MapFeature {
-	const geometry = polygonalGeometry(feature.geometry)
+	const geometry = feature.geometry
 
 	if (geometry === null) return feature
 
@@ -113,6 +97,10 @@ function rewindFeature(feature: MapFeature): MapFeature {
 
 		return { ...feature, geometry: { ...geometry, coordinates: rings ?? [] } }
 	}
+
+	// Every other kind — a point, a line, a sphere, a collection — winds nothing,
+	// so it passes through as it arrived.
+	if (geometry.type !== 'MultiPolygon') return feature
 
 	const polygons: Ring[][] = []
 

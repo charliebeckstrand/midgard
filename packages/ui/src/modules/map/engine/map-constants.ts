@@ -82,12 +82,30 @@ export const POINT_RADIUS = 5.5
 export const POINT_HIT_RADIUS = 22
 
 /**
- * The same target for a fine pointer: the drawn dot and nothing more —
+ * How much of a zone's own inscribed reach a dot standing on it may take. Half,
+ * so the zone keeps at least as much room as it gives: a dot at the centre of a
+ * circular catchment takes half the radius and leaves the rest, and the band the
+ * boundary answers on ({@link ROUTE_HIT_WIDTH}) stays clear at any zone wide
+ * enough to have one.
+ *
+ * It is a fraction rather than a subtraction so the rule holds at every size —
+ * a zone twice as wide gives twice as much, and a zone with no room gives
+ * nothing, without a threshold anywhere for a reader to land on the wrong side
+ * of.
+ *
+ * @internal
+ */
+export const ZONE_SPARE_FRACTION = 0.5
+
+/**
+ * The floor under a fine pointer's target: the drawn dot and nothing less —
  * {@link POINT_RADIUS} exactly, an 11px target. A mouse aims at one pixel, so it
  * needs no part of the reach a finger takes — and that reach is what makes a dot
  * swallow the marks around it. A `MapGeofence` drawn small around a `MapPoint`
  * sits entirely inside the coarse circle, and a depot at a catchment's centre
- * claimed the middle of its own zone at 24px as well.
+ * claimed the middle of its own zone at 24px as well. Nothing takes a target
+ * under this: a target inside its own dot would leave the mark a reader can see a
+ * dead rim, so it is the zone that gives way where the two cannot both fit.
  *
  * Under WCAG 2.5.8's 24px minimum on purpose. A mark carries three other ways to
  * its datum — its legend row, the keyboard cursor's stop, and its `MapTable` row
@@ -96,13 +114,21 @@ export const POINT_HIT_RADIUS = 22
  * does, and a neighbouring dot swallowed by the reach reports another mark's
  * readout in place of its own. A dot with neither beneath it keeps the full
  * {@link POINT_HIT_RADIUS} instead, since precision a reader gains nothing from
- * is only reach taken from them — `dotHitProps` states when each applies.
+ * is only reach taken from them — `markTargets` weighs the claims and
+ * `dotHitProps` states what it does with the answer.
  *
  * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
  * since only CSS can answer the modality; the attribute carries the coarse
  * radius, so a browser that resolves no `r` in CSS keeps the larger target. This
- * is the default size alone: `dotHitProps` sets each shape's own drawn radius, so
- * a summary dot is covered by the grade it draws at.
+ * is the class's fallback alone: `dotHitProps` sets each shape's own budget, which
+ * a dot standing clear of a neighbour and a zone never drops to.
+ *
+ * A literal rather than {@link POINT_RADIUS} itself, though it is that figure by
+ * definition. Nothing reads this at runtime — the number ships inside
+ * `hitFine`'s class string, which Tailwind can only scan whole — so the constant
+ * is that literal's documented name, and binding it to another export makes the
+ * two one export under two names, which knip rejects. `map-hit-target` holds the
+ * pair equal instead, which is what a tie between two literals costs.
  * @internal
  */
 export const POINT_HIT_RADIUS_FINE = 5.5
@@ -196,7 +222,13 @@ export const MAP_WHEEL_SETTLE_MS = 120
  */
 export const MAP_CURSOR_INSET = 32
 
-/** A marker pin's radius — larger than a point, it anchors a route's ends. @internal */
+/**
+ * A marker pin's radius. The pin anchors a route's ends and draws at the point
+ * radius, not above it: a pin reads as an end because of where it sits and what
+ * it joins, and a heavier dot on an extremum would only reach further past the
+ * frame the fit maps onto. Held as its own constant rather than aliased, so a
+ * marker's size stays a decision the marker can revisit. @internal
+ */
 export const PIN_RADIUS = 5.5
 
 /** Fallback frame ratio when `'auto'` has no geography to measure. @internal */
