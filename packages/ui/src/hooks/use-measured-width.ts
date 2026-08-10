@@ -38,8 +38,13 @@ export function useMeasuredWidth(width: number | undefined): MeasuredWidth {
 
 	// Passed as a fresh closure deliberately: `useResizeObserver` raises the
 	// callback through an effect event and subscribes on `ref` alone, so
-	// memoising it would buy nothing.
+	// memoising it would buy nothing — and it reads the live `width` for the
+	// same reason.
 	useResizeObserver(ref, () => {
+		// An explicit width answers outright, so a fixed-width plot commits no
+		// state for a measurement `width ?? measured` would only discard.
+		if (width !== undefined) return
+
 		const el = ref.current
 
 		if (!el) return
