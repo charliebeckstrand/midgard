@@ -18,7 +18,7 @@ import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
 import { legendItems } from './engine/map-legend/items'
-import { type MapLegendInput, planMapLegend } from './engine/map-legend/plan'
+import { planMapLegend } from './engine/map-legend/plan'
 import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
@@ -138,24 +138,6 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * @defaultValue false
 		 */
 		sphere?: boolean
-		/**
-		 * Show the legend. Defaults to on when there are two or more categories
-		 * or any registered overlay — the identity channel colour alone must
-		 * never carry. A placement moves the centered row under the plot
-		 * (`'bottom'`) or above it (`'top'`), or a column panel beside it
-		 * (`'left'` / `'right'`), side by side from `lg` and under the map below
-		 * that. `'range'` (numeric mode only) swaps the binned switchboard for a
-		 * continuous colour-scale bar — the heatmap legend — and the object form
-		 * `{ type: 'range', placement }` places that bar explicitly. The range bar
-		 * follows its placement's orientation (vertical beside the plot, horizontal
-		 * above or below) and the chart's tier: it sheds at the spark size and, in a
-		 * box too narrow for a side rail, drops to a horizontal row under the plot.
-		 * The default placement is `'bottom'` for categorical maps and `'right'` for
-		 * the numeric choropleth. Overlay entries register from the client, so they
-		 * join the legend after hydration; the legend's box mounts ahead of them so
-		 * late-landing buttons never resize the map or shift the frame.
-		 */
-		legend?: MapLegendInput
 		/**
 		 * Show the readout naming the pointed region or overlay. It also gates
 		 * keyboard navigation, which the readout is the whole output of: turned

@@ -19,8 +19,20 @@ import type { MapLegendPlacement } from '../types'
  */
 export type MapLegendInput = boolean | MapLegendPlacement | 'range' | ChartRangeLegendConfig
 
-/** Whether a `legend` prop asks for the continuous range bar rather than the binned switchboard. @internal */
-function isRangeLegend(legend: MapLegendInput | undefined): boolean {
+/**
+ * Whether a `legend` prop asks for the continuous range bar rather than the
+ * binned switchboard. Shared with the region-data union, which holds the bar a
+ * numeric-mode form: one rule for what counts as a range request, so the type
+ * that refuses it and the resolver that draws it can never disagree.
+ *
+ * A predicate rather than a boolean, so the caller that has to drop a range
+ * request is left holding the switchboard forms alone rather than a cast.
+ *
+ * @internal
+ */
+export function isRangeLegend(
+	legend: MapLegendInput | undefined,
+): legend is 'range' | ChartRangeLegendConfig {
 	if (legend === 'range') return true
 
 	// The only object form is the range config, so any object asks for the bar.
