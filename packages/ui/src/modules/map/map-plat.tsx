@@ -453,7 +453,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		geography,
 		geographyObject,
 		projection = 'mercator',
-		data,
 		categoryKey,
 		valueKey,
 		colorRange,
@@ -483,6 +482,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		// attributes. The readout takes them off `props` below, so a value bound
 		// here could only shadow it — a default written on one would never reach
 		// the join.
+		data: _data,
 		regionKey: _regionKey,
 		categories: _categories,
 		bins: _bins,
@@ -809,6 +809,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							paths={shape.paths}
 							regionCategory={regionCategory}
 							categories={categoryMetas}
+							interactive={hasReadout}
 							hidden={hidden}
 							emphasis={emphasis}
 							animate={animate}
@@ -845,7 +846,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			hasReadout ? (
 				<MapTable
 					header={valueColumnHeader(categoryKey, valueKey, valueName)}
-					regionNames={data === undefined ? [] : regionNames}
+					regionNames={regionNames}
 					regionCategory={regionCategory}
 					regionValues={regionValues}
 					categories={categoryMetas}
@@ -859,7 +860,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			categoryKey,
 			valueKey,
 			valueName,
-			data,
 			regionNames,
 			regionCategory,
 			regionValues,
@@ -899,7 +899,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 						svgRef,
 					}}
 					tooltip={
-						tooltip ? (
+						// The request and the answer both, the way the tab stop and the
+						// table already read it: `tooltip` asks, and `hasReadout` says
+						// whether anything can answer. A backdrop map mounted a Tooltip
+						// that resolved `null` for every region it was ever pointed at.
+						tooltip && hasReadout ? (
 							<MapTooltip
 								regionNames={regionNames}
 								regionCategory={regionCategory}
@@ -926,7 +930,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				subject: shape.features,
 			}}
 			containerRef={containerRef}
-			tooltip={tooltip}
+			tooltip={tooltip && hasReadout}
 			regionActive={regionActive}
 			table={deferredTable}
 			width={width}

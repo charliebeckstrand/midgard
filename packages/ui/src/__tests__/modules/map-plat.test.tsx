@@ -528,6 +528,32 @@ describe('MapPlat', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
+	it('answers no pointer until something on the map can read out', () => {
+		// A backdrop map — geography, no rows, no overlays — takes the pointer
+		// channel away from its regions entirely, the way it already goes without
+		// a tab stop and without a table. Every one of those three reads the join
+		// rather than the prop that asked.
+		const { container, rerender } = renderUI(
+			<MapPlat aria-label="Zones" geography={FIXTURE_GEOJSON} width={400} />,
+		)
+
+		const [backdrop] = allRegions(container)
+
+		fireEvent.pointerEnter(backdrop as Element, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		// Rows landing after the mount re-arm it: the gate is a derivation of the
+		// join, so the layer re-renders and the handlers arrive with the data.
+		rerender(plat())
+
+		const [matched] = allRegions(container)
+
+		fireEvent.pointerEnter(matched as Element, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Alpha')
+	})
+
 	it('suppresses the tooltip for a toggled-off category and under tooltip={false}', () => {
 		const { container } = renderUI(plat())
 

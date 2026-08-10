@@ -35,6 +35,19 @@ import { MapRegionsLit } from './map-regions-lit'
  */
 export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
+	/**
+	 * Whether anything on this map reads out — a region the rows matched, or a
+	 * registered overlay. Off, the region paths take no pointer handlers at all.
+	 * A backdrop map would otherwise commit hover state on every move across
+	 * every one of its paths, re-rendering the provider and a tooltip that
+	 * resolves nothing: the pointed-emphasis gate lights no unmatched region, so
+	 * the whole cascade ends where it began. It is the same predicate that
+	 * withholds the table and the tab stop, reaching the one channel they left.
+	 *
+	 * A clickable map keeps its affordance either way — the pointer cursor and
+	 * the hover brightening are classes on the layer and the path, not this.
+	 */
+	interactive: boolean
 	/** Toggled-off legend ids; a hidden category's regions fall back to neutral. */
 	hidden: ReadonlySet<string>
 	/** The emphasised legend id; regions outside its category recede. */
@@ -114,7 +127,8 @@ type RegionProps = {
 	fillColor: string | undefined
 	/** The wash's transition timing under `animate`; `undefined` on static maps. */
 	style: CSSProperties | undefined
-	onTrack: (event: PointerEvent<SVGPathElement>) => void
+	/** `undefined` on a map with nothing to read out, which answers no pointer. */
+	onTrack: ((event: PointerEvent<SVGPathElement>) => void) | undefined
 }
 
 /**
@@ -170,7 +184,7 @@ const Region = memo(function Region({
 })
 
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
-type MapRegionsBaseProps = MapRegionLayer & { wash: MapWash }
+type MapRegionsBaseProps = MapRegionLayer & { wash: MapWash; interactive: boolean }
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared
@@ -188,6 +202,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	regionCategory,
 	paints,
 	wash,
+	interactive,
 }: MapRegionsBaseProps) {
 	const set = useMapHoverSet()
 
@@ -220,7 +235,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 						className={paint.className}
 						fillColor={paint.fillColor}
 						style={washStyle(index, wash)}
-						onTrack={track}
+						onTrack={interactive ? track : undefined}
 					/>
 				)
 			})}
@@ -268,6 +283,7 @@ export const MapRegions = memo(function MapRegions({
 	paths,
 	regionCategory,
 	categories,
+	interactive,
 	hidden,
 	emphasis,
 	animate,
@@ -358,7 +374,13 @@ export const MapRegions = memo(function MapRegions({
 			onContextMenu={regionDelegate(onRegionContextMenu)}
 		>
 			<g data-slot="map-regions-recede" className={cn(k.group(receded))}>
-				<MapRegionsBase paths={paths} regionCategory={regionCategory} paints={paints} wash={wash} />
+				<MapRegionsBase
+					paths={paths}
+					regionCategory={regionCategory}
+					paints={paints}
+					wash={wash}
+					interactive={interactive}
+				/>
 			</g>
 
 			{receded && (
