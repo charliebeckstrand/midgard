@@ -105,7 +105,7 @@ export const POINT_HIT_RADIUS = 22
  * a summary dot is covered by the grade it draws at.
  * @internal
  */
-export const POINT_HIT_RADIUS_FINE = 5.5
+export const POINT_HIT_RADIUS_FINE = POINT_RADIUS
 
 /**
  * The clear space, in frame units, two point marks keep between their edges
@@ -196,7 +196,13 @@ export const MAP_WHEEL_SETTLE_MS = 120
  */
 export const MAP_CURSOR_INSET = 32
 
-/** A marker pin's radius — larger than a point, it anchors a route's ends. @internal */
+/**
+ * A marker pin's radius. The pin anchors a route's ends and draws at the point
+ * radius, not above it: a pin reads as an end because of where it sits and what
+ * it joins, and a heavier dot on an extremum would only reach further past the
+ * frame the fit maps onto. Held as its own constant rather than aliased, so a
+ * marker's size stays a decision the marker can revisit. @internal
+ */
 export const PIN_RADIUS = 5.5
 
 /** Fallback frame ratio when `'auto'` has no geography to measure. @internal */
