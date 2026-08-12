@@ -307,6 +307,30 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 /** The state a drill stands in: the identity the map reports, and the FIPS its counties group by. */
 type DrilledState = { name: string; fips: string }
 
+/** The county picked inside a drill: the identity the map rings, and the name the line reads. */
+type PickedCounty = { id: string; name: string }
+
+/**
+ * The line above the map, naming the deepest thing the reader has settled on: a
+ * picked county, else the state the drill stands in and how many counties it
+ * holds, else what to do. The county stands alone once picked — the map is
+ * already labelled with the state, so repeating it there would push the one
+ * thing that changed to the end of the line.
+ */
+function drillReadout(
+	drilled: DrilledState | null,
+	counties: MapFeatureCollection | undefined,
+	county: PickedCounty | null,
+): string {
+	if (drilled === null) return 'Hover a state to warm its counties, then click to drill in.'
+
+	if (counties === undefined) return `${drilled.name} — loading counties…`
+
+	if (county !== null) return `${county.name} County.`
+
+	return `${drilled.name} — ${counties.features.length} counties.`
+}
+
 /**
  * `onRegionPreload` doing the job it exists for. Holding a state warms the
  * counties it opens into — an 842 kB fetch and a 3,231-feature decode — so the
@@ -332,7 +356,7 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 
 	// The picked county as the identity the map rings plus the name the line
 	// below reads, both off the one report — the pair `drilled` holds, a level in.
-	const [county, setCounty] = useState<{ id: string; name: string } | null>(null)
+	const [county, setCounty] = useState<PickedCounty | null>(null)
 
 	// The FIPS off the feature the callback names. The reported index indexes the
 	// geography this plat was handed, so the lookup is a subscript rather than a
@@ -374,15 +398,7 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 				</Button>
 			</Flex>
 
-			<Text>
-				{!inside
-					? 'Hover a state to warm its counties, then click to drill in.'
-					: counties === undefined
-						? `${drilled.name} — loading counties…`
-						: `${drilled.name} — ${counties.features.length} counties.${
-								county === null ? '' : ` ${county.name} County.`
-							}`}
-			</Text>
+			<Text>{drillReadout(drilled, counties, county)}</Text>
 
 			{inside ? (
 				<MapPlat
