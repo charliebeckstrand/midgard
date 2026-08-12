@@ -3,6 +3,7 @@ import { MapPlat } from '../../modules/map'
 import { MAP_PRELOAD_DWELL_MS } from '../../modules/map/engine/map-constants'
 import { allRegions, bySlot, fireEvent, renderUI, withFakeTime } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { renderNavigable } from '../helpers/map-navigable'
 
 type Row = (typeof FIXTURE_ROWS)[number]
 
@@ -30,59 +31,8 @@ function leave(container: HTMLElement) {
 	fireEvent.pointerLeave(bySlot(container, 'map-regions') as Element)
 }
 
-/**
- * Renders the plat and gives the plot's SVG a real box, the way the keyboard
- * suite does: jsdom reports every rect as zero, and the cursor anchors its
- * readout by converting a frame centroid through that box — so without one it
- * resolves no position, writes no hover target, and warms nothing for the wrong
- * reason.
- */
-function renderNavigable(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const view = renderUI(plat(extra))
-
-	const svg = view.container.querySelector('svg')
-
-	if (svg === null) throw new Error('the plat drew no SVG to navigate')
-
-	vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
-		left: 0,
-		top: 0,
-		width: 400,
-		height: 200,
-		right: 400,
-		bottom: 200,
-		x: 0,
-		y: 0,
-		toJSON: () => ({}),
-	})
-
-	const plot = bySlot(view.container, 'map-plot')
-
-	if (plot === null) throw new Error('the plat drew no plot region')
-
-	return { ...view, plot }
-}
-
 describe('MapPlat onRegionPreload', () => {
-	it('warms the region the pointer holds, by the identity a click reports', async () => {
-		await withFakeTime(async (clock) => {
-			const preload = vi.fn()
-
-			const { container } = renderUI(plat({ onRegionPreload: preload }))
-
-			const [, beta] = allRegions(container)
-
-			point(beta as Element)
-
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
-
-			// The pair `onRegionClick` reports: the `regionId` identity the caller's
-			// own rows join on, then the feature index.
-			expect(preload).toHaveBeenCalledExactlyOnceWith('B', 1)
-		})
-	})
-
-	it('warms nothing until the region is held through the dwell', async () => {
+	it('warms the region held through the dwell, by the identity a click reports', async () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
@@ -277,7 +227,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { plot } = renderNavigable({ onRegionPreload: preload })
+			const { plot } = renderNavigable(plat({ onRegionPreload: preload }))
 
 			// The arrow keys move the same hover target a pointer does, so the reader
 			// who navigates by keyboard warms what the pointing one warms.

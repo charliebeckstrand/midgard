@@ -246,8 +246,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 *
 		 * The callback owns the work — the map stays agnostic to what loads, and
 		 * never waits on it. Warming is an optimisation and nothing more: it takes
-		 * no cursor, earns no tab stop of its own, and every region it warms would
-		 * have loaded on the click regardless.
+		 * no cursor, and every region it warms would have loaded on the click
+		 * regardless. It earns no tab stop either, so the keyboard half rides
+		 * whatever stop a readout, a pick, or a zoom already earned; a map carrying
+		 * this prop alone is drilled by some control beside it, and that control is
+		 * what a keyboard reader navigates.
 		 *
 		 * @remarks
 		 * Regions sit edge to edge, so the report is held behind a short dwell —
@@ -561,35 +564,35 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	)
 
 	// The preload reporter, read when the dwell fires rather than when the latch
-	// below is built. The latch has to belong to the geography alone — a feature
-	// index means nothing against features it did not come from — and a consumer's
-	// inline `onRegionPreload` would otherwise re-key it on every render, warming a
-	// region the reader already warmed.
+	// below is built: a consumer's inline `onRegionPreload` is a fresh identity
+	// every render, and re-keying the latch on it would warm a region the reader
+	// already warmed.
 	const preloadReport = useRef(onRegionPreload)
 
 	preloadReport.current = onRegionPreload
 
-	// Whether anything asked to be told of intent. Read as a boolean so the latch
-	// and the region layer's tracking hold across a consumer's handler churn.
+	// Whether anything asked to be told of intent, as the boolean the latch and the
+	// tracking gate both key on rather than the churning handler behind it.
 	const preloads = onRegionPreload !== undefined
 
-	// Bridged to the public identity like the reporters above, plus the latch a
+	// Bridged to the public identity through the same helper as the reporters
+	// above, so all three resolve a region's name one way, wrapped in the latch a
 	// warmed region keeps: the pointer crosses back over a region as freely as it
-	// first arrived, and the second crossing has nothing left to warm.
+	// first arrived, and the second crossing has nothing left to warm. The latch
+	// belongs to the geography, which is what a feature index means anything
+	// against.
 	const preloadRegion = useMemo(() => {
 		if (!preloads) return undefined
 
 		const warmed = new Set<number>()
 
-		return (index: number) => {
-			const id = regionIds[index]
-
-			if (id === undefined || warmed.has(index)) return
+		return bridgeRegionIdentity((id, index) => {
+			if (warmed.has(index)) return
 
 			warmed.add(index)
 
 			preloadReport.current?.(id, index)
-		}
+		}, regionIds)
 	}, [preloads, regionIds])
 
 	// The selection resolved to the index the layers draw by, against the same
@@ -769,6 +772,14 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[regionCategory],
 	)
 
+	// Whether the region paths answer the pointer at all, which anything reading
+	// what the pointer is on earns: a matched category, or a warming reporter. A
+	// plain navigation map — a geography and `onRegionPreload`, no `data` — has no
+	// match to earn them, and without this the pointer half of its report would be
+	// dead. Both halves read the same on the first commit as on the next, which the
+	// bit above states the layer must have.
+	const regionsTracked = regionsRead || preloads
+
 	// Whether anything at all can read out — a matched region, or a registered
 	// overlay. The table and the tab stop take this wider reading: a mark's own
 	// row and its keyboard stop are outputs a map with no rows still has.
@@ -858,14 +869,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							paths={shape.paths}
 							regionCategory={regionCategory}
 							categories={categoryMetas}
-							// Warming lifts tracking with it. The paths carry the pointer
-							// handlers because something asked what the pointer is on, and a
-							// plain navigation map — a geography and `onRegionPreload`, no
-							// `data` — has no matched category to earn them otherwise, leaving
-							// the pointer half of the report dead. A boolean off a prop, so
-							// unlike the overlay count it reads the same on the first commit
-							// as on the next and never re-maps the atlas a second time.
-							interactive={regionsRead || preloads}
+							interactive={regionsTracked}
 							hidden={hidden}
 							emphasis={emphasis}
 							animate={animate}
