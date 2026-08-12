@@ -12,6 +12,7 @@ import {
 import { markAnchorAt, regionIndexAt } from './engine/map-hover/anchor'
 import { type MapHoverTarget, sameMark, sameTarget } from './engine/map-hover/target'
 import type { MapPoint2D } from './engine/types'
+import { useMapRegionPreload } from './use-map-region-preload'
 
 /** Props for {@link MapHoverProvider}. @internal */
 type MapHoverProviderProps = {
@@ -20,6 +21,8 @@ type MapHoverProviderProps = {
 	plotRef: RefObject<HTMLDivElement | null>
 	/** Whether a region's category is matched and shown — the pointed-emphasis gate, the same silence the tooltip keeps off data. */
 	regionActive: (index: number) => boolean
+	/** Warms the region the pointer settles on; `undefined` on a plat that asked for no warming. */
+	preloadRegion: ((index: number) => void) | undefined
 	children: ReactNode
 }
 
@@ -46,6 +49,7 @@ export function MapHoverProvider({
 	enabled,
 	plotRef,
 	regionActive,
+	preloadRegion,
 	children,
 }: MapHoverProviderProps) {
 	const [state, setState] = useState<MapHoverState>({ target: null, point: null })
@@ -70,6 +74,11 @@ export function MapHoverProvider({
 	// off — takes no emphasis; isolating the neutral fill would read as a
 	// broken map, the way a chart never dims against a hidden series.
 	const target = state.target
+
+	// Warming reads the target above rather than the gated `pointed` below, and
+	// runs here because this is where the pointer and the keyboard cursor already
+	// meet: the plat sits above this provider and could not see either.
+	useMapRegionPreload(target, preloadRegion)
 
 	// Pinned at mark granularity, the way the chart frame pins its own pointed
 	// mark: this value names the mark, never the stop within it, and every mark on
