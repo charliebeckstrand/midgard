@@ -6,12 +6,14 @@
  */
 
 import { hannou } from '../hannou'
+import { iro } from '../iro'
 import { ji } from '../ji'
 import { kasane } from '../kasane'
 import { narabi } from '../narabi'
 import { sen } from '../sen'
 
-const { cursor, disabled } = hannou
+const { cursor, disabled, fg } = hannou
+const { text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -25,6 +27,13 @@ export const item = {
 		rounded.lg,
 		weight.medium,
 		'select-none',
+		// The selected item steps to full-strength ink and the rest stay muted — the same
+		// muted/`data-current` pair the underline tab carries, which this had no counterpart for:
+		// every item rendered at one colour, so the indicator behind the active one was the only
+		// thing marking it. That reads as a highlight sitting on the strip rather than as a
+		// selected item, and it leaves the distinction resting entirely on a fill (WCAG 1.4.1).
+		text.muted,
+		...fg.current,
 		focus.indicator,
 		focus.ring,
 		...disabled,
