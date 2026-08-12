@@ -316,6 +316,11 @@ type PickedCounty = { id: string; name: string }
  * holds, else what to do. The county stands alone once picked — the map is
  * already labelled with the state, so repeating it there would push the one
  * thing that changed to the end of the line.
+ *
+ * Its name is drawn as the atlas holds it, with nothing appended. The atlas
+ * names the place and never what it is called: Louisiana's are parishes and
+ * Alaska's are boroughs and census areas, so a fixed "County" would be wrong in
+ * three states and there is no field that would say so.
  */
 function drillReadout(
 	drilled: DrilledState | null,
@@ -326,7 +331,7 @@ function drillReadout(
 
 	if (counties === undefined) return `${drilled.name} — loading counties…`
 
-	if (county !== null) return `${county.name} County.`
+	if (county !== null) return county.name
 
 	return `${drilled.name} — ${counties.features.length} counties.`
 }
