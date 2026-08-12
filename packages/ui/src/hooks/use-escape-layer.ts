@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent } from 'react'
 import { isTopDismissLayer, registerDismissLayer } from '../utilities/dismiss-layers'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 
@@ -24,6 +24,12 @@ type EscapeLayerOptions = {
  * stacked surfaces (menu in dialog, dialog over sheet) close one per press,
  * innermost first. Presses a consumer already handled (`preventDefault`)
  * are ignored.
+ *
+ * @remarks
+ * `onDismiss` is raised through an effect event, so the press always reaches
+ * the latest render's callback and its identity never re-registers the layer.
+ * A caller passes a fresh closure each render safely, and needs no shadow of
+ * its own.
  */
 export function useEscapeLayer({
 	open,
@@ -31,9 +37,7 @@ export function useEscapeLayer({
 	layered = true,
 	onDismiss,
 }: EscapeLayerOptions): void {
-	const onDismissRef = useRef(onDismiss)
-
-	onDismissRef.current = onDismiss
+	const dismiss = useEffectEvent(onDismiss)
 
 	useEffect(() => {
 		if (!open || !enabled) return
@@ -47,7 +51,7 @@ export function useEscapeLayer({
 
 			if (layered && !isTopDismissLayer(layer)) return
 
-			onDismissRef.current(event)
+			dismiss(event)
 		}
 
 		const unsubscribe = subscribeDocumentEvent('keydown', onKeyDown)

@@ -8,7 +8,14 @@ import {
 	useDismiss,
 	useRole,
 } from '@floating-ui/react'
-import { type CSSProperties, type RefObject, useCallback, useEffect, useRef } from 'react'
+import {
+	type CSSProperties,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useEffectEvent,
+	useRef,
+} from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 import { useControllable } from './use-controllable'
 import { useEscapeLayer } from './use-escape-layer'
@@ -143,15 +150,11 @@ export function useFloatingDisclosure({
 	// what arms `useFocus`'s re-open block: a surface that restores focus to
 	// its trigger on close (an interactive Tooltip's focus trap) would
 	// otherwise re-open on the focus its own dismissal caused.
-	const onOpenChangeRef = useRef(context.onOpenChange)
-
-	onOpenChangeRef.current = context.onOpenChange
-
 	useEscapeLayer({
 		open,
 		enabled: dismissable,
 		layered: roleProp !== 'tooltip',
-		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
+		onDismiss: (event) => context.onOpenChange(false, event, 'escape-key'),
 	})
 
 	// Published whether or not this panel dismisses on an outside press: a
@@ -159,12 +162,15 @@ export function useFloatingDisclosure({
 	// a non-dismissing panel (a tooltip) can still be the surface pressed into.
 	useFloatingPortalReference(context, refs)
 
+	const dismissOutside = useEffectEvent((event: PointerEvent) => {
+		context.onOpenChange(false, event, 'outside-press')
+	})
+
 	useEffect(() => {
 		if (!open || !dismissable) return
 
 		const onPointerDown = (event: PointerEvent) => {
-			if (isFloatingOutsidePress(event, refs))
-				onOpenChangeRef.current(false, event, 'outside-press')
+			if (isFloatingOutsidePress(event, refs)) dismissOutside(event)
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)

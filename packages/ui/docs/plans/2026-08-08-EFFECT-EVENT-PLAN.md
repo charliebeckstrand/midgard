@@ -44,7 +44,11 @@ The prev-value shadows — `use-frozen-on-close.ts`'s `prevOpenRef`, `use-calend
 
 The sweep wants to land per-owner rather than as one commit, because each converted site's proof is its own suite:
 
-1. **The floating and dismissal hooks** — `use-floating-ui.ts` (two `onOpenChangeRef` sites), `use-floating-disclosure.ts`'s `onOpenChangeRef`, `use-dismissable.ts`, `use-escape-layer.ts`, and `use-hover-across-scroll.ts` (two sites). The densest cluster and the one whose effects are most identity-sensitive. Leaves the two `use-keybindings.ts` refs and `gateRef` to the decision above.
+1. **The floating and dismissal hooks — done.** Seven sites over five files: `use-floating-ui.ts`'s two `onOpenChangeRef` sites, `use-floating-disclosure.ts`'s `onOpenChangeRef`, `use-dismissable.ts`, `use-escape-layer.ts`, and `use-hover-across-scroll.ts`'s two. The count fell from 67 to 60, and `gateRef`, `refsRef`, `closeReasonRef`, and `prevOpenRef` stayed, as the rule says. No test changed, which is the bar: 188 files and 3,295 tests in the jsdom scope, plus 31 files and 90 tests in the Chromium floating-ui suite, all green before and after.
+
+   Three things the conversion found. `useFloatingPanel`'s `handleOpenChange` lost its `useCallback` as well as its ref, because the built-in already returns one stable identity for the whole mount; passing that to `useFloating` is safe, since floating-ui re-wraps the option in a commit-phase effect event of its own (`useSafeInsertionEffect`) and its own polyfill throws on a during-render call, so the built-in's bar is never reached. Converting `useEscapeLayer` then made three callers' shadows redundant at once — a hook that holds an effect event needs no shadow from the caller feeding it, so `useDismissable` passes `onDismiss` straight through and the two floating hooks pass a plain closure over `context.onOpenChange`, which floating-ui already publishes stable and latest.
+
+   The Biome exemption holds, with one condition worth stating. `useExhaustiveDependencies` flags an effect event as a missing dependency while the `useEffectEvent` import is not yet in the file — the rule reads the import to know what it is looking at. A conversion that edits the body before the import therefore reports a false positive mid-edit; land both in one write.
 
 2. **The grid hooks** — `use-grid-navigation.ts` (three sites), `use-grid-editing.ts`, `use-grid-row-grouping.ts`, `use-grid-infinite-scroll.ts`, `use-grid-cursor.tsx`, and `grid-data.tsx`'s `columnLabelRef`.
 

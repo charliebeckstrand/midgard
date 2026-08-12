@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect, useRef } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 import { useEscapeLayer } from './use-escape-layer'
 
@@ -20,6 +20,11 @@ type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
  * dismiss-layer stack via `useEscapeLayer`) and on pointer-down outside the
  * boundary, both gated on `open`. Use `useScrollLock` for body-scroll locking.
  *
+ * @remarks
+ * Both routes raise `onDismiss` through an effect event, so a fresh closure
+ * each render is safe: the press reaches the latest one, and the identity never
+ * re-subscribes the document listener.
+ *
  * @returns The container ref defining the outside-pointer boundary. Attach it
  * to the overlay root, or pass your own via `containerRef` and ignore the
  * return.
@@ -35,14 +40,14 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 
 	const ref = externalRef ?? internalRef
 
-	const onDismissRef = useRef(onDismiss)
-
-	onDismissRef.current = onDismiss
+	// `useEscapeLayer` raises its own callback through an effect event, so the
+	// Escape route needs no shadow here; only this hook's own listener does.
+	const dismiss = useEffectEvent(onDismiss)
 
 	useEscapeLayer({
 		open,
 		enabled: escapeEnabled,
-		onDismiss: () => onDismissRef.current(),
+		onDismiss,
 	})
 
 	useEffect(() => {
@@ -51,7 +56,7 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 		const onPointerDown = (event: PointerEvent) => {
 			const el = ref.current
 
-			if (el && !el.contains(event.target as Node)) onDismissRef.current()
+			if (el && !el.contains(event.target as Node)) dismiss()
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)

@@ -21,8 +21,8 @@ import {
 	type CSSProperties,
 	type HTMLProps,
 	type RefObject,
-	useCallback,
 	useEffect,
+	useEffectEvent,
 	useMemo,
 	useRef,
 } from 'react'
@@ -159,23 +159,23 @@ export function useFloatingPanel({
 		[middleware, offsetPx, matchReferenceWidth],
 	)
 
-	const onOpenChangeRef = useRef(onOpenChange)
-
-	onOpenChangeRef.current = onOpenChange
-
 	// Reason of the pending close request; the focus-return effect reads it.
 	// Every close that flows through floating-ui's `context.onOpenChange`
 	// (interaction hooks, `FloatingFocusManager`, `useFloatingUI`'s dismiss
 	// listeners) records one; programmatic closes carry none.
 	const closeReasonRef = useRef<OpenChangeReason | undefined>(undefined)
 
-	const handleOpenChange = useCallback(
+	// An effect event rather than a callback over a ref: `useFloating` needs one
+	// stable identity for the whole mount, and this must call the newest
+	// `onOpenChange`. floating-ui raises it no earlier than the commit phase —
+	// it re-wraps the option in an effect event of its own — so the built-in's
+	// during-render bar is never reached.
+	const handleOpenChange = useEffectEvent(
 		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
 			if (!nextOpen) closeReasonRef.current = reason
 
-			onOpenChangeRef.current?.(nextOpen, event, reason)
+			onOpenChange?.(nextOpen, event, reason)
 		},
-		[],
 	)
 
 	const { refs, floatingStyles, context } = useFloating({
@@ -422,23 +422,22 @@ export function useFloatingUI({
 	// Dismissals route through `context.onOpenChange` rather than the raw
 	// prop, so the close reason reaches `useFloatingPanel`'s focus-return
 	// effect and floating-ui's own `openchange` listeners.
-	const onOpenChangeRef = useRef(context.onOpenChange)
-
-	onOpenChangeRef.current = context.onOpenChange
-
 	useEscapeLayer({
 		open,
-		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
+		onDismiss: (event) => context.onOpenChange(false, event, 'escape-key'),
 	})
 
 	useFloatingPortalReference(context, refs)
+
+	const dismissOutside = useEffectEvent((event: PointerEvent) => {
+		context.onOpenChange(false, event, 'outside-press')
+	})
 
 	useEffect(() => {
 		if (!open) return
 
 		const onPointerDown = (event: PointerEvent) => {
-			if (isFloatingOutsidePress(event, refs))
-				onOpenChangeRef.current(false, event, 'outside-press')
+			if (isFloatingOutsidePress(event, refs)) dismissOutside(event)
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)
