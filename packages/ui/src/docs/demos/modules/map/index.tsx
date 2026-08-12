@@ -2,8 +2,10 @@ import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tan
 import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
+import countiesUrl from 'us-atlas/counties-10m.json?url'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import countriesUrl from 'world-atlas/countries-110m.json?url'
+import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
@@ -124,6 +126,49 @@ function worldQuery(url: string) {
 		queryKey: ['world-atlas', url] as const,
 		queryFn: async (): Promise<MapTopology> =>
 			(await fetch(url).then((response) => response.json())) as MapTopology,
+	}
+}
+
+/**
+ * The us-atlas counties, fetched and decoded once (static, so it never
+ * restales). This is the expensive half of a drill: 842 kB over the wire and
+ * 3,231 features to decode, against the states atlas's 56 — all of it work a
+ * click would otherwise start while the reader waits on it.
+ */
+function countyQuery(url: string) {
+	return {
+		queryKey: ['us-atlas-counties', url] as const,
+		queryFn: async (): Promise<MapFeatureCollection> => {
+			const atlas = (await fetch(url).then((response) => response.json())) as Parameters<
+				typeof feature
+			>[0]
+
+			return feature(
+				atlas,
+				atlas.objects.counties as Parameters<typeof feature>[1],
+			) as unknown as MapFeatureCollection
+		},
+	}
+}
+
+/**
+ * One state's counties, by the two-digit FIPS id every county id in the atlas
+ * opens with — `06037` is Los Angeles County in state `06`. Keyed per state, and
+ * layered over the shared atlas through `ensureQueryData`: the first state to be
+ * warmed pays the fetch and the decode, every later one pays its own filter, and
+ * no two states racing to warm at once fetch the atlas twice.
+ */
+function stateCountyQuery(client: QueryClient, url: string, fips: string) {
+	return {
+		queryKey: ['us-counties', url, fips] as const,
+		queryFn: async (): Promise<MapFeatureCollection> => {
+			const counties = await client.ensureQueryData(countyQuery(url))
+
+			return {
+				type: 'FeatureCollection',
+				features: counties.features.filter((county) => String(county.id).startsWith(fips)),
+			}
+		},
 	}
 }
 
@@ -253,6 +298,117 @@ function ClickableStates({ geography }: { geography: MapGeography | null }) {
 				selectedRegion={picked}
 				legend="right"
 			/>
+		</Stack>
+	)
+}
+
+/** The state a drill stands in: the identity the map reports, and the FIPS its counties group by. */
+type DrilledState = { name: string; fips: string }
+
+/**
+ * `onRegionPreload` doing the job it exists for. Holding a state warms the
+ * counties it opens into — an 842 kB fetch and a 3,231-feature decode — so the
+ * click that follows draws from cache instead of starting the wait. Nothing
+ * about the map changes on the hover: warming is invisible until the moment it
+ * saves, which is the point.
+ *
+ * The pair the callback reports is what makes the warm cheap to key. The
+ * identity is the name the rows join on, and the index is the position in the
+ * geography the plat was handed — so the FIPS the county atlas groups by comes
+ * off the feature directly, rather than from re-decoding the topology to find
+ * it. The click reads the same pair, so the state a hover warmed is exactly the
+ * state the click opens.
+ *
+ * Inside a state the counties carry no data of their own, which the plat draws
+ * as readily: a click picks a county and the ring marks it, the plain navigation
+ * map warming was built to keep working.
+ */
+function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) {
+	const queryClient = useQueryClient()
+
+	const [drilled, setDrilled] = useState<DrilledState | null>(null)
+
+	// The picked county as the identity the map rings plus the name the line
+	// below reads, both off the one report — the pair `drilled` holds, a level in.
+	const [county, setCounty] = useState<{ id: string; name: string } | null>(null)
+
+	// The FIPS off the feature the callback names. The reported index indexes the
+	// geography this plat was handed, so the lookup is a subscript rather than a
+	// second pass over the atlas.
+	const fipsAt = (index: number) => String(geography?.features[index]?.id ?? '')
+
+	const warmState = (_name: string, index: number) =>
+		void queryClient.prefetchQuery(stateCountyQuery(queryClient, countiesUrl, fipsAt(index)))
+
+	const drill = (name: string, index: number) => {
+		setDrilled({ name, fips: fipsAt(index) })
+
+		setCounty(null)
+	}
+
+	const counties = useQuery({
+		...stateCountyQuery(queryClient, countiesUrl, drilled?.fips ?? ''),
+		enabled: drilled !== null,
+	}).data
+
+	// The state's own geometry stands in until its counties land, so the drill
+	// reframes on the click rather than holding the nation until the data arrives.
+	// Memoised on the pick for the reason every frame here is: a fresh collection
+	// each render would refit the map on every hover elsewhere on the page.
+	const held = useMemo(() => stateFrame(geography, drilled?.name ?? null), [geography, drilled])
+
+	const inside = drilled !== null
+
+	return (
+		<Stack gap="md">
+			<Flex>
+				<Button variant="outline" onClick={() => setDrilled(null)} disabled={!inside}>
+					Back to the nation
+				</Button>
+			</Flex>
+
+			<Text>
+				{!inside
+					? 'Hover a state to warm its counties, then click to drill in.'
+					: counties === undefined
+						? `${drilled.name} — loading counties…`
+						: `${drilled.name} — ${counties.features.length} counties. ${
+								county === null ? 'Pick one.' : `${county.name} County.`
+							}`}
+			</Text>
+
+			{inside ? (
+				<MapPlat
+					aria-label={`Counties of ${drilled.name}`}
+					geography={counties ?? held}
+					projection="albers-usa"
+					// The counties are the drawn set once they land, so the click's index
+					// reads the name straight off the collection the map holds while the
+					// identity beside it is what comes back as the ring.
+					onRegionClick={(id, index) =>
+						setCounty((prev) =>
+							prev?.id === id
+								? null
+								: { id, name: String(counties?.features[index]?.properties?.name ?? id) },
+						)
+					}
+					selectedRegion={county?.id ?? null}
+				/>
+			) : (
+				<MapPlat
+					aria-label="States of America"
+					geography={geography}
+					projection="albers-usa"
+					data={timezones}
+					regionKey="state"
+					categoryKey="zone"
+					categories={zoneCategories}
+					regionId={stateName}
+					onRegionPreload={warmState}
+					onRegionClick={drill}
+					legend="right"
+				/>
+			)}
 		</Stack>
 	)
 }
@@ -568,6 +724,10 @@ function MapDemo() {
 						Route
 					</Tab>
 					<Tab value="geofence">Geofence</Tab>
+					{/* No `onPreload` here, deliberately. The county atlas this panel warms
+					    is warmed by hovering a state inside it, and warming it on the tab
+					    would land it before the demo could show that happening. */}
+					<Tab value="county">County</Tab>
 					{/* The world atlas is a second 108 kB fetch, and only this tab draws
 					    it, so it loads with the panel rather than with the demo — and
 					    warms on the hover before the click, like the routes above. */}
@@ -737,6 +897,12 @@ function MapDemo() {
 								<TexasTriangle geography={states} />
 							</Example>
 						</Stack>
+					</TabContent>
+
+					<TabContent value="county">
+						<Example title="Drill into a state's counties">
+							<CountyDrill geography={states} />
+						</Example>
 					</TabContent>
 
 					<TabContent value="world">
