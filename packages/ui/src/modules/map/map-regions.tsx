@@ -36,6 +36,8 @@ import { MapRegionsLit } from './map-regions-lit'
  */
 export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
+	/** Whether the layer's values are still loading — see {@link k.region.pending}. */
+	pending?: boolean
 	/**
 	 * Whether any region on this map reads out — whether the rows matched one.
 	 * Off, the region paths take no pointer handlers at all. A backdrop map
@@ -294,6 +296,7 @@ export const MapRegions = memo(function MapRegions({
 	onRegionClick,
 	onRegionContextMenu,
 	selected,
+	pending,
 }: MapRegionsProps) {
 	const set = useMapHoverSet()
 
@@ -364,7 +367,7 @@ export const MapRegions = memo(function MapRegions({
 		<MapRegionsGroup
 			// The cursor rides the group and inherits down, so thousands of paths carry
 			// no per-region class.
-			className={cn(clickable && k.region.clickable)}
+			className={cn(clickable && k.region.clickable, ...(pending ? k.region.pending : []))}
 			onPointerLeave={() => set(null, null)}
 			// Delegated, so the click handler stays off `Region`'s memo comparison —
 			// a prop across thousands of instances, and the one input here whose

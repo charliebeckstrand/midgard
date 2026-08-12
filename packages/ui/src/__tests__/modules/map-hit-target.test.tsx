@@ -16,7 +16,7 @@ import {
 } from '../../modules/map/engine/map-constants'
 import { k } from '../../recipes/kata/map'
 import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
-import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 function plat(children: ReactNode) {
 	return (
@@ -299,5 +299,287 @@ describe('dot hit targets', () => {
 		expect(fine(bySlot(container, 'map-marker-start-hit'))).toBe(false)
 
 		expect(fine(bySlot(container, 'map-marker-end-hit'))).toBe(false)
+	})
+})
+
+/**
+ * Two separate marks standing within a target's reach of one another used to keep the whole circle
+ * each: `crowd.ts` could see only one mark's own dots, so the overlap belonged to whichever drew last
+ * and the dot underneath silently lost a crescent of its target — and its tooltip with it.
+ *
+ * Each now clips its target to the ground nearer to itself, so the outward reach is untouched and only
+ * the contested middle divides. Asserted on the clip's presence and its ring rather than on a hit test,
+ * because jsdom performs no layout and cannot say what a pointer at a coordinate would reach.
+ */
+describe('crowded marks divide their targets', () => {
+	function clipOf(target: Element | null) {
+		const reference = target?.getAttribute('clip-path')
+
+		return reference?.match(/^url\(#(.+)\)$/)?.[1] ?? null
+	}
+
+	function ring(container: HTMLElement, id: string) {
+		return container.querySelector(`clipPath#${id} polygon`)?.getAttribute('points') ?? null
+	}
+
+	/** Two points near enough that each target reaches the other — the case every clip test wants. */
+	function crowded() {
+		return renderUI(
+			plat(
+				<>
+					<MapPoint label="Depot" at={[15, 5]} />
+
+					<MapPoint label="Annex" at={[15.4, 5.2]} />
+				</>,
+			),
+		)
+	}
+
+	it('leaves a lone point unclipped', () => {
+		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
+
+		// The common case pays for nothing: no clip attribute, no clipPath element, no id.
+		expect(clipOf(bySlot(container, 'map-point-hit'))).toBeNull()
+
+		expect(container.querySelector('clipPath')).toBeNull()
+	})
+
+	it('leaves two distant points unclipped', () => {
+		const { container } = renderUI(
+			plat(
+				<>
+					<MapPoint label="West" at={[-60, 5]} />
+
+					<MapPoint label="East" at={[60, 5]} />
+				</>,
+			),
+		)
+
+		for (const target of allBySlot(container, 'map-point-hit')) {
+			expect(clipOf(target)).toBeNull()
+		}
+	})
+
+	it('declares the clip in <defs>, as every other clip in the module does', () => {
+		const { container } = crowded()
+
+		const clips = container.querySelectorAll('clipPath')
+
+		expect(clips).toHaveLength(2)
+
+		// A `<clipPath>` never renders wherever it sits, so this is convention rather than correctness —
+		// `MapChrome`'s frame clip and `ChartLine`'s wipe both declare theirs this way, and one clip
+		// declared differently from the others is a thing the next reader has to stop and check. The
+		// queries above and below reach through descendants, so nothing else here would notice it move.
+		for (const clip of clips) {
+			expect(clip.parentElement?.tagName).toBe('defs')
+		}
+	})
+
+	it('clips both points when two separate marks crowd each other', () => {
+		const { container } = crowded()
+
+		const targets = allBySlot(container, 'map-point-hit')
+
+		expect(targets).toHaveLength(2)
+
+		// BOTH, and to different rings: the cut is symmetric, so neither dot's ownership depends on the
+		// order the two were declared in.
+		const ids = targets.map((target) => clipOf(target))
+
+		expect(ids.every((id) => id !== null)).toBe(true)
+
+		expect(ids[0]).not.toBe(ids[1])
+
+		const rings = ids.map((id) => (id === null ? null : ring(container, id)))
+
+		expect(rings.every((points) => points !== null && points.length > 0)).toBe(true)
+
+		expect(rings[0]).not.toBe(rings[1])
+	})
+
+	it('keeps the full radius on the clipped target rather than shrinking it', () => {
+		const { container } = crowded()
+
+		const target = bySlot(container, 'map-point-hit')
+
+		// The whole point of clipping over shrinking: the circle is still the finger-sized one, and the
+		// fine-pointer narrowing is untouched, so the uncontested three quarters keep their reach.
+		expect(Number.parseFloat(present(target, 'r').getAttribute('r') ?? '')).toBeCloseTo(
+			POINT_HIT_RADIUS,
+			5,
+		)
+
+		expect(fine(target)).toBe(false)
+	})
+
+	it('does not let a route or a zone contest a point’s ground', () => {
+		const { container } = renderUI(catchment(<MapPoint label="Depot" at={[15, 5]} />))
+
+		// A zone's claim is a `spare` budget, not a boundary — it paints a face rather than a dot, so
+		// there is no line to divide along and nothing here to clip against.
+		expect(clipOf(bySlot(container, 'map-point-hit'))).toBeNull()
+	})
+})
+
+/**
+ * A dot over a region layer that answers the pointer narrows for a mouse, because the dot is the
+ * topmost thing at its own pixels: a 44px target over such a shape puts a 44px hole in it, and a dot
+ * near the middle of a small region can put that region out of reach altogether.
+ *
+ * Answering is not clicking alone — a matched region reads out under the pointer, and a right-click
+ * can open a menu on it. Read as clicks alone, the several county maps a coverage drill tiles kept the
+ * full finger target on every pin: they take no county pick, because a pick could only be read back
+ * onto one of them.
+ *
+ * The third claimant on the same ground the zones and the neighbours claim, arriving through the same
+ * budget — which is why `markTargets` needed to learn nothing for it.
+ */
+describe('a dot over regions that answer the pointer', () => {
+	function clickable(children: ReactNode) {
+		return (
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				onRegionClick={() => {}}
+			>
+				{children}
+			</MapPlat>
+		)
+	}
+
+	/** Regions that read out and nothing more: no pick to make, and a readout to lose. */
+	function reading(children: ReactNode) {
+		return (
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				width={400}
+			>
+				{children}
+			</MapPlat>
+		)
+	}
+
+	it('narrows the mouse target so the region behind stays pickable', () => {
+		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />))
+
+		const target = bySlot(container, 'map-point-hit')
+
+		expect(fine(target)).toBe(true)
+
+		// Down to the radius the dot paints at, so the region answers everywhere the dot is not literally
+		// drawn — and no further, since a target under its own dot would leave the dot a dead rim.
+		expect(budget(target, 'style')).toBeCloseTo(POINT_HIT_RADIUS_FINE, 5)
+	})
+
+	it('narrows over regions that only read out, with no pick to make', () => {
+		const { container } = renderUI(reading(<MapPoint label="Depot" at={[15, 5]} />))
+
+		// The bug the clicks-only reading left: a readout is a thing under the dot too, and losing it
+		// to a 44px hole is the same loss as losing a pick. This is the tiled county maps' own case.
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(true)
+
+		expect(budget(bySlot(container, 'map-point-hit'), 'style')).toBeCloseTo(
+			POINT_HIT_RADIUS_FINE,
+			5,
+		)
+	})
+
+	it('narrows over regions that answer only a right-click', () => {
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				onRegionContextMenu={() => {}}
+			>
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>,
+		)
+
+		// A menu is an output like the other two, and its handler rides the group rather than the
+		// paths — so it answers on a map whose regions read nothing.
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(true)
+	})
+
+	it('keeps the whole target where the regions answer nothing at all', () => {
+		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
+
+		// The claim is the answering, not the region layer: an atlas whose rows matched none of its
+		// shapes binds no pointer handlers on them and leads nowhere, so it takes nothing from the dots
+		// over it — the backdrop map `regionsRead` exists to keep cheap.
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
+	})
+
+	it('narrows every dot-shaped mark, not just the singular one', () => {
+		const { container } = renderUI(
+			clickable(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [-60, 20] }]} />),
+		)
+
+		// One rule, read by every mark through `markTargets` — the reason the third claimant needed no
+		// per-mark wiring.
+		for (const target of allBySlot(container, 'map-points-hit')) {
+			expect(fine(target)).toBe(true)
+		}
+	})
+
+	it('keeps the coarse target for a finger even over clickable regions', () => {
+		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />))
+
+		// The `r` attribute is still the finger-sized one; only the `pointer-fine` override narrows it.
+		// A coarse pointer cannot aim at 11px (WCAG 2.5.5), and a region is a large shape it can reach
+		// elsewhere.
+		expect(
+			Number.parseFloat(present(bySlot(container, 'map-point-hit'), 'r').getAttribute('r') ?? ''),
+		).toBeCloseTo(POINT_HIT_RADIUS, 5)
+	})
+})
+
+/**
+ * A choropleth whose atlas has drawn but whose numbers have not arrived takes the no-data fill on
+ * every region — which looks exactly like a map where nothing covers anywhere. `pending` makes the
+ * difference visible while the request is in flight.
+ */
+describe('a map whose values are still loading', () => {
+	function regionLayer(container: HTMLElement) {
+		return container.querySelector('[data-slot="map-regions"]')
+	}
+
+	it('pulses the region layer while its values are pending, and dims it instead under reduced motion', () => {
+		const { container } = renderUI(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400} pending>
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>,
+		)
+
+		const paint = regionLayer(container)?.getAttribute('class')
+
+		// On the GROUP, so it inherits to every path — thousands of regions carry no class of their own,
+		// the same reason the pointer cursor rides the group. `motion-safe` rather than a bare animation,
+		// with a standing dim in its place rather than nothing: a reader who asked for less motion is
+		// owed the loading state, not just spared the pulse.
+		expect(paint).toContain('motion-safe:animate-pulse')
+
+		expect(paint).toContain('motion-reduce:opacity-50')
+	})
+
+	it('does not pulse once the values are in', () => {
+		const { container } = renderUI(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>,
+		)
+
+		const paint = regionLayer(container)?.getAttribute('class') ?? ''
+
+		// Neither arm: the dim is the pulse's stand-in, not a second state.
+		expect(paint).not.toContain('animate-pulse')
+
+		expect(paint).not.toContain('opacity-50')
 	})
 })

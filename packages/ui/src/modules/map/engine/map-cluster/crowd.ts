@@ -5,12 +5,17 @@
  * question of it — not whether two marks overlap, but how much of the ground
  * under one of them belongs to something else.
  *
- * Two things claim that ground. A neighbour inside the coarse reach claims it,
+ * Three things claim that ground. A neighbour inside the coarse reach claims it,
  * because a target that covered a neighbour's face would take that neighbour's
- * readout with it and the mark a reader can see would answer nothing. A drawn
- * zone under the dot claims it, which the plat resolves across its whole ledger
- * and hands in as a budget. {@link markTargets} is where the two meet, so every
- * dot-shaped mark reads one rule rather than assembling its own.
+ * readout with it and the mark a reader can see would answer nothing. A drawn zone
+ * under the dot claims it. And a region layer that answers the pointer at all claims
+ * it — a readout, a pick, a menu — because the dot is the topmost thing at its own
+ * pixels and none of the three can be reached where a 44px target covers the shape.
+ * The last two arrive the same way, folded into the one budget the plat hands in:
+ * the zone half off its ledger, the region half off a map-wide reading, both spelled
+ * as a reach. That is what let the third be added without this pass learning anything
+ * new. {@link markTargets} is where they meet, so every dot-shaped mark reads one
+ * rule rather than assembling its own.
  *
  * The crowding half reads one mark's own drawn dots — a `MapPoints`'s groups, a
  * `MapMarker`'s pair of pins — rather than every dot on the map. Pooling them
@@ -18,8 +23,11 @@
  * reach here is measured in: `MapZoomScaleContext` sits below it, around the plot
  * alone, precisely so a wheel notch re-renders the marks without re-rendering the
  * plat, its legend, and the region layer. So two separate marks drawn within a
- * target's reach of one another each keep the full target — the bound this pass
- * accepts, and the one place the rule is less than whole.
+ * target's reach of one another each keep the full RADIUS here — the bound this
+ * pass accepts, and `ground.ts` answers instead by dividing what the two overlap
+ * rather than by shrinking either. It can pool across marks where this cannot,
+ * because it measures in frame units and a frame position is scale-free where a
+ * reach is not. `MapPoint` reads it today; the plural marks do not yet.
  *
  * Frame arithmetic over the same grid the clustering passes bucket into
  * (`grid.ts`), and React-free like the rest of the engine.

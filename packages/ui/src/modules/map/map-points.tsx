@@ -14,9 +14,9 @@ import {
 	type MapPointCluster,
 } from './engine/map-cluster/group'
 import { clusterRadius } from './engine/map-cluster/radius'
-
 import { pointPop } from './engine/map-motion'
 import type { MapStopRow } from './engine/map-overlay/entry'
+import { stopName } from './engine/map-overlay/readout'
 import type { LngLat } from './engine/types'
 import { dotHitProps, MapDot, MapDotCount } from './map-dot'
 import { MapDotHalo } from './map-halo'
@@ -166,14 +166,23 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 */
 	cluster?: boolean | number
 	/**
-	 * The trailing readout a summary dot carries, from the stops it holds and how
-	 * far they spread — the diameter, in metres, of the circle about the group
-	 * that holds every one of them. The module formats no distances of its own, so
-	 * a caller that wants the spread in the readout states the units it works in:
+	 * The trailing readout a summary dot carries, from the stops it holds, how far
+	 * they spread, and what they are called. The spread is the diameter, in metres,
+	 * of the circle about the group that holds every one of them; the module formats
+	 * no distances of its own, so a caller that wants it in the readout states the
+	 * units it works in:
 	 * `` (count, span) => `${count} stops · ${miles(span)} across` ``.
+	 *
+	 * `labels` is the merged stops' own names, in draw order — a summary is ONE mark
+	 * downstream, one tooltip and one row, so without them a reader who sees a `3`
+	 * has no way to learn which three it stands for. A caller naming small sets
+	 * outright wants `` (_count, _span, labels) => labels.join(', ') ``; one
+	 * summarising hundreds wants the count. Each entry is that stop's own `label`,
+	 * or its position in the set where it has none — the same fallback a lone dot's
+	 * tooltip takes, so a stop reads identically merged or not.
 	 * @defaultValue the count alone
 	 */
-	clusterDetail?: (count: number, span: number) => string
+	clusterDetail?: (count: number, span: number, labels: string[]) => string
 	/**
 	 * Fires when a click lands on a dot, with the group's `id` and the dot's index
 	 * in {@link points} — so a click keys straight back into the caller's own row.
@@ -271,7 +280,7 @@ export function MapPoints({
 				// name a row the caller cannot find — and would renumber itself as the
 				// frame regrouped around it.
 				if (count === 1 && first !== undefined && lone !== undefined) {
-					return { label: lone.label ?? `${shared.label} ${first + 1}`, detail: lone.detail }
+					return { label: lone.label ?? stopName(shared.label, first), detail: lone.detail }
 				}
 
 				return {
@@ -281,7 +290,13 @@ export function MapPoints({
 					detail:
 						clusterDetail === undefined
 							? String(count)
-							: clusterDetail(count, clusterSpan(members, positions)),
+							: clusterDetail(
+									count,
+									clusterSpan(members, positions),
+									// Resolved through the same fallback a lone dot's own readout takes, so a stop
+									// is named identically whether or not it ended up merged.
+									members.map((member) => points[member]?.label ?? stopName(shared.label, member)),
+								),
 				}
 			}),
 		[groups, points, positions, shared.label, clusterDetail],
