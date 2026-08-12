@@ -21,7 +21,6 @@ import {
 	type CSSProperties,
 	type HTMLProps,
 	type RefObject,
-	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -101,6 +100,10 @@ export type FloatingPanelOptions = {
 	 * Notified on every floating-ui-routed open-state change. Optional: a
 	 * point-anchored surface composes only `useClientPoint`, whose position
 	 * updates never call `onOpenChange`, so it has nothing to hand back.
+	 *
+	 * @remarks Pass a fresh closure each render if that is convenient. The call
+	 * always reaches the latest render's callback, and the identity is read by
+	 * nothing, so memoizing it buys no stability that matters here.
 	 */
 	onOpenChange?: (open: boolean, event?: Event, reason?: OpenChangeReason) => void
 	/** Offset (px) between reference and floating element. @defaultValue 4 */
@@ -159,24 +162,22 @@ export function useFloatingPanel({
 		[middleware, offsetPx, matchReferenceWidth],
 	)
 
-	const onOpenChangeRef = useRef(onOpenChange)
-
-	onOpenChangeRef.current = onOpenChange
-
 	// Reason of the pending close request; the focus-return effect reads it.
 	// Every close that flows through floating-ui's `context.onOpenChange`
 	// (interaction hooks, `FloatingFocusManager`, `useFloatingUI`'s dismiss
 	// listeners) records one; programmatic closes carry none.
 	const closeReasonRef = useRef<OpenChangeReason | undefined>(undefined)
 
-	const handleOpenChange = useCallback(
-		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
-			if (!nextOpen) closeReasonRef.current = reason
+	// A plain closure, deliberately unmemoized. `useFloating` re-wraps whatever
+	// it is handed in an effect event of its own and reads the option nowhere
+	// else, so a fresh identity per render reaches no dependency array and the
+	// newest closure is the one it calls. Neither a ref shadow nor a stable
+	// identity buys anything here.
+	const handleOpenChange = (nextOpen: boolean, event?: Event, reason?: OpenChangeReason) => {
+		if (!nextOpen) closeReasonRef.current = reason
 
-			onOpenChangeRef.current?.(nextOpen, event, reason)
-		},
-		[],
-	)
+		onOpenChange?.(nextOpen, event, reason)
+	}
 
 	const { refs, floatingStyles, context } = useFloating({
 		placement,
@@ -294,6 +295,43 @@ export function useFloatingPortalReference(
 }
 
 /**
+ * Closes `context` on a document `pointerdown` that {@link isFloatingOutsidePress}
+ * calls outside the panel, while `enabled`.
+ *
+ * @remarks
+ * The listener stands in for floating-ui's own `outsidePress`, which the two
+ * callers disable — see {@link isFloatingOutsidePress} for why. One hook rather
+ * than the same effect in each, so the guard and the predicate cannot drift
+ * apart between them.
+ *
+ * `context.onOpenChange` is floating-ui's own effect event: one identity for the
+ * whole mount, always calling the newest `onOpenChange` this package handed
+ * `useFloating`. So it is safe both to call directly and to name as a
+ * dependency, and this needs no shadow of its own. Depending on the whole
+ * `context` would not be safe — that object is rebuilt on every reposition, and
+ * would resubscribe the listener each time.
+ *
+ * @internal
+ */
+export function useFloatingOutsidePress(
+	context: FloatingRootContext,
+	refs: FloatingOutsidePressRefs,
+	enabled: boolean,
+): void {
+	const { onOpenChange } = context
+
+	useEffect(() => {
+		if (!enabled) return
+
+		const onPointerDown = (event: PointerEvent) => {
+			if (isFloatingOutsidePress(event, refs)) onOpenChange(false, event, 'outside-press')
+		}
+
+		return subscribeDocumentEvent('pointerdown', onPointerDown)
+	}, [enabled, refs, onOpenChange])
+}
+
+/**
  * True when a document `pointerdown` at `event` falls outside the floating
  * panel described by `refs` — not inside the panel or its reference, not a
  * press on the panel's own scrollbar, and not inside a floating surface opened
@@ -302,12 +340,12 @@ export function useFloatingPortalReference(
  * panel's DOM subtree, so the containment checks miss them;
  * {@link pressLandsInNestedSurface} owns that relation and the rule it applies.
  *
- * @see {@link useFloatingUI} and `useFloatingDisclosure`, the two document
- * `pointerdown` listeners that share this predicate instead of floating-ui's
- * built-in `useDismiss` outsidePress, which — via its "third-party element"
- * escape hatch — spares *any* outside press once some other modal on the page
- * has marked sibling elements `inert`, exactly the case whenever a floating
- * panel opens inside a Dialog/Sheet.
+ * @see {@link useFloatingOutsidePress}, the document `pointerdown` listener
+ * {@link useFloatingUI} and `useFloatingDisclosure` share, instead of
+ * floating-ui's built-in `useDismiss` outsidePress — which, via its
+ * "third-party element" escape hatch, spares *any* outside press once some
+ * other modal on the page has marked sibling elements `inert`, exactly the case
+ * whenever a floating panel opens inside a Dialog/Sheet.
  */
 export function isFloatingOutsidePress(
 	event: PointerEvent,
@@ -422,27 +460,14 @@ export function useFloatingUI({
 	// Dismissals route through `context.onOpenChange` rather than the raw
 	// prop, so the close reason reaches `useFloatingPanel`'s focus-return
 	// effect and floating-ui's own `openchange` listeners.
-	const onOpenChangeRef = useRef(context.onOpenChange)
-
-	onOpenChangeRef.current = context.onOpenChange
-
 	useEscapeLayer({
 		open,
-		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
+		onDismiss: (event) => context.onOpenChange(false, event, 'escape-key'),
 	})
 
 	useFloatingPortalReference(context, refs)
 
-	useEffect(() => {
-		if (!open) return
-
-		const onPointerDown = (event: PointerEvent) => {
-			if (isFloatingOutsidePress(event, refs))
-				onOpenChangeRef.current(false, event, 'outside-press')
-		}
-
-		return subscribeDocumentEvent('pointerdown', onPointerDown)
-	}, [open, refs])
+	useFloatingOutsidePress(context, refs, open)
 
 	return { refs, floatingStyles, context, getReferenceProps, getFloatingProps }
 }

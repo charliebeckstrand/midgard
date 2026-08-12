@@ -8,13 +8,12 @@ import {
 	useDismiss,
 	useRole,
 } from '@floating-ui/react'
-import { type CSSProperties, type RefObject, useCallback, useEffect, useRef } from 'react'
-import { subscribeDocumentEvent } from '../utilities/document-listener'
+import { type CSSProperties, type RefObject, useCallback, useRef } from 'react'
 import { useControllable } from './use-controllable'
 import { useEscapeLayer } from './use-escape-layer'
 import {
 	type FloatingPanelOptions,
-	isFloatingOutsidePress,
+	useFloatingOutsidePress,
 	useFloatingPanel,
 	useFloatingPortalReference,
 } from './use-floating-ui'
@@ -97,6 +96,11 @@ export function useFloatingDisclosure({
 		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
 
+	// Deliberately still a render-phase shadow, where the package's sweep has
+	// moved such callbacks to `useEffectEvent`. `gate` is optional and `setOpen`
+	// tests it for presence, so an always-present effect event would report every
+	// disclosure as gated. Converting this needs the presence test rewritten
+	// first; see the effect-event plan.
 	const gateRef = useRef(gate)
 	gateRef.current = gate
 
@@ -143,15 +147,11 @@ export function useFloatingDisclosure({
 	// what arms `useFocus`'s re-open block: a surface that restores focus to
 	// its trigger on close (an interactive Tooltip's focus trap) would
 	// otherwise re-open on the focus its own dismissal caused.
-	const onOpenChangeRef = useRef(context.onOpenChange)
-
-	onOpenChangeRef.current = context.onOpenChange
-
 	useEscapeLayer({
 		open,
 		enabled: dismissable,
 		layered: roleProp !== 'tooltip',
-		onDismiss: (event) => onOpenChangeRef.current(false, event, 'escape-key'),
+		onDismiss: (event) => context.onOpenChange(false, event, 'escape-key'),
 	})
 
 	// Published whether or not this panel dismisses on an outside press: a
@@ -159,16 +159,7 @@ export function useFloatingDisclosure({
 	// a non-dismissing panel (a tooltip) can still be the surface pressed into.
 	useFloatingPortalReference(context, refs)
 
-	useEffect(() => {
-		if (!open || !dismissable) return
-
-		const onPointerDown = (event: PointerEvent) => {
-			if (isFloatingOutsidePress(event, refs))
-				onOpenChangeRef.current(false, event, 'outside-press')
-		}
-
-		return subscribeDocumentEvent('pointerdown', onPointerDown)
-	}, [open, dismissable, refs])
+	useFloatingOutsidePress(context, refs, open && dismissable)
 
 	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
 	// emitting no role/aria props for a component that owns its roles.
