@@ -2,7 +2,7 @@ import { createRef, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
-import { bySlot, fireEvent, liveRegion, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, liveRegion, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function getInput(container: HTMLElement) {
 	return bySlot(container, 'input') as HTMLInputElement
@@ -433,6 +433,140 @@ describe('TagInput', () => {
 		expect(onChange).toHaveBeenCalledWith(['svelte'])
 
 		expect(input.value).toBe('')
+	})
+})
+
+/**
+ * Pasting a list is the commonest way to fill a token field, and it used to commit NOTHING: the draft
+ * only tokenized on a `keydown`, which a paste never fires, so a forty-code column sat in the input
+ * until blur refused the whole string as one invalid tag.
+ *
+ * These fire a real `paste` event with `clipboardData`. `user.type` and `fireEvent.keyDown` cannot
+ * reach this path — which is exactly the gap that let the defect ship under a test whose comment
+ * claimed paste coverage.
+ */
+function paste(input: HTMLInputElement, text: string) {
+	fireEvent.paste(input, { clipboardData: { getData: () => text } })
+}
+
+describe('TagInput paste', () => {
+	it.each([
+		['a comma-separated list', '77002,77003,77004'],
+		['a newline-separated column', '77002\n77003\n77004'],
+		['a Windows-newline column', '77002\r\n77003\r\n77004'],
+		['a tab-separated row', '77002\t77003\t77004'],
+	])('commits every token in %s', (_name, text) => {
+		const { container } = renderUI(<TagInput placeholder="Zip" />)
+
+		paste(getInput(container), text)
+
+		expect(getBadges(container).map((badge) => badge.textContent)).toEqual([
+			'77002',
+			'77003',
+			'77004',
+		])
+
+		// The draft is emptied, not left holding the pasted string.
+		expect(getInput(container)).toHaveValue('')
+	})
+
+	it('leaves a paste with no delimiter to land as ordinary typing', () => {
+		const { container } = renderUI(<TagInput placeholder="Zip" />)
+
+		paste(getInput(container), '77002')
+
+		// One code pasted mid-edit is not a commit — it continues the draft, so the user can keep
+		// typing. Nothing is committed until a delimiter, Enter, blur or the Add button.
+		expect(getBadges(container)).toHaveLength(0)
+	})
+
+	it('adds a pasted list to tags already held, skipping repeats', () => {
+		const { container } = renderUI(<TagInput defaultValue={['77002']} placeholder="Zip" />)
+
+		paste(getInput(container), '77002,77003')
+
+		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
+	})
+
+	it('keeps refused tokens in the draft and marks the field invalid', () => {
+		const { container } = renderUI(
+			<TagInput placeholder="Zip" validate={(tag) => /^\d{5}$/.test(tag)} />,
+		)
+
+		paste(getInput(container), '77002,oops,77003,nope')
+
+		// The batch is not all-or-nothing, and the failures are localized to the exact tokens rather
+		// than announced once and lost — the user edits two words instead of hunting through forty.
+		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
+
+		expect(getInput(container)).toHaveValue('oops nope')
+
+		// Sighted feedback, which a rejected draft had none of: `invalid` could previously only arrive
+		// from a bound Form field, so a refused paste read as nothing having happened.
+		expect(getInput(container)).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('clears the invalid mark on the next keystroke', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<TagInput placeholder="Zip" validate={(tag) => /^\d{5}$/.test(tag)} />,
+		)
+
+		paste(getInput(container), 'oops,nope')
+
+		expect(getInput(container)).toHaveAttribute('aria-invalid', 'true')
+
+		await user.type(getInput(container), '1')
+
+		expect(getInput(container)).not.toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('fills only the remaining room at the cap', () => {
+		const { container } = renderUI(<TagInput defaultValue={['a']} max={2} placeholder="Zip" />)
+
+		paste(getInput(container), 'b,c,d')
+
+		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['a', 'b'])
+	})
+
+	it('announces the batch once rather than once per tag', async () => {
+		const { container } = renderUI(<TagInput placeholder="Zip" />)
+
+		paste(getInput(container), '77002,77003,77004')
+
+		// `announce` clears then sets on the next microtask, so a live region only ever reports an
+		// observed mutation — the read has to come after that tick.
+		await waitFor(() => expect(liveRegion()).toHaveTextContent('Added 3 tags'))
+
+		// And ONE message, not three: the count replaces what would have been a per-tag stream.
+		expect(liveRegion()).not.toHaveTextContent('Added 77002')
+	})
+})
+
+describe('TagInput multi-token draft', () => {
+	it('commits every token when the Add button takes a multi-token draft', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<TagInput placeholder="Zip" />)
+
+		await user.type(getInput(container), '77002 77003')
+
+		// The button was enabled for a multi-token draft and did nothing when pressed, because it called
+		// a single-tag path. Every commit channel now routes through the same tokenizer.
+		await user.click(screen.getByRole('button', { name: 'Add tag' }))
+
+		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
+	})
+
+	it('commits every token in a multi-token draft on Enter', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(<TagInput placeholder="Zip" />)
+
+		await user.type(getInput(container), '77002 77003{Enter}')
+
+		expect(getBadges(container).map((badge) => badge.textContent)).toEqual(['77002', '77003'])
 	})
 })
 

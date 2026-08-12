@@ -10,12 +10,17 @@ import type { KeyboardEvent } from 'react'
 type KeyboardOptions = {
 	/** Current draft text in the input. */
 	inputValue: string
-	/** Commits a tag; returns `true` on success. */
-	addTag: (raw: string) => boolean
+	/**
+	 * Commits the draft and owns what is left behind.
+	 *
+	 * One callback rather than an `addTag`/`clearInput` pair, so Enter, blur, the Add button and a
+	 * paste all reach the same commit: the draft is tokenized once, in one place, and every entry
+	 * channel therefore accepts the same input. Splitting that across handlers is what let a paste
+	 * commit nothing while Enter worked.
+	 */
+	commit: (raw: string) => void
 	/** Removes the tag at `index`. */
 	removeTag: (index: number) => void
-	/** Clears the draft input. */
-	clearInput: () => void
 	/** Current tag count, used to target the trailing tag on Backspace. */
 	tagCount: number
 }
@@ -34,22 +39,14 @@ type KeyboardOptions = {
  *
  * @internal
  */
-export function useTagInputKeyboard({
-	inputValue,
-	addTag,
-	removeTag,
-	clearInput,
-	tagCount,
-}: KeyboardOptions) {
+export function useTagInputKeyboard({ inputValue, commit, removeTag, tagCount }: KeyboardOptions) {
 	return (event: KeyboardEvent<HTMLInputElement>) => {
 		if (event.nativeEvent.isComposing) return
 
 		if (event.key === 'Enter' || event.key === ',') {
 			event.preventDefault()
 
-			if (addTag(inputValue)) {
-				clearInput()
-			}
+			commit(inputValue)
 		}
 
 		if (event.key === 'Backspace' && inputValue === '' && tagCount > 0) {

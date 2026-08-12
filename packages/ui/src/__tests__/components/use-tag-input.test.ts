@@ -13,56 +13,69 @@ describe('useTagInput', () => {
 		expect(empty.result.current.tags).toEqual([])
 	})
 
-	it.each<[string, Parameters<typeof useTagInput>[0], string, boolean, string[]]>([
-		['addTag appends and returns true on success', { defaultValue: ['a'] }, 'b', true, ['a', 'b']],
-		['addTag trims whitespace and rejects empty input', { defaultValue: [] }, '   ', false, []],
-		['addTag rejects duplicates', { defaultValue: ['a'] }, 'a', false, ['a']],
-	])('%s', (_name, options, input, expectedOk, expectedTags) => {
+	/**
+	 * `addTags` returns the tokens `validate` REFUSED, not a success flag — those are the ones the field
+	 * puts back in the draft for the user to fix. A duplicate or an over-cap token is refused too but
+	 * comes back empty, because neither is something anyone retypes. So the outcome to assert is the
+	 * resulting tag list; `rejected` is asserted only where it carries information.
+	 */
+	it.each<[string, Parameters<typeof useTagInput>[0], string[], string[]]>([
+		['appends a novel tag', { defaultValue: ['a'] }, ['b'], ['a', 'b']],
+		['trims whitespace and skips empty input', { defaultValue: [] }, ['   '], []],
+		['skips duplicates already held', { defaultValue: ['a'] }, ['a'], ['a']],
+		['skips a duplicate repeated inside one batch', { defaultValue: [] }, ['a', 'a'], ['a']],
+		[
+			'commits a whole batch in one transaction',
+			{ defaultValue: [] },
+			['a', 'b', 'c'],
+			['a', 'b', 'c'],
+		],
+	])('%s', (_name, options, input, expectedTags) => {
 		const { result } = renderHook(() => useTagInput(options))
 
-		let ok = false
-
 		act(() => {
-			ok = result.current.addTag(input)
+			result.current.addTags(input)
 		})
-
-		expect(ok).toBe(expectedOk)
 
 		expect(result.current.tags).toEqual(expectedTags)
 	})
 
-	it('addTag honors the max cap and surfaces atMax', () => {
-		const { result } = renderHook(() => useTagInput({ defaultValue: ['a', 'b'], max: 2 }))
+	it('honors the max cap, surfaces atMax, and fills only the remaining room', () => {
+		const { result } = renderHook(() => useTagInput({ defaultValue: ['a'], max: 2 }))
 
-		expect(result.current.atMax).toBe(true)
-
-		let ok = true
+		let rejected: string[] = ['unset']
 
 		act(() => {
-			ok = result.current.addTag('c')
+			rejected = result.current.addTags(['b', 'c'])
 		})
 
-		expect(ok).toBe(false)
-
+		// One slot left, so 'b' lands and 'c' is refused for room — not returned, since the cap is a
+		// limit the field itself shows rather than a token to retype.
 		expect(result.current.tags).toEqual(['a', 'b'])
+
+		expect(rejected).toEqual([])
+
+		expect(result.current.atMax).toBe(true)
 	})
 
-	it('addTag honors a custom validator', () => {
+	it('returns the tokens a custom validator refused, and commits the rest', () => {
 		const validate = vi.fn((tag: string) => tag.length > 2)
 
 		const { result } = renderHook(() => useTagInput({ defaultValue: [], validate }))
 
-		let ok = true
+		let rejected: string[] = []
 
 		act(() => {
-			ok = result.current.addTag('hi')
+			rejected = result.current.addTags(['hi', 'there', 'no'])
 		})
 
-		expect(ok).toBe(false)
+		// The batch is not all-or-nothing: a mistyped code in a list of forty must not discard the
+		// thirty-nine good ones.
+		expect(result.current.tags).toEqual(['there'])
+
+		expect(rejected).toEqual(['hi', 'no'])
 
 		expect(validate).toHaveBeenCalledWith('hi')
-
-		expect(result.current.tags).toEqual([])
 	})
 
 	it('removeTag drops the entry at the given index', () => {
@@ -81,7 +94,7 @@ describe('useTagInput', () => {
 		const { result } = renderHook(() => useTagInput({ defaultValue: [], onValueChange }))
 
 		act(() => {
-			result.current.addTag('react')
+			result.current.addTags(['react'])
 		})
 
 		expect(onValueChange).toHaveBeenCalledWith(['react'])
@@ -93,7 +106,7 @@ describe('useTagInput', () => {
 		const { result } = renderHook(() => useTagInput({ defaultValue: [], onValueChange }))
 
 		act(() => {
-			result.current.addTag('   ')
+			result.current.addTags(['   '])
 		})
 
 		expect(onValueChange).not.toHaveBeenCalled()
