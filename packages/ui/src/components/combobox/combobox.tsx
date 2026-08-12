@@ -3,6 +3,7 @@
 import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown, X } from 'lucide-react'
 import {
+	type ClipboardEventHandler,
 	type InputHTMLAttributes,
 	type ReactNode,
 	type RefObject,
@@ -43,7 +44,7 @@ import { Icon } from '../icon'
 import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
-import { resolveInputDisplay } from './combobox-utilities'
+import { resolveInputDisplay, resolveInputTitle } from './combobox-utilities'
 import { ComboboxContext } from './context'
 import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
@@ -53,7 +54,43 @@ type ComboboxBaseProps<T> = {
 	id?: string
 	name?: string
 	placeholder?: string
+	/**
+	 * Formats a stored value for the input's resting display — what shows when the
+	 * user is not typing. Under `multiple` a single selection reads as its label and
+	 * anything past one as a `"N selected"` count, with the full list on hover as the
+	 * input's `title`.
+	 *
+	 * Tighter than `Listbox`, which joins up to three, and for a reason particular to
+	 * this control: a listbox trigger is a button whose text truncates and stops, while
+	 * this is a text input, so a joined value longer than the field scrolls — showing
+	 * the middle of a sentence, with blank space past its end. Without a resolver a
+	 * `multiple` combobox can only ever show the count, and a single-selection one
+	 * shows nothing, so supply one wherever the selection needs to be legible with the
+	 * panel closed.
+	 */
 	displayValue?: (value: T) => string
+	/**
+	 * Names a `multiple` selection the field can only count — everything past one, and
+	 * every selection at all when there is no {@link ComboboxBaseProps.displayValue}.
+	 *
+	 * The threshold stays the control's: WHEN to stop listing labels is a property of a
+	 * text input whose content scrolls (see `displayValue`), while WHAT the things are is
+	 * the caller's. The default `"2 selected"` says how many of nothing in particular,
+	 * which is fine beside its own label and ambiguous in a row of six filters — where
+	 * `summarize={(codes) => \`${codes.length} postal codes\`}` reads.
+	 *
+	 * **Return an empty string to let the `placeholder` through**, which is the same rule an
+	 * empty selection already follows. That is what a field whose values are TYPED IN rather
+	 * than picked wants: the input stays blank and ready after every commit instead of holding
+	 * a summary the next keystroke has to displace, and the placeholder carries the count. Note
+	 * the trade — a placeholder is not a programmatic name and is announced inconsistently, so
+	 * a field doing that owes the selection another reading.
+	 *
+	 * The full list is still the input's `title` on hover, unsummarized.
+	 *
+	 * @defaultValue `` `${selected.length} selected` ``
+	 */
+	summarize?: (selected: T[]) => string
 	placement?: Placement
 	prefix?: ReactNode
 	suffix?: ReactNode
@@ -118,6 +155,21 @@ type ComboboxBaseProps<T> = {
 	onOpenChange?: (open: boolean) => void
 	/** Fires when the input query changes. */
 	onQueryChange?: (query: string) => void
+	/**
+	 * A paste into the input, before the browser inserts it.
+	 *
+	 * For a combobox whose values are TYPED IN rather than picked from a fetched list, where a pasted
+	 * delimited list is one value per token: call `preventDefault` and commit them through
+	 * `onValueChange`. Reading `clipboardData` here is the only point such a list is still splittable —
+	 * a native `<input>` strips newlines from its own value, so by `onChange` a pasted spreadsheet
+	 * column has arrived as one undelimited run with every boundary destroyed.
+	 *
+	 * Preventing the default is how the combobox is told the paste was consumed: the draft it replaced
+	 * is then dropped and editing ends, the same way selecting an option does, so the field is not left
+	 * holding a query the handler has already turned into a selection. A paste left alone is ordinary
+	 * typing and lands at the caret.
+	 */
+	onPaste?: ClipboardEventHandler<HTMLInputElement>
 	'data-group'?: string
 	'data-group-orientation'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
@@ -236,6 +288,7 @@ export function Combobox<T>({
 	value: valueProp,
 	defaultValue,
 	displayValue,
+	summarize,
 	onValueChange,
 	multiple = false,
 	placeholder = 'Search',
@@ -257,6 +310,7 @@ export function Combobox<T>({
 	open: openProp,
 	onOpenChange,
 	onQueryChange,
+	onPaste,
 	className,
 	autoComplete = 'off',
 	'aria-label': ariaLabel,
@@ -479,7 +533,17 @@ export function Combobox<T>({
 
 	const capitalization = resolveCapitalize(capitalize)
 
-	const inputDisplay = resolveInputDisplay({ editing, query, value, displayValue, multiple })
+	const inputDisplay = resolveInputDisplay({
+		editing,
+		query,
+		value,
+		displayValue,
+		summarize,
+		multiple,
+	})
+
+	// The field shows how many are picked; this says which, on hover.
+	const inputTitle = resolveInputTitle({ editing, value, displayValue, multiple })
 
 	const inputHandlers = useComboboxInput<T>({
 		multiple,
@@ -497,6 +561,7 @@ export function Combobox<T>({
 		onTouched: setTouched,
 		keyboardSettled,
 		rovingKeyDown: handleKeyDown,
+		onPaste,
 	})
 
 	const triggerHandlers = useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
@@ -606,6 +671,7 @@ export function Combobox<T>({
 						required={resolvedRequired}
 						value={inputDisplay}
 						placeholder={placeholder}
+						title={inputTitle}
 						editing={editing}
 						capitalize={capitalization.displayValue}
 						density={token.space}

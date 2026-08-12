@@ -154,7 +154,18 @@ export function useComboboxState<T>({
 
 			setEditing(false)
 
-			inputRef.current?.focus()
+			// Focused AND selected. Leaving editing hands the input back to the resting
+			// display, which for a multi selection is the summary of what is picked — so
+			// an unselected caret would make the next keystroke append to that summary
+			// and search for "Texas (US)u". Selecting it means typing replaces it, which
+			// is what a picked-then-keep-typing flow needs and how a plain combobox
+			// behaves. The panel is still open here, so this is mid-selection rather than
+			// the end of one.
+			const input = inputRef.current
+
+			input?.focus()
+
+			input?.select()
 		},
 		[shouldClose, toggle, commit, close, setQuery, inputRef],
 	)
