@@ -20,10 +20,9 @@ type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
  * dismiss-layer stack via `useEscapeLayer`) and on pointer-down outside the
  * boundary, both gated on `open`. Use `useScrollLock` for body-scroll locking.
  *
- * @remarks
- * Both routes raise `onDismiss` through an effect event, so a fresh closure
- * each render is safe: the press reaches the latest one, and the identity never
- * re-subscribes the document listener.
+ * @remarks Pass a fresh `onDismiss` closure each render if that is convenient;
+ * both routes reach the latest one, and neither re-subscribes its listener when
+ * the identity changes.
  *
  * @returns The container ref defining the outside-pointer boundary. Attach it
  * to the overlay root, or pass your own via `containerRef` and ignore the
