@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type GeoPermissibleObjects, geoBounds, geoContains } from 'd3-geo'
+import { ArrowLeft } from 'lucide-react'
 import { type ComponentProps, useMemo, useState } from 'react'
 import { feature } from 'topojson-client'
 import countiesUrl from 'us-atlas/counties-10m.json?url'
@@ -7,6 +8,7 @@ import statesUrl from 'us-atlas/states-10m.json?url'
 import countriesUrl from 'world-atlas/countries-110m.json?url'
 import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
+import { Icon } from '../../../../components/icon'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
 import { Stack } from '../../../../components/stack'
@@ -362,8 +364,13 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 	return (
 		<Stack gap="md">
 			<Flex>
-				<Button variant="outline" onClick={() => setDrilled(null)} disabled={!inside}>
-					Back to the nation
+				<Button
+					variant="plain"
+					prefix={<Icon icon={<ArrowLeft />} />}
+					onClick={() => setDrilled(null)}
+					disabled={!inside}
+				>
+					All states
 				</Button>
 			</Flex>
 
@@ -372,8 +379,8 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 					? 'Hover a state to warm its counties, then click to drill in.'
 					: counties === undefined
 						? `${drilled.name} — loading counties…`
-						: `${drilled.name} — ${counties.features.length} counties. ${
-								county === null ? 'Pick one.' : `${county.name} County.`
+						: `${drilled.name} — ${counties.features.length} counties.${
+								county === null ? '' : ` ${county.name} County.`
 							}`}
 			</Text>
 
