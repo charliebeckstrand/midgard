@@ -273,6 +273,50 @@ describe('rewindFeatures', () => {
 		).toEqual(before > HALF_SPHERE ? [...wide].reverse() : wide)
 	})
 
+	it('leaves a ring carrying a non-finite coordinate as it arrived', () => {
+		// A `NaN` reaches the planar measure as a `NaN` bound, and a comparison
+		// against a `NaN` is false whichever way it is written — so the band test
+		// is negated, and this ring reaches the spherical measure that decided it
+		// before. Written the other way it read as wound the wrong way and was
+		// reversed.
+		const ring = [
+			[Number.NaN, 0],
+			[1, 0],
+			[1, 1],
+			[Number.NaN, 0],
+		]
+
+		const [fixed] = rewindFeatures([polygonFeature('N', [ring])])
+
+		expect(
+			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
+		).toEqual(ring)
+	})
+
+	it('leaves a pre-projected atlas to the spherical measure', () => {
+		// `us-atlas` ships `counties-albers-10m` and its siblings in frame units,
+		// for drawing through `geoIdentity`. A y of 400 is not a latitude, and the
+		// planar rule weighs one by `cos`, so geometry off the globe is refused
+		// rather than judged — these rings wind as they always did.
+		const framed = [
+			[120, 400],
+			[130, 400],
+			[130, 410],
+			[120, 410],
+			[120, 400],
+		]
+
+		const feature = polygonFeature('A', [framed])
+
+		const [fixed] = rewindFeatures([feature])
+
+		const expected = firstRingArea(feature) > HALF_SPHERE ? [...framed].reverse() : framed
+
+		expect(
+			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
+		).toEqual(expected)
+	})
+
 	it('rewinds a ring that encloses a pole', () => {
 		// Every longitude, so the plane cannot see the pole inside it at all.
 		const capped = [

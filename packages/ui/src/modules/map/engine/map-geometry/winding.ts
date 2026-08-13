@@ -83,10 +83,17 @@ const DEGENERATE_SAFETY_FACTOR = 100
  * way.
  *
  * The one shape this misreads is a ring that crosses itself, where the shoelace
- * cancels lobe against lobe and can report the wrong side — a hand-built
- * example inside the guard measures +60 deg² against a spherical 0.0065 sr. RFC
- * 7946 §3.1.6 forbids a self-intersecting ring, so this rests on the input being
- * valid GeoJSON, as the winding rule it serves already does.
+ * cancels lobe against lobe and can report the wrong side — a hand-built example
+ * inside the guard measures +60 deg² against a spherical 0.0065 sr. RFC 7946
+ * §3.1.6 forbids such a ring, but that is not what makes this safe, because real
+ * atlases ship them anyway: 141 of the 22,285 rings across every file `us-atlas`
+ * and `world-atlas` publish cross themselves, five of them in `counties-10m`.
+ * What makes it safe is that the sign only turns over when two oppositely wound
+ * lobes are comparable in area, and a coastline that nicks itself is a spur
+ * against a landmass. Every one of those 141 agrees with the spherical measure —
+ * which is a measurement over the atlases a consumer is likely to draw, not a
+ * proof, so it is the reason to keep the byte-for-byte comparison in reach
+ * rather than to stop checking.
  *
  * @internal
  */
@@ -126,13 +133,25 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 	// coordinates reads as a span of ~360° and is refused here too.
 	if (!(lonMax - lonMin < 180)) return null
 
+	// Everything below reads the coordinates as degrees on a globe, so geometry
+	// that is not on one is not this rule's business. A pre-projected atlas —
+	// `us-atlas` ships `counties-albers-10m` and its siblings for drawing through
+	// `geoIdentity` — carries frame units where a latitude belongs, and a y of 400
+	// would be weighed by `cos(400°)`. Longitude needs no such bound: the span
+	// test above is relative, and a shoelace over a closed ring is unchanged by
+	// shifting every longitude, so a source stating them in [0, 360) reads the
+	// same as one stating them in [-180, 180].
+	if (!(maxAbsLat <= 90)) return null
+
 	// The planar figure bounds the spherical one from below, at the ring's own
 	// highest latitude where a degree of longitude is narrowest. Under the band,
 	// the ring is close enough to degenerate that only the exact measure can say.
+	// Negated like the span test above so a `NaN` bound — which one non-finite
+	// coordinate is enough to produce — refuses rather than falls through it.
 	const bound =
 		Math.abs(twice / 2) * STERADIANS_PER_SQUARE_DEGREE * Math.cos((maxAbsLat * Math.PI) / 180)
 
-	if (bound <= DEGENERATE_AREA_EPSILON * DEGENERATE_SAFETY_FACTOR) return null
+	if (!(bound > DEGENERATE_AREA_EPSILON * DEGENERATE_SAFETY_FACTOR)) return null
 
 	return twice < 0 ? 'small' : 'large'
 }
