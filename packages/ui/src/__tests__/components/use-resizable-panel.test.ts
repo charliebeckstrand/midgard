@@ -580,6 +580,143 @@ describe('useResizablePanel', () => {
 		})
 	})
 
+	describe('drag bracket', () => {
+		it('brackets a pointer drag, reporting the handle index on each end', () => {
+			const onResizeStart = vi.fn()
+			const onResizeEnd = vi.fn()
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
+					orientation: 'horizontal',
+					panelConfigs: equalPanels,
+					onResizeStart,
+					onResizeEnd,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			expect(onResizeStart).toHaveBeenCalledExactlyOnceWith(0)
+
+			expect(onResizeEnd).not.toHaveBeenCalled()
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointerup'))
+			})
+
+			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		it('reports the end once when a cancelled pointer also fires pointerup', () => {
+			const onResizeEnd = vi.fn()
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
+					orientation: 'horizontal',
+					panelConfigs: equalPanels,
+					onResizeEnd,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			act(() => {
+				document.dispatchEvent(new PointerEvent('pointercancel'))
+
+				document.dispatchEvent(new PointerEvent('pointerup'))
+			})
+
+			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		it('closes the first bracket when a second pointer supersedes the drag', () => {
+			const onResizeStart = vi.fn()
+			const onResizeEnd = vi.fn()
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
+					orientation: 'horizontal',
+					panelConfigs: [
+						{ defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ defaultSize: 1, minSize: 0, maxSize: 100 },
+					],
+					onResizeStart,
+					onResizeEnd,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 300, clientY: 0 }))
+			})
+
+			// A second handle grabbed before the first lifts. The superseded drag is over,
+			// so its bracket closes rather than dangling.
+			act(() => {
+				result.current.startDrag(1, makePointerEvent({ button: 0, clientX: 600, clientY: 0 }))
+			})
+
+			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
+
+			expect(onResizeStart.mock.calls).toEqual([[0], [1]])
+		})
+
+		it('closes the bracket when the group unmounts mid-drag', () => {
+			const onResizeEnd = vi.fn()
+
+			const { result, unmount } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
+					orientation: 'horizontal',
+					panelConfigs: equalPanels,
+					onResizeEnd,
+				}),
+			)
+
+			act(() => {
+				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+			})
+
+			unmount()
+
+			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		it('stays silent for a keyboard nudge, which has no drag lifecycle', () => {
+			const onResizeStart = vi.fn()
+			const onResizeEnd = vi.fn()
+			const onSizesChange = vi.fn()
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
+					orientation: 'horizontal',
+					panelConfigs: equalPanels,
+					onSizesChange,
+					onResizeStart,
+					onResizeEnd,
+				}),
+			)
+
+			act(() => {
+				result.current.resize(0, 10)
+			})
+
+			expect(onSizesChange).toHaveBeenCalledOnce()
+
+			expect(onResizeStart).not.toHaveBeenCalled()
+
+			expect(onResizeEnd).not.toHaveBeenCalled()
+		})
+	})
+
 	describe('unmount cleanup', () => {
 		it('removes document listeners on unmount mid-drag', () => {
 			const group = makeGroup({ width: 1000, height: 100 })

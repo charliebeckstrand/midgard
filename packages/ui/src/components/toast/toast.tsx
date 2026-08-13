@@ -69,7 +69,8 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 								zIndex={toasts.length - i}
 								closable={t.closable}
 								onOpenChange={(open, id) => {
-									if (!open) dismiss(id)
+									// The only dismissal a reader drives directly, so it names itself.
+									if (!open) dismiss(id, 'close')
 								}}
 								onPause={pause}
 								onResume={resume}

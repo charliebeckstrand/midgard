@@ -14,7 +14,9 @@ describe('useToastQueue', () => {
 
 		const sync = vi.fn()
 
-		const { result } = renderHook(() => useToastQueue(toastsRef, sync))
+		const onTimeout = vi.fn()
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, sync, onTimeout))
 
 		act(() => {
 			result.current.start()
@@ -38,7 +40,9 @@ describe('useToastQueue', () => {
 
 		const sync = vi.fn()
 
-		const { result } = renderHook(() => useToastQueue(toastsRef, sync))
+		const onTimeout = vi.fn()
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, sync, onTimeout))
 
 		act(() => {
 			result.current.start()
@@ -66,7 +70,7 @@ describe('useToastQueue', () => {
 	it('clears the running flag and queue on stop()', () => {
 		const toastsRef = { current: [makeToast('a')] }
 
-		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn()))
+		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), vi.fn()))
 
 		act(() => {
 			result.current.start()
@@ -84,7 +88,9 @@ describe('useToastQueue', () => {
 
 		const sync = vi.fn()
 
-		const { result } = renderHook(() => useToastQueue(toastsRef, sync))
+		const onTimeout = vi.fn()
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, sync, onTimeout))
 
 		act(() => {
 			result.current.handleExitComplete()
@@ -100,7 +106,9 @@ describe('useToastQueue', () => {
 
 		const sync = vi.fn()
 
-		const { result } = renderHook(() => useToastQueue(toastsRef, sync))
+		const onTimeout = vi.fn()
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, sync, onTimeout))
 
 		act(() => {
 			result.current.start()

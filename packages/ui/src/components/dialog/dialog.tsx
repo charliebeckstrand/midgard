@@ -5,6 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel, useMinWidth } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -18,6 +19,25 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	defaultOpen?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Fires once the panel has finished arriving — it is up, at rest, and covering
+	 * whatever it covers.
+	 *
+	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
+	 * one reports it having *landed*. Use it for anything that has to hold until the panel
+	 * is actually up — measuring it, or starting work that must not compete with the
+	 * animation — rather than guessing at the motion with a matching delay.
+	 *
+	 * Deliberately named for the open, not for the animation. The panel plays a different
+	 * preset on each side of the `sm` breakpoint, and reports from whichever one ran. A
+	 * transition the user's reduced-motion preference collapses still resolves, and so
+	 * still reports.
+	 *
+	 * Once per arrival, and never for a close.
+	 *
+	 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
+	 */
+	onOpenComplete?: () => void
 	/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
 	placement?: 'center' | 'top'
 	/** Whether clicking the backdrop closes the dialog. @defaultValue true */
@@ -68,6 +88,7 @@ export function Dialog({
 	open,
 	defaultOpen,
 	onOpenChange,
+	onOpenComplete,
 	placement = 'center',
 	dismissOnBackdrop = true,
 	width,
@@ -91,6 +112,10 @@ export function Dialog({
 
 	const isDesktop = useMinWidth(640)
 
+	const preset = isDesktop ? k.motion.desktop : k.motion.mobile
+
+	const { onAnimationComplete } = useOpenComplete(resolvedOpen, preset.animate, onOpenComplete)
+
 	const { ariaProps, a11y } = useA11yPanel(role)
 
 	// aria-labelledby (a registered DialogTitle) takes precedence over aria-label.
@@ -111,7 +136,8 @@ export function Dialog({
 				)}
 			>
 				<motion.div
-					{...(isDesktop ? k.motion.desktop : k.motion.mobile)}
+					{...preset}
+					onAnimationComplete={onAnimationComplete}
 					{...ariaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
 					data-slot={slot}

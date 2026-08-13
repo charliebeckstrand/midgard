@@ -1,16 +1,22 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { ToastData, ToastInput } from './types'
+import type { ToastData, ToastDismissReason, ToastInput } from './types'
 
 export type ToastContextValue = {
 	toast: (data: ToastInput) => string
+	/**
+	 * Takes no reason, deliberately. The same closure sits on the viewport context, which
+	 * does take one, but the reason vocabulary belongs to the provider: an application
+	 * dismissal is `'dismissed'` by definition, and letting a caller claim `'timeout'` or
+	 * `'evicted'` would turn a closed set into an open one.
+	 */
 	dismiss: (id: string) => void
 }
 
 export type ToastViewportContextValue = {
 	toasts: ToastData[]
-	dismiss: (id: string) => void
+	dismiss: (id: string, reason?: ToastDismissReason) => void
 	pause: () => void
 	resume: () => void
 	reset: (id: string) => void

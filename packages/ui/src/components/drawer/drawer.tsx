@@ -1,11 +1,12 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useCallback, useEffect, useRef } from 'react'
+import { type ReactNode, type RefObject, useEffect } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
+import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
@@ -127,30 +128,17 @@ export function Drawer({
 	// this component's own mount or a minimize/maximize cycle would land in place.
 	const animateEnter = useEnterAnimation(resolvedOpen, animateOnMount)
 
-	/*
-	 * One report per arrival. Reset while closed rather than on report, so a reopen reports
-	 * again while a second landing inside one arrival does not — adjusted during render, in
-	 * step with `useEnterAnimation` above.
-	 */
-	const reportedRef = useRef(false)
-
-	if (!resolvedOpen) reportedRef.current = false
-
-	// Memoized because the arrival effect below depends on it; a bare function would change
-	// identity every render, which `useExhaustiveDependencies` rejects outright.
-	const reportOpen = useCallback(() => {
-		if (reportedRef.current) return
-
-		reportedRef.current = true
-
-		onOpenComplete?.()
-	}, [onOpenComplete])
+	const { report, onAnimationComplete } = useOpenComplete(
+		resolvedOpen,
+		k.motion.animate,
+		onOpenComplete,
+	)
 
 	// A panel that arrives in place plays no enter, so there is no landing to report from —
 	// it is already up, and says so from here instead.
 	useEffect(() => {
-		if (resolvedOpen && !animateEnter) reportOpen()
-	}, [resolvedOpen, animateEnter, reportOpen])
+		if (resolvedOpen && !animateEnter) report()
+	}, [resolvedOpen, animateEnter, report])
 
 	const { ariaProps, a11y } = useA11yPanel()
 
@@ -170,13 +158,7 @@ export function Drawer({
 				{...k.motion}
 				// After the preset spread, so it overrides the preset's own `initial`.
 				initial={animateEnter ? k.motion.initial : false}
-				onAnimationComplete={(definition) => {
-					// The exit lands here too, and the leaving subtree keeps the props from the
-					// render where the drawer was still open — so `resolvedOpen` cannot tell the
-					// two apart. What framer hands back can: the preset's own `animate` object on
-					// the way in, its `exit` on the way out.
-					if (definition === k.motion.animate) reportOpen()
-				}}
+				onAnimationComplete={onAnimationComplete}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"

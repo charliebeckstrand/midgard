@@ -7,7 +7,7 @@ import {
 	ToastViewportContext,
 	type ToastViewportContextValue,
 } from './context'
-import type { ToastData, ToastInput } from './types'
+import type { ToastData, ToastDismissReason, ToastInput } from './types'
 import { useToastQueue } from './use-toast-queue'
 import { useToastTimer } from './use-toast-timer'
 
@@ -41,7 +41,18 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const sync = useCallback(() => flush((n) => n + 1), [])
 
-	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync)
+	/*
+	 * `dismissed` is the latch. It is written once, in `dismiss` below, at the moment a
+	 * toast starts leaving, and it rides the toast rather than a parallel register — so
+	 * the second `dismiss` of a departure, and the queue removing a toast that `dismiss`
+	 * already marked, both find it set and stay quiet.
+	 */
+	const handleRemove = useCallback((toast: ToastData) => {
+		// The queue is the timeout exit; the other three routes report from `dismiss`.
+		if (!toast.dismissed) toast.onDismiss?.('timeout')
+	}, [])
+
+	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync, handleRemove)
 
 	const { startTimer, pause, resume, resetRemaining, reset } = useToastTimer(
 		toastsRef,
@@ -51,7 +62,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 	)
 
 	const dismiss = useCallback(
-		(id: string) => {
+		(id: string, reason: ToastDismissReason = 'dismissed') => {
 			const toast = toastsRef.current.find((t) => t.id === id)
 
 			if (!toast) return
@@ -62,6 +73,11 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 				)
 
 				sync()
+
+				// After the mark, so a consumer that dismisses from inside its own handler
+				// re-finds a marked toast and takes the removal branch instead of reporting
+				// a second time.
+				toast.onDismiss?.(reason)
 
 				requestAnimationFrame(() => {
 					toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
@@ -103,7 +119,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 					const toDismiss = active.slice(0, excess)
 
 					for (const t of toDismiss) {
-						dismiss(t.id)
+						dismiss(t.id, 'evicted')
 					}
 				}
 			}

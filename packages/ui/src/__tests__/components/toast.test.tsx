@@ -701,4 +701,144 @@ describe('Toast: useToast behavior', () => {
 
 		expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument()
 	})
+
+	/*
+	 * `toast()` hands back an id and nothing else, so `onDismiss` is the only way the
+	 * caller learns its own toast is gone. Four routes remove one, and the reason
+	 * separates the ones a caller would act on (a reader closing it) from the ones it
+	 * would not (the cap making room).
+	 */
+	describe('onDismiss', () => {
+		it('names a dismiss() call, once, across the mark-then-remove pair', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onDismiss = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			let id = ''
+
+			act(() => {
+				id = api?.toast({ title: 'Dismissable', onDismiss }) ?? ''
+			})
+
+			expect(onDismiss).not.toHaveBeenCalled()
+
+			// The first call marks it and the second runs the removal branch; one departure,
+			// so one report.
+			act(() => {
+				api?.dismiss(id)
+			})
+
+			act(() => {
+				api?.dismiss(id)
+			})
+
+			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('dismissed')
+		})
+
+		it('names the reader closing it', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onDismiss = vi.fn()
+
+			renderUI(
+				<ToastProvider duration={5000}>
+					<Toast />
+					<Trigger onReady={(c) => (api = c)} />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'Closable', persist: true, onDismiss })
+			})
+
+			act(() => {
+				fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
+			})
+
+			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('close')
+		})
+
+		it('names the cap pushing the oldest out', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onDismiss = vi.fn()
+
+			renderUI(
+				<ToastProvider maxToasts={1}>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'First', persist: true, onDismiss })
+
+				api?.toast({ title: 'Second', persist: true })
+			})
+
+			// Evicted to make room, not dismissed by anyone — a caller that retries on
+			// dismissal would loop forever if these read alike.
+			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('evicted')
+		})
+
+		it('names the lifetime running out', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onDismiss = vi.fn()
+
+			renderUI(
+				<ToastProvider duration={1000}>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'Fleeting', onDismiss })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(onDismiss).toHaveBeenCalledExactlyOnceWith('timeout')
+		})
+
+		it('rides its own toast rather than the stack', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onFirst = vi.fn()
+			const onSecond = vi.fn()
+
+			renderUI(
+				<ToastProvider duration={1000}>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'First', onDismiss: onFirst })
+
+				api?.toast({ title: 'Second', onDismiss: onSecond })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			// The queue drains from the head one at a time, so only the first has left.
+			// Each callback hears about its own toast and no other.
+			expect(onFirst).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(onSecond).not.toHaveBeenCalled()
+		})
+	})
 })

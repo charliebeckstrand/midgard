@@ -5,6 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -18,6 +19,24 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	defaultOpen?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Fires once the panel has finished arriving — it is in from its edge, at rest, and
+	 * covering whatever it covers.
+	 *
+	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
+	 * one reports it having *landed*. Use it for anything that has to hold until the panel
+	 * is actually up — measuring it, or starting work that must not compete with the slide
+	 * — rather than guessing at the slide with a matching delay.
+	 *
+	 * Deliberately named for the open, not for the animation. It reports from whichever
+	 * `side` preset ran. A slide the user's reduced-motion preference collapses still
+	 * resolves, and so still reports.
+	 *
+	 * Once per arrival, and never for a close.
+	 *
+	 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
+	 */
+	onOpenComplete?: () => void
 	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
 	/**
@@ -92,6 +111,7 @@ export function Sheet({
 	open,
 	defaultOpen,
 	onOpenChange,
+	onOpenComplete,
 	side = 'right',
 	width,
 	glass,
@@ -113,6 +133,10 @@ export function Sheet({
 
 	const resolvedSurface = useResolvedSurface(glass)
 
+	const preset = k.motion[side]
+
+	const { onAnimationComplete } = useOpenComplete(resolvedOpen, preset.animate, onOpenComplete)
+
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
 	return (
@@ -126,7 +150,8 @@ export function Sheet({
 			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
-				{...k.motion[side]}
+				{...preset}
+				onAnimationComplete={onAnimationComplete}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="sheet"

@@ -8,7 +8,7 @@ import {
 	useHover,
 	useInteractions,
 } from '@floating-ui/react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 
@@ -18,6 +18,7 @@ type TooltipStateOptions = {
 	interactive?: boolean
 	enabled?: boolean
 	forceOpen?: boolean
+	onOpenChange?: (open: boolean) => void
 }
 
 /**
@@ -55,6 +56,7 @@ export function useTooltipState({
 	interactive = false,
 	enabled = true,
 	forceOpen = false,
+	onOpenChange,
 }: TooltipStateOptions) {
 	// `forceOpen` controls the disclosure open — a programmatic reveal that skips
 	// the pointer, for a tooltip whose trigger can't take hover (an SVG rule the
@@ -111,6 +113,28 @@ export function useTooltipState({
 
 		return subscribeOverlaySignal(() => setOpen(false))
 	}, [open, setOpen])
+
+	/*
+	 * Reported from the resolved open, not from the disclosure's setter. `forceOpen` holds
+	 * the disclosure controlled, and `useControllable` fires its callback on every set —
+	 * even the ones a controlled `open` then overrides. Hovering off a forced-open tooltip
+	 * would report a close that never happened. Reading the committed value instead reports
+	 * exactly what the reader sees, on every route into it: hover, focus, click, `forceOpen`,
+	 * `enabled`, the `:disabled` poll above, and the overlay signal.
+	 */
+	const notifyOpenChange = useEffectEvent((next: boolean) => {
+		onOpenChange?.(next)
+	})
+
+	const prevOpenRef = useRef(open)
+
+	useEffect(() => {
+		if (prevOpenRef.current === open) return
+
+		prevOpenRef.current = open
+
+		notifyOpenChange(open)
+	}, [open])
 
 	const hasHover = useHasHover()
 

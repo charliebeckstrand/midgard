@@ -200,3 +200,49 @@ describe('Sheet uncontrolled', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 })
+
+/*
+ * `onOpenComplete` says the panel is up, not that an animation ran. The enter slide's own
+ * landing rides on `onAnimationComplete`, and the global motion mock fires that only when
+ * the `animate` target *changes* between renders — never on a mount — so no arrival slide
+ * resolves anywhere in the library's coverage. The same gap the Drawer suite records.
+ *
+ * What these cases do pin is everything around it: that the callback is wired to the
+ * landing at all, that the definition gate accepts the enter target rather than the exit,
+ * and that the latch holds it to one report. A `side` swap changes the preset, which is
+ * the one target change the mock will resolve.
+ */
+describe('Sheet onOpenComplete', () => {
+	const sheet = (props: { open: boolean; side?: 'right' | 'top'; onOpenComplete: () => void }) => (
+		<Sheet {...props} onOpenChange={() => {}} aria-label="Resolve">
+			content
+		</Sheet>
+	)
+
+	it('reports the landing once, not once per render', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(sheet({ open: true, side: 'right', onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+
+		rerender(sheet({ open: true, side: 'top', onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+
+		rerender(sheet({ open: true, side: 'right', onOpenComplete }))
+
+		// Still one arrival. The latch resets when the sheet closes, not on every landing.
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('says nothing while the sheet is closed', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(sheet({ open: false, side: 'right', onOpenComplete }))
+
+		rerender(sheet({ open: false, side: 'top', onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+})
