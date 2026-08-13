@@ -1,8 +1,11 @@
 /**
- * Ring-winding normalisation, the guard between a raw-GeoJSON atlas and
- * `d3-geo`'s spherical convention. It runs once per atlas, on the cached decode
- * stage (`cache.ts`), because a mis-wound exterior reads as its region's
- * complement and floods the frame.
+ * Ring normalisation, between an atlas as it arrives and the rings `d3-geo` can
+ * draw. Two jobs share the pass because both are read off one ring's spherical
+ * area: winding, the guard on a raw-GeoJSON atlas, where a mis-wound exterior
+ * reads as its region's complement and floods the frame; and the degenerate
+ * rings every source carries, which no winding saves. It runs once per atlas, on
+ * the cached decode stage (`cache.ts`), because it measures every ring in the
+ * geography — 30 ms across the 3,231 features of `counties-10m`.
  */
 
 import { geoArea } from 'd3-geo'
@@ -125,11 +128,28 @@ function rewindFeature(feature: MapFeature): MapFeature {
  * the opposite winding. Collinear zero-area rings, junk under either winding, are
  * dropped; a polygon whose exterior is one is dropped whole.
  *
- * TopoJSON decodes with correct winding already, so this is a no-op there. It
- * guards the raw-GeoJSON path, where RFC 7946's counter-clockwise exteriors are
- * wound opposite d3's convention and would otherwise break wholesale. Only
- * changed rings are cloned — the caller's geometry is never mutated — so an
- * already-correct collection returns feature-for-feature unchanged.
+ * The rewind guards the raw-GeoJSON path, where RFC 7946's counter-clockwise
+ * exteriors are wound opposite d3's convention and would otherwise break
+ * wholesale. TopoJSON decodes wound correctly, so that half is inert there:
+ * across the three atlases the module draws — `states-10m`, `counties-10m`, and
+ * `world-atlas`'s `countries-110m` — no ring is reversed.
+ *
+ * The drop is not inert, which is why a TopoJSON atlas is not a case this pass
+ * can be skipped for. Quantisation collapses a sliver to a ring of no area, and a
+ * decoded atlas arrives carrying them: `counties-10m` yields 15 polygons and 7
+ * holes to drop, and `states-10m` and `countries-110m` a polygon each. Almost all
+ * of those sit inside a multipolygon that keeps its other parts, so the visible
+ * effect is small — one `counties-10m` feature is left with nothing to draw, and
+ * the 89 others that draw no path are territories `albers-usa` places nowhere.
+ * The drop earns the pass on the holes rather than on the count:
+ * {@link DEGENERATE_AREA_EPSILON} states why a ring of no area cannot be wound
+ * either way, and a hole flipped on that reading punches out the region it
+ * belongs to.
+ *
+ * Only changed rings are cloned — the caller's geometry is never mutated — so an
+ * already-correct collection returns feature-for-feature unchanged. The pass
+ * measures every ring either way; it is the result that is often unchanged, not
+ * the cost.
  *
  * @internal
  */
