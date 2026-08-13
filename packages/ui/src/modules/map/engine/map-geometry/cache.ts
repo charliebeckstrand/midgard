@@ -288,12 +288,14 @@ export function cachedChromePaths(
 }
 
 // The canonical-fit paths per shared geometry. Held apart from the entry rather
-// than on it, because a `deferPaint` map never asks for them: that mode holds an
-// empty frame until the container is measured and then draws from the measured
-// fit alone, so building them with the entry would build a set of strings nothing
-// draws — and `ChoroplethChart` defers on every chart it renders. The walk itself
-// is no longer what that saves: the buffer is drawn with the fit, because the
-// fit is measured from it, so what a deferred map skips here is the emit. A
+// than on it, so a map that never draws never builds them: a `deferPaint` map
+// holds an empty frame until the container is measured, and `ChoroplethChart`
+// defers on every chart it renders. What that saves has narrowed twice. The walk
+// went first — the buffer is drawn with the fit, because the fit is measured
+// from it — leaving the emit. Then the region layer began carrying these paths
+// onto the measured fit rather than emitting there, so a deferring map reaches
+// them the moment measurement lands and pays this emit instead of that one. What
+// is still saved is the whole of it for a map that is never measured at all. A
 // function rather than a lazy property for the reason the rest of this file is
 // functions: there is no field for a spread, a clone, or a key walk to force, so
 // a caller that does not want the pass simply does not call.

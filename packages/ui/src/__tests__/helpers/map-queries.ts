@@ -30,3 +30,17 @@ export function tableRows(container: HTMLElement) {
 		cell.getAttribute('aria-current'),
 	])
 }
+
+/**
+ * The scale a transformed layer draws at, read off its own attribute.
+ *
+ * `1` where the layer carries no transform, which is the identity it would
+ * apply — so a caller multiplies by this whether or not the layer is
+ * transformed. `transformAttribute` rounds to three decimals, so read the
+ * result to three places and no further.
+ */
+export function layerScale(element: Element | null | undefined): number {
+	const match = /scale\((-?[\d.]+)\)/.exec(element?.getAttribute('transform') ?? '')
+
+	return match?.[1] === undefined ? 1 : Number(match[1])
+}

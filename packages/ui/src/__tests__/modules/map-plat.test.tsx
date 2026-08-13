@@ -12,6 +12,7 @@ import {
 	bySlot,
 	fireEvent,
 	firstRegion,
+	layerScale,
 	renderUI,
 	stubMatchMedia,
 	tableRows,
@@ -667,12 +668,15 @@ describe('MapPlat choropleth mode', () => {
 
 		// The width is stated against the layer's own frame, which a measured refit
 		// carries onto the drawn one by a scale — so what the browser draws is this
-		// width times that scale, and the rule is the product, not the figure.
+		// width times that scale, and the rule is the product, not the figure. To
+		// three places, because that is where `transformAttribute` rounds the scale
+		// the width is read back against.
 		const layer = bySlot(container, 'map-regions')
 
-		const scale = Number(/scale\(([^)]+)\)/.exec(layer?.getAttribute('transform') ?? '')?.[1] ?? 1)
-
-		expect(Number(layer?.getAttribute('stroke-width')) * scale).toBeCloseTo(REGION_STROKE_WIDTH, 6)
+		expect(Number(layer?.getAttribute('stroke-width')) * layerScale(layer)).toBeCloseTo(
+			REGION_STROKE_WIDTH,
+			3,
+		)
 	})
 
 	it('fills regions with the colorRange colour for their bin, as a fill attribute', () => {

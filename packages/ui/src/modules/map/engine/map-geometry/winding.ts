@@ -1,11 +1,17 @@
 /**
  * Ring normalisation, between an atlas as it arrives and the rings `d3-geo` can
- * draw. Two jobs share the pass because both are read off one ring's spherical
- * area: winding, the guard on a raw-GeoJSON atlas, where a mis-wound exterior
- * reads as its region's complement and floods the frame; and the degenerate
- * rings every source carries, which no winding saves. It runs once per atlas, on
- * the cached decode stage (`cache.ts`), because it measures every ring in the
- * geography — 30 ms across the 3,231 features of `counties-10m`.
+ * draw. Two jobs share the pass: winding, the guard on a raw-GeoJSON atlas,
+ * where a mis-wound exterior reads as its region's complement and floods the
+ * frame; and the degenerate rings every source carries, which no winding saves.
+ *
+ * They were once one question, both read off a ring's spherical area. They are
+ * not any more — {@link planarSide} settles the winding of 99.25% of rings on
+ * the plane and never measures the sphere, while the drop stays on the exact
+ * measure whatever the plane reports. What now couples them is
+ * {@link DEGENERATE_SAFETY_FACTOR}: a ring the plane cannot tell from
+ * degenerate is handed to the measure that can. The pass runs once per atlas on
+ * the cached decode stage (`cache.ts`), and costs 1.6 ms across the 3,231
+ * features of `counties-10m` where the spherical pass cost 21.4 ms.
  */
 
 import { geoArea } from 'd3-geo'
@@ -37,8 +43,11 @@ function ringArea(ring: Ring): number {
 	return geoArea({ type: 'Polygon', coordinates: [ring] })
 }
 
+/** One degree in radians, which the two conversions below are both built from. @internal */
+const RADIANS_PER_DEGREE = Math.PI / 180
+
 /** Steradians a square degree covers at the equator, where a degree is widest. @internal */
-const STERADIANS_PER_SQUARE_DEGREE = (Math.PI / 180) ** 2
+const STERADIANS_PER_SQUARE_DEGREE = RADIANS_PER_DEGREE ** 2
 
 /**
  * How far above {@link DEGENERATE_AREA_EPSILON} a ring's planar measure must sit
@@ -131,7 +140,7 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 	// A ring spanning half the globe or more may enclose a pole, where the plane
 	// and the sphere stop agreeing. One that crosses the antimeridian in its own
 	// coordinates reads as a span of ~360° and is refused here too.
-	if (!(lonMax - lonMin < 180)) return null
+	if (lonMax - lonMin >= 180) return null
 
 	// Everything below reads the coordinates as degrees on a globe, so geometry
 	// that is not on one is not this rule's business. A pre-projected atlas —
@@ -141,15 +150,18 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 	// test above is relative, and a shoelace over a closed ring is unchanged by
 	// shifting every longitude, so a source stating them in [0, 360) reads the
 	// same as one stating them in [-180, 180].
-	if (!(maxAbsLat <= 90)) return null
+	if (maxAbsLat > 90) return null
 
 	// The planar figure bounds the spherical one from below, at the ring's own
 	// highest latitude where a degree of longitude is narrowest. Under the band,
 	// the ring is close enough to degenerate that only the exact measure can say.
-	// Negated like the span test above so a `NaN` bound — which one non-finite
-	// coordinate is enough to produce — refuses rather than falls through it.
+	// Negated, and it is the one guard here that must be: a `NaN` bound — which
+	// one non-finite coordinate is enough to produce — fails every comparison, so
+	// written the other way it would fall through rather than refuse. The two
+	// guards above read accumulators no `NaN` can enter, because a `NaN` loses
+	// every comparison that would have assigned it.
 	const bound =
-		Math.abs(twice / 2) * STERADIANS_PER_SQUARE_DEGREE * Math.cos((maxAbsLat * Math.PI) / 180)
+		Math.abs(twice / 2) * STERADIANS_PER_SQUARE_DEGREE * Math.cos(maxAbsLat * RADIANS_PER_DEGREE)
 
 	if (!(bound > DEGENERATE_AREA_EPSILON * DEGENERATE_SAFETY_FACTOR)) return null
 
@@ -174,15 +186,37 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 function rewindRing(ring: Ring, exterior: boolean): Ring | null {
 	const side = planarSide(ring)
 
-	if (side !== null) return (exterior ? side === 'large' : side === 'small') ? reversed(ring) : ring
+	if (side !== null) return misWound(side, exterior) ? reversed(ring) : ring
 
 	const area = ringArea(ring)
 
 	if (Math.min(area, SPHERE - area) < DEGENERATE_AREA_EPSILON) return null
 
-	const misWound = exterior ? area > HALF_SPHERE : area < HALF_SPHERE
+	const measured = sphericalSide(area)
 
-	return misWound ? reversed(ring) : ring
+	return measured !== null && misWound(measured, exterior) ? reversed(ring) : ring
+}
+
+/**
+ * Which side of {@link HALF_SPHERE} a measured area falls, in the vocabulary
+ * {@link planarSide} answers in. `null` for exactly half a sphere, which is
+ * wound wrongly under neither reading — the third outcome the plane can never
+ * reach, and the reason {@link planarSide} refuses the one span that can.
+ */
+function sphericalSide(area: number): 'small' | 'large' | null {
+	if (area > HALF_SPHERE) return 'large'
+
+	return area < HALF_SPHERE ? 'small' : null
+}
+
+/**
+ * Whether a ring enclosing `side` of {@link HALF_SPHERE} is wound against
+ * d3-geo's convention for its role. Written once because both paths above
+ * decide it and must never drift: an exterior encloses the small side, a hole
+ * the large one.
+ */
+function misWound(side: 'small' | 'large', exterior: boolean): boolean {
+	return exterior ? side === 'large' : side === 'small'
 }
 
 /** A ring in the opposite winding, cloned so the caller's coordinates are never mutated. */

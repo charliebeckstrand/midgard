@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPointedMark, useMapZoomScale } from './context'
+import { MapZoomScaleContext, useMapHoverSet, useMapPointedMark, useMapZoomScale } from './context'
 import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
 import { REGION_WASH_SETTLE } from './engine/map-motion'
@@ -25,8 +25,8 @@ import {
 	resolveRegionPaints,
 	washStyle,
 } from './engine/map-region/paint'
+import { type MapTransform, transformAttribute } from './engine/map-zoom/transform'
 import { MapRegionsLit } from './map-regions-lit'
-import type { MapRegionFrame } from './use-map-shape'
 
 /**
  * Props for {@link MapRegions}: what both layers draw from, minus the paint
@@ -38,12 +38,13 @@ import type { MapRegionFrame } from './use-map-shape'
 export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
 	/**
-	 * The affine the paths are drawn under, `null` where they already sit in the
-	 * drawn frame. A measured refit carries the canonical paths here rather than
-	 * rewriting every `d`, so the layer scales what it was given and divides its
-	 * pixel-width specs back out — the discipline the zoom scale above it keeps.
+	 * The view transform the paths are drawn under, `null` where they already sit
+	 * in the drawn frame. A measured refit carries the canonical paths here rather
+	 * than rewriting every `d`; the group republishes the device-pixel scale
+	 * beneath it, so a spec under it converts by one multiply and never asks what
+	 * either transform is.
 	 */
-	frame: MapRegionFrame | null
+	frame: MapTransform | null
 	/**
 	 * Whether anything on this map reads what the pointer is on — the rows
 	 * matched a region, or a reporter asked to be told. Off, the region paths
@@ -406,15 +407,15 @@ export const MapRegions = memo(function MapRegions({
 				/>
 			)}
 
-			{selectedPath !== null && <MapRegionSelected d={selectedPath} frame={frame} />}
+			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
 		</MapRegionsGroup>
 	)
 })
 
 /** What {@link MapRegionsGroup} carries: the layer's own group props, and its layers. @internal */
 type MapRegionsGroupProps = {
-	/** The affine the paths are drawn under, `null` where they are already in the drawn frame. */
-	frame: MapRegionFrame | null
+	/** The view transform the paths are drawn under, `null` where they already sit in the drawn frame. */
+	frame: MapTransform | null
 	className: string
 	onPointerLeave: () => void
 	/** `regionDelegate`'s return: the delegated reporters, which read the event target alone. */
@@ -455,20 +456,26 @@ function MapRegionsGroup({
 	onContextMenu,
 	children,
 }: MapRegionsGroupProps) {
-	const unitsPerPixel = useMapZoomScale()
+	// This group cannot consume its own provider, so it divides for its own
+	// inherited seam and hands the same figure to everything under it.
+	const beneath = useMapZoomScale() / (frame?.k ?? 1)
 
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", which is itself the tab stop that carries the click's keyboard counterpart (see use-map-keyboard)
 		<g
 			data-slot="map-regions"
 			className={className}
-			transform={frame?.transform}
-			strokeWidth={(REGION_STROKE_WIDTH * unitsPerPixel) / (frame?.scale ?? 1)}
+			transform={frame === null ? undefined : transformAttribute(frame)}
+			strokeWidth={REGION_STROKE_WIDTH * beneath}
 			onPointerLeave={onPointerLeave}
 			onClick={onClick}
 			onContextMenu={onContextMenu}
 		>
-			{children}
+			{/* Republished rather than passed down: this group applies a transform, so
+			    the rule every layer here keeps — the group that transforms states what a
+			    device pixel is beneath it — makes a spec added later correct by
+			    construction instead of by remembering a divisor. */}
+			<MapZoomScaleContext value={beneath}>{children}</MapZoomScaleContext>
 		</g>
 	)
 }
@@ -484,7 +491,7 @@ function MapRegionsGroup({
  *
  * @internal
  */
-function MapRegionSelected({ d, frame }: { d: string; frame: MapRegionFrame | null }) {
+function MapRegionSelected({ d }: { d: string }) {
 	const unitsPerPixel = useMapZoomScale()
 
 	return (
@@ -492,7 +499,7 @@ function MapRegionSelected({ d, frame }: { d: string; frame: MapRegionFrame | nu
 			data-slot="map-region-selected"
 			d={d}
 			fill="none"
-			strokeWidth={(REGION_SELECTED_STROKE_WIDTH * unitsPerPixel) / (frame?.scale ?? 1)}
+			strokeWidth={REGION_SELECTED_STROKE_WIDTH * unitsPerPixel}
 			// No region anchor and no pointer events: the base path stays the
 			// sole hit target, the discipline the lit copies keep.
 			className={cn('pointer-events-none', ...k.region.selected)}

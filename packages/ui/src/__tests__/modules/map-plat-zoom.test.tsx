@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { type MapFeatureCollection, MapPlat } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import { act, bySlot, fireEvent, renderUI, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, layerScale, renderUI, withFakeTime } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
@@ -555,9 +555,7 @@ describe('MapPlat wheel zoom', () => {
 
 		// Two scales sit above the width now: the zoom's, and the refit the layer
 		// carries its own paths on. One device pixel is the product of both.
-		const fit = Number(/scale\(([^)]+)\)/.exec(layer?.getAttribute('transform') ?? '')?.[1] ?? 1)
-
-		expect(Number(layer?.getAttribute('stroke-width')) * k * fit).toBeCloseTo(
+		expect(Number(layer?.getAttribute('stroke-width')) * k * layerScale(layer)).toBeCloseTo(
 			REGION_STROKE_WIDTH,
 			3,
 		)
