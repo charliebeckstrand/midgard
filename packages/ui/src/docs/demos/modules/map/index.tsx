@@ -320,32 +320,6 @@ type DrilledState = { name: string; fips: string }
 type PickedCounty = { id: string; name: string }
 
 /**
- * The line above the map, naming the deepest thing the reader has settled on: a
- * picked county, else the state the drill stands in and how many counties it
- * holds, else what to do. The county stands alone once picked — the map is
- * already labelled with the state, so repeating it there would push the one
- * thing that changed to the end of the line.
- *
- * Its name is drawn as the atlas holds it, with nothing appended. The atlas
- * names the place and never what it is called: Louisiana's are parishes and
- * Alaska's are boroughs and census areas, so a fixed "County" would be wrong in
- * three states and there is no field that would say so.
- */
-function drillReadout(
-	drilled: DrilledState | null,
-	counties: MapFeatureCollection | null,
-	county: PickedCounty | null,
-): string {
-	if (drilled === null) return 'Hover a state to warm its counties, then click to drill in.'
-
-	if (counties === null) return `${drilled.name} — loading counties…`
-
-	if (county !== null) return county.name
-
-	return `${drilled.name} — ${counties.features.length} counties.`
-}
-
-/**
  * `onRegionPreload` doing the job it exists for. Holding a state warms the
  * counties it opens into — an 842 kB fetch and a 3,231-feature decode — so the
  * click that follows draws from cache instead of starting the wait. Nothing
@@ -397,18 +371,17 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 
 	return (
 		<Stack gap="md">
-			<Flex>
-				<Button
-					variant="plain"
-					prefix={<Icon icon={<ArrowLeft />} />}
-					onClick={() => setDrilled(null)}
-					disabled={drilled === null}
-				>
-					All states
-				</Button>
-			</Flex>
-
-			<Text>{drillReadout(drilled, counties, county)}</Text>
+			{drilled ? (
+				<Flex>
+					<Button
+						variant="plain"
+						prefix={<Icon icon={<ArrowLeft />} />}
+						onClick={() => setDrilled(null)}
+					>
+						All states
+					</Button>
+				</Flex>
+			) : null}
 
 			{drilled !== null ? (
 				<MapPlat
