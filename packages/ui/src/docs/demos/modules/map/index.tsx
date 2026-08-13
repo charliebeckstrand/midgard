@@ -72,9 +72,7 @@ function stateFrame(
 ): MapGeography | null {
 	const held = name === null ? undefined : geography?.features.find((s) => stateName(s) === name)
 
-	return held === undefined
-		? geography
-		: ({ type: 'FeatureCollection', features: [held] } satisfies MapFeatureCollection)
+	return held === undefined ? geography : { type: 'FeatureCollection', features: [held] }
 }
 
 // Atlas data stays out of the package (and the docs bundle): the demos fetch
@@ -96,15 +94,17 @@ function stateFrame(
  * One object out of a us-atlas topology, fetched and decoded once (static, so it
  * never restales). Decoded here rather than handed to the plat whole: the
  * delivery example draws one state out of the states atlas on its own and the
- * drill filters the counties down to one state, and the plat takes either form —
- * so one decode, inside the query, serves every reader of it and outlives every
- * tab switch.
+ * drill cuts the counties into one state each, and the plat takes either form —
+ * so one decode, inside the query, serves every reader of it and outlives the
+ * tab switches that unmount them (see the client `Demo` builds for what keeps
+ * it).
  *
  * Keyed by object as well as url, because an atlas holds several: the counties
- * file carries a `states` object of its own, and nothing should be handed the
- * states of one atlas for the counties of another.
+ * file carries `states` and `nation` beside its counties, and nothing should be
+ * handed the states of one atlas for the counties of another. The object is a
+ * plain name, as `MapPlat` takes it in `geographyObject`.
  */
-function atlasQuery(url: string, object: 'states' | 'counties') {
+function atlasQuery(url: string, object: string) {
 	return {
 		queryKey: ['us-atlas', url, object] as const,
 		queryFn: async (): Promise<MapFeatureCollection> => {
@@ -118,6 +118,16 @@ function atlasQuery(url: string, object: 'states' | 'counties') {
 			) as unknown as MapFeatureCollection
 		},
 	}
+}
+
+/**
+ * The county atlas, named once. The hook that reads it and the hover that warms
+ * it have to key the same entry or the warm buys nothing, and a shared factory
+ * only guarantees that while the arguments match — so the arguments live here,
+ * once, rather than at both call sites.
+ */
+function countiesQuery() {
+	return atlasQuery(countiesUrl, 'counties')
 }
 
 /**
@@ -159,31 +169,39 @@ function useGeography(url: string): MapFeatureCollection | null {
 
 /**
  * One state's counties, cut out of the county atlas by the two-digit FIPS every
- * county id opens with — `06037` is Los Angeles County in state `06`.
- * `undefined` until the atlas lands, so the line above the map can tell a cold
- * drill from a warmed one.
+ * county id opens with — `06037` is Los Angeles County in state `06`. `null`
+ * until the atlas lands, so the line above the map can tell a cold drill from a
+ * warmed one.
  *
- * The query is also what keeps the atlas: an entry no component observes is
- * evicted on react-query's collection timer however long its `staleTime`, and
- * what a later drill would re-pay is the whole 842 kB and the decode this demo
- * exists to get ahead of. It reads the same key a hover warms, so the entry a
- * warm creates is the entry this observes.
+ * The query is also what observes the atlas while this panel is up: `enabled`
+ * withholds the fetch and not the observer, so opening the tab holds the entry a
+ * hover warms without fetching it unasked. What keeps that entry once the panel
+ * goes is the client's own collection setting, which `Demo` states.
  */
-function useStateCounties(fips: string | null): MapFeatureCollection | undefined {
-	const atlas = useQuery({ ...atlasQuery(countiesUrl, 'counties'), enabled: fips !== null }).data
+function useStateCounties(fips: string | null): MapFeatureCollection | null {
+	const atlas = useQuery({ ...countiesQuery(), enabled: fips !== null }).data
 
-	// Memoised because the plat keys its decode and its fit on the geography's
-	// identity: a fresh collection each render would refit the map on every pick.
-	return useMemo(
-		() =>
-			atlas === undefined || fips === null
-				? undefined
-				: ({
-						type: 'FeatureCollection',
-						features: atlas.features.filter((county) => String(county.id).startsWith(fips)),
-					} satisfies MapFeatureCollection),
-		[atlas, fips],
-	)
+	// Every state cut in one pass and kept, rather than the one state in hand
+	// filtered out on demand. The plat keys its decode, its fit, and its paths on
+	// the geography's identity, and this demo's way back out means a reader drills
+	// the same state more than once — so a second visit has to hand back the object
+	// the first one built, not an equal one.
+	const byState = useMemo(() => {
+		const groups = new Map<string, MapFeatureCollection>()
+
+		for (const county of atlas?.features ?? []) {
+			const state = String(county.id).slice(0, 2)
+
+			const held = groups.get(state)
+
+			if (held === undefined) groups.set(state, { type: 'FeatureCollection', features: [county] })
+			else held.features.push(county)
+		}
+
+		return groups
+	}, [atlas])
+
+	return fips === null ? null : (byState.get(fips) ?? null)
 }
 
 /** The world topology for the plats; `null` while it loads, so the frame holds its skeleton. */
@@ -315,12 +333,12 @@ type PickedCounty = { id: string; name: string }
  */
 function drillReadout(
 	drilled: DrilledState | null,
-	counties: MapFeatureCollection | undefined,
+	counties: MapFeatureCollection | null,
 	county: PickedCounty | null,
 ): string {
 	if (drilled === null) return 'Hover a state to warm its counties, then click to drill in.'
 
-	if (counties === undefined) return `${drilled.name} — loading counties…`
+	if (counties === null) return `${drilled.name} — loading counties…`
 
 	if (county !== null) return county.name
 
@@ -353,20 +371,18 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 	// below reads, both off the one report — the pair `drilled` holds, a level in.
 	const [county, setCounty] = useState<PickedCounty | null>(null)
 
-	// The FIPS off the feature the callback names. The reported index indexes the
-	// geography this plat was handed, so the lookup is a subscript rather than a
-	// second pass over the atlas.
-	const fipsAt = (index: number) => String(geography?.features[index]?.id ?? '')
-
 	// The atlas is one file holding every state, so the warm ignores which state it
 	// was told about: what a hover buys is the fetch and the decode, and cutting one
 	// state out of the result costs a fraction of a millisecond. A consumer whose
 	// data is per-region — a request per county — keys the prefetch on the identity
 	// the callback reports instead, which is the other half of why it reports one.
-	const warmCounties = () => void queryClient.prefetchQuery(atlasQuery(countiesUrl, 'counties'))
+	const warmCounties = () => void queryClient.prefetchQuery(countiesQuery())
 
 	const drill = (name: string, index: number) => {
-		setDrilled({ name, fips: fipsAt(index) })
+		// The FIPS comes off the feature the click names: the reported index indexes
+		// the geography this plat was handed, so it is a subscript rather than a
+		// second search for a state the report already identified.
+		setDrilled({ name, fips: String(geography?.features[index]?.id ?? '') })
 
 		setCounty(null)
 	}
@@ -936,12 +952,20 @@ export function Demo() {
 	// in one tab survives a switch away and back. The data is static, so nothing
 	// restales, focus never refetches, and a failed OSRM call doesn't retry-storm
 	// the rate-limited demo server.
+	//
+	// It survives that switch only because collection is off too. An inactive panel
+	// unmounts (`TabContents` mounts the active one), which drops the last observer
+	// of everything it was reading, and a query with no observers is collected on a
+	// timer that `staleTime` has no say over — five minutes by default. The county
+	// atlas is 842 kB and a 3,231-feature decode, so re-paying it for having read
+	// another tab for a while is the whole cost this demo is about.
 	const [queryClient] = useState(
 		() =>
 			new QueryClient({
 				defaultOptions: {
 					queries: {
 						staleTime: Number.POSITIVE_INFINITY,
+						gcTime: Number.POSITIVE_INFINITY,
 						retry: false,
 						refetchOnWindowFocus: false,
 					},
