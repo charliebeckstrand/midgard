@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-13 · **Scope:** every public callback prop on `ui` components, modules, layouts, primitives, and providers (89 component directories, 5 modules, 4 layouts, 23 primitives, 6 providers), examined for one defect only: a state transition or a user gesture that the surface owns internally and never emits. **Method:** twelve parallel source-read sweeps, one per surface bucket, each tracing every candidate to the line that holds the state; then an adversarial refuter for each bucket, then three cross-surface lenses (reachability, house idiom, completeness) over the merged set. A finding survives only when no refuter killed it. 54 candidates were raised and 19 were killed. **Living record — resolve rows in place, against the pull request that closed them.**
 
-Six rows are marked ✅ LANDED: Tooltip `onOpenChange`, Dialog and Sheet `onOpenComplete`, ResizableGroup `onResizeStart` / `onResizeEnd`, CopyButton `onCopyError`, and ToastInput `onDismiss`. They were picked as the cheapest precedented set — each one mirrors a callback a sibling already ships. Replace the ✅ marks with the pull request that carries them once it opens ([`CONVENTIONS.md`](../../../../CONVENTIONS.md) §12.4); twenty-nine rows stay open.
+Six rows are resolved by [#1103](https://github.com/charliebeckstrand/midgard/pull/1103): Tooltip `onOpenChange`, Dialog and Sheet `onOpenComplete`, ResizableGroup `onResizeStart` / `onResizeEnd`, CopyButton `onCopyError`, and ToastInput `onDismiss`. They were picked as the cheapest precedented set — each one mirrors a callback a sibling already ships. Twenty-nine rows stay open.
 
 ## Executive summary
 
@@ -40,10 +40,10 @@ The close half of this pair is already settled and is not a finding: `onExitComp
 
 | Surface | Proposed | Site | Transition it owns | Precedent | Status |
 |---|---|---|---|---|---|
-| Tooltip | `onOpenChange` | `tooltip.tsx:9` | Full disclosure from hover delay, focus, click, `forceOpen`, and the overlay signal; context holds `open`, the barrel exports only components (T1) | Popover `popover.tsx:18` | ✅ LANDED |
+| Tooltip | `onOpenChange` | `tooltip.tsx:9` | Full disclosure from hover delay, focus, click, `forceOpen`, and the overlay signal; context holds `open`, the barrel exports only components (T1) | Popover `popover.tsx:18` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | ColorPicker | `onOpenChange` | `color-picker.tsx:13` | `useState(false)` at `use-color-picker-state.ts:54`; root is a `display: contents` wrapper, panel portals out (T1) | every floating trigger in `components/` | ◯ OPEN |
 | MenuSub | `onOpenChange` | `menu-sub.tsx:64` | Submenu opened by hover-intent, click, and Enter/Space; closed by blur; children mount only while open (T1) | TreeItem `onOpenChange` | ◯ OPEN |
-| ResizableGroup / Handle | `onResizeStart` / `onResizeEnd` | `resizable-group.tsx:13` | `setDragging(handleIndex)` / `setDragging(null)` at `use-resizable-panel.ts:199`; `onSizesChange` fires on every pointermove (T2) | grid `types.ts:362,369` | ✅ LANDED |
+| ResizableGroup / Handle | `onResizeStart` / `onResizeEnd` | `resizable-group.tsx:13` | `setDragging(handleIndex)` / `setDragging(null)` at `use-resizable-panel.ts:199`; `onSizesChange` fires on every pointermove (T2) | grid `types.ts:362,369` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | RangeSlider | `onDragStart` / `onDragEnd` | `range/range-slider.tsx:18` | Thumb grab, stacked-pair deferral, and release at `use-range-pointer.ts:117-156`; closed prop bag, no rest spread (T2) | `use-sortable-list.ts:27,33` | ◯ OPEN |
 | Form | `onInvalidSubmit` | `form.tsx:40` | Runs every validator on submit and returns early when any fails, `use-form-reducer.ts:250-256`; a refused submit and no submit look identical (T3) | FileUpload `onReject` | ◯ OPEN |
 | AddressInput | `onError` | `address-input.tsx:16` | Catches every non-abort geocoding rejection at `use-address-input-suggestions.ts:87-97`, then empties the list — a provider outage renders as "no matches" (T4) | `use-chat-send.ts:120` | ◯ OPEN |
@@ -51,10 +51,10 @@ The close half of this pair is already settled and is not a finding: `onExitComp
 | Collapse | `onOpenComplete` | `collapse.tsx:12` | Height and opacity landing, observed internally in the held branch of the panel motion and kept (T5) | Drawer `drawer.tsx:40` | ◯ OPEN |
 | Accordion | `onOpenComplete` | `accordion.tsx:20` | Same landing, per section, observed only at `accordion-panel.tsx:79` (T5) | Drawer `drawer.tsx:40` | ◯ OPEN |
 | TagInput | `onReject` | `tag-input.tsx:38` | Partitions every commit into accepted / rejected / duplicates / over-limit; announces to the live region only (T3) | FileUpload `file-upload.tsx:37-39` | ◯ OPEN |
-| CopyButton | `onCopyError` | `copy-button.tsx:13` | `writeText` rejection caught and dropped at `use-copy-button-state.ts:58-61`; the hook is not exported (T4) | `use-chat-send.ts:120` | ✅ LANDED |
+| CopyButton | `onCopyError` | `copy-button.tsx:13` | `writeText` rejection caught and dropped at `use-copy-button-state.ts:58-61`; the hook is not exported (T4) | `use-chat-send.ts:120` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | PdfViewer | `onLoad` / `onError` | `pdf-viewer.tsx:13` | Fetch → rasterize → settle or fail, owned in `use-pdf-viewer-document.ts:224,226`; a consumer must re-fetch `src` to learn of a 404 (T4, T6) | `use-chat-send.ts:120` | ◯ OPEN |
-| Dialog | `onOpenComplete` | `dialog.tsx:14` | Owns the motion element and the `k.motion.desktop` / `k.motion.mobile` preset chosen by `useMinWidth`; preset is recipe-private (T5) | Drawer `drawer.tsx:40` | ✅ LANDED |
-| Sheet | `onOpenComplete` | `sheet.tsx:14` | Same arrival on the per-`side` slide, `sheet.tsx:128-129`; same `createPanel` family (T5) | Drawer `drawer.tsx:40` | ✅ LANDED |
+| Dialog | `onOpenComplete` | `dialog.tsx:14` | Owns the motion element and the `k.motion.desktop` / `k.motion.mobile` preset chosen by `useMinWidth`; preset is recipe-private (T5) | Drawer `drawer.tsx:40` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
+| Sheet | `onOpenComplete` | `sheet.tsx:14` | Same arrival on the per-`side` slide, `sheet.tsx:128-129`; same `createPanel` family (T5) | Drawer `drawer.tsx:40` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | Calendar (+ CalendarRange / DatePicker forward) | `onMonthChange` | `calendar.tsx:69` | Owns `viewDate` and its five writers in `use-calendar-month.ts`; consumers reverse-derive the month from `getDayProps` (T6) | PdfViewer `onPageChange` | ◯ OPEN |
 | TreeItem | `onAction` | `tree-item.tsx:9` | Row activation by click and Enter/Space; on a leaf it does nothing observable, so consumers plant a control in `prefix` to catch the synthesized click | ContextMenu `types.ts:22` | ◯ OPEN |
 | PasswordInput | `onVisibleChange` | `password-input.tsx:13` | Plaintext reveal owned at `:62`, flipped by the internal suffix toggle at `:83`; `type` and `suffix` are both `Omit`ted | CopyButton `onCopiedChange` | ◯ OPEN |
@@ -69,7 +69,7 @@ One caution for the implementer of the DateInput row. Reuse the exported `CardVa
 
 | Surface | Proposed | Site | Transition it owns | Precedent | Status |
 |---|---|---|---|---|---|
-| ToastProvider / ToastInput | `onDismiss` | `providers/toast/types.ts:22` | A toast leaves by four internal routes — the timer, the close button, the `maxToasts` cap, and a `dismiss(id)` call — and `toast()` hands back only an id, so the caller never learns its toast is gone (T4) | Alert `onOpenChange`, which the toast pipeline already wires | ✅ LANDED |
+| ToastProvider / ToastInput | `onDismiss` | `providers/toast/types.ts:22` | A toast leaves by four internal routes — the timer, the close button, the `maxToasts` cap, and a `dismiss(id)` call — and `toast()` hands back only an id, so the caller never learns its toast is gone (T4) | Alert `onOpenChange`, which the toast pipeline already wires | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | SidebarLayout | `onOpenChange` | `layouts/sidebar/sidebar.tsx:39` | Mobile drawer state via `useOffcanvas()` at `:65`, opened at `:158`, closed on four paths; closed prop bag, no spread reaches any element (T1) | Drawer `drawer.tsx:23` | ◯ OPEN |
 | DashboardLayout | `onOpenChange` | `layouts/dashboard.tsx:13` | Mobile filters drawer at `:29`, opened at `:43`, closed through the Drawer's dismiss at `:50`; no context, no ref, no spread (T1) | Drawer `drawer.tsx:23` | ◯ OPEN |
 | ReadyReveal | `onReadyComplete` | `primitives/ready-reveal/ready-reveal.tsx:10` | Latches `settled` from Motion's `onAnimationComplete` at `:131-133`, then hides the placeholder; the library's own browser tests poll for it (T5) | Drawer `onOpenComplete` | ◯ OPEN |
