@@ -37,6 +37,7 @@ import type { GeoProjection } from 'd3-geo'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
 import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
+import { emitRegionPaths, type MapProjectedAtlas, projectAtlas } from './projected'
 import { regionCentroids, regionPaths } from './region'
 import { geographyFeatures } from './topology'
 import { rewindFeatures } from './winding'
@@ -283,10 +284,45 @@ export function cachedChromePaths(
 // to force, so a caller that does not want the pass simply does not call.
 const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
 
+// The atlas drawn once into frame coordinates, per shared geometry. Held apart
+// from the entry for the reason the canonical paths below are: a map that never
+// draws must never build it. It is the buffer both path stages read, so it is
+// resolved by whichever of them asks first — the canonical draw on an ordinary
+// mount, the measured refit on a `deferPaint` one — and the other then costs an
+// emit rather than a second walk over the atlas. A county atlas holds ~1 MiB
+// here, against the ~700 KiB of strings each fit's paths already come to.
+const projected = new WeakMap<StaticMapGeometry, MapProjectedAtlas | null>()
+
+/**
+ * The atlas projected under its canonical fit, memoised on the shared
+ * {@link StaticMapGeometry} entry and drawn on the first read. `null` where the
+ * buffer cannot stand in for the direct walk — nothing to fit, or geography or a
+ * projection {@link projectAtlas} declines — and every caller falls back to
+ * {@link regionPaths} on that.
+ *
+ * @internal
+ */
+function cachedProjectedAtlas(geometry: StaticMapGeometry): MapProjectedAtlas | null {
+	const hit = projected.get(geometry)
+
+	if (hit !== undefined) return hit
+
+	const { features, canonical } = geometry
+
+	const atlas = canonical === null ? null : projectAtlas(features, canonical.projection)
+
+	projected.set(geometry, atlas)
+
+	return atlas
+}
+
 /**
  * Region paths under the canonical fit, memoised on the shared
  * {@link StaticMapGeometry} entry — one pass per atlas, object, and projection,
  * however many plats draw it. Empty where there was nothing to fit.
+ *
+ * Emitted from the shared buffer ({@link cachedProjectedAtlas}), so the atlas is
+ * walked once for this stage and the measured one below rather than once each.
  *
  * @internal
  */
@@ -295,13 +331,27 @@ export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | nul
 
 	if (hit !== undefined) return hit
 
-	const { features, canonical } = geometry
+	const { canonical } = geometry
 
-	const paths = canonical === null ? [] : regionPaths(features, canonical.projection)
+	const paths = canonical === null ? [] : projectedPaths(geometry, canonical.projection)
 
 	canonicalPaths.set(geometry, paths)
 
 	return paths
+}
+
+/**
+ * Region paths under `fitted`, from the shared buffer where it stands and the
+ * direct walk where it does not. The two answer identically; only the cost
+ * parts them.
+ */
+function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (string | null)[] {
+	const atlas = cachedProjectedAtlas(geometry)
+
+	return (
+		(atlas === null ? null : emitRegionPaths(atlas, fitted)) ??
+		regionPaths(geometry.features, fitted)
+	)
 }
 
 /**
@@ -310,6 +360,11 @@ export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | nul
  * the cache (a passed d3 instance) is a fresh object each time, so it misses
  * here and pays the projection directly — its stateful projection couldn't
  * key a shared entry anyway.
+ *
+ * Emitted from the shared buffer ({@link cachedProjectedAtlas}), which is what
+ * takes a resize off the projection entirely: the slot above holds one box, so a
+ * drag re-drew the whole atlas at every size it committed — 248 ms per step
+ * across 3,108 counties, against 24 ms to emit them.
  *
  * @internal
  */
@@ -323,7 +378,7 @@ export function measuredRegionPaths(
 
 	if (hit !== undefined && hit.width === width && hit.height === height) return hit.paths
 
-	const paths = regionPaths(geometry.features, fitted)
+	const paths = projectedPaths(geometry, fitted)
 
 	measuredPaths.set(geometry, { width, height, paths })
 

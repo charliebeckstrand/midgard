@@ -1,6 +1,8 @@
 // @vitest-environment node
 
 import { bench, describe } from 'vitest'
+import { emitRegionPaths, projectAtlas } from '../modules/map/engine/map-geometry/projected'
+import { regionPaths } from '../modules/map/engine/map-geometry/region'
 import { canonicalFit, scaleCanonicalFit } from '../modules/map/engine/map-projection/fit'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
 import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
@@ -70,6 +72,37 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 
 		bench(`${label} · refit to 960×600`, () => {
 			scaleCanonicalFit('albers-usa', canonical, 960, 600)
+		})
+	}
+})
+
+describe('map-geometry · region paths (the mount’s largest pass)', () => {
+	// A map draws the atlas under two fits in one mount — canonical on the first
+	// commit, measured a beat later — and under another on every resize. The
+	// direct walk streams every coordinate through d3-geo each time; the buffer
+	// pays that walk once and emits the strings from it, which is the whole of
+	// what a refit and a resize then cost.
+	for (const { label, atlas } of ATLASES) {
+		const canonical = canonicalFit('albers-usa', atlas.geoJson.features)
+
+		if (!canonical) throw new Error('fixture yielded no fit')
+
+		const measured = scaleCanonicalFit('albers-usa', canonical, 800, 450)
+
+		const projected = projectAtlas(atlas.geoJson.features, canonical.projection)
+
+		if (!projected) throw new Error('fixture yielded no projected atlas')
+
+		bench(`${label} · regionPaths (the direct walk, per fit)`, () => {
+			regionPaths(atlas.geoJson.features, measured)
+		})
+
+		bench(`${label} · projectAtlas (the walk, once per atlas)`, () => {
+			projectAtlas(atlas.geoJson.features, canonical.projection)
+		})
+
+		bench(`${label} · emitRegionPaths (per fit, from the buffer)`, () => {
+			emitRegionPaths(projected, measured)
 		})
 	}
 })

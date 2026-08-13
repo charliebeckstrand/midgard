@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
+import { projectAtlas } from '../../modules/map/engine/map-geometry/projected'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
@@ -14,7 +15,10 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  *
  * `cachedCanonicalPaths` holds it: the paths are memoised beside the geometry
  * entry rather than on it, so a caller that does not want the pass simply does
- * not call — there is no field for a spread or a key walk to force.
+ * not call — there is no field for a spread or a key walk to force. The buffer
+ * the paths are emitted from ({@link projectAtlas}) is held apart on the same
+ * terms and for the same reason, so this counts that instead: it is the walk now,
+ * and `regionPaths` is the fallback the built-in projections never take.
  *
  * The mount benchmarks cannot guard this: they warm the cross-instance caches in
  * uncounted iterations, so the pass is already paid by the time they time
@@ -22,11 +26,18 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * suite sits in `boundary/` beside `map-centroid-deferral`, for the reason that
  * one states.
  */
-vi.mock('../../modules/map/engine/map-geometry/region', async (importActual) => {
-	const actual = await importActual<typeof import('../../modules/map/engine/map-geometry/region')>()
+vi.mock('../../modules/map/engine/map-geometry/projected', async (importActual) => {
+	const actual =
+		await importActual<typeof import('../../modules/map/engine/map-geometry/projected')>()
 
 	// Wraps the real implementation, so behaviour is unchanged and only the call
 	// count is observable.
+	return { ...actual, projectAtlas: vi.fn(actual.projectAtlas) }
+})
+
+vi.mock('../../modules/map/engine/map-geometry/region', async (importActual) => {
+	const actual = await importActual<typeof import('../../modules/map/engine/map-geometry/region')>()
+
 	return { ...actual, regionPaths: vi.fn(actual.regionPaths) }
 })
 
@@ -54,11 +65,15 @@ function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
 
 describe('map canonical path deferral', () => {
 	beforeEach(() => {
+		vi.mocked(projectAtlas).mockClear()
+
 		vi.mocked(regionPaths).mockClear()
 	})
 
 	it('projects no region on a deferred map that has not been measured', () => {
 		renderUI(plat({ deferPaint: true }))
+
+		expect(projectAtlas).not.toHaveBeenCalled()
 
 		expect(regionPaths).not.toHaveBeenCalled()
 	})
@@ -70,6 +85,10 @@ describe('map canonical path deferral', () => {
 		// that had simply broken the mount paint.
 		renderUI(plat())
 
-		expect(regionPaths).toHaveBeenCalledTimes(1)
+		expect(projectAtlas).toHaveBeenCalledTimes(1)
+
+		// And exactly once: the fallback walk stands for geography the buffer
+		// declines, which the default projection and a polygon atlas never are.
+		expect(regionPaths).not.toHaveBeenCalled()
 	})
 })
