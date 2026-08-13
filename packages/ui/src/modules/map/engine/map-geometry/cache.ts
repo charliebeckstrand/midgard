@@ -37,6 +37,7 @@ import type { GeoProjection } from 'd3-geo'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
 import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
+import { emitRegionPaths, type MapProjectedAtlas, probeCanonicalFit } from './projected'
 import { regionCentroids, regionPaths } from './region'
 import { geographyFeatures } from './topology'
 import { rewindFeatures } from './winding'
@@ -54,10 +55,17 @@ import { rewindFeatures } from './winding'
 export type StaticMapGeometry = {
 	features: MapFeature[]
 	canonical: MapCanonicalFit | null
+	/**
+	 * The geography drawn into frame coordinates, which the fit above was
+	 * measured from and every fit below is emitted from. `null` where the buffer
+	 * could not stand in for the walk, and the paths fall back to
+	 * {@link regionPaths}.
+	 */
+	atlas: MapProjectedAtlas | null
 }
 
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
-const EMPTY: StaticMapGeometry = { features: [], canonical: null }
+const EMPTY: StaticMapGeometry = { features: [], canonical: null, atlas: null }
 
 // Atlas → object name → its decoded, rewound features. Held apart from the pair
 // below because two readers want it and only one of them wants the fit: the
@@ -132,9 +140,15 @@ export function computeStaticMapGeometry(
 	// depends on, happens once per atlas either way.
 	const features = cachedGeographyFeatures(geography, geographyObject)
 
-	const canonical = canonicalFit(projection, features)
+	// One walk draws the geography and measures the frame it fits, because the
+	// bounds a fit needs are a scan of the points the buffer already holds. The
+	// fallback runs its own bounds pass and leaves the buffer unbuilt, for the
+	// geography and the projections the buffer declines.
+	const probed = probeCanonicalFit(features, projection)
 
-	return { features, canonical }
+	if (probed !== null) return { features, canonical: probed.canonical, atlas: probed.atlas }
+
+	return { features, canonical: canonicalFit(projection, features), atlas: null }
 }
 
 /**
@@ -274,19 +288,26 @@ export function cachedChromePaths(
 }
 
 // The canonical-fit paths per shared geometry. Held apart from the entry rather
-// than on it, because a `deferPaint` map never asks for them: that mode holds an
-// empty frame until the container is measured and then draws from the measured
-// fit alone, so building them with the entry would project the whole atlas for a
-// set of paths nothing draws — and `ChoroplethChart` defers on every chart it
-// renders. A function rather than a lazy property for the reason the rest of
-// this file is functions: there is no field for a spread, a clone, or a key walk
-// to force, so a caller that does not want the pass simply does not call.
+// than on it, so a map that never draws never builds them: a `deferPaint` map
+// holds an empty frame until the container is measured, and `ChoroplethChart`
+// defers on every chart it renders. What that saves has narrowed twice. The walk
+// went first — the buffer is drawn with the fit, because the fit is measured
+// from it — leaving the emit. Then the region layer began carrying these paths
+// onto the measured fit rather than emitting there, so a deferring map reaches
+// them the moment measurement lands and pays this emit instead of that one. What
+// is still saved is the whole of it for a map that is never measured at all. A
+// function rather than a lazy property for the reason the rest of this file is
+// functions: there is no field for a spread, a clone, or a key walk to force, so
+// a caller that does not want the pass simply does not call.
 const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
 
 /**
  * Region paths under the canonical fit, memoised on the shared
  * {@link StaticMapGeometry} entry — one pass per atlas, object, and projection,
  * however many plats draw it. Empty where there was nothing to fit.
+ *
+ * Emitted from the entry's own buffer, so this stage and the measured one below
+ * share the walk the fit already paid for.
  *
  * @internal
  */
@@ -295,13 +316,24 @@ export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | nul
 
 	if (hit !== undefined) return hit
 
-	const { features, canonical } = geometry
+	const { canonical } = geometry
 
-	const paths = canonical === null ? [] : regionPaths(features, canonical.projection)
+	const paths = canonical === null ? [] : projectedPaths(geometry, canonical.projection)
 
 	canonicalPaths.set(geometry, paths)
 
 	return paths
+}
+
+/**
+ * Region paths under `fitted`, from the shared buffer where it stands and the
+ * direct walk where it does not. The two answer identically; only the cost
+ * parts them.
+ */
+function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (string | null)[] {
+	const { atlas, features } = geometry
+
+	return (atlas === null ? null : emitRegionPaths(atlas, fitted)) ?? regionPaths(features, fitted)
 }
 
 /**
@@ -310,6 +342,11 @@ export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | nul
  * the cache (a passed d3 instance) is a fresh object each time, so it misses
  * here and pays the projection directly — its stateful projection couldn't
  * key a shared entry anyway.
+ *
+ * Emitted from the shared buffer ({@link cachedProjectedAtlas}), which is what
+ * takes a resize off the projection entirely: the slot above holds one box, so a
+ * drag re-drew the whole atlas at every size it committed — 248 ms per step
+ * across 3,108 counties, against 24 ms to emit them.
  *
  * @internal
  */
@@ -323,7 +360,7 @@ export function measuredRegionPaths(
 
 	if (hit !== undefined && hit.width === width && hit.height === height) return hit.paths
 
-	const paths = regionPaths(geometry.features, fitted)
+	const paths = projectedPaths(geometry, fitted)
 
 	measuredPaths.set(geometry, { width, height, paths })
 

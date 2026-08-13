@@ -3,6 +3,12 @@
  * path per feature under a fitted projection, and one spherical centroid per
  * feature under none. Both passes walk every ring in the atlas, so both are
  * memoised a layer above (`cache.ts`) rather than re-run per mount.
+ *
+ * The path pass answers one fit at a time, which is why it is no longer the
+ * ordinary route: a map draws the atlas under several, and `projected.ts` walks
+ * it once for all of them. This runs for the geography and the projections that
+ * buffer declines, and the two answer identically — which
+ * `map-geometry-projected` asserts byte for byte.
  */
 
 import { type GeoProjection, geoCentroid, geoPath } from 'd3-geo'

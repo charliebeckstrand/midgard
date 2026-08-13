@@ -113,6 +113,11 @@ describe('MapPlat resize with a passed projection instance', () => {
 		// memo would hold `d` at the 300-wide fit while the viewBox reads 600.
 		expect(viewBoxWidth(container)).toBe('600')
 
+		// A named projection carries its paths onto a refit by one group transform
+		// and leaves every `d` alone. This is the other branch: `fitSize` refits a
+		// passed instance in place, so the canonical basis those paths were drawn
+		// at is gone by the time a transform could be derived, and the layer is
+		// given paths at the measured fit instead — which must actually move.
 		expect(atSecond).not.toBe(atFirst)
 	})
 })

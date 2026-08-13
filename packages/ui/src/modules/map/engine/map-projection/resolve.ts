@@ -19,8 +19,51 @@ import type { MapFeature, MapProjection } from '../types'
  * The scale d3's own `fit*` helpers measure at before they derive the fitted
  * parameters. Any fixed scale would do — the arithmetic below divides it back
  * out — so this is d3's number rather than a figure of the map's own.
+ *
+ * Exported because a caller that streams the geography for its own reasons can
+ * measure at this scale and skip {@link fitProjectionWidth}'s pass entirely
+ * (`map-geometry/projected`), and the two must probe alike or the arithmetic
+ * they share would divide out a scale the bounds were never taken at.
+ *
+ * @internal
  */
-const PROBE_SCALE = 150
+export const PROBE_SCALE = 150
+
+/**
+ * d3's `fitWidth` arithmetic over bounds already measured at
+ * {@link PROBE_SCALE}: the scale carries the probe factor, the horizontal
+ * translate centres the span in the frame, and the vertical one lifts the
+ * geography's top edge onto y 0. Fits `projection` in place and reports the
+ * height the frame comes to, or `null` where the bounds collapse on either axis
+ * — no geography, or a lone point.
+ *
+ * Held apart from the pass that measures those bounds because two callers
+ * measure them two ways and only one rule may place the result: this one runs a
+ * `geoPath` over the geography, and the projected-atlas buffer scans the points
+ * it already holds.
+ *
+ * @internal
+ */
+export function fitWidthFromProbeBounds(
+	projection: GeoProjection,
+	x0: number,
+	y0: number,
+	x1: number,
+	y1: number,
+	width: number,
+): number | null {
+	const spanX = x1 - x0
+
+	const spanY = y1 - y0
+
+	if (spanX <= 0 || spanY <= 0) return null
+
+	const k = width / spanX
+
+	projection.scale(PROBE_SCALE * k).translate([(width - k * (x1 + x0)) / 2, -k * y0])
+
+	return spanY * k
+}
 
 /**
  * The feature-collection wrapper d3-geo fits and measures against. The cast
@@ -111,18 +154,5 @@ export function fitProjectionWidth(
 
 	if (clip !== null) projection.clipExtent(clip)
 
-	const spanX = x1 - x0
-
-	const spanY = y1 - y0
-
-	if (spanX <= 0 || spanY <= 0) return null
-
-	const k = width / spanX
-
-	// d3's `fitWidth` arithmetic: the scale carries the probe factor, the
-	// horizontal translate centres the span in the frame, and the vertical one
-	// lifts the geography's top edge onto y 0.
-	projection.scale(PROBE_SCALE * k).translate([(width - k * (x1 + x0)) / 2, -k * y0])
-
-	return spanY * k
+	return fitWidthFromProbeBounds(projection, x0, y0, x1, y1, width)
 }

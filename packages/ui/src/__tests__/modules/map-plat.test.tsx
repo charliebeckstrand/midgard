@@ -12,6 +12,7 @@ import {
 	bySlot,
 	fireEvent,
 	firstRegion,
+	layerScale,
 	renderUI,
 	stubMatchMedia,
 	tableRows,
@@ -665,8 +666,16 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(region?.getAttribute('vector-effect')).toBeNull()
 
-		expect(bySlot(container, 'map-regions')?.getAttribute('stroke-width')).toBe(
-			String(REGION_STROKE_WIDTH),
+		// The width is stated against the layer's own frame, which a measured refit
+		// carries onto the drawn one by a scale — so what the browser draws is this
+		// width times that scale, and the rule is the product, not the figure. To
+		// three places, because that is where `transformAttribute` rounds the scale
+		// the width is read back against.
+		const layer = bySlot(container, 'map-regions')
+
+		expect(Number(layer?.getAttribute('stroke-width')) * layerScale(layer)).toBeCloseTo(
+			REGION_STROKE_WIDTH,
+			3,
 		)
 	})
 

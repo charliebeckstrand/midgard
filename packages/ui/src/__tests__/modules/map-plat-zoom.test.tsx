@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { type MapFeatureCollection, MapPlat } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import { act, bySlot, fireEvent, renderUI, withFakeTime } from '../helpers'
+import { act, bySlot, fireEvent, layerScale, renderUI, withFakeTime } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
@@ -553,7 +553,12 @@ describe('MapPlat wheel zoom', () => {
 		// against — a hairline out by a ten-thousandth.
 		const layer = bySlot(container, 'map-regions')
 
-		expect(Number(layer?.getAttribute('stroke-width')) * k).toBeCloseTo(REGION_STROKE_WIDTH, 3)
+		// Two scales sit above the width now: the zoom's, and the refit the layer
+		// carries its own paths on. One device pixel is the product of both.
+		expect(Number(layer?.getAttribute('stroke-width')) * k * layerScale(layer)).toBeCloseTo(
+			REGION_STROKE_WIDTH,
+			3,
+		)
 	})
 
 	it('moves the whole atlas on that one attribute, never per region', () => {

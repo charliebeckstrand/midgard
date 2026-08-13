@@ -1,6 +1,15 @@
 // @vitest-environment node
 
 import { bench, describe } from 'vitest'
+import { chromePaths } from '../modules/map/engine/map-geometry/chrome'
+import {
+	emitRegionPaths,
+	probeCanonicalFit,
+	projectAtlas,
+} from '../modules/map/engine/map-geometry/projected'
+import { regionCentroids, regionPaths } from '../modules/map/engine/map-geometry/region'
+import { geographyFeatures } from '../modules/map/engine/map-geometry/topology'
+import { rewindFeatures } from '../modules/map/engine/map-geometry/winding'
 import { canonicalFit, scaleCanonicalFit } from '../modules/map/engine/map-projection/fit'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
 import { regionValueJoin, resolveValueBins } from '../modules/map/engine/map-region/value'
@@ -46,16 +55,90 @@ const ATLASES = [
 	},
 ] as const
 
+describe('map-geometry · decode + winding (before any fit)', () => {
+	// What an atlas costs before the projection sees it, and the two passes the
+	// static-geometry cache holds behind `cachedGeographyFeatures`. Both walk the
+	// whole geography, and neither had a bar: the decode re-walks every arc of the
+	// topology, and the rewind measures the spherical area of every ring to settle
+	// its winding and drop the degenerate ones.
+	for (const { label, atlas } of ATLASES) {
+		bench(`${label} · geographyFeatures (TopoJSON decode)`, () => {
+			geographyFeatures(atlas.topology, undefined)
+		})
+
+		const decoded = geographyFeatures(atlas.topology, undefined)
+
+		bench(`${label} · rewindFeatures (winding + degenerate drop)`, () => {
+			rewindFeatures(decoded)
+		})
+	}
+})
+
+describe('map-geometry · regionCentroids (the first arrow key)', () => {
+	// Deferred off the mount by design — only a keyboard cursor reads it, and the
+	// pass measures every ring in the atlas, so a county map pays it on the first
+	// arrow key rather than on every mount. `boundary/map-centroid-deferral` gates
+	// that it stays off the mount; this bar is what it costs when it does run, and
+	// it is the largest single pass a reader can still wait on.
+	for (const { label, atlas } of ATLASES) {
+		bench(label, () => {
+			regionCentroids(atlas.geoJson.features)
+		})
+	}
+})
+
+describe('map-geometry · chromePaths (opt-in graticule + sphere)', () => {
+	// Both parts are off by default, and the graticule's lines cover the globe
+	// whatever the geography frames — so a one-state map pays a world map's pass
+	// and the viewBox clips the rest. That is the trim the ROADMAP's backlog
+	// names; this is the bar it would move.
+	for (const { label, atlas } of ATLASES) {
+		const fit = canonicalFit('albers-usa', atlas.geoJson.features)
+
+		if (!fit) throw new Error('fixture yielded no fit')
+
+		bench(`${label} · 10° graticule + frame`, () => {
+			chromePaths(fit.projection, 10)
+		})
+
+		bench(`${label} · frame alone (graticule off)`, () => {
+			chromePaths(fit.projection, null)
+		})
+	}
+})
+
 describe('map-projection · canonicalFit (the uncached fit)', () => {
 	// Re-projects every coordinate of every geography to measure the fitted
 	// bounds. Paid once per atlas per projection and then held by the
 	// static-geometry cache — but a cache miss pays it on the mount critical
 	// path, and the counties atlas is where that hurts.
+	//
+	// It is the fallback now: the bounds a fit needs are a scan of the points the
+	// projected buffer already holds, so `probeCanonicalFit` measures the frame on
+	// the walk that fills it and this pass runs only where that buffer is
+	// declined. The pair below prices what the fold removed — this bar plus a
+	// `projectAtlas` from the region-paths describe, against one walk.
 	for (const { label, atlas } of ATLASES) {
 		bench(`${label} · albers-usa`, () => {
 			canonicalFit('albers-usa', atlas.geoJson.features)
 		})
+
+		bench(`${label} · albers-usa · folded (fit + buffer, one walk)`, () => {
+			probeCanonicalFit(atlas.geoJson.features, 'albers-usa')
+		})
 	}
+})
+
+// Each atlas fitted once for every describe below that draws from a fit. The
+// counties fit runs to ~100 ms, and three bars want it — measuring it is
+// `canonicalFit`'s own bar above, so paying it again per describe would only
+// slow collection.
+const FITTED = ATLASES.map(({ label, atlas }) => {
+	const canonical = canonicalFit('albers-usa', atlas.geoJson.features)
+
+	if (!canonical) throw new Error('fixture yielded no fit')
+
+	return { label, features: atlas.geoJson.features, canonical }
 })
 
 describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
@@ -63,13 +146,36 @@ describe('map-projection · scaleCanonicalFit (every resize frame)', () => {
 	// parameters, deliberately avoiding the bounds pass `canonicalFit` above
 	// takes. Against that bar it is the whole point of the canonical cache, and
 	// it must stay flat in the region count — it never touches a coordinate.
-	for (const { label, atlas } of ATLASES) {
-		const canonical = canonicalFit('albers-usa', atlas.geoJson.features)
-
-		if (!canonical) throw new Error('fixture yielded no fit')
-
+	for (const { label, canonical } of FITTED) {
 		bench(`${label} · refit to 960×600`, () => {
 			scaleCanonicalFit('albers-usa', canonical, 960, 600)
+		})
+	}
+})
+
+describe('map-geometry · region paths (the mount’s largest pass)', () => {
+	// A map draws the atlas under two fits in one mount — canonical on the first
+	// commit, measured a beat later — and under another on every resize. The
+	// direct walk streams every coordinate through d3-geo each time; the buffer
+	// pays that walk once and emits the strings from it, which is the whole of
+	// what a refit and a resize then cost.
+	for (const { label, features, canonical } of FITTED) {
+		const measured = scaleCanonicalFit('albers-usa', canonical, 800, 450)
+
+		const buffer = projectAtlas(features, canonical.projection)
+
+		if (!buffer) throw new Error('fixture yielded no projected atlas')
+
+		bench(`${label} · regionPaths (the direct walk, per fit)`, () => {
+			regionPaths(features, measured)
+		})
+
+		bench(`${label} · projectAtlas (the walk, once per atlas)`, () => {
+			projectAtlas(features, canonical.projection)
+		})
+
+		bench(`${label} · emitRegionPaths (per fit, from the buffer)`, () => {
+			emitRegionPaths(buffer, measured)
 		})
 	}
 })

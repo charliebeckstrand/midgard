@@ -13,7 +13,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPointedMark, useMapZoomScale } from './context'
+import { MapZoomScaleContext, useMapHoverSet, useMapPointedMark, useMapZoomScale } from './context'
 import { REGION_SELECTED_STROKE_WIDTH, REGION_STROKE_WIDTH } from './engine/map-constants'
 import { regionIndexAt } from './engine/map-hover/anchor'
 import { REGION_WASH_SETTLE } from './engine/map-motion'
@@ -25,6 +25,7 @@ import {
 	resolveRegionPaints,
 	washStyle,
 } from './engine/map-region/paint'
+import { type MapTransform, transformAttribute } from './engine/map-zoom/transform'
 import { MapRegionsLit } from './map-regions-lit'
 
 /**
@@ -38,6 +39,14 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
 	/** Whether the layer's values are still loading — see {@link k.region.pending}. */
 	pending?: boolean
+	/**
+	 * The view transform the paths are drawn under, `null` where they already sit
+	 * in the drawn frame. A measured refit carries the canonical paths here rather
+	 * than rewriting every `d`; the group republishes the device-pixel scale
+	 * beneath it, so a spec under it converts by one multiply and never asks what
+	 * either transform is.
+	 */
+	frame: MapTransform | null
 	/**
 	 * Whether anything on this map reads what the pointer is on — the rows
 	 * matched a region, or a reporter asked to be told. Off, the region paths
@@ -288,6 +297,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
  */
 export const MapRegions = memo(function MapRegions({
 	paths,
+	frame,
 	regionCategory,
 	categories,
 	interactive,
@@ -366,6 +376,7 @@ export const MapRegions = memo(function MapRegions({
 
 	return (
 		<MapRegionsGroup
+			frame={frame}
 			// The cursor rides the group and inherits down, so thousands of paths carry
 			// no per-region class.
 			className={cn(clickable && k.region.clickable, ...(pending ? k.region.pending : []))}
@@ -406,6 +417,8 @@ export const MapRegions = memo(function MapRegions({
 
 /** What {@link MapRegionsGroup} carries: the layer's own group props, and its layers. @internal */
 type MapRegionsGroupProps = {
+	/** The view transform the paths are drawn under, `null` where they already sit in the drawn frame. */
+	frame: MapTransform | null
 	className: string
 	onPointerLeave: () => void
 	/** `regionDelegate`'s return: the delegated reporters, which read the event target alone. */
@@ -439,25 +452,33 @@ type MapRegionsGroupProps = {
  * @internal
  */
 function MapRegionsGroup({
+	frame,
 	className,
 	onPointerLeave,
 	onClick,
 	onContextMenu,
 	children,
 }: MapRegionsGroupProps) {
-	const unitsPerPixel = useMapZoomScale()
+	// This group cannot consume its own provider, so it divides for its own
+	// inherited seam and hands the same figure to everything under it.
+	const beneath = useMapZoomScale() / (frame?.k ?? 1)
 
 	return (
 		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", which is itself the tab stop that carries the click's keyboard counterpart (see use-map-keyboard)
 		<g
 			data-slot="map-regions"
 			className={className}
-			strokeWidth={REGION_STROKE_WIDTH * unitsPerPixel}
+			transform={frame === null ? undefined : transformAttribute(frame)}
+			strokeWidth={REGION_STROKE_WIDTH * beneath}
 			onPointerLeave={onPointerLeave}
 			onClick={onClick}
 			onContextMenu={onContextMenu}
 		>
-			{children}
+			{/* Republished rather than passed down: this group applies a transform, so
+			    the rule every layer here keeps — the group that transforms states what a
+			    device pixel is beneath it — makes a spec added later correct by
+			    construction instead of by remembering a divisor. */}
+			<MapZoomScaleContext value={beneath}>{children}</MapZoomScaleContext>
 		</g>
 	)
 }
