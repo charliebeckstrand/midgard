@@ -9,12 +9,32 @@ import { ResizablePanel, type ResizablePanelProps } from './resizable-panel'
 import type { PanelConfig, ResizableOrientation } from './types'
 import { useResizablePanel } from './use-resizable-panel'
 
-/** Props for {@link ResizableGroup}: layout `orientation` and a size-change callback. */
+/** Props for {@link ResizableGroup}: layout `orientation`, a size-change callback, and the drag bracket. */
 export type ResizableGroupProps = {
 	/** @defaultValue 'horizontal' */
 	orientation?: ResizableOrientation
 	/** Fires with the panels' sizes (percentages summing to 100) after each resize. */
 	onSizesChange?: (sizes: number[]) => void
+	/**
+	 * Fires with the handle's index when a pointer drag-resize begins. Pair with
+	 * {@link ResizableGroupProps.onResizeEnd} to bracket the drag.
+	 *
+	 * `onSizesChange` reports the sizes but not the gesture, and it fires once per frame
+	 * for the whole drag — so it cannot say when to persist, and it cannot say when to
+	 * hold something expensive down. A keyboard nudge has no drag lifecycle — it commits
+	 * straight through `onSizesChange` — so it fires neither of these.
+	 */
+	onResizeStart?: (handleIndex: number) => void
+	/**
+	 * Fires with the handle's index when a pointer drag-resize ends, whether the pointer
+	 * lifted, the gesture was cancelled, or a second pointer superseded it. Exactly one
+	 * end follows each start.
+	 *
+	 * The settled sizes have already flowed through `onSizesChange`; this only marks the
+	 * drag's conclusion — the point to persist from, or to release whatever
+	 * `onResizeStart` held.
+	 */
+	onResizeEnd?: (handleIndex: number) => void
 	className?: string
 	children?: ReactNode
 }
@@ -28,6 +48,8 @@ export type ResizableGroupProps = {
 export function ResizableGroup({
 	orientation = 'horizontal',
 	onSizesChange,
+	onResizeStart,
+	onResizeEnd,
 	className,
 	children,
 }: ResizableGroupProps) {
@@ -56,6 +78,8 @@ export function ResizableGroup({
 		orientation,
 		panelConfigs,
 		onSizesChange,
+		onResizeStart,
+		onResizeEnd,
 	})
 
 	// Wraps each panel/handle in an index provider; context carries its position.

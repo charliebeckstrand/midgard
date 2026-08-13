@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ReactNode, RefObject } from 'react'
+import { type ReactNode, type RefObject, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -18,6 +18,24 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	defaultOpen?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Fires once the panel has finished arriving — it is in from its edge, at rest, and
+	 * covering whatever it covers.
+	 *
+	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
+	 * one reports it having *landed*. Use it for anything that has to hold until the panel
+	 * is actually up — measuring it, or starting work that must not compete with the slide
+	 * — rather than guessing at the slide with a matching delay.
+	 *
+	 * Deliberately named for the open, not for the animation. It reports from whichever
+	 * `side` preset ran. A slide the user's reduced-motion preference collapses still
+	 * resolves, and so still reports.
+	 *
+	 * Once per arrival, and never for a close.
+	 *
+	 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
+	 */
+	onOpenComplete?: () => void
 	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
 	/**
@@ -92,6 +110,7 @@ export function Sheet({
 	open,
 	defaultOpen,
 	onOpenChange,
+	onOpenComplete,
 	side = 'right',
 	width,
 	glass,
@@ -113,6 +132,25 @@ export function Sheet({
 
 	const resolvedSurface = useResolvedSurface(glass)
 
+	const preset = k.motion[side]
+
+	/*
+	 * One report per arrival. Reset while closed rather than on report, so a reopen reports
+	 * again while a second landing inside one arrival does not — adjusted during render, the
+	 * same shape Drawer uses.
+	 */
+	const reportedRef = useRef(false)
+
+	if (!resolvedOpen) reportedRef.current = false
+
+	const reportOpen = () => {
+		if (reportedRef.current) return
+
+		reportedRef.current = true
+
+		onOpenComplete?.()
+	}
+
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
 	return (
@@ -126,7 +164,14 @@ export function Sheet({
 			className={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
-				{...k.motion[side]}
+				{...preset}
+				onAnimationComplete={(definition) => {
+					// The exit lands here too, and the leaving subtree keeps the props from the
+					// render where the sheet was still open — so `resolvedOpen` cannot tell the
+					// two apart. What motion hands back can: the preset's own `animate` object on
+					// the way in, its `exit` on the way out.
+					if (definition === preset.animate) reportOpen()
+				}}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="sheet"

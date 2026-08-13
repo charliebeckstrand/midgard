@@ -74,6 +74,8 @@ type PanelResize = {
 	orientation: ResizableOrientation
 	panelConfigs: PanelConfig[]
 	onSizesChange?: (sizes: number[]) => void
+	onResizeStart?: (handleIndex: number) => void
+	onResizeEnd?: (handleIndex: number) => void
 }
 
 /**
@@ -89,6 +91,8 @@ export function useResizablePanel({
 	orientation,
 	panelConfigs,
 	onSizesChange,
+	onResizeStart,
+	onResizeEnd,
 }: PanelResize) {
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
@@ -127,6 +131,14 @@ export function useResizablePanel({
 	const onSizesChangeRef = useRef(onSizesChange)
 
 	onSizesChangeRef.current = onSizesChange
+
+	const onResizeStartRef = useRef(onResizeStart)
+
+	onResizeStartRef.current = onResizeStart
+
+	const onResizeEndRef = useRef(onResizeEnd)
+
+	onResizeEndRef.current = onResizeEnd
 
 	const resize = useCallback((handleIndex: number, delta: number) => {
 		const leftIdx = handleIndex
@@ -198,6 +210,24 @@ export function useResizablePanel({
 
 			setDragging(handleIndex)
 
+			onResizeStartRef.current?.(handleIndex)
+
+			/*
+			 * Exactly one end per start. The drag has three exits — the pointer lifts, a
+			 * second pointer supersedes it, or the group unmounts mid-drag — and all three
+			 * run through here, so the latch keeps the bracket balanced without the callers
+			 * having to reconcile a start that never closed.
+			 */
+			let ended = false
+
+			const reportEnd = () => {
+				if (ended) return
+
+				ended = true
+
+				onResizeEndRef.current?.(handleIndex)
+			}
+
 			// Pointermove can outpace the frame rate (coalesced move bursts), and each
 			// event would otherwise commit React state + fire onSizesChange, forcing a
 			// synchronous layout per event. Coalesce to one commit per frame: stash the
@@ -260,6 +290,10 @@ export function useResizablePanel({
 
 				commitPending()
 
+				// After the flush, so a consumer persisting on the end has already had the
+				// settled sizes through `onSizesChange`.
+				reportEnd()
+
 				controller.abort()
 
 				cleanupRef.current = null
@@ -285,6 +319,10 @@ export function useResizablePanel({
 				if (frame !== null) cancelAnimationFrame(frame)
 
 				controller.abort()
+
+				// The supersede and unmount exits close the bracket too; `onUp` clears
+				// `cleanupRef` first, so a normal lift never reaches here twice.
+				reportEnd()
 			}
 		},
 		[groupRef],

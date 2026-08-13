@@ -27,6 +27,16 @@ export type CopyButtonProps = {
 	className?: string
 	/** Fires on every copied-state transition, with the new value. */
 	onCopiedChange?: (copied: boolean) => void
+	/**
+	 * Fires when the clipboard write rejects, with whatever the platform threw.
+	 *
+	 * The button cannot report this itself: a refused write leaves `copied` false, which
+	 * is also what it looks like before any copy, so the rest glyph means both "not copied
+	 * yet" and "copy failed". A denied permission, an insecure (`http`) context, and a
+	 * missing Clipboard API all land here. Use it to surface the failure — a toast, say —
+	 * or to fall back to a selectable text field.
+	 */
+	onCopyError?: (error: unknown) => void
 } & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
 
 /**
@@ -49,10 +59,11 @@ export function CopyButton({
 	disabled,
 	onClick,
 	onCopiedChange,
+	onCopyError,
 	'aria-label': ariaLabel,
 	...props
 }: CopyButtonProps) {
-	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange })
+	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange, onCopyError })
 
 	// The button stays enabled and focused through the success window;
 	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).

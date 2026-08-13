@@ -146,3 +146,31 @@ describe('Dialog', () => {
 		expect(screen.getByText('Settings').className).toContain('text-base')
 	})
 })
+
+/*
+ * `onOpenComplete` says the panel is up, not that an animation ran. Its landing rides on
+ * `onAnimationComplete`, which the global motion mock fires only when the `animate` target
+ * changes between renders — never on a mount — so no arrival resolves in jsdom. Dialog
+ * picks its preset off the `sm` breakpoint rather than a prop, so it has no in-test way to
+ * change that target either; the shared gate-and-latch shape is pinned on Sheet, which
+ * does. The Drawer suite records the same gap.
+ */
+describe('Dialog onOpenComplete', () => {
+	it('says nothing while the dialog is closed', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(
+			<Dialog open={false} onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
+				content
+			</Dialog>,
+		)
+
+		rerender(
+			<Dialog open={false} onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
+				content
+			</Dialog>,
+		)
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+})

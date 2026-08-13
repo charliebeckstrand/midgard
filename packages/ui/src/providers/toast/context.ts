@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { ToastData, ToastInput } from './types'
+import type { ToastData, ToastDismissReason, ToastInput } from './types'
 
 export type ToastContextValue = {
 	toast: (data: ToastInput) => string
@@ -10,7 +10,7 @@ export type ToastContextValue = {
 
 export type ToastViewportContextValue = {
 	toasts: ToastData[]
-	dismiss: (id: string) => void
+	dismiss: (id: string, reason?: ToastDismissReason) => void
 	pause: () => void
 	resume: () => void
 	reset: (id: string) => void

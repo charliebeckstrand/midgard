@@ -64,6 +64,53 @@ describe('CopyButton', () => {
 		}
 	})
 
+	it('hands the rejection to onCopyError and leaves onCopiedChange alone', async () => {
+		const denial = new Error('denied')
+
+		const writeText = vi.fn().mockRejectedValue(denial)
+
+		const restore = stubClipboard(writeText)
+
+		try {
+			const onCopyError = vi.fn()
+			const onCopiedChange = vi.fn()
+
+			const { container } = renderUI(
+				<CopyButton value="hello" onCopyError={onCopyError} onCopiedChange={onCopiedChange} />,
+			)
+
+			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
+
+			await waitFor(() => expect(onCopyError).toHaveBeenCalledExactlyOnceWith(denial))
+
+			// A refused write is not a copy: the rest glyph means "failed" here, which is
+			// exactly why the failure needs its own channel.
+			expect(onCopiedChange).not.toHaveBeenCalled()
+		} finally {
+			restore()
+		}
+	})
+
+	it('says nothing on onCopyError when the write succeeds', async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined)
+
+		const restore = stubClipboard(writeText)
+
+		try {
+			const onCopyError = vi.fn()
+
+			const { container } = renderUI(<CopyButton value="hello" onCopyError={onCopyError} />)
+
+			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
+
+			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
+
+			expect(onCopyError).not.toHaveBeenCalled()
+		} finally {
+			restore()
+		}
+	})
+
 	it('does not fire onCopiedChange on mount', () => {
 		const onCopiedChange = vi.fn()
 

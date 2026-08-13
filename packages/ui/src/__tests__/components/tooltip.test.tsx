@@ -45,6 +45,72 @@ describe('Tooltip', () => {
 		expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument()
 	})
 
+	it('reports both ends of the open state, whatever drove them', async () => {
+		const user = userEvent.setup()
+
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Tooltip onOpenChange={onOpenChange}>
+				<TooltipTrigger>
+					<button type="button">Trigger</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		const trigger = bySlot(container, 'tooltip-trigger')
+
+		if (!trigger) throw new Error('trigger missing')
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		// jsdom reports no hover, so the tooltip opens on click here.
+		await user.click(trigger)
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		// A close nothing in the consumer's hands drove: the shared overlay signal.
+		act(() => notifyOverlaySignal())
+
+		await waitFor(() => expect(onOpenChange).toHaveBeenLastCalledWith(false))
+
+		expect(onOpenChange).toHaveBeenCalledTimes(2)
+	})
+
+	it('keeps reporting the resolved state while forceOpen holds it open', async () => {
+		const user = userEvent.setup()
+
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Tooltip forceOpen onOpenChange={onOpenChange}>
+				<TooltipTrigger>
+					<button type="button">Trigger</button>
+				</TooltipTrigger>
+				<TooltipContent>Tooltip text</TooltipContent>
+			</Tooltip>,
+		)
+
+		// Mounting already open is not a transition, so there is nothing to report yet —
+		// the same contract the panel family's `onOpenChange` keeps.
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		const trigger = bySlot(container, 'tooltip-trigger')
+
+		if (!trigger) throw new Error('trigger missing')
+
+		// `forceOpen` holds the disclosure controlled, so the interactions still call its
+		// setter and `useControllable` still fires on every set. Reporting the resolved
+		// state rather than that setter is what keeps a close the reader never saw — the
+		// tooltip is still on screen — from being announced.
+		await user.click(trigger)
+
+		expect(screen.getByText('Tooltip text')).toBeInTheDocument()
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
 	it('clones the reference onto the child element instead of a wrapper', () => {
 		const { container } = renderUI(
 			<Tooltip>

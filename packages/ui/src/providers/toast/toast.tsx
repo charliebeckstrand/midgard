@@ -7,7 +7,7 @@ import {
 	ToastViewportContext,
 	type ToastViewportContextValue,
 } from './context'
-import type { ToastData, ToastInput } from './types'
+import type { ToastData, ToastDismissReason, ToastInput } from './types'
 import { useToastQueue } from './use-toast-queue'
 import { useToastTimer } from './use-toast-timer'
 
@@ -41,7 +41,33 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const sync = useCallback(() => flush((n) => n + 1), [])
 
-	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync)
+	/*
+	 * One report per toast. A toast leaves by four routes and two seams — the queue's
+	 * timeout and `dismiss`'s other three — and `dismiss` runs twice for one departure
+	 * (mark, then remove a frame later). The set is the latch that keeps those from
+	 * doubling up; ids leave it with the toast they name.
+	 */
+	const reportedRef = useRef<Set<string>>(new Set())
+
+	const notifyDismiss = useCallback((toast: ToastData, reason: ToastDismissReason) => {
+		if (reportedRef.current.has(toast.id)) return
+
+		reportedRef.current.add(toast.id)
+
+		toast.onDismiss?.(reason)
+	}, [])
+
+	const handleTimeout = useCallback(
+		(toast: ToastData) => {
+			notifyDismiss(toast, 'timeout')
+
+			// The queue removed it before calling, so no second report can find it.
+			reportedRef.current.delete(toast.id)
+		},
+		[notifyDismiss],
+	)
+
+	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync, handleTimeout)
 
 	const { startTimer, pause, resume, resetRemaining, reset } = useToastTimer(
 		toastsRef,
@@ -51,10 +77,12 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 	)
 
 	const dismiss = useCallback(
-		(id: string) => {
+		(id: string, reason: ToastDismissReason = 'dismissed') => {
 			const toast = toastsRef.current.find((t) => t.id === id)
 
 			if (!toast) return
+
+			notifyDismiss(toast, reason)
 
 			if (!toast.dismissed) {
 				toastsRef.current = toastsRef.current.map((t) =>
@@ -66,6 +94,8 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 				requestAnimationFrame(() => {
 					toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
 
+					reportedRef.current.delete(id)
+
 					sync()
 
 					if (toastsRef.current.length === 0) stop()
@@ -76,11 +106,13 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
 
+			reportedRef.current.delete(id)
+
 			sync()
 
 			if (toastsRef.current.length === 0) stop()
 		},
-		[sync, stop],
+		[sync, stop, notifyDismiss],
 	)
 
 	const toast = useCallback(
@@ -103,7 +135,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 					const toDismiss = active.slice(0, excess)
 
 					for (const t of toDismiss) {
-						dismiss(t.id)
+						dismiss(t.id, 'evicted')
 					}
 				}
 			}
