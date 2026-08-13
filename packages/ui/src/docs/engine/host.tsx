@@ -18,10 +18,12 @@ const RELOADED = 'docs:preload-error-reloaded'
  *
  * ```ts
  * import { mount } from './engine/host'
- * import './app.css'
  *
  * mount(import.meta.glob(['./demos/components/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
  * ```
+ *
+ * @see The engine README for the entry contract, including why the site's
+ *   stylesheet links from `index.html` instead of an import here.
  *
  * @param loaders - The demo loader map from `import.meta.glob`, run in the
  *   consumer so Vite resolves the globs against its own `demos/` tree.

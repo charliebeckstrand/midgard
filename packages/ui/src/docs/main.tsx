@@ -1,6 +1,8 @@
 import { mount } from './engine/host'
-import './app.css'
 
+// `index.html` links `app.css`; an import here would delay the styles until
+// this whole module graph loads. See `engine/README.md`.
+//
 // The glob runs here, in ui, so Vite resolves it against ui's own `demos/`
 // tree; the engine wires the loaders into the site chrome.
 mount(

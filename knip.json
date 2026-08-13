@@ -18,7 +18,8 @@
 		"packages/ui": {
 			"entry": [
 				"src/**/index.ts",
-				"src/__tests__/**/setup/*.ts"
+				"src/__tests__/**/setup/*.ts",
+				"src/docs/app.css"
 			]
 		}
 	}

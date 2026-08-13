@@ -28,10 +28,29 @@ export default defineDocsConfig({ packageName: 'ui' })
 ```ts
 // packages/ui/src/docs/main.tsx
 import { mount } from './engine/host'
-import './app.css'
 
 mount(import.meta.glob(['./demos/components/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
 ```
+
+```html
+<!-- packages/ui/src/docs/index.html -->
+<link rel="stylesheet" href="./app.css" />
+```
+
+`index.html` links the stylesheet; `main.tsx` does not import it. An ES module
+evaluates only after its full static graph loads. A CSS import in `main.tsx`
+therefore delays the styles until the last module arrives, and the page paints
+unstyled until then. The browser requests a `<link>` in parallel with the
+modules, so the first paint has the correct theme. The dev server keeps
+`app.css` warm ([`vite/index.ts`](vite/index.ts)) because the link makes it
+block the paint.
+
+The gain applies to the dev server only. The production build extracts the CSS
+to a `<link>` in `<head>` from either form, so the built HTML is the same.
+
+Knip reads only the `<script>` tags in `index.html`. Therefore
+[`knip.json`](../../../../../knip.json) names `src/docs/app.css` as a second
+entry of this site.
 
 The chrome renders with ui's own components (imported relatively from
 `src/components`, `src/core`, …). That dogfooding is why the engine lives inside

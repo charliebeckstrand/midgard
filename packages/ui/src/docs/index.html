@@ -5,6 +5,9 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 		<title>Docs</title>
 		<!-- Fonts load via CSS @font-face with font-display: swap — no preload needed. -->
+		<!-- Linked here, never imported from `main.tsx` — an import delays the
+		     styles until the whole module graph loads. See engine/README.md. -->
+		<link rel="stylesheet" href="./app.css" />
 	</head>
 	<body class="h-full bg-zinc-100 dark:bg-zinc-900 text-zinc-950 dark:text-white">
 		<div id="root" class="h-full"></div>
