@@ -24,12 +24,18 @@ import { type BundleReport, readBundle, stableName } from './bundle-report'
 const ENTRY_CHUNK = stableName('index-00000000.js')
 
 /**
- * Measured 2026-08-08 at 1691 kB total gzip and 46 kB entry gzip, after the
- * world atlas joined the demo assets. Headroom is ~13% on the total and ~30% on
- * the entry, which is where a stray eager import shows up first.
+ * Measured 2026-08-13 at 1960 kB total gzip and 46 kB entry gzip, after the
+ * county atlas joined the demo assets — 250 kB gzip of the total on its own, for
+ * the map module's county drill. Headroom is ~15% on the total and ~30% on the
+ * entry, which is where a stray eager import shows up first.
+ *
+ * The entry did not move for that atlas, which is the reading these two numbers
+ * exist to separate: the demos fetch their atlases as static assets, so one
+ * joining the build grows what is on disk and nothing that loads before a reader
+ * opens its tab.
  */
 const BUDGETS = [
-	{ label: 'total gzip', budgetKb: 1950, of: (report: BundleReport) => report.totalGzip },
+	{ label: 'total gzip', budgetKb: 2250, of: (report: BundleReport) => report.totalGzip },
 	{
 		label: 'entry gzip',
 		budgetKb: 65,

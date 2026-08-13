@@ -216,6 +216,16 @@ export const MAP_PAN_THRESHOLD = 4
 export const MAP_WHEEL_SETTLE_MS = 120
 
 /**
+ * How long, in milliseconds, the pointer must hold a region before it reads as
+ * intent to open it and `onRegionPreload` fires. Regions sit edge to edge, so a
+ * pointer crossing to the far side of the map passes over every region between:
+ * without the hold, reaching one county would warm a dozen. Long enough that a
+ * pass through a region warms nothing, short enough that the warming still beats
+ * the click that follows the reader's decision. @internal
+ */
+export const MAP_PRELOAD_DWELL_MS = 120
+
+/**
  * The clear space, in frame units, the keyboard cursor keeps between its stop
  * and the frame edge when it pans a zoomed view to show it. A stop pinned to the
  * edge would anchor its readout half off the plot. @internal

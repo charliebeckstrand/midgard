@@ -231,6 +231,41 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		onRegionContextMenu?: (id: string, index: number) => void
 		/**
+		 * Fires when the reader holds a region long enough to read as intent to open
+		 * it, with the identity and index {@link onRegionClick} reports. The moment
+		 * to warm what the pick will need — a `queryClient.prefetchQuery` for the
+		 * county atlas a drill-down opens, the rows a detail panel reads — so the
+		 * data is there by the click. `Tab`'s `onPreload`, keyed by region.
+		 *
+		 * The pointer and the keyboard cursor both signal it: the arrow keys move
+		 * the same hover target a pointer does, so a reader navigating a map by
+		 * keyboard warms what a pointing one warms. Latched per region for as long
+		 * as the geography stands, so sweeping back over a warmed region reports
+		 * nothing; a new `geography` re-arms every region, because a feature index
+		 * means nothing against features it did not come from.
+		 *
+		 * The callback owns the work — the map stays agnostic to what loads, and
+		 * never waits on it. Warming is an optimisation and nothing more: it takes
+		 * no cursor, and every region it warms would have loaded on the click
+		 * regardless. It earns no tab stop either, so the keyboard half rides
+		 * whatever stop a readout, a pick, or a zoom already earned; a map carrying
+		 * this prop alone is drilled by some control beside it, and that control is
+		 * what a keyboard reader navigates.
+		 *
+		 * @remarks
+		 * Regions sit edge to edge, so the report is held behind a short dwell —
+		 * a pointer travelling to the far side of the map crosses every region on
+		 * the way, and warming each would spend a dozen requests to answer one. Only
+		 * a region the reader rests on warms, and leaving before the dwell elapses
+		 * warms nothing.
+		 *
+		 * Unlike the pointed emphasis, this does not ask whether the region carries
+		 * data: a region with no row still opens into something, and gating warming
+		 * on the readout would leave a plain navigation map — a geography and this
+		 * prop, no `data` — reporting nothing.
+		 */
+		onRegionPreload?: (id: string, index: number) => void
+		/**
 		 * The selected region, by the identity {@link onRegionClick} reports — the
 		 * `regionId` value, so the pick a click hands the caller comes straight back
 		 * as the pick to draw. The map paints it and holds no selection state of its
@@ -445,6 +480,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		animate = false,
 		onRegionClick,
 		onRegionContextMenu,
+		onRegionPreload,
 		selectedRegion,
 		selectedOverlay,
 		emphasis: controlledEmphasis,
@@ -526,6 +562,38 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		() => bridgeRegionIdentity(onRegionContextMenu, regionIds),
 		[onRegionContextMenu, regionIds],
 	)
+
+	// The preload reporter, read when the dwell fires rather than when the latch
+	// below is built: a consumer's inline `onRegionPreload` is a fresh identity
+	// every render, and re-keying the latch on it would warm a region the reader
+	// already warmed.
+	const preloadReport = useRef(onRegionPreload)
+
+	preloadReport.current = onRegionPreload
+
+	// Whether anything asked to be told of intent, as the boolean the latch and the
+	// tracking gate both key on rather than the churning handler behind it.
+	const preloads = onRegionPreload !== undefined
+
+	// Bridged to the public identity through the same helper as the reporters
+	// above, so all three resolve a region's name one way, wrapped in the latch a
+	// warmed region keeps: the pointer crosses back over a region as freely as it
+	// first arrived, and the second crossing has nothing left to warm. The latch
+	// belongs to the geography, which is what a feature index means anything
+	// against.
+	const preloadRegion = useMemo(() => {
+		if (!preloads) return undefined
+
+		const warmed = new Set<number>()
+
+		return bridgeRegionIdentity((id, index) => {
+			if (warmed.has(index)) return
+
+			warmed.add(index)
+
+			preloadReport.current?.(id, index)
+		}, regionIds)
+	}, [preloads, regionIds])
 
 	// The selection resolved to the index the layers draw by, against the same
 	// ids a click reports — so the pick a consumer echoes back always rings the
@@ -704,6 +772,14 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[regionCategory],
 	)
 
+	// Whether the region paths answer the pointer at all, which anything reading
+	// what the pointer is on earns: a matched category, or a warming reporter. A
+	// plain navigation map — a geography and `onRegionPreload`, no `data` — has no
+	// match to earn them, and without this the pointer half of its report would be
+	// dead. Both halves read the same on the first commit as on the next, which the
+	// bit above states the layer must have.
+	const regionsTracked = regionsRead || preloads
+
 	// Whether anything at all can read out — a matched region, or a registered
 	// overlay. The table and the tab stop take this wider reading: a mark's own
 	// row and its keyboard stop are outputs a map with no rows still has.
@@ -793,7 +869,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							paths={shape.paths}
 							regionCategory={regionCategory}
 							categories={categoryMetas}
-							interactive={regionsRead}
+							interactive={regionsTracked}
 							hidden={hidden}
 							emphasis={emphasis}
 							animate={animate}
@@ -914,6 +990,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			containerRef={containerRef}
 			tooltip={readable}
 			regionActive={regionActive}
+			preloadRegion={preloadRegion}
 			table={deferredTable}
 			width={width}
 			fill={shape.fill}

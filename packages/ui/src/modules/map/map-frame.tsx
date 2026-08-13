@@ -29,6 +29,8 @@ type MapFrameProps = {
 	tooltip: boolean
 	/** Whether a region's category is matched and shown; the hover provider's pointed-emphasis gate. */
 	regionActive: (index: number) => boolean
+	/** Warms the region the pointer settles on; the hover provider holds the dwell. */
+	preloadRegion: ((index: number) => void) | undefined
 	table: ReactNode
 	width: number | undefined
 	/** Free-form (`aspectRatio={false}`) sizing: the frame fills its container's height. */
@@ -46,6 +48,7 @@ export function MapFrame({
 	zoom,
 	tooltip,
 	regionActive,
+	preloadRegion,
 	table,
 	width,
 	fill,
@@ -73,7 +76,12 @@ export function MapFrame({
 			)}
 			style={width === undefined ? undefined : { width }}
 		>
-			<MapHoverProvider enabled={tooltip} plotRef={plotRef} regionActive={regionActive}>
+			<MapHoverProvider
+				enabled={tooltip}
+				plotRef={plotRef}
+				regionActive={regionActive}
+				preloadRegion={preloadRegion}
+			>
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
