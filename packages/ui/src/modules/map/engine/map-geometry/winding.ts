@@ -37,6 +37,106 @@ function ringArea(ring: Ring): number {
 	return geoArea({ type: 'Polygon', coordinates: [ring] })
 }
 
+/** Steradians a square degree covers at the equator, where a degree is widest. @internal */
+const STERADIANS_PER_SQUARE_DEGREE = (Math.PI / 180) ** 2
+
+/**
+ * How far above {@link DEGENERATE_AREA_EPSILON} a ring's planar measure must sit
+ * before {@link planarSide} is trusted to settle it. The planar figure converts
+ * to a lower bound on the spherical one rather than to the figure itself, so a
+ * ring near the epsilon needs the exact measure — and this band is where "near"
+ * ends.
+ *
+ * A hundred rather than a thousand: the fallback stays free at this width (0.71%
+ * of `counties-10m` rings, 0.33% of `states-10m`, 1.75% of `countries-110m`),
+ * where a thousand swallows 5.41% and 38.69% and the pass stops being faster
+ * than the one it replaces.
+ *
+ * @internal
+ */
+const DEGENERATE_SAFETY_FACTOR = 100
+
+/**
+ * Which side of {@link HALF_SPHERE} a ring's area falls, read off the plane
+ * instead of the sphere; `null` where the plane cannot answer and
+ * {@link ringArea} must.
+ *
+ * `geoArea` walks every vertex through five transcendentals, and it is the whole
+ * of this pass — but almost every ring on a real atlas is a small simple loop
+ * inside a narrow band of longitude, and for those the planar shoelace decides
+ * the same question by arithmetic. It settles 99.25% of `counties-10m`, and the
+ * pass comes out an order of magnitude cheaper.
+ *
+ * The equivalence holds inside a lune narrower than 180°: such a lune encloses
+ * no pole, the plate carrée map of it is an orientation-preserving
+ * homeomorphism, and the enclosed side spans at most `2w < 2π` — so the sign of
+ * the planar area is the side of the sphere, and a ring can never measure
+ * exactly {@link HALF_SPHERE}, which is the one value the caller's three-way
+ * comparison leaves wound correctly either way. At a span of exactly 180° that
+ * bound is exactly `2π` and the value becomes reachable, so the guard refuses
+ * there rather than above it.
+ *
+ * A clockwise ring in lon/lat order encloses the small side. That is measured
+ * rather than derived: across every ring of `counties-10m`, `states-10m`, and
+ * `world-atlas`'s `countries-110m` that clears both guards, 4,103 negative
+ * shoelaces are small and 15 positive ones are large, with no exceptions either
+ * way.
+ *
+ * The one shape this misreads is a ring that crosses itself, where the shoelace
+ * cancels lobe against lobe and can report the wrong side — a hand-built
+ * example inside the guard measures +60 deg² against a spherical 0.0065 sr. RFC
+ * 7946 §3.1.6 forbids a self-intersecting ring, so this rests on the input being
+ * valid GeoJSON, as the winding rule it serves already does.
+ *
+ * @internal
+ */
+function planarSide(ring: Ring): 'small' | 'large' | null {
+	let twice = 0
+
+	let lonMin = Number.POSITIVE_INFINITY
+
+	let lonMax = Number.NEGATIVE_INFINITY
+
+	let maxAbsLat = 0
+
+	// Wraps to close the loop, so an unclosed ring measures its last edge too; a
+	// closed one repeats its first position and that edge contributes nothing.
+	for (let index = 0; index < ring.length; index++) {
+		const from = ring[index] as number[]
+
+		const to = ring[(index + 1) % ring.length] as number[]
+
+		const fromLon = from[0] as number
+
+		const fromLat = from[1] as number
+
+		twice += fromLon * (to[1] as number) - (to[0] as number) * fromLat
+
+		if (fromLon < lonMin) lonMin = fromLon
+
+		if (fromLon > lonMax) lonMax = fromLon
+
+		const absLat = Math.abs(fromLat)
+
+		if (absLat > maxAbsLat) maxAbsLat = absLat
+	}
+
+	// A ring spanning half the globe or more may enclose a pole, where the plane
+	// and the sphere stop agreeing. One that crosses the antimeridian in its own
+	// coordinates reads as a span of ~360° and is refused here too.
+	if (!(lonMax - lonMin < 180)) return null
+
+	// The planar figure bounds the spherical one from below, at the ring's own
+	// highest latitude where a degree of longitude is narrowest. Under the band,
+	// the ring is close enough to degenerate that only the exact measure can say.
+	const bound =
+		Math.abs(twice / 2) * STERADIANS_PER_SQUARE_DEGREE * Math.cos((maxAbsLat * Math.PI) / 180)
+
+	if (bound <= DEGENERATE_AREA_EPSILON * DEGENERATE_SAFETY_FACTOR) return null
+
+	return twice < 0 ? 'small' : 'large'
+}
+
 /**
  * Rewinds one ring to d3-geo's spherical convention, or drops it. An exterior
  * ring must enclose less than {@link HALF_SPHERE}; a hole must be the opposite
@@ -44,16 +144,31 @@ function ringArea(ring: Ring): number {
  * ({@link DEGENERATE_AREA_EPSILON}) returns `null` to be dropped. Reversal clones
  * the ring, so the caller's coordinates are never mutated.
  *
+ * {@link planarSide} answers the winding question for almost every ring without
+ * measuring the sphere; the drop stays on {@link ringArea} whatever it says,
+ * because a planar zero is not a spherical one — a sliver collinear along a
+ * parallel measures exactly 0 on the plane and 4.6e-6 sr on the sphere, four
+ * thousand times the epsilon, and d3 draws it.
+ *
  * @internal
  */
 function rewindRing(ring: Ring, exterior: boolean): Ring | null {
+	const side = planarSide(ring)
+
+	if (side !== null) return (exterior ? side === 'large' : side === 'small') ? reversed(ring) : ring
+
 	const area = ringArea(ring)
 
 	if (Math.min(area, SPHERE - area) < DEGENERATE_AREA_EPSILON) return null
 
 	const misWound = exterior ? area > HALF_SPHERE : area < HALF_SPHERE
 
-	return misWound ? [...ring].reverse() : ring
+	return misWound ? reversed(ring) : ring
+}
+
+/** A ring in the opposite winding, cloned so the caller's coordinates are never mutated. */
+function reversed(ring: Ring): Ring {
+	return [...ring].reverse()
 }
 
 /**

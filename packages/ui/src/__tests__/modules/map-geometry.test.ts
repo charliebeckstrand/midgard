@@ -197,6 +197,101 @@ describe('rewindFeatures', () => {
 
 		expect(rewindFeatures(features)).toBe(features)
 	})
+
+	it('leaves a ring measuring exactly half the sphere wound as it arrived', () => {
+		// The value the winding rule's three-way comparison leaves alone under both
+		// readings, and the reason the planar shortcut refuses a span of exactly
+		// 180° rather than merely above it: inside a narrower lune this area is
+		// unreachable, and at exactly 180° it is not.
+		const lune = [
+			[-90, -90],
+			[90, -90],
+			[90, 90],
+			[-90, 90],
+			[-90, -90],
+		]
+
+		const feature = polygonFeature('L', [lune])
+
+		expect(firstRingArea(feature)).toBeCloseTo(HALF_SPHERE, 10)
+
+		const [fixed] = rewindFeatures([feature])
+
+		expect(
+			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
+		).toEqual(lune)
+	})
+
+	it('keeps a sliver whose planar area is zero but whose spherical area is not', () => {
+		// Collinear along a parallel, so the shoelace cancels to exactly 0 while
+		// the sphere measures ~4.6e-6 sr — thousands of times the degenerate
+		// epsilon, and d3 draws it. The drop decision therefore stays on the
+		// spherical measure whatever the plane reports.
+		const alongParallel = [
+			[0, 60],
+			[2, 60],
+			[4, 60],
+			[0, 60],
+		]
+
+		const feature = polygonFeature('S', [CW_EXTERIOR, alongParallel])
+
+		const [fixed] = rewindFeatures([feature])
+
+		const rings = ((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates
+
+		expect(rings).toHaveLength(2)
+
+		expect(rings[1]).toEqual(alongParallel)
+	})
+
+	it('rewinds a ring too wide for the plane to judge', () => {
+		// A lune wider than 180° may enclose a pole, where the planar sign stops
+		// tracking the spherical side, so the exact measure decides — and it must
+		// still fix a mis-wound exterior.
+		const wide = [
+			[-170, -10],
+			[-170, 10],
+			[170, 10],
+			[170, -10],
+			[-170, -10],
+		]
+
+		const feature = polygonFeature('W', [wide])
+
+		const before = firstRingArea(feature)
+
+		const [fixed] = rewindFeatures([feature])
+
+		const after = firstRingArea(fixed as MapFeature)
+
+		expect(after).toBeLessThan(HALF_SPHERE)
+
+		// Reversed exactly when the exact measure said it enclosed the far side.
+		expect(
+			((fixed as MapFeature).geometry as { coordinates: number[][][] }).coordinates[0],
+		).toEqual(before > HALF_SPHERE ? [...wide].reverse() : wide)
+	})
+
+	it('rewinds a ring that encloses a pole', () => {
+		// Every longitude, so the plane cannot see the pole inside it at all.
+		const capped = [
+			[-180, 80],
+			[-90, 80],
+			[0, 80],
+			[90, 80],
+			[180, 80],
+			[180, 89],
+			[-180, 89],
+			[-180, 80],
+		]
+
+		const feature = polygonFeature('P', [capped])
+
+		const [fixed] = rewindFeatures([feature])
+
+		expect(firstRingArea(fixed as MapFeature)).toBeLessThan(HALF_SPHERE)
+	})
 })
 
 describe('regionPaths', () => {
