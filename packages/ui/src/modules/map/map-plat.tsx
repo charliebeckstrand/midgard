@@ -5,6 +5,7 @@ import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { once } from '../../utilities'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import {
 	MapPlatContext,
@@ -12,6 +13,8 @@ import {
 	MapZoomScaleContext,
 	useMapZoomView,
 } from './context'
+import { pooledDots } from './engine/map-cluster/ground'
+import { POINT_HIT_RADIUS_FINE } from './engine/map-constants'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -286,6 +289,22 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		selectedRegion?: string | null
 		/**
+		 * Whether the region VALUES are still loading — the atlas is drawn and its numbers are
+		 * not in yet.
+		 *
+		 * The shapes pulse while it holds — a standing dim in place of the pulse for a reader
+		 * who asked for reduced motion — because a choropleth with no data takes the no-data
+		 * fill on every region and a fully grey map reads as "nobody covers anywhere", a
+		 * statement about the subject rather than about a request in flight. Distinct from an
+		 * absent `geography`, which reserves the frame and draws nothing at all; here there is
+		 * something to look at and only the paint is pending.
+		 *
+		 * Say it in words too. This is nothing at all to a screen reader, so a caption or a
+		 * status line remains the load's actual disclosure — this only stops the drawn map
+		 * lying in the meantime.
+		 */
+		pending?: boolean
+		/**
 		 * The selected overlay mark, in the pair its reporters hand back — see
 		 * {@link MapOverlaySelection} for how the pair reads. `selectedRegion` for
 		 * the marks drawn over the geography, on the same terms: the map paints the
@@ -482,6 +501,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		onRegionContextMenu,
 		onRegionPreload,
 		selectedRegion,
+		pending,
 		selectedOverlay,
 		emphasis: controlledEmphasis,
 		className,
@@ -655,6 +675,51 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[regionCategory, categoryMetas, hidden],
 	)
 
+	// Whether any region reads out. It reads the join rather than the presence of
+	// a `data` array, because rows that match no region leave exactly the silence
+	// no rows do — the tooltip resolves nothing for an unmatched region, and the
+	// pointed-emphasis gate above lights nothing there either. Toggled-off
+	// categories still count: a legend toggle must not take the table or the tab
+	// stop away under the reader. Memoised on the join, so the scan a map with no
+	// match pays in full runs once per readout rather than once per render.
+	//
+	// The region layer gates on this — through `regionsTracked` below — rather than
+	// on the wider reading further down, and must: overlays register from an
+	// effect, so a bit that counted them would read `false` on a backdrop map's
+	// first commit and `true` on its next, failing the layer's memo and re-mapping
+	// the whole atlas a second time. The dot targets read that same gate, so a mark
+	// gives its ground back exactly where the paths under it took handlers to
+	// answer with.
+	const regionsRead = useMemo(
+		() => regionCategory.some((category) => category !== null),
+		[regionCategory],
+	)
+
+	// Whether the region paths answer the pointer at all, which anything reading
+	// what the pointer is on earns: a matched category, or a warming reporter. A
+	// plain navigation map — a geography and `onRegionPreload`, no `data` — has no
+	// match to earn them, and without this the pointer half of its report would be
+	// dead. Both halves read the same on the first commit as on the next, which the
+	// bit above states the layer must have.
+	const regionsTracked = regionsRead || preloads
+
+	// Whether the region layer answers the pointer at all — the third claimant on the ground
+	// a dot stands on, and the one that claims first.
+	//
+	// A click is one of several ways a region answers, and the rarest of them: a matched region
+	// reads out under the pointer, a warmed one loads on the dwell, and a right-click can open a
+	// menu on it. Read as clicks alone, a map whose regions are read-only kept the full finger
+	// target on every dot — the several county maps a coverage drill tiles take no county pick,
+	// because a pick could only be read back onto one of them, and each of their pins went on
+	// putting a 44px hole in the readout underneath.
+	//
+	// `regionsTracked` is the same bit the layer binds its own pointer handlers on, so a dot
+	// yields exactly where the paths beneath it are listening and nowhere else. The two
+	// delegated handlers ride the group instead of the paths, so they answer whether or not
+	// any region reads.
+	const regionsAnswer =
+		regionsTracked || onRegionClick !== undefined || onRegionContextMenu !== undefined
+
 	// How much reach the drawn zones leave a mark at a position — the tightest
 	// budget any visible one allows, since a dot overlapping two zones has to
 	// satisfy both. Rebuilt only as the ledger or the legend's toggles change: the
@@ -665,10 +730,28 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// the callback would be a fresh allocation per call rather than per rebuild.
 	const spare = useCallback(
 		(at: MapPoint2D) => {
-			// The identity of the minimum, not a size: a map with no zones on it claims
-			// nothing here, and `markTargets` is the one place that knows what a target
-			// caps at.
-			let room = Number.POSITIVE_INFINITY
+			// A region layer that answers the pointer is the third claimant on this ground, and it
+			// claims first — see `regionsAnswer` for what counts as answering.
+			//
+			// A finger-sized target over such a region takes a 44px bite out of the shape under it:
+			// the dot is the topmost thing at those pixels, so the region cannot be pointed at or
+			// picked there, and a dot near the middle of a small region can put it out of reach
+			// altogether. The dot gives back what a mouse can spare — `POINT_HIT_RADIUS_FINE`, which is
+			// the radius the dot already paints at — so the region answers everywhere the dot is not
+			// literally drawn. Touch keeps the whole 44px target, since `k.hitFine` narrows at
+			// `pointer-fine` only: a region is a large shape a finger can reach elsewhere, and a coarse
+			// pointer cannot aim at an 11px target (WCAG 2.5.5).
+			//
+			// Map-level rather than per-dot. Resolving whether a REGION lies under one coordinate would
+			// need a point-in-polygon pass per dot per render, and the module has no
+			// coordinate-to-region resolver — `regionIndexAt` reads one back off a DOM element. The cost
+			// is a dot standing over no region narrowing for nothing, which on these maps is the ocean;
+			// every dot anyone plots is over land, and land is regions.
+			//
+			// The identity of the minimum otherwise, not a size: a map whose regions answer nothing
+			// and which draws no zones claims nothing here, and `markTargets` is the one place that
+			// knows the cap.
+			let room = regionsAnswer ? POINT_HIT_RADIUS_FINE : Number.POSITIVE_INFINITY
 
 			for (const entry of entries) {
 				if (entry.spare === undefined || hidden.has(entry.id)) continue
@@ -678,7 +761,36 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 			return room
 		},
-		[entries, hidden],
+		[entries, hidden, regionsAnswer],
+	)
+
+	// Every visible dot-drawing mark's stops, projected — the pool a dot divides its target's ground
+	// against, and the seam that lifts `crowd.ts`'s one accepted bound: a mark could previously see only
+	// its own dots, so two separate marks each kept a full target and the overlap went to whichever drew
+	// last.
+	//
+	// Gathered on the first read and held from there, on the same `once` seam the charts hang their own
+	// deferred work on: the gather invokes every entry's `stopsAt`, which `MapPoints` registers as a
+	// thunk precisely so that pass lands on the readers that want it, and a plat with no dot-shaped mark
+	// on it must never run the pass at all. Per asking mark it ran once per mark over the same entries;
+	// held, M marks share one gather and each only drops its own dots from the finished pool.
+	const pooled = useMemo(
+		() => once(() => pooledDots(entries, hidden, shape.project)),
+		[entries, hidden, shape.project],
+	)
+
+	// A mark's own dots are its own business, and it holds them in drawn form already. Walked rather than
+	// mapped: every dot on the map is tested per asking mark, and a `flatMap` over the pool would mint an
+	// array per dot to say "keep" or "drop" before flattening them all away again.
+	const neighbours = useCallback(
+		(exclude: string) => {
+			const others: MapPoint2D[] = []
+
+			for (const dot of pooled()) if (dot.owner !== exclude) others.push(dot.at)
+
+			return others
+		},
+		[pooled],
 	)
 
 	const plat = useMemo<MapPlatContextValue>(
@@ -689,11 +801,23 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			order,
 			hidden,
 			spare,
+			neighbours,
 			emphasis,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[shape.project, register, colors, order, hidden, spare, emphasis, animate, markSelection],
+		[
+			shape.project,
+			register,
+			colors,
+			order,
+			hidden,
+			spare,
+			neighbours,
+			emphasis,
+			animate,
+			markSelection,
+		],
 	)
 
 	const tooltipEntries = useMemo(
@@ -754,31 +878,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		},
 		[clickRegion, entries],
 	)
-
-	// Whether any region reads out. It reads the join rather than the presence of
-	// a `data` array, because rows that match no region leave exactly the silence
-	// no rows do — the tooltip resolves nothing for an unmatched region, and the
-	// pointed-emphasis gate above lights nothing there either. Toggled-off
-	// categories still count: a legend toggle must not take the table or the tab
-	// stop away under the reader. Memoised on the join, so the scan a map with no
-	// match pays in full runs once per readout rather than once per render.
-	//
-	// The region layer gates on this rather than on the wider reading below, and
-	// must: overlays register from an effect, so a bit that counted them would
-	// read `false` on a backdrop map's first commit and `true` on its next,
-	// failing the layer's memo and re-mapping the whole atlas a second time.
-	const regionsRead = useMemo(
-		() => regionCategory.some((category) => category !== null),
-		[regionCategory],
-	)
-
-	// Whether the region paths answer the pointer at all, which anything reading
-	// what the pointer is on earns: a matched category, or a warming reporter. A
-	// plain navigation map — a geography and `onRegionPreload`, no `data` — has no
-	// match to earn them, and without this the pointer half of its report would be
-	// dead. Both halves read the same on the first commit as on the next, which the
-	// bit above states the layer must have.
-	const regionsTracked = regionsRead || preloads
 
 	// Whether anything at all can read out — a matched region, or a registered
 	// overlay. The table and the tab stop take this wider reading: a mark's own
@@ -876,6 +975,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							onRegionClick={clickRegion}
 							onRegionContextMenu={contextMenuRegion}
 							selected={selected}
+							pending={pending}
 						/>
 
 						{children}

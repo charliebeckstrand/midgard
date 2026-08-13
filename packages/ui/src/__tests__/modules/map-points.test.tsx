@@ -301,3 +301,51 @@ describe('MapPoints', () => {
 		expect(text.some((row) => row.includes('Site'))).toBe(true)
 	})
 })
+
+describe('a summary names the stops it merged', () => {
+	it('hands clusterDetail the merged stops own labels', () => {
+		const seen: string[][] = []
+
+		renderUI(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
+				<MapPoints
+					label="Codes"
+					points={[
+						{ at: [15, 5], label: '77002' },
+						{ at: [15.05, 5.05], label: '84101' },
+					]}
+					clusterDetail={(_count, _span, labels) => {
+						seen.push(labels)
+
+						return labels.join(', ')
+					}}
+				/>
+			</MapPlat>,
+		)
+
+		// A summary is one mark downstream — one tooltip, one row — so a reader who sees a `2` can only
+		// learn WHICH two from here. Before this the callback got a count and a span and nothing else.
+		expect(seen.some((labels) => labels.join(', ') === '77002, 84101')).toBe(true)
+	})
+
+	it('falls back to a stops position where it has no label of its own', () => {
+		const seen: string[][] = []
+
+		renderUI(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
+				<MapPoints
+					label="Stops"
+					points={[{ at: [15, 5] }, { at: [15.05, 5.05] }]}
+					clusterDetail={(_count, _span, labels) => {
+						seen.push(labels)
+
+						return ''
+					}}
+				/>
+			</MapPlat>,
+		)
+
+		// The same fallback a lone dot's tooltip takes, so a stop reads identically merged or not.
+		expect(seen.some((labels) => labels.join(', ') === 'Stops 1, Stops 2')).toBe(true)
+	})
+})

@@ -420,7 +420,15 @@ export function dotPath(at: MapPoint2D): string {
 	return `M${round(at.x)},${round(at.y)}l0,0`
 }
 
-/** Two-decimal rounding keeping path strings compact. @internal */
-function round(value: number): number {
+/**
+ * Two-decimal rounding keeping the attribute strings this module writes compact.
+ *
+ * Exported for the same reason `squared` sits with the grid: the `d` builders here and the `points`
+ * builder in `map-cluster/ground.ts` both put frame ordinates into the DOM, and one copy each is one
+ * place for the two to settle on different precision.
+ *
+ * @internal
+ */
+export function round(value: number): number {
 	return Math.round(value * 100) / 100
 }

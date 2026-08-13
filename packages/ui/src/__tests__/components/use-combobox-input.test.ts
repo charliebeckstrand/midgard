@@ -398,4 +398,56 @@ describe('useComboboxInput onKeyDown', () => {
 
 		expect(rovingKeyDown).not.toHaveBeenCalled()
 	})
+	describe('a pasted list', () => {
+		function paste(defaultPrevented: boolean) {
+			return {
+				defaultPrevented,
+				preventDefault: vi.fn(),
+			} as unknown as Parameters<ReturnType<typeof useComboboxInput<string>>['onPaste']>[0]
+		}
+
+		it('drops the draft it replaced once the handler takes the paste', () => {
+			const onPaste = vi.fn()
+
+			const { result, setQuery, setEditing } = setup<string>({ onPaste })
+
+			result.current.onPaste(paste(true))
+
+			expect(onPaste).toHaveBeenCalled()
+
+			// A handler that prevented the default read the clipboard and turned it into a selection, so
+			// the query it pasted over is spent — left in place the field stays `editing`, which
+			// suppresses the resting display (and any placeholder standing in for it) behind text the
+			// consumer has already committed.
+			expect(setQuery).toHaveBeenCalledWith('')
+
+			expect(setEditing).toHaveBeenCalledWith(false)
+		})
+
+		it('leaves an unconsumed paste to land at the caret as typing', () => {
+			const onPaste = vi.fn()
+
+			const { result, setQuery, setEditing } = setup<string>({ onPaste })
+
+			result.current.onPaste(paste(false))
+
+			expect(onPaste).toHaveBeenCalled()
+
+			// A paste with no delimiter is one value dropped into a draft mid-edit; clearing there would
+			// eat the very keystrokes it was pasted into.
+			expect(setQuery).not.toHaveBeenCalled()
+
+			expect(setEditing).not.toHaveBeenCalled()
+		})
+
+		it('is inert with no handler, so an ordinary combobox pastes as it always did', () => {
+			const { result, setQuery, setEditing } = setup<string>()
+
+			result.current.onPaste(paste(false))
+
+			expect(setQuery).not.toHaveBeenCalled()
+
+			expect(setEditing).not.toHaveBeenCalled()
+		})
+	})
 })

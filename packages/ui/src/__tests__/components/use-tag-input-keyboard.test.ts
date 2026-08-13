@@ -4,163 +4,80 @@ import { describe, expect, it, vi } from 'vitest'
 import { useTagInputKeyboard } from '../../components/tag-input/use-tag-input-keyboard'
 import { makeKeyEvent } from '../helpers'
 
+/**
+ * The hook takes ONE `commit` rather than an `addTag`/`clearInput` pair, so what is left in the draft
+ * after a commit is the component's business and not a decision each key path makes for itself.
+ * Splitting it across handlers is what let a paste commit nothing while Enter worked.
+ */
+function setup(inputValue: string, tagCount: number) {
+	const commit = vi.fn()
+
+	const removeTag = vi.fn()
+
+	const { result } = renderHook(() =>
+		useTagInputKeyboard({ inputValue, commit, removeTag, tagCount }),
+	)
+
+	return { press: result.current, commit, removeTag }
+}
+
 describe('useTagInputKeyboard', () => {
-	it('Enter key calls addTag and clearInput on success', () => {
-		const addTag = vi.fn(() => true)
+	it('Enter commits the draft', () => {
+		const { press, commit } = setup('hello', 0)
 
-		const removeTag = vi.fn()
+		press(makeKeyEvent<HTMLInputElement>('Enter'))
 
-		const clearInput = vi.fn()
-
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({ inputValue: 'hello', addTag, removeTag, clearInput, tagCount: 0 }),
-		)
-
-		result.current(makeKeyEvent<HTMLInputElement>('Enter'))
-
-		expect(addTag).toHaveBeenCalledWith('hello')
-
-		expect(clearInput).toHaveBeenCalled()
+		expect(commit).toHaveBeenCalledWith('hello')
 	})
 
-	it('Enter key does not clear input when addTag returns false', () => {
-		const addTag = vi.fn(() => false)
+	it('comma commits the draft', () => {
+		const { press, commit } = setup('tag', 0)
 
-		const clearInput = vi.fn()
+		press(makeKeyEvent<HTMLInputElement>(','))
 
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({
-				inputValue: 'dup',
-				addTag,
-				removeTag: vi.fn(),
-				clearInput,
-				tagCount: 0,
-			}),
-		)
-
-		result.current(makeKeyEvent<HTMLInputElement>('Enter'))
-
-		expect(addTag).toHaveBeenCalledWith('dup')
-
-		expect(clearInput).not.toHaveBeenCalled()
-	})
-
-	it('comma key calls addTag and clearInput on success', () => {
-		const addTag = vi.fn(() => true)
-
-		const clearInput = vi.fn()
-
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({
-				inputValue: 'tag',
-				addTag,
-				removeTag: vi.fn(),
-				clearInput,
-				tagCount: 0,
-			}),
-		)
-
-		result.current(makeKeyEvent<HTMLInputElement>(','))
-
-		expect(addTag).toHaveBeenCalledWith('tag')
-
-		expect(clearInput).toHaveBeenCalled()
+		expect(commit).toHaveBeenCalledWith('tag')
 	})
 
 	it('Backspace removes last tag when input is empty', () => {
-		const removeTag = vi.fn()
+		const { press, removeTag } = setup('', 3)
 
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({
-				inputValue: '',
-				addTag: vi.fn(),
-				removeTag,
-				clearInput: vi.fn(),
-				tagCount: 3,
-			}),
-		)
-
-		result.current(makeKeyEvent<HTMLInputElement>('Backspace'))
+		press(makeKeyEvent<HTMLInputElement>('Backspace'))
 
 		expect(removeTag).toHaveBeenCalledWith(2)
 	})
 
 	it('Backspace does nothing when no tags exist', () => {
-		const removeTag = vi.fn()
+		const { press, removeTag } = setup('', 0)
 
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({
-				inputValue: '',
-				addTag: vi.fn(),
-				removeTag,
-				clearInput: vi.fn(),
-				tagCount: 0,
-			}),
-		)
-
-		result.current(makeKeyEvent<HTMLInputElement>('Backspace'))
+		press(makeKeyEvent<HTMLInputElement>('Backspace'))
 
 		expect(removeTag).not.toHaveBeenCalled()
 	})
 
 	it('Backspace does nothing when input has content', () => {
-		const removeTag = vi.fn()
+		const { press, removeTag } = setup('text', 3)
 
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({
-				inputValue: 'text',
-				addTag: vi.fn(),
-				removeTag,
-				clearInput: vi.fn(),
-				tagCount: 3,
-			}),
-		)
-
-		result.current(makeKeyEvent<HTMLInputElement>('Backspace'))
+		press(makeKeyEvent<HTMLInputElement>('Backspace'))
 
 		expect(removeTag).not.toHaveBeenCalled()
 	})
 
 	it('ignores Enter mid-IME-composition so a candidate selection commits no tag', () => {
-		const addTag = vi.fn(() => true)
+		const { press, commit } = setup('draft', 0)
 
-		const clearInput = vi.fn()
-
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({
-				inputValue: 'draft',
-				addTag,
-				removeTag: vi.fn(),
-				clearInput,
-				tagCount: 0,
-			}),
-		)
-
-		result.current(
+		press(
 			makeKeyEvent<HTMLInputElement>('Enter', {
 				nativeEvent: { isComposing: true } as KeyboardEvent['nativeEvent'],
 			}),
 		)
 
-		expect(addTag).not.toHaveBeenCalled()
-
-		expect(clearInput).not.toHaveBeenCalled()
+		expect(commit).not.toHaveBeenCalled()
 	})
 
 	it('ignores Backspace mid-IME-composition so a candidate edit deletes no committed tag', () => {
-		const removeTag = vi.fn()
+		const { press, removeTag } = setup('', 2)
 
-		const { result } = renderHook(() =>
-			useTagInputKeyboard({
-				inputValue: '',
-				addTag: vi.fn(),
-				removeTag,
-				clearInput: vi.fn(),
-				tagCount: 2,
-			}),
-		)
-
-		result.current(
+		press(
 			makeKeyEvent<HTMLInputElement>('Backspace', {
 				nativeEvent: { isComposing: true } as KeyboardEvent['nativeEvent'],
 			}),

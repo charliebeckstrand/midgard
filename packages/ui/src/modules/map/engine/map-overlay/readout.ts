@@ -43,7 +43,26 @@ export function markReadout(mark: MapReadableMark, stop: number): MapMarkReadout
 
 	if (row === undefined) return { name: mark.label, detail: mark.detail }
 
-	return { name: row.label ?? `${mark.label} ${stop + 1}`, detail: row.detail }
+	return { name: row.label ?? stopName(mark.label, stop), detail: row.detail }
+}
+
+/**
+ * What an unnamed stop is called: the mark's label and the stop's one-based position.
+ *
+ * The FORMAT only — deliberately not the index, because the two callers count in different spaces and
+ * both are right to. This file numbers by position in `stopRows`; `MapPoints` numbers by the caller's
+ * own point index, since a click reports that index and a readout counting in another space would name
+ * a row the caller cannot find. So the thing that must not diverge is the spelling, and it is the
+ * spelling that lives here.
+ *
+ * Here for the reason stated at the top of this file: the tooltip and the visually-hidden table are
+ * two renderings of one readout, and a merged dot's `clusterDetail` labels are a third. Three copies
+ * of the format is three ways for them to name the same dot differently.
+ *
+ * @internal
+ */
+export function stopName(markLabel: string, stop: number): string {
+	return `${markLabel} ${stop + 1}`
 }
 
 /**

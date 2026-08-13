@@ -9,6 +9,8 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> 
 
 	const focus = vi.spyOn(input, 'focus').mockImplementation(() => {})
 
+	const select = vi.spyOn(input, 'select').mockImplementation(() => {})
+
 	const inputRef = { current: input }
 
 	const result = renderHook(() =>
@@ -22,7 +24,7 @@ function setup<T>(overrides: Partial<Parameters<typeof useComboboxState<T>>[0]> 
 		}),
 	)
 
-	return { ...result, setValue, focus }
+	return { ...result, setValue, focus, select }
 }
 
 describe('useComboboxState', () => {
@@ -188,6 +190,31 @@ describe('useComboboxState', () => {
 		expect(focus).toHaveBeenCalled()
 
 		expect(result.current.query).toBe('')
+	})
+
+	it('selects the input text on a multi-select pick, so the next keystroke replaces it', () => {
+		const { result, select } = setup<string>({ multiple: true })
+
+		act(() => {
+			result.current.select('x')
+		})
+
+		// Leaving editing hands the input back to its resting display, which for a multi
+		// selection is the summary of what is picked. Without the text selected, the next
+		// keystroke appends to that summary and searches for "Texas (US)u".
+		expect(select).toHaveBeenCalled()
+	})
+
+	it('does not select the input text on a single-select pick, which closes instead', () => {
+		const { result, select } = setup<string>()
+
+		act(() => {
+			result.current.select('x')
+		})
+
+		// The panel closes and focus leaves the editing path entirely, so there is no
+		// next keystroke to protect.
+		expect(select).not.toHaveBeenCalled()
 	})
 
 	it('closes the panel on select in single-select mode', () => {

@@ -156,6 +156,20 @@ export type MapOverlay = {
 	 * reach for the scale itself. `MapZoomScaleContext` states the rule.
 	 */
 	unitsPerPixel: number
+	/**
+	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units — see
+	 * {@link MapPlatContextValue.neighbours}. A dot-shaped mark divides its pointer target's ground
+	 * against these, so two marks standing on top of one another no longer overlap.
+	 *
+	 * A resolver rather than the pool itself, and bound to this mark's id so the exclusion — the one
+	 * part a mark could get wrong — is still not the mark's to state. Lazy because only a dot-shaped
+	 * mark reads it and the pool invokes every other entry's `stopsAt`, which `MapPoints` registers as
+	 * a thunk precisely so that pass lands on the one reader: resolved eagerly here, every mark would
+	 * trigger that pass for every other mark — M² of them — and discard the answer in all M cases
+	 * wherever no dot-shaped mark was mounted. Memoise the result at the call site; the resolver is
+	 * stable until the plat's ledger, toggles or fit change.
+	 */
+	neighbours: () => MapPoint2D[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
 	animate: boolean
 	/** Registration ordinal, so a mount reveal can stagger by it. */
@@ -222,8 +236,18 @@ export function useMapOverlay({
 
 	const id = given ?? generated
 
-	const { project, register, colors, order, hidden, spare, emphasis, animate, selectedOverlay } =
-		useMapPlat()
+	const {
+		project,
+		register,
+		colors,
+		order,
+		hidden,
+		spare,
+		neighbours,
+		emphasis,
+		animate,
+		selectedOverlay,
+	} = useMapPlat()
 
 	const set = useMapHoverSet()
 
@@ -246,6 +270,8 @@ export function useMapOverlay({
 	live.current = { stops, onClick, onContextMenu, resolveStop, ownSpare }
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
+
+	const neighboursOf = useCallback(() => neighbours(id), [neighbours, id])
 
 	const spareAt = useCallback(
 		// The identity of the minimum the plat folds these into, so the fallback and
@@ -365,6 +391,8 @@ export function useMapOverlay({
 		hidden: hidden.has(id),
 		project,
 		spare,
+		// The resolver, left uncalled — see {@link MapOverlay.neighbours} for why it stays lazy.
+		neighbours: neighboursOf,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,

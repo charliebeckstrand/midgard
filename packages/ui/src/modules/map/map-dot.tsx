@@ -2,8 +2,10 @@
 
 import { motion } from 'motion/react'
 import type { CSSProperties } from 'react'
+import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { groundPoints, type MapGround } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS } from './engine/map-constants'
 import { dotPath } from './engine/map-geometry/mark'
 import { transformAttribute } from './engine/map-zoom/transform'
@@ -33,6 +35,12 @@ type MapDotHitSpec = {
 	 * than at each of the four places a mark unpacks the answer.
 	 */
 	target: number | undefined
+	/**
+	 * The id of a {@link MapDotClip} bounding this target to its own ground, or `undefined` where no
+	 * neighbour crowds it — which is almost every dot, and why the clip is opt-in rather than always
+	 * drawn.
+	 */
+	clip?: string | undefined
 }
 
 /** Props for {@link MapDot}. @internal */
@@ -232,7 +240,14 @@ export function MapDotCount({
  *
  * @internal
  */
-export function dotHitProps({ slot, at, hit, scale, target = POINT_HIT_RADIUS }: MapDotHitSpec) {
+export function dotHitProps({
+	slot,
+	at,
+	hit,
+	scale,
+	target = POINT_HIT_RADIUS,
+	clip,
+}: MapDotHitSpec) {
 	// A target at the coarse reach is a dot with nothing to give back, and the two
 	// pointers want the same circle — so the narrowing rides one comparison rather
 	// than a flag the callers each have to derive.
@@ -244,8 +259,54 @@ export function dotHitProps({ slot, at, hit, scale, target = POINT_HIT_RADIUS }:
 		cy: at.y,
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
+		// Independent of the radius above: the clip takes the straight cuts a neighbour's bisector
+		// makes, the radius takes the circle. A fine pointer narrowing inside a clipped target composes
+		// without either knowing about the other.
+		clipPath: clip === undefined ? undefined : `url(#${clip})`,
 		style: fine ? ({ [k.hitRadius]: `${target * scale}px` } as CSSProperties) : undefined,
 		...hit,
 		className: cn(fine ? k.hitFine : undefined, hit.className),
 	}
 }
+
+/** Props for {@link MapDotClip}. @internal */
+type MapDotClipProps = {
+	/** The id the hit shape's `clip-path` references. */
+	id: string
+	/** The dot's own ground, from `ownGround` — a convex ring in frame units. */
+	ground: MapGround
+}
+
+/**
+ * The `clipPath` bounding one dot's pointer target to the ground nearer to it than to any neighbour.
+ *
+ * A `<polygon>` and not a path: the straight cuts are all this contributes, and the arc comes from the
+ * `<circle>` the clip is applied to — so the target stays a circle wherever nothing contests it and
+ * loses only the slice on the far side of a bisector.
+ *
+ * `clipPathUnits` stays at the default `userSpaceOnUse`, since the ring is already in the frame
+ * coordinates the dot draws in.
+ *
+ * Memoised, because the mark that draws it re-renders on every pointer crossing of every mark on the
+ * map while neither its id nor its ground moves — so `groundPoints` walked the ring and built its
+ * string per crossing for a `<polygon>` whose `points` had not changed.
+ *
+ * Wrapped in `<defs>`, as every other clip in the map and chart modules is (`MapChrome`'s frame
+ * clip, `ChartLine`'s wipe). A `<clipPath>` never renders wherever it sits, so this is convention
+ * rather than correctness — but it is the convention, and one clip declared differently from the
+ * others is a thing the next reader has to stop and check. Per instance rather than pooled into one
+ * document-level `<defs>`, which is also what those two do: the element belongs beside the mark
+ * whose target it bounds, and a shared pool would need an id registry to keep it in step with the
+ * dots coming and going as the clustering rebuilds.
+ *
+ * @internal
+ */
+export const MapDotClip = memo(function MapDotClip({ id, ground }: MapDotClipProps) {
+	return (
+		<defs>
+			<clipPath id={id}>
+				<polygon points={groundPoints(ground)} />
+			</clipPath>
+		</defs>
+	)
+})

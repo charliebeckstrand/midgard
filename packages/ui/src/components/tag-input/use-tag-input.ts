@@ -3,6 +3,7 @@
 import { useCallback } from 'react'
 import { announce } from '../../core'
 import { useFormValue } from '../form/use-form-value'
+import { classifyTokens, describeBatch } from './tag-input-utilities'
 
 /**
  * Options for {@link useTagInput}.
@@ -25,14 +26,16 @@ type TagInputOptions = {
  * Owns {@link TagInput}'s tag-list state, add/remove transactions, and live-region
  * announcements.
  *
- * @returns The tag list `tags`, the `atMax` flag, `addTag`/`removeTag` mutators,
+ * @returns The tag list `tags`, the `atMax` flag, `addTags`/`removeTag` mutators,
  * a `setTouched` form-touch signal, and the field `invalid` flag.
  *
  * @remarks
  * Layers over {@link useFormValue}: a bound `name` wins, else controlled `value`,
  * else uncontrolled state seeded from `defaultValue`. Mutators announce every
  * outcome — add, duplicate, limit, rejection — to the live region (WCAG 4.1.3,
- * 3.3.1); `addTag` trims and dedupes before committing and reports success.
+ * 3.3.1). `addTags` is the ONLY add path, batch-shaped even for one tag: a single-tag
+ * variant beside it is what let the keyboard and the paste channels disagree about
+ * what a draft commits to.
  *
  * @internal
  */
@@ -63,37 +66,33 @@ export function useTagInput({
 
 	const atMax = max !== undefined && tags.length >= max
 
-	// Announces each outcome (addition, duplicate, limit, rejection) via the
-	// live region (WCAG 4.1.3, 3.3.1). Rejections include the reason.
-	const addTag = useCallback(
-		(raw: string): boolean => {
-			const tag = raw.trim()
+	/**
+	 * Commits several candidates in ONE transaction and hands back the ones `validate` refused.
+	 *
+	 * Not `addTag` in a loop, which would silently drop all but one: every call closes over the same
+	 * `tags`, so each candidate would be appended to the pre-loop list and the last write would win —
+	 * forty pasted codes committing as one. Batching is also what lets candidates be checked against
+	 * each other, since a pasted column can repeat a code.
+	 *
+	 * The sorting and the wording are pure functions ({@link classifyTokens}, {@link describeBatch}),
+	 * so what counts as a duplicate and what the live region says are testable without a DOM.
+	 */
+	const addTags = useCallback(
+		(raw: readonly string[]): string[] => {
+			const batch = classifyTokens(
+				raw,
+				tags,
+				max === undefined ? Number.POSITIVE_INFINITY : max - tags.length,
+				validate,
+			)
 
-			if (!tag) return false
+			if (batch.accepted.length > 0) setTags([...tags, ...batch.accepted])
 
-			if (tags.includes(tag)) {
-				announce(`${tag} is already in the list`)
+			const said = describeBatch(batch)
 
-				return false
-			}
+			if (said !== '') announce(said)
 
-			if (max !== undefined && tags.length >= max) {
-				announce('Tag limit reached')
-
-				return false
-			}
-
-			if (validate && !validate(tag)) {
-				announce(`${tag} is not a valid tag`)
-
-				return false
-			}
-
-			setTags([...tags, tag])
-
-			announce(`Added ${tag}`)
-
-			return true
+			return batch.rejected
 		},
 		[tags, setTags, max, validate],
 	)
@@ -109,5 +108,5 @@ export function useTagInput({
 		[tags, setTags],
 	)
 
-	return { tags, atMax, addTag, removeTag, setTouched, invalid }
+	return { tags, atMax, addTags, removeTag, setTouched, invalid }
 }

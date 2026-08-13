@@ -7,7 +7,7 @@
  * hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { kokkaku, sen } from '../kiso'
+import { kokkaku, sen, ugoki } from '../kiso'
 import { type ChartColorSlot, k as chart } from './chart'
 
 /** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
@@ -89,6 +89,25 @@ export const k = {
 		 * layer reads its affordance beside its other paint.
 		 */
 		clickable: CLICKABLE,
+		/**
+		 * The region layer while its VALUES are still loading — the shapes are drawn and
+		 * their numbers are not in yet, so every one of them holds the no-data fill.
+		 *
+		 * On the group, so it inherits to every path and thousands of regions carry no
+		 * class of their own — the same reason the cursor rides the group. Gated to
+		 * `motion-safe`, with a standing dim in its place for the reader who asked for
+		 * less motion and never both, since the pulse already troughs to that opacity —
+		 * the pair `kata/grid`'s `body.settling` and `kata/chat-message`'s `streaming`
+		 * carry, because a loading state that renders as nothing at all for that reader
+		 * is the grey map this token exists to disambiguate.
+		 *
+		 * Distinct from {@link MapSkeleton}, which stands in for a plat with no ATLAS: there
+		 * the frame is reserved and nothing is drawn, here the geography is drawn and only
+		 * the paint is pending. Without this the two are indistinguishable on screen — a
+		 * fully grey map reads as "nobody covers anywhere", which is a statement about
+		 * coverage rather than about a request in flight.
+		 */
+		pending: [ugoki.css.pulse, 'motion-reduce:opacity-50'],
 		/**
 		 * The pointed region's lit copy carries the hover emphasis statically:
 		 * it is the hovered region by definition, and `:hover` can't reach the

@@ -2,6 +2,7 @@
 
 import type {
 	ChangeEventHandler,
+	ClipboardEventHandler,
 	FocusEventHandler,
 	InputHTMLAttributes,
 	KeyboardEventHandler,
@@ -19,6 +20,7 @@ type ComboboxInputHandlers = {
 	onFocus: FocusEventHandler<HTMLInputElement>
 	onBlur: FocusEventHandler<HTMLInputElement>
 	onKeyDown: KeyboardEventHandler<HTMLInputElement>
+	onPaste: ClipboardEventHandler<HTMLInputElement>
 }
 
 type ComboboxInputProps = {
@@ -34,6 +36,8 @@ type ComboboxInputProps = {
 	required?: boolean
 	value: string
 	placeholder?: string
+	/** Native hover/description text — the whole selection where the value is a count. */
+	title?: string
 	/** True while the input shows the live query rather than the resolved value. */
 	editing: boolean
 	/** First-word-capitalizes the resolved display value (its first letter). */
@@ -63,6 +67,7 @@ export function ComboboxInput({
 	required,
 	value,
 	placeholder,
+	title,
 	editing,
 	capitalize,
 	density,
@@ -81,6 +86,7 @@ export function ComboboxInput({
 				aria-controls={open ? controlsId : undefined}
 				aria-autocomplete="list"
 				aria-label={ariaLabel}
+				title={title}
 				// role="combobox" overrides the native textbox semantics, so the
 				// required/readOnly host-language attributes need explicit ARIA to
 				// reach assistive tech.

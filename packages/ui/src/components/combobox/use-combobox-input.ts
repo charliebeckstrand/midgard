@@ -2,6 +2,8 @@
 
 import {
 	type ChangeEvent,
+	type ClipboardEvent,
+	type ClipboardEventHandler,
 	type FocusEvent,
 	type KeyboardEvent,
 	type KeyboardEventHandler,
@@ -29,6 +31,8 @@ type ComboboxInputParams<T> = {
 	onTouched?: () => void
 	keyboardSettled: (cb: () => void) => void
 	rovingKeyDown: KeyboardEventHandler<HTMLInputElement>
+	/** The consumer's paste handler — see {@link ComboboxBaseProps.onPaste}. */
+	onPaste?: ClipboardEventHandler<HTMLInputElement>
 }
 
 /**
@@ -69,7 +73,7 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 /**
  * Event handlers for the combobox input element.
  *
- * @returns `{ onChange, onFocus, onBlur, onKeyDown }` for the input. `onChange`
+ * @returns `{ onChange, onFocus, onBlur, onKeyDown, onPaste }` for the input. `onChange`
  *   enters editing mode, updates the query, opens the menu, and clears the value
  *   on empty when `clearOnEmpty`. `onFocus` opens once the keyboard has settled.
  *   `onBlur` ignores focus moving into the floating panel, else marks touched and
@@ -97,6 +101,7 @@ export function useComboboxInput<T>({
 	onTouched,
 	keyboardSettled,
 	rovingKeyDown,
+	onPaste,
 }: ComboboxInputParams<T>) {
 	const onChange = useCallback(
 		(event: ChangeEvent<HTMLInputElement>) => {
@@ -178,5 +183,29 @@ export function useComboboxInput<T>({
 		[close, open, openByArrowKey, optionsRef, rovingKeyDown],
 	)
 
-	return { onChange, onFocus, onBlur, onKeyDown }
+	/*
+	 * A paste, offered to the consumer first.
+	 *
+	 * When the handler takes it — `preventDefault`, meaning it read the clipboard itself and turned it
+	 * into a selection — the draft that paste replaced is dropped and editing ends, exactly as
+	 * selecting an option does. Without that the field kept the half-typed text it had just committed
+	 * over: still `editing`, so the resting display (and any placeholder standing in for it) stayed
+	 * suppressed by a query the consumer had already consumed.
+	 *
+	 * A paste the handler leaves alone is ordinary typing and falls through to `onChange`.
+	 */
+	const onPasteHandler = useCallback(
+		(event: ClipboardEvent<HTMLInputElement>) => {
+			onPaste?.(event)
+
+			if (!event.defaultPrevented) return
+
+			setQuery('')
+
+			setEditing(false)
+		},
+		[onPaste, setQuery, setEditing],
+	)
+
+	return { onChange, onFocus, onBlur, onKeyDown, onPaste: onPasteHandler }
 }

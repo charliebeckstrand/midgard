@@ -118,9 +118,15 @@ export type MapPlatContextValue = {
 	 * How much reach the drawn zones leave a mark at a frame position, in device
 	 * pixels — the tightest budget any registered zone the legend still shows will
 	 * allow, since a dot standing over two of them has to satisfy both. `Infinity`
-	 * where no zone claims that ground, which `markTargets` caps: this layer states
+	 * where nothing claims that ground, which `markTargets` caps: this layer states
 	 * the claim and never the size a target settles at. A dot reads it to size its
 	 * own target.
+	 *
+	 * A REGION layer that answers the pointer claims it too, and on the same terms — a
+	 * finger-sized target over a shape that reads out, answers clicks, or opens a menu puts
+	 * that shape out of reach where the dot stands, so the dot narrows to what a mouse can
+	 * spare and the region answers everywhere the dot is not drawn. Touch keeps the whole
+	 * target; see the resolver.
 	 *
 	 * Resolved here rather than by each dot, because the question is about the
 	 * plat's whole ledger and the answer changes with the legend. It reads the
@@ -129,6 +135,26 @@ export type MapPlatContextValue = {
 	 * {@link MapOverlayEntry.spare} for why the resolver is stable.
 	 */
 	spare: (at: MapPoint2D) => number
+	/**
+	 * Every OTHER mark's drawn dots, in frame units — what a dot measures its pointer target's ground
+	 * against, so two marks standing on top of one another divide it instead of overlapping.
+	 *
+	 * Pooled here for the same reason {@link spare} is: the question is about the plat's whole ledger
+	 * and the answer changes with the legend. `crowd.ts` used to record this as the one place its rule
+	 * was less than whole — a mark could only see its own dots, so two separate marks each kept a full
+	 * target and the overlap went to whichever drew last.
+	 *
+	 * Positions rather than a measure, which is what makes pooling possible at all. Every reach in the
+	 * crowding rule is a device-pixel one, and the plat cannot see the zoom scale — `MapZoomScaleContext`
+	 * sits below it, around the plot alone, precisely so a wheel notch re-renders the marks and not the
+	 * legend or the region layer. Frame units are scale-free, so the plat supplies the geometry and the
+	 * mark applies its own `unitsPerPixel`.
+	 *
+	 * Excludes the asking mark, by id: a mark's own dots are its own business, and it holds them in
+	 * drawn form already. Excludes hidden marks and every mark that draws no dot, so a route's waypoints
+	 * and a zone's ring never contest ground they paint nothing on.
+	 */
+	neighbours: (exclude: string) => MapPoint2D[]
 	/** The legend id under emphasis; marks outside its group dim. */
 	emphasis: string | null
 	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */
