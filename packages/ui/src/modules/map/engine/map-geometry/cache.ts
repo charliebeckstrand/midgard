@@ -37,7 +37,7 @@ import type { GeoProjection } from 'd3-geo'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
 import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
-import { emitRegionPaths, type MapProjectedAtlas, projectAtlas } from './projected'
+import { emitRegionPaths, type MapProjectedAtlas, probeCanonicalFit } from './projected'
 import { regionCentroids, regionPaths } from './region'
 import { geographyFeatures } from './topology'
 import { rewindFeatures } from './winding'
@@ -55,10 +55,17 @@ import { rewindFeatures } from './winding'
 export type StaticMapGeometry = {
 	features: MapFeature[]
 	canonical: MapCanonicalFit | null
+	/**
+	 * The geography drawn into frame coordinates, which the fit above was
+	 * measured from and every fit below is emitted from. `null` where the buffer
+	 * could not stand in for the walk, and the paths fall back to
+	 * {@link regionPaths}.
+	 */
+	atlas: MapProjectedAtlas | null
 }
 
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
-const EMPTY: StaticMapGeometry = { features: [], canonical: null }
+const EMPTY: StaticMapGeometry = { features: [], canonical: null, atlas: null }
 
 // Atlas → object name → its decoded, rewound features. Held apart from the pair
 // below because two readers want it and only one of them wants the fit: the
@@ -133,9 +140,15 @@ export function computeStaticMapGeometry(
 	// depends on, happens once per atlas either way.
 	const features = cachedGeographyFeatures(geography, geographyObject)
 
-	const canonical = canonicalFit(projection, features)
+	// One walk draws the geography and measures the frame it fits, because the
+	// bounds a fit needs are a scan of the points the buffer already holds. The
+	// fallback runs its own bounds pass and leaves the buffer unbuilt, for the
+	// geography and the projections the buffer declines.
+	const probed = probeCanonicalFit(features, projection)
 
-	return { features, canonical }
+	if (probed !== null) return { features, canonical: probed.canonical, atlas: probed.atlas }
+
+	return { features, canonical: canonicalFit(projection, features), atlas: null }
 }
 
 /**
@@ -277,54 +290,22 @@ export function cachedChromePaths(
 // The canonical-fit paths per shared geometry. Held apart from the entry rather
 // than on it, because a `deferPaint` map never asks for them: that mode holds an
 // empty frame until the container is measured and then draws from the measured
-// fit alone, so building them with the entry would project the whole atlas for a
-// set of paths nothing draws — and `ChoroplethChart` defers on every chart it
-// renders. A function rather than a lazy property for the reason the rest of
-// this file is functions: there is no field for a spread, a clone, or a key walk
-// to force, so a caller that does not want the pass simply does not call.
+// fit alone, so building them with the entry would build a set of strings nothing
+// draws — and `ChoroplethChart` defers on every chart it renders. The walk itself
+// is no longer what that saves: the buffer is drawn with the fit, because the
+// fit is measured from it, so what a deferred map skips here is the emit. A
+// function rather than a lazy property for the reason the rest of this file is
+// functions: there is no field for a spread, a clone, or a key walk to force, so
+// a caller that does not want the pass simply does not call.
 const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
-
-// The atlas drawn once into frame coordinates, per shared geometry. Held apart
-// from the entry for the reason the canonical paths below are: a map that never
-// draws must never build it. It is the buffer both path stages read, so it is
-// resolved by whichever of them asks first — the canonical draw on an ordinary
-// mount, the measured refit on a `deferPaint` one — and the other then costs an
-// emit rather than a second walk over the atlas. A county atlas holds ~1 MiB
-// here, against the ~1.4 MiB each fit's paths already come to — 716k characters
-// at two bytes apiece — so the buffer adds under half of what the two path slots
-// beside it hold.
-const projected = new WeakMap<StaticMapGeometry, MapProjectedAtlas | null>()
-
-/**
- * The atlas projected under its canonical fit, memoised on the shared
- * {@link StaticMapGeometry} entry and drawn on the first read. `null` where the
- * buffer cannot stand in for the direct walk — nothing to fit, or geography or a
- * projection {@link projectAtlas} declines — and every caller falls back to
- * {@link regionPaths} on that.
- *
- * @internal
- */
-function cachedProjectedAtlas(geometry: StaticMapGeometry): MapProjectedAtlas | null {
-	const hit = projected.get(geometry)
-
-	if (hit !== undefined) return hit
-
-	const { features, canonical } = geometry
-
-	const atlas = canonical === null ? null : projectAtlas(features, canonical.projection)
-
-	projected.set(geometry, atlas)
-
-	return atlas
-}
 
 /**
  * Region paths under the canonical fit, memoised on the shared
  * {@link StaticMapGeometry} entry — one pass per atlas, object, and projection,
  * however many plats draw it. Empty where there was nothing to fit.
  *
- * Emitted from the shared buffer ({@link cachedProjectedAtlas}), so the atlas is
- * walked once for this stage and the measured one below rather than once each.
+ * Emitted from the entry's own buffer, so this stage and the measured one below
+ * share the walk the fit already paid for.
  *
  * @internal
  */
@@ -348,12 +329,9 @@ export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | nul
  * parts them.
  */
 function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (string | null)[] {
-	const atlas = cachedProjectedAtlas(geometry)
+	const { atlas, features } = geometry
 
-	return (
-		(atlas === null ? null : emitRegionPaths(atlas, fitted)) ??
-		regionPaths(geometry.features, fitted)
-	)
+	return (atlas === null ? null : emitRegionPaths(atlas, fitted)) ?? regionPaths(features, fitted)
 }
 
 /**

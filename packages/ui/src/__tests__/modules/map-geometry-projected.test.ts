@@ -7,6 +7,7 @@ import {
 	areaOnly,
 	emitRegionPaths,
 	type MapProjectedAtlas,
+	probeCanonicalFit,
 	projectAtlas,
 } from '../../modules/map/engine/map-geometry/projected'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
@@ -141,6 +142,67 @@ describe('projectAtlas + emitRegionPaths', () => {
 		expect(emittedPoints.length).toBeLessThan(walkedPoints.length)
 
 		expect(walkedPoints).toEqual(expect.arrayContaining(emittedPoints))
+	})
+
+	it('measures the same canonical frame as the fit that walks its own bounds', () => {
+		// The fold replaces `canonicalFit`'s bounds pass with a scan of the points
+		// the buffer already holds, so the frame it reports must be the one the
+		// walk reported — a divergence here would reserve a different CSS box and
+		// reflow the page a beat after mount.
+		const probed = probeCanonicalFit(stateFeatures, 'albers-usa')
+
+		expect(probed).not.toBeNull()
+
+		expect(probed?.canonical.height).toBe(canonical.height)
+
+		expect(probed?.canonical.aspect).toBe(canonical.aspect)
+	})
+
+	it('emits the canonical paths byte for byte from the folded walk', () => {
+		// The whole of the fold rests on this: the buffer is drawn at probe scale
+		// and read at the canonical fit several times its size, so a real atlas
+		// must still come out identical to the walk that draws it at that fit
+		// directly. `PROBE_REFINEMENT` is what holds it.
+		const probed = probeCanonicalFit(stateFeatures, 'albers-usa')
+
+		expect(probed).not.toBeNull()
+
+		if (probed === null) return
+
+		expect(emitRegionPaths(probed.atlas, probed.canonical.projection)).toEqual(
+			regionPaths(stateFeatures, canonical.projection),
+		)
+
+		// And through a measured refit, the fit an ordinary mount settles on.
+		const measured = scaleCanonicalFit('albers-usa', probed.canonical, 800, 450)
+
+		expect(emitRegionPaths(probed.atlas, measured)).toEqual(regionPaths(stateFeatures, measured))
+	})
+
+	it('declines the fold for geography the buffer cannot hold', () => {
+		// The fallback the cache reads: no buffer, so `canonicalFit` measures its
+		// own bounds and the paths take the direct walk.
+		expect(probeCanonicalFit([], 'albers-usa')).toBeNull()
+
+		expect(
+			probeCanonicalFit(
+				[...FIXTURE_GEOJSON.features, feature({ type: 'Point', coordinates: [0, 0] })],
+				'albers-usa',
+			),
+		).toBeNull()
+	})
+
+	it('leaves a passed projection its own precision', () => {
+		// The fold refines the probe walk beyond d3's default, and a passed
+		// instance belongs to the consumer — so the setting is restored, as
+		// `fitProjectionWidth` restores a clip it borrowed.
+		const instance = geoMercator()
+
+		const before = instance.precision()
+
+		probeCanonicalFit(stateFeatures, instance)
+
+		expect(instance.precision()).toBe(before)
 	})
 
 	it('refuses a fit the affine does not place its witness at', () => {

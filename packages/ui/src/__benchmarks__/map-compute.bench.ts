@@ -1,7 +1,11 @@
 // @vitest-environment node
 
 import { bench, describe } from 'vitest'
-import { emitRegionPaths, projectAtlas } from '../modules/map/engine/map-geometry/projected'
+import {
+	emitRegionPaths,
+	probeCanonicalFit,
+	projectAtlas,
+} from '../modules/map/engine/map-geometry/projected'
 import { regionPaths } from '../modules/map/engine/map-geometry/region'
 import { canonicalFit, scaleCanonicalFit } from '../modules/map/engine/map-projection/fit'
 import { regionCategoryIndexes, resolveCategories } from '../modules/map/engine/map-region/category'
@@ -53,9 +57,19 @@ describe('map-projection · canonicalFit (the uncached fit)', () => {
 	// bounds. Paid once per atlas per projection and then held by the
 	// static-geometry cache — but a cache miss pays it on the mount critical
 	// path, and the counties atlas is where that hurts.
+	//
+	// It is the fallback now: the bounds a fit needs are a scan of the points the
+	// projected buffer already holds, so `probeCanonicalFit` measures the frame on
+	// the walk that fills it and this pass runs only where that buffer is
+	// declined. The pair below prices what the fold removed — this bar plus a
+	// `projectAtlas` from the region-paths describe, against one walk.
 	for (const { label, atlas } of ATLASES) {
 		bench(`${label} · albers-usa`, () => {
 			canonicalFit('albers-usa', atlas.geoJson.features)
+		})
+
+		bench(`${label} · albers-usa · folded (fit + buffer, one walk)`, () => {
+			probeCanonicalFit(atlas.geoJson.features, 'albers-usa')
 		})
 	}
 })

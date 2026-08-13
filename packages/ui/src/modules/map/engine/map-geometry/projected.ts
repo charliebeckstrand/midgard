@@ -46,8 +46,14 @@
 
 import type { GeoContext, GeoProjection } from 'd3-geo'
 import { geoPath } from 'd3-geo'
-import { REGION_PATH_DIGITS } from '../map-constants'
-import type { LngLat, MapFeature } from '../types'
+import { MAP_CANONICAL_WIDTH, REGION_PATH_DIGITS } from '../map-constants'
+import type { MapCanonicalFit } from '../map-projection/fit'
+import {
+	fitWidthFromProbeBounds,
+	PROBE_SCALE,
+	resolveMapProjection,
+} from '../map-projection/resolve'
+import type { LngLat, MapFeature, MapProjection } from '../types'
 
 /**
  * One atlas, drawn once into frame coordinates: every ring of every region end
@@ -296,8 +302,116 @@ export function projectAtlas(
 	}
 }
 
+/**
+ * How much finer than d3's own default the probe walk resolves a curve.
+ *
+ * {@link probeCanonicalFit} draws the buffer at {@link PROBE_SCALE} and the map
+ * is then read from it several times that size, and `geoPath` refines a curve
+ * against a tolerance in frame units — so a buffer taken at d3's default would
+ * carry the probe frame's idea of a curve into every fit above it. Refining by
+ * this factor puts the buffer at or past what the canonical frame would have
+ * earned on its own.
+ *
+ * Four rather than the ratio itself, which is not known until the bounds are:
+ * the ratio is `MAP_CANONICAL_WIDTH` over the probe span, and the probe span is
+ * what the walk is running to find. Four covers the built-in projections —
+ * `albers-usa` spans ~117 units at probe scale — and costs a real atlas nothing,
+ * because a quantised topology's own vertices already sit inside the finer
+ * tolerance: `counties-10m` streams the same 63,888 points at this precision as
+ * at the default, in the same time.
+ */
+const PROBE_REFINEMENT = 4
+
 /** The rounding factor {@link REGION_PATH_DIGITS} names, as `geoPath` applies it. */
 const ROUNDING = 10 ** REGION_PATH_DIGITS
+
+/** The buffer's own bounds, as `x0`, `y0`, `x1`, `y1`. Empty bounds collapse to infinities. */
+function bufferBounds(points: Float64Array): [number, number, number, number] {
+	let x0 = Number.POSITIVE_INFINITY
+
+	let y0 = Number.POSITIVE_INFINITY
+
+	let x1 = Number.NEGATIVE_INFINITY
+
+	let y1 = Number.NEGATIVE_INFINITY
+
+	for (let index = 0; index < points.length; index += 2) {
+		const x = points[index] as number
+
+		const y = points[index + 1] as number
+
+		if (x < x0) x0 = x
+
+		if (x > x1) x1 = x
+
+		if (y < y0) y0 = y
+
+		if (y > y1) y1 = y
+	}
+
+	return [x0, y0, x1, y1]
+}
+
+/**
+ * The canonical fit and the buffer it was measured from, in one walk over the
+ * geography. `null` where the buffer cannot stand in — the geography or the
+ * projection {@link projectAtlas} declines, or bounds that collapse — and the
+ * caller falls back to `canonicalFit` (`map-projection/fit`), which measures its
+ * own bounds and leaves the buffer to be drawn later.
+ *
+ * The two passes were one walk apart and measured the same coordinates.
+ * `fitProjectionWidth` streams the geography at {@link PROBE_SCALE} to read its
+ * bounds and keeps only the scale and translate it derives; the buffer then
+ * streamed it again to record where every point landed. But bounds are a scan of
+ * those same points, so the walk that fills the buffer can measure the frame on
+ * its way — 163.2 ms and 202.9 ms across 3,108 counties become 167.7 ms, and the
+ * frame comes out to the same bit.
+ *
+ * The buffer is therefore drawn at probe scale and read at every fit above it,
+ * which is what {@link PROBE_REFINEMENT} is for; the header's note on what parts
+ * from the direct walk, and what cannot, applies to that gap unchanged.
+ *
+ * @internal
+ */
+export function probeCanonicalFit(
+	features: MapFeature[],
+	spec: MapProjection,
+): { atlas: MapProjectedAtlas; canonical: MapCanonicalFit } | null {
+	if (features.length === 0) return null
+
+	const projection = resolveMapProjection(spec)
+
+	// Saved and restored around the walk as `fitProjectionWidth` saves the clip,
+	// and for the same reason: a passed instance belongs to the consumer, and the
+	// refinement above is this pass's business rather than a setting it may keep.
+	const precision = projection.precision?.() ?? null
+
+	projection.scale(PROBE_SCALE).translate([0, 0])
+
+	if (precision !== null) projection.precision(precision / PROBE_REFINEMENT)
+
+	const atlas = projectAtlas(features, projection)
+
+	if (precision !== null) projection.precision(precision)
+
+	if (atlas === null) return null
+
+	const [x0, y0, x1, y1] = bufferBounds(atlas.points)
+
+	const height = fitWidthFromProbeBounds(projection, x0, y0, x1, y1, MAP_CANONICAL_WIDTH)
+
+	if (height === null) return null
+
+	return {
+		atlas,
+		canonical: {
+			projection,
+			width: MAP_CANONICAL_WIDTH,
+			height,
+			aspect: MAP_CANONICAL_WIDTH / height,
+		},
+	}
+}
 
 /**
  * One rounded coordinate, from the integer `Math.round` already produced rather
