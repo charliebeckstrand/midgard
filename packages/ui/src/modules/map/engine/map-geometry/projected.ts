@@ -442,6 +442,41 @@ function coordinate(rounded: number): string {
 }
 
 /**
+ * The scale and translation that carry the buffer's own frame onto `fitted`, or
+ * `null` where it cannot be carried there — a projection that gained a
+ * `clipExtent`, one scaled to nothing, or one the witness refuses
+ * ({@link agrees}).
+ *
+ * Stated once because two readers need the same arithmetic and must not drift:
+ * {@link emitRegionPaths} applies it to every coordinate to write a fit's paths,
+ * and the region layer applies it as one group transform to draw the paths it
+ * already has. A refit that moves one attribute where it used to rewrite every
+ * `d` is the same fact read the cheaper way.
+ *
+ * @internal
+ */
+export function frameAffine(
+	atlas: MapProjectedAtlas,
+	fitted: GeoProjection,
+): { factor: number; dx: number; dy: number } | null {
+	const basis = affineBasis(fitted)
+
+	if (basis === null) return null
+
+	// Catches a buffer drawn at no scale and a fit scaled to none alike: either
+	// divides to a non-finite factor, and neither can place a coordinate.
+	const factor = basis.scale / atlas.scale
+
+	if (!Number.isFinite(factor)) return null
+
+	const dx = basis.translate[0] - atlas.translate[0] * factor
+
+	const dy = basis.translate[1] - atlas.translate[1] * factor
+
+	return agrees(atlas, fitted, factor, dx, dy) ? { factor, dx, dy } : null
+}
+
+/**
  * Each region's SVG path under `fitted`, emitted from the buffer and
  * index-aligned with the features it was drawn from; `null` where a feature drew
  * no ring. `null` for the whole atlas where `fitted` cannot be reached from the
@@ -461,21 +496,11 @@ export function emitRegionPaths(
 	atlas: MapProjectedAtlas,
 	fitted: GeoProjection,
 ): (string | null)[] | null {
-	const basis = affineBasis(fitted)
+	const affine = frameAffine(atlas, fitted)
 
-	if (basis === null) return null
+	if (affine === null) return null
 
-	// Catches a buffer drawn at no scale and a fit scaled to none alike: either
-	// divides to a non-finite factor, and neither can place a coordinate.
-	const factor = basis.scale / atlas.scale
-
-	if (!Number.isFinite(factor)) return null
-
-	const dx = basis.translate[0] - atlas.translate[0] * factor
-
-	const dy = basis.translate[1] - atlas.translate[1] * factor
-
-	if (!agrees(atlas, fitted, factor, dx, dy)) return null
+	const { factor, dx, dy } = affine
 
 	const { points, ringStart, regionRing } = atlas
 

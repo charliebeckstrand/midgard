@@ -26,6 +26,7 @@ import {
 	washStyle,
 } from './engine/map-region/paint'
 import { MapRegionsLit } from './map-regions-lit'
+import type { MapRegionFrame } from './use-map-shape'
 
 /**
  * Props for {@link MapRegions}: what both layers draw from, minus the paint
@@ -36,6 +37,13 @@ import { MapRegionsLit } from './map-regions-lit'
  */
 export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	categories: MapCategoryMeta[]
+	/**
+	 * The affine the paths are drawn under, `null` where they already sit in the
+	 * drawn frame. A measured refit carries the canonical paths here rather than
+	 * rewriting every `d`, so the layer scales what it was given and divides its
+	 * pixel-width specs back out — the discipline the zoom scale above it keeps.
+	 */
+	frame: MapRegionFrame | null
 	/**
 	 * Whether anything on this map reads what the pointer is on — the rows
 	 * matched a region, or a reporter asked to be told. Off, the region paths
@@ -286,6 +294,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
  */
 export const MapRegions = memo(function MapRegions({
 	paths,
+	frame,
 	regionCategory,
 	categories,
 	interactive,
@@ -363,6 +372,7 @@ export const MapRegions = memo(function MapRegions({
 
 	return (
 		<MapRegionsGroup
+			frame={frame}
 			// The cursor rides the group and inherits down, so thousands of paths carry
 			// no per-region class.
 			className={cn(clickable && k.region.clickable)}
@@ -396,13 +406,15 @@ export const MapRegions = memo(function MapRegions({
 				/>
 			)}
 
-			{selectedPath !== null && <MapRegionSelected d={selectedPath} />}
+			{selectedPath !== null && <MapRegionSelected d={selectedPath} frame={frame} />}
 		</MapRegionsGroup>
 	)
 })
 
 /** What {@link MapRegionsGroup} carries: the layer's own group props, and its layers. @internal */
 type MapRegionsGroupProps = {
+	/** The affine the paths are drawn under, `null` where they are already in the drawn frame. */
+	frame: MapRegionFrame | null
 	className: string
 	onPointerLeave: () => void
 	/** `regionDelegate`'s return: the delegated reporters, which read the event target alone. */
@@ -436,6 +448,7 @@ type MapRegionsGroupProps = {
  * @internal
  */
 function MapRegionsGroup({
+	frame,
 	className,
 	onPointerLeave,
 	onClick,
@@ -449,7 +462,8 @@ function MapRegionsGroup({
 		<g
 			data-slot="map-regions"
 			className={className}
-			strokeWidth={REGION_STROKE_WIDTH * unitsPerPixel}
+			transform={frame?.transform}
+			strokeWidth={(REGION_STROKE_WIDTH * unitsPerPixel) / (frame?.scale ?? 1)}
 			onPointerLeave={onPointerLeave}
 			onClick={onClick}
 			onContextMenu={onContextMenu}
@@ -470,7 +484,7 @@ function MapRegionsGroup({
  *
  * @internal
  */
-function MapRegionSelected({ d }: { d: string }) {
+function MapRegionSelected({ d, frame }: { d: string; frame: MapRegionFrame | null }) {
 	const unitsPerPixel = useMapZoomScale()
 
 	return (
@@ -478,7 +492,7 @@ function MapRegionSelected({ d }: { d: string }) {
 			data-slot="map-region-selected"
 			d={d}
 			fill="none"
-			strokeWidth={REGION_SELECTED_STROKE_WIDTH * unitsPerPixel}
+			strokeWidth={(REGION_SELECTED_STROKE_WIDTH * unitsPerPixel) / (frame?.scale ?? 1)}
 			// No region anchor and no pointer events: the base path stays the
 			// sole hit target, the discipline the lit copies keep.
 			className={cn('pointer-events-none', ...k.region.selected)}

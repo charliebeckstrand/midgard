@@ -553,7 +553,14 @@ describe('MapPlat wheel zoom', () => {
 		// against — a hairline out by a ten-thousandth.
 		const layer = bySlot(container, 'map-regions')
 
-		expect(Number(layer?.getAttribute('stroke-width')) * k).toBeCloseTo(REGION_STROKE_WIDTH, 3)
+		// Two scales sit above the width now: the zoom's, and the refit the layer
+		// carries its own paths on. One device pixel is the product of both.
+		const fit = Number(/scale\(([^)]+)\)/.exec(layer?.getAttribute('transform') ?? '')?.[1] ?? 1)
+
+		expect(Number(layer?.getAttribute('stroke-width')) * k * fit).toBeCloseTo(
+			REGION_STROKE_WIDTH,
+			3,
+		)
 	})
 
 	it('moves the whole atlas on that one attribute, never per region', () => {

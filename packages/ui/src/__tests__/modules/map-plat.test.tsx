@@ -665,9 +665,14 @@ describe('MapPlat choropleth mode', () => {
 
 		expect(region?.getAttribute('vector-effect')).toBeNull()
 
-		expect(bySlot(container, 'map-regions')?.getAttribute('stroke-width')).toBe(
-			String(REGION_STROKE_WIDTH),
-		)
+		// The width is stated against the layer's own frame, which a measured refit
+		// carries onto the drawn one by a scale — so what the browser draws is this
+		// width times that scale, and the rule is the product, not the figure.
+		const layer = bySlot(container, 'map-regions')
+
+		const scale = Number(/scale\(([^)]+)\)/.exec(layer?.getAttribute('transform') ?? '')?.[1] ?? 1)
+
+		expect(Number(layer?.getAttribute('stroke-width')) * scale).toBeCloseTo(REGION_STROKE_WIDTH, 6)
 	})
 
 	it('fills regions with the colorRange colour for their bin, as a fill attribute', () => {

@@ -867,6 +867,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					<MapMarksLayer animate={animate}>
 						<MapRegions
 							paths={shape.paths}
+							frame={shape.regionFrame}
 							regionCategory={regionCategory}
 							categories={categoryMetas}
 							interactive={regionsTracked}

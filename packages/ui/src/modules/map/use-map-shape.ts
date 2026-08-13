@@ -1,15 +1,18 @@
 'use client'
 
+import type { GeoProjection } from 'd3-geo'
 import { type RefObject, useMemo } from 'react'
 import { type FrameReserve, usePlotFrame } from '../../hooks'
 import {
 	cachedCanonicalPaths,
 	cachedChromePaths,
 	measuredRegionPaths,
+	type StaticMapGeometry,
 	staticMapGeometry,
 } from './engine/map-geometry/cache'
 import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
 import { projectPoint } from './engine/map-geometry/mark'
+import { frameAffine } from './engine/map-geometry/projected'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
 import type {
@@ -42,10 +45,31 @@ export type MapFrameShape = {
 	viewHeight: number
 	/** Region path ds, index-aligned with the features; empty until fitted. */
 	paths: (string | null)[]
+	/**
+	 * The affine {@link paths} are drawn under, `null` where they are already in
+	 * the active frame. A measured refit is a scale and a translation on the
+	 * canonical fit, so the layer moves one group transform rather than taking
+	 * every path back through the projection and rewriting every `d`.
+	 */
+	regionFrame: MapRegionFrame | null
 	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
 	chrome: MapChromePaths
 	features: MapFeature[]
 	project: (position: LngLat) => ReturnType<typeof projectPoint>
+}
+
+/**
+ * The transform a region layer draws its paths under, with the scale that
+ * transform applies — which every constant-pixel spec beneath it divides by, the
+ * way the zoom layer's own scale is already divided by.
+ *
+ * @internal
+ */
+export type MapRegionFrame = {
+	/** The SVG `transform` carrying the paths' own frame onto the drawn one. */
+	transform: string
+	/** The factor that transform scales by; `1` would be the identity. */
+	scale: number
 }
 
 /**
@@ -68,6 +92,61 @@ export type MapFrameShapeOptions = {
 	graticule: number | null
 	/** Whether the sphere outline draws; the frame path resolves for either part. */
 	sphere: boolean
+}
+
+/**
+ * The transform that carries the canonical paths onto a measured fit, or `null`
+ * where the layer must be given paths at that fit instead.
+ *
+ * A measured refit is a scale and a translation on the canonical fit, so the
+ * paths the first commit already drew reach it under one group transform: 47.1 ms
+ * of attribute writes and forced layout across 3,107 counties become 0.15 ms,
+ * and the emit that fed them is not paid at all. Only the region layer moves.
+ * The transform maps its own frame onto the drawn one, so the overlays, the
+ * chrome, and every hit target stay in the measured units they are placed in,
+ * and the two coordinate systems land on the same device pixels.
+ *
+ * `null` where the carry cannot be proved, and the caller re-emits at the
+ * measured fit as it did before: a geography with no buffer, or a passed d3
+ * instance. That last is the rule `scaleCanonicalFit` already states — a passed
+ * instance is stateful, and `fitSize` refits it in place, so by the time this
+ * runs the canonical projection and the measured one are the same object at the
+ * same scale. The canonical basis the paths were drawn at is gone, and the two
+ * affines below would compose to the identity and hold the geography at the
+ * first box it was measured in.
+ */
+function carriedRegionFrame(
+	spec: MapProjection,
+	statics: StaticMapGeometry,
+	measured: GeoProjection,
+): MapRegionFrame | null {
+	if (typeof spec !== 'string') return null
+
+	const { atlas, canonical } = statics
+
+	if (atlas === null || canonical === null) return null
+
+	// The paths are drawn at the canonical fit and the buffer is held at the
+	// probe scale the frame was measured from, so neither affine off the buffer
+	// is the one the layer needs. Composing them is: a buffer point reaches the
+	// canonical frame as `p·fc + dc` and the measured one as `p·fm + dm`, so the
+	// canonical frame reaches the measured one by `fm / fc` and the offset that
+	// leaves. Both halves are witness-tested, so the composition is too.
+	const toCanonical = frameAffine(atlas, canonical.projection)
+
+	const toMeasured = frameAffine(atlas, measured)
+
+	if (toCanonical === null || toMeasured === null || toCanonical.factor === 0) return null
+
+	const factor = toMeasured.factor / toCanonical.factor
+
+	if (!Number.isFinite(factor)) return null
+
+	const dx = toMeasured.dx - toCanonical.dx * factor
+
+	const dy = toMeasured.dy - toCanonical.dy * factor
+
+	return { transform: `translate(${dx},${dy}) scale(${factor})`, scale: factor }
 }
 
 /**
@@ -146,19 +225,30 @@ export function useMapShape({
 		// refitting. The `viewWidth` 0 keeps the SVG unmounted meanwhile — so this
 		// branch draws no region, and calls for no path.
 		if (!measured && deferPaint) {
-			return { viewWidth: 0, viewHeight: 0, paths: [], fit: null, project: () => null }
+			return {
+				viewWidth: 0,
+				viewHeight: 0,
+				paths: [],
+				regionFrame: null,
+				fit: null,
+				project: () => null,
+			}
 		}
 
 		// Draw from the measured fit once it lands, the canonical fit until then, so
 		// the geography never waits on the container being measured.
 		const fitted = measured ?? canonical?.projection ?? null
 
+		const regionFrame = measured === null ? null : carriedRegionFrame(projection, statics, measured)
+
 		return {
 			viewWidth: measured ? frameWidth : (canonical?.width ?? 0),
 			viewHeight: measured ? frameHeight : (canonical?.height ?? 0),
-			paths: measured
-				? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
-				: cachedCanonicalPaths(statics),
+			paths:
+				measured !== null && regionFrame === null
+					? measuredRegionPaths(statics, measured, frameWidth, frameHeight)
+					: cachedCanonicalPaths(statics),
+			regionFrame,
 			fit: fitted,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
 		}
@@ -178,7 +268,7 @@ export function useMapShape({
 		[view, graticule, sphere],
 	)
 
-	const { viewWidth, viewHeight, paths, project } = view
+	const { viewWidth, viewHeight, paths, regionFrame, project } = view
 
 	return {
 		ref,
@@ -188,6 +278,7 @@ export function useMapShape({
 		viewWidth,
 		viewHeight,
 		paths,
+		regionFrame,
 		chrome,
 		features: statics.features,
 		project,
