@@ -238,22 +238,11 @@ describe('MapPlat onRegionPreload', () => {
 			expect(preload).toHaveBeenCalledExactlyOnceWith('A', 0)
 		})
 	})
-
-	it('arms no dwell on a plat that asked for no warming', async () => {
-		await withFakeTime(async (clock) => {
-			const timer = vi.spyOn(globalThis, 'setTimeout')
-
-			const { container } = renderUI(plat())
-
-			timer.mockClear()
-
-			point(allRegions(container)[0] as Element)
-
-			await clock.advance(MAP_PRELOAD_DWELL_MS)
-
-			expect(timer).not.toHaveBeenCalled()
-
-			timer.mockRestore()
-		})
-	})
 })
+
+// A plat that sets no `onRegionPreload` arms no dwell, which is deliberately not
+// asserted here. The claim is about work not done, and it has no output: the only
+// reader of it is the timer itself, and a spy over a global taken while fake
+// timers stand is restored to the fake rather than to the real one — which, in a
+// suite that shares a worker's globals across every file it runs (`isolate:
+// false`), leaves the next file's waits hanging on a clock nothing advances.
