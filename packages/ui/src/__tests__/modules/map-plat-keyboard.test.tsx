@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { renderNavigable } from '../helpers/map-navigable'
 
 type Row = (typeof FIXTURE_ROWS)[number]
 
@@ -19,38 +20,6 @@ function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
 	return <MapPlat {...props} />
 }
 
-/**
- * Renders the plat and gives the plot's SVG a real box. jsdom reports every
- * rect as zero, and the cursor places its readout by converting a frame
- * centroid through that box — so without one the tooltip could never open, and
- * the assertions below would pass for the wrong reason.
- */
-function renderNavigable(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const view = renderUI(plat(extra))
-
-	const svg = view.container.querySelector('svg')
-
-	if (svg === null) throw new Error('the plat drew no SVG to navigate')
-
-	vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
-		left: 0,
-		top: 0,
-		width: 400,
-		height: 200,
-		right: 400,
-		bottom: 200,
-		x: 0,
-		y: 0,
-		toJSON: () => ({}),
-	})
-
-	const plot = bySlot(view.container, 'map-plot')
-
-	if (plot === null) throw new Error('the plat drew no plot region')
-
-	return { ...view, plot }
-}
-
 /** The tooltip's current text, or `null` while the readout is away. */
 function readout(container: HTMLElement): string | null {
 	return bySlot(container, 'tooltip-content')?.textContent ?? null
@@ -58,7 +27,7 @@ function readout(container: HTMLElement): string | null {
 
 describe('MapPlat keyboard navigation', () => {
 	it('makes the plot region one tab stop', () => {
-		const { plot } = renderNavigable()
+		const { plot } = renderNavigable(plat())
 
 		// The stop is the role="img" region itself, never a region path: the SVG
 		// is aria-hidden, so a focusable path would be an unreachable stop — and
@@ -69,7 +38,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('enters at the first region on the first arrow rather than stepping past it', () => {
-		const { container, plot } = renderNavigable()
+		const { container, plot } = renderNavigable(plat())
 
 		expect(readout(container)).toBeNull()
 
@@ -79,7 +48,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('steps between regions by compass direction, holding at the edge', () => {
-		const { container, plot } = renderNavigable()
+		const { container, plot } = renderNavigable(plat())
 
 		// The fixture lays Alpha, Beta, and Gamma west to east.
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
@@ -100,7 +69,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('jumps to the ends of the atlas order with Home and End', () => {
-		const { container, plot } = renderNavigable()
+		const { container, plot } = renderNavigable(plat())
 
 		fireEvent.keyDown(plot, { key: 'End' })
 
@@ -120,7 +89,7 @@ describe('MapPlat keyboard navigation', () => {
 	it('picks the region under the cursor with Enter and with Space', () => {
 		const onRegionClick = vi.fn()
 
-		const { plot } = renderNavigable({ onRegionClick })
+		const { plot } = renderNavigable(plat({ onRegionClick }))
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -140,7 +109,7 @@ describe('MapPlat keyboard navigation', () => {
 	it('picks nothing before an arrow has placed the cursor', () => {
 		const onRegionClick = vi.fn()
 
-		const { plot } = renderNavigable({ onRegionClick })
+		const { plot } = renderNavigable(plat({ onRegionClick }))
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
@@ -148,7 +117,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('clears the readout on Escape and on leaving the region', () => {
-		const { container, plot } = renderNavigable()
+		const { container, plot } = renderNavigable(plat())
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -227,7 +196,7 @@ describe('MapPlat keyboard navigation', () => {
 	it('keeps the stop while the legend holds every category off', () => {
 		// A toggle is transient: it silences the readout for as long as it holds,
 		// and to take the tab stop away with it would move focus under the reader.
-		const { container } = renderNavigable()
+		const { container } = renderNavigable(plat())
 
 		const toggles = allBySlot(container, 'map-legend-item')
 

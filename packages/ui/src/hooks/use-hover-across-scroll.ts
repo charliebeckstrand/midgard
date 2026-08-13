@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 
 /**
  * Milliseconds of scroll quiet that count as a settle; the readout re-resolves
@@ -24,6 +24,10 @@ const SETTLE_MS = 120
  * play. So the readout is gone while the surface moves and returns the instant
  * it rests, showing whatever now sits under the pointer.
  *
+ * @remarks Both callbacks are raised through effect events, so each scroll
+ * frame reaches the latest render's closure and neither identity re-subscribes
+ * the scroll listener mid-gesture.
+ *
  * @param enabled - Whether the readout feature is on; pass a stable flag (the
  * tooltip prop), not the transient hover, so a scroll's own clear never tears
  * the listener down mid-gesture.
@@ -39,13 +43,9 @@ export function useHoverAcrossScroll(
 ): void {
 	const pointer = useRef<{ x: number; y: number } | null>(null)
 
-	const clearRef = useRef(clear)
+	const clearReadout = useEffectEvent(clear)
 
-	clearRef.current = clear
-
-	const resolveRef = useRef(resolveAt)
-
-	resolveRef.current = resolveAt
+	const resolveHover = useEffectEvent(resolveAt)
 
 	// The pointer's last viewport position, tracked for the whole mount: a scroll
 	// fires no `pointermove`, so this is where the pointer still sits when it does.
@@ -66,14 +66,14 @@ export function useHoverAcrossScroll(
 
 		const onScroll = () => {
 			// Hide while the surface moves; the pointer may now rest anywhere on it.
-			clearRef.current()
+			clearReadout()
 
 			clearTimeout(settle)
 
 			settle = setTimeout(() => {
 				const p = pointer.current
 
-				if (p !== null) resolveRef.current(p.x, p.y)
+				if (p !== null) resolveHover(p.x, p.y)
 			}, SETTLE_MS)
 		}
 
