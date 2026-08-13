@@ -13,9 +13,27 @@
  * d3 projection places a point as `scale · raw + translate` and nothing else, so
  * two fits of one projection differ by a scale and a translation on the frame —
  * the same fact `scaleCanonicalFit` (`map-projection/fit`) already derives the
- * measured fit itself from. The strings are identical to the ones the walk would
- * have written, byte for byte, which `map-geometry-projected` asserts across
- * both atlases the suite draws.
+ * measured fit itself from. That claim is tested rather than trusted: the buffer
+ * keeps one witness position, and a fit that does not place it where the affine
+ * says refuses the buffer instead of drawing from it ({@link agrees}).
+ *
+ * The strings are the walk's own, byte for byte, wherever `d3-geo` would resample
+ * the geography the same way at both fits. `geoPath` refines a curve until its
+ * chord sits within a tolerance measured in frame units, so a buffer freezes the
+ * vertices its own fit resolved: a larger frame would have earned more of them,
+ * a smaller one fewer. A geography whose own vertices already sit inside that
+ * tolerance is refined at no fit and so matches at every one — which every real
+ * atlas is, being a quantised topology. `states-10m` matches the direct walk from
+ * a third of its canonical width to sixteen times it, where a four-vertex polygon
+ * parts from it; both are pinned in `map-geometry-projected`.
+ *
+ * What parts is the density of points along a curve, never where one lands, so
+ * the gap reads as a straighter long edge and is bounded by the tolerance the
+ * fit it was drawn at already accepted. A map meets it only by pairing
+ * hand-drawn geography with a frame far from `MAP_CANONICAL_WIDTH`, and the
+ * witness above cannot see it — a resampled vertex is on the same affine as
+ * every other, which is why the bound is stated here and pinned by test rather
+ * than checked at runtime.
  *
  * Two cases stay on the direct walk, because the arithmetic above is what fails
  * on them rather than the buffer. A geography carrying anything but area
@@ -29,7 +47,7 @@
 import type { GeoContext, GeoProjection } from 'd3-geo'
 import { geoPath } from 'd3-geo'
 import { REGION_PATH_DIGITS } from '../map-constants'
-import type { MapFeature } from '../types'
+import type { LngLat, MapFeature } from '../types'
 
 /**
  * One atlas, drawn once into frame coordinates: every ring of every region end
@@ -57,6 +75,12 @@ export type MapProjectedAtlas = {
 	scale: number
 	/** The projection translation the points were measured under. */
 	translate: [number, number]
+	/**
+	 * One position of the drawn geography and where it landed, so a later fit can
+	 * be tested against the buffer rather than trusted ({@link agrees}). `null`
+	 * where no feature offered one that projects, which refuses every later fit.
+	 */
+	witness: { position: LngLat; x: number; y: number } | null
 }
 
 /**
@@ -104,12 +128,106 @@ export function affineBasis(
 }
 
 /**
+ * The first ring position any feature offers, which is a lon/lat of the drawn
+ * geography and so a position every fit of that geography places.
+ */
+function firstPosition(features: MapFeature[]): LngLat | null {
+	for (const { geometry } of features) {
+		if (geometry === null) continue
+
+		const rings =
+			geometry.type === 'Polygon'
+				? geometry.coordinates
+				: geometry.type === 'MultiPolygon'
+					? geometry.coordinates[0]
+					: undefined
+
+		const position = rings?.[0]?.[0]
+
+		if (position !== undefined) return position as LngLat
+	}
+
+	return null
+}
+
+/**
+ * The witness for a buffer: a position of the geography, and where the
+ * projection that drew the buffer put it. `null` where nothing projects — an
+ * empty geography, or one that falls entirely outside the projection's own
+ * frame.
+ */
+function witnessOf(
+	features: MapFeature[],
+	projection: GeoProjection,
+): MapProjectedAtlas['witness'] {
+	const position = firstPosition(features)
+
+	if (position === null) return null
+
+	const at = projection(position)
+
+	if (at === null || !Number.isFinite(at[0]) || !Number.isFinite(at[1])) return null
+
+	return { position, x: at[0], y: at[1] }
+}
+
+/**
+ * How far a witness may land from where the affine puts it before the buffer
+ * refuses the fit. The emit rounds to a tenth of a frame unit, and the
+ * arithmetic's own drift measures ~1e-13, so this sits far under what could
+ * show and far over what floating point costs.
+ */
+const WITNESS_TOLERANCE = 1e-6
+
+/**
+ * Whether `fitted` really is the buffer's own fit scaled and moved — the one
+ * claim the emit rests on, tested rather than assumed.
+ *
+ * A d3 projection places a point as `scale · raw + translate` and nothing else,
+ * so any two fits of one projection differ by exactly this affine; that is what
+ * `scaleCanonicalFit` (`map-projection/fit`) already derives the measured fit
+ * from. But the two are stated in different files, and a projection reaching the
+ * emit need not be one of the three the module mints: a `center`, a `rotate`, a
+ * per-axis factor, or a `postclip` set below `clipExtent` would each break the
+ * claim while leaving `scale` and `translate` readable and plausible. Placing one
+ * known position through `fitted` and comparing costs a single projection call
+ * against a pass of tens of thousands, and turns every one of those into a
+ * fallback to the direct walk rather than a wrong map.
+ */
+function agrees(
+	atlas: MapProjectedAtlas,
+	fitted: GeoProjection,
+	factor: number,
+	dx: number,
+	dy: number,
+): boolean {
+	const { witness } = atlas
+
+	if (witness === null) return false
+
+	const at = fitted(witness.position)
+
+	if (at === null) return false
+
+	return (
+		Math.abs(witness.x * factor + dx - at[0]) <= WITNESS_TOLERANCE &&
+		Math.abs(witness.y * factor + dy - at[1]) <= WITNESS_TOLERANCE
+	)
+}
+
+/**
  * Records the frame coordinates `d3-geo` draws, ring by ring. It reports a
  * `moveTo` at each ring's first point and a `lineTo` along the rest, so a ring
  * boundary is exactly a `moveTo` and needs no other mark.
  *
- * `arc` and `rect` are the interface's, never called: {@link areaOnly} keeps
- * every geometry that would reach them off this path.
+ * `beginPath`, `closePath`, and `arc` are the interface's, and only the first two
+ * are ever reached: {@link areaOnly} keeps every geometry that would draw an arc
+ * off this path, and a ring's close needs no mark because its end is the next
+ * ring's start.
+ *
+ * A class rather than an object literal so it holds no closure over
+ * {@link projectAtlas}'s scope — the buffer it fills outlives the call, and a
+ * literal's methods would keep the feature list alive with it.
  */
 class PointSink implements GeoContext {
 	readonly xy: number[] = []
@@ -131,8 +249,6 @@ class PointSink implements GeoContext {
 	closePath(): void {}
 
 	arc(): void {}
-
-	rect(): void {}
 }
 
 /**
@@ -175,6 +291,7 @@ export function projectAtlas(
 		points: Float64Array.from(sink.xy),
 		ringStart: Uint32Array.from(sink.ringStart),
 		regionRing: Uint32Array.from(regionRing),
+		witness: witnessOf(features, projection),
 		...basis,
 	}
 }
@@ -183,17 +300,46 @@ export function projectAtlas(
 const ROUNDING = 10 ** REGION_PATH_DIGITS
 
 /**
+ * One rounded coordinate, from the integer `Math.round` already produced rather
+ * than from the fraction it divides back to.
+ *
+ * Formatting is the emit, not the arithmetic: of 22.4 ms across 3,108 counties,
+ * the affine multiply is 1.4 ms and the concatenation 0.8 ms, and the remaining
+ * 21.0 ms is turning doubles into strings. At one decimal every value divides to
+ * a tenth, which no double holds exactly, so each one takes V8's shortest-repr
+ * search. Dividing in the string instead keeps the whole pass on integers and
+ * halves it — 22.4 ms to 12.6 ms on counties, 4.4 ms to 2.2 ms on 49 states.
+ *
+ * Byte for byte `${Math.round(v * ROUNDING) / ROUNDING}`, which is what
+ * `geoPath.digits` writes: a multiple of the factor loses its fraction, and the
+ * sign is placed by hand because `Math.trunc` drops it on the tenths of a value
+ * between −1 and 0. Only the one-decimal case is worth the arithmetic, so any
+ * other setting of {@link REGION_PATH_DIGITS} falls back to the division — a
+ * comparison against a constant, which folds.
+ */
+function coordinate(rounded: number): string {
+	if (REGION_PATH_DIGITS !== 1) return `${rounded / ROUNDING}`
+
+	if (rounded % 10 === 0) return `${rounded / 10}`
+
+	return rounded < 0
+		? `-${Math.trunc(-rounded / 10)}.${-rounded % 10}`
+		: `${Math.trunc(rounded / 10)}.${rounded % 10}`
+}
+
+/**
  * Each region's SVG path under `fitted`, emitted from the buffer and
  * index-aligned with the features it was drawn from; `null` where a feature drew
  * no ring. `null` for the whole atlas where `fitted` cannot be reached from the
- * buffer's own fit — a projection that gained a `clipExtent`, or one scaled to
- * nothing — so the caller falls back to the direct walk as it does for a buffer
- * that never built.
+ * buffer's own fit — a projection that gained a `clipExtent`, one scaled to
+ * nothing, or one that fails the witness ({@link agrees}) — so the caller falls
+ * back to the direct walk as it does for a buffer that never built.
  *
- * The output is `geoPath`'s own, byte for byte: `M` at each ring's first point,
- * `L` along the rest, `Z` to close it, each coordinate rounded the way
- * `geoPath.digits` rounds it. Rings are what a region is here
- * ({@link areaOnly}), so every one of them closes.
+ * The output is `geoPath`'s own: `M` at each ring's first point, `L` along the
+ * rest, `Z` to close it, each coordinate rounded the way `geoPath.digits` rounds
+ * it. Rings are what a region is here ({@link areaOnly}), so every one of them
+ * closes. Byte for byte up to the frame the buffer was drawn at, for the reason
+ * this file's header gives.
  *
  * @internal
  */
@@ -203,8 +349,10 @@ export function emitRegionPaths(
 ): (string | null)[] | null {
 	const basis = affineBasis(fitted)
 
-	if (basis === null || atlas.scale === 0) return null
+	if (basis === null) return null
 
+	// Catches a buffer drawn at no scale and a fit scaled to none alike: either
+	// divides to a non-finite factor, and neither can place a coordinate.
 	const factor = basis.scale / atlas.scale
 
 	if (!Number.isFinite(factor)) return null
@@ -212,6 +360,8 @@ export function emitRegionPaths(
 	const dx = basis.translate[0] - atlas.translate[0] * factor
 
 	const dy = basis.translate[1] - atlas.translate[1] * factor
+
+	if (!agrees(atlas, fitted, factor, dx, dy)) return null
 
 	const { points, ringStart, regionRing } = atlas
 
@@ -236,12 +386,11 @@ export function emitRegionPaths(
 			const end = ringStart[ring + 1] as number
 
 			for (let point = from; point < end; point++) {
-				const x = Math.round(((points[point * 2] as number) * factor + dx) * ROUNDING) / ROUNDING
+				const x = Math.round(((points[point * 2] as number) * factor + dx) * ROUNDING)
 
-				const y =
-					Math.round(((points[point * 2 + 1] as number) * factor + dy) * ROUNDING) / ROUNDING
+				const y = Math.round(((points[point * 2 + 1] as number) * factor + dy) * ROUNDING)
 
-				d += `${point === from ? 'M' : 'L'}${x},${y}`
+				d += `${point === from ? 'M' : 'L'}${coordinate(x)},${coordinate(y)}`
 			}
 
 			d += 'Z'

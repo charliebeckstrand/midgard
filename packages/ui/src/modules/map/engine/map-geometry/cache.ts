@@ -290,7 +290,9 @@ const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
 // resolved by whichever of them asks first — the canonical draw on an ordinary
 // mount, the measured refit on a `deferPaint` one — and the other then costs an
 // emit rather than a second walk over the atlas. A county atlas holds ~1 MiB
-// here, against the ~700 KiB of strings each fit's paths already come to.
+// here, against the ~1.4 MiB each fit's paths already come to — 716k characters
+// at two bytes apiece — so the buffer adds under half of what the two path slots
+// beside it hold.
 const projected = new WeakMap<StaticMapGeometry, MapProjectedAtlas | null>()
 
 /**
