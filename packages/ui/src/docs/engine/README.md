@@ -28,10 +28,24 @@ export default defineDocsConfig({ packageName: 'ui' })
 ```ts
 // packages/ui/src/docs/main.tsx
 import { mount } from './engine/host'
-import './app.css'
 
 mount(import.meta.glob(['./demos/components/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
 ```
+
+```html
+<!-- packages/ui/src/docs/index.html -->
+<link rel="stylesheet" href="./app.css" />
+```
+
+The stylesheet links from the HTML; `main.tsx` does not import it. An ES module
+evaluates only after its whole static graph loads, so a CSS import there holds
+the styles behind the chrome. In dev that is about 250 requests, and the page
+paints with no styles until they land.
+
+The browser loads a `<link>` in parallel with the modules, so the first paint
+already carries the theme. Knip reads only the `<script>` tags in `index.html`,
+so [`knip.json`](../../../../../knip.json) names `src/docs/app.css` as a second
+entry of this site.
 
 The chrome renders with ui's own components (imported relatively from
 `src/components`, `src/core`, …). That dogfooding is why the engine lives inside

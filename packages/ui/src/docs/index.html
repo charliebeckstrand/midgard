@@ -5,6 +5,17 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
 		<title>Docs</title>
 		<!-- Fonts load via CSS @font-face with font-display: swap — no preload needed. -->
+		<!-- The stylesheet links from here. `main.tsx` does not import it. An ES
+		     module evaluates only after its whole static graph loads, so a CSS
+		     import there holds the styles behind the chrome. In dev that is about
+		     250 requests, and the page paints with no styles until they land — a
+		     dark-mode visitor sees white for most of a second.
+
+		     The browser loads a `<link>` in parallel with the modules, and paints
+		     only after the stylesheet arrives, so the first paint already carries
+		     the theme. Vite serves the file as `text/css` in dev, and emits the
+		     same hashed asset in the build. -->
+		<link rel="stylesheet" href="./app.css" />
 	</head>
 	<body class="h-full bg-zinc-100 dark:bg-zinc-900 text-zinc-950 dark:text-white">
 		<div id="root" class="h-full"></div>
