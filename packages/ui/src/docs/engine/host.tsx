@@ -22,9 +22,8 @@ const RELOADED = 'docs:preload-error-reloaded'
  * mount(import.meta.glob(['./demos/components/*.tsx', './demos/providers/*.tsx'], { import: 'Demo' }))
  * ```
  *
- * Put the site's stylesheet in `index.html` as a `<link>`. Do not import it
- * from the entry: a stylesheet behind this module graph applies only after
- * every module loads, so the first paint carries no styles.
+ * @see The engine README for the entry contract, including why the site's
+ *   stylesheet links from `index.html` instead of an import here.
  *
  * @param loaders - The demo loader map from `import.meta.glob`, run in the
  *   consumer so Vite resolves the globs against its own `demos/` tree.

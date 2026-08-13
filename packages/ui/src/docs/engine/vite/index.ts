@@ -75,7 +75,9 @@ export function defineDocsConfig({
 			port: 3456,
 			// Transform the entry graph (chrome, host, providers) on server start
 			// so the first page paints without an on-demand transform stall.
-			warmup: { clientFiles: ['./main.tsx'] },
+			// `app.css` is warmed too: `index.html` links it instead of importing
+			// it, so it is no longer in the entry graph, and it blocks the paint.
+			warmup: { clientFiles: ['./main.tsx', './app.css'] },
 		},
 		// Pre-bundle the heavy component deps up front. Left to lazy discovery,
 		// Vite finds each the first time a demo importing it renders and re-runs
