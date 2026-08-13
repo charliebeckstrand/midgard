@@ -2,7 +2,15 @@ import { createRef, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
-import { bySlot, fireEvent, liveRegion, renderUI, screen, userEvent, waitFor } from '../helpers'
+import {
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	liveRegion,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 function getInput(container: HTMLElement) {
 	return bySlot(container, 'input') as HTMLInputElement
@@ -536,8 +544,8 @@ describe('TagInput paste', () => {
 		paste(getInput(container), '77002,77003,77004')
 
 		// `announce` clears then sets on the next microtask, so a live region only ever reports an
-		// observed mutation — the read has to come after that tick.
-		await waitFor(() => expect(liveRegion()).toHaveTextContent('Added 3 tags'))
+		// observed mutation — the read has to come after that tick, which is the wait this helper holds.
+		await expectAnnouncement('Added 3 tags')
 
 		// And ONE message, not three: the count replaces what would have been a per-tag stream.
 		expect(liveRegion()).not.toHaveTextContent('Added 77002')

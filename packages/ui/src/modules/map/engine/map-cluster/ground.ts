@@ -144,9 +144,10 @@ export function ownGround(
 
 		const dy = other.y - at.y
 
-		const gap = Math.sqrt(dx * dx + dy * dy)
-
-		ring = clipToHalf(ring, { x: at.x + dx / 2, y: at.y + dy / 2 }, dx / gap, dy / gap)
+		// The raw delta, not a unit normal: `nearer` reads only the sign of a dot product against it and
+		// `crossing` reads a ratio of two, so any positive scaling cancels out of both. Normalising would
+		// buy a square root and a rounding step per neighbour to reach the same ring.
+		ring = clipToHalf(ring, { x: at.x + dx / 2, y: at.y + dy / 2 }, dx, dy)
 
 		// Every cut passes within `reach` of the centre, so the dot's own position always survives and
 		// the ring cannot empty. Bailing anyway rather than emitting a degenerate `points` list, since

@@ -5,6 +5,7 @@ import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
+import { once } from '../../utilities'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import {
 	MapPlatContext,
@@ -12,7 +13,7 @@ import {
 	MapZoomScaleContext,
 	useMapZoomView,
 } from './context'
-import { type MapPooledDot, pooledDots } from './engine/map-cluster/ground'
+import { pooledDots } from './engine/map-cluster/ground'
 import { POINT_HIT_RADIUS_FINE } from './engine/map-constants'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
@@ -286,6 +287,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * An id matching no region draws no ring; `null` (or omitting the prop)
 		 * selects nothing.
 		 */
+		selectedRegion?: string | null
 		/**
 		 * Whether the region VALUES are still loading — the atlas is drawn and its numbers are
 		 * not in yet.
@@ -302,7 +304,6 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * lying in the meantime.
 		 */
 		pending?: boolean
-		selectedRegion?: string | null
 		/**
 		 * The selected overlay mark, in the pair its reporters hand back — see
 		 * {@link MapOverlaySelection} for how the pair reads. `selectedRegion` for
@@ -768,24 +769,27 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// its own dots, so two separate marks each kept a full target and the overlap went to whichever drew
 	// last.
 	//
-	// Gathered on the first read and held from there, the way `MapPoints` holds its own `stopOf`: the
-	// gather invokes every entry's `stopsAt`, which `MapPoints` registers as a thunk precisely so that
-	// pass lands on the readers that want it, and a plat with no dot-shaped mark on it must never run
-	// the pass at all. Per asking mark it ran once per mark over the same entries; held, M marks share
-	// one gather and each only drops its own dots from the finished pool.
-	const pooled = useMemo(() => {
-		let held: MapPooledDot[] | null = null
+	// Gathered on the first read and held from there, on the same `once` seam the charts hang their own
+	// deferred work on: the gather invokes every entry's `stopsAt`, which `MapPoints` registers as a
+	// thunk precisely so that pass lands on the readers that want it, and a plat with no dot-shaped mark
+	// on it must never run the pass at all. Per asking mark it ran once per mark over the same entries;
+	// held, M marks share one gather and each only drops its own dots from the finished pool.
+	const pooled = useMemo(
+		() => once(() => pooledDots(entries, hidden, shape.project)),
+		[entries, hidden, shape.project],
+	)
 
-		return () => {
-			if (held === null) held = pooledDots(entries, hidden, shape.project)
-
-			return held
-		}
-	}, [entries, hidden, shape.project])
-
-	// A mark's own dots are its own business, and it holds them in drawn form already.
+	// A mark's own dots are its own business, and it holds them in drawn form already. Walked rather than
+	// mapped: every dot on the map is tested per asking mark, and a `flatMap` over the pool would mint an
+	// array per dot to say "keep" or "drop" before flattening them all away again.
 	const neighbours = useCallback(
-		(exclude: string) => pooled().flatMap((dot) => (dot.owner === exclude ? [] : [dot.at])),
+		(exclude: string) => {
+			const others: MapPoint2D[] = []
+
+			for (const dot of pooled()) if (dot.owner !== exclude) others.push(dot.at)
+
+			return others
+		},
 		[pooled],
 	)
 
