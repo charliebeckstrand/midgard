@@ -42,32 +42,17 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 	const sync = useCallback(() => flush((n) => n + 1), [])
 
 	/*
-	 * One report per toast. A toast leaves by four routes and two seams — the queue's
-	 * timeout and `dismiss`'s other three — and `dismiss` runs twice for one departure
-	 * (mark, then remove a frame later). The set is the latch that keeps those from
-	 * doubling up; ids leave it with the toast they name.
+	 * `dismissed` is the latch. It is written once, in `dismiss` below, at the moment a
+	 * toast starts leaving, and it rides the toast rather than a parallel register — so
+	 * the second `dismiss` of a departure, and the queue removing a toast that `dismiss`
+	 * already marked, both find it set and stay quiet.
 	 */
-	const reportedRef = useRef<Set<string>>(new Set())
-
-	const notifyDismiss = useCallback((toast: ToastData, reason: ToastDismissReason) => {
-		if (reportedRef.current.has(toast.id)) return
-
-		reportedRef.current.add(toast.id)
-
-		toast.onDismiss?.(reason)
+	const handleRemove = useCallback((toast: ToastData) => {
+		// The queue is the timeout exit; the other three routes report from `dismiss`.
+		if (!toast.dismissed) toast.onDismiss?.('timeout')
 	}, [])
 
-	const handleTimeout = useCallback(
-		(toast: ToastData) => {
-			notifyDismiss(toast, 'timeout')
-
-			// The queue removed it before calling, so no second report can find it.
-			reportedRef.current.delete(toast.id)
-		},
-		[notifyDismiss],
-	)
-
-	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync, handleTimeout)
+	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync, handleRemove)
 
 	const { startTimer, pause, resume, resetRemaining, reset } = useToastTimer(
 		toastsRef,
@@ -82,8 +67,6 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			if (!toast) return
 
-			notifyDismiss(toast, reason)
-
 			if (!toast.dismissed) {
 				toastsRef.current = toastsRef.current.map((t) =>
 					t.id === id ? { ...t, dismissed: true } : t,
@@ -91,10 +74,13 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 				sync()
 
+				// After the mark, so a consumer that dismisses from inside its own handler
+				// re-finds a marked toast and takes the removal branch instead of reporting
+				// a second time.
+				toast.onDismiss?.(reason)
+
 				requestAnimationFrame(() => {
 					toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
-
-					reportedRef.current.delete(id)
 
 					sync()
 
@@ -106,13 +92,11 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
 
-			reportedRef.current.delete(id)
-
 			sync()
 
 			if (toastsRef.current.length === 0) stop()
 		},
-		[sync, stop, notifyDismiss],
+		[sync, stop],
 	)
 
 	const toast = useCallback(

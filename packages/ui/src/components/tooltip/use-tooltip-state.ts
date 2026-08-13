@@ -8,7 +8,7 @@ import {
 	useHover,
 	useInteractions,
 } from '@floating-ui/react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
 
@@ -122,6 +122,10 @@ export function useTooltipState({
 	 * exactly what the reader sees, on every route into it: hover, focus, click, `forceOpen`,
 	 * `enabled`, the `:disabled` poll above, and the overlay signal.
 	 */
+	const notifyOpenChange = useEffectEvent((next: boolean) => {
+		onOpenChange?.(next)
+	})
+
 	const prevOpenRef = useRef(open)
 
 	useEffect(() => {
@@ -129,8 +133,8 @@ export function useTooltipState({
 
 		prevOpenRef.current = open
 
-		onOpenChange?.(open)
-	}, [open, onOpenChange])
+		notifyOpenChange(open)
+	}, [open])
 
 	const hasHover = useHasHover()
 

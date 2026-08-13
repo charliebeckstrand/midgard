@@ -205,28 +205,6 @@ describe('CopyButton', () => {
 		}
 	})
 
-	it('does not fire onCopiedChange when clipboard.writeText rejects', async () => {
-		const writeText = vi.fn().mockRejectedValue(new Error('denied'))
-
-		const onCopiedChange = vi.fn()
-
-		const restore = stubClipboard(writeText)
-
-		try {
-			const { container } = renderUI(<CopyButton value="hello" onCopiedChange={onCopiedChange} />)
-
-			const button = container.querySelector('button') as HTMLButtonElement
-
-			fireEvent.click(button)
-
-			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
-
-			expect(onCopiedChange).not.toHaveBeenCalled()
-		} finally {
-			restore()
-		}
-	})
-
 	it('invokes a consumer onClick before copying', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 

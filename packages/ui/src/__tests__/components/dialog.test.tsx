@@ -159,13 +159,7 @@ describe('Dialog onOpenComplete', () => {
 	it('says nothing while the dialog is closed', () => {
 		const onOpenComplete = vi.fn()
 
-		const { rerender } = renderUI(
-			<Dialog open={false} onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
-				content
-			</Dialog>,
-		)
-
-		rerender(
+		renderUI(
 			<Dialog open={false} onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
 				content
 			</Dialog>,

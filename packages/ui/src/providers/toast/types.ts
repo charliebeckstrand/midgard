@@ -38,8 +38,12 @@ export type ToastData = {
 	onDismiss?: (reason: ToastDismissReason) => void
 }
 
-/** Argument to the toast provider's `toast()` call: {@link ToastData} without the fields the provider derives. */
-export type ToastInput = Omit<ToastData, 'id' | 'duration'> & {
+/**
+ * Argument to the toast provider's `toast()` call: {@link ToastData} without the fields the
+ * provider derives, and without `dismissed`, which the provider owns — it marks a toast as
+ * leaving and doubles as the latch that keeps `onDismiss` to one report.
+ */
+export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed'> & {
 	duration?: number
 	/**
 	 * Optional caller-supplied id. When omitted, the provider generates one.

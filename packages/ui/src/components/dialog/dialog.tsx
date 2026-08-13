@@ -1,10 +1,11 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, type RefObject, useRef } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel, useMinWidth } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -113,22 +114,7 @@ export function Dialog({
 
 	const preset = isDesktop ? k.motion.desktop : k.motion.mobile
 
-	/*
-	 * One report per arrival. Reset while closed rather than on report, so a reopen reports
-	 * again while a second landing inside one arrival does not — adjusted during render, the
-	 * same shape Drawer uses.
-	 */
-	const reportedRef = useRef(false)
-
-	if (!resolvedOpen) reportedRef.current = false
-
-	const reportOpen = () => {
-		if (reportedRef.current) return
-
-		reportedRef.current = true
-
-		onOpenComplete?.()
-	}
+	const { onAnimationComplete } = useOpenComplete(resolvedOpen, preset.animate, onOpenComplete)
 
 	const { ariaProps, a11y } = useA11yPanel(role)
 
@@ -151,13 +137,7 @@ export function Dialog({
 			>
 				<motion.div
 					{...preset}
-					onAnimationComplete={(definition) => {
-						// The exit lands here too, and the leaving subtree keeps the props from the
-						// render where the dialog was still open — so `resolvedOpen` cannot tell the
-						// two apart. What motion hands back can: the preset's own `animate` object on
-						// the way in, its `exit` on the way out.
-						if (definition === preset.animate) reportOpen()
-					}}
+					onAnimationComplete={onAnimationComplete}
 					{...ariaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
 					data-slot={slot}
