@@ -63,11 +63,22 @@ export type DatePickerRangeProps = {
  * lets several stack. A "Custom range" row swaps to Start/End date fields (typed
  * or calendar-picked) for an arbitrary absolute span, mutually exclusive with the
  * presets. Pass `relative` (bare `true`) for the built-in presets, or a
- * {@link DatePickerRelativeConfig} to override the list or enable `multiple`.
+ * {@link DatePickerRelativeConfig} to override the list, enable `multiple`, or
+ * turn the trigger's chips off.
+ *
+ * The trigger shows the selection as chips, which wrap and grow it a row at a
+ * time. `chips: false` shows one line of text instead — the lone span's label,
+ * or a `"N selected"` count past one — so the trigger keeps a control's height.
  *
  * @example
  * ```tsx
  * <DatePicker relative value={value} onValueChange={setValue} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * // Multi-select, held to one line: "Last 7 days" → "3 selected".
+ * <DatePicker relative={{ multiple: true, chips: false }} value={value} onValueChange={setValue} />
  * ```
  */
 export type DatePickerRelativeProps = {
@@ -190,7 +201,8 @@ export type DatePickerProps = DatePickerBaseProps &
  * keyboard user never loses the field; it also keeps the reference group out of
  * the modal trap's `aria-hidden` marking and closes its own Tab cycle. The
  * `relative` variant's preset list uses real focusable toggle buttons
- * shown as chips in the trigger, swapping to Start/End `input`-mode date fields
+ * shown as chips in the trigger — or as a one-line `"N selected"` summary under
+ * `relative={{ chips: false }}` — swapping to Start/End `input`-mode date fields
  * for a custom range.
  *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
