@@ -19,9 +19,10 @@ import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import { mapStops } from './engine/map-keyboard/stops'
-import { legendItems, overlaySwatchClass } from './engine/map-legend/items'
+import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planMapLegend } from './engine/map-legend/plan'
-import { categoryLegendId, regionGroupId, slotColor } from './engine/map-region/category'
+import { overlaySlotColors } from './engine/map-overlay/slots'
+import { categoryLegendId, regionGroupId } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
 import type { MapZoomInput } from './engine/map-zoom/input'
@@ -552,22 +553,35 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		domain: valueExtent,
 	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel)
 
-	const { hidden, toggle, setFocus, emphasis: activeFocus } = useMapToggle(animate)
+	const { hidden: switched, toggle, setFocus, emphasis: activeFocus } = useMapToggle(animate)
 
 	const { entries, register } = useMapLegendRegistry()
 
 	// Overlay slot colours continue the fixed order after the categories, by
-	// registration order; an explicit `color` still occupies its position.
+	// registration order, one slot per legend entry — so a merged group's members
+	// share their first member's colour rather than each drawing one.
 	const colors = useMemo<ReadonlyMap<string, MapSeriesColor>>(
-		() =>
-			new Map(
-				entries.map((entry, index) => [
-					entry.id,
-					entry.color ?? slotColor(categoryMetas.length + index),
-				]),
-			),
+		() => overlaySlotColors(entries, categoryMetas.length),
 		[entries, categoryMetas.length],
 	)
+
+	// What the legend has switched off, as the MARKS it silences: the switchboard's
+	// own set, plus every member of a group toggled off through its merged entry.
+	// Expanded once here rather than resolved by each reader, because a dozen of
+	// them ask this question — the region layer, the tooltip, the table, the
+	// keyboard stops, the dot pool, the zone budgets, and every mark's own `hidden`
+	// — and each would otherwise have to know that an entry id can stand for
+	// several marks. The legend reads it too, and may: a group's own id is in the
+	// switchboard's set already, so expansion only ever adds ids no entry draws.
+	const hidden = useMemo<ReadonlySet<string>>(() => {
+		const groups = entries.filter(
+			(entry) => entry.group !== undefined && switched.has(groupLegendId(entry.group)),
+		)
+
+		if (groups.length === 0) return switched
+
+		return new Set<string>([...switched, ...groups.map((entry) => entry.id)])
+	}, [switched, entries])
 
 	// The region layer reports the index it resolved off the pointed path's anchor;
 	// the props report identity. Bridge them here, memoised like this component's
@@ -646,11 +660,17 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// emphasis on the live legend ids — the categories plus the registered
 	// overlays — so a stale focus can't dim the whole map against a group that no
 	// mark belongs to.
+	// A merged group's id joins them: the legend emphasises by the id it drew, which
+	// for a group is the group's rather than any one member's, and an id with no
+	// group here would be gated out and dim the whole map against nothing.
 	const legendIds = useMemo(
 		() =>
 			new Set<string>([
 				...categoryMetas.map((meta) => categoryLegendId(meta.value)),
 				...entries.map((entry) => entry.id),
+				...entries.flatMap((entry) =>
+					entry.group === undefined ? [] : [groupLegendId(entry.group)],
+				),
 			]),
 		[categoryMetas, entries],
 	)

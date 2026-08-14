@@ -41,6 +41,13 @@ export type MapOverlayEntry = {
 	label: string
 	kind: MapOverlayKind
 	swatch: MapSwatchShape
+	/**
+	 * The legend entry this mark shares with its siblings — see
+	 * {@link MapOverlayProps.group}. Marks naming one group merge into a single
+	 * entry, take one slot colour, and answer that entry's toggle and emphasis
+	 * together. Absent, the mark holds an entry of its own.
+	 */
+	group?: string
 	/** Named mark colour override; defaults to the next slot after the categories. */
 	color?: MapSeriesColor
 	/** A trailing readout — a route's mileage, a point's value. */

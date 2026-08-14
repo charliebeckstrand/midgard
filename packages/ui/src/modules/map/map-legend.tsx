@@ -85,43 +85,73 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 						variant="plain"
 						data-slot="map-legend-item"
 						aria-pressed={!off}
-						className="gap-2"
+						// Aligned to the top rather than centered: a label long enough to wrap
+						// used to carry its swatch down to the middle of the block with it,
+						// leaving one key off the line every other key sits on. The panel's
+						// entries stretch to its width so the trailing readouts share one right
+						// edge; the centered row keeps each entry its own width.
+						className={cn('items-start gap-2', panel && 'lg:w-full lg:justify-start')}
 						onClick={() => onToggle(item.id)}
 						onPointerEnter={() => onFocus(item.id)}
 						onPointerLeave={() => onFocus(null)}
 						onFocus={() => onFocus(item.id)}
 						onBlur={() => onFocus(null)}
 					>
-						<Swatch
-							shape={mapSwatchShapes[item.swatch]}
-							color={item.swatchClass}
-							style={item.swatchColor ? { color: item.swatchColor } : undefined}
-							className={cn(off && 'opacity-40')}
-						/>
+						{/* One key per distinct mark shape the entry stands for — a lone swatch
+						    for a category or an ungrouped mark, a square beside a dot where a
+						    zone and the mark inside it merged into one place. Padded to the
+						    first line's middle, which is what the top alignment above costs and
+						    what a wrapped label made worth paying. */}
+						<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1 pt-1">
+							{item.swatches.map((swatch) => (
+								<Swatch
+									key={swatch.shape}
+									shape={mapSwatchShapes[swatch.shape]}
+									color={swatch.className}
+									style={swatch.color ? { color: swatch.color } : undefined}
+									className={cn(off && 'opacity-40')}
+								/>
+							))}
+						</span>
 
-						{/* Label over detail, not beside it: the two share the entry's width,
-						    so a readout no longer squeezes the name into a wrap — which the
-						    side panel's fixed column reaches first, and which turned a
-						    one-line entry into two for the sake of a trailing count. */}
-						<span className="flex flex-col items-start gap-0.5">
+						{/* Beside the label rather than under it: the readout is a short,
+						    predictable word — a mileage, a count, a service class — so it holds
+						    its own right-hand column, where stacking the two spent a second line
+						    on every entry that carried one.
+
+						    The row wraps rather than the name. Neither half shrinks, so a pair
+						    too wide for the rail drops the READOUT to a second line with the
+						    name intact — the old stack, but only where it is earned. Letting
+						    the name take the slack instead broke "Los Angeles" across two lines
+						    to keep a readout beside it, which is the wrong half to give up: the
+						    name is what a reader matches against the map. The truncation under
+						    it is the backstop for a single word wider than the whole rail,
+						    which no wrap can help. */}
+						<span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5">
 							<Text
 								as="span"
+								size="sm"
 								data-slot="map-legend-label"
 								severity="muted"
-								className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+								className={cn(
+									'max-w-full shrink-0 truncate text-left leading-tight',
+									off && 'line-through opacity-60',
+								)}
 							>
 								{item.label}
 							</Text>
 
 							{item.detail && (
-								// A step under the label, so the readout reads as subordinate to
-								// the name it trails rather than as a second name.
+								// A step down the scale rather than the label's own size: a readout
+								// that matched its name competed with it, and the width it took at
+								// that size is the width the name had to wrap to give up.
 								<Text
 									as="span"
+									size="xs"
 									data-slot="map-legend-detail"
 									severity="muted"
 									className={cn(
-										'text-left leading-tight whitespace-nowrap tabular-nums font-normal',
+										'ml-auto shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
 										off && 'opacity-60',
 									)}
 								>

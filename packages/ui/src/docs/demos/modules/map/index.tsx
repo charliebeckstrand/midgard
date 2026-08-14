@@ -866,8 +866,11 @@ function MapDemo() {
 					<TabContent value="geofence">
 						<Stack gap="xl">
 							{/* Each catchment draws before the depot it holds, so the dot sits
-							    over its own wash rather than under it — and each pair shares a
-							    slot colour, so the legend reads zone-and-depot as one thing. */}
+							    over its own wash rather than under it — and each pair names one
+							    `group`, so the legend lists the three places the map shows
+							    rather than the six marks drawn to make them. The group takes the
+							    catchment's colour, since it registers first, and the depot needs
+							    no colour of its own. */}
 							<Example title="Depot catchments">
 								<MapPlat
 									aria-label="Depot catchments"
@@ -879,7 +882,8 @@ function MapDemo() {
 									{serviceAreas.map((area) => (
 										<MapGeofence
 											key={area.city}
-											label={`${area.city} catchment`}
+											label={area.city}
+											group={area.city}
 											at={area.at}
 											radius={area.radius}
 											color={area.color}
@@ -891,8 +895,8 @@ function MapDemo() {
 										<MapPoint
 											key={area.city}
 											label={area.city}
+											group={area.city}
 											at={area.at}
-											color={area.color}
 											detail="Depot"
 										/>
 									))}
