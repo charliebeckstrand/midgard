@@ -10,6 +10,8 @@ type AccordionContextValue = {
 	mount: Mount
 	isOpen: (value: string) => boolean
 	toggle: (value: string) => void
+	/** The root's arrival callback, raised by the section panel that owns the motion. */
+	onOpenComplete?: (value: string) => void
 }
 
 /**

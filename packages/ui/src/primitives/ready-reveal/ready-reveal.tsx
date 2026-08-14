@@ -14,6 +14,14 @@ export type ReadyRevealProps = {
 	placeholder: ReactNode
 	/** Content revealed once ready. */
 	children: ReactNode
+	/**
+	 * Fires once the reveal crossfade has landed and the placeholder is at rest.
+	 *
+	 * `ready` flipping is not an arrival: the placeholder is still fading when it does.
+	 * Use this to measure or focus the revealed content. Never fires for the return to
+	 * unready, and never on mount — a reveal mounted already ready plays no entrance.
+	 */
+	onReadyComplete?: () => void
 	/** Outer container class. */
 	className?: string
 }
@@ -57,7 +65,13 @@ const FOCUSABLE =
  * skeleton drawn a shade shorter or taller than the content it fills in for
  * shifts nothing.
  */
-export function ReadyReveal({ ready, placeholder, children, className }: ReadyRevealProps) {
+export function ReadyReveal({
+	ready,
+	placeholder,
+	children,
+	onReadyComplete,
+	className,
+}: ReadyRevealProps) {
 	const placeholderRef = useRef<HTMLDivElement>(null)
 
 	const contentRef = useRef<HTMLDivElement>(null)
@@ -129,7 +143,13 @@ export function ReadyReveal({ ready, placeholder, children, className }: ReadyRe
 						// Rest only after the fade-out that hides the placeholder lands
 						// (`ready`); the guard skips its fade-in when `ready` clears.
 						onAnimationComplete={() => {
-							if (ready) setSettled(true)
+							if (!ready) return
+
+							setSettled(true)
+
+							// The same landing the latch reads: the placeholder is out, so the
+							// content is what the reader is looking at.
+							onReadyComplete?.()
 						}}
 						style={PLACEHOLDER_CELL}
 					>

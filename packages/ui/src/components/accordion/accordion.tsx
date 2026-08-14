@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo, useRef } from 'react'
+import { type ReactNode, useEffectEvent, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import type { Mount } from '../../primitives/mount'
@@ -33,6 +33,19 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * @defaultValue 'active'
 		 */
 		mount?: Mount
+		/**
+		 * Fires once a section has finished opening and is at rest, with the `value` of the
+		 * section that landed.
+		 *
+		 * A state change is not an arrival: `onValueChange` reports the flip, and the panel
+		 * is still growing when it does. Use this to focus, measure, or start work that
+		 * needs the section at its settled height. Never fires for a close, and never for a
+		 * section that mounts already open — so a `type='single'` swap reports only the
+		 * section that opened, not the one it replaced.
+		 *
+		 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
+		 */
+		onOpenComplete?: (value: string) => void
 		className?: string
 		children: ReactNode
 	}
@@ -53,12 +66,26 @@ export type AccordionProps = (SingleProps | MultipleProps) &
  * @see {@link AccordionPanel}
  */
 export function Accordion(props: AccordionProps) {
-	const { variant, mount = 'active', className, children } = props
+	const { variant, mount = 'active', onOpenComplete, className, children } = props
 
 	const { isOpen, toggle } = useAccordionSelection(props)
 
+	// Wrapped so the context memo need not key on the caller's callback, which would
+	// otherwise be its one unstable member — and every item and panel reads that value.
+	// The wrapper is not itself a stable identity — it routes to the newest callback,
+	// and the memo's dependency list is what holds the value steady.
+	const reportOpenComplete = useEffectEvent((value: string) => {
+		onOpenComplete?.(value)
+	})
+
 	const context = useMemo(
-		() => ({ variant: variant ?? 'separated', mount, isOpen, toggle }),
+		() => ({
+			variant: variant ?? 'separated',
+			mount,
+			isOpen,
+			toggle,
+			onOpenComplete: reportOpenComplete,
+		}),
 		[variant, mount, isOpen, toggle],
 	)
 

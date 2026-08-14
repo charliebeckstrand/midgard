@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useEffectEvent, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
@@ -14,6 +14,18 @@ export type CollapseProps = {
 	defaultOpen?: boolean
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Fires once the panel has finished opening and is at rest — after the height
+	 * transition lands, or immediately on the open when `animate` is `false`.
+	 *
+	 * A state change is not an arrival: `onOpenChange` reports the flip, and the panel
+	 * is still growing when it does. Use this to focus, measure, or start work that
+	 * needs the panel at its settled height. Never fires for a close, and never for a
+	 * panel that mounts already open.
+	 *
+	 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
+	 */
+	onOpenComplete?: () => void
 	/**
 	 * Animation style for the panel. `true` or `'fade'` for height + opacity,
 	 * `'slide'` for height only, `false` to disable.
@@ -51,6 +63,7 @@ export function Collapse({
 	defaultOpen = false,
 	open: openProp,
 	onOpenChange,
+	onOpenComplete,
 	animate: animateProp = 'fade',
 	mount = 'active',
 	children,
@@ -68,8 +81,24 @@ export function Collapse({
 
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
+	// Wrapped so the context memo need not key on the caller's callback, which would
+	// otherwise be its one unstable member and re-render every consumer per parent tick.
+	// The wrapper is not itself a stable identity — it routes to the newest callback,
+	// and the memo's dependency list is what holds the value steady.
+	const reportOpenComplete = useEffectEvent(() => {
+		onOpenComplete?.()
+	})
+
 	const value = useMemo(
-		() => ({ open, toggle, animate: animateProp, mount, triggerProps, panelProps }),
+		() => ({
+			open,
+			toggle,
+			animate: animateProp,
+			mount,
+			onOpenComplete: reportOpenComplete,
+			triggerProps,
+			panelProps,
+		}),
 		[open, toggle, animateProp, mount, triggerProps, panelProps],
 	)
 

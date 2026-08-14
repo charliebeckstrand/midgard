@@ -270,3 +270,64 @@ describe('useCollapseContext in trigger children', () => {
 		expect(onClick).toHaveBeenCalled()
 	})
 })
+
+// Driven on the held branch: the mock resolves a landing only on an animate-target
+// change, never on a mount (`mocks/motion-react.ts`), and an `active` panel enters by
+// mounting. Holding it animates between two targets in place, which the mock does see.
+describe('Collapse onOpenComplete', () => {
+	const collapse = (props: { open: boolean; onOpenComplete: () => void }) => (
+		<Collapse mount="always" onOpenChange={() => {}} {...props}>
+			<CollapseTrigger>Toggle</CollapseTrigger>
+			<CollapsePanel>Body</CollapsePanel>
+		</Collapse>
+	)
+
+	const unanimated = (props: { open: boolean; onOpenComplete: () => void }) => (
+		<Collapse animate={false} onOpenChange={() => {}} {...props}>
+			<CollapsePanel>Body</CollapsePanel>
+		</Collapse>
+	)
+
+	it('reports the landing once the panel is at its open height', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(collapse({ open: false, onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+
+		rerender(collapse({ open: true, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('says nothing for the close, which lands on the same handler', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(collapse({ open: false, onOpenComplete }))
+
+		rerender(collapse({ open: true, onOpenComplete }))
+
+		rerender(collapse({ open: false, onOpenComplete }))
+
+		// The exit target lands too; the definition gate takes the enter and drops it.
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('reports the open immediately when animate is false', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(unanimated({ open: false, onOpenComplete }))
+
+		rerender(unanimated({ open: true, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('says nothing for a panel that mounts already open', () => {
+		const onOpenComplete = vi.fn()
+
+		renderUI(unanimated({ open: true, onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+})
