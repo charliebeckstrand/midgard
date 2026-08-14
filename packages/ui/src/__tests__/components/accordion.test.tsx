@@ -387,20 +387,10 @@ describe('Accordion mount policy', () => {
 	})
 })
 
-/*
- * Driven on the held branch, for the reason the Collapse and Sheet suites record: the
- * motion mock resolves a landing only when the `animate` target changes between renders,
- * so a `mount="active"` panel — which enters by mounting — never resolves one.
- */
+// Held branch, for the reason the Collapse suite records.
 describe('Accordion onOpenComplete', () => {
 	const accordion = (props: { value: string; onOpenComplete: (value: string) => void }) => (
-		<Accordion
-			type="single"
-			mount="always"
-			value={props.value}
-			onValueChange={() => {}}
-			onOpenComplete={props.onOpenComplete}
-		>
+		<Accordion type="single" mount="always" onValueChange={() => {}} {...props}>
 			<AccordionItem value="one">
 				<AccordionTrigger>One</AccordionTrigger>
 				<AccordionPanel>First</AccordionPanel>

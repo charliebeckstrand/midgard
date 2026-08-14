@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useEffectEvent, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
@@ -23,7 +23,7 @@ export type CollapseProps = {
 	 * needs the panel at its settled height. Never fires for a close, and never for a
 	 * panel that mounts already open.
 	 *
-	 * @see {@link DrawerProps.onOpenComplete} for the same contract on the panel family.
+	 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
 	 */
 	onOpenComplete?: () => void
 	/**
@@ -81,9 +81,25 @@ export function Collapse({
 
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
+	// Held behind a stable identity. An inline arrow would otherwise be the one unstable
+	// member of the context value, which the trigger and panel both read, so a memoized
+	// subtree would re-render on every parent tick for a callback that never changed.
+	// Raised only from the panel's landing, never during render.
+	const reportOpenComplete = useEffectEvent(() => {
+		onOpenComplete?.()
+	})
+
 	const value = useMemo(
-		() => ({ open, toggle, animate: animateProp, mount, onOpenComplete, triggerProps, panelProps }),
-		[open, toggle, animateProp, mount, onOpenComplete, triggerProps, panelProps],
+		() => ({
+			open,
+			toggle,
+			animate: animateProp,
+			mount,
+			onOpenComplete: reportOpenComplete,
+			triggerProps,
+			panelProps,
+		}),
+		[open, toggle, animateProp, mount, triggerProps, panelProps],
 	)
 
 	return (

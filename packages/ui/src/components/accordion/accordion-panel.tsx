@@ -84,9 +84,8 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 					// entering and exiting — no `exit`, which only `AnimatePresence` reads.
 					animate: open ? k.motion.animate : k.motion.exit,
 					transition: k.motion.transition,
-					// Both landings arrive here. `rest` ignores the one that lands while
-					// open — the entrance — and `onAnimationComplete` reports only that
-					// one, so the pair splits the close and the open between them.
+					// Both landings arrive here: `rest` takes the close, the gate takes
+					// the open.
 					onAnimationComplete: (definition: unknown) => {
 						hold.rest()
 

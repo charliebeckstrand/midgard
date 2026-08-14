@@ -18,8 +18,9 @@ type CollapseContextValue = {
 }
 
 /**
- * Reads the enclosing {@link Collapse} state: `open`, a `toggle` callback, the
- * resolved `animate` setting, and the a11y `triggerProps`/`panelProps` wiring.
+ * Reads the enclosing {@link Collapse} state: its open flag and `toggle`, the resolved
+ * `animate` and `mount` policies, the root's arrival callback, and the a11y
+ * `triggerProps`/`panelProps` wiring.
  *
  * @remarks
  * Must be called inside `<Collapse>`; throws otherwise. Powers `<CollapseTrigger>`

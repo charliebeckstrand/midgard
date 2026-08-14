@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo, useRef } from 'react'
+import { type ReactNode, useEffectEvent, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import type { Mount } from '../../primitives/mount'
@@ -43,7 +43,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * section that mounts already open — so a `type='single'` swap reports only the
 		 * section that opened, not the one it replaced.
 		 *
-		 * @see {@link DrawerProps.onOpenComplete} for the same contract on the panel family.
+		 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
 		 */
 		onOpenComplete?: (value: string) => void
 		className?: string
@@ -70,9 +70,23 @@ export function Accordion(props: AccordionProps) {
 
 	const { isOpen, toggle } = useAccordionSelection(props)
 
+	// Held behind a stable identity. An inline arrow would otherwise be the one unstable
+	// member of the context value, and every item and panel reads that value — so a
+	// memoized subtree would re-render the whole set on each parent tick for a callback
+	// that never changed. Raised only from a panel's landing, never during render.
+	const reportOpenComplete = useEffectEvent((value: string) => {
+		onOpenComplete?.(value)
+	})
+
 	const context = useMemo(
-		() => ({ variant: variant ?? 'separated', mount, isOpen, toggle, onOpenComplete }),
-		[variant, mount, isOpen, toggle, onOpenComplete],
+		() => ({
+			variant: variant ?? 'separated',
+			mount,
+			isOpen,
+			toggle,
+			onOpenComplete: reportOpenComplete,
+		}),
+		[variant, mount, isOpen, toggle],
 	)
 
 	const ref = useRef<HTMLDivElement>(null)

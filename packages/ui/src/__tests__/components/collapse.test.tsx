@@ -271,17 +271,19 @@ describe('useCollapseContext in trigger children', () => {
 	})
 })
 
-/*
- * The held branch is what these drive. A `mount="active"` panel enters by mounting, and
- * the global motion mock fires `onAnimationComplete` only when the `animate` target
- * changes between renders — never on a mount — so no arrival resolves there. Holding the
- * panel (`always`/`lazy`) animates it between two targets in place, which is the one
- * change the mock resolves, and is the same shape the Sheet suite leans on.
- */
+// Driven on the held branch: the mock resolves a landing only on an animate-target
+// change, never on a mount (`mocks/motion-react.ts`), and an `active` panel enters by
+// mounting. Holding it animates between two targets in place, which the mock does see.
 describe('Collapse onOpenComplete', () => {
 	const collapse = (props: { open: boolean; onOpenComplete: () => void }) => (
 		<Collapse mount="always" onOpenChange={() => {}} {...props}>
 			<CollapseTrigger>Toggle</CollapseTrigger>
+			<CollapsePanel>Body</CollapsePanel>
+		</Collapse>
+	)
+
+	const unanimated = (props: { open: boolean; onOpenComplete: () => void }) => (
+		<Collapse animate={false} onOpenChange={() => {}} {...props}>
 			<CollapsePanel>Body</CollapsePanel>
 		</Collapse>
 	)
@@ -314,15 +316,9 @@ describe('Collapse onOpenComplete', () => {
 	it('reports the open immediately when animate is false', () => {
 		const onOpenComplete = vi.fn()
 
-		const unanimated = (open: boolean) => (
-			<Collapse animate={false} open={open} onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
-				<CollapsePanel>Body</CollapsePanel>
-			</Collapse>
-		)
+		const { rerender } = renderUI(unanimated({ open: false, onOpenComplete }))
 
-		const { rerender } = renderUI(unanimated(false))
-
-		rerender(unanimated(true))
+		rerender(unanimated({ open: true, onOpenComplete }))
 
 		expect(onOpenComplete).toHaveBeenCalledOnce()
 	})
@@ -330,11 +326,7 @@ describe('Collapse onOpenComplete', () => {
 	it('says nothing for a panel that mounts already open', () => {
 		const onOpenComplete = vi.fn()
 
-		renderUI(
-			<Collapse animate={false} open onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
-				<CollapsePanel>Body</CollapsePanel>
-			</Collapse>,
-		)
+		renderUI(unanimated({ open: true, onOpenComplete }))
 
 		expect(onOpenComplete).not.toHaveBeenCalled()
 	})

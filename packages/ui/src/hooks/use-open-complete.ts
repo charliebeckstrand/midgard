@@ -32,15 +32,22 @@ export function useOpenComplete(
 
 	if (!open) reportedRef.current = false
 
-	// Memoized: Drawer's arrival effect depends on it, and a bare function would change
-	// identity every render, which `useExhaustiveDependencies` rejects outright.
+	// Held in a ref rather than a dependency. A caller that binds a payload — an accordion
+	// section naming itself — has no stable identity to hand over, and keying the memo on
+	// the callback would push a `useCallback` into every such caller for a value only
+	// Drawer reads. Refreshed each render, so `report` always calls the newest.
+	const onOpenCompleteRef = useRef(onOpenComplete)
+
+	onOpenCompleteRef.current = onOpenComplete
+
+	// Stable for the mount: Drawer's arrival effect depends on its identity.
 	const report = useCallback(() => {
 		if (reportedRef.current) return
 
 		reportedRef.current = true
 
-		onOpenComplete?.()
-	}, [onOpenComplete])
+		onOpenCompleteRef.current?.()
+	}, [])
 
 	return {
 		report,
