@@ -4,7 +4,7 @@
 
 Six rows are resolved by [#1103](https://github.com/charliebeckstrand/midgard/pull/1103): Tooltip `onOpenChange`, Dialog and Sheet `onOpenComplete`, ResizableGroup `onResizeStart` / `onResizeEnd`, CopyButton `onCopyError`, and ToastInput `onDismiss`. They were picked as the cheapest precedented set — each one mirrors a callback a sibling already ships.
 
-Five more close T1 outright: ColorPicker, MenuSub, SidebarLayout, DashboardLayout, and the chart context menu's fullscreen Dialog. A partly-applied uniform rule reads worse than either extreme, and four of the five already held the seam the report needed. Twenty-four rows stay open.
+Five more close T1 outright, by [#1104](https://github.com/charliebeckstrand/midgard/pull/1104): ColorPicker, MenuSub, SidebarLayout, DashboardLayout, and the chart context menu's fullscreen Dialog. A partly-applied uniform rule reads worse than either extreme, and four of the five already held the seam the report needed. Twenty-four rows stay open.
 
 ## Executive summary
 
@@ -45,8 +45,8 @@ The close half of this pair is already settled and is not a finding: `onExitComp
 | Surface | Proposed | Site | Transition it owns | Precedent | Status |
 |---|---|---|---|---|---|
 | Tooltip | `onOpenChange` | `tooltip.tsx:9` | Full disclosure from hover delay, focus, click, `forceOpen`, and the overlay signal; context holds `open`, the barrel exports only components (T1) | Popover `popover.tsx:18` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
-| ColorPicker | `onOpenChange` | `color-picker.tsx:13` | `useState(false)` at `use-color-picker-state.ts:54`; root is a `display: contents` wrapper, panel portals out (T1) | every floating trigger in `components/` | ✅ RESOLVED |
-| MenuSub | `onOpenChange` | `menu-sub.tsx:64` | Submenu opened by hover-intent, click, and Enter/Space; closed by blur; children mount only while open (T1) | TreeItem `onOpenChange` | ✅ RESOLVED |
+| ColorPicker | `onOpenChange` | `color-picker.tsx:13` | `useState(false)` at `use-color-picker-state.ts:54`; root is a `display: contents` wrapper, panel portals out (T1) | every floating trigger in `components/` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
+| MenuSub | `onOpenChange` | `menu-sub.tsx:64` | Submenu opened by hover-intent, click, and Enter/Space; closed by blur; children mount only while open (T1) | TreeItem `onOpenChange` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
 | ResizableGroup / Handle | `onResizeStart` / `onResizeEnd` | `resizable-group.tsx:13` | `setDragging(handleIndex)` / `setDragging(null)` at `use-resizable-panel.ts:199`; `onSizesChange` fires on every pointermove (T2) | grid `types.ts:362,369` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | RangeSlider | `onDragStart` / `onDragEnd` | `range/range-slider.tsx:18` | Thumb grab, stacked-pair deferral, and release at `use-range-pointer.ts:117-156`; closed prop bag, no rest spread (T2) | `use-sortable-list.ts:27,33` | ◯ OPEN |
 | Form | `onInvalidSubmit` | `form.tsx:40` | Runs every validator on submit and returns early when any fails, `use-form-reducer.ts:250-256`; a refused submit and no submit look identical (T3) | FileUpload `onReject` | ◯ OPEN |
@@ -74,8 +74,8 @@ One caution for the implementer of the DateInput row. Reuse the exported `CardVa
 | Surface | Proposed | Site | Transition it owns | Precedent | Status |
 |---|---|---|---|---|---|
 | ToastProvider / ToastInput | `onDismiss` | `providers/toast/types.ts:22` | A toast leaves by four internal routes — the timer, the close button, the `maxToasts` cap, and a `dismiss(id)` call — and `toast()` hands back only an id, so the caller never learns its toast is gone (T4) | Alert `onOpenChange`, which the toast pipeline already wires | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
-| SidebarLayout | `onOpenChange` | `layouts/sidebar/sidebar.tsx:39` | Mobile drawer state via `useOffcanvas()` at `:65`, opened at `:158`, closed on four paths; closed prop bag, no spread reaches any element (T1) | Drawer `drawer.tsx:23` | ✅ RESOLVED |
-| DashboardLayout | `onOpenChange` | `layouts/dashboard.tsx:13` | Mobile filters drawer at `:29`, opened at `:43`, closed through the Drawer's dismiss at `:50`; no context, no ref, no spread (T1) | Drawer `drawer.tsx:23` | ✅ RESOLVED |
+| SidebarLayout | `onOpenChange` | `layouts/sidebar/sidebar.tsx:39` | Mobile drawer state via `useOffcanvas()` at `:65`, opened at `:158`, closed on four paths; closed prop bag, no spread reaches any element (T1) | Drawer `drawer.tsx:23` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
+| DashboardLayout | `onOpenChange` | `layouts/dashboard.tsx:13` | Mobile filters drawer at `:29`, opened at `:43`, closed through the Drawer's dismiss at `:50`; no context, no ref, no spread (T1) | Drawer `drawer.tsx:23` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
 | ReadyReveal | `onReadyComplete` | `primitives/ready-reveal/ready-reveal.tsx:10` | Latches `settled` from Motion's `onAnimationComplete` at `:131-133`, then hides the placeholder; the library's own browser tests poll for it (T5) | Drawer `onOpenComplete` | ◯ OPEN |
 
 ## Findings — modules
@@ -87,7 +87,7 @@ One caution for the implementer of the DateInput row. Reuse the exported `CardVa
 | MapPlat legend switchboard | `onHiddenChange` | `map/map-plat.tsx:341` | `useMapToggle.toggle` at `use-map-toggle.ts:73-91`; the legend is built from data, so no sub-component exists to compose (T7) | grid `grid-data-types.ts:555` | ◯ OPEN |
 | MapPlat legend emphasis | `onEmphasisChange` | `map/map-plat.tsx:341` | Legend hover or focus writes `setFocus` at `use-map-toggle.ts:57`; passing `emphasis` silently deadens the plat's own legend hover | same file's `selectedRegion` + `onRegionClick` | ◯ OPEN |
 | ChartContextMenu export (every chart, plus Choropleth) | `onExport` | `chart/engine/chart-context-menu.tsx:50` | `exportImage` swallows every rasterize failure in a bare `catch` at `:165-177`; the four helpers behind it are unexported (T4) | grid `onCommit` | ◯ OPEN |
-| ChartContextMenu fullscreen | `onFullscreenChange` | `chart/engine/chart-context-menu.tsx:50` | `useState(false)` at `:132`, raised by the Fullscreen item, lowered by Escape or Close; `ChartFullscreenContext` is `@internal` (T1) | the Dialog it opens | ✅ RESOLVED |
+| ChartContextMenu fullscreen | `onFullscreenChange` | `chart/engine/chart-context-menu.tsx:50` | `useState(false)` at `:132`, raised by the Fullscreen item, lowered by Escape or Close; `ChartFullscreenContext` is `@internal` (T1) | the Dialog it opens | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
 | Grid (editable) | `onReject` | `grid/grid-editing-types.ts:157` | `flushRow` drops every cell its column `validate` refuses at `use-grid-editing.ts:106`, and skips the sink entirely when nothing survives (T3) | FileUpload `onAccept` / `onReject` | ◯ OPEN |
 | Grid (navigable) | `onActiveCellChange` | `grid/grid-data-types.ts:990` | Keyboard cell cursor at `use-grid-navigation.ts:195`, moved by `moveTo` at `:268`; `onCellClick` covers the pointer only (T6) | the grid's own resize brackets | ◯ OPEN |
 | Grid (column groups) | `onCollapsedChange` | `grid/grid-group-types.ts:43` | Collapsed band set seeded once from `defaultCollapsed` at `use-grid-group.ts:80-96`, never emitted and unwritable after mount | `GridExpandable`'s triad | ◯ OPEN |
