@@ -56,12 +56,17 @@ export function useColorPickerState({
 
 	// The single writer: the trigger toggles through it, and floating-ui's dismiss paths
 	// are armed only while open, so every set it takes is a real transition and the
-	// caller's callback rides the setter with no change guard. `useControllable` is the
-	// shape the sibling this picker mirrors uses at the same seam (`DatePicker`).
-	const [open = false, setOpen] = useControllable<boolean>({
+	// caller's callback rides the setter with no change guard. `useControllable` rather
+	// than bare state for the seam, not the machinery — the picker is uncontrolled today,
+	// and this is where an `open` prop slots in without moving the report.
+	const [open = false, setOpenValue] = useControllable<boolean>({
 		defaultValue: false,
 		onValueChange: (next) => onOpenChange?.(next ?? false),
 	})
+
+	// Narrowed on the way out: the controllable setter also takes `null` and a functional
+	// updater, and neither belongs in the boolean `onOpenChange` this hook publishes.
+	const setOpen: (next: boolean) => void = setOpenValue
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 

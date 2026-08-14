@@ -92,22 +92,18 @@ type MqlMock = Pick<
 	'matches' | 'media' | 'addEventListener' | 'removeEventListener'
 >
 
-function stubMatchMedia(mql: MqlMock): ReturnType<typeof vi.fn> {
+function stubMatchMedia(mql: MqlMock): void {
 	const partial: Partial<MediaQueryList> = mql
 
-	const spy = vi.fn((_query: string): MediaQueryList => partial as MediaQueryList)
-
-	window.matchMedia = spy
-
-	return spy
+	window.matchMedia = vi.fn((_query: string): MediaQueryList => partial as MediaQueryList)
 }
 
 /**
- * Stubs the breakpoint token and `matchMedia`, and returns `cross` — set the query's
- * verdict and fire the listener the hook registered. Call before `renderHook`; `cross`
- * reads the captured handler when it runs, not when it is built.
+ * Stubs the breakpoint token and `matchMedia`, and returns the mock plus `cross` — set
+ * the query's verdict and fire the listener the hook registered. Call before
+ * `renderHook`; `cross` reads the captured handler when it runs, not when it is built.
  */
-function stubViewportCrossing(): { cross: (matches: boolean) => void } {
+function stubViewportCrossing(): { mql: MqlMock; cross: (matches: boolean) => void } {
 	let handler: (() => void) | undefined
 
 	const mql = {
@@ -124,6 +120,7 @@ function stubViewportCrossing(): { cross: (matches: boolean) => void } {
 	stubMatchMedia(mql)
 
 	return {
+		mql,
 		cross: (matches: boolean) => {
 			mql.matches = matches
 
@@ -212,21 +209,12 @@ describe('useOffcanvas: breakpoint listener', () => {
 	})
 
 	it('removes the change listener on unmount', () => {
-		const mqlMock = {
-			matches: false,
-			media: '',
-			addEventListener: vi.fn(),
-			removeEventListener: vi.fn(),
-		}
-
-		stubBreakpoint('1024px')
-
-		stubMatchMedia(mqlMock)
+		const { mql } = stubViewportCrossing()
 
 		const { unmount } = renderHook(() => useOffcanvas())
 
 		unmount()
 
-		expect(mqlMock.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+		expect(mql.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
 	})
 })

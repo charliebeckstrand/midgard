@@ -180,6 +180,10 @@ export function ChartContextMenu({
 
 	const onFullscreenChange = config?.onFullscreenChange
 
+	// The actions below only test whether a fullscreen copy exists; keying them on the
+	// element's identity would bust them on any re-render that mints a fresh one.
+	const hasFullscreen = Boolean(fullscreen)
+
 	// The dialog's only writer: the Fullscreen item is reachable only while it is shut,
 	// and the dialog's own dismissal — which the Close button routes through — only while
 	// it is open, so every call is a real transition and the caller's callback rides along
@@ -210,19 +214,20 @@ export function ChartContextMenu({
 		[rootRef, includeLegend, title],
 	)
 
-	// Memoized for the same reason `customItems` is, and for a second one: `ContextMenu`
-	// keys its own `entries` memo on this array, so a fresh one per render rebuilt every
-	// entry it resolves — the icon elements included — on every pointer move.
-	const defaults = useMemo(
+	// Memoized for the same reason `customItems` is: this array and its five icon
+	// elements were rebuilt on every pointer move and thrown away. Holding it steady
+	// also spares `ContextMenu` the re-resolve its own `entries` memo keys on this
+	// array, though that pass is the cheap half — it reorders existing references.
+	const defaults = useMemo<ContextMenuItem[]>(
 		() => [
-			...(fullscreen
+			...(hasFullscreen
 				? [
 						{
 							key: 'fullscreen',
 							label: 'Fullscreen',
 							icon: <Maximize2 />,
 							onAction: () => handleFullscreenChange(true),
-						} satisfies ContextMenuItem,
+						},
 					]
 				: []),
 			{
@@ -245,44 +250,28 @@ export function ChartContextMenu({
 							icon: <Download />,
 							onAction: () =>
 								downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
-						} satisfies ContextMenuItem,
+						},
 						{
 							key: 'copy-data',
 							label: 'Copy data',
 							icon: <Clipboard />,
 							onAction: () => copyText(exportCsv(readout)),
-						} satisfies ContextMenuItem,
+						},
 					]
 				: []),
 		],
-		[fullscreen, readout, title, handleFullscreenChange, exportImage],
+		[hasFullscreen, readout, title, handleFullscreenChange, exportImage],
 	)
 
-	if (contextMenu === false) return <>{children}</>
-
-	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
-	// copy. It renders bare, so the enlarged chart never nests a second menu or
-	// recurses. The rule lives here because this component provides
-	// `ChartFullscreenContext` — a caller cannot forget to apply it.
-	if (isFullscreen) return <>{children}</>
-
-	return (
-		<>
-			<ContextMenu
-				defaults={defaults}
-				items={customItems}
-				defaultItems={contextMenu?.defaultItems}
-				position={contextMenu?.position}
-				capped={contextMenu?.capped}
-			>
-				{children}
-			</ContextMenu>
-
-			{/* Mounted only where the Fullscreen item can appear. Without a `fullscreen`
-			    element that item is never built, so `open` can never rise — and an
-			    always-mounted Dialog would re-run its whole hook chain on every
-			    pointer-move render of this component for a panel that cannot open. */}
-			{fullscreen ? (
+	// Held as an element, not gated on `open`. This component re-renders per pointer
+	// move across the plot, and a closed Dialog still re-runs the heaviest hook chain
+	// here on each one — its own controllable, min-width, and arrival hooks plus
+	// Overlay's floating, dismiss, and scroll-lock. Every input below is stable across
+	// a sweep, so the memo drops the whole subtree out of those renders; gating on
+	// `open` instead would discard the exit animation Overlay exists to run.
+	const dialog = useMemo(
+		() =>
+			fullscreen ? (
 				<Dialog
 					open={open}
 					onOpenChange={handleFullscreenChange}
@@ -315,9 +304,8 @@ export function ChartContextMenu({
 					</div>
 
 					<DialogFooter>
-						{/* Dismisses through the panel's own `close()`, which is the Dialog's
-							    `onOpenChange` — so the button shares the one route Escape and an
-							    outside press already take. */}
+						{/* Dismisses through the panel's own `close()`, the Dialog's `onOpenChange`,
+						    so the button shares the route Escape and an outside press take. */}
 						<DialogClose>
 							<Button type="button" ref={closeRef}>
 								Close
@@ -325,7 +313,31 @@ export function ChartContextMenu({
 						</DialogClose>
 					</DialogFooter>
 				</Dialog>
-			) : null}
+			) : null,
+		[fullscreen, open, handleFullscreenChange, title],
+	)
+
+	if (contextMenu === false) return <>{children}</>
+
+	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
+	// copy. It renders bare, so the enlarged chart never nests a second menu or
+	// recurses. The rule lives here because this component provides
+	// `ChartFullscreenContext` — a caller cannot forget to apply it.
+	if (isFullscreen) return <>{children}</>
+
+	return (
+		<>
+			<ContextMenu
+				defaults={defaults}
+				items={customItems}
+				defaultItems={config?.defaultItems}
+				position={config?.position}
+				capped={config?.capped}
+			>
+				{children}
+			</ContextMenu>
+
+			{dialog}
 		</>
 	)
 }
