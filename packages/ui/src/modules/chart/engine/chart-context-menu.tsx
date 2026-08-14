@@ -62,6 +62,15 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 * @defaultValue true
 	 */
 	downloadLegend?: boolean
+	/**
+	 * Fires when the fullscreen dialog opens or closes, whatever drove it: the Fullscreen
+	 * item, the Close button, `Escape`, or an outside press.
+	 *
+	 * Observation only. The menu owns the dialog and there is no `open` option to pair
+	 * with. Use it to suspend work behind the enlarged chart, or to mirror the view
+	 * elsewhere. Never fires without a `fullscreen` element to open.
+	 */
+	onFullscreenChange?: (fullscreen: boolean) => void
 }
 
 /** Props for {@link ChartContextMenu}. @internal */
@@ -162,6 +171,15 @@ export function ChartContextMenu({
 
 	const includeLegend = contextMenu?.downloadLegend ?? true
 
+	// The dialog's only writer: the Fullscreen item is reachable only while it is shut,
+	// and the Close button and the dialog's own dismissal only while it is open, so every
+	// call is a real transition and the caller's callback rides along unguarded.
+	const handleFullscreenChange = (next: boolean) => {
+		setOpen(next)
+
+		contextMenu?.onFullscreenChange?.(next)
+	}
+
 	const exportImage = async (type: ChartImageType, extension: string): Promise<void> => {
 		const root = rootRef.current
 
@@ -183,7 +201,7 @@ export function ChartContextMenu({
 						key: 'fullscreen',
 						label: 'Fullscreen',
 						icon: <Maximize2 />,
-						onAction: () => setOpen(true),
+						onAction: () => handleFullscreenChange(true),
 					} satisfies ContextMenuItem,
 				]
 			: []),
@@ -242,7 +260,7 @@ export function ChartContextMenu({
 
 			<Dialog
 				open={open}
-				onOpenChange={setOpen}
+				onOpenChange={handleFullscreenChange}
 				initialFocus={closeRef}
 				aria-label={title ?? 'Chart'}
 				// Auto-height: the panel hugs the chart, which fills the panel width at
@@ -272,7 +290,7 @@ export function ChartContextMenu({
 				</div>
 
 				<DialogFooter>
-					<Button type="button" ref={closeRef} onClick={() => setOpen(false)}>
+					<Button type="button" ref={closeRef} onClick={() => handleFullscreenChange(false)}>
 						Close
 					</Button>
 				</DialogFooter>

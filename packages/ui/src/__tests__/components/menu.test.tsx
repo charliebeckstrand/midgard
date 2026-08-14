@@ -685,6 +685,36 @@ describe('MenuItem', () => {
 	})
 })
 
+describe('MenuSub', () => {
+	it('reports both ends of the submenu open state', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More" onOpenChange={onOpenChange}>
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		// Escape inside the panel collapses it through the enclosing level, which owns
+		// which submenu is open — a route this row never calls itself.
+		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Nested' }), { key: 'Escape' })
+
+		expect(onOpenChange).toHaveBeenLastCalledWith(false)
+
+		expect(onOpenChange).toHaveBeenCalledTimes(2)
+	})
+})
+
 describe('MenuLabel / MenuDescription / MenuShortcut', () => {
 	it('renders MenuLabel with data-slot="menu-label"', () => {
 		const { container } = renderUI(<MenuLabel>Label</MenuLabel>)

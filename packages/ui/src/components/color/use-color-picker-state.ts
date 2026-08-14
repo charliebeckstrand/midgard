@@ -14,6 +14,7 @@ export type ColorPickerStateOptions = {
 	format: ColorFormat
 	alpha: boolean
 	onValueChange?: (value: string | Hsva) => void
+	onOpenChange?: (open: boolean) => void
 	placement: Placement
 	disabled: boolean
 }
@@ -31,7 +32,9 @@ export type ColorPickerStateOptions = {
  * @remarks
  * `disabled` merges the prop with the enclosing Control's; `setReference`
  * captures the trigger node for `useFloatingUI`'s `returnFocusTo` alongside
- * Floating UI's own reference setter.
+ * Floating UI's own reference setter. The returned `onOpenChange` is the only
+ * writer of the open state, so it reports the caller's `onOpenChange` directly
+ * rather than watching the committed value.
  * @internal
  */
 export function useColorPickerState({
@@ -40,6 +43,7 @@ export function useColorPickerState({
 	format,
 	alpha,
 	onValueChange,
+	onOpenChange,
 	placement,
 	disabled,
 }: ColorPickerStateOptions) {
@@ -55,12 +59,22 @@ export function useColorPickerState({
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
-	const onOpenChange = useCallback((next: boolean) => setOpen(next), [])
+	// The single writer: the trigger toggles through it, and floating-ui's dismiss
+	// paths are armed only while open, so every call it takes is a real transition
+	// and the caller's callback rides along with no change guard.
+	const handleOpenChange = useCallback(
+		(next: boolean) => {
+			setOpen(next)
+
+			onOpenChange?.(next)
+		},
+		[onOpenChange],
+	)
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
-		onOpenChange,
+		onOpenChange: handleOpenChange,
 		offset: 8,
 		role: 'dialog',
 		returnFocusTo: triggerRef,
@@ -86,7 +100,7 @@ export function useColorPickerState({
 		hsva,
 		setHsva,
 		open,
-		onOpenChange,
+		onOpenChange: handleOpenChange,
 		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,

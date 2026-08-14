@@ -9,6 +9,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useId,
 	useRef,
 	useState,
@@ -68,6 +69,16 @@ export type MenuSubProps = {
 	icon?: ReactElement
 	/** Render the parent row inert and dimmed; the submenu never opens. @defaultValue false */
 	disabled?: boolean
+	/**
+	 * Fires when this submenu opens or closes, whatever drove it: hover intent, a click,
+	 * Enter / Space, `Escape`, a blur off the row, an outside press, or a sibling row
+	 * taking the level's cursor.
+	 *
+	 * Observation only. The enclosing level owns which submenu is open — one at a time —
+	 * so there is no `open` prop to pair with. Use this to mirror the state elsewhere, not
+	 * to drive it.
+	 */
+	onOpenChange?: (open: boolean) => void
 	className?: string
 	/** The submenu's own rows — {@link MenuItem}s and {@link MenuSeparator}s. */
 	children: ReactNode
@@ -102,7 +113,14 @@ export type MenuSubProps = {
  * arrive there instead; {@link MenuTrigger} hands them over the same way.
  * @see {@link MenuItem}
  */
-export function MenuSub({ label, icon, disabled = false, className, children }: MenuSubProps) {
+export function MenuSub({
+	label,
+	icon,
+	disabled = false,
+	onOpenChange,
+	className,
+	children,
+}: MenuSubProps) {
 	const { space, size } = useDensity()
 
 	// The parent menu's height policy, so a submenu panel caps (or doesn't) the
@@ -121,6 +139,28 @@ export function MenuSub({ label, icon, disabled = false, className, children }: 
 	const { openSubmenu, enterSubmenu, closeSubmenu, registerPanel } = useMenuPointer()
 
 	const open = useMenuOpenSub() === subKey
+
+	/*
+	 * Reported from the derived open, not from a call site. This row does not own the
+	 * state — the enclosing level does, and it flips on routes the row never runs: a
+	 * sibling row taking the cursor, a pointer sweep resolving elsewhere, the level
+	 * closing the whole menu. The derived value is the one place every route meets, and
+	 * comparing against the last reported one keeps a re-render that leaves `open` alone
+	 * from announcing anything.
+	 */
+	const notifyOpenChange = useEffectEvent((next: boolean) => {
+		onOpenChange?.(next)
+	})
+
+	const prevOpenRef = useRef(open)
+
+	useEffect(() => {
+		if (prevOpenRef.current === open) return
+
+		prevOpenRef.current = open
+
+		notifyOpenChange(open)
+	}, [open])
 
 	// Whether the pending open should pull focus into the panel: set by the
 	// keyboard and click paths, left clear by hover so a pointer sweep across the

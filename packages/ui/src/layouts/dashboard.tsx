@@ -16,6 +16,14 @@ type DashboardLayoutProps = PropsWithChildren<{
 	 * they collapse behind a "Filters" button that opens them in a {@link Drawer}.
 	 */
 	filters?: ReactNode
+	/**
+	 * Fires when the mobile filter drawer opens or closes, whatever drove it: the
+	 * "Filters" button, a dismissal, or the viewport widening past `--breakpoint-lg`.
+	 *
+	 * Observation only. The layout owns the drawer and there is no `open` prop to pair
+	 * with. The desktop rail is always present, so it reports nothing.
+	 */
+	onOpenChange?: (open: boolean) => void
 }>
 
 /**
@@ -25,8 +33,8 @@ type DashboardLayoutProps = PropsWithChildren<{
  *
  * @remarks Client component: drives the mobile filter drawer via {@link useOffcanvas}.
  */
-export function DashboardLayout({ filters, children }: DashboardLayoutProps) {
-	const { open, setOpen } = useOffcanvas()
+export function DashboardLayout({ filters, onOpenChange, children }: DashboardLayoutProps) {
+	const { open, setOpen } = useOffcanvas({ onOpenChange })
 
 	return (
 		<StackedLayout>

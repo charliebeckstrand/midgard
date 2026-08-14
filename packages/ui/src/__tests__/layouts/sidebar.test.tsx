@@ -1,5 +1,5 @@
 import { createRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	SidebarLayout,
 	SidebarLayoutBody,
@@ -53,6 +53,30 @@ describe('SidebarLayout', () => {
 		fireEvent.click(trigger)
 
 		expect(screen.getAllByText('drawer-sidebar').length).toBeGreaterThanOrEqual(1)
+	})
+
+	it('reports the mobile drawer opening, and not the floating peek', () => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<SidebarLayout floating sidebar={<div>drawer-sidebar</div>} onOpenChange={onOpenChange}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		const hotZone = container.querySelector('[aria-hidden]')
+
+		if (!hotZone) throw new Error('hot zone missing')
+
+		// The desktop peek is a pointer affordance over a Sheet the layout holds
+		// separately; it is not the disclosure this prop reports.
+		fireEvent.pointerEnter(hotZone)
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
 	})
 
 	it('applies the default width class to the desktop panel', () => {

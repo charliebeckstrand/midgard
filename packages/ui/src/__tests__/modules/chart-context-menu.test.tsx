@@ -87,6 +87,35 @@ describe('Chart context menu', () => {
 		expect(screen.getByRole('dialog')).toBeInTheDocument()
 	})
 
+	it('reports both ends of the fullscreen dialog, whatever drove them', () => {
+		const onFullscreenChange = vi.fn()
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				title="Revenue by quarter"
+				data={data}
+				series={[...series]}
+				contextMenu={{ onFullscreenChange }}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		expect(onFullscreenChange).not.toHaveBeenCalled()
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+
+		expect(onFullscreenChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		// A close the menu item never drove: the dialog's own dismissal.
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+
+		expect(onFullscreenChange).toHaveBeenLastCalledWith(false)
+
+		expect(onFullscreenChange).toHaveBeenCalledTimes(2)
+	})
+
 	it('seats initial focus on Close so the fullscreen dialog opens with a tab stop', () => {
 		const { container } = renderUI(
 			<BarChart

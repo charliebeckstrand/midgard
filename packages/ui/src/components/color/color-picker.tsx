@@ -29,6 +29,14 @@ type ColorPickerBaseProps = {
 	 * @defaultValue `'bottom-start'`
 	 */
 	placement?: Placement
+	/**
+	 * Fires when the floating panel opens or closes, whatever drove it: the trigger, an
+	 * outside press, or `Escape`.
+	 *
+	 * Observation only. The picker owns its open state and there is no `open` prop to pair
+	 * with, so use this to mirror the state elsewhere, not to drive it.
+	 */
+	onOpenChange?: (open: boolean) => void
 	/** Size step; resolves through the explicit prop, then `<Control>`, then Density, then `'md'`. */
 	size?: ControlSize
 	disabled?: boolean
@@ -62,6 +70,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 	const {
 		alpha = false,
 		swatches,
+		onOpenChange,
 		placement = 'bottom-start',
 		size,
 		disabled = false,
@@ -79,6 +88,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		alpha,
 		// As in ColorPanel: the format discriminant erases into a widened handler.
 		onValueChange: props.onValueChange as unknown as ((value: string | Hsva) => void) | undefined,
+		onOpenChange,
 		placement,
 		disabled,
 	})
