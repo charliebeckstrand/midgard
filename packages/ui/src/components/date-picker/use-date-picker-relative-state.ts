@@ -16,6 +16,8 @@ import {
 	isRelativeEmpty,
 	type RelativeChip,
 	relativeChips,
+	relativeSummary,
+	resolveRelativeChips,
 	resolveRelativePresets,
 	selectedPresetIds,
 	togglePresetValue,
@@ -54,10 +56,10 @@ const ROVING_KEYS = new Set([
  * edits. The reference `now` is stamped on open so preset math and the
  * active-preset match stay stable through an interaction.
  *
- * @returns Trigger props, popover plumbing, the `chips`/`selectedIds`/
- * `customActive` derivations for display, `togglePreset`/`enterCustom`/
- * `backToList`, the per-mode `onContentKeyDown`, and the `custom`/`footer`
- * bundles.
+ * @returns Trigger props, popover plumbing, the `chips`/`summary`/`showChips`/
+ * `selectedIds`/`customActive` derivations for display,
+ * `togglePreset`/`enterCustom`/`backToList`, the per-mode `onContentKeyDown`,
+ * and the `custom`/`footer` bundles.
  * @internal
  */
 export function useDatePickerRelativeState({
@@ -88,6 +90,11 @@ export function useDatePickerRelativeState({
 	// Single-select unless `relative.multiple` opts in; drives the toggle behavior
 	// (replace vs. accumulate). The value is an array in both modes.
 	const multiple = relative !== true && relative.multiple === true
+
+	// Chips in the trigger unless `relative.chips` opts out, which swaps them for
+	// the one-line `summary`. Display only — the committed value is the same array
+	// either way.
+	const showChips = resolveRelativeChips(relative)
 
 	// Binds the committed spans to an enclosing Form field by `name`; the field
 	// error merges with Control's invalid below.
@@ -391,6 +398,10 @@ export function useDatePickerRelativeState({
 		[value, presets, pickedIds, ambient.locale, ambient.dateFormat],
 	)
 
+	// Derived from the chips, so both readings resolve their labels once and cannot
+	// drift. Not memoized: it returns a string, so there is no identity to hold.
+	const summary = relativeSummary(chips)
+
 	const selectedIds = useMemo(
 		() => selectedPresetIds(value, presets, nowRef.current, pickedIds),
 		[value, presets, pickedIds],
@@ -406,6 +417,8 @@ export function useDatePickerRelativeState({
 		hasValue,
 		onClear: handleClear,
 		chips,
+		showChips,
+		summary,
 		selectedIds,
 		customActive,
 		presets,

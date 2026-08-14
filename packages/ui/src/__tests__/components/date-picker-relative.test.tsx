@@ -2,24 +2,28 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
-import { bySlot, renderUI, screen, userEvent, within } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen, userEvent, within } from '../helpers'
 
 // Controlled relative picker: the parent holds the (always-array) value so a
-// toggle round-trips back into the chips. `multiple` opts into multi-select.
+// toggle round-trips back into the trigger. `multiple` opts into multi-select;
+// `chips` false swaps the trigger chips for the one-line text summary. Both
+// undefined resolves exactly as bare `true`, which the suite covers directly.
 function ControlledRelativePicker({
 	initial,
 	onChange,
 	multiple,
+	chips,
 }: {
 	initial?: DatePickerRelativeValue[]
 	onChange?: (value: DatePickerRelativeValue[] | null) => void
 	multiple?: boolean
+	chips?: boolean
 }) {
 	const [value, setValue] = useState<DatePickerRelativeValue[] | null>(initial ?? null)
 
 	return (
 		<DatePicker
-			relative={multiple ? { multiple: true } : true}
+			relative={{ multiple, chips }}
 			value={value}
 			onValueChange={(next: DatePickerRelativeValue[] | null) => {
 				setValue(next)
@@ -437,6 +441,86 @@ describe('DatePicker (relative)', () => {
 		expect(onChange).toHaveBeenLastCalledWith(null)
 
 		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+	})
+
+	it('shows a chip for each selection by default', async () => {
+		const user = openPicker()
+
+		const { container } = renderUI(<ControlledRelativePicker multiple />)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'This year' }))
+
+		await user.click(screen.getByRole('button', { name: 'Last year' }))
+
+		expect(allBySlot(container, 'badge')).toHaveLength(2)
+	})
+
+	it('shows the sole selection as text with chips off', async () => {
+		const user = openPicker()
+
+		const { container } = renderUI(<ControlledRelativePicker chips={false} />)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'Last 7 days' }))
+
+		const trigger = bySlot(container, 'datepicker-button')
+
+		expect(trigger).toHaveTextContent('Last 7 days')
+
+		// The label reads as plain text, so the trigger holds a control's height.
+		expect(allBySlot(container, 'badge')).toHaveLength(0)
+	})
+
+	it('counts a multiple selection past one with chips off', async () => {
+		const user = openPicker()
+
+		const { container } = renderUI(<ControlledRelativePicker multiple chips={false} />)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'This year' }))
+
+		// One selection still reads as its own label.
+		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('This year')
+
+		await user.click(screen.getByRole('button', { name: 'Last year' }))
+
+		const trigger = bySlot(container, 'datepicker-button')
+
+		expect(trigger).toHaveTextContent('2 selected')
+
+		expect(trigger).not.toHaveTextContent('This year')
+
+		expect(allBySlot(container, 'badge')).toHaveLength(0)
+	})
+
+	it('returns to the placeholder on clear with chips off', async () => {
+		const user = openPicker()
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(<ControlledRelativePicker chips={false} onChange={onChange} />)
+
+		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Select range')
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		await user.click(screen.getByRole('button', { name: 'Today' }))
+
+		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Today')
+
+		await user.click(
+			within(screen.getByRole('toolbar', { name: 'Date picker actions' })).getByRole('button', {
+				name: 'Clear selection',
+			}),
+		)
+
+		expect(onChange).toHaveBeenLastCalledWith(null)
+
+		expect(bySlot(container, 'datepicker-button')).toHaveTextContent('Select range')
 	})
 
 	it('opens with ArrowDown and roves focus across the preset rows', async () => {

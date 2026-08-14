@@ -57,6 +57,19 @@ export type DatePickerRelativeConfig = {
 	 * @defaultValue false
 	 */
 	multiple?: boolean
+	/**
+	 * Shows each committed span as a chip in the trigger. Set `false` to show the
+	 * selection as one line of text: a lone span reads as its own label — the
+	 * matched preset, or the formatted custom range — and anything past one as a
+	 * `"N selected"` count.
+	 *
+	 * The chip row wraps, so each chip that does not fit grows the trigger a row
+	 * taller. Text holds it to the height of every other control. The trade is
+	 * that a count names no labels, and none are recoverable on hover.
+	 *
+	 * @defaultValue true
+	 */
+	chips?: boolean
 }
 
 /** A rendered trigger chip: a stable React `key` plus its display label. @internal */
@@ -139,6 +152,13 @@ export function resolveRelativePresets(
 	if (relative === true) return DEFAULT_RELATIVE_PRESETS
 
 	return relative.presets ?? DEFAULT_RELATIVE_PRESETS
+}
+
+/** True while the trigger shows chips; `false` switches it to the text summary. @internal */
+export function resolveRelativeChips(relative: true | DatePickerRelativeConfig): boolean {
+	if (relative === true) return true
+
+	return relative.chips ?? true
 }
 
 /** True when no span is selected (treats `undefined` as empty). @internal */
@@ -279,4 +299,23 @@ export function relativeChips(
 
 		return { key: `custom-${index}`, label: formatRange(span.from, span.to, locale, dateFormat) }
 	})
+}
+
+/**
+ * The trigger's one-line label for the selection {@link relativeChips} renders
+ * as chips, used while `chips` is off: a lone span reads as its own label,
+ * anything past one as a `"N selected"` count, and none as `''` — the empty
+ * string the trigger shows its placeholder for.
+ *
+ * The threshold is `Combobox`'s, for the reason given at `resolveInputDisplay`:
+ * one label fits the line, two contend for it.
+ *
+ * @internal
+ */
+export function relativeSummary(chips: RelativeChip[]): string {
+	const [first] = chips
+
+	if (first === undefined) return ''
+
+	return chips.length === 1 ? first.label : `${chips.length} selected`
 }

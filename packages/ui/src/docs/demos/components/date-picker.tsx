@@ -10,6 +10,7 @@ export function Demo() {
 	const [typed, setTyped] = useState<Date | null>(null)
 	const [relative, setRelative] = useState<DatePickerRelativeValue[] | null>(null)
 	const [relativeMany, setRelativeMany] = useState<DatePickerRelativeValue[] | null>(null)
+	const [relativeText, setRelativeText] = useState<DatePickerRelativeValue[] | null>(null)
 	const [glassRange, setGlassRange] = useState<[Date, Date] | null>(null)
 
 	return (
@@ -40,6 +41,15 @@ export function Demo() {
 					relative={{ multiple: true }}
 					value={relativeMany}
 					onValueChange={setRelativeMany}
+					placeholder="Select ranges"
+				/>
+			</Example>
+
+			<Example title="Relative (text, no chips)">
+				<DatePicker
+					relative={{ multiple: true, chips: false }}
+					value={relativeText}
+					onValueChange={setRelativeText}
 					placeholder="Select ranges"
 				/>
 			</Example>

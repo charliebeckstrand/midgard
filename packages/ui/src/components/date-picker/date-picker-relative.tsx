@@ -23,8 +23,9 @@ const chipSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
  * Relative variant of {@link DatePicker}: a multi-select list of relative-range
  * presets plus a mutually-exclusive "Custom range" row that swaps the popover to
  * Start/End date fields (each an `input`-mode picker — type or pick from a
- * calendar). The live selection shows as chips in the trigger and commits an
- * array of `{ from, to }` spans. Rendered by `DatePicker` when `relative` is set.
+ * calendar). The live selection shows as chips in the trigger — or as a one-line
+ * summary under `chips: false` — and commits an array of `{ from, to }` spans.
+ * Rendered by `DatePicker` when `relative` is set.
  *
  * @internal
  */
@@ -47,6 +48,22 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	// half fills the first column, the rest the second.
 	const rows = Math.ceil((state.presets.length + 1) / 2)
 
+	// The chip row owns the trigger's value area and wraps, so each chip that does
+	// not fit grows the trigger a row taller. Leaving it undefined — for `chips:
+	// false`, or for a selection with nothing to draw — hands the area back to the
+	// trigger's own text label, which holds one line: the `summary` below, or the
+	// placeholder the trigger falls back to when that summary is empty.
+	const chipRow =
+		state.showChips && state.chips.length > 0 ? (
+			<span className={cn(k.relative.chips, 'flex-1')}>
+				{state.chips.map((chip) => (
+					<Badge key={chip.key} size={chipSize[size]} className="shrink-0 whitespace-nowrap">
+						{chip.label}
+					</Badge>
+				))}
+			</span>
+		) : undefined
+
 	return (
 		<>
 			<DatePickerTrigger
@@ -56,6 +73,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
+				displayValue={state.summary}
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
@@ -71,17 +89,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 			>
-				{state.chips.length === 0 ? (
-					<span className={cn('min-w-0 flex-1', k.placeholder)}>{placeholder}</span>
-				) : (
-					<span className={cn(k.relative.chips, 'flex-1')}>
-						{state.chips.map((chip) => (
-							<Badge key={chip.key} size={chipSize[size]} className="shrink-0 whitespace-nowrap">
-								{chip.label}
-							</Badge>
-						))}
-					</span>
-				)}
+				{chipRow}
 			</DatePickerTrigger>
 			<DatePickerContent
 				open={state.open}

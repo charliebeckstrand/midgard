@@ -8,6 +8,8 @@ import {
 	isRelativeEmpty,
 	matchRelativePreset,
 	relativeChips,
+	relativeSummary,
+	resolveRelativeChips,
 	resolveRelativePresets,
 	selectedPresetIds,
 	togglePresetValue,
@@ -89,6 +91,52 @@ describe('resolveRelativePresets', () => {
 		]
 
 		expect(resolveRelativePresets({ presets: custom })).toBe(custom)
+	})
+})
+
+describe('resolveRelativeChips', () => {
+	it('shows chips for bare true and for a config that omits the flag', () => {
+		expect(resolveRelativeChips(true)).toBe(true)
+
+		expect(resolveRelativeChips({})).toBe(true)
+
+		expect(resolveRelativeChips({ multiple: true })).toBe(true)
+	})
+
+	it('shows the text summary only for an explicit false', () => {
+		expect(resolveRelativeChips({ chips: false })).toBe(false)
+
+		expect(resolveRelativeChips({ chips: true })).toBe(true)
+	})
+})
+
+describe('relativeSummary', () => {
+	it('is empty for no selection, so the placeholder shows', () => {
+		expect(relativeSummary([])).toBe('')
+	})
+
+	it('reads a lone selection as its own label', () => {
+		expect(
+			relativeSummary(relativeChips([resolve('last-7-days')], DEFAULT_RELATIVE_PRESETS, NOW)),
+		).toBe('Last 7 days')
+	})
+
+	it('reads a lone custom span as its formatted range', () => {
+		const custom = { from: new Date(2025, 0, 3), to: new Date(2025, 0, 9) }
+
+		expect(relativeSummary(relativeChips([custom], DEFAULT_RELATIVE_PRESETS, NOW))).toBe(
+			formatRange(custom.from, custom.to),
+		)
+	})
+
+	it('counts a selection past one', () => {
+		const chips = relativeChips(
+			[resolve('today'), resolve('last-7-days'), resolve('this-year')],
+			DEFAULT_RELATIVE_PRESETS,
+			NOW,
+		)
+
+		expect(relativeSummary(chips)).toBe('3 selected')
 	})
 })
 

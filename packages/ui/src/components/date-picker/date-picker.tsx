@@ -63,11 +63,21 @@ export type DatePickerRangeProps = {
  * lets several stack. A "Custom range" row swaps to Start/End date fields (typed
  * or calendar-picked) for an arbitrary absolute span, mutually exclusive with the
  * presets. Pass `relative` (bare `true`) for the built-in presets, or a
- * {@link DatePickerRelativeConfig} to override the list or enable `multiple`.
+ * {@link DatePickerRelativeConfig} to override the list, enable `multiple`, or
+ * turn the trigger's chips off.
+ *
+ * The trigger shows the selection as chips, which wrap and grow it a row at a
+ * time. `chips: false` shows one line of text instead — the lone span's label,
+ * or a `"N selected"` count past one — so the trigger keeps a control's height.
  *
  * @example
  * ```tsx
  * <DatePicker relative value={value} onValueChange={setValue} />
+ * ```
+ *
+ * @example
+ * ```tsx
+ * <DatePicker relative={{ multiple: true, chips: false }} value={value} onValueChange={setValue} />
  * ```
  */
 export type DatePickerRelativeProps = {
