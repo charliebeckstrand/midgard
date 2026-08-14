@@ -6,8 +6,8 @@ import { allBySlot, bySlot, renderUI, screen, userEvent, within } from '../helpe
 
 // Controlled relative picker: the parent holds the (always-array) value so a
 // toggle round-trips back into the trigger. `multiple` opts into multi-select;
-// `chips` false swaps the trigger chips for the one-line text summary. Bare
-// `true` stays the path under test until a flag opts into the config form.
+// `chips` false swaps the trigger chips for the one-line text summary. Both
+// undefined resolves exactly as bare `true`, which the suite covers directly.
 function ControlledRelativePicker({
 	initial,
 	onChange,
@@ -23,7 +23,7 @@ function ControlledRelativePicker({
 
 	return (
 		<DatePicker
-			relative={multiple === undefined && chips === undefined ? true : { multiple, chips }}
+			relative={{ multiple, chips }}
 			value={value}
 			onValueChange={(next: DatePickerRelativeValue[] | null) => {
 				setValue(next)

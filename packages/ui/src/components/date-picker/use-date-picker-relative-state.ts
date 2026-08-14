@@ -91,9 +91,9 @@ export function useDatePickerRelativeState({
 	// (replace vs. accumulate). The value is an array in both modes.
 	const multiple = relative !== true && relative.multiple === true
 
-	// Chips in the trigger unless `relative.chips` opts out, which swaps them for a
-	// one-line summary so the trigger holds a control's height at any selection
-	// count. Display only — the committed value is the same array either way.
+	// Chips in the trigger unless `relative.chips` opts out, which swaps them for
+	// the one-line `summary`. Display only — the committed value is the same array
+	// either way.
 	const showChips = resolveRelativeChips(relative)
 
 	// Binds the committed spans to an enclosing Form field by `name`; the field
@@ -398,10 +398,9 @@ export function useDatePickerRelativeState({
 		[value, presets, pickedIds, ambient.locale, ambient.dateFormat],
 	)
 
-	// The same selection as one line of text, for the chip-free trigger. Derived
-	// from the chips so both readings share one label resolution (preset match,
-	// custom-range format) and cannot drift.
-	const summary = useMemo(() => relativeSummary(chips), [chips])
+	// Derived from the chips, so both readings resolve their labels once and cannot
+	// drift. Not memoized: it returns a string, so there is no identity to hold.
+	const summary = relativeSummary(chips)
 
 	const selectedIds = useMemo(
 		() => selectedPresetIds(value, presets, nowRef.current, pickedIds),

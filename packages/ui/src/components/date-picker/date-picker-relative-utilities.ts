@@ -63,12 +63,9 @@ export type DatePickerRelativeConfig = {
 	 * matched preset, or the formatted custom range — and anything past one as a
 	 * `"N selected"` count.
 	 *
-	 * The chip row wraps, so the trigger grows a row taller with each chip that
-	 * does not fit. Text holds the trigger at the height of every other control,
-	 * which is what a filter bar or a toolbar row wants. The trade is that a
-	 * `multiple` selection past one reads as a count, not as its labels; a lone
-	 * label that overflows still shows in full in the trigger's Tooltip, but a
-	 * count has no labels to recover.
+	 * The chip row wraps, so each chip that does not fit grows the trigger a row
+	 * taller. Text holds it to the height of every other control. The trade is
+	 * that a count names no labels, and none are recoverable on hover.
 	 *
 	 * @defaultValue true
 	 */
@@ -161,7 +158,7 @@ export function resolveRelativePresets(
 export function resolveRelativeChips(relative: true | DatePickerRelativeConfig): boolean {
 	if (relative === true) return true
 
-	return relative.chips !== false
+	return relative.chips ?? true
 }
 
 /** True when no span is selected (treats `undefined` as empty). @internal */
@@ -305,20 +302,14 @@ export function relativeChips(
 }
 
 /**
- * The trigger's one-line label for the same selection {@link relativeChips}
- * renders as chips, used while `chips` is off: a lone span reads as its own
- * label, and anything past one as a `"N selected"` count.
+ * The trigger's one-line label for the selection {@link relativeChips} renders
+ * as chips, used while `chips` is off: a lone span reads as its own label,
+ * anything past one as a `"N selected"` count, and none as `''` — the empty
+ * string the trigger shows its placeholder for.
  *
- * The count starts at two because one label holds the single line a chip-free
- * trigger reserves, and it says what the span is; two labels already contend for
- * that line, and the trigger truncates the second one mid-word, while a count
- * stays legible at every width. `Combobox` holds the same one-then-count
- * threshold for a `multiple` selection.
+ * The threshold is `Combobox`'s, for the reason given at `resolveInputDisplay`:
+ * one label fits the line, two contend for it.
  *
- * An empty selection returns an empty string, which is what lets the trigger
- * show its placeholder.
- *
- * @returns The label to render in the trigger.
  * @internal
  */
 export function relativeSummary(chips: RelativeChip[]): string {

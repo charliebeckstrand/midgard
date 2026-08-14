@@ -1,7 +1,6 @@
 'use client'
 
 import { ArrowLeft, ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
@@ -49,27 +48,21 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	// half fills the first column, the rest the second.
 	const rows = Math.ceil((state.presets.length + 1) / 2)
 
-	// The chip row owns the trigger's value area and wraps, so the trigger grows a
-	// row with each chip that does not fit the line. `chips: false` leaves this
-	// undefined and hands the area back to the trigger's own text label — the
-	// `summary`, truncated under a Tooltip as in every other variant — which holds
-	// one line however many spans are committed.
-	let chipRow: ReactNode
-
-	if (state.showChips) {
-		chipRow =
-			state.chips.length === 0 ? (
-				<span className={cn('min-w-0 flex-1', k.placeholder)}>{placeholder}</span>
-			) : (
-				<span className={cn(k.relative.chips, 'flex-1')}>
-					{state.chips.map((chip) => (
-						<Badge key={chip.key} size={chipSize[size]} className="shrink-0 whitespace-nowrap">
-							{chip.label}
-						</Badge>
-					))}
-				</span>
-			)
-	}
+	// The chip row owns the trigger's value area and wraps, so each chip that does
+	// not fit grows the trigger a row taller. Leaving it undefined — for `chips:
+	// false`, or for a selection with nothing to draw — hands the area back to the
+	// trigger's own text label, which holds one line: the `summary` below, or the
+	// placeholder the trigger falls back to when that summary is empty.
+	const chipRow =
+		state.showChips && state.chips.length > 0 ? (
+			<span className={cn(k.relative.chips, 'flex-1')}>
+				{state.chips.map((chip) => (
+					<Badge key={chip.key} size={chipSize[size]} className="shrink-0 whitespace-nowrap">
+						{chip.label}
+					</Badge>
+				))}
+			</span>
+		) : undefined
 
 	return (
 		<>
@@ -80,7 +73,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				describedBy={state.describedBy}
 				setReference={state.setReference}
 				getReferenceProps={state.getReferenceProps}
-				displayValue={state.showChips ? undefined : state.summary}
+				displayValue={state.summary}
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}

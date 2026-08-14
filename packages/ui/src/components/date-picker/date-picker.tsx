@@ -77,7 +77,6 @@ export type DatePickerRangeProps = {
  *
  * @example
  * ```tsx
- * // Multi-select, held to one line: "Last 7 days" → "3 selected".
  * <DatePicker relative={{ multiple: true, chips: false }} value={value} onValueChange={setValue} />
  * ```
  */
@@ -201,8 +200,7 @@ export type DatePickerProps = DatePickerBaseProps &
  * keyboard user never loses the field; it also keeps the reference group out of
  * the modal trap's `aria-hidden` marking and closes its own Tab cycle. The
  * `relative` variant's preset list uses real focusable toggle buttons
- * shown as chips in the trigger — or as a one-line `"N selected"` summary under
- * `relative={{ chips: false }}` — swapping to Start/End `input`-mode date fields
+ * shown as chips in the trigger, swapping to Start/End `input`-mode date fields
  * for a custom range.
  *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
