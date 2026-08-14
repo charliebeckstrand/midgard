@@ -160,7 +160,8 @@ export function focusWithoutReveal(el: HTMLElement): void {
  * be a single line (`nowrap` + ellipsis) with no padding or border of its own.
  *
  * Shared by the grid's data-cell and header truncation ({@link useGridTruncation}
- * layers a resize-settle backstop on top) and the chart legend's entry labels.
+ * layers a resize-settle backstop on top) and by the chart and map legends'
+ * entry labels.
  *
  * @param options - `armRef`: element whose pointer/focus contact arms the
  * measure, when the reveal's trigger surface is an ancestor of the measured

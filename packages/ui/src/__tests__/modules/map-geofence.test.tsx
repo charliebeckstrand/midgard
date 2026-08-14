@@ -434,3 +434,136 @@ describe('zoneBudget and zoneSpare', () => {
 		expect(zoneSpare(zone, { x: 30, y: 30 })).toBe(Infinity)
 	})
 })
+
+/**
+ * A zone and the mark inside it merging into one legend entry. The pairing is the
+ * whole point of `group`: a catchment and its depot are one place to a reader,
+ * and the legend counted them as two.
+ */
+describe('MapGeofence group', () => {
+	/** A catchment and the depot standing in it, named as one place. */
+	function pair(group = 'Dallas') {
+		return plat(
+			<>
+				<MapGeofence label="Dallas" group={group} boundary={ZONE} detail="Next day" />
+
+				<MapPoint label="Dallas" group={group} at={[8, 5]} detail="Depot" />
+			</>,
+		)
+	}
+
+	it('merges the pair into one entry, named and detailed by the first member', () => {
+		const { container } = renderUI(pair())
+
+		const items = allBySlot(container, 'map-legend-item')
+
+		expect(items).toHaveLength(1)
+
+		// The zone registers first, so the entry takes its label and its readout —
+		// the depot's own "Depot" stays on the depot, in the tooltip and the table.
+		expect(items[0]?.textContent).toBe('DallasNext day')
+	})
+
+	it('keys the entry with one swatch per mark shape in the group', () => {
+		const { container } = renderUI(pair())
+
+		const keys = allBySlot(bySlot(container, 'map-legend-keys') as HTMLElement, 'swatch')
+
+		// The area then the point, in registration order: the pair says what it holds
+		// without a word for either.
+		expect(keys.map((key) => key.getAttribute('data-shape'))).toEqual(['square', 'circle'])
+	})
+
+	it('paints every member in the colour its first member takes', () => {
+		const { container } = renderUI(
+			plat(
+				<>
+					<MapGeofence label="Dallas" group="Dallas" boundary={ZONE} color="rose" />
+
+					<MapPoint label="Dallas" group="Dallas" at={[8, 5]} />
+				</>,
+			),
+		)
+
+		expect(bySlot(container, 'map-geofence')?.getAttribute('class')).toContain('stroke-rose-600')
+
+		// The depot names no colour of its own and takes the group's rather than the
+		// next slot — two colours under one label would read as two things. A dot
+		// strokes where a zone fills, so the shared hue reads off the stroke here.
+		expect(bySlot(container, 'map-point')?.getAttribute('class')).toContain('stroke-rose-600')
+	})
+
+	it('toggles every member off through the merged entry', () => {
+		const { container } = renderUI(pair())
+
+		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+
+		expect(bySlot(container, 'map-geofence')).toBeNull()
+
+		expect(bySlot(container, 'map-point')).toBeNull()
+
+		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+
+		expect(bySlot(container, 'map-geofence')).not.toBeNull()
+
+		expect(bySlot(container, 'map-point')).not.toBeNull()
+	})
+
+	it('emphasises the group together and dims what stands outside it', () => {
+		const { container } = renderUI(
+			plat(
+				<>
+					<MapGeofence label="Dallas" group="Dallas" boundary={ZONE} />
+
+					<MapPoint label="Dallas" group="Dallas" at={[8, 5]} />
+
+					<MapPoint label="Reno" at={[12, 6]} />
+				</>,
+			),
+		)
+
+		const [dallas] = allBySlot(container, 'map-legend-item')
+
+		fireEvent.pointerEnter(dallas as HTMLButtonElement)
+
+		const dimmed = allBySlot(container, 'map-point').map((point) =>
+			point.parentElement?.getAttribute('class')?.includes('opacity-25'),
+		)
+
+		// Both halves of the group hold; the ungrouped mark recedes.
+		expect(bySlot(container, 'map-geofence')?.parentElement?.getAttribute('class')).not.toContain(
+			'opacity-25',
+		)
+
+		expect(dimmed).toEqual([false, true])
+	})
+
+	it('keeps each member its own tooltip name and table row', () => {
+		const { container } = renderUI(pair())
+
+		// The pointer lands on a mark, not on a group, so merging the legend must not
+		// merge the readout: the table still carries a row per mark.
+		expect(bySlot(container, 'map-table')?.textContent).toContain('Depot')
+
+		expect(bySlot(container, 'map-table')?.textContent).toContain('Next day')
+	})
+
+	it('leaves an ungrouped mark its own entry', () => {
+		const { container } = renderUI(
+			plat(
+				<>
+					<MapGeofence label="Dallas" group="Dallas" boundary={ZONE} />
+
+					<MapPoint label="Dallas" group="Dallas" at={[8, 5]} />
+
+					<MapPoint label="Reno" at={[12, 6]} />
+				</>,
+			),
+		)
+
+		expect(allBySlot(container, 'map-legend-item').map((item) => item.textContent)).toEqual([
+			'Dallas',
+			'Reno',
+		])
+	})
+})

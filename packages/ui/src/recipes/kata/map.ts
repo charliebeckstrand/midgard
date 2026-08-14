@@ -149,8 +149,9 @@ export const k = {
 	 * The legend's reserved box, mounted before any button registers so the
 	 * frame never shifts as entries land: the `row` placements (top / bottom,
 	 * and every placement stacked below `lg`) hold one item-row of height,
-	 * and the side `panel` holds a fixed column width from `lg` — labels wrap
-	 * inside it — so the plot's width never depends on what has registered.
+	 * and the side `panel` holds a fixed column width from `lg` — a label too
+	 * wide for it clips, revealing itself on hover — so the plot's width never
+	 * depends on what has registered.
 	 */
 	legendBox: {
 		row: 'min-h-4',

@@ -14,6 +14,7 @@ import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat, useMapPointedMark, useMapZoomScale } from './context'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
+import { groupLegendId } from './engine/map-legend/items'
 import type { MapOverlayKind, MapStopRow } from './engine/map-overlay/entry'
 import { ownStop, pickedStop } from './engine/map-overlay/selection'
 import type { LngLat, MapPoint2D, MapSwatchShape } from './engine/types'
@@ -41,8 +42,38 @@ export type MapOverlayProps = {
 	 * for the mount.
 	 */
 	id?: string
-	/** Legend and tooltip name; one entry per mark, however many shapes it draws. */
+	/**
+	 * Legend and tooltip name. One entry per mark however many shapes it draws —
+	 * unless {@link group} merges it with the marks standing for the same place.
+	 */
 	label: string
+	/**
+	 * A name shared with the marks that stand for the same place, merging them into
+	 * ONE legend entry — a depot's catchment and the depot inside it as a single
+	 * row, rather than the same city listed twice.
+	 *
+	 * The group's first-registered member names the entry and gives it its
+	 * {@link detail}, so the order the marks are written in is the order that
+	 * decides it — the order a zone already has to be written in to draw behind the
+	 * marks it holds. The entry keys itself with one swatch per distinct mark shape
+	 * in the group, so a square beside a dot says an area and a point without a
+	 * word for either. Toggling it hides every member, and pointing it emphasises
+	 * them together.
+	 *
+	 * The group also takes ONE slot colour — its first member's, whether that is an
+	 * explicit {@link color} or the slot the plat assigned — because two colours
+	 * under one label would read as two things. So a group needs no `color` at all
+	 * to draw as one, and naming the first member's colour names the group's.
+	 *
+	 * Omitted, the mark takes an entry of its own, which is every mark's default:
+	 * merging is worth asking for where the marks are one thing to the reader, and
+	 * wrong where they are separately switchable.
+	 *
+	 * @remarks It groups the LEGEND alone. Each mark keeps its own tooltip, its own
+	 * table row, and its own keyboard stop, because the pointer lands on a mark and
+	 * not on a group — a reader pointing the zone still reads the zone.
+	 */
+	group?: string
 	/** Named mark colour override; defaults to the next slot after the region categories. */
 	color?: MapSeriesColor
 	/** A trailing readout in the legend and tooltip — a count, a status, a mileage. */
@@ -221,6 +252,7 @@ export type MapOverlay = {
 export function useMapOverlay({
 	id: given,
 	label,
+	group,
 	color,
 	detail,
 	onClick,
@@ -235,6 +267,18 @@ export function useMapOverlay({
 	const generated = useId()
 
 	const id = given ?? generated
+
+	// Which id this mark's emphasis answers to: its group's legend id where it
+	// merged into one, else its own. `mapMarkDimmed` has always taken this — the
+	// region layer passes a category id — so a grouped mark is not a case it learns,
+	// only the first overlay with something better than its own id to pass.
+	//
+	// The toggle resolves plat-side instead, where the same expansion serves the
+	// four readers that index `hidden` by mark id and hold no group of their own
+	// (the keyboard stops, the dot pool, the zone budgets, the tooltip). The mark
+	// could ask `hidden.has(groupId)` here and be symmetric; it would save none of
+	// them the expansion, so the mark reads the expanded set like every other.
+	const groupId = group === undefined ? id : groupLegendId(group)
 
 	const {
 		project,
@@ -329,6 +373,7 @@ export function useMapOverlay({
 				label,
 				kind,
 				swatch,
+				group,
 				color,
 				detail,
 				stopsAt,
@@ -337,7 +382,21 @@ export function useMapOverlay({
 				spare: budget,
 				stopOf: stopAt,
 			}),
-		[register, id, label, kind, swatch, color, detail, stopsAt, rowsKey, activate, budget, stopAt],
+		[
+			register,
+			id,
+			label,
+			kind,
+			swatch,
+			group,
+			color,
+			detail,
+			stopsAt,
+			rowsKey,
+			activate,
+			budget,
+			stopAt,
+		],
 	)
 
 	const track = useCallback(
@@ -398,7 +457,7 @@ export function useMapOverlay({
 		order: order.get(id) ?? 0,
 		// Spread, not passed whole: `cn` memoises on string arguments and sends an
 		// array straight to the merge, and this resolves per mark on every crossing.
-		dim: cn(...k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, id))),
+		dim: cn(...k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId))),
 		selected,
 		onPointerLeave: () => set(null, null),
 		hit,
