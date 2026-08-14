@@ -4,10 +4,135 @@ import { type KeyboardEvent, useRef } from 'react'
 import { Button } from '../../components/button'
 import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
+import { useTruncation } from '../../hooks/use-truncation'
 import type { MapLegendItem } from './engine/map-legend/items'
 import { mapSwatchShapes } from './map-swatch'
+
+/** Props for {@link MapLegendEntry}. @internal */
+type MapLegendEntryProps = {
+	item: MapLegendItem
+	/** The entry is toggled off — its label strikes through and its keys dim. */
+	off: boolean
+	/** Panel layout: the entry stretches to the rail so every readout shares one right edge. */
+	panel: boolean
+	/** Toggles this entry on or off. */
+	onToggle: (id: string) => void
+	/** Emphasises this entry's marks (`null` clears). */
+	onFocus: (id: string | null) => void
+}
+
+/**
+ * One legend entry: the keys mirroring the marks it stands for, the name, and
+ * its trailing readout — on one line, always. The name truncates to hold that
+ * line and a hover or keyboard focus reveals it in full once it clips.
+ *
+ * The reveal is the chart legend's, and deliberately: both legends cap a name
+ * against a rail narrower than the names people give things, and a reader who
+ * cannot finish reading one must not have to learn a second way to.
+ *
+ * @remarks The tooltip wraps the whole control rather than the label span,
+ * because a {@link Button}'s touch-target overlay captures the pointer and
+ * forwards it by bubbling — a tooltip anchored to an inner span would never see
+ * the hover. Overflow is measured on the span through the shared
+ * {@link useTruncation}, and a closed (unclipped) tooltip renders no surface, so
+ * an entry that fits adds no DOM.
+ * @internal
+ */
+function MapLegendEntry({ item, off, panel, onToggle, onFocus }: MapLegendEntryProps) {
+	// The whole entry is the tooltip's trigger, so its contact — not the label
+	// span's — is what arms the measure.
+	const entryRef = useRef<HTMLButtonElement>(null)
+
+	const [labelRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: entryRef })
+
+	const control = (
+		<Button
+			type="button"
+			ref={entryRef}
+			size="sm"
+			variant="plain"
+			data-slot="map-legend-item"
+			aria-pressed={!off}
+			// The panel's entries stretch to the rail so the readouts share one right
+			// edge rather than each entry centring its own content; the row under the
+			// map keeps every entry its own width.
+			className={cn('gap-2', panel && 'lg:w-full lg:justify-start')}
+			onClick={() => onToggle(item.id)}
+			onPointerEnter={() => onFocus(item.id)}
+			onPointerLeave={() => onFocus(null)}
+			onFocus={() => onFocus(item.id)}
+			onBlur={() => onFocus(null)}
+		>
+			{/* One key per distinct mark shape the entry stands for — a lone swatch for
+			    a category or an ungrouped mark, a square beside a dot where a zone and
+			    the mark inside it merged into one place. */}
+			<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1">
+				{item.swatches.map((swatch) => (
+					<Swatch
+						key={swatch.shape}
+						shape={mapSwatchShapes[swatch.shape]}
+						color={swatch.className}
+						style={swatch.color ? { color: swatch.color } : undefined}
+						className={cn(off && 'opacity-40')}
+					/>
+				))}
+			</span>
+
+			{/* Beside the label rather than under it: the readout is a short,
+			    predictable word — a mileage, a count, a service class — so it holds its
+			    own right-hand column, where stacking the two spent a second line on
+			    every entry that carried one.
+
+			    The entry is one line whatever it holds. The name gives up the width,
+			    because it is the half that can be given up gracefully: it clips to an
+			    ellipsis and the reveal above hands it back in full, where a readout
+			    clipped to "Same d…" says nothing and a wrapped one costs the line the
+			    stack was traded away to save. */}
+			{/* The clipping box is structural and nothing else: the off treatment stays
+			    on the label itself, which is the slot that names it. */}
+			<span ref={labelRef} className="block min-w-0 flex-1 truncate text-left">
+				<Text
+					as="span"
+					size="sm"
+					data-slot="map-legend-label"
+					severity="muted"
+					className={cn('leading-tight', off && 'line-through opacity-60')}
+				>
+					{item.label}
+				</Text>
+			</span>
+
+			{item.detail && (
+				// A step down the scale rather than the label's own size: a readout that
+				// matched its name competed with it for the eye, and the width it took at
+				// that size is width the name is now clipped for want of.
+				<Text
+					as="span"
+					size="xs"
+					data-slot="map-legend-detail"
+					severity="muted"
+					className={cn(
+						'shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
+						off && 'opacity-60',
+					)}
+				>
+					{item.detail}
+				</Text>
+			)}
+		</Button>
+	)
+
+	return (
+		<Tooltip enabled={truncated}>
+			<TooltipTrigger>{control}</TooltipTrigger>
+
+			<TooltipContent>{item.label}</TooltipContent>
+		</Tooltip>
+	)
+}
 
 /** Props for {@link MapLegend}. @internal */
 export type MapLegendProps = {
@@ -34,7 +159,8 @@ export type MapLegendProps = {
  *
  * @remarks The row is one Tab stop; the arrow keys rove between entries
  * (Home / End jump to the ends) and Escape drops focus, clearing the
- * emphasis.
+ * emphasis. Each entry holds one line, revealing a clipped name on hover or
+ * focus ({@link MapLegendEntry}).
  * @internal
  */
 export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: MapLegendProps) {
@@ -71,97 +197,24 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 				// Layout the legend as a grid; the side panel modifies the
 				// spacing and width at larger breakpoints.
 				'mx-auto grid w-fit max-w-full justify-items-start',
-				panel && 'lg:mx-0 lg:w-full',
+				// The panel's column is capped (`grid-cols-1` tracks at `minmax(0,1fr)`)
+				// rather than left to size itself. An implicit track is max-content, and
+				// an entry whose name never wraps contributes its whole name to that —
+				// so the track grew past the rail it sits in and the entries overhung the
+				// reserved column instead of clipping inside it.
+				panel && 'lg:mx-0 lg:w-full lg:grid-cols-1',
 			)}
 		>
-			{items.map((item) => {
-				const off = hidden.has(item.id)
-
-				return (
-					<Button
-						type="button"
-						key={item.id}
-						size="sm"
-						variant="plain"
-						data-slot="map-legend-item"
-						aria-pressed={!off}
-						// Aligned to the top rather than centered: a label long enough to wrap
-						// used to carry its swatch down to the middle of the block with it,
-						// leaving one key off the line every other key sits on. The panel's
-						// entries stretch to its width so the trailing readouts share one right
-						// edge; the centered row keeps each entry its own width.
-						className={cn('items-start gap-2', panel && 'lg:w-full lg:justify-start')}
-						onClick={() => onToggle(item.id)}
-						onPointerEnter={() => onFocus(item.id)}
-						onPointerLeave={() => onFocus(null)}
-						onFocus={() => onFocus(item.id)}
-						onBlur={() => onFocus(null)}
-					>
-						{/* One key per distinct mark shape the entry stands for — a lone swatch
-						    for a category or an ungrouped mark, a square beside a dot where a
-						    zone and the mark inside it merged into one place. Padded to the
-						    first line's middle, which is what the top alignment above costs and
-						    what a wrapped label made worth paying. */}
-						<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1 pt-1">
-							{item.swatches.map((swatch) => (
-								<Swatch
-									key={swatch.shape}
-									shape={mapSwatchShapes[swatch.shape]}
-									color={swatch.className}
-									style={swatch.color ? { color: swatch.color } : undefined}
-									className={cn(off && 'opacity-40')}
-								/>
-							))}
-						</span>
-
-						{/* Beside the label rather than under it: the readout is a short,
-						    predictable word — a mileage, a count, a service class — so it holds
-						    its own right-hand column, where stacking the two spent a second line
-						    on every entry that carried one.
-
-						    The row wraps rather than the name. Neither half shrinks, so a pair
-						    too wide for the rail drops the READOUT to a second line with the
-						    name intact — the old stack, but only where it is earned. Letting
-						    the name take the slack instead broke "Los Angeles" across two lines
-						    to keep a readout beside it, which is the wrong half to give up: the
-						    name is what a reader matches against the map. The truncation under
-						    it is the backstop for a single word wider than the whole rail,
-						    which no wrap can help. */}
-						<span className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-1.5">
-							<Text
-								as="span"
-								size="sm"
-								data-slot="map-legend-label"
-								severity="muted"
-								className={cn(
-									'max-w-full shrink-0 truncate text-left leading-tight',
-									off && 'line-through opacity-60',
-								)}
-							>
-								{item.label}
-							</Text>
-
-							{item.detail && (
-								// A step down the scale rather than the label's own size: a readout
-								// that matched its name competed with it, and the width it took at
-								// that size is the width the name had to wrap to give up.
-								<Text
-									as="span"
-									size="xs"
-									data-slot="map-legend-detail"
-									severity="muted"
-									className={cn(
-										'ml-auto shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
-										off && 'opacity-60',
-									)}
-								>
-									{item.detail}
-								</Text>
-							)}
-						</span>
-					</Button>
-				)
-			})}
+			{items.map((item) => (
+				<MapLegendEntry
+					key={item.id}
+					item={item}
+					off={hidden.has(item.id)}
+					panel={panel}
+					onToggle={onToggle}
+					onFocus={onFocus}
+				/>
+			))}
 		</div>
 	)
 }
