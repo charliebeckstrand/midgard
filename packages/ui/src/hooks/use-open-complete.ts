@@ -3,8 +3,9 @@
 import { useCallback, useRef } from 'react'
 
 /**
- * Reports a panel's arrival exactly once, for a surface whose animated element mounts and
- * unmounts with its open state (`PresencePortal`).
+ * Reports a panel's arrival exactly once, for a surface that animates it — whether the
+ * element mounts and unmounts with the open state (`PresencePortal`) or stays mounted and
+ * animates in place (a held `Collapse` or `Accordion` panel).
  *
  * Two things make the report awkward enough to share. The reset happens while the panel is
  * closed rather than when the arrival is reported, so a reopen reports again while a second
@@ -32,10 +33,10 @@ export function useOpenComplete(
 
 	if (!open) reportedRef.current = false
 
-	// Held in a ref rather than a dependency. A caller that binds a payload — an accordion
-	// section naming itself — has no stable identity to hand over, and keying the memo on
-	// the callback would push a `useCallback` into every such caller for a value only
-	// Drawer reads. Refreshed each render, so `report` always calls the newest.
+	// A ref rather than `useEffectEvent`, which returns a fresh function per render: `report`
+	// escapes into a caller's dependency array (Drawer's arrival effect), so it must be one
+	// identity for the mount. The ref also spares a caller that binds a payload — an
+	// accordion section naming itself — from memoizing a callback only Drawer reads.
 	const onOpenCompleteRef = useRef(onOpenComplete)
 
 	onOpenCompleteRef.current = onOpenComplete

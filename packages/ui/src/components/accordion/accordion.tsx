@@ -70,10 +70,10 @@ export function Accordion(props: AccordionProps) {
 
 	const { isOpen, toggle } = useAccordionSelection(props)
 
-	// Held behind a stable identity. An inline arrow would otherwise be the one unstable
-	// member of the context value, and every item and panel reads that value — so a
-	// memoized subtree would re-render the whole set on each parent tick for a callback
-	// that never changed. Raised only from a panel's landing, never during render.
+	// Wrapped so the context memo need not key on the caller's callback, which would
+	// otherwise be its one unstable member — and every item and panel reads that value.
+	// The wrapper is not itself a stable identity — it routes to the newest callback,
+	// and the memo's dependency list is what holds the value steady.
 	const reportOpenComplete = useEffectEvent((value: string) => {
 		onOpenComplete?.(value)
 	})

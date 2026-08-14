@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
@@ -35,6 +35,10 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	const { open, animate, mount, onOpenComplete, panelProps } = useCollapseContext()
 
 	const hold = useMountHold(open, mount, { defer: animate !== false })
+
+	// Frozen at mount: whether this panel started open decides its motion entry point,
+	// and a held panel reads that long after the value has moved on.
+	const mountedOpen = useRef(open)
 
 	// The preset itself rather than its key, so one `undefined` covers `animate={false}`
 	// and narrows every read below it.
@@ -95,10 +99,14 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 		<ReducedMotion>
 			<Hold hold={hold} name="collapse-panel">
 				{section({
-					// A `lazy` panel mounts on its first open, so it enters from the
-					// closed state; an `always` panel is present from the start and
-					// takes its open-or-closed state without playing anything.
-					initial: mount === 'lazy' ? preset.initial : false,
+					// Keyed on the state this panel mounted in, not on the policy. Motion
+					// reads `initial` at its first `animateChanges`, which a held panel
+					// defers until its first reveal — so `false` there suppresses the
+					// reveal rather than the mount, leaving the panel shut and its
+					// landing unreported. A panel that mounted open instead matches
+					// `initial` to the target, which is the other arm of the same guard,
+					// so it still takes its open state without playing anything.
+					initial: mountedOpen.current ? preset.animate : preset.initial,
 					// Held, so it animates between the two states in place rather than
 					// entering and exiting — no `exit`, which only `AnimatePresence` reads.
 					animate: open ? preset.animate : preset.exit,
