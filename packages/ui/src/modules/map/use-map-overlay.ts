@@ -42,7 +42,10 @@ export type MapOverlayProps = {
 	 * for the mount.
 	 */
 	id?: string
-	/** Legend and tooltip name; one entry per mark, however many shapes it draws. */
+	/**
+	 * Legend and tooltip name. One entry per mark however many shapes it draws —
+	 * unless {@link group} merges it with the marks standing for the same place.
+	 */
 	label: string
 	/**
 	 * A name shared with the marks that stand for the same place, merging them into
@@ -265,10 +268,16 @@ export function useMapOverlay({
 
 	const id = given ?? generated
 
-	// Which id this mark's toggle and emphasis answer to: its group's legend id
-	// where it merged into one, else its own. The plat's `hidden` set carries both
-	// — it expands a hidden group to its members — so only the emphasis, which is
-	// one id rather than a set, has to resolve the group here.
+	// Which id this mark's emphasis answers to: its group's legend id where it
+	// merged into one, else its own. `mapMarkDimmed` has always taken this — the
+	// region layer passes a category id — so a grouped mark is not a case it learns,
+	// only the first overlay with something better than its own id to pass.
+	//
+	// The toggle resolves plat-side instead, where the same expansion serves the
+	// four readers that index `hidden` by mark id and hold no group of their own
+	// (the keyboard stops, the dot pool, the zone budgets, the tooltip). The mark
+	// could ask `hidden.has(groupId)` here and be symmetric; it would save none of
+	// them the expansion, so the mark reads the expanded set like every other.
 	const groupId = group === undefined ? id : groupLegendId(group)
 
 	const {

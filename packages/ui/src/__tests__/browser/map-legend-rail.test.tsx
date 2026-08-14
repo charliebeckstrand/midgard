@@ -52,7 +52,9 @@ describe('map legend rail (real browser)', () => {
 
 		const entries = allBySlot(container, 'map-legend-item') as HTMLElement[]
 
-		const [first] = entries
+		// The line every entry is measured against, read once — the loop below asks
+		// only whether the others match it.
+		const line = (entries[0] as HTMLElement).getBoundingClientRect().height
 
 		for (const entry of entries) {
 			const rect = entry.getBoundingClientRect()
@@ -65,7 +67,7 @@ describe('map legend rail (real browser)', () => {
 
 			// One line, whatever the entry carries — the readout sits beside the name
 			// rather than under it, and the name clips instead of wrapping.
-			expect(rect.height).toBeCloseTo((first as HTMLElement).getBoundingClientRect().height, 0)
+			expect(rect.height).toBeCloseTo(line, 0)
 		}
 	})
 

@@ -22,7 +22,7 @@ import { mapStops } from './engine/map-keyboard/stops'
 import { groupLegendId, legendItems, overlaySwatchClass } from './engine/map-legend/items'
 import { planMapLegend } from './engine/map-legend/plan'
 import { overlaySlotColors } from './engine/map-overlay/slots'
-import { categoryLegendId, regionGroupId } from './engine/map-region/category'
+import { regionGroupId } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
 import type { MapZoomInput } from './engine/map-zoom/input'
@@ -567,20 +567,23 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// What the legend has switched off, as the MARKS it silences: the switchboard's
 	// own set, plus every member of a group toggled off through its merged entry.
-	// Expanded once here rather than resolved by each reader, because a dozen of
-	// them ask this question — the region layer, the tooltip, the table, the
-	// keyboard stops, the dot pool, the zone budgets, and every mark's own `hidden`
-	// — and each would otherwise have to know that an entry id can stand for
-	// several marks. The legend reads it too, and may: a group's own id is in the
-	// switchboard's set already, so expansion only ever adds ids no entry draws.
+	// Expanded once here rather than resolved by each reader, because five of them
+	// ask this question — the region layer, the tooltip, the keyboard stops, the dot
+	// pool, and every mark's own `hidden`, which the zone budgets read through — and
+	// each would otherwise have to know that an entry id can stand for several
+	// marks. The legend is handed the switchboard's own set instead, since an entry
+	// is what it draws.
+	//
+	// A map with no group hands `switched` straight back rather than a copy of it,
+	// for its identity and not the allocation: `regionActive` is the one reader that
+	// does not already depend on `entries`, so a fresh set here would re-key the
+	// memoised region layer on every overlay registration.
 	const hidden = useMemo<ReadonlySet<string>>(() => {
-		const groups = entries.filter(
-			(entry) => entry.group !== undefined && switched.has(groupLegendId(entry.group)),
+		const members = entries.flatMap((entry) =>
+			entry.group !== undefined && switched.has(groupLegendId(entry.group)) ? [entry.id] : [],
 		)
 
-		if (groups.length === 0) return switched
-
-		return new Set<string>([...switched, ...groups.map((entry) => entry.id)])
+		return members.length === 0 ? switched : new Set<string>([...switched, ...members])
 	}, [switched, entries])
 
 	// The region layer reports the index it resolved off the pointed path's anchor;
@@ -657,23 +660,29 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// The focused id can outlive its entry: an overlay unmounting under the
 	// pointer fires no leave or blur, so `useMapToggle` keeps the dead id. Gate
-	// emphasis on the live legend ids — the categories plus the registered
-	// overlays — so a stale focus can't dim the whole map against a group that no
-	// mark belongs to.
-	// A merged group's id joins them: the legend emphasises by the id it drew, which
-	// for a group is the group's rather than any one member's, and an id with no
-	// group here would be gated out and dim the whole map against nothing.
-	const legendIds = useMemo(
-		() =>
-			new Set<string>([
-				...categoryMetas.map((meta) => categoryLegendId(meta.value)),
-				...entries.map((entry) => entry.id),
-				...entries.flatMap((entry) =>
-					entry.group === undefined ? [] : [groupLegendId(entry.group)],
-				),
-			]),
-		[categoryMetas, entries],
+	const numeric = valueKey !== undefined
+
+	// The entries the legend draws. Memoised like the sibling derivations
+	// (`colors`, `tooltipEntries`, the table): the plat re-renders per legend
+	// focus, toggle, and resize commit, in none of which the items change —
+	// without the memo each such render rebuilds every item object and its class
+	// join. Resolved here rather than beside the legend it feeds, because the
+	// emphasis gate below is the other reader and has to agree with it exactly.
+	const items = useMemo(
+		() => legendItems(categoryMetas, entries, colors, numeric),
+		[categoryMetas, entries, colors, numeric],
 	)
+
+	// emphasis on the live legend ids, so a stale focus can't dim the whole map
+	// against a group that no mark belongs to.
+	//
+	// Read off the drawn entries rather than re-derived from the categories and the
+	// ledger: the emphasis is only ever an id the legend published, and re-deriving
+	// admitted ids it never publishes. A grouped mark's own id was one — the legend
+	// emphasises its GROUP, so that id passed the gate and then dimmed every mark
+	// including the one it named, which is the failure this gate exists to prevent.
+	// Taken from the items, any entry kind added later is gated by construction.
+	const legendIds = useMemo(() => new Set(items.map((item) => item.id)), [items])
 
 	// A controlled `emphasis` wins over this plat's own legend focus, so several
 	// plats can share one legend rendered outside them all. The live-id gate below
@@ -934,8 +943,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// would hand a backdrop map a stop that answers every key with nothing.
 	const navigable = (readable || pickable || zoomable) && shape.viewWidth > 0
 
-	const numeric = valueKey !== undefined
-
 	// The range bar's placement follows the chart's tier, so it reads the
 	// container width — not the plot's, which a side bar shrinks, feeding the move
 	// back on itself. The heatmap places its own bar by the same reading, so the
@@ -1006,15 +1013,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		</svg>
 	)
 
-	// Memoised like the sibling derivations (`colors`, `tooltipEntries`, the
-	// table): the plat re-renders per legend focus, toggle, and resize commit,
-	// in none of which the items change — without the memo each such render
-	// rebuilds every item object and its class join.
-	const items = useMemo(
-		() => legendItems(categoryMetas, entries, colors, numeric),
-		[categoryMetas, entries, colors, numeric],
-	)
-
 	// The visually-hidden table renders one row per region — thousands on a
 	// county atlas — and none of it is mount-critical: defer it off the urgent
 	// render the way the chart frame defers its data table, so the geography
@@ -1061,7 +1059,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 					show={showLegend}
 					aside={aside}
 					items={items}
-					hidden={hidden}
+					hidden={switched}
 					onToggle={toggle}
 					onFocus={setFocus}
 				/>

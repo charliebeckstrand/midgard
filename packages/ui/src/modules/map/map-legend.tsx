@@ -1,6 +1,6 @@
 'use client'
 
-import { type KeyboardEvent, useRef } from 'react'
+import { type KeyboardEvent, memo, useRef } from 'react'
 import { Button } from '../../components/button'
 import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
@@ -39,9 +39,22 @@ type MapLegendEntryProps = {
  * the hover. Overflow is measured on the span through the shared
  * {@link useTruncation}, and a closed (unclipped) tooltip renders no surface, so
  * an entry that fits adds no DOM.
+ *
+ * Memoised, because the plat re-renders on every legend point and leave and the
+ * entry is no longer a bare button: it now carries the truncation measure and
+ * the floating stack behind the reveal, both of which run per commit. Every prop
+ * holds across those renders — the items are memoised, and the two handlers are
+ * `useMapToggle`'s own — so the whole legend bails out of a crossing that
+ * changed nothing but which entry is emphasised.
  * @internal
  */
-function MapLegendEntry({ item, off, panel, onToggle, onFocus }: MapLegendEntryProps) {
+const MapLegendEntry = memo(function MapLegendEntry({
+	item,
+	off,
+	panel,
+	onToggle,
+	onFocus,
+}: MapLegendEntryProps) {
 	// The whole entry is the tooltip's trigger, so its contact — not the label
 	// span's — is what arms the measure.
 	const entryRef = useRef<HTMLButtonElement>(null)
@@ -132,7 +145,7 @@ function MapLegendEntry({ item, off, panel, onToggle, onFocus }: MapLegendEntryP
 			<TooltipContent>{item.label}</TooltipContent>
 		</Tooltip>
 	)
-}
+})
 
 /** Props for {@link MapLegend}. @internal */
 export type MapLegendProps = {

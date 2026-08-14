@@ -111,39 +111,31 @@ export function legendItems(
 	for (const entry of entries) {
 		const swatch = { shape: entry.swatch, className: overlaySwatchClass(colors, entry.id) }
 
-		if (entry.group === undefined) {
-			entryItems.push({
-				id: entry.id,
-				label: entry.label,
-				swatches: [swatch],
-				detail: entry.detail,
-			})
+		const open = entry.group === undefined ? undefined : opened.get(entry.group)
+
+		if (open !== undefined) {
+			// One key per distinct shape, not per member: the swatches state what KINDS
+			// of mark the group holds, so a catchment with five depots on it still reads
+			// as an area and a point rather than six keys wide. Shape alone decides it,
+			// because a group's members share one colour by construction (`slots.ts`).
+			if (!open.swatches.some((held) => held.shape === swatch.shape)) open.swatches.push(swatch)
 
 			continue
 		}
 
-		const open = opened.get(entry.group)
-
-		if (open === undefined) {
-			const item = {
-				id: groupLegendId(entry.group),
-				label: entry.label,
-				swatches: [swatch],
-				detail: entry.detail,
-			}
-
-			opened.set(entry.group, item)
-
-			entryItems.push(item)
-
-			continue
+		// The first member of a group opens its entry, and a mark with no group opens
+		// one for itself — the same entry either way, differing only in the id it
+		// answers to and in whether a later sibling can still find it.
+		const item: MapLegendItem = {
+			id: entry.group === undefined ? entry.id : groupLegendId(entry.group),
+			label: entry.label,
+			swatches: [swatch],
+			detail: entry.detail,
 		}
 
-		// One key per distinct shape, not per member: the swatches state what KINDS
-		// of mark the group holds, so a catchment with five depots on it still reads
-		// as an area and a point rather than six keys wide. Shape alone decides it,
-		// because a group's members share one colour by construction (`slots.ts`).
-		if (!open.swatches.some((held) => held.shape === swatch.shape)) open.swatches.push(swatch)
+		entryItems.push(item)
+
+		if (entry.group !== undefined) opened.set(entry.group, item)
 	}
 
 	return [...categoryItems, ...entryItems]
