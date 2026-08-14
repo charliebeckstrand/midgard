@@ -1,8 +1,9 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import { useControllable, useFloatingUI } from '../../hooks'
+import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControl } from '../control/context'
 import type { ColorFormat, Hsva } from './types'
@@ -74,15 +75,10 @@ export function useColorPickerState({
 	})
 
 	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`;
-	// `FloatingFocusManager` runs with `returnFocus={false}`.
-	const setReference = useCallback(
-		(node: HTMLElement | null) => {
-			triggerRef.current = node
-
-			refs.setReference(node)
-		},
-		[refs],
-	)
+	// `FloatingFocusManager` runs with `returnFocus={false}`. Composed through the
+	// shared hook rather than by hand, so the panel's own `setReference` never takes
+	// a `null` during deletion effects — see {@link useFloatingReference}.
+	const setReference = useFloatingReference<HTMLElement>(refs.setReference, triggerRef, undefined)
 
 	return {
 		triggerId: scope.id,

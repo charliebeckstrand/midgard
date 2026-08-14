@@ -116,6 +116,34 @@ describe('Chart context menu', () => {
 		expect(onFullscreenChange).toHaveBeenCalledTimes(2)
 	})
 
+	it('reports the fullscreen close driven by the Close button', () => {
+		const onFullscreenChange = vi.fn()
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				title="Revenue by quarter"
+				data={data}
+				series={[...series]}
+				contextMenu={{ onFullscreenChange }}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Fullscreen' }))
+
+		// The button dismisses through the panel's own `close()` rather than its own
+		// handler, so it shares the route Escape takes.
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		expect(onFullscreenChange).toHaveBeenLastCalledWith(false)
+
+		expect(onFullscreenChange).toHaveBeenCalledTimes(2)
+	})
+
 	it('seats initial focus on Close so the fullscreen dialog opens with a tab stop', () => {
 		const { container } = renderUI(
 			<BarChart
