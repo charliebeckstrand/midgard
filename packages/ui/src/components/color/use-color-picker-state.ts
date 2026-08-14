@@ -1,8 +1,9 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useCallback, useRef, useState } from 'react'
-import { useFloatingUI } from '../../hooks'
+import { useRef } from 'react'
+import { useControllable, useFloatingUI } from '../../hooks'
+import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControl } from '../control/context'
 import type { ColorFormat, Hsva } from './types'
@@ -14,6 +15,7 @@ export type ColorPickerStateOptions = {
 	format: ColorFormat
 	alpha: boolean
 	onValueChange?: (value: string | Hsva) => void
+	onOpenChange?: (open: boolean) => void
 	placement: Placement
 	disabled: boolean
 }
@@ -40,6 +42,7 @@ export function useColorPickerState({
 	format,
 	alpha,
 	onValueChange,
+	onOpenChange,
 	placement,
 	disabled,
 }: ColorPickerStateOptions) {
@@ -51,31 +54,36 @@ export function useColorPickerState({
 
 	const { hsva, setHsva } = useColorState({ value, defaultValue, format, alpha, onValueChange })
 
-	const [open, setOpen] = useState(false)
+	// The single writer: the trigger toggles through it, and floating-ui's dismiss paths
+	// are armed only while open, so every set it takes is a real transition and the
+	// caller's callback rides the setter with no change guard. `useControllable` rather
+	// than bare state for the seam, not the machinery — the picker is uncontrolled today,
+	// and this is where an `open` prop slots in without moving the report.
+	const [open = false, setOpenValue] = useControllable<boolean>({
+		defaultValue: false,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
+
+	// Narrowed on the way out: the controllable setter also takes `null` and a functional
+	// updater, and neither belongs in the boolean `onOpenChange` this hook publishes.
+	const setOpen: (next: boolean) => void = setOpenValue
 
 	const triggerRef = useRef<HTMLElement | null>(null)
-
-	const onOpenChange = useCallback((next: boolean) => setOpen(next), [])
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
-		onOpenChange,
+		onOpenChange: setOpen,
 		offset: 8,
 		role: 'dialog',
 		returnFocusTo: triggerRef,
 	})
 
 	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`;
-	// `FloatingFocusManager` runs with `returnFocus={false}`.
-	const setReference = useCallback(
-		(node: HTMLElement | null) => {
-			triggerRef.current = node
-
-			refs.setReference(node)
-		},
-		[refs],
-	)
+	// `FloatingFocusManager` runs with `returnFocus={false}`. Composed through the
+	// shared hook rather than by hand, so the panel's own `setReference` never takes
+	// a `null` during deletion effects — see {@link useFloatingReference}.
+	const setReference = useFloatingReference<HTMLElement>(refs.setReference, triggerRef, undefined)
 
 	return {
 		triggerId: scope.id,
@@ -86,7 +94,7 @@ export function useColorPickerState({
 		hsva,
 		setHsva,
 		open,
-		onOpenChange,
+		onOpenChange: setOpen,
 		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,

@@ -1,5 +1,6 @@
 'use client'
 
+import type { RefCallback } from 'react'
 import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
@@ -15,7 +16,8 @@ type ColorPickerTriggerProps = {
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
 	describedBy?: string
-	setReference: (node: HTMLElement | null) => void
+	/** Callback ref for the trigger node; returns a cleanup, so React skips the `null` call. */
+	setReference: RefCallback<HTMLElement>
 	getReferenceProps: () => Record<string, unknown>
 	hsva: Hsva
 	alpha: boolean

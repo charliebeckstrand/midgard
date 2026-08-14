@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel, ColorPanelSkeleton, ColorPicker } from '../../components/color'
 import {
 	equalHsva,
@@ -215,5 +215,30 @@ describe('ColorPicker', () => {
 		expect(button).toHaveAttribute('aria-expanded', 'false')
 
 		expect(bySlot(container, 'color-picker-swatch')).toBeInTheDocument()
+	})
+
+	it('reports both ends of the panel open state, whatever drove them', () => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<ColorPicker defaultValue="#ef4444" onOpenChange={onOpenChange} />,
+		)
+
+		const button = bySlot(container, 'color-picker-button')
+
+		if (!button) throw new Error('trigger missing')
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		fireEvent.click(button)
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		// A close the consumer never drove: the shared dismiss layer.
+		fireEvent.keyDown(document.body, { key: 'Escape' })
+
+		expect(onOpenChange).toHaveBeenLastCalledWith(false)
+
+		expect(onOpenChange).toHaveBeenCalledTimes(2)
 	})
 })

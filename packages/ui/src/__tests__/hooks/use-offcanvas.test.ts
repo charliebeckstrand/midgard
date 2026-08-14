@@ -42,6 +42,41 @@ describe('useOffcanvas', () => {
 
 		expect(result.current.close).toBe(first)
 	})
+
+	it('reports both ends of the open state', () => {
+		const onOpenChange = vi.fn()
+
+		const { result } = renderHook(() => useOffcanvas({ onOpenChange }))
+
+		// Mounting closed is not a transition, so there is nothing to report yet.
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		act(() => {
+			result.current.close()
+		})
+
+		expect(onOpenChange).toHaveBeenLastCalledWith(false)
+
+		expect(onOpenChange).toHaveBeenCalledTimes(2)
+	})
+
+	it('says nothing when a set leaves the flag where it already was', () => {
+		const onOpenChange = vi.fn()
+
+		const { result } = renderHook(() => useOffcanvas({ onOpenChange }))
+
+		act(() => {
+			result.current.close()
+		})
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
 })
 
 function stubBreakpoint(value: string): void {
@@ -57,14 +92,41 @@ type MqlMock = Pick<
 	'matches' | 'media' | 'addEventListener' | 'removeEventListener'
 >
 
-function stubMatchMedia(mql: MqlMock): ReturnType<typeof vi.fn> {
+function stubMatchMedia(mql: MqlMock): void {
 	const partial: Partial<MediaQueryList> = mql
 
-	const spy = vi.fn((_query: string): MediaQueryList => partial as MediaQueryList)
+	window.matchMedia = vi.fn((_query: string): MediaQueryList => partial as MediaQueryList)
+}
 
-	window.matchMedia = spy
+/**
+ * Stubs the breakpoint token and `matchMedia`, and returns the mock plus `cross` — set
+ * the query's verdict and fire the listener the hook registered. Call before
+ * `renderHook`; `cross` reads the captured handler when it runs, not when it is built.
+ */
+function stubViewportCrossing(): { mql: MqlMock; cross: (matches: boolean) => void } {
+	let handler: (() => void) | undefined
 
-	return spy
+	const mql = {
+		matches: false,
+		media: '',
+		addEventListener: vi.fn((_: string, next: () => void) => {
+			handler = next
+		}),
+		removeEventListener: vi.fn(),
+	}
+
+	stubBreakpoint('1024px')
+
+	stubMatchMedia(mql)
+
+	return {
+		mql,
+		cross: (matches: boolean) => {
+			mql.matches = matches
+
+			handler?.()
+		},
+	}
 }
 
 describe('useOffcanvas: breakpoint listener', () => {
@@ -79,20 +141,7 @@ describe('useOffcanvas: breakpoint listener', () => {
 	})
 
 	it('auto-closes when the viewport crosses --breakpoint-lg', () => {
-		let mqlHandler: (() => void) | undefined
-
-		const mqlMock = {
-			matches: false,
-			media: '',
-			addEventListener: vi.fn((_: string, handler: () => void) => {
-				mqlHandler = handler
-			}),
-			removeEventListener: vi.fn(),
-		}
-
-		stubBreakpoint('1024px')
-
-		stubMatchMedia(mqlMock)
+		const { cross } = stubViewportCrossing()
 
 		const { result } = renderHook(() => useOffcanvas())
 
@@ -102,30 +151,15 @@ describe('useOffcanvas: breakpoint listener', () => {
 
 		expect(result.current.open).toBe(true)
 
-		mqlMock.matches = true
-
 		act(() => {
-			mqlHandler?.()
+			cross(true)
 		})
 
 		expect(result.current.open).toBe(false)
 	})
 
 	it('stays open when the media query reports non-match', () => {
-		let mqlHandler: (() => void) | undefined
-
-		const mqlMock = {
-			matches: false,
-			media: '',
-			addEventListener: vi.fn((_: string, handler: () => void) => {
-				mqlHandler = handler
-			}),
-			removeEventListener: vi.fn(),
-		}
-
-		stubBreakpoint('1024px')
-
-		stubMatchMedia(mqlMock)
+		const { cross } = stubViewportCrossing()
 
 		const { result } = renderHook(() => useOffcanvas())
 
@@ -134,10 +168,32 @@ describe('useOffcanvas: breakpoint listener', () => {
 		})
 
 		act(() => {
-			mqlHandler?.()
+			cross(false)
 		})
 
 		expect(result.current.open).toBe(true)
+	})
+
+	it('reports the auto-close, a route no caller drove', () => {
+		const { cross } = stubViewportCrossing()
+
+		const onOpenChange = vi.fn()
+
+		const { result } = renderHook(() => useOffcanvas({ onOpenChange }))
+
+		act(() => {
+			result.current.setOpen(true)
+		})
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		act(() => {
+			cross(true)
+		})
+
+		expect(onOpenChange).toHaveBeenLastCalledWith(false)
+
+		expect(onOpenChange).toHaveBeenCalledTimes(2)
 	})
 
 	it('bails when --breakpoint-lg is undefined', () => {
@@ -153,21 +209,12 @@ describe('useOffcanvas: breakpoint listener', () => {
 	})
 
 	it('removes the change listener on unmount', () => {
-		const mqlMock = {
-			matches: false,
-			media: '',
-			addEventListener: vi.fn(),
-			removeEventListener: vi.fn(),
-		}
-
-		stubBreakpoint('1024px')
-
-		stubMatchMedia(mqlMock)
+		const { mql } = stubViewportCrossing()
 
 		const { unmount } = renderHook(() => useOffcanvas())
 
 		unmount()
 
-		expect(mqlMock.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+		expect(mql.removeEventListener).toHaveBeenCalledWith('change', expect.any(Function))
 	})
 })

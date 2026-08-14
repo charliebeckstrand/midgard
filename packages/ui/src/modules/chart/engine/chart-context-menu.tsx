@@ -7,6 +7,7 @@ import {
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
+	useCallback,
 	useMemo,
 	useRef,
 	useState,
@@ -17,7 +18,7 @@ import {
 	type ContextMenuConfig,
 	type ContextMenuItem,
 } from '../../../components/context-menu'
-import { Dialog, DialogFooter } from '../../../components/dialog'
+import { Dialog, DialogClose, DialogFooter } from '../../../components/dialog'
 import {
 	type ChartImageType,
 	chartFileName,
@@ -62,6 +63,15 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 * @defaultValue true
 	 */
 	downloadLegend?: boolean
+	/**
+	 * Fires when the fullscreen dialog opens or closes, whatever drove it: the Fullscreen
+	 * item, the Close button, `Escape`, or an outside press.
+	 *
+	 * Observation only. The menu owns the dialog and there is no `open` option to pair
+	 * with. Use it to suspend work behind the enlarged chart, or to mirror the view
+	 * elsewhere. Never fires without a `fullscreen` element to open.
+	 */
+	onFullscreenChange?: (fullscreen: boolean) => void
 }
 
 /** Props for {@link ChartContextMenu}. @internal */
@@ -103,6 +113,18 @@ export type ChartContextMenuProps = {
 const FULLSCREEN_CHART_CLASS = 'w-full max-h-[calc(100dvh-9rem)]'
 
 /**
+ * Materializes the readout thunk on selection; a thunk that resolves to no readout
+ * exports the empty CSV its chart would have rendered as a table.
+ *
+ * @internal
+ */
+function exportCsv(readout: ChartReadoutSource): string {
+	const data = readout()
+
+	return data === null ? '' : readoutToCsv(data)
+}
+
+/**
  * The chart family's right-click menu and fullscreen view. Wraps a chart in a
  * {@link ContextMenu} whose default actions — Fullscreen, Download PNG / JPG, and
  * (with a readout) Download CSV / Copy data — merge with any caller
@@ -140,7 +162,9 @@ export function ChartContextMenu({
 
 	const isFullscreen = useChartFullscreen()
 
-	const items = contextMenu === false ? undefined : contextMenu?.items
+	const config = contextMenu === false ? undefined : contextMenu
+
+	const items = config?.items
 
 	// This component re-renders on every pointer move across the plot (the host's
 	// hover state). Without the memo a function-form `items` — and the icon
@@ -152,6 +176,147 @@ export function ChartContextMenu({
 		[items, targetIndex],
 	)
 
+	const includeLegend = config?.downloadLegend ?? true
+
+	const onFullscreenChange = config?.onFullscreenChange
+
+	// The actions below only test whether a fullscreen copy exists; keying them on the
+	// element's identity would bust them on any re-render that mints a fresh one.
+	const hasFullscreen = Boolean(fullscreen)
+
+	// The dialog's only writer: the Fullscreen item is reachable only while it is shut,
+	// and the dialog's own dismissal — which the Close button routes through — only while
+	// it is open, so every call is a real transition and the caller's callback rides along
+	// unguarded.
+	const handleFullscreenChange = useCallback(
+		(next: boolean) => {
+			setOpen(next)
+
+			onFullscreenChange?.(next)
+		},
+		[onFullscreenChange],
+	)
+
+	const exportImage = useCallback(
+		async (type: ChartImageType, extension: string): Promise<void> => {
+			const root = rootRef.current
+
+			if (!root) return
+
+			try {
+				const blob = await rasterizeChartImage(root, { type, includeLegend })
+
+				if (blob) downloadBlob(blob, chartFileName(title, extension))
+			} catch {
+				// A failed rasterise (image decode) has no retry affordance to drive.
+			}
+		},
+		[rootRef, includeLegend, title],
+	)
+
+	// Memoized for the same reason `customItems` is: this array and its five icon
+	// elements were rebuilt on every pointer move and thrown away. Holding it steady
+	// also spares `ContextMenu` the re-resolve its own `entries` memo keys on this
+	// array, though that pass is the cheap half — it reorders existing references.
+	const defaults = useMemo<ContextMenuItem[]>(
+		() => [
+			...(hasFullscreen
+				? [
+						{
+							key: 'fullscreen',
+							label: 'Fullscreen',
+							icon: <Maximize2 />,
+							onAction: () => handleFullscreenChange(true),
+						},
+					]
+				: []),
+			{
+				key: 'download-png',
+				label: 'Download PNG',
+				icon: <ImageIcon />,
+				onAction: () => void exportImage('image/png', 'png'),
+			},
+			{
+				key: 'download-jpg',
+				label: 'Download JPG',
+				icon: <ImageIcon />,
+				onAction: () => void exportImage('image/jpeg', 'jpg'),
+			},
+			...(readout
+				? [
+						{
+							key: 'download-csv',
+							label: 'Download CSV',
+							icon: <Download />,
+							onAction: () =>
+								downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
+						},
+						{
+							key: 'copy-data',
+							label: 'Copy data',
+							icon: <Clipboard />,
+							onAction: () => copyText(exportCsv(readout)),
+						},
+					]
+				: []),
+		],
+		[hasFullscreen, readout, title, handleFullscreenChange, exportImage],
+	)
+
+	// Held as an element, not gated on `open`. This component re-renders per pointer
+	// move across the plot, and a closed Dialog still re-runs the heaviest hook chain
+	// here on each one — its own controllable, min-width, and arrival hooks plus
+	// Overlay's floating, dismiss, and scroll-lock. Every input below is stable across
+	// a sweep, so the memo drops the whole subtree out of those renders; gating on
+	// `open` instead would discard the exit animation Overlay exists to run.
+	const dialog = useMemo(
+		() =>
+			fullscreen ? (
+				<Dialog
+					open={open}
+					onOpenChange={handleFullscreenChange}
+					initialFocus={closeRef}
+					aria-label={title ?? 'Chart'}
+					// Auto-height: the panel hugs the chart, which fills the panel width at
+					// its 16/9 ratio. Capping the width by the viewport height keeps that
+					// ratio from ever running taller than the screen, so on desktop the
+					// panel centers and on mobile the sheet sizes to the chart's own height.
+					className="sm:max-w-[calc((100dvh-9rem)*16/9)]"
+				>
+					<div data-slot="chart-fullscreen">
+						{open && isValidElement(fullscreen) && (
+							<ChartFullscreenContext value={true}>
+								{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
+									width: undefined,
+									height: undefined,
+									// The dialog is auto-height and sized for the default 16/9 ratio,
+									// so a consumer's fill mode (`aspectRatio={false}`) — which fills
+									// its parent's height — has nothing to fill and collapses the plot
+									// to nothing. Drop fill back to the default ratio for the
+									// fullscreen view; an explicit ratio is left as the consumer set it.
+									...((fullscreen.props as { aspectRatio?: unknown }).aspectRatio === false
+										? { aspectRatio: undefined }
+										: {}),
+									className: FULLSCREEN_CHART_CLASS,
+								})}
+							</ChartFullscreenContext>
+						)}
+					</div>
+
+					<DialogFooter>
+						{/* Dismisses through the panel's own `close()`, the Dialog's `onOpenChange`,
+						    so the button shares the route Escape and an outside press take. */}
+						<DialogClose>
+							<Button type="button" ref={closeRef}>
+								Close
+							</Button>
+						</DialogClose>
+					</DialogFooter>
+				</Dialog>
+			) : null,
+		[fullscreen, open, handleFullscreenChange, title],
+	)
+
 	if (contextMenu === false) return <>{children}</>
 
 	// A chart rendered inside the fullscreen dialog is this menu's own re-mounted
@@ -160,123 +325,19 @@ export function ChartContextMenu({
 	// `ChartFullscreenContext` — a caller cannot forget to apply it.
 	if (isFullscreen) return <>{children}</>
 
-	const includeLegend = contextMenu?.downloadLegend ?? true
-
-	const exportImage = async (type: ChartImageType, extension: string): Promise<void> => {
-		const root = rootRef.current
-
-		if (!root) return
-
-		try {
-			const blob = await rasterizeChartImage(root, { type, includeLegend })
-
-			if (blob) downloadBlob(blob, chartFileName(title, extension))
-		} catch {
-			// A failed rasterise (image decode) has no retry affordance to drive.
-		}
-	}
-
-	const imageActions: ContextMenuItem[] = [
-		...(fullscreen
-			? [
-					{
-						key: 'fullscreen',
-						label: 'Fullscreen',
-						icon: <Maximize2 />,
-						onAction: () => setOpen(true),
-					} satisfies ContextMenuItem,
-				]
-			: []),
-		{
-			key: 'download-png',
-			label: 'Download PNG',
-			icon: <ImageIcon />,
-			onAction: () => void exportImage('image/png', 'png'),
-		},
-		{
-			key: 'download-jpg',
-			label: 'Download JPG',
-			icon: <ImageIcon />,
-			onAction: () => void exportImage('image/jpeg', 'jpg'),
-		},
-	]
-
-	// Selection materializes the readout thunk; a thunk that resolves to no
-	// readout exports the empty CSV its chart would have rendered as a table.
-	const exportCsv = (readout: ChartReadoutSource) => {
-		const data = readout()
-
-		return data === null ? '' : readoutToCsv(data)
-	}
-
-	const dataActions: ContextMenuItem[] = readout
-		? [
-				{
-					key: 'download-csv',
-					label: 'Download CSV',
-					icon: <Download />,
-					onAction: () => downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
-				},
-				{
-					key: 'copy-data',
-					label: 'Copy data',
-					icon: <Clipboard />,
-					onAction: () => copyText(exportCsv(readout)),
-				},
-			]
-		: []
-
-	const defaults = [...imageActions, ...dataActions]
-
 	return (
 		<>
 			<ContextMenu
 				defaults={defaults}
 				items={customItems}
-				defaultItems={contextMenu?.defaultItems}
-				position={contextMenu?.position}
-				capped={contextMenu?.capped}
+				defaultItems={config?.defaultItems}
+				position={config?.position}
+				capped={config?.capped}
 			>
 				{children}
 			</ContextMenu>
 
-			<Dialog
-				open={open}
-				onOpenChange={setOpen}
-				initialFocus={closeRef}
-				aria-label={title ?? 'Chart'}
-				// Auto-height: the panel hugs the chart, which fills the panel width at
-				// its 16/9 ratio. Capping the width by the viewport height keeps that
-				// ratio from ever running taller than the screen, so on desktop the
-				// panel centers and on mobile the sheet sizes to the chart's own height.
-				className="sm:max-w-[calc((100dvh-9rem)*16/9)]"
-			>
-				<div data-slot="chart-fullscreen">
-					{open && isValidElement(fullscreen) && (
-						<ChartFullscreenContext value={true}>
-							{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
-								width: undefined,
-								height: undefined,
-								// The dialog is auto-height and sized for the default 16/9 ratio,
-								// so a consumer's fill mode (`aspectRatio={false}`) — which fills
-								// its parent's height — has nothing to fill and collapses the plot
-								// to nothing. Drop fill back to the default ratio for the
-								// fullscreen view; an explicit ratio is left as the consumer set it.
-								...((fullscreen.props as { aspectRatio?: unknown }).aspectRatio === false
-									? { aspectRatio: undefined }
-									: {}),
-								className: FULLSCREEN_CHART_CLASS,
-							})}
-						</ChartFullscreenContext>
-					)}
-				</div>
-
-				<DialogFooter>
-					<Button type="button" ref={closeRef} onClick={() => setOpen(false)}>
-						Close
-					</Button>
-				</DialogFooter>
-			</Dialog>
+			{dialog}
 		</>
 	)
 }

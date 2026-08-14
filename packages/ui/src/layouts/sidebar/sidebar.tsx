@@ -42,6 +42,16 @@ type SidebarLayoutProps = PropsWithChildren<{
 	actions?: ReactNode
 	stickyHeader?: boolean
 	floating?: boolean
+	/**
+	 * Fires when the mobile navigation drawer opens or closes, whatever drove it: the
+	 * navbar button, a dismissal, a descendant calling `close`, or the viewport widening
+	 * past `--breakpoint-lg`.
+	 *
+	 * Observation only, and the mobile drawer alone. The desktop sidebar is inline, and
+	 * the `floating` variant's hover peek is a pointer affordance rather than a
+	 * disclosure, so neither reports here.
+	 */
+	onOpenChange?: (open: boolean) => void
 }>
 
 /**
@@ -60,9 +70,10 @@ export function SidebarLayout({
 	actions,
 	stickyHeader,
 	floating,
+	onOpenChange,
 	children,
 }: SidebarLayoutProps) {
-	const { open, setOpen, close } = useOffcanvas()
+	const { open, setOpen, close } = useOffcanvas({ onOpenChange })
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 

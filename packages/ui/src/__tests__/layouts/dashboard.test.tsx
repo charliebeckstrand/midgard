@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { DashboardLayout } from '../../layouts/dashboard'
 import { fireEvent, renderUI, screen } from '../helpers'
 
@@ -27,5 +27,21 @@ describe('DashboardLayout', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
 
 		expect(screen.getByText('Filters', { selector: 'h2,h3,[role="heading"]' })).toBeInTheDocument()
+	})
+
+	it('reports the mobile filter drawer opening', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<DashboardLayout filters={<div>filter content</div>} onOpenChange={onOpenChange}>
+				content
+			</DashboardLayout>,
+		)
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Filters' }))
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
 	})
 })

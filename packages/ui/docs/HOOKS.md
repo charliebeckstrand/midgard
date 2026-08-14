@@ -13,7 +13,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useControllable` | Manages controlled / uncontrolled value state with a unified setter. |
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
-| `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport crosses `--breakpoint-lg`. |
+| `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport crosses `--breakpoint-lg`; reports every transition to `onOpenChange`. |
 
 ## Floating & overlays
 
