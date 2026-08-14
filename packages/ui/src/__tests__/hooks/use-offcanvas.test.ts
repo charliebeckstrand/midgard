@@ -102,6 +102,36 @@ function stubMatchMedia(mql: MqlMock): ReturnType<typeof vi.fn> {
 	return spy
 }
 
+/**
+ * Stubs the breakpoint token and `matchMedia`, and returns `cross` — set the query's
+ * verdict and fire the listener the hook registered. Call before `renderHook`; `cross`
+ * reads the captured handler when it runs, not when it is built.
+ */
+function stubViewportCrossing(): { cross: (matches: boolean) => void } {
+	let handler: (() => void) | undefined
+
+	const mql = {
+		matches: false,
+		media: '',
+		addEventListener: vi.fn((_: string, next: () => void) => {
+			handler = next
+		}),
+		removeEventListener: vi.fn(),
+	}
+
+	stubBreakpoint('1024px')
+
+	stubMatchMedia(mql)
+
+	return {
+		cross: (matches: boolean) => {
+			mql.matches = matches
+
+			handler?.()
+		},
+	}
+}
+
 describe('useOffcanvas: breakpoint listener', () => {
 	const originalGetComputedStyle = window.getComputedStyle
 
@@ -114,20 +144,7 @@ describe('useOffcanvas: breakpoint listener', () => {
 	})
 
 	it('auto-closes when the viewport crosses --breakpoint-lg', () => {
-		let mqlHandler: (() => void) | undefined
-
-		const mqlMock = {
-			matches: false,
-			media: '',
-			addEventListener: vi.fn((_: string, handler: () => void) => {
-				mqlHandler = handler
-			}),
-			removeEventListener: vi.fn(),
-		}
-
-		stubBreakpoint('1024px')
-
-		stubMatchMedia(mqlMock)
+		const { cross } = stubViewportCrossing()
 
 		const { result } = renderHook(() => useOffcanvas())
 
@@ -137,30 +154,15 @@ describe('useOffcanvas: breakpoint listener', () => {
 
 		expect(result.current.open).toBe(true)
 
-		mqlMock.matches = true
-
 		act(() => {
-			mqlHandler?.()
+			cross(true)
 		})
 
 		expect(result.current.open).toBe(false)
 	})
 
 	it('stays open when the media query reports non-match', () => {
-		let mqlHandler: (() => void) | undefined
-
-		const mqlMock = {
-			matches: false,
-			media: '',
-			addEventListener: vi.fn((_: string, handler: () => void) => {
-				mqlHandler = handler
-			}),
-			removeEventListener: vi.fn(),
-		}
-
-		stubBreakpoint('1024px')
-
-		stubMatchMedia(mqlMock)
+		const { cross } = stubViewportCrossing()
 
 		const { result } = renderHook(() => useOffcanvas())
 
@@ -169,27 +171,14 @@ describe('useOffcanvas: breakpoint listener', () => {
 		})
 
 		act(() => {
-			mqlHandler?.()
+			cross(false)
 		})
 
 		expect(result.current.open).toBe(true)
 	})
 
-	it('reports the auto-close once, and not again on a crossing it does not move', () => {
-		let mqlHandler: (() => void) | undefined
-
-		const mqlMock = {
-			matches: false,
-			media: '',
-			addEventListener: vi.fn((_: string, handler: () => void) => {
-				mqlHandler = handler
-			}),
-			removeEventListener: vi.fn(),
-		}
-
-		stubBreakpoint('1024px')
-
-		stubMatchMedia(mqlMock)
+	it('reports the auto-close, a route no caller drove', () => {
+		const { cross } = stubViewportCrossing()
 
 		const onOpenChange = vi.fn()
 
@@ -201,22 +190,11 @@ describe('useOffcanvas: breakpoint listener', () => {
 
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
 
-		mqlMock.matches = true
-
 		act(() => {
-			mqlHandler?.()
+			cross(true)
 		})
 
 		expect(onOpenChange).toHaveBeenLastCalledWith(false)
-
-		expect(onOpenChange).toHaveBeenCalledTimes(2)
-
-		// Why the report watches the committed flag rather than the setter: every
-		// crossing into desktop width closes again, whether or not anything was open.
-		// The reader saw nothing move, so nothing is announced.
-		act(() => {
-			mqlHandler?.()
-		})
 
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
 	})

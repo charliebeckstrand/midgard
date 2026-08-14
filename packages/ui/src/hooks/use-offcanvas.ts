@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useOpenChange } from './use-open-change'
 
 type OffcanvasOptions = {
 	/**
@@ -25,25 +26,10 @@ export function useOffcanvas({ onOpenChange }: OffcanvasOptions = {}) {
 
 	const close = useCallback(() => setOpen(false), [])
 
-	/*
-	 * Reported from the committed flag, not from the setter. The auto-close below fires
-	 * on every crossing into desktop width, whether or not the panel was open, and
-	 * `setOpen` is handed out raw for callers to drive. Watching the value reports the
-	 * transitions a reader actually saw, once each, whichever route drove them.
-	 */
-	const notifyOpenChange = useEffectEvent((next: boolean) => {
-		onOpenChange?.(next)
-	})
-
-	const prevOpenRef = useRef(open)
-
-	useEffect(() => {
-		if (prevOpenRef.current === open) return
-
-		prevOpenRef.current = open
-
-		notifyOpenChange(open)
-	}, [open])
+	// Watched rather than wrapped around the setter: the auto-close below fires on every
+	// crossing into desktop width, whether or not the panel was open, and `setOpen` is
+	// handed out raw for callers to drive.
+	useOpenChange(open, onOpenChange)
 
 	useEffect(() => {
 		const breakpoint = getComputedStyle(document.documentElement)

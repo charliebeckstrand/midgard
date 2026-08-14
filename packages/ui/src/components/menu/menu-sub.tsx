@@ -9,7 +9,6 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useId,
 	useRef,
 	useState,
@@ -17,6 +16,7 @@ import {
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI, useScrollOverflow } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
+import { useOpenChange } from '../../hooks/use-open-change'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
@@ -140,27 +140,10 @@ export function MenuSub({
 
 	const open = useMenuOpenSub() === subKey
 
-	/*
-	 * Reported from the derived open, not from a call site. This row does not own the
-	 * state — the enclosing level does, and it flips on routes the row never runs: a
-	 * sibling row taking the cursor, a pointer sweep resolving elsewhere, the level
-	 * closing the whole menu. The derived value is the one place every route meets, and
-	 * comparing against the last reported one keeps a re-render that leaves `open` alone
-	 * from announcing anything.
-	 */
-	const notifyOpenChange = useEffectEvent((next: boolean) => {
-		onOpenChange?.(next)
-	})
-
-	const prevOpenRef = useRef(open)
-
-	useEffect(() => {
-		if (prevOpenRef.current === open) return
-
-		prevOpenRef.current = open
-
-		notifyOpenChange(open)
-	}, [open])
+	// Watched rather than wrapped around a call site: this row does not own the state. The
+	// enclosing level does, and it flips on routes the row never runs — a sibling taking
+	// the cursor, a pointer sweep resolving elsewhere, the level closing the whole menu.
+	useOpenChange(open, onOpenChange)
 
 	// Whether the pending open should pull focus into the panel: set by the
 	// keyboard and click paths, left clear by hover so a pointer sweep across the

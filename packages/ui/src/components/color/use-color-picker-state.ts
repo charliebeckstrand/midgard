@@ -1,8 +1,8 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useCallback, useRef, useState } from 'react'
-import { useFloatingUI } from '../../hooks'
+import { useCallback, useRef } from 'react'
+import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControl } from '../control/context'
 import type { ColorFormat, Hsva } from './types'
@@ -32,9 +32,7 @@ export type ColorPickerStateOptions = {
  * @remarks
  * `disabled` merges the prop with the enclosing Control's; `setReference`
  * captures the trigger node for `useFloatingUI`'s `returnFocusTo` alongside
- * Floating UI's own reference setter. The returned `onOpenChange` is the only
- * writer of the open state, so it reports the caller's `onOpenChange` directly
- * rather than watching the committed value.
+ * Floating UI's own reference setter.
  * @internal
  */
 export function useColorPickerState({
@@ -55,26 +53,21 @@ export function useColorPickerState({
 
 	const { hsva, setHsva } = useColorState({ value, defaultValue, format, alpha, onValueChange })
 
-	const [open, setOpen] = useState(false)
+	// The single writer: the trigger toggles through it, and floating-ui's dismiss paths
+	// are armed only while open, so every set it takes is a real transition and the
+	// caller's callback rides the setter with no change guard. `useControllable` is the
+	// shape the sibling this picker mirrors uses at the same seam (`DatePicker`).
+	const [open = false, setOpen] = useControllable<boolean>({
+		defaultValue: false,
+		onValueChange: (next) => onOpenChange?.(next ?? false),
+	})
 
 	const triggerRef = useRef<HTMLElement | null>(null)
-
-	// The single writer: the trigger toggles through it, and floating-ui's dismiss
-	// paths are armed only while open, so every call it takes is a real transition
-	// and the caller's callback rides along with no change guard.
-	const handleOpenChange = useCallback(
-		(next: boolean) => {
-			setOpen(next)
-
-			onOpenChange?.(next)
-		},
-		[onOpenChange],
-	)
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
-		onOpenChange: handleOpenChange,
+		onOpenChange: setOpen,
 		offset: 8,
 		role: 'dialog',
 		returnFocusTo: triggerRef,
@@ -100,7 +93,7 @@ export function useColorPickerState({
 		hsva,
 		setHsva,
 		open,
-		onOpenChange: handleOpenChange,
+		onOpenChange: setOpen,
 		setReference,
 		setFloating: refs.setFloating,
 		floatingStyles,
