@@ -319,6 +319,9 @@ type DrilledState = { name: string; fips: string }
 /** The county picked inside a drill: the identity the map rings, and the name the line reads. */
 type PickedCounty = { id: string; name: string }
 
+/** One county as a row: the FIPS the map joins on, and the state it sits in. */
+type CountyRow = { id: string; state: string }
+
 /**
  * `onRegionPreload` doing the job it exists for. Holding a state warms the
  * counties it opens into — an 842 kB fetch and a 3,231-feature decode — so the
@@ -332,9 +335,9 @@ type PickedCounty = { id: string; name: string }
  * counties group by is — this map names its regions by name, so its identity is
  * not the id the atlas groups them under.
  *
- * Inside a state the counties carry no data of their own, which the plat draws
- * as readily: a click picks a county and the ring marks it, with no legend,
- * tooltip, or table, because there are no rows to read out.
+ * Inside a state each county carries a row of its own, because a readout is a
+ * join: the plat names the region under the pointer only where a row matched it.
+ * A click picks a county and the ring marks it.
  */
 function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) {
 	const queryClient = useQueryClient()
@@ -369,6 +372,24 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 	// each render would refit the map on every hover elsewhere on the page.
 	const held = useMemo(() => stateFrame(geography, drilled?.name ?? null), [geography, drilled])
 
+	// A row for each drawn county, so the pointed county names itself. A name on
+	// hover is a join here and not a prop: the plat reads out a region the rows
+	// matched and stays silent on one they did not. The same names reach the hidden
+	// table and the keyboard cursor, so the pointer is not the only way to them.
+	//
+	// The atlas knows a name and a FIPS and no measure at all, so the row's category
+	// is the state the county sits in. One category paints every county alike and
+	// draws no legend — a switchboard needs two entries to tell apart — which leaves
+	// the readout to say which county this is.
+	//
+	// Memoised on the cut the map draws, for the reason every frame here is: a fresh
+	// array each render would re-join every county on each hover elsewhere on the page.
+	const rows = useMemo<CountyRow[]>(() => {
+		const state = drilled?.name ?? ''
+
+		return (counties?.features ?? []).map((county) => ({ id: String(county.id), state }))
+	}, [counties, drilled])
+
 	return (
 		<Stack gap="md">
 			{drilled ? (
@@ -388,6 +409,9 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 					aria-label={`Counties of ${drilled.name}`}
 					geography={counties ?? held}
 					projection="albers-usa"
+					data={rows}
+					regionKey="id"
+					categoryKey="state"
 					// The counties are the drawn set once they land, so the click's index
 					// reads the name straight off the collection the map holds while the
 					// identity beside it is what comes back as the ring.
