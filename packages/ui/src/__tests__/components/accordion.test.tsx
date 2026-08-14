@@ -386,3 +386,61 @@ describe('Accordion mount policy', () => {
 		expect(screen.getByText('Second body')).not.toBeVisible()
 	})
 })
+
+/*
+ * Driven on the held branch, for the reason the Collapse and Sheet suites record: the
+ * motion mock resolves a landing only when the `animate` target changes between renders,
+ * so a `mount="active"` panel — which enters by mounting — never resolves one.
+ */
+describe('Accordion onOpenComplete', () => {
+	const accordion = (props: { value: string; onOpenComplete: (value: string) => void }) => (
+		<Accordion
+			type="single"
+			mount="always"
+			value={props.value}
+			onValueChange={() => {}}
+			onOpenComplete={props.onOpenComplete}
+		>
+			<AccordionItem value="one">
+				<AccordionTrigger>One</AccordionTrigger>
+				<AccordionPanel>First</AccordionPanel>
+			</AccordionItem>
+			<AccordionItem value="two">
+				<AccordionTrigger>Two</AccordionTrigger>
+				<AccordionPanel>Second</AccordionPanel>
+			</AccordionItem>
+		</Accordion>
+	)
+
+	it('names the section that landed', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(accordion({ value: '', onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+
+		rerender(accordion({ value: 'two', onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledExactlyOnceWith('two')
+	})
+
+	it('reports only the section that opened on a single-type swap', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(accordion({ value: 'one', onOpenComplete }))
+
+		rerender(accordion({ value: 'two', onOpenComplete }))
+
+		// 'one' closes in the same pass, and its exit lands on the same handler; the
+		// definition gate keeps it out.
+		expect(onOpenComplete).toHaveBeenCalledExactlyOnceWith('two')
+	})
+
+	it('says nothing for a section that mounts already open', () => {
+		const onOpenComplete = vi.fn()
+
+		renderUI(accordion({ value: 'one', onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+})

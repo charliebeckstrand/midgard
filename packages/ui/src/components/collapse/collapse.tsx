@@ -15,6 +15,18 @@ export type CollapseProps = {
 	open?: boolean
 	onOpenChange?: (open: boolean) => void
 	/**
+	 * Fires once the panel has finished opening and is at rest — after the height
+	 * transition lands, or immediately on the open when `animate` is `false`.
+	 *
+	 * A state change is not an arrival: `onOpenChange` reports the flip, and the panel
+	 * is still growing when it does. Use this to focus, measure, or start work that
+	 * needs the panel at its settled height. Never fires for a close, and never for a
+	 * panel that mounts already open.
+	 *
+	 * @see {@link DrawerProps.onOpenComplete} for the same contract on the panel family.
+	 */
+	onOpenComplete?: () => void
+	/**
 	 * Animation style for the panel. `true` or `'fade'` for height + opacity,
 	 * `'slide'` for height only, `false` to disable.
 	 * @defaultValue 'fade'
@@ -51,6 +63,7 @@ export function Collapse({
 	defaultOpen = false,
 	open: openProp,
 	onOpenChange,
+	onOpenComplete,
 	animate: animateProp = 'fade',
 	mount = 'active',
 	children,
@@ -69,8 +82,8 @@ export function Collapse({
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
 	const value = useMemo(
-		() => ({ open, toggle, animate: animateProp, mount, triggerProps, panelProps }),
-		[open, toggle, animateProp, mount, triggerProps, panelProps],
+		() => ({ open, toggle, animate: animateProp, mount, onOpenComplete, triggerProps, panelProps }),
+		[open, toggle, animateProp, mount, onOpenComplete, triggerProps, panelProps],
 	)
 
 	return (

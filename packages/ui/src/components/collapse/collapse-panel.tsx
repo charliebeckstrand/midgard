@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { useOpenChange } from '../../hooks/use-open-change'
+import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Hold, useMountHold } from '../../primitives/mount'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/collapse'
@@ -30,9 +32,28 @@ export type CollapsePanelProps = {
  * has to wait for it.
  */
 export function CollapsePanel({ children, className }: CollapsePanelProps) {
-	const { open, animate, mount, panelProps } = useCollapseContext()
+	const { open, animate, mount, onOpenComplete, panelProps } = useCollapseContext()
 
 	const hold = useMountHold(open, mount, { defer: animate !== false })
+
+	const variant = animate === true || animate === 'fade' ? 'fade' : animate
+
+	// The arrival target the motion library hands back on the way in, compared by
+	// identity. Presets are module constants, so the identity holds; `false` has no
+	// motion and reports from the effect below instead.
+	const { onAnimationComplete } = useOpenComplete(
+		open,
+		variant === false ? undefined : k.motion[variant].animate,
+		onOpenComplete,
+	)
+
+	// No transition to land, so the open itself is the arrival. Routed through the
+	// transition watcher rather than an `open` effect, so a panel that mounts already
+	// open announces nothing — the contract the animated branches keep for free,
+	// because the motion library plays no entrance on mount.
+	useOpenChange(open, (next) => {
+		if (variant === false && next) onOpenComplete?.()
+	})
 
 	// The panel's identity — element, a11y wiring, classes — is one shape across
 	// every branch below; only how it animates (or whether it does) differs.
@@ -47,7 +68,9 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 		</motion.section>
 	)
 
-	if (animate === false) {
+	// Tested on `variant` rather than `animate`, though the two agree: `variant` is what
+	// indexes the preset below, so narrowing it here is what lets the rest read it.
+	if (variant === false) {
 		if (!hold.present) return null
 
 		return (
@@ -59,14 +82,14 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 		)
 	}
 
-	const variant = animate === true || animate === 'fade' ? 'fade' : animate
-
 	// `active` unmounts the closed panel, so its exit rides `AnimatePresence` and
 	// the recipe's enter/exit pair applies as written.
 	if (!hold.held) {
 		return (
 			<ReducedMotion>
-				<AnimatePresence initial={false}>{open && section(k.motion[variant])}</AnimatePresence>
+				<AnimatePresence initial={false}>
+					{open && section({ ...k.motion[variant], onAnimationComplete })}
+				</AnimatePresence>
 			</ReducedMotion>
 		)
 	}
@@ -85,9 +108,14 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 					// entering and exiting — no `exit`, which only `AnimatePresence` reads.
 					animate: open ? k.motion[variant].animate : k.motion[variant].exit,
 					transition: k.motion[variant].transition,
-					// `rest` ignores a landing that arrives while open, so the entrance
-					// passes through without a guard here.
-					onAnimationComplete: hold.rest,
+					// Both landings arrive here. `rest` ignores the one that lands while
+					// open — the entrance — and `onAnimationComplete` reports only that
+					// one, so the pair splits the close and the open between them.
+					onAnimationComplete: (definition: unknown) => {
+						hold.rest()
+
+						onAnimationComplete(definition)
+					},
 				})}
 			</Hold>
 		</ReducedMotion>

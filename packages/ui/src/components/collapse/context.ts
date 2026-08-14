@@ -11,6 +11,8 @@ type CollapseContextValue = {
 	toggle: () => void
 	animate: CollapseAnimation
 	mount: Mount
+	/** The root's arrival callback, raised by the panel that owns the motion. */
+	onOpenComplete?: () => void
 	triggerProps: A11yDisclosure['triggerProps']
 	panelProps: A11yDisclosure['panelProps']
 }

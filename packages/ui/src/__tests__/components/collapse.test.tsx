@@ -270,3 +270,72 @@ describe('useCollapseContext in trigger children', () => {
 		expect(onClick).toHaveBeenCalled()
 	})
 })
+
+/*
+ * The held branch is what these drive. A `mount="active"` panel enters by mounting, and
+ * the global motion mock fires `onAnimationComplete` only when the `animate` target
+ * changes between renders — never on a mount — so no arrival resolves there. Holding the
+ * panel (`always`/`lazy`) animates it between two targets in place, which is the one
+ * change the mock resolves, and is the same shape the Sheet suite leans on.
+ */
+describe('Collapse onOpenComplete', () => {
+	const collapse = (props: { open: boolean; onOpenComplete: () => void }) => (
+		<Collapse mount="always" onOpenChange={() => {}} {...props}>
+			<CollapseTrigger>Toggle</CollapseTrigger>
+			<CollapsePanel>Body</CollapsePanel>
+		</Collapse>
+	)
+
+	it('reports the landing once the panel is at its open height', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(collapse({ open: false, onOpenComplete }))
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+
+		rerender(collapse({ open: true, onOpenComplete }))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('says nothing for the close, which lands on the same handler', () => {
+		const onOpenComplete = vi.fn()
+
+		const { rerender } = renderUI(collapse({ open: false, onOpenComplete }))
+
+		rerender(collapse({ open: true, onOpenComplete }))
+
+		rerender(collapse({ open: false, onOpenComplete }))
+
+		// The exit target lands too; the definition gate takes the enter and drops it.
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('reports the open immediately when animate is false', () => {
+		const onOpenComplete = vi.fn()
+
+		const unanimated = (open: boolean) => (
+			<Collapse animate={false} open={open} onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
+				<CollapsePanel>Body</CollapsePanel>
+			</Collapse>
+		)
+
+		const { rerender } = renderUI(unanimated(false))
+
+		rerender(unanimated(true))
+
+		expect(onOpenComplete).toHaveBeenCalledOnce()
+	})
+
+	it('says nothing for a panel that mounts already open', () => {
+		const onOpenComplete = vi.fn()
+
+		renderUI(
+			<Collapse animate={false} open onOpenChange={() => {}} onOpenComplete={onOpenComplete}>
+				<CollapsePanel>Body</CollapsePanel>
+			</Collapse>,
+		)
+
+		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+})

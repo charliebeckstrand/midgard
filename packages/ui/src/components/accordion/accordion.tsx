@@ -33,6 +33,19 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * @defaultValue 'active'
 		 */
 		mount?: Mount
+		/**
+		 * Fires once a section has finished opening and is at rest, with the `value` of the
+		 * section that landed.
+		 *
+		 * A state change is not an arrival: `onValueChange` reports the flip, and the panel
+		 * is still growing when it does. Use this to focus, measure, or start work that
+		 * needs the section at its settled height. Never fires for a close, and never for a
+		 * section that mounts already open — so a `type='single'` swap reports only the
+		 * section that opened, not the one it replaced.
+		 *
+		 * @see {@link DrawerProps.onOpenComplete} for the same contract on the panel family.
+		 */
+		onOpenComplete?: (value: string) => void
 		className?: string
 		children: ReactNode
 	}
@@ -53,13 +66,13 @@ export type AccordionProps = (SingleProps | MultipleProps) &
  * @see {@link AccordionPanel}
  */
 export function Accordion(props: AccordionProps) {
-	const { variant, mount = 'active', className, children } = props
+	const { variant, mount = 'active', onOpenComplete, className, children } = props
 
 	const { isOpen, toggle } = useAccordionSelection(props)
 
 	const context = useMemo(
-		() => ({ variant: variant ?? 'separated', mount, isOpen, toggle }),
-		[variant, mount, isOpen, toggle],
+		() => ({ variant: variant ?? 'separated', mount, isOpen, toggle, onOpenComplete }),
+		[variant, mount, isOpen, toggle, onOpenComplete],
 	)
 
 	const ref = useRef<HTMLDivElement>(null)
