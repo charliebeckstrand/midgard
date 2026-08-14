@@ -6,7 +6,7 @@ Six rows are resolved by [#1103](https://github.com/charliebeckstrand/midgard/pu
 
 Five more close T1 outright, by [#1104](https://github.com/charliebeckstrand/midgard/pull/1104): ColorPicker, MenuSub, SidebarLayout, DashboardLayout, and the chart context menu's fullscreen Dialog. A partly-applied uniform rule reads worse than either extreme, and four of the five already held the seam the report needed.
 
-Three more close T5: Collapse and Accordion `onOpenComplete`, and ReadyReveal `onReadyComplete`. Every one already ran the landing internally and kept it. Twenty-one rows stay open.
+Three more close T5, by [#1105](https://github.com/charliebeckstrand/midgard/pull/1105): Collapse and Accordion `onOpenComplete`, and ReadyReveal `onReadyComplete`. Every one already ran the landing internally and kept it. Twenty-one rows stay open.
 
 ## Executive summary
 
@@ -56,8 +56,8 @@ The close half of this pair is already settled and is not a finding: `onExitComp
 | Form | `onInvalidSubmit` | `form.tsx:40` | Runs every validator on submit and returns early when any fails, `use-form-reducer.ts:250-256`; a refused submit and no submit look identical (T3) | FileUpload `onReject` | ◯ OPEN |
 | AddressInput | `onError` | `address-input.tsx:16` | Catches every non-abort geocoding rejection at `use-address-input-suggestions.ts:87-97`, then empties the list — a provider outage renders as "no matches" (T4) | `use-chat-send.ts:120` | ◯ OPEN |
 | DateInput | `onValidityChange` | `date-input.tsx:40` | Holds `typedInvalid`, its own verdict on the typed text, set on every keystroke at `:244`; `onValueChange` emits `undefined` for cleared, partial, and invalid alike | CreditCardInputExpiry ships this exact callback | ◯ OPEN |
-| Collapse | `onOpenComplete` | `collapse.tsx:12` | Height and opacity landing, observed internally in the held branch of the panel motion and kept (T5) | Drawer `drawer.tsx:40` | ✅ RESOLVED |
-| Accordion | `onOpenComplete` | `accordion.tsx:20` | Same landing, per section, observed only at `accordion-panel.tsx:79` (T5) | Drawer `drawer.tsx:40` | ✅ RESOLVED |
+| Collapse | `onOpenComplete` | `collapse.tsx:12` | Height and opacity landing, observed internally in the held branch of the panel motion and kept (T5) | Drawer `drawer.tsx:40` | ✅ RESOLVED ([#1105](https://github.com/charliebeckstrand/midgard/pull/1105)) |
+| Accordion | `onOpenComplete` | `accordion.tsx:20` | Same landing, per section, observed only at `accordion-panel.tsx:79` (T5) | Drawer `drawer.tsx:40` | ✅ RESOLVED ([#1105](https://github.com/charliebeckstrand/midgard/pull/1105)) |
 | TagInput | `onReject` | `tag-input.tsx:38` | Partitions every commit into accepted / rejected / duplicates / over-limit; announces to the live region only (T3) | FileUpload `file-upload.tsx:37-39` | ◯ OPEN |
 | CopyButton | `onCopyError` | `copy-button.tsx:13` | `writeText` rejection caught and dropped at `use-copy-button-state.ts:58-61`; the hook is not exported (T4) | `use-chat-send.ts:120` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | PdfViewer | `onLoad` / `onError` | `pdf-viewer.tsx:13` | Fetch → rasterize → settle or fail, owned in `use-pdf-viewer-document.ts:224,226`; a consumer must re-fetch `src` to learn of a 404 (T4, T6) | `use-chat-send.ts:120` | ◯ OPEN |
@@ -80,7 +80,7 @@ One caution for the implementer of the DateInput row. Reuse the exported `CardVa
 | ToastProvider / ToastInput | `onDismiss` | `providers/toast/types.ts:22` | A toast leaves by four internal routes — the timer, the close button, the `maxToasts` cap, and a `dismiss(id)` call — and `toast()` hands back only an id, so the caller never learns its toast is gone (T4) | Alert `onOpenChange`, which the toast pipeline already wires | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
 | SidebarLayout | `onOpenChange` | `layouts/sidebar/sidebar.tsx:39` | Mobile drawer state via `useOffcanvas()` at `:65`, opened at `:158`, closed on four paths; closed prop bag, no spread reaches any element (T1) | Drawer `drawer.tsx:23` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
 | DashboardLayout | `onOpenChange` | `layouts/dashboard.tsx:13` | Mobile filters drawer at `:29`, opened at `:43`, closed through the Drawer's dismiss at `:50`; no context, no ref, no spread (T1) | Drawer `drawer.tsx:23` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
-| ReadyReveal | `onReadyComplete` | `primitives/ready-reveal/ready-reveal.tsx:10` | Latches `settled` from Motion's `onAnimationComplete` at `:131-133`, then hides the placeholder; the library's own browser tests poll for it (T5) | Drawer `onOpenComplete` | ✅ RESOLVED |
+| ReadyReveal | `onReadyComplete` | `primitives/ready-reveal/ready-reveal.tsx:10` | Latches `settled` from Motion's `onAnimationComplete` at `:131-133`, then hides the placeholder; the library's own browser tests poll for it (T5) | Drawer `onOpenComplete` | ✅ RESOLVED ([#1105](https://github.com/charliebeckstrand/midgard/pull/1105)) |
 
 ## Findings — modules
 
