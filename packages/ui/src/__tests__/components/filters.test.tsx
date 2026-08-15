@@ -207,6 +207,52 @@ describe('FiltersClear', () => {
 		expect(onChange).toHaveBeenCalledWith({})
 	})
 
+	it('leaves the fallback trigger on the Button default, and takes an override', () => {
+		function bar(props: { variant?: 'soft'; color?: 'red' }) {
+			return (
+				<Filters aria-label="Filters" value={{ name: 'hello' }}>
+					<FiltersField name="name">
+						<Input />
+					</FiltersField>
+					<FiltersClear {...props}>Clear</FiltersClear>
+				</Filters>
+			)
+		}
+
+		// Clearing a filter undoes a view and not a record, so the shared default
+		// stays whatever Button's is — an app that wants weight asks for it.
+		const plain = bySlot(renderUI(bar({})).container, 'filter-clear')?.className ?? ''
+
+		expect(plain).not.toContain('bg-red')
+
+		const loud =
+			bySlot(renderUI(bar({ variant: 'soft', color: 'red' })).container, 'filter-clear')
+				?.className ?? ''
+
+		expect(loud).not.toBe(plain)
+
+		expect(loud).toContain('red')
+	})
+
+	it('leaves an element child’s own treatment alone', () => {
+		// The clone path lends the child the clear action and nothing else, so the
+		// fallback's knobs must not reach it.
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ name: 'hello' }}>
+				<FiltersField name="name">
+					<Input />
+				</FiltersField>
+				<FiltersClear variant="soft" color="red">
+					<Button>Clear</Button>
+				</FiltersClear>
+			</Filters>,
+		)
+
+		expect(bySlot(container, 'filter-clear')).toBeNull()
+
+		expect(screen.getByText('Clear').className).not.toContain('red')
+	})
+
 	it('resets to defaultValue when provided', async () => {
 		const onChange = vi.fn()
 

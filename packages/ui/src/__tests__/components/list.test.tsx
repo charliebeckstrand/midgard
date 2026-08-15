@@ -200,6 +200,132 @@ describe('ListItem', () => {
 
 		expect(bySlot(container, 'list-item-content')).toHaveAttribute('id', 'content-id')
 	})
+
+	/** One interactive row of a variant, so each wash can be read off its `<li>`. */
+	function washOf(variant: 'separated' | 'outline' | 'plain' | 'solid'): string {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} variant={variant} getKey={(i) => i.id}>
+				{(item) => (
+					<ListItem as="button" onClick={vi.fn()}>
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		return bySlot(container, 'list-item')?.className ?? ''
+	}
+
+	it('washes a row on bare ground with the standard tint, doubled inside a glass parent', () => {
+		for (const variant of ['plain', 'outline'] as const) {
+			const cls = washOf(variant)
+
+			expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/5')
+
+			expect(cls).toContain(
+				'dark:group-data-[glass]/glass:not-disabled:not-data-disabled:hover:bg-white/10',
+			)
+		}
+	})
+
+	it('steps a card to the neighbouring shade rather than washing its surface away', () => {
+		const cls = washOf('separated')
+
+		// An alpha wash replaces `omote.bg.surface` instead of darkening it, so the
+		// card would go see-through to whatever it covers while the pointer rests on
+		// it. The hover has to stay opaque.
+		expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-50')
+
+		expect(cls).toContain('dark:not-disabled:not-data-disabled:hover:bg-zinc-800')
+
+		expect(cls).not.toContain('hover:bg-white/5')
+
+		expect(cls).not.toContain('hover:bg-zinc-950/5')
+	})
+
+	it('steps the solid row’s wash past the fill it already rests on', () => {
+		const cls = washOf('solid')
+
+		// Double the `omote.bg.tint` the row rests on, in each mode.
+		expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-950/10')
+
+		expect(cls).toContain('dark:not-disabled:not-data-disabled:hover:bg-white/20')
+
+		expect(cls).not.toContain('hover:bg-white/5')
+	})
+
+	it('keeps the glass allowance off the variants that carry their own fill', () => {
+		// `glassItem` outranks a plain wash by selector, so a filled row that emitted
+		// both would take the ambient 10% — which on a solid dark row is the fill
+		// repainted, and on a card is the surface gone.
+		for (const variant of ['separated', 'solid'] as const) {
+			expect(washOf(variant)).not.toContain('group-data-[glass]/glass')
+		}
+	})
+
+	it('leaves an inert row unwashed', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		const item = bySlot(container, 'list-item')
+
+		expect(item?.className ?? '').not.toContain('hover:bg-')
+
+		expect(item).not.toHaveAttribute('data-interactive')
+	})
+
+	it('takes `interactive` over what the handlers say, in both directions', () => {
+		// A row whose only handler sits on a child reads as inert to the derivation,
+		// and a row that carries one for another reason reads as a target it is not.
+		const { container } = renderUI(
+			<List items={items.slice(0, 2)} variant="plain" getKey={(i) => i.id}>
+				{(item, index) =>
+					index === 0 ? (
+						<ListItem interactive>{item.label}</ListItem>
+					) : (
+						<ListItem interactive={false} as="button" onClick={vi.fn()}>
+							{item.label}
+						</ListItem>
+					)
+				}
+			</List>,
+		)
+
+		const [forced, suppressed] = [...container.querySelectorAll('[data-slot="list-item"]')]
+
+		expect(forced).toHaveAttribute('data-interactive')
+
+		expect(forced?.className ?? '').toContain('hover:bg-zinc-950/5')
+
+		expect(suppressed).not.toHaveAttribute('data-interactive')
+
+		expect(suppressed?.className ?? '').not.toContain('hover:bg-zinc-950/5')
+	})
+
+	it('adds corners on `rounded` and never takes a variant’s own away', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 2)} variant="plain" getKey={(i) => i.id}>
+				{(item, index) => <ListItem rounded={index === 0}>{item.label}</ListItem>}
+			</List>,
+		)
+
+		const [on, off] = [...container.querySelectorAll('[data-slot="list-item"]')]
+
+		expect(on?.className ?? '').toContain('rounded-lg')
+
+		expect(off?.className ?? '').not.toContain('rounded-lg')
+
+		const { container: separated } = renderUI(
+			<List items={items.slice(0, 1)} variant="separated" getKey={(i) => i.id}>
+				{(item) => <ListItem rounded={false}>{item.label}</ListItem>}
+			</List>,
+		)
+
+		expect(bySlot(separated, 'list-item')?.className ?? '').toContain('rounded-lg')
+	})
 })
 
 describe('ListLabel', () => {
