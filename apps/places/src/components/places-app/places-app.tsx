@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, List, MapPin, MapPinned, Plus } from 'lucide-react'
+import { Check, MapPin, MapPinned, Plus } from 'lucide-react'
 import { Fragment, type MouseEvent, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import {
