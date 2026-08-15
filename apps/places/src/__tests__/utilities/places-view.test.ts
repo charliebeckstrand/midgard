@@ -1,14 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import type { Place } from '../../types'
 import {
+	countryFallback,
 	drillInto,
 	initialView,
 	type PlaceView,
+	placedIds,
 	UNITED_STATES,
 	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
 	viewFallback,
+	viewForPlace,
 	viewFrame,
 	viewMark,
 	viewRegion,
@@ -172,6 +175,75 @@ describe('viewCrumbs', () => {
 		expect(crumbs[1]?.view).toEqual(UNITED_STATES_VIEW)
 
 		expect(crumbs[2]?.view).toEqual(OREGON)
+	})
+})
+
+describe('placedIds', () => {
+	it('answers with every id a grouping placed, across its regions', () => {
+		const a = place('a')
+
+		const b = place('b')
+
+		const grouped = new Map([
+			['Oregon', [a]],
+			['Nevada', [b]],
+		])
+
+		expect([...placedIds(grouped)].sort()).toEqual(['a', 'b'])
+	})
+
+	it('answers with nothing for a grouping that placed nothing', () => {
+		expect(placedIds(new Map()).size).toBe(0)
+	})
+})
+
+describe('countryFallback', () => {
+	// The world is drawn at 110m, where the outline generalizes away exactly the
+	// places a travel log is full of. A place the finer atlas could put in a state
+	// is in the United States, whatever the geocoder called its country.
+	it('answers with the United States for a place the states atlas placed', () => {
+		const coastal = place('lighthouse', { country: 'United States' })
+
+		expect(countryFallback(new Set(['lighthouse']))(coastal)).toBe(UNITED_STATES)
+	})
+
+	it("falls back to the place's own country where the states atlas could not", () => {
+		const abroad = place('louvre', { country: 'France' })
+
+		expect(countryFallback(new Set())(abroad)).toBe('France')
+	})
+
+	it('answers with nothing for a place carrying no country either', () => {
+		expect(countryFallback(new Set())(place('offshore'))).toBeUndefined()
+	})
+})
+
+describe('viewForPlace', () => {
+	it('goes to the state the states atlas put a place in', () => {
+		const held = place('a')
+
+		expect(viewForPlace(new Map([['Oregon', [held]]]), held)).toEqual(OREGON)
+	})
+
+	// The world rather than the place's own country: a country is reachable only
+	// by the name its atlas gives it, and a place carries the geocoder's.
+	it('goes to the world for a place the states atlas could not place', () => {
+		const abroad = place('louvre', { country: 'France' })
+
+		expect(viewForPlace(new Map(), abroad)).toEqual(WORLD)
+	})
+
+	it('finds a place among several regions', () => {
+		const a = place('a')
+
+		const b = place('b')
+
+		const grouped = new Map([
+			['Oregon', [a]],
+			['Nevada', [b]],
+		])
+
+		expect(viewForPlace(grouped, b)).toEqual({ country: UNITED_STATES, state: 'Nevada' })
 	})
 })
 

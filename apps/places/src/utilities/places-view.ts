@@ -69,9 +69,43 @@ function byCountry(place: Place): string | undefined {
 /**
  * Which field answers where the drawn geometry cannot, per the atlas the view
  * draws. Handed to `groupPlacesByRegion`, whose fallback this is.
+ *
+ * The countries atlas has a better answer than the name — see
+ * {@link countryFallback}, which the app hands it instead.
  */
 export function viewFallback(view: PlaceView): (place: Place) => string | undefined {
 	return viewAtlas(view) === 'states' ? byState : byCountry
+}
+
+/** The ids of every place a grouping placed, which is what the other atlas then knows. */
+export function placedIds(grouped: ReadonlyMap<string, readonly Place[]>): Set<string> {
+	const ids = new Set<string>()
+
+	for (const list of grouped.values()) {
+		for (const place of list) ids.add(place.id)
+	}
+
+	return ids
+}
+
+/**
+ * The countries atlas's fallback, asked of the states atlas before the name.
+ *
+ * A place the states atlas can put in a state is in the United States, whatever
+ * the geocoder called its country. That matters because the world is drawn at
+ * 110m, where the outline generalizes away exactly the places a travel log is
+ * full of: a harbour, a beach, a coastal town all sit a little outside the
+ * country that plainly holds them. Under the name alone they fell through to
+ * "United States", which Natural Earth does not draw, and read as belonging
+ * nowhere.
+ *
+ * So the two atlases answer together. The app already groups against the states
+ * for its own reasons, and {@link placedIds} is that grouping's answer.
+ */
+export function countryFallback(
+	placedInStates: ReadonlySet<string>,
+): (place: Place) => string | undefined {
+	return (place) => (placedInStates.has(place.id) ? UNITED_STATES : place.country)
 }
 
 /**
@@ -142,6 +176,27 @@ export function viewCrumbs(view: PlaceView): PlaceCrumb[] {
 	if (view.state !== null) crumbs.push({ label: view.state, view })
 
 	return crumbs
+}
+
+/**
+ * The view that certainly shows one place: the state the states atlas puts it
+ * in, or the world, which shows every place there is.
+ *
+ * The world rather than the place's own country, because a country is only
+ * reachable by the name its atlas gives it and a place carries the geocoder's —
+ * "United States" against "United States of America". A view built from the
+ * wrong string frames nothing; the world frames everything, and the reader is
+ * one click from the country either way.
+ */
+export function viewForPlace(
+	grouped: ReadonlyMap<string, readonly Place[]>,
+	place: Place,
+): PlaceView {
+	for (const [name, list] of grouped) {
+		if (list.some((held) => held.id === place.id)) return { country: UNITED_STATES, state: name }
+	}
+
+	return WORLD
 }
 
 /**

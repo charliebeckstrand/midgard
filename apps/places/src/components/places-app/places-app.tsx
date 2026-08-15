@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, MapPin, Plus } from 'lucide-react'
+import { Check, List, MapPin, Plus } from 'lucide-react'
 import { Fragment, type MouseEvent, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import {
@@ -29,19 +29,23 @@ import type { Place, Visits } from '../../types'
 import { filterPlaces, type PlaceFilterValue } from '../../utilities/places-filter'
 import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import {
+	countryFallback,
 	drillInto,
 	initialView,
 	type PlaceView,
+	placedIds,
 	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
 	viewFallback,
+	viewForPlace,
 	viewMark,
 	viewRegion,
 } from '../../utilities/places-view'
 import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters } from '../place-filters'
 import { PlaceFormDrawer } from '../place-form-drawer'
+import { PlacesIndex } from '../places-index'
 import { PlacesMap } from '../places-map'
 
 /** The title crumbs' weight, held on the crumb so it beats the current one's `font-normal`. */
@@ -96,6 +100,12 @@ export function PlacesApp() {
 	const [selectedIds, setSelectedIds] = useState<readonly string[]>([])
 
 	const [adding, setAdding] = useState(false)
+
+	// Whether the index is up. Its own bit rather than a mode of the drawers: it
+	// docks from the side and they dock from the bottom, so a reader can have a
+	// place open and the list open at once — which is what opening one from the
+	// other leaves them with.
+	const [listing, setListing] = useState(false)
 
 	// The place the form drawer is editing, and the place the confirmation stands
 	// over. Both are `null` for "no such panel", which is also what opens the form
@@ -179,10 +189,17 @@ export function PlacesApp() {
 	// the regions that hold places, not the regions holding places the bar
 	// currently admits — otherwise a drill would open and close as they narrowed
 	// it.
+	// What the states atlas could place, which is what the countries atlas asks
+	// before it falls back to a name — see `countryFallback` for why the coarse
+	// world outline needs the finer one's answer.
+	const placedInStates = useMemo(() => placedIds(placesByState), [placesByState])
+
 	const placesByRegion = useMemo(
 		() =>
-			atlas === 'states' ? placesByState : groupPlacesByRegion(bounded, places, viewFallback(view)),
-		[atlas, placesByState, bounded, places, view],
+			atlas === 'states'
+				? placesByState
+				: groupPlacesByRegion(bounded, places, countryFallback(placedInStates)),
+		[atlas, placesByState, bounded, places, placedInStates],
 	)
 
 	const selected = useMemo(() => {
@@ -307,6 +324,19 @@ export function PlacesApp() {
 						</Button>
 					)}
 
+					{/* Only once there is a list to read. Over an empty store it would open
+					    on the same "no places yet" the map already says, one step further
+					    from the button that fixes it. */}
+					{places.length > 0 ? (
+						<Button
+							variant="plain"
+							prefix={<Icon icon={<List />} />}
+							onClick={() => setListing(true)}
+						>
+							All places
+						</Button>
+					) : null}
+
 					<Button prefix={<Icon icon={<Plus />} />} onClick={() => setAdding(true)}>
 						Add place
 					</Button>
@@ -387,6 +417,26 @@ export function PlacesApp() {
 						? addPlace.mutateAsync(draft)
 						: savePlace.mutateAsync({ id: editing.id, draft })
 				}
+			/>
+
+			{/* The other index into the same set: the map answers what is near here,
+			    and this answers where that place was. It reads the filtered list, so
+			    the two never disagree about what is in play. */}
+			<PlacesIndex
+				open={listing}
+				onOpenChange={setListing}
+				places={filtered}
+				placesByRegion={placesByRegion}
+				onOpen={(place) => {
+					// The map goes to the place before the panel over it closes, so the
+					// drawer that opens stands over the dot it describes rather than over
+					// whichever frame the reader happened to be on.
+					setChosen(viewForPlace(placesByState, place))
+
+					setSelectedIds([place.id])
+
+					setListing(false)
+				}}
 			/>
 
 			<PlaceDrawer

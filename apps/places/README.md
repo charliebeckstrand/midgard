@@ -29,6 +29,13 @@ states atlas accounts for whole opens inside the United States; one it cannot
 opens on the world. The question is asked of the geometry, never of a country
 name, and the countries atlas is fetched only once a view draws it.
 
+## The index
+
+`All places` opens the same set as rows, over the map. The map answers what is
+near here; the index answers where that place was, which is the question a
+hundred dots cannot. It lists what the filter bar admits, so the two surfaces
+never disagree, and its own search finds within that.
+
 ## Data
 
 Places live in `.data/places.json`, written by the route handlers under
