@@ -120,7 +120,11 @@ export function PlacesIndex({
 		// sideways to read one row of — and this panel exists to be scanned. It is a
 		// max-width, so a phone still gets the whole screen and the grid's own
 		// horizontal scroll takes what is left over.
-		<Sheet glass open={open} onOpenChange={onOpenChange} width="4xl" aria-label="All places">
+		//
+		// The handle is what makes that a starting point rather than a decision: a
+		// reader comparing two long region names pulls the panel wider, and one
+		// checking a name against the map pushes it back.
+		<Sheet glass handle open={open} onOpenChange={onOpenChange} width="4xl" aria-label="All places">
 			{/* The title and the close on one line, laid out here rather than through
 			    the header slot: that slot stacks a title over a description, which puts
 			    the close under the title instead of opposite it. The form drawer's
