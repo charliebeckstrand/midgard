@@ -31,11 +31,23 @@ describe('PopoverPanel', () => {
 		expect(el).toHaveAttribute('id', 'my-panel')
 	})
 
-	it('applies the glass surface chrome when glass is true', () => {
+	it('marks the glass panel as the group the item wash keys on', () => {
 		renderUI(<PopoverPanel glass>items</PopoverPanel>)
 
 		const el = screen.getByRole('listbox')
 
 		expect(el.className).toContain('group/glass')
+
+		expect(el).toHaveAttribute('data-glass', '')
+	})
+
+	it('leaves the group marker off the default surface', () => {
+		renderUI(<PopoverPanel>items</PopoverPanel>)
+
+		const el = screen.getByRole('listbox')
+
+		expect(el.className).not.toContain('group/glass')
+
+		expect(el).not.toHaveAttribute('data-glass')
 	})
 })
