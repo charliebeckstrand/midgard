@@ -84,6 +84,35 @@ describe('defineRecipe', () => {
 		expect(recipe({ variant: 'soft', tone: 'warm' })).not.toContain('solid-warm')
 	})
 
+	it('fires a compound rule keyed on a boolean axis in either condition form', () => {
+		// An axis key is a string, so a rule condition takes the same `String()`
+		// coercion the prop does. `interactive: true` and `interactive: 'true'`
+		// name the same key; the boolean form must not become a silent no-op.
+		const recipe = defineRecipe({
+			variant: { solid: '', soft: '' },
+			interactive: { true: '', false: '' },
+			compound: [
+				{ variant: 'solid', interactive: true, class: 'solid-interactive' },
+				{ variant: 'soft', interactive: 'true', class: 'soft-interactive' },
+			],
+			defaults: { variant: 'solid', interactive: false },
+		})
+
+		expect(recipe({ interactive: true })).toContain('solid-interactive')
+
+		expect(recipe({ variant: 'soft', interactive: true })).toContain('soft-interactive')
+
+		// The default (`false`) pre-stringifies down the same path, so a no-props
+		// call leaves the rule unfired.
+		expect(recipe()).not.toContain('solid-interactive')
+
+		expect(recipe({ variant: 'soft', interactive: false })).not.toContain('soft-interactive')
+
+		// Normalisation happens at ingestion, so `.config` introspection reads the
+		// same condition the call path matches on.
+		expect(recipe.config.compound[0]?.interactive).toBe('true')
+	})
+
 	it('resolves Tailwind conflicts between base and variant classes', () => {
 		// `tailwind-merge` runs over the concatenated output; the variant's `p-4`
 		// wins over base `p-2`.
