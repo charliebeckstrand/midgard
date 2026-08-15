@@ -326,12 +326,8 @@ export function PlacesApp() {
 
 					setDeleting(null)
 				}}
-				title="Delete this place?"
-				description={
-					deleting === null
-						? undefined
-						: `${deleting.name} leaves the map and the list. This cannot be undone.`
-				}
+				title={deleting === null ? '' : `Delete "${deleting.name}"?`}
+				description={deleting === null ? undefined : 'This cannot be undone.'}
 				confirm={{ label: 'Delete', color: 'red' }}
 			/>
 		</Flex>
