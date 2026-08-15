@@ -355,20 +355,20 @@ export function PlaceDrawer({
 					<Flex justify="end" align="center" gap="sm" full>
 						<Button
 							variant="plain"
-							color="red"
-							prefix={<Icon icon={<Trash />} />}
-							onClick={() => onDelete(place)}
-						>
-							Delete
-						</Button>
-
-						<Button
-							variant="plain"
 							color="blue"
 							prefix={<Icon icon={<Pencil />} />}
 							onClick={() => onEdit(place)}
 						>
 							Edit
+						</Button>
+
+						<Button
+							variant="plain"
+							color="red"
+							prefix={<Icon icon={<Trash />} />}
+							onClick={() => onDelete(place)}
+						>
+							Delete
 						</Button>
 					</Flex>
 				</DrawerFooter>
