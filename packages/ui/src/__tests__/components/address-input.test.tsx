@@ -1,13 +1,23 @@
 import { useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
-import { AddressInput, photonProvider } from '../../components/address-input'
+import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
+import { Form, useFormState } from '../../components/form'
 import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor, withFakeTime } from '../helpers'
 
 const mockProvider: AddressProvider = async (query) => [
 	{ id: '1', label: `${query} Main St`, description: 'Somewhere, CA' },
 	{ id: '2', label: `${query} Oak Ave`, description: 'Nowhere, NY' },
 ]
+
+/** Reads one field back out of the form store, for the binding assertions. */
+function FormValue({ name }: { name: string }) {
+	const state = useFormState()
+
+	const held = state?.values[name] as AddressSuggestion | undefined
+
+	return <output data-testid="bound">{held?.label ?? ''}</output>
+}
 
 describe('AddressInput', () => {
 	it('renders a combobox input', () => {
@@ -113,6 +123,76 @@ describe('AddressInput', () => {
 
 			expect(getByText('X Oak Ave')).toBeInTheDocument()
 		})
+	})
+
+	it('renders every match when a provider returns colliding ids', async () => {
+		// Photon does this: one OSM object is several documents in its index, so a
+		// search can return the same `osm_type`/`osm_id` pair twice. Keyed by the
+		// id alone, React warned and was free to drop or duplicate a row on the
+		// next update.
+		const colliding: AddressProvider = async () => [
+			{ id: 'R192205', label: 'Clearwater', description: 'South Carolina' },
+			{ id: 'R192205', label: 'Clearwater', description: 'Clearwater, South Carolina' },
+		]
+
+		const warn = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		try {
+			await withFakeTime(async (clock) => {
+				const { container } = renderUI(
+					<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
+				)
+
+				const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+				await clock.user.type(input, 'c')
+
+				await clock.advance(0)
+
+				expect(screen.getAllByRole('option')).toHaveLength(2)
+			})
+
+			const keyWarnings = warn.mock.calls.filter((call) =>
+				call.some((arg) => typeof arg === 'string' && arg.includes('same key')),
+			)
+
+			expect(keyWarnings).toEqual([])
+		} finally {
+			warn.mockRestore()
+		}
+	})
+
+	it('binds the selection to a Form field by name', async () => {
+		await withFakeTime(async (clock) => {
+			const { container } = renderUI(
+				<Form defaultValues={{ address: undefined as AddressSuggestion | undefined }}>
+					<AddressInput name="address" provider={mockProvider} debounceMs={0} minQueryLength={1} />
+					<FormValue name="address" />
+				</Form>,
+			)
+
+			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+			await clock.user.type(input, 'x')
+
+			await clock.advance(0)
+
+			await clock.user.click(screen.getByRole('option', { name: /X Main St/ }))
+
+			// The field holds the suggestion the provider returned; `capitalize`
+			// styles the display and never the stored value.
+			expect(screen.getByTestId('bound')).toHaveTextContent('x Main St')
+		})
+	})
+
+	it('seeds the field value into the input display', () => {
+		const { container } = renderUI(
+			<Form defaultValues={{ address: { id: '1', label: '10 Main St' } }}>
+				<AddressInput name="address" />
+			</Form>,
+		)
+
+		expect((bySlot(container, 'combobox-input') as HTMLInputElement).value).toBe('10 Main St')
 	})
 
 	it('aborts the in-flight request when the query changes', async () => {
@@ -330,6 +410,25 @@ describe('photonProvider', () => {
 		}
 	}
 
+	/** Answers one Photon request with these features. */
+	function stubFeatures(...features: ReturnType<typeof makeFeature>[]) {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => ({ ok: true, json: async () => ({ features }) }) as Response),
+		)
+	}
+
+	/** The named business the label, description, and identity cases all read. */
+	const CLEARWATER = {
+		name: 'Clearwater Restaurant',
+		housenumber: '325',
+		street: 'SW Bay Blvd',
+		city: 'Newport',
+		state: 'Oregon',
+		postcode: '97365',
+		country: 'United States',
+	}
+
 	it('maps features with street + housenumber into a primary + secondary label', async () => {
 		vi.stubGlobal(
 			'fetch',
@@ -404,6 +503,56 @@ describe('photonProvider', () => {
 		expect(results[0]?.label).toBe('NY, USA')
 
 		expect(results[0]?.description).toBeUndefined()
+	})
+
+	it('leads a named business with its name and locates it beneath', async () => {
+		stubFeatures(makeFeature(CLEARWATER))
+
+		const results = await photonProvider('clearwater', { signal: new AbortController().signal })
+
+		// The reader searched for the name, so the name is what reads back.
+		expect(results[0]?.label).toBe('Clearwater Restaurant')
+
+		expect(results[0]?.description).toBe('325 SW Bay Blvd, Newport, Oregon, 97365, United States')
+	})
+
+	it('carries the name and the parted address beside the display label', async () => {
+		stubFeatures(makeFeature(CLEARWATER))
+
+		const results = await photonProvider('clearwater', { signal: new AbortController().signal })
+
+		expect(results[0]?.name).toBe('Clearwater Restaurant')
+
+		expect(results[0]?.address).toEqual({
+			street: '325 SW Bay Blvd',
+			city: 'Newport',
+			state: 'Oregon',
+			postcode: '97365',
+			country: 'United States',
+		})
+	})
+
+	it('parts two documents of one OSM object by their type', async () => {
+		stubFeatures(
+			makeFeature({ osm_id: 192205, osm_type: 'R', type: 'city', name: 'Clearwater' }),
+			makeFeature({ osm_id: 192205, osm_type: 'R', type: 'other', name: 'Clearwater' }),
+		)
+
+		const results = await photonProvider('clearwater', { signal: new AbortController().signal })
+
+		// Photon indexes one object as several documents — this relation is both a
+		// village and a locality — so the object alone does not identify a match.
+		expect(results[0]?.id).not.toBe(results[1]?.id)
+	})
+
+	it('leaves `name` unset on a plain address, which names nothing', async () => {
+		stubFeatures(makeFeature({ housenumber: '10', street: 'Main St', city: 'NY' }))
+
+		const results = await photonProvider('q', { signal: new AbortController().signal })
+
+		expect(results[0]?.name).toBeUndefined()
+
+		expect(results[0]?.address?.street).toBe('10 Main St')
 	})
 
 	it('throws when the response is not ok', async () => {
@@ -500,5 +649,96 @@ describe('photonProvider', () => {
 		await expect(photonProvider('q', { signal: new AbortController().signal })).rejects.toThrow(
 			/did not match expected shape/,
 		)
+	})
+})
+
+describe('createPhotonProvider', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	/** The one URL the stubbed fetch was called with. */
+	function requestedUrl(fetchMock: ReturnType<typeof vi.fn>): URL {
+		return new URL(String(fetchMock.mock.calls[0]?.[0]))
+	}
+
+	function stubEmptyFetch() {
+		const fetchMock = vi.fn(
+			async () => ({ ok: true, json: async () => ({ features: [] }) }) as Response,
+		)
+
+		vi.stubGlobal('fetch', fetchMock)
+
+		return fetchMock
+	}
+
+	it('asks the public endpoint for five matches by default', async () => {
+		const fetchMock = stubEmptyFetch()
+
+		await createPhotonProvider()('diner', { signal: new AbortController().signal })
+
+		const url = requestedUrl(fetchMock)
+
+		expect(url.origin + url.pathname).toBe('https://photon.komoot.io/api/')
+
+		expect(url.searchParams.get('q')).toBe('diner')
+
+		expect(url.searchParams.get('limit')).toBe('5')
+	})
+
+	it('carries the endpoint, limit, language, and proximity bias', async () => {
+		const fetchMock = stubEmptyFetch()
+
+		const provider = createPhotonProvider({
+			endpoint: 'https://geocode.example/api/',
+			limit: 8,
+			lang: 'de',
+			bias: { latitude: 44.64, longitude: -124.05 },
+		})
+
+		await provider('diner', { signal: new AbortController().signal })
+
+		const url = requestedUrl(fetchMock)
+
+		expect(url.origin + url.pathname).toBe('https://geocode.example/api/')
+
+		expect(url.searchParams.get('limit')).toBe('8')
+
+		expect(url.searchParams.get('lang')).toBe('de')
+
+		expect(url.searchParams.get('lat')).toBe('44.64')
+
+		expect(url.searchParams.get('lon')).toBe('-124.05')
+	})
+
+	it('repeats each layer and tag as its own term, which is how Photon reads them', async () => {
+		const fetchMock = stubEmptyFetch()
+
+		const provider = createPhotonProvider({
+			layers: ['house', 'street'],
+			osmTag: ['amenity:restaurant', '!amenity:fast_food'],
+		})
+
+		await provider('diner', { signal: new AbortController().signal })
+
+		const url = requestedUrl(fetchMock)
+
+		expect(url.searchParams.getAll('layer')).toEqual(['house', 'street'])
+
+		expect(url.searchParams.getAll('osm_tag')).toEqual(['amenity:restaurant', '!amenity:fast_food'])
+	})
+
+	it('omits every option it was not given', async () => {
+		const fetchMock = stubEmptyFetch()
+
+		await createPhotonProvider()('diner', { signal: new AbortController().signal })
+
+		const url = requestedUrl(fetchMock)
+
+		expect(url.searchParams.has('lang')).toBe(false)
+
+		expect(url.searchParams.has('lat')).toBe(false)
+
+		expect(url.searchParams.getAll('layer')).toEqual([])
 	})
 })

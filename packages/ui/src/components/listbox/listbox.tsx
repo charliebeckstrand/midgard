@@ -167,6 +167,26 @@ export function Listbox<T>({
 	// `<Control>`. It also merges the consumer `aria-describedby` with the field's
 	// registered ids and resolves `invalid` off the ambient severity, matching
 	// Input/Textarea/Slider.
+	const handleValueChange = useSelectableValueChange<T>(
+		onValueChange as ((value: T | T[] | null) => void) | undefined,
+		multiple,
+	)
+
+	const {
+		value,
+		setValue,
+		setTouched,
+		invalid: boundInvalid,
+	} = useFormValue<T | T[]>(name, {
+		value: valueProp,
+		defaultValue: defaultValue as T | T[] | undefined,
+		onValueChange: handleValueChange,
+	})
+
+	// Resolved after the binding, so the bound field's own errors reach the
+	// control: `useControlProps` ORs them with an ambient `error` severity, and a
+	// Listbox that withheld them rang only for a `<Field severity>` its consumer
+	// set by hand — where the Input beside it rang for its own validator.
 	const {
 		id: resolvedId,
 		disabled: resolvedDisabled,
@@ -179,21 +199,11 @@ export function Listbox<T>({
 		disabled,
 		readOnly,
 		required,
+		invalid: boundInvalid,
 		'aria-describedby': ariaDescribedBy,
 	})
 
 	const resolvedSize = token.size
-
-	const handleValueChange = useSelectableValueChange<T>(
-		onValueChange as ((value: T | T[] | null) => void) | undefined,
-		multiple,
-	)
-
-	const { value, setValue, setTouched } = useFormValue<T | T[]>(name, {
-		value: valueProp,
-		defaultValue: defaultValue as T | T[] | undefined,
-		onValueChange: handleValueChange,
-	})
 
 	const listboxId = useId()
 
@@ -252,11 +262,24 @@ export function Listbox<T>({
 		[context],
 	)
 
-	// Marks the bound field touched when focus leaves the widget; a blur into
-	// the portalled panel (opening the menu) doesn't count. Mirrors the
-	// combobox input's onBlur.
+	// Marks the bound field touched when focus leaves the widget; a blur into the
+	// portalled panel (opening the menu) doesn't count. Mirrors the combobox
+	// input's onBlur.
+	//
+	// The panel is found by its id as well as through the floating ref, because
+	// the ref is not reliably attached at the moment this fires: a press opens the
+	// menu on `click`, and the focus manager moves focus into the panel — raising
+	// this blur — in the same beat the panel mounts. Where the ref was still null
+	// the guard fell through and the field went touched on the way IN, so a picker
+	// showed "required" the first time it was opened and before it was answered.
 	const handleTriggerBlur = (event: FocusEvent<HTMLButtonElement>) => {
-		if (refs.floating.current?.contains(event.relatedTarget as Node)) return
+		// A blur to nowhere — a press on unfocusable ground — still leaves the
+		// widget, so `null` falls through to the touch rather than short-circuiting.
+		const next = event.relatedTarget as Node | null
+
+		if (refs.floating.current?.contains(next)) return
+
+		if (next !== null && document.getElementById(listboxId)?.contains(next)) return
 
 		setTouched()
 	}

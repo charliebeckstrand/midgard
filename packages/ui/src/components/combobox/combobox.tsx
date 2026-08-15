@@ -38,7 +38,7 @@ import {
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
-import { type ControlSize, useControl } from '../control/context'
+import { type ControlSeverity, type ControlSize, useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -261,6 +261,22 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
 /**
+ * The bound field's own errors OR'd with an ambient `error` severity — the
+ * resolution `useControlProps` makes for every other field, which this component
+ * makes by hand because it resolves the rest of the cascade by hand too. Without
+ * it a bound Combobox rang only for a `<Field severity>` its consumer set, where
+ * the Input beside it rang for its own validator.
+ *
+ * @internal
+ */
+function resolveInvalid(
+	bound: boolean | undefined,
+	severity: ControlSeverity | undefined,
+): boolean | undefined {
+	return bound || severity === 'error' || undefined
+}
+
+/**
  * Type-ahead select pairing a text input with a floating option panel.
  * Supports single or `multiple` selection, controlled or uncontrolled `value`,
  * and `clearable`/`nullable` affordances; resolves `size`, `disabled`,
@@ -338,11 +354,18 @@ export function Combobox<T>({
 		multiple,
 	)
 
-	const { value, setValue, setTouched } = useFormValue<T | T[]>(name, {
+	const {
+		value,
+		setValue,
+		setTouched,
+		invalid: boundInvalid,
+	} = useFormValue<T | T[]>(name, {
 		value: valueProp,
 		defaultValue: defaultValue as T | T[] | undefined,
 		onValueChange: handleValueChange,
 	})
+
+	const resolvedInvalid = resolveInvalid(boundInvalid, control?.severity)
 
 	const comboboxId = useId()
 
@@ -669,6 +692,7 @@ export function Combobox<T>({
 						disabled={resolvedDisabled}
 						readOnly={resolvedReadOnly}
 						required={resolvedRequired}
+						invalid={resolvedInvalid}
 						value={inputDisplay}
 						placeholder={placeholder}
 						title={inputTitle}
