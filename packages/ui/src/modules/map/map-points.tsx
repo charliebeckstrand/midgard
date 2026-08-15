@@ -2,7 +2,7 @@
 
 import { Fragment, memo, useMemo } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/map'
+import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { rangeKeys } from '../../utilities'
 import { useMapPlat, useMapZoomScale } from './context'
 import { markTargets } from './engine/map-cluster/crowd'
@@ -38,6 +38,22 @@ export type MapPointDatum = {
 	 * of its own would misreport itself as the whole round.
 	 */
 	detail?: string
+	/**
+	 * This dot's own colour, where the stops divide into kinds the reader is meant
+	 * to tell apart — a place's category, a stop's status. Omitted, the dot takes
+	 * the mark's slot colour, which is the whole of an undivided set.
+	 *
+	 * A summary dot keeps the mark's colour whatever its members carry: it stands
+	 * for several stops at once, so any one of their colours would name it wrongly.
+	 * That is what lets a set both cluster and stay legible — the merges read as
+	 * merges, and the dots that did not merge say what they are.
+	 *
+	 * The mark still registers ONE legend entry in its own slot, because it is one
+	 * mark. A reader who needs the kinds named wants a key beside the map — a
+	 * filter listing them, a legend of its own — and these colours are what that
+	 * key points at.
+	 */
+	color?: MapSeriesColor
 }
 
 /** Props for {@link MapPointsDots}: everything the drawn dots read, none of the emphasis. @internal */
@@ -47,8 +63,8 @@ type MapPointsDotsProps = {
 	keys: string[]
 	/** What each dot's fine-pointer target may reach, in device pixels. */
 	targets: number[]
-	/** The dots' stroke class, resolved from the mark's slot. */
-	paint: string
+	/** Each drawn group's own stroke class, where a lone dot carries a colour of its own. */
+	paints: string[]
 	/** The ink a summary's count is written in. */
 	countInk: string
 	animate: boolean
@@ -77,7 +93,7 @@ const MapPointsDots = memo(function MapPointsDots({
 	groups,
 	keys,
 	targets,
-	paint,
+	paints,
 	countInk,
 	animate,
 	unitsPerPixel,
@@ -109,7 +125,9 @@ const MapPointsDots = memo(function MapPointsDots({
 							at={position}
 							radius={radius}
 							scale={unitsPerPixel}
-							className={paint}
+							// `?? ''` for the indexed read alone: `paints` is built from the same
+							// `groups` this maps, so every rendered index has one.
+							className={paints[index] ?? ''}
 							animate={animate}
 							transition={pop}
 						/>
@@ -140,6 +158,21 @@ const MapPointsDots = memo(function MapPointsDots({
 		</>
 	)
 })
+
+/**
+ * What a pick on a dot reports: the mark's `id`, the picked point's index in
+ * {@link MapPointsProps.points}, and every index the dot stands for.
+ *
+ * `index` is the first of `merged`, so a caller that wants the one point it
+ * named can read it and stop. `merged` is what a summary is: the reader pointed
+ * at one dot, and these are the stops under it, in the order they were given. A
+ * dot the frame did not merge reports a `merged` of one.
+ *
+ * @param id - The mark's own `id`.
+ * @param index - The picked point's index; always `merged[0]`.
+ * @param merged - Every index this dot draws for.
+ */
+export type MapPointsPick = (id: string, index: number, merged: readonly number[]) => void
 
 /** Props for {@link MapPoints}. */
 export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> & {
@@ -184,17 +217,15 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 */
 	clusterDetail?: (count: number, span: number, labels: string[]) => string
 	/**
-	 * Fires when a click lands on a dot, with the group's `id` and the dot's index
-	 * in {@link points} — so a click keys straight back into the caller's own row.
-	 * A summary dot reports the first of the stops it holds, so a pick always
-	 * names a real point.
+	 * Fires when a click lands on a dot; see {@link MapPointsPick} for what it
+	 * reports.
 	 *
 	 * Set, every dot carries a pointer cursor, and the keyboard cursor picks the
 	 * dot it stands on with Enter or Space.
 	 */
-	onClick?: (id: string, index: number) => void
-	/** Fires on a right-click, with the same pair {@link onClick} reports. */
-	onContextMenu?: (id: string, index: number) => void
+	onClick?: MapPointsPick
+	/** Fires on a right-click, with the same arguments {@link onClick} reports. */
+	onContextMenu?: MapPointsPick
 }
 
 /**
@@ -318,14 +349,18 @@ export function MapPoints({
 
 	// The caller counts in points; everything inside this mark counts in drawn
 	// groups. A summary hands back the first stop it holds, so a pick names a row
-	// the caller owns rather than a grouping it never asked for.
-	const report = (handler: ((id: string, index: number) => void) | undefined) => {
+	// the caller owns rather than a grouping it never asked for — and the whole
+	// group beside it, because a summary is one dot to the reader and every stop
+	// under it is what they just pointed at.
+	const report = (handler: MapPointsPick | undefined) => {
 		if (handler === undefined) return undefined
 
 		return (id: string, group: number) => {
-			const first = groups[group]?.members[0]
+			const members = groups[group]?.members
 
-			if (first !== undefined) handler(id, first)
+			const first = members?.[0]
+
+			if (members !== undefined && first !== undefined) handler(id, first, members)
 		}
 	}
 
@@ -375,9 +410,29 @@ export function MapPoints({
 	// every time, which is the cost this mark exists to remove.
 	const keys = useMemo(() => rangeKeys(groups.length, 'dot'), [groups.length])
 
-	if (slot === undefined || hidden) return null
+	// Each drawn group's stroke class. A lone dot wears its own colour where it
+	// carries one; a summary wears the mark's, because it stands for several stops
+	// and any one of theirs would name it wrongly.
+	//
+	// Held rather than rebuilt: this is a prop of the memoised dot layer, and that
+	// memo exists to hold the dots through every pointer crossing elsewhere on the
+	// map. A fresh array per render would defeat it — which is what
+	// `map-points-render` pins.
+	const paints = useMemo(() => {
+		const mark = slot === undefined ? '' : cn(...k.series[slot].stroke)
 
-	const paint = cn(...k.series[slot].stroke)
+		return groups.map(({ members }) => {
+			if (members.length !== 1) return mark
+
+			const first = members[0]
+
+			const own = first === undefined ? undefined : points[first]?.color
+
+			return own === undefined ? mark : cn(...k.series[own].stroke)
+		})
+	}, [groups, points, slot])
+
+	if (slot === undefined || hidden) return null
 
 	const countInk = cn('text-xs font-semibold tabular-nums', ...k.series[slot].onFill)
 
@@ -397,7 +452,7 @@ export function MapPoints({
 					groups={groups}
 					keys={keys}
 					targets={targets}
-					paint={paint}
+					paints={paints}
 					countInk={countInk}
 					animate={animate}
 					unitsPerPixel={unitsPerPixel}

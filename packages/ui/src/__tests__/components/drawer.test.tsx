@@ -2,8 +2,9 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
+import { settleResize, speedOf } from '../../components/drawer/use-drawer-resize'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen, userEvent } from '../helpers'
 
 describe('Drawer', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -296,6 +297,42 @@ describe('Drawer size context', () => {
 		expect(drawerPanel()).toHaveAttribute('data-size', 'lg')
 	})
 
+	it('defaults to height="auto", capping rather than fixing the panel height', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}}>
+				content
+			</Drawer>,
+		)
+
+		expect(drawerPanel()).toHaveAttribute('data-height', 'auto')
+
+		expect(drawerPanel()).toHaveClass('max-h-[85dvh]')
+	})
+
+	it('fixes the panel height at half the screen', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} height="half">
+				content
+			</Drawer>,
+		)
+
+		expect(drawerPanel()).toHaveAttribute('data-height', 'half')
+
+		expect(drawerPanel()).toHaveClass('h-[50dvh]')
+	})
+
+	it('squares the top corners at full height, which meets the screen edge', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} height="full">
+				content
+			</Drawer>,
+		)
+
+		expect(drawerPanel()).toHaveClass('h-dvh')
+
+		expect(drawerPanel()).not.toHaveClass('rounded-t-xl')
+	})
+
 	it('descendant Buttons inherit the Drawer size', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}} size="lg">
@@ -365,5 +402,141 @@ describe('Drawer uncontrolled', () => {
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
 		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+})
+
+describe('Drawer drag handle', () => {
+	// What a released drag means is arithmetic, and it is the half a synthetic
+	// pointer cannot reach — the gesture writes the height straight to the element
+	// across real pointer frames. Driven directly instead.
+	describe('settleResize', () => {
+		it('keeps whatever height the drag landed on', () => {
+			// Not a step: the reader is deciding how much of the screen the panel
+			// gets, and the answer is wherever they let go.
+			expect(settleResize(420, 0)).toBe(420)
+
+			expect(settleResize(140, 0)).toBe(140)
+		})
+
+		it('keeps the panel at the floor rather than taking it away there', () => {
+			// The smallest size is still a size. Closing when the reader reaches it
+			// would take the panel from someone who was still placing it.
+			expect(settleResize(140, 0.1)).toBe(140)
+		})
+
+		it('throws the panel away on a flick, whatever height it was left at', () => {
+			// Speed, not position, is what separates a resize from a dismissal — a
+			// reader placing an edge slows to a stop, and one dismissing does not.
+			expect(settleResize(600, 0.9)).toBe('close')
+
+			expect(settleResize(140, 0.9)).toBe('close')
+		})
+
+		it('never reads an upward flick as a dismissal', () => {
+			expect(settleResize(600, -2)).toBe(600)
+		})
+	})
+
+	describe('speedOf', () => {
+		it('measures the last sample before the release, not the whole gesture', () => {
+			// A reader who drags slowly and then flicks means the flick; averaged over
+			// the travel it would disappear.
+			expect(speedOf({ y: 100, t: 0 }, 160, 100)).toBeCloseTo(0.6, 5)
+		})
+
+		it('reads no speed from a gesture with nothing behind it', () => {
+			expect(speedOf(null, 160, 100)).toBe(0)
+		})
+
+		it('reads no speed from a release in the same instant as the last move', () => {
+			// The interval is the divisor, so a zero one has no speed to give.
+			expect(speedOf({ y: 100, t: 100 }, 160, 100)).toBe(0)
+		})
+	})
+
+	/** A drawer with a grab bar, and the bar itself. */
+	function renderHandled(props?: { onOpenChange?: (open: boolean) => void; open?: boolean }) {
+		const rendered = renderUI(
+			<Drawer open handle height="half" onOpenChange={() => {}} aria-label="Panel" {...props}>
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		return {
+			...rendered,
+			handle: present(bySlot(rendered.container, 'drawer-handle'), 'drag handle'),
+			panel: present(bySlot(rendered.container, 'drawer'), 'panel') as HTMLElement,
+		}
+	}
+
+	it('renders no handle unless asked, and a window splitter when asked', () => {
+		const { container: plain } = renderUI(
+			<Drawer open onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		expect(bySlot(plain, 'drawer-handle')).toBeNull()
+
+		const { handle } = renderHandled()
+
+		// The splitter pattern: a resizer, not a button, and reachable by keyboard —
+		// on a panel whose height it alone sets, a drag-only control would leave a
+		// keyboard reader unable to open the panel up.
+		expect(handle).toHaveAttribute('role', 'separator')
+
+		expect(handle).toHaveAttribute('aria-orientation', 'horizontal')
+
+		expect(handle).toHaveAttribute('aria-valuenow')
+
+		expect(handle.tabIndex).toBe(0)
+	})
+
+	it('resizes on the arrow keys and never closes on them', async () => {
+		const onOpenChange = vi.fn()
+
+		const { handle, panel } = renderHandled({ onOpenChange })
+
+		const user = userEvent.setup({ delay: null })
+
+		handle.focus()
+
+		await user.keyboard('{ArrowUp}')
+
+		// The height lands inline, because it is a measurement and no class says
+		// "412 pixels".
+		expect(panel.style.height).not.toBe('')
+
+		// Escape is how a panel closes from the keyboard everywhere else, so an
+		// arrow pressed to the floor must not shut this one.
+		await user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}')
+
+		expect(onOpenChange).not.toHaveBeenCalledWith(false)
+	})
+
+	it('forgets a dragged height once closed', async () => {
+		const { container, rerender, handle } = renderHandled()
+
+		const user = userEvent.setup({ delay: null })
+
+		handle.focus()
+
+		await user.keyboard('{ArrowUp}')
+
+		rerender(
+			<Drawer open={false} handle height="half" onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		rerender(
+			<Drawer open handle height="half" onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		// Back at the size the consumer asked for, which is the one a reader coming
+		// back to the panel expects.
+		expect((present(bySlot(container, 'drawer'), 'panel') as HTMLElement).style.height).toBe('')
 	})
 })

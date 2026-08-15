@@ -155,6 +155,28 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		tooltip?: boolean
 		/**
+		 * Name every region the pointer rests on, not only the ones a row matched.
+		 *
+		 * A region with no row has nothing to say about the data, but it is still a
+		 * shape the reader is pointing at, and on a navigation map — one the reader
+		 * picks a region from rather than reads a measure off — its name is the
+		 * whole readout. Without this the tooltip stays away there, because a
+		 * backdrop map drawing a hundred unmatched regions must not raise an empty
+		 * tooltip over each of them; that silence is the default, and this is how a
+		 * map that has names worth saying asks for them.
+		 *
+		 * The name is the one {@link regionLabel} resolves, which the geography
+		 * carries whether or not any row matched. A matched region is unaffected: it
+		 * reads out its category or its value as it always did. A toggled-off
+		 * category falls back to the name too, so a legend toggle dims a region
+		 * rather than muting it.
+		 *
+		 * It earns the region layer its pointer tracking, so a map with no `data` at
+		 * all still reads out under this prop.
+		 * @defaultValue false
+		 */
+		nameRegions?: boolean
+		/**
 		 * Let the reader zoom and pan the drawn geography. Shift and a wheel zoom
 		 * about the pointer, a drag pans, two touches pan and pinch, and the plot's
 		 * own tab stop takes `+`, `-`, and `0` — so the keyboard reaches every scale
@@ -496,6 +518,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		sphere = false,
 		legend,
 		tooltip = true,
+		nameRegions = false,
 		zoom: zoomInput,
 		animate = false,
 		onRegionClick,
@@ -551,7 +574,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		regionValues,
 		regionNumbers,
 		domain: valueExtent,
-	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel)
+	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel, nameRegions)
 
 	const { hidden: switched, toggle, setFocus, emphasis: activeFocus } = useMapToggle(animate)
 
@@ -730,7 +753,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// match to earn them, and without this the pointer half of its report would be
 	// dead. Both halves read the same on the first commit as on the next, which the
 	// bit above states the layer must have.
-	const regionsTracked = regionsRead || preloads
+	// Naming every region is itself a readout, so it earns the layer its handlers:
+	// without this a map with no `data` would carry the prop and answer nothing.
+	const regionsTracked = regionsRead || preloads || nameRegions
 
 	// Whether the region layer answers the pointer at all — the third claimant on the ground
 	// a dot stands on, and the one that claims first.
@@ -911,7 +936,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Whether anything at all can read out — a matched region, or a registered
 	// overlay. The table and the tab stop take this wider reading: a mark's own
 	// row and its keyboard stop are outputs a map with no rows still has.
-	const hasReadout = regionsRead || entries.length > 0
+	const hasReadout = regionsRead || entries.length > 0 || nameRegions
 
 	// `tooltip` asks and `hasReadout` answers; the readout channels all want the
 	// pair. Bound once rather than spelled at each of them.
@@ -1088,6 +1113,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 								categories={categoryMetas}
 								entries={tooltipEntries}
 								hidden={hidden}
+								nameRegions={nameRegions}
 							/>
 						) : null
 					}

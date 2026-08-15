@@ -113,7 +113,12 @@ export type FiltersFieldProps = {
  * slot, and SearchInput's `onClear` clears the slot. Must render inside a `Filters`.
  */
 export function FiltersField({ name, children, className }: FiltersFieldProps) {
-	const { value: filterValue, setValue } = useFilters()
+	const { value: filterValue, setValue, layout } = useFilters()
+
+	// A stacked field fills its column; a rail's field keeps whatever width it was
+	// given and refuses to be squeezed, which is what makes the row overflow and
+	// scroll rather than crushing five controls into the space of two.
+	const width = layout === 'rail' ? 'shrink-0' : 'w-full'
 
 	const fieldValue = filterValue[name]
 
@@ -141,7 +146,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 		}
 
 		return (
-			<Field data-slot="filter-field" className={cn('w-full', className)}>
+			<Field data-slot="filter-field" className={cn(width, className)}>
 				{children(renderProps)}
 			</Field>
 		)
@@ -176,7 +181,7 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	})
 
 	return (
-		<Field data-slot="filter-field" className={cn('w-full', className)}>
+		<Field data-slot="filter-field" className={cn(width, className)}>
 			{processed}
 		</Field>
 	)

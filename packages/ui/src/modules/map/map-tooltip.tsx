@@ -50,6 +50,8 @@ export type MapTooltipProps = {
 	entries: ReadonlyMap<string, MapTooltipEntry>
 	/** Toggled-off legend ids; their targets read as no data. */
 	hidden: ReadonlySet<string>
+	/** Name a region no row matched, rather than staying away. See {@link MapPlatProps.nameRegions}. */
+	nameRegions?: boolean
 }
 
 /** What the tooltip shows for the current target: a title and an optional swatch row. @internal */
@@ -64,10 +66,23 @@ type MapTooltipContent = {
 	}
 }
 
+/** A name-only readout, for a region carrying no value the tooltip could show. @internal */
+function nameOnly(name: string | undefined, asked: boolean | undefined): MapTooltipContent | null {
+	return asked === true && name !== undefined && name !== '' ? { title: name } : null
+}
+
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */
 function resolve(
 	target: MapHoverTarget,
-	{ regionNames, regionCategory, regionValues, categories, entries, hidden }: MapTooltipProps,
+	{
+		regionNames,
+		regionCategory,
+		regionValues,
+		categories,
+		entries,
+		hidden,
+		nameRegions,
+	}: MapTooltipProps,
 ): MapTooltipContent | null {
 	if (target.kind === 'entry') {
 		if (hidden.has(target.id)) return null
@@ -90,11 +105,18 @@ function resolve(
 
 	const category = regionCategory[target.index]
 
-	if (category == null) return null
+	// What a region with no value of its own reads as: its name where the caller
+	// asked for one, and silence otherwise. The shape under the pointer is still a
+	// place, and naming it is the whole of what a navigation map has to say; the
+	// silence is what keeps a backdrop map from raising an empty tooltip over
+	// every region it draws.
+	const unmatched = () => nameOnly(regionNames[target.index], nameRegions)
+
+	if (category == null) return unmatched()
 
 	const meta = categories[category]
 
-	if (meta === undefined || hidden.has(categoryLegendId(meta.value))) return null
+	if (meta === undefined || hidden.has(categoryLegendId(meta.value))) return unmatched()
 
 	const { paint } = meta
 

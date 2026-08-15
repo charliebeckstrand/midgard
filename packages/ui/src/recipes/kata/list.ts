@@ -1,7 +1,7 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, ma, narabi, omote, sen } from '../kiso'
 
-const { cursor, disabled, fg } = hannou
+const { cursor, disabled, fg, glassItem, tint, tintFilled, tintSurface } = hannou
 const { text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -52,6 +52,20 @@ const item = defineRecipe({
 		true: focus.lifted,
 		false: '',
 	},
+	// Whether the row acts on activation. It carries no classes of its own: the
+	// wash a row takes depends on the fill it already has, so it rides the
+	// variant compounds below and this axis only gates them.
+	interactive: {
+		true: '',
+		false: '',
+	},
+	// Opt-in corners, for the variants that carry none. `separated` and `solid`
+	// are rounded already, so this adds nothing there; `false` never strips them,
+	// because a variant's own shape is not this axis's to take away.
+	rounded: {
+		true: rounded.lg,
+		false: '',
+	},
 	compound: [
 		...variants.flatMap((variant) =>
 			densities.map((density) => ({ variant, density, class: p[density] })),
@@ -59,8 +73,31 @@ const item = defineRecipe({
 		{ variant: 'plain', density: 'sm', class: 'px-1.5 py-1' },
 		{ variant: 'plain', density: 'md', class: 'px-2 py-1.5' },
 		{ variant: 'plain', density: 'lg', class: 'px-2.5 py-2' },
+		// The hover wash, one per variant, because each rests on a different fill and
+		// a wash is a background *replacement*. It rides the `<li>` rather than the
+		// content column so it covers the prefix and suffix slots too — a row that
+		// lights up under the label alone reads as two targets.
+		//
+		// A row on bare ground takes the standard wash, doubled inside a glass
+		// parent where 5% sits under the panel's own translucency.
+		{ variant: 'plain', interactive: true, class: [tint, glassItem] },
+		{ variant: 'outline', interactive: true, class: [tint, glassItem] },
+		// A card rests on an opaque surface, and an alpha wash would not darken it
+		// but replace it — the row would go see-through to whatever it covers for
+		// as long as the pointer rests there. It steps shade instead.
+		{ variant: 'separated', interactive: true, class: tintSurface },
+		// A solid row rests on `omote.bg.tint`, which the standard wash matches in
+		// strength — the hover would repaint the rest state. This doubles it.
+		{ variant: 'solid', interactive: true, class: tintFilled },
 	],
-	defaults: { variant: 'separated', density: 'md', active: false, lifted: false },
+	defaults: {
+		variant: 'separated',
+		density: 'md',
+		active: false,
+		lifted: false,
+		interactive: false,
+		rounded: false,
+	},
 })
 
 // The `interactive` axis carries the treatment for a content area that acts on

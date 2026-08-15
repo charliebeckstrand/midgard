@@ -21,6 +21,7 @@ import { map } from './map'
 import { pagination } from './pagination'
 import { progress } from './progress'
 import { radio } from './radio'
+import { rating } from './rating'
 import { segment } from './segment'
 import { slider } from './slider'
 import { sparkline } from './sparkline'
@@ -46,6 +47,7 @@ export const kokkaku = {
 	pagination,
 	progress,
 	radio,
+	rating,
 	segment,
 	slider,
 	sparkline,

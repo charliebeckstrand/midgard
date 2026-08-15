@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
@@ -13,9 +13,11 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
+import { DrawerHandle } from './drawer-handle'
+import { useDrawerResize } from './use-drawer-resize'
 
-/** Props for {@link Drawer}: open-state control, density `size` cascade, and accessible naming. */
-export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
+/** Props for {@link Drawer}: open-state control, panel `height`, density `size` cascade, and accessible naming. */
+export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
 	/** Initial open state when uncontrolled. */
@@ -45,6 +47,38 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
 	 * @defaultValue inherited Density size, falling back to 'md'
 	 */
 	size?: Step
+	/**
+	 * How much of the screen the panel docks over.
+	 *
+	 * `auto` grows to the content and stops short of the top edge, which is what
+	 * a drawer is for: the page it came from stays visible behind it. `half` and
+	 * `full` fix the height instead, for a panel whose own body scrolls — a
+	 * detail panel beside the thing it describes, or a form that owns the screen
+	 * for as long as it is up. `full` squares the top corners, because a rounded
+	 * corner against the screen edge reads as a panel that failed to reach it.
+	 *
+	 * The body scrolls within the panel either way, so a fixed height never
+	 * strands content; it decides where the panel stops, not what fits.
+	 * @defaultValue 'auto'
+	 */
+	height?: DrawerPanelVariants['height']
+	/**
+	 * Give the panel a drag handle, so the reader can resize it between the fixed
+	 * `height` steps and throw it away downward.
+	 *
+	 * The drag sets the height directly rather than stepping between the `height`
+	 * variants: the reader is deciding how much of the screen the panel gets, and
+	 * the answer is wherever they let go. `height` still states where it opens.
+	 *
+	 * A panel flicked downward closes, which arrives through `onOpenChange` like
+	 * every other close — speed, not position, is what tells a dismissal from a
+	 * reader placing the edge at its shortest. A resize is the drawer's own state
+	 * and reports nowhere: nothing outside it needs to hold a pixel height that
+	 * only means anything on the screen it was set on.
+	 *
+	 * @defaultValue false
+	 */
+	handle?: boolean
 	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 	glass?: boolean
 	/**
@@ -89,7 +123,8 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface'> & {
  * Bottom-sheet overlay rendered in an `Overlay` with focus trapping and backdrop dismiss.
  * Docks full-width to the bottom edge with a rounded top, slides up via the shared bottom
  * motion preset, and drives open state controlled (`open`/`onOpenChange`) or uncontrolled
- * (`defaultOpen`). Resolves the surface variant against the enclosing Glass provider and opens
+ * (`defaultOpen`). `height` sets how much of the screen it docks over: growing to its content
+ * by default, or fixed at half or the whole of it. Resolves the surface variant against the enclosing Glass provider and opens
  * a Density cascade at the resolved `size` so descendants scale in step. Compose
  * `<DrawerTrigger>`, `<DrawerClose>`, and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
  * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within.
@@ -107,6 +142,8 @@ export function Drawer({
 	onOpenChange,
 	onOpenComplete,
 	size,
+	height,
+	handle,
 	glass,
 	desaturate,
 	className,
@@ -140,6 +177,11 @@ export function Drawer({
 		if (resolvedOpen && !animateEnter) report()
 	}, [resolvedOpen, animateEnter, report])
 
+	// The gesture is held here, by the component that owns the panel it writes to.
+	// A pixel height means nothing off the screen it was set on, so it stays in
+	// here — there is nothing for a consumer to hold.
+	const resize = useDrawerResize({ open: resolvedOpen, onDismiss: () => setOpen(false) })
+
 	const { ariaProps, a11y } = useA11yPanel()
 
 	const inherited = useDensity()
@@ -159,14 +201,40 @@ export function Drawer({
 				// After the preset spread, so it overrides the preset's own `initial`.
 				initial={animateEnter ? k.motion.initial : false}
 				onAnimationComplete={onAnimationComplete}
+				ref={resize.ref}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
 				data-size={resolvedSize}
+				data-height={height ?? 'auto'}
+				// Opens the glass cascade to the panel's contents: `hannou.glassItem`
+				// keys on `group-data-[glass]/glass`, which needs the named group and
+				// the attribute on one element. Rows inside take their hover wash at
+				// double strength, because 5% under the panel's own translucency reads
+				// as no hover at all.
+				data-glass={dataAttr(resolvedSurface === 'glass')}
+				// The panel eases between its `height` variants, which is right for a step
+				// and wrong for a finger: eased, each frame's height becomes an animation
+				// toward where the pointer already is, so the edge trails the drag and
+				// carries on after it ends. The recipe suspends it off this attribute.
+				data-resizing={dataAttr(resize.resizing)}
+				// Named so the slots below can key off it: a handle changes the panel's
+				// top inset, and the header that follows must not add its own on top.
+				data-handle={dataAttr(handle === true)}
 				onClick={(event) => event.stopPropagation()}
-				className={cn(k.panel({ surface: resolvedSurface }), className)}
+				// A dragged height beats the variant's, and it is inline because it is a
+				// measurement rather than a step — there is no class for "412 pixels".
+				style={resize.height === null ? undefined : { height: resize.height }}
+				className={cn(
+					'group/drawer',
+					resolvedSurface === 'glass' && 'group/glass',
+					k.panel({ surface: resolvedSurface, height }),
+					className,
+				)}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
+					{handle ? <DrawerHandle handleProps={resize.handleProps} covers={resize.covers} /> : null}
+
 					<Density scale={resolvedSize}>{children}</Density>
 				</PanelProviders>
 			</motion.div>

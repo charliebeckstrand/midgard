@@ -27,7 +27,12 @@ export { MapGeofence, type MapGeofenceProps } from './map-geofence'
 export { MapMarker, type MapMarkerProps } from './map-marker'
 export { MapPlat, type MapPlatProps } from './map-plat'
 export { MapPoint, type MapPointProps } from './map-point'
-export { type MapPointDatum, MapPoints, type MapPointsProps } from './map-points'
+export {
+	type MapPointDatum,
+	MapPoints,
+	type MapPointsPick,
+	type MapPointsProps,
+} from './map-points'
 export { MapRoute, type MapRouteProps } from './map-route'
 export { MapSkeleton, type MapSkeletonProps } from './map-skeleton'
 export { type MapCoverage, type MapCoverageOptions, useMapCoverage } from './use-map-coverage'

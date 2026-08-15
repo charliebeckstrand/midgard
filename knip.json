@@ -8,7 +8,7 @@
 		".": {
 			"entry": ["postcss.config.mjs"]
 		},
-		"apps/admin": {
+		"apps/*": {
 			"entry": ["next.config.{js,ts,mjs}"],
 			"ignoreDependencies": ["@tailwindcss/postcss"]
 		},

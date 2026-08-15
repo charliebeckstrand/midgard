@@ -1,7 +1,67 @@
 import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../../components/drawer'
+import { Flex } from '../../../components/flex'
 import { Example } from '../../engine'
+
+const LoremIpsum = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed non risus. Suspendisse lectus tortor, dignissim sit amet, adipiscing nec, ultricies sed, dolor. Cras elementum ultrices diam. Maecenas ligula massa, varius a, semper congue, euismod non, mi. Proin porttitor, orci nec nonummy molestie, enim est eleifend mi, non fermentum diam nisl sit amet erat. Duis semper. Duis arcu massa, scelerisque vitae, consequat in, pretium a, enim. Pellentesque congue. Ut in risus volutpat libero pharetra tempor. Cras vestibulum bibendum augue. Praesent egestas leo in pede. Praesent blandit odio eu enim. Pellentesque sed dui ut augue blandit sodales. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Aliquam nibh. Mauris ac mauris sed pede pellentesque fermentum. Maecenas adipiscing ante non diam sodales hendrerit.`
+
+function HeightExample({ height, label }: { height: 'half' | 'full'; label: string }) {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<>
+			<Button variant="outline" onClick={() => setOpen(true)}>
+				{label}
+			</Button>
+
+			<Drawer glass height={height} open={open} onOpenChange={setOpen}>
+				<DrawerTitle>{label}</DrawerTitle>
+
+				<DrawerBody>
+					{LoremIpsum.split('. ').map((line) => (
+						<p key={line} className="mb-4 text-sm">
+							{line}.
+						</p>
+					))}
+				</DrawerBody>
+
+				<DrawerFooter>
+					<Button onClick={() => setOpen(false)}>Close</Button>
+				</DrawerFooter>
+			</Drawer>
+		</>
+	)
+}
+
+/** A panel the reader resizes by its own edge. */
+function HandleExample() {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<>
+			<Button variant="outline" onClick={() => setOpen(true)}>
+				Resizable
+			</Button>
+
+			<Drawer glass handle height="half" open={open} onOpenChange={setOpen}>
+				<DrawerTitle>Drag the grip</DrawerTitle>
+
+				<DrawerBody>
+					{LoremIpsum.split('. ').map((line) => (
+						<p key={line} className="mb-4 text-sm">
+							{line}.
+						</p>
+					))}
+				</DrawerBody>
+
+				<DrawerFooter>
+					<Button onClick={() => setOpen(false)}>Close</Button>
+				</DrawerFooter>
+			</Drawer>
+		</>
+	)
+}
 
 export function Demo() {
 	const [open, setOpen] = useState(false)
@@ -35,6 +95,21 @@ export function Demo() {
 						<Button onClick={() => setGlassOpen(false)}>Close</Button>
 					</DrawerFooter>
 				</Drawer>
+			</Example>
+
+			{/* Drag the grip to resize, or focus it and use the arrow keys. The panel
+			    never shrinks past its own header and footer, and a downward flick puts
+			    it away. */}
+			<Example title="Handle">
+				<HandleExample />
+			</Example>
+
+			<Example title="Height">
+				<Flex gap="sm">
+					<HeightExample height="half" label="Half screen" />
+
+					<HeightExample height="full" label="Full screen" />
+				</Flex>
 			</Example>
 		</>
 	)

@@ -18,6 +18,15 @@ const { size, leading } = ji
 
 export const layout = {
 	base: 'flex flex-col gap-4',
+	/**
+	 * Cancels `base`'s gap for a child that is the panel's own edge rather than one
+	 * of its slots — a drag handle above the header.
+	 *
+	 * Here, beside the gap it undoes, because the two numbers have to agree and
+	 * nothing else would make them: a `gap-4` changed on this line and a `-mb-4`
+	 * left in a kata is a step of dead space no test would catch.
+	 */
+	flush: '-mb-4',
 	/** Optional wrapper around title + description for the tighter 2-unit gap; sits outside the body's overflow container. */
 	header: 'flex flex-col space-y-2',
 	/** Color and leading only; weight and font size are derived from the heading scale by the Title component. */

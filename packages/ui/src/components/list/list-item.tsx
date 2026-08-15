@@ -20,6 +20,21 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	prefix?: ReactNode
 	/** Content rendered after the main content. */
 	suffix?: ReactNode
+	/**
+	 * Whether the row acts on activation, which decides both the content column's
+	 * muted-to-full text and the row's hover wash.
+	 *
+	 * Derived from `href` and `onClick` when omitted, which is right for a row that
+	 * carries its own handler. Set it where the derivation cannot see the truth: a
+	 * row whose only handler sits on a child, or one that is a target in name only.
+	 */
+	interactive?: boolean
+	/**
+	 * Rounds the row's corners. The `separated` and `solid` variants are rounded
+	 * already; this is for the `plain` and `outline` rows, whose hover wash would
+	 * otherwise paint a square block.
+	 */
+	rounded?: boolean
 	className?: string
 	/**
 	 * Element rendered for the content area when no `href` is given — an
@@ -43,7 +58,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * content area that acts on activation — `href` or `onClick` — counts as
  * interactive and takes the muted text plus hover and pointer treatment. In a
  * reorderable list it wires the drag/keyboard bindings and auto-inserts a
- * {@link ListHandle} as the prefix unless one is supplied. Density-scaled.
+ * {@link ListHandle} as the prefix unless one is supplied. An interactive row also
+ * takes a hover wash, doubled inside a glass parent. Density-scaled.
  *
  * @typeParam Fallback - Element the content area renders when no `href` is
  *   given; selected via `as`.
@@ -55,6 +71,8 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	children,
 	className,
 	href,
+	interactive: interactiveProp,
+	rounded = false,
 	// The default is reached only when `Fallback` was left at its `'div'`
 	// default, so the cast is sound at runtime.
 	as = 'div' as Fallback,
@@ -78,10 +96,13 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	const lifted = liftedId === id
 
 	// A row that navigates and a row that fires a handler read the same to the
-	// user, so both take the content area's interactive treatment. Read the
-	// handler's value, not its key: `onClick={enabled ? open : undefined}` leaves
-	// the key on an inert row, which `in` would still count as interactive.
-	const interactive = href !== undefined || (props as { onClick?: unknown }).onClick !== undefined
+	// user, so both take the interactive treatment. Read the handler's value, not
+	// its key: `onClick={enabled ? open : undefined}` leaves the key on an inert
+	// row, which `in` would still count as interactive. The prop overrides the
+	// reading, for the rows whose activation the derivation cannot see.
+	const interactive =
+		interactiveProp ??
+		(href !== undefined || (props as { onClick?: unknown }).onClick !== undefined)
 
 	// dnd-kit's attributes set role="button", overriding the <li> semantics.
 	// Drop the role; keep the focus/aria hints.
@@ -109,7 +130,11 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			data-item-id={id}
 			data-active={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
-			className={cn(k.item({ variant, density: space, active: dragging, lifted }), className)}
+			data-interactive={dataAttr(interactive)}
+			className={cn(
+				k.item({ variant, density: space, active: dragging, lifted, interactive, rounded }),
+				className,
+			)}
 		>
 			{prefix ?? (sortable ? <ListHandle /> : null)}
 			<Polymorphic

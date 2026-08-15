@@ -34,6 +34,8 @@ type ComboboxInputProps = {
 	disabled?: boolean
 	readOnly?: boolean
 	required?: boolean
+	/** The bound field's validation state, so the frame rings for its own errors. */
+	invalid?: boolean
 	value: string
 	placeholder?: string
 	/** Native hover/description text — the whole selection where the value is a count. */
@@ -65,6 +67,7 @@ export function ComboboxInput({
 	disabled,
 	readOnly,
 	required,
+	invalid,
 	value,
 	placeholder,
 	title,
@@ -77,6 +80,7 @@ export function ComboboxInput({
 	return (
 		<HeadlessProvider>
 			<Input
+				invalid={invalid}
 				id={id}
 				ref={ref}
 				type={type}

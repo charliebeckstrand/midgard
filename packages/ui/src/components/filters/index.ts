@@ -1,4 +1,4 @@
-export { type FiltersContextValue, useFilters } from './context'
+export { type FiltersContextValue, type FiltersLayout, useFilters } from './context'
 export {
 	Filters,
 	type FiltersProps,

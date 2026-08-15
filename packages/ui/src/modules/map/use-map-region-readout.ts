@@ -64,14 +64,18 @@ export function useMapRegionReadout<T>(
 	/** Region identities, resolved by the caller — the join key every branch below matches rows on. */
 	regionIds: string[],
 	regionLabel: ((feature: MapFeature) => string) | undefined,
+	/** Whether the caller names every region, which is a third reader of the names. */
+	nameRegions: boolean,
 ): MapRegionReadout {
-	// Only a map with rows ever shows a region's name: the table prints them and
-	// the tooltip titles with them, and both fall silent where nothing matched.
-	// So a backdrop map skips the pass rather than naming three thousand counties
-	// for two readers that discard the answer. Keyed on whether rows were passed
-	// at all, never on the array — an inline `data={[…]}` hands a fresh one every
-	// render, and this must not re-map the atlas behind it.
-	const named = data !== undefined
+	// A map with rows shows a region's name: the table prints them and the tooltip
+	// titles with them, and both fall silent where nothing matched. So a backdrop
+	// map skips the pass rather than naming three thousand counties for readers
+	// that discard the answer — unless `nameRegions` asked for exactly that, which
+	// is the third reader and the one that wants a name where no row matched.
+	// Keyed on whether rows were passed at all, never on the array — an inline
+	// `data={[…]}` hands a fresh one every render, and this must not re-map the
+	// atlas behind it.
+	const named = data !== undefined || nameRegions
 
 	const regionNames = useMemo(
 		() => (named ? features.map(regionLabel ?? defaultRegionLabel) : EMPTY_NAMES),

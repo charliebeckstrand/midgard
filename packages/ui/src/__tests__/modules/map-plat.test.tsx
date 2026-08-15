@@ -503,6 +503,40 @@ describe('MapPlat', () => {
 		expect(lit()).toBe(true)
 	})
 
+	it('names an unmatched region under `nameRegions`, where it otherwise stays silent', () => {
+		const { container } = renderUI(plat({ nameRegions: true }))
+
+		const [alpha, , gamma] = allRegions(container)
+
+		// The matched region is unaffected: it still reads its category out.
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('East')
+
+		// The unmatched one now answers with the name the geography carries, which
+		// is the whole readout a navigation map has.
+		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
+
+		const tooltip = bySlot(container, 'tooltip-content')
+
+		expect(tooltip?.textContent).toContain('Gamma')
+
+		// A name and nothing else: there is no category to draw a swatch for.
+		expect(tooltip?.querySelector('[data-slot="swatch"]')).toBeNull()
+	})
+
+	it('names every region under `nameRegions` even with no data at all', () => {
+		// The bit that earns the region layer its pointer tracking: without it a
+		// map carrying the prop and no rows would answer nothing.
+		const { container } = renderUI(
+			<MapPlat aria-label="Zones" geography={FIXTURE_GEOJSON} width={400} nameRegions />,
+		)
+
+		fireEvent.pointerEnter(allRegions(container)[0] as Element, { clientX: 40, clientY: 20 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Alpha')
+	})
+
 	it('raises the Tooltip readout over a matched region and stays silent off data', () => {
 		const { container } = renderUI(plat())
 
