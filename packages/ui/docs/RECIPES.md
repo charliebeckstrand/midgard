@@ -79,7 +79,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 | `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config and extras. It preserves key-type inference, then hands the result to `defineRecipe`. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. `mode` takes a scalar pair; `defineColors` works across a multi-key map. The dark class carries its own `dark:` prefix. |
 | `shades` | Builds a `Record<C, string[]>` from per-colour light/dark shade pairs; generic over the colour set, defaulting to `Color` and widening to the extended set in `iro/spectrum`. |
-| `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. |
+| `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. A `compound` condition coerces to its axis key, so a rule on a `true` / `false` axis accepts `{ interactive: true }` and `{ interactive: 'true' }` alike. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
 | `Color` *(type)* | The standard palette colour set — `zinc` · `red` · `amber` · `green` · `blue`. |
 | `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `mist` · `rose` · `violet` · `sky` — and the union of standard plus extended. A kata surfaces the union when it reads `iro.spectrum`. |

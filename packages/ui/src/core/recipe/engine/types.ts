@@ -16,7 +16,12 @@ import type { PaletteConfig } from './palette'
 /** A single variant axis: maps each variant value to its class set. */
 export type VariantAxis = Record<string, ClassValue>
 
-/** A compound rule applies a class set when every named axis matches. */
+/**
+ * A compound rule applies a class set when every named axis matches. The
+ * engine coerces a condition value to its axis key, the same conversion a
+ * caller's prop takes, so a rule on a `true` / `false` axis accepts
+ * `{ interactive: true }` and `{ interactive: 'true' }` alike.
+ */
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
 /** Reserved top-level config field names; kata may not use these as axis names. */
@@ -51,7 +56,12 @@ type AxesOf<C> = {
 	[K in keyof C as K extends ReservedField ? never : K]: C[K] extends VariantAxis ? C[K] : never
 }
 
-/** The fully-expanded config the runtime consumes. */
+/**
+ * The expanded config, exposed as `recipe.config` for introspection: axes
+ * spliced with the palette, and compound rules flattened with their
+ * conditions normalised to axis keys. The call path reads a compiled plan
+ * derived from this, not the object itself.
+ */
 export type ResolvedConfig = {
 	base?: ClassValue
 	variants: Record<string, Record<string, ClassValue>>

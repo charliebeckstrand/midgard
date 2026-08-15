@@ -41,9 +41,15 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
  */
 const MEMO_CAP = 1024
 
-/** A compound rule pre-split into its conditions and class payload. @internal */
+/**
+ * A compound rule pre-split into its conditions and class payload. {@link
+ * expand} normalised the conditions to axis-lookup strings, so {@link matches}
+ * compares them against the resolved values directly.
+ *
+ * @internal
+ */
 type CompiledRule = {
-	conditions: [key: string, required: unknown][]
+	conditions: [key: string, required: string | undefined][]
 	class: ClassValue
 }
 
@@ -160,6 +166,35 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 }
 
 /**
+ * Coerces a value to the string an axis lookup reads. Axis keys are strings,
+ * so every side of a comparison takes this one conversion. A nullish value
+ * stays `undefined` — absent, not `"undefined"`.
+ *
+ * @internal
+ */
+function axisKey(value: unknown): string | undefined {
+	return value === undefined || value === null ? undefined : String(value)
+}
+
+/**
+ * Rewrites a rule's conditions to their axis keys, leaving `class` alone. A
+ * rule on a `true` / `false` axis can therefore read `{ interactive: true }`
+ * or `{ interactive: 'true' }` — the axis holds `'true'` either way.
+ *
+ * @internal
+ */
+function normalizeRule(rule: CompoundRule): CompoundRule {
+	const normalized: Record<string, string | ClassValue> = {}
+
+	for (const [key, value] of Object.entries(rule)) {
+		normalized[key] = key === 'class' ? value : axisKey(value)
+	}
+
+	// `class` rides through untouched, so the rule keeps its declared shape.
+	return normalized as CompoundRule
+}
+
+/**
  * Resolves the value the pipeline reads for `key`: the caller's own prop when
  * present (nullish falls back), else the pre-stringified default.
  *
@@ -174,7 +209,7 @@ function resolveValue(
 	// `Object.prototype` member can never alias one.
 	const raw = props === undefined ? undefined : props[key]
 
-	return raw === undefined || raw === null ? plan.defaults[key] : String(raw)
+	return axisKey(raw) ?? plan.defaults[key]
 }
 
 /**
@@ -260,12 +295,14 @@ function collectRecipeClasses(
 function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 	const defaults: Record<string, string | undefined> = {}
 
-	for (const [key, value] of Object.entries(resolved.defaults)) {
-		defaults[key] = value === undefined || value === null ? undefined : String(value)
-	}
+	for (const [key, value] of Object.entries(resolved.defaults)) defaults[key] = axisKey(value)
 
 	const rules: CompiledRule[] = userCompound.map((rule) => ({
-		conditions: Object.entries(rule).filter(([key]) => key !== 'class'),
+		// `expand` already put every condition through `axisKey`; `class` is the
+		// one entry that keeps a full `ClassValue`, and the filter drops it.
+		conditions: Object.entries(rule).filter(
+			([key]) => key !== 'class',
+		) as CompiledRule['conditions'],
 		class: rule.class,
 	}))
 
@@ -331,6 +368,11 @@ function applyPaletteToVariants(
  * lookup and the user rules pre-separated; the resolved config keeps the
  * full flat rule list for `.config` introspection.
  *
+ * Rule conditions are normalised here, at the ingestion boundary, so the
+ * introspected rules and the compiled ones read alike. Palette rules arrive
+ * from {@link expandPalette} keyed by `Object.entries`, so they are strings
+ * already.
+ *
  * @internal
  */
 function expand(config: RecipeConfig): Expansion {
@@ -346,7 +388,7 @@ function expand(config: RecipeConfig): Expansion {
 		? applyPaletteToVariants(variants, config.palette)
 		: { compound: [], pairs: new Map() }
 
-	const userCompound = config.compound ?? []
+	const userCompound = (config.compound ?? []).map(normalizeRule)
 
 	return {
 		resolved: {
