@@ -14,7 +14,7 @@ import {
 import type { Place } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
 import { centredProjection, regionFrame, regionName } from '../../utilities/places-geography'
-import { type PlaceView, UNITED_STATES, viewRegion } from '../../utilities/places-view'
+import { type PlaceView, UNITED_STATES, viewFrame, viewRegion } from '../../utilities/places-view'
 import { placeStops } from './places-map-utilities'
 
 /**
@@ -102,6 +102,12 @@ export function PlacesMap({
 }: PlacesMapProps) {
 	// The one region the view is cut to, or `null` for the whole atlas.
 	const cut = viewRegion(view)
+
+	// What the frame draws, which is what the readout names. Not the same as the
+	// cut: inside the United States the frame draws every state and is cut to none
+	// of them, and a map that called that "the world" would say the one thing the
+	// reader can see it is not.
+	const framed = viewFrame(view)
 
 	// The geography to draw: the whole atlas, or the one region a drill opened.
 	// Memoised on the cut, because the map keys its decode, its fit, and its paths
@@ -221,7 +227,7 @@ export function PlacesMap({
 			)}
 		>
 			<MapPlat
-				aria-label={cut === null ? 'Places across the world' : `Places in ${cut}`}
+				aria-label={framed === null ? 'Places across the world' : `Places in ${framed}`}
 				geography={geography}
 				projection={projection}
 				aspectRatio={false}

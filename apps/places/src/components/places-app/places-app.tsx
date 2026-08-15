@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, MapPin, Plus } from 'lucide-react'
-import { type MouseEvent, useMemo, useState } from 'react'
+import { Fragment, type MouseEvent, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import {
 	Breadcrumb,
@@ -36,6 +36,7 @@ import {
 	viewAtlas,
 	viewCrumbs,
 	viewFallback,
+	viewMark,
 	viewRegion,
 } from '../../utilities/places-view'
 import { PlaceDrawer } from '../place-drawer'
@@ -142,6 +143,15 @@ export function PlacesApp() {
 	// The one region the view is cut to, which the picker and the crumbs share.
 	const cut = viewRegion(view)
 
+	// What the Visited button acts on. It is not the cut: inside the United States
+	// the frame draws every state and is cut to none of them, so the country would
+	// be the one region on the map a reader could never mark — they cross into it
+	// and it stops being somewhere they are. Its scope is its own, because that
+	// country is marked among countries while the atlas under it draws states.
+	const mark = viewMark(view)
+
+	const marked = mark !== null && visits[mark.scope].includes(mark.region)
+
 	// The visited regions of the drawn atlas, as a set — the shape the map and the
 	// toggle both ask it in. The two scopes are held apart in the store because
 	// Georgia is a state and Georgia is a country.
@@ -240,30 +250,37 @@ export function PlacesApp() {
 						{crumbs.map((crumb, at) => {
 							const current = at === crumbs.length - 1
 
+							// The separator is a sibling of the items and never a child of
+							// one: both render an `li`, and an `li` inside an `li` is not a
+							// list the parser will build — it hoists the inner one out, which
+							// is a hydration mismatch and a broken trail.
 							return (
-								<BreadcrumbItem key={crumb.label}>
+								<Fragment key={crumb.label}>
 									{at > 0 ? <BreadcrumbSeparator /> : null}
 
-									{/* `current` and `href` are independent axes: the first marks
-									    the page, the second decides anchor or span. A level in,
-									    every crumb above the last is both a link and a way back. */}
-									<BreadcrumbLink
-										current={current}
-										href={current ? undefined : '#'}
-										className={TITLE_CRUMB}
-										onClick={
-											current
-												? undefined
-												: (event: MouseEvent) => {
-														event.preventDefault()
+									<BreadcrumbItem>
+										{/* `current` and `href` are independent axes: the first
+										    marks the page, the second decides anchor or span. A
+										    level in, every crumb above the last is both a link
+										    and the way back. */}
+										<BreadcrumbLink
+											current={current}
+											href={current ? undefined : '#'}
+											className={TITLE_CRUMB}
+											onClick={
+												current
+													? undefined
+													: (event: MouseEvent) => {
+															event.preventDefault()
 
-														setChosen(crumb.view)
-													}
-										}
-									>
-										{crumb.label}
-									</BreadcrumbLink>
-								</BreadcrumbItem>
+															setChosen(crumb.view)
+														}
+											}
+										>
+											{crumb.label}
+										</BreadcrumbLink>
+									</BreadcrumbItem>
+								</Fragment>
 							)
 						})}
 					</BreadcrumbList>
@@ -278,17 +295,15 @@ export function PlacesApp() {
 					    `soft` against Add place's `solid`, so the primary action stays the
 					    one that leads. The pair reads as a state rather than a switch: what
 					    it says is what is true now, and pressing it changes that. */}
-					{cut === null ? null : (
+					{mark === null ? null : (
 						<Button
-							variant={visited.has(cut) ? 'soft' : 'outline'}
-							color={visited.has(cut) ? 'green' : undefined}
-							prefix={<Icon icon={visited.has(cut) ? <Check /> : <MapPin />} />}
-							aria-pressed={visited.has(cut)}
-							onClick={() =>
-								setVisit.mutate({ scope: atlas, region: cut, visited: !visited.has(cut) })
-							}
+							variant={marked ? 'soft' : 'outline'}
+							color={marked ? 'green' : undefined}
+							prefix={<Icon icon={marked ? <Check /> : <MapPin />} />}
+							aria-pressed={marked}
+							onClick={() => setVisit.mutate({ ...mark, visited: !marked })}
 						>
-							{visited.has(cut) ? 'Visited' : 'Mark visited'}
+							{marked ? 'Visited' : 'Mark visited'}
 						</Button>
 					)}
 

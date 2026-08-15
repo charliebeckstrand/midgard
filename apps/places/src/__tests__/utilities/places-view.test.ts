@@ -9,6 +9,8 @@ import {
 	viewAtlas,
 	viewCrumbs,
 	viewFallback,
+	viewFrame,
+	viewMark,
 	viewRegion,
 	WORLD,
 } from '../../utilities/places-view'
@@ -58,6 +60,48 @@ describe('viewRegion', () => {
 		expect(viewRegion(FRANCE)).toBe('France')
 
 		expect(viewRegion(OREGON)).toBe('Oregon')
+	})
+})
+
+describe('viewFrame', () => {
+	it('answers with nothing for the world', () => {
+		expect(viewFrame(WORLD)).toBeNull()
+	})
+
+	// Inside the United States the frame draws every state and is cut to none of
+	// them, so the region is `null` while the frame plainly names a country.
+	it('names the United States, which is a frame and not a cut', () => {
+		expect(viewRegion(UNITED_STATES_VIEW)).toBeNull()
+
+		expect(viewFrame(UNITED_STATES_VIEW)).toBe(UNITED_STATES)
+	})
+
+	it('names the one region a drill cut to', () => {
+		expect(viewFrame(FRANCE)).toBe('France')
+
+		expect(viewFrame(OREGON)).toBe('Oregon')
+	})
+})
+
+describe('viewMark', () => {
+	it('has nothing to designate at the world', () => {
+		expect(viewMark(WORLD)).toBeNull()
+	})
+
+	it('marks a country among the countries', () => {
+		expect(viewMark(FRANCE)).toEqual({ scope: 'countries', region: 'France' })
+	})
+
+	// The United States would otherwise be the one region on the map a reader
+	// could never mark: they cross into it and it stops being somewhere they are.
+	it('marks the United States among the countries, while its atlas draws states', () => {
+		expect(viewAtlas(UNITED_STATES_VIEW)).toBe('states')
+
+		expect(viewMark(UNITED_STATES_VIEW)).toEqual({ scope: 'countries', region: UNITED_STATES })
+	})
+
+	it('marks a state among the states', () => {
+		expect(viewMark(OREGON)).toEqual({ scope: 'states', region: 'Oregon' })
 	})
 })
 

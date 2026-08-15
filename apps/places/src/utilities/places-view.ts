@@ -88,6 +88,37 @@ export function drillInto(view: PlaceView, region: string): PlaceView {
 		: { country: region, state: null }
 }
 
+/**
+ * What the frame draws, for the readout that names it: the one region a drill
+ * cut to, the United States whole, or `null` for the world.
+ *
+ * It is not {@link viewRegion}. Inside the United States the frame draws every
+ * state and is cut to none of them, so the region is `null` while the frame
+ * plainly names a country — and a map that called that view "the world" would
+ * report the one thing the reader can see it is not.
+ */
+export function viewFrame(view: PlaceView): string | null {
+	return viewRegion(view) ?? view.country
+}
+
+/**
+ * The region a view stands at, and the scope it is marked under — or `null` at
+ * the world, which is not a region and has nothing to designate.
+ *
+ * It is not {@link viewRegion} either, and the United States is again why. Its
+ * own view draws states and is cut to none of them, so the country would be the
+ * one region on the map a reader could never mark: they cross into it and it
+ * stops being somewhere they are. Read off the fields rather than the drawn
+ * atlas, the state answers when there is one and the country answers otherwise.
+ */
+export function viewMark(view: PlaceView): { scope: PlaceAtlas; region: string } | null {
+	if (view.state !== null) return { scope: 'states', region: view.state }
+
+	if (view.country !== null) return { scope: 'countries', region: view.country }
+
+	return null
+}
+
 /** One step of the trail: what it is called, and the view it goes back to. */
 export type PlaceCrumb = {
 	label: string
