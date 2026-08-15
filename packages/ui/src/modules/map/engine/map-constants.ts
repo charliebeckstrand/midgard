@@ -94,14 +94,12 @@ export const POINT_HIT_RADIUS = 22
  * what makes it the answer for both shapes that claim this ground: a zone is drawn
  * to a size the consumer chose, and regions on one atlas run three orders of
  * magnitude apart in area, so no fixed reach can suit a state and a county alike.
- * The one figure the region half used before this was safe only because it was the
- * dot's own paint — the small end, charged to every region on every map.
  *
- * The floor beneath it is that same paint and the cap is the finger target, both
- * applied by `markTargets`, so a shape too small to spare anything hands the dot
- * its drawn radius rather than a negative one. That is the correct reading and not
- * a degenerate case: where the mark is wider than the ground under it, the pixels
- * have nowhere to go.
+ * The floor beneath it is the dot's own paint and the cap is the finger target,
+ * both applied by `markTargets`, so a shape too small to spare anything hands the
+ * dot its drawn radius rather than one under the pixels it draws. That is the
+ * correct reading and not a degenerate case: where the mark is wider than the
+ * ground under it, the pixels have nowhere to go.
  *
  * @internal
  */

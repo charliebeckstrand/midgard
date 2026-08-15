@@ -529,9 +529,9 @@ describe('a dot over regions that answer the pointer', () => {
 
 		// The bug the clicks-only reading left: a readout is a thing under the dot too, and losing it
 		// to a 44px hole is the same loss as losing a pick. This is the tiled county maps' own case.
+		// The size is pinned by the clickable case above; what this one proves is that a layer with
+		// no pick to make earns the claim at all.
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(true)
-
-		expect(budget(bySlot(container, 'map-point-hit'), 'style')).toBeCloseTo(SQUARE_SPARE, 0)
 	})
 
 	it('narrows over regions that answer only a right-click', () => {

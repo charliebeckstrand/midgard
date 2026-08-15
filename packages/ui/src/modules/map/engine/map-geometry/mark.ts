@@ -1,10 +1,19 @@
 /**
- * What the overlay marks draw: one lon/lat projected to the frame, the path
- * strings a dot, a polyline, and a closed ring paint from it, the anchor each
- * shape offers the keyboard cursor, and how much room an area's own face holds.
- * Held apart from `region.ts` because the marks project point by point through a
- * closure the plat hands down, where the region layer projects whole features
- * through `d3-geo`'s own path generator.
+ * What the overlay marks draw: one lon/lat projected to the frame and back, the
+ * path strings a dot, a polyline, and a closed ring paint from it, the anchor
+ * each shape offers the keyboard cursor, and how much room an area's own face
+ * holds. Held apart from `region.ts` because the marks project point by point
+ * through a closure the plat hands down, where the region layer projects whole
+ * features through `d3-geo`'s own path generator.
+ *
+ * The area primitives — `featureRings`, `projectArea`, `areaReach`, `boxNear`,
+ * `ringsNear` — now answer three subsystems rather than one: the geofence that
+ * first wanted them, the ZIP dissolve, and the region half of the hit-target
+ * rule, the last two of which draw no mark. They stay here rather than moving to
+ * an `area.ts` because each is built on a private walk the marks share —
+ * `projectArea` on `projectRun`, `ringsPath` on `polylineCommands`, `areaAnchor`
+ * on `ringAnchor` — so the split would import back into this file for its own
+ * internals and buy a boundary that does not hold.
  *
  * That point-by-point walk is what bounds the ring: it draws each edge straight
  * in the frame, where `geoPath` would resample the edge along the sphere and
@@ -30,7 +39,9 @@ export function unprojectPoint(projection: GeoProjection | null, at: MapPoint2D)
 
 	const [lon, lat] = inverted
 
-	return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null
+	// `d3-geo` hands back a fresh pair, so it is returned rather than copied — a
+	// dot asks this twice per render and neither reader keeps what it is given.
+	return Number.isFinite(lon) && Number.isFinite(lat) ? inverted : null
 }
 
 /**
@@ -217,7 +228,7 @@ export type MapFrameBox = { left: number; top: number; right: number; bottom: nu
  *
  * @internal
  */
-export type MapAreaBox = { box: MapFrameBox }
+export type MapAreaBox = Pick<MapAreaRing, 'box'>
 
 /**
  * One of an area's projected rings: the frame points it draws through, and the
@@ -229,6 +240,22 @@ export type MapAreaBox = { box: MapFrameBox }
 export type MapAreaRing = {
 	points: MapPoint2D[]
 	box: MapFrameBox
+}
+
+/**
+ * Whether one box holds a position once grown by `margin` — the test
+ * {@link ringsNear} runs per ring, stated once so a caller holding a single box
+ * can ask it without wrapping that box in a list.
+ *
+ * @internal
+ */
+export function boxNear(box: MapFrameBox, at: MapPoint2D, margin: number): boolean {
+	return (
+		at.x >= box.left - margin &&
+		at.x <= box.right + margin &&
+		at.y >= box.top - margin &&
+		at.y <= box.bottom + margin
+	)
 }
 
 /**
@@ -256,14 +283,7 @@ export function ringsNear(rings: readonly MapAreaBox[], at: MapPoint2D, margin: 
 	// A loop rather than `some`: every dot on a map asks this of every zone, and a
 	// callback would be a fresh allocation per call rather than per zone.
 	for (const { box } of rings) {
-		if (
-			at.x >= box.left - margin &&
-			at.x <= box.right + margin &&
-			at.y >= box.top - margin &&
-			at.y <= box.bottom + margin
-		) {
-			return true
-		}
+		if (boxNear(box, at, margin)) return true
 	}
 
 	return false

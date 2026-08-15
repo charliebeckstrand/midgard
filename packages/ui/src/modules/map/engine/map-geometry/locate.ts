@@ -273,7 +273,13 @@ export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generato
 	// The wide regions face the same box test as the bucketed ones. Yielded
 	// unfiltered they would join every result, and a caller reading the result for
 	// agreement would never find any.
-	yield* meeting(index, index.oversized, box)
+
+	// One closure per call rather than one generator per cell — see the loop below.
+	const meets = (region: number) => overlaps(index.bounds[region] ?? null, box)
+
+	for (const region of index.oversized) {
+		if (meets(region)) yield region
+	}
 
 	const firstColumn = columnAt(box.west)
 
@@ -281,16 +287,15 @@ export function* regionsMeeting(index: MapRegionIndex, box: MapBounds): Generato
 
 	const lastRow = rowAt(box.north)
 
+	// The loop is written out at both sites rather than delegated to a shared inner
+	// generator. `yield*` builds a generator per delegation, and the hit-target rule
+	// walks this per dot per render over a query box that spans tens of cells on a
+	// small frame — so the helper cost one object per cell to save four lines.
 	for (let row = rowAt(box.south); row <= lastRow; row++) {
 		for (let column = firstColumn; column <= lastColumn; column++) {
-			yield* meeting(index, index.cells.get(cellKey(column, row)) ?? [], box)
+			for (const region of index.cells.get(cellKey(column, row)) ?? []) {
+				if (meets(region)) yield region
+			}
 		}
-	}
-}
-
-/** The candidates whose own box meets the query box. @internal */
-function* meeting(index: MapRegionIndex, candidates: number[], box: MapBounds): Generator<number> {
-	for (const region of candidates) {
-		if (overlaps(index.bounds[region] ?? null, box)) yield region
 	}
 }

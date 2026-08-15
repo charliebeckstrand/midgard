@@ -19,13 +19,14 @@
  * Frame arithmetic with no React in it, like both of its siblings.
  */
 
-import { once } from '../../../../utilities'
 import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-constants'
 import { cachedRegionIndex, type MapBounds, regionsMeeting } from '../map-geometry/locate'
 import {
 	areaReach,
+	boxNear,
 	featureRings,
 	type MapAreaBox,
+	type MapFrameBox,
 	projectArea,
 	ringsNear,
 } from '../map-geometry/mark'
@@ -49,8 +50,19 @@ export type MapRegionSpare = (at: MapPoint2D, unitsPerPixel: number) => number
  */
 export const NO_REGION_CLAIM: MapRegionSpare = () => Number.POSITIVE_INFINITY
 
-/** A region measured once per fit: the boxes to place a dot against, and the room it holds. @internal */
-type MeasuredRegion = { boxes: MapAreaBox[]; reach: number }
+/**
+ * A region measured once per fit: the whole region's box, the boxes of the rings
+ * inside it, and the room they hold.
+ *
+ * The outer box is the reject the ring walk needs in front of it. `ringsNear`
+ * returns on its first hit and walks every ring on a miss, and a miss is the
+ * common case for a candidate the geographic grid admitted — so a dot that
+ * admits Alaska pays 137 box tests to learn it stands in Florida. One test
+ * settles it, and the box is free while the rings are being measured.
+ *
+ * @internal
+ */
+type MeasuredRegion = { whole: MapFrameBox | null; boxes: MapAreaBox[]; reach: number }
 
 /**
  * The lon/lat box a dot's widest possible target covers, from the frame box
@@ -92,6 +104,52 @@ function reachBounds(
 }
 
 /**
+ * The one box holding every ring's, or `null` for a region that projected
+ * nothing — which then rejects every dot, the right answer for a shape that
+ * draws nothing to claim with.
+ *
+ * @internal
+ */
+function wholeBox(boxes: readonly MapAreaBox[]): MapFrameBox | null {
+	const first = boxes[0]
+
+	if (first === undefined) return null
+
+	const whole = { ...first.box }
+
+	for (const { box } of boxes) {
+		whole.left = Math.min(whole.left, box.left)
+
+		whole.top = Math.min(whole.top, box.top)
+
+		whole.right = Math.max(whole.right, box.right)
+
+		whole.bottom = Math.max(whole.bottom, box.bottom)
+	}
+
+	return whole
+}
+
+/**
+ * Whether a measured region draws within `reach` of a position.
+ *
+ * The whole-region box answers first and answers most: the grid admits a
+ * candidate on a lon/lat box, which for an antimeridian-crossing region reads as
+ * spanning every longitude, so such a region is offered to every dot on the map
+ * and one comparison sends it away. The ring walk behind it says more only where
+ * there are several rings to tell apart — an archipelago, or a state with
+ * islands — and for a single-ring region it would re-ask what the whole box has
+ * already settled.
+ *
+ * @internal
+ */
+function regionNear(region: MeasuredRegion, at: MapPoint2D, reach: number): boolean {
+	if (region.whole === null || !boxNear(region.whole, at, reach)) return false
+
+	return region.boxes.length < 2 || ringsNear(region.boxes, at, reach)
+}
+
+/**
  * Resolves how much room the region layer leaves each dot, over one geography
  * under one fit.
  *
@@ -125,12 +183,6 @@ export function regionSpare(
 	unproject: (at: MapPoint2D) => LngLat | null,
 	project: (position: LngLat) => MapPoint2D | null,
 ): MapRegionSpare {
-	// Read on the first dot that asks rather than here, so a map that draws no
-	// dot-shaped mark never builds one. Indexing walks every coordinate in the
-	// atlas, which on a county one is the same order of work as drawing it — a
-	// plain choropleth must not pay that to answer a question nothing asks.
-	const index = once(() => cachedRegionIndex(features))
-
 	// Per region, the boxes to place a dot against and the room it holds — built
 	// on the first dot whose reach box meets the region's own, which is a wider
 	// set than the regions dots actually stand on and still a small one.
@@ -150,7 +202,9 @@ export function regionSpare(
 
 		const rings = shape === undefined ? [] : projectArea(featureRings(shape), project)
 
-		const built = { boxes: rings.map(({ box }) => ({ box })), reach: areaReach(rings) }
+		const boxes = rings.map(({ box }) => ({ box }))
+
+		const built = { whole: wholeBox(boxes), boxes, reach: areaReach(rings) }
 
 		measured.set(region, built)
 
@@ -176,16 +230,20 @@ export function regionSpare(
 
 		let room = Number.POSITIVE_INFINITY
 
-		for (const region of regionsMeeting(index(), box)) {
+		// The atlas index is read here rather than at build time, so a map that draws
+		// no dot-shaped mark never builds one — indexing walks every coordinate in the
+		// atlas, which on a county one is the same order of work as drawing it. It
+		// memoises on the feature list itself, so the lookup is all this costs.
+		for (const region of regionsMeeting(cachedRegionIndex(features), box)) {
 			if (seen.has(region)) continue
 
 			seen.add(region)
 
-			const { boxes, reach: held } = measure(region)
+			const held = measure(region)
 
-			if (!ringsNear(boxes, at, reach)) continue
+			if (!regionNear(held, at, reach)) continue
 
-			room = Math.min(room, (held / unitsPerPixel) * AREA_SPARE_FRACTION)
+			room = Math.min(room, (held.reach / unitsPerPixel) * AREA_SPARE_FRACTION)
 
 			// `markTargets` floors every claim at what the dot paints, so once the
 			// tightest region has driven the budget there, no further candidate can

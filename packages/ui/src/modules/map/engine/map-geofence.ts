@@ -24,7 +24,7 @@ import {
 	GEOFENCE_CIRCLE_STEPS,
 	POINT_HIT_RADIUS,
 } from './map-constants'
-import { areaReach, type MapAreaRing, ringsNear } from './map-geometry/mark'
+import { areaReach, type MapAreaBox, type MapAreaRing, ringsNear } from './map-geometry/mark'
 import type { LngLat, MapPoint2D } from './types'
 
 /** Degrees in one radian — metres of arc become the angle `geoCircle` takes. @internal */
@@ -86,7 +86,8 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
  * @internal
  */
 export type MapZoneBudget = {
-	rings: readonly MapAreaRing[]
+	/** The drawn rings, as the only reader below wants them — boxes to place a dot against. */
+	rings: readonly MapAreaBox[]
 	/** What a dot on this zone may reach, in device pixels. */
 	spare: number
 	/** The competing band around the rings, in frame units. */

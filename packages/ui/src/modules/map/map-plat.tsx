@@ -29,6 +29,7 @@ import type { MapZoomInput } from './engine/map-zoom/input'
 import { mapZoomSettings } from './engine/map-zoom/input'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type {
+	LngLat,
 	MapAspectRatio,
 	MapFeature,
 	MapGeography,
@@ -234,6 +235,9 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * layer can no longer answer with.
 		 *
 		 * @defaultValue true
+		 * @remarks It withdraws rather than grants, the way `tooltip` does: `true` is
+		 * the default and asserts nothing, so a map whose regions earn nothing answers
+		 * with nothing whatever this says. Only `false` is an instruction.
 		 */
 		regionPointer?: boolean
 		/**
@@ -567,6 +571,9 @@ function regionPointerState(
 	}
 }
 
+/** A layer that answers nothing offers no region stops; shared so the gate allocates none. @internal */
+const NO_CENTROIDS: (LngLat | null)[] = []
+
 /**
  * An SVG geography map on the chart module's interaction grammar: regions
  * coloured by category from typed rows, one merged legend where pointing an
@@ -822,26 +829,29 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// stop away under the reader. Memoised on the join, so the scan a map with no
 	// match pays in full runs once per readout rather than once per render.
 	//
-	// The region layer gates on this — through `regionPointerState` below — rather than
-	// on the wider reading further down, and must: overlays register from an
-	// effect, so a bit that counted them would read `false` on a backdrop map's
-	// first commit and `true` on its next, failing the layer's memo and re-mapping
-	// the whole atlas a second time. The dot targets read that same gate, so a mark
-	// gives its ground back exactly where the paths under it took handlers to
-	// answer with.
+	// The region layer gates on this — through `regionPointerState` below — rather
+	// than on `hasReadout`, which counts the overlays too, and must: overlays
+	// register from an effect, so a bit that counted them would read `false` on a
+	// backdrop map's first commit and `true` on its next, failing the layer's memo
+	// and re-mapping the whole atlas a second time.
+	//
+	// The gate forks past that point. The paths take their handlers on `tracked`,
+	// and the dot targets yield on `answers`, which is wider: the delegated pick and
+	// menu ride the group rather than the paths, so a click-only map binds nothing
+	// per path and still claims the ground under every dot.
 	const regionsRead = useMemo(
 		() => regionCategory.some((category) => category !== null),
 		[regionCategory],
 	)
 
 	// Whether the region paths answer the pointer at all, which anything reading
-	// what the pointer is on earns: a matched category, or a warming reporter. A
-	// plain navigation map — a geography and `onRegionPreload`, no `data` — has no
-	// match to earn them, and without this the pointer half of its report would be
-	// dead. Both halves read the same on the first commit as on the next, which the
-	// bit above states the layer must have.
-	// Naming every region is itself a readout, so it earns the layer its handlers:
-	// without this a map with no `data` would carry the prop and answer nothing.
+	// what the pointer is on earns: a matched category, a warming reporter, or
+	// `nameRegions`. A plain navigation map — a geography and `onRegionPreload`, no
+	// `data` — has no match to earn them, and without this the pointer half of its
+	// report would be dead; naming every region is itself a readout, so a map with
+	// no `data` that carries that prop would otherwise answer nothing. All three
+	// read the same on the first commit as on the next, which the bit above states
+	// the layer must have.
 	//
 	// A caller can switch the layer off outright, which beats all three — see
 	// `regionPointerState` for what that gate owes each reader.
@@ -1000,9 +1010,26 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// first navigation key instead. A stop whose position the projection drops
 	// (the US composite discards points outside its insets) is left out, so the
 	// cursor never lands somewhere the map does not draw.
+	//
+	// A layer that answers nothing holds no stops either. The pointer half takes
+	// care of itself — the paths bind no handlers, so nothing can be pointed at —
+	// but the cursor reaches a region through this list rather than through the
+	// DOM, so without the gate a reader could arrow onto a drilled state, hear it
+	// named, press Enter, and get nothing: `activateTarget` dispatches through
+	// `regions.click`, which the same gate already emptied.
+	//
+	// It reads `answers` rather than the caller's switch alone, so a backdrop map
+	// whose regions earn nothing drops them too — the marks over it keep their own
+	// stops, and a region that leads nowhere is not one a cursor should stand on.
 	const resolveStops = useCallback(
-		() => mapStops(cachedRegionCentroids(shape.features), entries, hidden, shape.project),
-		[shape.features, shape.project, entries, hidden],
+		() =>
+			mapStops(
+				regions.answers ? cachedRegionCentroids(shape.features) : NO_CENTROIDS,
+				entries,
+				hidden,
+				shape.project,
+			),
+		[shape.features, shape.project, entries, hidden, regions.answers],
 	)
 
 	// Picks the mark the cursor sits on: a region through the caller's own

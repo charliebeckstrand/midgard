@@ -329,12 +329,9 @@ export function useMapOverlay({
 		[],
 	)
 
-	// The plat's resolver, bound to the scale before it leaves this hook. The plat
-	// itself cannot bind it — `MapZoomScaleContext` sits below the plat, around the
-	// plot alone, so a wheel notch re-renders the marks and not the plat — but this
-	// hook is below that provider and already reads the scale for its own callers,
-	// so nothing further down has to carry the second argument. `markTargets` and
-	// every mark that calls it take one measure per claimant, as they always have.
+	// Bound here because this hook is the first reader below `MapZoomScaleContext`
+	// that already holds the scale — see `MapPlatContextValue.spare` for why the
+	// plat cannot bind it itself.
 	const spareHere = useCallback(
 		(at: MapPoint2D) => spare(at, unitsPerPixel),
 		[spare, unitsPerPixel],
