@@ -126,9 +126,7 @@ export function PlacesIndex({
 			    the close under the title instead of opposite it. The form drawer's
 			    header is built the same way, so the two panels answer the same corner. */}
 			<Flex justify="between" align="center" className="px-6 pt-6">
-				<SheetTitle className="p-0">
-					{places.length === 1 ? '1 place' : `${places.length} places`}
-				</SheetTitle>
+				<SheetTitle className="p-0">Places</SheetTitle>
 
 				<SheetClose>
 					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />

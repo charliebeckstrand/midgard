@@ -1,7 +1,7 @@
 'use client'
 
 import { Pencil, Trash, X } from 'lucide-react'
-import { type MouseEvent, useEffect, useMemo, useState } from 'react'
+import { Fragment, type MouseEvent, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import {
 	Breadcrumb,
@@ -33,9 +33,17 @@ export type PlaceDrawerProps = {
 	 * summary; empty closes the drawer.
 	 */
 	places: readonly Place[]
-	/** The region the picked dot stands in, as its atlas names it; `null` where none holds it. */
-	region: string | null
-	/** Every place in that region — the list the first crumb leads back to. */
+	/**
+	 * The regions the picked dot stands in, from the drawn one down — empty where
+	 * none holds it. The last step is what the list under it is.
+	 *
+	 * A trail rather than one name, because a summary dot on the world map often
+	 * merges one town's worth of places: the country it drew in is the coarser
+	 * answer, and the state every one of them shares is the one the reader can see
+	 * it standing on.
+	 */
+	trail: readonly string[]
+	/** Every place in the trail's last region — the list its crumb leads back to. */
 	regionPlaces: readonly Place[]
 	onOpenChange: (open: boolean) => void
 	/** Opens the place for an edit. */
@@ -80,7 +88,7 @@ function PlaceMeta({ place }: { place: Place }) {
  */
 export function PlaceDrawer({
 	places,
-	region,
+	trail,
 	regionPlaces,
 	onOpenChange,
 	onEdit,
@@ -172,9 +180,9 @@ export function PlaceDrawer({
 	// A place the map placed in no region falls back to the count, which is the
 	// only other thing the group has to say about itself. Counted after the
 	// filter, so the heading agrees with the rows under it.
-	const where = region ?? `${shown.length} places`
+	const where = trail.length > 0 ? trail : [`${shown.length} places`]
 
-	const title = place === null ? where : `${where} › ${place.name}`
+	const title = [...where, ...(place === null ? [] : [place.name])].join(' › ')
 
 	return (
 		<Drawer
@@ -209,26 +217,41 @@ export function PlaceDrawer({
 
 					<Breadcrumb>
 						<BreadcrumbList className="text-lg/7 sm:text-base/7">
-							<BreadcrumbItem>
-								<BreadcrumbLink
-									current={place === null}
-									className={CRUMB}
-									href={place !== null && list.length > 0 ? '#' : undefined}
-									onClick={
-										place !== null && list.length > 0
-											? (event: MouseEvent) => {
-													event.preventDefault()
+							{where.map((step, at) => {
+								// Only the last region step leads anywhere: it names the list this
+								// panel holds, and the steps above it name regions the panel has no
+								// list for. The map's own trail is how a reader goes up to those.
+								const deepest = at === where.length - 1
 
-													setOpenedId(null)
+								const back = deepest && place !== null && list.length > 0
 
-													setListing(true)
+								return (
+									<Fragment key={step}>
+										{at > 0 ? <BreadcrumbSeparator /> : null}
+
+										<BreadcrumbItem>
+											<BreadcrumbLink
+												current={deepest && place === null}
+												className={CRUMB}
+												href={back ? '#' : undefined}
+												onClick={
+													back
+														? (event: MouseEvent) => {
+																event.preventDefault()
+
+																setOpenedId(null)
+
+																setListing(true)
+															}
+														: undefined
 												}
-											: undefined
-									}
-								>
-									{where}
-								</BreadcrumbLink>
-							</BreadcrumbItem>
+											>
+												{step}
+											</BreadcrumbLink>
+										</BreadcrumbItem>
+									</Fragment>
+								)
+							})}
 
 							{place === null ? null : (
 								<>

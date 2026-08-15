@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	countryOf,
 	drillInto,
+	groupTrail,
 	initialView,
 	knownCountry,
 	type PlaceView,
@@ -194,6 +195,42 @@ describe('knownCountry', () => {
 	// geometry and then to its own country name.
 	it('declines for a place the states atlas could not place', () => {
 		expect(knownCountry(new Map())(place('louvre', { country: 'France' }))).toBeUndefined()
+	})
+})
+
+describe('groupTrail', () => {
+	const states = new Map([
+		['a', 'Oregon'],
+		['b', 'Oregon'],
+		['c', 'Nevada'],
+	])
+
+	it('answers with nothing where no region holds the group', () => {
+		expect(groupTrail(null, [place('a')], states)).toEqual([])
+	})
+
+	// The case this exists for: a summary dot on the world map that merged one
+	// town's worth of places.
+	it('adds the state where the whole group shares one', () => {
+		expect(groupTrail(UNITED_STATES, [place('a'), place('b')], states)).toEqual([
+			UNITED_STATES,
+			'Oregon',
+		])
+	})
+
+	// A step it cannot name is a step that would list the wrong places.
+	it('stops at the drawn region where the group spans two states', () => {
+		expect(groupTrail(UNITED_STATES, [place('a'), place('c')], states)).toEqual([UNITED_STATES])
+	})
+
+	it('stops at a country this app draws no states for', () => {
+		expect(groupTrail('France', [place('louvre')], states)).toEqual(['France'])
+	})
+
+	// Inside the United States the drawn region already is the state, so repeating
+	// it would say the same thing twice.
+	it('does not repeat the drawn region', () => {
+		expect(groupTrail('Oregon', [place('a'), place('b')], states)).toEqual(['Oregon'])
 	})
 })
 

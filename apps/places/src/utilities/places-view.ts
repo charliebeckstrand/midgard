@@ -1,4 +1,6 @@
+import type { MapFeatureCollection } from 'ui/modules/map'
 import type { Place, VisitScope } from '../types'
+import { regionName } from './places-geography'
 
 /**
  * How the United States names itself in `world-atlas`, which is the one country
@@ -10,6 +12,38 @@ import type { Place, VisitScope } from '../types'
  * a name a place carries. Nothing here reads {@link Place.country}.
  */
 export const UNITED_STATES = 'United States of America'
+
+/**
+ * Regions no map here draws.
+ *
+ * Antarctica alone, and for how it looks rather than for what it is. Every world
+ * projection stretches the pole into a band across the foot of the frame — under
+ * Equal Earth it is a flat grey smear that reads as a drawing fault — and it
+ * takes a tenth of the frame's height to say nothing a reader of this app is
+ * looking for.
+ *
+ * A place recorded there still draws, because a dot is a position and not a
+ * membership. It groups under no country and opens no drill, which is the same
+ * answer the map gives for a place at sea.
+ */
+const UNDRAWN = new Set(['Antarctica'])
+
+/**
+ * An atlas as the map draws it, which is every region but {@link UNDRAWN}.
+ *
+ * Applied to both atlases rather than to the world alone: no state carries one
+ * of these names, so the states atlas passes through untouched and neither the
+ * query nor its callers need to know which grain they hold.
+ */
+export function drawnRegions(regions: MapFeatureCollection | null): MapFeatureCollection | null {
+	if (regions === null) return null
+
+	const drawn = regions.features.filter((region) => !UNDRAWN.has(regionName(region)))
+
+	return drawn.length === regions.features.length
+		? regions
+		: { type: 'FeatureCollection', features: drawn }
+}
 
 /**
  * How far outside the world outline a place may sit and still be rescued by the
@@ -207,6 +241,38 @@ export function viewCrumbs(view: PlaceView): PlaceCrumb[] {
 	if (view.state !== null) crumbs.push({ label: view.state, view })
 
 	return crumbs
+}
+
+/**
+ * The regions a picked group stands in, from the drawn one down — what the open
+ * panel names itself with.
+ *
+ * A dot on the world map is a country's worth of places, and a summary dot there
+ * is often one town's worth: every place it merged sits in the same state, and
+ * "United States of America" is a poorer answer than the state the reader can
+ * see it stands on. Where the group agrees on a state, the trail says so and the
+ * panel lists that state rather than the country.
+ *
+ * Where it does not agree — a summary spanning two states, or a country this app
+ * draws no states for — the trail stops at the drawn region, because a step it
+ * cannot name is a step that would list the wrong places.
+ *
+ * The last step is always the one the panel lists. Nothing is repeated from the
+ * page's own trail: inside the United States the drawn region already is the
+ * state, so the trail is that state alone.
+ */
+export function groupTrail(
+	drawn: string | null,
+	group: readonly Place[],
+	statesByPlace: ReadonlyMap<string, string>,
+): string[] {
+	if (drawn === null) return []
+
+	const states = new Set(group.map((place) => statesByPlace.get(place.id)))
+
+	const [only] = [...states]
+
+	return states.size === 1 && only !== undefined && only !== drawn ? [drawn, only] : [drawn]
 }
 
 /**

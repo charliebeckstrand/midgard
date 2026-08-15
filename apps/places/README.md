@@ -24,6 +24,11 @@ one state. `src/utilities/places-view.ts` holds that model, and every other
 question about the map is asked of it: which atlas to draw, which region the
 frame is cut to, and what the breadcrumb trail says.
 
+Antarctica is not drawn. Every world projection stretches the pole into a band
+across the foot of the frame, and it takes a tenth of the height to say nothing a
+reader of this app is looking for. A place recorded there still draws; it groups
+under no country, which is the same answer the map gives for a place at sea.
+
 The app opens on the smallest geography that holds every place. A collection the
 states atlas accounts for whole opens inside the United States; one it cannot
 opens on the world. The question is asked of the geometry, never of a country

@@ -32,6 +32,7 @@ import {
 	COUNTRY_SNAP_KM,
 	countryOf,
 	drillInto,
+	groupTrail,
 	initialView,
 	knownCountry,
 	regionOf,
@@ -245,8 +246,27 @@ export function PlacesApp() {
 	const openedRegion =
 		selected[0] === undefined ? null : (regionOfPlace.get(selected[0].id) ?? null)
 
-	const openedRegionPlaces =
-		openedRegion === null ? NO_PLACES : (placesByRegion.get(openedRegion) ?? NO_PLACES)
+	// The regions the open panel names itself with, and the list under them.
+	//
+	// A summary dot on the world map often merges one town's worth of places, so
+	// where the whole group shares a state the trail says so and the list is that
+	// state's — the country it drew in is the coarser answer to a question the
+	// reader can see the answer to.
+	const trail = useMemo(
+		() => groupTrail(openedRegion, selected, stateOfPlace),
+		[openedRegion, selected, stateOfPlace],
+	)
+
+	// The last step's places: a state's where the trail reached one, the drawn
+	// region's otherwise. Empty where nothing holds the group, which the panel
+	// reads as "stand the picked group in for a list".
+	const openedRegionPlaces = useMemo(() => {
+		const deepest = trail[trail.length - 1]
+
+		if (deepest === undefined) return NO_PLACES
+
+		return (trail.length > 1 ? placesByState : placesByRegion).get(deepest) ?? NO_PLACES
+	}, [trail, placesByState, placesByRegion])
 
 	// What the bar admits, then what the view holds — in that order, because the
 	// view is a frame over the filtered set and not a filter of its own.
@@ -454,7 +474,7 @@ export function PlacesApp() {
 
 			<PlaceDrawer
 				places={selected}
-				region={openedRegion}
+				trail={trail}
 				regionPlaces={openedRegionPlaces}
 				onOpenChange={() => setSelected([])}
 				onEdit={setEditing}
