@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, List, MapPin, Plus } from 'lucide-react'
-import { Fragment, type MouseEvent, useMemo, useState } from 'react'
+import { Fragment, type MouseEvent, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import {
 	Breadcrumb,
@@ -26,7 +26,7 @@ import {
 	useVisits,
 } from '../../queries/places-queries'
 import type { Place, Visits } from '../../types'
-import { filterPlaces, type PlaceFilterValue } from '../../utilities/places-filter'
+import { filterPlaces } from '../../utilities/places-filter'
 import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import {
 	COUNTRY_SNAP_KM,
@@ -34,7 +34,6 @@ import {
 	drillInto,
 	initialView,
 	knownCountry,
-	type PlaceView,
 	regionOf,
 	stateOf,
 	UNITED_STATES_VIEW,
@@ -49,6 +48,7 @@ import { PlaceFilters } from '../place-filters'
 import { PlaceFormDrawer } from '../place-form-drawer'
 import { PlacesIndex } from '../places-index'
 import { PlacesMap } from '../places-map'
+import { usePlaceLocation } from './use-place-location'
 
 /** The title crumbs' weight, held on the crumb so it beats the current one's `font-normal`. */
 const TITLE_CRUMB = 'font-semibold'
@@ -86,20 +86,25 @@ export function PlacesApp() {
 
 	const setVisit = useSetVisit()
 
-	const [filter, setFilter] = useState<PlaceFilterValue>({})
-
-	// Where the reader has navigated to, or `null` while they have not. It is held
-	// apart from the view the app opens on, so the opening rule below answers only
-	// until the first navigation and never overrides one.
-	const [chosen, setChosen] = useState<PlaceView | null>(null)
-
-	// What the last picked dot stood for: one place, or every place a summary
-	// merged. Empty is the closed drawer.
+	// Where the reader is: the view, the filter, and what the open panel stands
+	// for, all read from the address bar rather than held here. `view` is `null`
+	// until the address states one, which is what leaves the opening rule below
+	// the say exactly once.
 	//
-	// Ids rather than the records themselves, because a record here is a snapshot:
-	// read back through the live list, an edit reaches the open panel and a delete
-	// closes it, where a held record would go on showing what the store dropped.
-	const [selectedIds, setSelectedIds] = useState<readonly string[]>([])
+	// The selection is ids rather than the records themselves, because a record
+	// here is a snapshot: read back through the live list, an edit reaches the open
+	// panel and a delete closes it, where a held record would go on showing what
+	// the store dropped.
+	const {
+		view: stated,
+		filter,
+		selected: selectedIds,
+		setView,
+		setFilter,
+		setSelected,
+		settleView,
+		openAt,
+	} = usePlaceLocation()
 
 	const [adding, setAdding] = useState(false)
 
@@ -145,9 +150,20 @@ export function PlacesApp() {
 	// picked in the index resolves through it.
 	const stateOfPlace = useMemo(() => regionOf(placesByState), [placesByState])
 
-	// The view: the reader's, or the smallest geography this app draws that holds
-	// every place until they navigate.
-	const view = chosen ?? (settling ? UNITED_STATES_VIEW : initialView(stateOfPlace, places))
+	// The view: the address's, or the smallest geography this app draws that holds
+	// every place until the address states one.
+	const opening = settling ? UNITED_STATES_VIEW : initialView(stateOfPlace, places)
+
+	const view = stated ?? opening
+
+	// The opening view, written down as soon as it is settled. Until it is, "the
+	// world" and "nothing stated yet" are the same empty address, and a reader who
+	// walked out to the world would be sent back by their own reload. It carries no
+	// history entry, so the Back button still leaves the app rather than stepping
+	// through a view the reader never chose.
+	useEffect(() => {
+		if (stated === null && !settling) settleView(opening)
+	}, [stated, settling, opening, settleView])
 
 	const atlas = viewAtlas(view)
 
@@ -289,7 +305,7 @@ export function PlacesApp() {
 													: (event: MouseEvent) => {
 															event.preventDefault()
 
-															setChosen(crumb.view)
+															setView(crumb.view)
 														}
 											}
 										>
@@ -354,7 +370,7 @@ export function PlacesApp() {
 						regionLabel={REGION_LABEL[atlas]}
 						drilled={cut}
 						onDrill={(region) =>
-							setChosen(
+							setView(
 								region === null
 									? (crumbs[crumbs.length - 2]?.view ?? view)
 									: drillInto(view, region),
@@ -371,9 +387,9 @@ export function PlacesApp() {
 					view={view}
 					visited={visited}
 					visitedRegions={filter.visitedRegions}
-					onDrill={(region) => setChosen(drillInto(view, region))}
+					onDrill={(region) => setView(drillInto(view, region))}
 					selected={selected[0] ?? null}
-					onSelect={(picked) => setSelectedIds(picked.map((place) => place.id))}
+					onSelect={(picked) => setSelected(picked.map((place) => place.id))}
 				/>
 
 				{error ? (
@@ -427,12 +443,10 @@ export function PlacesApp() {
 				places={filtered}
 				placesByRegion={placesByRegion}
 				onOpen={(place) => {
-					// The map goes to the place before the panel over it closes, so the
-					// drawer that opens stands over the dot it describes rather than over
-					// whichever frame the reader happened to be on.
-					setChosen(viewForPlace(stateOfPlace, place))
-
-					setSelectedIds([place.id])
+					// One step, not two: the view and the selection are both the address,
+					// so writing them apart would leave a history entry standing on a map
+					// the reader never saw — and the second write would drop the first.
+					openAt(viewForPlace(stateOfPlace, place), [place.id])
 
 					setListing(false)
 				}}
@@ -442,7 +456,7 @@ export function PlacesApp() {
 				places={selected}
 				region={openedRegion}
 				regionPlaces={openedRegionPlaces}
-				onOpenChange={() => setSelectedIds([])}
+				onOpenChange={() => setSelected([])}
 				onEdit={setEditing}
 				onDelete={setDeleting}
 			/>

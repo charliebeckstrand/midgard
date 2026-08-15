@@ -29,6 +29,21 @@ states atlas accounts for whole opens inside the United States; one it cannot
 opens on the world. The question is asked of the geometry, never of a country
 name, and the countries atlas is fetched only once a view draws it.
 
+## The address
+
+Where the reader is lives in the address bar, not in React state: the view, the
+filter, and the open place. `src/utilities/places-url.ts` is the codec and
+`src/components/places-app/use-place-location.ts` binds it to the router, so a
+reload keeps the map, the Back button walks the drills, and a place is a link.
+
+A drill and an opened place are steps the reader can walk back out of, so each
+takes a history entry. Narrowing the bar does not — otherwise leaving the page
+would cost one Back press per category picked.
+
+An empty `country` is the world stated outright, which is what parts it from an
+address the reader has not written yet. The app writes the view it opened on as
+soon as the opening rule settles, so the two are never the same empty address.
+
 ## The index
 
 `All places` opens the same set as rows, over the map. The map answers what is
