@@ -12,6 +12,24 @@ import type { Place, VisitScope } from '../types'
 export const UNITED_STATES = 'United States of America'
 
 /**
+ * How far outside the world outline a place may sit and still be rescued by the
+ * nearest country, in kilometres.
+ *
+ * It is a fact about `world-atlas` at 110m and not a preference. That drawing
+ * runs a coastline inland of the harbours and beach towns a travel log is full
+ * of — Newport, Oregon falls 3.1 km outside the United States as it is drawn —
+ * and 50 km covers that generalization with room to spare. Whatever lies outside
+ * every country of a world atlas is water, so the nearest coast is the right
+ * answer and a generous tolerance costs nothing.
+ *
+ * The states atlas is given none. It is drawn at 10m, fine enough to contain its
+ * own coastline, and what lies outside its regions is Canada and Mexico: at
+ * 10 km a place in Tijuana snaps to California, which is a worse answer than
+ * none.
+ */
+export const COUNTRY_SNAP_KM = 50
+
+/**
  * Where the map is pointed.
  *
  * Three levels, held as two fields rather than a level and a name, because the

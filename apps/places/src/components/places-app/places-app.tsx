@@ -29,6 +29,7 @@ import type { Place, Visits } from '../../types'
 import { filterPlaces, type PlaceFilterValue } from '../../utilities/places-filter'
 import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import {
+	COUNTRY_SNAP_KM,
 	countryOf,
 	drillInto,
 	initialView,
@@ -200,7 +201,11 @@ export function PlacesApp() {
 	// takes what the states already settled as its `known`: see `knownCountry` for
 	// why the coarse world outline defers to the finer atlas, and what it saves.
 	const placesByCountry = useMemo(
-		() => groupPlacesByRegion(boundedCountries, places, countryOf, knownCountry(stateOfPlace)),
+		() =>
+			groupPlacesByRegion(boundedCountries, places, countryOf, {
+				known: knownCountry(stateOfPlace),
+				snapKm: COUNTRY_SNAP_KM,
+			}),
 		[boundedCountries, places, stateOfPlace],
 	)
 

@@ -8,6 +8,7 @@ import {
 	centredProjection,
 	decodeRegions,
 	groupPlacesByRegion,
+	nearestRegion,
 	regionFrame,
 	regionName,
 } from '../../utilities/places-geography'
@@ -153,6 +154,49 @@ describe('boundRegions', () => {
 	})
 })
 
+describe('nearestRegion', () => {
+	const bounded = boundRegions(ATLAS)
+
+	// Oregon's box runs to -124, so a point at -124.3 sits ~24 km off its western
+	// edge — which is the shape of the miss a generalized coastline produces.
+	const OFF_THE_COAST: [number, number] = [-124.3, 44]
+
+	it('rescues a position just outside a region', () => {
+		expect(nearestRegion(bounded, OFF_THE_COAST, 50)).toBe('Oregon')
+	})
+
+	// The tolerance is a floor on what is rescued: distance is measured to the
+	// vertices, so a point off a long edge reads as farther than it is.
+	it('refuses a position beyond the tolerance', () => {
+		expect(nearestRegion(bounded, OFF_THE_COAST, 5)).toBeNull()
+
+		expect(nearestRegion(bounded, [-140, 30], 50)).toBeNull()
+	})
+
+	it('answers with nothing before the atlas lands', () => {
+		expect(nearestRegion([], OFF_THE_COAST, 50)).toBeNull()
+	})
+
+	it('takes the nearer of two regions', () => {
+		const near = region('Near', box(-125, 43, -124.5, 45))
+
+		const far = region('Far', box(-130, 43, -129, 45))
+
+		const both = boundRegions({ type: 'FeatureCollection', features: [near, far] })
+
+		expect(nearestRegion(both, [-124.4, 44], 50)).toBe('Near')
+	})
+
+	it('skips a region carrying no geometry', () => {
+		const bare = boundRegions({
+			type: 'FeatureCollection',
+			features: [OREGON, region('Nowhere', null)],
+		})
+
+		expect(nearestRegion(bare, OFF_THE_COAST, 50)).toBe('Oregon')
+	})
+})
+
 describe('groupPlacesByRegion', () => {
 	const bounded = boundRegions(ATLAS)
 
@@ -224,12 +268,39 @@ describe('groupPlacesByRegion', () => {
 		expect(group([]).size).toBe(0)
 	})
 
+	// The snap is offered the miss before the name is, so a place the drawing
+	// missed is placed by the atlas's own name rather than the geocoder's.
+	it('snaps a miss to the nearest region ahead of the fallback', () => {
+		const off = placeAt('pier', [-124.3, 44], { state: 'Alaska' })
+
+		expect(groupPlacesByRegion(bounded, [off], stateOf, { snapKm: 50 }).get('Oregon')).toHaveLength(
+			1,
+		)
+	})
+
+	// Omitted, nothing is rescued — which is what an atlas fine enough to contain
+	// its own coastline wants, and what keeps a border city out of its neighbour.
+	it('rescues nothing without a tolerance', () => {
+		const off = placeAt('pier', [-124.3, 44])
+
+		expect(groupPlacesByRegion(bounded, [off], stateOf).size).toBe(0)
+	})
+
+	// A name still answers for what the snap cannot reach.
+	it('falls back to the name beyond the tolerance', () => {
+		const far = placeAt('anchorage', [-140, 30], { state: 'Alaska' })
+
+		expect(groupPlacesByRegion(bounded, [far], stateOf, { snapKm: 50 }).get('Alaska')).toHaveLength(
+			1,
+		)
+	})
+
 	// `known` is settled before this pass ran, off a finer atlas than the one
 	// drawn here, so it beats the geometry rather than standing behind it.
 	it('takes a known answer over the shape the point falls in', () => {
 		const inside = placeAt('corvallis', [-123.26, 44.56])
 
-		const grouped = groupPlacesByRegion(bounded, [inside], stateOf, () => 'Alaska')
+		const grouped = groupPlacesByRegion(bounded, [inside], stateOf, { known: () => 'Alaska' })
 
 		expect(grouped.get('Alaska')?.map((held) => held.id)).toEqual(['corvallis'])
 
@@ -239,7 +310,9 @@ describe('groupPlacesByRegion', () => {
 	// It is a name this app chose, not one a geocoder returned, so it is not
 	// checked against the drawn regions the way the fallback is.
 	it('holds a known name the atlas does not draw', () => {
-		const grouped = groupPlacesByRegion(bounded, [placeAt('a', [0, 0])], stateOf, () => 'Atlantis')
+		const grouped = groupPlacesByRegion(bounded, [placeAt('a', [0, 0])], stateOf, {
+			known: () => 'Atlantis',
+		})
 
 		expect(grouped.get('Atlantis')).toHaveLength(1)
 	})
@@ -249,7 +322,9 @@ describe('groupPlacesByRegion', () => {
 			bounded,
 			[placeAt('corvallis', [-123.26, 44.56])],
 			stateOf,
-			() => undefined,
+			{
+				known: () => undefined,
+			},
 		)
 
 		expect(grouped.get('Oregon')).toHaveLength(1)

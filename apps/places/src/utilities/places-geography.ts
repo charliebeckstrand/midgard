@@ -26,12 +26,141 @@ export type BoundedRegion = {
  * rejected every point in the region, and Alaska fell through to the geocoder's
  * own name for want of a box test that could hold it.
  */
-function withinBounds(bounds: BoundedRegion['bounds'], [lon, lat]: [number, number]): boolean {
+function withinBounds(
+	bounds: BoundedRegion['bounds'],
+	[lon, lat]: [number, number],
+	pad = 0,
+): boolean {
 	const [[west, south], [east, north]] = bounds
 
-	const withinLon = west <= east ? lon >= west && lon <= east : lon >= west || lon <= east
+	const withinLon =
+		west <= east ? lon >= west - pad && lon <= east + pad : lon >= west - pad || lon <= east + pad
 
-	return withinLon && lat >= south && lat <= north
+	return withinLon && lat >= south - pad && lat <= north + pad
+}
+
+/** Kilometres along a degree of latitude, which is the scale the local frame below measures in. */
+const KM_PER_DEGREE = 111.195
+
+/** Degrees of latitude in a kilometre, for padding a box by a distance. Longitude is narrower away from the equator, so this over-pads rather than under-pads — the box only decides who is worth measuring. */
+const DEGREES_PER_KM = 1 / KM_PER_DEGREE
+
+/** A longitude difference read the short way round, so a pair either side of the antimeridian is two degrees apart rather than 358. */
+function longitudeDelta(from: number, to: number): number {
+	const delta = ((to - from + 540) % 360) - 180
+
+	return delta
+}
+
+/**
+ * How far a position lies from one edge of a ring, in kilometres.
+ *
+ * Measured on a plane tangent at the position, with longitude scaled by its
+ * cosine. The tolerances this serves are tens of kilometres, where that frame
+ * and the sphere agree to well under a percent — and unlike a distance to the
+ * ring's vertices, it holds however far apart a generalized atlas spaces them.
+ * A coastline drawn at 110m runs hundreds of kilometres between vertices, so a
+ * harbour off the middle of one edge reads as far from both of its ends and no
+ * distance from the edge itself.
+ */
+function edgeKm(
+	at: [number, number],
+	[fromLon, fromLat]: [number, number],
+	[toLon, toLat]: [number, number],
+): number {
+	const scale = Math.cos((at[1] * Math.PI) / 180)
+
+	const ax = longitudeDelta(at[0], fromLon) * scale
+
+	const ay = fromLat - at[1]
+
+	const bx = longitudeDelta(at[0], toLon) * scale
+
+	const by = toLat - at[1]
+
+	const runX = bx - ax
+
+	const runY = by - ay
+
+	const length = runX * runX + runY * runY
+
+	// Where along the edge the nearest point falls, clamped to its two ends so a
+	// position beside an edge measures to the edge and one past its end measures
+	// to that end.
+	const along = length === 0 ? 0 : Math.min(1, Math.max(0, -(ax * runX + ay * runY) / length))
+
+	return Math.hypot(ax + along * runX, ay + along * runY) * KM_PER_DEGREE
+}
+
+/** Every ring of an area geometry. Anything else has none. */
+function rings(geometry: NonNullable<MapFeature['geometry']>): [number, number][][] {
+	if (geometry.type === 'Polygon') return geometry.coordinates as [number, number][][]
+
+	if (geometry.type === 'MultiPolygon') {
+		return geometry.coordinates.flat() as [number, number][][]
+	}
+
+	return []
+}
+
+/**
+ * The drawn region nearest a position, where one lies within `withinKm`.
+ *
+ * It exists because an atlas is a drawing and not a survey. `world-atlas` at
+ * 110m generalizes a coastline into a line that runs inland of the harbours,
+ * piers and beach towns a travel log is full of, so `geoContains` answers `false`
+ * for a place plainly inside the country — Newport, Oregon sits 3.1 km outside
+ * the United States as that atlas draws it.
+ *
+ * Distance is measured to the region's edges, not to its vertices — see
+ * {@link edgeKm} for why that matters on an atlas this coarse.
+ *
+ * It is the caller's tolerance because it belongs to the atlas, not to this
+ * function. The coarser the drawing the more slack a rescue needs, and the more
+ * a wrong answer costs: whatever sits outside every region of a world atlas is
+ * water, where the nearest coast is the right answer, while outside every region
+ * of a states atlas lies Canada and Mexico, where it is not.
+ *
+ * Only positions no region contains reach here, so the edge walk is paid for the
+ * rare miss. The box test comes first and rejects most regions outright: a point
+ * off Oregon measures against the United States alone.
+ */
+export function nearestRegion(
+	bounded: readonly BoundedRegion[],
+	at: [number, number],
+	withinKm: number,
+): string | null {
+	const pad = withinKm * DEGREES_PER_KM
+
+	let nearest: string | null = null
+
+	let shortest = Number.POSITIVE_INFINITY
+
+	for (const region of bounded) {
+		if (region.feature.geometry === null) continue
+
+		if (!withinBounds(region.bounds, at, pad)) continue
+
+		for (const ring of rings(region.feature.geometry)) {
+			for (let step = 1; step < ring.length; step++) {
+				const from = ring[step - 1]
+
+				const to = ring[step]
+
+				if (from === undefined || to === undefined) continue
+
+				const km = edgeKm(at, from, to)
+
+				if (km < shortest) {
+					shortest = km
+
+					nearest = region.name
+				}
+			}
+		}
+	}
+
+	return shortest <= withinKm ? nearest : null
 }
 
 /** How a region names itself in a us-atlas or world-atlas topology. */
@@ -125,10 +254,22 @@ export function boundRegions(regions: MapFeatureCollection | null): BoundedRegio
 	)
 }
 
+/** The answers {@link groupPlacesByRegion} takes beyond the geometry and the name. */
+export type GroupPlacesOptions = {
+	/** An answer settled off a finer atlas, trusted ahead of the drawn geometry. */
+	known?: (place: Place) => string | undefined
+	/**
+	 * How far a position may sit outside every region and still be rescued by the
+	 * nearest one, in kilometres. Omit for no rescue, which is what an atlas fine
+	 * enough to contain its own coastline wants. See {@link nearestRegion}.
+	 */
+	snapKm?: number
+}
+
 /**
  * Which region holds each place, keyed by the region's own name.
  *
- * Three answers, in the order they are trusted.
+ * Four answers, in the order they are trusted.
  *
  * `known` is settled before this pass ran and beats the geometry, because it was
  * read off a finer atlas than the one drawn here — a place a 10m atlas put in a
@@ -141,16 +282,18 @@ export function boundRegions(regions: MapFeatureCollection | null): BoundedRegio
  * point is: a place is in the region whose shape contains it, and that is the
  * same shape the drill opens.
  *
- * `fallback` answers last, where the geometry does not, and it is the caller's
- * because the field that answers depends on the atlas. An atlas is a generalized
- * outline, and a coastal place can sit a few hundred metres outside it — the
- * Oregon coast is most of what an Oregon map is for, and every lighthouse and
- * pier on it fell into no region at all under geometry alone. It is checked
- * against the drawn regions, so a name the atlas does not carry still resolves
- * to nothing rather than to a region that is not on the map. `known` is not
- * checked that way: it is a name this app chose, not one a geocoder returned.
+ * `snapKm` then rescues what the drawing missed rather than what the geocoder
+ * knows — see {@link nearestRegion}, and note that the tolerance belongs to the
+ * atlas: a states atlas must not be given one, because outside its regions lies
+ * Mexico and a border city snaps across it.
  *
- * A place that none of the three answers — offshore, or off the atlas — belongs
+ * `fallback` answers last, and it is the caller's because the field that answers
+ * depends on the atlas. It is checked against the drawn regions, so a name the
+ * atlas does not carry resolves to nothing rather than to a region that is not
+ * on the map. `known` and the snap are not checked that way: one is a name this
+ * app chose and the other is a name the atlas itself gave.
+ *
+ * A place that none of the four answers — mid-ocean, or off the atlas — belongs
  * to no region and opens no drill. It still draws on the map, because a dot is a
  * position and not a membership.
  *
@@ -165,7 +308,7 @@ export function groupPlacesByRegion(
 	bounded: readonly BoundedRegion[],
 	places: readonly Place[],
 	fallback: (place: Place) => string | undefined,
-	known?: (place: Place) => string | undefined,
+	{ known, snapKm }: GroupPlacesOptions = {},
 ): Map<string, Place[]> {
 	const grouped = new Map<string, Place[]>()
 
@@ -197,14 +340,25 @@ export function groupPlacesByRegion(
 				geoContains(region.feature.geometry, at),
 		)
 
+		if (held !== undefined) {
+			hold(held.name, place)
+
+			continue
+		}
+
+		const snapped = snapKm === undefined ? null : nearestRegion(bounded, at, snapKm)
+
+		if (snapped !== null) {
+			hold(snapped, place)
+
+			continue
+		}
+
 		const named = fallback(place)
 
-		const name =
-			held !== undefined ? held.name : named !== undefined && drawn.has(named) ? named : null
+		if (named === undefined || !drawn.has(named)) continue
 
-		if (name === null) continue
-
-		hold(name, place)
+		hold(named, place)
 	}
 
 	return grouped
