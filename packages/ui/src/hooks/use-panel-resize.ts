@@ -42,9 +42,6 @@ const AXES = {
 		coordinate: (event: { clientX: number; clientY: number }) => event.clientY,
 		viewport: () => window.innerHeight,
 		measure: (rect: DOMRect) => rect.height,
-		// A height variant sets a height, and the one cap among them is a real
-		// ceiling: drawing past it would commit a number the element never takes.
-		cap: (style: CSSStyleDeclaration) => style.maxHeight,
 		grow: 'ArrowUp',
 		shrink: 'ArrowDown',
 	},
@@ -52,11 +49,6 @@ const AXES = {
 		coordinate: (event: { clientX: number; clientY: number }) => event.clientX,
 		viewport: () => window.innerWidth,
 		measure: (rect: DOMRect) => rect.width,
-		// A width variant is a max-width, and it states where the panel opens
-		// rather than how wide it may ever be — the handle exists to pass it. The
-		// panel clears the cap for the length of a gesture so the element can take
-		// what the drag commits.
-		cap: () => 'none',
 		grow: 'ArrowLeft',
 		shrink: 'ArrowRight',
 	},
@@ -99,21 +91,6 @@ export function speedOf(sample: ResizeSample | null, at: number, t: number): num
 /** The share of the screen a size covers, which is what a splitter's value reports. @internal */
 export function shareOf(size: number, viewport: number): number {
 	return Math.round(clamp(pct(size, 0, viewport), 0, 100))
-}
-
-/**
- * The largest the panel is drawn at: the screen along this axis, or the cap its
- * own variant sets.
- *
- * A variant that stops short of the far edge and a drag that ignored it would
- * commit and report a size the element never takes.
- */
-function ceilingOf(panel: HTMLElement, axis: PanelAxis): number {
-	const cap = Number.parseFloat(AXES[axis].cap(getComputedStyle(panel)))
-
-	const screen = AXES[axis].viewport()
-
-	return Number.isFinite(cap) ? Math.min(cap, screen) : screen
 }
 
 /** Everything a gesture measured once, at the start. @internal */
@@ -167,6 +144,17 @@ export type PanelResizeOptions = {
 	 * surprise someone who was still placing it. A swipe is how it goes.
 	 */
 	floorOf: (panel: HTMLElement, size: number) => number
+	/**
+	 * The largest this panel resizes to, given the panel and the screen along the
+	 * axis.
+	 *
+	 * The caller's for the same reason the floor is: it is a fact about how the
+	 * panel is laid out rather than about the axis it moves on. A drawer's own
+	 * variant caps it and the screen bounds the rest, where a sheet is inset from
+	 * the edges it floats against and has to keep that inset at its widest — a
+	 * ceiling of the whole screen would push its far edge off the other side.
+	 */
+	ceilingOf: (panel: HTMLElement, viewport: number) => number
 }
 
 /**
@@ -201,6 +189,7 @@ export function usePanelResize({
 	open,
 	onDismiss,
 	floorOf,
+	ceilingOf,
 }: PanelResizeOptions): PanelResize {
 	// The panel, as state rather than a ref, so its arrival is something an effect
 	// can wait for. It is portalled and mounts on a later commit than the one that
@@ -332,11 +321,26 @@ export function usePanelResize({
 			at: coordinate,
 			size: measured,
 			floor: floorOf(panel, measured),
-			ceiling: ceilingOf(panel, axis),
+			ceiling: ceilingOf(panel, AXES[axis].viewport()),
 			viewport: AXES[axis].viewport(),
 		}
 
 		last.current = { at: coordinate, t: event.timeStamp }
+
+		// The size the panel already has, taken before the press changes anything.
+		//
+		// It looks like a no-op and it is the one thing standing between the press
+		// and a flash of the whole screen. A consumer that clears a CSS cap for the
+		// length of a gesture — which the width axis needs, or the drag would report
+		// numbers past a panel clamped at its opening size — clears it on the render
+		// this press causes. Without a size to go with it that render has a cleared
+		// cap and no width, so the panel takes whatever its classes say, which for a
+		// full-width-under-a-max-width sheet is the entire screen. It came back on
+		// release, when the settled size finally landed.
+		//
+		// Stating it here puts the width and the cleared cap in the same render, so
+		// there is never a frame that has one without the other.
+		setSize(measured)
 
 		setResizing(true)
 
@@ -383,7 +387,7 @@ export function usePanelResize({
 			at: 0,
 			size: measured,
 			floor: floorOf(panel, measured),
-			ceiling: ceilingOf(panel, axis),
+			ceiling: ceilingOf(panel, viewport),
 			viewport,
 		}
 

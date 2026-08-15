@@ -70,7 +70,10 @@ export const k = {
 	handle: {
 		area: [
 			flex.col,
-			'absolute inset-y-0 z-10 w-4 items-center justify-center',
+			// The same reach the drawer's grip has, turned on its side: `px-3` around
+			// a `w-1.5` bar is the `py-3` around its `h-1.5` one, so both panels are
+			// grabbed by a strip of the same thickness.
+			'absolute inset-y-0 z-10 px-3 items-center justify-center',
 			...hannou.grab,
 			'outline-hidden',
 			sen.focus.inset,
@@ -78,8 +81,8 @@ export const k = {
 		side: {
 			right: 'left-0',
 			left: 'right-0',
-			top: 'inset-x-0 bottom-0 h-4 w-full',
-			bottom: 'inset-x-0 top-0 h-4 w-full',
+			top: 'inset-x-0 bottom-0 py-3 w-full',
+			bottom: 'inset-x-0 top-0 py-3 w-full',
 		},
 		bar: ['h-10 w-1.5 rounded-full', ...mode('bg-zinc-950/20', 'dark:bg-white/25')],
 	},

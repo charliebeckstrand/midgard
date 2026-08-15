@@ -14,7 +14,7 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
-import { drawerFloor } from './drawer-floor'
+import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
 
 /** Props for {@link Drawer}: open-state control, panel `height`, density `size` cascade, and accessible naming. */
@@ -186,6 +186,7 @@ export function Drawer({
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
 		floorOf: drawerFloor,
+		ceilingOf: drawerCeiling,
 	})
 
 	const { ariaProps, a11y } = useA11yPanel()

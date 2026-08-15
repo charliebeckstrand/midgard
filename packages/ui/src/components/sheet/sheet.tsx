@@ -11,7 +11,7 @@ import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
-import { sheetFloor } from './sheet-floor'
+import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 
 /** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
@@ -163,6 +163,7 @@ export function Sheet({
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
 		floorOf: sheetFloor,
+		ceilingOf: sheetCeiling,
 	})
 
 	return (

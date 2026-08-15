@@ -32,3 +32,17 @@ export function drawerFloor(panel: HTMLElement, height: number): number {
 	// whole panel, which is right — there is nothing left to take.
 	return height - body.getBoundingClientRect().height
 }
+
+/**
+ * The tallest a drawer is drawn at: the screen, or the cap its own variant sets.
+ *
+ * `auto` stops short of the top edge, and a drag that ignored that would commit
+ * and report a height the element never takes.
+ *
+ * @internal
+ */
+export function drawerCeiling(panel: HTMLElement, viewport: number): number {
+	const cap = Number.parseFloat(getComputedStyle(panel).maxHeight)
+
+	return Number.isFinite(cap) ? Math.min(cap, viewport) : viewport
+}
