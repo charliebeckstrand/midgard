@@ -5,9 +5,9 @@
  * bridged `title` / `description` / `body` / `footer` slots plus `motion`
  * complete the dialog chrome.
  */
-import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { narabi, omote, shaku, ugoki } from '../kiso'
+import { hannou, narabi, omote, sen, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { flex, slide } = narabi
@@ -53,6 +53,36 @@ export const k = {
 		footer: { extra: 'px-6 pb-6' },
 		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
 	}),
+	/**
+	 * The drag handle: a grab area tall enough to aim at, and the bar inside it
+	 * the reader actually sees.
+	 *
+	 * It rides the panel's inline edge rather than sitting in the flow, because a
+	 * sheet resizes across its own scrolling body — laid out in the column with
+	 * the slots, the grip would scroll away from the edge it moves. The area is
+	 * the full height, so the reach is the panel's rather than the bar's, and
+	 * `hannou.grab` carries the rest including the `touch-none` that makes the
+	 * gesture work at all under a finger.
+	 *
+	 * `side` puts it on the edge that faces the screen: a right-hand sheet grows
+	 * leftward, so its grip is on the left.
+	 */
+	handle: {
+		area: [
+			flex.col,
+			'absolute inset-y-0 z-10 w-4 items-center justify-center',
+			...hannou.grab,
+			'outline-hidden',
+			sen.focus.inset,
+		],
+		side: {
+			right: 'left-0',
+			left: 'right-0',
+			top: 'inset-x-0 bottom-0 h-4 w-full',
+			bottom: 'inset-x-0 top-0 h-4 w-full',
+		},
+		bar: ['h-10 w-1.5 rounded-full', ...mode('bg-zinc-950/20', 'dark:bg-white/25')],
+	},
 	motion: ugoki.panel,
 }
 

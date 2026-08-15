@@ -1,13 +1,13 @@
 'use client'
 
 import { cn } from '../../core'
+import type { PanelResize } from '../../hooks/use-panel-resize'
 import { k } from '../../recipes/kata/drawer'
-import type { DrawerResize } from './use-drawer-resize'
 
 /** Props for {@link DrawerHandle}. @internal */
 export type DrawerHandleProps = {
 	/** The gesture bindings, from {@link useDrawerResize} on the panel's owner. */
-	handleProps: DrawerResize['handleProps']
+	handleProps: PanelResize['handleProps']
 	/** The share of the screen the panel covers, which is what the value reports. */
 	covers: number
 	className?: string
@@ -23,7 +23,7 @@ export type DrawerHandleProps = {
  * means the same thing a reader can see.
  *
  * It draws and reports; the gesture belongs to the component that owns the panel
- * — see {@link useDrawerResize} for why.
+ * — see {@link usePanelResize} for why.
  *
  * @internal
  */

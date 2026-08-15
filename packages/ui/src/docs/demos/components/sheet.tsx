@@ -9,6 +9,8 @@ export function Demo() {
 	const [rightOpen, setRightOpen] = useState(false)
 	const [glassLeftOpen, setGlassLeftOpen] = useState(false)
 	const [glassRightOpen, setGlassRightOpen] = useState(false)
+	const [handleOpen, setHandleOpen] = useState(false)
+	const [handleLeftOpen, setHandleLeftOpen] = useState(false)
 
 	return (
 		<>
@@ -69,6 +71,43 @@ export function Demo() {
 						</SheetBody>
 						<SheetFooter>
 							<Button onClick={() => setGlassRightOpen(false)}>Close</Button>
+						</SheetFooter>
+					</Sheet>
+				</Flex>
+			</Example>
+
+			<Example title="Handle">
+				<Flex gap="md">
+					<Button onClick={() => setHandleOpen(true)}>Open Right</Button>
+
+					<Sheet handle open={handleOpen} onOpenChange={setHandleOpen}>
+						<SheetTitle>Resizable Sheet</SheetTitle>
+						<SheetBody>
+							<p className="text-sm text-zinc-500">
+								Drag the grip on the inner edge to set the width, or focus it and use the arrow
+								keys. A flick toward the edge throws the panel away, and a closed panel reopens at
+								the width its variant states.
+							</p>
+						</SheetBody>
+						<SheetFooter>
+							<Button onClick={() => setHandleOpen(false)}>Close</Button>
+						</SheetFooter>
+					</Sheet>
+
+					<Button variant="outline" onClick={() => setHandleLeftOpen(true)}>
+						Open Left
+					</Button>
+
+					<Sheet handle side="left" open={handleLeftOpen} onOpenChange={setHandleLeftOpen}>
+						<SheetTitle>Resizable Sheet</SheetTitle>
+						<SheetBody>
+							<p className="text-sm text-zinc-500">
+								The grip rides whichever edge faces the screen, so a left-hand panel grows
+								rightward.
+							</p>
+						</SheetBody>
+						<SheetFooter>
+							<Button onClick={() => setHandleLeftOpen(false)}>Close</Button>
 						</SheetFooter>
 					</Sheet>
 				</Flex>

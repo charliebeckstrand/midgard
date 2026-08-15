@@ -7,14 +7,15 @@ import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
+import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
+import { drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
-import { useDrawerResize } from './use-drawer-resize'
 
 /** Props for {@link Drawer}: open-state control, panel `height`, density `size` cascade, and accessible naming. */
 export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> & {
@@ -180,7 +181,12 @@ export function Drawer({
 	// The gesture is held here, by the component that owns the panel it writes to.
 	// A pixel height means nothing off the screen it was set on, so it stays in
 	// here — there is nothing for a consumer to hold.
-	const resize = useDrawerResize({ open: resolvedOpen, onDismiss: () => setOpen(false) })
+	const resize = usePanelResize({
+		axis: 'height',
+		open: resolvedOpen,
+		onDismiss: () => setOpen(false),
+		floorOf: drawerFloor,
+	})
 
 	const { ariaProps, a11y } = useA11yPanel()
 
@@ -224,7 +230,7 @@ export function Drawer({
 				onClick={(event) => event.stopPropagation()}
 				// A dragged height beats the variant's, and it is inline because it is a
 				// measurement rather than a step — there is no class for "412 pixels".
-				style={resize.height === null ? undefined : { height: resize.height }}
+				style={resize.size === null ? undefined : { height: resize.size }}
 				className={cn(
 					'group/drawer',
 					resolvedSurface === 'glass' && 'group/glass',

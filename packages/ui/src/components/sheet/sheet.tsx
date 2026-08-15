@@ -2,14 +2,17 @@
 
 import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
+import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
+import { sheetFloor } from './sheet-floor'
+import { SheetHandle } from './sheet-handle'
 
 /** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
 export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
@@ -17,6 +20,18 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
 	open?: boolean
 	/** Initial open state when uncontrolled. */
 	defaultOpen?: boolean
+	/**
+	 * Give the panel a drag handle, so the reader can resize it past the `width`
+	 * scale and throw it away toward its own edge.
+	 *
+	 * The drag sets the width directly rather than stepping between the `width`
+	 * variants, because the reader is deciding how much of the screen the panel
+	 * gets and the answer is wherever they let go. `width` still states where it
+	 * opens, and a closed panel forgets what it was dragged to.
+	 *
+	 * @defaultValue false
+	 */
+	handle?: boolean
 	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
 	onOpenChange?: (open: boolean) => void
 	/**
@@ -114,6 +129,7 @@ export function Sheet({
 	onOpenComplete,
 	side = 'right',
 	width,
+	handle,
 	glass,
 	desaturate,
 	className,
@@ -139,6 +155,16 @@ export function Sheet({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
+	// A pixel width means nothing off the screen it was set on, so it stays in
+	// the panel's own state and reaches nowhere: nothing outside the sheet needs
+	// to hold one.
+	const resize = usePanelResize({
+		axis: 'width',
+		open: resolvedOpen,
+		onDismiss: () => setOpen(false),
+		floorOf: sheetFloor,
+	})
+
 	return (
 		<Overlay
 			open={resolvedOpen}
@@ -155,7 +181,25 @@ export function Sheet({
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="sheet"
+				ref={handle ? resize.ref : undefined}
 				onClick={(event) => event.stopPropagation()}
+				// The panel eases between its `width` variants, which is right for a step
+				// and wrong for a finger: eased, each frame's width becomes an animation
+				// the next frame interrupts, and the edge lags the pointer.
+				data-resizing={dataAttr(resize.resizing)}
+				// A dragged width beats the variant's, and it is inline because it is a
+				// measurement rather than a step on the scale.
+				//
+				// The cap goes with it, for the whole gesture and not only once a size
+				// lands: the `width` variant is a max-width, so leaving it in place would
+				// clamp the panel at its opening width while the drag went on reporting
+				// numbers past it. Cleared before the first move, because `resizing` is
+				// set on the press and the pointer moves after the render.
+				style={
+					handle && (resize.resizing || resize.size !== null)
+						? { width: resize.size ?? undefined, maxWidth: 'none' }
+						: undefined
+				}
 				className={cn(
 					k.panel({ side, width, surface: resolvedSurface }),
 					// Non-modal overlays disable pointer events on the full-viewport
@@ -165,6 +209,10 @@ export function Sheet({
 				)}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
+					{handle ? (
+						<SheetHandle handleProps={resize.handleProps} covers={resize.covers} side={side} />
+					) : null}
+
 					{children}
 				</PanelProviders>
 			</motion.div>
