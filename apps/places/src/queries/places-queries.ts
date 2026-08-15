@@ -11,7 +11,7 @@ import {
 	setVisit,
 } from '../api/places-api'
 import type { Place, PlaceDraft } from '../types'
-import { decodeStates } from '../utilities/places-geography'
+import { decodeRegions } from '../utilities/places-geography'
 
 /**
  * The query keys, in one place. Both a reader and a writer name the places
@@ -47,7 +47,7 @@ export function usePlaces() {
 export function useStatesAtlas() {
 	return useQuery({
 		queryKey: placesKeys.atlas,
-		queryFn: async ({ signal }) => decodeStates(await fetchStatesAtlas(signal)),
+		queryFn: async ({ signal }) => decodeRegions(await fetchStatesAtlas(signal), 'states'),
 		staleTime: Number.POSITIVE_INFINITY,
 		gcTime: Number.POSITIVE_INFINITY,
 	})

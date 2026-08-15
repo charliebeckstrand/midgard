@@ -4,12 +4,12 @@ import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'
 import type { Place } from '../../types'
 import {
-	boundStates,
+	boundRegions,
 	centredProjection,
-	decodeStates,
-	groupPlacesByState,
-	stateFrame,
-	stateName,
+	decodeRegions,
+	groupPlacesByRegion,
+	regionFrame,
+	regionName,
 } from '../../utilities/places-geography'
 
 /**
@@ -63,26 +63,26 @@ function place(id: string, at: [number, number], fields: Partial<Place> = {}): P
 	}
 }
 
-describe('stateName', () => {
+describe('regionName', () => {
 	it('reads the name the atlas carries', () => {
-		expect(stateName(OREGON)).toBe('Oregon')
+		expect(regionName(OREGON)).toBe('Oregon')
 	})
 
 	// Identity is the fallback, not the answer: us-atlas keys its states by FIPS
 	// code, so a name read id-first says "41" where every other readout says
 	// "Oregon".
 	it('falls back to the identity where a feature carries no name', () => {
-		expect(stateName({ type: 'Feature', id: 41, geometry: null })).toBe('41')
+		expect(regionName({ type: 'Feature', id: 41, geometry: null })).toBe('41')
 	})
 })
 
-describe('decodeStates', () => {
+describe('decodeRegions', () => {
 	it('answers with nothing for an atlas that has not landed', () => {
-		expect(decodeStates(undefined)).toBeNull()
+		expect(decodeRegions(undefined, 'states')).toBeNull()
 	})
 
-	it('decodes the states out of the published topology', () => {
-		const decoded = decodeStates(states as unknown as MapTopology)
+	it('decodes the named object out of the published topology', () => {
+		const decoded = decodeRegions(states as unknown as MapTopology, 'states')
 
 		expect(decoded).not.toBeNull()
 
@@ -91,29 +91,37 @@ describe('decodeStates', () => {
 		// 50 states, the District of Columbia, and the five inhabited territories.
 		expect(decoded?.features).toHaveLength(56)
 
-		expect(decoded?.features.map(stateName)).toContain('Oregon')
+		expect(decoded?.features.map(regionName)).toContain('Oregon')
+	})
+
+	// The key names the object to draw, and the first stands in where an atlas
+	// names it something else — so a wrong key answers rather than nothing.
+	it('falls back to the first object where the key names none', () => {
+		const decoded = decodeRegions(states as unknown as MapTopology, 'provinces')
+
+		expect(decoded?.features.length).toBeGreaterThan(0)
 	})
 })
 
-describe('stateFrame', () => {
+describe('regionFrame', () => {
 	it('answers with the whole country where nothing is drilled', () => {
-		expect(stateFrame(ATLAS, null)).toBe(ATLAS)
+		expect(regionFrame(ATLAS, null)).toBe(ATLAS)
 	})
 
 	it('answers with the whole country where the name is not one it draws', () => {
-		expect(stateFrame(ATLAS, 'Atlantis')).toBe(ATLAS)
+		expect(regionFrame(ATLAS, 'Atlantis')).toBe(ATLAS)
 	})
 
 	it('cuts one state out as a collection of one', () => {
-		const cut = stateFrame(ATLAS, 'Oregon')
+		const cut = regionFrame(ATLAS, 'Oregon')
 
 		expect(cut?.features).toHaveLength(1)
 
-		expect(stateName(cut?.features[0] as MapFeature)).toBe('Oregon')
+		expect(regionName(cut?.features[0] as MapFeature)).toBe('Oregon')
 	})
 
 	it('answers with nothing before the atlas lands', () => {
-		expect(stateFrame(null, 'Oregon')).toBeNull()
+		expect(regionFrame(null, 'Oregon')).toBeNull()
 	})
 })
 
@@ -136,13 +144,13 @@ describe('centredProjection', () => {
 	})
 })
 
-describe('boundStates', () => {
+describe('boundRegions', () => {
 	it('answers with nothing before the atlas lands', () => {
-		expect(boundStates(null)).toEqual([])
+		expect(boundRegions(null)).toEqual([])
 	})
 
 	it('measures a box for each state it can', () => {
-		const bounded = boundStates(ATLAS)
+		const bounded = boundRegions(ATLAS)
 
 		expect(bounded.map((held) => held.name)).toEqual(['Oregon', 'Alaska'])
 
@@ -150,7 +158,7 @@ describe('boundStates', () => {
 	})
 
 	it('drops a feature that carries no geometry', () => {
-		const bounded = boundStates({
+		const bounded = boundRegions({
 			type: 'FeatureCollection',
 			features: [OREGON, region('Nowhere', null)],
 		})
@@ -159,23 +167,24 @@ describe('boundStates', () => {
 	})
 })
 
-describe('groupPlacesByState', () => {
-	const bounded = boundStates(ATLAS)
+describe('groupPlacesByRegion', () => {
+	const bounded = boundRegions(ATLAS)
 
-	it('groups a place under the state whose shape holds it', () => {
-		const grouped = groupPlacesByState(bounded, [place('corvallis', [-123.26, 44.56])])
+	/** The grouping under a states atlas, whose fallback field is the state. */
+	function group(places: Place[]): Map<string, Place[]> {
+		return groupPlacesByRegion(bounded, places, (held) => held.state)
+	}
+
+	it('groups a place under the region whose shape holds it', () => {
+		const grouped = group([place('corvallis', [-123.26, 44.56])])
 
 		expect([...grouped.keys()]).toEqual(['Oregon'])
 
 		expect(grouped.get('Oregon')?.map((held) => held.id)).toEqual(['corvallis'])
 	})
 
-	it('keeps several places in one state, in the order they were given', () => {
-		const grouped = groupPlacesByState(bounded, [
-			place('a', [-123, 45]),
-			place('b', [-120, 44]),
-			place('c', [-118, 43]),
-		])
+	it('keeps several places in one region, in the order they were given', () => {
+		const grouped = group([place('a', [-123, 45]), place('b', [-120, 44]), place('c', [-118, 43])])
 
 		expect(grouped.get('Oregon')?.map((held) => held.id)).toEqual(['a', 'b', 'c'])
 	})
@@ -184,42 +193,44 @@ describe('groupPlacesByState', () => {
 	// metres outside the shape that plainly holds it. The geocoder's own name
 	// answers where the geometry does not.
 	it('falls back to the name the geocoder gave, for a place just off the outline', () => {
-		const grouped = groupPlacesByState(bounded, [
-			place('lighthouse', [-124.08, 44.63], { state: 'Oregon' }),
-		])
+		const grouped = group([place('lighthouse', [-124.08, 44.63], { state: 'Oregon' })])
 
 		expect(grouped.get('Oregon')?.map((held) => held.id)).toEqual(['lighthouse'])
 	})
 
-	// The fallback is checked against the drawn states, so a name the atlas does
-	// not carry resolves to nothing rather than to a state that is not on the map.
+	// The fallback is checked against the drawn regions, so a name the atlas does
+	// not carry resolves to nothing rather than to a region that is not on the map.
 	it('drops a fallback name the atlas does not draw', () => {
-		const grouped = groupPlacesByState(bounded, [
-			place('paris', [2.35, 48.85], { state: 'Île-de-France' }),
-		])
-
-		expect(grouped.size).toBe(0)
+		expect(group([place('paris', [2.35, 48.85], { state: 'Île-de-France' })]).size).toBe(0)
 	})
 
 	it('drops a place that neither the geometry nor a name places', () => {
-		const grouped = groupPlacesByState(bounded, [place('offshore', [-140, 30])])
+		expect(group([place('offshore', [-140, 30])]).size).toBe(0)
+	})
 
-		expect(grouped.size).toBe(0)
+	// The fallback field is the caller's, because which one answers depends on the
+	// atlas: a states atlas falls back to the state, a countries atlas to the
+	// country. The same place groups under neither, one, or the other.
+	it('reads the fallback field the caller names', () => {
+		const abroad = place('louvre', [2.34, 48.86], { state: 'Île-de-France', country: 'Oregon' })
+
+		expect(groupPlacesByRegion(bounded, [abroad], (held) => held.state).size).toBe(0)
+
+		expect(
+			groupPlacesByRegion(bounded, [abroad], (held) => held.country).get('Oregon'),
+		).toHaveLength(1)
 	})
 
 	// A box that crosses the antimeridian comes back wrapped — west 170, east
 	// -175 — so the longitude test has to read the two sides as an outside. Read
-	// as a plain range it rejects every point in the state.
+	// as a plain range it rejects every point in the region.
 	it('holds a place on either side of the antimeridian', () => {
-		const grouped = groupPlacesByState(bounded, [
-			place('east', [178, 52]),
-			place('west', [-178, 52]),
-		])
+		const grouped = group([place('east', [178, 52]), place('west', [-178, 52])])
 
 		expect(grouped.get('Alaska')?.map((held) => held.id)).toEqual(['east', 'west'])
 	})
 
 	it('answers with nothing for no places', () => {
-		expect(groupPlacesByState(bounded, []).size).toBe(0)
+		expect(group([]).size).toBe(0)
 	})
 })

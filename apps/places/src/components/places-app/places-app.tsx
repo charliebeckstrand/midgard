@@ -27,7 +27,7 @@ import {
 } from '../../queries/places-queries'
 import type { Place } from '../../types'
 import { filterPlaces, type PlaceFilterValue } from '../../utilities/places-filter'
-import { boundStates, groupPlacesByState, stateName } from '../../utilities/places-geography'
+import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters } from '../place-filters'
 import { PlaceFormDrawer } from '../place-form-drawer'
@@ -100,13 +100,13 @@ export function PlacesApp() {
 
 	// Each state beside its bounding box. Keyed on the atlas alone, which never
 	// changes for the tab's life, so adding a place does not re-measure 56 states.
-	const bounded = useMemo(() => boundStates(states), [states])
+	const bounded = useMemo(() => boundRegions(states), [states])
 
 	// Every state the atlas draws, for the picker that projects one. Read off the
 	// geography rather than the places, so a state holding nothing is still
 	// somewhere the reader can go.
 	const stateNames = useMemo(
-		() => (states?.features ?? []).map(stateName).sort((a, b) => a.localeCompare(b)),
+		() => (states?.features ?? []).map(regionName).sort((a, b) => a.localeCompare(b)),
 		[states],
 	)
 
@@ -117,7 +117,13 @@ export function PlacesApp() {
 	// It reads the unfiltered places on purpose: the states a reader can drill are
 	// the states that hold places, not the states holding places the bar currently
 	// admits — otherwise a drill would open and close as they narrowed it.
-	const placesByState = useMemo(() => groupPlacesByState(bounded, places), [bounded, places])
+	//
+	// The geocoder's state is the fallback the states atlas takes, for the coastal
+	// place the drawn outline puts just outside the state that plainly holds it.
+	const placesByState = useMemo(
+		() => groupPlacesByRegion(bounded, places, (place) => place.state),
+		[bounded, places],
+	)
 
 	// The state the open drawer stands in — the list its first crumb leads back to,
 	// which for a lone dot is the only list there is.

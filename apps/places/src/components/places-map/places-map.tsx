@@ -12,7 +12,7 @@ import {
 } from 'ui/modules/map'
 import type { Place } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
-import { centredProjection, stateFrame, stateName } from '../../utilities/places-geography'
+import { centredProjection, regionFrame, regionName } from '../../utilities/places-geography'
 import { placeStops } from './places-map-utilities'
 
 /**
@@ -102,7 +102,7 @@ export function PlacesMap({
 	// Memoised on the cut, because the map keys its decode, its fit, and its paths
 	// on the geography's identity — a fresh collection each render would refit the
 	// map on every pointer move.
-	const geography = useMemo(() => stateFrame(states, drilled), [states, drilled])
+	const geography = useMemo(() => regionFrame(states, drilled), [states, drilled])
 
 	// The composite for the country, a state-centred mercator for one state.
 	//
@@ -140,7 +140,7 @@ export function PlacesMap({
 	const rows = useMemo(() => {
 		if (visitedStates === undefined) return NO_ROWS
 
-		const named = (states?.features ?? []).map(stateName)
+		const named = (states?.features ?? []).map(regionName)
 
 		const painted = named.filter((name) =>
 			visitedStates === 'visited' ? visited.has(name) : !visited.has(name),
@@ -218,9 +218,9 @@ export function PlacesMap({
 				aspectRatio={false}
 				className="size-full"
 				// Identity only. The label default already reads `properties.name`,
-				// which is what `stateName` returns; identity does not — it is id-first,
+				// which is what `regionName` returns; identity does not — it is id-first,
 				// so a state would answer as "41" where every row here says "Oregon".
-				regionId={stateName}
+				regionId={regionName}
 				data={rows}
 				regionKey="state"
 				categoryKey="visited"
