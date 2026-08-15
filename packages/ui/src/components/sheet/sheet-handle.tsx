@@ -2,6 +2,7 @@
 
 import { cn } from '../../core'
 import type { PanelResize } from '../../hooks/use-panel-resize'
+import { PanelHandle } from '../../primitives/panel/panel-handle'
 import type { SheetPanelVariants } from '../../recipes/kata/sheet'
 import { k } from '../../recipes/kata/sheet'
 
@@ -17,41 +18,26 @@ export type SheetHandleProps = {
 }
 
 /**
- * The grab bar on the inner edge of a resizable sheet.
+ * The grab bar on the inner edge of a resizable sheet: a {@link PanelHandle}
+ * standing on the edge that faces the screen.
  *
- * A window splitter — `role="separator"` with a tab stop — which is what a
- * resize control is. It answers the arrow keys as well as the drag, because a
- * panel whose width only a pointer can set is one a keyboard reader cannot open
- * up. `aria-valuenow` reads as the share of the screen the panel covers, so the
- * value means the same thing a reader can see.
- *
- * `aria-orientation` names the separator's own line and not the axis it moves
- * on: a grip standing on the left edge of a right-hand sheet is a vertical
- * separator that resizes horizontally, which is the reverse of the drawer's.
- *
- * It draws and reports; the gesture belongs to the component that owns the panel
- * — see {@link usePanelResize} for why.
+ * A sheet docked to a side is grabbed by a separator standing the other way
+ * from the drawer's, so the grip stands with it — see the archetype's grip for
+ * why the orientation is the separator's line and not the axis it moves.
  *
  * @internal
  */
 export function SheetHandle({ handleProps, covers, side, className }: SheetHandleProps) {
-	const vertical = side === 'left' || side === 'right'
+	const orientation = side === 'left' || side === 'right' ? 'vertical' : 'horizontal'
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: an <hr> is void and cannot hold the bar this draws, and the focusable window-splitter pattern this implements is a div by convention
-		<div
-			data-slot="sheet-handle"
-			role="separator"
-			aria-label="Resize panel"
-			aria-orientation={vertical ? 'vertical' : 'horizontal'}
-			aria-valuenow={covers}
-			aria-valuemin={0}
-			aria-valuemax={100}
-			tabIndex={0}
-			{...handleProps}
+		<PanelHandle
+			slot="sheet-handle"
+			orientation={orientation}
+			handleProps={handleProps}
+			covers={covers}
 			className={cn(k.handle.area, k.handle.side[side], className)}
-		>
-			<div className={cn(vertical ? k.handle.bar : ['h-1.5 w-10 rounded-full', 'bg-current/20'])} />
-		</div>
+			bar={cn(k.handle.bar[orientation])}
+		/>
 	)
 }

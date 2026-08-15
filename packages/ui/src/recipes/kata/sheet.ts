@@ -5,7 +5,7 @@
  * bridged `title` / `description` / `body` / `footer` slots plus `motion`
  * complete the dialog chrome.
  */
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
 import { hannou, narabi, omote, sen, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
@@ -84,7 +84,8 @@ export const k = {
 			top: 'inset-x-0 bottom-0 py-3 w-full',
 			bottom: 'inset-x-0 top-0 py-3 w-full',
 		},
-		bar: ['h-10 w-1.5 rounded-full', ...mode('bg-zinc-950/20', 'dark:bg-white/25')],
+		/** Keyed by the separator's own line: a sheet docked to a side is grabbed the other way from one docked across. */
+		bar: panel.grip.bar,
 	},
 	motion: ugoki.panel,
 }

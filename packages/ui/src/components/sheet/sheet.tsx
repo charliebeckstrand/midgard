@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
@@ -184,10 +184,6 @@ export function Sheet({
 				data-slot="sheet"
 				ref={handle ? resize.ref : undefined}
 				onClick={(event) => event.stopPropagation()}
-				// The panel eases between its `width` variants, which is right for a step
-				// and wrong for a finger: eased, each frame's width becomes an animation
-				// the next frame interrupts, and the edge lags the pointer.
-				data-resizing={dataAttr(resize.resizing)}
 				// A dragged width beats the variant's, and it is inline because it is a
 				// measurement rather than a step on the scale.
 				//

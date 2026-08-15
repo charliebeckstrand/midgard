@@ -1,4 +1,4 @@
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
 import { hannou, narabi, omote, sen, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
@@ -15,7 +15,7 @@ const { css } = ugoki
  * attribute family this keys on.
  */
 const RESIZING = 'data-resizing:transition-none'
-const { surface, layout } = panel
+const { surface, layout, grip } = panel
 
 export const k = {
 	...bridge.panel(panel, {
@@ -85,7 +85,7 @@ export const k = {
 			'outline-hidden',
 			sen.focus.inset,
 		],
-		bar: ['h-1.5 w-10 rounded-full', ...mode('bg-zinc-950/20', 'dark:bg-white/25')],
+		bar: grip.bar.horizontal,
 	},
 	motion: ugoki.panel.bottom,
 }
