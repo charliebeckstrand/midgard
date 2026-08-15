@@ -1,0 +1,38 @@
+{
+	"name": "places",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "next dev --port 3001 --turbopack",
+		"build": "next build",
+		"start": "next start --port 3001",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --config-path=../.. --write .",
+		"format": "biome format --config-path=../.. --write .",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@tanstack/react-query": "^5.101.2",
+		"d3-geo": "^3.1.1",
+		"lucide-react": "^1.21.0",
+		"next": "^16.2.12",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
+		"shared": "workspace:*",
+		"topojson-client": "^3.1.0",
+		"ui": "workspace:*",
+		"us-atlas": "^3.0.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.3",
+		"@tailwindcss/postcss": "^4.1.0",
+		"@types/d3-geo": "^3.1.0",
+		"@types/node": "^25.3.3",
+		"@types/react": "^19.2.0",
+		"@types/react-dom": "^19.2.0",
+		"@types/topojson-client": "^3.1.5",
+		"tailwindcss": "^4.1.0",
+		"typescript": "^6.0.2"
+	}
+}
