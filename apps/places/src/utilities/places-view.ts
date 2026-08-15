@@ -1,4 +1,4 @@
-import type { Place } from '../types'
+import type { Place, VisitScope } from '../types'
 
 /**
  * How the United States names itself in `world-atlas`, which is the one country
@@ -28,8 +28,12 @@ export type PlaceView = {
 	state: string | null
 }
 
-/** Which atlas a view draws: the states of the United States, or the countries of the world. */
-export type PlaceAtlas = 'states' | 'countries'
+/**
+ * Which atlas a view draws. It is the visit scope: an atlas divides the world
+ * one way, and a region is marked visited under the atlas that named it — so
+ * `viewMark`'s scope crosses into the store without a conversion.
+ */
+export type PlaceAtlas = VisitScope
 
 /** The whole world, which is where a collection that reaches outside one country opens. */
 export const WORLD: PlaceView = { country: null, state: null }
@@ -56,40 +60,47 @@ export function viewRegion(view: PlaceView): string | null {
 	return viewAtlas(view) === 'states' ? view.state : view.country
 }
 
-/** The geocoder's state, for the states atlas. Held at module scope so the identity is stable. */
-function byState(place: Place): string | undefined {
+/**
+ * The geocoder's state, which is what answers where the states atlas cannot: a
+ * coastal place sits a little outside the generalized outline that plainly holds
+ * it. Handed to `groupPlacesByRegion`, whose fallback this is.
+ *
+ * The countries atlas has a better answer than any name — see
+ * {@link knownCountry}, which the app hands the countries grouping instead.
+ */
+export function stateOf(place: Place): string | undefined {
 	return place.state
 }
 
-/** The same, for the countries atlas. */
-function byCountry(place: Place): string | undefined {
+/**
+ * A grouping inverted: which region holds each place, by the place's id.
+ *
+ * The grouping answers "what is in this region" and three readers ask the
+ * opposite — which region a picked place stands in, which places another atlas
+ * already settled, and what a row's region column says. Each walked the grouping
+ * its own way; one inversion answers all three in one pass.
+ */
+export function regionOf(grouped: ReadonlyMap<string, readonly Place[]>): Map<string, string> {
+	const held = new Map<string, string>()
+
+	for (const [region, list] of grouped) {
+		for (const place of list) held.set(place.id, region)
+	}
+
+	return held
+}
+
+/**
+ * The geocoder's country, which answers where the world outline cannot.
+ * `groupPlacesByRegion`'s fallback for the countries atlas.
+ */
+export function countryOf(place: Place): string | undefined {
 	return place.country
 }
 
 /**
- * Which field answers where the drawn geometry cannot, per the atlas the view
- * draws. Handed to `groupPlacesByRegion`, whose fallback this is.
- *
- * The countries atlas has a better answer than the name — see
- * {@link countryFallback}, which the app hands it instead.
- */
-export function viewFallback(view: PlaceView): (place: Place) => string | undefined {
-	return viewAtlas(view) === 'states' ? byState : byCountry
-}
-
-/** The ids of every place a grouping placed, which is what the other atlas then knows. */
-export function placedIds(grouped: ReadonlyMap<string, readonly Place[]>): Set<string> {
-	const ids = new Set<string>()
-
-	for (const list of grouped.values()) {
-		for (const place of list) ids.add(place.id)
-	}
-
-	return ids
-}
-
-/**
- * The countries atlas's fallback, asked of the states atlas before the name.
+ * What the states atlas already settled, for the countries grouping to trust
+ * ahead of its own geometry — `groupPlacesByRegion`'s `known`.
  *
  * A place the states atlas can put in a state is in the United States, whatever
  * the geocoder called its country. That matters because the world is drawn at
@@ -99,13 +110,15 @@ export function placedIds(grouped: ReadonlyMap<string, readonly Place[]>): Set<s
  * "United States", which Natural Earth does not draw, and read as belonging
  * nowhere.
  *
- * So the two atlases answer together. The app already groups against the states
- * for its own reasons, and {@link placedIds} is that grouping's answer.
+ * So the two atlases answer together, and the finer one answers first. The app
+ * already groups against the states for its own reasons, and {@link regionOf}
+ * of that grouping is the answer — which also makes this the cheap path, since a
+ * place it names skips the world's bounds test and ring walk entirely.
  */
-export function countryFallback(
-	placedInStates: ReadonlySet<string>,
+export function knownCountry(
+	statesByPlace: ReadonlyMap<string, string>,
 ): (place: Place) => string | undefined {
-	return (place) => (placedInStates.has(place.id) ? UNITED_STATES : place.country)
+	return (place) => (statesByPlace.has(place.id) ? UNITED_STATES : undefined)
 }
 
 /**
@@ -188,15 +201,10 @@ export function viewCrumbs(view: PlaceView): PlaceCrumb[] {
  * wrong string frames nothing; the world frames everything, and the reader is
  * one click from the country either way.
  */
-export function viewForPlace(
-	grouped: ReadonlyMap<string, readonly Place[]>,
-	place: Place,
-): PlaceView {
-	for (const [name, list] of grouped) {
-		if (list.some((held) => held.id === place.id)) return { country: UNITED_STATES, state: name }
-	}
+export function viewForPlace(states: ReadonlyMap<string, string>, place: Place): PlaceView {
+	const state = states.get(place.id)
 
-	return WORLD
+	return state === undefined ? WORLD : { country: UNITED_STATES, state }
 }
 
 /**
@@ -208,19 +216,22 @@ export function viewForPlace(
  * for whole opens where this app always opened, and one it cannot opens on the
  * world.
  *
- * `grouped` must be the grouping against the states atlas, which is what the app
- * holds while this is asked: nothing consults it once the reader has navigated.
+ * It is the smallest of the two geographies this app draws, not of every
+ * geography there is: a collection held entirely in Japan opens on the world,
+ * because opening on Japan would mean grouping by country to find that out, and
+ * that means fetching the countries atlas on the path this rule exists to keep
+ * clear.
+ *
+ * `statesByPlace` must be {@link regionOf} of the grouping against the states
+ * atlas, which is what the app holds while this is asked: nothing consults it
+ * once the reader has navigated.
  *
  * An empty collection opens on the United States. There is nothing to place, so
  * there is nothing to widen the frame for.
  */
 export function initialView(
-	grouped: ReadonlyMap<string, readonly Place[]>,
+	statesByPlace: ReadonlyMap<string, string>,
 	places: readonly Place[],
 ): PlaceView {
-	let placed = 0
-
-	for (const list of grouped.values()) placed += list.length
-
-	return placed === places.length ? UNITED_STATES_VIEW : WORLD
+	return statesByPlace.size === places.length ? UNITED_STATES_VIEW : WORLD
 }

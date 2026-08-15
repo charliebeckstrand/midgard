@@ -14,7 +14,7 @@ import {
 import type { Place } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
 import { centredProjection, regionFrame, regionName } from '../../utilities/places-geography'
-import { type PlaceView, UNITED_STATES, viewFrame, viewRegion } from '../../utilities/places-view'
+import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/places-view'
 import { placeStops } from './places-map-utilities'
 
 /**
@@ -115,13 +115,22 @@ export function PlacesMap({
 	// map on every pointer move.
 	const geography = useMemo(() => regionFrame(regions, cut), [regions, cut])
 
-	// Equal Earth for the world, the composite for the United States whole, and a
-	// region-centred mercator for anything cut to one shape.
+	// What the whole atlas draws under: Equal Earth for the world, the composite
+	// for the United States.
 	//
 	// Albers USA is a conic composed of one country, so it draws that country and
 	// nothing else: a point outside it projects to nothing at all, which is why it
 	// is the right frame for the states and the wrong one for the world. Equal
 	// Earth places every point there is, and holds area true while it does.
+	//
+	// Stated once, because the skeleton reserves this frame and the plat then takes
+	// it. Written out at both, the two could disagree and the skeleton would
+	// reserve a frame the plat does not draw — which is the jump it exists to
+	// prevent.
+	const atlasProjection: MapProjection = viewAtlas(view) === 'states' ? 'albers-usa' : 'equal-earth'
+
+	// The whole atlas draws under its own projection; one region cut out of it
+	// draws under a mercator centred on itself.
 	//
 	// Centred rather than plain, because a plain mercator sits on the prime
 	// meridian: Alaska's Aleutians cross the antimeridian, so its bounds read as
@@ -129,11 +138,10 @@ export function PlacesMap({
 	//
 	// Held rather than rebuilt, because the plat fits a passed instance directly
 	// and keys that fit on the projection's identity.
-	const projection = useMemo<MapProjection>(() => {
-		if (cut !== null) return centredProjection(geography) ?? 'mercator'
-
-		return view.country === UNITED_STATES ? 'albers-usa' : 'equal-earth'
-	}, [geography, cut, view.country])
+	const projection = useMemo<MapProjection>(
+		() => (cut === null ? atlasProjection : (centredProjection(geography) ?? 'mercator')),
+		[geography, cut, atlasProjection],
+	)
 
 	// One row per painted region. The category is the same for all of them: this is
 	// a bit and not a measure, so one category paints alike and draws no legend of
@@ -190,12 +198,8 @@ export function PlacesMap({
 		return index === -1 ? null : { id: MARK_ID, index }
 	}, [selected, places])
 
-	// The projection the frame will take, so the skeleton reserves exactly what
-	// the plat behind it will and nothing jumps when the atlas lands.
-	const reserved = view.country === UNITED_STATES ? 'albers-usa' : 'equal-earth'
-
 	if (geography === null) {
-		return <MapSkeleton projection={reserved} ratio={false} className="size-full" />
+		return <MapSkeleton projection={atlasProjection} ratio={false} className="size-full" />
 	}
 
 	return (

@@ -1,38 +1,23 @@
 import { describe, expect, it } from 'vitest'
-import type { Place } from '../../types'
 import {
-	countryFallback,
+	countryOf,
 	drillInto,
 	initialView,
+	knownCountry,
 	type PlaceView,
-	placedIds,
+	regionOf,
+	stateOf,
 	UNITED_STATES,
 	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
-	viewFallback,
 	viewForPlace,
 	viewFrame,
 	viewMark,
 	viewRegion,
 	WORLD,
 } from '../../utilities/places-view'
-
-/** One place, with only the fields a view reads named at the call site. */
-function place(id: string, fields: Partial<Place> = {}): Place {
-	return {
-		id,
-		name: id,
-		category: 'food',
-		address: 'somewhere',
-		latitude: 44.63,
-		longitude: -124.05,
-		rating: 0,
-		visitedAt: '2026-08-15',
-		createdAt: '2026-08-15T18:00:00.000Z',
-		...fields,
-	}
-}
+import { place } from '../fixtures'
 
 const OREGON: PlaceView = { country: UNITED_STATES, state: 'Oregon' }
 
@@ -108,21 +93,19 @@ describe('viewMark', () => {
 	})
 })
 
-describe('viewFallback', () => {
+describe('stateOf and countryOf', () => {
 	const held = place('a', { state: 'Oregon', country: 'United States' })
 
-	it('reads the state under a states atlas and the country under a countries atlas', () => {
-		expect(viewFallback(UNITED_STATES_VIEW)(held)).toBe('Oregon')
+	it('read the field each atlas falls back to', () => {
+		expect(stateOf(held)).toBe('Oregon')
 
-		expect(viewFallback(WORLD)(held)).toBe('United States')
+		expect(countryOf(held)).toBe('United States')
 	})
 
-	// `groupPlacesByRegion` is memoised on it, so a fresh function each call would
-	// regroup every place on every render.
-	it('hands back a stable identity', () => {
-		expect(viewFallback(WORLD)).toBe(viewFallback(FRANCE))
+	it('answer with nothing where the geocoder named neither', () => {
+		expect(stateOf(place('b'))).toBeUndefined()
 
-		expect(viewFallback(UNITED_STATES_VIEW)).toBe(viewFallback(OREGON))
+		expect(countryOf(place('b'))).toBeUndefined()
 	})
 })
 
@@ -178,43 +161,39 @@ describe('viewCrumbs', () => {
 	})
 })
 
-describe('placedIds', () => {
-	it('answers with every id a grouping placed, across its regions', () => {
-		const a = place('a')
-
-		const b = place('b')
-
+describe('regionOf', () => {
+	it('inverts a grouping to the region holding each place', () => {
 		const grouped = new Map([
-			['Oregon', [a]],
-			['Nevada', [b]],
+			['Oregon', [place('a')]],
+			['Nevada', [place('b'), place('c')]],
 		])
 
-		expect([...placedIds(grouped)].sort()).toEqual(['a', 'b'])
+		expect([...regionOf(grouped)]).toEqual([
+			['a', 'Oregon'],
+			['b', 'Nevada'],
+			['c', 'Nevada'],
+		])
 	})
 
 	it('answers with nothing for a grouping that placed nothing', () => {
-		expect(placedIds(new Map()).size).toBe(0)
+		expect(regionOf(new Map()).size).toBe(0)
 	})
 })
 
-describe('countryFallback', () => {
+describe('knownCountry', () => {
 	// The world is drawn at 110m, where the outline generalizes away exactly the
 	// places a travel log is full of. A place the finer atlas could put in a state
 	// is in the United States, whatever the geocoder called its country.
 	it('answers with the United States for a place the states atlas placed', () => {
 		const coastal = place('lighthouse', { country: 'United States' })
 
-		expect(countryFallback(new Set(['lighthouse']))(coastal)).toBe(UNITED_STATES)
+		expect(knownCountry(new Map([['lighthouse', 'Oregon']]))(coastal)).toBe(UNITED_STATES)
 	})
 
-	it("falls back to the place's own country where the states atlas could not", () => {
-		const abroad = place('louvre', { country: 'France' })
-
-		expect(countryFallback(new Set())(abroad)).toBe('France')
-	})
-
-	it('answers with nothing for a place carrying no country either', () => {
-		expect(countryFallback(new Set())(place('offshore'))).toBeUndefined()
+	// It declines rather than guessing, which is what sends the place on to the
+	// geometry and then to its own country name.
+	it('declines for a place the states atlas could not place', () => {
+		expect(knownCountry(new Map())(place('louvre', { country: 'France' }))).toBeUndefined()
 	})
 })
 
@@ -222,7 +201,7 @@ describe('viewForPlace', () => {
 	it('goes to the state the states atlas put a place in', () => {
 		const held = place('a')
 
-		expect(viewForPlace(new Map([['Oregon', [held]]]), held)).toEqual(OREGON)
+		expect(viewForPlace(new Map([['a', 'Oregon']]), held)).toEqual(OREGON)
 	})
 
 	// The world rather than the place's own country: a country is reachable only
@@ -234,16 +213,12 @@ describe('viewForPlace', () => {
 	})
 
 	it('finds a place among several regions', () => {
-		const a = place('a')
-
-		const b = place('b')
-
-		const grouped = new Map([
-			['Oregon', [a]],
-			['Nevada', [b]],
+		const states = new Map([
+			['a', 'Oregon'],
+			['b', 'Nevada'],
 		])
 
-		expect(viewForPlace(grouped, b)).toEqual({ country: UNITED_STATES, state: 'Nevada' })
+		expect(viewForPlace(states, place('b'))).toEqual({ country: UNITED_STATES, state: 'Nevada' })
 	})
 })
 
@@ -254,32 +229,22 @@ describe('initialView', () => {
 	it('opens on the United States where the states atlas holds every place', () => {
 		const places = [place('a'), place('b')]
 
-		const grouped = new Map([['Oregon', places]])
+		const states = new Map([
+			['a', 'Oregon'],
+			['b', 'Oregon'],
+		])
 
-		expect(initialView(grouped, places)).toEqual(UNITED_STATES_VIEW)
+		expect(initialView(states, places)).toEqual(UNITED_STATES_VIEW)
 	})
 
 	it('opens on the world where one place falls outside the states', () => {
 		const places = [place('a'), place('paris')]
 
-		const grouped = new Map([['Oregon', [places[0] as Place]]])
-
-		expect(initialView(grouped, places)).toEqual(WORLD)
+		expect(initialView(new Map([['a', 'Oregon']]), places)).toEqual(WORLD)
 	})
 
 	// Nothing to place is nothing to widen the frame for.
 	it('opens on the United States for an empty collection', () => {
 		expect(initialView(new Map(), [])).toEqual(UNITED_STATES_VIEW)
-	})
-
-	it('counts across every region, not within one', () => {
-		const places = [place('a'), place('b'), place('c')]
-
-		const grouped = new Map([
-			['Oregon', [places[0] as Place]],
-			['Nevada', [places[1] as Place, places[2] as Place]],
-		])
-
-		expect(initialView(grouped, places)).toEqual(UNITED_STATES_VIEW)
 	})
 })

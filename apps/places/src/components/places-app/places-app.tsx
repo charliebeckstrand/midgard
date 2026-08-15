@@ -29,15 +29,16 @@ import type { Place, Visits } from '../../types'
 import { filterPlaces, type PlaceFilterValue } from '../../utilities/places-filter'
 import { boundRegions, groupPlacesByRegion, regionName } from '../../utilities/places-geography'
 import {
-	countryFallback,
+	countryOf,
 	drillInto,
 	initialView,
+	knownCountry,
 	type PlaceView,
-	placedIds,
+	regionOf,
+	stateOf,
 	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
-	viewFallback,
 	viewForPlace,
 	viewMark,
 	viewRegion,
@@ -120,27 +121,32 @@ export function PlacesApp() {
 	// never leaves the United States never pays for it.
 	const { data: statesAtlas = null } = useAtlas('states')
 
-	const opening = useMemo(
-		() => (statesAtlas === null || isPending ? UNITED_STATES_VIEW : null),
-		[statesAtlas, isPending],
-	)
+	// Nothing settles the view until both the atlas and the places have landed: an
+	// opening rule read off half the answer would open on the world and jump back.
+	const settling = statesAtlas === null || isPending
 
-	// Each state beside its bounding box. Keyed on the atlas alone, which never
-	// changes for the tab's life, so adding a place does not re-measure 56 states.
+	// Each region beside its bounding box, one memo per atlas. Keyed on its own
+	// atlas alone — which never changes for the tab's life — so adding a place does
+	// not re-measure 56 states, and crossing back out to the world does not
+	// re-measure 177 countries from a topology the cache never dropped.
 	const boundedStates = useMemo(() => boundRegions(statesAtlas), [statesAtlas])
 
 	// Which state holds each place. It answers the opening question — a collection
 	// the states atlas accounts for whole is a collection inside the United States
 	// — and it is the grouping the app uses whenever the view draws states.
 	const placesByState = useMemo(
-		() => groupPlacesByRegion(boundedStates, places, viewFallback(UNITED_STATES_VIEW)),
+		() => groupPlacesByRegion(boundedStates, places, stateOf),
 		[boundedStates, places],
 	)
 
-	// The view: the reader's, or the smallest geography that holds every place
-	// until they navigate. Settled from the states grouping, which is the grouping
-	// `initialView` is documented to take and the one held above.
-	const view = chosen ?? opening ?? initialView(placesByState, places)
+	// That grouping inverted, which three readers want: the countries grouping
+	// trusts it ahead of its own geometry, the opening rule counts it, and a row
+	// picked in the index resolves through it.
+	const stateOfPlace = useMemo(() => regionOf(placesByState), [placesByState])
+
+	// The view: the reader's, or the smallest geography this app draws that holds
+	// every place until they navigate.
+	const view = chosen ?? (settling ? UNITED_STATES_VIEW : initialView(stateOfPlace, places))
 
 	const atlas = viewAtlas(view)
 
@@ -167,11 +173,10 @@ export function PlacesApp() {
 	// Georgia is a state and Georgia is a country.
 	const visited = useMemo(() => new Set(visits[atlas]), [visits, atlas])
 
-	// Each region beside its box, for the atlas actually drawn.
-	const bounded = useMemo(
-		() => (atlas === 'states' ? boundedStates : boundRegions(countriesAtlas)),
-		[atlas, boundedStates, countriesAtlas],
-	)
+	// The countries' own boxes, keyed on their own atlas for the same reason the
+	// states' are: shared with the states in one slot, every crossing back out to
+	// the world re-measured all 177 of them from a topology the cache still held.
+	const boundedCountries = useMemo(() => boundRegions(countriesAtlas), [countriesAtlas])
 
 	// Every region the drawn atlas holds, for the picker that projects one. Read
 	// off the geography rather than the places, so a region holding nothing is
@@ -189,18 +194,17 @@ export function PlacesApp() {
 	// the regions that hold places, not the regions holding places the bar
 	// currently admits — otherwise a drill would open and close as they narrowed
 	// it.
-	// What the states atlas could place, which is what the countries atlas asks
-	// before it falls back to a name — see `countryFallback` for why the coarse
-	// world outline needs the finer one's answer.
-	const placedInStates = useMemo(() => placedIds(placesByState), [placesByState])
-
-	const placesByRegion = useMemo(
-		() =>
-			atlas === 'states'
-				? placesByState
-				: groupPlacesByRegion(bounded, places, countryFallback(placedInStates)),
-		[atlas, placesByState, bounded, places, placedInStates],
+	//
+	// Its own slot per atlas, so the drawn one is a pick between two settled
+	// answers rather than a recompute on every crossing. The countries grouping
+	// takes what the states already settled as its `known`: see `knownCountry` for
+	// why the coarse world outline defers to the finer atlas, and what it saves.
+	const placesByCountry = useMemo(
+		() => groupPlacesByRegion(boundedCountries, places, countryOf, knownCountry(stateOfPlace)),
+		[boundedCountries, places, stateOfPlace],
 	)
+
+	const placesByRegion = atlas === 'states' ? placesByState : placesByCountry
 
 	const selected = useMemo(() => {
 		if (selectedIds.length === 0) return NO_PLACES
@@ -213,22 +217,12 @@ export function PlacesApp() {
 	// The region the open drawer stands in — the list its first crumb leads back
 	// to, which for a lone dot is the only list there is.
 	//
-	// Found by searching the grouping the map and the drill already use, so the
-	// crumb names the region the map would open rather than the string the geocoder
-	// happened to return. A search rather than an id index: the index cost a walk
-	// of every place in every region, rebuilt on each mutation, to answer this one
-	// question about one place.
-	const openedRegion = useMemo(() => {
-		const first = selected[0]
+	// Read out of the drawn grouping's own inverse, so the crumb names the region
+	// the map would open rather than the string the geocoder happened to return.
+	const regionOfPlace = useMemo(() => regionOf(placesByRegion), [placesByRegion])
 
-		if (first === undefined) return null
-
-		for (const [name, list] of placesByRegion) {
-			if (list.some((place) => place.id === first.id)) return name
-		}
-
-		return null
-	}, [selected, placesByRegion])
+	const openedRegion =
+		selected[0] === undefined ? null : (regionOfPlace.get(selected[0].id) ?? null)
 
 	const openedRegionPlaces =
 		openedRegion === null ? NO_PLACES : (placesByRegion.get(openedRegion) ?? NO_PLACES)
@@ -245,7 +239,7 @@ export function PlacesApp() {
 		return filtered.filter((place) => inRegion.has(place.id))
 	}, [filtered, cut, placesByRegion])
 
-	const crumbs = useMemo(() => viewCrumbs(view), [view])
+	const crumbs = viewCrumbs(view)
 
 	return (
 		<Flex direction="col" className="h-full">
@@ -431,7 +425,7 @@ export function PlacesApp() {
 					// The map goes to the place before the panel over it closes, so the
 					// drawer that opens stands over the dot it describes rather than over
 					// whichever frame the reader happened to be on.
-					setChosen(viewForPlace(placesByState, place))
+					setChosen(viewForPlace(stateOfPlace, place))
 
 					setSelectedIds([place.id])
 

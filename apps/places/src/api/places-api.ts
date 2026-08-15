@@ -80,12 +80,13 @@ export function setVisit(scope: VisitScope, region: string, visited: boolean): P
 	return send<Visits>(`/api/visits/${scope}/${encodeURIComponent(region)}`, 'PUT', { visited })
 }
 
-/** The US states atlas the map draws, as a TopoJSON topology. */
-export function fetchStatesAtlas(signal?: AbortSignal): Promise<MapTopology> {
-	return request<MapTopology>('/api/atlas/states', { signal })
-}
-
-/** The world countries atlas, the same. */
-export function fetchCountriesAtlas(signal?: AbortSignal): Promise<MapTopology> {
-	return request<MapTopology>('/api/atlas/countries', { signal })
+/**
+ * One atlas the map draws, as a TopoJSON topology.
+ *
+ * The scope names the route as well as the grain, so the two atlases are one
+ * call rather than one function each — and the same word names the topology
+ * object to decode out of what comes back.
+ */
+export function fetchAtlas(scope: VisitScope, signal?: AbortSignal): Promise<MapTopology> {
+	return request<MapTopology>(`/api/atlas/${scope}`, { signal })
 }

@@ -11,6 +11,8 @@ import {
 	regionFrame,
 	regionName,
 } from '../../utilities/places-geography'
+import { stateOf } from '../../utilities/places-view'
+import { placeAt } from '../fixtures'
 
 /**
  * A rectangle, wound the way `d3-geo` reads an exterior ring.
@@ -46,22 +48,6 @@ const OREGON = region('Oregon', box(-124, 42, -117, 46))
 const ALEUTIANS = region('Alaska', box(170, 50, -175, 55))
 
 const ATLAS: MapFeatureCollection = { type: 'FeatureCollection', features: [OREGON, ALEUTIANS] }
-
-/** One place at a position, with only the fields the grouping reads named. */
-function place(id: string, at: [number, number], fields: Partial<Place> = {}): Place {
-	return {
-		id,
-		name: id,
-		category: 'food',
-		address: 'somewhere',
-		longitude: at[0],
-		latitude: at[1],
-		rating: 0,
-		visitedAt: '2026-08-15',
-		createdAt: '2026-08-15T18:00:00.000Z',
-		...fields,
-	}
-}
 
 describe('regionName', () => {
 	it('reads the name the atlas carries', () => {
@@ -172,11 +158,11 @@ describe('groupPlacesByRegion', () => {
 
 	/** The grouping under a states atlas, whose fallback field is the state. */
 	function group(places: Place[]): Map<string, Place[]> {
-		return groupPlacesByRegion(bounded, places, (held) => held.state)
+		return groupPlacesByRegion(bounded, places, stateOf)
 	}
 
 	it('groups a place under the region whose shape holds it', () => {
-		const grouped = group([place('corvallis', [-123.26, 44.56])])
+		const grouped = group([placeAt('corvallis', [-123.26, 44.56])])
 
 		expect([...grouped.keys()]).toEqual(['Oregon'])
 
@@ -184,7 +170,11 @@ describe('groupPlacesByRegion', () => {
 	})
 
 	it('keeps several places in one region, in the order they were given', () => {
-		const grouped = group([place('a', [-123, 45]), place('b', [-120, 44]), place('c', [-118, 43])])
+		const grouped = group([
+			placeAt('a', [-123, 45]),
+			placeAt('b', [-120, 44]),
+			placeAt('c', [-118, 43]),
+		])
 
 		expect(grouped.get('Oregon')?.map((held) => held.id)).toEqual(['a', 'b', 'c'])
 	})
@@ -193,7 +183,7 @@ describe('groupPlacesByRegion', () => {
 	// metres outside the shape that plainly holds it. The geocoder's own name
 	// answers where the geometry does not.
 	it('falls back to the name the geocoder gave, for a place just off the outline', () => {
-		const grouped = group([place('lighthouse', [-124.08, 44.63], { state: 'Oregon' })])
+		const grouped = group([placeAt('lighthouse', [-124.08, 44.63], { state: 'Oregon' })])
 
 		expect(grouped.get('Oregon')?.map((held) => held.id)).toEqual(['lighthouse'])
 	})
@@ -201,18 +191,18 @@ describe('groupPlacesByRegion', () => {
 	// The fallback is checked against the drawn regions, so a name the atlas does
 	// not carry resolves to nothing rather than to a region that is not on the map.
 	it('drops a fallback name the atlas does not draw', () => {
-		expect(group([place('paris', [2.35, 48.85], { state: 'Île-de-France' })]).size).toBe(0)
+		expect(group([placeAt('paris', [2.35, 48.85], { state: 'Île-de-France' })]).size).toBe(0)
 	})
 
 	it('drops a place that neither the geometry nor a name places', () => {
-		expect(group([place('offshore', [-140, 30])]).size).toBe(0)
+		expect(group([placeAt('offshore', [-140, 30])]).size).toBe(0)
 	})
 
 	// The fallback field is the caller's, because which one answers depends on the
 	// atlas: a states atlas falls back to the state, a countries atlas to the
 	// country. The same place groups under neither, one, or the other.
 	it('reads the fallback field the caller names', () => {
-		const abroad = place('louvre', [2.34, 48.86], { state: 'Île-de-France', country: 'Oregon' })
+		const abroad = placeAt('louvre', [2.34, 48.86], { state: 'Île-de-France', country: 'Oregon' })
 
 		expect(groupPlacesByRegion(bounded, [abroad], (held) => held.state).size).toBe(0)
 
@@ -225,12 +215,43 @@ describe('groupPlacesByRegion', () => {
 	// -175 — so the longitude test has to read the two sides as an outside. Read
 	// as a plain range it rejects every point in the region.
 	it('holds a place on either side of the antimeridian', () => {
-		const grouped = group([place('east', [178, 52]), place('west', [-178, 52])])
+		const grouped = group([placeAt('east', [178, 52]), placeAt('west', [-178, 52])])
 
 		expect(grouped.get('Alaska')?.map((held) => held.id)).toEqual(['east', 'west'])
 	})
 
 	it('answers with nothing for no places', () => {
 		expect(group([]).size).toBe(0)
+	})
+
+	// `known` is settled before this pass ran, off a finer atlas than the one
+	// drawn here, so it beats the geometry rather than standing behind it.
+	it('takes a known answer over the shape the point falls in', () => {
+		const inside = placeAt('corvallis', [-123.26, 44.56])
+
+		const grouped = groupPlacesByRegion(bounded, [inside], stateOf, () => 'Alaska')
+
+		expect(grouped.get('Alaska')?.map((held) => held.id)).toEqual(['corvallis'])
+
+		expect(grouped.has('Oregon')).toBe(false)
+	})
+
+	// It is a name this app chose, not one a geocoder returned, so it is not
+	// checked against the drawn regions the way the fallback is.
+	it('holds a known name the atlas does not draw', () => {
+		const grouped = groupPlacesByRegion(bounded, [placeAt('a', [0, 0])], stateOf, () => 'Atlantis')
+
+		expect(grouped.get('Atlantis')).toHaveLength(1)
+	})
+
+	it('falls through to the geometry where the known answer declines', () => {
+		const grouped = groupPlacesByRegion(
+			bounded,
+			[placeAt('corvallis', [-123.26, 44.56])],
+			stateOf,
+			() => undefined,
+		)
+
+		expect(grouped.get('Oregon')).toHaveLength(1)
 	})
 })

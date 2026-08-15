@@ -4,9 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	createPlace,
 	deletePlace,
-	fetchCountriesAtlas,
+	fetchAtlas,
 	fetchPlaces,
-	fetchStatesAtlas,
 	fetchVisits,
 	savePlace,
 	setVisit,
@@ -46,6 +45,9 @@ export function usePlaces() {
  * Both atlases are published data that never changes, so neither restales and no
  * refetch ever asks for one twice. Keyed by atlas, so the two are held apart.
  *
+ * The atlas names the route and the topology object alike, so one query serves
+ * both grains with no branch of its own.
+ *
  * `enabled` is what keeps the second atlas off the wire: a reader whose places
  * are all inside the United States never opens a view that draws countries, and
  * must not pay 108 kB for one. Once fetched it is held for the tab's life, so a
@@ -54,10 +56,7 @@ export function usePlaces() {
 export function useAtlas(atlas: PlaceAtlas, enabled = true) {
 	return useQuery({
 		queryKey: placesKeys.atlas(atlas),
-		queryFn: async ({ signal }) =>
-			atlas === 'states'
-				? decodeRegions(await fetchStatesAtlas(signal), 'states')
-				: decodeRegions(await fetchCountriesAtlas(signal), 'countries'),
+		queryFn: async ({ signal }) => decodeRegions(await fetchAtlas(atlas, signal), atlas),
 		enabled,
 		staleTime: Number.POSITIVE_INFINITY,
 		gcTime: Number.POSITIVE_INFINITY,

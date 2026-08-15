@@ -1,7 +1,7 @@
 import { readJson } from '@/server/read-draft'
 import { visitedSeed } from '@/server/visited-seed'
 import { setVisit } from '@/server/visits-store'
-import type { VisitScope } from '@/types'
+import { VISIT_SCOPES, type VisitScope } from '@/types'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
@@ -9,12 +9,16 @@ export const dynamic = 'force-dynamic'
 /** Route params arrive as a promise in this Next major. */
 type Context = { params: Promise<{ scope: string; region: string }> }
 
-/** The scopes a designation can be written under, which is what the two atlases divide into. */
-const SCOPES: readonly string[] = ['states', 'countries']
-
-/** Reads a path segment as a scope, or `null` where it names neither atlas. */
+/**
+ * Reads a path segment as a scope, or `null` where it names no atlas.
+ *
+ * Read off {@link VISIT_SCOPES} rather than a list written out here, so a scope
+ * added to the type reaches the guard on untrusted input — a second hand-written
+ * list would leave this route refusing what the rest of the app admits, and no
+ * type error would say so.
+ */
 function readScope(value: string): VisitScope | null {
-	return SCOPES.includes(value) ? (value as VisitScope) : null
+	return VISIT_SCOPES.includes(value as VisitScope) ? (value as VisitScope) : null
 }
 
 /** What the body must carry: the designation itself, and nothing else. */

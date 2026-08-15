@@ -7,22 +7,7 @@ import {
 	type PlaceFilterValue,
 	toDay,
 } from '../../utilities/places-filter'
-
-/** One place, with only the fields a filter reads named at the call site. */
-function place(fields: Partial<Place>): Place {
-	return {
-		id: 'a1',
-		name: 'Clearwater',
-		category: 'food',
-		address: '325 SW Bay Blvd',
-		latitude: 44.63,
-		longitude: -124.05,
-		rating: 4,
-		visitedAt: '2026-08-15',
-		createdAt: '2026-08-15T18:00:00.000Z',
-		...fields,
-	}
-}
+import { place } from '../fixtures'
 
 /** A committed span, in the shape the relative DatePicker writes. */
 function span(from: string, to: string) {
@@ -67,9 +52,9 @@ describe('hasActiveFilter', () => {
 
 describe('filterPlaces', () => {
 	const PLACES: Place[] = [
-		place({ id: 'food', category: 'food', country: 'United States', visitedAt: '2026-08-15' }),
-		place({ id: 'nature', category: 'nature', country: 'France', visitedAt: '2026-01-02' }),
-		place({ id: 'nowhere', category: 'other', country: undefined, visitedAt: '2025-06-30' }),
+		place('food', { category: 'food', country: 'United States', visitedAt: '2026-08-15' }),
+		place('nature', { category: 'nature', country: 'France', visitedAt: '2026-01-02' }),
+		place('nowhere', { category: 'other', country: undefined, visitedAt: '2025-06-30' }),
 	]
 
 	function ids(filter: PlaceFilterValue): string[] {

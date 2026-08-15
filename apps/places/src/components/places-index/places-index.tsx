@@ -10,9 +10,10 @@ import { Rating } from 'ui/rating'
 import { Sheet, SheetBody, SheetClose, SheetTitle } from 'ui/sheet'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
-import { CATEGORY_BY_VALUE } from '../../constants'
+import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
+import { regionOf } from '../../utilities/places-view'
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -55,15 +56,7 @@ export function PlacesIndex({
 	// Which region each place sits in, by id. Inverted from the grouping the app
 	// already holds rather than measured again: the region column asks this once
 	// per row, and a search over the grouping per row is the same walk repeated.
-	const regionOf = useMemo(() => {
-		const held = new Map<string, string>()
-
-		for (const [region, list] of placesByRegion) {
-			for (const place of list) held.set(place.id, region)
-		}
-
-		return held
-	}, [placesByRegion])
+	const regionByPlace = useMemo(() => regionOf(placesByRegion), [placesByRegion])
 
 	// Every column declares `value`, because that is what the grid's quick search
 	// reads and what it sorts by. A column with only a `cell` renders but cannot
@@ -77,7 +70,7 @@ export function PlacesIndex({
 				title: 'Category',
 				// Sorted and searched by the name the reader reads, never by the stored
 				// value: they are looking for "Food", and `food` is what the file says.
-				value: (place) => CATEGORY_BY_VALUE.get(place.category)?.label ?? place.category,
+				value: (place) => categoryLabel(place.category),
 				cell: (place) => {
 					const category = CATEGORY_BY_VALUE.get(place.category)
 
@@ -87,8 +80,8 @@ export function PlacesIndex({
 			{
 				id: 'region',
 				title: 'Region',
-				value: (place) => regionOf.get(place.id) ?? '',
-				cell: (place) => regionOf.get(place.id) ?? <Text severity="warning">Unplaced</Text>,
+				value: (place) => regionByPlace.get(place.id) ?? '',
+				cell: (place) => regionByPlace.get(place.id) ?? <Text severity="warning">Unplaced</Text>,
 			},
 			{
 				id: 'city',
@@ -115,7 +108,7 @@ export function PlacesIndex({
 					place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null,
 			},
 		],
-		[regionOf],
+		[regionByPlace],
 	)
 
 	// A copy, because the grid sorts and filters what it is handed and the app's
@@ -142,10 +135,15 @@ export function PlacesIndex({
 				</SheetClose>
 			</Flex>
 
-			<SheetBody>
-				{/* The body scrolls the panel, so the grid is told a height and scrolls
-				    its own rows under a sticky header — two scroll containers, one
-				    inside the other, is the header that leaves as the reader reads.
+			{/* `min-h-0` so the body is the box the grid fills rather than one that
+			    grows with its rows; the panel's own height then bounds the table.
+			    `pb-6` sits here rather than on the grid, so the inset is outside the
+			    scroll region and the last row does not stop short of the edge. */}
+			<SheetBody className="min-h-0 pb-6">
+				{/* `fill` rather than a measured height: the grid takes the box it is
+				    given and flexes its scroll region to the remainder, so the rows
+				    scroll under a sticky header without this file having to know the
+				    height of the title row above it or the panel's own insets.
 
 				    Virtualized for the same reason the map clusters: a reader who has
 				    been somewhere every week for five years has a list this panel must
@@ -158,10 +156,10 @@ export function PlacesIndex({
 					sort={{ defaultValue: [{ column: 'visited', direction: 'desc' }] }}
 					onRowClick={onOpen}
 					virtualize
-					maxHeight="calc(100dvh - 12rem)"
+					maxHeight="fill"
 					hover
 					empty={<Text>No places match.</Text>}
-					className="pb-6"
+					className="h-full"
 				/>
 			</SheetBody>
 		</Sheet>
