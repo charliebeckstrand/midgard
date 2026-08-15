@@ -3,6 +3,7 @@ import {
 	AddressInput,
 	type AddressProvider,
 	type AddressSuggestion,
+	createPhotonProvider,
 } from '../../../components/address-input'
 import { Alert } from '../../../components/alert'
 import { Field, Label } from '../../../components/fieldset'
@@ -46,6 +47,14 @@ const places = [
 		longitude: -0.127,
 	},
 ]
+
+// Photon ranks by prominence, so an unbiased search for a small business finds
+// the largest match on the planet instead. The bias is the Oregon coast, which
+// is where the places this example looks for actually are.
+const coastalPlaces = createPhotonProvider({
+	bias: { latitude: 44.64, longitude: -124.05 },
+	limit: 6,
+})
 
 const mockGooglePlaces: AddressProvider = async (query) => {
 	const q = query.toLowerCase()
@@ -102,6 +111,36 @@ function WithInitialOptionsExample() {
 	)
 }
 
+/**
+ * Business search, ranked around the Oregon coast: a named match leads with its
+ * name and carries the street line beneath, and the selection keeps the two
+ * apart.
+ */
+function BusinessExample() {
+	const [place, setPlace] = useState<AddressSuggestion | null>(null)
+
+	return (
+		<>
+			<Field>
+				<Label>Place</Label>
+
+				<AddressInput
+					value={place}
+					onValueChange={setPlace}
+					provider={coastalPlaces}
+					placeholder="Try 'Clearwater' or 'Mo's'"
+				/>
+			</Field>
+
+			{place ? (
+				<Text>
+					{place.name ?? '—'} · {place.address?.city}, {place.address?.state}
+				</Text>
+			) : null}
+		</>
+	)
+}
+
 function CustomProviderExample() {
 	const [address, setAddress] = useState<AddressSuggestion | null>(null)
 
@@ -147,6 +186,10 @@ export function Demo() {
 
 			<Example title="Default">
 				<DefaultExample />
+			</Example>
+
+			<Example title="Business search">
+				<BusinessExample />
 			</Example>
 
 			<Example title="With initial options">

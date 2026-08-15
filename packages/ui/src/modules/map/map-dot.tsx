@@ -157,7 +157,11 @@ function countPlacement(at: MapPoint2D, scale: number) {
  *
  * @remarks Never a pointer target: the mark's own hit circle draws over it and
  * carries the readout, and a label that answered the pointer would report no
- * mark at all.
+ * mark at all. Never selectable either, which `pointerEvents` alone does not
+ * settle — a drag across the plot still takes the text, so on a map that pans
+ * the reader ends a pan holding a highlighted number instead of a moved map.
+ * There is nothing to copy out of it: it counts the marks under one dot, and
+ * that count is a fact about the current frame rather than about the data.
  *
  * @internal
  */
@@ -175,7 +179,7 @@ export function MapDotCount({
 		textAnchor: 'middle' as const,
 		dominantBaseline: 'central' as const,
 		pointerEvents: 'none' as const,
-		className,
+		className: cn('select-none', className),
 	}
 
 	if (!animate) return <text {...shared}>{count}</text>

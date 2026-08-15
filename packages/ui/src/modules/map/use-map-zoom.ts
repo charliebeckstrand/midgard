@@ -286,6 +286,23 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 		}
 	}
 
+	/**
+	 * Takes the pointer for the rest of the gesture.
+	 *
+	 * Held off until the press has become one, rather than taken on contact. A
+	 * captured pointer retargets its own `pointerup` to the capturing element,
+	 * and the `click` a down/up pair produces is retargeted with it — so a plot
+	 * that captured on contact would answer every click itself and no region or
+	 * mark would ever see a pick. Once the press is a gesture there is no pick
+	 * left to lose: `onClickCapture` swallows the click a pan ends on, and a
+	 * second finger is never a click at all.
+	 */
+	function hold(event: PointerEvent<HTMLElement>) {
+		if (event.currentTarget.hasPointerCapture(event.pointerId)) return
+
+		event.currentTarget.setPointerCapture(event.pointerId)
+	}
+
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
 		// A right-click opens the region menu the plat reports for; only the
 		// primary button drives the view.
@@ -295,7 +312,9 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 
 		pointers.current.set(event.pointerId, at)
 
-		event.currentTarget.setPointerCapture(event.pointerId)
+		// A second finger settles it: a pinch is under way and no click follows two
+		// pointers, so the pair is taken now rather than on the first travel.
+		if (pointers.current.size > 1) hold(event)
 
 		panned.current = false
 
@@ -416,8 +435,14 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 		if (pointers.current.size < 2) {
 			drag(previous, at)
 
+			// Only once the travel has crossed the threshold, which is what turns the
+			// press from a pick into a pan — see {@link hold}.
+			if (press.current?.moved === true) hold(event)
+
 			return
 		}
+
+		hold(event)
 
 		const [first, second] = [...pointers.current.values()]
 

@@ -111,7 +111,7 @@ describe('MapPoints', () => {
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Stops')
 	})
 
-	it('reports the group id and the dot index from a click', () => {
+	it('reports the group id, the dot index, and the stops the dot draws for', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
@@ -120,10 +120,11 @@ describe('MapPoints', () => {
 
 		fireEvent.click(allBySlot(container, 'map-points-hit')[1] as Element)
 
-		expect(onClick).toHaveBeenCalledWith('fleet', 1)
+		// An unmerged dot stands for itself alone, so the pick and the group agree.
+		expect(onClick).toHaveBeenCalledWith('fleet', 1, [1])
 	})
 
-	it('reports the same pair from a right-click', () => {
+	it('reports the same arguments from a right-click', () => {
 		const onContextMenu = vi.fn()
 
 		const { container } = renderUI(
@@ -132,7 +133,7 @@ describe('MapPoints', () => {
 
 		fireEvent.contextMenu(allBySlot(container, 'map-points-hit')[2] as Element)
 
-		expect(onContextMenu).toHaveBeenCalledWith('fleet', 2)
+		expect(onContextMenu).toHaveBeenCalledWith('fleet', 2, [2])
 	})
 
 	it('walks the dots one at a time with the keyboard and picks the one it stands on', () => {
@@ -151,14 +152,14 @@ describe('MapPoints', () => {
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenCalledWith('fleet', 2)
+		expect(onClick).toHaveBeenCalledWith('fleet', 2, [2])
 
 		// The dots sit west to east, so a westward step reaches the one before it.
 		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
-		expect(onClick).toHaveBeenLastCalledWith('fleet', 1)
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 1, [1])
 	})
 
 	it('lights the whole group when the pointer is on one dot', () => {
@@ -184,6 +185,31 @@ describe('MapPoints', () => {
 		expect(group?.getAttribute('class') ?? '').not.toContain('opacity-25')
 
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(3)
+	})
+
+	it("draws a lone dot in its own colour and a summary in the mark's", () => {
+		const coloured = [
+			{ at: DEPOT, label: 'Depot', color: 'green' as const },
+			{ at: [5.3, 5] as [number, number], label: 'Annex', color: 'red' as const },
+			{ at: SITE, label: 'Site', color: 'amber' as const },
+		]
+
+		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={coloured} />))
+
+		// The far stop stands alone, so it wears the colour it was given.
+		const lone = allBySlot(container, 'map-points-dot')[0]
+
+		expect(lone?.getAttribute('class') ?? '').toContain('stroke-amber-600')
+
+		// The merged pair stands for two colours at once, so it keeps the mark's
+		// own slot rather than either of theirs.
+		const summary = allBySlot(container, 'map-points-cluster')[0]
+
+		const summaryClass = summary?.getAttribute('class') ?? ''
+
+		expect(summaryClass).not.toContain('stroke-green')
+
+		expect(summaryClass).not.toContain('stroke-red')
 	})
 
 	it('draws nothing at all when the legend toggles it off', () => {
@@ -242,7 +268,7 @@ describe('MapPoints', () => {
 		expect(allBySlot(container, 'map-points-cluster')).toHaveLength(0)
 	})
 
-	it('reports the first stop a summary holds, so a pick names a real point', () => {
+	it('reports the first stop a summary holds, and every stop under it', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
@@ -251,13 +277,15 @@ describe('MapPoints', () => {
 
 		fireEvent.click(allBySlot(container, 'map-points-hit')[0] as Element)
 
-		expect(onClick).toHaveBeenCalledWith('fleet', 0)
+		// The pick names a real point, and the group beside it names every stop the
+		// one dot the reader pressed was standing for.
+		expect(onClick).toHaveBeenCalledWith('fleet', 0, [0, 1])
 
 		// The far dot still reports its own index, though a group ahead of it holds
 		// two stops — the caller counts in points, never in groups.
 		fireEvent.click(allBySlot(container, 'map-points-hit')[1] as Element)
 
-		expect(onClick).toHaveBeenLastCalledWith('fleet', 2)
+		expect(onClick).toHaveBeenLastCalledWith('fleet', 2, [2])
 	})
 
 	it('reads a summary out as the group, by the count and the spread it holds', () => {
