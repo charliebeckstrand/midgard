@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, List, MapPin, Plus } from 'lucide-react'
+import { Check, List, MapPin, MapPinned, Plus } from 'lucide-react'
 import { Fragment, type MouseEvent, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import {
@@ -365,7 +365,7 @@ export function PlacesApp() {
 					{places.length > 0 ? (
 						<Button
 							variant="plain"
-							prefix={<Icon icon={<List />} />}
+							prefix={<Icon icon={<MapPinned />} />}
 							onClick={() => setListing(true)}
 						>
 							All places
