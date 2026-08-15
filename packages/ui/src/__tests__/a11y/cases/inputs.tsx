@@ -16,6 +16,7 @@ import { PasswordInput } from '../../../components/password-input'
 import { PasswordStrength } from '../../../components/password-strength'
 import { PhoneInput } from '../../../components/phone-input'
 import { Radio, RadioField, RadioGroup } from '../../../components/radio'
+import { Rating } from '../../../components/rating'
 import { SearchInput } from '../../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { SignaturePad } from '../../../components/signature-pad'
@@ -81,6 +82,16 @@ export const inputCases: readonly Case[] = [
 			<Slider defaultValue={50} />
 		</Field>,
 	],
+	[
+		// The Field's Label names the radiogroup through Control context, so the
+		// row carries no `aria-label` of its own here.
+		'rating in field',
+		<Field key="f">
+			<Label>How was it?</Label>
+			<Rating defaultValue={4} />
+		</Field>,
+	],
+	['rating (read-only)', <Rating key="r" readOnly value={4.5} />],
 	['file upload (drop)', <FileUpload key="fu" variant="drop" />],
 	['file upload (button)', <FileUpload key="fu" variant="button" />],
 	[
