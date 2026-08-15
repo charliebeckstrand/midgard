@@ -17,12 +17,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function isCategory(value: unknown): value is PlaceCategory {
+/** One of the categories a place can carry. */
+export function isCategory(value: unknown): value is PlaceCategory {
 	return CATEGORY_VALUES.includes(value as PlaceCategory)
 }
 
-/** A `YYYY-MM-DD` day, which is the granularity a visit is recorded at. */
-function isDay(value: unknown): value is string {
+/**
+ * A `YYYY-MM-DD` day, which is the granularity a visit is recorded at.
+ *
+ * The shape and the date both: `2026-13-45` is a well-formed field and not a
+ * day, and a reader can type one into the address bar as easily as a request
+ * body can carry one.
+ */
+export function isDay(value: unknown): value is string {
 	return (
 		typeof value === 'string' &&
 		/^\d{4}-\d{2}-\d{2}$/.test(value) &&

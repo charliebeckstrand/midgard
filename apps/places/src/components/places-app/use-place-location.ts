@@ -3,7 +3,13 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
 import type { PlaceFilterValue } from '../../utilities/places-filter'
-import { type PlaceLocation, readLocation, writeLocation } from '../../utilities/places-url'
+import {
+	type PlaceLocation,
+	readFilter,
+	readSelected,
+	readView,
+	writeLocation,
+} from '../../utilities/places-url'
 import type { PlaceView } from '../../utilities/places-view'
 
 /**
@@ -44,6 +50,41 @@ export type PlaceLocationHandle = PlaceLocation & {
 }
 
 /**
+ * What a slice of the address says, as one string.
+ *
+ * Presence is part of it: a `country` written empty is the world stated
+ * outright, and a `country` absent is an address that has not said — the one
+ * distinction the codec turns on. Serialized rather than joined, because a
+ * separator is only unambiguous until a value carries one.
+ */
+function keyOf(params: URLSearchParams, keys: readonly string[]): string {
+	return JSON.stringify(keys.map((key) => (params.has(key) ? params.getAll(key) : null)))
+}
+
+/**
+ * One slice of the address, held by what it says rather than by the object it
+ * was read from.
+ *
+ * `useSearchParams` hands back a new object on every write, so a location read
+ * whole gives all three slices new identities whenever any one of them moves.
+ * Downstream that is not free: `filter` and `selected` are memo keys for the
+ * filtered list, the drawn points, and the clustering the map runs over them,
+ * so opening a place used to re-cluster a map that had not changed.
+ */
+function useSlice<T>(
+	params: URLSearchParams,
+	keys: readonly string[],
+	read: (params: URLSearchParams) => T,
+): T {
+	const key = keyOf(params, keys)
+
+	// The key is the trigger and the reader is pure, so the memo holds until the
+	// address actually says something else — which the rule cannot see.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `key` is what `params` and `read` amount to here
+	return useMemo(() => read(params), [key])
+}
+
+/**
  * The reader's place in the app, held in the address bar rather than in state.
  *
  * The address is the one source: every panel reads it, and each of the setters
@@ -58,7 +99,11 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	const pathname = usePathname()
 
-	const location = useMemo(() => readLocation(params), [params])
+	const view = useSlice(params, ['country', 'state'], readView)
+
+	const filter = useSlice(params, ['category', 'paint', 'when'], readFilter)
+
+	const selected = useSlice(params, ['place'], readSelected)
 
 	const write = useCallback(
 		(next: PlaceLocation, step: PlaceStep) => {
@@ -73,42 +118,41 @@ export function usePlaceLocation(): PlaceLocationHandle {
 		[router, pathname],
 	)
 
-	const setView = useCallback(
-		(view: PlaceView) => {
-			// The open panel is left behind by design: a place picked in one region is
-			// not what the reader is looking at once they have gone somewhere else.
-			write({ ...location, view, selected: [] }, 'walk')
+	const openAt = useCallback(
+		(view: PlaceView, selected: readonly string[]) => {
+			write({ view, filter, selected }, 'walk')
 		},
-		[location, write],
+		[filter, write],
+	)
+
+	const setView = useCallback(
+		// The open panel is left behind by design: a place picked in one region is
+		// not what the reader is looking at once they have gone somewhere else — so
+		// pointing the map is opening it on nothing.
+		(view: PlaceView) => openAt(view, []),
+		[openAt],
 	)
 
 	const settleView = useCallback(
 		(view: PlaceView) => {
-			write({ ...location, view }, 'stay')
+			write({ view, filter, selected }, 'stay')
 		},
-		[location, write],
+		[filter, selected, write],
 	)
 
 	const setFilter = useCallback(
 		(filter: PlaceFilterValue) => {
-			write({ ...location, filter }, 'stay')
+			write({ view, filter, selected }, 'stay')
 		},
-		[location, write],
+		[view, selected, write],
 	)
 
 	const setSelected = useCallback(
 		(selected: readonly string[]) => {
-			write({ ...location, selected }, 'walk')
+			write({ view, filter, selected }, 'walk')
 		},
-		[location, write],
+		[view, filter, write],
 	)
 
-	const openAt = useCallback(
-		(view: PlaceView, selected: readonly string[]) => {
-			write({ ...location, view, selected }, 'walk')
-		},
-		[location, write],
-	)
-
-	return { ...location, setView, setFilter, setSelected, settleView, openAt }
+	return { view, filter, selected, setView, setFilter, setSelected, settleView, openAt }
 }

@@ -228,12 +228,19 @@ export function PlacesApp() {
 		return selectedIds.map((id) => byId.get(id)).filter((place) => place !== undefined)
 	}, [selectedIds, places])
 
+	// The countries grouping inverted, held in its own slot for the reason the
+	// grouping is: one settled answer per atlas.
+	const countryOfPlace = useMemo(() => regionOf(placesByCountry), [placesByCountry])
+
 	// The region the open drawer stands in — the list its first crumb leads back
 	// to, which for a lone dot is the only list there is.
 	//
 	// Read out of the drawn grouping's own inverse, so the crumb names the region
 	// the map would open rather than the string the geocoder happened to return.
-	const regionOfPlace = useMemo(() => regionOf(placesByRegion), [placesByRegion])
+	// Picked the same way the grouping above is, rather than inverted from it:
+	// inside the United States the drawn grouping is the states one, which is
+	// already inverted, and inverting the pick would walk it a second time.
+	const regionOfPlace = atlas === 'states' ? stateOfPlace : countryOfPlace
 
 	const openedRegion =
 		selected[0] === undefined ? null : (regionOfPlace.get(selected[0].id) ?? null)
@@ -421,7 +428,7 @@ export function PlacesApp() {
 				open={listing}
 				onOpenChange={setListing}
 				places={filtered}
-				placesByRegion={placesByRegion}
+				regionByPlace={regionOfPlace}
 				onOpen={(place) => {
 					// One step, not two: the view and the selection are both the address,
 					// so writing them apart would leave a history entry standing on a map

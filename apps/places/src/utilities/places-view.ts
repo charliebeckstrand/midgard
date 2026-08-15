@@ -270,7 +270,7 @@ export function groupTrail(
 
 	const states = new Set(group.map((place) => statesByPlace.get(place.id)))
 
-	const [only] = [...states]
+	const [only] = states
 
 	return states.size === 1 && only !== undefined && only !== drawn ? [drawn, only] : [drawn]
 }

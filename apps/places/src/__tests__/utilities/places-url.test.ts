@@ -71,6 +71,13 @@ describe('readLocation', () => {
 		expect(read('when=2026-01-01..2026-06-30&when=nonsense').filter.visited).toHaveLength(1)
 	})
 
+	// The shape alone would take this one: `2026-13-45` is a well-formed field
+	// and not a date, and the reader would be handed a range they never asked
+	// for. The schema's own day reader is what says no.
+	it('drops a span shaped like days that names no date', () => {
+		expect(read('when=2026-13-45..2026-13-46').filter.visited).toBeUndefined()
+	})
+
 	it('reads the open places', () => {
 		expect(read('place=a1&place=b2').selected).toEqual(['a1', 'b2'])
 	})

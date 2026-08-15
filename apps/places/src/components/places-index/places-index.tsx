@@ -13,7 +13,6 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
-import { regionOf } from '../../utilities/places-view'
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -24,8 +23,15 @@ export type PlacesIndexProps = {
 	 * stored, so this panel and the map under it agree about what is in play.
 	 */
 	places: readonly Place[]
-	/** Which region holds each place, for the column that says where one is. */
-	placesByRegion: ReadonlyMap<string, readonly Place[]>
+	/**
+	 * Which region holds each place, by the place's id, for the column that says
+	 * where one is.
+	 *
+	 * Taken inverted rather than as the grouping, because the app already holds it
+	 * that way: the column asks this once per row, and inverting it here would be
+	 * the same walk a second time.
+	 */
+	regionByPlace: ReadonlyMap<string, string>
 	/** Opens one place: the caller selects it and takes the map to it. */
 	onOpen: (place: Place) => void
 }
@@ -50,14 +56,9 @@ export function PlacesIndex({
 	open,
 	onOpenChange,
 	places,
-	placesByRegion,
+	regionByPlace,
 	onOpen,
 }: PlacesIndexProps) {
-	// Which region each place sits in, by id. Inverted from the grouping the app
-	// already holds rather than measured again: the region column asks this once
-	// per row, and a search over the grouping per row is the same walk repeated.
-	const regionByPlace = useMemo(() => regionOf(placesByRegion), [placesByRegion])
-
 	// Every column declares `value`, because that is what the grid's quick search
 	// reads and what it sorts by. A column with only a `cell` renders but cannot
 	// be found — which for the name, the region, and the category is the whole

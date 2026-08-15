@@ -1,7 +1,6 @@
 import type { DatePickerRelativeValue } from 'ui/date-picker'
-import { CATEGORY_VALUES } from '../constants'
-import type { PlaceCategory } from '../types'
-import { fromDay, type PlaceFilterValue, type PlaceVisitFilter, toDay } from './places-filter'
+import { isCategory, isDay } from '../schemas/place'
+import { fromDay, type PlaceFilterValue, toDay } from './places-filter'
 import type { PlaceView } from './places-view'
 
 /**
@@ -36,8 +35,8 @@ export type PlaceLocation = {
 	selected: readonly string[]
 }
 
-/** A day span, as one `YYYY-MM-DD..YYYY-MM-DD` field. */
-const SPAN = /^(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})$/
+/** The two halves of a day span, as one `YYYY-MM-DD..YYYY-MM-DD` field. */
+const SPAN = /^([^.]+)\.\.([^.]+)$/
 
 /** A trimmed value, or `undefined` where the key was absent or empty. */
 function text(params: URLSearchParams, key: string): string | undefined {
@@ -54,7 +53,13 @@ function list(params: URLSearchParams, key: string): string[] {
 		.filter((value) => value !== '')
 }
 
-/** Reads the committed spans, dropping any field that is not a day pair. */
+/**
+ * Reads the committed spans, dropping any field that is not a day pair.
+ *
+ * The halves are put to {@link isDay}, which is the schema's own reader: the
+ * shape alone would take `2026-13-45` and hand back a date the calendar rolled
+ * over into the next year.
+ */
 function readSpans(params: URLSearchParams): DatePickerRelativeValue[] {
 	return list(params, 'when').flatMap((field) => {
 		const parts = SPAN.exec(field)
@@ -63,8 +68,41 @@ function readSpans(params: URLSearchParams): DatePickerRelativeValue[] {
 
 		const [, from, to] = parts
 
-		return from === undefined || to === undefined ? [] : [{ from: fromDay(from), to: fromDay(to) }]
+		return isDay(from) && isDay(to) ? [{ from: fromDay(from), to: fromDay(to) }] : []
 	})
+}
+
+/**
+ * Where the map is pointed, or `null` where the address has not said.
+ *
+ * Its own reader, like the two below it: a location moves one part at a time,
+ * and a reader that answers the whole address hands back three new values for
+ * a write that changed one of them. See {@link readLocation}.
+ */
+export function readView(params: URLSearchParams): PlaceView | null {
+	if (!params.has('country')) return null
+
+	return { country: text(params, 'country') ?? null, state: text(params, 'state') ?? null }
+}
+
+/** What the map is narrowed to. */
+export function readFilter(params: URLSearchParams): PlaceFilterValue {
+	const categories = list(params, 'category').filter(isCategory)
+
+	const paint = text(params, 'paint')
+
+	const spans = readSpans(params)
+
+	return {
+		...(categories.length > 0 ? { categories } : {}),
+		...(paint === 'visited' || paint === 'unvisited' ? { visitedRegions: paint } : {}),
+		...(spans.length > 0 ? { visited: spans } : {}),
+	}
+}
+
+/** The places the open panel stands for. */
+export function readSelected(params: URLSearchParams): readonly string[] {
+	return list(params, 'place')
 }
 
 /**
@@ -76,29 +114,7 @@ function readSpans(params: URLSearchParams): DatePickerRelativeValue[] {
  * stale link opens the app it can rather than an error.
  */
 export function readLocation(params: URLSearchParams): PlaceLocation {
-	const categories = list(params, 'category').filter((value): value is PlaceCategory =>
-		CATEGORY_VALUES.includes(value as PlaceCategory),
-	)
-
-	const paint = text(params, 'paint')
-
-	const spans = readSpans(params)
-
-	const filter: PlaceFilterValue = {
-		...(categories.length > 0 ? { categories } : {}),
-		...(paint === 'visited' || paint === 'unvisited'
-			? { visitedRegions: paint as PlaceVisitFilter }
-			: {}),
-		...(spans.length > 0 ? { visited: spans } : {}),
-	}
-
-	return {
-		view: params.has('country')
-			? { country: text(params, 'country') ?? null, state: text(params, 'state') ?? null }
-			: null,
-		filter,
-		selected: list(params, 'place'),
-	}
+	return { view: readView(params), filter: readFilter(params), selected: readSelected(params) }
 }
 
 /**

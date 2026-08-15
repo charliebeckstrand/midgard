@@ -47,9 +47,7 @@ const DEGREES_PER_KM = 1 / KM_PER_DEGREE
 
 /** A longitude difference read the short way round, so a pair either side of the antimeridian is two degrees apart rather than 358. */
 function longitudeDelta(from: number, to: number): number {
-	const delta = ((to - from + 540) % 360) - 180
-
-	return delta
+	return ((to - from + 540) % 360) - 180
 }
 
 /**
