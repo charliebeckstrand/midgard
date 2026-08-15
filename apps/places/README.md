@@ -8,6 +8,15 @@ pnpm --filter places dev
 
 The app runs on port 3001.
 
+```bash
+pnpm --filter places test
+```
+
+The suite covers what the app holds that is pure: the schema both edges read a
+body through, the geometry that decides which region holds a place, the filter
+the bar applies, and the atomic file mechanism the stores write through. The
+components compose `ui`, which carries its own suite.
+
 ## Data
 
 Places live in `.data/places.json`, written by the route handlers under
