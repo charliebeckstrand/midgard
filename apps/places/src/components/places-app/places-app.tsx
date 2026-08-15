@@ -476,6 +476,7 @@ export function PlacesApp() {
 				places={selected}
 				trail={trail}
 				regionPlaces={openedRegionPlaces}
+				onNavigate={(region) => setView(drillInto(view, region))}
 				onOpenChange={() => setSelected([])}
 				onEdit={setEditing}
 				onDelete={setDeleting}

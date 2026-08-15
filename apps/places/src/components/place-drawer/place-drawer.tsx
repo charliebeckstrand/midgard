@@ -46,6 +46,13 @@ export type PlaceDrawerProps = {
 	/** Every place in the trail's last region — the list its crumb leads back to. */
 	regionPlaces: readonly Place[]
 	onOpenChange: (open: boolean) => void
+	/**
+	 * Takes the map to one of the trail's upper regions.
+	 *
+	 * Without it those steps are plain text: a crumb that lights under the pointer
+	 * and answers nothing is worse than one that never offered.
+	 */
+	onNavigate: (region: string) => void
 	/** Opens the place for an edit. */
 	onEdit: (place: Place) => void
 	/** Asks for the place to be deleted. The confirmation is the caller's. */
@@ -91,6 +98,7 @@ export function PlaceDrawer({
 	trail,
 	regionPlaces,
 	onOpenChange,
+	onNavigate,
 	onEdit,
 	onDelete,
 }: PlaceDrawerProps) {
@@ -223,7 +231,13 @@ export function PlaceDrawer({
 								// list for. The map's own trail is how a reader goes up to those.
 								const deepest = at === where.length - 1
 
+								// The last step leads back to this panel's own list. Every step
+								// above it names a region the panel has no list for, so it leads
+								// where the map would: into that region, which closes the panel
+								// the way any other navigation does.
 								const back = deepest && place !== null && list.length > 0
+
+								const away = !deepest && trail.length > 0
 
 								return (
 									<Fragment key={step}>
@@ -233,11 +247,17 @@ export function PlaceDrawer({
 											<BreadcrumbLink
 												current={deepest && place === null}
 												className={CRUMB}
-												href={back ? '#' : undefined}
+												href={back || away ? '#' : undefined}
 												onClick={
-													back
+													back || away
 														? (event: MouseEvent) => {
 																event.preventDefault()
+
+																if (away) {
+																	onNavigate(step)
+
+																	return
+																}
 
 																setOpenedId(null)
 
