@@ -1,3 +1,5 @@
+import type { PanelSide } from '../../hooks/use-panel-resize'
+
 /**
  * The narrowest a sheet resizes to.
  *
@@ -26,12 +28,17 @@ export function sheetFloor(): number {
  *
  * @internal
  */
-export function sheetCeiling(panel: HTMLElement, viewport: number): number {
+export function sheetCeiling(panel: HTMLElement, viewport: number, side: PanelSide): number {
 	const box = panel.getBoundingClientRect()
 
-	// Whichever edge sits nearer the screen's is the one the panel is docked to,
-	// so it is the inset the reader can see.
-	const inset = Math.max(0, Math.min(box.left, viewport - box.right))
+	// The two edges across the axis this side docks on. Whichever sits nearer the
+	// screen's is the inset the reader can see.
+	const [near, far] =
+		side === 'left' || side === 'right'
+			? [box.left, viewport - box.right]
+			: [box.top, viewport - box.bottom]
+
+	const inset = Math.max(0, Math.min(near, far))
 
 	return viewport - inset * 2
 }

@@ -24,35 +24,75 @@ const STEP = 0.1
 const SWIPE = 0.6
 
 /**
- * Which edge a panel resizes by.
+ * The edge a panel is docked to, which is what the gesture is really keyed on.
  *
- * Both docked panels grow against the drag, because both are anchored to the far
- * edge of the screen: a bottom drawer grows as the pointer goes up, and a
- * right-hand sheet grows as it goes left. That shared sign is what lets one
- * gesture serve two axes — everything else that differs is named in
- * {@link AXES}.
+ * The axis alone cannot say it. A panel grows when the pointer travels away from
+ * the edge it is anchored to, so a bottom drawer grows as the pointer goes up
+ * and a top one grows as it goes down — the same axis, opposite signs, and the
+ * same for a sheet on the left against one on the right. Keyed on the axis, one
+ * side of each pair runs backwards: the drag shrinks what it should grow, the
+ * arrows swap, and a flick toward the screen dismisses instead of resizing.
  *
  * @internal
  */
+export type PanelSide = 'top' | 'right' | 'bottom' | 'left'
+
+/** Which dimension a side resizes. @internal */
 export type PanelAxis = 'height' | 'width'
 
-/** What one axis calls each thing the gesture reads. @internal */
-const AXES = {
-	height: {
+/** What one side has to say about itself for the gesture to read it. @internal */
+type PanelSideSpec = {
+	axis: PanelAxis
+	coordinate: (event: { clientX: number; clientY: number }) => number
+	viewport: () => number
+	/** Which way the panel grows. See {@link SIDES}. */
+	sign: 1 | -1
+	grow: string
+	shrink: string
+}
+
+/**
+ * What each side calls the things the gesture reads.
+ *
+ * `sign` is the direction the panel grows in: `1` where growing means a falling
+ * coordinate — a bottom drawer, a right-hand sheet — and `-1` where it means a
+ * rising one. It also orients the dismissal, since a flick that throws a panel
+ * away always travels toward the edge it is docked to.
+ */
+const SIDES = {
+	bottom: {
+		axis: 'height',
 		coordinate: (event: { clientX: number; clientY: number }) => event.clientY,
 		viewport: () => window.innerHeight,
-		measure: (rect: DOMRect) => rect.height,
+		sign: 1,
 		grow: 'ArrowUp',
 		shrink: 'ArrowDown',
 	},
-	width: {
+	top: {
+		axis: 'height',
+		coordinate: (event: { clientX: number; clientY: number }) => event.clientY,
+		viewport: () => window.innerHeight,
+		sign: -1,
+		grow: 'ArrowDown',
+		shrink: 'ArrowUp',
+	},
+	right: {
+		axis: 'width',
 		coordinate: (event: { clientX: number; clientY: number }) => event.clientX,
 		viewport: () => window.innerWidth,
-		measure: (rect: DOMRect) => rect.width,
+		sign: 1,
 		grow: 'ArrowLeft',
 		shrink: 'ArrowRight',
 	},
-} as const satisfies Record<PanelAxis, unknown>
+	left: {
+		axis: 'width',
+		coordinate: (event: { clientX: number; clientY: number }) => event.clientX,
+		viewport: () => window.innerWidth,
+		sign: -1,
+		grow: 'ArrowRight',
+		shrink: 'ArrowLeft',
+	},
+} as const satisfies Record<PanelSide, PanelSideSpec>
 
 /** One sample of a gesture: where the pointer was along the axis, and when. @internal */
 export type ResizeSample = { at: number; t: number }
@@ -123,8 +163,8 @@ export type PanelResize = {
 
 /** What {@link usePanelResize} needs. @internal */
 export type PanelResizeOptions = {
-	/** Which edge the panel resizes by. See {@link PanelAxis}. */
-	axis: PanelAxis
+	/** The edge the panel is docked to. See {@link PanelSide}. */
+	side: PanelSide
 	/** Whether the panel is up. A closed one forgets its size. */
 	open: boolean
 	/** Throws the panel away, for a release fast enough to be a swipe. */
@@ -185,12 +225,13 @@ export type PanelResizeOptions = {
  * @internal
  */
 export function usePanelResize({
-	axis,
+	side,
 	open,
 	onDismiss,
 	floorOf,
 	ceilingOf,
 }: PanelResizeOptions): PanelResize {
+	const { axis, coordinate: coordinateOf, viewport: viewportOf, sign, grow, shrink } = SIDES[side]
 	// The panel, as state rather than a ref, so its arrival is something an effect
 	// can wait for. It is portalled and mounts on a later commit than the one that
 	// opens the panel, so an effect keyed on `open` alone runs while there is
@@ -232,9 +273,9 @@ export function usePanelResize({
 	// path, whether or not anyone ever drags.
 	useEffect(() => {
 		if (panel !== null) {
-			setCovers(shareOf(AXES[axis].measure(panel.getBoundingClientRect()), AXES[axis].viewport()))
+			setCovers(shareOf(panel.getBoundingClientRect()[axis], viewportOf()))
 		}
-	}, [panel, axis])
+	}, [panel, axis, viewportOf])
 
 	// A gesture still in flight when the panel unmounts — a panel closed from
 	// elsewhere mid-drag — would leave its listeners on the window for the life of
@@ -246,14 +287,23 @@ export function usePanelResize({
 	}, [])
 
 	/** Draws the panel at a size, clamped to the bounds the gesture measured. */
-	function draw(at: Grab, coordinate: number): number {
-		// Both panels are anchored to the far edge, so they grow as the coordinate
-		// falls: up for a bottom drawer, left for a right-hand sheet.
-		const next = clamp(at.size + (at.at - coordinate), at.floor, at.ceiling)
+	function resize(at: Grab, size: number): number {
+		const next = clamp(size, at.floor, at.ceiling)
 
 		if (panel !== null) panel.style[axis] = `${next}px`
 
 		return next
+	}
+
+	/**
+	 * Draws the panel at whatever size the pointer now means.
+	 *
+	 * A panel grows as the pointer travels away from the edge it is docked to,
+	 * which is a falling coordinate on one side of each axis and a rising one on
+	 * the other — see {@link SIDES}.
+	 */
+	function draw(at: Grab, coordinate: number): number {
+		return resize(at, at.size + sign * (at.at - coordinate))
 	}
 
 	/** Takes a settled size into state and reports the share it covers. */
@@ -268,7 +318,7 @@ export function usePanelResize({
 
 		if (at === null) return
 
-		const coordinate = AXES[axis].coordinate(event)
+		const coordinate = coordinateOf(event)
 
 		last.current = { at: coordinate, t: event.timeStamp }
 
@@ -288,11 +338,13 @@ export function usePanelResize({
 
 		setResizing(false)
 
-		const coordinate = AXES[axis].coordinate(event)
+		const coordinate = coordinateOf(event)
 
+		// The speed is signed toward the docked edge, so a flick that throws the
+		// panel away reads as positive whichever side it is on.
 		const settled = settleResize(
 			draw(at, coordinate),
-			speedOf(last.current, coordinate, event.timeStamp),
+			speedOf(last.current, coordinate, event.timeStamp) * sign,
 		)
 
 		if (settled === 'close') {
@@ -313,16 +365,18 @@ export function usePanelResize({
 
 		if (panel === null || grab.current !== null) return
 
-		const measured = AXES[axis].measure(panel.getBoundingClientRect())
+		const measured = panel.getBoundingClientRect()[axis]
 
-		const coordinate = AXES[axis].coordinate(event)
+		const coordinate = coordinateOf(event)
+
+		const viewport = viewportOf()
 
 		grab.current = {
 			at: coordinate,
 			size: measured,
 			floor: floorOf(panel, measured),
-			ceiling: ceilingOf(panel, AXES[axis].viewport()),
-			viewport: AXES[axis].viewport(),
+			ceiling: ceilingOf(panel, viewport),
+			viewport,
 		}
 
 		last.current = { at: coordinate, t: event.timeStamp }
@@ -368,8 +422,6 @@ export function usePanelResize({
 	}
 
 	function onKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
-		const { grow, shrink } = AXES[axis]
-
 		if (event.key !== grow && event.key !== shrink) return
 
 		event.preventDefault()
@@ -379,9 +431,9 @@ export function usePanelResize({
 		// The committed size when there is one, so a held arrow does not re-measure
 		// a box still easing toward the last press — and reads no layout at all after
 		// the first.
-		const measured = size ?? AXES[axis].measure(panel.getBoundingClientRect())
+		const measured = size ?? panel.getBoundingClientRect()[axis]
 
-		const viewport = AXES[axis].viewport()
+		const viewport = viewportOf()
 
 		const at: Grab = {
 			at: 0,
@@ -394,7 +446,13 @@ export function usePanelResize({
 		// Never dismisses. The arrows resize, and Escape is how a panel closes from
 		// the keyboard everywhere else in the system — an arrow that shut the panel
 		// on its last press would be a surprise nothing warned about.
-		commit(draw(at, event.key === grow ? -viewport * STEP : viewport * STEP), viewport)
+		//
+		// A step rather than a pretend pointer: the size moves by the step outright,
+		// so the side's own sign is already spent naming which key grows it.
+		commit(
+			resize(at, measured + (event.key === grow ? viewport * STEP : -viewport * STEP)),
+			viewport,
+		)
 	}
 
 	return { handleProps: { onPointerDown, onKeyDown }, covers, resizing, size, ref }

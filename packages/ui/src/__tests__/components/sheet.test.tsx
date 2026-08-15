@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
-import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen, userEvent } from '../helpers'
 
 describe('Sheet', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -244,5 +244,77 @@ describe('Sheet onOpenComplete', () => {
 		rerender(sheet({ open: false, side: 'top', onOpenComplete }))
 
 		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+})
+
+describe('Sheet handle', () => {
+	/** A sheet with a grab bar, and the bar itself. */
+	function renderHandled(side: 'top' | 'right' | 'bottom' | 'left') {
+		const rendered = renderUI(
+			<Sheet open handle side={side} onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Sheet>,
+		)
+
+		return {
+			handle: present(bySlot(rendered.container, 'sheet-handle'), 'drag handle'),
+			panel: present(bySlot(rendered.container, 'sheet'), 'panel') as HTMLElement,
+		}
+	}
+
+	/** The size the panel settles at after `key` is pressed twice. */
+	async function pressed(side: 'top' | 'right' | 'bottom' | 'left', key: string) {
+		const { handle, panel } = renderHandled(side)
+
+		handle.focus()
+
+		// Twice, because the first press lands on the floor from either direction —
+		// an unmeasured panel starts at nothing, so the floor is what clamps it.
+		// The second is the one that says which way the key moves the edge.
+		await userEvent.setup({ delay: null }).keyboard(`${key}${key}`)
+
+		return Number.parseFloat(panel.style[side === 'left' || side === 'right' ? 'width' : 'height'])
+	}
+
+	it('renders no handle unless asked, and a window splitter when asked', () => {
+		const { container } = renderUI(
+			<Sheet open onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Sheet>,
+		)
+
+		expect(bySlot(container, 'sheet-handle')).toBeNull()
+
+		const { handle } = renderHandled('right')
+
+		expect(handle).toHaveAttribute('role', 'separator')
+
+		// The separator's own line, not the axis it moves on: a grip on the inner
+		// edge of a right-hand sheet stands vertically and resizes horizontally.
+		expect(handle).toHaveAttribute('aria-orientation', 'vertical')
+
+		expect(handle).toHaveAttribute('aria-valuenow')
+
+		expect(handle.tabIndex).toBe(0)
+	})
+
+	it('grows a panel away from the edge it is docked to, whichever edge that is', async () => {
+		// The gesture is keyed on the docked side and not the axis, because the
+		// axis alone cannot say which way is bigger. A sheet on the left grows as
+		// its inner edge travels right, and one on the right as it travels left;
+		// keyed on the axis, one of each pair runs backwards.
+		expect(await pressed('right', '{ArrowLeft}')).toBeGreaterThan(
+			await pressed('right', '{ArrowRight}'),
+		)
+
+		expect(await pressed('left', '{ArrowRight}')).toBeGreaterThan(
+			await pressed('left', '{ArrowLeft}'),
+		)
+
+		expect(await pressed('bottom', '{ArrowUp}')).toBeGreaterThan(
+			await pressed('bottom', '{ArrowDown}'),
+		)
+
+		expect(await pressed('top', '{ArrowDown}')).toBeGreaterThan(await pressed('top', '{ArrowUp}'))
 	})
 })

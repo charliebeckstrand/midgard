@@ -159,11 +159,11 @@ export function Sheet({
 	// the panel's own state and reaches nowhere: nothing outside the sheet needs
 	// to hold one.
 	const resize = usePanelResize({
-		axis: 'width',
+		side,
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
 		floorOf: sheetFloor,
-		ceilingOf: sheetCeiling,
+		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, side),
 	})
 
 	return (

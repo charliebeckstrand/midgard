@@ -182,7 +182,7 @@ export function Drawer({
 	// A pixel height means nothing off the screen it was set on, so it stays in
 	// here — there is nothing for a consumer to hold.
 	const resize = usePanelResize({
-		axis: 'height',
+		side: 'bottom',
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
 		floorOf: drawerFloor,
