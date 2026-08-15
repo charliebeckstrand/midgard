@@ -1,10 +1,9 @@
 'use client'
 
-import { useMemo } from 'react'
 import { DatePicker, type DatePickerRelativeValue } from 'ui/date-picker'
 import { Filters, FiltersClear, FiltersField } from 'ui/filters'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
-import type { Place, PlaceCategory } from '../../types'
+import type { PlaceCategory } from '../../types'
 import {
 	hasActiveFilter,
 	type PlaceFilterValue,
@@ -16,41 +15,28 @@ import { CategoryPicker } from '../category-picker'
 export type PlaceFiltersProps = {
 	value: PlaceFilterValue
 	onValueChange: (value: PlaceFilterValue) => void
-	/** Every stored place, which is where the country options come from. */
-	places: readonly Place[]
-	/** Every state the atlas draws, in the order the picker lists them. */
-	stateNames: readonly string[]
-	/** The state the map is projected into, or `null` for the whole country. */
+	/** Every region the drawn atlas holds, in the order the picker lists them. */
+	regionNames: readonly string[]
+	/** What the region picker calls itself, which follows the atlas the map draws. */
+	regionLabel: string
+	/** The region the map is projected into, or `null` for the whole atlas. */
 	drilled: string | null
-	/** Fires with the state to project, or `null` to go back to all of them. */
-	onDrill: (state: string | null) => void
-}
-
-/** The distinct values of one field across the places, in alphabetical order. */
-function distinct(places: readonly Place[], read: (place: Place) => string | undefined): string[] {
-	const held = new Set<string>()
-
-	for (const place of places) {
-		const value = read(place)
-
-		if (value !== undefined) held.add(value)
-	}
-
-	return [...held].sort((a, b) => a.localeCompare(b))
+	/** Fires with the region to project, or `null` to go back out a level. */
+	onDrill: (region: string | null) => void
 }
 
 /**
- * The bar over the map: which state to project, then which places to draw on it.
+ * The bar over the map: which region to project, then which places to draw on it.
  *
- * The state picker is navigation and not a filter, so it sits beside the filter
+ * The region picker is navigation and not a filter, so it sits beside the filter
  * bar rather than inside it — it does not narrow the places, it decides the
- * geography. It lists every state the atlas draws, including the ones holding
- * nothing, because an empty state is still somewhere to look. It and the
- * breadcrumb read the same state, so clearing either is the way back.
+ * geography. It lists every region the drawn atlas holds, including the ones
+ * holding nothing, because an empty region is still somewhere to look. It and
+ * the breadcrumb read the same view, so clearing either is the way back.
  *
- * The country options are the values the places actually carry, not a fixed
- * list: a country nobody has been to is not a filter, it is an empty result the
- * reader had to discover by picking it.
+ * It also names itself for what it lists — countries on the world map, states
+ * inside the United States — because the same control means a different grain at
+ * each level and a fixed label would be wrong at one of them.
  *
  * Every filter goes through `FiltersField`'s render function rather than its
  * element form. The element form binds `value={fieldValue ?? null}`, and neither
@@ -62,13 +48,11 @@ function distinct(places: readonly Place[], read: (place: Place) => string | und
 export function PlaceFilters({
 	value,
 	onValueChange,
-	places,
-	stateNames,
+	regionNames,
+	regionLabel,
 	drilled,
 	onDrill,
 }: PlaceFiltersProps) {
-	const countries = useMemo(() => distinct(places, (place) => place.country), [places])
-
 	return (
 		// One row at every width, scrolling sideways where it does not fit. The map
 		// under this bar is the whole screen, so a column of five controls would take
@@ -105,32 +89,32 @@ export function PlaceFilters({
 				) : undefined
 			}
 		>
-			{/* Navigation rather than a filter — it projects one state instead of
+			{/* Navigation rather than a filter — it projects one region instead of
 			    narrowing the places — but it rides the same rail: two scroll containers
 			    side by side is one the reader's wheel finds and one it does not. */}
 			<Listbox<string>
-				aria-label="Projected state"
-				placeholder="All states"
+				aria-label={regionLabel}
+				placeholder={regionLabel}
 				clearable
 				className="w-52 shrink-0"
-				displayValue={(state) => state}
+				displayValue={(region) => region}
 				value={drilled}
 				onValueChange={onDrill}
 			>
-				{stateNames.map((state) => (
-					<ListboxOption key={state} value={state}>
-						<ListboxLabel>{state}</ListboxLabel>
+				{regionNames.map((region) => (
+					<ListboxOption key={region} value={region}>
+						<ListboxLabel>{region}</ListboxLabel>
 					</ListboxOption>
 				))}
 			</Listbox>
 
-			{/* A paint filter, not a place filter: it decides which states carry the
-				    visited fill and never which dots are drawn. Cleared, no state is
+			{/* A paint filter, not a place filter: it decides which regions carry the
+				    visited fill and never which dots are drawn. Cleared, no region is
 				    painted and the map reads as one surface with the places on it. */}
-			<FiltersField name="visitedStates" className="w-52">
+			<FiltersField name="visitedRegions" className="w-52">
 				{({ value: picked, onValueChange: setPicked }) => (
 					<Listbox<PlaceVisitFilter>
-						aria-label="Visited states"
+						aria-label="Visited"
 						placeholder="Visited or not"
 						clearable
 						displayValue={(choice) => (choice === 'visited' ? 'Visited' : 'Not visited')}
@@ -159,28 +143,6 @@ export function PlaceFilters({
 				)}
 			</FiltersField>
 
-			{countries.length > 1 ? (
-				<FiltersField name="countries" className="w-52">
-					{({ value: picked, onValueChange: setPicked }) => (
-						<Listbox<string>
-							multiple
-							aria-label="Countries"
-							placeholder="All countries"
-							clearable
-							displayValue={(country) => country}
-							value={(picked as string[] | undefined) ?? []}
-							onValueChange={(next) => setPicked(next.length === 0 ? undefined : next)}
-						>
-							{countries.map((country) => (
-								<ListboxOption key={country} value={country}>
-									<ListboxLabel>{country}</ListboxLabel>
-								</ListboxOption>
-							))}
-						</Listbox>
-					)}
-				</FiltersField>
-			) : null}
-
 			<FiltersField name="visited" className="w-52">
 				{({ value: visited, onValueChange: setVisited }) => (
 					<DatePicker
@@ -193,7 +155,7 @@ export function PlaceFilters({
 						// a Clear on the bar that undoes every field — two controls of the
 						// same name, one step apart, with different reach.
 						footer={{ clear: false }}
-						aria-label="Visited"
+						aria-label="Visited when"
 						placeholder="Any time"
 						value={(visited as DatePickerRelativeValue[] | undefined) ?? null}
 						// Annotated: an object `relative` leaves the props union

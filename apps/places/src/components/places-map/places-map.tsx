@@ -8,18 +8,20 @@ import {
 	type MapOverlaySelection,
 	MapPlat,
 	MapPoints,
+	type MapProjection,
 	MapSkeleton,
 } from 'ui/modules/map'
 import type { Place } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
 import { centredProjection, regionFrame, regionName } from '../../utilities/places-geography'
+import { type PlaceView, UNITED_STATES, viewRegion } from '../../utilities/places-view'
 import { placeStops } from './places-map-utilities'
 
 /**
- * What a painted state is called, per filter. The paint means whichever the
+ * What a painted region is called, per filter. The paint means whichever the
  * reader asked for, so the readout has to say that one: under "Not visited" a
- * painted state is one they have not been to, and a fill that reported itself as
- * "Visited" would tell them the opposite of what they filtered for.
+ * painted region is one they have not been to, and a fill that reported itself
+ * as "Visited" would tell them the opposite of what they filtered for.
  */
 const PAINT_LABEL: Record<PlaceVisitFilter, string> = {
 	visited: 'Visited',
@@ -33,7 +35,7 @@ const PAINT_LABEL: Record<PlaceVisitFilter, string> = {
  *
  * Green for been, red for not, which is the one pairing a reader brings to the
  * question already. They are held far back in opacity by the wrapper below: at
- * full strength either hue reads as a value on the state, and the dots standing
+ * full strength either hue reads as a value on the region, and the dots standing
  * on it carry the values here.
  */
 const COVERED_CATEGORIES: MapCategory[] = [
@@ -54,22 +56,22 @@ function clusterDetail(count: number): string {
 }
 
 /** The empty row list a cleared paint filter stands for, held so its identity is stable. */
-const NO_ROWS: { state: string; visited: string }[] = []
+const NO_ROWS: { region: string; visited: string }[] = []
 
 /** Props for {@link PlacesMap}. */
 export type PlacesMapProps = {
-	/** The states atlas, decoded; `null` while it loads, which reserves the frame. */
-	states: MapFeatureCollection | null
+	/** The atlas the view draws, decoded; `null` while it loads, which reserves the frame. */
+	regions: MapFeatureCollection | null
 	/** The places to draw — already filtered, so the map draws what the bar admits. */
 	places: readonly Place[]
-	/** The states marked visited, by the name the atlas gives them. */
+	/** Where the map is pointed, which decides the frame and the projection. */
+	view: PlaceView
+	/** The regions marked visited in the drawn atlas, by the name that atlas gives them. */
 	visited: ReadonlySet<string>
-	/** Which states carry the visited paint, or `undefined` for none of them. */
-	visitedStates: PlaceVisitFilter | undefined
-	/** The state the map is drilled into, or `null` for the whole country. */
-	drilled: string | null
-	/** Fires when a state holding places is picked. */
-	onDrill: (state: string) => void
+	/** Which regions carry the visited paint, or `undefined` for none of them. */
+	visitedRegions: PlaceVisitFilter | undefined
+	/** Fires when a region is picked, with the name its atlas gave it. */
+	onDrill: (region: string) => void
 	/** The place whose panel is open; the map haloes the dot it drew into. */
 	selected: Place | null
 	/** Fires when a dot is picked, with every place the one dot stands for. */
@@ -77,7 +79,7 @@ export type PlacesMapProps = {
 }
 
 /**
- * The map: every place as a dot over the states that hold them.
+ * The map: every place as a dot over the regions that hold them.
  *
  * One mark for the whole set, so dots that land on the same pixels merge however
  * they are categorised — clustering is per-mark, and a mark per category left
@@ -85,71 +87,76 @@ export type PlacesMapProps = {
  * its own category colour; a summary keeps the mark's, because it stands for
  * several categories at once. The filter's swatches are the key to both.
  *
- * A click on any state drills into it, and a drilled state stops answering
+ * A click on any region drills into it, and a drilled region stops answering
  * entirely: only its dots do.
  */
 export function PlacesMap({
-	states,
+	regions,
 	places,
+	view,
 	visited,
-	visitedStates,
-	drilled,
+	visitedRegions,
 	onDrill,
 	selected,
 	onSelect,
 }: PlacesMapProps) {
-	// The geography to draw: the whole country, or the one state a drill opened.
+	// The one region the view is cut to, or `null` for the whole atlas.
+	const cut = viewRegion(view)
+
+	// The geography to draw: the whole atlas, or the one region a drill opened.
 	// Memoised on the cut, because the map keys its decode, its fit, and its paths
 	// on the geography's identity — a fresh collection each render would refit the
 	// map on every pointer move.
-	const geography = useMemo(() => regionFrame(states, drilled), [states, drilled])
+	const geography = useMemo(() => regionFrame(regions, cut), [regions, cut])
 
-	// The composite for the country, a state-centred mercator for one state.
+	// Equal Earth for the world, the composite for the United States whole, and a
+	// region-centred mercator for anything cut to one shape.
 	//
-	// Albers USA is a conic centred on the whole country, so a single state comes
-	// out rotated against its own borders — Oregon's southern parallel reads as a
-	// diagonal. The reading is correct and it is not the one anybody holds of
-	// their state.
+	// Albers USA is a conic composed of one country, so it draws that country and
+	// nothing else: a point outside it projects to nothing at all, which is why it
+	// is the right frame for the states and the wrong one for the world. Equal
+	// Earth places every point there is, and holds area true while it does.
 	//
 	// Centred rather than plain, because a plain mercator sits on the prime
 	// meridian: Alaska's Aleutians cross the antimeridian, so its bounds read as
-	// most of the globe and the state fitted to a fraction of the frame.
+	// most of the globe and the region fitted to a fraction of the frame.
 	//
 	// Held rather than rebuilt, because the plat fits a passed instance directly
 	// and keys that fit on the projection's identity.
-	const projection = useMemo(
-		() => (drilled === null ? 'albers-usa' : (centredProjection(geography) ?? 'mercator')),
-		[geography, drilled],
-	)
+	const projection = useMemo<MapProjection>(() => {
+		if (cut !== null) return centredProjection(geography) ?? 'mercator'
 
-	// One row per painted state. The category is the same for all of them: this is
+		return view.country === UNITED_STATES ? 'albers-usa' : 'equal-earth'
+	}, [geography, cut, view.country])
+
+	// One row per painted region. The category is the same for all of them: this is
 	// a bit and not a measure, so one category paints alike and draws no legend of
 	// its own.
 	//
-	// Which states those are is the bar's to say, not the places'. A state is
+	// Which regions those are is the bar's to say, not the places'. A region is
 	// visited because the reader marked it, so a state they drove through paints
-	// and a state holding a place they have only planned does not — and with the
+	// and a country holding a place they have only planned does not — and with the
 	// filter cleared none of them paint, which is the map with the question turned
 	// off rather than answered. The dots are drawn either way.
 	//
 	// A drill keeps the same rule rather than lighting whatever it opened, so the
-	// fill a state carries on the national map is the fill it carries a level in.
+	// fill a region carries on the whole atlas is the fill it carries a level in.
 	//
-	// What a drilled state loses is the pointer, not the paint — see
+	// What a drilled region loses is the pointer, not the paint — see
 	// `regionPointer` below for why the two are separated here.
 	const rows = useMemo(() => {
-		if (visitedStates === undefined) return NO_ROWS
+		if (visitedRegions === undefined) return NO_ROWS
 
-		const named = (states?.features ?? []).map(regionName)
+		const named = (regions?.features ?? []).map(regionName)
 
 		const painted = named.filter((name) =>
-			visitedStates === 'visited' ? visited.has(name) : !visited.has(name),
+			visitedRegions === 'visited' ? visited.has(name) : !visited.has(name),
 		)
 
-		const rows = painted.map((name) => ({ state: name, visited: PAINT_LABEL[visitedStates] }))
+		const rows = painted.map((name) => ({ region: name, visited: PAINT_LABEL[visitedRegions] }))
 
-		return drilled === null ? rows : rows.filter((row) => row.state === drilled)
-	}, [states, visited, visitedStates, drilled])
+		return cut === null ? rows : rows.filter((row) => row.region === cut)
+	}, [regions, visited, visitedRegions, cut])
 
 	// Every place in one mark, so two dots that land on the same pixels merge into
 	// one summary whatever categories they belong to. Clustering is per-mark: a
@@ -177,10 +184,12 @@ export function PlacesMap({
 		return index === -1 ? null : { id: MARK_ID, index }
 	}, [selected, places])
 
+	// The projection the frame will take, so the skeleton reserves exactly what
+	// the plat behind it will and nothing jumps when the atlas lands.
+	const reserved = view.country === UNITED_STATES ? 'albers-usa' : 'equal-earth'
+
 	if (geography === null) {
-		// The projection is fixed, so the skeleton reserves exactly what the plat
-		// behind it will: no jump when the atlas lands.
-		return <MapSkeleton projection="albers-usa" ratio={false} className="size-full" />
+		return <MapSkeleton projection={reserved} ratio={false} className="size-full" />
 	}
 
 	return (
@@ -190,17 +199,17 @@ export function PlacesMap({
 		<div
 			className={cn(
 				'size-full p-6 sm:p-10',
-				// Nothing on this map recedes. The plat's emphasis reads a state and the
+				// Nothing on this map recedes. The plat's emphasis reads a region and the
 				// dots on it as separate marks, so pointing one dimmed the other — and
 				// crossing between them cross-faded the two, which is the flicker a
-				// reader sees moving from a state onto a place standing on it. A state
+				// reader sees moving from a region onto a place standing on it. A region
 				// and its places are one thing here, so both stay forward and the
 				// pointer changes nothing but the readout.
 				'[&_[data-slot=map-points]]:opacity-100! [&_[data-slot=map-regions-recede]]:opacity-100!',
-				// The paint held far back, so a state reads as tinted ground rather than
-				// as a filled shape: the dots carry the values on this map, and a state
+				// The paint held far back, so a region reads as tinted ground rather than
+				// as a filled shape: the dots carry the values on this map, and a region
 				// at full strength takes the eye off them. `fill-opacity` and not
-				// `opacity`, which would take the seams between states with it.
+				// `opacity`, which would take the seams between regions with it.
 				//
 				// Selected by the fill class, because the module gives a region path no
 				// category anchor on purpose — a county atlas would pay attribute-rule
@@ -212,7 +221,7 @@ export function PlacesMap({
 			)}
 		>
 			<MapPlat
-				aria-label={drilled ? `Places in ${drilled}` : 'Places across the United States'}
+				aria-label={cut === null ? 'Places across the world' : `Places in ${cut}`}
 				geography={geography}
 				projection={projection}
 				aspectRatio={false}
@@ -222,12 +231,12 @@ export function PlacesMap({
 				// so a state would answer as "41" where every row here says "Oregon".
 				regionId={regionName}
 				data={rows}
-				regionKey="state"
+				regionKey="region"
 				categoryKey="visited"
-				// The neutral slot, not a categorical one. A covered state is a
+				// The neutral slot, not a categorical one. A covered region is a
 				// backdrop that says "there is something here to open", and any of the
 				// eight data hues would read as a sixth category — worse, the first of
-				// them is the Food dots' own blue, which a blue state swallowed.
+				// them is the Food dots' own blue, which a blue region swallowed.
 				categories={COVERED_CATEGORIES}
 				// One mark and one region category, so a legend would draw two rows
 				// that each name a paint rather than telling two things apart.
@@ -241,25 +250,25 @@ export function PlacesMap({
 				// move.
 				//
 				// It earns more than it looks. The dots merge by pixel distance, so the
-				// summaries a national frame draws separate into their own places as
-				// the view closes on them — which is the same question the summary
-				// drawer answers, asked on the map instead.
+				// summaries a world frame draws separate into their own places as the
+				// view closes on them — which is the same question the summary drawer
+				// answers, asked on the map instead.
 				zoom={{ modifier: false }}
-				// The map is navigated, not read: a state with no places still opens
+				// The map is navigated, not read: a region with no places still opens
 				// into somewhere, so the pointer names every one of them rather than
-				// only the states a row painted.
+				// only the regions a row painted.
 				nameRegions
-				// Inside a drill the layer answers nothing: there is one state on screen
-				// and the reader just picked it, so it has nothing left to say, and a
-				// readout under every dot they reach for is in the way. The drill is
-				// stated here alone — the prop withdraws the readout, the pick, and the
-				// pointer cursor together.
-				regionPointer={drilled === null}
+				// Inside a drill the layer answers nothing: there is one region on
+				// screen and the reader just picked it, so it has nothing left to say,
+				// and a readout under every dot they reach for is in the way. The drill
+				// is stated here alone — the prop withdraws the readout, the pick, and
+				// the pointer cursor together.
+				regionPointer={cut === null}
 				selectedOverlay={selectedOverlay}
-				// Every state opens, whether or not it holds places: an empty one is a
+				// Every region opens, whether or not it holds places: an empty one is a
 				// place to look, and a reader who has just added somewhere new should not
 				// have to find out from a dead click that the map disagreed. The paint
-				// still says which states hold places — it reports, and no longer gates.
+				// still says which regions hold places — it reports, and no longer gates.
 				onRegionClick={onDrill}
 			>
 				<MapPoints

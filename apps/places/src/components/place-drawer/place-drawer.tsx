@@ -33,10 +33,10 @@ export type PlaceDrawerProps = {
 	 * summary; empty closes the drawer.
 	 */
 	places: readonly Place[]
-	/** The state the picked dot stands in, as the map names it; `null` where none holds it. */
-	state: string | null
-	/** Every place in that state — the list the first crumb leads back to. */
-	statePlaces: readonly Place[]
+	/** The region the picked dot stands in, as its atlas names it; `null` where none holds it. */
+	region: string | null
+	/** Every place in that region — the list the first crumb leads back to. */
+	regionPlaces: readonly Place[]
 	onOpenChange: (open: boolean) => void
 	/** Opens the place for an edit. */
 	onEdit: (place: Place) => void
@@ -69,19 +69,19 @@ function PlaceMeta({ place }: { place: Place }) {
  * a panel that covered the map would take away the thing the reader just
  * pointed at.
  *
- * A summary dot opens as the list of every place in its state, because a summary
- * is a fact about the frame — the same dots separate as the reader zooms in —
- * where the state is a fact about the places. A lone dot opens straight into its
- * place.
+ * A summary dot opens as the list of every place in its region, because a
+ * summary is a fact about the frame — the same dots separate as the reader zooms
+ * in — where the region is a fact about the places. A lone dot opens straight
+ * into its place.
  *
  * The title is the trail rather than a name, so it is also the way back: the
- * first crumb names the state and returns to the state's list. There is no Back
- * button, because the crumb is one.
+ * first crumb names the region and returns to the region's list. There is no
+ * Back button, because the crumb is one.
  */
 export function PlaceDrawer({
 	places,
-	state,
-	statePlaces,
+	region,
+	regionPlaces,
 	onOpenChange,
 	onEdit,
 	onDelete,
@@ -139,15 +139,15 @@ export function PlaceDrawer({
 		setCategories([])
 	}, [groupKey])
 
-	// The state's places, never the merged group alone. The crumb over the list
-	// names the state, so the list under it has to be the state's — a summary that
-	// listed only what the frame happened to merge would answer a different
+	// The region's places, never the merged group alone. The crumb over the list
+	// names the region, so the list under it has to be the region's — a summary
+	// that listed only what the frame happened to merge would answer a different
 	// question from the one its own heading asks, and the count would change with
 	// the zoom.
 	//
-	// A place the map placed in no state has no such list, so the group it was
+	// A place the map placed in no region has no such list, so the group it was
 	// picked from stands in.
-	const list = statePlaces.length > 0 ? statePlaces : held
+	const list = regionPlaces.length > 0 ? regionPlaces : held
 
 	// What the list narrows to. Empty admits everything: a reader who clears the
 	// last category means to stop filtering, not to empty the panel.
@@ -169,10 +169,10 @@ export function PlaceDrawer({
 	// and every reader below tests for `null` alone.
 	const place = listing ? null : (opened ?? (held.length === 1 ? (held[0] ?? null) : null))
 
-	// A place the map placed in no state falls back to the count, which is the
+	// A place the map placed in no region falls back to the count, which is the
 	// only other thing the group has to say about itself. Counted after the
 	// filter, so the heading agrees with the rows under it.
-	const where = state ?? `${shown.length} places`
+	const where = region ?? `${shown.length} places`
 
 	const title = place === null ? where : `${where} › ${place.name}`
 
@@ -181,7 +181,7 @@ export function PlaceDrawer({
 			glass
 			handle
 			// Fixed rather than grown to fit, because this panel is navigated: the
-			// crumb walks between the state's list and one place, and an `auto`
+			// crumb walks between the region's list and one place, and an `auto`
 			// height made every one of those steps a resize — a list of twelve
 			// opened tall and drilling into one of them collapsed the panel under
 			// the reader's hand, on the step where they had just committed to
@@ -189,9 +189,9 @@ export function PlaceDrawer({
 			// changed; the body scrolls, which is what a fixed height is for.
 			//
 			// It also keeps the promise the panel is named for. `auto` runs to
-			// 85dvh, so a state with places enough covered the map it docks over —
+			// 85dvh, so a region with places enough covered the map it docks over —
 			// and the count that decided it meant the rule itself changed as the
-			// reader added a third place to a state, which nothing they did
+			// reader added a third place to a region, which nothing they did
 			// explains. A dragged height still beats this and holds until close.
 			height="half"
 			open={open}

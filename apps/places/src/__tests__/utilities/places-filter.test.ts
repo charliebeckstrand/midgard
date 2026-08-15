@@ -53,15 +53,15 @@ describe('hasActiveFilter', () => {
 
 		expect(hasActiveFilter({ categories: [] })).toBe(false)
 
-		expect(hasActiveFilter({ countries: [], visited: [] })).toBe(false)
+		expect(hasActiveFilter({ visited: [] })).toBe(false)
 	})
 
 	it('reads any set field as narrowing something', () => {
 		expect(hasActiveFilter({ categories: ['food'] })).toBe(true)
 
-		expect(hasActiveFilter({ visitedStates: 'visited' })).toBe(true)
+		expect(hasActiveFilter({ visitedRegions: 'visited' })).toBe(true)
 
-		expect(hasActiveFilter({ countries: ['France'] })).toBe(true)
+		expect(hasActiveFilter({ visited: [span('2026-01-01', '2026-12-31')] })).toBe(true)
 	})
 })
 
@@ -90,14 +90,13 @@ describe('filterPlaces', () => {
 		expect(ids({ categories: [] })).toEqual([])
 	})
 
-	it('narrows to the picked countries', () => {
-		expect(ids({ countries: ['France'] })).toEqual(['nature'])
-	})
+	// The paint filter decides which regions carry the visited fill and never
+	// which dots are drawn: a place stands where it stands whatever the region
+	// under it is marked.
+	it('draws every place whatever the paint filter says', () => {
+		expect(ids({ visitedRegions: 'visited' })).toEqual(['food', 'nature', 'nowhere'])
 
-	// A place the geocoder gave no country is not in the picked country, because it
-	// is not known to be in any.
-	it('refuses a place with no country once a country is picked', () => {
-		expect(ids({ countries: ['United States', 'France'] })).toEqual(['food', 'nature'])
+		expect(ids({ visitedRegions: 'unvisited' })).toEqual(['food', 'nature', 'nowhere'])
 	})
 
 	it('narrows to the committed spans, both ends included', () => {
@@ -118,6 +117,8 @@ describe('filterPlaces', () => {
 	})
 
 	it('applies each field on its own', () => {
-		expect(ids({ categories: ['food', 'nature'], countries: ['France'] })).toEqual(['nature'])
+		expect(
+			ids({ categories: ['food', 'nature'], visited: [span('2026-01-01', '2026-06-30')] }),
+		).toEqual(['nature'])
 	})
 })

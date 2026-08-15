@@ -47,6 +47,15 @@ export type PlaceDraft = Omit<Place, 'id' | 'createdAt'>
  */
 export type PlaceColor = 'blue' | 'violet' | 'green' | 'rose' | 'amber' | 'sky' | 'red' | 'zinc'
 
+/**
+ * Which atlas a designation belongs to. The two are kept apart because the names
+ * collide: Georgia is a state of the United States and Georgia is a country.
+ */
+export type VisitScope = 'states' | 'countries'
+
+/** Every visited region, by the name its own atlas gives it. */
+export type Visits = Record<VisitScope, string[]>
+
 /** One category's presentation: the name the reader reads, and the colour its dots take. */
 export type PlaceCategoryMeta = {
 	value: PlaceCategory

@@ -26,7 +26,8 @@
 		"shared": "workspace:*",
 		"topojson-client": "^3.1.0",
 		"ui": "workspace:*",
-		"us-atlas": "^3.0.1"
+		"us-atlas": "^3.0.1",
+		"world-atlas": "^2.0.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.3",

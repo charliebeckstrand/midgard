@@ -1,12 +1,21 @@
 import { readJson } from '@/server/read-draft'
 import { visitedSeed } from '@/server/visited-seed'
 import { setVisit } from '@/server/visits-store'
+import type { VisitScope } from '@/types'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
 
 /** Route params arrive as a promise in this Next major. */
-type Context = { params: Promise<{ state: string }> }
+type Context = { params: Promise<{ scope: string; region: string }> }
+
+/** The scopes a designation can be written under, which is what the two atlases divide into. */
+const SCOPES: readonly string[] = ['states', 'countries']
+
+/** Reads a path segment as a scope, or `null` where it names neither atlas. */
+function readScope(value: string): VisitScope | null {
+	return SCOPES.includes(value) ? (value as VisitScope) : null
+}
 
 /** What the body must carry: the designation itself, and nothing else. */
 function readVisited(input: unknown): boolean | null {
@@ -18,19 +27,29 @@ function readVisited(input: unknown): boolean | null {
 }
 
 /**
- * Marks one state visited or not, and answers with the whole set — the caller
+ * Marks one region visited or not, and answers with both scopes — the caller
  * then holds what the store settled on rather than a copy it patched itself.
+ *
+ * The scope rides the path because it is part of what is addressed and not part
+ * of the change: Georgia the state and Georgia the country are two designations,
+ * and the path is where the difference between two resources belongs.
  *
  * A `PUT` because it states what the designation is, not what to do to it: sent
  * twice it leaves the same set, which is what a toggle pressed through a dropped
  * response needs.
  */
 export async function PUT(request: Request, context: Context) {
-	const { state } = await context.params
+	const { scope: rawScope, region: rawRegion } = await context.params
 
-	const name = decodeURIComponent(state).trim()
+	const scope = readScope(rawScope)
 
-	if (name === '') return Response.json({ issues: ['`state` is required.'] }, { status: 400 })
+	if (scope === null) {
+		return Response.json({ issues: ['`scope` must be `states` or `countries`.'] }, { status: 404 })
+	}
+
+	const region = decodeURIComponent(rawRegion).trim()
+
+	if (region === '') return Response.json({ issues: ['`region` is required.'] }, { status: 400 })
 
 	const body = await readJson(request)
 
@@ -42,5 +61,5 @@ export async function PUT(request: Request, context: Context) {
 		return Response.json({ issues: ['`visited` must be a boolean.'] }, { status: 400 })
 	}
 
-	return Response.json(await setVisit(name, visited, visitedSeed))
+	return Response.json(await setVisit(scope, region, visited, visitedSeed))
 }
