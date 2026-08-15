@@ -193,6 +193,26 @@ describe('MapPlat keyboard navigation', () => {
 		expect(bySlot(container, 'map-table')).toBeNull()
 	})
 
+	it('offers no region stop where the caller switched the layer off', () => {
+		// `regionPointer={false}` withdraws the readout, the pick, and the menu at
+		// once, and the keyboard is the channel that does not take care of itself:
+		// the paths bind no handlers, so nothing can be POINTED at, but the cursor
+		// reaches a region through the stop list rather than through the DOM. Left
+		// ungated, a reader arrowed onto the drilled state, heard it named, pressed
+		// Enter, and got nothing — the pick the same switch had already emptied.
+		const onRegionClick = vi.fn()
+
+		const { container, plot } = renderNavigable(plat({ regionPointer: false, onRegionClick }))
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(readout(container)).toBeNull()
+
+		fireEvent.keyDown(plot, { key: 'Enter' })
+
+		expect(onRegionClick).not.toHaveBeenCalled()
+	})
+
 	it('keeps the stop while the legend holds every category off', () => {
 		// A toggle is transient: it silences the readout for as long as it holds,
 		// and to take the tab stop away with it would move focus under the reader.

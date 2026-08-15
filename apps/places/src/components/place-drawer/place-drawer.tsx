@@ -177,7 +177,27 @@ export function PlaceDrawer({
 	const title = place === null ? where : `${where} › ${place.name}`
 
 	return (
-		<Drawer glass handle height="half" open={open} onOpenChange={onOpenChange} aria-label={title}>
+		<Drawer
+			glass
+			handle
+			// Fixed rather than grown to fit, because this panel is navigated: the
+			// crumb walks between the state's list and one place, and an `auto`
+			// height made every one of those steps a resize — a list of twelve
+			// opened tall and drilling into one of them collapsed the panel under
+			// the reader's hand, on the step where they had just committed to
+			// something inside it. A container must not move because its contents
+			// changed; the body scrolls, which is what a fixed height is for.
+			//
+			// It also keeps the promise the panel is named for. `auto` runs to
+			// 85dvh, so a state with places enough covered the map it docks over —
+			// and the count that decided it meant the rule itself changed as the
+			// reader added a third place to a state, which nothing they did
+			// explains. A dragged height still beats this and holds until close.
+			height="half"
+			open={open}
+			onOpenChange={onOpenChange}
+			aria-label={title}
+		>
 			{/* No top padding: the handle above carries it, so the title sits directly
 			    under the grip rather than a step below it. */}
 			<Flex justify="between" align="start" gap="md" className="px-6">
@@ -238,12 +258,27 @@ export function PlaceDrawer({
 						{/* A plain `img`, not `next/image`: the address is whatever the reader
 						    typed, and optimising an arbitrary remote host means listing that
 						    host first. The name is the alt text because it is the one thing
-						    known about what the picture shows. */}
+						    known about what the picture shows.
+
+						    One square, stated on both axes, so every place reads the same
+						    however its photo was shot. `max-h-48 w-full` clamped the tall
+						    ones only: a panoramic shot scaled to the panel's width came out
+						    under the cap and drew a thin strip, a portrait one filled it, and
+						    the address below them landed somewhere different each time — and
+						    on a wide panel the picture ran the whole width, which is a banner
+						    rather than a thumbnail. A square answers both, and it holds its
+						    size as the panel resizes, where a full-width band grew with it.
+
+						    Stating the size also reserves the space before the picture
+						    arrives; unsized, the `img` laid out at nothing and shoved the
+						    text down on load. `object-cover` fills the box and crops the
+						    overflow, which is what makes one size honest for any aspect. */}
 						{place.photo ? (
 							<img
 								src={place.photo}
 								alt={place.name}
-								className="max-h-48 w-full rounded-lg object-cover"
+								loading="lazy"
+								className="size-32 rounded-lg bg-white/5 object-cover"
 							/>
 						) : null}
 
@@ -320,20 +355,20 @@ export function PlaceDrawer({
 					<Flex justify="end" align="center" gap="sm" full>
 						<Button
 							variant="plain"
-							color="red"
-							prefix={<Icon icon={<Trash />} />}
-							onClick={() => onDelete(place)}
-						>
-							Delete
-						</Button>
-
-						<Button
-							variant="plain"
 							color="blue"
 							prefix={<Icon icon={<Pencil />} />}
 							onClick={() => onEdit(place)}
 						>
 							Edit
+						</Button>
+
+						<Button
+							variant="plain"
+							color="red"
+							prefix={<Icon icon={<Trash />} />}
+							onClick={() => onDelete(place)}
+						>
+							Delete
 						</Button>
 					</Flex>
 				</DrawerFooter>

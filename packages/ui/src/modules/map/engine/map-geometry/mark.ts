@@ -1,10 +1,19 @@
 /**
- * What the overlay marks draw: one lon/lat projected to the frame, the path
- * strings a dot, a polyline, and a closed ring paint from it, the anchor each
- * shape offers the keyboard cursor, and how much room an area's own face holds.
- * Held apart from `region.ts` because the marks project point by point through a
- * closure the plat hands down, where the region layer projects whole features
- * through `d3-geo`'s own path generator.
+ * What the overlay marks draw: one lon/lat projected to the frame and back, the
+ * path strings a dot, a polyline, and a closed ring paint from it, the anchor
+ * each shape offers the keyboard cursor, and how much room an area's own face
+ * holds. Held apart from `region.ts` because the marks project point by point
+ * through a closure the plat hands down, where the region layer projects whole
+ * features through `d3-geo`'s own path generator.
+ *
+ * The area primitives — `featureRings`, `projectArea`, `areaReach`, `boxNear`,
+ * `ringsNear` — now answer three subsystems rather than one: the geofence that
+ * first wanted them, the ZIP dissolve, and the region half of the hit-target
+ * rule, the last two of which draw no mark. They stay here rather than moving to
+ * an `area.ts` because each is built on a private walk the marks share —
+ * `projectArea` on `projectRun`, `ringsPath` on `polylineCommands`, `areaAnchor`
+ * on `ringAnchor` — so the split would import back into this file for its own
+ * internals and buy a boundary that does not hold.
  *
  * That point-by-point walk is what bounds the ring: it draws each edge straight
  * in the frame, where `geoPath` would resample the edge along the sphere and
@@ -14,7 +23,50 @@
  */
 
 import { type GeoProjection, geoArea, geoCentroid } from 'd3-geo'
-import type { LngLat, MapPoint2D, MapPolygons } from '../types'
+import type { LngLat, MapFeature, MapPoint2D, MapPolygons } from '../types'
+
+/**
+ * {@link projectPoint} run backwards: a frame position to the lon/lat it draws
+ * from, or `null` where the fit has none — an unfitted projection, a point the
+ * composite drops between its insets, or one a projection cannot invert at all.
+ *
+ * @internal
+ */
+export function unprojectPoint(projection: GeoProjection | null, at: MapPoint2D): LngLat | null {
+	const inverted = projection?.invert?.([at.x, at.y])
+
+	if (inverted == null) return null
+
+	const [lon, lat] = inverted
+
+	// `d3-geo` hands back a fresh pair, so it is returned rather than copied — a
+	// dot asks this twice per render and neither reader keeps what it is given.
+	return Number.isFinite(lon) && Number.isFinite(lat) ? inverted : null
+}
+
+/**
+ * A feature's rings, in the polygon-then-ring shape both area geometries flatten
+ * to. Empty for a feature that draws no area — a point, a line, a sphere, or a
+ * geometry collection — which every reader here already spells as no room.
+ *
+ * Beside {@link projectArea} and {@link areaAnchor} rather than inside either
+ * caller, because the flattening is the same question wherever an area is read:
+ * the ZIP dissolve asks it of a matched code, and the hit-target rule asks it of
+ * a region under a dot.
+ *
+ * @internal
+ */
+export function featureRings(shape: MapFeature): MapPolygons {
+	const geometry = shape.geometry
+
+	if (geometry === null) return []
+
+	if (geometry.type === 'Polygon') return [geometry.coordinates as MapPolygons[number]]
+
+	if (geometry.type === 'MultiPolygon') return geometry.coordinates as MapPolygons
+
+	return []
+}
 
 /**
  * Projects one lon/lat to frame coordinates, or `null` where the projection
@@ -165,7 +217,18 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
  *
  * @internal
  */
-type MapFrameBox = { left: number; top: number; right: number; bottom: number }
+export type MapFrameBox = { left: number; top: number; right: number; bottom: number }
+
+/**
+ * What {@link ringsNear} actually reads: the boxes alone. Stated apart from
+ * {@link MapAreaRing} so a caller that has finished measuring can drop the
+ * vertex arrays and keep placing dots against what is left — an atlas region
+ * runs to thousands of points, and holding them for a box test is the whole
+ * shape retained to read four numbers.
+ *
+ * @internal
+ */
+export type MapAreaBox = Pick<MapAreaRing, 'box'>
 
 /**
  * One of an area's projected rings: the frame points it draws through, and the
@@ -177,6 +240,22 @@ type MapFrameBox = { left: number; top: number; right: number; bottom: number }
 export type MapAreaRing = {
 	points: MapPoint2D[]
 	box: MapFrameBox
+}
+
+/**
+ * Whether one box holds a position once grown by `margin` — the test
+ * {@link ringsNear} runs per ring, stated once so a caller holding a single box
+ * can ask it without wrapping that box in a list.
+ *
+ * @internal
+ */
+export function boxNear(box: MapFrameBox, at: MapPoint2D, margin: number): boolean {
+	return (
+		at.x >= box.left - margin &&
+		at.x <= box.right + margin &&
+		at.y >= box.top - margin &&
+		at.y <= box.bottom + margin
+	)
 }
 
 /**
@@ -200,18 +279,11 @@ export type MapAreaRing = {
  *
  * @internal
  */
-export function ringsNear(rings: readonly MapAreaRing[], at: MapPoint2D, margin: number): boolean {
+export function ringsNear(rings: readonly MapAreaBox[], at: MapPoint2D, margin: number): boolean {
 	// A loop rather than `some`: every dot on a map asks this of every zone, and a
 	// callback would be a fresh allocation per call rather than per zone.
 	for (const { box } of rings) {
-		if (
-			at.x >= box.left - margin &&
-			at.x <= box.right + margin &&
-			at.y >= box.top - margin &&
-			at.y <= box.bottom + margin
-		) {
-			return true
-		}
+		if (boxNear(box, at, margin)) return true
 	}
 
 	return false

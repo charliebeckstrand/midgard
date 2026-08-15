@@ -4,12 +4,12 @@ import { describe, expect, it, vi } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapGeofence, MapPlat, MapPoint } from '../../modules/map'
 import {
+	AREA_SPARE_FRACTION,
 	EARTH_RADIUS_METERS,
 	GEOFENCE_CIRCLE_STEPS,
 	GEOFENCE_STROKE_WIDTH,
 	POINT_HIT_RADIUS,
 	ROUTE_HIT_WIDTH,
-	ZONE_SPARE_FRACTION,
 } from '../../modules/map/engine/map-constants'
 import { circleRing, zoneBudget, zoneSpare } from '../../modules/map/engine/map-geofence'
 import { projectArea } from '../../modules/map/engine/map-geometry/mark'
@@ -395,7 +395,7 @@ describe('zoneBudget and zoneSpare', () => {
 	it('spares a share of the zone’s own room, not the whole of it', () => {
 		// A 60-unit square holds 30 units of inscribed room, so the zone keeps half
 		// and hands out half — a dot at the middle can never blanket what drew it.
-		expect(budgetOf(60).spare).toBe(30 * ZONE_SPARE_FRACTION)
+		expect(budgetOf(60).spare).toBe(30 * AREA_SPARE_FRACTION)
 	})
 
 	it('claims nothing of a dot standing clear of the zone', () => {
@@ -420,7 +420,7 @@ describe('zoneBudget and zoneSpare', () => {
 		// Under the transform one device pixel spans two frame units, so a zone of
 		// fixed frame width spares half as many pixels — and the band it competes
 		// over grows to stay one finger target wide on screen.
-		expect(budgetOf(60, 2).spare).toBe(15 * ZONE_SPARE_FRACTION)
+		expect(budgetOf(60, 2).spare).toBe(15 * AREA_SPARE_FRACTION)
 
 		expect(budgetOf(60, 2).margin).toBe(POINT_HIT_RADIUS * 2)
 	})

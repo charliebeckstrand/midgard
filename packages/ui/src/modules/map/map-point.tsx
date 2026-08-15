@@ -39,10 +39,12 @@ export type MapPointProps = MapOverlayProps & {
  * the map is drawing takes half the room that zone holds, so the zone keeps a band
  * of its own face pointable and a zone wide enough to spare the whole target gives
  * the whole target; toggle the zone off in the legend and the point has its ground
- * to itself again. And a region layer that answers clicks takes it down to the
- * radius the dot paints at, because the dot is the topmost thing at its own pixels
- * — a full target over a clickable shape puts a 44px hole in it, and a dot near the
- * middle of a small region can make that region unpickable altogether.
+ * to itself again. A region layer that answers the pointer takes a share of its own
+ * room on the same terms, because the dot is the topmost thing at its own pixels —
+ * a full target over such a shape puts a 44px hole in it, and a dot near the middle
+ * of a small region can make that region unpickable altogether. Answering is wider
+ * than clicking: a readout, a preload, or a right-click menu each earn it, and a
+ * region with room to spare gives the whole target back.
  *
  * Both narrowings are for a MOUSE only. A coarse pointer keeps the whole 44px
  * target (WCAG 2.5.5): a finger cannot aim at 11px, and the shapes it is competing
@@ -108,6 +110,25 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		[position, neighbours, unitsPerPixel],
 	)
 
+	/*
+	 * The shared rule, through the one dot this mark draws — memoised beside `ground` and for the
+	 * same reason. A lone dot has no neighbour of its own, so a zone or the region layer under it is
+	 * what can answer, and the rule stays in one place so a third claim reaches this mark without it
+	 * being edited.
+	 *
+	 * It sat below the guard while `spare` was a boolean read and a short loop over the zone ledger.
+	 * The region half made it two projection inverts and a grid walk per call, which is more than a
+	 * toggled-off mark saves by skipping it — and `ground` above already pays that trade the other
+	 * way round.
+	 */
+	const target = useMemo(
+		() =>
+			position === null
+				? undefined
+				: markTargets([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, spare)[0],
+		[position, unitsPerPixel, spare],
+	)
+
 	if (slot === undefined || hidden || position === null) return null
 
 	const clip = ground === null ? undefined : clipId
@@ -140,11 +161,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 						at: position,
 						hit: hit(),
 						scale: unitsPerPixel,
-						// The shared rule, through the one dot this mark draws. A lone dot has
-						// no neighbour of its own, so a zone under it is what can answer — but
-						// the rule stays in one place, and a third claim on the ground would
-						// reach this mark without it being edited.
-						target: markTargets([{ at: position, radius: POINT_RADIUS }], unitsPerPixel, spare)[0],
+						target,
 						clip,
 					})}
 				/>

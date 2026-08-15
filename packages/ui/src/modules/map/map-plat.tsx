@@ -14,7 +14,6 @@ import {
 	useMapZoomView,
 } from './context'
 import { pooledDots } from './engine/map-cluster/ground'
-import { POINT_HIT_RADIUS_FINE } from './engine/map-constants'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -25,10 +24,12 @@ import { overlaySlotColors } from './engine/map-overlay/slots'
 import { regionGroupId } from './engine/map-region/category'
 import type { MapRegionData } from './engine/map-region/data'
 import { defaultRegionId } from './engine/map-region/identity'
+import { NO_REGION_CLAIM, regionSpare } from './engine/map-region/spare'
 import type { MapZoomInput } from './engine/map-zoom/input'
 import { mapZoomSettings } from './engine/map-zoom/input'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type {
+	LngLat,
 	MapAspectRatio,
 	MapFeature,
 	MapGeography,
@@ -216,6 +217,29 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Reach for it rarely.
 		 */
 		zoom?: MapZoomInput
+		/**
+		 * Whether the drawn regions answer the pointer at all.
+		 *
+		 * `false` makes the layer inert: no readout, no pick, no menu — and the marks
+		 * standing on it keep their whole target, since a dot only narrows to give
+		 * ground back to something that can answer with it.
+		 *
+		 * For a map drilled into one region, which is the ground its marks stand on
+		 * and has nothing left to say. It beats `nameRegions`, a matched `data` row,
+		 * and a click handler, all of which otherwise earn the layer its handlers —
+		 * so a caller states the layer is off in one place rather than withdrawing
+		 * each of them.
+		 *
+		 * Say it here rather than with a CSS `pointer-events` override, which the
+		 * plat cannot see: the marks go on paying a narrowed target for ground the
+		 * layer can no longer answer with.
+		 *
+		 * @defaultValue true
+		 * @remarks It withdraws rather than grants, the way `tooltip` does: `true` is
+		 * the default and asserts nothing, so a map whose regions earn nothing answers
+		 * with nothing whatever this says. Only `false` is an instruction.
+		 */
+		regionPointer?: boolean
 		/**
 		 * Animate the map in on mount: the neutral geography paints at once, then
 		 * category colour washes in region by region, routes draw themselves, and
@@ -482,6 +506,75 @@ function useMarkSelection(
 }
 
 /**
+ * What the region layer does for the pointer, once the caller and the map have
+ * both had their say.
+ *
+ * @internal
+ */
+type MapRegionPointerState = {
+	/** Whether the paths take their own pointer handlers. */
+	tracked: boolean
+	/**
+	 * Whether anything under a mark answers — the third claimant on the ground a
+	 * dot stands on, and the one that claims first.
+	 *
+	 * A click is one of several ways a region answers, and the rarest of them: a
+	 * matched region reads out under the pointer, a warmed one loads on the dwell,
+	 * and a right-click can open a menu on it. Read as clicks alone, a map whose
+	 * regions are read-only kept the full finger target on every dot — the several
+	 * county maps a coverage drill tiles take no county pick, because a pick could
+	 * only be read back onto one of them, and each of their pins went on putting a
+	 * 44px hole in the readout underneath.
+	 */
+	answers: boolean
+	/** The pick the layer makes, on the pointer and on the keyboard alike. */
+	click: ((index: number) => void) | undefined
+	/** The menu the layer opens. */
+	contextMenu: ((index: number) => void) | undefined
+}
+
+/**
+ * Resolves the region layer's pointer state.
+ *
+ * Held apart from {@link MapPlat} because the four answers have to agree: read
+ * inline they were branches in a component already at the complexity limit, and
+ * the one that matters — a switched-off layer claiming no ground from the marks
+ * above it — is the one a reader has to trace furthest to confirm.
+ *
+ * `earned` is what the map itself justifies: a matched category, a warming
+ * reporter, or `nameRegions`. The caller's `regionPointer` beats all of it, and
+ * beats it here rather than at each reader, so a switched-off layer cannot go on
+ * answering through a channel one of them forgot to gate. The two delegated
+ * handlers are that risk: they ride the group rather than the paths, so
+ * `tracked` never reaches them.
+ *
+ * Takes the bridged reporters rather than the props, so what it returns is what
+ * the layer and the keyboard both bind.
+ *
+ * @internal
+ */
+function regionPointerState(
+	regionPointer: boolean | undefined,
+	earned: boolean,
+	click: ((index: number) => void) | undefined,
+	contextMenu: ((index: number) => void) | undefined,
+): MapRegionPointerState {
+	if (regionPointer === false) {
+		return { tracked: false, answers: false, click: undefined, contextMenu: undefined }
+	}
+
+	return {
+		tracked: earned,
+		answers: earned || click !== undefined || contextMenu !== undefined,
+		click,
+		contextMenu,
+	}
+}
+
+/** A layer that answers nothing offers no region stops; shared so the gate allocates none. @internal */
+const NO_CENTROIDS: (LngLat | null)[] = []
+
+/**
  * An SVG geography map on the chart module's interaction grammar: regions
  * coloured by category from typed rows, one merged legend where pointing an
  * entry dims everything outside its group and clicking toggles it off,
@@ -520,6 +613,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		tooltip = true,
 		nameRegions = false,
 		zoom: zoomInput,
+		regionPointer,
 		animate = false,
 		onRegionClick,
 		onRegionContextMenu,
@@ -735,77 +829,81 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// stop away under the reader. Memoised on the join, so the scan a map with no
 	// match pays in full runs once per readout rather than once per render.
 	//
-	// The region layer gates on this — through `regionsTracked` below — rather than
-	// on the wider reading further down, and must: overlays register from an
-	// effect, so a bit that counted them would read `false` on a backdrop map's
-	// first commit and `true` on its next, failing the layer's memo and re-mapping
-	// the whole atlas a second time. The dot targets read that same gate, so a mark
-	// gives its ground back exactly where the paths under it took handlers to
-	// answer with.
+	// The region layer gates on this — through `regionPointerState` below — rather
+	// than on `hasReadout`, which counts the overlays too, and must: overlays
+	// register from an effect, so a bit that counted them would read `false` on a
+	// backdrop map's first commit and `true` on its next, failing the layer's memo
+	// and re-mapping the whole atlas a second time.
+	//
+	// The gate forks past that point. The paths take their handlers on `tracked`,
+	// and the dot targets yield on `answers`, which is wider: the delegated pick and
+	// menu ride the group rather than the paths, so a click-only map binds nothing
+	// per path and still claims the ground under every dot.
 	const regionsRead = useMemo(
 		() => regionCategory.some((category) => category !== null),
 		[regionCategory],
 	)
 
 	// Whether the region paths answer the pointer at all, which anything reading
-	// what the pointer is on earns: a matched category, or a warming reporter. A
-	// plain navigation map — a geography and `onRegionPreload`, no `data` — has no
-	// match to earn them, and without this the pointer half of its report would be
-	// dead. Both halves read the same on the first commit as on the next, which the
-	// bit above states the layer must have.
-	// Naming every region is itself a readout, so it earns the layer its handlers:
-	// without this a map with no `data` would carry the prop and answer nothing.
-	const regionsTracked = regionsRead || preloads || nameRegions
-
-	// Whether the region layer answers the pointer at all — the third claimant on the ground
-	// a dot stands on, and the one that claims first.
+	// what the pointer is on earns: a matched category, a warming reporter, or
+	// `nameRegions`. A plain navigation map — a geography and `onRegionPreload`, no
+	// `data` — has no match to earn them, and without this the pointer half of its
+	// report would be dead; naming every region is itself a readout, so a map with
+	// no `data` that carries that prop would otherwise answer nothing. All three
+	// read the same on the first commit as on the next, which the bit above states
+	// the layer must have.
 	//
-	// A click is one of several ways a region answers, and the rarest of them: a matched region
-	// reads out under the pointer, a warmed one loads on the dwell, and a right-click can open a
-	// menu on it. Read as clicks alone, a map whose regions are read-only kept the full finger
-	// target on every dot — the several county maps a coverage drill tiles take no county pick,
-	// because a pick could only be read back onto one of them, and each of their pins went on
-	// putting a 44px hole in the readout underneath.
-	//
-	// `regionsTracked` is the same bit the layer binds its own pointer handlers on, so a dot
-	// yields exactly where the paths beneath it are listening and nowhere else. The two
-	// delegated handlers ride the group instead of the paths, so they answer whether or not
-	// any region reads.
-	const regionsAnswer =
-		regionsTracked || onRegionClick !== undefined || onRegionContextMenu !== undefined
+	// A caller can switch the layer off outright, which beats all three — see
+	// `regionPointerState` for what that gate owes each reader.
+	const regions = regionPointerState(
+		regionPointer,
+		regionsRead || preloads || nameRegions,
+		clickRegion,
+		contextMenuRegion,
+	)
 
-	// How much reach the drawn zones leave a mark at a position — the tightest
-	// budget any visible one allows, since a dot overlapping two zones has to
-	// satisfy both. Rebuilt only as the ledger or the legend's toggles change: the
-	// resolvers themselves are stable, so a zone redrawn in place keeps this
-	// identity and the dots reading it hold through a refit rather than
-	// re-measuring per pointer crossing.
+	// How much room the region under a dot can spare it, rebuilt only as the
+	// geography, the fit, or the layer's answering changes — so the per-region
+	// measurements it memoises survive every pointer crossing and every legend
+	// toggle, and a map whose regions answer nothing never measures a shape.
+	//
+	// Whether they answer is this component's own policy, so it is stated here and
+	// the resolver takes no boolean about it — the zone half is gated the same way,
+	// at the fold rather than inside `zoneBudget`.
+	const regionRoom = useMemo(
+		() =>
+			regions.answers
+				? regionSpare(shape.features, shape.unproject, shape.project)
+				: NO_REGION_CLAIM,
+		[shape.features, shape.unproject, shape.project, regions.answers],
+	)
+
+	// How much reach everything under a mark leaves it at a position — the tightest
+	// claim any of them allows, since a dot standing over two shapes has to satisfy
+	// both. The region layer claims first, then each visible zone. Rebuilt as the
+	// ledger, the legend's toggles, or the fit change: the resolvers themselves are
+	// stable, so a zone redrawn in place keeps this identity and the dots reading it
+	// hold through a pointer crossing rather than re-measuring.
 	// A loop rather than a `reduce` closure: every dot on the map calls this, and
 	// the callback would be a fresh allocation per call rather than per rebuild.
 	const spare = useCallback(
-		(at: MapPoint2D) => {
+		(at: MapPoint2D, unitsPerPixel: number) => {
 			// A region layer that answers the pointer is the third claimant on this ground, and it
-			// claims first — see `regionsAnswer` for what counts as answering.
+			// claims first — see `regionPointerState` for what counts as answering.
 			//
 			// A finger-sized target over such a region takes a 44px bite out of the shape under it:
 			// the dot is the topmost thing at those pixels, so the region cannot be pointed at or
 			// picked there, and a dot near the middle of a small region can put it out of reach
-			// altogether. The dot gives back what a mouse can spare — `POINT_HIT_RADIUS_FINE`, which is
-			// the radius the dot already paints at — so the region answers everywhere the dot is not
-			// literally drawn. Touch keeps the whole 44px target, since `k.hitFine` narrows at
-			// `pointer-fine` only: a region is a large shape a finger can reach elsewhere, and a coarse
-			// pointer cannot aim at an 11px target (WCAG 2.5.5).
-			//
-			// Map-level rather than per-dot. Resolving whether a REGION lies under one coordinate would
-			// need a point-in-polygon pass per dot per render, and the module has no
-			// coordinate-to-region resolver — `regionIndexAt` reads one back off a DOM element. The cost
-			// is a dot standing over no region narrowing for nothing, which on these maps is the ocean;
-			// every dot anyone plots is over land, and land is regions.
+			// altogether. The dot gives back a share of what the region itself holds, the way it
+			// does for a zone — `regionSpare` states why a share and not a figure. Touch keeps the
+			// whole 44px target, since `k.hitFine` narrows at `pointer-fine` only: a region is a
+			// large shape a finger can reach elsewhere, and a coarse pointer cannot aim at an 11px
+			// target (WCAG 2.5.5).
 			//
 			// The identity of the minimum otherwise, not a size: a map whose regions answer nothing
 			// and which draws no zones claims nothing here, and `markTargets` is the one place that
 			// knows the cap.
-			let room = regionsAnswer ? POINT_HIT_RADIUS_FINE : Number.POSITIVE_INFINITY
+			let room = regionRoom(at, unitsPerPixel)
 
 			for (const entry of entries) {
 				if (entry.spare === undefined || hidden.has(entry.id)) continue
@@ -815,7 +913,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 			return room
 		},
-		[entries, hidden, regionsAnswer],
+		[entries, hidden, regionRoom],
 	)
 
 	// Every visible dot-drawing mark's stops, projected — the pool a dot divides its target's ground
@@ -912,9 +1010,26 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// first navigation key instead. A stop whose position the projection drops
 	// (the US composite discards points outside its insets) is left out, so the
 	// cursor never lands somewhere the map does not draw.
+	//
+	// A layer that answers nothing holds no stops either. The pointer half takes
+	// care of itself — the paths bind no handlers, so nothing can be pointed at —
+	// but the cursor reaches a region through this list rather than through the
+	// DOM, so without the gate a reader could arrow onto a drilled state, hear it
+	// named, press Enter, and get nothing: `activateTarget` dispatches through
+	// `regions.click`, which the same gate already emptied.
+	//
+	// It reads `answers` rather than the caller's switch alone, so a backdrop map
+	// whose regions earn nothing drops them too — the marks over it keep their own
+	// stops, and a region that leads nowhere is not one a cursor should stand on.
 	const resolveStops = useCallback(
-		() => mapStops(cachedRegionCentroids(shape.features), entries, hidden, shape.project),
-		[shape.features, shape.project, entries, hidden],
+		() =>
+			mapStops(
+				regions.answers ? cachedRegionCentroids(shape.features) : NO_CENTROIDS,
+				entries,
+				hidden,
+				shape.project,
+			),
+		[shape.features, shape.project, entries, hidden, regions.answers],
 	)
 
 	// Picks the mark the cursor sits on: a region through the caller's own
@@ -923,14 +1038,14 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const activateTarget = useCallback(
 		(target: MapHoverTarget) => {
 			if (target.kind === 'region') {
-				clickRegion?.(target.index)
+				regions.click?.(target.index)
 
 				return
 			}
 
 			entries.find((entry) => entry.id === target.id)?.activate?.(target.stop)
 		},
-		[clickRegion, entries],
+		[regions.click, entries],
 	)
 
 	// Whether anything at all can read out — a matched region, or a registered
@@ -956,7 +1071,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// geography yet, or a `deferPaint` frame still holding — from offering a stop
 	// that answers no key. It reads the frame rather than the stops themselves,
 	// so the gate stays O(1) and the centroids stay unresolved.
-	const pickable = onRegionClick !== undefined || entries.some((entry) => entry.activate)
+	const pickable = regions.click !== undefined || entries.some((entry) => entry.activate)
 
 	// A zooming map earns the stop on its own: the wheel and the drag are pointer
 	// gestures, so without it the scale would be out of a keyboard reader's reach
@@ -1021,12 +1136,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 							frame={shape.regionFrame}
 							regionCategory={regionCategory}
 							categories={categoryMetas}
-							interactive={regionsTracked}
+							interactive={regions.tracked}
 							hidden={hidden}
 							emphasis={emphasis}
 							animate={animate}
-							onRegionClick={clickRegion}
-							onRegionContextMenu={contextMenuRegion}
+							onRegionClick={regions.click}
+							onRegionContextMenu={regions.contextMenu}
 							selected={selected}
 							pending={pending}
 						/>

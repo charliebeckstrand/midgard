@@ -19,6 +19,7 @@
  */
 
 import { feature, merge } from 'topojson-client'
+import { featureRings } from '../map-geometry/mark'
 import { decodedFeatures, topologyObject } from '../map-geometry/topology'
 import type { MapFeature, MapGeography, MapPolygons, MapShape, MapTopology } from '../types'
 
@@ -102,19 +103,6 @@ const NO_AREA: MapZipArea = { codes: [], features: [], polygons: [], dissolved: 
 /** Whether a shape is one this pass can draw; `merge` takes areas alone. @internal */
 function isArea(shape: MapShape): boolean {
 	return shape.type === 'Polygon' || shape.type === 'MultiPolygon'
-}
-
-/** A feature's rings, in the polygon-then-ring shape both geometry kinds flatten to. @internal */
-function featureRings(shape: MapFeature): MapPolygons {
-	const geometry = shape.geometry
-
-	if (geometry === null) return []
-
-	if (geometry.type === 'Polygon') return [geometry.coordinates as MapPolygons[number]]
-
-	if (geometry.type === 'MultiPolygon') return geometry.coordinates as MapPolygons
-
-	return []
 }
 
 /** The geometries a topology object holds, whether it collects them or is one itself. @internal */
