@@ -1,15 +1,8 @@
 'use client'
 
 import { Check, MapPin, MapPinned, Plus } from 'lucide-react'
-import { Fragment, type MouseEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbSeparator,
-} from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Flex } from 'ui/flex'
@@ -43,16 +36,15 @@ import {
 	viewForPlace,
 	viewMark,
 	viewRegion,
+	viewUp,
 } from '../../utilities/places-view'
 import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters } from '../place-filters'
 import { PlaceFormDrawer } from '../place-form-drawer'
+import { PlaceTrail } from '../place-trail'
 import { PlacesIndex } from '../places-index'
 import { PlacesMap } from '../places-map'
 import { usePlaceLocation } from './use-place-location'
-
-/** The title crumbs' weight, held on the crumb so it beats the current one's `font-normal`. */
-const TITLE_CRUMB = 'font-semibold'
 
 /** The empty list a pending places query stands in for, held so its identity is stable. */
 const NO_PLACES: Place[] = []
@@ -280,7 +272,16 @@ export function PlacesApp() {
 		return filtered.filter((place) => inRegion.has(place.id))
 	}, [filtered, cut, placesByRegion])
 
-	const crumbs = viewCrumbs(view)
+	// The page's own trail, as steps that navigate. Every crumb but the last goes
+	// back to the view it names; the last is where the reader is and leads nowhere.
+	const pageTrail = useMemo(
+		() =>
+			viewCrumbs(view).map((crumb, at, all) => ({
+				label: crumb.label,
+				onPick: at === all.length - 1 ? undefined : () => setView(crumb.view),
+			})),
+		[view, setView],
+	)
 
 	return (
 		<Flex direction="col" className="h-full">
@@ -291,52 +292,18 @@ export function PlacesApp() {
 				className="shrink-0 border-b border-zinc-950/10 dark:border-white/10 px-6 py-4"
 			>
 				{/* The title is the trail: "Places" alone at the top, and a step per level
-				    under it, where every crumb but the last is the way back. It carries
-				    the heading's own size rather than the breadcrumb's, so the line reads
-				    as the page title it is and does not shrink on a drill. The weight
-				    rides each crumb rather than the list, because the recipe writes
-				    `font-normal` on the current one — set on the list, that override
-				    would leave the trail bold and its last crumb light. */}
-				<Breadcrumb>
-					<BreadcrumbList className="text-xl/8">
-						{crumbs.map((crumb, at) => {
-							const current = at === crumbs.length - 1
+				    under it, where every crumb but the last is the way back. It carries the
+				    heading's own size rather than the breadcrumb's, so the line reads as the
+				    page title it is and does not shrink on a drill.
 
-							// The separator is a sibling of the items and never a child of
-							// one: both render an `li`, and an `li` inside an `li` is not a
-							// list the parser will build — it hoists the inner one out, which
-							// is a hydration mismatch and a broken trail.
-							return (
-								<Fragment key={crumb.label}>
-									{at > 0 ? <BreadcrumbSeparator /> : null}
-
-									<BreadcrumbItem>
-										{/* `current` and `href` are independent axes: the first
-										    marks the page, the second decides anchor or span. A
-										    level in, every crumb above the last is both a link
-										    and the way back. */}
-										<BreadcrumbLink
-											current={current}
-											href={current ? undefined : '#'}
-											className={TITLE_CRUMB}
-											onClick={
-												current
-													? undefined
-													: (event: MouseEvent) => {
-															event.preventDefault()
-
-															setView(crumb.view)
-														}
-											}
-										>
-											{crumb.label}
-										</BreadcrumbLink>
-									</BreadcrumbItem>
-								</Fragment>
-							)
-						})}
-					</BreadcrumbList>
-				</Breadcrumb>
+				    `min-w-0` on the wrapper is what lets the trail give way at all: without
+				    it this flex child holds its full width and pushes the controls beside it
+				    off the row instead of truncating. `flex-1` is what lets it come back: the
+				    trail measures the box it is given, and a box that shrinks to the trail
+				    would narrow with it and never report the room to expand again. */}
+				<div className="flex-1 min-w-0">
+					<PlaceTrail className="text-xl/8" steps={pageTrail} />
+				</div>
 
 				<Flex gap="sm" align="center" className="shrink-0">
 					{/* The visited toggle. It is a button rather than a checkbox, 
@@ -387,11 +354,7 @@ export function PlacesApp() {
 						regionLabel={REGION_LABEL[atlas]}
 						drilled={cut}
 						onDrill={(region) =>
-							setView(
-								region === null
-									? (crumbs[crumbs.length - 2]?.view ?? view)
-									: drillInto(view, region),
-							)
+							setView(region === null ? (viewUp(view) ?? view) : drillInto(view, region))
 						}
 					/>
 				</div>

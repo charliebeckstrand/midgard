@@ -292,6 +292,18 @@ export function viewForPlace(states: ReadonlyMap<string, string>, place: Place):
 }
 
 /**
+ * The view one step out, or `null` where there is nowhere further out to go.
+ *
+ * It is the trail's second-to-last step, named directly: reading it back out of
+ * {@link viewCrumbs} by index worked and said nothing about what it meant.
+ */
+export function viewUp(view: PlaceView): PlaceView | null {
+	if (view.state !== null) return { country: view.country, state: null }
+
+	return view.country === null ? null : WORLD
+}
+
+/**
  * The view the app opens on: the smallest geography that holds every place.
  *
  * The question is asked of the geometry and never of a country name. A place

@@ -1,15 +1,8 @@
 'use client'
 
 import { Pencil, Trash, X } from 'lucide-react'
-import { Fragment, type MouseEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbSeparator,
-} from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
@@ -25,6 +18,7 @@ import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
 import { CategoryPicker } from '../category-picker'
+import { PlaceTrail } from '../place-trail'
 
 /** Props for {@link PlaceDrawer}. */
 export type PlaceDrawerProps = {
@@ -58,9 +52,6 @@ export type PlaceDrawerProps = {
 	/** Asks for the place to be deleted. The confirmation is the caller's. */
 	onDelete: (place: Place) => void
 }
-
-/** The crumbs' weight, held on each so it beats the current one's `font-normal`. */
-const CRUMB = 'font-semibold'
 
 /** The visit date, category, and score — the line under a place's name. */
 function PlaceMeta({ place }: { place: Place }) {
@@ -192,6 +183,27 @@ export function PlaceDrawer({
 
 	const title = [...where, ...(place === null ? [] : [place.name])].join(' › ')
 
+	// The trail as steps that act. Every region step but the last leads out to the
+	// map; the last leads back to this panel's own list, and the place itself leads
+	// nowhere because it is where the reader already is.
+	const steps = useMemo(() => {
+		const regions = where.map((step, at) => ({
+			label: step,
+			onPick:
+				at < where.length - 1
+					? () => onNavigate(step)
+					: place !== null && list.length > 0
+						? () => {
+								setOpenedId(null)
+
+								setListing(true)
+							}
+						: undefined,
+		}))
+
+		return place === null ? regions : [...regions, { label: place.name }]
+	}, [where, place, list.length, onNavigate])
+
 	return (
 		<Drawer
 			glass
@@ -217,75 +229,19 @@ export function PlaceDrawer({
 			{/* No top padding: the handle above carries it, so the title sits directly
 			    under the grip rather than a step below it. */}
 			<Flex justify="between" align="start" gap="md" className="px-6">
-				<Stack gap="sm">
+				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
+				    child holds its full width, so a long trail runs past the panel edge
+				    instead of truncating — the crumbs cannot shrink below a parent that
+				    will not. `flex-1` is what lets it come back: the trail measures the box
+				    it is given, and a box that shrinks to the trail would narrow with it and
+				    never report the room to expand again. */}
+				<Stack gap="sm" className="flex-1 min-w-0">
 					{/* The title is the trail, so it doubles as the way back and the panel
 					    needs no Back button of its own. `DrawerTitle` names the panel; the
 					    crumbs are what the reader reads and act on. */}
 					<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
 
-					<Breadcrumb>
-						<BreadcrumbList className="text-lg/7 sm:text-base/7">
-							{where.map((step, at) => {
-								// Only the last region step leads anywhere: it names the list this
-								// panel holds, and the steps above it name regions the panel has no
-								// list for. The map's own trail is how a reader goes up to those.
-								const deepest = at === where.length - 1
-
-								// The last step leads back to this panel's own list. Every step
-								// above it names a region the panel has no list for, so it leads
-								// where the map would: into that region, which closes the panel
-								// the way any other navigation does.
-								const back = deepest && place !== null && list.length > 0
-
-								const away = !deepest && trail.length > 0
-
-								return (
-									<Fragment key={step}>
-										{at > 0 ? <BreadcrumbSeparator /> : null}
-
-										<BreadcrumbItem>
-											<BreadcrumbLink
-												current={deepest && place === null}
-												className={CRUMB}
-												href={back || away ? '#' : undefined}
-												onClick={
-													back || away
-														? (event: MouseEvent) => {
-																event.preventDefault()
-
-																if (away) {
-																	onNavigate(step)
-
-																	return
-																}
-
-																setOpenedId(null)
-
-																setListing(true)
-															}
-														: undefined
-												}
-											>
-												{step}
-											</BreadcrumbLink>
-										</BreadcrumbItem>
-									</Fragment>
-								)
-							})}
-
-							{place === null ? null : (
-								<>
-									<BreadcrumbSeparator />
-
-									<BreadcrumbItem>
-										<BreadcrumbLink current className={CRUMB}>
-											{place.name}
-										</BreadcrumbLink>
-									</BreadcrumbItem>
-								</>
-							)}
-						</BreadcrumbList>
-					</Breadcrumb>
+					<PlaceTrail className="text-base/7" steps={steps} />
 
 					{place ? <PlaceMeta place={place} /> : null}
 				</Stack>
