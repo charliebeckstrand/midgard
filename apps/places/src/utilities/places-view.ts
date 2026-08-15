@@ -17,10 +17,10 @@ export const UNITED_STATES = 'United States of America'
  * Regions no map here draws.
  *
  * Antarctica alone, and for how it looks rather than for what it is. Every world
- * projection stretches the pole into a band across the foot of the frame — under
- * Equal Earth it is a flat grey smear that reads as a drawing fault — and it
- * takes a tenth of the frame's height to say nothing a reader of this app is
- * looking for.
+ * projection stretches the pole into a band across the foot of the frame — a
+ * flat smear that reads as a drawing fault, and worse under Mercator than under
+ * most — and it takes a tenth of the frame's height to say nothing a reader of
+ * this app is looking for.
  *
  * A place recorded there still draws, because a dot is a position and not a
  * membership. It groups under no country and opens no drill, which is the same

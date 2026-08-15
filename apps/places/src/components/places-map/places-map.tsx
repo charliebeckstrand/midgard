@@ -115,19 +115,32 @@ export function PlacesMap({
 	// map on every pointer move.
 	const geography = useMemo(() => regionFrame(regions, cut), [regions, cut])
 
-	// What the whole atlas draws under: Equal Earth for the world, the composite
-	// for the United States.
+	// What the whole atlas draws under: Mercator for the world, the composite for
+	// the United States.
 	//
 	// Albers USA is a conic composed of one country, so it draws that country and
 	// nothing else: a point outside it projects to nothing at all, which is why it
-	// is the right frame for the states and the wrong one for the world. Equal
-	// Earth places every point there is, and holds area true while it does.
+	// is the right frame for the states and the wrong one for the world.
+	//
+	// Mercator for the world, over the equal-area projection this drew before it.
+	// Equal Earth holds area true by widening the high latitudes, and it charges
+	// that where this map spends most of its time: Greenland comes out 2.67 times
+	// wider than tall, and Canada and Russia smear into a band across the top of
+	// the frame. Area is not what a map of places you have been is for — the dots
+	// are the reading, and the land is where they sit — so the trade is worth
+	// undoing. Mercator holds shape instead, which is the thing a reader checks a
+	// coastline against, and it is the projection every slippy map has taught them
+	// to expect. It fits this frame better too: 1.55 to Equal Earth's 2.28, on a
+	// screen nearer 1.8, so it letterboxes far less and the dots are larger.
+	//
+	// It also settles the map into one family. A drilled region already draws under
+	// a centred mercator, so the frame no longer changes its kind on the way in.
 	//
 	// Stated once, because the skeleton reserves this frame and the plat then takes
 	// it. Written out at both, the two could disagree and the skeleton would
 	// reserve a frame the plat does not draw — which is the jump it exists to
 	// prevent.
-	const atlasProjection: MapProjection = viewAtlas(view) === 'states' ? 'albers-usa' : 'equal-earth'
+	const atlasProjection: MapProjection = viewAtlas(view) === 'states' ? 'albers-usa' : 'mercator'
 
 	// The whole atlas draws under its own projection; one region cut out of it
 	// draws under a mercator centred on itself.

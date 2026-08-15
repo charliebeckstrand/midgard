@@ -24,6 +24,12 @@ one state. `src/utilities/places-view.ts` holds that model, and every other
 question about the map is asked of it: which atlas to draw, which region the
 frame is cut to, and what the breadcrumb trail says.
 
+The world draws under Mercator, one country or one state under a mercator
+centred on itself, and the United States whole under the composite that is only
+that country. Mercator is not the honest choice about area — it is the honest
+choice about shape, which is what a reader checks a coastline against, and area
+is not what a map of places you have been is for.
+
 Antarctica is not drawn. Every world projection stretches the pole into a band
 across the foot of the frame, and it takes a tenth of the height to say nothing a
 reader of this app is looking for. A place recorded there still draws; it groups
