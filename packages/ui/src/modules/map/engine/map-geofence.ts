@@ -19,10 +19,10 @@
 
 import { geoCircle } from 'd3-geo'
 import {
+	AREA_SPARE_FRACTION,
 	EARTH_RADIUS_METERS,
 	GEOFENCE_CIRCLE_STEPS,
 	POINT_HIT_RADIUS,
-	ZONE_SPARE_FRACTION,
 } from './map-constants'
 import { areaReach, type MapAreaRing, ringsNear } from './map-geometry/mark'
 import type { LngLat, MapPoint2D } from './types'
@@ -97,7 +97,7 @@ export type MapZoneBudget = {
  * What a zone can spare the marks that stand on it, resolved once for the whole
  * zone.
  *
- * A dot takes {@link ZONE_SPARE_FRACTION} of the zone's own inscribed room, so
+ * A dot takes {@link AREA_SPARE_FRACTION} of the zone's own inscribed room, so
  * the zone keeps at least as much as it gives — at every size, and with no
  * threshold anywhere for a reader to land on the wrong side of. The reach is a
  * device-pixel figure and the rings are frame units, so the zone's own measure
@@ -118,7 +118,7 @@ export type MapZoneBudget = {
 export function zoneBudget(rings: readonly MapAreaRing[], unitsPerPixel: number): MapZoneBudget {
 	return {
 		rings,
-		spare: (areaReach(rings) / unitsPerPixel) * ZONE_SPARE_FRACTION,
+		spare: (areaReach(rings) / unitsPerPixel) * AREA_SPARE_FRACTION,
 		margin: POINT_HIT_RADIUS * unitsPerPixel,
 	}
 }

@@ -135,8 +135,8 @@ export function PlacesMap({
 	// A drill keeps the same rule rather than lighting whatever it opened, so the
 	// fill a state carries on the national map is the fill it carries a level in.
 	//
-	// What a drilled state loses is the pointer, not the paint — see the wrapper
-	// below for why the two are separated here.
+	// What a drilled state loses is the pointer, not the paint — see
+	// `regionPointer` below for why the two are separated here.
 	const rows = useMemo(() => {
 		if (visitedStates === undefined) return NO_ROWS
 
@@ -187,14 +187,6 @@ export function PlacesMap({
 		// The fit takes every edge of the box it is handed, so without an inset the
 		// geography meets the chrome and a coastal dot sits half off the screen. The
 		// plat fits whatever box it gets, so the margin is the box.
-		//
-		// A drilled state keeps its paint and gives up the pointer. The plat ties
-		// the two together — a region reads out because a row matched it, which is
-		// the same bit that colours it — so the row stays for the fill and the layer
-		// is taken off the pointer here, through the `data-slot` anchor the module
-		// publishes. Inside a drill the state is the ground the dots stand on: there
-		// is one state on screen and the reader just picked it, so it has nothing
-		// left to say, and a readout under every dot they reach for is in the way.
 		<div
 			className={cn(
 				'size-full p-6 sm:p-10',
@@ -217,7 +209,6 @@ export function PlacesMap({
 				// generates only what it finds literally.
 				'[&_[data-slot=map-regions]_.fill-green-600]:[fill-opacity:0.35]',
 				'[&_[data-slot=map-regions]_.fill-red-600]:[fill-opacity:0.35]',
-				drilled !== null && '[&_[data-slot=map-regions]]:pointer-events-none',
 			)}
 		>
 			<MapPlat
@@ -258,16 +249,18 @@ export function PlacesMap({
 				// into somewhere, so the pointer names every one of them rather than
 				// only the states a row painted.
 				nameRegions
+				// Inside a drill the layer answers nothing: there is one state on screen
+				// and the reader just picked it, so it has nothing left to say, and a
+				// readout under every dot they reach for is in the way. The drill is
+				// stated here alone — the prop withdraws the readout, the pick, and the
+				// pointer cursor together.
+				regionPointer={drilled === null}
 				selectedOverlay={selectedOverlay}
 				// Every state opens, whether or not it holds places: an empty one is a
 				// place to look, and a reader who has just added somewhere new should not
 				// have to find out from a dead click that the map disagreed. The paint
 				// still says which states hold places — it reports, and no longer gates.
-				//
-				// Dropped inside a drill, which is what takes the pointer cursor off the
-				// state: the prop is what puts one on every region, so a drilled state
-				// that kept it would look like it opened into something further.
-				onRegionClick={drilled === null ? onDrill : undefined}
+				onRegionClick={onDrill}
 			>
 				<MapPoints
 					id={MARK_ID}

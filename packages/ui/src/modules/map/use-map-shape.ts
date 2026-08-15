@@ -11,7 +11,7 @@ import {
 	staticMapGeometry,
 } from './engine/map-geometry/cache'
 import { EMPTY_CHROME, type MapChromePaths } from './engine/map-geometry/chrome'
-import { projectPoint } from './engine/map-geometry/mark'
+import { projectPoint, unprojectPoint } from './engine/map-geometry/mark'
 import { carriedTransform } from './engine/map-geometry/projected'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import { measuredMapFit } from './engine/map-projection/fit'
@@ -21,6 +21,7 @@ import type {
 	MapAspectRatio,
 	MapFeature,
 	MapGeography,
+	MapPoint2D,
 	MapProjection,
 } from './engine/types'
 
@@ -63,6 +64,18 @@ export type MapFrameShape = {
 	chrome: MapChromePaths
 	features: MapFeature[]
 	project: (position: LngLat) => ReturnType<typeof projectPoint>
+	/**
+	 * {@link project} run backwards, `null` where the fit has no lon/lat for a
+	 * frame position — which the composite's gaps between insets genuinely have.
+	 *
+	 * For the one reader that has to go that way: the region half of the
+	 * hit-target rule turns a dot's frame position into a lon/lat to ask which
+	 * regions its target stands to cover, and only the projection knows how many
+	 * degrees a pixel is where the dot happens to be. Stated as a closure like its
+	 * twin rather than by handing out the fitted projection, so `d3-geo` stays
+	 * inside the geometry engine.
+	 */
+	unproject: (at: MapPoint2D) => LngLat | null
 }
 
 /**
@@ -184,6 +197,7 @@ export function useMapShape({
 				regionFrame: null,
 				fit: null,
 				project: () => null,
+				unproject: () => null,
 			}
 		}
 
@@ -208,6 +222,7 @@ export function useMapShape({
 			regionFrame,
 			fit: fitted,
 			project: (position: LngLat) => (fitted === null ? null : projectPoint(fitted, position)),
+			unproject: (at: MapPoint2D) => unprojectPoint(fitted, at),
 		}
 	}, [projection, statics, frameWidth, frameHeight, deferPaint])
 
@@ -225,7 +240,7 @@ export function useMapShape({
 		[view, graticule, sphere],
 	)
 
-	const { viewWidth, viewHeight, paths, regionFrame, project } = view
+	const { viewWidth, viewHeight, paths, regionFrame, project, unproject } = view
 
 	return {
 		ref,
@@ -239,5 +254,6 @@ export function useMapShape({
 		chrome,
 		features: statics.features,
 		project,
+		unproject,
 	}
 }

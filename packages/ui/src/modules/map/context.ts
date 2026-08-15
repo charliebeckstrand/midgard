@@ -124,9 +124,16 @@ export type MapPlatContextValue = {
 	 *
 	 * A REGION layer that answers the pointer claims it too, and on the same terms — a
 	 * finger-sized target over a shape that reads out, answers clicks, or opens a menu puts
-	 * that shape out of reach where the dot stands, so the dot narrows to what a mouse can
-	 * spare and the region answers everywhere the dot is not drawn. Touch keeps the whole
-	 * target; see the resolver.
+	 * that shape out of reach where the dot stands, so the dot takes a share of what the
+	 * region itself holds and the region keeps the rest. Touch keeps the whole target; see
+	 * the resolver.
+	 *
+	 * The scale rides in because of that half. A region is measured in frame units where a
+	 * zone's budget converted at the mark that registered it, and this resolver cannot make
+	 * the conversion itself: `MapZoomScaleContext` sits below the plat, around the plot
+	 * alone, so a wheel notch re-renders the marks without re-rendering the plat. The
+	 * parameter stops here — `useMapOverlay` binds it and every reader below takes the
+	 * one-measure shape every other claimant has.
 	 *
 	 * Resolved here rather than by each dot, because the question is about the
 	 * plat's whole ledger and the answer changes with the legend. It reads the
@@ -134,7 +141,7 @@ export type MapPlatContextValue = {
 	 * a refit moves the targets under it on the next render of the marks — see
 	 * {@link MapOverlayEntry.spare} for why the resolver is stable.
 	 */
-	spare: (at: MapPoint2D) => number
+	spare: (at: MapPoint2D, unitsPerPixel: number) => number
 	/**
 	 * Every OTHER mark's drawn dots, in frame units — what a dot measures its pointer target's ground
 	 * against, so two marks standing on top of one another divide it instead of overlapping.

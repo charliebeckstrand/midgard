@@ -12,9 +12,9 @@
  * it — a readout, a pick, a menu — because the dot is the topmost thing at its own
  * pixels and none of the three can be reached where a 44px target covers the shape.
  * The last two arrive the same way, folded into the one budget the plat hands in:
- * the zone half off its ledger, the region half off a map-wide reading, both spelled
- * as a reach. That is what let the third be added without this pass learning anything
- * new. {@link markTargets} is where they meet, so every dot-shaped mark reads one
+ * the zone half off its ledger, the region half off the geography under the dot, both
+ * spelled as a reach. That is what let the third be added without this pass learning
+ * anything new. {@link markTargets} is where they meet, so every dot-shaped mark reads one
  * rule rather than assembling its own.
  *
  * The crowding half reads one mark's own drawn dots — a `MapPoints`'s groups, a
@@ -198,8 +198,9 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
  *
  * @param marks - The drawn dots, in the order they draw.
  * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
- * @param spare - How much reach the drawn zones leave a mark at a position — the
- * plat's own resolver over its ledger, which answers the legend as it toggles.
+ * @param spare - How much reach the drawn zones and the region layer leave a mark
+ * at a position — the plat's own resolver over its ledger, which answers the
+ * legend as it toggles, already bound to the scale by `useMapOverlay`.
  * @returns The target radius for each dot, in device pixels.
  *
  * @internal
@@ -212,8 +213,8 @@ export function markTargets(
 	const beside = neighbourRoom(marks, unitsPerPixel)
 
 	return marks.map(({ at, radius }, index) => {
-		// It draws nothing and stands nowhere, so no zone and no neighbour can be
-		// asked about it.
+		// It draws nothing and stands nowhere, so no zone, no region, and no
+		// neighbour can be asked about it.
 		if (at === null) return POINT_HIT_RADIUS
 
 		const room = Math.min(beside[index] ?? Number.POSITIVE_INFINITY, spare(at))

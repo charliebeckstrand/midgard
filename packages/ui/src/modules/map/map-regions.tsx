@@ -49,8 +49,10 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	frame: MapTransform | null
 	/**
 	 * Whether anything on this map reads what the pointer is on — the rows
-	 * matched a region, or a reporter asked to be told. Off, the region paths
-	 * take no pointer handlers at all. A backdrop map would otherwise commit
+	 * matched a region, or a reporter asked to be told, and the caller has not
+	 * switched the layer off. Off, the region paths take no pointer handlers at
+	 * all, and the delegated pick and menu arrive `undefined` beside it, since a
+	 * switched-off layer withdraws all three. A backdrop map would otherwise commit
 	 * hover state on every move across every one of its paths, re-rendering the
 	 * provider and a tooltip that resolves nothing: the pointed-emphasis gate
 	 * lights no unmatched region, so the whole cascade ends where it began.

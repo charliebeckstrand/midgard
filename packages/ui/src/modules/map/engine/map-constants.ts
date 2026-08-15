@@ -82,20 +82,30 @@ export const POINT_RADIUS = 5.5
 export const POINT_HIT_RADIUS = 22
 
 /**
- * How much of a zone's own inscribed reach a dot standing on it may take. Half,
- * so the zone keeps at least as much room as it gives: a dot at the centre of a
- * circular catchment takes half the radius and leaves the rest, and the band the
- * boundary answers on ({@link ROUTE_HIT_WIDTH}) stays clear at any zone wide
+ * How much of a drawn shape's own inscribed reach a dot standing on it may take.
+ * Half, so the shape keeps at least as much room as it gives: a dot at the centre
+ * of a circular catchment takes half the radius and leaves the rest, and the band
+ * the boundary answers on ({@link ROUTE_HIT_WIDTH}) stays clear at any zone wide
  * enough to have one.
  *
  * It is a fraction rather than a subtraction so the rule holds at every size —
- * a zone twice as wide gives twice as much, and a zone with no room gives
- * nothing, without a threshold anywhere for a reader to land on the wrong side
- * of.
+ * a shape twice as wide gives twice as much, and one with no room gives nothing,
+ * without a threshold anywhere for a reader to land on the wrong side of. That is
+ * what makes it the answer for both shapes that claim this ground: a zone is drawn
+ * to a size the consumer chose, and regions on one atlas run three orders of
+ * magnitude apart in area, so no fixed reach can suit a state and a county alike.
+ * The one figure the region half used before this was safe only because it was the
+ * dot's own paint — the small end, charged to every region on every map.
+ *
+ * The floor beneath it is that same paint and the cap is the finger target, both
+ * applied by `markTargets`, so a shape too small to spare anything hands the dot
+ * its drawn radius rather than a negative one. That is the correct reading and not
+ * a degenerate case: where the mark is wider than the ground under it, the pixels
+ * have nowhere to go.
  *
  * @internal
  */
-export const ZONE_SPARE_FRACTION = 0.5
+export const AREA_SPARE_FRACTION = 0.5
 
 /**
  * The floor under a fine pointer's target: the drawn dot and nothing less —

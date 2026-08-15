@@ -14,7 +14,48 @@
  */
 
 import { type GeoProjection, geoArea, geoCentroid } from 'd3-geo'
-import type { LngLat, MapPoint2D, MapPolygons } from '../types'
+import type { LngLat, MapFeature, MapPoint2D, MapPolygons } from '../types'
+
+/**
+ * {@link projectPoint} run backwards: a frame position to the lon/lat it draws
+ * from, or `null` where the fit has none — an unfitted projection, a point the
+ * composite drops between its insets, or one a projection cannot invert at all.
+ *
+ * @internal
+ */
+export function unprojectPoint(projection: GeoProjection | null, at: MapPoint2D): LngLat | null {
+	const inverted = projection?.invert?.([at.x, at.y])
+
+	if (inverted == null) return null
+
+	const [lon, lat] = inverted
+
+	return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null
+}
+
+/**
+ * A feature's rings, in the polygon-then-ring shape both area geometries flatten
+ * to. Empty for a feature that draws no area — a point, a line, a sphere, or a
+ * geometry collection — which every reader here already spells as no room.
+ *
+ * Beside {@link projectArea} and {@link areaAnchor} rather than inside either
+ * caller, because the flattening is the same question wherever an area is read:
+ * the ZIP dissolve asks it of a matched code, and the hit-target rule asks it of
+ * a region under a dot.
+ *
+ * @internal
+ */
+export function featureRings(shape: MapFeature): MapPolygons {
+	const geometry = shape.geometry
+
+	if (geometry === null) return []
+
+	if (geometry.type === 'Polygon') return [geometry.coordinates as MapPolygons[number]]
+
+	if (geometry.type === 'MultiPolygon') return geometry.coordinates as MapPolygons
+
+	return []
+}
 
 /**
  * Projects one lon/lat to frame coordinates, or `null` where the projection
@@ -165,7 +206,18 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
  *
  * @internal
  */
-type MapFrameBox = { left: number; top: number; right: number; bottom: number }
+export type MapFrameBox = { left: number; top: number; right: number; bottom: number }
+
+/**
+ * What {@link ringsNear} actually reads: the boxes alone. Stated apart from
+ * {@link MapAreaRing} so a caller that has finished measuring can drop the
+ * vertex arrays and keep placing dots against what is left — an atlas region
+ * runs to thousands of points, and holding them for a box test is the whole
+ * shape retained to read four numbers.
+ *
+ * @internal
+ */
+export type MapAreaBox = { box: MapFrameBox }
 
 /**
  * One of an area's projected rings: the frame points it draws through, and the
@@ -200,7 +252,7 @@ export type MapAreaRing = {
  *
  * @internal
  */
-export function ringsNear(rings: readonly MapAreaRing[], at: MapPoint2D, margin: number): boolean {
+export function ringsNear(rings: readonly MapAreaBox[], at: MapPoint2D, margin: number): boolean {
 	// A loop rather than `some`: every dot on a map asks this of every zone, and a
 	// callback would be a fresh allocation per call rather than per zone.
 	for (const { box } of rings) {

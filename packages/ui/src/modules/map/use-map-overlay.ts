@@ -170,11 +170,14 @@ export type MapOverlay = {
 	/** Whether the legend has toggled this mark off. */
 	hidden: boolean
 	/**
-	 * How much reach the drawn zones leave a mark at a position — the plat's whole
-	 * ledger asked at one point, tightest budget winning. A dot-shaped mark reads
-	 * it per dot to size its hit target: a dot gives a zone only as much room as
-	 * that zone can spare, and takes it all back the moment the legend puts the
-	 * zone away.
+	 * How much reach the drawn zones and the region layer leave a mark at a
+	 * position — the plat's whole ledger asked at one point, tightest budget
+	 * winning. A dot-shaped mark reads it per dot to size its hit target: a dot
+	 * gives a zone only as much room as that zone can spare, and takes it all back
+	 * the moment the legend puts the zone away.
+	 *
+	 * Bound to the zoom scale here, which the plat's own resolver takes as a second
+	 * argument it cannot supply — see {@link MapPlatContextValue.spare}.
 	 */
 	spare: (at: MapPoint2D) => number
 	/** Projects lon/lat to frame coordinates; `null` off the projection. */
@@ -326,6 +329,17 @@ export function useMapOverlay({
 		[],
 	)
 
+	// The plat's resolver, bound to the scale before it leaves this hook. The plat
+	// itself cannot bind it — `MapZoomScaleContext` sits below the plat, around the
+	// plot alone, so a wheel notch re-renders the marks and not the plat — but this
+	// hook is below that provider and already reads the scale for its own callers,
+	// so nothing further down has to carry the second argument. `markTargets` and
+	// every mark that calls it take one measure per claimant, as they always have.
+	const spareHere = useCallback(
+		(at: MapPoint2D) => spare(at, unitsPerPixel),
+		[spare, unitsPerPixel],
+	)
+
 	const stopAt = useCallback((index: number) => live.current.resolveStop(index), [])
 
 	const pick = useCallback((stop: number) => live.current.onClick?.(id, stop), [id])
@@ -449,7 +463,7 @@ export function useMapOverlay({
 		slot: colors.get(id),
 		hidden: hidden.has(id),
 		project,
-		spare,
+		spare: spareHere,
 		// The resolver, left uncalled — see {@link MapOverlay.neighbours} for why it stays lazy.
 		neighbours: neighboursOf,
 		unitsPerPixel,

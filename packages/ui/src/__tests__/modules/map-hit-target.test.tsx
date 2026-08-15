@@ -10,6 +10,7 @@ import {
 } from '../../modules/map'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import {
+	AREA_SPARE_FRACTION,
 	POINT_HIT_RADIUS,
 	POINT_HIT_RADIUS_FINE,
 	POINT_RADIUS,
@@ -436,12 +437,26 @@ describe('crowded marks divide their targets', () => {
  * budget — which is why `markTargets` needed to learn nothing for it.
  */
 describe('a dot over regions that answer the pointer', () => {
-	function clickable(children: ReactNode) {
+	/**
+	 * A frame narrow enough that the fixture's squares are small shapes. The three
+	 * ten-degree squares span the frame, so one draws a third of it — roomy in
+	 * absolute pixels at 400, and a shape with something to lose here.
+	 */
+	const TIGHT = 120
+
+	/**
+	 * What one of those squares can spare a dot standing on it. A square of side
+	 * `s` holds `2 · area / perimeter` = `s / 2` inscribed, so a third of the frame
+	 * across is a sixth of it inscribed, and the dot takes half of that.
+	 */
+	const SQUARE_SPARE = (TIGHT / 6) * AREA_SPARE_FRACTION
+
+	function clickable(children: ReactNode, width = TIGHT) {
 		return (
 			<MapPlat
 				aria-label="Test map"
 				geography={FIXTURE_GEOJSON}
-				width={400}
+				width={width}
 				onRegionClick={() => {}}
 			>
 				{children}
@@ -458,7 +473,7 @@ describe('a dot over regions that answer the pointer', () => {
 				data={FIXTURE_ROWS}
 				regionKey="state"
 				categoryKey="zone"
-				width={400}
+				width={TIGHT}
 			>
 				{children}
 			</MapPlat>
@@ -472,9 +487,41 @@ describe('a dot over regions that answer the pointer', () => {
 
 		expect(fine(target)).toBe(true)
 
-		// Down to the radius the dot paints at, so the region answers everywhere the dot is not literally
-		// drawn — and no further, since a target under its own dot would leave the dot a dead rim.
-		expect(budget(target, 'style')).toBeCloseTo(POINT_HIT_RADIUS_FINE, 5)
+		// Half of what the square itself holds, so the region keeps at least as much as it gives —
+		// the fixture's own geometry rather than a constant.
+		expect(budget(target, 'style')).toBeCloseTo(SQUARE_SPARE, 0)
+	})
+
+	it('scales the claim with the region rather than fixing it', () => {
+		const tight = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />))
+
+		const wide = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />, TIGHT * 2))
+
+		// The whole of what a fixed figure could not do. Region areas on a real atlas run three
+		// orders of magnitude apart, so the claim has to be a share of the shape: double the frame
+		// and the same square holds twice the room, so the dot may take twice as much of it.
+		expect(budget(bySlot(wide.container, 'map-point-hit'), 'style')).toBeCloseTo(
+			budget(bySlot(tight.container, 'map-point-hit'), 'style') * 2,
+			0,
+		)
+	})
+
+	it('leaves a region with room to spare the whole target', () => {
+		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />, 400))
+
+		// A dot narrows to give ground back, so a shape with ground to spare is owed nothing: at this
+		// width the square runs 130px across and a 44px target is a hole in it a reader cannot miss.
+		// The fixed figure this replaced charged every dot on every map alike, this one included.
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
+	})
+
+	it('floors at the drawn dot where the region has nothing to spare', () => {
+		const { container } = renderUI(clickable(<MapPoint label="Depot" at={[15, 5]} />, 40))
+
+		// New Jersey's case, and every smaller state's: the mark is wider than the ground under it, so
+		// the share works out under what the dot paints and `markTargets` floors it there. The region
+		// keeps everything outside the pixels the dot literally draws, which is all it can be given.
+		expect(budget(bySlot(container, 'map-point-hit'), 'style')).toBeCloseTo(POINT_RADIUS, 5)
 	})
 
 	it('narrows over regions that only read out, with no pick to make', () => {
@@ -484,10 +531,7 @@ describe('a dot over regions that answer the pointer', () => {
 		// to a 44px hole is the same loss as losing a pick. This is the tiled county maps' own case.
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(true)
 
-		expect(budget(bySlot(container, 'map-point-hit'), 'style')).toBeCloseTo(
-			POINT_HIT_RADIUS_FINE,
-			5,
-		)
+		expect(budget(bySlot(container, 'map-point-hit'), 'style')).toBeCloseTo(SQUARE_SPARE, 0)
 	})
 
 	it('narrows over regions that answer only a right-click', () => {
@@ -495,7 +539,7 @@ describe('a dot over regions that answer the pointer', () => {
 			<MapPlat
 				aria-label="Test map"
 				geography={FIXTURE_GEOJSON}
-				width={400}
+				width={TIGHT}
 				onRegionContextMenu={() => {}}
 			>
 				<MapPoint label="Depot" at={[15, 5]} />
@@ -508,7 +552,14 @@ describe('a dot over regions that answer the pointer', () => {
 	})
 
 	it('keeps the whole target where the regions answer nothing at all', () => {
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
+		// At `TIGHT`, where a layer that DID answer would narrow this dot — at the wider frame the
+		// squares can spare a whole finger target, so the case would pass either way and prove
+		// nothing about the bit it names.
+		const { container } = renderUI(
+			<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={TIGHT}>
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>,
+		)
 
 		// The claim is the answering, not the region layer: an atlas whose rows matched none of its
 		// shapes binds no pointer handlers on them and leads nowhere, so it takes nothing from the dots
@@ -516,9 +567,34 @@ describe('a dot over regions that answer the pointer', () => {
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
 	})
 
+	it('keeps the whole target where the caller switches the layer off', () => {
+		const { container } = renderUI(
+			<MapPlat
+				aria-label="Test map"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				width={TIGHT}
+				regionPointer={false}
+				onRegionClick={() => {}}
+				onRegionContextMenu={() => {}}
+			>
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>,
+		)
+
+		// `regionPointer={false}` withdraws all three answers at once, so every earner above is moot
+		// and the dot pays nothing. A drilled map is the case: the one state on screen is the ground
+		// its dots stand on, and the dots are the only thing left to reach for.
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
+	})
+
 	it('narrows every dot-shaped mark, not just the singular one', () => {
 		const { container } = renderUI(
-			clickable(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [-60, 20] }]} />),
+			clickable(
+				<MapPoints label="Stops" points={[{ at: [5, 5] }, { at: [25, 4] }]} cluster={false} />,
+			),
 		)
 
 		// One rule, read by every mark through `markTargets` — the reason the third claimant needed no
@@ -526,6 +602,15 @@ describe('a dot over regions that answer the pointer', () => {
 		for (const target of allBySlot(container, 'map-points-hit')) {
 			expect(fine(target)).toBe(true)
 		}
+	})
+
+	it('asks nothing of a dot standing off the geography', () => {
+		const { container } = renderUI(clickable(<MapPoint label="Buoy" at={[-60, 20]} />))
+
+		// The claim is the region under the dot, so a dot with no region under it owes nothing. The
+		// map-wide reading this replaced could not tell the two apart and charged every dot alike —
+		// its own stated cost, and the ocean is where a map of places puts a surprising number.
+		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
 	})
 
 	it('keeps the coarse target for a finger even over clickable regions', () => {
