@@ -339,17 +339,14 @@ export function PlacesApp() {
 				</Breadcrumb>
 
 				<Flex gap="sm" align="center" className="shrink-0">
-					{/* Only over one region, because the designation is about one. It sits
-					    by the title rather than in the filter bar: the bar decides what the
-					    map draws, and this records something the reader knows — the one
-					    control up here that writes.
-
-					    `soft` against Add place's `solid`, so the primary action stays the
-					    one that leads. The pair reads as a state rather than a switch: what
-					    it says is what is true now, and pressing it changes that. */}
+					{/* The visited toggle. It is a button rather than a checkbox, 
+						because the reader does not check a place as visited — they 
+						mark it as such. The button's own state is the visited state, 
+						so the reader sees what they are about to do and the
+					    action is a single click rather than a check and a submit. */}
 					{mark === null ? null : (
 						<Button
-							variant={marked ? 'soft' : 'outline'}
+							variant={marked ? 'soft' : 'plain'}
 							color={marked ? 'green' : undefined}
 							prefix={<Icon icon={marked ? <Check /> : <MapPin />} />}
 							aria-pressed={marked}
