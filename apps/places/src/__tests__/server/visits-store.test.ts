@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
@@ -17,7 +17,10 @@ let directory: string
 const FILE = join('.data', 'visits.json')
 
 beforeAll(async () => {
-	directory = await mkdtemp(join(tmpdir(), 'places-visits-'))
+	// A temporary directory can sit behind a link, and macOS points /tmp at
+	// /private/tmp. The working directory always reports the resolved path, so
+	// the path is resolved here to let the two agree.
+	directory = await realpath(await mkdtemp(join(tmpdir(), 'places-visits-')))
 
 	process.chdir(directory)
 
