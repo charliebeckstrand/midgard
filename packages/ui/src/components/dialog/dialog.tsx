@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yPanel, useMinWidth } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
@@ -42,7 +42,12 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	placement?: 'center' | 'top'
 	/** Whether clicking the backdrop closes the dialog. @defaultValue true */
 	dismissOnBackdrop?: boolean
-	/** Opt into the glass surface treatment. */
+	/**
+	 * Opt into the glass surface treatment.
+	 *
+	 * @remarks Items inside — a command palette's results — take the deeper glass
+	 * wash on hover and focus.
+	 */
 	glass?: boolean
 	className?: string
 	children: ReactNode
@@ -110,6 +115,8 @@ export function Dialog({
 
 	const resolvedSurface = useResolvedSurface(glass)
 
+	const isGlass = resolvedSurface === 'glass'
+
 	const isDesktop = useMinWidth(640)
 
 	const preset = isDesktop ? k.motion.desktop : k.motion.mobile
@@ -126,7 +133,7 @@ export function Dialog({
 			open={resolvedOpen}
 			onOpenChange={setOpen}
 			dismissOnBackdrop={dismissOnBackdrop}
-			glass={resolvedSurface === 'glass'}
+			glass={isGlass}
 			initialFocus={initialFocus}
 		>
 			<div
@@ -141,8 +148,13 @@ export function Dialog({
 					{...ariaProps}
 					aria-label={ariaLabelledBy ? undefined : ariaLabel}
 					data-slot={slot}
+					// Half the marker `hannou.glassItem` keys on; the `group/glass` class
+					// below is the other half. See `recipes/kiso/hannou/glass-item.ts`. A
+					// command palette's rows hover inside this panel, not inside a popover.
+					data-glass={dataAttr(isGlass)}
 					className={cn(
 						'pointer-events-auto',
+						isGlass && 'group/glass',
 						k.panel({ surface: resolvedSurface, width }),
 						className,
 					)}

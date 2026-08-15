@@ -120,6 +120,34 @@ describe('Dialog', () => {
 		expect(panel?.className).not.toContain('bg-white')
 	})
 
+	it('marks the glass panel as the group the item wash keys on', () => {
+		renderUI(
+			<Dialog open glass onOpenChange={() => {}}>
+				Glassy
+			</Dialog>,
+		)
+
+		const panel = bySlot(document.body, 'dialog')
+
+		expect(panel?.className).toContain('group/glass')
+
+		expect(panel).toHaveAttribute('data-glass', '')
+	})
+
+	it('leaves the group marker off the flat panel', () => {
+		renderUI(
+			<Dialog open onOpenChange={() => {}}>
+				Flat
+			</Dialog>,
+		)
+
+		const panel = bySlot(document.body, 'dialog')
+
+		expect(panel?.className).not.toContain('group/glass')
+
+		expect(panel).not.toHaveAttribute('data-glass')
+	})
+
 	it('DialogTitle holds the text-lg baseline at neutral density', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>

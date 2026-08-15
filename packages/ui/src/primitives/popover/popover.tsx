@@ -8,7 +8,7 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
 import { ReducedMotion } from '../reduced-motion'
@@ -79,6 +79,8 @@ export function PopoverPanel({
 	/**
 	 * Apply glass surface chrome instead of the default popover surface.
 	 *
+	 * @remarks Items inside take the deeper glass wash on hover and focus.
+	 *
 	 * @defaultValue false
 	 */
 	glass?: boolean
@@ -120,6 +122,9 @@ export function PopoverPanel({
 				ref={panelRef}
 				id={id}
 				data-slot="popover-panel"
+				// Half the marker `hannou.glassItem` keys on; the `group/glass` class
+				// below is the other half. See `recipes/kiso/hannou/glass-item.ts`.
+				data-glass={dataAttr(glass)}
 				role={role}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
