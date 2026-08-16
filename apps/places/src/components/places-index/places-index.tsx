@@ -32,6 +32,20 @@ export type PlacesIndexProps = {
 	 * the same walk a second time.
 	 */
 	regionByPlace: ReadonlyMap<string, string>
+	/**
+	 * Which state holds each place, by the place's id — or absent, for no state
+	 * column at all.
+	 *
+	 * The column exists because the region above names the region of the atlas the
+	 * map draws, and on the world that is the country: a reader who wants to know
+	 * which state they were in is left one step coarser than they asked for.
+	 *
+	 * Absent is what keeps it from saying the same thing twice. Inside the United
+	 * States the drawn region already is the state, so the column would print every
+	 * state beside itself. The caller is what knows which atlas is drawn, so the
+	 * caller decides whether this column has anything to add.
+	 */
+	stateByPlace?: ReadonlyMap<string, string>
 	/** Opens one place: the caller selects it and takes the map to it. */
 	onOpen: (place: Place) => void
 }
@@ -57,6 +71,7 @@ export function PlacesIndex({
 	onOpenChange,
 	places,
 	regionByPlace,
+	stateByPlace,
 	onOpen,
 }: PlacesIndexProps) {
 	// Every column declares `value`, because that is what the grid's quick search
@@ -84,6 +99,30 @@ export function PlacesIndex({
 				value: (place) => regionByPlace.get(place.id) ?? '',
 				cell: (place) => regionByPlace.get(place.id) ?? <Text severity="warning">Unplaced</Text>,
 			},
+			...(stateByPlace === undefined
+				? []
+				: [
+						{
+							id: 'state',
+							title: 'State',
+							// The drawn geometry first and the geocoder's name second, which is
+							// the order the rest of the app trusts them in. The second answer is
+							// what makes the column worth its width: the states atlas draws one
+							// country, and outside it the subdivision the geocoder named is the
+							// nearest thing to a state there is.
+							//
+							// Empty where neither answers — a country that names no subdivision,
+							// or a place recorded before one was stored — rather than a warning.
+							// The region beside it already says where the place is; a state is
+							// the finer answer and not a missing one.
+							//
+							// The `cell` is stated for the reason the city's is, and for a
+							// second: the column id resolves against the row field, which here is
+							// the geocoder's name alone and would show it over the geometry's.
+							value: (place) => stateByPlace.get(place.id) ?? place.state ?? '',
+							cell: (place) => stateByPlace.get(place.id) ?? place.state ?? '',
+						} satisfies GridColumn<Place>,
+					]),
 			{
 				id: 'city',
 				title: 'City',
@@ -109,7 +148,7 @@ export function PlacesIndex({
 					place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null,
 			},
 		],
-		[regionByPlace],
+		[regionByPlace, stateByPlace],
 	)
 
 	// A copy, because the grid sorts and filters what it is handed and the app's
@@ -117,7 +156,7 @@ export function PlacesIndex({
 	const rows = useMemo(() => [...places], [places])
 
 	return (
-		// Wide, because six columns in a narrow panel is a table the reader scrolls
+		// Wide, because six or seven columns in a narrow panel is a table the reader scrolls
 		// sideways to read one row of — and this panel exists to be scanned. It is a
 		// max-width, so a phone still gets the whole screen and the grid's own
 		// horizontal scroll takes what is left over.
