@@ -49,6 +49,22 @@ function whole(value: string): number | null {
 }
 
 /**
+ * A validator for an optional stretch of time.
+ *
+ * An empty box passes, because not every recipe has both times and a blank is
+ * the honest way to say so.
+ */
+function minutesField(field: string): (value: string) => string | undefined {
+	return (value) => {
+		const count = whole(value)
+
+		return value.trim() !== '' && (count === null || count < 0)
+			? `${field} must be whole minutes.`
+			: undefined
+	}
+}
+
+/**
  * Per-field validators, in the shape `Form` takes.
  *
  * An empty field reads the same way whichever it is — the reader is scanning a
@@ -70,20 +86,8 @@ export const recipeValidators: NonNullable<FormProps<RecipeValues>['validate']> 
 			? `Servings must be a whole number from 1 to ${MAX_SERVINGS}.`
 			: undefined
 	},
-	prepMinutes: (value) => {
-		const count = whole(value)
-
-		return value.trim() !== '' && (count === null || count < 0)
-			? 'Prep must be whole minutes.'
-			: undefined
-	},
-	cookMinutes: (value) => {
-		const count = whole(value)
-
-		return value.trim() !== '' && (count === null || count < 0)
-			? 'Cook must be whole minutes.'
-			: undefined
-	},
+	prepMinutes: minutesField('Prep'),
+	cookMinutes: minutesField('Cook'),
 	ingredients: (value) =>
 		parseIngredientLines(value).length === 0 ? required('Ingredients') : undefined,
 	sourceUrl: (value) =>

@@ -110,6 +110,11 @@ export function getMonthLabels(locale: string): string[] {
 	return Array.from({ length: 12 }, (_, index) => formatter.format(firstOfMonth(2021, index)))
 }
 
+/** A day's own key, as `YYYY-M-D`. Cheaper than an ISO stamp, and a month never repeats one. */
+function dayKey(date: Date): string {
+	return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+}
+
 /** One cell of a `month`-layout week: a day, or the padding at either end of the month. */
 export type CalendarCell = {
 	date: Date | null
@@ -141,7 +146,7 @@ export function toWeeks(days: readonly Date[], firstDayColumn: number): Calendar
 		// because a position is not an identity: the row it sits in is the thing
 		// React would otherwise rebuild whenever the month changed shape.
 		...Array.from({ length: lead }, (_unused, at) => ({ date: null, key: `lead:${at}` })),
-		...days.map((date) => ({ date, key: date.toISOString() })),
+		...days.map((date) => ({ date, key: dayKey(date) })),
 	]
 
 	// The last week is padded out too, so every row holds seven cells and the

@@ -7,6 +7,7 @@ import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Icon } from 'ui/icon'
 import { Text } from 'ui/text'
+import { NO_COOKS, NO_RECIPES } from '../../constants'
 import {
 	useAddRecipe,
 	useCooks,
@@ -16,7 +17,7 @@ import {
 	useSaveRecipe,
 	useSetFavorite,
 } from '../../queries/recipes-queries'
-import type { CookEvent, RankedRecipe, Recipe } from '../../types'
+import type { RankedRecipe, Recipe } from '../../types'
 import { rankRecipes, sortRecipes } from '../../utilities/recipe-rank'
 import { filterRecipes } from '../../utilities/recipes-filter'
 import { AppShell } from '../app-shell'
@@ -24,12 +25,6 @@ import { RecipeFilters } from '../recipe-filters'
 import { RecipeFormDrawer } from '../recipe-form-drawer'
 import { RecipeList } from '../recipe-list'
 import { useRecipesLocation } from './use-recipes-location'
-
-/** The empty list a pending query stands in for, held so its identity is stable. */
-const NO_RECIPES: Recipe[] = []
-
-/** The same, for the cook log. */
-const NO_COOKS: CookEvent[] = []
 
 /** The trail of a page that is the top of its own section. */
 const TRAIL = [{ label: 'Recipes' }]

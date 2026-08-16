@@ -13,7 +13,7 @@ import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { Text } from 'ui/text'
-import { LABEL_BY_VALUE, labelName } from '../../constants'
+import { LABEL_BY_VALUE, labelName, NO_COOKS, NO_RECIPES } from '../../constants'
 import {
 	useAddCook,
 	useCooks,
@@ -22,7 +22,7 @@ import {
 	useSaveRecipe,
 	useSetFavorite,
 } from '../../queries/recipes-queries'
-import type { CookEvent, Recipe } from '../../types'
+import type { Recipe } from '../../types'
 import { dayLabel, today } from '../../utilities/day'
 import { formatIngredient } from '../../utilities/ingredient-line'
 import { AppShell } from '../app-shell'
@@ -32,11 +32,6 @@ import { RecipeFormDrawer } from '../recipe-form-drawer'
 export type RecipePageProps = {
 	id: string
 }
-
-/** The empty lists the pending queries stand in for, held so their identities are stable. */
-const NO_RECIPES: Recipe[] = []
-
-const NO_COOKS: CookEvent[] = []
 
 /** How a day reads in this page's own prose. */
 const LONG_DAY: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long', year: 'numeric' }

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import { parseRecipe } from '../schemas/recipe'
 import type { Recipe, RecipeDraft } from '../types'
-import { createQueue, readJsonFile, writeJsonFile } from './json-file'
+import { createQueue, readRecords, writeJsonFile } from './json-file'
 
 /**
  * The store: every recipe, in one JSON file under the app.
@@ -20,13 +20,6 @@ const FILE = join(process.cwd(), '.data', 'recipes.json')
 
 const serialize = createQueue()
 
-/** Reads the file, or an empty list where it does not exist yet. */
-async function readAll(): Promise<unknown[]> {
-	const parsed = await readJsonFile(FILE)
-
-	return Array.isArray(parsed) ? parsed : []
-}
-
 /** Writes the whole list, atomically. */
 function writeAll(recipes: Recipe[]): Promise<void> {
 	return writeJsonFile(FILE, recipes)
@@ -41,15 +34,7 @@ function writeAll(recipes: Recipe[]): Promise<void> {
  * a stable order between reads rather than trading places on each write.
  */
 export async function listRecipes(): Promise<Recipe[]> {
-	const stored = await readAll()
-
-	const recipes: Recipe[] = []
-
-	for (const record of stored) {
-		const parsed = parseRecipe(record)
-
-		if (parsed.ok) recipes.push(parsed.value)
-	}
+	const recipes = await readRecords(FILE, parseRecipe)
 
 	return recipes.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
 }

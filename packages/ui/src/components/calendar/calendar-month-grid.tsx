@@ -1,6 +1,6 @@
 'use client'
 
-import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
+import { type KeyboardEventHandler, type ReactNode, type RefObject, useMemo } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
@@ -64,7 +64,9 @@ export function CalendarMonthGrid({
 	listboxId,
 	activeDescendantId,
 }: CalendarMonthGridProps) {
-	const weeks = toWeeks(days, firstDayColumn)
+	// Both inputs are settled above, so the ~42 cells and their keys are built
+	// once per month rather than on every arrow-key move and every hover.
+	const weeks = useMemo(() => toWeeks(days, firstDayColumn), [days, firstDayColumn])
 
 	return (
 		// `table-fixed` is what keeps the seven columns even: without it a week
@@ -97,17 +99,7 @@ export function CalendarMonthGrid({
 					// cannot happen — `toWeeks` pads the ends of a real month.
 					<tr key={week.find((cell) => cell.date !== null)?.key ?? week[0]?.key}>
 						{week.map(({ date, key }) => {
-							if (date === null) {
-								return (
-									<CalendarMonthCell
-										key={key}
-										date={null}
-										{...EMPTY}
-										localeTag={localeTag}
-										onSelect={onSelect}
-									/>
-								)
-							}
+							if (date === null) return <CalendarMonthCell key={key} date={null} />
 
 							const disabled = isDisabled(date)
 
@@ -143,9 +135,9 @@ export function CalendarMonthGrid({
 									onSelect={onSelect}
 									onMouseEnter={dayProps?.onMouseEnter}
 									onMouseLeave={dayProps?.onMouseLeave}
-								>
-									{renderDay?.(context)}
-								</CalendarMonthCell>
+									renderDay={renderDay}
+									daySelected={isSelected}
+								/>
 							)
 						})}
 					</tr>
@@ -154,11 +146,3 @@ export function CalendarMonthGrid({
 		</table>
 	)
 }
-
-/** What a padding cell is, which is nothing at all. @internal */
-const EMPTY = {
-	disabled: true,
-	isToday: false,
-	isActive: false,
-	selected: false,
-} as const

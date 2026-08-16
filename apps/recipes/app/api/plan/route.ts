@@ -1,6 +1,7 @@
 import { isDay, parsePlanDraft } from '@/schemas/recipe'
-import { addPlanEntry, type DayEntries, listPlan, replaceDays } from '@/server/plan-store'
+import { addPlanEntry, listPlan, replaceDays } from '@/server/plan-store'
 import { readAs, readJson, refuse } from '@/server/read-body'
+import type { DayEntries } from '@/types'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'

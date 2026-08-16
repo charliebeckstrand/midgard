@@ -107,6 +107,11 @@ export type CalendarProps = {
 	 * A `month` calendar fills the width it is given; the `size` step then drives
 	 * the type scale alone.
 	 *
+	 * The two layouts read out differently, and a caller testing or narrating one
+	 * should know which: `picker` is a listbox of `option`s carrying
+	 * `aria-selected`, and `month` is a grid of `gridcell`s whose date button
+	 * carries `aria-pressed`.
+	 *
 	 * @defaultValue 'picker'
 	 */
 	layout?: CalendarLayout
@@ -243,6 +248,10 @@ export function Calendar({
 
 	// One ref for both layouts, because only one of them ever renders: the
 	// `picker` grid is a `div` and the `month` grid a `table`.
+	//
+	// The intersection is what lets one ref satisfy both grids' props without a
+	// cast at either call site. No element is both, and none has to be — only one
+	// grid mounts, and each narrows the ref to the element it attaches to.
 	const gridRef = useRef<HTMLDivElement & HTMLTableElement>(null)
 
 	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarFocus({
@@ -292,6 +301,27 @@ export function Calendar({
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
+	// What both layouts draw from, held in one place: written out per arm, a prop
+	// added later reaches one layout and silently misses the other.
+	const gridProps = {
+		gridRef,
+		onGridKeyDown: handleGridKeyDown,
+		size: resolvedSize,
+		weekdays,
+		days,
+		firstDayColumn,
+		today,
+		value,
+		activeGridDate,
+		isDisabled,
+		getDayProps,
+		onSelect: handleSelect,
+		monthLabel,
+		localeTag,
+		listboxId,
+		activeDescendantId,
+	}
+
 	return (
 		<Density scale={resolvedSize}>
 			<div
@@ -323,44 +353,9 @@ export function Calendar({
 				/>
 
 				{layout === 'month' ? (
-					<CalendarMonthGrid
-						gridRef={gridRef}
-						onGridKeyDown={handleGridKeyDown}
-						size={resolvedSize}
-						weekdays={weekdays}
-						days={days}
-						firstDayColumn={firstDayColumn}
-						today={today}
-						value={value}
-						activeGridDate={activeGridDate}
-						isDisabled={isDisabled}
-						getDayProps={getDayProps}
-						renderDay={renderDay}
-						onSelect={handleSelect}
-						monthLabel={monthLabel}
-						localeTag={localeTag}
-						listboxId={listboxId}
-						activeDescendantId={activeDescendantId}
-					/>
+					<CalendarMonthGrid {...gridProps} renderDay={renderDay} />
 				) : (
-					<CalendarGrid
-						gridRef={gridRef}
-						onGridKeyDown={handleGridKeyDown}
-						size={resolvedSize}
-						weekdays={weekdays}
-						days={days}
-						firstDayColumn={firstDayColumn}
-						today={today}
-						value={value}
-						activeGridDate={activeGridDate}
-						isDisabled={isDisabled}
-						getDayProps={getDayProps}
-						onSelect={handleSelect}
-						monthLabel={monthLabel}
-						localeTag={localeTag}
-						listboxId={listboxId}
-						activeDescendantId={activeDescendantId}
-					/>
+					<CalendarGrid {...gridProps} />
 				)}
 			</div>
 		</Density>

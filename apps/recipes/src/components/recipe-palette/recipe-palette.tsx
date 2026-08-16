@@ -12,7 +12,7 @@ import {
 import { WANT_TO_TRY } from '../../constants'
 import type { RankedRecipe } from '../../types'
 import { dayLabel } from '../../utilities/day'
-import { sortRecipes } from '../../utilities/recipe-rank'
+import { cookSummary, sortRecipes } from '../../utilities/recipe-rank'
 
 /** Props for {@link RecipePalette}. */
 export type RecipePaletteProps = {
@@ -29,13 +29,6 @@ const DAY: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month
 
 /** How many a section shows before the reader is better served by searching. */
 const SECTION_LIMIT = 5
-
-/** One recipe's second line: what the log says about it. */
-function summary(recipe: RankedRecipe): string {
-	if (recipe.cookCount === 0) return 'Never cooked'
-
-	return recipe.cookCount === 1 ? 'Cooked once' : `Cooked ${recipe.cookCount} times`
-}
 
 /** The sections, and the recipes each of them holds. @internal */
 function useSections(recipes: readonly RankedRecipe[], query: string) {
@@ -95,7 +88,7 @@ function PaletteBody({
 						<CommandPaletteItem key={recipe.id} onAction={() => onPick(recipe)}>
 							<CommandPaletteLabel>{recipe.name}</CommandPaletteLabel>
 
-							<CommandPaletteDescription>{summary(recipe)}</CommandPaletteDescription>
+							<CommandPaletteDescription>{cookSummary(recipe)}</CommandPaletteDescription>
 						</CommandPaletteItem>
 					))}
 				</CommandPaletteGroup>

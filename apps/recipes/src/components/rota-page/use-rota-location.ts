@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { useCallback, useMemo } from 'react'
+import { useCallback } from 'react'
 import { isDay } from '../../schemas/recipe'
 import { today } from '../../utilities/day'
 import { isMonth, toMonth, weekStart } from '../../utilities/rota-week'
@@ -45,14 +45,11 @@ export function useRotaLocation(): RotaLocationHandle {
 
 	const stated = params.get('week')
 
-	const week = useMemo(() => weekStart(isDay(stated) ? stated : today()), [stated])
+	const week = weekStart(isDay(stated) ? stated : today())
 
 	const statedMonth = params.get('month')
 
-	const month = useMemo(
-		() => (isMonth(statedMonth) ? statedMonth : toMonth(today())),
-		[statedMonth],
-	)
+	const month = isMonth(statedMonth) ? statedMonth : toMonth(today())
 
 	const statedDay = params.get('day')
 

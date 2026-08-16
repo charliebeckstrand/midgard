@@ -1,4 +1,5 @@
 import type { CookEvent, RankedRecipe, Recipe, RecipeSort } from '../types'
+import { dayLabel } from './day'
 
 /**
  * What the cook log says about each recipe, and the orders that reads out of it.
@@ -101,4 +102,23 @@ export function sortRecipes(recipes: readonly RankedRecipe[], sort: RecipeSort):
 		default:
 			return ordered.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
 	}
+}
+
+/** How a day reads in a summary, where the year matters and the weekday does not. */
+const SHORT_DAY: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }
+
+/**
+ * What the log says about one recipe, as a line.
+ *
+ * Both the list and the palette want this sentence; the palette wants it without
+ * the date, because a row in a picker is scanned rather than read.
+ */
+export function cookSummary(recipe: RankedRecipe, options: { withDate?: boolean } = {}): string {
+	if (recipe.cookCount === 0) return 'Never cooked'
+
+	const times = recipe.cookCount === 1 ? 'Cooked once' : `Cooked ${recipe.cookCount} times`
+
+	if (options.withDate !== true || recipe.lastCookedAt === null) return times
+
+	return `${times} · last on ${dayLabel(recipe.lastCookedAt, SHORT_DAY)}`
 }

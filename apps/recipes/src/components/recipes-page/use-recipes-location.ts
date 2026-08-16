@@ -60,17 +60,15 @@ export function useRecipesLocation(): RecipesLocationHandle {
 
 	const sort = useSlice(params, readSort)
 
-	const location = useMemo<RecipesLocation>(() => ({ filter, sort }), [filter, sort])
-
 	// Takes the part that moves and composes it over the part that does not, so
 	// each setter below states its own change and nothing else.
 	const write = useCallback(
 		(next: Partial<RecipesLocation>) => {
-			const query = writeLocation({ ...location, ...next }).toString()
+			const query = writeLocation({ filter, sort, ...next }).toString()
 
 			router.replace(query === '' ? pathname : `${pathname}?${query}`, { scroll: false })
 		},
-		[location, router, pathname],
+		[filter, sort, router, pathname],
 	)
 
 	const setFilter = useCallback((filter: RecipeFilterValue) => write({ filter }), [write])

@@ -199,9 +199,11 @@ export function parseRecipeDraft(input: unknown): ParseResult<RecipeDraft> {
 		issues.push('`cookMinutes` must be whole minutes.')
 	}
 
-	if (name === undefined || servings === undefined) return { ok: false, issues }
-
-	if (issues.length > 0) return { ok: false, issues }
+	// The two names are called out so the value below narrows; the length covers
+	// every optional field that pushed an issue of its own.
+	if (issues.length > 0 || name === undefined || servings === undefined) {
+		return { ok: false, issues }
+	}
 
 	return {
 		ok: true,

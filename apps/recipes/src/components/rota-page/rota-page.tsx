@@ -6,17 +6,18 @@ import { useMemo, useState } from 'react'
 import { Button } from 'ui/button'
 import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
+import { NO_COOKS, NO_PLAN, NO_RECIPES } from '../../constants'
 import {
 	useAddCook,
 	useAddPlanEntry,
 	useCooks,
 	usePlan,
+	useRecipeNames,
 	useRecipes,
 	useRemoveCook,
 	useRemovePlanEntry,
 	useReplacePlanDays,
 } from '../../queries/recipes-queries'
-import type { CookEvent, PlanEntry, Recipe } from '../../types'
 import { dayLabel, today } from '../../utilities/day'
 import { rankRecipes } from '../../utilities/recipe-rank'
 import { nextWeek, previousWeek, weekDays, weekStart } from '../../utilities/rota-week'
@@ -25,18 +26,8 @@ import { RecipePalette } from '../recipe-palette'
 import { type BoardCard, type BoardDay, RotaBoard } from '../rota-board'
 import { useRotaLocation } from './use-rota-location'
 
-/** The empty lists the pending queries stand in for, held so their identities are stable. */
-const NO_RECIPES: Recipe[] = []
-
-const NO_COOKS: CookEvent[] = []
-
-const NO_PLAN: PlanEntry[] = []
-
 /** How the week reads in the trail. */
 const WEEK: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
-
-/** What a card says where the recipe behind it is gone. */
-const MISSING = 'Recipe removed'
 
 /**
  * The board: one week, seven columns, and the palette a day's `+` opens.
@@ -69,7 +60,7 @@ export function RotaPage() {
 
 	const ranked = useMemo(() => rankRecipes(recipes, cooks), [recipes, cooks])
 
-	const names = useMemo(() => new Map(recipes.map((recipe) => [recipe.id, recipe.name])), [recipes])
+	const nameOf = useRecipeNames()
 
 	// Which meals have been ticked, by day and recipe, and which cook each tick
 	// stands on. A cook carries no plan entry — the log is its own record — so the
@@ -94,7 +85,7 @@ export function RotaPage() {
 			cards.push({
 				id: entry.id,
 				recipeId: entry.recipeId,
-				name: names.get(entry.recipeId) ?? MISSING,
+				name: nameOf(entry.recipeId),
 				cookId: cooked.get(`${entry.day}:${entry.recipeId}`) ?? null,
 			})
 
@@ -102,7 +93,7 @@ export function RotaPage() {
 		}
 
 		return weekDays(week).map((day) => ({ day, cards: byDay.get(day) ?? [] }))
-	}, [plan, week, names, cooked])
+	}, [plan, week, nameOf, cooked])
 
 	const trail = [
 		{ label: 'Rota', href: '/rota', render: <NextLink href="/rota" /> },

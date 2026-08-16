@@ -505,10 +505,13 @@ describe('Calendar + Form', () => {
 describe('Calendar month layout', () => {
 	const AUGUST = new Date(2026, 7, 15)
 
+	/** The month grid every case but the decorated ones renders. */
+	const renderMonth = () => renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+
 	// A cell that holds more than a date is a gridcell, and a gridcell has to sit
 	// in a row — which is what parts this layout from the picker's flat listbox.
 	it('renders a grid of rows and cells rather than a listbox of options', () => {
-		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+		renderMonth()
 
 		expect(screen.getByRole('grid')).toBeInTheDocument()
 
@@ -520,13 +523,13 @@ describe('Calendar month layout', () => {
 	})
 
 	it('names the grid for the month it draws', () => {
-		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+		renderMonth()
 
 		expect(screen.getByRole('grid')).toHaveAccessibleName('August 2026')
 	})
 
 	it('holds seven cells in every row, padding included', () => {
-		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+		renderMonth()
 
 		for (const row of screen.getAllByRole('row').slice(1)) {
 			expect(within(row).getAllByRole('gridcell')).toHaveLength(7)
@@ -534,13 +537,13 @@ describe('Calendar month layout', () => {
 	})
 
 	it('names each column with a weekday header', () => {
-		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+		renderMonth()
 
 		expect(screen.getAllByRole('columnheader')).toHaveLength(7)
 	})
 
 	it('draws one date button per day of the month', () => {
-		const { container } = renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+		const { container } = renderMonth()
 
 		// August has 31 days.
 		expect(container.querySelectorAll('button[data-calendar-day]')).toHaveLength(31)
@@ -614,7 +617,7 @@ describe('Calendar month layout', () => {
 	})
 
 	it('fills the width it is given rather than a fixed one', () => {
-		const { container } = renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+		const { container } = renderMonth()
 
 		const frame = bySlot(container, 'calendar')
 

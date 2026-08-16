@@ -39,7 +39,7 @@ type CalendarFocusOptions = {
 	footerRef?: RefObject<HTMLElement | null>
 	cols?: number
 	/**
-	 * Which descendants roving moves between.
+	 * Which descendants roving moves between, within the grid zone.
 	 *
 	 * The `month` layout narrows it to the date buttons alone: a cell there holds
 	 * the caller's own controls too, and the default would walk into them and take

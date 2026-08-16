@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname } from 'node:path'
+import type { ParseResult } from '../schemas/recipe'
 
 /**
  * The one atomic-JSON-file mechanism, shared by the three stores that keep their
@@ -35,6 +36,34 @@ export function createQueue(): <T>(work: () => Promise<T>) => Promise<T> {
 
 		return run
 	}
+}
+
+/**
+ * Every record a file holds that still reads as one, unsorted.
+ *
+ * Shared by the three stores because the rule is theirs in common: a file that
+ * was hand-edited, or written by an older shape of the app, must not reach a
+ * surface as a record with nothing in it. Written per store, a later change —
+ * a cap, a line logged for what was dropped, a repair pass — lands on one of
+ * them and silently misses the rest.
+ */
+export async function readRecords<T>(
+	file: string,
+	parse: (input: unknown) => ParseResult<T>,
+): Promise<T[]> {
+	const stored = await readJsonFile(file)
+
+	if (!Array.isArray(stored)) return []
+
+	const records: T[] = []
+
+	for (const record of stored) {
+		const parsed = parse(record)
+
+		if (parsed.ok) records.push(parsed.value)
+	}
+
+	return records
 }
 
 /** Reads a JSON file, or `undefined` where it does not exist yet. */

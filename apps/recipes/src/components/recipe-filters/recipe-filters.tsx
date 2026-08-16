@@ -6,7 +6,7 @@ import { Filters, FiltersClear, FiltersField } from 'ui/filters'
 import { Icon } from 'ui/icon'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { SearchInput } from 'ui/search-input'
-import { LABELS, labelName } from '../../constants'
+import { LABELS, labelName, SORTS, sortName } from '../../constants'
 import type { RecipeLabel, RecipeSort } from '../../types'
 import { hasActiveFilter, type RecipeFilterValue } from '../../utilities/recipes-filter'
 
@@ -16,19 +16,6 @@ export type RecipeFiltersProps = {
 	onValueChange: (value: RecipeFilterValue) => void
 	sort: RecipeSort
 	onSortChange: (sort: RecipeSort) => void
-}
-
-/** What each order calls itself, in the order the picker lists them. */
-const SORTS: readonly { value: RecipeSort; label: string }[] = [
-	{ value: 'manual', label: 'My order' },
-	{ value: 'name', label: 'Name' },
-	{ value: 'most-cooked', label: 'Most cooked' },
-	{ value: 'recently-cooked', label: 'Recently cooked' },
-]
-
-/** An order's name, which the picker's trigger renders nothing without. */
-function sortName(value: RecipeSort): string {
-	return SORTS.find((sort) => sort.value === value)?.label ?? value
 }
 
 /**

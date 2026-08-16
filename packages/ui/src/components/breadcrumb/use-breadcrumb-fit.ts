@@ -73,7 +73,7 @@ function boxesOf(row: HTMLElement): CrumbBoxes[] {
  *
  * @internal
  */
-export function fitOf(row: HTMLElement): BreadcrumbFit {
+function fitOf(row: HTMLElement): BreadcrumbFit {
 	const crumbs = boxesOf(row)
 
 	const last = crumbs.at(-1)

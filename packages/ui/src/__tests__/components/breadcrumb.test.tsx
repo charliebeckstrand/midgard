@@ -180,8 +180,11 @@ describe('BreadcrumbLink without href', () => {
 describe('BreadcrumbTrail', () => {
 	const STEPS = [{ label: 'Recipes', href: '/' }, { label: 'Roast chicken' }]
 
+	/** The two-step trail every case but the last renders. */
+	const renderTrail = () => renderUI(<BreadcrumbTrail steps={STEPS} />)
+
 	it('renders one crumb per step, with a separator between them', () => {
-		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+		const { container } = renderTrail()
 
 		expect(allBySlot(container, 'breadcrumb-item')).toHaveLength(2)
 
@@ -191,7 +194,7 @@ describe('BreadcrumbTrail', () => {
 	})
 
 	it('marks the last step as the current page and no other', () => {
-		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+		const { container } = renderTrail()
 
 		const links = allBySlot(container, 'breadcrumb-link')
 
@@ -204,7 +207,7 @@ describe('BreadcrumbTrail', () => {
 	// are laid out in every state and one of them is closed to nothing. A collapsed
 	// crumb still says where it goes.
 	it('lays out both the label and the mark for every crumb', () => {
-		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+		const { container } = renderTrail()
 
 		expect(container.querySelectorAll('[data-trail-label]')).toHaveLength(2)
 
@@ -212,7 +215,7 @@ describe('BreadcrumbTrail', () => {
 	})
 
 	it('hides the mark from assistive tech', () => {
-		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+		const { container } = renderTrail()
 
 		for (const mark of container.querySelectorAll('[data-trail-mark]')) {
 			expect(mark).toHaveAttribute('aria-hidden', 'true')
@@ -220,7 +223,7 @@ describe('BreadcrumbTrail', () => {
 	})
 
 	it('renders a step with a destination as an anchor', () => {
-		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+		const { container } = renderTrail()
 
 		const [first] = allBySlot(container, 'breadcrumb-link')
 
@@ -230,7 +233,7 @@ describe('BreadcrumbTrail', () => {
 	})
 
 	it('renders a step with neither destination nor handler as a span', () => {
-		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+		const { container } = renderTrail()
 
 		expect(allBySlot(container, 'breadcrumb-link')[1]?.tagName).toBe('SPAN')
 	})

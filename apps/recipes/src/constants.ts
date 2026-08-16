@@ -1,4 +1,11 @@
-import type { RecipeLabel, RecipeLabelMeta } from './types'
+import type {
+	CookEvent,
+	PlanEntry,
+	Recipe,
+	RecipeLabel,
+	RecipeLabelMeta,
+	RecipeSort,
+} from './types'
 
 /**
  * The labels, in the order the filter lists them. Each carries its own colour,
@@ -80,3 +87,38 @@ export const UNITS: readonly string[] = [
 	'handful',
 	'bunch',
 ]
+
+/**
+ * The empty lists a pending query stands in for.
+ *
+ * Held as constants because their identity is the point: a fresh `[]` per render
+ * is a new dependency for every memo that reads one, so the whole page recomputes
+ * while the first fetch is in flight.
+ */
+export const NO_RECIPES: Recipe[] = []
+
+export const NO_COOKS: CookEvent[] = []
+
+export const NO_PLAN: PlanEntry[] = []
+
+/** What a card or a calendar row says where the recipe behind it is gone. */
+export const MISSING_RECIPE = 'Recipe removed'
+
+/**
+ * The orders the list can be read in, in the order the picker lists them.
+ *
+ * One list, because three things read it: the picker's labels, the address
+ * codec's validation, and {@link RecipeSort} itself. Spelled out three times, an
+ * order added to the type is one the address refuses and the picker never shows.
+ */
+export const SORTS = [
+	{ value: 'manual', label: 'My order' },
+	{ value: 'name', label: 'Name' },
+	{ value: 'most-cooked', label: 'Most cooked' },
+	{ value: 'recently-cooked', label: 'Recently cooked' },
+] as const satisfies readonly { value: RecipeSort; label: string }[]
+
+/** An order's name, which a picker's trigger renders nothing without. */
+export function sortName(value: RecipeSort): string {
+	return SORTS.find((sort) => sort.value === value)?.label ?? value
+}

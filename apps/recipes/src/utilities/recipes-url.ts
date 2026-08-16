@@ -1,3 +1,4 @@
+import { SORTS } from '../constants'
 import { isLabel } from '../schemas/recipe'
 import type { RecipeSort } from '../types'
 import type { RecipeFilterValue } from './recipes-filter'
@@ -16,9 +17,10 @@ import type { RecipeFilterValue } from './recipes-filter'
  * - `label` — repeated, one per picked label.
  * - `fav` — favourites only, present or absent.
  * - `sort` — the list order, absent for the reader's own.
- * - `week` — the Monday of the week the board shows.
- * - `month` — `YYYY-MM`, the month the calendar shows.
- * - `day` — the open day.
+ *
+ * Rota's own keys — `week`, `month`, and `day` — are read and written by
+ * `use-rota-location.ts`, which needs no codec: each is one field the address
+ * carries verbatim.
  */
 export type RecipesLocation = {
 	filter: RecipeFilterValue
@@ -27,9 +29,6 @@ export type RecipesLocation = {
 
 /** The order an address that says nothing is in, which is the reader's own. */
 const DEFAULT_SORT: RecipeSort = 'manual'
-
-/** Every order that can be written down, so a hand-typed one is checked rather than trusted. */
-const SORTS: readonly RecipeSort[] = ['manual', 'name', 'most-cooked', 'recently-cooked']
 
 /** A trimmed value, or `undefined` where the key was absent or empty. */
 function text(params: URLSearchParams, key: string): string | undefined {
@@ -46,7 +45,14 @@ function list(params: URLSearchParams, key: string): string[] {
 		.filter((value) => value !== '')
 }
 
-/** What the list is narrowed to. */
+/**
+ * What the list is narrowed to.
+ *
+ * Every field is read defensively, here and in {@link readSort}, because the
+ * address bar is an edge like any other: a reader can type into it, and a link
+ * can outlive the app that wrote it. A field that no longer parses is dropped
+ * rather than thrown over, so a stale link opens the app it can.
+ */
 export function readFilter(params: URLSearchParams): RecipeFilterValue {
 	const labels = list(params, 'label').filter(isLabel)
 
@@ -63,19 +69,7 @@ export function readFilter(params: URLSearchParams): RecipeFilterValue {
 export function readSort(params: URLSearchParams): RecipeSort {
 	const sort = text(params, 'sort')
 
-	return SORTS.find((known) => known === sort) ?? DEFAULT_SORT
-}
-
-/**
- * Reads an address as a location.
- *
- * Every field is read defensively, because the address bar is an edge like any
- * other: a reader can type into it, and a link can outlive the app that wrote
- * it. A field that no longer parses is dropped rather than thrown over, so a
- * stale link opens the app it can rather than an error.
- */
-export function readLocation(params: URLSearchParams): RecipesLocation {
-	return { filter: readFilter(params), sort: readSort(params) }
+	return SORTS.find((known) => known.value === sort)?.value ?? DEFAULT_SORT
 }
 
 /**

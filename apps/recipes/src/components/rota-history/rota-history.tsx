@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import NextLink from 'next/link'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { Button } from 'ui/button'
 import { Calendar } from 'ui/calendar'
 import { Dialog, DialogBody, DialogTitle } from 'ui/dialog'
@@ -10,19 +10,12 @@ import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
 import { Text } from 'ui/text'
-import { useCooks, usePlan, useRecipes } from '../../queries/recipes-queries'
-import type { CookEvent, PlanEntry, Recipe } from '../../types'
-import { dayLabel, fromDay, toDay } from '../../utilities/day'
+import { NO_COOKS, NO_PLAN } from '../../constants'
+import { useCooks, usePlan, useRecipeNames } from '../../queries/recipes-queries'
+import { dayLabel, fromDay, toDay, today } from '../../utilities/day'
 import { addMonths, monthStart, toMonth } from '../../utilities/rota-week'
 import { AppShell } from '../app-shell'
 import { useRotaLocation } from '../rota-page'
-
-/** The empty lists the pending queries stand in for, held so their identities are stable. */
-const NO_RECIPES: Recipe[] = []
-
-const NO_COOKS: CookEvent[] = []
-
-const NO_PLAN: PlanEntry[] = []
 
 /** How a day reads in the panel's title. */
 const LONG_DAY: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'long' }
@@ -34,9 +27,6 @@ type Meal = {
 	name: string
 	cooked: boolean
 }
-
-/** What a meal says where the recipe behind it is gone. */
-const MISSING = 'Recipe removed'
 
 /** Nothing on this calendar is selected; see where it is passed. */
 const NOT_SELECTED = () => ({ selected: false })
@@ -50,15 +40,13 @@ const NOT_SELECTED = () => ({ selected: false })
  * one as the other would be the app quietly deciding that a plan is a record.
  */
 export function RotaHistory() {
-	const { data: recipes = NO_RECIPES } = useRecipes()
-
 	const { data: cooks = NO_COOKS } = useCooks()
 
 	const { data: plan = NO_PLAN } = usePlan()
 
 	const { month, day, setMonth, setDay } = useRotaLocation()
 
-	const names = useMemo(() => new Map(recipes.map((recipe) => [recipe.id, recipe.name])), [recipes])
+	const nameOf = useRecipeNames()
 
 	// Every meal by day, cooked first. Built once for the month rather than
 	// filtered per cell: a month is 31 cells, and a filter each would walk both
@@ -78,7 +66,7 @@ export function RotaHistory() {
 			add(cook.day, {
 				key: `cook:${cook.id}`,
 				recipeId: cook.recipeId,
-				name: names.get(cook.recipeId) ?? MISSING,
+				name: nameOf(cook.recipeId),
 				cooked: true,
 			})
 		}
@@ -95,15 +83,38 @@ export function RotaHistory() {
 			add(entry.day, {
 				key: `plan:${entry.id}`,
 				recipeId: entry.recipeId,
-				name: names.get(entry.recipeId) ?? MISSING,
+				name: nameOf(entry.recipeId),
 				cooked: false,
 			})
 		}
 
 		return days
-	}, [cooks, plan, names])
+	}, [cooks, plan, nameOf])
 
-	const openDay = day === null ? null : (byDay.get(day) ?? [])
+	// Held, because the calendar hands it to a memoized cell: a fresh renderer per
+	// render would re-draw all 42 of them on every arrow key.
+	const renderDay = useCallback(
+		({ date }: { date: Date }) => {
+			const meals = byDay.get(toDay(date)) ?? []
+
+			if (meals.length === 0) return null
+
+			return meals.map((meal) => (
+				<Link
+					key={meal.key}
+					href={`/recipes/${encodeURIComponent(meal.recipeId)}`}
+					className={
+						meal.cooked ? 'block truncate text-xs' : 'block truncate text-xs italic opacity-60'
+					}
+				>
+					{meal.name}
+				</Link>
+			))
+		},
+		[byDay],
+	)
+
+	const openDay = day === null ? [] : (byDay.get(day) ?? [])
 
 	const trail = [
 		{ label: 'Rota', href: '/rota', render: <NextLink href="/rota" /> },
@@ -122,7 +133,7 @@ export function RotaHistory() {
 						prefix={<Icon icon={<ChevronLeft />} />}
 					/>
 
-					<Button variant="plain" onClick={() => setMonth(toMonth(toDay(new Date())))}>
+					<Button variant="plain" onClick={() => setMonth(toMonth(today()))}>
 						This month
 					</Button>
 
@@ -153,25 +164,7 @@ export function RotaHistory() {
 					// it would say they had chosen it.
 					getDayProps={NOT_SELECTED}
 					onValueChange={(picked) => setDay(picked === null ? null : toDay(picked))}
-					renderDay={({ date }) => {
-						const meals = byDay.get(toDay(date)) ?? []
-
-						if (meals.length === 0) return null
-
-						return meals.map((meal) => (
-							<Link
-								key={meal.key}
-								href={`/recipes/${encodeURIComponent(meal.recipeId)}`}
-								className={
-									meal.cooked
-										? 'block truncate text-xs'
-										: 'block truncate text-xs italic opacity-60'
-								}
-							>
-								{meal.name}
-							</Link>
-						))
-					}}
+					renderDay={renderDay}
 				/>
 			</div>
 
@@ -184,7 +177,7 @@ export function RotaHistory() {
 				<DialogTitle>{day === null ? '' : dayLabel(day, LONG_DAY)}</DialogTitle>
 
 				<DialogBody>
-					{openDay === null || openDay.length === 0 ? (
+					{openDay.length === 0 ? (
 						<Text>Nothing on this day.</Text>
 					) : (
 						<Flex direction="col" gap="sm">

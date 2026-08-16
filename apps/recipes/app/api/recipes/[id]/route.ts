@@ -1,14 +1,11 @@
 import { parseRecipeDraft } from '@/schemas/recipe'
 import { removeCooksForRecipe } from '@/server/cooks-store'
 import { removePlanForRecipe } from '@/server/plan-store'
-import { readAs, refuse } from '@/server/read-body'
+import { type IdContext, readAs, refuse } from '@/server/read-body'
 import { removeRecipe, updateRecipe } from '@/server/recipes-store'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
-
-/** The route's own parameters, which Next hands over as a promise. */
-type Context = { params: Promise<{ id: string }> }
 
 /**
  * Replaces one recipe.
@@ -18,7 +15,7 @@ type Context = { params: Promise<{ id: string }> }
  * validator a create uses, so an edit cannot write a shape a create would have
  * refused.
  */
-export async function PUT(request: Request, { params }: Context) {
+export async function PUT(request: Request, { params }: IdContext) {
 	const draft = await readAs(request, parseRecipeDraft)
 
 	if (!draft.ok) return refuse(draft.issues)
@@ -46,12 +43,12 @@ export async function PUT(request: Request, { params }: Context) {
  * nothing pointing at it — which is a recipe. The other order leaves cooks and
  * plans pointing at nothing, which is rows neither surface can draw.
  */
-export async function DELETE(_request: Request, { params }: Context) {
+export async function DELETE(_request: Request, { params }: IdContext) {
 	const { id } = await params
 
-	await removePlanForRecipe(id)
-
-	await removeCooksForRecipe(id)
+	// Together, because they are two files on two queues with nothing to say to
+	// each other. Only the recipe has to wait for both.
+	await Promise.all([removePlanForRecipe(id), removeCooksForRecipe(id)])
 
 	const removed = await removeRecipe(id)
 

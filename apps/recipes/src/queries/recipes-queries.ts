@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useMemo } from 'react'
 import {
 	createCook,
 	createPlanEntry,
@@ -16,7 +17,8 @@ import {
 	saveRecipe,
 	setRecipeFavorite,
 } from '../api/recipes-api'
-import type { CookDraft, CookEvent, PlanEntry, Recipe, RecipeDraft } from '../types'
+import { MISSING_RECIPE, NO_RECIPES } from '../constants'
+import type { CookDraft, CookEvent, DayEntries, PlanEntry, Recipe, RecipeDraft } from '../types'
 
 /**
  * The query keys, in one place. Both a reader and a writer name each entry, and
@@ -56,6 +58,50 @@ export function usePlan() {
 		queryKey: recipeKeys.plan,
 		queryFn: ({ signal }) => fetchPlan(signal),
 	})
+}
+
+/**
+ * Every recipe's name by id, with the stand-in for one that is gone baked in.
+ *
+ * A selector rather than a map built per page: both Rota surfaces want exactly
+ * this, and a second copy is a second place to decide what a missing recipe
+ * reads as.
+ */
+export function useRecipeNames(): (id: string) => string {
+	const { data: recipes = NO_RECIPES } = useRecipes()
+
+	const names = useMemo(() => new Map(recipes.map((recipe) => [recipe.id, recipe.name])), [recipes])
+
+	return useCallback((id: string) => names.get(id) ?? MISSING_RECIPE, [names])
+}
+
+/**
+ * The snapshot-and-roll-back half of an optimistic write over the recipe list.
+ *
+ * Both writes that answer before the store does need the same three steps, and
+ * the rollback is the half a third one would forget: cancel anything in flight,
+ * keep what was there, and put it back if the request fails.
+ */
+function optimisticRecipes<Variables>(
+	client: ReturnType<typeof useQueryClient>,
+	patch: (held: Recipe[], variables: Variables) => Recipe[],
+) {
+	return {
+		onMutate: async (variables: Variables) => {
+			await client.cancelQueries({ queryKey: recipeKeys.recipes })
+
+			const held = client.getQueryData<Recipe[]>(recipeKeys.recipes)
+
+			client.setQueryData<Recipe[]>(recipeKeys.recipes, (current = []) => patch(current, variables))
+
+			return { held }
+		},
+		onError: (_error: unknown, _variables: Variables, context: { held?: Recipe[] } | undefined) => {
+			if (context?.held !== undefined) {
+				client.setQueryData<Recipe[]>(recipeKeys.recipes, context.held)
+			}
+		},
+	}
 }
 
 /**
@@ -104,22 +150,9 @@ export function useSetFavorite() {
 	return useMutation({
 		mutationFn: ({ id, favorite }: { id: string; favorite: boolean }) =>
 			setRecipeFavorite(id, favorite),
-		onMutate: async ({ id, favorite }) => {
-			await client.cancelQueries({ queryKey: recipeKeys.recipes })
-
-			const held = client.getQueryData<Recipe[]>(recipeKeys.recipes)
-
-			client.setQueryData<Recipe[]>(recipeKeys.recipes, (current = []) =>
-				current.map((one) => (one.id === id ? { ...one, favorite } : one)),
-			)
-
-			return { held }
-		},
-		onError: (_error, _variables, context) => {
-			if (context?.held !== undefined) {
-				client.setQueryData<Recipe[]>(recipeKeys.recipes, context.held)
-			}
-		},
+		...optimisticRecipes(client, (held, { id, favorite }: { id: string; favorite: boolean }) =>
+			held.map((one) => (one.id === id ? { ...one, favorite } : one)),
+		),
 		onSuccess: (recipe) => {
 			client.setQueryData<Recipe[]>(recipeKeys.recipes, (held = []) =>
 				held.map((one) => (one.id === recipe.id ? recipe : one)),
@@ -140,28 +173,15 @@ export function useReorderRecipes() {
 
 	return useMutation({
 		mutationFn: (ids: readonly string[]) => reorderRecipes(ids),
-		onMutate: async (ids) => {
-			await client.cancelQueries({ queryKey: recipeKeys.recipes })
-
-			const held = client.getQueryData<Recipe[]>(recipeKeys.recipes)
-
+		...optimisticRecipes(client, (held, ids: readonly string[]) => {
 			const rank = new Map(ids.map((id, at) => [id, at]))
 
-			client.setQueryData<Recipe[]>(recipeKeys.recipes, (current = []) =>
-				[...current].sort(
-					(a, b) =>
-						(rank.get(a.id) ?? Number.POSITIVE_INFINITY) -
-						(rank.get(b.id) ?? Number.POSITIVE_INFINITY),
-				),
+			return [...held].sort(
+				(a, b) =>
+					(rank.get(a.id) ?? Number.POSITIVE_INFINITY) -
+					(rank.get(b.id) ?? Number.POSITIVE_INFINITY),
 			)
-
-			return { held }
-		},
-		onError: (_error, _variables, context) => {
-			if (context?.held !== undefined) {
-				client.setQueryData<Recipe[]>(recipeKeys.recipes, context.held)
-			}
-		},
+		}),
 		onSuccess: (recipes) => {
 			client.setQueryData<Recipe[]>(recipeKeys.recipes, recipes)
 		},
@@ -245,9 +265,7 @@ export function useReplacePlanDays() {
 	const client = useQueryClient()
 
 	return useMutation({
-		mutationFn: (
-			days: readonly { day: string; entries: readonly { id?: string; recipeId: string }[] }[],
-		) => replacePlanDays(days),
+		mutationFn: (days: readonly DayEntries[]) => replacePlanDays(days),
 		onSuccess: (plan) => {
 			client.setQueryData<PlanEntry[]>(recipeKeys.plan, plan)
 		},

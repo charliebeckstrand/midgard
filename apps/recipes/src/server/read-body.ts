@@ -29,6 +29,13 @@ export async function readAs<T>(
 	return body.ok ? parse(body.value) : body
 }
 
+/**
+ * A route segment's own parameters, which Next hands over as a promise.
+ *
+ * Stated once because every `[id]` route in the app takes the same one.
+ */
+export type IdContext = { params: Promise<{ id: string }> }
+
 /** The one shape a refusal takes, so every route says it the same way. */
 export function refuse(issues: string[], status = 400): Response {
 	return Response.json({ issues }, { status })

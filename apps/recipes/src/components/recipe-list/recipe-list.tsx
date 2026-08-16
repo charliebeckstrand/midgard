@@ -10,7 +10,7 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { LABEL_BY_VALUE, labelName } from '../../constants'
 import type { RankedRecipe, RecipeSort } from '../../types'
-import { dayLabel } from '../../utilities/day'
+import { cookSummary } from '../../utilities/recipe-rank'
 
 /** Props for {@link RecipeList}. */
 export type RecipeListProps = {
@@ -27,20 +27,6 @@ export type RecipeListProps = {
 	onFavorite: (recipe: RankedRecipe, favorite: boolean) => void
 	onEdit: (recipe: RankedRecipe) => void
 	onDelete: (recipe: RankedRecipe) => void
-}
-
-/** How a day reads on a row, where the year matters and the weekday does not. */
-const SHORT_DAY: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short', year: 'numeric' }
-
-/** What a recipe's second line says: how often it has been cooked, and when last. */
-function summary(recipe: RankedRecipe): string {
-	if (recipe.cookCount === 0) return 'Never cooked'
-
-	const times = recipe.cookCount === 1 ? 'Cooked once' : `Cooked ${recipe.cookCount} times`
-
-	return recipe.lastCookedAt === null
-		? times
-		: `${times} · last on ${dayLabel(recipe.lastCookedAt, SHORT_DAY)}`
 }
 
 /**
@@ -117,7 +103,7 @@ export function RecipeList({
 				</Flex>
 
 				<ListDescription className="truncate">
-					{recipe.description ?? summary(recipe)}
+					{recipe.description ?? cookSummary(recipe, { withDate: true })}
 				</ListDescription>
 			</Flex>
 		</ListItem>

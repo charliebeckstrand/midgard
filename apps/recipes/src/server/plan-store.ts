@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import { parsePlanEntry } from '../schemas/recipe'
-import type { PlanDraft, PlanEntry } from '../types'
-import { createQueue, readJsonFile, writeJsonFile } from './json-file'
+import type { DayEntries, PlanDraft, PlanEntry } from '../types'
+import { createQueue, readRecords, writeJsonFile } from './json-file'
 
 /**
  * The plan: every meal the reader intends to cook, in one JSON file under the
@@ -17,20 +17,6 @@ const FILE = join(process.cwd(), '.data', 'plan.json')
 
 const serialize = createQueue()
 
-/** What a caller states one day's meals as: the entries it already knows, in the order it wants them. */
-export type DayEntries = {
-	day: string
-	/** One entry per meal. An entry with no `id` is new and gets one here. */
-	entries: readonly { id?: string; recipeId: string }[]
-}
-
-/** Reads the file, or an empty plan where it does not exist yet. */
-async function readAll(): Promise<unknown[]> {
-	const parsed = await readJsonFile(FILE)
-
-	return Array.isArray(parsed) ? parsed : []
-}
-
 /** Writes the whole plan, atomically. */
 function writeAll(plan: PlanEntry[]): Promise<void> {
 	return writeJsonFile(FILE, plan)
@@ -41,15 +27,7 @@ function writeAll(plan: PlanEntry[]): Promise<void> {
  * longer reads as one.
  */
 export async function listPlan(): Promise<PlanEntry[]> {
-	const stored = await readAll()
-
-	const plan: PlanEntry[] = []
-
-	for (const record of stored) {
-		const parsed = parsePlanEntry(record)
-
-		if (parsed.ok) plan.push(parsed.value)
-	}
+	const plan = await readRecords(FILE, parsePlanEntry)
 
 	return plan.sort((a, b) => a.day.localeCompare(b.day) || a.position - b.position)
 }

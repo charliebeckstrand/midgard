@@ -1,11 +1,8 @@
-import { readJson, refuse } from '@/server/read-body'
+import { type IdContext, readJson, refuse } from '@/server/read-body'
 import { setFavorite } from '@/server/recipes-store'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
-
-/** The route's own parameters, which Next hands over as a promise. */
-type Context = { params: Promise<{ id: string }> }
 
 /**
  * Marks one recipe a favourite, or takes the mark off.
@@ -15,7 +12,7 @@ type Context = { params: Promise<{ id: string }> }
  * the list would have to send the recipe back to say one thing about it — and
  * would overwrite an edit that landed in between.
  */
-export async function PUT(request: Request, { params }: Context) {
+export async function PUT(request: Request, { params }: IdContext) {
 	const body = await readJson(request)
 
 	if (!body.ok) return refuse(body.issues)

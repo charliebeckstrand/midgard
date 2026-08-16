@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { join } from 'node:path'
 import { parseCookEvent } from '../schemas/recipe'
 import type { CookDraft, CookEvent } from '../types'
-import { createQueue, readJsonFile, writeJsonFile } from './json-file'
+import { createQueue, readRecords, writeJsonFile } from './json-file'
 
 /**
  * The cook log: every meal actually cooked, in one JSON file under the app.
@@ -18,13 +18,6 @@ const FILE = join(process.cwd(), '.data', 'cooks.json')
 
 const serialize = createQueue()
 
-/** Reads the file, or an empty log where it does not exist yet. */
-async function readAll(): Promise<unknown[]> {
-	const parsed = await readJsonFile(FILE)
-
-	return Array.isArray(parsed) ? parsed : []
-}
-
 /** Writes the whole log, atomically. */
 function writeAll(cooks: CookEvent[]): Promise<void> {
 	return writeJsonFile(FILE, cooks)
@@ -38,15 +31,7 @@ function writeAll(cooks: CookEvent[]): Promise<void> {
  * than the atlas the map app fetches on every load.
  */
 export async function listCooks(): Promise<CookEvent[]> {
-	const stored = await readAll()
-
-	const cooks: CookEvent[] = []
-
-	for (const record of stored) {
-		const parsed = parseCookEvent(record)
-
-		if (parsed.ok) cooks.push(parsed.value)
-	}
+	const cooks = await readRecords(FILE, parseCookEvent)
 
 	return cooks.sort((a, b) => b.day.localeCompare(a.day))
 }

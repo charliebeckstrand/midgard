@@ -4,26 +4,42 @@ import { memo, type ReactNode, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button, type ButtonVariants } from '../button'
+import type { CalendarDayContextValue } from './calendar'
 
 type MonthCellProps = {
 	/** The day this cell stands for, or `null` for a padding cell outside the month. */
 	date: Date | null
-	disabled: boolean
-	isToday: boolean
-	isActive: boolean
-	selected: boolean
+	/** Every field below belongs to a real day; a padding cell reads none of them. */
+	disabled?: boolean
+	isToday?: boolean
+	isActive?: boolean
+	selected?: boolean
 	variant?: ButtonVariants['variant']
 	color?: ButtonVariants['color']
 	className?: string
 	/** Stamped on the active cell's date button, so a parent's `aria-activedescendant` can reference it. */
 	id?: string
 	/** Resolved BCP 47 tag; the date's accessible name uses the same locale as the visible grid. */
-	localeTag: string
-	onSelect: (date: Date) => void
+	localeTag?: string
+	onSelect?: (date: Date) => void
 	onMouseEnter?: () => void
 	onMouseLeave?: () => void
-	/** What the caller draws under the date. */
-	children?: ReactNode
+	/**
+	 * The caller's own content, drawn under the date.
+	 *
+	 * Taken as the renderer and the day it is called with, rather than as
+	 * already-rendered children: an element built in the grid is a new object
+	 * every render, so `memo` below would miss on every cell that had content —
+	 * which is every cell the slot exists for. Held as a function, the grid's own
+	 * re-render costs nothing until `renderDay` itself changes.
+	 */
+	renderDay?: (context: CalendarDayContextValue) => ReactNode
+	/**
+	 * Whether the day is the calendar's own selection, before `getDayProps` has a
+	 * say. `selected` above is what the cell draws; this is what the day is, and
+	 * it is what `renderDay` is told.
+	 */
+	daySelected?: boolean
 }
 
 /**
@@ -58,10 +74,11 @@ export const CalendarMonthCell = memo(function CalendarMonthCell({
 	onSelect,
 	onMouseEnter,
 	onMouseLeave,
-	children,
+	renderDay,
+	daySelected = false,
 }: MonthCellProps) {
 	const handleClick = useCallback(() => {
-		if (date !== null && !disabled) onSelect(date)
+		if (date !== null && !disabled) onSelect?.(date)
 	}, [date, disabled, onSelect])
 
 	const label = useMemo(
@@ -76,6 +93,25 @@ export const CalendarMonthCell = memo(function CalendarMonthCell({
 					}),
 		[date, localeTag],
 	)
+
+	// Assembled here rather than handed down, so the object is stable while the
+	// day is: built in the grid it would be new on every render, and the `memo`
+	// below would miss on every cell that draws anything.
+	const context = useMemo<CalendarDayContextValue | null>(
+		() =>
+			date === null
+				? null
+				: {
+						date,
+						disabled: disabled === true,
+						today: isToday === true,
+						selected: daySelected,
+						active: isActive === true,
+					},
+		[date, disabled, isToday, daySelected, isActive],
+	)
+
+	const content = context === null ? null : renderDay?.(context)
 
 	// The role is written down rather than left to the table's own mapping. A
 	// `<td>` inside a `role="grid"` is a `gridcell` by inheritance, and assistive
@@ -126,7 +162,7 @@ export const CalendarMonthCell = memo(function CalendarMonthCell({
 					{date.getDate()}
 				</Button>
 
-				{children === undefined ? null : <div className={k.month.content}>{children}</div>}
+				{content == null ? null : <div className={k.month.content}>{content}</div>}
 			</div>
 		</td>
 	)

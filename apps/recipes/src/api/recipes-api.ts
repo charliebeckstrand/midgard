@@ -1,4 +1,4 @@
-import type { CookDraft, CookEvent, PlanEntry, Recipe, RecipeDraft } from '../types'
+import type { CookDraft, CookEvent, DayEntries, PlanEntry, Recipe, RecipeDraft } from '../types'
 
 /**
  * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3.
@@ -124,9 +124,7 @@ export function createPlanEntry(draft: { day: string; recipeId: string }): Promi
  * Every affected day in one call, because a swap that wrote one day and then the
  * other would leave a moment where the same meal sat in both.
  */
-export function replacePlanDays(
-	days: readonly { day: string; entries: readonly { id?: string; recipeId: string }[] }[],
-): Promise<PlanEntry[]> {
+export function replacePlanDays(days: readonly DayEntries[]): Promise<PlanEntry[]> {
 	return send<PlanEntry[]>('/api/plan', 'PUT', { days })
 }
 

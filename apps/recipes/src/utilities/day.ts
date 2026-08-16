@@ -45,12 +45,41 @@ export function addDays(day: string, days: number): string {
 	return toDay(date)
 }
 
+/** The formatters built so far, one per options shape. */
+const formatters = new Map<string, Intl.DateTimeFormat>()
+
+/**
+ * The cached `Intl.DateTimeFormat` for an options shape, built once on first use.
+ *
+ * Sorted-key serialisation, so two equivalent options objects written in a
+ * different order share one instance.
+ */
+function formatter(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
+	const key = JSON.stringify(options, Object.keys(options).sort())
+
+	let held = formatters.get(key)
+
+	if (held === undefined) {
+		held = new Intl.DateTimeFormat(undefined, options)
+
+		formatters.set(key, held)
+	}
+
+	return held
+}
+
 /**
  * A day written the way a reader reads one.
  *
  * The locale is the runtime's, which is the same one the calendar draws its
  * month and weekday names in.
+ *
+ * The formatter is cached, because this is called far more often than it looks:
+ * four times per column on the board, and once per row of the list on every
+ * keystroke in the search box — the filter lives in the address, so each
+ * keypress re-renders the whole list. `Intl.DateTimeFormat` has no cache of its
+ * own, which is the same reason `resolveLocale` in `ui` resolves once.
  */
 export function dayLabel(day: string, options: Intl.DateTimeFormatOptions): string {
-	return fromDay(day).toLocaleDateString(undefined, options)
+	return formatter(options).format(fromDay(day))
 }

@@ -14,6 +14,8 @@
  * straight on.
  */
 
+import type { DayEntries } from '../types'
+
 /** One card on the board: a planned meal, by its own id and the recipe it names. */
 export type PlanCard = {
 	id: string
@@ -24,12 +26,6 @@ export type PlanCard = {
 export type DayColumn = {
 	id: string
 	items: PlanCard[]
-}
-
-/** One day, restated whole — the shape the plan store's `replaceDays` takes. */
-export type DayEntries = {
-	day: string
-	entries: { id?: string; recipeId: string }[]
 }
 
 /** A column's cards as entries. */

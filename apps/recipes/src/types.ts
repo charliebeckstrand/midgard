@@ -79,6 +79,18 @@ export type PlanEntry = {
 export type PlanDraft = Omit<PlanEntry, 'id' | 'position'>
 
 /**
+ * One day of the plan, restated whole — the shape every board move travels in.
+ *
+ * Stated once because four layers hand it along unchanged: the mover that works
+ * it out, the client that sends it, the route that reads it, and the store that
+ * writes it. An entry with no `id` is new and gets one at the store.
+ */
+export type DayEntries = {
+	day: string
+	entries: readonly { id?: string; recipeId: string }[]
+}
+
+/**
  * How the list is ordered.
  *
  * `manual` is the reader's own order and the only one a drag can write to; the

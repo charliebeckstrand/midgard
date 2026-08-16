@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readFilter, readLocation, readSort, writeLocation } from '../../utilities/recipes-url'
+import { readFilter, readSort, writeLocation } from '../../utilities/recipes-url'
 
 /** Reads an address the way the app does, from the query alone. */
 function params(query: string): URLSearchParams {
@@ -78,6 +78,10 @@ describe('writeLocation', () => {
 			sort: 'most-cooked' as const,
 		}
 
-		expect(readLocation(params(writeLocation(location).toString()))).toEqual(location)
+		const written = params(writeLocation(location).toString())
+
+		expect(readFilter(written)).toEqual(location.filter)
+
+		expect(readSort(written)).toBe(location.sort)
 	})
 })
