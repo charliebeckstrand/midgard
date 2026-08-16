@@ -4,6 +4,7 @@ export {
 	type CalendarDayContextValue,
 	type CalendarDayProps,
 	type CalendarHandle,
+	type CalendarLayout,
 	type CalendarProps,
 } from './calendar'
 export { CalendarRange, type CalendarRangeProps } from './calendar-range'

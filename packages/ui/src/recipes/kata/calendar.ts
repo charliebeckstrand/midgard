@@ -11,7 +11,7 @@ import { iro, ji, kokkaku, narabi, sen } from '../kiso'
 const { palette, text } = iro
 const { size, weight } = ji
 const { flex } = narabi
-const { focus } = sen
+const { border, focus } = sen
 
 const base = defineRecipe({
 	base: ['inline-flex flex-col', 'select-none'],
@@ -78,6 +78,31 @@ export const k = {
 		],
 	},
 	weekday,
+	/**
+	 * The `month` layout: a cell is a region with the date as one control and
+	 * the caller's content under it, so nothing here is square and the frame
+	 * fills what it is given rather than a fixed width.
+	 */
+	month: {
+		/** Overrides `base`'s fixed width — a month grid is as wide as its container. */
+		frame: 'w-full',
+		/** The weekday header. Flat text rather than the picker's square, which a table row cannot hold. */
+		weekday: [weight.medium, text.muted, 'p-1 text-left'],
+		/**
+		 * One cell.
+		 *
+		 * It carries no `display` of its own. A `<td>` set to `flex` leaves the
+		 * table layout entirely — the rows stop being rows and every cell draws
+		 * full width — so the column inside it is a box of its own, below.
+		 */
+		cell: ['align-top p-1', 'border-t border-l first:border-l-0', ...border.subtleColor],
+		/** The cell's contents, stacked. The box that carries the layout the cell cannot. */
+		stack: 'flex min-h-24 min-w-0 flex-col items-start gap-1',
+		/** The date itself, which is the one control every cell carries. */
+		date: 'w-auto min-w-8 justify-start',
+		/** What the caller draws under the date: its own column, clipped to the cell. */
+		content: 'flex w-full min-w-0 flex-col gap-0.5 overflow-hidden',
+	},
 	day: {
 		base: 'w-full ring-inset',
 		active: {

@@ -3,6 +3,7 @@
 import { Check, MapPin, MapPinned, Plus } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
+import { BreadcrumbTrail } from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Flex } from 'ui/flex'
@@ -41,7 +42,6 @@ import {
 import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters } from '../place-filters'
 import { PlaceFormDrawer } from '../place-form-drawer'
-import { PlaceTrail } from '../place-trail'
 import { PlacesIndex } from '../places-index'
 import { PlacesMap } from '../places-map'
 import { usePlaceLocation } from './use-place-location'
@@ -316,7 +316,7 @@ export function PlacesApp() {
 				    trail measures the box it is given, and a box that shrinks to the trail
 				    would narrow with it and never report the room to expand again. */}
 				<div className="flex-1 min-w-0">
-					<PlaceTrail className="text-xl/8" steps={pageTrail} />
+					<BreadcrumbTrail className="text-xl/8" steps={pageTrail} />
 				</div>
 
 				<Flex gap="sm" align="center" className="shrink-0">
