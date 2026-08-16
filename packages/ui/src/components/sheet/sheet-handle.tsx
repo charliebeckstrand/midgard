@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '../../core'
-import type { PanelResize } from '../../hooks/use-panel-resize'
+import { type PanelResize, panelAxis } from '../../hooks/use-panel-resize'
 import { PanelHandle } from '../../primitives/panel/panel-handle'
 import type { SheetPanelVariants } from '../../recipes/kata/sheet'
 import { k } from '../../recipes/kata/sheet'
@@ -28,7 +28,8 @@ export type SheetHandleProps = {
  * @internal
  */
 export function SheetHandle({ handleProps, covers, side, className }: SheetHandleProps) {
-	const orientation = side === 'left' || side === 'right' ? 'vertical' : 'horizontal'
+	// A panel resized across its width is grabbed by a separator standing upright.
+	const orientation = panelAxis(side) === 'width' ? 'vertical' : 'horizontal'
 
 	return (
 		<PanelHandle

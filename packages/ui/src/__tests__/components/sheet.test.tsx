@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
+import { panelAxis } from '../../hooks/use-panel-resize'
 import { bySlot, fireEvent, present, renderUI, screen, userEvent } from '../helpers'
 
 describe('Sheet', () => {
@@ -258,7 +259,7 @@ describe('Sheet handle', () => {
 
 		return {
 			handle: present(bySlot(rendered.container, 'sheet-handle'), 'drag handle'),
-			panel: present(bySlot(rendered.container, 'sheet'), 'panel') as HTMLElement,
+			panel: present(bySlot(rendered.container, 'sheet'), 'panel'),
 		}
 	}
 
@@ -273,8 +274,22 @@ describe('Sheet handle', () => {
 		// The second is the one that says which way the key moves the edge.
 		await userEvent.setup({ delay: null }).keyboard(`${key}${key}`)
 
-		return Number.parseFloat(panel.style[side === 'left' || side === 'right' ? 'width' : 'height'])
+		return Number.parseFloat(panel.style[panelAxis(side)])
 	}
+
+	it('states a dragged size on the axis the panel is docked across', async () => {
+		const { handle, panel } = renderHandled('top')
+
+		handle.focus()
+
+		await userEvent.setup({ delay: null }).keyboard('{ArrowDown}{ArrowDown}')
+
+		// A sheet along the top is resized by its height, so a width here would
+		// state a number the gesture never took — and clamp the panel with it.
+		expect(panel.style.height).not.toBe('')
+
+		expect(panel.style.width).toBe('')
+	})
 
 	it('renders no handle unless asked, and a window splitter when asked', () => {
 		const { container } = renderUI(

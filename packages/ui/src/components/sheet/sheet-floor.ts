@@ -1,4 +1,4 @@
-import type { PanelSide } from '../../hooks/use-panel-resize'
+import type { PanelAxis } from '../../hooks/use-panel-resize'
 
 /**
  * The narrowest a sheet resizes to.
@@ -28,15 +28,13 @@ export function sheetFloor(): number {
  *
  * @internal
  */
-export function sheetCeiling(panel: HTMLElement, viewport: number, side: PanelSide): number {
+export function sheetCeiling(panel: HTMLElement, viewport: number, axis: PanelAxis): number {
 	const box = panel.getBoundingClientRect()
 
-	// The two edges across the axis this side docks on. Whichever sits nearer the
-	// screen's is the inset the reader can see.
+	// The two edges across the axis the panel is docked on. Whichever sits nearer
+	// the screen's is the inset the reader can see.
 	const [near, far] =
-		side === 'left' || side === 'right'
-			? [box.left, viewport - box.right]
-			: [box.top, viewport - box.bottom]
+		axis === 'width' ? [box.left, viewport - box.right] : [box.top, viewport - box.bottom]
 
 	const inset = Math.max(0, Math.min(near, far))
 

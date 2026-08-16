@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
-import { usePanelResize } from '../../hooks/use-panel-resize'
+import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { Overlay } from '../../primitives/overlay'
 import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -155,6 +155,10 @@ export function Sheet({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal ?? true)
 
+	// The dimension this side is docked across, which is the one the gesture moves
+	// and the one the cap is measured on.
+	const axis = panelAxis(side)
+
 	// A pixel width means nothing off the screen it was set on, so it stays in
 	// the panel's own state and reaches nowhere: nothing outside the sheet needs
 	// to hold one.
@@ -163,7 +167,7 @@ export function Sheet({
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
 		floorOf: sheetFloor,
-		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, side),
+		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, axis),
 	})
 
 	return (
@@ -184,8 +188,11 @@ export function Sheet({
 				data-slot="sheet"
 				ref={handle ? resize.ref : undefined}
 				onClick={(event) => event.stopPropagation()}
-				// A dragged width beats the variant's, and it is inline because it is a
-				// measurement rather than a step on the scale.
+				// A dragged size beats the variant's, and it is inline because it is a
+				// measurement rather than a step on the scale. On the axis the panel is
+				// docked across, which for a sheet along the top or the bottom is its
+				// height — the gesture writes that axis, so a `width` here would state a
+				// number the drag never took.
 				//
 				// The cap goes with it, for the whole gesture and not only once a size
 				// lands: the `width` variant is a max-width, so leaving it in place would
@@ -194,7 +201,7 @@ export function Sheet({
 				// set on the press and the pointer moves after the render.
 				style={
 					handle && (resize.resizing || resize.size !== null)
-						? { width: resize.size ?? undefined, maxWidth: 'none' }
+						? { [axis]: resize.size ?? undefined, maxWidth: 'none' }
 						: undefined
 				}
 				className={cn(

@@ -40,59 +40,56 @@ export type PanelSide = 'top' | 'right' | 'bottom' | 'left'
 /** Which dimension a side resizes. @internal */
 export type PanelAxis = 'height' | 'width'
 
-/** What one side has to say about itself for the gesture to read it. @internal */
-type PanelSideSpec = {
-	axis: PanelAxis
-	coordinate: (event: { clientX: number; clientY: number }) => number
-	viewport: () => number
-	/** Which way the panel grows. See {@link SIDES}. */
-	sign: 1 | -1
-	grow: string
-	shrink: string
-}
+/**
+ * What one axis calls the things the gesture reads.
+ *
+ * `keys` is the pair of arrows along the axis, the one that lowers the
+ * coordinate first — which is the one that grows a panel docked to the far
+ * edge. See {@link SIDES} for the sign that decides which of the two that is.
+ */
+const AXES = {
+	height: {
+		coordinate: (event: { clientX: number; clientY: number }) => event.clientY,
+		viewport: () => window.innerHeight,
+		keys: ['ArrowUp', 'ArrowDown'],
+	},
+	width: {
+		coordinate: (event: { clientX: number; clientY: number }) => event.clientX,
+		viewport: () => window.innerWidth,
+		keys: ['ArrowLeft', 'ArrowRight'],
+	},
+} as const satisfies Record<PanelAxis, unknown>
 
 /**
- * What each side calls the things the gesture reads.
+ * What each side is: the dimension it resizes, and the way it grows.
  *
- * `sign` is the direction the panel grows in: `1` where growing means a falling
- * coordinate — a bottom drawer, a right-hand sheet — and `-1` where it means a
- * rising one. It also orients the dismissal, since a flick that throws a panel
- * away always travels toward the edge it is docked to.
+ * `sign` is `1` where growing means a falling coordinate — a bottom drawer, a
+ * right-hand sheet, both anchored to the far edge — and `-1` where it means a
+ * rising one. It orients the whole gesture: which way the drag reads, which of
+ * the axis's two arrows grows the panel, and which way a flick has to travel to
+ * throw it away, since a panel is always thrown toward the edge it is docked to.
+ *
+ * Nothing here is stated twice. Everything else the gesture needs is a fact
+ * about the axis, and lives on {@link AXES}, where a change to how a coordinate
+ * is read cannot reach one side of a pair and miss the other.
  */
 const SIDES = {
-	bottom: {
-		axis: 'height',
-		coordinate: (event: { clientX: number; clientY: number }) => event.clientY,
-		viewport: () => window.innerHeight,
-		sign: 1,
-		grow: 'ArrowUp',
-		shrink: 'ArrowDown',
-	},
-	top: {
-		axis: 'height',
-		coordinate: (event: { clientX: number; clientY: number }) => event.clientY,
-		viewport: () => window.innerHeight,
-		sign: -1,
-		grow: 'ArrowDown',
-		shrink: 'ArrowUp',
-	},
-	right: {
-		axis: 'width',
-		coordinate: (event: { clientX: number; clientY: number }) => event.clientX,
-		viewport: () => window.innerWidth,
-		sign: 1,
-		grow: 'ArrowLeft',
-		shrink: 'ArrowRight',
-	},
-	left: {
-		axis: 'width',
-		coordinate: (event: { clientX: number; clientY: number }) => event.clientX,
-		viewport: () => window.innerWidth,
-		sign: -1,
-		grow: 'ArrowRight',
-		shrink: 'ArrowLeft',
-	},
-} as const satisfies Record<PanelSide, PanelSideSpec>
+	bottom: { axis: 'height', sign: 1 },
+	top: { axis: 'height', sign: -1 },
+	right: { axis: 'width', sign: 1 },
+	left: { axis: 'width', sign: -1 },
+} as const satisfies Record<PanelSide, { axis: PanelAxis; sign: 1 | -1 }>
+
+/**
+ * Which dimension a side resizes, for the panels that dress the gesture: a grip
+ * standing across a sheet is a different bar from one standing beside it, and a
+ * sheet's cap is measured on the axis it is docked across.
+ *
+ * @internal
+ */
+export function panelAxis(side: PanelSide): PanelAxis {
+	return SIDES[side].axis
+}
 
 /** One sample of a gesture: where the pointer was along the axis, and when. @internal */
 export type ResizeSample = { at: number; t: number }
@@ -206,10 +203,10 @@ export type PanelResizeOptions = {
  * `handleProps` and draws itself. It is the shape `ResizableGroup` and
  * `ResizableHandle` already keep.
  *
- * One gesture over two axes, because only the names differ. Both panels are
- * anchored to the far edge of the screen and so grow against the drag, and every
- * other difference — which coordinate to read, which viewport bounds it, which
- * arrows move it — is a lookup in {@link AXES}.
+ * One gesture over four sides, because only the names and the direction differ.
+ * Which coordinate to read and which viewport bounds it are facts about the axis
+ * ({@link AXES}); which way the panel grows, and so which arrow grows it and
+ * which way a flick throws it away, is a fact about the side ({@link SIDES}).
  *
  * The size goes straight to the element for the length of the gesture rather
  * than through state: a drag moves the edge every frame, and a render per frame
@@ -231,7 +228,14 @@ export function usePanelResize({
 	floorOf,
 	ceilingOf,
 }: PanelResizeOptions): PanelResize {
-	const { axis, coordinate: coordinateOf, viewport: viewportOf, sign, grow, shrink } = SIDES[side]
+	const { axis, sign } = SIDES[side]
+
+	const { coordinate: coordinateOf, viewport: viewportOf, keys } = AXES[axis]
+
+	// The arrow that lowers the coordinate is the one that grows a panel docked to
+	// the far edge, and the other one grows a panel docked to the near edge.
+	const [grow, shrink] = sign === 1 ? keys : [keys[1], keys[0]]
+
 	// The panel, as state rather than a ref, so its arrival is something an effect
 	// can wait for. It is portalled and mounts on a later commit than the one that
 	// opens the panel, so an effect keyed on `open` alone runs while there is
