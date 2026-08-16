@@ -7,7 +7,7 @@
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { hannou, narabi, omote, sen, shaku, ugoki } from '../kiso'
+import { hannou, narabi, omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { flex, slide } = narabi
@@ -75,8 +75,10 @@ export const k = {
 			// grabbed by a strip of the same thickness.
 			'absolute inset-y-0 z-10 px-3 items-center justify-center',
 			...hannou.grab,
+			// The stroke goes on the bar, not here — see the archetype's grip. This
+			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
-			sen.focus.inset,
+			panel.grip.GROUP,
 		],
 		side: {
 			right: 'left-0',
