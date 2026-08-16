@@ -23,7 +23,13 @@ describe('readLocation', () => {
 
 	// The mark that parts "the world" from "not written yet". Without it a reader
 	// who walked out to the world would be sent back by their own reload.
-	it('reads a present but empty country as the world', () => {
+	it('reads a country of "all" as the world', () => {
+		expect(read('country=all').view).toEqual(WORLD)
+	})
+
+	// The mark this app wrote before it had a word for it. A link is allowed to
+	// outlive the address that wrote it.
+	it('still reads an empty country as the world', () => {
 		expect(read('country=').view).toEqual(WORLD)
 	})
 
@@ -92,8 +98,8 @@ describe('writeLocation', () => {
 		expect(write({})).toBe('')
 	})
 
-	it('marks the world with an empty country', () => {
-		expect(write({ view: WORLD })).toBe('country=')
+	it('marks the world with a country of "all"', () => {
+		expect(write({ view: WORLD })).toBe('country=all')
 	})
 
 	it('writes a country and a state', () => {

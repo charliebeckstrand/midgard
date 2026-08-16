@@ -24,16 +24,25 @@ export type PlaceLocation = {
 	 * Where the map is pointed, or `null` where the address states nothing and the
 	 * opening rule still has the say.
 	 *
-	 * A present but empty `country` is the world stated outright, which is what
-	 * parts it from an address that has not been written yet. Without that mark
-	 * the two are the same empty string, and a reader who walked out to the world
-	 * would be sent back to the opening view by their own reload.
+	 * A `country` of {@link EVERYWHERE} is the world stated outright, which is
+	 * what parts it from an address that has not been written yet.
 	 */
 	view: PlaceView | null
 	filter: PlaceFilterValue
 	/** The places the open panel stands for, by id. */
 	selected: readonly string[]
 }
+
+/**
+ * What a stated world writes in place of a country name.
+ *
+ * The world needs a mark of its own, because the alternative is an address that
+ * says nothing — and an address that says nothing is one the opening rule
+ * answers, so a reader who walked out to the world would be sent back by their
+ * own reload. It reads as a word rather than sitting empty, which is what the
+ * region picker over the map calls the same thing.
+ */
+const EVERYWHERE = 'all'
 
 /** The two halves of a day span, as one `YYYY-MM-DD..YYYY-MM-DD` field. */
 const SPAN = /^([^.]+)\.\.([^.]+)$/
@@ -82,7 +91,14 @@ function readSpans(params: URLSearchParams): DatePickerRelativeValue[] {
 export function readView(params: URLSearchParams): PlaceView | null {
 	if (!params.has('country')) return null
 
-	return { country: text(params, 'country') ?? null, state: text(params, 'state') ?? null }
+	// A `country` naming no country is the world: {@link EVERYWHERE}, and an empty
+	// field, which is the mark this app wrote before it had a word for it.
+	const country = text(params, 'country')
+
+	return {
+		country: country === EVERYWHERE ? null : (country ?? null),
+		state: text(params, 'state') ?? null,
+	}
 }
 
 /** What the map is narrowed to. */
@@ -129,9 +145,9 @@ export function writeLocation({ view, filter, selected }: PlaceLocation): URLSea
 	const params = new URLSearchParams()
 
 	if (view !== null) {
-		// Empty rather than absent: the world is a place the reader chose, and the
-		// mark is what says so.
-		params.set('country', view.country ?? '')
+		// Always written, never absent: the world is a place the reader chose, and
+		// the mark is what says so.
+		params.set('country', view.country ?? EVERYWHERE)
 
 		if (view.state !== null) params.set('state', view.state)
 	}
