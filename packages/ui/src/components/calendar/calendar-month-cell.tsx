@@ -103,26 +103,31 @@ export const CalendarMonthCell = memo(function CalendarMonthCell({
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
 		>
-			<Button
-				type="button"
-				id={id}
-				data-calendar-day=""
-				aria-label={label}
-				aria-current={isToday ? 'date' : undefined}
-				aria-pressed={selected}
-				variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
-				color={color ?? (selected || isToday ? 'blue' : undefined)}
-				disabled={disabled}
-				onClick={handleClick}
-				className={cn(
-					k.month.date,
-					isActive && (selected ? k.day.active.selected : k.day.active.base),
-				)}
-			>
-				{date.getDate()}
-			</Button>
+			{/* The cell keeps its table display, so the column lives in a box of its
+			    own. A `<td>` set to `flex` leaves the table layout and every row
+			    stops being one. */}
+			<div className={k.month.stack}>
+				<Button
+					type="button"
+					id={id}
+					data-calendar-day=""
+					aria-label={label}
+					aria-current={isToday ? 'date' : undefined}
+					aria-pressed={selected}
+					variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
+					color={color ?? (selected || isToday ? 'blue' : undefined)}
+					disabled={disabled}
+					onClick={handleClick}
+					className={cn(
+						k.month.date,
+						isActive && (selected ? k.day.active.selected : k.day.active.base),
+					)}
+				>
+					{date.getDate()}
+				</Button>
 
-			{children === undefined ? null : <div className={k.month.content}>{children}</div>}
+				{children === undefined ? null : <div className={k.month.content}>{children}</div>}
+			</div>
 		</td>
 	)
 })

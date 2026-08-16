@@ -84,7 +84,7 @@ export function CalendarMonthGrid({
 			<thead>
 				<tr>
 					{weekdays.map((day) => (
-						<th key={day} scope="col" className={cn(k.weekday({ size }), 'aspect-auto')}>
+						<th key={day} scope="col" className={cn(k.month.weekday, size === 'sm' && 'text-xs')}>
 							{day}
 						</th>
 					))}

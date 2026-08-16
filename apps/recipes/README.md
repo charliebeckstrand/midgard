@@ -18,6 +18,36 @@ the bar applies, the reader that turns a typed ingredient line into a record, th
 address codec, and the atomic file mechanism the stores write through. The
 components compose `ui`, which carries its own suite.
 
+## The two sections
+
+**Recipes** is the cookbook: a list at `/`, and one recipe at `/recipes/{id}`.
+
+**Rota** is the plan: a week at `/rota`, and the months behind it at
+`/rota/history`. The `+` on a day opens a palette over the same recipes, ordered
+by what this household actually cooks.
+
+They are two sections and not two apps. Rota reads a recipe by importing a
+module, and "most cooked" is a fold over data that lives two directories away.
+The directories stay drawn along the seam all the same, so if Rota ever earns an
+app of its own the extraction is a move rather than a rewrite.
+
+## The board
+
+The week is seven columns, and a card is dragged between them. `ui/kanban` emits
+an insert, which leaves one day holding two meals and the other holding none —
+right for a wall of backlogs, wrong for a week, where two days trading places is
+what the reader meant.
+
+So `src/utilities/plan-move.ts` reads the emission rather than trusting it. It
+diffs the columns before and after, finds the card that changed day, and looks at
+what was already in the slot it landed in. Something there means a **swap**;
+nothing there means an **insert**; no day crossed means a **reorder**. Which of
+the three it was is read from the board rather than set as a mode, so dropping on
+a meal trades with it and dropping below one adds to that day.
+
+Both days are written in one call. A swap that wrote one day and then the other
+would leave a moment where the same meal sat in both.
+
 ## The frame
 
 Every page is drawn in the same three parts: a title row that carries the trail
