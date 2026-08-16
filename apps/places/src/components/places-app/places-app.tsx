@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, MapPin, MapPinned, Plus } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
@@ -279,6 +279,13 @@ export function PlacesApp() {
 		return filtered.filter((place) => inRegion.has(place.id))
 	}, [filtered, cut, placesByRegion])
 
+	// Held, because the drawer keys its own trail on this: a fresh arrow each
+	// render would rebuild those steps whatever else stayed still.
+	const onNavigate = useCallback(
+		(region: string) => setView(drillInto(view, region)),
+		[view, setView],
+	)
+
 	// The page's own trail, as steps that navigate. Every crumb but the last goes
 	// back to the view it names; the last is where the reader is and leads nowhere.
 	const pageTrail = useMemo(
@@ -443,7 +450,7 @@ export function PlacesApp() {
 				places={selected}
 				trail={trail}
 				regionPlaces={openedRegionPlaces}
-				onNavigate={(region) => setView(drillInto(view, region))}
+				onNavigate={onNavigate}
 				onOpenChange={() => setSelected([])}
 				onEdit={setEditing}
 				onDelete={setDeleting}

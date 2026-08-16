@@ -179,7 +179,13 @@ export function PlaceDrawer({
 	// A place the map placed in no region falls back to the count, which is the
 	// only other thing the group has to say about itself. Counted after the
 	// filter, so the heading agrees with the rows under it.
-	const where = trail.length > 0 ? trail : [`${shown.length} places`]
+	//
+	// Held, because the fallback is a fresh array every render and the steps below
+	// are keyed on this one: rebuilt each time, the memo under it never holds.
+	const where = useMemo(
+		() => (trail.length > 0 ? trail : [`${shown.length} places`]),
+		[trail, shown.length],
+	)
 
 	const title = [...where, ...(place === null ? [] : [place.name])].join(' › ')
 

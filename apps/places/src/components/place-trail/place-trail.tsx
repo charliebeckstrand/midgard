@@ -9,7 +9,6 @@ import {
 	BreadcrumbSeparator,
 } from 'ui/breadcrumb'
 import { cn } from 'ui/core'
-import { useIsTruncated } from 'ui/hooks'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import { useTrailFit } from './use-trail-fit'
 
@@ -52,61 +51,74 @@ const TEXT = 'block min-w-0 truncate'
  * One crumb: its label, or the mark that stands for it, with the full text on
  * hover whenever the reader cannot see all of it.
  *
- * Its own component because the overflow measure is a hook, and a trail renders
- * as many of these as it has steps. The tooltip is armed by what is showing
- * rather than always on: a crumb the reader can already read says the same
- * thing twice, and a closed tooltip renders no surface at all.
+ * The reveal is mounted only where there is something to reveal, rather than
+ * mounted everywhere and disabled: a tooltip that cannot open still carries the
+ * floating machinery that would place it, on a trail that re-renders with the
+ * map under it. A crumb the reader can already read says the same thing twice
+ * anyway.
  */
 function TrailCrumb({
 	step,
 	current,
 	collapsed,
+	clipped,
 }: {
 	step: PlaceTrailStep
 	current: boolean
 	collapsed: boolean
+	/** Whether the row cut the label short — only the current crumb ever is. */
+	clipped: boolean
 }) {
-	const ref = useRef<HTMLSpanElement>(null)
-
-	const truncated = useIsTruncated(ref, step.label)
-
 	const picks = step.onPick !== undefined
 
+	// The one rule the tooltip and the cursor share: the reader cannot read this.
+	const hidden = collapsed || clipped
+
+	const crumb = (
+		<BreadcrumbLink
+			current={current}
+			href={picks ? '#' : undefined}
+			// A crumb that goes somewhere keeps its pointer; one that only holds text
+			// the reader cannot fully see says so instead.
+			className={cn(CRUMB, !picks && hidden && 'cursor-help')}
+			onClick={
+				picks
+					? (event: MouseEvent) => {
+							event.preventDefault()
+
+							step.onPick?.()
+						}
+					: undefined
+			}
+		>
+			{/* The clipping rides inner spans rather than the crumb itself: the crumb is
+			    polymorphic — an anchor with a destination, a span without — and the fit
+			    wants one element to read either way. They carry no padding, which is what
+			    keeps that reading honest. The label stays in the tree when collapsed, so
+			    the crumb still announces where it goes; the mark is what is drawn, and
+			    says nothing. */}
+			<span data-trail-label className={cn(TEXT, collapsed && 'w-0')}>
+				{step.label}
+			</span>
+
+			{/* `select-none` because the mark is laid out in both states: closed to
+			    nothing it draws no pixels, but a reader who selects the trail and copies
+			    it would otherwise take an ellipsis per crumb with them. */}
+			<span
+				data-trail-mark
+				aria-hidden="true"
+				className={cn(TEXT, 'select-none', !collapsed && 'w-0')}
+			>
+				{MARK}
+			</span>
+		</BreadcrumbLink>
+	)
+
+	if (!hidden) return crumb
+
 	return (
-		<Tooltip enabled={collapsed || truncated}>
-			<TooltipTrigger>
-				<BreadcrumbLink
-					current={current}
-					href={picks ? '#' : undefined}
-					// A crumb that goes somewhere keeps its pointer; one that only holds
-					// text the reader cannot fully see says so instead.
-					className={cn(CRUMB, !picks && (collapsed || truncated) && 'cursor-help')}
-					onClick={
-						picks
-							? (event: MouseEvent) => {
-									event.preventDefault()
-
-									step.onPick?.()
-								}
-							: undefined
-					}
-				>
-					{/* The clipping rides inner spans rather than the crumb itself: the crumb
-					    is polymorphic — an anchor with a destination, a span without — so a ref
-					    on it is typed for whichever branch, and the measure wants one element
-					    either way. They carry no padding, which is also what keeps the overflow
-					    read honest. The label stays in the tree when collapsed, so the crumb
-					    still announces where it goes; the mark is what is drawn, and says
-					    nothing. */}
-					<span ref={ref} data-trail-label className={cn(TEXT, collapsed && 'w-0')}>
-						{step.label}
-					</span>
-
-					<span data-trail-mark aria-hidden="true" className={cn(TEXT, !collapsed && 'w-0')}>
-						{MARK}
-					</span>
-				</BreadcrumbLink>
-			</TooltipTrigger>
+		<Tooltip>
+			<TooltipTrigger>{crumb}</TooltipTrigger>
 
 			<TooltipContent>{step.label}</TooltipContent>
 		</Tooltip>
@@ -137,7 +149,7 @@ function TrailCrumb({
 export function PlaceTrail({ steps, className }: PlaceTrailProps) {
 	const row = useRef<HTMLDivElement>(null)
 
-	const collapsed = useTrailFit(row, steps.map((step) => step.label).join('\n'))
+	const { collapsed, clipped } = useTrailFit(row, steps.map((step) => step.label).join('\n'))
 
 	return (
 		<div ref={row}>
@@ -157,7 +169,12 @@ export function PlaceTrail({ steps, className }: PlaceTrailProps) {
 								{/* Only the title gives width back under pressure. Every step above
 								    it is whole or a mark, so it is one or the other's width exactly. */}
 								<BreadcrumbItem className={current ? 'min-w-0' : 'shrink-0'}>
-									<TrailCrumb step={step} current={current} collapsed={at < collapsed} />
+									<TrailCrumb
+										step={step}
+										current={current}
+										collapsed={at < collapsed}
+										clipped={current && clipped}
+									/>
 								</BreadcrumbItem>
 							</Fragment>
 						)

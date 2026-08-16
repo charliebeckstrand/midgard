@@ -11,11 +11,22 @@ const SLOP = 1
 
 /** The label and the mark of one crumb — the two boxes a fit trades between. */
 type TrailBoxes = {
+	/** The crumb itself, which is what the row lays out. */
+	item: HTMLElement
 	/** The full text. Present in every state, closed to nothing when collapsed. */
 	label: HTMLElement
 	/** The `…` that stands in for it. Present in every state, closed to nothing when not. */
 	mark: HTMLElement
 }
+
+/** What a row can hold: how many leading crumbs must give way, and whether the last one still clips. */
+export type TrailFit = {
+	collapsed: number
+	clipped: boolean
+}
+
+/** Nothing given way and nothing clipped, which is what an unmeasured row reports. */
+const WHOLE: TrailFit = { collapsed: 0, clipped: false }
 
 /**
  * The crumbs of a rendered trail, outermost first.
@@ -32,14 +43,14 @@ function boxesOf(row: HTMLElement): TrailBoxes[] {
 		const label = item.querySelector<HTMLElement>('[data-trail-label]')
 		const mark = item.querySelector<HTMLElement>('[data-trail-mark]')
 
-		if (label && mark) crumbs.push({ label, mark })
+		if (label && mark) crumbs.push({ item, label, mark })
 	}
 
 	return crumbs
 }
 
 /**
- * How many leading crumbs the row cannot hold whole.
+ * What the row can hold.
  *
  * Answers from what the row shows now plus what each box would give back, never
  * from a pass with everything expanded: `scrollWidth` reports a label's full
@@ -47,19 +58,25 @@ function boxesOf(row: HTMLElement): TrailBoxes[] {
  * state and the answer is the same whatever the row happens to be showing when
  * it is asked. That is what keeps the measure from oscillating — the collapse it
  * causes cannot change the number it computes.
+ *
+ * `clipped` falls out of the same arithmetic rather than a second reading: what
+ * is left over once every step above the title has gone to its mark is what the
+ * title is short by, and that is a number about the layout this answer will
+ * cause — where a measurement would report the one it replaces.
  */
-function fitOf(row: HTMLElement): number {
+function fitOf(row: HTMLElement): TrailFit {
 	const crumbs = boxesOf(row)
-	const last = row.querySelector('[data-slot=breadcrumb-list]')?.lastElementChild
+
+	const last = crumbs.at(-1)
 
 	// One crumb is a title with nothing above it to give way.
-	if (!last || crumbs.length < 2) return 0
+	if (last === undefined || crumbs.length < 2) return WHOLE
 
 	const room = row.clientWidth
 
 	// What the trail would take with every label whole and no mark shown: what it
 	// takes now, plus the width each label is short of its text, less the marks.
-	let need = last.getBoundingClientRect().right - row.getBoundingClientRect().left
+	let need = last.item.getBoundingClientRect().right - row.getBoundingClientRect().left
 
 	for (const { label, mark } of crumbs) {
 		need += label.scrollWidth - label.clientWidth - mark.clientWidth
@@ -76,37 +93,41 @@ function fitOf(row: HTMLElement): number {
 		collapsed++
 	}
 
-	return collapsed
+	return { collapsed, clipped: need > room + SLOP }
 }
 
 /**
- * How many of a trail's leading crumbs must give way to their mark, for a row
- * at `ref` whose crumbs read `labels`.
+ * What a trail's row at `ref` can hold, for crumbs reading `labels`.
  *
  * @remarks
- * Re-measures on resize, on a change of labels, and after `document.fonts.ready`
- * — a late font changes what the text takes without changing the box that holds
- * it, so no observer would otherwise fire. The labels measure runs as a layout
- * effect, so a trail is never painted at the wrong fit.
- * @returns The count of collapsed crumbs, `0` until the first measurement.
+ * Re-measures on resize, on a change of labels, and once after
+ * `document.fonts.ready` — a late font changes what the text takes without
+ * changing the box that holds it, so no observer would otherwise fire. The
+ * labels measure runs as a layout effect, so a trail is never painted at the
+ * wrong fit.
+ * @returns The fit, whole until the first measurement.
  */
-export function useTrailFit(ref: RefObject<HTMLElement | null>, labels: string): number {
-	const [collapsed, setCollapsed] = useState(0)
+export function useTrailFit(ref: RefObject<HTMLElement | null>, labels: string): TrailFit {
+	const [fit, setFit] = useState(WHOLE)
 
 	const measure = useEffectEvent(() => {
 		const row = ref.current
 
-		if (row) setCollapsed(fitOf(row))
+		if (!row) return
+
+		const next = fitOf(row)
+
+		setFit((held) =>
+			held.collapsed === next.collapsed && held.clipped === next.clipped ? held : next,
+		)
 	})
 
 	useResizeObserver(ref, measure)
 
-	// `labels` is the trigger rather than something this body reads — the measure
-	// reads the rendered row — which is why the rule cannot see the dependency.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `labels` is the trigger; the measure reads the DOM
+	// Once, and not per change of labels: fonts settle for the page's life, so a
+	// subscription per navigation would only measure a second time for an answer
+	// the first already had.
 	useLayoutEffect(() => {
-		measure()
-
 		let cancelled = false
 
 		document.fonts?.ready.then(() => {
@@ -116,7 +137,14 @@ export function useTrailFit(ref: RefObject<HTMLElement | null>, labels: string):
 		return () => {
 			cancelled = true
 		}
+	}, [])
+
+	// `labels` is the trigger rather than something this body reads — the measure
+	// reads the rendered row — which is why the rule cannot see the dependency.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `labels` is the trigger; the measure reads the DOM
+	useLayoutEffect(() => {
+		measure()
 	}, [labels])
 
-	return collapsed
+	return fit
 }

@@ -3,9 +3,12 @@ import type { Place, PlaceCategory, PlaceDraft } from '../types'
 
 /**
  * The place schema, hand-written rather than taken from a schema library. It is
- * read at two edges — the route handler, which must not trust a request body,
- * and the store, which must not trust a file that was hand-edited — and both
- * want the same answer: a `Place`, or a list of what is wrong with it.
+ * read at three edges — the route handler, which must not trust a request body;
+ * the store, which must not trust a file that was hand-edited; and the address
+ * codec, which must not trust a link — and the first two want the same answer: a
+ * `Place`, or a list of what is wrong with it. The third wants the field readers
+ * alone, which is why {@link isCategory} and {@link isDay} are public: one rule
+ * copied to a second edge is the pair that drifts.
  */
 
 /** What a parse returns: the value, or the reasons it is not one. */

@@ -50,18 +50,6 @@ export type PlaceLocationHandle = PlaceLocation & {
 }
 
 /**
- * What a slice of the address says, as one string.
- *
- * Presence is part of it: a `country` written empty is the world stated
- * outright, and a `country` absent is an address that has not said — the one
- * distinction the codec turns on. Serialized rather than joined, because a
- * separator is only unambiguous until a value carries one.
- */
-function keyOf(params: URLSearchParams, keys: readonly string[]): string {
-	return JSON.stringify(keys.map((key) => (params.has(key) ? params.getAll(key) : null)))
-}
-
-/**
  * One slice of the address, held by what it says rather than by the object it
  * was read from.
  *
@@ -70,18 +58,21 @@ function keyOf(params: URLSearchParams, keys: readonly string[]): string {
  * Downstream that is not free: `filter` and `selected` are memo keys for the
  * filtered list, the drawn points, and the clustering the map runs over them,
  * so opening a place used to re-cluster a map that had not changed.
+ *
+ * Keyed on what the reader answered and not on the fields it read, so nothing
+ * outside the codec has to know which fields those are — and two addresses that
+ * parse alike hold one value between them. The reader runs every render, which
+ * is a handful of `getAll` calls; what it hands back is what holds.
  */
-function useSlice<T>(
-	params: URLSearchParams,
-	keys: readonly string[],
-	read: (params: URLSearchParams) => T,
-): T {
-	const key = keyOf(params, keys)
+function useSlice<T>(params: URLSearchParams, read: (params: URLSearchParams) => T): T {
+	const value = read(params)
 
-	// The key is the trigger and the reader is pure, so the memo holds until the
-	// address actually says something else — which the rule cannot see.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `key` is what `params` and `read` amount to here
-	return useMemo(() => read(params), [key])
+	const key = JSON.stringify(value)
+
+	// The key is the whole of what the value says, so the memo holds until the
+	// address says something else — which the rule cannot see.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `key` is what `value` amounts to
+	return useMemo(() => value, [key])
 }
 
 /**
@@ -99,15 +90,24 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 	const pathname = usePathname()
 
-	const view = useSlice(params, ['country', 'state'], readView)
+	const view = useSlice(params, readView)
 
-	const filter = useSlice(params, ['category', 'paint', 'when'], readFilter)
+	const filter = useSlice(params, readFilter)
 
-	const selected = useSlice(params, ['place'], readSelected)
+	const selected = useSlice(params, readSelected)
 
+	// Where the reader is, whole. Held rather than rebuilt, so a setter that
+	// changes one part is not a new identity for the two it leaves alone.
+	const location = useMemo<PlaceLocation>(
+		() => ({ view, filter, selected }),
+		[view, filter, selected],
+	)
+
+	// Takes the parts that move and composes them over the parts that do not, so
+	// each setter below states its own change and nothing else.
 	const write = useCallback(
-		(next: PlaceLocation, step: PlaceStep) => {
-			const query = writeLocation(next).toString()
+		(next: Partial<PlaceLocation>, step: PlaceStep) => {
+			const query = writeLocation({ ...location, ...next }).toString()
 
 			const href = query === '' ? pathname : `${pathname}?${query}`
 
@@ -115,14 +115,12 @@ export function usePlaceLocation(): PlaceLocationHandle {
 			// the top on every drill would be a jump with nowhere to jump to.
 			router[step === 'walk' ? 'push' : 'replace'](href, { scroll: false })
 		},
-		[router, pathname],
+		[location, router, pathname],
 	)
 
 	const openAt = useCallback(
-		(view: PlaceView, selected: readonly string[]) => {
-			write({ view, filter, selected }, 'walk')
-		},
-		[filter, write],
+		(view: PlaceView, selected: readonly string[]) => write({ view, selected }, 'walk'),
+		[write],
 	)
 
 	const setView = useCallback(
@@ -133,25 +131,13 @@ export function usePlaceLocation(): PlaceLocationHandle {
 		[openAt],
 	)
 
-	const settleView = useCallback(
-		(view: PlaceView) => {
-			write({ view, filter, selected }, 'stay')
-		},
-		[filter, selected, write],
-	)
+	const settleView = useCallback((view: PlaceView) => write({ view }, 'stay'), [write])
 
-	const setFilter = useCallback(
-		(filter: PlaceFilterValue) => {
-			write({ view, filter, selected }, 'stay')
-		},
-		[view, selected, write],
-	)
+	const setFilter = useCallback((filter: PlaceFilterValue) => write({ filter }, 'stay'), [write])
 
 	const setSelected = useCallback(
-		(selected: readonly string[]) => {
-			write({ view, filter, selected }, 'walk')
-		},
-		[view, filter, write],
+		(selected: readonly string[]) => write({ selected }, 'walk'),
+		[write],
 	)
 
 	return { view, filter, selected, setView, setFilter, setSelected, settleView, openAt }
