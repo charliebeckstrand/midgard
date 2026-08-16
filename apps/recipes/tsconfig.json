@@ -1,0 +1,11 @@
+{
+	"extends": "../../tsconfig.nextjs.json",
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./src/*"]
+		},
+		"incremental": true,
+		"tsBuildInfoFile": ".tsbuildinfo/recipes.tsbuildinfo"
+	},
+	"include": ["next-env.d.ts", "app", "src", "**/*.ts", "**/*.tsx"]
+}
