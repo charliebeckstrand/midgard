@@ -1,6 +1,6 @@
-import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
+import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { hannou, narabi, omote, sen, ugoki } from '../kiso'
+import { hannou, narabi, omote, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { flex } = narabi
@@ -15,7 +15,7 @@ const { css } = ugoki
  * attribute family this keys on.
  */
 const RESIZING = 'data-resizing:transition-none'
-const { surface, layout } = panel
+const { surface, layout, grip } = panel
 
 export const k = {
 	...bridge.panel(panel, {
@@ -82,10 +82,12 @@ export const k = {
 			// under it. The padding above sets it off instead.
 			layout.flush,
 			...hannou.grab,
+			// The stroke goes on the bar, not here — see the archetype's grip. This
+			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
-			sen.focus.inset,
+			grip.GROUP,
 		],
-		bar: ['h-1.5 w-10 rounded-full', ...mode('bg-zinc-950/20', 'dark:bg-white/25')],
+		bar: grip.bar.horizontal,
 	},
 	motion: ugoki.panel.bottom,
 }

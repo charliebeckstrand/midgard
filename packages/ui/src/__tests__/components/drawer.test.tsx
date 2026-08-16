@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
-import { settleResize, speedOf } from '../../components/drawer/use-drawer-resize'
+import { settleResize, speedOf } from '../../hooks/use-panel-resize'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, present, renderUI, screen, userEvent } from '../helpers'
 
@@ -441,7 +441,7 @@ describe('Drawer drag handle', () => {
 		it('measures the last sample before the release, not the whole gesture', () => {
 			// A reader who drags slowly and then flicks means the flick; averaged over
 			// the travel it would disappear.
-			expect(speedOf({ y: 100, t: 0 }, 160, 100)).toBeCloseTo(0.6, 5)
+			expect(speedOf({ at: 100, t: 0 }, 160, 100)).toBeCloseTo(0.6, 5)
 		})
 
 		it('reads no speed from a gesture with nothing behind it', () => {
@@ -450,7 +450,7 @@ describe('Drawer drag handle', () => {
 
 		it('reads no speed from a release in the same instant as the last move', () => {
 			// The interval is the divisor, so a zero one has no speed to give.
-			expect(speedOf({ y: 100, t: 100 }, 160, 100)).toBe(0)
+			expect(speedOf({ at: 100, t: 100 }, 160, 100)).toBe(0)
 		})
 	})
 

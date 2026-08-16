@@ -115,6 +115,9 @@ importers:
       us-atlas:
         specifier: ^3.0.1
         version: 3.0.1
+      world-atlas:
+        specifier: ^2.0.2
+        version: 2.0.2
     devDependencies:
       '@biomejs/biome':
         specifier: ^2.5.3
@@ -143,6 +146,9 @@ importers:
       typescript:
         specifier: ^6.0.2
         version: 6.0.3
+      vitest:
+        specifier: ^4.1.10
+        version: 4.1.10(@types/node@25.9.1)(@vitest/browser-playwright@4.1.10)(@vitest/coverage-v8@4.1.10)(jsdom@29.1.1)(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
 
   packages/auth:
     devDependencies:
@@ -6343,7 +6349,7 @@ snapshots:
 
   make-dir@4.0.0:
     dependencies:
-      semver: 7.8.1
+      semver: 7.8.5
 
   marked@18.0.5: {}
 
@@ -6760,8 +6766,7 @@ snapshots:
 
   semver@7.8.1: {}
 
-  semver@7.8.5:
-    optional: true
+  semver@7.8.5: {}
 
   sharp@0.35.3(@types/node@25.9.1):
     dependencies:

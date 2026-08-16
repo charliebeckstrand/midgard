@@ -7,7 +7,7 @@
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { narabi, omote, shaku, ugoki } from '../kiso'
+import { hannou, narabi, omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { flex, slide } = narabi
@@ -53,6 +53,42 @@ export const k = {
 		footer: { extra: 'px-6 pb-6' },
 		body: { extra: [flex.fill, 'overflow-y-auto px-6 first:pt-6'] },
 	}),
+	/**
+	 * The drag handle: a grab area tall enough to aim at, and the bar inside it
+	 * the reader actually sees.
+	 *
+	 * It rides the panel's inline edge rather than sitting in the flow, because a
+	 * sheet resizes across its own scrolling body — laid out in the column with
+	 * the slots, the grip would scroll away from the edge it moves. The area is
+	 * the full height, so the reach is the panel's rather than the bar's, and
+	 * `hannou.grab` carries the rest including the `touch-none` that makes the
+	 * gesture work at all under a finger.
+	 *
+	 * `side` puts it on the edge that faces the screen: a right-hand sheet grows
+	 * leftward, so its grip is on the left.
+	 */
+	handle: {
+		area: [
+			flex.col,
+			// The same reach the drawer's grip has, turned on its side: `px-3` around
+			// a `w-1.5` bar is the `py-3` around its `h-1.5` one, so both panels are
+			// grabbed by a strip of the same thickness.
+			'absolute inset-y-0 z-10 px-3 items-center justify-center',
+			...hannou.grab,
+			// The stroke goes on the bar, not here — see the archetype's grip. This
+			// suppresses the browser's own, which would draw around the whole reach.
+			'outline-hidden',
+			panel.grip.GROUP,
+		],
+		side: {
+			right: 'left-0',
+			left: 'right-0',
+			top: 'inset-x-0 bottom-0 py-3 w-full',
+			bottom: 'inset-x-0 top-0 py-3 w-full',
+		},
+		/** Keyed by the separator's own line: a sheet docked to a side is grabbed the other way from one docked across. */
+		bar: panel.grip.bar,
+	},
 	motion: ugoki.panel,
 }
 

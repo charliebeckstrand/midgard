@@ -4,14 +4,15 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
 	createPlace,
 	deletePlace,
+	fetchAtlas,
 	fetchPlaces,
-	fetchStatesAtlas,
 	fetchVisits,
 	savePlace,
 	setVisit,
 } from '../api/places-api'
-import type { Place, PlaceDraft } from '../types'
-import { decodeStates } from '../utilities/places-geography'
+import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
+import { decodeRegions } from '../utilities/places-geography'
+import { drawnRegions, type PlaceAtlas } from '../utilities/places-view'
 
 /**
  * The query keys, in one place. Both a reader and a writer name the places
@@ -20,7 +21,7 @@ import { decodeStates } from '../utilities/places-geography'
  */
 export const placesKeys = {
 	all: ['places'] as const,
-	atlas: ['atlas', 'states'] as const,
+	atlas: (atlas: PlaceAtlas) => ['atlas', atlas] as const,
 	visits: ['visits'] as const,
 }
 
@@ -33,32 +34,42 @@ export function usePlaces() {
 }
 
 /**
- * The states the map draws; `undefined` while they load, which the map takes as
- * "reserve the frame and draw nothing yet".
+ * The regions the map draws, per atlas; `undefined` while they load, which the
+ * map takes as "reserve the frame and draw nothing yet".
  *
  * Decoded inside the query rather than at the call site. The cache holds this
  * entry for the tab's life, and nothing reads the topology once the features are
- * out of it — cached whole, the raw 0.9 MB would be pinned for the session
- * beside the 1.1 MB it decodes to. It also takes the decode off the render path.
+ * out of it — cached whole, the raw atlas would be pinned for the session beside
+ * what it decodes to. It also takes the decode off the render path.
  *
- * It is published data that never changes, so it never restales and no refetch
- * ever asks for it twice.
+ * Both atlases are published data that never changes, so neither restales and no
+ * refetch ever asks for one twice. Keyed by atlas, so the two are held apart.
+ *
+ * The atlas names the route and the topology object alike, so one query serves
+ * both grains with no branch of its own.
+ *
+ * `enabled` is what keeps the second atlas off the wire: a reader whose places
+ * are all inside the United States never opens a view that draws countries, and
+ * must not pay 108 kB for one. Once fetched it is held for the tab's life, so a
+ * reader who goes out to the world and back in fetches it once.
  */
-export function useStatesAtlas() {
+export function useAtlas(atlas: PlaceAtlas, enabled = true) {
 	return useQuery({
-		queryKey: placesKeys.atlas,
-		queryFn: async ({ signal }) => decodeStates(await fetchStatesAtlas(signal)),
+		queryKey: placesKeys.atlas(atlas),
+		queryFn: async ({ signal }) =>
+			drawnRegions(decodeRegions(await fetchAtlas(atlas, signal), atlas)),
+		enabled,
 		staleTime: Number.POSITIVE_INFINITY,
 		gcTime: Number.POSITIVE_INFINITY,
 	})
 }
 
 /**
- * Every visited state.
+ * Every visited region, in both scopes.
  *
- * Its own query rather than a field on the places: a state is visited whether or
- * not anything was recorded in it, so nothing about this set can be read off the
- * other one.
+ * Its own query rather than a field on the places: a region is visited whether
+ * or not anything was recorded in it, so nothing about this set can be read off
+ * the other one.
  */
 export function useVisits() {
 	return useQuery({
@@ -68,7 +79,7 @@ export function useVisits() {
 }
 
 /**
- * Marks one state visited or not. The route answers with the whole set, so the
+ * Marks one region visited or not. The route answers with both scopes, so the
  * cache takes what the store settled on rather than a copy patched here — which
  * is what makes the first write of a seeded file land whole.
  */
@@ -76,10 +87,17 @@ export function useSetVisit() {
 	const client = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ state, visited }: { state: string; visited: boolean }) =>
-			setVisit(state, visited),
-		onSuccess: (states) => {
-			client.setQueryData<string[]>(placesKeys.visits, states)
+		mutationFn: ({
+			scope,
+			region,
+			visited,
+		}: {
+			scope: VisitScope
+			region: string
+			visited: boolean
+		}) => setVisit(scope, region, visited),
+		onSuccess: (visits) => {
+			client.setQueryData<Visits>(placesKeys.visits, visits)
 		},
 	})
 }

@@ -47,6 +47,27 @@ export type PlaceDraft = Omit<Place, 'id' | 'createdAt'>
  */
 export type PlaceColor = 'blue' | 'violet' | 'green' | 'rose' | 'amber' | 'sky' | 'red' | 'zinc'
 
+/**
+ * The atlases, which are both the grains the map draws and the scopes a
+ * designation is held under. One list, because they are one thing: an atlas
+ * divides the world one way, and a region is marked visited under the atlas that
+ * named it.
+ *
+ * The scopes are kept apart from each other because the names collide: Georgia
+ * is a state of the United States and Georgia is a country.
+ *
+ * Declared as a tuple so the runtime guard at the route and the type below have
+ * one source — a scope added here reaches both, where two hand-written lists
+ * would leave the route rejecting what the type admits.
+ */
+export const VISIT_SCOPES = ['states', 'countries'] as const
+
+/** One atlas: the grain the map draws, and the scope its regions are marked under. */
+export type VisitScope = (typeof VISIT_SCOPES)[number]
+
+/** Every visited region, by the name its own atlas gives it. */
+export type Visits = Record<VisitScope, string[]>
+
 /** One category's presentation: the name the reader reads, and the colour its dots take. */
 export type PlaceCategoryMeta = {
 	value: PlaceCategory

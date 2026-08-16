@@ -2,21 +2,19 @@ import type { DatePickerRelativeValue } from 'ui/date-picker'
 import type { Place, PlaceCategory } from '../types'
 
 /**
- * Which states the map paints as visited, or neither of them.
+ * Which regions the map paints as visited, or neither of them.
  *
  * It is a paint filter rather than a place filter: the places drawn never change
- * with it, because a place stands where it stands whatever the state under it is
- * marked. Absent, no state is painted and every one of them reads alike.
+ * with it, because a place stands where it stands whatever the region under it
+ * is marked. Absent, no region is painted and every one of them reads alike.
  */
 export type PlaceVisitFilter = 'visited' | 'unvisited'
 
 /** What the filter bar holds. An absent field filters nothing, which is what an empty bar does. */
 export type PlaceFilterValue = {
 	categories?: PlaceCategory[]
-	/** Which states carry the visited paint. See {@link PlaceVisitFilter}. */
-	visitedStates?: PlaceVisitFilter
-	/** Countries by the name the geocoder gave them, which is what a place stores. */
-	countries?: string[]
+	/** Which regions carry the visited paint. See {@link PlaceVisitFilter}. */
+	visitedRegions?: PlaceVisitFilter
 	/**
 	 * The committed spans, in the picker's own type rather than a local shape of
 	 * the same fields. The filter reads exactly what the relative DatePicker
@@ -75,22 +73,17 @@ function withinAny(day: string, ranges: readonly DatePickerRelativeValue[]): boo
  * bar answers with everything. An empty category list is the reader having
  * turned every category off, which admits nothing — distinct from the absent
  * field, which admits all.
+ *
+ * There is no country field. The map projects one country now, so narrowing to
+ * a country and opening it were two controls a step apart that answered nearly
+ * the same question — and the picker is the one that also takes the reader
+ * there.
  */
 export function filterPlaces(places: readonly Place[], filter: PlaceFilterValue): Place[] {
-	const { categories, countries, visited } = filter
+	const { categories, visited } = filter
 
 	return places.filter((place) => {
 		if (categories !== undefined && !categories.includes(place.category)) return false
-
-		// A place the geocoder gave no country or state is admitted by an absent
-		// filter and refused by a set one: it is not in the picked country, because
-		// it is not known to be in any.
-		if (
-			countries !== undefined &&
-			(place.country === undefined || !countries.includes(place.country))
-		) {
-			return false
-		}
 
 		if (visited !== undefined && visited.length > 0 && !withinAny(place.visitedAt, visited)) {
 			return false

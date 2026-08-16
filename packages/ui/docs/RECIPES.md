@@ -42,7 +42,7 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 | `control` | Field archetype: frame + surface + input + reset + density + size + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch. |
 | `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. | `bridge.popover`; subset reach from combobox, listbox, date-picker. |
 | `segment` | Segmented control — `control` / `item` size maps plus `indicator` colour fragments. | `bridge.segment`. |
-| `panel` | Panel archetype — `surface` (fill + chrome) and `layout` (title / description / header / body / footer). | `bridge.panel`; subset reach from box, panel. |
+| `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer), and `grip` (the drag bar a resizable panel is taken by, keyed by the separator's line). | `bridge.panel`; subset reach from box, panel. |
 | `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour. *No bridge.* | `kata/slider`, `kata/slider-range`. |
 
 ## Katakana — bridges

@@ -1,5 +1,5 @@
 import type { MapTopology } from 'ui/modules/map'
-import type { Place, PlaceDraft } from '../types'
+import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
 
 /**
  * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3.
@@ -70,17 +70,23 @@ export async function deletePlace(id: string): Promise<void> {
 	if (!response.ok) throw new Error(await failureText(response))
 }
 
-/** Every visited state, by the name the atlas gives it. */
-export function fetchVisits(signal?: AbortSignal): Promise<string[]> {
-	return request<string[]>('/api/visits', { signal })
+/** Every visited region, by the name its own atlas gives it. */
+export function fetchVisits(signal?: AbortSignal): Promise<Visits> {
+	return request<Visits>('/api/visits', { signal })
 }
 
-/** Marks one state visited or not, and hands back the whole set. */
-export function setVisit(state: string, visited: boolean): Promise<string[]> {
-	return send<string[]>(`/api/visits/${encodeURIComponent(state)}`, 'PUT', { visited })
+/** Marks one region visited or not, and hands back both scopes. */
+export function setVisit(scope: VisitScope, region: string, visited: boolean): Promise<Visits> {
+	return send<Visits>(`/api/visits/${scope}/${encodeURIComponent(region)}`, 'PUT', { visited })
 }
 
-/** The US states atlas the map draws, as a TopoJSON topology. */
-export function fetchStatesAtlas(signal?: AbortSignal): Promise<MapTopology> {
-	return request<MapTopology>('/api/atlas/states', { signal })
+/**
+ * One atlas the map draws, as a TopoJSON topology.
+ *
+ * The scope names the route as well as the grain, so the two atlases are one
+ * call rather than one function each — and the same word names the topology
+ * object to decode out of what comes back.
+ */
+export function fetchAtlas(scope: VisitScope, signal?: AbortSignal): Promise<MapTopology> {
+	return request<MapTopology>(`/api/atlas/${scope}`, { signal })
 }

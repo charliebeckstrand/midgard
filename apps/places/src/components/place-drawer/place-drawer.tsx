@@ -1,15 +1,8 @@
 'use client'
 
 import { Pencil, Trash, X } from 'lucide-react'
-import { type MouseEvent, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbSeparator,
-} from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
@@ -25,6 +18,7 @@ import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
 import { CategoryPicker } from '../category-picker'
+import { PlaceTrail } from '../place-trail'
 
 /** Props for {@link PlaceDrawer}. */
 export type PlaceDrawerProps = {
@@ -33,19 +27,31 @@ export type PlaceDrawerProps = {
 	 * summary; empty closes the drawer.
 	 */
 	places: readonly Place[]
-	/** The state the picked dot stands in, as the map names it; `null` where none holds it. */
-	state: string | null
-	/** Every place in that state — the list the first crumb leads back to. */
-	statePlaces: readonly Place[]
+	/**
+	 * The regions the picked dot stands in, from the drawn one down — empty where
+	 * none holds it. The last step is what the list under it is.
+	 *
+	 * A trail rather than one name, because a summary dot on the world map often
+	 * merges one town's worth of places: the country it drew in is the coarser
+	 * answer, and the state every one of them shares is the one the reader can see
+	 * it standing on.
+	 */
+	trail: readonly string[]
+	/** Every place in the trail's last region — the list its crumb leads back to. */
+	regionPlaces: readonly Place[]
 	onOpenChange: (open: boolean) => void
+	/**
+	 * Takes the map to one of the trail's upper regions.
+	 *
+	 * Without it those steps are plain text: a crumb that lights under the pointer
+	 * and answers nothing is worse than one that never offered.
+	 */
+	onNavigate: (region: string) => void
 	/** Opens the place for an edit. */
 	onEdit: (place: Place) => void
 	/** Asks for the place to be deleted. The confirmation is the caller's. */
 	onDelete: (place: Place) => void
 }
-
-/** The crumbs' weight, held on each so it beats the current one's `font-normal`. */
-const CRUMB = 'font-semibold'
 
 /** The visit date, category, and score — the line under a place's name. */
 function PlaceMeta({ place }: { place: Place }) {
@@ -69,20 +75,21 @@ function PlaceMeta({ place }: { place: Place }) {
  * a panel that covered the map would take away the thing the reader just
  * pointed at.
  *
- * A summary dot opens as the list of every place in its state, because a summary
- * is a fact about the frame — the same dots separate as the reader zooms in —
- * where the state is a fact about the places. A lone dot opens straight into its
- * place.
+ * A summary dot opens as the list of every place in its region, because a
+ * summary is a fact about the frame — the same dots separate as the reader zooms
+ * in — where the region is a fact about the places. A lone dot opens straight
+ * into its place.
  *
  * The title is the trail rather than a name, so it is also the way back: the
- * first crumb names the state and returns to the state's list. There is no Back
- * button, because the crumb is one.
+ * first crumb names the region and returns to the region's list. There is no
+ * Back button, because the crumb is one.
  */
 export function PlaceDrawer({
 	places,
-	state,
-	statePlaces,
+	trail,
+	regionPlaces,
 	onOpenChange,
+	onNavigate,
 	onEdit,
 	onDelete,
 }: PlaceDrawerProps) {
@@ -139,15 +146,15 @@ export function PlaceDrawer({
 		setCategories([])
 	}, [groupKey])
 
-	// The state's places, never the merged group alone. The crumb over the list
-	// names the state, so the list under it has to be the state's — a summary that
-	// listed only what the frame happened to merge would answer a different
+	// The region's places, never the merged group alone. The crumb over the list
+	// names the region, so the list under it has to be the region's — a summary
+	// that listed only what the frame happened to merge would answer a different
 	// question from the one its own heading asks, and the count would change with
 	// the zoom.
 	//
-	// A place the map placed in no state has no such list, so the group it was
+	// A place the map placed in no region has no such list, so the group it was
 	// picked from stands in.
-	const list = statePlaces.length > 0 ? statePlaces : held
+	const list = regionPlaces.length > 0 ? regionPlaces : held
 
 	// What the list narrows to. Empty admits everything: a reader who clears the
 	// last category means to stop filtering, not to empty the panel.
@@ -169,19 +176,46 @@ export function PlaceDrawer({
 	// and every reader below tests for `null` alone.
 	const place = listing ? null : (opened ?? (held.length === 1 ? (held[0] ?? null) : null))
 
-	// A place the map placed in no state falls back to the count, which is the
+	// A place the map placed in no region falls back to the count, which is the
 	// only other thing the group has to say about itself. Counted after the
 	// filter, so the heading agrees with the rows under it.
-	const where = state ?? `${shown.length} places`
+	//
+	// Held, because the fallback is a fresh array every render and the steps below
+	// are keyed on this one: rebuilt each time, the memo under it never holds.
+	const where = useMemo(
+		() => (trail.length > 0 ? trail : [`${shown.length} places`]),
+		[trail, shown.length],
+	)
 
-	const title = place === null ? where : `${where} › ${place.name}`
+	const title = [...where, ...(place === null ? [] : [place.name])].join(' › ')
+
+	// The trail as steps that act. Every region step but the last leads out to the
+	// map; the last leads back to this panel's own list, and the place itself leads
+	// nowhere because it is where the reader already is.
+	const steps = useMemo(() => {
+		const regions = where.map((step, at) => ({
+			label: step,
+			onPick:
+				at < where.length - 1
+					? () => onNavigate(step)
+					: place !== null && list.length > 0
+						? () => {
+								setOpenedId(null)
+
+								setListing(true)
+							}
+						: undefined,
+		}))
+
+		return place === null ? regions : [...regions, { label: place.name }]
+	}, [where, place, list.length, onNavigate])
 
 	return (
 		<Drawer
 			glass
 			handle
 			// Fixed rather than grown to fit, because this panel is navigated: the
-			// crumb walks between the state's list and one place, and an `auto`
+			// crumb walks between the region's list and one place, and an `auto`
 			// height made every one of those steps a resize — a list of twelve
 			// opened tall and drilling into one of them collapsed the panel under
 			// the reader's hand, on the step where they had just committed to
@@ -189,9 +223,9 @@ export function PlaceDrawer({
 			// changed; the body scrolls, which is what a fixed height is for.
 			//
 			// It also keeps the promise the panel is named for. `auto` runs to
-			// 85dvh, so a state with places enough covered the map it docks over —
+			// 85dvh, so a region with places enough covered the map it docks over —
 			// and the count that decided it meant the rule itself changed as the
-			// reader added a third place to a state, which nothing they did
+			// reader added a third place to a region, which nothing they did
 			// explains. A dragged height still beats this and holds until close.
 			height="half"
 			open={open}
@@ -201,48 +235,19 @@ export function PlaceDrawer({
 			{/* No top padding: the handle above carries it, so the title sits directly
 			    under the grip rather than a step below it. */}
 			<Flex justify="between" align="start" gap="md" className="px-6">
-				<Stack gap="sm">
+				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
+				    child holds its full width, so a long trail runs past the panel edge
+				    instead of truncating — the crumbs cannot shrink below a parent that
+				    will not. `flex-1` is what lets it come back: the trail measures the box
+				    it is given, and a box that shrinks to the trail would narrow with it and
+				    never report the room to expand again. */}
+				<Stack gap="sm" className="flex-1 min-w-0">
 					{/* The title is the trail, so it doubles as the way back and the panel
 					    needs no Back button of its own. `DrawerTitle` names the panel; the
 					    crumbs are what the reader reads and act on. */}
 					<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
 
-					<Breadcrumb>
-						<BreadcrumbList className="text-lg/7 sm:text-base/7">
-							<BreadcrumbItem>
-								<BreadcrumbLink
-									current={place === null}
-									className={CRUMB}
-									href={place !== null && list.length > 0 ? '#' : undefined}
-									onClick={
-										place !== null && list.length > 0
-											? (event: MouseEvent) => {
-													event.preventDefault()
-
-													setOpenedId(null)
-
-													setListing(true)
-												}
-											: undefined
-									}
-								>
-									{where}
-								</BreadcrumbLink>
-							</BreadcrumbItem>
-
-							{place === null ? null : (
-								<>
-									<BreadcrumbSeparator />
-
-									<BreadcrumbItem>
-										<BreadcrumbLink current className={CRUMB}>
-											{place.name}
-										</BreadcrumbLink>
-									</BreadcrumbItem>
-								</>
-							)}
-						</BreadcrumbList>
-					</Breadcrumb>
+					<PlaceTrail className="text-base/7" steps={steps} />
 
 					{place ? <PlaceMeta place={place} /> : null}
 				</Stack>

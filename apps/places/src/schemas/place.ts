@@ -3,9 +3,12 @@ import type { Place, PlaceCategory, PlaceDraft } from '../types'
 
 /**
  * The place schema, hand-written rather than taken from a schema library. It is
- * read at two edges — the route handler, which must not trust a request body,
- * and the store, which must not trust a file that was hand-edited — and both
- * want the same answer: a `Place`, or a list of what is wrong with it.
+ * read at three edges — the route handler, which must not trust a request body;
+ * the store, which must not trust a file that was hand-edited; and the address
+ * codec, which must not trust a link — and the first two want the same answer: a
+ * `Place`, or a list of what is wrong with it. The third wants the field readers
+ * alone, which is why {@link isCategory} and {@link isDay} are public: one rule
+ * copied to a second edge is the pair that drifts.
  */
 
 /** What a parse returns: the value, or the reasons it is not one. */
@@ -17,12 +20,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function isCategory(value: unknown): value is PlaceCategory {
+/** One of the categories a place can carry. */
+export function isCategory(value: unknown): value is PlaceCategory {
 	return CATEGORY_VALUES.includes(value as PlaceCategory)
 }
 
-/** A `YYYY-MM-DD` day, which is the granularity a visit is recorded at. */
-function isDay(value: unknown): value is string {
+/**
+ * A `YYYY-MM-DD` day, which is the granularity a visit is recorded at.
+ *
+ * The shape and the date both: `2026-13-45` is a well-formed field and not a
+ * day, and a reader can type one into the address bar as easily as a request
+ * body can carry one.
+ */
+export function isDay(value: unknown): value is string {
 	return (
 		typeof value === 'string' &&
 		/^\d{4}-\d{2}-\d{2}$/.test(value) &&
