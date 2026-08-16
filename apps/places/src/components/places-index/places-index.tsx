@@ -13,6 +13,7 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
+import { stateLabel } from '../../utilities/places-view'
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -105,22 +106,20 @@ export function PlacesIndex({
 						{
 							id: 'state',
 							title: 'State',
-							// The drawn geometry first and the geocoder's name second, which is
-							// the order the rest of the app trusts them in. The second answer is
-							// what makes the column worth its width: the states atlas draws one
-							// country, and outside it the subdivision the geocoder named is the
-							// nearest thing to a state there is.
+							// The state as the app settles it — see `stateLabel` — and not the
+							// stored field: the drawn geometry answers ahead of it there.
 							//
-							// Empty where neither answers — a country that names no subdivision,
+							// Empty where nothing answers — a country that names no subdivision,
 							// or a place recorded before one was stored — rather than a warning.
 							// The region beside it already says where the place is; a state is
 							// the finer answer and not a missing one.
 							//
-							// The `cell` is stated for the reason the city's is, and for a
-							// second: the column id resolves against the row field, which here is
-							// the geocoder's name alone and would show it over the geometry's.
-							value: (place) => stateByPlace.get(place.id) ?? place.state ?? '',
-							cell: (place) => stateByPlace.get(place.id) ?? place.state ?? '',
+							// Both accessors are stated, for two different reasons. A column with
+							// no `cell` renders an empty cell, and a column with no `value`
+							// resolves against the row's own field — which here is the geocoder's
+							// name alone, and would sort and search over the geometry's answer.
+							value: (place) => stateLabel(stateByPlace, place),
+							cell: (place) => stateLabel(stateByPlace, place),
 						} satisfies GridColumn<Place>,
 					]),
 			{

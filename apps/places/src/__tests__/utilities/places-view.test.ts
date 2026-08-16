@@ -7,6 +7,7 @@ import {
 	knownCountry,
 	type PlaceView,
 	regionOf,
+	stateLabel,
 	stateOf,
 	UNITED_STATES,
 	UNITED_STATES_VIEW,
@@ -178,6 +179,28 @@ describe('regionOf', () => {
 
 	it('answers with nothing for a grouping that placed nothing', () => {
 		expect(regionOf(new Map()).size).toBe(0)
+	})
+})
+
+describe('stateLabel', () => {
+	// The drawn geometry beats the name, which is the order the whole app trusts:
+	// a 10m atlas that holds the point knows better than a geocoder that wrote
+	// "OR" — or wrote nothing at all.
+	it('prefers the state the geometry settled', () => {
+		const held = place('lighthouse', { state: 'OR' })
+
+		expect(stateLabel(new Map([['lighthouse', 'Oregon']]), held)).toBe('Oregon')
+	})
+
+	// What carries the column past the atlas's edge: the states are drawn for one
+	// country, and outside it the geocoder's subdivision is the only answer there
+	// is. Unchecked on purpose — it is a name to print, never a region to open.
+	it('falls back to the name the geocoder gave', () => {
+		expect(stateLabel(new Map(), place('louvre', { state: 'Ile-de-France' }))).toBe('Ile-de-France')
+	})
+
+	it('answers with the empty string where neither placed it', () => {
+		expect(stateLabel(new Map(), place('marina'))).toBe('')
 	})
 })
 
