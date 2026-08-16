@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle, CalendarSkeleton } from '../../components/calendar'
 import { Form } from '../../components/form'
-import { act, bySlot, liveRegion, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, liveRegion, renderUI, screen, userEvent, within } from '../helpers'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -499,5 +499,127 @@ describe('Calendar + Form', () => {
 		)
 
 		expect(selectedDay()?.textContent).toBe('20')
+	})
+})
+
+describe('Calendar month layout', () => {
+	const AUGUST = new Date(2026, 7, 15)
+
+	// A cell that holds more than a date is a gridcell, and a gridcell has to sit
+	// in a row — which is what parts this layout from the picker's flat listbox.
+	it('renders a grid of rows and cells rather than a listbox of options', () => {
+		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+
+		expect(screen.getByRole('grid')).toBeInTheDocument()
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		expect(screen.queryAllByRole('option')).toHaveLength(0)
+
+		expect(screen.getAllByRole('gridcell').length).toBeGreaterThan(0)
+	})
+
+	it('names the grid for the month it draws', () => {
+		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+
+		expect(screen.getByRole('grid')).toHaveAccessibleName('August 2026')
+	})
+
+	it('holds seven cells in every row, padding included', () => {
+		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+
+		for (const row of screen.getAllByRole('row').slice(1)) {
+			expect(within(row).getAllByRole('gridcell')).toHaveLength(7)
+		}
+	})
+
+	it('names each column with a weekday header', () => {
+		renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+
+		expect(screen.getAllByRole('columnheader')).toHaveLength(7)
+	})
+
+	it('draws one date button per day of the month', () => {
+		const { container } = renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+
+		// August has 31 days.
+		expect(container.querySelectorAll('button[data-calendar-day]')).toHaveLength(31)
+	})
+
+	it('draws the caller’s content under the day number', () => {
+		renderUI(
+			<Calendar
+				layout="month"
+				defaultValue={AUGUST}
+				renderDay={({ date }) => (date.getDate() === 3 ? <span>Clam chowder</span> : null)}
+			/>,
+		)
+
+		expect(screen.getByText('Clam chowder')).toBeInTheDocument()
+	})
+
+	// The content is the reader's own, and its controls are reached with Tab —
+	// the arrow keys stay on the dates, so a month of full cells is still seven
+	// columns to navigate.
+	it('lets the caller’s own controls live beside the date', () => {
+		renderUI(
+			<Calendar
+				layout="month"
+				defaultValue={AUGUST}
+				renderDay={({ date }) =>
+					date.getDate() === 3 ? <button type="button">Open chowder</button> : null
+				}
+			/>,
+		)
+
+		const meal = screen.getByRole('button', { name: 'Open chowder' })
+
+		expect(meal).toBeInTheDocument()
+
+		expect(meal).not.toHaveAttribute('data-calendar-day')
+	})
+
+	it('selects a day when its date is pressed', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Calendar layout="month" defaultValue={AUGUST} onValueChange={onValueChange} />)
+
+		await userEvent.click(screen.getByRole('button', { name: /Monday, August 3, 2026/ }))
+
+		expect(onValueChange).toHaveBeenCalledOnce()
+
+		const [picked] = onValueChange.mock.calls[0] as [Date]
+
+		expect(picked.getDate()).toBe(3)
+	})
+
+	it('marks today on its own date button', () => {
+		renderUI(<Calendar layout="month" defaultValue={new Date()} />)
+
+		expect(
+			screen.getAllByRole('button').some((el) => el.getAttribute('aria-current') === 'date'),
+		).toBe(true)
+	})
+
+	it('takes a per-cell decorator the same way the picker does', () => {
+		const { container } = renderUI(
+			<Calendar
+				layout="month"
+				defaultValue={AUGUST}
+				getDayProps={({ date }) => (date.getDate() === 3 ? { className: 'marked' } : {})}
+			/>,
+		)
+
+		expect(container.querySelectorAll('.marked')).toHaveLength(1)
+	})
+
+	it('fills the width it is given rather than a fixed one', () => {
+		const { container } = renderUI(<Calendar layout="month" defaultValue={AUGUST} />)
+
+		const frame = bySlot(container, 'calendar')
+
+		expect(frame?.className).toContain('w-full')
+
+		expect(frame?.className).not.toMatch(/\bw-68\b/)
 	})
 })
