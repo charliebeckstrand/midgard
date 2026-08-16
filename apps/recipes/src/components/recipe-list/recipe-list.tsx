@@ -79,8 +79,11 @@ export function RecipeList({
 								}
 								color={recipe.favorite ? 'red' : undefined}
 								aria-label={recipe.favorite ? 'Remove from favourites' : 'Add to favourites'}
-								aria-pressed={recipe.favorite}
-								onClick={() => onFavorite(recipe, !recipe.favorite)}
+								// The button owns `aria-pressed` from this prop; written as an
+								// attribute it is overwritten by the control's own state, which
+								// for an uncontrolled toggle is always false.
+								pressed={recipe.favorite}
+								onPressedChange={(next) => onFavorite(recipe, next)}
 							/>
 						</TooltipTrigger>
 

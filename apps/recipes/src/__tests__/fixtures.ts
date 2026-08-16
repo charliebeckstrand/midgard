@@ -1,4 +1,4 @@
-import type { CookEvent, PlanEntry, Recipe } from '../types'
+import type { CookEvent, Recipe } from '../types'
 
 /**
  * One stored recipe, with only the fields a case is about named at its call
@@ -28,9 +28,4 @@ export function recipe(id: string, fields: Partial<Recipe> = {}): Recipe {
 /** One cook of a recipe on a day, which is all the log holds. */
 export function cook(id: string, recipeId: string, day: string): CookEvent {
 	return { id, recipeId, day, createdAt: `${day}T18:00:00.000Z` }
-}
-
-/** One planned meal. */
-export function planned(id: string, day: string, recipeId: string, position = 0): PlanEntry {
-	return { id, day, recipeId, position }
 }

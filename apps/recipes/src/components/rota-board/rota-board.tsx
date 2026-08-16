@@ -22,8 +22,15 @@ import { resolveMove } from '../../utilities/plan-move'
 export type BoardCard = PlanCard & {
 	/** The recipe's name, or a stand-in where the recipe is no longer on file. */
 	name: string
-	/** Whether this meal has been ticked as cooked. */
-	cooked: boolean
+	/**
+	 * The cook this meal was ticked into, or `null` where it has not been.
+	 *
+	 * The card carries it so the tick can take it back. A cook is its own record
+	 * and the store will happily hold two of the same meal on one day — that is
+	 * the right rule for a reader who cooked it twice — but this control says it
+	 * is pressed, so pressing it again has to mean what that promises.
+	 */
+	cookId: string | null
 }
 
 /** One day column of the board. */
@@ -122,7 +129,9 @@ export function RotaBoard({ days, onMove, onAdd, onCooked, onRemove }: RotaBoard
 								<Flex justify="between" align="start" gap="xs" className="min-w-0">
 									<Text
 										className={
-											card.cooked ? 'min-w-0 text-sm line-through opacity-60' : 'min-w-0 text-sm'
+											card.cookId !== null
+												? 'min-w-0 text-sm line-through opacity-60'
+												: 'min-w-0 text-sm'
 										}
 									>
 										{card.name}
@@ -135,12 +144,18 @@ export function RotaBoard({ days, onMove, onAdd, onCooked, onRemove }: RotaBoard
 									    a cook. */}
 										<ToggleIconButton
 											icon={<Icon icon={<Check />} />}
-											color={card.cooked ? 'green' : undefined}
+											color={card.cookId === null ? undefined : 'green'}
 											aria-label={
-												card.cooked ? `${card.name} was cooked` : `Mark ${card.name} cooked`
+												card.cookId === null
+													? `Mark ${card.name} cooked`
+													: `${card.name} was cooked`
 											}
-											aria-pressed={card.cooked}
-											onClick={() => onCooked(card, entry.day)}
+											// The button owns `aria-pressed` from this prop, so the
+											// state has to arrive through it: written as an attribute
+											// it is overwritten by the control's own, which for an
+											// uncontrolled toggle is always false.
+											pressed={card.cookId !== null}
+											onPressedChange={() => onCooked(card, entry.day)}
 										/>
 
 										<ToggleIconButton

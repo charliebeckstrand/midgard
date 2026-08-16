@@ -12,6 +12,7 @@ import {
 	useCooks,
 	usePlan,
 	useRecipes,
+	useRemoveCook,
 	useRemovePlanEntry,
 	useReplacePlanDays,
 } from '../../queries/recipes-queries'
@@ -60,6 +61,8 @@ export function RotaPage() {
 
 	const addCook = useAddCook()
 
+	const removeCook = useRemoveCook()
+
 	// Which day the palette will add to. `null` closes it, which is also what it
 	// opens on nothing.
 	const [adding, setAdding] = useState<string | null>(null)
@@ -68,13 +71,19 @@ export function RotaPage() {
 
 	const names = useMemo(() => new Map(recipes.map((recipe) => [recipe.id, recipe.name])), [recipes])
 
-	// Which meals have been ticked, by day and recipe. A cook carries no plan
-	// entry — the log is its own record — so the two are matched on what they
-	// have in common, which is the recipe and the day.
-	const cooked = useMemo(
-		() => new Set(cooks.map((cook) => `${cook.day}:${cook.recipeId}`)),
-		[cooks],
-	)
+	// Which meals have been ticked, by day and recipe, and which cook each tick
+	// stands on. A cook carries no plan entry — the log is its own record — so the
+	// two are matched on what they have in common, which is the recipe and the
+	// day. The id comes back with it so the tick can be taken off again.
+	const cooked = useMemo(() => {
+		const byMeal = new Map<string, string>()
+
+		// Oldest last, so the id held is the first cook of that meal — the one the
+		// tick wrote, rather than a later one the reader added from the recipe.
+		for (const cook of cooks) byMeal.set(`${cook.day}:${cook.recipeId}`, cook.id)
+
+		return byMeal
+	}, [cooks])
 
 	const days: BoardDay[] = useMemo(() => {
 		const byDay = new Map<string, BoardCard[]>()
@@ -86,7 +95,7 @@ export function RotaPage() {
 				id: entry.id,
 				recipeId: entry.recipeId,
 				name: names.get(entry.recipeId) ?? MISSING,
-				cooked: cooked.has(`${entry.day}:${entry.recipeId}`),
+				cookId: cooked.get(`${entry.day}:${entry.recipeId}`) ?? null,
 			})
 
 			byDay.set(entry.day, cards)
@@ -137,9 +146,13 @@ export function RotaPage() {
 					onMove={(moved) => replaceDays.mutate(moved)}
 					onAdd={setAdding}
 					onCooked={(card, day) => {
-						// A tick is a record of something that happened, so pressing it
-						// twice is not a toggle: the second says it was cooked again.
-						addCook.mutate({ recipeId: card.recipeId, day })
+						// The control says it is pressed, so pressing it again takes the
+						// cook back rather than recording a second one. The store holds
+						// two of the same meal on one day quite happily — that is right
+						// for a reader who cooked it twice, and the recipe page is where
+						// they say so.
+						if (card.cookId === null) addCook.mutate({ recipeId: card.recipeId, day })
+						else removeCook.mutate(card.cookId)
 					}}
 					onRemove={(card) => removePlanEntry.mutate(card.id)}
 				/>
