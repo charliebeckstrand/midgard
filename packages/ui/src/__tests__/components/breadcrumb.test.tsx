@@ -5,6 +5,7 @@ import {
 	BreadcrumbLink,
 	BreadcrumbList,
 	BreadcrumbSkeleton,
+	BreadcrumbTrail,
 } from '../../components/breadcrumb'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -173,5 +174,94 @@ describe('BreadcrumbLink without href', () => {
 		expect(el?.tagName).toBe('SPAN')
 
 		expect(el).not.toHaveAttribute('aria-current')
+	})
+})
+
+describe('BreadcrumbTrail', () => {
+	const STEPS = [{ label: 'Recipes', href: '/' }, { label: 'Roast chicken' }]
+
+	it('renders one crumb per step, with a separator between them', () => {
+		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+
+		expect(allBySlot(container, 'breadcrumb-item')).toHaveLength(2)
+
+		// One fewer than the crumbs: a separator sits between, never before or
+		// after.
+		expect(allBySlot(container, 'breadcrumb-separator')).toHaveLength(1)
+	})
+
+	it('marks the last step as the current page and no other', () => {
+		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+
+		const links = allBySlot(container, 'breadcrumb-link')
+
+		expect(links[0]).not.toHaveAttribute('aria-current')
+
+		expect(links[1]).toHaveAttribute('aria-current', 'page')
+	})
+
+	// The label is what the crumb announces and the mark is what it draws, so both
+	// are laid out in every state and one of them is closed to nothing. A collapsed
+	// crumb still says where it goes.
+	it('lays out both the label and the mark for every crumb', () => {
+		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+
+		expect(container.querySelectorAll('[data-trail-label]')).toHaveLength(2)
+
+		expect(container.querySelectorAll('[data-trail-mark]')).toHaveLength(2)
+	})
+
+	it('hides the mark from assistive tech', () => {
+		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+
+		for (const mark of container.querySelectorAll('[data-trail-mark]')) {
+			expect(mark).toHaveAttribute('aria-hidden', 'true')
+		}
+	})
+
+	it('renders a step with a destination as an anchor', () => {
+		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+
+		const [first] = allBySlot(container, 'breadcrumb-link')
+
+		expect(first?.tagName).toBe('A')
+
+		expect(first).toHaveAttribute('href', '/')
+	})
+
+	it('renders a step with neither destination nor handler as a span', () => {
+		const { container } = renderUI(<BreadcrumbTrail steps={STEPS} />)
+
+		expect(allBySlot(container, 'breadcrumb-link')[1]?.tagName).toBe('SPAN')
+	})
+
+	// A step that drives state borrows the anchor for the click but carries no
+	// destination, so the anchor's own default must not fire.
+	it('calls onPick and refuses the anchor default for a step with no destination', () => {
+		const onPick = vi.fn()
+
+		const { container } = renderUI(
+			<BreadcrumbTrail steps={[{ label: 'World', onPick }, { label: 'Oregon' }]} />,
+		)
+
+		const [first] = allBySlot(container, 'breadcrumb-link')
+
+		expect(first).toHaveAttribute('href', '#')
+
+		const event = new MouseEvent('click', { bubbles: true, cancelable: true })
+
+		first?.dispatchEvent(event)
+
+		expect(onPick).toHaveBeenCalledOnce()
+
+		expect(event.defaultPrevented).toBe(true)
+	})
+
+	it('renders a single step with no separator', () => {
+		const { container } = renderUI(<BreadcrumbTrail steps={[{ label: 'Recipes' }]} />)
+
+		expect(allBySlot(container, 'breadcrumb-item')).toHaveLength(1)
+
+		expect(allBySlot(container, 'breadcrumb-separator')).toHaveLength(0)
 	})
 })

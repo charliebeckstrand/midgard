@@ -8,3 +8,8 @@ export { BreadcrumbLink, type BreadcrumbLinkProps } from './breadcrumb-link'
 export { BreadcrumbList, type BreadcrumbListProps } from './breadcrumb-list'
 export { BreadcrumbSeparator, type BreadcrumbSeparatorProps } from './breadcrumb-separator'
 export { BreadcrumbSkeleton, type BreadcrumbSkeletonProps } from './breadcrumb-skeleton'
+export {
+	type BreadcrumbStep,
+	BreadcrumbTrail,
+	type BreadcrumbTrailProps,
+} from './breadcrumb-trail'

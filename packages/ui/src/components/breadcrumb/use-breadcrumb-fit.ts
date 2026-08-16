@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useEffectEvent, useLayoutEffect, useState } from 'react'
-import { useResizeObserver } from 'ui/hooks'
+import { useResizeObserver } from '../../hooks'
 
 /**
  * A pixel of slack. `clientWidth` rounds where `getBoundingClientRect` does not,
@@ -10,34 +10,41 @@ import { useResizeObserver } from 'ui/hooks'
 const SLOP = 1
 
 /** The label and the mark of one crumb — the two boxes a fit trades between. */
-type TrailBoxes = {
+type CrumbBoxes = {
 	/** The crumb itself, which is what the row lays out. */
 	item: HTMLElement
 	/** The full text. Present in every state, closed to nothing when collapsed. */
 	label: HTMLElement
-	/** The `…` that stands in for it. Present in every state, closed to nothing when not. */
+	/** The mark that stands in for it. Present in every state, closed to nothing when not. */
 	mark: HTMLElement
 }
 
-/** What a row can hold: how many leading crumbs must give way, and whether the last one still clips. */
-export type TrailFit = {
+/**
+ * What a row can hold: how many leading crumbs must give way, and whether the
+ * last one still clips.
+ *
+ * @internal
+ */
+export type BreadcrumbFit = {
 	collapsed: number
 	clipped: boolean
 }
 
 /** Nothing given way and nothing clipped, which is what an unmeasured row reports. */
-const WHOLE: TrailFit = { collapsed: 0, clipped: false }
+const WHOLE: BreadcrumbFit = { collapsed: 0, clipped: false }
 
 /**
  * The crumbs of a rendered trail, outermost first.
  *
- * Reads the boxes {@link PlaceTrail} marks with `data-trail-label` and
- * `data-trail-mark` rather than taking a ref for each: the trail renders both,
- * the measure only reads them, and a ref per crumb would need a registry that
- * a query answers in one line.
+ * Reads the boxes the trail marks with `data-trail-label` and `data-trail-mark`
+ * rather than taking a ref for each: the trail renders both, the measure only
+ * reads them, and a ref per crumb would need a registry that a query answers in
+ * one line.
+ *
+ * @internal
  */
-function boxesOf(row: HTMLElement): TrailBoxes[] {
-	const crumbs: TrailBoxes[] = []
+function boxesOf(row: HTMLElement): CrumbBoxes[] {
+	const crumbs: CrumbBoxes[] = []
 
 	for (const item of row.querySelectorAll<HTMLElement>('[data-slot=breadcrumb-item]')) {
 		const label = item.querySelector<HTMLElement>('[data-trail-label]')
@@ -63,8 +70,10 @@ function boxesOf(row: HTMLElement): TrailBoxes[] {
  * is left over once every step above the title has gone to its mark is what the
  * title is short by, and that is a number about the layout this answer will
  * cause — where a measurement would report the one it replaces.
+ *
+ * @internal
  */
-function fitOf(row: HTMLElement): TrailFit {
+export function fitOf(row: HTMLElement): BreadcrumbFit {
 	const crumbs = boxesOf(row)
 
 	const last = crumbs.at(-1)
@@ -106,8 +115,12 @@ function fitOf(row: HTMLElement): TrailFit {
  * labels measure runs as a layout effect, so a trail is never painted at the
  * wrong fit.
  * @returns The fit, whole until the first measurement.
+ * @internal
  */
-export function useTrailFit(ref: RefObject<HTMLElement | null>, labels: string): TrailFit {
+export function useBreadcrumbFit(
+	ref: RefObject<HTMLElement | null>,
+	labels: string,
+): BreadcrumbFit {
 	const [fit, setFit] = useState(WHOLE)
 
 	const measure = useEffectEvent(() => {
