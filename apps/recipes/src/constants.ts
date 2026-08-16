@@ -42,3 +42,41 @@ export const MAX_TEXT = 2_000
 
 /** The most steps or ingredient lines one recipe can hold. */
 export const MAX_LINES = 100
+
+/**
+ * The units a typed ingredient line can name.
+ *
+ * A closed list because the alternative is to treat the first word after a
+ * number as a unit whatever it is, and "2 large onions" would then be measured
+ * in `large`. A word that is not here stays part of the item, which is the
+ * answer that loses nothing.
+ *
+ * Written lower case and without a trailing stop; the reader's `kg.` and `Kg`
+ * both land here.
+ */
+export const UNITS: readonly string[] = [
+	'g',
+	'kg',
+	'mg',
+	'oz',
+	'lb',
+	'ml',
+	'l',
+	'tsp',
+	'tbsp',
+	'cup',
+	'cups',
+	'pint',
+	'pints',
+	'quart',
+	'quarts',
+	'clove',
+	'cloves',
+	'slice',
+	'slices',
+	'can',
+	'cans',
+	'pinch',
+	'handful',
+	'bunch',
+]

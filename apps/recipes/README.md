@@ -13,9 +13,38 @@ pnpm --filter recipes test
 ```
 
 The suite covers what the app holds that is pure: the schemas every edge reads a
-body through, the fold that turns the cook log into counts and orders, and the
-atomic file mechanism the stores write through. The components compose `ui`,
-which carries its own suite.
+body through, the fold that turns the cook log into counts and orders, the filter
+the bar applies, the reader that turns a typed ingredient line into a record, the
+address codec, and the atomic file mechanism the stores write through. The
+components compose `ui`, which carries its own suite.
+
+## The frame
+
+Every page is drawn in the same three parts: a title row that carries the trail
+and the controls, a row under it that a page fills only if it has something to
+put there, and the body between them and the foot of the window. The body is the
+one thing that scrolls, so a filter bar stays put while a long list moves under
+it.
+
+The list fills the second row with its filters. A recipe page has nothing to
+narrow, so it fills the same row with Edit, Favourite, Cooked today, and Delete —
+which is where a reader who came from the list has just been looking.
+
+## The ingredient list
+
+A recipe is copied off a page or out of a head, one line at a time, so the form
+takes lines rather than a repeating row of three fields.
+`src/utilities/ingredient-line.ts` reads them: `2 kg potatoes` is a quantity, a
+unit, and an item; `salt, to taste` is an item.
+
+A unit is only read from a known list. Anything else is the first word of the
+item, because "2 large onions" measures onions in nothing and `large` is not a
+unit this app should invent. A bare number stays an item too — a reader who wrote
+`12` meant something by it.
+
+The write is the exact inverse of the read, so a record dressed back up as text
+and parsed again is the record it started as. Without that, a save the reader
+made no change to would quietly rewrite the list.
 
 ## The three records
 
