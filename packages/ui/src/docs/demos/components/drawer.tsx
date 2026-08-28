@@ -34,6 +34,59 @@ function HeightExample({ height, label }: { height: 'half' | 'full'; label: stri
 	)
 }
 
+/**
+ * A panel navigated within: the crumb swaps what it holds, and `fit` measures
+ * each step and travels between the two heights rather than snapping.
+ */
+function FitExample() {
+	const [open, setOpen] = useState(false)
+
+	const [opened, setOpened] = useState<string | null>(null)
+
+	const lines = LoremIpsum.split('. ').slice(0, 6)
+
+	return (
+		<>
+			<Button variant="outline" onClick={() => setOpen(true)}>
+				Fit content
+			</Button>
+
+			<Drawer glass height="fit" open={open} onOpenChange={setOpen}>
+				<DrawerTitle>
+					{opened === null ? (
+						'Six lines'
+					) : (
+						<Button variant="plain" onClick={() => setOpened(null)}>
+							Six lines › this one
+						</Button>
+					)}
+				</DrawerTitle>
+
+				<DrawerBody>
+					{opened === null ? (
+						lines.map((line) => (
+							<button
+								key={line}
+								type="button"
+								className="block w-full py-2 text-left text-sm"
+								onClick={() => setOpened(line)}
+							>
+								{line}.
+							</button>
+						))
+					) : (
+						<p className="text-sm">{opened}.</p>
+					)}
+				</DrawerBody>
+
+				<DrawerFooter>
+					<Button onClick={() => setOpen(false)}>Close</Button>
+				</DrawerFooter>
+			</Drawer>
+		</>
+	)
+}
+
 /** A panel the reader resizes by its own edge. */
 function HandleExample() {
 	const [open, setOpen] = useState(false)
@@ -109,6 +162,11 @@ export function Demo() {
 					<HeightExample height="half" label="Half screen" />
 
 					<HeightExample height="full" label="Full screen" />
+
+					{/* Open a line and come back: the panel travels between the two
+					    heights rather than snapping, and stops at the screen rather than
+					    short of it when a step has that much to show. */}
+					<FitExample />
 				</Flex>
 			</Example>
 		</>

@@ -31,21 +31,30 @@ export const k = {
 				glass: [...glass],
 				flat: [...surface.bg],
 			},
-			// How much of the screen the panel docks over. `auto` grows to its
-			// content and stops short of the top edge, which leaves the page behind
-			// visible and is what a drawer is for. `half` and `full` fix the height
-			// instead, for a panel whose own content scrolls: a detail panel beside
-			// the thing it describes, and a form that owns the screen while it is up.
+			// How much of the screen the panel docks over. `auto` and `fit` grow to
+			// their content; `half` and `full` fix the height instead, for a panel whose
+			// own content scrolls: a detail panel beside the thing it describes, and a
+			// form that owns the screen while it is up.
 			//
-			// `full` squares the top corners, because a rounded corner against the
-			// screen edge reads as a panel that failed to reach it.
+			// The two grown steps differ in where they stop. `auto` stops short of the
+			// top edge, which leaves the page behind visible and is what a drawer is
+			// for. `fit` goes to the screen, for a panel the reader navigates within:
+			// a step whose content runs long is a panel that has to hold it, and one
+			// clamped short of the edge would strand the last of it behind a scroll the
+			// screen had room for.
 			//
-			// A panel handed a new `height` grows or shrinks into it rather than
-			// jumping: the two fixed steps are lengths, which interpolate. `auto` is
-			// sized by its content and keeps snapping, since there is no second length
-			// to travel to.
+			// Both square the top corners against the screen edge, because a rounded
+			// corner there reads as a panel that failed to reach it — `full` always,
+			// `fit` on the steps that stand it there.
+			//
+			// A panel handed a new fixed `height` grows or shrinks into it rather than
+			// jumping: the two fixed steps are lengths, which interpolate. A grown one
+			// has no second length, so nothing here can move it. `fit` hands that to
+			// `usePanelFit`, which measures the length and travels it under Framer
+			// Motion; `auto` snaps.
 			height: {
 				auto: 'max-h-[85dvh] rounded-t-xl',
+				fit: ['max-h-dvh rounded-t-xl', 'data-full:rounded-t-none', css.corner, css.duration],
 				half: ['h-[50dvh] rounded-t-xl', css.size, css.duration, RESIZING],
 				full: ['h-dvh rounded-t-none', css.size, css.duration, RESIZING],
 			},
@@ -90,6 +99,12 @@ export const k = {
 		bar: grip.bar.horizontal,
 	},
 	motion: ugoki.panel.bottom,
+	/**
+	 * The travel a `fit` panel makes between two content heights, for
+	 * {@link usePanelFit}. Named here rather than in the hook, because the tempo a
+	 * unit moves on is the kata's to state.
+	 */
+	fit: ugoki.spring.fit,
 }
 
 /** Recipe variant props for the {@link Drawer} panel — its styling axes (`surface`, `height`), for consumers composing custom slots. */

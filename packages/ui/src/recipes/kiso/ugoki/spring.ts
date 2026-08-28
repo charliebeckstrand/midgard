@@ -15,4 +15,14 @@ export const spring = {
 	reflow: { type: 'spring', stiffness: 500, damping: 25 },
 	/** Snappy, lightly-damped glide — settles fast with a touch of give, not a bounce. */
 	snap: { type: 'spring', stiffness: 600, damping: 38 },
+	/**
+	 * A panel travelling between two content heights — the drawer growing or
+	 * shrinking to what it now holds.
+	 *
+	 * Overdamped, where the rest of the vocabulary gives. The edge carries the
+	 * content with it, so an overshoot is not a flourish here: past the target on
+	 * the way in it clips what the panel is arriving at, and on the way out it
+	 * opens a strip of nothing under the last line.
+	 */
+	fit: { type: 'spring', stiffness: 260, damping: 34 },
 } as const
