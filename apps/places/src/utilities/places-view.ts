@@ -143,6 +143,28 @@ export function regionOf(grouped: ReadonlyMap<string, readonly Place[]>): Map<st
 }
 
 /**
+ * Which state a place is in, as a row that has to print one says it: the drawn
+ * geometry's answer first, {@link stateOf} second, and the empty string where
+ * neither answers.
+ *
+ * The order is the one the whole app trusts. A 10m atlas that holds a point
+ * beats a name a geocoder returned, and the name is what carries the question
+ * past the atlas's edge — the states are drawn for one country, and outside it
+ * the subdivision the geocoder named is the nearest thing to a state there is.
+ *
+ * Unchecked, unlike the same fallback inside `groupPlacesByRegion`, which tests
+ * its name against the drawn regions before trusting it. There is nothing to
+ * test against here: a subdivision outside the drawn atlas is a name to print
+ * and never a region to open.
+ *
+ * `statesByPlace` is {@link regionOf} of the grouping against the states atlas.
+ * Empty rather than `undefined`, because every reader of this is a cell.
+ */
+export function stateLabel(statesByPlace: ReadonlyMap<string, string>, place: Place): string {
+	return statesByPlace.get(place.id) ?? stateOf(place) ?? ''
+}
+
+/**
  * The geocoder's country, which answers where the world outline cannot.
  * `groupPlacesByRegion`'s fallback for the countries atlas.
  */

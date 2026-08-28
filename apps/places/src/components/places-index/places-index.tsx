@@ -13,6 +13,7 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
+import { stateLabel } from '../../utilities/places-view'
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -32,6 +33,20 @@ export type PlacesIndexProps = {
 	 * the same walk a second time.
 	 */
 	regionByPlace: ReadonlyMap<string, string>
+	/**
+	 * Which state holds each place, by the place's id — or absent, for no state
+	 * column at all.
+	 *
+	 * The column exists because the region above names the region of the atlas the
+	 * map draws, and on the world that is the country: a reader who wants to know
+	 * which state they were in is left one step coarser than they asked for.
+	 *
+	 * Absent is what keeps it from saying the same thing twice. Inside the United
+	 * States the drawn region already is the state, so the column would print every
+	 * state beside itself. The caller is what knows which atlas is drawn, so the
+	 * caller decides whether this column has anything to add.
+	 */
+	stateByPlace?: ReadonlyMap<string, string>
 	/** Opens one place: the caller selects it and takes the map to it. */
 	onOpen: (place: Place) => void
 }
@@ -57,6 +72,7 @@ export function PlacesIndex({
 	onOpenChange,
 	places,
 	regionByPlace,
+	stateByPlace,
 	onOpen,
 }: PlacesIndexProps) {
 	// Every column declares `value`, because that is what the grid's quick search
@@ -84,11 +100,34 @@ export function PlacesIndex({
 				value: (place) => regionByPlace.get(place.id) ?? '',
 				cell: (place) => regionByPlace.get(place.id) ?? <Text severity="warning">Unplaced</Text>,
 			},
+			...(stateByPlace === undefined
+				? []
+				: [
+						{
+							id: 'state',
+							title: 'State',
+							// The state as the app settles it — see `stateLabel` — and not the
+							// stored field: the drawn geometry answers ahead of it there.
+							//
+							// Empty where nothing answers — a country that names no subdivision,
+							// or a place recorded before one was stored — rather than a warning.
+							// The region beside it already says where the place is; a state is
+							// the finer answer and not a missing one.
+							//
+							// Both accessors are stated, for two different reasons. A column with
+							// no `cell` renders an empty cell, and a column with no `value`
+							// resolves against the row's own field — which here is the geocoder's
+							// name alone, and would sort and search over the geometry's answer.
+							value: (place) => stateLabel(stateByPlace, place),
+							cell: (place) => stateLabel(stateByPlace, place),
+						} satisfies GridColumn<Place>,
+					]),
 			{
 				id: 'city',
 				title: 'City',
-				// The `cell` is stated rather than left to the column id, which resolves
-				// against the row field and rendered nothing here.
+				// The `cell` is stated for the reason the state column's is: a column
+				// without one renders an empty cell. The `value` restates the row's own
+				// field, which the column id would have resolved to by itself.
 				value: (place) => place.city ?? '',
 				cell: (place) => place.city ?? '',
 			},
@@ -109,7 +148,7 @@ export function PlacesIndex({
 					place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null,
 			},
 		],
-		[regionByPlace],
+		[regionByPlace, stateByPlace],
 	)
 
 	// A copy, because the grid sorts and filters what it is handed and the app's
@@ -117,7 +156,7 @@ export function PlacesIndex({
 	const rows = useMemo(() => [...places], [places])
 
 	return (
-		// Wide, because six columns in a narrow panel is a table the reader scrolls
+		// Wide, because six or seven columns in a narrow panel is a table the reader scrolls
 		// sideways to read one row of — and this panel exists to be scanned. It is a
 		// max-width, so a phone still gets the whole screen and the grid's own
 		// horizontal scroll takes what is left over.

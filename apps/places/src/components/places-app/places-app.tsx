@@ -138,9 +138,10 @@ export function PlacesApp() {
 		[boundedStates, places],
 	)
 
-	// That grouping inverted, which three readers want: the countries grouping
-	// trusts it ahead of its own geometry, the opening rule counts it, and a row
-	// picked in the index resolves through it.
+	// That grouping inverted, which four readers want: the countries grouping
+	// trusts it ahead of its own geometry, the opening rule counts it, the open
+	// panel's trail names a group by it, and the index both says where a row is
+	// and resolves the view a picked row opens on.
 	const stateOfPlace = useMemo(() => regionOf(placesByState), [placesByState])
 
 	// The view: the address's, or the smallest geography this app draws that holds
@@ -436,6 +437,10 @@ export function PlacesApp() {
 				onOpenChange={setListing}
 				places={filtered}
 				regionByPlace={regionOfPlace}
+				// The state, but only where the region column is not already it: inside
+				// the United States the drawn region is the state, and the two columns
+				// would print every state beside itself.
+				stateByPlace={atlas === 'states' ? undefined : stateOfPlace}
 				onOpen={(place) => {
 					// One step, not two: the view and the selection are both the address,
 					// so writing them apart would leave a history entry standing on a map
