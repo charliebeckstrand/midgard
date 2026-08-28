@@ -109,3 +109,53 @@ export function getMonthLabels(locale: string): string[] {
 	// month helper: output depends on the locale, never on the current date.
 	return Array.from({ length: 12 }, (_, index) => formatter.format(firstOfMonth(2021, index)))
 }
+
+/** A day's own key, as `YYYY-M-D`. Cheaper than an ISO stamp, and a month never repeats one. */
+function dayKey(date: Date): string {
+	return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
+}
+
+/** One cell of a `month`-layout week: a day, or the padding at either end of the month. */
+export type CalendarCell = {
+	date: Date | null
+	/** Stable identity for the render, so a padding cell is not keyed by where it sits. */
+	key: string
+}
+
+/**
+ * A month's days chunked into weeks, padded to seven cells each.
+ *
+ * The `picker` layout lays every day out in one flat grid and offsets the 1st
+ * into its column, which needs no rows at all. The `month` layout does need
+ * them: once a cell holds more than a date it is a `gridcell`, and a `gridcell`
+ * has to sit in a `row`.
+ *
+ * A padding cell is `null` rather than a date from the neighbouring month. The
+ * month grid draws one month, and a cell holding a day the reader cannot act on
+ * is a cell they will try to act on.
+ *
+ * @param days The month's days, in order — what `getCalendarDays` returns.
+ * @param firstDayColumn The 1-based column the 1st falls in, per the locale's
+ *   first day of the week — what `getFirstDayColumn` returns.
+ */
+export function toWeeks(days: readonly Date[], firstDayColumn: number): CalendarCell[][] {
+	const lead = Math.max(0, firstDayColumn - 1)
+
+	const cells: CalendarCell[] = [
+		// A padding cell carries its own key rather than borrowing its position,
+		// because a position is not an identity: the row it sits in is the thing
+		// React would otherwise rebuild whenever the month changed shape.
+		...Array.from({ length: lead }, (_unused, at) => ({ date: null, key: `lead:${at}` })),
+		...days.map((date) => ({ date, key: dayKey(date) })),
+	]
+
+	// The last week is padded out too, so every row holds seven cells and the
+	// week keeps its shape.
+	for (let at = 0; cells.length % 7 !== 0; at++) cells.push({ date: null, key: `tail:${at}` })
+
+	const weeks: CalendarCell[][] = []
+
+	for (let at = 0; at < cells.length; at += 7) weeks.push(cells.slice(at, at + 7))
+
+	return weeks
+}

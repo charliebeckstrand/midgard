@@ -39,6 +39,16 @@ type CalendarFocusOptions = {
 	footerRef?: RefObject<HTMLElement | null>
 	cols?: number
 	/**
+	 * Which descendants roving moves between, within the grid zone.
+	 *
+	 * The `month` layout narrows it to the date buttons alone: a cell there holds
+	 * the caller's own controls too, and the default would walk into them and take
+	 * the seven-column arithmetic apart.
+	 *
+	 * @defaultValue every enabled button in the zone
+	 */
+	itemSelector?: string
+	/**
 	 * Seals the surface: every navigation key stops here, handled or not.
 	 * For surfaces nested inside another keyboard model (the month/year
 	 * picker inside the date picker dialog), where a leaked arrow would
@@ -48,8 +58,8 @@ type CalendarFocusOptions = {
 }
 
 /** First focusable button within `container`. @internal */
-function firstButton(container: HTMLElement | null): HTMLElement | null {
-	return container?.querySelector<HTMLElement>(FOCUSABLE) ?? null
+function firstButton(container: HTMLElement | null, selector = FOCUSABLE): HTMLElement | null {
+	return container?.querySelector<HTMLElement>(selector) ?? null
 }
 
 /** Middle focusable button within `container`, used to seat focus on a calendar header. @internal */
@@ -60,8 +70,8 @@ function middleButton(container: HTMLElement | null): HTMLElement | null {
 }
 
 /** Last focusable button within `container`. @internal */
-function lastButton(container: HTMLElement | null): HTMLElement | null {
-	const buttons = container?.querySelectorAll<HTMLElement>(FOCUSABLE)
+function lastButton(container: HTMLElement | null, selector = FOCUSABLE): HTMLElement | null {
+	const buttons = container?.querySelectorAll<HTMLElement>(selector)
 
 	if (!buttons?.length) return null
 
@@ -69,8 +79,8 @@ function lastButton(container: HTMLElement | null): HTMLElement | null {
 }
 
 /** True when the active button sits in the grid's first row. @internal */
-function isTopRow(container: HTMLElement | null, cols: number): boolean {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+function isTopRow(container: HTMLElement | null, cols: number, selector: string): boolean {
+	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(selector) ?? [])
 
 	const index = buttons.indexOf(document.activeElement as HTMLElement)
 
@@ -78,8 +88,8 @@ function isTopRow(container: HTMLElement | null, cols: number): boolean {
 }
 
 /** True when the active button sits in the grid's last row. @internal */
-function isBottomRow(container: HTMLElement | null, cols: number): boolean {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+function isBottomRow(container: HTMLElement | null, cols: number, selector: string): boolean {
+	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(selector) ?? [])
 
 	const index = buttons.indexOf(document.activeElement as HTMLElement)
 
@@ -155,6 +165,7 @@ export function useCalendarFocus({
 	gridRef,
 	footerRef,
 	cols = 7,
+	itemSelector = FOCUSABLE,
 	stopPropagation = false,
 }: CalendarFocusOptions) {
 	const headerRoving = useA11yRoving(headerRef, {
@@ -163,7 +174,7 @@ export function useCalendarFocus({
 	})
 
 	const gridRoving = useA11yRoving(gridRef, {
-		itemSelector: FOCUSABLE,
+		itemSelector,
 		cols,
 	})
 
@@ -172,7 +183,7 @@ export function useCalendarFocus({
 			if (event.key === 'ArrowDown') {
 				preventAndStop(event, stopPropagation)
 
-				firstButton(gridRef.current)?.focus()
+				firstButton(gridRef.current, itemSelector)?.focus()
 
 				return
 			}
@@ -181,12 +192,12 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRoving, stopPropagation],
+		[gridRef, itemSelector, headerRoving, stopPropagation],
 	)
 
 	const handleGridKeyDown = useCallback(
 		(event: KeyboardEvent) => {
-			if (event.key === 'ArrowUp' && isTopRow(gridRef.current, cols)) {
+			if (event.key === 'ArrowUp' && isTopRow(gridRef.current, cols, itemSelector)) {
 				preventAndStop(event, stopPropagation)
 
 				middleButton(headerRef.current)?.focus()
@@ -194,7 +205,7 @@ export function useCalendarFocus({
 				return
 			}
 
-			if (event.key === 'ArrowDown' && isBottomRow(gridRef.current, cols)) {
+			if (event.key === 'ArrowDown' && isBottomRow(gridRef.current, cols, itemSelector)) {
 				const target = firstButton(footerRef?.current ?? null)
 
 				if (target) {
@@ -210,7 +221,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, headerRef, footerRef, cols, gridRoving, stopPropagation],
+		[gridRef, headerRef, footerRef, cols, itemSelector, gridRoving, stopPropagation],
 	)
 
 	const handleFooterKeyDown = useCallback(
@@ -218,7 +229,7 @@ export function useCalendarFocus({
 			if (event.key === 'ArrowUp') {
 				preventAndStop(event, stopPropagation)
 
-				lastButton(gridRef.current)?.focus()
+				lastButton(gridRef.current, itemSelector)?.focus()
 
 				return
 			}
@@ -229,7 +240,7 @@ export function useCalendarFocus({
 
 			seal(event, stopPropagation)
 		},
-		[gridRef, footerRef, stopPropagation],
+		[gridRef, footerRef, itemSelector, stopPropagation],
 	)
 
 	return { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown }

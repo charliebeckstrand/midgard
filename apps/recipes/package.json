@@ -1,0 +1,38 @@
+{
+	"name": "recipes",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "next dev --port 3002 --turbopack",
+		"build": "next build",
+		"start": "next start --port 3002",
+		"lint": "biome check --config-path=../.. .",
+		"lint:fix": "biome check --config-path=../.. --write .",
+		"format": "biome format --config-path=../.. --write .",
+		"check-types": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:related": "vitest related --run",
+		"test:changed": "base=$(git merge-base HEAD origin/main) && vitest run --passWithNoTests --changed=\"$base\""
+	},
+	"dependencies": {
+		"@tanstack/react-query": "^5.101.2",
+		"lucide-react": "^1.21.0",
+		"next": "^16.2.12",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
+		"shared": "workspace:*",
+		"ui": "workspace:*"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.3",
+		"@tailwindcss/postcss": "^4.1.0",
+		"@types/node": "^25.3.3",
+		"@types/react": "^19.2.0",
+		"@types/react-dom": "^19.2.0",
+		"tailwindcss": "^4.1.0",
+		"typescript": "^6.0.2",
+		"vitest": "^4.1.10"
+	}
+}

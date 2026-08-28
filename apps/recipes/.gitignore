@@ -1,0 +1,2 @@
+# The file-backed store: local data, never committed.
+.data/

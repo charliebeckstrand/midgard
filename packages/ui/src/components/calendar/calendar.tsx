@@ -2,6 +2,7 @@
 
 import {
 	type KeyboardEvent,
+	type ReactNode,
 	type Ref,
 	type RefObject,
 	useCallback,
@@ -22,6 +23,7 @@ import type { ButtonVariants } from '../button'
 import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
+import { CalendarMonthGrid } from './calendar-month-grid'
 import {
 	getCalendarDays,
 	getFirstDayColumn,
@@ -45,6 +47,21 @@ export type CalendarHandle = {
 	openPicker: () => void
 	footerKeyDown: (event: KeyboardEvent) => void
 }
+
+/**
+ * Which button roving moves between in the `month` layout: the date, never the
+ * caller's own controls beside it.
+ *
+ * @internal
+ */
+const MONTH_DAY = 'button[data-calendar-day]:not(:disabled)'
+
+/**
+ * How a {@link Calendar} builds a day cell: the compact single-button `picker`
+ * grid, or the `month` grid whose cells hold the date plus the caller's own
+ * content.
+ */
+export type CalendarLayout = 'picker' | 'month'
 
 /** Per-day state passed to a {@link CalendarProps.getDayProps} callback so it can style or decorate individual cells. */
 export type CalendarDayContextValue = {
@@ -78,6 +95,34 @@ export type CalendarProps = {
 	active?: CalendarActive | null
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
+	/**
+	 * How a day cell is built.
+	 *
+	 * `picker` is the compact grid every date field uses: one button per day, and
+	 * the day number is all it holds. `month` gives each day a cell with the date
+	 * as one control and {@link CalendarProps.renderDay} content beneath it — the
+	 * shape a wall calendar has, for a month a reader reads rather than picks
+	 * from.
+	 *
+	 * A `month` calendar fills the width it is given; the `size` step then drives
+	 * the type scale alone.
+	 *
+	 * The two layouts read out differently, and a caller testing or narrating one
+	 * should know which: `picker` is a listbox of `option`s carrying
+	 * `aria-selected`, and `month` is a grid of `gridcell`s whose date button
+	 * carries `aria-pressed`.
+	 *
+	 * @defaultValue 'picker'
+	 */
+	layout?: CalendarLayout
+	/**
+	 * Content drawn under the day number, in `month` layout only.
+	 *
+	 * Its controls are reached with Tab from the focused cell; the arrow keys stay
+	 * on the dates, so a month of full cells is still seven columns to a reader
+	 * navigating it.
+	 */
+	renderDay?: (context: CalendarDayContextValue) => ReactNode
 	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
 	footerRef?: RefObject<HTMLElement | null>
 	/**
@@ -137,6 +182,8 @@ export function Calendar({
 	max,
 	active,
 	getDayProps,
+	layout = 'picker',
+	renderDay,
 	footerRef,
 	listboxId,
 	activeDescendantId,
@@ -198,12 +245,22 @@ export function Calendar({
 	)
 
 	const headerRef = useRef<HTMLDivElement>(null)
-	const gridRef = useRef<HTMLDivElement>(null)
+
+	// One ref for both layouts, because only one of them ever renders: the
+	// `picker` grid is a `div` and the `month` grid a `table`.
+	//
+	// The intersection is what lets one ref satisfy both grids' props without a
+	// cast at either call site. No element is both, and none has to be — only one
+	// grid mounts, and each narrows the ref to the element it attaches to.
+	const gridRef = useRef<HTMLDivElement & HTMLTableElement>(null)
 
 	const { handleHeaderKeyDown, handleGridKeyDown, handleFooterKeyDown } = useCalendarFocus({
 		headerRef,
 		gridRef,
 		footerRef,
+		// A `month` cell holds the caller's controls beside the date, so roving
+		// must be told which button is the day. See `CalendarMonthCell`.
+		itemSelector: layout === 'month' ? MONTH_DAY : undefined,
 	})
 
 	useImperativeHandle(
@@ -244,12 +301,39 @@ export function Calendar({
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
+	// What both layouts draw from, held in one place: written out per arm, a prop
+	// added later reaches one layout and silently misses the other.
+	const gridProps = {
+		gridRef,
+		onGridKeyDown: handleGridKeyDown,
+		size: resolvedSize,
+		weekdays,
+		days,
+		firstDayColumn,
+		today,
+		value,
+		activeGridDate,
+		isDisabled,
+		getDayProps,
+		onSelect: handleSelect,
+		monthLabel,
+		localeTag,
+		listboxId,
+		activeDescendantId,
+	}
+
 	return (
 		<Density scale={resolvedSize}>
 			<div
 				data-slot="calendar"
 				data-size={resolvedSize}
-				className={cn(k.base({ size: resolvedSize }), className)}
+				className={cn(
+					k.base({ size: resolvedSize }),
+					// A month grid is as wide as its container, where the picker holds a
+					// fixed width per step. `cn` resolves the pair, last one winning.
+					layout === 'month' && k.month.frame,
+					className,
+				)}
 			>
 				<CalendarHeader
 					headerRef={headerRef}
@@ -268,24 +352,11 @@ export function Calendar({
 					onNextMonth={nextMonth}
 				/>
 
-				<CalendarGrid
-					gridRef={gridRef}
-					onGridKeyDown={handleGridKeyDown}
-					size={resolvedSize}
-					weekdays={weekdays}
-					days={days}
-					firstDayColumn={firstDayColumn}
-					today={today}
-					value={value}
-					activeGridDate={activeGridDate}
-					isDisabled={isDisabled}
-					getDayProps={getDayProps}
-					onSelect={handleSelect}
-					monthLabel={monthLabel}
-					localeTag={localeTag}
-					listboxId={listboxId}
-					activeDescendantId={activeDescendantId}
-				/>
+				{layout === 'month' ? (
+					<CalendarMonthGrid {...gridProps} renderDay={renderDay} />
+				) : (
+					<CalendarGrid {...gridProps} />
+				)}
 			</div>
 		</Density>
 	)

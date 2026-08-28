@@ -3,6 +3,7 @@
 import { Pencil, Trash, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
+import { BreadcrumbTrail } from 'ui/breadcrumb'
 import { Button } from 'ui/button'
 import { Divider } from 'ui/divider'
 import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
@@ -18,7 +19,6 @@ import { CATEGORY_BY_VALUE } from '../../constants'
 import type { Place, PlaceCategory } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
 import { CategoryPicker } from '../category-picker'
-import { PlaceTrail } from '../place-trail'
 
 /** Props for {@link PlaceDrawer}. */
 export type PlaceDrawerProps = {
@@ -247,7 +247,7 @@ export function PlaceDrawer({
 					    crumbs are what the reader reads and act on. */}
 					<DrawerTitle className="sr-only p-0">{title}</DrawerTitle>
 
-					<PlaceTrail className="text-base/7" steps={steps} />
+					<BreadcrumbTrail className="text-base/7" steps={steps} />
 
 					{place ? <PlaceMeta place={place} /> : null}
 				</Stack>

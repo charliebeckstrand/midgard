@@ -8,6 +8,7 @@ import {
 	isBetween,
 	isSameDay,
 	toCalendarDate,
+	toWeeks,
 } from '../../components/calendar/calendar-utilities'
 
 describe('isSameDay', () => {
@@ -165,5 +166,67 @@ describe('getCalendarDays', () => {
 		expect(days[0]?.getFullYear()).toBe(1)
 
 		expect(days.at(-1)?.getFullYear()).toBe(1)
+	})
+})
+
+describe('toWeeks', () => {
+	/** A month of `count` days, starting at the 1st of a fixed month. */
+	const month = (count: number) =>
+		Array.from({ length: count }, (_unused, at) => new Date(2026, 7, at + 1))
+
+	it('pads the front to the column the 1st falls in', () => {
+		const [first] = toWeeks(month(31), 3)
+
+		expect(first?.slice(0, 2).map((cell) => cell.date)).toEqual([null, null])
+
+		expect(first?.[2]?.date?.getDate()).toBe(1)
+	})
+
+	it('pads the last week out, so every row holds seven', () => {
+		for (const [days, column] of [
+			[31, 1],
+			[31, 7],
+			[28, 1],
+			[30, 4],
+		] as const) {
+			for (const week of toWeeks(month(days), column)) expect(week).toHaveLength(7)
+		}
+	})
+
+	it('holds every day of the month, in order and once', () => {
+		const days = toWeeks(month(31), 5)
+			.flat()
+			.map((cell) => cell.date)
+			.filter((date): date is Date => date !== null)
+
+		expect(days).toHaveLength(31)
+
+		expect(days.map((date) => date.getDate())).toEqual(
+			Array.from({ length: 31 }, (_unused, at) => at + 1),
+		)
+	})
+
+	// A padding cell carries its own key rather than borrowing its position, so a
+	// month that changes shape does not rebuild the rows that did not move.
+	it('gives every cell a key of its own', () => {
+		const keys = toWeeks(month(30), 6)
+			.flat()
+			.map((cell) => cell.key)
+
+		expect(new Set(keys).size).toBe(keys.length)
+	})
+
+	// A month starting on the first column and filling its last week needs no
+	// padding at all.
+	it('pads nothing where the month already fills its weeks', () => {
+		const cells = toWeeks(month(28), 1).flat()
+
+		expect(cells).toHaveLength(28)
+
+		expect(cells.every((cell) => cell.date !== null)).toBe(true)
+	})
+
+	it('treats a column below one as no padding at all', () => {
+		expect(toWeeks(month(7), 0).flat()).toHaveLength(7)
 	})
 })
