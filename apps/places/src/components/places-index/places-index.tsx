@@ -125,8 +125,9 @@ export function PlacesIndex({
 			{
 				id: 'city',
 				title: 'City',
-				// The `cell` is stated rather than left to the column id, which resolves
-				// against the row field and rendered nothing here.
+				// The `cell` is stated for the reason the state column's is: a column
+				// without one renders an empty cell. The `value` restates the row's own
+				// field, which the column id would have resolved to by itself.
 				value: (place) => place.city ?? '',
 				cell: (place) => place.city ?? '',
 			},
