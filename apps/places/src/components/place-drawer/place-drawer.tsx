@@ -215,7 +215,6 @@ export function PlaceDrawer({
 	return (
 		<Drawer
 			glass
-			handle
 			// Grown to what each step holds, because this panel is navigated: the
 			// crumb walks between the region's list and one place, and the two are
 			// not the same size. A fixed height fits one of them — a list of twelve
@@ -232,16 +231,23 @@ export function PlaceDrawer({
 			// The ceiling is the screen. A region with places enough covers the map,
 			// which is the honest answer for a step that has that much to show: the
 			// crumb above is how the reader gets back to it, and 85dvh would strand
-			// the last rows behind a scroll the screen had room for. A dragged
-			// height still beats all of this and holds until close.
+			// the last rows behind a scroll the screen had room for.
+			//
+			// No grip, for the reason the height is grown at all. A drag is how a
+			// reader states a height the panel cannot work out for itself, and this
+			// one works it out every step; offering both leaves the panel with two
+			// answers and no rule for which wins that a reader could predict. The
+			// grip also lost that argument in practice: the gesture takes the press,
+			// not the travel, so a tap on the strip — or a scroll begun on it — set a
+			// height and stopped the panel following the crumb for the rest of the
+			// open, which read as the panel breaking at random.
 			height="fit"
 			open={open}
 			onOpenChange={onOpenChange}
 			aria-label={title}
 		>
-			{/* No top padding: the handle above carries it, so the title sits directly
-			    under the grip rather than a step below it. */}
-			<Flex justify="between" align="start" gap="md" className="px-6">
+			{/* The panel's own top inset, which the grip used to carry. */}
+			<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
 				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating — the crumbs cannot shrink below a parent that

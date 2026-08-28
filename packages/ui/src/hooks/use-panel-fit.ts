@@ -7,6 +7,15 @@ import { type BorderBox, measureBox } from '../utilities'
 import { travelHeight } from './travel-height'
 import type { PanelCeiling } from './use-panel-resize'
 
+/**
+ * How far a measurement moves before it counts as movement.
+ *
+ * Layout answers in fractions, and both readings below are comparisons that
+ * decide whether something happened at all: under a pixel is rounding, never a
+ * window being resized and never content changing.
+ */
+const EPSILON = 1
+
 /** What {@link usePanelFit} needs. @internal */
 export type PanelFitOptions = {
 	/**
@@ -108,13 +117,24 @@ export function usePanelFit({
 			// with it is layout reflowing rather than content changing. Starting from
 			// the arrived height leaves nowhere to travel: a panel that eased after a
 			// window edge would trail the one the reader is holding.
-			const from = rested?.inline === next.inline ? rested.block : next.block
+			//
+			// Measured against `EPSILON` rather than exactly, because an exact
+			// comparison reads layout's own fractions as a resize — and the panel then
+			// arrives at its new height with no travel at all, for no reason a reader
+			// could see.
+			const from =
+				rested !== null && Math.abs(rested.inline - next.inline) < EPSILON
+					? rested.block
+					: next.block
 
 			rested = next
 
-			panel.toggleAttribute('data-full', next.block >= ceilingOf(panel, window.innerHeight) - 1)
+			panel.toggleAttribute(
+				'data-full',
+				next.block >= ceilingOf(panel, window.innerHeight) - EPSILON,
+			)
 
-			if (from === next.block || reduced) return
+			if (Math.abs(from - next.block) < EPSILON || reduced) return
 
 			// Off observation for the length of the travel. Every frame writes the
 			// height of the box being watched, and an observer answering its own
