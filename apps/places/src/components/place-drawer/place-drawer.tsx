@@ -214,20 +214,25 @@ export function PlaceDrawer({
 		<Drawer
 			glass
 			handle
-			// Fixed rather than grown to fit, because this panel is navigated: the
-			// crumb walks between the region's list and one place, and an `auto`
-			// height made every one of those steps a resize — a list of twelve
-			// opened tall and drilling into one of them collapsed the panel under
-			// the reader's hand, on the step where they had just committed to
-			// something inside it. A container must not move because its contents
-			// changed; the body scrolls, which is what a fixed height is for.
+			// Grown to what each step holds, because this panel is navigated: the
+			// crumb walks between the region's list and one place, and the two are
+			// not the same size. A fixed height fits one of them — a list of twelve
+			// scrolls inside a box built for one place, and a place sits in a box
+			// built for the list with half of it empty under the review.
 			//
-			// It also keeps the promise the panel is named for. `auto` runs to
-			// 85dvh, so a region with places enough covered the map it docks over —
-			// and the count that decided it meant the rule itself changed as the
-			// reader added a third place to a region, which nothing they did
-			// explains. A dragged height still beats this and holds until close.
-			height="half"
+			// It is `fit` and not `auto` because `auto` snaps, and a step that
+			// snapped was the reason this was fixed in the first place: the panel
+			// collapsed under the reader's hand on the step where they had just
+			// committed to something inside it. `fit` travels instead — the panel
+			// follows the crumb rather than jumping behind it — and it is the travel,
+			// not the size, that makes a moving container read as navigation.
+			//
+			// The ceiling is the screen. A region with places enough covers the map,
+			// which is the honest answer for a step that has that much to show: the
+			// crumb above is how the reader gets back to it, and 85dvh would strand
+			// the last rows behind a scroll the screen had room for. A dragged
+			// height still beats all of this and holds until close.
+			height="fit"
 			open={open}
 			onOpenChange={onOpenChange}
 			aria-label={title}
