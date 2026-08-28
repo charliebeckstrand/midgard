@@ -5,6 +5,7 @@ import { useReducedMotion } from 'motion/react'
 import { type RefCallback, useCallback, useEffect, useState } from 'react'
 import { type BorderBox, measureBox } from '../utilities'
 import { travelHeight } from './travel-height'
+import type { PanelCeiling } from './use-panel-resize'
 
 /** What {@link usePanelFit} needs. @internal */
 export type PanelFitOptions = {
@@ -24,11 +25,8 @@ export type PanelFitOptions = {
 	 * number itself is the gesture's; only whether there is one reaches here.
 	 */
 	dragged: boolean
-	/**
-	 * The tallest the panel is drawn at, given the panel and the screen along its
-	 * axis. The caller's, for the reason {@link PanelResizeOptions.ceilingOf} is.
-	 */
-	ceilingOf: (panel: HTMLElement, viewport: number) => number
+	/** Where the panel stops. Shared with the gesture, so the two agree. */
+	ceilingOf: PanelCeiling
 	/** The travel between two content heights. The panel's kata states it. */
 	transition: ValueAnimationTransition<number>
 }
@@ -55,10 +53,12 @@ export type PanelFitOptions = {
  * already reflowed by the time it fires, so the origin is the last height the
  * panel rested at rather than the one it reports.
  *
+ * The crossfading panel stack runs the same travel over its children, because a
+ * container at `height: auto` cannot see its own content change. A drawer's own
+ * box is the measurement instead: capped, it stops moving exactly where it
+ * should.
+ *
  * @returns A callback ref to attach to the panel, beside the gesture's own.
- * @see {@link useCurrentContentsMorph} for the same travel under a crossfading
- * panel stack, which observes its children instead — a drawer's own box is the
- * measurement, since a capped panel stops moving exactly where it should.
  * @internal
  */
 export function usePanelFit({
@@ -114,7 +114,7 @@ export function usePanelFit({
 
 			panel.toggleAttribute('data-full', next.block >= ceilingOf(panel, window.innerHeight) - 1)
 
-			if (from === next.block || reduced === true) return
+			if (from === next.block || reduced) return
 
 			// Off observation for the length of the travel. Every frame writes the
 			// height of the box being watched, and an observer answering its own
@@ -122,6 +122,10 @@ export function usePanelFit({
 			observer.unobserve(panel)
 
 			travel = travelHeight(panel, from, next.block, transition, () => {
+				// Dropped on arrival, so an arrived travel holds neither its own frames
+				// nor the closures that captured this panel and observer.
+				travel = null
+
 				// Delivers the box once by itself, which is the re-read a travel needs:
 				// content swapped while the panel was pinned moved nothing observable,
 				// so the height it now asks for is only knowable from here.

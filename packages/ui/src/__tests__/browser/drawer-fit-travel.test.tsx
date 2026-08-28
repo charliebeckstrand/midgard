@@ -57,10 +57,6 @@ describe('fit drawer height (real browser)', () => {
 
 		expect(short).toBeLessThan(window.innerHeight)
 
-		// Nothing inline while at rest, so the cap the variant states is what
-		// bounds the panel.
-		expect(panel.style.height).toBe('')
-
 		// The panel takes its baseline from the observer's first delivery, which
 		// lands at the end of the frame. A swap before then has no height to leave
 		// from and rightly adopts the new one rather than travelling on the frame

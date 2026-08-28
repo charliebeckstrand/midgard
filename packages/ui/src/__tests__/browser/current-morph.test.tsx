@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { useCurrentContentsMorph } from '../../primitives/current/use-current-contents-morph'
-import { hasIntermediate, renderUI, sampleHeights, waitFor } from '../helpers'
+import { hasIntermediate, renderUI, sampleHeights, screen, waitFor } from '../helpers'
 
 /**
  * Real-browser probe of the current-panel height morph. The jsdom morph test
@@ -63,13 +63,11 @@ function SwitchProbe() {
 
 describe('current-panel height morph (real browser)', () => {
 	it('tweens a panel growing in place at constant width', async () => {
-		const { container } = renderUI(<GrowProbe />)
+		renderUI(<GrowProbe />)
 
-		const box = container.querySelector<HTMLElement>('[data-testid="box"]')
+		const box = screen.getByTestId('box')
 
-		const grow = container.querySelector<HTMLButtonElement>('[data-testid="grow"]')
-
-		if (!box || !grow) throw new Error('probe did not render')
+		const grow = screen.getByTestId('grow')
 
 		// Settle the observer baseline for the initial 120px panel.
 		await waitFor(() => expect(box.getBoundingClientRect().height).toBeCloseTo(120, 0))
@@ -89,13 +87,11 @@ describe('current-panel height morph (real browser)', () => {
 	})
 
 	it('tweens the container across a panel switch instead of snapping', async () => {
-		const { container } = renderUI(<SwitchProbe />)
+		renderUI(<SwitchProbe />)
 
-		const box = container.querySelector<HTMLElement>('[data-testid="box"]')
+		const box = screen.getByTestId('box')
 
-		const swap = container.querySelector<HTMLButtonElement>('[data-testid="switch"]')
-
-		if (!box || !swap) throw new Error('probe did not render')
+		const swap = screen.getByTestId('switch')
 
 		await waitFor(() => expect(box.getBoundingClientRect().height).toBeCloseTo(240, 0))
 

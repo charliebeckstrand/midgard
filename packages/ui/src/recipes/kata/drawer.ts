@@ -43,9 +43,10 @@ export const k = {
 			// clamped short of the edge would strand the last of it behind a scroll the
 			// screen had room for.
 			//
-			// Both square the top corners against the screen edge, because a rounded
-			// corner there reads as a panel that failed to reach it — `full` always,
-			// `fit` on the steps that stand it there.
+			// `full` and `fit` square the top corners against the screen edge, because
+			// a rounded corner there reads as a panel that failed to reach it — `full`
+			// always, `fit` on the steps that stand it there. `auto` never reaches the
+			// edge, so it never squares.
 			//
 			// A panel handed a new fixed `height` grows or shrinks into it rather than
 			// jumping: the two fixed steps are lengths, which interpolate. A grown one
