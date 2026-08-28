@@ -63,10 +63,19 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> & {
 	 * box sized by what it holds has no second length to interpolate against.
 	 *
 	 * `fit` takes the whole screen when the content asks for that much, and
-	 * measures each new height so the panel grows or shrinks into it. Pass it for
-	 * a panel the reader navigates *within* — one whose content is swapped under a
-	 * breadcrumb or a back step — where a fixed height is a box that fits one step
-	 * and strands the rest, and a snapping one resizes under the reader's hand.
+	 * measures each new height so the panel grows or shrinks into it rather than
+	 * jumping. It is the answer wherever the panel's own content decides how tall
+	 * it should be, which is two cases in practice.
+	 *
+	 * One is a panel whose content is *swapped* — under a breadcrumb, a back step,
+	 * a detail opened from a list — where a fixed height fits one step and strands
+	 * the rest, and a snapping one resizes under the reader's hand.
+	 *
+	 * The other is a panel that simply has a size, and whose last part is the one
+	 * the reader is heading for: a form's final field, an action row. `auto` stops
+	 * short of the top edge, which is above such a panel on a tall window and under
+	 * it on a short one, and the difference is a field below the fold of a body
+	 * nothing announced as scrollable.
 	 *
 	 * `full` squares the top corners, because a rounded corner against the screen
 	 * edge reads as a panel that failed to reach it; `fit` squares them on the

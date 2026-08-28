@@ -85,7 +85,25 @@ export function PlaceFormDrawer({
 	const title = editing ? 'Edit place' : 'Add place'
 
 	return (
-		<Drawer glass open={open} onOpenChange={onOpenChange} aria-label={title}>
+		<Drawer
+			glass
+			// Grown to the form, and stopping at the screen rather than short of it.
+			// `auto` caps at 85dvh, which is above this form on a tall window and under
+			// it on a short one: at 700px the panel stopped at 595 while the fields came
+			// to 709, and the review — the last of them — sat below the fold of a body
+			// nothing said was scrollable. The last field of a form is the one a reader
+			// is heading for, so the panel takes the whole screen before it asks them to
+			// scroll for it.
+			//
+			// It also travels, which is what a form wants for a different reason than
+			// the drawer beside it: a validation message appearing under a field changes
+			// the panel's height, and a panel that jumped would move the fields under
+			// the reader's cursor at the moment they are being told to fix something.
+			height="fit"
+			open={open}
+			onOpenChange={onOpenChange}
+			aria-label={title}
+		>
 			<Flex justify="between" align="center" className="px-6 pt-6">
 				<DrawerTitle className="p-0">{title}</DrawerTitle>
 
@@ -111,9 +129,11 @@ export function PlaceFormDrawer({
 				}}
 			>
 				<DrawerBody>
-					{/* Two columns from `sm`, so a half-height panel holds the whole form
-					    without the body scrolling past its own footer. The search leads
-					    across both, because it is the field that fills the others. */}
+					{/* Two columns from `sm`, which is what keeps the form short enough for
+					    the panel to hold all of it: stacked, these fields run past any
+					    screen and the reader scrolls to reach the button they are aiming
+					    for. The search leads across both, because it is the field that
+					    fills the others. */}
 					<div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 pb-6 sm:grid-cols-2">
 						<div className="sm:col-span-2">
 							<PlaceSearchField />
