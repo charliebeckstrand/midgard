@@ -335,8 +335,10 @@ describe('Drawer size context', () => {
 
 	// `fit` grows to its content like `auto` and stops at the screen rather than
 	// short of it, and it travels between the heights its content asks for — see
-	// `usePanelFit`. The travel needs a layout to measure, which jsdom has none of.
-	it('caps a fitted panel at the screen rather than short of it', () => {
+	// `usePanelFit`. Both the travel and the squaring are measurements, and jsdom
+	// lays nothing out, so what is left here is the cap and the standing down: the
+	// browser suite (`drawer-fit-travel`) is where the travel itself is asserted.
+	it('caps a fitted panel at the screen, and measures nothing until laid out', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}} height="fit">
 				content
@@ -348,33 +350,13 @@ describe('Drawer size context', () => {
 		expect(drawerPanel()).toHaveClass('max-h-dvh')
 
 		expect(drawerPanel()).not.toHaveClass('max-h-[85dvh]')
-	})
-
-	it('rounds a fitted panel until it stands at the screen edge', () => {
-		renderUI(
-			<Drawer open onOpenChange={() => {}} height="fit">
-				content
-			</Drawer>,
-		)
 
 		expect(drawerPanel()).toHaveClass('rounded-t-xl')
 
-		// The squaring rides `data-full`, which nothing sets until the content
-		// measures taller than the panel can stand.
-		expect(drawerPanel()).toHaveClass('data-full:rounded-t-none')
-
+		// Nothing measured the panel, so it stands at neither its ceiling nor a
+		// pinned height: it is left to its own classes rather than to the zero an
+		// unlaid-out box reports.
 		expect(drawerPanel()).not.toHaveAttribute('data-full')
-	})
-
-	// The height is a measurement, so a panel nothing has measured carries none —
-	// a drawer rendered where nothing lays out is left to its own classes rather
-	// than pinned at the zero its box reports.
-	it('writes no height on a fitted panel until something measures one', () => {
-		renderUI(
-			<Drawer open onOpenChange={() => {}} height="fit">
-				content
-			</Drawer>,
-		)
 
 		expect(drawerPanel()?.style.height).toBe('')
 	})

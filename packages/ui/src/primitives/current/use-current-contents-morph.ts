@@ -1,8 +1,9 @@
 'use client'
 
-import { type AnimationPlaybackControls, animate } from 'motion'
+import type { AnimationPlaybackControls } from 'motion'
 import { useReducedMotion } from 'motion/react'
 import { type RefObject, useEffect } from 'react'
+import { travelHeight } from '../../hooks/travel-height'
 import { k } from '../../recipes/kata/current'
 import { type BorderBox, measureBox } from '../../utilities'
 
@@ -91,7 +92,9 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 
 		let tween: AnimationPlaybackControls | null = null
 
-		// Stops any in-flight tween and rests the box back at `height: auto`.
+		// Stops any in-flight tween and rests the box back at `height: auto`. The
+		// travel clears the pin itself on arrival; this is the other way out of one
+		// — a width-coupled change, or the hook going away.
 		const settle = () => {
 			tween?.stop()
 
@@ -100,10 +103,10 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 			element.style.height = ''
 		}
 
-		// Pins the container at its animation origin before this frame paints —
-		// observer callbacks run after layout and before paint, so nothing in
-		// between reaches the screen — then tweens the inline height to the
-		// target and hands it back to `auto` on completion.
+		// Tweens the container to the incoming height. `travelHeight` pins the
+		// origin before this frame paints — observer callbacks run after layout and
+		// before paint, so nothing in between reaches the screen — and hands the box
+		// back to `auto` on completion.
 		const morph = (to: number) => {
 			const live = element.getBoundingClientRect().height
 
@@ -115,14 +118,8 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 
 			tween?.stop()
 
-			element.style.height = `${from}px`
-
-			tween = animate(from, to, {
-				...k.transition,
-				onUpdate: (height) => {
-					element.style.height = `${height}px`
-				},
-				onComplete: settle,
+			tween = travelHeight(element, from, to, k.transition, () => {
+				tween = null
 			})
 		}
 

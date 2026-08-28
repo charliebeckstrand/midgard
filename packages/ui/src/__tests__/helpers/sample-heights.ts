@@ -25,18 +25,6 @@ export async function sampleHeights(element: Element, ms: number): Promise<numbe
 	return samples
 }
 
-/**
- * Waits two animation frames — long enough for a `ResizeObserver` to deliver.
- *
- * Observer callbacks land at the end of a frame, so anything that takes its
- * baseline from a first delivery has not taken it yet in the task that rendered.
- */
-export function frames(): Promise<void> {
-	return new Promise((resolve) =>
-		requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
-	)
-}
-
 /** Whether at least one sample sits strictly inside `(low, high)` — a travel, not a snap. */
 export function hasIntermediate(samples: number[], low: number, high: number): boolean {
 	return samples.some((height) => height > low + 1 && height < high - 1)

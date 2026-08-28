@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Drawer, DrawerBody } from '../../components/drawer'
-import { frames, hasIntermediate, renderUI, sampleHeights, waitFor } from '../helpers'
+import {
+	bySlot,
+	frames,
+	hasIntermediate,
+	present,
+	renderUI,
+	sampleHeights,
+	screen,
+	waitFor,
+} from '../helpers'
 
 /**
  * Real-browser probe of the `fit` drawer's height. Everything this variant does
@@ -12,15 +21,6 @@ import { frames, hasIntermediate, renderUI, sampleHeights, waitFor } from '../he
  * `motion`, unmocked in this suite) against real layout, so these cases sample
  * the panel's border box across frames.
  */
-
-/** The open panel, which the overlay renders wherever the portal puts it. */
-function drawerPanel(): HTMLElement {
-	const panel = document.querySelector<HTMLElement>('[data-slot="drawer"]')
-
-	if (!panel) throw new Error('drawer did not render')
-
-	return panel
-}
 
 /** A `fit` drawer whose one content block swaps between two heights. */
 function FitProbe({ short, tall, handle }: { short: number; tall: number; handle?: boolean }) {
@@ -43,13 +43,11 @@ function FitProbe({ short, tall, handle }: { short: number; tall: number; handle
 
 describe('fit drawer height (real browser)', () => {
 	it('opens at the height its content asks for, and travels to the next one', async () => {
-		const { container } = renderUI(<FitProbe short={120} tall={320} />)
+		renderUI(<FitProbe short={120} tall={320} />)
 
-		const panel = drawerPanel()
+		const panel = present(bySlot(document.body, 'drawer'), 'drawer panel')
 
-		const swap = container.querySelector<HTMLButtonElement>('[data-testid="swap"]')
-
-		if (!swap) throw new Error('probe did not render')
+		const swap = screen.getByTestId('swap')
 
 		// Sized by what it holds, not by a step: the panel clears its content and
 		// stops well short of the screen it could have taken.
@@ -85,15 +83,13 @@ describe('fit drawer height (real browser)', () => {
 	})
 
 	it('leaves a dragged height alone when the content changes under it', async () => {
-		const { container } = renderUI(<FitProbe short={120} tall={320} handle />)
+		renderUI(<FitProbe short={120} tall={320} handle />)
 
-		const panel = drawerPanel()
+		const panel = present(bySlot(document.body, 'drawer'), 'drawer panel')
 
-		const swap = container.querySelector<HTMLButtonElement>('[data-testid="swap"]')
+		const swap = screen.getByTestId('swap')
 
-		const handle = document.querySelector<HTMLElement>('[data-slot="drawer-handle"]')
-
-		if (!swap || !handle) throw new Error('probe did not render')
+		const handle = present(bySlot(document.body, 'drawer-handle'), 'drag handle')
 
 		await frames()
 
@@ -126,7 +122,7 @@ describe('fit drawer height (real browser)', () => {
 			</Drawer>,
 		)
 
-		const panel = drawerPanel()
+		const panel = present(bySlot(document.body, 'drawer'), 'drawer panel')
 
 		expect(panel.getBoundingClientRect().height).toBeCloseTo(window.innerHeight, 0)
 
