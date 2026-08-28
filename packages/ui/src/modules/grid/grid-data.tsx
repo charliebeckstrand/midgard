@@ -316,6 +316,7 @@ export function GridData<T>({
 	expandable: expandableConfig,
 	pagination: paginationConfig,
 	resizable = true,
+	width = 'fill',
 	columnSizing: columnSizingConfigProp,
 	search: searchConfig,
 	columnFilters: columnFiltersConfig,
@@ -723,6 +724,9 @@ export function GridData<T>({
 		// is `undefined` while grouping), so the engine doesn't page the groups.
 		pagination: gated.pagination,
 		resizable,
+		// `fit` sizes the columns to their content instead of to the container, for a
+		// container built around the grid (see `GridDataProps.width`).
+		fitContent: width === 'fit',
 		// Infinite scroll can hold the auto-fit column widths steady so an appended
 		// batch never reflows the columns (see `GridInfiniteScroll.stableColumnWidths`).
 		// `resolveInfiniteScroll` already defaulted the flag; `useGridTable` treats an

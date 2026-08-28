@@ -15,7 +15,23 @@ import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 
 /** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
-export type SheetProps = Omit<SheetPanelVariants, 'surface'> & {
+export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
+	/**
+	 * How wide the panel opens.
+	 *
+	 * The named steps are max-widths: the panel fills the screen on a phone and
+	 * caps at the named width from `sm` up.
+	 *
+	 * `fit` takes the width of what it holds instead, capped at the screen less
+	 * the inset the panel floats on. Pass it for a panel built around its content
+	 * rather than a step chosen for it — a table whose columns decide how much
+	 * room they need. What is inside has to be able to state a width of its own:
+	 * a child that fills its container instead (`<Grid>` by default) leaves the
+	 * two measuring each other, so pair this with that child's own fit — see
+	 * {@link GridDataProps.width}.
+	 * @defaultValue 'md'
+	 */
+	width?: SheetPanelVariants['width']
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
 	/** Initial open state when uncontrolled. */

@@ -156,15 +156,24 @@ export function PlacesIndex({
 	const rows = useMemo(() => [...places], [places])
 
 	return (
-		// Wide, because six or seven columns in a narrow panel is a table the reader scrolls
-		// sideways to read one row of — and this panel exists to be scanned. It is a
-		// max-width, so a phone still gets the whole screen and the grid's own
-		// horizontal scroll takes what is left over.
+		// As wide as the table and no wider. Six or seven columns in a panel sized by
+		// a step is a table the reader scrolls sideways to read one row of, and this
+		// panel exists to be scanned; a step wide enough for the widest case is a
+		// panel of empty column in every other.
 		//
-		// The handle is what makes that a starting point rather than a decision: a
-		// reader comparing two long region names pulls the panel wider, and one
-		// checking a name against the map pushes it back.
-		<Sheet glass handle open={open} onOpenChange={onOpenChange} width="4xl" aria-label="All places">
+		// The grid fits too, and it has to: sized to its container it would be
+		// measuring the panel while the panel measured it, and the pair settled
+		// somewhere new on every render. Fitted, it states a width the panel can be
+		// built around.
+		//
+		// The cap is the screen less the margin the panel floats on. Past that the
+		// columns genuinely do not fit and the grid scrolls sideways, which is the
+		// honest answer rather than a panel running off the screen.
+		//
+		// No grip, because there is nothing left for it to say: the panel is already
+		// the width of what it holds, and a drag could only make the table scroll or
+		// pad it with space.
+		<Sheet glass open={open} onOpenChange={onOpenChange} width="fit" aria-label="All places">
 			{/* The title and the close on one line, laid out here rather than through
 			    the header slot: that slot stacks a title over a description, which puts
 			    the close under the title instead of opposite it. The form drawer's
@@ -193,6 +202,9 @@ export function PlacesIndex({
 				<Grid<Place>
 					columns={columns}
 					rows={rows}
+					// The panel is built around this table, so the table is what states the
+					// width. See the Sheet above.
+					width="fit"
 					getKey={(place) => place.id}
 					search={{ placeholder: 'Find a place' }}
 					sort={{ defaultValue: [{ column: 'visited', direction: 'desc' }] }}

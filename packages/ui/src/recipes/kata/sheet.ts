@@ -36,7 +36,16 @@ export const k = {
 				top: slide.top,
 				bottom: slide.bottom,
 			},
-			width: shaku.panel,
+			// The named steps are max-widths and nothing more, so they stay the shared
+			// scale. `fit` is a different kind of answer — the panel takes the width of
+			// what it holds — so it is stated here rather than pushed into a scale
+			// Dialog also reads.
+			//
+			// The cap is the screen less the inset the panel floats on, which is the
+			// same expression the `full` compound below already uses. Below `sm` the
+			// side's own `w-full` still wins, so a phone keeps a flush, full-width
+			// sheet: there is no room there for a panel to be narrower than the screen.
+			width: { ...shaku.panel, fit: ['sm:w-max', 'sm:max-w-[calc(100%-2rem)]'] },
 			surface: {
 				glass: [...glass],
 				flat: [...panel.surface.bg],

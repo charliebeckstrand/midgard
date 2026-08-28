@@ -4,6 +4,29 @@ import { panelAxis } from '../../hooks/use-panel-resize'
 import { bySlot, fireEvent, present, renderUI, screen, userEvent } from '../helpers'
 
 describe('Sheet', () => {
+	// The named `width` steps are max-widths on a panel that fills to them. `fit`
+	// is the other kind of answer — the panel takes the width of what it holds,
+	// capped at the screen less the inset it floats on — so it must drop the fill
+	// rather than sit a cap on top of one. What the width comes to is a
+	// measurement, which jsdom has none of; the browser suite asserts that.
+	it('sizes a fitted sheet to its content rather than filling to a step', () => {
+		renderUI(
+			<Sheet open onOpenChange={() => {}} width="fit" aria-label="Index">
+				content
+			</Sheet>,
+		)
+
+		const panel = present(bySlot(document.body, 'sheet'), 'sheet panel')
+
+		expect(panel).toHaveClass('sm:w-max')
+
+		// The screen less the inset the panel floats on, which is the cap the reader
+		// asked for and the widest a fitted panel is drawn at.
+		expect(panel).toHaveClass('sm:max-w-[calc(100%-2rem)]')
+
+		expect(panel).not.toHaveClass('sm:max-w-md')
+	})
+
 	it('renders children with role="dialog" when open', () => {
 		renderUI(
 			<Sheet open onOpenChange={() => {}}>
