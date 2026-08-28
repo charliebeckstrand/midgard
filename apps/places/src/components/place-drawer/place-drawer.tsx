@@ -69,11 +69,13 @@ function PlaceMeta({ place }: { place: Place }) {
 }
 
 /**
- * The half-screen glass drawer that shows what a dot stands for.
+ * The glass drawer that shows what a dot stands for.
  *
- * It docks over the lower half so the map keeps the dot that opened it in view —
- * a panel that covered the map would take away the thing the reader just
- * pointed at.
+ * It is as tall as the step it is showing. One place leaves most of the map up,
+ * including the dot that opened the panel; a region with places enough takes the
+ * screen, because a step with that much to show is one the reader came to read.
+ * The panel travels between the two rather than snapping, so the resize reads as
+ * the crumb being followed instead of the panel moving under the reader's hand.
  *
  * A summary dot opens as the list of every place in its region, because a
  * summary is a fact about the frame — the same dots separate as the reader zooms

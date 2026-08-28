@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Drawer, DrawerBody } from '../../components/drawer'
-import { renderUI, waitFor } from '../helpers'
+import { frames, hasIntermediate, renderUI, sampleHeights, waitFor } from '../helpers'
 
 /**
  * Real-browser probe of the `fit` drawer's height. Everything this variant does
@@ -12,31 +12,6 @@ import { renderUI, waitFor } from '../helpers'
  * `motion`, unmocked in this suite) against real layout, so these cases sample
  * the panel's border box across frames.
  */
-
-/** Samples `element`'s border-box height once per frame for `ms`. */
-async function sampleHeights(element: Element, ms: number): Promise<number[]> {
-	const samples: number[] = []
-
-	const start = performance.now()
-
-	await new Promise<void>((resolve) => {
-		const tick = () => {
-			samples.push(element.getBoundingClientRect().height)
-
-			if (performance.now() - start < ms) requestAnimationFrame(tick)
-			else resolve()
-		}
-
-		requestAnimationFrame(tick)
-	})
-
-	return samples
-}
-
-/** At least one sample sits strictly inside `(low, high)` — a travel, not a snap. */
-function hasIntermediate(samples: number[], low: number, high: number): boolean {
-	return samples.some((height) => height > low + 1 && height < high - 1)
-}
 
 /** The open panel, which the overlay renders wherever the portal puts it. */
 function drawerPanel(): HTMLElement {
@@ -88,6 +63,12 @@ describe('fit drawer height (real browser)', () => {
 		// bounds the panel.
 		expect(panel.style.height).toBe('')
 
+		// The panel takes its baseline from the observer's first delivery, which
+		// lands at the end of the frame. A swap before then has no height to leave
+		// from and rightly adopts the new one rather than travelling on the frame
+		// the panel is still arriving on; this case is about the swaps after.
+		await frames()
+
 		swap.click()
 
 		const samples = await sampleHeights(panel, 800)
@@ -114,6 +95,8 @@ describe('fit drawer height (real browser)', () => {
 
 		if (!swap || !handle) throw new Error('probe did not render')
 
+		await frames()
+
 		// The keyboard half of the same gesture: one arrow commits a height the way
 		// a released drag does, without a synthetic pointer.
 		handle.focus()
@@ -127,10 +110,11 @@ describe('fit drawer height (real browser)', () => {
 		swap.click()
 
 		// A dragged height is the reader's answer to how much of the screen the
-		// panel gets, and content arriving under it does not overrule them.
-		await sampleHeights(panel, 400)
+		// panel gets, and content arriving under it does not overrule them — on no
+		// frame, not merely by the time the content has settled.
+		const samples = await sampleHeights(panel, 400)
 
-		expect(panel.getBoundingClientRect().height).toBeCloseTo(dragged, 0)
+		expect(samples.every((height) => Math.abs(height - dragged) < 1)).toBe(true)
 	})
 
 	it('stops at the screen and squares its corners when the content asks for more', async () => {

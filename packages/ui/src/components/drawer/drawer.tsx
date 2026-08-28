@@ -206,17 +206,18 @@ export function Drawer({
 
 	// The other half of the panel's height, and the one the panel itself decides:
 	// a `fit` panel grows and shrinks into whatever it is handed. It stands down
-	// for a committed drag, so the two never write the same property at once.
-	const fit = usePanelFit({
+	// for a drag, so the two never write the same property at once, and it stamps
+	// its own `data-full` rather than reporting one back through a render.
+	const fitRef = usePanelFit({
 		enabled: height === 'fit',
-		dragged: resize.size,
+		dragged: resize.size !== null,
 		ceilingOf: drawerCeiling,
 		transition: k.fit,
 	})
 
 	// One node, two readers of it. The gesture writes the height the reader sets
 	// and the fit writes the height the content asks for; both need the element.
-	const panelRef = useComposedRef(resize.ref, fit.ref)
+	const panelRef = useComposedRef(resize.ref, fitRef)
 
 	const { ariaProps, a11y } = useA11yPanel()
 
@@ -254,10 +255,6 @@ export function Drawer({
 				// toward where the pointer already is, so the edge trails the drag and
 				// carries on after it ends. The recipe suspends it off this attribute.
 				data-resizing={dataAttr(resize.resizing)}
-				// A `fit` panel standing at its ceiling, which is the screen: the recipe
-				// squares the top corners off this, because a rounded corner against the
-				// screen edge reads as a panel that failed to reach it.
-				data-full={dataAttr(fit.full)}
 				// Named so the slots below can key off it: a handle changes the panel's
 				// top inset, and the header that follows must not add its own on top.
 				data-handle={dataAttr(handle === true)}

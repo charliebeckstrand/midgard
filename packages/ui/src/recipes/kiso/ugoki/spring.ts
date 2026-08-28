@@ -19,7 +19,7 @@ export const spring = {
 	 * A panel travelling between two content heights — the drawer growing or
 	 * shrinking to what it now holds.
 	 *
-	 * Overdamped, where the rest of the vocabulary gives. The edge carries the
+	 * Overdamped, where most of the vocabulary gives. The edge carries the
 	 * content with it, so an overshoot is not a flourish here: past the target on
 	 * the way in it clips what the panel is arriving at, and on the way out it
 	 * opens a strip of nothing under the last line.
