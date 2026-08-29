@@ -29,6 +29,14 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
 	 * a child that fills its container instead (`<Grid>` by default) leaves the
 	 * two measuring each other, so pair this with that child's own fit — see
 	 * {@link GridDataProps.width}.
+	 *
+	 * It settles rather than travels, unlike the drawer's `fit` height: a panel
+	 * docked across the screen is navigated within and swaps what it holds, where
+	 * this one is built around content that has a width and keeps it. A width that
+	 * does move — a grid re-measuring as wider rows page in — arrives in one step.
+	 *
+	 * Only on the sides a width is docked across (`right`, `left`). A `top` or
+	 * `bottom` sheet spans the screen, so it stays full-width.
 	 * @defaultValue 'md'
 	 */
 	width?: SheetPanelVariants['width']

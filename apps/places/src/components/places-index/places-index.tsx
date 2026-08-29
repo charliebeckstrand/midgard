@@ -161,15 +161,6 @@ export function PlacesIndex({
 		// panel exists to be scanned; a step wide enough for the widest case is a
 		// panel of empty column in every other.
 		//
-		// The grid fits too, and it has to: sized to its container it would be
-		// measuring the panel while the panel measured it, and the pair settled
-		// somewhere new on every render. Fitted, it states a width the panel can be
-		// built around.
-		//
-		// The cap is the screen less the margin the panel floats on. Past that the
-		// columns genuinely do not fit and the grid scrolls sideways, which is the
-		// honest answer rather than a panel running off the screen.
-		//
 		// No grip, because there is nothing left for it to say: the panel is already
 		// the width of what it holds, and a drag could only make the table scroll or
 		// pad it with space.
@@ -191,7 +182,7 @@ export function PlacesIndex({
 			    `pb-6` sits here rather than on the grid, so the inset is outside the
 			    scroll region and the last row does not stop short of the edge. */}
 			<SheetBody className="min-h-0 pb-6">
-				{/* `fill` rather than a measured height: the grid takes the box it is
+				{/* `maxHeight="fill"` rather than a measured one: the grid takes the box it
 				    given and flexes its scroll region to the remainder, so the rows
 				    scroll under a sticky header without this file having to know the
 				    height of the title row above it or the panel's own insets.
@@ -202,8 +193,9 @@ export function PlacesIndex({
 				<Grid<Place>
 					columns={columns}
 					rows={rows}
-					// The panel is built around this table, so the table is what states the
-					// width. See the Sheet above.
+					// The panel is built around this table, so the table has to be what
+					// states the width rather than what reads it. Both halves of that are
+					// on the props themselves.
 					width="fit"
 					getKey={(place) => place.id}
 					search={{ placeholder: 'Find a place' }}

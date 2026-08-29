@@ -87,18 +87,15 @@ export function PlaceFormDrawer({
 	return (
 		<Drawer
 			glass
-			// Grown to the form, and stopping at the screen rather than short of it.
-			// `auto` caps at 85dvh, which is above this form on a tall window and under
-			// it on a short one: at 700px the panel stopped at 595 while the fields came
-			// to 709, and the review — the last of them — sat below the fold of a body
-			// nothing said was scrollable. The last field of a form is the one a reader
-			// is heading for, so the panel takes the whole screen before it asks them to
-			// scroll for it.
+			// Grown to the form, and stopping at the screen rather than short of it —
+			// the second case `DrawerProps.height` describes, measured here: at a 700px
+			// window `auto` held the panel at 595 while the fields came to 709, leaving
+			// the review below the fold.
 			//
-			// It also travels, which is what a form wants for a different reason than
-			// the drawer beside it: a validation message appearing under a field changes
-			// the panel's height, and a panel that jumped would move the fields under
-			// the reader's cursor at the moment they are being told to fix something.
+			// The travel matters to a form for its own reason. A validation message
+			// appearing under a field changes the panel's height, and a panel that
+			// jumped would move the fields under the reader's cursor at the moment they
+			// are being told to fix one.
 			height="fit"
 			open={open}
 			onOpenChange={onOpenChange}

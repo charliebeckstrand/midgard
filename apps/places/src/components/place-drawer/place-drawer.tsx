@@ -221,17 +221,12 @@ export function PlaceDrawer({
 			// scrolls inside a box built for one place, and a place sits in a box
 			// built for the list with half of it empty under the review.
 			//
-			// It is `fit` and not `auto` because `auto` snaps, and a step that
-			// snapped was the reason this was fixed in the first place: the panel
-			// collapsed under the reader's hand on the step where they had just
-			// committed to something inside it. `fit` travels instead — the panel
-			// follows the crumb rather than jumping behind it — and it is the travel,
-			// not the size, that makes a moving container read as navigation.
-			//
-			// The ceiling is the screen. A region with places enough covers the map,
-			// which is the honest answer for a step that has that much to show: the
-			// crumb above is how the reader gets back to it, and 85dvh would strand
-			// the last rows behind a scroll the screen had room for.
+			// The travel is what makes that work rather than the size: a container
+			// moving because its contents changed reads as the panel collapsing under
+			// the reader's hand, and the same move at the speed of the crumb reads as
+			// the panel following it. A region with places enough covers the map, which
+			// is the honest answer for a step with that much to show — the crumb above
+			// is how the reader gets back to it.
 			//
 			// No grip, for the reason the height is grown at all. A drag is how a
 			// reader states a height the panel cannot work out for itself, and this
@@ -246,7 +241,6 @@ export function PlaceDrawer({
 			onOpenChange={onOpenChange}
 			aria-label={title}
 		>
-			{/* The panel's own top inset, which the grip used to carry. */}
 			<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
 				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge

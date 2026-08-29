@@ -18,14 +18,13 @@ import { parsePxWidth } from './engine/grid-table/options'
 import type { GridColumn } from './types'
 
 /**
- * The width the allocator is given to spend: the container's, or none at all for
- * a grid sizing to its own content.
+ * The width the allocator is given to spend: the container's, or none for a grid
+ * sizing to its own content — {@link allocateColumnWidths}'s deficit branch,
+ * which is already "hold every column at its content and let the table
+ * overflow".
  *
- * `0` is not a special case there. No available width is
- * {@link allocateColumnWidths}'s deficit branch, which holds every column at its
- * content and lets the table overflow — and that sum is the width the grid
- * wants. Asking for it is what keeps a fitted grid from reading the container it
- * is about to size.
+ * A function rather than a ternary at the call site, which would put the pass
+ * over the complexity the lint allows.
  */
 function allocationWidth(fitContent: boolean, spendable: number): number {
 	return fitContent ? 0 : spendable
@@ -52,20 +51,9 @@ type GridColumnAutoSizeOptions<T> = {
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityLevel | undefined
 	/**
-	 * Size the columns to their own content rather than to the container.
-	 *
-	 * The fit normally spends the container's width: every column clears its
-	 * content and the surplus lifts the narrow ones toward a shared level, so the
-	 * table is exactly as wide as the grid is given. That is the right answer for
-	 * a grid inside a box, and the wrong one for a box sized around a grid — the
-	 * container is then asking the grid how wide it wants to be while the grid is
-	 * asking the container, and the pair settles wherever the layout happens to
-	 * land, differently on different renders.
-	 *
-	 * Set for a grid whose container shrink-wraps it. The columns hold at their
-	 * content widths and the table takes whatever that sums to, which is a width
-	 * the container can be measured against because nothing in it was measured
-	 * from the container.
+	 * Size the columns to their own content rather than to the container, so
+	 * nothing the pass produces was measured from the box it is about to size.
+	 * @see {@link GridDataProps.width}
 	 */
 	fitContent: boolean
 	/**

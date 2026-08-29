@@ -8,13 +8,14 @@ import { travelHeight } from './travel-height'
 import type { PanelCeiling } from './use-panel-resize'
 
 /**
- * How far a measurement moves before it counts as movement.
+ * One rule, for every comparison below: two readings within a pixel of each
+ * other are the same reading.
  *
- * Layout answers in fractions, and both readings below are comparisons that
- * decide whether something happened at all: under a pixel is rounding, never a
- * window being resized and never content changing.
+ * Layout answers in fractions, and each of the three asks whether something is
+ * so — the window resized, the content changed, the panel reached its ceiling.
+ * Read exactly, a fraction of a pixel answers yes to all three.
  */
-const EPSILON = 1
+const SUBPIXEL = 1
 
 /** What {@link usePanelFit} needs. @internal */
 export type PanelFitOptions = {
@@ -118,12 +119,12 @@ export function usePanelFit({
 			// the arrived height leaves nowhere to travel: a panel that eased after a
 			// window edge would trail the one the reader is holding.
 			//
-			// Measured against `EPSILON` rather than exactly, because an exact
+			// Measured against `SUBPIXEL` rather than exactly, because an exact
 			// comparison reads layout's own fractions as a resize — and the panel then
 			// arrives at its new height with no travel at all, for no reason a reader
 			// could see.
 			const from =
-				rested !== null && Math.abs(rested.inline - next.inline) < EPSILON
+				rested !== null && Math.abs(rested.inline - next.inline) < SUBPIXEL
 					? rested.block
 					: next.block
 
@@ -131,10 +132,10 @@ export function usePanelFit({
 
 			panel.toggleAttribute(
 				'data-full',
-				next.block >= ceilingOf(panel, window.innerHeight) - EPSILON,
+				next.block >= ceilingOf(panel, window.innerHeight) - SUBPIXEL,
 			)
 
-			if (Math.abs(from - next.block) < EPSILON || reduced) return
+			if (Math.abs(from - next.block) < SUBPIXEL || reduced) return
 
 			// Off observation for the length of the travel. Every frame writes the
 			// height of the box being watched, and an observer answering its own

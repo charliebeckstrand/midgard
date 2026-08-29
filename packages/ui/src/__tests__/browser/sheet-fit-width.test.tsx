@@ -15,33 +15,43 @@ import { bySlot, frames, present, renderUI } from '../helpers'
  * and the two settle somewhere new on every render.
  */
 
-type Row = { id: string; name: string; note: string }
+type Row = { id: string; name: string }
 
-const ROWS: Row[] = Array.from({ length: 8 }, (_, at) => ({
-	id: `r-${at}`,
-	name: `Row ${at}`,
-	note: 'short',
-}))
+const ROWS: Row[] = Array.from({ length: 8 }, (_, at) => ({ id: `r-${at}`, name: `Row ${at}` }))
 
-const COLUMNS: GridColumn<Row>[] = [
-	{ id: 'name', title: 'Name', value: (row) => row.name, cell: (row) => row.name },
-	{ id: 'note', title: 'Note', value: (row) => row.note, cell: (row) => row.note },
-]
+/** `count` columns, all reading the same short field, so their width is the headers'. */
+function columnsOf(count: number): GridColumn<Row>[] {
+	return Array.from({ length: count }, (_, at) => ({
+		id: `c-${at}`,
+		title: `Column ${at}`,
+		value: (row: Row) => row.name,
+		cell: (row: Row) => row.name,
+	}))
+}
 
 /**
- * The open panel, the table inside it, and the wrapper that would scroll it
- * sideways — `data-slot="table"`, the `overflow-x-auto` box the table sits in.
+ * Opens a fitted sheet around a fitted grid and hands back the panel, the table,
+ * and the wrapper that would scroll it sideways — `data-slot="table"`, the
+ * `overflow-x-auto` box the table sits in.
  */
-function parts() {
+async function openSheet(columns: GridColumn<Row>[], label: string) {
+	renderUI(
+		<Sheet open onOpenChange={() => {}} width="fit" aria-label={label}>
+			<SheetBody>
+				<Grid<Row> columns={columns} rows={ROWS} getKey={(row) => row.id} width="fit" />
+			</SheetBody>
+		</Sheet>,
+	)
+
+	await frames()
+
 	const panel = present(bySlot(document.body, 'sheet'), 'sheet panel')
 
-	const scroll = present(bySlot(panel, 'table'), 'table scroll region')
-
-	const table = panel.querySelector('table')
-
-	if (!table) throw new Error('grid did not render')
-
-	return { panel, scroll, table }
+	return {
+		panel,
+		scroll: present(bySlot(panel, 'table'), 'table scroll region'),
+		table: present(panel.querySelector<HTMLElement>('table'), 'grid table'),
+	}
 }
 
 describe('fit sheet width (real browser)', () => {
@@ -52,25 +62,13 @@ describe('fit sheet width (real browser)', () => {
 	beforeAll(() => page.viewport(1100, 800))
 
 	it('wraps the grid, and leaves it nothing to scroll sideways', async () => {
-		renderUI(
-			<Sheet open onOpenChange={() => {}} width="fit" aria-label="Index">
-				<SheetBody>
-					<Grid<Row> columns={COLUMNS} rows={ROWS} getKey={(row) => row.id} width="fit" />
-				</SheetBody>
-			</Sheet>,
-		)
-
-		await frames()
-
-		const { panel, scroll, table } = parts()
-
-		const width = panel.getBoundingClientRect().width
+		const { panel, scroll, table } = await openSheet(columnsOf(2), 'Index')
 
 		// Sized by the table rather than by the screen: the panel clears its content
 		// and stops well short of the room it could have taken.
-		expect(width).toBeGreaterThan(table.getBoundingClientRect().width)
+		expect(panel.getBoundingClientRect().width).toBeGreaterThan(table.getBoundingClientRect().width)
 
-		expect(width).toBeLessThan(window.innerWidth * 0.9)
+		expect(panel.getBoundingClientRect().width).toBeLessThan(window.innerWidth * 0.9)
 
 		// Which is the point of the pair: the columns fit, so nothing scrolls.
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(scroll.clientWidth + 1)
@@ -79,24 +77,7 @@ describe('fit sheet width (real browser)', () => {
 	it('stops at the screen less its own inset when the columns cannot fit', async () => {
 		// Enough columns that their content cannot fit the screen, so the panel meets
 		// its cap and the grid takes the overflow.
-		const many: GridColumn<Row>[] = Array.from({ length: 24 }, (_, at) => ({
-			id: `c-${at}`,
-			title: `Column ${at}`,
-			value: (row: Row) => row.name,
-			cell: (row: Row) => row.name,
-		}))
-
-		renderUI(
-			<Sheet open onOpenChange={() => {}} width="fit" aria-label="Wide">
-				<SheetBody>
-					<Grid<Row> columns={many} rows={ROWS} getKey={(row) => row.id} width="fit" />
-				</SheetBody>
-			</Sheet>,
-		)
-
-		await frames()
-
-		const { panel, scroll } = parts()
+		const { panel, scroll } = await openSheet(columnsOf(24), 'Wide')
 
 		const box = panel.getBoundingClientRect()
 

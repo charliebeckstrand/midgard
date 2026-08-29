@@ -72,10 +72,10 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> & {
 	 * the rest, and a snapping one resizes under the reader's hand.
 	 *
 	 * The other is a panel that simply has a size, and whose last part is the one
-	 * the reader is heading for: a form's final field, an action row. `auto` stops
-	 * short of the top edge, which is above such a panel on a tall window and under
-	 * it on a short one, and the difference is a field below the fold of a body
-	 * nothing announced as scrollable.
+	 * the reader is heading for: a form's final field, an action row. `auto`'s stop
+	 * short of the edge is above such a panel on a tall window and under it on a
+	 * short one, and the difference is a field below the fold of a body nothing
+	 * announced as scrollable.
 	 *
 	 * `full` squares the top corners, because a rounded corner against the screen
 	 * edge reads as a panel that failed to reach it; `fit` squares them on the
