@@ -316,6 +316,7 @@ export function GridData<T>({
 	expandable: expandableConfig,
 	pagination: paginationConfig,
 	resizable = true,
+	toolbar,
 	width = 'fill',
 	columnSizing: columnSizingConfigProp,
 	search: searchConfig,
@@ -1313,6 +1314,7 @@ export function GridData<T>({
 
 						<GridToolbar
 							filter={globalFilter}
+							content={toolbar}
 							showColumnManager={showButton}
 							columnManagerLabel={managerLabel}
 							onManageColumns={() => setColumnManagerOpen(true)}

@@ -203,33 +203,7 @@ export function PlacesIndex({
 			    the close under the title instead of opposite it. The form drawer's
 			    header is built the same way, so the two panels answer the same corner. */}
 			<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
-				<Flex align="center" gap="md" className="min-w-0">
-					<SheetTitle className="p-0">All places</SheetTitle>
-
-					{/* The second filter, beside the grid's own search. Only where there is
-					    a choice to make: with every row in one region it would narrow to
-					    what is already on screen.
-
-					    "All regions" rather than the bar's "All states", because this panel
-					    names the column "Region" and answers in its own vocabulary. */}
-					{regions.length > 1 ? (
-						<Listbox<string>
-							aria-label="Region"
-							placeholder="All regions"
-							clearable
-							className="w-52 shrink-0"
-							displayValue={(name) => name}
-							value={picked}
-							onValueChange={setPicked}
-						>
-							{regions.map((name) => (
-								<ListboxOption key={name} value={name}>
-									<ListboxLabel>{name}</ListboxLabel>
-								</ListboxOption>
-							))}
-						</Listbox>
-					) : null}
-				</Flex>
+				<SheetTitle className="p-0">All places</SheetTitle>
 
 				<SheetClose>
 					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
@@ -252,6 +226,32 @@ export function PlacesIndex({
 				<Grid<Place>
 					columns={columns}
 					rows={rows}
+					// The second filter, on the grid's own row across from its search: the
+					// two do the same job, where under the panel's title this one read as
+					// being about the panel. Only where there is a choice to make — with
+					// every row in one region it would narrow to what is already shown.
+					//
+					// "All regions" rather than the bar's "All states", because this panel
+					// names the column "Region" and answers in its own vocabulary.
+					toolbar={
+						regions.length > 1 ? (
+							<Listbox<string>
+								aria-label="Region"
+								placeholder="All regions"
+								clearable
+								className="w-52"
+								displayValue={(name) => name}
+								value={picked}
+								onValueChange={setPicked}
+							>
+								{regions.map((name) => (
+									<ListboxOption key={name} value={name}>
+										<ListboxLabel>{name}</ListboxLabel>
+									</ListboxOption>
+								))}
+							</Listbox>
+						) : null
+					}
 					// The panel is built around this table, so the table has to be what
 					// states the width rather than what reads it. Both halves of that are
 					// on the props themselves.

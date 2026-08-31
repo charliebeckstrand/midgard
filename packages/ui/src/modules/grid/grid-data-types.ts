@@ -821,6 +821,20 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	resizable?: boolean
 
 	/**
+	 * Custom content for the toolbar's top row, rendered at its trailing edge —
+	 * across from the quick search, ahead of the table-tools cluster.
+	 *
+	 * For a narrowing the grid does not own: a filter over a value the rows are
+	 * joined to rather than one they carry, or one the consumer applies before the
+	 * grid ever sees the rows. It sits beside the search because it does the same
+	 * job; under the panel's title it would read as being about the panel.
+	 *
+	 * The row renders for this alone, so a grid with no search and no tools still
+	 * gets one. The footer's own slot is {@link GridFooter.content}.
+	 */
+	toolbar?: ReactNode
+
+	/**
 	 * What the columns are sized against.
 	 *
 	 * `fill` spends the width the grid is given: every column clears its content
