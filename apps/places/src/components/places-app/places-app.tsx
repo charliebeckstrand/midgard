@@ -316,28 +316,35 @@ export function PlacesApp() {
 				    off the row instead of truncating. `flex-1` is what lets it come back: the
 				    trail measures the box it is given, and a box that shrinks to the trail
 				    would narrow with it and never report the room to expand again. */}
-				<div className="flex-1 min-w-0">
-					<PlaceTrail className="text-xl/8" steps={pageTrail} />
-				</div>
+				{/* The trail and the toggle together, because the toggle acts on the
+				    region the last crumb names — not on the app, which is what the
+				    cluster on the far side holds. `min-w-0` stays on the trail alone, so
+				    the crumbs give way and the button never does. */}
+				<Flex gap="md" align="center" className="flex-1 min-w-0">
+					<div className="min-w-0">
+						<PlaceTrail className="text-xl/8" steps={pageTrail} />
+					</div>
 
-				<Flex gap="sm" align="center" className="shrink-0">
-					{/* The visited toggle. It is a button rather than a checkbox, 
-						because the reader does not check a place as visited — they 
-						mark it as such. The button's own state is the visited state, 
-						so the reader sees what they are about to do and the
-					    action is a single click rather than a check and a submit. */}
+					{/* The visited toggle. It is a button rather than a checkbox, because
+					    the reader does not check a place as visited — they mark it as such.
+					    The button's own state is the visited state, so the reader sees what
+					    they are about to do and the action is a single click rather than a
+					    check and a submit. */}
 					{mark === null ? null : (
 						<Button
 							variant={marked ? 'soft' : 'plain'}
 							color={marked ? 'green' : undefined}
 							prefix={<Icon icon={marked ? <Check /> : <MapPin />} />}
 							aria-pressed={marked}
+							className="shrink-0"
 							onClick={() => setVisit.mutate({ ...mark, visited: !marked })}
 						>
 							{marked ? 'Visited' : 'Mark visited'}
 						</Button>
 					)}
+				</Flex>
 
+				<Flex gap="sm" align="center" className="shrink-0">
 					{/* Only once there is a list to read. Over an empty store it would open
 					    on the same "no places yet" the map already says, one step further
 					    from the button that fixes it. */}
@@ -347,7 +354,12 @@ export function PlacesApp() {
 							prefix={<Icon icon={<MapPinned />} />}
 							onClick={() => setListing(true)}
 						>
-							All places
+							{/* The count only where the view is cut to one region, because it
+							    is that region's count: `shown` is the bar's list narrowed to
+							    the cut, and the whole atlas is not a region to count. It is
+							    the filtered number rather than the stored one, so it is the
+							    number of rows the sheet opens on. */}
+							{cut !== null && shown.length > 0 ? `All places (${shown.length})` : 'All places'}
 						</Button>
 					) : null}
 
@@ -437,6 +449,10 @@ export function PlacesApp() {
 				onOpenChange={setListing}
 				places={filtered}
 				regionByPlace={regionOfPlace}
+				// The region the view is cut to, which the sheet opens on where it holds
+				// anything. The reader came from that projection, so it is the narrowing
+				// they already made; clearing the filter widens it back to the bar's.
+				region={cut}
 				// The state, but only where the region column is not already it: inside
 				// the United States the drawn region is the state, and the two columns
 				// would print every state beside itself.

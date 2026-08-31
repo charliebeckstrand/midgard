@@ -113,6 +113,46 @@ export function viewRegion(view: PlaceView): string | null {
 }
 
 /**
+ * The regions holding these places, named once each and sorted.
+ *
+ * Read off the places rather than the atlas, so a filter built from it never
+ * offers a region that would empty the list it filters — the drawn atlas has
+ * fifty-odd regions and a reader's places sit in a handful.
+ *
+ * @param regionByPlace Which region holds each place, by the place's id.
+ */
+export function regionsHolding(
+	places: readonly Place[],
+	regionByPlace: ReadonlyMap<string, string>,
+): string[] {
+	const names = new Set<string>()
+
+	for (const place of places) {
+		const name = regionByPlace.get(place.id)
+
+		if (name !== undefined) names.add(name)
+	}
+
+	return [...names].sort((a, b) => a.localeCompare(b))
+}
+
+/**
+ * The region a panel opens narrowed to: the one the view is cut to, where it
+ * holds any of the places on offer, and nothing otherwise.
+ *
+ * A reader who opened the panel from a region has already made that narrowing,
+ * so the panel starts where they were. It declines the ones that would not
+ * narrow anything but the list to nothing: the whole atlas is not a region, and
+ * a region holding none of these places would open on an empty table.
+ *
+ * @param region The region the view is cut to, or `null` for the whole atlas.
+ * @param regions The regions on offer — see {@link regionsHolding}.
+ */
+export function openingRegion(region: string | null | undefined, regions: readonly string[]) {
+	return region != null && regions.includes(region) ? region : null
+}
+
+/**
  * The geocoder's state, which is what answers where the states atlas cannot: a
  * coastal place sits a little outside the generalized outline that plainly holds
  * it. Handed to `groupPlacesByRegion`, whose fallback this is.

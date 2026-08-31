@@ -147,9 +147,14 @@ export function PlaceFormDrawer({
 						<Field>
 							<Label>Category</Label>
 
+							{/* Clearable, because a reader who picked the wrong one otherwise has
+							    no way back to having picked nothing. Category is required, so
+							    clearing surfaces the field's own message on submit rather than
+							    writing a place without one. */}
 							<Listbox<PlaceCategory>
 								name="category"
 								placeholder="Pick a category"
+								clearable
 								displayValue={categoryLabel}
 							>
 								{CATEGORIES.map((category) => (

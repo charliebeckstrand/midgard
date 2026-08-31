@@ -1,10 +1,11 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Flex } from 'ui/flex'
 import { Icon } from 'ui/icon'
+import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Grid, type GridColumn } from 'ui/modules/grid'
 import { Rating } from 'ui/rating'
 import { Sheet, SheetBody, SheetClose, SheetTitle } from 'ui/sheet'
@@ -13,7 +14,7 @@ import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORY_BY_VALUE, categoryLabel } from '../../constants'
 import type { Place } from '../../types'
 import { fromDay } from '../../utilities/places-filter'
-import { stateLabel } from '../../utilities/places-view'
+import { openingRegion, regionsHolding, stateLabel } from '../../utilities/places-view'
 
 /** Props for {@link PlacesIndex}. */
 export type PlacesIndexProps = {
@@ -47,6 +48,14 @@ export type PlacesIndexProps = {
 	 * caller decides whether this column has anything to add.
 	 */
 	stateByPlace?: ReadonlyMap<string, string>
+	/**
+	 * The region the view is cut to, or `null` for the whole atlas.
+	 *
+	 * The sheet opens on it where it holds rows, because the reader came from that
+	 * projection and it is a narrowing they already made. Clearing the filter
+	 * widens the table back to everything the bar admits.
+	 */
+	region?: string | null
 	/** Opens one place: the caller selects it and takes the map to it. */
 	onOpen: (place: Place) => void
 }
@@ -73,8 +82,24 @@ export function PlacesIndex({
 	places,
 	regionByPlace,
 	stateByPlace,
+	region,
 	onOpen,
 }: PlacesIndexProps) {
+	const [picked, setPicked] = useState<string | null>(null)
+
+	const regions = useMemo(() => regionsHolding(places, regionByPlace), [places, regionByPlace])
+
+	const [wasOpen, setWasOpen] = useState(open)
+
+	// Seeded on the open and only then. Keyed on a render-time comparison rather
+	// than an effect, so the first frame carries the pick instead of showing every
+	// region for one paint — and so a re-render while the panel is up (a place
+	// added, the bar narrowed) never takes back a pick the reader made.
+	if (open !== wasOpen) {
+		setWasOpen(open)
+
+		if (open) setPicked(openingRegion(region, regions))
+	}
 	// Every column declares `value`, because that is what the grid's quick search
 	// reads and what it sorts by. A column with only a `cell` renders but cannot
 	// be found — which for the name, the region, and the category is the whole
@@ -151,9 +176,17 @@ export function PlacesIndex({
 		[regionByPlace, stateByPlace],
 	)
 
-	// A copy, because the grid sorts and filters what it is handed and the app's
-	// list is read by the map at the same time.
-	const rows = useMemo(() => [...places], [places])
+	// Narrowed before the grid sees it, so the grid's own search, sort and count
+	// are all of the same set the reader is looking at. A copy either way, because
+	// the grid sorts and filters what it is handed and the app's list is read by
+	// the map at the same time.
+	const rows = useMemo(
+		() =>
+			picked === null
+				? [...places]
+				: places.filter((place) => regionByPlace.get(place.id) === picked),
+		[places, picked, regionByPlace],
+	)
 
 	return (
 		// As wide as the table and no wider. Six or seven columns in a panel sized by
@@ -169,8 +202,34 @@ export function PlacesIndex({
 			    the header slot: that slot stacks a title over a description, which puts
 			    the close under the title instead of opposite it. The form drawer's
 			    header is built the same way, so the two panels answer the same corner. */}
-			<Flex justify="between" align="center" className="px-6 pt-6">
-				<SheetTitle className="p-0">All places</SheetTitle>
+			<Flex justify="between" align="center" gap="md" className="px-6 pt-6">
+				<Flex align="center" gap="md" className="min-w-0">
+					<SheetTitle className="p-0">All places</SheetTitle>
+
+					{/* The second filter, beside the grid's own search. Only where there is
+					    a choice to make: with every row in one region it would narrow to
+					    what is already on screen.
+
+					    "All regions" rather than the bar's "All states", because this panel
+					    names the column "Region" and answers in its own vocabulary. */}
+					{regions.length > 1 ? (
+						<Listbox<string>
+							aria-label="Region"
+							placeholder="All regions"
+							clearable
+							className="w-52 shrink-0"
+							displayValue={(name) => name}
+							value={picked}
+							onValueChange={setPicked}
+						>
+							{regions.map((name) => (
+								<ListboxOption key={name} value={name}>
+									<ListboxLabel>{name}</ListboxLabel>
+								</ListboxOption>
+							))}
+						</Listbox>
+					) : null}
+				</Flex>
 
 				<SheetClose>
 					<ToggleIconButton icon={<Icon icon={<X />} />} aria-label="Close" />
@@ -182,7 +241,7 @@ export function PlacesIndex({
 			    `pb-6` sits here rather than on the grid, so the inset is outside the
 			    scroll region and the last row does not stop short of the edge. */}
 			<SheetBody className="min-h-0 pb-6">
-				{/* `maxHeight="fill"` rather than a measured one: the grid takes the box it
+				{/* `maxHeight="fill"` rather than a measured one: the grid takes the box it is
 				    given and flexes its scroll region to the remainder, so the rows
 				    scroll under a sticky header without this file having to know the
 				    height of the title row above it or the panel's own insets.
