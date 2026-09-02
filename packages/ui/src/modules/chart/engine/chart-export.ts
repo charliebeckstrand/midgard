@@ -31,15 +31,12 @@ const LEGEND_SELECTOR =
 function copyComputedStyle(source: Element, clone: Element): void {
 	const computed = getComputedStyle(source)
 
-	let cssText = ''
-
-	for (let index = 0; index < computed.length; index++) {
-		const property = computed.item(index)
-
-		cssText += `${property}:${computed.getPropertyValue(property)};`
-	}
-
-	clone.setAttribute('style', cssText)
+	clone.setAttribute(
+		'style',
+		Array.from(computed, (property) => `${property}:${computed.getPropertyValue(property)};`).join(
+			'',
+		),
+	)
 }
 
 /**

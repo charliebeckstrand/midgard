@@ -100,43 +100,43 @@ export function useA11yScope<Slot extends string = never>(
 	// count). Reference-counting keeps the id live while any instance holds it.
 	const [present, setPresent] = useState<Record<string, Record<string, number>>>({})
 
-	const ids = useMemo(() => {
-		const out = {} as Record<Slot, string>
+	const slotKeys = useMemo(() => Object.keys(slots ?? {}) as Slot[], [slots])
 
-		for (const key of Object.keys(slots ?? {}) as Slot[]) out[key] = scope.sub(key)
+	const ids = useMemo(
+		() => Object.fromEntries(slotKeys.map((key) => [key, scope.sub(key)])) as Record<Slot, string>,
+		[scope.sub, slotKeys],
+	)
 
-		return out
-	}, [scope.sub, slots])
+	const register = useMemo(
+		() =>
+			Object.fromEntries(
+				slotKeys.map((key) => [
+					key,
+					(renderedId?: string) => {
+						const resolved = renderedId ?? ids[key]
 
-	const register = useMemo(() => {
-		const out = {} as Record<Slot, (renderedId?: string) => () => void>
+						setPresent((prev) => {
+							const slot = prev[key] ?? {}
 
-		for (const key of Object.keys(slots ?? {}) as Slot[]) {
-			out[key] = (renderedId?: string) => {
-				const resolved = renderedId ?? ids[key]
+							return { ...prev, [key]: { ...slot, [resolved]: (slot[resolved] ?? 0) + 1 } }
+						})
 
-				setPresent((prev) => {
-					const slot = prev[key] ?? {}
+						return () =>
+							setPresent((prev) => {
+								const slot = { ...(prev[key] ?? {}) }
 
-					return { ...prev, [key]: { ...slot, [resolved]: (slot[resolved] ?? 0) + 1 } }
-				})
+								const next = (slot[resolved] ?? 0) - 1
 
-				return () =>
-					setPresent((prev) => {
-						const slot = { ...(prev[key] ?? {}) }
+								if (next <= 0) delete slot[resolved]
+								else slot[resolved] = next
 
-						const next = (slot[resolved] ?? 0) - 1
-
-						if (next <= 0) delete slot[resolved]
-						else slot[resolved] = next
-
-						return { ...prev, [key]: slot }
-					})
-			}
-		}
-
-		return out
-	}, [slots, ids])
+								return { ...prev, [key]: slot }
+							})
+					},
+				]),
+			) as Record<Slot, (renderedId?: string) => () => void>,
+		[slotKeys, ids],
+	)
 
 	const buckets = useMemo(() => bucketAriaIds(present, slots), [present, slots])
 
@@ -149,17 +149,13 @@ export function useA11yScope<Slot extends string = never>(
 		[labelledby, describedby],
 	)
 
-	const registered = useMemo(() => {
-		const out = {} as Record<Slot, boolean>
-
-		for (const key of Object.keys(slots ?? {}) as Slot[]) {
-			const slotCounts = present[key]
-
-			out[key] = !!slotCounts && Object.values(slotCounts).some((count) => count > 0)
-		}
-
-		return out
-	}, [present, slots])
+	const registered = useMemo(
+		() =>
+			Object.fromEntries(
+				slotKeys.map((key) => [key, Object.values(present[key] ?? {}).some((count) => count > 0)]),
+			) as Record<Slot, boolean>,
+		[present, slotKeys],
+	)
 
 	return useMemo(
 		() => ({ id: scope.id, sub: scope.sub, ids, register, ariaProps, registered }),

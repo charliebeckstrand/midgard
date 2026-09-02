@@ -1,5 +1,5 @@
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, shaku } from '../kiso'
 
 const { text } = iro
 const { rounded } = kasane
@@ -30,4 +30,6 @@ export const k = {
 	label: 'truncate group-data-selected/option:font-bold',
 	description: [description, text.muted],
 	check: mode('text-green-600', 'dark:text-green-500'),
+	/** Per-Density-step size of the selected-state check icon; `<Icon>`'s own scale. */
+	checkSize: shaku.iconSize,
 } as const

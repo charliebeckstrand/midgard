@@ -11,8 +11,6 @@ let scrollLockPreviousPaddingRight = ''
 
 /** Takes a lock: on the first holder hides body overflow and compensates the scrollbar gap, saving the prior inline styles to restore. @internal */
 function acquireScrollLock() {
-	if (typeof document === 'undefined') return
-
 	if (scrollLockCount === 0) {
 		const { body, documentElement } = document
 
@@ -41,8 +39,6 @@ function acquireScrollLock() {
 
 /** Releases a lock; when the last holder drops, restores the saved overflow / padding. @internal */
 function releaseScrollLock() {
-	if (typeof document === 'undefined') return
-
 	scrollLockCount--
 
 	if (scrollLockCount === 0) {

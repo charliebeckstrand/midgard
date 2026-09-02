@@ -8,6 +8,7 @@ import {
 	Calendar,
 	type CalendarActive,
 	type CalendarDayContextValue,
+	type CalendarDayProps,
 	type CalendarHandle,
 } from './calendar'
 import {
@@ -100,7 +101,7 @@ export function CalendarRange({
 	const effectiveEnd = hoverDate ?? rangeEnd
 
 	const getDayProps = useCallback(
-		(context: CalendarDayContextValue) => {
+		(context: CalendarDayContextValue): CalendarDayProps => {
 			const { date } = context
 
 			const { isEdge, isInnerRange, isLeftEdge, isRightEdge } = computeRangeDayFlags(
@@ -111,8 +112,8 @@ export function CalendarRange({
 
 			return {
 				selected: isEdge,
-				variant: isInnerRange ? ('soft' as const) : undefined,
-				color: isInnerRange ? ('blue' as const) : undefined,
+				variant: isInnerRange ? 'soft' : undefined,
+				color: isInnerRange ? 'blue' : undefined,
 				className: cn(
 					isInnerRange && 'rounded-none',
 					isLeftEdge && k.day.range.leftEdge,

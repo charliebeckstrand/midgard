@@ -1,4 +1,4 @@
-import { fromCalendarDate, isSameDay, toCalendarDate } from '../calendar/calendar-utilities'
+import { isSameDay } from '../calendar/calendar-utilities'
 import {
 	addDays,
 	addMonths,
@@ -75,11 +75,6 @@ export type DatePickerRelativeConfig = {
 /** A rendered trigger chip: a stable React `key` plus its display label. @internal */
 export type RelativeChip = { key: string; label: string }
 
-/** A date one calendar year before `date` (day-of-month clamped). @internal */
-function lastYear(date: Date): Date {
-	return fromCalendarDate(toCalendarDate(date).subtract({ years: 1 }))
-}
-
 /**
  * Built-in relative presets, in popover order. All spans are day-granular and
  * inclusive of both endpoints; "Last N days" is inclusive of today, so its span
@@ -138,7 +133,7 @@ export const DEFAULT_RELATIVE_PRESETS: DatePickerRelativePreset[] = [
 		id: 'last-year',
 		label: 'Last year',
 		resolve: (now) => {
-			const prior = lastYear(now)
+			const prior = addMonths(now, -12)
 
 			return { from: startOfYear(prior), to: endOfYear(prior) }
 		},

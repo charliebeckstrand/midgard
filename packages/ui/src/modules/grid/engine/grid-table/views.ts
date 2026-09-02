@@ -1,4 +1,5 @@
 import type { ColumnPinningState, PaginationState, Table } from '@tanstack/react-table'
+import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import type { QueryField, QueryGroup as QueryGroupNode } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
@@ -190,23 +191,13 @@ export function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
  * @internal
  */
 export function deriveVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
-	const sections = [
+	return [
 		table.getLeftVisibleLeafColumns(),
 		table.getCenterVisibleLeafColumns(),
 		table.getRightVisibleLeafColumns(),
 	]
-
-	const result: GridColumn<T>[] = []
-
-	for (const section of sections) {
-		for (const leaf of section) {
-			const col = leaf.columnDef.meta?.gridColumn
-
-			if (col) result.push(col)
-		}
-	}
-
-	return result
+		.flat()
+		.flatMap((leaf) => leaf.columnDef.meta?.gridColumn ?? [])
 }
 /**
  * Assembles the table-backed {@link GridColumnResize} controls (all but
@@ -268,7 +259,7 @@ export function buildColumnResize<T>(
 
 			const limit = bounds(id)
 
-			const next = Math.min(Math.max(column.getSize() + delta, limit.min), limit.max)
+			const next = clamp(column.getSize() + delta, limit.min, limit.max)
 
 			table.setColumnSizing((prev) => ({ ...prev, [String(id)]: next }))
 		},

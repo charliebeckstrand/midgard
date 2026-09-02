@@ -1,4 +1,6 @@
 import ts from 'typescript'
+import { isPascalCase, wordRe } from '../identifiers'
+import { parseSource } from './ts-source'
 
 type Helper = { name: string; code: string }
 
@@ -6,22 +8,6 @@ type Helper = { name: string; code: string }
 // })`. It renders as the route body, never inside an `<Example>`, so its
 // `__code` is never read — skip it rather than shipping the whole page source.
 const ENTRY_EXPORT = 'Demo'
-
-function isDefaultExport(modifiers: readonly ts.ModifierLike[] | undefined): boolean {
-	if (!modifiers) return false
-
-	let hasExport = false
-
-	let hasDefault = false
-
-	for (const mod of modifiers) {
-		if (mod.kind === ts.SyntaxKind.ExportKeyword) hasExport = true
-
-		if (mod.kind === ts.SyntaxKind.DefaultKeyword) hasDefault = true
-	}
-
-	return hasExport && hasDefault
-}
 
 // Matches `return <Tag`, `return (<Tag`, `return <>`, `=> <Tag`, `=> (<Tag`, `=> <>`.
 // Identifier-prefixed `<` (e.g. `useState<string>()`) doesn't match; the
@@ -35,7 +21,7 @@ const JSX_RETURN = /(?:return|=>)\s*\(?\s*<[A-Za-z>]/
  * lists the identifiers introduced; `code` is the full statement source for
  * verbatim prepending.
  */
-type Preamble = { names: string[]; code: string; index: number }
+type Preamble = { names: string[]; code: string }
 
 /**
  * Returns the PascalCase name of a JSX-returning arrow / function-expression
@@ -45,14 +31,10 @@ type Preamble = { names: string[]; code: string; index: number }
  * statement: in `const A = () => <X />, B = somethingElse`, only A matches.
  * This predicate drives both helper collection and the preamble exclusion.
  */
-function jsxHelperName(
-	decl: ts.VariableDeclaration,
-	sf: ts.SourceFile,
-	source: string,
-): string | null {
+function jsxHelperName(decl: ts.VariableDeclaration, sf: ts.SourceFile): string | null {
 	if (!ts.isIdentifier(decl.name)) return null
 
-	if (!/^[A-Z]/.test(decl.name.text)) return null
+	if (!isPascalCase(decl.name.text)) return null
 
 	const init = decl.initializer
 
@@ -60,17 +42,13 @@ function jsxHelperName(
 
 	if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) return null
 
-	if (!JSX_RETURN.test(source.slice(init.getStart(sf), init.getEnd()))) return null
+	if (!JSX_RETURN.test(init.getText(sf))) return null
 
 	return decl.name.text
 }
 
-function isJsxReturningVariableStatement(
-	stmt: ts.VariableStatement,
-	sf: ts.SourceFile,
-	source: string,
-): boolean {
-	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl, sf, source) !== null)
+function isJsxReturningVariableStatement(stmt: ts.VariableStatement, sf: ts.SourceFile): boolean {
+	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl, sf) !== null)
 }
 
 /**
@@ -80,44 +58,30 @@ function isJsxReturningVariableStatement(
  * declaration preambles: pulling one into a snippet would duplicate a whole
  * component the walker already renders.
  */
-export function isJsxHelperStatement(
-	stmt: ts.Statement,
-	sf: ts.SourceFile,
-	source: string,
-): boolean {
-	if (ts.isFunctionDeclaration(stmt) && stmt.name && /^[A-Z]/.test(stmt.name.text) && stmt.body) {
-		return JSX_RETURN.test(source.slice(stmt.getStart(sf), stmt.getEnd()))
+export function isJsxHelperStatement(stmt: ts.Statement, sf: ts.SourceFile): boolean {
+	if (ts.isFunctionDeclaration(stmt) && stmt.name && isPascalCase(stmt.name.text) && stmt.body) {
+		return JSX_RETURN.test(stmt.getText(sf))
 	}
 
-	if (ts.isVariableStatement(stmt)) return isJsxReturningVariableStatement(stmt, sf, source)
+	if (ts.isVariableStatement(stmt)) return isJsxReturningVariableStatement(stmt, sf)
 
 	return false
 }
 
-function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
+function collectPreambles(sf: ts.SourceFile): Preamble[] {
 	const preambles: Preamble[] = []
 
 	for (const stmt of sf.statements) {
-		const index = stmt.getStart(sf)
-
-		if (ts.isTypeAliasDeclaration(stmt)) {
-			preambles.push({ names: [stmt.name.text], code: source.slice(index, stmt.getEnd()), index })
-
-			continue
-		}
-
-		if (ts.isInterfaceDeclaration(stmt)) {
-			preambles.push({ names: [stmt.name.text], code: source.slice(index, stmt.getEnd()), index })
+		if (ts.isTypeAliasDeclaration(stmt) || ts.isInterfaceDeclaration(stmt)) {
+			preambles.push({ names: [stmt.name.text], code: stmt.getText(sf) })
 
 			continue
 		}
 
 		if (ts.isVariableStatement(stmt)) {
-			const code = source.slice(index, stmt.getEnd())
-
 			// JSX-returning helper statements belong to `collectHelpers`, not the
 			// preamble.
-			if (isJsxReturningVariableStatement(stmt, sf, source)) continue
+			if (isJsxReturningVariableStatement(stmt, sf)) continue
 
 			const names: string[] = []
 
@@ -127,7 +91,7 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 
 			if (names.length === 0) continue
 
-			preambles.push({ names, code, index })
+			preambles.push({ names, code: stmt.getText(sf) })
 		}
 	}
 
@@ -136,25 +100,18 @@ function collectPreambles(sf: ts.SourceFile, source: string): Preamble[] {
 
 /**
  * Prepends every preamble whose declared names appear (as whole-word matches)
- * in the helper's source. Emits matched preambles in source order.
+ * in the helper's source. `preambles` is in source order, so the matches are
+ * too.
  *
  * This is a name scan, not a reference graph: a preamble whose name appears
  * inside a string literal or comment in the helper is included.
  */
 function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): string {
-	const matched: Preamble[] = []
-
-	for (const preamble of preambles) {
-		const referenced = preamble.names.some((name) => new RegExp(`\\b${name}\\b`).test(helperCode))
-
-		if (!referenced) continue
-
-		matched.push(preamble)
-	}
+	const matched = preambles.filter((preamble) =>
+		preamble.names.some((name) => wordRe(name).test(helperCode)),
+	)
 
 	if (matched.length === 0) return helperCode
-
-	matched.sort((a, b) => a.index - b.index)
 
 	return `${matched.map((p) => p.code).join('\n\n')}\n\n${helperCode}`
 }
@@ -170,19 +127,19 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
  * snippet.
  */
 export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Helper[] {
-	const sf =
-		sourceFile ??
-		ts.createSourceFile('demo.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+	const sf = sourceFile ?? parseSource('demo.tsx', source)
 
-	const preambles = collectPreambles(sf, source)
+	const preambles = collectPreambles(sf)
 
 	const helpers: Helper[] = []
 
 	for (const stmt of sf.statements) {
-		if (ts.isFunctionDeclaration(stmt) && stmt.name && /^[A-Z]/.test(stmt.name.text) && stmt.body) {
-			if (isDefaultExport(stmt.modifiers) || stmt.name.text === ENTRY_EXPORT) continue
+		if (ts.isFunctionDeclaration(stmt) && stmt.name && isPascalCase(stmt.name.text) && stmt.body) {
+			const isDefaultExport = ts.getCombinedModifierFlags(stmt) & ts.ModifierFlags.ExportDefault
 
-			const code = source.slice(stmt.getStart(sf), stmt.getEnd())
+			if (isDefaultExport || stmt.name.text === ENTRY_EXPORT) continue
+
+			const code = stmt.getText(sf)
 
 			if (!JSX_RETURN.test(code)) continue
 
@@ -193,13 +150,11 @@ export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Help
 
 		if (ts.isVariableStatement(stmt)) {
 			for (const decl of stmt.declarationList.declarations) {
-				const name = jsxHelperName(decl, sf, source)
+				const name = jsxHelperName(decl, sf)
 
 				if (!name || name === ENTRY_EXPORT) continue
 
-				const code = source.slice(stmt.getStart(sf), stmt.getEnd())
-
-				helpers.push({ name, code: prependReferencedPreamble(code, preambles) })
+				helpers.push({ name, code: prependReferencedPreamble(stmt.getText(sf), preambles) })
 			}
 		}
 	}

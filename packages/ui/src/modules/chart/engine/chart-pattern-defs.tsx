@@ -145,15 +145,11 @@ export type ChartTexture = {
  * @internal
  */
 export function useChartTexture(active: boolean, slots: (ChartColorSlot | null)[]): ChartTexture {
-	// React's useId carries colons — safe as an attribute, but not inside the
-	// url() a CSS class reads — so strip them for the referenced pattern ids.
-	const base = useId().replace(/:/g, '')
+	const base = useId()
 
 	const idFor = (slot: ChartColorSlot) => `chart-tx-${base}-${slot}`
 
-	const distinct = new Set<ChartColorSlot>()
-
-	for (const slot of slots) if (slot !== null) distinct.add(slot)
+	const distinct = new Set(slots.filter((slot): slot is ChartColorSlot => slot !== null))
 
 	const entries = [...distinct].map((slot) => ({
 		color: slot,
@@ -211,7 +207,7 @@ export function ChartSwatch({
 	active: boolean
 	off: boolean
 }) {
-	const id = `chart-sw-${useId().replace(/:/g, '')}`
+	const id = `chart-sw-${useId()}`
 
 	// A raw colour carries no slot, so it never hatches — it inks its
 	// `currentColor` inline on a plain swatch, the same opt-out as a raw mark. A

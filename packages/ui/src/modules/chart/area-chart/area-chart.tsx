@@ -114,13 +114,11 @@ function focusPoints(
 	if (!stacked) return snapPoints
 
 	return Array.from({ length: count }, (_, index) =>
-		bands.reduce<number[]>((ys, band) => {
+		bands.flatMap((band) => {
 			const y = band.points[index]?.y
 
-			if (y != null && Number.isFinite(y)) ys.push(y)
-
-			return ys
-		}, []),
+			return y != null && Number.isFinite(y) ? [y] : []
+		}),
 	)
 }
 
@@ -158,15 +156,13 @@ function focusSeries(
 	if (!stacked) return snapSeries
 
 	return Array.from({ length: count }, (_, index) =>
-		bands.reduce<number[]>((series, band, order) => {
+		bands.flatMap((band, order) => {
 			const y = band.points[index]?.y
 
 			const meta = drawn[order]?.meta
 
-			if (meta && y != null && Number.isFinite(y)) series.push(meta.index)
-
-			return series
-		}, []),
+			return meta && y != null && Number.isFinite(y) ? [meta.index] : []
+		}),
 	)
 }
 

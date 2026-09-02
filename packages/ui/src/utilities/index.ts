@@ -1,6 +1,7 @@
 export { parseAspectRatio } from './aspect-ratio'
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
+export { clearNativeInput } from './clear-native-input'
 export {
 	binIndex,
 	type ColorBin,
@@ -31,6 +32,7 @@ export {
 export { digitsOnly } from './digits-only'
 export { isTopDismissLayer, registerDismissLayer } from './dismiss-layers'
 export { subscribeDocumentEvent } from './document-listener'
+export { FOCUSABLE_SELECTOR } from './focusable-selector'
 export { type FormatSpec, resolveFormat } from './format'
 export { formatFraction, formatInteger, formatPercent } from './format-number'
 export { isDataColumn } from './is-data-column'

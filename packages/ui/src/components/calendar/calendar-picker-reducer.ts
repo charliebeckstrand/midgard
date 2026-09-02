@@ -41,7 +41,7 @@ export function calendarPickerReducer(
 ): CalendarPickerState {
 	switch (action.type) {
 		case 'open':
-			return { view: 'months', pickerYear: action.year, decadeYear: action.year }
+			return initialCalendarPickerState(action.year)
 		case 'stepYear':
 			return { ...state, pickerYear: state.pickerYear + action.delta }
 		case 'stepDecade':

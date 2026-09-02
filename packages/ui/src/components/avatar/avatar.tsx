@@ -1,5 +1,6 @@
 import type { ComponentPropsWithoutRef } from 'react'
 import { cn } from '../../core'
+import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
 import { StatusDot, type StatusDotProps } from '../status'
 
@@ -101,9 +102,7 @@ export function Avatar({
 				className={cn('absolute top-0 right-0', k.statusRing)}
 			/>
 			{/* Color alone conveys status; the sr-only span names it for assistive technology. */}
-			<span className="sr-only">
-				{statusLabel ?? status.charAt(0).toUpperCase() + status.slice(1)}
-			</span>
+			<span className="sr-only">{statusLabel ?? capitalizeFirst(status)}</span>
 		</span>
 	)
 }

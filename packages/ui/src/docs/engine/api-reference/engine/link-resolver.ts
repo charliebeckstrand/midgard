@@ -1,4 +1,5 @@
 import { Node, type Project, ts } from 'ts-morph'
+import { isPascalCase } from '../../identifiers'
 import { stripLinks } from '../link-syntax'
 import type { DocLink } from '../types'
 import type { LinkResolver } from './extract-doc'
@@ -58,7 +59,7 @@ function buildIndex(project: Project): Map<string, IndexedTarget> {
 	// `file` is loop-invariant across a source file's declarations, so it comes
 	// from the loop rather than a `node.getSourceFile()` call for each name.
 	const add = (name: string | undefined, node: Node, file: string) => {
-		if (!name || !/^[A-Z]/.test(name) || index.has(name)) return
+		if (!name || !isPascalCase(name) || index.has(name)) return
 
 		const symbol = node.getSymbol()?.compilerSymbol
 

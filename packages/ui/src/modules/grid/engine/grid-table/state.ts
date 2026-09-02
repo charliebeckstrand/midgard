@@ -1,10 +1,4 @@
-import type {
-	ColumnFiltersState,
-	GroupingState,
-	Row,
-	Updater,
-	VisibilityState,
-} from '@tanstack/react-table'
+import type { ColumnFiltersState, GroupingState, Row, VisibilityState } from '@tanstack/react-table'
 import type { GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
 import { resolveFilterMode, usesClientModel } from './options'
@@ -32,11 +26,6 @@ export const EMPTY_GROUPING: GroupingState = []
 
 /** Search-input placeholder when {@link GridSearch} supplies none. @internal */
 export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
-
-/** Resolves a TanStack `Updater<S>` against a base value. @internal */
-export function applyUpdater<S>(updater: Updater<S>, base: S): S {
-	return typeof updater === 'function' ? (updater as (prev: S) => S)(base) : updater
-}
 
 /**
  * Collapses a row set to its flat leaf set — the data rows, whatever the

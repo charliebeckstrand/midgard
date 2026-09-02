@@ -5,6 +5,8 @@
  * component renders.
  */
 
+import { clamp } from '../../utilities'
+
 /** A resolved point in the sparkline's coordinate box. @internal */
 export type SparklinePoint = { x: number; y: number }
 
@@ -45,11 +47,6 @@ export type SparklineGeometryOptions = {
 	min?: number
 	/** Domain ceiling; defaults to the series maximum. Values above it clamp to the top. */
 	max?: number
-}
-
-/** Clamps `value` to the inclusive `[low, high]` range. @internal */
-function clamp(value: number, low: number, high: number): number {
-	return Math.min(Math.max(value, low), high)
 }
 
 /**

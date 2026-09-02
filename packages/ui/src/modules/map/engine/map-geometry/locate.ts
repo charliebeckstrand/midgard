@@ -25,6 +25,7 @@
 import { geoContains } from 'd3-geo'
 import { bucket, cellKey } from '../map-cluster/grid'
 import type { LngLat, MapFeature } from '../types'
+import { memoWeak } from './cache'
 
 /** A conservative lon/lat box around a shape. @internal */
 export type MapBounds = { west: number; south: number; east: number; north: number }
@@ -193,15 +194,7 @@ const indexes = new WeakMap<MapFeature[], MapRegionIndex>()
  * @internal
  */
 export function cachedRegionIndex(features: MapFeature[]): MapRegionIndex {
-	const hit = indexes.get(features)
-
-	if (hit !== undefined) return hit
-
-	const built = regionIndex(features)
-
-	indexes.set(features, built)
-
-	return built
+	return memoWeak(indexes, features, regionIndex)
 }
 
 /** Whether a box holds a position — the cheap test before the exact one. @internal */

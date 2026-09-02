@@ -103,11 +103,6 @@ function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleTo
 	}
 }
 
-/** Wraps a nullable rule token as a (possibly empty) token list. @internal */
-function toTokens(token: QuerySummaryRuleToken | null): QuerySummaryToken[] {
-	return token ? [token] : []
-}
-
 /**
  * Describes a group's active children in order, each joined to the previous by
  * its `AND`/`OR` label; a nested group with any active child is wrapped in
@@ -124,10 +119,11 @@ function describeGroup(
 	const body: QuerySummaryToken[] = []
 
 	for (const child of group.children) {
-		const tokens =
+		// An inactive rule describes to `null`, which the filter drops.
+		const tokens: QuerySummaryToken[] =
 			child.type === 'group'
 				? describeGroup(child, fields, true)
-				: toTokens(describeRule(child, fields))
+				: [describeRule(child, fields)].filter((token) => token !== null)
 
 		if (tokens.length === 0) continue
 
@@ -198,6 +194,8 @@ export function formatQuerySummary(group: QueryGroup, fields: QueryField[]): str
 	const tokens = summarizeQuery(group, fields)
 
 	return tokens
-		.map((token, index) => (spacedBefore(tokens[index - 1], token) ? ' ' : '') + renderToken(token))
+		.map(
+			(token, index) => `${spacedBefore(tokens[index - 1], token) ? ' ' : ''}${renderToken(token)}`,
+		)
 		.join('')
 }

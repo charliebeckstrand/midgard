@@ -14,10 +14,12 @@
  */
 
 import {
-	CalendarDateTime,
+	type CalendarDateTime,
 	DateFormatter,
+	fromDateToLocal,
 	getLocalTimeZone,
 	startOfWeek,
+	toCalendarDateTime,
 } from '@internationalized/date'
 import { resolveLocale } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
@@ -71,19 +73,6 @@ export function parseInstant(value: unknown): number | null {
 	}
 
 	return null
-}
-
-/** A native `Date` as a local wall-clock `CalendarDateTime`, mirroring the calendar's day semantics. @internal */
-function toCalendarDateTime(date: Date): CalendarDateTime {
-	return new CalendarDateTime(
-		date.getFullYear(),
-		date.getMonth() + 1,
-		date.getDate(),
-		date.getHours(),
-		date.getMinutes(),
-		date.getSeconds(),
-		date.getMilliseconds(),
-	)
 }
 
 /** Zeroes a datetime's time-of-day, for a day-or-coarser boundary. @internal */
@@ -161,15 +150,15 @@ type Anchor = { index: number; time: number }
  */
 function positionOf(time: number, anchors: Anchor[], band: BandScale): number {
 	const first = anchors[0] as Anchor
-	const last = anchors[anchors.length - 1] as Anchor
+	const last = anchors.at(-1) as Anchor
 
 	if (time <= first.time) return band.center(first.index)
 
 	if (time >= last.time) return band.center(last.index)
 
-	let low = 0
-
-	while (low < anchors.length - 1 && (anchors[low + 1] as Anchor).time <= time) low++
+	// The segment ends at the first later anchor after the head; `last` is later
+	// than `time`, so one always exists.
+	const low = anchors.findIndex((anchor, index) => index > 0 && anchor.time > time) - 1
 
 	const a = anchors[low] as Anchor
 	const b = anchors[low + 1] as Anchor
@@ -211,18 +200,14 @@ export type TimeTicksOptions = {
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	const { times, band, tickTarget, axisLength } = options
 
-	const anchors: Anchor[] = []
-
-	for (let index = 0; index < times.length; index++) {
-		const time = times[index]
-
-		if (time != null && Number.isFinite(time)) anchors.push({ index, time })
-	}
+	const anchors: Anchor[] = times.flatMap((time, index) =>
+		time != null && Number.isFinite(time) ? [{ index, time }] : [],
+	)
 
 	if (anchors.length < 2) return null
 
 	const first = anchors[0] as Anchor
-	const last = anchors[anchors.length - 1] as Anchor
+	const last = anchors.at(-1) as Anchor
 
 	const spanMs = last.time - first.time
 
@@ -240,7 +225,8 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 	const ticks: ChartAxisTick[] = []
 
-	let cursor = interval.floor(toCalendarDateTime(new Date(first.time)), locale)
+	// The first row as a local wall-clock datetime, so the floor reads calendar days.
+	let cursor = interval.floor(toCalendarDateTime(fromDateToLocal(new Date(first.time))), locale)
 
 	for (let guard = 0; guard < MAX_TICKS; guard++) {
 		const date = cursor.toDate(getLocalTimeZone())

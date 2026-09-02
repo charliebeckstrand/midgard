@@ -1,8 +1,10 @@
 import path from 'node:path'
 import ts from 'typescript'
 import type { DeclarationFact, ElementFact, ImportFact } from '../derive-code/types'
+import { isPascalCase, wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { isJsxHelperStatement } from './collect-helpers'
+import { namedImportsOf, parseSource } from './ts-source'
 
 /**
  * Build-time companion to the runtime walker: extracts per-`Example` source
@@ -21,8 +23,6 @@ export type SourceFactsOptions = {
 	/** The library source root (the directory holding `components/`). */
 	srcDir: string
 }
-
-const isPascalCase = (name: string) => /^[A-Z]/.test(name)
 
 // The demo-authoring frame itself. Its own props are never facts, and a nested
 // occurrence owns its own extraction.
@@ -195,20 +195,21 @@ function boundNames(name: ts.BindingName, into: string[]): void {
 function declarationOf(
 	stmt: ts.Statement,
 	sf: ts.SourceFile,
-	source: string,
 	excludeJsxHelpers: boolean,
 ): Omit<Declaration, 'index'> | null {
-	if (excludeJsxHelpers && isJsxHelperStatement(stmt, sf, source)) return null
+	if (excludeJsxHelpers && isJsxHelperStatement(stmt, sf)) return null
 
-	const code = source.slice(stmt.getStart(sf), stmt.getEnd())
+	const code = stmt.getText(sf)
 
-	if (ts.isTypeAliasDeclaration(stmt) || ts.isInterfaceDeclaration(stmt)) {
-		return { names: [stmt.name.text], code }
+	if (
+		ts.isTypeAliasDeclaration(stmt) ||
+		ts.isInterfaceDeclaration(stmt) ||
+		ts.isEnumDeclaration(stmt) ||
+		ts.isFunctionDeclaration(stmt)
+	) {
+		// Only a function declaration may be anonymous (`export default function`).
+		return stmt.name ? { names: [stmt.name.text], code } : null
 	}
-
-	if (ts.isEnumDeclaration(stmt)) return { names: [stmt.name.text], code }
-
-	if (ts.isFunctionDeclaration(stmt) && stmt.name) return { names: [stmt.name.text], code }
 
 	if (ts.isVariableStatement(stmt)) {
 		const names: string[] = []
@@ -279,27 +280,23 @@ function importFacts(
 	const facts: Record<string, ImportFact> = {}
 
 	for (const stmt of sf.statements) {
-		if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) continue
+		const named = namedImportsOf(stmt)
 
-		const specifier = stmt.moduleSpecifier.text
+		if (!named) continue
 
-		const clause = stmt.importClause
+		const { specifier, elements } = named
 
-		if (!clause || clause.isTypeOnly || !clause.namedBindings) continue
+		const isRelative = specifier.startsWith('.')
 
-		if (!ts.isNamedImports(clause.namedBindings)) continue
+		const module = isRelative
+			? publicModuleFor(path.resolve(path.dirname(filePath), specifier), srcDir)
+			: specifier
 
-		const fact: ImportFact | null = specifier.startsWith('.')
-			? (() => {
-					const module = publicModuleFor(path.resolve(path.dirname(filePath), specifier), srcDir)
+		if (!module) continue
 
-					return module ? { module } : null
-				})()
-			: { module: specifier, external: true }
+		const fact: ImportFact = isRelative ? { module } : { module, external: true }
 
-		if (!fact) continue
-
-		for (const spec of clause.namedBindings.elements) {
+		for (const spec of elements) {
 			if (spec.isTypeOnly || spec.propertyName) continue
 
 			facts[spec.name.text] = fact
@@ -312,8 +309,6 @@ function importFacts(
 // ---------------------------------------------------------------------------
 // Assembly
 // ---------------------------------------------------------------------------
-
-const wordRe = (name: string) => new RegExp(`\\b${name.replaceAll('$', '\\$')}\\b`)
 
 /** One qualifying `<Example>`: where to splice, and its per-Example facts. */
 export type ExampleSite = {
@@ -344,9 +339,7 @@ export function extractSourceFacts(
 	options: SourceFactsOptions,
 	sourceFile?: ts.SourceFile,
 ): FileFacts | null {
-	const sf =
-		sourceFile ??
-		ts.createSourceFile('demo.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+	const sf = sourceFile ?? parseSource('demo.tsx', source)
 
 	// Every <Example> element, in source order.
 	const examples: ts.JsxElement[] = []
@@ -367,7 +360,7 @@ export function extractSourceFacts(
 
 	const declarationFor = (stmt: ts.Statement, excludeJsxHelpers: boolean) => {
 		if (!statementScopes.has(stmt)) {
-			statementScopes.set(stmt, declarationOf(stmt, sf, source, excludeJsxHelpers))
+			statementScopes.set(stmt, declarationOf(stmt, sf, excludeJsxHelpers))
 		}
 
 		return statementScopes.get(stmt) ?? null
@@ -480,25 +473,22 @@ export function extractSourceFacts(
 	const sharedDeclarations: DeclarationFact[] = kept.map(({ names, code }) => ({ names, code }))
 
 	// Imports prune the same way: only names the shipped texts mention.
-	const sharedImports: Record<string, ImportFact> = {}
+	const sharedImports = Object.fromEntries(
+		Object.entries(imports).filter(([name]) => {
+			const re = wordRe(name)
 
-	for (const [name, fact] of Object.entries(imports)) {
-		const re = wordRe(name)
+			return texts.some((text) => re.test(text))
+		}),
+	)
 
-		if (texts.some((text) => re.test(text))) sharedImports[name] = fact
-	}
+	const remappedBindings = (site: ExampleSite): Record<string, number> =>
+		Object.fromEntries(
+			Object.entries(site.bindings).flatMap(([name, index]): [string, number][] => {
+				const next = remap.get(index)
 
-	const remappedBindings = (site: ExampleSite): Record<string, number> => {
-		const bindings: Record<string, number> = {}
-
-		for (const [name, index] of Object.entries(site.bindings)) {
-			const next = remap.get(index)
-
-			if (next !== undefined) bindings[name] = next
-		}
-
-		return bindings
-	}
+				return next === undefined ? [] : [[name, next]]
+			}),
+		)
 
 	return {
 		sites: sites.map((site) => ({ ...site, bindings: remappedBindings(site) })),
@@ -526,15 +516,11 @@ export function injectSourceFacts(
 	if (!facts) return null
 
 	// Splice from the end so earlier positions stay valid.
-	let out = source
-
-	for (let i = facts.sites.length - 1; i >= 0; i--) {
-		const site = facts.sites[i]
-
-		if (!site) continue
-
-		out = `${out.slice(0, site.insertAt)} __facts={${FACTS_CONST}[${i}]}${out.slice(site.insertAt)}`
-	}
+	const out = facts.sites.reduceRight(
+		(acc, site, i) =>
+			`${acc.slice(0, site.insertAt)} __facts={${FACTS_CONST}[${i}]}${acc.slice(site.insertAt)}`,
+		source,
+	)
 
 	const shared = JSON.stringify({ declarations: facts.declarations, imports: facts.imports })
 

@@ -10,10 +10,13 @@ export type NavigationConfig = {
 
 /** Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. */
 export function crossAxisDelta(key: string, orientation: Orientation): number | null {
-	const forward = orientation === 'vertical' ? 'ArrowRight' : 'ArrowDown'
+	return orientation === 'vertical'
+		? arrowDelta(key, 'ArrowRight', 'ArrowLeft')
+		: arrowDelta(key, 'ArrowDown', 'ArrowUp')
+}
 
-	const back = orientation === 'vertical' ? 'ArrowLeft' : 'ArrowUp'
-
+/** `1` for the `forward` key, `-1` for `back`, else null. */
+function arrowDelta(key: string, forward: string, back: string): number | null {
 	return key === forward ? 1 : key === back ? -1 : null
 }
 
@@ -51,11 +54,9 @@ function nextIndexLinear(
 	orientation: Orientation,
 ): number | null {
 	const delta =
-		key === (orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight')
-			? 1
-			: key === (orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft')
-				? -1
-				: null
+		orientation === 'vertical'
+			? arrowDelta(key, 'ArrowDown', 'ArrowUp')
+			: arrowDelta(key, 'ArrowRight', 'ArrowLeft')
 
 	if (delta === null) return null
 

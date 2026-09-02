@@ -6,6 +6,7 @@ import { cn } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Hold, useMountHold } from '../../primitives/mount'
+import { heldMotionProps } from '../../primitives/mount/held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
@@ -98,27 +99,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	return (
 		<ReducedMotion>
 			<Hold hold={hold} name="collapse-panel">
-				{section({
-					// Keyed on the state this panel mounted in, not on the policy. Motion
-					// reads `initial` at its first `animateChanges`, which a held panel
-					// defers until its first reveal — so `false` there suppresses the
-					// reveal rather than the mount, leaving the panel shut and its
-					// landing unreported. A panel that mounted open instead matches
-					// `initial` to the target, which is the other arm of the same guard,
-					// so it still takes its open state without playing anything.
-					initial: mountedOpen.current ? preset.animate : preset.initial,
-					// Held, so it animates between the two states in place rather than
-					// entering and exiting — no `exit`, which only `AnimatePresence` reads.
-					animate: open ? preset.animate : preset.exit,
-					transition: preset.transition,
-					// Both landings arrive here: `rest` takes the close, the gate takes
-					// the open.
-					onAnimationComplete: (definition: unknown) => {
-						hold.rest()
-
-						onAnimationComplete(definition)
-					},
-				})}
+				{section(heldMotionProps(preset, mountedOpen.current, open, hold, onAnimationComplete))}
 			</Hold>
 		</ReducedMotion>
 	)

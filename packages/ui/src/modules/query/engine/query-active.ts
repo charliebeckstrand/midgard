@@ -49,7 +49,7 @@ export function resolveRule(
  * @internal
  */
 export function imposesConstraint(operator: QueryOperator | undefined, value: unknown): boolean {
-	return operator?.noValue ? true : !isEmptyValue(value)
+	return operator?.noValue === true || !isEmptyValue(value)
 }
 
 /**

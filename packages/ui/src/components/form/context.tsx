@@ -105,13 +105,7 @@ function errorsEqual(a: string[] | undefined, b: string[] | undefined): boolean 
 
 	if (a === undefined || b === undefined) return false
 
-	if (a.length !== b.length) return false
-
-	for (let i = 0; i < a.length; i++) {
-		if (a[i] !== b[i]) return false
-	}
-
-	return true
+	return a.length === b.length && a.every((issue, i) => issue === b[i])
 }
 
 type FieldSlice = {

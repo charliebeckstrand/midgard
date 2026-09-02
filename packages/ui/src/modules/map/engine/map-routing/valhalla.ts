@@ -11,6 +11,13 @@ import type { MapRouteAnswer } from './result'
 
 const DEFAULT_VALHALLA_URL = 'https://valhalla1.openstreetmap.de'
 
+/** Valhalla's costing model per travel profile. */
+const COSTING = {
+	driving: 'auto',
+	walking: 'pedestrian',
+	cycling: 'bicycle',
+} satisfies Record<Profile, string>
+
 /** Options for {@link fetchValhallaRoute}: the Valhalla server, travel profile, timeout, and an abort signal. */
 export type FetchValhallaRouteOptions = {
 	/**
@@ -47,8 +54,6 @@ export async function fetchValhallaRoute(
 
 	const { baseUrl = DEFAULT_VALHALLA_URL, profile = 'driving', timeoutMs, signal } = options
 
-	const costing = profile === 'driving' ? 'auto' : profile === 'walking' ? 'pedestrian' : 'bicycle'
-
 	// `directions_type: 'none'` skips Valhalla's maneuver and narrative build and
 	// the per-step `steps` array it would emit — the map reads only the geometry,
 	// distance, and duration, all of which this leaves untouched. `polyline6` is
@@ -56,7 +61,7 @@ export async function fetchValhallaRoute(
 	// and parse than the equivalent GeoJSON coordinate array.
 	const body = JSON.stringify({
 		locations: waypoints.map(([lon, lat]) => ({ lat, lon })),
-		costing,
+		costing: COSTING[profile],
 		shape_format: 'polyline6',
 		directions_type: 'none',
 	})

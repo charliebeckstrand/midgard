@@ -125,13 +125,10 @@ export function Filters<T extends FilterValue = FilterValue>({
 		[setState],
 	)
 
+	// Without a default, drop keys entirely, matching setValue's delete semantics.
 	const handleClear = useCallback(() => {
-		if (defaultValue) {
-			setState(defaultValue)
-		} else {
-			// Drop keys entirely, matching setValue's delete semantics.
-			setState({} as T)
-		}
+		setState(defaultValue ?? ({} as T))
+
 		onClear?.()
 	}, [defaultValue, setState, onClear])
 

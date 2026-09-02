@@ -48,28 +48,18 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 		return event.target instanceof Element && event.target.closest('[data-popover-ignore]') !== null
 	}, [])
 
+	// Every `on*` handler from the reference props gains the ignore guard.
 	const wrapReferenceProps = useCallback(
-		(props?: Record<string, unknown>) => {
-			const refProps = getReferenceProps(props)
-
-			const eventKeys = Object.keys(refProps).filter((key) => /^on[A-Z]/.test(key))
-
-			const wrapped: Record<string, unknown> = { ...refProps }
-
-			for (const key of eventKeys) {
-				const original = refProps[key]
-
-				if (typeof original === 'function') {
-					wrapped[key] = (event: SyntheticEvent<HTMLElement>) => {
-						if (shouldIgnore(event)) return
-
-						return original(event)
-					}
-				}
-			}
-
-			return wrapped
-		},
+		(props?: Record<string, unknown>): Record<string, unknown> =>
+			Object.fromEntries(
+				Object.entries(getReferenceProps(props)).map(([key, value]) => [
+					key,
+					/^on[A-Z]/.test(key) && typeof value === 'function'
+						? (event: SyntheticEvent<HTMLElement>) =>
+								shouldIgnore(event) ? undefined : value(event)
+						: value,
+				]),
+			),
 		[getReferenceProps, shouldIgnore],
 	)
 

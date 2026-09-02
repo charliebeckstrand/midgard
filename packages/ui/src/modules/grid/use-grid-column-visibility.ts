@@ -57,13 +57,7 @@ export function useGridColumnVisibility<T extends ColumnLike>({
 		onValueChange: (next) => onHiddenChange?.(next ?? new Set<string | number>()),
 	})
 
-	const byId = useMemo(() => {
-		const map = new Map<string | number, T>()
-
-		for (const col of columns) map.set(col.id, col)
-
-		return map
-	}, [columns])
+	const byId = useMemo(() => new Map(columns.map((col) => [col.id, col])), [columns])
 
 	return { order: resolvedOrder, setOrder, hidden: resolvedHidden, setHidden, byId }
 }

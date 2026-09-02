@@ -448,7 +448,7 @@ export function GridColumnManager({
 	)
 
 	const handleSavePreset = useCallback(() => {
-		onSavePreset?.({ order, hidden: Array.from(hidden) })
+		onSavePreset?.({ order, hidden: [...hidden] })
 	}, [onSavePreset, order, hidden])
 
 	// No column anywhere matches — the three groups partition `columns`, so one

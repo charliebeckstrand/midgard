@@ -345,12 +345,7 @@ function GridGroupManagerZoneView({
 	// at most one group. Memoized so a drag/hover re-render doesn't rescan every
 	// group in every zone.
 	const usedColors = useMemo(
-		() =>
-			new Set(
-				groups
-					.filter((g) => g.id !== zone.group?.id && g.color)
-					.map((g) => g.color as PaletteColor),
-			),
+		() => new Set(groups.flatMap((g) => (g.id === zone.group?.id ? [] : (g.color ?? [])))),
 		[groups, zone.group?.id],
 	)
 

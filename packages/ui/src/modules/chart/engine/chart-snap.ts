@@ -39,35 +39,30 @@ export function snapTargets(
 	return { bandPositions, valuePoints }
 }
 
-/** The plot-y among `candidates` nearest to `value`, or `null` when the category has none. @internal */
-export function nearestValue(candidates: number[] | undefined, value: number): number | null {
-	if (!candidates || candidates.length === 0) return null
-
-	return candidates.reduce((best, y) => (Math.abs(y - value) < Math.abs(best - value) ? y : best))
-}
-
 /**
  * The position in `candidates` of the stop nearest `value`, or `null` when the
- * category has none — the index twin of {@link nearestValue}, for the mark
- * isolation that must name the series behind the stop the tooltip anchors.
+ * category has none. The first of two equidistant stops wins. The one
+ * nearest-by-distance primitive: {@link nearestValue} and the scatter's
+ * `nearestCenterIndex` both read through it, so the tooltip anchor and the mark
+ * isolation can never disagree.
  *
  * @internal
  */
 export function nearestStopIndex(candidates: number[] | undefined, value: number): number | null {
 	if (!candidates || candidates.length === 0) return null
 
-	let best = 0
+	return candidates.reduce<number>(
+		(best, candidate, index) =>
+			Math.abs(candidate - value) < Math.abs((candidates[best] as number) - value) ? index : best,
+		0,
+	)
+}
 
-	for (let index = 1; index < candidates.length; index++) {
-		if (
-			Math.abs((candidates[index] as number) - value) <
-			Math.abs((candidates[best] as number) - value)
-		) {
-			best = index
-		}
-	}
+/** The plot-y among `candidates` nearest to `value`, or `null` when the category has none. @internal */
+export function nearestValue(candidates: number[] | undefined, value: number): number | null {
+	const index = nearestStopIndex(candidates, value)
 
-	return best
+	return index === null ? null : (candidates?.[index] ?? null)
 }
 
 /**

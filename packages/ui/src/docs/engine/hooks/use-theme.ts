@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { usePersistedChoice } from './use-persisted-choice'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
 
@@ -11,13 +12,7 @@ export const themeModes: { label: string; value: ThemeMode }[] = [
 
 const STORAGE_KEY = 'theme'
 
-function readStoredMode(): ThemeMode {
-	const stored = localStorage.getItem(STORAGE_KEY)
-
-	if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
-
-	return 'system'
-}
+const THEME_VALUES = themeModes.map((option) => option.value)
 
 function prefersDark(): boolean {
 	return window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -29,11 +24,9 @@ function prefersDark(): boolean {
  * the OS preference live via `matchMedia`.
  */
 export function useTheme() {
-	const [mode, setMode] = useState<ThemeMode>(readStoredMode)
+	const [mode, setMode] = usePersistedChoice<ThemeMode>(STORAGE_KEY, THEME_VALUES, 'system')
 
 	useEffect(() => {
-		localStorage.setItem(STORAGE_KEY, mode)
-
 		const apply = () => {
 			const dark = mode === 'system' ? prefersDark() : mode === 'dark'
 

@@ -72,26 +72,12 @@ export function ToggleIconButton({
 	// Toggling stays on the button's own click so a consumer's handler still
 	// runs; composeEventHandlers keeps both without the caller re-wiring state.
 	const handleClick = composeEventHandlers(onClick, () => setPressed(!pressed))
-	if (!animate) {
-		return (
-			<Button
-				{...props}
-				type="button"
-				variant="bare"
-				size={size}
-				data-slot="toggle-icon-button"
-				onClick={handleClick}
-				aria-pressed={pressed}
-				className={cn(k.base, className)}
-			>
-				<Icon icon={pressed ? pressedIcon : icon} />
-			</Button>
-		)
-	}
 
-	// Cross-fade classes sit on the icons themselves, not wrapper spans: the
-	// Button's slot projection (`*:data-[slot=icon]`) sizes direct children
-	// only, and a wrapped Icon falls back to its static md default.
+	// Animated: both icons ride the `prefix` slot and cross-fade. Instant: the
+	// current icon is the sole child and `prefix` stays absent. Cross-fade
+	// classes sit on the icons themselves, not wrapper spans: the Button's slot
+	// projection (`*:data-[slot=icon]`) sizes direct children only, and a
+	// wrapped Icon falls back to its static md default.
 	return (
 		<Button
 			{...props}
@@ -103,14 +89,22 @@ export function ToggleIconButton({
 			aria-pressed={pressed}
 			className={cn(k.base, className)}
 			prefix={
-				<>
-					<Icon icon={icon} className={cn(k.transition, pressed ? k.inactive : k.active)} />
-					<Icon
-						icon={pressedIcon}
-						className={cn('absolute inset-0 m-auto', k.transition, pressed ? k.active : k.inactive)}
-					/>
-				</>
+				animate ? (
+					<>
+						<Icon icon={icon} className={cn(k.transition, pressed ? k.inactive : k.active)} />
+						<Icon
+							icon={pressedIcon}
+							className={cn(
+								'absolute inset-0 m-auto',
+								k.transition,
+								pressed ? k.active : k.inactive,
+							)}
+						/>
+					</>
+				) : undefined
 			}
-		/>
+		>
+			{animate ? null : <Icon icon={pressed ? pressedIcon : icon} />}
+		</Button>
 	)
 }

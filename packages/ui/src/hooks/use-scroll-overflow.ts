@@ -51,7 +51,7 @@ export function useScrollOverflow(): RefCallback<HTMLElement> {
 
 			resizes.observe(node)
 
-			for (const child of Array.from(node.children)) resizes.observe(child)
+			for (const child of node.children) resizes.observe(child)
 		}
 
 		observeChildren()

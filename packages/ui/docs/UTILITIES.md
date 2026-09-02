@@ -72,6 +72,7 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 
 | Export | Summary |
 |---|---|
+| `clearNativeInput` | Clears an input through the native value setter and a bubbling `input` event, so controlled and uncontrolled consumers both observe it, then returns focus to it. |
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
@@ -81,6 +82,7 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 
 | Export | Summary |
 |---|---|
+| `FOCUSABLE_SELECTOR` | Selector for the descendants in the tab order: links with an `href`, enabled form controls, and any element whose `tabindex` is not `-1`. |
 | `nextIndexForKey` | Next roving index for a key press (1D or 2D grid), or `null` if unhandled; wraps at both ends. |
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |

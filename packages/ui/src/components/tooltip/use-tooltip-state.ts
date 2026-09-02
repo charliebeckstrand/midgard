@@ -68,13 +68,8 @@ export function useTooltipState({
 		placement,
 		offset: 8,
 		open: enabled && forceOpen ? true : undefined,
-		gate: (next, gateRefs) => {
-			if (next && !enabled) return false
-
-			if (next && isReferenceDisabled(gateRefs.reference.current)) return false
-
-			return true
-		},
+		gate: (next, gateRefs) =>
+			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
 	})
 
 	const prevEnabledRef = useRef(enabled)

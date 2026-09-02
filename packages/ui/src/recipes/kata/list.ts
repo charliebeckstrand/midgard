@@ -1,5 +1,5 @@
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, ma, narabi, omote, sen } from '../kiso'
+import { hannou, iro, ji, kasane, ma, narabi, omote, sen, steps } from '../kiso'
 
 const { cursor, disabled, fg, glassItem, tint, tintFilled, tintSurface } = hannou
 const { text } = iro
@@ -30,7 +30,6 @@ const root = defineRecipe({
 // The card-like variants share the uniform `ma.p` scale across the density
 // axis; `plain` uses a tighter px/py ratio.
 const variants = ['separated', 'outline', 'solid'] as const
-const densities = ['sm', 'md', 'lg'] as const
 
 const item = defineRecipe({
 	base: ['group', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
@@ -68,7 +67,7 @@ const item = defineRecipe({
 	},
 	compound: [
 		...variants.flatMap((variant) =>
-			densities.map((density) => ({ variant, density, class: p[density] })),
+			steps.map((density) => ({ variant, density, class: p[density] })),
 		),
 		{ variant: 'plain', density: 'sm', class: 'px-1.5 py-1' },
 		{ variant: 'plain', density: 'md', class: 'px-2 py-1.5' },

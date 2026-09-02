@@ -62,9 +62,11 @@ export function MapHoverProvider({
 			// target object — so the pointed-mark context below changes only on a
 			// crossing, never per pixel.
 			setState((prev) => {
-				if (sameTarget(prev.target, target) && samePoint(prev.point, point)) return prev
+				const same = sameTarget(prev.target, target)
 
-				return { target: sameTarget(prev.target, target) ? prev.target : target, point }
+				if (same && samePoint(prev.point, point)) return prev
+
+				return { target: same ? prev.target : target, point }
 			}),
 		[],
 	)

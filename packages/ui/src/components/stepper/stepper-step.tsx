@@ -29,30 +29,24 @@ function computeState(stepValue: number, value: number): StepState {
 	return 'upcoming'
 }
 
+/** True for a `<StepperIndicator>` element. @internal */
+function isStepperIndicator(child: ReactNode): boolean {
+	return isValidElement(child) && child.type === StepperIndicator
+}
+
 /**
- * Splits children into an indicator column and a content column for vertical layout,
- * wrapping non-indicator nodes in a `stepper-content` slot.
+ * Splits the step's children (already flattened by {@link Children.toArray})
+ * into an indicator column and a content column for vertical layout, wrapping
+ * non-indicator nodes in a `stepper-content` slot.
  *
  * @internal
  */
-function partitionVerticalChildren(children: ReactNode): ReactNode {
-	const indicators: ReactNode[] = []
-
-	const rest: ReactNode[] = []
-
-	Children.forEach(children, (child) => {
-		if (isValidElement(child) && child.type === StepperIndicator) {
-			indicators.push(child)
-		} else {
-			rest.push(child)
-		}
-	})
-
+function partitionVerticalChildren(items: readonly ReactNode[]): ReactNode {
 	return (
 		<>
-			{indicators}
+			{items.filter(isStepperIndicator)}
 			<span data-slot="stepper-content" className={cn(k.content)}>
-				{rest}
+				{items.filter((child) => !isStepperIndicator(child))}
 			</span>
 		</>
 	)
@@ -61,17 +55,12 @@ function partitionVerticalChildren(children: ReactNode): ReactNode {
 /**
  * Injects a default `<StepperIndicator>` when the consumer omits one.
  *
- * @remarks Returns an array, not a Fragment, so {@link Children.forEach} can walk each item.
+ * @remarks Takes and returns the flattened child array so the vertical
+ * partition reuses it without a second {@link Children.toArray} pass.
  * @internal
  */
-function ensureStepperIndicator(children: ReactNode): ReactNode {
-	const items = Children.toArray(children)
-
-	const hasIndicator = items.some(
-		(child) => isValidElement(child) && child.type === StepperIndicator,
-	)
-
-	if (hasIndicator) return children
+function ensureStepperIndicator(items: ReactNode[]): ReactNode[] {
+	if (items.some(isStepperIndicator)) return items
 
 	return [<StepperIndicator key="__auto-stepper-indicator" />, ...items]
 }
@@ -110,7 +99,7 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 	// Vertical mode: splits into [indicator, content-column] for the recipe to
 	// align the title baseline with the indicator center.
 	const layoutChildren = useMemo(() => {
-		const withIndicator = ensureStepperIndicator(children)
+		const withIndicator = ensureStepperIndicator(Children.toArray(children))
 
 		return orientation === 'vertical' ? partitionVerticalChildren(withIndicator) : withIndicator
 	}, [children, orientation])

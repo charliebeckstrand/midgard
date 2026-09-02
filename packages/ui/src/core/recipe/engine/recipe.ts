@@ -184,14 +184,10 @@ function axisKey(value: unknown): string | undefined {
  * @internal
  */
 function normalizeRule(rule: CompoundRule): CompoundRule {
-	const normalized: Record<string, string | ClassValue> = {}
-
-	for (const [key, value] of Object.entries(rule)) {
-		normalized[key] = key === 'class' ? value : axisKey(value)
-	}
-
 	// `class` rides through untouched, so the rule keeps its declared shape.
-	return normalized as CompoundRule
+	return Object.fromEntries(
+		Object.entries(rule).map(([key, value]) => [key, key === 'class' ? value : axisKey(value)]),
+	) as CompoundRule
 }
 
 /**
@@ -245,11 +241,7 @@ function buildRecipeValues(
 
 /** True when every pre-split condition in `rule` equals the resolved value. @internal */
 function matches(rule: CompiledRule, values: Record<string, string | undefined>): boolean {
-	for (const [key, required] of rule.conditions) {
-		if (required !== values[key]) return false
-	}
-
-	return true
+	return rule.conditions.every(([key, required]) => required === values[key])
 }
 
 /**
@@ -293,9 +285,9 @@ function collectRecipeClasses(
  * @internal
  */
 function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
-	const defaults: Record<string, string | undefined> = {}
-
-	for (const [key, value] of Object.entries(resolved.defaults)) defaults[key] = axisKey(value)
+	const defaults = Object.fromEntries(
+		Object.entries(resolved.defaults).map(([key, value]) => [key, axisKey(value)]),
+	)
 
 	const rules: CompiledRule[] = userCompound.map((rule) => ({
 		// `expand` already put every condition through `axisKey`; `class` is the

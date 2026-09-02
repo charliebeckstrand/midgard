@@ -22,16 +22,6 @@ export type CreditCardInputCvvProps = Omit<
 	onValidityChange?: (validity: CardValidity) => void
 }
 
-const CVV_LENGTHS: Record<CreditCardBrand, number> = {
-	amex: 4,
-	visa: 3,
-	mastercard: 3,
-	discover: 3,
-	diners: 3,
-	jcb: 3,
-	unionpay: 3,
-}
-
 function resolveBrand(brand: CreditCardInputCvvProps['brand']): CreditCardBrand | undefined {
 	if (!brand) return undefined
 
@@ -43,7 +33,8 @@ function resolveBrand(brand: CreditCardInputCvvProps['brand']): CreditCardBrand 
 function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
 	if (!brand) return 4
 
-	if (typeof brand === 'string') return CVV_LENGTHS[brand]
+	// Same rule as `validateCardCvv`: Amex takes 4 digits, every other brand 3.
+	if (typeof brand === 'string') return brand === 'amex' ? 4 : 3
 
 	return brand.cvvLength
 }

@@ -2,7 +2,10 @@ import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import * as ReactDOM from 'react-dom'
 import { IGNORED_PROPS } from '../reserved-props'
+import { reindent } from './indent'
 import type { ComponentInfo, ComponentRegistry, Context, ElementFact } from './types'
+
+export { reindent }
 
 /**
  * Fragment and intrinsic HTML elements are transparent: styling/grouping
@@ -516,35 +519,6 @@ export function readSnippet(type: unknown): string | null {
 	const code = (type as WithCode).__code
 
 	return typeof code === 'string' ? code : null
-}
-
-/**
- * Dedents a raw snippet and re-indents subsequent lines to `targetIndent`.
- * Returns line 1 as-is; the caller prefixes it with its own indent, matching
- * the `renderElement` convention.
- */
-export function reindent(code: string, targetIndent: string): string {
-	const lines = code.split('\n')
-
-	if (lines.length === 1) return code
-
-	const indents = lines.slice(1).flatMap((line) => (line.trim() ? [leadingSpace(line)] : []))
-
-	const minIndent = indents.length === 0 ? 0 : Math.min(...indents)
-
-	return lines
-		.map((line, i) => {
-			if (i === 0) return line
-
-			if (!line.trim()) return ''
-
-			return targetIndent + line.slice(minIndent)
-		})
-		.join('\n')
-}
-
-function leadingSpace(line: string): number {
-	return line.length - line.trimStart().length
 }
 
 // `use` (the React 19 API) or a `use<Capital>` hook name.

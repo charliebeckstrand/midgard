@@ -86,7 +86,7 @@ export function useVirtualWindow({
 
 	const topSpacer = virtualItems[0]?.start ?? 0
 
-	const lastItem = virtualItems[virtualItems.length - 1]
+	const lastItem = virtualItems.at(-1)
 
 	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
 

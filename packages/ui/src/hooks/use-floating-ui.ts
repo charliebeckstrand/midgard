@@ -50,19 +50,18 @@ type FloatingUIResult = FloatingPanelResult & {
 /** Sizes the floating element's min-width to the reference width. @internal */
 const matchReferenceWidthMiddleware = size({
 	apply({ rects, elements }) {
-		Object.assign(elements.floating.style, {
-			minWidth: `${rects.reference.width}px`,
-		})
+		elements.floating.style.minWidth = `${rects.reference.width}px`
 	},
 })
 
 /** Default middleware chain: offset / flip / shift, plus the match-reference-width size middleware when requested. @internal */
 function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middleware[] {
-	const middleware: Middleware[] = [offset(offsetPx), flip(), shift({ padding: 8 })]
-
-	if (matchReferenceWidth) middleware.push(matchReferenceWidthMiddleware)
-
-	return middleware
+	return [
+		offset(offsetPx),
+		flip(),
+		shift({ padding: 8 }),
+		...(matchReferenceWidth ? [matchReferenceWidthMiddleware] : []),
+	]
 }
 
 const SCROLLABLE_RE = /auto|scroll/

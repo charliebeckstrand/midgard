@@ -183,8 +183,13 @@ export type PlotRect = {
  * tabular-digit {@link TICK_CHAR_WIDTH}.
  * @internal
  */
+/** The character length of the longest label, or 0 for none. @internal */
+function longestLength(labels: string[]): number {
+	return labels.reduce((longest, label) => Math.max(longest, label.length), 0)
+}
+
 function tickGutter(labels: string[], charWidth: number = TICK_CHAR_WIDTH): number {
-	const widest = labels.reduce((max, label) => Math.max(max, label.length), 0)
+	const widest = longestLength(labels)
 
 	// Round the count up to an even number so a one-character swing in the widest
 	// label (`8,000` ↔ `40,000`) leaves the gutter where it is — see the doc above.
@@ -513,15 +518,13 @@ function snapPointsOf(
 	if (!scales.y && !scales.y2) return []
 
 	return Array.from({ length: count }, (_, index) =>
-		visibleValues.reduce<number[]>((positions, series) => {
+		visibleValues.flatMap((series) => {
 			const scale = scales[series.axis]
 
 			const value = series.values[index]
 
-			if (scale && snappable(scale, value)) positions.push(scale.map(value))
-
-			return positions
-		}, []),
+			return scale && snappable(scale, value) ? [scale.map(value)] : []
+		}),
 	)
 }
 
@@ -552,11 +555,9 @@ function snapSeriesOf(
 	if (!scales.y && !scales.y2) return []
 
 	return Array.from({ length: count }, (_, index) =>
-		visibleValues.reduce<number[]>((series, entry) => {
-			if (snappable(scales[entry.axis], entry.values[index])) series.push(entry.index)
-
-			return series
-		}, []),
+		visibleValues.flatMap((entry) =>
+			snappable(scales[entry.axis], entry.values[index]) ? [entry.index] : [],
+		),
 	)
 }
 
@@ -897,7 +898,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const plotWidth = Math.max(0, frameWidth - leftGutter - rightGutter)
 
-	const longest = categories.reduce((widest, label) => Math.max(widest, label.length), 0)
+	const longest = longestLength(categories)
 
 	const slot = longest * TICK_CHAR_WIDTH + GUTTER_GAP
 

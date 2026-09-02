@@ -4,6 +4,7 @@ import { motion } from 'motion/react'
 import { Activity, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
+import { FOCUSABLE_SELECTOR } from '../../utilities'
 import { ReducedMotion } from '../reduced-motion'
 
 /** Props for {@link ReadyReveal}. */
@@ -36,9 +37,6 @@ const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
 const CONTENT_CELL = { gridArea: '1 / 1' } as const
 
 const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
-
-const FOCUSABLE =
-	'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
 
 /**
  * Gates content on a `ready` flag, crossfading (opacity plus blur) from
@@ -104,18 +102,19 @@ export function ReadyReveal({
 
 		const activating = ready ? contentRef.current : placeholderRef.current
 
+		if (!deactivating) return
+
+		// `Node.contains(null)` is `false`, so a missing active or last-focused
+		// element needs no guard of its own.
 		const active = document.activeElement
 
 		const heldFocus =
-			(!!active && !!deactivating && deactivating.contains(active)) ||
-			(active === document.body &&
-				!!deactivating &&
-				!!lastFocused.current &&
-				deactivating.contains(lastFocused.current))
+			deactivating.contains(active) ||
+			(active === document.body && deactivating.contains(lastFocused.current))
 
 		if (!heldFocus) return
 
-		activating?.querySelector<HTMLElement>(FOCUSABLE)?.focus()
+		activating?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
 	}, [ready])
 
 	return (

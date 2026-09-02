@@ -73,15 +73,9 @@ export function subscribeTimeAgoTick(intervalMs: number, cb: Subscriber): () => 
 		visibilityBound = true
 	}
 
-	let bucket = buckets.get(intervalMs)
+	const b: Bucket = buckets.get(intervalMs) ?? { subscribers: new Set(), timer: null }
 
-	if (bucket === undefined) {
-		bucket = { subscribers: new Set(), timer: null }
-
-		buckets.set(intervalMs, bucket)
-	}
-
-	const b = bucket
+	buckets.set(intervalMs, b)
 
 	b.subscribers.add(cb)
 

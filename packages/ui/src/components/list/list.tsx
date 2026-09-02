@@ -1,20 +1,14 @@
 'use client'
 
-import {
-	DndContext,
-	type DraggableAttributes,
-	DragOverlay,
-	type DragStartEvent,
-} from '@dnd-kit/core'
+import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
-import { noop } from '../../utilities'
 import { ListContext, ListItemContext } from './context'
 import { ListItemSortable } from './list-item-sortable'
-import { ListItemStatic } from './list-item-static'
+import { ListItemStatic, STATIC_CONTEXT } from './list-item-static'
 import { useListDrag } from './use-list-drag'
 import { useListKeyboard } from './use-list-keyboard'
 
@@ -177,15 +171,7 @@ export function List<T>({
 					<DragOverlay dropAnimation={null}>
 						{activeItem != null ? (
 							<ListItemContext
-								value={{
-									id: effectiveGetKey(activeItem),
-									setNodeRef: noop,
-									setActivatorNodeRef: noop,
-									attributes: {} as DraggableAttributes,
-									listeners: undefined,
-									style: {},
-									dragging: true,
-								}}
+								value={{ ...STATIC_CONTEXT, id: effectiveGetKey(activeItem), dragging: true }}
 							>
 								{children(activeItem, activeIndex)}
 							</ListItemContext>

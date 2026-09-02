@@ -55,23 +55,19 @@ export function ResizableGroup({
 }: ResizableGroupProps) {
 	const groupRef = useRef<HTMLDivElement>(null)
 
-	const panelConfigs = useMemo<PanelConfig[]>(() => {
-		const configs: PanelConfig[] = []
+	const panelConfigs = useMemo<PanelConfig[]>(
+		() =>
+			Children.toArray(children).flatMap((child) => {
+				if (!isValidElement(child) || child.type !== ResizablePanel) return []
 
-		for (const child of Children.toArray(children)) {
-			if (isValidElement(child) && child.type === ResizablePanel) {
 				const p = child.props as ResizablePanelProps
 
-				configs.push({
-					defaultSize: p.defaultSize ?? 50,
-					minSize: p.minSize ?? 0,
-					maxSize: p.maxSize ?? 100,
-				})
-			}
-		}
-
-		return configs
-	}, [children])
+				return [
+					{ defaultSize: p.defaultSize ?? 50, minSize: p.minSize ?? 0, maxSize: p.maxSize ?? 100 },
+				]
+			}),
+		[children],
+	)
 
 	const { sizes, dragging, startDrag, resize } = useResizablePanel({
 		groupRef,

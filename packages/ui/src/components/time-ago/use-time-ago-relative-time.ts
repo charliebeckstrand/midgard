@@ -12,13 +12,10 @@ const relativeTimeFormatCache = new Map<string, Intl.RelativeTimeFormat>()
 function getRelativeTimeFormat(locale: string | undefined) {
 	const key = locale ?? ''
 
-	let formatter = relativeTimeFormatCache.get(key)
+	const formatter =
+		relativeTimeFormatCache.get(key) ?? new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
 
-	if (formatter === undefined) {
-		formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
-
-		relativeTimeFormatCache.set(key, formatter)
-	}
+	relativeTimeFormatCache.set(key, formatter)
 
 	return formatter
 }
@@ -46,6 +43,13 @@ function pickUnit(absMs: number): { unit: Unit; value: number } {
 	// Unreachable: the year step's rollover is Infinity; the loop always
 	// returns. The explicit fallback satisfies the type checker.
 	return { unit: 'year', value: absMs / YEAR }
+}
+
+// Default text: the rounded magnitude in the unit `pickUnit` chooses, signed by `diffMs`.
+function formatDefault(locale: string | undefined, diffMs: number): string {
+	const { unit, value } = pickUnit(Math.abs(diffMs))
+
+	return getRelativeTimeFormat(locale).format(Math.round(diffMs > 0 ? value : -value), unit)
 }
 
 function adaptiveInterval(absMs: number) {
@@ -130,17 +134,7 @@ export function useTimeAgoRelativeTime({
 
 	if (!valid || now === null) return { then, valid, text: '' }
 
-	let text: string
-
-	if (format) {
-		text = format(diffMs, now, then)
-	} else {
-		const formatter = getRelativeTimeFormat(locale)
-
-		const { unit, value } = pickUnit(absMs)
-
-		text = formatter.format(Math.round(diffMs > 0 ? value : -value), unit)
-	}
+	const text = format ? format(diffMs, now, then) : formatDefault(locale, diffMs)
 
 	return { then, valid, text }
 }

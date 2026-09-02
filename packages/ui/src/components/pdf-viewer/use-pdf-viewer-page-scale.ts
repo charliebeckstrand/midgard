@@ -45,6 +45,27 @@ function resolvePageAspectRatio(
 }
 
 /**
+ * Scale that fits the (possibly rotated) page inside the viewport; 1 before
+ * either size is known or when the page has no area.
+ *
+ * @internal
+ */
+function resolveFitScale(
+	viewportSize: { width: number; height: number } | null,
+	pageSize: { width: number; height: number } | null,
+	isTransposed: boolean,
+): number {
+	if (!viewportSize || !pageSize) return 1
+
+	const visW = isTransposed ? pageSize.height : pageSize.width
+	const visH = isTransposed ? pageSize.width : pageSize.height
+
+	if (visW === 0 || visH === 0) return 1
+
+	return Math.min(viewportSize.width / visW, viewportSize.height / visH)
+}
+
+/**
  * Derives the page image size, the rotated frame size, and the viewport aspect
  * ratio from the measured viewport, the intrinsic page size, the rotation, and
  * the user zoom.
@@ -56,18 +77,7 @@ export function usePdfViewerPageScale(input: PageScaleOptions): PageScaleResult 
 	const { viewportSize, pageSize, isTransposed, zoom, hasContent } = input
 
 	return useMemo(() => {
-		const fitScale = (() => {
-			if (!viewportSize || !pageSize) return 1
-
-			const visW = isTransposed ? pageSize.height : pageSize.width
-			const visH = isTransposed ? pageSize.width : pageSize.height
-
-			if (visW === 0 || visH === 0) return 1
-
-			return Math.min(viewportSize.width / visW, viewportSize.height / visH)
-		})()
-
-		const scale = fitScale * zoom
+		const scale = resolveFitScale(viewportSize, pageSize, isTransposed) * zoom
 
 		const imageWidth = pageSize ? pageSize.width * scale : undefined
 		const imageHeight = pageSize ? pageSize.height * scale : undefined

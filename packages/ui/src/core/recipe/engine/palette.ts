@@ -42,11 +42,7 @@ export function definePalette<M extends string, E extends string = never, C exte
 	matrix: Record<M, PaletteEntry<C>>,
 	...overlays: Record<E, ClassValue>[]
 ): PaletteConfig<E, M, C> {
-	const merged: Record<string, ClassValue> = {}
-
-	for (const layer of overlays) Object.assign(merged, layer)
-
-	return { matrix, overlays: merged as Record<E, ClassValue> }
+	return { matrix, overlays: Object.assign({}, ...overlays) as Record<E, ClassValue> }
 }
 
 /** The palette's `variant → color → classes` lookup, in rule order. */
@@ -95,10 +91,7 @@ export function expandPalette(config: PaletteConfig): {
 
 			compound.push({ variant, color: extraColor, class: classValue } as CompoundRule)
 
-			const existing = colors.get(extraColor)
-
-			if (existing === undefined) colors.set(extraColor, [classValue])
-			else existing.push(classValue)
+			colors.set(extraColor, [...(colors.get(extraColor) ?? []), classValue])
 		}
 	}
 
@@ -112,8 +105,8 @@ function resolveEntry(entry: PaletteEntry): Record<string, string[]> {
 	const out: Record<string, string[]> = {}
 
 	for (const record of entry as readonly Record<string, string[]>[]) {
-		for (const color of Object.keys(record)) {
-			out[color] = [...(out[color] ?? []), ...(record[color] ?? [])]
+		for (const [color, classes] of Object.entries(record)) {
+			out[color] = [...(out[color] ?? []), ...classes]
 		}
 	}
 

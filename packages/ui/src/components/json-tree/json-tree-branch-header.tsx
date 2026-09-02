@@ -61,13 +61,12 @@ export function JsonTreeBranchHeader({
 				<span className={cn(k.content, highlighted && k.highlight)}>
 					<NodeKey keyName={keyName} />
 					<span className={cn(k.punctuation)}>{openBracket}</span>
-					{!open && count > 0 && (
+					{!open && (
 						<>
-							<span className={cn(k.summary)}>{summary}</span>
+							{count > 0 && <span className={cn(k.summary)}>{summary}</span>}
 							<span className={cn(k.punctuation)}>{closeBracket}</span>
 						</>
 					)}
-					{!open && count === 0 && <span className={cn(k.punctuation)}>{closeBracket}</span>}
 				</span>
 			</button>
 		</div>

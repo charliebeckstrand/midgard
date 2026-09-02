@@ -2,7 +2,7 @@ import type { QueryGroup, QueryNode } from './types'
 
 /** Returns true when the group (or any nested group) contains at least one rule. */
 export function hasRules(group: QueryGroup): boolean {
-	return group.children.some((child) => (child.type === 'rule' ? true : hasRules(child)))
+	return group.children.some((child) => child.type === 'rule' || hasRules(child))
 }
 
 /**
@@ -31,13 +31,7 @@ export function mapNode(
 			if (mapped !== child) nextChild = mapped
 		}
 
-		if (nextChild !== undefined) {
-			const nextChildren = children.slice()
-
-			nextChildren[i] = nextChild
-
-			return { ...tree, children: nextChildren }
-		}
+		if (nextChild !== undefined) return { ...tree, children: children.with(i, nextChild) }
 	}
 
 	return tree
@@ -58,13 +52,7 @@ export function addChild(tree: QueryGroup, parentId: string, node: QueryNode): Q
 
 		const mapped = addChild(child, parentId, node)
 
-		if (mapped !== child) {
-			const nextChildren = children.slice()
-
-			nextChildren[i] = mapped
-
-			return { ...tree, children: nextChildren }
-		}
+		if (mapped !== child) return { ...tree, children: children.with(i, mapped) }
 	}
 
 	return tree
@@ -79,24 +67,12 @@ export function removeChild(tree: QueryGroup, id: string): QueryGroup {
 	const { children } = tree
 
 	for (const [i, child] of children.entries()) {
-		if (child.id === id) {
-			const nextChildren = children.slice()
-
-			nextChildren.splice(i, 1)
-
-			return { ...tree, children: nextChildren }
-		}
+		if (child.id === id) return { ...tree, children: children.toSpliced(i, 1) }
 
 		if (child.type === 'group') {
 			const mapped = removeChild(child, id)
 
-			if (mapped !== child) {
-				const nextChildren = children.slice()
-
-				nextChildren[i] = mapped
-
-				return { ...tree, children: nextChildren }
-			}
+			if (mapped !== child) return { ...tree, children: children.with(i, mapped) }
 		}
 	}
 

@@ -1,11 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-
-// Tab-focusable descendants: anything in the tab order. Excludes
-// `tabindex="-1"` and `disabled` controls.
-const FOCUSABLE_SELECTOR =
-	'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'
+import { FOCUSABLE_SELECTOR } from '../../utilities'
 
 /**
  * Whether `node` holds a descendant in the tab order, re-measured as the

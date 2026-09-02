@@ -1,6 +1,7 @@
-import { DateFormatter } from '@internationalized/date'
+import { CalendarDate, DateFormatter, endOfMonth } from '@internationalized/date'
 import type { ReactNode } from 'react'
 import { resolveLocale } from '../../utilities'
+import { isSameDay as calendarIsSameDay } from '../calendar/calendar-utilities'
 
 /**
  * Supported date layout for {@link DateInput}: month/day/year order and the
@@ -270,16 +271,9 @@ export function formatDateValue(date: Date, format: DateInputFormat): string {
 	return segments.map((segment) => parts[segment.part]).join(separator)
 }
 
-const THIRTY_DAY_MONTHS = new Set([4, 6, 9, 11])
-
 /** Day count for a 1-based month, accounting for leap years. @internal */
-function daysInMonth(year: number, month: number): number {
-	if (month !== 2) return THIRTY_DAY_MONTHS.has(month) ? 30 : 31
-
-	const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
-
-	return leap ? 29 : 28
-}
+const daysInMonth = (year: number, month: number) =>
+	endOfMonth(new CalendarDate(year, month, 1)).day
 
 /**
  * Parses masked text back to a Date at local midnight. Returns `undefined`
@@ -324,11 +318,7 @@ export function parseDateText(text: string, format: DateInputFormat): Date | und
 export function isSameDay(a: Date | undefined, b: Date | undefined): boolean {
 	if (a === undefined || b === undefined) return a === b
 
-	return (
-		a.getFullYear() === b.getFullYear() &&
-		a.getMonth() === b.getMonth() &&
-		a.getDate() === b.getDate()
-	)
+	return calendarIsSameDay(a, b)
 }
 
 /** Comparable integer key for a date's calendar day, ignoring time. @internal */

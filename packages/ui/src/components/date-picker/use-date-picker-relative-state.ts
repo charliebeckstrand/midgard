@@ -6,6 +6,7 @@ import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'reac
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
+import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker'
@@ -27,19 +28,6 @@ import type { FooterButton } from './use-date-picker-keyboard'
 
 /** The two surfaces of the relative popover: the preset list or the custom Start/End inputs. @internal */
 export type DatePickerRelativeMode = 'list' | 'custom'
-
-// Keys list-mode roving focus moves on; everything else (Tab, Enter/Space,
-// Escape) is left to the native buttons and floating-ui.
-const ROVING_KEYS = new Set([
-	'ArrowUp',
-	'ArrowDown',
-	'ArrowLeft',
-	'ArrowRight',
-	'Home',
-	'End',
-	'PageUp',
-	'PageDown',
-])
 
 /**
  * Relative state for {@link DatePicker}: a multi-select preset list plus a
@@ -368,7 +356,7 @@ export function useDatePickerRelativeState({
 	// The shell reclaims DOM focus to the dialog on arrow keys before this runs,
 	// so `event.target` is still the focused cell; a -1 index enters at an edge.
 	const onListKeyDown = useCallback((event: KeyboardEvent<HTMLElement>) => {
-		if (!ROVING_KEYS.has(event.key)) return
+		if (!NAVIGATION_KEYS.has(event.key)) return
 
 		const cells = Array.from(
 			event.currentTarget.querySelectorAll<HTMLElement>(

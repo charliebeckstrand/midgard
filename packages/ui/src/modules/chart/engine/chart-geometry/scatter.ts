@@ -64,13 +64,7 @@ export function scatterData<T>(data: T[], keys: ScatterKeys<T>): ScatterDatum[] 
  * @internal
  */
 export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
-	const xs = new Set<number>()
-
-	for (const points of seriesData) {
-		for (const point of points) xs.add(point.x)
-	}
-
-	return [...xs].sort((a, b) => a - b)
+	return [...new Set(seriesData.flat().map((point) => point.x))].sort((a, b) => a - b)
 }
 
 /**
@@ -200,6 +194,31 @@ export function scatterDiscsPath(marks: ScatterMark[]): string {
 export type ScatterSnapStop = { y: number; series: number; datum: number }
 
 /**
+ * One series' points grouped by x in one pass, each mapped through `entry`, so
+ * a per-column read costs a map lookup rather than a rescan of every point —
+ * O(points) over the grid instead of O(uniqueXs × points), which turns
+ * quadratic on the all-distinct x the docs advertise. Insertion order matches a
+ * per-column filter, so a group keeps point order.
+ *
+ * @internal
+ */
+function groupByX<T>(
+	points: ScatterDatum[],
+	entry: (point: ScatterDatum, datum: number) => T,
+): Map<number, T[]> {
+	const groups = new Map<number, T[]>()
+
+	points.forEach((point, datum) => {
+		const group = groups.get(point.x)
+
+		if (group) group.push(entry(point, datum))
+		else groups.set(point.x, [entry(point, datum)])
+	})
+
+	return groups
+}
+
+/**
  * Per unique x, every visible point at that x — duplicates included — with its
  * screen y and identity, in series-major point order. The snap targets behind
  * {@link scatterSnapColumns}, kept whole here so the mark isolation can name
@@ -212,25 +231,9 @@ export function scatterSnapStops(
 	uniqueXs: number[],
 	mapY: (value: number) => number,
 ): ScatterSnapStop[][] {
-	// Group each series' stops by x in one pass, so each column reads off the map
-	// rather than re-scanning every point — O(points) over the grid instead of
-	// O(uniqueXs × points), which turns quadratic on the all-distinct x the docs
-	// advertise. Insertion order matches a per-column filter, so the stops stay
-	// in point order.
-	const byX = seriesData.map((points, series) => {
-		const groups = new Map<number, ScatterSnapStop[]>()
-
-		points.forEach((point, datum) => {
-			const stop = { y: mapY(point.y), series, datum }
-
-			const stops = groups.get(point.x)
-
-			if (stops) stops.push(stop)
-			else groups.set(point.x, [stop])
-		})
-
-		return groups
-	})
+	const byX = seriesData.map((points, series) =>
+		groupByX(points, (point, datum): ScatterSnapStop => ({ y: mapY(point.y), series, datum })),
+	)
 
 	return uniqueXs.map((x) => byX.flatMap((groups) => groups.get(x) ?? []))
 }
@@ -283,17 +286,7 @@ export function scatterReadoutValues(
 	format: (value: number) => string,
 	formatSize: ((value: number) => string) | null,
 ): string[] {
-	// Group the points by x once so each column's cells read off the map rather than
-	// re-scanning every point per unique x — the same de-quadratic pass the snap
-	// columns take, keeping point order within a column.
-	const byX = new Map<number, ScatterDatum[]>()
-
-	for (const point of points) {
-		const group = byX.get(point.x)
-
-		if (group) group.push(point)
-		else byX.set(point.x, [point])
-	}
+	const byX = groupByX(points, (point) => point)
 
 	return uniqueXs.map((x) => {
 		const cells = (byX.get(x) ?? []).map((point) =>
@@ -314,17 +307,7 @@ export function scatterReadoutValues(
  * @internal
  */
 export function nearestCenterIndex(coord: number, centers: number[]): number | null {
-	if (centers.length === 0) return null
-
-	let best = 0
-
-	for (let index = 1; index < centers.length; index++) {
-		const center = centers[index] as number
-
-		if (Math.abs(center - coord) < Math.abs((centers[best] as number) - coord)) best = index
-	}
-
-	return best
+	return nearestStopIndex(centers, coord)
 }
 
 /**

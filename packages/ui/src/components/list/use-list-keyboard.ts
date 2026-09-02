@@ -137,11 +137,8 @@ export function useListKeyboard<T>({
 
 			if (idx === -1) return false
 
-			let targetIdx = idx
-
-			if (direction === 'start') targetIdx = 0
-			else if (direction === 'end') targetIdx = items.length - 1
-			else targetIdx = idx + direction
+			const targetIdx =
+				direction === 'start' ? 0 : direction === 'end' ? items.length - 1 : idx + direction
 
 			if (targetIdx < 0 || targetIdx >= items.length || targetIdx === idx) return false
 

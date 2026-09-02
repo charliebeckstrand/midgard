@@ -23,11 +23,10 @@ type ShadeSpec<C extends string> = Record<C, string | readonly [light: string, d
  * spec, e.g. `shades<ExtendedColor>({ rose: …, sky: … })` in `iro/spectrum`.
  */
 export function shades<C extends string = Color>(spec: ShadeSpec<C>): Record<C, string[]> {
-	const out: Record<string, string[]> = {}
-
-	for (const [color, value] of Object.entries(spec) as [C, ShadeSpec<C>[C]][]) {
-		out[color] = typeof value === 'string' ? [value] : [...value]
-	}
-
-	return out as Record<C, string[]>
+	return Object.fromEntries(
+		Object.entries<ShadeSpec<C>[C]>(spec).map(([color, value]) => [
+			color,
+			typeof value === 'string' ? [value] : [...value],
+		]),
+	) as Record<C, string[]>
 }

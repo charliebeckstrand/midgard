@@ -7,9 +7,6 @@
 import { clamp } from '../../utilities'
 import type { ColorFormat, Hsva, Rgba } from './types'
 
-/** @internal Round to the nearest integer; the shared rounding primitive for channel output. */
-const round = (n: number) => Math.round(n)
-
 /** Clamp an HSVA into its canonical ranges (`h 0-360`, `s/v 0-100`, `a 0-1`) at full precision. */
 export function clampHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
@@ -29,10 +26,10 @@ export function clampHsva({ h, s, v, a }: Hsva): Hsva {
  */
 function roundHsva({ h, s, v, a }: Hsva): Hsva {
 	return {
-		h: round(clamp(h, 0, 360)),
-		s: round(clamp(s, 0, 100)),
-		v: round(clamp(v, 0, 100)),
-		a: round(clamp(a, 0, 1) * 100) / 100,
+		h: Math.round(clamp(h, 0, 360)),
+		s: Math.round(clamp(s, 0, 100)),
+		v: Math.round(clamp(v, 0, 100)),
+		a: Math.round(clamp(a, 0, 1) * 100) / 100,
 	}
 }
 
@@ -81,9 +78,9 @@ export function hsvaToRgba({ h, s, v, a }: Hsva): Rgba {
 	else [r, g, b] = [c, 0, x]
 
 	return {
-		r: round((r + m) * 255),
-		g: round((g + m) * 255),
-		b: round((b + m) * 255),
+		r: Math.round((r + m) * 255),
+		g: Math.round((g + m) * 255),
+		b: Math.round((b + m) * 255),
 		a: clamp(a, 0, 1),
 	}
 }
@@ -119,7 +116,7 @@ export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 }
 
 /** @internal Format one `0-255` channel as a zero-padded two-digit lowercase hex pair. */
-const toHex2 = (n: number) => clamp(round(n), 0, 255).toString(16).padStart(2, '0')
+const toHex2 = (n: number) => clamp(Math.round(n), 0, 255).toString(16).padStart(2, '0')
 
 /** Parse `#rgb`, `#rgba`, `#rrggbb`, or `#rrggbbaa` (leading `#` optional). Returns `null` for anything else. */
 export function hexToRgba(input: string): Rgba | null {

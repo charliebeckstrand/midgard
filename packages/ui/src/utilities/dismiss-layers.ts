@@ -20,5 +20,5 @@ export function registerDismissLayer(layer: object): () => void {
 
 /** True when `layer` is the topmost layer on the dismiss stack. */
 export function isTopDismissLayer(layer: object): boolean {
-	return layers[layers.length - 1] === layer
+	return layers.at(-1) === layer
 }

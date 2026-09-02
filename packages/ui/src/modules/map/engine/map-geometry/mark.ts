@@ -140,19 +140,11 @@ export function linePath(
  * @internal
  */
 export function lineAnchor(points: LngLat[]): LngLat[] {
-	const half = points.length / 2
+	// One form for both parities: an odd count reads the same point twice, and
+	// its midpoint with itself is itself.
+	const before = points[Math.floor((points.length - 1) / 2)]
 
-	if (points.length === 0) return []
-
-	if (points.length % 2 === 1) {
-		const middle = points[Math.floor(half)]
-
-		return middle === undefined ? [] : [middle]
-	}
-
-	const before = points[half - 1]
-
-	const after = points[half]
+	const after = points[Math.floor(points.length / 2)]
 
 	if (before === undefined || after === undefined) return []
 
@@ -194,7 +186,7 @@ export function ringAnchor(ring: LngLat[]): LngLat[] {
 
 	if (first === undefined) return []
 
-	const last = ring[ring.length - 1]
+	const last = ring.at(-1)
 
 	const closed =
 		last !== undefined &&

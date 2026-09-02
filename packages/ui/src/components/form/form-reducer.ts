@@ -105,13 +105,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 
 /** Element-wise {@link valuesEqual} over two arrays. @internal */
 function arraysEqual(a: unknown[], b: unknown[]): boolean {
-	if (a.length !== b.length) return false
-
-	for (let i = 0; i < a.length; i++) {
-		if (!valuesEqual(a[i], b[i])) return false
-	}
-
-	return true
+	return a.length === b.length && a.every((item, i) => valuesEqual(item, b[i]))
 }
 
 /** Key-wise {@link valuesEqual} over two plain objects. @internal */
@@ -119,15 +113,10 @@ function plainObjectsEqual(a: Record<string, unknown>, b: Record<string, unknown
 	const ak = Object.keys(a)
 	const bk = Object.keys(b)
 
-	if (ak.length !== bk.length) return false
-
-	for (const key of ak) {
-		if (!Object.hasOwn(b, key)) return false
-
-		if (!valuesEqual(a[key], b[key])) return false
-	}
-
-	return true
+	return (
+		ak.length === bk.length &&
+		ak.every((key) => Object.hasOwn(b, key) && valuesEqual(a[key], b[key]))
+	)
 }
 
 /**

@@ -9,8 +9,9 @@ type ListItemStaticProps = {
 	children: ReactNode
 }
 
-// Everything except `id` is constant for a static (non-sortable) item.
-const STATIC_CONTEXT = {
+// Everything except `id` is constant for a static (non-sortable) item; the
+// drag overlay in `list.tsx` reuses it with `dragging: true`.
+export const STATIC_CONTEXT = {
 	setNodeRef: noop,
 	setActivatorNodeRef: noop,
 	attributes: {} as never,

@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo } from 'react'
 import { isDataColumn } from '../../utilities'
-import { EMPTY_SET } from './engine/grid-constants'
 import { groupedColumnOrder } from './engine/grid-group/compute'
 import { isFrozen, normalizeFreeze } from './engine/grid-pin/overrides'
 import { applyColumnReorder } from './engine/grid-reorder-compute'
@@ -13,34 +12,17 @@ import { useGridColumnVisibility } from './use-grid-column-visibility'
 
 /**
  * The engine's `columnVisibility` state ({ id: false }) for the hidden columns —
- * only hideable ones, so non-data and frozen (pinned or locked) columns are
+ * only orderable ones, so non-data and frozen (pinned or locked) columns are
  * never marked hidden (they always show). Columns absent from the map default to
  * visible.
  *
  * @internal
  */
-function toColumnVisibility<T>(
-	hiddenColumns: Set<string | number>,
-	forcedHidden: Set<string | number>,
-	columnById: Map<string | number, GridColumn<T>>,
+function toColumnVisibility(
+	hidden: Iterable<string | number>,
+	isOrderable: (id: string | number) => boolean,
 ): Record<string, boolean> {
-	const visibility: Record<string, boolean> = {}
-
-	for (const id of hiddenColumns) {
-		const col = columnById.get(id)
-
-		if (col && isDataColumn(col) && !isFrozen(col)) visibility[String(id)] = false
-	}
-
-	// Collapsed-group members hide from the engine too, kept apart from the
-	// manager's user-hidden set so collapsing a group doesn't uncheck its columns.
-	for (const id of forcedHidden) {
-		const col = columnById.get(id)
-
-		if (col && isDataColumn(col) && !isFrozen(col)) visibility[String(id)] = false
-	}
-
-	return visibility
+	return Object.fromEntries([...hidden].filter(isOrderable).map((id) => [String(id), false]))
 }
 
 /** Options for {@link useGridColumns}. @internal */
@@ -132,19 +114,21 @@ export function useGridColumns<T>({
 	const reorderColumns = useCallback(
 		(reorderedIds: (string | number)[]) => {
 			setColumnOrder(
-				applyColumnReorder(columnOrder, reorderedIds, (id) => {
-					const col = columnById.get(id)
-
-					return !!col && isDataColumn(col) && !isFrozen(col) && !hiddenColumns.has(id)
-				}),
+				applyColumnReorder(
+					columnOrder,
+					reorderedIds,
+					(id) => isOrderable(id) && !hiddenColumns.has(id),
+				),
 			)
 		},
-		[setColumnOrder, columnOrder, columnById, hiddenColumns],
+		[setColumnOrder, columnOrder, isOrderable, hiddenColumns],
 	)
 
+	// Collapsed-group members hide from the engine too, kept apart from the
+	// manager's user-hidden set so collapsing a group doesn't uncheck its columns.
 	const columnVisibility = useMemo(
-		() => toColumnVisibility(hiddenColumns, forcedHidden ?? EMPTY_SET, columnById),
-		[hiddenColumns, forcedHidden, columnById],
+		() => toColumnVisibility([...hiddenColumns, ...(forcedHidden ?? [])], isOrderable),
+		[hiddenColumns, forcedHidden, isOrderable],
 	)
 
 	const managerItems = useMemo<GridColumnManagerItem[]>(

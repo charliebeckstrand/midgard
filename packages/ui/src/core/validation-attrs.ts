@@ -10,6 +10,12 @@ const VALID = { 'data-valid': '' } as const
 /** The data / aria attribute object spread onto a control for a {@link Severity}, or undefined for none. */
 export type ValidationAttrs = InvalidAttrs | typeof WARNING | typeof VALID
 
+const ATTRS = {
+	error: invalidAttrs(true),
+	warning: WARNING,
+	success: VALID,
+} satisfies Record<Severity, ValidationAttrs>
+
 /**
  * Returns the data-* / aria attribute object to spread onto a form control for
  * its resolved {@link Severity}, or undefined when there is none. JSX spread
@@ -27,14 +33,5 @@ export type ValidationAttrs = InvalidAttrs | typeof WARNING | typeof VALID
  *   <input {...validationAttrs(control?.severity)} />
  */
 export function validationAttrs(severity: Severity | undefined): ValidationAttrs {
-	switch (severity) {
-		case 'error':
-			return invalidAttrs(true)
-		case 'warning':
-			return WARNING
-		case 'success':
-			return VALID
-		default:
-			return undefined
-	}
+	return severity && ATTRS[severity]
 }

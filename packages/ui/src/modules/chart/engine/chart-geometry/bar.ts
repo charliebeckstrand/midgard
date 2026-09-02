@@ -48,15 +48,15 @@ function endRadius(valuePos: number, baseline: number, thickness: number): numbe
 function verticalBarPath(x0: number, x1: number, valueY: number, baseline: number): string {
 	const radius = endRadius(valueY, baseline, x1 - x0)
 
-	if (valueY < baseline) {
-		const shoulder = valueY + radius
+	// A bar above its baseline (smaller y) shoulders below its end and arcs
+	// clockwise; one below it mirrors both.
+	const up = valueY < baseline
 
-		return `M ${coord(x0)} ${coord(baseline)} L ${coord(x0)} ${coord(shoulder)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(x0 + radius)} ${coord(valueY)} L ${coord(x1 - radius)} ${coord(valueY)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(x1)} ${coord(shoulder)} L ${coord(x1)} ${coord(baseline)} Z`
-	}
+	const shoulder = up ? valueY + radius : valueY - radius
 
-	const shoulder = valueY - radius
+	const sweep = up ? 1 : 0
 
-	return `M ${coord(x0)} ${coord(baseline)} L ${coord(x0)} ${coord(shoulder)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(x0 + radius)} ${coord(valueY)} L ${coord(x1 - radius)} ${coord(valueY)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(x1)} ${coord(shoulder)} L ${coord(x1)} ${coord(baseline)} Z`
+	return `M ${coord(x0)} ${coord(baseline)} L ${coord(x0)} ${coord(shoulder)} A ${coord(radius)} ${coord(radius)} 0 0 ${sweep} ${coord(x0 + radius)} ${coord(valueY)} L ${coord(x1 - radius)} ${coord(valueY)} A ${coord(radius)} ${coord(radius)} 0 0 ${sweep} ${coord(x1)} ${coord(shoulder)} L ${coord(x1)} ${coord(baseline)} Z`
 }
 
 /**
@@ -68,15 +68,15 @@ function verticalBarPath(x0: number, x1: number, valueY: number, baseline: numbe
 function horizontalBarPath(y0: number, y1: number, valueX: number, baseline: number): string {
 	const radius = endRadius(valueX, baseline, y1 - y0)
 
-	if (valueX > baseline) {
-		const shoulder = valueX - radius
+	// A bar right of its baseline shoulders short of its end and arcs clockwise;
+	// one left of it mirrors both.
+	const forward = valueX > baseline
 
-		return `M ${coord(baseline)} ${coord(y0)} L ${coord(shoulder)} ${coord(y0)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(valueX)} ${coord(y0 + radius)} L ${coord(valueX)} ${coord(y1 - radius)} A ${coord(radius)} ${coord(radius)} 0 0 1 ${coord(shoulder)} ${coord(y1)} L ${coord(baseline)} ${coord(y1)} Z`
-	}
+	const shoulder = forward ? valueX - radius : valueX + radius
 
-	const shoulder = valueX + radius
+	const sweep = forward ? 1 : 0
 
-	return `M ${coord(baseline)} ${coord(y0)} L ${coord(shoulder)} ${coord(y0)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(valueX)} ${coord(y0 + radius)} L ${coord(valueX)} ${coord(y1 - radius)} A ${coord(radius)} ${coord(radius)} 0 0 0 ${coord(shoulder)} ${coord(y1)} L ${coord(baseline)} ${coord(y1)} Z`
+	return `M ${coord(baseline)} ${coord(y0)} L ${coord(shoulder)} ${coord(y0)} A ${coord(radius)} ${coord(radius)} 0 0 ${sweep} ${coord(valueX)} ${coord(y0 + radius)} L ${coord(valueX)} ${coord(y1 - radius)} A ${coord(radius)} ${coord(radius)} 0 0 ${sweep} ${coord(shoulder)} ${coord(y1)} L ${coord(baseline)} ${coord(y1)} Z`
 }
 
 /**
@@ -358,13 +358,11 @@ export function stackedBarSnapPoints(
 	orientation: ChartOrientation = 'vertical',
 ): number[][] {
 	return Array.from({ length: count }, (_, category) =>
-		marks.reduce<number[]>((positions, series) => {
+		marks.flatMap((series) => {
 			const mark = series[category]
 
-			if (mark) positions.push(orientation === 'vertical' ? mark.top : mark.x1)
-
-			return positions
-		}, []),
+			return mark ? [orientation === 'vertical' ? mark.top : mark.x1] : []
+		}),
 	)
 }
 
@@ -382,12 +380,10 @@ export function stackedBarSnapSeries(
 	count: number,
 ): number[][] {
 	return Array.from({ length: count }, (_, category) =>
-		marks.reduce<number[]>((series, seriesMarks, order) => {
+		marks.flatMap((seriesMarks, order) => {
 			const index = seriesIndices[order]
 
-			if (seriesMarks[category] && index !== undefined) series.push(index)
-
-			return series
-		}, []),
+			return seriesMarks[category] && index !== undefined ? [index] : []
+		}),
 	)
 }

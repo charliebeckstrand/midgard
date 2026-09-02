@@ -42,19 +42,9 @@ export function useJsonTreeExpansion({ initial, expanded, onExpandedChange }: Js
 			setExpanded((prev) => {
 				const base = prev ?? new Set<string>()
 
-				let changed = false
+				const next = new Set([...base, ...paths])
 
-				const next = new Set(base)
-
-				for (const path of paths) {
-					if (!next.has(path)) {
-						next.add(path)
-
-						changed = true
-					}
-				}
-
-				return changed ? next : base
+				return next.size === base.size ? base : next
 			})
 		},
 		[setExpanded],

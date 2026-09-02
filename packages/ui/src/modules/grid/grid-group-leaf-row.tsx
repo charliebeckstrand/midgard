@@ -266,9 +266,7 @@ export function GridGroupLeafRow<T>({
 
 	// The pointer handlers speak GridColumn (shared with the flat body's rows);
 	// recover the list once from the engine cells this grouped row renders by.
-	const columns = cells
-		.map((cell) => cell.column.columnDef.meta?.gridColumn)
-		.filter((col): col is GridColumn<T> => col != null)
+	const columns = cells.flatMap((cell) => cell.column.columnDef.meta?.gridColumn ?? [])
 
 	return (
 		<Hold hold={reveal.hold} name="grid-group-leaf-row">

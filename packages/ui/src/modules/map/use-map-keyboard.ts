@@ -1,6 +1,13 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useEffect, useRef, useState } from 'react'
+import {
+	type FocusEvent,
+	type KeyboardEvent,
+	type RefObject,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
 import { useMapHoverSet } from './context'
 import { MAP_CURSOR_INSET } from './engine/map-constants'
@@ -29,7 +36,7 @@ function stopKey(target: MapHoverTarget): string {
 export type MapKeyboardProps = {
 	tabIndex: 0
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
-	onBlur: (event: React.FocusEvent<HTMLElement>) => void
+	onBlur: (event: FocusEvent<HTMLElement>) => void
 }
 
 /** What {@link useMapKeyboard} needs from the plat to drive a cursor. @internal */

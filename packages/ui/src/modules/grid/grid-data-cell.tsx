@@ -1,6 +1,6 @@
 'use client'
 
-import { type HTMLAttributes, memo, type ReactNode, useContext } from 'react'
+import { type HTMLAttributes, memo, type ReactNode, use } from 'react'
 import { TableCell } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -161,7 +161,7 @@ const GridReorderableCell = memo(function GridReorderableCell({
 	cellProps,
 	children,
 }: GridReorderableCellProps) {
-	const dragging = useContext(GridReorderContext) === String(id)
+	const dragging = use(GridReorderContext) === String(id)
 
 	return (
 		<TableCell

@@ -1,6 +1,6 @@
 'use client'
 
-import { FloatingFocusManager, useFloating } from '@floating-ui/react'
+import { type FloatingContext, FloatingFocusManager, useFloating } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import {
 	type HTMLAttributes,
@@ -11,6 +11,7 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
@@ -124,6 +125,8 @@ export function Overlay({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
+	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef)
+
 	useDismissable({
 		open,
 		onDismiss: () => onOpenChange(false),
@@ -142,11 +145,7 @@ export function Overlay({
 
 	const panel = (
 		<div
-			ref={(node) => {
-				refs.setFloating(node)
-
-				containerRef.current = node
-			}}
+			ref={setPanel}
 			data-slot="overlay"
 			className={cn(k.root, scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
 			{...props}
@@ -191,7 +190,7 @@ function OverlayFocus({
 	children,
 }: {
 	modal: boolean
-	context: ReturnType<typeof useFloating>['context']
+	context: FloatingContext
 	initialFocus: RefObject<HTMLElement | null> | undefined
 	children: ReactElement
 }) {
@@ -215,7 +214,7 @@ function OverlayFocus({
 		<FloatingFocusManager
 			context={context}
 			modal
-			initialFocus={initialFocus ?? undefined}
+			initialFocus={initialFocus}
 			guards={chrome.length === 0}
 			outsideElementsInert={chrome.length > 0}
 			getInsideElements={chromeRegions}

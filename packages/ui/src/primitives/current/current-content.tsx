@@ -144,7 +144,7 @@ export function CurrentContent({
 			{...(props as HTMLMotionProps<'div'>)}
 			data-slot={`${slotPrefix}-content`}
 			data-current={dataAttr(current)}
-			animate={current ? { opacity: 1 } : { opacity: 0 }}
+			animate={{ opacity: current ? 1 : 0 }}
 			// A panel mounting after the container settles enters from
 			// transparent; panels in the container's first render skip the
 			// entrance so nothing fades on load.

@@ -10,8 +10,6 @@ let grabbingStyle: HTMLStyleElement | null = null
 
 /** Injects the global grabbing rule on the first active drag, saving it to tear down. @internal */
 function acquireGrabbingCursor() {
-	if (typeof document === 'undefined') return
-
 	if (grabbingCount === 0) {
 		const style = document.createElement('style')
 
@@ -34,8 +32,6 @@ function acquireGrabbingCursor() {
 
 /** Removes the rule once the last active drag releases. @internal */
 function releaseGrabbingCursor() {
-	if (typeof document === 'undefined') return
-
 	grabbingCount--
 
 	if (grabbingCount === 0) {

@@ -14,11 +14,9 @@ export function setActiveItem(container: HTMLElement, target: HTMLElement) {
 export function ensureFirstItemActive(container: HTMLElement) {
 	const items = Array.from(container.querySelectorAll<HTMLElement>(ITEM_SELECTOR))
 
-	if (items.length === 0) return
+	const first = items[0]
 
-	if (items.some((i) => i.tabIndex === 0)) return
+	if (first === undefined || items.some((item) => item.tabIndex === 0)) return
 
-	items.forEach((item, i) => {
-		item.tabIndex = i === 0 ? 0 : -1
-	})
+	setActiveItem(container, first)
 }

@@ -26,11 +26,7 @@ function measureBox(target: Element, borderBox?: ResizeObserverSize): PanelBox {
 
 /** The tallest tracked panel — the container's morph target. */
 function tallest(boxes: Map<Element, PanelBox>): number {
-	let max = 0
-
-	for (const box of boxes.values()) max = Math.max(max, box.block)
-
-	return max
+	return Math.max(0, ...Array.from(boxes.values(), (box) => box.block))
 }
 
 /**

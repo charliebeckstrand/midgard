@@ -4,9 +4,7 @@ import { cn } from './cn'
 
 type Tag = keyof JSX.IntrinsicElements
 
-export type SlotProps<T extends Tag> = {
-	className?: string
-} & Omit<ComponentPropsWithoutRef<T>, 'className'>
+export type SlotProps<T extends Tag> = ComponentPropsWithoutRef<T>
 
 /**
  * Creates a thin slot component that renders an intrinsic element with a

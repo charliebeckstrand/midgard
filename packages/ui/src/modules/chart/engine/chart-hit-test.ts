@@ -6,6 +6,7 @@
  * index — and any crosshair riding it — keeps tracking the whole plot.
  */
 
+import { clamp } from '../../../utilities'
 import type { BarMark } from './chart-geometry/bar'
 import type { LinePoint } from './chart-geometry/line'
 import type { ChartOrientation } from './chart-orientation'
@@ -102,10 +103,7 @@ function segmentDistanceSquared(x: number, y: number, a: LinePoint, b: LinePoint
 
 	const lengthSquared = dx * dx + dy * dy
 
-	const t =
-		lengthSquared === 0
-			? 0
-			: Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / lengthSquared))
+	const t = lengthSquared === 0 ? 0 : clamp(((x - a.x) * dx + (y - a.y) * dy) / lengthSquared, 0, 1)
 
 	const px = a.x + t * dx - x
 

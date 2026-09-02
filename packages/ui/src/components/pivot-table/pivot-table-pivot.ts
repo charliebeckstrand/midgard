@@ -15,30 +15,7 @@ export function resolveAxis<T>(
 	key: keyof T & string,
 	explicit: readonly string[] | undefined,
 ): string[] {
-	const seen = new Set<string>()
-	const result: string[] = []
-
-	if (explicit) {
-		for (const value of explicit) {
-			if (!seen.has(value)) {
-				seen.add(value)
-
-				result.push(value)
-			}
-		}
-	}
-
-	for (const row of rows) {
-		const value = String(row[key])
-
-		if (!seen.has(value)) {
-			seen.add(value)
-
-			result.push(value)
-		}
-	}
-
-	return result
+	return [...new Set([...(explicit ?? []), ...rows.map((row) => String(row[key]))])]
 }
 
 /**
@@ -62,44 +39,18 @@ export function groupValues<T>(
 
 		if (!Number.isFinite(value)) continue
 
-		let row = groups.get(r)
+		const row = groups.get(r) ?? new Map<string, number[]>()
 
-		if (!row) {
-			row = new Map<string, number[]>()
+		groups.set(r, row)
 
-			groups.set(r, row)
-		}
+		const bucket = row.get(c) ?? []
 
-		let bucket = row.get(c)
-
-		if (!bucket) {
-			bucket = []
-
-			row.set(c, bucket)
-		}
+		row.set(c, bucket)
 
 		bucket.push(value)
 	}
 
 	return groups
-}
-
-/** Most extreme value per `isMoreExtreme`, or 0 for an empty list. @internal */
-function extremum(
-	values: readonly number[],
-	isMoreExtreme: (candidate: number, current: number) => boolean,
-): number {
-	let result = values[0]
-
-	if (result === undefined) return 0
-
-	for (let i = 1; i < values.length; i++) {
-		const v = values[i]
-
-		if (v !== undefined && isMoreExtreme(v, result)) result = v
-	}
-
-	return result
 }
 
 /** Reduces `values` by `op`; `count` returns the length, the rest return 0 when empty. */
@@ -114,9 +65,9 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
 		case 'avg':
 			return values.reduce((a, b) => a + b, 0) / values.length
 		case 'min':
-			return extremum(values, (candidate, current) => candidate < current)
+			return values.reduce((a, b) => Math.min(a, b))
 		case 'max':
-			return extremum(values, (candidate, current) => candidate > current)
+			return values.reduce((a, b) => Math.max(a, b))
 	}
 }
 
@@ -136,13 +87,7 @@ export function aggregateRow(
 	columnKeys: readonly string[],
 	op: PivotAggregation,
 ): number | undefined {
-	const values: number[] = []
-
-	for (const col of columnKeys) {
-		const bucket = groups.get(row)?.get(col)
-
-		if (bucket) values.push(...bucket)
-	}
+	const values = columnKeys.flatMap((col) => groups.get(row)?.get(col) ?? [])
 
 	return values.length > 0 ? aggregate(values, op) : undefined
 }
@@ -154,13 +99,7 @@ export function aggregateColumn(
 	col: string,
 	op: PivotAggregation,
 ): number | undefined {
-	const values: number[] = []
-
-	for (const row of rowKeys) {
-		const bucket = groups.get(row)?.get(col)
-
-		if (bucket) values.push(...bucket)
-	}
+	const values = rowKeys.flatMap((row) => groups.get(row)?.get(col) ?? [])
 
 	return values.length > 0 ? aggregate(values, op) : undefined
 }
@@ -170,13 +109,7 @@ export function aggregateAll(
 	groups: Map<string, Map<string, number[]>>,
 	op: PivotAggregation,
 ): number | undefined {
-	const values: number[] = []
-
-	for (const row of groups.values()) {
-		for (const bucket of row.values()) {
-			values.push(...bucket)
-		}
-	}
+	const values = [...groups.values()].flatMap((row) => [...row.values()].flat())
 
 	return values.length > 0 ? aggregate(values, op) : undefined
 }

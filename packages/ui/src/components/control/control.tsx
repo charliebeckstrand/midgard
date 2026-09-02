@@ -98,7 +98,7 @@ export function Control({
 	const body = (
 		<div
 			data-slot="control"
-			{...(mergedDisabled ? { 'data-disabled': true } : {})}
+			data-disabled={mergedDisabled || undefined}
 			className={cn(k.field, className)}
 		>
 			{children}

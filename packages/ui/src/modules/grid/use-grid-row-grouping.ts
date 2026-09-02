@@ -51,16 +51,11 @@ export function useGridRowGrouping<T>(
 	config: GridGroupBy<T> | undefined,
 	isGroupable: (id: string | number) => boolean,
 ): GridRowGroupingResult<T> {
-	const [grouping, setGroupingState] = useControllable<(string | number) | null>({
+	const [grouping, setGrouping] = useControllable<(string | number) | null>({
 		value: config?.value,
 		defaultValue: config?.defaultValue ?? null,
 		onValueChange: (next) => config?.onValueChange?.(next ?? null),
 	})
-
-	const setGrouping = useCallback(
-		(next: (string | number) | null) => setGroupingState(next),
-		[setGroupingState],
-	)
 
 	const resolved = grouping != null && isGroupable(grouping) ? grouping : null
 

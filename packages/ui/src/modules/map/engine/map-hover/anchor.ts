@@ -23,15 +23,7 @@
 export function regionIndexAt(node: EventTarget | Element | null): number | null {
 	if (!(node instanceof Element)) return null
 
-	const anchor = node.closest('[data-region-index]')
-
-	if (anchor === null) return null
-
-	const raw = anchor.getAttribute('data-region-index')
-
-	if (raw === null) return null
-
-	return wholeNumber(raw)
+	return wholeNumber(node.closest('[data-region-index]')?.getAttribute('data-region-index') ?? null)
 }
 
 /**

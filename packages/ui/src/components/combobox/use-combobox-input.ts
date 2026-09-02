@@ -39,9 +39,11 @@ type ComboboxInputParams<T> = {
  * Keys the editable textbox owns natively: Home/End move the caret and
  * Shift+Arrow extends the text selection. Routed to the roving handler they
  * would `preventDefault` and snap the menu highlight to the first/last option
- * instead.
+ * instead. Shared with the command palette's search textbox.
+ *
+ * @internal
  */
-function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): boolean {
+export function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): boolean {
 	if (event.key === 'Home' || event.key === 'End') return true
 
 	return event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')

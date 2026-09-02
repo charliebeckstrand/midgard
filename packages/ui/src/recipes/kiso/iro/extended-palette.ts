@@ -52,7 +52,7 @@ function wide(
 	standard: Record<Color, string[]>,
 	extended: Record<ExtendedColor, string[]>,
 ): Record<PaletteColor, string[]> {
-	return { ...standard, ...extended } as Record<PaletteColor, string[]>
+	return { ...standard, ...extended }
 }
 
 const extendedSolid = {

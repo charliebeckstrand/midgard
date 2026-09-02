@@ -14,14 +14,10 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
+import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 
 /** The palette presets offered by the color Menu: standard palette then extended. @internal */
 export const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]
-
-/** Capitalizes a palette color name for display (`violet` → `Violet`). @internal */
-function colorLabel(color: PaletteColor): string {
-	return color.charAt(0).toUpperCase() + color.slice(1)
-}
 
 /** Props for {@link GridManagerColorMenu}. @internal */
 type GridManagerColorMenuProps = {
@@ -57,7 +53,7 @@ export function GridManagerColorMenu({
 		<Menu aria-label={`Color menu for ${label}`} placement="bottom-end" className={className}>
 			<MenuTrigger>
 				<Button type="button" color={color} variant="soft" aria-label={`Color for ${label}`}>
-					{color ? colorLabel(color) : 'Color'}
+					{color ? capitalizeFirst(color) : 'Color'}
 				</Button>
 			</MenuTrigger>
 			<MenuContent>
@@ -76,7 +72,7 @@ export function GridManagerColorMenu({
 						disabled={usedColors?.has(option)}
 					>
 						<Badge color={option} variant="soft">
-							{colorLabel(option)}
+							{capitalizeFirst(option)}
 						</Badge>
 					</MenuItem>
 				))}

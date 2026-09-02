@@ -5,8 +5,10 @@ import ts from 'typescript'
 import type { Plugin } from 'vite'
 import { type ApiExtractor, createApiExtractor } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
+import { isPascalCase } from '../identifiers'
 import { collectHelpers } from './collect-helpers'
 import { injectSourceFacts } from './source-facts'
+import { namedImportsOf, parseSource } from './ts-source'
 import { virtualJsonModules } from './virtual-json'
 
 // ---------------------------------------------------------------------------
@@ -132,7 +134,7 @@ export type ReExport = { source: string; localName: string; exportedName: string
  * Ignores other top-level forms (default exports, plain `export const`).
  */
 export function parseReExports(source: string, fileName: string): ReExport[] {
-	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+	const sf = parseSource(fileName, source, ts.ScriptKind.TS)
 
 	const result: ReExport[] = []
 
@@ -169,7 +171,7 @@ export function parseReExports(source: string, fileName: string): ReExport[] {
  * leaves the barrel untagged instead of losing its exports.
  */
 export function hasUnmodeledExports(source: string, fileName: string): boolean {
-	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS)
+	const sf = parseSource(fileName, source, ts.ScriptKind.TS)
 
 	return sf.statements.some((stmt) => {
 		if (ts.isExportDeclaration(stmt)) {
@@ -182,10 +184,6 @@ export function hasUnmodeledExports(source: string, fileName: string): boolean {
 
 		return modifiers?.some((m) => m.kind === ts.SyntaxKind.ExportKeyword) ?? false
 	})
-}
-
-function isPascalCase(name: string): boolean {
-	return /^[A-Z]/.test(name)
 }
 
 export type ExternalImport = { name: string; specifier: string }
@@ -203,24 +201,20 @@ const EXCLUDED_PACKAGES = /^(react|react-dom)(\/|$)/
  * import a reader would write.
  */
 export function parseExternalImports(source: string, fileName: string): ExternalImport[] {
-	const sf = ts.createSourceFile(fileName, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+	const sf = parseSource(fileName, source)
 
 	const result: ExternalImport[] = []
 
 	for (const stmt of sf.statements) {
-		if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) continue
+		const imported = namedImportsOf(stmt)
 
-		const specifier = stmt.moduleSpecifier.text
+		if (!imported) continue
+
+		const { specifier } = imported
 
 		if (specifier.startsWith('.') || EXCLUDED_PACKAGES.test(specifier)) continue
 
-		const clause = stmt.importClause
-
-		if (!clause || clause.isTypeOnly || !clause.namedBindings) continue
-
-		if (!ts.isNamedImports(clause.namedBindings)) continue
-
-		for (const spec of clause.namedBindings.elements) {
+		for (const spec of imported.elements) {
 			if (spec.isTypeOnly) continue
 
 			const name = (spec.propertyName ?? spec.name).text
@@ -586,7 +580,7 @@ export function docsPlugin({
 
 			if (!isDemoFile(cleanId, demosDir)) return
 
-			const sf = ts.createSourceFile(cleanId, code, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX)
+			const sf = parseSource(cleanId, code)
 
 			const helpers = collectHelpers(code, sf)
 

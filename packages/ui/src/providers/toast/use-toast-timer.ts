@@ -90,13 +90,13 @@ export function useToastTimer(
 	// restart; the final `resume()` picks up the new remaining on release.
 	const reset = useCallback(
 		(ms?: number) => {
-			remainingRef.current = ms ?? duration
+			resetRemaining(ms)
 
 			if (pauseCountRef.current > 0 || toastsRef.current.length === 0) return
 
 			startTimer()
 		},
-		[duration, startTimer, toastsRef],
+		[resetRemaining, startTimer, toastsRef],
 	)
 
 	return { remainingRef, startTimer, pause, resume, resetRemaining, reset }

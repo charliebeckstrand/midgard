@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react'
 import { type ChangeEvent, type ReactNode, useCallback, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
+import { clearNativeInput } from '../../utilities'
 import { Button } from '../button'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
@@ -100,16 +101,7 @@ export function SearchInput({
 		// `handleChange` like any edit. `setCurrentValue('')` alone is a no-op
 		// while controlled; the dispatch reaches both controlled and
 		// uncontrolled consumers.
-		if (input) {
-			const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
-
-			setter?.call(input, '')
-
-			input.dispatchEvent(new Event('input', { bubbles: true }))
-		}
-
-		// Returns focus to the input when the clear button unmounts (WCAG 2.4.3).
-		input?.focus()
+		clearNativeInput(input)
 	}, [])
 
 	const ownSuffix = loading ? (

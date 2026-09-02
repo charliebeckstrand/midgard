@@ -41,7 +41,7 @@ export function PasswordConfirm({
 
 	const passwordError = passwordName ? form?.errors[passwordName] : undefined
 
-	const confirmHasFormError = confirmName ? Boolean(form?.errors[confirmName]) : false
+	const confirmHasFormError = Boolean(confirmName && form?.errors[confirmName])
 
 	const { status, setPassword, setConfirm, setLastEdited } = usePasswordConfirmState({
 		disabled: Boolean(passwordError),

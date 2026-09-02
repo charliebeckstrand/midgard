@@ -8,7 +8,5 @@
  * convention; call it at the top level of a component or hook.
  */
 export function useAriaIds(...ids: Array<string | false | null | undefined>): string | undefined {
-	const present = ids.filter((id): id is string => Boolean(id))
-
-	return present.length ? present.join(' ') : undefined
+	return ids.filter(Boolean).join(' ') || undefined
 }

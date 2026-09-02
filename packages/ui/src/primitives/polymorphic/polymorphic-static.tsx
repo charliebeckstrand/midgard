@@ -3,10 +3,10 @@ import {
 	cloneElement,
 	type ElementType,
 	type ReactElement,
-	type ReactNode,
 	type Ref,
 } from 'react'
 import type { LinkProps } from '../link'
+import { type PolymorphicRenderProps, renderFallback } from './fallback'
 
 /**
  * Server-safe sibling of `Polymorphic`: the same `href`-driven link switch
@@ -56,18 +56,7 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 	className,
 	children,
 	...rest
-}: {
-	as: Fallback
-	href?: string
-	render?: ReactElement<LinkProps>
-	ref?: Ref<Element>
-	'data-slot': string
-	className: string
-	children: ReactNode
-} & (
-	| Omit<ComponentPropsWithoutRef<Fallback>, 'href' | 'ref' | 'className' | 'children'>
-	| Omit<LinkProps, 'href' | 'ref' | 'className' | 'children'>
-)) {
+}: PolymorphicRenderProps<Fallback> & { render?: ReactElement<LinkProps> }) {
 	if (href !== undefined) {
 		const linkProps = {
 			ref: ref as Ref<HTMLAnchorElement>,
@@ -84,20 +73,12 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 		return <a {...linkProps}>{children}</a>
 	}
 
-	// `as as ElementType` widens a union of string tags to `ElementType`;
-	// the narrow union collapses `{...rest}` to the `never` intersection of
-	// every branch. Unrelated to the generic.
-	const Element = as as ElementType
-
-	return (
-		<Element
-			ref={ref}
-			data-slot={slot}
-			type={as === 'button' ? 'button' : undefined}
-			className={className}
-			{...(rest as ComponentPropsWithoutRef<Fallback>)}
-		>
-			{children}
-		</Element>
-	)
+	return renderFallback({
+		as,
+		ref,
+		slot,
+		className,
+		children,
+		rest: rest as ComponentPropsWithoutRef<Fallback>,
+	})
 }

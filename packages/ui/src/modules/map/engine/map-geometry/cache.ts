@@ -67,6 +67,29 @@ export type StaticMapGeometry = {
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
 const EMPTY: StaticMapGeometry = { features: [], canonical: null, atlas: null }
 
+/**
+ * The value under `key` in a {@link WeakMap}, computed and stored on the first
+ * read. Every memo in this file (and `locate.ts`'s region index) is this one
+ * get-or-compute step.
+ *
+ * @internal
+ */
+export function memoWeak<K extends object, V>(
+	cache: WeakMap<K, V>,
+	key: K,
+	compute: (key: K) => V,
+): V {
+	const hit = cache.get(key)
+
+	if (hit !== undefined) return hit
+
+	const computed = compute(key)
+
+	cache.set(key, computed)
+
+	return computed
+}
+
 // Atlas → object name → its decoded, rewound features. Held apart from the pair
 // below because two readers want it and only one of them wants the fit: the
 // geometry above draws the atlas, and the coverage hook filters it to the
@@ -99,13 +122,7 @@ export function cachedGeographyFeatures(
 ): MapFeature[] {
 	if (geography == null) return EMPTY.features
 
-	let byName = decoded.get(geography)
-
-	if (byName === undefined) {
-		byName = new Map()
-
-		decoded.set(geography, byName)
-	}
+	const byName = memoWeak(decoded, geography, () => new Map())
 
 	let features = byName.get(objectName)
 
@@ -172,13 +189,7 @@ export function staticMapGeometry(
 		return computeStaticMapGeometry(geography, geographyObject, projection)
 	}
 
-	let byKey = cache.get(geography)
-
-	if (byKey === undefined) {
-		byKey = new Map()
-
-		cache.set(geography, byKey)
-	}
+	const byKey = memoWeak(cache, geography, () => new Map())
 
 	// A JSON tuple, so an explicit '' object name can't collide with `undefined`
 	// (the "first object" default): `geographyFeatures` decodes those to
@@ -227,15 +238,7 @@ const centroids = new WeakMap<MapFeature[], (LngLat | null)[]>()
  * @internal
  */
 export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[] {
-	const hit = centroids.get(features)
-
-	if (hit !== undefined) return hit
-
-	const computed = regionCentroids(features)
-
-	centroids.set(features, computed)
-
-	return computed
+	return memoWeak(centroids, features, regionCentroids)
 }
 
 // The last chrome paths per fitted projection. Keyed on the fit rather than on
@@ -312,17 +315,9 @@ const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
  * @internal
  */
 export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | null)[] {
-	const hit = canonicalPaths.get(geometry)
-
-	if (hit !== undefined) return hit
-
-	const { canonical } = geometry
-
-	const paths = canonical === null ? [] : projectedPaths(geometry, canonical.projection)
-
-	canonicalPaths.set(geometry, paths)
-
-	return paths
+	return memoWeak(canonicalPaths, geometry, ({ canonical }) =>
+		canonical === null ? [] : projectedPaths(geometry, canonical.projection),
+	)
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import type { Color } from '../../recipes'
 import { pulse as pulseAnimation } from '../../recipes/kata/status'
 import { k } from '../../recipes/kata/timeline'
@@ -81,7 +82,7 @@ export function TimelineMarker({
 					status={status}
 					pulse={pulse}
 					// Names the dot when it carries a semantic status; a colour-only marker stays decorative.
-					label={status ? status.charAt(0).toUpperCase() + status.slice(1) : undefined}
+					label={status ? capitalizeFirst(status) : undefined}
 					className={k.marker.dot}
 				/>
 			)}
