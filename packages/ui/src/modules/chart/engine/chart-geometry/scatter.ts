@@ -300,17 +300,6 @@ export function scatterReadoutValues(
 }
 
 /**
- * Resolves a pointer coordinate to the index of the nearest center, or `null`
- * with no centers — the scatter counterpart of `nearestBandIndex`, tolerant of
- * the uneven spacing unique x values arrive with.
- *
- * @internal
- */
-export function nearestCenterIndex(coord: number, centers: number[]): number | null {
-	return nearestStopIndex(centers, coord)
-}
-
-/**
  * Arbitrates the held disc against the nearest caught one: the held keeps the
  * win while it stayed caught (a finite distance) and no challenger
  * {@link beatsHeldMark | decisively} closes.

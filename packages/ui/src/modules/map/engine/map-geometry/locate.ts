@@ -23,9 +23,9 @@
  */
 
 import { geoContains } from 'd3-geo'
+import { memoWeak } from '../../../../utilities'
 import { bucket, cellKey } from '../map-cluster/grid'
 import type { LngLat, MapFeature } from '../types'
-import { memoWeak } from './cache'
 
 /** A conservative lon/lat box around a shape. @internal */
 export type MapBounds = { west: number; south: number; east: number; north: number }

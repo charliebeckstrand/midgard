@@ -34,6 +34,7 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
+import { memoWeak } from '../../../../utilities'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
 import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
@@ -66,29 +67,6 @@ export type StaticMapGeometry = {
 
 /** Nothing to draw — a plat with no geography yet reserves its frame and paints no marks. @internal */
 const EMPTY: StaticMapGeometry = { features: [], canonical: null, atlas: null }
-
-/**
- * The value under `key` in a {@link WeakMap}, computed and stored on the first
- * read. Every memo in this file (and `locate.ts`'s region index) is this one
- * get-or-compute step.
- *
- * @internal
- */
-export function memoWeak<K extends object, V>(
-	cache: WeakMap<K, V>,
-	key: K,
-	compute: (key: K) => V,
-): V {
-	const hit = cache.get(key)
-
-	if (hit !== undefined) return hit
-
-	const computed = compute(key)
-
-	cache.set(key, computed)
-
-	return computed
-}
 
 // Atlas → object name → its decoded, rewound features. Held apart from the pair
 // below because two readers want it and only one of them wants the fit: the

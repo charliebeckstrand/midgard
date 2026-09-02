@@ -598,7 +598,9 @@ function handleActivationKey(
 ): boolean {
 	if (!ctx.isVirtual || !activationKey) return false
 
-	if (![activationKey].flat().includes(event.key)) return false
+	const keys = Array.isArray(activationKey) ? activationKey : [activationKey]
+
+	if (!keys.includes(event.key)) return false
 
 	if (currentIndex === -1) return true
 

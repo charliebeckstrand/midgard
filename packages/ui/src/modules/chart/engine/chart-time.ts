@@ -156,9 +156,9 @@ function positionOf(time: number, anchors: Anchor[], band: BandScale): number {
 
 	if (time >= last.time) return band.center(last.index)
 
-	// The segment ends at the first later anchor after the head; `last` is later
-	// than `time`, so one always exists.
-	const low = anchors.findIndex((anchor, index) => index > 0 && anchor.time > time) - 1
+	// The segment starts at the last anchor at or before `time`. `last` is later
+	// than `time`, so the match is never the final anchor and `low + 1` holds.
+	const low = anchors.findLastIndex((anchor) => anchor.time <= time)
 
 	const a = anchors[low] as Anchor
 	const b = anchors[low + 1] as Anchor

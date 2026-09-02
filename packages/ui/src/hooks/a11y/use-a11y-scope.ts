@@ -107,36 +107,35 @@ export function useA11yScope<Slot extends string = never>(
 		[scope.sub, slotKeys],
 	)
 
-	const register = useMemo(
-		() =>
-			Object.fromEntries(
-				slotKeys.map((key) => [
-					key,
-					(renderedId?: string) => {
-						const resolved = renderedId ?? ids[key]
+	const register = useMemo(() => {
+		const out = {} as Record<Slot, (renderedId?: string) => () => void>
 
-						setPresent((prev) => {
-							const slot = prev[key] ?? {}
+		for (const key of slotKeys) {
+			out[key] = (renderedId?: string) => {
+				const resolved = renderedId ?? ids[key]
 
-							return { ...prev, [key]: { ...slot, [resolved]: (slot[resolved] ?? 0) + 1 } }
-						})
+				setPresent((prev) => {
+					const slot = prev[key] ?? {}
 
-						return () =>
-							setPresent((prev) => {
-								const slot = { ...(prev[key] ?? {}) }
+					return { ...prev, [key]: { ...slot, [resolved]: (slot[resolved] ?? 0) + 1 } }
+				})
 
-								const next = (slot[resolved] ?? 0) - 1
+				return () =>
+					setPresent((prev) => {
+						const slot = { ...(prev[key] ?? {}) }
 
-								if (next <= 0) delete slot[resolved]
-								else slot[resolved] = next
+						const next = (slot[resolved] ?? 0) - 1
 
-								return { ...prev, [key]: slot }
-							})
-					},
-				]),
-			) as Record<Slot, (renderedId?: string) => () => void>,
-		[slotKeys, ids],
-	)
+						if (next <= 0) delete slot[resolved]
+						else slot[resolved] = next
+
+						return { ...prev, [key]: slot }
+					})
+			}
+		}
+
+		return out
+	}, [slotKeys, ids])
 
 	const buckets = useMemo(() => bucketAriaIds(present, slots), [present, slots])
 

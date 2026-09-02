@@ -357,13 +357,17 @@ export function stackedBarSnapPoints(
 	count: number,
 	orientation: ChartOrientation = 'vertical',
 ): number[][] {
-	return Array.from({ length: count }, (_, category) =>
-		marks.flatMap((series) => {
+	return Array.from({ length: count }, (_, category) => {
+		const positions: number[] = []
+
+		for (const series of marks) {
 			const mark = series[category]
 
-			return mark ? [orientation === 'vertical' ? mark.top : mark.x1] : []
-		}),
-	)
+			if (mark) positions.push(orientation === 'vertical' ? mark.top : mark.x1)
+		}
+
+		return positions
+	})
 }
 
 /**
@@ -379,11 +383,15 @@ export function stackedBarSnapSeries(
 	seriesIndices: number[],
 	count: number,
 ): number[][] {
-	return Array.from({ length: count }, (_, category) =>
-		marks.flatMap((seriesMarks, order) => {
+	return Array.from({ length: count }, (_, category) => {
+		const series: number[] = []
+
+		for (const [order, seriesMarks] of marks.entries()) {
 			const index = seriesIndices[order]
 
-			return seriesMarks[category] && index !== undefined ? [index] : []
-		}),
-	)
+			if (seriesMarks[category] && index !== undefined) series.push(index)
+		}
+
+		return series
+	})
 }

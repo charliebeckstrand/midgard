@@ -109,7 +109,9 @@ export function aggregateAll(
 	groups: Map<string, Map<string, number[]>>,
 	op: PivotAggregation,
 ): number | undefined {
-	const values = [...groups.values()].flatMap((row) => [...row.values()].flat())
+	const values: number[] = []
+
+	for (const row of groups.values()) for (const bucket of row.values()) values.push(...bucket)
 
 	return values.length > 0 ? aggregate(values, op) : undefined
 }

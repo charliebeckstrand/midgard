@@ -29,7 +29,15 @@ export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
 function numericValues<T>(column: GridColumn<T>, rows: T[]): number[] {
 	const accessor = columnAccessor(column)
 
-	return rows.flatMap((row) => parseNumeric(accessor(row)) ?? [])
+	const values: number[] = []
+
+	for (const row of rows) {
+		const value = parseNumeric(accessor(row))
+
+		if (value !== null) values.push(value)
+	}
+
+	return values
 }
 
 /**

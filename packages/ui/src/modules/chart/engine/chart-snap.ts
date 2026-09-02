@@ -51,11 +51,21 @@ export function snapTargets(
 export function nearestStopIndex(candidates: number[] | undefined, value: number): number | null {
 	if (!candidates || candidates.length === 0) return null
 
-	return candidates.reduce<number>(
-		(best, candidate, index) =>
-			Math.abs(candidate - value) < Math.abs((candidates[best] as number) - value) ? index : best,
-		0,
-	)
+	let bestIndex = 0
+
+	let bestDistance = Number.POSITIVE_INFINITY
+
+	for (const [index, candidate] of candidates.entries()) {
+		const distance = Math.abs(candidate - value)
+
+		if (distance < bestDistance) {
+			bestIndex = index
+
+			bestDistance = distance
+		}
+	}
+
+	return bestIndex
 }
 
 /** The plot-y among `candidates` nearest to `value`, or `null` when the category has none. @internal */

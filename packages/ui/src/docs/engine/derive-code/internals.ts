@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import * as ReactDOM from 'react-dom'
+import { wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { reindent } from './indent'
 import type { ComponentInfo, ComponentRegistry, Context, ElementFact } from './types'
@@ -417,11 +418,6 @@ export function matchElementFact(
 	return { name, props: agreed, children }
 }
 
-// `$` is the one regex metacharacter a JS identifier may contain.
-function bindingRe(name: string): RegExp {
-	return new RegExp(`\\b${name.replaceAll('$', '\\$')}\\b`)
-}
-
 /**
  * Record an authored source snippet the walk emitted, marking any declaration
  * it directly references as pulled — the signal `formatProps`' consistency
@@ -435,7 +431,7 @@ export function registerFactText(text: string, context: Context): string {
 	if (!facts) return text
 
 	for (const [name, index] of Object.entries(facts.bindings)) {
-		if (!context.pulledDecls.has(index) && bindingRe(name).test(text)) {
+		if (!context.pulledDecls.has(index) && wordRe(name).test(text)) {
 			context.pulledDecls.add(index)
 		}
 	}
@@ -472,7 +468,7 @@ export function resolvePreamble(context: Context): string[] {
 		for (const [name, index] of Object.entries(facts.bindings)) {
 			if (context.pulledDecls.has(index)) continue
 
-			const re = bindingRe(name)
+			const re = wordRe(name)
 
 			if (!texts.some((text) => re.test(text))) continue
 
@@ -488,7 +484,7 @@ export function resolvePreamble(context: Context): string[] {
 		collectSnippetImports(text, context)
 
 		for (const [name, imp] of Object.entries(facts.imports)) {
-			if (bindingRe(name).test(text)) addImport(context, imp.module, name, imp.external ?? false)
+			if (wordRe(name).test(text)) addImport(context, imp.module, name, imp.external ?? false)
 		}
 	}
 

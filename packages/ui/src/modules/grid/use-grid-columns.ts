@@ -10,21 +10,6 @@ import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridColumnManagerItem } from './types'
 import { useGridColumnVisibility } from './use-grid-column-visibility'
 
-/**
- * The engine's `columnVisibility` state ({ id: false }) for the hidden columns —
- * only orderable ones, so non-data and frozen (pinned or locked) columns are
- * never marked hidden (they always show). Columns absent from the map default to
- * visible.
- *
- * @internal
- */
-function toColumnVisibility(
-	hidden: Iterable<string | number>,
-	isOrderable: (id: string | number) => boolean,
-): Record<string, boolean> {
-	return Object.fromEntries([...hidden].filter(isOrderable).map((id) => [String(id), false]))
-}
-
 /** Options for {@link useGridColumns}. @internal */
 type GridColumnsOptions<T> = {
 	columns: GridColumn<T>[]
@@ -124,12 +109,19 @@ export function useGridColumns<T>({
 		[setColumnOrder, columnOrder, isOrderable, hiddenColumns],
 	)
 
-	// Collapsed-group members hide from the engine too, kept apart from the
-	// manager's user-hidden set so collapsing a group doesn't uncheck its columns.
-	const columnVisibility = useMemo(
-		() => toColumnVisibility([...hiddenColumns, ...(forcedHidden ?? [])], isOrderable),
-		[hiddenColumns, forcedHidden, isOrderable],
-	)
+	// The engine's `columnVisibility` state: only orderable ids are marked hidden,
+	// so non-data and frozen columns always show, and an id absent from the map
+	// defaults to visible. Collapsed-group members hide here too, kept apart from
+	// the manager's user-hidden set so collapsing a group doesn't uncheck them.
+	const columnVisibility = useMemo(() => {
+		const visibility: Record<string, boolean> = {}
+
+		for (const id of hiddenColumns) if (isOrderable(id)) visibility[String(id)] = false
+
+		for (const id of forcedHidden ?? []) if (isOrderable(id)) visibility[String(id)] = false
+
+		return visibility
+	}, [hiddenColumns, forcedHidden, isOrderable])
 
 	const managerItems = useMemo<GridColumnManagerItem[]>(
 		() =>

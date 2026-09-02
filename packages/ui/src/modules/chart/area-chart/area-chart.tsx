@@ -113,13 +113,17 @@ function focusPoints(
 ): number[][] {
 	if (!stacked) return snapPoints
 
-	return Array.from({ length: count }, (_, index) =>
-		bands.flatMap((band) => {
+	return Array.from({ length: count }, (_, index) => {
+		const edges: number[] = []
+
+		for (const band of bands) {
 			const y = band.points[index]?.y
 
-			return y != null && Number.isFinite(y) ? [y] : []
-		}),
-	)
+			if (y != null && Number.isFinite(y)) edges.push(y)
+		}
+
+		return edges
+	})
 }
 
 /**
@@ -155,15 +159,19 @@ function focusSeries(
 ): number[][] {
 	if (!stacked) return snapSeries
 
-	return Array.from({ length: count }, (_, index) =>
-		bands.flatMap((band, order) => {
+	return Array.from({ length: count }, (_, index) => {
+		const series: number[] = []
+
+		for (const [order, band] of bands.entries()) {
 			const y = band.points[index]?.y
 
 			const meta = drawn[order]?.meta
 
-			return meta && y != null && Number.isFinite(y) ? [meta.index] : []
-		}),
-	)
+			if (meta && y != null && Number.isFinite(y)) series.push(meta.index)
+		}
+
+		return series
+	})
 }
 
 /** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */

@@ -6,6 +6,7 @@ import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'reac
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
+import { wrap } from '../../utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -453,5 +454,5 @@ function rovingTargetIndex(key: string, currentIndex: number, count: number): nu
 
 	if (currentIndex === -1) return forward ? 0 : count - 1
 
-	return (currentIndex + (forward ? 1 : -1) + count) % count
+	return wrap(currentIndex + (forward ? 1 : -1), count)
 }

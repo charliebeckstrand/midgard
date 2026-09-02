@@ -85,12 +85,14 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | `FOCUSABLE_SELECTOR` | Selector for the descendants in the tab order: links with an `href`, enabled form controls, and any element whose `tabindex` is not `-1`. |
 | `nextIndexForKey` | Next roving index for a key press (1D or 2D grid), or `null` if unhandled; wraps at both ends. |
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
+| `wrap` | Wraps an index into `[0, count)`, so a step past either end lands at the other. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |
 
 ## Collections & data
 
 | Export | Summary |
 |---|---|
+| `memoWeak` | The value under a key in a `WeakMap`, computed and stored on the first read — the one get-or-compute step every per-object memo spells. |
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id, suffixing repeats by occurrence index. |
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |

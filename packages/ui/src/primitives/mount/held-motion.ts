@@ -27,9 +27,9 @@ export type HeldMotionPreset = {
  * so it still takes its open state without playing anything.
  *
  * @param preset - The recipe's enter/exit preset.
- * @param mountedOpen - Whether the panel was open on its first render.
  * @param open - Whether the panel is open now.
- * @param hold - The panel's hold; `rest` latches it on every landing.
+ * @param hold - The panel's hold; `rest` latches it on every landing and
+ * `mountedActive` names the state it mounted in.
  * @param onAnimationComplete - The arrival gate's completion handler.
  * @returns The `initial`/`animate`/`transition`/`onAnimationComplete` bag to
  * spread onto the motion element.
@@ -37,9 +37,8 @@ export type HeldMotionPreset = {
  */
 export function heldMotionProps<P extends HeldMotionPreset>(
 	preset: P,
-	mountedOpen: boolean,
 	open: boolean,
-	hold: Pick<MountHold, 'rest'>,
+	hold: Pick<MountHold, 'rest' | 'mountedActive'>,
 	onAnimationComplete: (definition: unknown) => void,
 ): {
 	initial: P['initial'] | P['animate']
@@ -48,7 +47,7 @@ export function heldMotionProps<P extends HeldMotionPreset>(
 	onAnimationComplete: (definition: unknown) => void
 } {
 	return {
-		initial: mountedOpen ? preset.animate : preset.initial,
+		initial: hold.mountedActive ? preset.animate : preset.initial,
 		animate: open ? preset.animate : preset.exit,
 		transition: preset.transition,
 		onAnimationComplete: (definition) => {

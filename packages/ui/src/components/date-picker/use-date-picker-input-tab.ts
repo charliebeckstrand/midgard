@@ -2,6 +2,9 @@
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
+// `:disabled` rather than the shared `FOCUSABLE_SELECTOR`'s `[disabled]`: the
+// pseudo-class also matches a control disabled by an ancestor `<fieldset>`,
+// which the edge handoff must skip.
 const TABBABLE_SELECTOR =
 	'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
 

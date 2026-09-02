@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Hold, useMountHold } from '../../primitives/mount'
@@ -38,10 +38,6 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	const { mount, onOpenComplete } = useAccordion()
 
 	const hold = useMountHold(open, mount, { defer: true })
-
-	// Frozen at mount: whether this section started open decides its motion entry point,
-	// and a held panel reads that long after the value has moved on.
-	const mountedOpen = useRef(open)
 
 	// The arrival target the motion library hands back on the way in, compared by
 	// identity; the preset is a module constant, so the identity holds. The section
@@ -80,7 +76,7 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	return (
 		<ReducedMotion>
 			<Hold hold={hold} name="accordion-panel">
-				{panel(heldMotionProps(k.motion, mountedOpen.current, open, hold, onAnimationComplete))}
+				{panel(heldMotionProps(k.motion, open, hold, onAnimationComplete))}
 			</Hold>
 		</ReducedMotion>
 	)

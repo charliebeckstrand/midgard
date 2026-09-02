@@ -12,6 +12,7 @@ import {
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
+import { memoWeak } from '../../utilities'
 import { useDensity } from '../density'
 import { capitalizeFirst } from '../select-trigger/capitalize'
 
@@ -213,15 +214,7 @@ function isOptionSelected(
 	multiple: boolean | undefined,
 ): boolean {
 	if (multiple && Array.isArray(selectedValue)) {
-		let set = membershipCache.get(selectedValue)
-
-		if (set === undefined) {
-			set = new Set(selectedValue)
-
-			membershipCache.set(selectedValue, set)
-		}
-
-		return set.has(value)
+		return memoWeak(membershipCache, selectedValue, (values) => new Set(values)).has(value)
 	}
 
 	return selectedValue === value

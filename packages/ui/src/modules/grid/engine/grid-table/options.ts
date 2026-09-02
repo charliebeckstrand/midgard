@@ -60,7 +60,11 @@ export function toSortState(sorting: SortingState): SortState[] {
 export function toRowSelectionState(
 	selection: Set<string | number> | undefined,
 ): RowSelectionState {
-	return Object.fromEntries([...(selection ?? [])].map((key) => [String(key), true]))
+	const state: RowSelectionState = {}
+
+	for (const key of selection ?? []) state[String(key)] = true
+
+	return state
 }
 
 /** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */

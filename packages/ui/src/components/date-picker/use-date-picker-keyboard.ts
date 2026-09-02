@@ -1,5 +1,5 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
-
+import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 
 /** A footer action button in the date picker. */
@@ -267,7 +267,7 @@ function handleFooterKey(
 
 		const delta = event.key === 'ArrowLeft' ? -1 : 1
 
-		ctx.setActive({ zone: 'footer', index: (active.index + delta + count) % count })
+		ctx.setActive({ zone: 'footer', index: wrap(active.index + delta, count) })
 
 		return
 	}

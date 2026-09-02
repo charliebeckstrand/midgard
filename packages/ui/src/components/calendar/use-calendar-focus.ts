@@ -3,6 +3,7 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import { useA11yRoving } from '../../hooks'
+import { wrap } from '../../utilities'
 
 /**
  * Selector for focusable day cells. Out-of-range cells render as
@@ -133,10 +134,7 @@ function focusAdjacentFooterButton(
 
 	if (index < 0) return
 
-	const next =
-		event.key === 'ArrowRight'
-			? buttons[(index + 1) % buttons.length]
-			: buttons[(index - 1 + buttons.length) % buttons.length]
+	const next = buttons[wrap(index + (event.key === 'ArrowRight' ? 1 : -1), buttons.length)]
 
 	if (!next) return
 

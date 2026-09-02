@@ -2,8 +2,8 @@
 
 import { useCallback } from 'react'
 import { cn } from '../../../core'
-import { nearestCenterIndex } from '../engine/chart-geometry/scatter'
 import type { PlotRect } from '../engine/chart-layout'
+import { nearestStopIndex } from '../engine/chart-snap'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import type { ChartMarkRef } from '../engine/context'
 import { useChartPointer } from '../engine/use-chart-pointer'
@@ -58,7 +58,7 @@ export function ScatterChartHitArea({
 	snaps = false,
 }: ScatterChartHitAreaProps) {
 	// The nearest unique-x column stands in for the band charts' evenly spaced band.
-	const resolveIndex = useCallback((x: number) => nearestCenterIndex(x, centers), [centers])
+	const resolveIndex = useCallback((x: number) => nearestStopIndex(centers, x), [centers])
 
 	const { ref, ...handlers } = useChartPointer(
 		plot,

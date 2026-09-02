@@ -29,6 +29,11 @@ export type MountHold = {
 	/** Whether the held panel is resting — the `<Activity mode="hidden">` state. */
 	hidden: boolean
 	/**
+	 * Whether the panel was active on its first render, frozen there. A held
+	 * panel's motion entry point keys on this long after the live value moved on.
+	 */
+	mountedActive: boolean
+	/**
 	 * Latches a deferred hold to rest. Call it when the panel's close animation
 	 * lands — unconditionally is fine: it ignores a landing that arrives while the
 	 * panel is active (the entrance of a panel that just opened), and an
@@ -83,6 +88,8 @@ export function useMountHold(
 	// re-render, so no commit is needed to flip it.
 	const everActive = useRef(false)
 
+	const mountedActive = useRef(active)
+
 	if (active) everActive.current = true
 
 	const held = mount !== 'active'
@@ -107,6 +114,7 @@ export function useMountHold(
 		present: mount === 'always' || active || (mount === 'lazy' && everActive.current),
 		held,
 		hidden: defer ? rested : !active,
+		mountedActive: mountedActive.current,
 		rest,
 	}
 }

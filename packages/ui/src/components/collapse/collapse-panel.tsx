@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
@@ -36,10 +36,6 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	const { open, animate, mount, onOpenComplete, panelProps } = useCollapseContext()
 
 	const hold = useMountHold(open, mount, { defer: animate !== false })
-
-	// Frozen at mount: whether this panel started open decides its motion entry point,
-	// and a held panel reads that long after the value has moved on.
-	const mountedOpen = useRef(open)
 
 	// The preset itself rather than its key, so one `undefined` covers `animate={false}`
 	// and narrows every read below it.
@@ -99,7 +95,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 	return (
 		<ReducedMotion>
 			<Hold hold={hold} name="collapse-panel">
-				{section(heldMotionProps(preset, mountedOpen.current, open, hold, onAnimationComplete))}
+				{section(heldMotionProps(preset, open, hold, onAnimationComplete))}
 			</Hold>
 		</ReducedMotion>
 	)

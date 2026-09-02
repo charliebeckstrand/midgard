@@ -183,11 +183,6 @@ export type PlotRect = {
  * tabular-digit {@link TICK_CHAR_WIDTH}.
  * @internal
  */
-/** The character length of the longest label, or 0 for none. @internal */
-function longestLength(labels: string[]): number {
-	return labels.reduce((longest, label) => Math.max(longest, label.length), 0)
-}
-
 function tickGutter(labels: string[], charWidth: number = TICK_CHAR_WIDTH): number {
 	const widest = longestLength(labels)
 
@@ -196,6 +191,11 @@ function tickGutter(labels: string[], charWidth: number = TICK_CHAR_WIDTH): numb
 	const chars = widest + (widest % 2)
 
 	return Math.min(GUTTER_MAX, Math.ceil(chars * charWidth) + GUTTER_GAP + GUTTER_EDGE_PAD)
+}
+
+/** The character length of the longest label, or 0 for none. @internal */
+function longestLength(labels: string[]): number {
+	return labels.reduce((longest, label) => Math.max(longest, label.length), 0)
 }
 
 /**
@@ -517,15 +517,19 @@ function snapPointsOf(
 ): number[][] {
 	if (!scales.y && !scales.y2) return []
 
-	return Array.from({ length: count }, (_, index) =>
-		visibleValues.flatMap((series) => {
+	return Array.from({ length: count }, (_, index) => {
+		const positions: number[] = []
+
+		for (const series of visibleValues) {
 			const scale = scales[series.axis]
 
 			const value = series.values[index]
 
-			return scale && snappable(scale, value) ? [scale.map(value)] : []
-		}),
-	)
+			if (scale && snappable(scale, value)) positions.push(scale.map(value))
+		}
+
+		return positions
+	})
 }
 
 /**
@@ -554,11 +558,15 @@ function snapSeriesOf(
 ): number[][] {
 	if (!scales.y && !scales.y2) return []
 
-	return Array.from({ length: count }, (_, index) =>
-		visibleValues.flatMap((entry) =>
-			snappable(scales[entry.axis], entry.values[index]) ? [entry.index] : [],
-		),
-	)
+	return Array.from({ length: count }, (_, index) => {
+		const series: number[] = []
+
+		for (const entry of visibleValues) {
+			if (snappable(scales[entry.axis], entry.values[index])) series.push(entry.index)
+		}
+
+		return series
+	})
 }
 
 /** Every category's band center, along the band axis. @internal */
