@@ -28,7 +28,7 @@ const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	size?: Step
 }>('SidebarLayout', { default: {} })
 
-/** Mobile navbar padding per Density step. */
+/** Mobile navbar padding per Density step. @internal */
 const NAVBAR_PADDING = { sm: 'p-4', md: 'p-6', lg: 'p-8' } satisfies Record<Step, string>
 
 type SidebarLayoutProps = PropsWithChildren<{

@@ -1,6 +1,7 @@
 'use client'
 
 import { Children, isValidElement, type ReactElement, type ReactNode } from 'react'
+import { reindent } from './indent'
 import {
 	addImport,
 	assemble,
@@ -13,7 +14,6 @@ import {
 	PLACEHOLDER,
 	readSnippet,
 	registerFactText,
-	reindent,
 	renderOpenTag,
 	resolvePreamble,
 	resolveType,

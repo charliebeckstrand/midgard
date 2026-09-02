@@ -57,6 +57,21 @@ chart's repeated pointer projection, callout fit, and emphasis derivations each 
 clamps route through `utilities/clamp` at eleven sites. `ReturnType<typeof f>` gave way to the named type
 the same module exports.
 
+## Two differences, kept on purpose
+
+A skeptic read the whole diff after it landed and found two places where the sweep changed behaviour rather
+than preserving it. Both are kept, and both are recorded here rather than in a commit message alone.
+
+**The query builder now refuses an impossible date instead of rolling it.** `fromIsoDate` parsed with a
+regex and `new Date(y, m - 1, d)`, so a stored `2025-02-31` rendered as 3 March and `2025-13-01` as
+January 2026. `parseDate` throws on both, and the caught throw leaves the picker empty. A value from
+outside the app can now read as absent where it used to read as a different day; showing the day nobody
+wrote is the worse of the two.
+
+**The api-reference extractor blanks whitespace-only lines.** Its private `dedent` sliced them like any
+other line, leaving the residue past the common indent; the shared `reindent` empties them. The rendered
+type text is the same, minus trailing whitespace.
+
 ## Ruled out
 
 **The map's SVG prop bags cannot take `satisfies SVGAttributes<…>`.** The bags carry `data-slot`, and

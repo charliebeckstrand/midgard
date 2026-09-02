@@ -89,19 +89,28 @@ export function useSortableList<T>({
 		[items, getKey, onDragStart, onDragEnd],
 	)
 
-	// The shared tail of a drop and a cancel: clear the active item and report the end.
-	const handleDragCancel = useCallback(() => {
+	// The head both endings share: clear the active item and hand back the item
+	// the drag carried, so each ending reports it after its own work.
+	const settle = useCallback(() => {
 		setActiveId(null)
 
 		const dragged = draggedItemRef.current
 
 		draggedItemRef.current = null
 
+		return dragged
+	}, [])
+
+	const handleDragCancel = useCallback(() => {
+		const dragged = settle()
+
 		if (dragged != null) onDragEnd?.(dragged)
-	}, [onDragEnd])
+	}, [settle, onDragEnd])
 
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
+			const dragged = settle()
+
 			const { active, over } = event
 
 			if (onReorder && over && active.id !== over.id) {
@@ -112,9 +121,9 @@ export function useSortableList<T>({
 				if (oldIdx !== -1 && newIdx !== -1) onReorder(arrayMove(items, oldIdx, newIdx))
 			}
 
-			handleDragCancel()
+			if (dragged != null) onDragEnd?.(dragged)
 		},
-		[itemIds, items, onReorder, handleDragCancel],
+		[settle, itemIds, items, onReorder, onDragEnd],
 	)
 
 	const dndContextProps = useMemo(

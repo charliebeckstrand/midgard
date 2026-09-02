@@ -1,6 +1,6 @@
 import { strToU8, zipSync } from 'fflate'
 import type { GridColumn } from '../../types'
-import { cellText, escapeMarkup, exportFields } from './accessor'
+import { cellText, escapeXml, exportFields } from './accessor'
 import { downloadBlob } from './download'
 
 /** A1-style column letter for a 0-based index (0 → A, 25 → Z, 26 → AA). @internal */
@@ -30,7 +30,7 @@ function sheetCell(reference: string, value: unknown): string {
 
 	if (text === '') return `<c r="${reference}"/>`
 
-	return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeMarkup(text)}</t></is></c>`
+	return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(text)}</t></is></c>`
 }
 
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'

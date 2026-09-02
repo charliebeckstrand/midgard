@@ -52,14 +52,19 @@ function partitionStepperChildren(children: ReactNode): {
 	rowChildren: ReactNode[]
 	panelsChildren: ReactNode[]
 } {
-	const items = Children.toArray(children)
+	const rowChildren: ReactNode[] = []
 
-	const isPanels = (child: ReactNode) => isValidElement(child) && child.type === StepperPanels
+	const panelsChildren: ReactNode[] = []
 
-	return {
-		rowChildren: items.filter((child) => !isPanels(child)),
-		panelsChildren: items.filter(isPanels),
-	}
+	Children.forEach(children, (child) => {
+		if (isValidElement(child) && child.type === StepperPanels) {
+			panelsChildren.push(child)
+		} else {
+			rowChildren.push(child)
+		}
+	})
+
+	return { rowChildren, panelsChildren }
 }
 
 /**

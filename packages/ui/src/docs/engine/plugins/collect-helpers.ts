@@ -135,7 +135,12 @@ export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Help
 
 	for (const stmt of sf.statements) {
 		if (ts.isFunctionDeclaration(stmt) && stmt.name && isPascalCase(stmt.name.text) && stmt.body) {
-			const isDefaultExport = ts.getCombinedModifierFlags(stmt) & ts.ModifierFlags.ExportDefault
+			// `ExportDefault` is the `Export | Default` pair, so the test is an
+			// equality against both bits: a plain `export function` sets only one.
+			const flags = ts.getCombinedModifierFlags(stmt)
+
+			const isDefaultExport =
+				(flags & ts.ModifierFlags.ExportDefault) === ts.ModifierFlags.ExportDefault
 
 			if (isDefaultExport || stmt.name.text === ENTRY_EXPORT) continue
 

@@ -5,8 +5,6 @@ import { IGNORED_PROPS } from '../reserved-props'
 import { reindent } from './indent'
 import type { ComponentInfo, ComponentRegistry, Context, ElementFact } from './types'
 
-export { reindent }
-
 /**
  * Fragment and intrinsic HTML elements are transparent: styling/grouping
  * wrappers outside the documented API surface.
