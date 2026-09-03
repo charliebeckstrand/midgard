@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { renderUI } from '../helpers'
+import { frames, renderUI } from '../helpers'
 
 /**
  * Mount settling under a real engine: a container-measured chart resolves its
@@ -19,13 +19,6 @@ const DATA = [
 	{ month: 'Feb', revenue: 51, costs: 30 },
 	{ month: 'Mar', revenue: 47, costs: 33 },
 ]
-
-/** Two frames: one for an observer delivery, one for a commit to paint. */
-function frames() {
-	return new Promise((resolve) => {
-		requestAnimationFrame(() => requestAnimationFrame(resolve))
-	})
-}
 
 /** The SVG's viewBox height and the plot box height — a squish frame has them disagree. */
 function sample(container: HTMLElement): { viewBoxHeight: number; boxHeight: number } {

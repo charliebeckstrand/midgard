@@ -13,6 +13,15 @@ import { panel } from '../kiso/panel'
 const { flex, slide } = narabi
 const { glass, backdrop } = omote
 
+/**
+ * The widest a sheet is drawn at: the screen, less the inset it floats on.
+ *
+ * Stated once because it is the complement of the `sm:*-4` the sides set — move
+ * the panel's float and this has to move with it, and two copies would leave one
+ * behind. `sheetCeiling` measures the same gap off the element for the gesture.
+ */
+const CAP = 'sm:max-w-[calc(100%-2rem)]'
+
 export const k = {
 	...bridge.panel(panel, {
 		panel: defineRecipe({
@@ -36,14 +45,28 @@ export const k = {
 				top: slide.top,
 				bottom: slide.bottom,
 			},
-			width: shaku.panel,
+			// The named steps are max-widths and nothing more, so they stay the shared
+			// scale. `fit` is a different kind of answer — the panel takes the width of
+			// what it holds — so it is stated here rather than pushed into a scale
+			// Dialog also reads.
+			//
+			// Empty on the axis, because a width the panel shrink-wraps to only means
+			// something on the sides it is docked across. The compounds below give it
+			// to `right` and `left`; a `top` or `bottom` sheet spans the screen, and
+			// shrink-wrapping one would pull a full-width panel into a corner.
+			width: { ...shaku.panel, fit: [] },
 			surface: {
 				glass: [...glass],
 				flat: [...panel.surface.bg],
 			},
 			compound: [
-				{ side: 'right', width: 'full', class: 'sm:left-4 sm:max-w-[calc(100%-2rem)]' },
-				{ side: 'left', width: 'full', class: 'sm:right-4 sm:max-w-[calc(100%-2rem)]' },
+				{ side: 'right', width: 'full', class: `sm:left-4 ${CAP}` },
+				{ side: 'left', width: 'full', class: `sm:right-4 ${CAP}` },
+				// Below `sm` the side's own `w-full` still wins, so a phone keeps a
+				// flush, full-width sheet: there is no room there for a panel to be
+				// narrower than the screen.
+				{ side: 'right', width: 'fit', class: `sm:w-max ${CAP}` },
+				{ side: 'left', width: 'fit', class: `sm:w-max ${CAP}` },
 			],
 			defaults: { side: 'right', width: 'md', surface: 'flat' },
 		}),

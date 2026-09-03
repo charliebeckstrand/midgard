@@ -3,7 +3,7 @@ import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/ta
 import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { renderUI, waitFor } from '../helpers'
+import { frames, renderUI, waitFor } from '../helpers'
 
 /**
  * Resize tracking under a real engine: a genuine `ResizeObserver` fires as the
@@ -45,13 +45,6 @@ function plotSvg(container: HTMLElement): SVGSVGElement {
 /** The committed frame width — the width component of the plot SVG's viewBox. */
 function frameWidth(container: HTMLElement): string | undefined {
 	return plotSvg(container).getAttribute('viewBox')?.split(' ')[2]
-}
-
-/** Two frames: one for the observer delivery, one for the commit to paint. */
-function frames() {
-	return new Promise((resolve) => {
-		requestAnimationFrame(() => requestAnimationFrame(resolve))
-	})
 }
 
 describe('chart resize tracking (real browser)', () => {

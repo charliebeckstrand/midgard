@@ -821,6 +821,40 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	resizable?: boolean
 
 	/**
+	 * Custom content for the toolbar's top row, rendered at its trailing edge —
+	 * across from the quick search, ahead of the table-tools cluster.
+	 *
+	 * For a narrowing the grid does not own: a filter over a value the rows are
+	 * joined to rather than one they carry, or one the consumer applies before the
+	 * grid ever sees the rows. It sits beside the search because it does the same
+	 * job; under the panel's title it would read as being about the panel.
+	 *
+	 * The row renders for this alone, so a grid with no search and no tools still
+	 * gets one. The footer's own slot is {@link GridFooter.content}.
+	 */
+	toolbar?: ReactNode
+
+	/**
+	 * What the columns are sized against.
+	 *
+	 * `fill` spends the width the grid is given: every column clears its content
+	 * and the surplus lifts the narrow ones toward a shared level, so the table is
+	 * exactly as wide as its container. That is what a grid inside a box should do.
+	 *
+	 * `fit` sizes the columns to their own content and lets the table be however
+	 * wide that comes to — for a container built around the grid rather than the
+	 * other way round. A box that shrink-wraps a `fill` grid asks it how wide it
+	 * wants to be while the grid is asking the box, and the pair settles wherever
+	 * the layout lands, differently on different renders; `fit` is the answer that
+	 * does not depend on the question. Pair it with a container that shrink-wraps,
+	 * such as `<Sheet width="fit">`, and give that container a cap — a grid whose
+	 * columns cannot fit the screen still scrolls sideways, which is the honest
+	 * outcome rather than a defect.
+	 * @defaultValue 'fill'
+	 */
+	width?: 'fill' | 'fit'
+
+	/**
 	 * Controlled/uncontrolled column-width state; pairs with
 	 * {@link GridDataProps.resizable} to persist widths. Providing a controlled
 	 * `value` stands the automatic content sizing down — the consumer owns every

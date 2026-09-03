@@ -85,7 +85,22 @@ export function PlaceFormDrawer({
 	const title = editing ? 'Edit place' : 'Add place'
 
 	return (
-		<Drawer glass open={open} onOpenChange={onOpenChange} aria-label={title}>
+		<Drawer
+			glass
+			// Grown to the form, and stopping at the screen rather than short of it —
+			// the second case `DrawerProps.height` describes, measured here: at a 700px
+			// window `auto` held the panel at 595 while the fields came to 709, leaving
+			// the review below the fold.
+			//
+			// The travel matters to a form for its own reason. A validation message
+			// appearing under a field changes the panel's height, and a panel that
+			// jumped would move the fields under the reader's cursor at the moment they
+			// are being told to fix one.
+			height="fit"
+			open={open}
+			onOpenChange={onOpenChange}
+			aria-label={title}
+		>
 			<Flex justify="between" align="center" className="px-6 pt-6">
 				<DrawerTitle className="p-0">{title}</DrawerTitle>
 
@@ -111,9 +126,11 @@ export function PlaceFormDrawer({
 				}}
 			>
 				<DrawerBody>
-					{/* Two columns from `sm`, so a half-height panel holds the whole form
-					    without the body scrolling past its own footer. The search leads
-					    across both, because it is the field that fills the others. */}
+					{/* Two columns from `sm`, which is what keeps the form short enough for
+					    the panel to hold all of it: stacked, these fields run past any
+					    screen and the reader scrolls to reach the button they are aiming
+					    for. The search leads across both, because it is the field that
+					    fills the others. */}
 					<div className="grid grid-cols-1 items-start gap-x-6 gap-y-5 pb-6 sm:grid-cols-2">
 						<div className="sm:col-span-2">
 							<PlaceSearchField />
@@ -130,9 +147,14 @@ export function PlaceFormDrawer({
 						<Field>
 							<Label>Category</Label>
 
+							{/* Clearable, because a reader who picked the wrong one otherwise has
+							    no way back to having picked nothing. Category is required, so
+							    clearing surfaces the field's own message on submit rather than
+							    writing a place without one. */}
 							<Listbox<PlaceCategory>
 								name="category"
 								placeholder="Pick a category"
+								clearable
 								displayValue={categoryLabel}
 							>
 								{CATEGORIES.map((category) => (

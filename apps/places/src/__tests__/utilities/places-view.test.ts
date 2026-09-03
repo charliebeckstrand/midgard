@@ -5,8 +5,10 @@ import {
 	groupTrail,
 	initialView,
 	knownCountry,
+	openingRegion,
 	type PlaceView,
 	regionOf,
+	regionsHolding,
 	stateLabel,
 	stateOf,
 	UNITED_STATES,
@@ -306,5 +308,49 @@ describe('initialView', () => {
 	// Nothing to place is nothing to widen the frame for.
 	it('opens on the United States for an empty collection', () => {
 		expect(initialView(new Map(), [])).toEqual(UNITED_STATES_VIEW)
+	})
+})
+
+describe('regionsHolding', () => {
+	const rows = [place('a'), place('b'), place('c')]
+
+	it('names each region once, sorted', () => {
+		const held = new Map([
+			['a', 'Texas'],
+			['b', 'Idaho'],
+			['c', 'Texas'],
+		])
+
+		// A filter built from this offers Idaho and Texas — not Texas twice, and not
+		// the fifty-odd the atlas draws.
+		expect(regionsHolding(rows, held)).toEqual(['Idaho', 'Texas'])
+	})
+
+	it('passes over a place no region holds', () => {
+		// An unplaced place is not a region, so it contributes no option — the
+		// filter would otherwise carry a blank one that narrowed to nothing.
+		expect(regionsHolding(rows, new Map([['a', 'Idaho']]))).toEqual(['Idaho'])
+	})
+
+	it('offers nothing for no places', () => {
+		expect(regionsHolding([], new Map([['a', 'Idaho']]))).toEqual([])
+	})
+})
+
+describe('openingRegion', () => {
+	it('opens on the region the view is cut to', () => {
+		// The reader came from that projection, so it is a narrowing they made.
+		expect(openingRegion('Idaho', ['Idaho', 'Texas'])).toBe('Idaho')
+	})
+
+	it('declines a region holding none of these places', () => {
+		// Opening on it would stand the reader in front of an empty table.
+		expect(openingRegion('Idaho', ['Texas'])).toBeNull()
+	})
+
+	it('declines the whole atlas, which is not a region', () => {
+		expect(openingRegion(null, ['Idaho'])).toBeNull()
+
+		expect(openingRegion(undefined, ['Idaho'])).toBeNull()
 	})
 })

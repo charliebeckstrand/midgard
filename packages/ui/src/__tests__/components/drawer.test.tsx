@@ -333,6 +333,34 @@ describe('Drawer size context', () => {
 		expect(drawerPanel()).not.toHaveClass('rounded-t-xl')
 	})
 
+	// `fit` grows to its content like `auto` and stops at the screen rather than
+	// short of it, and it travels between the heights its content asks for — see
+	// `usePanelFit`. Both the travel and the squaring are measurements, and jsdom
+	// lays nothing out, so what is left here is the cap and the standing down: the
+	// browser suite (`drawer-fit-travel`) is where the travel itself is asserted.
+	it('caps a fitted panel at the screen, and measures nothing until laid out', () => {
+		renderUI(
+			<Drawer open onOpenChange={() => {}} height="fit">
+				content
+			</Drawer>,
+		)
+
+		expect(drawerPanel()).toHaveAttribute('data-height', 'fit')
+
+		expect(drawerPanel()).toHaveClass('max-h-dvh')
+
+		expect(drawerPanel()).not.toHaveClass('max-h-[85dvh]')
+
+		expect(drawerPanel()).toHaveClass('rounded-t-xl')
+
+		// Nothing measured the panel, so it stands at neither its ceiling nor a
+		// pinned height: it is left to its own classes rather than to the zero an
+		// unlaid-out box reports.
+		expect(drawerPanel()).not.toHaveAttribute('data-full')
+
+		expect(drawerPanel()?.style.height).toBe('')
+	})
+
 	it('descendant Buttons inherit the Drawer size', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}} size="lg">

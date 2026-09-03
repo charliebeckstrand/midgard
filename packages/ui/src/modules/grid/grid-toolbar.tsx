@@ -20,6 +20,8 @@ type GridToolbarProps = {
 	 * the start of the top row. `null` drops the field.
 	 */
 	filter: GridGlobalFilterView | null
+	/** The consumer's own content for the top row. @see {@link GridDataProps.toolbar} */
+	content: ReactNode
 	/** Render the column-manager trigger in the tools cluster at the end of the top row. */
 	showColumnManager: boolean
 	/** Label on the column-manager trigger (matches the dialog title). */
@@ -75,6 +77,7 @@ type GridToolbarProps = {
  */
 export function GridToolbar({
 	filter,
+	content,
 	showColumnManager,
 	columnManagerLabel,
 	onManageColumns,
@@ -94,7 +97,7 @@ export function GridToolbar({
 
 	const hasActiveFilters = columnFilters?.hasActive() ?? false
 
-	const showTopRow = Boolean(filter) || hasActiveFilters || showTools
+	const showTopRow = Boolean(filter) || hasActiveFilters || showTools || Boolean(content)
 
 	if (!showTopRow && !showBatch) return null
 
@@ -116,6 +119,11 @@ export function GridToolbar({
 							Clear filters
 						</Button>
 					)}
+
+					{/* The consumer's own, across from the search and ahead of the tools:
+					    it is the grid's row to lay out, and a filter the consumer adds
+					    belongs beside the one the grid renders rather than under it. */}
+					{content ? <div className={cn(k.toolbar.content)}>{content}</div> : null}
 
 					{showTools && (
 						<Toolbar aria-label="Table tools" className={cn(k.toolbar.actions)}>

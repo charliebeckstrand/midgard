@@ -91,6 +91,17 @@ export function panelAxis(side: PanelSide): PanelAxis {
 	return SIDES[side].axis
 }
 
+/**
+ * The tallest a panel is drawn at, given the panel and the screen along its axis.
+ *
+ * The caller's, because it is a fact about how the panel is laid out rather than
+ * about the axis it moves on — and it is shared, because the gesture and the fit
+ * have to agree on where the panel stops.
+ *
+ * @internal
+ */
+export type PanelCeiling = (panel: HTMLElement, viewport: number) => number
+
 /** One sample of a gesture: where the pointer was along the axis, and when. @internal */
 export type ResizeSample = { at: number; t: number }
 
@@ -191,7 +202,7 @@ export type PanelResizeOptions = {
 	 * the edges it floats against and has to keep that inset at its widest — a
 	 * ceiling of the whole screen would push its far edge off the other side.
 	 */
-	ceilingOf: (panel: HTMLElement, viewport: number) => number
+	ceilingOf: PanelCeiling
 }
 
 /**

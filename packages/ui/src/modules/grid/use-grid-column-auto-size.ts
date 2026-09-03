@@ -17,6 +17,19 @@ import { type ColumnMeasurement, measureColumnIntrinsics } from './engine/grid-c
 import { parsePxWidth } from './engine/grid-table/options'
 import type { GridColumn } from './types'
 
+/**
+ * The width the allocator is given to spend: the container's, or none for a grid
+ * sizing to its own content — {@link allocateColumnWidths}'s deficit branch,
+ * which is already "hold every column at its content and let the table
+ * overflow".
+ *
+ * A function rather than a ternary at the call site, which would put the pass
+ * over the complexity the lint allows.
+ */
+function allocationWidth(fitContent: boolean, spendable: number): number {
+	return fitContent ? 0 : spendable
+}
+
 /** Options for {@link useGridColumnAutoSize}. @internal */
 type GridColumnAutoSizeOptions<T> = {
 	resizable: boolean
@@ -37,6 +50,12 @@ type GridColumnAutoSizeOptions<T> = {
 	rowsSignature: string
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityLevel | undefined
+	/**
+	 * Size the columns to their own content rather than to the container, so
+	 * nothing the pass produces was measured from the box it is about to size.
+	 * @see {@link GridDataProps.width}
+	 */
+	fitContent: boolean
 	/**
 	 * Per-column hard floor (px), written each measurement pass for the drag-resize
 	 * bounds and clamp to read — so a manual resize honors the same minimum the
@@ -187,6 +206,7 @@ export function useGridColumnAutoSize<T>({
 	containerRef,
 	rowsSignature,
 	density,
+	fitContent,
 	columnFloors,
 	freezeOnRowChange = false,
 	initialSizing,
@@ -312,7 +332,10 @@ export function useGridColumnAutoSize<T>({
 			// Reserve the table's horizontal border chrome (see `tableChrome`).
 			const chrome = tableChrome(container, table.getTotalSize())
 
-			const sizing = allocateColumnWidths(profiles, width - chrome - fixed)
+			const sizing = allocateColumnWidths(
+				profiles,
+				allocationWidth(fitContent, width - chrome - fixed),
+			)
 
 			// Settled only once a pass has read real body cells. A provisional pass — the
 			// floor-only fit made against a loading skeleton, before the rows arrive — is
@@ -328,7 +351,7 @@ export function useGridColumnAutoSize<T>({
 				),
 			)
 		},
-		[enabled, table, columns, containerRef, structSig, columnFloors, autoSizingRef],
+		[enabled, table, columns, containerRef, structSig, fitContent, columnFloors, autoSizingRef],
 	)
 
 	// Hand width control to the user: hold every visible data column at its current

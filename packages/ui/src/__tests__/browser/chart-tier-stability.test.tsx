@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { renderUI } from '../helpers'
+import { frames, renderUI } from '../helpers'
 
 /**
  * Tier stability at the spark boundary under a real engine. A legended, titled
@@ -20,13 +20,6 @@ const DATA = [
 	{ month: 'Feb', revenue: 51, costs: 30 },
 	{ month: 'Mar', revenue: 47, costs: 33 },
 ]
-
-/** Two frames: one for the observer delivery, one for the commit to paint. */
-function frames() {
-	return new Promise((resolve) => {
-		requestAnimationFrame(() => requestAnimationFrame(resolve))
-	})
-}
 
 function chart() {
 	return (

@@ -256,6 +256,10 @@ export const k = {
 		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
 		// from the search field (and stays at the end even when it stands alone).
 		actions: 'sm:ml-auto',
+		// The consumer's own content, pushed to the end the same way. It sits ahead
+		// of the tools, so with both present the free space opens once — here — and
+		// the two clusters stay together at the row's end.
+		content: 'sm:ml-auto',
 	},
 	// Group-by icon button in a column header (see `GridGroupByButton`): press to
 	// group the rows by the column, press again to ungroup.

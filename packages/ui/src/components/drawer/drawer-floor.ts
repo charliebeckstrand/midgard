@@ -39,6 +39,11 @@ export function drawerFloor(panel: HTMLElement, height: number): number {
  * `auto` stops short of the top edge, and a drag that ignored that would commit
  * and report a height the element never takes.
  *
+ * It answers for the fit as well as the gesture, so this number decides two
+ * things: where a drag stops, and where a `fit` panel is standing at its ceiling
+ * and squares the top corners it now meets the screen edge with. Re-tune it and
+ * both move.
+ *
  * @internal
  */
 export function drawerCeiling(panel: HTMLElement, viewport: number): number {
