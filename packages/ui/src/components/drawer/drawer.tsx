@@ -4,9 +4,11 @@ import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yPanel } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useControllable } from '../../hooks/use-controllable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
+import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
@@ -51,14 +53,35 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> & {
 	/**
 	 * How much of the screen the panel docks over.
 	 *
-	 * `auto` grows to the content and stops short of the top edge, which is what
-	 * a drawer is for: the page it came from stays visible behind it. `half` and
-	 * `full` fix the height instead, for a panel whose own body scrolls — a
-	 * detail panel beside the thing it describes, or a form that owns the screen
-	 * for as long as it is up. `full` squares the top corners, because a rounded
-	 * corner against the screen edge reads as a panel that failed to reach it.
+	 * `auto` and `fit` grow to the content; `half` and `full` fix the height
+	 * instead, for a panel whose own body scrolls — a detail panel beside the
+	 * thing it describes, or a form that owns the screen for as long as it is up.
 	 *
-	 * The body scrolls within the panel either way, so a fixed height never
+	 * The two grown steps differ in where they stop, and in whether the panel
+	 * travels there. `auto` stops short of the top edge, which is what a drawer is
+	 * for: the page it came from stays visible behind it. It also snaps, since a
+	 * box sized by what it holds has no second length to interpolate against.
+	 *
+	 * `fit` takes the whole screen when the content asks for that much, and
+	 * measures each new height so the panel grows or shrinks into it rather than
+	 * jumping. It is the answer wherever the panel's own content decides how tall
+	 * it should be, which is two cases in practice.
+	 *
+	 * One is a panel whose content is *swapped* — under a breadcrumb, a back step,
+	 * a detail opened from a list — where a fixed height fits one step and strands
+	 * the rest, and a snapping one resizes under the reader's hand.
+	 *
+	 * The other is a panel that simply has a size, and whose last part is the one
+	 * the reader is heading for: a form's final field, an action row. `auto`'s stop
+	 * short of the edge is above such a panel on a tall window and under it on a
+	 * short one, and the difference is a field below the fold of a body nothing
+	 * announced as scrollable.
+	 *
+	 * `full` squares the top corners, because a rounded corner against the screen
+	 * edge reads as a panel that failed to reach it; `fit` squares them on the
+	 * steps that stand it there.
+	 *
+	 * The body scrolls within the panel whichever is set, so no height ever
 	 * strands content; it decides where the panel stops, not what fits.
 	 * @defaultValue 'auto'
 	 */
@@ -125,7 +148,8 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> & {
  * Docks full-width to the bottom edge with a rounded top, slides up via the shared bottom
  * motion preset, and drives open state controlled (`open`/`onOpenChange`) or uncontrolled
  * (`defaultOpen`). `height` sets how much of the screen it docks over: growing to its content
- * by default, or fixed at half or the whole of it. Resolves the surface variant against the enclosing Glass provider and opens
+ * by default, growing to it under Framer Motion and up to the whole screen with `fit`, or
+ * fixed at half or the whole of it. Resolves the surface variant against the enclosing Glass provider and opens
  * a Density cascade at the resolved `size` so descendants scale in step. Compose
  * `<DrawerTrigger>`, `<DrawerClose>`, and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
  * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within.
@@ -189,6 +213,21 @@ export function Drawer({
 		ceilingOf: drawerCeiling,
 	})
 
+	// The other half of the panel's height, and the one the panel itself decides:
+	// a `fit` panel grows and shrinks into whatever it is handed. It stands down
+	// for a drag, so the two never write the same property at once, and it stamps
+	// its own `data-full` rather than reporting one back through a render.
+	const fitRef = usePanelFit({
+		enabled: height === 'fit',
+		dragged: resize.size !== null,
+		ceilingOf: drawerCeiling,
+		transition: k.fit,
+	})
+
+	// One node, two readers of it. The gesture writes the height the reader sets
+	// and the fit writes the height the content asks for; both need the element.
+	const panelRef = useComposedRef(resize.ref, fitRef)
+
 	const { ariaProps, a11y } = useA11yPanel()
 
 	const inherited = useDensity()
@@ -208,7 +247,7 @@ export function Drawer({
 				// After the preset spread, so it overrides the preset's own `initial`.
 				initial={animateEnter ? k.motion.initial : false}
 				onAnimationComplete={onAnimationComplete}
-				ref={resize.ref}
+				ref={panelRef}
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
@@ -229,8 +268,9 @@ export function Drawer({
 				// top inset, and the header that follows must not add its own on top.
 				data-handle={dataAttr(handle === true)}
 				onClick={(event) => event.stopPropagation()}
-				// A dragged height beats the variant's, and it is inline because it is a
-				// measurement rather than a step — there is no class for "412 pixels".
+				// A dragged height beats the variant's — and a `fit` panel's, which stands
+				// down for as long as one is held. It is inline because it is a
+				// measurement rather than a step: there is no class for "412 pixels".
 				style={resize.size === null ? undefined : { height: resize.size }}
 				className={cn(
 					'group/drawer',

@@ -69,11 +69,13 @@ function PlaceMeta({ place }: { place: Place }) {
 }
 
 /**
- * The half-screen glass drawer that shows what a dot stands for.
+ * The glass drawer that shows what a dot stands for.
  *
- * It docks over the lower half so the map keeps the dot that opened it in view —
- * a panel that covered the map would take away the thing the reader just
- * pointed at.
+ * It is as tall as the step it is showing. One place leaves most of the map up,
+ * including the dot that opened the panel; a region with places enough takes the
+ * screen, because a step with that much to show is one the reader came to read.
+ * The panel travels between the two rather than snapping, so the resize reads as
+ * the crumb being followed instead of the panel moving under the reader's hand.
  *
  * A summary dot opens as the list of every place in its region, because a
  * summary is a fact about the frame — the same dots separate as the reader zooms
@@ -213,28 +215,33 @@ export function PlaceDrawer({
 	return (
 		<Drawer
 			glass
-			handle
-			// Fixed rather than grown to fit, because this panel is navigated: the
-			// crumb walks between the region's list and one place, and an `auto`
-			// height made every one of those steps a resize — a list of twelve
-			// opened tall and drilling into one of them collapsed the panel under
-			// the reader's hand, on the step where they had just committed to
-			// something inside it. A container must not move because its contents
-			// changed; the body scrolls, which is what a fixed height is for.
+			// Grown to what each step holds, because this panel is navigated: the
+			// crumb walks between the region's list and one place, and the two are
+			// not the same size. A fixed height fits one of them — a list of twelve
+			// scrolls inside a box built for one place, and a place sits in a box
+			// built for the list with half of it empty under the review.
 			//
-			// It also keeps the promise the panel is named for. `auto` runs to
-			// 85dvh, so a region with places enough covered the map it docks over —
-			// and the count that decided it meant the rule itself changed as the
-			// reader added a third place to a region, which nothing they did
-			// explains. A dragged height still beats this and holds until close.
-			height="half"
+			// The travel is what makes that work rather than the size: a container
+			// moving because its contents changed reads as the panel collapsing under
+			// the reader's hand, and the same move at the speed of the crumb reads as
+			// the panel following it. A region with places enough covers the map, which
+			// is the honest answer for a step with that much to show — the crumb above
+			// is how the reader gets back to it.
+			//
+			// No grip, for the reason the height is grown at all. A drag is how a
+			// reader states a height the panel cannot work out for itself, and this
+			// one works it out every step; offering both leaves the panel with two
+			// answers and no rule for which wins that a reader could predict. The
+			// grip also lost that argument in practice: the gesture takes the press,
+			// not the travel, so a tap on the strip — or a scroll begun on it — set a
+			// height and stopped the panel following the crumb for the rest of the
+			// open, which read as the panel breaking at random.
+			height="fit"
 			open={open}
 			onOpenChange={onOpenChange}
 			aria-label={title}
 		>
-			{/* No top padding: the handle above carries it, so the title sits directly
-			    under the grip rather than a step below it. */}
-			<Flex justify="between" align="start" gap="md" className="px-6">
+			<Flex justify="between" align="start" gap="md" className="px-6 pt-6">
 				{/* `min-w-0` is what lets the trail inside give way. Without it this flex
 				    child holds its full width, so a long trail runs past the panel edge
 				    instead of truncating — the crumbs cannot shrink below a parent that

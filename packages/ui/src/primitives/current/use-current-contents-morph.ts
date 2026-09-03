@@ -1,31 +1,14 @@
 'use client'
 
-import { type AnimationPlaybackControls, animate } from 'motion'
+import type { AnimationPlaybackControls } from 'motion'
 import { useReducedMotion } from 'motion/react'
 import { type RefObject, useEffect } from 'react'
+import { travelHeight } from '../../hooks/travel-height'
 import { k } from '../../recipes/kata/current'
-
-/** One observed panel's border box, split along the morph discriminator. @internal */
-type PanelBox = {
-	inline: number
-	block: number
-}
-
-/**
- * A panel's border box, from the observer entry when it carries one. Border
- * box, not `contentRect`: the content box excludes panel padding/border,
- * under-sizing the container and clipping the bottom.
- */
-function measureBox(target: Element, borderBox?: ResizeObserverSize): PanelBox {
-	if (borderBox) return { inline: borderBox.inlineSize, block: borderBox.blockSize }
-
-	const rect = target.getBoundingClientRect()
-
-	return { inline: rect.width, block: rect.height }
-}
+import { type BorderBox, measureBox } from '../../utilities'
 
 /** The tallest tracked panel — the container's morph target. */
-function tallest(boxes: Map<Element, PanelBox>): number {
+function tallest(boxes: Map<Element, BorderBox>): number {
 	let max = 0
 
 	for (const box of boxes.values()) max = Math.max(max, box.block)
@@ -40,7 +23,7 @@ function tallest(boxes: Map<Element, PanelBox>): number {
  * moved on its own. A target's first delivery is its baseline, not a change.
  */
 function classifyEntries(
-	boxes: Map<Element, PanelBox>,
+	boxes: Map<Element, BorderBox>,
 	entries: ResizeObserverEntry[],
 ): { discrete: boolean; reflow: boolean } {
 	let discrete = false
@@ -96,7 +79,7 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 		// Track every `data-current` child's box; the container morphs to the
 		// tallest. When the context value is undefined, all panels are
 		// `data-current` and stacked.
-		const boxes = new Map<Element, PanelBox>()
+		const boxes = new Map<Element, BorderBox>()
 
 		// The container's last settled height. At rest the container sits at
 		// `height: auto`, so by the time an observer fires it has already reflowed
@@ -109,7 +92,9 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 
 		let tween: AnimationPlaybackControls | null = null
 
-		// Stops any in-flight tween and rests the box back at `height: auto`.
+		// Stops any in-flight tween and rests the box back at `height: auto`. The
+		// travel clears the pin itself on arrival; this is the other way out of one
+		// — a width-coupled change, or the hook going away.
 		const settle = () => {
 			tween?.stop()
 
@@ -118,10 +103,10 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 			element.style.height = ''
 		}
 
-		// Pins the container at its animation origin before this frame paints —
-		// observer callbacks run after layout and before paint, so nothing in
-		// between reaches the screen — then tweens the inline height to the
-		// target and hands it back to `auto` on completion.
+		// Tweens the container to the incoming height. `travelHeight` pins the
+		// origin before this frame paints — observer callbacks run after layout and
+		// before paint, so nothing in between reaches the screen — and hands the box
+		// back to `auto` on completion.
 		const morph = (to: number) => {
 			const live = element.getBoundingClientRect().height
 
@@ -133,14 +118,8 @@ export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enab
 
 			tween?.stop()
 
-			element.style.height = `${from}px`
-
-			tween = animate(from, to, {
-				...k.transition,
-				onUpdate: (height) => {
-					element.style.height = `${height}px`
-				},
-				onComplete: settle,
+			tween = travelHeight(element, from, to, k.transition, () => {
+				tween = null
 			})
 		}
 

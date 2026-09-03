@@ -77,6 +77,13 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 
+## Measurement
+
+| Export | Summary |
+|---|---|
+| `measureBox` | An element's border box (not `contentRect`, which excludes its own padding and border), taken from a `ResizeObserver` entry where the caller has one and measured where it does not — the entry is already measured, where `getBoundingClientRect` forces a layout. |
+| `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
+
 ## Keyboard navigation
 
 | Export | Summary |
