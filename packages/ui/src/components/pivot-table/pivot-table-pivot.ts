@@ -64,10 +64,13 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
 			return values.reduce((a, b) => a + b, 0)
 		case 'avg':
 			return values.reduce((a, b) => a + b, 0) / values.length
+		// `<` / `>` rather than `Math.min` / `Math.max`: the comparison keeps the
+		// first of an equal pair, so a `NaN` or a `-0` among the values reads the
+		// way it did before the reduce replaced a hand-rolled walk.
 		case 'min':
-			return values.reduce((a, b) => Math.min(a, b))
+			return values.reduce((a, b) => (b < a ? b : a))
 		case 'max':
-			return values.reduce((a, b) => Math.max(a, b))
+			return values.reduce((a, b) => (b > a ? b : a))
 	}
 }
 

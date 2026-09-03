@@ -156,9 +156,13 @@ function positionOf(time: number, anchors: Anchor[], band: BandScale): number {
 
 	if (time >= last.time) return band.center(last.index)
 
-	// The segment starts at the last anchor at or before `time`. `last` is later
-	// than `time`, so the match is never the final anchor and `low + 1` holds.
-	const low = anchors.findLastIndex((anchor) => anchor.time <= time)
+	// Walk to the first anchor whose successor is later than `time`, rather than
+	// to the last anchor at or before it: the two agree only on ascending anchors,
+	// and `times` arrives in row order, so a table sorted by another column can
+	// hand this a later instant before an earlier one.
+	let low = 0
+
+	while (low < anchors.length - 1 && (anchors[low + 1] as Anchor).time <= time) low++
 
 	const a = anchors[low] as Anchor
 	const b = anchors[low + 1] as Anchor
