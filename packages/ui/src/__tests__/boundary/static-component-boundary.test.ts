@@ -23,6 +23,13 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 //     discoverable by filename, so the scan needs no list and can't drift as
 //     new skeletons land. Do not add skeleton files to the curated list —
 //     the scan already owns them.
+//   - STATIC_PRIMITIVE_FILES holds the primitives a static leaf renders
+//     through. A leaf can only be as server-renderable as what it imports,
+//     and the checks above read one file at a time: a directive or a hook
+//     landing in `PolymorphicStatic` would leave every leaf that renders
+//     through it clean here while breaking all of them at an app's build.
+//     These files are the static tier's own dependencies, so they answer to
+//     the same contract.
 //
 // Curated paths are relative to `src/components`.
 const STATIC_COMPONENT_FILES = [
@@ -81,7 +88,15 @@ const STATIC_COMPONENT_FILES = [
 	'text/text.tsx',
 ] as const
 
+// Paths are relative to `src/primitives`.
+const STATIC_PRIMITIVE_FILES = [
+	'polymorphic/polymorphic-static.tsx',
+	'polymorphic/fallback.tsx',
+] as const
+
 const componentsDir = join(srcDir, 'components')
+
+const primitivesDir = join(srcDir, 'primitives')
 
 const modulesDir = join(srcDir, 'modules')
 
@@ -159,8 +174,17 @@ describe('static component boundary', () => {
 		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
 	})
 
+	it.each(STATIC_PRIMITIVE_FILES)('%s stays server-renderable', (file) => {
+		const breaches = staticBreaches(readFileSync(join(primitivesDir, file), 'utf8'))
+
+		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
+	})
+
 	it('the curated static list has no stale entries', () => {
-		const missing = STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file)))
+		const missing = [
+			...STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file))),
+			...STATIC_PRIMITIVE_FILES.filter((file) => !existsSync(join(primitivesDir, file))),
+		]
 
 		expect(
 			missing,
