@@ -44,7 +44,7 @@ const entry = {
 export default defineConfig({
 	entry,
 	format: ['esm'],
-	target: 'es2022',
+	target: 'es2023',
 	outDir: 'dist',
 	clean: true,
 	dts: false,

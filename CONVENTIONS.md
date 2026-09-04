@@ -113,6 +113,8 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 
+11.3 The supported browser floor is [`.browserslistrc`](.browserslistrc), and the ES2023 change-by-copy array methods set it. A build target does not enforce it: esbuild and SWC downlevel syntax, never instance methods, so a method the floor doesn't cover ships and throws. Reaching below the floor costs a polyfill, not a config change.
+
 ## 12. Documentation
 
 12.1 Public-surface symbols carry TSDoc. Every symbol a barrel re-exports (a component and its `*Props`, each hook, primitive, provider, and `ui/core` export) opens with a summary-first doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2): the first sentence states what it is, then `@param` / `@returns` where the signature isn't self-evident, `@defaultValue` on defaulted optional fields, `@remarks` for caveats, `@see {@link …}` to cross-link, and `@internal` on a documented helper that no barrel re-exports — the tag and a barrel entry are mutually exclusive, pinned by `internal-barrel-boundary.test.ts`. Don't restate the type or document self-evident fields. Standard: [TSDoc](https://tsdoc.org).
