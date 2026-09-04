@@ -19,7 +19,7 @@ import { Box } from '../box'
 import type { ControlSize } from '../control/context'
 
 // Keys the virtual model navigates with; see the dialog's onKeyDown below.
-const NAVIGATION_KEYS = new Set([
+const ARROW_KEYS = new Set([
 	'ArrowUp',
 	'ArrowDown',
 	'ArrowLeft',
@@ -173,7 +173,7 @@ export function DatePickerContent({
 							// for the dialog first: a grid move can re-anchor the month
 							// and unmount the focused day button, dropping focus to
 							// <body>.
-							if (NAVIGATION_KEYS.has(event.key) && event.target !== event.currentTarget) {
+							if (ARROW_KEYS.has(event.key) && event.target !== event.currentTarget) {
 								event.currentTarget.focus()
 							}
 

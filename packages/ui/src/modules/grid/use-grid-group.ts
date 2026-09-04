@@ -114,17 +114,15 @@ export function useGridGroup(groups: GridColumnGroups | undefined): GridGroupRes
 		[colToGroup, collapsed, toggleCollapse],
 	)
 
-	const setGroupsValue = useCallback((next: GridColumnGroup[]) => setGroups(next), [setGroups])
-
 	const enabled = groups !== undefined
 
 	return {
 		enabled,
 		hasGroups: resolvedGroups.length > 0,
 		groups: resolvedGroups,
-		setGroups: setGroupsValue,
+		setGroups,
 		editorGroups: enabled ? resolvedGroups : undefined,
-		editorSetGroups: enabled ? setGroupsValue : undefined,
+		editorSetGroups: enabled ? setGroups : undefined,
 		collapsed,
 		toggleCollapse,
 		collapsedHidden,

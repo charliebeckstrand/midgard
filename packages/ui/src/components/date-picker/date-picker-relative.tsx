@@ -3,6 +3,7 @@
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 
 import { cn } from '../../core'
+import { affixStepDown } from '../../primitives/affix'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
@@ -15,9 +16,6 @@ import { DatePickerContent } from './date-picker-content'
 import { DatePickerFooter } from './date-picker-footer'
 import { DatePickerTrigger } from './date-picker-trigger'
 import { useDatePickerRelativeState } from './use-date-picker-relative-state'
-
-// Trigger chips read one size step below the trigger, per Badge's affix guidance.
-const chipSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
 
 /**
  * Relative variant of {@link DatePicker}: a multi-select list of relative-range
@@ -57,7 +55,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 		state.showChips && state.chips.length > 0 ? (
 			<span className={cn(k.relative.chips, 'flex-1')}>
 				{state.chips.map((chip) => (
-					<Badge key={chip.key} size={chipSize[size]} className="shrink-0 whitespace-nowrap">
+					<Badge key={chip.key} size={affixStepDown(size)} className="shrink-0 whitespace-nowrap">
 						{chip.label}
 					</Badge>
 				))}

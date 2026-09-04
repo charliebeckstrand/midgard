@@ -1,4 +1,5 @@
 import { ts } from 'ts-morph'
+import { reindent } from '../../derive-code/indent'
 import { formatPropType, formatType } from './format-type'
 import { unaliasSymbol } from './ts-utils'
 
@@ -182,7 +183,7 @@ function resolveAliasDefinition(
 		if (ts.isTypeAliasDeclaration(decl)) {
 			const shape = formatApparentShape(aliased, decl, checker)
 
-			if (shape) return { text: dedent(shape), declaration: decl }
+			if (shape) return { text: reindent(shape, ''), declaration: decl }
 
 			const resolved = computedLiteralUnion(decl, checker)
 
@@ -192,15 +193,15 @@ function resolveAliasDefinition(
 
 			const body = `${params ? `${params} = ` : ''}${decl.type.getText()}`
 
-			return { text: dedent(body), declaration: decl }
+			return { text: reindent(body, ''), declaration: decl }
 		}
 
 		if (ts.isInterfaceDeclaration(decl)) {
 			const shape = formatApparentShape(aliased, decl, checker)
 
-			if (shape) return { text: dedent(shape), declaration: decl }
+			if (shape) return { text: reindent(shape, ''), declaration: decl }
 
-			return { text: dedent(formatInterface(decl)), declaration: decl }
+			return { text: reindent(formatInterface(decl), ''), declaration: decl }
 		}
 	}
 
@@ -333,33 +334,4 @@ function typeParameterList(params: ts.NodeArray<ts.TypeParameterDeclaration> | u
 	if (!params || params.length === 0) return ''
 
 	return `<${params.map((p) => p.getText()).join(', ')}>`
-}
-
-/**
- * Strips common leading indentation from a multi-line fragment, anchoring the
- * body at column 0 regardless of where the declaration appears in source
- * (top level, inside a namespace, …).
- */
-function dedent(text: string): string {
-	const lines = text.split('\n')
-
-	if (lines.length <= 1) return text
-
-	let minIndent = Infinity
-
-	for (let i = 1; i < lines.length; i++) {
-		const line = lines[i]
-
-		if (!line || line.trim().length === 0) continue
-
-		const match = line.match(/^[ \t]*/)
-
-		const indent = match ? match[0].length : 0
-
-		if (indent < minIndent) minIndent = indent
-	}
-
-	if (minIndent === Infinity || minIndent === 0) return text
-
-	return lines.map((line, i) => (i === 0 ? line : line.slice(minIndent))).join('\n')
 }

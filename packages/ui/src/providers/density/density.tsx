@@ -47,7 +47,5 @@ export function DensityProvider({ density, children }: DensityProviderProps) {
 export function useDensityLevel(explicit?: DensityLevel): DensityLevel {
 	const ambient = useDensityNullable()
 
-	if (explicit) return explicit
-
-	return ambient ? sizeToDensityLevel[ambient.space] : 'snug'
+	return explicit ?? (ambient ? sizeToDensityLevel[ambient.space] : 'snug')
 }

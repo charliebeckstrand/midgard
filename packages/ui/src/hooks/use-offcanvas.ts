@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { matchesMediaQuery, subscribeMediaQuery } from '../utilities/media-query'
 import { useOpenChange } from './use-open-change'
 
 type OffcanvasOptions = {
@@ -40,15 +41,11 @@ export function useOffcanvas({ onOpenChange }: OffcanvasOptions = {}) {
 		// is an invalid query that never fires.
 		if (!breakpoint) return
 
-		const mql = window.matchMedia(`(min-width: ${breakpoint})`)
+		const query = `(min-width: ${breakpoint})`
 
-		const handler = () => {
-			if (mql.matches) setOpen(false)
-		}
-
-		mql.addEventListener('change', handler)
-
-		return () => mql.removeEventListener('change', handler)
+		return subscribeMediaQuery(query, () => {
+			if (matchesMediaQuery(query)) setOpen(false)
+		})
 	}, [])
 
 	return { open, setOpen, close }

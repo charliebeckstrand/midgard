@@ -48,9 +48,7 @@ export function PresencePortal({ open, container, onExitComplete, children }: Pr
 
 	if (open && !mounted) setMounted(true)
 
-	if (typeof document === 'undefined') return null
-
-	if (!mounted) return null
+	if (typeof document === 'undefined' || !mounted) return null
 
 	const handleExitComplete = () => {
 		setMounted(false)

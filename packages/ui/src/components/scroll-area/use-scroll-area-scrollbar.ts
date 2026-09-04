@@ -84,13 +84,11 @@ function beginScrollbarDrag(
 		ctx.dragCleanupRef.current = null
 	}
 
-	const onUp = () => cleanup()
-
 	window.addEventListener('pointermove', onMove, { signal })
-	window.addEventListener('pointerup', onUp, { signal })
+	window.addEventListener('pointerup', cleanup, { signal })
 	// A cancelled pointer (OS gesture, pen leaving range) never fires pointerup;
 	// without this the drag keeps scrolling on buttonless moves.
-	window.addEventListener('pointercancel', onUp, { signal })
+	window.addEventListener('pointercancel', cleanup, { signal })
 
 	ctx.dragCleanupRef.current = cleanup
 }

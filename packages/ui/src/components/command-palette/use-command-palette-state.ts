@@ -15,6 +15,7 @@ import {
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
+import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
 	open: boolean
@@ -71,12 +72,10 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 	// The roving handler drives an `aria-activedescendant` highlight while focus
 	// stays in the search textbox. Reserve the keys that belong to the textbox
 	// itself — Home/End move the caret, Shift+Arrow extends the selection — so
-	// they aren't swallowed to move the option highlight (mirrors Combobox).
+	// they aren't swallowed to move the option highlight (shared with Combobox).
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLInputElement>) => {
-			if (event.key === 'Home' || event.key === 'End') return
-
-			if (event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) return
+			if (isReservedTextboxKey(event)) return
 
 			rovingKeyDown(event)
 		},

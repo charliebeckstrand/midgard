@@ -1,5 +1,7 @@
 'use client'
 
+import { parseDate } from '@internationalized/date'
+import { fromCalendarDate, toCalendarDate } from '../../../components/calendar/calendar-utilities'
 import { DatePicker } from '../../../components/date-picker'
 import { Flex } from '../../../components/flex'
 import { Input } from '../../../components/input'
@@ -21,34 +23,26 @@ export type QueryBuilderRuleValueProps = {
 
 /** A range value as a `[min, max]` pair of numeric-or-blank bounds; non-tuples read as both-blank. @internal */
 function toTuple(value: unknown): [number | '', number | ''] {
-	const lo = Array.isArray(value) ? value[0] : ''
-	const hi = Array.isArray(value) ? value[1] : ''
+	const [lo, hi] = Array.isArray(value) ? value : []
 
-	return [lo == null ? '' : (lo as number | ''), hi == null ? '' : (hi as number | '')]
+	return [lo ?? '', hi ?? '']
 }
 
-// Serializes/parses the date by its local wall-clock components. Round-tripping
-// through `toISOString().slice(0, 10)` / `new Date('YYYY-MM-DD')` interprets the
-// value as UTC midnight and drifts the day by ±1 in non-UTC timezones.
+// Serializes/parses the date by its local wall-clock components, through the
+// calendar's timezone-free `CalendarDate`. Round-tripping through
+// `toISOString().slice(0, 10)` / `new Date('YYYY-MM-DD')` would read the value
+// as UTC midnight and drift the day by ±1 in non-UTC timezones.
 function toIsoDate(date: Date): string {
-	const year = date.getFullYear()
-	const month = String(date.getMonth() + 1).padStart(2, '0')
-	const day = String(date.getDate()).padStart(2, '0')
-
-	return `${year}-${month}-${day}`
+	return toCalendarDate(date).toString()
 }
 
+/** The local-midnight `Date` for a `YYYY-MM-DD` string, or `undefined` where it does not parse. */
 function fromIsoDate(value: string): Date | undefined {
-	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)
-
-	if (!match) return undefined
-
-	const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
-
-	// Years 0–99 would otherwise resolve to 19xx.
-	date.setFullYear(Number(match[1]))
-
-	return date
+	try {
+		return fromCalendarDate(parseDate(value))
+	} catch {
+		return undefined
+	}
 }
 
 /**

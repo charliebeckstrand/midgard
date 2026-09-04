@@ -42,15 +42,13 @@ export type SplitProps = {
 export function Split({
 	orientation = 'horizontal',
 	ratio = '1/2',
-	gap,
+	gap = 'lg',
 	align,
 	className,
 	style,
 	children,
 	...props
 }: SplitProps) {
-	const resolvedGap = gap ?? 'lg'
-
 	const [a, b] = ratioTuples[ratio]
 	const template = `${a}fr ${b}fr`
 
@@ -62,7 +60,7 @@ export function Split({
 	return (
 		<div
 			data-slot="split"
-			className={cn('grid', gapMap[resolvedGap], align && alignMap[align], className)}
+			className={cn('grid', gapMap[gap], align && alignMap[align], className)}
 			style={{ ...ratioStyle, ...style }}
 			{...props}
 		>

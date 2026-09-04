@@ -62,19 +62,17 @@ export function heatmapCells(
 ): HeatmapCell[] {
 	const gap = MARK_GAP / 2
 
-	const cells: HeatmapCell[] = []
+	const fitsX = xBand.width > MARK_GAP + 1
 
-	matrix.forEach((columns, row) => {
-		columns.forEach((value, col) => {
-			const fitsX = xBand.width > MARK_GAP + 1
+	const fitsY = yBand.width > MARK_GAP + 1
 
-			const fitsY = yBand.width > MARK_GAP + 1
+	const width = fitsX ? xBand.width - MARK_GAP : xBand.width
 
-			const width = fitsX ? xBand.width - MARK_GAP : xBand.width
+	const height = fitsY ? yBand.width - MARK_GAP : yBand.width
 
-			const height = fitsY ? yBand.width - MARK_GAP : yBand.width
-
-			cells.push({
+	return matrix.flatMap((columns, row) =>
+		columns.map(
+			(value, col): HeatmapCell => ({
 				x: xBand.at(col) + (fitsX ? gap : 0),
 				y: yBand.at(row) + (fitsY ? gap : 0),
 				width: Math.max(0, width),
@@ -84,11 +82,9 @@ export function heatmapCells(
 				col,
 				value,
 				key: `${row}:${col}`,
-			})
-		})
-	})
-
-	return cells
+			}),
+		),
+	)
 }
 
 /**

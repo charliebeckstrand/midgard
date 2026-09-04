@@ -11,23 +11,10 @@ import {
 	useId,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/option'
+import { memoWeak } from '../../utilities'
 import { useDensity } from '../density'
 import { capitalizeFirst } from '../select-trigger/capitalize'
-
-/**
- * Per-Density-step Tailwind size class for the selected-state check icon,
- * mirroring `<Icon>`'s size scale. Local to this primitive so it never imports
- * `<Icon>` from `components/`.
- *
- * @internal
- */
-const checkIconSize = {
-	sm: 'size-4',
-	md: 'size-5',
-	lg: 'size-6',
-} satisfies Record<Step, string>
 
 /**
  * Props for {@link BaseOption}: selection state (`selected`, `disabled`), the
@@ -100,6 +87,8 @@ function BaseOptionImpl({
 	// Only mint an id for active-descendant lists; an explicit id always wins.
 	const optionId = id ?? (activeDescendant ? autoId : undefined)
 
+	// A bare `<Check>` sized from the recipe's icon scale: this primitive
+	// never imports `<Icon>` from `components/`.
 	const checkIcon = icon ?? (
 		<Check
 			aria-hidden="true"
@@ -107,7 +96,7 @@ function BaseOptionImpl({
 			className={cn(
 				'relative hidden shrink-0 self-center group-data-selected/option:inline',
 				k.check,
-				checkIconSize[size],
+				k.checkSize[size],
 			)}
 		/>
 	)
@@ -225,15 +214,7 @@ function isOptionSelected(
 	multiple: boolean | undefined,
 ): boolean {
 	if (multiple && Array.isArray(selectedValue)) {
-		let set = membershipCache.get(selectedValue)
-
-		if (set === undefined) {
-			set = new Set(selectedValue)
-
-			membershipCache.set(selectedValue, set)
-		}
-
-		return set.has(value)
+		return memoWeak(membershipCache, selectedValue, (values) => new Set(values)).has(value)
 	}
 
 	return selectedValue === value
@@ -281,6 +262,8 @@ export function createSelectOption<
 		// so the memoized `BaseOption` can bail when `selected` is unchanged.
 		const handleSelect = useCallback(() => onSelect(value), [onSelect, value])
 
+		const label = capitalize && typeof children === 'string' ? capitalizeFirst(children) : children
+
 		return (
 			<BaseOption
 				id={id}
@@ -298,7 +281,7 @@ export function createSelectOption<
 				// multi-select toggles stay put until an explicit Enter/Space/click.
 				commitOnTab={!config.activeDescendant && !multiple}
 			>
-				{capitalize && typeof children === 'string' ? capitalizeFirst(children) : children}
+				{label}
 			</BaseOption>
 		)
 	}
@@ -309,9 +292,11 @@ export function createSelectOption<
 		// as authored).
 		const { capitalize } = use(config.context)
 
+		const label = capitalize && typeof children === 'string' ? capitalizeFirst(children) : children
+
 		return (
 			<OptionLabel data-slot={`${config.slotPrefix}-label`} className={className} {...props}>
-				{capitalize && typeof children === 'string' ? capitalizeFirst(children) : children}
+				{label}
 			</OptionLabel>
 		)
 	}

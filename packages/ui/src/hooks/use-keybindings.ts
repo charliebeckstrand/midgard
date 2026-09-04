@@ -30,7 +30,7 @@ type KeybindingsOptions = {
  * @param bindings - tinykeys map of key/chord pattern (e.g. `'$mod+k'`) to
  * handler. Only the set of keys is tracked for re-subscription; handler
  * identity can change freely between renders.
- * @remarks SSR-safe: the subscription effect no-ops when `window` is absent.
+ * @remarks SSR-safe: the subscription lives in an effect, which never runs on the server.
  */
 export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {
 	const { enabled = true, target, event, capture, timeout, ignore } = options
@@ -52,19 +52,15 @@ export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOpt
 	useEffect(() => {
 		if (!enabled) return
 
-		if (typeof window === 'undefined') return
-
 		const resolvedTarget = target ?? window
 
 		const keys = keySignature ? keySignature.split('\x00') : []
 
 		if (keys.length === 0) return
 
-		const wrapped: KeybindingsMap = {}
-
-		for (const key of keys) {
-			wrapped[key] = (e) => bindingsRef.current[key]?.(e)
-		}
+		const wrapped: KeybindingsMap = Object.fromEntries(
+			keys.map((key) => [key, (e: KeyboardEvent) => bindingsRef.current[key]?.(e)]),
+		)
 
 		const resolvedIgnore: KeybindingFilter | undefined = hasIgnore
 			? (e) => ignoreRef.current?.(e) ?? false

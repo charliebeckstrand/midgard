@@ -12,9 +12,7 @@ export function resolveLabel<T>({
 
 		if (arr.length === 0) return undefined
 
-		if (arr.length > 3) return `${arr.length} selected`
-
-		if (displayValue) return arr.map(displayValue).join(', ')
+		if (displayValue && arr.length <= 3) return arr.map(displayValue).join(', ')
 
 		return `${arr.length} selected`
 	}

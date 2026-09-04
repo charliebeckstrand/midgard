@@ -197,12 +197,12 @@ type ZipIndex = {
  * @internal
  */
 function mergeSpans(spans: { from: string; to: string }[]): { from: string; to: string }[] {
-	const sorted = [...spans].sort((a, b) => (a.from < b.from ? -1 : a.from > b.from ? 1 : 0))
+	const sorted = spans.toSorted((a, b) => (a.from < b.from ? -1 : a.from > b.from ? 1 : 0))
 
 	const ranges: { from: string; to: string }[] = []
 
 	for (const span of sorted) {
-		const last = ranges[ranges.length - 1]
+		const last = ranges.at(-1)
 
 		if (last !== undefined && span.from <= last.to) {
 			if (span.to > last.to) last.to = span.to

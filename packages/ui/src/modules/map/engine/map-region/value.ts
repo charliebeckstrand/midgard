@@ -32,7 +32,7 @@ import type { MapCategoryMeta } from './category'
 export function resolveValueFormat(
 	valueFormat: ((value: number) => string) | undefined,
 ): (value: number) => string {
-	return valueFormat ?? ((value) => String(value))
+	return valueFormat ?? String
 }
 
 /** Options a choropleth resolves its bins with. @internal */

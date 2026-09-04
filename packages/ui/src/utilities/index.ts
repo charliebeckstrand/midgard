@@ -1,6 +1,7 @@
 export { parseAspectRatio } from './aspect-ratio'
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
+export { clearNativeInput } from './clear-native-input'
 export {
 	binIndex,
 	type ColorBin,
@@ -31,13 +32,15 @@ export {
 export { digitsOnly } from './digits-only'
 export { isTopDismissLayer, registerDismissLayer } from './dismiss-layers'
 export { subscribeDocumentEvent } from './document-listener'
+export { FOCUSABLE_SELECTOR } from './focusable-selector'
 export { type FormatSpec, resolveFormat } from './format'
 export { formatFraction, formatInteger, formatPercent } from './format-number'
 export { isDataColumn } from './is-data-column'
 export { keyByOccurrence } from './key-by-occurrence'
-export { crossAxisDelta, type NavigationConfig, nextIndexForKey } from './keyboard-navigation'
+export { crossAxisDelta, type NavigationConfig, nextIndexForKey, wrap } from './keyboard-navigation'
 export { type BorderBox, measureBox } from './measure-box'
 export { matchesMediaQuery, subscribeMediaQuery } from './media-query'
+export { memoWeak } from './memo-weak'
 export { isNativeContextMenuRequest } from './native-context-menu'
 export { noop } from './noop'
 export { once } from './once'

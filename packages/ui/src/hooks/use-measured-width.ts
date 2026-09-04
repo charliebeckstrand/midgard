@@ -51,7 +51,7 @@ export function useMeasuredWidth(width: number | undefined): MeasuredWidth {
 
 		const next = Math.round(el.clientWidth)
 
-		startTransition(() => setMeasured((prev) => (prev === next ? prev : next)))
+		startTransition(() => setMeasured(next))
 	})
 
 	return { ref, width: width ?? measured }

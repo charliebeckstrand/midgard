@@ -84,6 +84,15 @@ type KanbanKeyDeps = {
 	moveToColumn: (cardId: string, direction: -1 | 1) => void
 }
 
+/** Announcement suffix naming the card's position and column; empty when the card is not on the board. @internal */
+function positionSuffix(deps: KanbanKeyDeps, cardId: string): string {
+	const loc = deps.locate(cardId)
+
+	return loc
+		? `, position ${loc.position} of ${loc.count} in ${columnName(deps.containerRef.current, loc.columnId)}`
+		: ''
+}
+
 /** Space toggles the lifted state and announces the pick-up / drop. @internal */
 function handleCardSpaceToggle(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
 	event.preventDefault()
@@ -92,11 +101,7 @@ function handleCardSpaceToggle(cardId: string, event: KeyboardEvent, deps: Kanba
 
 	deps.setLiftedCardId(lifting ? cardId : null)
 
-	const loc = deps.locate(cardId)
-
-	const where = loc
-		? `, position ${loc.position} of ${loc.count} in ${columnName(deps.containerRef.current, loc.columnId)}`
-		: ''
+	const where = positionSuffix(deps, cardId)
 
 	announce(
 		lifting
@@ -121,52 +126,38 @@ function handleCardNeighborNav(cardId: string, event: KeyboardEvent, deps: Kanba
 	}
 }
 
+/** Arrow → the lifted-card move it performs: within the column for Up/Down, across columns for Left/Right. @internal */
+const LIFTED_MOVES: Record<string, ['moveWithinColumn' | 'moveToColumn', -1 | 1]> = {
+	ArrowUp: ['moveWithinColumn', -1],
+	ArrowDown: ['moveWithinColumn', 1],
+	ArrowLeft: ['moveToColumn', -1],
+	ArrowRight: ['moveToColumn', 1],
+}
+
 /** Lifted: Escape/Enter drops, arrows reorder the lifted card across columns. @internal */
 function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
-	switch (event.key) {
-		case 'Escape':
-		case 'Enter': {
-			event.preventDefault()
+	if (event.key === 'Escape' || event.key === 'Enter') {
+		event.preventDefault()
 
-			deps.setLiftedCardId(null)
+		deps.setLiftedCardId(null)
 
-			const loc = deps.locate(cardId)
+		announce(
+			`Dropped ${cardName(deps.containerRef.current, cardId)}${positionSuffix(deps, cardId)}.`,
+			{ assertive: true },
+		)
 
-			const where = loc
-				? `, position ${loc.position} of ${loc.count} in ${columnName(deps.containerRef.current, loc.columnId)}`
-				: ''
-
-			announce(`Dropped ${cardName(deps.containerRef.current, cardId)}${where}.`, {
-				assertive: true,
-			})
-
-			break
-		}
-		case 'ArrowUp':
-			event.preventDefault()
-
-			deps.moveWithinColumn(cardId, -1)
-
-			break
-		case 'ArrowDown':
-			event.preventDefault()
-
-			deps.moveWithinColumn(cardId, 1)
-
-			break
-		case 'ArrowLeft':
-			event.preventDefault()
-
-			deps.moveToColumn(cardId, -1)
-
-			break
-		case 'ArrowRight':
-			event.preventDefault()
-
-			deps.moveToColumn(cardId, 1)
-
-			break
+		return
 	}
+
+	const move = LIFTED_MOVES[event.key]
+
+	if (!move) return
+
+	event.preventDefault()
+
+	const [method, direction] = move
+
+	deps[method](cardId, direction)
 }
 
 /**

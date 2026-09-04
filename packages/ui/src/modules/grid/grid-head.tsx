@@ -93,20 +93,20 @@ export function GridHead<T>({
 }: GridHeadProps<T>) {
 	// The band row renders only when a group actually spans columns; a groups
 	// binding with no visible band leaves the header a single row.
-	const hasGroupRow = !!groups && groups.spans.some((span) => span.kind === 'group')
+	const band = groups?.spans.some((span) => span.kind === 'group') ? groups : null
 
 	return (
 		<TableHead>
-			{hasGroupRow && groups && (
+			{band && (
 				<GridGroupHead
-					header={groups}
+					header={band}
 					pinning={pinning ?? null}
 					ariaRowIndex={gridSemantics ? 1 : undefined}
 					gridSemantics={!!gridSemantics}
 				/>
 			)}
 
-			<TableRow aria-rowindex={gridSemantics ? (hasGroupRow ? 2 : 1) : undefined}>
+			<TableRow aria-rowindex={gridSemantics ? (band ? 2 : 1) : undefined}>
 				{columns.map((col, colIdx) => (
 					<GridHeaderCell
 						key={col.id}

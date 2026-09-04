@@ -25,7 +25,10 @@ import type { Ma, Step } from '../../recipes'
  */
 const [AffixContext, useAffix] = createContext<Ma | null>('Affix', { default: null })
 
-const AFFIX_STEP_DOWN: Record<Step, Ma> = { sm: 'xs', md: 'sm', lg: 'md' }
+const AFFIX_STEP_DOWN = { sm: 'xs', md: 'sm', lg: 'md' } as const satisfies Record<Step, Ma>
+
+/** The `Ma` sizes {@link affixStepDown} can return: one notch below each `Step`. @internal */
+type AffixStep = (typeof AFFIX_STEP_DOWN)[Step]
 
 /**
  * Canonical affix step-down: for a host control rendering at the given
@@ -34,10 +37,11 @@ const AFFIX_STEP_DOWN: Record<Step, Ma> = { sm: 'xs', md: 'sm', lg: 'md' }
  * `'xs'`). `<Input>` and `<SelectTrigger>` use it.
  *
  * @param hostSize - The host control's resolved Density `Step`.
- * @returns The `Ma` size to broadcast through {@link AffixContext}.
+ * @returns The `Ma` size to broadcast through {@link AffixContext}, narrowed to
+ * the three values the map holds so a `Ma`-scale leaf can take it directly.
  * @see {@link AffixContext}
  */
-export function affixStepDown(hostSize: Step): Ma {
+export function affixStepDown(hostSize: Step): AffixStep {
 	return AFFIX_STEP_DOWN[hostSize]
 }
 

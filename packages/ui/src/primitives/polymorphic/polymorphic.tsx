@@ -1,7 +1,8 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from 'react'
+import type { ComponentPropsWithoutRef, ElementType, Ref } from 'react'
 import { type LinkProps, useLink } from '../link'
+import { type PolymorphicRenderProps, renderFallback } from './fallback'
 
 /**
  * An `href`-driven link switch with element polymorphism. The sole runtime
@@ -41,17 +42,7 @@ export function Polymorphic<Fallback extends ElementType>({
 	className,
 	children,
 	...rest
-}: {
-	as: Fallback
-	href?: string
-	ref?: Ref<Element>
-	'data-slot': string
-	className: string
-	children: ReactNode
-} & (
-	| Omit<ComponentPropsWithoutRef<Fallback>, 'href' | 'ref' | 'className' | 'children'>
-	| Omit<LinkProps, 'href' | 'ref' | 'className' | 'children'>
-)) {
+}: PolymorphicRenderProps<Fallback>) {
 	const { component: LinkComponent } = useLink()
 
 	if (href !== undefined) {
@@ -68,20 +59,12 @@ export function Polymorphic<Fallback extends ElementType>({
 		)
 	}
 
-	// `as as ElementType` widens a union of string tags to `ElementType`;
-	// the narrow union collapses `{...rest}` to the `never` intersection of
-	// every branch. Unrelated to the generic.
-	const Element = as as ElementType
-
-	return (
-		<Element
-			ref={ref}
-			data-slot={slot}
-			type={as === 'button' ? 'button' : undefined}
-			className={className}
-			{...(rest as ComponentPropsWithoutRef<Fallback>)}
-		>
-			{children}
-		</Element>
-	)
+	return renderFallback({
+		as,
+		ref,
+		slot,
+		className,
+		children,
+		rest: rest as ComponentPropsWithoutRef<Fallback>,
+	})
 }

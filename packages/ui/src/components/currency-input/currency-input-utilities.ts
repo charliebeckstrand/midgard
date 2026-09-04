@@ -4,33 +4,25 @@ export function escapeRegExp(s: string) {
 
 // Editing regexes cache by separator (separators vary by locale).
 // String.replace resets lastIndex after each call; shared global regexes stay safe.
-const separatorReCache = new Map<string, RegExp>()
+function memoRe(source: (key: string) => string): (key: string) => RegExp {
+	const cache = new Map<string, RegExp>()
 
-function separatorRe(separator: string) {
-	let re = separatorReCache.get(separator)
+	return (key) => {
+		let re = cache.get(key)
 
-	if (re === undefined) {
-		re = new RegExp(escapeRegExp(separator), 'g')
+		if (re === undefined) {
+			re = new RegExp(source(key), 'g')
 
-		separatorReCache.set(separator, re)
+			cache.set(key, re)
+		}
+
+		return re
 	}
-
-	return re
 }
 
-const disallowedReCache = new Map<string, RegExp>()
+const separatorRe = memoRe(escapeRegExp)
 
-function disallowedRe(decimal: string) {
-	let re = disallowedReCache.get(decimal)
-
-	if (re === undefined) {
-		re = new RegExp(`[^\\d\\-${escapeRegExp(decimal)}]`, 'g')
-
-		disallowedReCache.set(decimal, re)
-	}
-
-	return re
-}
+const disallowedRe = memoRe((decimal) => `[^\\d\\-${escapeRegExp(decimal)}]`)
 
 export function isMeaningful(c: string, decimal: string) {
 	return (c >= '0' && c <= '9') || c === '-' || c === decimal

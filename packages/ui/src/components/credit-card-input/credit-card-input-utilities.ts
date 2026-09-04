@@ -55,13 +55,7 @@ export function formatCardNumber(raw: string): {
 
 	const gaps = brand?.gaps ?? [4, 8, 12, 16]
 
-	let formatted = ''
-
-	for (let i = 0; i < digits.length; i++) {
-		if (gaps.includes(i)) formatted += ' '
-
-		formatted += digits[i]
-	}
+	const formatted = Array.from(digits, (d, i) => (gaps.includes(i) ? ' ' : '') + d).join('')
 
 	return { formatted, digits, brand }
 }

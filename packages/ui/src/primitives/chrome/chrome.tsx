@@ -6,10 +6,7 @@ import { k } from '../../recipes/kata/chrome'
 import { registerChrome } from './chrome-registry'
 
 /** Props for {@link PersistentChrome}: the region's `children`, plus any div attributes. */
-export type PersistentChromeProps = {
-	className?: string
-	children: ReactNode
-} & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
+export type PersistentChromeProps = HTMLAttributes<HTMLDivElement> & { children: ReactNode }
 
 /**
  * Marks a region as application chrome that a modal surface must not seal off.

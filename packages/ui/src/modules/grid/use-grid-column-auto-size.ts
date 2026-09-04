@@ -11,7 +11,7 @@ import {
 	useState,
 } from 'react'
 import type { DensityLevel } from '../../providers/density/context'
-import { isDataColumn } from '../../utilities'
+import { clamp, isDataColumn } from '../../utilities'
 import { allocateColumnWidths } from './engine/grid-column/allocate'
 import { type ColumnMeasurement, measureColumnIntrinsics } from './engine/grid-column/measure'
 import { parsePxWidth } from './engine/grid-table/options'
@@ -561,7 +561,7 @@ export function useGridColumnAutoSize<T>({
 
 			if (!profile) return
 
-			const next = Math.min(Math.max(profile.content, profile.min), profile.max)
+			const next = clamp(profile.content, profile.min, profile.max)
 
 			// Hold it at its content width alongside the others.
 			manualPinnedRef.current.add(key)

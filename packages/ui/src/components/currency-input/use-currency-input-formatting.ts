@@ -50,13 +50,13 @@ export function useCurrencyInputFormatting({
 		// make parseEditing strip the user's decimal comma as a group separator.
 		const parts = formatter.formatToParts(1234567.89)
 
-		const currencyPart = parts.find((p) => p.type === 'currency')
+		const currencyIdx = parts.findIndex((p) => p.type === 'currency')
+
+		const currencyPart = parts[currencyIdx]
 
 		const groupPart = parts.find((p) => p.type === 'group')
 
 		const decimalPart = parts.find((p) => p.type === 'decimal')
-
-		const currencyIdx = parts.findIndex((p) => p.type === 'currency')
 
 		const integerIdx = parts.findIndex((p) => p.type === 'integer')
 

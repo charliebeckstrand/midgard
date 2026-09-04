@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import type { AddressProvider, AddressSuggestion } from './types'
 
 type AddressSuggestionsOptions = {
@@ -26,11 +26,8 @@ export function useAddressInputSuggestions({
 
 	const abortRef = useRef<AbortController | null>(null)
 
-	const providerRef = useRef(provider)
-
-	useEffect(() => {
-		providerRef.current = provider
-	}, [provider])
+	// Read from the debounce timer, so a new provider identity never restarts the fetch effect.
+	const fetchSuggestions = useEffectEvent(provider)
 
 	useEffect(() => {
 		if (!enabled) {
@@ -73,8 +70,7 @@ export function useAddressInputSuggestions({
 
 			abortRef.current = controller
 
-			providerRef
-				.current(query, { signal: controller.signal })
+			fetchSuggestions(query, { signal: controller.signal })
 				.then((results) => {
 					if (controller.signal.aborted) return
 

@@ -62,24 +62,21 @@ export function matchesSearch(key: string | number | undefined, value: JsonValue
 
 	const lower = term.toLowerCase()
 
-	if (key != null && String(key).toLowerCase().includes(lower)) return true
-
-	if (!isBranch(value) && String(value).toLowerCase().includes(lower)) return true
-
-	return false
+	return (
+		(key != null && String(key).toLowerCase().includes(lower)) ||
+		(!isBranch(value) && String(value).toLowerCase().includes(lower))
+	)
 }
 
 /** Recursive fallback for {@link filterEntries} when no {@link SearchIndex} is supplied: true if any descendant matches. @internal */
 export function treeContainsMatch(value: JsonValue, term: string): boolean {
 	if (!term) return false
 
-	for (const [childKey, childValue] of getEntries(value)) {
-		if (matchesSearch(childKey, childValue, term)) return true
-
-		if (isBranch(childValue) && treeContainsMatch(childValue, term)) return true
-	}
-
-	return false
+	return getEntries(value).some(
+		([childKey, childValue]) =>
+			matchesSearch(childKey, childValue, term) ||
+			(isBranch(childValue) && treeContainsMatch(childValue, term)),
+	)
 }
 
 /** Branch node → whether its subtree contains a search match; built once per term to avoid re-walking. @internal */

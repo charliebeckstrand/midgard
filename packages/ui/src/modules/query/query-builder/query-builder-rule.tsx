@@ -49,7 +49,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 		(nextFieldName: string | null) => {
 			if (!nextFieldName) return
 
-			const nextField = fields.find((f) => f.name === nextFieldName)
+			const nextField = getField(nextFieldName)
 
 			const nextOps = nextField ? getOperators(nextField) : []
 
@@ -59,7 +59,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 				value: '',
 			})
 		},
-		[fields, rule.id, updateRule],
+		[getField, rule.id, updateRule],
 	)
 
 	const onOperatorChange = useCallback(
@@ -90,10 +90,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 
 	const removeRef = useFocusableRef(focusKeys.node(rule.id))
 
-	const displayField = useCallback(
-		(v: string) => fields.find((f) => f.name === v)?.label ?? '',
-		[fields],
-	)
+	const displayField = useCallback((v: string) => getField(v)?.label ?? '', [getField])
 
 	const displayOperator = useCallback(
 		(v: string) => operators.find((o) => o.value === v)?.label ?? '',

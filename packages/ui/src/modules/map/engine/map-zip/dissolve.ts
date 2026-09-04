@@ -51,7 +51,7 @@ const ZIP_PROPERTY_NAMES = [
  * @internal
  */
 export function defaultZipId(shape: MapShape): string {
-	if (shape.id !== undefined && shape.id !== null) return String(shape.id)
+	if (shape.id != null) return String(shape.id)
 
 	const { properties } = shape
 

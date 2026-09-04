@@ -35,11 +35,10 @@ export function datePickerRangeReducer(
 ): DatePickerRangeState {
 	switch (action.type) {
 		case 'reset':
-			return { rangeStart: null, hoverDate: null, active: null }
+			return initialDatePickerRangeState
 		case 'startRange':
 			return { ...state, rangeStart: action.date, hoverDate: null }
 		case 'pinEndpoint':
-			return { ...state, hoverDate: action.date }
 		case 'hover':
 			return { ...state, hoverDate: action.date }
 		case 'setActive':

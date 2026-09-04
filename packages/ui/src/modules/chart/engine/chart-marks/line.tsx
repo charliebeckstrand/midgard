@@ -148,7 +148,7 @@ export function AnimatedChartLineMarks({
 	// solid. So a dashed series holds its dash static and reveals under a clip
 	// that wipes across the band axis — the reference rule's transform-reveal
 	// trick, one draw-on beat with the solid lines' stroke.
-	const wipeId = `chart-line-wipe-${useId().replace(/:/g, '')}`
+	const wipeId = `chart-line-wipe-${useId()}`
 
 	const wipe = plot && list.some((series) => series.dashed)
 

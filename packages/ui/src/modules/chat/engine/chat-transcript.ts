@@ -183,9 +183,7 @@ export function duplicateMessageIds(messages: ChatMessageData[]): string[] {
  * @internal
  */
 export function lastUserMessage(messages: ChatMessageData[]): ChatMessageData | undefined {
-	const index = lastUserIndex(messages)
-
-	return index === -1 ? undefined : messages[index]
+	return messages.findLast((message) => message.role === 'user')
 }
 
 /**

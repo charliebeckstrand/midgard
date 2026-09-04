@@ -181,11 +181,11 @@ export function useResizablePanel({
 			// Handle widths don't count toward the draggable size.
 			let handleWidth = 0
 
-			group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]').forEach((h) => {
-				const hr = h.getBoundingClientRect()
+			for (const handle of group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]')) {
+				const box = handle.getBoundingClientRect()
 
-				handleWidth += orient === 'horizontal' ? hr.width : hr.height
-			})
+				handleWidth += orient === 'horizontal' ? box.width : box.height
+			}
 
 			const availableSize = totalSize - handleWidth
 

@@ -13,6 +13,8 @@
  * keywords all mix.
  */
 
+import { clamp } from './clamp'
+
 import { parseColor } from './contrast'
 
 /**
@@ -28,7 +30,7 @@ export function sampleRange(stops: string[], t: number): string {
 
 	if (stops.length === 1) return first
 
-	const pos = Math.min(1, Math.max(0, t)) * (stops.length - 1)
+	const pos = clamp(t, 0, 1) * (stops.length - 1)
 
 	const index = Math.min(stops.length - 2, Math.floor(pos))
 
@@ -134,7 +136,7 @@ export function binIndex(value: number, domain: [number, number], count: number)
 
 	if (span <= 0) return 0
 
-	return Math.min(count - 1, Math.max(0, Math.floor(((value - min) / span) * count)))
+	return clamp(Math.floor(((value - min) / span) * count), 0, count - 1)
 }
 
 /**
@@ -148,7 +150,7 @@ function quantileAt(sorted: number[], p: number): number {
 
 	if (last <= 0) return sorted[0] ?? 0
 
-	const pos = Math.min(1, Math.max(0, p)) * last
+	const pos = clamp(p, 0, 1) * last
 
 	const lo = Math.floor(pos)
 
@@ -171,10 +173,12 @@ function quantileAt(sorted: number[], p: number): number {
  * split that identical values can't honour.
  */
 export function quantileThresholds(values: number[], count: number): number[] {
-	return sortedThresholds(
-		values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b),
-		count,
-	)
+	return sortedThresholds(sortedFinite(values), count)
+}
+
+/** The finite members of `values`, ascending. @internal */
+function sortedFinite(values: number[]): number[] {
+	return values.filter(Number.isFinite).sort((a, b) => a - b)
 }
 
 /** {@link quantileThresholds} over an already-sorted ascending finite array. @internal */
@@ -222,7 +226,7 @@ export function resolveQuantileBins(
 ): { bins: ColorBin[]; thresholds: number[] } {
 	// One filter + sort feeds the extent and the thresholds; the sorted ends
 	// replace a `Math.min(...)` spread, which overflows on large arrays.
-	const sorted = values.filter((value) => Number.isFinite(value)).sort((a, b) => a - b)
+	const sorted = sortedFinite(values)
 
 	const min = sorted[0]
 

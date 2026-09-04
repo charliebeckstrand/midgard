@@ -49,9 +49,7 @@ export function useToastQueue(
 	const start = useCallback(() => {
 		runningRef.current = true
 
-		const active = toastsRef.current.filter((t) => !t.persist)
-
-		queueRef.current = active.map((t) => t.id)
+		queueRef.current = toastsRef.current.filter((t) => !t.persist).map((t) => t.id)
 
 		next()
 	}, [toastsRef, next])

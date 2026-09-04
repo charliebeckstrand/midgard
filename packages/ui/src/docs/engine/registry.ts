@@ -3,7 +3,6 @@ import demoMetas from 'virtual:demo-metas'
 import type { ComponentType } from 'react'
 import type { ComponentApi } from './api-reference'
 import { titleCase } from './components/format'
-import type { DemoMeta } from './demo-meta'
 
 /** One sidebar entry: a demo's id, display name, and category. */
 export type Demo = { id: string; name: string; category: string }
@@ -41,16 +40,12 @@ function pathToId(path: string) {
 		.replace(/^components\//, '')
 		.replace(/\/index\.tsx$/, '')
 		.replace('.tsx', '')
-		.replace(/\//g, '-')
+		.replaceAll('/', '-')
 }
 
 // Metas come from a build-time virtual module; demo sources stay in their lazy
 // chunks. The map is keyed by the same id scheme the loaders use.
-const metaById = new Map<string, DemoMeta>()
-
-for (const [path, meta] of Object.entries(demoMetas)) {
-	metaById.set(pathToId(path), meta)
-}
+const metaById = new Map(Object.entries(demoMetas).map(([path, meta]) => [pathToId(path), meta]))
 
 // Filled by initRegistry from the consumer-provided loader glob.
 let loaderById = new Map<string, () => Promise<ComponentType>>()
@@ -66,41 +61,56 @@ type TrackedPromise<T> = Promise<T> & {
 	reason?: unknown
 }
 
-const promiseCache = new Map<string, TrackedPromise<ComponentType>>()
-
-/** Return a cached promise for the demo's component, kicking off the import on first call. */
-export function loadDemo(id: string): Promise<ComponentType> {
-	const cached = promiseCache.get(id)
+/**
+ * Return the cached tracked promise under `id`, or start one from `start` and
+ * cache it. `start` runs only on a cache miss, so it may throw for an unknown
+ * id without poisoning the cache.
+ */
+function tracked<T>(
+	cache: Map<string, TrackedPromise<T>>,
+	id: string,
+	start: () => Promise<T>,
+): TrackedPromise<T> {
+	const cached = cache.get(id)
 
 	if (cached) return cached
 
-	const loader = loaderById.get(id)
+	const promise = start() as TrackedPromise<T>
 
-	if (!loader) throw new Error(`No demo found for id: ${id}`)
+	promise.status = 'pending'
 
-	const tracked = loader() as TrackedPromise<ComponentType>
-
-	tracked.status = 'pending'
-
-	tracked.then(
+	promise.then(
 		(value) => {
-			tracked.status = 'fulfilled'
-			tracked.value = value
+			promise.status = 'fulfilled'
+			promise.value = value
 		},
 		(reason) => {
-			tracked.status = 'rejected'
-			tracked.reason = reason
+			promise.status = 'rejected'
+			promise.reason = reason
 
 			// Evict the rejection so a later navigation or an error-boundary retry
 			// re-attempts the import instead of replaying the cached failure — a
 			// transient chunk-load error (offline, deploy skew) must be recoverable.
-			promiseCache.delete(id)
+			cache.delete(id)
 		},
 	)
 
-	promiseCache.set(id, tracked)
+	cache.set(id, promise)
 
-	return tracked
+	return promise
+}
+
+const promiseCache = new Map<string, TrackedPromise<ComponentType>>()
+
+/** Return a cached promise for the demo's component, kicking off the import on first call. */
+export function loadDemo(id: string): Promise<ComponentType> {
+	return tracked(promiseCache, id, () => {
+		const loader = loaderById.get(id)
+
+		if (!loader) throw new Error(`No demo found for id: ${id}`)
+
+		return loader()
+	})
 }
 
 /** Start and cache the demo's dynamic import ahead of navigation, plus its API chunk. */
@@ -129,36 +139,13 @@ const apiPromiseCache = new Map<string, TrackedPromise<ComponentApi[]>>()
  * {@link hasComponentApi} before calling.
  */
 export function loadComponentApi(id: string): Promise<ComponentApi[]> {
-	const cached = apiPromiseCache.get(id)
+	return tracked(apiPromiseCache, id, () => {
+		const loader = apiManifest[id]
 
-	if (cached) return cached
+		if (!loader) throw new Error(`No API reference found for id: ${id}`)
 
-	const loader = apiManifest[id]
-
-	if (!loader) throw new Error(`No API reference found for id: ${id}`)
-
-	const tracked = loader().then((mod) => mod.default) as TrackedPromise<ComponentApi[]>
-
-	tracked.status = 'pending'
-
-	tracked.then(
-		(value) => {
-			tracked.status = 'fulfilled'
-			tracked.value = value
-		},
-		(reason) => {
-			tracked.status = 'rejected'
-			tracked.reason = reason
-
-			// Evict so a retry re-attempts the chunk import instead of replaying a
-			// transient load failure (offline, deploy skew).
-			apiPromiseCache.delete(id)
-		},
-	)
-
-	apiPromiseCache.set(id, tracked)
-
-	return tracked
+		return loader().then((mod) => mod.default)
+	})
 }
 
 // `demos` and `defaultDemo` are live bindings populated by initRegistry; the
@@ -214,13 +201,12 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 
 	// Start the initial demo's import and expose the promise; the entry awaits
 	// it before mounting.
-	const initialPreload: Promise<unknown> = (() => {
-		if (typeof window === 'undefined') return Promise.resolve()
+	const initialId =
+		typeof window === 'undefined' ? '' : window.location.hash.slice(1) || defaultDemo
 
-		const initialId = window.location.hash.slice(1) || defaultDemo
-
-		return loaderById.has(initialId) ? loadDemo(initialId) : Promise.resolve()
-	})()
+	const initialPreload: Promise<unknown> = loaderById.has(initialId)
+		? loadDemo(initialId)
+		: Promise.resolve()
 
 	return { initialPreload }
 }

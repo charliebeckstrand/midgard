@@ -1,13 +1,5 @@
 import type { GridColumn } from '../../types'
-import { cellText, exportFields } from './accessor'
-
-/** Escapes text for safe placement inside an HTML element. @internal */
-function escapeHtml(value: string): string {
-	return value.replace(
-		/[&<>]/g,
-		(char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[char] as string,
-	)
-}
+import { cellText, escapeMarkup, exportFields } from './accessor'
 
 /**
  * Renders rows as an HTML `<table>`: a header row of the data columns' labels
@@ -21,13 +13,13 @@ function escapeHtml(value: string): string {
 export function rowsToHtmlTable<T>(columns: GridColumn<T>[], rows: T[]): string {
 	const fields = exportFields(columns)
 
-	const header = fields.map((field) => `<th>${escapeHtml(field.label)}</th>`).join('')
+	const header = fields.map((field) => `<th>${escapeMarkup(field.label)}</th>`).join('')
 
 	const body = rows
 		.map(
 			(row) =>
 				`<tr>${fields
-					.map((field) => `<td>${escapeHtml(cellText(field.accessor(row)))}</td>`)
+					.map((field) => `<td>${escapeMarkup(cellText(field.accessor(row)))}</td>`)
 					.join('')}</tr>`,
 		)
 		.join('')

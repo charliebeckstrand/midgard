@@ -1,3 +1,5 @@
+import { clamp } from '../../../../utilities'
+
 /**
  * A column's width bounds for {@link allocateColumnWidths}: its hard floor
  * (`min`), its preferred content width (`content`, the width that shows the
@@ -22,11 +24,6 @@ export type ColumnSizeProfile = {
 	 * scrolling column.
 	 */
 	frozen?: boolean
-}
-
-/** Clamps `value` to `[lo, hi]`; `hi` wins when the bounds cross. @internal */
-function clamp(value: number, lo: number, hi: number): number {
-	return Math.min(Math.max(value, lo), hi)
 }
 
 /**
@@ -69,11 +66,7 @@ function roundToTarget(
 		if (entry && entry.width > 0) entry.width -= 1
 	}
 
-	const result: Record<string, number> = {}
-
-	for (const entry of floored) result[entry.id] = entry.width
-
-	return result
+	return Object.fromEntries(floored.map((e) => [e.id, e.width]))
 }
 
 /**

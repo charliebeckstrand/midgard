@@ -42,10 +42,8 @@ export type FloatingSurfaceProps = {
 	 */
 	trapFocusProps?: Omit<FloatingFocusManagerProps, 'context' | 'children'>
 	onExitComplete?: () => void
-	className?: string
-	style?: CSSProperties
 	children: ReactNode
-} & Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'className' | 'style' | 'ref'>
+} & Omit<HTMLAttributes<HTMLDivElement>, 'children'>
 
 /**
  * Positioning shell shared by Tooltip, Popover, and Menu surfaces: owns the

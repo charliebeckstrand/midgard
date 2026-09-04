@@ -12,6 +12,8 @@
  * Composite a translucent wash over its surface before you measure it.
  */
 
+import { clamp } from './clamp'
+
 /** An sRGB colour as three gamma-encoded channels in `[0, 1]` — the space CSS colours live in. */
 export type Srgb = readonly [r: number, g: number, b: number]
 
@@ -60,7 +62,7 @@ export function contrastFloor(threshold: ContrastThreshold): number {
 	return typeof threshold === 'number' ? threshold : LEVEL_FLOOR[threshold]
 }
 
-const clamp01 = (channel: number): number => Math.min(1, Math.max(0, channel))
+const clamp01 = (channel: number): number => clamp(channel, 0, 1)
 
 /** Gamma-encode a linear-light channel to sRGB. */
 const encodeGamma = (channel: number): number =>

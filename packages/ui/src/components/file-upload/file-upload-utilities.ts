@@ -33,9 +33,7 @@ export function activateOnEnterSpace(onActivate: () => void) {
  * @returns The files as an array; empty when `fileList` is `null`.
  */
 export function fileListToArray(fileList: FileList | null): File[] {
-	if (!fileList) return []
-
-	return Array.from(fileList)
+	return Array.from(fileList ?? [])
 }
 
 /**

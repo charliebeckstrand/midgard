@@ -89,13 +89,9 @@ export function resolveCellContext<T>(
 
 	if (id == null) return null
 
-	for (const col of columns) {
-		if (String(col.id) === id && isDataColumn(col)) {
-			return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
-		}
-	}
+	const col = columns.find((c) => String(c.id) === id && isDataColumn(c))
 
-	return null
+	return col ? { row, rowKey, columnId: col.id, value: cellValue(col, row) } : null
 }
 /**
  * Interactive cell content that handles its own click, so a row-level

@@ -79,16 +79,7 @@ export const k = defineRecipe({
 	// `level` drives weight only; the type size is the `scale` rung resolved
 	// from level + density via `headingScale`.
 	level: levelWeight,
-	scale: {
-		xs: size.xs,
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-		xl: size.xl,
-		'2xl': size['2xl'],
-		'3xl': size['3xl'],
-		'4xl': size['4xl'],
-	},
+	scale: size,
 	defaults: { level: 1, scale: '3xl' },
 	skeleton: heading,
 })

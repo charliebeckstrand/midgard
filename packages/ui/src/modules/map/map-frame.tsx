@@ -161,7 +161,7 @@ export function MapPlotRegion({
 			role="img"
 			{...name}
 			{...keyboard}
-			{...(zoom?.surface ?? {})}
+			{...zoom?.surface}
 			// A side legend takes the width remainder (`min-w-0 flex-1`); a free-form
 			// `fill` map instead grows into the height its region already holds — a
 			// `flex-1 min-h-0` child of the `h-full` frame — so the box measures a real

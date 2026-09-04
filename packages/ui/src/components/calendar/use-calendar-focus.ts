@@ -3,6 +3,7 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import { useA11yRoving } from '../../hooks'
+import { wrap } from '../../utilities'
 
 /**
  * Selector for focusable day cells. Out-of-range cells render as
@@ -17,11 +18,12 @@ const FOCUSABLE = 'button:not(:disabled)'
 
 /**
  * Navigation keys a sealed surface swallows even when no move applies, so a dead
- * key neither scrolls the page nor reaches an outer keyboard model.
+ * key neither scrolls the page nor reaches an outer keyboard model. Also the key
+ * set the relative date picker's list-mode roving focus moves on.
  *
  * @internal
  */
-const NAVIGATION_KEYS = new Set([
+export const NAVIGATION_KEYS = new Set([
 	'ArrowUp',
 	'ArrowDown',
 	'ArrowLeft',
@@ -47,6 +49,16 @@ type CalendarFocusOptions = {
 	stopPropagation?: boolean
 }
 
+/** Focusable buttons within `container`, in DOM order. @internal */
+function buttonsOf(container: HTMLElement | null): HTMLElement[] {
+	return Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+}
+
+/** Index of the active element within `buttons`; `-1` when focus is elsewhere. @internal */
+function activeIndexIn(buttons: HTMLElement[]): number {
+	return buttons.indexOf(document.activeElement as HTMLElement)
+}
+
 /** First focusable button within `container`. @internal */
 function firstButton(container: HTMLElement | null): HTMLElement | null {
 	return container?.querySelector<HTMLElement>(FOCUSABLE) ?? null
@@ -54,34 +66,28 @@ function firstButton(container: HTMLElement | null): HTMLElement | null {
 
 /** Middle focusable button within `container`, used to seat focus on a calendar header. @internal */
 function middleButton(container: HTMLElement | null): HTMLElement | null {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+	const buttons = buttonsOf(container)
 
 	return buttons[Math.floor(buttons.length / 2)] ?? null
 }
 
 /** Last focusable button within `container`. @internal */
 function lastButton(container: HTMLElement | null): HTMLElement | null {
-	const buttons = container?.querySelectorAll<HTMLElement>(FOCUSABLE)
-
-	if (!buttons?.length) return null
-
-	return buttons.item(buttons.length - 1)
+	return buttonsOf(container).at(-1) ?? null
 }
 
 /** True when the active button sits in the grid's first row. @internal */
 function isTopRow(container: HTMLElement | null, cols: number): boolean {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
-
-	const index = buttons.indexOf(document.activeElement as HTMLElement)
+	const index = activeIndexIn(buttonsOf(container))
 
 	return index >= 0 && index < cols
 }
 
 /** True when the active button sits in the grid's last row. @internal */
 function isBottomRow(container: HTMLElement | null, cols: number): boolean {
-	const buttons = Array.from(container?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+	const buttons = buttonsOf(container)
 
-	const index = buttons.indexOf(document.activeElement as HTMLElement)
+	const index = activeIndexIn(buttons)
 
 	if (index < 0) return false
 
@@ -122,16 +128,13 @@ function focusAdjacentFooterButton(
 	footer: HTMLElement | null,
 	stopPropagation: boolean,
 ): void {
-	const buttons = Array.from(footer?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? [])
+	const buttons = buttonsOf(footer)
 
-	const index = buttons.indexOf(document.activeElement as HTMLElement)
+	const index = activeIndexIn(buttons)
 
 	if (index < 0) return
 
-	const next =
-		event.key === 'ArrowRight'
-			? buttons[(index + 1) % buttons.length]
-			: buttons[(index - 1 + buttons.length) % buttons.length]
+	const next = buttons[wrap(index + (event.key === 'ArrowRight' ? 1 : -1), buttons.length)]
 
 	if (!next) return
 

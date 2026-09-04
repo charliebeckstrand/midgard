@@ -2,6 +2,7 @@
 
 import { type FocusEvent, type KeyboardEvent, useEffect, useState } from 'react'
 import { usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
+import { clamp } from '../../../utilities'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
 import type { ChartHover } from './context'
 
@@ -63,15 +64,9 @@ export function hasFocusTargets(targets: ChartFocusTargets): boolean {
 
 /** The first (`-1`) or last (`+1`) category that carries a stop, or `-1` when none do. @internal */
 function edgeCategory(targets: ChartFocusTargets, dir: 1 | -1): number {
-	const n = targets.points.length
+	const carries = (stops: Vec[]) => stops.length > 0
 
-	if (dir < 0) {
-		for (let i = 0; i < n; i++) if (pointCount(targets, i) > 0) return i
-	} else {
-		for (let i = n - 1; i >= 0; i--) if (pointCount(targets, i) > 0) return i
-	}
-
-	return -1
+	return dir < 0 ? targets.points.findIndex(carries) : targets.points.findLastIndex(carries)
 }
 
 /** The cursor on the first focusable category, or `null` when nothing is focusable. @internal */
@@ -118,13 +113,13 @@ export function clampCursor(
 
 	if (n === 0) return null
 
-	const bounded = Math.max(0, Math.min(cursor.category, n - 1))
+	const bounded = clamp(cursor.category, 0, n - 1)
 
 	const category = pointCount(targets, bounded) > 0 ? bounded : edgeCategory(targets, -1)
 
 	if (category === -1) return null
 
-	const value = Math.max(0, Math.min(cursor.value, pointCount(targets, category) - 1))
+	const value = clamp(cursor.value, 0, pointCount(targets, category) - 1)
 
 	return isReferenceStop(targets, cursor.reference)
 		? { category, value, reference: cursor.reference }

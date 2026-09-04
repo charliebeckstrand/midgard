@@ -118,23 +118,11 @@ export function applyRecipe<
 		...restConfig
 	} = overlay
 
-	const standardBase = standard.config.base
-
-	const baseArray: ClassValue[] =
-		standardBase === undefined
-			? []
-			: Array.isArray(standardBase)
-				? [...standardBase]
-				: [standardBase]
-
-	if (callerBase !== undefined) baseArray.push(callerBase)
-
-	const mergedCompound = [...(standard.config.compound ?? []), ...(callerCompound ?? [])]
-
 	const mergedConfig = {
 		...standard.config,
 		...restConfig,
-		base: baseArray,
+		// `ClassValue` nests, and clsx drops the undefined member.
+		base: [standard.config.base, callerBase],
 		slots: {
 			...standard.config.slots,
 			...callerSlots,
@@ -143,7 +131,7 @@ export function applyRecipe<
 			...standard.config.defaults,
 			...callerDefaults,
 		},
-		compound: mergedCompound,
+		compound: [...(standard.config.compound ?? []), ...(callerCompound ?? [])],
 	}
 
 	const mergedExtras = {

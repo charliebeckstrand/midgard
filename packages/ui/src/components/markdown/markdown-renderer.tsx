@@ -3,6 +3,7 @@ import { Fragment, type ReactNode } from 'react'
 import type { BundledLanguage } from 'shiki'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/markdown'
+import { clamp } from '../../utilities'
 import { Code, CodeBlock } from '../code'
 
 const HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
@@ -71,7 +72,7 @@ function renderChildren(tokens: Token[] | undefined): ReactNode {
 function renderToken(token: Token, index: number): ReactNode {
 	switch (token.type) {
 		case 'heading': {
-			const depth = Math.min(Math.max(token.depth, 1), 6) as 1 | 2 | 3 | 4 | 5 | 6
+			const depth = clamp(token.depth, 1, 6) as 1 | 2 | 3 | 4 | 5 | 6
 
 			const Tag = HEADING_TAGS[depth - 1] ?? 'h1'
 

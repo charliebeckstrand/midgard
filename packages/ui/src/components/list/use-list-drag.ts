@@ -22,11 +22,7 @@ export function useListDrag<T>({ items, getKey, onReorder, orientation, disabled
 	const effectiveGetKey = useMemo<(item: T) => string>(() => {
 		if (getKey) return getKey
 
-		const indexByItem = new Map<T, number>()
-
-		items.forEach((item, index) => {
-			indexByItem.set(item, index)
-		})
+		const indexByItem = new Map(items.map((item, index) => [item, index] as const))
 
 		return (item: T) => String(indexByItem.get(item) ?? -1)
 	}, [getKey, items])

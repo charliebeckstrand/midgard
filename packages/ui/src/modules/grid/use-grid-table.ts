@@ -7,6 +7,7 @@ import {
 	type ColumnOrderState,
 	type ColumnSizingState,
 	type ExpandedState,
+	functionalUpdate,
 	type GroupingState,
 	getCoreRowModel,
 	type OnChangeFn,
@@ -54,7 +55,6 @@ import {
 	toSortState,
 } from './engine/grid-table/options'
 import {
-	applyUpdater,
 	DEFAULT_PAGINATION_STATE,
 	DEFAULT_SEARCH_PLACEHOLDER,
 	deriveLeafRows,
@@ -302,7 +302,7 @@ function useGroupingSlice(
 	const onGroupingChange = useCallback<OnChangeFn<GroupingState>>(() => {}, [])
 
 	const onExpanded = useCallback<OnChangeFn<ExpandedState>>(
-		(updater) => onExpandedChange?.(applyUpdater(updater, resolvedExpanded)),
+		(updater) => onExpandedChange?.(functionalUpdate(updater, resolvedExpanded)),
 		[onExpandedChange, resolvedExpanded],
 	)
 
@@ -582,13 +582,10 @@ export function useGridTable<T>({
 	// each render so a sort-direction flip doesn't rebuild the column defs.
 	const sortDescByIdRef = useRef<Record<string, boolean>>({})
 
-	sortDescByIdRef.current = useMemo(() => {
-		const map: Record<string, boolean> = {}
-
-		for (const entry of sort ?? []) map[String(entry.column)] = entry.direction === 'desc'
-
-		return map
-	}, [sort])
+	sortDescByIdRef.current = useMemo(
+		() => Object.fromEntries((sort ?? []).map((e) => [String(e.column), e.direction === 'desc'])),
+		[sort],
+	)
 
 	const smartSortingFn = useMemo(
 		() => makeSmartSortingFn((columnId) => sortDescByIdRef.current[columnId] ?? false),
@@ -616,7 +613,7 @@ export function useGridTable<T>({
 	// own imperative methods flow out through the public `onValueChange`.
 	const onPaginationChange = useCallback<OnChangeFn<PaginationState>>(
 		(updater) =>
-			setPaginationState((prev) => applyUpdater(updater, prev ?? DEFAULT_PAGINATION_STATE)),
+			setPaginationState((prev) => functionalUpdate(updater, prev ?? DEFAULT_PAGINATION_STATE)),
 		[setPaginationState],
 	)
 
@@ -651,7 +648,10 @@ export function useGridTable<T>({
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
 		(updater) =>
 			setColumnSizingState((prev) =>
-				clampSizingToFloors(applyUpdater(updater, prev ?? EMPTY_SIZING), columnFloorsRef.current),
+				clampSizingToFloors(
+					functionalUpdate(updater, prev ?? EMPTY_SIZING),
+					columnFloorsRef.current,
+				),
 			),
 		[setColumnSizingState],
 	)
@@ -667,11 +667,11 @@ export function useGridTable<T>({
 	const resolvedGlobalFilter = globalFilterState ?? ''
 
 	const onGlobalFilterChange = useCallback<OnChangeFn<string>>(
-		(updater) => setGlobalFilterState((prev) => applyUpdater(updater, prev ?? '')),
+		(updater) => setGlobalFilterState((prev) => functionalUpdate(updater, prev ?? '')),
 		[setGlobalFilterState],
 	)
 
-	const hasColumnFilters = columns.some((col) => Boolean(col.filterable && col.value))
+	const hasColumnFilters = columns.some((col) => col.filterable && col.value)
 
 	const [columnFiltersState, setColumnFiltersState] = useControllable<ColumnFiltersState>({
 		value: columnFiltersConfig?.value,
@@ -687,7 +687,7 @@ export function useGridTable<T>({
 
 	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
 		(updater) =>
-			setColumnFiltersState((prev) => applyUpdater(updater, prev ?? EMPTY_COLUMN_FILTERS)),
+			setColumnFiltersState((prev) => functionalUpdate(updater, prev ?? EMPTY_COLUMN_FILTERS)),
 		[setColumnFiltersState],
 	)
 
@@ -713,7 +713,7 @@ export function useGridTable<T>({
 	})
 
 	const onSortingChange = useCallback<OnChangeFn<SortingState>>(
-		(updater) => setSort?.(toSortState(applyUpdater(updater, toSortingState(sort)))),
+		(updater) => setSort?.(toSortState(functionalUpdate(updater, toSortingState(sort)))),
 		[sort, setSort],
 	)
 

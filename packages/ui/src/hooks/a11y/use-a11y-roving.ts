@@ -598,7 +598,7 @@ function handleActivationKey(
 ): boolean {
 	if (!ctx.isVirtual || !activationKey) return false
 
-	const keys = typeof activationKey === 'string' ? [activationKey] : activationKey
+	const keys = Array.isArray(activationKey) ? activationKey : [activationKey]
 
 	if (!keys.includes(event.key)) return false
 
@@ -639,31 +639,21 @@ function handleTypeahead(
 ): boolean {
 	if (!typeahead || !isTypeaheadKey(event)) return false
 
-	if (ctx.itemSource) {
-		const source = ctx.itemSource
+	const source = ctx.itemSource
 
-		// No text values to match against; consume the key rather than fall
-		// through to main-axis nav, mirroring the DOM path's "no match" no-op.
-		if (!source.getTextValue) return true
+	// No text values to match against; consume the key rather than fall
+	// through to main-axis nav, mirroring the DOM path's "no match" no-op.
+	if (source && !source.getTextValue) return true
 
-		const index = matchers.matchIndexed(
-			source.count,
-			source.getTextValue,
-			source.isDisabled,
-			event.key,
-			currentIndex,
-		)
-
-		if (index !== null) {
-			event.preventDefault()
-
-			moveTo(index, ctx)
-		}
-
-		return true
-	}
-
-	const index = matchers.match(ctx.items, event.key, currentIndex)
+	const index = source?.getTextValue
+		? matchers.matchIndexed(
+				source.count,
+				source.getTextValue,
+				source.isDisabled,
+				event.key,
+				currentIndex,
+			)
+		: matchers.match(ctx.items, event.key, currentIndex)
 
 	if (index !== null) {
 		event.preventDefault()
@@ -723,17 +713,8 @@ function handleMainAxisNav(
 	if (!ctx.isVirtual && currentIndex === -1 && !opts.focusOnEmpty) return
 
 	const nextIndex = ctx.itemSource
-		? nextIndexedKey(
-				event.key,
-				currentIndex,
-				ctx.itemSource.count,
-				{ cols: opts.cols, orientation: opts.orientation },
-				ctx.itemSource.isDisabled,
-			)
-		: nextIndexForKey(event.key, currentIndex, ctx.items.length, {
-				cols: opts.cols,
-				orientation: opts.orientation,
-			})
+		? nextIndexedKey(event.key, currentIndex, ctx.itemSource.count, opts, ctx.itemSource.isDisabled)
+		: nextIndexForKey(event.key, currentIndex, ctx.items.length, opts)
 
 	if (nextIndex === null) return
 

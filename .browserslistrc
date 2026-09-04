@@ -1,0 +1,30 @@
+# The floor the source already stands on, written down rather than inferred.
+#
+# The binding constraint is the ES2023 change-by-copy array methods —
+# `toSorted`, `toReversed`, `toSpliced`, and `with` — which `packages/ui` uses
+# on render paths (the toast viewport, the query tree, the pdf-viewer zoom
+# ladder, the map geometry). No build step can lower it: esbuild and SWC
+# downlevel syntax, never instance methods, so these ship as written whatever a
+# target says. Supporting anything older means a core-js polyfill or giving the
+# methods up, not a config change.
+#
+# `tsconfig.base.json` already compiles to ES2023 and `packages/ui` consumes
+# source, so these versions are what the published surface has required since
+# the first `.with()` call landed. Raising the floor is free; lowering it is the
+# decision this file exists to make visible.
+#
+# caniuse has no feature id for the change-by-copy methods, so the versions are
+# spelled out. Each is the release that shipped them. The mobile ids are listed
+# in their own right: caniuse scores them separately, and dropping `and_chr`
+# alone takes the query from 91 percent of global usage to 47.
+
+chrome >= 110
+edge >= 110
+firefox >= 115
+safari >= 16.4
+ios_saf >= 16.4
+opera >= 96
+samsung >= 21
+and_chr >= 110
+and_ff >= 115
+android >= 110

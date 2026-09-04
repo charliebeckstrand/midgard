@@ -15,9 +15,6 @@ import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
-// Calendar icon is one step smaller than the trigger size.
-const iconSize = { sm: 'xs', md: 'sm', lg: 'md' } as const
-
 /** Props for {@link DatePickerTrigger}. @internal */
 type DatePickerTriggerProps = {
 	open: boolean
@@ -143,7 +140,7 @@ export function DatePickerTrigger({
 						)}
 						{!showClear && (
 							<span className={cn(k.icon)}>
-								<Icon icon={<CalendarIcon />} size={iconSize[size]} />
+								<Icon icon={<CalendarIcon />} size={affixStepDown(size)} />
 							</span>
 						)}
 					</Button>

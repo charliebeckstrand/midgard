@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { type RefObject, useEffect, useRef, useState } from 'react'
 
 /** Options for {@link useInView}. */
 export type InViewOptions = {
@@ -24,7 +24,7 @@ export type InViewOptions = {
 
 /** Return shape of {@link useInView}: the ref to attach, and whether it is in view. */
 export type InView = {
-	ref: React.RefObject<HTMLDivElement | null>
+	ref: RefObject<HTMLDivElement | null>
 	inView: boolean
 }
 
@@ -81,9 +81,7 @@ export function useInView({ margin = '200px', once = true }: InViewOptions = {})
 
 		observer.observe(element)
 
-		return () => {
-			observer.disconnect()
-		}
+		return () => observer.disconnect()
 	}, [margin, once])
 
 	return { ref, inView }

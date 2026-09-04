@@ -34,12 +34,14 @@ export function downloadPdf(src: string, filename?: string) {
 export function printPdf(src: string) {
 	const iframe = document.createElement('iframe')
 
-	iframe.style.position = 'fixed'
-	iframe.style.right = '0'
-	iframe.style.bottom = '0'
-	iframe.style.width = '0'
-	iframe.style.height = '0'
-	iframe.style.border = '0'
+	Object.assign(iframe.style, {
+		position: 'fixed',
+		right: '0',
+		bottom: '0',
+		width: '0',
+		height: '0',
+		border: '0',
+	})
 
 	iframe.setAttribute('aria-hidden', 'true')
 

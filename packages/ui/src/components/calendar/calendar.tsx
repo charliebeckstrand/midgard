@@ -188,12 +188,9 @@ export function Calendar({
 	}, [])
 
 	const isDisabled = useCallback(
-		(date: Date) => {
-			if (min && isBeforeDay(date, min)) return true
-			if (max && isBeforeDay(max, date)) return true
-
-			return false
-		},
+		(date: Date) =>
+			(min !== undefined && isBeforeDay(date, min)) ||
+			(max !== undefined && isBeforeDay(max, date)),
 		[min, max],
 	)
 

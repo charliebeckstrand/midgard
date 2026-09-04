@@ -62,9 +62,7 @@ export function toRowSelectionState(
 ): RowSelectionState {
 	const state: RowSelectionState = {}
 
-	if (!selection) return state
-
-	for (const key of selection) state[String(key)] = true
+	for (const key of selection ?? []) state[String(key)] = true
 
 	return state
 }
@@ -82,7 +80,7 @@ export function resolveFilterMode(args: {
 		// manual if either surface requests it. Manual wins because letting the
 		// client model run over server-bound filters would filter already-filtered
 		// data. `useGridTable` warns (dev) when the two surfaces' flags disagree.
-		manual: Boolean(args.globalManual) || Boolean(args.columnManual),
+		manual: Boolean(args.globalManual || args.columnManual),
 	}
 }
 

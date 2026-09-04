@@ -5,6 +5,20 @@ import { type ChatMessageVariants, k } from '../../recipes/kata/chat-message'
 import { ChatEmbed } from './chat-embed'
 import { ChatTool } from './chat-tool'
 import type { ChatPart } from './engine/chat-content/types'
+import type { ChatMessageData } from './engine/types'
+
+/**
+ * The visually hidden author label per role. Bubble side and colour alone
+ * convey the speaker visually; this names it for assistive technology. System
+ * messages are status lines, not an utterance, so they get a plain "System".
+ *
+ * @internal
+ */
+const AUTHOR = {
+	user: 'You said',
+	assistant: 'Assistant said',
+	system: 'System',
+} satisfies Record<ChatMessageData['role'], string>
 
 /**
  * One block of a message. The switch holds every kind, so a kind added later
@@ -84,13 +98,9 @@ export const ChatMessage = memo(function ChatMessage({
 	className,
 	children,
 }: ChatMessageProps) {
-	// Bubble side/color alone convey the speaker visually; a visually hidden
-	// author label names it for assistive technology. System messages are status
-	// lines, not an utterance; they get a plain "System" attribution.
 	const resolvedRole = role ?? 'assistant'
 
-	const author =
-		resolvedRole === 'user' ? 'You said' : resolvedRole === 'system' ? 'System' : 'Assistant said'
+	const author = AUTHOR[resolvedRole]
 
 	return (
 		<div data-slot="chat-message" data-role={resolvedRole} className={cn(k({ role }), className)}>

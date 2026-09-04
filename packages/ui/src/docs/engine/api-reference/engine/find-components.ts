@@ -6,6 +6,7 @@ import {
 	type SourceFile,
 	type TypeNode,
 } from 'ts-morph'
+import { isPascalCase } from '../../identifiers'
 
 type FunctionLike = FunctionDeclaration | FunctionExpression | ArrowFunction
 
@@ -32,7 +33,7 @@ export function readPublicExports(indexFile: SourceFile): string[] {
 
 			const name = specifier.getAliasNode()?.getText() ?? specifier.getName()
 
-			if (!/^[A-Z]/.test(name)) continue
+			if (!isPascalCase(name)) continue
 
 			if (seen.has(name)) continue
 

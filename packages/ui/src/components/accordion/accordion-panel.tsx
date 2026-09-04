@@ -1,10 +1,11 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { type ReactNode, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Hold, useMountHold } from '../../primitives/mount'
+import { heldMotionProps } from '../../primitives/mount/held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordion, useAccordionItem } from './context'
@@ -37,10 +38,6 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	const { mount, onOpenComplete } = useAccordion()
 
 	const hold = useMountHold(open, mount, { defer: true })
-
-	// Frozen at mount: whether this section started open decides its motion entry point,
-	// and a held panel reads that long after the value has moved on.
-	const mountedOpen = useRef(open)
 
 	// The arrival target the motion library hands back on the way in, compared by
 	// identity; the preset is a module constant, so the identity holds. The section
@@ -79,27 +76,7 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 	return (
 		<ReducedMotion>
 			<Hold hold={hold} name="accordion-panel">
-				{panel({
-					// Keyed on the state this section mounted in, not on the policy. Motion
-					// reads `initial` at its first `animateChanges`, which a held panel
-					// defers until its first reveal — so `false` there suppresses the
-					// reveal rather than the mount, leaving the section shut and its
-					// landing unreported. A section that mounted open instead matches
-					// `initial` to the target, which is the other arm of the same guard,
-					// so it still takes its open state without playing anything.
-					initial: mountedOpen.current ? k.motion.animate : k.motion.initial,
-					// Held, so it animates between the two states in place rather than
-					// entering and exiting — no `exit`, which only `AnimatePresence` reads.
-					animate: open ? k.motion.animate : k.motion.exit,
-					transition: k.motion.transition,
-					// Both landings arrive here: `rest` takes the close, the gate takes
-					// the open.
-					onAnimationComplete: (definition: unknown) => {
-						hold.rest()
-
-						onAnimationComplete(definition)
-					},
-				})}
+				{panel(heldMotionProps(k.motion, open, hold, onAnimationComplete))}
 			</Hold>
 		</ReducedMotion>
 	)

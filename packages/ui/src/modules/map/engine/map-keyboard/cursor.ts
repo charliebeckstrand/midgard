@@ -16,31 +16,24 @@ type MapCompassAction = 'north' | 'south' | 'east' | 'west'
 type MapCursorAction = MapCompassAction | 'first' | 'last' | 'clear'
 
 /**
- * Reads a key to a cursor action. The arrows step by compass direction, which
- * is the map's own pair of axes where a chart's arrows step its category and
- * value axes; Home and End jump to the first and last drawn region in the
- * atlas's own order; Escape clears. Every other key returns `null` and stays
- * with the browser.
+ * The key table. The arrows step by compass direction, which is the map's own
+ * pair of axes where a chart's arrows step its category and value axes; Home
+ * and End jump to the first and last drawn region in the atlas's own order;
+ * Escape clears.
  */
+const KEY_ACTIONS: Record<string, MapCursorAction> = {
+	ArrowUp: 'north',
+	ArrowDown: 'south',
+	ArrowRight: 'east',
+	ArrowLeft: 'west',
+	Home: 'first',
+	End: 'last',
+	Escape: 'clear',
+}
+
+/** Reads a key to a cursor action. A key outside the table returns `null` and stays with the browser. */
 function keyAction(key: string): MapCursorAction | null {
-	switch (key) {
-		case 'ArrowUp':
-			return 'north'
-		case 'ArrowDown':
-			return 'south'
-		case 'ArrowRight':
-			return 'east'
-		case 'ArrowLeft':
-			return 'west'
-		case 'Home':
-			return 'first'
-		case 'End':
-			return 'last'
-		case 'Escape':
-			return 'clear'
-		default:
-			return null
-	}
+	return KEY_ACTIONS[key] ?? null
 }
 
 /** Whether a key activates the region under the cursor — Enter, or Space. @internal */

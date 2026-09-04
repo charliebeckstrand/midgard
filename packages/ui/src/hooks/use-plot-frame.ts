@@ -335,9 +335,7 @@ export function usePlotFrame(
 
 		observer.observe(node)
 
-		return () => {
-			observer.disconnect()
-		}
+		return () => observer.disconnect()
 	}, [node, measure, measureWidth, measureHeight])
 
 	const resolvedWidth = width ?? size.width

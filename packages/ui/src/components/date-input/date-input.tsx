@@ -6,6 +6,7 @@ import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
+import { clearNativeInput } from '../../utilities'
 import { Button } from '../button'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
@@ -214,7 +215,7 @@ export function DateInput({
 					disabled: resolvedDisabled,
 					readOnly: resolvedReadOnly,
 					suffix,
-					onClear: () => clearDateInput(inputRef.current),
+					onClear: () => clearNativeInput(inputRef.current),
 				})}
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}
@@ -295,25 +296,6 @@ function resolveInvalidMessage(
 	if (completeDate === undefined || isDayInRange(completeDate, min, max)) return invalidMessage
 
 	return outOfRangeMessage(format, min, max) ?? invalidMessage
-}
-
-/**
- * Clears `input` through a native input event, so controlled and uncontrolled
- * consumers both observe the change (committing `undefined`), then returns focus
- * to it as the clear button unmounts (WCAG 2.4.3). Mirrors SearchInput.
- *
- * @internal
- */
-function clearDateInput(input: HTMLInputElement | null) {
-	if (!input) return
-
-	const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set
-
-	setter?.call(input, '')
-
-	input.dispatchEvent(new Event('input', { bubbles: true }))
-
-	input.focus()
 }
 
 /**

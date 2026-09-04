@@ -52,11 +52,7 @@ type PanelInput<P, B = undefined> = {
 	close?: Base
 }
 
-function toArray(v?: string | string[]): string[] {
-	if (v == null) return []
-
-	return Array.isArray(v) ? v : [v]
-}
+const toArray = (v?: string | string[]): string[] => (v == null ? [] : [v].flat())
 
 /**
  * Build the panel slot bundle from the `panel` tokens and the caller input.

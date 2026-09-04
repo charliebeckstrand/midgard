@@ -221,7 +221,7 @@ function misWound(side: 'small' | 'large', exterior: boolean): boolean {
 
 /** A ring in the opposite winding, cloned so the caller's coordinates are never mutated. */
 function reversed(ring: Ring): Ring {
-	return [...ring].reverse()
+	return ring.toReversed()
 }
 
 /**

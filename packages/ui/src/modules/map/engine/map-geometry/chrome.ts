@@ -47,7 +47,7 @@ const SPHERE: GeoGeometryObjects = { type: 'Sphere' }
 
 /** A drawn `d`, or `null` where the projection drew none of the shape. */
 function drawn(d: string | null): string | null {
-	return d === null || d === '' ? null : d
+	return d || null
 }
 
 /**

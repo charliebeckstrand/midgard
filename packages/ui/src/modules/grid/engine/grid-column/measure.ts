@@ -1,5 +1,5 @@
 import type { Table } from '@tanstack/react-table'
-import { isDataColumn } from '../../../../utilities'
+import { clamp, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import {
 	DEFAULT_COLUMN_SIZE,
@@ -61,7 +61,7 @@ function headerWidth(
 
 	if (!slot) return th.getBoundingClientRect().width
 
-	const children = Array.from(slot.children) as HTMLElement[]
+	const children = [...slot.children] as HTMLElement[]
 
 	const childrenWidth = children.reduce((sum, child) => sum + child.offsetWidth, 0)
 
@@ -214,9 +214,7 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
  * @internal
  */
 function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
-	const pending: PendingLeaf[] = []
-
-	for (const scan of scans) pending.push(...scan.pending)
+	const pending = scans.flatMap((scan) => scan.pending)
 
 	if (pending.length === 0) return
 
@@ -232,9 +230,7 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 		}
 	}
 
-	pending.forEach(({ leaf }, i) => {
-		leaf.style.width = prior[i] ?? ''
-	})
+	for (const [i, { leaf }] of pending.entries()) leaf.style.width = prior[i] ?? ''
 }
 
 /** A measured column slice: the auto-sized columns' {@link ColumnSizeProfile}s, the summed width held by the rest, and every data column's floor. @internal */
@@ -311,7 +307,7 @@ function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap
 		? header
 		: Math.max(0, header - titleIntrinsic) + HEADER_TRUNCATE_ALLOWANCE
 
-	return Math.min(Math.max(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE), max)
+	return clamp(headerFloor, col.minWidth ?? DEFAULT_MIN_COLUMN_SIZE, max)
 }
 
 /**

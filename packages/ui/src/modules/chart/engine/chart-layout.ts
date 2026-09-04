@@ -184,13 +184,18 @@ export type PlotRect = {
  * @internal
  */
 function tickGutter(labels: string[], charWidth: number = TICK_CHAR_WIDTH): number {
-	const widest = labels.reduce((max, label) => Math.max(max, label.length), 0)
+	const widest = longestLength(labels)
 
 	// Round the count up to an even number so a one-character swing in the widest
 	// label (`8,000` ↔ `40,000`) leaves the gutter where it is — see the doc above.
 	const chars = widest + (widest % 2)
 
 	return Math.min(GUTTER_MAX, Math.ceil(chars * charWidth) + GUTTER_GAP + GUTTER_EDGE_PAD)
+}
+
+/** The character length of the longest label, or 0 for none. @internal */
+function longestLength(labels: string[]): number {
+	return labels.reduce((longest, label) => Math.max(longest, label.length), 0)
 }
 
 /**
@@ -512,17 +517,19 @@ function snapPointsOf(
 ): number[][] {
 	if (!scales.y && !scales.y2) return []
 
-	return Array.from({ length: count }, (_, index) =>
-		visibleValues.reduce<number[]>((positions, series) => {
+	return Array.from({ length: count }, (_, index) => {
+		const positions: number[] = []
+
+		for (const series of visibleValues) {
 			const scale = scales[series.axis]
 
 			const value = series.values[index]
 
 			if (scale && snappable(scale, value)) positions.push(scale.map(value))
+		}
 
-			return positions
-		}, []),
-	)
+		return positions
+	})
 }
 
 /**
@@ -551,13 +558,15 @@ function snapSeriesOf(
 ): number[][] {
 	if (!scales.y && !scales.y2) return []
 
-	return Array.from({ length: count }, (_, index) =>
-		visibleValues.reduce<number[]>((series, entry) => {
-			if (snappable(scales[entry.axis], entry.values[index])) series.push(entry.index)
+	return Array.from({ length: count }, (_, index) => {
+		const series: number[] = []
 
-			return series
-		}, []),
-	)
+		for (const entry of visibleValues) {
+			if (snappable(scales[entry.axis], entry.values[index])) series.push(entry.index)
+		}
+
+		return series
+	})
 }
 
 /** Every category's band center, along the band axis. @internal */
@@ -897,7 +906,7 @@ export function verticalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const plotWidth = Math.max(0, frameWidth - leftGutter - rightGutter)
 
-	const longest = categories.reduce((widest, label) => Math.max(widest, label.length), 0)
+	const longest = longestLength(categories)
 
 	const slot = longest * TICK_CHAR_WIDTH + GUTTER_GAP
 

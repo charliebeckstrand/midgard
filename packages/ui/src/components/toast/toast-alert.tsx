@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { useEffect, useRef } from 'react'
+import { type RefObject, useEffect, useRef } from 'react'
 import { announce, cn } from '../../core'
 import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
@@ -131,34 +131,19 @@ export function ToastAlert({
 		[],
 	)
 
-	function holdHover() {
-		if (hoverHeldRef.current) return
+	// One hold/release pair per source; `held` is that source's flag.
+	function hold(held: RefObject<boolean>) {
+		if (held.current) return
 
-		hoverHeldRef.current = true
-
-		onPause()
-	}
-
-	function releaseHover() {
-		if (!hoverHeldRef.current) return
-
-		hoverHeldRef.current = false
-
-		onResume()
-	}
-
-	function holdFocus() {
-		if (focusHeldRef.current) return
-
-		focusHeldRef.current = true
+		held.current = true
 
 		onPause()
 	}
 
-	function releaseFocus() {
-		if (!focusHeldRef.current) return
+	function release(held: RefObject<boolean>) {
+		if (!held.current) return
 
-		focusHeldRef.current = false
+		held.current = false
 
 		onResume()
 	}
@@ -182,16 +167,16 @@ export function ToastAlert({
 				// Pointer and focus pause auto-dismiss independently (WCAG 2.2.1):
 				// with both holds counted, releasing one under the other — Tab out
 				// while hovered, mouse out while focused — keeps the timer paused.
-				onMouseEnter={holdHover}
-				onMouseLeave={releaseHover}
+				onMouseEnter={() => hold(hoverHeldRef)}
+				onMouseLeave={() => release(hoverHeldRef)}
 				// `onFocus`/`onBlur` bubble (focusin/focusout); a move within the
 				// subtree re-fires them, so the held flag and the relatedTarget
 				// check make those no-ops. Release only when focus leaves the toast.
-				onFocus={holdFocus}
+				onFocus={() => hold(focusHeldRef)}
 				onBlur={(event) => {
 					if (event.currentTarget.contains(event.relatedTarget as Node | null)) return
 
-					releaseFocus()
+					release(focusHeldRef)
 				}}
 				onClick={() => onReset(t.id)}
 			>

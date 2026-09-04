@@ -100,7 +100,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		value: serializeColor(state.hsva, format, alpha),
 		onValueChange: (next: string | Hsva) => state.setHsva(toHsva(next) ?? state.hsva),
 		alpha,
-		...(swatches !== undefined ? { swatches } : {}),
+		swatches,
 		size,
 		disabled,
 	} as ColorPanelProps

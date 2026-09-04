@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { type FrameReserve, usePlotFrame } from '../../../hooks'
+import { type FrameReserve, type PlotFrameRef, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
 import type { Step } from '../../../recipes'
@@ -145,7 +145,7 @@ export type CartesianConfig<T> = {
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
 export type CartesianChart = {
-	ref: ReturnType<typeof usePlotFrame>['ref']
+	ref: PlotFrameRef
 	width: number
 	fixedWidth?: number
 	height: number
@@ -372,10 +372,9 @@ function domainValuesFor<T>(args: {
 			: []
 		: bound.flatMap((meta) => meta.values.filter((value): value is number => value !== null))
 
-	const referenceValues = (reference ?? [])
-		.map((line, index) => ({ line, index }))
-		.filter(({ line, index }) => (line.axis ?? 'y') === axis && !referenceHidden.has(index))
-		.map(({ line }) => line.value)
+	const referenceValues = (reference ?? []).flatMap((line, index) =>
+		(line.axis ?? 'y') === axis && !referenceHidden.has(index) ? [line.value] : [],
+	)
 
 	return values.concat(referenceValues)
 }
@@ -711,13 +710,7 @@ export function barProjection(drawn: DrawnSeries[], fallback: number) {
  * @internal
  */
 function latestValue(values: (number | null)[]): number {
-	for (let index = values.length - 1; index >= 0; index--) {
-		const value = values[index]
-
-		if (value != null) return value
-	}
-
-	return Number.NEGATIVE_INFINITY
+	return values.findLast((value) => value != null) ?? Number.NEGATIVE_INFINITY
 }
 
 /**

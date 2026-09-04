@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { type Dispatch, type SetStateAction, useCallback, useEffect, useRef, useState } from 'react'
 import { chatContentText } from './engine/chat-content/text'
 import type { ChatPart } from './engine/chat-content/types'
 import { draftContent } from './engine/chat-draft'
@@ -149,7 +149,7 @@ export type UseChatSend = {
 	 */
 	stop: () => void
 	/** Escape hatch for direct list edits (e.g. seeding history or clearing). */
-	setMessages: React.Dispatch<React.SetStateAction<ChatMessageData[]>>
+	setMessages: Dispatch<SetStateAction<ChatMessageData[]>>
 }
 
 /**

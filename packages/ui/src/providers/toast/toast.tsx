@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useMemo, useReducer, useRef } from 'react'
 import {
 	ToastContext,
 	type ToastContextValue,
@@ -37,9 +37,7 @@ export type ToastProviderProps = {
 export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: ToastProviderProps) {
 	const toastsRef = useRef<ToastData[]>([])
 
-	const [, flush] = useState(0)
-
-	const sync = useCallback(() => flush((n) => n + 1), [])
+	const [, sync] = useReducer((n: number) => n + 1, 0)
 
 	/*
 	 * `dismissed` is the latch. It is written once, in `dismiss` below, at the moment a
@@ -67,36 +65,30 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			if (!toast) return
 
-			if (!toast.dismissed) {
-				toastsRef.current = toastsRef.current.map((t) =>
-					t.id === id ? { ...t, dismissed: true } : t,
-				)
+			const remove = () => {
+				toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
 
 				sync()
 
-				// After the mark, so a consumer that dismisses from inside its own handler
-				// re-finds a marked toast and takes the removal branch instead of reporting
-				// a second time.
-				toast.onDismiss?.(reason)
-
-				requestAnimationFrame(() => {
-					toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
-
-					sync()
-
-					if (toastsRef.current.length === 0) stop()
-				})
-
-				return
+				if (toastsRef.current.length === 0) stop()
 			}
 
-			toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
+			if (toast.dismissed) return remove()
+
+			toastsRef.current = toastsRef.current.map((t) =>
+				t.id === id ? { ...t, dismissed: true } : t,
+			)
 
 			sync()
 
-			if (toastsRef.current.length === 0) stop()
+			// After the mark, so a consumer that dismisses from inside its own handler
+			// re-finds a marked toast and takes the removal branch instead of reporting
+			// a second time.
+			toast.onDismiss?.(reason)
+
+			requestAnimationFrame(remove)
 		},
-		[sync, stop],
+		[stop],
 	)
 
 	const toast = useCallback(
@@ -113,14 +105,8 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 			if (maxToasts > 0) {
 				const active = toastsRef.current.filter((t) => !t.dismissed)
 
-				const excess = active.length - maxToasts
-
-				if (excess > 0) {
-					const toDismiss = active.slice(0, excess)
-
-					for (const t of toDismiss) {
-						dismiss(t.id, 'evicted')
-					}
+				for (const t of active.slice(0, Math.max(0, active.length - maxToasts))) {
+					dismiss(t.id, 'evicted')
 				}
 			}
 
@@ -132,7 +118,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			return id
 		},
-		[maxToasts, duration, sync, startTimer, stop, resetRemaining, dismiss],
+		[maxToasts, duration, startTimer, stop, resetRemaining, dismiss],
 	)
 
 	const resetToast = useCallback(
@@ -151,7 +137,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 	// Viewport value recomputes every render (toasts array); only the viewport
 	// consumes it and re-renders on each push.
 	const viewportValue: ToastViewportContextValue = {
-		toasts: [...toastsRef.current].reverse(),
+		toasts: toastsRef.current.toReversed(),
 		dismiss,
 		pause,
 		resume,

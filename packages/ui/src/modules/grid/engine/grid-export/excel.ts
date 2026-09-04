@@ -1,17 +1,7 @@
 import { strToU8, zipSync } from 'fflate'
 import type { GridColumn } from '../../types'
-import { cellText, exportFields } from './accessor'
+import { cellText, escapeXml, exportFields } from './accessor'
 import { downloadBlob } from './download'
-
-/** Escapes the five XML-significant characters for worksheet text. @internal */
-function xmlEscape(value: string): string {
-	return value
-		.replaceAll('&', '&amp;')
-		.replaceAll('<', '&lt;')
-		.replaceAll('>', '&gt;')
-		.replaceAll('"', '&quot;')
-		.replaceAll("'", '&apos;')
-}
 
 /** A1-style column letter for a 0-based index (0 → A, 25 → Z, 26 → AA). @internal */
 function columnLetter(index: number): string {
@@ -40,7 +30,7 @@ function sheetCell(reference: string, value: unknown): string {
 
 	if (text === '') return `<c r="${reference}"/>`
 
-	return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${xmlEscape(text)}</t></is></c>`
+	return `<c r="${reference}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(text)}</t></is></c>`
 }
 
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
@@ -64,23 +54,24 @@ const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 export function rowsToXlsx<T>(columns: GridColumn<T>[], rows: T[]): Uint8Array {
 	const fields = exportFields(columns)
 
-	const sheetRows: string[] = []
-
 	const headerCells = fields
 		.map((field, column) => sheetCell(`${columnLetter(column)}1`, field.label))
 		.join('')
 
-	sheetRows.push(`<row r="1">${headerCells}</row>`)
+	const sheetRows = [
+		`<row r="1">${headerCells}</row>`,
+		...rows.map((row, index) => {
+			const reference = index + 2
 
-	rows.forEach((row, index) => {
-		const reference = index + 2
+			const cells = fields
+				.map((field, column) =>
+					sheetCell(`${columnLetter(column)}${reference}`, field.accessor(row)),
+				)
+				.join('')
 
-		const cells = fields
-			.map((field, column) => sheetCell(`${columnLetter(column)}${reference}`, field.accessor(row)))
-			.join('')
-
-		sheetRows.push(`<row r="${reference}">${cells}</row>`)
-	})
+			return `<row r="${reference}">${cells}</row>`
+		}),
+	]
 
 	const sheet = `${XML_DECLARATION}<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>${sheetRows.join('')}</sheetData></worksheet>`
 

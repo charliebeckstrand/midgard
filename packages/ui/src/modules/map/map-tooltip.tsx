@@ -68,7 +68,7 @@ type MapTooltipContent = {
 
 /** A name-only readout, for a region carrying no value the tooltip could show. @internal */
 function nameOnly(name: string | undefined, asked: boolean | undefined): MapTooltipContent | null {
-	return asked === true && name !== undefined && name !== '' ? { title: name } : null
+	return asked && name ? { title: name } : null
 }
 
 /** Resolves the tooltip content for a hover target, or `null` to stay away. @internal */

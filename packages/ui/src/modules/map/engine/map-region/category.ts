@@ -205,8 +205,6 @@ export function regionCategoryIndexes<T>(
 
 		if (datum == null) return null
 
-		const index = indexByValue.get(String(datum[categoryKey]))
-
-		return index ?? null
+		return indexByValue.get(String(datum[categoryKey])) ?? null
 	})
 }

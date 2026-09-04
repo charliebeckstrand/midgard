@@ -7,13 +7,6 @@ import { k } from '../../recipes/kata/panel'
 import { useDensity } from '../density'
 import { PanelCloseContext, usePanelCloseValue } from './panel-close-context'
 
-const DEFAULT_TITLE = k.title
-const DEFAULT_DESCRIPTION = k.description
-const DEFAULT_HEADER = k.header
-const DEFAULT_BODY = k.body
-const DEFAULT_FOOTER = k.footer
-const DEFAULT_CONTENT = k.content
-
 /** Props for a panel `Title` slot (`<h2>`). */
 export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
 /** Props for a panel `Description` slot (`<p>`). */
@@ -92,12 +85,14 @@ type PanelSlots = {
  * @see {@link PanelProviders}
  */
 export function createPanel(slotPrefix: string, slots?: PanelSlots) {
-	const titleClass = slots?.title ?? DEFAULT_TITLE
-	const descriptionClass = slots?.description ?? DEFAULT_DESCRIPTION
-	const headerClass = slots?.header ?? DEFAULT_HEADER
-	const bodyClass = slots?.body ?? DEFAULT_BODY
-	const footerClass = slots?.footer ?? DEFAULT_FOOTER
-	const contentClass = slots?.content ?? DEFAULT_CONTENT
+	const {
+		title: titleClass = k.title,
+		description: descriptionClass = k.description,
+		header: headerClass = k.header,
+		body: bodyClass = k.body,
+		footer: footerClass = k.footer,
+		content: contentClass = k.content,
+	} = slots ?? {}
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
 		const { titleId, registerTitle } = usePanelA11y()

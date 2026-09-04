@@ -303,7 +303,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 		const rows = queryItems(panel, MENUITEM_SELECTOR)
 
-		const row = edge === 'first' ? rows[0] : rows[rows.length - 1]
+		const row = edge === 'first' ? rows[0] : rows.at(-1)
 
 		if (!row) return false
 

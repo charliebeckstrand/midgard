@@ -28,13 +28,8 @@ const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	size?: Step
 }>('SidebarLayout', { default: {} })
 
-/** Mobile navbar padding for a Density step: `sm` → `p-4`, `lg` → `p-8`, else `p-6`. @internal */
-function navbarPaddingForSize(size: Step): string {
-	if (size === 'sm') return 'p-4'
-	if (size === 'lg') return 'p-8'
-
-	return 'p-6'
-}
+/** Mobile navbar padding per Density step. @internal */
+const NAVBAR_PADDING = { sm: 'p-4', md: 'p-6', lg: 'p-8' } satisfies Record<Step, string>
 
 type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
@@ -96,7 +91,7 @@ export function SidebarLayout({
 			{floating && (
 				<div
 					aria-hidden
-					className={cn(k.floatingHotZone())}
+					className={k.floatingHotZone()}
 					onPointerEnter={() => setFloatingOpen(true)}
 				/>
 			)}
@@ -160,7 +155,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex align="center" className={cn('lg:p-0 lg:hidden', navbarPaddingForSize(size))}>
+			<Flex align="center" className={cn('lg:p-0 lg:hidden', NAVBAR_PADDING[size])}>
 				<Button
 					type="button"
 					variant="bare"

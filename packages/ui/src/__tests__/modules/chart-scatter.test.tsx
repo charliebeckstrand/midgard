@@ -3,11 +3,11 @@ import { BubbleChart } from '../../modules/chart/bubble-chart'
 import {
 	anchorEndTicks,
 	diameterRange,
-	nearestCenterIndex,
 	scatterMarkAt,
 	sizeRadius,
 	uniqueXValues,
 } from '../../modules/chart/engine/chart-geometry/scatter'
+import { nearestStopIndex } from '../../modules/chart/engine/chart-snap'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { act, allBySlot, bySlot, fireEvent, renderUI, userEvent } from '../helpers'
 
@@ -82,11 +82,11 @@ describe('scatter geometry', () => {
 	})
 
 	it('resolves the nearest center however unevenly they sit', () => {
-		expect(nearestCenterIndex(9, [0, 10, 100])).toBe(1)
+		expect(nearestStopIndex([0, 10, 100], 9)).toBe(1)
 
-		expect(nearestCenterIndex(60, [0, 10, 100])).toBe(2)
+		expect(nearestStopIndex([0, 10, 100], 60)).toBe(2)
 
-		expect(nearestCenterIndex(5, [])).toBeNull()
+		expect(nearestStopIndex([], 5)).toBeNull()
 	})
 
 	it('scales bubble radii by area between the diameter range ends', () => {

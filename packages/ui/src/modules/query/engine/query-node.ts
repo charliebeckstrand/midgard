@@ -49,7 +49,5 @@ function defaultValueFor(field?: QueryField): unknown {
 
 	if (field.type === 'select') return field.options?.[0]?.value ?? ''
 
-	if (field.type === 'number') return ''
-
 	return ''
 }

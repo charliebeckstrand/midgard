@@ -1,5 +1,5 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
-
+import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 
 /** A footer action button in the date picker. */
@@ -178,40 +178,26 @@ function handleNoActiveKey(
 	}
 }
 
+/** Day delta per arrow key in the grid zone: a column left/right, a week up/down. @internal */
+const GRID_DELTAS: Record<string, number> = {
+	ArrowLeft: -1,
+	ArrowRight: 1,
+	ArrowUp: -7,
+	ArrowDown: 7,
+}
+
 /** Grid-zone keys: arrows move the highlight by day/week, Enter/Space selects. @internal */
 function handleGridKey(
 	event: KeyboardEvent<HTMLElement>,
 	active: GridActive,
 	ctx: DatePickerKeyContext,
 ) {
-	if (event.key === 'ArrowLeft') {
+	const delta = GRID_DELTAS[event.key]
+
+	if (delta !== undefined) {
 		event.preventDefault()
 
-		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(-1) })
-
-		return
-	}
-
-	if (event.key === 'ArrowRight') {
-		event.preventDefault()
-
-		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(1) })
-
-		return
-	}
-
-	if (event.key === 'ArrowUp') {
-		event.preventDefault()
-
-		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(-7) })
-
-		return
-	}
-
-	if (event.key === 'ArrowDown') {
-		event.preventDefault()
-
-		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(7) })
+		ctx.setActive({ zone: 'grid', date: ctx.moveGridDate(delta) })
 
 		return
 	}
@@ -229,22 +215,14 @@ function handleHeaderKey(
 	active: HeaderActive,
 	ctx: DatePickerKeyContext,
 ) {
-	if (event.key === 'ArrowLeft') {
+	// Left/Right wrap across the three controls; `(index + delta + 3) % 3`
+	// covers both edges.
+	if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
 		event.preventDefault()
 
-		const nextIndex = active.index === 0 ? 2 : ((active.index - 1) as 0 | 1 | 2)
+		const delta = event.key === 'ArrowLeft' ? -1 : 1
 
-		ctx.setActive({ zone: 'header', index: nextIndex })
-
-		return
-	}
-
-	if (event.key === 'ArrowRight') {
-		event.preventDefault()
-
-		const nextIndex = active.index === 2 ? 0 : ((active.index + 1) as 0 | 1 | 2)
-
-		ctx.setActive({ zone: 'header', index: nextIndex })
+		ctx.setActive({ zone: 'header', index: ((active.index + delta + 3) % 3) as 0 | 1 | 2 })
 
 		return
 	}
@@ -289,7 +267,7 @@ function handleFooterKey(
 
 		const delta = event.key === 'ArrowLeft' ? -1 : 1
 
-		ctx.setActive({ zone: 'footer', index: (active.index + delta + count) % count })
+		ctx.setActive({ zone: 'footer', index: wrap(active.index + delta, count) })
 
 		return
 	}

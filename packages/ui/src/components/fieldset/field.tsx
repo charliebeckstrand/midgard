@@ -49,7 +49,7 @@ export function Field({
 		<ControlContext value={value}>
 			<div
 				data-slot="field"
-				{...(value.disabled ? { 'data-disabled': true } : {})}
+				data-disabled={value.disabled || undefined}
 				className={cn(k.field, className)}
 				{...props}
 			>

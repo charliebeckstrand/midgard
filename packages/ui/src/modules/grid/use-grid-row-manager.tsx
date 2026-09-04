@@ -338,15 +338,13 @@ export function useGridRowManagerRegion<T>({
 
 	// Group-row lookup (by stringified value) for the menu's per-group expand toggle.
 	const groupRowByKey = useMemo(() => {
-		const map = new Map<string, Row<T>>()
+		const rows = grouping == null ? undefined : groupedRows
 
-		if (groupedRows && grouping != null) {
-			for (const row of groupedRows) {
-				if (row.getIsGrouped()) map.set(String(row.getGroupingValue(String(grouping))), row)
-			}
-		}
-
-		return map
+		return new Map(
+			(rows ?? [])
+				.filter((row) => row.getIsGrouped())
+				.map((row) => [String(row.getGroupingValue(String(grouping))), row]),
+		)
 	}, [groupedRows, grouping])
 
 	const { color } = manager.presentation
