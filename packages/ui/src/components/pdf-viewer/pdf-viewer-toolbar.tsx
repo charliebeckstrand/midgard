@@ -4,13 +4,11 @@ import { PanelLeft, PanelLeftDashed, RotateCw } from 'lucide-react'
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { Button } from '../button'
-import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
+import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
@@ -51,39 +49,23 @@ export function PdfViewerToolbar() {
 				{total > 0 && (
 					<>
 						{isDesktop && (
-							<Tooltip>
-								<TooltipTrigger>
-									<Button
-										type="button"
-										variant="plain"
-										aria-label={sidebarToggleLabel}
-										aria-expanded={sidebarOpen}
-										disabled={loading}
-										onClick={() => setSidebarOpen(!sidebarOpen)}
-									>
-										<Icon icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />} />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>{sidebarToggleLabel}</TooltipContent>
-							</Tooltip>
+							<PdfViewerToolbarButton
+								label={sidebarToggleLabel}
+								icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />}
+								expanded={sidebarOpen}
+								disabled={loading}
+								onClick={() => setSidebarOpen(!sidebarOpen)}
+							/>
 						)}
 
 						{!isDesktop && (
-							<Tooltip>
-								<TooltipTrigger>
-									<Button
-										type="button"
-										variant="plain"
-										aria-label="Show thumbnails"
-										aria-expanded={thumbsOpen}
-										disabled={loading}
-										onClick={() => setThumbsOpen(true)}
-									>
-										<Icon icon={<PanelLeft />} />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>Show thumbnails</TooltipContent>
-							</Tooltip>
+							<PdfViewerToolbarButton
+								label="Show thumbnails"
+								icon={<PanelLeft />}
+								expanded={thumbsOpen}
+								disabled={loading}
+								onClick={() => setThumbsOpen(true)}
+							/>
 						)}
 
 						<ToolbarGroup aria-label="Page navigation">
@@ -119,20 +101,12 @@ export function PdfViewerToolbar() {
 			<div className={cn(k.toolbar.section)}>
 				<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 				<ToolbarGroup aria-label="View">
-					<Tooltip>
-						<TooltipTrigger>
-							<Button
-								type="button"
-								variant="plain"
-								aria-label="Rotate"
-								disabled={controlsDisabled}
-								onClick={rotate}
-							>
-								<Icon icon={<RotateCw />} />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Rotate</TooltipContent>
-					</Tooltip>
+					<PdfViewerToolbarButton
+						label="Rotate"
+						icon={<RotateCw />}
+						disabled={controlsDisabled}
+						onClick={rotate}
+					/>
 				</ToolbarGroup>
 				{documentSrc && (
 					<>
