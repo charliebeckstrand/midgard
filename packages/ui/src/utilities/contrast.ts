@@ -23,6 +23,9 @@ export type Srgb = readonly [r: number, g: number, b: number]
  */
 export type ColorInput = string | Srgb
 
+/** WCAG 1.4.11 minimum contrast for non-text UI components and graphical objects. */
+export const WCAG_NON_TEXT = 3
+
 const clamp01 = (channel: number): number => clamp(channel, 0, 1)
 
 /** Gamma-encode a linear-light channel to sRGB. */

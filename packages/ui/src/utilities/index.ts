@@ -19,6 +19,7 @@ export {
 	readableInk,
 	relativeLuminance,
 	type Srgb,
+	WCAG_NON_TEXT,
 } from './contrast'
 export { digitsOnly } from './digits-only'
 export { isTopDismissLayer, registerDismissLayer } from './dismiss-layers'

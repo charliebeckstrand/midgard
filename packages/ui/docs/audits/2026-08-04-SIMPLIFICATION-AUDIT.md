@@ -130,7 +130,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   so no `size` prop can carry `xl`. The public `createSkeleton` signature does not change. Saving: 32
   lines. Resolved in #1061.
 
-- [ ] **Collapse the eight pdf-viewer toolbar icon-buttons.** The toolbar family writes the same
+- [x] **Collapse the eight pdf-viewer toolbar icon-buttons.** The toolbar family writes the same
   Tooltip / Trigger / Button / Icon scaffold eight times across 114 lines
   (`pdf-viewer-toolbar.tsx:54-68,:72-86,:122-135`; `pdf-viewer-zoom-controls.tsx:37-50,:51-64,:65-78`;
   `pdf-viewer-document-actions.tsx:34-47,:48-61`), and every copy spells `type="button"` and
@@ -140,6 +140,8 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   drop three imports each and add one. `TooltipTrigger` clones its element child
   (`tooltip-trigger.tsx:78-88`), so the tree and every `data-slot` stay the same, and `pdf-viewer.test.tsx`
   queries only accessible names (`:97,:103,:115,:131`) and `aria-expanded` (`:199`). Saving: 30 lines.
+  Measured, the three call sites lose 68 lines against 62 for `PdfViewerToolbarButton`; the win is the
+  one scaffold, not the count. Resolved in #1119.
 
 - [x] **Fold `useControlFieldContext` into `ControlField`.** The hook is a 36-line `@internal` file that
   builds one `useMemo` for one 30-line component, and its own TSDoc admits the arrangement ("Not on the
@@ -226,7 +228,7 @@ Each is a real reduction that needs a decision or careful test work first.
   the announcement strings and the arrow behaviour against the existing suites before you land it.
   Saving: 75 lines.
 
-- [ ] **Drop the named-threshold layer and `meetsContrast` from `utilities/contrast`.** `contrast.ts`
+- [x] **Drop the named-threshold layer and `meetsContrast` from `utilities/contrast`.** `contrast.ts`
   ships a named-conformance abstraction — `ContrastLevel`, `ContrastThreshold`, `LEVEL_FLOOR`,
   `contrastFloor`, and four WCAG constants — plus `meetsContrast`. An unfiltered repo sweep finds readers
   only in the module, `utilities/index.ts:15-19`, its own unit test, and `docs/UTILITIES.md`. The one
@@ -239,9 +241,9 @@ Each is a real reduction that needs a decision or careful test work first.
   changes from `'AA'` to `4.5`, and `surface-index.test.ts:70-72` pins `docs/UTILITIES.md` against every
   value export, so the eight index rows and four doc rows change in the same commit. This is internal,
   not public: `docs/UTILITIES.md:3` and package.json `exports` confirm no `./utilities` entry. Saving: 64
-  lines.
+  lines. Resolved in #1119.
 
-- [ ] **Route the test contrast helper through `utilities/contrast`.** `__tests__/helpers/contrast.ts`
+- [x] **Route the test contrast helper through `utilities/contrast`.** `__tests__/helpers/contrast.ts`
   re-derives what the shipped module exports one directory over. The nine OKLab coefficients at `:55-63`
   are the literals at `utilities/contrast.ts:125-133`, `encode` and `decode` at `:80-81` are the
   piecewise functions at `:66-72`, the 0.2126 / 0.7152 / 0.0722 weighting at `:83` is what `:185`
@@ -253,7 +255,10 @@ Each is a real reduction that needs a decision or careful test work first.
   percent form that `parseOklch` (`:152`) also divides. `chart-label-contrast.test.ts:4-5` already pairs
   both modules, so the path is proven. Run this after the threshold-layer deletion to avoid rework. The
   codebase writes an explicit "Deliberately not" comment where duplication is intended
-  (`walk-source.ts:14-18`), and this file carries none. Saving: 55 lines.
+  (`walk-source.ts:14-18`), and this file carries none. Saving: 55 lines. The helper now works in
+  gamma-encoded sRGB rather than in linear light, so compositing is one blend rather than an encode,
+  blend, decode round trip; the calibration case still reads 3.21:1 and all 59 ramp and chart-label
+  assertions pass unchanged. Resolved in #1119.
 
 - [ ] **Share the hidden-iframe print harness with `printPdf`.** `print.ts:29-59` and
   `pdf-viewer-utilities.ts:35-65` are 31 byte-identical lines: the same `createElement`, the same six
@@ -274,7 +279,7 @@ Each is a real reduction that needs a decision or careful test work first.
 
 Worth doing, but a consumer notices.
 
-- [ ] **Delete the two zero-behaviour listbox wrappers in the docs kit.** `theme-listbox.tsx:13-15` and
+- [x] **Delete the two zero-behaviour listbox wrappers in the docs kit.** `theme-listbox.tsx:13-15` and
   `density-listbox.tsx:13-15` are each a whole file whose body is `<OptionsListbox options={X}
   {...props} />`, and each re-declares `value`, `placement`, and `onValueChange` (`:6-10` in both) that
   `options-listbox.tsx:8-13` already carries. Both option sets are `LabeledOption`-shaped at source
@@ -285,9 +290,10 @@ Worth doing, but a consumer notices.
   of the `DensityListbox` row (`:6`) and the `ThemeListbox` row (`:11`). A consumer notices:
   `engine/index.ts:1-4` declares itself the demo-authoring kit, and `demos/providers/density.tsx:30,134`
   must change both its import and its JSX. `engine/README.md:13` describes the kit generically, so it
-  needs no edit. Saving: 27 lines.
+  needs no edit. Saving: 27 lines. `SizeListbox` and `VariantListbox` stay: each builds the labelled
+  pairs from a bare token list, which is the work these two lacked. Resolved in #1119.
 
-- [ ] **Prune five hook options that no call site passes.** `useA11yRoving.scrollIntoView`,
+- [x] **Prune five hook options that no call site passes.** `useA11yRoving.scrollIntoView`,
   `useSortableSensors.activationDistance`, and `useKeybindings.event`, `capture`, and `timeout` are each
   declared, documented, defaulted, and threaded through a context object or a dependency array, and no
   caller in `packages` or `apps` passes one. `scrollIntoView` appears only inside `use-a11y-roving.ts`,
@@ -302,7 +308,8 @@ Worth doing, but a consumer notices.
   shrink the keybindings destructure, options literal, and dependency array. Each option is a documented,
   defaulted field on a barrel-exported hook, so the removal is a public signature change. No docs surface
   index moves with it: `docs/HOOKS.md` carries one row per hook and does not enumerate options, so the
-  change is TSDoc only. Saving: 17 lines.
+  change is TSDoc only. Saving: 17 lines. Re-verified before the cut against 18 roving call sites,
+  three sensor sites, and every `useKeybindings` caller in the package and both apps. Resolved in #1119.
 
 ## Ruled out
 

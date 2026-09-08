@@ -31,6 +31,7 @@
 | `relativeLuminance` | WCAG relative luminance of a colour, in `[0, 1]`. |
 | `readableInk` | The first candidate ink that clears a numeric floor on a background — lead with the preferred ink (e.g. white) to get it wherever it holds. Defaults to `4.5`, the AA floor for normal text. |
 | `parseColor` | Resolves a CSS colour (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`, `white` / `black`) or an `Srgb` triple to gamma-encoded `Srgb`. |
+| `WCAG_NON_TEXT` | The WCAG 1.4.11 contrast floor for a non-text component or graphical object: `3`. |
 | `Srgb` *(type)* | An sRGB colour as three gamma-encoded `[0, 1]` channels. |
 | `ColorInput` *(type)* | A colour to measure: a CSS colour string or an `Srgb` triple. |
 

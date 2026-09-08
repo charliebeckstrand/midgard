@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { k } from '../../recipes/kata/chart'
-import { contrastRatio, readableInk } from '../../utilities/contrast'
+import { contrastRatio, readableInk, WCAG_NON_TEXT } from '../../utilities/contrast'
 import { themeColor } from '../helpers/contrast'
 
 /**
@@ -16,8 +16,7 @@ import { themeColor } from '../helpers/contrast'
  * for dark ink where white would have held, fails here.
  */
 
-/** WCAG 1.4.11: the 3:1 floor a non-text graphical object answers to. */
-const FLOOR = 3
+const FLOOR = WCAG_NON_TEXT
 
 const WHITE = 'white'
 const DARK_INK = 'zinc-950'
