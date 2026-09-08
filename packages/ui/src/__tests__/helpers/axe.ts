@@ -17,8 +17,13 @@ expect.extend(toHaveNoViolations)
  * Pair with the `toHaveNoViolations` matcher (registered above):
  *
  *     expect(await axe(container)).toHaveNoViolations()
+ *
+ * `resultTypes` keeps axe from serializing a selector and the source HTML for
+ * every node that passes. Only `violations` carries nodes, which is all the
+ * matcher reads, and a passing sweep is where the whole corpus sits.
  */
 export const axe = configureAxe({
+	resultTypes: ['violations'],
 	rules: {
 		'color-contrast': { enabled: false },
 		'target-size': { enabled: false },
@@ -33,9 +38,10 @@ export const axe = configureAxe({
  * (`landmark-one-main`, `landmark-unique`, …) for asserting that a full layout
  * composes a correct landmark structure. Run against `document.body`, not an
  * isolated container. Contrast and target-size remain disabled (require a real
- * browser).
+ * browser). Carries the same `resultTypes` narrowing as {@link axe}.
  */
 export const axePage = configureAxe({
+	resultTypes: ['violations'],
 	rules: {
 		'color-contrast': { enabled: false },
 		'target-size': { enabled: false },
