@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { act, bySlot, mockDomGeometry, renderUI } from '../helpers'
+import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
  * Charts track their container live: every resize notification the frame
@@ -11,40 +12,7 @@ import { act, bySlot, mockDomGeometry, renderUI } from '../helpers'
  * width, so it is the faithful signal for what the marks were built against.
  */
 
-type StubInstance = {
-	callback: ResizeObserverCallback
-}
-
 /** Captures constructed `ResizeObserver`s so a test can fire their callbacks. */
-function installResizeObserverStub() {
-	const original = window.ResizeObserver
-
-	const instances: StubInstance[] = []
-
-	class Stub {
-		observe = vi.fn()
-		unobserve = vi.fn()
-		disconnect = vi.fn()
-
-		callback: ResizeObserverCallback
-
-		constructor(cb: ResizeObserverCallback) {
-			this.callback = cb
-
-			instances.push(this)
-		}
-	}
-
-	window.ResizeObserver = Stub as unknown as typeof ResizeObserver
-
-	return {
-		instances,
-		restore: () => {
-			window.ResizeObserver = original
-		},
-	}
-}
-
 const DATA = [
 	{ x: 'Q1', y: 40 },
 	{ x: 'Q2', y: 80 },
@@ -52,14 +20,10 @@ const DATA = [
 ]
 
 describe('chart resize tracking', () => {
-	let stub: ReturnType<typeof installResizeObserverStub>
+	let observers: ResizeObserverStub[]
 
 	beforeEach(() => {
-		stub = installResizeObserverStub()
-	})
-
-	afterEach(() => {
-		stub.restore()
+		observers = stubResizeObserver()
 	})
 
 	/** Reports a container width to the chart through its captured observer. */
@@ -71,7 +35,7 @@ describe('chart resize tracking', () => {
 		mockDomGeometry(plot, { clientWidth: width, clientHeight: 0 })
 
 		act(() => {
-			for (const observer of stub.instances) {
+			for (const observer of observers) {
 				observer.callback([], observer as unknown as ResizeObserver)
 			}
 		})

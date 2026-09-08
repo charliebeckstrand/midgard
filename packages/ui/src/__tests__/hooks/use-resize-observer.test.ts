@@ -1,55 +1,14 @@
 import { renderHook } from '@testing-library/react'
 import { useCallback, useRef } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
-
-type StubInstance = {
-	observe: ReturnType<typeof vi.fn>
-	disconnect: ReturnType<typeof vi.fn>
-	callback: ResizeObserverCallback
-}
-
-function installResizeObserverStub() {
-	const original = window.ResizeObserver
-
-	const instances: StubInstance[] = []
-
-	class Stub {
-		observe = vi.fn()
-		unobserve = vi.fn()
-		disconnect = vi.fn()
-
-		callback: ResizeObserverCallback
-
-		constructor(cb: ResizeObserverCallback) {
-			this.callback = cb
-
-			instances.push(this)
-		}
-	}
-
-	// `lib.dom`'s `ResizeObserver` has overloaded constructor signatures that
-	// `vi.fn()`-shaped methods don't satisfy structurally; the cast narrows to
-	// the runtime contract the hook uses.
-	window.ResizeObserver = Stub as unknown as typeof ResizeObserver
-
-	return {
-		instances,
-		restore: () => {
-			window.ResizeObserver = original
-		},
-	}
-}
+import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 describe('useResizeObserver', () => {
-	let stub: ReturnType<typeof installResizeObserverStub>
+	let observers: ResizeObserverStub[]
 
 	beforeEach(() => {
-		stub = installResizeObserverStub()
-	})
-
-	afterEach(() => {
-		stub.restore()
+		observers = stubResizeObserver()
 	})
 
 	it('invokes the callback synchronously on mount when ref.current is set', () => {
@@ -75,9 +34,9 @@ describe('useResizeObserver', () => {
 			useResizeObserver(ref, () => {})
 		})
 
-		expect(stub.instances).toHaveLength(1)
+		expect(observers).toHaveLength(1)
 
-		expect(stub.instances[0]?.observe).toHaveBeenCalledWith(element)
+		expect(observers[0]?.observe).toHaveBeenCalledWith(element)
 	})
 
 	it('disconnects on unmount', () => {
@@ -89,11 +48,11 @@ describe('useResizeObserver', () => {
 			useResizeObserver(ref, () => {})
 		})
 
-		expect(stub.instances[0]?.disconnect).not.toHaveBeenCalled()
+		expect(observers[0]?.disconnect).not.toHaveBeenCalled()
 
 		unmount()
 
-		expect(stub.instances[0]?.disconnect).toHaveBeenCalledTimes(1)
+		expect(observers[0]?.disconnect).toHaveBeenCalledTimes(1)
 	})
 
 	it('short-circuits without constructing an observer when ref.current is null', () => {
@@ -105,7 +64,7 @@ describe('useResizeObserver', () => {
 			useResizeObserver(ref, callback)
 		})
 
-		expect(stub.instances).toHaveLength(0)
+		expect(observers).toHaveLength(0)
 
 		expect(callback).not.toHaveBeenCalled()
 	})
@@ -126,7 +85,7 @@ describe('useResizeObserver', () => {
 			{ initialProps: { unrelated: 0 } },
 		)
 
-		expect(stub.instances).toHaveLength(1)
+		expect(observers).toHaveLength(1)
 
 		expect(callback).toHaveBeenCalledTimes(1)
 
@@ -135,7 +94,7 @@ describe('useResizeObserver', () => {
 		rerender({ unrelated: 2 })
 
 		// Stable callback + stable ref: effect deps unchanged, no re-subscribe.
-		expect(stub.instances).toHaveLength(1)
+		expect(observers).toHaveLength(1)
 
 		expect(callback).toHaveBeenCalledTimes(1)
 	})
@@ -152,15 +111,15 @@ describe('useResizeObserver', () => {
 			{ initialProps: { callback: () => {} } },
 		)
 
-		expect(stub.instances).toHaveLength(1)
+		expect(observers).toHaveLength(1)
 
 		rerender({ callback: () => {} })
 
 		// An inline closure is safe: the effect event holds the identity steady, so
 		// the observer neither re-subscribes nor re-fires its attach callback.
-		expect(stub.instances).toHaveLength(1)
+		expect(observers).toHaveLength(1)
 
-		expect(stub.instances[0]?.disconnect).not.toHaveBeenCalled()
+		expect(observers[0]?.disconnect).not.toHaveBeenCalled()
 	})
 
 	it('raises the latest callback after the identity changes', () => {
@@ -183,7 +142,7 @@ describe('useResizeObserver', () => {
 
 		rerender({ callback: second })
 
-		const instance = stub.instances[0]
+		const instance = observers[0]
 
 		instance?.callback([], instance as unknown as ResizeObserver)
 

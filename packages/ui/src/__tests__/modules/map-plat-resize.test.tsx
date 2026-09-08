@@ -1,8 +1,9 @@
 import { geoMercator } from 'd3-geo'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { act, allRegions, bySlot, mockDomGeometry, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
  * A passed d3 projection instance is fit in place, so it keeps its reference
@@ -12,49 +13,12 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * moves on — the regression these lock.
  */
 
-type StubInstance = {
-	callback: ResizeObserverCallback
-}
-
 /** Captures constructed `ResizeObserver`s so a test can fire their callbacks. */
-function installResizeObserverStub() {
-	const original = window.ResizeObserver
-
-	const instances: StubInstance[] = []
-
-	class Stub {
-		observe = vi.fn()
-		unobserve = vi.fn()
-		disconnect = vi.fn()
-
-		callback: ResizeObserverCallback
-
-		constructor(cb: ResizeObserverCallback) {
-			this.callback = cb
-
-			instances.push(this)
-		}
-	}
-
-	window.ResizeObserver = Stub as unknown as typeof ResizeObserver
-
-	return {
-		instances,
-		restore: () => {
-			window.ResizeObserver = original
-		},
-	}
-}
-
 describe('MapPlat resize with a passed projection instance', () => {
-	let stub: ReturnType<typeof installResizeObserverStub>
+	let observers: ResizeObserverStub[]
 
 	beforeEach(() => {
-		stub = installResizeObserverStub()
-	})
-
-	afterEach(() => {
-		stub.restore()
+		observers = stubResizeObserver()
 	})
 
 	/** Reports a container size to the plat through its captured observer. */
@@ -66,7 +30,7 @@ describe('MapPlat resize with a passed projection instance', () => {
 		mockDomGeometry(plot, { clientWidth: width, clientHeight: height })
 
 		act(() => {
-			for (const observer of stub.instances) {
+			for (const observer of observers) {
 				observer.callback([], observer as unknown as ResizeObserver)
 			}
 		})
@@ -123,14 +87,10 @@ describe('MapPlat resize with a passed projection instance', () => {
 })
 
 describe('MapPlat free-form fill sizing (aspectRatio={false})', () => {
-	let stub: ReturnType<typeof installResizeObserverStub>
+	let observers: ResizeObserverStub[]
 
 	beforeEach(() => {
-		stub = installResizeObserverStub()
-	})
-
-	afterEach(() => {
-		stub.restore()
+		observers = stubResizeObserver()
 	})
 
 	/** Reports a container size to the plat through its captured observer. */
@@ -142,7 +102,7 @@ describe('MapPlat free-form fill sizing (aspectRatio={false})', () => {
 		mockDomGeometry(plot, { clientWidth: width, clientHeight: height })
 
 		act(() => {
-			for (const observer of stub.instances) {
+			for (const observer of observers) {
 				observer.callback([], observer as unknown as ResizeObserver)
 			}
 		})
