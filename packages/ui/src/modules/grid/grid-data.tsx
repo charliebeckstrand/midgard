@@ -69,7 +69,7 @@ import {
 	resolveTableProps,
 	resolveVirtualization,
 } from './grid-data-resolvers'
-import type { GridDataProps, GridPinningState } from './grid-data-types'
+import type { GridDataProps, GridEditSource, GridPinningState } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridGroupByContext } from './grid-group-by-button'
@@ -93,7 +93,6 @@ import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import type { GridColumn, GridSearch } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
-import type { GridEditSource } from './use-grid-editing'
 import { useGridExpansion } from './use-grid-expansion'
 import { useGridExport } from './use-grid-export'
 import { useGridGroup } from './use-grid-group'
@@ -524,7 +523,11 @@ export function GridData<T>({
 	// The editing layer's commit path resolves a staged draft against the grid's
 	// own inputs, not against the refs above: those narrow to what the window
 	// renders, and a draft can outlive that window.
-	const editSourceRef = useRef<GridEditSource<T>>({ rows, columns, getKey })
+	const editSource: GridEditSource<T> = { rows, columns, getKey }
+
+	const editSourceRef = useRef(editSource)
+
+	editSourceRef.current = editSource
 
 	// Selection wiring the cursor reads at key time: whether a selection column is
 	// present (gating Space-to-select) and a toggle for the active row by display
@@ -792,8 +795,6 @@ export function GridData<T>({
 	rowKeysRef.current = rowKeys
 
 	dataColumnsRef.current = dataColumns
-
-	editSourceRef.current = { rows, columns, getKey }
 
 	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
 	// hide a column), so its active cell and `aria-activedescendant` never dangle

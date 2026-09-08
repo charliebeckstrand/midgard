@@ -647,6 +647,17 @@ export type GridFooter = {
  *
  * @internal
  */
+/**
+ * The grid's own rows and columns, before the render window narrows them. The
+ * editing layer's commit path reads these because a draft can outlive the view
+ * that its editor mounted in. A row can page out, a filter can drop it, or a
+ * column can hide, and the rendered set no longer holds it. A row or column that
+ * the consumer removed is absent here too, so its draft still drops.
+ *
+ * @internal
+ */
+export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'getKey'>
+
 export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Density level driving cell padding and grid-internal metrics (resize

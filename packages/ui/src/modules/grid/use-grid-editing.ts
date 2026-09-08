@@ -20,6 +20,7 @@ import {
 	isColumnEditable,
 	isSameCell,
 } from './engine/grid-editing-utilities'
+import type { GridEditSource } from './grid-data-types'
 import type { GridEditingSession } from './grid-editing-context'
 import type { CellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -67,52 +68,46 @@ function restoreGridFocus(): void {
 type RowDrafts = Map<string | number, unknown>
 
 /**
- * The grid's own rows and columns, before the render window narrows them. The
- * commit path reads these because a draft can outlive the view that its editor
- * mounted in. A row can page out, a filter can drop it, or a column can hide,
- * and the rendered set no longer holds it. A row or column that the consumer
- * removed is absent here too, so its draft still drops.
- *
- * @internal
- */
-export type GridEditSource<T> = {
-	rows: T[]
-	columns: GridColumn<T>[]
-	getKey: (row: T, index: number) => string | number
-}
-
-/**
  * Resolves a row's staged drafts into committed {@link CellChange}s: keeps each
  * changed cell (its draft differs from the row's current value) that passes the
  * column's {@link GridColumn.validate}, dropping unchanged and invalid ones.
  * Module-level so the flush effect stays within its complexity budget.
  *
+ * @remarks The walk is over the drafts, not the columns, so every staged cell is
+ * visited whether or not its column is still on screen. Both lookups read
+ * {@link GridEditSource} rather than the render window: a row that pages out and
+ * a column that hides still commit, and one the consumer removed resolves to
+ * nothing and drops.
+ *
+ * Two reads here are deliberately live rather than taken when the cell staged. A
+ * column can lock mid-session, and `onCommit` on an earlier cell can hand back
+ * new rows before a later one flushes; a snapshot would answer for the state the
+ * editor opened against instead of the state it commits into.
+ *
  * @internal
  */
-function flushRow<T>(args: {
-	rowKey: string | number
-	drafts: RowDrafts
-	source: GridEditSource<T>
-}): CellChange[] {
-	const { rows, columns, getKey } = args.source
+function flushRow<T>(
+	rowKey: string | number,
+	drafts: RowDrafts,
+	source: GridEditSource<T>,
+): CellChange[] {
+	const { rows, columns, getKey } = source
 
 	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
 	// index a positional `getKey` reads is the one the engine gave the row.
-	const row = rows.find((candidate, index) => getKey(candidate, index) === args.rowKey)
+	const row = rows.find((candidate, index) => getKey(candidate, index) === rowKey)
 
 	if (row == null) return []
 
 	const changes: CellChange[] = []
 
-	for (const col of columns) {
-		if (!args.drafts.has(col.id)) continue
+	for (const [columnId, value] of drafts) {
+		const col = columns.find((candidate) => candidate.id === columnId)
 
-		// A column can lock while its editor is open. The mount predicate closes
-		// that editor on the next render, so the staged value must not write either
-		// — the two gates answer to the same `readOnly`.
-		if (!isColumnEditable(col)) continue
-
-		const value = args.drafts.get(col.id)
+		// The mount predicate closes a locked column's editor on the next render,
+		// so the staged value must not write either — the two gates answer to the
+		// same `readOnly`. A column the consumer removed resolves to nothing.
+		if (!col || !isColumnEditable(col)) continue
 
 		const original = col.field != null ? row[col.field] : undefined
 
@@ -120,7 +115,7 @@ function flushRow<T>(args: {
 
 		if (col.validate?.(value, row) != null) continue
 
-		changes.push({ rowKey: args.rowKey, columnId: col.id, value })
+		changes.push({ rowKey, columnId, value })
 	}
 
 	return changes
@@ -143,10 +138,9 @@ function flushRow<T>(args: {
  * narrowed an already-open row is the exception, and it needs no special case
  * either — the editors it closed commit together, per row, like any other.
  *
- * The take stays here rather than inside {@link flushRow}, which walks the
- * source columns instead: a draft for a column the consumer removed would never
- * be swept. {@link GridEditSource} is what that walk reads, so a column that
- * only hides, and a row that only pages out, still commit.
+ * The take stays here rather than inside {@link flushRow}, because this is where
+ * the open state is read: the partition into open and closed is what decides
+ * which drafts leave the map at all.
  * @internal
  */
 function flushClosedCells<T>(args: {
@@ -181,7 +175,7 @@ function flushClosedCells<T>(args: {
 
 		if (closed.size === 0) continue
 
-		const changes = flushRow({ rowKey, drafts: closed, source: args.source })
+		const changes = flushRow(rowKey, closed, args.source)
 
 		if (!changes.length || !args.onCommit) continue
 
@@ -234,7 +228,7 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, sessionOwned: boolea
 export function useGridEditing<T>({
 	enabled,
 	config,
-	sourceRef,
+	editSourceRef,
 	rowKeysRef,
 	dataColumnsRef,
 	cellId,
@@ -242,7 +236,7 @@ export function useGridEditing<T>({
 	enabled: boolean
 	config: GridEditableConfig | undefined
 	/** The grid's own rows and columns, which the commit path resolves against. */
-	sourceRef: RefObject<GridEditSource<T>>
+	editSourceRef: RefObject<GridEditSource<T>>
 	rowKeysRef: RefObject<(string | number)[]>
 	/** Visible data columns in display order. */
 	dataColumnsRef: RefObject<GridColumn<T>[]>
@@ -530,13 +524,13 @@ export function useGridEditing<T>({
 			drafts: draftsRef.current,
 			editableRows,
 			activeEdit,
-			source: sourceRef.current,
+			source: editSourceRef.current,
 			onCommit: onCommitRef.current,
 		})
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3).
 		if (saved > 0) announce(describeCommit(saved))
-	}, [editableRows, activeEdit, sourceRef])
+	}, [editableRows, activeEdit, editSourceRef])
 
 	const session = useMemo<GridEditingSession>(
 		() => ({
