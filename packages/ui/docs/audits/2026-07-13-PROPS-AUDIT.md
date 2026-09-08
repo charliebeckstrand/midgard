@@ -73,7 +73,7 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | VirtualOptions | `overscan` | virtual-options.tsx:73 | Tuning knob, zero call sites; the hook keeps its own option for non-primitive callers | 0/0/0 | ✅ RESOLVED |
 | GlassProvider | `className` | providers/glass/glass.tsx:6 | Wrapper-class knob; zero callers including tests | 0/0/0 | ✅ RESOLVED |
 | DensityProvider | `className` | providers/density/density.tsx:7 | Same pattern; own test only | 0/0/1 | ✅ RESOLVED |
-| LocaleProvider | `dateFormat`, `timeZone` | providers/locale/context.ts:19,21 | Broadcast into context, read by nothing (readers consume `locale`/`currency`/`numberFormat` only); wire a consumer or delete | 0/0/0 | ◯ OPEN |
+| LocaleProvider | `timeZone` | providers/locale/context.ts:21 | Broadcast into context, read by nothing; wire a consumer or delete. `dateFormat` since gained three readers — the three DatePicker state hooks each format their display value through it — so that half of the row is closed | 0/0/0 | ◯ OPEN |
 | ChartRangeLegendConfig | `type` (+ `ChartRangeLegendType` export) | chart/engine/chart-legend/range.ts:21,38 | Discriminant with one legal value, never read discriminatively; `{ placement }` alone is the object form | 0/0/3 | ✅ RESOLVED |
 | SidebarSpacer | (whole part) | sidebar barrel | Duplicate of `Spacer` with different mechanics; zero usage anywhere — the admin sidebar pins footers via `k.footer` instead | 0/0/0 | ✅ RESOLVED |
 
