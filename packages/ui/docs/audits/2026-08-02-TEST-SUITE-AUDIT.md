@@ -56,9 +56,9 @@ A shared jsdom window turns anything that outlives a file into a cross-file faul
 
 ## Open
 
-**`api-extractor.test.ts` builds nine ts-morph Projects with the full ES2022 lib.** The fixture tsconfig asks for `lib: ['ES2022']` (`api-extractor.test.ts:33`), but every fixture resolves intrinsic types only. `build-api.ts:133` opens a fresh Project for each call, and the checker merges the lib global symbol table again each time. Set `noLib: true` on the fixture. The saving is per-test processor time, so measure it from the per-file report at `--maxWorkers=1`, not from suite wall clock.
+**`api-extractor.test.ts` builds nine ts-morph Projects with the full ES2022 lib.** Resolved in #1118, which measured about 1.03s of test time against about 285ms, over three runs each at `--maxWorkers=1`. The fixture tsconfig asked for `lib: ['ES2022']`, but every fixture resolves intrinsic types only. `build-api.ts:133` opens a fresh Project for each call, and the checker merges the lib global symbol table again each time. Set `noLib: true` on the fixture. The saving is per-test processor time, so measure it from the per-file report at `--maxWorkers=1`, not from suite wall clock.
 
-**The axe runners serialize a selector and the source HTML for every passing node.** Both consumers read `violations` only. Pass `resultTypes: ['violations']` in `helpers/axe.ts`. Rule evaluation does not change, so this cannot take the whole 8.5s that the a11y suites spend.
+**The axe runners serialize a selector and the source HTML for every passing node.** Resolved in #1118, which passes `resultTypes: ['violations']` in `helpers/axe.ts`. Both consumers read `violations` only, and no test in the package reads `passes`, `incomplete`, or `inapplicable`. Rule evaluation does not change, and the measured saving sits inside run-to-run noise, as the row predicted.
 
 **`grid-row-manager.test.tsx` holds a duplicated three-click path.** `opens the manager and colors a group` and `tints the group header aggregation with the group color` drive the identical path and differ only in what they read. Fold the second into the first. The rest of that file's cost is inherent: the assertion needs both the grid and the dialog.
 
@@ -68,7 +68,7 @@ A shared jsdom window turns anything that outlives a file into a cross-file faul
 
 **The 42-file grid cluster has no shared fixture.** Each file rebuilds `Row`, the columns, the rows, and `getKey`. A change to `GridColumn`'s shape is a 37-file edit. This is a maintenance finding, not a speed one: the fixtures are cheap object literals. Still open across the cluster. One file has been done and shows the shape the rest would take. `grid-editing.test.tsx` held three copies of the row type, the rows, and a render helper, one per suite. It now holds one of each at module scope, behind a `renderSessionGrid({ editable, cols })` its two grid-owned suites share.
 
-**`installResizeObserverStub` is copied into six files.** Extract one helper, and install it with `vi.stubGlobal` so that `unstubGlobals` is the backstop. Keep it out of `helpers/index.ts` for the reason at `helpers/index.ts:9`.
+**`installResizeObserverStub` is copied into six files.** Resolved in #1118. `helpers/stub-resize-observer.ts` holds one stub, installed with `vi.stubGlobal` so that `unstubGlobals` is the backstop, and kept out of `helpers/index.ts`. Five copies were identical; the sixth held the observed targets rather than bare spies, so the shared stub does both. Net 223 lines out of `__tests__`.
 
 ## Corrections
 

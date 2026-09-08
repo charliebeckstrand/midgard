@@ -128,7 +128,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 
 | # | Finding | Evidence | Fix | Status |
 |---|---|---|---|---|
-| C1 | Documented legend form `{ type: 'range' }` doesn't typecheck | TSDoc ×4 (`heatmap-chart-schema.ts:68` et al.) vs `chart-legend/range.ts:24-31` | Add `type?: 'range'` | ◯ OPEN |
+| C1 | Documented legend form `{ type: 'range' }` doesn't typecheck | TSDoc ×4 (`heatmap-chart-schema.ts:68` et al.) vs `chart-legend/range.ts:24-31` | ~~Add `type?: 'range'`~~ — [#993](https://github.com/charliebeckstrand/midgard/pull/993) deleted that key by the props audit's own row, so the four doccomments are what is wrong. Corrected to `{ placement }` | ✅ RESOLVED ([#1118](https://github.com/charliebeckstrand/midgard/pull/1118)) |
 | C2 | Choropleth→MapPlat seam renames five of six shared fields, both public | `choropleth-chart.tsx:30-42,240-247` vs `engine/map-region/data.ts:44-69` | Align MapPlat on the chart spelling (`formatValue`, `colorDomain`, `colorName`) | ◯ OPEN |
 | C3 | `tooltip` narrowed to bare `boolean` on Choropleth/MapPlat — click-pin unavailable on maps | `engine/types.ts:233` vs `choropleth-chart.tsx:126`, `map-plat.tsx:129` | Widen to the union | ◯ OPEN |
 | C4 | Single-series modeled three ways: tuple (pie) vs array-ignore (heatmap) vs array-first (choropleth) | `sector-chart.tsx:66`, `heatmap-chart-schema.ts:62-63`, `choropleth-chart.tsx:68-69` | Tuple everywhere | ◯ OPEN |
@@ -155,7 +155,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | G7 | Server total: `rowCount` (pagination) vs `totalRows` (infiniteScroll); footer `rows`/`total` third vocabulary | `types.ts:311` vs `grid-data-types.ts:92,576,583` | `rowCount`; footer → `visibleRows`/`totalRows` | ◯ OPEN |
 | G8 | Column has three row-property channels (`value`, `field`, id-fallback); `field` ignored by sort/filter | `accessor.ts:15-17`, `types.ts:113` | `field` primary; fallback `value ?? row[field] ?? row[id]` | ◯ OPEN |
 | G9 | `width: string` (CSS) vs `minWidth`/`maxWidth: number`, and width is parsed as px anyway | `types.ts:198-221` | `width?: number \| string` | ◯ OPEN |
-| G10 | `reorder` TSDoc references a nonexistent `enabled` key | `grid-data-types.ts:885` vs `:424-435` | Fix the doc | ◯ OPEN |
+| G10 | `reorder` TSDoc references a nonexistent `enabled` key | `grid-data-types.ts:885` vs `:424-435` | Fix the doc. [#993](https://github.com/charliebeckstrand/midgard/pull/993) removed `enabled`, so the boolean arm of `boolean \| GridReorder` is the toggle and `handle` is the object's only key | ✅ RESOLVED ([#1118](https://github.com/charliebeckstrand/midgard/pull/1118)) |
 | G11 | `preferences` prop vs `onSavePreset` callback; snapshot field style and `hidden` array-vs-Set drift | `grid-data-types.ts:470-476,529-548,733` | One noun, one field style, one collection type | ◯ OPEN |
 | G12 | Visibility state nested in `columnManager` while order/sizing/pinning are top-level bindings | `grid-data-types.ts:529-540` vs `:735,744,798` | Top-level `columnVisibility`; manager = dialog UI only | ◯ OPEN |
 | G13 | `filterType`/`filterOptions` duplicate query's types verbatim; filter state untyped (T9) | `types.ts:63,70` = `engine/types.ts:26,52` | Alias `QueryFieldType`; type the filter value | ◯ OPEN |
