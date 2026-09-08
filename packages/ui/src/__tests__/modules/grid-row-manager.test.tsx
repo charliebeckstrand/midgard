@@ -84,7 +84,7 @@ describe('Grid row manager', () => {
 		expect(screen.getByText('Wade').closest('tr')).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('opens the manager and colors a group, committing a complete overlay', async () => {
+	it('colors a group from the manager, committing the overlay and tinting its header', async () => {
 		const user = userEvent.setup()
 
 		const onValueChange = vi.fn<(groups: GridRowGroup[]) => void>()
@@ -116,6 +116,14 @@ describe('Grid row manager', () => {
 
 		// The group's card in the dialog outlines its whole border in the color.
 		expect(document.querySelector('[class*="outline-red-600"]')).not.toBeNull()
+
+		// The same commit reaches the grid: the Developer header row carries the
+		// solid rail and the aggregate wash.
+		const headerRow = screen.getByText('Developer (2)').closest('tr')
+
+		expect(headerRow?.querySelector('[class*="border-l-red-600"]')).not.toBeNull()
+
+		expect(headerRow?.querySelector('[class*="bg-red-500"]')).not.toBeNull()
 	})
 
 	it('offers the color menu None only once a group is colored', async () => {
@@ -138,26 +146,5 @@ describe('Grid row manager', () => {
 		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
 
 		expect(screen.getByRole('menuitem', { name: 'None' })).toBeInTheDocument()
-	})
-
-	it('tints the group header aggregation with the group color', async () => {
-		const user = userEvent.setup()
-
-		renderUI(<Grid columns={columns} rows={people} getKey={getKey} groupBy={{ value: 'role' }} />)
-
-		rightClickDeveloperHeader()
-
-		await user.click(screen.getByRole('menuitem', { name: 'Manage rows' }))
-
-		await user.click(screen.getByRole('button', { name: 'Color for Developer' }))
-
-		await user.click(screen.getByRole('menuitem', { name: 'Red' }))
-
-		// The Developer header row now carries the solid red rail and a red aggregate wash.
-		const headerRow = screen.getByText('Developer (2)').closest('tr')
-
-		expect(headerRow?.querySelector('[class*="border-l-red-600"]')).not.toBeNull()
-
-		expect(headerRow?.querySelector('[class*="bg-red-500"]')).not.toBeNull()
 	})
 })
