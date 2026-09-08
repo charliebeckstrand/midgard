@@ -84,9 +84,8 @@ function writeFixture(root: string, extra: Record<string, string> = {}): string 
 				// The extractor reads doccomments and prints the type text a
 				// declaration already spells, so it never resolves a built-in. Each
 				// case builds its own project, and loading `lib.es2022` into all of
-				// them costs more than everything this file asserts: about 1.03s of
-				// test time against about 285ms, over three runs each at
-				// `--maxWorkers=1`.
+				// them costs more than everything this file asserts; the measurement
+				// is in `docs/audits/2026-08-02-TEST-SUITE-AUDIT.md`.
 				noLib: true,
 			},
 		}),

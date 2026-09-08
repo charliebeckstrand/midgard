@@ -26,7 +26,7 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 
 **T6 — Mode booleans that select components.** `FileUpload variant` dispatches to three disjoint render functions with disjoint prop sets; `Markdown inline` swaps lexer and element; `SidebarLayout floating` swaps the entire shell. §3.6 and the composition-patterns rubric prescribe explicit variant components (`FileUploadDrop`/`FileUploadInput`/`FileUploadButton`, `MarkdownInline`) sharing internals; `floating` is the one defensible mode prop (its lone consumer toggles it at runtime).
 
-**T7 — Per-component i18n strings while `LocaleProvider` carries dead fields.** Hardcoded English defaults ('Show password', 'Clear search', 'Sign here', 'Weak/Fair/Good/Strong', 'Total', 'No results') each grew — or will grow — an ad-hoc override prop nobody passes, while `LocaleProvider`'s `dateFormat` and `timeZone` are broadcast and read by nothing. One systemic decision (route control strings through the provider) deletes the ad-hoc props and gives every component an i18n path.
+**T7 — Per-component i18n strings while `LocaleProvider` carries dead fields.** Hardcoded English defaults ('Show password', 'Clear search', 'Sign here', 'Weak/Fair/Good/Strong', 'Total', 'No results') each grew — or will grow — an ad-hoc override prop nobody passes, while `LocaleProvider`'s `timeZone` is broadcast and read by nothing (`dateFormat` has since gained readers; see its row). One systemic decision (route control strings through the provider) deletes the ad-hoc props and gives every component an i18n path.
 
 **T8 — Demo hygiene: defaults ossify.** Demos pass `p="md"`, `bg="none"`, `direction="col"`, `estimateSize={36}`, `sortable: true` — all restatements of defaults that teach cargo-culting and mask which props matter (`number-input.tsx` passing `spring={false}` twice is the fingerprint of a flipped default nobody cleaned). A demo sweep dropping prop=default occurrences should ride along with whichever rows land.
 
@@ -73,7 +73,7 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | VirtualOptions | `overscan` | virtual-options.tsx:73 | Tuning knob, zero call sites; the hook keeps its own option for non-primitive callers | 0/0/0 | ✅ RESOLVED |
 | GlassProvider | `className` | providers/glass/glass.tsx:6 | Wrapper-class knob; zero callers including tests | 0/0/0 | ✅ RESOLVED |
 | DensityProvider | `className` | providers/density/density.tsx:7 | Same pattern; own test only | 0/0/1 | ✅ RESOLVED |
-| LocaleProvider | `timeZone` | providers/locale/context.ts:21 | Broadcast into context, read by nothing; wire a consumer or delete. `dateFormat` since gained three readers — the three DatePicker state hooks each format their display value through it — so that half of the row is closed | 0/0/0 | ◯ OPEN |
+| LocaleProvider | `timeZone` | providers/locale/context.ts:21 | Broadcast into context, read by nothing; wire a consumer or delete. `dateFormat` now has three readers — the DatePicker state hooks each format their display value through it | 0/0/0 (`timeZone`) | ◯ OPEN |
 | ChartRangeLegendConfig | `type` (+ `ChartRangeLegendType` export) | chart/engine/chart-legend/range.ts:21,38 | Discriminant with one legal value, never read discriminatively; `{ placement }` alone is the object form | 0/0/3 | ✅ RESOLVED |
 | SidebarSpacer | (whole part) | sidebar barrel | Duplicate of `Spacer` with different mechanics; zero usage anywhere — the admin sidebar pins footers via `k.footer` instead | 0/0/0 | ✅ RESOLVED |
 
