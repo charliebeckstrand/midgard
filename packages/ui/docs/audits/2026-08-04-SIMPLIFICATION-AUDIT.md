@@ -260,20 +260,23 @@ Each is a real reduction that needs a decision or careful test work first.
   blend, decode round trip; the calibration case still reads 3.21:1 and all 59 ramp and chart-label
   assertions pass unchanged. Resolved in #1119.
 
-- [ ] **Share the hidden-iframe print harness with `printPdf`.** `print.ts:29-59` and
-  `pdf-viewer-utilities.ts:35-65` are 31 byte-identical lines: the same `createElement`, the same six
-  style writes, `aria-hidden`, the `cleaned` latch, the cleanup closure with its focus-listener removal,
-  and the load handler's `win` guard. `print.ts:20-21` names the mirror in its own TSDoc. Add
-  `utilities/print-frame.ts` exporting `printInHiddenFrame({ prepare, onFail })`, then let `printRows`
-  set `srcdoc` and `printPdf` set `src` with its `window.open` fallback as `onFail`. The import edge
-  already exists in both directions (`grid-export/accessor.ts:1`, `use-pdf-viewer-document.ts:5`). The
-  divergence is wider than the two assignments: `pdf-viewer-utilities.ts:67-83` wraps the whole
-  `afterprint` block in try/catch and `:86-90` adds an iframe `error` listener, where `print.ts:61-69`
-  has neither. The helper must therefore gate both on `onFail`, or a throwing `win.print()` in the grid
-  path becomes silent instead of propagating. jsdom cannot exercise the catch branch —
-  `grid-export-html.test.tsx:136-182` covers only the happy path — so review this by reading, not by
-  test. [CONVENTIONS.md](../../../../CONVENTIONS.md) §12.2 adds one `utilities/index.ts` row and one
-  `docs/UTILITIES.md` row. Saving: 26 lines.
+- [x] **Share the hidden-iframe print harness with `printPdf`.** Resolved in
+  [#1119](https://github.com/charliebeckstrand/midgard/pull/1119). `utilities/print-frame.ts` holds
+  `printInHiddenFrame({ prepare, onFail })`; `printRows` sets `srcdoc` and `printPdf` sets `src` with
+  its `window.open` fallback as `onFail`. The two call sites were 31 byte-identical lines: the same
+  `createElement`, the same six style writes, `aria-hidden`, the `cleaned` latch, the cleanup closure
+  with its focus-listener removal, and the load handler's `win` guard. `print.ts:20-21` named the mirror
+  in its own TSDoc.
+
+  Two corrections to this row. The saving is not 26 lines — it is 3 lines spent, because `onFail` gates
+  both divergent halves (the try/catch and the iframe `error` listener) and that gate costs more than
+  the duplication returned. The value is one print lifecycle rather than two, which is what the row was
+  really about: a fix to the `cleaned` latch or the focus backstop now lands in both paths. And jsdom
+  does exercise the catching arm — `pdf-viewer.test.tsx:325` drives a throwing `print()` through a
+  mocked `contentWindow`. What jsdom cannot assert is the propagating arm: a throwing listener never
+  rethrows to `dispatchEvent`, and the unhandled error it raises instead fails the runner even after
+  `preventDefault`. The grid path therefore pins the observable half of the gate — `error` opens no tab
+  — and the rest is by reading.
 
 ## Public API
 

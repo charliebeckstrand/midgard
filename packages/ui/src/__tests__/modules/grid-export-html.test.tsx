@@ -185,4 +185,18 @@ describe('printRows', () => {
 
 		expect(iframe.parentNode).toBeNull()
 	})
+
+	// The other half of the `onFail` gate — a `print()` that throws propagating
+	// rather than being swallowed — is not assertable here: jsdom turns a throwing
+	// listener into an unhandled error the runner fails on, which `preventDefault`
+	// does not suppress. The PDF viewer's own suite covers the catching arm.
+	it('wires no new-tab fallback, so a frame that fails to load opens nothing', () => {
+		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+
+		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
+
+		iframe.dispatchEvent(new Event('error'))
+
+		expect(open).not.toHaveBeenCalled()
+	})
 })
