@@ -963,8 +963,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * least two columns are reorderable.
 	 *
 	 * `true` prefixes each reorderable header with a grip handle. Pass a
-	 * {@link GridReorder} object to keep that toggle in `enabled` and drop the
-	 * grip with `handle: false`, making the whole header the drag handle instead.
+	 * {@link GridReorder} object with `handle: false` to drop that grip, which
+	 * makes the whole header the drag handle instead.
 	 * @defaultValue false
 	 * @see {@link GridReorder}
 	 */

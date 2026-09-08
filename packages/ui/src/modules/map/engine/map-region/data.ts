@@ -99,11 +99,11 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	 * Show the legend, in any form — this is the branch that carries a scale, so
 	 * it is the branch that can paint one. Beyond the switchboard's boolean and
 	 * placement, `'range'` swaps the binned switchboard for a continuous
-	 * colour-scale bar — the heatmap legend — and the object form
-	 * `{ type: 'range', placement }` places that bar explicitly. The bar follows
-	 * its placement's orientation (vertical beside the plot, horizontal above or
-	 * below) and the chart's tier: it sheds at the spark size and, in a box too
-	 * narrow for a side rail, drops to a horizontal row under the plot.
+	 * colour-scale bar — the heatmap legend — and the object form `{ placement }`
+	 * places that bar explicitly. The bar follows its placement's orientation
+	 * (vertical beside the plot, horizontal above or below) and the chart's tier:
+	 * it sheds at the spark size and, in a box too narrow for a side rail, drops
+	 * to a horizontal row under the plot.
 	 *
 	 * @see the switchboard forms on the other two branches for what a legend
 	 * shows by default and when it shows at all.
