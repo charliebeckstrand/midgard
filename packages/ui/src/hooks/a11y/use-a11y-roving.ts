@@ -362,7 +362,6 @@ type RovingKeyContext = {
 	manageTabIndex: boolean
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
-	scrollIntoView: boolean
 	scrollWithin: ScrollWithin
 	containerEl: HTMLElement | null
 	/** Set (with `activeIndexRef`) when navigating an indexed source instead of `items`. */
@@ -391,7 +390,6 @@ function resolveRovingContext(
 		manageTabIndex: boolean
 		activeDescendantRef: RefObject<HTMLElement | null> | undefined
 		manageAriaSelected: boolean
-		scrollIntoView: boolean
 		scrollWithin: ScrollWithin
 	},
 ): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
@@ -421,7 +419,6 @@ function resolveRovingContext(
 			manageTabIndex: config.manageTabIndex,
 			activeDescendantRef: config.activeDescendantRef,
 			manageAriaSelected: config.manageAriaSelected,
-			scrollIntoView: config.scrollIntoView,
 			scrollWithin: config.scrollWithin,
 			containerEl: container,
 			itemSource: indexed,
@@ -532,11 +529,9 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
 		ariaSelected: ctx.manageAriaSelected,
 	})
 
-	if (ctx.scrollIntoView) {
-		const next = ctx.items[index]
+	const next = ctx.items[index]
 
-		if (next) ctx.scrollWithin(next, { block: 'nearest' })
-	}
+	if (next) ctx.scrollWithin(next, { block: 'nearest' })
 }
 
 /**
@@ -750,8 +745,6 @@ type RovingOptions = NavigationConfig & {
 	 * @defaultValue false
 	 */
 	typeahead?: boolean
-	/** Virtual mode: scroll the active item into view after each move. @defaultValue true */
-	scrollIntoView?: boolean
 	/**
 	 * Virtual mode: mirror the highlight onto each item's `aria-selected`. Leave
 	 * on when the highlight *is* the selection (command palette); turn off when
@@ -852,7 +845,6 @@ export function useA11yRoving(
 		focusOnEmpty = false,
 		trapTab = false,
 		typeahead = false,
-		scrollIntoView = true,
 		activationKey = 'Enter',
 		activeDescendantRef,
 		manageAriaSelected = true,
@@ -957,7 +949,6 @@ export function useA11yRoving(
 				manageTabIndex,
 				activeDescendantRef,
 				manageAriaSelected,
-				scrollIntoView,
 				scrollWithin,
 			})
 
@@ -994,7 +985,6 @@ export function useA11yRoving(
 			focusOnEmpty,
 			trapTab,
 			typeahead,
-			scrollIntoView,
 			activationKey,
 			activeDescendantRef,
 			scrollWithin,
