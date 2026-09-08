@@ -3,6 +3,7 @@
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import type { GridCellClick } from './engine/grid-row/cell'
+import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
@@ -16,7 +17,15 @@ import {
 } from './use-grid-navigation'
 import { useGridNavigationColumns } from './use-grid-navigation-columns'
 
-/** Live refs the cursor and editing layers read at event/render time, populated by {@link GridData} after the engine resolves order and rows. @internal */
+/**
+ * Live refs the cursor and editing layers read at event/render time, all populated
+ * by {@link GridData}. The cursor's carry what the engine resolved — display
+ * order, rows, and the visible data columns. `editSourceRef` is the exception,
+ * and holds the grid's own inputs ahead of that narrowing, because the commit
+ * path needs a row the window stopped rendering.
+ *
+ * @internal
+ */
 type GridCursorRefs<T> = {
 	rowsRef: RefObject<T[]>
 	colCountRef: RefObject<number>
@@ -24,6 +33,7 @@ type GridCursorRefs<T> = {
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	rowKeysRef: RefObject<(string | number)[]>
 	dataColumnsRef: RefObject<GridColumn<T>[]>
+	editSourceRef: RefObject<GridEditSource<T>>
 }
 
 /**
@@ -95,7 +105,15 @@ export function useGridCursor<T>({
 	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
 	const sessionOwned = editingEnabled && editable.trigger === 'doubleClick'
 
-	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
+	const {
+		rowsRef,
+		colCountRef,
+		rowIndexMapRef,
+		colIndexMapRef,
+		rowKeysRef,
+		dataColumnsRef,
+		editSourceRef,
+	} = refs
 
 	// Enter on the cursor's active cell begins the edit session — the keyboard
 	// peer of the pointer double-click. The entry resolver needs the editing hook
@@ -130,7 +148,7 @@ export function useGridCursor<T>({
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
 		config: editable,
-		rowsRef,
+		editSourceRef,
 		rowKeysRef,
 		dataColumnsRef,
 		cellId: nav.cellId,

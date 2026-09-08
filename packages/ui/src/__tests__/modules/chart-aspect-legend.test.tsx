@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { act, bySlot, mockDomGeometry, renderUI } from '../helpers'
+import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
  * A chart's `aspectRatio` folds a stacked (top / bottom) legend into the whole
@@ -13,38 +14,6 @@ import { act, bySlot, mockDomGeometry, renderUI } from '../helpers'
  * side (left / right) legend instead keeps the ratio on the plot box and bands
  * beside it, so the drawing holds the ratio regardless of the panel's width.
  */
-
-type StubInstance = { callback: ResizeObserverCallback }
-
-/** Captures constructed `ResizeObserver`s so a test can fire their callbacks by hand. */
-function installResizeObserverStub() {
-	const original = window.ResizeObserver
-
-	const instances: StubInstance[] = []
-
-	class Stub {
-		observe = vi.fn()
-		unobserve = vi.fn()
-		disconnect = vi.fn()
-
-		callback: ResizeObserverCallback
-
-		constructor(cb: ResizeObserverCallback) {
-			this.callback = cb
-
-			instances.push(this)
-		}
-	}
-
-	window.ResizeObserver = Stub as unknown as typeof ResizeObserver
-
-	return {
-		instances,
-		restore: () => {
-			window.ResizeObserver = original
-		},
-	}
-}
 
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, costs: 24 },
@@ -70,14 +39,10 @@ function frameHeight(container: HTMLElement): string | undefined {
 }
 
 describe('chart aspect ratio with a legend', () => {
-	let stub: ReturnType<typeof installResizeObserverStub>
+	let observers: ResizeObserverStub[]
 
 	beforeEach(() => {
-		stub = installResizeObserverStub()
-	})
-
-	afterEach(() => {
-		stub.restore()
+		observers = stubResizeObserver()
 	})
 
 	/** Reports a plot box of the given size to the chart through its captured observer. */
@@ -89,7 +54,7 @@ describe('chart aspect ratio with a legend', () => {
 		mockDomGeometry(plot, { clientWidth: box.width, clientHeight: box.height })
 
 		act(() => {
-			for (const observer of stub.instances) {
+			for (const observer of observers) {
 				observer.callback([], observer as unknown as ResizeObserver)
 			}
 		})
@@ -200,7 +165,7 @@ describe('chart aspect ratio with a legend', () => {
 		expect(plot.className).toContain('min-h-0')
 
 		// The container's measured height becomes the drawing height.
-		const fill = installFill(container, stub)
+		const fill = installFill(container, observers)
 
 		expect(fill).toBe('264')
 	})
@@ -229,7 +194,7 @@ describe('chart aspect ratio with a legend', () => {
 })
 
 /** Measures a fill-mode container and returns its resolved drawing height. */
-function installFill(container: HTMLElement, stub: ReturnType<typeof installResizeObserverStub>) {
+function installFill(container: HTMLElement, observers: ResizeObserverStub[]) {
 	const plot = bySlot(container, 'chart-plot')
 
 	if (!plot) throw new Error('no chart-plot region rendered')
@@ -237,7 +202,7 @@ function installFill(container: HTMLElement, stub: ReturnType<typeof installResi
 	mockDomGeometry(plot, { clientWidth: 470, clientHeight: 264 })
 
 	act(() => {
-		for (const observer of stub.instances) {
+		for (const observer of observers) {
 			observer.callback([], observer as unknown as ResizeObserver)
 		}
 	})

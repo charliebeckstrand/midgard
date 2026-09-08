@@ -81,7 +81,12 @@ function writeFixture(root: string, extra: Record<string, string> = {}): string 
 				jsx: 'react-jsx',
 				module: 'ESNext',
 				moduleResolution: 'Bundler',
-				lib: ['ES2022'],
+				// The extractor reads doccomments and prints the type text a
+				// declaration already spells, so it never resolves a built-in. Each
+				// case builds its own project, and loading `lib.es2022` into all of
+				// them costs more than everything this file asserts; the measurement
+				// is in `docs/audits/2026-08-02-TEST-SUITE-AUDIT.md`.
+				noLib: true,
 			},
 		}),
 	)

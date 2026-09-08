@@ -65,10 +65,10 @@ export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend'> & {
 	 * Show the range scale bar, and where it sits. `true` (the default) stands it
 	 * vertical on the right; `false` drops it. A placement moves it — a horizontal
 	 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail beside
-	 * it (`'left'` / `'right'`) — and the object form `{ type: 'range', placement }`
-	 * names the same placement explicitly. Following the categorical legend, the
-	 * bar sheds at the spark tier and, in a box too narrow for a side rail, drops
-	 * to a horizontal row under the plot.
+	 * it (`'left'` / `'right'`) — and the object form `{ placement }` names the
+	 * same placement explicitly. Following the categorical legend, the bar sheds
+	 * at the spark tier and, in a box too narrow for a side rail, drops to a
+	 * horizontal row under the plot.
 	 * @defaultValue true
 	 */
 	legend?: boolean | ChartLegendPlacement | ChartRangeLegendConfig

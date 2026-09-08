@@ -109,9 +109,9 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	aspectRatio?: MapAspectRatio
 	/**
 	 * Show the legend. `'range'` swaps the binned switchboard for a continuous
-	 * colour-scale bar — the heatmap legend — and the object form
-	 * `{ type: 'range', placement }` places that bar explicitly. A placement moves
-	 * the legend above (`'top'`), below (`'bottom'`), or beside the plot
+	 * colour-scale bar — the heatmap legend — and the object form `{ placement }`
+	 * places that bar explicitly. A placement moves the legend above (`'top'`),
+	 * below (`'bottom'`), or beside the plot
 	 * (`'left'` / `'right'`); the range bar follows its placement's orientation
 	 * (vertical beside the plot, horizontal above or below) and the chart's tier —
 	 * it sheds at the spark size and, in a box too narrow for a side rail, drops to

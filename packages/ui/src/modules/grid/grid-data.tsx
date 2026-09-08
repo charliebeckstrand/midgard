@@ -69,7 +69,7 @@ import {
 	resolveTableProps,
 	resolveVirtualization,
 } from './grid-data-resolvers'
-import type { GridDataProps, GridPinningState } from './grid-data-types'
+import type { GridDataProps, GridEditSource, GridPinningState } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooter as GridFooterBar } from './grid-footer'
 import { GridGroupByContext } from './grid-group-by-button'
@@ -520,6 +520,15 @@ export function GridData<T>({
 
 	const dataColumnsRef = useRef<GridColumn<T>[]>([])
 
+	// The editing layer's commit path resolves a staged draft against the grid's
+	// own inputs, not against the refs above: those narrow to what the window
+	// renders, and a draft can outlive that window.
+	const editSource: GridEditSource<T> = { rows, columns, getKey }
+
+	const editSourceRef = useRef(editSource)
+
+	editSourceRef.current = editSource
+
 	// Selection wiring the cursor reads at key time: whether a selection column is
 	// present (gating Space-to-select) and a toggle for the active row by display
 	// index. Both resolve after the engine produces `rowKeys`, so the cursor reads
@@ -601,6 +610,7 @@ export function GridData<T>({
 			colIndexMapRef,
 			rowKeysRef,
 			dataColumnsRef,
+			editSourceRef,
 		},
 	})
 

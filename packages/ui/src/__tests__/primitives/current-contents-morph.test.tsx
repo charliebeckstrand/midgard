@@ -1,7 +1,8 @@
 import { Profiler } from 'react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { act, bySlot, renderUI } from '../helpers'
+import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
  * The fading current-panel container rests at `height: auto` and reacts to
@@ -12,50 +13,6 @@ import { act, bySlot, renderUI } from '../helpers'
  * subtree once per `ResizeObserver` frame.
  */
 
-type StubInstance = {
-	targets: Element[]
-	callback: ResizeObserverCallback
-}
-
-function installResizeObserverStub() {
-	const original = window.ResizeObserver
-
-	const instances: StubInstance[] = []
-
-	class Stub {
-		targets: Element[] = []
-
-		callback: ResizeObserverCallback
-
-		constructor(cb: ResizeObserverCallback) {
-			this.callback = cb
-
-			instances.push(this)
-		}
-
-		observe(el: Element) {
-			this.targets.push(el)
-		}
-
-		unobserve(el: Element) {
-			this.targets = this.targets.filter((target) => target !== el)
-		}
-
-		disconnect() {
-			this.targets = []
-		}
-	}
-
-	window.ResizeObserver = Stub as unknown as typeof ResizeObserver
-
-	return {
-		instances,
-		restore: () => {
-			window.ResizeObserver = original
-		},
-	}
-}
-
 /** Stubs an element's `getBoundingClientRect` box (jsdom always reports 0). */
 function mockRect(el: Element, box: { width: number; height: number }) {
 	Object.defineProperty(el, 'getBoundingClientRect', {
@@ -65,18 +22,14 @@ function mockRect(el: Element, box: { width: number; height: number }) {
 }
 
 describe('CurrentContents resize morph', () => {
-	let stub: ReturnType<typeof installResizeObserverStub>
+	let observers: ResizeObserverStub[]
 
 	let commits = 0
 
 	beforeEach(() => {
-		stub = installResizeObserverStub()
+		observers = stubResizeObserver()
 
 		commits = 0
-	})
-
-	afterEach(() => {
-		stub.restore()
 	})
 
 	function mount(value: string) {
@@ -104,7 +57,7 @@ describe('CurrentContents resize morph', () => {
 	/** Delivers one observer frame for every observed panel. */
 	function fire(box: { inline: number; block: number }) {
 		act(() => {
-			for (const observer of stub.instances) {
+			for (const observer of observers) {
 				const entries = observer.targets.map((target) => ({
 					target,
 					borderBoxSize: [{ inlineSize: box.inline, blockSize: box.block }],
