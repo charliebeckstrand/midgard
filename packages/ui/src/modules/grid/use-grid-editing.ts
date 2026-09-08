@@ -67,6 +67,21 @@ function restoreGridFocus(): void {
 type RowDrafts = Map<string | number, unknown>
 
 /**
+ * The grid's own rows and columns, before the render window narrows them. The
+ * commit path reads these because a draft can outlive the view that its editor
+ * mounted in. A row can page out, a filter can drop it, or a column can hide,
+ * and the rendered set no longer holds it. A row or column that the consumer
+ * removed is absent here too, so its draft still drops.
+ *
+ * @internal
+ */
+export type GridEditSource<T> = {
+	rows: T[]
+	columns: GridColumn<T>[]
+	getKey: (row: T, index: number) => string | number
+}
+
+/**
  * Resolves a row's staged drafts into committed {@link CellChange}s: keeps each
  * changed cell (its draft differs from the row's current value) that passes the
  * column's {@link GridColumn.validate}, dropping unchanged and invalid ones.
@@ -77,19 +92,19 @@ type RowDrafts = Map<string | number, unknown>
 function flushRow<T>(args: {
 	rowKey: string | number
 	drafts: RowDrafts
-	columns: GridColumn<T>[]
-	rows: T[]
-	rowKeys: (string | number)[]
+	source: GridEditSource<T>
 }): CellChange[] {
-	const rowIdx = args.rowKeys.indexOf(args.rowKey)
+	const { rows, columns, getKey } = args.source
 
-	const row = args.rows[rowIdx]
+	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
+	// index a positional `getKey` reads is the one the engine gave the row.
+	const row = rows.find((candidate, index) => getKey(candidate, index) === args.rowKey)
 
 	if (row == null) return []
 
 	const changes: CellChange[] = []
 
-	for (const col of args.columns) {
+	for (const col of columns) {
 		if (!args.drafts.has(col.id)) continue
 
 		// A column can lock while its editor is open. The mount predicate closes
@@ -128,18 +143,17 @@ function flushRow<T>(args: {
  * narrowed an already-open row is the exception, and it needs no special case
  * either — the editors it closed commit together, per row, like any other.
  *
- * The take stays here rather than inside {@link flushRow}, which walks `columns`
- * instead: a draft staged for a hidden column, or for a row that has since gone,
- * would never be swept.
+ * The take stays here rather than inside {@link flushRow}, which walks the
+ * source columns instead: a draft for a column the consumer removed would never
+ * be swept. {@link GridEditSource} is what that walk reads, so a column that
+ * only hides, and a row that only pages out, still commit.
  * @internal
  */
 function flushClosedCells<T>(args: {
 	drafts: Map<string | number, RowDrafts>
 	editableRows: Set<string | number>
 	activeEdit: GridActiveEdit | null
-	columns: GridColumn<T>[]
-	rows: T[]
-	rowKeys: (string | number)[]
+	source: GridEditSource<T>
 	onCommit: ((changes: CellChange[]) => void) | undefined
 }): number {
 	let saved = 0
@@ -167,13 +181,7 @@ function flushClosedCells<T>(args: {
 
 		if (closed.size === 0) continue
 
-		const changes = flushRow({
-			rowKey,
-			drafts: closed,
-			columns: args.columns,
-			rows: args.rows,
-			rowKeys: args.rowKeys,
-		})
+		const changes = flushRow({ rowKey, drafts: closed, source: args.source })
 
 		if (!changes.length || !args.onCommit) continue
 
@@ -226,14 +234,15 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, sessionOwned: boolea
 export function useGridEditing<T>({
 	enabled,
 	config,
-	rowsRef,
+	sourceRef,
 	rowKeysRef,
 	dataColumnsRef,
 	cellId,
 }: {
 	enabled: boolean
 	config: GridEditableConfig | undefined
-	rowsRef: RefObject<T[]>
+	/** The grid's own rows and columns, which the commit path resolves against. */
+	sourceRef: RefObject<GridEditSource<T>>
 	rowKeysRef: RefObject<(string | number)[]>
 	/** Visible data columns in display order. */
 	dataColumnsRef: RefObject<GridColumn<T>[]>
@@ -521,15 +530,13 @@ export function useGridEditing<T>({
 			drafts: draftsRef.current,
 			editableRows,
 			activeEdit,
-			columns: dataColumnsRef.current,
-			rows: rowsRef.current,
-			rowKeys: rowKeysRef.current,
+			source: sourceRef.current,
 			onCommit: onCommitRef.current,
 		})
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3).
 		if (saved > 0) announce(describeCommit(saved))
-	}, [editableRows, activeEdit, dataColumnsRef, rowsRef, rowKeysRef])
+	}, [editableRows, activeEdit, sourceRef])
 
 	const session = useMemo<GridEditingSession>(
 		() => ({

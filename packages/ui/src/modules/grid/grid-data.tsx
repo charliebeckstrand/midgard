@@ -93,6 +93,7 @@ import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import type { GridColumn, GridSearch } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
+import type { GridEditSource } from './use-grid-editing'
 import { useGridExpansion } from './use-grid-expansion'
 import { useGridExport } from './use-grid-export'
 import { useGridGroup } from './use-grid-group'
@@ -520,6 +521,11 @@ export function GridData<T>({
 
 	const dataColumnsRef = useRef<GridColumn<T>[]>([])
 
+	// The editing layer's commit path resolves a staged draft against the grid's
+	// own inputs, not against the refs above: those narrow to what the window
+	// renders, and a draft can outlive that window.
+	const editSourceRef = useRef<GridEditSource<T>>({ rows, columns, getKey })
+
 	// Selection wiring the cursor reads at key time: whether a selection column is
 	// present (gating Space-to-select) and a toggle for the active row by display
 	// index. Both resolve after the engine produces `rowKeys`, so the cursor reads
@@ -601,6 +607,7 @@ export function GridData<T>({
 			colIndexMapRef,
 			rowKeysRef,
 			dataColumnsRef,
+			editSourceRef,
 		},
 	})
 
@@ -785,6 +792,8 @@ export function GridData<T>({
 	rowKeysRef.current = rowKeys
 
 	dataColumnsRef.current = dataColumns
+
+	editSourceRef.current = { rows, columns, getKey }
 
 	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
 	// hide a column), so its active cell and `aria-activedescendant` never dangle

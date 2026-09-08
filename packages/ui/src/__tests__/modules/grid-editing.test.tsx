@@ -355,6 +355,127 @@ describe('Grid per-row editing', () => {
 		expect(onCommit).not.toHaveBeenCalled()
 	})
 
+	it('commits a staged value for a column that hid while its editor was open', () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [hidden, setHidden] = useState(false)
+
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setHidden(true)}>
+						hide
+					</button>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={sessionColumns as GridColumn<SessionRow>[]}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						columnManager={{ hidden: hidden ? new Set(['name']) : new Set() }}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'hide' }))
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		// A hidden column is a view state, not a lock: the value the user typed
+		// still belongs to the row. The commit path reads the grid's own columns,
+		// so it finds the one the window stopped rendering.
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+	})
+
+	it('commits a staged value for a row the window dropped while its editor was open', () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={sessionColumns as GridColumn<SessionRow>[]}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						pagination={{ defaultValue: { pageIndex: 0, pageSize: 1 } }}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'Next page' }))
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		// The row left the page, not the data. Its key still resolves against the
+		// `rows` the consumer passed, so the edit reaches the sink.
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+	})
+
+	it('drops a staged value for a row the consumer removed while its editor was open', () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [rows, setRows] = useState(sessionRows)
+
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setRows([sessionRows[1] as SessionRow])}>
+						delete
+					</button>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={sessionColumns as GridColumn<SessionRow>[]}
+						rows={rows}
+						getKey={(row) => row.id}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'delete' }))
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		// The counterpart to the two above: a row the consumer really took out is
+		// absent from `rows` as well, so its draft has nothing to write to.
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
 	it('announces nothing when the editing binding goes away with drafts staged', async () => {
 		function Harness() {
 			const [on, setOn] = useState(true)

@@ -6,7 +6,7 @@ import type { GridCellClick } from './engine/grid-row/cell'
 import { GridEditingSessionContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
-import { useGridEditing } from './use-grid-editing'
+import { type GridEditSource, useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
 	type GridCellActivate,
@@ -24,6 +24,7 @@ type GridCursorRefs<T> = {
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	rowKeysRef: RefObject<(string | number)[]>
 	dataColumnsRef: RefObject<GridColumn<T>[]>
+	editSourceRef: RefObject<GridEditSource<T>>
 }
 
 /**
@@ -95,7 +96,15 @@ export function useGridCursor<T>({
 	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
 	const sessionOwned = editingEnabled && editable.trigger === 'doubleClick'
 
-	const { rowsRef, colCountRef, rowIndexMapRef, colIndexMapRef, rowKeysRef, dataColumnsRef } = refs
+	const {
+		rowsRef,
+		colCountRef,
+		rowIndexMapRef,
+		colIndexMapRef,
+		rowKeysRef,
+		dataColumnsRef,
+		editSourceRef,
+	} = refs
 
 	// Enter on the cursor's active cell begins the edit session — the keyboard
 	// peer of the pointer double-click. The entry resolver needs the editing hook
@@ -130,7 +139,7 @@ export function useGridCursor<T>({
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
 		config: editable,
-		rowsRef,
+		sourceRef: editSourceRef,
 		rowKeysRef,
 		dataColumnsRef,
 		cellId: nav.cellId,
