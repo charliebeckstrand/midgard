@@ -5,10 +5,6 @@ import { resolveFrameSizing } from '../../hooks/use-plot-frame'
 import { act, mockDomGeometry, renderUI, screen } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
-/**
- * Captures every constructed `ResizeObserver` so a test can drive its callback
- * by hand — the global jsdom stub never fires one.
- */
 // The frame's expensive subtree: memoized on the resolved size, so it re-renders
 // only when a dimension it draws from changes — the render a resize should avoid.
 // A bail-out in `usePlotFrame` may still re-run the parent once, but React never

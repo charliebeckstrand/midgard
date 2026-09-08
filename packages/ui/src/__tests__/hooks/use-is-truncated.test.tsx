@@ -2,6 +2,7 @@ import { act, render, renderHook } from '@testing-library/react'
 import { type RefObject, useRef } from 'react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { useIsTruncated } from '../../hooks/use-is-truncated'
+import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 type Dimensions = {
 	containerWidth: number
@@ -163,26 +164,12 @@ describe('useIsTruncated', () => {
 
 	describe('lifecycle', () => {
 		it('re-checks when ResizeObserver fires', () => {
-			let observerCallback: ResizeObserverCallback | undefined
-
-			const OriginalRO = window.ResizeObserver
-
-			window.ResizeObserver = class {
-				constructor(cb: ResizeObserverCallback) {
-					observerCallback = cb
-				}
-
-				observe() {}
-				unobserve() {}
-				disconnect() {}
-			} as unknown as typeof ResizeObserver
+			const observers = stubResizeObserver()
 
 			let restoreLayout = mockLayout({ containerWidth: 500, textWidth: 100 })
 
 			restore = () => {
 				restoreLayout()
-
-				window.ResizeObserver = OriginalRO
 			}
 
 			const results: boolean[] = []
@@ -197,7 +184,7 @@ describe('useIsTruncated', () => {
 			restoreLayout = mockLayout({ containerWidth: 50, textWidth: 100 })
 
 			act(() => {
-				observerCallback?.([], {} as ResizeObserver)
+				observers[0]?.callback([], {} as ResizeObserver)
 			})
 
 			expect(results.at(-1)).toBe(true)

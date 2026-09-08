@@ -13,7 +13,6 @@ import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-res
  * moves on — the regression these lock.
  */
 
-/** Captures constructed `ResizeObserver`s so a test can fire their callbacks. */
 describe('MapPlat resize with a passed projection instance', () => {
 	let observers: ResizeObserverStub[]
 

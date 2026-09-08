@@ -12,7 +12,6 @@ import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-res
  * width, so it is the faithful signal for what the marks were built against.
  */
 
-/** Captures constructed `ResizeObserver`s so a test can fire their callbacks. */
 const DATA = [
 	{ x: 'Q1', y: 40 },
 	{ x: 'Q2', y: 80 },

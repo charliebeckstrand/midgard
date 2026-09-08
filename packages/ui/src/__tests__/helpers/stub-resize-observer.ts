@@ -6,7 +6,6 @@ import { vi } from 'vitest'
  */
 export type ResizeObserverStub = {
 	observe: ReturnType<typeof vi.fn>
-	unobserve: ReturnType<typeof vi.fn>
 	disconnect: ReturnType<typeof vi.fn>
 	/** Every element still under this observer, in observe order. */
 	targets: Element[]
@@ -22,8 +21,8 @@ export type ResizeObserverStub = {
  * Returns the live array, which fills as the subject renders. `unstubGlobals`
  * puts the suite-wide stub back before the next test, so no caller restores it.
  *
- * Kept off `helpers/index.ts`: that barrel reaches ~210 test files and six need
- * this one.
+ * Kept off `helpers/index.ts`: that barrel reaches ~210 test files and seven
+ * need this one.
  */
 export function stubResizeObserver(): ResizeObserverStub[] {
 	const instances: ResizeObserverStub[] = []
@@ -31,15 +30,17 @@ export function stubResizeObserver(): ResizeObserverStub[] {
 	class Stub {
 		targets: Element[] = []
 
-		// Spies that also keep the target list, so a test can assert the call and
+		// A spy that also keeps the target list, so a test can assert the call and
 		// deliver an entry per observed element from the one stub.
 		observe = vi.fn((target: Element) => {
 			this.targets.push(target)
 		})
 
-		unobserve = vi.fn((target: Element) => {
+		// Not a spy: no suite asserts on it, and every subject tears down with
+		// `disconnect`. It stays so the stub still honours the interface.
+		unobserve(target: Element) {
 			this.targets = this.targets.filter((held) => held !== target)
-		})
+		}
 
 		disconnect = vi.fn(() => {
 			this.targets = []

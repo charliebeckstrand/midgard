@@ -15,7 +15,6 @@ import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-res
  * beside it, so the drawing holds the ratio regardless of the panel's width.
  */
 
-/** Captures constructed `ResizeObserver`s so a test can fire their callbacks by hand. */
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, costs: 24 },
 	{ quarter: 'Q2', revenue: 80, costs: 31 },
