@@ -16,9 +16,6 @@ const layer = k.viewport.page.highlights
 
 const region = layer.region
 
-/** Matches no element: points the roving hook at an empty item set in a decorative layer. @internal */
-const NO_MATCH_SELECTOR = '[data-pdf-highlight-none]'
-
 const regionClasses = new Map<string, string>()
 
 /**
@@ -139,11 +136,12 @@ function PdfViewerHighlightLayer() {
 
 	// One tab stop for the whole layer, with arrows moving between regions — a dense page
 	// carries 20-40 of them, and they mirror a list the consumer already renders beside
-	// the viewer. `aria-current` marks which region holds the resting stop. Pointed at
-	// nothing in a decorative layer: `manageTabIndex` would otherwise seat a tab stop on a
-	// span inside an `aria-hidden` subtree.
+	// the viewer. `aria-current` marks which region holds the resting stop. Off in a
+	// decorative layer: `manageTabIndex` would otherwise seat a tab stop on a span inside
+	// an `aria-hidden` subtree.
 	const handleRovingKeyDown = useA11yRoving(layerRef, {
-		itemSelector: interactive ? HIGHLIGHT_SELECTOR : NO_MATCH_SELECTOR,
+		itemSelector: HIGHLIGHT_SELECTOR,
+		enabled: interactive,
 		orientation: 'vertical',
 		manageTabIndex: true,
 		activeSelector: '[aria-current="true"]',

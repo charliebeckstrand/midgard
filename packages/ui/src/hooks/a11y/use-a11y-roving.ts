@@ -727,6 +727,14 @@ type RovingOptions = NavigationConfig & {
 	/** CSS selector for navigable items inside the container. */
 	itemSelector: string
 	/**
+	 * Whether the hook navigates at all. When false it observes nothing, seats no
+	 * tab stop, and returns a handler that ignores every key — for a container
+	 * whose items are decorative in one of its states (an `aria-hidden` layer),
+	 * where roving would seat a tab stop inside a subtree nothing can reach.
+	 * @defaultValue true
+	 */
+	enabled?: boolean
+	/**
 	 * `focus` moves real DOM focus to the active item; `virtual` marks it with
 	 * `data-active` while a separate input retains focus.
 	 * @defaultValue 'focus'
@@ -846,6 +854,7 @@ export function useA11yRoving(
 	containerRef: RefObject<HTMLElement | null>,
 	{
 		itemSelector,
+		enabled = true,
 		cols,
 		orientation,
 		mode = 'focus',
@@ -879,7 +888,7 @@ export function useA11yRoving(
 	// stop to whatever item takes focus. Writes only on divergence; the observer
 	// fires on its own tabindex edits.
 	useEffect(() => {
-		if (mode !== 'focus' || !manageTabIndex) return
+		if (!enabled || mode !== 'focus' || !manageTabIndex) return
 
 		const el = containerRef.current
 
@@ -942,6 +951,7 @@ export function useA11yRoving(
 	}, [
 		containerRef,
 		itemSelector,
+		enabled,
 		mode,
 		manageTabIndex,
 		activeSelector,
@@ -951,6 +961,8 @@ export function useA11yRoving(
 
 	return useCallback(
 		(event: KeyboardEvent) => {
+			if (!enabled) return
+
 			const resolved = resolveRovingContext(containerRef.current, itemSelector, mode, {
 				itemSource: itemSource?.current ?? null,
 				activeIndexRef,
@@ -997,6 +1009,7 @@ export function useA11yRoving(
 			scrollIntoView,
 			activationKey,
 			activeDescendantRef,
+			enabled,
 			scrollWithin,
 			manageAriaSelected,
 			manageTabIndex,
