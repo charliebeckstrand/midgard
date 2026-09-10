@@ -5,15 +5,12 @@ import type { PdfViewerPage } from './types'
 /**
  * How many documents' rasterized pages stay resident.
  *
- * Small on purpose. Unlike `apps/tms`'s invoice-row handoff map — flat 15-field records, a few
- * hundred kilobytes for a whole session, entries never removed — an entry here holds one PNG
- * blob per page at up to 2× device scale, so a long invoice is megabytes and the bound has to
- * be a real one rather than a reassurance.
+ * Small on purpose. An entry holds one PNG blob per page at up to 2× device scale, so a long
+ * document is megabytes and the bound has to be a real one rather than a reassurance.
  *
- * Four rather than one, because a reader moves between invoices as well as parking one: a cap
- * of one would evict the scan they are coming back to the moment they glance at the next
- * exception. Four covers that shuttle and still bounds the resident set at a handful of
- * documents.
+ * Four rather than one, because a reader moves between documents as well as parking one: a cap
+ * of one would evict the scan they are coming back to the moment they glance at the next. Four
+ * covers that shuttle and still bounds the resident set at a handful of documents.
  * @internal
  */
 const MAX_DOCUMENTS = 4
@@ -75,16 +72,14 @@ type Held = {
  * Resident documents, keyed by `src`.
  *
  * A module map rather than component state, because outliving the component is the whole
- * point: `DetailsDrawer` parks the AP review drawer by *closing* it, `Overlay` gates its portal
- * on `open`, and so the panel's children — the viewer included — unmount. Everything the viewer
- * held in state or in an effect's closure went with them, which meant a maximize re-fetched and
- * re-rasterized a document the reader had been looking at a moment earlier, with the scan
- * visibly rebuilding from its skeleton.
+ * point: a panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts
+ * its children, the viewer included. Everything the viewer held in state or in an effect's
+ * closure goes with them, which means reopening re-fetches and re-rasterizes a document the
+ * reader was looking at a moment earlier, with the scan visibly rebuilding from its skeleton.
  *
- * `'use client'` is what keeps that honest, the same way it does for `apps/tms`'s invoice-row
- * handoff map: without it this would be one mutable map per *server* process, shared across
- * requests and tenants. Blob URLs make that worse than a stale read — they are handles into one
- * document's memory and mean nothing in another.
+ * `'use client'` is what keeps that honest: without it this would be one mutable map per
+ * *server* process, shared across requests and tenants. Blob URLs make that worse than a stale
+ * read — they are handles into one document's memory and mean nothing in another.
  *
  * @remarks Insertion order is the LRU order: {@link touch} re-inserts on every subscribe, so
  * the least recently used unheld key is always the first the iterator yields.

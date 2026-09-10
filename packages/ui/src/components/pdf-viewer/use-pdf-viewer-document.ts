@@ -199,8 +199,9 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
  * @remarks **The pages outlive this hook.** They live in a bounded module cache keyed on `src`
  * (`pdf-viewer-document-cache.ts`), so a viewer that unmounts and comes back on the same
  * document re-reads the pages it already had instead of re-fetching and re-rasterizing them.
- * That is what a parked `DetailsDrawer` does — it closes the drawer, which unmounts the panel's
- * children — and before the cache a maximize rebuilt the whole scan from its skeleton.
+ * That is what parking a panel by closing it does — `Overlay` gates its portal on `open`, so the
+ * panel's children unmount — and before the cache, reopening rebuilt the whole scan from its
+ * skeleton.
  *
  * Read through `useSyncExternalStore` rather than mirrored into state, so a cache hit is visible
  * *during the first render* and paints no intervening skeleton frame. Unmounting drops this

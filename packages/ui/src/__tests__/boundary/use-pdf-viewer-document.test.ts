@@ -87,11 +87,11 @@ describe('usePdfViewerDocument', () => {
 })
 
 /**
- * What parking the AP review drawer does to the viewer, and what it must now cost.
+ * What parking a panel does to the viewer, and what it must now cost.
  *
- * `DetailsDrawer` parks by *closing* the drawer, `Overlay` gates its portal on `open`, and so
- * the panel's children unmount — the viewer with them. These cases stand in for that: a mount,
- * an unmount, and a mount again on the same `src`.
+ * A panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts its
+ * children, the viewer with them. These cases stand in for that: a mount, an unmount, and a
+ * mount again on the same `src`.
  *
  * The document is seeded through the cache's own loader seam rather than by letting the hook
  * rasterize one, because CONVENTIONS §11.3 rules out driving pdf.js in a test — and because it

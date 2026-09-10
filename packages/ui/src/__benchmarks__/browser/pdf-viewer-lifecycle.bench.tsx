@@ -1,12 +1,11 @@
 /**
- * What parking the AP invoice review drawer costs the PDF viewer, now that the rasterized pages
- * survive it.
+ * What parking a panel costs the PDF viewer, now that the rasterized pages survive it.
  *
- * `DetailsDrawer` parks by *closing* the drawer, `Overlay` gates its portal on `open`, and so
- * the panel's children unmount — `PdfViewer` among them. Every park/unpark round trip therefore
- * rebuilds the viewer subtree, and before `pdf-viewer-document-cache.ts` it also re-fetched the
- * PDF and re-rasterized every page, with the reviewer watching the scan restart from its
- * skeleton. These bars measure what is left of that:
+ * A panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts its
+ * children, `PdfViewer` among them. Every park/unpark round trip therefore rebuilds the viewer
+ * subtree, and before `pdf-viewer-document-cache.ts` it also re-fetched the PDF and
+ * re-rasterized every page, with the reader watching the scan restart from its skeleton. These
+ * bars measure what is left of that:
  *
  * - `react root baseline` is the harness overhead to subtract from the mount bars.
  * - `mount + unmount · resident document` is what an unpark pays now: the viewer subtree —
@@ -35,7 +34,7 @@
  * paid once per mount, against the document fetch and fourteen rasterizations it replaces.
  *
  * So this bench is the regression guard on the mount path, and the floor any future
- * `keepMounted`-style change to `DetailsDrawer` would be trying to reclaim.
+ * `keepMounted`-style change to the parking panel would be trying to reclaim.
  */
 
 import { bench, describe } from 'vitest'

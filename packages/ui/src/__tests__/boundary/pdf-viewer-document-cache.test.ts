@@ -127,8 +127,7 @@ describe('pdf viewer document cache', () => {
 
 	/**
 	 * The fix, stated as a property: a finished document is never rasterized twice. This is what
-	 * a park and a maximize does to the AP review drawer — the viewer unmounts and comes back on
-	 * the same `src`.
+	 * parking and reopening a panel does — the viewer unmounts and comes back on the same `src`.
 	 */
 	it('runs nothing for a document already rasterized', async () => {
 		const first = loader()
@@ -313,8 +312,8 @@ describe('pdf viewer document cache · bound', () => {
 
 		first()
 
-		// The review drawer's scan and the row-level PDF dialog can be open on one invoice at
-		// once; the first to unmount must not free the other's page images.
+		// A drawer's scan and a row-level PDF dialog can be open on one document at once; the
+		// first to unmount must not free the other's page images.
 		expect(documentCacheState().some((entry) => entry.src === '/shared.pdf')).toBe(true)
 
 		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalledWith('blob:doc-/shared.pdf')
