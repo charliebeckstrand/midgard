@@ -72,9 +72,8 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 | Hook | Summary |
 |---|---|
-| `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. `layout: 'grid'` sorts a wrapping grid rather than one track. |
+| `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. |
 | `useSortableItem` | Wraps dnd-kit `useSortable` with standard transform/transition/drag-opacity style composition. |
-| `useSortableGridKeyboard` | Keyboard reordering for a wrapping grid: Space lifts, Left/Right step one, Up/Down step a row, Enter/Escape drops, each move announced. |
 | `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. |
 | `useGrabbingCursor` | Forces the grabbing cursor document-wide while active; ref-counted, injected as one universal rule. |
 
