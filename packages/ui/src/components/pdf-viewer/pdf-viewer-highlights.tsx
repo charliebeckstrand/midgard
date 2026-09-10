@@ -66,6 +66,22 @@ function regionStyle({ x, y, width, height }: PdfViewerHighlightRect) {
 }
 
 /**
+ * The region a pointer event landed in, or null for the layer's own background.
+ *
+ * @remarks One lookup for the whole layer's delegation — hover and press both need it, and
+ * both need it to agree. Returns the element beside the id because the hover path anchors a
+ * label to the node while the press path only names it.
+ * @internal
+ */
+function regionAt(event: MouseEvent<HTMLDivElement>) {
+	const element = (event.target as HTMLElement).closest<HTMLElement>(HIGHLIGHT_SELECTOR)
+
+	const id = element?.getAttribute(HIGHLIGHT_ID_ATTR)
+
+	return element && id ? { element, id } : null
+}
+
+/**
  * Gates the overlay and announces the active region.
  *
  * @remarks The layer is a separate component below, not an early return inside one,
@@ -196,13 +212,11 @@ function PdfViewerHighlightLayer() {
 
 	/** One delegated handler for the whole layer, as the press below is — not one per region. */
 	function handleRegionOver(event: MouseEvent<HTMLDivElement>) {
-		const element = (event.target as HTMLElement).closest<HTMLElement>(HIGHLIGHT_SELECTOR)
-
-		const id = element?.getAttribute(HIGHLIGHT_ID_ATTR)
+		const hit = regionAt(event)
 
 		// The layer's own background is not a region: crossing it clears the preview rather than
 		// leaving the last one named under a pointer that has left it.
-		if (!element || !id) {
+		if (!hit) {
 			setPreviewing(false)
 
 			return
@@ -210,20 +224,17 @@ function PdfViewerHighlightLayer() {
 
 		setPreviewing(true)
 
-		if (hovered?.id === id) return
+		if (hovered?.id === hit.id) return
 
-		setHovered({ id, element, label: regions.find((r) => r.id === id)?.label ?? '' })
+		setHovered({
+			id: hit.id,
+			element: hit.element,
+			label: regions.find((r) => r.id === hit.id)?.label ?? '',
+		})
 	}
 
 	// A press with nothing to report it to cannot change anything, so it is not a button.
 	const Region = interactive ? 'button' : 'span'
-
-	/** The region a pointer event landed in, or null for the layer's own background. */
-	function pressedRegionId(event: MouseEvent<HTMLDivElement>) {
-		const target = (event.target as HTMLElement).closest(HIGHLIGHT_SELECTOR)
-
-		return target?.getAttribute(HIGHLIGHT_ID_ATTR) ?? null
-	}
 
 	function report(id: string) {
 		// Every press is reported, including one on the already-active region — that is the
@@ -260,13 +271,13 @@ function PdfViewerHighlightLayer() {
 		// browser's.
 		if (event.button !== 0) return
 
-		const id = pressedRegionId(event)
+		const hit = regionAt(event)
 
-		if (!id) return
+		if (!hit) return
 
 		event.preventDefault()
 
-		report(id)
+		report(hit.id)
 	}
 
 	/**
@@ -279,11 +290,11 @@ function PdfViewerHighlightLayer() {
 	function handleClick(event: MouseEvent<HTMLDivElement>) {
 		if (event.detail !== 0) return
 
-		const id = pressedRegionId(event)
+		const hit = regionAt(event)
 
-		if (!id) return
+		if (!hit) return
 
-		report(id)
+		report(hit.id)
 	}
 
 	function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
