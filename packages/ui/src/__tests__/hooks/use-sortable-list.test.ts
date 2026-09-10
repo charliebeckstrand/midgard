@@ -1,5 +1,9 @@
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
-import { horizontalListSortingStrategy, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import {
+	horizontalListSortingStrategy,
+	rectSortingStrategy,
+	verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useSortableList } from '../../hooks/use-sortable-list'
@@ -33,6 +37,16 @@ describe('useSortableList', () => {
 		)
 
 		expect(result.current.strategy).toBe(horizontalListSortingStrategy)
+	})
+
+	it('sorts by rects for a wrapping grid, whichever orientation it was given', () => {
+		// The single-axis strategies assume every item shares one track, so in a grid they slide
+		// items sideways through positions those items never occupy.
+		const { result } = renderHook(() =>
+			useSortableList({ items, getKey: (i) => i.id, layout: 'grid', orientation: 'horizontal' }),
+		)
+
+		expect(result.current.strategy).toBe(rectSortingStrategy)
 	})
 
 	it('is not interactive without an onReorder callback', () => {

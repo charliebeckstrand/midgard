@@ -2,6 +2,7 @@
 
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
+import { pressLandsInSurfaceOpenedWithin } from '../utilities/floating-portal-registry'
 import { useEscapeLayer } from './use-escape-layer'
 
 type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
@@ -23,6 +24,12 @@ type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
  * @remarks Pass a fresh `onDismiss` closure each render if that is convenient;
  * both routes reach the latest one, and neither re-subscribes its listener when
  * the identity changes.
+ *
+ * A floating surface opened from inside the boundary — a menu in a non-modal
+ * sheet's footer, say — portals out of its DOM subtree, so plain containment
+ * reads a press in it as outside. Such a press counts as inside (see
+ * `pressLandsInSurfaceOpenedWithin`); without that, the boundary closes on
+ * pointer-down and unmounts the menu before its click can fire.
  *
  * @returns The container ref defining the outside-pointer boundary. Attach it
  * to the overlay root, or pass your own via `containerRef` and ignore the
@@ -55,7 +62,17 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 		const onPointerDown = (event: PointerEvent) => {
 			const el = ref.current
 
-			if (el && !el.contains(event.target as Node)) dismiss()
+			if (!el) return
+
+			const target = event.target
+
+			if (
+				target instanceof Node &&
+				(el.contains(target) || pressLandsInSurfaceOpenedWithin(el, target))
+			)
+				return
+
+			dismiss()
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)

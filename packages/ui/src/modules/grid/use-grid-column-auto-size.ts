@@ -10,6 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { flushSync } from 'react-dom'
 import type { DensityLevel } from '../../providers/density/context'
 import { clamp, isDataColumn } from '../../utilities'
 import { allocateColumnWidths } from './engine/grid-column/allocate'
@@ -452,6 +453,7 @@ export function useGridColumnAutoSize<T>({
 	// container, so a width-only container resize is the one thing that recreates it
 	// — not a column or row change. Fit synchronously, before paint, so the first
 	// frame carries real widths instead of flashing the engine's default colgroup.
+	// The observer below holds that guarantee for every *later* resize; see it.
 	useLayoutEffect(() => {
 		const element = containerRef?.current
 
@@ -470,7 +472,29 @@ export function useGridColumnAutoSize<T>({
 		// has a width — which is the first moment it could be seen anyway.
 		runRef.current(true)
 
-		const observer = new ResizeObserver(() => runRef.current(false))
+		/*
+		 * Flushed, so the refitted columns land in the frame that resized the container.
+		 *
+		 * The table is `table-fixed` at a pixel width this hook computes — `tableWidth` and
+		 * every `<col>` come out of `setColumnSizing` — so between the container changing and
+		 * that state committing, the table is laid out for a width the page no longer has. An
+		 * ordinary `setState` here commits on a later frame, and something has to paint in
+		 * between: the table sitting narrow inside its box, or overflowing it. Anything that
+		 * resizes the container discretely shows that as a flash — a sidebar switching to its
+		 * floating variant, a docked panel opening beside the grid.
+		 *
+		 * A `ResizeObserver` callback runs after layout and before paint, and mutating the DOM
+		 * inside one re-runs layout in the same frame. So flushing here is the whole fix: the
+		 * frame that moves the container is the frame that carries the matching widths, which
+		 * is the same before-paint guarantee the mount-time fit above already had.
+		 *
+		 * The cost is that a refit is now on the critical path of the frame rather than the
+		 * next one. That is the intended trade — the work is the same work, and a resize the
+		 * user has to watch settle is worse than one that takes a longer frame. A pass that
+		 * moves no width still writes no state (`sizingMoved`), so a height-only tick — rows
+		 * appended, the window growing vertically — flushes nothing.
+		 */
+		const observer = new ResizeObserver(() => flushSync(() => runRef.current(false)))
 
 		observer.observe(element)
 

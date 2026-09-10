@@ -10,7 +10,7 @@ import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { cursor, fg } = hannou
-const { text } = iro
+const { onWash, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -282,7 +282,9 @@ export const k = {
 			'border-b',
 			bg.tint,
 		],
-		count: [weight.medium, 'whitespace-nowrap', size.sm, text.muted],
+		// `count` nests inside `bar`, so it inks on that tint wash, which `muted` is
+		// not legal over. See `iro/ramp.ts`.
+		count: [weight.medium, 'whitespace-nowrap', size.sm, onWash.muted],
 	},
 	cell: {
 		// Utility columns sized to their content: the selection checkbox, the

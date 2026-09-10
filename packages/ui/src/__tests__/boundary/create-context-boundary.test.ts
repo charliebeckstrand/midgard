@@ -1,4 +1,4 @@
-import { relative } from 'node:path'
+import { relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { srcDir, walkSource } from '../helpers/walk-source'
 
@@ -19,7 +19,7 @@ describe('createContext boundary', () => {
 		walkSource(srcDir, (path, source) => {
 			if (!/\.tsx?$/.test(path)) return
 
-			const rel = relative(srcDir, path)
+			const rel = relative(srcDir, path).split(sep).join('/')
 
 			if (!REACT_CREATE_CONTEXT.test(source)) return
 

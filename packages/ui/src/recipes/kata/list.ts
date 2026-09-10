@@ -2,7 +2,7 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, ma, narabi, omote, sen, steps } from '../kiso'
 
 const { cursor, disabled, fg, glassItem, tint, tintFilled, tintSurface } = hannou
-const { text } = iro
+const { onWash, text } = iro
 const { size } = ji
 const { rounded } = kasane
 const { p } = ma
@@ -32,7 +32,11 @@ const root = defineRecipe({
 const variants = ['separated', 'outline', 'solid'] as const
 
 const item = defineRecipe({
-	base: ['group', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
+	// `list-none` is stated, not inherited from the flex display: a row only avoids
+	// drawing a marker today because `display: flex` generates no marker box, so a
+	// future non-flex variant — or a row lifted into a `<DragOverlay>`, which renders
+	// outside the `<ul>` preflight strips — would grow a bullet.
+	base: ['group', 'list-none', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
 	variant: {
 		separated: [...bg.surface, border.default, rounded.lg],
 		outline: '',
@@ -105,15 +109,24 @@ const item = defineRecipe({
 const content = defineRecipe({
 	// `text-left` is for the `as="button"` content area: the UA centres button
 	// text, and a row's label/description column never wants that. `focus.ring`
-	// paints the only keyboard-focus indicator a row can get — in a non-sortable
-	// list the `<li>` takes no `tabIndex`, so its own `focus.inset` never fires and
-	// this content area is the sole focus target.
+	// paints the keyboard-focus indicator for the whole row: an activatable content
+	// area is natively focusable, so it — not the `<li>` around it — is the row's
+	// one focus target, reorderable or not.
 	base: [flex.col, 'flex-1 min-w-0 text-left', focus.ring],
+	// One rung across the whole axis, not a `variant` × `interactive` compound:
+	// `onWash.muted` is legal on the page surface and on `solid`'s wash alike.
 	interactive: {
-		true: [text.muted, fg.hover, ...cursor],
+		true: [onWash.muted, fg.hover, ...cursor],
 		false: '',
 	},
-	defaults: { interactive: false },
+	// Picked up for a keyboard move. The row's own `lifted` raises and shadows it;
+	// the violet belongs here, on whatever is actually focused, mirroring
+	// `focus.lifted`'s swap of the ring colour.
+	lifted: {
+		true: 'focus-visible:outline-violet-600',
+		false: '',
+	},
+	defaults: { interactive: false, lifted: false },
 })
 
 export const k = {
@@ -131,8 +144,13 @@ export const k = {
 		),
 		...disabled,
 	],
-	/** Content column. Pass whether the row acts on activation (`href` or `onClick`). */
-	content: (interactive?: boolean) => content({ interactive }),
+	/**
+	 * Content column. Pass whether the row acts on activation (`href` or `onClick`),
+	 * and whether the row is currently picked up for a keyboard move.
+	 */
+	content: (interactive?: boolean, lifted?: boolean) => content({ interactive, lifted }),
 	label: 'min-w-0 truncate',
-	description: ['min-w-0 truncate', size.sm, text.muted],
+	// `onWash.muted`, not `muted`: the `solid` variant grounds a row on the
+	// wash, which `muted` is not legal over. See `iro/ramp.ts`.
+	description: ['min-w-0 truncate', size.sm, onWash.muted],
 } as const

@@ -3,7 +3,7 @@
 import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useA11yPanel, useMinWidth } from '../../hooks'
+import { useA11yPanel, useMinBreakpoint } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Overlay } from '../../primitives/overlay'
@@ -117,7 +117,7 @@ export function Dialog({
 
 	const isGlass = resolvedSurface === 'glass'
 
-	const isDesktop = useMinWidth(640)
+	const isDesktop = useMinBreakpoint('sm')
 
 	const preset = isDesktop ? k.motion.desktop : k.motion.mobile
 

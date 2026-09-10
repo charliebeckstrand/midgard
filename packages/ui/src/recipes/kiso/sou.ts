@@ -25,9 +25,17 @@
  * panel or a chrome region, and a
  * tooltip that renders under the panel it describes is worse than no tooltip.
  *
+ * `lens` is a surface that magnifies the content beneath it — the PDF viewer's
+ * hover loupe. It clears `float` because everything on that rung *describes*
+ * content, while a lens *is* the content, enlarged: a tooltip anchored to the
+ * very region being inspected would sit inside the loupe and hide the thing
+ * the reader leaned in to read. Sharing the rung left that to DOM order, which
+ * resolved it the wrong way — a tooltip mounted on selection portals after the
+ * lens.
+ *
  * `toast` is topmost and unconditional. A toast reports something that
  * happened to the application, not to the surface in front of the user, so no
- * surface may cover it.
+ * surface may cover it — a lens included.
  *
  * Layer: kiso · Concern: sou
  */
@@ -36,5 +44,6 @@ export const sou = {
 	overlay: 'z-99',
 	chrome: 'z-100',
 	float: 'z-101',
-	toast: 'z-102',
+	lens: 'z-102',
+	toast: 'z-103',
 } as const

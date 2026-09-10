@@ -26,6 +26,13 @@ import {
 	useRef,
 } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
+import {
+	closestFloatingPortal,
+	foreignFloatingPortal,
+	hasPortalReference,
+	publishPortalReference,
+	referenceOpenedWithin,
+} from '../utilities/floating-portal-registry'
 import { useEscapeLayer } from './use-escape-layer'
 
 /**
@@ -122,6 +129,15 @@ export type FloatingPanelOptions = {
 	 */
 	track?: 'auto' | 'point'
 	/**
+	 * Reference element to anchor to, for a panel whose anchor the caller already
+	 * holds rather than attaches a ref to. Handed straight to floating-ui's
+	 * `elements`, so it supersedes `refs.setReference` and needs no ref plumbing
+	 * of its own — which is what lets the panel live in a leaf beside the anchor
+	 * instead of in the component that renders it. `null` while there is nothing
+	 * to anchor to; the panel should be closed then anyway.
+	 */
+	reference?: HTMLElement | null
+	/**
 	 * When the panel transitions from open to closed, return focus to this
 	 * element (or its first `button`/`[tabindex]` descendant when the element
 	 * itself is a non-focusable wrapper). An `'outside-press'` close skips the
@@ -155,6 +171,7 @@ export function useFloatingPanel({
 	middleware,
 	returnFocusTo,
 	track = 'auto',
+	reference,
 }: FloatingPanelOptions): FloatingPanelResult {
 	const resolvedMiddleware = useMemo(
 		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
@@ -182,6 +199,10 @@ export function useFloatingPanel({
 		placement,
 		open,
 		onOpenChange: handleOpenChange,
+		// Only when the caller anchors by element. Left off otherwise so
+		// `refs.setReference` stays the reference for every ref-attached panel —
+		// passing `elements: { reference: undefined }` would clear it.
+		...(reference !== undefined ? { elements: { reference } } : {}),
 		// A point-anchored surface (`track: 'point'`) repositions itself on every
 		// coordinate change, so it skips the observer-based `autoUpdate` wiring.
 		whileElementsMounted: track === 'point' ? undefined : autoUpdate,
@@ -242,22 +263,6 @@ function floatingReferenceElement(refs: FloatingOutsidePressRefs): Element | nul
 }
 
 /**
- * Portal node → a getter for the reference element the surface inside it opened
- * from. Published by every panel that shares {@link isFloatingOutsidePress}, and
- * read there to tell a genuinely nested surface from an unrelated one.
- *
- * @remarks
- * The DOM cannot answer this. `PresencePortal` passes an explicit `root` under a
- * `<UIProvider>`, so every surface's portal is a sibling `<div>` under one node
- * whatever opened it — ancestry carries no nesting information. A getter rather
- * than an element because a panel's reference can change while it is open (a
- * context menu re-anchoring to a new cursor point).
- *
- * @internal
- */
-const portalReferences = new WeakMap<Element, () => Element | null>()
-
-/**
  * Publishes this panel's reference against its portal node while it is open, so
  * a sibling panel's outside-press test can recognise it.
  *
@@ -277,19 +282,11 @@ export function useFloatingPortalReference(
 	useEffect(() => {
 		if (!open) return
 
-		const portal = floatingElement?.closest('[data-floating-ui-portal]')
+		const portal = closestFloatingPortal(floatingElement)
 
 		if (!portal) return
 
-		const getReference = () => floatingReferenceElement(refs)
-
-		portalReferences.set(portal, getReference)
-
-		// Guarded so a portal node reused by a later surface keeps that surface's
-		// entry rather than this one's teardown clearing it.
-		return () => {
-			if (portalReferences.get(portal) === getReference) portalReferences.delete(portal)
-		}
+		return publishPortalReference(portal, () => floatingReferenceElement(refs))
 	}, [open, refs, floatingElement])
 }
 
@@ -379,12 +376,14 @@ export function isFloatingOutsidePress(
  * a descendant, whose presses this panel must survive.
  *
  * @remarks
- * A surface that published its reference is a descendant only when that
- * reference sits inside this panel; publishing nothing but no reference (a
- * context menu anchored at a bare coordinate) means no descendancy to claim, so
- * the press dismisses. A portal that never registered at all — an `Overlay`,
- * which dismisses through `useDismissable` rather than this predicate — keeps
- * the older ancestor test, which is all that is knowable about it.
+ * The descendancy rule itself lives in `referenceOpenedWithin`, shared with the
+ * `Overlay` boundaries that ask the same question through
+ * `pressLandsInSurfaceOpenedWithin`: a surface that published its reference is a
+ * descendant only when that reference sits inside this panel, and publishing a
+ * getter that yields nothing (a context menu anchored at a bare coordinate)
+ * claims no descendancy, so the press dismisses. What this predicate adds is the
+ * fallback below — a portal that never registered at all keeps the older
+ * ancestor test, which is all that is knowable about it.
  *
  * @internal
  */
@@ -393,17 +392,14 @@ function pressLandsInNestedSurface(
 	target: Node,
 	refs: FloatingOutsidePressRefs,
 ): boolean {
-	const targetPortal =
-		target instanceof Element ? target.closest('[data-floating-ui-portal]') : null
+	const targetPortal = foreignFloatingPortal(floating, target)
 
-	if (!targetPortal || targetPortal === floating.closest('[data-floating-ui-portal]')) return false
+	if (!targetPortal) return false
 
-	if (portalReferences.has(targetPortal)) {
-		const targetReference = portalReferences.get(targetPortal)?.()
+	// A surface that published a reference answers for itself, by the shared rule.
+	if (hasPortalReference(targetPortal)) return referenceOpenedWithin(floating, targetPortal)
 
-		return targetReference != null && floating.contains(targetReference)
-	}
-
+	// Nothing published: the older ancestor test is all that is knowable.
 	const reference = floatingReferenceElement(refs)
 
 	return !(reference != null && targetPortal.contains(reference))

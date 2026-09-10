@@ -4,11 +4,15 @@ import { closestCenter, type DragEndEvent, type DragStartEvent } from '@dnd-kit/
 import {
 	arrayMove,
 	horizontalListSortingStrategy,
+	rectSortingStrategy,
 	verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
 import { useSortableSensors } from './use-sortable-sensors'
+
+/** How a sortable's items are laid out — one track along an axis, or a wrapping grid. */
+export type SortableLayout = 'list' | 'grid'
 
 type SortableListOptions<T> = {
 	/** Ordered items. */
@@ -17,8 +21,18 @@ type SortableListOptions<T> = {
 	getKey: (item: T) => string
 	/** Called with the next ordering whenever the list reorders. Omit for read-only. */
 	onReorder?: (next: T[]) => void
-	/** Layout axis. @defaultValue 'vertical' */
+	/** Layout axis. Ignored when `layout` is `'grid'`, which is two-axis by nature. @defaultValue 'vertical' */
 	orientation?: Orientation
+	/**
+	 * How the items are laid out, which decides the sorting strategy: a single
+	 * `'list'` track along `orientation`, or a `'grid'` that wraps across rows and
+	 * columns (catalog cards). A wrapping grid needs `rectSortingStrategy` —
+	 * the single-axis strategies assume every item shares one track, so in a grid
+	 * they animate items sideways through positions they never occupy.
+	 *
+	 * @defaultValue 'list'
+	 */
+	layout?: SortableLayout
 	/** Disable pointer + keyboard interaction. @defaultValue false */
 	disabled?: boolean
 	/** Register dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
@@ -43,13 +57,14 @@ type SortableListOptions<T> = {
  * `<SortableContext>`, `interactive` (false when disabled or read-only),
  * `activeId` of the item being dragged (or `null`), the resolved `orientation`,
  * and `dndContextProps` (sensors, collision detection, drag handlers) to spread
- * onto `<DndContext>`.
+ * onto `<DndContext>`. `layout` is not returned — it only picks `strategy`.
  */
 export function useSortableList<T>({
 	items,
 	getKey,
 	onReorder,
 	orientation = 'vertical',
+	layout = 'list',
 	disabled = false,
 	keyboardSensor = true,
 	onDragStart,
@@ -68,7 +83,11 @@ export function useSortableList<T>({
 	const itemIds = useMemo(() => items.map(getKey), [items, getKey])
 
 	const strategy =
-		orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy
+		layout === 'grid'
+			? rectSortingStrategy
+			: orientation === 'horizontal'
+				? horizontalListSortingStrategy
+				: verticalListSortingStrategy
 
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {

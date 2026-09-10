@@ -84,15 +84,26 @@ const luminance = ([r, g, b]: RGB): number => 0.2126 * r + 0.7152 * g + 0.0722 *
 
 const SHADE = /(zinc|red|amber|green|blue|rose|violet|sky)-(\d{2,3})(?:\/(\d{1,3}))?/
 
-/** Pull the colour token (and any `/alpha`) out of a Tailwind class, ignoring its utility + state prefixes. */
+/** The two shadeless tokens, which carry their alpha the same way (`bg-white/10`). */
+const NEUTRAL = /\b(white|black)(?:\/(\d{1,3}))?\b/
+
+/** A Tailwind `/alpha` suffix as a fraction; absent means opaque. */
+const alphaOf = (suffix: string | undefined): number => (suffix ? Number(suffix) / 100 : 1)
+
+/**
+ * Pull the colour token (and any `/alpha`) out of a Tailwind class, ignoring
+ * its utility + state prefixes. A shade wins over `white`/`black` wherever
+ * both appear, so a joined `[light, dark]` pair resolves to its shade rather
+ * than to whichever token sits leftmost.
+ */
 function tokenOf(cls: string): { token: string; alpha: number } {
 	const shade = SHADE.exec(cls)
 
-	if (shade)
-		return { token: `${shade[1]}-${shade[2]}`, alpha: shade[3] ? Number(shade[3]) / 100 : 1 }
+	if (shade) return { token: `${shade[1]}-${shade[2]}`, alpha: alphaOf(shade[3]) }
 
-	if (/\bwhite\b/.test(cls)) return { token: 'white', alpha: 1 }
-	if (/\bblack\b/.test(cls)) return { token: 'black', alpha: 1 }
+	const neutral = NEUTRAL.exec(cls)
+
+	if (neutral?.[1]) return { token: neutral[1], alpha: alphaOf(neutral[2]) }
 
 	throw new Error(`no colour in class: ${cls}`)
 }

@@ -1,6 +1,12 @@
+import type { ComponentProps } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Icon } from '../../components/icon'
 import { bySlot, renderUI } from '../helpers'
+
+/** An icon component of the shape callers write: it forwards what the clone injects. */
+function Glyph(props: ComponentProps<'svg'>) {
+	return <svg {...props} />
+}
 
 describe('Icon', () => {
 	it('renders with data-slot="icon"', () => {
@@ -45,6 +51,19 @@ describe('Icon', () => {
 		const { container } = renderUI(<Icon icon={<svg className="text-red-500" />} />)
 
 		expect(bySlot(container, 'icon')?.getAttribute('class')).toContain('text-red-500')
+	})
+
+	it('sizes a component element that forwards its props', () => {
+		// Every other case here hands `Icon` an intrinsic `<svg />`, which cannot drop what is
+		// cloned onto it. A component element can: one declaring no props swallows the class and
+		// the slot, and the glyph falls back to its library's own size.
+		const { container } = renderUI(<Icon icon={<Glyph />} />)
+
+		const el = bySlot(container, 'icon')
+
+		expect(el).toBeInTheDocument()
+
+		expect(el?.getAttribute('class')).toContain('size-5')
 	})
 
 	it('does not shrink inside a flex container', () => {

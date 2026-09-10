@@ -206,4 +206,11 @@ describe('dateCategoryFormat', () => {
 
 		expect(dateCategoryFormat([], 2026)).toBeNull()
 	})
+
+	it('never treats bare numeric strings as dates — Date.parse reads "95190" as year 95190', () => {
+		// An axis of NMFC codes rendered as 01-01-95190 ticks (live 2026-07-17)
+		expect(dateCategoryFormat(['95190', '133300', '156600'], 2026)).toBeNull()
+
+		expect(dateCategoryFormat(['2026-06-10', '95190'], 2026)).toBeNull()
+	})
 })
