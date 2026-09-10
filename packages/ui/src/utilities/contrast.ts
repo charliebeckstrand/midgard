@@ -23,6 +23,9 @@ export type Srgb = readonly [r: number, g: number, b: number]
  */
 export type ColorInput = string | Srgb
 
+/** WCAG 1.4.3 AA minimum contrast for normal-size text. */
+export const WCAG_AA_TEXT = 4.5
+
 /** WCAG 1.4.11 minimum contrast for non-text UI components and graphical objects. */
 export const WCAG_NON_TEXT = 3
 
@@ -166,21 +169,21 @@ export function contrastRatio(a: ColorInput, b: ColorInput): number {
 
 /**
  * Pick the readable ink for a `background` from an ordered list of candidates.
- * The first candidate that clears the `threshold` against the background wins.
- * Lead the list with the preferred ink (white, say) to get it wherever the ink
- * stays legible. When none clears it, the highest-contrast candidate wins.
+ * The first candidate that clears the `floor` against the background wins. Lead
+ * the list with the preferred ink (white, say) to get it wherever the ink stays
+ * legible. When none clears it, the highest-contrast candidate wins.
  *
- * @param threshold - The ratio an ink must clear to win outright. Name the floor
- * the surface answers to: 4.5 for normal text (WCAG 1.4.3 AA), 3 for large text
- * or a non-text component (1.4.11).
- * @defaultValue 4.5, the AA floor for normal text
+ * @param floor - The ratio an ink must clear to win outright. Name the floor the
+ * surface answers to: {@link WCAG_AA_TEXT} for normal text, {@link WCAG_NON_TEXT}
+ * for large text or a non-text component.
+ * @defaultValue {@link WCAG_AA_TEXT}
  * @returns The chosen candidate, from `inks`.
  * @throws If `inks` is empty.
  */
 export function readableInk<Ink extends ColorInput>(
 	background: ColorInput,
 	inks: readonly Ink[],
-	floor = 4.5,
+	floor = WCAG_AA_TEXT,
 ): Ink {
 	// Parse and gamma-decode the background once; only the candidate varies
 	// per iteration.

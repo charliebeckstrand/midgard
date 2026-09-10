@@ -13,7 +13,7 @@ import { onTestFinished, vi } from 'vitest'
  * registered even when `run` throws, because a node appended before the throw
  * is exactly what this helper exists to reclaim.
  *
- * Not re-exported from `helpers/index.ts`: two suites use it, and that barrel
+ * Not re-exported from `helpers/index.ts`: three suites use it, and that barrel
  * is on the path ~210 files evaluate.
  *
  * @param run - Call that appends the node.

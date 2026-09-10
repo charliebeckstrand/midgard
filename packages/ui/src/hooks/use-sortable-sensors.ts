@@ -42,8 +42,14 @@ class PrimaryPointerSensor extends PointerSensor {
 	]
 }
 
-/** Pointer travel (px) before a drag activates: far enough to survive a click's jitter, near enough to feel immediate. */
-const ACTIVATION_DISTANCE = 3
+/**
+ * Pointer travel (px) before a drag activates: far enough to survive a click's
+ * jitter, near enough to feel immediate. Held as the whole options object, at
+ * module scope, because `useSensor` memoises on option identity — a fresh literal
+ * per render misses that memo and hands `<DndContext>` a new sensor array every
+ * time.
+ */
+const POINTER_ACTIVATION = { activationConstraint: { distance: 3 } }
 
 type SortableSensorsOptions = {
 	/** Include dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
@@ -72,9 +78,7 @@ export function useSortableSensors({
 	keyboard = true,
 	keyboardCoordinateGetter = sortableKeyboardCoordinates,
 }: SortableSensorsOptions = {}) {
-	const pointer = useSensor(PrimaryPointerSensor, {
-		activationConstraint: { distance: ACTIVATION_DISTANCE },
-	})
+	const pointer = useSensor(PrimaryPointerSensor, POINTER_ACTIVATION)
 
 	const keyboardSensor = useSensor(KeyboardSensor, {
 		coordinateGetter: keyboardCoordinateGetter,

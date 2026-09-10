@@ -53,7 +53,9 @@ export function themeColor(token: string): string {
 
 /** A `name-shade` / `white` / `black` token → gamma-encoded sRGB. */
 function srgbOf(token: string): Srgb {
-	return parseColor(token === 'white' || token === 'black' ? token : themeColor(token))
+	// `parseColor` owns the keywords; the theme map owns the ramp. A miss in both
+	// surfaces as its unparseable-colour throw.
+	return parseColor(THEME.get(token) ?? token)
 }
 
 /** Pull the colour token (and any `/alpha`) out of a Tailwind class, ignoring its utility + state prefixes. */

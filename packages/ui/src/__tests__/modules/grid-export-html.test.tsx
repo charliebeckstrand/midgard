@@ -140,57 +140,12 @@ describe('printRows', () => {
 		expect(iframe.srcdoc).toBe(rowsToPrintHtml(columns, rows))
 	})
 
-	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
-
-		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
-
-		iframe.dispatchEvent(new Event('load'))
-
-		expect(iframe.parentNode).toBeNull()
-	})
-
-	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
-
-		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
-
-		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
-
-		iframe.dispatchEvent(new Event('load'))
-
-		expect(win.focus).toHaveBeenCalled()
-
-		expect(win.print).toHaveBeenCalled()
-
-		expect(win.addEventListener).toHaveBeenCalledWith('afterprint', expect.any(Function))
-
-		// Cleanup is deferred to the afterprint event, so the iframe is still attached.
-		expect(iframe.parentNode).not.toBeNull()
-	})
-
-	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
-
-		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
-
-		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
-
-		iframe.dispatchEvent(new Event('load'))
-
-		// afterprint never fires; the print dialog closing returns focus to the window.
-		expect(iframe.parentNode).not.toBeNull()
-
-		window.dispatchEvent(new Event('focus'))
-
-		expect(iframe.parentNode).toBeNull()
-	})
-
-	// The other half of the `onFail` gate — a `print()` that throws propagating
-	// rather than being swallowed — is not assertable here: jsdom turns a throwing
-	// listener into an unhandled error the runner fails on, which `preventDefault`
-	// does not suppress. The PDF viewer's own suite covers the catching arm.
-	it('wires no new-tab fallback, so a frame that fails to load opens nothing', () => {
+	// The frame lifecycle itself is `printInHiddenFrame`'s, and `print-frame.test.ts`
+	// drives it. What is the grid's own is the pair below: `srcdoc` above, and no
+	// `onFail` here. The remaining arm of that gate — a blocked `print()`
+	// propagating rather than being swallowed — is not assertable in jsdom, which
+	// turns a throwing listener into an unhandled error the runner fails on.
+	it('wires no new-tab fallback, but the frame is still reclaimed', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
 
 		const iframe = captureAppended(() => printRows(columns, rows), 'iframe')
@@ -198,5 +153,7 @@ describe('printRows', () => {
 		iframe.dispatchEvent(new Event('error'))
 
 		expect(open).not.toHaveBeenCalled()
+
+		expect(iframe.parentNode).toBeNull()
 	})
 })

@@ -492,8 +492,9 @@ type RowContextOptions = {
 }
 
 /**
- * Moves to `items[index]`: real focus in focus mode, the virtual marker (plus
- * optional scroll) in virtual mode.
+ * Moves to `items[index]`: real focus in focus mode, the virtual marker in
+ * virtual mode — with a `scrollWithin` on the DOM-backed path there, where the
+ * indexed path leaves scrolling to the virtualizer.
  *
  * @internal
  */

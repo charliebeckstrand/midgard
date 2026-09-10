@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -18,7 +18,7 @@ type PdfViewerToolbarButtonProps = {
 	 * the level they step to.
 	 * @defaultValue the `label`
 	 */
-	tooltip?: ReactNode
+	tooltip?: string
 	/**
 	 * Disclosure state for a button that opens a panel, stamped as
 	 * `aria-expanded`. Omit on a button that discloses nothing, which renders no

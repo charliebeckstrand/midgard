@@ -31,6 +31,7 @@
 | `relativeLuminance` | WCAG relative luminance of a colour, in `[0, 1]`. |
 | `readableInk` | The first candidate ink that clears a numeric floor on a background — lead with the preferred ink (e.g. white) to get it wherever it holds. Defaults to `4.5`, the AA floor for normal text. |
 | `parseColor` | Resolves a CSS colour (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`, `white` / `black`) or an `Srgb` triple to gamma-encoded `Srgb`. |
+| `WCAG_AA_TEXT` | The WCAG 1.4.3 AA contrast floor for normal-size text: `4.5`. `readableInk` defaults to it. |
 | `WCAG_NON_TEXT` | The WCAG 1.4.11 contrast floor for a non-text component or graphical object: `3`. |
 | `Srgb` *(type)* | An sRGB colour as three gamma-encoded `[0, 1]` channels. |
 | `ColorInput` *(type)* | A colour to measure: a CSS colour string or an `Srgb` triple. |
@@ -73,7 +74,7 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
-| `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`); the optional `onFail` recovers from a frame that cannot print, and its absence lets a blocked `print()` propagate. |
+| `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop, and on either failure route. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`); the optional `onFail` says what to do besides reclaiming, and its absence lets a blocked `print()` propagate. |
 
 ## Measurement
 
