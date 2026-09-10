@@ -1,15 +1,6 @@
 'use client'
 
-import {
-	autoUpdate,
-	flip,
-	offset,
-	shift,
-	useClientPoint,
-	useFloating,
-	useHover,
-	useInteractions,
-} from '@floating-ui/react'
+import { useClientPoint, useHover, useInteractions } from '@floating-ui/react'
 import {
 	type PointerEvent as ReactPointerEvent,
 	useCallback,
@@ -18,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useFloatingPanel } from '../../hooks'
 import type { PdfViewerMagnifierOptions } from './types'
 
 /**
@@ -181,7 +173,7 @@ export function usePdfViewerMagnifier(
 		[locate],
 	)
 
-	const { refs, floatingStyles, context } = useFloating({
+	const { refs, floatingStyles, context } = useFloatingPanel({
 		open: enabled && open,
 		onOpenChange: handleOpenChange,
 		// Beside the cursor rather than under it: a lens centred on the pointer would cover the
@@ -193,8 +185,9 @@ export function usePdfViewerMagnifier(
 		// lands short by however far the page or any scroll container between them has scrolled;
 		// the viewer's own viewport is a scroll container, and it is routinely inside another.
 		strategy: 'fixed',
-		middleware: [offset(24), flip(), shift({ padding: 8 })],
-		whileElementsMounted: autoUpdate,
+		// Clears the lens of the cursor. The rest of the chain — flip, then shift with the
+		// standard padding — is the package's own, so the loupe follows it wherever it moves.
+		offset: 24,
 	})
 
 	const hover = useHover(context, {

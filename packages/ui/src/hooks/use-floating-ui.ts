@@ -129,6 +129,15 @@ export type FloatingPanelOptions = {
 	 */
 	track?: 'auto' | 'point'
 	/**
+	 * CSS positioning strategy for the floating element. `'fixed'` resolves the
+	 * panel against the viewport instead of the portal's offset parent — what a
+	 * surface anchored to viewport coordinates needs, because an `'absolute'`
+	 * panel lands short by however far any scroll container between them has
+	 * scrolled.
+	 * @defaultValue 'absolute'
+	 */
+	strategy?: 'absolute' | 'fixed'
+	/**
 	 * Reference element to anchor to, for a panel whose anchor the caller already
 	 * holds rather than attaches a ref to. Handed straight to floating-ui's
 	 * `elements`, so it supersedes `refs.setReference` and needs no ref plumbing
@@ -171,6 +180,7 @@ export function useFloatingPanel({
 	middleware,
 	returnFocusTo,
 	track = 'auto',
+	strategy,
 	reference,
 }: FloatingPanelOptions): FloatingPanelResult {
 	const resolvedMiddleware = useMemo(
@@ -199,6 +209,7 @@ export function useFloatingPanel({
 		placement,
 		open,
 		onOpenChange: handleOpenChange,
+		...(strategy ? { strategy } : {}),
 		// Only when the caller anchors by element. Left off otherwise so
 		// `refs.setReference` stays the reference for every ref-attached panel —
 		// passing `elements: { reference: undefined }` would clear it.
