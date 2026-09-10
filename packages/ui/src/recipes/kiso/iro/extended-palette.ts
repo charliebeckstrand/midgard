@@ -108,9 +108,18 @@ const extendedOutline = {
 
 /** Bare hover: the muted foreground steps to the stronger `onTint` shade. */
 const extendedBareHover = shades<ExtendedColor>({
-	rose: ['not-disabled:not-data-disabled:hover:text-rose-700', 'dark:not-disabled:not-data-disabled:hover:text-rose-400'],
-	violet: ['not-disabled:not-data-disabled:hover:text-violet-700', 'dark:not-disabled:not-data-disabled:hover:text-violet-400'],
-	sky: ['not-disabled:not-data-disabled:hover:text-sky-700', 'dark:not-disabled:not-data-disabled:hover:text-sky-400'],
+	rose: [
+		'not-disabled:not-data-disabled:hover:text-rose-700',
+		'dark:not-disabled:not-data-disabled:hover:text-rose-400',
+	],
+	violet: [
+		'not-disabled:not-data-disabled:hover:text-violet-700',
+		'dark:not-disabled:not-data-disabled:hover:text-violet-400',
+	],
+	sky: [
+		'not-disabled:not-data-disabled:hover:text-sky-700',
+		'dark:not-disabled:not-data-disabled:hover:text-sky-400',
+	],
 })
 
 export const extendedPalette = {
