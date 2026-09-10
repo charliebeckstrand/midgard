@@ -25,3 +25,15 @@ minimumReleaseAgeExclude:
   - '@mui/x-data-grid@9.9.0'
   - '@mui/x-internals@9.9.0'
   - '@mui/x-virtualizer@0.6.0'
+
+# `useFloatingPortalNode` builds its portal node in a layout effect and removes it in that
+# effect's cleanup, deliberately rebuilding it on the next run (floating-ui#2454). React's
+# `<Activity>` runs cleanups to *hide* a subtree and re-runs the effects to reveal it, so a
+# parked surface came back with a new node — and since `createPortal` counts its container as
+# part of the portal's identity, the whole surface remounted. Every overlay inside an inactive
+# Tabs/Nav panel (`ui/primitives/mount`'s `Hold`) or a navigated-away App Router route lost its
+# state on the way back. The patch re-attaches the existing node instead of rebuilding it.
+# Covered by `overlay-activity-hold.test.tsx`, which fails without it. Mirrored in tms-ui; keep
+# the two copies identical. Remove once upstream is Activity-safe.
+patchedDependencies:
+  '@floating-ui/react@0.27.19': patches/@floating-ui__react@0.27.19.patch

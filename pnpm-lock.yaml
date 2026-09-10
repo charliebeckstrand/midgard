@@ -10,6 +10,9 @@ overrides:
   sharp: '>=0.35.0 <1'
   undici: '>=7.29.0 <8'
 
+patchedDependencies:
+  '@floating-ui/react@0.27.19': 7bd33aaf7f770afcaadb2f5e7a7d6986aa6a648cb5f32b43f540e4c9762c6443
+
 importers:
 
   .:
@@ -215,7 +218,7 @@ importers:
         version: 3.2.2(react@19.2.7)
       '@floating-ui/react':
         specifier: ^0.27.19
-        version: 0.27.19(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+        version: 0.27.19(patch_hash=7bd33aaf7f770afcaadb2f5e7a7d6986aa6a648cb5f32b43f540e4c9762c6443)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@internationalized/date':
         specifier: ^3.10.0
         version: 3.12.2
@@ -4480,7 +4483,7 @@ snapshots:
       react: 19.2.7
       react-dom: 19.2.7(react@19.2.7)
 
-  '@floating-ui/react@0.27.19(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
+  '@floating-ui/react@0.27.19(patch_hash=7bd33aaf7f770afcaadb2f5e7a7d6986aa6a648cb5f32b43f540e4c9762c6443)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)':
     dependencies:
       '@floating-ui/react-dom': 2.1.8(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@floating-ui/utils': 0.2.11
