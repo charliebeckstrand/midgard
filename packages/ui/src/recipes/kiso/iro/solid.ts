@@ -24,10 +24,10 @@ export const solid = {
 		blue: 'text-white',
 	}),
 	hover: shades({
-		zinc: 'not-disabled:hover:bg-zinc-700',
-		red: 'not-disabled:hover:bg-red-700',
-		amber: 'not-disabled:hover:bg-amber-600',
-		green: 'not-disabled:hover:bg-green-800',
-		blue: 'not-disabled:hover:bg-blue-700',
+		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-700',
+		red: 'not-disabled:not-data-disabled:hover:bg-red-700',
+		amber: 'not-disabled:not-data-disabled:hover:bg-amber-600',
+		green: 'not-disabled:not-data-disabled:hover:bg-green-800',
+		blue: 'not-disabled:not-data-disabled:hover:bg-blue-700',
 	}),
 }
