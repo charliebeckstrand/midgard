@@ -67,9 +67,9 @@ const extendedSolid = {
 		sky: 'text-white',
 	}),
 	hover: shades<ExtendedColor>({
-		rose: 'not-disabled:hover:bg-rose-700',
-		violet: 'not-disabled:hover:bg-violet-700',
-		sky: 'not-disabled:hover:bg-sky-800',
+		rose: 'not-disabled:not-data-disabled:hover:bg-rose-700',
+		violet: 'not-disabled:not-data-disabled:hover:bg-violet-700',
+		sky: 'not-disabled:not-data-disabled:hover:bg-sky-800',
 	}),
 }
 
@@ -80,17 +80,17 @@ const extendedSoft = {
 		sky: 'bg-sky-500/15',
 	}),
 	hover: shades<ExtendedColor>({
-		rose: 'not-disabled:hover:bg-rose-500/30',
-		violet: 'not-disabled:hover:bg-violet-500/30',
-		sky: 'not-disabled:hover:bg-sky-500/30',
+		rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/30',
+		violet: 'not-disabled:not-data-disabled:hover:bg-violet-500/30',
+		sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/30',
 	}),
 }
 
 /** Shared low-alpha hover wash for the plain / soft / outline variants. */
 const extendedHover = shades<ExtendedColor>({
-	rose: 'not-disabled:hover:bg-rose-500/15',
-	violet: 'not-disabled:hover:bg-violet-500/15',
-	sky: 'not-disabled:hover:bg-sky-500/15',
+	rose: 'not-disabled:not-data-disabled:hover:bg-rose-500/15',
+	violet: 'not-disabled:not-data-disabled:hover:bg-violet-500/15',
+	sky: 'not-disabled:not-data-disabled:hover:bg-sky-500/15',
 })
 
 const extendedOutline = {
@@ -108,9 +108,9 @@ const extendedOutline = {
 
 /** Bare hover: the muted foreground steps to the stronger `onTint` shade. */
 const extendedBareHover = shades<ExtendedColor>({
-	rose: ['not-disabled:hover:text-rose-700', 'dark:not-disabled:hover:text-rose-400'],
-	violet: ['not-disabled:hover:text-violet-700', 'dark:not-disabled:hover:text-violet-400'],
-	sky: ['not-disabled:hover:text-sky-700', 'dark:not-disabled:hover:text-sky-400'],
+	rose: ['not-disabled:not-data-disabled:hover:text-rose-700', 'dark:not-disabled:not-data-disabled:hover:text-rose-400'],
+	violet: ['not-disabled:not-data-disabled:hover:text-violet-700', 'dark:not-disabled:not-data-disabled:hover:text-violet-400'],
+	sky: ['not-disabled:not-data-disabled:hover:text-sky-700', 'dark:not-disabled:not-data-disabled:hover:text-sky-400'],
 })
 
 export const extendedPalette = {

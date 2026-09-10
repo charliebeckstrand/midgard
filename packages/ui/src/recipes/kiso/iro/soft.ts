@@ -20,10 +20,10 @@ export const soft = {
 	}),
 	text,
 	hover: shades({
-		zinc: 'not-disabled:hover:bg-zinc-500/30',
-		red: 'not-disabled:hover:bg-red-500/30',
-		amber: 'not-disabled:hover:bg-amber-500/30',
-		green: 'not-disabled:hover:bg-green-500/30',
-		blue: 'not-disabled:hover:bg-blue-500/30',
+		zinc: 'not-disabled:not-data-disabled:hover:bg-zinc-500/30',
+		red: 'not-disabled:not-data-disabled:hover:bg-red-500/30',
+		amber: 'not-disabled:not-data-disabled:hover:bg-amber-500/30',
+		green: 'not-disabled:not-data-disabled:hover:bg-green-500/30',
+		blue: 'not-disabled:not-data-disabled:hover:bg-blue-500/30',
 	}),
 }

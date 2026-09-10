@@ -69,8 +69,8 @@ const tab = defineRecipe({
 		fg.current,
 		// Tab-specific intermediate hover on non-current siblings.
 		...mode(
-			'not-data-current:not-disabled:hover:text-zinc-700',
-			'dark:not-data-current:not-disabled:hover:text-zinc-200',
+			'not-data-current:not-disabled:not-data-disabled:hover:text-zinc-700',
+			'dark:not-data-current:not-disabled:not-data-disabled:hover:text-zinc-200',
 		),
 		focus.indicator,
 		...disabled,
