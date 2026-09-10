@@ -118,15 +118,16 @@ export function usePdfViewerMagnifier(
 	 * read from the same event and must never disagree — a lens positioned from one move and
 	 * filled from another would show the wrong ink for exactly one frame.
 	 *
-	 * **Held in a ref until the lens is open, and only then mirrored into state.** This hook
-	 * lives in `usePdfViewer`, so a state write here re-renders the whole viewer — toolbar (ten
-	 * floating stacks and a per-page Listbox), thumbnail rail, highlight provider and every
-	 * region on the page. A pointer merely crossing the scan on its way to the toolbar does
-	 * that 60-120 times a second for a lens that never appears, and the dwell is 300ms, so
-	 * most crossings never open one. The ref costs nothing and is exactly what the open edge
-	 * needs to read.
+	 * **The ref holds the client point until the lens is open, and only then does state carry
+	 * both.** This hook lives in `usePdfViewer`, so a state write here re-renders the whole
+	 * viewer — toolbar (ten floating stacks and a per-page Listbox), thumbnail rail, highlight
+	 * provider and every region on the page. A pointer merely crossing the scan on its way to
+	 * the toolbar does that 60-120 times a second for a lens that never appears, and the dwell
+	 * is 300ms, so most crossings never open one. The client point is all the open edge needs:
+	 * {@link locate} derives the frame-local one from it against a fresh rect. A closed lens
+	 * therefore pays no `getBoundingClientRect` per move.
 	 */
-	const trackingRef = useRef<Tracking | null>(null)
+	const trackingRef = useRef<MagnifierPoint | null>(null)
 
 	const [tracking, setTracking] = useState<Tracking | null>(null)
 
@@ -157,7 +158,7 @@ export function usePdfViewerMagnifier(
 	 * same case.
 	 */
 	const locate = useCallback((): Tracking | null => {
-		const client = trackingRef.current?.client
+		const client = trackingRef.current
 
 		const frame = frameRef.current
 
@@ -236,31 +237,44 @@ export function usePdfViewerMagnifier(
 
 		frameRef.current = event.currentTarget
 
+		const client = { x: event.clientX, y: event.clientY }
+
+		trackingRef.current = client
+
+		// Only the open lens needs frame-local coordinates, and only it pays the layout read.
+		if (!openRef.current) return
+
 		const rect = event.currentTarget.getBoundingClientRect()
 
-		const next: Tracking = {
-			local: { x: event.clientX - rect.left, y: event.clientY - rect.top },
-			client: { x: event.clientX, y: event.clientY },
-		}
-
-		trackingRef.current = next
-
-		if (openRef.current) setTracking(next)
+		setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
 	}, [])
 
-	const referenceProps = enabled
-		? getReferenceProps({
-				onPointerEnter: track,
-				onPointerMove: track,
-				onPointerLeave() {
-					trackingRef.current = null
+	/** Drops the tracked point: the pointer has left the scan, so there is nothing to magnify. */
+	const leave = useCallback(() => {
+		trackingRef.current = null
 
-					if (openRef.current) setTracking(null)
-				},
-			})
-		: EMPTY_PROPS
+		if (openRef.current) setTracking(null)
+	}, [])
 
-	const floatingProps = enabled ? getFloatingProps() : EMPTY_PROPS
+	/*
+	 * Both bags are memoized, and `leave` is a callback rather than a literal, because they are
+	 * dependencies of the result below. An inline handler — or a bare `getReferenceProps()` call
+	 * — allocates on every render, which would defeat that memo and, through it, the context
+	 * memo in `usePdfViewer`. The floating-ui getters are stable until an interaction's own
+	 * inputs move, so these hold across every render that leaves the lens alone.
+	 */
+	const referenceProps = useMemo(
+		() =>
+			enabled
+				? getReferenceProps({ onPointerEnter: track, onPointerMove: track, onPointerLeave: leave })
+				: EMPTY_PROPS,
+		[enabled, getReferenceProps, track, leave],
+	)
+
+	const floatingProps = useMemo(
+		() => (enabled ? getFloatingProps() : EMPTY_PROPS),
+		[enabled, getFloatingProps],
+	)
 
 	/** Pending re-open. One at a time: each scroll event replaces the last. */
 	const settleRef = useRef<number | undefined>(undefined)

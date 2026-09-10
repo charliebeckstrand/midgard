@@ -93,17 +93,20 @@ export function usePdfViewerHighlights({
 
 	const reduceMotion = useReducedMotion()
 
-	// Looks past the page filter below: the active region may sit on a page the viewer is
-	// not showing, because the list beside the viewer selects by field, not by page.
-	const activeHighlightPage = activeId
-		? highlights?.find((highlight) => highlight.id === activeId)?.page
-		: undefined
-
 	const regions: PdfViewerRegion[] = []
 
 	let missingExtent = false
 
+	// Looks past the page filter below: the active region may sit on a page the viewer is
+	// not showing, because the list beside the viewer selects by field, not by page. Read
+	// before that filter, so the one pass serves both it and the regions.
+	let activeHighlightPage: number | undefined
+
 	for (const highlight of highlights ?? []) {
+		if (activeId && activeHighlightPage === undefined && highlight.id === activeId) {
+			activeHighlightPage = highlight.page
+		}
+
 		if (highlight.page !== safePage) continue
 
 		const rect = toFractionRect(highlight.rect, highlightUnit, activePage)
