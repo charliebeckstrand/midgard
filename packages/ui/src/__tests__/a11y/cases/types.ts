@@ -41,3 +41,16 @@ export type TrapCase = readonly [
 	element: ReactElement,
 	surface: () => Promise<HTMLElement>,
 ]
+
+/**
+ * A roved item whose description ink lands on the item wash.
+ *
+ * `element` renders the surface already open. The gate stamps `data-active` on
+ * the item rather than driving a hover, because that attribute is what the
+ * roving cursor sets — deterministic where a pointer is not, and a listbox roves
+ * its first option on open anyway.
+ *
+ * `descriptionSlot` names the `data-slot` the recipe inks, stated beside the
+ * fixture that renders it so a rename moves both together.
+ */
+export type RovedCase = readonly [name: string, element: ReactElement, descriptionSlot: string]
