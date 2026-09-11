@@ -1,14 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form, useFormField, useFormToggle } from '../../components/form'
+import { useFormField, useFormToggle } from '../../components/form'
 import { makeChangeEvent } from '../helpers'
-
-function makeWrapper<T extends Record<string, unknown>>(defaultValues: T) {
-	return ({ children }: { children: ReactNode }) => (
-		<Form defaultValues={defaultValues}>{children}</Form>
-	)
-}
+import { makeFormWrapper } from '../helpers/form-wrapper'
 
 describe('useFormToggle', () => {
 	it('passes checked and onChange through outside a Form', () => {
@@ -24,7 +18,7 @@ describe('useFormToggle', () => {
 	})
 
 	it('reads the form field and writes back through it when no checked prop', () => {
-		const wrapper = makeWrapper({ agree: false })
+		const wrapper = makeFormWrapper({ agree: false })
 
 		const { result } = renderHook(
 			() => ({
@@ -50,7 +44,7 @@ describe('useFormToggle', () => {
 	it('lets an explicit checked prop win over the form field', () => {
 		const onChange = vi.fn()
 
-		const wrapper = makeWrapper({ agree: false })
+		const wrapper = makeFormWrapper({ agree: false })
 
 		const { result } = renderHook(
 			() => ({
@@ -80,7 +74,7 @@ describe('useFormToggle', () => {
 	it('chains the consumer onChange while bound', () => {
 		const onChange = vi.fn()
 
-		const wrapper = makeWrapper({ agree: false })
+		const wrapper = makeFormWrapper({ agree: false })
 
 		const { result } = renderHook(() => useFormToggle({ name: 'agree', onChange }), { wrapper })
 

@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { fireEvent, renderUI, screen } from '../helpers'
-
-const noop = () => {}
+import { fireEvent, noop, renderUI, screen } from '../helpers'
 
 // Mirrors floating-ui's contract: user props merge into the result.
 const mergeFloatingProps = (userProps?: object) => ({ ...userProps })

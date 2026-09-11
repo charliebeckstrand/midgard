@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { type ReactNode, useState } from 'react'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -11,6 +11,7 @@ import {
 	useFormText,
 } from '../../components/form'
 import { bySlot, fireEvent, makeChangeEvent, makeFocusEvent, renderUI, screen } from '../helpers'
+import { makeFormWrapper } from '../helpers/form-wrapper'
 
 describe('Form', () => {
 	it('renders with data-slot="form"', () => {
@@ -861,12 +862,6 @@ describe('Form', () => {
 	})
 })
 
-function makeWrapper<T extends Record<string, unknown>>(defaultValues: T) {
-	return ({ children }: { children: ReactNode }) => (
-		<Form defaultValues={defaultValues}>{children}</Form>
-	)
-}
-
 describe('form hooks outside a Form', () => {
 	it.each<[string, () => unknown]>([
 		['useFormContext returns undefined', () => useFormContext()],
@@ -884,7 +879,7 @@ describe('form hooks outside a Form', () => {
 
 describe('useFormContext', () => {
 	it('returns combined state + actions inside a Form', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ name: 'Ada' })
 
 		const { result } = renderHook(() => useFormContext(), { wrapper })
 
@@ -898,7 +893,7 @@ describe('useFormContext', () => {
 
 describe('useFormActions', () => {
 	it('returns a stable actions object across re-renders', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ name: 'Ada' })
 
 		const { result, rerender } = renderHook(() => useFormActions(), { wrapper })
 
@@ -912,7 +907,7 @@ describe('useFormActions', () => {
 
 describe('useFormState', () => {
 	it('reflects current values', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ name: 'Ada' })
 
 		const { result } = renderHook(() => useFormState(), { wrapper })
 
@@ -922,7 +917,7 @@ describe('useFormState', () => {
 
 describe('useFormField', () => {
 	it('returns undefined when name is missing', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ name: 'Ada' })
 
 		const { result } = renderHook(() => useFormField(undefined), { wrapper })
 
@@ -930,7 +925,7 @@ describe('useFormField', () => {
 	})
 
 	it('updates value via setValue and dirties the field', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ name: 'Ada' })
 
 		const { result } = renderHook(() => useFormField('name'), { wrapper })
 
@@ -948,7 +943,7 @@ describe('useFormField', () => {
 	})
 
 	it('marks the field as touched via setTouched', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ name: 'Ada' })
 
 		const { result } = renderHook(() => useFormField('name'), { wrapper })
 
@@ -966,7 +961,7 @@ describe('useFormText', () => {
 	it('returns a binding that updates the form value and calls external onChange', () => {
 		const onChange = vi.fn()
 
-		const wrapper = makeWrapper({ name: '' })
+		const wrapper = makeFormWrapper({ name: '' })
 
 		const { result } = renderHook(() => useFormText<HTMLInputElement>('name', { onChange }), {
 			wrapper,
@@ -990,7 +985,7 @@ describe('useFormText', () => {
 	it('marks the field as touched and calls external onBlur', () => {
 		const onBlur = vi.fn()
 
-		const wrapper = makeWrapper({ name: '' })
+		const wrapper = makeFormWrapper({ name: '' })
 
 		const { result } = renderHook(() => useFormText<HTMLInputElement>('name', { onBlur }), {
 			wrapper,
@@ -1006,7 +1001,7 @@ describe('useFormText', () => {
 
 describe('useFormStatus', () => {
 	it('returns form-level status flags', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ name: 'Ada' })
 
 		const { result } = renderHook(() => useFormStatus(), { wrapper })
 

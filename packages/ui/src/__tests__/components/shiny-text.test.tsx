@@ -35,8 +35,6 @@ describe('ShinyText', () => {
 	})
 
 	afterEach(() => {
-		vi.unstubAllGlobals()
-
 		// Restore animate's call-through default.
 		vi.mocked(animate).mockRestore()
 

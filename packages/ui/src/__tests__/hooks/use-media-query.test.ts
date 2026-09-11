@@ -1,13 +1,9 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useMediaQuery } from '../../hooks/use-media-query'
 import { stubMatchMedia } from '../helpers'
 
 describe('useMediaQuery', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	it('returns false when the query does not match', () => {
 		stubMatchMedia(() => false)
 

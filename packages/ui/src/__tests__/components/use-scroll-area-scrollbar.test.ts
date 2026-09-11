@@ -38,10 +38,6 @@ function useFrameQueue(): void {
 
 		vi.stubGlobal('cancelAnimationFrame', () => {})
 	})
-
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
 }
 
 function setupHook(orientation: 'vertical' | 'horizontal' | 'both', scrollbar: 'auto' | 'visible') {

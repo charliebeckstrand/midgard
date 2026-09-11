@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fetchOsrmRoute } from '../../modules/map/engine/map-routing/osrm'
 import { fetchValhallaRoute } from '../../modules/map/engine/map-routing/valhalla'
 import type { LngLat } from '../../modules/map/engine/types'
@@ -52,10 +52,6 @@ function stubUnparseableBody() {
 function stubThrownRequest(error: unknown) {
 	vi.stubGlobal('fetch', vi.fn().mockRejectedValue(error))
 }
-
-afterEach(() => {
-	vi.unstubAllGlobals()
-})
 
 describe('fetchOsrmRoute', () => {
 	it('returns the geometry with its distance and duration', async () => {
