@@ -15,18 +15,23 @@ import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 const testsDir = join(srcDir, '__tests__')
 
-// `browser/` runs under vitest.browser.config.ts, and `setup/` is the
-// sanctioned home for a global mock. `boundary/` is split: its `*-boundary`
-// files share a registry and are scanned below, the rest run on forks.
+// `browser/` runs under vitest.browser.config.ts and is scanned on its own
+// below; `setup/` is the sanctioned home for a global mock. `boundary/` is
+// split: its `*-boundary` files share a registry and are scanned below, the
+// rest run on forks.
 const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 
 // The `unit` project's whole test tree — not only `*.test.*`, since a mock in a
-// helper reaches the same registry — the docs engine suite it also runs, and
-// the `boundary` project's own files.
+// helper reaches the same registry — the docs engine suite it also runs, the
+// `boundary` project's own files, and the browser suite, whose two instances
+// share one page each (`isolate: false` in vitest.browser.config.ts). Its
+// per-instance doubles live in a `setup/` directory at either depth, which
+// `skip` prunes by entry name.
 const SHARED_REGISTRY_SCANS = [
 	{ dir: testsDir, skip: SHARED_REGISTRY_SKIP },
 	{ dir: join(srcDir, 'docs', 'engine', '__tests__') },
 	{ dir: join(testsDir, 'boundary'), fileFilter: /-boundary\.test\.ts$/ },
+	{ dir: join(testsDir, 'browser'), skip: new Set(['setup']) },
 ]
 
 // `vitest` is a global alias for `vi` under `globals: true`, so both spellings

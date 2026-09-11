@@ -66,6 +66,16 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
+		// One page per instance, and one module graph across the files it runs.
+		// The default re-imports the graph for every file: measured on a
+		// 4-core container, the 100-file suite spent 566s summed in import and
+		// took 190s of wall clock; with the graph shared it takes 44s, and every
+		// test still passes. The price is the one the jsdom `unit` project has
+		// paid since August: a shared window across a page's files. The same
+		// residue rules apply — remove appended nodes in `onTestFinished`, and
+		// declare no per-file `vi.mock` (the two `module-mocks` setup files are
+		// the only doubles, and they toggle per instance).
+		isolate: false,
 		setupFiles: [
 			'./src/__tests__/browser/setup/index.ts',
 			'./src/__tests__/browser/setup/act-environment.ts',
