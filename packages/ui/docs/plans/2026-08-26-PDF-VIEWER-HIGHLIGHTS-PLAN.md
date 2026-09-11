@@ -306,6 +306,12 @@ plan had not checked; one was a bug a test caught.
   one. Through the component they exercise the real wiring. The unit arithmetic still has
   its own file, which was the point of extracting `toFractionRect`.
 
+  **Since reversed.** The hook takes `activePage`, `safePage` and `goToPage` as arguments
+  now, the way `usePdfViewerMagnifier` takes its settings, so no `PdfViewerResult` has to be
+  fabricated and `use-pdf-viewer-highlights.test.ts` exists. It covers the hook's own
+  decisions — the page filter, the extent it divides by, the navigate-once latch and the
+  press ref. The component tests stay where they are, and still exercise the real wiring.
+
 A cleanup pass over the shipped code then took the following, each found by review rather
 than by a failing test:
 

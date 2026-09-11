@@ -192,6 +192,12 @@ export function PdfViewer({
 							onHighlightPress={onHighlightPress}
 							defaultActiveHighlightId={defaultActiveHighlightId}
 							onActiveHighlightChange={onActiveHighlightChange}
+							// What the overlay needs from the document beneath it, handed down rather
+							// than read back out of `PdfViewerContext` — the same way the loupe takes
+							// its settings. The overlay's own state stays inside the provider.
+							activePage={context.activePage}
+							safePage={context.safePage}
+							goToPage={context.goToPage}
 						>
 							<PdfViewerViewport />
 						</PdfViewerHighlightsProvider>
