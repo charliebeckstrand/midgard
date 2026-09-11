@@ -27,6 +27,11 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 * Derived from `href` and `onClick` when omitted, which is right for a row that
 	 * carries its own handler. Set it where the derivation cannot see the truth: a
 	 * row whose only handler sits on a child, or one that is a target in name only.
+	 *
+	 * @remarks
+	 * The row-wide hit area follows the row's own handler, not this prop: forcing
+	 * `interactive` on a row whose handler sits on a child leaves that child the
+	 * target, rather than covering it.
 	 */
 	interactive?: boolean
 	/**
@@ -56,12 +61,21 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * around a polymorphic content area that switches to the app's router link when
  * `href` is set and otherwise renders the `as` element (`'div'` by default). A
  * content area that acts on activation — `href` or `onClick` — counts as
- * interactive and takes the muted text plus hover and pointer treatment. In a
- * reorderable list it wires the drag/keyboard bindings and auto-inserts a
+ * interactive and takes the muted text plus hover and pointer treatment. Its hit
+ * area covers the whole painted row, the padding and the slot chrome included. In
+ * a reorderable list it wires the drag/keyboard bindings and auto-inserts a
  * {@link ListHandle} as the prefix unless one is supplied. An interactive row also
  * takes a hover wash, doubled inside a glass parent. Density-scaled.
  *
  * @remarks
+ * A row whose own content area carries the handler stretches that hit area over
+ * the row through a pointer-capturing `::after`, so a press or a hover on the
+ * padding or the gap reads the same as one on the label. The `prefix` and
+ * `suffix` slots step over that overlay and stay pressable; the children of the
+ * content area do not, which is why a trailing control belongs in `suffix`. The
+ * overlay also takes the pointer off the label text, so such a row gives up text
+ * selection.
+ *
  * A reorderable row has exactly ONE Tab stop. An interactive content area is
  * natively focusable, so the reorder keys ride it and the `<li>` takes no focus
  * — it keeps only the drag node and the transform. A display-only row has nothing
@@ -102,14 +116,26 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 
 	const lifted = liftedId === id
 
+	// Whether the content area itself acts on activation. Read the handler's
+	// value, not its key: `onClick={enabled ? open : undefined}` leaves the key on
+	// an inert row, which `in` would still count as a target.
+	const activates = href !== undefined || (props as { onClick?: unknown }).onClick !== undefined
+
 	// A row that navigates and a row that fires a handler read the same to the
-	// user, so both take the interactive treatment. Read the handler's value, not
-	// its key: `onClick={enabled ? open : undefined}` leaves the key on an inert
-	// row, which `in` would still count as interactive. The prop overrides the
+	// user, so both take the interactive treatment. The prop overrides the
 	// reading, for the rows whose activation the derivation cannot see.
-	const interactive =
-		interactiveProp ??
-		(href !== undefined || (props as { onClick?: unknown }).onClick !== undefined)
+	const interactive = interactiveProp ?? activates
+
+	// The content column is only `flex-1`: the row's padding, the gaps, and the
+	// prefix / suffix chrome lie outside it, so a press there hit the `<li>`, which
+	// acts on nothing. Stretching the content area over the row hands the whole
+	// painted surface to the one handler.
+	//
+	// It needs both readings, because the overlay can only deliver a press to the
+	// content area. A row marked interactive for a handler that sits on a child
+	// would cover that child instead, and a row that suppresses the treatment
+	// would grow a target it does not paint.
+	const stretched = interactive && activates
 
 	// dnd-kit's attributes set role="button", overriding the host element's semantics
 	// (a row is a list item; its content area is a link or a button). Drop the role;
@@ -165,7 +191,15 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			data-lifted={dataAttr(lifted)}
 			data-interactive={dataAttr(interactive)}
 			className={cn(
-				k.item({ variant, density: space, active: dragging, lifted, interactive, rounded }),
+				k.item({
+					variant,
+					density: space,
+					active: dragging,
+					lifted,
+					interactive,
+					stretched,
+					rounded,
+				}),
 				className,
 			)}
 		>
@@ -174,7 +208,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 				as={as}
 				href={href}
 				data-slot="list-item-content"
-				className={k.content(interactive, lifted)}
+				className={k.content({ interactive, lifted, stretched })}
 				{...props}
 				{...(stopOnContent ? reorderProps : {})}
 			>

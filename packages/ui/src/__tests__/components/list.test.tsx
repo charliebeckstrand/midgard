@@ -307,6 +307,84 @@ describe('ListItem', () => {
 		expect(suppressed?.className ?? '').not.toContain('hover:bg-zinc-950/5')
 	})
 
+	it('stretches the row’s own handler over the whole painted row', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => (
+					<ListItem as="button" onClick={vi.fn()} suffix={<button type="button">More</button>}>
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		// The content column is only `flex-1`, so the padding, the gaps, and the
+		// suffix chrome sat outside the target until the `::after` covered them.
+		const content = bySlot(container, 'list-item-content')?.className ?? ''
+
+		expect(content).toContain('after:absolute')
+
+		expect(content).toContain('after:inset-0')
+
+		const row = bySlot(container, 'list-item')?.className ?? ''
+
+		// The row is the overlay's containing block, and the slots beside the content
+		// column step over it — a trailing control has to stay pressable.
+		expect(row).toContain('relative')
+
+		expect(row).toContain('[&>*:not([data-slot=list-item-content])]:z-10')
+	})
+
+	it('stretches a linked row the same way', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem href="/path">{item.label}</ListItem>}
+			</List>,
+		)
+
+		expect(bySlot(container, 'list-item-content')?.className ?? '').toContain('after:absolute')
+	})
+
+	it('leaves an inert row’s padding inert', () => {
+		const { container } = renderUI(
+			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
+				{(item) => <ListItem>{item.label}</ListItem>}
+			</List>,
+		)
+
+		expect(bySlot(container, 'list-item-content')?.className ?? '').not.toContain('after:absolute')
+
+		expect(bySlot(container, 'list-item')?.className ?? '').not.toContain(
+			'[&>*:not([data-slot=list-item-content])]:z-10',
+		)
+	})
+
+	it('never stretches over the handler it cannot reach', () => {
+		// `interactive` paints a row whose only handler sits on a child. The overlay
+		// delivers a press to the content area alone, so stretching it there would
+		// cover that child rather than serve it.
+		const { container } = renderUI(
+			<List items={items.slice(0, 2)} variant="plain" getKey={(i) => i.id}>
+				{(item, index) =>
+					index === 0 ? (
+						<ListItem interactive>
+							<button type="button">{item.label}</button>
+						</ListItem>
+					) : (
+						<ListItem interactive={false} as="button" onClick={vi.fn()}>
+							{item.label}
+						</ListItem>
+					)
+				}
+			</List>,
+		)
+
+		// A row that suppresses the treatment gets no target it does not paint either.
+		for (const content of allBySlot(container, 'list-item-content')) {
+			expect(content.className).not.toContain('after:absolute')
+		}
+	})
+
 	it('adds corners on `rounded` and never takes a variant’s own away', () => {
 		const { container } = renderUI(
 			<List items={items.slice(0, 2)} variant="plain" getKey={(i) => i.id}>
