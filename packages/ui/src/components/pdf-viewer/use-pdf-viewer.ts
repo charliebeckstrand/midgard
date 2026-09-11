@@ -233,9 +233,11 @@ export function usePdfViewer({
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
-	// `pages` is the resolved document (consumer `pages` or the src-loaded set);
-	// its identity changes on a document swap, resetting per-page rotations.
-	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, pages)
+	// The document's own identity, not the resolved `pages`: the cache republishes
+	// that array once per rasterized page, so keying on it reset the reader's
+	// rotations — and re-ran every hook below — on each page of a streaming load.
+	// `src` is stable across one; consumer-supplied pages carry their own identity.
+	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, pagesProp ?? src)
 
 	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage)
 
