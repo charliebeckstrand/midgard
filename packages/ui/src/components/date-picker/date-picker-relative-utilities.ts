@@ -264,9 +264,22 @@ export function togglePresetValue(
 	if (selected.has(preset.id)) selected.delete(preset.id)
 	else selected.add(preset.id)
 
-	const next = presets
-		.filter((option) => selected.has(option.id))
-		.map((option) => option.resolve(now))
+	// Dedupe by span, not by id. Two presets can resolve to one span on a given
+	// day — "This month" and "This year" agree through January — and the committed
+	// value is a bare span, so an id-deduped rebuild commits that span twice. A
+	// duplicate aliases the chip key and strands the twin row, which reads
+	// unselected and re-adds the pair on every click.
+	const next: DatePickerRelativeValue[] = []
+
+	for (const option of presets) {
+		if (!selected.has(option.id)) continue
+
+		const span = option.resolve(now)
+
+		if (next.some((committed) => isSameSpan(committed, span))) continue
+
+		next.push(span)
+	}
 
 	return next.length === 0 ? undefined : next
 }
