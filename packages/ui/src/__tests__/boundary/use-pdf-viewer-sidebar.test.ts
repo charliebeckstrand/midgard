@@ -40,6 +40,29 @@ describe('it opens for a document worth navigating', () => {
 	})
 })
 
+describe('the rail travels only for a press', () => {
+	/*
+	 * The count arrives with the document — pdf.js has to parse the file before it can say how
+	 * many pages there are — so the rail's own default lands several hundred milliseconds after
+	 * the viewer does. Slid in at that moment it read as something arriving late; it is the
+	 * viewer's own furniture, so it is simply there.
+	 */
+	it('stands still while the count decides where it starts', () => {
+		expect(sidebar([]).result.current.sidebarAnimates).toBe(false)
+
+		expect(sidebar([page('a'), page('b')]).result.current.sidebarAnimates).toBe(false)
+	})
+
+	/** A press is a change the reader made, and a change they made is worth watching. */
+	it('travels once the reader has pressed the toggle', () => {
+		const { result } = sidebar([page('a'), page('b')])
+
+		act(() => result.current.setSidebarOpen(false))
+
+		expect(result.current.sidebarAnimates).toBe(true)
+	})
+})
+
 describe("the reader's own press outranks the count", () => {
 	/** Nothing may re-derive the rail out from under someone who opened it. */
 	it('keeps a rail opened on a one-page document', () => {

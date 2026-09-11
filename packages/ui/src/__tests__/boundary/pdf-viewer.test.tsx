@@ -12,6 +12,7 @@ import {
 	bySlot,
 	fireEvent,
 	noop,
+	present,
 	renderUI,
 	screen,
 	stubMatchMedia,
@@ -209,6 +210,23 @@ describe('PdfViewer', () => {
 		await userEvent.setup().click(screen.getByLabelText('Show thumbnails'))
 
 		expect(screen.getByLabelText('Hide thumbnails')).toHaveAttribute('aria-expanded', 'true')
+	})
+
+	/*
+	 * The rail is furniture, not an arrival. Where it starts is derived from the page count, and
+	 * that count lands whenever pdf.js finishes parsing — a rail that slid in at that moment
+	 * announced the parse. The reader's press is a change they made, and that one travels.
+	 */
+	it('takes no slide until the reader presses the toggle', async () => {
+		const { container } = renderUI(<PdfViewer pages={pages} />)
+
+		const rail = present(bySlot(container, 'pdf-viewer-sidebar'), 'the thumbnail rail')
+
+		expect(rail.className).not.toContain('transition-[margin]')
+
+		await userEvent.click(screen.getByLabelText('Hide thumbnails'))
+
+		expect(rail.className).toContain('transition-[margin]')
 	})
 
 	it('opens the mobile thumbnails sheet when toggled', async () => {
@@ -748,21 +766,22 @@ describe('PdfViewer highlights', () => {
 	})
 
 	/*
-	 * The persisted name is a standing object over a layer of pressable boxes. Left transparent
-	 * it hands the pointer through to whatever it covers, which then names itself as well — a
-	 * second panel a few pixels under the first, for a box the reader is not pointing at.
+	 * The persisted name is a standing object over a layer of pressable boxes, and on a dense
+	 * page it lands on its neighbours. Neither name may stand in the pointer's way: a reader who
+	 * wants the box under one has to be able to point at the box.
 	 *
-	 * jsdom does no hit-testing, so the shield is read off the rule that governs it rather than
-	 * by pointing at anything. That rule is `<FloatingSurface>`'s, deliberately: it drops the
+	 * jsdom does no hit-testing, so this is read off the rule that governs it rather than by
+	 * pointing at anything. The rule is `<FloatingSurface>`'s, deliberately: it drops the
 	 * wrapper to `none` the moment a panel stops being real, so an exiting name cannot swallow
 	 * presses meant for the page — which a subtree that had taken pointer events back on its own
 	 * would go on doing for the whole length of the fade.
+	 * `pdf-viewer-highlight-label.test.tsx` points at a real box through a real name.
 	 *
-	 * What is exercised beyond that is the path the shield opens: the panel portals out of the
-	 * layer on screen but stays a child of it in the tree, so a pointer landing on it arrives at
-	 * the layer's own handler as a pointer outside every region.
+	 * What is exercised beyond that is the shape that makes it work: the panel portals out of
+	 * the layer on screen but stays a child of it in the tree, so a pointer that reaches it
+	 * arrives at the layer's own handler as a pointer outside every region.
 	 */
-	it('shields the boxes under the persisted name from the pointer', () => {
+	it('leaves the boxes under both names open to the pointer', () => {
 		renderUI(
 			<PdfViewer
 				pages={sizedPages}
@@ -794,10 +813,8 @@ describe('PdfViewer highlights', () => {
 		const panel = (label: HTMLElement) =>
 			label.closest<HTMLElement>('[data-slot="tooltip-content"]')
 
-		expect(panel(persisted)?.style.pointerEvents).toBe('auto')
+		expect(panel(persisted)?.style.pointerEvents).toBe('none')
 
-		// The preview is not a standing object — it dies with the pointer that summoned it, and
-		// solid it would close under the pointer that reached it and reopen on the next move.
 		expect(panel(preview)?.style.pointerEvents).toBe('none')
 
 		fireEvent.mouseOver(persisted)
@@ -893,6 +910,98 @@ describe('PdfViewer highlights', () => {
 		expect(onActiveHighlightChange).toHaveBeenLastCalledWith(null)
 
 		expect(onOuterKeyDown).not.toHaveBeenCalled()
+	})
+
+	/*
+	 * A press somewhere else puts the selection down.
+	 *
+	 * "Somewhere else" is the whole page surface — the page image and the matte a fitted page
+	 * sits in — rather than the boxes alone, because that is where the reader's eye is when they
+	 * decide they are done with the one they picked. Escape says the same thing from the
+	 * keyboard; this is the pointer's way to say it, and until now there was none.
+	 */
+	it('clears the selection on a press that lands on no region', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		const { container } = renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={onActiveHighlightChange}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		expect(onActiveHighlightChange).toHaveBeenLastCalledWith('total')
+
+		fireEvent.mouseDown(present(bySlot(container, 'pdf-viewer-viewport'), 'the viewport'))
+
+		expect(onActiveHighlightChange).toHaveBeenLastCalledWith(null)
+
+		expect(screen.getByLabelText('Total charges')).not.toHaveAttribute('aria-current')
+	})
+
+	/** A press on a region is a selection, not a dismissal — the two share one surface. */
+	it('does not clear the selection on a press that lands on a region', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={onActiveHighlightChange}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
+	})
+
+	/*
+	 * Hiding the overlay is a reader asking to read the page under the boxes, and the selection
+	 * is meant to survive that. A press on the page while they are reading it is a press on the
+	 * page, not a dismissal of something that is not on screen.
+	 */
+	it('keeps the selection through a press while the overlay is hidden', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		const { container } = renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={onActiveHighlightChange}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		fireEvent.click(screen.getByLabelText('Hide highlights'))
+
+		fireEvent.mouseDown(present(bySlot(container, 'pdf-viewer-viewport'), 'the viewport'))
+
+		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
+	})
+
+	/*
+	 * Decoration answers to the consumer alone. Without `onActiveHighlightChange` the boxes are
+	 * not controls — the consumer drives what is marked from a list beside the viewer — so the
+	 * page must not put down a selection it was handed.
+	 */
+	it('clears nothing on a press when the regions are decoration', () => {
+		const { container } = renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} activeHighlightId="total" />,
+		)
+
+		// The name is what says a region is marked; a decorative layer has no `aria-current`.
+		expect(highlightLabels()).toEqual(['Total charges'])
+
+		fireEvent.mouseDown(present(bySlot(container, 'pdf-viewer-viewport'), 'the viewport'))
+
+		expect(highlightLabels()).toEqual(['Total charges'])
 	})
 
 	it('keeps the whole layer to one tab stop', () => {

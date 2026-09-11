@@ -33,6 +33,7 @@ import {
 	publishPortalReference,
 	referenceOpenedWithin,
 } from '../utilities/floating-portal-registry'
+import { isScrollbarPress } from '../utilities/scrollbar-press'
 import { useEscapeLayer } from './use-escape-layer'
 
 /**
@@ -69,34 +70,6 @@ function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middle
 		shift({ padding: 8 }),
 		...(matchReferenceWidth ? [matchReferenceWidthMiddleware] : []),
 	]
-}
-
-const SCROLLABLE_RE = /auto|scroll/
-
-/** True when a pointerdown landed on `target`'s own scrollbar gutter; such presses don't dismiss the panel. @internal */
-function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
-	const style = getComputedStyle(target)
-
-	// The root (html/body) scrolls the page even though its computed overflow is
-	// `visible`; floating-ui treats the last traversable node as scrollable.
-	const isRoot = target === document.documentElement || target === document.body
-
-	const scrollableX = isRoot || SCROLLABLE_RE.test(style.overflowX)
-	const scrollableY = isRoot || SCROLLABLE_RE.test(style.overflowY)
-
-	const canScrollX =
-		scrollableX && target.clientWidth > 0 && target.scrollWidth > target.clientWidth
-	const canScrollY =
-		scrollableY && target.clientHeight > 0 && target.scrollHeight > target.clientHeight
-
-	const onVerticalScrollbar =
-		canScrollY &&
-		(style.direction === 'rtl'
-			? event.offsetX <= target.offsetWidth - target.clientWidth
-			: event.offsetX > target.clientWidth)
-	const onHorizontalScrollbar = canScrollX && event.offsetY > target.clientHeight
-
-	return onVerticalScrollbar || onHorizontalScrollbar
 }
 
 export type FloatingPanelOptions = {

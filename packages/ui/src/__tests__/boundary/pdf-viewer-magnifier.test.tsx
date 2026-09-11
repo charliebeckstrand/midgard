@@ -1,6 +1,6 @@
 import { act, render, renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { PdfViewer } from '../../components/pdf-viewer'
 import {
 	lensOffset,
@@ -96,6 +96,11 @@ describe('PdfViewer without a magnifier', () => {
  * ink it is holding came from somewhere the page no longer is. So the pan is watched for
  * directly — the lens leaves for the gesture and comes back after the same dwell that opened it.
  *
+ * Watched for on the way down through the document, which is why every pan below is staged as a
+ * scroll event dispatched at the document rather than as a prop on the viewport. A scroll event
+ * does not bubble, and the page moves just as far when the scroller is a drawer around the viewer
+ * or the document itself.
+ *
  * Asserted on the hook rather than through the viewer, and not for the usual reason. The lens
  * needs a measured frame to paint (`PdfViewerMagnifier` returns null without one) and jsdom lays
  * nothing out, so no rendered assertion could tell a withdrawn lens from an unmeasured one. At
@@ -109,11 +114,24 @@ describe('PdfViewer without a magnifier', () => {
 describe('usePdfViewerMagnifier over a pan', () => {
 	const settings = { zoom: 2.5, size: 180, delay: 300 }
 
-	/** A page frame that reports where it is, so a pan can be staged by moving it. */
-	function frameAt(top: number) {
-		const frame = { getBoundingClientRect: () => ({ left: 0, top, width: 800, height: 1000 }) }
+	/**
+	 * A page frame that reports where it is, so a pan can be staged by moving it.
+	 *
+	 * A real element, in the document, because the watch asks of every scroll whether the
+	 * scroller holds the page — a frame in no document is held by nothing, and every pan below
+	 * would read as someone scrolling a list elsewhere on the screen.
+	 */
+	function frameAt(top: () => number) {
+		const frame = document.createElement('div')
 
-		return frame as unknown as HTMLElement
+		frame.getBoundingClientRect = () =>
+			({ left: 0, top: top(), width: 800, height: 1000 }) as DOMRect
+
+		document.body.append(frame)
+
+		onTestFinished(() => frame.remove())
+
+		return frame
 	}
 
 	function pointerOn(frame: HTMLElement, clientX: number, clientY: number) {
@@ -135,11 +153,13 @@ describe('usePdfViewerMagnifier over a pan', () => {
 				event: ReactPointerEvent<HTMLElement>,
 			) => void
 
-			const scroll = result.current.viewportProps.onScroll as () => void
+			const scroll = () => document.dispatchEvent(new Event('scroll'))
+
+			const frame = frameAt(() => 0)
 
 			// The page starts at the top of the viewport; the pointer rests 300px down it.
 			act(() => {
-				move(pointerOn(frameAt(0), 120, 300))
+				move(pointerOn(frame, 120, 300))
 			})
 
 			// A pointer alone opens nothing here: the dwell belongs to floating-ui, which is mocked.
@@ -183,9 +203,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 			 */
 			let top = 0
 
-			const frame = {
-				getBoundingClientRect: () => ({ left: 0, top, width: 800, height: 1000 }),
-			} as unknown as HTMLElement
+			const frame = frameAt(() => top)
 
 			const { result } = renderHook(() => usePdfViewerMagnifier(settings))
 
@@ -193,7 +211,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 				event: ReactPointerEvent<HTMLElement>,
 			) => void
 
-			const scroll = result.current.viewportProps.onScroll as () => void
+			const scroll = () => document.dispatchEvent(new Event('scroll'))
 
 			act(() => {
 				move(pointerOn(frame, 120, 300))
@@ -234,10 +252,12 @@ describe('usePdfViewerMagnifier over a pan', () => {
 
 			const leave = result.current.referenceProps.onPointerLeave as () => void
 
-			const scroll = result.current.viewportProps.onScroll as () => void
+			const scroll = () => document.dispatchEvent(new Event('scroll'))
+
+			const frame = frameAt(() => 0)
 
 			act(() => {
-				move(pointerOn(frameAt(0), 120, 300))
+				move(pointerOn(frame, 120, 300))
 				scroll()
 				leave()
 			})
@@ -253,10 +273,58 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		}
 	})
 
-	/** A loupe the consumer never asked for attaches nothing to the viewport to begin with. */
+	/*
+	 * A scroll is only a pan where the scroller holds the page. A list somewhere else on the
+	 * screen moves nothing the lens is showing, and a lens that withdrew for one would be
+	 * flinching at nothing — which is what a watch on the whole document has to answer for.
+	 */
+	it('stands still for a scroller that does not hold the page', () => {
+		vi.useFakeTimers()
+
+		try {
+			const { result } = renderHook(() => usePdfViewerMagnifier(settings))
+
+			const move = result.current.referenceProps.onPointerMove as (
+				event: ReactPointerEvent<HTMLElement>,
+			) => void
+
+			const elsewhere = document.createElement('div')
+
+			document.body.append(elsewhere)
+
+			onTestFinished(() => elsewhere.remove())
+
+			const frame = frameAt(() => 0)
+
+			act(() => {
+				move(pointerOn(frame, 120, 300))
+			})
+
+			act(() => {
+				elsewhere.dispatchEvent(new Event('scroll'))
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			// The settle is what would have opened it; nothing was scheduled, so nothing did.
+			expect(result.current.open).toBe(false)
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	/** A loupe the consumer never asked for attaches nothing, and a pan is nothing to it. */
 	it('watches for no pan when there is no loupe', () => {
 		const { result } = renderHook(() => usePdfViewerMagnifier(null))
 
-		expect(result.current.viewportProps).toEqual({})
+		expect(result.current.referenceProps).toEqual({})
+
+		act(() => {
+			document.dispatchEvent(new Event('scroll'))
+		})
+
+		expect(result.current.open).toBe(false)
 	})
 })

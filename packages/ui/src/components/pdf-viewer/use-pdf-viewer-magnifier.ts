@@ -77,8 +77,6 @@ export type PdfViewerMagnifierResult = {
 	referenceProps: Record<string, unknown>
 	/** Spread onto the lens. */
 	floatingProps: Record<string, unknown>
-	/** Spread onto the scrolling viewport — the pan the lens has to stand out of. */
-	viewportProps: Record<string, unknown>
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: React.CSSProperties
@@ -313,21 +311,44 @@ export function usePdfViewerMagnifier(
 	}, [locate, settings?.delay])
 
 	/*
+	 * Every scroller, through one listener.
+	 *
+	 * A scroll event does not bubble, so a handler on the viewer's own viewport hears only the
+	 * pans the reader makes inside it. The page moves under the lens just as far when the
+	 * scroller is a drawer around the viewer or the document itself, and neither of those
+	 * reaches a prop on the viewport. Caught on the way down instead, where every scroll in the
+	 * document passes through — {@link handlePan} answers for the cost of that.
+	 *
 	 * A pending re-open does not outlive the loupe being switched off, so a reader who turns it
-	 * off and back on inside one dwell does not get a lens they never hovered for. Nothing is
-	 * registered while it is off because nothing can be scheduled while it is off — the viewport
-	 * carries no handler then.
+	 * off and back on inside one dwell does not get a lens they never hovered for.
 	 */
 	useEffect(() => {
 		if (!enabled) return
 
-		return () => window.clearTimeout(settleRef.current)
-	}, [enabled])
+		function handleScroll(event: Event) {
+			// Every scroll in the document reaches this, so a reader working anywhere else on the
+			// page must pay one boolean for it. A closed lens with nothing tracked has no ink to
+			// go stale and nowhere to come back to — and answering that here, before the walk
+			// below, is what keeps the cost to the boolean.
+			if (!openRef.current && trackingRef.current === null) return
 
-	const viewportProps = useMemo(
-		() => (enabled ? { onScroll: handlePan } : EMPTY_PROPS),
-		[enabled, handlePan],
-	)
+			const frame = frameRef.current
+
+			// Only a scroller the page hangs inside can move the page. A list somewhere else on
+			// the screen cannot, and a lens that withdrew for one would be flinching at nothing.
+			if (frame && !(event.target as Node).contains(frame)) return
+
+			handlePan()
+		}
+
+		document.addEventListener('scroll', handleScroll, true)
+
+		return () => {
+			document.removeEventListener('scroll', handleScroll, true)
+
+			window.clearTimeout(settleRef.current)
+		}
+	}, [enabled, handlePan])
 
 	/*
 	 * Memoized because this object is a dependency of `usePdfViewer`'s context memo, whose
@@ -341,12 +362,11 @@ export function usePdfViewerMagnifier(
 			point: tracking?.local ?? null,
 			referenceProps,
 			floatingProps,
-			viewportProps,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
 			floatingStyles,
 		}),
-		[enabled, open, tracking, referenceProps, floatingProps, viewportProps, refs, floatingStyles],
+		[enabled, open, tracking, referenceProps, floatingProps, refs, floatingStyles],
 	)
 }
 
