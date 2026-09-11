@@ -62,6 +62,16 @@ const item = defineRecipe({
 		true: '',
 		false: '',
 	},
+	// Whether the content column's hit area covers the whole row. The row turns
+	// into the containing block for that overlay (see `content.stretched`), and
+	// every slot beside the content column steps over it — a drag handle or a
+	// trailing control stays pressable. `z-index` alone does that: a flex item
+	// takes one while it stays static, so the slots need no `position` of their
+	// own, and a consumer's `prefix` keeps whatever containing block it had.
+	stretched: {
+		true: ['relative', '[&>*:not([data-slot=list-item-content])]:z-10'],
+		false: '',
+	},
 	// Opt-in corners, for the variants that carry none. `separated` and `solid`
 	// are rounded already, so this adds nothing there; `false` never strips them,
 	// because a variant's own shape is not this axis's to take away.
@@ -99,6 +109,7 @@ const item = defineRecipe({
 		active: false,
 		lifted: false,
 		interactive: false,
+		stretched: false,
 		rounded: false,
 	},
 })
@@ -126,7 +137,18 @@ const content = defineRecipe({
 		true: focus.lifted.outline,
 		false: '',
 	},
-	defaults: { interactive: false, lifted: false },
+	// Whether the hit area covers the whole row. This column is only `flex-1`, so
+	// the row's padding, the gaps, and the prefix / suffix chrome sit outside it,
+	// and a press on any of that reached the `<li>`, which acts on nothing. A
+	// pointer-capturing `::after` — the inverse of `kasane.layers.overlay`, which
+	// adds `pointer-events-none` to stop exactly this — pulls the painted row into
+	// the one click and hover target, cursor and text step included. The `<li>` is
+	// the containing block, so `item.stretched` rides with it.
+	stretched: {
+		true: 'after:absolute after:inset-0',
+		false: '',
+	},
+	defaults: { interactive: false, lifted: false, stretched: false },
 })
 
 export const k = {
@@ -145,10 +167,11 @@ export const k = {
 		...disabled,
 	],
 	/**
-	 * Content column. Pass whether the row acts on activation (`href` or `onClick`),
-	 * and whether the row is currently picked up for a keyboard move.
+	 * Content column. Pass whether the row acts on activation (`href` or
+	 * `onClick`), whether the row is currently picked up for a keyboard move, and
+	 * whether its hit area covers the whole row.
 	 */
-	content: (interactive?: boolean, lifted?: boolean) => content({ interactive, lifted }),
+	content,
 	label: 'min-w-0 truncate',
 	// `onWash.muted`, not `muted`: the `solid` variant grounds a row on the
 	// wash, which `muted` is not legal over. See `iro/ramp.ts`.
