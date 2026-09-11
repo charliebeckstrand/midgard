@@ -60,7 +60,7 @@ A shared jsdom window turns anything that outlives a file into a cross-file faul
 
 **The axe runners serialize a selector and the source HTML for every passing node.** Resolved in #1118, which passes `resultTypes: ['violations']` in `helpers/axe.ts`. Both consumers read `violations` only, and no test in the package reads `passes`, `incomplete`, or `inapplicable`. Rule evaluation does not change, and the measured saving sits inside run-to-run noise.
 
-**`grid-row-manager.test.tsx` holds a duplicated three-click path.** `opens the manager and colors a group` and `tints the group header aggregation with the group color` drive the identical path and differ only in what they read. Fold the second into the first. The rest of that file's cost is inherent: the assertion needs both the grid and the dialog.
+**`grid-row-manager.test.tsx` holds a duplicated three-click path.** Resolved in #1119, which folded the second test into the first. `opens the manager and colors a group` and `tints the group header aggregation with the group color` drove the identical path and differed only in what they read. The rest of that file's cost is inherent: the assertion needs both the grid and the dialog.
 
 **About 300 assertions restate a Tailwind class string that lives in `src/recipes`.** They fail on a cosmetic recipe edit that changes no behaviour, and they pass when the recipe row is wrong but the class is present.
 

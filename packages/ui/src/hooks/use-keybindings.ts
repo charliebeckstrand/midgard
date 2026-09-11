@@ -8,12 +8,6 @@ type KeybindingsOptions = {
 	enabled?: boolean
 	/** Listener target. @defaultValue window */
 	target?: Window | HTMLElement
-	/** Event phase the bindings listen on. @defaultValue 'keydown' */
-	event?: 'keydown' | 'keyup'
-	/** Listen in the capture phase. @defaultValue false */
-	capture?: boolean
-	/** Chord timeout in ms between presses in a sequence. @defaultValue 1000 */
-	timeout?: number
 	/**
 	 * Predicate that returns true to skip an event. tinykeys' default skips
 	 * events originating inside form fields and contenteditable elements;
@@ -33,7 +27,7 @@ type KeybindingsOptions = {
  * @remarks SSR-safe: the subscription lives in an effect, which never runs on the server.
  */
 export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {
-	const { enabled = true, target, event, capture, timeout, ignore } = options
+	const { enabled = true, target, ignore } = options
 
 	const bindingsRef = useRef(bindings)
 
@@ -66,6 +60,6 @@ export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOpt
 			? (e) => ignoreRef.current?.(e) ?? false
 			: undefined
 
-		return tinykeys(resolvedTarget, wrapped, { event, capture, timeout, ignore: resolvedIgnore })
-	}, [enabled, target, event, capture, timeout, hasIgnore, keySignature])
+		return tinykeys(resolvedTarget, wrapped, { ignore: resolvedIgnore })
+	}, [enabled, target, hasIgnore, keySignature])
 }

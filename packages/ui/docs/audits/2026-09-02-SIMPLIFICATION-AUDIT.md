@@ -133,7 +133,9 @@ two panels import the leaf, as `capitalizeFirst` and `PanelHandle` are already i
 
 ## Still open
 
-These rows from [2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) are unresolved and were not re-walked:
-the pdf-viewer toolbar icon-buttons, the cartesian engine's exploded prop lists, the three DatePicker
-disclosure prologues, the List and Kanban reorder machines, the contrast threshold layer, the test contrast
-helper, the hidden-iframe print harness, the two docs listbox wrappers, and the five unread hook options.
+Two rows from [2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) are unresolved and were not re-walked: the
+cartesian engine's exploded prop lists and the List and Kanban reorder machines.
+[#1119](https://github.com/charliebeckstrand/midgard/pull/1119) has since closed six of the rows this
+section listed — the pdf-viewer toolbar icon-buttons, the contrast threshold layer, the test contrast
+helper, the hidden-iframe print harness, the two docs listbox wrappers, and the five unread hook options —
+and ruled out the three DatePicker disclosure prologues.

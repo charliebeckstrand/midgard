@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
-import { PdfViewerContext } from '../../components/pdf-viewer/context'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
-import type { PdfViewerResult } from '../../components/pdf-viewer/use-pdf-viewer'
 import { Toolbar } from '../../components/toolbar'
 import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import {
@@ -305,52 +303,8 @@ describe('printPdf', () => {
 		expect(open).toHaveBeenCalledWith('/fail.pdf', '_blank', 'noopener,noreferrer')
 	})
 
-	it('cleans up the iframe on load when contentWindow is unavailable', () => {
-		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
-
-		Object.defineProperty(iframe, 'contentWindow', { value: null, configurable: true })
-
-		iframe.dispatchEvent(new Event('load'))
-
-		expect(iframe.parentNode).toBeNull()
-	})
-
-	it('focuses and prints through the iframe window, deferring cleanup to afterprint', () => {
-		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
-
-		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
-
-		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
-
-		iframe.dispatchEvent(new Event('load'))
-
-		expect(win.focus).toHaveBeenCalled()
-
-		expect(win.print).toHaveBeenCalled()
-
-		expect(win.addEventListener).toHaveBeenCalledWith('afterprint', expect.any(Function))
-
-		// Cleanup is deferred to the afterprint event, so the iframe is still attached.
-		expect(iframe.parentNode).not.toBeNull()
-	})
-
-	it('reclaims the iframe when the window regains focus and afterprint never fires', () => {
-		const iframe = captureAppended(() => printPdf('/doc.pdf'), 'iframe')
-
-		const win = { addEventListener: vi.fn(), focus: vi.fn(), print: vi.fn() }
-
-		Object.defineProperty(iframe, 'contentWindow', { value: win, configurable: true })
-
-		iframe.dispatchEvent(new Event('load'))
-
-		// afterprint never fires; the print dialog closing returns focus to the window.
-		expect(iframe.parentNode).not.toBeNull()
-
-		window.dispatchEvent(new Event('focus'))
-
-		expect(iframe.parentNode).toBeNull()
-	})
-
+	// The frame lifecycle is `printInHiddenFrame`'s, driven by `print-frame.test.ts`.
+	// What is the viewer's own is `src` above and the `onFail` arm here.
 	it('falls back to a new tab and cleans up when printing through the iframe throws', () => {
 		const open = vi.spyOn(window, 'open').mockImplementation(() => null)
 
@@ -994,19 +948,19 @@ describe('PdfViewer highlight state scoping', () => {
 			)
 		}
 
-		// Only the three fields the hook reads; the layer is not rendered here.
-		const viewer = {
-			activePage: sizedPages[0],
-			safePage: 1,
-			goToPage: noop,
-		} as unknown as PdfViewerResult
-
+		// The provider takes what the document gives it, so no `<PdfViewer>` and no stub of
+		// its context stand between this and the bailout under test. The layer is not
+		// rendered here.
 		renderUI(
-			<PdfViewerContext value={viewer}>
-				<PdfViewerHighlightsProvider highlights={highlights} onActiveHighlightChange={noop}>
-					<Wrapped />
-				</PdfViewerHighlightsProvider>
-			</PdfViewerContext>,
+			<PdfViewerHighlightsProvider
+				highlights={highlights}
+				onActiveHighlightChange={noop}
+				activePage={sizedPages[0]}
+				safePage={1}
+				goToPage={noop}
+			>
+				<Wrapped />
+			</PdfViewerHighlightsProvider>,
 		)
 
 		const rendersAfterMount = wrappedRenders
