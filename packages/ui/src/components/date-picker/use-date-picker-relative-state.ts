@@ -1,7 +1,7 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -131,9 +131,18 @@ export function useDatePickerRelativeState({
 
 	const footerRef = useRef<HTMLDivElement>(null)
 
-	// Anchors all relative math to one instant per interaction; re-stamped on open
-	// so a long-lived page can't drift across midnight mid-edit.
-	const nowRef = useRef<Date>(new Date())
+	// Anchors all relative math to one instant per interaction, re-stamped on open
+	// so a long-lived page can't drift across midnight mid-edit. State, not a ref:
+	// a ref write cannot invalidate the display memos below, so a re-stamp would
+	// never reach the rendered chips or the row highlight. Null until mount,
+	// because a server-rendered instant can resolve a preset against a different
+	// day than the client does; `Calendar` defers `today` the same way. The cost is
+	// one frame with no chips.
+	const [now, setNow] = useState<Date | null>(null)
+
+	useEffect(() => {
+		setNow(new Date())
+	}, [])
 
 	const presets = resolveRelativePresets(relative)
 
@@ -146,7 +155,8 @@ export function useDatePickerRelativeState({
 
 	const draftRef = useRef<{ from?: Date; to?: Date }>({})
 
-	const customActive = isCustomActive(value, presets, nowRef.current, pickedIds)
+	// Before mount there is no instant, so nothing reads as custom yet.
+	const customActive = now ? isCustomActive(value, presets, now, pickedIds) : false
 
 	// The committed custom span, if any — used to seed the Start/End inputs when the
 	// user re-enters custom mode so an existing custom range shows pre-filled.
@@ -154,24 +164,26 @@ export function useDatePickerRelativeState({
 
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {
-			const now = nowRef.current
+			// A click cannot precede mount, so the fallback is unreachable; it keeps the
+			// callback total without an assertion.
+			const instant = now ?? new Date()
 
 			// Which presets read as selected right now, biased by the existing picks so a
 			// collision toggles off the picked preset rather than re-selecting a twin.
-			const selected = selectedPresetIds(value, presets, now, pickedIds)
+			const selected = selectedPresetIds(value, presets, instant, pickedIds)
 
 			// Derive the next value and the next picks from the SAME snapshot. `setValue`
 			// takes a concrete value (not an updater) and `value` is often a controlled
 			// prop, so both writes are last-write-wins across a batch; a `setPickedIds`
 			// updater reading `prev` would instead accumulate and desync the picks from
 			// the committed value.
-			setValue(togglePresetValue(value, preset, presets, now, multiple, pickedIds))
+			setValue(togglePresetValue(value, preset, presets, instant, multiple, pickedIds))
 
 			let nextPicked: Set<string>
 
 			if (!multiple) {
 				nextPicked = selected.has(preset.id) ? new Set() : new Set([preset.id])
-			} else if (isCustomActive(value, presets, now, pickedIds)) {
+			} else if (isCustomActive(value, presets, instant, pickedIds)) {
 				// A custom range was replaced wholesale by this preset.
 				nextPicked = new Set([preset.id])
 			} else {
@@ -183,11 +195,11 @@ export function useDatePickerRelativeState({
 
 			setPickedIds(nextPicked)
 		},
-		[multiple, pickedIds, presets, setValue, value],
+		[multiple, now, pickedIds, presets, setValue, value],
 	)
 
 	const openPicker = useCallback(() => {
-		nowRef.current = new Date()
+		setNow(new Date())
 
 		draftRef.current = {}
 
@@ -383,8 +395,8 @@ export function useDatePickerRelativeState({
 
 	const chips = useMemo<RelativeChip[]>(
 		() =>
-			relativeChips(value, presets, nowRef.current, pickedIds, ambient.locale, ambient.dateFormat),
-		[value, presets, pickedIds, ambient.locale, ambient.dateFormat],
+			now ? relativeChips(value, presets, now, pickedIds, ambient.locale, ambient.dateFormat) : [],
+		[now, value, presets, pickedIds, ambient.locale, ambient.dateFormat],
 	)
 
 	// Derived from the chips, so both readings resolve their labels once and cannot
@@ -392,8 +404,8 @@ export function useDatePickerRelativeState({
 	const summary = relativeSummary(chips)
 
 	const selectedIds = useMemo(
-		() => selectedPresetIds(value, presets, nowRef.current, pickedIds),
-		[value, presets, pickedIds],
+		() => (now ? selectedPresetIds(value, presets, now, pickedIds) : new Set<string>()),
+		[now, value, presets, pickedIds],
 	)
 
 	return {

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
-import { allBySlot, bySlot, renderUI, screen, userEvent, within } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen, userEvent, withFakeTime, within } from '../helpers'
 
 // Controlled relative picker: the parent holds the (always-array) value so a
 // toggle round-trips back into the trigger. `multiple` opts into multi-select;
@@ -557,5 +557,35 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
 
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
+	})
+
+	// The reference instant is stamped on open. It lives in state, so the re-stamp
+	// invalidates the chip and highlight derivations; a ref could not.
+	it('re-resolves a committed span against the new day when it reopens after midnight', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2026, 0, 15, 23, 59, 30))
+
+			const { container } = renderUI(<ControlledRelativePicker />)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Today' }))
+
+			const trigger = bySlot(container, 'datepicker-button')
+
+			expect(trigger).toHaveTextContent('Today')
+
+			await clock.user.keyboard('{Escape}')
+
+			// Cross midnight with the popover shut, so only the reopen re-stamps.
+			await clock.advance(60_000)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			// The span is unchanged; the day it sits in is not.
+			expect(trigger).toHaveTextContent('Yesterday')
+
+			expect(screen.getByRole('button', { name: 'Today' })).toHaveAttribute('aria-pressed', 'false')
+		})
 	})
 })
