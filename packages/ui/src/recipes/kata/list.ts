@@ -52,7 +52,7 @@ const item = defineRecipe({
 		false: '',
 	},
 	lifted: {
-		true: focus.lifted,
+		true: [...focus.lifted.raise, focus.lifted.ring],
 		false: '',
 	},
 	// Whether the row acts on activation. It carries no classes of its own: the
@@ -120,10 +120,10 @@ const content = defineRecipe({
 		false: '',
 	},
 	// Picked up for a keyboard move. The row's own `lifted` raises and shadows it;
-	// the violet belongs here, on whatever is actually focused, mirroring
-	// `focus.lifted`'s swap of the ring colour.
+	// the accent belongs here, on whatever is actually focused — the same kiso
+	// declaration the row's ring takes, in the shape this element's indicator uses.
 	lifted: {
-		true: 'focus-visible:outline-violet-600',
+		true: focus.lifted.outline,
 		false: '',
 	},
 	defaults: { interactive: false, lifted: false },
