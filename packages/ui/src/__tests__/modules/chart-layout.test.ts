@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { BAND_EDGE_PAD } from '../../modules/chart/engine/chart-constants'
 import { type CartesianLayoutInput, verticalLayout } from '../../modules/chart/engine/chart-layout'

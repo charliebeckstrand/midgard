@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { runValidators } from '../../components/form/form-reducer'
 import { type ZodIssue, type ZodLike, zodResolver } from '../../components/form/form-zod-resolver'

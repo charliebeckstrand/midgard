@@ -1,6 +1,6 @@
 # Test Architecture Proposal
 
-Proposal for the `packages/ui` test suite (2026-09-11): one real-browser DOM suite, a node project for the pure layer, a disk module cache, one component registry that feeds every sweep gate, and lint rules in place of the import-layering boundary tests. The measured speed wins are the browser suite without isolation (190s to 44s) and the module cache (60s to 51s on the unit project); the browser convergence is a simplification at wall-clock parity, and the rest is structure. The [August audit](2026-08-02-TEST-SUITE-AUDIT.md) banked the runner wins: pool, isolation, and sequencer took the jsdom suite from 143s to about 47s. This document starts where that one stopped. Every number below comes from a run on this machine; the method is the one the audits set, so a claim is a finding only after a run showed it.
+Proposal for the `packages/ui` test suite (2026-09-11): one real-browser DOM suite, a node environment for the pure layer, a disk module cache, one component registry that feeds every sweep gate, and lint rules in place of the import-layering boundary tests. The measured speed wins are the browser suite without isolation (190s to 44s) and the module cache (60s to 51s on the unit project); the browser convergence is a simplification at wall-clock parity, and the rest is structure. The [August audit](2026-08-02-TEST-SUITE-AUDIT.md) banked the runner wins: pool, isolation, and sequencer took the jsdom suite from 143s to about 47s. This document starts where that one stopped. Every number below comes from a run on this machine; the method is the one the audits set, so a claim is a finding only after a run showed it.
 
 The suite holds 592 test files and about 115,000 lines. 492 files and 6,743 tests run under `pnpm test`; 100 files and 539 tests run in the browser suite. The test infrastructure is 2,223 lines across 44 files, and about half of those lines are comments that explain a jsdom workaround.
 
@@ -73,11 +73,13 @@ What the change keeps: `renderUI`, `bySlot`, the module mocks, the corpus, `sequ
 
 Two parts of the trial are unverified. `modules/` (143 files, 83s of jsdom test time) did not run in the trial; the grid, chart, and map suites use `mockDomGeometry` and the ResizeObserver stub most, so their edit count will be higher than the components' 48. And the wall clock for the full suite on a machine with more cores is unmeasured: the four-instance variant lost on four cores because each page pays the graph import, and that trade reverses only where the cores outnumber the pages. Measure the full suite on the CI runner before the jsdom project goes; if the browser suite lands above the jsdom suite by more than its fixed startup, keep both runners and move only the files that jsdom fakes (the nine `mockDomGeometry` files, the seven ResizeObserver-stub files, and the virtualizer suites).
 
-### 2. A node project for the pure layer
+### 2. A node environment for the pure layer
 
-Add a `pure` project with `environment: 'node'`, no setup files, and `isolate: false`, and route the 142 no-DOM files into it. Route by path where a directory is wholly pure (`utilities/`, `recipes/`) and by a `// @vitest-environment node` docblock elsewhere, with one boundary rule: a file in a DOM project that imports nothing from Testing Library and names no `document` or `window` must carry the docblock. The rule is a `collectPatternViolations` scan like the others, and it turns the split into a gate rather than a convention.
+Open every no-DOM test file with `// @vitest-environment node`. Vitest reads the docblock per file, so the 126 pure files run in the `unit` project with no window, no jsdom stubs, and no RTL cleanup, and the config lists nothing. The two setup files install their DOM pieces only where a window exists. One boundary rule holds the pair in step both ways: a file with the docblock reads no DOM, and a file that reads no DOM declares its environment. The rare file that reads no DOM itself but imports a module that needs a window at load declares `jsdom` instead, with the reason beside it.
 
-The speed gain is small: about 37ms of setup per file, or six seconds of worker time. The accuracy gain is the point. A pure test cannot reach the shared window, cannot depend on a mock it did not ask for, and runs anywhere Node runs, with no browser and no locale export.
+A first cut of this part used a separate `pure` project over a file list computed at config time, with an exception table for the DOM files inside the pure directories. The docblock replaces the list, the table, and the project: the decision lives at the top of the file it governs.
+
+The speed gain is small: about 37ms of setup per file, or six seconds of worker time. The accuracy gain is the point. A pure test cannot reach the shared window, cannot depend on a mock it did not ask for, and runs anywhere Node runs, with no browser.
 
 ### 3. The disk module cache, on every machine
 
@@ -133,7 +135,7 @@ The speed gain here is small, because the boundary rules take 72ms at the median
 
 2. Set `isolate: false` on the existing browser config. One commit; the measured number above is the acceptance test.
 
-3. Add the `pure` project and its docblock rule. Route `utilities/` and `recipes/` by path first, then the module engines by docblock.
+3. Stamp the node docblock on the no-DOM files and land its boundary rule in the same commit, so the rule's second direction has nothing to flag.
 
 4. Migrate the DOM suite to the browser in directory-sized commits: `components/`, then `hooks/` and `primitives/`, then `modules/`, then the `integration` files, then delete the jsdom project and its workaround layer. Fix the five infrastructure seams in the first commit, so each later directory lands with fewer edits.
 

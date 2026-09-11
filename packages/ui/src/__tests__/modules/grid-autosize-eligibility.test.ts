@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { isAutoSized } from '../../modules/grid/engine/grid-column/measure'

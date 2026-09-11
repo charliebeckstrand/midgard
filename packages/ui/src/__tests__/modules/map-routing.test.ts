@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { fetchOsrmRoute } from '../../modules/map/engine/map-routing/osrm'
 import { fetchValhallaRoute } from '../../modules/map/engine/map-routing/valhalla'

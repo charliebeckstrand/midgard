@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { evaluateQuery, matchQueryRule } from '../../modules/query/engine/query-evaluate'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'

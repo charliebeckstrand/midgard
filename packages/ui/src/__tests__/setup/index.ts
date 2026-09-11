@@ -3,7 +3,6 @@ import { cleanup, configure } from '@testing-library/react'
 import { afterEach, inject } from 'vitest'
 import { __resetAnnouncer } from '../../core/announcer'
 
-import './jsdom-stubs'
 import './locale-guard'
 
 declare module 'vitest' {
@@ -16,10 +15,19 @@ declare module 'vitest' {
 // CI wall-clock headroom policy alongside testTimeout.
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
-afterEach(() => {
-	cleanup()
+// A file that opens with `// @vitest-environment node` runs under this setup
+// with no window: the pure-function suites declare it so they cannot reach
+// the shared jsdom window (`pure-project-boundary.test.ts` holds that pair).
+// Everything below needs a window, so it installs only where one exists.
+if (typeof window !== 'undefined') {
+	await import('./jsdom-stubs')
 
-	// The announcer's live region lives on document.body, outside React's tree;
-	// cleanup() won't remove it. `__resetAnnouncer` clears it between tests.
-	__resetAnnouncer()
-})
+	afterEach(() => {
+		cleanup()
+
+		// The announcer's live region lives on document.body, outside React's
+		// tree; cleanup() won't remove it. `__resetAnnouncer` clears it between
+		// tests.
+		__resetAnnouncer()
+	})
+}

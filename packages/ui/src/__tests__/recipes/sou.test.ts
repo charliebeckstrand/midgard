@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { k as pdfViewer } from '../../recipes/kata/pdf-viewer'
 import { k as popover } from '../../recipes/kata/popover'

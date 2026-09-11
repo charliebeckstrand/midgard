@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { clusterPoints } from '../../modules/map/engine/map-cluster/group'
 import { POINT_RADIUS } from '../../modules/map/engine/map-constants'

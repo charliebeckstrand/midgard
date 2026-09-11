@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { GUTTER_GAP, TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { bandScale } from '../../modules/chart/engine/chart-scale'

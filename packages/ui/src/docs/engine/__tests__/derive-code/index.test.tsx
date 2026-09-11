@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { Star } from 'lucide-react'
 import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'

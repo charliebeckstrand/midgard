@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { Search } from 'lucide-react'
 import { describe, expect, it } from 'vitest'
 import { isIconElement } from '../../components/button/button-utilities'
