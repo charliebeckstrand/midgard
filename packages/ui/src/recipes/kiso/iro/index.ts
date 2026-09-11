@@ -2,9 +2,13 @@
  * Iro (色): colour. The palette matrix, keyed by variant
  * (solid / soft / outline / plain / bare) × colour × slot
  * (bg / text / hover / ring / border), plus the semantic intent-colour
- * text bundle and the `marker` shade for chromatic dots / glyphs. One file
- * per palette variant; this barrel assembles the named bundle that every
- * kata reads.
+ * text bundle, the `marker` shade for chromatic dots / glyphs, and the
+ * `onWash` rung for the neutral wash. One file per palette
+ * variant; this barrel assembles the named bundle that every kata reads.
+ *
+ * `text` is keyed by purpose; `marker` and `onWash` are keyed by the ground
+ * they ink, so they sit beside it rather than inside it. `onWash` is then
+ * keyed by purpose in turn, since what varies on that ground is emphasis.
  *
  * `palette` is the standard five-colour set (zinc / red / amber / green /
  * blue). `extendedPalette` is the opt-in wide palette — the same shape keyed
@@ -20,7 +24,7 @@ import { extendedPalette } from './extended-palette'
 import { intent } from './intent'
 import { outline } from './outline'
 import { plain } from './plain'
-import { marker } from './ramp'
+import { marker, onWash } from './ramp'
 import { soft } from './soft'
 import { solid } from './solid'
 
@@ -29,4 +33,5 @@ export const iro = {
 	extendedPalette,
 	text: intent,
 	marker,
+	onWash,
 } as const

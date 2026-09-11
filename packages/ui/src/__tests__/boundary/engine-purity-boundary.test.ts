@@ -109,9 +109,11 @@ function engineFiles(dir: string): { rel: string; depth: number; content: string
 		if (!/\.tsx?$/.test(file)) return
 
 		// Depth 1 is a file directly under `engine/`, 2 one in a concept directory.
+		// Split on both separators: `relative` yields backslashes on Windows, and a
+		// '/'-only split reads every file as depth 1 there.
 		out.push({
 			rel: relative(srcDir, file),
-			depth: relative(dir, file).split('/').length,
+			depth: relative(dir, file).split(/[\\/]/).length,
 			content,
 		})
 	})

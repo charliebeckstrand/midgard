@@ -32,7 +32,7 @@ export const [GridGroupByContext, useGridGroupByButton] =
 /**
  * A groupable column's header button: press it to group the rows by the column,
  * press it again to ungroup. The action reads off whether this column is the
- * active group — "Group by {column}" ungrouped, a plain "Ungroup" once grouped
+ * active group — Group by “{column}” ungrouped, a plain "Ungroup" once grouped
  * (single-level, so only one column is ever grouped). The active button holds a
  * blue accent (like an applied column filter) and swaps its {@link Group} icon
  * for {@link Ungroup}, so its state reads by shape and label, not colour alone.
@@ -53,8 +53,10 @@ export function GridGroupByButton({
 	const grouped = column.id === context.grouping
 
 	// The action the press performs, doubling as the accessible name and tooltip:
-	// name the column when grouping, but a bare "Ungroup" when clearing it.
-	const action = grouped ? 'Ungroup' : `Group by ${columnLabel(column)}`
+	// name the column when grouping, but a bare "Ungroup" when clearing it. The
+	// quoting matches the column menu's group row, and one string keeps the visible
+	// tooltip inside the accessible name (WCAG 2.5.3).
+	const action = grouped ? 'Ungroup' : `Group by “${columnLabel(column)}”`
 
 	return (
 		<Tooltip>

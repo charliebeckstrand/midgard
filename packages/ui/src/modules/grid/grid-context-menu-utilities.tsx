@@ -256,11 +256,12 @@ type ColumnMenuDefaultArgs<T> = {
 }
 
 /**
- * The filter row for a column's menu: "Filter {column}", present only where the
- * grid surfaces filtering through the menu (the `'menu'` affordance) — the
- * primary way to filter a column whose header carries no resting funnel. In the
- * `'header'` affordance the funnel already offers it, so this contributes
- * nothing.
+ * The filter row for a column's menu: Filter “{column}”, the column name quoted
+ * so it reads as the column being filtered rather than as part of the item's own
+ * wording. Present only where the grid surfaces filtering through the menu (the
+ * `'menu'` affordance) — the primary way to filter a column whose header carries
+ * no resting funnel. In the `'header'` affordance the funnel already offers it,
+ * so this contributes nothing.
  *
  * @internal
  */
@@ -273,7 +274,7 @@ function filterMenuItems<T>(
 	return [
 		{
 			key: 'filter-column',
-			label: `Filter ${columnLabel(column)}`,
+			label: `Filter “${columnLabel(column)}”`,
 			icon: <ListFilter />,
 			onAction: filter.openFilter,
 		},
@@ -281,11 +282,12 @@ function filterMenuItems<T>(
 }
 
 /**
- * The group item for a column's menu: "Group by {column}" on an ungrouped
- * groupable column (naming the column dynamically), flipping to a plain
- * "Ungroup" once it is the active group — single-level, so only one column is
- * ever grouped. The header button's toggle as a menu action. Empty when the
- * group button is off or the column isn't groupable.
+ * The group item for a column's menu: Group by “{column}” on an ungrouped
+ * groupable column — the column name quoted, as the filter row quotes it, so the
+ * name reads as the column acted on rather than as part of the item's own
+ * wording. Flips to a plain "Ungroup" once it is the active group — single-level,
+ * so only one column is ever grouped. The header button's toggle as a menu
+ * action. Empty when the group button is off or the column isn't groupable.
  *
  * @internal
  */
@@ -306,7 +308,7 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 	return [
 		{
 			key: 'group-by',
-			label: `Group by ${columnLabel(column)}`,
+			label: `Group by “${columnLabel(column)}”`,
 			icon: <Group />,
 			onAction: () => groupBy.setGrouping(column.id),
 		},

@@ -2,7 +2,7 @@
 
 import { type ComponentPropsWithoutRef, type ReactNode, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useA11yRoving, useMinWidth } from '../../hooks'
+import { useA11yRoving, useMinBreakpoint } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
@@ -62,7 +62,7 @@ export function Sidebar({
 	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,
 	// and the same breakpoint resolves the state handed to the render prop and
 	// to items (which mount their label tooltips off it).
-	const desktop = useMinWidth(1024)
+	const desktop = useMinBreakpoint('lg')
 
 	const resolvedMini = mini && desktop
 

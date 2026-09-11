@@ -27,14 +27,16 @@ export const k = {
 	/*
 	 * The help cursor, and only while there is something to ask.
 	 *
-	 * `*:` as well as the element, because a trigger is usually a control with an icon in it and
-	 * the icon is most of what the pointer is actually over — without it the cursor changed on the
-	 * padding and not on the glyph.
+	 * `*:` as well as the element, because a trigger is usually a control with an icon in it
+	 * and the icon is most of what the pointer is actually over — without it the cursor changed
+	 * on the padding and not on the glyph.
 	 *
 	 * Which is also why the disabled guard has to be here rather than left to the control.
-	 * `hannou.cursor` gives a disabled control `cursor-not-allowed`, and `cursor` inherits, so the
-	 * children would take it for free — but `*:cursor-help` set it on them explicitly and won, and
-	 * a refused action offered the reader help instead of saying it was refused.
+	 * `hannou.cursor` gives a disabled control `cursor-not-allowed`, and `cursor` inherits, so
+	 * the children would take it for free — but `*:cursor-help` set it on them explicitly and
+	 * won, and a refused action offered the reader help instead of saying it was refused.
+	 * Stated as `not-*` rather than as a louder override so there is one rule per state
+	 * instead of two competing on specificity.
 	 */
 	cursor: [
 		'not-disabled:not-data-disabled:cursor-help',

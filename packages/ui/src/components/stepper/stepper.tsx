@@ -2,7 +2,7 @@
 
 import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useA11yRoving, useMinWidth } from '../../hooks'
+import { useA11yRoving, useMinBreakpoint } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
@@ -103,7 +103,7 @@ export function Stepper({
 	// handler. A `value`-only stepper stays a display-only progress readout.
 	const interactive = onValueChange !== undefined || defaultValue !== undefined
 
-	const isDesktop = useMinWidth(640)
+	const isDesktop = useMinBreakpoint('sm')
 
 	// Defaults to vertical on mobile (horizontal overflows narrow viewports).
 	const resolvedOrientation: StepperOrientation =

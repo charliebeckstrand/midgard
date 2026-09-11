@@ -241,13 +241,17 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 			) : null}
 
 			<GridOverlayDensity>
-				<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
+				<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter “${label}”`}>
 					{/* A `contents` form so Enter in a rule input submits (Apply) without
 				    imposing a box — the panel's `gap-4` slot rhythm survives the
 				    display:contents wrapper. It spans the title too so the body stays a
 				    non-first child, keeping its `first:` top padding off. */}
 					<form className="contents" onSubmit={submit}>
-						<SheetTitle>Filter {label}</SheetTitle>
+						{/* The column name is quoted, as the row that opens this sheet quotes
+						    it, so the name reads as the column being filtered rather than as
+						    part of the title's own wording. The dialog's `aria-label` above
+						    carries the same string. */}
+						<SheetTitle>Filter “{label}”</SheetTitle>
 
 						<SheetBody>
 							<QueryBuilder

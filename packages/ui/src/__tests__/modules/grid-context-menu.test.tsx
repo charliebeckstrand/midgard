@@ -87,7 +87,7 @@ describe('Grid context menus', () => {
 		])
 	})
 
-	it('offers "Group by {column}" on a groupable header when the group button is on', () => {
+	it('offers "Group by “{column}”" on a groupable header when the group button is on', () => {
 		const onValueChange = vi.fn()
 
 		renderUI(
@@ -102,7 +102,9 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		fireEvent.click(screen.getByRole('menuitem', { name: 'Group by Name' }))
+		// The column name is quoted, as the filter row quotes it, so the name reads as
+		// the column acted on rather than as part of the item's own wording.
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Group by “Name”' }))
 
 		expect(onValueChange).toHaveBeenCalledWith('name')
 	})
@@ -123,7 +125,7 @@ describe('Grid context menus', () => {
 		rightClick('columnheader', 'Name')
 
 		// The grouped column drops "Group by" for a bare "Ungroup".
-		expect(screen.queryByRole('menuitem', { name: 'Group by Name' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Group by “Name”' })).not.toBeInTheDocument()
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Ungroup' }))
 
@@ -144,7 +146,7 @@ describe('Grid context menus', () => {
 		// Role isn't groupable — its header carries no group item.
 		rightClick('columnheader', 'Role')
 
-		expect(screen.queryByRole('menuitem', { name: 'Group by Role' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Group by “Role”' })).not.toBeInTheDocument()
 
 		// With the group button off, the groupable column offers none either.
 		rerender(
@@ -159,7 +161,7 @@ describe('Grid context menus', () => {
 
 		rightClick('columnheader', 'Name')
 
-		expect(screen.queryByRole('menuitem', { name: 'Group by Name' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Group by “Name”' })).not.toBeInTheDocument()
 	})
 
 	it('opens a cell menu with Copy by default on a body-cell right-click', () => {
@@ -509,7 +511,7 @@ describe('Grid context menus', () => {
 		])
 	})
 
-	it('places the Auto-size menu directly under "Group by {column}"', () => {
+	it('places the Auto-size menu directly under "Group by “{column}”"', () => {
 		renderUI(
 			<Grid
 				resizable
@@ -524,7 +526,7 @@ describe('Grid context menus', () => {
 
 		const sequence = Array.from(screen.getByRole('menu').querySelectorAll('[role="menuitem"]'))
 
-		const groupIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Group by Name')
+		const groupIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Group by “Name”')
 
 		const autoSizeIndex = sequence.findIndex((node) => node.textContent?.trim() === 'Auto-size')
 

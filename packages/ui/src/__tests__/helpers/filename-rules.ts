@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { join, parse, relative } from 'node:path'
+import { join, parse, relative, sep } from 'node:path'
 
 // Shared machinery for the filename-boundary suites: the naming grammar from
 // CLAUDE.md → "File naming", applied per leaf folder by
@@ -138,7 +138,9 @@ export function checkFolder(folderPath: string, folderName: string, pathBase: st
 
 		if (BARE_ALLOWED.has(file)) continue
 
-		const path = relative(pathBase, join(folderPath, file))
+		// Reported paths are matched against forward-slash allowlist entries, so
+		// normalize the platform separator (Windows yields backslashes here).
+		const path = relative(pathBase, join(folderPath, file)).split(sep).join('/')
 
 		const nameReason = classifyName(file, folderName, stems)
 

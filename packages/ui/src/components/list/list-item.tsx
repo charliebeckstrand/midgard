@@ -1,6 +1,6 @@
 'use client'
 
-import type { ElementType, KeyboardEvent, ReactNode } from 'react'
+import type { ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
@@ -61,6 +61,13 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * {@link ListHandle} as the prefix unless one is supplied. An interactive row also
  * takes a hover wash, doubled inside a glass parent. Density-scaled.
  *
+ * @remarks
+ * A reorderable row has exactly ONE Tab stop. An interactive content area is
+ * natively focusable, so the reorder keys ride it and the `<li>` takes no focus
+ * — it keeps only the drag node and the transform. A display-only row has nothing
+ * focusable inside, so there the `<li>` is the stop. Wiring both put two
+ * indistinguishable stops on every row: one to move it, one to activate it.
+ *
  * @typeParam Fallback - Element the content area renders when no `href` is
  *   given; selected via `as`.
  * @remarks Client component.
@@ -104,28 +111,54 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		interactiveProp ??
 		(href !== undefined || (props as { onClick?: unknown }).onClick !== undefined)
 
-	// dnd-kit's attributes set role="button", overriding the <li> semantics.
-	// Drop the role; keep the focus/aria hints.
+	// dnd-kit's attributes set role="button", overriding the host element's semantics
+	// (a row is a list item; its content area is a link or a button). Drop the role;
+	// keep the focus/aria hints.
 	const { role: _role, tabIndex, ...dragAttrs } = attributes
+
+	// One row, one Tab stop. An activatable content area is ALREADY focusable, so the
+	// reorder gestures ride it rather than the `<li>` — wiring the `<li>` too put two
+	// indistinguishable stops on every row of a reorderable list, one to move it and
+	// one to open it. A row whose content only displays has nothing focusable inside,
+	// so there the `<li>` is the stop, as before.
+	const stopOnContent = reorderable && interactive
+	const stopOnRow = reorderable && !interactive
+
+	// The content area is also where `props` lands, so the row's own handlers are read out and
+	// composed rather than left to fight the spread: whichever order they went in, one side would
+	// silently win, and a consumer passing `onKeyDown` quietly turning off reordering for that row
+	// is a bug nothing points at. Theirs runs first, then the gesture.
+	const { onKeyDown: consumerKeyDown, onBlur: consumerBlur } = props as {
+		onKeyDown?: (event: KeyboardEvent) => void
+		onBlur?: (event: FocusEvent) => void
+	}
+
+	const reorderProps = {
+		// The library's stop wins over a consumer `tabIndex`: a reorderable row has to be reachable,
+		// and a row that is silently unreachable reads as the feature being broken.
+		tabIndex: tabIndex ?? 0,
+		onKeyDown: (event: KeyboardEvent) => {
+			if (stopOnContent) consumerKeyDown?.(event)
+
+			// Keys bubbling from focusable descendants (buttons, inputs) belong to
+			// them, not the reorder gestures.
+			if (event.target !== event.currentTarget) return
+
+			onItemKeyDown(id, event)
+		},
+		onBlur: (event: FocusEvent) => {
+			if (stopOnContent) consumerBlur?.(event)
+
+			onItemBlur()
+		},
+		...dragAttrs,
+	}
 
 	return (
 		<li
 			ref={setNodeRef}
 			style={style}
-			tabIndex={reorderable ? (tabIndex ?? 0) : undefined}
-			onKeyDown={
-				reorderable
-					? (event: KeyboardEvent) => {
-							// Keys bubbling from focusable descendants (buttons, inputs)
-							// belong to them, not the reorder gestures.
-							if (event.target !== event.currentTarget) return
-
-							onItemKeyDown(id, event)
-						}
-					: undefined
-			}
-			onBlur={reorderable ? onItemBlur : undefined}
-			{...(reorderable ? dragAttrs : {})}
+			{...(stopOnRow ? reorderProps : {})}
 			data-slot="list-item"
 			data-item-id={id}
 			data-active={dataAttr(dragging)}
@@ -141,8 +174,9 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 				as={as}
 				href={href}
 				data-slot="list-item-content"
-				className={k.content(interactive)}
+				className={k.content(interactive, lifted)}
 				{...props}
+				{...(stopOnContent ? reorderProps : {})}
 			>
 				{children}
 			</Polymorphic>

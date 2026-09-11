@@ -13,7 +13,9 @@ export const k = defineRecipe(
 		density,
 		size,
 		slots: {
-			options: 'max-h-60',
+			// Kept in step with the listbox recipe — one dropdown family, one height (see the note
+			// there for why 320px).
+			options: 'max-h-80',
 			// Inner listbox: spaces its options and collapses when empty. `peer`
 			// drives the sibling `empty` slot below; `kara` adds the virtualized
 			// case, which `:empty` alone cannot see.
