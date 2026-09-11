@@ -286,11 +286,6 @@ export function usePdfViewerMagnifier(
 	 * tuned this too.
 	 */
 	const handlePan = useCallback(() => {
-		// Every scroll in the document reaches this (see the effect below), so a reader working
-		// anywhere else on the page must pay one boolean for it. A closed lens with nothing
-		// tracked has no ink to go stale and nowhere to come back to.
-		if (!openRef.current && trackingRef.current === null) return
-
 		window.clearTimeout(settleRef.current)
 
 		// Guarded because this is a scroll handler: with the lens closed both of these are
@@ -331,13 +326,17 @@ export function usePdfViewerMagnifier(
 		if (!enabled) return
 
 		function handleScroll(event: Event) {
-			const scroller = event.target as Node | null
+			// Every scroll in the document reaches this, so a reader working anywhere else on the
+			// page must pay one boolean for it. A closed lens with nothing tracked has no ink to
+			// go stale and nowhere to come back to — and answering that here, before the walk
+			// below, is what keeps the cost to the boolean.
+			if (!openRef.current && trackingRef.current === null) return
 
 			const frame = frameRef.current
 
 			// Only a scroller the page hangs inside can move the page. A list somewhere else on
 			// the screen cannot, and a lens that withdrew for one would be flinching at nothing.
-			if (frame && scroller && !scroller.contains(frame)) return
+			if (frame && !(event.target as Node).contains(frame)) return
 
 			handlePan()
 		}
