@@ -9,7 +9,7 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 
-const { text } = iro
+const { onWash, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 const { divider } = sen
@@ -86,7 +86,9 @@ export const k = {
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
 	label: 'truncate',
-	description: [description, text.muted, 'group-focus/option:text-white'],
+	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
+	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
+	description: [description, onWash.muted, 'group-focus/option:text-white'],
 	shortcut: 'ml-auto',
 	separator: divider.top,
 } as const

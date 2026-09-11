@@ -151,7 +151,9 @@ export function openProject(srcDir: string): Project {
 		skipAddingFilesFromTsConfig: true,
 	})
 
-	project.addSourceFilesAtPaths(listBarrels(srcDir).map((b) => b.indexPath))
+	// Not `addSourceFilesAtPaths`: these are concrete paths, not globs, and the
+	// glob matcher silently drops Windows 8.3 short-name segments (`FOO~1`).
+	for (const barrel of listBarrels(srcDir)) project.addSourceFileAtPath(barrel.indexPath)
 
 	project.resolveSourceFileDependencies()
 

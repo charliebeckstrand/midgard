@@ -101,9 +101,9 @@ describe('Grid manual (server-side) row grouping', () => {
 		)
 
 		// Only the groupable column offers the button, named for the group action.
-		expect(screen.queryByRole('button', { name: 'Group by Rep' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Group by “Rep”' })).not.toBeInTheDocument()
 
-		await user.click(screen.getByRole('button', { name: 'Group by Region' }))
+		await user.click(screen.getByRole('button', { name: 'Group by “Region”' }))
 
 		expect(onValueChange).toHaveBeenCalledWith('region')
 	})
@@ -124,7 +124,7 @@ describe('Grid manual (server-side) row grouping', () => {
 
 		// The active column's button stays put (unlike the old panel, which hid it)
 		// but flips to a plain "Ungroup"; pressing it ungroups.
-		expect(screen.queryByRole('button', { name: 'Group by Region' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Group by “Region”' })).not.toBeInTheDocument()
 
 		await user.click(screen.getByRole('button', { name: 'Ungroup' }))
 

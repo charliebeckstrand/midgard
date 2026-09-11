@@ -12,7 +12,7 @@ import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../c
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { Kbd } from '../../../components/kbd'
-import { List, ListItem, ListLabel } from '../../../components/list'
+import { List, ListDescription, ListItem, ListLabel } from '../../../components/list'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { Odometer } from '../../../components/odometer'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../../components/resizable'
@@ -179,6 +179,22 @@ export const dataDisplayCases: readonly Case[] = [
 			{(task) => (
 				<ListItem>
 					<ListLabel>{task.label}</ListLabel>
+				</ListItem>
+			)}
+		</List>,
+	],
+	[
+		// The `solid` variant, whose rows sit on `omote.bg.tint` rather than the page
+		// surface, carrying both muted inks that ground is the hard case for (WCAG
+		// 1.4.3): the `ListDescription`, and the content column's own muted treatment,
+		// which an `href` row takes. The `list` case above renders the default
+		// `separated` variant with a label only, so it exercises neither.
+		'list (solid, described interactive rows)',
+		<List key="lss" items={listTasks} aria-label="Described tasks" variant="solid" sortable={false}>
+			{(task) => (
+				<ListItem href={`#${task.id}`}>
+					<ListLabel>{task.label}</ListLabel>
+					<ListDescription>Due next week</ListDescription>
 				</ListItem>
 			)}
 		</List>,

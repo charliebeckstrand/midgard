@@ -5,6 +5,11 @@ import type { Size } from '../../types/size'
 
 /** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {
+	/**
+	 * The element to clone. Its component must forward unknown props to the element it
+	 * renders — `className` and `data-slot` are injected here — so a wrapper component that
+	 * declares no props swallows both and the glyph falls back to its library's own size.
+	 */
 	icon: ReactElement
 	/**
 	 * Named scale step or a raw pixel value. Inside a sized host (Button, Badge,
@@ -23,7 +28,8 @@ export type IconProps = {
 }
 
 /**
- * Sizing and accessibility wrapper that clones a Lucide-style `icon` element.
+ * Sizing and accessibility wrapper that clones a Lucide-style `icon` element (which must
+ * forward the props cloned onto it — see {@link IconProps.icon}).
  *
  * @remarks
  * Static leaf: renders in React Server Components. A `label` exposes the icon

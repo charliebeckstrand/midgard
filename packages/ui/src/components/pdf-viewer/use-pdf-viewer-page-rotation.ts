@@ -2,6 +2,19 @@
 
 import { useCallback, useRef, useState } from 'react'
 
+/**
+ * Whether a rotation swaps the page's width and height in layout — true at 90° and 270°.
+ *
+ * @remarks Exported so the one fact has one source: a caller that took `rotation` and
+ * `isTransposed` as separate inputs could be handed a contradictory pair.
+ * @internal
+ */
+export function isRotationTransposed(rotation: number): boolean {
+	const normalized = ((rotation % 360) + 360) % 360
+
+	return normalized === 90 || normalized === 270
+}
+
 /** Active-page rotation state returned by {@link usePdfViewerPageRotation}. @internal */
 type PageRotationResult = {
 	/** Raw rotation in degrees for the active page. May be ≥ 360. */
@@ -39,9 +52,7 @@ export function usePdfViewerPageRotation(page: number, documentKey?: unknown): P
 
 	const rotation = rotations[page] ?? 0
 
-	const normalizedRotation = ((rotation % 360) + 360) % 360
-
-	const isTransposed = normalizedRotation === 90 || normalizedRotation === 270
+	const isTransposed = isRotationTransposed(rotation)
 
 	const rotate = useCallback(() => {
 		setRotations((prev) => ({ ...prev, [page]: (prev[page] ?? 0) + 90 }))

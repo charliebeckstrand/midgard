@@ -13,8 +13,9 @@ export function Demo() {
 			<Alert severity="info" closable>
 				<AlertTitle>SVG support</AlertTitle>
 				<AlertDescription>
-					The <Code>&lt;Icon&gt;</Code> component can wrap any SVG icon component. It provides a
-					consistent interface for sizing and styling icons.
+					The <Code>&lt;Icon&gt;</Code> component can wrap any SVG icon component that forwards its
+					props to the element it renders. It provides a consistent interface for sizing and styling
+					icons.
 				</AlertDescription>
 			</Alert>
 

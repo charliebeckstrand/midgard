@@ -20,8 +20,15 @@
  *                 which clip an outset outline
  *   - `indicator` background-paint marker (option items mark `aria-current`
  *                 with the same colour as the focus ring)
- *   - `lifted`    z-shift + shadow for popover triggers, with a violet
- *                 ring that reads against the panel backdrop
+ *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
+ *                 accent that reads against the panel backdrop. Split into
+ *                 `raise` and one entry per indicator shape, because the host
+ *                 that lifts is not always the host that takes focus: a
+ *                 reorderable List row raises the `<li>` but seats the Tab
+ *                 stop on its content area when that content is activatable.
+ *                 Tailwind extracts whole class names, so the accent cannot be
+ *                 interpolated into a shape — stating both here is what keeps
+ *                 one edit enough to change it everywhere.
  *
  * Layer: kiso · Concern: focus indicators
  */
@@ -49,5 +56,12 @@ export const focus = {
 		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
 	],
 	indicator: 'not-data-current:focus-visible:after:bg-blue-600',
-	lifted: ['z-10', 'shadow-md', 'focus-visible:ring-violet-600'],
+	lifted: {
+		/** The raise itself, for whichever box is picked up. */
+		raise: ['z-10', 'shadow-md'],
+		/** Violet accent for a lifted host whose indicator is an inset ring. */
+		ring: 'focus-visible:ring-violet-600',
+		/** Violet accent for a lifted host whose indicator is an outset outline. */
+		outline: 'focus-visible:outline-violet-600',
+	},
 } as const

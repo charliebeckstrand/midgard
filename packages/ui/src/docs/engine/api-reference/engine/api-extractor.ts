@@ -63,6 +63,14 @@ const CACHE_VERSION = 4
 const CACHE_FILE = 'api.json'
 
 /**
+ * Normalize to forward slashes so Windows `path.join` output and ts-morph's
+ * posix-style paths compare equal as map keys and in segment checks.
+ */
+function toPosix(file: string): string {
+	return file.replace(/\\/g, '/')
+}
+
+/**
  * Directories that hold no barrel input. {@link isInputFile} rejects every path
  * under them, so the walk prunes them instead of descending and discarding —
  * they hold about a third of the files under this package's `src`.
@@ -75,13 +83,15 @@ const SKIPPED_DIRS = new Set(['node_modules', 'docs', '__tests__', '__benchmarks
  * so tracking them would re-extract on every unrelated test edit.
  */
 function isInputFile(file: string): boolean {
-	if (!/\.tsx?$/.test(file)) return false
+	const posix = toPosix(file)
 
-	if (file.includes('/node_modules/') || file.includes('/docs/')) return false
+	if (!/\.tsx?$/.test(posix)) return false
 
-	if (file.includes('/__tests__/') || file.includes('/__benchmarks__/')) return false
+	if (posix.includes('/node_modules/') || posix.includes('/docs/')) return false
 
-	return !/\.(test|bench|stories)\.tsx?$/.test(file)
+	if (posix.includes('/__tests__/') || posix.includes('/__benchmarks__/')) return false
+
+	return !/\.(test|bench|stories)\.tsx?$/.test(posix)
 }
 
 /** Recursively collect every {@link isInputFile} path under `dir`, past {@link SKIPPED_DIRS}. */
@@ -234,9 +244,9 @@ export function createApiExtractor(
 		targetFile: (name: string) => string | undefined,
 		directRefs: Map<string, string[]>,
 	): Set<string> {
-		const inputs = new Set<string>([barrel.indexPath])
+		const inputs = new Set<string>([toPosix(barrel.indexPath)])
 
-		const stack = [barrel.indexPath]
+		const stack = [toPosix(barrel.indexPath)]
 
 		while (stack.length > 0) {
 			const file = stack.pop() as string
@@ -452,11 +462,16 @@ export function createApiExtractor(
 
 			// One report drops both views of the file — the project's AST and the
 			// memo's hash — so the key and the record lag disk by the same set.
-			pendingRefresh.add(file)
+			// The AST-side maps key on ts-morph's posix paths (Windows-safe), while
+			// the hash memo keys on the platform-native paths the walk produced —
+			// same form the watcher reports, so the raw path is the right key there.
+			const posix = toPosix(file)
+
+			pendingRefresh.add(posix)
 
 			hashes.delete(file)
 
-			const affected = fileToBarrels.get(file)
+			const affected = fileToBarrels.get(posix)
 
 			if (affected) {
 				for (const key of affected) dirty.add(key)

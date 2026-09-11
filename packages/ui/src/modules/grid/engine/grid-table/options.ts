@@ -234,7 +234,21 @@ function deriveColumnBehavior<T>(col: GridColumn<T>, smartSortingFn: SortingFn<u
 	return { accessorFn, sortingFn, filterFn }
 }
 
-/** The natural affordance width a non-data column holds, or `undefined` for a data column. @internal */
+/**
+ * The natural width of a non-data column whose content the design system fixes: a checkbox, a
+ * grip, a chevron.
+ *
+ * An `actions` column deliberately gets none. Its content is the consumer's — one text button,
+ * a save/discard pair, a lone icon — so any number here would be a guess that is wrong for
+ * most of them. The consequence is worth knowing before you write one: an `actions` column
+ * sits out the autosizer's fit ({@link measureColumnIntrinsics}), and a `resizable` grid takes
+ * the engine width verbatim through its fixed-layout colgroup, so the `w-px` on the cell never
+ * gets to shrink anything. **A width-less `actions` column therefore renders at
+ * {@link DEFAULT_COLUMN_SIZE}, not at its content width** — declare a `width` unless that is
+ * what you want.
+ *
+ * @internal
+ */
 function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
 	if (col.selectable) return SELECT_COLUMN_SIZE
 

@@ -11,8 +11,9 @@ type PdfViewerZoomControlsProps = {
 }
 
 /**
- * Zoom out / in / fit-to-page buttons. In and out snap to the next discrete
- * level above or below the current scale; fit resets to 1. Buttons disable at
+ * Zoom out / in / reset buttons. In and out snap to the next discrete level
+ * above or below the current scale; reset returns to 1 — which is the base fit,
+ * whichever `fit` mode the viewer is in. Buttons disable at
  * the ends of the level range.
  *
  * @internal
@@ -28,7 +29,7 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 
 	const zoomIn = () => zoom.setValue(nextLevelUp)
 	const zoomOut = () => zoom.setValue(nextLevelDown)
-	const fit = () => zoom.setValue(1)
+	const resetZoom = () => zoom.setValue(1)
 
 	return (
 		<ToolbarGroup aria-label="Zoom">
@@ -47,10 +48,10 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 				onClick={zoomIn}
 			/>
 			<PdfViewerToolbarButton
-				label="Fit to page"
+				label="Reset zoom"
 				icon={<Maximize2 />}
 				disabled={disabled || zoom.value === 1}
-				onClick={fit}
+				onClick={resetZoom}
 			/>
 		</ToolbarGroup>
 	)

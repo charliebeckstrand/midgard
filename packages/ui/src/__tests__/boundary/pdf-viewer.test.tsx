@@ -1,13 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { PdfViewer, type PdfViewerPage } from '../../components/pdf-viewer'
+import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
+import { PdfViewerContext } from '../../components/pdf-viewer/context'
+import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
+import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
+import type { PdfViewerResult } from '../../components/pdf-viewer/use-pdf-viewer'
 import { Toolbar } from '../../components/toolbar'
+import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import {
 	act,
 	allBySlot,
 	bySlot,
 	fireEvent,
+	noop,
 	renderUI,
 	screen,
 	stubMatchMedia,
@@ -17,9 +23,9 @@ import { captureAppended } from '../helpers/capture-appended'
 
 beforeEach(() => {
 	// Defaults to desktop so the thumbnail sidebar renders, and drives isDesktop
-	// through matchMedia because the real useMinWidth path is the behaviour under
-	// test.
-	stubMatchMedia((query) => query === '(min-width: 1024px)')
+	// through matchMedia because the real `useMinBreakpoint` path is the behaviour
+	// under test. Keyed off the scale rather than a literal, so the two cannot drift.
+	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
 })
 
 const pages: PdfViewerPage[] = [
@@ -183,6 +189,30 @@ describe('PdfViewer', () => {
 		expect(bySlot(container, 'pdf-viewer-sidebar')).toHaveAttribute('inert')
 	})
 
+	/*
+	 * A one-page document has nothing to navigate to, so the rail would spend 224px of a panel
+	 * that is routinely the narrower half of a split on a tile of the page already on screen.
+	 *
+	 * Asserted through the toolbar's own toggle rather than the `inert` attribute, because that
+	 * is the state a reader can see and act on — and `inert` lands a frame later, once the
+	 * sidebar's slide has settled.
+	 */
+	it('opens with the thumbnail sidebar closed on a single-page document', () => {
+		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
+
+		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	// The reader's own press outranks that default, and nothing re-derives it out from under
+	// them — the whole reason the state is an override rather than a seeded boolean.
+	it('keeps the sidebar the reader opened on a single-page document', async () => {
+		renderUI(<PdfViewer pages={pages.slice(0, 1)} />)
+
+		await userEvent.setup().click(screen.getByLabelText('Show thumbnails'))
+
+		expect(screen.getByLabelText('Hide thumbnails')).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	it('opens the mobile thumbnails sheet when toggled', async () => {
 		stubMatchMedia(() => false)
 
@@ -328,12 +358,12 @@ describe('PdfViewerZoomControls', () => {
 		expect(setValue).toHaveBeenLastCalledWith(0.5)
 	})
 
-	it('resets to a zoom of 1 on fit to page', () => {
+	it('resets to a zoom of 1 on reset zoom', () => {
 		const setValue = vi.fn()
 
 		renderControls(2, levels, setValue)
 
-		fireEvent.click(screen.getByLabelText('Fit to page'))
+		fireEvent.click(screen.getByLabelText('Reset zoom'))
 
 		expect(setValue).toHaveBeenLastCalledWith(1)
 	})
@@ -347,6 +377,711 @@ describe('PdfViewerZoomControls', () => {
 
 		expect(screen.getByLabelText('Zoom out')).toBeDisabled()
 
-		expect(screen.getByLabelText('Fit to page')).toBeDisabled()
+		expect(screen.getByLabelText('Reset zoom')).toBeDisabled()
+	})
+})
+
+const sizedPages: PdfViewerPage[] = [
+	// width/height are the rasterized image's pixels; pointWidth/pointHeight are the page's
+	// own US Letter size. Both are needed here: the first makes the page measurable in jsdom
+	// (no image load fires), the second is the divisor for an inch-specified region.
+	{
+		id: 'a',
+		src: 'page-1.png',
+		label: 'Page 1',
+		width: 850,
+		height: 1100,
+		pointWidth: 612,
+		pointHeight: 792,
+	},
+	{
+		id: 'b',
+		src: 'page-2.png',
+		label: 'Page 2',
+		width: 850,
+		height: 1100,
+		pointWidth: 612,
+		pointHeight: 792,
+	},
+]
+
+const highlights: PdfViewerHighlight[] = [
+	{
+		id: 'total',
+		page: 1,
+		rect: { x: 0.1, y: 0.2, width: 0.3, height: 0.05 },
+		label: 'Total charges',
+	},
+	{ id: 'pro', page: 2, rect: { x: 0.5, y: 0.6, width: 0.2, height: 0.05 }, label: 'PRO number' },
+]
+
+describe('PdfViewer highlights', () => {
+	it('renders no layer when there are no highlights', () => {
+		const { container } = renderUI(<PdfViewer pages={sizedPages} />)
+
+		expect(bySlot(container, 'pdf-viewer-highlights')).not.toBeInTheDocument()
+	})
+
+	it('renders only the active page’s regions', () => {
+		renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
+		)
+
+		expect(screen.getByLabelText('Total charges')).toBeInTheDocument()
+
+		expect(screen.queryByLabelText('PRO number')).not.toBeInTheDocument()
+	})
+
+	it('swaps the regions when the page changes', () => {
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				defaultPage={2}
+				highlights={highlights}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		expect(screen.getByLabelText('PRO number')).toBeInTheDocument()
+
+		expect(screen.queryByLabelText('Total charges')).not.toBeInTheDocument()
+	})
+
+	it('positions a region in percentages of the layer', () => {
+		renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
+		)
+
+		const region = screen.getByLabelText('Total charges')
+
+		expect(region.style.left).toBe('10%')
+
+		expect(region.style.top).toBe('20%')
+
+		expect(region.style.width).toBe('30%')
+
+		expect(region.style.height).toBe('5%')
+	})
+
+	it('places an inch-specified region exactly where the equivalent fraction lands', () => {
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlightUnit="inch"
+				// 0.85 in of 8.5 in wide, 2.2 in of 11 in tall — the 10% / 20% above.
+				highlights={[
+					{
+						id: 'total',
+						page: 1,
+						rect: { x: 0.85, y: 2.2, width: 2.55, height: 0.55 },
+						label: 'Total charges',
+					},
+				]}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		const region = screen.getByLabelText('Total charges')
+
+		expect(region.style.left).toBe('10%')
+
+		expect(region.style.top).toBe('20%')
+
+		expect(region.style.width).toBe('30%')
+
+		expect(region.style.height).toBe('5%')
+	})
+
+	it('renders no inch-specified region on a page that carries no extent', () => {
+		renderUI(
+			<PdfViewer
+				pages={[{ id: 'a', src: 'page-1.png', label: 'Page 1', width: 850, height: 1100 }]}
+				highlightUnit="inch"
+				highlights={[highlights[0] as PdfViewerHighlight]}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		expect(screen.queryByLabelText('Total charges')).not.toBeInTheDocument()
+	})
+
+	it('reports the pressed region and marks it aria-current', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={onActiveHighlightChange}
+			/>,
+		)
+
+		const region = screen.getByLabelText('Total charges')
+
+		expect(region).not.toHaveAttribute('aria-current')
+
+		fireEvent.click(region)
+
+		expect(onActiveHighlightChange).toHaveBeenCalledWith('total')
+
+		expect(screen.getByLabelText('Total charges')).toHaveAttribute('aria-current', 'true')
+	})
+
+	it('does not report a second change when the active region is pressed again', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={onActiveHighlightChange}
+			/>,
+		)
+
+		fireEvent.click(screen.getByLabelText('Total charges'))
+
+		fireEvent.click(screen.getByLabelText('Total charges'))
+
+		expect(onActiveHighlightChange).toHaveBeenCalledTimes(1)
+	})
+
+	it('navigates to the page of a region the consumer activates', () => {
+		const onPageChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				activeHighlightId="pro"
+				onPageChange={onPageChange}
+			/>,
+		)
+
+		expect(onPageChange).toHaveBeenCalledWith(2)
+	})
+
+	it('does not navigate again when the same activeHighlightId re-renders', () => {
+		const onPageChange = vi.fn()
+
+		const { rerender } = renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				activeHighlightId="pro"
+				onPageChange={onPageChange}
+			/>,
+		)
+
+		rerender(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				activeHighlightId="pro"
+				onPageChange={onPageChange}
+			/>,
+		)
+
+		expect(onPageChange).toHaveBeenCalledTimes(1)
+	})
+
+	it('renders without throwing when activeHighlightId matches no region', () => {
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				activeHighlightId="gone"
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		expect(screen.getByLabelText('Total charges')).not.toHaveAttribute('aria-current')
+	})
+
+	it('is decoration with no accessible regions when nothing listens for activation', () => {
+		const { container } = renderUI(<PdfViewer pages={sizedPages} highlights={highlights} />)
+
+		const layer = bySlot(container, 'pdf-viewer-highlights')
+
+		expect(layer).toHaveAttribute('aria-hidden', 'true')
+
+		expect(layer?.querySelector('button')).toBeNull()
+
+		expect(screen.queryByLabelText('Total charges')).not.toBeInTheDocument()
+	})
+
+	/**
+	 * The name of the selected region, drawn above it.
+	 *
+	 * The ring and the deeper wash say which of twenty boxes is selected; they cannot say
+	 * which field selected it, and the reviewer who hovered a label across the split is
+	 * asking exactly that.
+	 *
+	 * Queried off `document` and by its own slot, not by the tooltip chrome around it: the
+	 * label portals out of the render container, and the toolbar's buttons wear that same
+	 * chrome — a bare `[data-slot="tooltip-content"]` catches whichever toolbar tooltip the
+	 * click that set up the case left open.
+	 */
+	function highlightLabel() {
+		return bySlot(document.body, 'pdf-viewer-highlight-label')
+	}
+
+	it('names the selected region above it', () => {
+		renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
+		)
+
+		// Nothing selected: no name to draw, and no panel floating over the page.
+		expect(highlightLabel()).not.toBeInTheDocument()
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		expect(highlightLabel()).toHaveTextContent('Total charges')
+	})
+
+	/*
+	 * The label follows the selection rather than accumulating: one region is selected at a
+	 * time, so there is only ever one name on the page.
+	 */
+	it('moves the name to the region selected next', () => {
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={[
+					...highlights,
+					{
+						id: 'invoice',
+						page: 1,
+						rect: { x: 0.1, y: 0.4, width: 0.3, height: 0.05 },
+						label: 'Invoice number',
+					},
+				]}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		expect(highlightLabel()).toHaveTextContent('Total charges')
+
+		fireEvent.mouseDown(screen.getByLabelText('Invoice number'))
+
+		expect(highlightLabel()).toHaveTextContent('Invoice number')
+
+		expect(allBySlot(document.body, 'pdf-viewer-highlight-label')).toHaveLength(1)
+	})
+
+	/*
+	 * A box cannot say what it is, and a reader looking for one of twenty should not have to
+	 * press each in turn to find out — every press changes the selection, and whatever the
+	 * consumer hangs off it.
+	 */
+	it('names the region under the pointer, without selecting it', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={onActiveHighlightChange}
+			/>,
+		)
+
+		fireEvent.mouseOver(screen.getByLabelText('Total charges'))
+
+		expect(highlightLabel()).toHaveTextContent('Total charges')
+
+		// Named, not chosen: nothing about the selection moved.
+		expect(onActiveHighlightChange).not.toHaveBeenCalled()
+	})
+
+	/** Every name on the page right now, in the order they were drawn. */
+	function highlightLabels() {
+		return allBySlot(document.body, 'pdf-viewer-highlight-label').map((el) => el.textContent)
+	}
+
+	/*
+	 * A preview sits beside the selection rather than taking its place. They are different
+	 * things to a reader — one is where they are working, the other is what they are checking —
+	 * and the selection has a form field and a scroll position standing behind it.
+	 */
+	it('keeps the selected region named while the pointer names another', () => {
+		const { container } = renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={[
+					...highlights,
+					{
+						id: 'invoice',
+						page: 1,
+						rect: { x: 0.1, y: 0.4, width: 0.3, height: 0.05 },
+						label: 'Invoice number',
+					},
+				]}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		fireEvent.mouseOver(screen.getByLabelText('Invoice number'))
+
+		expect(highlightLabels()).toEqual(['Total charges', 'Invoice number'])
+
+		fireEvent.mouseLeave(bySlot(container, 'pdf-viewer-highlights') as HTMLElement)
+
+		// The preview withdraws; the one the reader came here for does not.
+		expect(highlightLabels()).toEqual(['Total charges'])
+	})
+
+	/*
+	 * The selected region already names itself, so hovering it says nothing new — and would say
+	 * it twice, in two panels a few pixels apart.
+	 */
+	it('does not name the selected region twice when the pointer crosses it', () => {
+		renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		fireEvent.mouseOver(screen.getByLabelText('Total charges'))
+
+		expect(highlightLabels()).toEqual(['Total charges'])
+	})
+
+	/*
+	 * The persisted name is a standing object over a layer of pressable boxes. Left transparent
+	 * it hands the pointer through to whatever it covers, which then names itself as well — a
+	 * second panel a few pixels under the first, for a box the reader is not pointing at.
+	 *
+	 * jsdom does no hit-testing, so the shield is read off the rule that governs it rather than
+	 * by pointing at anything. That rule is `<FloatingSurface>`'s, deliberately: it drops the
+	 * wrapper to `none` the moment a panel stops being real, so an exiting name cannot swallow
+	 * presses meant for the page — which a subtree that had taken pointer events back on its own
+	 * would go on doing for the whole length of the fade.
+	 *
+	 * What is exercised beyond that is the path the shield opens: the panel portals out of the
+	 * layer on screen but stays a child of it in the tree, so a pointer landing on it arrives at
+	 * the layer's own handler as a pointer outside every region.
+	 */
+	it('shields the boxes under the persisted name from the pointer', () => {
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={[
+					...highlights,
+					{
+						id: 'invoice',
+						page: 1,
+						rect: { x: 0.1, y: 0.4, width: 0.3, height: 0.05 },
+						label: 'Invoice number',
+					},
+				]}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		fireEvent.mouseOver(screen.getByLabelText('Invoice number'))
+
+		// Both names up, which is what makes the pair below a pair.
+		expect(highlightLabels()).toEqual(['Total charges', 'Invoice number'])
+
+		const [persisted, preview] = allBySlot(document.body, 'pdf-viewer-highlight-label') as [
+			HTMLElement,
+			HTMLElement,
+		]
+
+		const panel = (label: HTMLElement) =>
+			label.closest<HTMLElement>('[data-slot="tooltip-content"]')
+
+		expect(panel(persisted)?.style.pointerEvents).toBe('auto')
+
+		// The preview is not a standing object — it dies with the pointer that summoned it, and
+		// solid it would close under the pointer that reached it and reopen on the next move.
+		expect(panel(preview)?.style.pointerEvents).toBe('none')
+
+		fireEvent.mouseOver(persisted)
+
+		expect(highlightLabels()).toEqual(['Total charges'])
+	})
+
+	/*
+	 * Hiding the overlay is a reader asking to see the page underneath. The selection survives
+	 * it (the layer is hidden, not unmounted), but the name must not: it portals clear of the
+	 * layer, so `hidden` does not reach it and it would float over a box that is not drawn.
+	 */
+	it('withdraws the name while the overlay is hidden, and brings it back', () => {
+		renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		fireEvent.click(screen.getByLabelText('Hide highlights'))
+
+		expect(highlightLabel()).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByLabelText('Show highlights'))
+
+		expect(highlightLabel()).toHaveTextContent('Total charges')
+	})
+
+	/*
+	 * The region already carries this string as its `aria-label`, and the layer announces it
+	 * through a live region. A third copy with a role of its own would have a reader hear the
+	 * same name twice for one selection.
+	 */
+	it('draws the name for the eye only, leaving the region to say it once', () => {
+		renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
+		)
+
+		fireEvent.mouseDown(screen.getByLabelText('Total charges'))
+
+		expect(highlightLabel()).toHaveAttribute('aria-hidden', 'true')
+
+		// One accessible node with this name: the region itself.
+		expect(screen.getAllByLabelText('Total charges')).toHaveLength(1)
+	})
+
+	it('offers the visibility toggle only when there are regions', () => {
+		renderUI(<PdfViewer pages={sizedPages} />)
+
+		expect(screen.queryByLabelText('Hide highlights')).not.toBeInTheDocument()
+	})
+
+	it('hides the layer without discarding the selection', () => {
+		const { container } = renderUI(
+			<PdfViewer pages={sizedPages} highlights={highlights} onActiveHighlightChange={noop} />,
+		)
+
+		fireEvent.click(screen.getByLabelText('Total charges'))
+
+		fireEvent.click(screen.getByLabelText('Hide highlights'))
+
+		expect(bySlot(container, 'pdf-viewer-highlights')).toHaveAttribute('hidden')
+
+		fireEvent.click(screen.getByLabelText('Show highlights'))
+
+		expect(bySlot(container, 'pdf-viewer-highlights')).not.toHaveAttribute('hidden')
+
+		expect(screen.getByLabelText('Total charges')).toHaveAttribute('aria-current', 'true')
+	})
+
+	it('clears the selection on Escape without letting it reach an enclosing surface', () => {
+		const onActiveHighlightChange = vi.fn()
+
+		const onOuterKeyDown = vi.fn()
+
+		renderUI(
+			// biome-ignore lint/a11y/noStaticElementInteractions: stands in for a drawer that would read Escape as a dismiss.
+			<div onKeyDown={onOuterKeyDown}>
+				<PdfViewer
+					pages={sizedPages}
+					highlights={highlights}
+					onActiveHighlightChange={onActiveHighlightChange}
+				/>
+			</div>,
+		)
+
+		const region = screen.getByLabelText('Total charges')
+
+		fireEvent.click(region)
+
+		fireEvent.keyDown(region, { key: 'Escape' })
+
+		expect(onActiveHighlightChange).toHaveBeenLastCalledWith(null)
+
+		expect(onOuterKeyDown).not.toHaveBeenCalled()
+	})
+
+	it('keeps the whole layer to one tab stop', () => {
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={[
+					highlights[0] as PdfViewerHighlight,
+					{
+						id: 'amount',
+						page: 1,
+						rect: { x: 0.1, y: 0.4, width: 0.2, height: 0.05 },
+						label: 'Amount',
+					},
+				]}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		const stops = [screen.getByLabelText('Total charges'), screen.getByLabelText('Amount')].filter(
+			(el) => el.getAttribute('tabindex') !== '-1',
+		)
+
+		expect(stops).toHaveLength(1)
+	})
+})
+
+describe('PdfViewer highlight state scoping', () => {
+	// The guard for why activation state lives in its own provider around the viewport
+	// rather than on PdfViewerContext: the subtree the provider wraps must not re-render
+	// when a region is activated, so the toolbar and the thumbnail rail — which sit outside
+	// it and are re-rendered only by a PdfViewer render — cannot either. Asserted at the
+	// provider, because that is where the bailout is observable: a component's own render
+	// count is not reachable from outside it.
+	it('activating a region does not re-render the subtree the provider wraps', () => {
+		let wrappedRenders = 0
+
+		function Wrapped() {
+			wrappedRenders++
+
+			return <RegionPress />
+		}
+
+		// A context consumer inside the wrapped subtree: it must still update, which is what
+		// makes the bailout above it meaningful rather than merely inert.
+		function RegionPress() {
+			const { regions, activate } = usePdfViewerHighlightsContext()
+
+			return (
+				<button type="button" onClick={() => activate('total')}>
+					{regions.some((region) => region.active) ? 'active' : 'idle'}
+				</button>
+			)
+		}
+
+		// Only the three fields the hook reads; the layer is not rendered here.
+		const viewer = {
+			activePage: sizedPages[0],
+			safePage: 1,
+			goToPage: noop,
+		} as unknown as PdfViewerResult
+
+		renderUI(
+			<PdfViewerContext value={viewer}>
+				<PdfViewerHighlightsProvider highlights={highlights} onActiveHighlightChange={noop}>
+					<Wrapped />
+				</PdfViewerHighlightsProvider>
+			</PdfViewerContext>,
+		)
+
+		const rendersAfterMount = wrappedRenders
+
+		expect(screen.getByRole('button')).toHaveTextContent('idle')
+
+		fireEvent.click(screen.getByRole('button'))
+
+		// The consumer saw the activation…
+		expect(screen.getByRole('button')).toHaveTextContent('active')
+
+		// …and the subtree it sits in did not re-render to deliver it.
+		expect(wrappedRenders).toBe(rendersAfterMount)
+	})
+})
+
+describe('PdfViewer chrome events', () => {
+	/**
+	 * The two toolbar switches report themselves.
+	 *
+	 * Because what they do is not only the viewer's business: a list beside it marks which of
+	 * its rows can be located on the page, and a hidden overlay makes that mark a promise
+	 * nothing keeps. Events rather than a controlled binding — the reader owns these two
+	 * switches, and nothing outside should be able to turn them back on under them.
+	 */
+	it('reports the reader hiding and then showing the highlight overlay', () => {
+		const onHighlightsVisibleChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				highlights={highlights}
+				onActiveHighlightChange={noop}
+				onHighlightsVisibleChange={onHighlightsVisibleChange}
+			/>,
+		)
+
+		// Shown to begin with, so the control offers to hide — which is what a consumer
+		// mirroring this seeds its own state from.
+		fireEvent.click(screen.getByLabelText('Hide highlights'))
+
+		expect(onHighlightsVisibleChange).toHaveBeenCalledExactlyOnceWith(false)
+
+		fireEvent.click(screen.getByLabelText('Show highlights'))
+
+		expect(onHighlightsVisibleChange).toHaveBeenLastCalledWith(true)
+	})
+
+	it('reports the reader turning the magnifier off and then on', () => {
+		const onMagnifierEnabledChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				magnifier
+				onMagnifierEnabledChange={onMagnifierEnabledChange}
+			/>,
+		)
+
+		fireEvent.click(screen.getByLabelText('Turn magnifier off'))
+
+		expect(onMagnifierEnabledChange).toHaveBeenCalledExactlyOnceWith(false)
+
+		fireEvent.click(screen.getByLabelText('Turn magnifier on'))
+
+		expect(onMagnifierEnabledChange).toHaveBeenLastCalledWith(true)
+	})
+
+	/** No toggle, nothing to report: the control is only there when a loupe was offered. */
+	it('says nothing about a magnifier the consumer never asked for', () => {
+		const onMagnifierEnabledChange = vi.fn()
+
+		renderUI(<PdfViewer pages={sizedPages} onMagnifierEnabledChange={onMagnifierEnabledChange} />)
+
+		expect(screen.queryByLabelText('Turn magnifier off')).not.toBeInTheDocument()
+		expect(onMagnifierEnabledChange).not.toHaveBeenCalled()
+	})
+
+	/**
+	 * Both switches keep their glyph and name the *action* rather than the state, so
+	 * `aria-pressed` was the only thing separating on from off — and no recipe targets it. The
+	 * fill is what a pointer user reads.
+	 */
+	it.each([
+		{ control: 'highlight overlay', on: 'Hide highlights', off: 'Show highlights' },
+		{ control: 'magnifier', on: 'Turn magnifier off', off: 'Turn magnifier on' },
+	])('fills the $control toggle while it is on, and not once it is off', ({ on, off }) => {
+		renderUI(
+			<PdfViewer
+				pages={sizedPages}
+				magnifier
+				highlights={highlights}
+				onActiveHighlightChange={noop}
+			/>,
+		)
+
+		// Both start on, so each control offers to switch its subject *off*.
+		expect(screen.getByLabelText(on)).toHaveAttribute('data-variant', 'soft')
+
+		fireEvent.click(screen.getByLabelText(on))
+
+		expect(screen.getByLabelText(off)).toHaveAttribute('data-variant', 'plain')
+	})
+})
+
+describe('PdfViewer fit', () => {
+	// The guard for the one thing fit="width" cannot do without help. Withholding the page's
+	// aspect ratio is what lets the page overflow and scroll — but it also leaves the root
+	// with no height of its own, so it has to fill the box its host gives it or it collapses
+	// to the toolbar. This shipped once without it.
+	it('fills its host box under fit="width"', () => {
+		const { container } = renderUI(<PdfViewer pages={sizedPages} fit="width" />)
+
+		expect(bySlot(container, 'pdf-viewer')).toHaveClass('h-full')
+	})
+
+	it('sizes itself from the page ratio under fit="page", taking no height from its host', () => {
+		const { container } = renderUI(<PdfViewer pages={sizedPages} />)
+
+		expect(bySlot(container, 'pdf-viewer')).not.toHaveClass('h-full')
 	})
 })

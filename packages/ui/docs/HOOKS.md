@@ -22,7 +22,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useFloatingPanel` | Base floating-panel hook: `useFloating` + autoUpdate and a standard offset/flip/shift/size middleware chain. |
 | `useFloatingUI` | Floating panel with built-in dismiss + role prop-getters for listbox/combobox/menu/datepicker surfaces. |
 | `useFloatingDisclosure` | Disclosure wrapper over `useFloatingPanel`: controllable open state, trigger ref, focus restore, dismiss + role. |
-| `useDismissable` | Overlay dismiss behavior: Escape (via the dismiss-layer stack) plus pointer-down outside the boundary. |
+| `useDismissable` | Overlay dismiss behavior: Escape (via the dismiss-layer stack) plus pointer-down outside the boundary, sparing a floating surface opened from within it. |
 | `useEscapeLayer` | Escape-key dismissal routed through the shared dismiss-layer stack; stacked surfaces close innermost-first. |
 | `useScrollLock` | Locks body overflow while active; nested locks reference-counted, scrollbar gap compensated. |
 
@@ -60,11 +60,12 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useResizeObserver` | Observes size changes on `ref.current` and calls `callback` per change, plus once on attach. The callback rides an effect event, so a fresh closure each render neither re-subscribes nor re-fires. |
 | `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, container-fill, or content-fit — measuring only the axes that policy consumes. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
-| `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. |
+| `useMinBreakpoint` | True when the viewport has reached a named breakpoint (`'lg'`), the same one the `lg:` prefix responds to; true during SSR. Prefer over `useMinWidth` — the name keeps JS and CSS on one scale. |
+| `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. For a width the breakpoint scale has no name for. |
 | `useIsTruncated` | True when text overflows the element, measured with a `Range` over its own contents (not `scrollWidth`, and injecting nothing). |
 | `useInView` | True when `ref.current` is in (or near) the viewport, over one `IntersectionObserver` that disconnects on first sight by default; true where nothing can observe, so a gate never hides content. |
 | `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a scroll container while content extends past an edge, for CSS scroll affordances. |
-| `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. |
+| `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. `block` (default `'nearest'`) and opt-in `inline` align each axis. |
 | `useVirtualWindow` | Drives a vertical windowed list off `@tanstack/react-virtual`: visible items plus top/bottom spacer heights. |
 
 ## Drag & drop

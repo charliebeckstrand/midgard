@@ -258,6 +258,9 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	return ticks
 }
 
+/** A bare number ("95190") is an identifier, not a date — `Date.parse` reads it as a year. @internal */
+const BARE_NUMBER = /^\d+(\.\d+)?$/
+
 /**
  * A numeric date formatter for a plain category axis: when *every* category
  * value parses as a date, labels them with the locale's own two-digit
@@ -265,7 +268,9 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
  * `referenceYear` (the current year by default), so a cross-year span keeps the
  * year and a single-year one drops it. Returns `null` when any value is not a
  * date, leaving a non-date axis its raw labels; the same formatter labels the
- * axis ticks, tooltip, and data table.
+ * axis ticks, tooltip, and data table. Bare numeric strings never count as
+ * dates — `Date.parse('95190')` accepts them as a year, which turned an axis
+ * of NMFC codes into `01-01-95190` ticks.
  *
  * @param values - Each row's raw `xKey` value, in row order.
  * @param referenceYear - The year that reads without a suffix; defaults to the
@@ -288,6 +293,8 @@ export function dateCategoryFormat(
 	let withYear = false
 
 	for (const value of values) {
+		if (typeof value === 'string' && BARE_NUMBER.test(value.trim())) return null
+
 		const time = parseInstant(value)
 
 		if (time === null) return null
