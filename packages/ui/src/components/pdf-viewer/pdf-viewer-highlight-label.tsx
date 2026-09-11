@@ -1,5 +1,6 @@
 'use client'
 
+import type { Ref } from 'react'
 import { TooltipAnchor } from '../tooltip/tooltip-anchor'
 
 /**
@@ -18,6 +19,12 @@ import { TooltipAnchor } from '../tooltip/tooltip-anchor'
  * `regionClass` cache exists to save microseconds. Here the same commit touches three fibers.
  * The layer passes the anchor element down; nothing about the panel's position reaches it.
  *
+ * **It takes no pointer events**, persisted or not. A name is not somewhere to travel to, and
+ * on a dense page it lands on its neighbours: a reader who wants the box under it must be able
+ * to point at the box, not at the name of another one. The layer answers for what that opens —
+ * it fades the name over a box the pointer is reading, and it refuses to put the selection down
+ * for a press that landed on the name and on nothing else.
+ *
  * `aria-hidden`: the region carries this exact string as its `aria-label` and the layer
  * announces it through a live region besides, so a third copy would have a reader hear one
  * selection named twice.
@@ -27,7 +34,8 @@ export function PdfViewerHighlightLabel({
 	anchor,
 	label,
 	open,
-	shield = false,
+	className,
+	ref,
 }: {
 	/**
 	 * The region's element, or `null` when there is none to name.
@@ -47,22 +55,15 @@ export function PdfViewerHighlightLabel({
 	 * float over a box that is not on screen.
 	 */
 	open: boolean
+	/** Class for the panel, which is what the layer fades. */
+	className?: string
 	/**
-	 * Whether the panel takes the pointer off whatever it covers.
+	 * Ref to the name itself.
 	 *
-	 * Off by default, and rightly: a name that follows the pointer must not stand in its way.
-	 * But a name that *persists* is a standing object over a layer of pressable boxes, and a
-	 * transparent one hands the pointer straight through to the box beneath — which then names
-	 * itself too, a second panel a few pixels under the first, for a box the reader is not
-	 * pointing at.
-	 *
-	 * The cost is that a press landing on the chip presses nothing. That is the honest reading
-	 * of it — no name and no ring under the pointer is the page saying there is nothing here to
-	 * press — and the layer's handlers already fold a press outside a region into a no-op, so it
-	 * costs the selection nothing either.
-	 * @defaultValue false
+	 * The layer measures the panel around it — `parentElement` — because that box, padding and
+	 * all, is what stands over the page. It is the box the layer tests a pointer against.
 	 */
-	shield?: boolean
+	ref?: Ref<HTMLSpanElement>
 }) {
 	return (
 		<TooltipAnchor
@@ -71,9 +72,14 @@ export function PdfViewerHighlightLabel({
 			placement="top"
 			offset={8}
 			size="sm"
-			interactive={shield}
+			className={className}
 		>
-			<span data-slot="pdf-viewer-highlight-label" aria-hidden="true" className="whitespace-nowrap">
+			<span
+				ref={ref}
+				data-slot="pdf-viewer-highlight-label"
+				aria-hidden="true"
+				className="whitespace-nowrap"
+			>
 				{label}
 			</span>
 		</TooltipAnchor>

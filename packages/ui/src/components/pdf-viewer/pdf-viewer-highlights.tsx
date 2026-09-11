@@ -1,7 +1,7 @@
 'use client'
 
 import type { KeyboardEvent, MouseEvent } from 'react'
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import type { Color } from '../../core/recipe'
 import { useA11yAnnouncements, useA11yRoving, useComposedRef } from '../../hooks'
@@ -15,6 +15,8 @@ import { HIGHLIGHT_ID_ATTR, HIGHLIGHT_SELECTOR } from './use-pdf-viewer-highligh
 const layer = k.viewport.page.highlights
 
 const region = layer.region
+
+const label = layer.label
 
 const regionClasses = new Map<string, string>()
 
@@ -79,6 +81,24 @@ function regionAt(event: MouseEvent<HTMLDivElement>) {
 }
 
 /**
+ * Whether a point is inside an element's box.
+ *
+ * @remarks A box with no size covers nothing — which is the honest answer before the first
+ * layout, and the answer jsdom gives for everything. Both are cases where the name stands in
+ * nothing's way.
+ * @internal
+ */
+function within(element: HTMLElement | null, x: number, y: number) {
+	if (!element) return false
+
+	const box = element.getBoundingClientRect()
+
+	if (box.width === 0 || box.height === 0) return false
+
+	return x >= box.left && x <= box.right && y >= box.top && y <= box.bottom
+}
+
+/**
  * Gates the overlay and announces the active region.
  *
  * @remarks The layer is a separate component below, not an early return inside one,
@@ -118,7 +138,7 @@ export function PdfViewerHighlights() {
  * @internal
  */
 function PdfViewerHighlightLayer() {
-	const { scale, highlightsVisible } = usePdfViewerContext()
+	const { scale, highlightsVisible, viewportRef } = usePdfViewerContext()
 
 	const { regions, interactive, activeLabel, activate, press, clear, revealRef } =
 		usePdfViewerHighlightsContext()
@@ -196,6 +216,36 @@ function PdfViewerHighlightLayer() {
 	const [previewing, setPreviewing] = useState(false)
 
 	/*
+	 * The selected region's name, as a box on screen.
+	 *
+	 * A ref, not state: only the handlers below read it, and a name that repositions must not
+	 * re-render 40 regions to say so. The panel around the text is what is measured — the text
+	 * does not reach the panel's padding, and the padding is as opaque as the rest of it.
+	 */
+	const labelRef = useRef<HTMLElement | null>(null)
+
+	const setLabelNode = useCallback((node: HTMLElement | null) => {
+		labelRef.current = node?.parentElement ?? null
+	}, [])
+
+	/*
+	 * Whether the pointer is reading a region through the name that covers it.
+	 *
+	 * The name is a standing object over a layer of pressable boxes, and on a dense page it
+	 * lands on its neighbours. It takes no pointer events, so the hover and the press reach the
+	 * box beneath it either way; this is the half the reader sees — the name going faint over
+	 * the box they are pointing at, which is the page saying the press will land there.
+	 *
+	 * The name never covers its own region: `offset(8)` holds it clear along the placement axis,
+	 * and `shift` only moves it across. So a box under the name is always another one.
+	 */
+	const [behind, setBehind] = useState(false)
+
+	// A name that is gone covers nothing. Cleared in render, so a selection ended by Escape or
+	// by a press on the page does not leave the next name faint.
+	if (behind && !anyActive) setBehind(false)
+
+	/*
 	 * The region the pointer last named, looked up rather than merely confirmed: whether it is
 	 * still one of this page's is the same question as which one it is, and a page turned under
 	 * a pointer that has not moved is what makes that a question at all.
@@ -231,10 +281,29 @@ function PdfViewerHighlightLayer() {
 		})
 	}
 
+	/**
+	 * Whether the pointer has moved onto — or off — a box the name covers.
+	 *
+	 * @remarks The two tests are ordered by cost. `regionAt` walks two or three nodes; the box
+	 * read behind it is a layout read, and it runs only where the pointer is over a region while
+	 * a name is drawn. A layer with nothing selected pays one boolean per move.
+	 */
+	function handleRegionMove(event: MouseEvent<HTMLDivElement>) {
+		if (!anyActive) return
+
+		const next = regionAt(event) !== null && within(labelRef.current, event.clientX, event.clientY)
+
+		if (next !== behind) setBehind(next)
+	}
+
 	// A press with nothing to report it to cannot change anything, so it is not a button.
 	const Region = interactive ? 'button' : 'span'
 
 	function report(id: string) {
+		// The name has moved to another box, or gone. Whether it covers the pointer is a question
+		// about the new one, and the next move answers it.
+		setBehind(false)
+
 		// Every press is reported, including one on the already-active region — that is the
 		// signal a consumer needs to answer "the reader pointed at this again" (reveal its
 		// row, put the caret in its field).
@@ -314,6 +383,54 @@ function PdfViewerHighlightLayer() {
 		handleRovingKeyDown(event)
 	}
 
+	/*
+	 * A press that lands on no region puts the selection down.
+	 *
+	 * On the viewport rather than on the layer, because the reader's "somewhere else" is the
+	 * whole page surface — the matte a fitted page sits in included — while the layer covers the
+	 * page image alone. A native listener rather than a prop for the same reason: the viewport is
+	 * rendered a component away, and reading the overlay's context there would re-render the page
+	 * frame, the image and the lens on every activation, which is the cost the overlay's own
+	 * provider exists to avoid.
+	 *
+	 * Registered only while there is a selection to put down, so a viewer at rest carries no
+	 * listener — and not while the overlay is hidden, where the boxes are off screen and the
+	 * selection is meant to survive a reader reading the page underneath.
+	 */
+	useEffect(() => {
+		const viewport = viewportRef.current
+
+		if (!interactive || !anyActive || !highlightsVisible || !viewport) return
+
+		function handlePress(event: globalThis.MouseEvent) {
+			// Primary button only, as the region press is: a right press opens the context menu.
+			if (event.button !== 0) return
+
+			const target = event.target as HTMLElement
+
+			if (target.closest(HIGHLIGHT_SELECTOR)) return
+
+			// The selected region's name is not somewhere else. It takes no pointer events, so a
+			// press on it arrives here as a press on the page under it — and putting the selection
+			// down would be the page answering a press on its own label.
+			if (within(labelRef.current, event.clientX, event.clientY)) return
+
+			// The scrollbar gutter is not the page either: a press there starts a pan.
+			if (
+				target === viewport &&
+				(event.offsetX > viewport.clientWidth || event.offsetY > viewport.clientHeight)
+			) {
+				return
+			}
+
+			clear()
+		}
+
+		viewport.addEventListener('mousedown', handlePress)
+
+		return () => viewport.removeEventListener('mousedown', handlePress)
+	}, [interactive, anyActive, highlightsVisible, viewportRef, clear])
+
 	return (
 		<div
 			ref={layerRef}
@@ -334,7 +451,12 @@ function PdfViewerHighlightLayer() {
 						// at all, so these would never fire there — but naming a box a reader cannot act
 						// on promises something to do with it.
 						onMouseOver: handleRegionOver,
-						onMouseLeave: () => setPreviewing(false),
+						onMouseMove: handleRegionMove,
+						onMouseLeave: () => {
+							setPreviewing(false)
+
+							setBehind(false)
+						},
 					}
 				: { 'aria-hidden': true })}
 		>
@@ -368,10 +490,11 @@ function PdfViewerHighlightLayer() {
 			 * did before there was a preview at all.
 			 */}
 			<PdfViewerHighlightLabel
+				ref={setLabelNode}
 				anchor={anchor}
 				label={activeLabel}
 				open={highlightsVisible}
-				shield
+				className={cn(label.base, behind && label.behind)}
 			/>
 
 			{/*

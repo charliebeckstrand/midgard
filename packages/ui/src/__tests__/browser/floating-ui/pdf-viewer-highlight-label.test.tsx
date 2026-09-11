@@ -6,6 +6,9 @@ import {
 } from '../../../components/pdf-viewer'
 import { fireEvent, noop, present, renderUI, screen, waitFor } from '../../helpers'
 
+/** The name itself. Portalled, so it is found on the document rather than in the container. */
+const label = () => document.querySelector<HTMLElement>('[data-slot="pdf-viewer-highlight-label"]')
+
 /**
  * The selected region's name, against real layout and the real floating engine.
  *
@@ -46,9 +49,6 @@ describe('pdf viewer highlight label (real browser)', () => {
 			</div>,
 		)
 	}
-
-	const label = () =>
-		document.querySelector<HTMLElement>('[data-slot="pdf-viewer-highlight-label"]')
 
 	it('draws the name clear of the region it names, and inside the viewer', async () => {
 		const { container } = setup()
@@ -97,6 +97,41 @@ describe('pdf viewer highlight label (real browser)', () => {
 	 * wrapped the active region in a `<Tooltip>`, which changed the element at that position
 	 * and remounted it mid-selection.
 	 */
+	/*
+	 * A press that lands on the name and on nothing else presses nothing. A press on the page
+	 * puts the selection down, and the name is not the page: answering a press on it by throwing
+	 * the selection away would be the viewer reading "this one" as "not this one".
+	 */
+	it('keeps the selection through a press that lands on the name alone', async () => {
+		setup()
+
+		const region = await screen.findByLabelText('Total charges')
+
+		fireEvent.mouseDown(region)
+
+		await waitFor(() => expect(label()).toBeInTheDocument())
+
+		const panel = present(label()?.parentElement, 'the name panel')
+
+		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
+
+		const name = panel.getBoundingClientRect()
+
+		const x = (name.left + name.right) / 2
+
+		const y = (name.top + name.bottom) / 2
+
+		// What a press there actually reaches. The name takes no pointer events, so it is the
+		// page under the name — which is the whole point of pressing here rather than on it.
+		const beneath = present(document.elementFromPoint(x, y), 'what lies under the name')
+
+		expect(beneath).not.toBe(panel)
+
+		fireEvent.mouseDown(beneath, { clientX: x, clientY: y })
+
+		expect(region).toHaveAttribute('aria-current', 'true')
+	})
+
 	it('leaves the region it names focused and in place', async () => {
 		setup()
 
@@ -111,5 +146,113 @@ describe('pdf viewer highlight label (real browser)', () => {
 		expect(screen.getByLabelText('Total charges')).toBe(region)
 
 		expect(document.activeElement).toBe(region)
+	})
+})
+
+/**
+ * The name as an obstacle, against real layout and the real floating engine.
+ *
+ * A name is drawn 8px above the box it names, and on a dense page that is somebody else's box.
+ * The reader has to be able to reach the box under it — and to see that they can, which is the
+ * fade. Neither half can be proved where nothing is laid out and nothing is hit-tested: the
+ * jsdom suite can say the panel takes no pointer events, and that is all it can say.
+ */
+describe('a name that stands over another region (real browser)', () => {
+	const pages: PdfViewerPage[] = [
+		{
+			id: 'a',
+			src: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7',
+			label: 'Page 1',
+			pointWidth: 612,
+			pointHeight: 792,
+		},
+	]
+
+	/*
+	 * Two boxes, a hair apart. `Above` is deep enough that the name of `Below` — 8px clear of
+	 * `Below`'s top edge — has to land inside it; the test proves that rather than assuming it.
+	 */
+	const highlights: PdfViewerHighlight[] = [
+		{ id: 'above', page: 1, rect: { x: 0.2, y: 0.3, width: 0.5, height: 0.14 }, label: 'Above' },
+		{ id: 'below', page: 1, rect: { x: 0.2, y: 0.45, width: 0.5, height: 0.05 }, label: 'Below' },
+	]
+
+	/** Selects `Below` and returns its name's panel, the box the reader has to see through. */
+	async function named() {
+		renderUI(
+			<div style={{ width: '520px', height: '620px' }}>
+				<PdfViewer pages={pages} highlights={highlights} onActiveHighlightChange={noop} />
+			</div>,
+		)
+
+		const above = await screen.findByLabelText('Above')
+
+		fireEvent.mouseDown(await screen.findByLabelText('Below'))
+
+		await waitFor(() => expect(label()).toBeInTheDocument())
+
+		const panel = present(label()?.parentElement, 'the name panel')
+
+		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
+
+		const name = panel.getBoundingClientRect()
+
+		const box = above.getBoundingClientRect()
+
+		// The premise, measured rather than assumed: with no overlap there is nothing to prove.
+		expect(name.top).toBeLessThan(box.bottom)
+
+		expect(name.bottom).toBeGreaterThan(box.top)
+
+		return {
+			above,
+			panel,
+			// A point inside both, which is what "the part of the box behind the name" means.
+			covered: {
+				x: (Math.max(name.left, box.left) + Math.min(name.right, box.right)) / 2,
+				y: (Math.max(name.top, box.top) + Math.min(name.bottom, box.bottom)) / 2,
+			},
+		}
+	}
+
+	/*
+	 * The browser's own hit test, which is the whole of "you can click through it": whatever
+	 * `elementFromPoint` answers is what a press at that point will reach.
+	 */
+	it('hands the pointer to the box it covers', async () => {
+		const { above, covered } = await named()
+
+		expect(document.elementFromPoint(covered.x, covered.y)).toBe(above)
+	})
+
+	it('goes faint while the pointer reads that box, and comes back when it leaves', async () => {
+		const { above, panel, covered } = await named()
+
+		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('1'))
+
+		fireEvent.mouseOver(above, { clientX: covered.x, clientY: covered.y })
+
+		fireEvent.mouseMove(above, { clientX: covered.x, clientY: covered.y })
+
+		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('0.25'))
+
+		// Still on the box, on the part of it the name does not cover: it is in nothing's way
+		// there, so it is solid again.
+		const box = above.getBoundingClientRect()
+
+		fireEvent.mouseMove(above, { clientX: box.left + 2, clientY: box.top + 2 })
+
+		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('1'))
+	})
+
+	/** A press through the name selects the box under it, which is the point of letting it through. */
+	it('selects the box a press through it lands on', async () => {
+		const { above, covered } = await named()
+
+		fireEvent.mouseDown(above, { clientX: covered.x, clientY: covered.y })
+
+		await waitFor(() => expect(above).toHaveAttribute('aria-current', 'true'))
+
+		expect(screen.getByLabelText('Below')).not.toHaveAttribute('aria-current')
 	})
 })
