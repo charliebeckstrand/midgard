@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { addImport, assemble } from '../../derive-code/internals'
 import { makeContext } from './helpers'

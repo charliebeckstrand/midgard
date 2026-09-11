@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { groundPoints, ownGround } from '../../modules/map/engine/map-cluster/ground'
 import type { MapPoint2D } from '../../modules/map/engine/types'

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	Sidebar,
@@ -127,10 +127,6 @@ describe('Sidebar', () => {
 })
 
 describe('Sidebar mini', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	it('marks the nav with data-mini', () => {
 		const { container } = renderUI(<Sidebar mini>content</Sidebar>)
 

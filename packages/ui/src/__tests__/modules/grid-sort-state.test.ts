@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { SortState } from '../../modules/grid/context'
 import { nextSort, sortsEqual } from '../../modules/grid/engine/grid-sort/state'

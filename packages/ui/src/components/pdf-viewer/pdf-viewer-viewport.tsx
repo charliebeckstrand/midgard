@@ -43,9 +43,6 @@ export function PdfViewerViewport() {
 	return (
 		<div
 			ref={viewportRef}
-			// The scroller, which is what makes it the panner: a zoomed page overflows this box,
-			// and moving it is the one gesture the loupe cannot feel through the pointer.
-			{...magnifier.viewportProps}
 			data-slot="pdf-viewer-viewport"
 			className={cn(k.viewport.base, fit === 'width' && k.viewport.scrolls)}
 			style={{ aspectRatio }}

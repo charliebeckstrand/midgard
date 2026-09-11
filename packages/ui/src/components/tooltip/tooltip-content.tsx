@@ -31,6 +31,16 @@ export type TooltipContentProps = {
 	 */
 	size?: Step
 	className?: string
+	/**
+	 * Class for the positioned wrapper around the panel, rather than for the panel
+	 * itself.
+	 *
+	 * For the properties the panel's own entrance animates — `opacity` and
+	 * `scale` — which `motion` writes as inline styles that no class can outrank.
+	 * A caller that wants to fade a standing panel sets the fade here, where it
+	 * composes with the entrance instead of fighting it.
+	 */
+	surfaceClassName?: string
 	children: ReactNode
 }
 
@@ -48,7 +58,12 @@ export type TooltipContentProps = {
  * the pointer can merely reach never captures the keyboard.
  * @see {@link useA11yHasTabbable}
  */
-export function TooltipContent({ size, className, children }: TooltipContentProps) {
+export function TooltipContent({
+	size,
+	className,
+	surfaceClassName,
+	children,
+}: TooltipContentProps) {
 	const { open, interactive, setFloating, floatingStyles, getFloatingProps, floatingContext } =
 		useTooltipContext()
 
@@ -69,6 +84,7 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
+			className={surfaceClassName}
 			// `pointer-events` is inherited, so gating it here gates the whole panel
 			// subtree; the inner surface carries no rule of its own.
 			style={{ pointerEvents: interactive ? 'auto' : 'none' }}

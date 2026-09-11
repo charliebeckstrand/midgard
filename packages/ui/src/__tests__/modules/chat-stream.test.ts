@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { TEXT_PART_ID } from '../../modules/chat/engine/chat-content/normalize'
 import type { ChatEmbedPart, ChatPart } from '../../modules/chat/engine/chat-content/types'

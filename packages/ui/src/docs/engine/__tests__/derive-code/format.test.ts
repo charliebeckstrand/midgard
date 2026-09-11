@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { createElement, type FunctionComponent } from 'react'
 import { describe, expect, it } from 'vitest'
 import { formatProps, renderOpenTag } from '../../derive-code/internals'

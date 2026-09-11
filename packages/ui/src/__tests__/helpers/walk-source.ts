@@ -48,6 +48,35 @@ export function walkSource(
 
 type PatternRule = { label: string; regex: RegExp }
 
+// The docblock Vitest reads for a per-file environment, with Vitest's own
+// pattern: anywhere in the file, either spelling.
+const DOCBLOCK_ENVIRONMENT = /@(?:vitest|jest)-environment\s+([\w-]+)\b/
+
+/**
+ * The environment a test file declares in its docblock, or `undefined` when
+ * it declares none. One reader for `vitest.config.ts`, which builds the
+ * `pure` project from it, and `node-environment-boundary.test.ts`, which
+ * holds it to the file's DOM use.
+ */
+export function docblockEnvironment(content: string): string | undefined {
+	return DOCBLOCK_ENVIRONMENT.exec(content)?.[1]
+}
+
+/**
+ * Blank the comments in a source text, so a rule that bans a call does not
+ * read prose that names the call as a violation.
+ *
+ * Line comments go first: a block opener inside one — `providers/*` in prose —
+ * would otherwise open a block match that runs to the next block closer
+ * anywhere in the file and blanks every line between. Block comments are then
+ * stripped only where the opener starts a line, so an opener inside a string
+ * cannot open one either. The strip is textual, so it also blanks a `//`
+ * inside a string literal.
+ */
+export function stripSourceComments(text: string): string {
+	return text.replace(/\/\/.*$/gm, '').replace(/^[ \t]*\{?[ \t]*\/\*[\s\S]*?\*\//gm, '')
+}
+
 /**
  * Scan a source layer for forbidden patterns and return human-readable
  * violation lines (`relative/path → label (match)`), ready for an
@@ -55,8 +84,8 @@ type PatternRule = { label: string; regex: RegExp }
  * the `g` flag. Files not matching `fileFilter` are skipped, and `skip` prunes
  * directory entries by name before the read; violation paths are reported
  * relative to `srcDir`. Set `stripComments` when a rule bans a call rather than
- * a token, so prose that names the call does not read as a violation; the strip
- * is textual, so it also blanks a `//` inside a string literal.
+ * a token, so prose that names the call does not read as a violation; see
+ * {@link stripSourceComments} for what the strip can and cannot see.
  */
 export function collectPatternViolations(options: {
 	dir: string
@@ -76,14 +105,7 @@ export function collectPatternViolations(options: {
 
 			const rel = relative(srcDir, file)
 
-			// Line comments go first: a `/*` inside one — `providers/*` in prose —
-			// would otherwise open a block match that runs to the next `*/`
-			// anywhere in the file and blanks every line between. Block comments
-			// are then stripped only where `/*` opens a line, so a `/*` inside a
-			// string cannot open one either.
-			const text = stripComments
-				? content.replace(/\/\/.*$/gm, '').replace(/^[ \t]*\{?[ \t]*\/\*[\s\S]*?\*\//gm, '')
-				: content
+			const text = stripComments ? stripSourceComments(content) : content
 
 			for (const { label, regex } of patterns) {
 				for (const match of text.matchAll(regex)) {

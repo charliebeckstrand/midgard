@@ -76,14 +76,17 @@ export const k = {
 		],
 	},
 	sidebar: {
-		base: [
-			flex.col,
-			'shrink-0 w-56 min-h-0',
-			'overflow-hidden',
-			'border-r',
-			border.defaultColor,
-			'transition-[margin] duration-150 ease-in-out',
-		],
+		base: [flex.col, 'shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-r', border.defaultColor],
+		/**
+		 * The slide, and only for a change the reader made.
+		 *
+		 * Where the rail starts is derived from the page count, and that count arrives with the
+		 * document — pdf.js has to parse the file before it can say how many pages there are. A
+		 * rail that slid in at that moment read as something arriving late, rather than as the
+		 * viewer's own furniture; it is furniture, so it is simply there. A press on the toolbar's
+		 * toggle is a change the reader made, and that one travels.
+		 */
+		travel: 'transition-[margin] duration-150 ease-in-out',
 		closed: '-ml-56',
 		header: [
 			flex.row,
@@ -186,6 +189,23 @@ export const k = {
 				layer: [centred],
 				/** No accessible name on any region, so the layer is decoration: nothing to press. */
 				inert: ['pointer-events-none'],
+				/**
+				 * The name drawn over the selected region.
+				 *
+				 * It takes no pointer events, so on a dense page it stands over boxes the reader can
+				 * still hover and press through it. {@link behind} is the part they see: the name goes
+				 * faint over the box they point at, which is the page saying the press lands there and
+				 * not on the name.
+				 *
+				 * Both go on the panel's positioned wrapper (`surfaceClassName`), not on the panel:
+				 * the panel's own entrance animates `opacity`, and motion writes that inline, where
+				 * no class reaches it. On the wrapper the two opacities compose, so the name can fade
+				 * while its entrance still plays.
+				 */
+				label: {
+					base: 'transition-opacity duration-100 ease-out',
+					behind: 'opacity-25',
+				},
 				region: {
 					base: ['absolute block', 'ring-1 ring-inset', ...cursor, ...focus.inset],
 					/** Translucent per-colour wash, from the shared palette. */

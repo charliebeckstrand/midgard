@@ -1,14 +1,10 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useMinBreakpoint } from '../../hooks/use-min-breakpoint'
 import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import { stubMatchMedia } from '../helpers'
 
 describe('useMinBreakpoint', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	it('asks for the named breakpoint in the unit Tailwind emits', () => {
 		// `rem`, not `px`: at a root font size other than 16px a pixel literal and the matching
 		// `lg:` class part company, and the JS answer stops describing the layout.

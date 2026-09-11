@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { cellAt, heatmapCells } from '../../modules/chart/engine/chart-geometry/heatmap'
 import { bandScale } from '../../modules/chart/engine/chart-scale'

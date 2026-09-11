@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
 import { Form, useFormState } from '../../components/form'
@@ -395,10 +395,6 @@ describe('AddressInput', () => {
 })
 
 describe('photonProvider', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	function makeFeature(
 		properties: Record<string, unknown>,
 		coordinates: [number, number] = [10, 20],
@@ -653,10 +649,6 @@ describe('photonProvider', () => {
 })
 
 describe('createPhotonProvider', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	/** The one URL the stubbed fetch was called with. */
 	function requestedUrl(fetchMock: ReturnType<typeof vi.fn>): URL {
 		return new URL(String(fetchMock.mock.calls[0]?.[0]))

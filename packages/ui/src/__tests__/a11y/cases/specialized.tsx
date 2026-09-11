@@ -7,9 +7,8 @@ import {
 	ChatTranscript,
 } from '../../../modules/chat'
 import { HeadlessProvider } from '../../../providers/headless'
+import { noop } from '../../helpers'
 import type { Case } from './types'
-
-const noop = () => {}
 
 // Pre-rendered image pages: bypass the pdf.js (`src`) path; synchronous, no
 // canvas or worker.
