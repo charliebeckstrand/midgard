@@ -4,6 +4,11 @@ export type {
 	PdfViewerHighlight,
 	PdfViewerHighlightRect,
 	PdfViewerHighlightUnit,
+	PdfViewerMagnifierDelay,
+	PdfViewerMagnifierMode,
 	PdfViewerMagnifierOptions,
+	PdfViewerMagnifierSize,
+	PdfViewerMagnifierState,
+	PdfViewerMagnifierZoom,
 	PdfViewerPage,
 } from './types'

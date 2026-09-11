@@ -1118,34 +1118,66 @@ describe('PdfViewer chrome events', () => {
 		expect(onHighlightsVisibleChange).toHaveBeenLastCalledWith(true)
 	})
 
+	/**
+	 * The whole of what the reader owns, on every change — the switch here, and the three
+	 * settings the config dialog carries. A consumer that keeps the preference stores what
+	 * arrives and hands it back as `magnifier`, so a report of only the field that moved
+	 * would not be enough to do that with.
+	 */
 	it('reports the reader turning the magnifier off and then on', () => {
-		const onMagnifierEnabledChange = vi.fn()
+		const onMagnifierChange = vi.fn()
+
+		renderUI(<PdfViewer pages={sizedPages} magnifier onMagnifierChange={onMagnifierChange} />)
+
+		fireEvent.click(screen.getByLabelText('Turn magnifier off'))
+
+		expect(onMagnifierChange).toHaveBeenCalledExactlyOnceWith({
+			enabled: false,
+			zoom: 'md',
+			size: 'md',
+			delay: 'default',
+		})
+
+		fireEvent.click(screen.getByLabelText('Turn magnifier on'))
+
+		expect(onMagnifierChange).toHaveBeenLastCalledWith({
+			enabled: true,
+			zoom: 'md',
+			size: 'md',
+			delay: 'default',
+		})
+	})
+
+	/** The settings the consumer opened on, not the defaults, are what the report carries. */
+	it('reports the settings the consumer asked for', () => {
+		const onMagnifierChange = vi.fn()
 
 		renderUI(
 			<PdfViewer
 				pages={sizedPages}
-				magnifier
-				onMagnifierEnabledChange={onMagnifierEnabledChange}
+				magnifier={{ zoom: 'lg', size: 'sm', delay: 'none' }}
+				onMagnifierChange={onMagnifierChange}
 			/>,
 		)
 
 		fireEvent.click(screen.getByLabelText('Turn magnifier off'))
 
-		expect(onMagnifierEnabledChange).toHaveBeenCalledExactlyOnceWith(false)
-
-		fireEvent.click(screen.getByLabelText('Turn magnifier on'))
-
-		expect(onMagnifierEnabledChange).toHaveBeenLastCalledWith(true)
+		expect(onMagnifierChange).toHaveBeenCalledExactlyOnceWith({
+			enabled: false,
+			zoom: 'lg',
+			size: 'sm',
+			delay: 'none',
+		})
 	})
 
 	/** No toggle, nothing to report: the control is only there when a loupe was offered. */
 	it('says nothing about a magnifier the consumer never asked for', () => {
-		const onMagnifierEnabledChange = vi.fn()
+		const onMagnifierChange = vi.fn()
 
-		renderUI(<PdfViewer pages={sizedPages} onMagnifierEnabledChange={onMagnifierEnabledChange} />)
+		renderUI(<PdfViewer pages={sizedPages} onMagnifierChange={onMagnifierChange} />)
 
 		expect(screen.queryByLabelText('Turn magnifier off')).not.toBeInTheDocument()
-		expect(onMagnifierEnabledChange).not.toHaveBeenCalled()
+		expect(onMagnifierChange).not.toHaveBeenCalled()
 	})
 
 	/**

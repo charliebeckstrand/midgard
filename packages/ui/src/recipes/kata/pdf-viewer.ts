@@ -1,8 +1,9 @@
 /**
  * PDF-viewer kata: object-literal surface for the `<PdfViewer>` chrome. No
- * variants axis — nested slot groups for the `toolbar`, the collapsible
- * `sidebar`, the `thumbnails` rail and each `thumbnail`, and the `viewport`
- * with its per-`page` frame and skeleton placeholders.
+ * variants axis — nested slot groups for the `toolbar`, the magnifier's
+ * `settings` dialog, the collapsible `sidebar`, the `thumbnails` rail and each
+ * `thumbnail`, and the `viewport` with its per-`page` frame and skeleton
+ * placeholders.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
@@ -41,6 +42,38 @@ export const k = {
 		],
 		section: [flex.row, 'shrink-0', 'gap-1'],
 		pageStatus: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
+	},
+	/**
+	 * The magnifier's config dialog. `Dialog` owns the panel and `Stack` the column inside it,
+	 * so these two slots are only what the choice groups need.
+	 */
+	settings: {
+		/**
+		 * One captioned group.
+		 *
+		 * `Fieldset` puts `pt-4` under its legend, which is the right rhythm for a column of
+		 * full-width fields and too much air over a single row of short options.
+		 */
+		group: ['[&>legend+*]:pt-2'],
+		/**
+		 * The options of one group, in a row.
+		 *
+		 * A `RadioGroup` stacks its fields, and a column is right where each option is a
+		 * sentence. Here no option is longer than two words, and three stacked groups of them
+		 * make the reader scroll a dialog that would otherwise fit.
+		 *
+		 * The `mt-0` is a fork, and reads as one: it reaches across to clear the adjacency
+		 * margin `narabi.group` sets on every `ToggleGroup`. The honest fix is an `orientation`
+		 * axis on `ToggleGroup` — `Rating` routed around the same missing affordance by
+		 * hand-rolling `role="radiogroup"` on a span — which widens three public prop types and
+		 * so wants its own change rather than this one's.
+		 */
+		options: [
+			flex.row,
+			'flex-row flex-wrap',
+			'gap-x-6 gap-y-2',
+			'[&>[data-slot=field]+[data-slot=field]]:mt-0',
+		],
 	},
 	sidebar: {
 		base: [flex.col, 'shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-r', border.defaultColor],

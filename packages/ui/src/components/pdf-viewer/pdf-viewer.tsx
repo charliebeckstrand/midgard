@@ -13,6 +13,7 @@ import type {
 	PdfViewerHighlight,
 	PdfViewerHighlightUnit,
 	PdfViewerMagnifierOptions,
+	PdfViewerMagnifierState,
 	PdfViewerPage,
 } from './types'
 import { usePdfViewer } from './use-pdf-viewer'
@@ -103,7 +104,14 @@ export type PdfViewerProps = {
 	 * @remarks For a viewer opened on the whole page, where the ink is legible enough to
 	 * navigate by but not to read — an invoice scan, a plan sheet — so a reader can check one
 	 * figure without zooming the page and losing their place in it. `true` takes the defaults;
-	 * pass {@link PdfViewerMagnifierOptions} to change the power, the lens size, or the dwell.
+	 * pass {@link PdfViewerMagnifierOptions} to set the power, the lens size or the dwell.
+	 *
+	 * The toolbar then carries one of two controls, and
+	 * {@link PdfViewerMagnifierOptions.mode} says which. `'simple'` is a switch, which is all
+	 * a viewer needs where the consumer already knows the page it opens on. `'config'` opens a
+	 * dialog and hands the three settings to the reader, which is what a viewer wants when it
+	 * opens on documents it cannot predict — a lens that suits an invoice scan is the wrong
+	 * lens for a plan sheet.
 	 *
 	 * Mouse only, and never interactive: it cannot take a press meant for a highlighted region
 	 * underneath it, and it does not appear for touch, where the finger already covers what
@@ -122,10 +130,15 @@ export type PdfViewerProps = {
 	 */
 	onHighlightsVisibleChange?: (visible: boolean) => void
 	/**
-	 * Fires when the reader turns the magnifier off or on from the toolbar. Present only when
-	 * {@link PdfViewerProps.magnifier} offered one; starts **on**, for the same reason.
+	 * Fires when the reader changes the magnifier — off or on from the toolbar, and in
+	 * `'config'` mode any of the three settings in the dialog. Present only when
+	 * {@link PdfViewerProps.magnifier} offered a loupe; starts **on**, for the same reason.
+	 *
+	 * @remarks Reports the whole of what the reader owns, not the one field that moved, so a
+	 * consumer that keeps the preference across sessions stores what arrives and hands it
+	 * straight back through {@link PdfViewerProps.magnifier}.
 	 */
-	onMagnifierEnabledChange?: (enabled: boolean) => void
+	onMagnifierChange?: (state: PdfViewerMagnifierState) => void
 	className?: string
 	'aria-label'?: string
 }
@@ -151,7 +164,7 @@ export function PdfViewer({
 	onHighlightPress,
 	magnifier,
 	onHighlightsVisibleChange,
-	onMagnifierEnabledChange,
+	onMagnifierChange,
 	defaultActiveHighlightId,
 	onActiveHighlightChange,
 	className,
@@ -170,7 +183,7 @@ export function PdfViewer({
 		hasHighlights: !!highlights?.length,
 		magnifier,
 		onHighlightsVisibleChange,
-		onMagnifierEnabledChange,
+		onMagnifierChange,
 	})
 
 	return (

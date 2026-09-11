@@ -32,18 +32,100 @@ import type { PdfViewerMagnifierOptions } from './types'
  * @internal
  */
 
-/** Resolved magnifier settings — the consumer's object with every default filled in. @internal */
-export type ResolvedMagnifier = Required<PdfViewerMagnifierOptions>
+/**
+ * The loupe's three settings, in the named steps the prop and the config dialog both speak.
+ * @internal
+ */
+export type MagnifierChoice = Required<Omit<PdfViewerMagnifierOptions, 'mode'>>
 
-const DEFAULTS: ResolvedMagnifier = { zoom: 2.5, size: 180, delay: 300 }
+/**
+ * The same three settings, in the numbers the lens draws with.
+ *
+ * @remarks The seam the named steps exist for. Everything below this line — the dwell handed
+ * to `useHover`, the diameter the lens is sized to, the magnification {@link lensOffset}
+ * solves against — is arithmetic, and arithmetic has no use for a token. So the steps are
+ * resolved once, here, and the rest of the loupe never learns that they exist.
+ * @internal
+ */
+export type ResolvedMagnifier = { zoom: number; size: number; delay: number }
 
-/** Normalize the boolean-or-object prop to settings, or `null` when the loupe is off. @internal */
-export function resolveMagnifier(
-	magnifier: boolean | PdfViewerMagnifierOptions | undefined,
-): ResolvedMagnifier | null {
-	if (!magnifier) return null
+/** One option in the config dialog: the step it sets, and what that step is to the reader. @internal */
+export type MagnifierOption<T extends string> = { value: T; label: string }
 
-	return magnifier === true ? DEFAULTS : { ...DEFAULTS, ...magnifier }
+/** The loupe as it has always been: 2.5× through a 180px lens, after a 300ms dwell. */
+const DEFAULT_CHOICE: MagnifierChoice = { zoom: 'md', size: 'md', delay: 'default' }
+
+/*
+ * Each scale twice over: the number the lens draws with, and the option the dialog offers.
+ *
+ * The two halves sit together because they drift apart in silence — retune `zoomSteps.lg` and
+ * a label three files away goes on claiming 4×, with no type error and no failing test to say
+ * so. Same arrangement, for the same reason, as `densityLevels` beside `densityToSize` in
+ * `providers/density/context.ts`.
+ */
+
+/** Magnification for each step. */
+const zoomSteps = { sm: 2, md: 2.5, lg: 4 } as const
+
+/** The magnification steps, each named by the power it is. @internal */
+export const zoomOptions: readonly MagnifierOption<MagnifierChoice['zoom']>[] = [
+	{ value: 'sm', label: '2×' },
+	{ value: 'md', label: '2.5×' },
+	{ value: 'lg', label: '4×' },
+]
+
+/** Lens diameter in pixels for each step. */
+const sizeSteps = { sm: 140, md: 180, lg: 240 } as const
+
+/** @internal */
+export const sizeOptions: readonly MagnifierOption<MagnifierChoice['size']>[] = [
+	{ value: 'sm', label: 'Small' },
+	{ value: 'md', label: 'Medium' },
+	{ value: 'lg', label: 'Large' },
+]
+
+/** Dwell in milliseconds for each step. */
+const delaySteps = { none: 0, default: 300 } as const
+
+/** @internal */
+export const delayOptions: readonly MagnifierOption<MagnifierChoice['delay']>[] = [
+	{ value: 'none', label: 'None' },
+	{ value: 'default', label: 'Default' },
+]
+
+/** The dwell a loupe runs on when its settings are withheld, which is while it is switched off. */
+const DEFAULT_DELAY = delaySteps[DEFAULT_CHOICE.delay]
+
+/**
+ * Fill in the steps the consumer left out.
+ *
+ * @param options - The consumer's {@link PdfViewerProps.magnifier} settings.
+ * @returns The same three settings, with every one of them named.
+ * @remarks Field by field rather than a spread over the defaults: an explicitly `undefined`
+ * setting then takes its default, and does not erase it.
+ * @internal
+ */
+export function resolveMagnifierChoice(options: PdfViewerMagnifierOptions): MagnifierChoice {
+	return {
+		zoom: options.zoom ?? DEFAULT_CHOICE.zoom,
+		size: options.size ?? DEFAULT_CHOICE.size,
+		delay: options.delay ?? DEFAULT_CHOICE.delay,
+	}
+}
+
+/**
+ * Read the named steps off as the numbers the lens draws with.
+ *
+ * @param choice - The settings, as the consumer or the reader left them.
+ * @returns The same settings in pixels, milliseconds, and a bare multiplier.
+ * @internal
+ */
+export function resolveMagnifier(choice: MagnifierChoice): ResolvedMagnifier {
+	return {
+		zoom: zoomSteps[choice.zoom],
+		size: sizeSteps[choice.size],
+		delay: delaySteps[choice.delay],
+	}
 }
 
 /** Where the pointer is inside the page frame, in CSS pixels from its top-left. @internal */
@@ -192,7 +274,7 @@ export function usePdfViewerMagnifier(
 		enabled,
 		// The dwell. Closing is immediate — a lens that lingered after the pointer left the page
 		// would sit over the toolbar it was moving towards.
-		delay: { open: settings?.delay ?? DEFAULTS.delay, close: 0 },
+		delay: { open: settings?.delay ?? DEFAULT_DELAY, close: 0 },
 		// A loupe under a fingertip shows what the finger is already covering, and would fight
 		// the scroll gesture for the same pointer.
 		mouseOnly: true,
@@ -307,7 +389,7 @@ export function usePdfViewerMagnifier(
 			setTracking(located)
 
 			setOpen(true)
-		}, settings?.delay ?? DEFAULTS.delay)
+		}, settings?.delay ?? DEFAULT_DELAY)
 	}, [locate, settings?.delay])
 
 	/*

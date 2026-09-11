@@ -1,12 +1,15 @@
 import { act, render, renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
-import { PdfViewer } from '../../components/pdf-viewer'
+import { PdfViewer, type PdfViewerMagnifierZoom } from '../../components/pdf-viewer'
+import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 import {
 	lensOffset,
 	resolveMagnifier,
+	resolveMagnifierChoice,
 	usePdfViewerMagnifier,
 } from '../../components/pdf-viewer/use-pdf-viewer-magnifier'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * The hover loupe's settled parts: what the boolean-or-object prop resolves to, and where the
@@ -20,28 +23,71 @@ import {
  * `toFractionRect` was.
  */
 
-describe('resolveMagnifier', () => {
-	it('is off unless the consumer asks', () => {
-		expect(resolveMagnifier(undefined)).toBeNull()
-		expect(resolveMagnifier(false)).toBeNull()
+describe('resolveMagnifierChoice', () => {
+	const steps = { zoom: 'md', size: 'md', delay: 'default' }
+
+	/*
+	 * Whether a loupe was asked for at all, and which control the toolbar carries for it, are
+	 * read straight off the prop in `usePdfViewer` — so they are asserted through the viewer,
+	 * below, rather than here. What is left for this seam is the one thing it decides: which
+	 * step each setting lands on.
+	 */
+	it('takes the middle step for a setting the consumer did not name', () => {
+		expect(resolveMagnifierChoice({})).toEqual(steps)
 	})
 
-	it('takes the defaults for a bare `magnifier`', () => {
-		expect(resolveMagnifier(true)).toEqual({ zoom: 2.5, size: 180, delay: 300 })
-	})
+	it('fills in only the steps an object leaves out', () => {
+		expect(resolveMagnifierChoice({ zoom: 'lg' })).toEqual({ ...steps, zoom: 'lg' })
 
-	it('fills in the settings an object leaves out', () => {
-		expect(resolveMagnifier({ zoom: 4 })).toEqual({ zoom: 4, size: 180, delay: 300 })
-		expect(resolveMagnifier({ delay: 0, size: 240 })).toEqual({
-			zoom: 2.5,
-			size: 240,
-			delay: 0,
+		expect(resolveMagnifierChoice({ delay: 'none', size: 'sm' })).toEqual({
+			zoom: 'md',
+			size: 'sm',
+			delay: 'none',
 		})
 	})
 
-	/** An explicit zero is a setting, not an absence — `{ delay: 0 }` means open at once. */
-	it('keeps a zero the consumer meant', () => {
-		expect(resolveMagnifier({ delay: 0 })?.delay).toBe(0)
+	/**
+	 * A setting written as `undefined` is a setting the consumer did not name, and takes its
+	 * default — rather than erasing one, which a spread over the defaults would do.
+	 */
+	it('defaults a step the consumer left undefined', () => {
+		expect(resolveMagnifierChoice({ zoom: undefined, size: 'lg' })).toEqual({
+			...steps,
+			size: 'lg',
+		})
+	})
+})
+
+describe('resolveMagnifier', () => {
+	/**
+	 * The middle step of each scale is what the loupe drew with before the scales existed. So
+	 * this is the test that the named steps changed the vocabulary and nothing else.
+	 */
+	it('holds the loupe as it was at the middle of every scale', () => {
+		expect(resolveMagnifier({ zoom: 'md', size: 'md', delay: 'default' })).toEqual({
+			zoom: 2.5,
+			size: 180,
+			delay: 300,
+		})
+	})
+
+	it('reads each step off as the number the lens draws with', () => {
+		expect(resolveMagnifier({ zoom: 'sm', size: 'sm', delay: 'none' })).toEqual({
+			zoom: 2,
+			size: 140,
+			delay: 0,
+		})
+
+		expect(resolveMagnifier({ zoom: 'lg', size: 'lg', delay: 'default' })).toEqual({
+			zoom: 4,
+			size: 240,
+			delay: 300,
+		})
+	})
+
+	/** `'none'` is a dwell of zero, not an absent one: the lens opens the moment it is over ink. */
+	it('reads the absent dwell as zero', () => {
+		expect(resolveMagnifier({ zoom: 'md', size: 'md', delay: 'none' }).delay).toBe(0)
 	})
 })
 
@@ -85,6 +131,188 @@ describe('PdfViewer without a magnifier', () => {
 		render(<PdfViewer pages={[{ src: '/page-1.png', width: 850, height: 1100 }]} magnifier />)
 
 		expect(document.querySelector('[data-slot="pdf-viewer-magnifier"]')).toBeNull()
+	})
+})
+
+/**
+ * What an inline `magnifier` object costs the viewer, which is nothing.
+ *
+ * `magnifier={{ mode: 'config' }}` is a new object on every render of the consumer, and
+ * config mode makes an object the common shape rather than the exception a different power
+ * used to be. `usePdfViewer` memoizes its context value so that a render touching none of its
+ * fields leaves the toolbar, the thumbnail rail and every region on the page alone; a prop
+ * resolved on identity would have retired that guarantee for every viewer that configures a
+ * loupe.
+ */
+describe('usePdfViewer over a re-rendered magnifier prop', () => {
+	const pages = [{ id: 'a', src: '/page-1.png' }]
+
+	/** A viewer in config mode, whose `magnifier` object is built fresh on every render. */
+	function configured(zoom: PdfViewerMagnifierZoom) {
+		const initialProps: { zoom: PdfViewerMagnifierZoom } = { zoom }
+
+		return renderHook(
+			({ zoom: step }) => usePdfViewer({ pages, magnifier: { mode: 'config', zoom: step } }),
+			{ initialProps },
+		)
+	}
+
+	it('holds the context value across a fresh object carrying the same settings', () => {
+		const { result, rerender } = configured('md')
+
+		const first = result.current
+
+		rerender({ zoom: 'md' })
+
+		expect(result.current).toBe(first)
+	})
+
+	/** And still moves when the consumer actually changes one. */
+	it('rebuilds it when a setting changes', () => {
+		const { result, rerender } = configured('md')
+
+		expect(result.current.magnifierSettings).toEqual({ zoom: 2.5, size: 180, delay: 300 })
+
+		rerender({ zoom: 'lg' })
+
+		expect(result.current.magnifierSettings).toEqual({ zoom: 4, size: 180, delay: 300 })
+	})
+})
+
+/**
+ * The two toolbar controls, and the dialog behind the second of them.
+ *
+ * Nothing here opens a lens — `@floating-ui/react` is mocked away in this project and its
+ * `useHover` contributes no reference props, so no dwell can elapse under jsdom. What is
+ * asserted is the chrome: which control the mode puts in the bar, what the dialog holds, and
+ * that a press in it reaches the reader's settings.
+ */
+describe('PdfViewer magnifier controls', () => {
+	const pages = [{ src: '/page-1.png', width: 850, height: 1100 }]
+
+	/** The default, and what every viewer that asked for a loupe had before `mode` existed. */
+	it('puts a switch in the toolbar in simple mode', () => {
+		renderUI(<PdfViewer pages={pages} magnifier />)
+
+		const control = screen.getByRole('button', { name: 'Turn magnifier off' })
+
+		expect(control).toHaveAttribute('aria-pressed', 'true')
+
+		expect(control).not.toHaveAttribute('aria-haspopup')
+	})
+
+	/**
+	 * `aria-pressed` would be wrong on this one and `aria-haspopup` is right: the press opens a
+	 * dialog and switches nothing, and the two attributes say which it is.
+	 */
+	it('puts the settings control in the toolbar in config mode', () => {
+		renderUI(<PdfViewer pages={pages} magnifier={{ mode: 'config' }} />)
+
+		const control = screen.getByRole('button', { name: 'Magnifier settings' })
+
+		expect(control).toHaveAttribute('aria-haspopup', 'dialog')
+		expect(control).toHaveAttribute('aria-expanded', 'false')
+
+		expect(control).not.toHaveAttribute('aria-pressed')
+
+		expect(screen.queryByRole('button', { name: 'Turn magnifier off' })).not.toBeInTheDocument()
+	})
+
+	it('opens the dialog on the press, showing the settings the viewer is on', () => {
+		renderUI(<PdfViewer pages={pages} magnifier={{ mode: 'config', size: 'lg' }} />)
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Magnifier settings' }))
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		expect(screen.getByRole('switch', { name: 'Show the magnifier' })).toBeChecked()
+
+		// The consumer asked for the large lens, so that is the option standing selected.
+		expect(screen.getByRole('radio', { name: 'Large' })).toBeChecked()
+		expect(screen.getByRole('radio', { name: 'Medium' })).not.toBeChecked()
+
+		// The two the consumer left alone open on the middle step and the default dwell.
+		expect(screen.getByRole('radio', { name: '2.5×' })).toBeChecked()
+		expect(screen.getByRole('radio', { name: 'Default' })).toBeChecked()
+	})
+
+	it('reports the step the reader picks, with the settings they left alone', () => {
+		const onMagnifierChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={pages}
+				magnifier={{ mode: 'config' }}
+				onMagnifierChange={onMagnifierChange}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Magnifier settings' }))
+
+		fireEvent.click(screen.getByRole('radio', { name: '4×' }))
+
+		expect(onMagnifierChange).toHaveBeenCalledExactlyOnceWith({
+			enabled: true,
+			zoom: 'lg',
+			size: 'md',
+			delay: 'default',
+		})
+
+		// The second press carries the first one's choice, rather than reverting to the prop.
+		fireEvent.click(screen.getByRole('radio', { name: 'None' }))
+
+		expect(onMagnifierChange).toHaveBeenLastCalledWith({
+			enabled: true,
+			zoom: 'lg',
+			size: 'md',
+			delay: 'none',
+		})
+
+		expect(screen.getByRole('radio', { name: '4×' })).toBeChecked()
+	})
+
+	/**
+	 * The switch the toolbar control stopped being. Without it, config mode would take away the
+	 * one thing simple mode always offered.
+	 */
+	it('turns the loupe off from inside the dialog', () => {
+		const onMagnifierChange = vi.fn()
+
+		renderUI(
+			<PdfViewer
+				pages={pages}
+				magnifier={{ mode: 'config' }}
+				onMagnifierChange={onMagnifierChange}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Magnifier settings' }))
+
+		fireEvent.click(screen.getByRole('switch', { name: 'Show the magnifier' }))
+
+		expect(onMagnifierChange).toHaveBeenCalledExactlyOnceWith({
+			enabled: false,
+			zoom: 'md',
+			size: 'md',
+			delay: 'default',
+		})
+
+		// The control stays where it is, and stops wearing the fill — that press is what brings
+		// the loupe back.
+		expect(screen.getByRole('button', { name: 'Magnifier settings' })).toHaveAttribute(
+			'data-variant',
+			'plain',
+		)
+	})
+
+	/** No loupe offered, no control of either kind — `mode` does not conjure one. */
+	it('offers neither control where the consumer asked for no loupe', () => {
+		renderUI(<PdfViewer pages={pages} />)
+
+		expect(screen.queryByRole('button', { name: 'Magnifier settings' })).not.toBeInTheDocument()
+		expect(screen.queryByRole('button', { name: 'Turn magnifier off' })).not.toBeInTheDocument()
 	})
 })
 

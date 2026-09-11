@@ -1,26 +1,26 @@
 'use client'
 
 import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
-import type { ReactElement } from 'react'
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { Button } from '../button'
-import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
+import { PdfViewerMagnifierSettings } from './pdf-viewer-magnifier-settings'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
  * The viewer's top control bar: the thumbnail toggle (collapses the desktop
  * sidebar, opens the mobile Sheet), page navigation, zoom and rotate, the highlight
- * visibility toggle when there are regions, the magnifier toggle when the consumer asked for
+ * visibility toggle when there are regions, the magnifier control when the consumer asked for
  * a loupe, and the download / print actions. Reads everything from {@link PdfViewerContext};
  * controls disable while loading or empty.
+ *
+ * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
+ * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.
  *
  * @internal
  */
@@ -43,9 +43,9 @@ export function PdfViewerToolbar() {
 		hasHighlights,
 		highlightsVisible,
 		setHighlightsVisible,
-		magnifierAvailable,
 		magnifierOn,
 		setMagnifierOn,
+		magnifierMode,
 	} = usePdfViewerContext()
 
 	const isEmpty = total === 0
@@ -68,7 +68,7 @@ export function PdfViewerToolbar() {
 							<PdfViewerToolbarButton
 								label={sidebarToggleLabel}
 								icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />}
-								expanded={sidebarOpen}
+								aria-expanded={sidebarOpen}
 								disabled={loading}
 								onClick={() => setSidebarOpen(!sidebarOpen)}
 							/>
@@ -78,7 +78,7 @@ export function PdfViewerToolbar() {
 							<PdfViewerToolbarButton
 								label="Show thumbnails"
 								icon={<PanelLeft />}
-								expanded={thumbsOpen}
+								aria-expanded={thumbsOpen}
 								disabled={loading}
 								onClick={() => setThumbsOpen(true)}
 							/>
@@ -123,28 +123,34 @@ export function PdfViewerToolbar() {
 						disabled={controlsDisabled}
 						onClick={rotate}
 					/>
-					{/* Only offered when there is something to hide. {@link ToolbarToggle} carries the
-					    two-state treatment and the argument for it. */}
+					{/* Only offered when there is something to hide. `active` carries the two-state
+					    treatment and the argument for it. */}
 					{hasHighlights && (
-						<ToolbarToggle
+						<PdfViewerToolbarButton
 							label={highlightsToggleLabel}
-							pressed={highlightsVisible}
-							onPressedChange={setHighlightsVisible}
-							disabled={controlsDisabled}
 							icon={<Highlighter />}
-						/>
-					)}
-					{/* Only where the consumer asked for a loupe, and it stays put once switched
-					    off — that is the press that brings it back. */}
-					{magnifierAvailable && (
-						<ToolbarToggle
-							label={magnifierToggleLabel}
-							pressed={magnifierOn}
-							onPressedChange={setMagnifierOn}
+							active={highlightsVisible}
+							aria-pressed={highlightsVisible}
 							disabled={controlsDisabled}
-							icon={<ScanSearch />}
+							onClick={() => setHighlightsVisible(!highlightsVisible)}
 						/>
 					)}
+					{/* The two magnifier controls, and `magnifierMode` says which — `null` where the
+					    consumer asked for no loupe, which is what keeps both out of the bar. The
+					    toggle stays put once switched off: that is the press that brings it back. In
+					    `'config'` mode the press opens the dialog, and the switch it took the place
+					    of is in there. */}
+					{magnifierMode === 'simple' && (
+						<PdfViewerToolbarButton
+							label={magnifierToggleLabel}
+							icon={<ScanSearch />}
+							active={magnifierOn}
+							aria-pressed={magnifierOn}
+							disabled={controlsDisabled}
+							onClick={() => setMagnifierOn(!magnifierOn)}
+						/>
+					)}
+					{magnifierMode === 'config' && <PdfViewerMagnifierSettings disabled={controlsDisabled} />}
 				</ToolbarGroup>
 				{documentSrc && (
 					<>
@@ -158,62 +164,5 @@ export function PdfViewerToolbar() {
 				)}
 			</div>
 		</Toolbar>
-	)
-}
-
-/**
- * A two-state control in this bar: a `Button` carrying `aria-pressed`, under a tooltip naming
- * the action it would take.
- *
- * **On is `soft`, off is `plain`.** The glyph never changes and the label names the *action*
- * rather than the state ("Hide highlights" while they are shown), so before this the only
- * difference between a toggle that was on and one that was off was `aria-pressed` — nothing a
- * pointer user could see, since no recipe targets that attribute. `soft`'s 15% wash is the
- * quietest fill that still reads as held down, and it leaves the button the same size, so the
- * bar doesn't reflow as a toggle flips. Left on the default zinc: this bar is chrome, and the
- * regions on the page below own the colour vocabulary — a blue toolbar button would compete
- * with the very highlights it switches. Same soft-on/plain-off pairing as
- * `app-tabs/tab-strip.tsx`'s `badgeVariant`.
- *
- * Not `ToggleIconButton`, which is the package's designated two-state control: it cross-fades
- * between two icons — motion nothing else in this bar has, on toggles whose glyph never
- * changes — and it hardcodes `variant="bare"`, so it could not take the variant swap above.
- * The two-state semantics are the attribute's, not that component's.
- *
- * Local because the two toggles below were otherwise the same sixteen lines twice, differing
- * only in label, state and glyph.
- *
- * @internal
- */
-function ToolbarToggle({
-	label,
-	pressed,
-	onPressedChange,
-	disabled,
-	icon,
-}: {
-	/** Names the action, not the state — "Hide highlights" while they are shown. */
-	label: string
-	pressed: boolean
-	onPressedChange: (pressed: boolean) => void
-	disabled?: boolean
-	icon: ReactElement
-}) {
-	return (
-		<Tooltip>
-			<TooltipTrigger>
-				<Button
-					type="button"
-					variant={pressed ? 'soft' : 'plain'}
-					aria-label={label}
-					aria-pressed={pressed}
-					disabled={disabled}
-					onClick={() => onPressedChange(!pressed)}
-				>
-					<Icon icon={icon} />
-				</Button>
-			</TooltipTrigger>
-			<TooltipContent>{label}</TooltipContent>
-		</Tooltip>
 	)
 }
