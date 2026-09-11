@@ -44,11 +44,11 @@ A row resolves in place, in the audit that holds it. Its `Status` cell takes the
 
 One row for each area segment. `Research` tracks the sweep, the verification, and the review gate. `Resolution` tracks the fixes, and it stays empty until research finds something to fix. The ledger covers the whole scope, the file sets are disjoint, and the `Files` and `Lines` columns sum to the scope above.
 
-States: `◯ open` — not started. `◐ review` — findings written, waiting on a reader or on an answer. `✅ done`. A `—` in `Resolution` means research has not yet said whether there is anything to resolve.
+States: `◯ open` — not started. `◐` — started and not finished: under `Research` the findings are written and wait on a reader, and under `Resolution` some rows are fixed. `✅ done`. A `—` in `Resolution` means research has not yet said whether there is anything to resolve.
 
 | Segment | Area | Scope | Files | Lines | Research | Resolution |
 |---|---|---|---|---|---|---|
-| `A01` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◯ open — 15 findings |
+| `A01` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 2 of 15 fixed |
 | `A02` | components | calendar + data-display 1/2 | 71 | 5,841 | ◯ open | — |
 | `A03` | components | data-display 2/2 + feedback | 68 | 2,746 | ◯ open | — |
 | `A04` | components | form-control 1/2 + form-control 2/2 | 76 | 4,978 | ◯ open | — |
@@ -171,7 +171,9 @@ Resume from the three proposals and their critiques. Decide the fifth agent or r
 
 Segment `A01` research is done and its resolution has not started. The review settled three questions: forbid the static `Menu` composition, accept one frame for the deferred reference clock, and resolve one segment before the next starts research.
 
-The next action is resolution step `S1` of `A01` — forward the resolved `readOnly` and `invalid` flags to `DateInput`, which closes both high-severity findings.
+Step `S1` of `A01` is done on the branch: the typed arm now takes the resolved `readOnly` and `invalid` flags, which fixes both high-severity findings. The two rows read `◐ FIXED` and they close when a pull request merges.
+
+The next action is step `S2` — give relative presets a span identity. Take `R2.2` first, because fixing the clock drift decides whether `R2.3` still reproduces.
 
 ---
 
