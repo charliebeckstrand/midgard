@@ -157,8 +157,14 @@ export function useDatePickerRangeState({
 	const handleClear = useCallback(() => {
 		setValue(undefined)
 
-		closeCalendar()
-	}, [closeCalendar, setValue])
+		// Only close what is open. `closeCalendar` writes `setOpen(false)`
+		// unconditionally and the controllable setter publishes every write with no
+		// equality check, so clearing from the closed trigger would report a close
+		// transition that never happened. The touch still belongs to the clear,
+		// because it is the interaction the field blurs on.
+		if (open) closeCalendar()
+		else setTouched()
+	}, [closeCalendar, open, setTouched, setValue])
 
 	const handleSelect = useCallback(
 		(date: Date) => {

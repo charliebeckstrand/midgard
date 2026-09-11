@@ -559,6 +559,34 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 	})
 
+	// Clearing empties the footer, so the Clear button unmounts while it holds
+	// focus and the popover stays open on purpose — nothing rescues focus.
+	it('hands focus to the preset list when the footer Clear unmounts itself', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(
+			<ControlledRelativePicker
+				initial={[{ from: new Date(2026, 0, 9), to: new Date(2026, 0, 15) }]}
+			/>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		// The trigger's clear shares this name, so scope to the footer toolbar.
+		const clear = within(screen.getByRole('toolbar', { name: 'Date picker actions' })).getByRole(
+			'button',
+			{ name: 'Clear selection' },
+		)
+
+		clear.focus()
+
+		await user.keyboard('{Enter}')
+
+		// Not `document.body`: the dialog is still open and modal, with the rest of
+		// the page hidden, so focus outside the tab ring is a keyboard trap.
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Today' }))
+	})
+
 	// The custom span is found by match, not by position. After midnight the span
 	// picked as Today matches Yesterday and still leads the array, while the span
 	// that matches nothing sits behind it.

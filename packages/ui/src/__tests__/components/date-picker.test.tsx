@@ -1180,6 +1180,29 @@ describe('DatePicker input', () => {
 		expect(input).toHaveAttribute('aria-controls')
 	})
 
+	// `closeCalendar` writes setOpen(false) unconditionally, and the controllable
+	// setter publishes every write, so a clear on a shut picker reported a close.
+	it('reports no close when a clear runs on a shut picker', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<DatePicker
+				clearable
+				defaultValue={new Date(2025, 5, 15)}
+				onOpenChange={onOpenChange}
+				aria-label="Due date"
+			/>,
+		)
+
+		// The trigger's own clear, with the calendar never opened. The footer clear
+		// shares this name but only exists while the popover is up.
+		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
 	// A controlled close that no pointer drives — an effect, a timer, a route
 	// change, arriving data — bypasses the close path that clears the highlight.
 	it('drops aria-activedescendant when a controlled open closes programmatically', async () => {

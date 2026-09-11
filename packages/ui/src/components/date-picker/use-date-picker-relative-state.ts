@@ -233,6 +233,23 @@ export function useDatePickerRelativeState({
 		setPickedIds(new Set())
 
 		setValue(undefined)
+
+		// Clearing is what empties the footer, so the button that ran this handler
+		// unmounts while it still holds focus — and the popover stays open on
+		// purpose, so the disclosure's focus return never fires. FloatingFocusManager
+		// reacts to a focus-out rather than to a removal, so nothing rescues it and
+		// focus lands on `document.body` inside an open modal dialog, outside the tab
+		// ring, with the rest of the page hidden (WCAG 2.4.3). Hand focus to the
+		// surface the user is on, as the trigger's clear button hands it back to the
+		// trigger. The move runs before the commit, so the row is still mounted: the
+		// first preset in list mode, and `Back to presets` in custom mode, because
+		// `querySelector` takes the first match in document order.
+		// The handler runs from a control inside the dialog, so the panel is reachable
+		// from the focused element. floating-ui's own `refs.floating` is empty on this
+		// path, and the footer's ref is about to unmount with it.
+		const panel = document.activeElement?.closest('[role="dialog"]')
+
+		panel?.querySelector<HTMLElement>('[data-relative-preset], button')?.focus()
 	}, [setValue])
 
 	const handleOpenChange = useCallback(

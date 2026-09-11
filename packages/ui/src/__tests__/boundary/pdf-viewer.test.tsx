@@ -122,6 +122,38 @@ describe('PdfViewer', () => {
 		expect(img.style.transform).toContain('rotate(90deg)')
 	})
 
+	// `pages` is a prop a parent rebuilds on any render — `docs.map(toPage)` is the
+	// shape the API invites — so a fresh array must not read as a document swap.
+	it('keeps the page rotation when an unrelated render rebuilds pages', async () => {
+		function Harness({ tick }: { tick: number }) {
+			return (
+				<>
+					<span>{tick}</span>
+					<PdfViewer pages={pages.map((page) => ({ ...page }))} />
+				</>
+			)
+		}
+
+		const { container, rerender } = renderUI(<Harness tick={0} />)
+
+		// Re-queried after each render, because the viewport rebuilds its image.
+		function transform() {
+			const img = bySlot(container, 'pdf-viewer-viewport')?.querySelector('img') as HTMLImageElement
+
+			return img.style.transform
+		}
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Rotate'))
+
+		expect(transform()).toContain('rotate(90deg)')
+
+		rerender(<Harness tick={1} />)
+
+		expect(transform()).toContain('rotate(90deg)')
+	})
+
 	it('hides download and print actions when no src is provided', () => {
 		renderUI(<PdfViewer pages={pages} />)
 
