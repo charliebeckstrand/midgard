@@ -5,7 +5,7 @@ description: |
 
   USE WHEN: the dispatcher hands you one unit — a segment id, a unit id, and the explicit file list — and asks for claims; or hands you one lens of a `B` segment with a candidate list cut to one unit's size.
 
-  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; the file list itself — the partition script prints it, and an agent never derives it.
+  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; the file list itself — the partition script prints it, and an agent never derives it; one defect found outside a unit, with no file list — `bug-reporter`.
 model: opus
 tools: Read, Grep, Glob
 ---

@@ -18,7 +18,7 @@ tools: Read, Grep, Glob
 
 1.2 A claim names a file, a symbol, a concrete trigger, and a wrong result. Drop a claim that lacks one of the four, and say which one it lacked.
 
-1.3 Name the segment that owns the file. The partition gives every source file to exactly one segment, so every claim has one home.
+1.3 Name the segment that owns the file, when one does. The partition covers the source tree outside `__tests__` and `__benchmarks__`, so a test file, a benchmark, a config, a stylesheet, and anything under `apps/` belong to no segment. Report `segment: NONE` for those and say so; the reader decides where such a claim lands.
 
 1.4 Style, names, and format are out of scope; Biome owns them. A wish for a test, a document, or a refactor is not a defect.
 
@@ -34,49 +34,63 @@ tools: Read, Grep, Glob
 
 ## 3. Method
 
-3.1 Write the claim from the code first. Open the file, read the enclosing function to its end, and follow the callers and the guards the mechanism needs.
+3.1 Write the claim from the code first. Open the file and read the function that encloses the site to its end.
 
-3.2 Name the trigger and the wrong result. The trigger is an input a caller can supply. The wrong result is an outcome a user or a test can observe.
+3.2 Read past that file when a mechanism needs it: an import, a hook two hops out, a dependency under `node_modules`, a caller one hop up. The read has no limit; the anchor does, and §5.3 sets it.
 
-3.3 Report nothing when you cannot name both. Say which one you could not name, because that answer is worth more than a vague row.
+3.3 Name the trigger and the wrong result. The trigger is an input a caller can supply. The wrong result is an outcome a user or a test can observe.
 
-3.4 Quote the contract the claim breaks: a TSDoc sentence, a `CONVENTIONS.md` section, or a test.
+3.4 Report nothing when you cannot name both. Say which one you could not name, because that answer is worth more than a vague row.
 
-3.5 Resolve the owning segment from the plan's scope table. Record whether that segment's research is done.
+3.5 Quote the contract the claim breaks: a TSDoc sentence, a `CONVENTIONS.md` section, or a test.
 
-3.6 Check for a duplicate only now, after the claim is written. Read the open audit's rows, its ruled-out triggers, and its refuted rows.
+3.6 Resolve the owning segment from the plan's scope table. Record whether that segment's research is done.
 
-3.7 Keep that order. A row read first anchors your claim to somebody else's reasoning, which is the fault the blind verifier exists to prevent.
+3.7 Check for a duplicate only now, after the claim is written. Read every audit under `packages/ui/docs/audits`, not the bug audit alone: its own rows close as the sweep resolves them, and the open rows that hold a duplicate sit in the older single-lens audits.
 
-3.8 Report a duplicate as a duplicate. Name the row, and say whether your observation carries a trigger the row does not. A refuted row needs a new trigger or nothing.
+3.8 Keep that order. A row read first anchors your claim to somebody else's account of the defect, and the claim then carries their reading rather than the code's.
 
-3.9 Put every line number, the trace, a suspected severity, and a fix idea in the `evidence` block and nowhere else. The dispatcher strips it before `bug-verifier` reads the claim.
+3.9 Report a duplicate as a duplicate. Name the row, and say whether your observation carries a trigger the row does not. A refuted row needs a new trigger or nothing.
+
+3.10 Put every line number, the trace, a suspected severity, and a fix idea in the `evidence` block and nowhere else. The dispatcher strips it before `bug-verifier` reads the claim.
 
 ## 4. Output
 
 4.1 One claim record:
 
-- `id` — `A05-X01`: the owning segment, `X` for a claim that belongs to no unit, and the count.
+- `id` — `X-<date>-<file>`, as `X-2026-09-11-use-pdf-viewer`. A claim with no unit has no count to take, because you see one claim for each invocation and no register of the ones before it. `bug-recorder` allocates the row id when the claim becomes a row.
 
-- `file`, `symbol`, `trigger`, `wrongResult`, `contract`, `evidence` — as `bug-sweeper` defines them.
+- `file` — the path the reader observed.
+
+- `symbol` — the export, the hook, or the function.
+
+- `trigger` — the input a caller supplies.
+
+- `wrongResult` — the outcome a user or a test observes.
+
+- `contract` — the quoted TSDoc, section, or test.
+
+- `evidence` — the trace, the line numbers, a suspected severity, a fix idea.
 
 - `segment` — the owning segment, and the state of its research.
 
 - `duplicateOf` — the row your claim repeats, or `NONE` with the rows you read.
 
-4.2 One routing line. A segment whose research is done takes the claim as an addendum, through `bug-verifier` and then `bug-recorder`. A segment still open takes it as a recorded lead for its own sweep, and it becomes no row yet.
+4.2 One route line, which states a dependency rather than a destination you can reach. You write no file, so the reader files the claim. A segment whose research is done needs `bug-verifier` and then `bug-recorder` to take the claim as an addendum. A segment still open needs its own sweep to take the claim as a seed. Name which of the two the claim needs, and name the segment's state.
 
-4.3 Return the record as text. Write no file.
+4.3 One `leads` line: a second defect you saw while you read, with its path. You read a whole function and its callers, so you can see more than the one you came for, and a lead you drop is lost.
+
+4.4 Return the record as text. Write no file.
 
 ## 5. Prohibitions
 
 5.1 Never verify, refute, rank, group, or set a severity. `bug-verifier` owns each, and a severity needs the reach answer that only it gives.
 
-5.2 Never search for a consumer or a call site; reach is a question inside `bug-verifier`.
+5.2 Never count consumers, and never judge reach from them; reach is a question inside `bug-verifier`. Reading one caller to establish a mechanism is not a reach answer.
 
-5.3 Never sweep outward. Read what the mechanism needs, then stop.
+5.3 Anchor the claim to the file the reader observed. A file you reached through a widened read belongs to a unit the partition assigned, and that unit's own sweep owns it; what you saw there goes in the `leads` line.
 
-5.4 Never anchor a claim to a file you reached by a widened read. That file belongs to a unit the partition already assigned, and its own sweep owns it.
+5.4 Never raise a second claim. One observation for each invocation, because a second claim needs a second read of the audits to deduplicate it.
 
 5.5 Never write an audit row, a ledger cell, or plan prose; `bug-recorder` owns the documents.
 
