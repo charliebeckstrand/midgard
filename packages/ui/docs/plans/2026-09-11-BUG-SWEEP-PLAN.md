@@ -48,7 +48,7 @@ States: `◯ open` — not started. `◐` — started and not finished: under `R
 
 | Segment | Area | Scope | Files | Lines | Research | Resolution |
 |---|---|---|---|---|---|---|
-| `A01` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 12 of 15: 11 fixed, 1 refuted |
+| `A01` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 15 of 15: 14 fixed, 1 refuted |
 | `A02` | components | calendar + data-display 1/2 | 71 | 5,841 | ◯ open | — |
 | `A03` | components | data-display 2/2 + feedback | 68 | 2,746 | ◯ open | — |
 | `A04` | components | form-control 1/2 + form-control 2/2 | 76 | 4,978 | ◯ open | — |
@@ -171,9 +171,9 @@ The fifth agent was refused: a cause that spans two units is an overlap check on
 
 Segment `A01` research is done and its resolution has not started. The review settled three questions: forbid the static `Menu` composition, accept one frame for the deferred reference clock, and resolve one segment before the next starts research.
 
-Steps `S1`, `S2`, `S3`, and `S5` of `A01` are done on the branch. Eleven rows read `◐ FIXED` and close when a pull request merges. One row fell: `R3.2` described a toggle that a static menu never performs, and a probe on the unfixed tree disproved it across every activation path, so the guard was reverted.
+Every resolution step of `A01` is done on the branch. Fourteen rows read `◐ FIXED` and close when a pull request merges; `R3.2` fell, because it described a toggle that a static menu never performs and a probe on the unfixed tree disproved it across every activation path. Resolution reads `◐` rather than `✅` because no row carries a pull request yet.
 
-The next action is step `S4` — three independent defects with observable user cost: the footer Clear that unmounts itself under focus, the PDF rotation a rebuilt `pages` array resets, and the clear that reports a close on a shut picker.
+The next action is segment `A02` — calendar and data-display, 71 files and 5,841 lines. It is the first segment to run on the four agents under [`.claude/agents/bug`](../../../../.claude/agents/bug), and the first test of whether they beat the general-purpose agents they replace.
 
 ---
 
