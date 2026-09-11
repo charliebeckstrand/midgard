@@ -17,6 +17,41 @@ import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
+describe('MenuTrigger spread order', () => {
+	it('keeps type="button" against a consumer type prop', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger type="submit">Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		// `MenuTriggerProps` accepts a button's props, so `type="submit"` typechecks.
+		// Written after the spread, the structural `type` wins, so opening a menu
+		// inside a form cannot submit it (`CONVENTIONS.md` §3.9).
+		expect(screen.getByRole('button', { name: 'Options' })).toHaveAttribute('type', 'button')
+	})
+
+	it('keeps the resolved aria-expanded against a consumer value', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger aria-expanded>Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		// The widget state reports the menu, never the consumer's constant.
+		expect(screen.getByRole('button', { name: 'Options' })).toHaveAttribute(
+			'aria-expanded',
+			'false',
+		)
+	})
+})
+
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
 		const { container } = renderUI(<MenuSection>content</MenuSection>)
@@ -284,6 +319,30 @@ describe('MenuContent', () => {
 		expect(trigger).not.toHaveAttribute('aria-controls')
 
 		expect(trigger).not.toHaveAttribute('aria-haspopup')
+	})
+
+	it('activates a link item on Space, as it does on Enter', async () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem href="/about" onAction={onAction}>
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByRole('menuitem', { name: 'About' })
+
+		item.focus()
+
+		await userEvent.keyboard(' ')
+
+		// An anchor activates on Enter natively but never on Space, and outside a
+		// dropdown no roving model supplies it, so the press used to fall through.
+		expect(onAction).toHaveBeenCalledTimes(1)
 	})
 
 	it('leaves Escape alone when rendered as a static menu', async () => {

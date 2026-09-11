@@ -163,10 +163,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	return (
 		<button
 			ref={mergeRefs}
-			type="button"
-			{...disclosure}
-			data-slot="menu-trigger"
-			className={cn(className)}
 			{...getReferenceProps({
 				...rest,
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -178,6 +174,14 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					handleTriggerKeyUp(event)
 				},
 			})}
+			// After the spread, like the cloned branch above and `menu-item.tsx`
+			// (`CONVENTIONS.md` §3.9). `getReferenceProps` re-emits every consumer prop,
+			// so a stray `type` would turn the trigger into a form submit and a stray
+			// widget-state attribute would pin what reports whether the menu is open.
+			type="button"
+			{...disclosure}
+			data-slot="menu-trigger"
+			className={cn(className)}
 		>
 			{children}
 		</button>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Control } from '../../components/control'
@@ -1178,6 +1178,45 @@ describe('DatePicker input', () => {
 
 		// aria-controls persists while the calendar is open.
 		expect(input).toHaveAttribute('aria-controls')
+	})
+
+	// A controlled close that no pointer drives — an effect, a timer, a route
+	// change, arriving data — bypasses the close path that clears the highlight.
+	it('drops aria-activedescendant when a controlled open closes programmatically', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		function Harness({ close }: { close: boolean }) {
+			const [open, setOpen] = useState(true)
+
+			useEffect(() => {
+				if (close) setOpen(false)
+			}, [close])
+
+			return (
+				<DatePicker
+					input
+					open={open}
+					onOpenChange={setOpen}
+					defaultValue={new Date(2025, 5, 15)}
+					aria-label="Due date"
+				/>
+			)
+		}
+
+		const { container, rerender } = renderUI(<Harness close={false} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		input.focus()
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		rerender(<Harness close />)
+
+		// The grid is gone, so the input must name nothing.
+		expect(input).not.toHaveAttribute('aria-activedescendant')
 	})
 
 	// The trigger arm honours `readOnly` through its own guard; the typed arm has

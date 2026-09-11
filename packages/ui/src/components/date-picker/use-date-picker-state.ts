@@ -1,7 +1,7 @@
 'use client'
 
 import type { OpenChangeReason } from '@floating-ui/react'
-import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react'
+import { type KeyboardEvent, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
@@ -129,6 +129,14 @@ export function useDatePickerState({
 
 		setActive(null)
 	}, [setOpen])
+
+	// A consumer-driven close of a controlled `open` prop bypasses `closeCalendar`,
+	// so the highlight clears on the state change and not on the path. Without it a
+	// programmatic close — an effect, a timer, a route change, arriving data — keeps
+	// `active` set, and the next programmatic open restores a stale highlight.
+	useEffect(() => {
+		if (!open) setActive(null)
+	}, [open])
 
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
@@ -283,7 +291,9 @@ export function useDatePickerState({
 		// highlight, so the header/footer zones and the closed state clear it.
 		inputAria: {
 			'aria-controls': open ? listboxId : undefined,
-			'aria-activedescendant': active?.zone === 'grid' ? activeDescendantId : undefined,
+			// Gated on `open` as well as the zone: the clearing effect above runs after
+			// the render that flips `open`, so this frame would still name the grid.
+			'aria-activedescendant': open && active?.zone === 'grid' ? activeDescendantId : undefined,
 		},
 		setReference,
 		setFloating,

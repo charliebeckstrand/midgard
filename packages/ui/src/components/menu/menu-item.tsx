@@ -7,7 +7,11 @@ import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions } from './context'
-import { handleMenuItemClick, handleMenuItemKeyDown } from './menu-item-utilities'
+import {
+	handleMenuItemClick,
+	handleMenuItemKeyDown,
+	handleMenuItemLinkKeyDown,
+} from './menu-item-utilities'
 import { useMenuRowPointer } from './use-menu-pointer'
 
 type MenuItemBaseProps = {
@@ -88,6 +92,7 @@ export function MenuItem(props: MenuItemProps) {
 			children: _children,
 			onAction: _onAction,
 			onClick: consumerOnClick,
+			onKeyDown: consumerOnKeyDown,
 			onPointerMove: consumerOnPointerMove,
 			...rest
 		} = props
@@ -106,6 +111,11 @@ export function MenuItem(props: MenuItemProps) {
 				// selection (onAction/close).
 				onClick={(event: MouseEvent<HTMLAnchorElement>) =>
 					handleMenuItemClick(event, consumerOnClick, handleSelect)
+				}
+				// Space only: the anchor's native click covers Enter, so handling both
+				// would report the selection twice.
+				onKeyDown={(event: KeyboardEvent<HTMLAnchorElement>) =>
+					handleMenuItemLinkKeyDown(event, consumerOnKeyDown)
 				}
 				onPointerMove={composeEventHandlers(consumerOnPointerMove, handlePointerMove)}
 			>
