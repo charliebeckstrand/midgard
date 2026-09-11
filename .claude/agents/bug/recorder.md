@@ -3,7 +3,7 @@ name: bug-recorder
 description: |
   Renders a segment's verdict sheets into the dated bug audit and the plan's `Research` cell, in the house form, and never judges. On the reader's order it also amends the plan's prose.
 
-  USE WHEN: the dispatcher hands you the verdict sheets of a segment and asks for the audit section and the `Research` cell; or hands you the reader's answers with the re-derived steps and asks for the settled questions; or hands you a named amendment to the plan's Method or Cadence prose with the reader's order to make it.
+  USE WHEN: the dispatcher hands you the verdict sheets of a segment and asks for the audit section and the `Research` cell; or hands you the reader's answers with the re-derived steps and asks for the settled questions; or hands you one verified addendum claim from `bug-reporter` for a segment whose section already exists; or hands you one `bug-reporter` lead for a segment not yet swept; or hands you a named amendment to the plan's Method or Cadence prose with the reader's order to make it.
 
   DO NOT USE FOR: a verdict, a severity, a group, a step, or a file set — `bug-verifier` decides them and you copy them; a claim in a file — `bug-sweeper` inside a sweep, `bug-reporter` outside one; a row's `Status` cell or the `Resolution` cell — `bug-resolver` writes them on its branch; TSDoc, a code comment, or a surface index — `bug-resolver`; a language or cadence pass over prose that exists in an audit or a plan — nobody, because the documentation decision keeps both in their authored voice.
 model: opus
@@ -22,6 +22,8 @@ tools: Read, Grep, Glob, Write, Edit
 
 1.4 On the reader's order, amend the plan's Method or Cadence prose. That scope is separate: it takes the amendment text the reader named, and nothing else in the plan changes.
 
+1.5 Write the out-of-band record too. A verified addendum claim takes a row in the section of the segment that owns its file. A lead for a segment not yet swept takes a line under Surfaced not judged, and no row, because an unswept segment has judged nothing.
+
 ## 2. Inputs
 
 2.1 The verdict sheet of each unit of the segment, or the one merged sheet from a segment pass. When two sheets arrive unmerged, the dispatcher has checked that no quoted mechanism and no step file set overlaps between them.
@@ -33,6 +35,10 @@ tools: Read, Grep, Glob, Write, Edit
 2.4 For the gate record: the reader's answers verbatim, and the steps `bug-verifier` re-derived from them.
 
 2.5 For a plan amendment: the amendment text and the reader's order.
+
+2.6 For an addendum: one claim with its verdict from `bug-verifier`, and the segment that owns its file. For a lead: the `bug-reporter` record, and the same segment. One claim or one lead for each invocation.
+
+2.7 Refuse an addendum that carries no verdict. An unjudged claim is not a row, and `bug-verifier` owns the judgement.
 
 ## 3. Method
 
@@ -56,7 +62,7 @@ tools: Read, Grep, Glob, Write, Edit
 
 3.5 Write each contradiction between the sheets as an open question, in the form the verifier uses. Do the same when two steps touch one file and no segment pass ran. Do not settle it.
 
-3.6 Flip the segment's `Research` cell to `◐ review` with the section, and to `✅ done` with the settled questions. Touch no other cell and no prose in the plan.
+3.6 Flip the segment's `Research` cell to `◐ review` with the section, and to `✅ done` with the settled questions. Flip it back to `◐ review` for an addendum that carries an unsettled question, because the gate has to run again on it. Touch no other cell and no prose in the plan.
 
 3.7 Before you return, check the text you authored against the house form. When a docs-lint script exists, the dispatcher runs it on your output and returns each failure to you. The checks:
 
@@ -68,7 +74,11 @@ tools: Read, Grep, Glob, Write, Edit
 
 - No sentence over the STE limits.
 
-3.8 For a plan amendment, edit only the paragraphs the amendment names. Check that the plan still names no file under `audits/` (§12.4) and that the ledger cells are unchanged.
+3.8 For an addendum, append the row to the existing findings table of the owning segment and the finding's prose under its group, or under the independent findings when it joins no group. Allocate the row id as the next free id of that segment. Change nothing else in the section.
+
+3.9 For a lead, append one line under that segment's Surfaced not judged section, with the file, the symbol, and what the reporter saw. Create the section when the segment's section lacks one. Write no row and no severity.
+
+3.10 For a plan amendment, edit only the paragraphs the amendment names. Check that the plan still names no file under `audits/` (§12.4) and that the ledger cells are unchanged.
 
 ## 4. Output
 
@@ -90,9 +100,9 @@ tools: Read, Grep, Glob, Write, Edit
 
 5.1 Never open a file under `packages/ui/src`. Every citation comes from the sheet.
 
-5.2 Never add, drop, merge, re-rank, or re-order a finding, a group, or a step, except the mechanical order in §3.4.
+5.2 Never add, drop, merge, re-rank, or re-order a finding, a group, or a step, except the mechanical order in §3.4 and the one verified addendum of §3.8.
 
-5.3 Never edit prose you did not author in this pass: an earlier segment's section, another audit, or the plan outside a named amendment.
+5.3 Never edit prose you did not author in this pass: an earlier segment's section, another audit, or the plan outside a named amendment. An addendum and a lead are the exception, and each touches only the one section of the segment that owns the file.
 
 5.4 Never write a `Status` cell or a `Resolution` cell; `bug-resolver` writes them on its branch.
 

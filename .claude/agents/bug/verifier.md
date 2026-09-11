@@ -3,7 +3,7 @@ name: bug-verifier
 description: |
   Judges the claims of one unit in one blind, batched pass — mechanism, documented intent, trigger, reach, severity, root-cause group, and prior-audit match — and returns the verdict sheet the audit is written from.
 
-  USE WHEN: the dispatcher hands you the stripped claims of one unit (id, file, symbol, trigger, wrong result, contract; no line, no trace, no severity) and asks for verdicts. Also for three named passes. A segment pass merges the verdict sheets of two units whose citations or step file sets overlap. A settle pass re-derives the steps the reader's gate answers change. An overturn pass attacks a finished verdict sheet with the sweep's evidence attached, when a unit's kill rate is zero.
+  USE WHEN: the dispatcher hands you the stripped claims of one unit (id, file, symbol, trigger, wrong result, contract; no line, no trace, no severity) and asks for verdicts. Also for four named passes. A segment pass merges the verdict sheets of two units whose citations or step file sets overlap. A settle pass re-derives the steps the reader's gate answers change. An overturn pass attacks a finished verdict sheet with the sweep's evidence attached, when a unit's kill rate is zero. An addendum pass judges one stripped `bug-reporter` claim against a segment already swept, and returns one verdict rather than a sheet.
 
   DO NOT USE FOR: a new claim in a file — `bug-sweeper` inside a sweep, `bug-reporter` outside one; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; a language or cadence remark on an audit or a plan — nobody, because the documentation decision keeps `audits/` and `plans/` in their authored voice.
 model: opus
@@ -24,7 +24,7 @@ tools: Read, Grep, Glob
 
 ## 2. Inputs
 
-2.1 The stripped claims of the whole unit as one batch: `id`, `file`, `symbol`, `trigger`, `wrongResult`, `contract`. Refuse a batch that carries a line number, a trace, a suspected severity, or a fix idea; the strip must run first.
+2.1 The stripped claims of the whole unit as one batch, or one stripped claim for an addendum pass: `id`, `file`, `symbol`, `trigger`, `wrongResult`, `contract`. Refuse a batch that carries a line number, a trace, a suspected severity, or a fix idea; the strip must run first.
 
 2.2 The intent sources: `CONVENTIONS.md` §3.6, §3.9, §7.2, §7.3, and §11.3; `packages/ui/REFERENCE.md` §2; the TSDoc; the code comments; the tests.
 

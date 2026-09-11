@@ -32,6 +32,8 @@ tools: Read, Grep, Glob
 
 2.4 Refuse a prior audit, another unit's claims, or a verdict. A prior row anchors the read, and `bug-verifier` owns the match.
 
+2.5 A `bug-reporter` lead for a file in your list arrives as the path alone, never as the defect it claimed. Read that file first and read it no differently. The path routes your attention; the claimed defect would anchor your reading, which is the same fault §2.4 prevents.
+
 ## 3. Method
 
 3.1 Read every file in the list to its last line. Do not sample. Count the files you read, and name each file that did not open.
