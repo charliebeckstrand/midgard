@@ -48,6 +48,20 @@ export function walkSource(
 
 type PatternRule = { label: string; regex: RegExp }
 
+// The docblock Vitest reads for a per-file environment, with Vitest's own
+// pattern: anywhere in the file, either spelling.
+const DOCBLOCK_ENVIRONMENT = /@(?:vitest|jest)-environment\s+([\w-]+)\b/
+
+/**
+ * The environment a test file declares in its docblock, or `undefined` when
+ * it declares none. One reader for `vitest.config.ts`, which builds the
+ * `pure` project from it, and `node-environment-boundary.test.ts`, which
+ * holds it to the file's DOM use.
+ */
+export function docblockEnvironment(content: string): string | undefined {
+	return DOCBLOCK_ENVIRONMENT.exec(content)?.[1]
+}
+
 /**
  * Blank the comments in a source text, so a rule that bans a call does not
  * read prose that names the call as a violation.
@@ -70,8 +84,8 @@ export function stripSourceComments(text: string): string {
  * the `g` flag. Files not matching `fileFilter` are skipped, and `skip` prunes
  * directory entries by name before the read; violation paths are reported
  * relative to `srcDir`. Set `stripComments` when a rule bans a call rather than
- * a token, so prose that names the call does not read as a violation; the strip
- * is textual, so it also blanks a `//` inside a string literal.
+ * a token, so prose that names the call does not read as a violation; see
+ * {@link stripSourceComments} for what the strip can and cannot see.
  */
 export function collectPatternViolations(options: {
 	dir: string

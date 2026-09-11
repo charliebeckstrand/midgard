@@ -73,6 +73,6 @@ describe('test isolation boundary', () => {
 		expect(
 			shared.sort(),
 			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
-		).toEqual(['boundary', 'unit'])
+		).toEqual(['boundary', 'pure', 'unit'])
 	})
 })

@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { BaseSequencer, type TestSpecification } from 'vitest/node'
+import { docblockEnvironment, walkSource } from './src/__tests__/helpers/walk-source'
 import { docsPlugin } from './src/docs/engine/plugins'
 
 const CI = Boolean(process.env.CI)
@@ -13,70 +13,35 @@ if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
 	)
 }
 
-// Vitest's own seeded shuffle (`shuffle` in @vitest/utils), copied because that
-// package is not a direct dependency: the same seed replays the same order.
-function shuffle<T>(array: T[], seed: number): T[] {
-	let length = array.length
+const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
 
-	while (length) {
-		const x = Math.sin(seed++) * 1e4
+// The test files that open with `// @vitest-environment node`: the `pure`
+// project runs exactly these, and `unit` excludes them. The docblock is the
+// one declaration — Vitest reads it too — and this scan turns it into a
+// project so the runner groups the files by `groupOrder`. Under
+// `isolate: false` a worker keeps its environment and module graph only while
+// the environment stays the same; left in `unit`, the shuffle interleaved
+// these files with the jsdom ones and every crossing rebuilt both, measured at
+// twice the suite's wall clock.
+function nodeEnvironmentFiles(): string[] {
+	const files: string[] = []
 
-		const index = Math.floor((x - Math.floor(x)) * length--)
-
-		const previous = array[length] as T
-
-		array[length] = array[index] as T
-
-		array[index] = previous
-	}
-
-	return array
-}
-
-// The docblock Vitest reads for a per-file environment.
-const DOCBLOCK_ENVIRONMENT = /@(?:vitest|jest)-environment\s+([\w-]+)\b/
-
-function environmentOf(spec: TestSpecification): string {
-	return (
-		DOCBLOCK_ENVIRONMENT.exec(readFileSync(spec.moduleId, 'utf8'))?.[1] ??
-		spec.project.config.environment
-	)
-}
-
-/**
- * The random sequencer, with each project's files held together by
- * environment. Under `isolate: false` a worker keeps its environment and
- * module graph from one file to the next only while the environment stays
- * the same; the pure-function suites declare `node` in a docblock, and a
- * plain shuffle interleaves them with the jsdom files, so every worker
- * rebuilt jsdom and its graph at each crossing — measured at twice the
- * suite's wall clock. A stable sort on the environment after the shuffle
- * keeps the shuffle inside each environment and leaves each worker one
- * crossing at most.
- */
-class EnvironmentSequencer extends BaseSequencer {
-	override async sort(files: TestSpecification[]): Promise<TestSpecification[]> {
-		const shuffled = shuffle([...files], this.ctx.config.sequence.seed ?? Date.now())
-
-		const keys = new Map(
-			shuffled.map((spec) => [spec, `${spec.project.name}\0${environmentOf(spec)}`] as const),
+	for (const dir of ['src/__tests__', 'src/docs/engine/__tests__']) {
+		walkSource(
+			join(import.meta.dirname, dir),
+			(file, content) => {
+				if (/\.test\.tsx?$/.test(file) && docblockEnvironment(content) === 'node') {
+					files.push(relative(import.meta.dirname, file))
+				}
+			},
+			new Set(['browser', 'boundary']),
 		)
-
-		return shuffled.sort((a, b) => {
-			const left = keys.get(a) ?? ''
-
-			const right = keys.get(b) ?? ''
-
-			return left < right ? -1 : left > right ? 1 : 0
-		})
 	}
+
+	return files.sort()
 }
 
-const sequence = {
-	shuffle: true,
-	sequencer: EnvironmentSequencer,
-	...(SEED ? { seed: Number(SEED) } : {}),
-}
+const nodeFiles = nodeEnvironmentFiles()
 
 // Setup files for both jsdom projects (unit, integration).
 const setupFiles = [
@@ -123,17 +88,16 @@ export default defineConfig({
 		// would read as set and change nothing. The `test` scripts export `LANG`
 		// ahead of Node instead.
 		env: { TZ: 'UTC' },
-		// A plain `shuffle` drops the project grouping BaseSequencer applies.
-		// Every project's files then land in one queue, and a worker is
-		// terminated at each crossing — along with the module graph
+		// `shuffle` selects RandomSequencer, which drops the project grouping
+		// BaseSequencer applies. Every project's files then land in one queue, and
+		// a worker is terminated at each crossing — along with the module graph
 		// `isolate: false` exists to keep. Each project below takes its
-		// `groupOrder` from its position in the array — unit, then boundary, then
+		// `groupOrder` from its position in the array — unit, pure, boundary, then
 		// integration — which restores the grouping; the shuffle still applies
 		// inside each group. Deriving it means a new project can neither omit the
 		// field nor collide with a sibling, and a project that set it alone would
-		// replace the resolved sequence rather than extend it, losing `shuffle`,
-		// `seed`, and the sequencer. `EnvironmentSequencer` above applies the same
-		// idea one level down, to the per-file environment inside a project.
+		// replace the resolved sequence rather than extend it, losing `shuffle`
+		// and `seed`.
 		//
 		// Replay a red run with `VITEST_SEED=<seed> pnpm test`, never with
 		// `--sequence.seed`: a CLI override is shallow-merged over each project's
@@ -213,18 +177,34 @@ export default defineConfig({
 					// jsdom can't — layout/colour geometry and, in its floating-ui
 					// project, real-floating-engine focus trapping — so it may not
 					// run under this jsdom config. The boundary/ suites run in the
-					// two projects below.
-					//
-					// A pure-function suite opens with `// @vitest-environment node`
-					// and runs here with no window: the setup files install their
-					// DOM pieces only where a window exists, and
-					// `node-environment-boundary.test.ts` keeps the docblock and the
-					// file's DOM use in step both ways.
+					// two projects below, and the node-docblock files in `pure`.
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/**',
 						'src/__tests__/boundary/**',
+						...nodeFiles,
 					],
+				},
+			},
+			{
+				extends: true as const,
+				// Pure-function suites, selected by their `// @vitest-environment
+				// node` docblock (see `nodeEnvironmentFiles` above): a plain node
+				// environment on one shared worker, with no jsdom, no module
+				// doubles, and no RTL setup. The only setup is the locale guard,
+				// because the format tests live here. A file here cannot reach the
+				// shared jsdom window by accident, and
+				// `node-environment-boundary.test.ts` keeps the docblock and the
+				// file's DOM use in step both ways. The docs engine's pure suites
+				// live here too, so the project carries the same plugin as `unit`.
+				plugins: [docsPlugin({ vitest: true })],
+				test: {
+					name: 'pure',
+					environment: 'node',
+					pool: 'threads',
+					isolate: false,
+					setupFiles: ['./src/__tests__/setup/locale-guard.ts'],
+					include: nodeFiles,
 				},
 			},
 			{

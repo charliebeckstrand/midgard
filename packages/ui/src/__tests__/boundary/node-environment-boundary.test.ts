@@ -1,9 +1,15 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, stripSourceComments, walkSource } from '../helpers/walk-source'
+import {
+	docblockEnvironment,
+	srcDir,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
-// A test file that opens with `// @vitest-environment node` runs in the `unit`
-// project with no window: no jsdom, no DOM stubs, no RTL cleanup. A file that
+// A test file that opens with `// @vitest-environment node` runs in the `pure`
+// project with no window: no jsdom, no DOM stubs, no module doubles, no RTL
+// cleanup (vitest.config.ts builds the project from the docblock). A file that
 // reads no DOM belongs there, so it cannot reach the shared jsdom window by
 // accident, and a file that does read the DOM must not carry the docblock, or
 // its first `document` fails at runtime with no boundary to name it. This gate
@@ -13,10 +19,9 @@ import { srcDir, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 const testsDir = join(srcDir, '__tests__')
 
-// The trees the `unit` project runs. `browser/` has its own config, the
-// `boundary/` files run in the node and forks projects, and the rest are
-// not test files.
-const SCAN_SKIP = new Set(['browser', 'boundary', 'setup', 'helpers', 'mocks', 'cases'])
+// The trees the `unit` and `pure` projects share. `browser/` has its own
+// config, and the `boundary/` files run in the node and forks projects.
+const SCAN_SKIP = new Set(['browser', 'boundary'])
 
 const SCANS = [
 	{ dir: testsDir, skip: SCAN_SKIP },
@@ -33,8 +38,6 @@ const TEST_FILE = /\.test\.tsx?$/
 const DOM_TOKEN =
 	/\b(?:document|window|navigator|HTMLElement|matchMedia)\b|@testing-library|\brender(?:UI|Hook)?\(|\bscreen\.|from '(?:\.\.\/)+helpers'/g
 
-const ENVIRONMENT = /@vitest-environment\s+([\w-]+)/
-
 type Verdict = { file: string; environment: string | undefined; domTokens: string[] }
 
 function verdicts(): Verdict[] {
@@ -50,7 +53,7 @@ function verdicts(): Verdict[] {
 
 				out.push({
 					file: file.slice(srcDir.length + 1),
-					environment: ENVIRONMENT.exec(content)?.[1],
+					environment: docblockEnvironment(content),
 					domTokens: [...new Set([...tokens].map((match) => match[0]))],
 				})
 			},

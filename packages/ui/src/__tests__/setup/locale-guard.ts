@@ -6,8 +6,8 @@
 // vitest`, an IDE runner, a debugger launch — skips them, so fail once and say
 // why rather than let ~78 assertions fail for no visible reason.
 //
-// Its own module so it runs for every file the setup serves, with or without
-// a window: the format tests declare `// @vitest-environment node`.
+// Shared by the jsdom setup (`index.ts`) and the `pure` project, which runs no
+// other setup: the format tests live there.
 const locale = new Intl.DateTimeFormat().resolvedOptions().locale
 
 if (locale !== 'en-US') {

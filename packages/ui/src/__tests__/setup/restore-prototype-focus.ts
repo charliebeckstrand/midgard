@@ -12,10 +12,7 @@ import { afterEach } from 'vitest'
 
 const pristine: Array<[object, string, PropertyDescriptor]> = []
 
-// A `// @vitest-environment node` file has no HTMLElement to protect.
-const protos = typeof HTMLElement === 'undefined' ? [] : [HTMLElement.prototype]
-
-for (const proto of protos) {
+for (const proto of [HTMLElement.prototype]) {
 	for (const name of ['focus', 'blur'] as const) {
 		const desc = Object.getOwnPropertyDescriptor(proto, name)
 
