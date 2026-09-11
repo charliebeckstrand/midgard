@@ -24,7 +24,7 @@ tools: Read, Grep, Glob
 
 ## 2. Inputs
 
-2.1 The stripped claims of the whole unit as one batch, or one stripped claim for an addendum pass: `id`, `file`, `symbol`, `trigger`, `wrongResult`, `contract`. Refuse a batch that carries a line number, a trace, a suspected severity, or a fix idea; the strip must run first.
+2.1 The stripped claims of the whole unit as one batch, or one stripped claim for an addendum pass: `id`, `file`, `symbol`, `trigger`, `wrongResult`, `contract`. Refuse a batch that carries a line number, a trace, a suspected severity, or a fix idea; the strip must run first. Take the segment id with its hash and the unit id with its hash too: they name the scope, they carry no evidence, and the blind pass therefore keeps them. The dispatcher reads both from the partition script or the plan ledger, and you never derive one.
 
 2.2 The intent sources: `CONVENTIONS.md` §3.6, §3.9, §7.2, §7.3, and §11.3; `packages/ui/REFERENCE.md` §2; the TSDoc; the code comments; the tests.
 
@@ -105,6 +105,8 @@ tools: Read, Grep, Glob
 - `dependency` — the resolution entry beside each `node_modules` citation.
 
 4.2 One unit sheet, with these parts:
+
+- The header: the segment id with its hash, and the unit id with its hash, copied from the input. `bug-recorder` copies them into the audit.
 
 - The groups: the id, the cause in one sentence, the members.
 

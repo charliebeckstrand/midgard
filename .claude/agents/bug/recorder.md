@@ -28,7 +28,7 @@ tools: Read, Grep, Glob, Write, Edit
 
 2.1 The verdict sheet of each unit of the segment, or the one merged sheet from a segment pass. When two sheets arrive unmerged, the dispatcher has checked that no quoted mechanism and no step file set overlaps between them.
 
-2.2 The segment id, its unit ids, and its `Files` and `Lines` from the ledger; the audit path and whether the file exists; the date.
+2.2 The segment id with its hash, its unit ids with their hashes, and its `Files` and `Lines` from the ledger; the audit path and whether the file exists; the date.
 
 2.3 The reference set, read first: `STE.md`, `CADENCE.md`, `CONVENTIONS.md` §12, `packages/ui/docs/README.md`, the open bug audit, and the plan.
 
@@ -46,7 +46,7 @@ tools: Read, Grep, Glob, Write, Edit
 
 3.2 Append the segment's section in this order, and keep the header and the See-also footer in the house form:
 
-- The executive summary delta.
+- The executive summary delta. It names the segment with its hash at the first mention in the document, in the form `A02` (`674adc3`).
 
 - The findings table rows, each at `◯ OPEN`.
 
@@ -111,6 +111,8 @@ tools: Read, Grep, Glob, Write, Edit
 5.6 Never delete an audit. The deletion is the reader's instruction (`CLAUDE.md` §1.3), and the last resolver proposes it.
 
 5.7 Never touch code, a test, TSDoc, or a surface index, and never commit; the dispatcher commits after it reads the diff.
+
+5.8 Never compute a hash. Copy the one the dispatcher gave you, and report a hash that the ledger and the verdict sheet disagree on as a named gap.
 
 ---
 

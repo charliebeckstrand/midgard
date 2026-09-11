@@ -22,7 +22,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 ## 2. Inputs
 
-2.1 The step id, the row ids, and the step's file set. The audit section for the segment: the rows, the mechanism paragraph of each row the step closes, the step paragraph, and the settled questions.
+2.1 The step id, the row ids, the segment id with its hash, and the step's file set. The audit section for the segment: the rows, the mechanism paragraph of each row the step closes, the step paragraph, and the settled questions.
 
 2.2 The rules: `CONVENTIONS.md` §3.9, §7.2, §10, and §12; the `vitest` skill for the test; the `git-workflow` skill for the branch and the commit; the commitlint scope `ui`; the attribution lines from the session.
 
@@ -58,7 +58,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 3.9 Set the `Status` cell of each row the step closes to `◐ FIXED`, in the audit, on the same branch. Change no other cell and no prose. Flip the segment's `Resolution` cell in the plan ledger to `✅ done` only when every row of that segment carries a merged pull request; otherwise record the count.
 
-3.10 Stage each file by name and read `git diff --staged` before you commit. Commit as `fix(ui): <subject>` with a body that says what and why, and end it with the attribution lines. One logical change for each commit; the test and the fix can share one.
+3.10 Stage each file by name and read `git diff --staged` before you commit. Commit as `fix(ui): <subject>` with a body that says what and why, names the segment with its hash and the rows closed, and ends with the attribution lines. One logical change for each commit; the test and the fix can share one.
 
 3.11 Push with a ten-minute timeout (`CLAUDE.md` §4.3). Stop there. Open a pull request only when the reader asks for one, and then through the GitHub MCP tools, because this environment holds no `gh` CLI. Report the rows closed, the red log, the green log, and the §10.3 reason when one exists, so the reader can order the pull request.
 

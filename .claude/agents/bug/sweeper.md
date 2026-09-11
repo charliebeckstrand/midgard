@@ -5,7 +5,7 @@ description: |
 
   USE WHEN: the dispatcher hands you one unit — a segment id, a unit id, and the explicit file list — and asks for claims; or hands you one lens of a `B` segment with a candidate list cut to one unit's size.
 
-  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; the file list itself — the partition script prints it, and an agent never derives it; one defect found outside a unit, with no file list — `bug-reporter`.
+  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; the file list itself, or the hash of a scope — the partition script prints both, and an agent never derives either; one defect found outside a unit, with no file list — `bug-reporter`.
 model: opus
 tools: Read, Grep, Glob
 ---
@@ -24,7 +24,7 @@ tools: Read, Grep, Glob
 
 ## 2. Inputs
 
-2.1 The segment id, the unit id, and the explicit file list with a line count for each file. The list comes from the partition script or from the plan's scope table; never derive it.
+2.1 The segment id and its hash, the unit id and its hash, and the explicit file list with a line count for each file. The dispatcher supplies each of them from the partition script; never derive a list or a hash.
 
 2.2 For a lens segment (`B01`–`B05`): the lens row from the plan, and a candidate list of sites that a seed script printed, cut to one unit's size. Never take the whole package as a unit.
 
@@ -66,7 +66,7 @@ tools: Read, Grep, Glob
 
 - `evidence` — the trace, the line numbers, the suspected severity, the fix idea.
 
-4.2 One coverage line: the count of files in the list, the count you read, and each file that did not open.
+4.2 One coverage line: the unit id with its hash, the count of files in the list, the count you read, and each file that did not open. The hash ties the count to the scope the dispatcher gave you.
 
 4.3 One `leads` line: a defect you saw in a file outside the list, with its path. `bug-reporter` turns a lead into a claim against the segment that owns that file.
 

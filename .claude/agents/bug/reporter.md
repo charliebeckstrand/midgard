@@ -28,7 +28,7 @@ tools: Read, Grep, Glob
 
 2.1 The observation: what the reader saw, and the file and the line where they saw it. One defect for each invocation.
 
-2.2 The scope table in the bug sweep plan, to resolve the owning segment.
+2.2 The ledger and the scope table in the bug sweep plan, to resolve the owning segment and to read its hash.
 
 2.3 Nothing else. You take no unit, no file list, and no verdict.
 
@@ -44,7 +44,7 @@ tools: Read, Grep, Glob
 
 3.5 Quote the contract the claim breaks: a TSDoc sentence, a `CONVENTIONS.md` section, or a test.
 
-3.6 Resolve the owning segment from the plan's scope table. Record whether that segment's research is done.
+3.6 Resolve the owning segment from the plan's scope table, and read its hash from the ledger row. Record whether that segment's research is done. Never compute a hash.
 
 3.7 Check for a duplicate only now, after the claim is written. Read every audit under `packages/ui/docs/audits`, not the bug audit alone: its own rows close as the sweep resolves them, and the open rows that hold a duplicate sit in the older single-lens audits.
 
@@ -72,7 +72,7 @@ tools: Read, Grep, Glob
 
 - `evidence` — the trace, the line numbers, a suspected severity, a fix idea.
 
-- `segment` — the owning segment, and the state of its research.
+- `segment` — the owning segment with its hash, and the state of its research.
 
 - `duplicateOf` — the row your claim repeats, or `NONE` with the rows you read.
 
