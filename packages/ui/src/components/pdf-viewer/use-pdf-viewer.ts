@@ -5,12 +5,7 @@ import { useCallback, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useMinBreakpoint } from '../../hooks'
 import type { PdfViewerFit, PdfViewerMagnifierOptions, PdfViewerPage, PdfViewerZoom } from './types'
 import { usePdfViewerDocument } from './use-pdf-viewer-document'
-import {
-	type PdfViewerMagnifierResult,
-	type ResolvedMagnifier,
-	resolveMagnifier,
-	usePdfViewerMagnifier,
-} from './use-pdf-viewer-magnifier'
+import { type ResolvedMagnifier, resolveMagnifier } from './use-pdf-viewer-magnifier'
 import { usePdfViewerPageRotation } from './use-pdf-viewer-page-rotation'
 import { type PageScaleResult, usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
 import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
@@ -78,8 +73,6 @@ export type PdfViewerResult = {
 	onImageLoad: (event: SyntheticEvent<HTMLImageElement>) => void
 	rootRef: RefObject<HTMLElement | null>
 	viewportRef: RefObject<HTMLDivElement | null>
-	/** Hover-loupe state and its floating-ui plumbing; inert when `magnifierSettings` is null. */
-	magnifier: PdfViewerMagnifierResult
 	/**
 	 * Resolved loupe settings, or `null` when there is no loupe to draw — either the consumer
 	 * never asked for one, or the reader has switched it off.
@@ -165,7 +158,6 @@ export function usePdfViewer({
 	 */
 	const magnifierSettings = magnifierOn ? magnifierOffered : null
 
-	const magnifier = usePdfViewerMagnifier(magnifierSettings)
 	const shouldLoadFromSrc = !pagesProp && !!src
 
 	const {
@@ -300,7 +292,6 @@ export function usePdfViewer({
 			onImageLoad,
 			rootRef,
 			viewportRef,
-			magnifier,
 			magnifierSettings,
 			magnifierAvailable: magnifierOffered !== null,
 			magnifierOn,
@@ -329,7 +320,6 @@ export function usePdfViewer({
 			setMagnifierOn,
 			visible,
 			onImageLoad,
-			magnifier,
 			magnifierSettings,
 			magnifierOffered,
 			magnifierOn,

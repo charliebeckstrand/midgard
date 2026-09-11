@@ -6,6 +6,7 @@ import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
 import { PdfViewerHighlights } from './pdf-viewer-highlights'
 import { PdfViewerMagnifier } from './pdf-viewer-magnifier'
+import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
 
 /**
  * Renders the page surface inside the measured viewport: either the active
@@ -31,8 +32,9 @@ export function PdfViewerViewport() {
 		visible,
 		fit,
 		onImageLoad,
-		magnifier,
 	} = usePdfViewerContext()
+
+	const magnifier = usePdfViewerMagnifierContext()
 
 	const { aspectRatio, frameWidth, frameHeight, imageWidth, imageHeight, transform } = scale
 

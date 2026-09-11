@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
+import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
 import { lensOffset } from './use-pdf-viewer-magnifier'
 
 /**
@@ -26,7 +27,9 @@ import { lensOffset } from './use-pdf-viewer-magnifier'
  * @internal
  */
 export function PdfViewerMagnifier() {
-	const { magnifier, magnifierSettings, activePage, scale, visible } = usePdfViewerContext()
+	const { magnifierSettings, activePage, scale, visible } = usePdfViewerContext()
+
+	const magnifier = usePdfViewerMagnifierContext()
 
 	const root = usePortalContainer()
 

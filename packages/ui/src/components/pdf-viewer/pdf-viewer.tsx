@@ -4,6 +4,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { PdfViewerContext } from './context'
 import { PdfViewerHighlightsProvider } from './pdf-viewer-highlights-provider'
+import { PdfViewerMagnifierProvider } from './pdf-viewer-magnifier-provider'
 import { PdfViewerThumbnails } from './pdf-viewer-thumbnails'
 import { PdfViewerToolbar } from './pdf-viewer-toolbar'
 import { PdfViewerViewport } from './pdf-viewer-viewport'
@@ -183,16 +184,18 @@ export function PdfViewer({
 				<PdfViewerToolbar />
 				<div className={cn(k.body)}>
 					<PdfViewerThumbnails />
-					<PdfViewerHighlightsProvider
-						highlights={highlights}
-						highlightUnit={highlightUnit}
-						activeHighlightId={activeHighlightId}
-						onHighlightPress={onHighlightPress}
-						defaultActiveHighlightId={defaultActiveHighlightId}
-						onActiveHighlightChange={onActiveHighlightChange}
-					>
-						<PdfViewerViewport />
-					</PdfViewerHighlightsProvider>
+					<PdfViewerMagnifierProvider settings={context.magnifierSettings}>
+						<PdfViewerHighlightsProvider
+							highlights={highlights}
+							highlightUnit={highlightUnit}
+							activeHighlightId={activeHighlightId}
+							onHighlightPress={onHighlightPress}
+							defaultActiveHighlightId={defaultActiveHighlightId}
+							onActiveHighlightChange={onActiveHighlightChange}
+						>
+							<PdfViewerViewport />
+						</PdfViewerHighlightsProvider>
+					</PdfViewerMagnifierProvider>
 				</div>
 			</section>
 		</PdfViewerContext>
