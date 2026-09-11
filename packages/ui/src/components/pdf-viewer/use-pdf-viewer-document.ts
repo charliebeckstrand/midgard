@@ -1,6 +1,6 @@
 'use client'
 
-import type { PDFDocumentProxy, RenderTask } from 'pdfjs-dist'
+import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist'
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
 import { clamp } from '../../utilities'
 import {
@@ -94,7 +94,7 @@ function releasePdf(controller: PdfRasterController) {
 }
 
 /**
- * Rasterizes one page to a blob URL and reports it.
+ * Rasterizes one already-parsed page to a blob URL and reports it.
  *
  * @remarks Each URL is reported in the same step that creates it, which is what keeps a failed
  * load from leaking: everything allocated is in the cache's snapshot by the time anything can
@@ -102,23 +102,21 @@ function releasePdf(controller: PdfRasterController) {
  *
  * A page with no 2D context, or one `toBlob` refuses (oversized or tainted canvas), is skipped
  * rather than treated as a failure — the rest of the document still renders.
+ *
+ * The canvas belongs to the caller and is resized per page rather than allocated per page: at
+ * up to 2× device scale a US-Letter backing store is tens of megabytes, and a fresh one per
+ * page hands the whole document's worth to the collector over a long load.
  * @internal
  */
 async function appendRenderedPage(
 	controller: PdfRasterController,
+	page: PDFPageProxy,
 	pageNum: number,
 	scale: number,
 	report: PdfLoadReport,
+	canvas: HTMLCanvasElement,
 ): Promise<void> {
-	const doc = controller.doc
-
-	if (!doc) return
-
-	const page = await doc.getPage(pageNum)
-
 	const viewport = page.getViewport({ scale })
-
-	const canvas = document.createElement('canvas')
 
 	canvas.width = viewport.width
 	canvas.height = viewport.height
@@ -183,9 +181,40 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 
 		const scale = clamp(window.devicePixelRatio || 1, 1.5, 2)
 
+		// One canvas for the whole document — see `appendRenderedPage`.
+		const canvas = document.createElement('canvas')
+
+		/*
+		 * The next page's parse, started before this one renders.
+		 *
+		 * `getPage` is worker-side while `render` and `toBlob` hold the main thread, so awaiting
+		 * them in turn left the worker idle for the whole of each page's render and PNG encode.
+		 * Queuing the next parse first overlaps the two. Rendering itself stays strictly serial:
+		 * there is one `controller.renderTask` slot, and its cancel semantics depend on that.
+		 *
+		 * The no-op catch marks the prefetch handled. Without it, a parse that rejects while the
+		 * loop is already unwinding from an earlier failure would surface as an unhandled
+		 * rejection; the loop's own `await` still sees the rejection and throws it.
+		 */
+		let pending: Promise<PDFPageProxy> | null = doc.getPage(1)
+
+		pending.catch(() => {})
+
 		for (let i = 1; i <= doc.numPages; i++) {
-			await appendRenderedPage(controller, i, scale, report)
+			if (!pending) break
+
+			const page = await pending
+
+			pending = i < doc.numPages ? doc.getPage(i + 1) : null
+
+			pending?.catch(() => {})
+
+			await appendRenderedPage(controller, page, i, scale, report, canvas)
 		}
+
+		// Frees the backing store rather than waiting for the element to be collected.
+		canvas.width = 0
+		canvas.height = 0
 	} finally {
 		releasePdf(controller)
 	}
