@@ -104,11 +104,11 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
  * sibling (`onWash.palette`), not as a role inside `RAMP`.
  *
  * `__tests__/recipes/contrast.test.ts` measures this rung against the wash for
- * every kata registered in `TINT_CONSUMERS`. That registry reconciles on the
- * literal `bg.tint`, so consumers reaching the same ground through
- * `hannou.tint` / `hannou.active` are invisible to it and are gated in Chromium
- * instead (`browser/a11y-geometry-interactive.test.tsx`) until the scan is
- * re-keyed on composited ground values (#587).
+ * every kata registered in `TINT_CONSUMERS`. That registry reconciles on every
+ * spelling that reaches a wash — `bg.tint` for the opaque fill, `hannou.tint` /
+ * `hannou.active` / `hannou.item` for the interaction ones — and each entry
+ * names the ground its inks land on, so the two grounds are measured apart
+ * where dark parts them.
  */
 export const onWash = {
 	muted: ['text-zinc-600', 'dark:text-zinc-400'] as [light: string, dark: string],

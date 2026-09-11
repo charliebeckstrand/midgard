@@ -2,9 +2,12 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import { extendedColors } from '../../core/recipe'
+import { k as commandPalette } from '../../recipes/kata/command-palette'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as list } from '../../recipes/kata/list'
+import { k as menu } from '../../recipes/kata/menu'
 import { k as nav } from '../../recipes/kata/nav'
+import { k as option } from '../../recipes/kata/option'
 import { hannou, iro, omote } from '../../recipes/kiso'
 import {
 	onSurface as extendedOnSurface,
@@ -141,6 +144,23 @@ const TINT = byMode(omote.bg.tint)
 /** The composited ground `omote.bg.tint` paints over the page surface, per mode. */
 const WASH = { light: tinted(TINT.light, SURFACE.light), dark: tinted(TINT.dark, SURFACE.dark) }
 
+const HOVER = byMode(hannou.tint)
+
+/**
+ * The composited ground the interaction washes paint: `hannou.tint` (hover /
+ * focus), `hannou.active` (the roved row), and `hannou.item`, which bundles the
+ * first.
+ *
+ * Kept apart from {@link WASH} rather than folded into it. The two agree in
+ * light — both `zinc-950/5` — and part in dark, where `omote.bg.tint` is
+ * `white/10` against these at `white/5`. A different ground is a different
+ * measurement, and assuming they agree is the transcription this file refuses.
+ */
+const HOVER_WASH = {
+	light: tinted(HOVER.light, SURFACE.light),
+	dark: tinted(HOVER.dark, SURFACE.dark),
+}
+
 /** The muted rung every consumer of that wash inks with. */
 const MUTED = byMode(iro.onWash.muted)
 
@@ -194,15 +214,24 @@ function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
  * the completeness case below reconciles the list against the recipe tree, so
  * a new tint consumer can't ship without landing here first.
  *
- * That reconciliation is keyed on the literal `bg.tint`, so it holds only for
- * consumers that name the token. `kata/menu`, `kata/option` and
- * `kata/command-palette` reach the same wash through `hannou.tint` /
- * `hannou.active` and are invisible to it — registering them here fails the
- * completeness case rather than passing it. Their ink is gated in Chromium
- * instead (`browser/a11y-geometry-interactive.test.tsx`) until the scan is
- * re-keyed on composited ground values (#587).
+ * The reconciliation is keyed on every spelling that reaches a wash, not on one
+ * token: `bg.tint` for the opaque fill, and `hannou.tint` / `hannou.active` /
+ * `hannou.item` for the interaction washes. Each entry names the ground its
+ * inks land on, so the two grounds are measured apart where they differ.
  */
-const TINT_CONSUMERS: readonly { file: string; surfaces: readonly ClassTree[] }[] = [
+const TINT_CONSUMERS: readonly {
+	file: string
+	surfaces: readonly ClassTree[]
+	/** The composited ground this file's inks sit on. @defaultValue WASH */
+	ground?: typeof WASH
+	/**
+	 * Inks this file paints on some *other* ground, named so the wash rule skips
+	 * them. Each one is a state that re-grounds the row — a focused menu row
+	 * swaps to a solid accent fill — and is measured against that fill by the
+	 * archetype that owns it, not here.
+	 */
+	regrounded?: readonly string[]
+}[] = [
 	// The `solid` row variant, inked by the row itself, `description`, and the
 	// interactive `content` column.
 	{
@@ -217,6 +246,25 @@ const TINT_CONSUMERS: readonly { file: string; surfaces: readonly ClassTree[] }[
 	{ file: 'recipes/kata/nav.ts', surfaces: [nav.item.button({ affix: false })] },
 	{ file: 'recipes/kata/toolbar.ts', surfaces: [] },
 	{ file: 'recipes/kata/box.ts', surfaces: [] },
+	// The interaction washes. `hannou.item` grounds a hovered or focused row and
+	// `hannou.active` a roved one; both sit a step darker than `bg.tint` in dark.
+	{
+		file: 'recipes/kata/menu.ts',
+		surfaces: [menu.item({}), menu.description],
+		ground: HOVER_WASH,
+		// The focused row takes a solid accent fill, not the wash.
+		regrounded: ['group-focus/option:text-white'],
+	},
+	{
+		file: 'recipes/kata/option.ts',
+		surfaces: [option.base, option.description],
+		ground: HOVER_WASH,
+	},
+	{
+		file: 'recipes/kata/command-palette.ts',
+		surfaces: [commandPalette.item, commandPalette.description],
+		ground: HOVER_WASH,
+	},
 ]
 
 /**
@@ -251,7 +299,12 @@ describe('tint wash foreground contrast', () => {
 	it('registers every recipe that paints the wash', () => {
 		const painted = collectPatternViolations({
 			dir: join(srcDir, 'recipes'),
-			patterns: [{ label: 'bg.tint', regex: /\bbg\.tint\b/g }],
+			patterns: [
+				{ label: 'bg.tint', regex: /\bbg\.tint\b/g },
+				{ label: 'hannou.tint', regex: /\bhannou\.tint\b/g },
+				{ label: 'hannou.active', regex: /\bhannou\.active\b/g },
+				{ label: 'hannou.item', regex: /\bhannou\.item\b/g },
+			],
 			stripComments: true,
 		}).map((line) => line.split(' → ')[0])
 
@@ -262,15 +315,19 @@ describe('tint wash foreground contrast', () => {
 	// has nothing to measure and would assert `[] === []` in its name's stead.
 	describe.each(TINT_CONSUMERS.filter(({ surfaces }) => surfaces.length > 0))('$file', ({
 		surfaces,
+		ground = WASH,
+		regrounded = [],
 	}) => {
 		const inks = inksByMode(surfaces)
 
 		it.each(MODES)('grounds no ink below text AA on the wash in %s mode', (m) => {
-			const failing = inks[m].flatMap((ink) => {
-				const ratio = contrastOf(ink, WASH[m])
+			const failing = inks[m]
+				.filter((ink) => !regrounded.includes(ink))
+				.flatMap((ink) => {
+					const ratio = contrastOf(ink, ground[m])
 
-				return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
-			})
+					return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
+				})
 
 			expect(failing).toEqual([])
 		})
