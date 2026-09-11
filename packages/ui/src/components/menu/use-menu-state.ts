@@ -155,6 +155,10 @@ export function useMenuState({
 	// the keyboard activation a cloned non-button child never gets from the
 	// browser, plus the main-button guard and `stickIfOpen`. `MenuTrigger` keeps
 	// its own auto-repeat guard, which `useClick` has no equivalent for.
+	//
+	// A static menu needs no guard here: it opens without a click, so floating-ui
+	// records no click-type open event and `stickIfOpen` refuses the click-close.
+	// A press on a static trigger therefore changes nothing already.
 	const click = useClick(context)
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])

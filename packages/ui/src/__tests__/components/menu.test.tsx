@@ -222,6 +222,70 @@ describe('MenuContent', () => {
 		expect(screen.getByText('Item')).not.toHaveFocus()
 	})
 
+	it('seats one roving tab stop on a static menu, so Tab reaches its rows', () => {
+		const { container } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const items = [...container.querySelectorAll('[role="menuitem"]')]
+
+		expect(items).toHaveLength(2)
+
+		// A static menu seats no focus, so the roving model needs a tab stop to have
+		// any entry point. Exactly one row holds it; every row at tabIndex -1 leaves
+		// the whole menu unreachable by keyboard.
+		expect(items.filter((item) => item.getAttribute('tabindex') === '0')).toHaveLength(1)
+	})
+
+	it('toggles nothing from a static menu trigger', async () => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Menu defaultOpen onOpenChange={onOpenChange}>
+				<MenuTrigger>Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Options' }))
+
+		// Not a fix, a guarantee worth pinning: a static menu opens without a click,
+		// so floating-ui records no click-type open event and `stickIfOpen` refuses
+		// the click-close. The press changes nothing.
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
+	})
+
+	it('emits no disclosure ARIA from a static menu trigger', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuTrigger>Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Options' })
+
+		// A static menu owns no disclosure. `aria-expanded` would contradict the
+		// visible panel, and `aria-controls` would name an id the static branch never
+		// stamps on its panel.
+		expect(trigger).not.toHaveAttribute('aria-expanded')
+
+		expect(trigger).not.toHaveAttribute('aria-controls')
+
+		expect(trigger).not.toHaveAttribute('aria-haspopup')
+	})
+
 	it('leaves Escape alone when rendered as a static menu', async () => {
 		const onOpenChange = vi.fn()
 

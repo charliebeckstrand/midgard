@@ -95,7 +95,11 @@ export const overlays: readonly Case[] = [
 		</Popover>,
 	],
 	[
-		// Dropdown menu: role=menu with grouped menuitems, opened on mount.
+		// Static menu: role=menu with grouped menuitems, rendered inline. `defaultOpen`
+		// with no `placement` is the static mode, not a dropdown, so the panel sits in
+		// the tree where axe can read it and one row holds the roving tab stop. The
+		// MenuTrigger is deliberately inert here: a static menu owns no disclosure, so
+		// the button carries no aria-expanded and no aria-controls.
 		'menu',
 		<Menu key="mn" defaultOpen>
 			<MenuTrigger>

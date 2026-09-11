@@ -69,8 +69,13 @@ export function MenuContent({
 					typeahead
 					glass={glass}
 					// A static menu is part of the page, not a transient overlay;
-					// `autoFocus={false}` keeps it from grabbing focus on mount.
+					// `autoFocus={false}` keeps it from grabbing focus on mount. Seating no
+					// focus leaves the roving model with no entry point, so the tab stop has
+					// to come from `manageTabIndex`: one row holds it and Tab reaches the
+					// menu. Without both, the panel and every row are `tabIndex={-1}` and a
+					// keyboard user cannot reach a single item.
 					autoFocus={false}
+					manageTabIndex
 					className={cn(k.content, className)}
 				>
 					{viewport}
