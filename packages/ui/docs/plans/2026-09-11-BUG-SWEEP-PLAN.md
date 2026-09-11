@@ -155,6 +155,24 @@ The area sweeps read `.ts` and `.tsx` only, so they exclude the build configurat
 
 No sweep runs the package. Every claim comes from a read of the source. A defect that needs a run to see stays out of reach: a layout result, a paint order, a real browser event sequence. The browser suite and a manual pass own that ground.
 
+## Agent architecture — in progress
+
+The sweep runs today on general-purpose agents with long prompts. A specialist network would cost less and miss less, and the design is part-finished. Three architects proposed a network, three skeptics attacked each proposal against one test: the network must not be worse than no specialist agents at all. The synthesis did not run, so nothing is decided and no agent file exists yet.
+
+Three proposals converge on the same four owners: a **unit sweeper** that reads one unit and raises claims, a **claim verifier** that judges them, an **audit author** that owns the documents, and a **finding resolver** that closes a row. Take that core as settled. The proposals cost 10, 13, and 15 agent invocations for one segment; only 10 survives the concurrency cap of 2 across the whole programme, so the burden of proof sits on any fifth agent.
+
+Two skeptics independently rejected **reach as its own agent**, and the argument holds. Severity is not wholly a reach call: `F5` turns on impact ("one redundant key, and Enter still activates the item") and `F1`'s reach turns on a guard in `apps/places`, which is mechanism work. Reach is therefore a mandated question inside the verifier, not a separate remit — the verifier must answer it and must not return a severity without it.
+
+The skeptics found five gaps that no proposal owned. A standing ruling that attaches to a document class rather than to a code seam, which is the exemption in [`2026-08-02-DOC-AUDIT.md`](../audits/2026-08-02-DOC-AUDIT.md) that no agent was told to look for. A file collision between resolvers that run at the same time: segment `A01` collides with itself, because two of its steps both write `use-menu-state.ts`. Who may amend this plan's prose, which `A01` proved is necessary. The cross-component defect, which only a segment-wide vantage can see and which no proposal let that vantage raise. And [`CONVENTIONS.md`](../../../../CONVENTIONS.md) §10.3, which bars a test from driving floating-ui, pdfjs, fetch, or virtualization — the machinery under `F1`, `F2`, and `F6`, so a test author cannot be told to cover them.
+
+Resume from the three proposals and their critiques. Decide the fifth agent or refuse it, settle the five gaps, then write the files under `.claude/agents/` in the house frontmatter form: a `name`, a `description` carrying **USE WHEN** and **DO NOT USE FOR**, a `model`, and a minimal `tools` list that gives a research agent no write tool.
+
+## State
+
+Segment `A01` research is done and its resolution has not started. The review settled three questions: forbid the static `Menu` composition, accept one frame for the deferred reference clock, and resolve one segment before the next starts research.
+
+The next action is resolution step `S1` of `A01` — forward the resolved `readOnly` and `invalid` flags to `DateInput`, which closes both high-severity findings.
+
 ---
 
 **See also:** [`../README.md`](../README.md) · [`CONVENTIONS.md` §12](../../../../CONVENTIONS.md) · [`REFERENCE.md`](../../REFERENCE.md).
