@@ -13,11 +13,10 @@ import {
 import { Field, Label } from '../../../components/fieldset'
 import { Icon } from '../../../components/icon'
 import { Stack } from '../../../components/stack'
-import type { DensityLevel } from '../../../providers/density'
+import { type DensityLevel, densityLevels } from '../../../providers/density'
 import { UIProvider } from '../../../providers/ui'
-import type { ThemeMode } from '../hooks/use-theme'
-import { DensityListbox } from './density-listbox'
-import { ThemeListbox } from './theme-listbox'
+import { type ThemeMode, themeModes } from '../hooks/use-theme'
+import { OptionsListbox } from './options-listbox'
 
 type SettingsDialogProps = {
 	mode: ThemeMode
@@ -65,7 +64,8 @@ export function SettingsDialog({
 							<UIProvider portalContainer={portalRoot}>
 								<Field>
 									<Label>Appearance</Label>
-									<ThemeListbox
+									<OptionsListbox
+										options={themeModes}
 										value={mode}
 										placement="bottom-start"
 										onValueChange={onModeChange}
@@ -73,7 +73,8 @@ export function SettingsDialog({
 								</Field>
 								<Field>
 									<Label>Density</Label>
-									<DensityListbox
+									<OptionsListbox
+										options={densityLevels}
 										value={density}
 										placement="bottom-start"
 										onValueChange={onDensityChange}

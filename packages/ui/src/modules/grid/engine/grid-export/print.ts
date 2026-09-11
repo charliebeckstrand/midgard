@@ -1,3 +1,4 @@
+import { printInHiddenFrame } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { rowsToHtmlTable } from './html-table'
 
@@ -17,61 +18,19 @@ th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
 }
 
 /**
- * Opens the browser print dialog over `rows` through a hidden iframe, mirroring
- * `printPdf` (see `components/pdf-viewer/pdf-viewer-utilities`): cleans up on
- * `afterprint`, with a window-`focus` backstop for browsers that never fire it
- * (e.g. older Safari) or when the dialog is dismissed.
+ * Opens the browser print dialog over `rows` through a hidden iframe.
+ *
+ * @remarks No recovery is wired: the grid builds its own markup, so a frame that
+ * cannot print has nothing to fall back to and the failure propagates. The frame
+ * is still reclaimed. See {@link printInHiddenFrame}.
  *
  * @typeParam T - Shape of a single row.
  * @internal
  */
-export function printRows<T>(columns: GridColumn<T>[], rows: T[]): void {
-	const iframe = document.createElement('iframe')
-
-	Object.assign(iframe.style, {
-		position: 'fixed',
-		right: '0',
-		bottom: '0',
-		width: '0',
-		height: '0',
-		border: '0',
+export function printRows<T>(columns: GridColumn<T>[], rows: T[]) {
+	printInHiddenFrame({
+		prepare: (iframe) => {
+			iframe.srcdoc = rowsToPrintHtml(columns, rows)
+		},
 	})
-
-	iframe.setAttribute('aria-hidden', 'true')
-
-	let cleaned = false
-
-	const cleanup = () => {
-		if (cleaned) return
-
-		cleaned = true
-
-		window.removeEventListener('focus', cleanup)
-
-		iframe.remove()
-	}
-
-	iframe.addEventListener('load', () => {
-		const win = iframe.contentWindow
-
-		if (!win) {
-			cleanup()
-
-			return
-		}
-
-		win.addEventListener('afterprint', cleanup)
-
-		// Backstop for browsers that never fire `afterprint` (e.g. older Safari) or
-		// where the user dismisses the dialog: reclaims the iframe when focus
-		// returns to the main window after the print dialog closes.
-		window.addEventListener('focus', cleanup, { once: true })
-
-		win.focus()
-		win.print()
-	})
-
-	iframe.srcdoc = rowsToPrintHtml(columns, rows)
-
-	document.body.appendChild(iframe)
 }

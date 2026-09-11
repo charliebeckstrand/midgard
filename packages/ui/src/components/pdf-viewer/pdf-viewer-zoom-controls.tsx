@@ -1,9 +1,7 @@
 import { Maximize2, ZoomIn, ZoomOut } from 'lucide-react'
 import { useMemo } from 'react'
-import { Button } from '../button'
-import { Icon } from '../icon'
 import { ToolbarGroup } from '../toolbar'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
+import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import type { PdfViewerZoom } from './types'
 
 /** Props for {@link PdfViewerZoomControls}. @internal */
@@ -35,48 +33,26 @@ export function PdfViewerZoomControls({ zoom, disabled }: PdfViewerZoomControlsP
 
 	return (
 		<ToolbarGroup aria-label="Zoom">
-			<Tooltip>
-				<TooltipTrigger>
-					<Button
-						type="button"
-						variant="plain"
-						aria-label="Zoom out"
-						disabled={disabled || zoom.value <= minZoom}
-						onClick={zoomOut}
-					>
-						<Icon icon={<ZoomOut />} />
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent>Zoom Out ({(nextLevelDown * 100).toFixed(0)}%)</TooltipContent>
-			</Tooltip>
-			<Tooltip>
-				<TooltipTrigger>
-					<Button
-						type="button"
-						variant="plain"
-						aria-label="Zoom in"
-						disabled={disabled || zoom.value >= maxZoom}
-						onClick={zoomIn}
-					>
-						<Icon icon={<ZoomIn />} />
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent>Zoom In ({(nextLevelUp * 100).toFixed(0)}%)</TooltipContent>
-			</Tooltip>
-			<Tooltip>
-				<TooltipTrigger>
-					<Button
-						type="button"
-						variant="plain"
-						aria-label="Reset zoom"
-						disabled={disabled || zoom.value === 1}
-						onClick={resetZoom}
-					>
-						<Icon icon={<Maximize2 />} />
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent>Reset zoom</TooltipContent>
-			</Tooltip>
+			<PdfViewerToolbarButton
+				label="Zoom out"
+				tooltip={`Zoom Out (${(nextLevelDown * 100).toFixed(0)}%)`}
+				icon={<ZoomOut />}
+				disabled={disabled || zoom.value <= minZoom}
+				onClick={zoomOut}
+			/>
+			<PdfViewerToolbarButton
+				label="Zoom in"
+				tooltip={`Zoom In (${(nextLevelUp * 100).toFixed(0)}%)`}
+				icon={<ZoomIn />}
+				disabled={disabled || zoom.value >= maxZoom}
+				onClick={zoomIn}
+			/>
+			<PdfViewerToolbarButton
+				label="Reset zoom"
+				icon={<Maximize2 />}
+				disabled={disabled || zoom.value === 1}
+				onClick={resetZoom}
+			/>
 		</ToolbarGroup>
 	)
 }

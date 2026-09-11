@@ -26,8 +26,8 @@ import {
 } from '../../../components/table'
 import { Text } from '../../../components/text'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../../layouts'
-import { type DensityLevel, DensityProvider } from '../../../providers/density'
-import { DensityListbox, Example } from '../../engine'
+import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
+import { Example, OptionsListbox } from '../../engine'
 
 export const meta = { name: 'Density' }
 
@@ -131,7 +131,11 @@ export function Demo() {
 	)
 
 	return (
-		<Example actions={<DensityListbox value={density} onValueChange={setDensity} />}>
+		<Example
+			actions={
+				<OptionsListbox options={densityLevels} value={density} onValueChange={setDensity} />
+			}
+		>
 			<Stack gap="md">
 				<DensityProvider density={density}>
 					<SidebarLayout sidebar={sidebar}>

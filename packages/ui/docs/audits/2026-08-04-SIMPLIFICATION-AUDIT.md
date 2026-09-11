@@ -130,7 +130,7 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   so no `size` prop can carry `xl`. The public `createSkeleton` signature does not change. Saving: 32
   lines. Resolved in #1061.
 
-- [ ] **Collapse the eight pdf-viewer toolbar icon-buttons.** The toolbar family writes the same
+- [x] **Collapse the eight pdf-viewer toolbar icon-buttons.** The toolbar family writes the same
   Tooltip / Trigger / Button / Icon scaffold eight times across 114 lines
   (`pdf-viewer-toolbar.tsx:54-68,:72-86,:122-135`; `pdf-viewer-zoom-controls.tsx:37-50,:51-64,:65-78`;
   `pdf-viewer-document-actions.tsx:34-47,:48-61`), and every copy spells `type="button"` and
@@ -140,6 +140,8 @@ Behaviour-neutral. Each removes a file, an export, or a layer.
   drop three imports each and add one. `TooltipTrigger` clones its element child
   (`tooltip-trigger.tsx:78-88`), so the tree and every `data-slot` stay the same, and `pdf-viewer.test.tsx`
   queries only accessible names (`:97,:103,:115,:131`) and `aria-expanded` (`:199`). Saving: 30 lines.
+  Measured, the three call sites lose 68 lines against 62 for `PdfViewerToolbarButton`; the win is the
+  one scaffold, not the count. Resolved in #1119.
 
 - [x] **Fold `useControlFieldContext` into `ControlField`.** The hook is a 36-line `@internal` file that
   builds one `useMemo` for one 30-line component, and its own TSDoc admits the arrangement ("Not on the
@@ -196,20 +198,43 @@ Each is a real reduction that needs a decision or careful test work first.
   a category-axis rule they do not draw today (`axis.tsx:113-124`). The `gridPositions ??
   valueTicks.map(...)` fallback and four prop defaults move with it. Saving: 100 lines.
 
-- [ ] **Lift the shared disclosure prologue out of the three DatePicker state hooks.**
-  `useDatePickerState`, `useDatePickerRangeState`, and `useDatePickerRelativeState` open and close with
-  the same block, and a difflib run reports 159 shared lines between the single and range variants:
-  `useControl` / `useIdScope` (`use-date-picker-state.ts:45-47`, `use-date-picker-range-state.ts:52-54`,
-  `use-date-picker-relative-state.ts:77-79`), the resolved disabled/readOnly pair, the `useFormValue`
-  binding, the `useControllable` open triad with its readOnly gate, and the `useFloatingUI` epilogue with
-  its `onOpenChange` re-wrapper and `setReference` capture, which is identical apart from one generic.
-  Add `useDatePickerDisclosure`, but note that it must own the composed open/close pair and take `onOpen`
-  and `onClose` as the variant extras, because `useFloatingUI` needs a `handleOpenChange` built from the
-  `setOpen` the shared hook owns. Each variant then hoists its state declarations above the call and
-  memoises those callbacks, or `useFloatingUI` gets a new handler each render. The single variant keeps
-  its own `floatingRef` capture for `useDatePickerInputTab`. All three hooks are `@internal` and off the
-  barrel, but three dedicated suites plus `DatePickerApi = ReturnType<typeof useDatePickerState>`
-  (`date-picker.test.tsx:35`) drive these returns. Saving: 75 lines.
+- [x] **Lift the shared disclosure prologue out of the three DatePicker state hooks.** Ruled out in
+  [#1119](https://github.com/charliebeckstrand/midgard/pull/1119). The duplication is real and larger than
+  the row says — the `useControl` / `useIdScope` prologue, the resolved disabled/readOnly pair, and the
+  `useControllable` open triad with its readOnly gate are byte-identical in all three hooks, and the
+  28-line `useFloatingUI` epilogue is byte-identical between the single and range variants. The lift is
+  still not worth making, for four reasons read from source.
+
+  Its stated design constraint does not hold. The row says the shared hook must own the composed
+  open/close pair and take `onOpen` / `onClose`, "or `useFloatingUI` gets a new handler each render".
+  `use-floating-ui.ts:103-105` invites exactly that: "Pass a fresh closure each render if that is
+  convenient. The call always reaches the latest render's callback, and the identity is read by nothing."
+  `useFloatingPanel:180-184` is itself deliberately unmemoised. Drop that constraint and the hook has no
+  reason to absorb the three divergent openers.
+
+  The blocks are not at the two ends. `useFloatingUI` sits at line 204 of 312, 207 of 297, and 230 of
+  458, so between 90 and 228 lines follow the "epilogue" in each file. A lift hoists it about 100 lines
+  up in all three, because `handleSelect` and `handleClear` depend on the closer the hook would own.
+  Two more blocks sit inside the prologue rather than around it: `listboxId` / `activeDescendantId` in
+  the single variant, `multiple` / `showChips` in the relative one.
+
+  The arithmetic inverts. Each call site pays back a roughly 20-name destructure that
+  `biome.json` `lineWidth: 100` breaks one per line, plus a 12-field options object. Against about 184
+  lines removed, the new file costs about 227 — a generic options type whose fields this codebase
+  documents, and an explicit result type that TS2742 forces because it must return `refs`, the same
+  constraint `use-floating-ui.ts:37-43` already wrote out by hand. Net: about 43 lines worse, not 75
+  better.
+
+  It cannot live in `hooks/`. The shared hook needs `useControl`, `useFormValue`, and `useLocale`, from
+  `components/` and `providers/`, which `hook-purity-boundary.test.ts:13-19` forbids there. It lands in
+  `components/date-picker/` as a fourth private file with three call sites and no further reuse. Where
+  something is worth doing here it is an `onOpen` / `onClose` extension to `useFloatingDisclosure`, which
+  already owns the identical open triad and readOnly gate at `use-floating-disclosure.ts:93-113` and is
+  passed over by these three only because it offers no seam for the open/close side effects.
+
+  Two corrections to the row's own citations. The relative prologue is at `:68-70`, not `:77-79`. And
+  there are two dedicated hook suites, not three — the relative variant is driven only through
+  `<DatePicker relative>` in `date-picker-relative.test.tsx`.
 
 - [ ] **Merge the List and Kanban reorder hooks onto one lifted engine.** `useListKeyboard` and
   `useKanbanKeyboard` implement the same APG grabbed-element machine twice, and both files admit it in
@@ -226,7 +251,7 @@ Each is a real reduction that needs a decision or careful test work first.
   the announcement strings and the arrow behaviour against the existing suites before you land it.
   Saving: 75 lines.
 
-- [ ] **Drop the named-threshold layer and `meetsContrast` from `utilities/contrast`.** `contrast.ts`
+- [x] **Drop the named-threshold layer and `meetsContrast` from `utilities/contrast`.** `contrast.ts`
   ships a named-conformance abstraction — `ContrastLevel`, `ContrastThreshold`, `LEVEL_FLOOR`,
   `contrastFloor`, and four WCAG constants — plus `meetsContrast`. An unfiltered repo sweep finds readers
   only in the module, `utilities/index.ts:15-19`, its own unit test, and `docs/UTILITIES.md`. The one
@@ -239,9 +264,9 @@ Each is a real reduction that needs a decision or careful test work first.
   changes from `'AA'` to `4.5`, and `surface-index.test.ts:70-72` pins `docs/UTILITIES.md` against every
   value export, so the eight index rows and four doc rows change in the same commit. This is internal,
   not public: `docs/UTILITIES.md:3` and package.json `exports` confirm no `./utilities` entry. Saving: 64
-  lines.
+  lines. Resolved in #1119.
 
-- [ ] **Route the test contrast helper through `utilities/contrast`.** `__tests__/helpers/contrast.ts`
+- [x] **Route the test contrast helper through `utilities/contrast`.** `__tests__/helpers/contrast.ts`
   re-derives what the shipped module exports one directory over. The nine OKLab coefficients at `:55-63`
   are the literals at `utilities/contrast.ts:125-133`, `encode` and `decode` at `:80-81` are the
   piecewise functions at `:66-72`, the 0.2126 / 0.7152 / 0.0722 weighting at `:83` is what `:185`
@@ -253,28 +278,34 @@ Each is a real reduction that needs a decision or careful test work first.
   percent form that `parseOklch` (`:152`) also divides. `chart-label-contrast.test.ts:4-5` already pairs
   both modules, so the path is proven. Run this after the threshold-layer deletion to avoid rework. The
   codebase writes an explicit "Deliberately not" comment where duplication is intended
-  (`walk-source.ts:14-18`), and this file carries none. Saving: 55 lines.
+  (`walk-source.ts:14-18`), and this file carries none. Saving: 55 lines. The helper now works in
+  gamma-encoded sRGB rather than in linear light, so compositing is one blend rather than an encode,
+  blend, decode round trip; the calibration case still reads 3.21:1 and all 59 ramp and chart-label
+  assertions pass unchanged. Resolved in #1119.
 
-- [ ] **Share the hidden-iframe print harness with `printPdf`.** `print.ts:29-59` and
-  `pdf-viewer-utilities.ts:35-65` are 31 byte-identical lines: the same `createElement`, the same six
-  style writes, `aria-hidden`, the `cleaned` latch, the cleanup closure with its focus-listener removal,
-  and the load handler's `win` guard. `print.ts:20-21` names the mirror in its own TSDoc. Add
-  `utilities/print-frame.ts` exporting `printInHiddenFrame({ prepare, onFail })`, then let `printRows`
-  set `srcdoc` and `printPdf` set `src` with its `window.open` fallback as `onFail`. The import edge
-  already exists in both directions (`grid-export/accessor.ts:1`, `use-pdf-viewer-document.ts:5`). The
-  divergence is wider than the two assignments: `pdf-viewer-utilities.ts:67-83` wraps the whole
-  `afterprint` block in try/catch and `:86-90` adds an iframe `error` listener, where `print.ts:61-69`
-  has neither. The helper must therefore gate both on `onFail`, or a throwing `win.print()` in the grid
-  path becomes silent instead of propagating. jsdom cannot exercise the catch branch —
-  `grid-export-html.test.tsx:136-182` covers only the happy path — so review this by reading, not by
-  test. [CONVENTIONS.md](../../../../CONVENTIONS.md) §12.2 adds one `utilities/index.ts` row and one
-  `docs/UTILITIES.md` row. Saving: 26 lines.
+- [x] **Share the hidden-iframe print harness with `printPdf`.** Resolved in
+  [#1119](https://github.com/charliebeckstrand/midgard/pull/1119). `utilities/print-frame.ts` holds
+  `printInHiddenFrame({ prepare, onFail })`; `printRows` sets `srcdoc` and `printPdf` sets `src` with
+  its `window.open` fallback as `onFail`. The two call sites were 31 byte-identical lines: the same
+  `createElement`, the same six style writes, `aria-hidden`, the `cleaned` latch, the cleanup closure
+  with its focus-listener removal, and the load handler's `win` guard. `print.ts:20-21` named the mirror
+  in its own TSDoc.
+
+  Two corrections to this row. The saving is not 26 lines — it is 3 lines spent, because `onFail` gates
+  both divergent halves (the try/catch and the iframe `error` listener) and that gate costs more than
+  the duplication returned. The value is one print lifecycle rather than two, which is what the row was
+  really about: a fix to the `cleaned` latch or the focus backstop now lands in both paths. And jsdom
+  does exercise the catching arm — `pdf-viewer.test.tsx:325` drives a throwing `print()` through a
+  mocked `contentWindow`. What jsdom cannot assert is the propagating arm: a throwing listener never
+  rethrows to `dispatchEvent`, and the unhandled error it raises instead fails the runner even after
+  `preventDefault`. The grid path therefore pins the observable half of the gate — `error` opens no tab
+  — and the rest is by reading.
 
 ## Public API
 
 Worth doing, but a consumer notices.
 
-- [ ] **Delete the two zero-behaviour listbox wrappers in the docs kit.** `theme-listbox.tsx:13-15` and
+- [x] **Delete the two zero-behaviour listbox wrappers in the docs kit.** `theme-listbox.tsx:13-15` and
   `density-listbox.tsx:13-15` are each a whole file whose body is `<OptionsListbox options={X}
   {...props} />`, and each re-declares `value`, `placement`, and `onValueChange` (`:6-10` in both) that
   `options-listbox.tsx:8-13` already carries. Both option sets are `LabeledOption`-shaped at source
@@ -285,9 +316,10 @@ Worth doing, but a consumer notices.
   of the `DensityListbox` row (`:6`) and the `ThemeListbox` row (`:11`). A consumer notices:
   `engine/index.ts:1-4` declares itself the demo-authoring kit, and `demos/providers/density.tsx:30,134`
   must change both its import and its JSX. `engine/README.md:13` describes the kit generically, so it
-  needs no edit. Saving: 27 lines.
+  needs no edit. Saving: 27 lines. `SizeListbox` and `VariantListbox` stay: each builds the labelled
+  pairs from a bare token list, which is the work these two lacked. Resolved in #1119.
 
-- [ ] **Prune five hook options that no call site passes.** `useA11yRoving.scrollIntoView`,
+- [x] **Prune five hook options that no call site passes.** `useA11yRoving.scrollIntoView`,
   `useSortableSensors.activationDistance`, and `useKeybindings.event`, `capture`, and `timeout` are each
   declared, documented, defaulted, and threaded through a context object or a dependency array, and no
   caller in `packages` or `apps` passes one. `scrollIntoView` appears only inside `use-a11y-roving.ts`,
@@ -302,7 +334,8 @@ Worth doing, but a consumer notices.
   shrink the keybindings destructure, options literal, and dependency array. Each option is a documented,
   defaulted field on a barrel-exported hook, so the removal is a public signature change. No docs surface
   index moves with it: `docs/HOOKS.md` carries one row per hook and does not enumerate options, so the
-  change is TSDoc only. Saving: 17 lines.
+  change is TSDoc only. Saving: 17 lines. Re-verified before the cut against 18 roving call sites,
+  three sensor sites, and every `useKeybindings` caller in the package and both apps. Resolved in #1119.
 
 ## Ruled out
 
@@ -423,9 +456,17 @@ writing the machinery twice.
 
 ## Landed
 
-Eleven of the twelve Ready findings are done, in [#1061](https://github.com/charliebeckstrand/midgard/pull/1061).
-Each checked row above cites it and carries its own detail. Delete this file once the last row closes, per
-[CONVENTIONS.md](../../../../CONVENTIONS.md) §12.4 — the pull request holds the history.
+Eighteen of the twenty findings are done. [#1061](https://github.com/charliebeckstrand/midgard/pull/1061)
+took eleven of the twelve Ready findings.
+[#1119](https://github.com/charliebeckstrand/midgard/pull/1119) took the twelfth — the pdf-viewer toolbar
+buttons — along with the contrast threshold layer, the test contrast helper, the five unread hook options,
+the two docs listbox wrappers, and the hidden-iframe print harness, and ruled out the DatePicker
+prologues. Each checked row above cites its pull request and carries its own detail. Delete this file once
+the last row closes, per [CONVENTIONS.md](../../../../CONVENTIONS.md) §12.4 — the pull request holds the
+history.
+
+Two rows stay open: the cartesian engine's exploded prop lists, which waits on a non-optional
+`CartesianChart.baseline`, and the List and Kanban reorder machines.
 
 The branch removes 912 lines from `packages/ui/src` and adds 339, a net 573, against the 550 the tier
 estimated. Three of the six commits are `/simplify` passes over the branch's own diff rather than audit
@@ -443,9 +484,9 @@ gate, which turned it and the choropleth one red together. And three review agen
 skeleton's hand-written size union with `import type { Ma }`; running `component-ma-boundary.test.ts`
 against that import named the offending file, so the union stays and its comment now names the gate.
 
-`Collapse the eight pdf-viewer toolbar icon-buttons` is the one Ready finding left. It is the tier's
-worst ratio — 30 lines across eight sites in three files, plus the a11y case surface — so it is better
-done beside other pdf-viewer work than on its own.
+`Collapse the eight pdf-viewer toolbar icon-buttons` was the last Ready finding, held back as the tier's
+worst ratio — 30 lines across eight sites in three files, plus the a11y case surface. #1119 took it
+beside the other pdf-viewer work, which is where this section said it belonged.
 
 ## Totals
 

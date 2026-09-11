@@ -2,17 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
 	type ColorInput,
-	contrastFloor,
 	contrastRatio,
-	meetsContrast,
 	parseColor,
 	readableInk,
 	relativeLuminance,
-	WCAG_AA_LARGE,
-	WCAG_AA_TEXT,
-	WCAG_AAA_LARGE,
-	WCAG_AAA_TEXT,
-	WCAG_NON_TEXT,
 } from '../../utilities/contrast'
 
 describe('parseColor', () => {
@@ -85,38 +78,6 @@ describe('contrastRatio', () => {
 	})
 })
 
-describe('meetsContrast', () => {
-	it('defaults to the text AA floor', () => {
-		expect(meetsContrast('white', 'black')).toBe(true)
-		expect(meetsContrast('#777777', 'white')).toBe(false) // 4.48 < 4.5
-	})
-
-	it('honours an explicit numeric threshold', () => {
-		expect(meetsContrast('#777777', 'white', WCAG_AA_LARGE)).toBe(true) // 4.48 >= 3
-		expect(meetsContrast('white', 'black', WCAG_AAA_TEXT)).toBe(true) // 21 >= 7
-	})
-
-	it('honours a named WCAG level', () => {
-		expect(meetsContrast('#777777', 'white', 'AA')).toBe(false) // 4.48 < 4.5
-		expect(meetsContrast('#777777', 'white', 'non-text')).toBe(true) // 4.48 >= 3
-		expect(meetsContrast('white', 'black', 'AAA')).toBe(true) // 21 >= 7
-	})
-})
-
-describe('contrastFloor', () => {
-	it('maps each named level to its WCAG ratio', () => {
-		expect(contrastFloor('AA')).toBe(WCAG_AA_TEXT)
-		expect(contrastFloor('AA-large')).toBe(WCAG_AA_LARGE)
-		expect(contrastFloor('AAA')).toBe(WCAG_AAA_TEXT)
-		expect(contrastFloor('AAA-large')).toBe(WCAG_AAA_LARGE)
-		expect(contrastFloor('non-text')).toBe(WCAG_NON_TEXT)
-	})
-
-	it('passes a raw ratio through unchanged', () => {
-		expect(contrastFloor(4.2)).toBe(4.2)
-	})
-})
-
 describe('readableInk', () => {
 	it('returns the leading candidate when it clears the floor', () => {
 		// On near-black, white leads the list and clears (18.9:1), so it wins outright.
@@ -129,32 +90,18 @@ describe('readableInk', () => {
 	})
 
 	it('falls back to the highest-contrast candidate when none clears', () => {
-		// Neither clears AAA (7:1) on mid-grey; black (5.32 vs white 3.95) is the fallback.
-		expect(readableInk('#808080', ['white', 'black'], WCAG_AAA_TEXT)).toBe('black')
+		// Neither clears 7:1 on mid-grey; black (5.32 vs white 3.95) is the fallback.
+		expect(readableInk('#808080', ['white', 'black'], 7)).toBe('black')
 	})
 
-	it('respects a numeric threshold argument', () => {
-		// At the non-text floor (3:1) white already clears on the same grey, so it stays first.
-		expect(readableInk('#808080', ['white', 'black'], WCAG_NON_TEXT)).toBe('white')
-	})
-
-	it('accepts a named WCAG level', () => {
-		// 'non-text' (3:1) keeps white first; 'AA' (4.5:1) fails white and flips to black.
-		expect(readableInk('#808080', ['white', 'black'], 'non-text')).toBe('white')
-		expect(readableInk('#808080', ['white', 'black'], 'AA')).toBe('black')
+	it('respects the floor it is given', () => {
+		// At 3:1 white already clears on the same grey, so it stays first; the
+		// default 4.5 fails it and flips to black.
+		expect(readableInk('#808080', ['white', 'black'], 3)).toBe('white')
+		expect(readableInk('#808080', ['white', 'black'])).toBe('black')
 	})
 
 	it('throws on an empty candidate list', () => {
 		expect(() => readableInk('white', [])).toThrow(/at least one/)
-	})
-})
-
-describe('WCAG thresholds', () => {
-	it('carry their standard ratios', () => {
-		expect(WCAG_AA_TEXT).toBe(4.5)
-		expect(WCAG_AA_LARGE).toBe(3)
-		expect(WCAG_NON_TEXT).toBe(3)
-		expect(WCAG_AAA_TEXT).toBe(7)
-		expect(WCAG_AAA_LARGE).toBe(4.5)
 	})
 })
