@@ -25,7 +25,7 @@ describe('useFormValue', () => {
 	})
 
 	it('reads the form field value and writes back through it', () => {
-		const wrapper = makeFormWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(
 			() => ({
@@ -47,7 +47,7 @@ describe('useFormValue', () => {
 	})
 
 	it('ignores defaultValue when form-bound', () => {
-		const wrapper = makeFormWrapper({ amount: undefined })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: undefined } })
 
 		const { result } = renderHook(() => useFormValue<number>('amount', { defaultValue: 9 }), {
 			wrapper,
@@ -57,7 +57,7 @@ describe('useFormValue', () => {
 	})
 
 	it('lets an explicit value prop win over the form field', () => {
-		const wrapper = makeFormWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(() => useFormValue<number>('amount', { value: 3 }), { wrapper })
 
@@ -65,7 +65,7 @@ describe('useFormValue', () => {
 	})
 
 	it('marks the field touched via setTouched', () => {
-		const wrapper = makeFormWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(
 			() => ({
@@ -87,7 +87,7 @@ describe('useFormValue', () => {
 	it('still notifies onValueChange while form-bound', () => {
 		const onValueChange = vi.fn()
 
-		const wrapper = makeFormWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(() => useFormValue<number>('amount', { onValueChange }), {
 			wrapper,

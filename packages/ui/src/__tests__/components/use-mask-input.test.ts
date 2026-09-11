@@ -1,9 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
-import { createElement, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form, useFormField } from '../../components/form'
+import { useFormField } from '../../components/form'
 import { useMaskInput } from '../../components/mask-input/use-mask-input'
 import { makeChangeEvent } from '../helpers'
+import { makeFormWrapper } from '../helpers/form-wrapper'
 
 const upper = (raw: string) => raw.toUpperCase()
 
@@ -67,8 +67,7 @@ describe('useMaskInput', () => {
 	})
 
 	it('marks the bound form field touched via onBlur', () => {
-		const wrapper = ({ children }: { children: ReactNode }) =>
-			createElement(Form<{ code: string }>, { defaultValues: { code: '' }, children })
+		const wrapper = makeFormWrapper({ defaultValues: { code: '' } })
 
 		const { result } = renderHook(
 			() => ({
@@ -88,13 +87,11 @@ describe('useMaskInput', () => {
 	})
 
 	it('surfaces the bound field error state through invalid', () => {
-		const wrapper = ({ children }: { children: ReactNode }) =>
-			createElement(Form<{ code: string }>, {
-				defaultValues: { code: '' },
-				validate: { code: (v) => (v.length < 3 ? 'too short' : undefined) },
-				validateOn: 'change',
-				children,
-			})
+		const wrapper = makeFormWrapper({
+			defaultValues: { code: '' },
+			validate: { code: (v) => (v.length < 3 ? 'too short' : undefined) },
+			validateOn: 'change',
+		})
 
 		const { result } = renderHook(() => useMaskInput({ name: 'code', format: upper }), { wrapper })
 

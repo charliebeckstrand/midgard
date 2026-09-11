@@ -18,7 +18,7 @@ describe('useFormToggle', () => {
 	})
 
 	it('reads the form field and writes back through it when no checked prop', () => {
-		const wrapper = makeFormWrapper({ agree: false })
+		const wrapper = makeFormWrapper({ defaultValues: { agree: false } })
 
 		const { result } = renderHook(
 			() => ({
@@ -44,7 +44,7 @@ describe('useFormToggle', () => {
 	it('lets an explicit checked prop win over the form field', () => {
 		const onChange = vi.fn()
 
-		const wrapper = makeFormWrapper({ agree: false })
+		const wrapper = makeFormWrapper({ defaultValues: { agree: false } })
 
 		const { result } = renderHook(
 			() => ({
@@ -74,7 +74,7 @@ describe('useFormToggle', () => {
 	it('chains the consumer onChange while bound', () => {
 		const onChange = vi.fn()
 
-		const wrapper = makeFormWrapper({ agree: false })
+		const wrapper = makeFormWrapper({ defaultValues: { agree: false } })
 
 		const { result } = renderHook(() => useFormToggle({ name: 'agree', onChange }), { wrapper })
 

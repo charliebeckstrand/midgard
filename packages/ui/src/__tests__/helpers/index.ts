@@ -12,13 +12,7 @@ export { frames } from './frames'
 // loading axe-core suite-wide. The a11y suites import them directly from './axe'.
 export { expectAnnouncement, liveRegion } from './live-region'
 export { makeCanvasContext } from './make-canvas-context'
-export {
-	makeChangeEvent,
-	makeFocusEvent,
-	makeKeyEvent,
-	makePointerEvent,
-	makeSyntheticEvent,
-} from './make-event'
+export { makeChangeEvent, makeFocusEvent, makeKeyEvent, makePointerEvent } from './make-event'
 export { makeFileList } from './make-file-list'
 export { allRegions, firstRegion, layerScale, tableRows } from './map-queries'
 export { mockDomGeometry } from './mock-dom-geometry'

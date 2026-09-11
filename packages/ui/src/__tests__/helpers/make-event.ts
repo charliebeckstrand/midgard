@@ -7,7 +7,7 @@ import { vi } from 'vitest'
  * cast is local to this helper, so call sites stay typed. The named builders
  * below add the defaults their event kind needs.
  */
-export function makeSyntheticEvent<E extends SyntheticEvent>(overrides: Partial<E> = {}): E {
+function makeSyntheticEvent<E extends SyntheticEvent>(overrides: Partial<E> = {}): E {
 	const partial: Partial<SyntheticEvent> = {
 		preventDefault: vi.fn(),
 		stopPropagation: vi.fn(),
