@@ -5,6 +5,7 @@ import {
 	type DatePickerRelativePreset,
 	type DatePickerRelativeValue,
 	DEFAULT_RELATIVE_PRESETS,
+	findCustomSpan,
 	isCustomActive,
 	isRelativeEmpty,
 	matchRelativePreset,
@@ -138,6 +139,22 @@ describe('relativeSummary', () => {
 		)
 
 		expect(relativeSummary(chips)).toBe('3 selected')
+	})
+})
+
+describe('findCustomSpan', () => {
+	const presets = DEFAULT_RELATIVE_PRESETS
+
+	it('is undefined when every span matches a preset', () => {
+		expect(findCustomSpan([resolve('today'), resolve('this-year')], presets, NOW)).toBeUndefined()
+	})
+
+	// Position does not identify the custom span. A span picked as Today matches
+	// Yesterday once the instant crosses midnight, so a matched span can lead.
+	it('skips a matched span that leads the array', () => {
+		const custom = { from: new Date(2025, 0, 9), to: new Date(2025, 0, 14) }
+
+		expect(findCustomSpan([resolve('today'), custom], presets, NOW)).toEqual(custom)
 	})
 })
 

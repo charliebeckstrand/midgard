@@ -14,6 +14,7 @@ import type { DatePickerBaseProps, DatePickerRelativeProps } from './date-picker
 import {
 	type DatePickerRelativePreset,
 	type DatePickerRelativeValue,
+	findCustomSpan,
 	isCustomActive,
 	isRelativeEmpty,
 	type RelativeChip,
@@ -159,8 +160,11 @@ export function useDatePickerRelativeState({
 	const customActive = now ? isCustomActive(value, presets, now, pickedIds) : false
 
 	// The committed custom span, if any — used to seed the Start/End inputs when the
-	// user re-enters custom mode so an existing custom range shows pre-filled.
-	const customSpan = customActive && value && value.length > 0 ? value[0] : undefined
+	// user re-enters custom mode so an existing custom range shows pre-filled. Found
+	// by match, not by position: a span picked as a preset stops matching once the
+	// instant moves past midnight, so a matched span can sit ahead of the custom one
+	// and `value[0]` would seed the Start/End inputs from the wrong range.
+	const customSpan = now ? findCustomSpan(value, presets, now, pickedIds) : undefined
 
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {

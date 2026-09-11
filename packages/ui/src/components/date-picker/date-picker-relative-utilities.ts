@@ -220,6 +220,28 @@ export function selectedPresetIds(
 	return ids
 }
 
+/**
+ * The first committed span that matches no preset, or `undefined` when every
+ * span matches one. That span is the custom range, so it seeds the Start/End
+ * inputs on re-entry to custom mode.
+ *
+ * @remarks
+ * Position does not identify it. A preset span can stop matching as the
+ * reference instant moves — a span picked as "Today" matches "Yesterday" after
+ * midnight — so a committed array can hold a matched span ahead of the
+ * unmatched one.
+ *
+ * @internal
+ */
+export function findCustomSpan(
+	value: DatePickerRelativeValue[] | undefined,
+	presets: DatePickerRelativePreset[],
+	now: Date,
+	preferredIds?: ReadonlySet<string>,
+): DatePickerRelativeValue | undefined {
+	return value?.find((span) => matchRelativePreset(span, presets, now, preferredIds) === null)
+}
+
 /** True when any committed span matches no preset — i.e. a custom range is set. @internal */
 export function isCustomActive(
 	value: DatePickerRelativeValue[] | undefined,
@@ -227,9 +249,7 @@ export function isCustomActive(
 	now: Date,
 	preferredIds?: ReadonlySet<string>,
 ): boolean {
-	if (value === undefined) return false
-
-	return value.some((span) => matchRelativePreset(span, presets, now, preferredIds) === null)
+	return findCustomSpan(value, presets, now, preferredIds) !== undefined
 }
 
 /**

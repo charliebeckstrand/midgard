@@ -559,6 +559,37 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 	})
 
+	// The custom span is found by match, not by position. After midnight the span
+	// picked as Today matches Yesterday and still leads the array, while the span
+	// that matches nothing sits behind it.
+	it('seeds the custom range from the unmatched span and not the first one', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2026, 0, 15, 23, 59, 30))
+
+			renderUI(<ControlledRelativePicker multiple />)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Today' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Last 7 days' }))
+
+			await clock.user.keyboard('{Escape}')
+
+			await clock.advance(60_000)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+			// The Last 7 days span matches no preset at the new instant, so it is the
+			// custom one; its start is 9 January, not the 15th the Today span carries.
+			expect((screen.getByRole('textbox', { name: 'Start' }) as HTMLInputElement).value).toBe(
+				'01/09/2026',
+			)
+		})
+	})
+
 	// The reference instant is stamped on open. It lives in state, so the re-stamp
 	// invalidates the chip and highlight derivations; a ref could not.
 	it('re-resolves a committed span against the new day when it reopens after midnight', async () => {
