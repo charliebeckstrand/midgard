@@ -1,4 +1,5 @@
 import { configDefaults, defineConfig } from 'vitest/config'
+import { pureTestFiles } from './src/__tests__/helpers/pure-files'
 import { docsPlugin } from './src/docs/engine/plugins'
 
 const CI = Boolean(process.env.CI)
@@ -12,6 +13,10 @@ if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
 }
 
 const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
+
+// The no-DOM files the `pure` project owns; `unit` excludes the same list so
+// no file runs twice. See src/__tests__/helpers/pure-files.ts.
+const pureFiles = pureTestFiles(import.meta.dirname)
 
 // Setup files for both jsdom projects (unit, integration).
 const setupFiles = [
@@ -147,12 +152,31 @@ export default defineConfig({
 					// jsdom can't — layout/colour geometry and, in its floating-ui
 					// project, real-floating-engine focus trapping — so it may not
 					// run under this jsdom config. The boundary/ suites run in the
-					// two projects below.
+					// two projects below, and the no-DOM files in the `pure` project.
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/**',
 						'src/__tests__/boundary/**',
+						...pureFiles,
 					],
+				},
+			},
+			{
+				extends: true as const,
+				// Pure-function suites: `utilities/`, `recipes/`, and the `core/`
+				// files that read no `document` or `window`. A plain node
+				// environment on one shared worker, with no jsdom, no module
+				// doubles, and no RTL setup: the only setup is the locale guard,
+				// because the format tests live here. A file in this project
+				// cannot reach the shared jsdom window by accident, and
+				// `pure-project-boundary.test.ts` fails any file that tries.
+				test: {
+					name: 'pure',
+					environment: 'node',
+					pool: 'threads',
+					isolate: false,
+					setupFiles: ['./src/__tests__/setup/locale-guard.ts'],
+					include: pureFiles,
 				},
 			},
 			{

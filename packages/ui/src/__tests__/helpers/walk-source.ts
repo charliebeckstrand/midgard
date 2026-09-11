@@ -49,6 +49,21 @@ export function walkSource(
 type PatternRule = { label: string; regex: RegExp }
 
 /**
+ * Blank the comments in a source text, so a rule that bans a call does not
+ * read prose that names the call as a violation.
+ *
+ * Line comments go first: a block opener inside one — `providers/*` in prose —
+ * would otherwise open a block match that runs to the next block closer
+ * anywhere in the file and blanks every line between. Block comments are then
+ * stripped only where the opener starts a line, so an opener inside a string
+ * cannot open one either. The strip is textual, so it also blanks a `//`
+ * inside a string literal.
+ */
+export function stripSourceComments(text: string): string {
+	return text.replace(/\/\/.*$/gm, '').replace(/^[ \t]*\{?[ \t]*\/\*[\s\S]*?\*\//gm, '')
+}
+
+/**
  * Scan a source layer for forbidden patterns and return human-readable
  * violation lines (`relative/path → label (match)`), ready for an
  * `expect(violations, …).toEqual([])` assertion. `regex` rules must carry
@@ -76,14 +91,7 @@ export function collectPatternViolations(options: {
 
 			const rel = relative(srcDir, file)
 
-			// Line comments go first: a `/*` inside one — `providers/*` in prose —
-			// would otherwise open a block match that runs to the next `*/`
-			// anywhere in the file and blanks every line between. Block comments
-			// are then stripped only where `/*` opens a line, so a `/*` inside a
-			// string cannot open one either.
-			const text = stripComments
-				? content.replace(/\/\/.*$/gm, '').replace(/^[ \t]*\{?[ \t]*\/\*[\s\S]*?\*\//gm, '')
-				: content
+			const text = stripComments ? stripSourceComments(content) : content
 
 			for (const { label, regex } of patterns) {
 				for (const match of text.matchAll(regex)) {
