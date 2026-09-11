@@ -4,10 +4,10 @@ import {
 	type PdfViewerHighlight,
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
-import { fireEvent, noop, present, renderUI, screen, waitFor } from '../../helpers'
+import { bySlot, fireEvent, noop, present, renderUI, screen, waitFor } from '../../helpers'
 
 /** The name itself. Portalled, so it is found on the document rather than in the container. */
-const label = () => document.querySelector<HTMLElement>('[data-slot="pdf-viewer-highlight-label"]')
+const label = () => bySlot(document.body, 'pdf-viewer-highlight-label')
 
 /**
  * The selected region's name, against real layout and the real floating engine.
@@ -111,7 +111,10 @@ describe('pdf viewer highlight label (real browser)', () => {
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
-		const panel = present(label()?.parentElement, 'the name panel')
+		const panel = present(
+			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
+			'the name panel',
+		)
 
 		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
 
@@ -175,6 +178,9 @@ describe('a name that stands over another region (real browser)', () => {
 	const highlights: PdfViewerHighlight[] = [
 		{ id: 'above', page: 1, rect: { x: 0.2, y: 0.3, width: 0.5, height: 0.14 }, label: 'Above' },
 		{ id: 'below', page: 1, rect: { x: 0.2, y: 0.45, width: 0.5, height: 0.05 }, label: 'Below' },
+		// Far enough down that its own name covers nothing, so a selection landing here is a
+		// selection whose name is in nobody's way.
+		{ id: 'far', page: 1, rect: { x: 0.2, y: 0.8, width: 0.5, height: 0.05 }, label: 'Far' },
 	]
 
 	/** Selects `Below` and returns its name's panel, the box the reader has to see through. */
@@ -191,7 +197,10 @@ describe('a name that stands over another region (real browser)', () => {
 
 		await waitFor(() => expect(label()).toBeInTheDocument())
 
-		const panel = present(label()?.parentElement, 'the name panel')
+		const panel = present(
+			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
+			'the name panel',
+		)
 
 		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
 
@@ -214,6 +223,67 @@ describe('a name that stands over another region (real browser)', () => {
 			},
 		}
 	}
+
+	/*
+	 * A name that moved is a new name, and it covers nothing until the pointer says otherwise.
+	 *
+	 * The selection can move without the viewer touching it — a list beside the viewer drives
+	 * `activeHighlightId`, and nothing about that is a pointer event. So the faintness is cleared
+	 * by the name it was measured against changing, rather than by the two paths a press takes;
+	 * measured from the pointer alone, the next name would paint faint over its own region until
+	 * the reader happened to move.
+	 */
+	it('comes back solid when the consumer moves the selection under a still pointer', async () => {
+		function Driven({ active }: { active: string }) {
+			return (
+				<div style={{ width: '520px', height: '620px' }}>
+					<PdfViewer
+						pages={pages}
+						highlights={highlights}
+						activeHighlightId={active}
+						onActiveHighlightChange={noop}
+					/>
+				</div>
+			)
+		}
+
+		const { rerender } = renderUI(<Driven active="below" />)
+
+		const above = await screen.findByLabelText('Above')
+
+		const panel = present(
+			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
+			'the name panel',
+		)
+
+		await waitFor(() => expect(panel.getBoundingClientRect().width).toBeGreaterThan(0))
+
+		const name = panel.getBoundingClientRect()
+
+		const box = above.getBoundingClientRect()
+
+		const x = (Math.max(name.left, box.left) + Math.min(name.right, box.right)) / 2
+
+		const y = (Math.max(name.top, box.top) + Math.min(name.bottom, box.bottom)) / 2
+
+		fireEvent.mouseOver(above, { clientX: x, clientY: y })
+
+		fireEvent.mouseMove(above, { clientX: x, clientY: y })
+
+		await waitFor(() => expect(getComputedStyle(panel).opacity).toBe('0.25'))
+
+		// The pointer does not move. Only the consumer's selection does.
+		rerender(<Driven active="far" />)
+
+		await waitFor(() => expect(screen.getByLabelText('Far')).toHaveAttribute('aria-current'))
+
+		const moved = present(
+			label()?.closest<HTMLElement>('[data-slot="tooltip-content"]'),
+			'the name panel',
+		)
+
+		await waitFor(() => expect(getComputedStyle(moved).opacity).toBe('1'))
+	})
 
 	/*
 	 * The browser's own hit test, which is the whole of "you can click through it": whatever

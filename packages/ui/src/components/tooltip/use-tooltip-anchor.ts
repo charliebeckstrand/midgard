@@ -27,23 +27,6 @@ export type TooltipAnchorOptions = {
 	 *   off its subject by the same gap as every other tooltip in the package.
 	 */
 	offset?: number
-	/**
-	 * Whether the panel takes pointer events, and so shields whatever it covers.
-	 *
-	 * Off by default, because a label that chases the pointer must not stand in
-	 * its way. Worth turning on for the other kind — one that names something
-	 * *persistently*, over a surface the reader also points at. Left transparent,
-	 * that kind hands the pointer through to whatever it happens to cover, which
-	 * then answers as though it were being pointed at.
-	 *
-	 * Prefer this over re-enabling `pointer-events` on the panel's own subtree.
-	 * `<FloatingSurface>` drops the wrapper to `none` the moment the panel stops
-	 * being real, so that an exiting one cannot swallow what is meant for the page
-	 * beneath it — and a descendant that has taken pointer events back is still
-	 * hit-tested through that, for the whole length of the exit.
-	 * @defaultValue false
-	 */
-	interactive?: boolean
 }
 
 /**
@@ -84,7 +67,6 @@ export function useTooltipAnchor({
 	reference,
 	placement = 'top',
 	offset = 8,
-	interactive = false,
 }: TooltipAnchorOptions): TooltipContextValue {
 	const { refs, floatingStyles } = useFloatingPanel({
 		placement,
@@ -99,10 +81,10 @@ export function useTooltipAnchor({
 	return useMemo<TooltipContextValue>(
 		() => ({
 			open: open && reference !== null,
-			// Transparent unless the caller asks otherwise: an anchored label is a name,
-			// not somewhere to travel to, so it takes no pointer events over its
-			// subject. See the option for the case that wants the opposite.
-			interactive,
+			// Always transparent: an anchored label is a name, not somewhere to travel to, so
+			// it takes no pointer events over its subject — which on a dense surface is
+			// somebody else's, and has to stay pressable through the name.
+			interactive: false,
 			enabled: true,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
@@ -113,7 +95,6 @@ export function useTooltipAnchor({
 		[
 			open,
 			reference,
-			interactive,
 			refs.setReference,
 			refs.setFloating,
 			floatingStyles,

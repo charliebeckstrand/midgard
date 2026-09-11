@@ -163,15 +163,15 @@ export const k = {
 				 * still hover and press through it. {@link behind} is the part they see: the name goes
 				 * faint over the box they point at, which is the page saying the press lands there and
 				 * not on the name.
+				 *
+				 * Both go on the panel's positioned wrapper (`surfaceClassName`), not on the panel:
+				 * the panel's own entrance animates `opacity`, and motion writes that inline, where
+				 * no class reaches it. On the wrapper the two opacities compose, so the name can fade
+				 * while its entrance still plays.
 				 */
 				label: {
-					base: ['transition-opacity duration-100 ease-out'],
-					/**
-					 * `!`, because the panel's entrance writes `opacity` inline — motion animates the
-					 * fade in and leaves the final value on the element — and a class cannot outrank an
-					 * inline style without it.
-					 */
-					behind: ['opacity-25!'],
+					base: 'transition-opacity duration-100 ease-out',
+					behind: 'opacity-25',
 				},
 				region: {
 					base: ['absolute block', 'ring-1 ring-inset', ...cursor, ...focus.inset],

@@ -12,6 +12,8 @@ export type TooltipAnchorProps = TooltipAnchorOptions & {
 	size?: Step
 	/** Class forwarded to the inner `<TooltipContent>`. */
 	className?: string
+	/** Class for the positioned wrapper; see {@link TooltipContentProps.surfaceClassName}. */
+	surfaceClassName?: string
 	children: ReactNode
 }
 
@@ -37,12 +39,18 @@ export type TooltipAnchorProps = TooltipAnchorOptions & {
  * @internal
  * @see {@link useTooltipAnchor}
  */
-export function TooltipAnchor({ children, size, className, ...options }: TooltipAnchorProps) {
+export function TooltipAnchor({
+	children,
+	size,
+	className,
+	surfaceClassName,
+	...options
+}: TooltipAnchorProps) {
 	const value = useTooltipAnchor(options)
 
 	return (
 		<TooltipContext value={value}>
-			<TooltipContent size={size} className={className}>
+			<TooltipContent size={size} className={className} surfaceClassName={surfaceClassName}>
 				{children}
 			</TooltipContent>
 		</TooltipContext>

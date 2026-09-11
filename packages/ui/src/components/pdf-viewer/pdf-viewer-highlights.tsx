@@ -1,11 +1,12 @@
 'use client'
 
-import type { KeyboardEvent, MouseEvent } from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import type { KeyboardEvent, MouseEvent, Ref } from 'react'
+import { useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { cn } from '../../core'
 import type { Color } from '../../core/recipe'
 import { useA11yAnnouncements, useA11yRoving, useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { isScrollbarPress } from '../../utilities'
 import { usePdfViewerContext } from './context'
 import { PdfViewerHighlightLabel } from './pdf-viewer-highlight-label'
 import { usePdfViewerHighlightsContext } from './pdf-viewer-highlights-context'
@@ -15,8 +16,6 @@ import { HIGHLIGHT_ID_ATTR, HIGHLIGHT_SELECTOR } from './use-pdf-viewer-highligh
 const layer = k.viewport.page.highlights
 
 const region = layer.region
-
-const label = layer.label
 
 const regionClasses = new Map<string, string>()
 
@@ -216,34 +215,18 @@ function PdfViewerHighlightLayer() {
 	const [previewing, setPreviewing] = useState(false)
 
 	/*
-	 * The selected region's name, as a box on screen.
+	 * The selected region's name, reached imperatively.
 	 *
-	 * A ref, not state: only the handlers below read it, and a name that repositions must not
-	 * re-render 40 regions to say so. The panel around the text is what is measured — the text
-	 * does not reach the panel's padding, and the padding is as opaque as the rest of it.
+	 * Whether the name is being read through — and therefore whether it is faint — is the
+	 * name's own state, and it is held there rather than here for the reason the name is a leaf
+	 * at all (see {@link PdfViewerHighlightLabel}): a flip held here would re-render forty
+	 * regions to change one class on a panel three fibers away, and would dirty the layer's
+	 * layout just before the next pointer move reads a rect against it.
+	 *
+	 * A handle rather than a callback prop because the traffic runs the other way. The layer is
+	 * what sees the pointer; the name is what knows where its own box is.
 	 */
-	const labelRef = useRef<HTMLElement | null>(null)
-
-	const setLabelNode = useCallback((node: HTMLElement | null) => {
-		labelRef.current = node?.parentElement ?? null
-	}, [])
-
-	/*
-	 * Whether the pointer is reading a region through the name that covers it.
-	 *
-	 * The name is a standing object over a layer of pressable boxes, and on a dense page it
-	 * lands on its neighbours. It takes no pointer events, so the hover and the press reach the
-	 * box beneath it either way; this is the half the reader sees — the name going faint over
-	 * the box they are pointing at, which is the page saying the press will land there.
-	 *
-	 * The name never covers its own region: `offset(8)` holds it clear along the placement axis,
-	 * and `shift` only moves it across. So a box under the name is always another one.
-	 */
-	const [behind, setBehind] = useState(false)
-
-	// A name that is gone covers nothing. Cleared in render, so a selection ended by Escape or
-	// by a press on the page does not leave the next name faint.
-	if (behind && !anyActive) setBehind(false)
+	const nameRef = useRef<PdfViewerActiveNameHandle | null>(null)
 
 	/*
 	 * The region the pointer last named, looked up rather than merely confirmed: whether it is
@@ -284,26 +267,23 @@ function PdfViewerHighlightLayer() {
 	/**
 	 * Whether the pointer has moved onto — or off — a box the name covers.
 	 *
-	 * @remarks The two tests are ordered by cost. `regionAt` walks two or three nodes; the box
-	 * read behind it is a layout read, and it runs only where the pointer is over a region while
-	 * a name is drawn. A layer with nothing selected pays one boolean per move.
+	 * @remarks Attached only while a name is drawn (see the handler bag below), so a viewer with
+	 * nothing selected carries no `mousemove` listener at all. The two tests are ordered by
+	 * cost: `regionAt` walks two or three nodes, and the box read behind it is a layout read
+	 * that runs only where the pointer is over a region.
 	 */
 	function handleRegionMove(event: MouseEvent<HTMLDivElement>) {
-		if (!anyActive) return
+		const name = nameRef.current
 
-		const next = regionAt(event) !== null && within(labelRef.current, event.clientX, event.clientY)
+		if (!name) return
 
-		if (next !== behind) setBehind(next)
+		name.setBehind(regionAt(event) !== null && name.covers(event.clientX, event.clientY))
 	}
 
 	// A press with nothing to report it to cannot change anything, so it is not a button.
 	const Region = interactive ? 'button' : 'span'
 
 	function report(id: string) {
-		// The name has moved to another box, or gone. Whether it covers the pointer is a question
-		// about the new one, and the next move answers it.
-		setBehind(false)
-
 		// Every press is reported, including one on the already-active region — that is the
 		// signal a consumer needs to answer "the reader pointed at this again" (reveal its
 		// row, put the caret in its field).
@@ -413,15 +393,10 @@ function PdfViewerHighlightLayer() {
 			// The selected region's name is not somewhere else. It takes no pointer events, so a
 			// press on it arrives here as a press on the page under it — and putting the selection
 			// down would be the page answering a press on its own label.
-			if (within(labelRef.current, event.clientX, event.clientY)) return
+			if (nameRef.current?.covers(event.clientX, event.clientY)) return
 
 			// The scrollbar gutter is not the page either: a press there starts a pan.
-			if (
-				target === viewport &&
-				(event.offsetX > viewport.clientWidth || event.offsetY > viewport.clientHeight)
-			) {
-				return
-			}
+			if (target === viewport && isScrollbarPress(event, viewport)) return
 
 			clear()
 		}
@@ -451,11 +426,14 @@ function PdfViewerHighlightLayer() {
 						// at all, so these would never fire there — but naming a box a reader cannot act
 						// on promises something to do with it.
 						onMouseOver: handleRegionOver,
-						onMouseMove: handleRegionMove,
+						// Only while there is a name that could be in the way. Nothing else on this
+						// layer answers a bare move, so with no selection React has no `mousemove`
+						// listener to find and allocates no event for one.
+						onMouseMove: anyActive ? handleRegionMove : undefined,
 						onMouseLeave: () => {
 							setPreviewing(false)
 
-							setBehind(false)
+							nameRef.current?.setBehind(false)
 						},
 					}
 				: { 'aria-hidden': true })}
@@ -489,12 +467,11 @@ function PdfViewerHighlightLayer() {
 			 * The selected one is unkeyed: it moves rarely, and repositioning in place is what it
 			 * did before there was a preview at all.
 			 */}
-			<PdfViewerHighlightLabel
-				ref={setLabelNode}
+			<PdfViewerActiveName
+				ref={nameRef}
 				anchor={anchor}
 				label={activeLabel}
 				open={highlightsVisible}
-				className={cn(label.base, behind && label.behind)}
 			/>
 
 			{/*
@@ -510,5 +487,97 @@ function PdfViewerHighlightLayer() {
 				open={previewOpen}
 			/>
 		</div>
+	)
+}
+
+/**
+ * What the layer can ask of the selected region's name.
+ *
+ * @internal
+ */
+type PdfViewerActiveNameHandle = {
+	/** Whether the name's own box covers a point, in client coordinates. */
+	covers: (x: number, y: number) => boolean
+	/** Tells the name the pointer is reading a box it covers, so it goes faint. */
+	setBehind: (behind: boolean) => void
+}
+
+/**
+ * The selected region's name, and whether the reader is looking through it.
+ *
+ * @remarks A component of its own, holding the one piece of state the layer would otherwise
+ * hold for it. The name is a standing object over a layer of pressable boxes, and on a dense
+ * page it lands on its neighbours; it takes no pointer events, so the hover and the press
+ * reach the box beneath it either way, and this is the half the reader sees — the name going
+ * faint over the box they are pointing at, which is the page saying the press will land there.
+ *
+ * Faintness flips as the pointer crosses the name's edge, which is the path a reader takes to
+ * reach the box under it. Held in the layer, each flip re-rendered forty regions to change one
+ * class on a panel three fibers away — and dirtied the layer's layout, so the next move's box
+ * read paid a reflow instead of a cached rect. Here the same flip touches three fibers. It is
+ * the rule {@link PdfViewerHighlightLabel} is a leaf for, applied one level up.
+ *
+ * The name never covers its own region: `offset(8)` holds it clear along the placement axis and
+ * `shift` only moves it across, so a box under the name is always another one.
+ * @internal
+ */
+function PdfViewerActiveName({
+	anchor,
+	label,
+	open,
+	ref,
+}: {
+	anchor: HTMLElement | null
+	label: string | null
+	open: boolean
+	ref: Ref<PdfViewerActiveNameHandle>
+}) {
+	const [behind, setBehind] = useState(false)
+
+	/*
+	 * The chip around the text, which is the name as the reader sees it — the text does not
+	 * reach the chip's padding, and the padding carries the same ground as the rest of it. The
+	 * positioned wrapper outside it shrink-wraps the chip, so the two boxes are one; the chip is
+	 * named here because it is the one that is drawn.
+	 */
+	const panelRef = useRef<HTMLElement | null>(null)
+
+	const setNode = useCallback((node: HTMLElement | null) => {
+		panelRef.current = node?.parentElement ?? null
+	}, [])
+
+	/*
+	 * A name that moved covers nothing yet.
+	 *
+	 * Keyed on the anchor, which is the one fact that changes however the selection changed — a
+	 * press, `Escape`, or a consumer driving `activeHighlightId` from a list beside the viewer.
+	 * The layer used to clear this on the two paths it could see, and the third left the next
+	 * name faint until the pointer moved again.
+	 */
+	const namedRef = useRef(anchor)
+
+	if (namedRef.current !== anchor) {
+		namedRef.current = anchor
+
+		if (behind) setBehind(false)
+	}
+
+	useImperativeHandle(
+		ref,
+		() => ({
+			covers: (x, y) => within(panelRef.current, x, y),
+			setBehind,
+		}),
+		[],
+	)
+
+	return (
+		<PdfViewerHighlightLabel
+			ref={setNode}
+			anchor={anchor}
+			label={label}
+			open={open}
+			surfaceClassName={cn(layer.label.base, behind && layer.label.behind)}
+		/>
 	)
 }

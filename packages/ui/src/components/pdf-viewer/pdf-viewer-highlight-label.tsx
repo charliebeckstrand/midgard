@@ -34,7 +34,7 @@ export function PdfViewerHighlightLabel({
 	anchor,
 	label,
 	open,
-	className,
+	surfaceClassName,
 	ref,
 }: {
 	/**
@@ -55,8 +55,13 @@ export function PdfViewerHighlightLabel({
 	 * float over a box that is not on screen.
 	 */
 	open: boolean
-	/** Class for the panel, which is what the layer fades. */
-	className?: string
+	/**
+	 * Class for the panel's positioned wrapper, which is what the layer fades.
+	 *
+	 * The wrapper rather than the panel because the panel's entrance animates `opacity`, and
+	 * motion writes that as an inline style no class outranks.
+	 */
+	surfaceClassName?: string
 	/**
 	 * Ref to the name itself.
 	 *
@@ -72,7 +77,7 @@ export function PdfViewerHighlightLabel({
 			placement="top"
 			offset={8}
 			size="sm"
-			className={className}
+			surfaceClassName={surfaceClassName}
 		>
 			<span
 				ref={ref}
