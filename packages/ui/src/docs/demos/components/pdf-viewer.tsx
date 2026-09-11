@@ -4,6 +4,7 @@ import {
 	PdfViewer,
 	type PdfViewerHighlight,
 	type PdfViewerHighlightRect,
+	type PdfViewerMagnifierState,
 	type PdfViewerPage,
 } from '../../../components/pdf-viewer'
 import { code, Example } from '../../engine'
@@ -212,14 +213,41 @@ function MagnifierExample() {
 	return (
 		<Example
 			title="Magnifier"
+			footer="Rest the pointer on the page. The toolbar's lens button switches it off and on."
 			code={code`
 				<PdfViewer pages={pages} magnifier />
 
 				{/* or, with the power, the lens size and the dwell set */}
-				<PdfViewer pages={pages} magnifier={{ zoom: 4, size: 240, delay: 150 }} />
+				<PdfViewer pages={pages} magnifier={{ zoom: 'lg', size: 'lg', delay: 'none' }} />
 			`}
 		>
 			<PdfViewer pages={pages} magnifier />
+		</Example>
+	)
+}
+
+function MagnifierConfigExample() {
+	const [state, setState] = useState<PdfViewerMagnifierState | null>(null)
+
+	const summary = state
+		? `${state.enabled ? 'on' : 'off'}, zoom ${state.zoom}, size ${state.size}, delay ${state.delay}`
+		: 'press the lens button in the toolbar'
+
+	return (
+		<Example
+			title="Magnifier settings"
+			footer={`Magnifier: ${summary}`}
+			code={code`
+				const [state, setState] = useState<PdfViewerMagnifierState | null>(null)
+
+				<PdfViewer
+					pages={pages}
+					magnifier={{ mode: 'config' }}
+					onMagnifierChange={setState}
+				/>
+			`}
+		>
+			<PdfViewer pages={pages} magnifier={{ mode: 'config' }} onMagnifierChange={setState} />
 		</Example>
 	)
 }
@@ -240,6 +268,7 @@ export function Demo() {
 			<DrivenExample />
 			<FitWidthExample />
 			<MagnifierExample />
+			<MagnifierConfigExample />
 			<EmptyExample />
 		</>
 	)

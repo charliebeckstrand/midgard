@@ -12,15 +12,19 @@ import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
+import { PdfViewerMagnifierSettings } from './pdf-viewer-magnifier-settings'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
  * The viewer's top control bar: the thumbnail toggle (collapses the desktop
  * sidebar, opens the mobile Sheet), page navigation, zoom and rotate, the highlight
- * visibility toggle when there are regions, the magnifier toggle when the consumer asked for
+ * visibility toggle when there are regions, the magnifier control when the consumer asked for
  * a loupe, and the download / print actions. Reads everything from {@link PdfViewerContext};
  * controls disable while loading or empty.
+ *
+ * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
+ * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.
  *
  * @internal
  */
@@ -46,6 +50,7 @@ export function PdfViewerToolbar() {
 		magnifierAvailable,
 		magnifierOn,
 		setMagnifierOn,
+		magnifierMode,
 	} = usePdfViewerContext()
 
 	const isEmpty = total === 0
@@ -135,16 +140,20 @@ export function PdfViewerToolbar() {
 						/>
 					)}
 					{/* Only where the consumer asked for a loupe, and it stays put once switched
-					    off — that is the press that brings it back. */}
-					{magnifierAvailable && (
-						<ToolbarToggle
-							label={magnifierToggleLabel}
-							pressed={magnifierOn}
-							onPressedChange={setMagnifierOn}
-							disabled={controlsDisabled}
-							icon={<ScanSearch />}
-						/>
-					)}
+					    off — that is the press that brings it back. In `'config'` mode the press
+					    opens the dialog instead, and the switch it took the place of is in there. */}
+					{magnifierAvailable &&
+						(magnifierMode === 'config' ? (
+							<PdfViewerMagnifierSettings disabled={controlsDisabled} />
+						) : (
+							<ToolbarToggle
+								label={magnifierToggleLabel}
+								pressed={magnifierOn}
+								onPressedChange={setMagnifierOn}
+								disabled={controlsDisabled}
+								icon={<ScanSearch />}
+							/>
+						))}
 				</ToolbarGroup>
 				{documentSrc && (
 					<>

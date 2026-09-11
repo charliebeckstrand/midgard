@@ -9,12 +9,18 @@ import {
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label } from '../../../components/fieldset'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
+import { PdfViewer, type PdfViewerPage } from '../../../components/pdf-viewer'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { screen } from '../../helpers'
 import type { InteractiveCase } from './types'
 
 const interactivePeople = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb']
+
+/** One pre-rendered page, so the viewer needs no pdf.js and its toolbar is live. */
+const interactivePdfPages: PdfViewerPage[] = [
+	{ id: 'p1', src: '/page-1.png', label: 'Page 1', width: 816, height: 1056 },
+]
 
 function FilteredPeople() {
 	const { deferredQuery } = useComboboxQuery()
@@ -127,6 +133,25 @@ export const interactive: readonly InteractiveCase[] = [
 			if (trigger) await user.click(trigger as HTMLElement)
 
 			await screen.findByRole('button', { name: 'Today' })
+		},
+	],
+	[
+		// Magnifier settings: in `mode: 'config'` the viewer's toolbar carries a button
+		// that opens a dialog instead of a switch. The switch, the three radio groups and
+		// their legends only mount on open, so this case drives it open to assert them —
+		// the group naming in particular, since a `<legend>` does not name the
+		// `role="radiogroup"` div the options sit in.
+		'pdf viewer magnifier settings',
+		<PdfViewer
+			key="ims"
+			pages={interactivePdfPages}
+			magnifier={{ mode: 'config' }}
+			aria-label="Quarterly report"
+		/>,
+		async (user) => {
+			await user.click(screen.getByRole('button', { name: 'Magnifier settings' }))
+
+			await screen.findByRole('dialog')
 		},
 	],
 	[

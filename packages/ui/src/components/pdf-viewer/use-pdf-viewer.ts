@@ -3,9 +3,21 @@
 import type { RefObject, SyntheticEvent } from 'react'
 import { useCallback, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useMinBreakpoint } from '../../hooks'
-import type { PdfViewerFit, PdfViewerMagnifierOptions, PdfViewerPage, PdfViewerZoom } from './types'
+import type {
+	PdfViewerFit,
+	PdfViewerMagnifierMode,
+	PdfViewerMagnifierOptions,
+	PdfViewerMagnifierState,
+	PdfViewerPage,
+	PdfViewerZoom,
+} from './types'
 import { usePdfViewerDocument } from './use-pdf-viewer-document'
-import { type ResolvedMagnifier, resolveMagnifier } from './use-pdf-viewer-magnifier'
+import {
+	type MagnifierChoice,
+	type ResolvedMagnifier,
+	resolveMagnifier,
+	resolveMagnifierOptions,
+} from './use-pdf-viewer-magnifier'
 import { usePdfViewerPageRotation } from './use-pdf-viewer-page-rotation'
 import { type PageScaleResult, usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
 import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
@@ -27,7 +39,7 @@ type PdfViewerOptions = {
 	hasHighlights?: boolean
 	magnifier?: boolean | PdfViewerMagnifierOptions
 	onHighlightsVisibleChange?: (visible: boolean) => void
-	onMagnifierEnabledChange?: (enabled: boolean) => void
+	onMagnifierChange?: (state: PdfViewerMagnifierState) => void
 }
 
 /** The viewer's full derived state, provided through {@link PdfViewerContext} to every sub-component. @internal */
@@ -84,9 +96,24 @@ export type PdfViewerResult = {
 	 * which is exactly when the control has to remain there to switch it back on.
 	 */
 	magnifierAvailable: boolean
-	/** Whether the loupe is switched on; toggled from the toolbar. Defaults to on. */
+	/** Whether the loupe is switched on. Defaults to on. */
 	magnifierOn: boolean
 	setMagnifierOn: (on: boolean) => void
+	/**
+	 * How the toolbar's magnifier control behaves: a switch, or the control that opens
+	 * {@link PdfViewerMagnifierSettings}.
+	 */
+	magnifierMode: PdfViewerMagnifierMode
+	/**
+	 * The loupe's settings in the named steps the config dialog offers, or `null` when the
+	 * consumer never asked for a loupe.
+	 *
+	 * @remarks Distinct from {@link magnifierSettings}, which is the same three settings as
+	 * numbers and goes dark the moment the reader switches the loupe off. The dialog reads
+	 * this one, because it has to keep showing what the settings are while the loupe is off.
+	 */
+	magnifierChoice: MagnifierChoice | null
+	setMagnifierChoice: (choice: MagnifierChoice) => void
 }
 
 const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
@@ -115,10 +142,10 @@ export function usePdfViewer({
 	hasHighlights = false,
 	magnifier: magnifierProp,
 	onHighlightsVisibleChange,
-	onMagnifierEnabledChange,
+	onMagnifierChange,
 }: PdfViewerOptions): PdfViewerResult {
 	/*
-	 * The two chrome toggles report themselves.
+	 * The chrome the reader owns reports itself — the highlight overlay here, the loupe below.
 	 *
 	 * Through `useEffectEvent`, which is how this package raises an optional consumer callback
 	 * out of a state change (`use-copy-button-state.ts` does the same for `onCopiedChange`):
@@ -126,7 +153,7 @@ export function usePdfViewer({
 	 * consumer passing an inline arrow cannot destabilize the setters below — and through them
 	 * the context value every region on the page reads.
 	 *
-	 * They are events rather than a controlled binding on purpose: the reader owns these two
+	 * They are events rather than a controlled binding on purpose: the reader owns these
 	 * switches — nothing outside the viewer should be able to turn the highlights back on
 	 * under them — while a consumer still needs to hear about it, because what it draws
 	 * *beside* the viewer can be claiming a region is there to point at.
@@ -135,28 +162,96 @@ export function usePdfViewer({
 		onHighlightsVisibleChange?.(visible)
 	})
 
-	const notifyMagnifierEnabled = useEffectEvent((enabled: boolean) => {
-		onMagnifierEnabledChange?.(enabled)
-	})
-	// What the consumer asked for, independent of whether the reader wants it right now.
-	const magnifierOffered = useMemo(() => resolveMagnifier(magnifierProp), [magnifierProp])
+	/*
+	 * What the consumer asked for, independent of what the reader wants right now.
+	 *
+	 * Keyed on the settings rather than on the object that carries them. `magnifier={{ mode:
+	 * 'config' }}` written inline is a new object on every render of the consumer, and config
+	 * mode makes an object the common shape rather than the exception a different power used
+	 * to be. Keyed on identity, that rebuilt the resolved settings every render — and through
+	 * them the memoized context value the toolbar, the thumbnail rail and every region on the
+	 * page read, which is the one guarantee this hook's final memo exists to make.
+	 */
+	const magnifierAsked = !!magnifierProp
+
+	const magnifierOptions = typeof magnifierProp === 'object' ? magnifierProp : undefined
+
+	const magnifierMode = magnifierOptions?.mode
+
+	const magnifierZoom = magnifierOptions?.zoom
+
+	const magnifierSize = magnifierOptions?.size
+
+	const magnifierDelay = magnifierOptions?.delay
+
+	const magnifierOffered = useMemo(
+		() =>
+			magnifierAsked
+				? resolveMagnifierOptions({
+						mode: magnifierMode,
+						zoom: magnifierZoom,
+						size: magnifierSize,
+						delay: magnifierDelay,
+					})
+				: null,
+		[magnifierAsked, magnifierMode, magnifierZoom, magnifierSize, magnifierDelay],
+	)
 
 	// Chrome, like the sidebar and the highlight toggle: nothing outside drives it, so it is
 	// state rather than a prop. On by default — a consumer that passed the prop wants the loupe.
 	const [magnifierOn, setMagnifierOnState] = useState(true)
 
+	/*
+	 * The reader's own settings, and `null` until they have one.
+	 *
+	 * The same nullable shape as `sidebarChoice` below, for the same reason: until the reader
+	 * opens the dialog and picks something, the consumer's prop is the answer, and a consumer
+	 * that changes it keeps driving the loupe. From the first press in the dialog the reader's
+	 * choice holds, and no re-render can take it back from them.
+	 */
+	const [magnifierChoiceState, setMagnifierChoiceState] = useState<MagnifierChoice | null>(null)
+
+	const magnifierChoice = magnifierChoiceState ?? magnifierOffered?.choice ?? null
+
+	/*
+	 * One report for the whole of what the reader owns, rather than one per switch.
+	 *
+	 * Through `useEffectEvent` for the reason the highlight notifier above uses it, and for a
+	 * second one: it reads `magnifierOn` and `magnifierChoice` off the latest render, so the
+	 * two setters below can close over neither and keep the stable identities the context memo
+	 * needs. `next` is spread last, because the setter that raises this knows its own new value
+	 * while the render this reads from still holds the old one.
+	 */
+	const notifyMagnifier = useEffectEvent((next: Partial<PdfViewerMagnifierState>) => {
+		if (!magnifierChoice) return
+
+		onMagnifierChange?.({ enabled: magnifierOn, ...magnifierChoice, ...next })
+	})
+
 	const setMagnifierOn = useCallback((on: boolean) => {
 		setMagnifierOnState(on)
 
-		notifyMagnifierEnabled(on)
+		notifyMagnifier({ enabled: on })
+	}, [])
+
+	const setMagnifierChoice = useCallback((choice: MagnifierChoice) => {
+		setMagnifierChoiceState(choice)
+
+		notifyMagnifier(choice)
 	}, [])
 
 	/*
 	 * Withheld from the hook while it is off, which disables every interaction hook inside it
 	 * rather than merely hiding the lens: a switched-off loupe should not be tracking the
 	 * pointer across the page and re-rendering on every move.
+	 *
+	 * Memoized because it is the loupe hook's only argument and a dependency of the context
+	 * memo below; a fresh object per render would re-run both for settings that never moved.
 	 */
-	const magnifierSettings = magnifierOn ? magnifierOffered : null
+	const magnifierSettings = useMemo<ResolvedMagnifier | null>(
+		() => (magnifierOn && magnifierChoice ? resolveMagnifier(magnifierChoice) : null),
+		[magnifierOn, magnifierChoice],
+	)
 
 	const shouldLoadFromSrc = !pagesProp && !!src
 
@@ -298,6 +393,9 @@ export function usePdfViewer({
 			magnifierAvailable: magnifierOffered !== null,
 			magnifierOn,
 			setMagnifierOn,
+			magnifierMode: magnifierOffered?.mode ?? 'simple',
+			magnifierChoice,
+			setMagnifierChoice,
 		}),
 		[
 			pages,
@@ -325,6 +423,8 @@ export function usePdfViewer({
 			magnifierSettings,
 			magnifierOffered,
 			magnifierOn,
+			magnifierChoice,
+			setMagnifierChoice,
 		],
 	)
 }

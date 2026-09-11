@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react'
 import { useFloatingPanel } from '../../hooks'
-import type { PdfViewerMagnifierOptions } from './types'
+import type { PdfViewerMagnifierMode, PdfViewerMagnifierOptions } from './types'
 
 /**
  * The hover loupe's state: whether it is open, where on the page the pointer is, and the
@@ -32,18 +32,79 @@ import type { PdfViewerMagnifierOptions } from './types'
  * @internal
  */
 
-/** Resolved magnifier settings — the consumer's object with every default filled in. @internal */
-export type ResolvedMagnifier = Required<PdfViewerMagnifierOptions>
+/**
+ * The loupe's three settings, in the named steps the prop and the config dialog both speak.
+ * @internal
+ */
+export type MagnifierChoice = Required<Omit<PdfViewerMagnifierOptions, 'mode'>>
 
-const DEFAULTS: ResolvedMagnifier = { zoom: 2.5, size: 180, delay: 300 }
+/**
+ * The same three settings, in the numbers the lens draws with.
+ *
+ * @remarks The seam the named steps exist for. Everything below this line — the dwell handed
+ * to `useHover`, the diameter the lens is sized to, the magnification {@link lensOffset}
+ * solves against — is arithmetic, and arithmetic has no use for a token. So the steps are
+ * resolved once, here, and the rest of the loupe never learns that they exist.
+ * @internal
+ */
+export type ResolvedMagnifier = { zoom: number; size: number; delay: number }
 
-/** Normalize the boolean-or-object prop to settings, or `null` when the loupe is off. @internal */
-export function resolveMagnifier(
+/** What the consumer asked for: how the toolbar control behaves, and the settings it starts on. @internal */
+export type OfferedMagnifier = { mode: PdfViewerMagnifierMode; choice: MagnifierChoice }
+
+/** The loupe as it has always been: 2.5× through a 180px lens, after a 300ms dwell. */
+const DEFAULT_CHOICE: MagnifierChoice = { zoom: 'md', size: 'md', delay: 'default' }
+
+/** Magnification for each step. */
+const zoomSteps = { sm: 2, md: 2.5, lg: 4 } as const
+
+/** Lens diameter in pixels for each step. */
+const sizeSteps = { sm: 140, md: 180, lg: 240 } as const
+
+/** Dwell in milliseconds for each step. */
+const delaySteps = { none: 0, default: 300 } as const
+
+/**
+ * Normalize the boolean-or-object prop, or `null` when the consumer asked for no loupe.
+ *
+ * @param magnifier - The consumer's {@link PdfViewerProps.magnifier} prop.
+ * @returns The mode and the settings to start on, or `null` for no loupe at all.
+ * @remarks Field by field rather than a spread over the defaults: an explicitly `undefined`
+ * setting then takes its default, and does not erase it.
+ * @internal
+ */
+export function resolveMagnifierOptions(
 	magnifier: boolean | PdfViewerMagnifierOptions | undefined,
-): ResolvedMagnifier | null {
+): OfferedMagnifier | null {
 	if (!magnifier) return null
 
-	return magnifier === true ? DEFAULTS : { ...DEFAULTS, ...magnifier }
+	if (magnifier === true) return { mode: 'simple', choice: DEFAULT_CHOICE }
+
+	const { mode = 'simple', zoom, size, delay } = magnifier
+
+	return {
+		mode,
+		choice: {
+			zoom: zoom ?? DEFAULT_CHOICE.zoom,
+			size: size ?? DEFAULT_CHOICE.size,
+			delay: delay ?? DEFAULT_CHOICE.delay,
+		},
+	}
+}
+
+/**
+ * Read the named steps off as the numbers the lens draws with.
+ *
+ * @param choice - The settings, as the consumer or the reader left them.
+ * @returns The same settings in pixels, milliseconds, and a bare multiplier.
+ * @internal
+ */
+export function resolveMagnifier(choice: MagnifierChoice): ResolvedMagnifier {
+	return {
+		zoom: zoomSteps[choice.zoom],
+		size: sizeSteps[choice.size],
+		delay: delaySteps[choice.delay],
+	}
 }
 
 /** Where the pointer is inside the page frame, in CSS pixels from its top-left. @internal */
@@ -194,7 +255,7 @@ export function usePdfViewerMagnifier(
 		enabled,
 		// The dwell. Closing is immediate — a lens that lingered after the pointer left the page
 		// would sit over the toolbar it was moving towards.
-		delay: { open: settings?.delay ?? DEFAULTS.delay, close: 0 },
+		delay: { open: settings?.delay ?? delaySteps.default, close: 0 },
 		// A loupe under a fingertip shows what the finger is already covering, and would fight
 		// the scroll gesture for the same pointer.
 		mouseOnly: true,
@@ -309,7 +370,7 @@ export function usePdfViewerMagnifier(
 			setTracking(located)
 
 			setOpen(true)
-		}, settings?.delay ?? DEFAULTS.delay)
+		}, settings?.delay ?? delaySteps.default)
 	}, [locate, settings?.delay])
 
 	/*

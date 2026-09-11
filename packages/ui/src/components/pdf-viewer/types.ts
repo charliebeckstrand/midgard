@@ -94,30 +94,87 @@ export type PdfViewerHighlightUnit = 'fraction' | 'inch'
 export type PdfViewerFit = 'page' | 'width'
 
 /**
+ * How the toolbar's magnifier control behaves.
+ *
+ * @remarks `'simple'` makes the control a switch: a press turns the loupe off, and the next
+ * press turns it on again. `'config'` makes it open a dialog, where the reader sets the
+ * power, the lens size and the dwell — and turns the loupe off.
+ *
+ * The off switch moves into the dialog because the toolbar control is no longer a switch.
+ * Without it, `'config'` would take away the one thing `'simple'` always offered.
+ */
+export type PdfViewerMagnifierMode = 'simple' | 'config'
+
+/**
+ * How much the loupe magnifies what is under the cursor: 2×, 2.5× or 4×.
+ *
+ * @remarks A named step rather than a free multiplier. The reader picks one of a fixed set in
+ * the config dialog, and a value outside that set has no option to select — so the prop and
+ * the dialog name the same three powers.
+ */
+export type PdfViewerMagnifierZoom = 'sm' | 'md' | 'lg'
+
+/**
+ * The loupe's diameter: 140, 180 or 240 pixels.
+ *
+ * @see {@link PdfViewerMagnifierZoom} for why the scale is named and not numeric.
+ */
+export type PdfViewerMagnifierSize = 'sm' | 'md' | 'lg'
+
+/**
+ * How long the pointer must rest before the loupe appears: at once, or after 300ms.
+ *
+ * @remarks A dwell rather than an immediate open: the pointer crosses the page on its way to
+ * the toolbar and the thumbnails constantly, and a loupe that answered every one of those
+ * would be a strobe. Once open it tracks with no delay at all.
+ */
+export type PdfViewerMagnifierDelay = 'none' | 'default'
+
+/**
  * Hover-loupe settings for {@link PdfViewerProps.magnifier}.
  *
  * @remarks Boolean-or-object, the same shape `Button`'s `loading` takes: `magnifier` on its
- * own is the common case, and an object is there for the page that needs a different power or
- * a longer dwell.
+ * own is the common case, and an object is there for the page that needs a different power, a
+ * different lens, or the dialog.
+ *
+ * Every setting is a named step rather than a raw number, because the config dialog offers a
+ * fixed set and has to show which of them is current. Each `'md'` is the value the loupe
+ * always had, so an object that names none of them is the loupe as it was.
  */
 export type PdfViewerMagnifierOptions = {
 	/**
+	 * How the reader reaches these settings from the toolbar.
+	 * @defaultValue 'simple'
+	 */
+	mode?: PdfViewerMagnifierMode
+	/**
 	 * How much the loupe magnifies what is under the cursor.
-	 * @defaultValue 2.5
+	 * @defaultValue 'md'
 	 */
-	zoom?: number
+	zoom?: PdfViewerMagnifierZoom
 	/**
-	 * The loupe's diameter, in pixels.
-	 * @defaultValue 180
+	 * The loupe's diameter.
+	 * @defaultValue 'md'
 	 */
-	size?: number
+	size?: PdfViewerMagnifierSize
 	/**
-	 * How long the pointer must rest before the loupe appears, in milliseconds.
-	 *
-	 * @remarks A dwell rather than an immediate open: the pointer crosses the page on its way
-	 * to the toolbar and the thumbnails constantly, and a loupe that answered every one of
-	 * those would be a strobe. Once open it tracks with no delay at all.
-	 * @defaultValue 300
+	 * How long the pointer must rest before the loupe appears.
+	 * @defaultValue 'default'
 	 */
-	delay?: number
+	delay?: PdfViewerMagnifierDelay
+}
+
+/**
+ * The loupe as the reader left it: whether it is on, and the three settings they chose.
+ *
+ * @remarks What {@link PdfViewerProps.onMagnifierChange} reports. A consumer that keeps the
+ * reader's preference across sessions stores this and hands it back through
+ * {@link PdfViewerProps.magnifier}.
+ */
+export type PdfViewerMagnifierState = {
+	/** Whether the loupe is on. */
+	enabled: boolean
+	zoom: PdfViewerMagnifierZoom
+	size: PdfViewerMagnifierSize
+	delay: PdfViewerMagnifierDelay
 }
