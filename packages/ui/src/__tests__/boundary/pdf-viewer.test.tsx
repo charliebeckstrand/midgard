@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
-import { PdfViewerContext } from '../../components/pdf-viewer/context'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
 import { PdfViewerZoomControls } from '../../components/pdf-viewer/pdf-viewer-zoom-controls'
-import type { PdfViewerResult } from '../../components/pdf-viewer/use-pdf-viewer'
 import { Toolbar } from '../../components/toolbar'
 import { BREAKPOINT_WIDTHS } from '../../types/responsive'
 import {
@@ -994,19 +992,19 @@ describe('PdfViewer highlight state scoping', () => {
 			)
 		}
 
-		// Only the three fields the hook reads; the layer is not rendered here.
-		const viewer = {
-			activePage: sizedPages[0],
-			safePage: 1,
-			goToPage: noop,
-		} as unknown as PdfViewerResult
-
+		// The provider takes what the document gives it, so no `<PdfViewer>` and no stub of
+		// its context stand between this and the bailout under test. The layer is not
+		// rendered here.
 		renderUI(
-			<PdfViewerContext value={viewer}>
-				<PdfViewerHighlightsProvider highlights={highlights} onActiveHighlightChange={noop}>
-					<Wrapped />
-				</PdfViewerHighlightsProvider>
-			</PdfViewerContext>,
+			<PdfViewerHighlightsProvider
+				highlights={highlights}
+				onActiveHighlightChange={noop}
+				activePage={sizedPages[0]}
+				safePage={1}
+				goToPage={noop}
+			>
+				<Wrapped />
+			</PdfViewerHighlightsProvider>,
 		)
 
 		const rendersAfterMount = wrappedRenders

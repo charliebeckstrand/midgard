@@ -4,9 +4,13 @@ import { useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useRef } from 'react'
 import type { Color } from '../../core/recipe'
 import { useControllable, useScrollWithin } from '../../hooks'
-import { usePdfViewerContext } from './context'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
-import type { PdfViewerHighlight, PdfViewerHighlightRect, PdfViewerHighlightUnit } from './types'
+import type {
+	PdfViewerHighlight,
+	PdfViewerHighlightRect,
+	PdfViewerHighlightUnit,
+	PdfViewerPage,
+} from './types'
 
 /** Data attribute carrying a region's id, so one delegated handler serves every region. @internal */
 export const HIGHLIGHT_ID_ATTR = 'data-pdf-highlight-id'
@@ -17,7 +21,19 @@ export const HIGHLIGHT_SELECTOR = `[${HIGHLIGHT_ID_ATTR}]`
 /** Paint a region gets when it names no {@link PdfViewerHighlight.color}. @internal */
 const DEFAULT_HIGHLIGHT_COLOR: Color = 'amber'
 
-/** Inputs to {@link usePdfViewerHighlights}; the highlight half of {@link PdfViewerProps}. @internal */
+/**
+ * Inputs to {@link usePdfViewerHighlights}: the highlight half of {@link PdfViewerProps},
+ * plus the three things the overlay needs from the document under it.
+ *
+ * @remarks The document half arrives as arguments, not through {@link PdfViewerContext},
+ * which is what {@link usePdfViewerMagnifier} already does with its settings. A hook that
+ * reads the viewer's context runs only inside a mounted `<PdfViewer>`, so every proof about
+ * the page filter, the unit conversion or the navigate-to-region latch had to mount the
+ * whole viewer — a document cache, a rasterizer, a toolbar and a thumbnail rail — to reach
+ * one pure decision. `PdfViewer` reads the three off its own context value and passes them
+ * down; nothing else changes about where the state lives or what re-renders.
+ * @internal
+ */
 export type PdfViewerHighlightsOptions = {
 	highlights?: readonly PdfViewerHighlight[]
 	highlightUnit?: PdfViewerHighlightUnit
@@ -25,6 +41,12 @@ export type PdfViewerHighlightsOptions = {
 	defaultActiveHighlightId?: string
 	onActiveHighlightChange?: (id: string | null) => void
 	onHighlightPress?: (id: string) => void
+	/** The page on screen; supplies the extent a physical {@link PdfViewerHighlightUnit} divides by. */
+	activePage: PdfViewerPage | undefined
+	/** Which page is on screen, 1-based. Only its regions are drawn. */
+	safePage: number
+	/** Turns to the page an activated region sits on, when it is not the page on screen. */
+	goToPage: (page: number) => void
 }
 
 /** One region of the active page, converted and resolved for painting. @internal */
@@ -80,9 +102,10 @@ export function usePdfViewerHighlights({
 	defaultActiveHighlightId,
 	onActiveHighlightChange,
 	onHighlightPress,
+	activePage,
+	safePage,
+	goToPage,
 }: PdfViewerHighlightsOptions): PdfViewerHighlightsResult {
-	const { activePage, safePage, goToPage } = usePdfViewerContext()
-
 	const [activeId, setActiveId] = useControllable<string>({
 		value: activeHighlightId,
 		defaultValue: defaultActiveHighlightId,
