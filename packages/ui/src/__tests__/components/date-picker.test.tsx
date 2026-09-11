@@ -1179,6 +1179,57 @@ describe('DatePicker input', () => {
 		// aria-controls persists while the calendar is open.
 		expect(input).toHaveAttribute('aria-controls')
 	})
+
+	// The trigger arm honours `readOnly` through its own guard; the typed arm has
+	// to be handed the resolved flag. A Control readOnly reaches DateInput on its
+	// own cascade, so this passes the prop directly.
+	it('forwards readOnly to the typed field', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DatePicker
+				input
+				readOnly
+				value={new Date(2026, 0, 1)}
+				onValueChange={onChange}
+				aria-label="Due date"
+			/>,
+		)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		expect(input).toHaveAttribute('readonly')
+
+		await user.type(input, '02022026')
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	// DateInput re-derives the Control half of `invalid` itself, so only the bound
+	// field half proves the forward.
+	it('forwards a bound field error to the typed field', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ due: null }}
+				validate={{ due: (value) => (value ? undefined : 'required') }}
+			>
+				<DatePicker input name="due" aria-label="Due date" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		await act(async () => {
+			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+		})
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
 })
 
 describe('DatePicker + Form', () => {

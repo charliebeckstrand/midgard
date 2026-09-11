@@ -263,6 +263,7 @@ export function useDatePickerState({
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
 		required: control?.required,
 		invalid: control?.severity === 'error' || fieldInvalid,
 		value,
