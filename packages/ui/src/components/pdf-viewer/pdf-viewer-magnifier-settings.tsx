@@ -5,14 +5,26 @@ import { useId, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Button } from '../button'
-import { Dialog, DialogBody, DialogFooter, DialogHeader, DialogTitle } from '../dialog'
+import {
+	Dialog,
+	DialogBody,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '../dialog'
 import { Description, Fieldset, Label, Legend } from '../fieldset'
-import { Icon } from '../icon'
 import { Radio, RadioField, RadioGroup } from '../radio'
+import { Stack } from '../stack'
 import { Switch, SwitchField } from '../switch'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { usePdfViewerContext } from './context'
-import type { MagnifierChoice } from './use-pdf-viewer-magnifier'
+import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
+import {
+	delayOptions,
+	type MagnifierOption,
+	sizeOptions,
+	zoomOptions,
+} from './use-pdf-viewer-magnifier'
 
 /** Props for {@link PdfViewerMagnifierSettings}. @internal */
 type PdfViewerMagnifierSettingsProps = {
@@ -20,35 +32,15 @@ type PdfViewerMagnifierSettingsProps = {
 	disabled: boolean
 }
 
-/** One option in a choice group: the step it sets, and what that step is to the reader. @internal */
-type ChoiceOption<T extends string> = { value: T; label: string }
-
-/** The magnification steps, each named by the power it is. */
-const zoomOptions: ChoiceOption<MagnifierChoice['zoom']>[] = [
-	{ value: 'sm', label: '2×' },
-	{ value: 'md', label: '2.5×' },
-	{ value: 'lg', label: '4×' },
-]
-
-const sizeOptions: ChoiceOption<MagnifierChoice['size']>[] = [
-	{ value: 'sm', label: 'Small' },
-	{ value: 'md', label: 'Medium' },
-	{ value: 'lg', label: 'Large' },
-]
-
-const delayOptions: ChoiceOption<MagnifierChoice['delay']>[] = [
-	{ value: 'none', label: 'None' },
-	{ value: 'default', label: 'Default' },
-]
-
 /**
  * The magnifier control the toolbar shows in `'config'` mode: a button that opens a dialog,
  * and the dialog it opens — the loupe's own switch, its power, its lens size and its dwell.
  *
- * @remarks The button and the dialog are one control, so they live in one file. The button
- * carries `aria-haspopup` and `aria-expanded`, and both report the dialog's open state; that
+ * @remarks The button and the dialog are one control, so they live in one file. The open
  * state is chrome nothing outside the viewer drives, so it stays here rather than in
- * `PdfViewerContext`, where every region on the page would re-render for it.
+ * `PdfViewerContext`, where every region on the page would re-render for it. `DialogTrigger`
+ * stamps the `aria-haspopup` and `aria-expanded` that report it — the ARIA belongs to the
+ * panel, so it is written by the panel's own trigger rather than by hand here.
  *
  * **Every control is a native input, and that is deliberate.** A modal `Dialog` runs
  * floating-ui's `markOthers`, which `aria-hidden`s every sibling of the body — so a `Listbox`
@@ -81,27 +73,17 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 
 	return (
 		<>
-			<Tooltip>
-				<TooltipTrigger>
-					<Button
-						type="button"
-						// The same soft-on / plain-off pairing the toolbar's toggles wear, and for the
-						// same reason — but keyed on the loupe rather than on the dialog, because that
-						// is the state the glyph stands for. `aria-pressed` would be wrong here: this
-						// button discloses a dialog, and says so through `aria-haspopup` instead.
-						variant={magnifierOn ? 'soft' : 'plain'}
-						data-slot="pdf-viewer-magnifier-settings-trigger"
-						aria-label="Magnifier settings"
-						aria-haspopup="dialog"
-						aria-expanded={open}
-						disabled={disabled}
-						onClick={() => setOpen(true)}
-					>
-						<Icon icon={<ScanSearch />} />
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent>Magnifier settings</TooltipContent>
-			</Tooltip>
+			<DialogTrigger open={open} onClick={() => setOpen(true)}>
+				<PdfViewerToolbarButton
+					label="Magnifier settings"
+					icon={<ScanSearch />}
+					// Keyed on the loupe rather than on the dialog: the glyph stands for the lens, so
+					// the fill has to report whether the lens is on, not whether its settings are up.
+					active={magnifierOn}
+					data-slot="pdf-viewer-magnifier-settings-trigger"
+					disabled={disabled}
+				/>
+			</DialogTrigger>
 
 			<Dialog
 				open={open}
@@ -113,7 +95,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 					<DialogTitle>Magnifier</DialogTitle>
 				</DialogHeader>
 				<DialogBody>
-					<div className={cn(k.settings.body)}>
+					<Stack gap="lg">
 						<SwitchField>
 							<Label>Show the magnifier</Label>
 							<Description>A lens beside the cursor, while it rests on the page.</Description>
@@ -146,7 +128,7 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 							value={choice.delay}
 							onChange={(delay) => setMagnifierChoice({ ...choice, delay })}
 						/>
-					</div>
+					</Stack>
 				</DialogBody>
 				<DialogFooter>
 					<Button type="button" variant="plain" onClick={() => setOpen(false)}>
@@ -164,7 +146,7 @@ type PdfViewerMagnifierChoiceProps<T extends string> = {
 	name: string
 	/** Captions the group, and names it for assistive tech. */
 	label: string
-	options: ChoiceOption<T>[]
+	options: readonly MagnifierOption<T>[]
 	value: T
 	onChange: (value: T) => void
 }

@@ -44,12 +44,10 @@ export const k = {
 		pageStatus: [size.sm, text.muted, 'tabular-nums select-none whitespace-nowrap'],
 	},
 	/**
-	 * The magnifier's config dialog. `Dialog` owns the panel itself, so these three slots
-	 * are only what stands inside it.
+	 * The magnifier's config dialog. `Dialog` owns the panel and `Stack` the column inside it,
+	 * so these two slots are only what the choice groups need.
 	 */
 	settings: {
-		/** The stack of choice groups under the switch. */
-		body: [flex.col, 'gap-5'],
 		/**
 		 * One captioned group.
 		 *
@@ -62,12 +60,18 @@ export const k = {
 		 *
 		 * A `RadioGroup` stacks its fields, and a column is right where each option is a
 		 * sentence. Here no option is longer than two words, and three stacked groups of them
-		 * make the reader scroll a dialog that would otherwise fit — so they sit beside each
-		 * other, and this slot clears the group's own adjacency margin to let them.
+		 * make the reader scroll a dialog that would otherwise fit.
+		 *
+		 * The `mt-0` is a fork, and reads as one: it reaches across to clear the adjacency
+		 * margin `narabi.group` sets on every `ToggleGroup`. The honest fix is an `orientation`
+		 * axis on `ToggleGroup` — `Rating` routed around the same missing affordance by
+		 * hand-rolling `role="radiogroup"` on a span — which widens three public prop types and
+		 * so wants its own change rather than this one's.
 		 */
 		options: [
-			'flex flex-row flex-wrap items-center',
-			'gap-x-5 gap-y-2',
+			flex.row,
+			'flex-row flex-wrap',
+			'gap-x-6 gap-y-2',
 			'[&>[data-slot=field]+[data-slot=field]]:mt-0',
 		],
 	},

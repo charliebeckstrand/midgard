@@ -6,7 +6,7 @@ import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 import {
 	lensOffset,
 	resolveMagnifier,
-	resolveMagnifierOptions,
+	resolveMagnifierChoice,
 	usePdfViewerMagnifier,
 } from '../../components/pdf-viewer/use-pdf-viewer-magnifier'
 import { fireEvent, renderUI, screen } from '../helpers'
@@ -23,33 +23,27 @@ import { fireEvent, renderUI, screen } from '../helpers'
  * `toFractionRect` was.
  */
 
-describe('resolveMagnifierOptions', () => {
+describe('resolveMagnifierChoice', () => {
 	const steps = { zoom: 'md', size: 'md', delay: 'default' }
 
-	it('is off unless the consumer asks', () => {
-		expect(resolveMagnifierOptions(undefined)).toBeNull()
-		expect(resolveMagnifierOptions(false)).toBeNull()
+	/*
+	 * Whether a loupe was asked for at all, and which control the toolbar carries for it, are
+	 * read straight off the prop in `usePdfViewer` — so they are asserted through the viewer,
+	 * below, rather than here. What is left for this seam is the one thing it decides: which
+	 * step each setting lands on.
+	 */
+	it('takes the middle step for a setting the consumer did not name', () => {
+		expect(resolveMagnifierChoice({})).toEqual(steps)
 	})
 
-	it('takes the simple mode and the middle steps for a bare `magnifier`', () => {
-		expect(resolveMagnifierOptions(true)).toEqual({ mode: 'simple', choice: steps })
-	})
+	it('fills in only the steps an object leaves out', () => {
+		expect(resolveMagnifierChoice({ zoom: 'lg' })).toEqual({ ...steps, zoom: 'lg' })
 
-	it('fills in the steps an object leaves out', () => {
-		expect(resolveMagnifierOptions({ zoom: 'lg' })).toEqual({
-			mode: 'simple',
-			choice: { ...steps, zoom: 'lg' },
+		expect(resolveMagnifierChoice({ delay: 'none', size: 'sm' })).toEqual({
+			zoom: 'md',
+			size: 'sm',
+			delay: 'none',
 		})
-
-		expect(resolveMagnifierOptions({ delay: 'none', size: 'sm' })).toEqual({
-			mode: 'simple',
-			choice: { zoom: 'md', size: 'sm', delay: 'none' },
-		})
-	})
-
-	/** An object that names a mode and nothing else still opens on the middle steps. */
-	it('takes the mode the consumer asked for', () => {
-		expect(resolveMagnifierOptions({ mode: 'config' })).toEqual({ mode: 'config', choice: steps })
 	})
 
 	/**
@@ -57,9 +51,9 @@ describe('resolveMagnifierOptions', () => {
 	 * default — rather than erasing one, which a spread over the defaults would do.
 	 */
 	it('defaults a step the consumer left undefined', () => {
-		expect(resolveMagnifierOptions({ zoom: undefined, size: 'lg' })).toEqual({
-			mode: 'simple',
-			choice: { ...steps, size: 'lg' },
+		expect(resolveMagnifierChoice({ zoom: undefined, size: 'lg' })).toEqual({
+			...steps,
+			size: 'lg',
 		})
 	})
 })

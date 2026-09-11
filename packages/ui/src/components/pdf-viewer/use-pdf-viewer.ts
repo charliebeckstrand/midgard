@@ -16,7 +16,7 @@ import {
 	type MagnifierChoice,
 	type ResolvedMagnifier,
 	resolveMagnifier,
-	resolveMagnifierOptions,
+	resolveMagnifierChoice,
 } from './use-pdf-viewer-magnifier'
 import { usePdfViewerPageRotation } from './use-pdf-viewer-page-rotation'
 import { type PageScaleResult, usePdfViewerPageScale } from './use-pdf-viewer-page-scale'
@@ -90,20 +90,20 @@ export type PdfViewerResult = {
 	 * never asked for one, or the reader has switched it off.
 	 */
 	magnifierSettings: ResolvedMagnifier | null
-	/**
-	 * True when the consumer asked for a loupe. Gates the toolbar's toggle, the way
-	 * {@link hasHighlights} gates the highlight one — and stays true while the loupe is off,
-	 * which is exactly when the control has to remain there to switch it back on.
-	 */
-	magnifierAvailable: boolean
 	/** Whether the loupe is switched on. Defaults to on. */
 	magnifierOn: boolean
 	setMagnifierOn: (on: boolean) => void
 	/**
 	 * How the toolbar's magnifier control behaves: a switch, or the control that opens
-	 * {@link PdfViewerMagnifierSettings}.
+	 * {@link PdfViewerMagnifierSettings} — and `null` where the consumer asked for no loupe,
+	 * which is what keeps both controls out of the bar.
+	 *
+	 * @remarks Nullable rather than a second `magnifierAvailable` boolean beside it: the two
+	 * were only ever read together, and the mode already says everything the boolean did. It
+	 * survives the loupe being switched off, which is exactly when the control has to stay in
+	 * the bar to switch it back on.
 	 */
-	magnifierMode: PdfViewerMagnifierMode
+	magnifierMode: PdfViewerMagnifierMode | null
 	/**
 	 * The loupe's settings in the named steps the config dialog offers, or `null` when the
 	 * consumer never asked for a loupe.
@@ -174,27 +174,23 @@ export function usePdfViewer({
 	 */
 	const magnifierAsked = !!magnifierProp
 
-	const magnifierOptions = typeof magnifierProp === 'object' ? magnifierProp : undefined
-
-	const magnifierMode = magnifierOptions?.mode
-
-	const magnifierZoom = magnifierOptions?.zoom
-
-	const magnifierSize = magnifierOptions?.size
-
-	const magnifierDelay = magnifierOptions?.delay
+	const {
+		mode: magnifierModeProp,
+		zoom: magnifierZoom,
+		size: magnifierSize,
+		delay: magnifierDelay,
+	}: PdfViewerMagnifierOptions = typeof magnifierProp === 'object' ? magnifierProp : {}
 
 	const magnifierOffered = useMemo(
 		() =>
 			magnifierAsked
-				? resolveMagnifierOptions({
-						mode: magnifierMode,
+				? resolveMagnifierChoice({
 						zoom: magnifierZoom,
 						size: magnifierSize,
 						delay: magnifierDelay,
 					})
 				: null,
-		[magnifierAsked, magnifierMode, magnifierZoom, magnifierSize, magnifierDelay],
+		[magnifierAsked, magnifierZoom, magnifierSize, magnifierDelay],
 	)
 
 	// Chrome, like the sidebar and the highlight toggle: nothing outside drives it, so it is
@@ -211,7 +207,7 @@ export function usePdfViewer({
 	 */
 	const [magnifierChoiceState, setMagnifierChoiceState] = useState<MagnifierChoice | null>(null)
 
-	const magnifierChoice = magnifierChoiceState ?? magnifierOffered?.choice ?? null
+	const magnifierChoice = magnifierChoiceState ?? magnifierOffered
 
 	/*
 	 * One report for the whole of what the reader owns, rather than one per switch.
@@ -239,19 +235,6 @@ export function usePdfViewer({
 
 		notifyMagnifier(choice)
 	}, [])
-
-	/*
-	 * Withheld from the hook while it is off, which disables every interaction hook inside it
-	 * rather than merely hiding the lens: a switched-off loupe should not be tracking the
-	 * pointer across the page and re-rendering on every move.
-	 *
-	 * Memoized because it is the loupe hook's only argument and a dependency of the context
-	 * memo below; a fresh object per render would re-run both for settings that never moved.
-	 */
-	const magnifierSettings = useMemo<ResolvedMagnifier | null>(
-		() => (magnifierOn && magnifierChoice ? resolveMagnifier(magnifierChoice) : null),
-		[magnifierOn, magnifierChoice],
-	)
 
 	const shouldLoadFromSrc = !pagesProp && !!src
 
@@ -389,11 +372,13 @@ export function usePdfViewer({
 			onImageLoad,
 			rootRef,
 			viewportRef,
-			magnifierSettings,
-			magnifierAvailable: magnifierOffered !== null,
+			// Withheld while the loupe is off, which disables every interaction hook inside
+			// `usePdfViewerMagnifier` rather than merely hiding the lens: a switched-off loupe
+			// should not be tracking the pointer across the page and re-rendering on every move.
+			magnifierSettings: magnifierOn && magnifierChoice ? resolveMagnifier(magnifierChoice) : null,
 			magnifierOn,
 			setMagnifierOn,
-			magnifierMode: magnifierOffered?.mode ?? 'simple',
+			magnifierMode: magnifierAsked ? (magnifierModeProp ?? 'simple') : null,
 			magnifierChoice,
 			setMagnifierChoice,
 		}),
@@ -420,8 +405,8 @@ export function usePdfViewer({
 			setMagnifierOn,
 			visible,
 			onImageLoad,
-			magnifierSettings,
-			magnifierOffered,
+			magnifierAsked,
+			magnifierModeProp,
 			magnifierOn,
 			magnifierChoice,
 			setMagnifierChoice,
