@@ -3,7 +3,7 @@
 import { type Placement, useClick, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
-import { queryItems, setVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
+import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { isNativeContextMenuRequest } from '../../utilities'
@@ -144,17 +144,16 @@ export function useMenuState({
 		manageAriaSelected: false,
 	})
 
-	// Clear the trigger's `aria-activedescendant` once closed, and strip
-	// `data-active` from the rows themselves. `clearVirtualActive` passes an empty
-	// item list, so it only clears the owner; the panel survives the close through
-	// its exit animation, so a reopen inside that window reconciles the same DOM
-	// nodes and a row keeps its wash with nothing naming it. Reading the live rows
-	// clears both, and the next open starts with no active row, so the first arrow
+	// Clear the highlight once closed, rows included: `PresencePortal` holds the
+	// panel through its exit animation, so a reopen inside that window reconciles the
+	// same nodes. The next open then starts with no active row, and the first arrow
 	// picks the first item.
 	useEffect(() => {
 		if (open) return
 
-		setVirtualActive(queryItems(refs.floating.current, MENUITEM_SELECTOR), -1, triggerRef, {
+		clearVirtualActive(triggerRef, {
+			container: refs.floating.current,
+			itemSelector: MENUITEM_SELECTOR,
 			ariaSelected: false,
 		})
 	}, [open, refs.floating, triggerRef])

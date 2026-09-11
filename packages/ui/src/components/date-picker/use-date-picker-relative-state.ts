@@ -6,7 +6,7 @@ import { type KeyboardEvent, useCallback, useEffect, useMemo, useRef, useState }
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
-import { wrap } from '../../utilities'
+import { FOCUSABLE_SELECTOR, wrap } from '../../utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
 import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
@@ -110,11 +110,16 @@ export function useDatePickerRelativeState({
 	// can still dismiss (matching Listbox).
 	const setOpen = useCallback(
 		(next: boolean) => {
-			if (resolvedReadOnly && next) return
+			// Only a transition is a write. `useControllable` publishes every set with
+			// no equality check, so a redundant close — a clear on a shut picker, a
+			// second Escape — would report a transition that never happened. The guard
+			// sits on the one writer rather than at each call site, so a later writer
+			// inherits it.
+			if (next === open || (resolvedReadOnly && next)) return
 
 			setOpenInner(next)
 		},
-		[resolvedReadOnly, setOpenInner],
+		[open, resolvedReadOnly, setOpenInner],
 	)
 
 	const [mode, setMode] = useState<DatePickerRelativeMode>('list')
@@ -132,13 +137,15 @@ export function useDatePickerRelativeState({
 
 	const footerRef = useRef<HTMLDivElement>(null)
 
-	// Anchors all relative math to one instant per interaction, re-stamped on open
-	// so a long-lived page can't drift across midnight mid-edit. State, not a ref:
-	// a ref write cannot invalidate the display memos below, so a re-stamp would
-	// never reach the rendered chips or the row highlight. Null until mount,
-	// because a server-rendered instant can resolve a preset against a different
-	// day than the client does; `Calendar` defers `today` the same way. The cost is
-	// one frame with no chips.
+	// Captures the panel so `handleClear` can hand focus to a live control before the
+	// footer unmounts. floating-ui's `refs.floating` is not populated on this path.
+	const floatingRef = useRef<HTMLElement | null>(null)
+
+	// Anchors all relative math to one instant per interaction, re-stamped on open so
+	// a long-lived page can't drift across midnight mid-edit. State, not a ref: a ref
+	// write cannot invalidate the display memos below. Null until mount, as `Calendar`
+	// defers `today`, because a server-rendered instant can resolve a preset against a
+	// different day than the client does. The cost is one frame with no chips.
 	const [now, setNow] = useState<Date | null>(null)
 
 	useEffect(() => {
@@ -156,38 +163,37 @@ export function useDatePickerRelativeState({
 
 	const draftRef = useRef<{ from?: Date; to?: Date }>({})
 
-	// Before mount there is no instant, so nothing reads as custom yet.
-	const customActive = now ? isCustomActive(value, presets, now, pickedIds) : false
-
-	// The committed custom span, if any — used to seed the Start/End inputs when the
-	// user re-enters custom mode so an existing custom range shows pre-filled. Found
-	// by match, not by position: a span picked as a preset stops matching once the
-	// instant moves past midnight, so a matched span can sit ahead of the custom one
-	// and `value[0]` would seed the Start/End inputs from the wrong range.
+	// The committed custom span, if any — it seeds the Start/End inputs when the user
+	// re-enters custom mode. Found by match, not by position: a span picked as a
+	// preset stops matching once the instant moves past midnight, so a matched span
+	// can sit ahead of the custom one. Before mount there is no instant, so nothing
+	// reads as custom yet.
 	const customSpan = now ? findCustomSpan(value, presets, now, pickedIds) : undefined
+
+	const customActive = customSpan !== undefined
 
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {
-			// A click cannot precede mount, so the fallback is unreachable; it keeps the
-			// callback total without an assertion.
-			const instant = now ?? new Date()
+			// One instant for the whole interaction. A fresh one here would commit a span
+			// resolved against a clock the display derivations do not share.
+			if (!now) return
 
 			// Which presets read as selected right now, biased by the existing picks so a
 			// collision toggles off the picked preset rather than re-selecting a twin.
-			const selected = selectedPresetIds(value, presets, instant, pickedIds)
+			const selected = selectedPresetIds(value, presets, now, pickedIds)
 
 			// Derive the next value and the next picks from the SAME snapshot. `setValue`
 			// takes a concrete value (not an updater) and `value` is often a controlled
 			// prop, so both writes are last-write-wins across a batch; a `setPickedIds`
 			// updater reading `prev` would instead accumulate and desync the picks from
 			// the committed value.
-			setValue(togglePresetValue(value, preset, presets, instant, multiple, pickedIds))
+			setValue(togglePresetValue(value, preset, presets, now, multiple, pickedIds))
 
 			let nextPicked: Set<string>
 
 			if (!multiple) {
 				nextPicked = selected.has(preset.id) ? new Set() : new Set([preset.id])
-			} else if (isCustomActive(value, presets, instant, pickedIds)) {
+			} else if (isCustomActive(value, presets, now, pickedIds)) {
 				// A custom range was replaced wholesale by this preset.
 				nextPicked = new Set([preset.id])
 			} else {
@@ -244,12 +250,11 @@ export function useDatePickerRelativeState({
 		// trigger. The move runs before the commit, so the row is still mounted: the
 		// first preset in list mode, and `Back to presets` in custom mode, because
 		// `querySelector` takes the first match in document order.
-		// The handler runs from a control inside the dialog, so the panel is reachable
-		// from the focused element. floating-ui's own `refs.floating` is empty on this
-		// path, and the footer's ref is about to unmount with it.
-		const panel = document.activeElement?.closest('[role="dialog"]')
-
-		panel?.querySelector<HTMLElement>('[data-relative-preset], button')?.focus()
+		// The first focusable control in the panel, which is the leading preset row in
+		// list mode and `Back to presets` in custom mode. `FOCUSABLE_SELECTOR` excludes
+		// a disabled control, which a bare `button` selector would match and then fail
+		// to focus, leaving focus on `document.body` — the failure this prevents.
+		floatingRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
 	}, [setValue])
 
 	const handleOpenChange = useCallback(
@@ -268,6 +273,15 @@ export function useDatePickerRelativeState({
 		role: 'dialog',
 		returnFocusTo: triggerRef,
 	})
+
+	const setFloating = useCallback(
+		(node: HTMLElement | null) => {
+			floatingRef.current = node
+
+			refs.setFloating(node)
+		},
+		[refs],
+	)
 
 	// Public open-change entry: routes through floating-ui's context so a
 	// caller-supplied close reason reaches `useFloatingPanel`'s reason-aware
@@ -454,7 +468,7 @@ export function useDatePickerRelativeState({
 		onContentKeyDown,
 		onExitComplete,
 		setReference,
-		setFloating: refs.setFloating,
+		setFloating,
 		floatingStyles,
 		getReferenceProps,
 		getFloatingProps,

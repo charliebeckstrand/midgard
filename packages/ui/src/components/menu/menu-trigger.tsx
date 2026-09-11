@@ -111,11 +111,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		activationHeldRef.current = false
 	}
 
-	// A static menu is part of the page and its panel ignores `open`, so the trigger
-	// owns no disclosure. `aria-expanded` there would contradict a visible panel and
-	// `aria-controls` would name an element the static branch never stamps. A
-	// trigger belongs to a dropdown, which both doccomments say and no type can
-	// enforce, so the wiring is absent rather than wrong.
+	// Absent rather than wrong in static mode; the `@remarks` above says why.
 	const disclosure = isStatic
 		? undefined
 		: {

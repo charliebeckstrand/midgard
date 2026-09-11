@@ -27,6 +27,10 @@ beforeEach(() => {
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
 })
 
+function pageImage(container: HTMLElement) {
+	return bySlot(container, 'pdf-viewer-viewport')?.querySelector('img') as HTMLImageElement
+}
+
 const pages: PdfViewerPage[] = [
 	{ id: 'a', src: 'page-1.png', label: 'Page 1' },
 	{ id: 'b', src: 'page-2.png', label: 'Page 2' },
@@ -111,7 +115,7 @@ describe('PdfViewer', () => {
 	it('rotates the active page in 90 degree steps', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		const img = bySlot(container, 'pdf-viewer-viewport')?.querySelector('img') as HTMLImageElement
+		const img = pageImage(container)
 
 		const user = userEvent.setup()
 
@@ -137,11 +141,7 @@ describe('PdfViewer', () => {
 		const { container, rerender } = renderUI(<Harness tick={0} />)
 
 		// Re-queried after each render, because the viewport rebuilds its image.
-		function transform() {
-			const img = bySlot(container, 'pdf-viewer-viewport')?.querySelector('img') as HTMLImageElement
-
-			return img.style.transform
-		}
+		const transform = () => pageImage(container).style.transform
 
 		const user = userEvent.setup()
 

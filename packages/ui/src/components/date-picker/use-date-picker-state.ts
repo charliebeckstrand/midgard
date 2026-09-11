@@ -86,16 +86,28 @@ export function useDatePickerState({
 	// can still dismiss (matching Listbox).
 	const setOpen = useCallback(
 		(next: boolean) => {
-			if (resolvedReadOnly && next) return
+			// Only a transition is a write. `useControllable` publishes every set with
+			// no equality check, so a redundant close — a clear on a shut picker, a
+			// second Escape — would report a transition that never happened. The guard
+			// sits on the one writer rather than at each call site, so a later writer
+			// inherits it.
+			if (next === open || (resolvedReadOnly && next)) return
 
 			setOpenInner(next)
 		},
-		[resolvedReadOnly, setOpenInner],
+		[open, resolvedReadOnly, setOpenInner],
 	)
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
-	const [active, setActive] = useState<CalendarActive | null>(null)
+	// Scoped to the open state by derivation, not by an effect: a closed picker has
+	// no active cell, so every reader — the input's active descendant, the calendar,
+	// the footer, and the arrow-move bases — sees null without its own gate. A
+	// derived value also resolves during the render that closes, where an effect
+	// would run a frame later.
+	const [activeState, setActive] = useState<CalendarActive | null>(null)
+
+	const active = open ? activeState : null
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
@@ -130,14 +142,6 @@ export function useDatePickerState({
 		setActive(null)
 	}, [setOpen])
 
-	// A consumer-driven close of a controlled `open` prop bypasses `closeCalendar`,
-	// so the highlight clears on the state change and not on the path. Without it a
-	// programmatic close — an effect, a timer, a route change, arriving data — keeps
-	// `active` set, and the next programmatic open restores a stale highlight.
-	useEffect(() => {
-		if (!open) setActive(null)
-	}, [open])
-
 	const closeCalendar = useCallback(() => {
 		setOpen(false)
 
@@ -162,14 +166,8 @@ export function useDatePickerState({
 	const handleClear = useCallback(() => {
 		setValue(undefined)
 
-		// Only close what is open. `closeCalendar` writes `setOpen(false)`
-		// unconditionally and the controllable setter publishes every write with no
-		// equality check, so clearing from the closed trigger would report a close
-		// transition that never happened. The touch still belongs to the clear,
-		// because it is the interaction the field blurs on.
-		if (open) closeCalendar()
-		else setTouched()
-	}, [closeCalendar, open, setTouched, setValue])
+		closeCalendar()
+	}, [closeCalendar, setValue])
 
 	const handleSelectToday = useCallback(() => {
 		// Clamp so the footer Today action can never commit a date outside the
@@ -297,9 +295,7 @@ export function useDatePickerState({
 		// highlight, so the header/footer zones and the closed state clear it.
 		inputAria: {
 			'aria-controls': open ? listboxId : undefined,
-			// Gated on `open` as well as the zone: the clearing effect above runs after
-			// the render that flips `open`, so this frame would still name the grid.
-			'aria-activedescendant': open && active?.zone === 'grid' ? activeDescendantId : undefined,
+			'aria-activedescendant': active?.zone === 'grid' ? activeDescendantId : undefined,
 		},
 		setReference,
 		setFloating,
@@ -312,7 +308,7 @@ export function useDatePickerState({
 		calendar: {
 			value: value ?? null,
 			onValueChange: handleSelect,
-			active: open ? active : null,
+			active,
 			calendarRef,
 			footerRef,
 		},

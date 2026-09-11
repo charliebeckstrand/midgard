@@ -324,10 +324,8 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						size={size}
 						disabled={state.disabled}
 						readOnly={state.readOnly}
-						// DateInput resolves `invalid ?? (typedInvalid || undefined)`, so a
-						// literal `false` would pin the attribute and suppress the input's
-						// own parse and bounds state. Pass undefined when the resolved flag
-						// is false, and let the typed entry speak for itself.
+						// DateInput resolves `invalid ?? (typedInvalid || undefined)`, so a literal
+						// `false` would pin the attribute over the input's own parse state.
 						invalid={state.invalid || undefined}
 						clearable={clearable}
 						placeholder={props.placeholder}

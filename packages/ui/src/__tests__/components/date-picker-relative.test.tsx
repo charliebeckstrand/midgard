@@ -39,6 +39,14 @@ function openPicker() {
 	return userEvent.setup({ delay: null })
 }
 
+// The footer Clear and the trigger clear share the name "Clear selection"; scope
+// footer-clear queries to the popover toolbar so the match stays unambiguous.
+function footerClear() {
+	return within(screen.getByRole('toolbar', { name: 'Date picker actions' })).getByRole('button', {
+		name: 'Clear selection',
+	})
+}
+
 describe('DatePicker (relative)', () => {
 	it('shows the placeholder when nothing is selected', () => {
 		const { container } = renderUI(<DatePicker relative placeholder="Select range" />)

@@ -337,18 +337,14 @@ export function usePdfViewer({
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
-	// The document's own identity, not the resolved `pages`: the cache republishes
-	// that array once per rasterized page, so keying on it reset the reader's
-	// rotations — and re-ran every hook below — on each page of a streaming load.
-	// Consumer-supplied pages carry no stable identity either: `pages` is a prop a
-	// parent rebuilds on any render, and a fresh array reads as a document swap, so
-	// an unrelated re-render discarded every rotation the reader applied. Key on the
-	// page sources instead, which are required and change only with the document.
-	// `src` alone cannot serve, because a consumer that passes `pages` may pass none.
-	const documentKey = useMemo(
-		() => (pagesProp ? pagesProp.map((page) => page.src).join('\n') : src),
-		[pagesProp, src],
-	)
+	// The document's own identity, not the resolved `pages`: the cache republishes that
+	// array once per rasterized page, so keying on it reset the reader's rotations on
+	// each page of a streaming load. Consumer-supplied pages carry no stable identity
+	// either — `pages` is a prop a parent rebuilds — so key on the sources, which are
+	// required and change only with the document. A newline cannot appear in a `src`,
+	// so the join is unambiguous. No memo: the only dependency would be the array whose
+	// identity churns on exactly the renders this exists for.
+	const documentKey = pagesProp?.map((page) => page.src).join('\n') ?? src
 
 	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, documentKey)
 
