@@ -1,16 +1,16 @@
 ---
-name: finding-resolver
+name: bug-resolver
 description: |
   Closes one recommended-resolution step of the bug audit: a test that fails first, the change, the gates, a pushed branch, and the `Status` cell of each row the step names.
 
   USE WHEN: the gate has passed and the dispatcher names one step (`S1`…`Sn`) of a segment, the rows it closes, and its file set, and asks for the fix and the pull request.
 
-  DO NOT USE FOR: a claim, a verdict, a severity, or a re-derived step — `unit-sweeper` raises and `claim-verifier` judges; audit prose, the open or settled questions, or the `Research` cell — `audit-author`; a step whose gate question is unsettled — the reader; a row the step does not name — a later step; a defect you notice on the way — return it as a lead for `unit-sweeper`, do not fix it (`CLAUDE.md` §1.2).
+  DO NOT USE FOR: a claim, a verdict, a severity, or a re-derived step — `bug-sweeper` raises and `bug-verifier` judges; audit prose, the open or settled questions, or the `Research` cell — `bug-recorder`; a step whose gate question is unsettled — the reader; a row the step does not name — a later step; a defect you notice on the way — return it as a lead for `bug-sweeper`, do not fix it (`CLAUDE.md` §1.2).
 model: opus
 tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 ---
 
-# Finding resolver
+# Bug resolver
 
 ## 1. Remit
 

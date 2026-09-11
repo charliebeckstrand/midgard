@@ -155,17 +155,17 @@ The area sweeps read `.ts` and `.tsx` only, so they exclude the build configurat
 
 No sweep runs the package. Every claim comes from a read of the source. A defect that needs a run to see stays out of reach: a layout result, a paint order, a real browser event sequence. The browser suite and a manual pass own that ground.
 
-## Agent architecture — in progress
+## Agent architecture
 
-The sweep runs today on general-purpose agents with long prompts. A specialist network would cost less and miss less, and the design is part-finished. Three architects proposed a network, three skeptics attacked each proposal against one test: the network must not be worse than no specialist agents at all. The synthesis did not run, so nothing is decided and no agent file exists yet.
+The sweep ran on general-purpose agents with long prompts. Four specialist agents replace them, under [`.claude/agents/bug`](../../../../.claude/agents/bug). Three architects proposed a network and three skeptics attacked each proposal against one test: the network must not be worse than no specialist agents at all. A folder groups the family and each name keeps the `bug-` prefix, because the name is the address and must stay unique across the project; the folder is organisational only, and an agent is invoked by its name.
 
-Three proposals converge on the same four owners: a **unit sweeper** that reads one unit and raises claims, a **claim verifier** that judges them, an **audit author** that owns the documents, and a **finding resolver** that closes a row. Take that core as settled. The proposals cost 10, 13, and 15 agent invocations for one segment; only 10 survives the concurrency cap of 2 across the whole programme, so the burden of proof sits on any fifth agent.
+Three proposals converge on the same four owners, and they now live under [`.claude/agents/bug`](../../../../.claude/agents/bug): `bug-sweeper` reads one unit and raises claims, `bug-verifier` judges them, `bug-recorder` writes the documents and judges nothing, and `bug-resolver` closes a row. Take that core as settled. The proposals cost 10, 13, and 15 agent invocations for one segment; only 10 survives the concurrency cap of 2 across the whole programme, so the burden of proof sits on any fifth agent.
 
 Two skeptics independently rejected **reach as its own agent**, and the argument holds. Severity is not wholly a reach call: `F5` turns on impact ("one redundant key, and Enter still activates the item") and `F1`'s reach turns on a guard in `apps/places`, which is mechanism work. Reach is therefore a mandated question inside the verifier, not a separate remit — the verifier must answer it and must not return a severity without it.
 
 The skeptics found five gaps that no proposal owned. A standing ruling that attaches to a document class rather than to a code seam: a documentation sweep ruled that `audits/` and `plans/` stay in their authored voice, so a controlled-language pass over either is refused work. No agent was told to look for such a ruling. This plan states the decision rather than citing the audit that made it, because §12.4 bars a permanent document from naming an audit. A file collision between resolvers that run at the same time: segment `A01` collides with itself, because two of its steps both write `use-menu-state.ts`. Who may amend this plan's prose, which `A01` proved is necessary. The cross-component defect, which only a segment-wide vantage can see and which no proposal let that vantage raise. And [`CONVENTIONS.md`](../../../../CONVENTIONS.md) §10.3, which bars a test from driving floating-ui, pdfjs, fetch, or virtualization — the machinery under `F1`, `F2`, and `F6`, so a test author cannot be told to cover them.
 
-Resume from the three proposals and their critiques. Decide the fifth agent or refuse it, settle the five gaps, then write the files under `.claude/agents/` in the house frontmatter form: a `name`, a `description` carrying **USE WHEN** and **DO NOT USE FOR**, a `model`, and a minimal `tools` list that gives a research agent no write tool.
+The fifth agent was refused: a cause that spans two units is an overlap check on quoted citations and step file sets, and the verifier runs again over both sheets when it fires, so the segment vantage is a named pass and not a remit. Each of the five gaps has an owner in the files.
 
 ## State
 

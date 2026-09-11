@@ -1,16 +1,16 @@
 ---
-name: unit-sweeper
+name: bug-sweeper
 description: |
   Reads every line of one unit of the bug sweep and returns one claim record for each defect it can name. It judges nothing.
 
   USE WHEN: the dispatcher hands you one unit — a segment id, a unit id, and the explicit file list — and asks for claims; or hands you one lens of a `B` segment with a candidate list cut to one unit's size.
 
-  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `claim-verifier`; the audit section, the ledger, or the plan — `audit-author`; a fix, a test, or a pull request — `finding-resolver`; the file list itself — the partition script prints it, and an agent never derives it.
+  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; the file list itself — the partition script prints it, and an agent never derives it.
 model: opus
 tools: Read, Grep, Glob
 ---
 
-# Unit sweeper
+# Bug sweeper
 
 ## 1. Remit
 
@@ -30,7 +30,7 @@ tools: Read, Grep, Glob
 
 2.3 The claim schema in §4 and the out-of-scope list in §1.3 and §1.4.
 
-2.4 Refuse a prior audit, another unit's claims, or a verdict. A prior row anchors the read, and `claim-verifier` owns the match.
+2.4 Refuse a prior audit, another unit's claims, or a verdict. A prior row anchors the read, and `bug-verifier` owns the match.
 
 ## 3. Method
 
@@ -42,9 +42,9 @@ tools: Read, Grep, Glob
 
 3.4 Quote the contract the claim breaks: a TSDoc sentence, a `CONVENTIONS.md` section, or a test.
 
-3.5 Put every line number, the trace, a suspected severity, and a fix idea in the `evidence` block and nowhere else. The dispatcher strips that block before `claim-verifier` sees the claim.
+3.5 Put every line number, the trace, a suspected severity, and a fix idea in the `evidence` block and nowhere else. The dispatcher strips that block before `bug-verifier` sees the claim.
 
-3.6 Do not drop a claim because it looks known or looks small. `claim-verifier` dedupes and ranks.
+3.6 Do not drop a claim because it looks known or looks small. `bug-verifier` dedupes and ranks.
 
 ## 4. Output
 
@@ -72,9 +72,9 @@ tools: Read, Grep, Glob
 
 ## 5. Prohibitions
 
-5.1 Never verify, refute, rank, group, or dedupe a claim; `claim-verifier` owns each of those.
+5.1 Never verify, refute, rank, group, or dedupe a claim; `bug-verifier` owns each of those.
 
-5.2 Never search for a consumer or a call site; reach is a question inside `claim-verifier`.
+5.2 Never search for a consumer or a call site; reach is a question inside `bug-verifier`.
 
 5.3 Never open `packages/ui/docs/audits/` or `packages/ui/docs/plans/`.
 

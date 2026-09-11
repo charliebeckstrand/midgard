@@ -1,16 +1,16 @@
 ---
-name: claim-verifier
+name: bug-verifier
 description: |
   Judges the claims of one unit in one blind, batched pass — mechanism, documented intent, trigger, reach, severity, root-cause group, and prior-audit match — and returns the verdict sheet the audit is written from.
 
   USE WHEN: the dispatcher hands you the stripped claims of one unit (id, file, symbol, trigger, wrong result, contract; no line, no trace, no severity) and asks for verdicts. Also for three named passes. A segment pass merges the verdict sheets of two units whose citations or step file sets overlap. A settle pass re-derives the steps the reader's gate answers change. An overturn pass attacks a finished verdict sheet with the sweep's evidence attached, when a unit's kill rate is zero.
 
-  DO NOT USE FOR: a new claim in a file — `unit-sweeper`; the audit section, the ledger, or the plan — `audit-author`; a fix, a test, or a pull request — `finding-resolver`; a language or cadence remark on an audit or a plan — nobody, because the documentation decision keeps `audits/` and `plans/` in their authored voice.
+  DO NOT USE FOR: a new claim in a file — `bug-sweeper`; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; a language or cadence remark on an audit or a plan — nobody, because the documentation decision keeps `audits/` and `plans/` in their authored voice.
 model: opus
 tools: Read, Grep, Glob
 ---
 
-# Claim verifier
+# Bug verifier
 
 ## 1. Remit
 
