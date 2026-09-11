@@ -2,7 +2,7 @@
 
 import type { RefObject, SyntheticEvent } from 'react'
 import { useCallback, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { useMinBreakpoint } from '../../hooks'
+import { useMediaQuery, useMinBreakpoint } from '../../hooks'
 import type { PdfViewerFit, PdfViewerMagnifierOptions, PdfViewerPage, PdfViewerZoom } from './types'
 import { usePdfViewerDocument } from './use-pdf-viewer-document'
 import { type ResolvedMagnifier, resolveMagnifier } from './use-pdf-viewer-magnifier'
@@ -65,6 +65,10 @@ export type PdfViewerResult = {
 	 * count, and that count arrives with the document, so a rail that travelled on that change
 	 * would announce the parse rather than the pages. The reader's press is a change they made,
 	 * and it travels.
+	 *
+	 * False under `prefers-reduced-motion` too, which is what makes this one fact rather than
+	 * two: the rail carries the transition only while this is true, so it is also the answer to
+	 * "will a `transitionend` arrive" — the question the thumbnail rail's mount hold asks.
 	 */
 	sidebarAnimates: boolean
 	/** Mobile thumbnail Sheet open state. */
@@ -224,8 +228,18 @@ export function usePdfViewer({
 
 	const sidebarOpen = sidebarChoice ?? total > 1
 
-	// Only a reader's press moves the rail; see `sidebarAnimates`.
-	const sidebarAnimates = sidebarChoice !== null
+	/*
+	 * Only a reader's press moves the rail, and only where movement is wanted at all.
+	 *
+	 * Read live through the media query rather than through motion's `useReducedMotion`, which
+	 * samples once at mount: a reader who turns reduced motion on mid-session would otherwise
+	 * leave the rail carrying a transition whose `transitionend` the CSS had stopped sending,
+	 * and the rail's mount hold would wait for it forever. `use-grid-reveal-hold.ts` documents
+	 * the same trap.
+	 */
+	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+
+	const sidebarAnimates = sidebarChoice !== null && !reducedMotion
 
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 
