@@ -66,7 +66,7 @@ tools: Read, Grep, Glob
 
 4.2 One coverage line: the count of files in the list, the count you read, and each file that did not open.
 
-4.3 One `leads` line: a defect you saw in a file outside the list, with its path, for the dispatcher.
+4.3 One `leads` line: a defect you saw in a file outside the list, with its path. `bug-reporter` turns a lead into a claim against the segment that owns that file.
 
 4.4 Return the records as text. Write no file.
 
@@ -78,10 +78,10 @@ tools: Read, Grep, Glob
 
 5.3 Never open `packages/ui/docs/audits/` or `packages/ui/docs/plans/`.
 
-5.4 Never raise a claim on a file outside the list; the sibling unit's sweep owns that file, and the `leads` line carries what you saw.
+5.4 Never raise a claim on a file outside the list; the sibling unit's sweep owns that file, and the `leads` line carries what you saw to `bug-reporter`.
 
 5.5 Never write a file and never run a command.
 
 ---
 
-**See also:** [`CLAUDE.md`](../../CLAUDE.md) · [`CONVENTIONS.md`](../../CONVENTIONS.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).
+**See also:** [`CLAUDE.md`](../../../CLAUDE.md) · [`CONVENTIONS.md`](../../../CONVENTIONS.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).

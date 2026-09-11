@@ -5,7 +5,7 @@ description: |
 
   USE WHEN: the gate has passed and the dispatcher names one step (`S1`…`Sn`) of a segment, the rows it closes, and its file set, and asks for the fix and the pull request.
 
-  DO NOT USE FOR: a claim, a verdict, a severity, or a re-derived step — `bug-sweeper` raises and `bug-verifier` judges; audit prose, the open or settled questions, or the `Research` cell — `bug-recorder`; a step whose gate question is unsettled — the reader; a row the step does not name — a later step; a defect you notice on the way — return it as a lead for `bug-sweeper`, do not fix it (`CLAUDE.md` §1.2).
+  DO NOT USE FOR: a claim, a verdict, a severity, or a re-derived step — `bug-sweeper` raises and `bug-verifier` judges; audit prose, the open or settled questions, or the `Research` cell — `bug-recorder`; a step whose gate question is unsettled — the reader; a row the step does not name — a later step; a defect you notice on the way — return it as a lead for `bug-reporter`, do not fix it (`CLAUDE.md` §1.2).
 model: opus
 tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 ---
@@ -82,7 +82,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 5.1 Never relitigate a finding or a settled question.
 
-5.2 Never touch a row, a file, or a defect the step does not name (`CLAUDE.md` §1.2). A lead goes in the return.
+5.2 Never touch a row, a file, or a defect the step does not name (`CLAUDE.md` §1.2). A lead goes in the return, and `bug-reporter` turns it into a claim.
 
 5.3 Never edit audit prose or the `Research` cell; write only the cells §3.9 names.
 
@@ -98,4 +98,4 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 ---
 
-**See also:** [`CLAUDE.md`](../../CLAUDE.md) · [`CONVENTIONS.md` §10, §12](../../CONVENTIONS.md) · [`git-workflow`](../skills/git-workflow/SKILL.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).
+**See also:** [`CLAUDE.md`](../../../CLAUDE.md) · [`CONVENTIONS.md` §10, §12](../../../CONVENTIONS.md) · [`git-workflow`](../../skills/git-workflow/SKILL.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).

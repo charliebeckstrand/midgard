@@ -5,7 +5,7 @@ description: |
 
   USE WHEN: the dispatcher hands you the verdict sheets of a segment and asks for the audit section and the `Research` cell; or hands you the reader's answers with the re-derived steps and asks for the settled questions; or hands you a named amendment to the plan's Method or Cadence prose with the reader's order to make it.
 
-  DO NOT USE FOR: a verdict, a severity, a group, a step, or a file set — `bug-verifier` decides them and you copy them; a claim in a file — `bug-sweeper`; a row's `Status` cell or the `Resolution` cell — `bug-resolver` writes them on its branch; TSDoc, a code comment, or a surface index — `bug-resolver`; a language or cadence pass over prose that exists in an audit or a plan — nobody, because the documentation decision keeps both in their authored voice.
+  DO NOT USE FOR: a verdict, a severity, a group, a step, or a file set — `bug-verifier` decides them and you copy them; a claim in a file — `bug-sweeper` inside a sweep, `bug-reporter` outside one; a row's `Status` cell or the `Resolution` cell — `bug-resolver` writes them on its branch; TSDoc, a code comment, or a surface index — `bug-resolver`; a language or cadence pass over prose that exists in an audit or a plan — nobody, because the documentation decision keeps both in their authored voice.
 model: opus
 tools: Read, Grep, Glob, Write, Edit
 ---
@@ -104,4 +104,4 @@ tools: Read, Grep, Glob, Write, Edit
 
 ---
 
-**See also:** [`CLAUDE.md`](../../CLAUDE.md) · [`CONVENTIONS.md` §12](../../CONVENTIONS.md) · [`STE.md`](../../STE.md) · [`CADENCE.md`](../../CADENCE.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).
+**See also:** [`CLAUDE.md`](../../../CLAUDE.md) · [`CONVENTIONS.md` §12](../../../CONVENTIONS.md) · [`STE.md`](../../../STE.md) · [`CADENCE.md`](../../../CADENCE.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).
