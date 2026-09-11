@@ -20,7 +20,13 @@ Each segment runs two steps, and the [Progress ledger](#progress-ledger) tracks 
 
 ### Research
 
-A unit is a disjoint file set. The ledger's 28 segments hold 50 units over 153,159 lines, so a unit averages about 2,920 lines; the largest is 4,021 and the smallest 51. A segment holds one to three units, and 19 of the 28 hold exactly two. One sweep agent owns each unit and reads every file in it, because a sample cannot bound what it missed.
+A unit is a disjoint file set. The partition derives 50 units over 145,987 lines, so a unit averages about 2,920 lines; the largest holds 4,784 and the smallest 32. Segment `A01` carries its own recorded set on top of those 50, because it predates the partition. Nineteen of the 28 segments hold two units, seven hold one, and two hold three. One sweep agent owns each unit and reads every file in it, because a sample cannot bound what it missed.
+
+[`scripts/audit/partition.ts`](../../scripts/audit/partition.ts) prints the partition, and `pnpm --filter ui audit:partition` runs it. No agent derives a file set: the script prints the list, and `--manifests <dir>` writes one file for each unit.
+
+The script also prints a hash for each segment and each unit. A hash is the first seven hex digits of one SHA-256: the scope's repo-relative paths, sorted and joined by a newline. It therefore names a scope and not a state. It moves when the file set moves, and it holds still while the code inside changes.
+
+Every document repeats the hash at the first mention of a segment, as `A02` (`674adc3`). A citation with a hash is then checkable: a hash that no longer matches names a scope the partition has since changed. The ledger's `Hash` column is the one source, and no agent computes a hash of its own.
 
 A sweep reports a defect only when it can name the file, the line, the trigger, and the wrong result. Style, naming, and format stay out of scope, and Biome owns them. A request for a test, for a document, or for a refactor is not a defect. A repository convention is not a defect: [`CONVENTIONS.md`](../../../../CONVENTIONS.md) decides intent, notably §3.6, §3.9, §7.2, §7.3, and §11.3, and [`REFERENCE.md`](../../REFERENCE.md) §2 decides the tier boundary.
 
@@ -42,40 +48,42 @@ A row resolves in place, in the audit that holds it. Its `Status` cell takes the
 
 ## Progress ledger
 
-One row for each area segment. `Research` tracks the sweep, the verification, and the review gate. `Resolution` tracks the fixes, and it stays empty until research finds something to fix. The ledger covers the whole scope, the file sets are disjoint, and the `Files` and `Lines` columns sum to the scope above.
+One row for each area segment. `Hash` identifies the segment's file set, and every citation of the segment repeats it. `Research` tracks the sweep, the verification, and the review gate. `Resolution` tracks the fixes, and it stays empty until research finds something to fix. The ledger covers the whole scope, the file sets are disjoint, and the `Files` and `Lines` columns sum to the scope above.
+
+`Files` and `Lines` are the counts at the partition. A later fix moves `Lines`, so the script prints a larger figure than this table. `Hash` and `Files` are what must still match, because the hash reads the paths and not the content.
 
 States: `◯ open` — not started. `◐` — started and not finished: under `Research` the findings are written and wait on a reader, and under `Resolution` some rows are fixed. `✅ done`. A `—` in `Resolution` means research has not yet said whether there is anything to resolve.
 
-| Segment | Area | Scope | Files | Lines | Research | Resolution |
-|---|---|---|---|---|---|---|
-| `A01` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 15 of 15: 14 fixed, 1 refuted |
-| `A02` | components | calendar + data-display 1/2 | 71 | 5,841 | ◯ open | — |
-| `A03` | components | data-display 2/2 + feedback | 68 | 2,746 | ◯ open | — |
-| `A04` | components | form-control 1/2 + form-control 2/2 | 76 | 4,978 | ◯ open | — |
-| `A05` | components | layout-leaf + media-canvas 1/2 | 89 | 5,927 | ◯ open | — |
-| `A06` | components | media-canvas 2/2 + navigation | 87 | 5,911 | ◯ open | — |
-| `A07` | components | overlay + selection | 83 | 6,851 | ◯ open | — |
-| `A08` | components | text-input | 47 | 3,884 | ◯ open | — |
-| `A09` | modules/grid | grid/engine 1/2 + grid/engine 2/2 | 40 | 5,449 | ◯ open | — |
-| `A10` | modules/grid | grid/surface 1/5 + grid/surface 2/5 | 27 | 7,921 | ◯ open | — |
-| `A11` | modules/grid | grid/surface 3/5 + grid/surface 4/5 | 42 | 8,263 | ◯ open | — |
-| `A12` | modules/grid | grid/surface 5/5 | 8 | 1,962 | ◯ open | — |
-| `A13` | modules/chart | chart/engine 1/4 + chart/engine 2/4 | 29 | 8,284 | ◯ open | — |
-| `A14` | modules/chart | chart/engine 3/4 + chart/engine 4/4 | 23 | 5,622 | ◯ open | — |
-| `A15` | modules/chart | chart/surface 1/2 + chart/surface 2/2 | 29 | 5,071 | ◯ open | — |
-| `A16` | modules/map | map/engine 1/2 + map/engine 2/2 | 50 | 8,093 | ◯ open | — |
-| `A17` | modules/map | map/surface 1/2 + map/surface 2/2 | 33 | 7,374 | ◯ open | — |
-| `A18` | modules/other | chat+query | 39 | 3,797 | ◯ open | — |
-| `A19` | hooks | hooks/a11y + hooks/core 1/2 + hooks/core 2/2 | 56 | 5,980 | ◯ open | — |
-| `A20` | primitives | layouts + primitives + providers | 90 | 4,743 | ◯ open | — |
-| `A21` | foundation | core+utilities+types | 58 | 2,989 | ◯ open | — |
-| `A22` | recipes | recipes/index.ts + recipes/kata 1/2 | 53 | 3,690 | ◯ open | — |
-| `A23` | recipes | recipes/kata 2/2 + recipes/katakana | 50 | 3,139 | ◯ open | — |
-| `A24` | recipes | recipes/kiso | 138 | 3,801 | ◯ open | — |
-| `A25` | docs | demos 1/5 + demos 2/5 | 73 | 6,951 | ◯ open | — |
-| `A26` | docs | demos 3/5 + demos 4/5 | 31 | 6,534 | ◯ open | — |
-| `A27` | docs | demos 5/5 + engine 1/2 | 34 | 6,165 | ◯ open | — |
-| `A28` | docs | engine 2/2 | 37 | 4,021 | ◯ open | — |
+| Segment | Hash | Area | Scope | Files | Lines | Research | Resolution |
+|---|---|---|---|---|---|---|---|
+| `A01` | `3298641` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 15 of 15: 14 fixed, 1 refuted |
+| `A02` | `674adc3` | components | calendar + data-display 1/2 | 71 | 5,841 | ◯ open | — |
+| `A03` | `adb2bc9` | components | data-display 2/2 + feedback | 68 | 2,746 | ◯ open | — |
+| `A04` | `c44604b` | components | form-control 1/2 + form-control 2/2 | 76 | 4,978 | ◯ open | — |
+| `A05` | `0bf63cd` | components | layout-leaf + media-canvas 1/2 | 89 | 5,927 | ◯ open | — |
+| `A06` | `1cc265f` | components | media-canvas 2/2 + navigation | 87 | 5,911 | ◯ open | — |
+| `A07` | `8c7426b` | components | overlay + selection | 83 | 6,851 | ◯ open | — |
+| `A08` | `ecafe98` | components | text-input | 47 | 3,884 | ◯ open | — |
+| `A09` | `d516ca1` | modules/grid | grid/engine 1/2 + grid/engine 2/2 | 40 | 5,449 | ◯ open | — |
+| `A10` | `0e2bcd3` | modules/grid | grid/surface 1/5 + grid/surface 2/5 | 27 | 7,921 | ◯ open | — |
+| `A11` | `85b8d10` | modules/grid | grid/surface 3/5 + grid/surface 4/5 | 42 | 8,263 | ◯ open | — |
+| `A12` | `a7645e0` | modules/grid | grid/surface 5/5 | 8 | 1,962 | ◯ open | — |
+| `A13` | `0c69d5f` | modules/chart | chart/engine 1/4 + chart/engine 2/4 | 29 | 8,284 | ◯ open | — |
+| `A14` | `1f5aca3` | modules/chart | chart/engine 3/4 + chart/engine 4/4 | 23 | 5,622 | ◯ open | — |
+| `A15` | `68bf678` | modules/chart | chart/surface 1/2 + chart/surface 2/2 | 29 | 5,071 | ◯ open | — |
+| `A16` | `60c1a8b` | modules/map | map/engine 1/2 + map/engine 2/2 | 50 | 8,093 | ◯ open | — |
+| `A17` | `d828cd6` | modules/map | map/surface 1/2 + map/surface 2/2 | 33 | 7,374 | ◯ open | — |
+| `A18` | `8082a76` | modules/other | chat+query | 39 | 3,797 | ◯ open | — |
+| `A19` | `a7db076` | hooks | hooks/a11y + hooks/core 1/2 + hooks/core 2/2 | 56 | 5,980 | ◯ open | — |
+| `A20` | `dfe71ec` | primitives | layouts + primitives + providers | 90 | 4,743 | ◯ open | — |
+| `A21` | `3dd1010` | foundation | core+utilities+types | 58 | 2,989 | ◯ open | — |
+| `A22` | `638fbd3` | recipes | recipes/index.ts + recipes/kata 1/2 | 53 | 3,690 | ◯ open | — |
+| `A23` | `8227595` | recipes | recipes/kata 2/2 + recipes/katakana | 50 | 3,139 | ◯ open | — |
+| `A24` | `c9e0640` | recipes | recipes/kiso | 138 | 3,801 | ◯ open | — |
+| `A25` | `d6d7981` | docs | demos 1/5 + demos 2/5 | 73 | 6,951 | ◯ open | — |
+| `A26` | `c61b952` | docs | demos 3/5 + demos 4/5 | 31 | 6,534 | ◯ open | — |
+| `A27` | `ab833b4` | docs | demos 5/5 + engine 1/2 | 34 | 6,165 | ◯ open | — |
+| `A28` | `e6019d8` | docs | engine 2/2 | 37 | 4,021 | ◯ open | — |
 
 ### Segment scopes
 
@@ -177,7 +185,7 @@ Segment `A01` research is done and its resolution has not started. The review se
 
 Every resolution step of `A01` is done on the branch. Fourteen rows read `◐ FIXED` and close when a pull request merges; `R3.2` fell, because it described a toggle that a static menu never performs and a probe on the unfixed tree disproved it across every activation path. Resolution reads `◐` rather than `✅` because no row carries a pull request yet.
 
-The next action is segment `A02` — calendar and data-display, 71 files and 5,841 lines. It is the first segment to run on the four agents under [`.claude/agents/bug`](../../../../.claude/agents/bug), and the first test of whether they beat the general-purpose agents they replace.
+The next action is segment `A02` (`674adc3`) — calendar and data-display, 71 files and 5,841 lines. It is the first segment to run on the four agents under [`.claude/agents/bug`](../../../../.claude/agents/bug), and the first test of whether they beat the general-purpose agents they replace.
 
 ---
 
