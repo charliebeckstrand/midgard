@@ -58,6 +58,15 @@ export type PdfViewerResult = {
 	 */
 	sidebarOpen: boolean
 	setSidebarOpen: (open: boolean) => void
+	/**
+	 * Whether the rail slides between open and closed.
+	 *
+	 * False until the reader presses the toggle. Where the rail starts is derived from the page
+	 * count, and that count arrives with the document, so a rail that travelled on that change
+	 * would announce the parse rather than the pages. The reader's press is a change they made,
+	 * and it travels.
+	 */
+	sidebarAnimates: boolean
 	/** Mobile thumbnail Sheet open state. */
 	thumbsOpen: boolean
 	setThumbsOpen: (open: boolean) => void
@@ -215,6 +224,9 @@ export function usePdfViewer({
 
 	const sidebarOpen = sidebarChoice ?? total > 1
 
+	// Only a reader's press moves the rail; see `sidebarAnimates`.
+	const sidebarAnimates = sidebarChoice !== null
+
 	const [thumbsOpen, setThumbsOpen] = useState(false)
 
 	// Chrome, like the two above: nothing outside drives it, so it is state rather than a
@@ -285,6 +297,7 @@ export function usePdfViewer({
 			isDesktop,
 			sidebarOpen,
 			setSidebarOpen,
+			sidebarAnimates,
 			thumbsOpen,
 			setThumbsOpen,
 			hasHighlights,
@@ -315,6 +328,7 @@ export function usePdfViewer({
 			error,
 			isDesktop,
 			sidebarOpen,
+			sidebarAnimates,
 			thumbsOpen,
 			hasHighlights,
 			highlightsVisible,

@@ -37,6 +37,7 @@ export function PdfViewerThumbnails() {
 		loading,
 		isDesktop,
 		sidebarOpen,
+		sidebarAnimates,
 		thumbsOpen,
 		setThumbsOpen,
 		rootRef,
@@ -46,7 +47,9 @@ export function PdfViewerThumbnails() {
 
 	// The sidebar is always mounted; the hold only decides whether its contents
 	// are live, and defers to the slide so the rail doesn't blank mid-transition.
-	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: true })
+	// Deferred only where there is a slide to wait on: a rail that opens without
+	// travelling fires no `transitionend`, so a deferred hold would wait forever.
+	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: sidebarAnimates })
 
 	const sidebarRef = useRef<HTMLElement>(null)
 
@@ -80,7 +83,11 @@ export function PdfViewerThumbnails() {
 					data-slot="pdf-viewer-sidebar"
 					aria-hidden={!sidebarOpen}
 					inert={!sidebarOpen}
-					className={cn(k.sidebar.base, !sidebarOpen && k.sidebar.closed)}
+					className={cn(
+						k.sidebar.base,
+						sidebarAnimates && k.sidebar.travel,
+						!sidebarOpen && k.sidebar.closed,
+					)}
 					onKeyDown={handleSidebarKeyDown}
 					// The slide is a CSS margin transition, so its landing is the
 					// element's own `transitionend` rather than an animation callback.
