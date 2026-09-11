@@ -1,13 +1,9 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useHasHover } from '../../hooks/use-has-hover'
 import { stubMatchMedia } from '../helpers'
 
 describe('useHasHover', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	it('returns true when matchMedia reports hover capability', () => {
 		stubMatchMedia((query) => query === '(hover: hover)')
 

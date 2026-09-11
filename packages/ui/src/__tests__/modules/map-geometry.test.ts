@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { geoArea } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { GEOFENCE_CIRCLE_STEPS } from '../../modules/map/engine/map-constants'

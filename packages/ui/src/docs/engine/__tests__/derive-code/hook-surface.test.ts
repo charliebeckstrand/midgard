@@ -1,3 +1,4 @@
+// @vitest-environment node
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { describe, expect, it } from 'vitest'

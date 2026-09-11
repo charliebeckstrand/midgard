@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { isQueryActive } from '../../modules/query/engine/query-active'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'

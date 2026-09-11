@@ -13,9 +13,8 @@ import {
 import { PivotTable } from '../../../components/pivot-table'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { QueryBuilder, type QueryField } from '../../../modules/query'
+import { noop } from '../../helpers'
 import type { Case } from './types'
-
-const noop = () => {}
 
 const jsonSample = {
 	id: 42,

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { type GeoProjection, geoMercator } from 'd3-geo'
 import states from 'us-atlas/states-10m.json'
 import { describe, expect, it } from 'vitest'

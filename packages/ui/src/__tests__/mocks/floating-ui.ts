@@ -1,14 +1,13 @@
 import { type ReactNode, type RefObject, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { vi } from 'vitest'
+import { noop } from '../helpers/noop'
 
 // Passed through unmocked: ref merging is pure React wiring with no floating
 // engine behind it, so the real hook keeps its genuine semantics (memoized on
 // the ref list, React 19 cleanup refs, `null` when every ref is absent).
 const { useMergeRefs } =
 	await vi.importActual<typeof import('@floating-ui/react')>('@floating-ui/react')
-
-const noop = () => {}
 
 const identity = <T>(x: T) => x
 

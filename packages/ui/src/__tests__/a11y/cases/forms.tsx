@@ -3,9 +3,8 @@ import { Control } from '../../../components/control'
 import { Field, Label } from '../../../components/fieldset'
 import { Form } from '../../../components/form'
 import { Input } from '../../../components/input'
+import { noop } from '../../helpers'
 import type { Case } from './types'
-
-const noop = () => {}
 
 /** Form structure: the form element, its fields, and the bound submit control. */
 export const formCases: readonly Case[] = [

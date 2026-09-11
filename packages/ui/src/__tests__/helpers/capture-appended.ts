@@ -14,7 +14,7 @@ import { onTestFinished, vi } from 'vitest'
  * is exactly what this helper exists to reclaim.
  *
  * Not re-exported from `helpers/index.ts`: three suites use it, and that barrel
- * is on the path ~210 files evaluate.
+ * is on the path ~360 files evaluate.
  *
  * @param run - Call that appends the node.
  * @param tagName - Tag to match, so a render in the same `run` does not shadow

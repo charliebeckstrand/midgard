@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { numericRegionData } from '../../modules/map/engine/map-region/data'
 

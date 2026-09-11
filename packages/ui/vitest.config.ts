@@ -1,4 +1,6 @@
+import { join, relative } from 'node:path'
 import { configDefaults, defineConfig } from 'vitest/config'
+import { docblockEnvironment, walkSource } from './src/__tests__/helpers/walk-source'
 import { docsPlugin } from './src/docs/engine/plugins'
 
 const CI = Boolean(process.env.CI)
@@ -12,6 +14,34 @@ if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
 }
 
 const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
+
+// The test files that open with `// @vitest-environment node`: the `pure`
+// project runs exactly these, and `unit` excludes them. The docblock is the
+// one declaration — Vitest reads it too — and this scan turns it into a
+// project so the runner groups the files by `groupOrder`. Under
+// `isolate: false` a worker keeps its environment and module graph only while
+// the environment stays the same; left in `unit`, the shuffle interleaved
+// these files with the jsdom ones and every crossing rebuilt both, measured at
+// twice the suite's wall clock.
+function nodeEnvironmentFiles(): string[] {
+	const files: string[] = []
+
+	for (const dir of ['src/__tests__', 'src/docs/engine/__tests__']) {
+		walkSource(
+			join(import.meta.dirname, dir),
+			(file, content) => {
+				if (/\.test\.tsx?$/.test(file) && docblockEnvironment(content) === 'node') {
+					files.push(relative(import.meta.dirname, file))
+				}
+			},
+			new Set(['browser', 'boundary']),
+		)
+	}
+
+	return files.sort()
+}
+
+const nodeFiles = nodeEnvironmentFiles()
 
 // Setup files for both jsdom projects (unit, integration).
 const setupFiles = [
@@ -33,6 +63,15 @@ export default defineConfig({
 		// flat. Re-measure before you trust this on a much larger machine.
 		...(CI ? {} : { maxWorkers: '100%' }),
 		globals: true,
+		// Keep the transformed module graph on disk between runs. Measured on a
+		// 4-core container over the `unit` project: 60.0s cold, 50.7s warm;
+		// transform fell from 40.0s to 8.9s and import from 57.1s to 24.2s. The
+		// cache lives under the workspace root's node_modules and is about
+		// 40 MB; CI restores it beside `.turbo` (ci.yml), so every agent run
+		// takes the warm path. The option
+		// is experimental — re-read its release note on each Vitest bump, and
+		// drop it if the invalidation contract changes.
+		experimental: { fsModuleCache: true },
 		// Machine speed must change when a test passes, never whether it passes:
 		// CI agents are slower and noisier than dev machines, so wall-clock
 		// budgets scale up there. asyncUtilTimeout is RTL's waitFor/findBy budget,
@@ -53,7 +92,7 @@ export default defineConfig({
 		// BaseSequencer applies. Every project's files then land in one queue, and
 		// a worker is terminated at each crossing — along with the module graph
 		// `isolate: false` exists to keep. Each project below takes its
-		// `groupOrder` from its position in the array — unit, then boundary, then
+		// `groupOrder` from its position in the array — unit, pure, boundary, then
 		// integration — which restores the grouping; the shuffle still applies
 		// inside each group. Deriving it means a new project can neither omit the
 		// field nor collide with a sibling, and a project that set it alone would
@@ -138,12 +177,34 @@ export default defineConfig({
 					// jsdom can't — layout/colour geometry and, in its floating-ui
 					// project, real-floating-engine focus trapping — so it may not
 					// run under this jsdom config. The boundary/ suites run in the
-					// two projects below.
+					// two projects below, and the node-docblock files in `pure`.
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/**',
 						'src/__tests__/boundary/**',
+						...nodeFiles,
 					],
+				},
+			},
+			{
+				extends: true as const,
+				// Pure-function suites, selected by their `// @vitest-environment
+				// node` docblock (see `nodeEnvironmentFiles` above): a plain node
+				// environment on one shared worker, with no jsdom, no module
+				// doubles, and no RTL setup. The only setup is the locale guard,
+				// because the format tests live here. A file here cannot reach the
+				// shared jsdom window by accident, and
+				// `node-environment-boundary.test.ts` keeps the docblock and the
+				// file's DOM use in step both ways. The docs engine's pure suites
+				// live here too, so the project carries the same plugin as `unit`.
+				plugins: [docsPlugin({ vitest: true })],
+				test: {
+					name: 'pure',
+					environment: 'node',
+					pool: 'threads',
+					isolate: false,
+					setupFiles: ['./src/__tests__/setup/locale-guard.ts'],
+					include: nodeFiles,
 				},
 			},
 			{
