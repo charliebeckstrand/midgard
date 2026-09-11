@@ -48,7 +48,7 @@ States: `◯ open` — not started. `◐` — started and not finished: under `R
 
 | Segment | Area | Scope | Files | Lines | Research | Resolution |
 |---|---|---|---|---|---|---|
-| `A01` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 5 of 15 fixed |
+| `A01` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 12 of 15: 11 fixed, 1 refuted |
 | `A02` | components | calendar + data-display 1/2 | 71 | 5,841 | ◯ open | — |
 | `A03` | components | data-display 2/2 + feedback | 68 | 2,746 | ◯ open | — |
 | `A04` | components | form-control 1/2 + form-control 2/2 | 76 | 4,978 | ◯ open | — |
@@ -171,9 +171,9 @@ Resume from the three proposals and their critiques. Decide the fifth agent or r
 
 Segment `A01` research is done and its resolution has not started. The review settled three questions: forbid the static `Menu` composition, accept one frame for the deferred reference clock, and resolve one segment before the next starts research.
 
-Steps `S1` and `S2` of `A01` are done on the branch. The typed arm now takes the resolved `readOnly` and `invalid` flags, and the relative presets now hold their reference instant in state, dedupe the rebuild by span, and find the custom span by match. Five rows read `◐ FIXED` and they close when a pull request merges.
+Steps `S1`, `S2`, `S3`, and `S5` of `A01` are done on the branch. Eleven rows read `◐ FIXED` and close when a pull request merges. One row fell: `R3.2` described a toggle that a static menu never performs, and a probe on the unfixed tree disproved it across every activation path, so the guard was reverted.
 
-The next action is step `S3` — make a static `Menu` trigger inert. The review settled the seam: forbid the composition, so the trigger stops toggling and emits no disclosure ARIA in static mode, and the static panel seats a tab stop without seating focus.
+The next action is step `S4` — three independent defects with observable user cost: the footer Clear that unmounts itself under focus, the PDF rotation a rebuilt `pages` array resets, and the clear that reports a close on a shut picker.
 
 ---
 
