@@ -29,10 +29,15 @@ already shipped.
   what ships today, and the increments still ahead. A plan holds the design; the
   owning `ROADMAP.md` tracks status. A plan stays as the historical record after
   its work lands.
+- **`benchmarks/`** — fixtures that score a tool against a known answer. Each one
+  names a file set, the defects it holds, and the results already measured over
+  it. A benchmark is data and not a record of work: it carries no finding, it
+  closes no row, and §12.4 never deletes it. One folder for each fixture, named
+  for the scope it pins.
 
 New top-level subjects get their own folder here as they appear; keep
-single-lens, point-in-time sweeps under `audits/` and design records under
-`plans/`.
+single-lens, point-in-time sweeps under `audits/`, design records under
+`plans/`, and scoring fixtures under `benchmarks/`.
 
 ## Audit and plan naming
 
