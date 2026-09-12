@@ -24,6 +24,8 @@ A unit is a disjoint file set. The partition derives 50 units over 145,987 lines
 
 The script also prints a hash for each segment and each unit. A hash is the first seven hex digits of one SHA-256: the scope's repo-relative paths, sorted and joined by a newline. It therefore names a scope and not a state: it reads the paths and never the content, so a fix inside a segment does not move its hash by itself. The partition that assigns paths to segments is a second matter. It packs units by live line counts, so an edit large enough to cross a packing boundary does move the file sets, and the hashes with them — one `+2,500` line edit under `components/list` moved `A02` from 71 files to 42. The hash is therefore stable under ordinary work and fails loudly rather than silently when the partition shifts. A hash the script no longer prints needs the scope re-read, not the ledger quietly re-stamped.
 
+The dispatcher re-baselines the ledger, and no agent does. It runs `pnpm --filter ui audit:partition`, then it re-stamps the `Hash` and `Files` cells of each segment the script moved. A segment already swept whose file set gained a file returns to `◯ open` under `Research`, because the earlier sweep did not read that file. An agent that re-stamped a hash would erase the signal that the scope moved.
+
 The ledger's `Hash` column is the one source. A document that cites an area segment repeats the hash at its first mention of that segment, as `A02` (`674adc3`), and no agent computes one of its own. This plan is the exception, because it holds the column: its prose names a segment and the ledger below carries the hash. A lens segment and the closing segment carry none, because the partition derives no file set for either.
 
 A citation with a hash is checkable: a hash that no longer matches names a scope the partition has since changed.
@@ -155,7 +157,7 @@ Three critics read the findings and the ruled-out claims. The first one names th
 
 ## Not covered
 
-The area sweeps exclude every `__tests__` and `__benchmarks__` directory. Four exist: [`src/__tests__`](../../src/__tests__) holds 628 files and 115,439 lines, [`src/__benchmarks__`](../../src/__benchmarks__) holds 63 files and 7,783 lines, [`src/docs/engine/__tests__`](../../src/docs/engine/__tests__) holds 33 files and 5,456 lines, and `src/docs/engine/__benchmarks__` holds 1 file and 107 lines. The last two sit inside the `engine` theme, so segment `A28` excludes them although its directories contain them.
+The area sweeps exclude every `__tests__` and `__benchmarks__` directory. Four exist: [`src/__tests__`](../../src/__tests__) holds 631 files and 116,052 lines, [`src/__benchmarks__`](../../src/__benchmarks__) holds 63 files and 7,783 lines, [`src/docs/engine/__tests__`](../../src/docs/engine/__tests__) holds 33 files and 5,456 lines, and `src/docs/engine/__benchmarks__` holds 1 file and 107 lines. The last two sit inside the `engine` theme, so segment `A28` excludes them although its directories contain them.
 
 Lens `test-soundness` in `B05` covers both test trees for one defect class only: a test that cannot fail. A full sweep of the test tree needs its own audit. No lens covers either benchmark tree.
 

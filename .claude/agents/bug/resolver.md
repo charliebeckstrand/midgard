@@ -26,7 +26,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 2.2 The rules: `CONVENTIONS.md` §3.9, §7.2, §10, and §12; the `vitest` skill for the test; the `git-workflow` skill for the branch and the commit; the commitlint scope `ui`; the attribution lines from the session.
 
-2.3 The `Status` cell takes two forms. A fix on a branch reads `◐ FIXED`. A merged row reads `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))`. `CONVENTIONS.md` §12.4 closes a row against a pull request, and a branch commit dangles after a squash merge, so you write `◐ FIXED` and never `✅ RESOLVED`.
+2.3 The `Status` cell takes two forms. A fix on a branch reads `◐ FIXED`. A merged row reads `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))`. `CONVENTIONS.md` §12.4 closes a row against a pull request, and a branch commit dangles after a squash merge, so you write `◐ FIXED` and never `✅ RESOLVED`. §3.13 names the writer of the second form.
 
 2.4 Refuse a refuted claim, another step, the sweep's evidence, and the `test-quality` skill. That skill belongs to another repository; this repository's test rules are `CONVENTIONS.md` §10.
 
@@ -63,6 +63,8 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 3.11 Push with a ten-minute timeout (`CLAUDE.md` §4.3). Stop there. Open a pull request only when the reader asks for one, and then through the GitHub MCP tools, because this environment holds no `gh` CLI. Report the rows closed, the red log, the green log, and the §10.3 reason when one exists, so the reader can order the pull request.
 
 3.12 On a rebase conflict in the audit's findings table, keep both sides' cells; each row's cell is `◯ OPEN`, `◐ FIXED`, or its own pull request.
+
+3.13 The dispatcher stamps the resolved form, and you never do. It commits `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))` into each row the step closes, on your branch, after the pull request opens and before it merges. The squash then carries the cell to `main`, and the row cites the pull request and not a branch commit (§12.4). The dispatcher also flips the segment's `Resolution` cell at the last row; §3.9 leaves it at a count.
 
 ## 4. Output
 
