@@ -1,6 +1,6 @@
 # A02 Agent Trial — the five `bug-*` agents against a generalized audit
 
-**Date:** 2026-09-12 · **Scope:** segment `A02` (`674adc3`) — calendar and data-display 1/2, 71 files and 5,841 lines at the partition. **Method:** two arms read the same 71 files, blind to each other. One common blind judge then ruled on the union of their claims. **Question:** do the five specialist agents under [`.claude/agents/bug`](../../../../.claude/agents/bug) beat the general-purpose agents that they replace? **Plan:** [`2026-09-11-BUG-SWEEP-PLAN.md`](../plans/2026-09-11-BUG-SWEEP-PLAN.md).
+**Date:** 2026-09-12 · **Scope:** segment `A02` (`674adc3`) — calendar and data-display 1/2, 71 files and 5,841 lines at the partition. **Method:** two arms read the same 71 files, blind to each other. One common blind judge then ruled on the union of their claims. **Question:** do the five specialist agents under [`.claude/agents`](../../../../.claude/agents) beat the general-purpose agents that they replace? **Plan:** [`2026-09-11-BUG-SWEEP-PLAN.md`](../plans/2026-09-11-BUG-SWEEP-PLAN.md).
 
 **This document is neither an audit nor a plan.** An audit is a single-lens sweep of the package, and [`CONVENTIONS.md`](../../../../CONVENTIONS.md) §12.4 deletes it when its last row closes; this document sweeps no lens, and its result must outlive the bug audit, so it carries no `-AUDIT` suffix and no pass must delete it. A plan holds a design; this document holds a measurement and decides nothing. It follows [`2026-09-11-TEST-ARCHITECTURE.md`](2026-09-11-TEST-ARCHITECTURE.md), which is the precedent in this directory for a dated report under neither rule.
 
@@ -303,6 +303,16 @@ The caveat is a design error, and it is mine. Round 1's report was committed to
 disclosed the find and stated that it had already ruled. That cannot be verified from here, so the
 agreement above is an upper bound rather than a clean replication. The three disagreements are the
 evidence that some independence survived.
+
+### What the roster became
+
+The five agents went to three after this trial. `bug-recorder` is cut, because its remit barred it
+from the source and made every citation a copy, so the pass read no code and judged nothing; a
+caller renders the record instead. `bug-reporter` is cut into `bug-sweeper`, because both sat ahead
+of the strip, both raised a claim, and both judged nothing. A later test of a cheaper model kept
+the survivors on their current tier: one Sonnet sweep found 3 of the 21 defects and one Haiku sweep
+found 1, against 17, 14 and 13 for the three Opus sweeps, so a cheaper sweeper costs 2.9 to 6.1
+times as much for each defect it finds.
 
 ### What round 1's headline should now read
 

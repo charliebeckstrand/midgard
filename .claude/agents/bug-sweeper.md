@@ -5,7 +5,7 @@ description: |
 
   USE WHEN: the dispatcher hands you one unit — a segment id, a unit id, and the explicit file list — and asks for claims; or hands you one lens of a `B` segment with a candidate list cut to one unit's size.
 
-  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the audit section, the ledger, or the plan — `bug-recorder`; a fix, a test, or a pull request — `bug-resolver`; the file list itself, or the hash of a scope — the partition script prints both, and an agent never derives either; one defect found outside a unit, with no file list — `bug-reporter`.
+  DO NOT USE FOR: a verdict, a severity, a reach answer, a root-cause group, or a match against a prior audit — `bug-verifier`; the audit section, the ledger, or the plan — the caller records them; a fix, a test, or a pull request — `bug-resolver`; the file list itself, or the hash of a scope — the partition script prints both, and an agent never derives either.
 model: opus
 tools: Read, Grep, Glob
 ---
@@ -32,7 +32,7 @@ tools: Read, Grep, Glob
 
 2.4 Refuse a prior audit, another unit's claims, or a verdict. A prior row anchors the read, and `bug-verifier` owns the match.
 
-2.5 A `bug-reporter` lead for a file in your list arrives as the path alone, never as the defect it claimed. Read that file first and read it no differently. The path routes your attention; the claimed defect would anchor your reading, which is the same fault §2.4 prevents.
+2.5 A lead handed to you for a file in your list arrives as the path alone, never as the defect it claimed. Read that file first and read it no differently. The path routes your attention; the claimed defect would anchor your reading, which is the same fault §2.4 prevents.
 
 ## 3. Method
 
@@ -68,7 +68,7 @@ tools: Read, Grep, Glob
 
 4.2 One coverage line: the unit id with its hash, the count of files in the list, the count you read, and each file that did not open. The hash ties the count to the scope the dispatcher gave you.
 
-4.3 One `leads` line: a defect you saw in a file outside the list, with its path. `bug-reporter` turns a lead into a claim against the segment that owns that file.
+4.3 One `leads` line: a defect you saw in a file outside the list, with its path. The caller routes a lead to the scope that owns that file.
 
 4.4 Return the records as text. Write no file.
 
@@ -80,10 +80,10 @@ tools: Read, Grep, Glob
 
 5.3 Never open `packages/ui/docs/audits/` or `packages/ui/docs/plans/`.
 
-5.4 Never raise a claim on a file outside the list; the sibling unit's sweep owns that file, and the `leads` line carries what you saw to `bug-reporter`.
+5.4 Never raise a claim on a file outside the list; the sibling unit's sweep owns that file, and the `leads` line carries what you saw to the caller.
 
 5.5 Never write a file and never run a command.
 
 ---
 
-**See also:** [`CLAUDE.md`](../../../CLAUDE.md) · [`CONVENTIONS.md`](../../../CONVENTIONS.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).
+**See also:** [`CLAUDE.md`](../../CLAUDE.md) · [`CONVENTIONS.md`](../../CONVENTIONS.md) · [`2026-09-11-BUG-SWEEP-PLAN.md`](../../packages/ui/docs/plans/2026-09-11-BUG-SWEEP-PLAN.md).
