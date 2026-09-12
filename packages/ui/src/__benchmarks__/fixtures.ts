@@ -84,7 +84,7 @@ function buildShipments(count: number, seed = 1): Shipment[] {
 const shipmentCache = new Map<string, Shipment[]>()
 
 /**
- * {@link makeShipments}, memoized per `(count, seed)`. Several files draw the
+ * {@link buildShipments}, memoized per `(count, seed)`. Several files draw the
  * same rows and the large rungs run to a hundred thousand, so generating them
  * once per parameter pair keeps collection off the clock; nothing mutates the
  * rows, so the shared array is safe to hand out.
@@ -356,7 +356,7 @@ export function makeColumnSizeProfiles(count: number, seed = 1): ColumnSizeProfi
  * each field carries a comma, a double quote, a newline, and the HTML-significant
  * `&<>` — the worst case for {@link rowsToCsv}'s RFC-4180 quoting and
  * `rowsToHtmlTable`'s entity encoding. Deterministic and disjoint from
- * {@link makeShipments}, which never triggers the escape path.
+ * {@link shipments}, which never triggers the escape path.
  */
 export function makeEscapeHeavyRows(count: number): Record<string, string>[] {
 	const out: Record<string, string>[] = new Array(count)

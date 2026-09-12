@@ -775,8 +775,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[entries],
 	)
 
-	// The focused id can outlive its entry: an overlay unmounting under the
-	// pointer fires no leave or blur, so `useMapToggle` keeps the dead id. Gate
 	const numeric = valueKey !== undefined
 
 	// The entries the legend draws. Memoised like the sibling derivations
@@ -790,6 +788,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[categoryMetas, entries, colors, numeric],
 	)
 
+	// The focused id can outlive its entry: an overlay unmounting under the
+	// pointer fires no leave or blur, so `useMapToggle` keeps the dead id. Gate
 	// emphasis on the live legend ids, so a stale focus can't dim the whole map
 	// against a group that no mark belongs to.
 	//

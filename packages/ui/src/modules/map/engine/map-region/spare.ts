@@ -1,6 +1,7 @@
 /**
- * What the region under a dot can spare it — the region half of the hit-target
- * rule, whose zone half is `map-geofence.ts` and whose join is `markTargets`.
+ * What the region under a dot can spare it — the region part of the hit-target
+ * rule. `map-cluster/crowd.ts` holds the neighbour part and the list of
+ * claimants, `map-geofence.ts` the zone part, and `markTargets` joins them.
  *
  * The zone half learned the rule first: a figure that suits one shape blankets a
  * smaller one, so a zone publishes its own inscribed room and a dot takes a share
@@ -16,7 +17,7 @@
  * bounding box for the coverage frame, and the fit inverts, so a frame position
  * becomes a lon/lat and the grid takes the candidates down to a handful.
  *
- * Frame arithmetic with no React in it, like both of its siblings.
+ * Frame arithmetic with no React in it, like its two siblings.
  */
 
 import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-constants'
