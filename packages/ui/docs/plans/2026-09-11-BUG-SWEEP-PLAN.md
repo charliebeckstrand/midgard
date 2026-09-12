@@ -18,7 +18,7 @@ Each segment runs two steps, and the [Progress ledger](#progress-ledger) tracks 
 
 ### Research
 
-A unit is a disjoint file set. The partition derives 50 units over 145,987 lines, so a unit averages about 2,920 lines; the largest holds 4,784 and the smallest 32. Segment `A01` carries its own recorded set on top of those 50, because it predates the partition. Nineteen of the 28 segments hold two units, seven hold one, and two hold three. One sweep agent owns each unit and reads every file in it, because a sample cannot bound what it missed.
+A unit is a disjoint file set. The partition derives 50 units over 145,987 lines, so a unit averages about 2,920 lines; the largest holds 4,784 and the smallest 32. Segment `A01` carries its own recorded set on top of those 50, because it predates the partition. Nineteen of the 28 segments hold two units, seven hold one, and two hold three. One sweep agent owns each unit and reads every file in it. A sample bounds nothing at all. A full read bounds less than it appears to, and [Not covered](#not-covered) states what the read proves.
 
 [`scripts/audit/partition.ts`](../../scripts/audit/partition.ts) prints the partition, and `pnpm --filter ui audit:partition` runs it. No agent derives a file set: the script prints the list, and `--manifests <dir>` writes one file for each unit.
 
@@ -156,6 +156,12 @@ Segment `C01` stays open, and it holds the completeness critics, one targeted pr
 Three critics read the findings and the ruled-out claims. The first one names the surface that the method cannot reach. The second one names the cross-component interaction that no single file shows. Three examples are nested dismiss layers, two overlays that each lock the scroll, and a form inside a drawer inside a sheet. The third one attacks the verification itself, and it names a refutation that leans on a type that a cast breaks, or on a test that asserts nothing. Each gap becomes one probe, and each probe runs the same verification.
 
 ## Not covered
+
+**A full read is not a full find.** A sweep reads every line of its file set, and that read does not bound what it missed. One full-depth pass over a 71-file scope found 17 of the 21 defects in it. A second pass with the same prompt found 14, and a third found 13. Two independent judges confirmed those 21.
+
+The programme therefore claims a read and not a clearance. A closed segment means that somebody read its files once, at a recall near two thirds. It does not mean that the files hold no more defects. No document may cite a closed segment as evidence that its code is clean.
+
+A second pass is the one measured lever on that recall. It costs about one pass again. A different reader can beat a repeated one. Three passes of one agent all missed the most severe defect of that scope, and one general-purpose reader found it.
 
 The area sweeps exclude every `__tests__` and `__benchmarks__` directory. Four exist: [`src/__tests__`](../../src/__tests__) holds 631 files and 116,052 lines, [`src/__benchmarks__`](../../src/__benchmarks__) holds 63 files and 7,783 lines, [`src/docs/engine/__tests__`](../../src/docs/engine/__tests__) holds 33 files and 5,456 lines, and `src/docs/engine/__benchmarks__` holds 1 file and 107 lines. The last two sit inside the `engine` theme, so segment `A28` excludes them although its directories contain them.
 
