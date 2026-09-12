@@ -12,10 +12,10 @@
  * its shape wherever the centre sits.
  *
  * The budget is the zone part of the hit-target rule. Its siblings are
- * `map-cluster/crowd.ts` for the neighbours and `map-region/spare.ts` for the
- * region under the dot, and `markTargets` joins all three. All four are frame
- * arithmetic with no React in them, which is why they sit here and not beside the
- * mark that registers them.
+ * `map-cluster/crowd.ts`, which holds the neighbour part and the list of
+ * claimants, and `map-region/spare.ts` for the region under the dot. All three
+ * are frame arithmetic with no React in them, which is why they sit here and not
+ * beside the mark that registers them.
  */
 
 import { geoCircle } from 'd3-geo'

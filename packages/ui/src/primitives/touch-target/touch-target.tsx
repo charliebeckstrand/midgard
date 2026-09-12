@@ -13,9 +13,12 @@ import type { ReactNode } from 'react'
  * (focus ring, hover wash, affix lockstep) on sub-24px hosts such as
  * icon-only bare buttons, while an undersized box with a floored hit area
  * keeps visuals on icon + padding at every size and stays compliant; 2.5.8
- * measures the activation region, not the visible bounds. Pinned by
- * `__tests__/primitives/touch-target.test.tsx` (axe can't see the span: its
- * target-size rule measures the host's own border-box).
+ * measures the activation region, not the visible bounds.
+ *
+ * `__tests__/primitives/touch-target.test.tsx` asserts the floor classes under
+ * jsdom. The geometry they resolve to has no browser pin, so the activation
+ * region above is unverified — axe cannot stand in for one, because its
+ * target-size rule measures the host's own border-box and never sees the span.
  */
 export function TouchTarget({ children }: { children: ReactNode }) {
 	return (

@@ -246,12 +246,11 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * merged into where the frame draws one.
  *
  * Those circles are finger-sized targets, and for a mouse a dot narrows to what
- * the ground around it can spare — the gap to a neighbour that close, or the
- * share a drawn {@link MapGeofence} under it leaves — so the dots a zoom has just
- * parted stay separately aimable and a zone under a dot keeps a band of its own
- * face. A region layer that answers the pointer takes a share on the same terms.
- * It never narrows past the dot it draws, and a dot standing clear of all three
- * keeps the full target.
+ * the ground around it can spare — the gap to a neighbour that close, the share a
+ * drawn {@link MapGeofence} under it leaves, or the share a region layer under it
+ * takes — so the dots a zoom has just parted stay separately aimable and a zone
+ * under a dot keeps a band of its own face. The narrowing never goes past the dot
+ * it draws, and a dot standing clear of all three keeps the full target.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
  * position past a handful: `MapPoint` registers its own legend entry, so two
@@ -388,8 +387,8 @@ export function MapPoints({
 	const picked = selected === null ? null : groups[selected]
 
 	// How far each dot's target reaches: the whole of it where the dot stands
-	// clear, and less where a drawn zone under it or a neighbour inside that reach
-	// wants some of the same ground.
+	// clear, and less where something else wants the same ground.
+	// `map-cluster/crowd.ts` holds the list of claimants.
 	//
 	// Memoised on the grouping and the plat's zone resolver, neither of which a
 	// pointer crossing moves — where this mark re-renders on every crossing of

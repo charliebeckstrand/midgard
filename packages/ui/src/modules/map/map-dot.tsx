@@ -23,9 +23,9 @@ type MapDotHitSpec = {
 	/** Frame units per device pixel under the plat's zoom; both reaches divide by it. */
 	scale: number
 	/**
-	 * What a fine pointer's target can reach, in device pixels — `markTargets`'
-	 * answer over everything that claims the ground under this dot: a drawn zone it
-	 * stands on, the neighbours inside its coarse reach, and a region layer that
+	 * What a fine pointer's target can reach, in device pixels. `markTargets`
+	 * answers over everything that claims the ground under this dot: a drawn zone
+	 * it stands on, the neighbours inside its coarse reach, and a region layer that
 	 * answers the pointer. {@link POINT_HIT_RADIUS} where nothing does, which is
 	 * what makes the fine target opt-in.
 	 *
@@ -206,12 +206,11 @@ export function MapDotCount({
  * `MapPoint` still answer and keeps a depot off the middle of its own catchment;
  * a neighbouring dot inside the reach needs it too, or the target over one mark
  * would take the readout of the mark beside it. A region layer that answers the
- * pointer is the third claimant. The dot is the topmost thing at its own pixels,
- * so a full target over such a shape puts a hole in it.
+ * pointer needs it too, because a full target over the shape puts a hole in it.
  *
- * Where none of the three holds — a lone point on open geography, or a depot whose
- * catchment the legend has just put away — there is nothing under the dot to
- * yield to, and it keeps the full target on every pointer. Precision costs a
+ * Where none of the three holds — a lone point on open geography, or a depot
+ * whose catchment the legend has just put away — there is nothing under the dot
+ * to yield to, and it keeps the full target on every pointer. Precision costs a
  * mouse user reach, so the dot only pays it where the pixels have somewhere to
  * go. `markTargets` weighs the three claims and hands the answer in as
  * {@link MapDotHitSpec.target}, because each is a fact about the mark's own

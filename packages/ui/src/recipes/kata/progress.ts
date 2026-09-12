@@ -1,9 +1,9 @@
 /**
  * Progress kata: object-literal surface serving both the linear `<ProgressBar>`
- * and the radial `<ProgressGauge>`. Carries a local per-colour `bg` / `stroke` table
- * authored inline with `mode()` rather than the shared `iro.palette`, since the
- * SVG gauge needs a `stroke` variant the palette doesn't provide; the bar reads
- * the `bg` slice, the gauge reads the `stroke` slice.
+ * and the radial `<ProgressGauge>`. Carries a local per-colour `bg` / `stroke`
+ * table authored inline with `mode()` rather than the shared `iro.palette`,
+ * since the SVG gauge needs a `stroke` variant the palette doesn't provide; the
+ * bar reads the `bg` slice, the gauge reads the `stroke` slice.
  */
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'

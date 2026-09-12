@@ -120,16 +120,17 @@ export const AREA_SPARE_FRACTION = 0.5
  * — so the dot is never the only route to it. What the dot gives its pixels back
  * to has no such second route: a zone under it answers the pointer or nothing
  * does, and a neighbouring dot swallowed by the reach reports another mark's
- * readout in place of its own. A dot with neither beneath it keeps the full
+ * readout in place of its own. A dot clear of every claimant keeps the full
  * {@link POINT_HIT_RADIUS} instead, since precision a reader gains nothing from
  * is only reach taken from them — `markTargets` weighs the claims and
- * `dotHitProps` states what it does with the answer.
+ * `dotHitProps` states what it does with the answer. `map-cluster/crowd.ts`
+ * holds the list of claimants; do not restate it here.
  *
  * Applied through `kata/map`'s `hitFine` class rather than the `r` attribute,
  * since only CSS can answer the modality; the attribute carries the coarse
  * radius, so a browser that resolves no `r` in CSS keeps the larger target. This
  * is the class's fallback alone: `dotHitProps` sets each shape's own budget, which
- * a dot standing clear of a neighbour and a zone never drops to.
+ * a dot standing clear of every claimant never drops to.
  *
  * A literal rather than {@link POINT_RADIUS} itself, though it is that figure by
  * definition. Nothing reads this at runtime — the number ships inside
