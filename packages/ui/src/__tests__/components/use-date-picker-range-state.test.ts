@@ -182,6 +182,46 @@ describe('useDatePickerRangeState', () => {
 
 			expect(onChange).toHaveBeenCalledWith(null)
 		})
+
+		// `useControllable` publishes every set with no equality check, so a clear on a
+		// shut picker reported a close transition that never happened. The range hook
+		// carries its own copy of the guard, and the single hook's test does not reach it.
+		it('reports no close when a clear runs on a shut picker', () => {
+			const onOpenChange = vi.fn()
+
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan1, Jan31], onOpenChange }),
+			)
+
+			expect(result.current.open).toBe(false)
+
+			act(() => result.current.footer.onClear())
+
+			expect(result.current.open).toBe(false)
+
+			expect(onOpenChange).not.toHaveBeenCalled()
+		})
+	})
+
+	describe('active scoped to the open state', () => {
+		// `aria-activedescendant` must not name a grid cell while the calendar is shut.
+		// The range hook derives `active` from `open` rather than clearing it on a close
+		// path, because a controlled `open` that flips to false runs no close path at all.
+		it('drops the grid cursor while closed and restores nothing stale', () => {
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({ range: true, defaultValue: [Jan1, Jan31] }),
+			)
+
+			act(() => result.current.onOpenChange(true))
+
+			act(() => result.current.onTriggerKeyDown(makeKeyEvent('ArrowRight')))
+
+			expect(result.current.calendar.active).toEqual({ zone: 'grid', date: Jan1 })
+
+			act(() => result.current.onOpenChange(false))
+
+			expect(result.current.calendar.active).toBeNull()
+		})
 	})
 
 	describe('footerButtons', () => {
