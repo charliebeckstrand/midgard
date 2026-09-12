@@ -291,9 +291,11 @@ describe('MenuContent', () => {
 
 		await userEvent.click(screen.getByRole('button', { name: 'Options' }))
 
-		// Not a fix, a guarantee worth pinning: a static menu opens without a click,
-		// so floating-ui records no click-type open event and `stickIfOpen` refuses
-		// the click-close. The press changes nothing.
+		// `useMenuState` takes the click interaction off a static menu, so the press
+		// reports nothing. This project mocks the floating engine, so the assertion
+		// holds here only because the interaction is disabled either way; the
+		// browser `floating-ui` project proves it against the live engine, where an
+		// enabled `useClick` does report a close over a panel that stays mounted.
 		expect(onOpenChange).not.toHaveBeenCalled()
 
 		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()

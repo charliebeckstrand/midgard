@@ -163,10 +163,14 @@ export function useMenuState({
 	// browser, plus the main-button guard and `stickIfOpen`. `MenuTrigger` keeps
 	// its own auto-repeat guard, which `useClick` has no equivalent for.
 	//
-	// A static menu needs no guard here: it opens without a click, so floating-ui
-	// records no click-type open event and `stickIfOpen` refuses the click-close.
-	// A press on a static trigger therefore changes nothing already.
-	const click = useClick(context)
+	// A static menu owns no disclosure — `MenuContent` gates its panel on the
+	// static mode, not on open state — so there is nothing for a press to toggle,
+	// and `enabled` takes the interaction off it. `stickIfOpen` is no substitute:
+	// it tests `openEvent`, which floating-ui writes only when an event opens the
+	// surface, so a `defaultOpen` menu has none and the guard falls through to the
+	// click-close. Left enabled, a press reports `onOpenChange(false)` over a panel
+	// that stays mounted.
+	const click = useClick(context, { enabled: !isStatic })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
 
