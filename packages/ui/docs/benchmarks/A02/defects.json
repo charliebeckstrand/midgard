@@ -1,6 +1,7 @@
 {
   "scope": {
     "segment": "A02",
+    "revision": "e23df7d1695a9ae0422d63ebc3238b0a47a14bb9",
     "digest": "674adc3",
     "files": 71,
     "lines": 5841,
@@ -26,12 +27,15 @@
       "medium": 7,
       "medium-high": 1,
       "low": 13
+    },
+    "byReach": {
+      "none": 15,
+      "shipped": 6
     }
   },
   "defects": [
     {
       "id": "D01",
-      "row": "R1.1",
       "unit": "u1",
       "file": "packages/ui/src/components/calendar/use-calendar-focus.ts",
       "symbol": "useCalendarFocus",
@@ -41,7 +45,6 @@
     },
     {
       "id": "D02",
-      "row": "R1.2",
       "unit": "u1",
       "file": "packages/ui/src/components/calendar/use-calendar-picker.tsx",
       "symbol": "yearCells",
@@ -51,7 +54,6 @@
     },
     {
       "id": "D18",
-      "row": "R1.3",
       "unit": "u1",
       "file": "packages/ui/src/components/calendar/calendar.tsx",
       "symbol": "CalendarHandle",
@@ -61,7 +63,6 @@
     },
     {
       "id": "D09",
-      "row": "R1.4",
       "unit": "u1",
       "file": "packages/ui/src/components/calendar/calendar-range.tsx",
       "symbol": "CalendarRange defaultValue memo",
@@ -71,7 +72,6 @@
     },
     {
       "id": "D11",
-      "row": "R1.5",
       "unit": "u1",
       "file": "packages/ui/src/components/calendar/calendar.tsx",
       "symbol": "Calendar",
@@ -81,7 +81,6 @@
     },
     {
       "id": "D10",
-      "row": "R1.6",
       "unit": "u1",
       "file": "packages/ui/src/components/calendar/use-calendar-month.ts",
       "symbol": "prevMonth / nextMonth",
@@ -91,7 +90,6 @@
     },
     {
       "id": "D08",
-      "row": "F1",
       "unit": "u1",
       "file": "packages/ui/src/components/calendar/use-calendar-focus.ts",
       "symbol": "handleGridKeyDown",
@@ -101,7 +99,6 @@
     },
     {
       "id": "D03",
-      "row": "R2.1",
       "unit": "u2",
       "file": "packages/ui/src/components/json-tree/json-tree.tsx",
       "symbol": "JsonTree roving wiring",
@@ -111,7 +108,6 @@
     },
     {
       "id": "D07",
-      "row": "R2.2",
       "unit": "u2",
       "file": "packages/ui/src/components/tree/tree.tsx",
       "symbol": "Tree roving",
@@ -121,7 +117,6 @@
     },
     {
       "id": "D19",
-      "row": "R2.3",
       "unit": "u2",
       "file": "packages/ui/src/components/tree/tree-utilities.ts",
       "symbol": "ensureFirstItemActive",
@@ -131,7 +126,6 @@
     },
     {
       "id": "D12",
-      "row": "R2.4",
       "unit": "u2",
       "file": "packages/ui/src/components/json-tree/json-tree-virtualized.tsx",
       "symbol": "seededSearchRef effect",
@@ -141,7 +135,6 @@
     },
     {
       "id": "D13",
-      "row": "R2.5",
       "unit": "u2",
       "file": "packages/ui/src/components/json-tree/json-tree-virtualized.tsx",
       "symbol": "useJsonTreeExpansion initial",
@@ -151,7 +144,6 @@
     },
     {
       "id": "D05",
-      "row": "R2.6",
       "unit": "u2",
       "file": "packages/ui/src/components/kanban/kanban-card.tsx",
       "symbol": "KanbanCardImpl onKeyDown",
@@ -161,7 +153,6 @@
     },
     {
       "id": "D04",
-      "row": "R2.7",
       "unit": "u2",
       "file": "packages/ui/src/components/kanban/kanban-column-body.tsx",
       "symbol": "KanbanColumnBody",
@@ -171,17 +162,15 @@
     },
     {
       "id": "D15",
-      "row": "R2.8",
       "unit": "u2",
       "file": "packages/ui/src/components/kanban/kanban-column.tsx",
       "symbol": "KanbanColumn over",
       "severity": "medium",
-      "reach": "SHIPPED — the only reached row in the segment",
+      "reach": "shipped",
       "mechanism": "k.column.over is an empty class string, so a column paints no drop-target highlight during any drag"
     },
     {
       "id": "D06",
-      "row": "R2.9",
       "unit": "u2",
       "file": "packages/ui/src/components/list/use-list-drag.ts",
       "symbol": "effectiveGetKey",
@@ -191,7 +180,6 @@
     },
     {
       "id": "D16",
-      "row": "R2.10",
       "unit": "u2",
       "file": "packages/ui/src/components/list/list-item.tsx",
       "symbol": "stopOnRow / stopOnContent",
@@ -201,7 +189,6 @@
     },
     {
       "id": "D21",
-      "row": "R2.11",
       "unit": "u2",
       "file": "packages/ui/src/components/tree/tree-item-children.tsx",
       "symbol": "stampTreePositions",
@@ -211,7 +198,6 @@
     },
     {
       "id": "D20",
-      "row": "R2.12",
       "unit": "u2",
       "file": "packages/ui/src/components/json-tree/json-tree-node.tsx",
       "symbol": "JsonTreeNode nodePath",
@@ -221,17 +207,15 @@
     },
     {
       "id": "D14",
-      "row": "R2.13",
       "unit": "u2",
       "file": "packages/ui/src/components/json-tree/json-tree.tsx",
       "symbol": "userOpen ref",
       "severity": "low",
-      "reach": "demo swaps data",
-      "mechanism": "the uncontrolled toggle map is keyed by path and never cleared, so a new document inherits the previous one's toggles"
+      "reach": "shipped",
+      "mechanism": "the uncontrolled toggle map is keyed by path and never cleared, so a new document inherits the previous one's toggles; a demo swaps the document, which constructs the trigger"
     },
     {
       "id": "D17",
-      "row": "R2.14",
       "unit": "u2",
       "file": "packages/ui/src/components/stat/stat-delta.tsx",
       "symbol": "StatDelta trend",
