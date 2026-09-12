@@ -65,12 +65,13 @@ export function PopoverPanel({
 	/**
 	 * Seat the roving tab stop on one row, so Tab reaches the panel's items.
 	 *
-	 * @remarks For a panel that stays on the page and holds the page's focus itself.
-	 * Without it the panel and every row are `tabIndex={-1}`, so the roving model has
-	 * no entry point and a keyboard user cannot reach a row. `autoFocus` cannot decide
-	 * this: a dropdown, a submenu, and a combobox panel all seat no focus of their own
-	 * and must seat no tab stop either, because focus stays on the trigger or the input
-	 * and the rows rove virtually.
+	 * @remarks Use it for a panel that stays on the page and holds the page's focus.
+	 * Without it the panel and every row stay at `tabIndex={-1}`. The roving model then
+	 * has no entry point, and a keyboard user cannot reach a row.
+	 *
+	 * `autoFocus` cannot decide this. A dropdown, a submenu, and a combobox panel each
+	 * seat no focus of their own, and each must seat no tab stop either: focus stays on
+	 * the trigger or the input, and the rows rove virtually.
 	 *
 	 * @defaultValue false
 	 */

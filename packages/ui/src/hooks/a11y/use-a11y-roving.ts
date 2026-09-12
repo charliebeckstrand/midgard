@@ -107,12 +107,13 @@ export function setVirtualActive(
  * Clears the virtual highlight: drops the owner's `aria-activedescendant`, and
  * strips `data-active` from the rows when a container is given.
  *
- * @remarks Pass the container wherever the panel can outlive the close — an exit
+ * @remarks Pass the container wherever the panel can outlive the close. An exit
  * animation holds its rows, so a reopen inside that window reconciles the same
- * nodes and a row keeps a wash that nothing names. Without a container only the
- * owner is cleared, which is all a caller needs when the rows unmount with the
- * panel. Expressing intent here keeps `setVirtualActive([], -1, ref)` out of
- * call sites.
+ * nodes, and a row keeps a wash that nothing names. Without a container the
+ * function clears the owner alone. That is all a caller needs when the rows
+ * unmount with the panel. The named form also keeps `setVirtualActive([], -1, ref)`
+ * out of the call sites.
+ *
  * @internal
  */
 export function clearVirtualActive(
