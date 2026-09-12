@@ -559,8 +559,12 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 	})
 
-	// Clearing empties the footer, so the Clear button unmounts while it holds
-	// focus and the popover stays open on purpose — nothing rescues focus.
+	// Clearing empties the footer, so the Clear button unmounts while it holds focus
+	// and the popover stays open on purpose. The end state is the browser's too, but
+	// the counterfactual is not: this project mocks the floating engine, whose double
+	// re-seeds nothing, so here the alternative is `document.body`. The live engine
+	// seats the panel container instead, and
+	// `browser/floating-ui/date-picker-footer-clear-focus.test.tsx` measures that.
 	it('hands focus to the preset list when the footer Clear unmounts itself', async () => {
 		const user = userEvent.setup({ delay: null })
 
@@ -582,8 +586,7 @@ describe('DatePicker (relative)', () => {
 
 		await user.keyboard('{Enter}')
 
-		// Not `document.body`: the dialog is still open and modal, with the rest of
-		// the page hidden, so focus outside the tab ring is a keyboard trap.
+		// A control, not the panel container: the container takes no arrow key.
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Today' }))
 	})
 

@@ -138,7 +138,9 @@ export function useDatePickerRelativeState({
 	const footerRef = useRef<HTMLDivElement>(null)
 
 	// Captures the panel so `handleClear` can hand focus to a live control before the
-	// footer unmounts. floating-ui's `refs.floating` is not populated on this path.
+	// footer unmounts. Not `refs.floating`, which holds the same node on the real
+	// engine: `refs` is declared below this handler, and the jsdom double stubs
+	// `setFloating`, so under it `refs.floating` stays null and the hand-off no-ops.
 	const floatingRef = useRef<HTMLElement | null>(null)
 
 	// Anchors all relative math to one instant per interaction, re-stamped on open so
@@ -246,11 +248,12 @@ export function useDatePickerRelativeState({
 		// Clearing is what empties the footer, so the button that ran this handler
 		// unmounts while it still holds focus — and the popover stays open on
 		// purpose, so the disclosure's focus return never fires. FloatingFocusManager
-		// reacts to a focus-out rather than to a removal, so nothing rescues it and
-		// focus lands on `document.body` inside an open modal dialog, outside the tab
-		// ring, with the rest of the page hidden (WCAG 2.4.3). Hand focus to the
-		// surface the user is on, as the trigger's clear button hands it back to the
-		// trigger. The move runs before the commit, so the row is still mounted, and
+		// then re-seeds its own initial focus, which is the panel container, so focus
+		// is not lost. Hand it to a control instead, as the trigger's clear button
+		// hands it back to the trigger: the container takes no arrow key, and a
+		// screen reader re-announces the whole dialog from it. Measured in the browser
+		// suite — the first preset with this move, the container without it, and
+		// `document.body` in neither. The move runs before the commit, so the row is still mounted, and
 		// `querySelector` takes the first match in document order: the leading preset
 		// in list mode, and `Back to presets` in custom mode. `FOCUSABLE_SELECTOR`
 		// rather than `button`, because a bare selector matches a disabled control,
