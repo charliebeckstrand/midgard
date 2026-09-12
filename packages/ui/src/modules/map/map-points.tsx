@@ -249,7 +249,8 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * the ground around it can spare — the gap to a neighbour that close, or the
  * share a drawn {@link MapGeofence} under it leaves — so the dots a zoom has just
  * parted stay separately aimable and a zone under a dot keeps a band of its own
- * face. It never narrows past the dot it draws, and a dot standing clear of both
+ * face. A region layer that answers the pointer takes a share on the same terms.
+ * It never narrows past the dot it draws, and a dot standing clear of all three
  * keeps the full target.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per

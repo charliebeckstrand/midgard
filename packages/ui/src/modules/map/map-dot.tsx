@@ -23,10 +23,11 @@ type MapDotHitSpec = {
 	/** Frame units per device pixel under the plat's zoom; both reaches divide by it. */
 	scale: number
 	/**
-	 * What a fine pointer's target may reach, in device pixels — `markTargets`'
+	 * What a fine pointer's target can reach, in device pixels — `markTargets`'
 	 * answer over everything that claims the ground under this dot: a drawn zone it
-	 * stands on, and the neighbours inside its coarse reach. {@link POINT_HIT_RADIUS}
-	 * where nothing does, which is what makes the fine target opt-in.
+	 * stands on, the neighbours inside its coarse reach, and a region layer that
+	 * answers the pointer. {@link POINT_HIT_RADIUS} where nothing does, which is
+	 * what makes the fine target opt-in.
 	 *
 	 * Required, so no dot can be drawn without the rule being asked. Its type admits
 	 * `undefined` only because `markTargets` answers index for index and a caller
@@ -204,13 +205,15 @@ export function MapDotCount({
  * dot needs it, which is what lets a `MapGeofence` drawn tight around a
  * `MapPoint` still answer and keeps a depot off the middle of its own catchment;
  * a neighbouring dot inside the reach needs it too, or the target over one mark
- * would take the readout of the mark beside it.
+ * would take the readout of the mark beside it. A region layer that answers the
+ * pointer is the third claimant. The dot is the topmost thing at its own pixels,
+ * so a full target over such a shape puts a hole in it.
  *
- * Where neither holds — a lone point on open geography, or a depot whose
+ * Where none of the three holds — a lone point on open geography, or a depot whose
  * catchment the legend has just put away — there is nothing under the dot to
  * yield to, and it keeps the full target on every pointer. Precision costs a
  * mouse user reach, so the dot only pays it where the pixels have somewhere to
- * go. `markTargets` weighs both claims and hands the answer in as
+ * go. `markTargets` weighs the three claims and hands the answer in as
  * {@link MapDotHitSpec.target}, because each is a fact about the mark's own
  * neighbourhood; the rule about what to do with it stays here, in the one
  * comparison below.

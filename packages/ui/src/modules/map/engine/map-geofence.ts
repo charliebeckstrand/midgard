@@ -11,8 +11,9 @@
  * breaks at a pole. `geoCircle` steps around the centre instead, so the ring holds
  * its shape wherever the centre sits.
  *
- * The budget is the zone half of the hit-target rule, whose other half is
- * `map-cluster/crowd.ts` and whose join is `markTargets`. All three are frame
+ * The budget is the zone part of the hit-target rule. Its siblings are
+ * `map-cluster/crowd.ts` for the neighbours and `map-region/spare.ts` for the
+ * region under the dot, and `markTargets` joins all three. All four are frame
  * arithmetic with no React in them, which is why they sit here and not beside the
  * mark that registers them.
  */

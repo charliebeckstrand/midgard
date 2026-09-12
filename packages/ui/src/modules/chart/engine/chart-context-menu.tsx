@@ -34,7 +34,7 @@ import type { ChartReadoutSource } from './types'
 /**
  * The mark the pointer was over when the right-click landed, so a menu item can act on that mark rather
  * than the chart as a whole. `index` is the datum's index within the chart's categories — the same index
- * {@link ChartCartesianProps.onCategoryClick} reports — or `null` when the click landed off any mark
+ * {@link SectorChartProps.onCategoryClick} reports — or `null` when the click landed off any mark
  * (plot padding, the legend, the header).
  *
  * An index rather than a label on purpose: labels are formatted for display (the sector charts run period

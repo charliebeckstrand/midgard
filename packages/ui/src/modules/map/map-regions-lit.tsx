@@ -30,7 +30,7 @@ export function MapRegionsLit({
 	paints,
 }: MapRegionsLitProps) {
 	// The lit set is the exact complement of the shared dim rule
-	// (`mapMarkDimmed` in context.ts — change one, change both): the pointed
+	// (`mapMarkDimmed` in engine/map-hover/target.ts — change one, change both): the pointed
 	// mark wins over a still-held legend focus, so a pointed region lights
 	// alone, a pointed overlay entry lights nothing here (the whole layer
 	// recedes behind it), else the focused category lights. Resolved by branch

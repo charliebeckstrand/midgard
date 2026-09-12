@@ -1,6 +1,6 @@
 /**
- * Progress kata: object-literal surface serving both the linear `<Progress>`
- * bar and the radial gauge. Carries a local per-colour `bg` / `stroke` table
+ * Progress kata: object-literal surface serving both the linear `<ProgressBar>`
+ * and the radial `<ProgressGauge>`. Carries a local per-colour `bg` / `stroke` table
  * authored inline with `mode()` rather than the shared `iro.palette`, since the
  * SVG gauge needs a `stroke` variant the palette doesn't provide; the bar reads
  * the `bg` slice, the gauge reads the `stroke` slice.
@@ -101,8 +101,8 @@ export const k = defineRecipe(
 	},
 )
 
-/** Recipe variant props for the {@link Progress} track — its styling axes (`size`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link ProgressBar} track — its styling axes (`size`), for consumers composing custom slots. */
 export type ProgressTrackVariants = VariantProps<typeof k>
 export type ProgressBarFillVariants = VariantProps<typeof fill>
-/** Recipe variant props for the {@link Progress} gauge root — its styling axes (`size`), for consumers composing custom slots. */
+/** Recipe variant props for the {@link ProgressGauge} root — its styling axes (`size`), for consumers composing custom slots. */
 export type ProgressGaugeVariants = VariantProps<typeof root>

@@ -192,7 +192,7 @@ export function trackPending(
  * ready-to-run action per entry, in order. Each action's `run` calls the entry's
  * `onExport` override when given, else the built-in exporter for a shipped type;
  * an entry naming neither (an unknown type with no `onExport`) is dropped (see
- * {@link resolveAction}). Which surfaces offer these actions is a separate
+ * {@link buildAction}). Which surfaces offer these actions is a separate
  * question — see {@link resolveExportSurfaces}.
  *
  * @typeParam T - Shape of a single row.
