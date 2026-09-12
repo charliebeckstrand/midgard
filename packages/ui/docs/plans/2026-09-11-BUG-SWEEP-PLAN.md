@@ -6,8 +6,6 @@
 
 One read of the whole package does not fit in one session. This container holds 4 cores, so the agent harness runs 2 sweeps at a time. A full first round costs about 5 hours of sweep time, and the verification costs more than the sweep that found the claims. The segments below divide that cost, and the [Progress ledger](#progress-ledger) carries the state of each one.
 
-This audit fixes nothing yet. Every finding is a claim about the tree as of this commit, and the line numbers drift.
-
 ## Cadence
 
 Each segment resolves before the next one starts research. A pull request stays small, and the context of a finding stays loaded while somebody fixes it. Re-deriving that context later costs more than the fix.
@@ -24,7 +22,7 @@ A unit is a disjoint file set. The partition derives 50 units over 145,987 lines
 
 [`scripts/audit/partition.ts`](../../scripts/audit/partition.ts) prints the partition, and `pnpm --filter ui audit:partition` runs it. No agent derives a file set: the script prints the list, and `--manifests <dir>` writes one file for each unit.
 
-The script also prints a hash for each segment and each unit. A hash is the first seven hex digits of one SHA-256: the scope's repo-relative paths, sorted and joined by a newline. It therefore names a scope and not a state. It moves when the file set moves, and it holds still while the code inside changes.
+The script also prints a hash for each segment and each unit. A hash is the first seven hex digits of one SHA-256: the scope's repo-relative paths, sorted and joined by a newline. It therefore names a scope and not a state: it reads the paths and never the content, so a fix inside a segment does not move its hash by itself. The partition that assigns paths to segments is a second matter. It packs units by live line counts, so an edit large enough to cross a packing boundary does move the file sets, and the hashes with them — one `+2,500` line edit under `components/list` moved `A02` from 71 files to 42. The hash is therefore stable under ordinary work and fails loudly rather than silently when the partition shifts. A hash the script no longer prints needs the scope re-read, not the ledger quietly re-stamped.
 
 Every document repeats the hash at the first mention of a segment, as `A02` (`674adc3`). A citation with a hash is then checkable: a hash that no longer matches names a scope the partition has since changed. The ledger's `Hash` column is the one source, and no agent computes a hash of its own.
 
@@ -56,7 +54,7 @@ States: `◯ open` — not started. `◐` — started and not finished: under `R
 
 | Segment | Hash | Area | Scope | Files | Lines | Research | Resolution |
 |---|---|---|---|---|---|---|---|
-| `A01` | `3298641` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 15 of 15: 14 fixed, 1 refuted |
+| `A01` | `3298641` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 15 of 15 fixed |
 | `A02` | `674adc3` | components | calendar + data-display 1/2 | 71 | 5,841 | ◯ open | — |
 | `A03` | `adb2bc9` | components | data-display 2/2 + feedback | 68 | 2,746 | ◯ open | — |
 | `A04` | `c44604b` | components | form-control 1/2 + form-control 2/2 | 76 | 4,978 | ◯ open | — |
@@ -181,11 +179,13 @@ A segment-wide vantage was refused as an agent: a cause that spans two units is 
 
 ## State
 
-Segment `A01` research is done and its resolution has not started. The review settled three questions: forbid the static `Menu` composition, accept one frame for the deferred reference clock, and resolve one segment before the next starts research.
+Segment `A01` research is done and its resolution is done on the branch. The review settled three questions: forbid the static `Menu` composition, accept one frame for the deferred reference clock, and resolve one segment before the next starts research.
 
-Every resolution step of `A01` is done on the branch. Fourteen rows read `◐ FIXED` and close when a pull request merges; `R3.2` fell, because it described a toggle that a static menu never performs and a probe on the unfixed tree disproved it across every activation path. Resolution reads `◐` rather than `✅` because no row carries a pull request yet.
+Every resolution step of `A01` is done on the branch. All 15 rows read `◐ FIXED` and close when a pull request merges. Resolution reads `◐` rather than `✅` because no row carries a pull request yet.
 
-The next action is segment `A02` (`674adc3`) — calendar and data-display, 71 files and 5,841 lines. It is the first segment to run on the four agents under [`.claude/agents/bug`](../../../../.claude/agents/bug), and the first test of whether they beat the general-purpose agents they replace.
+One row of `A01` was refuted at resolution and then restored, and the method rule it bought belongs here rather than in a document that gets deleted. Run a probe of a mocked dependency where that dependency is live. The refutation rested on a probe of `@floating-ui/react` that ran inside the jsdom projects, which replace that package; the double and the live engine disagree for the case the row named. [`src/__tests__/mocks`](../../src/__tests__/mocks) lists what those projects replace, and [`src/__tests__/browser/floating-ui`](../../src/__tests__/browser/floating-ui) is where a claim about that engine is provable.
+
+The next action is segment `A02` (`674adc3`) — calendar and data-display, 71 files and 5,841 lines. It is the first segment to run on the five agents under [`.claude/agents/bug`](../../../../.claude/agents/bug), and the first test of whether they beat the general-purpose agents they replace.
 
 ---
 
