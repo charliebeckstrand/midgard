@@ -27,6 +27,10 @@ beforeEach(() => {
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
 })
 
+function pageImage(container: HTMLElement) {
+	return bySlot(container, 'pdf-viewer-viewport')?.querySelector('img') as HTMLImageElement
+}
+
 const pages: PdfViewerPage[] = [
 	{ id: 'a', src: 'page-1.png', label: 'Page 1' },
 	{ id: 'b', src: 'page-2.png', label: 'Page 2' },
@@ -111,7 +115,7 @@ describe('PdfViewer', () => {
 	it('rotates the active page in 90 degree steps', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		const img = bySlot(container, 'pdf-viewer-viewport')?.querySelector('img') as HTMLImageElement
+		const img = pageImage(container)
 
 		const user = userEvent.setup()
 
@@ -120,6 +124,34 @@ describe('PdfViewer', () => {
 		await user.click(screen.getByLabelText('Rotate'))
 
 		expect(img.style.transform).toContain('rotate(90deg)')
+	})
+
+	// `pages` is a prop a parent rebuilds on any render — `docs.map(toPage)` is the
+	// shape the API invites — so a fresh array must not read as a document swap.
+	it('keeps the page rotation when an unrelated render rebuilds pages', async () => {
+		function Harness({ tick }: { tick: number }) {
+			return (
+				<>
+					<span>{tick}</span>
+					<PdfViewer pages={pages.map((page) => ({ ...page }))} />
+				</>
+			)
+		}
+
+		const { container, rerender } = renderUI(<Harness tick={0} />)
+
+		// Re-queried after each render, because the viewport rebuilds its image.
+		const transform = () => pageImage(container).style.transform
+
+		const user = userEvent.setup()
+
+		await user.click(screen.getByLabelText('Rotate'))
+
+		expect(transform()).toContain('rotate(90deg)')
+
+		rerender(<Harness tick={1} />)
+
+		expect(transform()).toContain('rotate(90deg)')
 	})
 
 	it('hides download and print actions when no src is provided', () => {

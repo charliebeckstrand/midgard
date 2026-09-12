@@ -220,6 +220,28 @@ export function selectedPresetIds(
 	return ids
 }
 
+/**
+ * The first committed span that matches no preset, or `undefined` when every
+ * span matches one. That span is the custom range, so it seeds the Start/End
+ * inputs on re-entry to custom mode.
+ *
+ * @remarks
+ * Position does not identify it. A preset span can stop matching as the
+ * reference instant moves — a span picked as "Today" matches "Yesterday" after
+ * midnight — so a committed array can hold a matched span ahead of the
+ * unmatched one.
+ *
+ * @internal
+ */
+export function findCustomSpan(
+	value: DatePickerRelativeValue[] | undefined,
+	presets: DatePickerRelativePreset[],
+	now: Date,
+	preferredIds?: ReadonlySet<string>,
+): DatePickerRelativeValue | undefined {
+	return value?.find((span) => matchRelativePreset(span, presets, now, preferredIds) === null)
+}
+
 /** True when any committed span matches no preset — i.e. a custom range is set. @internal */
 export function isCustomActive(
 	value: DatePickerRelativeValue[] | undefined,
@@ -227,9 +249,7 @@ export function isCustomActive(
 	now: Date,
 	preferredIds?: ReadonlySet<string>,
 ): boolean {
-	if (value === undefined) return false
-
-	return value.some((span) => matchRelativePreset(span, presets, now, preferredIds) === null)
+	return findCustomSpan(value, presets, now, preferredIds) !== undefined
 }
 
 /**
@@ -264,9 +284,20 @@ export function togglePresetValue(
 	if (selected.has(preset.id)) selected.delete(preset.id)
 	else selected.add(preset.id)
 
-	const next = presets
-		.filter((option) => selected.has(option.id))
-		.map((option) => option.resolve(now))
+	// Dedupe by span, not by id: two presets can resolve to one span on a given day
+	// ("This month" and "This year" agree through January) and the committed value is
+	// a bare span, so an id-deduped rebuild would commit it twice.
+	const next: DatePickerRelativeValue[] = []
+
+	for (const option of presets) {
+		if (!selected.has(option.id)) continue
+
+		const span = option.resolve(now)
+
+		if (next.some((committed) => isSameSpan(committed, span))) continue
+
+		next.push(span)
+	}
 
 	return next.length === 0 ? undefined : next
 }
@@ -275,12 +306,20 @@ export function togglePresetValue(
  * Trigger chips for the committed value, in selection order: a matched preset's
  * label, or the formatted absolute range for a custom span.
  *
+ * `now` is optional, because the caller defers its reference instant to mount and
+ * a committed value still has to read as itself before then. With no instant no
+ * preset can be matched — a preset is a span resolved against a day — so every
+ * span takes its absolute range, which reads the same on the server and on the
+ * first client render. The label refines to the preset's once the instant lands.
+ * Returning nothing instead would show the trigger's placeholder over a committed
+ * value, beside a Clear the value keeps enabled.
+ *
  * @internal
  */
 export function relativeChips(
 	value: DatePickerRelativeValue[] | undefined,
 	presets: DatePickerRelativePreset[],
-	now: Date,
+	now: Date | null,
 	preferredIds?: ReadonlySet<string>,
 	locale?: string,
 	dateFormat?: Intl.DateTimeFormatOptions,
@@ -288,7 +327,7 @@ export function relativeChips(
 	if (value === undefined) return []
 
 	return value.map((span, index) => {
-		const preset = matchRelativePreset(span, presets, now, preferredIds)
+		const preset = now && matchRelativePreset(span, presets, now, preferredIds)
 
 		if (preset) return { key: `preset-${preset.id}`, label: preset.label }
 

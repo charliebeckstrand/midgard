@@ -104,15 +104,30 @@ export function setVirtualActive(
 }
 
 /**
- * Clear the virtual-mode active marker: drops the owner's
- * `aria-activedescendant`. The named reset counterpart to {@link setVirtualActive},
- * so callers express intent as `clearVirtualActive(ref)` rather than the cryptic
- * `setVirtualActive([], -1, ref)`. A closing panel unmounts its rows, so the
- * owner-clear is all a caller needs; stripping attributes off still-mounted
- * rows is {@link setVirtualActive}'s job.
+ * Clears the virtual highlight: drops the owner's `aria-activedescendant`, and
+ * strips `data-active` from the rows when a container is given.
+ *
+ * @remarks Pass the container wherever the panel can outlive the close. An exit
+ * animation holds its rows, so a reopen inside that window reconciles the same
+ * nodes, and a row keeps a wash that nothing names. Without a container the
+ * function clears the owner alone. That is all a caller needs when the rows
+ * unmount with the panel. The named form also keeps `setVirtualActive([], -1, ref)`
+ * out of the call sites.
+ *
+ * @internal
  */
-export function clearVirtualActive(activeDescendantRef: RefObject<HTMLElement | null>): void {
-	setVirtualActive([], -1, activeDescendantRef)
+export function clearVirtualActive(
+	activeDescendantRef: RefObject<HTMLElement | null>,
+	rows?: { container: HTMLElement | null; itemSelector: string; ariaSelected?: boolean },
+): void {
+	setVirtualActive(
+		rows ? queryItems(rows.container, rows.itemSelector) : [],
+		-1,
+		activeDescendantRef,
+		{
+			ariaSelected: rows?.ariaSelected ?? true,
+		},
+	)
 }
 
 /** The id `source` mints for `index`, or undefined out of range. @internal */

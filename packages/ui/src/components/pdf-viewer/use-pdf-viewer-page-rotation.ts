@@ -35,7 +35,7 @@ type PageRotationResult = {
  * @returns `{ rotation, isTransposed, rotate }` for the active page.
  * @internal
  */
-export function usePdfViewerPageRotation(page: number, documentKey?: unknown): PageRotationResult {
+export function usePdfViewerPageRotation(page: number, documentKey?: string): PageRotationResult {
 	const [rotations, setRotations] = useState<Record<number, number>>({})
 
 	// Per-page rotations belong to one document; clear them when the document

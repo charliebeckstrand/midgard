@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Control } from '../../components/control'
@@ -1178,6 +1178,119 @@ describe('DatePicker input', () => {
 
 		// aria-controls persists while the calendar is open.
 		expect(input).toHaveAttribute('aria-controls')
+	})
+
+	// `closeCalendar` writes setOpen(false) unconditionally, and the controllable
+	// setter publishes every write, so a clear on a shut picker reported a close.
+	it('reports no close when a clear runs on a shut picker', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<DatePicker
+				clearable
+				defaultValue={new Date(2025, 5, 15)}
+				onOpenChange={onOpenChange}
+				aria-label="Due date"
+			/>,
+		)
+
+		// The trigger's own clear, with the calendar never opened. The footer clear
+		// shares this name but only exists while the popover is up.
+		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	// A controlled close that no pointer drives — an effect, a timer, a route
+	// change, arriving data — bypasses the close path that clears the highlight.
+	it('drops aria-activedescendant when a controlled open closes programmatically', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		function Harness({ close }: { close: boolean }) {
+			const [open, setOpen] = useState(true)
+
+			useEffect(() => {
+				if (close) setOpen(false)
+			}, [close])
+
+			return (
+				<DatePicker
+					input
+					open={open}
+					onOpenChange={setOpen}
+					defaultValue={new Date(2025, 5, 15)}
+					aria-label="Due date"
+				/>
+			)
+		}
+
+		const { container, rerender } = renderUI(<Harness close={false} />)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		input.focus()
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(input).toHaveAttribute('aria-activedescendant')
+
+		rerender(<Harness close />)
+
+		// The grid is gone, so the input must name nothing.
+		expect(input).not.toHaveAttribute('aria-activedescendant')
+	})
+
+	// The trigger arm honours `readOnly` through its own guard; the typed arm has
+	// to be handed the resolved flag. A Control readOnly reaches DateInput on its
+	// own cascade, so this passes the prop directly.
+	it('forwards readOnly to the typed field', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DatePicker
+				input
+				readOnly
+				value={new Date(2026, 0, 1)}
+				onValueChange={onChange}
+				aria-label="Due date"
+			/>,
+		)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		expect(input).toHaveAttribute('readonly')
+
+		await user.type(input, '02022026')
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	// DateInput re-derives the Control half of `invalid` itself, so only the bound
+	// field half proves the forward.
+	it('forwards a bound field error to the typed field', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ due: null }}
+				validate={{ due: (value) => (value ? undefined : 'required') }}
+			>
+				<DatePicker input name="due" aria-label="Due date" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+
+		expect(input).not.toHaveAttribute('aria-invalid')
+
+		await act(async () => {
+			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+		})
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 })
 

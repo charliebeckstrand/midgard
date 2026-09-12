@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
-import { allBySlot, bySlot, renderUI, screen, userEvent, within } from '../helpers'
+import { allBySlot, bySlot, renderUI, screen, userEvent, withFakeTime, within } from '../helpers'
 
 // Controlled relative picker: the parent holds the (always-array) value so a
 // toggle round-trips back into the trigger. `multiple` opts into multi-select;
@@ -557,5 +557,97 @@ describe('DatePicker (relative)', () => {
 		expect(screen.getByRole('button', { name: 'Back to presets' })).toBeInTheDocument()
 
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
+	})
+
+	// Clearing empties the footer, so the Clear button unmounts while it holds focus
+	// and the popover stays open on purpose. The end state is the browser's too, but
+	// the counterfactual is not: this project mocks the floating engine, whose double
+	// re-seeds nothing, so here the alternative is `document.body`. The live engine
+	// seats the panel container instead, and
+	// `browser/floating-ui/date-picker-footer-clear-focus.test.tsx` measures that.
+	it('hands focus to the preset list when the footer Clear unmounts itself', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(
+			<ControlledRelativePicker
+				initial={[{ from: new Date(2026, 0, 9), to: new Date(2026, 0, 15) }]}
+			/>,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+		// The trigger's clear shares this name, so scope to the footer toolbar.
+		const clear = within(screen.getByRole('toolbar', { name: 'Date picker actions' })).getByRole(
+			'button',
+			{ name: 'Clear selection' },
+		)
+
+		clear.focus()
+
+		await user.keyboard('{Enter}')
+
+		// A control, not the panel container: the container takes no arrow key.
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Today' }))
+	})
+
+	// The custom span is found by match, not by position. After midnight the span
+	// picked as Today matches Yesterday and still leads the array, while the span
+	// that matches nothing sits behind it.
+	it('seeds the custom range from the unmatched span and not the first one', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2026, 0, 15, 23, 59, 30))
+
+			renderUI(<ControlledRelativePicker multiple />)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Today' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Last 7 days' }))
+
+			await clock.user.keyboard('{Escape}')
+
+			await clock.advance(60_000)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+			// The Last 7 days span matches no preset at the new instant, so it is the
+			// custom one; its start is 9 January, not the 15th the Today span carries.
+			expect((screen.getByRole('textbox', { name: 'Start' }) as HTMLInputElement).value).toBe(
+				'01/09/2026',
+			)
+		})
+	})
+
+	// The reference instant is stamped on open. It lives in state, so the re-stamp
+	// invalidates the chip and highlight derivations; a ref could not.
+	it('re-resolves a committed span against the new day when it reopens after midnight', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2026, 0, 15, 23, 59, 30))
+
+			const { container } = renderUI(<ControlledRelativePicker />)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			await clock.user.click(screen.getByRole('button', { name: 'Today' }))
+
+			const trigger = bySlot(container, 'datepicker-button')
+
+			expect(trigger).toHaveTextContent('Today')
+
+			await clock.user.keyboard('{Escape}')
+
+			// Cross midnight with the popover shut, so only the reopen re-stamps.
+			await clock.advance(60_000)
+
+			await clock.user.click(screen.getByRole('button', { name: 'Reporting range' }))
+
+			// The span is unchanged; the day it sits in is not.
+			expect(trigger).toHaveTextContent('Yesterday')
+
+			expect(screen.getByRole('button', { name: 'Today' })).toHaveAttribute('aria-pressed', 'false')
+		})
 	})
 })

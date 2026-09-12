@@ -5,6 +5,7 @@ import {
 	type DatePickerRelativePreset,
 	type DatePickerRelativeValue,
 	DEFAULT_RELATIVE_PRESETS,
+	findCustomSpan,
 	isCustomActive,
 	isRelativeEmpty,
 	matchRelativePreset,
@@ -141,6 +142,22 @@ describe('relativeSummary', () => {
 	})
 })
 
+describe('findCustomSpan', () => {
+	const presets = DEFAULT_RELATIVE_PRESETS
+
+	it('is undefined when every span matches a preset', () => {
+		expect(findCustomSpan([resolve('today'), resolve('this-year')], presets, NOW)).toBeUndefined()
+	})
+
+	// Position does not identify the custom span. A span picked as Today matches
+	// Yesterday once the instant crosses midnight, so a matched span can lead.
+	it('skips a matched span that leads the array', () => {
+		const custom = { from: new Date(2025, 0, 9), to: new Date(2025, 0, 14) }
+
+		expect(findCustomSpan([resolve('today'), custom], presets, NOW)).toEqual(custom)
+	})
+})
+
 describe('isRelativeEmpty', () => {
 	it('is true for undefined and the empty array', () => {
 		expect(isRelativeEmpty(undefined)).toBe(true)
@@ -191,6 +208,24 @@ describe('togglePresetValue (multi-select)', () => {
 
 		// 'this-year' precedes 'last-year' in the list, so it sorts first.
 		expect(afterSecond).toEqual([resolve('this-year'), resolve('last-year')])
+	})
+
+	// Two presets can resolve to one span on a given day: through January
+	// 'this-month' and 'this-year' both start on the 1st. The committed value is a
+	// bare span, so the rebuild dedupes by span and not by preset id.
+	it('commits one span when two presets resolve to the same span', () => {
+		const january = new Date(2026, 0, 15)
+
+		const thisMonth = preset('this-month').resolve(january)
+
+		// Guards the premise: if the presets stop colliding, this case is moot.
+		expect(preset('this-year').resolve(january)).toEqual(thisMonth)
+
+		const afterFirst = togglePresetValue(undefined, preset('this-month'), presets, january, true)
+
+		const afterSecond = togglePresetValue(afterFirst, preset('this-year'), presets, january, true)
+
+		expect(afterSecond).toEqual([thisMonth])
 	})
 
 	it('removes a selected preset', () => {

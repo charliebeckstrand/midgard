@@ -323,6 +323,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						max={props.max}
 						size={size}
 						disabled={state.disabled}
+						readOnly={state.readOnly}
+						// DateInput resolves `invalid ?? (typedInvalid || undefined)`, so a literal
+						// `false` would pin the attribute over the input's own parse state.
+						invalid={state.invalid || undefined}
 						clearable={clearable}
 						placeholder={props.placeholder}
 						aria-label={ariaLabel}

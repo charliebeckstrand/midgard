@@ -30,6 +30,10 @@ export type MenuContentProps = {
  * @remarks Items scroll inside a height-capped viewport whose clipped edges
  * fade out while more content lies past them, so an overflowing menu reads as
  * scrollable without a persistent scrollbar.
+ *
+ * @remarks A `static` menu is page furniture with no disclosure: its panel is
+ * gated on the static mode rather than on open state, so it has no dismissed
+ * state and no {@link MenuTrigger} belongs beside it. Reach its rows by Tab.
  */
 export function MenuContent({
 	className,
@@ -68,9 +72,10 @@ export function MenuContent({
 					itemSelector={MENUITEM_SELECTOR}
 					typeahead
 					glass={glass}
-					// A static menu is part of the page, not a transient overlay;
-					// `autoFocus={false}` keeps it from grabbing focus on mount.
+					// Part of the page, not a transient overlay, so it seats no focus — and
+					// therefore needs `manageTabIndex` to have any keyboard entry point.
 					autoFocus={false}
+					manageTabIndex
 					className={cn(k.content, className)}
 				>
 					{viewport}

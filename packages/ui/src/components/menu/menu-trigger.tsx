@@ -29,11 +29,23 @@ export type MenuTriggerProps =
  *
  * The trigger keeps focus while the menu is open, so Tab off it closes the menu
  * and lets focus proceed to the next tabbable in one keystroke.
+ *
+ * @remarks A static {@link Menu} — `defaultOpen` with no `placement` — owns no
+ * disclosure, because {@link MenuContent} gates its panel on the static mode
+ * rather than on open state. Inside one, the trigger emits no disclosure ARIA
+ * and toggles nothing, so it renders as an inert button. Reach a static menu's
+ * rows by Tab instead.
  */
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()
 
-	const { dismissToTab, rovingKeyDown, triggerRef, setReference } = useMenuActions()
+	const {
+		dismissToTab,
+		rovingKeyDown,
+		static: isStatic,
+		triggerRef,
+		setReference,
+	} = useMenuActions()
 
 	const { enterSubmenu } = useMenuPointer()
 
@@ -99,6 +111,15 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		activationHeldRef.current = false
 	}
 
+	// Absent rather than wrong in static mode; the `@remarks` above says why.
+	const disclosure = isStatic
+		? undefined
+		: {
+				'aria-haspopup': 'menu' as const,
+				'aria-expanded': open,
+				'aria-controls': open ? menuId : undefined,
+			}
+
 	// Consumer/child props route through `getReferenceProps`, which composes
 	// their event handlers with the floating interactions instead of clobbering
 	// them (the `TooltipTrigger`/`PopoverTrigger` pattern). The toggle itself is
@@ -123,9 +144,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 				},
 			}),
 			ref: mergeRefs,
-			'aria-haspopup': 'menu',
-			'aria-expanded': open,
-			'aria-controls': open ? menuId : undefined,
+			...disclosure,
 			'data-slot': 'menu-trigger',
 			className: cn(className, child.props.className as string | undefined),
 		})
@@ -140,12 +159,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	return (
 		<button
 			ref={mergeRefs}
-			type="button"
-			aria-haspopup="menu"
-			aria-expanded={open}
-			aria-controls={open ? menuId : undefined}
-			data-slot="menu-trigger"
-			className={cn(className)}
 			{...getReferenceProps({
 				...rest,
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -157,6 +170,14 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					handleTriggerKeyUp(event)
 				},
 			})}
+			// After the spread, like the cloned branch above and `menu-item.tsx`
+			// (`CONVENTIONS.md` §3.9). `getReferenceProps` re-emits every consumer prop,
+			// so a stray `type` would turn the trigger into a form submit and a stray
+			// widget-state attribute would pin what reports whether the menu is open.
+			type="button"
+			{...disclosure}
+			data-slot="menu-trigger"
+			className={cn(className)}
 		>
 			{children}
 		</button>

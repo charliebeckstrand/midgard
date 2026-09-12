@@ -144,18 +144,33 @@ export function useMenuState({
 		manageAriaSelected: false,
 	})
 
-	// Clear the trigger's `aria-activedescendant` once closed: the panel (and the
-	// ids it pointed at) unmounts, so the attribute would otherwise dangle, and the
-	// next open must start with no active row (the first arrow picks the first item).
+	// Clear the highlight once closed, rows included: `PresencePortal` holds the
+	// panel through its exit animation, so a reopen inside that window reconciles the
+	// same nodes. The next open then starts with no active row, and the first arrow
+	// picks the first item.
 	useEffect(() => {
-		if (!open) clearVirtualActive(triggerRef)
-	}, [open, triggerRef])
+		if (open) return
+
+		clearVirtualActive(triggerRef, {
+			container: refs.floating.current,
+			itemSelector: MENUITEM_SELECTOR,
+			ariaSelected: false,
+		})
+	}, [open, refs.floating, triggerRef])
 
 	// Toggling the menu is floating-ui's, not the trigger's: `useClick` supplies
 	// the keyboard activation a cloned non-button child never gets from the
 	// browser, plus the main-button guard and `stickIfOpen`. `MenuTrigger` keeps
 	// its own auto-repeat guard, which `useClick` has no equivalent for.
-	const click = useClick(context)
+	//
+	// A static menu owns no disclosure — `MenuContent` gates its panel on the
+	// static mode, not on open state — so there is nothing for a press to toggle,
+	// and `enabled` takes the interaction off it. `stickIfOpen` is no substitute:
+	// it tests `openEvent`, which floating-ui writes only when an event opens the
+	// surface, so a `defaultOpen` menu has none and the guard falls through to the
+	// click-close. Left enabled, a press reports `onOpenChange(false)` over a panel
+	// that stays mounted.
+	const click = useClick(context, { enabled: !isStatic })
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([click, dismiss, role])
 

@@ -86,16 +86,28 @@ export function useDatePickerState({
 	// can still dismiss (matching Listbox).
 	const setOpen = useCallback(
 		(next: boolean) => {
-			if (resolvedReadOnly && next) return
+			// Only a transition is a write. `useControllable` publishes every set with
+			// no equality check, so a redundant close — a clear on a shut picker, a
+			// second Escape — would report a transition that never happened. The guard
+			// sits on the one writer rather than at each call site, so a later writer
+			// inherits it.
+			if (next === open || (resolvedReadOnly && next)) return
 
 			setOpenInner(next)
 		},
-		[resolvedReadOnly, setOpenInner],
+		[open, resolvedReadOnly, setOpenInner],
 	)
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
-	const [active, setActive] = useState<CalendarActive | null>(null)
+	// Scoped to the open state by derivation, not by an effect: a closed picker has
+	// no active cell, so every reader — the input's active descendant, the calendar,
+	// the footer, and the arrow-move bases — sees null without its own gate. A
+	// derived value also resolves during the render that closes, where an effect
+	// would run a frame later.
+	const [activeState, setActive] = useState<CalendarActive | null>(null)
+
+	const active = open ? activeState : null
 
 	const calendarRef = useRef<CalendarHandle>(null)
 
@@ -263,6 +275,7 @@ export function useDatePickerState({
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
 		required: control?.required,
 		invalid: control?.severity === 'error' || fieldInvalid,
 		value,
@@ -295,7 +308,7 @@ export function useDatePickerState({
 		calendar: {
 			value: value ?? null,
 			onValueChange: handleSelect,
-			active: open ? active : null,
+			active,
 			calendarRef,
 			footerRef,
 		},

@@ -30,6 +30,7 @@ export function PopoverPanel({
 	role = 'listbox',
 	itemSelector = '[role="option"]:not([data-disabled])',
 	autoFocus = true,
+	manageTabIndex = false,
 	typeahead = false,
 	trapTab = false,
 	glass = false,
@@ -61,6 +62,20 @@ export function PopoverPanel({
 	 * @defaultValue true
 	 */
 	autoFocus?: boolean
+	/**
+	 * Seat the roving tab stop on one row, so Tab reaches the panel's items.
+	 *
+	 * @remarks Use it for a panel that stays on the page and holds the page's focus.
+	 * Without it the panel and every row stay at `tabIndex={-1}`. The roving model then
+	 * has no entry point, and a keyboard user cannot reach a row.
+	 *
+	 * `autoFocus` cannot decide this. A dropdown, a submenu, and a combobox panel each
+	 * seat no focus of their own, and each must seat no tab stop either: focus stays on
+	 * the trigger or the input, and the rows rove virtually.
+	 *
+	 * @defaultValue false
+	 */
+	manageTabIndex?: boolean
 	/**
 	 * Enable WAI-ARIA type-ahead: jump to the item whose label matches typed keys.
 	 *
@@ -96,6 +111,7 @@ export function PopoverPanel({
 	const handleKeyDown = useA11yRoving(panelRef, {
 		itemSelector,
 		focusOnEmpty: true,
+		manageTabIndex,
 		typeahead,
 		trapTab,
 	})

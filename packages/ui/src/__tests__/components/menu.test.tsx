@@ -17,6 +17,41 @@ import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
+describe('MenuTrigger spread order', () => {
+	it('keeps type="button" against a consumer type prop', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger type="submit">Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		// `MenuTriggerProps` accepts a button's props, so `type="submit"` typechecks.
+		// Written after the spread, the structural `type` wins, so opening a menu
+		// inside a form cannot submit it (`CONVENTIONS.md` §3.9).
+		expect(screen.getByRole('button', { name: 'Options' })).toHaveAttribute('type', 'button')
+	})
+
+	it('keeps the resolved aria-expanded against a consumer value', () => {
+		renderUI(
+			<Menu placement="bottom-start">
+				<MenuTrigger aria-expanded>Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		// The widget state reports the menu, never the consumer's constant.
+		expect(screen.getByRole('button', { name: 'Options' })).toHaveAttribute(
+			'aria-expanded',
+			'false',
+		)
+	})
+})
+
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
 		const { container } = renderUI(<MenuSection>content</MenuSection>)
@@ -220,6 +255,96 @@ describe('MenuContent', () => {
 		expect(container.querySelector('[role="menu"]')).not.toHaveFocus()
 
 		expect(screen.getByText('Item')).not.toHaveFocus()
+	})
+
+	it('seats one roving tab stop on a static menu, so Tab reaches its rows', () => {
+		const { container } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+					<MenuItem>Duplicate</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const items = [...container.querySelectorAll('[role="menuitem"]')]
+
+		expect(items).toHaveLength(2)
+
+		// A static menu seats no focus, so the roving model needs a tab stop to have
+		// any entry point. Exactly one row holds it; every row at tabIndex -1 leaves
+		// the whole menu unreachable by keyboard.
+		expect(items.filter((item) => item.getAttribute('tabindex') === '0')).toHaveLength(1)
+	})
+
+	it('toggles nothing from a static menu trigger', async () => {
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Menu defaultOpen onOpenChange={onOpenChange}>
+				<MenuTrigger>Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Options' }))
+
+		// `useMenuState` takes the click interaction off a static menu, so the press
+		// reports nothing. This project mocks the floating engine, so the assertion
+		// holds here only because the interaction is disabled either way; the
+		// browser `floating-ui` project proves it against the live engine, where an
+		// enabled `useClick` does report a close over a panel that stays mounted.
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(container.querySelector('[role="menu"]')).toBeInTheDocument()
+	})
+
+	it('emits no disclosure ARIA from a static menu trigger', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuTrigger>Options</MenuTrigger>
+				<MenuContent>
+					<MenuItem>Item</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Options' })
+
+		// A static menu owns no disclosure. `aria-expanded` would contradict the
+		// visible panel, and `aria-controls` would name an id the static branch never
+		// stamps on its panel.
+		expect(trigger).not.toHaveAttribute('aria-expanded')
+
+		expect(trigger).not.toHaveAttribute('aria-controls')
+
+		expect(trigger).not.toHaveAttribute('aria-haspopup')
+	})
+
+	it('activates a link item on Space, as it does on Enter', async () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem href="/about" onAction={onAction}>
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByRole('menuitem', { name: 'About' })
+
+		item.focus()
+
+		await userEvent.keyboard(' ')
+
+		// An anchor activates on Enter natively but never on Space, and outside a
+		// dropdown no roving model supplies it, so the press used to fall through.
+		expect(onAction).toHaveBeenCalledTimes(1)
 	})
 
 	it('leaves Escape alone when rendered as a static menu', async () => {

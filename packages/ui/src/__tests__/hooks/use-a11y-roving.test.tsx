@@ -139,6 +139,39 @@ describe('clearVirtualActive', () => {
 
 		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 	})
+
+	// The `rows` option, which a closing panel needs: `PresencePortal` holds the panel
+	// through its exit animation, so a reopen inside that window reconciles the same
+	// nodes and a row keeps a wash nothing names. Without the option the clear passed
+	// an empty list, found no previous row, and stripped nothing.
+	//
+	// `ariaSelected: false` is the menu's case. `aria-selected` is not a `menuitem`
+	// state, so a clear must not write one.
+	it('strips data-active from the rows a held panel still holds', () => {
+		const panel = document.createElement('div')
+
+		panel.innerHTML =
+			'<div role="menuitem" id="row-0"></div><div role="menuitem" id="row-1" data-active=""></div>'
+
+		const owner = document.createElement('button')
+
+		owner.setAttribute('aria-activedescendant', 'row-1')
+
+		clearVirtualActive(
+			{ current: owner },
+			{
+				container: panel,
+				itemSelector: '[role="menuitem"]:not([data-disabled])',
+				ariaSelected: false,
+			},
+		)
+
+		expect(panel.querySelector('[data-active]')).toBeNull()
+
+		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
+
+		expect(panel.querySelector('#row-1')?.hasAttribute('aria-selected')).toBe(false)
+	})
 })
 
 function makeContainer(count: number) {
