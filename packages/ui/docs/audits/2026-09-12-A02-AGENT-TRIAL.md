@@ -8,6 +8,10 @@
 
 ## Executive summary
 
+> **Read [Round 2](#round-2--what-a-second-run-changed) before you act on this section.** A later
+> set of tests measured run-to-run variance and found it large enough to dominate the arm
+> comparison below. The round-1 counts stand as measured; the reading of them changes.
+
 Neither arm won. The treatment found more, and the control found better.
 
 Arm T raised 23 claims and 17 survived the judge. Arm C raised 11 claims and all 11 survived. The union holds 21 distinct defects. Arm T found 17 of them and Arm C found 11, and the 7 that both arms found are the overlap. Arm T therefore missed 4 defects and Arm C missed 10.
@@ -182,6 +186,78 @@ That count is not the answer, because the metrics are not equal in weight. A swe
 The control's cost advantage is real and it is not small. It runs one agent for each unit rather than two, at half the invocations and 77 percent of the wall clock, and it fits the concurrency cap with room that the treatment does not have.
 
 The reader decides. The question that the numbers put is whether 55 percent more defects and a 26 percent false-claim rate beat 45 percent fewer defects and no false claims, at 1.21 times the tokens and 1.30 times the wall clock.
+
+## Round 2 — what a second run changed
+
+Round 1 rested on one run of each agent. Three tests then measured what that single run hid. Each
+test was pre-registered, and the reading rules were fixed before any of the six agents ran.
+
+**Test A — replicate.** The `bug-sweeper` prompt, unchanged, over both units a second time.
+
+**Test B — amended sweeper.** The same agent with one added clause in the dispatcher prompt, which
+asks it to raise a defect that is an absence. The agent file on disk did not change.
+
+**Test C — independent judge.** A general-purpose agent judged the same shuffled, stripped union
+that round 1 judged, under the same blindness. Round 1's judge is a `bug-verifier`, which is one of
+the five agents under test, so this test attacks the trial's weakest joint.
+
+### Recall of the 21 known defects, per run
+
+| run | u1 (7 defects) | u2 (14 defects) | total |
+|---|---|---|---|
+| round 1, Arm T | 6 | 11 | **17 of 21** |
+| Test A, same prompt | 3 | 11 | **14 of 21** |
+| Test B, amended prompt | 4 | 9 | **13 of 21** |
+| round 1, Arm C | 3 | 8 | **11 of 21** |
+
+### Three findings, in order of weight
+
+**Variance dominates the arm comparison.** Three runs of one agent over one file set reach 17, 14
+and 13 of 21. The gap between the best and the worst run of the *same* agent is 4 defects. The gap
+between Arm T and Arm C in round 1 is 6. The arm effect therefore sits only a little above the
+noise, and round 1 measured it with one sample of each.
+
+The two u2 runs make the point sharply. Both reach 11 of 14, and they reach different elevens:
+round 1 found `D13` and `D15` and missed `D20` and `D21`, and the replicate did the reverse. Equal
+recall, different sets.
+
+**Repetition is the lever, and the prompt is not.** The amended prompt scored worst of the three
+runs. It raised more claims and reached fewer known defects, so the absence clause is withdrawn as
+a recommendation. What works instead is a second pass: two runs union to 19 or 20 of 21, and three
+union to 20 of 21, against 13 to 17 for any single run.
+
+**Arm C's unique advantage mostly dissolved.** Round 1 credited Arm C with 4 defects that Arm T
+missed. A second and a third sweeper run found three of them — `D20` and `D21` twice each, and
+`D19` once. Only `D18`, the write-only rendered month, resisted all three sweeper runs, and both
+judges rank it the most severe row in the segment. Arm C's durable edge over the specialists is
+therefore one defect in this segment, not four.
+
+### The judge holds, with one caveat that is the dispatcher's fault
+
+The independent judge agreed with the `bug-verifier` on survive-or-die for **34 of 34 claims**, and
+on the exact verdict and severity for 32 of 34. The two differences are both on u1: it called `K08`
+RESTATED where round 1 called it CONFIRMED, and it set `K09` to high where round 1 set medium-high.
+It also found a reach for `K16` that round 1 recorded as NONE. Judge bias does not drive the
+round-1 result.
+
+The caveat is a design error, and it is mine. Round 1's report was committed to
+`packages/ui/docs/audits/` before Test C ran, so both judges' prior-art search found it. Each one
+disclosed the find and stated that it had already ruled. That cannot be verified from here, so the
+agreement above is an upper bound rather than a clean replication. The three disagreements are the
+evidence that some independence survived.
+
+### What round 1's headline should now read
+
+The round-1 counts are correct as measured. The sentence they support is narrower than the one the
+[Executive summary](#executive-summary) gives. Arm T beat Arm C on recall in the one pairing that
+ran, by a margin that a second run of Arm T alone could have produced. The precision result is
+firmer, because it rests on a judged verdict for every claim rather than on one draw: Arm T's 6
+refuted claims and Arm C's 0 are what they are.
+
+One limit applies to round 2 and not to round 1. Only the round-1 claims carry a judged verdict.
+The Test A and Test B claims were scored for recall against the known set, and their novel claims —
+5 and 8 on u2, 5 and 8 on u1 — were never judged. Their precision is therefore unknown, and a
+second sweep buys its recall at an unmeasured cost in false claims.
 
 ---
 
