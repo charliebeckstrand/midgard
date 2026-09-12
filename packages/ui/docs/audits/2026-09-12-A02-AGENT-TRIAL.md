@@ -210,6 +210,38 @@ the five agents under test, so this test attacks the trial's weakest joint.
 | Test B, amended prompt | 4 | 9 | **13 of 21** |
 | round 1, Arm C | 3 | 8 | **11 of 21** |
 
+### Recall by defect
+
+`1` means the run raised a claim the common judge confirmed against that defect. The `Arm C` column
+is the round-1 control, for comparison.
+
+| defect | what it is | R1 T | Test A | Test B | Arm C |
+|---|---|---|---|---|---|
+| `D01` | calendar roving seats no tab stop | 1 | 1 | 1 | 1 |
+| `D02` | picker year grid marks the wrong year | 1 | 1 | 1 | 1 |
+| `D04` | `KanbanColumnBody` falsy child | 1 | 1 | 1 | 1 |
+| `D06` | `useListDrag` identity-map keys | 1 | 1 | 1 | 1 |
+| `D09` | `CalendarRange` never re-anchors the view | 1 | 1 | 1 | 0 |
+| `D12` | virtualized search seed never resets | 1 | 1 | 1 | 0 |
+| `D16` | `ListItem` two tab stops | 1 | 1 | 1 | 0 |
+| `D17` | `StatDelta` documents an absent `flat` | 1 | 1 | 1 | 0 |
+| `D03` | virtualized JsonTree roving | 1 | 1 | 0 | 1 |
+| `D05` | kanban card eats descendant keys | 1 | 1 | 0 | 1 |
+| `D07` | Tree roving enters a hidden held item | 1 | 1 | 0 | 1 |
+| `D14` | `userOpen` survives a data swap | 1 | 1 | 0 | 0 |
+| `D08` | arrow cannot cross a month boundary | 1 | 0 | 1 | 0 |
+| `D13` | `defaultExpandDepth` seeded once | 1 | 0 | 1 | 0 |
+| `D20` | `rootKey=""` desyncs the path | 0 | 1 | 1 | 1 |
+| `D21` | `stampTreePositions` counts wrappers | 0 | 1 | 1 | 1 |
+| `D10` | month steppers coalesce | 1 | 0 | 0 | 0 |
+| `D11` | bound field seeds from `defaultValue` | 1 | 0 | 0 | 0 |
+| `D15` | `k.column.over` is an empty class | 1 | 0 | 0 | 0 |
+| `D19` | `ensureFirstItemActive` cannot recover | 0 | 0 | 1 | 1 |
+| `D18` | rendered month is write-only | 0 | 0 | 0 | 1 |
+
+Eight defects came out of every sweeper run and three came out of exactly one. `D18` came out of no
+sweeper run. A defect's own difficulty, not the agent, decides which band it sits in.
+
 ### Three findings, in order of weight
 
 **Variance dominates the arm comparison.** Three runs of one agent over one file set reach 17, 14
@@ -231,6 +263,32 @@ missed. A second and a third sweeper run found three of them — `D20` and `D21`
 `D19` once. Only `D18`, the write-only rendered month, resisted all three sweeper runs, and both
 judges rank it the most severe row in the segment. Arm C's durable edge over the specialists is
 therefore one defect in this segment, not four.
+
+### What round 2 cost
+
+| agent | u1 | u2 | total |
+|---|---|---|---|
+| Test A, replicate sweeper | 132,814 | 174,022 | 306,836 |
+| Test B, amended sweeper | 109,823 | 184,534 | 294,357 |
+| Test C, independent judge | 203,662 | 233,165 | 436,827 |
+
+Round 2 spent 1,038,020 tokens over 6 invocations. Both rounds together spent 2,222,992 over 12.
+
+### What the options cost for one segment
+
+A sweep of both units costs about 308,000 tokens, measured over three runs (324,180 / 306,836 /
+294,357). Round 1's verification cost 380,858 tokens for 34 claims, which is about 11,200 for each
+claim. The two-sweep row scales that rate over the merged claim set and is therefore an estimate,
+marked as such; every other figure is measured.
+
+| strategy | recall of 21 | tokens for one segment | 26 remaining area segments |
+|---|---|---|---|
+| Arm C, one generalist pass | 11 (52%) | ~480,000 | ~12.5M |
+| Arm T, one sweep plus verification | 13-17 (62-81%) | ~582,000 | ~15.1M |
+| Arm T, two sweeps plus one verification | 19-20 (90-95%) | ~1,041,000 (estimate) | ~27.1M |
+
+`A02` holds 5,841 lines against a mean segment of about 5,214, so these figures run slightly high
+for the programme rather than low.
 
 ### The judge holds, with one caveat that is the dispatcher's fault
 
@@ -254,10 +312,17 @@ ran, by a margin that a second run of Arm T alone could have produced. The preci
 firmer, because it rests on a judged verdict for every claim rather than on one draw: Arm T's 6
 refuted claims and Arm C's 0 are what they are.
 
-One limit applies to round 2 and not to round 1. Only the round-1 claims carry a judged verdict.
-The Test A and Test B claims were scored for recall against the known set, and their novel claims —
-5 and 8 on u2, 5 and 8 on u1 — were never judged. Their precision is therefore unknown, and a
-second sweep buys its recall at an unmeasured cost in false claims.
+Two limits apply to round 2 and not to round 1.
+
+Only the round-1 claims carry a judged verdict. The Test A and Test B claims were scored for recall
+against the known set, and every claim that matched no known defect went unjudged: 5 and 11 on u1,
+and 5 and 8 on u2, so 29 in all. Their precision is unknown, and a second sweep therefore buys its
+recall at an unmeasured cost in false claims.
+
+Arm C ran once and was never replicated. Round 2 replicated the treatment three times and the
+control zero times, so the control's 100 percent precision and its 11 of 21 recall are single draws
+— the same weakness this section charges against round 1. A reader who still weighs one arm against
+the other needs that test before the comparison carries more than round 1 gave it.
 
 ---
 
