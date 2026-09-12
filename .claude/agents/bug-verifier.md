@@ -24,7 +24,7 @@ tools: Read, Grep, Glob
 
 2.2 The intent sources the caller names, plus the TSDoc, the code comments, and the tests. For a `packages/ui` scope they are `CONVENTIONS.md` §3.6, §3.9, §7.2, §7.3, and §11.3, with `packages/ui/REFERENCE.md` §2 for the tier boundary.
 
-2.3 The consumer roots the caller names; reach is answered against those and no others, because a root list from the wrong package returns a confident wrong answer. For a `packages/ui` scope they are `apps/admin`, `apps/places`, `packages/ui/src/docs/demos`, `packages/ui/src/modules`, `packages/ui/src/layouts`, and the component's own shipped defaults. `packages/ui/src/__tests__` is a weaker root: it proves a shape is buildable, not shipped.
+2.3 The consumer roots the caller names; reach is answered against those and no others, because a root list from the wrong package returns a confident wrong answer. For a `packages/ui` scope they are `apps/admin`, `apps/places`, `packages/ui/src/docs/demos`, `packages/ui/src/modules`, `packages/ui/src/layouts`, and the component's own shipped defaults. A shipped default is not a directory: it is the props and the wiring the component applies when a consumer passes none, which make a trigger reachable with no consumer at all. `packages/ui/src/__tests__` is a weaker root: it proves a shape is buildable, not shipped.
 
 2.4 The prior-art digest the caller supplies: the open rows, the ruled-out entries, and the surfaced-not-fixed entries of every record that covers this scope. The digest is the same text for each call over one scope, so the caller builds it once. When no digest arrives, return `priorArt` as NONE and name the digest as missing; never widen the read to find one.
 
@@ -50,7 +50,7 @@ tools: Read, Grep, Glob
 
 3.5 Attack the trigger, not only the mechanism. When the stated trigger cannot reach the wrong result and another can, rule RESTATED and name the one that does.
 
-3.6 Search the consumer roots once for each claim and keep the sites you find; §3.8 answers reach from that same search. A trigger no repository consumer can construct does not restate a claim; it refutes it.
+3.6 Search the consumer roots once for each claim and keep the sites you find; §3.8 answers reach from that same search. A trigger no consumer in those roots can construct does not restate a claim; it refutes it. A consumer outside the roots never answers reach; cite one only to show that a trigger is not constructed, and mark it out-of-root.
 
 3.7 Check documented intent. When the TSDoc, a comment, a convention, or a test shows deliberate behaviour, rule REFUTED and quote the source.
 
@@ -80,7 +80,7 @@ tools: Read, Grep, Glob
 
 - `id` — the claim id.
 
-- `verdict` — CONFIRMED, RESTATED, REFUTED, or UNLOCATED.
+- `verdict` — CONFIRMED, NARROWED, RESTATED, REFUTED, or UNLOCATED. NARROWED carries a claim whose mechanism holds but whose stated wrong result the trigger reaches only in part: confirm the part you trace, and record the part you do not in the ruled-out list with its quoted guard.
 
 - `mechanism` — the quoted lines.
 
@@ -108,7 +108,7 @@ tools: Read, Grep, Glob
 
 - The open questions, with their decision axes.
 
-- The ruled-out list: the quoted guard for each refuted claim and each refuted trigger.
+- The ruled-out list: the quoted guard for each refuted claim, each refuted trigger, and each part a NARROWED verdict drops.
 
 - The leads, under `surfaced, not judged`.
 
@@ -118,7 +118,7 @@ tools: Read, Grep, Glob
 
 ## 5. Prohibitions
 
-5.1 Never read the sweep's evidence in a judging pass, and never read a benchmark; a benchmark holds the answer key that scores you. If you find either, do not read it, and say so in the return.
+5.1 Never read the sweep's evidence in a judging pass, and never read a benchmark; a benchmark holds the answer key that scores you. If you find either, do not read it, and say so in the return. Scope every search to the scope's file list or to the consumer roots, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
 
 5.2 Never confirm a claim you did not trace yourself, and never cite a line you did not quote.
 
