@@ -86,7 +86,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 
 ## Exported types
 
-The a11y hooks export their option and return shapes for consumers that thread them:
+Hooks export the option and return shapes consumers thread through their own props. The `a11y` family supplies most of them:
 
 | Type | Summary |
 |---|---|
@@ -98,6 +98,8 @@ The a11y hooks export their option and return shapes for consumers that thread t
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
+| `InView` / `InViewOptions` | Return shape / options of `useInView`: the ref to attach and the in-view flag; the `margin` that widens the viewport and the `once` latch. |
+| `MinBreakpoint` | The argument `useMinBreakpoint` takes: a breakpoint with a width of its own — every `BREAKPOINTS` name but `initial`. |
 
 `usePlotFrame` exports the types its own signature names: the sizing policy it takes, the reserve it returns, and its measuring handle. The chart and map modules share them with their frame-sizing helpers. The resolver behind it (`resolveFrameSizing`) and that resolver's return shape stay module-private. Reach them at `hooks/use-plot-frame` from inside the package.
 

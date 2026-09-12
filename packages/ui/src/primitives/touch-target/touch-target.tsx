@@ -14,7 +14,7 @@ import type { ReactNode } from 'react'
  * icon-only bare buttons, while an undersized box with a floored hit area
  * keeps visuals on icon + padding at every size and stays compliant; 2.5.8
  * measures the activation region, not the visible bounds. Pinned by
- * `__tests__/browser/bare-target-size.test.tsx` (axe can't see the span: its
+ * `__tests__/primitives/touch-target.test.tsx` (axe can't see the span: its
  * target-size rule measures the host's own border-box).
  */
 export function TouchTarget({ children }: { children: ReactNode }) {

@@ -24,8 +24,7 @@ type PdfViewerToolbarButtonProps = {
 	 * @remarks The quietest fill that still reads as held down, and it leaves the button the
 	 * same size, so the bar does not reflow as a control flips. Left on the default zinc: this
 	 * bar is chrome, and the regions on the page below own the colour vocabulary — a blue
-	 * toolbar button would compete with the very highlights it switches. Same soft-on /
-	 * plain-off pairing as `app-tabs/tab-strip.tsx`'s `badgeVariant`.
+	 * toolbar button would compete with the very highlights it switches.
 	 *
 	 * Needed because every control in this bar keeps its glyph and names the *action* rather
 	 * than the state ("Hide highlights" while they are shown), so without it the only
