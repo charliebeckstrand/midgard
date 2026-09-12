@@ -59,7 +59,7 @@ States: `◯ open` — not started. `◐` — started and not finished: under `R
 | Segment | Hash | Area | Scope | Files | Lines | Research | Resolution |
 |---|---|---|---|---|---|---|---|
 | `A01` | `3298641` | components | date-picker + menu + segment + pdf-viewer (part) | 49 | 7,172 | ✅ done | ◐ 15 of 15 fixed |
-| `A02` | `674adc3` | components | calendar + data-display 1/2 | 71 | 5,841 | ◯ open | — |
+| `A02` | `674adc3` | components | calendar + data-display 1/2 | 71 | 5,841 | ◐ review | — |
 | `A03` | `adb2bc9` | components | data-display 2/2 + feedback | 68 | 2,746 | ◯ open | — |
 | `A04` | `c44604b` | components | form-control 1/2 + form-control 2/2 | 76 | 4,978 | ◯ open | — |
 | `A05` | `0bf63cd` | components | layout-leaf + media-canvas 1/2 | 89 | 5,927 | ◯ open | — |
