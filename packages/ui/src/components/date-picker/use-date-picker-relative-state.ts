@@ -145,7 +145,10 @@ export function useDatePickerRelativeState({
 	// a long-lived page can't drift across midnight mid-edit. State, not a ref: a ref
 	// write cannot invalidate the display memos below. Null until mount, as `Calendar`
 	// defers `today`, because a server-rendered instant can resolve a preset against a
-	// different day than the client does. The cost is one frame with no chips.
+	// different day than the client does. The cost is one frame in which a committed
+	// preset reads as its absolute range instead of its label, and no preset row reads
+	// as pressed. The value itself is never deferred — a trigger that showed its
+	// placeholder over a committed value would contradict its own Clear.
 	const [now, setNow] = useState<Date | null>(null)
 
 	useEffect(() => {
@@ -428,9 +431,11 @@ export function useDatePickerRelativeState({
 
 	// --- Display derivations ---
 
+	// Never gated on the instant: the committed value has to read as itself on the
+	// first paint, and `relativeChips` falls back to each span's absolute range when
+	// there is no instant to match a preset against.
 	const chips = useMemo<RelativeChip[]>(
-		() =>
-			now ? relativeChips(value, presets, now, pickedIds, ambient.locale, ambient.dateFormat) : [],
+		() => relativeChips(value, presets, now, pickedIds, ambient.locale, ambient.dateFormat),
 		[now, value, presets, pickedIds, ambient.locale, ambient.dateFormat],
 	)
 

@@ -306,12 +306,20 @@ export function togglePresetValue(
  * Trigger chips for the committed value, in selection order: a matched preset's
  * label, or the formatted absolute range for a custom span.
  *
+ * `now` is optional, because the caller defers its reference instant to mount and
+ * a committed value still has to read as itself before then. With no instant no
+ * preset can be matched — a preset is a span resolved against a day — so every
+ * span takes its absolute range, which reads the same on the server and on the
+ * first client render. The label refines to the preset's once the instant lands.
+ * Returning nothing instead would show the trigger's placeholder over a committed
+ * value, beside a Clear the value keeps enabled.
+ *
  * @internal
  */
 export function relativeChips(
 	value: DatePickerRelativeValue[] | undefined,
 	presets: DatePickerRelativePreset[],
-	now: Date,
+	now: Date | null,
 	preferredIds?: ReadonlySet<string>,
 	locale?: string,
 	dateFormat?: Intl.DateTimeFormatOptions,
@@ -319,7 +327,7 @@ export function relativeChips(
 	if (value === undefined) return []
 
 	return value.map((span, index) => {
-		const preset = matchRelativePreset(span, presets, now, preferredIds)
+		const preset = now && matchRelativePreset(span, presets, now, preferredIds)
 
 		if (preset) return { key: `preset-${preset.id}`, label: preset.label }
 
