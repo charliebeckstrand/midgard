@@ -191,6 +191,8 @@ One row of `A01` was refuted at resolution and then restored, and the method rul
 
 The next action is segment `A02` (`674adc3`) — calendar and data-display, 71 files and 5,841 lines. It is the first segment to run on the five agents under [`.claude/agents/bug`](../../../../.claude/agents/bug), and the first test of whether they beat the general-purpose agents they replace.
 
+That test runs as a controlled trial on branch `claude/ui-a02-agent-trial`, and the segment's research waits on it. Two arms read the same 71 files and stay blind to each other: the five agents as the Method prescribes, against one general-purpose agent that finds, judges and ranks by itself. Both arms hand their claims to one blind judge over the shuffled union, because an arm that judges its own claims measures its judging and not its finding. The trial stops at the review gate and writes no row.
+
 ---
 
 **See also:** [`../README.md`](../README.md) · [`CONVENTIONS.md` §12](../../../../CONVENTIONS.md) · [`REFERENCE.md`](../../REFERENCE.md).
