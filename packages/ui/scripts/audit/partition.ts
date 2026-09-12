@@ -16,10 +16,13 @@
  * <dir>` also writes one file list for each unit.
  */
 import { createHash } from 'node:crypto'
-import { mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const PACKAGE_ROOT = new URL('../..', import.meta.url).pathname.replace(/\/$/, '')
+// `fileURLToPath` rather than `URL.pathname`, which keeps percent-encoding: a
+// checkout under a path with a space or a `#` would not resolve.
+const PACKAGE_ROOT = fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '')
 
 const REPO_ROOT = join(PACKAGE_ROOT, '..', '..')
 
@@ -223,7 +226,14 @@ function sourceFiles(): SourceFile[] {
 	const out: SourceFile[] = []
 
 	const walk = (dir: string) => {
-		for (const entry of readdirSync(dir, { withFileTypes: true })) {
+		// Name order, not filesystem order. Directory order reaches the first-fit
+		// packing through the bucket sort below, so an unsorted walk would make the
+		// hashes a property of the checkout rather than of the tree.
+		const entries = readdirSync(dir, { withFileTypes: true }).sort((a, b) =>
+			a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+		)
+
+		for (const entry of entries) {
 			if (entry.name === '__tests__' || entry.name === '__benchmarks__') continue
 
 			const full = join(dir, entry.name)
@@ -338,18 +348,23 @@ function bucketsByDirectory(files: SourceFile[]): Bucket[] {
  * part for itself, and the `parts - 1` guard holds the count at the target.
  */
 function splitOversizedDirectory(bucket: Bucket, chunks: Chunk[]): void {
-	bucket.files.sort((a, b) => a.path.localeCompare(b.path))
+	bucket.files.sort((a, b) => (a.path < b.path ? -1 : a.path > b.path ? 1 : 0))
 
 	const parts = Math.ceil(bucket.lines / UNIT_LINES)
 
 	const per = bucket.lines / parts
+
+	// Count only the chunks this call opened. Counting every `solo` chunk in the
+	// theme would spend the budget on the first oversized directory and leave a
+	// second one unsplit.
+	const opened = chunks.length
 
 	let bin: Chunk = { lines: 0, files: [], solo: true }
 
 	for (const file of bucket.files) {
 		const full = bin.lines > 0 && bin.lines + file.lines > per * 1.18
 
-		if (full && chunks.filter((chunk) => chunk.solo).length < parts - 1) {
+		if (full && chunks.length - opened < parts - 1) {
 			chunks.push(bin)
 
 			bin = { lines: 0, files: [], solo: true }
@@ -401,13 +416,59 @@ type Group = { area: string; units: Unit[] }
 
 const lineCount = (units: Unit[]) => units.reduce((sum, unit) => sum + unit.lines, 0)
 
-/** The file set of `A01`, which predates the partition and is recorded, not derived. */
+/** The files `A01` swept, which is a record of one past sweep and not a derivation. */
+const A01_FILES = 49
+
+/**
+ * The file set of `A01`, which predates the partition and is recorded, not derived.
+ *
+ * The count is asserted, because both halves of the record drift silently. A new
+ * file under one of the whole directories joins a closed segment through the prefix
+ * match, and a renamed or deleted `pdf-viewer` entry drops out of the literal list.
+ * Either moves `A01`'s hash with no other signal, and the sweep that read those 49
+ * files cannot be re-run.
+ */
 function a01PathSet(all: SourceFile[]): Set<string> {
 	const whole = all
 		.filter((file) => A01_WHOLE_DIRS.some((dir) => file.path.startsWith(`${dir}/`)))
 		.map((file) => file.path)
 
-	return new Set([...whole, ...A01_PDF_VIEWER_FILES])
+	const paths = new Set([...whole, ...A01_PDF_VIEWER_FILES])
+
+	const missing = A01_PDF_VIEWER_FILES.filter((path) => !all.some((file) => file.path === path))
+
+	if (missing.length > 0) {
+		throw new Error(
+			`A01 records ${missing.length} pdf-viewer files the tree no longer holds: ${missing.join(', ')}`,
+		)
+	}
+
+	if (paths.size !== A01_FILES) {
+		throw new Error(
+			`A01 recorded ${A01_FILES} files and the tree now gives ${paths.size}; a file entered or left one of ${A01_WHOLE_DIRS.join(', ')}`,
+		)
+	}
+
+	return paths
+}
+
+/** Throws unless every source file sits in exactly one unit. */
+function assertCoverage(all: SourceFile[], segments: Segment[]): void {
+	const unplaced = new Set(all.map((file) => file.path))
+
+	for (const segment of segments) {
+		for (const unit of segment.units) {
+			for (const path of unit.files) {
+				if (!unplaced.delete(path)) {
+					throw new Error(`${unit.id} holds ${path} twice, or holds a path the walk never found`)
+				}
+			}
+		}
+	}
+
+	if (unplaced.size > 0) {
+		throw new Error(`${unplaced.size} files sit in no unit: ${[...unplaced].sort().join(', ')}`)
+	}
 }
 
 /** Splits every theme of the tree into units, theme by theme. */
@@ -467,9 +528,7 @@ function segmentsOfArea(area: string, areaUnits: Unit[]): Group[] {
 	return segments
 }
 
-function partition(): Segment[] {
-	const all = sourceFiles()
-
+function partition(all: SourceFile[]): Segment[] {
 	const a01Paths = a01PathSet(all)
 
 	const a01Files = all.filter((file) => a01Paths.has(file.path))
@@ -483,7 +542,9 @@ function partition(): Segment[] {
 	const grouped = AREA_ORDER.flatMap((area) =>
 		segmentsOfArea(
 			area,
-			(byArea.get(area) ?? []).sort((a, b) => a.theme.localeCompare(b.theme) || a.part - b.part),
+			(byArea.get(area) ?? []).sort(
+				(a, b) => (a.theme < b.theme ? -1 : a.theme > b.theme ? 1 : 0) || a.part - b.part,
+			),
 		),
 	)
 
@@ -524,13 +585,25 @@ function partition(): Segment[] {
 	})
 }
 
-const segments = partition()
+const all = sourceFiles()
+
+const segments = partition(all)
+
+assertCoverage(all, segments)
 
 const manifestFlag = process.argv.indexOf('--manifests')
 
 const manifestDir = manifestFlag === -1 ? undefined : process.argv[manifestFlag + 1]
 
+if (manifestFlag !== -1 && (manifestDir === undefined || manifestDir.startsWith('--'))) {
+	throw new Error('--manifests needs a directory')
+}
+
 if (manifestDir) {
+	// Clear the target first. A manifest left by an older partition reads as
+	// authoritative, and a re-run that only adds files cannot remove it.
+	rmSync(manifestDir, { recursive: true, force: true })
+
 	mkdirSync(manifestDir, { recursive: true })
 
 	for (const segment of segments) {
