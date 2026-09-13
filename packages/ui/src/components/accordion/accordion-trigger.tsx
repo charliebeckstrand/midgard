@@ -42,10 +42,11 @@ export function AccordionTrigger({
 	return (
 		<Heading data-slot="accordion-heading" className="m-0">
 			<button
-				type="button"
-				// Consumer props spread first; the a11y id wiring, roving tabindex,
-				// context-driven disabled, and data-slot below take precedence.
+				// Consumer props spread first; the type, a11y id wiring, roving
+				// tabindex, context-driven disabled, and data-slot below take
+				// precedence.
 				{...props}
+				type="button"
 				data-slot="accordion-trigger"
 				{...triggerProps}
 				// The panel unmounts while closed (AnimatePresence); the reference

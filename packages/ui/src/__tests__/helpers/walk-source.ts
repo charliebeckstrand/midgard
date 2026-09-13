@@ -1,5 +1,5 @@
 import { readdirSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, sep } from 'node:path'
 
 /**
  * Absolute path of the package's `src/` directory.
@@ -10,6 +10,18 @@ import { join, relative } from 'node:path'
  * point its scan at the wrong tree.
  */
 export const srcDir = join(__dirname, '..', '..')
+
+/**
+ * The path of `file` relative to {@link srcDir}, with `/` separators.
+ *
+ * @remarks
+ * The spelling every boundary test reports a violation in and keys its
+ * allowlist on. POSIX separators keep those lines identical on a Windows
+ * checkout, where `relative` returns backslashes.
+ */
+export function srcRelative(file: string): string {
+	return relative(srcDir, file).split(sep).join('/')
+}
 
 // Entries a scan of the shipped tree must not descend into: test and bench
 // trees, build output, and dot-directories. A caller that scans the test tree

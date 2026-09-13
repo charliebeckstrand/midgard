@@ -4,10 +4,11 @@ import {
 	AccordionItem,
 	AccordionPanel,
 	AccordionTrigger,
+	type AccordionTriggerProps,
 	useAccordionItem,
 } from '../../components/accordion'
 import type { Mount } from '../../primitives/mount'
-import { act, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('AccordionTrigger', () => {
 	it('fires a consumer onClick alongside the toggle', () => {
@@ -28,6 +29,26 @@ describe('AccordionTrigger', () => {
 		expect(onClick).toHaveBeenCalledTimes(1)
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
+	})
+
+	// `data-slot` is admitted on JSX but not on a props object, so widen it.
+	const triggered = (props: AccordionTriggerProps & { 'data-slot'?: string }) => (
+		<Accordion>
+			<AccordionItem value="a">
+				<AccordionTrigger {...props}>Toggle</AccordionTrigger>
+				<AccordionPanel>Panel A</AccordionPanel>
+			</AccordionItem>
+		</Accordion>
+	)
+
+	it('ignores a custom data-slot', () => {
+		// Accordion's roving itemSelector reads this anchor, so a rename must not
+		// drop the header out of the item set (§3.9).
+		const { container } = renderUI(triggered({ 'data-slot': 'renamed' }))
+
+		expect(bySlot(container, 'accordion-trigger')).toBeInTheDocument()
+
+		expect(bySlot(container, 'renamed')).toBeNull()
 	})
 
 	it('only references the panel via aria-controls while it is mounted', () => {
@@ -52,6 +73,14 @@ describe('AccordionTrigger', () => {
 		expect(controls).toBeTruthy()
 
 		expect(document.getElementById(controls as string)).toBe(screen.getByRole('region'))
+	})
+
+	it('keeps type="button" when a consumer supplies a type', () => {
+		renderUI(triggered({ type: 'submit' }))
+
+		// §3.9: a stray `type` must not turn a header into a submit button for the
+		// form that encloses the accordion.
+		expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('type', 'button')
 	})
 })
 
