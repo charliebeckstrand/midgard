@@ -46,6 +46,21 @@ describe('Collapse', () => {
 		expect(document.getElementById(controls as string)).not.toBeNull()
 	})
 
+	it('keeps type="button" when a consumer supplies a type', () => {
+		renderUI(
+			<Collapse>
+				<CollapseTrigger type="submit">Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Content</p>
+				</CollapsePanel>
+			</Collapse>,
+		)
+
+		// CONVENTIONS.md §3.9: a stray `type` must not turn the trigger into a
+		// submit button for the form that encloses the collapse.
+		expect(screen.getByText('Toggle')).toHaveAttribute('type', 'button')
+	})
+
 	it('toggles open state on trigger click', () => {
 		const onOpenChange = vi.fn()
 

@@ -53,6 +53,21 @@ describe('AccordionTrigger', () => {
 
 		expect(document.getElementById(controls as string)).toBe(screen.getByRole('region'))
 	})
+
+	it('keeps type="button" when a consumer supplies a type', () => {
+		renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger type="submit">Toggle</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		// CONVENTIONS.md §3.9: a stray `type` must not turn a header into a
+		// submit button for the form that encloses the accordion.
+		expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('type', 'button')
+	})
 })
 
 describe('AccordionPanel', () => {

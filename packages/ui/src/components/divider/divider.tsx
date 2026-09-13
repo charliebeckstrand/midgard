@@ -21,10 +21,12 @@ export function Divider({ orientation, soft, className, ...props }: DividerProps
 	return (
 		<hr
 			data-slot="divider"
+			className={cn(k({ orientation, soft }), className)}
+			// Consumer props spread first; the separator semantics below take
+			// precedence.
+			{...props}
 			role={orientation === 'vertical' ? 'separator' : undefined}
 			aria-orientation={orientation === 'vertical' ? 'vertical' : undefined}
-			className={cn(k({ orientation, soft }), className)}
-			{...props}
 		/>
 	)
 }
