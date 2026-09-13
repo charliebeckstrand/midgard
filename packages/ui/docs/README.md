@@ -4,11 +4,10 @@ Documentation for the `ui` package. Authoring conventions live in the repo-root
 [`CONVENTIONS.md`](../../../CONVENTIONS.md); the package hub is
 [`../REFERENCE.md`](../REFERENCE.md).
 
-This folder holds four kinds of material. **Curated surface references** give
+This folder holds three kinds of material. **Curated surface references** give
 the always-current, quick-glance inventory of the public API. **Audits** record
 point-in-time sweeps. **Plans** are dated design records for work in flight or
-already shipped. **Benchmarks** are fixtures that score a tool against a known
-answer.
+already shipped.
 
 ## Structure
 
@@ -30,11 +29,6 @@ answer.
   what ships today, and the increments still ahead. A plan holds the design; the
   owning `ROADMAP.md` tracks status. A plan stays as the historical record after
   its work lands.
-- **`benchmarks/`** — fixtures that score a tool against a known answer. Each one
-  names a file set, the defects it holds, and the results already measured over
-  it. A benchmark is data and not a record of work: it carries no finding and it
-  closes no row, so nothing retires it. One folder for each fixture, named for
-  the scope it pins, holding the revision its answer is true at.
 
 New top-level subjects get their own folder here as they appear.
 
