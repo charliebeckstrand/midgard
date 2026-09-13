@@ -22,5 +22,6 @@ export type RadioGroupProps = AccessibleName &
  * @see {@link Radio}
  */
 export function RadioGroup(props: RadioGroupProps) {
-	return <ToggleGroup role="radiogroup" {...props} />
+	// Consumer props spread first; the radiogroup role after them takes precedence.
+	return <ToggleGroup {...props} role="radiogroup" />
 }

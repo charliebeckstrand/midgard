@@ -9,5 +9,6 @@ export type CheckboxGroupProps = ComponentPropsWithoutRef<'div'>
  * `role="group"` to assistive tech. Pair with an `aria-labelledby` group label.
  */
 export function CheckboxGroup(props: CheckboxGroupProps) {
-	return <ToggleGroup role="group" {...props} />
+	// Consumer props spread first; the group role after them takes precedence.
+	return <ToggleGroup {...props} role="group" />
 }

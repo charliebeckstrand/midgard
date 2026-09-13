@@ -139,6 +139,17 @@ describe('CheckboxGroup', () => {
 
 		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
 	})
+
+	it('keeps the group role when a consumer supplies one', () => {
+		renderUI(
+			<CheckboxGroup aria-label="Notifications" role="presentation">
+				items
+			</CheckboxGroup>,
+		)
+
+		// §3.9: `role` is load-bearing, so the group semantics stay.
+		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
+	})
 })
 
 describe('Checkbox size', () => {
