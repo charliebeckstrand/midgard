@@ -18,12 +18,10 @@ export type RadioGroupProps = AccessibleName &
  *
  * @remarks Layout and ARIA role only; it adds no roving-focus or arrow-key
  * handling. Wire radios to a shared `name` for native single-selection and
- * arrow-key navigation. The `role` is load-bearing; this component writes it
- * after the spread, so a consumer `role` cannot replace the radiogroup
- * semantics ([CONVENTIONS.md](CONVENTIONS.md) §3.9).
+ * arrow-key navigation.
  * @see {@link Radio}
  */
 export function RadioGroup(props: RadioGroupProps) {
-	// Consumer props spread first; the radiogroup role below takes precedence.
+	// Consumer props spread first; the radiogroup role after them takes precedence.
 	return <ToggleGroup {...props} role="radiogroup" />
 }

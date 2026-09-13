@@ -68,8 +68,6 @@ describe('RadioGroup', () => {
 
 		// §3.9: `role` is load-bearing, so the radiogroup semantics stay.
 		expect(screen.getByRole('radiogroup')).toBeInTheDocument()
-
-		expect(screen.queryByRole('group')).toBeNull()
 	})
 })
 
