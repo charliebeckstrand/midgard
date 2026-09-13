@@ -1,275 +1,148 @@
-import { join, relative, sep } from 'node:path'
+import { relative, sep } from 'node:path'
+import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 import { srcDir, walkSource } from '../helpers/walk-source'
 
-// Spread-order boundary.
+// Spread-order boundary. CONVENTIONS.md §3.9 decides what a consumer may
+// override by where an attribute sits relative to `{...props}`. The rule has
+// two halves — the load-bearing attributes, and the `data-slot` anchor — and
+// §3.9 states both. This suite holds them; it does not restate them.
 //
-// CONVENTIONS.md §3.9 decides what a consumer may override by where an
-// attribute sits relative to `{...props}`. Two rules, both mechanical:
+// The anchor half needs the set of anchors the library selects on. The scan
+// computes that set from every `[data-slot=…]` selector in the shipped tree,
+// so it cannot drift. It skips `docs`, because the demo tree is a consumer
+// root: a demo query must not make an anchor load-bearing.
 //
-//   1. A load-bearing structural attribute — `type` on an element that renders
-//      a button, plus `role`, `tabIndex` and the widget ARIA state — is written
-//      AFTER the consumer spread, so a stray prop cannot turn a button into a
-//      form submit or drop a row out of roving.
-//
-//   2. A `data-slot` anchor binds by who reads it. An anchor the library itself
-//      selects on — a roving `itemSelector`, or a kata `has-[]` rule — is
-//      written AFTER the spread and locked; every other anchor is written
-//      BEFORE it, so a wrapper can re-anchor the leaf it renders.
-//
-// Rule 2's read set is computed, not listed: every `[data-slot=…]` selector in
-// the shipped tree. `docs` is excluded from that scan because the demo tree is
-// a consumer root, not library infrastructure — a demo that queries an anchor
-// does not make it load-bearing.
-//
-// NOT covered, deliberately: `type` on the input family. §3.9 names `type`
-// for the form-submit hazard, which is a button concern; a consumer setting
-// `type="password"` on a CVV field or `type="search"` on a text input is
-// legitimate, so those writes are not violations to gate.
-//
-// Both rules carry an ALLOWLIST. Unlike the spacing boundary's, most entries
-// are not sanctioned exceptions but the known backlog the 2026-09-13 bug audit
-// records; each is tagged with its row or lead. The gate's job today is to stop
-// instance N+1. A step that fixes a row deletes its entry here in the same
-// change.
+// `type` on the input family stays out of scope. §3.9 names `type` for the
+// form-submit hazard, which is a button concern, so `type="password"` on a CVV
+// field is a legitimate override.
 
-const SCAN_ROOTS = [join(srcDir, 'components'), join(srcDir, 'primitives'), join(srcDir, 'layouts')]
+const SCAN_ROOTS = ['components', 'primitives', 'layouts']
 
-// The spread a consumer's props arrive through. An internal bag spread under
-// another name (`{...triggerProps}`) is resolved wiring, not consumer input.
+// The spread a consumer's props arrive through. An internal bag under another
+// name (`{...triggerProps}`) is resolved wiring, not consumer input.
 const CONSUMER_SPREAD = /^(?:props|rest)$/
 
-const WIDGET_ARIA =
-	/^aria-(?:checked|selected|expanded|pressed|current|orientation|disabled|invalid|required|multiselectable|activedescendant)$/
+const LOAD_BEARING =
+	/^(?:role|tabIndex|aria-(?:checked|selected|expanded|pressed|current|orientation|disabled|invalid|required|multiselectable|activedescendant))$/
 
-// Elements that render a real `<button>`, where a stray `type` submits a form.
-const BUTTON_ELEMENT = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
-
-/** Rows the 2026-09-13 bug audit already tracks, plus deliberate exceptions. */
-const LOAD_BEARING_ALLOWLIST = new Set([
-	// Audit rows, closed by their own step.
-	'components/checkbox/checkbox-group.tsx', // B03-C14 · S2
-	'components/radio/radio-group.tsx', // B03-C13 · S2
-	'components/tabs/tab-list.tsx', // B04-C04 · S5
-	'components/nav/nav-item.tsx', // B04-C07 · S5
-	'components/sidebar/sidebar-item.tsx', // B04-C08 · S5
-	'components/hold-button/hold-button.tsx', // B05-C03 · S6
-	// Audit leads, no row yet.
-	'components/pagination/pagination-utilities.tsx',
-	'primitives/polymorphic/fallback.tsx',
-	'components/menu/menu-item.tsx',
-	'primitives/option/option.tsx',
-	'components/breadcrumb/breadcrumb-link.tsx',
-	'components/breadcrumb/breadcrumb-separator.tsx',
-	'components/command-palette/slots.tsx',
-	'components/fieldset/message.tsx',
-	'components/odometer/odometer.tsx',
-	'components/pagination/pagination-page.tsx',
-	'components/stepper/stepper-separator.tsx',
-	'components/tabs/tab-panel.tsx',
-	'primitives/toggle/toggle.tsx',
-	// Deliberate: the viewport documents the override at scroll-area.tsx:64-66 —
-	// a consumer supplies `tabIndex={-1}` with its own `role`/`aria-label`.
-	'components/scroll-area/scroll-area.tsx',
-])
-
-/** Anchors the library reads that still sit before the spread. Audit lead `S1`. */
-const ANCHOR_ALLOWLIST = new Set([
-	// Audit rows, closed by their own step.
-	'components/nav/nav-item.tsx', // B04-C07 · S5
-	'components/sidebar/sidebar-item.tsx', // B04-C08 · S5
-	// Audit lead `S1`, no row yet.
-	'components/badge/badge.tsx',
-	'components/fieldset/description.tsx',
-	'components/fieldset/field.tsx',
-	'components/fieldset/label.tsx',
-	'components/fieldset/message.tsx',
-	'components/list/list-item.tsx',
-	'components/switch/switch-field.tsx',
-	'primitives/control/control.tsx',
-	'primitives/toggle/toggle.tsx',
-])
-
-type Token = { kind: 'spread' | 'attr'; name: string }
+// Hosts that put a real `<button>` in the DOM, where a stray `type` submits
+// the enclosing form.
+const BUTTON_HOST = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
 
 /**
- * Walk from just past an open tag's name to the `>` that ends it, at bracket
- * depth zero. Strings, template literals and comments are skipped whole, so a
- * `>` inside `className="a>b"` or inside a nested element in an attribute value
- * cannot end the tag early. Returns -1 when the tag never closes.
+ * Files a rule does not hold yet, by the rule each one waives.
+ *
+ * @remarks
+ * Almost every entry is backlog, not exemption: `note` names the audit row or
+ * lead that owns it, and the step that closes the row deletes the entry. Only
+ * a `keep` entry is a decision. The third test fails when an entry stops
+ * matching a violation, so a fixed or renamed file leaves no dead waiver.
  */
-function openTagEnd(source: string, index: number): number {
-	let depth = 0
+const WAIVERS = new Map([
+	['components/checkbox/checkbox-group.tsx', { rules: ['order'], note: 'B03-C14 · S2' }],
+	['components/radio/radio-group.tsx', { rules: ['order'], note: 'B03-C13 · S2' }],
+	['components/tabs/tab-list.tsx', { rules: ['order'], note: 'B04-C04 · S5' }],
+	['components/nav/nav-item.tsx', { rules: ['order', 'anchor'], note: 'B04-C07 · S5' }],
+	['components/sidebar/sidebar-item.tsx', { rules: ['order', 'anchor'], note: 'B04-C08 · S5' }],
+	['components/hold-button/hold-button.tsx', { rules: ['order'], note: 'B05-C03 · S6' }],
+	['components/breadcrumb/breadcrumb-link.tsx', { rules: ['order'], note: 'lead' }],
+	['components/breadcrumb/breadcrumb-separator.tsx', { rules: ['order'], note: 'lead' }],
+	['components/command-palette/slots.tsx', { rules: ['order'], note: 'lead' }],
+	['components/menu/menu-item.tsx', { rules: ['order'], note: 'lead' }],
+	['components/odometer/odometer.tsx', { rules: ['order'], note: 'lead' }],
+	['components/pagination/pagination-page.tsx', { rules: ['order'], note: 'lead' }],
+	['components/pagination/pagination-utilities.tsx', { rules: ['order'], note: 'lead' }],
+	['components/stepper/stepper-separator.tsx', { rules: ['order'], note: 'lead' }],
+	['components/tabs/tab-panel.tsx', { rules: ['order'], note: 'lead' }],
+	['primitives/option/option.tsx', { rules: ['order'], note: 'lead' }],
+	['primitives/polymorphic/fallback.tsx', { rules: ['order'], note: 'lead' }],
+	['components/badge/badge.tsx', { rules: ['anchor'], note: 'lead S1' }],
+	['components/fieldset/description.tsx', { rules: ['anchor'], note: 'lead S1' }],
+	['components/fieldset/field.tsx', { rules: ['anchor'], note: 'lead S1' }],
+	['components/fieldset/label.tsx', { rules: ['anchor'], note: 'lead S1' }],
+	['components/fieldset/message.tsx', { rules: ['order', 'anchor'], note: 'lead · lead S1' }],
+	['components/list/list-item.tsx', { rules: ['anchor'], note: 'lead S1' }],
+	['components/switch/switch-field.tsx', { rules: ['anchor'], note: 'lead S1' }],
+	['primitives/control/control.tsx', { rules: ['anchor'], note: 'lead S1' }],
+	['primitives/toggle/toggle.tsx', { rules: ['order', 'anchor'], note: 'lead · lead S1' }],
+	[
+		'components/scroll-area/scroll-area.tsx',
+		{
+			rules: ['order'],
+			keep: true,
+			note: 'the viewport documents the override: a consumer supplies tabIndex with its own role and label',
+		},
+	],
+])
 
-	let i = index
+/** One JSX attribute written before the consumer spread. */
+type Attribute = { name: string; value?: string }
 
-	while (i < source.length) {
-		const c = source[i]
+/** One JSX element that takes a consumer spread, and the attributes above it. */
+type Site = { file: string; line: number; tag: string; before: Attribute[] }
 
-		if (c === '"' || c === "'" || c === '`') {
-			const quote = c
+/** One rule's complaint about one attribute. */
+type Violation = { file: string; rule: string; text: string }
 
-			i++
+/**
+ * The attributes written before the consumer spread, for every JSX element in
+ * one file that takes one. An element with no consumer spread is skipped,
+ * because §3.9 speaks only about the two sides of that spread.
+ */
+function sitesIn(file: string, source: string): Site[] {
+	const parsed = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, false, ts.ScriptKind.TSX)
 
-			while (i < source.length && source[i] !== quote) i += source[i] === '\\' ? 2 : 1
+	const sites: Site[] = []
 
-			i++
+	// A JSX name can be an identifier or a namespaced name, so read it from the
+	// source. `getStart` skips the leading trivia that `pos` includes: without
+	// it, an attribute below a comment reads as the comment plus its own name.
+	const text = (node: ts.Node) => source.slice(node.getStart(parsed), node.end)
 
-			continue
-		}
+	const visit = (node: ts.Node): void => {
+		if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+			const before: Attribute[] = []
 
-		if (c === '/' && source[i + 1] === '/') {
-			while (i < source.length && source[i] !== '\n') i++
+			for (const property of node.attributes.properties) {
+				if (!ts.isJsxSpreadAttribute(property)) {
+					before.push({
+						name: text(property.name),
+						value:
+							property.initializer && ts.isStringLiteral(property.initializer)
+								? property.initializer.text
+								: undefined,
+					})
 
-			continue
-		}
+					continue
+				}
 
-		if (c === '/' && source[i + 1] === '*') {
-			i = source.indexOf('*/', i) + 2
+				// The consumer spread closes the run; a later internal bag does not.
+				if (CONSUMER_SPREAD.test(text(property.expression))) {
+					sites.push({
+						file,
+						line: parsed.getLineAndCharacterOfPosition(node.tagName.getStart(parsed)).line + 1,
+						tag: text(node.tagName),
+						before,
+					})
 
-			continue
-		}
-
-		if (c === '{' || c === '(' || c === '[') depth++
-		else if (c === '}' || c === ')' || c === ']') depth--
-		else if (c === '>' && depth === 0) return i
-
-		i++
-	}
-
-	return -1
-}
-
-/** Skip one attribute value — a `{...}` expression or a quoted literal. */
-function valueEnd(tag: string, index: number): number {
-	let i = index
-
-	while (i < tag.length && /\s/.test(tag[i] ?? '')) i++
-
-	if (tag[i] === '{') {
-		let depth = 0
-
-		for (; i < tag.length; i++) {
-			if (tag[i] === '{') depth++
-			else if (tag[i] === '}' && --depth === 0) break
-		}
-
-		return i + 1
-	}
-
-	if (tag[i] === '"' || tag[i] === "'") {
-		const quote = tag[i]
-
-		i++
-
-		while (i < tag.length && tag[i] !== quote) i++
-
-		return i + 1
-	}
-
-	return i
-}
-
-/** The ordered spread and attribute tokens of one open tag. */
-function tokenize(tag: string): Token[] {
-	const tokens: Token[] = []
-
-	let i = 0
-
-	while (i < tag.length) {
-		if (tag[i] === '/' && tag[i + 1] === '/') {
-			while (i < tag.length && tag[i] !== '\n') i++
-
-			continue
-		}
-
-		if (tag[i] === '/' && tag[i + 1] === '*') {
-			i = tag.indexOf('*/', i) + 2
-
-			continue
-		}
-
-		if (tag[i] === '{') {
-			const end = valueEnd(tag, i)
-
-			const spread = /^\{\s*\.\.\.\s*([A-Za-z_$][\w$]*)/.exec(tag.slice(i, end))
-
-			if (spread?.[1]) tokens.push({ kind: 'spread', name: spread[1] })
-
-			i = end
-
-			continue
-		}
-
-		const attr = /^([A-Za-z_][\w:-]*)\s*(=)?/.exec(tag.slice(i))
-
-		if (attr?.[1]) {
-			tokens.push({ kind: 'attr', name: attr[1] })
-
-			i = attr[2] ? valueEnd(tag, i + attr[0].length) : i + attr[0].length
-
-			continue
-		}
-
-		i++
-	}
-
-	return tokens
-}
-
-type Element = {
-	file: string
-	line: number
-	tag: string
-	tokens: Token[]
-	spreadAt: number
-	text: string
-}
-
-/** Every JSX element under the scan roots that takes a consumer spread. */
-function elements(): Element[] {
-	const found: Element[] = []
-
-	for (const root of SCAN_ROOTS) {
-		walkSource(root, (path, source) => {
-			if (!path.endsWith('.tsx')) return
-
-			const file = relative(srcDir, path).split(sep).join('/')
-
-			for (const open of source.matchAll(/<([A-Za-z][\w.]*)/g)) {
-				const from = open.index + open[0].length
-
-				const end = openTagEnd(source, from)
-
-				if (end < 0) continue
-
-				const text = source.slice(from, end)
-
-				const tokens = tokenize(text)
-
-				const spreadAt = tokens.findIndex(
-					(t) => t.kind === 'spread' && CONSUMER_SPREAD.test(t.name),
-				)
-
-				if (spreadAt < 0) continue
-
-				found.push({
-					file,
-					line: source.slice(0, open.index).split('\n').length,
-					tag: open[1] ?? '',
-					tokens,
-					spreadAt,
-					text,
-				})
+					break
+				}
 			}
-		})
+		}
+
+		ts.forEachChild(node, visit)
 	}
 
-	return found
+	visit(parsed)
+
+	return sites
 }
 
-/** Anchors the library selects on, from every `[data-slot=…]` in the shipped tree. */
-function readAnchors(): Set<string> {
+/** One walk: the pre-spread sites to judge, and the anchors the library reads. */
+function scan(): { sites: Site[]; anchors: Set<string> } {
+	const sites: Site[] = []
+
 	const anchors = new Set<string>()
 
 	walkSource(
@@ -277,70 +150,93 @@ function readAnchors(): Set<string> {
 		(path, source) => {
 			if (!/\.tsx?$/.test(path)) return
 
-			for (const m of source.matchAll(/\[data-slot=["']?([a-z0-9-]+)["']?\]/g)) {
-				if (m[1]) anchors.add(m[1])
+			for (const selector of source.matchAll(/\[data-slot=["']?([a-z0-9-]+)["']?\]/g)) {
+				if (selector[1]) anchors.add(selector[1])
+			}
+
+			const file = relative(srcDir, path).split(sep).join('/')
+
+			if (path.endsWith('.tsx') && SCAN_ROOTS.some((root) => file.startsWith(`${root}/`))) {
+				sites.push(...sitesIn(file, source))
 			}
 		},
 		new Set(['docs']),
 	)
 
-	return anchors
+	return { sites, anchors }
 }
 
-describe('spread order boundary', () => {
-	const all = elements()
+/** Every complaint `flag` makes, waived or not. Each test filters its own. */
+function collect(
+	sites: Site[],
+	rule: string,
+	flag: (site: Site, attribute: Attribute) => string | undefined,
+): Violation[] {
+	const found: Violation[] = []
 
-	it('writes load-bearing structural attributes after the consumer spread', () => {
-		const violations: string[] = []
+	for (const site of sites) {
+		for (const attribute of site.before) {
+			const detail = flag(site, attribute)
 
-		for (const el of all) {
-			if (LOAD_BEARING_ALLOWLIST.has(el.file)) continue
-
-			el.tokens.slice(0, el.spreadAt).forEach((t) => {
-				if (t.kind !== 'attr') return
-
-				const loadBearing =
-					t.name === 'role' ||
-					t.name === 'tabIndex' ||
-					WIDGET_ARIA.test(t.name) ||
-					(t.name === 'type' && BUTTON_ELEMENT.test(el.tag))
-
-				if (loadBearing) violations.push(`${el.file}:${el.line} <${el.tag}> ${t.name}`)
-			})
+			if (detail) found.push({ file: site.file, rule, text: `${site.file}:${site.line} ${detail}` })
 		}
+	}
+
+	return found
+}
+
+const waived = (violation: Violation) =>
+	WAIVERS.get(violation.file)?.rules.includes(violation.rule) === true
+
+const lines = (violations: Violation[]) => violations.map((v) => v.text).join('\n  ')
+
+describe('spread order boundary', () => {
+	const { sites, anchors } = scan()
+
+	const ordered = collect(sites, 'order', (site, attribute) =>
+		LOAD_BEARING.test(attribute.name) || (attribute.name === 'type' && BUTTON_HOST.test(site.tag))
+			? `<${site.tag}> ${attribute.name}`
+			: undefined,
+	)
+
+	const anchored = collect(sites, 'anchor', (site, attribute) =>
+		attribute.name === 'data-slot' && attribute.value && anchors.has(attribute.value)
+			? `<${site.tag}> data-slot="${attribute.value}"`
+			: undefined,
+	)
+
+	it('no element outside the waivers writes a load-bearing attribute before its spread', () => {
+		const violations = ordered.filter((v) => !waived(v))
 
 		expect(
 			violations,
-			`CONVENTIONS.md §3.9: these sit before \`{...props}\`, so a stray consumer prop replaces them. Move them below the spread:\n${violations
-				.map((v) => `  ${v}`)
-				.join('\n')}`,
+			`load-bearing attributes a stray consumer prop replaces (move them below the spread, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
 		).toEqual([])
 	})
 
-	it('locks a data-slot anchor the library reads, and leaves every other one renameable', () => {
-		const anchors = readAnchors()
+	it('no element outside the waivers writes a library-read data-slot before its spread', () => {
+		const violations = anchored.filter((v) => !waived(v))
 
-		const violations: string[] = []
+		expect(
+			violations,
+			`anchors the library selects on that a consumer rename takes away (move them below the spread, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
+		).toEqual([])
+	})
 
-		for (const el of all) {
-			if (ANCHOR_ALLOWLIST.has(el.file)) continue
+	it('waives no file that has stopped violating its rule', () => {
+		const live = new Set([...ordered, ...anchored].map((v) => `${v.file} ${v.rule}`))
 
-			const slot = /data-slot="([a-z0-9-]+)"/.exec(el.text)?.[1]
+		const dead: string[] = []
 
-			if (!slot || !anchors.has(slot)) continue
-
-			const at = el.tokens.findIndex((t) => t.kind === 'attr' && t.name === 'data-slot')
-
-			if (at >= 0 && at < el.spreadAt) {
-				violations.push(`${el.file}:${el.line} <${el.tag}> data-slot="${slot}"`)
+		for (const [file, waiver] of WAIVERS) {
+			for (const rule of waiver.rules) {
+				if (!live.has(`${file} ${rule}`)) dead.push(`${file} → ${rule} (${waiver.note})`)
 			}
 		}
 
 		expect(
-			violations,
-			`CONVENTIONS.md §3.9: the library selects on these anchors, so a consumer rename takes them away. Move them below the spread:\n${violations
-				.map((v) => `  ${v}`)
-				.join('\n')}`,
+			dead,
+			`waivers that match no violation (delete them, they only widen the gate):\n  ${dead.join('\n  ')}`,
 		).toEqual([])
 	})
 })
