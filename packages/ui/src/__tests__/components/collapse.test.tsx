@@ -61,6 +61,21 @@ describe('Collapse', () => {
 		expect(screen.getByText('Toggle')).toHaveAttribute('type', 'button')
 	})
 
+	it('lets a wrapper re-anchor the trigger', () => {
+		const { container } = renderUI(
+			<Collapse>
+				<CollapseTrigger data-slot="chat-tool-head">Toggle</CollapseTrigger>
+				<CollapsePanel>
+					<p>Content</p>
+				</CollapsePanel>
+			</Collapse>,
+		)
+
+		// CONVENTIONS.md §3.9: no library selector reads this anchor, so the
+		// wrapper's name wins.
+		expect(bySlot(container, 'chat-tool-head')).toBeInTheDocument()
+	})
+
 	it('toggles open state on trigger click', () => {
 		const onOpenChange = vi.fn()
 

@@ -45,6 +45,16 @@ describe('Divider', () => {
 		expect(el).toHaveAttribute('aria-orientation', 'vertical')
 	})
 
+	it('lets a wrapper re-anchor the rule', () => {
+		const { container } = renderUI(<Divider data-slot="toolbar-separator" orientation="vertical" />)
+
+		// CONVENTIONS.md §3.9: no library selector reads this anchor, so the
+		// wrapper's name wins. ToolbarSeparator depends on it.
+		expect(bySlot(container, 'toolbar-separator')).toBeInTheDocument()
+
+		expect(bySlot(container, 'divider')).toBeNull()
+	})
+
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Divider id="test" data-testid="el" />)
 

@@ -20,6 +20,8 @@ export type DividerProps = DividerVariants & {
 export function Divider({ orientation, soft, className, ...props }: DividerProps) {
 	return (
 		<hr
+			// No library selector reads this anchor, so it stays above the spread
+			// and ToolbarSeparator can re-anchor the rule (CONVENTIONS.md §3.9).
 			data-slot="divider"
 			className={cn(k({ orientation, soft }), className)}
 			// Consumer props spread first; the separator semantics below take

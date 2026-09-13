@@ -19,12 +19,14 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 
 	return (
 		<button
-			// Consumer props spread first; the type, a11y id wiring
-			// (aria-expanded/aria-controls), context-driven toggle, and data-slot
-			// below take precedence.
+			// No library selector reads this anchor, so it stays above the spread
+			// and a wrapper can re-anchor the trigger (CONVENTIONS.md §3.9).
+			data-slot="collapse-trigger"
+			// Consumer props spread first; the type, the a11y id wiring
+			// (aria-expanded/aria-controls) and the context-driven toggle below
+			// take precedence.
 			{...props}
 			type="button"
-			data-slot="collapse-trigger"
 			{...triggerProps}
 			// The panel unmounts while closed (AnimatePresence); the reference
 			// is set only while its target id exists.

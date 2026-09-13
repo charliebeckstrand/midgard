@@ -7,7 +7,7 @@ import {
 	useAccordionItem,
 } from '../../components/accordion'
 import type { Mount } from '../../primitives/mount'
-import { act, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('AccordionTrigger', () => {
 	it('fires a consumer onClick alongside the toggle', () => {
@@ -28,6 +28,23 @@ describe('AccordionTrigger', () => {
 		expect(onClick).toHaveBeenCalledTimes(1)
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
+	})
+
+	it('keeps its anchor when a consumer renames it', () => {
+		const { container } = renderUI(
+			<Accordion>
+				<AccordionItem value="a">
+					<AccordionTrigger data-slot="renamed">Toggle</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		// CONVENTIONS.md §3.9: Accordion's roving itemSelector reads this anchor,
+		// so a rename must not drop the header out of the item set.
+		expect(bySlot(container, 'accordion-trigger')).toBeInTheDocument()
+
+		expect(bySlot(container, 'renamed')).toBeNull()
 	})
 
 	it('only references the panel via aria-controls while it is mounted', () => {
