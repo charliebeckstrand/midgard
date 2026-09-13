@@ -29,46 +29,51 @@ const LOAD_BEARING =
 // the enclosing form.
 const BUTTON_HOST = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
 
+/** A rule this file does not hold yet, and how many violations it still has. */
+type Waiver = { order?: number; anchor?: number; keep?: true; note: string }
+
 /**
- * Files a rule does not hold yet, by the rule each one waives.
+ * Files a rule does not hold yet, pinned to the violation count each one
+ * covers.
  *
  * @remarks
  * Almost every entry is backlog, not exemption: `note` names the audit row or
  * lead that owns it, and the step that closes the row deletes the entry. Only
- * a `keep` entry is a decision. The third test fails when an entry stops
- * matching a violation, so a fixed or renamed file leaves no dead waiver.
+ * a `keep` entry is a decision. The count is what makes the waiver narrow — a
+ * file-wide waiver would absorb a new violation in an already-waived file, and
+ * the third test fails the moment a count moves in either direction.
  */
-const WAIVERS = new Map([
-	['components/checkbox/checkbox-group.tsx', { rules: ['order'], note: 'B03-C14 · S2' }],
-	['components/radio/radio-group.tsx', { rules: ['order'], note: 'B03-C13 · S2' }],
-	['components/tabs/tab-list.tsx', { rules: ['order'], note: 'B04-C04 · S5' }],
-	['components/nav/nav-item.tsx', { rules: ['order', 'anchor'], note: 'B04-C07 · S5' }],
-	['components/sidebar/sidebar-item.tsx', { rules: ['order', 'anchor'], note: 'B04-C08 · S5' }],
-	['components/hold-button/hold-button.tsx', { rules: ['order'], note: 'B05-C03 · S6' }],
-	['components/breadcrumb/breadcrumb-link.tsx', { rules: ['order'], note: 'lead' }],
-	['components/breadcrumb/breadcrumb-separator.tsx', { rules: ['order'], note: 'lead' }],
-	['components/command-palette/slots.tsx', { rules: ['order'], note: 'lead' }],
-	['components/menu/menu-item.tsx', { rules: ['order'], note: 'lead' }],
-	['components/odometer/odometer.tsx', { rules: ['order'], note: 'lead' }],
-	['components/pagination/pagination-page.tsx', { rules: ['order'], note: 'lead' }],
-	['components/pagination/pagination-utilities.tsx', { rules: ['order'], note: 'lead' }],
-	['components/stepper/stepper-separator.tsx', { rules: ['order'], note: 'lead' }],
-	['components/tabs/tab-panel.tsx', { rules: ['order'], note: 'lead' }],
-	['primitives/option/option.tsx', { rules: ['order'], note: 'lead' }],
-	['primitives/polymorphic/fallback.tsx', { rules: ['order'], note: 'lead' }],
-	['components/badge/badge.tsx', { rules: ['anchor'], note: 'lead S1' }],
-	['components/fieldset/description.tsx', { rules: ['anchor'], note: 'lead S1' }],
-	['components/fieldset/field.tsx', { rules: ['anchor'], note: 'lead S1' }],
-	['components/fieldset/label.tsx', { rules: ['anchor'], note: 'lead S1' }],
-	['components/fieldset/message.tsx', { rules: ['order', 'anchor'], note: 'lead · lead S1' }],
-	['components/list/list-item.tsx', { rules: ['anchor'], note: 'lead S1' }],
-	['components/switch/switch-field.tsx', { rules: ['anchor'], note: 'lead S1' }],
-	['primitives/control/control.tsx', { rules: ['anchor'], note: 'lead S1' }],
-	['primitives/toggle/toggle.tsx', { rules: ['order', 'anchor'], note: 'lead · lead S1' }],
+const WAIVERS = new Map<string, Waiver>([
+	['components/checkbox/checkbox-group.tsx', { order: 1, note: 'B03-C14 · S2' }],
+	['components/radio/radio-group.tsx', { order: 1, note: 'B03-C13 · S2' }],
+	['components/tabs/tab-list.tsx', { order: 2, note: 'B04-C04 · S5' }],
+	['components/nav/nav-item.tsx', { order: 2, anchor: 1, note: 'B04-C07 · S5' }],
+	['components/sidebar/sidebar-item.tsx', { order: 2, anchor: 1, note: 'B04-C08 · S5' }],
+	['components/hold-button/hold-button.tsx', { order: 1, note: 'B05-C03 · S6' }],
+	['components/breadcrumb/breadcrumb-link.tsx', { order: 1, note: 'lead' }],
+	['components/breadcrumb/breadcrumb-separator.tsx', { order: 1, note: 'lead' }],
+	['components/command-palette/slots.tsx', { order: 1, note: 'lead' }],
+	['components/menu/menu-item.tsx', { order: 1, note: 'lead' }],
+	['components/odometer/odometer.tsx', { order: 1, note: 'lead' }],
+	['components/pagination/pagination-page.tsx', { order: 1, note: 'lead' }],
+	['components/pagination/pagination-utilities.tsx', { order: 1, note: 'lead' }],
+	['components/stepper/stepper-separator.tsx', { order: 1, note: 'lead' }],
+	['components/tabs/tab-panel.tsx', { order: 2, note: 'lead' }],
+	['primitives/option/option.tsx', { order: 4, note: 'lead' }],
+	['primitives/polymorphic/fallback.tsx', { order: 1, note: 'lead' }],
+	['components/badge/badge.tsx', { anchor: 1, note: 'lead S1' }],
+	['components/fieldset/description.tsx', { anchor: 1, note: 'lead S1' }],
+	['components/fieldset/field.tsx', { anchor: 1, note: 'lead S1' }],
+	['components/fieldset/label.tsx', { anchor: 1, note: 'lead S1' }],
+	['components/fieldset/message.tsx', { order: 1, anchor: 1, note: 'lead · lead S1' }],
+	['components/list/list-item.tsx', { anchor: 1, note: 'lead S1' }],
+	['components/switch/switch-field.tsx', { anchor: 1, note: 'lead S1' }],
+	['primitives/control/control.tsx', { anchor: 1, note: 'lead S1' }],
+	['primitives/toggle/toggle.tsx', { order: 1, anchor: 2, note: 'lead · lead S1' }],
 	[
 		'components/scroll-area/scroll-area.tsx',
 		{
-			rules: ['order'],
+			order: 1,
 			keep: true,
 			note: 'the viewport documents the override: a consumer supplies tabIndex with its own role and label',
 		},
@@ -81,8 +86,11 @@ type Attribute = { name: string; value?: string }
 /** One JSX element that takes a consumer spread, and the attributes above it. */
 type Site = { file: string; line: number; tag: string; before: Attribute[] }
 
+/** The rules this suite holds, and the keys a waiver pins a count against. */
+const RULES = ['order', 'anchor'] as const
+
 /** One rule's complaint about one attribute. */
-type Violation = { file: string; rule: string; text: string }
+type Violation = { file: string; rule: (typeof RULES)[number]; text: string }
 
 /**
  * The attributes written before the consumer spread, for every JSX element in
@@ -168,7 +176,7 @@ function scan(): { sites: Site[]; anchors: Set<string> } {
 /** Every complaint `flag` makes, waived or not. Each test filters its own. */
 function collect(
 	sites: Site[],
-	rule: string,
+	rule: (typeof RULES)[number],
 	flag: (site: Site, attribute: Attribute) => string | undefined,
 ): Violation[] {
 	const found: Violation[] = []
@@ -184,8 +192,7 @@ function collect(
 	return found
 }
 
-const waived = (violation: Violation) =>
-	WAIVERS.get(violation.file)?.rules.includes(violation.rule) === true
+const waived = (violation: Violation) => Boolean(WAIVERS.get(violation.file)?.[violation.rule])
 
 const lines = (violations: Violation[]) => violations.map((v) => v.text).join('\n  ')
 
@@ -222,20 +229,32 @@ describe('spread order boundary', () => {
 		).toEqual([])
 	})
 
-	it('waives no file that has stopped violating its rule', () => {
-		const live = new Set([...ordered, ...anchored].map((v) => `${v.file} ${v.rule}`))
+	it('pins every waiver to the violation count it still covers', () => {
+		const live = new Map<string, number>()
 
-		const dead: string[] = []
+		for (const violation of [...ordered, ...anchored]) {
+			const key = `${violation.file} ${violation.rule}`
+
+			live.set(key, (live.get(key) ?? 0) + 1)
+		}
+
+		const drift: string[] = []
 
 		for (const [file, waiver] of WAIVERS) {
-			for (const rule of waiver.rules) {
-				if (!live.has(`${file} ${rule}`)) dead.push(`${file} → ${rule} (${waiver.note})`)
+			for (const rule of RULES) {
+				const pinned = waiver[rule] ?? 0
+
+				const found = live.get(`${file} ${rule}`) ?? 0
+
+				if (pinned !== found) {
+					drift.push(`${file} → ${rule}: waives ${pinned}, found ${found} (${waiver.note})`)
+				}
 			}
 		}
 
 		expect(
-			dead,
-			`waivers that match no violation (delete them, they only widen the gate):\n  ${dead.join('\n  ')}`,
+			drift,
+			`waivers that no longer match what the rules find (a count that fell means the fix landed, so delete or lower the waiver; a count that rose means a new violation hid behind it):\n  ${drift.join('\n  ')}`,
 		).toEqual([])
 	})
 })
