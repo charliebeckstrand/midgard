@@ -1,7 +1,6 @@
-import { relative, sep } from 'node:path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Spread-order boundary. CONVENTIONS.md §3.9 decides what a consumer may
 // override by where an attribute sits relative to `{...props}`. The rule has
@@ -154,7 +153,7 @@ function scan(): { sites: Site[]; anchors: Set<string> } {
 				if (selector[1]) anchors.add(selector[1])
 			}
 
-			const file = relative(srcDir, path).split(sep).join('/')
+			const file = srcRelative(path)
 
 			if (path.endsWith('.tsx') && SCAN_ROOTS.some((root) => file.startsWith(`${root}/`))) {
 				sites.push(...sitesIn(file, source))
