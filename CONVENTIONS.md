@@ -40,7 +40,7 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 3.8 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([REFERENCE.md](packages/ui/REFERENCE.md) §2).
 
-3.9 Spread order decides what a consumer may override. Load-bearing structural attributes — `role`, `tabIndex`, `type`, widget ARIA state, and the resolved wiring of the §7.2 binding cascade — are written *after* `{...props}`, so a stray prop can't drop a row out of roving, turn a button into a form submit, or clobber a bound field; `menu-item.tsx` is the composite precedent and `switch.tsx` the cascade one. Presentational attributes stay overridable: a leaf's `data-slot` default is destructured so a consumer can rename the anchor, and `className` merges through `cn`.
+3.9 Spread order decides what a consumer may override. Load-bearing structural attributes — `role`, `tabIndex`, `type`, `data-slot`, widget ARIA state, and the resolved wiring of the §7.2 binding cascade — are written *after* `{...props}`, so a stray prop can't drop a row out of roving, turn a button into a form submit, or clobber a bound field; `menu-item.tsx` is the composite precedent and `switch.tsx` the cascade one. `data-slot` is load-bearing because the library queries the anchor itself: the roving `itemSelector`, the kata `has-[]` selectors, and the §10.2 test surface all key on it, so a rename breaks the component. Presentational attributes stay overridable: `className` merges through `cn`.
 
 ## 4. TypeScript
 
