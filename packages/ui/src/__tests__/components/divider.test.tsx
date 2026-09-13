@@ -38,18 +38,17 @@ describe('Divider', () => {
 
 		const el = bySlot(container, 'divider')
 
-		// CONVENTIONS.md §3.9: `role` and the widget ARIA state are load-bearing,
-		// so the vertical separator semantics stay.
+		// §3.9: `role` and the widget ARIA state are load-bearing, so the vertical
+		// separator semantics stay.
 		expect(el).toHaveAttribute('role', 'separator')
 
 		expect(el).toHaveAttribute('aria-orientation', 'vertical')
 	})
 
-	it('lets a wrapper re-anchor the rule', () => {
-		const { container } = renderUI(<Divider data-slot="toolbar-separator" orientation="vertical" />)
+	it('renders with a custom data-slot', () => {
+		// The anchor is renameable per §3.9, and ToolbarSeparator depends on it.
+		const { container } = renderUI(<Divider data-slot="toolbar-separator" />)
 
-		// CONVENTIONS.md §3.9: no library selector reads this anchor, so the
-		// wrapper's name wins. ToolbarSeparator depends on it.
 		expect(bySlot(container, 'toolbar-separator')).toBeInTheDocument()
 
 		expect(bySlot(container, 'divider')).toBeNull()

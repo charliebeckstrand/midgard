@@ -13,14 +13,15 @@ export type CollapseTriggerProps = ComponentPropsWithoutRef<'button'>
  * Spreads consumer props first, then overlays the context-driven toggle and
  * a11y wiring (`aria-expanded`, plus `aria-controls` only while the panel is
  * mounted), preserving any supplied `onClick`.
+ *
+ * @remarks The `data-slot` anchor stays renameable, because no library selector
+ * reads it ([CONVENTIONS.md](CONVENTIONS.md) §3.9).
  */
 export function CollapseTrigger({ className, children, onClick, ...props }: CollapseTriggerProps) {
 	const { open, toggle, triggerProps } = useCollapseContext()
 
 	return (
 		<button
-			// No library selector reads this anchor, so it stays above the spread
-			// and a wrapper can re-anchor the trigger (CONVENTIONS.md §3.9).
 			data-slot="collapse-trigger"
 			// Consumer props spread first; the type, the a11y id wiring
 			// (aria-expanded/aria-controls) and the context-driven toggle below

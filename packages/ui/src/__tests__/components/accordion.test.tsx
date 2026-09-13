@@ -4,6 +4,7 @@ import {
 	AccordionItem,
 	AccordionPanel,
 	AccordionTrigger,
+	type AccordionTriggerProps,
 	useAccordionItem,
 } from '../../components/accordion'
 import type { Mount } from '../../primitives/mount'
@@ -30,18 +31,21 @@ describe('AccordionTrigger', () => {
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 	})
 
-	it('keeps its anchor when a consumer renames it', () => {
-		const { container } = renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger data-slot="renamed">Toggle</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+	// `data-slot` is admitted on JSX but not on a props object, so widen it.
+	const triggered = (props: AccordionTriggerProps & { 'data-slot'?: string }) => (
+		<Accordion>
+			<AccordionItem value="a">
+				<AccordionTrigger {...props}>Toggle</AccordionTrigger>
+				<AccordionPanel>Panel A</AccordionPanel>
+			</AccordionItem>
+		</Accordion>
+	)
 
-		// CONVENTIONS.md §3.9: Accordion's roving itemSelector reads this anchor,
-		// so a rename must not drop the header out of the item set.
+	it('ignores a custom data-slot', () => {
+		// Accordion's roving itemSelector reads this anchor, so a rename must not
+		// drop the header out of the item set (§3.9).
+		const { container } = renderUI(triggered({ 'data-slot': 'renamed' }))
+
 		expect(bySlot(container, 'accordion-trigger')).toBeInTheDocument()
 
 		expect(bySlot(container, 'renamed')).toBeNull()
@@ -72,17 +76,10 @@ describe('AccordionTrigger', () => {
 	})
 
 	it('keeps type="button" when a consumer supplies a type', () => {
-		renderUI(
-			<Accordion>
-				<AccordionItem value="a">
-					<AccordionTrigger type="submit">Toggle</AccordionTrigger>
-					<AccordionPanel>Panel A</AccordionPanel>
-				</AccordionItem>
-			</Accordion>,
-		)
+		renderUI(triggered({ type: 'submit' }))
 
-		// CONVENTIONS.md §3.9: a stray `type` must not turn a header into a
-		// submit button for the form that encloses the accordion.
+		// §3.9: a stray `type` must not turn a header into a submit button for the
+		// form that encloses the accordion.
 		expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('type', 'button')
 	})
 })

@@ -3,6 +3,7 @@ import {
 	Collapse,
 	CollapsePanel,
 	CollapseTrigger,
+	type CollapseTriggerProps,
 	useCollapseContext,
 } from '../../components/collapse'
 import type { Mount } from '../../primitives/mount'
@@ -46,34 +47,31 @@ describe('Collapse', () => {
 		expect(document.getElementById(controls as string)).not.toBeNull()
 	})
 
-	it('keeps type="button" when a consumer supplies a type', () => {
-		renderUI(
-			<Collapse>
-				<CollapseTrigger type="submit">Toggle</CollapseTrigger>
-				<CollapsePanel>
-					<p>Content</p>
-				</CollapsePanel>
-			</Collapse>,
-		)
+	// `data-slot` is admitted on JSX but not on a props object, so widen it.
+	const triggered = (props: CollapseTriggerProps & { 'data-slot'?: string }) => (
+		<Collapse>
+			<CollapseTrigger {...props}>Toggle</CollapseTrigger>
+			<CollapsePanel>
+				<p>Content</p>
+			</CollapsePanel>
+		</Collapse>
+	)
 
-		// CONVENTIONS.md §3.9: a stray `type` must not turn the trigger into a
-		// submit button for the form that encloses the collapse.
+	it('keeps type="button" when a consumer supplies a type', () => {
+		renderUI(triggered({ type: 'submit' }))
+
+		// §3.9: a stray `type` must not turn the trigger into a submit button for
+		// the form that encloses the collapse.
 		expect(screen.getByText('Toggle')).toHaveAttribute('type', 'button')
 	})
 
-	it('lets a wrapper re-anchor the trigger', () => {
-		const { container } = renderUI(
-			<Collapse>
-				<CollapseTrigger data-slot="chat-tool-head">Toggle</CollapseTrigger>
-				<CollapsePanel>
-					<p>Content</p>
-				</CollapsePanel>
-			</Collapse>,
-		)
+	it('renders with a custom data-slot', () => {
+		// The anchor is renameable per §3.9.
+		const { container } = renderUI(triggered({ 'data-slot': 'chat-tool-head' }))
 
-		// CONVENTIONS.md §3.9: no library selector reads this anchor, so the
-		// wrapper's name wins.
 		expect(bySlot(container, 'chat-tool-head')).toBeInTheDocument()
+
+		expect(bySlot(container, 'collapse-trigger')).toBeNull()
 	})
 
 	it('toggles open state on trigger click', () => {

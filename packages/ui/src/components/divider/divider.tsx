@@ -15,13 +15,14 @@ export type DividerProps = DividerVariants & {
  * @remarks
  * The `vertical` orientation adds `role="separator"` and
  * `aria-orientation="vertical"` for assistive tech; the default horizontal
- * rule relies on the native `<hr>` semantics.
+ * rule relies on the native `<hr>` semantics. Both are load-bearing and are
+ * written after the spread, while the `data-slot` anchor stays renameable so a
+ * wrapper such as `ToolbarSeparator` can re-anchor the rule
+ * ([CONVENTIONS.md](CONVENTIONS.md) §3.9).
  */
 export function Divider({ orientation, soft, className, ...props }: DividerProps) {
 	return (
 		<hr
-			// No library selector reads this anchor, so it stays above the spread
-			// and ToolbarSeparator can re-anchor the rule (CONVENTIONS.md §3.9).
 			data-slot="divider"
 			className={cn(k({ orientation, soft }), className)}
 			// Consumer props spread first; the separator semantics below take
