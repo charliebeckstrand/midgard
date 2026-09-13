@@ -58,6 +58,19 @@ describe('RadioGroup', () => {
 
 		expect(screen.getByRole('radiogroup')).toHaveAccessibleName('Plan')
 	})
+
+	it('keeps the radiogroup role when a consumer supplies one', () => {
+		renderUI(
+			<RadioGroup aria-label="Plan" role="group">
+				content
+			</RadioGroup>,
+		)
+
+		// §3.9: `role` is load-bearing, so the radiogroup semantics stay.
+		expect(screen.getByRole('radiogroup')).toBeInTheDocument()
+
+		expect(screen.queryByRole('group')).toBeNull()
+	})
 })
 
 describe('Radio size', () => {
