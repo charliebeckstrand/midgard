@@ -47,7 +47,6 @@ const WAIVERS = new Map<string, Waiver>([
 	['components/tabs/tab-list.tsx', { order: 2, note: 'B04-C04 · S5' }],
 	['components/nav/nav-item.tsx', { order: 2, anchor: 1, note: 'B04-C07 · S5' }],
 	['components/sidebar/sidebar-item.tsx', { order: 2, anchor: 1, note: 'B04-C08 · S5' }],
-	['components/hold-button/hold-button.tsx', { order: 1, note: 'B05-C03 · S6' }],
 	['components/breadcrumb/breadcrumb-link.tsx', { order: 1, note: 'lead' }],
 	['components/breadcrumb/breadcrumb-separator.tsx', { order: 1, note: 'lead' }],
 	['components/command-palette/slots.tsx', { order: 1, note: 'lead' }],

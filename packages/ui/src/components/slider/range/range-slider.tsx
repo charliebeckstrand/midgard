@@ -6,6 +6,7 @@ import { useDensity } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useFormValue } from '../../form/use-form-value'
+import type { ThumbButtonRefs } from './types'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
 
@@ -93,6 +94,9 @@ export function RangeSlider({
 	const loThumbRef = useRef<HTMLButtonElement>(null)
 	const hiThumbRef = useRef<HTMLButtonElement>(null)
 
+	// One tuple for both hooks, so the pair cannot drift between them.
+	const thumbRefs: ThumbButtonRefs = [loThumbRef, hiThumbRef]
+
 	const overlap = allowCross ? 'swap' : 'clamp'
 
 	const { onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onLostPointerCapture } =
@@ -105,6 +109,7 @@ export function RangeSlider({
 			trackRef,
 			setRange,
 			overlap,
+			thumbRefs,
 		})
 
 	const handleKeyDown = useRangeKeyboard({
@@ -114,7 +119,7 @@ export function RangeSlider({
 		current,
 		setRange,
 		overlap,
-		thumbRefs: [loThumbRef, hiThumbRef],
+		thumbRefs,
 	})
 
 	const lo = pct(current[0], min, max)

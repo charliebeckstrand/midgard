@@ -16,12 +16,18 @@ import {
 
 /** Props for {@link CurrentContent}: the `slotPrefix` stamp, the `value` to match, and a `ref`, over `<div>` attributes. */
 export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
-	/** Slot prefix stamped as `data-slot="<slotPrefix>-content"`. */
+	/** Slot prefix. It gives the default anchor `data-slot="<slotPrefix>-content"`. */
 	slotPrefix: string
 	/** Match against the surrounding `CurrentContext`. Omit to render unconditionally. */
 	value?: string
 	/** Ref to the rendered element (forwarded in both fade and non-fade modes). */
 	ref?: Ref<HTMLDivElement>
+	/**
+	 * Panel slot identifier. Wrappers override it to rename the anchor.
+	 *
+	 * @defaultValue `${slotPrefix}-content`
+	 */
+	'data-slot'?: string
 }
 
 /**
@@ -84,6 +90,7 @@ export function CurrentContent({
 	style,
 	children,
 	ref,
+	'data-slot': slot = `${slotPrefix}-content`,
 	...props
 }: CurrentContentProps) {
 	const context = useCurrent()
@@ -123,13 +130,7 @@ export function CurrentContent({
 		// state while hidden but tears down effects and defers re-rendering.
 		return (
 			<Hold hold={hold} name={`${slotPrefix}-content`}>
-				<div
-					ref={ref}
-					data-slot={`${slotPrefix}-content`}
-					className={className}
-					style={style}
-					{...props}
-				>
+				<div ref={ref} data-slot={slot} className={className} style={style} {...props}>
 					<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
 				</div>
 			</Hold>
@@ -142,7 +143,7 @@ export function CurrentContent({
 			// Forward caller props (id, role, aria-*) in fade mode; the cast
 			// sidesteps motion's redefined animation/drag handler signatures.
 			{...(props as HTMLMotionProps<'div'>)}
-			data-slot={`${slotPrefix}-content`}
+			data-slot={slot}
 			data-current={dataAttr(current)}
 			animate={{ opacity: current ? 1 : 0 }}
 			// A panel mounting after the container settles enters from

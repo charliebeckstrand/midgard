@@ -53,6 +53,7 @@ export function HoldButton({
 	onKeyDown,
 	onKeyUp,
 	onBlur,
+	'data-slot': slot = 'hold-button',
 	...props
 }: HoldButtonProps) {
 	const { fillRef, start, cancel } = useHoldButtonGesture({
@@ -69,10 +70,12 @@ export function HoldButton({
 
 	return (
 		<Button
-			type="button"
 			{...props}
+			// Consumer props spread first; the `type` after them takes precedence,
+			// so a caller cannot turn the hold gate into a form submit.
+			type="button"
 			disabled={disabled}
-			data-slot="hold-button"
+			data-slot={slot}
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
 			onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
 				if (event.button === 0) start()
