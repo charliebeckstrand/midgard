@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefObject, SyntheticEvent } from 'react'
-import { useCallback, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useMediaQuery, useMinBreakpoint } from '../../hooks'
 import type {
 	PdfViewerFit,
@@ -32,6 +32,8 @@ type PdfViewerOptions = {
 	page?: number
 	defaultPage?: number
 	onPageChange?: (page: number) => void
+	onLoad?: (pageCount: number) => void
+	onError?: (error: Error) => void
 	defaultZoom?: number
 	zoomLevels?: number[]
 	fit?: PdfViewerFit
@@ -149,6 +151,8 @@ export function usePdfViewer({
 	page,
 	defaultPage = 1,
 	onPageChange,
+	onLoad,
+	onError,
 	defaultZoom = 1,
 	zoomLevels = DEFAULT_ZOOM_LEVELS,
 	fit = 'page',
@@ -173,6 +177,17 @@ export function usePdfViewer({
 	 */
 	const notifyHighlightsVisible = useEffectEvent((visible: boolean) => {
 		onHighlightsVisibleChange?.(visible)
+	})
+
+	// The document lifecycle reports the same way, for the same reason: the load
+	// settles outside any call site this hook runs, so the report watches the
+	// committed snapshot instead.
+	const notifyLoad = useEffectEvent((pageCount: number) => {
+		onLoad?.(pageCount)
+	})
+
+	const notifyError = useEffectEvent((error: Error) => {
+		onError?.(error)
 	})
 
 	/*
@@ -259,6 +274,31 @@ export function usePdfViewer({
 	} = usePdfViewerDocument(shouldLoadFromSrc ? src : undefined)
 
 	const pages = pagesProp ?? loadedPages
+
+	/*
+	 * One report for each settle of one `src`.
+	 *
+	 * The load resolves into a module cache, not at a call site this hook runs, so
+	 * there is no line to hang the report on; the committed snapshot is the only
+	 * honest source. The ref keys on the `src` already reported, so a re-render
+	 * repeats nothing and a new document reports again. A cache hit reports on the
+	 * first render, which is correct: the document IS ready. A viewer given `pages`
+	 * directly loads nothing and reports nothing.
+	 */
+	const reportedSrcRef = useRef<string | undefined>(undefined)
+
+	useEffect(() => {
+		if (!shouldLoadFromSrc || loading) return
+
+		if (!error && loadedPages.length === 0) return
+
+		if (reportedSrcRef.current === src) return
+
+		reportedSrcRef.current = src
+
+		if (error) notifyError(error)
+		else notifyLoad(loadedPages.length)
+	}, [shouldLoadFromSrc, loading, error, loadedPages, src])
 
 	// Prefer the same-origin blob URL from the hook for download/print.
 	// Falls back to `src` for same-origin docs; cross-origin docs open in

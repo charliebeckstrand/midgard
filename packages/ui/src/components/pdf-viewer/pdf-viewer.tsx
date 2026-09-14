@@ -38,6 +38,25 @@ export type PdfViewerProps = {
 	defaultPage?: number
 	onPageChange?: (page: number) => void
 	/**
+	 * Fires once the document at `src` is rasterized, with its page count.
+	 *
+	 * The viewer owns the whole fetch-and-rasterize lifecycle and reported neither
+	 * end of it, so a consumer had to re-fetch `src` to learn what happened. Use
+	 * this callback to reveal chrome beside the viewer, or to record the count.
+	 * A viewer given `pages` directly loads nothing and fires neither callback. A
+	 * cached document fires on the first render, because it is already ready.
+	 */
+	onLoad?: (pageCount: number) => void
+	/**
+	 * Fires when the document at `src` fails to load, with the reason.
+	 *
+	 * A 404, a refused range request, and a file pdf.js cannot parse all land here.
+	 * Without it the viewer shows its own failure state and the consumer cannot
+	 * tell a broken document from one that is still on the way. Exactly one of
+	 * `onLoad` and `onError` fires for each `src`.
+	 */
+	onError?: (error: Error) => void
+	/**
 	 * Initial zoom scale.
 	 * @defaultValue 1
 	 */
@@ -155,6 +174,8 @@ export function PdfViewer({
 	page,
 	defaultPage,
 	onPageChange,
+	onLoad,
+	onError,
 	defaultZoom,
 	zoomLevels,
 	fit,
@@ -177,6 +198,8 @@ export function PdfViewer({
 		page,
 		defaultPage,
 		onPageChange,
+		onLoad,
+		onError,
 		defaultZoom,
 		zoomLevels,
 		fit,

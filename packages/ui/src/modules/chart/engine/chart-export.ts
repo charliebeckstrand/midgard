@@ -7,7 +7,7 @@
 
 import type { ChartReadout } from './types'
 
-/** The bitmap formats the chart exports to. @internal */
+/** The bitmap formats the chart exports to; {@link ChartExportOutcome} names the one a download asked for. */
 export type ChartImageType = 'image/png' | 'image/jpeg'
 
 /** The pixel scale a rasterised chart is drawn at, so the bitmap stays crisp on hi-dpi displays. @internal */

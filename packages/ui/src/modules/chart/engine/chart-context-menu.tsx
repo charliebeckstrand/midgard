@@ -44,6 +44,17 @@ import type { ChartReadoutSource } from './types'
 export type ChartContextMenuTarget = { index: number | null }
 
 /**
+ * The outcome of one image export, delivered to {@link ChartContextMenuConfig.onExport}.
+ *
+ * Shaped like the form's `SubmitOutcome`, because it answers the same question: the operation
+ * finished, and the caller needs to know which way. `type` is on both arms, so a caller that
+ * offers PNG and JPG can tell which one the reader asked for.
+ */
+export type ChartExportOutcome =
+	| { ok: true; type: ChartImageType; fileName: string }
+	| { ok: false; type: ChartImageType; error: unknown }
+
+/**
  * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
  * (custom `items`, `defaultItems`, `position`) plus the chart's own export
  * options.
@@ -72,6 +83,17 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 * elsewhere. Never fires without a `fullscreen` element to open.
 	 */
 	onFullscreenChange?: (fullscreen: boolean) => void
+	/**
+	 * Fires when a Download PNG or Download JPG action finishes, either way.
+	 *
+	 * The rasterise runs behind the menu and a failure went into a bare `catch`, so a
+	 * reader whose export silently produced nothing had no way to learn why, and neither
+	 * did the caller. An image the browser refuses to decode, a tainted canvas, and a
+	 * canvas that yields no blob all arrive as `{ ok: false }`. Use it to report the
+	 * failure, or to count a successful download. The CSV and copy actions have their own
+	 * readout and do not come through here.
+	 */
+	onExport?: (outcome: ChartExportOutcome) => void
 }
 
 /** Props for {@link ChartContextMenu}. @internal */
@@ -197,6 +219,8 @@ export function ChartContextMenu({
 		[onFullscreenChange],
 	)
 
+	const onExport = config?.onExport
+
 	const exportImage = useCallback(
 		async (type: ChartImageType, extension: string): Promise<void> => {
 			const root = rootRef.current
@@ -206,12 +230,26 @@ export function ChartContextMenu({
 			try {
 				const blob = await rasterizeChartImage(root, { type, includeLegend })
 
-				if (blob) downloadBlob(blob, chartFileName(title, extension))
-			} catch {
-				// A failed rasterise (image decode) has no retry affordance to drive.
+				// A null blob is a failure too: the canvas rasterized and then yielded
+				// nothing, so no file is downloaded and the menu looks like it worked.
+				if (!blob) {
+					onExport?.({ ok: false, type, error: new Error('The chart produced no image.') })
+
+					return
+				}
+
+				const fileName = chartFileName(title, extension)
+
+				downloadBlob(blob, fileName)
+
+				onExport?.({ ok: true, type, fileName })
+			} catch (error) {
+				// A failed rasterise (image decode) has no retry affordance to drive,
+				// so the menu shows nothing. The caller hears about it instead.
+				onExport?.({ ok: false, type, error })
 			}
 		},
-		[rootRef, includeLegend, title],
+		[rootRef, includeLegend, title, onExport],
 	)
 
 	// Memoized for the same reason `customItems` is: this array and its five icon
