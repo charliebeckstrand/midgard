@@ -3,14 +3,15 @@
 Survey of `packages/ui` (2026-09-14) for hand-rolled code that React 19, TypeScript 6, the ES2023 platform,
 `@floating-ui/react`, or another installed dependency already supplies, and for designs larger than the
 problem they solve. Seven single-lens sweeps read the package: React, floating-ui, TypeScript, the web
-platform, `modules/`, `components/` with `recipes/`, and the docs engine. The findings are proposed, not
-applied, so each row below is a claim to weigh rather than a change in the tree.
+platform, `modules/`, `components/` with `recipes/`, and the docs engine.
 
-This audit follows two that walked the same ground.
-[2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) proposed 20 findings and ruled out 35;
-[2026-09-02](2026-09-02-SIMPLIFICATION-AUDIT.md) applied its own and cut 581 lines net. Every sweep read
-both Ruled out sections first, so no row here re-raises settled ground. Two rows the earlier audits left
-open are closed below, both confirmed to still stand.
+This audit follows two that walked the same ground, and it absorbs the last of them. The 2026-08-04 audit
+proposed 20 findings; [#1061](https://github.com/charliebeckstrand/midgard/pull/1061) and
+[#1119](https://github.com/charliebeckstrand/midgard/pull/1119) closed 18, and its two remaining rows are
+resolved below — one applied, one ruled out on measurement. The 2026-09-02 audit applied its own findings
+and held nothing open but those same two rows. Both files are deleted, per
+[CONVENTIONS.md](../../../../CONVENTIONS.md) §12.4: the pull requests they name hold their history. Every
+sweep read their Ruled out sections first, so no row here re-raises settled ground.
 
 The three mechanical checks came back empty again, as they did in August and September. `knip` reports no
 unused file, export, or dependency. `biome check` reports no diagnostic across 2,247 files. `tsc --noEmit`
@@ -21,13 +22,14 @@ is clean. A cross-file duplicate-block scan over every non-test source file retu
 
 Source is 153,257 lines across 1,235 non-test TypeScript files: `modules/` 61,817, `components/` 43,367,
 `docs/` 29,235, `recipes/` 10,635, `hooks/` 5,980, `primitives/` 3,521, `utilities/` 1,494, `core/` 1,393,
-`providers/` 758, `layouts/` 518, `types/` 103. The jsdom suite is 6,809 tests in 484 files and passes.
+`providers/` 758, `layouts/` 518, `types/` 103. The jsdom suite is 6,809 tests in 501 files and passes.
 
-Sixteen findings total about 351 lines, which is 0.23 percent of source. That is the honest measure, and it
-is the signature of a surface three audits have now walked: the sweeps returned long Ruled out lists and
-short findings lists. No finding names a wrong abstraction.
+Seventeen findings totalled about 355 lines on paper, which is 0.23 percent of source — the signature of a
+surface three audits have now walked. Six are applied, and they removed 161 lines. One was applied and
+reverted, because building it disproved its own estimate. The rest stay open below, most of them under
+fifteen lines each, which is the honest reason they are open rather than done.
 
-## Findings
+## Applied
 
 **Hand the resolved `chart` to `ChartCartesianAxes`.** `ChartCartesianAxesProps` is a 14-field list
 (`modules/chart/engine/chart-axes/cartesian.tsx:7-42`) that `area-chart.tsx:395`, `line-chart.tsx:206`,
@@ -37,28 +39,54 @@ that differ only in the `baseline` bar and combo add. The sibling `ChartCartesia
 fields read straight off `chart`; `hasData` is `chart.bandPositions.length > 0` exactly, because
 `use-chart-cartesian.ts:897` passes `count: data.length` and both layouts build
 `bandPositions: bandCenters(band, count)`. Six of the seven defaults are unreachable. This closes the row
-[2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) left open, and inverts its blocker: `baseline` being a
+2026-08-04 left open, and inverts its blocker: `baseline` being a
 non-optional `number` is not what blocks the fold, it is the problem itself, because `chart.baseline` is
 `scale.map(0)` — an extrapolated coordinate that sits off the plot for a line chart and lifts off the floor
 for an area chart with negative data. Keeping `baseline` the one explicit prop dissolves it. Saving: 82
 lines.
 
-**Merge the List and Kanban reorder machines onto one lifted-keyboard engine.** `useListKeyboard` (236
-lines) and `useKanbanKeyboard` (362) implement the same APG grabbed-element machine, and both admit it in
-their own TSDoc. The name lookup, the deps bag, the Space toggle with its announcement templates, and the
-modifier-bail dispatcher are the same code with different identifiers. Only `locate`, `focusNeighbor`, and
-the lifted move are per surface. The sweep wrote all three files and measured them house-formatted at 530
-against 598. Three behaviour edges must survive and do, because the divergent three stay per hook: a
-vertical List neither moves nor calls `preventDefault` on the cross axis where Kanban does; List's
-`focusNeighbor` no-ops on Home at the first row where Kanban refocuses the card; and List calls
-`preventDefault` for its axis arrows while lifted even when the move is out of bounds. This closes the
-second row [2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) left open. Saving: 68 lines.
+*Applied; 83 lines. Closes the cartesian row of the 2026-08-04 audit.*
 
 **Delete `virtualJsonHooks`.** `docs/engine/plugins/virtual-json.ts:187-193` returns
 `virtualJsonModules([opts])` and nothing else. The docs plugin calls `virtualJsonModules` directly with all
 three specs. Its only consumer is a 36-line test block asserting that the wrapper behaves identically to a
 one-element call. `knip` cannot see it because `knip.json` sets `ignoreExportsUsedInFile: true`. Saving: 45
 lines, 7 of source and 38 of test.
+
+*Applied; 45 lines, 7 of source and 38 of test.*
+
+**Route Combobox through `useControlProps`.** `components/combobox/combobox.tsx:263-277` resolves the §7.2
+control cascade by hand and carries a private `resolveInvalid`, which is `use-control-props.ts:80` character
+for character. Its own TSDoc says so. Listbox carried the same copy until
+[#1061](https://github.com/charliebeckstrand/midgard/pull/1061) moved it, and Input, Textarea, and Slider
+are the other three precedents. Saving: 16 lines.
+
+*Applied; 12 lines.*
+
+**Replace `useTheme`'s hand-rolled media query.** `docs/engine/hooks/use-theme.ts:17-20` and `:29-45` open
+`window.matchMedia('(prefers-color-scheme: dark)')` twice, once to read and once to listen. `useMediaQuery`
+is `useSyncExternalStore` over `subscribeMediaQuery`, which pools one `MediaQueryList` per query string.
+2026-09-02 applied this substitution to `useOffcanvas`; this is the
+site it missed, and the last `matchMedia` outside `utilities/media-query.ts`. Saving: 13 lines.
+
+*Applied; 12 lines, with the stale `readStoredMode` comment beside it corrected.*
+
+**Prune two never-set options from `GridGroupManager`.** `modules/grid/grid-group-manager.tsx:140-143`
+declares, documents, defaults, and threads `addGroupLabel` and `colorOptions` three prop hops deep. The
+single caller passes neither. Saving: 6 lines.
+
+*Applied; 6 lines.*
+
+**Delete the dead `delay` seam in the line marks.** `modules/chart/engine/chart-marks/line.tsx:54` declares
+`delay`, defaults it to `0`, and folds it into four `transition` objects. No caller passes it, not even
+ComboChart, which it was written for. With `delay === 0` the four expressions are exactly their constants,
+so they become module constants and stop rebuilding per segment, per area path, and per point marker on
+every render. 2026-08-04 banked this as three lines and passed it
+over; the allocation is the reason to take it. Saving: 3 lines and three allocations per render.
+
+*Applied; 3 lines, and three per-render allocations with them.*
+
+## Open
 
 **Fold the duplicate download and clipboard helpers.** `modules/grid/engine/grid-export/download.ts:1-30`
 and `modules/chart/engine/chart-export.ts:225-256` both spell the transient-anchor download — object URL,
@@ -76,12 +104,6 @@ finds zero that interpolate, so at `i = 0` the loop condition `0 < 0` makes `res
 every existing input. The tag stops accepting interpolation, which becomes a `tsc` error at authoring time
 rather than a silent failure. Saving: 26 lines.
 
-**Route Combobox through `useControlProps`.** `components/combobox/combobox.tsx:263-277` resolves the §7.2
-control cascade by hand and carries a private `resolveInvalid`, which is `use-control-props.ts:80` character
-for character. Its own TSDoc says so. Listbox carried the same copy until
-[#1061](https://github.com/charliebeckstrand/midgard/pull/1061) moved it, and Input, Textarea, and Slider
-are the other three precedents. Saving: 16 lines.
-
 **Name the three-step type axis once.** `size: { sm: size.sm, md: size.md, lg: size.lg }` is written seven
 times across `recipes/kata/fieldset.ts` (four), `tabs.ts`, `tree.ts`, and `menu.ts`. `ji.size` carries eight
 keys, so the triple is a deliberate narrowing that a named export in `kiso/ji` holds once. CONVENTIONS §4.4
@@ -93,12 +115,6 @@ same for six symbols from `'../listbox'`. Each component already has a `slots.ts
 same foreign module, `filename-rules.ts:12-21` lists `slots.tsx` in `BARE_ALLOWED`, and
 `tsdoc-coverage-boundary.test.ts:14-22` names the per-specifier doccomment form and cites this family by
 name. The win is seven fewer files and seven fewer module edges, not the line count. Saving: 15 lines.
-
-**Replace `useTheme`'s hand-rolled media query.** `docs/engine/hooks/use-theme.ts:17-20` and `:29-45` open
-`window.matchMedia('(prefers-color-scheme: dark)')` twice, once to read and once to listen. `useMediaQuery`
-is `useSyncExternalStore` over `subscribeMediaQuery`, which pools one `MediaQueryList` per query string.
-[2026-09-02](2026-09-02-SIMPLIFICATION-AUDIT.md) applied this substitution to `useOffcanvas`; this is the
-site it missed, and the last `matchMedia` outside `utilities/media-query.ts`. Saving: 13 lines.
 
 **Read the band centres the hook already resolved.** `use-chart-cartesian.ts:677-685` exports
 `bandCenters(chart)`, which returns the array `CartesianChart.bandPositions` already holds, built by the
@@ -112,17 +128,6 @@ and three allocations per render.
 placeholder agree today only because somebody typed the same strings twice. Avatar already has the shape
 CONVENTIONS §3.7 describes. A value-level scan over all 24 `kokkaku` leaves found these three and no others.
 Saving: 12 lines.
-
-**Prune two never-set options from `GridGroupManager`.** `modules/grid/grid-group-manager.tsx:140-143`
-declares, documents, defaults, and threads `addGroupLabel` and `colorOptions` three prop hops deep. The
-single caller passes neither. Saving: 6 lines.
-
-**Delete the dead `delay` seam in the line marks.** `modules/chart/engine/chart-marks/line.tsx:54` declares
-`delay`, defaults it to `0`, and folds it into four `transition` objects. No caller passes it, not even
-ComboChart, which it was written for. With `delay === 0` the four expressions are exactly their constants,
-so they become module constants and stop rebuilding per segment, per area path, and per point marker on
-every render. [2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) banked this as three lines and passed it
-over; the allocation is the reason to take it. Saving: 3 lines and three allocations per render.
 
 **Drop the memo over a template literal.** `primitives/active-indicator/active-indicator.tsx:36-38`
 memoizes `` `current-indicator-${scopeId}` `` over a `useId`. React compares a context value with
@@ -193,6 +198,21 @@ says both `close` and `triggerRef` read as dead, but `triggerRef` is read at `po
 
 ## Ruled out
 
+**The List and Kanban reorder machines stay two.** `useListKeyboard` (236 lines) and `useKanbanKeyboard`
+(362) do implement the same APG grabbed-element machine, as
+[2026-08-04](https://github.com/charliebeckstrand/midgard/pull/1061) claimed and both files admit in their
+own TSDoc. The row estimated 75 lines and a sweep measuring uncompiled drafts put it at 68. Built, it costs
+11: `useLiftedReorderKeyboard` came to 146 lines and the two adapters to about 90, against roughly 145 lines
+of module-level handlers removed. Two constraints the drafts did not carry account for the gap. The one
+dispatcher holding the announcements scores 21 on `noExcessiveCognitiveComplexity` against a ceiling of 15,
+so the machine has to keep its handlers split exactly as both hooks already split theirs; and the returned
+handler must stay memoised, because `list.tsx:130` lists it in a dependency array, so the shared options
+cannot ride a plain object. What is genuinely one machine is the four announcement templates and the
+dispatch order. Everything else — locating an element, where focus travels, what a move does, which keys
+each collection owns — differs, and the adapters that translate it cost what the shared handlers save. The
+build was reverted; the suites stayed green throughout (40 files, 848 tests), so the revert is a judgement
+on economy, not on correctness. This closes the second open row of 2026-08-04.
+
 **The whole `@floating-ui/react` lens.** Twelve exports the package does not use all ship in 0.27.19, so
 the absence is a choice, and the choice holds in every case. `useListNavigation` is the load-bearing one:
 `useA11yRoving` has 19 call sites and 16 sit on surfaces with no floating context, so those would each have
@@ -237,8 +257,8 @@ defeats the shallow compare on every row of every grid.
 
 **`ChartLineMarks` and `AnimatedChartLineMarks` stay two**, and so do the bar pair. Folding needs the motion
 runtime on the static path, whose TSDoc calls it "the cheap default with no motion runtime work", or a
-per-element conditional component type inside the mount loop — the allocation shape
-[2026-09-02](2026-09-02-SIMPLIFICATION-AUDIT.md) had to revert.
+per-element conditional component type inside the mount loop — the allocation shape the
+2026-09-02 sweep had to revert.
 
 **`verticalLayout` and `horizontalLayout` are not twins**, `ScatterChrome` is not `ChartCartesianAxes`, and
 the three `findScrollableAncestor` variants answer three different questions. In each case a merged part
@@ -276,7 +296,7 @@ an eight-member tuple so `indexOf` accepts the nine-member slot union.
 key set out through `infer` and `AxisValue` branches on the presence of `'true'` and `'false'` keys;
 neither is `Extract` or `Exclude`. `enum` is already barred by `erasableSyntaxOnly`.
 
-**The demo scale arrays stay**, per the [2026-09-02](2026-09-02-SIMPLIFICATION-AUDIT.md) ruling. A
+**The demo scale arrays stay**, per the 2026-09-02 ruling. A
 duplicate-block scan over all of `src/docs` returned 35 blocks and every one is reader-visible sample code.
 
 ## Held back
@@ -303,8 +323,20 @@ correctly gated by CLAUDE.md §3.1.
 
 ## Totals
 
-355 lines across 17 findings, against 153,257 lines of source — 0.23 percent. The three largest rows give
-195 of them, and the two that close open rows from
-[2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) give 150. Fourteen of the sixteen are behaviour-neutral and
-can land independently. Three findings also remove a per-element allocation from a render path, which is
-worth more than their line counts suggest.
+Seventeen findings, about 355 lines on paper against 153,257 lines of source. Six are applied and removed
+**161 lines** across 12 files: the cartesian axes fold 83, `virtualJsonHooks` 45, Combobox 12, the docs
+theme hook 12, the grid group manager 6, and the line marks 3. Every one was proved against `biome check`,
+`tsc --noEmit` on all three programs, and the full jsdom suite, which stands at 6,808 tests in 501 files —
+one fewer than before, being the test that proved a wrapper equals the function it wraps.
+
+Ten findings stay open, and their size is why. Two are above twenty lines: the duplicate download and
+clipboard helpers, and the `code` tag's unreachable interpolation path. The remaining eight are under
+sixteen lines each, several of them under five, and together they touch roughly twenty files. That ratio is
+not worth the churn in a package whose suite is green and whose last sweep had to revert three rewrites; a
+future change already touching those files should take the row beside it rather than a pass spent on them
+alone.
+
+One number in this audit was wrong before it was built, which is worth recording. The reorder row carried a
+75-line estimate from 2026-08-04 and a 68-line measurement from a sweep that never compiled its drafts.
+Built and tested, it cost 11 lines. An estimate made from uncompiled drafts is not a measurement, and a
+lint ceiling and a memoisation contract are the kind of thing only a build finds.
