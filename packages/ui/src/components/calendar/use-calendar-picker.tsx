@@ -166,7 +166,7 @@ export function useCalendarPicker({
 		return {
 			key: y,
 			label: y,
-			selected: y === year,
+			selected: y === pickerYear,
 			current: today != null && y === today.getFullYear(),
 			onSelect: () => {
 				dispatch({ type: 'selectYear', year: y })
