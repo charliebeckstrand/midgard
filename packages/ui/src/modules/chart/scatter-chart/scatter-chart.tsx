@@ -112,7 +112,7 @@ export type ScatterFrameProps = {
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type ScatterChartProps<T> = AccessibleName &
+export type ScatterChartProps<T = never> = AccessibleName &
 	Omit<ChartBaseProps<T>, 'texture' | 'aria-label' | 'aria-labelledby'> &
 	ScatterFrameProps & {
 		/** The series to plot, one disc per parseable row; slot colours follow this order. */

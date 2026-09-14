@@ -21,9 +21,9 @@ import { useAffix } from '../affix'
  * `size` matches the `size` prop every component exposes; the ambient axis
  * is the default a `<Button>` / `<Input>` picks up.
  *
- * Internal names are positional (`sm | md | lg`); friendlier public labels
- * (e.g. `compact / cozy / comfortable`) translate at the prop surface, not
- * the token.
+ * Internal names are positional (`sm | md | lg`); the public `DensityLevel`
+ * labels (`loose | snug | compact`) translate at the prop surface, not the
+ * token.
  */
 type DensityToken = {
 	space: Step

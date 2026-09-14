@@ -35,7 +35,7 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type LineChartProps<T> = CartesianChartProps<T> & {
+export type LineChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Mark every plotted point with a filled dot. Points isolated between gaps
 	 * always get one — they'd be invisible otherwise.

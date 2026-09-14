@@ -90,7 +90,7 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 }
 
 /** Props for {@link SectorChart}: the shared pie base plus the hole size and center content. @internal */
-export type SectorChartProps<T> = SectorBaseProps<T> & {
+export type SectorChartProps<T = never> = SectorBaseProps<T> & {
 	/** Hole radius as a fraction of the outer radius: `0` sweeps a full pie, `> 0` a donut ring. */
 	innerRatio: number
 	/** Center content, rendered over a donut's hole. */

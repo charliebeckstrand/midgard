@@ -10,7 +10,7 @@ import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Breadcrumb', () => {
 	it('pairs with an explicit BreadcrumbSkeleton in loading trees', () => {
-		const { container } = renderUI(<BreadcrumbSkeleton items={3} />)
+		const { container } = renderUI(<BreadcrumbSkeleton crumbs={3} />)
 
 		expect(bySlot(container, 'breadcrumb')).not.toBeInTheDocument()
 

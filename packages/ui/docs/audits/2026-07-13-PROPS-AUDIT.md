@@ -115,7 +115,7 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | ToolbarGroup | `orientation` | toolbar-group.tsx:15 | Cross-axis override no consumer uses; every group inherits the toolbar's axis | Drop the override | ✅ RESOLVED (the group takes the toolbar axis) |
 | CreditCardInputCvv | `brand` union | credit-card-input-cvv.tsx:20-33 | `Brand \| BrandInfo` union forces dual resolvers plus a `CVV_LENGTHS` table duplicating the shared brand table; `onBrandChange` only ever emits the string | Accept `CreditCardBrand`; length from the shared table | ◯ OPEN |
 | PhoneInput | `country: 'CA'` | phone-input.tsx:10 | Indistinguishable from `'US'` in every observable way (same NANP formatter) | `'US' \| 'international'` | ✅ RESOLVED (`PhoneInputCountry = 'US' | 'international'`) |
-| ToggleGroup | `role` redeclaration | primitives/toggle/toggle.tsx:8 | `Omit<…,'role'>` then re-adds `role?: string`, loosening the native `AriaRole` typing | Let `role` flow as the native attribute | ◯ OPEN |
+| ToggleGroup | `role` redeclaration | primitives/toggle/toggle.tsx:8 | `Omit<…,'role'>` then re-adds `role?: string`, loosening the native `AriaRole` typing | Let `role` flow as the native attribute | ✅ RESOLVED ([#1143](https://github.com/charliebeckstrand/midgard/pull/1143) — `ToggleGroupProps = ComponentProps<'div'>`, so `role` flows as the native `AriaRole`) |
 | Option | `icon` | primitives/option/option.tsx:38,174 | Selected-check override only its own test passes; public via ComboboxOption/ListboxOption | Drop from the public surface | ◯ OPEN |
 | FileUpload | shared `children` | file-upload.tsx:35 | The `input` variant silently ignores it | Scope `children` to the drop/button variants (falls out of the T6 split) | ◯ OPEN |
 | Tree | `indent` | tree.tsx:29 | Default `false` renders nested trees flat — reads as a wrong default, not API | Default `true`; consider dropping the prop | ◯ OPEN |
@@ -137,7 +137,7 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | TimeAgo | `absolute` | time-ago.tsx:24 | Convenience boolean drags the whole Tooltip/floating stack into a tiny inline leaf; consumer composes Tooltip, or the import gets lazy-split | ✅ RESOLVED |
 | FileUpload | `ratio` (drop variant) | file-upload.tsx:54 | AspectRatio-wrapper sizing where sibling SignaturePad uses `h-40`+`className`; converge on the latter, dropping the prop and the dependency | ◯ OPEN |
 | PasswordInput | `toggleButton` bag | password-input.tsx:14 | Two-level config bag (boolean + i18n labels), fully unused; flatten or fold labels into the T7 locale story | ✅ RESOLVED (flattened to `toggleButton?: boolean`; labels deferred to T7) |
-| TagInput | `tag` bag | tag-input.tsx:31 | One-key object (`{color}`) read once with a fallback; flatten to `tagColor` or remove | ◯ OPEN (owner elected to keep the object form) |
+| TagInput | `tag` bag | tag-input.tsx:31 | One-key object (`{color}`) read once with a fallback; flatten to `tagColor` or remove | ✅ RESOLVED (flattened to `tagColor`, with API F12; the earlier keep is superseded) |
 | ControlSkeleton | `joined` | control-skeleton.tsx:19 | Manual echo of the `data-group` stamp the skeleton drops on the floor; forward the stamp (as `use-group.ts` already claims) and derive | ◯ OPEN |
 | Listbox | `tabularNums` | listbox.tsx:59 | One-class prop whose single internal consumer (pdf-viewer toolbar) can use a `className` descendant variant | ✅ RESOLVED |
 

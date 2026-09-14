@@ -43,10 +43,10 @@ export type ShinyTextProps = {
 	 */
 	pauseOnHover?: boolean
 	/**
-	 * Travel direction of the shine.
+	 * Travel sweep of the shine.
 	 * @defaultValue `'left'`
 	 */
-	direction?: 'left' | 'right'
+	sweep?: 'left' | 'right'
 	className?: string
 } & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
@@ -72,7 +72,7 @@ export function ShinyText({
 	spread = 120,
 	yoyo = false,
 	pauseOnHover = false,
-	direction = 'left',
+	sweep = 'left',
 	ref,
 	className,
 	children,
@@ -82,9 +82,9 @@ export function ShinyText({
 }: ShinyTextProps) {
 	const reduceMotion = useReducedMotion()
 
-	const from = direction === 'left' ? OFF_RIGHT : OFF_LEFT
+	const from = sweep === 'left' ? OFF_RIGHT : OFF_LEFT
 
-	const to = direction === 'left' ? OFF_LEFT : OFF_RIGHT
+	const to = sweep === 'left' ? OFF_LEFT : OFF_RIGHT
 
 	const position = useMotionValue(from)
 

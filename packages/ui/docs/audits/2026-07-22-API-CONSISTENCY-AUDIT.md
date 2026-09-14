@@ -43,7 +43,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | F9 | `autoComplete` hard-Omitted on Phone/Zipcode, default-overridable on CreditCard/Date | `phone-input.tsx:17-20` vs `credit-card-input.tsx:71,91` | Default-then-overridable everywhere | ◯ OPEN |
 | F10 | Affix override policy drifts; NumberInput bans `prefix` outright | `number-input.tsx:16` vs `currency-input.tsx:101-102`, `search-input.tsx:28-33` | Un-Omit `prefix`; rule: own chrome keeps its slot, caller content joins beside | ✅ RESOLVED (`prefix` un-Omitted) |
 | F11 | Inline `variant` unions and `MessageSeverity` re-spell exported aliases (T9) | `input.tsx:19`, `fieldset/message.tsx:13` vs `control/context.ts:9`, `validation-attrs.ts:4` | Reference `ControlVariant`; alias `MessageSeverity = Severity` | ✅ RESOLVED (`Message` imports the shared `Severity`) |
-| F12 | `tag?: { color }` single-key config bag | `tag-input.tsx:31` | Flatten to `tagColor` | ◯ OPEN |
+| F12 | `tag?: { color }` single-key config bag | `tag-input.tsx:31` | Flatten to `tagColor` | ✅ RESOLVED (`tagColor`) |
 | F13 | Expiry/Cvv/PasswordConfirmInput missing or bespoke `data-slot` anchors | `credit-card-input-expiry.tsx:84-126`, `password-confirm-input.tsx:52` | Stamp proper `data-slot` values | ◯ OPEN |
 | F14 | Cvv lacks the `invalidMessage` surface Expiry and DateInput share | `credit-card-input-cvv.tsx:22` vs `credit-card-input-expiry.tsx:31,131` | Add or document the omission | ◯ OPEN |
 | F15 | CurrencyInput advertises inert native `min`/`max`/`step` | `currency-input.tsx:13-16` vs `number-input.tsx:22-28` | Omit or implement clamping | ✅ RESOLVED (the inert native `min`/`max`/`step` are gone) |
@@ -66,7 +66,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | S11 | Radio is the only toggle outside the §7.2 cascade — `name` binds on Checkbox/Switch, not Radio | `radio.tsx:17-22` vs `checkbox.tsx:47`, `switch.tsx:42` | Resolve the bound field in RadioGroup, or mirror the remark onto `RadioGroupProps` | ◯ OPEN |
 | S12 | CopyButton overloads `value` for the clipboard payload (T5) | `copy-button.tsx:14-15` | Rename `text` | ◯ OPEN |
 | S13 | ToggleIconButton controlled-only, no `onPressedChange`/`defaultPressed` (T3) | `toggle-icon-button.tsx:15-16` | Add both | ✅ RESOLVED (`defaultPressed` and `onPressedChange` added) |
-| S14 | RangeSlider drops `name`/`ref`/rest that Slider carries (T3, T7) | `range-slider.tsx:13-41` vs `slider.tsx:12-29,70` | Add `name` via `useFormValue`, root `ref` | ◯ OPEN |
+| S14 | RangeSlider drops `name`/`ref`/rest that Slider carries (T3, T7) | `range-slider.tsx:13-41` vs `slider.tsx:12-29,70` | Add `name` via `useFormValue`, root `ref` | ✅ RESOLVED (RangeSlider carries `name`, root `ref`, and rest) |
 
 ## Findings — overlays & floating surfaces
 
@@ -92,17 +92,17 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | # | Finding | Evidence | Fix | Status |
 |---|---|---|---|---|
 | L1 | Tone axis: Alert `severity`, StatusDot/Avatar `status`, Text `severity`-as-tone (T6) | `alert.tsx:22`, `recipes/kata/status.ts:15`, `recipes/kata/text.ts:18-25` | Text axis → `tone`; `severity` reserved for the feedback quartet | ◯ OPEN |
-| L2 | ProgressGauge `sm`–`xl` vs ProgressBar `Step`; ScrollArea `size` = dimension presets (T1) | `recipes/kata/progress.ts:59-64`, `recipes/kiso/shaku/scroll-area.ts:13-22` | Align Gauge; ScrollArea → `extent` | ◯ OPEN |
+| L2 | ProgressGauge `sm`–`xl` vs ProgressBar `Step`; ScrollArea `size` = dimension presets (T1) | `recipes/kata/progress.ts:59-64`, `recipes/kiso/shaku/scroll-area.ts:13-22` | Align Gauge; ScrollArea → `extent` | ✅ RESOLVED (ScrollArea takes `extent`; ProgressGauge is on the `Step` set — the last open T1 row) |
 | L3 | `radius` (Box) vs `rounded` tokens (Badge) vs `rounded: boolean` (ScrollArea) (T5) | `box.tsx:34`, `recipes/kata/badge.ts:37`, `recipes/kata/scroll-area.ts:26-29` | `radius` + tokens everywhere | ◯ OPEN |
 | L4 | `Responsive<T>` support is Flex/Stack-only; Split `orientation` is the sharpest gap | `flex.tsx:22-28` vs `split/split.tsx:19-31` | Extend to Split first, Box spacing second | ◯ OPEN |
-| L5 | ShinyText `direction: 'left'\|'right'` collides with the layout axis (T5) | `shiny-text.tsx:49` | Rename (`sweep`) | ◯ OPEN |
-| L6 | ProgressGauge `label` = visible content while five siblings use `label` = accessible name (T5) | `progress-gauge.tsx:28` vs `icon.tsx:22` | `centerLabel` | ◯ OPEN |
+| L5 | ShinyText `direction: 'left'\|'right'` collides with the layout axis (T5) | `shiny-text.tsx:49` | Rename (`sweep`) | ✅ RESOLVED (`sweep`) |
+| L6 | ProgressGauge `label` = visible content while five siblings use `label` = accessible name (T5) | `progress-gauge.tsx:28` vs `icon.tsx:22` | `centerLabel` | ✅ RESOLVED (`centerLabel`) |
 | L7 | `full` (Flex) vs `block` (Alert; Banner must Omit it) (T5) | `flex.tsx:36`, `alert.tsx:73` | `full` | ✅ RESOLVED (`block` deleted rather than renamed; `full` survives on Flex as the one full-width prop) |
 | L8 | Box TSDoc promises `as` it doesn't expose; `as` re-added ad hoc on Text/ListItem | `box.tsx:51-52`, `polymorphic-static.tsx:25-33` | Add `as` to Box (and Heading) or fix the doc; state the rule | ◯ OPEN |
-| L9 | `ref` parity arbitrary across static leaves (T7) | `box.tsx:45` (yes) vs `flex.tsx:40`, `container.tsx:27` (no) | React-19 `ref` on every static leaf | ◯ OPEN |
+| L9 | `ref` parity arbitrary across static leaves (T7) | `box.tsx:45` (yes) vs `flex.tsx:40`, `container.tsx:27` (no) | React-19 `ref` on every static leaf | ✅ RESOLVED ([#1143](https://github.com/charliebeckstrand/midgard/pull/1143) made `ComponentProps<'tag'>` the one native base, which carries `ref`; pinned by `props-base-boundary.test.ts`) |
 | L10 | Zero-spacing spelled `0` (Flex), `'none'` (Container), absent (Split/Box) | `flex/variants.ts:6`, `recipes/kata/container.ts:14`, `split/variants.ts:12` | One `0` stop on the Ma scale | ◯ OPEN |
-| L11 | Sparkline `variant: 'line'\|'bar'` is mark geometry — Swatch calls that `shape` | `sparkline.tsx:30` vs `recipes/kata/swatch.ts:23-27` | `shape` | ◯ OPEN |
-| L12 | Container `padding` duplicates Box `px` under a different name and silently different scale | `recipes/kata/container.ts:16` vs `recipes/kiso/ma/padding.ts:10-16` | Rename `px`, re-key onto Ma | ◯ OPEN |
+| L11 | Sparkline `variant: 'line'\|'bar'` is mark geometry — Swatch calls that `shape` | `sparkline.tsx:30` vs `recipes/kata/swatch.ts:23-27` | `shape` | ✅ RESOLVED (`shape`) |
+| L12 | Container `padding` duplicates Box `px` under a different name and silently different scale | `recipes/kata/container.ts:16` vs `recipes/kiso/ma/padding.ts:10-16` | Rename `px`, re-key onto Ma | ◯ WONT DO (different axes, not one under two names: Container padding is `lg:`-gated, a responsive gutter that disengages below `lg`; Box `px` is unprefixed. Sharing the name would be the T5 sin, not its cure) |
 | L13 | `data-orientation` stamped by Dl/List/Resizable, differently by Group, not at all by Divider/ScrollArea | `description-list.tsx:38`, `group.tsx:69`, `divider.tsx:23-25` | Stamp uniformly | ◯ OPEN |
 | L14 | Layout slot surfaces drift: SidebarLayoutFooter takes no `className`, Body slots get `ref` while Header/Footer don't | `layouts/sidebar/sidebar.tsx:204` vs `stacked.tsx:56` | Uniform `className`/`ref` on slots; rule: wrapping regions compound, off-tree panels props | ◯ OPEN |
 | L15 | Banner `position: 'static'\|'sticky'` vs SidebarLayout `stickyHeader: boolean` (T5) | `banner.tsx:10`, `layouts/sidebar/sidebar.tsx:42` | Boolean `sticky` both | ✅ RESOLVED (Banner takes `sticky?: boolean`; SidebarLayout keeps `stickyHeader`, which names which of its four regions pins) |
@@ -121,7 +121,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | N8 | Eight structure roots are closed prop bags; six siblings spread (T7) | `accordion.tsx:19-23` vs `tabs.tsx:11` | Default to native passthrough | ◯ OPEN |
 | N9 | PivotTable narrows Table's `striped` axis and silently drops `hover`/`bleed` | `pivot-table.tsx:44` vs `table.tsx:25` | `TableVariants['striped']` | ◯ OPEN |
 | N10 | NavList inline orientation union; `TreeSize` hand-written (T9) | `nav-list.tsx:15`, `recipes/kata/tree.ts:19` | Alias `Orientation` / `Step` | ✅ RESOLVED (NavList aliases the shared `Orientation`) |
-| N11 | Skeleton count props: `pages`/`steps`/`tabs` vs `BreadcrumbSkeleton.items` (T10) | `breadcrumb-skeleton.tsx:10` | `crumbs` | ◯ OPEN |
+| N11 | Skeleton count props: `pages`/`steps`/`tabs` vs `BreadcrumbSkeleton.items` (T10) | `breadcrumb-skeleton.tsx:10` | `crumbs` | ✅ RESOLVED (`crumbs`) |
 | N12 | Kanban's data-prop + compound-children hybrid requires the same ids twice, unenforced | `kanban.tsx:22`, `kanban-column.tsx:45` | Render-function modeling, or document + dev-warn | ◯ OPEN |
 
 ## Findings — chart & map modules
@@ -130,7 +130,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 |---|---|---|---|---|
 | C1 | Documented legend form `{ type: 'range' }` doesn't typecheck | TSDoc ×4 (`heatmap-chart-schema.ts:68` et al.) vs `chart-legend/range.ts:24-31` | Correct the four doccomments to `{ placement }`; [#993](https://github.com/charliebeckstrand/midgard/pull/993) deleted the `type` key, so the docs are the half that is wrong | ✅ RESOLVED ([#1118](https://github.com/charliebeckstrand/midgard/pull/1118)) |
 | C2 | Choropleth→MapPlat seam renames five of six shared fields, both public | `choropleth-chart.tsx:30-42,240-247` vs `engine/map-region/data.ts:44-69` | Align MapPlat on the chart spelling (`formatValue`, `colorDomain`, `colorName`) | ◯ OPEN |
-| C3 | `tooltip` narrowed to bare `boolean` on Choropleth/MapPlat — click-pin unavailable on maps | `engine/types.ts:233` vs `choropleth-chart.tsx:126`, `map-plat.tsx:129` | Widen to the union | ◯ OPEN |
+| C3 | `tooltip` narrowed to bare `boolean` on Choropleth/MapPlat — click-pin unavailable on maps | `engine/types.ts:233` vs `choropleth-chart.tsx:126`, `map-plat.tsx:129` | Widen to the union | ◯ WONT DO here (the map draws its own `MapTooltip`, not the shared chart tooltip, so this needs click-pin implemented, not the type widened; a type accepting a config nothing reads is worse than the honest boolean) |
 | C4 | Single-series modeled three ways: tuple (pie) vs array-ignore (heatmap) vs array-first (choropleth) | `sector-chart.tsx:66`, `heatmap-chart-schema.ts:62-63`, `choropleth-chart.tsx:68-69` | Tuple everywhere | ◯ OPEN |
 | C5 | Unsupported base props accept-and-ignored instead of Omitted (T8) | `heatmap-chart.tsx:672-675`, `scatter-chart.tsx:554-555` vs `types.ts:99` | Extend the Omits | ✅ RESOLVED (heatmap Omits all three; scatter Omits `texture`) |
 | C6 | Scatter/bubble series `color` slot-only; cartesian takes slot-or-raw | `types.ts:125` vs `types.ts:59` | Widen to `ChartSeriesColor` | ◯ OPEN |
@@ -138,9 +138,9 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | C8 | `onCategoryClick` redeclared not shared; no click hook on scatter/heatmap/choropleth/map | `types.ts:325` + `sector-chart.tsx:89` | Shared handler type; add `onRegionClick`-shaped hooks | ◯ OPEN |
 | C9 | Three private spellings of `Orientation`, two of legend placement (T9) | `chart-orientation.ts:22`, `chart-legend/range-legend.tsx:21`, `map/types.ts:85` | Alias the shared types | ◯ OPEN (orientation half done: `ChartOrientation`, `RangeOrientation`, and `PanelHandleProps.orientation` alias `Orientation`, pinned by `variant-axis-boundary.test.ts`; legend placement still two names) |
 | C10 | `points` default `false` (Line/Area) vs `true` (Combo) | `line-chart.tsx:40-44` vs `combo-chart.tsx:51-54` | `false` everywhere | ◯ OPEN |
-| C11 | Generic defaults: `<T = never>` on map-side only (T9) | `heatmap-chart-schema.ts:61` vs `bar-chart.tsx:37` | `= never` everywhere | ◯ OPEN |
+| C11 | Generic defaults: `<T = never>` on map-side only (T9) | `heatmap-chart-schema.ts:61` vs `bar-chart.tsx:37` | `= never` everywhere | ✅ RESOLVED (`<T = never>` on all nine chart prop types) |
 | C12 | Map barrel exports `@internal` symbols; `RangeOrientation` referenced but unexported (T9) | `map-range-legend.tsx:25-133`, `map/index.ts:5-10` | De-internal + export, or unbarrel | ✅ RESOLVED (unbarrelled — the slider moved to `chart/engine/chart-legend/range-legend.tsx`, and no public type names `RangeOrientation` now) |
-| C13 | `MapSkeleton.ratio` vs `MapPlat.aspectRatio`; ChartSkeleton can't reserve the aspect box (T10) | `map-skeleton.tsx:17` vs `map-plat.tsx:88`; `chart-skeleton.tsx:6` | Rename; add `aspectRatio` | ◯ OPEN |
+| C13 | `MapSkeleton.ratio` vs `MapPlat.aspectRatio`; ChartSkeleton can't reserve the aspect box (T10) | `map-skeleton.tsx:17` vs `map-plat.tsx:88`; `chart-skeleton.tsx:6` | Rename; add `aspectRatio` | ✅ RESOLVED (`MapSkeleton.aspectRatio`; the ChartSkeleton aspect box is a separate addition, not a rename) |
 
 ## Findings — grid & query modules
 
@@ -176,10 +176,10 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | P5 | Nested-provider semantics diverge: UIProvider per-binding, LocaleProvider full-replace, undocumented | `ui.tsx:39-46` vs `locale.tsx:23-27` | Fold ambient config in, or document | ◯ OPEN |
 | P6 | `@internal` hooks in the public barrel (T9) | `use-hover-across-scroll.ts:34-36`, `use-plot-frame.ts:204-206` vs `hooks/index.ts:36,46-53` | Unbarrel or de-internal | ✅ RESOLVED ([#1033](https://github.com/charliebeckstrand/midgard/pull/1033)), and `internal-barrel-boundary.test.ts` now holds it |
 | P7 | Hook option-type naming: three schemes, most unexported (T9) | `use-chat-draft.ts:6,14` vs `hooks/a11y/index.ts` vs `use-dismissable.ts:7` | One scheme; export options/results of every public hook | ◯ OPEN (the `Use` prefix is gone from `modules`, which `hook-type-name-boundary.test.ts` now scans; the unexported options of public hooks stand) |
-| P8 | ChatPrompt controlled-only (T3) | `chat-prompt.tsx:15-17` | Add `defaultValue`, or document the contract | ◯ OPEN |
+| P8 | ChatPrompt controlled-only (T3) | `chat-prompt.tsx:15-17` | Add `defaultValue`, or document the contract | ✅ RESOLVED (the TSDoc states the controlled-only contract — T3's documented-exception arm) |
 | P9 | `onSubmit` vs `onSent` for one lifecycle (T4) | `use-chat-draft.ts:8` vs `use-chat-send.ts:35` | `onSubmit` = gesture; rename/document `onSent` | ✅ RESOLVED (`onSent` documented as the completed send, against `onSubmit` the gesture) |
 | P10 | chat-list-item recipe ships a `timestamp` slot no prop feeds (§5.2) | `recipes/kata/chat-list-item.ts:50-53` vs `chat-list-item.tsx:12-24` | Delete or restore the prop | ✅ RESOLVED (dead slot deleted) |
-| P11 | Density primitive doc names the wrong level labels | `primitives/density/density.tsx:25-26` | Fix the comment | ◯ OPEN |
+| P11 | Density primitive doc names the wrong level labels | `primitives/density/density.tsx:25-26` | Fix the comment | ✅ RESOLVED (the comment names `loose | snug | compact`) |
 | P12 | `useChatList(): boolean` reads as a state accessor, returns a nesting flag | `modules/chat/context.ts:10` | `useInChatList`, or unbarrel | ✅ RESOLVED (renamed `useInChatList`) |
 
 ## Verified consistent — recorded so the next audit doesn't relitigate
