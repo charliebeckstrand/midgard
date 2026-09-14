@@ -241,4 +241,34 @@ describe('ColorPicker', () => {
 
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
 	})
+
+	it('leaves the positioning wrapper free of floating-ui popup attributes', () => {
+		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
+
+		const button = bySlot(container, 'color-picker-button')
+
+		if (!button) throw new Error('trigger missing')
+
+		fireEvent.click(button)
+
+		const wrapper = button.closest<HTMLElement>('[data-slot="control"]')
+
+		if (!wrapper) throw new Error('positioning wrapper missing')
+
+		// The button hand-rolls `aria-haspopup`/`aria-expanded` and the panel
+		// hand-rolls `role="dialog"`, so `useColorPickerState` passes `role: null`
+		// and floating-ui's `useRole` stamps nothing on this roleless wrapper. A
+		// role here nests a second dialog widget around the real one, and makes two
+		// elements report the same expanded state. Per §10.3 the real `useRole`
+		// stays undriven; the global double stands in for it.
+		for (const attribute of [
+			'role',
+			'aria-haspopup',
+			'aria-expanded',
+			'aria-controls',
+			'aria-describedby',
+		]) {
+			expect(wrapper).not.toHaveAttribute(attribute)
+		}
+	})
 })
