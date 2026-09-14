@@ -10,7 +10,7 @@ export function Demo() {
 		<>
 			<Example title="Justify">
 				<Card bg="none">
-					<Flex align="center" className="w-full">
+					<Flex align="center" full>
 						<Heading level={3}>Title</Heading>
 						<Spacer />
 						<Button>Action</Button>
@@ -20,7 +20,7 @@ export function Demo() {
 
 			<Example title="Between groups">
 				<Card bg="none">
-					<Flex gap="md" align="center" className="w-full">
+					<Flex gap="md" align="center" full>
 						<Button variant="plain">Back</Button>
 						<Spacer />
 						<Button variant="plain">Cancel</Button>

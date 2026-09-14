@@ -84,7 +84,7 @@ export type OverlayProps = {
 	 * @defaultValue `modal`
 	 */
 	backdrop?: boolean
-} & Omit<ComponentProps<'div'>, 'className' | 'children'> & { className?: string }
+} & Omit<ComponentProps<'div'>, 'children'>
 
 /**
  * Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,

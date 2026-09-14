@@ -62,7 +62,7 @@ export type ContextMenuSubmenu = {
  */
 export type ContextMenuEntry = ContextMenuItem | ContextMenuSeparator | ContextMenuSubmenu
 
-/** Where a caller's custom items sit relative to a host's default items. @see {@link ContextMenuConfig.position} */
+/** Where a caller's custom items sit relative to a host's default items. @see {@link ContextMenuConfig.insert} */
 export type ContextMenuInsert = 'before' | 'after'
 
 /**

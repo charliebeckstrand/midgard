@@ -12,7 +12,6 @@ import { useFormToggle } from '../form/use-form-toggle'
 export type CheckboxProps = CheckboxVariants & {
 	/** Renders the partial tri-state: a minus glyph and `indeterminate` DOM property regardless of `checked`. */
 	indeterminate?: boolean
-	/** Replaces the default check/minus glyph with custom content. */
 	className?: string
 } & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
 

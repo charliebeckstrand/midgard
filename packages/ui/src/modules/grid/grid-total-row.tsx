@@ -44,7 +44,7 @@ export function useGridGrandTotal<T>(args: {
 	const { grandTotalRow, columns, hasRows, loading, showingError, manualGrouped, table } = args
 
 	const active =
-		Boolean(grandTotalRow) &&
+		grandTotalRow === true &&
 		hasRows &&
 		!loading &&
 		!showingError &&

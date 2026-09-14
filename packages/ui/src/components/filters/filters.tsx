@@ -180,7 +180,8 @@ export function Filters<T extends FilterValue = FilterValue>({
 						flex="auto"
 						className={cn(
 							equal && '*:flex-1',
-							rail && ['min-w-0 overflow-x-auto overscroll-x-contain', railClassName],
+							rail && 'min-w-0 overflow-x-auto overscroll-x-contain',
+							rail && railClassName,
 						)}
 					>
 						{children}

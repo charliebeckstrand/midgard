@@ -364,6 +364,36 @@ describe('CreditCardInputCvv', () => {
 		expect(screen.getByRole('textbox', { name: 'Security code' })).toBeInTheDocument()
 	})
 
+	it('reports the length verdict while the entry grows', async () => {
+		const verdicts: boolean[] = []
+
+		const { container } = renderUI(
+			<CreditCardInputCvv brand="visa" onValidityChange={(v) => verdicts.push(v.isValid)} />,
+		)
+
+		await userEvent
+			.setup({ delay: null })
+			.type(bySlot(container, 'credit-card-input-cvv') as HTMLInputElement, '123')
+
+		// Length is a CVV's only rule, so the verdict flips exactly at the cap.
+		expect(verdicts).toEqual([false, false, true])
+	})
+
+	it('re-measures the entry when a brand change shrinks the length', async () => {
+		const { container, rerender } = renderUI(<CreditCardInputCvv brand="amex" />)
+
+		const input = bySlot(container, 'credit-card-input-cvv') as HTMLInputElement
+
+		await userEvent.setup({ delay: null }).type(input, '1234')
+
+		rerender(<CreditCardInputCvv brand="visa" />)
+
+		// Visa caps at three, so the stored value truncates and stays complete.
+		expect(input).toHaveValue('123')
+
+		expect(bySlot(container, 'message')).not.toBeInTheDocument()
+	})
+
 	it.each<[string, 'visa' | 'amex', string, string]>([
 		['caps input at 3 digits for non-Amex brands', 'visa', '12345', '123'],
 		['allows 4 digits for Amex', 'amex', '12345', '1234'],

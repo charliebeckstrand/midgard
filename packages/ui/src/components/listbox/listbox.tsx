@@ -335,7 +335,7 @@ export function Listbox<T>({
 			value: selectionValue,
 			multiple,
 			onSelect: select as (v: unknown) => void,
-			capitalize: capitalize,
+			capitalize,
 		}),
 		[selectionValue, multiple, select, capitalize],
 	)

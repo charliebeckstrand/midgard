@@ -2,11 +2,11 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { k, type ToolbarGroupVariants } from '../../recipes/kata/toolbar'
+import { k } from '../../recipes/kata/toolbar'
 import { useToolbarContext } from './context'
 
 /** Props for {@link ToolbarGroup}. */
-export type ToolbarGroupProps = Omit<ToolbarGroupVariants, 'orientation'> & {
+export type ToolbarGroupProps = {
 	'aria-label'?: string
 	className?: string
 	children?: ReactNode

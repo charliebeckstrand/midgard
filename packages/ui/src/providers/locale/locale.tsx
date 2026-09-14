@@ -15,7 +15,7 @@ export type LocaleProviderProps = LocaleConfig & {
  *
  * @remarks
  * A nested provider overrides one field and leaves the rest of the enclosing
- * config alone, which is how `<UIProvider>` nests. So a nested
+ * config alone, the way `<Density>` folds its parent token. So a nested
  * `<LocaleProvider currency="EUR">` keeps the outer `locale` and `dateFormat`
  * for its subtree rather than clearing them.
  */
@@ -26,16 +26,30 @@ export function LocaleProvider({
 	dateFormat,
 	children,
 }: LocaleProviderProps) {
-	const outer = useLocale()
+	const {
+		locale: outerLocale,
+		currency: outerCurrency,
+		numberFormat: outerNumberFormat,
+		dateFormat: outerDateFormat,
+	} = useLocale()
 
 	const value = useMemo<LocaleConfig>(
 		() => ({
-			locale: locale ?? outer.locale,
-			currency: currency ?? outer.currency,
-			numberFormat: numberFormat ?? outer.numberFormat,
-			dateFormat: dateFormat ?? outer.dateFormat,
+			locale: locale ?? outerLocale,
+			currency: currency ?? outerCurrency,
+			numberFormat: numberFormat ?? outerNumberFormat,
+			dateFormat: dateFormat ?? outerDateFormat,
 		}),
-		[locale, currency, numberFormat, dateFormat, outer],
+		[
+			locale,
+			currency,
+			numberFormat,
+			dateFormat,
+			outerLocale,
+			outerCurrency,
+			outerNumberFormat,
+			outerDateFormat,
+		],
 	)
 
 	return <LocaleContext value={value}>{children}</LocaleContext>

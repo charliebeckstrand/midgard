@@ -365,7 +365,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 		// The per-group total is meaningful only once a column aggregates; the gate
 		// is body-wide, so resolve it once here rather than per group in renderGroup.
-		const totalled = Boolean(props.groupTotalRow) && hasAggregation(visibleColumns)
+		const totalled = props.groupTotalRow === true && hasAggregation(visibleColumns)
 
 		return (
 			<TableBody>

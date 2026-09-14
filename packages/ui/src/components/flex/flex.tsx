@@ -38,9 +38,8 @@ export type FlexProps = {
 
 /**
  * Flex container with responsive `direction`, `gap`, `align`, and `justify`,
- * plus `wrap`, `full`-width and `flex`-fill
- * children) modifiers. Use Flex for rows, Stack for columns; cross-axis
- * `align` defaults from `direction` when unset.
+ * plus `wrap`, `full`-width, and `flex`-fill modifiers. Use Flex for rows and
+ * Stack for columns; cross-axis `align` defaults from `direction` when unset.
  *
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.
@@ -70,11 +69,11 @@ export function Flex({
 				resolveAlign(resolvedAlign),
 				resolveGap(gap),
 				resolveJustify(justify),
+				'flex',
 				wrap && 'flex-wrap',
 				full && 'w-full',
 				flex === '1' && 'flex-1',
 				flex === 'auto' && 'flex-auto',
-				'flex',
 				className,
 			)}
 			{...props}
