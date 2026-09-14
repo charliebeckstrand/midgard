@@ -137,17 +137,26 @@ null guard, because `RefCallback<T>` takes `T | null`, and it must sit at module
 re-registered every render. Registration moves from the passive phase to the commit phase, which is strictly
 earlier, and the only reader takes it lazily. Saving: 2 lines.
 
-**Drop the type annotations the compiler now infers.** Seven `(x): x is T` predicates
-(`components/json-tree/json-tree-utilities.tsx:28`, `modules/chart/engine/chart-layout.ts:1145`,
-`chart-marks/bar.tsx:76`, `chart-pattern-defs.tsx:152`, `use-chart-cartesian.ts:373`,
-`heatmap-chart.tsx:498`, `modules/grid/use-grid-row-manager.tsx:79`) are inferred by TypeScript 5.5 and
-later. Proved rather than assumed: dropping the annotation at `chart-layout.ts:1145` and asserting
-`const p: ValueAxisProbe[] = probes` compiles, and the negative control asserting `string[]` fails with
-`Type 'ValueAxisProbe[]' is not assignable to type 'string[]'`, which names the inferred type. Nine
-`ReturnType<typeof f>` sites in four files reach a named type through the same import. `Responsive<T>`
-(`types/responsive.ts:32`) spells the object its own consumer writes twenty lines below as
-`Partial<Record<Breakpoint, T>>`. None of these removes a line; they make lines shorter and stop a type
-being declared twice, so they belong in one batch rather than each in a commit.
+**Drop the type annotations the compiler now infers.** Ten `(x): x is T` predicates are inferred by
+TypeScript 5.5 and later: seven in shipped source (`components/json-tree/json-tree-utilities.tsx:28`,
+`modules/chart/engine/chart-layout.ts:1145`, `chart-marks/bar.tsx:76`, `chart-pattern-defs.tsx:152`,
+`use-chart-cartesian.ts:373`, `heatmap-chart.tsx:498`, `modules/grid/use-grid-row-manager.tsx:79`) and
+three in the docs engine (`derive-code/internals.ts:17`, `api-reference/engine/format-type.ts:200`,
+`plugins/virtual-json.ts:43`). Nine come back with a predicate identical to the deleted one; the tenth is
+tighter, because `use-grid-row-manager.tsx:79` goes from `item is I` to `item is NonNullable<I>`, which is
+assignable to the declared `I[]` return. Eleven `ReturnType<typeof f>` sites in five files reach a named
+type — `BandScale`, `HeatmapCell[]`, `SearchIndex`, `MapPoint2D | null`, `GridNavStore` — and two of them
+import a value under the `type` modifier only to feed `ReturnType`. Two are already spelled the named way
+for the same field elsewhere: `json-tree/context.ts:12` and `map/context.ts:108`. `Responsive<T>`
+(`types/responsive.ts:32`) spells a fourth restatement of the breakpoint list its own module derives, and
+`resolveResponsive` writes the mapped form nineteen lines below. Saving: 4 lines, and the value is the
+naming rather than the size.
+
+A note on method, because it decides this row. A clean `tsc --noEmit` does not prove a predicate is
+inferred. `modules/chart/engine/chart-value-labels.tsx:129` compiles after the annotation comes out, but no
+predicate is inferred, so `finite` silently widens from `number[]` to `(number | null | undefined)[]` and a
+downstream `?? 0` hides it. Each of the ten above was proved by asking the checker for the inferred
+predicate through a compiler-API probe, not by a green build.
 
 ## Adjacent issues
 
@@ -244,6 +253,29 @@ abstraction under CLAUDE.md §1.1. Extracting the loop alone nets 16 lines.
 and required by §3.5 and the `"./*"` entry in `package.json`. A caller census over every non-barrel export
 in `components/` found a long tail of them and no abstraction that predicts a second use.
 
+**`createContext`'s three overloads collapse but buy a real check.** `core/create-context.ts:46-51` can
+come out for 6 lines with `tsc` clean on all three programs, because all 73 call sites pass an explicit type
+argument. The overloads enforce the mutual exclusion the doccomment describes:
+`createContext<V>('X', { default: v, error: 'boom' })` is rejected with them and accepted without, after
+which the implementation silently takes the `default` path. A trade, not a saving.
+
+**CONVENTIONS §4.1 is fully honoured; there is no `any` in shipped source.** A grep for `: any`, `<any>`
+and `as any` returns ten files, and every hit is prose in a doccomment or a local `boolean` named `any`
+(`modules/chart/engine/chart-scale.ts:208`). All eleven `as unknown as` are genuine escape hatches: seven
+bridge the package's minimal `MapFeature` to `@types/topojson-client`, two widen a `<td>` event to a `<tr>`
+signature because React's `MouseEvent<T>` is invariant in `T`, and the rest work around a missing
+`lib.dom` type or are the mechanism a missing-provider throw is built on.
+
+**The `satisfies` inverse is empty.** Every `keyof typeof X` and `(typeof X)[number]` derivation already
+reads an `as const` source, and no annotated `const x: Record<…> = {…}` has a later cast putting a lost
+literal back. The one cast that looks like the pattern is the opposite: `chart-pattern-defs.tsx:49` widens
+an eight-member tuple so `indexOf` accepts the nine-member slot union.
+
+**No hand-written conditional or mapped type is a built-in in disguise.** `AxesOf<C>`'s key remap is
+`Omit<C, ReservedField>`, but its value clause still needs the mapped type. `ExplicitVariantKeys` pulls a
+key set out through `infer` and `AxisValue` branches on the presence of `'true'` and `'false'` keys;
+neither is `Extract` or `Exclude`. `enum` is already barred by `erasableSyntaxOnly`.
+
 **The demo scale arrays stay**, per the [2026-09-02](2026-09-02-SIMPLIFICATION-AUDIT.md) ruling. A
 duplicate-block scan over all of `src/docs` returned 35 blocks and every one is reader-visible sample code.
 
@@ -258,12 +290,21 @@ The retained `onPointerDownCapture` sets `insideReactTree`, which `FloatingFocus
 reads to suppress one focus-out close, and `components/listbox/listbox-panel.tsx:82` renders `modal={false}`
 with a comment saying it depends on that close. The behaviour is untested. Write the test first.
 
+**Grid spells two axes and three function types by hand.** `SortState['direction']`
+(`modules/grid/context.ts:8`) is restated in 13 further type positions, and `PinSide`
+(`engine/grid-pin/overrides.ts:5`) in 17. `PinColumn` and `PinChange` are the same
+`(id, side: 'left' | 'right' | false) => void` under two names, and that contract has six spellings in all.
+The types stay mutually assignable, so nothing fails until one gains a value — the failure mode
+`variant-axis-boundary.test.ts:5-8` names in its own header for `Orientation`, whose scanner does not yet
+match these unions. The fix removes no lines and costs public surface: `GridColumnMenuContext` and
+`GridPinningState` are both barrelled, so typing their fields as `PinSide` puts it in the emitted `.d.ts`,
+which means dropping its `@internal` tag and owing a `docs/COMPONENTS.md` row under §12.2. Structural work,
+correctly gated by CLAUDE.md §3.1.
+
 ## Totals
 
-351 lines across 16 findings, against 153,257 lines of source — 0.23 percent. The three largest rows give
+355 lines across 17 findings, against 153,257 lines of source — 0.23 percent. The three largest rows give
 195 of them, and the two that close open rows from
 [2026-08-04](2026-08-04-SIMPLIFICATION-AUDIT.md) give 150. Fourteen of the sixteen are behaviour-neutral and
 can land independently. Three findings also remove a per-element allocation from a render path, which is
 worth more than their line counts suggest.
-
-The TypeScript lens is still sweeping; its rows land here when it reports.
