@@ -124,6 +124,34 @@ describe('PasswordConfirm warning rendering', () => {
 		expect(screen.getByText('Passwords do not match')).toBeInTheDocument()
 	})
 
+	it('keeps the live region mounted so the warning changes its children', () => {
+		renderUI(
+			<PasswordConfirm warning="Passwords do not match">
+				<PasswordInput name="password" />
+				<PasswordConfirmInput name="confirm" />
+			</PasswordConfirm>,
+		)
+
+		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+
+		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
+
+		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abc' } })
+
+		// The region is in the tree before it holds text. A live region that enters
+		// the DOM together with its content does not announce.
+		const region = screen.getByRole('status')
+
+		expect(region).toBeEmptyDOMElement()
+
+		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abcd' } })
+
+		// The same element, with new children: that change is what announces.
+		expect(screen.getByRole('status')).toBe(region)
+
+		expect(region).toHaveTextContent('Passwords do not match')
+	})
+
 	it('calls onMatchChange with true when passwords match', () => {
 		const onMatchChange = vi.fn()
 

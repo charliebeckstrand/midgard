@@ -57,8 +57,9 @@ export function PasswordConfirm({
 	const generatedWarningId = useId()
 
 	// Gate on truthiness, matching the render below: a falsy-but-non-null `warning`
-	// (the `cond && 'text'` idiom with `cond` false) renders no warning element, so
-	// handing the id to the confirm field's aria-describedby would dangle the idref.
+	// (the `cond && 'text'` idiom with `cond` false) puts no text in the region, so
+	// handing the id to the confirm field's aria-describedby would point it at an
+	// empty description.
 	const warningId = warning ? generatedWarningId : undefined
 
 	const context = useMemo(
@@ -66,17 +67,24 @@ export function PasswordConfirm({
 		[status, setConfirm, confirmHasFormError, warningId],
 	)
 
-	const liveWarning = useA11yLiveRegion({ className: 'pt-2' })
+	const liveWarning = useA11yLiveRegion()
 
 	return (
 		<PasswordConfirmContext value={context}>
 			<div data-slot="password-confirm" className={className} onInput={handleInput}>
 				<div className="space-y-4">{children}</div>
-				{status === 'warning' && warning && !confirmHasFormError && (
-					<div {...liveWarning} id={warningId}>
-						<Text color="amber">{warning}</Text>
-					</div>
-				)}
+				{/*
+					The region stays mounted and only its children change: a live region that
+					enters the DOM together with its text does not announce. The spacing moves
+					with the warning, so the empty region has no height.
+				*/}
+				<div {...liveWarning} id={warningId}>
+					{status === 'warning' && warning && !confirmHasFormError && (
+						<Text className="pt-2" color="amber">
+							{warning}
+						</Text>
+					)}
+				</div>
 			</div>
 		</PasswordConfirmContext>
 	)
