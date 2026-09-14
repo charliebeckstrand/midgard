@@ -51,7 +51,7 @@ describe('grid column pinning (real browser)', () => {
 			<div style={{ width: '480px' }}>
 				<Grid
 					resizable
-					header={{ position: 'sticky' }}
+					stickyHeader
 					maxHeight="240px"
 					columns={columns}
 					columnSizing={sizing}
@@ -285,7 +285,7 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 			<div style={{ width: '420px' }}>
 				<Grid
 					resizable
-					header={{ position: 'sticky' }}
+					stickyHeader
 					maxHeight="240px"
 					columns={columns}
 					columnSizing={sizing}

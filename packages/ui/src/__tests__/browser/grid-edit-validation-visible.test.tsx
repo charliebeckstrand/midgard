@@ -57,7 +57,7 @@ describe('grid edit validation visibility (real browser)', () => {
 					columns={columns}
 					rows={rows}
 					getKey={(row) => row.id}
-					header={{ position: 'sticky' }}
+					stickyHeader
 					maxHeight="140px"
 					editable={{ rows: editing, onRowsChange: setEditing, onCommit: () => {} }}
 				/>

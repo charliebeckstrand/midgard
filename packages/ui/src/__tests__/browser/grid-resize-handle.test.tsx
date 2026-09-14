@@ -39,7 +39,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			<div style={{ width: '420px' }}>
 				<Grid
 					resizable
-					header={{ position: 'sticky' }}
+					stickyHeader
 					maxHeight="200px"
 					columns={columns}
 					rows={employees}

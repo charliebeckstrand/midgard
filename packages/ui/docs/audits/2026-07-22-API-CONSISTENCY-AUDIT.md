@@ -62,7 +62,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | S7 | Rest-spread ordering: Checkbox/Radio let rest clobber the form cascade (T7) | `checkbox.tsx:100`, `radio.tsx:59` vs `switch.tsx:114-118` | Adopt Switch's protected ordering | ◯ OPEN |
 | S8 | `onHoldStart`/`onHoldCancel`/bare `onComplete` (T4) | `hold-button.tsx:22-26` | `onHoldComplete` | ✅ RESOLVED (`onHoldComplete`) |
 | S9 | `onFiles`/`onReject` asymmetric pair (T4) | `file-upload.tsx:37-39` | `onAccept`/`onReject` | ✅ RESOLVED (`onAccept` / `onReject`) |
-| S10 | `SelectCapitalize` unreachable from barrels (T9) | `select-trigger/capitalize.ts:8`, `select-trigger/index.ts:1` | Export it. `SelectTriggerProps` landed in [#1021](https://github.com/charliebeckstrand/midgard/pull/1021); the barrel's `export *` covers `select-trigger.tsx` alone, so `capitalize.ts` is still dark | ◯ OPEN |
+| S10 | `SelectCapitalize` unreachable from barrels (T9) | `select-trigger/capitalize.ts:8`, `select-trigger/index.ts:1` | Export it. `SelectTriggerProps` landed in [#1021](https://github.com/charliebeckstrand/midgard/pull/1021); the barrel's `export *` covers `select-trigger.tsx` alone, so `capitalize.ts` is still dark | ✅ RESOLVED (moot — `SelectCapitalize` no longer exists; `capitalize` is a boolean) |
 | S11 | Radio is the only toggle outside the §7.2 cascade — `name` binds on Checkbox/Switch, not Radio | `radio.tsx:17-22` vs `checkbox.tsx:47`, `switch.tsx:42` | Resolve the bound field in RadioGroup, or mirror the remark onto `RadioGroupProps` | ◯ OPEN |
 | S12 | CopyButton overloads `value` for the clipboard payload (T5) | `copy-button.tsx:14-15` | Rename `text` | ◯ OPEN |
 | S13 | ToggleIconButton controlled-only, no `onPressedChange`/`defaultPressed` (T3) | `toggle-icon-button.tsx:15-16` | Add both | ✅ RESOLVED (`defaultPressed` and `onPressedChange` added) |
@@ -132,7 +132,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | C2 | Choropleth→MapPlat seam renames five of six shared fields, both public | `choropleth-chart.tsx:30-42,240-247` vs `engine/map-region/data.ts:44-69` | Align MapPlat on the chart spelling (`formatValue`, `colorDomain`, `colorName`) | ◯ OPEN |
 | C3 | `tooltip` narrowed to bare `boolean` on Choropleth/MapPlat — click-pin unavailable on maps | `engine/types.ts:233` vs `choropleth-chart.tsx:126`, `map-plat.tsx:129` | Widen to the union | ◯ OPEN |
 | C4 | Single-series modeled three ways: tuple (pie) vs array-ignore (heatmap) vs array-first (choropleth) | `sector-chart.tsx:66`, `heatmap-chart-schema.ts:62-63`, `choropleth-chart.tsx:68-69` | Tuple everywhere | ◯ OPEN |
-| C5 | Unsupported base props accept-and-ignored instead of Omitted (T8) | `heatmap-chart.tsx:672-675`, `scatter-chart.tsx:554-555` vs `types.ts:99` | Extend the Omits | ◯ OPEN |
+| C5 | Unsupported base props accept-and-ignored instead of Omitted (T8) | `heatmap-chart.tsx:672-675`, `scatter-chart.tsx:554-555` vs `types.ts:99` | Extend the Omits | ✅ RESOLVED (heatmap Omits all three; scatter Omits `texture`) |
 | C6 | Scatter/bubble series `color` slot-only; cartesian takes slot-or-raw | `types.ts:125` vs `types.ts:59` | Widen to `ChartSeriesColor` | ◯ OPEN |
 | C7 | `binning` on choropleth/MapPlat, missing on heatmap despite claimed parity | `engine/map-region/data.ts:62` vs `heatmap-chart-schema.ts:43-47,5-7` | Add | ◯ OPEN |
 | C8 | `onCategoryClick` redeclared not shared; no click hook on scatter/heatmap/choropleth/map | `types.ts:325` + `sector-chart.tsx:89` | Shared handler type; add `onRegionClick`-shaped hooks | ◯ OPEN |
@@ -160,7 +160,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | G12 | Visibility state nested in `columnManager` while order/sizing/pinning are top-level bindings | `grid-data-types.ts:529-540` vs `:735,744,798` | Top-level `columnVisibility`; manager = dialog UI only | ◯ OPEN |
 | G13 | `filterType`/`filterOptions` duplicate query's types verbatim; filter state untyped (T9) | `types.ts:63,70` = `engine/types.ts:26,52` | Alias `QueryFieldType`; type the filter value | ◯ OPEN |
 | G14 | `GridSearch.filter: boolean` encodes two presentation modes | `types.ts:408` | `mode?: 'filter' \| 'highlight'` | ◯ OPEN |
-| G15 | `groupTotalRow`/`grandTotalRow?: 'bottom'` single-valued enums | `grid-data-types.ts:702,713` | Boolean, or commit to `'top'` | ◯ OPEN |
+| G15 | `groupTotalRow`/`grandTotalRow?: 'bottom'` single-valued enums | `grid-data-types.ts:702,713` | Boolean, or commit to `'top'` | ✅ RESOLVED (booleans, with the props audit row) |
 | G16 | `selectable` (-able, means "is the selector column") beside nouns `dragHandle`/`expander`; `readOnly` where flags predict `editable: false` | `types.ts:80,92,102,120` | `selector?: boolean`; `editable?: boolean` default true | ◯ OPEN |
 | G17 | QueryBuilder edits `value`, QuerySummary reads `root`; barrel renames `QueryGroup` → `QueryGroupNode` with no collision (T9) | `query-builder.tsx:17` vs `query-summary.tsx:11`; `index.ts:11-14` | `value` on the summary; export declared names | ◯ OPEN |
 | G18 | `condensed` boolean overlaps the `density` axis it sits beside | `grid-data-types.ts:638,663` | Fourth density level, or explicit decomposition | ◯ OPEN |

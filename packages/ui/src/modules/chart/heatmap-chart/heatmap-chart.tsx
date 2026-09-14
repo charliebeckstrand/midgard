@@ -654,14 +654,9 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		tooltip,
 		formatValue,
 		className,
-		// Destructured off so the unwired base switches never fall into `...label` and
-		// spread onto the plot element as invalid DOM attributes. The heatmap draws no
-		// header (a range legend, not a series frame), so `subtitle` joins them; `title`
-		// is kept off the DOM too but still names the context menu's fullscreen view.
-		animate: _animate,
-		texture: _texture,
+		// Kept off the DOM so it never spreads onto the plot element as an invalid
+		// attribute, but still names the context menu's fullscreen view.
 		title,
-		subtitle: _subtitle,
 		contextMenu,
 		...label
 	} = props

@@ -137,7 +137,7 @@ describe('Grid manual (server-side) row grouping', () => {
 				columns={columns}
 				rows={[westHeader, ...westChildren, eastHeader, ...eastChildren]}
 				getKey={getKey}
-				grandTotalRow="bottom"
+				grandTotalRow
 				groupBy={{
 					manual: true,
 					value: 'region',

@@ -166,7 +166,7 @@ describe('Grid aggregation rendering', () => {
 				rows={sales}
 				getKey={getKey}
 				groupBy={{ value: 'region' }}
-				groupTotalRow="bottom"
+				groupTotalRow
 			/>,
 		)
 
@@ -187,7 +187,7 @@ describe('Grid aggregation rendering', () => {
 				rows={sales}
 				getKey={getKey}
 				groupBy={{ value: 'region' }}
-				grandTotalRow="bottom"
+				grandTotalRow
 			/>,
 		)
 
@@ -200,9 +200,7 @@ describe('Grid aggregation rendering', () => {
 
 		expect(grandGrouped?.textContent).toContain('$12.00')
 
-		const flat = renderUI(
-			<Grid columns={columns} rows={sales} getKey={getKey} grandTotalRow="bottom" />,
-		)
+		const flat = renderUI(<Grid columns={columns} rows={sales} getKey={getKey} grandTotalRow />)
 
 		// Works with no grouping too.
 		expect(flat.container.querySelector('[data-total-row="grand"]')?.textContent).toContain('$1200')
@@ -220,8 +218,8 @@ describe('Grid aggregation rendering', () => {
 				rows={sales}
 				getKey={getKey}
 				groupBy={{ value: 'region' }}
-				groupTotalRow="bottom"
-				grandTotalRow="bottom"
+				groupTotalRow
+				grandTotalRow
 			/>,
 		)
 
@@ -237,7 +235,7 @@ describe('Grid aggregation rendering', () => {
 				rows={sales}
 				getKey={getKey}
 				groupBy={{ value: 'region' }}
-				groupTotalRow="bottom"
+				groupTotalRow
 			/>,
 		)
 

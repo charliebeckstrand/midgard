@@ -45,7 +45,7 @@ describe('grid virtualized fill with async rows', () => {
 			<div style={{ height: '400px', display: 'flex', flexDirection: 'column' }}>
 				<Grid<Row>
 					maxHeight="fill"
-					header={{ position: 'sticky' }}
+					stickyHeader
 					columns={columns}
 					rows={rows}
 					getKey={(row) => row.id}

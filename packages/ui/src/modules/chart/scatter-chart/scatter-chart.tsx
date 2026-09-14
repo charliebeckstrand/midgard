@@ -5,6 +5,7 @@ import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
+import type { AccessibleName } from '../../../types'
 import { once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
 import { ChartGridLines } from '../engine/chart-axes/grid-lines'
@@ -111,7 +112,8 @@ export type ScatterFrameProps = {
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type ScatterChartProps<T> = ChartBaseProps<T> &
+export type ScatterChartProps<T> = AccessibleName &
+	Omit<ChartBaseProps<T>, 'texture' | 'aria-label' | 'aria-labelledby'> &
 	ScatterFrameProps & {
 		/** The series to plot, one disc per parseable row; slot colours follow this order. */
 		series: ScatterChartSeries<T>[]
@@ -552,7 +554,7 @@ function ScatterHitLayer(props: {
  * unique x values the way the band charts key on categories: focus the plot and
  * the horizontal arrows walk x columns while the vertical arrows step the
  * points at one — duplicates included. The `texture` identity channel does not
- * apply to discs and is ignored here.
+ * apply to discs, so this chart does not take it.
  * @example
  * ```tsx
  * <ScatterChart

@@ -717,8 +717,8 @@ const AggregationExample = () => (
 		rows={salesData}
 		getKey={(row) => row.id}
 		groupBy={{ value: 'region' }}
-		groupTotalRow="bottom"
-		grandTotalRow="bottom"
+		groupTotalRow
+		grandTotalRow
 	/>
 )
 
@@ -742,7 +742,7 @@ const RowManagerExample = () => {
 				value: 'region',
 				rowGroups: { value: rowGroups, onValueChange: setRowGroups },
 			}}
-			groupTotalRow="bottom"
+			groupTotalRow
 		/>
 	)
 }
@@ -786,7 +786,7 @@ const PinnedExample = () => (
 	// sideways and they stay put while the middle columns slide beneath them.
 	<Grid
 		resizable
-		header={{ position: 'sticky' }}
+		stickyHeader
 		maxHeight="320px"
 		columns={employeeColumns}
 		rows={employees}
@@ -803,7 +803,7 @@ const PinnedSelectionExample = () => {
 	return (
 		<Grid
 			resizable
-			header={{ position: 'sticky' }}
+			stickyHeader
 			maxHeight="320px"
 			columns={[{ id: 'select', selectable: true }, ...employeeColumns]}
 			rows={employees}
@@ -819,7 +819,7 @@ const LockedLeftExample = () => (
 	// the same arrow instead of a pin control; the other columns scroll past it.
 	<Grid
 		resizable
-		header={{ position: 'sticky' }}
+		stickyHeader
 		maxHeight="320px"
 		columns={lockedLeftColumns}
 		rows={employees}
@@ -834,7 +834,7 @@ const LockedWithPinnedExample = () => (
 	// Name's edge arrow beside the other columns' interactive pin controls.
 	<Grid
 		resizable
-		header={{ position: 'sticky' }}
+		stickyHeader
 		maxHeight="320px"
 		columns={lockedMixedColumns}
 		rows={employees}
@@ -848,7 +848,7 @@ const LockedBothEdgesExample = () => (
 	// immutable, so the row stays anchored on both edges while the middle scrolls.
 	<Grid
 		resizable
-		header={{ position: 'sticky' }}
+		stickyHeader
 		maxHeight="320px"
 		columns={lockedBothColumns}
 		rows={employees}
@@ -1512,14 +1512,14 @@ export function Demo() {
 
 									<Example
 										title="Aggregation & totals"
-										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
+										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow grandTotalRow columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
 									>
 										<AggregationExample />
 									</Example>
 
 									<Example
 										title="Row manager"
-										code={code`<Grid groupBy={{ value: 'region', rowGroups: { value, onValueChange } }} groupTotalRow="bottom" />
+										code={code`<Grid groupBy={{ value: 'region', rowGroups: { value, onValueChange } }} groupTotalRow />
 // right-click a group header → "Manage rows" to color the groups and reorder them`}
 									>
 										<RowManagerExample />
@@ -1611,12 +1611,9 @@ export function Demo() {
 
 				<TabContent value="Header">
 					<Stack gap="xl">
-						<Example
-							title="Sticky header"
-							code={code`<Grid header={{ position: 'sticky' }} maxHeight="200px" />`}
-						>
+						<Example title="Sticky header" code={code`<Grid stickyHeader maxHeight="200px" />`}>
 							<Grid
-								header={{ position: 'sticky' }}
+								stickyHeader
 								maxHeight="200px"
 								columns={columns}
 								rows={[...people, ...people]}
