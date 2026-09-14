@@ -105,6 +105,7 @@ export function RangeSlider({
 			trackRef,
 			setRange,
 			overlap,
+			thumbRefs: [loThumbRef, hiThumbRef],
 		})
 
 	const handleKeyDown = useRangeKeyboard({

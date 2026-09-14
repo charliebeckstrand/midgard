@@ -1,12 +1,10 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { type KeyboardEvent, useCallback } from 'react'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'
-import type { OverlapMode, ThumbIndex } from './types'
+import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
-
-type ThumbButtonRefs = [RefObject<HTMLButtonElement | null>, RefObject<HTMLButtonElement | null>]
 
 /**
  * Raw value for an arrow / page / home / end key, or null when the key is not a

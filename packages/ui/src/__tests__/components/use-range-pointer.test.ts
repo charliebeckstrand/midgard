@@ -1,8 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ThumbButtonRefs } from '../../components/slider/range/types'
 import { useRangePointer } from '../../components/slider/range/use-range-pointer'
 import { makePointerEvent } from '../helpers'
+
+afterEach(() => {
+	document.body.innerHTML = ''
+})
 
 function makeTrack() {
 	const el = document.createElement('div')
@@ -10,6 +15,18 @@ function makeTrack() {
 	el.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 10 })
 
 	return el
+}
+
+// The buttons attach to the document: a detached node takes no focus, so an
+// assertion against `activeElement` would pass for the wrong reason.
+function makeThumbs(): { refs: ThumbButtonRefs; buttons: [HTMLButtonElement, HTMLButtonElement] } {
+	const lo = document.createElement('button')
+
+	const hi = document.createElement('button')
+
+	document.body.append(lo, hi)
+
+	return { refs: [{ current: lo }, { current: hi }], buttons: [lo, hi] }
 }
 
 function makeEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
@@ -25,6 +42,8 @@ function setup(
 ) {
 	const track = makeTrack()
 
+	const { refs, buttons } = makeThumbs()
+
 	const setRange = vi.fn()
 
 	const { result } = renderHook(() =>
@@ -37,10 +56,11 @@ function setup(
 			trackRef: { current: track },
 			setRange,
 			overlap: options.overlap ?? 'clamp',
+			thumbRefs: refs,
 		}),
 	)
 
-	return { api: result.current, track, setRange }
+	return { api: result.current, track, setRange, thumbs: buttons }
 }
 
 describe('useRangePointer', () => {
@@ -81,6 +101,22 @@ describe('useRangePointer', () => {
 		expect(updater([20, 80])).toEqual([20, 70])
 	})
 
+	it('onPointerDown focuses the thumb it resolves', () => {
+		const { api, thumbs } = setup({ current: [20, 80] })
+
+		api.onPointerDown(makeEvent({ clientX: 30 }))
+
+		expect(document.activeElement).toBe(thumbs[0])
+	})
+
+	it('onPointerDown focuses the upper thumb when the pointer is closer to it', () => {
+		const { api, thumbs } = setup({ current: [20, 80] })
+
+		api.onPointerDown(makeEvent({ clientX: 70 }))
+
+		expect(document.activeElement).toBe(thumbs[1])
+	})
+
 	it('onPointerDown captures the pointer on the target', () => {
 		const { api } = setup()
 
@@ -101,6 +137,20 @@ describe('useRangePointer', () => {
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
 		expect(setRange).not.toHaveBeenCalled()
+	})
+
+	it('onPointerDown is a no-op on a non-primary press', () => {
+		const { api, setRange } = setup()
+
+		const event = makeEvent({ clientX: 30, button: 2 })
+
+		api.onPointerDown(event)
+
+		expect(setRange).not.toHaveBeenCalled()
+
+		expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled()
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
 	})
 
 	it('onPointerMove does nothing before pointerdown', () => {
@@ -207,6 +257,22 @@ describe('useRangePointer', () => {
 		expect(updater([50, 50])[1]).toBe(90)
 	})
 
+	it('focuses the lower thumb when stacked and the pointer lands below the stack', () => {
+		const { api, thumbs } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 20 }))
+
+		expect(document.activeElement).toBe(thumbs[0])
+	})
+
+	it('focuses the upper thumb when stacked and the pointer lands above the stack', () => {
+		const { api, thumbs } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 90 }))
+
+		expect(document.activeElement).toBe(thumbs[1])
+	})
+
 	it('defers thumb selection until the first move reveals direction', () => {
 		const { api, setRange } = setup({ current: [50, 50] })
 
@@ -217,6 +283,26 @@ describe('useRangePointer', () => {
 		api.onPointerMove(makeEvent({ clientX: 60 }))
 
 		expect(setRange).toHaveBeenCalled()
+	})
+
+	it('focuses the upper thumb when the press lands on the stack', () => {
+		const { api, thumbs } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 50 }))
+
+		// The press defers the drag; thumb 1 matches `closestThumb`'s tie-break
+		// and keeps a press with no move keyboard-operable.
+		expect(document.activeElement).toBe(thumbs[1])
+	})
+
+	it('moves focus to the lower thumb when the first move resolves to it', () => {
+		const { api, thumbs } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 50 }))
+
+		api.onPointerMove(makeEvent({ clientX: 40 }))
+
+		expect(document.activeElement).toBe(thumbs[0])
 	})
 
 	it('stays pending when stacked at min and pointer moves left', () => {
@@ -289,6 +375,7 @@ describe('useRangePointer', () => {
 				trackRef: { current: null },
 				setRange,
 				overlap: 'clamp',
+				thumbRefs: makeThumbs().refs,
 			}),
 		)
 

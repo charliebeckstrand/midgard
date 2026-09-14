@@ -3,7 +3,7 @@
 import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'
-import type { OverlapMode, ThumbIndex } from './types'
+import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
 
 type ThumbRef = { current: ThumbIndex | null }
@@ -62,11 +62,29 @@ function applySwapResort(
 }
 
 /**
+ * Moves DOM focus to a thumb button, so a press also sets the keyboard focus
+ * (WAI-ARIA slider). `use-color-drag.ts` does the same for the color surfaces.
+ *
+ * @remarks
+ * `preventScroll` stops a scroll into view. A scroll moves the track rectangle
+ * below the captured pointer, and the next move makes the value jump.
+ * @internal
+ */
+function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
+	thumbRefs[thumb].current?.focus({ preventScroll: true })
+}
+
+/**
  * Pointer control for a range slider's two thumbs: pointerdown grabs the
  * closest thumb (or, on a stack, defers to the first move's direction), drag
  * writes the snapped value, and capture-end resets the drag.
  *
  * @returns Pointer handlers to spread on the track.
+ * @remarks
+ * The handler ignores non-primary buttons. A primary press calls
+ * `preventDefault` and then focuses the button of the thumb it resolves, so the
+ * press also sets the keyboard focus. A press on a stack focuses thumb 1; the
+ * focus moves to thumb 0 when the first move selects thumb 0.
  */
 export function useRangePointer(opts: {
 	min: number
@@ -77,8 +95,9 @@ export function useRangePointer(opts: {
 	trackRef: RefObject<HTMLDivElement | null>
 	setRange: (fn: (prev: [number, number] | undefined) => [number, number]) => void
 	overlap: OverlapMode
+	thumbRefs: ThumbButtonRefs
 }) {
-	const { min, max, step, disabled, current, trackRef, setRange, overlap } = opts
+	const { min, max, step, disabled, current, trackRef, setRange, overlap, thumbRefs } = opts
 
 	const update = useRangeUpdate({ min, max, step, setRange, overlap })
 
@@ -116,7 +135,9 @@ export function useRangePointer(opts: {
 
 	const onPointerDown = useCallback(
 		(event: PointerEvent) => {
-			if (disabled) return
+			// The handler ignores non-primary buttons, so a context-menu press
+			// writes no value; `use-color-drag.ts` guards the same way.
+			if (disabled || event.button !== 0) return
 
 			event.preventDefault()
 
@@ -130,6 +151,7 @@ export function useRangePointer(opts: {
 				// Pointer off the stack: pick the thumb on that side and jump it.
 				if (snapped < current[0]) {
 					draggingRef.current = 0
+					focusThumb(thumbRefs, 0)
 					update(0, raw)
 
 					return
@@ -137,26 +159,33 @@ export function useRangePointer(opts: {
 
 				if (snapped > current[0]) {
 					draggingRef.current = 1
+					focusThumb(thumbRefs, 1)
 					update(1, raw)
 
 					return
 				}
 
 				// Pointer on the stack: defer until the first move shows direction.
+				// Thumb 1 matches `closestThumb`'s equidistant tie-break, and keeps
+				// a press with no move keyboard-operable.
 				pendingStackedRef.current = event.clientX
+				focusThumb(thumbRefs, 1)
 
 				return
 			}
 
 			const thumb = closestThumb(raw)
 			draggingRef.current = thumb
+			focusThumb(thumbRefs, thumb)
 			update(thumb, raw)
 		},
-		[disabled, closestThumb, update, valueFromPointer, current, min, max, step],
+		[disabled, closestThumb, update, valueFromPointer, current, min, max, step, thumbRefs],
 	)
 
 	const onPointerMove = useCallback(
 		(event: PointerEvent) => {
+			const wasPending = pendingStackedRef.current !== null
+
 			const dragging = resolveDraggingThumb(event.clientX, draggingRef, pendingStackedRef, {
 				stacked: current[0],
 				min,
@@ -164,6 +193,10 @@ export function useRangePointer(opts: {
 			})
 
 			if (dragging === null) return
+
+			// The stacked press focused thumb 1 and deferred the drag; the focus
+			// follows when the first move resolves to thumb 0.
+			if (wasPending && dragging === 0) focusThumb(thumbRefs, 0)
 
 			const raw = valueFromPointer(event.clientX)
 
@@ -176,7 +209,7 @@ export function useRangePointer(opts: {
 
 			update(dragging, raw)
 		},
-		[update, valueFromPointer, current, min, max, step, overlap],
+		[update, valueFromPointer, current, min, max, step, overlap, thumbRefs],
 	)
 
 	const endDrag = useCallback(() => {
