@@ -5,7 +5,7 @@ import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
-import type { CreditCardBrand, CreditCardBrandInfo } from './types'
+import type { CreditCardBrand } from './types'
 
 /** Props for {@link CreditCardInputCvv}; extends Input minus the masked value and change slots. */
 export type CreditCardInputCvvProps = Omit<
@@ -17,26 +17,16 @@ export type CreditCardInputCvvProps = Omit<
 	placeholder?: string
 	onValueChange?: (value: string) => void
 	/** Brand controls the CVV length (Amex accepts 4 digits; others accept 3). */
-	brand?: CreditCardBrand | CreditCardBrandInfo
+	brand?: CreditCardBrand
 	/** Fires on every change with the CVV's length verdict (vs the brand-derived max). */
 	onValidityChange?: (validity: CardValidity) => void
 }
 
-function resolveBrand(brand: CreditCardInputCvvProps['brand']): CreditCardBrand | undefined {
-	if (!brand) return undefined
-
-	if (typeof brand === 'string') return brand
-
-	return brand.brand
-}
-
-function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
+function resolveCvvLength(brand: CreditCardBrand | undefined): number {
 	if (!brand) return 4
 
 	// Same rule as `validateCardCvv`: Amex takes 4 digits, every other brand 3.
-	if (typeof brand === 'string') return brand === 'amex' ? 4 : 3
-
-	return brand.cvvLength
+	return brand === 'amex' ? 4 : 3
 }
 
 /**
@@ -65,7 +55,7 @@ export function CreditCardInputCvv({
 
 	const maxLength = resolveCvvLength(brand)
 
-	const resolvedBrand = resolveBrand(brand)
+	const resolvedBrand = brand
 
 	const masked = useMaskInput({
 		name,
