@@ -241,10 +241,15 @@ export default defineConfig({
 				// Integration suites: virtualizer, canvas, PDF, map — integrations
 				// that schedule work past a test's lifetime or lean on jsdom's
 				// edges — plus suites that vi.mock a shared source module
-				// (use-chat-scroll) and need forks' per-file module graph for the
-				// mock to stay authoritative. Process-isolated forks keep their
-				// leakage from perturbing sibling files; everything else stays on
-				// the fast shared-worker pool above.
+				// (map-points-render) and need forks' per-file module graph for
+				// the mock to stay authoritative. A suite that needs a cold
+				// module registry belongs here too: `vi.resetModules()` is barred
+				// in the shared-registry projects, so a case that must re-evaluate
+				// a module to empty its module-scope state
+				// (code-block-load-shiki, for one memo cell) cannot run above.
+				// Process-isolated forks keep their leakage from perturbing
+				// sibling files; everything else stays on the fast shared-worker
+				// pool above.
 				test: {
 					name: 'integration',
 					setupFiles,

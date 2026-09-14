@@ -54,9 +54,11 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 3.10 Stage each file by name and read `git diff --staged` before you commit. Commit as `fix(ui): <subject>` with a body that says what and why, names the scope and the rows closed, and ends with the attribution lines. One logical change for each commit; the test and the fix can share one.
 
-3.11 Push with a ten-minute timeout (`CLAUDE.md` §4.3). Stop there. Open a pull request only when the reader asks for one, and then through the GitHub MCP tools of §3.2. Report the rows closed, the red log, the green log, and the §10.3 reason when one exists, so the reader can order the pull request.
+3.11 Delete each probe, each scratch file, and each temporary harness that you made. Then run `git status` and confirm that the worktree is clean. A scratch file that stays fails the pre-push gate: `biome check .` and the boundary scans read the tree, not the index.
 
-3.12 On a rebase conflict in the record's findings table, keep both sides' cells; each row's cell is `◯ OPEN`, `◐ FIXED`, or its own pull request.
+3.12 Push with a ten-minute timeout (`CLAUDE.md` §4.3). Stop there. Open a pull request only when the reader asks for one, and then through the GitHub MCP tools of §3.2. Report the rows closed, the red log, the green log, and the §10.3 reason when one exists, so the reader can order the pull request.
+
+3.13 On a rebase conflict in the record's findings table, keep both sides' cells; each row's cell is `◯ OPEN`, `◐ FIXED`, or its own pull request.
 
 ## 4. Output
 

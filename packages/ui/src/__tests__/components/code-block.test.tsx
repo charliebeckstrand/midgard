@@ -1,10 +1,11 @@
-import { afterEach, describe, expect, it } from 'vitest'
-import { CodeBlock, loadShiki } from '../../components/code/code-block'
+import { describe, expect, it } from 'vitest'
+import { CodeBlock } from '../../components/code/code-block'
 import { bySlot, renderUI, screen, waitFor } from '../helpers'
-import { failShikiImport } from '../mocks/shiki'
 
 // `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here
 // would bleed across files (see markdown.test.tsx for the failure it caused).
+// The `loadShiki` cases need their own registry, so they sit in
+// boundary/code-block-load-shiki.test.ts, which runs on forks.
 
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {
@@ -75,46 +76,5 @@ describe('CodeBlock', () => {
 
 		// Let pending microtasks settle so the effect cleanup runs.
 		await Promise.resolve()
-	})
-})
-
-describe('loadShiki', () => {
-	afterEach(() => failShikiImport(null))
-
-	it('memoises a resolved import so the heavy module is fetched once', async () => {
-		const first = loadShiki()
-
-		await expect(first).resolves.toBeDefined()
-
-		expect(loadShiki()).toBe(first)
-	})
-
-	it('drops a rejected import from the memo so a later call retries', async () => {
-		// A second instance of the module, so its `shikiPromise` cell starts empty.
-		// One registry serves every file a worker runs, so a sibling render has
-		// already memoised a resolved import, and `vi.resetModules()` is barred
-		// (see test-isolation-boundary.test.ts). The query suffix gives this case
-		// its own instance; the shared one stays untouched. Keep the specifier in
-		// a variable: TypeScript resolves a literal `import()` argument, and the
-		// suffixed path has no declaration.
-		const coldSpecifier = '../../components/code/code-block?cold'
-
-		const { loadShiki: loadShikiCold } = (await import(
-			/* @vite-ignore */ coldSpecifier
-		)) as typeof import('../../components/code/code-block')
-
-		failShikiImport(new Error('chunk fetch failed'))
-
-		const rejected = loadShikiCold()
-
-		await expect(rejected).rejects.toThrow()
-
-		failShikiImport(null)
-
-		const retry = loadShikiCold()
-
-		expect(retry).not.toBe(rejected)
-
-		await expect(retry).resolves.toBeDefined()
 	})
 })
