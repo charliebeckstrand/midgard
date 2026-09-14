@@ -137,10 +137,6 @@ export type GridGroupManagerProps = {
 	order: (string | number)[]
 	/** Commits the next column order after a within-ungrouped reorder. */
 	onOrderChange: (order: (string | number)[]) => void
-	/** Palette presets for the color Menu; defaults to the full standard + extended palette. */
-	colorOptions?: PaletteColor[]
-	/** Label on the "New group" button. @defaultValue 'New group' */
-	addGroupLabel?: ReactNode
 }
 
 /**
@@ -164,8 +160,6 @@ export function GridGroupManager({
 	onToggle,
 	order,
 	onOrderChange,
-	colorOptions = DEFAULT_COLOR_OPTIONS,
-	addGroupLabel = 'New group',
 }: GridGroupManagerProps) {
 	const mgr = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
 
@@ -203,7 +197,7 @@ export function GridGroupManager({
 		groups,
 		hidden,
 		onToggle,
-		colorOptions,
+		colorOptions: DEFAULT_COLOR_OPTIONS,
 		renameGroup: mgr.renameGroup,
 		recolorGroup: mgr.recolorGroup,
 		removeGroup: mgr.removeGroup,
@@ -244,7 +238,7 @@ export function GridGroupManager({
 
 				<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
 					<Icon icon={<Plus />} />
-					{addGroupLabel}
+					New group
 				</Button>
 			</div>
 
