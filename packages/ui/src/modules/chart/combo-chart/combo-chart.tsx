@@ -188,7 +188,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend), {
 		zeroBaseline: true,
 		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
 		// Only the line and area series paint past their coordinate — bars end at

@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
+import {
+	type ReactNode,
+	useCallback,
+	useDeferredValue,
+	useEffect,
+	useEffectEvent,
+	useMemo,
+	useRef,
+} from 'react'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { MapSeriesColor } from '../../recipes/kata/map'
@@ -401,6 +409,30 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		emphasis?: string | null
 		/**
+		 * Fires with the legend id this plat's own legend emphasises, or `null` when
+		 * the emphasis clears.
+		 *
+		 * The plat's legend writes that state on hover and on focus and reported
+		 * nothing, so a caller could either read the emphasis or keep the plat's own
+		 * legend behaviour, never both: passing
+		 * {@link MapPlatProps.emphasis} silently takes the plat's legend out of the
+		 * decision. This reports what that legend wants whether or not `emphasis` is
+		 * controlled, which is the other half of the §7.3 triad. It carries only ids
+		 * the legend actually published, so a stale id from an unmounted overlay
+		 * never arrives.
+		 */
+		onEmphasisChange?: (emphasis: string | null) => void
+		/**
+		 * Fires with the set of legend ids the plat's legend has switched off.
+		 *
+		 * Observation only. The legend owns the set and there is no `hidden` option
+		 * to pair with. Hiding a group changes what the reader sees and reported
+		 * nothing, so the only readout was the DOM. Use it to mirror one plat's
+		 * legend onto another, or to persist what a reader switched off. The ids are
+		 * the legend's own — a region category or an overlay entry.
+		 */
+		onHiddenChange?: (hidden: ReadonlySet<string>) => void
+		/**
 		 * Overlay marks: {@link MapRoute}, {@link MapPoint}, {@link MapPoints},
 		 * {@link MapMarker}, {@link MapGeofence}. They draw in the order they are
 		 * given, so a zone drawn before the marks it holds sits behind them.
@@ -637,6 +669,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		pending,
 		selectedOverlay,
 		emphasis: controlledEmphasis,
+		onEmphasisChange,
+		onHiddenChange,
 		className,
 		children,
 		// Destructured off so the region-data fields nothing else here reads never
@@ -685,7 +719,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		domain: valueExtent,
 	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel, nameRegions)
 
-	const { hidden: switched, toggle, setFocus, emphasis: activeFocus } = useMapToggle(animate)
+	const {
+		hidden: switched,
+		toggle,
+		setFocus,
+		emphasis: activeFocus,
+	} = useMapToggle(animate, onHiddenChange)
 
 	const { entries, register } = useMapLegendRegistry()
 
@@ -823,6 +862,29 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const focused = controlledEmphasis === undefined ? activeFocus : controlledEmphasis
 
 	const emphasis = focused !== null && legendIds.has(focused) ? focused : null
+
+	/*
+	 * What this plat's OWN legend emphasises, past the same live-id gate.
+	 *
+	 * Reported rather than `emphasis`, because a controlled plat would otherwise
+	 * echo the caller's own prop back at it. This is the half of the §7.3 triad
+	 * the caller cannot see: the legend's intent, whoever holds the state.
+	 */
+	const ownEmphasis = activeFocus !== null && legendIds.has(activeFocus) ? activeFocus : null
+
+	const notifyEmphasisChange = useEffectEvent((next: string | null) => {
+		onEmphasisChange?.(next)
+	})
+
+	const reportedEmphasisRef = useRef(ownEmphasis)
+
+	useEffect(() => {
+		if (reportedEmphasisRef.current === ownEmphasis) return
+
+		reportedEmphasisRef.current = ownEmphasis
+
+		notifyEmphasisChange(ownEmphasis)
+	}, [ownEmphasis])
 
 	// The hover provider's pointed-emphasis gate: a region takes the emphasis
 	// only while its category is matched and shown, resolved through the same

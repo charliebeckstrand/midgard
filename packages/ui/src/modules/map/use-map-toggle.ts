@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { useMediaQuery } from '../../hooks/use-media-query'
 import { toggleItem } from '../../utilities'
 import { REGION_FADE } from './engine/map-motion'
@@ -49,9 +49,13 @@ export type MapToggle = {
  * effect on the next toggle.
  *
  * @param animate - Whether the plat animates, so a toggle has a wash to wait for.
+ * @param onHiddenChange - Reports each committed hidden set to the caller.
  * @internal
  */
-export function useMapToggle(animate: boolean): MapToggle {
+export function useMapToggle(
+	animate: boolean,
+	onHiddenChange?: (hidden: ReadonlySet<string>) => void,
+): MapToggle {
 	const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set())
 
 	const [focus, setFocus] = useState<string | null>(null)
@@ -90,6 +94,27 @@ export function useMapToggle(animate: boolean): MapToggle {
 		},
 		[hidden, washes],
 	)
+
+	/*
+	 * One report for each committed hidden set.
+	 *
+	 * Read from the committed value rather than from `toggle`, because the set is
+	 * written through an updater. The ref seeds from the empty set, so a map with
+	 * every entry shown says nothing on mount.
+	 */
+	const notifyHiddenChange = useEffectEvent((next: ReadonlySet<string>) => {
+		onHiddenChange?.(next)
+	})
+
+	const reportedHiddenRef = useRef(hidden)
+
+	useEffect(() => {
+		if (reportedHiddenRef.current === hidden) return
+
+		reportedHiddenRef.current = hidden
+
+		notifyHiddenChange(hidden)
+	}, [hidden])
 
 	return {
 		hidden,

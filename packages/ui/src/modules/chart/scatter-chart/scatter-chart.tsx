@@ -634,7 +634,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const formatX = axesConfig.x?.format ?? formatChartValue
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(resolvedLegend.onHiddenChange)
 
 	const metas = scatterMetas(data, series)
 

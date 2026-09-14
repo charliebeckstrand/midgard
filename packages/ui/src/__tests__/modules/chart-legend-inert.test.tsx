@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest'
-import { BarChart } from '../../modules/chart'
+import { describe, expect, it, vi } from 'vitest'
+import { BarChart, DonutChart, ScatterChart } from '../../modules/chart'
 import { resolveLegend } from '../../modules/chart/engine/chart-legend/schema'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const DATA = [
 	{ quarter: 'Q1', revenue: 40, costs: 24 },
@@ -96,5 +96,89 @@ describe('chart legend inert prop', () => {
 		expect(legend?.hasAttribute('inert')).toBe(true)
 
 		expect(legend?.className).toContain('flex-col')
+	})
+})
+
+describe('chart legend onHiddenChange', () => {
+	const firstEntry = (container: HTMLElement) =>
+		allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
+
+	it('reports the set a legend switch turns off, and the set it restores', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container } = renderUI(chart({ onHiddenChange }))
+
+		// Every series shows on mount; the empty set is the rest state.
+		expect(onHiddenChange).not.toHaveBeenCalled()
+
+		fireEvent.click(firstEntry(container))
+
+		expect(onHiddenChange).toHaveBeenCalledExactlyOnceWith(new Set([0]))
+
+		fireEvent.click(firstEntry(container))
+
+		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set())
+
+		expect(onHiddenChange).toHaveBeenCalledTimes(2)
+	})
+
+	it('carries every index switched off, not only the last', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container } = renderUI(chart({ onHiddenChange }))
+
+		const items = allBySlot(container, 'chart-legend-item')
+
+		fireEvent.click(items[0] as HTMLButtonElement)
+
+		fireEvent.click(items[1] as HTMLButtonElement)
+
+		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set([0, 1]))
+	})
+
+	// An inert legend needs no gate of its own: the subtree carries the native
+	// `inert` attribute, which takes its switches off the pointer and out of the
+	// tab order. That is pinned above, and jsdom does not enforce `inert`, so a
+	// click here would assert the environment rather than the product.
+
+	// The three engines behind the eight chart types each own their own toggle
+	// call, so each needs its own proof that the report is wired.
+	it('reports from the sector engine', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container } = renderUI(
+			<DonutChart
+				aria-label="Share"
+				data={DATA}
+				series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+				legend={{ onHiddenChange }}
+				width={600}
+			/>,
+		)
+
+		fireEvent.click(firstEntry(container))
+
+		expect(onHiddenChange).toHaveBeenCalledExactlyOnceWith(new Set([0]))
+	})
+
+	it('reports from the scatter engine', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Costs against revenue"
+				data={DATA}
+				series={[
+					{ xKey: 'revenue', yKey: 'costs', yName: 'Costs' },
+					{ xKey: 'revenue', yKey: 'revenue', yName: 'Revenue' },
+				]}
+				legend={{ onHiddenChange }}
+				width={600}
+			/>,
+		)
+
+		fireEvent.click(firstEntry(container))
+
+		expect(onHiddenChange).toHaveBeenCalledExactlyOnceWith(new Set([0]))
 	})
 })

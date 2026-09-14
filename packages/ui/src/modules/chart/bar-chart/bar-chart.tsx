@@ -120,7 +120,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	// the hook and frame read the value, the legend the flag.
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend), {
 		zeroBaseline: true,
 		swatch: () => 'rect',
 		orientation,

@@ -58,6 +58,8 @@ export type CartesianData<T> = Pick<
 > & {
 	/** The `legend` prop already resolved to its show value — the entry component resolves it before the hook reads it. */
 	legend?: ResolvedLegend['value']
+	/** The legend's hidden-set report, carried from the caller's `legend` object form. */
+	legendOnHiddenChange?: ResolvedLegend['onHiddenChange']
 	/** Whether the category axis tilts colliding labels, resolved from `axes.x.tickRotation`. */
 	tickRotation?: boolean
 }
@@ -70,15 +72,15 @@ function categoryTickRotation(axes: boolean | CartesianAxes | undefined): boolea
 /**
  * The hook input picked off an entry component's props with its `legend`
  * resolved — the one place the four cartesian charts' shared field list lives,
- * so each hands the hook `cartesianData(props, resolvedLegend.value)` rather
- * than repeating it. The header fields travel to the frame through the props'
- * rest, and the hook reads them too so its tier reserves the header band.
+ * so each hands the hook `cartesianData(props, resolvedLegend)` rather than
+ * repeating it. The header fields travel to the frame through the props' rest,
+ * and the hook reads them too so its tier reserves the header band.
  *
  * @internal
  */
 export function cartesianData<T>(
 	props: CartesianChartProps<T>,
-	legend: ResolvedLegend['value'],
+	legend: ResolvedLegend,
 ): CartesianData<T> {
 	return {
 		data: props.data,
@@ -88,7 +90,8 @@ export function cartesianData<T>(
 		height: props.height,
 		aspectRatio: props.aspectRatio,
 		axes: props.axes,
-		legend,
+		legend: legend.value,
+		legendOnHiddenChange: legend.onHiddenChange,
 		reference: props.reference,
 		tickRotation: categoryTickRotation(props.axes),
 		onCategoryClick: props.onCategoryClick,
@@ -837,7 +840,7 @@ export function useChartCartesian<T>(
 	// gate on this downstream.
 	const drawAxes = draw && policy.tier !== 'spark'
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(props.legendOnHiddenChange)
 
 	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle()
 

@@ -287,7 +287,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend), {
 		zeroBaseline: true,
 		swatch: () => 'line',
 		stack: stacked,
