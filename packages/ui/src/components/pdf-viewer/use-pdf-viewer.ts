@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefObject, SyntheticEvent } from 'react'
-import { useCallback, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useMediaQuery, useMinBreakpoint } from '../../hooks'
 import type {
 	PdfViewerFit,
@@ -24,6 +24,30 @@ import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
+/** What a load that rasterized no page reports; every page was skipped, so there is no document. @internal */
+const EMPTY_DOCUMENT = new Error('The document rasterized no pages.')
+
+/**
+ * How a settled snapshot reports: the error to raise, `null` for a clean load, or
+ * `'pending'` where nothing has settled yet.
+ *
+ * A src nothing is resident for publishes the frozen empty snapshot, which is
+ * shape-identical to a load that rasterized nothing. `started` is what parts them.
+ *
+ * @internal
+ */
+function documentSettle(
+	error: Error | null,
+	pageCount: number,
+	started: boolean,
+): Error | null | 'pending' {
+	if (error) return error
+
+	if (pageCount > 0) return null
+
+	return started ? EMPTY_DOCUMENT : 'pending'
+}
+
 /** Inputs to {@link usePdfViewer}; mirrors the consumer-facing {@link PdfViewerProps} minus presentation (`className`, `aria-label`). @internal */
 type PdfViewerOptions = {
 	pages?: PdfViewerPage[]
@@ -32,6 +56,8 @@ type PdfViewerOptions = {
 	page?: number
 	defaultPage?: number
 	onPageChange?: (page: number) => void
+	onLoad?: (pageCount: number) => void
+	onError?: (error: Error) => void
 	defaultZoom?: number
 	zoomLevels?: number[]
 	fit?: PdfViewerFit
@@ -149,6 +175,8 @@ export function usePdfViewer({
 	page,
 	defaultPage = 1,
 	onPageChange,
+	onLoad,
+	onError,
 	defaultZoom = 1,
 	zoomLevels = DEFAULT_ZOOM_LEVELS,
 	fit = 'page',
@@ -173,6 +201,17 @@ export function usePdfViewer({
 	 */
 	const notifyHighlightsVisible = useEffectEvent((visible: boolean) => {
 		onHighlightsVisibleChange?.(visible)
+	})
+
+	// The document lifecycle reports the same way, for the same reason: the load
+	// settles outside any call site this hook runs, so the report watches the
+	// committed snapshot instead.
+	const notifyLoad = useEffectEvent((pageCount: number) => {
+		onLoad?.(pageCount)
+	})
+
+	const notifyError = useEffectEvent((error: Error) => {
+		onError?.(error)
 	})
 
 	/*
@@ -259,6 +298,57 @@ export function usePdfViewer({
 	} = usePdfViewerDocument(shouldLoadFromSrc ? src : undefined)
 
 	const pages = pagesProp ?? loadedPages
+
+	/*
+	 * One report for each settle of one `src`.
+	 *
+	 * The load resolves into a module cache, not at a call site this hook runs, so
+	 * there is no line to hang the report on; the committed snapshot is the only
+	 * honest source. A cache hit reports on the first render, which is correct: the
+	 * document IS ready. A viewer given `pages` directly loads nothing and reports
+	 * nothing.
+	 *
+	 * The ref keys on the src AND what it reported, not on the src alone. A failure
+	 * is published to the subscribers standing at the time and never cached, so the
+	 * next mount retries the same src — and this viewer, still subscribed, must
+	 * report the success that retry produces rather than hold its error banner over
+	 * a document rendering beside it.
+	 *
+	 * A settle with no pages and no error is a settle all the same: every page was
+	 * skipped for want of a 2D context or a refused `toBlob`. It reports as a
+	 * failure, because a viewer painting an empty document has not loaded one, and
+	 * exactly one of the two callbacks owes an answer for each src.
+	 */
+	const reportedRef = useRef<string | undefined>(undefined)
+
+	// A src nothing is resident for publishes the frozen empty snapshot, which is
+	// shape-identical to a load that rasterized nothing. They part on whether a load
+	// was ever seen in flight for this src; a cache hit skips it and arrives with
+	// pages, which needs no flag.
+	const startedRef = useRef<string | undefined>(undefined)
+
+	useEffect(() => {
+		if (!shouldLoadFromSrc) return
+
+		if (loading) {
+			startedRef.current = src
+
+			return
+		}
+
+		const settled = documentSettle(error, loadedPages.length, startedRef.current === src)
+
+		if (settled === 'pending') return
+
+		const reported = `${settled === null ? 'load' : 'error'}:${src}`
+
+		if (reportedRef.current === reported) return
+
+		reportedRef.current = reported
+
+		if (settled) notifyError(settled)
+		else notifyLoad(loadedPages.length)
+	}, [shouldLoadFromSrc, loading, error, loadedPages, src])
 
 	// Prefer the same-origin blob URL from the hook for download/print.
 	// Falls back to `src` for same-origin docs; cross-origin docs open in

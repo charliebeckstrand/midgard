@@ -44,6 +44,17 @@ export type AddressInputProps = {
 	 * @defaultValue 3
 	 */
 	minQueryLength?: number
+	/**
+	 * Fires when the `provider` rejects, with whatever it threw.
+	 *
+	 * The field cannot report this itself: a failed fetch empties the suggestion
+	 * list, which is also what a genuine no-match renders, so "no results" means
+	 * both. A provider outage, a refused key, and a network failure all land here.
+	 * An aborted fetch does not: a new keystroke or a closed menu cancels the
+	 * previous request by design. Use it to surface the failure, or to fall back to
+	 * a plain text field.
+	 */
+	onError?: (error: unknown) => void
 	className?: string
 	/** Accessible name for the field. Defaults to the placeholder. */
 	'aria-label'?: string
@@ -80,6 +91,7 @@ export function AddressInput({
 	provider = photonProvider,
 	debounceMs = 500,
 	minQueryLength = 3,
+	onError,
 	placeholder = 'Enter an address',
 	className,
 	'aria-label': ariaLabel,
@@ -95,6 +107,7 @@ export function AddressInput({
 		query,
 		debounceMs,
 		minQueryLength,
+		onError,
 	})
 
 	// The Combobox this wraps composes the §7.2 cascade itself, so `name` is

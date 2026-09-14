@@ -104,6 +104,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		reference,
 		labels,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label

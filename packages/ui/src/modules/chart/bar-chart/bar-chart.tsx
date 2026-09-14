@@ -111,6 +111,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		texture = false,
 		reference,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label

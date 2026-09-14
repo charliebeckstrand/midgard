@@ -72,6 +72,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 					rangeEnd={state.calendar.rangeEnd}
 					hoverDate={state.calendar.hoverDate}
 					onHoverDate={state.calendar.onHoverDate}
+					onMonthChange={props.onMonthChange}
 					active={state.calendar.active}
 					footerRef={state.calendar.footerRef}
 				/>

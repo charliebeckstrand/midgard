@@ -2,6 +2,7 @@
 
 import { type ChangeEvent, type DragEvent, useCallback, useRef, useState } from 'react'
 import { announce } from '../../core'
+import { useOpenChange } from '../../hooks/use-open-change'
 import {
 	type FileRejection,
 	fileListToArray,
@@ -15,6 +16,7 @@ type FileHandlersOptions = {
 	maxCount?: number
 	onAccept?: (files: File[]) => void
 	onReject?: (rejected: FileRejection[]) => void
+	onDragOverChange?: (dragOver: boolean) => void
 }
 
 /**
@@ -27,7 +29,7 @@ type FileHandlersOptions = {
  * drop handling.
  *
  * @param options - Constraints (`maxSize`, `maxCount`), the `disabled` flag, and
- * the `onAccept`/`onReject` callbacks.
+ * the `onAccept`/`onReject`/`onDragOverChange` callbacks.
  * @returns The hidden input `ref`, current `dragOver` flag and accepted `files`,
  * plus the `openPicker`, `handleChange`, `clearFiles`, and drag/drop event
  * handlers to spread onto the trigger and dropzone.
@@ -38,6 +40,7 @@ export function useFileUploadHandlers({
 	maxCount,
 	onAccept,
 	onReject,
+	onDragOverChange,
 }: FileHandlersOptions) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
@@ -48,6 +51,11 @@ export function useFileUploadHandlers({
 	const [files, setFiles] = useState<File[]>([])
 
 	const dragOver = dragDepth > 0
+
+	// `dragOver` is derived from the counter, and four routes write that counter.
+	// The report watches the committed flag, so a crossing between two children
+	// stays silent and a mid-drag `disabled` flip still closes the highlight.
+	useOpenChange(dragOver, onDragOverChange)
 
 	const openPicker = useCallback(() => {
 		if (!disabled) inputRef.current?.click()

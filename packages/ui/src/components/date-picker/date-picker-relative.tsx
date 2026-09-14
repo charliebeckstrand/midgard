@@ -162,6 +162,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								clearable={false}
 								value={state.custom.start ?? undefined}
 								onValueChange={state.custom.onStartChange}
+								onMonthChange={props.onMonthChange}
 								min={props.min}
 								max={state.custom.end ?? props.max}
 								size={size}
@@ -174,6 +175,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								clearable={false}
 								value={state.custom.end ?? undefined}
 								onValueChange={state.custom.onEndChange}
+								onMonthChange={props.onMonthChange}
 								min={state.custom.start ?? props.min}
 								max={props.max}
 								size={size}

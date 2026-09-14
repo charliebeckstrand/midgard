@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { PasswordInput } from '../../components/password-input'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
@@ -108,5 +108,56 @@ describe('PasswordInput', () => {
 		rerender(<PasswordInput />)
 
 		expect(bySlot(container, 'password-input')).toHaveAttribute('type', 'text')
+	})
+})
+
+describe('PasswordInput onVisibleChange', () => {
+	it('reports the reveal and the re-mask from the suffix toggle', async () => {
+		const user = userEvent.setup()
+
+		const onVisibleChange = vi.fn()
+
+		renderUI(<PasswordInput onVisibleChange={onVisibleChange} />)
+
+		// A masked field is the rest state, not a transition.
+		expect(onVisibleChange).not.toHaveBeenCalled()
+
+		const toggle = screen.getByRole('button', { name: 'Show password' })
+
+		await user.click(toggle)
+
+		expect(onVisibleChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		await user.click(toggle)
+
+		expect(onVisibleChange).toHaveBeenLastCalledWith(false)
+
+		expect(onVisibleChange).toHaveBeenCalledTimes(2)
+	})
+
+	// The field re-masks when it goes out of play, and the report follows what is
+	// actually on screen rather than the toggle's own flag.
+	it('reports the re-mask when the field becomes disabled while revealed', async () => {
+		const user = userEvent.setup()
+
+		const onVisibleChange = vi.fn()
+
+		const { rerender } = renderUI(<PasswordInput onVisibleChange={onVisibleChange} />)
+
+		await user.click(screen.getByRole('button', { name: 'Show password' }))
+
+		expect(onVisibleChange).toHaveBeenLastCalledWith(true)
+
+		rerender(<PasswordInput disabled onVisibleChange={onVisibleChange} />)
+
+		expect(onVisibleChange).toHaveBeenLastCalledWith(false)
+	})
+
+	// Nothing can flip the reveal without the toggle, so the absent button is the
+	// whole of it; the mount silence is asserted by the first case above.
+	it('renders no toggle to report from when suppressed', () => {
+		renderUI(<PasswordInput toggleButton={false} />)
+
+		expect(screen.queryByRole('button', { name: 'Show password' })).not.toBeInTheDocument()
 	})
 })

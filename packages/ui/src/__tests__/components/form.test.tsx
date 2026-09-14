@@ -1008,3 +1008,118 @@ describe('useFormStatus', () => {
 		expect(result.current).toEqual({ submitting: false, dirty: false, valid: true })
 	})
 })
+
+/** Renders `aria-invalid` from the committed field state, so the DOM shows it only after React commits. */
+function InvalidProbe({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return (
+		<output data-slot="probe" aria-invalid={field?.errors?.length ? 'true' : undefined}>
+			{name}
+		</output>
+	)
+}
+
+describe('Form onInvalidSubmit', () => {
+	const submit = async (container: HTMLElement) => {
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+	}
+
+	// A refused submit reaches neither `onSubmit` nor a terminal outcome, so this
+	// report is the only signal the attempt happened at all.
+	it('reports the failed fields and skips onSubmit and onSettled', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const onSubmit = vi.fn()
+
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '', email: 'ada@example.com' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSubmit={onSubmit}
+				onSettled={onSettled}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
+	// The clean field validated too, and its entry in the errors map is
+	// `undefined`. The payload is the refused partition, so it holds neither the
+	// clean field nor an empty issue list.
+	it('carries only the fields that failed', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '', email: '' }}
+				validate={{
+					name: (value) => (value ? undefined : 'required'),
+					email: () => undefined,
+				}}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+	})
+
+	// The documented use is to scroll to the first error, so the fields must
+	// already carry aria-invalid by the time the report lands.
+	it('reports after the errors are committed to the DOM', async () => {
+		const marked: number[] = []
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onInvalidSubmit={() => marked.push(document.querySelectorAll('[aria-invalid]').length)}
+			>
+				<InvalidProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(marked).toEqual([1])
+	})
+
+	it('says nothing when every validator passes', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSubmit={() => {}}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).not.toHaveBeenCalled()
+	})
+})

@@ -3,7 +3,7 @@
 import { useCallback } from 'react'
 import { announce } from '../../core'
 import { useFormValue } from '../form/use-form-value'
-import { classifyTokens, describeBatch } from './tag-input-utilities'
+import { classifyTokens, describeBatch, type TokenRejection } from './tag-input-utilities'
 
 /**
  * Options for {@link useTagInput}.
@@ -20,6 +20,8 @@ type TagInputOptions = {
 	max?: number
 	/** Gates a trimmed, novel, within-limit tag before commit. Return `false` to reject. */
 	validate?: (tag: string) => boolean
+	/** Reports the refused part of a commit. */
+	onReject?: (rejected: TokenRejection) => void
 }
 
 /**
@@ -46,6 +48,7 @@ export function useTagInput({
 	onValueChange,
 	max,
 	validate,
+	onReject,
 }: TagInputOptions) {
 	// Binds the tag list to an enclosing Form field by `name` (the value-typed
 	// cascade); falls back to controlled/uncontrolled state. The inner text
@@ -92,9 +95,21 @@ export function useTagInput({
 
 			if (said !== '') announce(said)
 
+			// The live region is the only place the refused part goes today, and a
+			// live region is not a channel a caller can read. `onValueChange` carries
+			// the accepted half, so this one carries the other three outcomes.
+			const { accepted: _accepted, ...rejection } = batch
+
+			if (
+				rejection.rejected.length > 0 ||
+				rejection.duplicates.length > 0 ||
+				rejection.overLimit > 0
+			)
+				onReject?.(rejection)
+
 			return batch.rejected
 		},
-		[tags, setTags, max, validate],
+		[tags, setTags, max, validate, onReject],
 	)
 
 	const removeTag = useCallback(

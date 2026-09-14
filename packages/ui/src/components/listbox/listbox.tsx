@@ -78,6 +78,17 @@ type ListboxBaseProps = {
 	open?: boolean
 	/** Fires when the menu open state changes. */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Fires when focus leaves the whole widget, with the trigger's blur event.
+	 *
+	 * The widget already computes this — it is what marks a bound field touched —
+	 * and kept it. The prop bag is closed, with no rest spread and no `ref`, so a
+	 * caller had no other way to hear it. A blur into the portalled panel is not a
+	 * departure and never fires, which is the part a native `onBlur` on the trigger
+	 * would get wrong: the panel is portalled, so focus moving into it reads as
+	 * leaving the trigger.
+	 */
+	onBlur?: (event: FocusEvent<HTMLButtonElement>) => void
 	'data-group'?: string
 	'data-group-orientation'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
@@ -151,6 +162,7 @@ export function Listbox<T>({
 	capitalize = true,
 	open: openProp,
 	onOpenChange,
+	onBlur,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	'aria-label': ariaLabel,
@@ -282,6 +294,10 @@ export function Listbox<T>({
 		if (next !== null && document.getElementById(listboxId)?.contains(next)) return
 
 		setTouched()
+
+		// Past both guards the focus has genuinely left the widget, which is the
+		// fact the caller could not reach.
+		onBlur?.(event)
 	}
 
 	const capitalization = resolveCapitalize(capitalize)

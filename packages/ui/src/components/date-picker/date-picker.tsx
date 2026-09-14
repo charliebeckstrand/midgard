@@ -122,6 +122,15 @@ export type DatePickerFooterConfig = {
 export type DatePickerBaseProps = {
 	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
+	/**
+	 * Forwarded to the calendar. Fires with the first of the month the grid
+	 * renders, whenever that month changes.
+	 *
+	 * Use it to fetch per-month data behind an open picker. The relative variant
+	 * shows no grid until the reader opens a custom range, so it reports only from
+	 * there.
+	 */
+	onMonthChange?: (month: Date) => void
 	min?: Date
 	max?: Date
 	placeholder?: string
@@ -296,6 +305,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				min={props.min}
 				max={props.max}
 				active={state.calendar.active}
+				onMonthChange={props.onMonthChange}
 				footerRef={state.calendar.footerRef}
 				listboxId={state.listboxId}
 				activeDescendantId={state.activeDescendantId}

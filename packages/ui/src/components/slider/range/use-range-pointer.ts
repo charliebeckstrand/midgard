@@ -81,7 +81,8 @@ function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
  * @returns Pointer handlers to spread on the track.
  * @remarks
  * A primary press focuses the button of the thumb it resolves, so the press
- * also sets the keyboard focus (WAI-ARIA slider).
+ * also sets the keyboard focus (WAI-ARIA slider). `onDragStart` and `onDragEnd`
+ * bracket the gesture on the thumb that the press grabbed.
  */
 export function useRangePointer(opts: {
 	min: number
@@ -93,8 +94,22 @@ export function useRangePointer(opts: {
 	setRange: (fn: (prev: [number, number] | undefined) => [number, number]) => void
 	overlap: OverlapMode
 	thumbRefs: ThumbButtonRefs
+	onDragStart?: (thumb: ThumbIndex) => void
+	onDragEnd?: (thumb: ThumbIndex) => void
 }) {
-	const { min, max, step, disabled, current, trackRef, setRange, overlap, thumbRefs } = opts
+	const {
+		min,
+		max,
+		step,
+		disabled,
+		current,
+		trackRef,
+		setRange,
+		overlap,
+		thumbRefs,
+		onDragStart,
+		onDragEnd,
+	} = opts
 
 	const update = useRangeUpdate({ min, max, step, setRange, overlap })
 
@@ -102,6 +117,30 @@ export function useRangePointer(opts: {
 	// Stores the clientX of pointerdown on stacked thumbs until the first
 	// move reveals direction, then resolves which thumb to drag.
 	const pendingStackedRef = useRef<number | null>(null)
+
+	// The thumb that the press grabbed. It holds for the whole gesture, so the
+	// bracket pairs. `draggingRef` follows a swap to the other slot; this ref
+	// does not.
+	const gestureThumbRef = useRef<ThumbIndex | null>(null)
+
+	// The handlers below run from pointer events, not from render. A new
+	// callback must not re-arm a gesture that is already in flight.
+	const onDragStartRef = useRef(onDragStart)
+
+	onDragStartRef.current = onDragStart
+
+	const onDragEndRef = useRef(onDragEnd)
+
+	onDragEndRef.current = onDragEnd
+
+	// One entry point for the four routes that grab a thumb. Every grab reports
+	// once, and `endDrag` always has a start to pair with.
+	const beginDrag = useCallback((thumb: ThumbIndex) => {
+		draggingRef.current = thumb
+		gestureThumbRef.current = thumb
+
+		onDragStartRef.current?.(thumb)
+	}, [])
 
 	const valueFromPointer = useCallback(
 		(clientX: number) => {
@@ -147,7 +186,7 @@ export function useRangePointer(opts: {
 
 				// Pointer off the stack: pick the thumb on that side and jump it.
 				if (snapped < current[0]) {
-					draggingRef.current = 0
+					beginDrag(0)
 					focusThumb(thumbRefs, 0)
 					update(0, raw)
 
@@ -155,7 +194,7 @@ export function useRangePointer(opts: {
 				}
 
 				if (snapped > current[0]) {
-					draggingRef.current = 1
+					beginDrag(1)
 					focusThumb(thumbRefs, 1)
 					update(1, raw)
 
@@ -172,11 +211,22 @@ export function useRangePointer(opts: {
 			}
 
 			const thumb = closestThumb(raw)
-			draggingRef.current = thumb
+			beginDrag(thumb)
 			focusThumb(thumbRefs, thumb)
 			update(thumb, raw)
 		},
-		[disabled, closestThumb, update, valueFromPointer, current, min, max, step, thumbRefs],
+		[
+			disabled,
+			closestThumb,
+			update,
+			valueFromPointer,
+			current,
+			min,
+			max,
+			step,
+			thumbRefs,
+			beginDrag,
+		],
 	)
 
 	const onPointerMove = useCallback(
@@ -192,8 +242,15 @@ export function useRangePointer(opts: {
 			if (dragging === null) return
 
 			// The stacked press focused thumb 1 and deferred the drag; the focus
-			// follows the thumb the first move resolves.
-			if (wasPending) focusThumb(thumbRefs, dragging)
+			// follows the thumb the first move resolves. The bracket follows it
+			// too, because this move is where the grab becomes real.
+			if (wasPending) {
+				focusThumb(thumbRefs, dragging)
+
+				// `resolveDraggingThumb` already set `draggingRef`, so `beginDrag`'s
+				// write of it is a no-op here — worth it to keep one entry point.
+				beginDrag(dragging)
+			}
 
 			const raw = valueFromPointer(event.clientX)
 
@@ -206,12 +263,19 @@ export function useRangePointer(opts: {
 
 			update(dragging, raw)
 		},
-		[update, valueFromPointer, current, min, max, step, overlap, thumbRefs],
+		[update, valueFromPointer, current, min, max, step, overlap, thumbRefs, beginDrag],
 	)
 
 	const endDrag = useCallback(() => {
+		const grabbed = gestureThumbRef.current
+
 		draggingRef.current = null
 		pendingStackedRef.current = null
+		gestureThumbRef.current = null
+
+		// A press on the stack that did not move grabbed no thumb, so it closes no
+		// bracket. Every other route latched a thumb and owes one end.
+		if (grabbed !== null) onDragEndRef.current?.(grabbed)
 	}, [])
 
 	// `lostpointercapture` fires on every capture end: normal release,

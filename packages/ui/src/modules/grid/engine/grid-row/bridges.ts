@@ -4,6 +4,7 @@ import type { GridCellActivate, GridRowActivate } from '../../use-grid-navigatio
 import {
 	cellValue,
 	type GridCellClick,
+	type GridCellClickContext,
 	type GridCellRovingActivate,
 	type GridRowClick,
 } from './cell'
@@ -43,16 +44,40 @@ export function bridgeCellActivate<T>(
 	if (!handleCellClick) return undefined
 
 	return (rowIdx, colIdx, event) => {
-		const row = refs.rowsRef.current[rowIdx]
+		const cell = resolveCellAt(refs, rowIdx, colIdx)
 
-		const rowKey = refs.rowKeysRef.current[rowIdx]
-
-		const col = refs.dataColumnsRef.current[colIdx]
-
-		if (row === undefined || rowKey === undefined || !col) return
-
-		handleCellClick({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, event)
+		if (cell) handleCellClick(cell, event)
 	}
+}
+
+/**
+ * Resolves a display coordinate to the cell context every channel names a cell by.
+ *
+ * Shared by the keyboard activation above and the cursor's own report, because the
+ * two must agree: the same guard, the same `value` accessor, the same payload. A
+ * coordinate the engine cannot resolve — a row or column that moved out from under
+ * it — yields `null` and the caller stays quiet.
+ *
+ * @internal
+ */
+export function resolveCellAt<T>(
+	refs: {
+		rowsRef: RefObject<T[]>
+		rowKeysRef: RefObject<(string | number)[]>
+		dataColumnsRef: RefObject<GridColumn<T>[]>
+	},
+	rowIdx: number,
+	colIdx: number,
+): GridCellClickContext<T> | null {
+	const row = refs.rowsRef.current[rowIdx]
+
+	const rowKey = refs.rowKeysRef.current[rowIdx]
+
+	const col = refs.dataColumnsRef.current[colIdx]
+
+	if (row === undefined || rowKey === undefined || !col) return null
+
+	return { row, rowKey, columnId: col.id, value: cellValue(col, row) }
 }
 
 /**

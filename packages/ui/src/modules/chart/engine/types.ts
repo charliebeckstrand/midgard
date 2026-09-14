@@ -223,6 +223,21 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	legend?: boolean | ChartLegendPlacement | ChartLegendConfig
 	/**
+	 * Fires with the set of series indexes the legend has switched off.
+	 *
+	 * Observation only. The legend owns the set and there is no `hidden` option to
+	 * pair with — the same shape `onFullscreenChange` keeps. A click on a legend
+	 * entry changed what the reader sees and reported nothing, so the only readout
+	 * was a `MutationObserver` over `aria-pressed`. Use it to mirror one chart's
+	 * legend onto another, or to persist what a reader switched off. It sits beside
+	 * `legend` rather than inside its object form, so `legend={true}` keeps working:
+	 * the object form has no way to spell `true`, and a single-series chart that
+	 * moved to it would lose the legend the flag forced on. An `inert` legend has
+	 * no switches and never fires. The indexes are positions in the chart's own
+	 * series or category order.
+	 */
+	onHiddenChange?: (hidden: ReadonlySet<number>) => void
+	/**
 	 * The tooltip naming the pointed series or slice. `true` (the default) tracks
 	 * the pointer; `false` drops it. The object form keeps it on and sets how it
 	 * opens — `{ trigger: 'hover' }` tracks the pointer, `{ trigger: 'click' }`

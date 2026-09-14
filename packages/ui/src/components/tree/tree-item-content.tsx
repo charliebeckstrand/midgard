@@ -20,6 +20,8 @@ type TreeItemContentProps = {
 	suffix?: ReactNode
 	current?: boolean
 	hasChildren: boolean
+	/** Runs when the row itself is activated, by click or by Enter/Space. */
+	onAction?: () => void
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	className?: string
@@ -41,6 +43,7 @@ export function TreeItemContent({
 	suffix,
 	current,
 	hasChildren,
+	onAction,
 	open,
 	onOpenChange,
 	className,
@@ -64,6 +67,10 @@ export function TreeItemContent({
 	const handleClick = (event: MouseEvent<HTMLDivElement>) => {
 		if (event.target instanceof Element && event.target.closest(AFFIX_SELECTOR)) return
 
+		// The row was activated, whatever it does next. A click inside an affix
+		// returned above, because that is the slot's own activation, not the row's.
+		onAction?.()
+
 		if (hasChildren) {
 			toggle()
 
@@ -78,6 +85,10 @@ export function TreeItemContent({
 
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault()
+
+			// The keyboard peer of the click above, and the same rule: the row was
+			// activated, whatever it does next.
+			onAction?.()
 
 			if (hasChildren) {
 				toggle()

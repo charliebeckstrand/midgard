@@ -486,3 +486,98 @@ describe('TreeItem', () => {
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 	})
 })
+
+describe('TreeItem onAction', () => {
+	const row = (container: HTMLElement, index = 0) =>
+		(container.querySelectorAll('[role="treeitem"]')[index] as HTMLElement) ?? null
+
+	it('reports a leaf activation by click and by Enter', () => {
+		const onAction = vi.fn()
+
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="a.ts" onAction={onAction} />
+			</Tree>,
+		)
+
+		fireEvent.click(row(container))
+
+		expect(onAction).toHaveBeenCalledOnce()
+
+		fireEvent.keyDown(row(container), { key: 'Enter' })
+
+		expect(onAction).toHaveBeenCalledTimes(2)
+
+		fireEvent.keyDown(row(container), { key: ' ' })
+
+		expect(onAction).toHaveBeenCalledTimes(3)
+	})
+
+	// A branch activation toggles, and onOpenChange reports that; the activation
+	// itself is a separate fact, so both fire.
+	it('reports a branch activation beside its toggle', () => {
+		const onAction = vi.fn()
+
+		const onOpenChange = vi.fn()
+
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" onAction={onAction} onOpenChange={onOpenChange}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		fireEvent.click(row(container))
+
+		expect(onAction).toHaveBeenCalledOnce()
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
+	})
+
+	// The affix slots own their own clicks; the row was never activated.
+	it('says nothing for a click inside prefix or suffix', () => {
+		const onAction = vi.fn()
+
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem
+					label="a.ts"
+					onAction={onAction}
+					prefix={<input type="checkbox" aria-label="Pick a.ts" />}
+					suffix={<button type="button">More</button>}
+				/>
+			</Tree>,
+		)
+
+		fireEvent.click(screen.getByRole('checkbox', { name: 'Pick a.ts' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'More' }))
+
+		expect(onAction).not.toHaveBeenCalled()
+
+		// The row itself still reports.
+		fireEvent.click(row(container))
+
+		expect(onAction).toHaveBeenCalledOnce()
+	})
+
+	// The arrows move the expansion, not the row.
+	it('says nothing for ArrowRight or ArrowLeft', () => {
+		const onAction = vi.fn()
+
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" onAction={onAction}>
+					<TreeItem label="a.ts" />
+				</TreeItem>
+			</Tree>,
+		)
+
+		fireEvent.keyDown(row(container), { key: 'ArrowRight' })
+
+		fireEvent.keyDown(row(container), { key: 'ArrowLeft' })
+
+		expect(onAction).not.toHaveBeenCalled()
+	})
+})

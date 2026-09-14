@@ -46,6 +46,10 @@ function setup(
 
 	const setRange = vi.fn()
 
+	const onDragStart = vi.fn()
+
+	const onDragEnd = vi.fn()
+
 	const { result } = renderHook(() =>
 		useRangePointer({
 			min: 0,
@@ -57,10 +61,12 @@ function setup(
 			setRange,
 			overlap: options.overlap ?? 'clamp',
 			thumbRefs: refs,
+			onDragStart,
+			onDragEnd,
 		}),
 	)
 
-	return { api: result.current, setRange, thumbs: buttons }
+	return { api: result.current, setRange, thumbs: buttons, onDragStart, onDragEnd }
 }
 
 describe('useRangePointer', () => {
@@ -363,5 +369,105 @@ describe('useRangePointer', () => {
 		api.onPointerMove(makeEvent({ clientX: 50 }))
 
 		expect(setRange).not.toHaveBeenCalled()
+	})
+	describe('the drag bracket', () => {
+		it.each<[string, [number, number], number, ThumbIndex]>([
+			['the nearest thumb', [20, 80], 30, 0],
+			['the upper thumb when the pointer is closer to it', [20, 80], 70, 1],
+			['the lower thumb when the pointer lands below a stack', [50, 50], 20, 0],
+			['the upper thumb when the pointer lands above a stack', [50, 50], 90, 1],
+		])('onPointerDown starts the drag on %s', (_name, current, clientX, thumb) => {
+			const { api, onDragStart, onDragEnd } = setup({ current })
+
+			api.onPointerDown(makeEvent({ clientX }))
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(thumb)
+
+			expect(onDragEnd).not.toHaveBeenCalled()
+		})
+
+		it.each<[string, (api: ReturnType<typeof setup>['api']) => void]>([
+			['onPointerUp', (api) => api.onPointerUp()],
+			['onPointerCancel', (api) => api.onPointerCancel()],
+			['onLostPointerCapture', (api) => api.onLostPointerCapture()],
+		])('%s ends the drag on the grabbed thumb', (_name, end) => {
+			const { api, onDragStart, onDragEnd } = setup({ current: [20, 80] })
+
+			api.onPointerDown(makeEvent({ clientX: 70 }))
+
+			end(api)
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(1)
+
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(1)
+		})
+
+		// A press on the stack grabs no thumb: the direction is still unknown, and
+		// nothing has moved. A release from there closes a bracket that never opened.
+		it('says nothing for a press on a stack that never moves', () => {
+			const { api, onDragStart, onDragEnd } = setup({ current: [50, 50] })
+
+			api.onPointerDown(makeEvent({ clientX: 50 }))
+
+			expect(onDragStart).not.toHaveBeenCalled()
+
+			api.onPointerUp()
+
+			expect(onDragEnd).not.toHaveBeenCalled()
+		})
+
+		it('starts the drag on the thumb the first move resolves after a stacked press', () => {
+			const { api, onDragStart } = setup({ current: [50, 50] })
+
+			api.onPointerDown(makeEvent({ clientX: 50 }))
+
+			api.onPointerMove(makeEvent({ clientX: 20 }))
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		it('starts once across a whole drag, however many moves it takes', () => {
+			const { api, onDragStart } = setup({ current: [20, 80] })
+
+			api.onPointerDown(makeEvent({ clientX: 30 }))
+
+			api.onPointerMove(makeEvent({ clientX: 40 }))
+
+			api.onPointerMove(makeEvent({ clientX: 50 }))
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		// Under `swap` the dragged value crosses into the other slot, and
+		// `draggingRef` follows it. The bracket must not: a start on 0 that ended on
+		// 1 would leave a consumer's per-thumb flag raised for good.
+		it('reports the grabbed thumb at both ends of a swap', () => {
+			const { api, onDragStart, onDragEnd } = setup({ current: [20, 80], overlap: 'swap' })
+
+			api.onPointerDown(makeEvent({ clientX: 30 }))
+
+			api.onPointerMove(makeEvent({ clientX: 90 }))
+
+			api.onPointerUp()
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
+
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		it.each<[string, { disabled?: boolean }, Partial<ReactPointerEvent>]>([
+			['when disabled', { disabled: true }, {}],
+			['on a non-primary press', {}, { button: 2 }],
+		])('says nothing %s', (_name, options, overrides) => {
+			const { api, onDragStart, onDragEnd } = setup(options)
+
+			api.onPointerDown(makeEvent({ clientX: 30, ...overrides }))
+
+			api.onPointerUp()
+
+			expect(onDragStart).not.toHaveBeenCalled()
+
+			expect(onDragEnd).not.toHaveBeenCalled()
+		})
 	})
 })

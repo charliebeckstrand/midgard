@@ -411,3 +411,95 @@ describe('FileUpload announcements', () => {
 		await expectAnnouncement('Selected 2 files: a.png, b.png')
 	})
 })
+
+describe('FileUpload drag-over reporting', () => {
+	const dropzone = (container: HTMLElement) =>
+		container.querySelector('[data-slot="file-upload"]') as HTMLElement
+
+	it('reports true when a drag enters and false when it leaves', () => {
+		const onDragOverChange = vi.fn()
+
+		const { container } = renderUI(
+			<FileUpload onDragOverChange={onDragOverChange}>Upload</FileUpload>,
+		)
+
+		const zone = dropzone(container)
+
+		const files = makeFileList([new File(['x'], 'resume.pdf')])
+
+		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+
+		expect(onDragOverChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		fireEvent.dragLeave(zone, { dataTransfer: { files } })
+
+		expect(onDragOverChange).toHaveBeenLastCalledWith(false)
+
+		expect(onDragOverChange).toHaveBeenCalledTimes(2)
+	})
+
+	// The depth counter exists because `dragleave` bubbles on every child
+	// boundary. The report reads the derived flag, so a crossing inside the zone
+	// leaves it untouched.
+	it('says nothing while a drag crosses between children of the zone', () => {
+		const onDragOverChange = vi.fn()
+
+		const { container } = renderUI(
+			<FileUpload onDragOverChange={onDragOverChange}>
+				<span data-testid="child">Upload</span>
+			</FileUpload>,
+		)
+
+		const zone = dropzone(container)
+
+		const child = container.querySelector('[data-testid="child"]') as HTMLElement
+
+		const files = makeFileList([new File(['x'], 'resume.pdf')])
+
+		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+
+		onDragOverChange.mockClear()
+
+		fireEvent.dragEnter(child, { dataTransfer: { files } })
+
+		fireEvent.dragLeave(zone, { dataTransfer: { files } })
+
+		expect(onDragOverChange).not.toHaveBeenCalled()
+	})
+
+	it('reports false on a drop', () => {
+		const onDragOverChange = vi.fn()
+
+		const { container } = renderUI(
+			<FileUpload onDragOverChange={onDragOverChange}>Upload</FileUpload>,
+		)
+
+		const zone = dropzone(container)
+
+		const files = makeFileList([new File(['x'], 'resume.pdf')])
+
+		fireEvent.dragEnter(zone, { dataTransfer: { files } })
+
+		fireEvent.drop(zone, { dataTransfer: { files } })
+
+		expect(onDragOverChange).toHaveBeenLastCalledWith(false)
+	})
+
+	it('says nothing on mount, and nothing while disabled', () => {
+		const onDragOverChange = vi.fn()
+
+		const { container } = renderUI(
+			<FileUpload disabled onDragOverChange={onDragOverChange}>
+				Upload
+			</FileUpload>,
+		)
+
+		expect(onDragOverChange).not.toHaveBeenCalled()
+
+		fireEvent.dragEnter(dropzone(container), {
+			dataTransfer: { files: makeFileList([]) },
+		})
+
+		expect(onDragOverChange).not.toHaveBeenCalled()
+	})
+})

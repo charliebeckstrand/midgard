@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { TokenRejection } from '../../components/tag-input'
 import { useTagInput } from '../../components/tag-input/use-tag-input'
 
 describe('useTagInput', () => {
@@ -110,5 +111,64 @@ describe('useTagInput', () => {
 		})
 
 		expect(onValueChange).not.toHaveBeenCalled()
+	})
+})
+
+describe('useTagInput onReject', () => {
+	const addWith = (options: Parameters<typeof useTagInput>[0], input: string[]) => {
+		const onReject = vi.fn()
+
+		const { result } = renderHook(() => useTagInput({ ...options, onReject }))
+
+		act(() => {
+			result.current.addTags(input)
+		})
+
+		return { onReject, tags: result.current.tags }
+	}
+
+	it.each<[string, Parameters<typeof useTagInput>[0], string[], TokenRejection]>([
+		[
+			'the tokens validate refused',
+			{ defaultValue: [], validate: (tag) => tag !== 'bad' },
+			['good', 'bad'],
+			{ rejected: ['bad'], duplicates: [], overLimit: 0 },
+		],
+		[
+			'duplicates, which never come back in the draft',
+			{ defaultValue: ['a'] },
+			['a'],
+			{ rejected: [], duplicates: ['a'], overLimit: 0 },
+		],
+		[
+			'how many had no room',
+			{ defaultValue: ['a'], max: 2 },
+			['b', 'c', 'd'],
+			{ rejected: [], duplicates: [], overLimit: 2 },
+		],
+		[
+			'all three parts of one commit together',
+			{ defaultValue: ['a'], max: 2, validate: (tag) => tag !== 'bad' },
+			['a', 'bad', 'b', 'c'],
+			{ rejected: ['bad'], duplicates: ['a'], overLimit: 1 },
+		],
+	])('reports %s', (_name, options, input, expected) => {
+		expect(addWith(options, input).onReject).toHaveBeenCalledExactlyOnceWith(expected)
+	})
+
+	// The accepted half is `onValueChange`'s. A commit that refuses nothing has
+	// no other half to report.
+	it('says nothing when every token commits', () => {
+		const { onReject, tags } = addWith({ defaultValue: [] }, ['a', 'b'])
+
+		expect(tags).toEqual(['a', 'b'])
+
+		expect(onReject).not.toHaveBeenCalled()
+	})
+
+	it('says nothing for an empty or whitespace-only batch', () => {
+		const { onReject } = addWith({ defaultValue: [] }, ['   '])
+
+		expect(onReject).not.toHaveBeenCalled()
 	})
 })

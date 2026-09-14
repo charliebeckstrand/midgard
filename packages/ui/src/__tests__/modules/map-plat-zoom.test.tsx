@@ -693,3 +693,65 @@ describe('MapPlat zoom across a geography change', () => {
 		expect(transformOf(container)).toBe('translate(0 0) scale(1)')
 	})
 })
+
+describe('MapPlat onViewChange', () => {
+	it('reports the transform the layer draws after a wheel', () => {
+		const onViewChange = vi.fn()
+
+		const { container, svg } = renderZoomable({ onViewChange })
+
+		// A fitted map is the rest state, not a transition.
+		expect(onViewChange).not.toHaveBeenCalled()
+
+		zoomWheel(svg, -100)
+
+		expect(onViewChange).toHaveBeenCalledOnce()
+
+		const reported = onViewChange.mock.calls.at(-1)?.[0] as {
+			x: number
+			y: number
+			k: number
+		}
+
+		// The report and the attribute are the same view, which is the point: the
+		// package's own tests had to regex this out of the DOM. The attribute rounds
+		// for the DOM, so they agree to its precision rather than exactly.
+		expect(reported.k).toBeCloseTo(scaleOf(container), 2)
+
+		expect(reported.k).toBeGreaterThan(1)
+	})
+
+	it('reports each notch of a gesture, not only its end', () => {
+		const onViewChange = vi.fn()
+
+		const { svg } = renderZoomable({ onViewChange })
+
+		zoomWheel(svg, -100)
+
+		zoomWheel(svg, -100)
+
+		expect(onViewChange).toHaveBeenCalledTimes(2)
+	})
+
+	// Zooming out stops at the fit, so a second notch there writes the same
+	// transform and has nothing to report.
+	it('says nothing for a notch that cannot move the view', () => {
+		const onViewChange = vi.fn()
+
+		const { svg } = renderZoomable({ onViewChange })
+
+		zoomWheel(svg, 100)
+
+		expect(onViewChange).not.toHaveBeenCalled()
+	})
+
+	it('says nothing on a map that does not zoom', () => {
+		const onViewChange = vi.fn()
+
+		const { svg } = renderZoomable({ zoom: false, onViewChange })
+
+		zoomWheel(svg, -100)
+
+		expect(onViewChange).not.toHaveBeenCalled()
+	})
+})

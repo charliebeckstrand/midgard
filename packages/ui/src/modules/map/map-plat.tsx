@@ -2,6 +2,7 @@
 
 import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
@@ -27,6 +28,7 @@ import { defaultRegionId } from './engine/map-region/identity'
 import { NO_REGION_CLAIM, regionSpare } from './engine/map-region/spare'
 import type { MapZoomInput } from './engine/map-zoom/input'
 import { mapZoomSettings } from './engine/map-zoom/input'
+import type { MapTransform } from './engine/map-zoom/transform'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type {
 	LngLat,
@@ -218,6 +220,19 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		zoom?: MapZoomInput
 		/**
+		 * Fires with the view transform whenever it changes: `x` and `y` pan the
+		 * fitted geography in frame units, `k` scales it.
+		 *
+		 * The plat owns that transform outright, and nothing reported it, so the
+		 * package's own tests read it off the `transform` attribute. Use it to mirror
+		 * one map onto another, to persist a view, or to load detail for the ground
+		 * on screen. It fires on every wheel notch and every tracked pointer move of
+		 * a pan, like `ResizableGroup.onSizesChange`, so throttle what you drive from
+		 * it. A map with no `zoom` never transforms and never reports. The refit that
+		 * follows a new geography reports too, because the view did move.
+		 */
+		onViewChange?: (view: MapTransform) => void
+		/**
 		 * Whether the drawn regions answer the pointer at all.
 		 *
 		 * `false` makes the layer inert: no readout, no pick, no menu — and the marks
@@ -386,6 +401,30 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * keeps it controlled with no emphasis (CONVENTIONS §7.3).
 		 */
 		emphasis?: string | null
+		/**
+		 * Fires with the legend id this plat's own legend emphasises, or `null` when
+		 * the emphasis clears.
+		 *
+		 * The plat's legend writes that state on hover and on focus and reported
+		 * nothing, so a caller could either read the emphasis or keep the plat's own
+		 * legend behaviour, never both: passing
+		 * {@link MapPlatProps.emphasis} silently takes the plat's legend out of the
+		 * decision. This reports what that legend wants whether or not `emphasis` is
+		 * controlled, which is the other half of the §7.3 triad. It carries only ids
+		 * the legend actually published, so a stale id from an unmounted overlay
+		 * never arrives.
+		 */
+		onEmphasisChange?: (emphasis: string | null) => void
+		/**
+		 * Fires with the set of legend ids the plat's legend has switched off.
+		 *
+		 * Observation only. The legend owns the set and there is no `hidden` option
+		 * to pair with. Hiding a group changes what the reader sees and reported
+		 * nothing, so the only readout was the DOM. Use it to mirror one plat's
+		 * legend onto another, or to persist what a reader switched off. The ids are
+		 * the legend's own — a region category or an overlay entry.
+		 */
+		onHiddenChange?: (hidden: ReadonlySet<string>) => void
 		/**
 		 * Overlay marks: {@link MapRoute}, {@link MapPoint}, {@link MapPoints},
 		 * {@link MapMarker}, {@link MapGeofence}. They draw in the order they are
@@ -613,6 +652,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		tooltip = true,
 		nameRegions = false,
 		zoom: zoomInput,
+		onViewChange,
 		regionPointer,
 		animate = false,
 		onRegionClick,
@@ -622,6 +662,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		pending,
 		selectedOverlay,
 		emphasis: controlledEmphasis,
+		onEmphasisChange,
+		onHiddenChange,
 		className,
 		children,
 		// Destructured off so the region-data fields nothing else here reads never
@@ -670,7 +712,12 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		domain: valueExtent,
 	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel, nameRegions)
 
-	const { hidden: switched, toggle, setFocus, emphasis: activeFocus } = useMapToggle(animate)
+	const {
+		hidden: switched,
+		toggle,
+		setFocus,
+		emphasis: activeFocus,
+	} = useMapToggle(animate, onHiddenChange)
 
 	const { entries, register } = useMapLegendRegistry()
 
@@ -801,13 +848,28 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Taken from the items, any entry kind added later is gated by construction.
 	const legendIds = useMemo(() => new Set(items.map((item) => item.id)), [items])
 
+	// The gate both readers take. Stated once, because the comment above requires
+	// them to agree exactly.
+	const live = (id: string | null) => (id !== null && legendIds.has(id) ? id : null)
+
 	// A controlled `emphasis` wins over this plat's own legend focus, so several
 	// plats can share one legend rendered outside them all. The live-id gate below
 	// applies either way: an id this plat has no group for would dim the whole map
 	// against nothing.
 	const focused = controlledEmphasis === undefined ? activeFocus : controlledEmphasis
 
-	const emphasis = focused !== null && legendIds.has(focused) ? focused : null
+	const emphasis = live(focused)
+
+	/*
+	 * What this plat's OWN legend emphasises, past the same live-id gate.
+	 *
+	 * Reported rather than `emphasis`, because a controlled plat would otherwise
+	 * echo the caller's own prop back at it. This is the half of the §7.3 triad
+	 * the caller cannot see: the legend's intent, whoever holds the state.
+	 */
+	const ownEmphasis = live(activeFocus)
+
+	useReportedChange(ownEmphasis, onEmphasisChange)
 
 	// The hover provider's pointed-emphasis gate: a region takes the emphasis
 	// only while its category is matched and shown, resolved through the same
@@ -1246,6 +1308,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				// decode's own memoised identity, so it changes exactly when the
 				// geography does and never on a resize.
 				subject: shape.features,
+				onViewChange,
 			}}
 			containerRef={containerRef}
 			tooltip={readable}

@@ -72,6 +72,14 @@ export type TokenBatch = {
 }
 
 /**
+ * The refused part of a {@link TokenBatch}: what a commit turned away, and why.
+ *
+ * Derived from `TokenBatch` rather than spelled again, so the two cannot drift. It carries no
+ * `accepted` set, because `onValueChange` already delivers that half.
+ */
+export type TokenRejection = Omit<TokenBatch, 'accepted'>
+
+/**
  * Partitions candidate tokens against the tags already held.
  *
  * Pure, so the commit path is a two-liner and the sorting rules are testable without a DOM. Checks

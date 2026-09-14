@@ -90,16 +90,18 @@ function flushRow<T>(
 	rowKey: string | number,
 	drafts: RowDrafts,
 	source: GridEditSource<T>,
-): CellChange[] {
+): { changes: CellChange[]; refused: CellChange[] } {
 	const { rows, columns, getKey } = source
 
 	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
 	// index a positional `getKey` reads is the one the engine gave the row.
 	const row = rows.find((candidate, index) => getKey(candidate, index) === rowKey)
 
-	if (row == null) return []
+	if (row == null) return { changes: [], refused: [] }
 
 	const changes: CellChange[] = []
+
+	const refused: CellChange[] = []
 
 	for (const [columnId, value] of drafts) {
 		const col = columns.find((candidate) => candidate.id === columnId)
@@ -113,17 +115,21 @@ function flushRow<T>(
 
 		if (Object.is(value, original)) continue
 
-		if (col.validate?.(value, row) != null) continue
+		const cell: CellChange = { rowKey, columnId, value }
 
-		changes.push({ rowKey, columnId, value })
+		// A refused cell leaves the staging map like any other closed cell, so
+		// without this list the value the user typed is gone with no report.
+		if (col.validate?.(value, row) != null) refused.push(cell)
+		else changes.push(cell)
 	}
 
-	return changes
+	return { changes, refused }
 }
 
 /**
  * Commits every staged cell whose editor has closed, one `onCommit` batch per
- * row, and returns the cells saved across them (for the commit announcement).
+ * row, hands the cells `validate` refused to `onReject`, and returns the cells
+ * saved across them (for the commit announcement).
  * A row with no sink to reach counts nothing, so the announcement never speaks a
  * commit that did not happen.
  * Takes each committed draft out of the staging map on the way, and drops a row's
@@ -149,6 +155,7 @@ function flushClosedCells<T>(args: {
 	activeEdit: GridActiveEdit | null
 	source: GridEditSource<T>
 	onCommit: ((changes: CellChange[]) => void) | undefined
+	onReject: ((refused: CellChange[]) => void) | undefined
 }): number {
 	let saved = 0
 
@@ -175,7 +182,11 @@ function flushClosedCells<T>(args: {
 
 		if (closed.size === 0) continue
 
-		const changes = flushRow(rowKey, closed, args.source)
+		const { changes, refused } = flushRow(rowKey, closed, args.source)
+
+		// Reported per row, like the commit batch beside it, and independent of it:
+		// a row whose every cell was refused reaches no sink at all otherwise.
+		if (refused.length > 0) args.onReject?.(refused)
 
 		if (!changes.length || !args.onCommit) continue
 
@@ -301,6 +312,10 @@ export function useGridEditing<T>({
 	const onCommitRef = useRef(config?.onCommit)
 
 	onCommitRef.current = config?.onCommit
+
+	const onRejectRef = useRef(config?.onReject)
+
+	onRejectRef.current = config?.onReject
 
 	// Staged drafts per editing row, keyed rowKey → (columnId → value). Held in a
 	// ref so staging never re-renders the grid; read at flush time.
@@ -526,6 +541,7 @@ export function useGridEditing<T>({
 			activeEdit,
 			source: editSourceRef.current,
 			onCommit: onCommitRef.current,
+			onReject: onRejectRef.current,
 		})
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3).

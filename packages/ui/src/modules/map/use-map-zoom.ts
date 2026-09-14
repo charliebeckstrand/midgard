@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
@@ -102,6 +103,8 @@ export type MapZoomOptions = {
 	 * that fit rather than holding a transform made against the last one.
 	 */
 	subject: unknown
+	/** Reports the committed transform, on every change. */
+	onViewChange?: (view: MapTransform) => void
 }
 
 /** A press in flight: where it landed, and whether it has travelled far enough to be a pan. */
@@ -148,7 +151,13 @@ type MapWheelStream = {
  *
  * @internal
  */
-export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): MapZoom | null {
+export function useMapZoom({
+	zoom,
+	view,
+	svgRef,
+	subject,
+	onViewChange,
+}: MapZoomOptions): MapZoom | null {
 	const settings = mapZoomSettings(zoom)
 
 	const max = settings?.max ?? 0
@@ -170,6 +179,17 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 
 	const transform =
 		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
+
+	/*
+	 * One report for each committed transform.
+	 *
+	 * The wheel, the drag, the pinch, the keyboard steps, and the refit that
+	 * follows a new geography all write `held`, and the value the map draws is the
+	 * constrained read above — so the report watches that, not any one gesture.
+	 * Compared by value, because `constrainTransform` mints a fresh object each
+	 * render and a settled view must not report per notch.
+	 */
+	useReportedChange(transform, onViewChange, sameTransform)
 
 	const [gesturing, setGesturing] = useState(false)
 

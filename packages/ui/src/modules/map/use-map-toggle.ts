@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMediaQuery } from '../../hooks/use-media-query'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities'
 import { REGION_FADE } from './engine/map-motion'
 
@@ -49,9 +50,13 @@ export type MapToggle = {
  * effect on the next toggle.
  *
  * @param animate - Whether the plat animates, so a toggle has a wash to wait for.
+ * @param onHiddenChange - Reports each committed hidden set to the caller.
  * @internal
  */
-export function useMapToggle(animate: boolean): MapToggle {
+export function useMapToggle(
+	animate: boolean,
+	onHiddenChange?: (hidden: ReadonlySet<string>) => void,
+): MapToggle {
 	const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set())
 
 	const [focus, setFocus] = useState<string | null>(null)
@@ -90,6 +95,10 @@ export function useMapToggle(animate: boolean): MapToggle {
 		},
 		[hidden, washes],
 	)
+
+	// Read from the committed set rather than from `toggle`, because the set is
+	// written through an updater. A map with every entry shown says nothing.
+	useReportedChange(hidden, onHiddenChange)
 
 	return {
 		hidden,

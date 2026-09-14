@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
+import { useOpenChange } from '../../hooks/use-open-change'
 import { Button } from '../button'
 import { useControl } from '../control/context'
 import { Icon } from '../icon'
@@ -12,6 +13,16 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
 	/** Renders the suffix show/hide toggle. Pass `false` to suppress it. @defaultValue true */
 	toggleButton?: boolean
+	/**
+	 * Fires when the plaintext goes on or off screen.
+	 *
+	 * The field owns the reveal and the button that flips it, and both `type` and
+	 * `suffix` are omitted from the props, so a caller has no channel to read it
+	 * through. Use it to log the reveal, or to hide something else beside the
+	 * field while the password shows. It reports what is actually on screen: a
+	 * disabled field re-masks, and that re-mask reports `false`.
+	 */
+	onVisibleChange?: (visible: boolean) => void
 }
 
 type ToggleProps = {
@@ -58,7 +69,11 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }:
 }
 
 /** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `toggleButton={false}`. */
-export function PasswordInput({ toggleButton = true, ...props }: PasswordInputProps) {
+export function PasswordInput({
+	toggleButton = true,
+	onVisibleChange,
+	...props
+}: PasswordInputProps) {
 	const [visible, setVisible] = useState(false)
 
 	const control = useControl()
@@ -70,6 +85,10 @@ export function PasswordInput({ toggleButton = true, ...props }: PasswordInputPr
 	const disabled = props.disabled ?? control?.disabled
 
 	const revealed = visible && !disabled
+
+	// The flag is derived from the toggle and the resolved disabled state, so the
+	// report watches the committed value rather than the toggle's own call site.
+	useOpenChange(revealed, onVisibleChange)
 
 	return (
 		<Input

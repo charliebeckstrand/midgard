@@ -1,7 +1,7 @@
 'use client'
 
 import { Calendar as CalendarIcon, X } from 'lucide-react'
-import { type ReactNode, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
@@ -9,6 +9,7 @@ import { useLocale } from '../../providers/locale'
 import { clearNativeInput } from '../../utilities'
 import { Button } from '../button'
 import { useControl } from '../control/context'
+import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
 import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
@@ -39,6 +40,23 @@ export type DateInputProps = Omit<
 	defaultValue?: Date
 	/** Fires with the parsed Date once the text is a complete in-range date; fires `undefined` when it stops being one. */
 	onValueChange?: (value: Date | null) => void
+	/**
+	 * Fires on every change and on blur with the field's verdict on the typed
+	 * text.
+	 *
+	 * The field already holds that verdict — it is what renders the error Message
+	 * and sets `aria-invalid` — and kept it. `onValueChange` cannot stand in:
+	 * it emits `undefined` for a cleared field, a half-typed date, and an
+	 * unparsable one alike, so a caller cannot tell "not finished" from "wrong".
+	 * `isValid` says the text parses to a complete in-range date;
+	 * `isPotentiallyValid` says it can still become one, so a growing entry is
+	 * potentially valid until it is both complete and refused. A value that arrives
+	 * from outside — a form reset, a calendar pick — clears any refusal and reports
+	 * the verdict it left behind, so the field's own `aria-invalid` and the reported
+	 * verdict never disagree. `CreditCardInputExpiry`
+	 * ships this callback on the same payload, and names this field as its model.
+	 */
+	onValidityChange?: (validity: CardValidity) => void
 	/**
 	 * Pattern that masks and parses the typed text.
 	 *
@@ -93,6 +111,7 @@ export function DateInput({
 	value,
 	defaultValue,
 	onValueChange,
+	onValidityChange,
 	format: formatProp,
 	min,
 	max,
@@ -151,6 +170,11 @@ export function DateInput({
 
 	const known = useRef(date)
 
+	// An external change clears the typed verdict during render, where a report
+	// must not run. The effect below carries it, so the reported verdict cannot
+	// drift from the one the field renders.
+	const clearedVerdict = useRef(false)
+
 	if (known.current !== date) {
 		known.current = date
 
@@ -159,10 +183,43 @@ export function DateInput({
 			setEditingText(null)
 
 			setTypedInvalid(false)
+
+			clearedVerdict.current = true
 		}
 	}
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
+
+	/*
+	 * The field's one verdict on the typed text, stated where both writers reach it.
+	 *
+	 * `closed` is what the caller means by "this entry is finished": a full-length
+	 * mask on a keystroke, any non-empty text on blur. A finished entry the parser
+	 * refuses is the only wrong one — everything else can still become a date. The
+	 * Message, `aria-invalid` and the report all come from this decision, so they
+	 * cannot disagree.
+	 */
+	const settle = (parsed: Date | undefined, closed: boolean) => {
+		const refused = closed && !parsed
+
+		setTypedInvalid(refused)
+
+		onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
+	}
+
+	const reportClearedVerdict = useEffectEvent(() => {
+		onValidityChange?.({ isValid: date !== undefined, isPotentiallyValid: true })
+	})
+
+	// Runs unkeyed, because the flag is written during render rather than derived
+	// from a value React can compare.
+	useEffect(() => {
+		if (!clearedVerdict.current) return
+
+		clearedVerdict.current = false
+
+		reportClearedVerdict()
+	})
 
 	// Resolved eagerly though only the `typedInvalid` branch renders it: gating it
 	// buys one skipped parse of a ≤10-character text and costs this component its
@@ -240,9 +297,9 @@ export function DateInput({
 
 					setEditingText(next)
 
-					const parsed = commit(next)
-
-					setTypedInvalid(next.length === format.length && !parsed)
+					// A complete entry the parser refuses is the only wrong one; a
+					// growing entry can still become a date.
+					settle(commit(next), next.length === format.length)
 				}}
 				onBlur={(event) => {
 					if (editingText !== null) {
@@ -252,7 +309,9 @@ export function DateInput({
 						// partial one stays as typed and reads invalid.
 						if (parsed || editingText === '') setEditingText(null)
 
-						setTypedInvalid(editingText !== '' && !parsed)
+						// Blur closes the entry, so a partial one is refused here where a
+						// keystroke would have left it growing.
+						settle(parsed, editingText !== '')
 					}
 
 					setTouched()

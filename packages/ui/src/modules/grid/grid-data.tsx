@@ -327,6 +327,8 @@ export function GridData<T>({
 	reorder = false,
 	rowReorder: rowReorderConfig,
 	navigable = false,
+	onActiveCellChange,
+	onCollapsedChange,
 	editable,
 	truncate = true,
 	rowClassName,
@@ -586,7 +588,7 @@ export function GridData<T>({
 
 	// Column groups: the controllable binding, collapse state, the ids collapsed
 	// groups hide from the engine, and the band-row resolver rendered below.
-	const group = useGridGroup(groupsConfig)
+	const group = useGridGroup(groupsConfig, onCollapsedChange)
 
 	// The cursor + editing layer: the augmented columns, the `<table>` cursor
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
@@ -599,6 +601,7 @@ export function GridData<T>({
 		columns: pinnedColumns,
 		onRowActivate,
 		onCellActivate,
+		onActiveCellChange,
 		selectableRef,
 		toggleActiveRow,
 		scrollRowIntoViewRef,

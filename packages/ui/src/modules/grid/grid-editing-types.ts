@@ -155,4 +155,16 @@ export type GridEditableConfig = {
 	 * data and feed it back as `rows`.
 	 */
 	onCommit: (changes: CellChange[]) => void
+	/**
+	 * Fires with the cells that {@link GridColumn.validate} refused, one batch per
+	 * row, beside the {@link GridEditableConfig.onCommit} batch of the same flush.
+	 *
+	 * A refused cell leaves the staging map with every other closed cell, so the
+	 * value the user typed is gone and nothing says so. `onCommit` cannot report
+	 * it: a row whose every cell was refused produces no commit batch and reaches
+	 * no sink. Use this callback to keep the typed value, to mark the row, or to
+	 * explain the refusal. Cells dropped for other reasons stay out: an unchanged
+	 * cell is no refusal, and a column that stopped being editable refused nothing.
+	 */
+	onReject?: (refused: CellChange[]) => void
 }

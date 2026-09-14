@@ -14,12 +14,12 @@ import { Flex } from '../flex'
 import { Icon } from '../icon'
 import { Input } from '../input'
 import { TagInputBadge } from './tag-input-badge'
-import { hasSeparator, splitTokens } from './tag-input-utilities'
+import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
 
 /**
- * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, and `<Form>` binding via `name`.
+ * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, the `onReject` report, and `<Form>` binding via `name`.
  *
  * @see {@link TagInput}
  */
@@ -55,6 +55,18 @@ export type TagInputProps = {
 	 * within-limit candidates.
 	 */
 	validate?: (tag: string) => boolean
+	/**
+	 * Fires with the refused part of a commit: the tags `validate` turned away, the
+	 * ones already held, and how many had no room.
+	 *
+	 * Every commit splits four ways, and `onValueChange` reports one part of it.
+	 * The other three reach the live region and stop there, which no caller can
+	 * read. Use this callback to explain a refusal in the caller's own words, or to
+	 * count what a paste dropped. `rejected` is also what the field puts back in the
+	 * draft; `duplicates` and `overLimit` are not, because the field already shows
+	 * both.
+	 */
+	onReject?: (rejected: TokenRejection) => void
 	ref?: Ref<HTMLInputElement>
 	className?: string
 }
@@ -97,6 +109,7 @@ export function TagInput({
 	disabled,
 	max,
 	validate,
+	onReject,
 	ref,
 	className,
 }: TagInputProps) {
@@ -114,6 +127,7 @@ export function TagInput({
 		onValueChange,
 		max,
 		validate,
+		onReject,
 	})
 
 	const [inputValue, setInputValue] = useState('')
