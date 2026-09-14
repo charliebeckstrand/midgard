@@ -38,6 +38,8 @@ function setup({
 
 	const lastEmittedRef = { current: null as string | null }
 
+	const onDrawStart = vi.fn()
+
 	const { result } = renderHook(() => {
 		const canvasRef = useRef<HTMLCanvasElement | null>(canvas)
 
@@ -51,10 +53,11 @@ function setup({
 			setEmpty,
 			lastEmittedRef,
 			setCurrent,
+			onDrawStart,
 		})
 	})
 
-	return { result, context, canvas, setEmpty, setCurrent, lastEmittedRef }
+	return { result, context, canvas, setEmpty, setCurrent, lastEmittedRef, onDrawStart }
 }
 
 function pointerEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
@@ -249,5 +252,62 @@ describe('useSignaturePadDrawing', () => {
 		})
 
 		expect(setCurrent).not.toHaveBeenCalled()
+	})
+	describe('onDrawStart', () => {
+		it('reports the start of a stroke once the pad takes the press', () => {
+			const { result, onDrawStart } = setup()
+
+			act(() => {
+				result.current.handlePointerDown(pointerEvent())
+			})
+
+			expect(onDrawStart).toHaveBeenCalledOnce()
+		})
+
+		// Each guard in `handlePointerDown` returns before the stroke starts, so
+		// none of them owes a report. A pad that draws nothing says nothing.
+		it.each<[string, Setup, Partial<ReactPointerEvent>]>([
+			['when disabled', { disabled: true }, {}],
+			['when read-only', { readOnly: true }, {}],
+			['on a non-primary mouse button', {}, { button: 2 }],
+			['when the canvas is absent', { canvasNull: true }, {}],
+			['when the canvas has no 2D context', { contextNull: true }, {}],
+		])('says nothing %s', (_name, options, overrides) => {
+			const { result, onDrawStart } = setup(options)
+
+			act(() => {
+				result.current.handlePointerDown(pointerEvent(overrides))
+			})
+
+			expect(onDrawStart).not.toHaveBeenCalled()
+		})
+
+		it('reports once for each stroke, not once for each move', () => {
+			const { result, onDrawStart } = setup()
+
+			act(() => {
+				result.current.handlePointerDown(pointerEvent())
+			})
+
+			act(() => {
+				result.current.handlePointerMove(pointerEvent({ clientX: 20 }))
+			})
+
+			act(() => {
+				result.current.handlePointerMove(pointerEvent({ clientX: 30 }))
+			})
+
+			expect(onDrawStart).toHaveBeenCalledOnce()
+
+			act(() => {
+				result.current.commit()
+			})
+
+			act(() => {
+				result.current.handlePointerDown(pointerEvent())
+			})
+
+			expect(onDrawStart).toHaveBeenCalledTimes(2)
+		})
 	})
 })

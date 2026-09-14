@@ -19,6 +19,7 @@ type SignatureDrawingOptions = {
 	setEmpty: Dispatch<SetStateAction<boolean>>
 	lastEmittedRef: RefObject<string | null>
 	setCurrent: (value: string | null) => void
+	onDrawStart?: () => void
 }
 
 /**
@@ -27,7 +28,8 @@ type SignatureDrawingOptions = {
  *
  * @internal
  * @param options - The `canvasRef`, stroke styling, the `disabled`/`readOnly`
- * flags, and the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks.
+ * flags, the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks, and
+ * the `onDrawStart` report.
  * @returns The `handlePointerDown`, `handlePointerMove`, and `commit` handlers
  * to wire onto the `<canvas>`.
  * @remarks
@@ -46,6 +48,7 @@ export function useSignaturePadDrawing({
 	setEmpty,
 	lastEmittedRef,
 	setCurrent,
+	onDrawStart,
 }: SignatureDrawingOptions) {
 	const drawingRef = useRef(false)
 
@@ -73,6 +76,11 @@ export function useSignaturePadDrawing({
 		event.currentTarget.setPointerCapture?.(event.pointerId)
 
 		drawingRef.current = true
+
+		// The stroke is now established: every guard above passed, and `commit`
+		// owes a value. The report rides this line, so a pad that draws nothing
+		// stays silent.
+		onDrawStart?.()
 
 		lastPointRef.current = point
 

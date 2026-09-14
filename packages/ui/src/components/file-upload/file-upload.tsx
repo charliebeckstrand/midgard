@@ -37,6 +37,16 @@ type FileUploadSharedProps = {
 	onAccept?: (files: File[]) => void
 	/** Fires with files excluded by `maxSize`/`maxCount`, each tagged with its reason. */
 	onReject?: (rejected: FileRejection[]) => void
+	/**
+	 * Fires when the dropzone starts or stops to hold a dragged file.
+	 *
+	 * The flag drives `data-drag-over` and nothing else, so a consumer that wants
+	 * its own drop affordance has to watch that attribute. Use this callback
+	 * instead. A drag across a child of the dropzone fires nothing, because the
+	 * pointer never leaves the zone. A drop, a cancel, and a drag that exits all
+	 * report `false`.
+	 */
+	onDragOverChange?: (dragOver: boolean) => void
 }
 
 type FileUploadDropProps = FileUploadSharedProps & {
@@ -119,14 +129,21 @@ type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * @see {@link useFileUploadHandlers}
  */
 export function FileUpload(props: FileUploadProps) {
-	const { multiple, disabled, maxSize, maxCount, onAccept, onReject } = props
+	const { multiple, disabled, maxSize, maxCount, onAccept, onReject, onDragOverChange } = props
 
 	// Mirrors Control/Field invalid + required + error-message wiring onto the
 	// hidden `<input type="file">`, the real control in every variant. The
 	// input variant's visible `<Input>` self-resolves the same context.
 	const control = useControl()
 
-	const handlers = useFileUploadHandlers({ disabled, maxSize, maxCount, onAccept, onReject })
+	const handlers = useFileUploadHandlers({
+		disabled,
+		maxSize,
+		maxCount,
+		onAccept,
+		onReject,
+		onDragOverChange,
+	})
 
 	const state: FileUploadRenderState = {
 		...handlers,

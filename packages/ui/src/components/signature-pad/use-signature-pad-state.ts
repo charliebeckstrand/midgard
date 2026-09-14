@@ -31,6 +31,7 @@ export type SignaturePadStateOptions = {
 	readOnly?: boolean
 	strokeColor: string
 	strokeWidth: number
+	onDrawStart?: () => void
 	ref?: Ref<SignaturePadHandle>
 }
 
@@ -41,7 +42,8 @@ export type SignaturePadStateOptions = {
  *
  * @internal
  * @param options - Controlled-triad value, `name` binding, stroke styling, the
- * `disabled`/`readOnly` flags, and the forwarded `ref`.
+ * `disabled`/`readOnly` flags, the `onDrawStart` report, and the forwarded
+ * `ref`.
  * @returns The `containerRef`/`canvasRef`, the `empty` and `invalid` flags, and
  * the `handlePointerDown`/`handlePointerMove`/`commit`/`clear` handlers.
  * @remarks
@@ -59,6 +61,7 @@ export function useSignaturePadState({
 	readOnly,
 	strokeColor,
 	strokeWidth,
+	onDrawStart,
 	ref,
 }: SignaturePadStateOptions) {
 	// Binds the data-URL value to an enclosing Form field by `name`. Keeps the
@@ -129,6 +132,7 @@ export function useSignaturePadState({
 		setEmpty,
 		lastEmittedRef,
 		setCurrent,
+		onDrawStart,
 	})
 
 	// A stroke ending or a clear is the field's "blur" — the user has acted on

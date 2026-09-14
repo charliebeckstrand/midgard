@@ -10,7 +10,7 @@ import { type SignaturePadHandle, useSignaturePadState } from './use-signature-p
 export type { SignaturePadHandle }
 
 /**
- * Props for {@link SignaturePad}; controls the bound field value, stroke styling, and the optional clear affordance.
+ * Props for {@link SignaturePad}; controls the bound field value, stroke styling, the stroke bracket, and the optional clear affordance.
  *
  * @see {@link SignaturePadHandle} for the imperative `ref` API.
  */
@@ -23,6 +23,17 @@ export type SignaturePadProps = {
 	defaultValue?: string | null
 	/** Fires when a stroke ends. Receives the signature as a data URL, or `null` when cleared. */
 	onValueChange?: (value: string | null) => void
+	/**
+	 * Fires when a stroke starts, after the pad accepts the press.
+	 *
+	 * `onValueChange` reports the end of a stroke, and nothing reports the start.
+	 * The two together bracket the gesture. Use this callback to mark the field
+	 * dirty as the pen lands, or to hold a save while the user signs. A press that
+	 * the pad refuses fires nothing: a disabled or read-only pad, a non-primary
+	 * mouse button, a point outside the canvas, and a canvas with no 2D context
+	 * all return before the stroke starts.
+	 */
+	onDrawStart?: () => void
 	disabled?: boolean
 	readOnly?: boolean
 	/**
@@ -77,6 +88,7 @@ export function SignaturePad({
 	value,
 	defaultValue,
 	onValueChange,
+	onDrawStart,
 	disabled,
 	readOnly,
 	placeholder = 'Sign here',
@@ -106,6 +118,7 @@ export function SignaturePad({
 		value,
 		defaultValue,
 		onValueChange,
+		onDrawStart,
 		disabled,
 		readOnly,
 		strokeColor,

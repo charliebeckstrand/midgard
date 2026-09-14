@@ -6,11 +6,11 @@ import { useDensity } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useFormValue } from '../../form/use-form-value'
-import type { ThumbButtonRefs } from './types'
+import type { ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeKeyboard } from './use-range-keyboard'
 import { useRangePointer } from './use-range-pointer'
 
-/** Props for {@link RangeSlider}: the `[start, end]` controllable triad, `min`/`max`/`step` bounds, `allowCross` overlap policy, per-thumb `labels` and `getValueText` for assistive tech, plus `size`/`color` variants. */
+/** Props for {@link RangeSlider}: the `[start, end]` controllable triad, `min`/`max`/`step` bounds, `allowCross` overlap policy, the pointer-drag bracket, per-thumb `labels` and `getValueText` for assistive tech, plus `size`/`color` variants. */
 export type RangeSliderProps = {
 	/** Binds the range to an enclosing Form field. Seed `Form.defaultValues` with a `[number, number]`. */
 	name?: string
@@ -40,6 +40,29 @@ export type RangeSliderProps = {
 	labels?: [string, string]
 	/** Formats a thumb's value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
 	getValueText?: (value: number, thumb: 0 | 1) => string
+	/**
+	 * Fires with the grabbed thumb when a pointer drag starts. Pair it with
+	 * {@link RangeSliderProps.onDragEnd} to bracket the drag.
+	 *
+	 * `onValueChange` reports the values, not the gesture. It also fires once per
+	 * move for the whole drag. Use this callback to hold expensive work down while
+	 * the drag runs. An arrow-key step has no drag lifecycle, so it fires neither
+	 * callback. A press on stacked thumbs grabs no thumb until the first move gives
+	 * a direction. The start then arrives with that move, not with the press.
+	 */
+	onDragStart?: (thumb: ThumbIndex) => void
+	/**
+	 * Fires with the grabbed thumb when a pointer drag ends. The pointer lift, a
+	 * cancel, and a lost capture all end the drag. Exactly one end follows each
+	 * start.
+	 *
+	 * The settled values already went through `onValueChange`. This callback marks
+	 * only the end of the drag. Use it to persist the range, or to release what
+	 * {@link RangeSliderProps.onDragStart} held. Under `allowCross` a thumb that
+	 * passes the other takes its slot. The pair still reports the thumb that the
+	 * press grabbed, so a start and an end always match.
+	 */
+	onDragEnd?: (thumb: ThumbIndex) => void
 	className?: string
 	style?: CSSProperties
 	ref?: Ref<HTMLDivElement>
@@ -68,6 +91,8 @@ export function RangeSlider({
 	allowCross = true,
 	labels = ['Range start', 'Range end'],
 	getValueText,
+	onDragStart,
+	onDragEnd,
 	className,
 	style,
 	ref,
@@ -110,6 +135,8 @@ export function RangeSlider({
 			setRange,
 			overlap,
 			thumbRefs,
+			onDragStart,
+			onDragEnd,
 		})
 
 	const handleKeyDown = useRangeKeyboard({

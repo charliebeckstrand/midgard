@@ -8,6 +8,8 @@ Five more close T1 outright, by [#1104](https://github.com/charliebeckstrand/mid
 
 Three more close T5, by [#1105](https://github.com/charliebeckstrand/midgard/pull/1105): Collapse and Accordion `onOpenComplete`, and ReadyReveal `onReadyComplete`. Every one already ran the landing internally and kept it. Twenty-one rows stay open.
 
+The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix on a branch, and `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))` for a merged row ([`CONVENTIONS.md`](../../../../CONVENTIONS.md) §12.4).
+
 ## Executive summary
 
 The library announces state well where the state is a value. `onValueChange` appears 116 times, `onOpenChange` 42, and the controlled triads behind them are consistent. What the sweep found is a different gap: a surface computes something, acts on it, and keeps it. The consumer sees the result in the DOM and cannot see it in React.
@@ -52,7 +54,7 @@ The close half of this pair is already settled and is not a finding: `onExitComp
 | ColorPicker | `onOpenChange` | `color-picker.tsx:13` | `useState(false)` at `use-color-picker-state.ts:54`; root is a `display: contents` wrapper, panel portals out (T1) | every floating trigger in `components/` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
 | MenuSub | `onOpenChange` | `menu-sub.tsx:64` | Submenu opened by hover-intent, click, and Enter/Space; closed by blur; children mount only while open (T1) | TreeItem `onOpenChange` | ✅ RESOLVED ([#1104](https://github.com/charliebeckstrand/midgard/pull/1104)) |
 | ResizableGroup / Handle | `onResizeStart` / `onResizeEnd` | `resizable-group.tsx:13` | `setDragging(handleIndex)` / `setDragging(null)` at `use-resizable-panel.ts:199`; `onSizesChange` fires on every pointermove (T2) | grid `types.ts:362,369` | ✅ RESOLVED ([#1103](https://github.com/charliebeckstrand/midgard/pull/1103)) |
-| RangeSlider | `onDragStart` / `onDragEnd` | `range/range-slider.tsx:18` | Thumb grab, stacked-pair deferral, and release at `use-range-pointer.ts:117-156`; closed prop bag, no rest spread (T2) | `use-sortable-list.ts:27,33` | ◯ OPEN |
+| RangeSlider | `onDragStart` / `onDragEnd` | `range/range-slider.tsx:18` | Thumb grab, stacked-pair deferral, and release at `use-range-pointer.ts:117-156`; closed prop bag, no rest spread (T2) | `use-sortable-list.ts:27,33` | ◐ FIXED |
 | Form | `onInvalidSubmit` | `form.tsx:40` | Runs every validator on submit and returns early when any fails, `use-form-reducer.ts:250-256`; a refused submit and no submit look identical (T3) | FileUpload `onReject` | ◯ OPEN |
 | AddressInput | `onError` | `address-input.tsx:16` | Catches every non-abort geocoding rejection at `use-address-input-suggestions.ts:87-97`, then empties the list — a provider outage renders as "no matches" (T4) | `use-chat-send.ts:120` | ◯ OPEN |
 | DateInput | `onValidityChange` | `date-input.tsx:40` | Holds `typedInvalid`, its own verdict on the typed text, set on every keystroke at `:244`; `onValueChange` emits `undefined` for cleared, partial, and invalid alike | CreditCardInputExpiry ships this exact callback | ◯ OPEN |
@@ -66,9 +68,9 @@ The close half of this pair is already settled and is not a finding: `onExitComp
 | Calendar (+ CalendarRange / DatePicker forward) | `onMonthChange` | `calendar.tsx:69` | Owns `viewDate` and its five writers in `use-calendar-month.ts`; consumers reverse-derive the month from `getDayProps` (T6) | PdfViewer `onPageChange` | ◯ OPEN |
 | TreeItem | `onAction` | `tree-item.tsx:9` | Row activation by click and Enter/Space; on a leaf it does nothing observable, so consumers plant a control in `prefix` to catch the synthesized click | ContextMenu `types.ts:22` | ◯ OPEN |
 | PasswordInput | `onVisibleChange` | `password-input.tsx:13` | Plaintext reveal owned at `:62`, flipped by the internal suffix toggle at `:83`; `type` and `suffix` are both `Omit`ted | CopyButton `onCopiedChange` | ◯ OPEN |
-| FileUpload | `onDragOverChange` | `file-upload.tsx:24` | Depth counter at `use-file-upload-handlers.ts:46` derives `dragOver`; only readout is a `MutationObserver` on `data-drag-over` (T2) | CopyButton `onCopiedChange` | ◯ OPEN |
+| FileUpload | `onDragOverChange` | `file-upload.tsx:24` | Depth counter at `use-file-upload-handlers.ts:46` derives `dragOver`; only readout is a `MutationObserver` on `data-drag-over` (T2) | CopyButton `onCopiedChange` | ◐ FIXED |
 | Listbox | `onBlur` | `listbox.tsx:80` | `handleTriggerBlur` computes focus leaving the widget — ignoring a blur into the portalled panel — and keeps it; closed prop bag, no rest, no `ref` | Slider chains `onBlur`, `slider.tsx:60` | ◯ OPEN |
-| SignaturePad | `onDrawStart` | `signature-pad.tsx:17` | `drawingRef.current = true` and the initial dot at `use-signature-pad-drawing.ts:75-88`; only `onValueChange` on stroke end escapes (T2) | HoldButton's full triad | ◯ OPEN |
+| SignaturePad | `onDrawStart` | `signature-pad.tsx:17` | `drawingRef.current = true` and the initial dot at `use-signature-pad-drawing.ts:75-88`; only `onValueChange` on stroke end escapes (T2) | HoldButton's full triad | ◐ FIXED |
 | CommandPalette | `onActiveChange` | `command-palette.tsx:23` | Virtual roving moves the option highlight on every arrow key, `use-command-palette-state.ts:63-69`; readable only via `aria-activedescendant` | none in `ui` | ◯ OPEN |
 
 One caution for the implementer of the DateInput row. Reuse the exported `CardValidity` ([`credit-card-input-utilities.ts:88-91`](../../src/components/credit-card-input/credit-card-input-utilities.ts)) rather than re-spelling its shape inline (§1.1, and the 2026-07-22 audit's T9). Note also that DateInput holds one boolean today, so only the invalid verdict is an unannounced state; an `isPotentiallyValid` arm is a new derivation, not an existing one. `CreditCardInputExpiry`'s own comment names DateInput as the model it mirrors, which makes this row the return leg.
