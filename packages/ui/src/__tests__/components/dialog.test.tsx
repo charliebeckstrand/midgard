@@ -68,7 +68,7 @@ describe('Dialog', () => {
 
 	it('renders with placement="top"', () => {
 		renderUI(
-			<Dialog open placement="top" onOpenChange={() => {}}>
+			<Dialog open align="top" onOpenChange={() => {}}>
 				Top-placed
 			</Dialog>,
 		)

@@ -31,11 +31,11 @@ export type OverlayProps = {
 	dismissOnBackdrop?: boolean
 	glass?: boolean
 	/**
-	 * Class for the dimming backdrop — not the root. It fully replaces the
-	 * backdrop's default classes (including `absolute inset-0`), and applies
-	 * only when a backdrop renders; with `backdrop={false}` it has no effect.
+	 * Class for the dimming backdrop. It fully replaces the backdrop's default
+	 * classes (including `absolute inset-0`), and applies only when a backdrop
+	 * renders; with `backdrop={false}` it has no effect.
 	 */
-	className?: string
+	backdropClassName?: string
 	children: ReactNode
 	/**
 	 * Optional element to portal into. When provided, the overlay is scoped to this
@@ -84,7 +84,7 @@ export type OverlayProps = {
 	 * @defaultValue `modal`
 	 */
 	backdrop?: boolean
-} & Omit<ComponentProps<'div'>, 'className' | 'children'>
+} & Omit<ComponentProps<'div'>, 'className' | 'children'> & { className?: string }
 
 /**
  * Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,
@@ -105,13 +105,14 @@ export function Overlay({
 	onOpenChange,
 	dismissOnBackdrop = true,
 	glass,
-	className,
+	backdropClassName,
 	children,
 	container,
 	initialFocus,
 	modal = true,
 	backdrop = modal,
 	animateOnMount = true,
+	className,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
@@ -147,8 +148,13 @@ export function Overlay({
 		<div
 			ref={setPanel}
 			data-slot="overlay"
-			className={cn(k.root, scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
 			{...props}
+			className={cn(
+				k.root,
+				scoped ? 'absolute' : 'fixed',
+				!modal && 'pointer-events-none',
+				className,
+			)}
 		>
 			{backdrop && (
 				<motion.div
@@ -157,7 +163,7 @@ export function Overlay({
 					initial={animateEnter ? k.motion.initial : false}
 					data-slot="overlay-backdrop"
 					className={
-						className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
+						backdropClassName ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
 					}
 					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
 					aria-hidden="true"

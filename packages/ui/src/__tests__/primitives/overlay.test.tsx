@@ -119,9 +119,9 @@ describe('Overlay', () => {
 		expect(backdrop.className).not.toContain('backdrop-blur')
 	})
 
-	it('applies a custom className override on the backdrop', () => {
+	it('applies a custom backdropClassName override on the backdrop', () => {
 		renderUI(
-			<Overlay open className="custom-backdrop" onOpenChange={() => {}}>
+			<Overlay open backdropClassName="custom-backdrop" onOpenChange={() => {}}>
 				<span>content</span>
 			</Overlay>,
 		)

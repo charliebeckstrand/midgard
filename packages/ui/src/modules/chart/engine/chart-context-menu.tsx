@@ -39,7 +39,7 @@ import type { ChartReadoutSource } from './types'
  *
  * An index rather than a label on purpose: labels are formatted for display (the sector charts run period
  * keys through a formatter), so a consumer that needs the underlying value must look it up in its own data
- * by position.
+ * by insert order.
  */
 export type ChartContextMenuTarget = { index: number | null }
 
@@ -56,7 +56,7 @@ export type ChartExportOutcome =
 
 /**
  * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
- * (custom `items`, `defaultItems`, `position`) plus the chart's own export
+ * (custom `items`, `defaultItems`, `insert`) plus the chart's own export
  * options.
  */
 export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
@@ -412,7 +412,7 @@ export function ChartContextMenu({
 				defaults={defaults}
 				items={customItems}
 				defaultItems={config?.defaultItems}
-				position={config?.position}
+				insert={config?.insert}
 				capped={config?.capped}
 			>
 				{children}

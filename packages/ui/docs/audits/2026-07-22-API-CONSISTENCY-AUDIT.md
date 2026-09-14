@@ -64,7 +64,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | S9 | `onFiles`/`onReject` asymmetric pair (T4) | `file-upload.tsx:37-39` | `onAccept`/`onReject` | ✅ RESOLVED (`onAccept` / `onReject`) |
 | S10 | `SelectCapitalize` unreachable from barrels (T9) | `select-trigger/capitalize.ts:8`, `select-trigger/index.ts:1` | Export it. `SelectTriggerProps` landed in [#1021](https://github.com/charliebeckstrand/midgard/pull/1021); the barrel's `export *` covers `select-trigger.tsx` alone, so `capitalize.ts` is still dark | ✅ RESOLVED (moot — `SelectCapitalize` no longer exists; `capitalize` is a boolean) |
 | S11 | Radio is the only toggle outside the §7.2 cascade — `name` binds on Checkbox/Switch, not Radio | `radio.tsx:17-22` vs `checkbox.tsx:47`, `switch.tsx:42` | Resolve the bound field in RadioGroup, or mirror the remark onto `RadioGroupProps` | ◯ OPEN |
-| S12 | CopyButton overloads `value` for the clipboard payload (T5) | `copy-button.tsx:14-15` | Rename `text` | ◯ OPEN |
+| S12 | CopyButton overloads `value` for the clipboard payload (T5) | `copy-button.tsx:14-15` | Rename `text` | ✅ RESOLVED (`text`; `value` stays reserved for controlled state) |
 | S13 | ToggleIconButton controlled-only, no `onPressedChange`/`defaultPressed` (T3) | `toggle-icon-button.tsx:15-16` | Add both | ✅ RESOLVED (`defaultPressed` and `onPressedChange` added) |
 | S14 | RangeSlider drops `name`/`ref`/rest that Slider carries (T3, T7) | `range-slider.tsx:13-41` vs `slider.tsx:12-29,70` | Add `name` via `useFormValue`, root `ref` | ✅ RESOLVED (RangeSlider carries `name`, root `ref`, and rest) |
 
@@ -73,7 +73,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | # | Finding | Evidence | Fix | Status |
 |---|---|---|---|---|
 | O1 | `size` = width on Dialog/Sheet, density Step on Drawer/Popover/Tooltip/Menu (T1) | `recipes/kiso/shaku/panel.ts:9-22` vs `drawer.tsx:28` | Rename the width axis `width`; `size` stays the Step | ✅ RESOLVED (the panel width axis is `width`; `size` stays the Step) |
-| O2 | Placement fractured: Dialog `placement: 'center'\|'top'`, ContextMenu `position` = ordering (T5) | `dialog.tsx:22`, `context-menu/types.ts:42,65` | Dialog → `align`; ContextMenu → `insert`; `placement` reserved for anchored geometry | ◯ OPEN |
+| O2 | Placement fractured: Dialog `placement: 'center'\|'top'`, ContextMenu `position` = ordering (T5) | `dialog.tsx:22`, `context-menu/types.ts:42,65` | Dialog → `align`; ContextMenu → `insert`; `placement` reserved for anchored geometry | ✅ RESOLVED (Dialog takes `align`, ContextMenu takes `insert` with `ContextMenuInsert`; `placement` is now anchored geometry only) |
 | O3 | `dismissOnBackdrop`/`modal`/`container` unevenly exposed across Dialog/Sheet/Drawer | `dialog.tsx:24` vs `sheet.tsx:31,46,54`; `overlay.tsx:28,44` | Expose the Overlay knobs uniformly | ◯ OPEN |
 | O4 | `onSelect` (ContextMenu) vs `onAction` (Menu, CommandPalette) (T4) | `context-menu/types.ts:22` vs `menu-item.tsx:17` | `onAction` | ✅ RESOLVED (`onAction`) |
 | O5 | Tooltip `enabled` vs house `disabled` polarity (T5) | `tooltip.tsx:30` vs `context-menu.tsx:20` | `disabled`, inverted default | ◯ OPEN |
@@ -81,7 +81,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | O7 | `glass` opt-in on panels only; floating content parts are ambient-only though the primitive supports it | `dialog.tsx:26` vs `primitives/popover/popover.tsx:69` | Expose `glass` on Popover/Tooltip/Menu content | ◯ OPEN |
 | O8 | PanelTrigger demands `ReactElement` + hand-threaded `open`; PopoverTrigger reads context (T10) | `panel-trigger.tsx:8,16` vs `popover-trigger.tsx:20` | Align on the PopoverTrigger contract | ◯ OPEN |
 | O9 | `SheetContent`/`DrawerContent` unexported; CommandPalette groups by `title` prop vs Menu's Section+Heading (T10) | `panel.tsx:157-161`, `command-palette/slots.tsx:8` | Export the slots; add Section/Heading pair | ◯ OPEN |
-| O10 | `Overlay.className` styles the backdrop and no-ops when `backdrop={false}`; `Menu.className` lands on `display: contents` (T7) | `overlay.tsx:30-35,139`, `menu.tsx:65` | `backdropClassName`; drop or document `Menu.className` | ◯ OPEN |
+| O10 | `Overlay.className` styles the backdrop and no-ops when `backdrop={false}`; `Menu.className` lands on `display: contents` (T7) | `overlay.tsx:30-35,139`, `menu.tsx:65` | `backdropClassName`; drop or document `Menu.className` | ✅ RESOLVED (Overlay takes `backdropClassName`; native `className` reaches the root and merges there, so neither silently no-ops. Menu `className` is a separate row) |
 | O11 | ToastSeverity mixes style words into the severity axis (T6) | `providers/toast/types.ts:3`, `toast-alert.tsx:27-33` | `info`/`neutral` replace `default`/`secondary` | ◯ OPEN |
 | O12 | Confirm can't distinguish Cancel from backdrop dismissal | `confirm.tsx:60,104,130` | Add `onCancel` fired only by the button | ◯ OPEN |
 | O13 | `closeOnAction` on CommandPaletteItem but not MenuItem | `command-palette-item.tsx:16` vs `menu-item.tsx:49-54` | Add to MenuItem, same default | ◯ OPEN |

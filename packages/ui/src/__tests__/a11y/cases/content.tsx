@@ -54,7 +54,7 @@ export const contentCases: readonly Case[] = [
 		// Icon-only copy control; ships its own accessible name and a status live
 		// region announcing the copied state.
 		'copy button',
-		<CopyButton key="cp" value="Copy me" />,
+		<CopyButton key="cp" text="Copy me" />,
 	],
 	[
 		// Press-and-hold action; named by its text, with aria for the hold progress.
