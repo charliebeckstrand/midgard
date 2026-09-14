@@ -134,8 +134,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		[columns, findColumnByCardId],
 	)
 
-	// The column the drag started in. A ref, because only the drag handlers read
-	// it and a write must not re-render the board mid-drag.
+	// The column the drag started in; only the drag handlers read it.
 	const originColumnId = useRef<string | null>(null)
 
 	const handleDragStart = (event: DragStartEvent) => {
@@ -151,10 +150,6 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
-		const originId = originColumnId.current
-
-		originColumnId.current = null
-
 		setActiveId(null)
 
 		if (!onReorder) return
@@ -175,12 +170,9 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		if (!activeCol || !overCol) return
 
-		// Cross-column moves apply in dragOver, and the consumer re-renders with
-		// that move before the drop. Thus `columns` already holds the card in the
-		// column under the pointer, and it cannot identify a cross-column drop.
-		// The origin column can. A drag end with no drag start records no origin —
-		// dnd-kit does not send one — and falls back to the current column.
-		if ((originId ?? activeCol.id) !== overCol.id) return
+		// A drag end with no drag start records no origin — dnd-kit does not send
+		// one — so fall back to the current column.
+		if ((originColumnId.current ?? activeCol.id) !== overCol.id) return
 
 		const oldIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
 
@@ -196,11 +188,7 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		onReorder(next)
 	}
 
-	const handleDragCancel = () => {
-		originColumnId.current = null
-
-		setActiveId(null)
-	}
+	const handleDragCancel = () => setActiveId(null)
 
 	return {
 		activeId,

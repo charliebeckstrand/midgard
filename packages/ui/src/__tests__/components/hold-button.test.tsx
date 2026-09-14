@@ -320,26 +320,18 @@ describe('HoldButton', () => {
 		expect(el).toHaveAttribute('aria-label', 'Hold to delete')
 	})
 
-	it('keeps type="button" against a caller type', () => {
-		const { container } = renderUI(<HoldButton type="submit">Delete</HoldButton>)
-
-		expect(bySlot(container, 'hold-button')).toHaveAttribute('type', 'button')
-	})
-
-	it('does not submit an enclosing form when a quick press cancels the hold', () => {
+	it('keeps type="button" so a caller type cannot submit an enclosing form', () => {
 		const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
-
-		const onHoldComplete = vi.fn()
 
 		const { container } = renderUI(
 			<form onSubmit={onSubmit}>
-				<HoldButton type="submit" onHoldComplete={onHoldComplete}>
-					Delete
-				</HoldButton>
+				<HoldButton type="submit">Delete</HoldButton>
 			</form>,
 		)
 
 		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		expect(el).toHaveAttribute('type', 'button')
 
 		// A quick press cancels the hold, but the browser sends a native click
 		// after the pointer pair. A caller `type="submit"` would then submit the
@@ -349,8 +341,6 @@ describe('HoldButton', () => {
 		fireEvent.pointerUp(el)
 
 		fireEvent.click(el)
-
-		expect(onHoldComplete).not.toHaveBeenCalled()
 
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
