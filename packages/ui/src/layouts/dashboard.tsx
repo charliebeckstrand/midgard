@@ -10,7 +10,8 @@ import { Stack } from '../components/stack'
 import { useOffcanvas } from '../hooks/use-offcanvas'
 import { StackedLayout } from './stacked'
 
-type DashboardLayoutProps = PropsWithChildren<{
+/** Props for {@link DashboardLayout}: the filter panel and the main region beside it. */
+export type DashboardLayoutProps = PropsWithChildren<{
 	/**
 	 * Optional filter controls. Render inline as a desktop `aside`; on mobile
 	 * they collapse behind a "Filters" button that opens them in a {@link Drawer}.

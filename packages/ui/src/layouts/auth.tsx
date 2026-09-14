@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 
-type AuthLayoutProps = { children: ReactNode }
+/** Props for {@link AuthLayout}: the card or cards to centre. */
+export type AuthLayoutProps = { children: ReactNode }
 
 /**
  * Full-viewport layout that centres its content both axes — the frame for

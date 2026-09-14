@@ -6,6 +6,8 @@
 import { AuthLayout, SidebarLayout, StackedLayout } from 'ui/layouts'
 ```
 
+Each export ships its `<Name>Props` type beside it. Per-layout behavior, props, and defaults live in the TSDoc.
+
 ## `AuthLayout` — unauthenticated pages
 
 Static frame for sign-in, registration, and other single-card pages.
