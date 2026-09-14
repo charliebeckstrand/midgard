@@ -83,6 +83,7 @@ export function CreditCardInputExpiry({
 		<>
 			<Input
 				ref={masked.ref}
+				data-slot="credit-card-input-expiry"
 				type="text"
 				inputMode="numeric"
 				autoComplete="cc-exp"

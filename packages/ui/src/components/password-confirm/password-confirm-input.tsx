@@ -49,7 +49,7 @@ export function PasswordConfirmInput({
 
 	return (
 		<PasswordInput
-			data-password-confirm-input
+			data-slot="password-confirm-input"
 			{...(showWarning ? { 'data-warning': true } : {})}
 			// Otherwise only the visual `data-warning` signals a mismatch; surface
 			// it programmatically too. A caller-supplied `invalid` still wins.

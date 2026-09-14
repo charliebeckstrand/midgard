@@ -109,6 +109,7 @@ export function CreditCardInputCvv({
 	return (
 		<Input
 			ref={masked.ref}
+			data-slot="credit-card-input-cvv"
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-csc"

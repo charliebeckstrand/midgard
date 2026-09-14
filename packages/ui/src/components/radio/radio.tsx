@@ -52,6 +52,9 @@ export function Radio({
 			className={cn(k({ color, size: resolvedSize }), className)}
 		>
 			<input
+				// Consumer props spread first; the resolved §7.2 binding, the
+				// validation attributes, and data-slot below take precedence.
+				{...props}
 				type="radio"
 				data-slot="radio"
 				ref={ref}
@@ -61,7 +64,6 @@ export function Radio({
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
 				className={k.input()}
-				{...props}
 			/>
 			<span
 				data-slot="radio-indicator"

@@ -120,7 +120,7 @@ describe('CreditCardInputExpiry', () => {
 	it('uses MM/YY as the default placeholder', () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input')
+		const input = bySlot(container, 'credit-card-input-expiry')
 
 		expect(input).toHaveAttribute('placeholder', 'MM/YY')
 	})
@@ -149,7 +149,7 @@ describe('CreditCardInputExpiry', () => {
 	])('%s', async (_name, typed, expected) => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -161,7 +161,7 @@ describe('CreditCardInputExpiry', () => {
 	it('deletes the auto-inserted slash and the preceding digit on backspace', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -179,7 +179,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const { container } = renderUI(<CreditCardInputExpiry onValidityChange={onValidityChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -200,7 +200,7 @@ describe('CreditCardInputExpiry', () => {
 
 		const { container } = renderUI(<CreditCardInputExpiry onValidityChange={onValidityChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -212,7 +212,7 @@ describe('CreditCardInputExpiry', () => {
 	it('marks a complete impossible expiry invalid while typing', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -226,7 +226,7 @@ describe('CreditCardInputExpiry', () => {
 	it('leaves a still-growing entry unmarked while typing', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -240,7 +240,7 @@ describe('CreditCardInputExpiry', () => {
 	it('keeps a partial entry on blur and marks it invalid', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -258,7 +258,7 @@ describe('CreditCardInputExpiry', () => {
 	it('does not mark an untouched-but-blurred empty field invalid', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -272,7 +272,7 @@ describe('CreditCardInputExpiry', () => {
 	it('renders the default invalid-format message for a complete impossible expiry', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -297,7 +297,7 @@ describe('CreditCardInputExpiry', () => {
 			</Field>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -315,7 +315,7 @@ describe('CreditCardInputExpiry', () => {
 	it('uses a custom invalid message and clears it once valid', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry invalidMessage="Bad expiry" />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -337,7 +337,7 @@ describe('CreditCardInputExpiry', () => {
 	it('suppresses the built-in message when invalidMessage is null', async () => {
 		const { container } = renderUI(<CreditCardInputExpiry invalidMessage={null} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-expiry') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
@@ -371,7 +371,7 @@ describe('CreditCardInputCvv', () => {
 	])('%s', async (_name, brand, typed, expected) => {
 		const { container } = renderUI(<CreditCardInputCvv brand={brand} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = bySlot(container, 'credit-card-input-cvv') as HTMLInputElement
 
 		const user = userEvent.setup({ delay: null })
 
