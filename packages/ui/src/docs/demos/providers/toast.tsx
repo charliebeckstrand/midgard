@@ -30,7 +30,7 @@ function SeverityExample() {
 					toast({
 						title: 'Draft saved',
 						description: 'Your draft has been saved locally.',
-						severity: 'secondary',
+						severity: 'neutral',
 					})
 				}
 			>
@@ -153,7 +153,7 @@ const SEVERITY_CODE = code`
 
 	// severity defaults to 'default'; other options are 'secondary', 'success', 'warning', and 'error'.
 	toast({ title: 'Event created' })
-	toast({ title: 'Draft saved', description: 'Your draft has been saved locally.', severity: 'secondary' })
+	toast({ title: 'Draft saved', description: 'Your draft has been saved locally.', severity: 'neutral' })
 	toast({ title: 'Saved', description: 'Your changes have been saved.', severity: 'success' })
 	toast({ title: 'Warning', description: 'Storage is almost full.', severity: 'warning' })
 	toast({ title: 'Error', description: 'Something went wrong.', severity: 'error' })

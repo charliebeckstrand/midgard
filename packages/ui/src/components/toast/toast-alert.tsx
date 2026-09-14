@@ -25,8 +25,8 @@ const layoutTransition = { layout: k.spring }
  * @internal
  */
 const severityAlertMap = {
-	default: { variant: 'solid', color: 'blue' },
-	secondary: { variant: 'solid', color: 'zinc' },
+	info: { variant: 'solid', color: 'blue' },
+	neutral: { variant: 'solid', color: 'zinc' },
 	success: { variant: 'solid', color: 'green' },
 	warning: { variant: 'solid', color: 'amber' },
 	error: { variant: 'solid', color: 'red' },
@@ -78,7 +78,7 @@ export function ToastAlert({
 
 	const motionConfig = positionTop ? k.motion.top : k.motion.bottom
 
-	const { variant, color } = severityAlertMap[t.severity ?? 'default']
+	const { variant, color } = severityAlertMap[t.severity ?? 'info']
 
 	// Warning/error interrupt (assertive); everything else queues politely.
 	const assertive = t.severity === 'warning' || t.severity === 'error'
