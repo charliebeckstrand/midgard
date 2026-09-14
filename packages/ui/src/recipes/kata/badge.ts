@@ -1,6 +1,6 @@
 /**
  * Badge kata: the inline status/label chip. Recipe-shaped — a `variant` ×
- * `color` × `size` × `rounded` matrix over the signature kasane chrome.
+ * `color` × `size` × `radius` matrix over the signature kasane chrome.
  * Reads `iro.extendedPalette` rather than `iro.palette`, so its `color` axis
  * carries the extended hues; the rest of the surface is the shared chromatic
  * palette wired through `basePalette`.
@@ -34,25 +34,25 @@ export const k = defineRecipe({
 		md: [size.md, icon.md, gap.g('1'), padding.py('1'), padding.px('2')],
 		lg: [size.lg, icon.lg, gap.g('1.25'), padding.py('1'), padding.px('2.5')],
 	},
-	rounded,
+	radius: rounded,
 	// Opt into the wide palette: Badge's `color` axis carries the standard set
 	// plus the extended hues (rose / violet / sky).
 	palette: definePalette({ ...basePalette(extendedPalette), plain: extendedPalette.plain.text }),
-	// `rounded-full` caps swallow horizontal space, so pills read tighter than
-	// the base `px` (tuned for the default `rounded-md`) — most visibly at small
+	// `radius: 'full'` caps swallow horizontal space, so pills read tighter than
+	// the base `px` (tuned for the default `radius: 'md'`) — most visibly at small
 	// sizes. Bump every pill one `px` step; the shift stays uniform because the
 	// `px` stops jump 0.5 (1.5 → 2 → 2.5), so lifting only the small end would
 	// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
 	// base scale — and the affix `px` lockstep keyed off it — stays put.
 	compound: [
-		{ rounded: 'full', size: 'xs', class: padding.px('1.5') },
-		{ rounded: 'full', size: 'sm', class: padding.px('2') },
-		{ rounded: 'full', size: 'md', class: padding.px('2.5') },
-		{ rounded: 'full', size: 'lg', class: padding.px('3') },
+		{ radius: 'full', size: 'xs', class: padding.px('1.5') },
+		{ radius: 'full', size: 'sm', class: padding.px('2') },
+		{ radius: 'full', size: 'md', class: padding.px('2.5') },
+		{ radius: 'full', size: 'lg', class: padding.px('3') },
 	],
-	defaults: { variant: 'soft', color: 'zinc', size: 'md', rounded: 'md' },
+	defaults: { variant: 'soft', color: 'zinc', size: 'md', radius: 'md' },
 	skeleton: badge,
 })
 
-/** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `size`, `rounded`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `size`, `radius`), for consumers composing custom slots. */
 export type BadgeVariants = VariantProps<typeof k>

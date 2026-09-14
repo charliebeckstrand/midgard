@@ -27,6 +27,18 @@ describe('Timeline', () => {
 })
 
 describe('TimelineTimestamp', () => {
+	it('marks the current item as a step, as Stepper does', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem current>
+					<TimelineTitle>Event</TimelineTitle>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		expect(bySlot(container, 'timeline-item')).toHaveAttribute('aria-current', 'step')
+	})
+
 	it('renders with data-slot="timeline-timestamp"', () => {
 		const { container } = renderUI(
 			<Timeline>
