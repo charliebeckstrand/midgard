@@ -9,7 +9,7 @@ import {
 	hsvaToRgba,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -240,5 +240,34 @@ describe('ColorPicker', () => {
 		expect(onOpenChange).toHaveBeenLastCalledWith(false)
 
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
+	})
+
+	it('leaves the positioning wrapper free of floating-ui popup attributes', () => {
+		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
+
+		const button = present(bySlot(container, 'color-picker-button'), 'the trigger')
+
+		fireEvent.click(button)
+
+		const wrapper = present(button.closest('[data-slot="control"]'), 'the positioning wrapper')
+
+		// The button hand-rolls `aria-haspopup`/`aria-expanded` and the panel
+		// hand-rolls `role="dialog"`, so `useColorPickerState` passes `role: null`
+		// and floating-ui's `useRole` stamps nothing on this roleless wrapper. A
+		// role here repeats the trigger's popup state on the element above it, so
+		// two nodes report one expanded widget. Per §10.3 the real `useRole` stays
+		// undriven: the double stamps `aria-describedby` alone, which is the entry
+		// that fails on the unfixed source. The other four state the contract; the
+		// real engine puts them on the reference, and only a browser-suite test
+		// drives that.
+		for (const attribute of [
+			'role',
+			'aria-haspopup',
+			'aria-expanded',
+			'aria-controls',
+			'aria-describedby',
+		]) {
+			expect(wrapper).not.toHaveAttribute(attribute)
+		}
 	})
 })

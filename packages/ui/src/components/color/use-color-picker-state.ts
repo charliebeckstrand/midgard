@@ -70,12 +70,16 @@ export function useColorPickerState({
 
 	const triggerRef = useRef<HTMLElement | null>(null)
 
+	// The trigger button (`aria-haspopup="dialog"`, `aria-expanded`) and the panel
+	// (`role="dialog"`) carry their own roles; `role: null` suppresses floating-ui's
+	// `useRole`, which stamps a second dialog widget onto the roleless positioning
+	// wrapper that takes `getReferenceProps()`.
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,
 		open,
 		onOpenChange: setOpen,
 		offset: 8,
-		role: 'dialog',
+		role: null,
 		returnFocusTo: triggerRef,
 	})
 
