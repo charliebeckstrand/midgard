@@ -33,7 +33,8 @@ let importError: Error | null = null
  * thenable, so a `then` that rejects turns the import itself into a rejection.
  * Assert that the import rejects, never on the error: a cold registry runs the
  * global factory, which rewrites the rejection with Vitest's own mocking hint.
- * Clear the error in a `finally` — one registry serves every file a worker runs.
+ * Clear the error in an `afterEach` — one registry serves every file a worker
+ * runs, so an error left set reaches whichever file runs next.
  */
 export function failShikiImport(error: Error | null) {
 	importError = error

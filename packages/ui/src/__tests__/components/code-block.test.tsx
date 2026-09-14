@@ -1,24 +1,10 @@
-import { describe, expect, it } from 'vitest'
-import { CodeBlock } from '../../components/code/code-block'
+import { afterEach, describe, expect, it } from 'vitest'
+import { CodeBlock, loadShiki } from '../../components/code/code-block'
 import { bySlot, renderUI, screen, waitFor } from '../helpers'
 import { failShikiImport } from '../mocks/shiki'
 
 // `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here
 // would bleed across files (see markdown.test.tsx for the failure it caused).
-
-let coldCount = 0
-
-/**
- * A second instance of the module under test, so its `shikiPromise` memo starts
- * empty. One module registry serves every file a worker runs, so a sibling
- * render memoises the resolved import before these tests reach it, and
- * `vi.resetModules()` is barred (see test-isolation-boundary.test.ts). A query
- * suffix gives each caller its own instance; the shared one is left untouched.
- */
-const coldCodeBlock = async () =>
-	(await import(
-		/* @vite-ignore */ `../../components/code/code-block?cold=${++coldCount}`
-	)) as typeof import('../../components/code/code-block')
 
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {
@@ -93,9 +79,9 @@ describe('CodeBlock', () => {
 })
 
 describe('loadShiki', () => {
-	it('memoises a resolved import so the heavy module is fetched once', async () => {
-		const { loadShiki } = await coldCodeBlock()
+	afterEach(() => failShikiImport(null))
 
+	it('memoises a resolved import so the heavy module is fetched once', async () => {
 		const first = loadShiki()
 
 		await expect(first).resolves.toBeDefined()
@@ -104,19 +90,28 @@ describe('loadShiki', () => {
 	})
 
 	it('drops a rejected import from the memo so a later call retries', async () => {
-		const { loadShiki } = await coldCodeBlock()
+		// A second instance of the module, so its `shikiPromise` cell starts empty.
+		// One registry serves every file a worker runs, so a sibling render has
+		// already memoised a resolved import, and `vi.resetModules()` is barred
+		// (see test-isolation-boundary.test.ts). The query suffix gives this case
+		// its own instance; the shared one stays untouched. Keep the specifier in
+		// a variable: TypeScript resolves a literal `import()` argument, and the
+		// suffixed path has no declaration.
+		const coldSpecifier = '../../components/code/code-block?cold'
+
+		const { loadShiki: loadShikiCold } = (await import(
+			/* @vite-ignore */ coldSpecifier
+		)) as typeof import('../../components/code/code-block')
 
 		failShikiImport(new Error('chunk fetch failed'))
 
-		const rejected = loadShiki()
+		const rejected = loadShikiCold()
 
-		try {
-			await expect(rejected).rejects.toThrow()
-		} finally {
-			failShikiImport(null)
-		}
+		await expect(rejected).rejects.toThrow()
 
-		const retry = loadShiki()
+		failShikiImport(null)
+
+		const retry = loadShikiCold()
 
 		expect(retry).not.toBe(rejected)
 
