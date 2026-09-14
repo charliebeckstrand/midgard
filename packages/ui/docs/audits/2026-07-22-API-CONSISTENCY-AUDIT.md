@@ -84,7 +84,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | O10 | `Overlay.className` styles the backdrop and no-ops when `backdrop={false}`; `Menu.className` lands on `display: contents` (T7) | `overlay.tsx:30-35,139`, `menu.tsx:65` | `backdropClassName`; drop or document `Menu.className` | ✅ RESOLVED (Overlay takes `backdropClassName`; native `className` reaches the root and merges there, so neither silently no-ops. Menu `className` is a separate row) |
 | O11 | ToastSeverity mixes style words into the severity axis (T6) | `providers/toast/types.ts:3`, `toast-alert.tsx:27-33` | `info`/`neutral` replace `default`/`secondary` | ◯ OPEN |
 | O12 | Confirm can't distinguish Cancel from backdrop dismissal | `confirm.tsx:60,104,130` | Add `onCancel` fired only by the button | ◯ OPEN |
-| O13 | `closeOnAction` on CommandPaletteItem but not MenuItem | `command-palette-item.tsx:16` vs `menu-item.tsx:49-54` | Add to MenuItem, same default | ◯ OPEN |
+| O13 | `closeOnAction` on CommandPaletteItem but not MenuItem | `command-palette-item.tsx:16` vs `menu-item.tsx:49-54` | Add to MenuItem, same default | ✅ RESOLVED (`closeOnAction` on MenuItem, same default as CommandPaletteItem, with a test) |
 | O14 | `dismiss({ id })` object beside `toast() → string` (T4) | `providers/toast/context.ts:7-8` | `dismiss(id)` | ✅ RESOLVED (`dismiss(id: string)`) |
 
 ## Findings — layout & display
@@ -119,7 +119,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | N6 | Kanban keys parts with `columnId`/`cardId`; siblings use `value` (T10) | `kanban-column.tsx:18`, `kanban-card.tsx:12` vs `tab.tsx:22` | `value` | ◯ OPEN |
 | N7 | `AccessibleName` on Toolbar/TabList/Tree/Filters vs loose `'aria-label'?` on Kanban/List | `toolbar.tsx:13` vs `kanban.tsx:31`, `list.tsx:33` | Intersect with `AccessibleName` | ◯ OPEN |
 | N8 | Eight structure roots are closed prop bags; six siblings spread (T7) | `accordion.tsx:19-23` vs `tabs.tsx:11` | Default to native passthrough | ◯ OPEN |
-| N9 | PivotTable narrows Table's `striped` axis and silently drops `hover`/`bleed` | `pivot-table.tsx:44` vs `table.tsx:25` | `TableVariants['striped']` | ◯ OPEN |
+| N9 | PivotTable narrows Table's `striped` axis and silently drops `hover`/`bleed` | `pivot-table.tsx:44` vs `table.tsx:25` | `TableVariants['striped']` | ✅ RESOLVED (PivotTable mirrors Table: `striped` takes the full union, and `hover` and `bleed` forward) |
 | N10 | NavList inline orientation union; `TreeSize` hand-written (T9) | `nav-list.tsx:15`, `recipes/kata/tree.ts:19` | Alias `Orientation` / `Step` | ✅ RESOLVED (NavList aliases the shared `Orientation`) |
 | N11 | Skeleton count props: `pages`/`steps`/`tabs` vs `BreadcrumbSkeleton.items` (T10) | `breadcrumb-skeleton.tsx:10` | `crumbs` | ✅ RESOLVED (`crumbs`) |
 | N12 | Kanban's data-prop + compound-children hybrid requires the same ids twice, unenforced | `kanban.tsx:22`, `kanban-column.tsx:45` | Render-function modeling, or document + dev-warn | ◯ OPEN |

@@ -41,7 +41,12 @@ export type PivotTableProps<T> = {
 	density?: DensityLevel
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean
-	striped?: boolean
+	/** Zebra-stripe the body rows; `'odd'` / `'even'` pick which. @defaultValue false */
+	striped?: boolean | 'odd' | 'even'
+	/** Wash the body row under the pointer. @defaultValue false */
+	hover?: boolean
+	/** Run the table edge-to-edge, dropping the outer gutter. @defaultValue false */
+	bleed?: boolean
 	className?: string
 	/** Accessible name for the table: a caption-equivalent for a dense pivot. Optional; a native `<table>` is valid unnamed. */
 	'aria-label'?: string
@@ -69,6 +74,8 @@ export function PivotTable<T>({
 	density,
 	outline,
 	striped,
+	hover,
+	bleed,
 	className,
 	'aria-label': ariaLabel,
 }: PivotTableProps<T>) {
@@ -93,6 +100,8 @@ export function PivotTable<T>({
 			density={density}
 			outline={outline}
 			striped={striped}
+			hover={hover}
+			bleed={bleed}
 			tableProps={{ 'data-slot': 'pivot-table', 'aria-label': ariaLabel }}
 		>
 			<TableHead>
