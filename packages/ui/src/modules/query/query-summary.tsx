@@ -6,9 +6,9 @@ import { k } from '../../recipes/kata/query-summary'
 import { type QuerySummaryToken, spacedBefore, summarizeQuery } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
 
-/** Props for {@link QuerySummary}: the query `root` to describe and the `fields` resolving each rule's labels. */
+/** Props for {@link QuerySummary}: the query `value` to describe and the `fields` resolving each rule's labels. */
 export type QuerySummaryProps = {
-	root: QueryGroup
+	value: QueryGroup
 	fields: QueryField[]
 	className?: string
 }
@@ -49,8 +49,8 @@ function SummaryToken({ token }: { token: QuerySummaryToken }) {
  * value shows its option label and a one-sided range a `≥`/`≤` bound. For a
  * plain string (a `title`, an aria-label, a log), reach for `formatQuerySummary`.
  */
-export function QuerySummary({ root, fields, className }: QuerySummaryProps) {
-	const tokens = summarizeQuery(root, fields)
+export function QuerySummary({ value, fields, className }: QuerySummaryProps) {
+	const tokens = summarizeQuery(value, fields)
 
 	if (tokens.length === 0) return null
 

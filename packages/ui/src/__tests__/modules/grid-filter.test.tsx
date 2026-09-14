@@ -164,10 +164,12 @@ describe('Grid search', () => {
 		})
 	})
 
-	describe('highlight mode (filter: false)', () => {
+	describe("highlight mode (mode: 'highlight')", () => {
 		it('keeps every row and marks the match instead of pruning', async () => {
 			await withFakeTime(async (clock) => {
-				renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{ filter: false }} />)
+				renderUI(
+					<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
+				)
 
 				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
 
@@ -187,7 +189,9 @@ describe('Grid search', () => {
 
 		it('marks case-insensitively while preserving the matched casing', async () => {
 			await withFakeTime(async (clock) => {
-				renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{ filter: false }} />)
+				renderUI(
+					<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
+				)
 
 				await clock.user.type(screen.getByRole('searchbox'), 'ali')
 
@@ -217,7 +221,7 @@ describe('Grid search', () => {
 						columns={withNote}
 						rows={noteRows}
 						getKey={(row) => row.id}
-						search={{ filter: false }}
+						search={{ mode: 'highlight' }}
 					/>,
 				)
 
@@ -237,7 +241,9 @@ describe('Grid search', () => {
 
 		it('clears the marks when the query is cleared', async () => {
 			await withFakeTime(async (clock) => {
-				renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{ filter: false }} />)
+				renderUI(
+					<Grid columns={columns} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
+				)
 
 				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
 

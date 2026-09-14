@@ -7,7 +7,7 @@ import { cn, createContext } from '../../core'
 import { Density, densityPresets, type useDensity } from '../../primitives/density'
 import { type DensityLevel, densityToSize } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { PinSide } from './engine/grid-pin/overrides'
 import {
@@ -62,7 +62,7 @@ type GridRegionProps<T> = {
 	rows: T[]
 	rowKeys: (string | number)[]
 	/** Active sort columns in priority order; backs the header menu's Sort items. */
-	sort: SortState[]
+	sort: GridSortState[]
 	sortColumn: (column: string | number, direction: 'asc' | 'desc') => void
 	clearSort: () => void
 	/** Pins a column to an edge, or unpins it with `false`; backs the header menu's Pin items. */

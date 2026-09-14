@@ -3,7 +3,7 @@
 import { createContext } from '../../core'
 
 /** One sorted column: its id and direction. The grid's sort is an ordered list of these. */
-export type SortState = {
+export type GridSortState = {
 	column: string | number
 	direction: 'asc' | 'desc'
 }
@@ -15,7 +15,7 @@ export type GridContextValue = {
 	allSelected: boolean
 	someSelected: boolean
 	/** The active sort columns in priority order; empty when unsorted. */
-	sort: SortState[]
+	sort: GridSortState[]
 	/**
 	 * Cycles a column's sort. `additive` (a Shift-click) folds the column into the
 	 * existing sort — appending it, flipping its direction, then dropping it —
@@ -69,7 +69,7 @@ export const [GridResizingContext, useGridResizing] = createContext<boolean>('Gr
 
 /**
  * The active quick-search query when the grid searches in highlight mode
- * ({@link GridSearch.filter} `false`), or `null` when it filters, has no query, or
+ * ({@link GridSearch.mode} `'highlight'`), or `null` when it filters, has no query, or
  * has no search at all. Data cells read it to mark the matched substring in the
  * columns the search scans; a query change re-renders only the cells that
  * subscribe, so the default (filtering, or unsearched) grid pays nothing.

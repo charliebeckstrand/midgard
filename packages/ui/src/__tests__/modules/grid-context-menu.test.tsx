@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn, type SortState } from '../../modules/grid'
+import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid context menus', () => {
@@ -82,7 +82,7 @@ describe('Grid context menus', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Sort descending' }))
 
-		expect(onValueChange).toHaveBeenCalledWith<[SortState[]]>([
+		expect(onValueChange).toHaveBeenCalledWith<[GridSortState[]]>([
 			{ column: 'name', direction: 'desc' },
 		])
 	})

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -148,9 +148,9 @@ export type GridInfiniteScroll = {
  * columns at once (see {@link GridContextValue.toggleSort}).
  */
 export type GridSort = {
-	value?: SortState[]
-	defaultValue?: SortState[]
-	onValueChange?: (sort: SortState[]) => void
+	value?: GridSortState[]
+	defaultValue?: GridSortState[]
+	onValueChange?: (sort: GridSortState[]) => void
 	/**
 	 * Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
 	 * their order untouched. When omitted, the grid sorts client-side by each
@@ -784,7 +784,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 *
 	 * @see {@link GridColumnGroups}
 	 */
-	groups?: GridColumnGroups
+	columnGroups?: GridColumnGroups
 
 	/**
 	 * Pagination binding backed by the grid's TanStack Table engine. In server

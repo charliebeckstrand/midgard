@@ -19,7 +19,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
-import type { QueryGroupNode } from '../query'
+import type { QueryGroup } from '../query'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
@@ -132,7 +132,7 @@ type GridColumnHeaderProps = {
 	/** Per-column filter controls; a filter button shows when the column is filterable. */
 	filter: GridColumnFilter | null
 	/** The column's live query tree, passed so a filter change re-renders this memoized cell. */
-	filterQuery: QueryGroupNode | undefined
+	filterQuery: QueryGroup | undefined
 	/** Frozen-column controls; a pinned header sticks to its edge. `null` when none. */
 	pinning: GridColumnPinning | null
 	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */

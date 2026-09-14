@@ -1,7 +1,7 @@
 import type { ColumnPinningState, PaginationState, Table } from '@tanstack/react-table'
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
-import type { QueryField, QueryGroup as QueryGroupNode } from '../../../query/engine/types'
+import type { QueryField, QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
@@ -65,9 +65,9 @@ export type GridColumnFilter = {
 	/** Whether the column accepts a filter (declared `filterable` with a `value`). */
 	canFilter: (id: string | number) => boolean
 	/** Current query tree for the column, or `undefined` when unfiltered. */
-	getQuery: (id: string | number) => QueryGroupNode | undefined
+	getQuery: (id: string | number) => QueryGroup | undefined
 	/** Set (or, with `undefined`, clear) the column's query tree. */
-	setQuery: (id: string | number, query: QueryGroupNode | undefined) => void
+	setQuery: (id: string | number, query: QueryGroup | undefined) => void
 	/**
 	 * The column's distinct cell values (faceted), sorted and de-duplicated — what
 	 * a `select` filter offers when it declares no explicit `filterOptions`. Empty
@@ -129,7 +129,7 @@ export type GridGlobalFilterView = {
 }
 
 /** Narrows an unknown filter value to a query tree. @internal */
-export function isQueryGroup(value: unknown): value is QueryGroupNode {
+export function isQueryGroup(value: unknown): value is QueryGroup {
 	return value != null && typeof value === 'object' && (value as { type?: string }).type === 'group'
 }
 
@@ -380,7 +380,7 @@ export function showsFilterButton(
 	filter: GridColumnFilter,
 	columnId: string | number,
 	interactive: boolean,
-	filterQuery: QueryGroupNode | undefined,
+	filterQuery: QueryGroup | undefined,
 ): boolean {
 	if (!filter.canFilter(columnId)) return false
 

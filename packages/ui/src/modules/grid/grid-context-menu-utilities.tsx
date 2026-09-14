@@ -22,7 +22,7 @@ import {
 import type { ReactElement, ReactNode } from 'react'
 import { mergeContextMenuItems } from '../../components/context-menu'
 import { isDataColumn } from '../../utilities'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
@@ -97,7 +97,7 @@ function submenuItems(args: {
 function sortMenuItems<T>(args: {
 	column: GridColumn<T>
 	/** The active sort, to tell a direction that changes it from one that repeats it. */
-	sort: SortState[]
+	sort: GridSortState[]
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn
 	clearSort: () => void
@@ -238,7 +238,7 @@ export type ColumnMenuFilter = {
 type ColumnMenuDefaultArgs<T> = {
 	column: GridColumn<T>
 	/** The active sort in priority order, so a direction that would only repeat it stays off the menu. */
-	sort: SortState[]
+	sort: GridSortState[]
 	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn

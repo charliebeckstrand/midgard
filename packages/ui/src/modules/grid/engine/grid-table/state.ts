@@ -76,7 +76,7 @@ export function resolveTransformModes(args: {
 }): {
 	clientSort: boolean
 	filterMode: { configured: boolean; manual: boolean }
-	/** Whether the global search marks matches instead of pruning rows (`search.filter === false`). */
+	/** Whether the global search marks matches instead of pruning rows (`search.mode === 'highlight'`). */
 	globalHighlights: boolean
 } {
 	return {

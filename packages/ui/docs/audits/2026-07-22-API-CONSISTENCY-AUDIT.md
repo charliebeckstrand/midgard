@@ -149,9 +149,9 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | G1 | Five feature-enable idioms on one root (T8) | `grid-data-types.ts:26,516,671,790,833,858,890` | Presence enables; default-on takes `\| false`; drop `columnManager.enabled` | ◯ OPEN |
 | G2 | `GridEditableConfig.onValueChange` is a commit sink (T4) | `grid-editing-types.ts:96` vs fourteen echo bindings | `onCommit`; row set becomes the standard triad | ✅ RESOLVED (`onCommit`) |
 | G3 | Column identity: `column` vs `id` vs `columnId`, `string` vs `string \| number` | `context.ts:7`, `types.ts:358,417` | `columnId: string \| number` in every payload | ◯ OPEN |
-| G4 | `SortState`/`CellChange` unprefixed in the barrel (T9) | `index.ts:1,41` | `GridSortState`/`GridCellChange` + deprecated aliases | ◯ OPEN |
+| G4 | `SortState`/`CellChange` unprefixed in the barrel (T9) | `index.ts:1,41` | `GridSortState`/`GridCellChange` + deprecated aliases | ✅ RESOLVED (`GridSortState` / `GridCellChange`; no aliases, because nothing outside `ui` names either) |
 | G5 | Expansion state `value` (expandable) vs `expanded` (groupBy); `defaultExpanded: boolean \| Set` double duty | `grid-data-types.ts:340-347` vs `:239,280,286` | Split the union; document the named-triad rule | ◯ OPEN |
-| G6 | "Group" names three axes: `groupBy`, `groups`, `rowGroups` | `grid-data-types.ts:317,692,761` | Column bands → `columnGroups` | ◯ OPEN |
+| G6 | "Group" names three axes: `groupBy`, `groups`, `rowGroups` | `grid-data-types.ts:317,692,761` | Column bands → `columnGroups` | ✅ RESOLVED (the root column-band prop is `columnGroups`; `groupBy` and `rowGroups` keep their own meanings) |
 | G7 | Server total: `rowCount` (pagination) vs `totalRows` (infiniteScroll); footer `rows`/`total` third vocabulary | `types.ts:311` vs `grid-data-types.ts:92,576,583` | `rowCount`; footer → `visibleRows`/`totalRows` | ◯ OPEN |
 | G8 | Column has three row-property channels (`value`, `field`, id-fallback); `field` ignored by sort/filter | `accessor.ts:15-17`, `types.ts:113` | `field` primary; fallback `value ?? row[field] ?? row[id]` | ◯ OPEN |
 | G9 | `width: string` (CSS) vs `minWidth`/`maxWidth: number`, and width is parsed as px anyway | `types.ts:198-221` | `width?: number \| string` | ◯ OPEN |
@@ -159,10 +159,10 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | G11 | `preferences` prop vs `onSavePreset` callback; snapshot field style and `hidden` array-vs-Set drift | `grid-data-types.ts:470-476,529-548,733` | One noun, one field style, one collection type | ◯ OPEN |
 | G12 | Visibility state nested in `columnManager` while order/sizing/pinning are top-level bindings | `grid-data-types.ts:529-540` vs `:735,744,798` | Top-level `columnVisibility`; manager = dialog UI only | ◯ OPEN |
 | G13 | `filterType`/`filterOptions` duplicate query's types verbatim; filter state untyped (T9) | `types.ts:63,70` = `engine/types.ts:26,52` | Alias `QueryFieldType`; type the filter value | ◯ OPEN |
-| G14 | `GridSearch.filter: boolean` encodes two presentation modes | `types.ts:408` | `mode?: 'filter' \| 'highlight'` | ◯ OPEN |
+| G14 | `GridSearch.filter: boolean` encodes two presentation modes | `types.ts:408` | `mode?: 'filter' \| 'highlight'` | ✅ RESOLVED (`mode?: 'filter' | 'highlight'`) |
 | G15 | `groupTotalRow`/`grandTotalRow?: 'bottom'` single-valued enums | `grid-data-types.ts:702,713` | Boolean, or commit to `'top'` | ✅ RESOLVED (booleans, with the props audit row) |
 | G16 | `selectable` (-able, means "is the selector column") beside nouns `dragHandle`/`expander`; `readOnly` where flags predict `editable: false` | `types.ts:80,92,102,120` | `selector?: boolean`; `editable?: boolean` default true | ◯ OPEN |
-| G17 | QueryBuilder edits `value`, QuerySummary reads `root`; barrel renames `QueryGroup` → `QueryGroupNode` with no collision (T9) | `query-builder.tsx:17` vs `query-summary.tsx:11`; `index.ts:11-14` | `value` on the summary; export declared names | ◯ OPEN |
+| G17 | QueryBuilder edits `value`, QuerySummary reads `root`; barrel renames `QueryGroup` → `QueryGroupNode` with no collision (T9) | `query-builder.tsx:17` vs `query-summary.tsx:11`; `index.ts:11-14` | `value` on the summary; export declared names | ✅ RESOLVED (QuerySummary takes `value`; the barrel exports `QueryGroup` and `QueryRule` under their declared names, which collided with nothing) |
 | G18 | `condensed` boolean overlaps the `density` axis it sits beside | `grid-data-types.ts:638,663` | Fourth density level, or explicit decomposition | ◯ OPEN |
 
 ## Findings — chat, providers, hooks

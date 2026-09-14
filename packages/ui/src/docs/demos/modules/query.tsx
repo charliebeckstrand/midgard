@@ -4,7 +4,7 @@ import { Stack } from '../../../components/stack'
 import {
 	QueryBuilder,
 	type QueryField,
-	type QueryGroupNode,
+	type QueryGroup,
 	QuerySummary,
 } from '../../../modules/query'
 import { Example } from '../../engine'
@@ -26,7 +26,7 @@ const fields: QueryField[] = [
 	{ name: 'verified', label: 'Verified', type: 'boolean' },
 ]
 
-const seed: QueryGroupNode = {
+const seed: QueryGroup = {
 	id: 'root',
 	type: 'group',
 	combinator: 'and',
@@ -34,7 +34,7 @@ const seed: QueryGroupNode = {
 }
 
 function BuilderExample() {
-	const [query, setQuery] = useState<QueryGroupNode>(seed)
+	const [query, setQuery] = useState<QueryGroup>(seed)
 
 	return (
 		<Example title="Builder">
@@ -42,8 +42,8 @@ function BuilderExample() {
 				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />
 				{/* The read view over the same tree: a human-readable line that updates as
 				    the builder edits and disappears when no rule constrains. */}
-				<QuerySummary root={query} fields={fields} />
-				{/* QueryGroupNode declares `value: unknown` and an optional combinator; this demo
+				<QuerySummary value={query} fields={fields} />
+				{/* QueryGroup declares `value: unknown` and an optional combinator; this demo
 				    feeds string values with a combinator on every node, leaving the tree
 				    JSON-shaped. */}
 				<JsonTree data={query as unknown as JsonValue} defaultExpandDepth={0} />

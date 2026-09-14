@@ -8,7 +8,12 @@ import { useA11yAnnouncements, useControllable } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
-import { GridContext, GridHighlightContext, GridResizingContext, type SortState } from './context'
+import {
+	GridContext,
+	GridHighlightContext,
+	GridResizingContext,
+	type GridSortState,
+} from './context'
 import {
 	describeColumnVisibility,
 	describePin,
@@ -176,7 +181,11 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
  *
  * @internal
  */
-function useServerSortSettle<T>(args: { enabled: boolean; sort: SortState[]; rows: T[] }): boolean {
+function useServerSortSettle<T>(args: {
+	enabled: boolean
+	sort: GridSortState[]
+	rows: T[]
+}): boolean {
 	const { enabled, sort, rows } = args
 
 	const [settling, setSettling] = useState(false)
@@ -224,7 +233,7 @@ function useStableHandler<A extends unknown[]>(
 
 /**
  * The active highlight-search query: the debounced quick-search value when the
- * search marks rather than prunes ({@link GridSearch.filter} `false`) and it holds
+ * search marks rather than prunes ({@link GridSearch.mode} `'highlight'`) and it holds
  * a query, else `null`. Data cells read it through {@link GridHighlightContext} to
  * mark their matches; `null` while the search filters, is empty, or is unset.
  * Kept out of {@link GridData} for its cognitive-complexity budget.
@@ -235,7 +244,7 @@ function resolveHighlightQuery(
 	search: GridSearch | undefined,
 	globalFilter: GridGlobalFilterView | null,
 ): string | null {
-	if (search?.filter !== false) return null
+	if (search?.mode !== 'highlight') return null
 
 	// `|| null` (not `??`) so an empty query collapses to null — no marking.
 	return globalFilter?.value || null
@@ -309,7 +318,7 @@ export function GridData<T>({
 	columnOrder: columnOrderConfigProp,
 	pinning: pinningConfigProp,
 	columnManager: columnManagerConfigProp,
-	groups: groupsConfig,
+	columnGroups: groupsConfig,
 	groupBy: groupByConfig,
 	groupTotalRow,
 	grandTotalRow,
@@ -1260,7 +1269,7 @@ export function GridData<T>({
 	// table when editable; a read-only grid returns it untouched.
 	const cursorContent = cursor.wrap(tableContent)
 
-	// Highlight-mode search (`search.filter === false`): every row stays and the
+	// Highlight-mode search (`search.mode === 'highlight'`): every row stays and the
 	// matched substring is marked in each searched cell instead. The debounced query
 	// flows to the body cells through context (null while filtering, empty, or
 	// unsearched), so a query change re-marks only the cells that read it.

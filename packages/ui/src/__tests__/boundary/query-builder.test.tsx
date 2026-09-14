@@ -6,7 +6,7 @@ import {
 	QueryBuilder,
 	QueryBuilderRuleValue,
 	type QueryField,
-	type QueryGroupNode,
+	type QueryGroup,
 } from '../../modules/query'
 import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 
@@ -227,7 +227,7 @@ describe('QueryBuilder', () => {
 
 		fireEvent.change(input, { target: { value: 'Ada' } })
 
-		const next = onChange.mock.calls.at(-1)?.[0] as QueryGroupNode
+		const next = onChange.mock.calls.at(-1)?.[0] as QueryGroup
 
 		expect(next.children[0]).toMatchObject({ type: 'rule', value: 'Ada' })
 	})
@@ -245,17 +245,13 @@ describe('QueryBuilder', () => {
 
 		fireEvent.change(input, { target: { value: '42' } })
 
-		expect(
-			(onChange.mock.calls.at(-1)?.[0] as QueryGroupNode | undefined)?.children[0],
-		).toMatchObject({
+		expect((onChange.mock.calls.at(-1)?.[0] as QueryGroup | undefined)?.children[0]).toMatchObject({
 			value: 42,
 		})
 
 		fireEvent.change(input, { target: { value: '' } })
 
-		expect(
-			(onChange.mock.calls.at(-1)?.[0] as QueryGroupNode | undefined)?.children[0],
-		).toMatchObject({
+		expect((onChange.mock.calls.at(-1)?.[0] as QueryGroup | undefined)?.children[0]).toMatchObject({
 			value: '',
 		})
 	})

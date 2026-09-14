@@ -5,7 +5,7 @@
  * so the wording is unit-testable without rendering.
  */
 
-import type { SortState } from '../context'
+import type { GridSortState } from '../context'
 import type { GridColumn } from '../types'
 import { columnLabel } from './grid-column/label'
 
@@ -18,7 +18,7 @@ import { columnLabel } from './grid-column/label'
  *
  * @internal
  */
-export function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): string {
+export function describeSort<T>(sort: GridSortState[], columns: GridColumn<T>[]): string {
 	if (sort.length === 0) return 'Sorting cleared'
 
 	const parts = sort.map((entry) => {
