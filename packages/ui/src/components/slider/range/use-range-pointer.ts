@@ -62,8 +62,7 @@ function applySwapResort(
 }
 
 /**
- * Moves DOM focus to a thumb button, so a press also sets the keyboard focus
- * (WAI-ARIA slider). `use-color-drag.ts` does the same for the color surfaces.
+ * Moves DOM focus to a thumb button.
  *
  * @remarks
  * `preventScroll` stops a scroll into view. A scroll moves the track rectangle
@@ -81,10 +80,8 @@ function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
  *
  * @returns Pointer handlers to spread on the track.
  * @remarks
- * The handler ignores non-primary buttons. A primary press calls
- * `preventDefault` and then focuses the button of the thumb it resolves, so the
- * press also sets the keyboard focus. A press on a stack focuses thumb 1; the
- * focus moves to thumb 0 when the first move selects thumb 0.
+ * A primary press focuses the button of the thumb it resolves, so the press
+ * also sets the keyboard focus (WAI-ARIA slider).
  */
 export function useRangePointer(opts: {
 	min: number
@@ -135,8 +132,8 @@ export function useRangePointer(opts: {
 
 	const onPointerDown = useCallback(
 		(event: PointerEvent) => {
-			// The handler ignores non-primary buttons, so a context-menu press
-			// writes no value; `use-color-drag.ts` guards the same way.
+			// A context-menu press must write no value; `use-color-drag.ts`
+			// guards the same way.
 			if (disabled || event.button !== 0) return
 
 			event.preventDefault()
@@ -195,8 +192,8 @@ export function useRangePointer(opts: {
 			if (dragging === null) return
 
 			// The stacked press focused thumb 1 and deferred the drag; the focus
-			// follows when the first move resolves to thumb 0.
-			if (wasPending && dragging === 0) focusThumb(thumbRefs, 0)
+			// follows the thumb the first move resolves.
+			if (wasPending) focusThumb(thumbRefs, dragging)
 
 			const raw = valueFromPointer(event.clientX)
 
