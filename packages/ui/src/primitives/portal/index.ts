@@ -1,2 +1,2 @@
-export * from './portal'
-export * from './presence-portal'
+export { type PortalContainer, PortalContext, usePortalContainer, usePortalContext } from './portal'
+export { PresencePortal, type PresencePortalProps } from './presence-portal'

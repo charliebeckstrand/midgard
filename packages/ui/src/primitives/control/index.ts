@@ -1,1 +1,1 @@
-export * from './control'
+export { ControlFrame, type ControlFrameProps } from './control'

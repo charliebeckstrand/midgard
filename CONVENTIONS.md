@@ -52,7 +52,9 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 4.4 A variant axis reaches props from the recipe that declares it — `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; `variant-axis-boundary.test.ts` pins the orientation axis.
 
-4.5 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
+4.5 A barrel names every symbol it re-exports, once per source module: a type rides its module's statement with the inline `type` modifier (`export { Button, type ButtonProps } from './button'`), and a module that exports types alone takes `export type { … } from`. Never `export *` — a wildcard re-exports whatever the module gains next, and the barrel tests cannot read through it. Pinned by `barrel-export-boundary.test.ts`.
+
+4.6 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
 
 ## 5. Styling
 

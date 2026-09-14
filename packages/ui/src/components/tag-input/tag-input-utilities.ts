@@ -59,8 +59,6 @@ export function hasSeparator(raw: string): boolean {
  * the cap is refused by a limit the field itself shows, so neither is something the user has to
  * retype. `duplicates` is still a list rather than a count so a batch of exactly one can be announced
  * by name, which is what keeps a single paste sounding the same as a single keystroke.
- *
- * @internal
  */
 export type TokenBatch = {
 	/** Novel, within-limit, valid tokens, in the order given. */
@@ -82,8 +80,6 @@ export type TokenBatch = {
  * `validate` sees only novel, within-limit candidates however tokens arrive.
  *
  * @param room How many more tags fit; `Number.POSITIVE_INFINITY` when uncapped.
- *
- * @internal
  */
 export function classifyTokens(
 	raw: readonly string[],

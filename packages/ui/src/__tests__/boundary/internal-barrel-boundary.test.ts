@@ -17,7 +17,18 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 //      relative import within the package exactly as ./utilities is.
 
 /** Source layers whose `index.ts` files form a public surface. */
-const LAYERS = ['core', 'hooks', 'layouts', 'primitives', 'providers', 'types', 'utilities']
+const LAYERS = [
+	'components',
+	'core',
+	'hooks',
+	'layouts',
+	'modules',
+	'primitives',
+	'providers',
+	'recipes',
+	'types',
+	'utilities',
+]
 
 /**
  * Named bindings a barrel re-exports. `export * from` carries no names to
@@ -40,6 +51,21 @@ function barrelExports(source: string): string[] {
 	}
 
 	return names
+}
+
+/** Layers whose units each own a barrel; the layer root holds no surface of its own. */
+const UNIT_LAYERS = new Set(['components', 'modules', 'primitives', 'providers'])
+
+/**
+ * True for a barrel that is a public surface (CONVENTIONS.md §3.5): the layer
+ * root for a flat layer, one directory in for a unit layer. A barrel deeper
+ * than that is internal composition — a sibling reaches it by module path, and
+ * the symbols it carries stay `@internal` on purpose.
+ */
+function isUnitBarrel(layer: string, file: string): boolean {
+	const depth = relative(join(srcDir, layer), dirname(file)).split(/[\\/]/).filter(Boolean).length
+
+	return depth === (UNIT_LAYERS.has(layer) ? 1 : 0)
 }
 
 const DECLARATION =
@@ -74,6 +100,8 @@ describe('internal-surface boundary', () => {
 		for (const layer of LAYERS) {
 			walkSource(join(srcDir, layer), (file, content) => {
 				if (!file.endsWith('index.ts')) return
+
+				if (!isUnitBarrel(layer, file)) return
 
 				const internals = internalDeclarations(dirname(file))
 

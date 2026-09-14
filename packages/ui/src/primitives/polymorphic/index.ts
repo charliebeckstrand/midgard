@@ -1,2 +1,2 @@
-export * from './polymorphic'
-export * from './polymorphic-static'
+export { Polymorphic, type PolymorphicProps } from './polymorphic'
+export { PolymorphicStatic, type PolymorphicStaticProps } from './polymorphic-static'

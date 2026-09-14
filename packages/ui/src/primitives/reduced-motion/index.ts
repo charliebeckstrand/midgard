@@ -1,1 +1,1 @@
-export * from './reduced-motion'
+export { ReducedMotion } from './reduced-motion'

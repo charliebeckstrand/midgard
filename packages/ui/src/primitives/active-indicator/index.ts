@@ -1,1 +1,1 @@
-export * from './active-indicator'
+export { ActiveIndicator, ActiveIndicatorScope, useActiveIndicator } from './active-indicator'

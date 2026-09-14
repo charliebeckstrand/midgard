@@ -71,7 +71,7 @@ import {
 } from './grid-data-resolvers'
 import type { GridDataProps, GridEditSource, GridPinningState } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
-import { GridFooter as GridFooterBar } from './grid-footer'
+import { GridFooterBar } from './grid-footer-bar'
 import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
 import { GridManagerDialog } from './grid-manager-dialog'

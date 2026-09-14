@@ -71,7 +71,7 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * from running to done reports itself.
  *
  * Throwing (or rejecting) rolls back the empty assistant placeholder and triggers
- * {@link UseChatSendOptions.onError}. `signal` aborts when {@link UseChatSend.stop}
+ * {@link ChatSendOptions.onError}. `signal` aborts when {@link ChatSend.stop}
  * is called; forward it to the underlying request (e.g. `fetch(url, { signal })`)
  * so the transport stops producing, not just the hook consuming — a transport
  * that ignores it still has its chunks dropped, but keeps running underneath.
@@ -86,7 +86,7 @@ export type ChatTransport = (
 ) => AsyncIterable<string | ChatPart[]> | Promise<AsyncIterable<string | ChatPart[]>>
 
 /** Options for {@link useChatSend}. */
-export type UseChatSendOptions = {
+export type ChatSendOptions = {
 	/**
 	 * Seed messages. A message that carries an id keeps it, and a message that
 	 * carries none is assigned a client id.
@@ -94,7 +94,7 @@ export type UseChatSendOptions = {
 	 * @remarks
 	 * The id a seed message carries is the one a store persisted, so the hook
 	 * keeps it. Every target the transcript holds is named by it: a React key, an
-	 * {@link UseChatSend.edit} call, and — once a message holds parts — the
+	 * {@link ChatSend.edit} call, and — once a message holds parts — the
 	 * message half of a part's address. A hook that minted a fresh id here would
 	 * re-key the whole conversation at each mount, and a target written before a
 	 * reload would name a message that no longer exists.
@@ -121,7 +121,7 @@ export type UseChatSendOptions = {
 }
 
 /** Return shape of {@link useChatSend}. */
-export type UseChatSend = {
+export type ChatSend = {
 	/** The live message list (optimistic user message + streamed assistant reply). */
 	messages: ChatMessageData[]
 	/** True while a reply is in flight. */
@@ -159,26 +159,26 @@ export type UseChatSend = {
  * `send` optimistically appends the user message, opens an empty assistant bubble,
  * then folds each chunk the {@link ChatTransport} yields into that bubble — a
  * string replaces its running prose, a part list merges into its blocks by id.
- * {@link UseChatSend.retry} and {@link UseChatSend.edit} share that same
+ * {@link ChatSend.retry} and {@link ChatSend.edit} share that same
  * streaming path — re-pointed at the last user message's content, or an edited
  * one — after trimming the transcript back to (and, for `edit`, including) that
  * message. Across all three, a transport failure drops the still-empty
  * placeholder (keyed by id, so concurrent or prior empty bubbles are untouched),
- * keeps the user message, and fires `onError`. {@link UseChatSend.stop} aborts
+ * keeps the user message, and fires `onError`. {@link ChatSend.stop} aborts
  * whichever of the three is in flight, leaving the bubble at its last-folded
  * chunk without treating the stop as an error. The transport is supplied by
  * the caller, keeping this hook free of any framework, endpoint, or wire-format
  * assumptions.
  *
- * @param options - See {@link UseChatSendOptions}.
- * @returns See {@link UseChatSend}.
+ * @param options - See {@link ChatSendOptions}.
+ * @returns See {@link ChatSend}.
  */
 export function useChatSend({
 	initialMessages,
 	transport,
 	onSent,
 	onError,
-}: UseChatSendOptions): UseChatSend {
+}: ChatSendOptions): ChatSend {
 	const [messages, setMessages] = useState<ChatMessageData[]>(() =>
 		seedMessages(initialMessages ?? [], () => crypto.randomUUID()),
 	)

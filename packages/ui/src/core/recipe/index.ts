@@ -5,6 +5,12 @@ export {
 	extendedColors,
 	type PaletteColor,
 } from './colors'
-export * from './engine'
+export {
+	applyRecipe,
+	definePalette,
+	defineRecipe,
+	type RecipeConfig,
+	type VariantProps,
+} from './engine'
 export { defineColors, mode } from './mode'
 export { shades } from './shades'

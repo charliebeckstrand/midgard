@@ -19,11 +19,11 @@ export type {
 	ChatToolStatus,
 } from './engine/chat-content/types'
 export type { ChatMessageData } from './engine/types'
-export { type UseChatDraft, type UseChatDraftOptions, useChatDraft } from './use-chat-draft'
+export { type ChatDraft, type ChatDraftOptions, useChatDraft } from './use-chat-draft'
 export { useChatScroll } from './use-chat-scroll'
 export {
+	type ChatSend,
+	type ChatSendOptions,
 	type ChatTransport,
-	type UseChatSend,
-	type UseChatSendOptions,
 	useChatSend,
 } from './use-chat-send'
