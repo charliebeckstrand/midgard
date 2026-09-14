@@ -42,11 +42,23 @@ let shikiPromise: Promise<typeof import('shiki')> | null = null
  * in-flight promise so the heavy module is fetched at most once per session.
  *
  * @returns The resolved `shiki` module exports.
- * @remarks Call to warm the highlighter ahead of rendering a {@link CodeBlock}.
+ * @remarks
+ * Call to warm the highlighter ahead of rendering a {@link CodeBlock}. Only a
+ * pending or resolved import stays memoized: a rejection clears the cell and
+ * reaches the caller, so the next call fetches again instead of replaying one
+ * transient chunk failure for the rest of the session.
  */
 export function loadShiki() {
 	if (!shikiPromise) {
-		shikiPromise = import('shiki')
+		shikiPromise = import('shiki').catch((error) => {
+			// Drop the memo before the rejection leaves. A cell left holding it
+			// answers every later call with the same failure, and CodeBlock
+			// swallows it, so one bad chunk fetch paints the plain fallback for the
+			// rest of the session.
+			shikiPromise = null
+
+			throw error
+		})
 	}
 
 	return shikiPromise
