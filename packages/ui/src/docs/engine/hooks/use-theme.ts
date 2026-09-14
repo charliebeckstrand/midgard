@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useMediaQuery } from '../../../hooks'
 import { usePersistedChoice } from './use-persisted-choice'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -14,35 +15,22 @@ const STORAGE_KEY = 'theme'
 
 const THEME_VALUES = themeModes.map((option) => option.value)
 
-function prefersDark(): boolean {
-	return window.matchMedia('(prefers-color-scheme: dark)').matches
-}
-
 /**
  * Resolves the docs theme from a `light | dark | system` preference, toggling
  * the root `.dark` class and persisting the choice. While `system`, it tracks
- * the OS preference live via `matchMedia`.
+ * the OS preference live through the package's pooled media-query subscription.
  */
 export function useTheme() {
 	const [mode, setMode] = usePersistedChoice<ThemeMode>(STORAGE_KEY, THEME_VALUES, 'system')
 
+	const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
+
 	useEffect(() => {
-		const apply = () => {
-			const dark = mode === 'system' ? prefersDark() : mode === 'dark'
-
-			document.documentElement.classList.toggle('dark', dark)
-		}
-
-		apply()
-
-		if (mode !== 'system') return
-
-		const media = window.matchMedia('(prefers-color-scheme: dark)')
-
-		media.addEventListener('change', apply)
-
-		return () => media.removeEventListener('change', apply)
-	}, [mode])
+		document.documentElement.classList.toggle(
+			'dark',
+			mode === 'system' ? systemDark : mode === 'dark',
+		)
+	}, [mode, systemDark])
 
 	return [mode, setMode] as const
 }
