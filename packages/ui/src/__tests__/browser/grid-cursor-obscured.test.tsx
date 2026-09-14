@@ -30,7 +30,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			<div style={{ width: '320px' }}>
 				<Grid
 					navigable
-					stickyHeader
+					header={{ position: 'sticky' }}
 					maxHeight="160px"
 					columns={columns}
 					rows={rows}
@@ -69,7 +69,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			<div style={{ width: '320px' }}>
 				<Grid
 					navigable
-					stickyHeader
+					header={{ position: 'sticky' }}
 					maxHeight="160px"
 					columns={columns}
 					rows={rows}

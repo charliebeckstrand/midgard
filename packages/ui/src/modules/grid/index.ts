@@ -30,6 +30,7 @@ export type {
 	GridGroupBy,
 	GridGroupHeaderContext,
 	GridGroupHeaderRow,
+	GridHeader,
 	GridInfiniteScroll,
 	GridPinning,
 	GridPinningState,

@@ -564,6 +564,21 @@ export type GridColumnManagerConfig = GridToolSurfaces & {
 }
 
 /**
+ * Header configuration for {@link GridDataProps.header}. It carries the header
+ * row's positioning today. Further header options attach here as the surface
+ * grows, so the grid takes one `header` binding, not a prop per setting.
+ */
+export type GridHeader = {
+	/**
+	 * Header row positioning. `'sticky'` pins the header to the top while the body
+	 * scrolls, forcing a scroll wrapper around the table; `'static'` leaves it in
+	 * normal flow.
+	 * @defaultValue 'static'
+	 */
+	position?: 'static' | 'sticky'
+}
+
+/**
  * Live row counts handed to the {@link GridFooter} settings: the filtered
  * extent, the source total, and the current selection size. Computed at render
  * so they track client-side search and filtering.
@@ -1127,11 +1142,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	rowLabel?: (row: T) => string
 
 	/**
-	 * Pins the header to the top while the body scrolls, which forces a scroll
-	 * wrapper around the table. Leave it unset to keep the header in normal flow.
-	 * @defaultValue false
+	 * Header configuration. A `position` of `'sticky'` pins the header row while
+	 * the body scrolls, forcing a scroll wrapper around the table.
+	 *
+	 * @see {@link GridHeader}
 	 */
-	stickyHeader?: boolean
+	header?: GridHeader
 
 	/**
 	 * Footer configuration: an opt-in summary bar below the table with a row-count

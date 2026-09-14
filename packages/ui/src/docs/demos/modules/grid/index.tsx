@@ -786,7 +786,7 @@ const PinnedExample = () => (
 	// sideways and they stay put while the middle columns slide beneath them.
 	<Grid
 		resizable
-		stickyHeader
+		header={{ position: 'sticky' }}
 		maxHeight="320px"
 		columns={employeeColumns}
 		rows={employees}
@@ -803,7 +803,7 @@ const PinnedSelectionExample = () => {
 	return (
 		<Grid
 			resizable
-			stickyHeader
+			header={{ position: 'sticky' }}
 			maxHeight="320px"
 			columns={[{ id: 'select', selectable: true }, ...employeeColumns]}
 			rows={employees}
@@ -819,7 +819,7 @@ const LockedLeftExample = () => (
 	// the same arrow instead of a pin control; the other columns scroll past it.
 	<Grid
 		resizable
-		stickyHeader
+		header={{ position: 'sticky' }}
 		maxHeight="320px"
 		columns={lockedLeftColumns}
 		rows={employees}
@@ -834,7 +834,7 @@ const LockedWithPinnedExample = () => (
 	// Name's edge arrow beside the other columns' interactive pin controls.
 	<Grid
 		resizable
-		stickyHeader
+		header={{ position: 'sticky' }}
 		maxHeight="320px"
 		columns={lockedMixedColumns}
 		rows={employees}
@@ -848,7 +848,7 @@ const LockedBothEdgesExample = () => (
 	// immutable, so the row stays anchored on both edges while the middle scrolls.
 	<Grid
 		resizable
-		stickyHeader
+		header={{ position: 'sticky' }}
 		maxHeight="320px"
 		columns={lockedBothColumns}
 		rows={employees}
@@ -1611,9 +1611,12 @@ export function Demo() {
 
 				<TabContent value="Header">
 					<Stack gap="xl">
-						<Example title="Sticky header" code={code`<Grid stickyHeader maxHeight="200px" />`}>
+						<Example
+							title="Sticky header"
+							code={code`<Grid header={{ position: 'sticky' }} maxHeight="200px" />`}
+						>
 							<Grid
-								stickyHeader
+								header={{ position: 'sticky' }}
 								maxHeight="200px"
 								columns={columns}
 								rows={[...people, ...people]}
