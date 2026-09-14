@@ -32,6 +32,8 @@ export type CalendarRangeProps = {
 	hoverDate?: Date | null
 	/** Reports the day entered or left so the parent can drive the `hoverDate` preview. */
 	onHoverDate?: (date: Date | null) => void
+	/** Forwarded to `<Calendar>`. Fires with the first of the month the grid renders. */
+	onMonthChange?: (month: Date) => void
 	active?: CalendarActive | null
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
@@ -91,6 +93,7 @@ export function CalendarRange({
 	rangeEnd,
 	hoverDate,
 	onHoverDate,
+	onMonthChange,
 	active,
 	footerRef,
 	ref,
@@ -143,6 +146,7 @@ export function CalendarRange({
 			min={min}
 			max={max}
 			active={active}
+			onMonthChange={onMonthChange}
 			getDayProps={getDayProps}
 			footerRef={footerRef}
 			locale={locale}

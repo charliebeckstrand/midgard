@@ -6,6 +6,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useRef,
 	useState,
 } from 'react'
@@ -102,6 +103,8 @@ export type MapZoomOptions = {
 	 * that fit rather than holding a transform made against the last one.
 	 */
 	subject: unknown
+	/** Reports the committed transform, on every change. */
+	onViewChange?: (view: MapTransform) => void
 }
 
 /** A press in flight: where it landed, and whether it has travelled far enough to be a pan. */
@@ -148,7 +151,13 @@ type MapWheelStream = {
  *
  * @internal
  */
-export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): MapZoom | null {
+export function useMapZoom({
+	zoom,
+	view,
+	svgRef,
+	subject,
+	onViewChange,
+}: MapZoomOptions): MapZoom | null {
 	const settings = mapZoomSettings(zoom)
 
 	const max = settings?.max ?? 0
@@ -170,6 +179,29 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 
 	const transform =
 		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
+
+	/*
+	 * One report for each committed transform.
+	 *
+	 * The wheel, the drag, the pinch, the keyboard steps, and the refit that
+	 * follows a new geography all write `held`, and the value the map draws is the
+	 * constrained read below — so the report watches that, not any one gesture.
+	 * Raised through `useEffectEvent`, so a consumer's inline arrow adds no render
+	 * to a provider that already re-renders on every wheel notch.
+	 */
+	const notifyViewChange = useEffectEvent((next: MapTransform) => {
+		onViewChange?.(next)
+	})
+
+	const reportedTransformRef = useRef(transform)
+
+	useEffect(() => {
+		if (sameTransform(reportedTransformRef.current, transform)) return
+
+		reportedTransformRef.current = transform
+
+		notifyViewChange(transform)
+	}, [transform])
 
 	const [gesturing, setGesturing] = useState(false)
 

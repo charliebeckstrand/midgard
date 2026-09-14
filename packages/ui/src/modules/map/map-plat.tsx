@@ -27,6 +27,7 @@ import { defaultRegionId } from './engine/map-region/identity'
 import { NO_REGION_CLAIM, regionSpare } from './engine/map-region/spare'
 import type { MapZoomInput } from './engine/map-zoom/input'
 import { mapZoomSettings } from './engine/map-zoom/input'
+import type { MapTransform } from './engine/map-zoom/transform'
 import { transformAttribute } from './engine/map-zoom/transform'
 import type {
 	LngLat,
@@ -217,6 +218,19 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Reach for it rarely.
 		 */
 		zoom?: MapZoomInput
+		/**
+		 * Fires with the view transform whenever it changes: `x` and `y` pan the
+		 * fitted geography in frame units, `k` scales it.
+		 *
+		 * The plat owns that transform outright, and nothing reported it, so the
+		 * package's own tests read it off the `transform` attribute. Use it to mirror
+		 * one map onto another, to persist a view, or to load detail for the ground
+		 * on screen. It fires on every wheel notch and every tracked pointer move of
+		 * a pan, like `ResizableGroup.onSizesChange`, so throttle what you drive from
+		 * it. A map with no `zoom` never transforms and never reports. The refit that
+		 * follows a new geography reports too, because the view did move.
+		 */
+		onViewChange?: (view: MapTransform) => void
 		/**
 		 * Whether the drawn regions answer the pointer at all.
 		 *
@@ -613,6 +627,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		tooltip = true,
 		nameRegions = false,
 		zoom: zoomInput,
+		onViewChange,
 		regionPointer,
 		animate = false,
 		onRegionClick,
@@ -1246,6 +1261,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				// decode's own memoised identity, so it changes exactly when the
 				// geography does and never on a resize.
 				subject: shape.features,
+				onViewChange,
 			}}
 			containerRef={containerRef}
 			tooltip={readable}

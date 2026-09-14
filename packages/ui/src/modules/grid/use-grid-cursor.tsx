@@ -1,8 +1,16 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useEffectEvent,
+	useMemo,
+	useRef,
+} from 'react'
 import { isColumnEditable } from './engine/grid-editing-utilities'
-import type { GridCellClick } from './engine/grid-row/cell'
+import { cellValue, type GridCellClick, type GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -55,6 +63,7 @@ export function useGridCursor<T>({
 	columns,
 	onRowActivate,
 	onCellActivate,
+	onActiveCellChange,
 	selectableRef,
 	toggleActiveRow,
 	scrollRowIntoViewRef,
@@ -68,6 +77,8 @@ export function useGridCursor<T>({
 	onRowActivate: GridRowActivate | undefined
 	/** Activates the cell under the cursor on Enter, ahead of the row activation. */
 	onCellActivate: GridCellActivate | undefined
+	/** Reports the cell the cursor sits on, whatever moved it. */
+	onActiveCellChange: ((cell: GridCellClickContext<T> | null) => void) | undefined
 	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
@@ -144,6 +155,54 @@ export function useGridCursor<T>({
 		scrollRowIntoViewRef,
 		scrollContainerRef,
 	})
+
+	/*
+	 * One report for each cell the cursor lands on, read from the committed
+	 * coordinate.
+	 *
+	 * Every arrow key, Home/End, PageUp/PageDown, a click that seats the cursor,
+	 * and the re-clamp that follows a filter or a hidden column all write that
+	 * state, so no single call site is the transition. The coordinate resolves to
+	 * the same context `onCellClick` delivers, so the pointer and the keyboard
+	 * name a cell the same way. A cursor cleared by an emptied grid reports null.
+	 *
+	 * A grid mounts with no cursor, and that null is the rest state rather than a
+	 * transition, so the first run is skipped — the contract `useOpenChange` keeps
+	 * for the disclosure family. The context is resolved when the cursor moves, so
+	 * rows replaced under a stationary cursor do not re-report; the re-clamp moves
+	 * the cursor whenever the bounds actually shrink.
+	 */
+	const notifyActiveCell = useEffectEvent((cell: GridCellClickContext<T> | null) => {
+		onActiveCellChange?.(cell)
+	})
+
+	const active = nav.active
+
+	const reportedActiveRef = useRef(active)
+
+	useEffect(() => {
+		if (!cursorEnabled) return
+
+		if (reportedActiveRef.current === active) return
+
+		reportedActiveRef.current = active
+
+		if (!active) {
+			notifyActiveCell(null)
+
+			return
+		}
+
+		const row = rowsRef.current[active.row]
+
+		const rowKey = rowKeysRef.current[active.row]
+
+		const col = dataColumnsRef.current[active.col]
+
+		if (row === undefined || rowKey === undefined || !col) return
+
+		notifyActiveCell({ row, rowKey, columnId: col.id, value: cellValue(col, row) })
+	}, [cursorEnabled, active, rowsRef, rowKeysRef, dataColumnsRef])
 
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,

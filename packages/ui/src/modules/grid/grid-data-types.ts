@@ -3,7 +3,7 @@ import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import type { SortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
-import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
+import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowGroups } from './grid-row-group-types'
@@ -1033,6 +1033,21 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * @defaultValue false
 	 */
 	navigable?: boolean
+
+	/**
+	 * Fires with the cell the keyboard cursor sits on, whenever the cursor moves,
+	 * and with `null` when it clears.
+	 *
+	 * The cursor moves on every arrow key, Home/End, PageUp/PageDown, and on a
+	 * click that seats it, and {@link GridDataProps.onCellClick} covers the
+	 * pointer alone — so a consumer that mirrors the cursor elsewhere could read
+	 * it only through `aria-activedescendant`. The payload is the same
+	 * {@link GridCellClickContext} the click delivers, so both channels name a
+	 * cell the same way. Needs {@link GridDataProps.navigable} or
+	 * {@link GridDataProps.editable}; a grid with neither has no cursor and stays
+	 * silent. Mounting reports nothing.
+	 */
+	onActiveCellChange?: (cell: GridCellClickContext<T> | null) => void
 
 	/**
 	 * Truncate overflowing cell content to a single line with an ellipsis, and

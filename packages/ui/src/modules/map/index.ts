@@ -7,6 +7,7 @@ export type { MapRouteAnswer, MapRouteResult } from './engine/map-routing/result
 export { type FetchValhallaRouteOptions, fetchValhallaRoute } from './engine/map-routing/valhalla'
 export type { MapZipSelection } from './engine/map-zip/selection'
 export type { MapZoomInput, MapZoomModifier } from './engine/map-zoom/input'
+export type { MapTransform } from './engine/map-zoom/transform'
 export type {
 	DataKey,
 	LngLat,

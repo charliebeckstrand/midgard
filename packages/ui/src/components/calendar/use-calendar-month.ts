@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { firstOfMonth } from './calendar-utilities'
 
@@ -9,6 +9,7 @@ type CalendarMonthOptions = {
 	value: Date | null | undefined
 	defaultValue?: Date
 	activeGridDate: Date | null
+	onMonthChange?: (month: Date) => void
 }
 
 /**
@@ -23,7 +24,12 @@ type CalendarMonthOptions = {
  * server-safe month synchronously, then a mount effect corrects any
  * day-boundary or timezone drift once after hydration.
  */
-export function useCalendarMonth({ value, defaultValue, activeGridDate }: CalendarMonthOptions) {
+export function useCalendarMonth({
+	value,
+	defaultValue,
+	activeGridDate,
+	onMonthChange,
+}: CalendarMonthOptions) {
 	const [viewDate, setViewDate] = useState(() => {
 		const seed = value ?? defaultValue ?? new Date()
 
@@ -90,6 +96,30 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 	}
 
 	prevValueRef.current = value
+
+	/*
+	 * One report for each month the calendar renders, read from the committed
+	 * `viewDate`.
+	 *
+	 * Five routes write that state — the two steppers, `navigateTo`, the mount
+	 * drift correction, and the two render-phase re-anchors — so no single call
+	 * site is the transition. The ref seeds from the first rendered month, so a
+	 * mount announces nothing; the drift correction after hydration does report,
+	 * because the month on screen genuinely changed.
+	 */
+	const notifyMonthChange = useEffectEvent((next: Date) => {
+		onMonthChange?.(next)
+	})
+
+	const reportedMonthRef = useRef(viewDate)
+
+	useEffect(() => {
+		if (reportedMonthRef.current.getTime() === viewDate.getTime()) return
+
+		reportedMonthRef.current = viewDate
+
+		notifyMonthChange(viewDate)
+	}, [viewDate])
 
 	return { viewDate, year, month, prevMonth, nextMonth, navigateTo }
 }

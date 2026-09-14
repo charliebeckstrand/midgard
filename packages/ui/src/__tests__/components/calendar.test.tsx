@@ -501,3 +501,64 @@ describe('Calendar + Form', () => {
 		expect(selectedDay()?.textContent).toBe('20')
 	})
 })
+
+describe('Calendar onMonthChange', () => {
+	const june = new Date(2025, 5, 15)
+
+	it('reports the first of the month the header arrows move to', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onMonthChange = vi.fn()
+
+		renderUI(<Calendar defaultValue={june} onMonthChange={onMonthChange} />)
+
+		// A calendar mounts on a month; that is the rest state, not a transition.
+		expect(onMonthChange).not.toHaveBeenCalled()
+
+		await user.click(screen.getByLabelText('Next month'))
+
+		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 6, 1))
+
+		await user.click(screen.getByLabelText('Previous month'))
+
+		expect(onMonthChange).toHaveBeenLastCalledWith(new Date(2025, 5, 1))
+
+		expect(onMonthChange).toHaveBeenCalledTimes(2)
+	})
+
+	// The value re-anchors the view during render, through a different writer
+	// than the arrows. The report reads the committed month, so both arrive.
+	it('reports a value that lands in another month', () => {
+		const onMonthChange = vi.fn()
+
+		const { rerender } = renderUI(<Calendar value={june} onMonthChange={onMonthChange} />)
+
+		rerender(<Calendar value={new Date(2025, 8, 2)} onMonthChange={onMonthChange} />)
+
+		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 8, 1))
+	})
+
+	it('says nothing for a value that stays inside the rendered month', () => {
+		const onMonthChange = vi.fn()
+
+		const { rerender } = renderUI(<Calendar value={june} onMonthChange={onMonthChange} />)
+
+		rerender(<Calendar value={new Date(2025, 5, 28)} onMonthChange={onMonthChange} />)
+
+		expect(onMonthChange).not.toHaveBeenCalled()
+	})
+
+	it('reports the month the picker navigates to', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onMonthChange = vi.fn()
+
+		renderUI(<Calendar defaultValue={june} onMonthChange={onMonthChange} />)
+
+		await user.click(screen.getByRole('button', { name: /June 2025/ }))
+
+		await user.click(screen.getByRole('option', { name: 'Sep' }))
+
+		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 8, 1))
+	})
+})

@@ -16,7 +16,8 @@ import type { MapPoint2D } from '../types'
  * translation. Written in the order SVG applies them — `translate(x, y)
  * scale(k)` — so the attribute and the arithmetic read as one thing.
  *
- * @internal
+ * {@link MapPlatProps.onViewChange} delivers it, so a caller can mirror or
+ * persist a view.
  */
 export type MapTransform = {
 	x: number
