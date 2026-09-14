@@ -132,17 +132,15 @@ describe('PasswordConfirm warning rendering', () => {
 			</PasswordConfirm>,
 		)
 
-		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
-
-		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
-
-		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abc' } })
-
 		// The region is in the tree before it holds text. A live region that enters
 		// the DOM together with its content does not announce.
 		const region = screen.getByRole('status')
 
 		expect(region).toBeEmptyDOMElement()
+
+		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+
+		fireEvent.input(inputs[0] as HTMLInputElement, { target: { value: 'abc' } })
 
 		fireEvent.change(inputs[1] as HTMLInputElement, { target: { value: 'abcd' } })
 
