@@ -3,10 +3,10 @@ import { Banner } from '../../components/banner'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Banner', () => {
-	// The `position` prop drives whether the banner sticks to the viewport; the
+	// The `sticky` prop drives whether the banner sticks to the viewport; the
 	// sticky utility is the observable for that layout behaviour.
-	it('applies sticky positioning when position="sticky"', () => {
-		const { container } = renderUI(<Banner position="sticky">content</Banner>)
+	it('applies sticky positioning when sticky is set', () => {
+		const { container } = renderUI(<Banner sticky>content</Banner>)
 
 		expect(bySlot(container, 'banner')?.className).toContain('sticky')
 	})

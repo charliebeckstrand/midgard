@@ -12,7 +12,7 @@ import {
 	resolveJustify,
 } from './variants'
 
-/** Props for {@link Flex}: responsive direction/gap/alignment plus wrap, fill, and inline modifiers atop native `<div>` attributes. */
+/** Props for {@link Flex}: responsive direction/gap/alignment plus wrap and fill modifiers atop native `<div>` attributes. */
 export type FlexProps = {
 	/**
 	 * Flex direction. Supports responsive breakpoints.
@@ -30,19 +30,15 @@ export type FlexProps = {
 	wrap?: boolean
 	/** Fill available space. `'1'` is `flex: 1 1 0%`; `'auto'` is `flex: 1 1 auto`. */
 	flex?: '1' | 'auto' | false
-	/** Render as `inline-flex` instead of `flex`. */
-	inline?: boolean
 	/** Spans full width of parent. */
 	full?: boolean
-	/** Stretches all children equally. */
-	equal?: boolean
 	className?: string
 	[key: `data-${string}`]: string | number | boolean | undefined
 } & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Flex container with responsive `direction`, `gap`, `align`, and `justify`,
- * plus `wrap`, `inline`, `full`-width, `flex`-fill, and `equal` (stretch
+ * plus `wrap`, `full`-width and `flex`-fill
  * children) modifiers. Use Flex for rows, Stack for columns; cross-axis
  * `align` defaults from `direction` when unset.
  *
@@ -59,9 +55,7 @@ export function Flex({
 	justify,
 	wrap,
 	flex,
-	inline,
 	full,
-	equal,
 	className,
 	children,
 	...props
@@ -80,8 +74,7 @@ export function Flex({
 				full && 'w-full',
 				flex === '1' && 'flex-1',
 				flex === 'auto' && 'flex-auto',
-				equal && '*:flex-1',
-				inline ? 'inline-flex' : 'flex',
+				'flex',
 				className,
 			)}
 			{...props}

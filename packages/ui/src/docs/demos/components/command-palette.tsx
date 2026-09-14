@@ -114,7 +114,7 @@ function CommandResults() {
 
 	if (!results.length) {
 		return (
-			<Alert severity="warning" block>
+			<Alert severity="warning" className="w-full">
 				<AlertTitle>No commands found</AlertTitle>
 			</Alert>
 		)
@@ -186,12 +186,7 @@ function VirtualizedCommandPaletteExample() {
 
 	return (
 		<>
-			<Button
-				color="blue"
-				variant="soft"
-				suffix={<Kbd command>K</Kbd>}
-				onClick={() => setOpen(true)}
-			>
+			<Button color="blue" variant="soft" suffix={<Kbd>⌘K</Kbd>} onClick={() => setOpen(true)}>
 				Open command palette
 			</Button>
 
@@ -208,12 +203,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<Button
-					color="blue"
-					variant="soft"
-					suffix={<Kbd command>K</Kbd>}
-					onClick={() => setOpen(true)}
-				>
+				<Button color="blue" variant="soft" suffix={<Kbd>⌘K</Kbd>} onClick={() => setOpen(true)}>
 					Open command palette
 				</Button>
 

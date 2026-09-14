@@ -12,24 +12,22 @@ export function Demo() {
 
 			<Example title="Modifier glyphs">
 				<Flex gap="md">
-					<Kbd command>K</Kbd>
-					<Kbd control>K</Kbd>
-					<Kbd control command>
-						K
-					</Kbd>
+					<Kbd>⌘K</Kbd>
+					<Kbd>⌃K</Kbd>
+					<Kbd>⌃⌘K</Kbd>
 				</Flex>
 			</Example>
 
 			<Example title="Inside a button">
 				<Flex wrap gap="md">
-					<Button suffix={<Kbd command>O</Kbd>}>Open</Button>
-					<Button variant="soft" color="blue" suffix={<Kbd command>S</Kbd>}>
+					<Button suffix={<Kbd>⌘O</Kbd>}>Open</Button>
+					<Button variant="soft" color="blue" suffix={<Kbd>⌘S</Kbd>}>
 						Save
 					</Button>
-					<Button variant="outline" color="green" suffix={<Kbd command>R</Kbd>}>
+					<Button variant="outline" color="green" suffix={<Kbd>⌘R</Kbd>}>
 						Run
 					</Button>
-					<Button variant="plain" color="red" suffix={<Kbd command>D</Kbd>}>
+					<Button variant="plain" color="red" suffix={<Kbd>⌘D</Kbd>}>
 						Delete
 					</Button>
 				</Flex>

@@ -34,15 +34,15 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 
 | Surface | Prop | Site | Issue | a/d/t | Status |
 |---|---|---|---|---|---|
-| Flex | `inline`, `full`, `flex`, `equal` | flex.tsx:32-38 | Four one-class toggles (`inline-flex`, `w-full`, `flex-1/auto`, `*:flex-1`); sibling code already uses `className="w-full"` instead; 6 internal sites migrate to `className` | 0/3/0 | ◯ OPEN |
+| Flex | `inline`, `full`, `flex`, `equal` | flex.tsx:32-38 | Four one-class toggles (`inline-flex`, `w-full`, `flex-1/auto`, `*:flex-1`); sibling code already uses `className="w-full"` instead; 6 internal sites migrate to `className` | 0/3/0 | ✅ RESOLVED (`inline` and `equal` removed; `full` kept as the library's one full-width spelling, and `flex` is a three-valued enum, not a one-class boolean) |
 | Button | `block` | button.tsx:39 | One class (`w-full`); two internal chart-legend sites migrate | 0/0/0 | ✅ RESOLVED |
-| Button | `spring` | button.tsx:44 | Tap-scale opt-in; only non-demo passes are `spring={false}` = the default (stale-default fingerprint); removal frees non-href Buttons from the `motion.*` wrapper | 0/1/2 | ◯ OPEN |
-| NavItem / SidebarItem | `spring` | use-nav-item.ts:30 | Same knob on the shared nav surface; zero passes repo-wide | 0/0/0 | ◯ OPEN |
+| Button | `spring` | button.tsx:44 | Tap-scale opt-in; only non-demo passes are `spring={false}` = the default (stale-default fingerprint); removal frees non-href Buttons from the `motion.*` wrapper | 0/1/2 | ✅ RESOLVED (removed with `buttonSpring`; the two `spring={false}` passes went with it) |
+| NavItem / SidebarItem | `spring` | use-nav-item.ts:30 | Same knob on the shared nav surface; zero passes repo-wide | 0/0/0 | ✅ RESOLVED (removed; the tap handlers now apply always, as Tab and PaginationPage already did) |
 | Container | `center` | container.tsx:29 | Toggles `mx-auto`, default true; a non-centering Container is a contradiction | 0/0/0 | ✅ RESOLVED |
-| Banner | `position` | banner.tsx:6-11 | `'sticky'` toggles literal `sticky top-0 z-40` | 0/0/1 | ◯ OPEN |
-| Split | `align` | split.tsx:29 | One `items-*` class | 0/0/1 | ◯ OPEN |
-| Box | `m`, `mx`, `my` | box.tsx:28-33 | Margin tokens on a leaf fight the parent-`gap` spacing model; keep `p/px/py` (real consumers) | 0/0/2 | ◯ OPEN |
-| Listbox + DatePicker | `truncate` | listbox.tsx:66 · date-picker.tsx:131 | One recipe class on the label span, duplicated across the pair; drop both together | 0/0/0 | ◯ OPEN |
+| Banner | `position` | banner.tsx:6-11 | `'sticky'` toggles literal `sticky top-0 z-40` | 0/0/1 | ✅ RESOLVED (renamed `sticky?: boolean` — three classes and real behavior, so not a deletion; closes API L15) |
+| Split | `align` | split.tsx:29 | One `items-*` class | 0/0/1 | ◯ WONT DO (a five-valued enum reusing Flex `alignMap`, not a one-class boolean; deleting it breaks Flex parity) |
+| Box | `m`, `mx`, `my` | box.tsx:28-33 | Margin tokens on a leaf fight the parent-`gap` spacing model; keep `p/px/py` (real consumers) | 0/0/2 | ✅ RESOLVED (props, the `BoxMargin` export, and the dead kata keys removed) |
+| Listbox + DatePicker | `truncate` | listbox.tsx:66 · date-picker.tsx:131 | One recipe class on the label span, duplicated across the pair; drop both together | 0/0/0 | ◯ WONT DO (the prop grew behavior since July — `false` now drives trigger growth and gates the overflow Tooltip, so it is no longer one class) |
 | Combobox | `selectable` | combobox.tsx:75 | Hidden notify-only mode boolean; controlled `value` the consumer declines to update already yields the behavior | 0/0/0 | ✅ RESOLVED |
 | Combobox | `inputType` | combobox.tsx:67 | APG editable combobox is text-shaped; no other value ever passed | 0/0/0 | ✅ RESOLVED |
 | ColorPicker / ColorPanel | `eyedropper` | color-picker.tsx:31 · color-panel.tsx:38 | Hides a button that already self-hides when the platform API is absent | 0/0/0 | ✅ RESOLVED |
@@ -53,7 +53,7 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | Group | `data-slot` override | group.tsx:19,52 | Wrapper-override affordance with no wrapper anywhere; composites use `useGroup` directly per its own doc | 0/0/0 | ✅ RESOLVED |
 | BreadcrumbItem | `current` | breadcrumb-item.tsx:10 | Visually inert whenever `BreadcrumbLink current` is present (the only shown composition); even the demo omits it | 0/0/2 | ✅ RESOLVED |
 | TimelineMarker | `current` | timeline-marker.tsx:28 | Emits `data-current` that no recipe or CSS styles; `TimelineItem` owns `current` and strips it from the implicit-marker path, so the only path demos use can never set it | 0/0/1 | ✅ RESOLVED |
-| Kbd | `command`, `control` | kbd.tsx:9,11 | Two of five modifiers as glyph-prepending booleans; hardcoded order emits ⌘⌃ — reverse of the platform's ⌃⌘; children express glyphs correctly for free | 0/8/2 | ◯ OPEN |
+| Kbd | `command`, `control` | kbd.tsx:9,11 | Two of five modifiers as glyph-prepending booleans; hardcoded order emits ⌘⌃ — reverse of the platform's ⌃⌘; children express glyphs correctly for free | 0/8/2 | ✅ RESOLVED (removed; children carry the glyphs, which also fixes the reversed ⌘⌃ order) |
 | PdfViewer | `defaultRotation` | pdf-viewer.tsx:39 | Speculative seed; per-page state resets on document swap; toolbar covers the real gesture | 0/0/0 | ✅ RESOLVED |
 | ChatList | `onKeyDown` | chat-list.tsx:18 | Lone DOM pass-through on an otherwise closed surface; keydown bubbles to a wrapper anyway | 0/0/1 | ✅ RESOLVED |
 | ChatListItem | `remove` + `onRemove` | chat-list-item.tsx:27-29 | Canned trash button in the slot `actions` already fills; tests themselves pass a Delete button via `actions` | 0/0/1 | ✅ RESOLVED |

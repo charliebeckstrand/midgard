@@ -19,16 +19,10 @@ describe('Kbd', () => {
 		expect(bySlot(container, 'kbd')).toHaveClass('w-fit')
 	})
 
-	it('renders command modifier glyph when command is set', () => {
-		renderUI(<Kbd command>K</Kbd>)
+	it('renders a modifier glyph written into the children, in platform order', () => {
+		renderUI(<Kbd>⌃⌘K</Kbd>)
 
-		expect(screen.getByText('⌘')).toBeInTheDocument()
-	})
-
-	it('renders control modifier glyph when control is set', () => {
-		renderUI(<Kbd control>K</Kbd>)
-
-		expect(screen.getByText('⌃')).toBeInTheDocument()
+		expect(screen.getByText('⌃⌘K')).toBeInTheDocument()
 	})
 
 	it('passes through HTML attributes', () => {

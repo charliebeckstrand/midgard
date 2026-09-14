@@ -108,9 +108,7 @@ export function Demo() {
 				</Flex>
 			</Example>
 
-			<Example title="Spring">
-				<Button spring>Spring</Button>
-			</Example>
+			<Example title="Spring"></Example>
 
 			<Example title="Disabled">
 				<Button disabled>Disabled</Button>

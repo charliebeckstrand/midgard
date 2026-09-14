@@ -97,7 +97,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | L4 | `Responsive<T>` support is Flex/Stack-only; Split `orientation` is the sharpest gap | `flex.tsx:22-28` vs `split/split.tsx:19-31` | Extend to Split first, Box spacing second | ◯ OPEN |
 | L5 | ShinyText `direction: 'left'\|'right'` collides with the layout axis (T5) | `shiny-text.tsx:49` | Rename (`sweep`) | ◯ OPEN |
 | L6 | ProgressGauge `label` = visible content while five siblings use `label` = accessible name (T5) | `progress-gauge.tsx:28` vs `icon.tsx:22` | `centerLabel` | ◯ OPEN |
-| L7 | `full` (Flex) vs `block` (Alert; Banner must Omit it) (T5) | `flex.tsx:36`, `alert.tsx:73` | `full` | ◯ OPEN |
+| L7 | `full` (Flex) vs `block` (Alert; Banner must Omit it) (T5) | `flex.tsx:36`, `alert.tsx:73` | `full` | ✅ RESOLVED (`block` deleted rather than renamed; `full` survives on Flex as the one full-width prop) |
 | L8 | Box TSDoc promises `as` it doesn't expose; `as` re-added ad hoc on Text/ListItem | `box.tsx:51-52`, `polymorphic-static.tsx:25-33` | Add `as` to Box (and Heading) or fix the doc; state the rule | ◯ OPEN |
 | L9 | `ref` parity arbitrary across static leaves (T7) | `box.tsx:45` (yes) vs `flex.tsx:40`, `container.tsx:27` (no) | React-19 `ref` on every static leaf | ◯ OPEN |
 | L10 | Zero-spacing spelled `0` (Flex), `'none'` (Container), absent (Split/Box) | `flex/variants.ts:6`, `recipes/kata/container.ts:14`, `split/variants.ts:12` | One `0` stop on the Ma scale | ◯ OPEN |
@@ -105,7 +105,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | L12 | Container `padding` duplicates Box `px` under a different name and silently different scale | `recipes/kata/container.ts:16` vs `recipes/kiso/ma/padding.ts:10-16` | Rename `px`, re-key onto Ma | ◯ OPEN |
 | L13 | `data-orientation` stamped by Dl/List/Resizable, differently by Group, not at all by Divider/ScrollArea | `description-list.tsx:38`, `group.tsx:69`, `divider.tsx:23-25` | Stamp uniformly | ◯ OPEN |
 | L14 | Layout slot surfaces drift: SidebarLayoutFooter takes no `className`, Body slots get `ref` while Header/Footer don't | `layouts/sidebar/sidebar.tsx:204` vs `stacked.tsx:56` | Uniform `className`/`ref` on slots; rule: wrapping regions compound, off-tree panels props | ◯ OPEN |
-| L15 | Banner `position: 'static'\|'sticky'` vs SidebarLayout `stickyHeader: boolean` (T5) | `banner.tsx:10`, `layouts/sidebar/sidebar.tsx:42` | Boolean `sticky` both | ◯ OPEN |
+| L15 | Banner `position: 'static'\|'sticky'` vs SidebarLayout `stickyHeader: boolean` (T5) | `banner.tsx:10`, `layouts/sidebar/sidebar.tsx:42` | Boolean `sticky` both | ✅ RESOLVED (Banner takes `sticky?: boolean`; SidebarLayout keeps `stickyHeader`, which names which of its four regions pins) |
 
 ## Findings — navigation & structure
 

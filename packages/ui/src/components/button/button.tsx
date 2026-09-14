@@ -13,7 +13,7 @@ import { useHeadless } from '../../providers/headless/context'
 import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { Link } from '../link'
 import { LoadingSpinner } from '../loading'
-import { buttonSpring, loadingProps } from './button-constants'
+import { loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { isIconElement } from './button-utilities'
 
@@ -24,11 +24,6 @@ import { isIconElement } from './button-utilities'
  * @internal
  */
 type ButtonBaseProps = ButtonVariants & {
-	/**
-	 * Apply the tap-scale press spring; collapses under prefers-reduced-motion.
-	 * @defaultValue false
-	 */
-	spring?: boolean
 	/**
 	 * Swap the leading content for a spinner and gate activation.
 	 * @defaultValue false
@@ -44,7 +39,7 @@ type ButtonBaseProps = ButtonVariants & {
 
 /**
  * Props for {@link Button}: visual `variant`/`color`/`size`, the
- * `spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
+ * the `loading` behavior flag, `prefix`/`suffix` adornments, and
  * the polymorphic surface — a `<button>`, or an anchor when `href` is set.
  */
 export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
@@ -70,7 +65,6 @@ export function Button({
 	children,
 	href,
 	ref,
-	spring = false,
 	loading = false,
 	prefix,
 	suffix,
@@ -127,7 +121,7 @@ export function Button({
 	if (href !== undefined) {
 		return (
 			<ReducedMotion>
-				<motion.span {...(spring && buttonSpring)}>
+				<motion.span>
 					<Link
 						ref={ref as Ref<HTMLAnchorElement>}
 						{...sharedProps}
@@ -151,7 +145,6 @@ export function Button({
 	return (
 		<ReducedMotion>
 			<motion.button
-				{...(spring && buttonSpring)}
 				ref={ref as Ref<HTMLButtonElement>}
 				{...sharedProps}
 				type={type}

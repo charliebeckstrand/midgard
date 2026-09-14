@@ -1,7 +1,7 @@
 import { cn } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
-import type { BoxBg, BoxMargin, BoxOutline, BoxPadding, BoxRadius } from './variants'
+import type { BoxBg, BoxOutline, BoxPadding, BoxRadius } from './variants'
 
 type BoxBaseProps = {
 	/** Padding on all sides. */
@@ -10,12 +10,6 @@ type BoxBaseProps = {
 	px?: BoxPadding
 	/** Vertical padding. Overrides p. */
 	py?: BoxPadding
-	/** Margin on all sides. */
-	m?: BoxMargin
-	/** Horizontal margin. Overrides m. */
-	mx?: BoxMargin
-	/** Vertical margin. Overrides m. */
-	my?: BoxMargin
 	/** Border radius token. */
 	radius?: BoxRadius
 	/** Background surface token. */
@@ -64,9 +58,6 @@ export function Box({
 	p,
 	px,
 	py,
-	m,
-	mx,
-	my,
 	radius,
 	bg,
 	outline,
@@ -89,9 +80,6 @@ export function Box({
 				p !== undefined && k.padding[p],
 				px !== undefined && k.px[px],
 				py !== undefined && k.py[py],
-				m !== undefined && k.margin[m],
-				mx !== undefined && k.mx[mx],
-				my !== undefined && k.my[my],
 				radius && k.radius[radius],
 				bg && k.bg[bg],
 				resolveOutline(outline),

@@ -152,7 +152,6 @@ export function NumberInput({
 					<Button
 						type="button"
 						variant="bare"
-						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMin}
 						aria-label="Decrease"
@@ -164,7 +163,6 @@ export function NumberInput({
 					<Button
 						type="button"
 						variant="bare"
-						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMax}
 						aria-label="Increase"
