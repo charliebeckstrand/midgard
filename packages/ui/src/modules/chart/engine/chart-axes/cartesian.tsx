@@ -1,44 +1,23 @@
-import type { ChartAxisTitlePlacement, PlotRect } from '../chart-layout'
-import type { ChartOrientation } from '../chart-orientation'
-import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from './axis'
+import type { CartesianChart } from '../use-chart-cartesian'
+import { ChartAxis, ChartAxisTitles } from './axis'
 import { ChartGridLines } from './grid-lines'
 
 /** Props for {@link ChartCartesianAxes}. @internal */
 export type ChartCartesianAxesProps = {
-	orientation: ChartOrientation
-	plot: PlotRect
-	/** Primary value ticks along the value axis; empty when no scale resolved. */
-	valueTicks: ChartAxisTick[]
-	/** Whether the primary value scale resolved — an empty domain draws no value axis. */
-	hasScale: boolean
-	/** Secondary value ticks along the far side; empty without a `y2` scale. */
-	y2Ticks?: ChartAxisTick[]
-	/** Whether the secondary scale resolved — it draws on the right (vertical) or top (horizontal). */
-	hasY2Scale?: boolean
-	/** Category labels along the band axis. */
-	categoryTicks: ChartAxisTick[]
-	/** Whether there are rows to label the category axis. */
-	hasData: boolean
-	/** The zero line's position along the value axis — the category axis baseline; omitted draws none. */
+	/**
+	 * The resolved chart the part reads its orientation, plot, ticks, scales,
+	 * gridlines, dividers, and titles off — the shape {@link ChartCartesianFrame}
+	 * already takes.
+	 */
+	chart: CartesianChart
+	/**
+	 * The zero line's position along the value axis, ruling the category axis;
+	 * omitted draws none. The one field that stays a prop: `CartesianChart.baseline`
+	 * is `scale.map(0)`, which a line chart extrapolates off the plot and an area
+	 * chart lifts off the floor on negative data, so bar and combo opt in and the
+	 * other two leave the rule to the plot edge.
+	 */
 	baseline?: number
-	/** Draw the axes. */
-	axes: boolean
-	/**
-	 * The gridline positions, per-axis participation and the spark gate already
-	 * applied — an empty list draws no gridlines; defaults to the primary ticks
-	 * so a single-axis chart passes nothing extra.
-	 */
-	gridPositions?: number[]
-	/**
-	 * The band-axis positions for the category dividers, one per boundary between
-	 * rows; empty draws none. Already gated by the category axis's `separator`
-	 * switch and tier.
-	 */
-	categoryGridPositions?: number[]
-	/** The divider style — `'dashed'` dashes the lines, else they draw solid. */
-	categorySeparator?: 'solid' | 'dashed'
-	/** The value-axis titles the layout placed; empty draws none. */
-	titles?: ChartAxisTitlePlacement[]
 }
 
 /**
@@ -54,30 +33,26 @@ export type ChartCartesianAxesProps = {
  *
  * @internal
  */
-export function ChartCartesianAxes({
-	orientation,
-	plot,
-	valueTicks,
-	hasScale,
-	y2Ticks = [],
-	hasY2Scale = false,
-	categoryTicks,
-	hasData,
-	baseline,
-	axes,
-	gridPositions,
-	categoryGridPositions = [],
-	categorySeparator,
-	titles = [],
-}: ChartCartesianAxesProps) {
-	const vertical = orientation === 'vertical'
+export function ChartCartesianAxes({ chart, baseline }: ChartCartesianAxesProps) {
+	const {
+		orientation,
+		plot,
+		yTicks: valueTicks,
+		y2Ticks,
+		xTicks: categoryTicks,
+		axes,
+		gridPositions,
+		categoryGridPositions,
+		categorySeparator,
+		axisTitles: titles,
+	} = chart
 
-	const positions = gridPositions ?? valueTicks.map((tick) => tick.at)
+	const vertical = orientation === 'vertical'
 
 	return (
 		<>
-			{positions.length > 0 && (
-				<ChartGridLines plot={plot} ticks={positions} orientation={orientation} />
+			{gridPositions.length > 0 && (
+				<ChartGridLines plot={plot} ticks={gridPositions} orientation={orientation} />
 			)}
 
 			{/* Dividers run parallel to the value axis, so they take the transposed
@@ -91,7 +66,7 @@ export function ChartCartesianAxes({
 				/>
 			)}
 
-			{axes && hasScale && (
+			{axes && chart.yScale !== null && (
 				<ChartAxis
 					axis={vertical ? 'y' : 'x'}
 					plot={plot}
@@ -100,7 +75,7 @@ export function ChartCartesianAxes({
 				/>
 			)}
 
-			{axes && hasY2Scale && (
+			{axes && chart.y2Scale !== null && (
 				<ChartAxis
 					axis={vertical ? 'y' : 'x'}
 					position={vertical ? 'right' : 'top'}
@@ -109,7 +84,7 @@ export function ChartCartesianAxes({
 				/>
 			)}
 
-			{axes && hasData && (
+			{axes && chart.bandPositions.length > 0 && (
 				<ChartAxis
 					axis={vertical ? 'x' : 'y'}
 					plot={plot}
