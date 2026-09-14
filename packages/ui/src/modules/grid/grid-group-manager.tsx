@@ -38,7 +38,7 @@ import {
 	UNGROUPED,
 } from './engine/grid-zone/map'
 import type { GridColumnGroup } from './grid-group-types'
-import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
+import { GridManagerColorMenu } from './grid-manager-color-menu'
 import type { GridColumnManagerItem } from './types'
 import {
 	useGridGroupManager,
@@ -137,10 +137,6 @@ export type GridGroupManagerProps = {
 	order: (string | number)[]
 	/** Commits the next column order after a within-ungrouped reorder. */
 	onOrderChange: (order: (string | number)[]) => void
-	/** Palette presets for the color Menu; defaults to the full standard + extended palette. */
-	colorOptions?: PaletteColor[]
-	/** Label on the "New group" button. @defaultValue 'New group' */
-	addGroupLabel?: ReactNode
 }
 
 /**
@@ -164,8 +160,6 @@ export function GridGroupManager({
 	onToggle,
 	order,
 	onOrderChange,
-	colorOptions = DEFAULT_COLOR_OPTIONS,
-	addGroupLabel = 'New group',
 }: GridGroupManagerProps) {
 	const mgr = useGridGroupManager({ groups, onGroupsChange, columns, order, onOrderChange })
 
@@ -203,7 +197,6 @@ export function GridGroupManager({
 		groups,
 		hidden,
 		onToggle,
-		colorOptions,
 		renameGroup: mgr.renameGroup,
 		recolorGroup: mgr.recolorGroup,
 		removeGroup: mgr.removeGroup,
@@ -244,7 +237,7 @@ export function GridGroupManager({
 
 				<Button type="button" variant="soft" onClick={mgr.addGroup} className="self-start">
 					<Icon icon={<Plus />} />
-					{addGroupLabel}
+					New group
 				</Button>
 			</div>
 
@@ -275,7 +268,6 @@ type GridGroupManagerZoneViewProps = {
 	groups: GridColumnGroup[]
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
-	colorOptions: PaletteColor[]
 	renameGroup: (id: string | number, title: string) => void
 	recolorGroup: (id: string | number, color: PaletteColor | undefined) => void
 	removeGroup: (id: string | number) => void
@@ -324,7 +316,6 @@ function GridGroupManagerZoneView({
 	groups,
 	hidden,
 	onToggle,
-	colorOptions,
 	renameGroup,
 	recolorGroup,
 	removeGroup,
@@ -361,7 +352,6 @@ function GridGroupManagerZoneView({
 					<GridGroupManagerZoneHeader
 						group={zone.group}
 						handle={handle}
-						colorOptions={colorOptions}
 						usedColors={usedColors}
 						renameGroup={renameGroup}
 						recolorGroup={recolorGroup}
@@ -416,7 +406,6 @@ type GridGroupManagerZoneHeaderProps = {
 	group: GridColumnGroup
 	/** The group-reorder drag handle, rendered leading the name Input. */
 	handle?: ReactNode
-	colorOptions: PaletteColor[]
 	/** Colors already used by other groups; offered disabled so each maps to one group. */
 	usedColors: Set<PaletteColor>
 	renameGroup: (id: string | number, title: string) => void
@@ -428,7 +417,6 @@ type GridGroupManagerZoneHeaderProps = {
 function GridGroupManagerZoneHeader({
 	group,
 	handle,
-	colorOptions,
 	usedColors,
 	renameGroup,
 	recolorGroup,
@@ -451,7 +439,6 @@ function GridGroupManagerZoneHeader({
 			<GridManagerColorMenu
 				label={label}
 				color={group.color}
-				colorOptions={colorOptions}
 				usedColors={usedColors}
 				onRecolor={(color) => recolorGroup(group.id, color)}
 			/>

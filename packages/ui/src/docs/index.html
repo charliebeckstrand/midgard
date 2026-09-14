@@ -13,7 +13,7 @@
 		<div id="root" class="h-full"></div>
 		<script>
 			// Pre-hydration theme paint. Must resolve the stored preference the
-			// same way `useTheme`'s `readStoredMode` does, or a dark-OS visitor
+			// same way `useTheme`'s `usePersistedChoice` does, or a dark-OS visitor
 			// flashes light on every load until React's post-paint effect corrects
 			// it. The hook treats anything but an explicit 'light'/'dark' — 'system',
 			// absent, or a stale/corrupt value — as follow-the-OS, so mirror that:

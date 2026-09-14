@@ -141,6 +141,17 @@ export type CartesianConfig<T> = {
 	 * @defaultValue 0
 	 */
 	valueHeadroom?: number
+	/**
+	 * Where the category axis rules. `'zero'` draws it at the value scale's zero,
+	 * which is what a chart whose marks stand on that zero wants — bars and the
+	 * bar half of a combo. `'edge'`, the default, leaves the rule at the plot
+	 * floor. `'zero'` is honoured only where {@link CartesianConfig.zeroBaseline}
+	 * put zero in the domain; without it the scale clamps `map(0)` to whichever
+	 * end is nearer, and an all-negative domain would rule across the plot
+	 * ceiling.
+	 * @defaultValue 'edge'
+	 */
+	categoryRule?: 'zero' | 'edge'
 }
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
@@ -191,6 +202,12 @@ export type CartesianChart = {
 	y2Scale: LinearScale | null
 	/** The primary zero line's position along the value axis, for bar baselines and the category axis. */
 	baseline: number
+	/**
+	 * Where the category axis rules, resolved from {@link CartesianConfig.categoryRule}
+	 * and gated on a domain that holds zero; `undefined` leaves the rule at the
+	 * plot floor.
+	 */
+	categoryBaseline: number | undefined
 	/** The `y2` scale's zero position, for the marks bound to it; the primary baseline when absent. */
 	y2Baseline: number
 	/** Primary value ticks along the value axis (y when vertical, x when horizontal). */
@@ -954,6 +971,8 @@ export function useChartCartesian<T>(
 		yScale: layout.valueScale,
 		y2Scale: layout.value2Scale,
 		baseline: layout.baseline,
+		categoryBaseline:
+			config.categoryRule === 'zero' && config.zeroBaseline ? layout.baseline : undefined,
 		y2Baseline: layout.value2Baseline,
 		yTicks: layout.valueTicks,
 		y2Ticks: layout.value2Ticks,

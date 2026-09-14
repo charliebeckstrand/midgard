@@ -25,7 +25,8 @@ type GridManagerColorMenuProps = {
 	label: string
 	/** The group's current color; `undefined` offers no clear item. */
 	color: PaletteColor | undefined
-	colorOptions: PaletteColor[]
+	/** Palette presets offered by the menu. @defaultValue {@link DEFAULT_COLOR_OPTIONS} */
+	colorOptions?: PaletteColor[]
 	/** Colors already claimed by sibling groups, offered disabled; omit to offer all. */
 	usedColors?: Set<PaletteColor>
 	/** Sets the group's color, or clears it with `undefined`. */
@@ -44,7 +45,7 @@ type GridManagerColorMenuProps = {
 export function GridManagerColorMenu({
 	label,
 	color,
-	colorOptions,
+	colorOptions = DEFAULT_COLOR_OPTIONS,
 	usedColors,
 	onRecolor,
 	className,

@@ -190,6 +190,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
 		zeroBaseline: true,
+		categoryRule: 'zero',
 		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
 		// Only the line and area series paint past their coordinate — bars end at
 		// theirs — so the inset stands only where such a series exists to need it.
@@ -266,11 +267,9 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// hidden the curves stand alone and the dots need no stroke.
 	const stroke = bars.length > 0
 
-	// No line delay: the bars rise and the lines draw at once, so the x and y
-	// motions land together rather than the lines waiting on the bars. Bars sit
-	// at the back, then the translucent area washes over them — a wash behind
-	// opaque bars would vanish wherever the area falls short of them — then the
-	// lines ride on top.
+	// Bars sit at the back, then the translucent area washes over them — a wash
+	// behind opaque bars would vanish wherever the area falls short of them —
+	// then the lines ride on top.
 	const marksNode = animate ? (
 		<>
 			<AnimatedChartBarMarks
@@ -340,22 +339,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			reference={reference}
 			className={className}
 		>
-			<ChartCartesianAxes
-				orientation={chart.orientation}
-				plot={chart.plot}
-				valueTicks={chart.yTicks}
-				hasScale={chart.yScale !== null}
-				y2Ticks={chart.y2Ticks}
-				hasY2Scale={chart.y2Scale !== null}
-				categoryTicks={chart.xTicks}
-				hasData={data.length > 0}
-				baseline={chart.baseline}
-				axes={chart.axes}
-				gridPositions={chart.gridPositions}
-				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={chart.categorySeparator}
-				titles={chart.axisTitles}
-			/>
+			<ChartCartesianAxes chart={chart} />
 
 			{rails && (
 				<ChartCrosshair

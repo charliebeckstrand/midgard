@@ -51,8 +51,6 @@ export type ChartLineMarksProps = {
 	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
-	/** Hold the draw until earlier marks (combo bars) have landed. */
-	delay?: number
 	/** The plot rect, sizing the wipe clip an animated dashed line reveals under. */
 	plot?: PlotRect
 }
@@ -140,7 +138,6 @@ export function AnimatedChartLineMarks({
 	stroke = false,
 	fills,
 	textureActive = false,
-	delay = 0,
 	plot,
 }: ChartLineMarksProps) {
 	// A dashed line can't ride the `pathLength` draw: motion reveals a stroke by
@@ -168,7 +165,7 @@ export function AnimatedChartLineMarks({
 							initial={{ scaleX: 0 }}
 							animate={{ scaleX: 1 }}
 							exit={{ scaleX: 0, transition: LINE_UNDRAW }}
-							transition={{ ...LINE_DRAW, delay }}
+							transition={LINE_DRAW}
 						/>
 					</clipPath>
 				</defs>
@@ -197,7 +194,7 @@ export function AnimatedChartLineMarks({
 									initial={{ opacity: 0 }}
 									animate={{ opacity: 1 }}
 									exit={{ opacity: 0, transition: AREA_UNFADE }}
-									transition={{ ...AREA_FADE, delay: AREA_FADE.delay + delay }}
+									transition={AREA_FADE}
 								/>
 							))}
 
@@ -223,7 +220,7 @@ export function AnimatedChartLineMarks({
 									// The stroke un-draws along its own length — the draw-on reversed —
 									// when a data change swaps the marks generation.
 									exit={{ pathLength: 0, transition: LINE_UNDRAW }}
-									transition={{ ...LINE_DRAW, delay }}
+									transition={LINE_DRAW}
 								/>
 							),
 						)}
@@ -240,7 +237,7 @@ export function AnimatedChartLineMarks({
 								initial={{ r: 0, opacity: 0 }}
 								animate={{ r: MARKER_RADIUS, opacity: 1 }}
 								exit={{ r: 0, opacity: 0, transition: POINT_UNPOP }}
-								transition={{ ...POINT_POP, delay: POINT_POP.delay + delay }}
+								transition={POINT_POP}
 							/>
 						))}
 					</g>

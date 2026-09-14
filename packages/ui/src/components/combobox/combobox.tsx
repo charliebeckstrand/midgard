@@ -38,7 +38,8 @@ import {
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
-import { type ControlSeverity, type ControlSize, useControl } from '../control/context'
+import { type ControlSize, useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -261,22 +262,6 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
 /**
- * The bound field's own errors OR'd with an ambient `error` severity — the
- * resolution `useControlProps` makes for every other field, which this component
- * makes by hand because it resolves the rest of the cascade by hand too. Without
- * it a bound Combobox rang only for a `<Field severity>` its consumer set, where
- * the Input beside it rang for its own validator.
- *
- * @internal
- */
-function resolveInvalid(
-	bound: boolean | undefined,
-	severity: ControlSeverity | undefined,
-): boolean | undefined {
-	return bound || severity === 'error' || undefined
-}
-
-/**
  * Type-ahead select pairing a text input with a floating option panel.
  * Supports single or `multiple` selection, controlled or uncontrolled `value`,
  * and `clearable`/`nullable` affordances; resolves `size`, `disabled`,
@@ -343,12 +328,6 @@ export function Combobox<T>({
 
 	const resolvedSize = token.size
 
-	const resolvedDisabled = disabled ?? control?.disabled
-
-	const resolvedReadOnly = readOnly ?? control?.readOnly
-
-	const resolvedRequired = required ?? control?.required
-
 	const handleValueChange = useSelectableValueChange<T>(
 		onValueChange as ((value: T | T[] | null) => void) | undefined,
 		multiple,
@@ -365,7 +344,16 @@ export function Combobox<T>({
 		onValueChange: handleValueChange,
 	})
 
-	const resolvedInvalid = resolveInvalid(boundInvalid, control?.severity)
+	// Resolved after the binding, so the bound field's own errors reach the
+	// control: `useControlProps` ORs them with an ambient `error` severity, and a
+	// Combobox that withheld them rang only for a `<Field severity>` its consumer
+	// set by hand — where the Input beside it rang for its own validator.
+	const {
+		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
+		required: resolvedRequired,
+		invalid: resolvedInvalid,
+	} = useControlProps({ disabled, readOnly, required, invalid: boundInvalid })
 
 	const comboboxId = useId()
 

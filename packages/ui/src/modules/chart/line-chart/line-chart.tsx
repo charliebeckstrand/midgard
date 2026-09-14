@@ -203,21 +203,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			reference={reference}
 			className={className}
 		>
-			<ChartCartesianAxes
-				orientation={chart.orientation}
-				plot={chart.plot}
-				valueTicks={chart.yTicks}
-				hasScale={chart.yScale !== null}
-				y2Ticks={chart.y2Ticks}
-				hasY2Scale={chart.y2Scale !== null}
-				categoryTicks={chart.xTicks}
-				hasData={data.length > 0}
-				axes={chart.axes}
-				gridPositions={chart.gridPositions}
-				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={chart.categorySeparator}
-				titles={chart.axisTitles}
-			/>
+			<ChartCartesianAxes chart={chart} />
 
 			{rails && (
 				<ChartCrosshair
