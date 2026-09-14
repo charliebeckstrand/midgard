@@ -269,3 +269,64 @@ describe('useKanbanDrag: handleDragOver edge cases', () => {
 		expect(onReorder).not.toHaveBeenCalled()
 	})
 })
+
+/**
+ * Drives one cross-column drag the way the shipped board does: a drag start, a
+ * drag-over onto a card in another column, then the consumer re-render that the
+ * emitted columns cause. The caller makes the drop.
+ */
+function startCrossColumnDrag() {
+	let board = baseColumns.map((c) => ({ ...c, items: [...c.items] }))
+
+	const onReorder = vi.fn((next: Column[]) => {
+		board = next
+	})
+
+	const { result, rerender } = renderHook(
+		({ columns }: { columns: Column[] }) =>
+			useKanbanDrag<Card, Column>({ columns, getKey: (i) => i.id, onReorder }),
+		{ initialProps: { columns: board } },
+	)
+
+	act(() => {
+		result.current.handleDragStart(makeDragStart('a'))
+	})
+
+	act(() => {
+		result.current.handleDragOver(makeDragEvent('a', 'c'))
+	})
+
+	rerender({ columns: board })
+
+	return {
+		result,
+		onReorder,
+		ids: (index: number) => board[index]?.items.map((i) => i.id),
+	}
+}
+
+describe('useKanbanDrag: cross-column drop after the live preview', () => {
+	it('emits once for one cross-column drop', () => {
+		const { result, onReorder } = startCrossColumnDrag()
+
+		expect(onReorder).toHaveBeenCalledTimes(1)
+
+		act(() => {
+			result.current.handleDragEnd(makeDragEvent('a', 'c'))
+		})
+
+		expect(onReorder).toHaveBeenCalledTimes(1)
+	})
+
+	it('leaves the card at the previewed position', () => {
+		const { result, ids } = startCrossColumnDrag()
+
+		expect(ids(1)).toEqual(['a', 'c'])
+
+		act(() => {
+			result.current.handleDragEnd(makeDragEvent('a', 'c'))
+		})
+
+		expect(ids(1)).toEqual(['a', 'c'])
+	})
+})

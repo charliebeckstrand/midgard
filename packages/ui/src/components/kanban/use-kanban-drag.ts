@@ -86,6 +86,11 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
  * commits same-column reorders on drag-end, emitting the next columns through
  * `onReorder`. Returns the active id, overlay map, per-column item ids, and
  * the dnd-kit drag handlers.
+ *
+ * @remarks
+ * Drag-end reads the column the drag started in, not the current `columns`.
+ * The consumer has already re-rendered with the drag-over move by then, so
+ * `columns` cannot identify a cross-column drop.
  */
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
@@ -129,8 +134,16 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		[columns, findColumnByCardId],
 	)
 
+	// The column the drag started in. A ref, because only the drag handlers read
+	// it and a write must not re-render the board mid-drag.
+	const originColumnId = useRef<string | null>(null)
+
 	const handleDragStart = (event: DragStartEvent) => {
-		setActiveId(String(event.active.id))
+		const cardId = String(event.active.id)
+
+		originColumnId.current = findColumnByCardId(cardId)?.id ?? null
+
+		setActiveId(cardId)
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
@@ -138,6 +151,10 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
+		const originId = originColumnId.current
+
+		originColumnId.current = null
+
 		setActiveId(null)
 
 		if (!onReorder) return
@@ -158,8 +175,12 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 		if (!activeCol || !overCol) return
 
-		// Cross-column moves apply in dragOver; skip them here.
-		if (activeCol.id !== overCol.id) return
+		// Cross-column moves apply in dragOver, and the consumer re-renders with
+		// that move before the drop. Thus `columns` already holds the card in the
+		// column under the pointer, and it cannot identify a cross-column drop.
+		// The origin column can. A drag end with no drag start records no origin —
+		// dnd-kit does not send one — and falls back to the current column.
+		if ((originId ?? activeCol.id) !== overCol.id) return
 
 		const oldIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
 
@@ -175,7 +196,11 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		onReorder(next)
 	}
 
-	const handleDragCancel = () => setActiveId(null)
+	const handleDragCancel = () => {
+		originColumnId.current = null
+
+		setActiveId(null)
+	}
 
 	return {
 		activeId,
