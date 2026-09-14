@@ -181,10 +181,12 @@ so the modal exemption the component exists for stops working with no error. CON
 and `spread-order-boundary.test.ts` does not catch it because its load-bearing set is roles and `aria-*`.
 The ref-cleanup finding above inherits the flaw; the fix composes both refs with `useComposedRef`.
 
-**`overlay-activity-hold.test.tsx` is red on `origin/main` in a fresh container.** The case "keeps the
-surface mounted across a hide and reveal" fails with `Unable to find role="button" and name "count 1"`,
-reproduced four times on a clean tree. The other 33 files and 100 tests in
-`__tests__/browser/floating-ui/` pass. Not investigated; it may be specific to headless Chromium.
+**`overlay-activity-hold.test.tsx` fails on a cold Vite dep-optimizer cache.** The case "keeps the surface
+mounted across a hide and reveal" failed four times running on a clean tree with
+`Unable to find role="button" and name "count 1"`, then passed six times running once the cache was warm.
+The failing runs are the ones where Vite logged `new dependencies optimized` mid-suite, so the `waitFor`
+budget is going on optimizer work. It is a first-run timing artifact in a fresh container, not a red test.
+Worth a look only if it reappears warm.
 
 **[2026-08-08](../plans/2026-08-08-EFFECT-EVENT-PLAN.md) overstates its remaining work.** The plan says 25
 sites are a mechanical `useEffectEvent` swap. Of the roughly 20 render-phase ref assignments that hold a

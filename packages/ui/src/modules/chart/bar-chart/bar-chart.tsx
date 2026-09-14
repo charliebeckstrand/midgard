@@ -122,6 +122,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 
 	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
 		zeroBaseline: true,
+		categoryRule: 'zero',
 		swatch: () => 'rect',
 		orientation,
 		stack: stacked,
@@ -225,7 +226,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			reference={reference}
 			className={className}
 		>
-			<ChartCartesianAxes chart={chart} baseline={chart.baseline} />
+			<ChartCartesianAxes chart={chart} />
 
 			<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
 				{marksNode}

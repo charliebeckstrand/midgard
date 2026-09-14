@@ -38,7 +38,7 @@ import {
 	UNGROUPED,
 } from './engine/grid-zone/map'
 import type { GridColumnGroup } from './grid-group-types'
-import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
+import { GridManagerColorMenu } from './grid-manager-color-menu'
 import type { GridColumnManagerItem } from './types'
 import {
 	useGridGroupManager,
@@ -197,7 +197,6 @@ export function GridGroupManager({
 		groups,
 		hidden,
 		onToggle,
-		colorOptions: DEFAULT_COLOR_OPTIONS,
 		renameGroup: mgr.renameGroup,
 		recolorGroup: mgr.recolorGroup,
 		removeGroup: mgr.removeGroup,
@@ -269,7 +268,6 @@ type GridGroupManagerZoneViewProps = {
 	groups: GridColumnGroup[]
 	hidden: Set<string | number>
 	onToggle: (id: string | number) => void
-	colorOptions: PaletteColor[]
 	renameGroup: (id: string | number, title: string) => void
 	recolorGroup: (id: string | number, color: PaletteColor | undefined) => void
 	removeGroup: (id: string | number) => void
@@ -318,7 +316,6 @@ function GridGroupManagerZoneView({
 	groups,
 	hidden,
 	onToggle,
-	colorOptions,
 	renameGroup,
 	recolorGroup,
 	removeGroup,
@@ -355,7 +352,6 @@ function GridGroupManagerZoneView({
 					<GridGroupManagerZoneHeader
 						group={zone.group}
 						handle={handle}
-						colorOptions={colorOptions}
 						usedColors={usedColors}
 						renameGroup={renameGroup}
 						recolorGroup={recolorGroup}
@@ -410,7 +406,6 @@ type GridGroupManagerZoneHeaderProps = {
 	group: GridColumnGroup
 	/** The group-reorder drag handle, rendered leading the name Input. */
 	handle?: ReactNode
-	colorOptions: PaletteColor[]
 	/** Colors already used by other groups; offered disabled so each maps to one group. */
 	usedColors: Set<PaletteColor>
 	renameGroup: (id: string | number, title: string) => void
@@ -422,7 +417,6 @@ type GridGroupManagerZoneHeaderProps = {
 function GridGroupManagerZoneHeader({
 	group,
 	handle,
-	colorOptions,
 	usedColors,
 	renameGroup,
 	recolorGroup,
@@ -445,7 +439,6 @@ function GridGroupManagerZoneHeader({
 			<GridManagerColorMenu
 				label={label}
 				color={group.color}
-				colorOptions={colorOptions}
 				usedColors={usedColors}
 				onRecolor={(color) => recolorGroup(group.id, color)}
 			/>

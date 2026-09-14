@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useMediaQuery } from '../../../hooks'
+import { matchesMediaQuery, subscribeMediaQuery } from '../../../utilities/media-query'
 import { usePersistedChoice } from './use-persisted-choice'
 
 export type ThemeMode = 'light' | 'dark' | 'system'
@@ -13,24 +13,33 @@ export const themeModes: { label: string; value: ThemeMode }[] = [
 
 const STORAGE_KEY = 'theme'
 
+const DARK_SCHEME = '(prefers-color-scheme: dark)'
+
 const THEME_VALUES = themeModes.map((option) => option.value)
 
 /**
  * Resolves the docs theme from a `light | dark | system` preference, toggling
  * the root `.dark` class and persisting the choice. While `system`, it tracks
  * the OS preference live through the package's pooled media-query subscription.
+ * The class is a side effect, not rendered state, so the subscription drives it
+ * straight from the listener — as `useOffcanvas` does — rather than through a
+ * render the whole docs tree would pay for.
  */
 export function useTheme() {
 	const [mode, setMode] = usePersistedChoice<ThemeMode>(STORAGE_KEY, THEME_VALUES, 'system')
 
-	const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
-
 	useEffect(() => {
-		document.documentElement.classList.toggle(
-			'dark',
-			mode === 'system' ? systemDark : mode === 'dark',
-		)
-	}, [mode, systemDark])
+		const apply = () => {
+			document.documentElement.classList.toggle(
+				'dark',
+				mode === 'system' ? matchesMediaQuery(DARK_SCHEME) : mode === 'dark',
+			)
+		}
+
+		apply()
+
+		return mode === 'system' ? subscribeMediaQuery(DARK_SCHEME, apply) : undefined
+	}, [mode])
 
 	return [mode, setMode] as const
 }

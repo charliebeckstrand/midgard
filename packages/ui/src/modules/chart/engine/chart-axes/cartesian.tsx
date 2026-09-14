@@ -6,18 +6,10 @@ import { ChartGridLines } from './grid-lines'
 export type ChartCartesianAxesProps = {
 	/**
 	 * The resolved chart the part reads its orientation, plot, ticks, scales,
-	 * gridlines, dividers, and titles off — the shape {@link ChartCartesianFrame}
-	 * already takes.
+	 * gridlines, dividers, titles, and category rule off — the shape
+	 * {@link ChartCartesianFrame} already takes.
 	 */
 	chart: CartesianChart
-	/**
-	 * The zero line's position along the value axis, ruling the category axis;
-	 * omitted draws none. The one field that stays a prop: `CartesianChart.baseline`
-	 * is `scale.map(0)`, which a line chart extrapolates off the plot and an area
-	 * chart lifts off the floor on negative data, so bar and combo opt in and the
-	 * other two leave the rule to the plot edge.
-	 */
-	baseline?: number
 }
 
 /**
@@ -33,18 +25,22 @@ export type ChartCartesianAxesProps = {
  *
  * @internal
  */
-export function ChartCartesianAxes({ chart, baseline }: ChartCartesianAxesProps) {
+export function ChartCartesianAxes({ chart }: ChartCartesianAxesProps) {
 	const {
 		orientation,
 		plot,
 		yTicks: valueTicks,
 		y2Ticks,
 		xTicks: categoryTicks,
+		yScale,
+		y2Scale,
+		bandPositions,
 		axes,
 		gridPositions,
 		categoryGridPositions,
 		categorySeparator,
-		axisTitles: titles,
+		categoryBaseline,
+		axisTitles,
 	} = chart
 
 	const vertical = orientation === 'vertical'
@@ -66,7 +62,7 @@ export function ChartCartesianAxes({ chart, baseline }: ChartCartesianAxesProps)
 				/>
 			)}
 
-			{axes && chart.yScale !== null && (
+			{axes && yScale !== null && (
 				<ChartAxis
 					axis={vertical ? 'y' : 'x'}
 					plot={plot}
@@ -75,7 +71,7 @@ export function ChartCartesianAxes({ chart, baseline }: ChartCartesianAxesProps)
 				/>
 			)}
 
-			{axes && chart.y2Scale !== null && (
+			{axes && y2Scale !== null && (
 				<ChartAxis
 					axis={vertical ? 'y' : 'x'}
 					position={vertical ? 'right' : 'top'}
@@ -84,16 +80,16 @@ export function ChartCartesianAxes({ chart, baseline }: ChartCartesianAxesProps)
 				/>
 			)}
 
-			{axes && chart.bandPositions.length > 0 && (
+			{axes && bandPositions.length > 0 && (
 				<ChartAxis
 					axis={vertical ? 'x' : 'y'}
 					plot={plot}
 					ticks={categoryTicks}
-					baseline={baseline}
+					baseline={categoryBaseline}
 				/>
 			)}
 
-			{axes && <ChartAxisTitles titles={titles} />}
+			{axes && <ChartAxisTitles titles={axisTitles} />}
 		</>
 	)
 }
