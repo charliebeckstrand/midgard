@@ -516,3 +516,100 @@ describe('CommandPalette open/close transitions', () => {
 		expect(document.activeElement).toBe(screen.getByRole('combobox'))
 	})
 })
+
+describe('CommandPalette onActiveChange', () => {
+	it('reports the option the arrow keys highlight', async () => {
+		const onActiveChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+				<CommandPaletteItem>Beta</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		// Nothing is highlighted until the first arrow key.
+		expect(onActiveChange).not.toHaveBeenCalled()
+
+		await user.keyboard('{ArrowDown}')
+
+		const options = screen.getAllByRole('option')
+
+		expect(onActiveChange).toHaveBeenCalledExactlyOnceWith(options[0]?.id)
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(options[1]?.id)
+
+		expect(onActiveChange).toHaveBeenCalledTimes(2)
+	})
+
+	// The id is what aria-activedescendant carries, which is the readout this
+	// callback replaces.
+	it('reports the id the input points at', async () => {
+		const onActiveChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.keyboard('{ArrowDown}')
+
+		const input = screen.getByRole('combobox')
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(input.getAttribute('aria-activedescendant'))
+	})
+
+	// A reserved textbox key never reaches roving, so the highlight does not move
+	// and there is nothing to report.
+	it('says nothing for a key the textbox keeps', async () => {
+		const onActiveChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+				<CommandPaletteItem>Beta</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.keyboard('{ArrowDown}')
+
+		onActiveChange.mockClear()
+
+		await user.keyboard('{End}')
+
+		expect(onActiveChange).not.toHaveBeenCalled()
+	})
+
+	it('reports null when the palette closes', async () => {
+		const onActiveChange = vi.fn()
+
+		const { rerender } = renderUI(
+			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(onActiveChange.mock.calls.at(-1)?.[0]).toBeTruthy()
+
+		rerender(
+			<CommandPalette open={false} onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(null)
+	})
+})

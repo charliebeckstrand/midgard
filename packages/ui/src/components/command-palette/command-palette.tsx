@@ -24,6 +24,18 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	/**
+	 * Fires with the id of the option the keyboard highlight sits on, or `null`
+	 * when nothing is highlighted.
+	 *
+	 * Focus stays in the search field and the highlight moves by
+	 * `aria-activedescendant`, so the only readout was that attribute. Use it to
+	 * preview the highlighted command beside the palette, or to prefetch what it
+	 * will need. An arrow key, a filter change that reseats the highlight on the
+	 * top result, and the close that clears it all report. The id is the one the
+	 * option renders with — `getOptionId` mints it for a windowed list.
+	 */
+	onActiveChange?: (optionId: string | null) => void
+	/**
 	 * Search-input placeholder text; also names the combobox input and the
 	 * listbox via `aria-label`, since the palette has no visible heading.
 	 *
@@ -75,6 +87,7 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
 export function CommandPalette({
 	open,
 	onOpenChange,
+	onActiveChange,
 	placeholder = 'Type a command or search',
 	dismissOnBackdrop = true,
 	width = '2xl',
@@ -93,7 +106,7 @@ export function CommandPalette({
 		close,
 		context,
 		virtualSourceRef,
-	} = useCommandPaletteState({ open, onOpenChange })
+	} = useCommandPaletteState({ open, onOpenChange, onActiveChange })
 
 	const triggerBindings = useMemo<KeybindingsMap>(() => {
 		if (triggerShortcut === false) return {}

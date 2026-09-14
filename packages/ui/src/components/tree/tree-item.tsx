@@ -17,6 +17,19 @@ export type TreeItemProps = {
 	open?: boolean
 	/** Called when the user toggles the item. Fires in both controlled and uncontrolled modes. */
 	onOpenChange?: (open: boolean) => void
+	/**
+	 * Fires when the row is activated, by a click or by Enter/Space.
+	 *
+	 * A branch row toggles, which `onOpenChange` already reports; a leaf row
+	 * forwards the activation to the first interactive control in `prefix` and
+	 * otherwise does nothing a caller can see. Without this, selecting a leaf
+	 * meant planting a control in `prefix` to catch the synthesized click. It
+	 * fires for both kinds of row, because the fact reported is the activation
+	 * rather than what follows it. A click inside `prefix` or `suffix` is that
+	 * slot's own and never reaches here. ArrowRight and ArrowLeft move the
+	 * expansion, not the row, so neither fires.
+	 */
+	onAction?: () => void
 	/** Current/selected state. */
 	current?: boolean
 	/** Slot before the icon (e.g. a Checkbox). Clicks here don't toggle the row. */
@@ -50,6 +63,7 @@ export function TreeItem({
 	defaultOpen = false,
 	open: controlledOpen,
 	onOpenChange,
+	onAction,
 	current,
 	prefix,
 	suffix,
@@ -77,6 +91,7 @@ export function TreeItem({
 				suffix={suffix}
 				current={current}
 				hasChildren={hasChildren}
+				onAction={onAction}
 				open={open}
 				onOpenChange={setOpen}
 				className={className}

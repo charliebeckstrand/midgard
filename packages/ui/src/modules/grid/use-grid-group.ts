@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { buildGroupSpans, collapsedHiddenIds, groupByColumn } from './engine/grid-group/compute'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
@@ -10,16 +10,29 @@ function resolveGroupsBinding(groups: GridColumnGroups | undefined): {
 	value: GridColumnGroup[] | undefined
 	defaultValue: GridColumnGroup[]
 	onValueChange: ((groups: GridColumnGroup[]) => void) | undefined
+	onCollapsedChange: ((collapsed: ReadonlySet<string | number>) => void) | undefined
 } {
-	if (!groups) return { value: undefined, defaultValue: [], onValueChange: undefined }
+	if (!groups)
+		return {
+			value: undefined,
+			defaultValue: [],
+			onValueChange: undefined,
+			onCollapsedChange: undefined,
+		}
 
 	if (Array.isArray(groups))
-		return { value: undefined, defaultValue: groups, onValueChange: undefined }
+		return {
+			value: undefined,
+			defaultValue: groups,
+			onValueChange: undefined,
+			onCollapsedChange: undefined,
+		}
 
 	return {
 		value: groups.value,
 		defaultValue: groups.defaultValue ?? [],
 		onValueChange: groups.onValueChange,
+		onCollapsedChange: groups.onCollapsedChange,
 	}
 }
 
@@ -94,6 +107,27 @@ export function useGridGroup(groups: GridColumnGroups | undefined): GridGroupRes
 			return next
 		})
 	}, [])
+
+	/*
+	 * One report for each committed collapsed set.
+	 *
+	 * Read from the committed value rather than from `toggleCollapse`, because the
+	 * set is written through an updater. The ref seeds from the `defaultCollapsed`
+	 * seed above, so a grid that mounts with a band already shut says nothing.
+	 */
+	const notifyCollapsedChange = useEffectEvent((next: ReadonlySet<string | number>) => {
+		binding.onCollapsedChange?.(next)
+	})
+
+	const reportedCollapsedRef = useRef(collapsed)
+
+	useEffect(() => {
+		if (reportedCollapsedRef.current === collapsed) return
+
+		reportedCollapsedRef.current = collapsed
+
+		notifyCollapsedChange(collapsed)
+	}, [collapsed])
 
 	const collapsedHidden = useMemo(
 		() => collapsedHiddenIds(resolvedGroups, collapsed),

@@ -583,3 +583,58 @@ describe('Listbox readOnly', () => {
 		)
 	})
 })
+
+describe('Listbox onBlur', () => {
+	it('fires when focus leaves the widget', () => {
+		const onBlur = vi.fn()
+
+		renderUI(
+			<Listbox onBlur={onBlur}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		fireEvent.blur(screen.getByRole('combobox'))
+
+		expect(onBlur).toHaveBeenCalledOnce()
+	})
+
+	// The panel is portalled, so focus moving into it reads as leaving the
+	// trigger. That is not a departure, and it is the part a native onBlur on the
+	// trigger would get wrong.
+	it('says nothing for a blur into the portalled panel', () => {
+		const onBlur = vi.fn()
+
+		const { container } = renderUI(
+			<Listbox onBlur={onBlur}>
+				<div role="option" tabIndex={-1} aria-selected="false">
+					Option
+				</div>
+			</Listbox>,
+		)
+
+		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+
+		const panel = screen.getByRole('listbox')
+
+		fireEvent.blur(screen.getByRole('combobox'), { relatedTarget: panel })
+
+		expect(onBlur).not.toHaveBeenCalled()
+	})
+
+	// A press on unfocusable ground still leaves the widget, so a null
+	// relatedTarget falls through to the report.
+	it('fires for a blur to nowhere', () => {
+		const onBlur = vi.fn()
+
+		renderUI(
+			<Listbox onBlur={onBlur}>
+				<div>Option</div>
+			</Listbox>,
+		)
+
+		fireEvent.blur(screen.getByRole('combobox'), { relatedTarget: null })
+
+		expect(onBlur).toHaveBeenCalledOnce()
+	})
+})
