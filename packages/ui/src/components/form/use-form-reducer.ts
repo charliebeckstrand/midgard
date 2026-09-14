@@ -85,6 +85,7 @@ type FormReducerOptions<T extends Record<string, unknown>> = {
 	validateOn: ValidateOn
 	onSubmit?: FormSubmitHandler<T>
 	onSettled?: (outcome: SubmitOutcome<T>) => void
+	onInvalidSubmit?: (errors: Errors) => void
 	onReset?: () => void
 }
 
@@ -114,6 +115,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	validateOn,
 	onSubmit,
 	onSettled,
+	onInvalidSubmit,
 	onReset,
 }: FormReducerOptions<T>): FormReducerResult {
 	const initialValues = controlledValues ?? defaultValues
@@ -140,6 +142,10 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	const onSettledRef = useRef(onSettled)
 
 	onSettledRef.current = onSettled
+
+	const onInvalidSubmitRef = useRef(onInvalidSubmit)
+
+	onInvalidSubmitRef.current = onInvalidSubmit
 
 	// Monotonic token identifying the current submit. Reset, unmount, and newer
 	// submits bump it; an in-flight handler compares against it to detect
@@ -253,7 +259,16 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 			dispatch({ type: 'submit-validate', touched: allTouched, errors: submitErrors })
 
-			if (Object.values(submitErrors).some(hasIssues)) return
+			const refused = Object.entries(submitErrors).filter(([, issues]) => hasIssues(issues))
+
+			// A refused submit returns here and never reaches `onSubmit`, so no
+			// other callback fires. Without this report the caller cannot tell a
+			// refused submit from a submit that never happened.
+			if (refused.length > 0) {
+				onInvalidSubmitRef.current?.(Object.fromEntries(refused))
+
+				return
+			}
 
 			if (!onSubmit) return
 

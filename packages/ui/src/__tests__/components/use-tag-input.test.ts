@@ -112,3 +112,79 @@ describe('useTagInput', () => {
 		expect(onValueChange).not.toHaveBeenCalled()
 	})
 })
+
+describe('useTagInput onReject', () => {
+	const addWith = (options: Parameters<typeof useTagInput>[0], input: string[]) => {
+		const onReject = vi.fn()
+
+		const { result } = renderHook(() => useTagInput({ ...options, onReject }))
+
+		act(() => {
+			result.current.addTags(input)
+		})
+
+		return { onReject, tags: result.current.tags }
+	}
+
+	it('reports the tokens validate refused', () => {
+		const { onReject } = addWith({ defaultValue: [], validate: (tag) => tag !== 'bad' }, [
+			'good',
+			'bad',
+		])
+
+		expect(onReject).toHaveBeenCalledExactlyOnceWith({
+			rejected: ['bad'],
+			duplicates: [],
+			overLimit: 0,
+		})
+	})
+
+	it('reports duplicates, which never come back in the draft', () => {
+		const { onReject } = addWith({ defaultValue: ['a'] }, ['a'])
+
+		expect(onReject).toHaveBeenCalledExactlyOnceWith({
+			rejected: [],
+			duplicates: ['a'],
+			overLimit: 0,
+		})
+	})
+
+	it('reports how many had no room', () => {
+		const { onReject } = addWith({ defaultValue: ['a'], max: 2 }, ['b', 'c', 'd'])
+
+		expect(onReject).toHaveBeenCalledExactlyOnceWith({
+			rejected: [],
+			duplicates: [],
+			overLimit: 2,
+		})
+	})
+
+	it('reports all three parts of one commit together', () => {
+		const { onReject } = addWith(
+			{ defaultValue: ['a'], max: 2, validate: (tag) => tag !== 'bad' },
+			['a', 'bad', 'b', 'c'],
+		)
+
+		expect(onReject).toHaveBeenCalledExactlyOnceWith({
+			rejected: ['bad'],
+			duplicates: ['a'],
+			overLimit: 1,
+		})
+	})
+
+	// The accepted half is `onValueChange`'s. A commit that refuses nothing has
+	// no other half to report.
+	it('says nothing when every token commits', () => {
+		const { onReject, tags } = addWith({ defaultValue: [] }, ['a', 'b'])
+
+		expect(tags).toEqual(['a', 'b'])
+
+		expect(onReject).not.toHaveBeenCalled()
+	})
+
+	it('says nothing for an empty or whitespace-only batch', () => {
+		const { onReject } = addWith({ defaultValue: [] }, ['   '])
+
+		expect(onReject).not.toHaveBeenCalled()
+	})
+})

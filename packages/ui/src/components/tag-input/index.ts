@@ -4,4 +4,9 @@ export { TagInput, type TagInputProps } from './tag-input'
 // Combobox whose values are typed in rather than picked has to answer both, and answered them with
 // its own loop until this was exported. `describeBatch` stays in: a live-region sentence is this
 // field's own voice, and a control with different affordances would say something else.
-export { classifyTokens, splitTokens, type TokenBatch } from './tag-input-utilities'
+export {
+	classifyTokens,
+	splitTokens,
+	type TokenBatch,
+	type TokenRejection,
+} from './tag-input-utilities'

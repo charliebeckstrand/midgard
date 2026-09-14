@@ -1008,3 +1008,105 @@ describe('useFormStatus', () => {
 		expect(result.current).toEqual({ submitting: false, dirty: false, valid: true })
 	})
 })
+
+describe('Form onInvalidSubmit', () => {
+	const submit = async (container: HTMLElement) => {
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+	}
+
+	it('reports the failed fields and skips onSubmit', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const onSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '', email: 'ada@example.com' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSubmit={onSubmit}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+
+		expect(onSubmit).not.toHaveBeenCalled()
+	})
+
+	// The clean field validated too, and its entry in the errors map is
+	// `undefined`. The payload is the refused partition, so it holds neither the
+	// clean field nor an empty issue list.
+	it('carries only the fields that failed', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '', email: '' }}
+				validate={{
+					name: (value) => (value ? undefined : 'required'),
+					email: () => undefined,
+				}}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+	})
+
+	it('says nothing when every validator passes', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSubmit={() => {}}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).not.toHaveBeenCalled()
+	})
+
+	// A refused submit never reaches a terminal outcome, so the two callbacks
+	// never both fire for one attempt.
+	it('does not fire onSettled for a refused submit', async () => {
+		const onSettled = vi.fn()
+
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSubmit={() => {}}
+				onSettled={onSettled}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).toHaveBeenCalledOnce()
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+})

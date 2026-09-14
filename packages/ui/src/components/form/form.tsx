@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Fieldset } from '../fieldset'
 import { FormProvider } from './context'
-import type { ValidateOn, Validators } from './form-reducer'
+import type { Errors, ValidateOn, Validators } from './form-reducer'
 import {
 	type FormHelpers,
 	type FormSubmitHandler,
@@ -39,6 +39,16 @@ export type FormProps<T extends Record<string, unknown>> = {
 	validateOn?: ValidateOn
 	onSubmit?: FormSubmitHandler<T>
 	onSettled?: (outcome: SubmitOutcome<T>) => void
+	/**
+	 * Fires when client validation refuses a submit, with the failed fields only.
+	 *
+	 * A refused submit returns before `onSubmit`, and `onSettled` reports only a
+	 * terminal outcome, so nothing else marks the attempt. To the caller a refused
+	 * submit and no submit look the same. Use this callback to scroll to the first
+	 * error, to count the attempt, or to announce the refusal. Server-side issues
+	 * arrive through `helpers.setErrors` or a `{ fieldErrors }` return, not here.
+	 */
+	onInvalidSubmit?: (errors: Errors) => void
 	onReset?: () => void
 	/** Disables the form's `<Fieldset>`; submitting disables it regardless. */
 	disabled?: boolean
@@ -71,6 +81,7 @@ export function Form<T extends Record<string, unknown>>({
 	validateOn = 'touched',
 	onSubmit,
 	onSettled,
+	onInvalidSubmit,
 	onReset,
 	disabled,
 	className,
@@ -84,6 +95,7 @@ export function Form<T extends Record<string, unknown>>({
 		validateOn,
 		onSubmit,
 		onSettled,
+		onInvalidSubmit,
 		onReset,
 	})
 

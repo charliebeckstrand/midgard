@@ -1128,3 +1128,125 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining("editable.scope: 'cell'"))
 	})
 })
+
+describe('Grid editing onReject', () => {
+	const requiredName: GridColumn<SessionRow>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			field: 'name',
+			cell: (row) => row.name,
+			validate: (value) => (String(value).length > 0 ? null : 'Required'),
+		},
+	]
+
+	function renderGrid(cols: GridColumn<SessionRow>[] = requiredName) {
+		const onCommit = vi.fn()
+
+		const onReject = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set([1]))}>
+						edit-1
+					</button>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={cols}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit, onReject }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		return {
+			...view,
+			onCommit,
+			onReject,
+			editRow1: () => fireEvent.click(view.getByRole('button', { name: 'edit-1' })),
+			save: () => fireEvent.click(view.getByRole('button', { name: 'save' })),
+		}
+	}
+
+	// The whole row was refused, so no commit batch exists to carry the news.
+	// Before this callback the typed value left the staging map unannounced.
+	it('reports a refused cell when the flush produces no commit at all', () => {
+		const { container, editRow1, save, onCommit, onReject } = renderGrid()
+
+		editRow1()
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: '' },
+		})
+
+		save()
+
+		expect(onReject).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'name', value: '' }])
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
+	it('reports the refused cell beside the commit batch of the same row', () => {
+		const cols: GridColumn<SessionRow>[] = [
+			...requiredName,
+			sessionColumns[1] as GridColumn<SessionRow>,
+		]
+
+		const { container, editRow1, save, onCommit, onReject } = renderGrid(cols)
+
+		editRow1()
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: '' },
+		})
+
+		fireEvent.change(bySlot(container, 'grid-edit-number-input') as HTMLInputElement, {
+			target: { value: '9' },
+		})
+
+		save()
+
+		expect(onReject).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'name', value: '' }])
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 1, columnId: 'count', value: 9 }])
+	})
+
+	it('says nothing when every staged cell commits', () => {
+		const { container, editRow1, save, onCommit, onReject } = renderGrid()
+
+		editRow1()
+
+		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+			target: { value: 'Fixed' },
+		})
+
+		save()
+
+		expect(onCommit).toHaveBeenCalledOnce()
+
+		expect(onReject).not.toHaveBeenCalled()
+	})
+
+	// An unchanged cell is dropped too, and it is no refusal: the user turned
+	// nothing away, so the row has no other half to report.
+	it('says nothing for a row the user opened and left alone', () => {
+		const { editRow1, save, onCommit, onReject } = renderGrid()
+
+		editRow1()
+
+		save()
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		expect(onReject).not.toHaveBeenCalled()
+	})
+})
