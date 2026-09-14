@@ -46,9 +46,17 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary.
 
-4.2 Prefer `type` aliases for props and data shapes; co-locate small ones, extract to `types.ts` once shared or large.
+4.2 Use `type` aliases for props and data shapes; never `interface`. Co-locate small ones, extract to `types.ts` once shared or large.
 
-4.3 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
+4.3 `ComponentProps<'tag'>` is the only native-prop base. It carries `ref`, so a props type never declares a `ref` beside it. A component that does not forward the ref omits it (`Omit<ComponentProps<'div'>, 'ref'>`); one that renders more than one element keeps an element-agnostic base, because the arms are not mutually assignable. An imperative handle declares `ref?: Ref<<Name>Handle>` after that omit. Pinned by `props-base-boundary.test.ts`.
+
+4.4 A variant axis reaches props from the recipe that declares it — `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; `variant-axis-boundary.test.ts` pins the orientation axis.
+
+4.5 Props live beside the component that takes them, and a barrel reaches a type at the module that declares it — never through a component that re-exports it. Every barrelled component ships its `<Name>Props`.
+
+4.6 A barrel names every symbol it re-exports, once per source module: a type rides its module's statement with the inline `type` modifier (`export { Button, type ButtonProps } from './button'`), and a module that exports types alone takes `export type { … } from`. Never `export *` — a wildcard re-exports whatever the module gains next, and the barrel tests cannot read through it. Pinned by `barrel-export-boundary.test.ts`.
+
+4.7 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
 
 ## 5. Styling
 
@@ -86,7 +94,7 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 9.1 In apps, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains.
 
-From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/primitives/*`, `ui/providers/*`, `ui/types`. No root barrel.
+From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*`, `ui/primitives/*`, `ui/providers/*`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 

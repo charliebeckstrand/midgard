@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/stepper'
@@ -9,7 +9,7 @@ import { useStepper, useStepperStep } from './context'
 /** Props for {@link StepperIndicator}: `className` plus `<span>` attributes. */
 export type StepperIndicatorProps = {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
+} & Omit<ComponentProps<'span'>, 'className'>
 
 // Completed/current/upcoming differ visually by color and the checkmark
 // glyph only (WCAG 1.4.1); the sr-only suffix names the state for AT.

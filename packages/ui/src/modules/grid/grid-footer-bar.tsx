@@ -4,7 +4,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import type { GridFooter as GridFooterConfig, GridFooterStats } from './grid-data-types'
 
-/** Props for {@link GridFooter}. @internal */
+/** Props for {@link GridFooterBar}. @internal */
 type GridFooterProps = {
 	/** The footer configuration, or `undefined` when the grid has no `footer` (renders nothing). */
 	config: GridFooterConfig | undefined
@@ -36,7 +36,7 @@ function rowTotalLabel({ rows, total }: GridFooterStats): string | null {
  * The selected-count label for {@link GridFooterConfig.selectedTotal}, nested
  * against the visible extent: `'3 of 12 rows selected'`. The denominator is the
  * post-filter row count, so the label carries the visible context even as it
- * replaces the row total (see {@link GridFooter}). Only rendered while a
+ * replaces the row total (see {@link GridFooterBar}). Only rendered while a
  * selection is active, so `selected` is always at least one.
  *
  * @internal
@@ -61,7 +61,7 @@ function selectedLabel({ rows, selected }: GridFooterStats): string {
  *
  * @internal
  */
-export function GridFooter({ config, stats }: GridFooterProps) {
+export function GridFooterBar({ config, stats }: GridFooterProps) {
 	if (!config || !stats) return null
 
 	const showSelected = config.selectedTotal === true && stats.selected > 0

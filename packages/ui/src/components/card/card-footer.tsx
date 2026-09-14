@@ -1,8 +1,8 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 
 /** Props for {@link CardFooter}; a slotted `<div>` that accepts `render` for composition. */
-export type CardFooterProps = SlotProps<'div'>
+export type CardFooterProps = ComponentProps<'div'>
 
 /**
  * Footer region of a {@link Card}, a flex row for actions or supporting

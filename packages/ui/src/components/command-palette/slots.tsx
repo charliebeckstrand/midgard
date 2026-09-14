@@ -1,10 +1,10 @@
-import { type ComponentPropsWithoutRef, type ReactNode, useId } from 'react'
+import { type ComponentProps, type ReactNode, useId } from 'react'
 import { cn, createSlot } from '../../core'
 import { k } from '../../recipes/kata/command-palette'
 import { Kbd, type KbdProps } from '../kbd'
 
 /** Props for {@link CommandPaletteGroup}; extends native `<div>` attributes, widening `title` to a `ReactNode`. */
-export type CommandPaletteGroupProps = Omit<ComponentPropsWithoutRef<'div'>, 'title'> & {
+export type CommandPaletteGroupProps = Omit<ComponentProps<'div'>, 'title'> & {
 	title?: ReactNode
 }
 
@@ -37,13 +37,13 @@ export function CommandPaletteGroup({
 }
 
 /** Props for {@link CommandPaletteLabel}; extends native `<span>` attributes. */
-export type CommandPaletteLabelProps = ComponentPropsWithoutRef<'span'>
+export type CommandPaletteLabelProps = ComponentProps<'span'>
 
 /** Primary text slot for a {@link CommandPaletteItem}. */
 export const CommandPaletteLabel = createSlot('span', 'command-palette-label', k.label)
 
 /** Props for {@link CommandPaletteDescription}; extends native `<span>` attributes. */
-export type CommandPaletteDescriptionProps = ComponentPropsWithoutRef<'span'>
+export type CommandPaletteDescriptionProps = ComponentProps<'span'>
 
 /** Secondary text slot for a {@link CommandPaletteItem}. */
 export const CommandPaletteDescription = createSlot(

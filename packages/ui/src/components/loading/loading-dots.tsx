@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k, type LoadingDotsVariants } from '../../recipes/kata/loading'
 
@@ -10,7 +10,7 @@ export type LoadingDotsProps = LoadingDotsVariants & {
 	 */
 	label?: string
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
+} & Omit<ComponentProps<'output'>, 'className' | 'color'>
 
 // Negative delays seat each dot at a different point in the pulse cycle;
 // the wave staggers from first paint. Keyed by the (unique) delay class.

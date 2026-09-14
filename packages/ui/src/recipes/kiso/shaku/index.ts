@@ -13,6 +13,8 @@ import { mark } from './mark'
 import { panel } from './panel'
 import { scrollArea } from './scroll-area'
 
+export type { IconSize } from './icon'
+
 export const shaku = {
 	icon,
 	iconSize,

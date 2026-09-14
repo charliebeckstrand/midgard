@@ -276,7 +276,7 @@ function evaluateLoadMore(args: {
 }
 
 /** Parameters for {@link useGridInfiniteScroll}. @internal */
-type UseGridInfiniteScrollParams = {
+type GridInfiniteScrollParams = {
 	/** Index of the last row currently in the virtual window, or `-1` when none. */
 	lastRenderedIndex: number
 	/** Rows currently loaded (the virtualized count). */
@@ -313,7 +313,7 @@ export function useGridInfiniteScroll({
 	count,
 	infiniteScroll,
 	scrollRef,
-}: UseGridInfiniteScrollParams): void {
+}: GridInfiniteScrollParams): void {
 	const onLoadMoreRef = useRef<(() => void) | null>(null)
 
 	onLoadMoreRef.current = infiniteScroll?.onLoadMore ?? null

@@ -1,2 +1,2 @@
-export * from './chrome'
-export * from './chrome-registry'
+export { PersistentChrome, type PersistentChromeProps } from './chrome'
+export { chromeRegions, registerChrome } from './chrome-registry'

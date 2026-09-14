@@ -1,11 +1,11 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k, type StatValueVariants } from '../../recipes/kata/stat'
 
 /** Props for {@link StatValue}: the `size` variant plus `<div>` attributes. */
 export type StatValueProps = StatValueVariants & {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Headline figure of a `Stat` — the metric's primary number. Static leaf:

@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/breadcrumb'
 
 /** Props for {@link BreadcrumbList}; the underlying `<ol>` attributes. */
-export type BreadcrumbListProps = SlotProps<'ol'>
+export type BreadcrumbListProps = ComponentProps<'ol'>
 
 /**
  * Ordered list (`<ol>`) holding the crumbs and separators of a `<Breadcrumb>`.

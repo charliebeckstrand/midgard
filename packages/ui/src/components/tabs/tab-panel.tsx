@@ -1,13 +1,12 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useState } from 'react'
+import { type ComponentProps, useState } from 'react'
 import { cn, createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/tabs'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
 
 /** Props for {@link TabPanels}. */
-export type TabPanelsProps = SlotProps<'div'>
+export type TabPanelsProps = ComponentProps<'div'>
 
 /** Passthrough wrapper grouping manually-wired `<TabPanel>` elements; merges into its child via `asChild`. */
 export const TabPanels = createSlot('div', 'tab-panels')
@@ -16,7 +15,7 @@ export const TabPanels = createSlot('div', 'tab-panels')
 export type TabPanelProps = {
 	/** Matches the corresponding Tab's id for aria-labelledby. */
 	id?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'id'>
+} & Omit<ComponentProps<'div'>, 'id'>
 
 /**
  * Manually-wired tab panel for use without `<TabContent>`: emits

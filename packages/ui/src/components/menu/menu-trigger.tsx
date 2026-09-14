@@ -1,7 +1,7 @@
 'use client'
 
 import {
-	type ComponentPropsWithoutRef,
+	type ComponentProps,
 	cloneElement,
 	isValidElement,
 	type KeyboardEvent,
@@ -17,7 +17,7 @@ import { useMenuPointer } from './use-menu-pointer'
 /** Props for {@link MenuTrigger}: either a single child element to clone or native `<button>` attributes. */
 export type MenuTriggerProps =
 	| ({ children: ReactElement } & { className?: string })
-	| ComponentPropsWithoutRef<'button'>
+	| ComponentProps<'button'>
 
 /**
  * Disclosure trigger for a dropdown {@link Menu}. Clones a single child element
@@ -135,7 +135,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		onKeyDown: consumerOnKeyDown,
 		onKeyUp: consumerOnKeyUp,
 		...rest
-	} = props as ComponentPropsWithoutRef<'button'>
+	} = props as ComponentProps<'button'>
 
 	return (
 		<button

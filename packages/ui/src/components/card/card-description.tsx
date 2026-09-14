@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/card'
 
 /** Props for {@link CardDescription}; a slotted `<p>` that accepts `render` for composition. */
-export type CardDescriptionProps = SlotProps<'p'>
+export type CardDescriptionProps = ComponentProps<'p'>
 
 /**
  * Muted supporting copy for a card, typically paired with `<CardTitle>` in a

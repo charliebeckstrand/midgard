@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import type { ComponentProps, ReactNode, Ref } from 'react'
 import { ariaAttr } from '../../core'
 import { Link } from '../link'
 import { loadingProps } from './button-constants'
@@ -15,7 +15,7 @@ type ButtonHeadlessProps = {
 	className?: string
 	loading?: boolean
 	children?: ReactNode
-} & Omit<ComponentPropsWithoutRef<'button'>, 'href' | 'ref' | 'className' | 'children'>
+} & Omit<ComponentProps<'button'>, 'href' | 'ref' | 'className' | 'children'>
 
 /**
  * Unstyled `Button` fallback rendered under the headless provider: a bare
@@ -42,7 +42,7 @@ export function ButtonHeadless({
 				data-slot={slot}
 				href={href}
 				className={className}
-				{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+				{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
 				{...(loading && loadingProps)}
 			>
 				{children}
@@ -50,7 +50,7 @@ export function ButtonHeadless({
 		)
 	}
 
-	const bareButtonProps = props as Omit<ComponentPropsWithoutRef<'button'>, 'className'>
+	const bareButtonProps = props as Omit<ComponentProps<'button'>, 'className'>
 
 	return (
 		<button

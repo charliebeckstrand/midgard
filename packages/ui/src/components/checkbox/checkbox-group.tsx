@@ -1,8 +1,8 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { ToggleGroup } from '../../primitives/toggle'
 
 /** Props for {@link CheckboxGroup}. */
-export type CheckboxGroupProps = ComponentPropsWithoutRef<'div'>
+export type CheckboxGroupProps = ComponentProps<'div'>
 
 /**
  * Stacks related CheckboxFields under a shared group layout, exposing them as a

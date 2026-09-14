@@ -3,8 +3,8 @@
 import type {
 	ChangeEventHandler,
 	ClipboardEventHandler,
+	ComponentProps,
 	FocusEventHandler,
-	InputHTMLAttributes,
 	KeyboardEventHandler,
 	Ref,
 } from 'react'
@@ -26,8 +26,8 @@ type ComboboxInputHandlers = {
 type ComboboxInputProps = {
 	id?: string
 	ref: Ref<HTMLInputElement>
-	type?: InputHTMLAttributes<HTMLInputElement>['type']
-	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	type?: ComponentProps<'input'>['type']
+	autoComplete?: ComponentProps<'input'>['autoComplete']
 	'aria-label'?: string
 	open: boolean
 	controlsId: string

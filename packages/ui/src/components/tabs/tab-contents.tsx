@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useState } from 'react'
+import { type ComponentProps, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
@@ -9,9 +9,9 @@ import { useTabsContext } from './context'
 import { useTabPanelTabIndex } from './use-tab-panel-tab-index'
 
 /** Props for {@link TabContents}; the `tab`-slotted `CurrentContents` surface. */
-export type TabContentsProps = Omit<ComponentPropsWithoutRef<typeof CurrentContents>, 'slotPrefix'>
+export type TabContentsProps = Omit<ComponentProps<typeof CurrentContents>, 'slotPrefix'>
 /** Props for {@link TabContent}; the `tab`-slotted `CurrentContent` surface. */
-export type TabContentProps = Omit<ComponentPropsWithoutRef<typeof CurrentContent>, 'slotPrefix'>
+export type TabContentProps = Omit<ComponentProps<typeof CurrentContent>, 'slotPrefix'>
 
 /**
  * Container that swaps `<TabContent>` panels by active value. Its `mount` policy

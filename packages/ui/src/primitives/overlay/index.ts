@@ -1,2 +1,2 @@
-export * from './overlay'
-export * from './overlay-signal'
+export { Overlay, type OverlayProps } from './overlay'
+export { notifyOverlaySignal, subscribeOverlaySignal } from './overlay-signal'

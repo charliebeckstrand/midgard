@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactElement } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -45,7 +45,7 @@ type PdfViewerToolbarButtonProps = {
 	 * and its adornment slot; neither has a use here.
 	 */
 } & Omit<
-	ComponentPropsWithoutRef<'button'>,
+	ComponentProps<'button'>,
 	'aria-label' | 'children' | 'color' | 'disabled' | 'prefix' | 'type'
 > & { 'data-slot'?: string }
 

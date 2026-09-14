@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/fieldset'
@@ -19,7 +19,7 @@ export type FieldProps = {
 	htmlFor?: string
 	/** Validation / status severity broadcast to the nested control (driving its ring and, for `error`, `aria-invalid`) and used as the tone of a nested `<Message>`. */
 	severity?: ControlSeverity
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Wraps one form control and its satellites (`<Label>`, `<Description>`,

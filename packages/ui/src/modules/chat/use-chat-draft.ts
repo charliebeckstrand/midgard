@@ -4,15 +4,15 @@ import { useCallback, useState } from 'react'
 import { canSubmitDraft, draftContent } from './engine/chat-draft'
 
 /** Options for {@link useChatDraft}. */
-export type UseChatDraftOptions = {
-	/** Called with the trimmed draft when {@link UseChatDraft.submit} fires on non-empty input. */
+export type ChatDraftOptions = {
+	/** Called with the trimmed draft when {@link ChatDraft.submit} fires on non-empty input. */
 	onSubmit?: (value: string) => void
 	/** Seed value for the composer. @defaultValue `''` */
 	initialValue?: string
 }
 
 /** Return shape of {@link useChatDraft}. */
-export type UseChatDraft = {
+export type ChatDraft = {
 	/** Current draft text. */
 	value: string
 	/** Replaces the draft (wire to a composer's `onValueChange`). */
@@ -33,13 +33,10 @@ export type UseChatDraft = {
  * handles send. Empty or whitespace-only drafts are suppressed; a successful
  * `submit` clears the field so the composer is ready for the next message.
  *
- * @param options - See {@link UseChatDraftOptions}.
- * @returns See {@link UseChatDraft}.
+ * @param options - See {@link ChatDraftOptions}.
+ * @returns See {@link ChatDraft}.
  */
-export function useChatDraft({
-	onSubmit,
-	initialValue = '',
-}: UseChatDraftOptions = {}): UseChatDraft {
+export function useChatDraft({ onSubmit, initialValue = '' }: ChatDraftOptions = {}): ChatDraft {
 	const [value, setValue] = useState(initialValue)
 
 	const clear = useCallback(() => setValue(''), [])

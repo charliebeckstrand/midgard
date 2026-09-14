@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect } from 'react'
+import { type ComponentProps, useEffect } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -9,7 +9,7 @@ import { useControl } from '../control/context'
 /** Props for {@link Description}: the native `<p>` attributes plus `className`. */
 export type DescriptionProps = {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'p'>, 'className'>
+} & Omit<ComponentProps<'p'>, 'className'>
 
 /**
  * Help text for a form control, rendered as a `<p>`. While mounted it registers

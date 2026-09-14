@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useCallback, useId, useMemo, useState } from 'react'
+import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { useDensity } from '../../primitives/density'
@@ -8,7 +8,7 @@ import { k } from '../../recipes/kata/tabs'
 import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
 
 /** Props for {@link Tabs}: selection state plus the `variant`/`orientation`/`size` context broadcast to its list and panels. */
-export type TabsProps = ComponentPropsWithoutRef<'div'> & {
+export type TabsProps = ComponentProps<'div'> & {
 	value?: string | null
 	defaultValue?: string
 	onValueChange?: (value: string | null) => void

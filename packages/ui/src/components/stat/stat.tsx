@@ -1,11 +1,11 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/stat'
 
 /** Props for {@link Stat}: an optional `className` plus `<div>` attributes. */
 export type StatProps = {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Composition root for a data-display metric: a full-height flex column that

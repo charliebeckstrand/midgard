@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { defaultAlignFromDirection } from './flex-utilities'
 import {
@@ -38,7 +38,7 @@ export type FlexProps = {
 	equal?: boolean
 	className?: string
 	[key: `data-${string}`]: string | number | boolean | undefined
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Flex container with responsive `direction`, `gap`, `align`, and `justify`,

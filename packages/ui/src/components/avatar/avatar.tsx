@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
@@ -16,7 +16,7 @@ export type AvatarProps = AvatarVariants & {
 	/** Accessible text for the status dot. Defaults to the humanized `status`. */
 	statusLabel?: string
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className'>
+} & Omit<ComponentProps<'span'>, 'className'>
 
 /**
  * User image, initials, or fallback in a sized circle. Pair with `status` to

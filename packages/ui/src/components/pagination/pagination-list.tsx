@@ -1,10 +1,10 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/pagination'
 
 /** Props for {@link PaginationList}: native `<ol>` attributes. */
-export type PaginationListProps = ComponentPropsWithoutRef<'ol'>
+export type PaginationListProps = ComponentProps<'ol'>
 
 /** Ordered list of pagination items; establishes an active-indicator scope so the current page animates between siblings. */
 export function PaginationList({ className, children, ...props }: PaginationListProps) {

@@ -110,7 +110,7 @@ declare module '@tanstack/react-table' {
 }
 
 /** Parameters for {@link useGridTable}. @internal */
-type UseGridTableParams<T> = {
+type GridTableParams<T> = {
 	rows: T[]
 	/** The full column set; the engine resolves which render (and in what order) from the order/visibility/pinning state below. */
 	columns: GridColumn<T>[]
@@ -136,7 +136,7 @@ type UseGridTableParams<T> = {
 	 * sequence: the engine's client sort and filter transforms are forced manual
 	 * (a client reorder would tear children from their headers), the core row
 	 * model is materialized for the body's cells, and the row-model views split
-	 * into the full display list ({@link UseGridTableResult.manualRows}) and the
+	 * into the full display list ({@link GridTableResult.manualRows}) and the
 	 * leaf-only `renderRows`/`rowKeys` backing selection and counts.
 	 */
 	manualGroupRow?: ((row: T) => boolean) | null
@@ -156,7 +156,7 @@ type UseGridTableParams<T> = {
 }
 
 /** Result of {@link useGridTable}. @internal */
-type UseGridTableResult<T> = {
+type GridTableResult<T> = {
 	/** The TanStack Table instance backing the grid. */
 	table: Table<T>
 	/**
@@ -576,7 +576,7 @@ export function useGridTable<T>({
 	columnFilters: columnFiltersConfig,
 	containerRef,
 	density,
-}: UseGridTableParams<T>): UseGridTableResult<T> {
+}: GridTableParams<T>): GridTableResult<T> {
 	// A live map of column id -> descending, read by the smart comparator at
 	// compare time so empties sink under both directions. Held in a ref refreshed
 	// each render so a sort-direction flip doesn't rebuild the column defs.

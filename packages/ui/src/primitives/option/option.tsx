@@ -2,7 +2,7 @@
 
 import { Check } from 'lucide-react'
 import {
-	type ComponentPropsWithoutRef,
+	type ComponentProps,
 	memo,
 	type Context as ReactContext,
 	type ReactNode,
@@ -42,7 +42,7 @@ export type BaseOptionProps = {
 	 */
 	commitOnTab?: boolean
 } & Omit<
-	ComponentPropsWithoutRef<'div'>,
+	ComponentProps<'div'>,
 	| 'className'
 	| 'onSelect'
 	| 'onClick'
@@ -139,16 +139,12 @@ function BaseOptionImpl({
 export const BaseOption = memo(BaseOptionImpl)
 
 /** Primary label for a select-like option. */
-export function OptionLabel({ className, ...props }: ComponentPropsWithoutRef<'span'>) {
+export function OptionLabel({ className, ...props }: ComponentProps<'span'>) {
 	return <span {...props} className={cn(k.label, className)} />
 }
 
 /** Secondary description for a select-like option. */
-export function OptionDescription({
-	className,
-	children,
-	...props
-}: ComponentPropsWithoutRef<'span'>) {
+export function OptionDescription({ className, children, ...props }: ComponentProps<'span'>) {
 	return (
 		<span {...props} className={cn(k.description, className)}>
 			<span className="flex-1 truncate">{children}</span>
@@ -182,10 +178,10 @@ export type OptionProps<TValue = unknown> = {
 }
 
 /** Props for `OptionLabel`. */
-export type OptionLabelProps = ComponentPropsWithoutRef<'span'>
+export type OptionLabelProps = ComponentProps<'span'>
 
 /** Props for `OptionDescription`. */
-export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
+export type OptionDescriptionProps = ComponentProps<'span'>
 
 /**
  * Selection state a {@link createSelectOption} host exposes through its context:

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/switch'
 import { ControlField } from '../control/control-field'
@@ -9,7 +9,7 @@ import { ControlField } from '../control/control-field'
 export type SwitchFieldProps = {
 	className?: string
 	htmlFor?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Pairs a Switch with its Label. Generates a scoped id and broadcasts it

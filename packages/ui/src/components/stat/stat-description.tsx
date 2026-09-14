@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/stat'
 
 /** Props for {@link StatDescription}: an optional `className` plus `<div>` attributes. */
-export type StatDescriptionProps = SlotProps<'div'>
+export type StatDescriptionProps = ComponentProps<'div'>
 
 /**
  * Supporting copy beneath a `Stat`'s value (context, time range, footnote).

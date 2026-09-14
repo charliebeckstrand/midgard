@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, CSSProperties, Ref } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useDensity } from '../../primitives/density'
@@ -18,13 +18,12 @@ type SliderBaseProps = SliderVariants & {
 	step?: number
 	/** Formats the value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
 	getValueText?: (value: number) => string
-	ref?: Ref<HTMLInputElement>
 }
 
 /** Props for {@link Slider}: the controllable value triad, `min`/`max`/`step` bounds, `getValueText` for assistive tech, plus `size`/`color` variants atop native range-`<input>` attributes. */
 export type SliderProps = SliderBaseProps &
 	Omit<
-		ComponentPropsWithoutRef<'input'>,
+		ComponentProps<'input'>,
 		'value' | 'defaultValue' | 'onChange' | 'min' | 'max' | 'step' | 'type' | 'size' | 'color'
 	>
 

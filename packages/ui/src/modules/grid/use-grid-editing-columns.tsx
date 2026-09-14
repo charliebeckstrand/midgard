@@ -1,6 +1,6 @@
 'use client'
 
-import { type HTMLAttributes, type ReactNode, type RefObject, useMemo } from 'react'
+import { type ComponentProps, type ReactNode, type RefObject, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
@@ -52,7 +52,7 @@ export function useGridEditingColumns<T>({
 			return {
 				...col,
 				className: cn(k.nav.cell, col.className),
-				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> =>
+				cellProps: (row: T): ComponentProps<'td'> =>
 					seatingCellProps({
 						col,
 						row,

@@ -2,7 +2,8 @@ import type { PropsWithChildren, Ref } from 'react'
 import { Stack } from '../components/stack'
 import { cn } from '../core'
 
-type StackedLayoutProps = PropsWithChildren<{
+/** Props for {@link StackedLayout}: the header, body, and footer slots to stack. */
+export type StackedLayoutProps = PropsWithChildren<{
 	className?: string
 }>
 
@@ -20,7 +21,8 @@ export function StackedLayout({ children, className }: StackedLayoutProps) {
 	)
 }
 
-type StackedLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+/** Props for {@link StackedLayoutHeader}. */
+export type StackedLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 /** Fixed-height header slot for {@link StackedLayout} (`data-slot="header"`). */
 export function StackedLayoutHeader({ children, className }: StackedLayoutHeaderProps) {
@@ -31,7 +33,8 @@ export function StackedLayoutHeader({ children, className }: StackedLayoutHeader
 	)
 }
 
-type StackedLayoutBodyProps = PropsWithChildren<{
+/** Props for {@link StackedLayoutBody}; `ref` reaches the scrolling `<main>`. */
+export type StackedLayoutBodyProps = PropsWithChildren<{
 	className?: string
 	ref?: Ref<HTMLElement>
 }>
@@ -48,7 +51,8 @@ export function StackedLayoutBody({ ref, children, className }: StackedLayoutBod
 	)
 }
 
-type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
+/** Props for {@link StackedLayoutFooter}. */
+export type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
 
 /** Fixed-height footer slot for {@link StackedLayout} (`data-slot="footer"`). */
 export function StackedLayoutFooter({ children, className }: StackedLayoutFooterProps) {

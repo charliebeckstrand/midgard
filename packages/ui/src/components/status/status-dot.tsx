@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import {
 	pulse as pulseAnimation,
@@ -18,7 +18,7 @@ export type StatusDotProps = StatusDotVariants & {
 	 * sr-only status label, and its dot stays silent).
 	 */
 	label?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
 /**
  * Colored status indicator dot: a `currentColor`-filled (`solid`) or

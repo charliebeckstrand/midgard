@@ -1,1 +1,1 @@
-export * from './affix'
+export { AffixContext, affixStepDown, useAffix } from './affix'

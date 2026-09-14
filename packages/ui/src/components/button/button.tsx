@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import type { ComponentProps, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
@@ -56,15 +56,7 @@ type ButtonBaseProps = ButtonVariants & {
  * `spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
  * the polymorphic surface — a `<button>`, or an anchor when `href` is set.
  */
-export type ButtonProps = ButtonBaseProps &
-	(
-		| (Extract<PolymorphicProps<'button', 'prefix'>, { href?: never }> & {
-				ref?: Ref<HTMLButtonElement>
-		  })
-		| (Extract<PolymorphicProps<'button', 'prefix'>, { href: string }> & {
-				ref?: Ref<HTMLAnchorElement>
-		  })
-	)
+export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
 
 /**
  * Polymorphic action control: renders a `<button>` or, when `href` is set,
@@ -111,8 +103,8 @@ export function Button({
 				data-slot={slot}
 				className={className}
 				loading={loading}
-				type={type as ComponentPropsWithoutRef<'button'>['type']}
-				{...(props as ComponentPropsWithoutRef<'button'>)}
+				type={type as ComponentProps<'button'>['type']}
+				{...(props as ComponentProps<'button'>)}
 			>
 				{children}
 			</ButtonHeadless>
@@ -154,7 +146,7 @@ export function Button({
 						{...sharedProps}
 						href={href}
 						className={classes}
-						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
+						{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
 						{...(loading && loadingProps)}
 					>
 						<TouchTarget>{content}</TouchTarget>
@@ -165,7 +157,7 @@ export function Button({
 	}
 
 	const buttonProps = props as Omit<
-		ComponentPropsWithoutRef<'button'>,
+		ComponentProps<'button'>,
 		'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 	>
 

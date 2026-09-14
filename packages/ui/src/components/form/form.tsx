@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Fieldset } from '../fieldset'
 import { FormProvider } from './context'
@@ -44,10 +44,7 @@ export type FormProps<T extends Record<string, unknown>> = {
 	disabled?: boolean
 	className?: string
 	children: ReactNode
-} & Omit<
-	ComponentPropsWithoutRef<'form'>,
-	'onSubmit' | 'onReset' | 'children' | 'className' | 'values'
->
+} & Omit<ComponentProps<'form'>, 'onSubmit' | 'onReset' | 'children' | 'className' | 'values'>
 
 /**
  * Reducer-backed form scope over typed `defaultValues`: tracks dirty, touched,

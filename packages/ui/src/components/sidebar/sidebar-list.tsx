@@ -1,12 +1,12 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarListContext } from './context'
 
 /** Props for {@link SidebarList} (`<ul>` attributes). */
-export type SidebarListProps = ComponentPropsWithoutRef<'ul'>
+export type SidebarListProps = ComponentProps<'ul'>
 
 /**
  * Groups `SidebarItem`s into a real `<ul>`; screen readers expose the set's

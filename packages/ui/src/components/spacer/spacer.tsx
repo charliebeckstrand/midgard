@@ -1,10 +1,10 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 
 /** Props for {@link Spacer}: an optional `className` plus `<div>` attributes (children excluded). */
 export type SpacerProps = {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+} & Omit<ComponentProps<'div'>, 'className' | 'children'>
 
 /**
  * Flexible gap that expands to consume free space inside a flex container,

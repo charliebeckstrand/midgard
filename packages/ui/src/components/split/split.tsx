@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import {
 	alignMap,
@@ -30,7 +30,7 @@ export type SplitProps = {
 	/** Cross-axis alignment. */
 	align?: SplitAlign
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Two-pane CSS-grid layout. `orientation` chooses columns or rows, `ratio`

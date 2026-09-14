@@ -31,7 +31,8 @@ const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 /** Mobile navbar padding per Density step. @internal */
 const NAVBAR_PADDING = { sm: 'p-4', md: 'p-6', lg: 'p-8' } satisfies Record<Step, string>
 
-type SidebarLayoutProps = PropsWithChildren<{
+/** Props for {@link SidebarLayout}: the sidebar content and the slots beside it. */
+export type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
@@ -177,7 +178,8 @@ export function SidebarLayout({
 	)
 }
 
-type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+/** Props for {@link SidebarLayoutHeader}. */
+export type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
 
 /**
  * Header slot for {@link SidebarLayout} (`data-slot="header"`). Renders the
@@ -194,7 +196,8 @@ export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeader
 	)
 }
 
-type SidebarLayoutBodyProps = PropsWithChildren<{
+/** Props for {@link SidebarLayoutBody}; `ref` reaches the scrolling `<main>`. */
+export type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
 	ref?: Ref<HTMLElement>
 }>
@@ -208,7 +211,8 @@ export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBod
 	)
 }
 
-type SidebarLayoutFooterProps = PropsWithChildren
+/** Props for {@link SidebarLayoutFooter}. */
+export type SidebarLayoutFooterProps = PropsWithChildren
 
 /** Footer slot for {@link SidebarLayout} (`data-slot="footer"`). */
 export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {

@@ -9,4 +9,3 @@ export {
 	type Responsive,
 	resolveResponsive,
 } from './responsive'
-export type { Size } from './size'

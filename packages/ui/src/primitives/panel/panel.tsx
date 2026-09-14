@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, type ReactNode, useEffect } from 'react'
+import { type ComponentProps, type ReactNode, useEffect } from 'react'
 import { cn, createContext } from '../../core'
 import { headingWeight, titleSize } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
@@ -8,17 +8,17 @@ import { useDensity } from '../density'
 import { PanelCloseContext, usePanelCloseValue } from './panel-close-context'
 
 /** Props for a panel `Title` slot (`<h2>`). */
-export type PanelTitleProps = ComponentPropsWithoutRef<'h2'>
+export type PanelTitleProps = ComponentProps<'h2'>
 /** Props for a panel `Description` slot (`<p>`). */
-export type PanelDescriptionProps = ComponentPropsWithoutRef<'p'>
+export type PanelDescriptionProps = ComponentProps<'p'>
 /** Props for a panel `Header` slot (`<div>`). */
-export type PanelHeaderProps = ComponentPropsWithoutRef<'div'>
+export type PanelHeaderProps = ComponentProps<'div'>
 /** Props for a panel `Body` slot (`<div>`); scroll region. */
-export type PanelBodyProps = ComponentPropsWithoutRef<'div'>
+export type PanelBodyProps = ComponentProps<'div'>
 /** Props for a panel `Footer` slot (`<div>`). */
-export type PanelFooterProps = ComponentPropsWithoutRef<'div'>
+export type PanelFooterProps = ComponentProps<'div'>
 /** Props for a panel `Content` slot (`<div>`). */
-export type PanelContentProps = ComponentPropsWithoutRef<'div'>
+export type PanelContentProps = ComponentProps<'div'>
 
 type PanelA11yContextValue = {
 	titleId?: string

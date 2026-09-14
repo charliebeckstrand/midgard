@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/container'
 
@@ -24,7 +24,7 @@ export type ContainerProps = {
 	 */
 	padding?: ContainerPadding
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /** Centered max-width page wrapper with responsive horizontal `padding`. */
 export function Container({

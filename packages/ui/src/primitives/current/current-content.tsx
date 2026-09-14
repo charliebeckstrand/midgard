@@ -1,7 +1,7 @@
 'use client'
 
 import { type HTMLMotionProps, motion } from 'motion/react'
-import { type ComponentPropsWithoutRef, type Ref, useCallback, useState } from 'react'
+import { type ComponentProps, useCallback, useState } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
 import { Hold, useMountHold } from '../mount'
@@ -15,13 +15,11 @@ import {
 } from './current'
 
 /** Props for {@link CurrentContent}: the `slotPrefix` stamp, the `value` to match, and a `ref`, over `<div>` attributes. */
-export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
+export type CurrentContentProps = ComponentProps<'div'> & {
 	/** Slot prefix. It gives the default anchor `data-slot="<slotPrefix>-content"`. */
 	slotPrefix: string
 	/** Match against the surrounding `CurrentContext`. Omit to render unconditionally. */
 	value?: string
-	/** Ref to the rendered element (forwarded in both fade and non-fade modes). */
-	ref?: Ref<HTMLDivElement>
 	/**
 	 * Panel slot identifier. Wrappers override it to rename the anchor.
 	 *

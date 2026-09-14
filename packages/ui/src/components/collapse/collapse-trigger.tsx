@@ -1,12 +1,12 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
 
 /** Props for {@link CollapseTrigger}; extends native `<button>` attributes. */
-export type CollapseTriggerProps = ComponentPropsWithoutRef<'button'>
+export type CollapseTriggerProps = ComponentProps<'button'>
 
 /**
  * Button that toggles the enclosing {@link Collapse} for the compound API.

@@ -1,11 +1,11 @@
-import type { ComponentPropsWithRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableRow}: native `<tr>` attributes, including a `ref` to the row. */
 export type TableRowProps = {
 	className?: string
-} & Omit<ComponentPropsWithRef<'tr'>, 'className'>
+} & Omit<ComponentProps<'tr'>, 'className'>
 
 /**
  * A table row (`<tr>`) holding {@link TableCell}s or {@link TableHeader}s.

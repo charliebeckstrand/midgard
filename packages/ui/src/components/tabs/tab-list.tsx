@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
@@ -13,7 +13,7 @@ import { useTabListScroll } from './use-tab-list-scroll'
 
 /** Props for {@link TabList}. Requires an accessible name (`aria-label` or `aria-labelledby`). */
 export type TabListProps = AccessibleName &
-	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>
 
 /**
  * `role="tablist"` container for `<Tab>` children. Manages roving focus along

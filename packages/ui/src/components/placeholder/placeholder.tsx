@@ -1,11 +1,11 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/placeholder'
 
 /** Props for {@link Placeholder}: native `<div>` attributes. */
 export type PlaceholderProps = {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Pulsing skeleton shape. Renders a line by default; pass `className` for

@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react'
+import type { ComponentProps, CSSProperties } from 'react'
 import { cn } from '../../core'
 import { type ChartColorSlot, k as chart } from '../../recipes/kata/chart'
 import { k, type SwatchVariants } from '../../recipes/kata/swatch'
@@ -61,7 +61,7 @@ export type SwatchProps = SwatchVariants & {
 	 * @defaultValue 'swatch'
 	 */
 	'data-slot'?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
 /**
  * The colour key that stands in for a mark: a `square` box, a `circle` dot, or

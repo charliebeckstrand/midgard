@@ -1,7 +1,7 @@
 'use client'
 
 import {
-	type HTMLAttributes,
+	type ComponentProps,
 	type MouseEvent,
 	type ReactNode,
 	type RefObject,
@@ -143,8 +143,8 @@ export function seatingCellProps<T>(args: {
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
-	extra?: HTMLAttributes<HTMLTableCellElement>
-}): HTMLAttributes<HTMLTableCellElement> {
+	extra?: ComponentProps<'td'>
+}): ComponentProps<'td'> {
 	const { col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo, extra } = args
 
 	const rowIdx = rowIndexMapRef.current.get(row) ?? -1
@@ -211,7 +211,7 @@ export function useGridNavigationColumns<T>({
 			return {
 				...col,
 				className: cn(k.nav.cell, col.className),
-				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> =>
+				cellProps: (row: T): ComponentProps<'td'> =>
 					seatingCellProps({ col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo }),
 				cell: (row: T): ReactNode => {
 					const rowIdx = rowIndexMapRef.current.get(row) ?? -1

@@ -1,1 +1,1 @@
-export * from './virtual-options'
+export { type VirtualOptionMeta, VirtualOptions, type VirtualOptionsProps } from './virtual-options'

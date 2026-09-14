@@ -1,1 +1,1 @@
-export * from './touch-target'
+export { TouchTarget } from './touch-target'

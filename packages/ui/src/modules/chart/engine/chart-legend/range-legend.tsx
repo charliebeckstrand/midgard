@@ -19,6 +19,7 @@ import {
 import { Text } from '../../../../components/text'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
+import type { Orientation } from '../../../../types'
 
 /**
  * Which way a range legend and its glyph lay out: `'vertical'` stands the scale
@@ -27,7 +28,7 @@ import { k } from '../../../../recipes/kata/chart'
  *
  * @internal
  */
-export type RangeOrientation = 'horizontal' | 'vertical'
+export type RangeOrientation = Orientation
 
 /** Props for {@link RangeArrow}. @internal */
 type RangeArrowProps = {

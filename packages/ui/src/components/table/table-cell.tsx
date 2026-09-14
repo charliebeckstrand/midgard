@@ -1,11 +1,11 @@
-import type { ComponentPropsWithRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableCell}: native `<td>` attributes, including a `ref` to the cell. */
 export type TableCellProps = {
 	className?: string
-} & Omit<ComponentPropsWithRef<'td'>, 'className'>
+} & Omit<ComponentProps<'td'>, 'className'>
 
 /**
  * A data cell (`<td>`) within a {@link TableRow}. Static leaf: renders in

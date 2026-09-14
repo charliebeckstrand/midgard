@@ -1,17 +1,17 @@
 import {
 	ListboxDescription as SelectDescription,
-	type ListboxDescriptionProps as SelectDescriptionComponentProps,
+	type ListboxDescriptionProps as SelectDescriptionProps,
 	ListboxLabel as SelectLabel,
-	type ListboxLabelProps as SelectLabelComponentProps,
+	type ListboxLabelProps as SelectLabelProps,
 	ListboxOption as SelectOption,
-	type ListboxOptionProps as SelectOptionComponentProps,
+	type ListboxOptionProps as SelectOptionProps,
 } from '../listbox'
 
 export {
 	SelectDescription,
-	type SelectDescriptionComponentProps,
+	type SelectDescriptionProps,
 	SelectLabel,
-	type SelectLabelComponentProps,
+	type SelectLabelProps,
 	SelectOption,
-	type SelectOptionComponentProps,
+	type SelectOptionProps,
 }
