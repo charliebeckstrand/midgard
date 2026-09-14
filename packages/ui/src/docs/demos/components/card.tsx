@@ -28,7 +28,7 @@ export function Demo() {
 			</Alert>
 
 			<Example title="Default">
-				<Card p="lg">Content</Card>
+				<Card size="lg">Content</Card>
 			</Example>
 
 			<Example title="With header and footer">

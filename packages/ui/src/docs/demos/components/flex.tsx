@@ -24,7 +24,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Card p="md" bg="none">
+				<Card bg="none">
 					<Flex gap="md" justify="between" align="center" full>
 						<Card>Start</Card>
 						<Card>Middle</Card>
