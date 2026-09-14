@@ -49,7 +49,7 @@ export type ComboChartProps<T = never> = ChartBaseProps<T> &
 		series: ComboChartSeries<T>[]
 		/**
 		 * Mark every line and area point with a filled, surface-ringed dot.
-		 * @defaultValue true
+		 * @defaultValue false
 		 */
 		points?: boolean
 		/**
@@ -175,7 +175,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		tooltip,
 		crosshair,
 		animate = false,
-		points = true,
+		points = false,
 		interpolation = 'linear',
 		reference,
 		texture = false,

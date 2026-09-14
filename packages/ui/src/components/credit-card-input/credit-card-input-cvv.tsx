@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { useControl } from '../control/context'
+import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
@@ -20,6 +21,14 @@ export type CreditCardInputCvvProps = Omit<
 	brand?: CreditCardBrand
 	/** Fires on every change with the CVV's length verdict (vs the brand-derived max). */
 	onValidityChange?: (validity: CardValidity) => void
+	/**
+	 * Message shown when a complete entry cannot be valid, rendered as a
+	 * `<Message>` beneath the field. Pass `null` (or `false`) to suppress it and
+	 * supply your own.
+	 *
+	 * @defaultValue `Enter a valid security code`
+	 */
+	invalidMessage?: ReactNode
 }
 
 function resolveCvvLength(brand: CreditCardBrand | undefined): number {
@@ -45,6 +54,8 @@ export function CreditCardInputCvv({
 	brand,
 	placeholder,
 	onValidityChange,
+	invalidMessage = 'Enter a valid security code',
+	invalid,
 	name,
 	onBlur,
 	ref,
@@ -52,6 +63,8 @@ export function CreditCardInputCvv({
 	...props
 }: CreditCardInputCvvProps) {
 	const control = useControl()
+
+	const [typedInvalid, setTypedInvalid] = useState(false)
 
 	const maxLength = resolveCvvLength(brand)
 
@@ -97,30 +110,42 @@ export function CreditCardInputCvv({
 	}, [maxLength, resolvedBrand])
 
 	return (
-		<Input
-			ref={masked.ref}
-			data-slot="credit-card-input-cvv"
-			type="text"
-			inputMode="numeric"
-			autoComplete="cc-csc"
-			// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
-			// defaults an aria-label, yielding to a registered Field <Label>.
-			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Security code')}
-			maxLength={maxLength}
-			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
-			name={name}
-			value={masked.value}
-			onBlur={(event) => {
-				masked.onBlur()
+		<>
+			<Input
+				ref={masked.ref}
+				data-slot="credit-card-input-cvv"
+				type="text"
+				inputMode="numeric"
+				autoComplete="cc-csc"
+				// The placeholder is not a programmatic name (WCAG 3.3.2 / 4.1.2);
+				// defaults an aria-label, yielding to a registered Field <Label>.
+				aria-label={ariaLabel ?? (control?.labelledBy ? undefined : 'Security code')}
+				maxLength={maxLength}
+				placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
+				invalid={invalid ?? (typedInvalid || undefined)}
+				name={name}
+				value={masked.value}
+				onBlur={(event) => {
+					masked.onBlur()
 
-				onBlur?.(event)
-			}}
-			onChange={(event) => {
-				masked.onChange(event)
+					onBlur?.(event)
+				}}
+				onChange={(event) => {
+					masked.onChange(event)
 
-				onValidityChange?.(validateCardCvv(event.target.value, resolvedBrand))
-			}}
-			{...props}
-		/>
+					const validity = validateCardCvv(event.target.value, resolvedBrand)
+
+					onValidityChange?.(validity)
+
+					setTypedInvalid(event.target.value.length === maxLength && !validity.isValid)
+				}}
+				{...props}
+			/>
+
+			{/* Visible feedback gated on the component's own detection, not the
+			    external `invalid` prop; the input's aria-invalid comes from the
+			    `invalid` prop above, never from this Message. */}
+			{typedInvalid && invalidMessage ? <Message severity="error">{invalidMessage}</Message> : null}
+		</>
 	)
 }

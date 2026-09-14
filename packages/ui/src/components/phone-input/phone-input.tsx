@@ -11,13 +11,10 @@ export type PhoneInputCountry = 'US' | 'international'
 
 /**
  * Props for {@link PhoneInput}. Inherits `<MaskInput>` props except `format`,
- * `type`, `inputMode`, `autoComplete`, and `prefix`, which are derived from
+ * `type`, `inputMode`, and `prefix`, which are derived from
  * `country` or defaulted here.
  */
-export type PhoneInputProps = Omit<
-	MaskInputProps,
-	'format' | 'type' | 'inputMode' | 'autoComplete' | 'prefix'
-> & {
+export type PhoneInputProps = Omit<MaskInputProps, 'format' | 'type' | 'inputMode' | 'prefix'> & {
 	/**
 	 * Dialing locale driving the mask.
 	 * @defaultValue 'US'
