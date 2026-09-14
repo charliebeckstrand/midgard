@@ -27,8 +27,12 @@ type BoxBaseProps = {
 
 /**
  * Props for {@link Box}: spacing, radius, background, and outline tokens plus
- * the polymorphic `as` / `render` surface. `Omitted` drops keys for consumers
- * that fix a dimension (e.g. Card omits `radius`).
+ * the static-tier `render` surface. `Omitted` drops keys for consumers that fix
+ * a dimension (e.g. Card omits `radius`).
+ *
+ * @remarks
+ * Box renders a `<div>` and takes no `as`. The static tier carries `render`
+ * alone; `as` belongs to the client-tier {@link Polymorphic}.
  *
  * @typeParam Omitted - Prop keys to remove from the public surface.
  */

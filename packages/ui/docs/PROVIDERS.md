@@ -64,7 +64,7 @@ Broadcasts i18n defaults; explicit component props still win.
 |---|---|
 | `LocaleProvider` | Broadcasts i18n defaults (locale, currency, number/date formatting, time zone); explicit component props still win. |
 | `LocaleProviderProps` *(type)* | Props for `LocaleProvider`. |
-| `LocaleConfig` *(type)* | Ambient i18n defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`, `timeZone`. |
+| `LocaleConfig` *(type)* | Ambient i18n defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`. A nested provider folds over the enclosing config per field. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |

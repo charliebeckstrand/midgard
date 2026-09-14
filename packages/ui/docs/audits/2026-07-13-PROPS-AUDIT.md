@@ -73,7 +73,7 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | VirtualOptions | `overscan` | virtual-options.tsx:73 | Tuning knob, zero call sites; the hook keeps its own option for non-primitive callers | 0/0/0 | ✅ RESOLVED |
 | GlassProvider | `className` | providers/glass/glass.tsx:6 | Wrapper-class knob; zero callers including tests | 0/0/0 | ✅ RESOLVED |
 | DensityProvider | `className` | providers/density/density.tsx:7 | Same pattern; own test only | 0/0/1 | ✅ RESOLVED |
-| LocaleProvider | `timeZone` | providers/locale/context.ts:21 | Broadcast into context, read by nothing; wire a consumer or delete. `dateFormat` now has three readers — the DatePicker state hooks each format their display value through it | 0/0/0 (`timeZone`) | ◯ OPEN |
+| LocaleProvider | `timeZone` | providers/locale/context.ts:21 | Broadcast into context, read by nothing; wire a consumer or delete. `dateFormat` now has three readers — the DatePicker state hooks each format their display value through it | 0/0/0 (`timeZone`) | ✅ RESOLVED (deleted — no reader package-wide, `utilities/format.ts` included) |
 | ChartRangeLegendConfig | `type` (+ `ChartRangeLegendType` export) | chart/engine/chart-legend/range.ts:21,38 | Discriminant with one legal value, never read discriminatively; `{ placement }` alone is the object form | 0/0/3 | ✅ RESOLVED |
 | SidebarSpacer | (whole part) | sidebar barrel | Duplicate of `Spacer` with different mechanics; zero usage anywhere — the admin sidebar pins footers via `k.footer` instead | 0/0/0 | ✅ RESOLVED |
 
@@ -157,8 +157,8 @@ The individual rows mostly instantiate eight repeated patterns; fixing a pattern
 | Input family | `data-group`/`data-group-orientation` | Necessary Group-stamp plumbing typed as ordinary public props across five components; mark `@internal` via one shared documented type | ◯ OPEN |
 | Grid | `rowClassName`, `rowLoading` | Zero/near-zero usage but genuinely useful shapes; keep, recorded | ◯ OPEN |
 | Chart/map | `geographyObject`, `regionLabel`, `binning` | Real external-data variance, zero usage, and each must land in two prop vocabularies (MapPlat + ChoroplethChart renames) — demo-cover or consciously defer | ◯ OPEN |
-| ToggleIconButton | `animate` | Keep only as the reduced-motion escape — the real bug is the recipe's missing `motion-reduce:` guard; fix that and the prop is removable | ◯ OPEN |
-| VirtualOptions | `isDisabled`, `getTextValue`, `estimateSize` | The a11y contract for windowed lists; TSDoc when they're required; strip `estimateSize={36}` (= default) from demos | ◯ OPEN |
+| ToggleIconButton | `animate` | Keep only as the reduced-motion escape — the real bug is the recipe's missing `motion-reduce:` guard; fix that and the prop is removable | ✅ RESOLVED (the recipe gained `motion-reduce:transition-none`; `animate` stays, because it also selects a single-Icon DOM rather than two stacked, so it is not purely a motion escape) |
+| VirtualOptions | `isDisabled`, `getTextValue`, `estimateSize` | The a11y contract for windowed lists; TSDoc when they're required; strip `estimateSize={36}` (= default) from demos | ✅ RESOLVED (kept as the windowed-list a11y contract; the two `estimateSize={36}` demo passes restating the default are gone) |
 | Tabs | manual `Tab id` + `TabPanels`/`TabPanel` wiring | Entire secondary linkage API appears only in tests; follow-up pruning candidate beyond a props audit | ◯ OPEN |
 | ShinyText | nine tuning knobs | Demo-only decorative surface; policy call — demo-driven props default private until a consumer asks | ◯ OPEN |
 | PivotTable `totalLabel` · PasswordStrength `labels` | — | Unused, but each is its component's only i18n hook; resolve with T7's provider decision, not row by row | ◯ OPEN |

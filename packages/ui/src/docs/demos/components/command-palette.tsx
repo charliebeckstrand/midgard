@@ -166,11 +166,7 @@ function VirtualizedCommandResults() {
 		// VirtualOptions a wrapper with an explicit, definite height (not just
 		// `max-height`) and `overflow-y: auto`.
 		<div style={{ height: 320, overflow: 'auto' }}>
-			<VirtualOptions
-				items={filtered}
-				estimateSize={36}
-				getOptionId={(command) => `virtual-command-${command.id}`}
-			>
+			<VirtualOptions items={filtered} getOptionId={(command) => `virtual-command-${command.id}`}>
 				{(command, _index, meta) => (
 					<CommandPaletteItem key={command.id} id={`virtual-command-${command.id}`} {...meta}>
 						<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
