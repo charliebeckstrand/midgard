@@ -1,7 +1,7 @@
 import { type CSSProperties, cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/icon'
-import type { Size } from '../../types/size'
+import type { IconSize } from '../../recipes/kiso'
 
 /** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {
@@ -17,7 +17,7 @@ export type IconProps = {
 	 * the size and overrides this.
 	 * @defaultValue `'md'`
 	 */
-	size?: Size | number
+	size?: IconSize | number
 	className?: string
 	/**
 	 * Accessible name for a meaningful icon. When set, the icon is exposed to

@@ -1,6 +1,7 @@
 'use client'
 
 import type { PanelResize } from '../../hooks/use-panel-resize'
+import type { Orientation } from '../../types'
 
 /** Props for {@link PanelHandle}. @internal */
 export type PanelHandleProps = {
@@ -10,7 +11,7 @@ export type PanelHandleProps = {
 	 * The line the separator draws, which is not the axis it moves on: the grip on
 	 * the inner edge of a right-hand sheet stands vertically and resizes the width.
 	 */
-	orientation: 'horizontal' | 'vertical'
+	orientation: Orientation
 	/** The gesture bindings, from {@link usePanelResize} on the panel's owner. */
 	handleProps: PanelResize['handleProps']
 	/** The share of the screen the panel covers, which is what the value reports. */

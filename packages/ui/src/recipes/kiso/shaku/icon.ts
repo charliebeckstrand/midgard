@@ -22,3 +22,6 @@ export const icon = {
 	md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 	lg: '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0',
 }
+
+/** One step of the icon dimension scale; the `size` axis of every icon-sized surface. */
+export type IconSize = keyof typeof iconSize

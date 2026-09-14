@@ -12,6 +12,7 @@
  * isolation and reused by the pure geometry cores and the React parts alike.
  */
 
+import type { Orientation } from '../../../types'
 import type { PlotRect } from './chart-layout'
 
 /**
@@ -19,7 +20,7 @@ import type { PlotRect } from './chart-layout'
  * puts value on y and categories on x (the default), `'horizontal'` transposes
  * them.
  */
-export type ChartOrientation = 'vertical' | 'horizontal'
+export type ChartOrientation = Orientation
 
 /** A point in `viewBox` user units, structurally shared with the frame's anchors. @internal */
 export type Vec = { x: number; y: number }
