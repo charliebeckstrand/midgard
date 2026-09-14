@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import { type ComponentProps, type ReactNode, useLayoutEffect, useRef } from 'react'
+import { type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
