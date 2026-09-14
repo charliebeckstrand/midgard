@@ -21,6 +21,16 @@ import {
 
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
+	/**
+	 * Fires with the day the reader clicked.
+	 *
+	 * @remarks
+	 * An event, not the `on<State>Change` echo the name suggests: the endpoint
+	 * state machine lives in DatePicker, and this reports a raw click rather than
+	 * a settled range. Sibling `Calendar.onValueChange` does echo bound state, so
+	 * the two read alike and behave differently. Renaming it `onDayClick` waits
+	 * for the next breaking pass.
+	 */
 	onValueChange?: (date: Date) => void
 	min?: Date
 	max?: Date

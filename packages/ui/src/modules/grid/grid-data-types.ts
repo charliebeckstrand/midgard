@@ -676,6 +676,15 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * column-manager dialog — stays on the ambient density rather than adopting the
 	 * condensed step, so it reads consistently whether opened from a condensed grid
 	 * or not. Wrap the grid in a `DensityProvider` to size those overlays.
+	 *
+	 * @remarks
+	 * Orthogonal to {@link GridDataProps.density}, not a step on it. `density`
+	 * moves the space axis; `condensed` moves both axes and projects the text,
+	 * icon, and badge classes above, table-scoped. `DensityLevel` maps one-to-one
+	 * onto the `Step` scale and has no step below `sm`, so this cannot fold into
+	 * it. `condensed` with an explicit `density` is legal: the density cascade
+	 * still broadcasts what you name, and `condensed` layers its projection over
+	 * the table.
 	 * @defaultValue false
 	 */
 	condensed?: boolean

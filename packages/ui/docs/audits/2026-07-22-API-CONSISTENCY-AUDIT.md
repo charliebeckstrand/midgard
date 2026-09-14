@@ -163,7 +163,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | G15 | `groupTotalRow`/`grandTotalRow?: 'bottom'` single-valued enums | `grid-data-types.ts:702,713` | Boolean, or commit to `'top'` | ✅ RESOLVED (booleans, with the props audit row) |
 | G16 | `selectable` (-able, means "is the selector column") beside nouns `dragHandle`/`expander`; `readOnly` where flags predict `editable: false` | `types.ts:80,92,102,120` | `selector?: boolean`; `editable?: boolean` default true | ◯ OPEN |
 | G17 | QueryBuilder edits `value`, QuerySummary reads `root`; barrel renames `QueryGroup` → `QueryGroupNode` with no collision (T9) | `query-builder.tsx:17` vs `query-summary.tsx:11`; `index.ts:11-14` | `value` on the summary; export declared names | ✅ RESOLVED (QuerySummary takes `value`; the barrel exports `QueryGroup` and `QueryRule` under their declared names, which collided with nothing) |
-| G18 | `condensed` boolean overlaps the `density` axis it sits beside | `grid-data-types.ts:638,663` | Fourth density level, or explicit decomposition | ◯ OPEN |
+| G18 | `condensed` boolean overlaps the `density` axis it sits beside | `grid-data-types.ts:638,663` | Fourth density level, or explicit decomposition | ✅ KEEP, documented with the props-audit row (orthogonal to `density`, not decomposable into it) |
 
 ## Findings — chat, providers, hooks
 
