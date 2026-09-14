@@ -1,13 +1,13 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k, type NavBarVariants } from '../../recipes/kata/nav'
 import { NavBarContext } from './context'
 
 /** Props for {@link NavBar}: recipe `variant` plus native `<nav>` attributes. */
-export type NavBarProps = NavBarVariants & ComponentPropsWithoutRef<'nav'>
+export type NavBarProps = NavBarVariants & ComponentProps<'nav'>
 
 /**
  * Horizontal top-level navigation landmark; establishes an active-indicator

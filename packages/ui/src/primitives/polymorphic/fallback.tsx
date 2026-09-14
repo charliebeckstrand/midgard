@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from 'react'
+import type { ComponentProps, ElementType, ReactNode, Ref } from 'react'
 import type { LinkProps } from '../link'
 
 /**
@@ -16,7 +16,7 @@ export type PolymorphicRenderProps<Fallback extends ElementType> = {
 	className: string
 	children: ReactNode
 } & (
-	| Omit<ComponentPropsWithoutRef<Fallback>, 'href' | 'ref' | 'className' | 'children'>
+	| Omit<ComponentProps<Fallback>, 'href' | 'ref' | 'className' | 'children'>
 	| Omit<LinkProps, 'href' | 'ref' | 'className' | 'children'>
 )
 
@@ -27,7 +27,7 @@ type FallbackRender<Fallback extends ElementType> = {
 	slot: string
 	className: string
 	children: ReactNode
-	rest: ComponentPropsWithoutRef<Fallback>
+	rest: ComponentProps<Fallback>
 }
 
 /**

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { formatInteger } from '../../utilities'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
@@ -19,7 +19,7 @@ export type OdometerProps = {
 	 */
 	format?: (value: number) => string
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
+} & Omit<ComponentProps<'span'>, 'className' | 'children'>
 
 function defaultFormat(value: number) {
 	return formatInteger(Math.round(value))

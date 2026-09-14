@@ -1,11 +1,11 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { type DividerVariants, k } from '../../recipes/kata/divider'
 
 /** Props for {@link Divider}: `orientation`/`soft` variants plus native `<hr>` attributes. */
 export type DividerProps = DividerVariants & {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'hr'>, 'className'>
+} & Omit<ComponentProps<'hr'>, 'className'>
 
 /**
  * Thin rule that separates content, rendered as a styled `<hr>`. Draws a top

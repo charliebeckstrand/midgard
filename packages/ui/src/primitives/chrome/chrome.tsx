@@ -1,12 +1,12 @@
 'use client'
 
-import { type HTMLAttributes, type ReactNode, useEffect, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chrome'
 import { registerChrome } from './chrome-registry'
 
 /** Props for {@link PersistentChrome}: the region's `children`, plus any div attributes. */
-export type PersistentChromeProps = HTMLAttributes<HTMLDivElement> & { children: ReactNode }
+export type PersistentChromeProps = ComponentProps<'div'> & { children: ReactNode }
 
 /**
  * Marks a region as application chrome that a modal surface must not seal off.

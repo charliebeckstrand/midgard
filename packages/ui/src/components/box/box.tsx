@@ -1,4 +1,3 @@
-import type { Ref } from 'react'
 import { cn } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
@@ -29,7 +28,6 @@ type BoxBaseProps = {
 	 * @defaultValue 'box'
 	 */
 	'data-slot'?: string
-	ref?: Ref<HTMLDivElement>
 	className?: string
 }
 

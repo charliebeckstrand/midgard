@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { titleSize } from '../../recipes/kata/heading'
@@ -17,7 +17,7 @@ export type CardTitleProps = {
 	 * @defaultValue 3
 	 */
 	level?: 1 | 2 | 3 | 4 | 5 | 6
-} & Omit<ComponentPropsWithoutRef<'h3'>, 'className'>
+} & Omit<ComponentProps<'h3'>, 'className'>
 
 /**
  * Heading for a card, rendered through `<Heading>` at `level` (default 3) with

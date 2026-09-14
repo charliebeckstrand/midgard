@@ -1,13 +1,7 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import {
-	type ComponentPropsWithoutRef,
-	type ReactNode,
-	type Ref,
-	useLayoutEffect,
-	useRef,
-} from 'react'
+import { type ComponentProps, type ReactNode, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
@@ -21,8 +15,7 @@ export type CheckboxProps = CheckboxVariants & {
 	/** Replaces the default check/minus glyph with custom content. */
 	icon?: ReactNode
 	className?: string
-	ref?: Ref<HTMLInputElement>
-} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
+} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
 
 /**
  * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form

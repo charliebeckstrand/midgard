@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect } from 'react'
+import { type ComponentProps, useEffect } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -13,7 +13,7 @@ import { useControl } from '../control/context'
 export type LabelProps = {
 	className?: string
 	htmlFor?: string
-} & Omit<ComponentPropsWithoutRef<'label'>, 'className'>
+} & Omit<ComponentProps<'label'>, 'className'>
 
 /**
  * Caption for a single form control, rendered as a `<label>`. Defaults `htmlFor`

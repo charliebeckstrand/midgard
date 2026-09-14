@@ -1,9 +1,9 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/toggle'
 
 /** Props for {@link ToggleGroup}: `role` plus the standard `div` attributes. */
-export type ToggleGroupProps = ComponentPropsWithoutRef<'div'>
+export type ToggleGroupProps = ComponentProps<'div'>
 
 /**
  * Outer container for a set of toggleable fields, applying the shared group
@@ -14,7 +14,7 @@ export function ToggleGroup({ className, role, ...props }: ToggleGroupProps) {
 }
 
 /** Props for {@link ToggleField}: the standard `div` attributes. */
-export type ToggleFieldProps = ComponentPropsWithoutRef<'div'>
+export type ToggleFieldProps = ComponentProps<'div'>
 
 /**
  * Single row inside a {@link ToggleGroup}, laying out one control alongside its

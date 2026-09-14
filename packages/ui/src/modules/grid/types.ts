@@ -1,4 +1,4 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { GridEditCell, GridRowActionsContext } from './grid-editing-types'
@@ -194,7 +194,7 @@ export type GridColumn<T> = {
 	 * composite-widget wrapper like the navigable/editable cursor). Returned
 	 * `className` is merged with the column's static `className`.
 	 */
-	cellProps?: (row: T) => Omit<HTMLAttributes<HTMLTableCellElement>, 'children'>
+	cellProps?: (row: T) => Omit<ComponentProps<'td'>, 'children'>
 	className?: string
 	headerClassName?: string
 	/**

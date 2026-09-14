@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableHead}: native `<thead>` attributes. */
-export type TableHeadProps = SlotProps<'thead'>
+export type TableHeadProps = ComponentProps<'thead'>
 
 /**
  * The `<thead>` of a {@link Table}, grouping its header row(s). Static leaf:

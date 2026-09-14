@@ -1,9 +1,9 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pagination'
 
 /** Props for {@link Pagination}: native `<nav>` attributes. */
-export type PaginationProps = ComponentPropsWithoutRef<'nav'>
+export type PaginationProps = ComponentProps<'nav'>
 
 /**
  * Labeled pagination `<nav>` container. Page controls are ordinary,

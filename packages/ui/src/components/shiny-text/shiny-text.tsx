@@ -2,7 +2,7 @@
 
 import { type AnimationPlaybackControls, animate } from 'motion'
 import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
-import { type ComponentPropsWithoutRef, type Ref, useEffect, useRef } from 'react'
+import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 
 /** Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`. */
@@ -47,9 +47,8 @@ export type ShinyTextProps = {
 	 * @defaultValue `'left'`
 	 */
 	direction?: 'left' | 'right'
-	ref?: Ref<HTMLSpanElement>
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
 // Background-position percentages that park the shine past each edge.
 const OFF_RIGHT = 150
@@ -131,7 +130,7 @@ export function ShinyText({
 				backgroundPosition,
 			}}
 			{...(props as Omit<
-				ComponentPropsWithoutRef<'span'>,
+				ComponentProps<'span'>,
 				'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 			>)}
 			// Composed after the spread so a consumer handler can't clobber

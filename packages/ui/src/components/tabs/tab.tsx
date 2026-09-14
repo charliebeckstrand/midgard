@@ -1,7 +1,7 @@
 'use client'
 
 import {
-	type ComponentPropsWithoutRef,
+	type ComponentProps,
 	type FocusEvent,
 	type MouseEvent,
 	type PointerEvent,
@@ -48,7 +48,7 @@ export type TabProps = {
 	 */
 	onPreload?: (value: string | undefined) => void
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value' | 'color'>
+} & Omit<ComponentProps<'button'>, 'className' | 'id' | 'value' | 'color'>
 
 /**
  * Resolves the tab's current state plus its auto-wired tab/panel id pair (an

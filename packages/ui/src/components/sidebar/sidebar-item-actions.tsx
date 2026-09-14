@@ -1,8 +1,8 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 
 /** Props for {@link SidebarItemActions} (`<div>` attributes). */
-export type SidebarItemActionsProps = ComponentPropsWithoutRef<'div'>
+export type SidebarItemActionsProps = ComponentProps<'div'>
 
 /**
  * Trailing controls for a `SidebarItem`. Hoisted into the item's `suffix`

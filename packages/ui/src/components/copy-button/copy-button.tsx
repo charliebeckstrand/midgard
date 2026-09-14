@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Clipboard } from 'lucide-react'
-import { type ComponentPropsWithoutRef, type ReactElement, useCallback } from 'react'
+import { type ComponentProps, type ReactElement, useCallback } from 'react'
 import type { Size } from '../../types'
 import { ToggleIconButton } from '../toggle-icon-button'
 import { useCopyButtonState } from './use-copy-button-state'
@@ -37,7 +37,7 @@ export type CopyButtonProps = {
 	 * or to fall back to a selectable text field.
 	 */
 	onCopyError?: (error: unknown) => void
-} & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
+} & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color'>
 
 /**
  * Clipboard-copy control built on ToggleIconButton. Writes `value`, flips to a check glyph, and reverts after `timeout`.

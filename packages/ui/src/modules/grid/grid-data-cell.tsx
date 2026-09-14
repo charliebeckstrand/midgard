@@ -1,6 +1,6 @@
 'use client'
 
-import { type HTMLAttributes, memo, type ReactNode, use } from 'react'
+import { type ComponentProps, memo, type ReactNode, use } from 'react'
 import { TableCell } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -139,7 +139,7 @@ type GridReorderableCellProps = {
 	columnIndex: number
 	colIndex: number | undefined
 	className: string | undefined
-	cellProps: Omit<HTMLAttributes<HTMLTableCellElement>, 'children'> | undefined
+	cellProps: Omit<ComponentProps<'td'>, 'children'> | undefined
 	children: ReactNode
 }
 

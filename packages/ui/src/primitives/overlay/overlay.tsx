@@ -3,7 +3,7 @@
 import { type FloatingContext, FloatingFocusManager, useFloating } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import {
-	type HTMLAttributes,
+	type ComponentProps,
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
@@ -84,7 +84,7 @@ export type OverlayProps = {
 	 * @defaultValue `modal`
 	 */
 	backdrop?: boolean
-} & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
+} & Omit<ComponentProps<'div'>, 'className' | 'children'>
 
 /**
  * Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,

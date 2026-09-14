@@ -1,12 +1,12 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/control'
 import { useDensity } from '../density'
 
 /** Props for {@link ControlFrame}: the standard `span` attributes. */
-export type ControlFrameProps = ComponentPropsWithoutRef<'span'>
+export type ControlFrameProps = ComponentProps<'span'>
 
 /**
  * Outer chrome wrapper providing shared focus ring, border, and disabled state for form inputs.

@@ -4,7 +4,7 @@ import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown, X } from 'lucide-react'
 import {
 	type ClipboardEventHandler,
-	type InputHTMLAttributes,
+	type ComponentProps,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -101,7 +101,7 @@ type ComboboxBaseProps<T> = {
 	/** Marks the field required; surfaces `required`/`aria-required` on the input. */
 	required?: boolean
 	className?: string
-	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	autoComplete?: ComponentProps<'input'>['autoComplete']
 	/**
 	 * Accessible name for the input. Required when no `<Field>`/`<Label>` wraps
 	 * the combobox, since the placeholder is not a programmatic name.

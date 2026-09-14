@@ -6,8 +6,8 @@ import {
 	type FloatingRootContext,
 } from '@floating-ui/react'
 import {
+	type ComponentProps,
 	type CSSProperties,
-	type HTMLAttributes,
 	type ReactNode,
 	useLayoutEffect,
 	useRef,
@@ -43,7 +43,7 @@ export type FloatingSurfaceProps = {
 	trapFocusProps?: Omit<FloatingFocusManagerProps, 'context' | 'children'>
 	onExitComplete?: () => void
 	children: ReactNode
-} & Omit<HTMLAttributes<HTMLDivElement>, 'children'>
+} & Omit<ComponentProps<'div'>, 'children'>
 
 /**
  * Positioning shell shared by Tooltip, Popover, and Menu surfaces: owns the

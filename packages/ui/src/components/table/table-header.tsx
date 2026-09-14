@@ -1,11 +1,11 @@
-import type { ComponentPropsWithRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/table'
 
 /** Props for {@link TableHeader}: native `<th>` attributes, including a `ref` to the cell. */
 export type TableHeaderProps = {
 	className?: string
-} & Omit<ComponentPropsWithRef<'th'>, 'className'>
+} & Omit<ComponentProps<'th'>, 'className'>
 
 /**
  * A header cell (`<th>`) within a {@link Table}, defaulting `scope="col"`.

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
@@ -16,7 +16,6 @@ type GroupBaseProps = {
 	 * order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: Step
-	ref?: Ref<HTMLDivElement>
 	className?: string
 	children?: ReactNode
 }

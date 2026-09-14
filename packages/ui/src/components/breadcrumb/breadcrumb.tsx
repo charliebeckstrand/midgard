@@ -1,7 +1,7 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 
 /** Props for {@link Breadcrumb}; the underlying `<nav>` attributes. */
-export type BreadcrumbProps = ComponentPropsWithoutRef<'nav'>
+export type BreadcrumbProps = ComponentProps<'nav'>
 
 /**
  * Breadcrumb navigation landmark: renders a `<nav>` labelled

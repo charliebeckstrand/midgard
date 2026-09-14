@@ -1,5 +1,5 @@
 import {
-	type ComponentPropsWithoutRef,
+	type ComponentProps,
 	cloneElement,
 	type ElementType,
 	type ReactElement,
@@ -26,10 +26,7 @@ export type PolymorphicStaticProps<
 	Fallback extends ElementType,
 	Omitted extends PropertyKey = never,
 > =
-	| ({ href?: never; render?: never } & Omit<
-			ComponentPropsWithoutRef<Fallback>,
-			'className' | Omitted
-	  >)
+	| ({ href?: never; render?: never } & Omit<ComponentProps<Fallback>, 'className' | Omitted>)
 	| ({ href: string; render?: ReactElement<LinkProps> } & Omit<LinkProps, 'className' | Omitted>)
 
 /**
@@ -79,6 +76,6 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 		slot,
 		className,
 		children,
-		rest: rest as ComponentPropsWithoutRef<Fallback>,
+		rest: rest as ComponentProps<Fallback>,
 	})
 }

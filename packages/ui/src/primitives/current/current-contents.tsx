@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { ReducedMotion } from '../reduced-motion'
 import {
@@ -12,7 +12,7 @@ import {
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
 /** Props for {@link CurrentContents}: the `slotPrefix` stamp, the `fade` height animation, and the inactive-panel `mount` policy, over `<div>` attributes. */
-export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
+export type CurrentContentsProps = ComponentProps<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-contents"`; pairs with `CurrentContent` siblings. */
 	slotPrefix: string
 	/**

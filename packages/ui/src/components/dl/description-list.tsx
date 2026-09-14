@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/dl'
 import type { Orientation } from '../../types'
@@ -13,7 +13,7 @@ export type DescriptionListVariants = {
 /** Props for {@link DescriptionList}: `orientation` variant plus native `<dl>` attributes. */
 export type DescriptionListProps = DescriptionListVariants & {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'dl'>, 'className'>
+} & Omit<ComponentProps<'dl'>, 'className'>
 
 /**
  * Semantic description list (`<dl>`) pairing `<DescriptionTerm>` with `<DescriptionDetails>`.

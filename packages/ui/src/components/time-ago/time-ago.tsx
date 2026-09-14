@@ -1,14 +1,11 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
 /** Props for {@link TimeAgo}: the `date` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
-export type TimeAgoProps = Omit<
-	ComponentPropsWithoutRef<'time'>,
-	'dateTime' | 'children' | 'title'
-> & {
+export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' | 'title'> & {
 	date: Date | string | number
 	/** Override the default `Intl.RelativeTimeFormat` output. */
 	format?: (diffMs: number, now: Date, then: Date) => string

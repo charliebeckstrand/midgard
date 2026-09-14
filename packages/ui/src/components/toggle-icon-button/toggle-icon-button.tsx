@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactElement, Ref } from 'react'
+import type { ComponentProps, ReactElement } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useControllable } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/toggle-icon-button'
@@ -40,11 +40,7 @@ export type ToggleIconButtonProps = AccessibleName & {
 	color?: ButtonVariants['color']
 	size?: Size
 	className?: string
-	ref?: Ref<HTMLButtonElement>
-} & Omit<
-		ComponentPropsWithoutRef<'button'>,
-		'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'
-	>
+} & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color' | 'aria-label' | 'aria-labelledby'>
 
 /**
  * Two-state icon Button reflecting `pressed` via `aria-pressed`. Swaps `icon`

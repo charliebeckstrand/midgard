@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, type ReactNode, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yRoving, useMinBreakpoint } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
@@ -8,7 +8,7 @@ import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
 
 /** Props for {@link Sidebar}: `mini` rail toggle and render-prop `children`, plus native `<nav>` attributes (less `children`). */
-export type SidebarProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
+export type SidebarProps = Omit<ComponentProps<'nav'>, 'children'> & {
 	/**
 	 * Collapse to an icon rail on desktop (`lg+`): labels turn `sr-only`,
 	 * affixes and item actions hide, and items gain a hover tooltip naming the

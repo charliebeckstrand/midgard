@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ElementType, Ref } from 'react'
+import type { ComponentProps, ElementType, Ref } from 'react'
 import { type LinkProps, useLink } from '../link'
 import { type PolymorphicRenderProps, renderFallback } from './fallback'
 
@@ -20,7 +20,7 @@ import { type PolymorphicRenderProps, renderFallback } from './fallback'
 
 /** Props for `Polymorphic`; the fallback arm excludes `href`. */
 export type PolymorphicProps<Fallback extends ElementType, Omitted extends PropertyKey = never> =
-	| ({ href?: never } & Omit<ComponentPropsWithoutRef<Fallback>, 'className' | Omitted>)
+	| ({ href?: never } & Omit<ComponentProps<Fallback>, 'className' | Omitted>)
 	| ({ href: string } & Omit<LinkProps, 'className' | Omitted>)
 
 /**
@@ -65,6 +65,6 @@ export function Polymorphic<Fallback extends ElementType>({
 		slot,
 		className,
 		children,
-		rest: rest as ComponentPropsWithoutRef<Fallback>,
+		rest: rest as ComponentProps<Fallback>,
 	})
 }

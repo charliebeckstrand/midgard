@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { Hold, useMountHold } from '../../primitives/mount'
 import { useStepper } from './context'
@@ -9,7 +9,7 @@ import { useStepper } from './context'
 export type StepperPanelProps = {
 	value: number
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Content region for a single step, shown while its `value` matches the

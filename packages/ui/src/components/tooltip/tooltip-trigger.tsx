@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type ComponentProps,
 	cloneElement,
 	type HTMLAttributes,
 	isValidElement,
@@ -77,7 +78,7 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 			ref={mergeRefs}
 			data-slot="tooltip-trigger"
 			className={triggerClassName}
-			{...(getReferenceProps() as HTMLAttributes<HTMLDivElement>)}
+			{...(getReferenceProps() as ComponentProps<'div'>)}
 		>
 			{children}
 		</div>
