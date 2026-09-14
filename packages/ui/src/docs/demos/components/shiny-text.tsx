@@ -49,7 +49,7 @@ function DirectionExample() {
 				<VariantListbox variants={directions} value={direction} onValueChange={setDirection} />
 			}
 		>
-			<ShinyText direction={direction} className="text-3xl font-semibold">
+			<ShinyText sweep={direction} className="text-3xl font-semibold">
 				Sweep {direction}
 			</ShinyText>
 		</Example>

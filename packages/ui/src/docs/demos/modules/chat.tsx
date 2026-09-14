@@ -58,7 +58,7 @@ const embedRenderers = {
 	'stops-trend': (part) => (
 		<Sparkline
 			data={part.data as number[]}
-			variant="bar"
+			shape="bar"
 			color="blue"
 			width={160}
 			aria-label="Late stops per day over the last week"

@@ -46,7 +46,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Equal">
-				<Flex gap="md" equal>
+				<Flex gap="md" className="*:flex-1">
 					<Card>Narrow</Card>
 					<Card>Wider content here</Card>
 					<Card>Even wider content in this card</Card>

@@ -25,7 +25,7 @@ function AnimatedExample({ variant, color }: { variant: 'line' | 'bar'; color: C
 			title="Animated"
 			code={
 				variant === 'bar'
-					? code`<Sparkline variant="bar" animate />`
+					? code`<Sparkline shape="bar" animate />`
 					: code`<Sparkline fill endPoint animate />`
 			}
 			actions={
@@ -42,7 +42,7 @@ function AnimatedExample({ variant, color }: { variant: 'line' | 'bar'; color: C
 				<Sparkline
 					key={runKey}
 					data={series}
-					variant="bar"
+					shape="bar"
 					color={color}
 					animate
 					aria-label="Animated bars"
@@ -127,7 +127,7 @@ export function Demo() {
 					<TabContent value="bar">
 						<Stack gap="xl">
 							<Example title="Default">
-								<Sparkline data={series} variant="bar" color="blue" aria-label="By period" />
+								<Sparkline data={series} shape="bar" color="blue" aria-label="By period" />
 							</Example>
 
 							<Example title="Colors">
@@ -136,7 +136,7 @@ export function Demo() {
 										<LabeledRow key={color} label={capitalize(color)}>
 											<Sparkline
 												data={series}
-												variant="bar"
+												shape="bar"
 												color={color}
 												aria-label={`${capitalize(color)} bars`}
 											/>
@@ -151,7 +151,7 @@ export function Demo() {
 										<LabeledRow key={s} label={s}>
 											<Sparkline
 												data={series}
-												variant="bar"
+												shape="bar"
 												size={s}
 												color="red"
 												aria-label={`${s} bars`}

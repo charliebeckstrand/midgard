@@ -1250,7 +1250,7 @@ function sparklineColumns(sortKey: string): GridColumn<Metric>[] {
 				<Sparkline
 					key={sortKey}
 					data={row.trend}
-					variant="bar"
+					shape="bar"
 					color="green"
 					animate
 					aria-label={`${row.name} by period, last 12 periods`}
