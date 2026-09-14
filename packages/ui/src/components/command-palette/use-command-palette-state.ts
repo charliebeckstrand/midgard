@@ -92,7 +92,13 @@ export function useCommandPaletteState({
 		notifyActiveChange(next)
 	}, [])
 
+	const reportsRef = useRef(onActiveChange !== undefined)
+
+	reportsRef.current = onActiveChange !== undefined
+
 	const reportActiveFromDom = useCallback(() => {
+		if (!reportsRef.current) return
+
 		reportActive(inputRef.current?.getAttribute('aria-activedescendant') ?? null)
 	}, [reportActive])
 

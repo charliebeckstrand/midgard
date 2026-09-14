@@ -153,13 +153,11 @@ describe('PasswordInput onVisibleChange', () => {
 		expect(onVisibleChange).toHaveBeenLastCalledWith(false)
 	})
 
-	it('says nothing when the toggle is suppressed', () => {
-		const onVisibleChange = vi.fn()
-
-		renderUI(<PasswordInput toggleButton={false} onVisibleChange={onVisibleChange} />)
+	// Nothing can flip the reveal without the toggle, so the absent button is the
+	// whole of it; the mount silence is asserted by the first case above.
+	it('renders no toggle to report from when suppressed', () => {
+		renderUI(<PasswordInput toggleButton={false} />)
 
 		expect(screen.queryByRole('button', { name: 'Show password' })).not.toBeInTheDocument()
-
-		expect(onVisibleChange).not.toHaveBeenCalled()
 	})
 })

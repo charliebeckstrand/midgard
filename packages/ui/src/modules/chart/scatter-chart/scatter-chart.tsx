@@ -572,6 +572,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		aspectRatio = '16/9',
 		axes,
 		legend,
+		onHiddenChange,
 		tooltip,
 		crosshair,
 		animate = false,
@@ -634,7 +635,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const formatX = axesConfig.x?.format ?? formatChartValue
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(resolvedLegend.onHiddenChange)
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(onHiddenChange)
 
 	const metas = scatterMetas(data, series)
 

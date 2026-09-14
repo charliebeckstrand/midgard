@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { buildGroupSpans, collapsedHiddenIds, groupByColumn } from './engine/grid-group/compute'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
 
@@ -10,29 +11,15 @@ function resolveGroupsBinding(groups: GridColumnGroups | undefined): {
 	value: GridColumnGroup[] | undefined
 	defaultValue: GridColumnGroup[]
 	onValueChange: ((groups: GridColumnGroup[]) => void) | undefined
-	onCollapsedChange: ((collapsed: ReadonlySet<string | number>) => void) | undefined
 } {
-	if (!groups)
-		return {
-			value: undefined,
-			defaultValue: [],
-			onValueChange: undefined,
-			onCollapsedChange: undefined,
-		}
-
-	if (Array.isArray(groups))
-		return {
-			value: undefined,
-			defaultValue: groups,
-			onValueChange: undefined,
-			onCollapsedChange: undefined,
-		}
+	// The array shorthand and the absent prop differ only in the seed.
+	if (!groups || Array.isArray(groups))
+		return { value: undefined, defaultValue: groups ?? [], onValueChange: undefined }
 
 	return {
 		value: groups.value,
 		defaultValue: groups.defaultValue ?? [],
 		onValueChange: groups.onValueChange,
-		onCollapsedChange: groups.onCollapsedChange,
 	}
 }
 
@@ -79,7 +66,10 @@ export type GridGroupResult = {
  *
  * @internal
  */
-export function useGridGroup(groups: GridColumnGroups | undefined): GridGroupResult {
+export function useGridGroup(
+	groups: GridColumnGroups | undefined,
+	onCollapsedChange?: (collapsed: ReadonlySet<string | number>) => void,
+): GridGroupResult {
 	const binding = resolveGroupsBinding(groups)
 
 	const [resolvedGroups = binding.defaultValue, setGroups] = useControllable<GridColumnGroup[]>({
@@ -108,26 +98,10 @@ export function useGridGroup(groups: GridColumnGroups | undefined): GridGroupRes
 		})
 	}, [])
 
-	/*
-	 * One report for each committed collapsed set.
-	 *
-	 * Read from the committed value rather than from `toggleCollapse`, because the
-	 * set is written through an updater. The ref seeds from the `defaultCollapsed`
-	 * seed above, so a grid that mounts with a band already shut says nothing.
-	 */
-	const notifyCollapsedChange = useEffectEvent((next: ReadonlySet<string | number>) => {
-		binding.onCollapsedChange?.(next)
-	})
-
-	const reportedCollapsedRef = useRef(collapsed)
-
-	useEffect(() => {
-		if (reportedCollapsedRef.current === collapsed) return
-
-		reportedCollapsedRef.current = collapsed
-
-		notifyCollapsedChange(collapsed)
-	}, [collapsed])
+	// Read from the committed set rather than from `toggleCollapse`, because the set
+	// is written through an updater. The seed above is the mount state, not a
+	// transition, so a grid that mounts with a band already shut says nothing.
+	useReportedChange(collapsed, onCollapsedChange)
 
 	const collapsedHidden = useMemo(
 		() => collapsedHiddenIds(resolvedGroups, collapsed),

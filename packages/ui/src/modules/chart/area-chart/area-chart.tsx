@@ -280,6 +280,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		reference,
 		labels,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label
@@ -287,7 +288,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend), {
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
 		zeroBaseline: true,
 		swatch: () => 'line',
 		stack: stacked,

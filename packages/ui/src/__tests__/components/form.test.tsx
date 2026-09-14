@@ -1018,16 +1018,21 @@ describe('Form onInvalidSubmit', () => {
 		})
 	}
 
-	it('reports the failed fields and skips onSubmit', async () => {
+	// A refused submit reaches neither `onSubmit` nor a terminal outcome, so this
+	// report is the only signal the attempt happened at all.
+	it('reports the failed fields and skips onSubmit and onSettled', async () => {
 		const onInvalidSubmit = vi.fn()
 
 		const onSubmit = vi.fn()
+
+		const onSettled = vi.fn()
 
 		const { container } = renderUI(
 			<Form
 				defaultValues={{ name: '', email: 'ada@example.com' }}
 				validate={{ name: (value) => (value ? undefined : 'required') }}
 				onSubmit={onSubmit}
+				onSettled={onSettled}
 				onInvalidSubmit={onInvalidSubmit}
 			>
 				<button type="submit">Submit</button>
@@ -1039,6 +1044,8 @@ describe('Form onInvalidSubmit', () => {
 		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
 
 		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(onSettled).not.toHaveBeenCalled()
 	})
 
 	// The clean field validated too, and its entry in the errors map is
@@ -1082,31 +1089,5 @@ describe('Form onInvalidSubmit', () => {
 		await submit(container)
 
 		expect(onInvalidSubmit).not.toHaveBeenCalled()
-	})
-
-	// A refused submit never reaches a terminal outcome, so the two callbacks
-	// never both fire for one attempt.
-	it('does not fire onSettled for a refused submit', async () => {
-		const onSettled = vi.fn()
-
-		const onInvalidSubmit = vi.fn()
-
-		const { container } = renderUI(
-			<Form
-				defaultValues={{ name: '' }}
-				validate={{ name: (value) => (value ? undefined : 'required') }}
-				onSubmit={() => {}}
-				onSettled={onSettled}
-				onInvalidSubmit={onInvalidSubmit}
-			>
-				<button type="submit">Submit</button>
-			</Form>,
-		)
-
-		await submit(container)
-
-		expect(onInvalidSubmit).toHaveBeenCalledOnce()
-
-		expect(onSettled).not.toHaveBeenCalled()
 	})
 })

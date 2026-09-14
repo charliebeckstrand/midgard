@@ -247,9 +247,9 @@ export function useRangePointer(opts: {
 			if (wasPending) {
 				focusThumb(thumbRefs, dragging)
 
-				gestureThumbRef.current = dragging
-
-				onDragStartRef.current?.(dragging)
+				// `resolveDraggingThumb` already set `draggingRef`, so `beginDrag`'s
+				// write of it is a no-op here — worth it to keep one entry point.
+				beginDrag(dragging)
 			}
 
 			const raw = valueFromPointer(event.clientX)
@@ -263,7 +263,7 @@ export function useRangePointer(opts: {
 
 			update(dragging, raw)
 		},
-		[update, valueFromPointer, current, min, max, step, overlap, thumbRefs],
+		[update, valueFromPointer, current, min, max, step, overlap, thumbRefs, beginDrag],
 	)
 
 	const endDrag = useCallback(() => {

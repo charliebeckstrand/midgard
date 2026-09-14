@@ -1,5 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { TokenRejection } from '../../components/tag-input'
 import { useTagInput } from '../../components/tag-input/use-tag-input'
 
 describe('useTagInput', () => {
@@ -126,50 +127,33 @@ describe('useTagInput onReject', () => {
 		return { onReject, tags: result.current.tags }
 	}
 
-	it('reports the tokens validate refused', () => {
-		const { onReject } = addWith({ defaultValue: [], validate: (tag) => tag !== 'bad' }, [
-			'good',
-			'bad',
-		])
-
-		expect(onReject).toHaveBeenCalledExactlyOnceWith({
-			rejected: ['bad'],
-			duplicates: [],
-			overLimit: 0,
-		})
-	})
-
-	it('reports duplicates, which never come back in the draft', () => {
-		const { onReject } = addWith({ defaultValue: ['a'] }, ['a'])
-
-		expect(onReject).toHaveBeenCalledExactlyOnceWith({
-			rejected: [],
-			duplicates: ['a'],
-			overLimit: 0,
-		})
-	})
-
-	it('reports how many had no room', () => {
-		const { onReject } = addWith({ defaultValue: ['a'], max: 2 }, ['b', 'c', 'd'])
-
-		expect(onReject).toHaveBeenCalledExactlyOnceWith({
-			rejected: [],
-			duplicates: [],
-			overLimit: 2,
-		})
-	})
-
-	it('reports all three parts of one commit together', () => {
-		const { onReject } = addWith(
+	it.each<[string, Parameters<typeof useTagInput>[0], string[], TokenRejection]>([
+		[
+			'the tokens validate refused',
+			{ defaultValue: [], validate: (tag) => tag !== 'bad' },
+			['good', 'bad'],
+			{ rejected: ['bad'], duplicates: [], overLimit: 0 },
+		],
+		[
+			'duplicates, which never come back in the draft',
+			{ defaultValue: ['a'] },
+			['a'],
+			{ rejected: [], duplicates: ['a'], overLimit: 0 },
+		],
+		[
+			'how many had no room',
+			{ defaultValue: ['a'], max: 2 },
+			['b', 'c', 'd'],
+			{ rejected: [], duplicates: [], overLimit: 2 },
+		],
+		[
+			'all three parts of one commit together',
 			{ defaultValue: ['a'], max: 2, validate: (tag) => tag !== 'bad' },
 			['a', 'bad', 'b', 'c'],
-		)
-
-		expect(onReject).toHaveBeenCalledExactlyOnceWith({
-			rejected: ['bad'],
-			duplicates: ['a'],
-			overLimit: 1,
-		})
+			{ rejected: ['bad'], duplicates: ['a'], overLimit: 1 },
+		],
+	])('reports %s', (_name, options, input, expected) => {
+		expect(addWith(options, input).onReject).toHaveBeenCalledExactlyOnceWith(expected)
 	})
 
 	// The accepted half is `onValueChange`'s. A commit that refuses nothing has

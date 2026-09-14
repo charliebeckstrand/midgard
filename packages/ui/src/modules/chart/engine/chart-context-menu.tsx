@@ -219,7 +219,12 @@ export function ChartContextMenu({
 		[onFullscreenChange],
 	)
 
-	const onExport = config?.onExport
+	// Read through a ref, not a dep: `exportImage` feeds the `defaults` memo this
+	// file keeps because it re-renders on every pointer move across the plot, and an
+	// inline `contextMenu={{ onExport }}` would rebuild it and its five icons.
+	const onExportRef = useRef(config?.onExport)
+
+	onExportRef.current = config?.onExport
 
 	const exportImage = useCallback(
 		async (type: ChartImageType, extension: string): Promise<void> => {
@@ -233,7 +238,11 @@ export function ChartContextMenu({
 				// A null blob is a failure too: the canvas rasterized and then yielded
 				// nothing, so no file is downloaded and the menu looks like it worked.
 				if (!blob) {
-					onExport?.({ ok: false, type, error: new Error('The chart produced no image.') })
+					onExportRef.current?.({
+						ok: false,
+						type,
+						error: new Error('The chart produced no image.'),
+					})
 
 					return
 				}
@@ -242,14 +251,14 @@ export function ChartContextMenu({
 
 				downloadBlob(blob, fileName)
 
-				onExport?.({ ok: true, type, fileName })
+				onExportRef.current?.({ ok: true, type, fileName })
 			} catch (error) {
 				// A failed rasterise (image decode) has no retry affordance to drive,
 				// so the menu shows nothing. The caller hears about it instead.
-				onExport?.({ ok: false, type, error })
+				onExportRef.current?.({ ok: false, type, error })
 			}
 		},
-		[rootRef, includeLegend, title, onExport],
+		[rootRef, includeLegend, title],
 	)
 
 	// Memoized for the same reason `customItems` is: this array and its five icon

@@ -56,17 +56,6 @@ export type GridColumnGroups =
 			value?: GridColumnGroup[]
 			defaultValue?: GridColumnGroup[]
 			onValueChange?: (groups: GridColumnGroup[]) => void
-			/**
-			 * Fires with the ids of the bands currently collapsed.
-			 *
-			 * Collapse is grid-owned view state: it is seeded once from each group's
-			 * {@link GridColumnGroup.defaultCollapsed} and never reported, so a band
-			 * the reader shut stayed shut with nothing to persist and no way to know.
-			 * `onValueChange` cannot stand in — it carries the group layout, not which
-			 * bands are open. Use it to persist what the reader collapsed, or to
-			 * mirror it. Mounting reports nothing, whatever `defaultCollapsed` seeded.
-			 */
-			onCollapsedChange?: (collapsed: ReadonlySet<string | number>) => void
 	  }
 
 /**

@@ -18,7 +18,6 @@ export {
 	type SubmitOutcome,
 	type SubmitResult,
 } from './form'
-export type { Errors } from './form-reducer'
 export {
 	type ZodIssue,
 	type ZodLike,

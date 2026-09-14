@@ -1,15 +1,8 @@
 'use client'
 
-import {
-	type ReactNode,
-	useCallback,
-	useDeferredValue,
-	useEffect,
-	useEffectEvent,
-	useMemo,
-	useRef,
-} from 'react'
+import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
@@ -855,13 +848,17 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Taken from the items, any entry kind added later is gated by construction.
 	const legendIds = useMemo(() => new Set(items.map((item) => item.id)), [items])
 
+	// The gate both readers take. Stated once, because the comment above requires
+	// them to agree exactly.
+	const live = (id: string | null) => (id !== null && legendIds.has(id) ? id : null)
+
 	// A controlled `emphasis` wins over this plat's own legend focus, so several
 	// plats can share one legend rendered outside them all. The live-id gate below
 	// applies either way: an id this plat has no group for would dim the whole map
 	// against nothing.
 	const focused = controlledEmphasis === undefined ? activeFocus : controlledEmphasis
 
-	const emphasis = focused !== null && legendIds.has(focused) ? focused : null
+	const emphasis = live(focused)
 
 	/*
 	 * What this plat's OWN legend emphasises, past the same live-id gate.
@@ -870,21 +867,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	 * echo the caller's own prop back at it. This is the half of the §7.3 triad
 	 * the caller cannot see: the legend's intent, whoever holds the state.
 	 */
-	const ownEmphasis = activeFocus !== null && legendIds.has(activeFocus) ? activeFocus : null
+	const ownEmphasis = live(activeFocus)
 
-	const notifyEmphasisChange = useEffectEvent((next: string | null) => {
-		onEmphasisChange?.(next)
-	})
-
-	const reportedEmphasisRef = useRef(ownEmphasis)
-
-	useEffect(() => {
-		if (reportedEmphasisRef.current === ownEmphasis) return
-
-		reportedEmphasisRef.current = ownEmphasis
-
-		notifyEmphasisChange(ownEmphasis)
-	}, [ownEmphasis])
+	useReportedChange(ownEmphasis, onEmphasisChange)
 
 	// The hover provider's pointed-emphasis gate: a region takes the emphasis
 	// only while its category is matched and shown, resolved through the same

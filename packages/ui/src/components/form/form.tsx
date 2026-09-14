@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Fieldset } from '../fieldset'
 import { FormProvider } from './context'
-import type { Errors, ValidateOn, Validators } from './form-reducer'
+import type { ValidateOn, Validators } from './form-reducer'
 import {
 	type FormHelpers,
 	type FormSubmitHandler,
@@ -47,8 +47,9 @@ export type FormProps<T extends Record<string, unknown>> = {
 	 * submit and no submit look the same. Use this callback to scroll to the first
 	 * error, to count the attempt, or to announce the refusal. Server-side issues
 	 * arrive through `helpers.setErrors` or a `{ fieldErrors }` return, not here.
+	 * Every field present carries at least one issue, so the list is never empty.
 	 */
-	onInvalidSubmit?: (errors: Errors) => void
+	onInvalidSubmit?: (errors: Partial<Record<keyof T, string[]>>) => void
 	onReset?: () => void
 	/** Disables the form's `<Fieldset>`; submitting disables it regardless. */
 	disabled?: boolean

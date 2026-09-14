@@ -6,10 +6,10 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useRef,
 	useState,
 } from 'react'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
@@ -185,23 +185,11 @@ export function useMapZoom({
 	 *
 	 * The wheel, the drag, the pinch, the keyboard steps, and the refit that
 	 * follows a new geography all write `held`, and the value the map draws is the
-	 * constrained read below — so the report watches that, not any one gesture.
-	 * Raised through `useEffectEvent`, so a consumer's inline arrow adds no render
-	 * to a provider that already re-renders on every wheel notch.
+	 * constrained read above — so the report watches that, not any one gesture.
+	 * Compared by value, because `constrainTransform` mints a fresh object each
+	 * render and a settled view must not report per notch.
 	 */
-	const notifyViewChange = useEffectEvent((next: MapTransform) => {
-		onViewChange?.(next)
-	})
-
-	const reportedTransformRef = useRef(transform)
-
-	useEffect(() => {
-		if (sameTransform(reportedTransformRef.current, transform)) return
-
-		reportedTransformRef.current = transform
-
-		notifyViewChange(transform)
-	}, [transform])
+	useReportedChange(transform, onViewChange, sameTransform)
 
 	const [gesturing, setGesturing] = useState(false)
 

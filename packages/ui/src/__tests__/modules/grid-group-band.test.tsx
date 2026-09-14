@@ -235,7 +235,8 @@ describe('Grid column-group onCollapsedChange', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				groups={{ defaultValue: collapsible, onCollapsedChange }}
+				groups={collapsible}
+				onCollapsedChange={onCollapsedChange}
 			/>,
 		)
 
@@ -273,7 +274,8 @@ describe('Grid column-group onCollapsedChange', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				groups={{ defaultValue: seeded, onCollapsedChange }}
+				groups={seeded}
+				onCollapsedChange={onCollapsedChange}
 			/>,
 		)
 

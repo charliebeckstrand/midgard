@@ -115,15 +115,12 @@ function flushRow<T>(
 
 		if (Object.is(value, original)) continue
 
+		const cell: CellChange = { rowKey, columnId, value }
+
 		// A refused cell leaves the staging map like any other closed cell, so
 		// without this list the value the user typed is gone with no report.
-		if (col.validate?.(value, row) != null) {
-			refused.push({ rowKey, columnId, value })
-
-			continue
-		}
-
-		changes.push({ rowKey, columnId, value })
+		if (col.validate?.(value, row) != null) refused.push(cell)
+		else changes.push(cell)
 	}
 
 	return { changes, refused }

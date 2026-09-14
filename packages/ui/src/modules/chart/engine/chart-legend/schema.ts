@@ -34,18 +34,6 @@ export type ChartLegendConfig = {
 	 * @defaultValue false
 	 */
 	inert?: boolean
-	/**
-	 * Fires with the set of series indexes the legend has switched off.
-	 *
-	 * Observation only. The legend owns the set and there is no `hidden` option to
-	 * pair with — the same shape `onFullscreenChange` keeps. A click on a legend
-	 * entry changed what the reader sees and reported nothing, so the only readout
-	 * was a `MutationObserver` over `aria-pressed`. Use it to mirror one chart's
-	 * legend onto another, or to persist what a reader switched off. An `inert`
-	 * legend has no switches and never fires. The indexes are positions in the
-	 * chart's own series or category order.
-	 */
-	onHiddenChange?: (hidden: ReadonlySet<number>) => void
 }
 
 /** A `legend` prop resolved to what the frame, item logic, and legend each read. @internal */
@@ -60,8 +48,6 @@ export type ResolvedLegend = {
 	placement: ChartLegendPlacement | undefined
 	/** The legend renders as a static key. */
 	inert: boolean
-	/** The caller's hidden-set report, or `undefined` outside the object form. */
-	onHiddenChange: ((hidden: ReadonlySet<number>) => void) | undefined
 }
 
 /**
@@ -79,19 +65,13 @@ export function resolveLegend(
 	legend: boolean | ChartLegendPlacement | ChartLegendConfig | undefined,
 ): ResolvedLegend {
 	if (legend !== null && typeof legend === 'object') {
-		return {
-			value: legend.placement,
-			placement: legend.placement,
-			inert: legend.inert ?? false,
-			onHiddenChange: legend.onHiddenChange,
-		}
+		return { value: legend.placement, placement: legend.placement, inert: legend.inert ?? false }
 	}
 
 	return {
 		value: legend,
 		placement: typeof legend === 'string' ? legend : undefined,
 		inert: false,
-		onHiddenChange: undefined,
 	}
 }
 

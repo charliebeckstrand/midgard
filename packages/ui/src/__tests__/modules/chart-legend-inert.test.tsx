@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart, DonutChart, ScatterChart } from '../../modules/chart'
 import { resolveLegend } from '../../modules/chart/engine/chart-legend/schema'
@@ -21,6 +22,19 @@ function chart(legend?: Parameters<typeof BarChart<(typeof DATA)[number]>>[0]['l
 			series={[...SERIES]}
 			legend={legend}
 			width={600}
+		/>
+	)
+}
+
+/** The same chart with top-level props layered on; the legend keeps its default form. */
+function chartWith(extra: Partial<Parameters<typeof BarChart<(typeof DATA)[number]>>[0]>) {
+	return (
+		<BarChart
+			aria-label="Revenue by quarter"
+			data={DATA}
+			series={[...SERIES]}
+			width={600}
+			{...extra}
 		/>
 	)
 }
@@ -106,7 +120,7 @@ describe('chart legend onHiddenChange', () => {
 	it('reports the set a legend switch turns off, and the set it restores', () => {
 		const onHiddenChange = vi.fn()
 
-		const { container } = renderUI(chart({ onHiddenChange }))
+		const { container } = renderUI(chartWith({ onHiddenChange }))
 
 		// Every series shows on mount; the empty set is the rest state.
 		expect(onHiddenChange).not.toHaveBeenCalled()
@@ -125,7 +139,7 @@ describe('chart legend onHiddenChange', () => {
 	it('carries every index switched off, not only the last', () => {
 		const onHiddenChange = vi.fn()
 
-		const { container } = renderUI(chart({ onHiddenChange }))
+		const { container } = renderUI(chartWith({ onHiddenChange }))
 
 		const items = allBySlot(container, 'chart-legend-item')
 
@@ -136,46 +150,66 @@ describe('chart legend onHiddenChange', () => {
 		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set([0, 1]))
 	})
 
-	// An inert legend needs no gate of its own: the subtree carries the native
-	// `inert` attribute, which takes its switches off the pointer and out of the
-	// tab order. That is pinned above, and jsdom does not enforce `inert`, so a
-	// click here would assert the environment rather than the product.
-
 	// The three engines behind the eight chart types each own their own toggle
-	// call, so each needs its own proof that the report is wired.
-	it('reports from the sector engine', () => {
+	// call, so each needs its own proof that the report is wired. The cartesian
+	// engine is covered by the cases above, which render a BarChart.
+	it.each<[string, (onHiddenChange: () => void) => ReactElement]>([
+		[
+			'sector',
+			(onHiddenChange) => (
+				<DonutChart
+					aria-label="Share"
+					data={DATA}
+					series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+					onHiddenChange={onHiddenChange}
+					width={600}
+				/>
+			),
+		],
+		[
+			'scatter',
+			(onHiddenChange) => (
+				<ScatterChart
+					aria-label="Costs against revenue"
+					data={DATA}
+					series={[
+						{ xKey: 'revenue', yKey: 'costs', yName: 'Costs' },
+						{ xKey: 'revenue', yKey: 'revenue', yName: 'Revenue' },
+					]}
+					onHiddenChange={onHiddenChange}
+					width={600}
+				/>
+			),
+		],
+	])('reports from the %s engine', (_name, render) => {
 		const onHiddenChange = vi.fn()
 
-		const { container } = renderUI(
-			<DonutChart
-				aria-label="Share"
-				data={DATA}
-				series={[{ xKey: 'quarter', yKey: 'revenue' }]}
-				legend={{ onHiddenChange }}
-				width={600}
-			/>,
-		)
+		const { container } = renderUI(render(onHiddenChange))
 
 		fireEvent.click(firstEntry(container))
 
 		expect(onHiddenChange).toHaveBeenCalledExactlyOnceWith(new Set([0]))
 	})
 
-	it('reports from the scatter engine', () => {
+	// A legend={true} chart keeps its legend AND reports, which is why the prop
+	// sits beside `legend` rather than inside its object form: the object form
+	// cannot spell `true`, so a single-series chart moved into it loses the legend
+	// the flag forced on.
+	it('reports from a legend forced on by the boolean form', () => {
 		const onHiddenChange = vi.fn()
 
 		const { container } = renderUI(
-			<ScatterChart
-				aria-label="Costs against revenue"
+			<BarChart
+				aria-label="Revenue by quarter"
 				data={DATA}
-				series={[
-					{ xKey: 'revenue', yKey: 'costs', yName: 'Costs' },
-					{ xKey: 'revenue', yKey: 'revenue', yName: 'Revenue' },
-				]}
-				legend={{ onHiddenChange }}
+				series={[{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }]}
+				legend
+				onHiddenChange={onHiddenChange}
 				width={600}
 			/>,
 		)
+
+		expect(allBySlot(container, 'chart-legend-item')).toHaveLength(1)
 
 		fireEvent.click(firstEntry(container))
 

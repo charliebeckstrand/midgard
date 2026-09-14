@@ -1,8 +1,15 @@
 'use client'
 
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { useReportedChange } from '../../hooks/use-reported-change'
 
 import { firstOfMonth } from './calendar-utilities'
+
+/** Whether two rendered months are the same instant; `firstOfMonth` mints a fresh `Date` each call. @internal */
+function sameInstant(a: Date, b: Date): boolean {
+	return a.getTime() === b.getTime()
+}
 
 /** Options for {@link useCalendarMonth}: the bound `value`, initial `defaultValue` seed, and the roving-focus grid date that pulls the view along. @internal */
 type CalendarMonthOptions = {
@@ -103,23 +110,12 @@ export function useCalendarMonth({
 	 *
 	 * Five routes write that state — the two steppers, `navigateTo`, the mount
 	 * drift correction, and the two render-phase re-anchors — so no single call
-	 * site is the transition. The ref seeds from the first rendered month, so a
-	 * mount announces nothing; the drift correction after hydration does report,
-	 * because the month on screen genuinely changed.
+	 * site is the transition. Compared by instant rather than identity, because
+	 * `navigateTo` mints a fresh `Date` even when the reader re-picks the rendered
+	 * month. The mount announces nothing; the drift correction after hydration does
+	 * report, because the month on screen genuinely changed.
 	 */
-	const notifyMonthChange = useEffectEvent((next: Date) => {
-		onMonthChange?.(next)
-	})
-
-	const reportedMonthRef = useRef(viewDate)
-
-	useEffect(() => {
-		if (reportedMonthRef.current.getTime() === viewDate.getTime()) return
-
-		reportedMonthRef.current = viewDate
-
-		notifyMonthChange(viewDate)
-	}, [viewDate])
+	useReportedChange(viewDate, onMonthChange, sameInstant)
 
 	return { viewDate, year, month, prevMonth, nextMonth, navigateTo }
 }

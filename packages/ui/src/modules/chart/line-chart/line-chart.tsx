@@ -104,6 +104,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		reference,
 		labels,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label
@@ -111,7 +112,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend), {
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
 		zeroBaseline: false,
 		swatch: () => 'line',
 		legendByValue: true,

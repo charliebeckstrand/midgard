@@ -180,6 +180,23 @@ export function DateInput({
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
 
+	/*
+	 * The field's one verdict on the typed text, stated where both writers reach it.
+	 *
+	 * `closed` is what the caller means by "this entry is finished": a full-length
+	 * mask on a keystroke, any non-empty text on blur. A finished entry the parser
+	 * refuses is the only wrong one — everything else can still become a date. The
+	 * Message, `aria-invalid` and the report all come from this decision, so they
+	 * cannot disagree.
+	 */
+	const settle = (parsed: Date | undefined, closed: boolean) => {
+		const refused = closed && !parsed
+
+		setTypedInvalid(refused)
+
+		onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
+	}
+
 	// Resolved eagerly though only the `typedInvalid` branch renders it: gating it
 	// buys one skipped parse of a ≤10-character text and costs this component its
 	// cognitive-complexity budget.
@@ -256,15 +273,9 @@ export function DateInput({
 
 					setEditingText(next)
 
-					const parsed = commit(next)
-
 					// A complete entry the parser refuses is the only wrong one; a
 					// growing entry can still become a date.
-					const refused = next.length === format.length && !parsed
-
-					setTypedInvalid(refused)
-
-					onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
+					settle(commit(next), next.length === format.length)
 				}}
 				onBlur={(event) => {
 					if (editingText !== null) {
@@ -276,11 +287,7 @@ export function DateInput({
 
 						// Blur closes the entry, so a partial one is refused here where a
 						// keystroke would have left it growing.
-						const refused = editingText !== '' && !parsed
-
-						setTypedInvalid(refused)
-
-						onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
+						settle(parsed, editingText !== '')
 					}
 
 					setTouched()

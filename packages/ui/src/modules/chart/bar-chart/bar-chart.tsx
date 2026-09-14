@@ -111,6 +111,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		texture = false,
 		reference,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label
@@ -120,7 +121,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	// the hook and frame read the value, the legend the flag.
 	const resolvedLegend = resolveLegend(legend)
 
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend), {
+	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
 		zeroBaseline: true,
 		swatch: () => 'rect',
 		orientation,

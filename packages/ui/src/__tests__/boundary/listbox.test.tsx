@@ -585,6 +585,8 @@ describe('Listbox readOnly', () => {
 })
 
 describe('Listbox onBlur', () => {
+	// `fireEvent.blur` dispatches with `relatedTarget: null`, which is also the
+	// blur-to-nowhere case: a press on unfocusable ground still leaves the widget.
 	it('fires when focus leaves the widget', () => {
 		const onBlur = vi.fn()
 
@@ -620,21 +622,5 @@ describe('Listbox onBlur', () => {
 		fireEvent.blur(screen.getByRole('combobox'), { relatedTarget: panel })
 
 		expect(onBlur).not.toHaveBeenCalled()
-	})
-
-	// A press on unfocusable ground still leaves the widget, so a null
-	// relatedTarget falls through to the report.
-	it('fires for a blur to nowhere', () => {
-		const onBlur = vi.fn()
-
-		renderUI(
-			<Listbox onBlur={onBlur}>
-				<div>Option</div>
-			</Listbox>,
-		)
-
-		fireEvent.blur(screen.getByRole('combobox'), { relatedTarget: null })
-
-		expect(onBlur).toHaveBeenCalledOnce()
 	})
 })

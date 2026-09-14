@@ -39,7 +39,7 @@ export type RangeSliderProps = {
 	 */
 	labels?: [string, string]
 	/** Formats a thumb's value for assistive tech (`aria-valuetext`): currency, ratings, levels announce as meaningful text instead of a bare number. */
-	getValueText?: (value: number, thumb: 0 | 1) => string
+	getValueText?: (value: number, thumb: ThumbIndex) => string
 	/**
 	 * Fires with the grabbed thumb when a pointer drag starts. Pair it with
 	 * {@link RangeSliderProps.onDragEnd} to bracket the drag.

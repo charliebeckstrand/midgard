@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useReportedChange } from '../../../hooks/use-reported-change'
 import { toggleItem } from '../../../utilities'
 
 /** A toggleable set of hidden indexes — the primitive under both switchboards. @internal */
@@ -53,27 +54,9 @@ export function useChartSeriesToggle(
 
 	const [focus, setFocus] = useState<number | null>(null)
 
-	/*
-	 * One report for each committed hidden set.
-	 *
-	 * Read from the committed value rather than from `toggle`, because the set is
-	 * written through an updater and a caller's inline arrow must not re-run it.
-	 * The ref seeds from the empty set, so a chart with every series shown says
-	 * nothing on mount.
-	 */
-	const notifyHiddenChange = useEffectEvent((next: ReadonlySet<number>) => {
-		onHiddenChange?.(next)
-	})
-
-	const reportedHiddenRef = useRef(hidden)
-
-	useEffect(() => {
-		if (reportedHiddenRef.current === hidden) return
-
-		reportedHiddenRef.current = hidden
-
-		notifyHiddenChange(hidden)
-	}, [hidden])
+	// Read from the committed set rather than from `toggle`, because the set is
+	// written through an updater. A chart with every series shown says nothing.
+	useReportedChange(hidden, onHiddenChange)
 
 	return {
 		hidden,

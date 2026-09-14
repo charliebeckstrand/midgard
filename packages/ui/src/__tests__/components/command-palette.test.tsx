@@ -537,33 +537,19 @@ describe('CommandPalette onActiveChange', () => {
 
 		const options = screen.getAllByRole('option')
 
-		expect(onActiveChange).toHaveBeenCalledExactlyOnceWith(options[0]?.id)
+		// The id is what `aria-activedescendant` carries, which is the readout this
+		// callback replaces.
+		expect(onActiveChange).toHaveBeenCalledExactlyOnceWith(
+			screen.getByRole('combobox').getAttribute('aria-activedescendant'),
+		)
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(options[0]?.id)
 
 		await user.keyboard('{ArrowDown}')
 
 		expect(onActiveChange).toHaveBeenLastCalledWith(options[1]?.id)
 
 		expect(onActiveChange).toHaveBeenCalledTimes(2)
-	})
-
-	// The id is what aria-activedescendant carries, which is the readout this
-	// callback replaces.
-	it('reports the id the input points at', async () => {
-		const onActiveChange = vi.fn()
-
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
-				<CommandPaletteItem>Alpha</CommandPaletteItem>
-			</CommandPalette>,
-		)
-
-		const user = userEvent.setup({ delay: null })
-
-		await user.keyboard('{ArrowDown}')
-
-		const input = screen.getByRole('combobox')
-
-		expect(onActiveChange).toHaveBeenLastCalledWith(input.getAttribute('aria-activedescendant'))
 	})
 
 	// A reserved textbox key never reaches roving, so the highlight does not move

@@ -98,13 +98,14 @@ export function useTagInput({
 			// The live region is the only place the refused part goes today, and a
 			// live region is not a channel a caller can read. `onValueChange` carries
 			// the accepted half, so this one carries the other three outcomes.
-			if (batch.rejected.length > 0 || batch.duplicates.length > 0 || batch.overLimit > 0) {
-				onReject?.({
-					rejected: batch.rejected,
-					duplicates: batch.duplicates,
-					overLimit: batch.overLimit,
-				})
-			}
+			const { accepted: _accepted, ...rejection } = batch
+
+			if (
+				rejection.rejected.length > 0 ||
+				rejection.duplicates.length > 0 ||
+				rejection.overLimit > 0
+			)
+				onReject?.(rejection)
 
 			return batch.rejected
 		},

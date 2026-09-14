@@ -47,24 +47,23 @@ function exportImage(onExport: (outcome: ChartExportOutcome) => void, action = '
 }
 
 describe('Chart export reporting', () => {
-	it('reports the written file when the rasterise succeeds', async () => {
-		const blob = new Blob(['x'], { type: 'image/png' })
+	it.each<[string, string, string, string]>([
+		['Download PNG', 'image/png', 'revenue.png', 'png'],
+		['Download JPG', 'image/jpeg', 'revenue.jpg', 'jpg'],
+	])('reports the written file when %s succeeds', async (action, type, fileName) => {
+		const blob = new Blob(['x'], { type })
 
 		rasterizeChartImage.mockResolvedValue(blob)
 
 		const onExport = vi.fn()
 
-		exportImage(onExport)
+		exportImage(onExport, action)
 
 		await waitFor(() =>
-			expect(onExport).toHaveBeenCalledExactlyOnceWith({
-				ok: true,
-				type: 'image/png',
-				fileName: 'revenue.png',
-			}),
+			expect(onExport).toHaveBeenCalledExactlyOnceWith({ ok: true, type, fileName }),
 		)
 
-		expect(downloadBlob).toHaveBeenCalledWith(blob, 'revenue.png')
+		expect(downloadBlob).toHaveBeenCalledWith(blob, fileName)
 	})
 
 	it('reports the rejection when the rasterise throws', async () => {
@@ -103,21 +102,5 @@ describe('Chart export reporting', () => {
 		expect(outcome.ok).toBe(false)
 
 		expect(downloadBlob).not.toHaveBeenCalled()
-	})
-
-	it('names the format the reader picked', async () => {
-		rasterizeChartImage.mockResolvedValue(new Blob(['x'], { type: 'image/jpeg' }))
-
-		const onExport = vi.fn()
-
-		exportImage(onExport, 'Download JPG')
-
-		await waitFor(() =>
-			expect(onExport).toHaveBeenCalledExactlyOnceWith({
-				ok: true,
-				type: 'image/jpeg',
-				fileName: 'revenue.jpg',
-			}),
-		)
 	})
 })

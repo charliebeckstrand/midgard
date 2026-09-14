@@ -116,6 +116,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		height,
 		aspectRatio,
 		legend,
+		onHiddenChange,
 		tooltip,
 		animate = false,
 		texture = false,
@@ -191,7 +192,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		fill: frameSizing.mode === 'fill',
 	})
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(resolvedLegend.onHiddenChange)
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(onHiddenChange)
 
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))

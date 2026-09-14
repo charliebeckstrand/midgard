@@ -118,8 +118,6 @@ describe('usePdfViewer · load reporting', () => {
 		expect(String(onError.mock.calls[0]?.[0])).toContain('404')
 
 		expect(onLoad).not.toHaveBeenCalled()
-
-		globalThis.fetch = originalFetch
 	})
 
 	// The snapshot is stable per `src`, so a re-render must not re-report what the

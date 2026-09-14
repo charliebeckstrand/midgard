@@ -1050,6 +1050,20 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	onActiveCellChange?: (cell: GridCellClickContext<T> | null) => void
 
 	/**
+	 * Fires with the ids of the column-group bands currently collapsed.
+	 *
+	 * Collapse is grid-owned view state: it is seeded once from each group's
+	 * {@link GridColumnGroup.defaultCollapsed} and was never reported, so a band the
+	 * reader shut stayed shut with nothing to persist and no way to know. The
+	 * {@link GridDataProps.groups} binding cannot carry it — that binding's
+	 * `onValueChange` is the group LAYOUT sink, and its own doccomment holds collapse
+	 * out of it. Top-level here, so the array shorthand reaches it too. Use it to
+	 * persist what the reader collapsed. Mounting reports nothing, whatever
+	 * `defaultCollapsed` seeded.
+	 */
+	onCollapsedChange?: (collapsed: ReadonlySet<string | number>) => void
+
+	/**
 	 * Truncate overflowing cell content to a single line with an ellipsis, and
 	 * show a tooltip with the full content on hover/focus when a cell is
 	 * truncated. A column supersedes or disables that tooltip via

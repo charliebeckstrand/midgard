@@ -1,14 +1,7 @@
 'use client'
 
-import {
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useEffect,
-	useEffectEvent,
-	useMemo,
-	useRef,
-} from 'react'
+import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { isColumnEditable } from './engine/grid-editing-utilities'
 import { cellValue, type GridCellClick, type GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
@@ -18,12 +11,18 @@ import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
+	type Coord,
 	type GridCellActivate,
 	type GridNavTableProps,
 	type GridRowActivate,
 	useGridNavigation,
 } from './use-grid-navigation'
 import { useGridNavigationColumns } from './use-grid-navigation-columns'
+
+/** Whether two cursor positions name the same cell; `moveTo` mints a fresh `Coord` per move. @internal */
+function sameCoord(a: Coord | null, b: Coord | null): boolean {
+	return a?.row === b?.row && a?.col === b?.col
+}
 
 /**
  * Live refs the cursor and editing layers read at event/render time, all populated
@@ -167,42 +166,41 @@ export function useGridCursor<T>({
 	 * name a cell the same way. A cursor cleared by an emptied grid reports null.
 	 *
 	 * A grid mounts with no cursor, and that null is the rest state rather than a
-	 * transition, so the first run is skipped — the contract `useOpenChange` keeps
-	 * for the disclosure family. The context is resolved when the cursor moves, so
-	 * rows replaced under a stationary cursor do not re-report; the re-clamp moves
-	 * the cursor whenever the bounds actually shrink.
+	 * transition, so the first run is skipped. The context is resolved when the
+	 * cursor moves, so rows replaced under a stationary cursor do not re-report;
+	 * the re-clamp moves the cursor whenever the bounds actually shrink.
+	 *
+	 * Compared by coordinate rather than identity: `moveTo` mints a fresh `Coord`
+	 * even where the clamp returns the cell the cursor already sits on, which is
+	 * every arrow key held against an edge. No `cursorEnabled` gate, because
+	 * `useGridNavigation` already returns a null cursor while it is off.
 	 */
-	const notifyActiveCell = useEffectEvent((cell: GridCellClickContext<T> | null) => {
-		onActiveCellChange?.(cell)
-	})
+	useReportedChange(
+		nav.active,
+		(coord) => {
+			// Resolved behind the callback check, not before it: `cellValue` runs the
+			// column's own accessor, and every grid without this prop would pay for it
+			// on each cursor move.
+			if (!onActiveCellChange) return
 
-	const active = nav.active
+			if (!coord) {
+				onActiveCellChange(null)
 
-	const reportedActiveRef = useRef(active)
+				return
+			}
 
-	useEffect(() => {
-		if (!cursorEnabled) return
+			const row = rowsRef.current[coord.row]
 
-		if (reportedActiveRef.current === active) return
+			const rowKey = rowKeysRef.current[coord.row]
 
-		reportedActiveRef.current = active
+			const col = dataColumnsRef.current[coord.col]
 
-		if (!active) {
-			notifyActiveCell(null)
+			if (row === undefined || rowKey === undefined || !col) return
 
-			return
-		}
-
-		const row = rowsRef.current[active.row]
-
-		const rowKey = rowKeysRef.current[active.row]
-
-		const col = dataColumnsRef.current[active.col]
-
-		if (row === undefined || rowKey === undefined || !col) return
-
-		notifyActiveCell({ row, rowKey, columnId: col.id, value: cellValue(col, row) })
-	}, [cursorEnabled, active, rowsRef, rowKeysRef, dataColumnsRef])
+			onActiveCellChange({ row, rowKey, columnId: col.id, value: cellValue(col, row) })
+		},
+		sameCoord,
+	)
 
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
