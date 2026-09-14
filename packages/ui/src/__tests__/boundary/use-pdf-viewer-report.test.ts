@@ -187,4 +187,29 @@ describe('usePdfViewer · load reporting', () => {
 
 		expect(onError).not.toHaveBeenCalled()
 	})
+
+	// Every page skipped for want of a 2D context or a refused toBlob resolves the
+	// load with no pages and no error. The viewer paints an empty document, so it
+	// has not loaded one: exactly one of the two callbacks owes an answer.
+	it('reports a load that rasterized no pages as a failure', async () => {
+		const onLoad = vi.fn()
+
+		const onError = vi.fn()
+
+		await act(async () => {
+			ensureDocumentLoad('/blank.pdf', () => Promise.resolve())
+
+			await new Promise((resolve) => setTimeout(resolve, 0))
+		})
+
+		renderHook(() => usePdfViewer({ src: '/blank.pdf', onLoad, onError }))
+
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 0))
+		})
+
+		expect(onLoad).not.toHaveBeenCalled()
+
+		expect(onError).toHaveBeenCalledOnce()
+	})
 })

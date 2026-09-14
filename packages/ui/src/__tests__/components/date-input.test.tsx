@@ -681,6 +681,46 @@ describe('DateInput onValidityChange', () => {
 		})
 	})
 
+	// The field clears its own refusal when a value arrives from outside — a form
+	// reset, a calendar pick. Without a report there, the caller's last verdict
+	// says "wrong" over a field rendering clean, with no route back but retyping.
+	it('reports the verdict a value from outside leaves behind', async () => {
+		const user = userEvent.setup()
+
+		const onValidityChange = vi.fn()
+
+		function Harness() {
+			const [value, setValue] = useState<Date | null>(null)
+
+			return (
+				<>
+					<DateInput value={value} onValidityChange={onValidityChange} />
+					<button type="button" onClick={() => setValue(new Date(2026, 5, 15))}>
+						pick
+					</button>
+				</>
+			)
+		}
+
+		const { container } = renderUI(<Harness />)
+
+		await user.type(field(container), '02312025')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: false,
+			isPotentiallyValid: false,
+		})
+
+		await user.click(screen.getByRole('button', { name: 'pick' }))
+
+		expect(field(container)).not.toHaveAttribute('aria-invalid')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
 	it('keeps an emptied field potentially valid on blur', async () => {
 		const user = userEvent.setup()
 

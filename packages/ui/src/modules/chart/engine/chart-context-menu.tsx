@@ -96,6 +96,33 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	onExport?: (outcome: ChartExportOutcome) => void
 }
 
+/**
+ * The state-mirror reports the fullscreen copy must not raise.
+ *
+ * Each names a switchboard or a view the copy holds separately from the chart it
+ * was cloned from — the legend's hidden set and emphasis, and the map's view
+ * transform on a Choropleth. Shed on the clone rather than at each chart, because
+ * the clone is the one place that knows a second instance exists.
+ *
+ * @internal
+ */
+const FULLSCREEN_SHED_REPORTS = ['onHiddenChange', 'onEmphasisChange', 'onViewChange'] as const
+
+/**
+ * The shed, narrowed to the keys this element actually declares.
+ *
+ * `cloneElement` merges by key, so naming a prop the element does not take adds it
+ * — and an unknown prop rides the chart's rest spread onto the plot element, where
+ * React warns and drops it. Only keys already present are overridden.
+ *
+ * @internal
+ */
+function shedReports(props: Record<string, unknown>): Record<string, undefined> {
+	return Object.fromEntries(
+		FULLSCREEN_SHED_REPORTS.filter((key) => key in props).map((key) => [key, undefined]),
+	)
+}
+
 /** Props for {@link ChartContextMenu}. @internal */
 export type ChartContextMenuProps = {
 	/**
@@ -336,6 +363,13 @@ export function ChartContextMenu({
 								{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
 									width: undefined,
 									height: undefined,
+									// The copy owns its own switchboard state: its legend starts
+									// with nothing hidden and is destroyed on close, so a report
+									// from it describes a set the chart underneath never had. A
+									// consumer persisting one would come back to a chart that
+									// disagrees with what it stored. Action callbacks stay — a
+									// click on a mark in here means what it always meant.
+									...shedReports(fullscreen.props as Record<string, unknown>),
 									// The dialog is auto-height and sized for the default 16/9 ratio,
 									// so a consumer's fill mode (`aspectRatio={false}`) — which fills
 									// its parent's height — has nothing to fill and collapses the plot

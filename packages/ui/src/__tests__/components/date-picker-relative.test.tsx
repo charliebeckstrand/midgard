@@ -558,4 +558,26 @@ describe('DatePicker (relative)', () => {
 
 		expect(screen.getByRole('textbox', { name: 'Start' })).toBeInTheDocument()
 	})
+
+	// The prop's own TSDoc says the relative variant reports from the custom-range
+	// grid, which is the only grid it ever shows.
+	it('forwards onMonthChange to the custom range fields', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onMonthChange = vi.fn()
+
+		renderUI(<DatePicker relative onMonthChange={onMonthChange} />)
+
+		await user.click(screen.getByRole('button', { name: /select range/i }))
+
+		await user.click(screen.getByText('Custom range'))
+
+		const [start] = screen.getAllByRole('button', { name: /open calendar/i })
+
+		await user.click(start as HTMLElement)
+
+		await user.click(screen.getByLabelText('Next month'))
+
+		expect(onMonthChange).toHaveBeenCalled()
+	})
 })

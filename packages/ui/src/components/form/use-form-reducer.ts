@@ -10,6 +10,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { flushSync } from 'react-dom'
 import type { FormActions, FormStateValue, FormStore } from './context'
 import {
 	type Errors,
@@ -257,14 +258,26 @@ export function useFormReducer<T extends Record<string, unknown>>({
 				? runValidators(v, current, allTouched, validateOn, Object.keys(v))
 				: {}
 
-			dispatch({ type: 'submit-validate', touched: allTouched, errors: submitErrors })
+			const refused = Object.values(submitErrors).some(hasIssues)
+
+			// Flushed on the refused path so the report lands after the commit that
+			// marks the fields. The documented use is to scroll to the first error,
+			// and on the FIRST refused submit nothing carries `aria-invalid` until
+			// this dispatch paints — so a consumer querying for one inside the
+			// callback would find nothing, on exactly the attempt that needed it.
+			// Only the refusal pays the synchronous render.
+			if (refused)
+				flushSync(() =>
+					dispatch({ type: 'submit-validate', touched: allTouched, errors: submitErrors }),
+				)
+			else dispatch({ type: 'submit-validate', touched: allTouched, errors: submitErrors })
 
 			// A refused submit returns here and never reaches `onSubmit`, so no
 			// other callback fires. Without this report the caller cannot tell a
 			// refused submit from a submit that never happened. The scan short-
 			// circuits and the payload is built only on the path that needs it, so a
 			// valid submit walks no further than the first clean field.
-			if (Object.values(submitErrors).some(hasIssues)) {
+			if (refused) {
 				onInvalidSubmitRef.current?.(
 					Object.fromEntries(
 						Object.entries(submitErrors).filter(([, issues]) => hasIssues(issues)),

@@ -1009,6 +1009,17 @@ describe('useFormStatus', () => {
 	})
 })
 
+/** Renders `aria-invalid` from the committed field state, so the DOM shows it only after React commits. */
+function InvalidProbe({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return (
+		<output data-slot="probe" aria-invalid={field?.errors?.length ? 'true' : undefined}>
+			{name}
+		</output>
+	)
+}
+
 describe('Form onInvalidSubmit', () => {
 	const submit = async (container: HTMLElement) => {
 		const form = bySlot(container, 'form') as HTMLFormElement
@@ -1070,6 +1081,27 @@ describe('Form onInvalidSubmit', () => {
 		await submit(container)
 
 		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+	})
+
+	// The documented use is to scroll to the first error, so the fields must
+	// already carry aria-invalid by the time the report lands.
+	it('reports after the errors are committed to the DOM', async () => {
+		const marked: number[] = []
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onInvalidSubmit={() => marked.push(document.querySelectorAll('[aria-invalid]').length)}
+			>
+				<InvalidProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(marked).toEqual([1])
 	})
 
 	it('says nothing when every validator passes', async () => {

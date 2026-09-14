@@ -3,7 +3,8 @@
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { isColumnEditable } from './engine/grid-editing-utilities'
-import { cellValue, type GridCellClick, type GridCellClickContext } from './engine/grid-row/cell'
+import { resolveCellAt } from './engine/grid-row/bridges'
+import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -178,9 +179,10 @@ export function useGridCursor<T>({
 	useReportedChange(
 		nav.active,
 		(coord) => {
-			// Resolved behind the callback check, not before it: `cellValue` runs the
+			// Resolved behind the callback check, not before it: the resolver runs the
 			// column's own accessor, and every grid without this prop would pay for it
-			// on each cursor move.
+			// on each cursor move. Through the resolver the pointer channel takes, so
+			// the two cannot name a cell differently.
 			if (!onActiveCellChange) return
 
 			if (!coord) {
@@ -189,15 +191,9 @@ export function useGridCursor<T>({
 				return
 			}
 
-			const row = rowsRef.current[coord.row]
+			const cell = resolveCellAt({ rowsRef, rowKeysRef, dataColumnsRef }, coord.row, coord.col)
 
-			const rowKey = rowKeysRef.current[coord.row]
-
-			const col = dataColumnsRef.current[coord.col]
-
-			if (row === undefined || rowKey === undefined || !col) return
-
-			onActiveCellChange({ row, rowKey, columnId: col.id, value: cellValue(col, row) })
+			if (cell) onActiveCellChange(cell)
 		},
 		sameCoord,
 	)

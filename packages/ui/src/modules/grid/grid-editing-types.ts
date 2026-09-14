@@ -157,7 +157,7 @@ export type GridEditableConfig = {
 	onCommit: (changes: CellChange[]) => void
 	/**
 	 * Fires with the cells that {@link GridColumn.validate} refused, one batch per
-	 * row, beside the {@link GridEditing.onCommit} batch of the same flush.
+	 * row, beside the {@link GridEditableConfig.onCommit} batch of the same flush.
 	 *
 	 * A refused cell leaves the staging map with every other closed cell, so the
 	 * value the user typed is gone and nothing says so. `onCommit` cannot report

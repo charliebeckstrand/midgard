@@ -24,6 +24,30 @@ import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
+/** What a load that rasterized no page reports; every page was skipped, so there is no document. @internal */
+const EMPTY_DOCUMENT = new Error('The document rasterized no pages.')
+
+/**
+ * How a settled snapshot reports: the error to raise, `null` for a clean load, or
+ * `'pending'` where nothing has settled yet.
+ *
+ * A src nothing is resident for publishes the frozen empty snapshot, which is
+ * shape-identical to a load that rasterized nothing. `started` is what parts them.
+ *
+ * @internal
+ */
+function documentSettle(
+	error: Error | null,
+	pageCount: number,
+	started: boolean,
+): Error | null | 'pending' {
+	if (error) return error
+
+	if (pageCount > 0) return null
+
+	return started ? EMPTY_DOCUMENT : 'pending'
+}
+
 /** Inputs to {@link usePdfViewer}; mirrors the consumer-facing {@link PdfViewerProps} minus presentation (`className`, `aria-label`). @internal */
 type PdfViewerOptions = {
 	pages?: PdfViewerPage[]
@@ -280,23 +304,49 @@ export function usePdfViewer({
 	 *
 	 * The load resolves into a module cache, not at a call site this hook runs, so
 	 * there is no line to hang the report on; the committed snapshot is the only
-	 * honest source. The ref keys on the `src` already reported, so a re-render
-	 * repeats nothing and a new document reports again. A cache hit reports on the
-	 * first render, which is correct: the document IS ready. A viewer given `pages`
-	 * directly loads nothing and reports nothing.
+	 * honest source. A cache hit reports on the first render, which is correct: the
+	 * document IS ready. A viewer given `pages` directly loads nothing and reports
+	 * nothing.
+	 *
+	 * The ref keys on the src AND what it reported, not on the src alone. A failure
+	 * is published to the subscribers standing at the time and never cached, so the
+	 * next mount retries the same src — and this viewer, still subscribed, must
+	 * report the success that retry produces rather than hold its error banner over
+	 * a document rendering beside it.
+	 *
+	 * A settle with no pages and no error is a settle all the same: every page was
+	 * skipped for want of a 2D context or a refused `toBlob`. It reports as a
+	 * failure, because a viewer painting an empty document has not loaded one, and
+	 * exactly one of the two callbacks owes an answer for each src.
 	 */
-	const reportedSrcRef = useRef<string | undefined>(undefined)
+	const reportedRef = useRef<string | undefined>(undefined)
+
+	// A src nothing is resident for publishes the frozen empty snapshot, which is
+	// shape-identical to a load that rasterized nothing. They part on whether a load
+	// was ever seen in flight for this src; a cache hit skips it and arrives with
+	// pages, which needs no flag.
+	const startedRef = useRef<string | undefined>(undefined)
 
 	useEffect(() => {
-		if (!shouldLoadFromSrc || loading) return
+		if (!shouldLoadFromSrc) return
 
-		if (!error && loadedPages.length === 0) return
+		if (loading) {
+			startedRef.current = src
 
-		if (reportedSrcRef.current === src) return
+			return
+		}
 
-		reportedSrcRef.current = src
+		const settled = documentSettle(error, loadedPages.length, startedRef.current === src)
 
-		if (error) notifyError(error)
+		if (settled === 'pending') return
+
+		const reported = `${settled === null ? 'load' : 'error'}:${src}`
+
+		if (reportedRef.current === reported) return
+
+		reportedRef.current = reported
+
+		if (settled) notifyError(settled)
 		else notifyLoad(loadedPages.length)
 	}, [shouldLoadFromSrc, loading, error, loadedPages, src])
 

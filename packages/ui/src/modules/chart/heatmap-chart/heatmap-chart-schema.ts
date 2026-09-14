@@ -58,7 +58,7 @@ export type HeatmapChartSeries<T> = {
  * the continuous range scale bar — the heatmap's only legend, so the object
  * form's `type` is always `'range'` and only its `placement` matters.
  */
-export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend'> & {
+export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend' | 'onHiddenChange'> & {
 	/** The single series to shade cells with; extra entries are ignored. */
 	series: HeatmapChartSeries<T>[]
 	/**
