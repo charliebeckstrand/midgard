@@ -12,18 +12,10 @@ import { TouchTarget } from '../../primitives/touch-target'
 import { useHeadless } from '../../providers/headless/context'
 import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { Link } from '../link'
-import { LoadingSpinner, type LoadingSpinnerProps } from '../loading'
+import { LoadingSpinner } from '../loading'
 import { buttonSpring, loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { isIconElement } from './button-utilities'
-
-/**
- * Spinner overrides forwarded to the loading `<LoadingSpinner>` when `loading`
- * is an object rather than a bare boolean.
- *
- * @internal
- */
-type LoadingOptions = Pick<LoadingSpinnerProps, 'color' | 'size' | 'label'>
 
 /**
  * Shared, element-agnostic half of {@link ButtonProps}: the recipe variants plus
@@ -38,11 +30,10 @@ type ButtonBaseProps = ButtonVariants & {
 	 */
 	spring?: boolean
 	/**
-	 * Swap the leading content for a spinner and gate activation. `true` uses
-	 * defaults; an object forwards `color`/`size`/`label` to the spinner.
+	 * Swap the leading content for a spinner and gate activation.
 	 * @defaultValue false
 	 */
-	loading?: boolean | LoadingOptions
+	loading?: boolean
 	/** Content before the label; hidden while `loading`. */
 	prefix?: ReactNode
 	/** Content after the label. */
@@ -80,17 +71,13 @@ export function Button({
 	href,
 	ref,
 	spring = false,
-	loading: loadingProp = false,
+	loading = false,
 	prefix,
 	suffix,
 	type,
 	'data-slot': slot = 'button',
 	...props
 }: ButtonProps) {
-	const loading = !!loadingProp
-
-	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
-
 	const headless = useHeadless()
 
 	const resolvedSize = useResolvedSize(size)
@@ -130,8 +117,8 @@ export function Button({
 
 	const content = (
 		<AffixContext value={resolvedSize}>
-			{/* LoadingSpinner reads no context; `loadingOptions.size` wins when set. */}
-			{loading ? <LoadingSpinner size={resolvedSize} {...loadingOptions} /> : prefix}
+			{/* LoadingSpinner reads no context, so the resolved size must be passed. */}
+			{loading ? <LoadingSpinner size={resolvedSize} /> : prefix}
 			{children}
 			{suffix}
 		</AffixContext>

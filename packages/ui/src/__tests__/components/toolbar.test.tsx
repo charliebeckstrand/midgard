@@ -198,16 +198,16 @@ describe('ToolbarGroup', () => {
 		expect(bySlot(container, 'toolbar-group')).toBeInTheDocument()
 	})
 
-	it('honors an explicit orientation prop over the toolbar context', () => {
+	it('takes its axis from the toolbar context', () => {
 		const { container } = renderUI(
-			<Toolbar aria-label="Editor" orientation="horizontal">
-				<ToolbarGroup orientation="vertical">
+			<Toolbar aria-label="Editor" orientation="vertical">
+				<ToolbarGroup>
 					<button type="button">A</button>
 				</ToolbarGroup>
 			</Toolbar>,
 		)
 
-		expect(bySlot(container, 'toolbar-group')).toBeInTheDocument()
+		expect(bySlot(container, 'toolbar-group')).toHaveClass('flex-col')
 	})
 })
 

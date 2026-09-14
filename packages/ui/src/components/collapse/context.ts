@@ -4,7 +4,7 @@ import { createContext } from '../../core'
 import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import type { Mount } from '../../primitives/mount'
 
-type CollapseAnimation = boolean | 'fade' | 'slide'
+type CollapseAnimation = 'fade' | 'slide' | false
 
 type CollapseContextValue = {
 	open: boolean
