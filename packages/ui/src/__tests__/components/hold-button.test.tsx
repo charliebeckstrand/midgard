@@ -1,3 +1,4 @@
+import type { FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
 import { act, bySlot, fireEvent, renderUI } from '../helpers'
@@ -11,6 +12,16 @@ describe('HoldButton', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('BUTTON')
+	})
+
+	it('takes a caller data-slot rename', () => {
+		const { container } = renderUI(<HoldButton data-slot="delete-hold">Hold</HoldButton>)
+
+		// No library selector reads this anchor, so a wrapper can rename the leaf
+		// it renders (CONVENTIONS.md §3.9).
+		expect(bySlot(container, 'delete-hold')).toBeInTheDocument()
+
+		expect(bySlot(container, 'hold-button')).toBeNull()
 	})
 
 	it('fires onHoldStart on pointer down', () => {
@@ -307,6 +318,41 @@ describe('HoldButton', () => {
 		expect(el).toHaveAttribute('id', 'test')
 
 		expect(el).toHaveAttribute('aria-label', 'Hold to delete')
+	})
+
+	it('keeps type="button" against a caller type', () => {
+		const { container } = renderUI(<HoldButton type="submit">Delete</HoldButton>)
+
+		expect(bySlot(container, 'hold-button')).toHaveAttribute('type', 'button')
+	})
+
+	it('does not submit an enclosing form when a quick press cancels the hold', () => {
+		const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
+
+		const onHoldComplete = vi.fn()
+
+		const { container } = renderUI(
+			<form onSubmit={onSubmit}>
+				<HoldButton type="submit" onHoldComplete={onHoldComplete}>
+					Delete
+				</HoldButton>
+			</form>,
+		)
+
+		const el = bySlot(container, 'hold-button') as HTMLElement
+
+		// A quick press cancels the hold, but the browser sends a native click
+		// after the pointer pair. A caller `type="submit"` would then submit the
+		// form, and the hold gate would stop nothing.
+		fireEvent.pointerDown(el)
+
+		fireEvent.pointerUp(el)
+
+		fireEvent.click(el)
+
+		expect(onHoldComplete).not.toHaveBeenCalled()
+
+		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
 	describe('hold completion', () => {
