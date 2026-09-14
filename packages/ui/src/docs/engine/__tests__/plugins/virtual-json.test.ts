@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	type VirtualJsonFamilySpec,
 	type VirtualJsonSpec,
-	virtualJsonHooks,
 	virtualJsonModules,
 } from '../../plugins/virtual-json'
 
@@ -262,42 +261,5 @@ describe('virtualJsonModules (family spec)', () => {
 
 		// Cache intact: still a single generate.
 		expect(generate).toHaveBeenCalledTimes(1)
-	})
-})
-
-describe('virtualJsonHooks (single-module wrapper)', () => {
-	it('behaves identically to a one-element virtualJsonModules call', () => {
-		const generate = vi.fn(() => ({ ok: true }))
-
-		const hooks = virtualJsonHooks({
-			id: 'virtual:solo',
-			generate,
-			shouldInvalidate: (f) => f.endsWith('.solo'),
-		}) as unknown as Callable
-
-		expect(hooks.resolveId('virtual:solo')).toBe('\0virtual:solo')
-
-		expect(hooks.resolveId('other')).toBeUndefined()
-
-		expect(hooks.load('\0virtual:solo')).toBe('export default {"ok":true}')
-
-		expect(hooks.load('\0virtual:solo')).toBe('export default {"ok":true}')
-
-		expect(generate).toHaveBeenCalledTimes(1)
-
-		const { server, invalidatedIds } = fakeServer()
-
-		expect(
-			hooks
-				.handleHotUpdate({ file: 'x.solo', modules: [{ id: 'x.solo' }], server })
-				?.map((m) => m.id),
-		).toEqual(['x.solo', '\0virtual:solo'])
-
-		expect(invalidatedIds).toEqual(['\0virtual:solo'])
-
-		// Re-generates after invalidation.
-		hooks.load('\0virtual:solo')
-
-		expect(generate).toHaveBeenCalledTimes(2)
 	})
 })

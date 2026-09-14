@@ -184,10 +184,3 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 		},
 	}
 }
-
-/**
- * Single-module convenience wrapper over {@link virtualJsonModules}.
- */
-export function virtualJsonHooks(opts: VirtualJsonSpec): Hooks {
-	return virtualJsonModules([opts])
-}
