@@ -31,14 +31,6 @@ describe('Checkbox', () => {
 		expect(check).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('supports custom icon', () => {
-		const { container } = renderUI(<Checkbox icon={<span data-testid="custom-icon">X</span>} />)
-
-		expect(container.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument()
-
-		expect(bySlot(container, 'checkbox-check')).not.toBeInTheDocument()
-	})
-
 	it('forwards checked and onChange', () => {
 		const onChange = vi.fn()
 

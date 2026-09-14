@@ -13,7 +13,6 @@ export type CheckboxProps = CheckboxVariants & {
 	/** Renders the partial tri-state: a minus glyph and `indeterminate` DOM property regardless of `checked`. */
 	indeterminate?: boolean
 	/** Replaces the default check/minus glyph with custom content. */
-	icon?: ReactNode
 	className?: string
 } & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
 
@@ -26,7 +25,6 @@ export function Checkbox({
 	className,
 	color,
 	size,
-	icon,
 	indeterminate,
 	id,
 	disabled,
@@ -99,14 +97,7 @@ export function Checkbox({
 				{...validation}
 				className={k.input()}
 			/>
-			{icon ?? (
-				<Mark
-					data-slot="checkbox-check"
-					aria-hidden="true"
-					className={checkClass}
-					strokeWidth={2}
-				/>
-			)}
+			<Mark data-slot="checkbox-check" aria-hidden="true" className={checkClass} strokeWidth={2} />
 		</label>
 	)
 }

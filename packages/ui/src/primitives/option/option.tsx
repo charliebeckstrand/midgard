@@ -22,7 +22,6 @@ import { capitalizeFirst } from '../select-trigger/capitalize'
  */
 export type BaseOptionProps = {
 	className?: string
-	icon?: ReactNode
 	selected: boolean
 	disabled?: boolean
 	onSelect: () => void
@@ -57,7 +56,7 @@ export type BaseOptionProps = {
 /**
  * Shared option row for select-like components: stamps `role="option"` with
  * `aria-selected`/`aria-disabled`, renders a Density-sized selected-state check
- * icon (overridable via `icon`), and handles Enter/Space activation.
+ * icon, and handles Enter/Space activation.
  *
  * @remarks
  * For active-descendant lists it mints a stable `id` and `preventDefault`s
@@ -71,7 +70,6 @@ export type BaseOptionProps = {
 function BaseOptionImpl({
 	children,
 	className,
-	icon,
 	selected,
 	disabled,
 	onSelect,
@@ -89,7 +87,7 @@ function BaseOptionImpl({
 
 	// A bare `<Check>` sized from the recipe's icon scale: this primitive
 	// never imports `<Icon>` from `components/`.
-	const checkIcon = icon ?? (
+	const checkIcon = (
 		<Check
 			aria-hidden="true"
 			data-slot="icon"
@@ -156,7 +154,6 @@ export function OptionDescription({ className, children, ...props }: ComponentPr
 export type OptionProps<TValue = unknown> = {
 	value: TValue
 	disabled?: boolean
-	icon?: ReactNode
 	className?: string
 	children?: ReactNode
 	/**
@@ -222,7 +219,7 @@ function isOptionSelected(
  * `Option` reads it with React's `use`.
  *
  * `BaseOption` owns the selected-state check icon and sizes it from the
- * ambient Density. Per-option `icon` overrides it.
+ * ambient Density.
  *
  * @returns The bound `{ Option, Label, Description }` triad, each pre-wired with
  * the host's `data-slot` prefix and selection context.
@@ -243,7 +240,6 @@ export function createSelectOption<
 	function Option({
 		value,
 		disabled,
-		icon,
 		className,
 		children,
 		id,
@@ -265,7 +261,6 @@ export function createSelectOption<
 				id={id}
 				selected={selected}
 				disabled={disabled}
-				icon={icon}
 				onSelect={handleSelect}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}
