@@ -50,15 +50,15 @@ const bubble = defineRecipe({
  * A step the assistant took, drawn inside the bubble: the box, its head, and
  * the parts of that head.
  *
- * A fragment map rather than six `tool*` slots, because the pieces only ever
- * appear together and a flat list of them reads as six unrelated axes. It also
- * makes `name` expressible — a top-level slot cannot take that name, since it
- * collides with the recipe function's own `name`, and nesting puts it on a
- * plain object where it is just a key.
+ * A fragment map rather than six `tool*` slots. The pieces only ever appear
+ * together, and a flat list of them reads as six unrelated axes. It also makes
+ * `name` expressible. A top-level slot cannot take that name, since it collides
+ * with the recipe function's own `name`. Nesting puts it on a plain object,
+ * where it is just a key.
  *
  * Nothing here sets a foreground colour. The bubble's fill differs by speaker,
- * and a neutral that clears AA against one does not clear it against another —
- * the defect the embed fallback shipped with. The rule rides `currentColor` at
+ * and a neutral that clears AA against one does not clear it against another.
+ * That is the defect the embed fallback shipped with. The rule rides `currentColor` at
  * a low alpha, and the summary de-emphasizes by weight and truncation instead.
  */
 const tool = {

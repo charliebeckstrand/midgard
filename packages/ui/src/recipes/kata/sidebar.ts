@@ -55,9 +55,9 @@ const itemBase = defineRecipe({
 })
 
 /**
- * The `<li>`/`<span>` wrapper. Affixless it is a bare row carrying no chrome;
- * with an affix (`affix: true`) it goes flex and takes over the interaction
- * surface — the hover tint wraps the whole row and the inner item's keyboard
+ * The `<li>`/`<span>` wrapper. Affixless it is a bare row carrying no chrome.
+ * With an affix (`affix: true`) it goes flex and takes over the interaction
+ * surface. The hover tint wraps the whole row, and the inner item's keyboard
  * focus projects onto the row ring via `:has`. The row-focus ring wraps the
  * affixes; each affix control keeps its own ring inside it.
  */
@@ -84,8 +84,8 @@ const itemRow = defineRecipe({
 /**
  * Prefix/suffix slot wrappers; sit beside the inner button inside the row
  * chrome, above the active indicator. The margin insets the slot's outer edge
- * by the inner item's padding step so a control never sits flush against the
- * chrome; it lives on the slot, not the row, so the mini rail (which hides
+ * by the inner item's padding step, so a control never sits flush against the
+ * chrome. It lives on the slot, not the row, so the mini rail (which hides
  * the slot) keeps its square geometry.
  */
 const affix = ['relative', 'z-10', flex.row, 'shrink-0', mini.hidden]
@@ -113,10 +113,10 @@ export const k = {
 		row: itemRow,
 		/**
 		 * Focus projection for the active indicator inside an affixed row.
-		 * Browsers paint the row's own ring beneath the indicator's opaque pill
-		 * (rings and outlines render with the element's layer, under positioned
-		 * descendants), so the focused current row re-draws the ring on the
-		 * pill: the topmost full-row surface.
+		 * Browsers paint the row's own ring beneath the indicator's opaque pill,
+		 * because rings and outlines render with the element's layer, under
+		 * positioned descendants. The focused current row therefore re-draws the ring
+		 * on the pill, the topmost full-row surface.
 		 */
 		indicator: [
 			'ring-inset',
