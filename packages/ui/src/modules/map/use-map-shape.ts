@@ -28,9 +28,9 @@ import type {
 /**
  * What {@link useMapShape} resolves: the reserved box, the active draw frame, and
  * its geometry. Named for the frame rather than for the hook, because the module
- * already has a `MapShape` — `engine/types`' pre-decode shape identity — and one
- * name over two unrelated types made the import path the only way to tell which
- * a reader had.
+ * already has a `MapShape`: `engine/types`' pre-decode shape identity. One name
+ * over two unrelated types made the import path the only way to tell which a
+ * reader had.
  *
  * @internal
  */
@@ -47,17 +47,17 @@ export type MapFrameShape = {
 	viewHeight: number
 	/**
 	 * Region path ds, index-aligned with the features; empty until fitted. Stated
-	 * in the frame {@link regionFrame} names — the canonical one where a transform
-	 * carries them, the drawn one where it is `null` — so a reader outside the
-	 * layer that draws them must take the pair together.
+	 * in the frame {@link regionFrame} names: the canonical one where a transform
+	 * carries them, the drawn one where it is `null`. A reader outside the layer
+	 * that draws them must therefore take the pair together.
 	 */
 	paths: (string | null)[]
 	/**
 	 * The view transform {@link paths} are drawn under, `null` where they are
 	 * already stated in the active frame. A measured refit is a scale and a
-	 * translation on the canonical fit, so the layer moves one group transform
-	 * rather than taking every path back through the projection and rewriting
-	 * every `d`.
+	 * translation on the canonical fit. The layer therefore moves one group
+	 * transform, rather than taking every path back through the projection and
+	 * rewriting every `d`.
 	 */
 	regionFrame: MapTransform | null
 	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
@@ -68,10 +68,10 @@ export type MapFrameShape = {
 	 * {@link project} run backwards, `null` where the fit has no lon/lat for a
 	 * frame position — which the composite's gaps between insets genuinely have.
 	 *
-	 * For the one reader that has to go that way: the region half of the
-	 * hit-target rule turns a dot's frame position into a lon/lat to ask which
-	 * regions its target stands to cover, and only the projection knows how many
-	 * degrees a pixel is where the dot happens to be. Stated as a closure like its
+	 * One reader has to go that way. The region half of the hit-target rule turns
+	 * a dot's frame position into a lon/lat. It asks which regions its target
+	 * stands to cover. Only the projection knows how many degrees a pixel is where
+	 * the dot happens to be. Stated as a closure like its
 	 * twin rather than by handing out the fitted projection, so `d3-geo` stays
 	 * inside the geometry engine.
 	 */
@@ -80,9 +80,9 @@ export type MapFrameShape = {
 
 /**
  * What {@link useMapShape} reads: the geometry, the frame policy, and the
- * chrome request. An object rather than a parameter list — the frame props
- * alone run to seven, four of them `boolean | number | undefined`, where a
- * transposition would type-check and draw a wrong map.
+ * chrome request. An object rather than a parameter list: the frame props alone
+ * run to seven, four of them `boolean | number | undefined`. A transposition
+ * would type-check and draw a wrong map.
  *
  * @internal
  */
@@ -118,15 +118,15 @@ function regionFrameFor(
  * Resolves the geometry the map draws, decoupled from measurement so the
  * neutral geography paints on the first commit. A single canonical fit (fixed
  * frame, no container read) reserves the CSS box through its aspect and paints
- * the geography immediately; the container's measured pixels then drive a refit
+ * the geography immediately. The container's measured pixels then drive a refit
  * that reprojects to constant-pixel marks a beat after mount. Sharing the
  * canonical fit's aspect, the refit only sharpens strokes — it never reshapes
  * the geography, so the swap is imperceptible. The canonical stage is memoised
- * across instances by {@link staticMapGeometry}, so remounting the same atlas
- * (a tab switch, a second plat) reuses it rather than recomputing on mount.
+ * across instances by {@link staticMapGeometry}. A remount of the same atlas (a
+ * tab switch, a second plat) reuses it rather than recomputing on mount.
  *
- * The frame chrome rides the same fit: `graticule` (a degree step, `null` off)
- * and `sphere` resolve to their two paths beside the region paths, and cost
+ * The frame chrome rides the same fit. `graticule` (a degree step, `null` off)
+ * and `sphere` resolve to their two paths beside the region paths. They cost
  * nothing while both are off.
  *
  * @internal
