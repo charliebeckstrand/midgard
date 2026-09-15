@@ -24,9 +24,9 @@ export type TimelineProps = {
 
 /**
  * Ordered sequence of events rendered as an `<ol>` of `<TimelineItem>` rows.
- * Lays out along `orientation` (vertical or horizontal) and propagates both
- * `orientation` and `variant` to its items via context, so markers and
- * connector lines stay consistent across the run.
+ * Lays out along `orientation`, vertical or horizontal. It propagates both
+ * `orientation` and `variant` to its items via context, so markers and connector
+ * lines stay consistent across the run.
  */
 export function Timeline({
 	orientation = 'vertical',

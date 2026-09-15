@@ -12,11 +12,13 @@ export type ComposeEventHandlersOptions = {
 }
 
 /**
- * Compose a caller-supplied event handler with the library's own: returns a
- * single handler that runs `theirs` first, then `ours` — skipping `ours` when
+ * Compose a caller-supplied event handler with the library's own. It returns a
+ * single handler that runs `theirs` first, then `ours`. It skips `ours` when
  * `theirs` called `event.preventDefault()`, unless `checkForDefaultPrevented`
- * is `false`. The caller's handler always runs and keeps the first chance to
- * cancel the default behaviour, the convention for layering behaviour onto a
+ * is `false`.
+ *
+ * The caller's handler always runs, and keeps the first chance to cancel the
+ * default behaviour. That is the convention for layering behaviour onto a
  * forwarded handler.
  *
  * @param theirs - The caller's forwarded handler, if any.

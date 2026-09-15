@@ -22,9 +22,9 @@ export type TimelineItemProps = {
 
 /**
  * A single `<li>` row within a `<Timeline>`. Renders an implicit
- * `<TimelineMarker>` from its marker-config props unless one is composed
- * explicitly among `children`, carries `aria-current` when `current`, and
- * re-shares the resolved orientation/variant to descendants via context.
+ * `<TimelineMarker>` from its marker-config props, unless one is composed
+ * explicitly among `children`. It carries `aria-current` when `current`, and
+ * re-shares the resolved orientation and variant to descendants via context.
  */
 export function TimelineItem(props: TimelineItemProps) {
 	const { current, variant: variantProp, className, children, ...markerConfig } = props

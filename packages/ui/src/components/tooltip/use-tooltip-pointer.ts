@@ -41,9 +41,9 @@ export type TooltipPointerOptions = {
 /**
  * Floating and pointer-anchoring state for a point-following tooltip, returned
  * as the {@link TooltipContextValue} a `<TooltipContent>` reads. The chart, map,
- * and heatmap readouts share this: each supplies a client `point` and an `open`
- * flag off its own hover pipeline, and the tooltip rides the pointer through
- * `useClientPoint` while wearing the standard Tooltip chrome.
+ * and heatmap readouts share this. Each supplies a client `point` and an `open`
+ * flag off its own hover pipeline. The tooltip then rides the pointer through
+ * `useClientPoint`, while wearing the standard Tooltip chrome.
  *
  * @remarks Rides {@link useFloatingPanel}'s base (memoized offset/flip/shift
  * chain). Composes only `useClientPoint` — no role, dismiss, or overlay-signal —
