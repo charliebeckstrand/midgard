@@ -1,14 +1,14 @@
 /**
  * Time ticks for a date-keyed band axis: calendar-boundary ticks placed at
  * their true position between the evenly spaced row centers, formatted for the
- * locale. The rows stay index-aligned on the band scale — this only chooses,
- * places, and labels the axis ticks — so a date-keyed chart reuses every mark,
- * hit test, crosshair, and keyboard interaction unchanged; the ticks track
- * time, the marks track order.
+ * locale. The rows stay index-aligned on the band scale, because this only
+ * chooses, places, and labels the axis ticks. A date-keyed chart thus reuses
+ * every mark, hit test, crosshair, and keyboard interaction unchanged. The
+ * ticks track time, the marks track order.
  *
  * Boundary stepping goes through `@internationalized/date`'s calendar
- * arithmetic (DST- and month-length-safe) rather than raw millisecond math;
- * only a tick's *position* interpolates on absolute time, between the finite
+ * arithmetic (DST- and month-length-safe) rather than raw millisecond math.
+ * Only a tick's *position* interpolates on absolute time, between the finite
  * rows it falls among. Kept React- and style-free beside `chart-scale.ts` so
  * the tick math is unit-testable in isolation.
  */
@@ -47,7 +47,7 @@ const LABEL_CHARS = 7
  * Parses a raw category value to an epoch-millisecond instant: a `Date`, a
  * number (already epoch ms), or a string. A bare `YYYY-MM-DD` becomes local
  * midnight so a daily key lands on its wall-clock day rather than shifting
- * across the UTC boundary; any other string goes through `Date.parse`.
+ * across the UTC boundary. Any other string goes through `Date.parse`.
  *
  * @returns The instant, or `null` when the value holds no parseable date — the
  * row then anchors no tick and the axis falls back to plain labels.
@@ -143,8 +143,8 @@ type Anchor = { index: number; time: number }
 
 /**
  * Positions instant `time` on the band axis by locating it among the anchor
- * rows and interpolating between their band centers — the tick lands at its
- * true fraction of the way from one dated row to the next, clamped to the ends.
+ * rows and interpolating between their band centers. The tick lands at its true
+ * fraction of the way from one dated row to the next, clamped to the ends.
  *
  * @internal
  */
@@ -197,8 +197,8 @@ export type TimeTicksOptions = {
  * Calendar-boundary ticks for a date-keyed band axis.
  *
  * @returns The ticks — position and formatted label — or `null` when fewer than
- * two rows carry a parseable, spanning date, so the caller falls back to plain
- * category labels.
+ * two rows carry a parseable, spanning date. The caller then falls back to
+ * plain category labels.
  * @internal
  */
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
@@ -262,13 +262,13 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 const BARE_NUMBER = /^\d+(\.\d+)?$/
 
 /**
- * A numeric date formatter for a plain category axis: when *every* category
- * value parses as a date, labels them with the locale's own two-digit
- * month/day order — gaining the year once any of them falls outside
- * `referenceYear` (the current year by default), so a cross-year span keeps the
- * year and a single-year one drops it. Returns `null` when any value is not a
- * date, leaving a non-date axis its raw labels; the same formatter labels the
- * axis ticks, tooltip, and data table. Bare numeric strings never count as
+ * A numeric date formatter for a plain category axis. When *every* category
+ * value parses as a date, it labels them with the locale's own two-digit
+ * month/day order. The label gains the year once any of them falls outside
+ * `referenceYear` (the current year by default). A cross-year span thus keeps
+ * the year, and a single-year one drops it. Returns `null` when any value is
+ * not a date, leaving a non-date axis its raw labels. The same formatter labels
+ * the axis ticks, tooltip, and data table. Bare numeric strings never count as
  * dates — `Date.parse('95190')` accepts them as a year, which turned an axis
  * of NMFC codes into `01-01-95190` ticks.
  *
@@ -330,7 +330,7 @@ export function dateCategoryFormat(
 
 /**
  * A category formatter for a time axis: each row's raw `xKey` value as a medium
- * locale date, so the tooltip and data table read the same dates the axis
+ * locale date. The tooltip and data table thus read the same dates the axis
  * labels do. An unparseable value falls back to its string form. Holds one
  * formatter across the rows.
  *
