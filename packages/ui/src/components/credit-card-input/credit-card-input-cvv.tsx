@@ -83,18 +83,17 @@ export function CreditCardInputCvv({
 	// Previous brand, not a mount flag: StrictMode runs setup → cleanup → setup,
 	// so a flag set by the first setup lets the second run the body and fire one
 	// spurious dev-only `onValidityChange`. Comparing values is re-entrant.
-	const prevBrandRef = useRef({ maxLength, brand: brand })
+	const prevBrandRef = useRef(brand)
 
 	useEffect(() => {
-		const prev = prevBrandRef.current
+		if (prevBrandRef.current === brand) return
 
-		if (prev.maxLength === maxLength && prev.brand === brand) return
-
-		prevBrandRef.current = { maxLength, brand: brand }
+		prevBrandRef.current = brand
 
 		// A brand change can shrink the CVV length (Amex 4 → Visa 3):
 		// re-truncates the stored value to the new maxLength and re-reports
-		// validity (which also branches on brand).
+		// validity (which also branches on brand). `maxLength` is a function of
+		// `brand` alone, so the brand is the whole of what can change here.
 		const { value, setValue, onValidityChange: onValidity } = latestRef.current
 
 		const truncated = formatCvv(value, maxLength)

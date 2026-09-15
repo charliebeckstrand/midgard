@@ -632,8 +632,8 @@ function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
- * fitting its aspect to the grid shape; pass `aspectRatio` to override. Motion
- * (`animate`) is not yet wired — the heatmap renders as a static SVG tree.
+ * fitting its aspect to the grid shape; pass `aspectRatio` to override. The
+ * heatmap renders as a static SVG tree and takes no `animate`.
  * @example
  * ```tsx
  * <HeatmapChart

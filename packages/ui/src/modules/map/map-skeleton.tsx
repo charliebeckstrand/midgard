@@ -45,7 +45,7 @@ export type MapSkeletonProps = {
 export function MapSkeleton({ aspectRatio, projection, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function
 	// `use-map-shape` resolves the frame through, so the order — an explicit
-	// the explicit ratio, then what the projection knows before its atlas lands, then the
+	// the explicit aspect, then what the projection knows before its atlas lands, then the
 	// generic fallback — and the rule that an unparseable ratio fills instead of
 	// reserving are both stated once. Sharing only `projectionFallbackAspect`
 	// would share the number and duplicate the policy over it.

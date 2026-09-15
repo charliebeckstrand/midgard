@@ -52,8 +52,9 @@ export function Radio({
 			className={cn(k({ color, size: resolvedSize }), className)}
 		>
 			<input
-				// Consumer props spread first; the resolved §7.2 binding, the
-				// validation attributes, and data-slot below take precedence.
+				// Consumer props spread first; `type`, the native grouping `name`,
+				// the validation attributes, and data-slot below take precedence.
+				// Radio carries no §7.2 value binding — see the remarks above.
 				{...props}
 				type="radio"
 				data-slot="radio"

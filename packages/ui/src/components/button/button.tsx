@@ -1,13 +1,11 @@
 'use client'
 
-import { motion } from 'motion/react'
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
 import { useResolvedSize } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
-import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useHeadless } from '../../providers/headless/context'
 import { type ButtonVariants, k } from '../../recipes/kata/button'
@@ -120,41 +118,36 @@ export function Button({
 
 	if (href !== undefined) {
 		return (
-			<ReducedMotion>
-				<motion.span>
-					<Link
-						ref={ref as Ref<HTMLAnchorElement>}
-						{...sharedProps}
-						href={href}
-						className={classes}
-						{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
-						{...(loading && loadingProps)}
-					>
-						<TouchTarget>{content}</TouchTarget>
-					</Link>
-				</motion.span>
-			</ReducedMotion>
+			// The wrapping span is the anchor branch's layout box; it carried the
+			// press spring before that prop went, and the DOM shape stays.
+			<span>
+				<Link
+					ref={ref as Ref<HTMLAnchorElement>}
+					{...sharedProps}
+					href={href}
+					className={classes}
+					{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
+					{...(loading && loadingProps)}
+				>
+					<TouchTarget>{content}</TouchTarget>
+				</Link>
+			</span>
 		)
 	}
 
-	const buttonProps = props as Omit<
-		ComponentProps<'button'>,
-		'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
-	>
+	const buttonProps = props as Omit<ComponentProps<'button'>, 'className'>
 
 	return (
-		<ReducedMotion>
-			<motion.button
-				ref={ref as Ref<HTMLButtonElement>}
-				{...sharedProps}
-				type={type}
-				className={classes}
-				{...buttonProps}
-				disabled={loading || buttonProps.disabled}
-				aria-busy={ariaAttr(loading)}
-			>
-				<TouchTarget>{content}</TouchTarget>
-			</motion.button>
-		</ReducedMotion>
+		<button
+			ref={ref as Ref<HTMLButtonElement>}
+			{...sharedProps}
+			type={type}
+			className={classes}
+			{...buttonProps}
+			disabled={loading || buttonProps.disabled}
+			aria-busy={ariaAttr(loading)}
+		>
+			<TouchTarget>{content}</TouchTarget>
+		</button>
 	)
 }

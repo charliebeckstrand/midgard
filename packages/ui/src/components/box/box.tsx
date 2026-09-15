@@ -54,9 +54,9 @@ function resolveOutline(outline: BoxOutline | undefined): string | readonly stri
 }
 
 /**
- * Polymorphic layout primitive for padding, margin, radius, background, and
- * outline tokens. Static leaf: renders in React Server Components. Every
- * spacing token is explicit; an omitted token applies no style.
+ * Static layout primitive for padding, radius, background, and outline tokens.
+ * Renders in React Server Components. Every token is explicit; an omitted token
+ * applies no style.
  */
 export function Box({
 	p,

@@ -24,9 +24,7 @@ describe('Timeline', () => {
 
 		expect(el?.tagName).toBe('OL')
 	})
-})
 
-describe('TimelineTimestamp', () => {
 	it('marks the current item as a step, as Stepper does', () => {
 		const { container } = renderUI(
 			<Timeline>
@@ -38,7 +36,9 @@ describe('TimelineTimestamp', () => {
 
 		expect(bySlot(container, 'timeline-item')).toHaveAttribute('aria-current', 'step')
 	})
+})
 
+describe('TimelineTimestamp', () => {
 	it('renders with data-slot="timeline-timestamp"', () => {
 		const { container } = renderUI(
 			<Timeline>

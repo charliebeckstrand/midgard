@@ -43,7 +43,7 @@ export type ShinyTextProps = {
 	 */
 	pauseOnHover?: boolean
 	/**
-	 * Travel sweep of the shine.
+	 * Direction the shine travels: `'left'` or `'right'`.
 	 * @defaultValue `'left'`
 	 */
 	sweep?: 'left' | 'right'

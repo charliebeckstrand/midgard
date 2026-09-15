@@ -73,7 +73,7 @@ export function Demo() {
 				</Flex>
 			</Example>
 
-			<Example title="Rounded">
+			<Example title="Radius">
 				<Flex wrap gap="sm">
 					{sizes.map(({ value, label }) => (
 						<Badge key={value} size={value} radius="full" variant="outline">

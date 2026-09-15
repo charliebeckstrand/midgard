@@ -878,7 +878,7 @@ const SearchHighlightExample = () => {
 			columns={searchableColumns}
 			rows={people}
 			getKey={(row) => row.id}
-			// `filter: false` marks matches in place instead of pruning the non-matching
+			// `mode: 'highlight'` marks matches in place instead of pruning the non-matching
 			// rows, so the query reads as an emphasis rather than a filter.
 			search={{
 				value: query,
@@ -921,7 +921,7 @@ const ColumnManagerExample = () => {
 	)
 }
 
-// A `groups` array bands a contiguous run of columns under a colored, labeled
+// A `columnGroups` array bands a contiguous run of columns under a colored, labeled
 // header. Each group names its member `columns` (kept adjacent and moved as a
 // block), a `title`, and a `color` from the standard + extended Badge palette.
 const columnGroups: GridColumnGroup[] = [
@@ -959,7 +959,7 @@ const CollapsibleGroupsExample = () => (
 	<Grid columns={columns} rows={people} getKey={(row) => row.id} columnGroups={collapsibleGroups} />
 )
 
-// Passing a `groups` binding turns on the column manager's group editor: a "New
+// Passing a `columnGroups` binding turns on the column manager's group editor: a "New
 // group" button, a zone per group (name, color, remove), and an ungrouped pool.
 // Drag columns between zones — or use a row's "Move" menu — to change membership.
 const GroupManagerExample = () => {

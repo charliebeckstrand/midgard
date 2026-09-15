@@ -39,7 +39,7 @@ import type { ChartReadoutSource } from './types'
  *
  * An index rather than a label on purpose: labels are formatted for display (the sector charts run period
  * keys through a formatter), so a consumer that needs the underlying value must look it up in its own data
- * by insert order.
+ * by position in the array.
  */
 export type ChartContextMenuTarget = { index: number | null }
 

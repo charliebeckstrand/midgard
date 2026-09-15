@@ -28,7 +28,7 @@ export type TagInputProps = {
 	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
 	name?: string
 	size?: ControlSize
-	/** Tag appearance; `color` is the badge color for every tag (default `'zinc'`). */
+	/** Badge color for every tag. @defaultValue 'zinc' */
 	tagColor?: Color
 	/** Current tag values (controlled). */
 	value?: string[]

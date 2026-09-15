@@ -1063,7 +1063,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Collapse is grid-owned view state: it is seeded once from each group's
 	 * {@link GridColumnGroup.defaultCollapsed} and was never reported, so a band the
 	 * reader shut stayed shut with nothing to persist and no way to know. The
-	 * {@link GridDataProps.groups} binding cannot carry it — that binding's
+	 * {@link GridDataProps.columnGroups} binding cannot carry it — that binding's
 	 * `onValueChange` is the group LAYOUT sink, and its own doccomment holds collapse
 	 * out of it. Top-level here, so the array shorthand reaches it too. Use it to
 	 * persist what the reader collapsed. Mounting reports nothing, whatever

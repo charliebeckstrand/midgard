@@ -105,7 +105,7 @@ describe('ProgressGauge', () => {
 		expect(screen.getByText('3 of 4')).toBeInTheDocument()
 	})
 
-	it('renders no label slot for label={false}', () => {
+	it('renders no readout slot for centerLabel={false}', () => {
 		const { container } = renderUI(
 			<ProgressGauge value={40} centerLabel={false} aria-label="Used" />,
 		)

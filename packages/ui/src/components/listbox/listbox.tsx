@@ -65,8 +65,7 @@ type ListboxBaseProps = {
 	/**
 	 * Capitalizes the first letter (first word only) of the selected
 	 * `displayValue` and of each option's string label; custom label nodes
-	 * render as authored. Pass an object to target each surface independently.
-	 * Display-only: the underlying value is untouched.
+	 * render as authored. Display-only: the underlying value is untouched.
 	 * @defaultValue true
 	 */
 	capitalize?: boolean

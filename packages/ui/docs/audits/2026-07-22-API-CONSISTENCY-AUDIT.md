@@ -66,7 +66,7 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | S11 | Radio is the only toggle outside the §7.2 cascade — `name` binds on Checkbox/Switch, not Radio | `radio.tsx:17-22` vs `checkbox.tsx:47`, `switch.tsx:42` | Resolve the bound field in RadioGroup, or mirror the remark onto `RadioGroupProps` | ✅ RESOLVED (the binding remark is mirrored onto `RadioGroupProps`; no per-radio `name` binding is added, because a radio group is one value across N inputs) |
 | S12 | CopyButton overloads `value` for the clipboard payload (T5) | `copy-button.tsx:14-15` | Rename `text` | ✅ RESOLVED (`text`; `value` stays reserved for controlled state) |
 | S13 | ToggleIconButton controlled-only, no `onPressedChange`/`defaultPressed` (T3) | `toggle-icon-button.tsx:15-16` | Add both | ✅ RESOLVED (`defaultPressed` and `onPressedChange` added) |
-| S14 | RangeSlider drops `name`/`ref`/rest that Slider carries (T3, T7) | `range-slider.tsx:13-41` vs `slider.tsx:12-29,70` | Add `name` via `useFormValue`, root `ref` | ✅ RESOLVED (RangeSlider carries `name`, root `ref`, and rest) |
+| S14 | RangeSlider drops `name`/`ref`/rest that Slider carries (T3, T7) | `range-slider.tsx:13-41` vs `slider.tsx:12-29,70` | Add `name` via `useFormValue`, root `ref` | ✅ RESOLVED for `name` and `ref` (both landed before this pass: `useFormValue` binds `name`, and the root takes `ref`). The rest half is NOT done — RangeSlider still declares a closed prop bag with no `{...props}`, where `slider.tsx` spreads at `:125`. Corrected here: the first pass flipped this row claiming rest too |
 
 ## Findings — overlays & floating surfaces
 
