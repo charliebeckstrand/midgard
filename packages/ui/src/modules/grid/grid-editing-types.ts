@@ -153,8 +153,8 @@ export type GridEditableConfig = {
 	 * than its first entry: a session narrowing an already-open row closes several
 	 * at once. Three kinds of cell are dropped: unchanged ones, and ones whose
 	 * {@link GridColumn.validate} rejects the value. So are ones whose column
-	 * stopped being editable while the editor was open. Apply each change to your own row
-	 * data and feed it back as `rows`.
+	 * stopped being editable while the editor was open. Apply each change to your
+	 * own row data and feed it back as `rows`.
 	 */
 	onCommit: (changes: CellChange[]) => void
 	/**
