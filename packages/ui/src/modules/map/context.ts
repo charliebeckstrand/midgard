@@ -39,11 +39,11 @@ export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('
 
 /**
  * The mark the pointer sits on — a region or an overlay entry — taking the
- * emphasis, so everything else on the map recedes behind it: the map's twin of
- * the chart's pointed-mark emphasis. Derived from the hover target but held
- * apart from {@link MapHoverState}: the hover provider pins the target's
- * identity across a same-mark move, so this value — and every mark reading
- * it — changes only on a discrete crossing, never as the pointer travels.
+ * emphasis, so everything else on the map recedes behind it. It is the map's
+ * twin of the chart's pointed-mark emphasis. Derived from the hover target but
+ * held apart from {@link MapHoverState}. The hover provider pins the target's
+ * identity across a same-mark move. This value — and every mark reading it —
+ * therefore changes only on a discrete crossing, never as the pointer travels.
  * A region whose category is unmatched or toggled off never takes it, the
  * same silence the tooltip keeps off data. Defaults to `null` so a mark
  * rendered outside the provider reads lit.
@@ -56,9 +56,9 @@ export const [MapPointedMarkContext, useMapPointedMark] = createContext<MapHover
 )
 
 /**
- * The view transform and its gestures, or `null` on a map that does not zoom —
- * one encoding of that bit, which the layer, the plot region, and the keyboard
- * cursor all test the same way. Provided by {@link MapZoomProvider}, which sits
+ * The view transform and its gestures, or `null` on a map that does not zoom.
+ * It is one encoding of that bit, which the layer, the plot region, and the
+ * keyboard cursor all test the same way. Provided by {@link MapZoomProvider}, which sits
  * below the plat so a gesture never re-renders it.
  *
  * @internal
@@ -70,20 +70,24 @@ export const [MapZoomContext, useMapZoomView] = createContext<MapZoom | null>('M
 /**
  * What one device pixel spans in frame units under the plat's zoom: `1` at the
  * fit, and `1 / k` under a transform. It is the marks' one reading of the zoom,
- * and the whole of it — a mark converts a pixel spec to frame units by one
- * multiply and never asks what the transform is.
+ * and the whole of it. A mark converts a pixel spec to frame units by one
+ * multiply, and never asks what the transform is.
  *
- * Every device-pixel spec the module draws takes that multiply: the stroke width
- * of each mark and each hairline, a dot's radius (which is half its cap's
- * width), the hit circles and hit bands, the cluster reach, and the count inside
- * a summary. Nothing asks the browser to hold a size for it. A
+ * Every device-pixel spec the module draws takes that multiply:
+ *
+ * - The stroke width of each mark and each hairline.
+ * - A dot's radius, which is half its cap's width.
+ * - The hit circles and hit bands.
+ * - The cluster reach, and the count inside a summary.
+ *
+ * Nothing asks the browser to hold a size for it. A
  * `vector-effect="non-scaling-stroke"` did once, which put the drawn size of
- * every mark on a stroke transform this module cannot reach — see `MapDot` for
+ * every mark on a stroke transform this module cannot reach. See `MapDot` for
  * what that cost.
  *
  * Held apart from {@link MapPlatContextValue} because a zoom step churns this
- * value on every wheel notch: the marks that answer it re-render per notch,
- * while the legend and the plat above them hold, and the region layer answers on
+ * value on every wheel notch. The marks that answer it re-render per notch,
+ * while the legend and the plat above them hold. The region layer answers on
  * one group rather than per region. Defaults to `1`, so a mark rendered outside
  * a zooming plat reads the frame as device pixels — which every settled unzoomed
  * frame is.
@@ -96,8 +100,9 @@ export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('Map
 
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection
- * as a closure, legend registration, the resolved slot colour per registered
- * entry, the legend's toggle / emphasis state, and the standing pick. An
+ * as a closure, legend registration, and the resolved slot colour per
+ * registered entry. It also provides the legend's toggle / emphasis state, and
+ * the standing pick. An
  * overlay renders nothing until its id gains a colour — the beat after its
  * registration effect runs.
  *
@@ -116,46 +121,46 @@ export type MapPlatContextValue = {
 	hidden: ReadonlySet<string>
 	/**
 	 * How much reach the drawn zones leave a mark at a frame position, in device
-	 * pixels — the tightest budget any registered zone the legend still shows will
-	 * allow, since a dot standing over two of them has to satisfy both. `Infinity`
-	 * where nothing claims that ground, which `markTargets` caps: this layer states
-	 * the claim and never the size a target settles at. A dot reads it to size its
-	 * own target.
+	 * pixels. It is the tightest budget any registered zone the legend still shows
+	 * will allow. A dot standing over two of them has to satisfy both.
+	 * `Infinity` where nothing claims that ground, which `markTargets` caps. This
+	 * layer states the claim and never the size a target settles at. A dot reads it
+	 * to size its own target.
 	 *
-	 * A REGION layer that answers the pointer claims it too, and on the same terms — a
-	 * finger-sized target over a shape that reads out, answers clicks, or opens a menu puts
-	 * that shape out of reach where the dot stands, so the dot takes a share of what the
-	 * region itself holds and the region keeps the rest. Touch keeps the whole target; see
-	 * the resolver.
+	 * A REGION layer that answers the pointer claims it too, and on the same terms.
+	 * A finger-sized target over a shape that reads out, answers clicks, or opens a
+	 * menu puts that shape out of reach where the dot stands. The dot therefore
+	 * takes a share of what the region itself holds, and the region keeps the rest.
+	 * Touch keeps the whole target; see the resolver.
 	 *
-	 * The scale rides in because of that half. A region is measured in frame units where a
-	 * zone's budget converted at the mark that registered it, and this resolver cannot make
-	 * the conversion itself: `MapZoomScaleContext` sits below the plat, around the plot
-	 * alone, so a wheel notch re-renders the marks without re-rendering the plat. The
-	 * parameter stops here — `useMapOverlay` binds it and every reader below takes the
-	 * one-measure shape every other claimant has.
+	 * The scale rides in because of that half. A region is measured in frame units
+	 * where a zone's budget converted at the mark that registered it. This resolver
+	 * cannot make the conversion itself. `MapZoomScaleContext` sits below the plat,
+	 * around the plot alone, so a wheel notch re-renders the marks without
+	 * re-rendering the plat. The parameter stops here. `useMapOverlay` binds it,
+	 * and every reader below takes the one-measure shape every other claimant has.
 	 *
 	 * Resolved here rather than by each dot, because the question is about the
 	 * plat's whole ledger and the answer changes with the legend. It reads the
-	 * geometry the zones' last render left, so a zone whose ground changes without
-	 * a refit moves the targets under it on the next render of the marks — see
-	 * {@link MapOverlayEntry.spare} for why the resolver is stable.
+	 * geometry the zones' last render left. A zone whose ground changes without a
+	 * refit therefore moves the targets under it on the next render of the marks.
+	 * See {@link MapOverlayEntry.spare} for why the resolver is stable.
 	 */
 	spare: (at: MapPoint2D, unitsPerPixel: number) => number
 	/**
-	 * Every OTHER mark's drawn dots, in frame units — what a dot measures its pointer target's ground
-	 * against, so two marks standing on top of one another divide it instead of overlapping.
+	 * Every OTHER mark's drawn dots, in frame units. A dot measures its pointer target's ground
+	 * against them, so two marks standing on top of one another divide it instead of overlapping.
 	 *
 	 * Pooled here for the same reason {@link spare} is: the question is about the plat's whole ledger
 	 * and the answer changes with the legend. `crowd.ts` used to record this as the one place its rule
-	 * was less than whole — a mark could only see its own dots, so two separate marks each kept a full
+	 * was less than whole. A mark could only see its own dots, so two separate marks each kept a full
 	 * target and the overlap went to whichever drew last.
 	 *
 	 * Positions rather than a measure, which is what makes pooling possible at all. Every reach in the
-	 * crowding rule is a device-pixel one, and the plat cannot see the zoom scale — `MapZoomScaleContext`
-	 * sits below it, around the plot alone, precisely so a wheel notch re-renders the marks and not the
-	 * legend or the region layer. Frame units are scale-free, so the plat supplies the geometry and the
-	 * mark applies its own `unitsPerPixel`.
+	 * crowding rule is a device-pixel one, and the plat cannot see the zoom scale.
+	 * `MapZoomScaleContext` sits below it, around the plot alone, precisely so a wheel notch re-renders
+	 * the marks and not the legend or the region layer. Frame units are scale-free,
+	 * so the plat supplies the geometry and the mark applies its own `unitsPerPixel`.
 	 *
 	 * Excludes the asking mark, by id: a mark's own dots are its own business, and it holds them in
 	 * drawn form already. Excludes hidden marks and every mark that draws no dot, so a route's waypoints

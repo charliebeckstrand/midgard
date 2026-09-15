@@ -21,8 +21,6 @@
 	"modules/grid/engine/grid-sort/utilities.ts": 17,
 	"modules/grid/types.ts": 32,
 	"modules/grid/use-grid-column-auto-size.ts": 23,
-	"modules/grid/use-grid-table.ts": 15,
-	"modules/map/context.ts": 15,
 	"modules/map/engine/map-cluster/crowd.ts": 22,
 	"modules/map/engine/map-cluster/group.ts": 17,
 	"modules/map/engine/map-constants.ts": 39,
