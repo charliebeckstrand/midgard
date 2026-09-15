@@ -37,9 +37,9 @@ function useGridStatusMessage(loading: boolean, rowCount: number): string {
  * {@link useGridStatusMessage}).
  *
  * Carries `data-slot` because it is the only element that distinguishes "the
- * grid is still fetching" from "the grid has answered", which makes it the
+ * grid is still fetching" from "the grid has answered". That makes it the
  * settle signal end-to-end tests wait on. `role="status"` alone cannot address
- * it: {@link GridFooter}'s row total is also a `role="status"` and its text is
+ * it. {@link GridFooter}'s row total is also a `role="status"` and its text is
  * also `'500 rows'` / `'1 row'`, so a role query matches both and trips strict
  * mode. Only this one ever reads `'Loading'`.
  *

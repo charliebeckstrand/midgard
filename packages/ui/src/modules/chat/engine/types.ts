@@ -5,14 +5,14 @@ import type { ChatPart } from './chat-content/types'
  * holds it.
  *
  * The name says message, because that is what the type is. It held `content`
- * until this rename, which put three names on one axis — the message, its
- * `content` field, and the `chat-content/` directory that types the field — and
- * left a reader to work out which one a sentence meant.
+ * until this rename, which put three names on one axis. Those were the message,
+ * its `content` field, and the `chat-content/` directory that types the field.
+ * A reader was left to work out which one a sentence meant.
  */
 export type ChatMessageData = {
 	/**
 	 * Names the message in its transcript. A server id where the store holds one,
-	 * and absent for a client-only message until it is persisted; `useChatSend`
+	 * and absent for a client-only message until it is persisted. `useChatSend`
 	 * assigns a client id to a seed message that carries none, and keeps the id a
 	 * seed message carries.
 	 *

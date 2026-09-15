@@ -11,9 +11,9 @@ function noop(): void {}
  * Renders a row's {@link GridColumn.actions} slot with its editing context.
  *
  * @remarks The slot renders in every grid, editable or not, so it reads the
- * session optionally and reports `editing: false` where there is none — an
+ * session optionally and reports `editing: false` where there is none. An
  * actions column then needs no guard against a binding it can lack. `save`
- * and `discard` are the same exit the grid's own keys take, which is what keeps
+ * and `discard` are the same exit the grid's own keys take. That is what keeps
  * a consumer's control and an editor's Enter ending a row the same way.
  *
  * @internal

@@ -32,10 +32,11 @@ export const [GridGroupByContext, useGridGroupByButton] =
 /**
  * A groupable column's header button: press it to group the rows by the column,
  * press it again to ungroup. The action reads off whether this column is the
- * active group — Group by “{column}” ungrouped, a plain "Ungroup" once grouped
- * (single-level, so only one column is ever grouped). The active button holds a
- * blue accent (like an applied column filter) and swaps its {@link Group} icon
- * for {@link Ungroup}, so its state reads by shape and label, not colour alone.
+ * active group. It is Group by “{column}” ungrouped, a plain "Ungroup" once
+ * grouped (single-level, so only one column is ever grouped). The active button
+ * holds a blue accent (like an applied column filter) and swaps its
+ * {@link Group} icon for {@link Ungroup}. Its state therefore reads by shape and
+ * label, not colour alone.
  * Renders nothing while the feature is off, on a non-`groupable` column, or on
  * an empty grid.
  *
