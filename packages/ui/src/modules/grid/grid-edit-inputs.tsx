@@ -9,10 +9,12 @@ import type { EditorKind } from './engine/grid-editing-utilities'
 
 /**
  * Shared props for an internal inline editor: the typed `draft`, the staging and
- * cancel callbacks, and the accessible label. None of these grabs focus on mount:
- * under row scope a whole row's editors mount at once, and the user clicks or
- * tabs into the cell to edit it. A cell-scoped session mounts the one editor it
- * entered and focuses it from the editing layer, not from here. @internal
+ * cancel callbacks, and the accessible label. None of these grabs focus on
+ * mount. Under row scope a whole row's editors mount at once, and the user
+ * clicks or tabs into the cell to edit it. A cell-scoped session mounts the one
+ * editor it entered and focuses it from the editing layer, not from here.
+ *
+ * @internal
  */
 export type GridEditInputProps = {
 	draft: unknown
@@ -41,10 +43,12 @@ export type GridEditInputProps = {
  * Enter saves the session when the grid owns it (`trigger: 'doubleClick'`);
  * Escape reverts the cell under a consumer-owned session. A grid-owned session's
  * Escape abandons the session instead. That press is handled once on the grid
- * `<table>`'s key surface (see `useGridEditing`'s `sessionEscape`), so every
- * editor inherits it: these inferred inputs, the listbox, an `editCell` slot.
+ * `<table>`'s key surface (see `useGridEditing`'s `sessionEscape`). Every editor
+ * therefore inherits it: these inferred inputs, the listbox, an `editCell` slot.
  * The key therefore bubbles past the editor here. Staging is live, so there is
- * no per-cell commit key. @internal
+ * no per-cell commit key.
+ *
+ * @internal
  */
 const editorKeys =
 	({ cancel, commitRow }: Pick<GridEditInputProps, 'cancel' | 'commitRow'>) =>
@@ -121,10 +125,10 @@ const BOOLEAN_OPTIONS = [
 
 /**
  * Boolean editor for true/false cells, a yes/no `Listbox`. The commit key stays
- * off it — Enter belongs to the listbox's own open/select interaction — so a
- * grid-owned session saves from a sibling text/number editor or the consumer's
- * save affordance. Under `scope: 'cell'` there is no sibling, because the
- * session mounts this editor alone, so the cell's own save control is the
+ * off it, because Enter belongs to the listbox's own open/select interaction. A
+ * grid-owned session therefore saves from a sibling text/number editor, or the
+ * consumer's save affordance. Under `scope: 'cell'` there is no sibling, because
+ * the session mounts this editor alone. The cell's own save control is then the
  * keyboard commit this editor cannot otherwise have (WCAG 2.1.1). Escape reaches
  * this editor the way it reaches every other, through the grid table's key
  * surface. That surface defers to the listbox's own panel while it is open.
@@ -151,9 +155,9 @@ function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: Gri
 }
 
 /**
- * Renders the inline editor inferred from the cell value's primitive type — a
- * yes/no listbox for a boolean, a number input for a number, a text input
- * otherwise. The column's {@link GridColumn.editCell} slot supersedes this
+ * Renders the inline editor inferred from the cell value's primitive type. That
+ * is a yes/no listbox for a boolean, a number input for a number, and a text
+ * input otherwise. The column's {@link GridColumn.editCell} slot supersedes this
  * upstream.
  *
  * @internal
