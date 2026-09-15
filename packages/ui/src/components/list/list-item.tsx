@@ -25,11 +25,12 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 * muted-to-full text and the row's hover wash.
 	 *
 	 * Derived from `href` and `onClick` when omitted, which is right for a row that
-	 * carries its own handler. Set it where the derivation cannot see the truth: a
-	 * row whose only handler sits on a child, or one that is a target in name only.
+	 * carries its own handler. Set it where the derivation cannot see the truth.
+	 * Examples are a row whose only handler sits on a child, and one that is a
+	 * target in name only.
 	 *
 	 * @remarks
-	 * The row-wide hit area follows the row's own handler, not this prop: forcing
+	 * The row-wide hit area follows the row's own handler, not this prop. A forced
 	 * `interactive` on a row whose handler sits on a child leaves that child the
 	 * target, rather than covering it.
 	 */
@@ -58,8 +59,9 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 
 /**
  * A row within a {@link List}, rendered as `<li>` with `prefix`/`suffix` slots
- * around a polymorphic content area that switches to the app's router link when
- * `href` is set and otherwise renders the `as` element (`'div'` by default). A
+ * around a polymorphic content area. That area switches to the app's router link
+ * when `href` is set, and otherwise renders the `as` element (`'div'` by
+ * default). A
  * content area that acts on activation — `href` or `onClick` — counts as
  * interactive and takes the muted text plus hover and pointer treatment. Its hit
  * area covers the whole painted row, the padding and the slot chrome included. In
@@ -69,16 +71,16 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  *
  * @remarks
  * A row whose own content area carries the handler stretches that hit area over
- * the row through a pointer-capturing `::after`, so a press or a hover on the
- * padding or the gap reads the same as one on the label. The `prefix` and
- * `suffix` slots step over that overlay and stay pressable; the children of the
- * content area do not, which is why a trailing control belongs in `suffix`. The
+ * the row, through a pointer-capturing `::after`. A press or a hover on the
+ * padding or the gap therefore reads the same as one on the label. The `prefix`
+ * and `suffix` slots step over that overlay and stay pressable. The children of
+ * the content area do not, which is why a trailing control belongs in `suffix`. The
  * overlay also takes the pointer off the label text, so such a row gives up text
  * selection.
  *
  * A reorderable row has exactly ONE Tab stop. An interactive content area is
- * natively focusable, so the reorder keys ride it and the `<li>` takes no focus
- * — it keeps only the drag node and the transform. A display-only row has nothing
+ * natively focusable, so the reorder keys ride it and the `<li>` takes no focus.
+ * The `<li>` keeps only the drag node and the transform. A display-only row has nothing
  * focusable inside, so there the `<li>` is the stop. Wiring both put two
  * indistinguishable stops on every row: one to move it, one to activate it.
  *
