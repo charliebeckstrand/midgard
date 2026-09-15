@@ -5,11 +5,11 @@ import type { PdfViewerPage } from './types'
 /**
  * How many documents' rasterized pages stay resident.
  *
- * Small on purpose. An entry holds one PNG blob per page at up to 2× device scale, so a long
- * document is megabytes and the bound has to be a real one rather than a reassurance.
+ * Small on purpose. An entry holds one PNG blob per page at up to 2× device scale. A long
+ * document is therefore megabytes, and the bound has to be a real one rather than a reassurance.
  *
- * Four rather than one, because a reader moves between documents as well as parking one: a cap
- * of one would evict the scan they are coming back to the moment they glance at the next. Four
+ * Four rather than one, because a reader moves between documents as well as parking one. A cap
+ * of one would evict the scan they are coming back to, the moment they glance at the next. Four
  * covers that shuttle and still bounds the resident set at a handful of documents.
  * @internal
  */
@@ -29,8 +29,8 @@ export type PdfDocumentSnapshot = {
  *
  * @remarks One frozen instance, returned by every miss. {@link getDocumentSnapshot} feeds
  * `useSyncExternalStore`, which compares snapshots with `Object.is` and re-renders forever if a
- * miss allocates a fresh one — so the shared identity is a correctness requirement rather than
- * a saving.
+ * miss allocates a fresh one. The shared identity is therefore a correctness requirement rather
+ * than a saving.
  * @internal
  */
 const EMPTY: PdfDocumentSnapshot = Object.freeze({
@@ -43,12 +43,12 @@ const EMPTY: PdfDocumentSnapshot = Object.freeze({
 })
 
 /**
- * The empty snapshot, for a caller that needs one without consulting the map — the server
- * render, where there is no canvas to rasterize onto and so never anything resident.
+ * The empty snapshot, for a caller that needs one without consulting the map. That is the
+ * server render, where there is no canvas to rasterize onto and so never anything resident.
  *
- * @remarks The same frozen instance {@link getDocumentSnapshot} returns on a miss, so a
- * `useSyncExternalStore` server snapshot is `Object.is`-equal to the client's first miss and
- * hydration sees no change.
+ * @remarks The same frozen instance {@link getDocumentSnapshot} returns on a miss. A
+ * `useSyncExternalStore` server snapshot is therefore `Object.is`-equal to the client's first
+ * miss, and hydration sees no change.
  * @internal
  */
 export const EMPTY_DOCUMENT_SNAPSHOT = EMPTY
@@ -57,8 +57,9 @@ export const EMPTY_DOCUMENT_SNAPSHOT = EMPTY
  * One resident document: what viewers read, who is watching it, and whether a load is running.
  *
  * @remarks `listeners` doubles as the holder count. Every mounted viewer subscribes for as long
- * as it is showing this `src`, so a non-empty set means "someone is looking at this" — which is
- * exactly what eviction has to respect, and why there is no separate reference count beside it.
+ * as it is showing this `src`. A non-empty set therefore means "someone is looking at this".
+ * That is exactly what eviction has to respect, and why there is no separate reference count
+ * beside it.
  * @internal
  */
 type Held = {
@@ -72,9 +73,9 @@ type Held = {
  * Resident documents, keyed by `src`.
  *
  * A module map rather than component state, because outliving the component is the whole
- * point: a panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts
+ * point. A panel that parks by *closing* — `Overlay` gates its portal on `open` — unmounts
  * its children, the viewer included. Everything the viewer held in state or in an effect's
- * closure goes with them, which means reopening re-fetches and re-rasterizes a document the
+ * closure goes with them. Reopening therefore re-fetches and re-rasterizes a document the
  * reader was looking at a moment earlier, with the scan visibly rebuilding from its skeleton.
  *
  * `'use client'` is what keeps that honest: without it this would be one mutable map per
@@ -90,10 +91,10 @@ const documents = new Map<string, Held>()
 /**
  * Frees the blob URLs a snapshot owns.
  *
- * @remarks A finished snapshot owns no pdf.js resources: the rasterizer destroys the loading
- * task as soon as the last page renders, so by the time anything is cached the document and its
- * worker channel are already gone and blob URLs are all that is left to release. Safe on a
- * partial snapshot too, which is what a failed load leaves behind.
+ * @remarks A finished snapshot owns no pdf.js resources. The rasterizer destroys the loading
+ * task as soon as the last page renders. By the time anything is cached the document and its
+ * worker channel are already gone. Blob URLs are all that is left to release. Safe on a partial
+ * snapshot too, which is what a failed load leaves behind.
  * @internal
  */
 function revoke(snapshot: PdfDocumentSnapshot) {
@@ -106,10 +107,10 @@ function revoke(snapshot: PdfDocumentSnapshot) {
  * Drops least-recently-used documents until at most {@link MAX_DOCUMENTS} remain.
  *
  * @remarks Skips anything a viewer is watching, and anything mid-load. A watched entry's blob
- * URLs are live `<img>` sources, and revoking one blanks the page a reader is looking at — so
- * the holders outrank the cap, and a run with every entry held frees nothing. That cannot grow
- * without bound in practice: a viewer subscribes only while mounted, and the app mounts one
- * scan at a time.
+ * URLs are live `<img>` sources, and revoking one blanks the page a reader is looking at. The
+ * holders therefore outrank the cap, and a run with every entry held frees nothing. That cannot
+ * grow without bound in practice: a viewer subscribes only while mounted, and the app mounts
+ * one scan at a time.
  * @internal
  */
 function evict() {
@@ -179,8 +180,8 @@ function publish(src: string, next: Partial<PdfDocumentSnapshot>) {
  *
  * @remarks Synchronous and pure, so a remounting viewer reads its pages *during render* and
  * paints them on its first frame. An effect-based read would paint one frame of the loading
- * skeleton first, which is the flicker this cache exists to remove — so the synchronousness is
- * the point rather than an optimization.
+ * skeleton first, which is the flicker this cache exists to remove. The synchronousness is
+ * therefore the point rather than an optimization.
  * @internal
  */
 export function getDocumentSnapshot(src: string | undefined): PdfDocumentSnapshot {
@@ -193,10 +194,10 @@ export function getDocumentSnapshot(src: string | undefined): PdfDocumentSnapsho
  * Subscribes to `src`'s snapshot changes for as long as a viewer is showing it.
  *
  * @returns The unsubscribe function `useSyncExternalStore` expects.
- * @remarks Registering interest also creates the record and marks it most recently used, so a
- * listener added before the load starts has somewhere to live and a document being looked at
- * cannot be the next one evicted. Such a record holds nothing until a load fills it, and is
- * evictable the moment its last listener goes.
+ * @remarks Registering interest also creates the record and marks it most recently used. A
+ * listener added before the load starts therefore has somewhere to live, and a document being
+ * looked at cannot be the next one evicted. Such a record holds nothing until a load fills it,
+ * and is evictable the moment its last listener goes.
  * @internal
  */
 export function subscribeDocument(src: string | undefined, listener: () => void): () => void {
@@ -219,8 +220,8 @@ export function subscribeDocument(src: string | undefined, listener: () => void)
  * How a rasterizer reports progress back into the cache as it works.
  *
  * @remarks Page-at-a-time rather than one array at the end, so a long document reveals itself
- * as it renders instead of showing nothing until the last page lands — which is what the hook
- * did with `setPages` before the pages outlived it.
+ * as it renders. The old behaviour showed nothing until the last page landed, which is what the
+ * hook did with `setPages` before the pages outlived it.
  * @internal
  */
 export type PdfLoadReport = {
@@ -235,15 +236,15 @@ export type PdfLoadRun = (report: PdfLoadReport) => Promise<void>
  * Starts a rasterization for `src` unless one is running or a finished document is already
  * resident.
  *
- * @remarks The guard is what makes a park cheap and a duplicate viewer free: a maximize finds
- * the pages already there and runs nothing, and a second viewer on the same `src` joins the
- * first one's load instead of fetching the file twice.
+ * @remarks The guard is what makes a park cheap and a duplicate viewer free. A maximize finds
+ * the pages already there and runs nothing. A second viewer on the same `src` joins the first
+ * one's load, instead of fetching the file twice.
  *
  * A load is **not** cancelled when the viewer that started it unmounts. Parking
  * mid-rasterization therefore keeps rasterizing, and the maximize finds a finished document
  * where cancelling meant starting over — the window `resolveWorker` already documents as
- * reachable. The cost is CPU spent on a document nobody is watching for as long as the park
- * lasts, which is the right trade for a scan the reader is on their way back to.
+ * reachable. The cost is CPU spent on a document nobody is watching, for as long as the park
+ * lasts. That is the right trade for a scan the reader is on their way back to.
  *
  * A failure is reported to current subscribers but not remembered: the record keeps its error
  * for them to render, and the next mount retries. So a transient network failure is recovered
@@ -258,13 +259,13 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 	if (held.loading) return
 
 	/*
-	 * A finished document, which is the whole point of the cache: nothing is loading, no error
+	 * A finished document, which is the whole point of the cache. Nothing is loading, no error
 	 * stands, and pages are present, so this is a complete rasterization to reuse.
 	 *
-	 * Pages-present rather than a `done` flag, so the one case they disagree on — a document
-	 * that rasterized zero pages and threw nothing, which is every page skipped for want of a
-	 * 2D context or a `toBlob` refusal — is retried by the next mount rather than cached as an
-	 * empty document forever. That is also what the hook did before the cache existed.
+	 * Pages-present rather than a `done` flag. The one case they disagree on is a document that
+	 * rasterized zero pages and threw nothing. That is every page skipped for want of a 2D
+	 * context or a `toBlob` refusal. The next mount retries it, rather than caching an empty
+	 * document forever. That is also what the hook did before the cache existed.
 	 */
 	if (held.snapshot.pages.length > 0 && !held.snapshot.error) return
 
@@ -306,7 +307,7 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 /**
  * Empties the cache, revoking every resident document's blob URLs regardless of who holds them.
  *
- * @remarks For tests, which need each case to start from a known map — module state outlives a
+ * @remarks For tests, which need each case to start from a known map. Module state outlives a
  * `renderHook`, so without this one test's resident document is the next one's surprise cache
  * hit. Not part of any runtime path: it ignores holders and would blank a live viewer.
  * @internal
@@ -320,8 +321,8 @@ export function resetDocumentCache() {
 /**
  * Which documents are resident, in LRU order, with each one's holder and page count.
  *
- * @remarks For tests asserting the bound and the holder rule, which are the two properties that
- * keep this from being a leak and are both invisible from a snapshot alone.
+ * @remarks For tests asserting the bound and the holder rule. Those are the two properties that
+ * keep this from being a leak, and both are invisible from a snapshot alone.
  * @internal
  */
 export function documentCacheState(): { src: string; holders: number; pages: number }[] {
