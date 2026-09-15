@@ -116,7 +116,6 @@
 	"modules/map/engine/map-zip/selection.ts": 11,
 	"modules/map/engine/map-zoom/gesture.ts": 10,
 	"modules/map/engine/map-zoom/input.ts": 10,
-	"modules/map/engine/map-zoom/transform.ts": 6,
 	"modules/map/engine/types.ts": 8,
 	"modules/map/map-chrome.tsx": 7,
 	"modules/map/map-dot.tsx": 25,
@@ -125,15 +124,12 @@
 	"modules/map/map-point.tsx": 13,
 	"modules/map/map-points.tsx": 22,
 	"modules/map/map-regions.tsx": 34,
-	"modules/map/use-map-coverage.ts": 6,
 	"modules/map/use-map-keyboard.ts": 10,
 	"modules/map/use-map-overlay.ts": 19,
 	"modules/map/use-map-shape.ts": 8,
 	"modules/map/use-map-zoom.ts": 15,
 	"primitives/current/current-contents.tsx": 7,
 	"primitives/density/density.tsx": 7,
-	"primitives/overlay/overlay.tsx": 6,
-	"primitives/ready-reveal/ready-reveal.tsx": 6,
 	"primitives/virtual-options/virtual-options.tsx": 7,
 	"recipes/kata/chart.ts": 9,
 	"recipes/kata/grid.ts": 13,
@@ -142,6 +138,5 @@
 	"recipes/kata/rating.ts": 7,
 	"recipes/kiso/control/affix.ts": 10,
 	"recipes/kiso/iro/ramp.ts": 8,
-	"utilities/color-scale.ts": 8,
-	"utilities/floating-portal-registry.ts": 6
+	"utilities/color-scale.ts": 8
 }

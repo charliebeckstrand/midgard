@@ -27,8 +27,8 @@ import type {
 export type MapCoverageOptions = {
 	/**
 	 * The territory, as the terms a broker states it in: whole codes (`60601`),
-	 * ZIP3 prefixes (`606`), inclusive ranges (`60601-60640`), and a `!` in front
-	 * of any of those to take it back out again. Separate terms with commas,
+	 * ZIP3 prefixes (`606`), and inclusive ranges (`60601-60640`). A `!` in front
+	 * of any of those takes it back out again. Separate terms with commas,
 	 * semicolons, or space, and pass one string or a list of them.
 	 *
 	 * A ZIP+4 reads as its five-digit code, so a `ZipcodeInput`'s own output
@@ -41,12 +41,12 @@ export type MapCoverageOptions = {
 	 * topology or a GeoJSON feature collection. The package ships no atlas data.
 	 *
 	 * Pass a topology wherever the outline matters. TopoJSON holds each shared
-	 * border once, so the covered codes dissolve exactly: the seams between
-	 * neighbours disappear, an uncovered code inside the territory comes out as a
+	 * border once, so the covered codes dissolve exactly. The seams between
+	 * neighbours disappear. An uncovered code inside the territory comes out as a
 	 * hole, and separate clusters come out as separate parts. A feature collection
 	 * repeats every shared border, and cannot be dissolved without a
-	 * polygon-clipping pass this module does not carry, so it draws each code's own
-	 * outline and `dissolved` reports `false`.
+	 * polygon-clipping pass this module does not carry. It therefore draws each
+	 * code's own outline, and `dissolved` reports `false`.
 	 */
 	zips?: MapGeography | null
 	/** Which topology object holds the codes; defaults to the topology's first key. */
@@ -79,8 +79,8 @@ export type MapCoverageOptions = {
 export type MapCoverage = {
 	/**
 	 * The regions of every group the territory reaches, as a feature collection
-	 * to hand `MapPlat` as its `geography` — the states it covers, split into
-	 * their counties. `null` while the territory places nowhere, which is what an
+	 * to hand `MapPlat` as its `geography`. Those are the states it covers, split
+	 * into their counties. `null` while the territory places nowhere, which is what an
 	 * empty selection, a missing atlas, and a territory outside the regions all
 	 * read as.
 	 */
@@ -111,7 +111,7 @@ const NO_PLACEMENT: { features: MapFeature[]; groups: string[] } = { features: [
  *
  * A broker states coverage in codes — whole ones, ZIP3 prefixes, ranges — and a
  * code names no state on its own. So the hook cuts the covered codes out of a
- * ZCTA atlas, dissolves them into one territory, finds which states that
+ * ZCTA atlas, and dissolves them into one territory. It finds which states that
  * territory's codes land in, and hands back that state's counties as the
  * geography to draw. `MapPlat` fits whatever geography it is given, so the state
  * frames itself and no new projection rule is involved.
@@ -125,8 +125,8 @@ const NO_PLACEMENT: { features: MapFeature[]; groups: string[] } = { features: [
  * drawing it.
  *
  * The passes are split so the expensive ones answer the atlas rather than the
- * territory: decoding an atlas and indexing it are memoised across instances and
- * mounts, so typing into a coverage field re-cuts and re-dissolves alone.
+ * territory. Decoding an atlas and indexing it are memoised across instances and
+ * mounts. Typing into a coverage field therefore re-cuts and re-dissolves alone.
  *
  * A code belongs to the state its own centroid lands in. Codes do cross state
  * lines, and the centroid settles which side such a code counts for.

@@ -3,10 +3,10 @@
  * outside-press tests ask of it.
  *
  * @remarks
- * Its own module rather than part of `use-floating-ui` so that `useDismissable`
- * — a generic outside-press boundary with no floating panel of its own — can
- * ask the question without pulling `@floating-ui/react` into every Dialog,
- * Sheet, and Drawer that only ever wanted a dismiss handler.
+ * Its own module rather than part of `use-floating-ui`, so that `useDismissable`
+ * can ask the question. That hook is a generic outside-press boundary with no
+ * floating panel of its own. It therefore pulls no `@floating-ui/react` into
+ * every Dialog, Sheet, and Drawer that only ever wanted a dismiss handler.
  */
 
 /** The marker `PresencePortal` stamps on each teleport node. @internal */
@@ -19,7 +19,7 @@ const PORTAL_SELECTOR = '[data-floating-ui-portal]'
  * @remarks
  * The DOM cannot answer this. `PresencePortal` passes an explicit `root` under a
  * `<UIProvider>`, so every surface's portal is a sibling `<div>` under one node
- * whatever opened it — ancestry carries no nesting information. A getter rather
+ * whatever opened it. Ancestry carries no nesting information. A getter rather
  * than an element because a panel's reference can change while it is open (a
  * context menu re-anchoring to a new cursor point).
  *
@@ -28,9 +28,9 @@ const PORTAL_SELECTOR = '[data-floating-ui-portal]'
 const portalReferences = new WeakMap<Element, () => Element | null>()
 
 /**
- * How many portals currently publish a reference. A `WeakMap` has no `size`, and
- * the overwhelmingly common press — on plain page content, with nothing open
- * that could claim it — is worth settling on an integer compare rather than a
+ * How many portals currently publish a reference. A `WeakMap` has no `size`. The
+ * overwhelmingly common press is on plain page content, with nothing open that
+ * could claim it. It is worth settling on an integer compare rather than a
  * root-ward DOM walk, once per open boundary per press.
  *
  * @internal
@@ -74,7 +74,7 @@ export function hasPortalReference(portal: Element): boolean {
 
 /**
  * The floating portal a press landed in, when that portal is not `container`'s
- * own — the press is in some *other* surface, which this container can own, or
+ * own. The press is in some *other* surface, which this container can own, or
  * not.
  *
  * @internal
@@ -107,13 +107,13 @@ export function referenceOpenedWithin(container: Element, portal: Element): bool
  * @remarks
  * An `Overlay` (Dialog, Sheet, Drawer) dismisses through `useDismissable`, whose
  * boundary is a plain DOM subtree with no floating reference of its own. A menu
- * or popover opened from inside it teleports into a sibling portal, so DOM
- * containment alone reads every press in it as outside and closes the surface
- * that owns it — taking the menu with it before the click that opened it can
- * land.
+ * or popover opened from inside it teleports into a sibling portal. DOM
+ * containment alone therefore reads every press in it as outside, and closes the
+ * surface that owns it. That takes the menu with it, before the click that
+ * opened it can land.
  *
  * `pressLandsInNestedSurface` asks the same question for a floating panel, and
- * adds a fallback for a portal that published nothing; this one has no such
+ * adds a fallback for a portal that published nothing. This one has no such
  * fallback, because an `Overlay` has no reference to compare against.
  *
  * @internal
