@@ -23,11 +23,10 @@ import type { ChatMessageData } from './engine/types'
  * Fails loud in dev — once per mount — when two seed messages share an id.
  *
  * The hook cannot repair this. Minting a fresh id for the second message would
- * discard the id a store persisted, which is the defect the seeding rule exists
- * to avoid, so the guard reports and leaves the transcript as the caller built
- * it.
+ * discard the id a store persisted. That is the defect the seeding rule exists
+ * to avoid. The guard reports and leaves the transcript as the caller built it.
  *
- * Read once, because the seed is read once: a later `initialMessages` does not
+ * Read once, because the seed is read once. A later `initialMessages` does not
  * reach the state, so a later scan would report a list the hook never held. It
  * also keeps the scan off the streaming path, where it would run per chunk.
  *
@@ -57,17 +56,17 @@ function useDuplicateSeedIdWarning(seed: ChatMessageData[] | undefined): void {
  * @remarks
  * A chunk is a string or a list of {@link ChatPart}s, and the two mean
  * different things. Each yielded *string* is the full reply's prose so far (not
- * a delta), so it replaces the bubble's running text rather than extends it;
- * this mirrors SSE transports that emit the running text, and a transport that
+ * a delta), so it replaces the bubble's running text rather than extends it.
+ * This mirrors SSE transports that emit the running text. A transport that
  * yields only strings behaves exactly as it did before parts existed. Each
  * yielded *part list* carries the blocks that changed, and it merges into the
- * reply by part id — so a chart yielded after two paragraphs joins them instead
- * of replacing them, and a later string chunk keeps writing the prose without
- * touching the chart. Yield once for a non-streaming reply.
+ * reply by part id. A chart yielded after two paragraphs therefore joins them
+ * instead of replacing them. A later string chunk keeps writing the prose
+ * without touching the chart. Yield once for a non-streaming reply.
  *
  * Name every part. A merge reads a part's id and never its position, because an
  * insertion moves every position after it. A part yielded under an id the reply
- * already holds replaces that block whole, which is how a tool call that turns
+ * already holds replaces that block whole. That is how a tool call that turns
  * from running to done reports itself.
  *
  * Throwing (or rejecting) rolls back the empty assistant placeholder and triggers
@@ -93,10 +92,10 @@ export type ChatSendOptions = {
 	 *
 	 * @remarks
 	 * The id a seed message carries is the one a store persisted, so the hook
-	 * keeps it. Every target the transcript holds is named by it: a React key, an
-	 * {@link ChatSend.edit} call, and — once a message holds parts — the
-	 * message half of a part's address. A hook that minted a fresh id here would
-	 * re-key the whole conversation at each mount, and a target written before a
+	 * keeps it. Every target the transcript holds is named by it. That covers a
+	 * React key, an {@link ChatSend.edit} call, and — once a message holds parts —
+	 * the message half of a part's address. A hook that minted a fresh id here
+	 * would re-key the whole conversation at each mount. A target written before a
 	 * reload would name a message that no longer exists.
 	 *
 	 * An id must be unique in the transcript, because every rule over the
@@ -129,9 +128,9 @@ export type ChatSend = {
 	/** Optimistically appends the user message and streams the reply via the transport. No-ops on empty input. */
 	send: (content: string) => Promise<void>
 	/**
-	 * Regenerates the reply to the last user message: drops it and anything
-	 * after it (an existing assistant reply, or nothing if the prior send errored),
-	 * then streams a fresh one for the same content. No-ops with no user
+	 * Regenerates the reply to the last user message. Drops it and anything after
+	 * it: an existing assistant reply, or nothing if the prior send errored. Then
+	 * streams a fresh one for the same content. No-ops with no user
 	 * message in the transcript, or while a send is already in flight.
 	 */
 	retry: () => Promise<void>
@@ -156,15 +155,16 @@ export type ChatSend = {
  * Drives a chat's message list and streams assistant replies through an injected transport.
  *
  * @remarks
- * `send` optimistically appends the user message, opens an empty assistant bubble,
- * then folds each chunk the {@link ChatTransport} yields into that bubble — a
- * string replaces its running prose, a part list merges into its blocks by id.
- * {@link ChatSend.retry} and {@link ChatSend.edit} share that same
- * streaming path — re-pointed at the last user message's content, or an edited
- * one — after trimming the transcript back to (and, for `edit`, including) that
- * message. Across all three, a transport failure drops the still-empty
- * placeholder (keyed by id, so concurrent or prior empty bubbles are untouched),
- * keeps the user message, and fires `onError`. {@link ChatSend.stop} aborts
+ * `send` optimistically appends the user message, opens an empty assistant
+ * bubble, then folds each chunk the {@link ChatTransport} yields into that
+ * bubble. A string replaces its running prose, and a part list merges into its
+ * blocks by id. {@link ChatSend.retry} and {@link ChatSend.edit} share that
+ * same streaming path, re-pointed at the last user message's content, or an
+ * edited one. They first trim the transcript back to (and, for `edit`,
+ * including) that message. Across all three, a transport failure drops the
+ * still-empty placeholder (keyed by id, so concurrent or prior empty bubbles
+ * are untouched). It keeps the user message, and fires `onError`.
+ * {@link ChatSend.stop} aborts
  * whichever of the three is in flight, leaving the bubble at its last-folded
  * chunk without treating the stop as an error. The transport is supplied by
  * the caller, keeping this hook free of any framework, endpoint, or wire-format

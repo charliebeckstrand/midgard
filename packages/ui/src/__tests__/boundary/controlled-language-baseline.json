@@ -27,8 +27,6 @@
 	"modules/chart/engine/use-chart-cartesian.ts": 33,
 	"modules/chart/engine/use-chart-keyboard.ts": 18,
 	"modules/chart/scatter-chart/scatter-chart.tsx": 12,
-	"modules/chat/engine/chat-transcript.ts": 11,
-	"modules/chat/use-chat-send.ts": 11,
 	"modules/grid/engine/grid-column/measure.ts": 22,
 	"modules/grid/engine/grid-sort/utilities.ts": 17,
 	"modules/grid/engine/grid-table/options.ts": 11,
