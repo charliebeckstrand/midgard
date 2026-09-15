@@ -437,7 +437,7 @@
 	"modules/grid/grid-context-menu.tsx": 3,
 	"modules/grid/grid-data-cell.tsx": 3,
 	"modules/grid/grid-data-resolvers.ts": 14,
-	"modules/grid/grid-data-types.ts": 75,
+	"modules/grid/grid-data-types.ts": 58,
 	"modules/grid/grid-data.tsx": 14,
 	"modules/grid/grid-detail-row.tsx": 4,
 	"modules/grid/grid-edit-inputs.tsx": 5,

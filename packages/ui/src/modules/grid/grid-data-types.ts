@@ -27,45 +27,47 @@ import type {
 export type GridVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
 /**
- * Infinite-scroll binding for {@link GridProps.infiniteScroll}: as the
+ * Infinite-scroll binding for {@link GridProps.infiniteScroll}. As the
  * virtualized window nears the end of the loaded rows, the grid calls
- * `onLoadMore` so the consumer can grow `rows` with the next batch. Implies
+ * `onLoadMore`. The consumer then grows `rows` with the next batch. Implies
  * {@link GridProps.virtualize} (which supplies the windowed scroll container —
  * so `maxHeight` is still required), and replaces the paged
  * {@link GridProps.pagination} footer — the two are mutually exclusive.
  *
- * @remarks One binding, two data sources. A *local* set appends synchronously
- * (leave `loadingMore` unset and gate on `hasMore`); a *server* set fetches the
- * next page and appends it — hold `loadingMore` true while the request is in
- * flight so the grid holds off re-requesting (and, with `loadingIndicator`,
- * shows a trailing skeleton row). In both, `hasMore` is the master gate: once
- * `false`, `onLoadMore` never fires again and the indicator drops. Supply
- * {@link GridInfiniteScroll.totalRows} when the backend reports its total and
- * `hasMore` derives itself; the grid then also reports a determinate
- * `aria-rowcount` and a real footer `rowTotal` instead of the loaded extent,
- * and its busy status announces each grown total as a batch settles.
+ * @remarks One binding, two data sources. A *local* set appends synchronously:
+ * leave `loadingMore` unset and gate on `hasMore`. A *server* set fetches the
+ * next page and appends it. Hold `loadingMore` true while the request is in
+ * flight, so the grid holds off re-requesting. With `loadingIndicator`, that
+ * also shows a trailing skeleton row. In both, `hasMore` is the master gate:
+ * once `false`, `onLoadMore` never fires again and the indicator drops. Supply
+ * {@link GridInfiniteScroll.totalRows} when the backend reports its total, and
+ * `hasMore` derives itself. The grid then reports a determinate `aria-rowcount`
+ * and a real footer `rowTotal` instead of the loaded extent. Its busy status
+ * announces each grown total as a batch settles.
  *
  * The trailing row below the loaded rows resolves the terminal states in
- * precedence order: an `error` (a failed load) shows a `Text severity="error"`
- * message; an in-flight batch shows the opt-in loading indicator; the reached
- * end (`hasMore` false) shows the muted `endMessage`.
+ * precedence order:
+ *
+ * - An `error` (a failed load) shows a `Text severity="error"` message.
+ * - An in-flight batch shows the opt-in loading indicator.
+ * - The reached end (`hasMore` false) shows the muted `endMessage`.
  *
  * Firing upholds one invariant: *`onLoadMore` never fires more than once per
  * user scroll interaction, except for a bounded initial viewport-fill.* A
- * post-fill fetch needs the scroll container to actually overflow and a scroll
- * event since the last fire — so an append that lands still within `threshold`
- * of the new end waits for the next scroll rather than chain-fetching, and a
- * *failed* fetch (the count never grew) re-arms on the next scroll instead of
- * dead-locking. While the loaded rows don't yet fill the viewport the grid
- * auto-fetches to fill it, bounded by the viewport's geometry; a container
- * with no bounded height (a `maxHeight` that never bound — see
- * {@link GridProps.maxHeight}) stops fetching and fails loud in dev rather
- * than chain-fetching the whole backend. Replacing the row set with a shorter
- * one (a sort/filter/search swap) scrolls back to the top and resets the
- * firing state.
+ * post-fill fetch needs two things: the scroll container must overflow, and a
+ * scroll event must arrive since the last fire. An append that lands still
+ * within `threshold` of the new end therefore waits for the next scroll rather
+ * than chain-fetching. A *failed* fetch (the count never grew) re-arms on the
+ * next scroll instead of dead-locking. While the loaded rows do not yet fill
+ * the viewport, the grid auto-fetches to fill it, bounded by the viewport's
+ * geometry. A container with no bounded height stops fetching and fails loud in
+ * dev, rather than chain-fetching the whole backend. That is a `maxHeight` that
+ * never bound; see {@link GridProps.maxHeight}. Replacing the row set with a
+ * shorter one (a sort/filter/search swap) scrolls back to the top and resets
+ * the firing state.
  *
- * Seed the first page as `rows` — an empty `rows` shows the `empty` slot rather
- * than auto-fetching (use {@link GridProps.loading} for the initial load); the
+ * Seed the first page as `rows`. An empty `rows` shows the `empty` slot rather
+ * than auto-fetching; use {@link GridProps.loading} for the initial load. The
  * grid grows the set from there as the scroll advances.
  *
  * @see {@link GridProps.infiniteScroll}
@@ -73,9 +75,10 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
 export type GridInfiniteScroll = {
 	/**
 	 * Called when the scroll reaches within {@link GridInfiniteScroll.threshold}
-	 * rows of the loaded end and more rows remain — at most once per scroll
-	 * interaction (plus the bounded viewport-fill; see the binding remarks).
-	 * Append the next rows to your `rows` — a local slice, or a server fetch.
+	 * rows of the loaded end and more rows remain. It fires at most once per
+	 * scroll interaction, plus the bounded viewport-fill; see the binding
+	 * remarks. Append the next rows to your `rows` — a local slice, or a server
+	 * fetch.
 	 */
 	onLoadMore: () => void
 	/**
@@ -86,7 +89,7 @@ export type GridInfiniteScroll = {
 	hasMore?: boolean
 	/**
 	 * Total rows in the full (server) set, when the backend reports it. Derives
-	 * `hasMore` (unless explicitly set), makes `aria-rowcount` determinate
+	 * `hasMore`, unless it is explicitly set. Makes `aria-rowcount` determinate
 	 * instead of the indeterminate `-1`, and reports the real set through the
 	 * {@link GridFooter.rowTotal | footer} rather than the loaded extent.
 	 */
@@ -101,16 +104,16 @@ export type GridInfiniteScroll = {
 	loadingMore?: boolean
 	/**
 	 * How many rows from the end of the loaded set the scroll can come within
-	 * before `onLoadMore` fires, so the next batch is requested ahead of the
+	 * before `onLoadMore` fires. The next batch therefore arrives ahead of the
 	 * viewport reaching the last row.
 	 * @defaultValue The grid's virtualization `overscan`.
 	 */
 	threshold?: number
 	/**
 	 * The trailing indicator shown while `loadingMore`, presence-implied and off
-	 * by default: `true` shows the default per-column skeleton cells; a node
-	 * renders that content instead, in a single cell spanning every column (e.g.
-	 * a run of skeleton rows); omit (or `false`) to load silently.
+	 * by default. `true` shows the default per-column skeleton cells. A node
+	 * renders that content instead, in a single cell spanning every column, such
+	 * as a run of skeleton rows. Omit it (or pass `false`) to load silently.
 	 */
 	loadingIndicator?: boolean | ReactNode
 	/**
@@ -128,12 +131,13 @@ export type GridInfiniteScroll = {
 	 */
 	error?: ReactNode
 	/**
-	 * Freeze the auto-fit column widths at their first measurement of rendered rows
-	 * so an appended batch never reflows the columns (later content wider than a
-	 * column truncates instead of widening it); a structural change — columns,
-	 * density, or a container resize — still re-fits. Rows that arrive after mount
-	 * are the first measurement, not an append: a grid that mounts on a loading
-	 * skeleton fits to its data when the data renders, then freezes there. Builds on
+	 * Freeze the auto-fit column widths at their first measurement of rendered
+	 * rows, so an appended batch never reflows the columns. Later content wider
+	 * than a column truncates instead of widening it. A structural change —
+	 * columns, density, or a container resize — still re-fits. Rows that arrive
+	 * after mount are the first measurement, not an append. A grid that mounts on
+	 * a loading skeleton fits to its data when the data renders, then freezes
+	 * there. Builds on
 	 * the default column auto-fit, so it has no effect when `resizable` is off or
 	 * `columnSizing` is controlled.
 	 * @defaultValue false
@@ -154,27 +158,28 @@ export type GridSort = {
 	/**
 	 * Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
 	 * their order untouched. When omitted, the grid sorts client-side by each
-	 * sortable column's value — its {@link GridColumn.value} accessor, or the row
-	 * field named by the column id when none is given.
+	 * sortable column's value. That value is its {@link GridColumn.value}
+	 * accessor, or the row field named by the column id when none is given.
 	 * @defaultValue false
 	 */
 	manual?: boolean
 	/**
-	 * Animate rows sliding to their new places when a sort reorders them — a
-	 * Framer Motion layout (FLIP) glide over the rows' position change, rather than
-	 * an instant repaint. Applies to the plain body only: it stands down under
-	 * `virtualize` (windowed rows mount and unmount on scroll, so there is no stable
-	 * element to glide) and under grouping (whose group and leaf rows run their own
-	 * reveals), and honors `prefers-reduced-motion` (no motion at all).
+	 * Animate rows sliding to their new places when a sort reorders them. It is a
+	 * Framer Motion layout (FLIP) glide over the rows' position change, rather
+	 * than an instant repaint. Applies to the plain body only. It stands down
+	 * under `virtualize`, where windowed rows mount and unmount on scroll, so no
+	 * stable element remains to glide. It stands down under grouping too, whose
+	 * group and leaf rows run their own reveals. It honors
+	 * `prefers-reduced-motion`, which means no motion at all.
 	 * @defaultValue false
 	 */
 	animate?: boolean
 	/**
 	 * How a plain header click cycles the sole sorted column. `'tri-state'`
-	 * cycles ascending → descending → unsorted; `'toggle'` flips asc ↔ desc on
-	 * the sorted column instead of clearing to unsorted — for grids whose empty
-	 * sort state re-applies a server default, where the tri-state third click
-	 * reads as a dead click. Additive (Shift-click) multi-column semantics are
+	 * cycles ascending → descending → unsorted. `'toggle'` flips asc ↔ desc on
+	 * the sorted column instead of clearing to unsorted. It suits grids whose
+	 * empty sort state re-applies a server default, where the tri-state third
+	 * click reads as a dead click. Additive (Shift-click) multi-column semantics are
 	 * unchanged under either cycle.
 	 * @defaultValue 'tri-state'
 	 */
