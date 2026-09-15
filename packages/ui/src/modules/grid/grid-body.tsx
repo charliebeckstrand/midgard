@@ -76,9 +76,9 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	/**
 	 * The grouped column's active sort direction under manual grouping, or `null`
 	 * when unsorted or not manually grouped. Reorders the group blocks (each
-	 * header with its children) by group value — a client-side group sort that
-	 * moves whole blocks, so children never leave their header and the backend's
-	 * within-group order stands.
+	 * header with its children) by group value. It is a client-side group sort
+	 * that moves whole blocks, so children never leave their header and the
+	 * backend's within-group order stands.
 	 */
 	manualGroupSort: 'asc' | 'desc' | null
 	/** Group-header label override from the {@link GridGroupBy} binding, if any. */
@@ -91,8 +91,9 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	density: DensityLevel
 	/**
 	 * The row manager's overlay presentation, or `null` when the grid isn't
-	 * client-grouped: the per-group color (tinting the header aggregates, total
-	 * footer, and rail) and the manual group / leaf order the grouped body applies.
+	 * client-grouped. It holds the per-group color, which tints the header
+	 * aggregates, total footer, and rail. It also holds the manual group / leaf
+	 * order the grouped body applies.
 	 */
 	rowGroupPresentation: GridRowGroupPresentation | null
 	virtualize: {
@@ -109,8 +110,9 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 
 /**
  * The {@link GridGroupLeafRow} prop block the client-grouped and manual-grouped
- * bodies share: the leaf's identity/selection wiring from the shared body props
- * plus the caller's expansion state and (client grouping only) group color.
+ * bodies share. It is the leaf's identity/selection wiring from the shared body
+ * props, plus the caller's expansion state. Under client grouping it also
+ * carries the group color.
  *
  * @internal
  */
@@ -153,9 +155,9 @@ function leafRowProps<T>(
 /**
  * Renders one group as a header row ({@link GridGroupRow}) followed by every one
  * of its leaves ({@link GridGroupLeafRow}). The leaves stay mounted whatever the
- * group's expansion — each animates open/closed from the `expanded` flag — so the
- * collapse plays reliably (rather than relying on `AnimatePresence` to track a
- * table row's exit). Resolved from the shared body wiring, keyed by engine row id.
+ * group's expansion, and each animates open/closed from the `expanded` flag. The
+ * collapse therefore plays reliably, rather than relying on `AnimatePresence` to
+ * track a table row's exit. Resolved from the shared body wiring, keyed by engine row id.
  *
  * @internal
  */
@@ -214,9 +216,9 @@ function renderGroup<T>(
 
 /**
  * Renders one manual-grouping segment: its consumer-supplied group-header row
- * ({@link GridManualGroupRow}) followed by the leaves positionally associated
- * with it — each riding the same mounted CSS reveal as the client grouped body,
- * so a group collapses without unmounting its (already fetched) children. A
+ * ({@link GridManualGroupRow}), followed by the leaves positionally associated
+ * with it. Each leaf rides the same mounted CSS reveal as the client grouped
+ * body, so a group collapses without unmounting its (already fetched) children. A
  * leading headerless segment renders its leaves alone, always open.
  *
  * @internal
@@ -273,9 +275,9 @@ function renderManualSegment<T>(
 }
 
 /**
- * Body for {@link Grid}: branches between the loading skeleton, the error slot,
- * the `empty` slot, the grouped body, the virtualized window, and the plain row
- * map, threading per-row state to each {@link GridRow}.
+ * Body for {@link Grid}. It branches between the loading skeleton, the error
+ * slot, the `empty` slot, the grouped body, the virtualized window, and the
+ * plain row map. It threads per-row state to each {@link GridRow}.
  *
  * @internal
  */

@@ -25,20 +25,21 @@ type GridSkeletonCellsProps<T> = {
 }
 
 /**
- * One {@link TextSkeleton} cell per visible column — the contents of every
- * placeholder row the grid draws (the whole-body loading state, an expanded
- * manual group awaiting its children, an infinite-scroll batch in flight).
+ * One {@link TextSkeleton} cell per visible column: the contents of every
+ * placeholder row the grid draws. Those rows are the whole-body loading state,
+ * an expanded manual group awaiting its children, and an infinite-scroll batch
+ * in flight.
  *
- * Each cell carries the same per-column chrome a data cell does: the column's
- * `className` and, for a frozen column, the sticky position and offset (see
- * {@link pinnedCellProps}). Without them a pinned column's placeholder scrolls
- * while its header stays stuck, so the row's cells land under the wrong headers
- * and the columns beside them read as pushed aside.
+ * Each cell carries the same per-column chrome a data cell does. That is the
+ * column's `className` and, for a frozen column, the sticky position and offset
+ * (see {@link pinnedCellProps}). Without them a pinned column's placeholder
+ * scrolls while its header stays stuck. The row's cells then land under the
+ * wrong headers, and the columns beside them read as pushed aside.
  *
- * A placeholder carries no `data-grid-col`, unlike every cell holding content:
- * that attribute is what the autosizer's body scan collects (see
- * `measureColumnIntrinsics`), and a leafless skeleton cell measures at its own
- * current width — folding that into a column's running-max content width would
+ * A placeholder carries no `data-grid-col`, unlike every cell holding content.
+ * That attribute is what the autosizer's body scan collects (see
+ * `measureColumnIntrinsics`). A leafless skeleton cell measures at its own
+ * current width. To fold that into a column's running-max content width would
  * hold the columns at whatever the loading state happened to be.
  *
  * @internal
@@ -68,9 +69,11 @@ function GridSkeletonCellsImpl<T>({
 }
 
 /**
- * Memoized {@link GridSkeletonCellsImpl}: the infinite-scroll trailer draws its
+ * Memoized {@link GridSkeletonCellsImpl}. The infinite-scroll trailer draws its
  * cells from inside the virtualized body, which re-renders on every scroll
- * frame — this keeps the per-column pinning resolution off that path. @internal
+ * frame. This keeps the per-column pinning resolution off that path.
+ *
+ * @internal
  */
 export const GridSkeletonCells = memo(GridSkeletonCellsImpl) as typeof GridSkeletonCellsImpl
 
@@ -84,9 +87,9 @@ type GridSkeletonRowsProps<T> = {
 
 /**
  * The {@link GRID_LOADING_ROWS} placeholder rows {@link GridLoadingBody} draws,
- * without its `<tbody>` — for a caller that owns the body and holds this
- * silhouette in place of part of it (the windowed body, whose loading rows sit
- * between its spacers and its trailing infinite-scroll states).
+ * without its `<tbody>`. It is for a caller that owns the body and holds this
+ * silhouette in place of part of it. The windowed body is the example, whose
+ * loading rows sit between its spacers and its trailing infinite-scroll states.
  *
  * @internal
  */
