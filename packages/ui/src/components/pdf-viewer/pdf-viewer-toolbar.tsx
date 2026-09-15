@@ -13,11 +13,14 @@ import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
- * The viewer's top control bar: the thumbnail toggle (collapses the desktop
- * sidebar, opens the mobile Sheet), page navigation, zoom and rotate, the highlight
- * visibility toggle when there are regions, the magnifier control when the consumer asked for
- * a loupe, and the download / print actions. Reads everything from {@link PdfViewerContext};
- * controls disable while loading or empty.
+ * The viewer's top control bar. It carries the thumbnail toggle, page
+ * navigation, zoom and rotate, and the download and print actions. The
+ * thumbnail toggle collapses the desktop sidebar and opens the mobile Sheet.
+ * The highlight visibility toggle appears when there are regions, and the
+ * magnifier control when the consumer asked for a loupe.
+ *
+ * Reads everything from {@link PdfViewerContext}. Controls disable while
+ * loading or empty.
  *
  * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
  * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.

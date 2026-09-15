@@ -9,10 +9,10 @@ import { PdfViewerMagnifier } from './pdf-viewer-magnifier'
 import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
 
 /**
- * Renders the page surface inside the measured viewport: either the active
- * page image — with the highlight overlay over it, sharing its frame and its
- * transform — or an error message, a loading placeholder, or an empty state.
- * The `scale` input drives the viewport's aspect ratio; the container
+ * Renders the page surface inside the measured viewport. That is the active
+ * page image, an error message, a loading placeholder, or an empty state. The
+ * highlight overlay sits over the image, sharing its frame and its transform.
+ * The `scale` input drives the viewport's aspect ratio, and the container
  * reserves space before the image paints.
  *
  * @remarks A visually hidden live region announces "Page X of Y" on

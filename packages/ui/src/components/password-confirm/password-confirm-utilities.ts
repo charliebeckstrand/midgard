@@ -12,9 +12,9 @@ export type LastEdited = 'password' | 'confirm' | null
  * @returns `'warning'` only once both fields are non-empty and unequal;
  * `'idle'` otherwise.
  * @remarks
- * While the user is still typing the confirmation (`lastEdited === 'confirm'`
- * and it's shorter than the password) the result stays `'idle'`, so a
- * not-yet-finished entry isn't flagged as a mismatch.
+ * While the user is still typing the confirmation the result stays `'idle'`, so
+ * a not-yet-finished entry isn't flagged as a mismatch. That is the case where
+ * `lastEdited === 'confirm'` and it is shorter than the password.
  * @internal
  */
 export function deriveStatus(password: string, confirm: string, lastEdited: LastEdited): Status {
