@@ -11,8 +11,9 @@ import { ComponentEntry } from './component-entry'
 
 /**
  * The API reference for a component family: one collapsible accordion entry per
- * exported component, sorted alphabetically by name, each rendering its
- * description, props, events, and pass-through note via {@link ComponentEntry}.
+ * exported component, sorted alphabetically by name. Each entry renders its
+ * description, props, events, and pass-through note via
+ * {@link ComponentEntry}.
  *
  * `api` arrives in barrel-declaration order; ordering is a display concern
  * settled here, mirroring how {@link ComponentEntry} sorts props and events. A

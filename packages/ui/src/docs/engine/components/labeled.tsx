@@ -5,9 +5,9 @@ const labelClass = 'text-zinc-500 dark:text-zinc-400'
 
 /**
  * Groups {@link LabeledRow}s into one shared two-column grid. The label column
- * sizes to `max-content` across every row, so each label is as wide as it needs
- * to be, all labels share that one width, and the children columns line up — no
- * explicit width required. The wrapper is transparent to the docs
+ * sizes to `max-content` across every row. Each label is therefore as wide as it
+ * needs to be, and all labels share that one width. The children columns line
+ * up, with no explicit width required. The wrapper is transparent to the docs
  * code-derivation walker.
  */
 export function LabeledRows({ children }: { children: ReactNode }) {

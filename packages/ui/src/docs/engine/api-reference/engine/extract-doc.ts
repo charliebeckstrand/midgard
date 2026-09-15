@@ -7,9 +7,9 @@ type ExtractedDoc = { description?: string; links?: Record<string, DocLink> }
 /**
  * Resolves a `{@link}` target name to its hover detail, or `null` when the name
  * is unknown. Backed by a package-wide export index ({@link createLinkIndex})
- * rather than lexical scope: TSDoc links resolve across files without an import,
- * so `CommandPaletteItem` referenced from a sibling file's comment still
- * resolves even though the comment's file never imports it.
+ * rather than lexical scope, because TSDoc links resolve across files without
+ * an import. `CommandPaletteItem` referenced from a sibling file's comment
+ * therefore still resolves, even though the comment's file never imports it.
  */
 export type LinkResolver = (name: string) => DocLink | null
 
