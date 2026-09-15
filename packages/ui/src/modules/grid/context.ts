@@ -17,10 +17,10 @@ export type GridContextValue = {
 	/** The active sort columns in priority order; empty when unsorted. */
 	sort: SortState[]
 	/**
-	 * Cycles a column's sort. `additive` (a Shift-click) folds the column into the
-	 * existing sort — appending it, flipping its direction, then dropping it —
-	 * leaving the others in place; otherwise the sort collapses to this column
-	 * alone, cycling ascending → descending → unsorted.
+	 * Cycles a column's sort. The `additive` (a Shift-click) folds the column into
+	 * the existing sort, and leaves the others in place. It appends the column,
+	 * flips its direction, then drops it. Otherwise the sort collapses to this
+	 * column alone, cycling ascending → descending → unsorted.
 	 */
 	toggleSort: (column: string | number, additive: boolean) => void
 	/**
@@ -31,14 +31,14 @@ export type GridContextValue = {
 	stickyHeader: boolean
 	/**
 	 * Whether a column drag-resize is in flight. Head and cells read it to
-	 * suppress their truncation tooltips for the duration: a resize reflows the
+	 * suppress their truncation tooltips for the duration. A resize reflows the
 	 * columns, and the overflow tooltip would otherwise flash open over the
 	 * content the drag is reshaping.
 	 *
 	 * @remarks The grid's own truncation surfaces read this flag through the
-	 * narrower {@link useGridResizing} instead, so a resize doesn't re-render every
-	 * cell through this table-wide value; it stays here for external `useGrid()`
-	 * consumers.
+	 * narrower {@link useGridResizing} instead. A resize therefore doesn't
+	 * re-render every cell through this table-wide value. It stays here for
+	 * external `useGrid()` consumers.
 	 */
 	resizing: boolean
 }
@@ -55,13 +55,13 @@ export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
  * Reads whether a column drag-resize is in flight, mirroring
  * {@link GridContextValue.resizing} on a narrower channel. The grid's truncation
  * surfaces (head titles and body cells) read it to suppress their tooltips for
- * the duration: a resize reflows the columns, and the overflow tooltip would
+ * the duration. A resize reflows the columns, and the overflow tooltip would
  * otherwise flash open over the content the drag is reshaping.
  *
- * @remarks A dedicated context so the per-cell truncation reveal subscribes to
- * this flag alone, not the table-wide {@link GridContextValue} — a sort or a
- * select-all churns that value but no longer re-renders every visible truncating
- * cell. Returns `false` outside a `<Grid>`.
+ * @remarks A dedicated context, so the per-cell truncation reveal subscribes to
+ * this flag alone, not the table-wide {@link GridContextValue}. A sort or a
+ * select-all churns that value, but no longer re-renders every visible
+ * truncating cell. Returns `false` outside a `<Grid>`.
  */
 export const [GridResizingContext, useGridResizing] = createContext<boolean>('GridResizing', {
 	default: false,
@@ -69,10 +69,10 @@ export const [GridResizingContext, useGridResizing] = createContext<boolean>('Gr
 
 /**
  * The active quick-search query when the grid searches in highlight mode
- * ({@link GridSearch.filter} `false`), or `null` when it filters, has no query, or
- * has no search at all. Data cells read it to mark the matched substring in the
- * columns the search scans; a query change re-renders only the cells that
- * subscribe, so the default (filtering, or unsearched) grid pays nothing.
+ * ({@link GridSearch.filter} `false`). It is `null` when the grid filters, has no
+ * query, or has no search at all. Data cells read it to mark the matched
+ * substring in the columns the search scans. A query change re-renders only the
+ * cells that subscribe, so the default (filtering, or unsearched) grid pays nothing.
  *
  * @remarks A dedicated context, like {@link GridResizingContext}, so the marking
  * subscribes to the query alone rather than the table-wide {@link GridContextValue}.
