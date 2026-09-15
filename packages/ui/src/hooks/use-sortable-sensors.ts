@@ -45,8 +45,8 @@ class PrimaryPointerSensor extends PointerSensor {
 /**
  * Pointer travel (px) before a drag activates: far enough to survive a click's
  * jitter, near enough to feel immediate. Held as the whole options object, at
- * module scope, because `useSensor` memoises on option identity — a fresh literal
- * per render misses that memo and hands `<DndContext>` a new sensor array every
+ * module scope, because `useSensor` memoises on option identity. A fresh literal
+ * per render misses that memo, and hands `<DndContext>` a new sensor array every
  * time.
  */
 const POINTER_ACTIVATION = { activationConstraint: { distance: 3 } }
@@ -57,8 +57,8 @@ type SortableSensorsOptions = {
 	/**
 	 * Coordinate getter driving the keyboard sensor's arrow-key reordering.
 	 * Override to scope arrow steps when a single `DndContext` hosts more than one
-	 * sortable (e.g. the group manager, whose group and column droppables share a
-	 * context); the default weighs every droppable in the context.
+	 * sortable. The group manager is one, with its group and column droppables
+	 * sharing a context. The default weighs every droppable in the context.
 	 *
 	 * @defaultValue `sortableKeyboardCoordinates`
 	 */

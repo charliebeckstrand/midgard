@@ -15,7 +15,7 @@ export type ChartToggleSet = {
 /**
  * A set of hidden indexes with an index toggle — the shared core of the series
  * and reference switchboards. Neither the series entries nor the reference chips
- * differ in how they hide their mark; they part only in the emphasis the series
+ * differ in how they hide their mark. They part only in the emphasis the series
  * layers on top.
  *
  * @internal
@@ -72,9 +72,9 @@ export type ChartReferenceToggle = ChartToggleSet
 /**
  * Which reference rules are toggled off — the reference chips' switchboard,
  * keyed by each rule's own index in the `reference` array. Unlike the series
- * toggle it carries no emphasis of its own: a chip's recede lives in the frame's
- * {@link ChartEmphasis} channel, reached only through the chip, which the legend
- * gates on this hidden set so an off chip never recedes to a rule it just pulled.
+ * toggle it carries no emphasis of its own. A chip's recede lives in the frame's
+ * {@link ChartEmphasis} channel, reached only through the chip. The legend gates
+ * that chip on this hidden set, so an off chip never recedes to a rule it just pulled.
  *
  * @internal
  */

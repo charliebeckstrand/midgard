@@ -47,13 +47,14 @@ function releaseGrabbingCursor() {
  * rule lifts only when the last drag releases.
  *
  * @remarks A pointer-driven library (dnd-kit) sets no cursor of its own and never
- * captures the pointer, so mid-drag the cursor is decided by whatever element
- * sits under the pointer — a reflowing sibling, a gap, the enclosing dialog — not
- * the item being dragged. A class scoped to the dragged node therefore flickers
- * back to the default the moment the pointer leaves it. This injects a single
- * universal `!important` rule into `<head>` so the grabbing cursor covers the
- * entire viewport for the drag's duration, beating each element's own cursor
- * (`grab` handles, `text` inputs, `pointer` links). Acquired in an effect and
+ * captures the pointer. Mid-drag the cursor is decided by whatever element sits
+ * under the pointer, not by the item being dragged. That element can be a
+ * reflowing sibling, a gap, or the enclosing dialog. A class scoped to the
+ * dragged node therefore flickers back to the default the moment the pointer
+ * leaves it. This injects a single universal `!important` rule into `<head>`, so
+ * the grabbing cursor covers the entire viewport for the drag's duration. It
+ * beats each element's own cursor (`grab` handles, `text` inputs, `pointer`
+ * links). Acquired in an effect and
  * released on cleanup or when `active` goes false — so it clears on both drop and
  * cancel; no-ops during SSR.
  */

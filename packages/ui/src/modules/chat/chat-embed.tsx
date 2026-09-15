@@ -19,7 +19,7 @@ const DEFERRED_HEIGHT = 160
 /**
  * The line a block draws when no renderer claims its name. It names the block,
  * because the name is the one fact both the reader and the developer can act
- * on: one can say what is missing, the other can register it.
+ * on. One can say what is missing, the other can register it.
  *
  * @internal
  */
@@ -41,9 +41,9 @@ export type ChatEmbedProps = {
  *
  * @remarks
  * Registered under the name, the caller's renderer draws it. Registered under
- * no name — including a transcript with no {@link ChatEmbedProvider} above it
- * at all — a stated fallback draws instead, so a reader is told the block is
- * there. A provider's own `fallback` replaces the module's line.
+ * no name, a stated fallback draws instead, so a reader is told the block is
+ * there. That covers a transcript with no {@link ChatEmbedProvider} above it at
+ * all. A provider's own `fallback` replaces the module's line.
  *
  * @internal
  */

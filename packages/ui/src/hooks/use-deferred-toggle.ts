@@ -22,9 +22,9 @@ type DeferredToggleOptions<T> = {
 
 /**
  * Toggle logic for Listbox / Combobox selection. Selecting writes the new value
- * to the control immediately; the value the *menu* renders as selected stays
- * frozen at a snapshot taken at selection time until the panel finishes its
- * exit animation, holding the selected row steady during the ~300ms close.
+ * to the control immediately. The value the *menu* renders as selected stays
+ * frozen at a snapshot taken at selection time, until the panel finishes its
+ * exit animation. That holds the selected row steady during the ~300ms close.
  *
  * Read `selectionValue` for the menu's selected state and wire `flushPending` to
  * `AnimatePresence`'s `onExitComplete` (or equivalent). Use `toggle` directly for
@@ -32,7 +32,7 @@ type DeferredToggleOptions<T> = {
  *
  * @returns `{ toggle, commit, flushPending, selectionValue }`. `toggle(v)`
  * applies the live add/remove/clear; `commit(v)` toggles and freezes the
- * rendered selection for the close animation; `flushPending` releases the
+ * rendered selection for the close animation. `flushPending` releases the
  * freeze (wire to exit-complete); `selectionValue` is the frozen-or-live value
  * the menu paints as selected.
  */
