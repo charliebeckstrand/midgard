@@ -1,7 +1,7 @@
 /**
  * What the legend lists: one entry per region category, then one per registered
- * overlay — or one per GROUP of overlays, where marks that stand for one place
- * merge. The item shape lives here beside the builder rather than with the view,
+ * overlay. Marks that stand for one place merge, so a GROUP of overlays takes
+ * one entry. The item shape lives here beside the builder rather than with the view,
  * so the plan and the component that draws it read one definition.
  */
 
@@ -37,9 +37,9 @@ export type MapLegendItem = {
 	id: string
 	label: string
 	/**
-	 * The entry's keys, one per distinct mark shape it stands for: a single swatch
-	 * for a category or a lone mark, and a square beside a dot where a zone and the
-	 * depot inside it merged into one place.
+	 * The entry's keys, one per distinct mark shape it stands for. A category or a
+	 * lone mark takes a single swatch. A zone and the depot inside it, merged into
+	 * one place, take a square beside a dot.
 	 */
 	swatches: MapLegendSwatch[]
 	/** A trailing readout — a route's mileage, a point's value. */
@@ -48,7 +48,7 @@ export type MapLegendItem = {
 
 /**
  * The toggle and emphasis id a merged group answers to, namespaced away from the
- * mark ids it holds and from {@link categoryLegendId}'s — the three share one
+ * mark ids it holds and from {@link categoryLegendId}'s. The three share one
  * switchboard, so none of them can collide.
  *
  * @internal
@@ -59,9 +59,10 @@ export function groupLegendId(group: string): string {
 
 /**
  * The currentColor class an overlay's swatch reads, from the slot the plat
- * assigned it. Named here because two readers key it off one mark — this
- * module's legend items and the plat's tooltip entries — the pair `map-swatch`
- * already answers on the shape half, and each spelled the fallback itself.
+ * assigned it. Named here because two readers key it off one mark: this module's
+ * legend items, and the plat's tooltip entries. That pair is the one
+ * `map-swatch` already answers on the shape half, and each spelled the fallback
+ * itself.
  *
  * @internal
  */
@@ -78,8 +79,8 @@ export function overlaySwatchClass(
  * range bar's high-at-top scale; the bin ids stay bound to their value order.
  *
  * Overlays naming one `group` collapse into a single entry, ordered where the
- * group's first member registered and named by it — so a legend counts the
- * places a reader sees on the map rather than the marks drawn to make them.
+ * group's first member registered and named by it. A legend therefore counts the
+ * places a reader sees on the map, rather than the marks drawn to make them.
  *
  * @internal
  */

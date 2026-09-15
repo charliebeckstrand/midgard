@@ -13,8 +13,8 @@ type MapLineHitSpec = {
 	d: string
 	/**
 	 * Whether the mark's own face is a target too, not just the band around its
-	 * edge. A zone is a place, so pointing anywhere inside it names it; a route
-	 * is a line, and a fill across the ground it spans would swallow every mark
+	 * edge. A zone is a place, so pointing anywhere inside it names it. A route is
+	 * a line, and a fill across the ground it spans would swallow every mark
 	 * between its ends.
 	 */
 	face?: boolean
@@ -48,12 +48,12 @@ type MapLineProps = {
 /**
  * The stroked line the map's line-shaped marks draw: a route's whole polyline,
  * a marker's leg between its pins, and a geofence's closed boundary. All three
- * hand-wrote it before this — the same round cap and join, the same
- * self-drawing reveal, down to the comment explaining the stroke — which is how
- * copies of one spec read once they have been kept in step by hand for a while.
+ * hand-wrote it before this: the same round cap and join, the same self-drawing
+ * reveal, and the comment explaining the stroke. That is how copies of one spec
+ * read once they have been kept in step by hand for a while.
  *
  * A zone states a `width` of its own, because it reads as context behind the
- * marks rather than as another route drawn around them; a marker's leg delays
+ * marks rather than as another route drawn around them. A marker's leg delays
  * its `transition` until its pins have popped. Nothing else varies.
  *
  * `className` rather than the kata paint object, so this file takes no
@@ -61,10 +61,10 @@ type MapLineProps = {
  *
  * @remarks The width is stated in device pixels and converted to frame units
  * here, through {@link MapLineProps.scale} — the multiply `MapDot` takes, and
- * for the reason recorded there. The reveal is why a line cares twice over:
- * `pathLength` 0 → 1 (the chart module's own line reveal) draws by dash, and a
- * dash under a non-scaling stroke covers only 1/k of its path, so a zoomed
- * route lost the far end of itself for as long as the view held.
+ * for the reason recorded there. The reveal is why a line cares twice over. A
+ * `pathLength` 0 → 1, the chart module's own line reveal, draws by dash. A dash
+ * under a non-scaling stroke covers only 1/k of its path. A zoomed route
+ * therefore lost the far end of itself for as long as the view held.
  *
  * @internal
  */
@@ -106,10 +106,10 @@ export function MapLine({
  * reason its doccomment records: a fiber per hit shape was measured and
  * rejected.
  *
- * The band is {@link ROUTE_HIT_WIDTH} in device pixels — WCAG 2.5.8's minimum,
- * which the constant explains a line takes in place of the 44px a dot claims —
- * and it converts to frame units the way the drawn line does, so a zoom widens
- * the ground the mark covers and never the target itself.
+ * The band is {@link ROUTE_HIT_WIDTH} in device pixels, WCAG 2.5.8's minimum.
+ * The constant explains that a line takes it in place of the 44px a dot claims.
+ * It converts to frame units the way the drawn line does. A zoom therefore
+ * widens the ground the mark covers, and never the target itself.
  *
  * @param slot - the `data-slot` naming this target.
  * @param d - the path it traces, which is the mark's own.
