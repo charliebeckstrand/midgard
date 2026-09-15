@@ -1,9 +1,7 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
-	baselinePath,
-	countsByFile,
 	LIVING_MARKDOWN,
 	markdownBreaks,
 	packageDir,
@@ -21,8 +19,8 @@ import {
 //
 //   1. Rule 10 is pinned at zero. The rule admits no judgment — "must" states a
 //      requirement and "can" states a possibility — so any site is a break.
-//   2. Rule 6 is pinned to a per-file ledger. Each break is a per-sentence
-//      rewrite, so the tree carries a recorded debt that can only be paid down.
+//   2. Rule 6 is pinned at zero. It held a per-file ledger while the tree paid
+//      the debt down, and the last of it closed in this branch.
 //   3. The curated surface docs carry no debt at all, in either rule.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
@@ -35,31 +33,6 @@ import {
 // zero, against 33 flagged instructions of which the readable ones were a
 // suffix heuristic mistaking "is that" and "is honest" for participles. Rule 4
 // stays a review concern.
-//
-// Refresh the ledger with STE_BASELINE=write after a change moves a count. The
-// diff is the burn-down record, so a commit that pays debt down shows it.
-
-type Baseline = Record<string, number>
-
-function readBaseline(): Baseline {
-	return JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline
-}
-
-/**
- * Serialize the ledger with one file to a line.
- *
- * @remarks
- * `JSON.stringify` spreads each entry over three lines, which buries the
- * burn-down. One line to a file makes a count change a one-line diff that
- * carries the path beside it.
- */
-function formatBaseline(baseline: Baseline): string {
-	const rows = Object.entries(baseline).map(
-		([file, count]) => `\t${JSON.stringify(file)}: ${count}`,
-	)
-
-	return `{\n${rows.join(',\n')}\n}\n`
-}
 
 describe('controlled-language boundary', () => {
 	const breaks = scanPackage()
@@ -75,35 +48,14 @@ describe('controlled-language boundary', () => {
 		).toEqual([])
 	})
 
-	it('no file exceeds its recorded rule 6 debt (STE.md)', () => {
-		const current = countsByFile(breaks)
-
-		if (process.env.STE_BASELINE === 'write') {
-			writeFileSync(baselinePath, formatBaseline(current))
-		}
-
-		const baseline = readBaseline()
-		const files = [...new Set([...Object.keys(baseline), ...Object.keys(current)])].sort()
-
-		const grown: string[] = []
-		const paid: string[] = []
-
-		for (const file of files) {
-			const was = baseline[file] ?? 0
-			const now = current[file] ?? 0
-
-			if (now > was) grown.push(`${file}: ${was} → ${now}`)
-			if (now < was) paid.push(`${file}: ${was} → ${now}`)
-		}
+	it('no comment runs past the sentence cap (STE.md rule 6)', () => {
+		const violations = breaks
+			.filter((item) => item.rule === 6)
+			.map((item) => `${item.file}:${item.line} — ${item.text}`)
 
 		expect(
-			grown,
-			`new rule 6 debt — split the sentence, or pay an equal amount down elsewhere in the file (STE.md rule 6):\n${grown.join('\n')}`,
-		).toEqual([])
-
-		expect(
-			paid,
-			`debt paid down but the ledger still records the old count — re-run with STE_BASELINE=write so the burn-down lands in the diff:\n${paid.join('\n')}`,
+			violations,
+			`sentence past the cap — 20 words for an instruction, 25 for a description (STE.md rule 6):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 

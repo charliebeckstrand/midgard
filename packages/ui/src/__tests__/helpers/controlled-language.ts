@@ -273,27 +273,6 @@ export function scanPackage(): Break[] {
 	return breaks.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
 }
 
-/** The rule 6 count per file, holding only the files that carry one. */
-export function countsByFile(breaks: readonly Break[]): Record<string, number> {
-	const counts: Record<string, number> = {}
-
-	for (const item of breaks) {
-		if (item.rule !== 6) continue
-
-		counts[item.file] = (counts[item.file] ?? 0) + 1
-	}
-
-	return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)))
-}
-
-/** Absolute path of the debt ledger the boundary test holds the tree to. */
-export const baselinePath = join(
-	srcDir,
-	'__tests__',
-	'boundary',
-	'controlled-language-baseline.json',
-)
-
 /**
  * The living Markdown the audit scoped: the curated surface docs and the hub
  * (CONVENTIONS.md §12.2). Paths are relative to the package root.

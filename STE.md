@@ -38,9 +38,9 @@ This document obeys the rules that it defines; read it as the reference.
 
 ## Scope in this repository
 
-Rules 6 and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) pins rule 10 at zero across the `ui` source tree, and holds rule 6 to a per-file ledger that can only shrink. The curated surface docs carry no debt in either rule.
+Rules 6 and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) pins both at zero across the `ui` source tree. The curated surface docs carry no debt in either rule.
 
-Refresh the ledger with `STE_BASELINE=write` when a change pays debt down. The diff is the burn-down record.
+Rule 6 held a per-file ledger while the tree paid its debt down. The last of it closed, so the ledger is gone and a new break fails the gate outright.
 
 Rule 6 counts a semicolon-joined compound as one sentence. A cap on the sentence is the point of the rule, so a long run of joined clauses is a break.
 
