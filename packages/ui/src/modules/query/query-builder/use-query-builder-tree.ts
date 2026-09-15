@@ -14,8 +14,8 @@ type QueryBuilderTreeResult = {
 
 /**
  * Composes the headless {@link useQueryTree} with the builder's focus
- * management: it wraps `remove` so removing a node moves focus to a surviving
- * neighbour (WCAG 2.4.3) rather than dropping to `<body>`, and exposes the
+ * management. It wraps `remove` so removing a node moves focus to a surviving
+ * neighbour (WCAG 2.4.3) rather than dropping to `<body>`. It also exposes the
  * `register` callback controls use to enrol their focusable elements.
  */
 export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTreeResult {

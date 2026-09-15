@@ -10,9 +10,9 @@ import type { GridSort } from './grid-data-types'
 const EMPTY_SORT: SortState[] = []
 
 /**
- * Owns the grid's controllable sort: the resolved ordered list (never
- * `undefined` — an empty list is unsorted), the raw setter the engine and header
- * menu write through, and `toggleSort`, which cycles a column's sort via
+ * Owns the grid's controllable sort. The resolved list is ordered and never
+ * `undefined` — an empty list is unsorted. The raw setter is what the engine and
+ * header menu write through. `toggleSort` cycles a column's sort via
  * {@link nextSort} (Shift-click folds it into the existing sort).
  *
  * @internal

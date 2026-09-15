@@ -7,9 +7,9 @@ export type ToastContextValue = {
 	toast: (data: ToastInput) => string
 	/**
 	 * Takes no reason, deliberately. The same closure sits on the viewport context, which
-	 * does take one, but the reason vocabulary belongs to the provider: an application
-	 * dismissal is `'dismissed'` by definition, and letting a caller claim `'timeout'` or
-	 * `'evicted'` would turn a closed set into an open one.
+	 * does take one. The reason vocabulary, however, belongs to the provider: an
+	 * application dismissal is `'dismissed'` by definition. A caller that claims
+	 * `'timeout'` or `'evicted'` would turn a closed set into an open one.
 	 */
 	dismiss: (id: string) => void
 }

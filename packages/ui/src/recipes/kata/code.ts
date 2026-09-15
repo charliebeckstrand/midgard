@@ -51,8 +51,8 @@ export const k = defineRecipe(
 export type CodeVariants = VariantProps<typeof k>
 /**
  * Recipe variant props for {@link CodeBlock}. The block chrome carries no
- * variants of its own — it shares the inline `Code` `size` axis — so this is
- * an alias of {@link CodeVariants}, kept as a distinct name for the public
- * `CodeBlock` surface.
+ * variants of its own: it shares the inline `Code` `size` axis. This is
+ * therefore an alias of {@link CodeVariants}, kept as a distinct name for the
+ * public `CodeBlock` surface.
  */
 export type CodeBlockVariants = CodeVariants
