@@ -23,10 +23,10 @@ const regionClasses = new Map<string, string>()
  * The region's classes for one `(color, active)` pair, computed once.
  *
  * @remarks `cn` memoises only when every argument is a string, and three of these four are
- * arrays (`shades()` returns `string[]`), so each call would otherwise run the full
+ * arrays (`shades()` returns `string[]`). Each call would otherwise run the full
  * clsx + tailwind-merge over ~14 tokens. There are five colours and two states, so ten
- * results cover every document; measured, this cuts ~142 µs per layer render at 40 regions
- * to ~4.5 µs, and the layer re-renders on every zoom step and every resize frame. The
+ * results cover every document. Measured, this cuts ~142 µs per layer render at 40 regions
+ * to ~4.5 µs. The layer re-renders on every zoom step and every resize frame. The
  * `dimmed` axis doubles the table to twenty entries, which is still every combination a
  * document can produce.
  * @internal
@@ -101,9 +101,9 @@ function within(element: HTMLElement | null, x: number, y: number) {
  * Gates the overlay and announces the active region.
  *
  * @remarks The layer is a separate component below, not an early return inside one,
- * because its effects have to run against a mounted container: the roving tab-stop owner
- * observes the region set, and on first paint — before the viewport has been measured —
- * there is nothing to observe. A component that mounts only once there is something to
+ * because its effects have to run against a mounted container. The roving tab-stop owner
+ * observes the region set. On first paint, before the viewport has been measured, there
+ * is nothing to observe. A component that mounts only once there is something to
  * draw gets a populated ref the first time its effects run.
  * @internal
  */
@@ -127,12 +127,12 @@ export function PdfViewerHighlights() {
  * Draws the active page's highlighted regions over the page image, inside the same frame
  * and under the same transform.
  *
- * @remarks Only the active page's regions are in the DOM: a long packet keeps one page's
+ * @remarks Only the active page's regions are in the DOM. A long packet keeps one page's
  * worth of nodes and one page's worth of keyboard reachability, whatever the document's
  * total. One delegated press handler serves every region, so the layer allocates one
  * closure rather than one per region.
  *
- * A named region is a real `<button>`; a set with no names is decoration inside an
+ * A named region is a real `<button>`. A set with no names is decoration inside an
  * `aria-hidden` layer, because a box with no accessible name cannot be a control.
  * @internal
  */
@@ -147,9 +147,9 @@ function PdfViewerHighlightLayer() {
 	/*
 	 * The selected region's element, for the label that names it.
 	 *
-	 * State rather than a ref because the label is a sibling that needs it as a prop — the
-	 * same shape `TooltipContent` uses for its own panel probe. It changes once per selection,
-	 * which is a render the layer was doing anyway.
+	 * State rather than a ref, because the label is a sibling that needs it as a prop. That is
+	 * the same shape `TooltipContent` uses for its own panel probe. It changes once per
+	 * selection, which is a render the layer was doing anyway.
 	 */
 	const [anchor, setAnchor] = useState<HTMLElement | null>(null)
 
@@ -172,8 +172,8 @@ function PdfViewerHighlightLayer() {
 	 * Whether anything is selected at all. While something is, every other region drops its
 	 * colour — one wash among twenty reads as a field of colour rather than as a selection.
 	 *
-	 * Read off `activeLabel`, which the provider already derives with the same scan: a label
-	 * is required of every highlight, so a name in hand and a selected region are the same
+	 * It is read off `activeLabel`, which the provider already derives with the same scan. A
+	 * label is required of every highlight, so a name in hand and a selected region are the same
 	 * fact. One scan per layer render rather than two.
 	 */
 	const anyActive = activeLabel !== null
@@ -184,18 +184,18 @@ function PdfViewerHighlightLayer() {
 	/*
 	 * The region under the pointer, which names itself while it is there.
 	 *
-	 * A box cannot say what it is, and until now only the *selected* one said so — leaving a
-	 * reader to press twenty regions to find the one they wanted, changing the selection, and
+	 * A box cannot say what it is, and until now only the *selected* one said so. That left a
+	 * reader to press twenty regions to find the one they wanted. It changed the selection, and
 	 * whatever the consumer hangs off it, twenty times on the way.
 	 *
 	 * **A preview sits beside the selection rather than replacing it.** The two are different
-	 * things to a reader — one is where they are working, the other is what they are checking —
-	 * and the selection has a form field, a scroll position and whatever else the consumer hangs
+	 * things to a reader. One is where they are working, the other is what they are checking.
+	 * The selection has a form field, a scroll position and whatever else the consumer hangs
 	 * off it standing behind it. A pointer passing over a box must not quietly take the name
 	 * off the box the reader came here for.
 	 *
-	 * The element is kept beside the id because the label anchors to a node, while the id is
-	 * what says whether that node is still one of this page's regions — a page turned under the
+	 * The element is kept beside the id because the label anchors to a node. The id is what
+	 * says whether that node is still one of this page's regions. A page turned under the
 	 * pointer would otherwise leave the panel floating against a detached box.
 	 */
 	const [hovered, setHovered] = useState<{
@@ -208,8 +208,8 @@ function PdfViewerHighlightLayer() {
 	 * Whether the pointer is on it *now*, kept apart from which region it was on.
 	 *
 	 * Two pieces of state for what looks like one, because the panel has to outlive the
-	 * pointer: clearing the region on the way out would take the panel with it and leave
-	 * nothing to fade. So leaving closes it and the region stays — which is also what lets a
+	 * pointer. Clearing the region on the way out would take the panel with it, and leave
+	 * nothing to fade. So leaving closes it and the region stays. That is also what lets a
 	 * reader come back to the same box without the name flickering through a remount.
 	 */
 	const [previewing, setPreviewing] = useState(false)
@@ -218,10 +218,10 @@ function PdfViewerHighlightLayer() {
 	 * The selected region's name, reached imperatively.
 	 *
 	 * Whether the name is being read through — and therefore whether it is faint — is the
-	 * name's own state, and it is held there rather than here for the reason the name is a leaf
-	 * at all (see {@link PdfViewerHighlightLabel}): a flip held here would re-render forty
-	 * regions to change one class on a panel three fibers away, and would dirty the layer's
-	 * layout just before the next pointer move reads a rect against it.
+	 * name's own state. It is held there rather than here for the reason the name is a leaf
+	 * at all (see {@link PdfViewerHighlightLabel}). A flip held here would re-render forty
+	 * regions to change one class on a panel three fibers away. It would also dirty the
+	 * layer's layout, just before the next pointer move reads a rect against it.
 	 *
 	 * A handle rather than a callback prop because the traffic runs the other way. The layer is
 	 * what sees the pointer; the name is what knows where its own box is.
@@ -229,9 +229,9 @@ function PdfViewerHighlightLayer() {
 	const nameRef = useRef<PdfViewerActiveNameHandle | null>(null)
 
 	/*
-	 * The region the pointer last named, looked up rather than merely confirmed: whether it is
-	 * still one of this page's is the same question as which one it is, and a page turned under
-	 * a pointer that has not moved is what makes that a question at all.
+	 * The region the pointer last named, looked up rather than merely confirmed. Whether it is
+	 * still one of this page's is the same question as which one it is. A page turned under a
+	 * pointer that has not moved is what makes that a question at all.
 	 *
 	 * `active` then answers the other one for free. The selected region already names itself,
 	 * so hovering it says nothing new — and would say it twice, in two panels a few pixels
@@ -269,8 +269,8 @@ function PdfViewerHighlightLayer() {
 	 *
 	 * @remarks Attached only while a name is drawn (see the handler bag below), so a viewer with
 	 * nothing selected carries no `mousemove` listener at all. The two tests are ordered by
-	 * cost: `regionAt` walks two or three nodes, and the box read behind it is a layout read
-	 * that runs only where the pointer is over a region.
+	 * cost. `regionAt` walks two or three nodes. The box read behind it is a layout read that
+	 * runs only where the pointer is over a region.
 	 */
 	function handleRegionMove(event: MouseEvent<HTMLDivElement>) {
 		const name = nameRef.current
@@ -301,14 +301,14 @@ function PdfViewerHighlightLayer() {
 	 * A pointer press lands on mousedown, not on the click that would follow.
 	 *
 	 * Because a press that only reports on release is a press whose effect is withheld for as
-	 * long as the button is held — and the selection it would make is *undone* in the
-	 * meantime. The region is a real button, so the browser's own mousedown default focuses
-	 * it, which blurs whatever the consumer had focused for the previously selected region;
-	 * a consumer that clears its selection on blur (a field list beside the viewer does
-	 * exactly that) then drops the highlight the moment the button goes down and only gets it
-	 * back when it comes up. Held still, the page reads as having deselected itself.
+	 * long as the button is held. The selection it would make is *undone* in the meantime.
+	 * The region is a real button, so the browser's own mousedown default focuses it. That
+	 * blurs whatever the consumer had focused for the previously selected region. A consumer
+	 * that clears its selection on blur then drops the highlight the moment the button goes
+	 * down. A field list beside the viewer does exactly that. It only gets the highlight back
+	 * when the button comes up. Held still, the page reads as having deselected itself.
 	 *
-	 * `preventDefault` is the other half: it keeps that focus shift from happening at all, so
+	 * `preventDefault` is the other half. It keeps that focus shift from happening at all, so
 	 * the caret the consumer places from `onHighlightPress` stays where it was put. Scoped to
 	 * a press that actually landed in a region — the layer's background keeps every default
 	 * it had.
@@ -367,15 +367,15 @@ function PdfViewerHighlightLayer() {
 	 * A press that lands on no region puts the selection down.
 	 *
 	 * On the viewport rather than on the layer, because the reader's "somewhere else" is the
-	 * whole page surface — the matte a fitted page sits in included — while the layer covers the
-	 * page image alone. A native listener rather than a prop for the same reason: the viewport is
-	 * rendered a component away, and reading the overlay's context there would re-render the page
-	 * frame, the image and the lens on every activation, which is the cost the overlay's own
-	 * provider exists to avoid.
+	 * whole page surface. That includes the matte a fitted page sits in. The layer covers the
+	 * page image alone. A native listener rather than a prop, for the same reason. The viewport
+	 * is rendered a component away. Reading the overlay's context there would re-render the
+	 * page frame, the image and the lens on every activation. That is the cost the overlay's
+	 * own provider exists to avoid.
 	 *
 	 * Registered only while there is a selection to put down, so a viewer at rest carries no
-	 * listener — and not while the overlay is hidden, where the boxes are off screen and the
-	 * selection is meant to survive a reader reading the page underneath.
+	 * listener. Not while the overlay is hidden either. There the boxes are off screen, and
+	 * the selection is meant to survive a reader reading the page underneath.
 	 */
 	useEffect(() => {
 		const viewport = viewportRef.current
@@ -454,15 +454,16 @@ function PdfViewerHighlightLayer() {
 			))}
 			{/*
 			 * Two names, because they are two states — the selection the reader is working from,
-			 * and the box they are glancing at. One panel could only ever be one of those, and
-			 * making it the hovered one meant the selected region lost its name every time a
+			 * and the box they are glancing at. One panel could only ever be one of those.
+			 * Making it the hovered one meant the selected region lost its name every time a
 			 * reader looked elsewhere.
 			 *
-			 * Both are inside the layer in the tree and outside it on screen: they portal, which
-			 * is what keeps a name clear of the page's own `rotate()` and of the scrolling
-			 * viewport that would otherwise clip it off the top of a zoomed page. Neither wraps
-			 * its region, so moving the selection re-points an anchor rather than remounting the
-			 * box, and the region keeps the focus the roving tab stop put on it.
+			 * Both are inside the layer in the tree, and outside it on screen. They portal,
+			 * which is what keeps a name clear of the page's own `rotate()`. It also keeps a
+			 * name clear of the scrolling viewport that would otherwise clip it off the top of
+			 * a zoomed page. Neither wraps its region, so moving the selection re-points an
+			 * anchor rather than remounting the box. The region keeps the focus the roving tab
+			 * stop put on it.
 			 *
 			 * The selected one is unkeyed: it moves rarely, and repositioning in place is what it
 			 * did before there was a preview at all.
@@ -476,9 +477,10 @@ function PdfViewerHighlightLayer() {
 
 			{/*
 			 * The hovered one is keyed on its region, because floating-ui holds the reference it
-			 * mounted with — so moving a name between boxes has to be a new panel, or the name
-			 * changes while the box it points at does not. The region outlives the pointer (see
-			 * `previewing`), so the key holds still through the fade out.
+			 * mounted with. Moving a name between boxes therefore has to be a new panel.
+			 * Otherwise the name changes while the box it points at does not. The region
+			 * outlives the pointer (see `previewing`), so the key holds still through the
+			 * fade out.
 			 */}
 			<PdfViewerHighlightLabel
 				key={hovered?.id ?? 'none'}
@@ -507,18 +509,18 @@ type PdfViewerActiveNameHandle = {
  *
  * @remarks A component of its own, holding the one piece of state the layer would otherwise
  * hold for it. The name is a standing object over a layer of pressable boxes, and on a dense
- * page it lands on its neighbours; it takes no pointer events, so the hover and the press
- * reach the box beneath it either way, and this is the half the reader sees — the name going
- * faint over the box they are pointing at, which is the page saying the press will land there.
+ * page it lands on its neighbours. It takes no pointer events, so the hover and the press
+ * reach the box beneath it either way. This is the half the reader sees. The name goes faint
+ * over the box they are pointing at, which is the page saying the press will land there.
  *
  * Faintness flips as the pointer crosses the name's edge, which is the path a reader takes to
  * reach the box under it. Held in the layer, each flip re-rendered forty regions to change one
- * class on a panel three fibers away — and dirtied the layer's layout, so the next move's box
- * read paid a reflow instead of a cached rect. Here the same flip touches three fibers. It is
- * the rule {@link PdfViewerHighlightLabel} is a leaf for, applied one level up.
+ * class on a panel three fibers away. It also dirtied the layer's layout, so the next move's
+ * box read paid a reflow instead of a cached rect. Here the same flip touches three fibers.
+ * It is the rule {@link PdfViewerHighlightLabel} is a leaf for, applied one level up.
  *
- * The name never covers its own region: `offset(8)` holds it clear along the placement axis and
- * `shift` only moves it across, so a box under the name is always another one.
+ * The name never covers its own region. `offset(8)` holds it clear along the placement axis,
+ * and `shift` only moves it across. A box under the name is therefore always another one.
  * @internal
  */
 function PdfViewerActiveName({
@@ -535,10 +537,10 @@ function PdfViewerActiveName({
 	const [behind, setBehind] = useState(false)
 
 	/*
-	 * The chip around the text, which is the name as the reader sees it — the text does not
+	 * The chip around the text, which is the name as the reader sees it. The text does not
 	 * reach the chip's padding, and the padding carries the same ground as the rest of it. The
-	 * positioned wrapper outside it shrink-wraps the chip, so the two boxes are one; the chip is
-	 * named here because it is the one that is drawn.
+	 * positioned wrapper outside it shrink-wraps the chip, so the two boxes are one. The chip
+	 * is named here because it is the one that is drawn.
 	 */
 	const panelRef = useRef<HTMLElement | null>(null)
 
@@ -549,10 +551,10 @@ function PdfViewerActiveName({
 	/*
 	 * A name that moved covers nothing yet.
 	 *
-	 * Keyed on the anchor, which is the one fact that changes however the selection changed — a
-	 * press, `Escape`, or a consumer driving `activeHighlightId` from a list beside the viewer.
-	 * The layer used to clear this on the two paths it could see, and the third left the next
-	 * name faint until the pointer moved again.
+	 * Keyed on the anchor, which is the one fact that changes however the selection changed.
+	 * That is a press, `Escape`, or a consumer driving `activeHighlightId` from a list beside
+	 * the viewer. The layer used to clear this on the two paths it could see. The third left
+	 * the next name faint until the pointer moved again.
 	 */
 	const namedRef = useRef(anchor)
 

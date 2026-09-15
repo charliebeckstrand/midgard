@@ -1,9 +1,7 @@
 {
-	"components/pdf-viewer/pdf-viewer-highlights.tsx": 32,
 	"modules/chart/engine/chart-layout.ts": 51,
 	"modules/chart/engine/types.ts": 34,
 	"modules/chart/engine/use-chart-cartesian.ts": 33,
-	"modules/grid/types.ts": 32,
 	"modules/map/engine/map-constants.ts": 39,
 	"modules/map/engine/map-geometry/mark.ts": 38,
 	"modules/map/engine/map-geometry/projected.ts": 44,
