@@ -12,7 +12,7 @@ export type FiltersClearProps = {
 	 * Button variant for the fallback trigger.
 	 *
 	 * Defaults to {@link Button}'s own, which is the neutral action a bar gets
-	 * when it asks for nothing: clearing a filter undoes a view, not a record, and
+	 * when it asks for nothing. Clearing a filter undoes a view, not a record, and
 	 * a bar that shouts about it makes every other control read as lesser. An app
 	 * that wants it to carry weight says so here.
 	 *
@@ -28,7 +28,7 @@ export type FiltersClearProps = {
 /**
  * Wires its child to the enclosing {@link Filters} clear action. A single valid
  * element child is cloned with a merged `onClick` (the child's own handler runs
- * first); any other children fall back to a default `<Button>` trigger, whose
+ * first). Any other children fall back to a default `<Button>` trigger, whose
  * `variant` and `color` are overridable.
  *
  * @remarks Must render inside a `Filters`.

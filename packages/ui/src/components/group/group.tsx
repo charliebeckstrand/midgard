@@ -26,13 +26,13 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
 /**
  * Joins adjacent children visually by stamping `data-group` position
  * attributes (`start` | `middle` | `end` | `only`) onto each child. The
- * container carries the `tsunagi` join classes (`recipes/kata/group`), whose
+ * container carries the `tsunagi` join classes (`recipes/kata/group`). Their
  * descendant selectors drop the inner radii and overlap adjacent borders by
  * 1 px, keyed on the stamped position.
  *
- * Provides the Density cascade for its descendants: components that read
+ * Provides the Density cascade for its descendants. Components that read
  * `useDensity()` (Button, Input, etc.) default their `size` prop to the
- * wrapper's resolved size unless the consumer passes one explicitly.
+ * wrapper's resolved size, unless the consumer passes one explicitly.
  *
  * Composes with surrounding `<Card>` / `<Drawer>` / `<Popover>`: when `size`
  * is omitted, the wrapper inherits the enclosing Density size.

@@ -15,8 +15,8 @@ import { Input, type InputProps } from '../input'
  * number-valued change callback.
  *
  * @remarks `suffix` is withheld and `prefix` is not, which is the difference between a slot
- * this component owns and one it merely inherits: the steppers *are* the suffix, and a
- * consumer's own would replace them. The prefix slot is untouched here, and a numeric field
+ * this component owns and one it merely inherits. The steppers *are* the suffix, and a
+ * consumer's own would replace them. The prefix slot is untouched here. A numeric field
  * with a unit or a currency mark in front of it is what it is for.
  */
 export type NumberInputProps = Omit<
