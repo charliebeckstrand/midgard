@@ -17,10 +17,10 @@ import {
  *
  * @remarks Held here, and handed to `getDocument` as `worker`, rather than published on
  * pdf.js's `GlobalWorkerOptions.workerPort`. Both give one thread per page instead of one per
- * load, but a global port is one pdf.js caches and half-tears-down: `loadingTask.destroy()`
+ * load, but a global port is one pdf.js caches and half-tears-down. `loadingTask.destroy()`
  * marks the *cached* worker pending-destroy, and any `getDocument` before that round-trip
- * completes throws. That window is reachable whenever two loads overlap — one document
- * finishing while another is still opening, which two viewers on different scans do — and a
+ * completes throws. That window is reachable whenever two loads overlap: one document
+ * finishing while another is still opening, which two viewers on different scans do. A
  * caller-supplied worker closes it, because pdf.js never destroys one it did not create.
  * @internal
  */
@@ -32,11 +32,11 @@ let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
  * @returns The shared worker, or `null` when this environment cannot run one — in which case
  * `getDocument` is left to pdf.js's own resolution. In practice that is Node and jsdom, where
  * pdf.js pre-sets `workerSrc` itself; a browser always has `Worker`.
- * @remarks `new Worker(new URL(…, import.meta.url))` rather than a bundler-specific import:
- * both Vite and webpack recognise that exact form and emit the worker as an asset, which a
- * `?url` query does not — webpack resolves an `import()` specifier statically whether or not
- * the call is reachable, so a Vite-only query breaks the build of any app that merely renders
- * this component.
+ * @remarks `new Worker(new URL(…, import.meta.url))` rather than a bundler-specific import.
+ * Both Vite and webpack recognise that exact form and emit the worker as an asset, which a
+ * `?url` query does not. Webpack resolves an `import()` specifier statically whether or not
+ * the call is reachable. A Vite-only query therefore breaks the build of any app that merely
+ * renders this component.
  *
  * A caller that has set `workerSrc` or `workerPort` itself keeps that choice; this defers to
  * it and creates nothing.
@@ -97,14 +97,14 @@ function releasePdf(controller: PdfRasterController) {
  * Rasterizes one already-parsed page to a blob URL and reports it.
  *
  * @remarks Each URL is reported in the same step that creates it, which is what keeps a failed
- * load from leaking: everything allocated is in the cache's snapshot by the time anything can
+ * load from leaking. Everything allocated is in the cache's snapshot by the time anything can
  * throw, and the cache is what revokes it.
  *
  * A page with no 2D context, or one `toBlob` refuses (oversized or tainted canvas), is skipped
- * rather than treated as a failure — the rest of the document still renders.
+ * rather than treated as a failure. The rest of the document still renders.
  *
- * The canvas belongs to the caller and is resized per page rather than allocated per page: at
- * up to 2× device scale a US-Letter backing store is tens of megabytes, and a fresh one per
+ * The canvas belongs to the caller and is resized per page rather than allocated per page. At
+ * up to 2× device scale a US-Letter backing store is tens of megabytes. A fresh one per
  * page hands the whole document's worth to the collector over a long load.
  * @internal
  */
@@ -187,14 +187,14 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 		/*
 		 * The next page's parse, started before this one renders.
 		 *
-		 * `getPage` is worker-side while `render` and `toBlob` hold the main thread, so awaiting
+		 * `getPage` is worker-side while `render` and `toBlob` hold the main thread. An await of
 		 * them in turn left the worker idle for the whole of each page's render and PNG encode.
 		 * Queuing the next parse first overlaps the two. Rendering itself stays strictly serial:
 		 * there is one `controller.renderTask` slot, and its cancel semantics depend on that.
 		 *
 		 * The no-op catch marks the prefetch handled. Without it, a parse that rejects while the
 		 * loop is already unwinding from an earlier failure would surface as an unhandled
-		 * rejection; the loop's own `await` still sees the rejection and throws it.
+		 * rejection. The loop's own `await` still sees the rejection and throws it.
 		 */
 		let pending: Promise<PDFPageProxy> | null = doc.getPage(1)
 
@@ -226,15 +226,16 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
  * @returns `{ pages, documentUrl, loading, error }`: the rendered pages, a same-origin blob URL
  * for the source document (download / print), plus load progress and failure state.
  * @remarks **The pages outlive this hook.** They live in a bounded module cache keyed on `src`
- * (`pdf-viewer-document-cache.ts`), so a viewer that unmounts and comes back on the same
- * document re-reads the pages it already had instead of re-fetching and re-rasterizing them.
- * That is what parking a panel by closing it does — `Overlay` gates its portal on `open`, so the
- * panel's children unmount — and before the cache, reopening rebuilt the whole scan from its
+ * (`pdf-viewer-document-cache.ts`). A viewer that unmounts and comes back on the same
+ * document re-reads the pages it already had, instead of re-fetching and re-rasterizing them.
+ * That is what parking a panel by closing it does. `Overlay` gates its portal on `open`, so
+ * the panel's children unmount. Before the cache, a reopen rebuilt the whole scan from its
  * skeleton.
  *
- * Read through `useSyncExternalStore` rather than mirrored into state, so a cache hit is visible
- * *during the first render* and paints no intervening skeleton frame. Unmounting drops this
- * viewer's subscription, which is also what makes the document evictable; it does not cancel a
+ * Read through `useSyncExternalStore` rather than mirrored into state. A cache hit is
+ * therefore visible *during the first render*, and paints no intervening skeleton frame.
+ * Unmounting drops this viewer's subscription, which is also what makes the document
+ * evictable; it does not cancel a
  * load or revoke anything.
  * @internal
  */

@@ -5,8 +5,6 @@
 	"components/menu/use-menu-pointer.tsx": 15,
 	"components/pdf-viewer/pdf-viewer-document-cache.ts": 19,
 	"components/pdf-viewer/pdf-viewer-highlights.tsx": 32,
-	"components/pdf-viewer/pdf-viewer.tsx": 11,
-	"components/pdf-viewer/use-pdf-viewer-document.ts": 11,
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": 23,
 	"components/pdf-viewer/use-pdf-viewer.ts": 21,
 	"components/tag-input/tag-input-utilities.ts": 11,

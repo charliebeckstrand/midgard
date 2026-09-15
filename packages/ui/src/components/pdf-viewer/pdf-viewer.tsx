@@ -66,13 +66,13 @@ export type PdfViewerProps = {
 	/**
 	 * How a page is scaled into the viewport before `zoom` multiplies it.
 	 *
-	 * `'page'` fits the whole page: the viewport takes its height from the page's own aspect
-	 * ratio, so the viewer sizes itself and never scrolls vertically at rest.
+	 * `'page'` fits the whole page. The viewport takes its height from the page's own
+	 * aspect ratio, so the viewer sizes itself and never scrolls vertically at rest.
 	 *
 	 * `'width'` fits the page width and lets the page overflow — which is what a narrow panel
 	 * needs to be readable at all. **The consumer owns the height then**: the viewer stops
-	 * reserving space from the page ratio and instead fills its host's box, so give it one
-	 * with a resolved height (a fixed height, or a flex/grid track that resolves one) — or
+	 * reserving space from the page ratio and instead fills its host's box. Give it one
+	 * with a resolved height: a fixed height, or a flex/grid track that resolves one. Or
 	 * set the height on the viewer directly through `className`.
 	 * @defaultValue 'page'
 	 */
@@ -81,9 +81,9 @@ export type PdfViewerProps = {
 	 * Regions to draw over the pages — extracted-field boxes on a scan, search hits, any
 	 * "look here" mark the consumer owns. Only the active page's are rendered.
 	 *
-	 * @remarks Identity need not be stable: the viewer filters by page and converts at the
-	 * point of use rather than memoizing a derived array, so building this inline every
-	 * render costs nothing but the on-screen boxes.
+	 * @remarks Identity need not be stable. The viewer filters by page and converts at the
+	 * point of use, rather than memoizing a derived array. An inline build every render
+	 * therefore costs nothing but the on-screen boxes.
 	 */
 	highlights?: readonly PdfViewerHighlight[]
 	/**
@@ -102,7 +102,7 @@ export type PdfViewerProps = {
 	 *
 	 * @remarks Its presence is also what makes regions interactive. Without it they are
 	 * decoration: painted, revealed when `activeHighlightId` points at them, and never
-	 * pressable — which is right when a list beside the viewer is already the navigable
+	 * pressable. That is right when a list beside the viewer is already the navigable
 	 * surface.
 	 */
 	onActiveHighlightChange?: (id: string | null) => void
@@ -111,8 +111,8 @@ export type PdfViewerProps = {
 	 *
 	 * @remarks Distinct from {@link onActiveHighlightChange}, which reports *selection*:
 	 * re-pressing the active region changes nothing to select, so that callback stays silent.
-	 * Use this one when a press must do something every time — reveal the region's row in a
-	 * list beside the viewer, put the caret in the field it was read from.
+	 * Use this one when a press must do something every time. It can reveal the region's
+	 * row in a list beside the viewer, or put the caret in the field it was read from.
 	 *
 	 * A keyboard activation arrives as a native click, so `Enter` on a region reports here too.
 	 */
@@ -121,20 +121,21 @@ export type PdfViewerProps = {
 	 * Show a magnifying lens beside the cursor while it rests over the page.
 	 *
 	 * @remarks For a viewer opened on the whole page, where the ink is legible enough to
-	 * navigate by but not to read — an invoice scan, a plan sheet — so a reader can check one
-	 * figure without zooming the page and losing their place in it. `true` takes the defaults;
-	 * pass {@link PdfViewerMagnifierOptions} to set the power, the lens size or the dwell.
+	 * navigate by but not to read. An invoice scan or a plan sheet is one. A reader can then
+	 * check one figure without zooming the page and losing their place in it. `true` takes
+	 * the defaults; pass {@link PdfViewerMagnifierOptions} to set the power, the lens size
+	 * or the dwell.
 	 *
 	 * The toolbar then carries one of two controls, and
 	 * {@link PdfViewerMagnifierOptions.mode} says which. `'simple'` is a switch, which is all
-	 * a viewer needs where the consumer already knows the page it opens on. `'config'` opens a
-	 * dialog and hands the three settings to the reader, which is what a viewer wants when it
-	 * opens on documents it cannot predict — a lens that suits an invoice scan is the wrong
-	 * lens for a plan sheet.
+	 * a viewer needs where the consumer already knows the page it opens on. `'config'` opens
+	 * a dialog and hands the three settings to the reader. That is what a viewer wants when
+	 * it opens on documents it cannot predict. A lens that suits an invoice scan is the
+	 * wrong lens for a plan sheet.
 	 *
-	 * Mouse only, and never interactive: it cannot take a press meant for a highlighted region
-	 * underneath it, and it does not appear for touch, where the finger already covers what
-	 * the lens would show.
+	 * Mouse only, and never interactive. It cannot take a press meant for a highlighted
+	 * region underneath it. It does not appear for touch, where the finger already covers
+	 * what the lens would show.
 	 * @defaultValue false
 	 */
 	magnifier?: boolean | PdfViewerMagnifierOptions
@@ -142,8 +143,8 @@ export type PdfViewerProps = {
 	 * Fires when the reader shows or hides the highlight overlay from the toolbar. Starts
 	 * **shown**, so a consumer mirroring this seeds its own state `true`.
 	 *
-	 * @remarks What the overlay is doing is not only the viewer's business: a list beside it
-	 * routinely marks which of its rows can be located on the page, and that mark is a promise
+	 * @remarks What the overlay is doing is not only the viewer's business. A list beside it
+	 * routinely marks which of its rows can be located on the page. That mark is a promise
 	 * the hidden overlay cannot keep. Not a controlled binding — these two switches are the
 	 * reader's, and nothing outside can turn them back on under them.
 	 */
@@ -153,8 +154,8 @@ export type PdfViewerProps = {
 	 * `'config'` mode any of the three settings in the dialog. Present only when
 	 * {@link PdfViewerProps.magnifier} offered a loupe; starts **on**, for the same reason.
 	 *
-	 * @remarks Reports the whole of what the reader owns, not the one field that moved, so a
-	 * consumer that keeps the preference across sessions stores what arrives and hands it
+	 * @remarks Reports the whole of what the reader owns, not the one field that moved. A
+	 * consumer that keeps the preference across sessions stores what arrives, and hands it
 	 * straight back through {@link PdfViewerProps.magnifier}.
 	 */
 	onMagnifierChange?: (state: PdfViewerMagnifierState) => void
@@ -163,9 +164,9 @@ export type PdfViewerProps = {
 }
 
 /**
- * PDF document viewer: renders pages from `pages` or via pdf.js from `src`, with toolbar
- * controls for zoom, rotation, download, and print, and an optional overlay of highlighted
- * regions over the page.
+ * PDF document viewer: renders pages from `pages` or via pdf.js from `src`. Toolbar
+ * controls cover zoom, rotation, download, and print, and an optional overlay draws
+ * highlighted regions over the page.
  */
 export function PdfViewer({
 	pages,

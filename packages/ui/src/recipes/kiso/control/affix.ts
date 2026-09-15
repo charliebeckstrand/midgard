@@ -13,9 +13,8 @@
  * at every step. The two differ because a `<Badge>` sits one notch below a
  * same-size `<Button>` on the shared `px` scale. Its stepped-down padding
  * is therefore 0.5 smaller, and the slot pads 0.5 more to compensate. The
- * boundary test at
- * `__tests__/boundary/affix-compensation-boundary.test.ts` pins
- * both against the live recipes.
+ * boundary test at `__tests__/boundary/affix-compensation-boundary.test.ts`
+ * pins both against the live recipes.
  *
  * An icon-only bare `<Button>` carries no outer chrome, so its glyph
  * aligns to the text line rather than the chip-content line. The override
@@ -43,8 +42,7 @@
  * context. The projection keeps a slot indicator in lockstep with the
  * control, and it owns the slot. An explicit `size` on a slot icon or
  * spinner does not override it. Client slot children (`<Button>`) read the
- * stepped-down
- * size from AffixContext.
+ * stepped-down size from AffixContext.
  *
  * `autofill` is the input-side counterpart. The browser's autofill
  * highlight paints the inner input's full box, which sits flush against
