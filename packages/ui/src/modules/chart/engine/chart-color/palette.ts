@@ -1,8 +1,8 @@
 /**
  * The categorical palette: which colour a series draws in. A series takes its
- * explicit `color` when set — a palette slot or a raw CSS colour — else its
- * slot in the fixed, CVD-validated categorical order, cycling past the eighth
- * series. The order lives here once, so a colourless series, a scatter point,
+ * explicit `color` when set: a palette slot or a raw CSS colour. Without one it
+ * takes its slot in the fixed, CVD-validated categorical order, cycling past
+ * the eighth series. The order lives here once, so a colourless series, a scatter point,
  * and a pie slice all read the same slot for the same index. Resolution ends in
  * a {@link ChartSeriesPaint}, the value the marks and swatches paint through.
  *

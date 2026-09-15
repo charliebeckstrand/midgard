@@ -14,7 +14,7 @@ type GridAutoSizeConfirmDialogProps = {
 
 /**
  * Confirmation for the "Auto-size all columns" action when saved column widths
- * exist: the fit replaces them (the fitted widths persist as the new sizing),
+ * exist. The fit replaces them (the fitted widths persist as the new sizing),
  * so the grid asks before discarding what the user deliberately set. Mounted
  * by {@link Grid} only while a sizing preference is present — without one the
  * action runs unprompted and simply establishes the preference.

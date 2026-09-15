@@ -5,10 +5,10 @@ import { useComposedRef } from './use-composed-ref'
 
 /**
  * Caret-preserving plumbing for formatted text inputs. Spread the returned
- * `ref` onto the input and call `setCaret(pos)` (e.g. from `onChange`)
- * with the caret index measured against the *formatted* value; a layout effect
- * re-applies it after render, keeping the cursor in place when formatting
- * inserts separators. Restores only while the input holds focus.
+ * `ref` onto the input. Call `setCaret(pos)` (e.g. from `onChange`) with the
+ * caret index measured against the *formatted* value. A layout effect re-applies
+ * it after render, so the cursor stays in place when formatting inserts
+ * separators. Restores only while the input holds focus.
  *
  * @param externalRef - Optional input ref composed with the internal one.
  * @returns `{ ref, setCaret }`. Spread `ref` onto the input; `setCaret(pos)`

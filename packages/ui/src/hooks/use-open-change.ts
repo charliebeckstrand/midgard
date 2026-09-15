@@ -8,7 +8,7 @@ import { useReportedChange } from './use-reported-change'
  *
  * A flag with one call site does not need this: there the call site is the transition,
  * and the report rides it directly. Reach for this where the flag is derived, or is
- * written from routes the surface never runs itself — each caller names its own.
+ * written from routes the surface never runs itself. Each caller names its own.
  *
  * @param open The committed open state.
  * @param onOpenChange The caller's callback, raised once per transition.

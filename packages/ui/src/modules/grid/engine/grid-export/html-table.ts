@@ -3,7 +3,7 @@ import { cellText, escapeMarkup, exportFields } from './accessor'
 
 /**
  * Renders rows as an HTML `<table>`: a header row of the data columns' labels
- * followed by one row per datum, each cell read through the same export
+ * followed by one row per datum. Each cell reads through the same export
  * accessor CSV uses. Shared by the Excel and print exporters, which each wrap
  * this in their own document shell.
  *
