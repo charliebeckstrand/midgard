@@ -13,8 +13,8 @@ export type PersistentChromeProps = ComponentProps<'div'> & { children: ReactNod
  *
  * A modal surface seals the page behind it, which fits a transaction the user
  * opens to complete. It does not fit a long-lived work surface inside
- * persistent chrome — a maximized drawer whose state lives in a tab's href —
- * because the trap makes the tab strip that raised the surface unreachable,
+ * persistent chrome, such as a maximized drawer whose state lives in a tab's
+ * href. The trap makes the tab strip that raised the surface unreachable,
  * and the only exit left is to dismantle the work (WCAG 2.1.1 / 2.4.3).
  *
  * Wrap that chrome here and every modal surface in the app keeps it in the
@@ -23,9 +23,9 @@ export type PersistentChromeProps = ComponentProps<'div'> & { children: ReactNod
  *
  * @remarks Modality holds. Focus still moves into a panel on open and returns
  * on close, the body stays scroll-locked, and the scrim still dismisses on a
- * press. Only the enforcement changes: sealed content becomes `inert` rather
- * than `aria-hidden`, so it also loses its pointer events, and the tab order
- * runs in DOM order out of the panel, through this region, and back — what a
+ * press. Only the enforcement changes. Sealed content becomes `inert` rather
+ * than `aria-hidden`, so it also loses its pointer events. The tab order runs
+ * in DOM order out of the panel, through this region, and back, which is what a
  * native `<dialog>` does. A browser with no `inert` support keeps the strict
  * trap; there, only the accessibility-tree and pointer exemptions apply.
  *

@@ -22,9 +22,9 @@ export type MapRangeLegendProps = MapLegendRange
 /**
  * The hover arrow: a glyph on the scale bar's edge marking the exact value of
  * the region the pointer is on. Isolated as its own {@link useMapPointedMark}
- * consumer — the crossing-stable context, not the per-pixel hover state — so
- * pointer travel within a region re-renders nothing and only a crossing moves
- * this glyph; the gradient bar, the thumb, and the endpoint labels never
+ * consumer: the crossing-stable context, not the per-pixel hover state. Pointer
+ * travel within a region therefore re-renders nothing, and only a crossing
+ * moves this glyph. The gradient bar, the thumb, and the endpoint labels never
  * re-render either way. Its edge follows the bar's `orientation`.
  *
  * @internal
@@ -49,7 +49,7 @@ function RangeHoverArrow({
 
 /**
  * The choropleth's range legend: the shared {@link RangeLegend} scale-bar
- * slider, wired to the map — its hover arrow tracks the pointed region's value,
+ * slider, wired to the map. Its hover arrow tracks the pointed region's value,
  * and probing the bar emphasises that class's regions through `onFocus`, dimming
  * the rest. The `map-range` slot keeps the map's part names. `orientation`
  * follows the resolved placement — vertical beside the plot, horizontal above or

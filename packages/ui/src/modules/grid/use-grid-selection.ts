@@ -23,10 +23,10 @@ type GridSelectionActions = {
 }
 
 /**
- * Owns the controllable selection `Set<key>` and its setter — nothing here
+ * Owns the controllable selection `Set<key>` and its setter. Nothing here
  * depends on the rendered rows, so it sits above the engine, letting the table
- * mirror the selection into its own `state.rowSelection` (see
- * {@link useGridTable}). The `Set` stays the source of truth; the engine is a
+ * mirror the selection into its own `state.rowSelection`. See
+ * {@link useGridTable}. The `Set` stays the source of truth; the engine is a
  * read-only consumer for its selected-row model.
  *
  * @internal
@@ -101,7 +101,7 @@ export function useGridSelectionActions({
  * toggles, and the `allSelected` / `someSelected` flags derived from the current
  * rowKeys. A thin composition of {@link useGridSelectionState} and
  * {@link useGridSelectionActions}, which {@link Grid} calls directly so the
- * selection state can sit above the engine; this composed form is the file's
+ * selection state can sit above the engine. This composed form is the file's
  * single entry point for callers that don't need that split.
  *
  * @internal

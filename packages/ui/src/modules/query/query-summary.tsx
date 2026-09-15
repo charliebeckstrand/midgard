@@ -38,11 +38,11 @@ function SummaryToken({ token }: { token: QuerySummaryToken }) {
 }
 
 /**
- * Read-only, human-readable rendering of a query tree: each active rule as
- * `field operator value`, joined by AND/OR and bracketed per nested group, over
- * the same `engine/` the builder edits. Renders `null` when the query imposes no
- * constraint (in step with {@link isQueryActive}), so it can sit beside a filter
- * affordance and appear only once a filter is set.
+ * A read-only, human-readable rendering of a query tree: each active rule as
+ * `field operator value`, joined by AND/OR and bracketed per nested group. It
+ * reads the same `engine/` the builder edits. Renders `null` when the query
+ * imposes no constraint, in step with {@link isQueryActive}. It can therefore
+ * sit beside a filter affordance and appear only once a filter is set.
  *
  * @remarks
  * A blank or half-built rule drops out, mirroring the evaluator; a `select`

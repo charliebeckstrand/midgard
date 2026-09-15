@@ -3,9 +3,9 @@ import type { QueryGroup, QueryNode } from './types'
 
 /**
  * Operators that evaluate without a rule value — their matcher ignores the second
- * argument. Every other operator imposes no constraint when its value is empty,
- * so a half-built or cleared rule (e.g. a date rule whose value was cleared back
- * to blank) never hides rows. Mirrors the `noValue` operator flag in
+ * argument. Every other operator imposes no constraint when its value is empty.
+ * A half-built or cleared rule therefore never hides rows, such as a date rule
+ * whose value was cleared back to blank. Mirrors the `noValue` operator flag in
  * `getOperators`.
  *
  * @internal
@@ -65,9 +65,9 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 
 /**
  * Tests one operator against a field value and a rule value. Three cases pass as
- * "no constraint" so a half-built or cleared rule never hides rows: an unknown
- * operator, and a value-requiring operator whose value is empty (a blank text
- * box, a cleared date, an all-blank range). Value-less operators (`is Empty`,
+ * "no constraint", so a half-built or cleared rule never hides rows. Those are
+ * an unknown operator, and a value-requiring operator whose value is empty (a
+ * blank text box, a cleared date, an all-blank range). Value-less operators (`is Empty`,
  * `is true`, …) evaluate regardless.
  */
 export function matchQueryRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean {
