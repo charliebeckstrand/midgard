@@ -1,5 +1,4 @@
 {
-	"components/combobox/combobox.tsx": 15,
 	"components/drawer/drawer.tsx": 18,
 	"components/menu/use-menu-pointer.tsx": 15,
 	"components/pdf-viewer/pdf-viewer-document-cache.ts": 19,
@@ -34,7 +33,6 @@
 	"modules/map/engine/map-geometry/mark.ts": 38,
 	"modules/map/engine/map-geometry/projected.ts": 44,
 	"modules/map/engine/map-geometry/winding.ts": 21,
-	"modules/map/engine/map-overlay/entry.ts": 14,
 	"modules/map/engine/map-region/data.ts": 15,
 	"modules/map/engine/map-region/spare.ts": 15,
 	"modules/map/map-dot.tsx": 25,

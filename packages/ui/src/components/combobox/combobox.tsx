@@ -57,35 +57,36 @@ type ComboboxBaseProps<T> = {
 	placeholder?: string
 	/**
 	 * Formats a stored value for the input's resting display — what shows when the
-	 * user is not typing. Under `multiple` a single selection reads as its label and
-	 * anything past one as a `"N selected"` count, with the full list on hover as the
-	 * input's `title`.
+	 * user is not typing. Under `multiple` a single selection reads as its label,
+	 * and anything past one as a `"N selected"` count. The full list shows on hover
+	 * as the input's `title`.
 	 *
-	 * Tighter than `Listbox`, which joins up to three, and for a reason particular to
-	 * this control: a listbox trigger is a button whose text truncates and stops, while
-	 * this is a text input, so a joined value longer than the field scrolls — showing
-	 * the middle of a sentence, with blank space past its end. Without a resolver a
-	 * `multiple` combobox can only ever show the count, and a single-selection one
-	 * shows nothing, so supply one wherever the selection needs to be legible with the
-	 * panel closed.
+	 * Tighter than `Listbox`, which joins up to three, and for a reason particular
+	 * to this control. A listbox trigger is a button whose text truncates and
+	 * stops, while this is a text input. A joined value longer than the field
+	 * therefore scrolls, showing the middle of a sentence, with blank space past
+	 * its end. Without a resolver a `multiple` combobox can only ever show the
+	 * count, and a single-selection one shows nothing. Supply one wherever the
+	 * selection needs to be legible with the panel closed.
 	 */
 	displayValue?: (value: T) => string
 	/**
 	 * Names a `multiple` selection the field can only count — everything past one, and
 	 * every selection at all when there is no {@link ComboboxBaseProps.displayValue}.
 	 *
-	 * The threshold stays the control's: WHEN to stop listing labels is a property of a
-	 * text input whose content scrolls (see `displayValue`), while WHAT the things are is
-	 * the caller's. The default `"2 selected"` says how many of nothing in particular,
-	 * which is fine beside its own label and ambiguous in a row of six filters — where
-	 * `summarize={(codes) => \`${codes.length} postal codes\`}` reads.
+	 * The threshold stays the control's. WHEN to stop listing labels is a property
+	 * of a text input whose content scrolls (see `displayValue`). WHAT the things
+	 * are is the caller's. The default `"2 selected"` says how many of nothing in
+	 * particular. That is fine beside its own label, and ambiguous in a row of six
+	 * filters. There `summarize={(codes) => \`${codes.length} postal codes\`}` reads.
 	 *
 	 * **Return an empty string to let the `placeholder` through**, which is the same rule an
-	 * empty selection already follows. That is what a field whose values are TYPED IN rather
-	 * than picked wants: the input stays blank and ready after every commit instead of holding
-	 * a summary the next keystroke has to displace, and the placeholder carries the count. Note
-	 * the trade — a placeholder is not a programmatic name and is announced inconsistently, so
-	 * a field doing that owes the selection another reading.
+	 * empty selection already follows. That is what a field whose values are TYPED IN
+	 * rather than picked wants. The input stays blank and ready after every commit,
+	 * instead of holding a summary the next keystroke has to displace. The
+	 * placeholder carries the count. Note the trade. A placeholder is not a
+	 * programmatic name and is announced inconsistently. A field doing that owes the
+	 * selection another reading.
 	 *
 	 * The full list is still the input's `title` on hover, unsummarized.
 	 *
@@ -122,7 +123,7 @@ type ComboboxBaseProps<T> = {
 	clearable?: boolean
 	/**
 	 * Runs when the clear button empties the selection, with the combobox's own
-	 * input — and *instead of* the default's return-focus, so the handler owns
+	 * input. It runs *instead of* the default's return-focus, so the handler owns
 	 * where focus lands after a clear.
 	 *
 	 * With no handler, focus returns to the input, because the clear button
@@ -135,9 +136,9 @@ type ComboboxBaseProps<T> = {
 	 * <Combobox clearable onClear={(input) => input?.focus()} />  // the default, kept
 	 * ```
 	 *
-	 * Leaving the field costs the focus the default was protecting: a clear from
+	 * Leaving the field costs the focus the default was protecting. A clear from
 	 * the keyboard lands on `<body>`, so a keyboard user loses their place in the
-	 * page (WCAG 2.4.3) — prefer it where clearing is a pointer affordance. The
+	 * page (WCAG 2.4.3). Prefer it where clearing is a pointer affordance. The
 	 * cleared value itself still reports through `onValueChange`; this hook is
 	 * about what happens next, not about the value.
 	 */
@@ -159,16 +160,16 @@ type ComboboxBaseProps<T> = {
 	/**
 	 * A paste into the input, before the browser inserts it.
 	 *
-	 * For a combobox whose values are TYPED IN rather than picked from a fetched list, where a pasted
-	 * delimited list is one value per token: call `preventDefault` and commit them through
-	 * `onValueChange`. Reading `clipboardData` here is the only point such a list is still splittable —
-	 * a native `<input>` strips newlines from its own value, so by `onChange` a pasted spreadsheet
-	 * column has arrived as one undelimited run with every boundary destroyed.
+	 * For a combobox whose values are TYPED IN rather than picked from a fetched list, a pasted
+	 * delimited list is one value per token. Call `preventDefault` and commit them through
+	 * `onValueChange`. Reading `clipboardData` here is the only point such a list is still
+	 * splittable. A native `<input>` strips newlines from its own value. By `onChange` a pasted
+	 * spreadsheet column has arrived as one undelimited run, with every boundary destroyed.
 	 *
-	 * Preventing the default is how the combobox is told the paste was consumed: the draft it replaced
-	 * is then dropped and editing ends, the same way selecting an option does, so the field is not left
-	 * holding a query the handler has already turned into a selection. A paste left alone is ordinary
-	 * typing and lands at the caret.
+	 * Preventing the default is how the combobox is told the paste was consumed. The draft it
+	 * replaced is then dropped and editing ends, the same way selecting an option does. The field
+	 * is therefore not left holding a query the handler has already turned into a selection. A
+	 * paste left alone is ordinary typing and lands at the caret.
 	 */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
 	'data-group'?: string
@@ -221,9 +222,9 @@ function seedTopMatch(
 /**
  * Re-anchors the highlight when an option swap (async data, unrelated to the
  * query) drops the active one. Under a registered `virtualSourceRef`, a
- * missing DOM row is the normal windowed-out state — `setVirtualActiveIndexed`
- * already watches for it to mount — so this only re-anchors when
- * `activeIndexRef` is out of bounds for the source's live `count`, the
+ * missing DOM row is the normal windowed-out state. `setVirtualActiveIndexed`
+ * already watches for it to mount. This therefore only re-anchors when
+ * `activeIndexRef` is out of bounds for the source's live `count`. That is the
  * unambiguous signal that the underlying data (not just the window) dropped
  * it. Without a registered source, DOM absence is checked directly.
  *
@@ -264,15 +265,15 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 /**
  * Type-ahead select pairing a text input with a floating option panel.
  * Supports single or `multiple` selection, controlled or uncontrolled `value`,
- * and `clearable`/`nullable` affordances; resolves `size`, `disabled`,
- * `readOnly`, and `required` against an enclosing `<Control>`/Density and
+ * and `clearable`/`nullable` affordances. Resolves `size`, `disabled`,
+ * `readOnly`, and `required` against an enclosing `<Control>`/Density, and
  * registers with `<Form>` under `name`. Tracks the highlight as a virtual
  * active-descendant (APG editable combobox) with DOM focus held on the input,
  * re-anchoring across filter and async option changes. Filtering is
  * consumer-driven: `children` read the live and deferred query via
  * {@link useComboboxQuery} and render matching {@link ComboboxOption}s,
  * supporting both synchronous lists and async option sources. Wrap the
- * options in `VirtualOptions` with `getOptionId` for large lists: arrow /
+ * options in `VirtualOptions` with `getOptionId` for large lists. Arrow and
  * type-ahead then navigate the full option set by index, reaching options
  * outside the rendered window instead of stopping at its edge.
  *
