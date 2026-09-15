@@ -41,11 +41,11 @@ export type LinearScaleOptions = {
 	max?: number
 	/**
 	 * Pixels of clear room to reserve between a data extreme and its unpinned
-	 * domain edge — the space a value label needs to sit above the peak or below
-	 * the trough instead of flipping onto the line. Applied only where the nice
-	 * ceiling / floor doesn't already leave that much air, and never past a pinned
-	 * bound. Ticks stay on their clean steps; the widened edge just carries no
-	 * tick of its own.
+	 * domain edge. It is the space a value label needs to sit above the peak or
+	 * below the trough, instead of flipping onto the line. Applied only where the
+	 * nice ceiling / floor doesn't already leave that much air, and never past a
+	 * pinned bound. Ticks stay on their clean steps; the widened edge just carries
+	 * no tick of its own.
 	 * @defaultValue 0
 	 */
 	headroom?: number
@@ -73,7 +73,7 @@ function niceStep(raw: number): number {
 
 /**
  * Widens a degenerate (zero-span) domain so the scale has something to
- * divide by: an all-zero zero-baseline domain becomes `[0, 1]`, any other
+ * divide by. An all-zero zero-baseline domain becomes `[0, 1]`, and any other
  * flat value gets a unit of air on each side.
  *
  * @internal
@@ -106,8 +106,8 @@ function niceBound(
 
 /**
  * The largest share of the range a headroom reservation can take per side. At
- * the cap, a both-sided reservation still leaves the data half the plot; past
- * it the plot is too short to afford labels at all, so nothing is reserved and
+ * the cap, a both-sided reservation still leaves the data half the plot. Past
+ * it the plot is too short to afford labels at all, so nothing is reserved.
  * {@link headroomFits} — the same predicate — tells the layout to shed them.
  *
  * @internal
@@ -118,8 +118,8 @@ const HEADROOM_CAP = 0.25
  * Whether a `headroom` px reservation is affordable over a `rangePx`-long
  * range — at most {@link HEADROOM_CAP} of the range per side. The single
  * arbiter for the value-label room: {@link reserveHeadroom} reserves only when
- * it holds, and the layout sheds the labels when it doesn't, so the reserved
- * space and the labels that need it can never disagree.
+ * it holds, and the layout sheds the labels when it doesn't. The reserved space
+ * and the labels that need it can therefore never disagree.
  *
  * @internal
  */
@@ -129,12 +129,12 @@ export function headroomFits(headroom: number, rangePx: number): boolean {
 
 /**
  * Widens the unpinned bounds so each data extreme sits `headroom` px clear of
- * its edge — the room a value label needs above the peak or below the trough
- * instead of flipping onto the line. `f` is that gap as a fraction of the
- * range, and the widened span is solved so the fraction holds in the final
- * scale (a naive px→value pass under-reserves, since widening grows the span).
+ * its edge. That is the room a value label needs above the peak or below the
+ * trough, instead of flipping onto the line. `f` is that gap as a fraction of
+ * the range. The widened span is solved so the fraction holds in the final
+ * scale. A naive px→value pass under-reserves, since widening grows the span.
  * A bound is left alone when it is pinned or its nice step already clears the
- * extreme by `f`; when both sides widen they share one span so neither crowds.
+ * extreme by `f`. When both sides widen they share one span, so neither crowds.
  * An unaffordable ask (see {@link headroomFits}) reserves nothing — the layout
  * sheds the labels by the same test, so no label renders against unreserved
  * edges.
@@ -183,8 +183,8 @@ function reserveHeadroom(args: {
  * @returns The scale, or `null` when no finite value (or pin) yields a domain
  * — the caller renders an empty frame.
  * @remarks Non-finite entries are ignored so a stray `NaN` doesn't collapse
- * the scale; a pinned `min`/`max` is kept exact (pinning exists to compare
- * charts on one scale) and out-of-domain values clamp to the range edges.
+ * the scale. A pinned `min`/`max` is kept exact (pinning exists to compare
+ * charts on one scale), and out-of-domain values clamp to the range edges.
  * @internal
  */
 export function linearScale({
@@ -317,10 +317,11 @@ export function bandScale({ count, range, padding = 0.2 }: BandScaleOptions): Ba
 }
 
 /**
- * The internal boundaries between adjacent bands — the `count - 1` slot edges
- * that sit halfway between neighbouring centers, none at the outer ends where
- * the frame already bounds the plot. The category dividers rule one dashed line
- * per gap. Empty below two bands or on a collapsed (zero-step) scale.
+ * The internal boundaries between adjacent bands: the `count - 1` slot edges
+ * that sit halfway between neighbouring centers. None sits at the outer ends,
+ * where the frame already bounds the plot. The category dividers rule one
+ * dashed line per gap. Empty below two bands or on a collapsed (zero-step)
+ * scale.
  *
  * @internal
  */
