@@ -1,33 +1,34 @@
 /**
  * How far each drawn dot's pointer target reaches, and why it is ever less than
  * the whole. Clustering has already merged everything that draws over its
- * neighbour (`group.ts`); this reads what survived that merge and asks a wider
- * question of it — not whether two marks overlap, but how much of the ground
- * under one of them belongs to something else.
+ * neighbour (`group.ts`). This reads what survived that merge, and asks a wider
+ * question of it. The question is not whether two marks overlap, but how much of
+ * the ground under one of them belongs to something else.
  *
- * Three things claim that ground. A neighbour inside the coarse reach claims it,
- * because a target that covered a neighbour's face would take that neighbour's
- * readout with it and the mark a reader can see would answer nothing. A drawn zone
- * under the dot claims it. And a region layer that answers the pointer at all claims
- * it — a readout, a pick, a menu — because the dot is the topmost thing at its own
- * pixels and none of the three can be reached where a 44px target covers the shape.
- * The last two arrive the same way, folded into the one budget the plat hands in:
- * the zone half off its ledger, the region half off the geography under the dot, both
- * spelled as a reach. That is what let the third be added without this pass learning
- * anything new. {@link markTargets} is where they meet, so every dot-shaped mark reads one
- * rule rather than assembling its own.
+ * Three things claim that ground. A neighbour inside the coarse reach claims it.
+ * A target that covered a neighbour's face would take that neighbour's readout
+ * with it, and the mark a reader can see would answer nothing. A drawn zone
+ * under the dot claims it. And a region layer that answers the pointer at all
+ * claims it — a readout, a pick, a menu. The dot is the topmost thing at its own
+ * pixels. None of the three can be reached where a 44px target covers the shape.
+ * The last two arrive the same way, folded into the one budget the plat hands
+ * in. The zone half comes off its ledger, the region half off the geography
+ * under the dot. Both are spelled as a reach. That is what let the third be
+ * added without this pass learning anything new. {@link markTargets} is where
+ * they meet, so every dot-shaped mark reads one rule rather than assembling its
+ * own.
  *
  * The crowding half reads one mark's own drawn dots — a `MapPoints`'s groups, a
  * `MapMarker`'s pair of pins — rather than every dot on the map. Pooling them
  * would have to happen in the plat, and the plat cannot see the zoom scale every
- * reach here is measured in: `MapZoomScaleContext` sits below it, around the plot
- * alone, precisely so a wheel notch re-renders the marks without re-rendering the
- * plat, its legend, and the region layer. So two separate marks drawn within a
- * target's reach of one another each keep the full RADIUS here — the bound this
- * pass accepts, and `ground.ts` answers instead by dividing what the two overlap
- * rather than by shrinking either. It can pool across marks where this cannot,
- * because it measures in frame units and a frame position is scale-free where a
- * reach is not. `MapPoint` reads it today; the plural marks do not yet.
+ * reach here is measured in. `MapZoomScaleContext` sits below it, around the
+ * plot alone. A wheel notch therefore re-renders the marks without re-rendering
+ * the plat, its legend, and the region layer. So two separate marks drawn within
+ * a target's reach of one another each keep the full RADIUS here. That is the
+ * bound this pass accepts. `ground.ts` answers instead by dividing what the two
+ * overlap, rather than by shrinking either. It can pool across marks where this
+ * cannot, because it measures in frame units and a frame position is scale-free
+ * where a reach is not. `MapPoint` reads it today; the plural marks do not yet.
  *
  * Frame arithmetic over the same grid the clustering passes bucket into
  * (`grid.ts`), and React-free like the rest of the engine.
@@ -41,9 +42,9 @@ import { MAX_CLUSTER_RADIUS } from './radius'
 
 /**
  * One drawn dot the pass measures: where it draws in frame units, and the radius
- * it paints at in device pixels — a lone dot's, a summary's grade, a pin's.
- * `null` where the projection has no image for it, which draws nothing and
- * crowds nothing.
+ * it paints at in device pixels. That radius is a lone dot's, a summary's grade,
+ * or a pin's. `null` where the projection has no image for it, which draws
+ * nothing and crowds nothing.
  *
  * @internal
  */
@@ -54,8 +55,8 @@ export type MapDotMark = {
 
 /**
  * How many marks a pass indexes before the grid pays for itself. Below it the
- * pairwise scan is the cheaper of the two — a `MapPoint` hands in one dot and a
- * `MapMarker` two, which are most of the marks on a map, and neither needs to
+ * pairwise scan is the cheaper of the two. A `MapPoint` hands in one dot and a
+ * `MapMarker` two, which are most of the marks on a map. Neither needs to
  * allocate a `Map` and probe nine cells to answer a question one subtraction
  * settles.
  *
@@ -65,14 +66,15 @@ const INDEX_THRESHOLD = 8
 
 /**
  * How much reach a target centred on `mark` has before it covers the face
- * `other` paints, in device pixels — the gap between them less what the
- * neighbour draws. Read one way round rather than as an overlap: the mark whose
- * target reaches a neighbour is the one that gives ground back, and a wide
+ * `other` paints, in device pixels. It is the gap between them less what the
+ * neighbour draws. It is read one way round, rather than as an overlap. The mark
+ * whose target reaches a neighbour is the one that gives ground back. A wide
  * summary beside a small dot is not the same case as the small dot beside it.
  *
- * `Infinity` where the neighbour is beyond that reach anyway — the identity of
- * the minimum a caller folds these into, so a far neighbour needs no special case
- * and no layer below {@link markTargets} has to know what the cap is.
+ * `Infinity` where the neighbour is beyond that reach anyway. That is the
+ * identity of the minimum a caller folds these into. A far neighbour therefore
+ * needs no special case, and no layer below {@link markTargets} has to know what
+ * the cap is.
  *
  * @internal
  */
@@ -92,19 +94,19 @@ function roomBeside(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number):
 
 /**
  * How much reach the nearest neighbour leaves each drawn dot, index for index
- * with the marks handed in — `Infinity` where nothing stands inside that dot's
- * coarse reach, which {@link markTargets} then caps.
+ * with the marks handed in. It is `Infinity` where nothing stands inside that
+ * dot's coarse reach, which {@link markTargets} then caps.
  *
  * `unitsPerPixel` is what one device pixel spans in frame units — `1` at rest,
  * and `1 / k` under the zoom layer's transform. Every reach here is a pixel
  * measure and every position is a frame one, so the conversion lands once, on the
  * way into {@link roomBeside}. A zoom that spreads the dots apart on screen frees
- * their targets on the same beat it separates a summary into its own dots, which
+ * their targets on the same beat it separates a summary into its own dots. That
  * is the beat those dots need aiming at.
  *
- * Past {@link INDEX_THRESHOLD} marks the pass indexes through the shared grid, so
- * a mark reads the nine cells around it rather than every other mark — a set of
- * hundreds would otherwise be a quadratic scan on every regrouping.
+ * Past {@link INDEX_THRESHOLD} marks the pass indexes through the shared grid. A
+ * mark therefore reads the nine cells around it, rather than every other mark. A
+ * set of hundreds would otherwise be a quadratic scan on every regrouping.
  *
  * @param marks - The drawn dots, in the order they draw.
  * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
@@ -171,36 +173,37 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
 }
 
 /**
- * The radius each drawn dot's pointer target takes, in device pixels — index for
- * index with the marks handed in, and the one place every claim on that ground
+ * The radius each drawn dot's pointer target takes, in device pixels, index for
+ * index with the marks handed in. It is the one place every claim on that ground
  * meets.
  *
  * A dot takes the whole finger target where nothing else needs the ground under
- * it, and gives way as something does: a neighbour close enough that the target
- * would cover its face, or a zone or region it stands on with only so much room to
- * spare. All three arrive as the same measure — a reach in device pixels, `Infinity`
- * where the claimant wants nothing — so the answer is their minimum, clamped between
- * what the dot paints and the reach a finger takes. A target narrower than its own
- * dot would leave the dot a dead rim, and one wider than the finger target is
- * reach no pointer asked for.
+ * it, and gives way as something does. That something is a neighbour close
+ * enough that the target would cover its face. It is also a zone or region it
+ * stands on, with only so much room to spare. All three arrive as the same
+ * measure: a reach in device pixels, `Infinity` where the claimant wants
+ * nothing. The answer is therefore their minimum, clamped between what the dot
+ * paints and the reach a finger takes. A target narrower than its own dot would
+ * leave the dot a dead rim. One wider than the finger target is reach no pointer
+ * asked for.
  *
  * This is the one place {@link POINT_HIT_RADIUS} means the cap. Every producer
- * below it spells "I claim nothing" as the identity of the minimum instead, so a
- * third claimant added later needs to know only its own measure.
+ * below it spells "I claim nothing" as the identity of the minimum instead. A
+ * third claimant added later therefore needs to know only its own measure.
  *
  * A measure rather than the pair of booleans this replaced. The zone half asked
- * whether a dot stood inside a zone, which has no answer on the boundary — and a
- * zone drawn through its own marks puts every one of them exactly there, where a
- * ray cast is decided by the ring's winding and its concavity. Asking how much
- * room there is instead has an answer everywhere, and it is the same answer for
- * every dot on one zone, which is what a reader sees when four corners of one
- * corridor all point alike.
+ * whether a dot stood inside a zone, which has no answer on the boundary. A zone
+ * drawn through its own marks puts every one of them exactly there. A ray cast
+ * is decided there by the ring's winding and its concavity. Asking how much room
+ * there is instead has an answer everywhere, and it is the same answer for every
+ * dot on one zone. That is what a reader sees when four corners of one corridor
+ * all point alike.
  *
  * @param marks - The drawn dots, in the order they draw.
  * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
  * @param spare - How much reach the drawn zones and the region layer leave a mark
- * at a position — the plat's own resolver over its ledger, which answers the
- * legend as it toggles, already bound to the scale by `useMapOverlay`.
+ * at a position. It is the plat's own resolver over its ledger, which answers the
+ * legend as it toggles. It is already bound to the scale by `useMapOverlay`.
  * @returns The target radius for each dot, in device pixels.
  *
  * @internal

@@ -13,8 +13,8 @@ import type { ColumnSizeProfile } from './allocate'
 
 /**
  * The intrinsic content width of an element's text — the width it wants before
- * any truncation clip — read sub-pixel from a `Range` over its contents, with
- * `scrollWidth` as the integer fallback where `Range` geometry is unavailable
+ * any truncation clip. It is read sub-pixel from a `Range` over its contents.
+ * `scrollWidth` is the integer fallback where `Range` geometry is unavailable
  * (jsdom). The marked leaves (`data-grid-content`) carry no padding or border, so
  * this is their content-box width. Rounded up so a fractional pixel never clips.
  *
@@ -37,17 +37,18 @@ function intrinsicWidth(el: HTMLElement): number {
 /**
  * The border-box width a header needs to show its title and affordance icons
  * without truncating. The header's flex row (`data-grid-header`) distributes any
- * width the column has beyond its content as justified free space between the
- * title group and the filter button — never into an element — so the tight width
- * is the cell's current border box minus that free space, plus however much more
- * the title wants than its current (possibly clipped) box. Free space and title
- * growth are mutually exclusive (a column is either roomy or cramped), so this
- * reads the same tight width whatever the column's current width — no feedback as
- * the autosizer resizes it.
+ * width the column has beyond its content as justified free space. That space
+ * sits between the title group and the filter button, never inside an element.
+ * The tight width is therefore the cell's current border box minus that free
+ * space. It adds however much more the title wants than its current (possibly
+ * clipped) box. Free space and title growth are mutually exclusive, because a
+ * column is either roomy or cramped. This therefore reads the same tight width
+ * whatever the column's current width. There is no feedback as the autosizer
+ * resizes it.
  *
- * `slotGap` is the flex row's `column-gap` (px), passed in because it is set by
- * one recipe class and so is identical across columns — read once per pass rather
- * than recomputed (a forced style flush) per column.
+ * `slotGap` is the flex row's `column-gap` (px). It is passed in because one
+ * recipe class sets it, so it is identical across columns. It is read once per
+ * pass, rather than recomputed (a forced style flush) per column.
  *
  * @internal
  */
@@ -79,7 +80,7 @@ function headerWidth(
 /**
  * The header flex row's `column-gap` in px, read once per measurement pass from
  * the first header that carries a `data-grid-header` slot. The gap comes from one
- * recipe class, so every column's slot shares it — reading it per column would
+ * recipe class, so every column's slot shares it. Reading it per column would
  * force a style flush for each (see {@link headerWidth}). Zero when no header is
  * rendered.
  *
@@ -148,8 +149,8 @@ type PendingLeaf = { leaf: HTMLElement; chrome: number }
 
 /**
  * One column's body scan: the widest content need resolved against the current
- * layout (text-only and leafless cells), plus the element-bearing leaves
- * awaiting the batched `max-content` read, which folds into `widest`.
+ * layout (text-only and leafless cells). It also holds the element-bearing
+ * leaves awaiting the batched `max-content` read, which folds into `widest`.
  *
  * @internal
  */
@@ -157,16 +158,17 @@ type ColumnScan = { widest: number; pending: PendingLeaf[] }
 
 /**
  * Scans a column's body cells against the current layout, in border-box pixels.
- * Each truncating leaf (`data-grid-content`) fills its cell, so the cell's
- * border box minus the leaf's box is the cell chrome (padding + border), and
- * the leaf's content width added back gives the width the cell wants.
+ * Each truncating leaf (`data-grid-content`) fills its cell. The cell's border
+ * box minus the leaf's box is therefore the cell chrome (padding + border). The
+ * leaf's content width added back gives the width the cell wants.
  *
- * A text-only leaf resolves here: clipped or not, `nowrap` text lays out at its
+ * A text-only leaf resolves here. Clipped or not, `nowrap` text lays out at its
  * full width under the overflow, so its intrinsic width (see
  * {@link intrinsicWidth}) reads true in place. A leaf holding element children
- * does not — an atomic shrink-to-fit box (a Badge's `fit-content`) genuinely
- * narrows into a tight cell, so its in-place rect reports the shrunk width, not
- * the natural one — those defer to {@link resolvePendingLeaves}. A cell with no
+ * does not. An atomic shrink-to-fit box (a Badge's `fit-content`) genuinely
+ * narrows into a tight cell. Its in-place rect therefore reports the shrunk
+ * width, not the natural one. Those leaves defer to
+ * {@link resolvePendingLeaves}. A cell with no
  * leaf (the editable grid's mounted editor, or empty content) falls back to its
  * own `scrollWidth`.
  *
@@ -202,14 +204,14 @@ function scanBodyCells(cells: HTMLElement[]): ColumnScan {
 
 /**
  * Resolves the deferred element-bearing leaves (see {@link scanBodyCells}) by
- * briefly laying each out at `width: max-content`: every leaf widens in one
+ * briefly laying each out at `width: max-content`. Every leaf widens in one
  * write pass, every rect is read in one pass (a single forced layout), then the
- * inline widths revert — all synchronous inside the measurement, so nothing
- * paints mid-flight and the truncation observers see no net change. Widening
- * frees a shrink-to-fit child to its natural width, which the clipped in-place
- * rect can't report, and folds each leaf's `chrome + width` into its column's
- * `widest`. `scrollWidth` stands in where rect geometry is unavailable (jsdom),
- * matching {@link intrinsicWidth}.
+ * inline widths revert. All of it is synchronous inside the measurement, so
+ * nothing paints mid-flight and the truncation observers see no net change.
+ * Widening frees a shrink-to-fit child to its natural width, which the clipped
+ * in-place rect can't report, and folds each leaf's `chrome + width` into its
+ * column's `widest`. `scrollWidth` stands in where rect geometry is unavailable
+ * (jsdom), matching {@link intrinsicWidth}.
  *
  * @internal
  */
@@ -242,11 +244,15 @@ export type ColumnMeasurement = {
 	/** Per-data-column hard floor (px) — held and auto-sized alike — the width a drag-resize cannot cross (see {@link columnFloor}). */
 	floors: Map<string, number>
 	/**
-	 * Body cells the pass read. Zero means the body rendered none — a loading
-	 * skeleton (whose placeholder cells carry no column id), an empty result, or a
-	 * virtualized window that hasn't landed yet — so the pass saw no content at
-	 * all and every profile fell back to its header floor. Such a measurement is
-	 * provisional: the caller re-measures rather than reusing or freezing it.
+	 * Body cells the pass read. Zero means the body rendered none:
+	 *
+	 * - A loading skeleton, whose placeholder cells carry no column id.
+	 * - An empty result.
+	 * - A virtualized window that hasn't landed yet.
+	 *
+	 * The pass then saw no content at all, and every profile fell back to its
+	 * header floor. Such a measurement is provisional: the caller re-measures
+	 * rather than reusing or freezing it.
 	 */
 	cells: number
 }
@@ -263,16 +269,18 @@ type MeasureOptions<T> = {
 	/** Columns whose `width` seed the user released via "Auto-size all columns"; they auto-size again instead of holding `width`. */
 	released: ReadonlySet<string>
 	/**
-	 * Per-column running-max content width (border-box), carried across passes so a
-	 * wider row scrolling or paging into view only grows a column, never shrinks it
-	 * (no jitter). Mutated in place; cleared by the caller on a structural change.
+	 * Per-column running-max content width (border-box), carried across passes. A
+	 * wider row scrolling or paging into view therefore only grows a column, never
+	 * shrinks it (no jitter). Mutated in place; cleared by the caller on a
+	 * structural change.
 	 */
 	runningContent: Map<string, number>
 	/**
-	 * Columns measured to their full content width: the automatic fit's
+	 * Columns measured to their full content width. The automatic fit's
 	 * runaway-cell cap ({@link DEFAULT_CONTENT_MAX}) lifts to each column's own
-	 * `maxWidth`, so a user-invoked fit ("Auto-size this column" / "Auto-size all
-	 * columns") lands on the smallest width that shows the content untruncated.
+	 * `maxWidth`. A user-invoked fit ("Auto-size this column" / "Auto-size all
+	 * columns") therefore lands on the smallest width that shows the content
+	 * untruncated.
 	 * Absent for the automatic passes, which keep the cap.
 	 */
 	uncapped?: ReadonlySet<string>
@@ -282,12 +290,13 @@ type MeasureOptions<T> = {
  * A data column's hard floor (px): the narrowest it can be sized — by the
  * allocator or a drag-resize — before its header can't show. A single-word title
  * reserves its full width, so the column is at least that wide and the header
- * never truncates; a multi-word or non-string title reserves only its affordance
- * icons plus a small text allowance, so a narrow-data column stays narrow and
+ * never truncates. A multi-word or non-string title reserves only its affordance
+ * icons plus a small text allowance. A narrow-data column then stays narrow, and
  * that header truncates. Clamped up to the column's declared `minWidth` and down
- * to its `maxWidth`. Read from the header DOM unclipped by the column's current
- * width (see {@link headerWidth}), so a wide column reports the tight floor, not
- * its current size — the same floor whatever width it holds.
+ * to its `maxWidth`. It is read from the header DOM unclipped by the column's
+ * current width (see {@link headerWidth}). A wide column therefore reports the
+ * tight floor, not its current size. It is the same floor whatever width it
+ * holds.
  *
  * @internal
  */
@@ -313,13 +322,13 @@ function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap
 /**
  * Builds one auto-sized data column's {@link ColumnSizeProfile} from its `floor`
  * (see {@link columnFloor}) and measured body width (see {@link scanBodyCells}).
- * The width is driven by the body content (capped so a runaway cell can't starve
- * the rest, then folded into the running max so a wider row paging in only grows
- * the column); the floor is always honored, so a single-word header still fits
- * while a multi-word one truncates to the data. `max` is the column's
+ * The width is driven by the body content. It is capped so a runaway cell can't
+ * starve the rest. It is then folded into the running max, so a wider row paging
+ * in only grows the column. The floor is always honored, so a single-word header
+ * still fits while a multi-word one truncates to the data. `max` is the column's
  * `maxWidth`, else unbounded — which also lifts the content cap, an explicit
  * ceiling being deliberate. An `uncapped` column (a user-invoked fit) lifts the
- * cap the same way: showing the content whole is the point of the action, and a
+ * cap the same way. Showing the content whole is the point of the action, and a
  * horizontal overflow is the accepted cost. A frozen (pinned or locked) column
  * is marked so the allocator holds it at content rather than lifting it into
  * the surplus.
@@ -351,9 +360,9 @@ function columnProfile<T>(
 /**
  * Whether a column is auto-sized — a data column the allocator distributes width
  * across, rather than one holding a fixed width. A drag-resized column (in
- * `manualPinned`) holds its width; a `width`-seeded column holds its initial
- * width too, until the user releases it via "Auto-size all columns" (its id lands in
- * `released`), after which it rejoins the fit like a width-less column.
+ * `manualPinned`) holds its width. A `width`-seeded column holds its initial
+ * width too, until the user releases it via "Auto-size all columns" (its id
+ * lands in `released`). It then rejoins the fit like a width-less column.
  *
  * @internal
  */
@@ -373,20 +382,20 @@ export function isAutoSized<T>(
 
 /**
  * Reads the rendered grid and resolves, per auto-sized data column, the
- * {@link ColumnSizeProfile} the allocator needs (see {@link columnProfile}), plus
- * every data column's {@link columnFloor} — held columns included, so a drag
- * honors the floor even on a column that sits out the distribution. Non-data
- * columns (selection / actions), `width`-held columns, and manually drag-resized
- * columns are excluded from the profiles and their widths summed into `fixed` for
- * the caller to reserve.
+ * {@link ColumnSizeProfile} the allocator needs (see {@link columnProfile}). It
+ * also resolves every data column's {@link columnFloor}, held columns included.
+ * A drag therefore honors the floor even on a column that sits out the
+ * distribution. Non-data columns (selection / actions), `width`-held columns,
+ * and manually drag-resized columns are excluded from the profiles. Their widths
+ * sum into `fixed` for the caller to reserve.
  *
  * Measurements are read from the live DOM unclipped by the current column widths
- * (see {@link headerWidth} / {@link scanBodyCells}), so re-measuring after the
- * autosizer resizes a column yields the same profile — no feedback loop. Reads
- * against the current layout all land first; the one measurement that needs a
- * different layout — an element-bearing leaf, whose shrink-to-fit content clips
- * with the cell — then runs as a single batched widen-read-revert (see
- * {@link resolvePendingLeaves}).
+ * (see {@link headerWidth} / {@link scanBodyCells}). Re-measuring after the
+ * autosizer resizes a column therefore yields the same profile, with no feedback
+ * loop. Reads against the current layout all land first. The one measurement
+ * that needs a different layout is an element-bearing leaf, whose shrink-to-fit
+ * content clips with the cell. It then runs as a single batched
+ * widen-read-revert (see {@link resolvePendingLeaves}).
  *
  * @internal
  */
