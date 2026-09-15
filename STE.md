@@ -36,6 +36,20 @@ This document obeys the rules that it defines; read it as the reference.
 
 11. **Procedures.** Start an instruction with the verb, and write one instruction in each sentence. Put a warning or a caution before the step that it applies to. Put a complex set of conditions in a vertical list.
 
+## Scope in this repository
+
+Rules 4, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) pins rule 10 at zero across the `ui` source tree. It holds rules 4 and 6 to a per-file ledger that can only shrink.
+
+Refresh the ledger with `STE_BASELINE=write` when a change pays debt down. The diff is the burn-down record.
+
+Rule 6 counts a semicolon-joined compound as one sentence. A cap on the sentence is the point of the rule, so a long run of joined clauses is a break.
+
+Rule 4 counts candidates, not verdicts. The rule permits a descriptive passive where the active voice is longer or less clear, so each site needs a reader's call.
+
+Rule 5 stays out of scope until this repository holds Part 2. The `-ing` category runs to about 7,000 sites in the `ui` comments alone. Most are participial adjectives — "the enclosing dialog", "the underlying seam" — and Part 2 approves a subset of them. A rewrite without the Dictionary degrades the prose it touches.
+
+An audit and a plan stay in their authored voice. An audit is a point-in-time record, which [`CONVENTIONS.md` §12.4](CONVENTIONS.md) deletes once its findings close. A plan is a permanent record of one decision. Neither is a living surface document, so neither is worth the churn.
+
 ## Example
 
 Drift — a gerund as the subject, and two instructions in one sentence:
