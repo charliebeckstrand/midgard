@@ -42,10 +42,10 @@ export type A11yPanel = {
  * confirmations. Defaults to `'dialog'`.
  * @param modal - Whether the panel traps AT to its subtree (`aria-modal`); pass
  * `false` for non-modal surfaces. Defaults to `true`.
- * @returns An `A11yPanel`: `ariaProps` to spread onto the panel root (role,
- * `aria-modal`, labelling refs) and `a11y`, the `A11yPanelProviderValue` to
- * feed `PanelProviders` so the Title / Description slots register and adopt
- * their ids.
+ * @returns An `A11yPanel` with two fields. `ariaProps` spreads onto the panel
+ * root (role, `aria-modal`, labelling refs). `a11y` is the
+ * `A11yPanelProviderValue` to feed `PanelProviders`, so the Title / Description
+ * slots register and adopt their ids.
  * @see {@link useA11yScope}
  * @see {@link useA11yDisclosure}
  */

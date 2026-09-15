@@ -15,16 +15,16 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py'> & {
 }
 
 /**
- * Outlined, padded surface built on Box. Renders in React Server Components:
- * the card never reads context — `size` is explicit (default `md`) and the
- * matching section gap is projected onto direct `data-slot=card-*` children
- * from outside. An explicit `size` additionally opens a density scope so
- * size-aware client children (Button, Input, …) inherit the step; an unsized
+ * Outlined, padded surface built on Box. Renders in React Server Components,
+ * because the card never reads context. `size` is explicit (default `md`), and
+ * the matching section gap is projected onto direct `data-slot=card-*` children
+ * from outside. An explicit `size` additionally opens a density scope, so
+ * size-aware client children (Button, Input, …) inherit the step. An unsized
  * card stays fully static and lets ambient density flow through.
  *
- * The frame owns the outer padding for every child, bare or structural; a
+ * The frame owns the outer padding for every child, bare or structural. A
  * section pads only the inner edge it shares with a sibling (header below,
- * footer above), so padding has a single source on each edge. A header
+ * footer above). Padding therefore has a single source on each edge. A header
  * directly followed by a body collapses that gap to zero — the two sit flush.
  */
 export function Card({

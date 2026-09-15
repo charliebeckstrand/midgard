@@ -8,7 +8,7 @@ export type GridAggFuncName = 'sum' | 'avg' | 'min' | 'max' | 'count'
 
 /**
  * A column's aggregation: a built-in name reducing the column's numeric
- * values, or a function over the rows themselves — an aggregate spanning
+ * values, or a function over the rows themselves. An aggregate spanning
  * several fields (a weighted ratio) needs row access, not one column's values.
  *
  * @typeParam T - Shape of a single row.
@@ -17,8 +17,8 @@ export type GridAggFunc<T> = GridAggFuncName | ((rows: T[]) => unknown)
 
 /**
  * Context for a {@link GridColumn.aggCell} renderer: the aggregated `value`
- * and the `rows` it was computed over — a group's leaves on a group row, the
- * whole filtered set on the grand total.
+ * and the `rows` it was computed over. That is a group's leaves on a group
+ * row, and the whole filtered set on the grand total.
  *
  * @typeParam T - Shape of a single row.
  */
@@ -73,21 +73,21 @@ export type GridColumn<T> = {
 	 * instead of a cell value. Defaults to a natural checkbox width rather than a
 	 * full data-column width; set {@link GridColumn.width} to override. Always
 	 * frozen to the far left ahead of any left-{@link GridColumn.pinned | pinned}
-	 * column once the grid pins a column, so the checkboxes stay anchored while the
-	 * grid scrolls sideways; until something is pinned it sits inline like any
-	 * column.
+	 * column once the grid pins a column. The checkboxes therefore stay anchored
+	 * while the grid scrolls sideways. Until something is pinned it sits inline
+	 * like any column.
 	 */
 	selectable?: boolean
 	/**
 	 * Renders per-row action controls (e.g. a menu) in this column's cell. The
-	 * second argument carries the row's editing state and the two ways to end it,
-	 * so a save and a discard control can live beside the row they act on.
+	 * second argument carries the row's editing state and the two ways to end it. A
+	 * save and a discard control can therefore live beside the row they act on.
 	 */
 	actions?: (row: T, context: GridRowActionsContext) => ReactNode
 	/**
 	 * Marks this as the row drag-handle column: renders a grip that drags its row
 	 * to reorder it, rather than a cell value. Effective only while the grid is
-	 * {@link GridProps.rowReorder | row-reorderable}; the handle is present but
+	 * {@link GridProps.rowReorder | row-reorderable}. The handle is present but
 	 * inert otherwise (and while a column sort orders the rows, since a manual
 	 * order only holds against the natural order). Like {@link GridColumn.selectable}
 	 * it is a non-data column — never sorted, filtered, resized, or column-reordered
@@ -110,9 +110,9 @@ export type GridColumn<T> = {
 	 * Row property this column reads and writes while the grid is
 	 * {@link GridProps.editable | editable} and the cell's row is in edit mode. A
 	 * data column with a `field` (or an {@link GridColumn.editCell} slot) is
-	 * editable; the editor the grid mounts is inferred from the field value's
-	 * primitive type (string → text, number → number, boolean → yes/no listbox),
-	 * and the committed value flows out through {@link GridEditableConfig.onCommit}.
+	 * editable. The editor the grid mounts is inferred from the field value's
+	 * primitive type (string → text, number → number, boolean → yes/no listbox).
+	 * The committed value flows out through {@link GridEditableConfig.onCommit}.
 	 */
 	field?: keyof T
 	/**
@@ -132,9 +132,9 @@ export type GridColumn<T> = {
 	editCell?: GridEditCell<T>
 	/**
 	 * Validates an edited cell value in an {@link GridProps.editable | editable}
-	 * grid. Receives the pending value and its row; return an error message to
-	 * reject it — the editor shows the message inline while editing, and the cell
-	 * is dropped (not emitted) when the row saves — or `null` to accept it.
+	 * grid. Receives the pending value and its row. Return an error message to
+	 * reject it, or `null` to accept it. The editor shows the message inline while
+	 * editing, and the cell is dropped (not emitted) when the row saves.
 	 */
 	validate?: (value: unknown, row: T) => string | null
 	/**
@@ -163,7 +163,7 @@ export type GridColumn<T> = {
 	/**
 	 * Marks this data column as one the rows can be grouped by from the grid's
 	 * chrome: the {@link GridGroupBy.groupButton | group-by button} shows on its
-	 * header — a click groups the rows by the column, a second click ungroups.
+	 * header. A click groups the rows by the column, and a second click ungroups.
 	 * Gates that button only; a `groupBy` binding can still name any data column
 	 * directly.
 	 * @defaultValue false
@@ -174,17 +174,18 @@ export type GridColumn<T> = {
 	 * {@link GridProps.groupTotalRow | group} / {@link GridProps.grandTotalRow | grand}
 	 * total rows. A built-in name reduces the column's values — its
 	 * {@link GridColumn.value} accessor, else the row field named by the column
-	 * id, coerced to numbers with entries that don't parse skipped (`count`
-	 * counts rows; an otherwise empty set renders blank, never a fabricated
-	 * zero). A function receives the rows themselves and returns any value.
+	 * id. They are coerced to numbers, with entries that don't parse skipped.
+	 * `count` counts rows, and an otherwise empty set renders blank, never a
+	 * fabricated zero. A function receives the rows themselves and returns any
+	 * value.
 	 * Rendered through {@link GridColumn.aggCell} when given, else locale number
 	 * formatting.
 	 */
 	aggFunc?: GridAggFunc<T>
 	/**
 	 * Renders this column's aggregated value on group-header and total rows,
-	 * superseding the default locale number formatting — pair a currency
-	 * column's `cell` with an `aggCell` reading the same formatter. Receives the
+	 * superseding the default locale number formatting. Pair a currency column's
+	 * `cell` with an `aggCell` reading the same formatter. Receives the
 	 * {@link GridAggCellContext}: the aggregate and the rows behind it.
 	 */
 	aggCell?: (context: GridAggCellContext<T>) => ReactNode
@@ -200,12 +201,12 @@ export type GridColumn<T> = {
 	/**
 	 * The column's width. In a non-resizable grid this is its fixed CSS width. In a
 	 * resizable grid ({@link GridProps.resizable}) a `px` value seeds the column's
-	 * initial width: the column holds it — sitting out the automatic content sizing —
-	 * until the header's "Auto-size all columns" releases it to content. A manual resize
-	 * overrides the seed (and, like any manual resize, holds every column where it
-	 * sits); a drag can't cross the {@link GridColumn.minWidth} floor, so a
+	 * initial width. The column holds it, sitting out the automatic content sizing,
+	 * until the header's "Auto-size all columns" releases it to content. A manual
+	 * resize overrides the seed, and, like any manual resize, holds every column
+	 * where it sits. A drag can't cross the {@link GridColumn.minWidth} floor, so a
 	 * single-word header stays whole. Omit it to size to content from the first
-	 * render: columns share the width evenly when there is room to spare, and any
+	 * render. Columns share the width evenly when there is room to spare, and any
 	 * column whose content would truncate takes more.
 	 */
 	width?: string
@@ -226,28 +227,30 @@ export type GridColumn<T> = {
 	/**
 	 * Freezes the column against a horizontal scroll, pulling it to that edge and
 	 * sticking it there. `'left'` / `'right'` pick the edge; `true` is `'left'`.
-	 * A pinned column can't be reordered or hidden, shows in the column manager's
-	 * matching pinned group (left columns prepended, right appended), and marks its
-	 * header with a pin button that unpins it on click. Multi-column stacking needs
-	 * known widths (a `resizable`/fixed-layout grid, or a column `width`); a lone
-	 * pinned column on a side needs neither. This is the column's initial pin — the
-	 * user moves it at runtime through the header context menu's Pin left / Pin
-	 * right / Unpin items and the column manager's per-column pin control.
+	 * A pinned column can't be reordered or hidden. It shows in the column
+	 * manager's matching pinned group, left columns prepended and right appended.
+	 * It marks its header with a pin button that unpins it on click. Multi-column
+	 * stacking needs known widths (a `resizable`/fixed-layout grid, or a column
+	 * `width`); a lone pinned column on a side needs neither. This is the column's
+	 * initial pin. The user moves it at runtime through the header context menu's
+	 * Pin left / Pin right / Unpin items, and the column manager's per-column pin
+	 * control.
 	 * @see {@link GridColumn.locked} for a freeze the user can't change.
 	 */
 	pinned?: boolean | 'left' | 'right'
 	/**
 	 * Freezes the column to an edge like {@link GridColumn.pinned}, but the user
-	 * can't release it: no unpin button on its header, no Pin / Unpin items in its
-	 * context menu, and a non-interactive edge arrow (rather than a pin control) in
-	 * the column manager. `'left'` / `'right'` pick the edge; `true` is `'left'`. It
-	 * still lists in the column manager's matching pinned group — left columns
-	 * prepended, right appended — and is excluded from reorder and hide like a
-	 * pinned column. Takes precedence over `pinned` and any runtime pin change.
+	 * can't release it. There is no unpin button on its header, and no Pin / Unpin
+	 * items in its context menu. The column manager shows a non-interactive edge
+	 * arrow for it, rather than a pin control. `'left'` / `'right'` pick the edge; `true`
+	 * is `'left'`. It still lists in the column manager's matching pinned group,
+	 * left columns prepended and right appended. It is excluded from reorder and
+	 * hide like a pinned column. Takes precedence over `pinned` and any runtime pin
+	 * change.
 	 *
-	 * @remarks Use for columns that must stay frozen — a row's identity column, a
-	 * permanent actions rail — where pinning is part of the grid's design rather
-	 * than a user preference.
+	 * @remarks Use for columns that must stay frozen, such as a row's identity
+	 * column or a permanent actions rail. There pinning is part of the grid's
+	 * design rather than a user preference.
 	 */
 	locked?: boolean | 'left' | 'right'
 	/**
@@ -270,9 +273,9 @@ export type GridColumnManagerItem = {
 	pinned?: 'left' | 'right'
 	/**
 	 * The edge the column is locked to, or `undefined` when it isn't locked. A
-	 * locked column is frozen like {@link GridColumnManagerItem.pinned} but the
-	 * manager shows a non-interactive edge arrow for it instead of a pin control, so
-	 * the user can't release it.
+	 * locked column is frozen like {@link GridColumnManagerItem.pinned}. The manager
+	 * shows a non-interactive edge arrow for it instead of a pin control, so the
+	 * user can't release it.
 	 */
 	locked?: 'left' | 'right'
 	/**
@@ -298,9 +301,9 @@ export type GridPaginationState = {
  *
  * @remarks Two modes, selected by {@link GridPagination.manual}. In server
  * mode (the default once `rowCount` or `pageCount` is given) the grid never
- * slices: it advertises the page controls and emits page changes through
- * `onValueChange`, and the consumer fetches that page and feeds it back as
- * `rows` — TanStack's `manualPagination` contract. In client mode the grid
+ * slices. It advertises the page controls and emits page changes through
+ * `onValueChange`. The consumer fetches that page and feeds it back as `rows`,
+ * which is TanStack's `manualPagination` contract. In client mode the grid
  * paginates the full `rows` array itself.
  */
 export type GridPagination = {
@@ -339,15 +342,15 @@ export type GridColumnSizingState = Record<string, number>
  * backed by the grid's TanStack Table engine. Pairs with
  * {@link GridProps.resizable} to persist and restore drag-resized widths.
  *
- * @remarks `onValueChange` reports *user/consumer* width changes — a drag, a
- * keyboard nudge, a column reset, a controlled write — and settles once the
+ * @remarks `onValueChange` reports *user/consumer* width changes: a drag, a
+ * keyboard nudge, a column reset, a controlled write. It settles once the
  * gesture does (debounce a persist on it to "save when the resize finishes").
- * The grid's own content auto-fit does **not** fire it: the fit updates the
+ * The grid's own content auto-fit does **not** fire it. The fit updates the
  * rendered widths but isn't a preference, so persisting `onValueChange` never
  * saves autosized widths, only deliberate ones. A `value`/`defaultValue`
- * seeded on mount is honoured as a manual width — restored widths hold on
- * reload rather than being re-fit — so the binding round-trips: persist what
- * `onValueChange` reports, feed it back as `defaultValue`.
+ * seeded on mount is honoured as a manual width, so restored widths hold on
+ * reload rather than being re-fit. The binding therefore round-trips: persist
+ * what `onValueChange` reports, and feed it back as `defaultValue`.
  */
 export type GridColumnSizing = {
 	value?: GridColumnSizingState
@@ -395,14 +398,14 @@ export type GridSearch = {
 	manual?: boolean
 	/**
 	 * How the query acts on the rows. `'filter'` prunes — non-matching rows drop
-	 * from the view (the default quick-search). `'highlight'` keeps every row and
-	 * marks the matched substring in each cell the search scans (the columns
-	 * declaring a {@link GridColumn.value}), so a match reads as an emphasis
-	 * rather than a prune.
+	 * from the view (the default quick-search). `'highlight'` keeps every row
+	 * instead. The matched substring is marked in each cell the search scans (the
+	 * columns declaring a {@link GridColumn.value}). A match therefore reads as an
+	 * emphasis rather than a prune.
 	 *
 	 * @remarks Highlighting decorates the rendered value, so it marks the text a
-	 * cell renders — a plain string, or the string leaves nested inside a custom
-	 * `cell` node — while a non-text cell passes through unmarked. Independent of
+	 * cell renders. That is a plain string, or the string leaves nested inside a
+	 * custom `cell` node. A non-text cell passes through unmarked. Independent of
 	 * {@link GridColumnFilters}, which always prune; a highlight-mode search paired
 	 * with active column filters marks matches among the rows those filters leave.
 	 * Under {@link GridSearch.manual} the grid never prunes anyway, so this only
@@ -447,8 +450,8 @@ export type GridColumnFilters = {
 	/**
 	 * How each filterable column surfaces its filter. `'header'` (default) shows the
 	 * funnel button in every filterable column header. `'menu'` drops the resting
-	 * funnel — so it never takes header width — and offers the filter from the
-	 * column's right-click menu instead; the funnel returns only once a filter is
+	 * funnel, so it never takes header width. It offers the filter from the
+	 * column's right-click menu instead. The funnel returns only once a filter is
 	 * applied, as the edit/clear affordance.
 	 * @defaultValue 'header'
 	 */
@@ -458,9 +461,9 @@ export type GridColumnFilters = {
 /**
  * One entry in a Grid context menu: an actionable {@link ContextMenuItem} (a
  * `{ label, icon, onAction }`) or a {@link ContextMenuSeparator}. The defaults
- * the grid supplies — and anything a {@link GridColumnMenu} / {@link GridCellMenu}
- * builder returns — render in order through the shared context-menu renderer,
- * the same schema a chart's menu uses.
+ * the grid supplies render in order through the shared context-menu renderer,
+ * and so does anything a {@link GridColumnMenu} / {@link GridCellMenu} builder
+ * returns. It is the same schema a chart's menu uses.
  */
 export type GridMenuItem = ContextMenuEntry
 
@@ -468,13 +471,13 @@ export type GridMenuItem = ContextMenuEntry
  * The surfaces a grid tool offers itself on: a button in the toolbar's "Table
  * tools" cluster, an item in the right-click menus, or both. Export
  * ({@link GridExportConfig}) and the column manager
- * ({@link GridColumnManagerConfig}) take the same pair, defaulted the same way —
- * the menus carry the tool, the toolbar button is opt-in — so one idiom places
- * every tool.
+ * ({@link GridColumnManagerConfig}) take the same pair, defaulted the same way.
+ * The menus carry the tool, and the toolbar button is opt-in, so one idiom
+ * places every tool.
  *
- * @remarks Both `false` leaves the tool no chrome of its own: the column manager
+ * @remarks Both `false` leaves the tool no chrome of its own. The column manager
  * still answers its `open` binding, which is how a host drives the dialog from
- * its own controls, while export contributes nothing — turn it off with
+ * its own controls. Export contributes nothing, so turn it off with
  * `exportable={false}` instead, and keep the intent legible.
  */
 export type GridToolSurfaces = {
@@ -524,9 +527,9 @@ export type GridColumnMenuContext<T> = {
 	/** Auto-sizes resizable columns to fill the width, or `undefined` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | undefined
 	/**
-	 * Re-fits this column to its content ("Auto-size this column"), or `undefined`
-	 * when the grid is not resizable or this column carries no data (a selection /
-	 * actions column). The rest of the columns hold where they sit.
+	 * Re-fits this column to its content ("Auto-size this column"). It is
+	 * `undefined` when the grid is not resizable, or this column carries no data (a
+	 * selection / actions column). The rest of the columns hold where they sit.
 	 */
 	autoSizeColumn: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
@@ -536,13 +539,18 @@ export type GridColumnMenuContext<T> = {
 }
 
 /**
- * Header context-menu config: `true` (or omit) for the default items — the
- * Sort menu (Sort ascending / Sort descending, less the direction the column
- * already holds, plus Clear sort once the column is sorted), the Pin menu (Pin
- * left / Pin right / Unpin), Group by … (when groupable), and the Auto-size
- * menu (this column, then all columns; when resizing is on), then Manage
- * columns and the Export menu under a separator — or a builder receiving the
- * {@link GridColumnMenuContext} and those defaults, returning the final list to
+ * Header context-menu config: `true` (or omit) for the default items, or a
+ * builder receiving the {@link GridColumnMenuContext} and those defaults. The
+ * defaults are:
+ *
+ * - The Sort menu (Sort ascending / Sort descending, less the direction the
+ *   column already holds, plus Clear sort once the column is sorted).
+ * - The Pin menu (Pin left / Pin right / Unpin).
+ * - Group by …, when groupable.
+ * - The Auto-size menu (this column, then all columns), when resizing is on.
+ * - Manage columns and the Export menu, under a separator.
+ *
+ * The builder returns the final list to
  * extend, reorder, or replace them. `false` omits the header menu entirely.
  *
  * @remarks Each of those menus is a hover-opened submenu holding its actions;
@@ -573,10 +581,9 @@ export type GridCellMenuContext<T> = {
 
 /**
  * Body-cell context-menu config: `true` (or omit / `false`) for the default
- * items — Copy, plus one item per active export type when
- * {@link GridProps.exportable} is on — or a builder receiving the
- * {@link GridCellMenuContext} and those defaults, returning the final item
- * list.
+ * items, or a builder receiving the {@link GridCellMenuContext} and those
+ * defaults, returning the final item list. The defaults are Copy, plus one item
+ * per active export type when {@link GridProps.exportable} is on.
  *
  * @typeParam T - Shape of a single row.
  */

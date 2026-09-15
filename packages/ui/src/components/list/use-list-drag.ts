@@ -13,9 +13,9 @@ type Options<T> = {
 }
 
 /**
- * DnD orchestration for `<List>`: derives a stable key extractor (falling back
- * to item index for read-only lists), wraps `useSortableList`, and resolves
- * the active item being dragged. Pairs with `useListKeyboard`; mirrors
+ * DnD orchestration for `<List>`. It derives a stable key extractor, wraps
+ * `useSortableList`, and resolves the active item being dragged. A read-only
+ * list falls back to the item index for that key. Pairs with `useListKeyboard`; mirrors
  * `useKanbanDrag`.
  */
 export function useListDrag<T>({ items, getKey, onReorder, orientation, disabled }: Options<T>) {

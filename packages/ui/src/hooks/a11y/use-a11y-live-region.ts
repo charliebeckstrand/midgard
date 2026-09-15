@@ -33,9 +33,9 @@ export type A11yLiveRegionProps = {
  * `useA11yAnnouncements` instead.
  *
  * @returns An `A11yLiveRegionProps` bag to spread onto the region element:
- * `role` (`'status'` polite / `'alert'` assertive), `aria-live`, `aria-atomic`,
- * and `className` (the `sr-only` class merged with any passed `className`, or
- * undefined).
+ * `role`, `aria-live`, `aria-atomic`, and `className`. `role` is `'status'` for
+ * polite and `'alert'` for assertive; `className` merges the `sr-only` class
+ * with any passed `className`, or stays undefined.
  * @see {@link useA11yAnnouncements}
  */
 export function useA11yLiveRegion({

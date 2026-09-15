@@ -32,16 +32,19 @@ type GridRowGroupingResult<T> = {
 
 /**
  * Resolves the {@link GridGroupBy} binding into the grouping state the grid
- * runs on: the grouped column id (controllable — the group-by button writes it
- * back through `setGrouping`), the client-mode engine expansion state (seeded
- * from a boolean `defaultExpanded`, then toggled per group header), the
- * manual-mode expanded key set (controllable, seeded from a `Set`
- * `defaultExpanded`) with its lazy-load-aware toggle, and the header-label
- * override.
+ * runs on:
+ *
+ * - the grouped column id, controllable — the group-by button writes it back
+ *   through `setGrouping`
+ * - the client-mode engine expansion state, seeded from a boolean
+ *   `defaultExpanded`, then toggled per group header
+ * - the manual-mode expanded key set, controllable and seeded from a `Set`
+ *   `defaultExpanded`, with its lazy-load-aware toggle
+ * - the header-label override
  *
  * A binding whose `value` names a column that isn't a groupable data column (or
- * is missing) resolves to `null`, so a stray id leaves the grid ungrouped rather
- * than grouping every row under one empty header.
+ * is missing) resolves to `null`. A stray id therefore leaves the grid
+ * ungrouped, rather than grouping every row under one empty header.
  *
  * @param config - The `groupBy` binding, or `undefined` when the grid isn't grouped.
  * @param isGroupable - Whether a column id is a present, groupable data column.

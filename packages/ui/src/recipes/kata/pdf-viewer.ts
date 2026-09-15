@@ -1,9 +1,11 @@
 /**
  * PDF-viewer kata: object-literal surface for the `<PdfViewer>` chrome. No
- * variants axis — nested slot groups for the `toolbar`, the magnifier's
- * `settings` dialog, the collapsible `sidebar`, the `thumbnails` rail and each
- * `thumbnail`, and the `viewport` with its per-`page` frame and skeleton
- * placeholders.
+ * variants axis — nested slot groups instead:
+ *
+ * - The `toolbar`.
+ * - The magnifier's `settings` dialog.
+ * - The collapsible `sidebar`, the `thumbnails` rail, and each `thumbnail`.
+ * - The `viewport`, with its per-`page` frame and skeleton placeholders.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, omote, sen, sou } from '../kiso'
@@ -23,10 +25,10 @@ const centred = 'absolute top-1/2 left-1/2 origin-center'
 export const k = {
 	base: ['relative', flex.col, 'overflow-hidden', bg.surface, border.default],
 	/**
-	 * Added under `fit: 'width'`, where nothing else gives the viewer a height: `'page'`
-	 * derives one from the page's aspect ratio, and withholding that ratio is exactly what
-	 * lets the page overflow and scroll. Without this the root sits at `height: auto` in its
-	 * host's box and grows to its content instead of filling it.
+	 * Added under `fit: 'width'`, where nothing else gives the viewer a height.
+	 * `'page'` derives one from the page's aspect ratio, and withholding that ratio is
+	 * exactly what lets the page overflow and scroll. Without this the root sits at
+	 * `height: auto` in its host's box and grows to its content instead of filling it.
 	 */
 	fill: 'h-full min-h-0',
 	body: ['flex flex-1 min-h-0'],
@@ -51,8 +53,8 @@ export const k = {
 		/**
 		 * One captioned group.
 		 *
-		 * `Fieldset` puts `pt-4` under its legend, which is the right rhythm for a column of
-		 * full-width fields and too much air over a single row of short options.
+		 * `Fieldset` puts `pt-4` under its legend. That is the right rhythm for a column of
+		 * full-width fields, and too much air over a single row of short options.
 		 */
 		group: ['[&>legend+*]:pt-2'],
 		/**
@@ -63,10 +65,10 @@ export const k = {
 		 * make the reader scroll a dialog that would otherwise fit.
 		 *
 		 * The `mt-0` is a fork, and reads as one: it reaches across to clear the adjacency
-		 * margin `narabi.group` sets on every `ToggleGroup`. The honest fix is an `orientation`
-		 * axis on `ToggleGroup` — `Rating` routed around the same missing affordance by
-		 * hand-rolling `role="radiogroup"` on a span — which widens three public prop types and
-		 * so wants its own change rather than this one's.
+		 * margin `narabi.group` sets on every `ToggleGroup`. The honest fix is an
+		 * `orientation` axis on `ToggleGroup`. `Rating` routed around the same missing
+		 * affordance by hand-rolling `role="radiogroup"` on a span. That fix widens three
+		 * public prop types, and so wants its own change rather than this one's.
 		 */
 		options: [
 			flex.row,
@@ -81,10 +83,10 @@ export const k = {
 		 * The slide, and only for a change the reader made.
 		 *
 		 * Where the rail starts is derived from the page count, and that count arrives with the
-		 * document — pdf.js has to parse the file before it can say how many pages there are. A
-		 * rail that slid in at that moment read as something arriving late, rather than as the
-		 * viewer's own furniture; it is furniture, so it is simply there. A press on the toolbar's
-		 * toggle is a change the reader made, and that one travels.
+		 * document. The pdf.js parser has to read the file before it can say how many pages
+		 * there are. A rail that slid in at that moment read as something arriving late, rather
+		 * than as the viewer's own furniture. It is furniture, so it is simply there. A press on
+		 * the toolbar's toggle is a change the reader made, and that one travels.
 		 */
 		travel: 'transition-[margin] duration-150 ease-in-out',
 		closed: '-ml-56',
@@ -145,9 +147,9 @@ export const k = {
 			...mode('bg-zinc-100', 'dark:bg-zinc-900'),
 		],
 		/**
-		 * Reserved gutter, only where a vertical scrollbar can come and go: under
-		 * `fit: 'width'` the page's height is a function of the measured width, so a
-		 * scrollbar appearing would narrow the box, shorten the page, and remove itself.
+		 * Reserved gutter, only where a vertical scrollbar can come and go. Under
+		 * `fit: 'width'` the page's height is a function of the measured width. A scrollbar
+		 * appearing would therefore narrow the box, shorten the page, and remove itself.
 		 * Under `'page'` the page always fits, and reserving a gutter would waste it.
 		 */
 		scrolls: '[scrollbar-gutter:stable]',
@@ -157,12 +159,12 @@ export const k = {
 			placeholder: ['w-full h-full', skeleton],
 			empty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', text.muted],
 			/**
-			 * Hover loupe. The lens is a fixed-size circular window; the stage inside it is a
-			 * page-frame-sized box scaled about the pointer, so the page copy it holds needs no
-			 * geometry of its own beyond the transform the real page already wears.
+			 * Hover loupe. The lens is a fixed-size circular window. The stage inside it is a
+			 * page-frame-sized box scaled about the pointer. The page copy it holds therefore
+			 * needs no geometry of its own, beyond the transform the real page already wears.
 			 *
-			 * Never interactive: the lens floats over the highlight regions, and a press has to
-			 * reach the region rather than stop at the glass.
+			 * The lens is never interactive. It floats over the highlight regions, and a press
+			 * has to reach the region rather than stop at the glass.
 			 */
 			magnifier: {
 				lens: [
@@ -193,12 +195,12 @@ export const k = {
 				 * The name drawn over the selected region.
 				 *
 				 * It takes no pointer events, so on a dense page it stands over boxes the reader can
-				 * still hover and press through it. {@link behind} is the part they see: the name goes
-				 * faint over the box they point at, which is the page saying the press lands there and
-				 * not on the name.
+				 * still hover and press through it. {@link behind} is the part they see. The name
+				 * goes faint over the box they point at. That is the page saying the press lands
+				 * there, and not on the name.
 				 *
-				 * Both go on the panel's positioned wrapper (`surfaceClassName`), not on the panel:
-				 * the panel's own entrance animates `opacity`, and motion writes that inline, where
+				 * Both go on the panel's positioned wrapper (`surfaceClassName`), not on the panel.
+				 * The panel's own entrance animates `opacity`, and motion writes that inline, where
 				 * no class reaches it. On the wrapper the two opacities compose, so the name can fade
 				 * while its entrance still plays.
 				 */
@@ -213,7 +215,7 @@ export const k = {
 					/**
 					 * The selected region's wash — the palette's doubled rung.
 					 *
-					 * A heavier stroke alone did not carry it: at 15% over printed ink the fill is
+					 * A heavier stroke alone did not carry it. At 15% over printed ink the fill is
 					 * near-invisible either way, so the only thing distinguishing the selection was
 					 * one pixel of ring.
 					 */
@@ -222,24 +224,24 @@ export const k = {
 					/**
 					 * The selected region: a heavier stroke, and lifted above its neighbours.
 					 *
-					 * `z-10` matters on a dense page — regions paint in document order, so without
-					 * it a later region overlapping the selected one covers the very emphasis that
-					 * says which is selected.
+					 * `z-10` matters on a dense page. Regions paint in document order. Without it, a
+					 * later region overlapping the selected one covers the very emphasis that says
+					 * which is selected.
 					 */
 					active: ['ring-4', 'z-10'],
 					/**
 					 * A resting region under the pointer: the same stroke, doubled.
 					 *
-					 * A region is a control, and nothing else on the layer said so — the fill and
-					 * the stroke are identical whether the boxes are pressable decoration beside a
-					 * field list or the navigable surface itself, so a reader had to press one to
+					 * A region is a control, and nothing else on the layer said so. The fill and the
+					 * stroke are identical whether the boxes are pressable decoration beside a field
+					 * list, or the navigable surface itself. A reader therefore had to press one to
 					 * find out. The cursor already changes, but only a pointer user sees that, and
 					 * only once they are over it.
 					 *
-					 * A width step rather than a colour or a fill: `activeFill` is what *selected*
+					 * A width step rather than a colour or a fill. `activeFill` is what *selected*
 					 * looks like, and a hover that previewed it would say the region is chosen a
 					 * moment before it is. This lands between `ring-1` and the selection's `ring-4`,
-					 * which is the order the three states should read in.
+					 * which is the order the three states must read in.
 					 *
 					 * Applied to resting regions only. On the selected one it would fight `ring-4`
 					 * and win — `:hover` outranks a bare class — undoing the emphasis that says
@@ -255,13 +257,13 @@ export const k = {
 					 * the rest leaves exactly one thing coloured.
 					 *
 					 * Only the colour, though. These keep the palette's own zinc fill and ring, at
-					 * the same weight as any resting region, so a reader can still see where every
-					 * other field sits on the page; blanking them would answer "which one is
+					 * the same weight as any resting region. A reader can therefore still see where
+					 * every other field sits on the page. Blanking them would answer "which one is
 					 * selected" by destroying the answer to "where is everything else".
 					 *
-					 * Both halves of each pair come from the palette for a reason: the colours
-					 * being overridden are light/dark pairs, and supplying only a base leaves the
-					 * `dark:` half of the old colour standing.
+					 * Both halves of each pair come from the palette for a reason. The colours being
+					 * overridden are light/dark pairs, and supplying only a base leaves the `dark:`
+					 * half of the old colour standing.
 					 */
 					dimmed: [palette.soft.bg.zinc, ...palette.outline.ring.zinc],
 				},

@@ -8,9 +8,9 @@ import { useGridResizing } from './context'
 import { useGridTruncation } from './use-grid-truncation'
 
 /**
- * Truncation tooltip for a data cell: `auto` shows the cell's own content when
- * it overflows, `custom` shows a column-supplied node in its place, and `none`
- * suppresses the tooltip while still truncating.
+ * Truncation tooltip for a data cell. The `auto` mode shows the cell's own
+ * content when it overflows, and `custom` shows a column-supplied node in its
+ * place. The `none` mode suppresses the tooltip while still truncating.
  *
  * @internal
  */
@@ -22,8 +22,8 @@ type GridCellContentProps = {
 	tooltip: CellTooltip
 	/**
 	 * This cell's column width, frozen to `undefined` while a drag is in flight
-	 * and the settled engine width otherwise; its change after a resize settles
-	 * (or a keyboard nudge) re-renders the memoized cell and re-measures overflow.
+	 * and the settled engine width otherwise. A change after a resize settles (or
+	 * a keyboard nudge) re-renders the memoized cell and re-measures overflow.
 	 */
 	resizeSettleKey: number | undefined
 }
@@ -35,14 +35,14 @@ type GridCellContentProps = {
  * its place — while `none` suppresses it.
  *
  * @remarks The tooltip machinery mounts on first pointer/focus contact with a
- * cell that measures truncated, not with the cell: the reveal it drives cannot
- * open before contact (or without a clip), and the full floating stack costs
- * real render time per cell — at a few hundred visible cells it was the
- * largest single term in the grid's mount and scroll cost. The wrap reparents
- * the span at that mount; `useTruncation`'s callback ref re-binds its overflow
- * observer to the replacement node, so widening a column back out still
- * re-measures and closes the reveal (the hazard that once kept the tooltip
- * permanently mounted). Truncation measurement also stands down entirely while
+ * cell that measures truncated, not with the cell. The reveal it drives cannot
+ * open before contact, or without a clip. The full floating stack also costs
+ * real render time per cell. At a few hundred visible cells it was the largest
+ * single term in the grid's mount and scroll cost. The wrap reparents the span
+ * at that mount. The `useTruncation` callback ref re-binds its overflow observer
+ * to the replacement node. Widening a column back out therefore still
+ * re-measures and closes the reveal, the hazard that once kept the tooltip
+ * permanently mounted. Truncation measurement also stands down entirely while
  * a drag-resize is in flight — the reveal is held closed through the drag, and
  * the settle re-measures.
  * @internal

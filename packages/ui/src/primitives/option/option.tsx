@@ -64,8 +64,8 @@ export type BaseOptionProps = {
  * wins. With `commitOnTab`, an unselected option commits on Tab before the
  * keystroke leaves the widget. Reads ambient Density via `useDensity`. Memoized:
  * with a stable `onSelect`, an option skips re-rendering when its own `selected`
- * state is unchanged, so committing a selection re-renders only the rows that
- * actually changed rather than every option in the list.
+ * state is unchanged. Committing a selection therefore re-renders only the rows
+ * that actually changed, rather than every option in the list.
  */
 function BaseOptionImpl({
 	children,
@@ -158,10 +158,10 @@ export type OptionProps<TValue = unknown> = {
 	children?: ReactNode
 	/**
 	 * Explicit id, overriding the auto-generated one. Set this when the option
-	 * renders inside a `VirtualOptions` with `getOptionId`: the host needs a
+	 * renders inside a `VirtualOptions` with `getOptionId`. The host needs a
 	 * data-driven, predictable id to point `aria-activedescendant` at before the
-	 * row mounts, which React's auto-`id` (opaque, minted per instance) can't
-	 * supply.
+	 * row mounts. React's auto-`id` is opaque and minted per instance, so it can't
+	 * supply one.
 	 */
 	id?: string
 	/**
@@ -182,9 +182,9 @@ export type OptionDescriptionProps = ComponentProps<'span'>
 
 /**
  * Selection state a {@link createSelectOption} host exposes through its context:
- * the current `value` (an array when `multiple`), the `multiple` flag, the
- * `onSelect` callback fired when an option is activated, and the `capitalize`
- * flag that first-word-capitalizes string option labels at render.
+ * the current `value` (an array when `multiple`), and the `multiple` flag. It
+ * also holds the `onSelect` callback fired when an option is activated, and the
+ * `capitalize` flag that first-word-capitalizes string option labels at render.
  */
 export type OptionSelectionContext<TValue = unknown> = {
 	value: TValue | TValue[] | undefined

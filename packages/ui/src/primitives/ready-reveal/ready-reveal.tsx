@@ -41,27 +41,27 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
 /**
  * Gates content on a `ready` flag, crossfading (opacity plus blur) from
  * `placeholder` to `children` to avoid a flash of unready content. The two
- * layers stack in one grid cell; the content layer sits in flow and the
- * placeholder is lifted out of flow over it, so the content alone sizes the
- * cell and the box stays put across the swap.
+ * layers stack in one grid cell. The content layer sits in flow, and the
+ * placeholder is lifted out of flow over it. The content alone therefore sizes
+ * the cell, and the box stays put across the swap.
  *
  * @remarks
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honours
  * `prefers-reduced-motion`. The inactive layer is `inert` and `aria-hidden`,
- * keeping it out of the tab order and accessibility tree; if it held focus when
- * it deactivates, focus moves to the revealed layer so keyboard users aren't
- * dropped to the document root.
+ * which keeps it out of the tab order and accessibility tree. If it held focus
+ * when it deactivates, focus moves to the revealed layer, so keyboard users
+ * aren't dropped to the document root.
  *
  * Once the content is revealed and the crossfade settles, the placeholder is
- * held in `<Activity mode="hidden">`: kept in the DOM with state preserved, but
- * `display: none`, with its effects torn down, its skeleton pulse stopped, and
- * re-rendering deferred. The content layer, by contrast, stays live and in flow
- * in every state, and — with the placeholder positioned absolutely over it — is
- * the only layer that sizes the cell. The reserved box therefore matches the
- * real content's dimensions whether or not it has resolved, so the swap holds
- * its place to the pixel no matter how the placeholder's silhouette is sized: a
- * skeleton drawn a shade shorter or taller than the content it fills in for
- * shifts nothing.
+ * held in `<Activity mode="hidden">`. It is kept in the DOM with state
+ * preserved, but `display: none`, with its effects torn down, its skeleton pulse
+ * stopped, and re-rendering deferred. The content layer, by contrast, stays live
+ * and in flow in every state. With the placeholder positioned absolutely over
+ * it, it is the only layer that sizes the cell. The reserved box therefore
+ * matches the real content's dimensions, whether or not it has resolved. The
+ * swap holds its place to the pixel, no matter how the placeholder's silhouette
+ * is sized. A skeleton drawn a shade shorter or taller than the content it fills
+ * in for shifts nothing.
  */
 export function ReadyReveal({
 	ready,
@@ -155,10 +155,10 @@ export function ReadyReveal({
 						{placeholder}
 					</motion.div>
 				</Activity>
-				{/* The content layer is never rested: it stays live and in flow so
-				    the grid cell always reserves the real content's size — behind
-				    the placeholder while loading as much as after the reveal —
-				    keeping the swap free of layout shift. */}
+				{/* The content layer is never rested. It stays live and in flow, so
+				    the grid cell always reserves the real content's size. That holds
+				    behind the placeholder while loading as much as after the reveal,
+				    which keeps the swap free of layout shift. */}
 				<motion.div
 					ref={contentRef}
 					onFocus={(event) => {

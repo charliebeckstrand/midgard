@@ -1,6 +1,7 @@
 /**
- * How a keypress drives the cursor: the key table, the compass step across the
- * stop list, and the one resolution the plot region's handler asks for. The
+ * How a keypress drives the cursor. It holds the key table, the compass step
+ * across the stop list, and the one resolution the plot region's handler asks
+ * for. The
  * three sit together because they form one chain with a single entry point —
  * {@link moveMapCursor} is the only production caller of either half.
  *
@@ -16,10 +17,10 @@ type MapCompassAction = 'north' | 'south' | 'east' | 'west'
 type MapCursorAction = MapCompassAction | 'first' | 'last' | 'clear'
 
 /**
- * The key table. The arrows step by compass direction, which is the map's own
- * pair of axes where a chart's arrows step its category and value axes; Home
- * and End jump to the first and last drawn region in the atlas's own order;
- * Escape clears.
+ * The key table. The arrows step by compass direction, the map's own pair of
+ * axes, where a chart's arrows step its category and value axes. Home and End
+ * jump to the first and last drawn region in the atlas's own order. Escape
+ * clears.
  */
 const KEY_ACTIONS: Record<string, MapCursorAction> = {
 	ArrowUp: 'north',
@@ -42,10 +43,10 @@ export function isMapActivateKey(key: string): boolean {
 }
 
 /**
- * Whether the offset `dx`, `dy` bears in `action`'s direction: its quadrant is
- * the 90° wedge around that compass axis, so the four wedges tile the plane and
- * every other region lies in exactly one of them (a region exactly on a diagonal
- * lies in two, and either reading is true). Nothing is therefore unreachable
+ * Whether the offset `dx`, `dy` bears in `action`'s direction. Its quadrant is
+ * the 90° wedge around that compass axis. The four wedges therefore tile the
+ * plane, and every other region lies in exactly one of them. A region exactly on
+ * a diagonal lies in two, and either reading is true. Nothing is therefore unreachable
  * from anywhere, and no step needs a fallback.
  *
  * Frame coordinates put y downward, so north is the negative side.
@@ -65,8 +66,8 @@ function bears(dx: number, dy: number, action: MapCompassAction): boolean {
 
 /**
  * The nearest stop bearing `action` from `from`, or `null` when the wedge in
- * that direction is empty — the edge of the map, where the cursor holds rather
- * than wraps, the clamp a chart's category step keeps. Distance is compared
+ * that direction is empty. That is the edge of the map, where the cursor holds
+ * rather than wraps, the clamp a chart's category step keeps. Distance is compared
  * squared, so the scan takes no square root.
  *
  * @internal
@@ -114,16 +115,16 @@ export type MapCursorMove = {
 }
 
 /**
- * Resolves a keypress to the next stop. An arrow from rest — or off a stop the
- * list no longer holds — enters at the first one rather than stepping past it,
- * the way a chart's first arrow enters at its first point; from there each arrow
- * moves to the nearest stop bearing that way, and holds at the edge rather than
- * wrapping to the far side, which would read as a jump. Home and End go to the
- * ends of the list, which the plat orders geography-first. Unhandled keys pass
- * through untouched.
+ * Resolves a keypress to the next stop. An arrow from rest enters at the first
+ * stop, rather than stepping past it. That is the way a chart's first arrow
+ * enters at its first point. It holds for an arrow off a stop the list no longer
+ * holds. From there each arrow moves to the nearest stop bearing that way. It
+ * holds at the edge, rather than wrapping to the far side, which would read as a
+ * jump. Home and End go to the ends of the list, which the plat orders
+ * geography-first. Unhandled keys pass through untouched.
  *
  * Takes the cursor's position in the list and hands back the stop itself, so no
- * caller converts between the two: the index is this module's own coordinate
+ * caller converts between the two. The index is this module's own coordinate
  * system, and it does not leak.
  *
  * @internal

@@ -33,9 +33,10 @@ export type SplitProps = {
 } & Omit<ComponentProps<'div'>, 'className'>
 
 /**
- * Two-pane CSS-grid layout. `orientation` chooses columns or rows, `ratio`
- * sizes the first pane against the second via `fr` tracks, and `gap` (explicit,
- * defaulting to `lg`) and `align` tune spacing and cross-axis placement.
+ * Two-pane CSS-grid layout. `orientation` chooses columns or rows, and `ratio`
+ * sizes the first pane against the second via `fr` tracks. `gap` and `align`
+ * tune spacing and cross-axis placement; `gap` is explicit and defaults to
+ * `lg`.
  * Expects exactly two children. A static leaf with no client hooks, so it
  * renders in React Server Components.
  */

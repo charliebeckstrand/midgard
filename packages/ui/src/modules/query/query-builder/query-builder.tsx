@@ -32,7 +32,7 @@ export type QueryBuilderProps = {
 	 */
 	hideFieldSelector?: boolean
 	/**
-	 * Keep at least one rule in the query: a group's sole remaining rule hides its
+	 * Keep at least one rule in the query. A group's sole remaining rule hides its
 	 * remove control, so the builder can't be emptied. For always-on filters (a
 	 * column filter) that must keep a rule to edit.
 	 * @defaultValue false
@@ -44,7 +44,7 @@ export type QueryBuilderProps = {
 /**
  * Nested group/rule editor for boolean queries. Produces a tree of `and`/`or`
  * groups over typed field rules, controlled or uncontrolled through
- * `value`/`onValueChange`, and supplies field config and tree-edit actions to
+ * `value`/`onValueChange`. It supplies field config and tree-edit actions to
  * its descendants via context.
  */
 export function QueryBuilder({

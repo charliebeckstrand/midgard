@@ -8,7 +8,7 @@ export type StepperPanelsProps = {
 /**
  * Container grouping the {@link StepperPanel}s of a {@link Stepper}. The
  * presence of this group below the step row drives whether steps wire
- * `aria-controls` to their panels and switches the stepper into a stacked
+ * `aria-controls` to their panels. It also switches the stepper into a stacked
  * row-plus-panels layout.
  */
 export function StepperPanels({ className, children, ...props }: StepperPanelsProps) {

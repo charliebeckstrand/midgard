@@ -15,9 +15,9 @@ export type DatePickerRangeState = {
 
 /**
  * Transitions for {@link datePickerRangeReducer}. `pinEndpoint` and `hover`
- * both write `hoverDate` — the second endpoint and its live preview are the
- * same field; `pinEndpoint` names the commit-time write that freezes the span
- * through the popover's exit animation.
+ * both write `hoverDate`, because the second endpoint and its live preview are
+ * the same field. `pinEndpoint` names the commit-time write that freezes the
+ * span through the popover's exit animation.
  *
  * @internal
  */

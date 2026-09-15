@@ -1,15 +1,15 @@
 /**
  * What the pointer and the keyboard cursor are on, and the comparisons every
  * reader of that answer makes. The target is one shape for a heterogeneous
- * field — a region by index, an overlay mark by id and stop — so the emphasis,
- * the readout, and the cursor never each carry their own idea of what is under
- * the pointer.
+ * field: a region by index, an overlay mark by id and stop. The emphasis, the
+ * readout, and the cursor therefore never each carry their own idea of what is
+ * under the pointer.
  */
 
 /**
  * What the pointer is on: a region by feature index, or an overlay (route /
- * point / marker) by its registered legend id — the map's hover targets are
- * heterogeneous where a chart's are one category axis.
+ * point / marker) by its registered legend id. The map's hover targets are
+ * heterogeneous, where a chart's are one category axis.
  *
  * @internal
  */
@@ -37,9 +37,9 @@ export function sameTarget(a: MapHoverTarget | null, b: MapHoverTarget | null): 
 
 /**
  * Whether two targets name the same *mark*, ignoring which of its stops. The
- * whole of a plural mark reads as one thing to the emphasis — pointing one dot
- * of a {@link MapPoints} lights the group, not that dot alone — which is what
- * lets the group draw under a single wrapper and a single dim class where two
+ * whole of a plural mark reads as one thing to the emphasis. Pointing one dot
+ * of a {@link MapPoints} lights the group, not that dot alone. The group
+ * therefore draws under a single wrapper and a single dim class, where two
  * hundred dots would otherwise need two hundred.
  *
  * {@link sameTarget} is this plus the stop, so a third target kind is added
@@ -58,11 +58,15 @@ export function sameMark(a: MapHoverTarget | null, b: MapHoverTarget | null): bo
 }
 
 /**
- * Whether a mark reads dimmed under the shared emphasis: the pointed mark
- * recedes everything but itself, else the legend's focused id dims marks
- * outside its group (`groupId` — an overlay's own entry id, a region's
- * category id), else nothing dims. The pointed mark winning over a still-held
- * legend focus mirrors the chart's mark-emphasis resolution.
+ * Whether a mark reads dimmed under the shared emphasis, in order:
+ *
+ * - the pointed mark recedes everything but itself;
+ * - else the legend's focused id dims marks outside its group (`groupId` — an
+ *   overlay's own entry id, a region's category id);
+ * - else nothing dims.
+ *
+ * The pointed mark winning over a still-held legend focus mirrors the chart's
+ * mark-emphasis resolution.
  *
  * @internal
  */

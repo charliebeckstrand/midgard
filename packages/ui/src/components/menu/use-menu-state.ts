@@ -30,10 +30,10 @@ type MenuStateOptions = {
 /**
  * A position-only virtual reference for a right-click menu: a zero-size point at
  * the cursor that rides `element` as it scrolls. `contextElement` ties it to the
- * right-clicked element so `autoUpdate` tracks that element's scroll container,
- * while the cursor offset captured on the first read holds the menu at the same
+ * right-clicked element, so `autoUpdate` tracks that element's scroll container.
+ * The cursor offset captured on the first read holds the menu at the same
  * spot within it. Set via `setPositionReference`, never `setReference`, so the
- * element is not floating-ui's dismissal reference — a press on it dismisses the
+ * element is not floating-ui's dismissal reference. A press on it dismisses the
  * menu like any other outside press. Falls back to a fixed viewport point when
  * the right-click resolves to no element.
  *
@@ -67,10 +67,10 @@ function cursorAnchor(element: Element | null, clientX: number, clientY: number)
 /**
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the right-click `handleContextMenu` and an
- * `isDropdown` flag. Drives all three menu modes: dropdown (a `placement`),
- * right-click context menu (a position-only {@link cursorAnchor} opening at the
- * cursor yet tracking the right-clicked element on scroll), and static inline
- * (`defaultOpen` with no `placement`).
+ * `isDropdown` flag. Drives all three menu modes: dropdown (a `placement`), and
+ * static inline (`defaultOpen` with no `placement`). The right-click context
+ * menu is the third, a position-only {@link cursorAnchor} opening at the cursor
+ * yet tracking the right-clicked element on scroll.
  *
  * @internal
  * @see {@link useFloatingDisclosure}

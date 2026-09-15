@@ -5,7 +5,7 @@ import type { GridActiveEdit } from './engine/grid-editing-utilities'
 
 /**
  * The editing session shared with the data cells. A row in `editableRows` puts
- * every editable cell of that row into edit mode at once; a cell-scoped session
+ * every editable cell of that row into edit mode at once. A cell-scoped session
  * (`scope: 'cell'`) narrows that to `activeEdit`, where the row still enters the
  * set but only the named cell mounts an editor. Each editor stages its pending
  * value through `stageDraft`, held in the grid rather than re-rendering it, and
@@ -30,10 +30,10 @@ export type GridEditingSession = {
 	/**
 	 * Ends the grid-owned session on a row under `trigger: 'doubleClick'` —
 	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the
-	 * staged values the session owns: under cell scope that is the active cell
+	 * staged values the session owns. Under cell scope that is the active cell
 	 * alone, because the cells it visited before that one already committed.
 	 * A save is removing the row from the set, which is also the consumer's own
-	 * save; a discard has no consumer-driven equivalent, and is what
+	 * save. A discard has no consumer-driven equivalent, and is what
 	 * {@link GridRowActionsContext.discard} hands them.
 	 */
 	endSession: (rowKey: string | number, outcome: 'save' | 'discard') => void

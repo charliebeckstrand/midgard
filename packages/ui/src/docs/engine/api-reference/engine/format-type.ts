@@ -6,18 +6,18 @@ const TYPE_FORMAT_FLAGS =
 
 /**
  * Recursion ceiling for {@link formatType}. A named type short-circuits, so a
- * type that names itself terminates on its own; a structurally recursive
- * *anonymous* type has nothing to stop it, and the walk descends through
- * generic arguments, function signatures, array elements, and unions until the
- * stack gives out. Twelve is far past any real prop type in the library — the
- * deepest measured is under five — so the cap is a stability floor, not a
+ * type that names itself terminates on its own. A structurally recursive
+ * *anonymous* type has nothing to stop it. The walk descends through generic
+ * arguments, function signatures, array elements, and unions until the stack
+ * gives out. Twelve is far past any real prop type in the library, where the
+ * deepest measured is under five. The cap is therefore a stability floor, not a
  * formatting limit.
  */
 const MAX_DEPTH = 12
 
 /**
  * Current recursion depth. A module-level counter rather than a threaded
- * parameter: seven call sites across four helpers recurse into `formatType`, and
+ * parameter. Seven call sites across four helpers recurse into `formatType`, and
  * the counter guards them all without perturbing a hot path. The `finally` in
  * `formatType` keeps it balanced even if the checker throws.
  */
@@ -100,12 +100,13 @@ export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?
 
 /**
  * Join union members with `|`, re-collapsing the `false | true` pair back into
- * `boolean`. TS models `boolean` as that literal pair inside a union's members,
- * so formatting each member individually — the path optional unions take after
- * stripping `| undefined` — would otherwise disintegrate `boolean` into `false |
- * true`. Two boolean-literal members are always exactly `false` and `true` (a
- * union can't repeat either), so a count of two means `boolean`; a single one is
- * a genuine literal (`foo?: true`) and renders as written.
+ * `boolean`. TS models `boolean` as that literal pair inside a union's members.
+ * Formatting each member individually would otherwise disintegrate `boolean`
+ * into `false | true`. That path is the one optional unions take after stripping
+ * `| undefined`. Two boolean-literal members are always exactly `false` and
+ * `true`, because a union can't repeat either. A count of two therefore means
+ * `boolean`. A single one is a genuine literal (`foo?: true`), and renders as
+ * written.
  */
 function formatUnionMembers(
 	members: readonly ts.Type[],
@@ -136,8 +137,8 @@ function formatUnionMembers(
 }
 
 /**
- * Format a union member, parenthesizing a bare function type so its `=>` (and
- * any parenthesized union return) doesn't read as spanning the next arm:
+ * Format a union member, parenthesizing a bare function type. Its `=>`, and any
+ * parenthesized union return, then does not read as spanning the next arm:
  * `(() => void) | null`, not `() => void | null`. A named function alias stays
  * bare — it renders as its name, which needs no parentheses.
  */
@@ -289,7 +290,7 @@ function formatArrayElement(
 
 /**
  * Format a single-call-signature function type by recursing into each
- * parameter and the return type; nested type parameters (`T` inside
+ * parameter and the return type. Nested type parameters (`T` inside
  * `(value: T) => void`) hit the same default / constraint fallback as
  * top-level types. Overloads and hybrid types defer to TS's default.
  */

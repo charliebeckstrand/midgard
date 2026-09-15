@@ -15,12 +15,16 @@ export function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | nu
 }
 
 /**
- * Resolves which row-grouping mode is active from the binding slice: client
- * grouping (the engine computes the groups), manual grouping (the consumer's
- * rows carry them — which needs the `groupRow` contract), either (`active`),
- * and the grouping id the engine receives — client mode only, since manual
- * grouping keeps the engine ungrouped. Kept out of {@link GridData} for its
- * complexity budget.
+ * Resolves which row-grouping mode is active from the binding slice:
+ *
+ * - client grouping, where the engine computes the groups;
+ * - manual grouping, where the consumer's rows carry them, which needs the
+ *   `groupRow` contract;
+ * - either of the two (`active`);
+ * - the grouping id the engine receives.
+ *
+ * The grouping id is client mode only, since manual grouping keeps the engine
+ * ungrouped. Kept out of {@link GridData} for its complexity budget.
  *
  * @internal
  */
@@ -86,8 +90,8 @@ export function resolveManualGroupBody<T>(args: {
 
 /**
  * The grouped column's active sort direction under manual grouping, or `null`
- * when the grid isn't manually grouped or its grouped column isn't sorted — what
- * {@link GridBody} reorders the manual group blocks by. Kept off
+ * when the grid isn't manually grouped or its grouped column isn't sorted. It is
+ * what {@link GridBody} reorders the manual group blocks by. Kept off
  * {@link GridData}'s complexity budget.
  *
  * @internal
@@ -125,15 +129,15 @@ export function resolveGroupByContext(args: {
 }
 
 /**
- * Zeroes the grid features that a self-rendering body stands over. Grouping —
- * client or manual — renders its own plain body, so it stands the navigable
- * cursor and virtualization down; client grouping (a whole-set body) also
- * stands pagination down, while manual grouping keeps *manual* pagination (the
- * backend pages the grouped sequence) and drops only a client one, whose
- * arbitrary slice boundaries would tear children from their group headers.
+ * Zeroes the grid features that a self-rendering body stands over. Grouping,
+ * client or manual, renders its own plain body. It therefore stands the
+ * navigable cursor and virtualization down. Client grouping is a whole-set body,
+ * so it also stands pagination down. Manual grouping keeps *manual* pagination,
+ * where the backend pages the grouped sequence. It drops only a client one,
+ * whose arbitrary slice boundaries would tear children from their group headers.
  * Master-detail interleaves auto-height detail rows into the flat body, so it
- * stands the cursor and virtualization down (a window assumes uniform row
- * heights) but keeps pagination — the two compose. Each flag passes through
+ * stands the cursor and virtualization down. A window assumes uniform row
+ * heights. It keeps pagination, because the two compose. Each flag passes through
  * when none is active. Split out so {@link GridData} stays within its
  * complexity budget.
  *
@@ -166,11 +170,12 @@ export function resolveGroupingGates(args: {
 }
 
 /**
- * Resolves the master-detail hook into what {@link GridData} threads onward:
- * whether it's active (grouping renders its own body, so expansion stands down
- * under it) and the body wiring the flat rows read — the expanded set, the
- * per-row predicate, the toggle, and the detail renderer — or `null` when
- * inactive. Kept off {@link GridData}'s complexity budget.
+ * Resolves the master-detail hook into what {@link GridData} threads onward.
+ * That is whether it's active, plus the body wiring the flat rows read. The
+ * wiring is the expanded set, the per-row predicate, the toggle, and the detail
+ * renderer. Grouping renders its own body, so expansion stands down under it.
+ * The result is `null` when inactive. Kept off {@link GridData}'s complexity
+ * budget.
  *
  * @internal
  */
@@ -194,9 +199,9 @@ export function resolveDetailExpansion<T>(
 }
 
 /**
- * Resolves the column-group band row for the rendered columns: the
- * {@link GridGroupHeader} spans (from the visible column ids and their pin
- * sides) and whether any band actually spans columns. Kept out of
+ * Resolves the column-group band row for the rendered columns. It returns the
+ * {@link GridGroupHeader} spans, from the visible column ids and their pin
+ * sides, and whether any band actually spans columns. Kept out of
  * {@link GridData} so its branch doesn't weigh on the component's complexity.
  *
  * @internal

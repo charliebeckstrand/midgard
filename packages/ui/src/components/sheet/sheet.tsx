@@ -24,15 +24,15 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
 	 *
 	 * `fit` takes the width of what it holds instead, capped at the screen less
 	 * the inset the panel floats on. Pass it for a panel built around its content
-	 * rather than a step chosen for it — a table whose columns decide how much
-	 * room they need. What is inside has to be able to state a width of its own:
-	 * a child that fills its container instead (`<Grid>` by default) leaves the
-	 * two measuring each other, so pair this with that child's own fit — see
+	 * rather than a step chosen for it. A table whose columns decide how much room
+	 * they need is one. What is inside has to be able to state a width of its own.
+	 * A child that fills its container instead (`<Grid>` by default) leaves the
+	 * two measuring each other. Pair this with that child's own fit — see
 	 * {@link GridDataProps.width}.
 	 *
-	 * It settles rather than travels, unlike the drawer's `fit` height: a panel
-	 * docked across the screen is navigated within and swaps what it holds, where
-	 * this one is built around content that has a width and keeps it. A width that
+	 * It settles rather than travels, unlike the drawer's `fit` height. A panel
+	 * docked across the screen is navigated within and swaps what it holds. This
+	 * one is built around content that has a width and keeps it. A width that
 	 * does move — a grid re-measuring as wider rows page in — arrives in one step.
 	 *
 	 * Only on the sides a width is docked across (`right`, `left`). A `top` or
@@ -45,12 +45,12 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
 	/** Initial open state when uncontrolled. */
 	defaultOpen?: boolean
 	/**
-	 * Give the panel a drag handle, so the reader can resize it past the `width`
-	 * scale and throw it away toward its own edge.
+	 * Give the panel a drag handle. The reader can then resize it past the `width`
+	 * scale, and throw it away toward its own edge.
 	 *
 	 * The drag sets the width directly rather than stepping between the `width`
-	 * variants, because the reader is deciding how much of the screen the panel
-	 * gets and the answer is wherever they let go. `width` still states where it
+	 * variants. The reader is deciding how much of the screen the panel gets, and
+	 * the answer is wherever they let go. `width` still states where it
 	 * opens, and a closed panel forgets what it was dragged to.
 	 *
 	 * @defaultValue false
@@ -63,9 +63,10 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
 	 * covering whatever it covers.
 	 *
 	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
-	 * one reports it having *landed*. Use it for anything that has to hold until the panel
-	 * is actually up — measuring it, or starting work that must not compete with the slide
-	 * — rather than guessing at the slide with a matching delay.
+	 * one reports it having *landed*. Use it for anything that has to hold until
+	 * the panel is actually up. That covers measuring it, or starting work that
+	 * must not compete with the slide. It beats guessing at the slide with a
+	 * matching delay.
 	 *
 	 * Deliberately named for the open, not for the animation. It reports from whichever
 	 * `side` preset ran. A slide the user's reduced-motion preference collapses still
@@ -80,7 +81,7 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
 	glass?: boolean
 	/**
 	 * Drain the colour from whatever shows through the backdrop. Both scrims are
-	 * translucent, so the page behind stays legible while the sheet is up; this
+	 * translucent, so the page behind stays legible while the sheet is up. This
 	 * renders it in grey, marking it as the inert surface rather than merely the
 	 * dimmed one. No effect where no backdrop renders (see `backdrop`).
 	 *
@@ -105,8 +106,8 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
 	 * Modal sheets (the default) trap focus, move it into the panel on open,
 	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
 	 * `false` for transient, pointer-driven surfaces (e.g. a hover-revealed
-	 * peek) that must not steal focus or block the page: no backdrop renders
-	 * (unless `backdrop` is set) and the page behind stays interactive; Escape
+	 * peek) that must not steal focus or block the page. No backdrop renders
+	 * (unless `backdrop` is set), and the page behind stays interactive. Escape
 	 * or a pointer press outside the panel dismisses.
 	 * @defaultValue true
 	 */
@@ -138,13 +139,13 @@ export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
  * @remarks
  * A registered `<SheetTitle>` supplies `aria-labelledby` and takes precedence
  * over the `aria-label` fallback. Modal sheets (the default) trap focus, lock
- * body scroll, and render a blocking backdrop; `modal={false}` keeps the page
- * interactive and disables the full-viewport wrapper's pointer events so only
- * the panel captures them. The panel stops click propagation to keep the portal's
- * synthetic clicks off the consumer ancestors it renders under — the backdrop is
- * a sibling, so a panel click never reaches its dismiss handler anyway — and
- * shares a single open-state setter with its dismiss affordances via
- * `PanelProviders`.
+ * body scroll, and render a blocking backdrop. `modal={false}` keeps the page
+ * interactive and disables the full-viewport wrapper's pointer events, so only
+ * the panel captures them. The panel stops click propagation to keep the
+ * portal's synthetic clicks off the consumer ancestors it renders under. The
+ * backdrop is a sibling, so a panel click never reaches its dismiss handler
+ * anyway. The panel shares a single open-state setter with its dismiss
+ * affordances via `PanelProviders`.
  */
 export function Sheet({
 	open,

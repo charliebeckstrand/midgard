@@ -134,7 +134,7 @@ type MapPlotRegionProps = AccessibleName & {
 /**
  * The `role="img"` plot box: the aspect-reserved SVG with the tooltip beside it.
  * It owns the keyboard tab stop, because the cursor writes to the hover context
- * this element renders inside — {@link MapPlat} sits above the provider and
+ * this element renders inside. {@link MapPlat} sits above the provider and
  * could not reach it.
  *
  * @internal
@@ -185,9 +185,9 @@ export function MapPlotRegion({
 				shape.fill && 'min-h-0',
 			)}
 		>
-			{/* PlotBox reserves the box height from its own width — steady before the
-			    width is measured and across animation replays — takes a fixed height, or
-			    (under `fill`) fills the height its region already holds. */}
+			{/* PlotBox reserves the box height from its own width, steady before the
+			    width is measured and across animation replays. It takes a fixed height
+			    instead, or (under `fill`) fills the height its region already holds. */}
 			<ChartPlotBox reserve={shape.reserve} height={shape.boxHeight} fill={shape.fill}>
 				{children}
 			</ChartPlotBox>

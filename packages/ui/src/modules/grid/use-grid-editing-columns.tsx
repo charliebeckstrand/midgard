@@ -11,8 +11,8 @@ import { seatingCellProps } from './use-grid-navigation-columns'
 
 /**
  * Projects an editable grid's data columns into editing-aware ones: each gains
- * the cursor wiring (a stable per-cell id, `role="gridcell"`, click-to-seat), and
- * its content renders through {@link GridEditingCell} — the column's display
+ * the cursor wiring (a stable per-cell id, `role="gridcell"`, click-to-seat).
+ * Its content renders through {@link GridEditingCell}: the column's display
  * value, or its editor when the session has the cell open. Display-order indices
  * and the row key resolve from the live maps at cell-render time, so the columns
  * stay referentially stable across cursor moves and edits. Select/actions

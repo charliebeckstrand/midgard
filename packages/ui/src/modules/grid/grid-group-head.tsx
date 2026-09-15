@@ -32,8 +32,8 @@ type GridGroupHeadProps = {
  * The column-group band row: one `<th>` per {@link GridGroupSpan}, rendered
  * above the column-header row. A `group` span draws its colored {@link Badge}
  * (icon + title, an optional description tooltip, and a collapse toggle when
- * {@link GridColumnGroup.collapsible}); a `plain` span is an empty spacer that
- * sticks to a pinned column's edge so the band tracks the frozen columns.
+ * {@link GridColumnGroup.collapsible}). A `plain` span is an empty spacer that
+ * sticks to a pinned column's edge, so the band tracks the frozen columns.
  *
  * @internal
  */

@@ -18,10 +18,10 @@ export type MapSkeletonProps = {
 	/**
 	 * The projection the {@link MapPlat} behind this will draw, so the skeleton
 	 * reserves what that plat reserves. A projection whose subject is fixed knows
-	 * its ratio before its atlas loads — `'albers-usa'` is the United States — and
+	 * its ratio before its atlas loads. `'albers-usa'` is the United States, and
 	 * an atlas-less plat on the default `aspectRatio: 'auto'` reserves exactly
 	 * that. Without it the skeleton reserved 16/9 in front of a plat reserving
-	 * 1.709, which is an ~18px jump at 800px wide, in the swap this component
+	 * 1.709. That is an ~18px jump at 800px wide, in the swap this component
 	 * exists to prevent.
 	 *
 	 * An explicit {@link aspectRatio} still wins: it is the narrower statement, and a
@@ -36,11 +36,11 @@ export type MapSkeletonProps = {
 
 /**
  * Map-shaped loading placeholder reserving the frame a {@link MapPlat} will
- * take: an `AspectRatio` box holding the resolved ratio, so swapping the loaded map in
- * causes no layout shift. Compose it in loading trees that stand in for a
- * plat — a Suspense fallback while geography data fetches, for instance —
- * passing the plat's own `aspectRatio` when it fixes one, and its `projection`
- * otherwise so the two reserve the same box.
+ * take. An `AspectRatio` box holds the resolved ratio, so swapping the loaded
+ * map in causes no layout shift. Compose it in loading trees that stand in for a
+ * plat, such as a Suspense fallback while geography data fetches. Pass the
+ * plat's own `aspectRatio` when it fixes one, and its `projection` otherwise,
+ * so the two reserve the same box.
  */
 export function MapSkeleton({ aspectRatio, projection, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function

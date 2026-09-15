@@ -16,7 +16,7 @@ export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
 	/**
 	 * Fires when the plaintext goes on or off screen.
 	 *
-	 * The field owns the reveal and the button that flips it, and both `type` and
+	 * The field owns the reveal and the button that flips it. Both `type` and
 	 * `suffix` are omitted from the props, so a caller has no channel to read it
 	 * through. Use it to log the reveal, or to hide something else beside the
 	 * field while the password shows. It reports what is actually on screen: a
@@ -38,7 +38,7 @@ type ToggleProps = {
  *
  * @remarks
  * Keeps a fixed `aria-label` (the show label) and signals state via
- * `aria-pressed`, per the APG toggle-button pattern: screen readers don't
+ * `aria-pressed`, per the APG toggle-button pattern. Screen readers don't
  * reliably announce a name swap on the same control. The visible tooltip text
  * still swaps between show/hide.
  * @internal

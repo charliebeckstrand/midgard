@@ -18,8 +18,8 @@ type GridFooterProps = {
  * otherwise. Pluralized against the count it names.
  *
  * `null` for an empty set. The body already says there are no rows, in the row
- * standing where they would be — a count restating it is a second voice adding
- * nothing, and "No rows" under an empty body reads as a tally of the emptiness
+ * standing where they would be. A count restating it is a second voice adding
+ * nothing. "No rows" under an empty body reads as a tally of the emptiness
  * rather than as its explanation.
  *
  * @internal
@@ -47,14 +47,14 @@ function selectedLabel({ rows, selected }: GridFooterStats): string {
 
 /**
  * Opt-in summary footer for a {@link Grid}: a muted status bar with a single
- * leading count that swaps by precedence — an active selection
- * (`'3 of 12 rows selected'`) replaces the row-count total
- * (`'12 of 47 rows visible'` while filtered, else a bare `'47 rows'`) in place,
- * never stacking, so the bar stays one concise line. Because the selected label
+ * leading count that swaps by precedence. An active selection
+ * (`'3 of 12 rows selected'`) replaces the row-count total in place, never
+ * stacking, so the bar stays one concise line. That total is
+ * `'12 of 47 rows visible'` while filtered, else a bare `'47 rows'`. Because the selected label
  * nests against the visible extent, its denominator preserves the filter context
  * the total would otherwise show. Any custom {@link GridFooterConfig.content} is
- * pushed to the trailing edge. Renders nothing when no setting yields output, so
- * an enabled `footer` with, say, `selectedTotal` alone stays invisible until a
+ * pushed to the trailing edge. Renders nothing when no setting yields output.
+ * An enabled `footer` carrying `selectedTotal` alone stays invisible until a
  * row is selected, and a `rowTotal` alone until there is a row to count. The
  * count is a polite live region so a filter or selection change is announced
  * without moving focus (WCAG 4.1.3).

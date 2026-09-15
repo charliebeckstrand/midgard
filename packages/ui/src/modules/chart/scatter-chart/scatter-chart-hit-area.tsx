@@ -15,10 +15,11 @@ export type ScatterChartHitAreaProps = {
 	centers: number[]
 	/**
 	 * The chart's point hit test: the disc under the point that isolation lifts and
-	 * the others recede behind, or `null` off every disc, where the tooltip stays
-	 * shut. `held` carries the disc currently emphasised, for sticky resolution
-	 * within overlapping discs; `index` carries the resolved column, so a snapping
-	 * chart can hand the emphasis to the stop the tooltip anchors there.
+	 * the others recede behind. It is `null` off every disc, where the tooltip
+	 * stays shut. `held` carries the disc currently emphasised, for sticky
+	 * resolution within overlapping discs. The `index` carries the resolved
+	 * column, so a snapping chart can hand the emphasis to the stop the tooltip
+	 * anchors there.
 	 */
 	markAt?: (
 		x: number,
@@ -35,18 +36,18 @@ export type ScatterChartHitAreaProps = {
 	/**
 	 * Whether the readout snaps to the nearest point, so it reads off the marks
 	 * too. Lets a `'click'` off the points pin the snapped column rather than
-	 * dismiss, and carries the pointer cursor across the whole plot rather than the
-	 * points alone.
+	 * dismiss. It also carries the pointer cursor across the whole plot, rather
+	 * than the points alone.
 	 * @defaultValue false
 	 */
 	snaps?: boolean
 }
 
 /**
- * The scatter counterpart of the band charts' hit layer: it shares the same
- * {@link useChartPointer} hover, scroll rescue, and click-to-pin behaviour,
- * resolving the index to the nearest unique-x column rather than an evenly
- * spaced band — unique x values arrive at whatever spacing the data has.
+ * The scatter counterpart of the band charts' hit layer. It shares the same
+ * {@link useChartPointer} hover, scroll rescue, and click-to-pin behaviour. It
+ * resolves the index to the nearest unique-x column, rather than an evenly
+ * spaced band. Unique x values arrive at whatever spacing the data has.
  *
  * @internal
  */

@@ -8,10 +8,10 @@ import { TAB_SELECTOR } from './tabs-constants'
 const CURRENT_TAB_SELECTOR = '[data-slot="tab"][data-current]'
 
 /**
- * Least scroll offset that brings an item fully into a viewport along one axis,
- * returning the current offset unchanged when the item already fits (the
- * `nearest` policy). Every input shares the axis: the viewport size, its
- * current scroll position, the item's extent, and the item's leading edge
+ * Least scroll offset that brings an item fully into a viewport along one axis.
+ * It returns the current offset unchanged when the item already fits (the
+ * `nearest` policy). Every input shares the axis. Those are the viewport size,
+ * its current scroll position, the item's extent, and the item's leading edge
  * relative to the viewport's content start.
  *
  * @internal
@@ -71,9 +71,9 @@ function scrollTabIntoView(scroller: HTMLElement, tab: HTMLElement, axis: 'x' | 
 }
 
 /**
- * Keeps the active tab visible inside the scroll viewport: on mount it brings
- * the current tab into view (a deep-linked or overflowed selection survives
- * page load), and a delegated `focusin` listener does the same for whichever
+ * Keeps the active tab visible inside the scroll viewport. On mount it brings
+ * the current tab into view, so a deep-linked or overflowed selection survives
+ * page load. A delegated `focusin` listener does the same for whichever
  * tab takes focus, so roving never strands focus off-screen. Both scope the
  * scroll to the viewport, never an outer container or the page.
  *

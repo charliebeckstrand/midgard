@@ -12,11 +12,11 @@ import {
 } from 'react'
 
 /**
- * Frame sizing and measurement for the plot-bearing modules (chart, map): a
- * {@link FrameSizing} policy — resolved by each module from its own props
- * through `chartFrameSizing` or `mapFrameSizing` — drives {@link usePlotFrame},
- * which measures only the axes the policy consumes and resolves it to a
- * concrete box through {@link resolveFrameSizing}.
+ * Frame sizing and measurement for the plot-bearing modules (chart, map). A
+ * {@link FrameSizing} policy drives {@link usePlotFrame}, which measures only
+ * the axes the policy consumes. It resolves that policy to a concrete box
+ * through {@link resolveFrameSizing}. Each module resolves the policy from its
+ * own props, through `chartFrameSizing` or `mapFrameSizing`.
  */
 
 /**
@@ -28,8 +28,8 @@ import {
  * drawing width by a constant ratio. `fill` takes the container's measured
  * height — the free-form case, and the only one where the container height is
  * worth a measurement. `content` derives the height from the width and a pair
- * of margins, for content whose natural shape is not a fixed ratio: a circle
- * boxed by an asymmetric horizontal and vertical margin.
+ * of margins, for content whose natural shape is not a fixed ratio. A circle
+ * boxed by an asymmetric horizontal and vertical margin is one.
  */
 export type FrameSizing =
 	| { mode: 'fixed'; height: number }
@@ -71,7 +71,7 @@ export type FrameSizing =
  *
  * `aspect` reserves a `width / height` ratio (CSS `aspect-ratio`). `content`
  * reserves the affine `max(min, width + offset)` that a bare ratio cannot
- * express: `offset` shifts an `aspect-ratio` of 1, and `min` floors the height
+ * express. `offset` shifts an `aspect-ratio` of 1, and `min` floors the height
  * where the width-bound radius would otherwise go negative. A narrow box then
  * holds that floor and does not collapse. A `fixed` or `fill` frame
  * reserves nothing, because its height is a pixel value the box takes
@@ -86,7 +86,7 @@ export type ResolvedFrameSizing = {
 	/** The frame's drawing height in px; `0` until the width is measured. */
 	height: number
 	/**
-	 * How the plot box reserves its height from its own width through CSS, or
+	 * How the plot box reserves its height from its own width through CSS. It is
 	 * `null` when the height is a fixed pixel value or fills the container.
 	 */
 	reserve: FrameReserve | null
@@ -95,13 +95,14 @@ export type ResolvedFrameSizing = {
 /**
  * Applies a {@link FrameSizing} policy: the drawing height, and how the plot
  * box holds it. `aspect` derives the height from the measured `width` and
- * reserves that same ratio through CSS — taking the height from the box's own
- * width keeps it steady before the width is measured and across every
- * animation replay, where a pixel height off the yet-unmeasured width would
- * collapse to zero and jump. `content` derives from the width too, but its
- * `width → height` is affine (a pair of margins), not a pure ratio; it reserves
- * an `aspect-ratio` of 1 shifted by a constant pixel `offset`, so its box holds
- * as steady as `aspect` rather than collapsing to a pixel `0`. `fill` takes the
+ * reserves that same ratio through CSS. Taking the height from the box's own
+ * width keeps it steady before the width is measured, and across every
+ * animation replay. A pixel height off the yet-unmeasured width would collapse
+ * to zero and jump. `content` derives from the width too, but its
+ * `width → height` is affine (a pair of margins), not a pure ratio. It reserves
+ * an `aspect-ratio` of 1 shifted by a constant pixel `offset`. Its box
+ * therefore holds as steady as `aspect`, rather than collapsing to a pixel
+ * `0`. `fill` takes the
  * container's measured height and `fixed` is its own pixel value — neither
  * reserves anything.
  *
@@ -159,46 +160,47 @@ export function resolveFrameSizing(
 /**
  * The measuring handle {@link usePlotFrame} returns: a callback ref, so
  * attachment itself re-targets the hook's ResizeObserver whenever React swaps
- * the plot node, intersected with the object-ref view whose `.current` readers
- * of the live node — tooltip hit-testing, hover geometry — keep dereferencing.
+ * the plot node. It is intersected with the object-ref view whose `.current`
+ * readers of the live node keep dereferencing. Those readers are tooltip
+ * hit-testing and hover geometry.
  */
 export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElement | null>
 
 /**
- * Resolves a plot frame's drawing size from its {@link FrameSizing} policy,
- * measuring only the dimensions the policy consumes so a resize re-renders
- * the frame only when it must. An explicit `width` is returned as-is with no
- * measurement — the deterministic path for fixed frames, SSR output, and
- * tests — otherwise the container's width is measured and the frame fills
+ * Resolves a plot frame's drawing size from its {@link FrameSizing} policy. It
+ * measures only the dimensions the policy consumes, so a resize re-renders the
+ * frame only when it must. An explicit `width` is returned as-is with no
+ * measurement, the deterministic path for fixed frames, SSR output, and
+ * tests. Otherwise the container's width is measured and the frame fills
  * it. A height is measured only where the policy reads one: the container's
- * under `fill`, the plot's own remainder under `aspect-fill`; `fixed`,
+ * under `fill`, and the plot's own remainder under `aspect-fill`. `fixed`,
  * `aspect`, and `content` heights ignore it, so tracking it would re-render
  * the frame on every resize for a value the policy discards. A frame whose
  * size is fully fixed by props observes nothing at all, so a resize never
  * reaches it.
  *
- * Resize notifications commit as transitions: the frame tracks its container
- * live — no settle window, no timers — while React coalesces a burst by
- * abandoning renders whose size is already stale, so a window drag on a slow
- * frame refits at the pace the machine can afford and always lands on the
- * final size. A measurement of a node a commit has already detached (a layout
- * branch re-arranged around the plot mid-notification) is skipped rather than
- * committed as zero, so the frame holds its last real size until the live
- * node reports one. The mount measurement instead settles in a layout effect that
- * re-runs on each size change, so a size that resolves a tier which mounts or
- * drops the header and legend — reflowing the plot the drawing height reads —
- * reaches its fixed point before the first paint rather than flashing a size it
- * is about to abandon.
+ * Resize notifications commit as transitions. The frame tracks its container
+ * live, with no settle window and no timers. React coalesces a burst by
+ * abandoning renders whose size is already stale. A window drag on a slow
+ * frame therefore refits at the pace the machine can afford, and always lands
+ * on the final size. A measurement of a node a commit has already detached (a
+ * layout branch re-arranged around the plot mid-notification) is skipped rather
+ * than committed as zero. The frame therefore holds its last real size until
+ * the live node reports one. The mount measurement instead settles in a layout
+ * effect that re-runs on each size change. A size can resolve a tier which
+ * mounts or drops the header and legend, reflowing the plot the drawing height
+ * reads. It reaches its fixed point before the first paint, rather than
+ * flashing a size it is about to abandon.
  *
  * @param width - An explicit drawing width, or `undefined` to fill and
  * measure the container.
  * @param sizing - The frame's sizing policy, from `chartFrameSizing` or
  * `mapFrameSizing`.
- * @returns The wrapper `ref` to attach — a callback ref that re-targets the
- * observer if React swaps the node, still readable through `.current` — and
- * the resolved drawing box; an unmeasured `width` stays `0`, which renders the
- * frame shell without marks for that first paint (server and client agree, so
- * no hydration mismatch).
+ * @returns The wrapper `ref` to attach, and the resolved drawing box. The ref
+ * is a callback ref that re-targets the observer if React swaps the node, still
+ * readable through `.current`. An unmeasured `width` stays `0`, which renders
+ * the frame shell without marks for that first paint (server and client agree,
+ * so no hydration mismatch).
  */
 export function usePlotFrame(
 	width: number | undefined,
@@ -209,9 +211,9 @@ export function usePlotFrame(
 	height: number
 	/**
 	 * The fill frame's own box height, measured from the nearest ancestor marked
-	 * `data-plot-fill-container` — the chrome-independent height a tier decision
-	 * can read without the plot's chrome feeding back into it (see the chart
-	 * callers). `0` outside `fill` mode, where no such ancestor is marked.
+	 * `data-plot-fill-container`. It is the chrome-independent height a tier
+	 * decision can read without the plot's chrome feeding back into it (see the
+	 * chart callers). `0` outside `fill` mode, where no such ancestor is marked.
 	 */
 	containerHeight: number
 	reserve: FrameReserve | null

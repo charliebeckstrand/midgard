@@ -4,9 +4,10 @@ import { k } from '../../../../recipes/kata/grid'
 import type { GridColumnPinning } from '../../use-grid-table'
 
 /**
- * Inline sticky offset for a pinned cell — `left` for a left-pinned column,
- * `right` for a right-pinned one, each the summed width of the frozen columns
- * between it and that edge — or `undefined` when the column scrolls. Pairs with
+ * Inline sticky offset for a pinned cell, or `undefined` when the column
+ * scrolls. It is `left` for a left-pinned column and `right` for a right-pinned
+ * one. Each offset is the summed width of the frozen columns between the cell
+ * and that edge. Pairs with
  * {@link pinnedClassName}, which carries the `position: sticky` itself.
  *
  * @internal
@@ -26,8 +27,8 @@ export function pinnedOffsetStyle(
  * Sticky, opaque-surface, boundary-border, and boundary-shadow classes for a
  * pinned cell, or `''` when the column scrolls. Only the innermost column of each
  * frozen group — the one at the scroll-facing boundary — carries the edge border
- * (right for a left group, left for a right group) and the separating shadow; the
- * columns behind it get just the sticky surface. The engine's left/right sections
+ * and the separating shadow. That border is right for a left group, left for a
+ * right group. The columns behind it get just the sticky surface. The engine's left/right sections
  * combine pinned and locked columns, so the boundary resolves across whichever mix
  * is frozen. `header` selects the header layer (above the sticky head).
  *

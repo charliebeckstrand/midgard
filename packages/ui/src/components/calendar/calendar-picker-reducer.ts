@@ -15,10 +15,12 @@ export type CalendarPickerState = {
 }
 
 /**
- * `open` reseeds both year anchors to the calendar's current year; `stepYear`
- * pages the month grid's year; `stepDecade` pages the year grid's decade;
- * `showYears`/`showMonths` swap views (entering years re-anchors the decade on
- * `pickerYear`); `selectYear` picks a year and returns to the month grid.
+ * - `open` reseeds both year anchors to the calendar's current year.
+ * - `stepYear` pages the month grid's year.
+ * - `stepDecade` pages the year grid's decade.
+ * - `showYears` and `showMonths` swap views. Entering years re-anchors the
+ *   decade on `pickerYear`.
+ * - `selectYear` picks a year and returns to the month grid.
  *
  * @internal
  */

@@ -80,8 +80,8 @@ import {
 
 /**
  * The frame switches the point charts (Scatter / Bubble) add on top of
- * {@link ChartBaseProps}: axes and grid both ways, per-axis domains, formats,
- * and titles, and the hover crosshair.
+ * {@link ChartBaseProps}. They are axes and grid both ways, per-axis domains,
+ * formats, and titles, and the hover crosshair.
  *
  * @internal
  */
@@ -133,10 +133,10 @@ type ScatterMeta = {
 
 /**
  * Every series parsed and resolved: paint, points, and the bubble radius
- * scaling. A scatter series names only a palette slot — no raw colour, unlike
- * the band-axis series — so its colour resolves directly to the slot in the
- * fixed order, the way the cartesian series did before a raw colour became an
- * option there.
+ * scaling. A scatter series names only a palette slot, with no raw colour,
+ * unlike the band-axis series. Its colour therefore resolves directly to the
+ * slot in the fixed order. That is the way the cartesian series did before a
+ * raw colour became an option there.
  *
  * @internal
  */
@@ -192,9 +192,9 @@ function scatterReadout(
 /**
  * The readout as a cached thunk, or `null` when there's nothing to read. At ten
  * thousand points the readout formats every unique-x column through `Intl`,
- * which costs more than drawing the discs — so the mount render only decides one
- * exists and the first consumer (the hover tooltip, the deferred table)
- * materializes it off that path.
+ * which costs more than drawing the discs. The mount render therefore only
+ * decides one exists. The first consumer (the hover tooltip, the deferred
+ * table) materializes it off that path.
  *
  * @internal
  */
@@ -221,12 +221,12 @@ type ScatterFrame = {
 }
 
 /**
- * The scatter frame's sizing and legend layout resolved together: a live ratio
- * carries on the figure wrapper so a definite-height parent clamps the whole
- * chart (the box-law, the plot measuring the height a stacked band leaves),
- * while a side legend keeps the ratio on the plot box and bands beside it; the
- * legend's placement also drives the panel-vs-row layout. Derived from the props
- * alone, so it precedes any measurement.
+ * The scatter frame's sizing and legend layout resolved together. A live ratio
+ * carries on the figure wrapper, so a definite-height parent clamps the whole
+ * chart. That is the box-law, with the plot measuring the height a stacked band
+ * leaves. A side legend instead keeps the ratio on the plot box and bands
+ * beside it. The legend's placement also drives the panel-vs-row layout. Derived
+ * from the props alone, so it precedes any measurement.
  *
  * @internal
  */
@@ -283,9 +283,11 @@ type ScatterScales = {
 }
 
 /**
- * The scatter's placed axis titles: a rotated one in the left gutter for the y
- * axis, a horizontal one under the x labels for the x axis — each in the band
- * {@link scatterScales} reserved. @internal
+ * The scatter's placed axis titles. A rotated one sits in the left gutter for
+ * the y axis, and a horizontal one under the x labels for the x axis. Each sits
+ * in the band {@link scatterScales} reserved.
+ *
+ * @internal
  */
 function scatterTitles(
 	plot: PlotRect,
@@ -311,18 +313,19 @@ function scatterTitles(
 }
 
 /**
- * Both scales resolved: y from the frame height first, so its tick labels can
- * size the left gutter, then x filling the plot width the labels leave, inset so
- * its extreme discs and end labels clear the frame — the end ticks then anchored
- * inward so those labels don't crowd the corner they sit in.
+ * Both scales resolved, y from the frame height first, so its tick labels can
+ * size the left gutter. Then x fills the plot width the labels leave, inset so
+ * its extreme discs and end labels clear the frame. The end ticks are then
+ * anchored inward, so those labels don't crowd the corner they sit in.
  *
  * @internal
  */
 /**
- * The inset a spark plot needs on every edge so its largest disc clears the frame
- * rather than clipping: the widest disc radius across the visible points, plus the
- * half of the surface ring that strokes outside that radius, so the painted edge —
- * not just the fill — clears. Falls back to the plain {@link MARKER_RADIUS} when
+ * The inset a spark plot needs on every edge, so its largest disc clears the
+ * frame rather than clipping. It is the widest disc radius across the visible
+ * points, plus the half of the surface ring that strokes outside that radius.
+ * The painted edge — not just the fill — therefore clears. Falls back to the
+ * plain {@link MARKER_RADIUS} when
  * there is nothing to measure.
  * @internal
  */
@@ -433,7 +436,7 @@ function scatterScales(args: {
 
 /**
  * The scatter frame's chrome: both axes' gridlines, tick labels, and titles.
- * Draws nothing at the spark tier — a sparkline is bare marks, so the labels,
+ * Draws nothing at the spark tier. A sparkline is bare marks, so the labels,
  * gridlines, and titles that would clutter it stand down with the rest of the
  * chrome.
  * @internal
@@ -479,12 +482,12 @@ function ScatterChrome(props: {
 }
 
 /**
- * The scatter's pointer hit layer, mounted only where the chart is interactive:
- * over the columns when a tooltip or crosshair asks for the pointer, and never
- * at the spark tier — read through {@link ChartTierContext}, so the frame
- * decides — where a sparkline is non-interactive: its marks take no hover or
- * click, and the crosshair and tooltip that ride this hover stand down with it
- * (the keyboard is already off at spark). Off the render so its gates stay out
+ * The scatter's pointer hit layer, mounted only where the chart is interactive.
+ * It mounts over the columns when a tooltip or crosshair asks for the pointer.
+ * It never mounts at the spark tier, read through {@link ChartTierContext}, so
+ * the frame decides. There a sparkline is non-interactive: its marks take no
+ * hover or click. The crosshair and tooltip that ride this hover stand down
+ * with it (the keyboard is already off at spark). Off the render so its gates stay out
  * of the frame's body, the way {@link ScatterChrome} keeps the chrome's.
  * @internal
  */
@@ -542,18 +545,18 @@ function ScatterHitLayer(props: {
 /**
  * A multi-series scatter chart: numeric fields on both axes, one surface-ringed
  * disc per parseable row, on linear scales with clean ticks both ways. Rows
- * need no shared category set — unlike the band-axis charts the x field is a
- * number, values arrive in any order, duplicates included — so it holds up
- * against ragged or machine-generated datasets: a point whose x or y fails to
- * parse drops out, never the scale. A `sizeKey` on a series adds the bubble
- * encoding ({@link BubbleChart} requires it); the legend toggles series, the
- * tooltip reads every series at the pointed x, and a visually-hidden data table
- * carries full value parity.
+ * need no shared category set. Unlike the band-axis charts, the x field is a
+ * number, and values arrive in any order, duplicates included. It therefore
+ * holds up against ragged or machine-generated datasets. A point whose x or y
+ * fails to parse drops out, never the scale. A `sizeKey` on a series adds the
+ * bubble encoding ({@link BubbleChart} requires it). The legend toggles series,
+ * the tooltip reads every series at the pointed x, and a visually-hidden data
+ * table carries full value parity.
  *
  * @remarks The hover, crosshair snap, and keyboard cursor key on the sorted
- * unique x values the way the band charts key on categories: focus the plot and
- * the horizontal arrows walk x columns while the vertical arrows step the
- * points at one — duplicates included. The `texture` identity channel does not
+ * unique x values, the way the band charts key on categories. Focus the plot to
+ * drive them. The horizontal arrows walk x columns, while the vertical arrows
+ * step the points at one, duplicates included. The `texture` identity channel does not
  * apply to discs, so this chart does not take it.
  * @example
  * ```tsx

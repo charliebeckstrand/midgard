@@ -16,10 +16,15 @@ import type {
 } from './types'
 
 /**
- * The entries `exportable` names: none when off, the full built-in set for the
- * `true` shorthand, the array itself, or a config's `types` — which falls back
- * to the same CSV + Excel set an omitted prop takes, so adding a surface switch
- * never quietly adds print.
+ * The entries `exportable` names:
+ *
+ * - None when off.
+ * - The full built-in set for the `true` shorthand.
+ * - The array itself.
+ * - A config's `types`, which falls back to the same CSV + Excel set an omitted
+ *   prop takes.
+ *
+ * A surface switch therefore never quietly adds print.
  *
  * @internal
  */
@@ -35,8 +40,8 @@ function resolveEntries<T>(exportable: GridExportable<T> | undefined): GridExpor
 
 /**
  * The surfaces `exportable` offers its actions on: none when off, the tool
- * {@link DEFAULT_SURFACES} for the boolean and array forms, and only the config
- * form naming its own. Reads the union exactly as {@link resolveEntries} does,
+ * {@link DEFAULT_SURFACES} for the boolean and array forms. Only the config form
+ * names its own. Reads the union exactly as {@link resolveEntries} does,
  * so a fifth form is taught to both the same way.
  *
  * @typeParam T - Shape of a single row.
@@ -59,9 +64,8 @@ function isBuiltinType(type: GridExportType): type is keyof typeof BUILTIN_EXPOR
 
 /**
  * Builds one action for `type`, or `null` when it names neither a built-in type
- * nor an `onExport` — logging a dev-only warning in that case, since a
- * right-click menu or toolbar button is the wrong place to surface a config
- * mistake.
+ * nor an `onExport`. That case logs a dev-only warning, since a right-click
+ * menu or toolbar button is the wrong place to surface a config mistake.
  *
  * @internal
  */
@@ -110,10 +114,10 @@ function buildAction<T>(
 }
 
 /**
- * Resolves one entry to its action(s): a bare string names a single built-in,
- * while an object contributes one action per type key it carries — so an entry
- * overriding several types at once resolves them all rather than dropping every
- * key but the first.
+ * Resolves one entry to its action or actions. A bare string names a single
+ * built-in, while an object contributes one action per type key it carries. An
+ * entry that overrides several types at once therefore resolves them all,
+ * rather than dropping every key but the first.
  *
  * @internal
  */
@@ -138,9 +142,9 @@ function resolveEntry<T>(
  * Builds the {@link GridExportContext} from a consumer-supplied
  * {@link GridExportRows}: the one reading of the sync-or-async rule. Stays
  * synchronous for an in-memory full list and awaits only a genuine server
- * round-trip, so a caller returning an array outright keeps the sync download
- * path. The grid's own export and the out-of-grid `useGridExportActions` both
- * resolve it here, so the two can't drift.
+ * round-trip. A caller that returns an array outright therefore keeps the sync
+ * download path. The grid's own export and the out-of-grid
+ * `useGridExportActions` both resolve it here, so the two can't drift.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -162,8 +166,8 @@ export function exportRowsContext<T>(
  * don't clear each other early.
  *
  * Wrapping the action rather than each call site is what makes the pending state
- * whole: the toolbar dropdown, the header and cell menus, and a `contextMenu`
- * builder that re-places an action all call the same wrapped `run`, so none of
+ * whole. The toolbar dropdown, the header and cell menus, and a `contextMenu`
+ * builder that re-places an action all call the same wrapped `run`. None of
  * them can fire an export the grid doesn't know is running.
  *
  * @internal
@@ -186,14 +190,19 @@ export function trackPending(
 }
 
 /**
- * Normalizes the `exportable` prop — `false`/`undefined` (off), `true` (the
- * default `csv` + `excel` + `print` set), an explicit {@link GridExportEntry}
- * array, or a {@link GridExportConfig} naming its own `types` — into one
- * ready-to-run action per entry, in order. Each action's `run` calls the entry's
- * `onExport` override when given, else the built-in exporter for a shipped type;
- * an entry naming neither (an unknown type with no `onExport`) is dropped (see
- * {@link buildAction}). Which surfaces offer these actions is a separate
- * question — see {@link resolveExportSurfaces}.
+ * Normalizes the `exportable` prop into one ready-to-run action per entry, in
+ * order. The prop takes four forms:
+ *
+ * - `false`/`undefined` (off).
+ * - `true` (the default `csv` + `excel` + `print` set).
+ * - An explicit {@link GridExportEntry} array.
+ * - A {@link GridExportConfig} naming its own `types`.
+ *
+ * Each action's `run` calls the entry's `onExport` override when given, else
+ * the built-in exporter for a shipped type. An entry naming neither (an unknown
+ * type with no `onExport`) is dropped (see {@link buildAction}). Which surfaces
+ * offer these actions is a separate question — see
+ * {@link resolveExportSurfaces}.
  *
  * @typeParam T - Shape of a single row.
  * @param exportable - The grid's `exportable` prop.

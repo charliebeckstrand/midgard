@@ -40,10 +40,10 @@ type SortableListOptions<T> = {
  *
  * @returns `{ itemIds, strategy, interactive, activeId, orientation,
  * dndContextProps }`: the keyed id list and sorting `strategy` for
- * `<SortableContext>`, `interactive` (false when disabled or read-only),
- * `activeId` of the item being dragged (or `null`), the resolved `orientation`,
- * and `dndContextProps` (sensors, collision detection, drag handlers) to spread
- * onto `<DndContext>`.
+ * `<SortableContext>`, plus `interactive` (false when disabled or read-only).
+ * `activeId` is the item being dragged (or `null`), `orientation` is the
+ * resolved axis, and `dndContextProps` (sensors, collision detection, drag
+ * handlers) spreads onto `<DndContext>`.
  */
 export function useSortableList<T>({
 	items,

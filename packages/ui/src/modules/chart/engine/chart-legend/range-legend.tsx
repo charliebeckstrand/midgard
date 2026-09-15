@@ -3,10 +3,10 @@
 /**
  * The continuous colour-scale bar both colour-scaled charts read: the heatmap
  * directly, the choropleth through the map module's `MapRangeLegend` wrapper.
- * The engine grammar wants a short kind name here, which would be `range.tsx` —
- * `range.ts` beside it already holds the placement resolution, so this file
- * carries the compound name rather than the pair splitting across two spellings
- * of one word.
+ * The engine grammar wants a short kind name here, which would be `range.tsx`.
+ * The neighbouring `range.ts` already holds the placement resolution. This file
+ * therefore carries the compound name, rather than the pair splitting across
+ * two spellings of one word.
  */
 
 import {
@@ -22,9 +22,11 @@ import { k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types'
 
 /**
- * Which way a range legend and its glyph lay out: `'vertical'` stands the scale
- * bar on end (low at the bottom, high at the top), `'horizontal'` lays it flat
- * (low at the left, high at the right).
+ * Which way a range legend and its glyph lay out:
+ *
+ * - `'vertical'` stands the scale bar on end (low at the bottom, high at the
+ *   top).
+ * - `'horizontal'` lays it flat (low at the left, high at the right).
  *
  * @internal
  */
@@ -39,9 +41,9 @@ type RangeArrowProps = {
 	/** The `data-slot` prefix, matching the host legend's. @defaultValue 'range' */
 	slot?: string
 	/**
-	 * Which way the host bar runs, so the glyph pins to the matching edge: down
-	 * the left of a vertical bar (apex right), along the top of a horizontal one
-	 * (apex down).
+	 * Which way the host bar runs, so the glyph pins to the matching edge. It
+	 * goes down the left of a vertical bar (apex right), and along the top of a
+	 * horizontal one (apex down).
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: RangeOrientation
@@ -49,15 +51,17 @@ type RangeArrowProps = {
 
 /**
  * The range legend's hover glyph: an arrow pinned to the bar's edge at a mark's
- * exact value — the same continuous position the probe thumb reads, so the
- * glyph never contradicts the axis the endpoints label. (A class-centre
- * placement drifts rimward as the class count grows: an eleven-class bar seats
- * its lowest centre below where the minimum label reads, so a small-but-real
- * value looked pinned to the floor.) Presentational — the host supplies the
- * `value` from its own hover state (a region on the choropleth, a cell on the
- * heatmap), so the same glyph ties either chart's marks to the scale. It rides
- * the low→high axis the bar paints: down the left of a vertical bar, along the
- * top of a horizontal one.
+ * exact value. That is the same continuous position the probe thumb reads, so
+ * the glyph never contradicts the axis the endpoints label. A class-centre
+ * placement instead drifts rimward as the class count grows. An eleven-class
+ * bar seats its lowest centre below where the minimum label reads, so a
+ * small-but-real value looked pinned to the floor.
+ *
+ * The glyph is presentational. The host supplies the `value` from its own hover
+ * state — a region on the choropleth, a cell on the heatmap. The same glyph
+ * therefore ties either chart's marks to the scale. It rides the low→high axis
+ * the bar paints: down the left of a vertical bar, along the top of a
+ * horizontal one.
  *
  * @internal
  */
@@ -105,8 +109,8 @@ export function RangeArrow({
 /**
  * The scale a range bar paints: the ramp, the extent it spans, and how its
  * labels read. Named apart from {@link RangeLegendProps} because every host
- * wrapper passes exactly this through — the choropleth's and the heatmap's
- * alike — so the pass-through has one definition rather than one per host.
+ * wrapper passes exactly this through, the choropleth's and the heatmap's
+ * alike. The pass-through therefore has one definition, not one per host.
  *
  * @internal
  */
@@ -142,11 +146,17 @@ export type RangeLegendProps = RangeScale & {
 	 */
 	arrow?: ReactNode
 	/**
-	 * Which way the scale bar runs: `'vertical'` stands it on end (low at the
-	 * bottom, high at the top) beside the plot, `'horizontal'` lays it flat (low
-	 * at the left, high at the right) above or below. Drives the gradient, the
-	 * pointer axis, the endpoint order, the thumb, and `aria-orientation`, so a
-	 * horizontal bar reads and answers the keyboard along its own axis.
+	 * Which way the scale bar runs:
+	 *
+	 * - `'vertical'` stands it on end (low at the bottom, high at the top) beside
+	 *   the plot.
+	 * - `'horizontal'` lays it flat (low at the left, high at the right) above or
+	 *   below.
+	 *
+	 * It drives the gradient, the pointer axis, the endpoint order, the thumb,
+	 * and `aria-orientation`. A horizontal bar therefore reads and answers the
+	 * keyboard along its own axis.
+	 *
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: RangeOrientation
@@ -163,9 +173,14 @@ type RangeKeyContext = {
 
 /**
  * The value a range-legend arrow key reads, or `null` for a key the slider
- * ignores. Up / Right step a class toward the max, Down / Left toward the min,
- * Home / End jump to the ends — both arrow pairs so either orientation answers
- * its natural axis. Escape blurs instead and is handled by the caller.
+ * ignores:
+ *
+ * - Up / Right step a class toward the max.
+ * - Down / Left step a class toward the min.
+ * - Home / End jump to the ends.
+ *
+ * Both arrow pairs answer, so either orientation reads along its natural axis.
+ * Escape blurs instead and is handled by the caller.
  *
  * @internal
  */
@@ -205,9 +220,9 @@ type RangeScaleLabelsProps = {
 
 /**
  * The scale bar's endpoint labels and its live value readout, transposed with
- * the bar: the low value leads a horizontal bar (left) or trails a vertical one
- * (bottom), and the readout tracks the probe along the matching axis. The
- * endpoints dim while a probe is live so the readout reads clear over them.
+ * the bar. The low value leads a horizontal bar (left) or trails a vertical one
+ * (bottom). The readout tracks the probe along the matching axis. The endpoints
+ * dim while a probe is live so the readout reads clear over them.
  *
  * @internal
  */
@@ -256,9 +271,10 @@ function RangeScaleLabels({
 }
 
 /**
- * The probe's distance along the bar as a percentage from the reading start: 0%
- * at the top (max) of a vertical bar, 0% at the left (min) of a horizontal one.
- * `null` (at rest) and a degenerate zero-span domain both sit at the start.
+ * The probe's distance along the bar as a percentage from the reading start.
+ * That start is the top (max) of a vertical bar, and the left (min) of a
+ * horizontal one. `null` (at rest) and a degenerate zero-span domain both sit
+ * at the start.
  *
  * @internal
  */
@@ -307,10 +323,10 @@ type RangeTrackProps = {
 
 /**
  * The scale bar itself: the gradient-painted `role="slider"` track, the thumb
- * marking the live probe, and the host's hover glyph. Transposed by
- * `orientation` — a vertical bar stands narrow and tall with a horizontal thumb,
- * a horizontal bar lays short and wide with a vertical one — so the same slider
- * reads either way.
+ * marking the live probe, and the host's hover glyph. The `orientation` prop
+ * transposes it. A vertical bar stands narrow and tall with a horizontal thumb,
+ * and a horizontal bar lays short and wide with a vertical one. The same slider
+ * therefore reads either way.
  *
  * @internal
  */
@@ -381,24 +397,25 @@ function RangeTrack({
 }
 
 /**
- * The shared range legend: a continuous vertical colour-scale bar — the scheme's
- * gradient, low at the bottom to high at the top — with the domain endpoints
- * labelled. The interactive counterpart to a binned switchboard, shared by the
- * `HeatmapChart` and the `ChoroplethChart` (which reaches it through the map
- * module's `MapRangeLegend` wrapper) so the two colour-scaled charts read and
- * behave identically.
+ * The shared range legend: a continuous vertical colour-scale bar with the
+ * domain endpoints labelled. It paints the scheme's gradient, low at the bottom
+ * to high at the top. It is the interactive counterpart to a binned
+ * switchboard, shared by the `HeatmapChart` and the `ChoroplethChart`. The
+ * choropleth reaches it through the map module's `MapRangeLegend` wrapper. The
+ * two colour-scaled charts therefore read and behave identically.
  *
- * @remarks A slider read precisely: pointing the bar tracks the exact value
- * under the cursor — a thumb that follows it and a live value readout — while
- * the host, quantised into classes, emphasises whichever class that value falls
- * in through {@link RangeLegendProps.onProbe} (its response steps at the class
- * edges; the thumb does not). Arrowing it once focused walks the classes (a
- * class at a time toward the max on Up / Right and the min on Down / Left, Home
- * / End to the ends), while `aria-orientation` announces the axis the bar runs
- * along. Screen readers get the class range through `aria-valuetext` and full
- * parity from the host's visually-hidden data table. `orientation` transposes
- * the whole thing — the gradient, the pointer axis, the endpoint order, and the
- * thumb — so a horizontal bar is the same slider laid flat, low at the left.
+ * @remarks A slider read precisely. A pointer on the bar tracks the exact value
+ * under the cursor, with a thumb that follows it and a live value readout. The
+ * host, quantised into classes, emphasises whichever class that value falls in
+ * through {@link RangeLegendProps.onProbe}. Its response steps at the class
+ * edges, while the thumb does not. Arrow keys walk the classes once the bar has
+ * focus. Up / Right step toward the max, Down / Left toward the min, and Home /
+ * End jump to the ends. The `aria-orientation` attribute announces the axis the
+ * bar runs along. Screen readers get the class range through `aria-valuetext`
+ * and full parity from the host's visually-hidden data table. The `orientation`
+ * prop transposes the whole thing: the gradient, the pointer axis, the endpoint
+ * order, and the thumb. A horizontal bar is therefore the same slider laid
+ * flat, low at the left.
  * @internal
  */
 export function RangeLegend({

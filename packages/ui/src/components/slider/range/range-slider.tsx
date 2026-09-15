@@ -71,10 +71,10 @@ export type RangeSliderProps = {
 /**
  * Dual-thumb range input over `[start, end]`; controlled or uncontrolled.
  * Builds the track, fill, and two `role="slider"` thumb buttons by hand (no
- * native `<input>`), wiring pointer drag and arrow-key stepping; `size`
+ * native `<input>`), and wires pointer drag and arrow-key stepping. `size`
  * resolves through the Density cascade. Crossing thumbs swap roles by default
- * (`allowCross`) with keyboard focus following the moving value; set `false` to
- * clamp each at the other. Each thumb carries `aria-valuemin`/`max`/`now` and a
+ * under `allowCross`, and keyboard focus follows the moving value. Set it
+ * `false` to clamp each thumb at the other. Each thumb carries `aria-valuemin`/`max`/`now` and a
  * `labels` name, with optional `getValueText` for `aria-valuetext`.
  */
 export function RangeSlider({

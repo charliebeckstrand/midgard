@@ -5,7 +5,7 @@ import { k } from '../../recipes/kata/markdown'
 import { MarkdownRenderer } from './markdown-renderer'
 
 // Module-scoped instance: keeps options local instead of mutating the shared
-// `marked` singleton a consuming app may also configure. GFM is on (tables,
+// `marked` singleton a consuming app can also configure. GFM is on (tables,
 // task lists, strikethrough, autolinks).
 const md = new Marked({ gfm: true })
 
@@ -36,21 +36,21 @@ export type MarkdownProps = {
  *
  * Color-agnostic: the prose carries rhythm, weight, and size but no `text-*`
  * color, so the whole tree inherits the foreground of whatever container it
- * renders in. Set the color on the wrapper (or an ancestor) — via `className`
- * or the surrounding element — and headings, body, links, and tables all
- * follow; there is no baked-in palette to override.
+ * renders in. Set the color on the wrapper, or an ancestor, via `className`
+ * or the surrounding element. Headings, body, links, and tables all follow.
+ * There is no baked-in palette to override.
  *
  * Security: the source is walked token by token into elements this component
- * controls — raw HTML in the source is dropped, never injected — so untrusted
- * Markdown cannot reach the DOM as markup. Link and image URLs are scheme-checked:
- * a link renders an `href` only for `http(s)`/`mailto`/`tel`, so a `javascript:`,
+ * controls. Raw HTML in the source is dropped, never injected, so untrusted
+ * Markdown cannot reach the DOM as markup. Link and image URLs are scheme-checked.
+ * A link renders an `href` only for `http(s)`/`mailto`/`tel`, so a `javascript:`,
  * `data:`, or `vbscript:` link carries no `href` and cannot run script on click.
  * Images additionally allow `data:` URIs, which are inert as an image source.
  *
  * Memoized on its (shallow-equal) props: re-lexing is wasted work when a
- * parent re-renders for unrelated reasons, e.g. a list of chat bubbles
- * re-rendering on every streamed chunk of the *last* message while every
- * earlier, settled bubble's `children` stays the same string.
+ * parent re-renders for unrelated reasons. One example is a list of chat bubbles
+ * re-rendering on every streamed chunk of the *last* message. Every earlier,
+ * settled bubble's `children` stays the same string.
  */
 export const Markdown = memo(function Markdown({
 	children,

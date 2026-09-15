@@ -34,7 +34,7 @@ type ColorPickerBaseProps = {
 	 * outside press, or `Escape`.
 	 *
 	 * Observation only. The picker owns its open state and there is no `open` prop to pair
-	 * with, so use this to mirror the state elsewhere, not to drive it.
+	 * with. Use this to mirror the state elsewhere, not to drive it.
 	 */
 	onOpenChange?: (open: boolean) => void
 	/** Size step; resolves through the explicit prop, then `<Control>`, then Density, then `'md'`. */
@@ -51,8 +51,8 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 /**
  * Popover color picker: a Control-integrated swatch trigger that opens a
  * floating {@link ColorPanel}, which it drives as a controlled child. Reflects
- * the current color in the trigger swatch, speaks a hex string (default) or an
- * HSVA object per `format`, positions via Floating UI (`placement`), and
+ * the current color in the trigger swatch, and speaks a hex string (default) or
+ * an HSVA object per `format`. It positions via Floating UI (`placement`), and
  * resolves `size` through the explicit prop, then `<Control>`, then Density,
  * then `'md'`. Controlled or uncontrolled.
  *

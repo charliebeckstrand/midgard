@@ -13,10 +13,10 @@ import type { CreditCardBrand } from './types'
  *
  * @remarks
  * Unlike {@link CreditCardInputExpiry} and DateInput, this field takes no
- * `invalidMessage`. A CVV's only rule is its length, and the mask already caps
- * the entry at the brand's length and strips non-digits, so a complete entry is
- * always valid — there is no complete-but-wrong state to report. `onValidityChange`
- * still reports the length verdict while the entry grows.
+ * `invalidMessage`. A CVV's only rule is its length. The mask already caps the
+ * entry at the brand's length and strips non-digits. A complete entry is
+ * therefore always valid, so there is no complete-but-wrong state to report.
+ * `onValidityChange` still reports the length verdict while the entry grows.
  */
 export type CreditCardInputCvvProps = Omit<
 	InputProps,
@@ -41,7 +41,8 @@ function resolveCvvLength(brand: CreditCardBrand | undefined): number {
 
 /**
  * Numeric Input for a card security code, masked to digits and capped at the
- * brand-derived length (Amex 4, others 3; 4 until a brand is known). When the
+ * brand-derived length. That length is 4 for Amex and 3 for others, and 4 until
+ * a brand is known. When the
  * brand shrinks the length it re-truncates the stored value and re-reports
  * validity. Sets `autoComplete="cc-csc"` and defaults a "Security code"
  * aria-label, yielding to a registered Field `<Label>`.

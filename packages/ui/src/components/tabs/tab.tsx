@@ -33,18 +33,19 @@ export type TabProps = {
 	stretch?: boolean
 	disabled?: boolean
 	/**
-	 * Fires once when the user first signals intent to open an inactive tab —
-	 * the pointer enters its trigger or the trigger takes focus — with the tab's
-	 * `value`. The moment to warm what the panel will need: prefetch its data
-	 * (a `queryClient.prefetchQuery`, a route fetch) so the panel is ready by the
-	 * click. Latched to fire at most once per tab, skipped for the active tab and
-	 * a `disabled` one; runs after any `onPointerEnter` / `onFocus` a caller also
-	 * passes. The callback owns the work — the tab stays agnostic to what loads.
+	 * Fires once when the user first signals intent to open an inactive tab, with
+	 * the tab's `value`. Intent is the pointer entering its trigger, or the
+	 * trigger taking focus. The moment to warm what the panel will need: prefetch
+	 * its data (a `queryClient.prefetchQuery`, a route fetch) so the panel is
+	 * ready by the click. Latched to fire at most once per tab, skipped for the
+	 * active tab and a `disabled` one. It runs after any `onPointerEnter` /
+	 * `onFocus` a caller also passes. The callback owns the work — the tab stays agnostic to what loads.
 	 *
 	 * @remarks
 	 * A `mount` policy on `TabContents` covers only half of this. A held panel
-	 * rests in a hidden `<Activity>`, which renders its children, so render-phase
-	 * work warms for free: a `lazy()` chunk resolves, a `use()`d promise starts.
+	 * rests in a hidden `<Activity>`, which renders its children. Render-phase
+	 * work therefore warms for free: a `lazy()` chunk resolves, a `use()`d promise
+	 * starts.
 	 * A hidden Activity mounts no effects, so effect-driven work does not — a
 	 * `useQuery` inside a held panel still waits to be shown. `onPreload` is what
 	 * warms that half, under every mount policy.
@@ -86,9 +87,10 @@ function resolveTabState(opts: {
 /**
  * Single tab trigger: a headless `<Button>` carrying `role="tab"`, roving
  * `tabIndex`, and an `<ActiveIndicator>` while selected. Resolves `size` against
- * the Tabs context (or the Density cascade à la carte), and in the `tab` variant
- * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id + `value`;
- * `segment` tabs have no panels. Clicking sets the enclosing selection state.
+ * the Tabs context, or the Density cascade à la carte. In the `tab` variant it
+ * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id +
+ * `value`. A `segment` tab has no panel. Clicking sets the enclosing selection
+ * state.
  */
 export function Tab({
 	value,

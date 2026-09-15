@@ -25,8 +25,8 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	 *
 	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
 	 * one reports it having *landed*. Use it for anything that has to hold until the panel
-	 * is actually up — measuring it, or starting work that must not compete with the
-	 * animation — rather than guessing at the motion with a matching delay.
+	 * is actually up. That means measuring it, or starting work that must not compete
+	 * with the animation. Either beats guessing at the motion with a matching delay.
 	 *
 	 * Deliberately named for the open, not for the animation. The panel plays a different
 	 * preset on each side of the `sm` breakpoint, and reports from whichever one ran. A
@@ -78,9 +78,9 @@ const alignClasses = {
 
 /**
  * Modal surface rendered in an `Overlay` with focus trapping and backdrop dismiss.
- * Drives open state controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`),
- * animates as a bottom sheet on mobile and a centered (or `top`-aligned) panel on desktop,
- * and resolves the surface variant against the enclosing Glass provider. Compose
+ * Drives open state controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`).
+ * It animates as a bottom sheet on mobile and a centered (or `top`-aligned) panel on
+ * desktop. The surface variant resolves against the enclosing Glass provider. Compose
  * `<DialogTrigger>`, `<DialogClose>`, and the slot family (`<DialogContent>`, `<DialogHeader>`,
  * `<DialogTitle>`, `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within.
  *

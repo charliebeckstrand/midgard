@@ -18,9 +18,10 @@ import { NAV_PAGE_STEP } from './engine/grid-constants'
 export type Coord = { row: number; col: number }
 
 /**
- * Activates the row under the cursor on Enter/Space. The originating event is the
- * grid `<table>` (the cursor's single tab stop), not a `<tr>`, so this is decoupled
- * from the grid's row-click handler; `Grid` bridges the two.
+ * Activates the row under the cursor on Enter/Space. The originating event is
+ * the grid `<table>` (the cursor's single tab stop), not a `<tr>`. This is
+ * therefore decoupled from the grid's row-click handler, and `Grid` bridges the
+ * two.
  *
  * @internal
  */
@@ -28,8 +29,9 @@ export type GridRowActivate = (row: unknown, event: KeyboardEvent<HTMLTableEleme
 
 /**
  * Activates the data cell under the cursor on Enter/Space, ahead of the row
- * activation — the keyboard counterpart of the grid's cell click, addressed by
- * the cursor's display-index coord; `Grid` resolves it to the cell context.
+ * activation. It is the keyboard counterpart of the grid's cell click,
+ * addressed by the cursor's display-index coord. `Grid` resolves it to the cell
+ * context.
  *
  * @internal
  */
@@ -75,9 +77,13 @@ export type GridNavTableProps = {
 
 /**
  * Resolves a movement key to the cursor's next coord (unclamped), or `null` when
- * the key doesn't move the cursor. Arrows step one cell; Home/End jump to the
- * row's edges, or the grid's first/last cell with Ctrl/Cmd (`toGrid`); PageUp/Down
- * jump `pageStep` rows (a viewport-relative count, see {@link resolvePageStep}).
+ * the key doesn't move the cursor:
+ *
+ * - Arrows step one cell.
+ * - Home/End jump to the row's edges, or the grid's first/last cell with
+ *   Ctrl/Cmd (`toGrid`).
+ * - PageUp/Down jump `pageStep` rows (a viewport-relative count, see
+ *   {@link resolvePageStep}).
  *
  * @internal
  */
@@ -114,12 +120,13 @@ function navTarget(
 }
 
 /**
- * The number of rows a PageUp/PageDown jumps: a viewport-page of rows, measured
- * from the grid's scroll container height and a rendered row's height (one row of
- * overlap kept for context), so a tall grid pages by what's visible rather than a
- * fixed count. Returns {@link NAV_PAGE_STEP} for any non-page key (no layout read),
- * and as the fallback when there is no scroll container (a fully-visible grid) or
- * the rows can't be measured (jsdom).
+ * The number of rows a PageUp/PageDown jumps: a viewport-page of rows. The count
+ * is measured from the grid's scroll container height and a rendered row's
+ * height, with one row of overlap kept for context. A tall grid therefore pages
+ * by what's visible rather than a fixed count. Returns {@link NAV_PAGE_STEP}
+ * for any non-page key (no layout read). The same constant is the fallback when
+ * there is no scroll container (a fully-visible grid) or the rows can't be
+ * measured (jsdom).
  *
  * @internal
  */
@@ -137,22 +144,26 @@ function resolvePageStep(key: string, container: HTMLElement | null, table: HTML
 
 /**
  * Owns the read-only grid's keyboard cursor: a single active cell mirrored into
- * an external store (so only the cells whose active flag flips re-render) and
- * exposed to assistive tech through `aria-activedescendant`. Arrow keys, Home/End
- * (row), Ctrl/Cmd+Home/End (grid), and PageUp/PageDown move the cursor;
- * Enter/Space activates the cell through `onCellActivate` then the row through
- * `onRowActivate`; Escape unseats it.
+ * an external store. Only the cells whose active flag flips re-render, and the
+ * cursor is exposed to assistive tech through `aria-activedescendant`. Arrow
+ * keys, Home/End (row), Ctrl/Cmd+Home/End (grid), and PageUp/PageDown move the
+ * cursor. Enter/Space activates the cell through `onCellActivate` then the row
+ * through `onRowActivate`. Escape unseats it.
  *
- * Bounds and the active row come from `rowsRef`/`colCountRef` at event time, so
- * the hook holds no stale counts and its callbacks stay referentially stable
+ * Bounds and the active row come from `rowsRef`/`colCountRef` at event time. The
+ * hook thus holds no stale counts, and its callbacks stay referentially stable
  * across renders. When `enabled` is false the hook is inert — `navTableProps`
  * is `undefined` and the store never reports an active cell — so a non-navigable
  * grid pays nothing.
  *
- * @returns The reactive `active` coord (drives `aria-activedescendant`), the
- *   subscription `store`, the `cellId` id-deriver matched by the active pointer,
- *   the clamped `moveTo` (for click-to-focus), and `navTableProps` to spread onto
- *   the `<table>` (or `undefined` when disabled).
+ * @returns The cursor handle:
+ *
+ * - The reactive `active` coord (drives `aria-activedescendant`).
+ * - The subscription `store`.
+ * - The `cellId` id-deriver matched by the active pointer.
+ * - The clamped `moveTo` (for click-to-focus).
+ * - `navTableProps` to spread onto the `<table>` (or `undefined` when disabled).
+ *
  * @internal
  */
 export function useGridNavigation({

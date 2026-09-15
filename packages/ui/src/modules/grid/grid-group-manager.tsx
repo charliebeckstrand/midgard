@@ -61,9 +61,9 @@ function isSameDragKind(activeId: string, containerId: string): boolean {
 }
 
 /**
- * Collision detection that keeps the two sortables apart: a group drag only
- * considers group droppables, a column drag only the zone/column droppables — so
- * a dragged group never targets a column slot and vice versa. Group reorder uses
+ * Collision detection that keeps the two sortables apart. A group drag only
+ * considers group droppables, and a column drag only the zone/column droppables.
+ * A dragged group therefore never targets a column slot, and vice versa. Group reorder uses
  * `closestCenter` (a plain vertical list); column moves use `closestCorners`,
  * which resolves empty zones (see the multi-container notes in `useGridGroupManager`).
  *
@@ -85,11 +85,11 @@ const groupAwareCollision: CollisionDetection = (args) => {
 /**
  * Keyboard coordinate getter that scopes arrow-key reordering to the active
  * drag's own sortable — the keyboard analogue of {@link groupAwareCollision}.
- * `sortableKeyboardCoordinates` weighs every droppable in the context, so with
- * the group and column droppables sharing one `DndContext` a lifted group's
- * first arrow press lands on an intervening column row or zone rather than the
- * next group; the group-only `groupAwareCollision` then reads no change and the
- * reorder stalls until a second press. Restricting the candidate droppables to
+ * The `sortableKeyboardCoordinates` weighs every droppable in the context. The
+ * group and column droppables share one `DndContext`. A lifted group's first
+ * arrow press therefore lands on an intervening column row or zone, rather than
+ * the next group. The group-only `groupAwareCollision` then reads no change, and
+ * the reorder stalls until a second press. Restricting the candidate droppables to
  * the active drag's kind steps straight to the next group (or column) on the
  * first press.
  *
@@ -125,9 +125,9 @@ export type GridGroupManagerProps = {
 	columns: GridColumnManagerItem[]
 	/**
 	 * Whether a column passes the manager's filter — the whole set when no query is
-	 * typed. Resolved here to the ids that pass, which is all a zone needs: it
-	 * renders the members it holds among them and keeps its full membership behind
-	 * them, since the zone map is also what commits group membership on drop.
+	 * typed. Resolved here to the ids that pass, which is all a zone needs. It
+	 * renders the members it holds among them, and keeps its full membership behind
+	 * them. The zone map is also what commits group membership on drop.
 	 */
 	matches: (item: GridColumnManagerItem) => boolean
 	/** The user-hidden set; a row's checkbox reflects and toggles it. */
@@ -140,9 +140,9 @@ export type GridGroupManagerProps = {
 }
 
 /**
- * The column-manager's group editor: a "New group" button, a zone per group
- * (with a name {@link Input}, a color {@link Menu}, a remove button, and its
- * member columns), and an ungrouped pool. Columns drag between zones (pointer or
+ * The column-manager's group editor: a "New group" button, a zone per group, and
+ * an ungrouped pool. Each zone carries a name {@link Input}, a color
+ * {@link Menu}, a remove button, and its member columns. Columns drag between zones (pointer or
  * keyboard) to change membership; each row also carries a "Move to" menu as an
  * accessible alternative to the drag. Group edits commit through
  * `onGroupsChange`; visibility stays on the shared hidden set. Under the
@@ -241,9 +241,9 @@ export function GridGroupManager({
 				</Button>
 			</div>
 
-			{/* The dragged row's stand-in — a full, inert clone (grip, disabled
-			    checkbox, label) — so the source row can hide while dragging without
-			    the checkbox appearing to vanish. Mounted always; child gated on drag. */}
+			{/* The dragged row's stand-in: a full, inert clone of the grip, disabled
+			    checkbox, and label. The source row can therefore hide while dragging,
+			    without the checkbox appearing to vanish. Mounted always; child gated on drag. */}
 			<DragOverlay dropAnimation={null}>
 				{activeItem ? (
 					<GridGroupManagerColumnRowOverlay
@@ -516,8 +516,8 @@ function GridGroupManagerColumnRow({
 				</CheckboxGroup>
 			</Control>
 
-			{/* The "Move to" menu only means something once a group exists to move into
-			    (or out of); with no groups it would open empty, so it's withheld. */}
+			{/* The "Move to" menu only means something once a group exists to move into,
+			    or out of. With no groups it would open empty, so it's withheld. */}
 			{groups.length > 0 && (
 				<Menu placement="bottom-end">
 					<MenuTrigger>
@@ -547,8 +547,8 @@ function GridGroupManagerColumnRow({
 
 /**
  * Presentational clone of a column row for the {@link DragOverlay}: the grip, a
- * disabled visibility checkbox, and the label — no sortable refs, no move menu,
- * no handlers. It stands in for the source row (which hides while dragging) so
+ * disabled visibility checkbox, and the label. It carries no sortable refs, no
+ * move menu, and no handlers. It stands in for the source row (which hides while dragging) so
  * the dragged item, checkbox and all, tracks the pointer without vanishing.
  *
  * @internal

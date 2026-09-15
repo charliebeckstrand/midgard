@@ -41,26 +41,26 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	pending?: boolean
 	/**
 	 * The view transform the paths are drawn under, `null` where they already sit
-	 * in the drawn frame. A measured refit carries the canonical paths here rather
-	 * than rewriting every `d`; the group republishes the device-pixel scale
-	 * beneath it, so a spec under it converts by one multiply and never asks what
-	 * either transform is.
+	 * in the drawn frame. A measured refit carries the canonical paths here, rather
+	 * than rewriting every `d`. The group republishes the device-pixel scale
+	 * beneath it. A spec under it therefore converts by one multiply, and never
+	 * asks what either transform is.
 	 */
 	frame: MapTransform | null
 	/**
-	 * Whether anything on this map reads what the pointer is on — the rows
-	 * matched a region, or a reporter asked to be told, and the caller has not
-	 * switched the layer off. Off, the region paths take no pointer handlers at
-	 * all, and the delegated pick and menu arrive `undefined` beside it, since a
-	 * switched-off layer withdraws all three. A backdrop map would otherwise commit
-	 * hover state on every move across every one of its paths, re-rendering the
-	 * provider and a tooltip that resolves nothing: the pointed-emphasis gate
-	 * lights no unmatched region, so the whole cascade ends where it began.
+	 * Whether anything on this map reads what the pointer is on. The rows matched a
+	 * region, or a reporter asked to be told, and the caller has not switched the
+	 * layer off. Off, the region paths take no pointer handlers at all. The
+	 * delegated pick and menu arrive `undefined` beside it, since a switched-off
+	 * layer withdraws all three. A backdrop map would otherwise commit hover state
+	 * on every move across every one of its paths. That re-renders the provider,
+	 * and a tooltip that resolves nothing. The pointed-emphasis gate lights no
+	 * unmatched region, so the whole cascade ends where it began.
 	 *
 	 * Whatever feeds this must read the same on the first commit as on the next.
 	 * That is why a registered overlay never does, though it counts as a readout
-	 * for the table and the tab stop: overlays register from an effect, so
-	 * folding them in would flip this a beat after mount, fail the layer's memo,
+	 * for the table and the tab stop. Overlays register from an effect. Folding
+	 * them in would therefore flip this a beat after mount, fail the layer's memo,
 	 * and re-map the whole atlas a second time. A category match and a reporter
 	 * prop are both settled before the first paint.
 	 *
@@ -75,30 +75,30 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	animate: boolean
 	/**
 	 * Reports the region under a click, resolved by {@link regionIndexAt}
-	 * delegation on the layer group — so the memoised per-region paths take no
-	 * handler prop, and this handler's identity (the one input here a consumer
-	 * controls) never reaches the layer the county atlas depends on. Set, it also
-	 * turns on the pointer cursor and lifts the hover emphasis to every region,
-	 * no-data ones included: under a click each is a target, not just the matched
-	 * ones.
+	 * delegation on the layer group. The memoised per-region paths therefore take
+	 * no handler prop. This handler's identity — the one input here a consumer
+	 * controls — never reaches the layer the county atlas depends on. When it is
+	 * set, it also turns on the pointer cursor and lifts the hover emphasis to
+	 * every region, no-data ones included. Under a click each is a target, not
+	 * just the matched ones.
 	 *
-	 * The paths themselves stay presentational: the plot is a `role="img"` leaf
-	 * over an `aria-hidden` SVG, so a focusable path would be unreachable to
-	 * assistive tech and, at a county atlas's scale, thousands of invisible
-	 * stops. The keyboard reaches this click through the plot region instead —
-	 * one tab stop whose cursor Enter and Space activate (`use-map-keyboard`) —
-	 * so the same report answers both inputs and the region values stay in the
-	 * data table for parity.
+	 * The paths themselves stay presentational. The plot is a `role="img"` leaf
+	 * over an `aria-hidden` SVG. A focusable path would therefore be unreachable
+	 * to assistive tech, and, at a county atlas's scale, thousands of invisible
+	 * stops. The keyboard reaches this click through the plot region instead.
+	 * That is one tab stop whose cursor Enter and Space activate
+	 * (`use-map-keyboard`). The same report therefore answers both inputs, and the
+	 * region values stay in the data table for parity.
 	 */
 	onRegionClick?: (index: number) => void
 	/**
 	 * Reports the region under a right-click, resolved by the same
-	 * {@link regionIndexAt} delegation {@link onRegionClick} uses — the hover
-	 * provider deliberately isolates its state, so a context menu wrapping the map
-	 * from outside cannot read it and the clicked region must be reported outward
-	 * instead.
+	 * {@link regionIndexAt} delegation {@link onRegionClick} uses. The hover
+	 * provider deliberately isolates its state. A context menu wrapping the map
+	 * from outside therefore cannot read it, and the clicked region must be
+	 * reported outward instead.
 	 *
-	 * Unlike {@link onRegionClick} this takes no pointer affordance: a right-click
+	 * Unlike {@link onRegionClick} this takes no pointer affordance. A right-click
 	 * is not advertised by a cursor, and the wrapping menu — not the region layer
 	 * — carries the keyboard model. Never prevents default, so that menu still
 	 * opens; this only names WHICH region it opened over.
@@ -107,7 +107,7 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	/**
 	 * The selected region's feature index, `null` when nothing is picked —
 	 * {@link MapPlat} resolves it from the public identity. It only rings the
-	 * region; the layer's clickability rides {@link onRegionClick} alone, so a
+	 * region. The layer's clickability rides {@link onRegionClick} alone, so a
 	 * map showing a pick made elsewhere takes no pointer affordance it can't
 	 * honour.
 	 */
@@ -115,13 +115,13 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 }
 
 /**
- * A delegated pointer handler for the region layer: resolves the region under
- * the event through {@link regionIndexAt} and reports its index, or nothing when
- * the event landed off every region. `undefined` for an absent reporter, so the
- * layer group takes no handler it would only no-op in.
+ * A delegated pointer handler for the region layer. It resolves the region under
+ * the event through {@link regionIndexAt}, and reports its index. It reports
+ * nothing when the event landed off every region. `undefined` for an absent
+ * reporter, so the layer group takes no handler it would only no-op in.
  *
  * One resolver for the click and the right-click, so the two can't drift on what
- * counts as a hit — and delegated here rather than per path, keeping the handler
+ * counts as a hit. Delegated here rather than per path, it keeps the handler
  * off `Region`'s memo comparison across thousands of instances.
  *
  * @internal
@@ -156,11 +156,12 @@ type RegionProps = {
  * fills by a `fill` attribute colour from the consumer's `colorRange`.
  * No-data — and the pre-reveal beat under `animate` — takes the neutral class.
  *
- * Memoised on its resolved primitives: a legend toggle or the reveal flip
- * re-renders the categories whose paint changed and every other region holds
+ * Memoised on its resolved primitives. A legend toggle or the reveal flip
+ * re-renders the categories whose paint changed, and every other region holds
  * its last render. The wash styles are shared objects, so a region outside the
- * change compares equal on its timing too — until the stagger retires, the one
- * flip that re-keys every region's style and so re-renders the whole layer.
+ * change compares equal on its timing too. That holds until the stagger
+ * retires, the one flip that re-keys every region's style and so re-renders the
+ * whole layer.
  *
  * @internal
  */
@@ -203,11 +204,11 @@ type MapRegionsBaseProps = MapRegionLayer & { wash: MapWash; interactive: boolea
 
 /**
  * Every region path, painted by category. Deliberately blind to the shared
- * emphasis — the pointed mark and the legend focus recede this layer from
- * outside ({@link MapRegions}) — so on a county atlas the three-thousand-path
- * tree never re-renders while the pointer travels or a legend chip is held;
- * only a toggle, the reveal's flips, or new geometry re-maps it. The paint table
- * arrives resolved from the parent, so the memo compares one stable reference
+ * emphasis. The pointed mark and the legend focus recede this layer from
+ * outside ({@link MapRegions}). On a county atlas the three-thousand-path tree
+ * therefore never re-renders while the pointer travels, or a legend chip is
+ * held. Only a toggle, the reveal's flips, or new geometry re-maps it. The paint
+ * table arrives resolved from the parent, so the memo compares one stable reference
  * where it once compared the four inputs behind it.
  *
  * @internal
@@ -262,38 +263,37 @@ const MapRegionsBase = memo(function MapRegionsBase({
 })
 
 /**
- * The region paths — every feature filled by its category's slot colour, the
- * neutral no-data fill where nothing matches (or the category is toggled
- * off — a hole in a map reads broken, unlike a missing bar). Regions are
- * their own hit targets: browser SVG hit testing is the point-in-polygon
- * test, so pointing one moves the shared hover target directly.
+ * The region paths, every feature filled by its category's slot colour. The
+ * neutral no-data fill stands where nothing matches, or the category is toggled
+ * off. A hole in a map reads broken, unlike a missing bar. Regions are their own
+ * hit targets: browser SVG hit testing is the point-in-polygon test, so pointing
+ * one moves the shared hover target directly.
  *
- * The shared emphasis recedes the layer as one group — the pointed mark
- * isolates itself, else the legend's focused group holds — and the
- * emphasised marks redraw lit above it ({@link MapRegionsLit}). One element
- * fades where thousands of per-path transitions once ran, and the base tree
- * holds its render through the whole interaction. The selected region rings
- * above both and outside the recede, so the standing pick outlasts every
- * passing emphasis: a selection made before the pointer arrived must not
- * vanish under it. That ring marks the region rather than repainting it —
- * `fill="none"` leaves the region's own colour, and whatever dim it carries,
- * reading through.
+ * The shared emphasis recedes the layer as one group. The pointed mark isolates
+ * itself, else the legend's focused group holds. The emphasised marks redraw lit
+ * above it ({@link MapRegionsLit}). One element fades where thousands of
+ * per-path transitions once ran, and the base tree holds its render through the
+ * whole interaction. The selected region rings above both and outside the
+ * recede, so the standing pick outlasts every passing emphasis. A selection made
+ * before the pointer arrived must not vanish under it. That ring marks the
+ * region rather than repainting it — `fill="none"` leaves the region's own
+ * colour, and whatever dim it carries, reading through.
  *
- * @remarks Under `animate` the geography paints solid at once and only the
- * category colour washes in: each region's fill crossfades from the neutral
- * backdrop to its slot colour with a capped per-index stagger. It is a CSS
- * colour transition on a plain `<path>` (not a motion fade), so the geometry
- * itself never fades, a many-region atlas never draws out the reveal, and the
- * region layer carries no motion runtime; `motion-reduce` drops the transition.
- * The stagger is the reveal's alone and retires with it ({@link MapWash}), so a
- * later legend toggle crossfades on the same tempo without a reveal delay in
- * front of it.
+ * @remarks Under `animate` the geography paints solid at once, and only the
+ * category colour washes in. Each region's fill crossfades from the neutral
+ * backdrop to its slot colour, with a capped per-index stagger. It is a CSS
+ * colour transition on a plain `<path>`, not a motion fade. The geometry itself
+ * therefore never fades, a many-region atlas never draws out the reveal, and the
+ * region layer carries no motion runtime. `motion-reduce` drops the transition.
+ * The stagger is the reveal's alone, and retires with it ({@link MapWash}). A
+ * later legend toggle therefore crossfades on the same tempo, without a reveal
+ * delay in front of it.
  *
  * Memoised so it repaints only when its own geometry, category, or legend
- * state changes: an overlay child registering its legend entry re-renders the
+ * state changes. An overlay child registering its legend entry re-renders the
  * plat, but the region layer holds. The pointed mark arrives through its own
- * context, past the memo — and lands on the recede wrapper and the lit
- * overlay only, so a crossing re-renders one copy path while the
+ * context, past the memo. It lands on the recede wrapper and the lit overlay
+ * only. A crossing therefore re-renders one copy path, while the
  * three-thousand-path base stands.
  * @internal
  */
@@ -372,7 +372,7 @@ export const MapRegions = memo(function MapRegions({
 
 	const receded = pointed !== null || emphasis !== null
 
-	// A selection naming no drawn region rings nothing: the id may match no
+	// A selection naming no drawn region rings nothing: the id can match no
 	// feature, and a region the geometry dropped has a `null` path.
 	const selectedPath = selected === null ? null : (paths[selected] ?? null)
 
@@ -433,23 +433,23 @@ type MapRegionsGroupProps = {
  * The region layer's own group, and the one place its seam width is stated:
  * {@link REGION_STROKE_WIDTH} in frame units, which every path beneath inherits.
  *
- * The width lives on a group rather than on each path because the layer draws
- * one path per region — thousands, on a ZIP or county atlas — and a width
+ * The width lives on a group rather than on each path, because the layer draws
+ * one path per region. That is thousands, on a ZIP or county atlas. A width
  * restated per path would put all of them through React on every notch of a
- * gesture, which is the work {@link MapRegions}' memoisation exists to prevent.
- * It lives on *this* group rather than on the zoom layer above it so the
- * constant governs an unzoomed map too, which mounts no zoom group at all, and
- * so the style the browser recomputes when it changes is bounded by the layer
- * that owns the seam.
+ * gesture. That is the work {@link MapRegions}' memoisation prevents. It lives
+ * on *this* group rather than on the zoom layer above it, so the constant
+ * governs an unzoomed map too. That map mounts no zoom group at all. The style
+ * the browser recomputes when it changes is also bounded by the layer that owns
+ * the seam.
  *
- * Its own component so that reading the scale re-renders this one fiber and not
- * the atlas under it: `children` are elements {@link MapRegions} already built,
- * so they bail — the discipline {@link MapRegionSelected} keeps for the same
- * reason. What the browser still does per notch is not nothing: `stroke-width`
- * inherits, so a change re-resolves style for every path beneath and re-measures
- * each stroke's bounds. That is the cost of a hairline that holds, and it is
- * under what the non-scaling stroke it replaced spent rebuilding a transformed
- * copy of every path's geometry on the same notch.
+ * Its own component, so that reading the scale re-renders this one fiber and not
+ * the atlas under it. `children` are elements {@link MapRegions} already built,
+ * so they bail. That is the discipline {@link MapRegionSelected} keeps for the
+ * same reason. What the browser still does per notch is not nothing.
+ * `stroke-width` inherits, so a change re-resolves style for every path beneath,
+ * and re-measures each stroke's bounds. That is the cost of a hairline that
+ * holds. It is under what the non-scaling stroke it replaced spent, rebuilding a
+ * transformed copy of every path's geometry on the same notch.
  *
  * @internal
  */
@@ -466,7 +466,7 @@ function MapRegionsGroup({
 	const beneath = useMapZoomScale() / (frame?.k ?? 1)
 
 	return (
-		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control — the SVG is aria-hidden under the plot's role="img", which is itself the tab stop that carries the click's keyboard counterpart (see use-map-keyboard)
+		// biome-ignore lint/a11y/noStaticElementInteractions: a pointer delegation surface, not an interactive control. The SVG is aria-hidden under the plot's role="img". That role is itself the tab stop carrying the click's keyboard counterpart (see use-map-keyboard).
 		<g
 			data-slot="map-regions"
 			className={className}
@@ -476,23 +476,23 @@ function MapRegionsGroup({
 			onClick={onClick}
 			onContextMenu={onContextMenu}
 		>
-			{/* Republished rather than passed down: this group applies a transform, so
-			    the rule every layer here keeps — the group that transforms states what a
-			    device pixel is beneath it — makes a spec added later correct by
-			    construction instead of by remembering a divisor. */}
+			{/* Republished rather than passed down, because this group applies a
+			    transform. Every layer here keeps one rule: the group that transforms
+			    states what a device pixel is beneath it. A spec added later is therefore
+			    correct by construction, instead of by remembering a divisor. */}
 			<MapZoomScaleContext value={beneath}>{children}</MapZoomScaleContext>
 		</g>
 	)
 }
 
 /**
- * The ring on the picked region — a step over the seam, so it reads as a mark on
- * the region rather than a heavier shared border.
+ * The ring on the picked region, a step over the seam. It therefore reads as a
+ * mark on the region, rather than a heavier shared border.
  *
- * Its own component for one reason: it is the single shape in this layer whose
- * width is not the inherited hairline, so it is the only one that has to read
- * the zoom scale. Reading it here confines the per-notch re-render to this one
- * path; read in {@link MapRegions} it would take the whole atlas with it.
+ * Its own component for one reason. It is the single shape in this layer whose
+ * width is not the inherited hairline. It is therefore the only one that has to
+ * read the zoom scale. Reading it here confines the per-notch re-render to this
+ * one path; read in {@link MapRegions} it would take the whole atlas with it.
  *
  * @internal
  */

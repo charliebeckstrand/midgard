@@ -30,8 +30,8 @@ export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
 /**
  * Collapses a row set to its flat leaf set — the data rows, whatever the
  * grouping mode. Client grouping leaves group headers among only the expanded
- * leaves, so each header expands to its full leaf set regardless of expansion;
- * manual grouping keeps the engine ungrouped and hands its headers through as
+ * leaves, so each header expands to its full leaf set regardless of expansion.
+ * Manual grouping keeps the engine ungrouped and hands its headers through as
  * ordinary rows, so those drop by predicate. Ungrouped rows are already the
  * leaves, and `null` passes through.
  *
@@ -58,7 +58,7 @@ export function deriveLeafRows<T>(
 
 /**
  * Resolves the engine's sort and filter transform modes. Manual grouping forces
- * both manual: the supplied rows are a positional header/children sequence, and
+ * both manual. The supplied rows are a positional header/children sequence, and
  * a client reorder or prune would tear children from their group headers. Kept
  * out of {@link useGridTable} for its cognitive-complexity budget.
  *

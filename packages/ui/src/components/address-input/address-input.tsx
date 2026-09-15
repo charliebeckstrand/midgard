@@ -47,7 +47,7 @@ export type AddressInputProps = {
 	/**
 	 * Fires when the `provider` rejects, with whatever it threw.
 	 *
-	 * The field cannot report this itself: a failed fetch empties the suggestion
+	 * The field cannot report this itself. A failed fetch empties the suggestion
 	 * list, which is also what a genuine no-match renders, so "no results" means
 	 * both. A provider outage, a refused key, and a network failure all land here.
 	 * An aborted fetch does not: a new keystroke or a closed menu cancels the
@@ -64,17 +64,17 @@ export type AddressInputProps = {
  * Address autocomplete over a pluggable geocoding `provider`. Built on
  * `<Combobox>`: debounces the query by `debounceMs`, fetches once the query
  * reaches `minQueryLength`, and renders each {@link AddressSuggestion} as a
- * labeled option with optional description. The suffix tracks selection state,
- * showing a `<LoadingSpinner>` while fetching, a `<MapPin>` when empty or
- * disabled, and otherwise ceding the slot to the Combobox clear button. The
+ * labeled option with optional description. The suffix tracks selection state.
+ * It shows a `<LoadingSpinner>` while fetching, and a `<MapPin>` when empty or
+ * disabled. Otherwise it cedes the slot to the Combobox clear button. The
  * whole field pulses (`animate-pulse`) while a fetch is in flight.
  *
- * It searches by business or place name as readily as by address: the default
+ * It searches by business or place name as readily as by address. The default
  * provider leads a named match with its name and carries the street line
- * beneath, so typing "Clearwater Restaurant" resolves the restaurant and its
- * position. The selection carries the parts either way —
- * {@link AddressSuggestion.name}, `address`, `latitude`, `longitude` — so a
- * consumer can store the name and the address apart, or plot the point.
+ * beneath. Typing "Clearwater Restaurant" therefore resolves the restaurant and
+ * its position. The selection carries the parts either way:
+ * {@link AddressSuggestion.name}, `address`, `latitude`, `longitude`. A
+ * consumer can therefore store the name and the address apart, or plot the point.
  *
  * @remarks
  * Client component. Defaults to {@link photonProvider}; reach for
@@ -157,9 +157,9 @@ export function AddressInput({
 		>
 			{/* Keyed by occurrence, not by the id alone: a provider is pluggable, so
 			    its ids are its own claim and not this component's guarantee. Photon
-			    breaks it in practice — one OSM object is several documents in its
-			    index, so a search for "Clearwater" returns the same relation twice,
-			    once as a village and once as a locality. Both are results a reader
+			    breaks it in practice: one OSM object is several documents in its
+			    index. A search for "Clearwater" therefore returns the same relation
+			    twice, once as a village and once as a locality. Both are results a reader
 			    can pick, so the pair is kept and only the key is made unique.
 			    Selection compares the suggestion objects themselves, which stay
 			    distinct however their ids collide. */}

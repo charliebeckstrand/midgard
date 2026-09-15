@@ -113,9 +113,9 @@ import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
 /**
  * Whether the grid's current state permits a manual row drag-reorder. A manual
  * order only holds against the natural row order, so reordering stands down
- * whenever the rendered rows diverge from the source set — an active column
- * sort, a filtered/searched view (fewer rendered rows than source), pagination,
- * or virtualization — and on an empty/loading grid. The rendered-length check
+ * whenever the rendered rows diverge from the source set. That covers an active
+ * column sort, a filtered/searched view (fewer rendered rows than source),
+ * pagination, virtualization, and an empty or loading grid. The rendered-length check
  * catches client filtering, search, and client pagination in one; the pagination
  * and virtualization flags catch the server-page and windowed cases.
  *
@@ -144,10 +144,10 @@ function rowReorderPermitted(args: {
 }
 
 /**
- * Dev-only guard against a `maxHeight` that can never bind: the grid's wrapper
- * is auto-height, so a *percentage* resolves to no constraint — the scroll
- * container silently unbinds, virtualization degrades to rendering every row,
- * and infinite scroll loses its window. Warns once per value; the `'fill'`
+ * Dev-only guard against a `maxHeight` that can never bind. The grid's wrapper
+ * is auto-height, so a *percentage* resolves to no constraint. The scroll
+ * container then silently unbinds, virtualization degrades to rendering every
+ * row, and infinite scroll loses its window. Warns once per value; the `'fill'`
  * keyword is the supported way to take a CSS-sized parent's box. Kept a hook so
  * the branch stays off {@link GridData}'s complexity budget. @internal
  */
@@ -164,20 +164,22 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
 }
 
 /**
- * Tracks whether a server-side (manual) sort is in flight — the interval between
- * the grid emitting a sort change and the consumer handing back the reordered
- * `rows` — so the body can dim its rows to a settle wash until the new order
- * lands (see `k.body.settling`). Enabled only under {@link GridSort.manual}.
+ * Tracks whether a server-side (manual) sort is in flight. That is the interval
+ * between the grid emitting a sort change and the consumer handing back the
+ * reordered `rows`. The body can then dim its rows to a settle wash until the
+ * new order lands (see `k.body.settling`). Enabled only under
+ * {@link GridSort.manual}.
  *
  * The grid settles while the live `sort` differs from the order the on-screen
- * `rows` reflect — snapshotted whenever `rows` change, since they've then caught
- * up to the sort that fetched them. The compare is by value, not identity: a
- * rapid asc→desc→clear ends on a cleared sort whose rows are already shown (no
- * fetch landed between the clicks), so the wash lifts rather than latching on —
- * the reported stuck-pulse bug, which a reference-only "rows changed?" test left
- * on because the consumer handed back the unchanged default set. A consumer that
- * swaps `rows` in the same commit as the sort — a synchronous re-sort — snapshots
- * the new order at once, so its rows never flash dim.
+ * `rows` reflect. That order is snapshotted whenever `rows` change, since
+ * they've then caught up to the sort that fetched them. The compare is by
+ * value, not identity. A rapid asc→desc→clear ends on a cleared sort whose rows
+ * are already shown, because no fetch landed between the clicks. The wash
+ * therefore lifts rather than latching on. That was the reported stuck-pulse
+ * bug, which a reference-only "rows changed?" test left on because the consumer
+ * handed back the unchanged default set. A consumer that swaps `rows` in the
+ * same commit as the sort — a synchronous re-sort — snapshots the new order at
+ * once. Its rows therefore never flash dim.
  *
  * @internal
  */
@@ -212,10 +214,10 @@ function useServerSortSettle<T>(args: {
 
 /**
  * Stabilizes a consumer event callback (`onRowClick`, `onCellClick`, and their
- * double-click counterparts) so the memoized rows hold across renders: returns
- * a referentially-stable handler (or `undefined` when no callback is set) that
- * reads the live callback through a ref, so an inline consumer callback
- * doesn't churn every row.
+ * double-click counterparts) so the memoized rows hold across renders. It
+ * returns a referentially-stable handler, or `undefined` when no callback is
+ * set. That handler reads the live callback through a ref, so an inline
+ * consumer callback doesn't churn every row.
  *
  * @internal
  */
@@ -253,21 +255,21 @@ function resolveHighlightQuery(
 /**
  * Whether the table can paint — latched on, once.
  *
- * A reload paints the server's HTML first, and the server cannot have measured anything,
- * so its colgroup carries the declared widths and the fit that runs at hydration replaces
- * them. That repaint is the column jump. Nothing can compute a content fit before the DOM
- * exists, so rather than paint a width that is about to change, paint none (see
+ * A reload paints the server's HTML first, and the server cannot have measured anything.
+ * Its colgroup therefore carries the declared widths, and the fit that runs at hydration
+ * replaces them. That repaint is the column jump. Nothing can compute a content fit
+ * before the DOM exists, so rather than paint a width that is about to change, paint none (see
  * {@link widthGateClass}).
  *
- * `settled` waits for a width pass that read real body cells, so a grid whose result is
- * legitimately empty would never satisfy it; hence the second clause. Once the consumer
+ * `settled` waits for a width pass that read real body cells. A grid whose result is
+ * legitimately empty would never satisfy it, hence the second clause. Once the consumer
  * has stopped loading and there are no rows, the header and the empty state are all there
- * is to show, so show them. It is true from the first frame for any grid the autosizer
- * does not size — not resizable, sizing controlled by the consumer, or no
- * `ResizeObserver` (SSR and jsdom) — so those paint immediately and nothing regresses.
+ * is to show. It is true from the first frame for any grid the autosizer does not size.
+ * Such a grid is not resizable, has its sizing controlled by the consumer, or has no
+ * `ResizeObserver` (SSR and jsdom). Those paint immediately and nothing regresses.
  *
- * Latched because the reveal is a one-way door: `loading` goes true again on page two, a
- * filter, a re-sort, and blanking a table the user is already reading would be far worse
+ * Latched because the reveal is a one-way door. `loading` goes true again on page two, a
+ * filter, and a re-sort. Blanking a table the user is already reading would be far worse
  * than the first-paint jump this exists to prevent. Monotonic, so writing it during render
  * stays idempotent under StrictMode's double pass. Kept out of {@link GridData} for its
  * cognitive-complexity budget.
@@ -287,7 +289,7 @@ function useTableRevealed(settled: boolean, loading: boolean, rowCount: number):
  * leaving it measurable.
  *
  * `invisible` rather than `hidden` or an unmount, because the autosizer has to *measure*
- * this subtree in order to size it — hidden visibility keeps layout and geometry intact,
+ * this subtree in order to size it. Hidden visibility keeps layout and geometry intact,
  * so the cells lay out and report their widths exactly as they would if shown. It also
  * keeps the box in flow, so the surrounding page doesn't reflow on reveal. Carried by the
  * `<table>` itself rather than a wrapper: a wrapping node — even `display: contents` —
@@ -303,7 +305,7 @@ function widthGateClass(revealed: boolean): string | undefined {
 /**
  * The read-only data-grid implementation behind {@link Grid}. Kept a separate
  * component so the public dispatcher calls no hooks ahead of its `editable`
- * branch (the rules of hooks forbid a conditional early return over them).
+ * branch. The rules of hooks forbid a conditional early return over them.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -881,7 +883,7 @@ export function GridData<T>({
 		manualGroupRow,
 	})
 
-	// Whether the table may paint yet; holds its first frame until the widths are
+	// Whether the table can paint yet; holds its first frame until the widths are
 	// settled (see `useTableRevealed`, and the width gate on the `<table>` below).
 	const showTable = useTableRevealed(widthsSettled, loading, renderRows.length)
 

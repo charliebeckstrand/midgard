@@ -26,8 +26,8 @@ export type MapTableProps = {
 	selected: number | null
 	/**
 	 * The picked overlay mark, resolved to a row here through the same mapper the
-	 * mark's halo reads — so the row that carries the pick is the one the halo sits
-	 * on.
+	 * mark's halo reads. The row that carries the pick is therefore the one the
+	 * halo sits on.
 	 */
 	selectedOverlay: MapOverlaySelection | null
 }
@@ -42,8 +42,8 @@ type MapTableRowProps = {
 
 /**
  * One readout row, a region's or an overlay stop's. Memoised on its resolved
- * primitives, the treatment the region paths take: a selection moves `current`
- * on two rows, so a pick reconciles those two instead of re-creating every cell
+ * primitives, the treatment the region paths take. A selection moves `current`
+ * on two rows, so a pick reconciles those two, instead of re-creating every cell
  * on a county atlas.
  *
  * @internal
@@ -66,12 +66,12 @@ const MapTableRow = memo(function MapTableRow({ name, value, current }: MapTable
  * The map's visually-hidden data table: every region with its category, and
  * every overlay with its detail, in plain markup outside the `role="img"`
  * region. Assistive tech gets full value parity without the pointer, so the
- * tooltip stays an enhancement — and the picked row carries `aria-current`,
- * whether a region or an overlay stop holds the pick, so a selection shows in
- * the readout and not in the ring or the halo alone.
+ * tooltip stays an enhancement. The picked row carries `aria-current`, whether a
+ * region or an overlay stop holds the pick. A selection therefore shows in the
+ * readout, and not in the ring or the halo alone.
  *
  * Memoised so it repaints only when the readout changes, not on legend
- * emphasis or toggling — it reads neither, so a legend hover need never
+ * emphasis or toggling. It reads neither, so a legend hover need never
  * re-map thousands of rows on a county atlas.
  * @internal
  */

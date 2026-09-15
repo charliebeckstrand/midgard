@@ -74,8 +74,8 @@ function focusThumb(thumbRefs: ThumbButtonRefs, thumb: ThumbIndex): void {
 }
 
 /**
- * Pointer control for a range slider's two thumbs: pointerdown grabs the
- * closest thumb (or, on a stack, defers to the first move's direction), drag
+ * Pointer control for a range slider's two thumbs. Pointerdown grabs the
+ * closest thumb, or on a stack defers to the first move's direction. A drag
  * writes the snapped value, and capture-end resets the drag.
  *
  * @returns Pointer handlers to spread on the track.

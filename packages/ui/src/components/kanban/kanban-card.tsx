@@ -24,7 +24,7 @@ export type KanbanCardProps = {
 /**
  * Draggable card within a {@link KanbanColumn}, keyed by `cardId`. Wires
  * `@dnd-kit` sortable bindings and the board's keyboard handlers when the board
- * is interactive, and mirrors its content into the drag overlay; renders inert
+ * is interactive, and mirrors its content into the drag overlay. Renders inert
  * when the board is read-only.
  *
  * @remarks

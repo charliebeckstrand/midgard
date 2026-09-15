@@ -19,8 +19,8 @@ type GridManagerDialogProps = {
  * mounts.
  *
  * The shell takes its manager as `children` rather than forwarding each
- * manager's props, so a new prop on either editor reaches it from the call site
- * without passing through here.
+ * manager's props. A new prop on either editor therefore reaches it from the
+ * call site, without passing through here.
  *
  * @internal
  */

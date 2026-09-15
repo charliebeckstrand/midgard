@@ -33,10 +33,10 @@ export type StepperProps = {
 	 * @remarks
 	 * Defaults to `active` — only the current step's panel is mounted, so
 	 * stepping away discards whatever it held and stepping back rebuilds it
-	 * empty. A flow whose panels carry entry — a form split across steps — wants
-	 * `lazy`, which mounts each panel on its first visit and then holds it in
-	 * `<Activity mode="hidden">`, preserving its state (and its DOM, so scroll
-	 * position and uncontrolled inputs survive) while its effects stay torn down.
+	 * empty. A flow whose panels carry entry wants `lazy` — a form split across
+	 * steps, say. It mounts each panel on its first visit, then holds it in
+	 * `<Activity mode="hidden">`. That preserves its state and its DOM, so scroll
+	 * position and uncontrolled inputs survive, while its effects stay torn down.
 	 * `always` mounts every panel up front, paying the whole flow's first render
 	 * before the first step is answered.
 	 *

@@ -31,15 +31,15 @@ export type CurrencyInputProps = Omit<
  * and binds to an enclosing Form field by `name`. Resolves `currency` and
  * `locale` from props, then `<LocaleProvider>`, then runtime defaults.
  *
- * @remarks Holds a raw editing buffer once typing begins — formatting digits down to
- * grouped output on every keystroke through {@link useFormattedInput}, which
- * restores the caret to the typed character across separator insertion — and
- * falls back to the display formatter once the buffer clears on blur. The symbol
+ * @remarks Holds a raw editing buffer once typing begins, and falls back to the
+ * display formatter once the buffer clears on blur. The buffer formats digits
+ * down to grouped output on every keystroke through {@link useFormattedInput},
+ * which restores the caret to the typed character across separator insertion. The symbol
  * renders in the `prefix` or `suffix` slot per the locale's symbol position; a
  * caller-supplied `prefix`/`suffix` wins. `Enter` blurs to commit. Group and
  * decimal separators are pinned to the resolved locale via Intl and digits to
- * ASCII (`numberingSystem: 'latn'`), so native-digit locales are normalized;
- * see {@link useCurrencyInputFormatting} for the Intl caveats.
+ * ASCII (`numberingSystem: 'latn'`), so native-digit locales are normalized.
+ * See {@link useCurrencyInputFormatting} for the Intl caveats.
  * @see {@link Input}
  * @see {@link NumberInput}
  * @see {@link useCurrencyInputFormatting}

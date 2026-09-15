@@ -15,17 +15,17 @@ type GridFilterProps = {
  * drives the engine's global filter through {@link GridGlobalFilterView}.
  *
  * @remarks
- * The typed text is held locally so the field echoes every keystroke
- * immediately, while the engine's global filter — a client re-filter that is
- * O(rows × columns) on the default client path — is debounced by
- * {@link GRID_SEARCH_DEBOUNCE_MS} and then pushed inside {@link startTransition},
- * so a fast typist settles into a single filter pass that React keeps off the
- * critical path. Clearing bypasses the debounce and applies at once, recovering
+ * The typed text is held locally, so the field echoes every keystroke
+ * immediately. The engine's global filter is a client re-filter that is
+ * O(rows × columns) on the default client path. It is debounced by
+ * {@link GRID_SEARCH_DEBOUNCE_MS} and then pushed inside {@link startTransition}.
+ * A fast typist therefore settles into a single filter pass that React keeps off
+ * the critical path. Clearing bypasses the debounce and applies at once, recovering
  * the hidden rows without the settle lag.
  *
  * The field is a lone control in a `<form>`, so pressing Enter submits it and
- * flushes the pending query immediately — the same at-once path as clearing,
- * for a typist who wants the result before the debounce settles.
+ * flushes the pending query immediately. That is the same at-once path as
+ * clearing, for a typist who wants the result before the debounce settles.
  *
  * @internal
  */

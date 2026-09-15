@@ -18,7 +18,7 @@ export type VirtualJsonSpec = {
  * `${prefix}${key}` (`export default <record[key]>`); a manifest module at
  * `manifestId` exports `{ key: () => import('${prefix}${key}') }`. The manifest's
  * specifiers are string literals Rollup can analyze, so each key splits into its
- * own chunk fetched on demand — the consumer imports the manifest and calls a
+ * own chunk fetched on demand. The consumer imports the manifest and calls a
  * key's thunk, rather than eagerly importing the whole record. `shouldInvalidate`
  * clears the family wholesale: the manifest plus every key module handed out.
  */
@@ -50,11 +50,11 @@ function isFamily(spec: VirtualJsonSpec | VirtualJsonFamilySpec): spec is Virtua
  * lazily-chunked {@link VirtualJsonFamilySpec}.
  *
  * Each spec gets its own `\0`-prefixed resolved id(s) and its own lazily-filled
- * cache; `load` generates on first read, and `handleHotUpdate` clears only the
+ * cache. `load` generates on first read, and `handleHotUpdate` clears only the
  * caches whose `shouldInvalidate` matches the changed file. Vite *replaces* the
- * update's module list with a hook's returned array, so the return folds the
- * changed file's own affected modules (`ctx.modules`) back in alongside the
- * invalidated virtual modules — returning the virtual modules alone would drop
+ * update's module list with a hook's returned array. The return therefore folds
+ * the changed file's own affected modules (`ctx.modules`) back in, alongside the
+ * invalidated virtual modules. Returning the virtual modules alone would drop
  * the edited file's HMR update and leave the browser on stale code. Spread the
  * returned hooks into a Plugin alongside `name` and any other hooks. A single
  * docs plugin can serve every docs virtual module through one call.
@@ -165,7 +165,7 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 
 				fam.record = null
 
-				// Invalidate the manifest (its key set may have changed) and every key
+				// Invalidate the manifest (its key set can change) and every key
 				// module already served, so a prop edit re-serves fresh data.
 				invalidate(fam.manifestResolved)
 

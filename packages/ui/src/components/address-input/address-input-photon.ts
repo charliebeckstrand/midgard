@@ -62,10 +62,10 @@ const DEFAULT_LIMIT = 5
  * address, `street` a whole road, and the rest are areas of rising size.
  *
  * Photon returns businesses and named places without a layer of their own, so
- * there is no layer to filter a business search down to — a business search asks
+ * there is no layer to filter a business search down to. A business search asks
  * for the name and reads the name back ({@link AddressSuggestion.name}). Use
- * this to narrow the other way: `['house']` for a field that must resolve to a
- * doorstep, `['city']` for one that picks a market.
+ * this to narrow the other way. `['house']` suits a field that must resolve to a
+ * doorstep, `['city']` one that picks a market.
  */
 export type PhotonLayer =
 	| 'house'
@@ -94,9 +94,9 @@ export type PhotonProviderOptions = {
 	lang?: string
 	/**
 	 * Rank matches near this point first. A geocoder asked for "Clearwater" with
-	 * no bias answers with the largest match on the planet, so a field that knows
-	 * roughly where its reader is should say so — the map's own centre, or a
-	 * coarse location the reader already gave.
+	 * no bias answers with the largest match on the planet. A field that knows
+	 * roughly where its reader is must therefore say so. That is the map's own
+	 * centre, or a coarse location the reader already gave.
 	 */
 	bias?: { latitude: number; longitude: number }
 	/** Keep only these layers; every layer otherwise. See {@link PhotonLayer}. */
@@ -114,8 +114,8 @@ export type PhotonProviderOptions = {
  * Build an {@link AddressProvider} over a Photon geocoder.
  *
  * A match that names a business or a place leads with that name and carries the
- * address as its description, so a reader searching "Clearwater Restaurant"
- * reads the restaurant back rather than the street it stands on. A plain address
+ * address as its description. A reader searching "Clearwater Restaurant"
+ * therefore reads the restaurant back, rather than the street it stands on. A plain address
  * leads with the street line, as it always did. Either way the parts come back
  * in {@link AddressSuggestion.address} and the position in `latitude` /
  * `longitude`.

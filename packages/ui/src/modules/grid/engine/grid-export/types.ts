@@ -13,9 +13,9 @@ export type GridExportType = 'csv' | 'excel' | 'print' | (string & {})
 /**
  * The data an export type serializes: the visible data columns and the rows to
  * export. The rows are the selected rows when a {@link GridDataProps.selection}
- * is active, else the grid's filtered/sorted set (all pages) — unless
- * {@link GridDataProps.exportRows} supplies its own set, which then wins
- * outright (see there for the server-pagination case).
+ * is active, else the grid's filtered/sorted set (all pages). When
+ * {@link GridDataProps.exportRows} supplies its own set, that set wins outright
+ * (see there for the server-pagination case).
  *
  * @typeParam T - Shape of a single row.
  */
@@ -27,8 +27,8 @@ export type GridExportContext<T> = {
 /**
  * A consumer-supplied source for the rows to export, overriding the grid's own
  * filtered/sorted set. Returns the full list synchronously, or a promise of it
- * for a server round-trip — the sole hook the export pipeline awaits before
- * handing the rows to any exporter.
+ * for a server round-trip. It is the sole hook the export pipeline awaits
+ * before handing the rows to any exporter.
  *
  * @typeParam T - Shape of a single row.
  * @see {@link GridDataProps.exportRows}
@@ -38,7 +38,7 @@ export type GridExportRows<T> = () => T[] | Promise<T[]>
 /**
  * Per-type override for an entry in {@link GridExportEntry}. `onExport`
  * replaces the built-in exporter for a shipped type (`csv` / `excel` /
- * `print`), and is required for any other type, which has no built-in to fall
+ * `print`). It is required for any other type, which has no built-in to fall
  * back to.
  *
  * @typeParam T - Shape of a single row.
@@ -48,7 +48,7 @@ export type GridExportTypeConfig<T> = {
 }
 
 /**
- * One entry in the {@link GridDataProps.exportable} array: a bare
+ * One entry in the {@link GridDataProps.exportable} array. A bare
  * {@link GridExportType} runs its built-in exporter, or a single-key object
  * overrides (or, for a custom type, supplies) that type's `onExport`.
  *
@@ -60,8 +60,8 @@ export type GridExportEntry<T> =
 
 /**
  * The object form of {@link GridDataProps.exportable}: the types to offer, plus
- * the surfaces that offer them. Reach for it to split the two apart — an
- * "Export" toolbar dropdown with no menu items, or the reverse; the array and
+ * the surfaces that offer them. Reach for it to split the two apart: an
+ * "Export" toolbar dropdown with no menu items, or the reverse. The array and
  * boolean forms take the {@link GridToolSurfaces} defaults.
  *
  * @typeParam T - Shape of a single row.
@@ -76,10 +76,13 @@ export type GridExportConfig<T> = GridToolSurfaces & {
 }
 
 /**
- * Every form {@link GridDataProps.exportable} accepts: `false` to disable
- * export, `true` for the full built-in set, an entry array to pick the types, or
- * a {@link GridExportConfig} to pick the types *and* the surfaces they appear
- * on.
+ * Every form {@link GridDataProps.exportable} accepts:
+ *
+ * - `false` to disable export.
+ * - `true` for the full built-in set.
+ * - An entry array to pick the types.
+ * - A {@link GridExportConfig} to pick the types *and* the surfaces they appear
+ *   on.
  *
  * @typeParam T - Shape of a single row.
  */
@@ -93,17 +96,17 @@ export type GridExportable<T> = boolean | GridExportEntry<T>[] | GridExportConfi
  * {@link GridCellMenuContext.exportActions}.
  *
  * `run` returns nothing for a synchronous export, or the in-flight promise
- * when the rows come from an async {@link GridDataProps.exportRows} round-trip
- * — settling once the export has fired (or its fetch failed), so a caller can
- * reflect the pending state.
+ * when the rows come from an async {@link GridDataProps.exportRows} round-trip.
+ * The promise settles once the export has fired (or its fetch failed), so a
+ * caller can reflect the pending state.
  *
- * Inside a grid it already is reflected: the grid counts its own in-flight
+ * Inside a grid it already is reflected. The grid counts its own in-flight
  * exports around every action, whichever surface ran it, and shows an
- * "Exporting" overlay for the wait (the toolbar trigger, when there is one,
- * swaps its download icon for a spinner from the same count). A builder handed
- * these actions can call `run` and leave the feedback to the grid; only an
- * out-of-grid caller — see {@link useGridExportActions}, which reports the same
- * state as `pending` — has to render its own.
+ * "Exporting" overlay for the wait. The toolbar trigger, when there is one,
+ * swaps its download icon for a spinner from the same count. A builder handed
+ * these actions can call `run` and leave the feedback to the grid. Only an
+ * out-of-grid caller has to render its own: see
+ * {@link useGridExportActions}, which reports the same state as `pending`.
  */
 export type GridExportAction = {
 	type: GridExportType

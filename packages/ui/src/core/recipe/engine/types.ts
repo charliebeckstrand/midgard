@@ -19,12 +19,12 @@ export type VariantAxis = Record<string, ClassValue>
 /**
  * A compound rule applies a class set when every named axis matches. The
  * engine coerces a condition value to its axis key, the same conversion a
- * caller's prop takes, so a rule on a `true` / `false` axis accepts
+ * caller's prop takes. A rule on a `true` / `false` axis therefore accepts
  * `{ interactive: true }` and `{ interactive: 'true' }` alike.
  */
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
-/** Reserved top-level config field names; kata may not use these as axis names. */
+/** Reserved top-level config field names; kata must not use these as axis names. */
 export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
 /** The reserved fields' types. */

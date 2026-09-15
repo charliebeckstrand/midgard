@@ -10,9 +10,9 @@ export function Prose({ text }: { text: string }) {
 }
 
 /**
- * A `{@link}` reference rendered as just its name: an external `url` stays a
- * plain anchor, every symbol reference collapses to its bare target (or
- * pipe-form label) as inline text — no chip, no hover card.
+ * A `{@link}` reference rendered as just its name. An external `url` stays a
+ * plain anchor. Every symbol reference collapses to its bare target, or its
+ * pipe-form label, as inline text — no chip, no hover card.
  */
 export function LinkText({ token }: { token: LinkToken }) {
 	const label = token.label ?? token.target

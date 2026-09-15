@@ -8,21 +8,22 @@ import { VirtualItemSourceContext } from './virtual-item-source-context'
 
 /**
  * Nearest ancestor with a scrollable `overflow-y`, regardless of whether it is
- * currently overflowing — unlike a scroll-into-view search, the virtualizer
- * needs this element even before any rows are measured (it decides how many
- * rows to render from this element's bounded height in the first place, so
- * "is it already overflowing" isn't yet decidable). `role="listbox"` isn't a
- * reliable landmark for it: `ComboboxPanel`/`ListboxPanel` put the scrollable
+ * currently overflowing. Unlike a scroll-into-view search, the virtualizer needs
+ * this element even before any rows are measured. It decides how many rows to
+ * render from this element's bounded height in the first place, so "is it
+ * already overflowing" isn't yet decidable. The `role="listbox"` isn't a
+ * reliable landmark for it. `ComboboxPanel`/`ListboxPanel` put the scrollable
  * `overflow-y-auto` + `max-h-*` styling on the floating panel that *wraps*
  * the `role="listbox"` element, not on that element itself.
  *
- * A *definite* height (not just a `max-height` cap) on this ancestor —
- * `ComboboxPanel`/`ListboxPanel` already carry one — matters when nothing else
- * gives it a floor: `max-height` alone bounds the *upper* end, so an ancestor
- * that otherwise sizes to its content (e.g. `CommandPalette`'s `DialogBody`,
- * `min-h-0 overflow-y-auto` with no `flex-grow`) collapses to 0 with nothing
- * rendered yet — 0 content height, 0 rendered rows, 0 content height, forever.
- * Wrap `VirtualOptions` in an explicit-height `overflow-y-auto` div there.
+ * A *definite* height on this ancestor matters when nothing else gives it a
+ * floor. A `max-height` cap alone is not enough, and
+ * `ComboboxPanel`/`ListboxPanel` already carry a definite height. The cap bounds
+ * the *upper* end only. An ancestor that otherwise sizes to its content
+ * therefore collapses to 0 with nothing rendered yet. That is 0 content height,
+ * 0 rendered rows, 0 content height, forever. `CommandPalette`'s `DialogBody` is
+ * such an ancestor, at `min-h-0 overflow-y-auto` with no `flex-grow`. Wrap
+ * `VirtualOptions` in an explicit-height `overflow-y-auto` div there.
  *
  * @internal
  */
@@ -42,9 +43,9 @@ function findScrollableAncestor(node: HTMLElement | null): HTMLElement | null {
 
 /**
  * Per-row a11y attributes {@link VirtualOptions} passes to `children`: the
- * windowed list's true size and the row's 1-based position in it, since a
- * windowed `role="listbox"` otherwise loses "n of m" context for screen
- * readers (only the rendered rows are in the accessibility tree). Spread onto
+ * windowed list's true size, and the row's 1-based position in it. A windowed
+ * `role="listbox"` otherwise loses "n of m" context for screen readers, because
+ * only the rendered rows are in the accessibility tree. Spread onto
  * the rendered option.
  */
 export type VirtualOptionMeta = {
@@ -69,9 +70,9 @@ export type VirtualOptionsProps<T> = {
 	/**
 	 * Stable id for the option at `index`, matching the `id` the rendered
 	 * option carries. Registers a keyboard-navigable item source with the
-	 * nearest roving owner (`Combobox`, `CommandPalette`), so arrow / type-ahead
-	 * reach options outside the rendered window instead of stopping at its
-	 * edge. Omit to keep the prior DOM-only-roving behavior.
+	 * nearest roving owner (`Combobox`, `CommandPalette`). Arrow / type-ahead
+	 * therefore reach options outside the rendered window, instead of stopping at
+	 * its edge. Omit to keep the prior DOM-only-roving behavior.
 	 */
 	getOptionId?: (item: T, index: number) => string
 	/** Whether the option at `index` is disabled; a registered item source skips it during navigation. */
@@ -90,15 +91,15 @@ const OVERSCAN = 10
  * Virtualized list for option lists inside a `PopoverPanel` (Combobox, Listbox).
  *
  * Finds its scroll container by walking up to the nearest ancestor with a
- * scrollable `overflow-y` — `PopoverPanel`'s own `overflow-y-auto` + `max-h-*`
- * styling, which every select-like panel already carries, not the plain
- * `role="listbox"` element `PopoverPanel` wraps. Renders only rows in the
+ * scrollable `overflow-y`. That is `PopoverPanel`'s own `overflow-y-auto` +
+ * `max-h-*` styling, which every select-like panel already carries, not the
+ * plain `role="listbox"` element `PopoverPanel` wraps. Renders only rows in the
  * viewport plus overscan; the rest are represented by top/bottom spacer divs.
  * Passes `aria-setsize` / `aria-posinset` to `children` so a screen reader
  * still reports the true "n of m" position for a windowed-out row.
  *
  * With `getOptionId`, registers a keyboard-navigable item source with the
- * nearest roving owner (`Combobox`, `CommandPalette`): arrow / type-ahead
+ * nearest roving owner (`Combobox`, `CommandPalette`). Arrow / type-ahead then
  * navigate by index and scroll the target into the window, reaching options
  * outside it. Without it, keyboard navigation stays DOM-only, capped at the
  * rendered window (the pre-existing behavior).

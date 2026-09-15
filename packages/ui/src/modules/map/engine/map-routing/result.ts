@@ -15,9 +15,9 @@ import { decodePolyline } from './polyline'
  */
 export type MapRouteResult = {
 	/**
-	 * The route geometry, ready to pass as an overlay's `path`; empty when the
-	 * route carries totals but no geometry (an `overview: 'false'` request), where
-	 * the overlay draws a straight line from its stops instead.
+	 * The route geometry, ready to pass as an overlay's `path`. It is empty when
+	 * the route carries totals but no geometry (an `overview: 'false'` request).
+	 * The overlay then draws a straight line from its stops instead.
 	 */
 	path: LngLat[]
 	/** Total travel distance in meters. */
@@ -51,8 +51,8 @@ export type OsrmPayload = {
 
 /**
  * A route geometry's coordinates as `LngLat`, from either encoding the services
- * answer with: a GeoJSON `{ coordinates }` object (OSRM `geometries=geojson`)
- * passes through, an encoded polyline6 string (Valhalla) decodes. `undefined`
+ * answer with. A GeoJSON `{ coordinates }` object (OSRM `geometries=geojson`)
+ * passes through; an encoded polyline6 string (Valhalla) decodes. `undefined`
  * when neither is present.
  *
  * @internal
@@ -65,9 +65,9 @@ function geometryPath(
 
 /**
  * Why a payload that carries no leg carries none. A service that cannot join a
- * pair refuses in its own code under a 200 — OSRM answers `'NoRoute'` with no
- * `routes` at all — so a code that is not `'Ok'` is the service's own answer and
- * reads as a refusal, carrying that code. An empty `routes` array says the same
+ * pair refuses in its own code under a 200. OSRM answers `'NoRoute'` with no
+ * `routes` at all. A code that is not `'Ok'` is therefore the service's own
+ * answer, and reads as a refusal carrying that code. An empty `routes` array says the same
  * thing without naming it. A body with neither is not a routing answer, whatever
  * else it parsed as.
  *

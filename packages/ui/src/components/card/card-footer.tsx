@@ -6,8 +6,8 @@ export type CardFooterProps = ComponentProps<'div'>
 
 /**
  * Footer region of a {@link Card}, a flex row for actions or supporting
- * controls. Carries no gap of its own; the Card projects its gap from the
- * body and its action-row gap onto this slot from outside, both keyed to its
+ * controls. Carries no gap of its own. The Card projects its gap from the body
+ * and its action-row gap onto this slot from outside, both keyed to its
  * `size`.
  *
  * @remarks

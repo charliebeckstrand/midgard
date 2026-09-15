@@ -1,9 +1,13 @@
 /**
- * Pure pointer hit tests for the cartesian marks: which bar the pointer covers,
- * which series' line it is nearest, and which series' fill it sits inside. Each
- * resolves to the mark or series, or `null` for a miss. The hit layer feeds them
- * into the hover context so the tooltip shows only over data, while the hover
- * index — and any crosshair riding it — keeps tracking the whole plot.
+ * Pure pointer hit tests for the cartesian marks:
+ *
+ * - Which bar the pointer covers.
+ * - Which series' line it is nearest.
+ * - Which series' fill it sits inside.
+ *
+ * Each resolves to the mark or series, or `null` for a miss. The hit layer
+ * feeds them into the hover context, so the tooltip shows only over data. The
+ * hover index — and any crosshair riding it — keeps tracking the whole plot.
  */
 
 import { clamp } from '../../../utilities'
@@ -12,9 +16,9 @@ import type { LinePoint } from './chart-geometry/line'
 import type { ChartOrientation } from './chart-orientation'
 
 /**
- * How near the pointer must come to a line to count as on it, in px — a
- * generous catch so the tooltip is easy to summon and the line easy to isolate
- * by aim alone, without the pixel precision a 2px stroke would otherwise
+ * How near the pointer must come to a line to count as on it, in px. A generous
+ * catch, so the tooltip is easy to summon and the line easy to isolate by aim
+ * alone. It asks none of the pixel precision a 2px stroke would otherwise
  * demand. A snapping crosshair bypasses this: it reads the nearest point
  * anywhere in the plot.
  *
@@ -28,9 +32,9 @@ const AREA_EDGE_SLACK = 4
 /**
  * How decisively a challenger must out-close the held mark to take the
  * emphasis within overlapping catches: to under half its distance. Nearest-mark
- * resolution alone flips at the exact midline between two close marks — a knife
- * edge — so the mark already emphasised holds until the pointer commits to
- * another, turning the flip point into a deadband.
+ * resolution alone flips at the exact midline between two close marks: a knife
+ * edge. The mark already emphasised therefore holds until the pointer commits
+ * to another, which turns the flip point into a deadband.
  *
  * @internal
  */
@@ -62,10 +66,10 @@ function withinBar(
 /**
  * The bar the pointer sits on — its series and datum indices — or `null` off
  * every bar. A bar's own body wins first, so the pointer isolates the bar it
- * truly covers; only where no body catches it does the widened `gap` pass close
- * the thin gaps between a group's bars, each bar's slack reaching its
- * neighbour's edge, so a pointer sweeping across a group never falls between
- * them and flickers the tooltip while the wider between-group padding stays
+ * truly covers. Only where no body catches it does the widened `gap` pass close
+ * the thin gaps between a group's bars. Each bar's slack reaches its
+ * neighbour's edge. A pointer sweeping across a group therefore never falls
+ * between them and flickers the tooltip. The wider between-group padding stays
  * uncovered. The band axis is x when vertical and y when horizontal, so the
  * slack follows the orientation.
  *
@@ -137,11 +141,11 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
  * off every line. The nearest wins where two overlap, so the isolation lifts
  * the line the pointer truly follows rather than whichever drew first. A `held`
  * series — the one already emphasised — keeps the win while it stays within the
- * catch, unless a challenger {@link beatsHeldMark | decisively} closes: the
- * resolution is sticky across the midline between two close strokes rather than
- * flipping on the knife edge. Each series brings its gap-split runs, so the
- * test never bridges a gap; a smooth curve is tested against its chords, which
- * the tolerance comfortably covers.
+ * catch, unless a challenger {@link beatsHeldMark | decisively} closes. The
+ * resolution is sticky across the midline between two close strokes, rather
+ * than flipping on the knife edge. Each series brings its gap-split runs, so
+ * the test never bridges a gap. A smooth curve is tested against its chords,
+ * which the tolerance comfortably covers.
  *
  * @internal
  */
@@ -205,11 +209,12 @@ function topEdgeY(run: LinePoint[], x: number): number | null {
 }
 
 /**
- * The series whose fill the pointer sits in, or `null` outside every fill: under
- * a top edge (with a little slack for the stroke) and above the baseline. Where
- * fills overlap — stacked ribbons especially, each covering to the baseline — the
- * one whose top edge sits nearest above the pointer wins, so the isolation lifts
- * the ribbon the pointer is actually inside rather than every ribbon beneath it.
+ * The series whose fill the pointer sits in, or `null` outside every fill. The
+ * pointer must sit under a top edge (with a little slack for the stroke) and
+ * above the baseline. Fills overlap, stacked ribbons especially, each covering
+ * to the baseline. Where they do, the one whose top edge sits nearest above the
+ * pointer wins. The isolation thus lifts the ribbon the pointer is actually
+ * inside, rather than every ribbon beneath it.
  *
  * @internal
  */

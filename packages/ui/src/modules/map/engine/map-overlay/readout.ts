@@ -1,7 +1,7 @@
 /**
  * The one resolution of what an overlay mark's stop reads out. The tooltip and
- * the visually-hidden table are two renderings of one readout, so they must not
- * each carry their own ladder of fallbacks — the pointer and a screen reader
+ * the visually-hidden table are two renderings of one readout. They must not
+ * each carry their own ladder of fallbacks. The pointer and a screen reader
  * would then disagree about the same dot, which is the failure this file exists
  * to prevent.
  *
@@ -31,10 +31,11 @@ export type MapMarkReadout = {
  * detail.
  *
  * A plural mark's dot reads its own name, or is numbered within its group where
- * it carries none — a reader has no position to tell two unnamed dots apart by,
- * so `Stops 3` beats three rows all reading `Stops`. Its detail never falls back
- * to the mark's: the set's detail describes the set, so a dot with no count of
- * its own showing the group's `10 stops` would misreport that dot.
+ * it carries none. A reader has no position to tell two unnamed dots apart by.
+ * `Stops 3` therefore beats three rows all reading `Stops`. Its detail never
+ * falls back to the mark's, because the set's detail describes the set. A dot
+ * with no count of its own, showing the group's `10 stops`, would misreport that
+ * dot.
  *
  * @internal
  */
@@ -50,12 +51,12 @@ export function markReadout(mark: MapReadableMark, stop: number): MapMarkReadout
  * What an unnamed stop is called: the mark's label and the stop's one-based position.
  *
  * The FORMAT only — deliberately not the index, because the two callers count in different spaces and
- * both are right to. This file numbers by position in `stopRows`; `MapPoints` numbers by the caller's
- * own point index, since a click reports that index and a readout counting in another space would name
+ * both are right to. This file numbers by position in `stopRows`. `MapPoints` numbers by the caller's
+ * own point index, since a click reports that index. A readout counting in another space would name
  * a row the caller cannot find. So the thing that must not diverge is the spelling, and it is the
  * spelling that lives here.
  *
- * Here for the reason stated at the top of this file: the tooltip and the visually-hidden table are
+ * Here for the reason stated at the top of this file. The tooltip and the visually-hidden table are
  * two renderings of one readout, and a merged dot's `clusterDetail` labels are a third. Three copies
  * of the format is three ways for them to name the same dot differently.
  *
@@ -68,7 +69,7 @@ export function stopName(markLabel: string, stop: number): string {
 /**
  * One table row: a readout, and the key identifying which stop it came from. The
  * detail is resolved rather than optional — a row's value cell always reads
- * something, where a tooltip may show none.
+ * something, where a tooltip can show none.
  *
  * @internal
  */
@@ -90,12 +91,12 @@ export function markRowKey(id: string, stop: number): string {
 
 /**
  * Every row a mark contributes to the data table: one for a singular mark, one
- * per dot for a plural one, so a reader gets the per-dot readout the pointer
- * gets from the tooltip.
+ * per dot for a plural one. A reader therefore gets the per-dot readout the
+ * pointer gets from the tooltip.
  *
  * A mark with no detail anywhere falls back to its kind — `route`, `point` — so
- * the value column is never empty. Each row carries its own {@link markRowKey}:
- * the caller then needs no index of its own to key by, and a selection names the
+ * the value column is never empty. Each row carries its own {@link markRowKey}.
+ * The caller then needs no index of its own to key by, and a selection names the
  * row it marks by the same key. The tooltip needs no key, so only this half of
  * the pair asks for the mark's id.
  *

@@ -22,9 +22,9 @@ type GridPaginationProps = {
 
 /**
  * The footer's row-range status: the 1-based slice shown on this page against
- * the known total (`1–10 of 47`), `No rows` for an empty set, or a bare page
- * marker (`Page 3 of 5`, or `Page 3` for an unbounded server feed whose total is
- * unknown).
+ * the known total (`1–10 of 47`), or `No rows` for an empty set. A bare page
+ * marker stands in otherwise (`Page 3 of 5`, or `Page 3` for an unbounded server
+ * feed whose total is unknown).
  *
  * @internal
  */
@@ -52,8 +52,8 @@ function pageStatus({
 
 /**
  * Footer for a paginated {@link Grid}, laid out as three zones: an optional
- * page-size picker, the page navigation, and a row-range status — all driven by
- * the {@link GridPaginationView} the grid's TanStack Table engine resolves. From
+ * page-size picker, the page navigation, and a row-range status. All three are
+ * driven by the {@link GridPaginationView} the grid's TanStack Table engine resolves. From
  * `lg` they share one row (picker at the start, nav centered, status at the
  * end); below it the nav stacks above a picker/status row. Numbered pages render
  * only when the total page count is known; an unbounded server feed falls back to

@@ -56,13 +56,13 @@ export type GridGroupResult = {
 
 /**
  * Owns the grid's column-group slice: the controllable `groups` binding (array
- * shorthand or object binding), the grid-owned collapse state (seeded once from
- * each group's `defaultCollapsed`), the ids collapsed groups hide from the
- * engine, and a `resolveHeader` that maps the current visible columns into the
+ * shorthand or object binding). It also owns the collapse state, seeded once
+ * from each group's `defaultCollapsed`, and the ids collapsed groups hide from
+ * the engine. A `resolveHeader` maps the current visible columns into the
  * band-row {@link GridGroupSpan}s. Kept apart from the engine so `grid-data`
- * only wires it: it feeds the grouped order (via {@link groupedColumnOrder}) and
- * `collapsedHidden` into the column slice, then renders `resolveHeader` above the
- * column header.
+ * only wires it. That module feeds the grouped order (via
+ * {@link groupedColumnOrder}) and `collapsedHidden` into the column slice, then
+ * renders `resolveHeader` above the column header.
  *
  * @internal
  */

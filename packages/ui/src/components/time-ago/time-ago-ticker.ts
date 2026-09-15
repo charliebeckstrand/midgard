@@ -50,7 +50,7 @@ function handleVisibility(): void {
 		return
 	}
 
-	// On return to the foreground, catch up once immediately (relative text may
+	// On return to the foreground, catch up once immediately (relative text can
 	// be far stale) and resume each cadence.
 	for (const [intervalMs, bucket] of buckets) {
 		tick(bucket)

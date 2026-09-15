@@ -1,22 +1,22 @@
 /**
  * The kinds a routing request fails as, the evidence each one carries, and the
  * retry rule over them. One taxonomy serves both clients, so an OSRM failure
- * and a Valhalla failure read the same, and the retry rule has one author
- * rather than one per caller.
+ * and a Valhalla failure read the same. The retry rule has one author rather
+ * than one per caller.
  */
 
 /**
  * Why a routing request answered with no leg, and whether to ask again. Each
- * kind carries its own evidence and no other's — only a refused response holds
- * a status, and only a service's own refusal holds a code — so reading `kind`
- * reaches the field that kind holds without a second test.
+ * kind carries its own evidence and no other's. Only a refused response holds a
+ * status, and only a service's own refusal holds a code. A read of `kind`
+ * therefore reaches the field that kind holds without a second test.
  *
- * `retryable` says whether the same request could answer differently later: a
- * timeout, a dead network, and a busy or broken service can all clear, while a
+ * `retryable` says whether the same request could answer differently later. A
+ * timeout, a dead network, and a busy or broken service can all clear. A
  * refused request, an unreadable body, and a pair of points no road joins
  * answer the same way however many times they are asked. It is `false` on
- * `'aborted'`, because the caller ended that request itself; whether to send
- * another one is the caller's own call and not a recovery this field asks for.
+ * `'aborted'`, because the caller ended that request itself. Whether to send
+ * another one is the caller's own call, and not a recovery this field asks for.
  */
 export type MapRouteFailure =
 	| { kind: 'waypoints' | 'aborted' | 'timeout' | 'network' | 'payload'; retryable: boolean }
@@ -30,7 +30,7 @@ export type MapRouteFailure =
 			kind: 'no-route'
 			retryable: boolean
 			/**
-			 * The service's own refusal code, where the payload named one — OSRM
+			 * The service's own refusal code, where the payload named one. OSRM
 			 * answers a pair it cannot join with `'NoRoute'`, and a point off the
 			 * network with `'NoSegment'`.
 			 */
@@ -40,10 +40,11 @@ export type MapRouteFailure =
 /**
  * What stopped a routing request. `'waypoints'` is the caller's own input —
  * under two stops name no leg, and no request leaves. `'aborted'` and
- * `'timeout'` are the two ways a signal ends one, held apart because a caller
- * that cancelled its own request learned nothing about the service.
- * `'network'` is a request that never reached an answer, `'http'` a status the
- * service refused with, and `'payload'` a body that is not a routing answer.
+ * `'timeout'` are the two ways a signal ends one. They stay apart because a
+ * caller that cancelled its own request learned nothing about the service.
+ * `'network'` is a request that never reached an answer. `'http'` is a status
+ * the service refused with, and `'payload'` a body that is not a routing
+ * answer.
  * `'no-route'` is the service's own answer that no leg joins the waypoints.
  */
 export type MapRouteFailureKind = MapRouteFailure['kind']
@@ -55,9 +56,9 @@ type PlainKind = Exclude<MapRouteFailureKind, 'http' | 'no-route'>
 const RETRYABLE_KIND: ReadonlySet<MapRouteFailureKind> = new Set(['timeout', 'network'])
 
 /**
- * The statuses that name a busy or a slow service rather than a bad request:
- * a timed-out read, a too-early replay, and a rate limit — the demo servers'
- * own answer under load.
+ * The statuses that name a busy or a slow service rather than a bad request.
+ * They are a timed-out read, a too-early replay, and a rate limit. A rate limit
+ * is the demo servers' own answer under load.
  *
  * @internal
  */
@@ -71,8 +72,8 @@ export function routeFailure(kind: PlainKind): MapRouteFailure {
 /**
  * The failure a refused response carries: its status, and the retry that status
  * allows. A 5xx is the service's own fault and clears on its own, so it retries
- * with {@link RETRYABLE_STATUS}; every other status names a request that will be
- * refused the same way again.
+ * with {@link RETRYABLE_STATUS}. Every other status names a request that will
+ * be refused the same way again.
  *
  * @internal
  */
@@ -100,10 +101,11 @@ function errorName(error: unknown): string {
 
 /**
  * The failure a thrown request carries. A signal names itself in the reason it
- * aborts with — `AbortSignal.timeout` throws a `TimeoutError` and a caller's own
- * controller an `AbortError`, and `AbortSignal.any` passes on the reason of
- * whichever of the two fired — so the timeout the client set and the abort the
- * caller asked for stay apart. Anything else takes `fallback`: a request that
+ * aborts with. `AbortSignal.timeout` throws a `TimeoutError`, and a caller's
+ * own controller an `AbortError`. `AbortSignal.any` passes on the reason of
+ * whichever of the two fired. The timeout the client set and the abort the
+ * caller asked for therefore stay apart. Anything else takes `fallback`: a
+ * request that
  * threw reached no answer, while a body that threw is one this reader cannot
  * take.
  *

@@ -14,10 +14,10 @@ export type ChartCartesianAxesProps = {
 
 /**
  * The oriented chrome behind a cartesian chart's marks: value gridlines, the
- * value axes, and the category axis, each wired to the side the orientation
+ * value axes, and the category axis. Each is wired to the side the orientation
  * puts it on. Vertical keeps the primary value axis on the left (no line) and
- * categories on the bottom (with the zero baseline); horizontal transposes
- * them — value labels on the bottom without a line, categories down the left
+ * categories on the bottom (with the zero baseline). Horizontal transposes
+ * them: value labels on the bottom without a line, categories down the left
  * with the baseline as a vertical rule. A resolved secondary scale adds the far
  * side's axis — right when vertical, top when horizontal — and any titles draw
  * in the bands the layout reserved. The transpose lives here so a chart drops

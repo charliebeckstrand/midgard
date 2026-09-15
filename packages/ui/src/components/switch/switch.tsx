@@ -15,9 +15,9 @@ export type SwitchProps = SwitchVariants & {
 /**
  * Toggle control backed by a native `role="switch"` checkbox; controlled via
  * `checked` or uncontrolled. Owns its checked state, keeping `aria-checked` in
- * sync. Integrates with enclosing `<Form>` and `<Control>` for binding,
- * sizing, and validation; an explicit `checked` prop wins over the bound
- * field, and `onChange` fires in either mode.
+ * sync. Integrates with enclosing `<Form>` and `<Control>` for binding, sizing,
+ * and validation. An explicit `checked` prop wins over the bound field, and
+ * `onChange` fires in either mode.
  */
 export function Switch({
 	className,

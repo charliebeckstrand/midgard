@@ -1,9 +1,9 @@
 /**
- * The two-stage fit the map's mount rides: one measurement-free canonical fit
- * that paints on the first commit, and the measured fit derived from it by
- * arithmetic once the container is read. Keeping the second a derivation of the
- * first is what makes a resize cost no bounds pass, and what guarantees the
- * refit only sharpens strokes rather than reshaping the geography.
+ * The two-stage fit the map's mount rides. One measurement-free canonical fit
+ * paints on the first commit. The measured fit derives from it by arithmetic,
+ * once the container is read. Keeping the second a derivation of the first is
+ * what makes a resize cost no bounds pass. It also guarantees the refit only
+ * sharpens strokes, rather than reshaping the geography.
  */
 
 import type { GeoProjection } from 'd3-geo'
@@ -27,9 +27,9 @@ export type MapCanonicalFit = {
 }
 
 /**
- * Fits the projection once to a fixed {@link MAP_CANONICAL_WIDTH}-wide frame and
- * reports the frame it fills, aligned to that frame's top-left, so the returned
- * `width` × `height` is a clean viewBox the geography fills. Pure and
+ * Fits the projection once to a fixed {@link MAP_CANONICAL_WIDTH}-wide frame,
+ * and reports the frame it fills, aligned to that frame's top-left. The returned
+ * `width` × `height` is therefore a clean viewBox the geography fills. Pure and
  * synchronous — no container measurement — so the same fit
  * serves both the CSS aspect reservation (through {@link MapCanonicalFit.aspect})
  * and the geography's first, measurement-free paint. `null` with nothing to fit.
@@ -55,15 +55,15 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
 
 /**
  * The measured-frame fit derived from a {@link canonicalFit} by arithmetic
- * alone. The named projections' output is linear in `scale` and `translate`
- * (the composite `albers-usa` derives its inset offsets and clips from them
- * proportionally), so scaling the canonical parameters by the frame factor and
- * centring the remainder frames the geography the way `fitSize` would — without
- * the bounds pass that re-projects every coordinate, the bulk of a refit's cost
- * on every resize. It lands within `fitSize`'s adaptive-resampling margin
- * (sub-percent, from the resampling each pass runs at its own scale), and
- * under the canonical aspect it is a pure zoom of the
- * canonical paint, so a refit never reshapes the geography. Only the named
+ * alone. The named projections' output is linear in `scale` and `translate`.
+ * The composite `albers-usa` derives its inset offsets and clips from them
+ * proportionally. Scaling the canonical parameters by the frame factor, and
+ * centring the remainder, therefore frames the geography the way `fitSize`
+ * would. It takes no bounds pass that re-projects every coordinate, the bulk of
+ * a refit's cost on every resize. It lands within `fitSize`'s
+ * adaptive-resampling margin, sub-percent, from the resampling each pass runs at
+ * its own scale. Under the canonical aspect it is a pure zoom of the canonical
+ * paint, so a refit never reshapes the geography. Only the named
  * projections qualify: a passed d3 instance is stateful, so its canonical fit
  * is never cached to derive from.
  *
@@ -88,9 +88,9 @@ export function scaleCanonicalFit(
 }
 
 /**
- * The measured-frame fit, or `null` when there is nothing to frame: no
- * geography, geometry whose bounds collapse (a lone point — the canonical fit is
- * already `null` for both), or an unmeasured frame. Gating on the canonical fit
+ * The measured-frame fit, or `null` when there is nothing to frame. That is no
+ * geography, geometry whose bounds collapse (a lone point), or an unmeasured
+ * frame. The canonical fit is already `null` for the first two. Gating on the canonical fit
  * keeps a degenerate atlas from reaching {@link fitMapProjection}, whose
  * `fitSize` would return an infinite-scale projection that emits `NaN`
  * coordinates. A named projection derives the fit from the cached canonical one

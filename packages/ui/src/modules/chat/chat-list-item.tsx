@@ -33,17 +33,18 @@ export type ChatListItemProps = {
  * provided, otherwise a static `<span>`. The button's hit area stretches across
  * the whole row via a pointer-capturing `::after`, so clicking the surrounding
  * chrome (row padding, the gap) also selects. `actions` render beside it rather
- * than within it — so a control like a delete button never nests inside the select
- * button (nested-interactive markup) — and sit above the overlay to stay clickable.
+ * than within it, and sit above the overlay to stay clickable. A control like a
+ * delete button therefore never nests inside the select button
+ * (nested-interactive markup).
  * The open conversation (`current`) gets `aria-current` and an {@link ActiveIndicator}
- * that morphs between rows as selection moves, mirroring `SidebarItem`; it resolves
- * its `layoutId` from the nearest `ActiveIndicatorScope` — {@link ChatList} opens one,
+ * that morphs between rows as selection moves, mirroring `SidebarItem`. It resolves
+ * its `layoutId` from the nearest `ActiveIndicatorScope`. {@link ChatList} opens one,
  * so its rows morph against each other rather than any indicator outside the list.
  * Inside a {@link ChatList} the row is an `<li>` and joins the list's roving-tabindex
  * keyboard model; standalone it is a `<div>`.
- * `actions` render at a stepped-down size — `sm` at the ambient `md` Density —
- * broadcast through an `Affix`, so a passed-in `Button` needs no explicit `size`
- * to match.
+ * `actions` render at a stepped-down size, broadcast through an `Affix`: `sm` at
+ * the ambient `md` Density. A passed-in `Button` therefore needs no explicit
+ * `size` to match.
  */
 export function ChatListItem({
 	title,

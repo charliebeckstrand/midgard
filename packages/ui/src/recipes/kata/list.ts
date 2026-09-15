@@ -167,9 +167,11 @@ export const k = {
 		...disabled,
 	],
 	/**
-	 * Content column. Pass whether the row acts on activation (`href` or
-	 * `onClick`), whether the row is currently picked up for a keyboard move, and
-	 * whether its hit area covers the whole row.
+	 * Content column. Pass three flags:
+	 *
+	 * - whether the row acts on activation (`href` or `onClick`)
+	 * - whether the row is currently picked up for a keyboard move
+	 * - whether its hit area covers the whole row
 	 */
 	content,
 	label: 'min-w-0 truncate',

@@ -121,10 +121,12 @@ function extractStringLiteral(
 /**
  * Class-name stems whose HTML tag differs from the lowercased stem. Unlisted
  * stems (`HTMLDivElement` → `div`, `HTMLInputElement` → `input`, …) fall
- * through to the lowercased stem. Ambiguous classes pick the most
- * representative tag: `HTMLHeading` covers `h1..h6`, `HTMLTableCell` covers
- * `td` and `th`, `HTMLTableSection` covers `tbody/thead/tfoot`, `HTMLMod`
- * covers `del/ins`, `HTMLQuote` covers `q` and `blockquote`.
+ * through to the lowercased stem.
+ *
+ * Ambiguous classes pick the most representative tag. `HTMLHeading` covers
+ * `h1..h6`, and `HTMLTableCell` covers `td` and `th`. `HTMLTableSection` covers
+ * `tbody/thead/tfoot`, `HTMLMod` covers `del/ins`, and `HTMLQuote` covers `q`
+ * and `blockquote`.
  */
 const HTML_ELEMENT_TAG_OVERRIDES: ReadonlyMap<string, string> = new Map([
 	['Anchor', 'a'],

@@ -132,7 +132,7 @@ export type FormFieldState = {
  * @param name - Field key to track; pass undefined to opt out (returns undefined).
  * @returns The field's {@link FormFieldState}, or undefined when `name` is
  * absent or there is no enclosing `Form`.
- * @remarks Re-renders only when this field's slice changes by content — the
+ * @remarks Re-renders only when this field's slice changes by content. The
  * snapshot is cached and returned by reference when unchanged, so typing in one
  * field does not re-render its siblings. Used by the binding hooks
  * ({@link useFormText}, {@link useFormToggle}, {@link useFormValue}).
@@ -216,7 +216,7 @@ export type FormStatus = {
  * pulling in field-level state.
  *
  * @returns The current {@link FormStatus}, or undefined outside a `Form`.
- * @remarks Re-renders only when one of the three flags flips — the snapshot is
+ * @remarks Re-renders only when one of the three flags flips. The snapshot is
  * cached and returned by reference while they hold, so per-keystroke value
  * changes do not re-render status consumers (submit buttons, dirty guards).
  * SSR-safe.

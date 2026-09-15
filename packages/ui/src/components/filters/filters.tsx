@@ -47,8 +47,8 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 	 * How the bar answers a width that cannot hold its fields — see
 	 * {@link FiltersLayout}.
 	 *
-	 * A `rail` keeps its fields at the width they were given, so give them one: a
-	 * field left at its `w-full` default would fill the rail and the reader would
+	 * A `rail` keeps its fields at the width they were given, so give them one. A
+	 * field left at its `w-full` default would fill the rail, and the reader would
 	 * scroll one field at a time.
 	 *
 	 * @defaultValue 'stack'
@@ -58,9 +58,9 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 	 * Classes for the scrolling row itself, which only a `rail` has.
 	 *
 	 * The bar's padding belongs here rather than on `className`. Set outside the
-	 * scroll container, a padded band is dead to the wheel: the reader aims at the
-	 * strip above or below the controls — most of the bar's own height — and
-	 * nothing moves. Set here it scrolls with the fields.
+	 * scroll container, a padded band is dead to the wheel. The reader aims at the
+	 * strip above or below the controls, most of the bar's own height, and nothing
+	 * moves. Set here it scrolls with the fields.
 	 *
 	 * `className` still reaches the bar as a whole, which is where anything the
 	 * clear action shares belongs.
@@ -73,8 +73,8 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 /**
  * Coordinator for a row of filter controls over a `Record` value. Shares
  * set/clear and an active-count through context to enclosed {@link FiltersField}
- * and {@link FiltersClear}, dropping empty fields (undefined, null, `''`, empty
- * array) from the payload so the value stays minimal.
+ * and {@link FiltersClear}. It drops empty fields (undefined, null, `''`, empty
+ * array) from the payload, so the value stays minimal.
  *
  * @remarks
  * Controlled via `value`/`onValueChange`, uncontrolled from `defaultValue`.
@@ -157,7 +157,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 
 	return (
 		<FiltersContext value={context}>
-			{/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes form-field semantics and min-content layout quirks on this flex bar; a named role="group" is the right grouping for a row of filter controls */}
+			{/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes form-field semantics and layout quirks on this flex bar. A named role="group" is the right grouping here */}
 			<div
 				data-slot="filters"
 				role="group"
@@ -167,11 +167,11 @@ export function Filters<T extends FilterValue = FilterValue>({
 				{prefix && <div data-slot="filters-prefix">{prefix}</div>}
 				<Flex direction={direction} gap="sm" align={align} full>
 					{/* The scroll rides the fields alone, so the clear action stays put while
-					    they travel under it — it acts on the whole bar, and an action that
-					    scrolls out of reach of what it acts on is one the reader has to go
-					    looking for. `min-w-0` is what lets the row overflow at all: a flex
-					    child sizes to its content otherwise, and this one would push the
-					    clear off the bar instead of scrolling. */}
+					    they travel under it. It acts on the whole bar. An action that scrolls
+					    out of reach of what it acts on is one the reader has to go looking
+					    for. The `min-w-0` is what lets the row overflow at all. A flex child
+					    sizes to its content otherwise, and this one would push the clear off
+					    the bar instead of scrolling. */}
 					<Flex
 						direction={direction}
 						gap="sm"

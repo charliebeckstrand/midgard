@@ -23,16 +23,16 @@ export type FetchOsrmRouteOptions = {
 	baseUrl?: string
 	profile?: Profile
 	/**
-	 * Geometry detail: `'simplified'` returns a Douglas-Peucker line at display
-	 * resolution — a fraction of the coordinates, visually identical at map
-	 * scale — `'full'` keeps every vertex, and `'false'` returns no geometry at
+	 * Geometry detail. `'simplified'` returns a Douglas-Peucker line at display
+	 * resolution: a fraction of the coordinates, visually identical at map
+	 * scale. `'full'` keeps every vertex, and `'false'` returns no geometry at
 	 * all (distance and duration only, so the overlay falls back to a straight
 	 * line). The distance and duration totals are the same under all three.
 	 * @defaultValue 'simplified'
-	 * @remarks Defaults to `'simplified'`: the drawn path is sub-pixel-identical
-	 * on the plat's frame while the payload — and the `JSON.parse`, the overlay's
-	 * projection loop, and the SVG path — shrink by an order of magnitude on a
-	 * long route. Pass `'full'` only where the geometry is reused at a deeper
+	 * @remarks Defaults to `'simplified'`. The drawn path is sub-pixel-identical
+	 * on the plat's frame, while the payload shrinks by an order of magnitude on a
+	 * long route. So do the `JSON.parse`, the overlay's projection loop, and the
+	 * SVG path. Pass `'full'` only where the geometry is reused at a deeper
 	 * zoom than the map draws at.
 	 */
 	overview?: RouteOverview
@@ -56,9 +56,9 @@ export type FetchOsrmRouteOptions = {
  *
  * @remarks A caller that draws whatever it gets falls back to straight-line
  * segments on any failure; an overlay with no `path` already draws them. Read
- * the failure where the two ends differ: a `'timeout'` or a 504 from the demo
- * server is worth another request, while `'no-route'` is the service's own
- * answer that no road joins the stops.
+ * the failure where the two ends differ. A `'timeout'` or a 504 from the demo
+ * server is worth another request. `'no-route'` is the service's own answer
+ * that no road joins the stops.
  *
  * @see {@link MapRouteFailureKind} for the reasons a request fails.
  */

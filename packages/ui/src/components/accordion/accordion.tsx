@@ -25,7 +25,7 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * @remarks
 		 * Defaults to `active` — a closed panel is unmounted, so reopening it
 		 * resets whatever state it held. `always` mounts every panel up front and
-		 * `lazy` mounts each on its first open; either way a closed panel then
+		 * `lazy` mounts each on its first open. Either way a closed panel then
 		 * rests in `<Activity mode="hidden">` with its state preserved and effects
 		 * torn down. Prefer `lazy` over `always` for a long accordion: `always`
 		 * pays every panel's first render before any of them is opened.
@@ -40,8 +40,8 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * A state change is not an arrival: `onValueChange` reports the flip, and the panel
 		 * is still growing when it does. Use this to focus, measure, or start work that
 		 * needs the section at its settled height. Never fires for a close, and never for a
-		 * section that mounts already open — so a `type='single'` swap reports only the
-		 * section that opened, not the one it replaced.
+		 * section that mounts already open. A `type='single'` swap therefore reports only
+		 * the section that opened, not the one it replaced.
 		 *
 		 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
 		 */

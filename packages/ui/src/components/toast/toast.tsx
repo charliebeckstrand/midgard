@@ -27,8 +27,8 @@ export type ToastProps = {
  * `useToast()` callers.
  *
  * @remarks The viewport is not itself a live region. Each toast maps its
- * severity to politeness via its own `role`: `warning`/`error` interrupt as
- * `alert`, everything else queues as `status` and is mirrored through a
+ * severity to politeness via its own `role`. `warning` and `error` interrupt as
+ * `alert`. Everything else queues as `status`, and is mirrored through a
  * persistent announcer on mount (WCAG 4.1.3). Auto-dismiss pauses while the
  * pointer or focus is inside a toast (WCAG 2.2.1).
  *

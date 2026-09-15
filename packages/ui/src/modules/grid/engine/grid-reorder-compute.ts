@@ -4,8 +4,8 @@ import type { CSSProperties } from 'react'
 import type { GridReorder } from '../grid-data-types'
 
 /**
- * dnd-kit modifier that pins a column drag to the x-axis: zeroes the vertical
- * component of the transform so a column tracks the pointer horizontally and
+ * dnd-kit modifier that pins a column drag to the x-axis. It zeroes the vertical
+ * component of the transform, so a column tracks the pointer horizontally and
  * never drifts up or down while being reordered. Mirrors `@dnd-kit/modifiers`'
  * `restrictToHorizontalAxis` without taking the dependency.
  *
@@ -17,8 +17,8 @@ export const restrictToHorizontalAxis: Modifier = ({ transform }) => ({
 })
 
 /**
- * dnd-kit modifier that pins a row drag to the y-axis: zeroes the horizontal
- * component of the transform so a row tracks the pointer vertically and never
+ * dnd-kit modifier that pins a row drag to the y-axis. It zeroes the horizontal
+ * component of the transform, so a row tracks the pointer vertically and never
  * drifts left or right while being reordered. Mirrors `@dnd-kit/modifiers`'
  * `restrictToVerticalAxis` without taking the dependency.
  *
@@ -61,8 +61,8 @@ function clampToBoundingRect(
  * dnd-kit modifier that keeps a column drag within its first scrollable
  * ancestor — the table's horizontal-scroll wrapper. Bounding the dragged cell
  * to the visible container stops its transform from extending the table's
- * scroll width, which is what let horizontal auto-scroll run away: now
- * auto-scroll traverses the real columns and halts at the last one. Mirrors
+ * scroll width. That extension is what let horizontal auto-scroll run away.
+ * Auto-scroll now traverses the real columns, and halts at the last one. Mirrors
  * `@dnd-kit/modifiers`' `restrictToFirstScrollableAncestor`.
  *
  * @internal
@@ -105,7 +105,7 @@ export function columnShiftVar(index: number): string {
 /**
  * Inline style for a reordering cell — a header or a body cell. Reads its
  * column's live translate from the CSS variable the column's header animates (see
- * {@link useColumnReorderShift}); an idle column leaves it unset, so the cell
+ * {@link useColumnReorderShift}). An idle column leaves it unset, so the cell
  * resolves to no shift. Keyed by the column's visible index, which a header and
  * the row cells beneath it share, so they move as one. Only the x translate is
  * taken — never dnd-kit's `scaleX` / `scaleY`, which would stretch cell content.
@@ -117,13 +117,13 @@ export function columnShiftStyle(index: number): CSSProperties {
 }
 
 /**
- * Splices a reordered subset of column ids back into the full column order,
- * holding every id the `isReorderable` predicate rejects (selection, actions,
- * pinned, or hidden columns) in its existing slot.
+ * Splices a reordered subset of column ids back into the full column order.
+ * Every id the `isReorderable` predicate rejects (selection, actions, pinned, or
+ * hidden columns) holds its existing slot.
  *
- * Shared by the column-manager list and the header drag handles so both commit
- * identical orderings: each walks the full `order` and, wherever a slot is
- * reorderable, draws the next id from `reorderedIds` in sequence.
+ * Shared by the column-manager list and the header drag handles, so both commit
+ * identical orderings. Each walks the full `order`, and draws the next id from
+ * `reorderedIds` in sequence wherever a slot is reorderable.
  *
  * @param order - Full column order: every column id, in display order.
  * @param reorderedIds - The reorderable ids in their new relative order; its

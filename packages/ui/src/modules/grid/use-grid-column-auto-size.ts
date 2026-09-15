@@ -20,8 +20,8 @@ import type { GridColumn } from './types'
 
 /**
  * The width the allocator is given to spend: the container's, or none for a grid
- * sizing to its own content — {@link allocateColumnWidths}'s deficit branch,
- * which is already "hold every column at its content and let the table
+ * sizing to its own content. That is {@link allocateColumnWidths}'s deficit
+ * branch, which is already "hold every column at its content and let the table
  * overflow".
  *
  * A function rather than a ternary at the call site, which would put the pass
@@ -43,46 +43,48 @@ type GridColumnAutoSizeOptions<T> = {
 	containerRef: RefObject<HTMLElement | null> | undefined
 	/**
 	 * Fingerprint of the rendered rows (count and end keys), supplied by the
-	 * caller from data it already holds: a page turn, filter, or sort that
-	 * changes the visible rows re-measures (new content can be wider), without
-	 * this hook forcing the engine's Row-per-datum model just to fingerprint a
-	 * measurement.
+	 * caller from data it already holds. A page turn, filter, or sort that
+	 * changes the visible rows re-measures, since new content can be wider. This
+	 * hook therefore never forces the engine's Row-per-datum model just to
+	 * fingerprint a measurement.
 	 */
 	rowsSignature: string
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
 	density: DensityLevel | undefined
 	/**
-	 * Size the columns to their own content rather than to the container, so
-	 * nothing the pass produces was measured from the box it is about to size.
+	 * Size the columns to their own content rather than to the container. Nothing
+	 * the pass produces is then measured from the box it is about to size.
 	 * @see {@link GridDataProps.width}
 	 */
 	fitContent: boolean
 	/**
 	 * Per-column hard floor (px), written each measurement pass for the drag-resize
-	 * bounds and clamp to read — so a manual resize honors the same minimum the
-	 * allocator does (a single-word header never truncates). A stable map owned by
-	 * the caller; entries merge, so a column held out of a pass keeps its last floor.
+	 * bounds and clamp to read. A manual resize therefore honors the same minimum
+	 * the allocator does, and a single-word header never truncates. A stable map
+	 * owned by the caller; entries merge, so a column held out of a pass keeps its
+	 * last floor.
 	 */
 	columnFloors: Map<string, number>
 	/**
-	 * Freeze the fit against row-data changes (infinite scroll's stable widths): an
+	 * Freeze the fit against row-data changes (infinite scroll's stable widths). An
 	 * appended batch — a rows-only change — no longer re-measures and reflows the
-	 * columns; a structural change (columns, density) and a container resize still
+	 * columns. A structural change (columns, density) and a container resize still
 	 * re-fit. The initial fit is unaffected.
 	 * @defaultValue false
 	 */
 	freezeOnRowChange?: boolean
 	/**
-	 * Widths the consumer seeded (a restored/persisted `columnSizing`): their
-	 * columns start held at those widths — like a manual resize — so the fit
-	 * fills the rest around them instead of measuring over them. Empty (a
+	 * Widths the consumer seeded (a restored/persisted `columnSizing`). Their
+	 * columns start held at those widths, like a manual resize. The fit therefore
+	 * fills the rest around them, instead of measuring over them. Empty (a
 	 * first-time grid) leaves every column to auto-fit. Read once at mount.
 	 */
 	initialSizing?: Record<string, number>
 	/**
-	 * Set true by the autosizer around its own `setColumnSizing` writes so the
-	 * table hook can tell an internal content fit from a user resize and keep the
-	 * fit off the consumer's `columnSizing.onValueChange`. Owned by the caller.
+	 * The autosizer sets it true around its own `setColumnSizing` writes. The
+	 * table hook can then tell an internal content fit from a user resize, and
+	 * keep the fit off the consumer's `columnSizing.onValueChange`. Owned by the
+	 * caller.
 	 */
 	autoSizingRef?: RefObject<boolean>
 }
@@ -96,11 +98,11 @@ const EMPTY_MEASUREMENT: ColumnMeasurement = {
 }
 
 /**
- * The columns a fit measures uncapped: a user-invoked "Auto-size all columns"
- * (`emit`) lifts the runaway-cell cap on every data column — each first gets the
+ * The columns a fit measures uncapped. A user-invoked "Auto-size all columns"
+ * (`emit`) lifts the runaway-cell cap on every data column. Each first gets the
  * smallest width that shows its content whole, before any surplus levels the
- * rest up to fill the grid — while an automatic fit keeps the cap and returns
- * none. @internal
+ * rest up to fill the grid. An automatic fit keeps the cap and returns none.
+ * @internal
  */
 function uncappedColumns<T>(emit: boolean, columns: GridColumn<T>[]): Set<string> | undefined {
 	if (!emit) return undefined
@@ -110,11 +112,11 @@ function uncappedColumns<T>(emit: boolean, columns: GridColumn<T>[]): Set<string
 
 /**
  * Runs an autosizer `setColumnSizing` write. An automatic fit holds
- * `autoSizingRef` true around it, so the table hook's `onColumnSizingChange` —
- * invoked synchronously inside the write — can tell it from a user resize and
- * keep it off the consumer's `columnSizing.onValueChange`. A user-invoked fit
- * (`emit` — "Auto-size all columns") writes unflagged: it is a deliberate width
- * choice, persisted like a drag. @internal
+ * `autoSizingRef` true around it. The table hook's `onColumnSizingChange`,
+ * invoked synchronously inside the write, can therefore tell it from a user
+ * resize and keep it off the consumer's `columnSizing.onValueChange`. A
+ * user-invoked fit (`emit` — "Auto-size all columns") writes unflagged: it is a
+ * deliberate width choice, persisted like a drag. @internal
  */
 function writeAutoSize(
 	ref: RefObject<boolean> | undefined,
@@ -137,9 +139,10 @@ function writeAutoSize(
 }
 
 /**
- * The table's horizontal border chrome (px). Hairline `outline` borders render the
- * table a pixel or two past the summed column widths, which would raise a phantom
- * horizontal scrollbar if the columns filled the full width, so a fit reserves it.
+ * The table's horizontal border chrome (px). Hairline `outline` borders render
+ * the table a pixel or two past the summed column widths. That would raise a
+ * phantom horizontal scrollbar if the columns filled the full width, so a fit
+ * reserves it.
  * Kept out of `run` for its cognitive-complexity budget. @internal
  */
 function tableChrome(container: HTMLElement, totalSize: number): number {
@@ -151,10 +154,10 @@ function tableChrome(container: HTMLElement, totalSize: number): number {
 }
 
 /**
- * Whether `next` moves any column off `prev`. A height-only resize tick — or any
- * change landing on the same pixels — must not allocate a fresh sizing object and
- * re-render the head, body, and footer for nothing. Kept out of `run` for its
- * cognitive-complexity budget. @internal
+ * Whether `next` moves any column off `prev`. A height-only resize tick must not
+ * allocate a fresh sizing object and re-render the head, body, and footer for
+ * nothing. Nor must any change landing on the same pixels. Kept out of `run` for
+ * its cognitive-complexity budget. @internal
  */
 function sizingMoved(prev: Record<string, number>, next: Record<string, number>): boolean {
 	for (const id in next) {
@@ -167,21 +170,26 @@ function sizingMoved(prev: Record<string, number>, next: Record<string, number>)
 /**
  * Auto-sizes a resizable grid's data columns to their content within the
  * container width. Each pass measures the columns' intrinsic widths from the
- * rendered DOM (see {@link measureColumnIntrinsics}) and distributes the
- * available width across them (see {@link allocateColumnWidths}): columns size to
- * their content, a column whose data would truncate gains room while columns that
- * don't need it settle at a shared width, and when the content can't fit the
+ * rendered DOM (see {@link measureColumnIntrinsics}). It then distributes the
+ * available width across them (see {@link allocateColumnWidths}). Columns size to
+ * their content. A column whose data would truncate gains room, while columns
+ * that don't need it settle at a shared width. When the content can't fit, the
  * table overflows horizontally rather than shrinking below it. A single-word
  * header never truncates; a multi-word one can.
  *
- * Runs synchronously before paint (so the first frame carries real widths, not
- * the engine's default), again on container resize (`ResizeObserver`), when the
- * columns / density / rendered rows change, and once web fonts settle. It stands
- * down when the consumer controls `columnSizing` or the grid is not resizable.
+ * It runs synchronously before paint, so the first frame carries real widths
+ * rather than the engine's default. It runs again:
  *
- * A pass that finds no body cells — a loading skeleton, an empty result, a
- * windowed body whose rows haven't landed — measures no content, so every column
- * falls back to its header floor. That fit is provisional: it is never reused and
+ * - On container resize (`ResizeObserver`).
+ * - When the columns / density / rendered rows change.
+ * - Once web fonts settle.
+ *
+ * It stands down when the consumer controls `columnSizing` or the grid is not
+ * resizable.
+ *
+ * A pass that finds no body cells measures no content, so every column falls back
+ * to its header floor. That is a loading skeleton, an empty result, or a windowed
+ * body whose rows haven't landed. That fit is provisional. It is never reused and
  * never frozen, and `fitRenderedRows` re-fits from the body's own layout effect
  * the moment real rows render, before they paint. A grid whose rows arrive after
  * mount therefore shows its content widths in the first frame that shows the
@@ -189,13 +197,13 @@ function sizingMoved(prev: Record<string, number>, next: Record<string, number>)
  *
  * A `width`-seeded column holds its explicit width, sitting out the fit while the
  * rest fill around it. The first time the user manually resizes a column — a drag
- * or a keyboard nudge — the grid hands width control to the user: every column is
- * held where it sits (see {@link holdManualWidths}), so a resize stays confined to
- * the one column and never reflows the others, and the table then grows or shrinks
- * freely (trailing space or a horizontal scroll) rather than re-fitting. Auto-fit
- * re-arms only through `sizeToFit` (the "Auto-size all columns" action), which clears
- * every hold and re-fits; `resetColumn` re-fits a single column to its content
- * while the rest stay held.
+ * or a keyboard nudge — the grid hands width control to the user. Every column is
+ * held where it sits (see {@link holdManualWidths}). A resize therefore stays
+ * confined to the one column, and never reflows the others. The table then grows
+ * or shrinks freely (trailing space or a horizontal scroll), rather than
+ * re-fitting. Auto-fit re-arms only through `sizeToFit` (the "Auto-size all
+ * columns" action), which clears every hold and re-fits. `resetColumn` re-fits a
+ * single column to its content, while the rest stay held.
  *
  * @internal
  */
@@ -231,15 +239,15 @@ export function useGridColumnAutoSize<T>({
 	 * has.
 	 *
 	 * The synchronous fit below already keeps a *client-side* mount from flashing the
-	 * engine's default colgroup. A reload is the case it cannot reach: the browser paints
-	 * the server's HTML — whose widths are the declared ones, since no measurement has
-	 * happened yet — and only then does React hydrate and this fit correct them. That
+	 * engine's default colgroup. A reload is the case it cannot reach. The browser paints
+	 * the server's HTML, whose widths are the declared ones, since no measurement has
+	 * happened yet. Only then does React hydrate and this fit correct them. That
 	 * repaint is the column jump. Nothing can compute a content fit before the DOM
 	 * exists, so the fix is to not paint a width that is about to change.
 	 *
-	 * Flips on the first pass that measures real body cells, not merely the first pass:
-	 * a reload arrives with a cold query cache, so the fit at hydration sees only the
-	 * header and is provisional by the same test `freezeOnRowChange` uses. The consumer
+	 * Flips on the first pass that measures real body cells, not merely the first pass.
+	 * A reload arrives with a cold query cache. The fit at hydration therefore sees only
+	 * the header, and is provisional by the same test `freezeOnRowChange` uses. The consumer
 	 * supplies the escape for a grid that legitimately has no rows to measure.
 	 */
 	// Seeded from `enabled`, so a grid this hook never sizes is settled on the server too
@@ -266,7 +274,7 @@ export function useGridColumnAutoSize<T>({
 	const structSigRef = useRef<string>('')
 
 	// Rendered rows' fingerprint — count and end keys — so a page turn, filter,
-	// or sort that changes the visible rows re-measures (new content may be
+	// or sort that changes the visible rows re-measures (new content can be
 	// wider). Supplied by the caller (see the option) rather than read off
 	// `table.getRowModel()`, which would materialize the engine's row model on
 	// every mount of every resizable-by-default grid.
@@ -475,21 +483,21 @@ export function useGridColumnAutoSize<T>({
 		/*
 		 * Flushed, so the refitted columns land in the frame that resized the container.
 		 *
-		 * The table is `table-fixed` at a pixel width this hook computes — `tableWidth` and
-		 * every `<col>` come out of `setColumnSizing` — so between the container changing and
+		 * The table is `table-fixed` at a pixel width this hook computes. `tableWidth` and
+		 * every `<col>` come out of `setColumnSizing`. Between the container changing and
 		 * that state committing, the table is laid out for a width the page no longer has. An
 		 * ordinary `setState` here commits on a later frame, and something has to paint in
-		 * between: the table sitting narrow inside its box, or overflowing it. Anything that
-		 * resizes the container discretely shows that as a flash — a sidebar switching to its
-		 * floating variant, a docked panel opening beside the grid.
+		 * between. That is the table sitting narrow inside its box, or overflowing it.
+		 * Anything that resizes the container discretely shows that as a flash — a sidebar
+		 * switching to its floating variant, a docked panel opening beside the grid.
 		 *
 		 * A `ResizeObserver` callback runs after layout and before paint, and mutating the DOM
-		 * inside one re-runs layout in the same frame. So flushing here is the whole fix: the
-		 * frame that moves the container is the frame that carries the matching widths, which
+		 * inside one re-runs layout in the same frame. So flushing here is the whole fix. The
+		 * frame that moves the container is the frame that carries the matching widths. That
 		 * is the same before-paint guarantee the mount-time fit above already had.
 		 *
 		 * The cost is that a refit is now on the critical path of the frame rather than the
-		 * next one. That is the intended trade — the work is the same work, and a resize the
+		 * next one. That is the intended trade. The work is the same work, and a resize the
 		 * user has to watch settle is worse than one that takes a longer frame. A pass that
 		 * moves no width still writes no state (`sizingMoved`), so a height-only tick — rows
 		 * appended, the window growing vertically — flushes nothing.

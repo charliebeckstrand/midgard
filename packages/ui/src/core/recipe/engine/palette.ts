@@ -51,13 +51,13 @@ export type PalettePairs = Map<string, Map<string, ClassValue[]>>
 /**
  * Expands a palette config into the implicit `color` axis + compound rules,
  * alongside the nested {@link PalettePairs} lookup the compiled call path
- * reads — the flat rules stay for `.config` introspection.
+ * reads. The flat rules stay for `.config` introspection.
  *
  * The colour set is derived from the keys of the matrix's own entries, not a
- * fixed list: a kata reading the standard `iro.palette` expands over the five
+ * fixed list. A kata reading the standard `iro.palette` expands over the five
  * standard colours, while one reading `iro.spectrum` also picks up the
  * extended set. Overlay keys (synthetic values like `inherit`) join the axis
- * with a single class shared across every variant; a colour key carrying both
+ * with a single class shared across every variant. A colour key carrying both
  * a matrix rule and an overlay rule keeps them in that order.
  */
 export function expandPalette(config: PaletteConfig): {

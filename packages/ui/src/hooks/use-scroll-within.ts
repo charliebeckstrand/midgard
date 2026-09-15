@@ -1,6 +1,6 @@
 'use client'
 
-/** Where a node should land within the scroller, per axis. Mirrors native `scrollIntoView`. */
+/** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
 
 type ScrollWithinOptions = {
@@ -29,13 +29,13 @@ function isClipping(overflow: string) {
 
 /**
  * Nearest scrollable ancestor that actually overflows on a requested axis. Stops at an
- * ancestor that clips a requested axis (`overflow: hidden`/`clip`): nothing outside it can
- * bring the node into view, so walking further would scroll an outer container the caller
- * never meant to touch (e.g. a short sidebar inside a clipped frame scrolling the whole
- * page on mount).
+ * ancestor that clips a requested axis (`overflow: hidden`/`clip`). Nothing outside it can
+ * bring the node into view. A further walk would scroll an outer container the caller never
+ * meant to touch. A short sidebar inside a clipped frame, for example, would scroll the
+ * whole page on mount.
  *
  * @remarks Resolves ONE scroller. When a node's vertical and horizontal scrollers are
- * different ancestors, the nearer one wins and the other axis no-ops — the case this is
+ * different ancestors, the nearer one wins and the other axis no-ops. The case this is
  * written for is a single container that overflows both ways.
  * @internal
  */
@@ -61,8 +61,9 @@ function findScrollAncestor(node: HTMLElement, wantsInline: boolean): HTMLElemen
 }
 
 /**
- * Scroll position that puts `offset` at `alignment` along one axis, or `undefined` when the
- * axis was not asked for, or when `'nearest'` finds the node already fully visible.
+ * Scroll position that puts `offset` at `alignment` along one axis. The result is
+ * `undefined` when the axis was not asked for, or when `'nearest'` finds the node already
+ * fully visible.
  *
  * @internal
  */
@@ -141,9 +142,10 @@ function scrollWithin(node: HTMLElement | null, options: ScrollWithinOptions = {
  * Mirrors the `block`/`inline`/`behavior` options of native `scrollIntoView`.
  *
  * @returns A stable `(node, { block?, inline?, behavior? }?) => void`. It walks up to
- * the first ancestor that overflows on a requested axis and stops at any clipping
- * (`overflow: hidden`/`clip`) boundary, so a node in a non-overflowing wrapper never
- * scrolls the page. `inline` is opt-in: omit it and the horizontal position is untouched.
+ * the first ancestor that overflows on a requested axis, and stops at any clipping
+ * (`overflow: hidden`/`clip`) boundary. A node in a non-overflowing wrapper therefore
+ * never scrolls the page. `inline` is opt-in: omit it and the horizontal position is
+ * untouched.
  */
 export function useScrollWithin() {
 	return scrollWithin

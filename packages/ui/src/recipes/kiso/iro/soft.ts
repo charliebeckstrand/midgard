@@ -2,8 +2,8 @@
  * Iro soft: translucent fill palette. Background is the colour at 15%
  * opacity; text inherits the colour-axis text shade. Hover doubles the
  * opacity to 30%. `strong` is that same doubled rung, for fills a component
- * drives from its own state — a selected row, a chosen region — rather than
- * from a pointer being over it.
+ * drives from its own state (a selected row, a chosen region). A pointer over
+ * the element does not drive it.
  *
  * Layer: kiso · Concern: soft palette
  */

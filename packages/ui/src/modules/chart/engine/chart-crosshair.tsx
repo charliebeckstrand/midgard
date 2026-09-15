@@ -18,10 +18,10 @@ import { useChartHover, useChartTier } from './context'
 /**
  * The object form of a cartesian chart's hover crosshair: two rules, both on
  * unless overridden. `x` is the horizontal rule across the value axis, `y` the
- * vertical rule down the category axis; each defaults on, so set one `false` to
+ * vertical rule down the category axis. Each defaults on, so set one `false` to
  * draw only the other (both `false` draws none). Without `snap` each rule
- * tracks the pointer exactly; with it the pair meets the nearest data point —
- * the horizontal at that point's value, the vertical at its category — and the
+ * tracks the pointer exactly. With it the pair meets the nearest data point:
+ * the horizontal at that point's value, the vertical at its category. The
  * tooltip rides that same intersection.
  *
  * @remarks The `crosshair` prop also takes `true` as shorthand for both rules.
@@ -39,9 +39,9 @@ export type Crosshair = {
 	y?: boolean
 	/**
 	 * Snap the rules to the nearest data point instead of tracking the pointer.
-	 * The tooltip snaps with them: it reads the nearest point — in a multi-series
-	 * chart, the line the pointer sits closest to — anywhere in the plot, rather
-	 * than only over a mark.
+	 * The tooltip snaps with them: it reads the nearest point anywhere in the
+	 * plot, rather than only over a mark. In a multi-series chart, that point is
+	 * on the line the pointer sits closest to.
 	 * @defaultValue false
 	 */
 	snap?: boolean
@@ -75,10 +75,10 @@ export type ChartCrosshairProps = {
 
 /**
  * Resolve the `crosshair` prop to the concrete rules a chart draws. `true` and
- * an object both start from both rules on; `x` and `y` subtract from that base,
+ * an object both start from both rules on. `x` and `y` subtract from that base,
  * so an object drops a rule only where it sets one `false`. Returns `null` when
- * nothing would draw — the prop is absent or `false`, or both rules are off —
- * so a chart gates the overlay on one truthy check.
+ * nothing would draw: the prop is absent or `false`, or both rules are off. A
+ * chart therefore gates the overlay on one truthy check.
  *
  * @internal
  */
@@ -96,8 +96,8 @@ export function resolveCrosshair(
 }
 
 /**
- * Whether a resolved crosshair snaps to the nearest point — so the tooltip reads
- * off the marks too, and a click there pins the snapped band rather than
+ * Whether a resolved crosshair snaps to the nearest point. The tooltip then
+ * reads off the marks too, and a click there pins the snapped band rather than
  * dismissing. `null` (no crosshair) never snaps.
  *
  * @internal
@@ -108,18 +108,18 @@ export function crosshairSnaps(crosshair: ResolvedCrosshair | null): boolean {
 
 /**
  * The hover crosshair: an `x` rule across the value axis and a `y` rule down the
- * category axis, drawing whichever rules the resolved crosshair leaves on. Each
- * rule is projected through the orientation, so a horizontal chart transposes
- * both — the value rule runs vertically, the category rule horizontally.
- * Without `snap` a rule tracks the pointer exactly; with it the pair meets the
- * nearest data point — the value rule at that point's value, the category rule
- * at its band center. Both clamp to the plot rect and dash alike. Reads only the
- * hover context, so it re-renders alone — never the marks.
+ * category axis. It draws whichever rules the resolved crosshair leaves on.
+ * Each rule is projected through the orientation, so a horizontal chart
+ * transposes both — the value rule runs vertically, the category rule
+ * horizontally. Without `snap` a rule tracks the pointer exactly. With it the
+ * pair meets the nearest data point: the value rule at that point's value, the
+ * category rule at its band center. Both clamp to the plot rect and dash alike.
+ * Reads only the hover context, so it re-renders alone — never the marks.
  *
  * Self-gating at spark through {@link ChartTierContext}: a sparkline is
- * read-only, so no rule draws even off a hover held from before a resize
- * crossed the spark boundary — a chart mounts it wherever its `crosshair`
- * resolves and leaves the tier to the frame.
+ * read-only. No rule draws, even off a hover held from before a resize crossed
+ * the spark boundary. A chart mounts it wherever its `crosshair` resolves, and
+ * leaves the tier to the frame.
  *
  * @internal
  */

@@ -2,11 +2,12 @@
  * Which palette slot each registered overlay paints in, continuing the fixed
  * categorical order after the region categories.
  *
- * Held apart from the plat that owns the ledger because the answer has three
- * readers — the marks' own paint, the legend's swatches, and the tooltip's — and
- * because a group is one entry rather than one mark: the rule that its members
- * share a colour is the rule that makes a merged entry read as one thing, and it
- * belongs beside the ledger it reads rather than inline in the assembly.
+ * Held apart from the plat that owns the ledger, for two reasons. The answer
+ * has three readers: the marks' own paint, the legend's swatches, and the
+ * tooltip's. A group is also one entry rather than one mark. The rule that its
+ * members share a colour is the rule that makes a merged entry read as one
+ * thing. It belongs beside the ledger it reads, rather than inline in the
+ * assembly.
  */
 
 import type { MapSeriesColor } from '../../../../recipes/kata/map'
@@ -16,10 +17,10 @@ import type { MapOverlayEntry } from './entry'
 /**
  * The slot colour every registered mark paints in, keyed by mark id.
  *
- * The order advances per legend entry, not per mark: a group's first member
- * claims the slot and its siblings read that same colour back, so a zone and the
- * depot inside it can never sit under one label in two colours, and a group never
- * eats a palette slot per member. An explicit `color` still occupies its
+ * The order advances per legend entry, not per mark. A group's first member
+ * claims the slot and its siblings read that same colour back. A zone and the
+ * depot inside it can therefore never sit under one label in two colours. A
+ * group never eats a palette slot per member. An explicit `color` still occupies its
  * position, so naming one mark's colour never shifts what its siblings take.
  *
  * @param entries - The ledger, in registration order.

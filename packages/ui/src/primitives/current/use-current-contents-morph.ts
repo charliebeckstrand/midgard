@@ -18,9 +18,13 @@ function tallest(boxes: Map<Element, BorderBox>): number {
 
 /**
  * Folds a batch of observer entries into the tracked boxes and classifies the
- * change: `reflow` when any panel's width moved (the container is being
- * resized; height follows through layout), `discrete` when a panel's height
- * moved on its own. A target's first delivery is its baseline, not a change.
+ * change:
+ *
+ * - `reflow`, when any panel's width moved: the container is being resized, and
+ *   height follows through layout;
+ * - `discrete`, when a panel's height moved on its own.
+ *
+ * A target's first delivery is its baseline, not a change.
  */
 function classifyEntries(
 	boxes: Map<Element, BorderBox>,
@@ -48,21 +52,21 @@ function classifyEntries(
 
 /**
  * Discrete height morphs for a fading current-panel container. At rest the
- * container holds `height: auto`, so a window drag — where every panel height
- * change is coupled to a width change — reflows through CSS with no observer
+ * container holds `height: auto`. A window drag couples every panel height
+ * change to a width change. Such a drag reflows through CSS, with no observer
  * state and no re-render at all. Only a discrete height change morphs: the
  * `data-current` set swapping (a panel switch) or a panel growing at constant
  * width (content expanding in place). The morph pins the container at its
- * current height before the frame paints and tweens the inline style straight
- * to the target, all outside React: a render must never own the in-flight
- * height, because re-rendering would stamp the resting value back over the pin
+ * current height before the frame paints. It then tweens the inline style
+ * straight to the target, all outside React. A render must never own the
+ * in-flight height. A re-render would stamp the resting value back over the pin,
  * and snap the box before the tween starts. A completed tween — or a
  * width-coupled change arriving mid-morph, which cancels it — clears the
  * inline height, handing the box back to `auto` and layout.
  *
- * Reduced motion opts the whole observer out: the container just reflows to
- * each panel switch while the crossfade (which `MotionConfig` keeps under
- * reduced motion) still plays.
+ * Reduced motion opts the whole observer out. The container just reflows to
+ * each panel switch, while the crossfade still plays (`MotionConfig` keeps it
+ * under reduced motion).
  *
  * @internal
  */

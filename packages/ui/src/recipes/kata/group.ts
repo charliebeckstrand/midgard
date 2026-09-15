@@ -4,7 +4,7 @@ import { type GroupOrientation, tsunagi } from '../kiso'
  * Both frames, joined once at module load.
  *
  * A string rather than the array this used to build per call, because `cn` can only
- * memoize a call whose every argument is keyable — an array sends the whole thing to the
+ * memoize a call whose every argument is keyable. An array sends the whole thing to the
  * plain `twMerge` (`core/cn.ts`, `keyable`). The frame is eleven arbitrary-variant tsunagi
  * selectors, so that merge is not cheap, and every `Group` in the app was paying it on every
  * render. Nothing here varies at runtime, so there was never a reason to rebuild it.

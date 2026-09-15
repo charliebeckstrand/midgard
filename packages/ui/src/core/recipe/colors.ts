@@ -2,10 +2,12 @@
  * The palette colour sets.
  *
  * `colors` is the **standard** palette every chromatic kata carries by
- * default; `extendedColors` is an **opt-in** set a kata pulls in through
- * `iro.spectrum`. The recipe engine derives a palette's `color` axis from
- * the keys of the matrix it's handed (`engine/palette.ts`), so a kata that
- * reads the wider bundle gains the extra values with no engine change.
+ * default. `extendedColors` is an **opt-in** set a kata pulls in through
+ * `iro.spectrum`.
+ *
+ * The recipe engine derives a palette's `color` axis from the keys of the
+ * matrix it's handed (`engine/palette.ts`). A kata that reads the wider bundle
+ * therefore gains the extra values with no engine change.
  *
  * Adding a standard colour: append to `colors`, then add a row to every
  * per-colour map in `iro/*`. Adding an extended colour: append to

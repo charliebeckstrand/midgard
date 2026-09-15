@@ -1,8 +1,12 @@
 /**
- * Pure aggregation for the grid's group-header and total rows: the shared
- * value accessor, the built-in reducers, the default formatting, and the
- * label-span math the aggregate rows lay out with. Framework-free so the
- * reducers are unit-testable in isolation.
+ * Pure aggregation for the grid's group-header and total rows:
+ *
+ * - The shared value accessor.
+ * - The built-in reducers.
+ * - The default formatting.
+ * - The label-span math the aggregate rows lay out with.
+ *
+ * Framework-free so the reducers are unit-testable in isolation.
  */
 
 import type { ReactNode } from 'react'
@@ -18,11 +22,11 @@ export function hasAggregation<T>(columns: GridColumn<T>[]): boolean {
 
 /**
  * The column's finite numeric values across `rows`, read through the same
- * {@link parseNumeric} that sort and filter use — so money, comma-grouped, and
- * percent strings that sort as numbers aggregate as numbers too. Entries that
- * don't parse — text, blank, and whitespace-only cells — drop out rather than
- * coercing to `0` (as `Number(null)` / `Number('  ')` would), which would pull a
- * sum, average, or minimum toward zero.
+ * {@link parseNumeric} that sort and filter use. Money, comma-grouped, and
+ * percent strings that sort as numbers thus aggregate as numbers too. Entries
+ * that don't parse — text, blank, and whitespace-only cells — drop out rather
+ * than coercing to `0` (as `Number(null)` / `Number('  ')` would). A zero would
+ * pull a sum, average, or minimum toward it.
  *
  * @internal
  */
@@ -44,7 +48,7 @@ function numericValues<T>(column: GridColumn<T>, rows: T[]): number[] {
  * Aggregates one column over `rows`. A custom function receives the rows
  * themselves — an aggregate spanning several fields (a weighted ratio) needs
  * row access, not one column's values. A built-in name reduces the column's
- * numeric values, skipping entries that don't parse; an empty numeric set
+ * numeric values, skipping entries that don't parse. An empty numeric set
  * yields `null` — a blank cell, never a fabricated zero — while `count` counts
  * the rows regardless.
  *
@@ -76,9 +80,12 @@ export function aggregateColumn<T>(column: GridColumn<T>, rows: T[]): unknown {
 
 /**
  * Default aggregate formatting, where a column has no
- * {@link GridColumn.aggCell}: locale numbers (integers plain, fractions to two
- * places), strings as they are, `null` / `undefined` as an empty cell,
- * anything else through `String`.
+ * {@link GridColumn.aggCell}:
+ *
+ * - Locale numbers (integers plain, fractions to two places).
+ * - Strings as they are.
+ * - `null` / `undefined` as an empty cell.
+ * - Anything else through `String`.
  *
  * @internal
  */
@@ -96,8 +103,9 @@ export function formatAggregate(value: unknown): string {
 
 /**
  * The leading label span on an aggregate row: the visible columns before the
- * first aggregated one — where the "Total" (or group) label sits — at least
- * one so the label always has a cell, even when the first column aggregates.
+ * first aggregated one, where the "Total" (or group) label sits. The span is at
+ * least one, so the label always has a cell, even when the first column
+ * aggregates.
  *
  * @internal
  */
@@ -109,13 +117,13 @@ export function aggregateLabelSpan<T>(columns: GridColumn<T>[]): number {
 
 /**
  * One column's rendered aggregate: its {@link GridColumn.aggCell} over the
- * value and rows, else the default formatting; `null` for a column with no
- * aggregation, so its cell stays empty. Client grouping and totals compute the
- * value over `rows`; manual (server) grouping passes the group-header row as
- * `headerRow` instead, reading the backend figure off the row itself — through
- * {@link columnAccessor}, the same `value`-accessor-else-field path every
- * client aggregate reads — with `rows` empty by contract (the children are not
- * loaded).
+ * value and rows, else the default formatting. A column with no aggregation
+ * yields `null`, so its cell stays empty. Client grouping and totals compute
+ * the value over `rows`. Manual (server) grouping passes the group-header row
+ * as `headerRow` instead, and reads the backend figure off the row itself. That
+ * read goes through {@link columnAccessor}, the same
+ * `value`-accessor-else-field path every client aggregate reads, with `rows`
+ * empty by contract (the children are not loaded).
  *
  * @internal
  */

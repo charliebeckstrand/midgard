@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 
 /**
- * A `localStorage`-backed choice among `options`. Reads the stored value on
- * mount, falls back to `fallback` when it is absent or no longer an option,
- * and writes every change back under `key`.
+ * A `localStorage`-backed choice among `options`. It reads the stored value on
+ * mount, and falls back to `fallback` when that value is absent or no longer an
+ * option. Every change writes back under `key`.
  */
 export function usePersistedChoice<T extends string>(
 	key: string,

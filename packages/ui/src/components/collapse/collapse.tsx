@@ -37,10 +37,10 @@ export type CollapseProps = {
 	 *
 	 * @remarks
 	 * Defaults to `active` — the panel is unmounted while closed, so reopening
-	 * resets whatever state it held. `always` mounts it up front and `lazy` on
-	 * first open; either way a closed panel then rests in
-	 * `<Activity mode="hidden">` with its state preserved and effects torn down,
-	 * dropping into the hold once the close animation lands.
+	 * resets whatever state it held. `always` mounts it up front, and `lazy` on
+	 * first open. Either way a closed panel then rests in
+	 * `<Activity mode="hidden">` with its state preserved and effects torn down.
+	 * It drops into the hold once the close animation lands.
 	 *
 	 * @defaultValue 'active'
 	 */

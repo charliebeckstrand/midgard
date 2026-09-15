@@ -1,26 +1,27 @@
 /**
  * Which geography a territory is drawn against. A broker states coverage in ZIP
- * codes, and a code names no state on its own — so the states come from the
- * ground the codes cover, and the map draws those states split into their
+ * codes, and a code names no state on its own. The states therefore come from
+ * the ground the codes cover, and the map draws those states split into their
  * counties.
  *
  * Each covered code is placed rather than the merged territory, and that is the
  * whole reason this pass reads `MapZipArea.features` instead of its polygons. A
- * territory along a state line is one shape whose centre sits in one state; its
+ * territory along a state line is one shape whose centre sits in one state. Its
  * codes sit in both, and a broker working that line covers both. Placing the
  * codes names both states, and placing the merged shape would name one.
  *
  * Most codes are placed without being measured at all. Every region whose box
- * meets a code's box is a region that code could sit in, and where all of them
- * agree on one state, no measurement can name another — so the code is settled
- * for the cost of two boxes. Only a code whose neighbourhood spans two states
+ * meets a code's box is a region that code could sit in. Where all of them
+ * agree on one state, no measurement can name another. The code is therefore
+ * settled for the cost of two boxes. Only a code whose neighbourhood spans two
+ * states
  * reaches the exact placement below. Against the 2010 Illinois ZCTA file, 1,187
  * of 1,384 codes settle on the box alone.
  *
  * That is not only the faster path, it is the sounder one. The exact placement
- * reads a code's centroid, and a centroid is a point: it can land on water the
- * region atlas does not draw — Chicago's 60611 centres in Lake Michigan — and a
- * ring degenerate at the atlas's own precision has no centroid at all (61625
+ * reads a code's centroid, and a centroid is a point. It can land on water the
+ * region atlas does not draw: Chicago's 60611 centres in Lake Michigan. A ring
+ * degenerate at the atlas's own precision has no centroid at all (61625
  * measures `NaN`). Both place correctly on their boxes, and both would otherwise
  * place nowhere.
  *
@@ -99,20 +100,19 @@ export function coverageGroups(
  * The one group a code can possibly belong to, or `null` where more than one is
  * still open. The exact placement below runs only for the `null` answers.
  *
- * A code sits on ground some region covers, and every region whose box meets the
- * code's box is named here — so where all of those agree on a group, the code is
- * in that group and no measurement can say otherwise. This never names a group a
- * measurement would refuse; where the two differ, it is because the measurement
- * named nothing at all (see the note at the top of this file), and this named the
- * one group that was open.
+ * A code sits on ground some region covers, and every region whose box meets
+ * the code's box is named here. Where all of those agree on a group, the code
+ * is in that group, and no measurement can say otherwise. This never names a
+ * group a measurement would refuse. Where the two differ, it is because the
+ * measurement named nothing at all (see the note at the top of this file). This
+ * then named the one group that was open.
  *
  * It is worth the check because the exact placement reads a spherical centroid
- * over every vertex of a code's rings, which is the most expensive thing in the
- * pass by an order of magnitude — and because a code near no border, which is
- * most of them, is decided here for the cost of a box. It also answers for the
- * two kinds of code a centroid cannot place at all: one that centres on water
- * outside every region, and one whose rings are degenerate enough to have no
- * centroid.
+ * over every vertex of a code's rings. That is the most expensive thing in the
+ * pass by an order of magnitude. A code near no border, which is most of them,
+ * is also decided here for the cost of a box. It also answers for the two kinds
+ * of code a centroid cannot place at all. One centres on water outside every
+ * region, and one has rings degenerate enough to have no centroid.
  *
  * @internal
  */
@@ -145,13 +145,13 @@ function forcedGroup(
 /**
  * The regions belonging to a set of groups, as the geography a `MapPlat` frames
  * itself to. The plat fits every geography it is handed, so handing it one
- * state's counties draws that state split into them — the drill-down the module
- * already frames a picked region with, and no new projection rule.
+ * state's counties draws that state split into them. It is the drill-down the
+ * module already frames a picked region with, and no new projection rule.
  *
  * @param regions - Every region in the atlas.
  * @param groups - The groups to keep.
  * @param regionGroup - How a region names its group.
- * @returns The kept regions, or `null` where no group was named — a territory
+ * @returns The kept regions, or `null` where no group was named. A territory
  * that placed nowhere frames nothing, and the caller draws the whole atlas or
  * an empty map as it prefers.
  *

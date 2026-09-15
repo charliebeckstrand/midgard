@@ -9,7 +9,7 @@ import type { AccessibleName } from '../../types'
  * @remarks
  * RadioGroup carries no `name` binding, and neither does {@link Radio}. A radio
  * group is one value across N inputs, so the §7.2 per-control binding does not
- * apply: `name` on a {@link Radio} is the native grouping name that makes the
+ * apply. `name` on a {@link Radio} is the native grouping name that makes the
  * inputs one set. Bind the group's value through a {@link Field} instead.
  */
 // An enclosing `<fieldset>`'s `<legend>` does not name a `radiogroup` div;

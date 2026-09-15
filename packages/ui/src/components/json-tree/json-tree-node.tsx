@@ -27,9 +27,9 @@ type JsonNodeProps = {
 }
 
 /**
- * Resolves a branch's open state by precedence: a filtered-out empty branch
- * stays closed, then the user's explicit toggle, then the search auto-open, then
- * the depth default. Controlled trees defer entirely to the expanded set.
+ * Resolves a branch's open state by precedence. A filtered-out empty branch
+ * stays closed. Then comes the user's explicit toggle, then the search
+ * auto-open, then the depth default. Controlled trees defer entirely to the expanded set.
  *
  * @internal
  */

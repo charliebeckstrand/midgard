@@ -62,8 +62,8 @@ function sameCell(a: HeatmapHover['cell'], b: HeatmapHover['cell']): boolean {
 }
 
 /**
- * Owns the pointer readout so a pointer move re-renders only the tooltip: the
- * cells and axes are stable children and bail, the tooltip alone reads the
+ * Owns the pointer readout so a pointer move re-renders only the tooltip. The
+ * cells and axes are stable children and bail, and the tooltip alone reads the
  * hover. Mirrors the map's and cartesian frame's confined-hover pattern.
  *
  * @internal
@@ -102,8 +102,8 @@ const [HeatmapFocusContext, useHeatmapFocus] = createContext<HeatmapFocus>('Heat
 
 /**
  * Owns the legend's probed bin, kept off the hover context so a pointer move
- * over the plot never touches it: the cells subscribe here alone, so only
- * probing the legend — not hovering the grid — repaints them to dim.
+ * over the plot never touches it. The cells subscribe here alone, so only a
+ * legend probe — not a grid hover — repaints them to dim.
  *
  * @internal
  */
@@ -164,8 +164,9 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 
 /**
  * The legend's hover arrow: it marks the exact value of the cell the pointer
- * is on, its own {@link useHeatmapHover} consumer so a grid hover re-renders
- * only the glyph. The choropleth's region arrow, keyed to a cell instead.
+ * is on. It is its own {@link useHeatmapHover} consumer, so a grid hover
+ * re-renders only the glyph. The choropleth's region arrow, keyed to a cell
+ * instead.
  *
  * @internal
  */
@@ -199,7 +200,7 @@ type HeatmapRangeLegendProps = RangeScale & {
 
 /**
  * The heatmap's range legend: the shared {@link RangeLegend} scale-bar slider,
- * wired to the grid — its arrow tracks the pointed cell's bin, and probing the
+ * wired to the grid. Its arrow tracks the pointed cell's bin, and a probe of the
  * bar emphasises that class's cells through the focus context, dimming the rest.
  * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
  * the bar's resolved placement — vertical beside the plot, horizontal above or
@@ -241,16 +242,16 @@ type HeatmapHitLayerProps = {
 	xBand: ReturnType<typeof bandScale>
 	yBand: ReturnType<typeof bandScale>
 	/**
-	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
-	 * — which also gives the layer a pointer cursor and toggles the readout off on
-	 * a second click of the same cell.
+	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`.
+	 * A pinning click also gives the layer a pointer cursor, and toggles the
+	 * readout off on a second click of the same cell.
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
 }
 
 /**
- * The transparent rectangle over the plot that feeds the hover context: the
+ * The transparent rectangle over the plot that feeds the hover context. The
  * pointer resolves to its `[row, col]` through the band arithmetic, so a reader
  * aims at a cell without the marks repainting. Under the `'click'` trigger it
  * pins the pointed cell instead — a second click of the same cell clears it —
@@ -587,18 +588,19 @@ type HeatmapFigureProps = {
 }
 
 /**
- * The plot and the range bar arranged by placement: a side (vertical) rail bands
- * beside the plot in a row — a left rail reversing it rather than moving in the
- * DOM — a stacked (horizontal) bar bands above or below. Kept off
+ * The plot and the range bar arranged by placement. A side (vertical) rail bands
+ * beside the plot in a row, with a left rail reversing it rather than moving in
+ * the DOM. A stacked (horizontal) bar bands above or below. Kept off
  * {@link HeatmapChart} so its render stays a thin assembly of parts, the way the
  * map frame keeps its own layout.
  *
- * One figure div, keyed children: the placement is measured-width-driven (the
- * rail drops to a bottom band across the compact boundary), so a flip re-arranges
- * this tree at runtime. The keys make React *move* the plot node through a flip
- * rather than recreate it positionally — the plot frame's ResizeObserver is bound
- * to that node, and a recreated node would strand the observer on the detached
- * one, freezing the drawing at its last committed size while the box resizes on.
+ * One figure div, keyed children. The placement is measured-width-driven (the
+ * rail drops to a bottom band across the compact boundary), so a flip
+ * re-arranges this tree at runtime. The keys make React *move* the plot node
+ * through a flip, rather than recreate it positionally. The plot frame's
+ * ResizeObserver is bound to that node. A recreated node would strand the
+ * observer on the detached one, freezing the drawing at its last committed size
+ * while the box resizes on.
  *
  * @internal
  */
@@ -624,10 +626,10 @@ function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
 /**
  * A heatmap: a grid of cells across two categorical axes, each shaded by a
  * numeric value along a sequential colour scale. The two-categorical member of
- * the chart family — it reuses the shared plot frame, band scales, and axis
+ * the chart family. It reuses the shared plot frame, band scales, and axis
  * chrome, and the same data-driven colour scale the {@link ChoroplethChart}
  * shades regions with. Cells with no matching row take the neutral no-data
- * fill; a hover tooltip names the pointed cell and a visually-hidden data table
+ * fill. A hover tooltip names the pointed cell, and a visually-hidden data table
  * carries full value parity for assistive tech.
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`

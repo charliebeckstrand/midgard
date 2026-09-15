@@ -1,10 +1,13 @@
 /**
  * Map kata: object-literal surface for the geography map module. The series
- * palette, legend chrome, and readout inks come straight from `kata/chart` —
- * the two data-viz modules read as one colour system, and the CVD-validated
- * slot order must never fork — with the map's own region tokens beside them:
- * the no-data fill, the surface-colour boundary seam, the frame chrome, and the
- * hover and de-emphasis treatments.
+ * palette, legend chrome, and readout inks come straight from `kata/chart`. The
+ * two data-viz modules read as one colour system, and the CVD-validated slot
+ * order must never fork. The map's own region tokens sit beside them:
+ *
+ * - The no-data fill.
+ * - The surface-colour boundary seam.
+ * - The frame chrome.
+ * - The hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
 import { kokkaku, sen, ugoki } from '../kiso'
@@ -17,8 +20,8 @@ export type MapSeriesColor = ChartColorSlot
 const CLICKABLE = 'cursor-pointer'
 
 /**
- * The map's one selection ink. Foreground ink, not a palette slot: a mark in one
- * of the eight categorical hues would read as a ninth category, and the neutral
+ * The map's one selection ink. Foreground ink, not a palette slot. A mark in one
+ * of the eight categorical hues would read as a ninth category. The neutral
  * holds its contrast over every slot, over the no-data fill, and over the
  * geography an overlay draws across alike.
  */
@@ -27,23 +30,23 @@ const SELECTED = mode('stroke-zinc-900', 'dark:stroke-white')
 export const k = {
 	/**
 	 * The pointer affordance on a mark that answers a click: an overlay's hit
-	 * shape, which carries it per shape because a mark draws at most three, where
-	 * the region layer rides one group over thousands of paths (`region.clickable`,
-	 * the same token).
+	 * shape. It carries it per shape, because a mark draws at most three. The
+	 * region layer instead rides one group over thousands of paths
+	 * (`region.clickable`, the same token).
 	 */
 	clickable: CLICKABLE,
 	/**
-	 * Takes a mark's hit circle from the coarse reach its `r` attribute carries —
-	 * 44px for a finger, WCAG 2.5.5's enhanced target — down to the fine-pointer
-	 * one, in the one form an SVG shape allows: only CSS can read the input
-	 * modality. `dotHitProps` sets the radius itself on {@link k.hitRadius}, and
-	 * carries this class on the dots that have ground to give back — a dot standing
-	 * clear of every zone and every neighbour keeps the coarse target on both
-	 * pointers.
+	 * Takes a mark's hit circle from the coarse reach its `r` attribute carries,
+	 * down to the fine-pointer one. That coarse reach is 44px for a finger, WCAG
+	 * 2.5.5's enhanced target. It is the one form an SVG shape allows, because only
+	 * CSS can read the input modality. `dotHitProps` sets the radius itself on
+	 * {@link k.hitRadius}, and carries this class on the dots that have ground to
+	 * give back. A dot standing clear of every zone and every neighbour keeps the
+	 * coarse target on both pointers.
 	 *
-	 * It is what lets a small area mark be pointed at: a `MapGeofence` drawn tight
-	 * around a `MapPoint` sits wholly inside a finger-sized circle, so without this
-	 * the dot claims the zone's whole face and the two can never be told apart. The
+	 * It is what lets a small area mark be pointed at. A `MapGeofence` drawn tight
+	 * around a `MapPoint` sits wholly inside a finger-sized circle. Without this
+	 * the dot claims the zone's whole face, and the two can never be told apart. The
 	 * mouse target can sit under WCAG 2.5.8's 24px minimum deliberately, and
 	 * `POINT_HIT_RADIUS_FINE` states why.
 	 *
@@ -55,15 +58,15 @@ export const k = {
 	hitFine: 'pointer-fine:[r:var(--map-hit-radius,5.5px)]',
 	/**
 	 * The custom property {@link k.hitFine} reads its radius from: what the ground
-	 * under the dot can spare it, divided by the plat's zoom scale so the target
-	 * holds one device-pixel size at every scale. Named here beside the class that
-	 * reads it, so the setter and the reader hold one spelling.
+	 * under the dot can spare it. That is divided by the plat's zoom scale, so the
+	 * target holds one device-pixel size at every scale. Named here beside the
+	 * class that reads it, so the setter and the reader hold one spelling.
 	 */
 	hitRadius: '--map-hit-radius',
 	/**
-	 * The standing pick's ink, on an overlay mark's halo — the same token the
-	 * region ring takes (`region.selected`), so one map never marks its geography
-	 * and its overlays in two different colours.
+	 * The standing pick's ink, on an overlay mark's halo. It is the same token the
+	 * region ring takes (`region.selected`). One map therefore never marks its
+	 * geography and its overlays in two different colours.
 	 */
 	selected: SELECTED,
 	/** Shared data-viz palette: same slots, same order, same validation as `kata/chart`. */
@@ -82,7 +85,7 @@ export const k = {
 		/** Pointer emphasis on the hovered region. */
 		hover: 'hover:brightness-110',
 		/**
-		 * The pointer affordance on a clickable map's region layer — every
+		 * The pointer affordance on a clickable map's region layer. Every
 		 * region is a target, so it rides the group and inherits down rather
 		 * than repeating on thousands of paths. The same token as the shared
 		 * {@link k.clickable} an overlay mark carries; kept here so the region
@@ -90,22 +93,22 @@ export const k = {
 		 */
 		clickable: CLICKABLE,
 		/**
-		 * The region layer while its VALUES are still loading — the shapes are drawn and
+		 * The region layer while its VALUES are still loading. The shapes are drawn and
 		 * their numbers are not in yet, so every one of them holds the no-data fill.
 		 *
 		 * On the group, so it inherits to every path and thousands of regions carry no
-		 * class of their own — the same reason the cursor rides the group. Gated to
-		 * `motion-safe`, with a standing dim in its place for the reader who asked for
-		 * less motion and never both, since the pulse already troughs to that opacity —
-		 * the pair `kata/grid`'s `body.settling` and `kata/chat-message`'s `streaming`
-		 * carry, because a loading state that renders as nothing at all for that reader
-		 * is the grey map this token exists to disambiguate.
+		 * class of their own. That is the same reason the cursor rides the group. Gated
+		 * to `motion-safe`, with a standing dim in its place for the reader who asked
+		 * for less motion. It is never both, since the pulse already troughs to that
+		 * opacity. That is the pair `kata/grid`'s `body.settling` and
+		 * `kata/chat-message`'s `streaming` carry. A loading state that renders as
+		 * nothing at all for that reader is the grey map this token exists to disambiguate.
 		 *
-		 * Distinct from {@link MapSkeleton}, which stands in for a plat with no ATLAS: there
-		 * the frame is reserved and nothing is drawn, here the geography is drawn and only
-		 * the paint is pending. Without this the two are indistinguishable on screen — a
-		 * fully grey map reads as "nobody covers anywhere", which is a statement about
-		 * coverage rather than about a request in flight.
+		 * Distinct from {@link MapSkeleton}, which stands in for a plat with no ATLAS.
+		 * There the frame is reserved and nothing is drawn. Here the geography is drawn,
+		 * and only the paint is pending. Without this the two are indistinguishable on
+		 * screen. A fully grey map reads as "nobody covers anywhere", which is a
+		 * statement about coverage rather than about a request in flight.
 		 */
 		pending: [ugoki.css.pulse, 'motion-reduce:opacity-50'],
 		/**
@@ -121,11 +124,11 @@ export const k = {
 		selected: SELECTED,
 	},
 	/**
-	 * The frame chrome, on the chart's own chrome inks: the graticule takes the
-	 * gridline hairline and the sphere outline the axis baseline — a step firmer,
-	 * the relation the two hold on every chart — so a dashboard's charts and maps
-	 * rule their frames in one ink. Both are recessive under the marks, and both
-	 * draw beneath the regions.
+	 * The frame chrome, on the chart's own chrome inks. The graticule takes the
+	 * gridline hairline, and the sphere outline the axis baseline. That is a step
+	 * firmer, the relation the two hold on every chart. A dashboard's charts and
+	 * maps therefore rule their frames in one ink. Both are recessive under the
+	 * marks, and both draw beneath the regions.
 	 */
 	chrome: {
 		/** Meridian and parallel hairlines: the chart gridline. */
@@ -135,23 +138,26 @@ export const k = {
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the
-	 * pointed mark on the map itself: everything outside it dims, the
+	 * pointed mark on the map itself. Everything outside it dims, and the
 	 * emphasised mark holds. On a wrapper (an overlay's, or the whole region
-	 * layer's recede group), so motion's inline opacity composes — and so a
-	 * county atlas fades as one transition, never one per path: thousands of
-	 * simultaneous opacity transitions priced a legend focus at hundreds of
-	 * milliseconds of per-frame compositing.
+	 * layer's recede group), so motion's inline opacity composes. A county atlas
+	 * also fades as one transition, never one per path. Thousands of simultaneous
+	 * opacity transitions priced a legend focus at hundreds of milliseconds of
+	 * per-frame compositing.
 	 */
 	group: (dimmed: boolean) => ['transition-opacity', dimmed ? 'opacity-25' : ''],
 	/** Keyboard focus ring — the shared accent outline, on the navigable plot region. */
 	focus: sen.focus.ring,
 	/**
 	 * The legend's reserved box, mounted before any button registers so the
-	 * frame never shifts as entries land: the `row` placements (top / bottom,
-	 * and every placement stacked below `lg`) hold one item-row of height,
-	 * and the side `panel` holds a fixed column width from `lg` — a label too
-	 * wide for it clips, revealing itself on hover — so the plot's width never
-	 * depends on what has registered.
+	 * frame never shifts as entries land:
+	 *
+	 * - The `row` placements (top / bottom, and every placement stacked below
+	 *   `lg`) hold one item-row of height.
+	 * - The side `panel` holds a fixed column width from `lg`. A label too wide
+	 *   for it clips, revealing itself on hover.
+	 *
+	 * The plot's width therefore never depends on what has registered.
 	 */
 	legendBox: {
 		row: 'min-h-4',

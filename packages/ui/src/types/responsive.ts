@@ -10,14 +10,14 @@ export type MinBreakpoint = Exclude<Breakpoint, 'initial'>
 /**
  * Where each breakpoint starts, as Tailwind's own `@theme` declares it.
  *
- * The same scale as the `sm:` / `lg:` prefixes above, in the same unit, so a question asked
- * in JavaScript (`useMinBreakpoint('lg')`) and the same question asked in CSS (`lg:`) cannot
- * give different answers. Consumers used to spell these from memory as pixel literals —
- * `useMinWidth(640)`, `useMinWidth(1024)` — which is one transcription per call site and
- * none of them move if the theme's breakpoints ever do.
+ * The same scale as the `sm:` / `lg:` prefixes above, in the same unit. A question asked
+ * in JavaScript (`useMinBreakpoint('lg')`) and the same question asked in CSS (`lg:`)
+ * therefore cannot give different answers. Consumers used to spell these from memory as
+ * pixel literals, such as `useMinWidth(640)` and `useMinWidth(1024)`. That is one
+ * transcription per call site, and none of them move if the theme's breakpoints ever do.
  *
- * `rem`, not `px`, because that is what Tailwind emits: at a root font size other than 16px
- * a pixel literal and the matching `lg:` class part company, and the JS answer silently
+ * `rem`, not `px`, because that is what Tailwind emits. At a root font size other than 16px
+ * a pixel literal and the matching `lg:` class part company. The JS answer then silently
  * stops describing the layout.
  */
 export const BREAKPOINT_WIDTHS = {

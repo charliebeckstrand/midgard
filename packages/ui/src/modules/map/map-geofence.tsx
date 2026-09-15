@@ -22,8 +22,8 @@ type MapGeofenceCircle = {
 	 * The circle's radius, as a distance across the ground in metres — a service
 	 * radius, a depot's catchment, a delivery zone.
 	 *
-	 * A ground distance, not a frame one: the zone covers the same ground however
-	 * far out the map sits, where every other mark in this module holds its size in
+	 * A ground distance, not a frame one. The zone covers the same ground however
+	 * far out the map sits. Every other mark in this module holds its size in
 	 * device pixels. A radius at or below zero draws nothing.
 	 */
 	radius: number
@@ -39,14 +39,14 @@ type MapGeofencePolygon = {
 	 * itself. One outer ring only — pass `area` for a zone with a hole in it, or
 	 * one that falls in separate parts.
 	 *
-	 * Each edge draws straight in the frame, so a ring wider than a hemisphere —
-	 * one that would need the sphere's own resampling — is outside what this
+	 * Each edge draws straight in the frame. A ring wider than a hemisphere — one
+	 * that would need the sphere's own resampling — is therefore outside what this
 	 * draws. A zone over a metro, a state, or a country reads exactly.
 	 *
 	 * Hold the array itself steady across renders — a module constant, a `useMemo`,
-	 * a query result. The projected path is memoised on this reference, so a ring
-	 * built inline re-projects on every pointer crossing of the map, which a long
-	 * boundary pays for in full.
+	 * a query result. The projected path is memoised on this reference. A ring
+	 * built inline therefore re-projects on every pointer crossing of the map,
+	 * which a long boundary pays for in full.
 	 */
 	boundary: LngLat[]
 	at?: undefined
@@ -62,10 +62,10 @@ type MapGeofenceArea = {
 	 * exactly, so a dissolved territory passes straight through.
 	 *
 	 * This is `boundary`'s form for a zone that {@link MapGeofencePolygon} cannot
-	 * state: a coverage area in two separate parts, or one wrapped around ground
-	 * it does not cover. A hole reads as a hole whichever way its ring winds,
-	 * because the mark fills under the even-odd rule — so a merged topology's own
-	 * output needs no rewinding.
+	 * state. That is a coverage area in two separate parts, or one wrapped around
+	 * ground it does not cover. A hole reads as a hole whichever way its ring
+	 * winds, because the mark fills under the even-odd rule. A merged topology's
+	 * own output therefore needs no rewinding.
 	 *
 	 * Hold the array steady across renders, for the reason `boundary` names.
 	 */
@@ -76,52 +76,56 @@ type MapGeofenceArea = {
 }
 
 /**
- * Props for {@link MapGeofence}. The three geometries are mutually exclusive: a
- * circle takes its centre and its radius, a polygon takes its own ring, and an
- * area takes the nested rings of a territory in several parts.
+ * Props for {@link MapGeofence}. The three geometries are mutually exclusive:
+ *
+ * - A circle takes its centre and its radius.
+ * - A polygon takes its own ring.
+ * - An area takes the nested rings of a territory in several parts.
  */
 export type MapGeofenceProps = MapOverlayProps &
 	(MapGeofenceCircle | MapGeofencePolygon | MapGeofenceArea)
 
 /**
  * A zone drawn over the geography — a delivery area, a service radius, a
- * restricted district — as a washed area under its own boundary, registered in
- * the plat's legend as its own toggleable, focusable entry. Give it a centre and
- * a ground radius for a circle, a ring of coordinates for a drawn outline, or
- * `area` for a territory of several parts — a ZIP-code coverage area, a sales
- * region — where any part can enclose ground it leaves out.
- * Hovering anywhere in the zone raises the tooltip with its name and detail and
- * isolates the zone — every other mark recedes, as under its legend entry's
- * focus. With `onClick` set, the zone answers a click and the keyboard cursor
- * picks it with Enter or Space; the plat's `selectedOverlay` haloes the outline
- * for as long as it names this mark.
+ * restricted district — as a washed area under its own boundary. It registers
+ * in the plat's legend as its own toggleable, focusable entry. Give it a centre
+ * and a ground radius for a circle, or a ring of coordinates for a drawn
+ * outline. Give it `area` for a territory of several parts, such as a ZIP-code
+ * coverage area or a sales region. Any part there can enclose ground it leaves
+ * out. Hovering anywhere in the zone raises the tooltip with its name and
+ * detail, and isolates the zone. Every other mark recedes, as under its legend
+ * entry's focus. With `onClick` set, the zone answers a click, and the keyboard
+ * cursor picks it with Enter or Space. The plat's `selectedOverlay` haloes the
+ * outline for as long as it names this mark.
  *
  * @remarks Renders only inside {@link MapPlat}, and draws nothing where the
  * projection keeps fewer than three of its points — the US composite drops
  * points outside its insets.
  *
  * The whole face is the target, plus a 24px band around the boundary (WCAG
- * 2.5.8's minimum) so the edge stays aimable where the fill ends. Marks the zone encloses keep their own hits
- * as long as they are drawn after it — the topmost shape at a point wins — so
- * order the children with the zone first, which also keeps the wash behind the
- * marks rather than over them. A region under the zone does not: the zone is
- * what the pointer is on there, so a clickable map's regions answer outside its
- * zones and the zones answer within them.
+ * 2.5.8's minimum) so the edge stays aimable where the fill ends. Marks the zone
+ * encloses keep their own hits as long as they are drawn after it, because the
+ * topmost shape at a point wins. Order the children with the zone first, which
+ * also keeps the wash behind the marks rather than over them. A region under the
+ * zone does not keep its hit. The zone is what the pointer is on there, so a
+ * clickable map's regions answer outside its zones and the zones answer within
+ * them.
  *
- * A dot on the zone gives back the ground the zone needs to answer for itself: a
+ * A dot on the zone gives back the ground the zone needs to answer for itself. A
  * {@link MapPoint}, a {@link MapPoints} dot, or a {@link MapMarker} pin on a
- * drawn zone takes half the room the zone holds for a mouse, so a depot never
- * claims the middle of its own catchment and a zone drawn small around a mark
- * still answers under it. A share of the zone's own room rather than a yes-or-no,
- * so every mark on one zone points alike however the ring runs through them, and
- * a zone wide enough to spare the whole target spares it. Toggling the zone off
+ * drawn zone takes half the room the zone holds for a mouse. A depot therefore
+ * never claims the middle of its own catchment, and a zone drawn small around a
+ * mark still answers under it. It is a share of the zone's own room rather than
+ * a yes-or-no. Every mark on one zone therefore points alike, however the ring
+ * runs through them. A zone wide enough to spare the whole target spares
+ * it. Toggling the zone off
  * in the legend hands the pixels back too — the dot is alone on its ground again,
  * and takes the full target.
  *
  * The boundary is stated in device pixels, so a zoom widens the ground the zone
  * covers and never the outline. Under the plat's `animate` the outline draws
- * itself in (`pathLength` 0 → 1) and the wash then settles inside it, so the
- * shape reads before the colour does.
+ * itself in (`pathLength` 0 → 1), and the wash then settles inside it. The
+ * shape therefore reads before the colour does.
  */
 export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofenceProps) {
 	// Held on the centre's own numbers rather than on its identity: an inline
@@ -231,8 +235,8 @@ export function MapGeofence({ at, radius, boundary, area, ...shared }: MapGeofen
 				)}
 
 				{/* The boundary is a stroked line like a route's, drawn at the zone's own
-				    width: same conversion to frame units, same round join, same
-				    self-drawing reveal on the same timing. Its round linecap never renders
+				    width. It takes the same conversion to frame units, the same round
+				    join, and the same self-drawing reveal on the same timing. Its round linecap never renders
 				    here — `ringsPath` closes every ring with a `Z`, so the path has no
 				    ends. */}
 				<MapLine

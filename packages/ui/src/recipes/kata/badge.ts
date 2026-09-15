@@ -2,7 +2,7 @@
  * Badge kata: the inline status/label chip. Recipe-shaped — a `variant` ×
  * `color` × `size` × `radius` matrix over the signature kasane chrome.
  * Reads `iro.extendedPalette` rather than `iro.palette`, so its `color` axis
- * carries the extended hues; the rest of the surface is the shared chromatic
+ * carries the extended hues. The rest of the surface is the shared chromatic
  * palette wired through `basePalette`.
  */
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'

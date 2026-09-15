@@ -58,11 +58,13 @@ export function stripLinks(text: string): string {
 }
 
 /**
- * Resolve `{@link …}` tokens into Markdown-safe text: a symbol reference
- * flattens to its label or bare target, an external URL becomes a Markdown link
- * (`[label](url)`). Unlike {@link stripLinks}, URL targets stay clickable, so a
- * description carrying links can render through one block-Markdown pass rather
- * than being segmented into inline runs (which would flatten its block markup).
+ * Resolve `{@link …}` tokens into Markdown-safe text. A symbol reference
+ * flattens to its label or bare target, and an external URL becomes a Markdown
+ * link (`[label](url)`).
+ *
+ * Unlike {@link stripLinks}, URL targets stay clickable. A description carrying
+ * links can therefore render through one block-Markdown pass, rather than being
+ * segmented into inline runs, which would flatten its block markup.
  */
 export function linksToMarkdown(text: string): string {
 	return text.replace(LINK_RE, (_match, inner: string) => {

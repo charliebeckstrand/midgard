@@ -16,8 +16,8 @@ export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
  *
  * @remarks
  * Marks itself `invalid` and wires `aria-describedby` to the coordinator's
- * warning while the fields disagree (unless the field already has a form
- * error, or the caller passes an explicit `invalid`). On unmount it clears the
+ * warning while the fields disagree. A field that already carries a form error,
+ * or an explicit `invalid` from the caller, takes precedence. On unmount it clears the
  * coordinator so a removed field stops reporting a stale mismatch. Must render
  * within a {@link PasswordConfirm}.
  */

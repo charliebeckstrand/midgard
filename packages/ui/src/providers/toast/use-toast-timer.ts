@@ -4,21 +4,21 @@ import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import type { ToastData } from './types'
 
 /**
- * Owns the auto-dismiss countdown for {@link ToastProvider}: arms a single
- * timer for the remaining duration, pauses it while pointer/focus holds exist
- * (WCAG 2.2.1) and resumes with the leftover time, and exposes reset hooks for
- * re-armed toasts.
+ * Owns the auto-dismiss countdown for {@link ToastProvider}. It arms a single
+ * timer for the remaining duration, and pauses it while pointer/focus holds
+ * exist (WCAG 2.2.1). It resumes with the leftover time, and exposes reset hooks
+ * for re-armed toasts.
  *
  * @returns The timer controls (`startTimer`, `pause`, `resume`,
  * `resetRemaining`, `reset`) plus the `remainingRef` countdown.
  *
  * @remarks
- * The pause is a source count, not a flag: each hold (a toast's hover, a
+ * The pause is a source count, not a flag. Each hold (a toast's hover, a
  * toast's focus) pairs one `pause()` with one `resume()`, and the timer runs
- * only at zero. A boolean can't survive a toast unmounting mid-hold — the
+ * only at zero. A boolean can't survive a toast unmounting mid-hold. The
  * releasing `mouseleave`/`blur` never fires for a removed node, and a single
- * flag can't tell which holds remain — so each `ToastAlert` releases its own
- * holds on unmount and the count settles back to running.
+ * flag can't tell which holds remain. Each `ToastAlert` therefore releases its
+ * own holds on unmount, and the count settles back to running.
  * @internal
  */
 export function useToastTimer(

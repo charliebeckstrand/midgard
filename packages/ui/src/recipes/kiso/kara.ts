@@ -2,12 +2,12 @@
  * Kara (空): emptiness.
  *
  * A listbox whose options come from `VirtualOptions` is never CSS `:empty`.
- * The primitive keeps a wrapper mounted at zero items — its scroll-ancestor
- * walk needs the ref — so `:empty` on the listbox can never match and the
- * sibling "no results" message can never appear. The wrapper stamps
- * `data-empty` instead (`primitives/virtual-options`), and these two selectors
- * are how a container reads it: one collapses the list, one reveals the
- * message beside it.
+ * The primitive keeps a wrapper mounted at zero items, because its
+ * scroll-ancestor walk needs the ref. `:empty` on the listbox can therefore
+ * never match, and the sibling "no results" message can never appear. The
+ * wrapper stamps `data-empty` instead (`primitives/virtual-options`), and these
+ * two selectors are how a container reads it. One collapses the list, one
+ * reveals the message beside it.
  *
  * Pair them with the plain `:empty` rules rather than replacing them — the
  * non-virtualized path still empties for real.

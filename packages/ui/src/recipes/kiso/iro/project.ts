@@ -1,7 +1,8 @@
 /**
- * Iro projection: turn a colour-major ramp — one row per colour, each naming
- * the `[light, dark]` shades it plays per foreground role — into the
- * role-major `[light, dark]` map the recipe engine consumes. Shared by the
+ * Iro projection: turn a colour-major ramp into the role-major
+ * `[light, dark]` map the recipe engine consumes. The colour-major ramp holds
+ * one row per colour, each naming the `[light, dark]` shades it plays per
+ * foreground role. Shared by the
  * standard `ramp` and the extended `spectrum`, which differ only in their
  * colour key set.
  *

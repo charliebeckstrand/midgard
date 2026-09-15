@@ -1,7 +1,7 @@
 /**
  * The one rule for what a composer holds to send. `ChatPrompt` and
  * `useChatDraft` each wrote that rule, so the two could disagree about the same
- * draft; the component now adds only its own `disabled` test above it.
+ * draft. The component now adds only its own `disabled` test above it.
  */
 
 /**

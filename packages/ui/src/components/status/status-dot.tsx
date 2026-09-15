@@ -30,9 +30,9 @@ export type StatusDotProps = StatusDotVariants & {
  * @remarks
  * `size` is explicit and defaults to `md`; hosts that render the dot (Avatar)
  * pass their resolved Density size rather than relying on the default. Color
- * alone conveys status, so pass `label` for a standalone dot to name it via
- * `role="img"` (WCAG 1.4.1 / 1.1.1) and omit it when the dot is decorative
- * beside visible text.
+ * alone conveys status. Pass `label` for a standalone dot to name it via
+ * `role="img"` (WCAG 1.4.1 / 1.1.1). Omit it when the dot is decorative beside
+ * visible text.
  */
 export function StatusDot({
 	variant = 'solid',

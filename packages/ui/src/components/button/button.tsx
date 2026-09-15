@@ -44,13 +44,13 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
 
 /**
  * Polymorphic action control: renders a `<button>` or, when `href` is set,
- * a `<Link>` anchor. Resolves `size` against enclosing Density, swaps in a
- * `<LoadingSpinner>` while `loading`, collapses to a square hit area when icon-only,
- * and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
+ * a `<Link>` anchor. Resolves `size` against enclosing Density and swaps in a
+ * `<LoadingSpinner>` while `loading`. It collapses to a square hit area when
+ * icon-only, and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
  * in loading trees.
  *
  * @remarks
- * Mirrors native `<button>` submission semantics: an untyped Button emits no
+ * Mirrors native `<button>` submission semantics. An untyped Button emits no
  * `type` attribute, so the DOM applies its native `submit` default and the
  * Button submits an enclosing `<Form>`/`<form>`. Pass `type="button"` for
  * non-submitting actions and `type="reset"` to reset.

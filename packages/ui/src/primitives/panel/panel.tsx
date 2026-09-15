@@ -46,8 +46,8 @@ export type PanelProvidersProps = {
 }
 
 /**
- * Wraps a panel surface's children in the shared context envelope: the Close
- * context (`PanelClose` and slot dismiss resolve it) nested over the A11y
+ * Wraps a panel surface's children in the shared context envelope. The Close
+ * context (`PanelClose` and slot dismiss resolve it) nests over the A11y
  * context (Title / Description register and adopt their ids).
  */
 export function PanelProviders({ onOpenChange, a11y, children }: PanelProvidersProps) {

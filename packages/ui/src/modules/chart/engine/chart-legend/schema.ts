@@ -5,21 +5,22 @@
  */
 
 /**
- * Where a chart's legend sits around the plot: a row above or below it —
- * centered on mobile, justified edge to edge from `sm` — or a column panel
- * beside it, side by side once the chart's own container is wide enough for both
- * and stacked under the plot below that width.
+ * Where a chart's legend sits around the plot. It is a row above or below it,
+ * centered on mobile and justified edge to edge from `sm`. It is otherwise a
+ * column panel beside it. That panel sits side by side once the chart's own
+ * container is wide enough for both, and stacks under the plot below that
+ * width.
  */
 export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
 
 /**
  * The object form of a categorical chart's `legend` prop, naming a `placement`
  * and whether the legend is `inert` together. The bare boolean (show at the
- * default placement, or drop it) and bare placement string still work — the
+ * default placement, or drop it) and bare placement string still work. The
  * object is only needed to make the legend a static key. An inert legend keeps
- * its swatches and labels but sheds every control: no series toggle, no hover
- * or focus emphasis, and no tab stop — the identity channel without the
- * switchboard, for a print view or a read-only report.
+ * its swatches and labels, but sheds every control. There is no series toggle,
+ * no hover or focus emphasis, and no tab stop. It is the identity channel
+ * without the switchboard, for a print view or a read-only report.
  */
 export type ChartLegendConfig = {
 	/**
@@ -51,13 +52,14 @@ export type ResolvedLegend = {
 }
 
 /**
- * Normalizes a categorical chart's `legend` prop — a boolean, a placement
- * string, or a {@link ChartLegendConfig} — to the show `value` the frame and
- * item logic already read, the `placement` alone (a bare boolean resolving to
- * none), and the `inert` flag. The object's `placement` becomes both `value`
- * and `placement` (so `{ placement: 'left' }` places exactly as `'left'` and an
- * object with no placement falls to the default show rule); a bare boolean or
- * string passes through with `inert` off.
+ * Normalizes a categorical chart's `legend` prop to three things. The prop is a
+ * boolean, a placement string, or a {@link ChartLegendConfig}. The three are the
+ * show `value` the frame and item logic already read, the `placement` alone, and
+ * the `inert` flag. A bare boolean resolves the `placement` to none. The object's
+ * `placement` becomes both `value` and `placement`. A `{ placement: 'left' }`
+ * therefore places exactly as `'left'`, and an object with no placement falls to
+ * the default show rule. A bare boolean or string passes through with `inert`
+ * off.
  *
  * @internal
  */
@@ -76,8 +78,8 @@ export function resolveLegend(
 }
 
 /**
- * Whether a resolved `legend` value shows the legend: an explicit boolean or
- * placement forces it, otherwise it defaults on for two or more entries — the
+ * Whether a resolved `legend` value shows the legend. An explicit boolean or
+ * placement forces it. It otherwise defaults on for two or more entries, the
  * identity channel colour alone must never carry. The one show rule every
  * engine reads.
  *
@@ -89,8 +91,8 @@ export function legendVisible(legend: ResolvedLegend['value'], count: number): b
 
 /**
  * Whether a resolved `legend` value places the legend down a side (`left` /
- * `right`) rather than along the top or bottom — so it lays out beside the plot
- * and takes the plot's width, not its height.
+ * `right`), rather than along the top or bottom. It then lays out beside the
+ * plot, and takes the plot's width, not its height.
  *
  * @internal
  */
@@ -99,9 +101,9 @@ export function legendAside(legend: ResolvedLegend['value']): boolean {
 }
 
 /**
- * Whether the legend bands inside the plot's aspect box: it shows and sits along
- * the top or bottom rather than down a side, so it stacks above or below the
- * plot and costs the tier its chrome reserve. The {@link legendVisible} and
+ * Whether the legend bands inside the plot's aspect box. It shows and sits along
+ * the top or bottom, rather than down a side. It therefore stacks above or below
+ * the plot, and costs the tier its chrome reserve. The {@link legendVisible} and
  * {@link legendAside} composite the frame policy reads before resolving the tier.
  *
  * @internal

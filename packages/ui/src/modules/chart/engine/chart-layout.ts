@@ -1,7 +1,7 @@
 /**
- * Pure frame layout for the cartesian charts: where the plot rectangle sits
- * inside the frame once the y gutter and x-axis band are reserved, and the
- * per-category tooltip anchors. Kept React-free beside `chart-scale.ts` so
+ * Pure frame layout for the cartesian charts. The plot rectangle sits inside
+ * the frame once the y gutter and x-axis band are reserved. The per-category
+ * tooltip anchors resolve here too. Kept React-free beside `chart-scale.ts` so
  * the layout math is unit-testable in isolation.
  */
 
@@ -41,12 +41,14 @@ import { timeTicks } from './chart-time'
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
  * `false` to leave the frame free-form (its explicit or density height). The
- * ratio is a preference, not a demand: a definite-height parent shorter than it
- * clamps the chart, which fills the height that leaves rather than overflowing —
- * the box is law. A stacked (top / bottom) legend folds into the aspect box, so
- * the ratio governs the whole chart and a legended chart fills a fixed-aspect
- * tile without the band spilling past it; a side (left / right) legend instead
- * bands beside the plot at its own width, so the ratio governs the plot alone and
+ * ratio is a preference, not a demand. A definite-height parent shorter than it
+ * clamps the chart. The chart then fills the height that leaves, rather than
+ * overflowing — the box is law.
+ *
+ * A stacked (top / bottom) legend folds into the aspect box. The ratio there
+ * governs the whole chart, so a legended chart fills a fixed-aspect tile
+ * without the band spilling past it. A side (left / right) legend instead bands
+ * beside the plot at its own width. The ratio there governs the plot alone, and
  * the drawing never squeezes to fit the panel.
  */
 export type ChartAspectRatio = number | `${number}/${number}` | false
@@ -60,9 +62,10 @@ export type ChartAspectRatio = number | `${number}/${number}` | false
  *
  * @remarks The plot-only sizing: the ratio governs the drawing box alone, which
  * a legend then sits beside. The chart family instead resolves through {@link
- * chartFrameLayout}, which carries the ratio on the figure so a definite-height
- * parent clamps the whole chart (a side legend still bands beside the plot);
- * {@link HeatmapChart} keeps this one, its range legend never sharing the box.
+ * chartFrameLayout}. That one carries the ratio on the figure, so a
+ * definite-height parent clamps the whole chart (a side legend still bands
+ * beside the plot). {@link HeatmapChart} keeps this one, its range legend never
+ * sharing the box.
  * @internal
  */
 export function chartFrameSizing(
@@ -90,7 +93,7 @@ export function frameFills(sizing: FrameSizing): boolean {
 
 /**
  * A chart frame's sizing under the box-law: the {@link FrameSizing} the plot
- * measures through, and the CSS `aspect-ratio` the figure wrapper carries so the
+ * measures through, and the CSS `aspect-ratio` the figure wrapper carries. The
  * whole chart — legend and all — holds the ratio as a preference the parent can
  * clamp.
  *
@@ -101,33 +104,38 @@ export type ChartFrameLayout = {
 	sizing: FrameSizing
 	/**
 	 * The `width / height` the figure wrapper reserves through CSS `aspect-ratio`
-	 * whenever a live ratio governs the whole chart — no legend or a stacked band —
-	 * so the plot fills the space the legend's natural size leaves and a
-	 * definite-height parent clamps the figure; `null` when the plot box carries
-	 * the ratio itself (a side legend banding beside it) or nothing reserves one.
+	 * whenever a live ratio governs the whole chart — no legend or a stacked band.
+	 * The plot then fills the space the legend's natural size leaves, and a
+	 * definite-height parent clamps the figure. It is `null` when the plot box
+	 * carries the ratio itself (a side legend banding beside it), or when nothing
+	 * reserves one.
 	 */
 	outerAspect: number | null
 }
 
 /**
- * Resolves a chart frame's sizing under the box-law: a live aspect ratio is a
- * preference a definite-height parent can clamp, never a height the drawing
- * forces on the box. An explicit `height` is a fixed pixel box and a ratio-off
- * frame fills its container, both legend-agnostic. A live ratio hands the ratio
- * to the figure wrapper as a CSS `aspect-ratio` and measures the plot's own
- * resolved height through `aspect-fill`, so a parent shorter than the ratio's
- * preference clamps the whole chart and the plot fills whatever height actually
- * resolved — the drawing fits the box rather than overflowing it, a stacked
- * legend's band folding into the same box. The measurement falls back to the
- * full `width / ratio` until it lands, so a server render, an explicit `width`,
- * or a test frame still resolves a deterministic height from the width alone.
- * Only a side legend keeps the ratio on the plot box itself (`aspect`): it bands
- * beside the plot at its own width, so the drawing holds its ratio next to the
- * panel rather than sharing a box with it.
+ * Resolves a chart frame's sizing under the box-law. A live aspect ratio is a
+ * preference a definite-height parent can clamp. It is never a height the
+ * drawing forces on the box. An explicit `height` is a fixed pixel box and a
+ * ratio-off frame fills its container, both legend-agnostic.
+ *
+ * A live ratio hands the ratio to the figure wrapper as a CSS `aspect-ratio`. It
+ * measures the plot's own resolved height through `aspect-fill`. A parent
+ * shorter than the ratio's preference therefore clamps the whole chart, and the
+ * plot fills whatever height actually resolved. The drawing fits the box rather
+ * than overflowing it, a stacked legend's band folding into the same box.
+ *
+ * The measurement falls back to the full `width / ratio` until it lands. A
+ * server render, an explicit `width`, or a test frame therefore still resolves a
+ * deterministic height from the width alone.
+ *
+ * Only a side legend keeps the ratio on the plot box itself (`aspect`). It bands
+ * beside the plot at its own width. The drawing therefore holds its ratio next
+ * to the panel, rather than sharing a box with it.
  *
  * @param aside Whether the legend bands beside the plot (a left / right panel)
- * rather than above or below it. A side legend keeps the ratio on the plot box;
- * every other live-ratio frame carries it on the figure so the parent can clamp
+ * rather than above or below it. A side legend keeps the ratio on the plot box.
+ * Every other live-ratio frame carries it on the figure, so the parent can clamp
  * the chart.
  * @internal
  */
@@ -162,23 +170,25 @@ export type PlotRect = {
 
 /**
  * The gutter width a run of tick `labels` needs: the widest label's estimated
- * advance plus the gap and edge slack, clamped so extreme labels can't crowd
- * out the plot. The character count rounds up to an even number first, so the
- * gutter — and the plot with its right-anchored labels — holds steady when the
- * widest label swings by a single character (a nice-tick axis topping out at
- * `8,000` and one at `40,000` reserve the same width) and steps only once it
- * grows by two, a change of scale large enough to be worth the reflow. Without
- * it a filter that nudges the magnitude by a digit, or two charts sharing a
- * tile, would slide the plot sideways.
+ * advance plus the gap and edge slack. The clamp keeps extreme labels from
+ * crowding out the plot.
+ *
+ * The character count rounds up to an even number first. The gutter — and the
+ * plot with its right-anchored labels — therefore holds steady when the widest
+ * label swings by a single character. A nice-tick axis topping out at `8,000`
+ * and one at `40,000` reserve the same width. The gutter steps only once the
+ * count grows by two, a change of scale large enough to be worth the reflow.
+ * Without it a filter that nudges the magnitude by a digit, or two charts
+ * sharing a tile, would slide the plot sideways.
  *
  * @remarks Computed, never measured: value ticks render in tabular figures, so
  * their widest string estimates reliably from its length at {@link
- * TICK_CHAR_WIDTH} per glyph. Ceil plus edge slack — an estimate rounded down
- * clips the widest label against the SVG's own overflow; the even round-up only
+ * TICK_CHAR_WIDTH} per glyph. Ceil plus edge slack: an estimate rounded down
+ * clips the widest label against the SVG's own overflow. The even round-up only
  * ever reserves more, so it never clips either. A caller whose gutter holds
  * proportional category labels instead — the heatmap's rows, not digits —
- * passes a wider `charWidth` ({@link LABEL_CHAR_WIDTH}) so a capital-initial
- * label still clears the frame edge.
+ * passes a wider `charWidth` ({@link LABEL_CHAR_WIDTH}). A capital-initial label
+ * then still clears the frame edge.
  * @param charWidth Per-glyph advance estimate for the labels; defaults to the
  * tabular-digit {@link TICK_CHAR_WIDTH}.
  * @internal
@@ -231,10 +241,11 @@ export function plotRect(
 /**
  * The category indexes whose labels fit along an axis without colliding: every
  * label when there is room, else every nth — thinned by default. `slot` is one
- * label's footprint along the axis with a breath of air, so the same math
- * thins by row width (value on x) or by column height (categories down y). A
- * vertical chart opted into {@link CartesianFrameProps.tickRotation} tilts
- * instead of thinning once the same fit check fails — see {@link willThin}.
+ * label's footprint along the axis with a breath of air. The same math
+ * therefore thins by row width (value on x) or by column height (categories
+ * down y). A vertical chart opted into {@link CartesianFrameProps.tickRotation}
+ * tilts instead of thinning once the same fit check fails — see
+ * {@link willThin}.
  *
  * @internal
  */
@@ -249,9 +260,9 @@ export function thinned(count: number, axisLength: number, slot: number): number
 }
 
 /**
- * Whether `count` labels collide at `slot` room along a `axisLength` axis —
- * the same fit check {@link thinned} thins by, exposed so a caller can decide
- * to tilt instead of thin before the ticks themselves are placed.
+ * Whether `count` labels collide at `slot` room along a `axisLength` axis. It
+ * is the same fit check {@link thinned} thins by, exposed so a caller can tilt
+ * instead of thin before the ticks are placed.
  *
  * @internal
  */
@@ -276,7 +287,7 @@ export type ChartAxisTitlePlacement = {
 
 /**
  * Everything the cartesian frame parts and marks read once the orientation,
- * sizing, and scales resolve — one shape for both orientations, so a chart
+ * sizing, and scales resolve. One shape serves both orientations, so a chart
  * draws from it without knowing which way it faces. Positions are already
  * projected onto their screen axes: value ticks and snap points along the value
  * axis, band ticks and centers along the categorical axis.
@@ -307,8 +318,9 @@ export type CartesianLayout = {
 	snapPoints: number[][]
 	/**
 	 * Per category, the series index behind each {@link CartesianLayout.snapPoints}
-	 * stop, in the same order — so the keyboard cursor's value lane maps back to the
-	 * series it sits on. A gap drops a series from both, keeping them aligned.
+	 * stop, in the same order. The keyboard cursor's value lane therefore maps back
+	 * to the series it sits on. A gap drops a series from both, keeping them
+	 * aligned.
 	 */
 	snapSeries: number[][]
 	/** The value-axis titles, placed inside their reserved bands; empty without titles. */
@@ -316,13 +328,14 @@ export type CartesianLayout = {
 	/**
 	 * Whether the {@link CartesianLayoutInput.valueHeadroom} asked for was
 	 * affordable. `false` sheds every point value label AND withholds the
-	 * scale's reservation: a plot too short to afford the room would otherwise
-	 * place labels back on the flip boundary the reservation exists to clear,
-	 * or pad the domain for labels that never draw. The vertical verdict reads
-	 * the range floor under the tallest band chrome the chart can wear (see
-	 * {@link verticalLabelRoom}), so it moves one way as the frame shrinks
-	 * instead of flashing labels back on when a smaller tier drops the band
-	 * row. `true` when nothing was asked.
+	 * scale's reservation. A plot too short to afford the room would otherwise
+	 * place labels back on the flip boundary the reservation exists to clear. It
+	 * would also pad the domain for labels that never draw.
+	 *
+	 * The vertical verdict reads the range floor under the tallest band chrome
+	 * the chart can wear (see {@link verticalLabelRoom}). It therefore moves one
+	 * way as the frame shrinks, instead of flashing labels back on when a smaller
+	 * tier drops the band row. `true` when nothing was asked.
 	 */
 	valueLabelRoom: boolean
 }
@@ -347,14 +360,14 @@ export type CartesianLayoutInput = {
 	tickTarget: number
 	zeroBaseline: boolean
 	/**
-	 * The primary value axis. Like {@link CartesianLayoutInput.value2} it is
-	 * only passed while something binds to it — though the primary is also the
-	 * default home, so it stays on whenever no secondary axis exists.
+	 * The primary value axis. Like {@link CartesianLayoutInput.value2} it is only
+	 * passed while something binds to it. The primary is also the default home,
+	 * so it stays on whenever no secondary axis exists.
 	 */
 	value?: ChartValueAxisInput
 	/**
-	 * The secondary value axis. Only pass it once something binds to the axis —
-	 * a visible `y2`-bound series, a `y2` reference, or a domain pin — since a
+	 * The secondary value axis. It is only passed once something binds to the
+	 * axis: a visible `y2`-bound series, a `y2` reference, or a domain pin. A
 	 * zero-baseline chart would otherwise resolve an empty `[0, 1]` scale and
 	 * reserve a gutter for nothing.
 	 */
@@ -362,9 +375,10 @@ export type CartesianLayoutInput = {
 	/** The category label per row — the band axis, and the gutter estimate when horizontal. */
 	categories: string[]
 	/**
-	 * The band (category) axis's title, drawn past its labels — under them when
-	 * vertical, rotated in the left gutter when horizontal — with a band reserved
-	 * for it. Already gated by the tier's title budget, so a set value always draws.
+	 * The band (category) axis's title, drawn past its labels with a band reserved
+	 * for it. It sits under them when vertical, and rotates into the left gutter
+	 * when horizontal. Already gated by the tier's title budget, so a set value
+	 * always draws.
 	 */
 	bandTitle?: string
 	/**
@@ -374,11 +388,15 @@ export type CartesianLayoutInput = {
 	 */
 	tickRotation?: boolean
 	/**
-	 * How the band axis presents at the frame's resolved tier: every fitting label
-	 * `'thinned'` (the default, today's behaviour), only the first and last as
-	 * `'ends'` in a compact frame, or `'off'` in a short one — which drops the band
-	 * row and returns it to the plot, the value gutter keeping a floor pad for its
-	 * zero label. Left unset it thins, so a caller passing no tier reads as before.
+	 * How the band axis presents at the frame's resolved tier:
+	 *
+	 * - `'thinned'` — every fitting label. The default, and today's behaviour.
+	 * - `'ends'` — only the first and last, in a compact frame.
+	 * - `'off'` — no band row at all, in a short frame.
+	 *
+	 * `'off'` returns the band row's height to the plot. The value gutter keeps a
+	 * floor pad there for its zero label. Left unset it thins, so a caller passing
+	 * no tier reads as before.
 	 * @defaultValue 'thinned'
 	 */
 	bandAxis?: ChartBandAxisMode
@@ -400,18 +418,19 @@ export type CartesianLayoutInput = {
 	 * How far, in px, the chart's widest mark paints past its data coordinate — a
 	 * point marker's ring edge, a line stroke's half-width. With the axis chrome
 	 * off (spark, or an explicit axes-less frame) both layouts reserve it on every
-	 * plot edge, so an extreme's mark clears the frame the gutters and bands would
-	 * otherwise absorb it into. `0` (bars, cells — marks that end at their
+	 * plot edge. An extreme's mark then clears the frame, which the gutters and
+	 * bands would otherwise absorb it into. `0` (bars, cells — marks that end at
+	 * their
 	 * coordinate) reserves nothing.
 	 * @defaultValue 0
 	 */
 	markInset?: number
 	/**
 	 * Pixels of clear room to reserve between a data extreme and its unpinned
-	 * value-axis edge, so an extreme's value label sits above the peak or below
-	 * the trough rather than flipping onto the line. Set by the line-bearing
-	 * charts when they draw single-series extreme labels; `0` (the default, and
-	 * every multi-series or label-less chart) reserves nothing.
+	 * value-axis edge. An extreme's value label then sits above the peak or below
+	 * the trough, rather than flipping onto the line. The line-bearing charts set
+	 * it when they draw single-series extreme labels. `0` is the default, and
+	 * every multi-series or label-less chart reserves nothing.
 	 * @defaultValue 0
 	 */
 	valueHeadroom?: number
@@ -431,7 +450,7 @@ export function lineMarkReach(points: boolean): number {
 
 /**
  * The mark reach each plot edge reserves: the input's {@link
- * CartesianLayoutInput.markInset}, and only without the axis chrome — the
+ * CartesianLayoutInput.markInset}, and only without the axis chrome. The
  * gutters and bands of a framed chart absorb the overhang themselves.
  *
  * @internal
@@ -441,11 +460,11 @@ function markPadOf(input: CartesianLayoutInput): number {
 }
 
 /**
- * The band axis's edge inset: a framed chart holds its end categories a fixed
- * {@link BAND_EDGE_PAD} margin off the plot's sides, so an edge label never
- * crowds the value gutter and the endpoint marks breathe; a spark chart insets
- * by its mark reach ({@link markPadOf}) instead, just clearing an endpoint
- * marker.
+ * The band axis's edge inset. A framed chart holds its end categories a fixed
+ * {@link BAND_EDGE_PAD} margin off the plot's sides. An edge label therefore
+ * never crowds the value gutter, and the endpoint marks breathe. A spark chart
+ * insets by its mark reach ({@link markPadOf}) instead, just clearing an
+ * endpoint marker.
  *
  * @internal
  */
@@ -454,9 +473,9 @@ function bandPadOf(input: CartesianLayoutInput): number {
 }
 
 /**
- * Insets both ends of a screen range — ascending or descending — holding the
- * span where it is too narrow to seat both insets, since a clipped mark beats an
- * inverted scale.
+ * Insets both ends of a screen range, ascending or descending. It holds the
+ * span where the range is too narrow to seat both insets, since a clipped mark
+ * beats an inverted scale.
  *
  * @internal
  */
@@ -476,8 +495,8 @@ function markInsetRange(range: [number, number], inset: number): [number, number
 
 /**
  * One visible series feeding the snap targets: its per-row values, the axis it
- * reads against, and its own series index — so the position snap points and the
- * parallel series-index map read from one source and stay aligned.
+ * reads against, and its own series index. The position snap points and the
+ * parallel series-index map therefore read from one source and stay aligned.
  *
  * @internal
  */
@@ -505,7 +524,7 @@ export function valueTicksOf(
 
 /**
  * Per category, the visible finite values in value-axis position — the snap
- * targets, each series projected through its own axis's scale so a dual-axis
+ * targets. Each series projects through its own axis's scale, so a dual-axis
  * chart's crosshair, tooltip, and keyboard cursor land on the drawn marks.
  *
  * @internal
@@ -544,10 +563,10 @@ function snappable(scale: LinearScale | null, value: number | null | undefined):
 }
 
 /**
- * Per category, the series index behind each snap stop — the same stops
- * {@link snapPointsOf} positions, in the same order, filtered by the same
- * {@link snappable} gate, so the keyboard cursor's value lane resolves to the
- * series it sits on even where a leading gap has shifted the stops.
+ * Per category, the series index behind each snap stop. These are the same
+ * stops {@link snapPointsOf} positions, in the same order, filtered by the same
+ * {@link snappable} gate. The keyboard cursor's value lane therefore resolves to
+ * the series it sits on, even where a leading gap has shifted the stops.
  *
  * @internal
  */
@@ -610,10 +629,11 @@ function bandTicksOf(
 /**
  * The first and last category labels only — the compact tier's band, where a
  * full run of thinned labels would crowd a narrow plot. Each end anchors inward
- * (`'start'` first, `'end'` last) from its band center, so it reads away from the
- * frame edge and clears it without a width estimate; the vertical x-axis honours
- * the anchor while the horizontal y-axis right-aligns its gutter labels and
- * ignores it. A single category reads as one centered label; an empty axis none.
+ * (`'start'` first, `'end'` last) from its band center. It therefore reads away
+ * from the frame edge and clears it without a width estimate. The vertical
+ * x-axis honours the anchor, while the horizontal y-axis right-aligns its gutter
+ * labels and ignores it. A single category reads as one centered label; an empty
+ * axis none.
  *
  * @internal
  */
@@ -631,13 +651,17 @@ function endBandTicks(categories: string[], band: BandScale): ChartAxisTick[] {
 }
 
 /**
- * The band axis's ticks at its resolved `mode`: none when `'off'`, only the
- * first and last labels when `'ends'`, else calendar-boundary time ticks (when
- * the input carries row instants that span an axis) or the category labels,
- * tilted or thinned. Both orientations share it — the band scale's range already
- * faces the right screen axis, so the tick positions land correctly either way;
- * `tilt` only ever arrives set from the vertical layout, since a horizontal
- * chart's category labels already run down the gutter and read straight. A time
+ * The band axis's ticks at its resolved `mode`:
+ *
+ * - `'off'` — none.
+ * - `'ends'` — only the first and last labels.
+ * - Otherwise calendar-boundary time ticks, when the input carries row instants
+ *   that span an axis; else the category labels, tilted or thinned.
+ *
+ * Both orientations share it. The band scale's range already faces the right
+ * screen axis, so the tick positions land correctly either way. `tilt` only ever
+ * arrives set from the vertical layout, since a horizontal chart's category
+ * labels already run down the gutter and read straight. A time
  * axis keeps its calendar ticks over `'ends'`, since its own tick target already
  * thins them to a few in a small frame.
  *
@@ -696,8 +720,8 @@ type ValueScales = Record<ChartValueAxisId, LinearScale | null>
 
 /**
  * A value axis's gutter: its tick labels plus, where titled, the title band and
- * a gap between the title and the labels so the two never crowd; `0` with the
- * axis off.
+ * a gap between the title and the labels. The gap keeps the two from crowding.
+ * It is `0` with the axis off.
  *
  * @internal
  */
@@ -726,14 +750,16 @@ function labelRoomOf(headroom: number | undefined, rangePx: number): boolean {
 }
 
 /**
- * The vertical layout's value-label room verdict. Gates on the range FLOOR —
- * the plot under the tallest band chrome this chart can wear — never the
- * tier-resolved band: the actual range grows back when the band row drops at
- * a smaller tier, and a verdict read from it flashes the labels back on
- * mid-shrink (hidden, shown, hidden again). Computed from the props alone,
- * the same posture as the tier's chrome reserve, so the verdict moves one way
- * as the frame shrinks; and the floor never exceeds the resolved range, so a
- * granted verdict is always backed by the scale's reservation.
+ * The vertical layout's value-label room verdict. It gates on the range FLOOR —
+ * the plot under the tallest band chrome this chart can wear — never on the
+ * tier-resolved band. The actual range grows back when the band row drops at a
+ * smaller tier. A verdict read from it flashes the labels back on mid-shrink
+ * (hidden, shown, hidden again).
+ *
+ * The floor is computed from the props alone, the same posture as the tier's
+ * chrome reserve. The verdict therefore moves one way as the frame shrinks. The
+ * floor never exceeds the resolved range, so a granted verdict is always backed
+ * by the scale's reservation.
  *
  * @internal
  */
@@ -756,8 +782,10 @@ function verticalLabelRoom(input: CartesianLayoutInput, flatRange: [number, numb
 
 /**
  * The vertical layout's placed axis titles: a rotated title in each titled value
- * gutter, and — where the band axis is titled — a horizontal one centered under
- * its labels, past the `bandLabelHeight` the labels occupy. @internal
+ * gutter. Where the band axis is titled, a horizontal one centers under its
+ * labels, past the `bandLabelHeight` the labels occupy.
+ *
+ * @internal
  */
 function verticalTitles(
 	input: CartesianLayoutInput,
@@ -806,10 +834,11 @@ type VerticalValueAxes = {
 
 /**
  * Both value scales and their gutter tick labels for a vertical layout's
- * `range`. Split out of {@link verticalLayout} so it can resolve twice — once
- * against the flat x-axis band to size the gutters and probe whether the
- * category labels fit, again against a taller band once tilting them wins the
- * room back instead — without duplicating the scale wiring inline.
+ * `range`. Split out of {@link verticalLayout} so it can resolve twice, without
+ * duplicating the scale wiring inline. It resolves once against the flat x-axis
+ * band, to size the gutters and probe whether the category labels fit. It
+ * resolves again against a taller band, once tilting them wins the room back
+ * instead.
  *
  * @internal
  */
@@ -844,12 +873,13 @@ function verticalValueAxes(
 /**
  * The default layout: value on y with the scales filling the height above the
  * x-axis band, categories across x. The scales resolve from the frame height
- * first so their tick labels can size the side gutters before the plot rect
- * exists; the right gutter appears only once a right scale resolves. Category
- * labels that would collide at the flat band height either thin (the default)
- * or, under {@link CartesianFrameProps.tickRotation}, tilt instead — which
- * takes the band-height decision, so the value scales resolve a second time
- * against the taller band once tilting wins.
+ * first, so their tick labels can size the side gutters before the plot rect
+ * exists. The right gutter appears only once a right scale resolves.
+ *
+ * Category labels that would collide at the flat band height either thin (the
+ * default) or tilt, under {@link CartesianFrameProps.tickRotation}. A tilt takes
+ * the band-height decision, so the value scales resolve a second time against
+ * the taller band once tilting wins.
  *
  * @internal
  */
@@ -990,13 +1020,14 @@ function probeOf(
 }
 
 /**
- * Insets a horizontal value axis's screen range so its end tick labels — drawn
- * centred on their axis bands — fit inside the frame instead of overhanging it.
- * The right end borders the frame edge, so it always reserves the last label's
- * half-width; the left end reserves the first label's only when the category
- * gutter can't already absorb it. With two axes each end takes the wider of the
- * two labels; a frame too narrow to seat both keeps the span, since a clipped
- * label beats an inverted axis.
+ * Insets a horizontal value axis's screen range so its end tick labels fit
+ * inside the frame instead of overhanging it. Those labels draw centred on their
+ * axis bands. The right end borders the frame edge, so it always reserves the
+ * last label's half-width. The left end reserves the first label's only when the
+ * category gutter can't already absorb it.
+ *
+ * With two axes each end takes the wider of the two labels. A frame too narrow
+ * to seat both keeps the span, since a clipped label beats an inverted axis.
  *
  * @internal
  */
@@ -1023,8 +1054,10 @@ function valueAxisRange(probes: ValueAxisProbe[], span: [number, number]): [numb
 
 /**
  * The horizontal layout's placed axis titles: the value titles centered under
- * the bottom axis and over the top one, and — where the band axis is titled — a
- * rotated one in the far-left gutter, past its labels. @internal
+ * the bottom axis and over the top one. Where the band axis is titled, a rotated
+ * one sits in the far-left gutter, past its labels.
+ *
+ * @internal
  */
 function horizontalTitles(
 	input: CartesianLayoutInput,
@@ -1068,8 +1101,9 @@ function horizontalTitles(
 
 /**
  * The band labels the horizontal left gutter sizes to: just the first and last
- * in an `'ends'` band (with two or more categories), else every category, so the
- * gutter reserves only the width the drawn labels need.
+ * in an `'ends'` band, or every category otherwise. The `'ends'` case needs two
+ * or more categories. The gutter therefore reserves only the width the drawn
+ * labels need.
  *
  * @internal
  */
@@ -1082,10 +1116,12 @@ function shownBandLabels(categories: string[], mode: ChartBandAxisMode): string[
 }
 
 /**
- * The horizontal layout's left gutter and its band title: the label gutter (the
- * widest drawn band label, or none when the band is dropped) plus a title band
- * where the axis is titled. The title draws only when its labels do, so the two
- * resolve as one. @internal
+ * The horizontal layout's left gutter and its band title: the label gutter plus
+ * a title band where the axis is titled. The label gutter is the widest drawn
+ * band label, or none when the band is dropped. The title draws only when its
+ * labels do, so the two resolve as one.
+ *
+ * @internal
  */
 function horizontalBandGutter(
 	input: CartesianLayoutInput,
@@ -1103,11 +1139,11 @@ function horizontalBandGutter(
 /**
  * The transposed layout: value on x with the scales filling the plot width,
  * categories down y. The band labels — not the value ticks — line the left
- * gutter, and they are known up front, so the plot rect resolves first and the
- * value scales fill the width it leaves, inset so the end labels clear the
- * frame. The secondary axis's labels line a band above the plot — the
- * transpose of the vertical layout's right gutter — reserved only once its
- * probe resolves.
+ * gutter, and they are known up front. The plot rect therefore resolves first,
+ * and the value scales fill the width it leaves. They are inset so the end
+ * labels clear the frame. The secondary axis's labels line a band above the
+ * plot — the transpose of the vertical layout's right gutter — reserved only
+ * once its probe resolves.
  *
  * @internal
  */

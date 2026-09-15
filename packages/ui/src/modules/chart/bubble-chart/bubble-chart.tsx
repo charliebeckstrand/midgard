@@ -17,7 +17,7 @@ export type BubbleChartProps<T = never> = ChartBaseProps<T> &
 
 /**
  * A bubble chart: the {@link ScatterChart} with the size encoding required, so
- * every series carries a third measure — each disc's area scales with its
+ * every series carries a third measure. Each disc's area scales with its
  * `sizeKey` value between the series' `size` and `maxSize` diameters. The
  * discs fill translucently so overlapping points stay severally readable, and
  * the tooltip and data table read the size measure beside each value.

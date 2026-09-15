@@ -52,10 +52,10 @@ function parseMeta(project: Project, fileName: string, source: string): DemoMeta
 }
 
 /**
- * Visit every demo `.tsx` under `demosDir` in a stable, sorted path order, so
- * the virtual modules built from the walk (`demo-metas`, `component-modules`)
- * serialize to identical bytes regardless of the filesystem's `readdir` order —
- * a source laptop and CI otherwise produce different chunk content, defeating
+ * Visit every demo `.tsx` under `demosDir` in a stable, sorted path order. The
+ * virtual modules built from the walk (`demo-metas`, `component-modules`) then
+ * serialize to identical bytes, whatever the filesystem's `readdir` order. A
+ * source laptop and CI otherwise produce different chunk content, which defeats
  * long-term caching.
  */
 function forEachDemoFile(demosDir: string, visit: (fullPath: string) => void): void {
@@ -163,12 +163,13 @@ export function parseReExports(source: string, fileName: string): ReExport[] {
 }
 
 /**
- * Whether the barrel carries an export form {@link parseReExports} doesn't model
- * — a star re-export (`export * [as ns] from …`), a local `export {…}` without a
- * module specifier, `export default`, or a local `export const`/`function`.
- * {@link buildTaggedBarrel} regenerates the module from the parsed named
- * re-exports alone, so any such form would be silently dropped; the caller
- * leaves the barrel untagged instead of losing its exports.
+ * Whether the barrel carries an export form {@link parseReExports} doesn't
+ * model. Such a form is a star re-export (`export * [as ns] from …`), a local
+ * `export {…}` without a module specifier, `export default`, or a local
+ * `export const`/`function`. {@link buildTaggedBarrel} regenerates the module
+ * from the parsed named re-exports alone, so any such form would be silently
+ * dropped. The caller leaves the barrel untagged, instead of losing its
+ * exports.
  */
 export function hasUnmodeledExports(source: string, fileName: string): boolean {
 	const sf = parseSource(fileName, source, ts.ScriptKind.TS)
@@ -318,9 +319,9 @@ type ComponentModules = { packageName: string; names: Record<string, ModuleEntry
 
 /**
  * Walk every public `components/*\/index.ts`, `providers/*\/index.ts`, and
- * `layouts/index.ts` at build time and collect `{ name → module }` for every
- * PascalCase value re-export, plus an external entry for every package
- * component the demos import (resolved at runtime by `displayName`). Absent
+ * `layouts/index.ts` at build time. Collect `{ name → module }` for every
+ * PascalCase value re-export. Add an external entry for every package component
+ * the demos import, resolved at runtime by `displayName`. Absent
  * sub-directories are skipped, so a library without `providers/` or `layouts/`
  * needs no extra configuration. `packageName` rides along: `assemble` reads it
  * to prefix derived imports (`<packageName>/button`).
@@ -415,8 +416,8 @@ export function buildTaggedBarrel(reExports: ReExport[], moduleName: string): st
 /**
  * Locate the library's source root (the directory holding `components/`)
  * relative to the Vite `root`. A docs build sets `root` to the site directory
- * (`src/docs`, so `..` is the source root); a test run sets `root` to the
- * package directory (so `src` is one level down). Try both. The plugin's
+ * (`src/docs`, so `..` is the source root). A test run sets `root` to the
+ * package directory, so `src` is one level down. Try both. The plugin's
  * `srcDir` option overrides this lookup.
  */
 function findSrcDir(root: string): string {

@@ -26,10 +26,10 @@ type InputValueResult<E extends HTMLInputElement | HTMLTextAreaElement> = {
  * @param options - Caller props: `name`, `value`, `onChange`, `onBlur`.
  * @returns The resolved `value`, `onChange`, `onBlur`, and the field's bound
  * `invalid` flag (to merge in `useControlProps`).
- * @remarks Resolution follows CONVENTIONS §7.3: `value === undefined` leaves the
- * control uncontrolled — it binds to the Form field named `name`, else falls
- * back to native (`defaultValue`) state; `value === null` keeps it controlled
- * with no current value (coerced to `''`); any other `value` is controlled. An
+ * @remarks Resolution follows CONVENTIONS §7.3. `value === undefined` leaves the
+ * control uncontrolled: it binds to the Form field named `name`, else falls back
+ * to native (`defaultValue`) state. `value === null` keeps it controlled with no
+ * current value, coerced to `''`. Any other `value` is controlled. An
  * explicit (non-`undefined`) `value` wins over the bound field, which still
  * supplies `invalid`.
  * @see {@link useFormText}

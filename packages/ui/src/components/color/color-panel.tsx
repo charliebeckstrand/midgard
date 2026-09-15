@@ -41,11 +41,11 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
 
 /**
  * Inline color picker: a saturation/brightness field with hue and optional
- * alpha sliders, hex and RGB channel inputs, preset swatches, and an eyedropper
- * where the platform `EyeDropper` API exists. Holds HSVA internally so drags
- * stay lossless, speaks a hex string (default) or an HSVA object through
- * `value`/`onValueChange` per `format`, and resolves `size` against enclosing
- * Density. Controlled or uncontrolled.
+ * alpha sliders, hex and RGB channel inputs, and preset swatches. An eyedropper
+ * joins them where the platform `EyeDropper` API exists. Holds HSVA internally
+ * so drags stay lossless. It speaks a hex string (default) or an HSVA object
+ * through `value`/`onValueChange` per `format`, and resolves `size` against
+ * enclosing Density. Controlled or uncontrolled.
  *
  * @see {@link ColorPicker} for the popover variant.
  */

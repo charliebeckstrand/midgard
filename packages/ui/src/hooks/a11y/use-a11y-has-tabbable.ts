@@ -11,15 +11,15 @@ import { FOCUSABLE_SELECTOR } from '../../utilities'
  * @param node - The measured element, held as state from a callback ref
  * (`ref={setNode}`) rather than read from an object ref. Observation must
  * follow the node React attaches, and a portalled surface mounts its content a
- * commit after the consumer renders — a `RefObject` reports that arrival to
+ * commit after the consumer renders. A `RefObject` reports that arrival to
  * nothing, so the probe would read `null` once and never re-run.
  * @returns `false` until the post-mount effect measures, so a surface that
  * keys chrome off the result gets it on the commit after the node attaches.
  *
  * @remarks The `MutationObserver` watches only the attributes the selector
- * reads — unfiltered, every inline-style write would register, and Motion
- * writes `element.style` per frame, so any animation on or inside the subtree
- * would re-run the query every frame.
+ * reads. Unfiltered, every inline-style write would register, and Motion
+ * writes `element.style` per frame. Any animation on or inside the subtree
+ * would then re-run the query every frame.
  */
 export function useA11yHasTabbable(node: HTMLElement | null): boolean {
 	const [hasTabbable, setHasTabbable] = useState(false)

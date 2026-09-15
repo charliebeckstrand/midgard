@@ -71,11 +71,11 @@ function calloutTexts(spec: CalloutSpec, sliceValues: (number | null)[]): string
 }
 
 /**
- * Whether a callout pie sized to `width` would collapse to the spark floor: the
- * two label columns starving the pie to a sliver, the content frame shrinking
- * with it (`2·radius + 2·vMargin` its height) until the box reads spark. There
- * the callouts drop for a bare pie — the frame squares to receive it and the
- * drawing sheds the labels to match; above it they fit and the tight, asymmetric
+ * Whether a callout pie sized to `width` would collapse to the spark floor. The
+ * two label columns starve the pie to a sliver. The content frame shrinks with
+ * it (`2·radius + 2·vMargin` its height) until the box reads spark. There the
+ * callouts drop for a bare pie: the frame squares to receive it, and the drawing
+ * sheds the labels to match. Above the floor they fit, and the tight, asymmetric
  * callout frame holds. Read off the callout {@link pieCalloutFit fit radius} at
  * `width`, so the sizing resolver and the drawing decide it the same way.
  *
@@ -110,9 +110,9 @@ export function calloutFitRadius(
 }
 
 /**
- * Whether the callouts draw at the measured `frameWidth`: on where they fit, off
- * where they would starve the pie to the spark floor (see {@link calloutsSpark}),
- * so it falls back to bare marks. Weighed on the full dataset like the frame
+ * Whether the callouts draw at the measured `frameWidth`. They are on where they
+ * fit, and off where they would starve the pie to the spark floor (see
+ * {@link calloutsSpark}). The chart then falls back to bare marks. Weighed on the full dataset like the frame
  * sizing, so a toggled slice never flips the labels on or off under a steady
  * frame.
  *
@@ -138,8 +138,8 @@ export function calloutsShown(
 }
 
 /**
- * The pie's resolved radius and center: the tight, asymmetric callout fit, or
- * — without callouts — centered at the plain gap the way every chart frame
+ * The pie's resolved radius and center: the tight, asymmetric callout fit.
+ * Without callouts, it is centered at the plain gap, the way every chart frame
  * defaults to.
  *
  * @internal

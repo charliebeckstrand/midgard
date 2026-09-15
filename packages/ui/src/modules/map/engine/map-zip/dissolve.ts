@@ -1,19 +1,19 @@
 /**
  * The territory a set of ZIP codes covers, as one drawable shape. The codes the
- * matcher holds are gathered out of the atlas and their rings become the zone a
- * `MapGeofence` draws — the whole point of the pass, since a broker states
- * coverage in codes and a map draws it in ground.
+ * matcher holds are gathered out of the atlas, and their rings become the zone a
+ * `MapGeofence` draws. That is the whole point of the pass, since a broker
+ * states coverage in codes and a map draws it in ground.
  *
  * A topology dissolves exactly. TopoJSON stores each shared border once as an
- * arc, so `merge` drops the arcs the selected codes share and keeps the ones
- * only one of them holds: the seams between neighbouring codes disappear, an
- * uncovered code inside a covered ring comes out as a hole, and two separate
- * clusters come out as two polygons. Nothing is clipped and nothing is rounded,
+ * arc. The `merge` therefore drops the arcs the selected codes share, and keeps
+ * the ones only one of them holds. The seams between neighbouring codes
+ * disappear. An uncovered code inside a covered ring comes out as a hole, and
+ * two separate clusters come out as two polygons. Nothing is clipped and nothing is rounded,
  * because the operation is over the arc index rather than over coordinates.
  *
  * GeoJSON cannot do that. Its features repeat every shared border as two
  * independent runs of coordinates, and reconciling them needs a polygon-clipping
- * pass this module does not carry. So a feature collection gathers instead: each
+ * pass this module does not carry. So a feature collection gathers instead. Each
  * matched code keeps its own rings, and the zone reads as a mesh of codes rather
  * than as one territory. Pass a topology where the seams matter.
  */
@@ -77,15 +77,15 @@ export type MapZipArea = {
 	codes: string[]
 	/**
 	 * The matched features, wound as their source wound them. Read for the pass
-	 * that finds which regions the territory lands in, so that pass measures each
-	 * code rather than the merged whole — a territory over a state line still
+	 * that finds which regions the territory lands in. That pass measures each
+	 * code rather than the merged whole, so a territory over a state line still
 	 * names both states.
 	 *
-	 * Not rewound here, because rewinding measures a spherical area for every ring
-	 * and the pass that reads these measures almost none of them: it settles most
-	 * codes from a bounding box, which no winding can change. So the rewind sits
-	 * with the measurement that needs it, and a territory pays it per code it
-	 * actually has to place rather than per code it holds.
+	 * Not rewound here, because rewinding measures a spherical area for every
+	 * ring. The pass that reads these measures almost none of them. It settles
+	 * most codes from a bounding box, which no winding can change. So the rewind
+	 * sits with the measurement that needs it. A territory pays it per code it
+	 * actually has to place, rather than per code it holds.
 	 */
 	features: MapFeature[]
 	/** The rings: polygon, then ring, then position. Empty where nothing matched. */

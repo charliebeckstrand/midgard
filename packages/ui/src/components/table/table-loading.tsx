@@ -16,8 +16,8 @@ export type TableLoadingProps = {
  *
  * @remarks
  * Known gap: the body carries no `aria-busy` or `role="status"`, and the
- * skeletons are `aria-hidden`, so assistive technology perceives a table of
- * empty cells with no loading signal. A consumer that owns a live region covers
+ * skeletons are `aria-hidden`. Assistive technology therefore perceives a table
+ * of empty cells, with no loading signal. A consumer that owns a live region covers
  * it; one that does not has no cue.
  *
  * @defaultValue rows `2`

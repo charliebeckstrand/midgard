@@ -39,7 +39,7 @@ export function getEntries(value: JsonValue): [string | number, JsonValue][] {
 }
 
 /**
- * Escape a node-path segment so the `.` join separator is unambiguous: a key
+ * Escape a node-path segment so the `.` join separator is unambiguous. A key
  * that literally contains `.` (or the `\` escape char) can no longer masquerade
  * as a deeper path. A no-op for ordinary keys, so existing path strings are
  * unchanged. Without this, `{ "a.b": 1 }` and `{ a: { b: 1 } }` collide on the
@@ -239,7 +239,7 @@ type FlattenTreeOptions = {
  * filtered) children, and a `branch-close` row.
  *
  * When `search` is set and `filter` is true, non-matching leaves are omitted
- * and each branch keeps only children on a match path; a branch's open state
+ * and each branch keeps only children on a match path. A branch's open state
  * still follows `expanded`. (Unlike the recursive renderer, this flatten pass
  * does not force match-free branches closed.)
  *

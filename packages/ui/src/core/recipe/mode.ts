@@ -4,13 +4,13 @@
  *
  * `mode()` fuses a scalar light/dark pair into a flat `string[]` (the shape
  * the recipe engine consumes). `defineColors()` does the same across a
- * multi-key map, useful for kata-specific colour palettes that aren't part
- * of the iro.palette × iro.colors matrix, e.g. checkbox / radio / switch
+ * multi-key map. That is useful for kata-specific colour palettes outside
+ * the iro.palette × iro.colors matrix, e.g. checkbox / radio / switch
  * exposing CSS-variable bundles per colour.
  *
  * Authoring style: the dark string carries its own `dark:` prefix, one per
  * class; a single entry can bundle several variable-setters. Use `shades()`
- * from `./shades` for the per-`Color` form; both helpers expect the dark
+ * from `./shades` for the per-`Color` form. Both helpers expect the dark
  * class to ship its prefix, and Tailwind detects only full class literals.
  */
 

@@ -21,7 +21,7 @@ th, td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
  * Opens the browser print dialog over `rows` through a hidden iframe.
  *
  * @remarks No recovery is wired: the grid builds its own markup, so a frame that
- * cannot print has nothing to fall back to and the failure propagates. The frame
+ * cannot print has nothing to fall back to. The failure propagates. The frame
  * is still reclaimed. See {@link printInHiddenFrame}.
  *
  * @typeParam T - Shape of a single row.

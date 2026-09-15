@@ -38,17 +38,17 @@ export type InView = {
  * "show it". A caller that renders everything is slower than one that defers,
  * never wrong.
  *
- * `once` is the default because the common use is mount-on-first-sight and keep;
- * the observer disconnects the moment it reports, so a long list costs one
+ * `once` is the default because the common use is mount-on-first-sight and keep.
+ * The observer disconnects the moment it reports, so a long list costs one
  * observation per item rather than one per scroll.
  *
  * One observer per element, where {@link useTruncation} pools its
  * `ResizeObserver` behind a module-level instance and a `WeakMap`. That pooling
  * is worth porting here if a caller ever observes thousands: it is the same
  * twenty lines, with `unobserve` in place of `disconnect`. It is not worth it
- * yet — the heaviest caller today defers a few hundred embeds, where the whole
- * per-embed mount measured about 0.2 ms including the observer, one time, off
- * the streaming path.
+ * yet. The heaviest caller today defers a few hundred embeds. The whole
+ * per-embed mount there measured about 0.2 ms including the observer, one time,
+ * off the streaming path.
  *
  * @param options - See {@link InViewOptions}.
  * @returns The `ref` to attach to the observed element, and `inView`.

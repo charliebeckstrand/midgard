@@ -5,7 +5,7 @@
  *
  * The semantic intent-colour bundle (`default` / `muted` / `primary`
  * / `success` / `warning` / `error`), the public `iro.text`, lives in
- * `intent.ts` (the ramp's `onSurface` role); the barrel composes it under
+ * `intent.ts` (the ramp's `onSurface` role). The barrel composes it under
  * the `text` key.
  *
  * Layer: kiso · Concern: text shade

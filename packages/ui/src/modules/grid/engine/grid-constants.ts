@@ -2,9 +2,11 @@ import type { DensityLevel } from '../../../providers/density/context'
 
 /**
  * Estimated row height (px) for virtualization when {@link GridVirtualize}
- * sets none, keyed by density — matching the `sm`/`md`/`lg` cell-padding
- * steps in `recipes/kata/table.ts` (±8px vertical padding per step) so the
- * virtualizer's estimate tracks the actually-rendered row height. @internal
+ * sets none, keyed by density. It matches the `sm`/`md`/`lg` cell-padding steps
+ * in `recipes/kata/table.ts` (±8px vertical padding per step), so the
+ * virtualizer's estimate tracks the actually-rendered row height.
+ *
+ * @internal
  */
 export const ROW_HEIGHT_BY_DENSITY = {
 	compact: 36,
@@ -25,27 +27,34 @@ export const DEFAULT_PAGE_SIZE = 10
 export const DEFAULT_COLUMN_SIZE = 150
 
 /**
- * Natural width (px) the selection-checkbox column holds in the fixed (resizable)
- * layout when it sets no `width` — wide enough for the checkbox, instead of the
- * {@link DEFAULT_COLUMN_SIZE} a width-less column would otherwise take. The
- * non-resizable auto layout sizes the column to its content via `w-px`, so this
- * seeds only the fixed-layout colgroup. @internal
+ * Natural width (px) the selection-checkbox column holds in the fixed
+ * (resizable) layout when it sets no `width`. It is wide enough for the
+ * checkbox, instead of the {@link DEFAULT_COLUMN_SIZE} a width-less column
+ * would otherwise take. The non-resizable auto layout sizes the column to its
+ * content via `w-px`, so this seeds only the fixed-layout colgroup.
+ *
+ * @internal
  */
 export const SELECT_COLUMN_SIZE = 48
 
 /**
  * Natural width (px) the row drag-handle column holds in the fixed (resizable)
- * layout when it sets no `width` — wide enough for the grip, like
+ * layout when it sets no `width`. It is wide enough for the grip, like
  * {@link SELECT_COLUMN_SIZE} for the checkbox. The non-resizable auto layout
- * sizes it to content via `w-px`, so this seeds only the fixed-layout colgroup. @internal
+ * sizes it to content via `w-px`, so this seeds only the fixed-layout colgroup.
+ *
+ * @internal
  */
 export const DRAG_HANDLE_COLUMN_SIZE = 44
 
 /**
  * Natural width (px) the row-expander column holds in the fixed (resizable)
- * layout when it sets no `width` — wide enough for the disclosure chevron, like
- * {@link DRAG_HANDLE_COLUMN_SIZE} for the grip. The non-resizable auto layout
- * sizes it to content via `w-px`, so this seeds only the fixed-layout colgroup. @internal
+ * layout when it sets no `width`. It is wide enough for the disclosure chevron,
+ * like {@link DRAG_HANDLE_COLUMN_SIZE} for the grip. The non-resizable auto
+ * layout sizes it to content via `w-px`, so this seeds only the fixed-layout
+ * colgroup.
+ *
+ * @internal
  */
 export const EXPANDER_COLUMN_SIZE = 44
 
@@ -54,17 +63,21 @@ export const DEFAULT_MIN_COLUMN_SIZE = 40
 
 /**
  * Cap (px) on a column's auto-measured content width, so one runaway cell can't
- * starve its siblings (the autosizer holds others at their floor and overflows
- * rather than squishing). A column's own `maxWidth` overrides this — an explicit
- * ceiling is a deliberate choice. @internal
+ * starve its siblings. The autosizer holds others at their floor and overflows,
+ * rather than squishing. A column's own `maxWidth` overrides this — an explicit
+ * ceiling is a deliberate choice.
+ *
+ * @internal
  */
 export const DEFAULT_CONTENT_MAX = 480
 
 /**
- * Text room (px) the autosizer reserves beyond a header's affordance icons for a
- * multi-word or non-string title — enough for a few characters and the ellipsis,
- * so such a header can truncate. A single-word title instead reserves its full
- * width (it never truncates); see the column measurer. @internal
+ * Text room (px) the autosizer reserves beyond a header's affordance icons for
+ * a multi-word or non-string title. It is enough for a few characters and the
+ * ellipsis, so such a header can truncate. A single-word title instead reserves
+ * its full width (it never truncates); see the column measurer.
+ *
+ * @internal
  */
 export const HEADER_TRUNCATE_ALLOWANCE = 24
 
@@ -80,16 +93,24 @@ export const NAV_PAGE_STEP = 10
 /** Debounce (ms) before the busy live region announces a settled row count, so a fast filter/search doesn't chatter. @internal */
 export const GRID_STATUS_DEBOUNCE_MS = 150
 
-/** Debounce (ms) the quick-search field waits after the last keystroke before driving the engine's global filter, so a fast typist settles into one O(rows × columns) filter pass. @internal */
+/**
+ * Debounce (ms) the quick-search field waits after the last keystroke before
+ * driving the engine's global filter. A fast typist thus settles into one
+ * O(rows × columns) filter pass.
+ *
+ * @internal
+ */
 export const GRID_SEARCH_DEBOUNCE_MS = 200
 
 /**
  * Placeholder skeleton rows shown under an expanded {@link GridGroupBy.manual}
- * group while its children load — a group opens instantly on expand, and these
+ * group while its children load. A group opens instantly on expand, and these
  * fill it until the consumer's `onGroupExpand` fetch feeds the children back. A
  * single loading line stands in for the whole group, whatever its size (server
- * grouping exists precisely because a group can be enormous); an empty group
- * (backend `count` of 0) shows none. @internal
+ * grouping exists precisely because a group can be enormous). An empty group
+ * (backend `count` of 0) shows none.
+ *
+ * @internal
  */
 export const MANUAL_GROUP_PLACEHOLDER_ROWS = 1
 

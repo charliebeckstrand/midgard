@@ -132,16 +132,16 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
  * Open a ts-morph Project rooted at the package's `tsconfig.json` (one level
  * above `srcDir`), scoped to the documented barrels and the source files they
  * reach. `skipAddingFilesFromTsConfig` drops the tsconfig's whole `include`
- * glob (~1.8k files, most of them irrelevant `node_modules` typings the checker
- * pulls in lazily anyway); adding only the barrel indices and resolving their
- * dependencies pulls in exactly the project source the extractor and the
- * package-wide link index read, cutting the checker's eager work roughly in
- * half with byte-identical output.
+ * glob, ~1.8k files. Most of them are irrelevant `node_modules` typings the
+ * checker pulls in lazily anyway. Adding only the barrel indices and resolving
+ * their dependencies pulls in exactly the project source the extractor and the
+ * package-wide link index read. That cuts the checker's eager work roughly in
+ * half, with byte-identical output.
  *
  * `resolveSourceFileDependencies` is the expensive half and looks like the next
  * thing to cut. Do not cut it. It alone pulls `primitives`, `hooks`, and `core`
- * into the project, and the link index walks `project.getSourceFiles()`, so
- * every cross-root TSDoc link loses its hover card without it. A wider seed is
+ * into the project, and the link index walks `project.getSourceFiles()`. Every
+ * cross-root TSDoc link therefore loses its hover card without it. A wider seed is
  * no help either — measured over alternating cold processes, the two are within
  * noise. See `project-construction.bench.ts`.
  */
@@ -203,8 +203,8 @@ function buildComponent(
 
 /**
  * Component-level TSDoc. `export function` components carry the comment on the
- * declaration itself; `forwardRef` / `memo` wrappers document at the exported
- * variable statement (`decl.callable` is the unwrapped inner function), so walk
+ * declaration itself. `forwardRef` / `memo` wrappers document at the exported
+ * variable statement (`decl.callable` is the unwrapped inner function). Walk
  * up to it when the callable isn't a function declaration.
  */
 function componentDescription(decl: ComponentDecl): string | undefined {

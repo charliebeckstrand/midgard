@@ -8,7 +8,7 @@ import { wrap } from '../../utilities'
 /**
  * Selector for focusable day cells. Out-of-range cells render as
  * `<button disabled>`, which can't take focus, so every query scopes to enabled
- * buttons and roving skips disabled cells; `.focus()` on a disabled element is a
+ * buttons and roving skips disabled cells. `.focus()` on a disabled element is a
  * no-op that would freeze the active index at the edge of a disabled range
  * (WCAG 2.1.1).
  *
@@ -42,8 +42,8 @@ type CalendarFocusOptions = {
 	cols?: number
 	/**
 	 * Seals the surface: every navigation key stops here, handled or not.
-	 * For surfaces nested inside another keyboard model (the month/year
-	 * picker inside the date picker dialog), where a leaked arrow would
+	 * For surfaces nested inside another keyboard model, such as the month/year
+	 * picker inside the date picker dialog. There a leaked arrow would
 	 * drive the outer model underneath the open surface.
 	 */
 	stopPropagation?: boolean
@@ -95,9 +95,9 @@ function isBottomRow(container: HTMLElement | null, cols: number): boolean {
 }
 
 /**
- * Sealed surfaces consume every navigation key, moved or not: prevents default
- * on an unhandled navigation key, then stops propagation once the event is
- * defaultPrevented (by this call or an earlier handler). No-op when
+ * Sealed surfaces consume every navigation key, moved or not. This prevents
+ * default on an unhandled navigation key, then stops propagation once the event
+ * is defaultPrevented (by this call or an earlier handler). No-op when
  * `stopPropagation` is false.
  *
  * @internal
@@ -145,9 +145,9 @@ function focusAdjacentFooterButton(
 
 /**
  * Wires roving-tabindex keyboard navigation across a calendar's header, grid,
- * and footer zones, bridging focus between them at the edges (ArrowDown from the
- * header enters the grid, ArrowUp/Down at the grid's top/bottom row crosses into
- * header/footer). Returns the three zones' `keydown` handlers.
+ * and footer zones, bridging focus between them at the edges. ArrowDown from the
+ * header enters the grid, and ArrowUp/Down at the grid's top/bottom row crosses
+ * into header/footer. Returns the three zones' `keydown` handlers.
  *
  * @returns `handleHeaderKeyDown` / `handleGridKeyDown` / `handleFooterKeyDown`.
  * @remarks Set `stopPropagation` to seal a surface nested inside another

@@ -1,29 +1,36 @@
 /**
- * The single source of truth for chart mount animations: every reveal a
- * cartesian or radial chart plays as it first draws — the line drawing itself,
- * the area wash fading in behind it, the point pop, the bars growing from the
- * baseline, the reference rules rising to their value, the pie sweeping round.
+ * The single source of truth for chart mount animations. It holds every reveal
+ * a cartesian or radial chart plays as it first draws:
+ *
+ * - The line drawing itself.
+ * - The area wash fading in behind it.
+ * - The point pop.
+ * - The bars growing from the baseline.
+ * - The reference rules rising to their value.
+ * - The pie sweeping round.
+ *
  * Both the timing specs and the orientation-aware transform builders live here,
- * so an animated renderer reads a reveal rather than re-deriving one; the
- * shared draw / fade / pop / grow timings read from the ugoki `mark` family,
- * so the charts, Sparkline, and maps animating side by side stay one motion
- * family.
+ * so an animated renderer reads a reveal rather than re-deriving one. The
+ * shared draw / fade / pop / grow timings read from the ugoki `mark` family.
+ * The charts, Sparkline, and maps animating side by side therefore stay one
+ * motion family.
  *
  * The value-axis reveals key on {@link ChartOrientation} exactly as the
  * coordinate transpose in `chart-orientation` does: vertical runs the value axis
  * up y, horizontal along x. Each reveals from the zero baseline in the direction
- * its value points — a bar grows toward its value, a reference rule slides toward
- * its own — so both agree on the axis and the sign. The builders return plain
- * motion targets and carry no `motion/react` import, so this module stays a pure
- * spec the renderers consume and the mapping is unit-testable in isolation.
+ * its value points. A bar grows toward its value, and a reference rule slides
+ * toward its own, so both agree on the axis and the sign. The builders return
+ * plain motion targets and carry no `motion/react` import. This module therefore
+ * stays a pure spec the renderers consume, and the mapping is unit-testable in
+ * isolation.
  *
- * A data change replays the reveal out-then-in: the marks run their reveal in
- * reverse — a bar shrinks back to its baseline, a line un-draws, a point pops
- * out, the pie un-sweeps, a value label fades — then the incoming data reveals
+ * A data change replays the reveal out-then-in. The marks run their reveal in
+ * reverse. A bar shrinks back to its baseline, a line un-draws, a point pops
+ * out, the pie un-sweeps, and a value label fades. The incoming data then reveals
  * normally, the way AG Charts re-animated on a data update. The exit *target* of
  * every mark is the `initial` state it reveals from, so this module adds no new
- * geometry; it adds only the reverse *timings* below (quicker and delay-free, so
- * the outgoing marks clear before the incoming reveal begins) and the
+ * geometry. It adds only the reverse *timings* below, quicker and delay-free, so
+ * the outgoing marks clear before the incoming reveal begins. It also adds the
  * {@link seriesDataKey} signature an animated renderer swaps its generation on.
  */
 
@@ -54,8 +61,8 @@ export const BAR_STAGGER = mark.stagger
 
 /**
  * Reference-rule rise: the rule slides in along the value axis from the baseline
- * to its value, in the direction its value points — the way the matching bar
- * grows — held a beat so it lands as the marks settle.
+ * to its value, in the direction its value points. That is the way the matching
+ * bar grows. Held a beat so it lands as the marks settle.
  * @internal
  */
 export const REFERENCE_RISE = {
@@ -66,8 +73,10 @@ export const REFERENCE_RISE = {
 
 /**
  * The pie's reveal: the disc wipes in clockwise from the top (`pathLength`
- * 0 → 1 on a masking stroke), so the pie draws itself around its angular axis
- * the way the line draws itself along x. @internal
+ * 0 → 1 on a masking stroke). The pie therefore draws itself around its angular
+ * axis, the way the line draws itself along x.
+ *
+ * @internal
  */
 export const SLICE_SWEEP = { duration: duration[800], ease: ease.inOut } as const
 
@@ -99,9 +108,10 @@ export const SLICE_UNSWEEP = { duration: duration[500], ease: ease.inOut } as co
 export const SLICE_UNFADE = { duration: duration[200], ease: ease.in } as const
 
 /**
- * Whether the value axis runs vertically for this orientation — the one place
- * the mount reveals decide which screen axis to animate, mirroring the
+ * Whether the value axis runs vertically for this orientation. It is the one
+ * place the mount reveals decide which screen axis to animate. It mirrors the
  * coordinate transpose the rest of the frame reads from `chart-orientation`.
+ *
  * @internal
  */
 function valueVertical(orientation: ChartOrientation): boolean {
@@ -110,8 +120,8 @@ function valueVertical(orientation: ChartOrientation): boolean {
 
 /**
  * The mount grow for one bar: it scales in along the value axis from its
- * baseline end — up y for vertical (origin the bottom of a positive bar), out x
- * for horizontal (origin the left of a positive bar).
+ * baseline end. That is up y for vertical (origin the bottom of a positive
+ * bar), and out x for horizontal (origin the left of a positive bar).
  *
  * @internal
  */
@@ -123,10 +133,10 @@ export function barGrow(orientation: ChartOrientation, positive: boolean) {
 
 /**
  * The mount rise for one reference rule: it slides in along the value axis from
- * the baseline to its value, `offset` the signed gap from the value back to the
- * baseline. Its sign points the reveal the way the value does — up or down for
- * vertical, right or left for horizontal — so a rule animates like the bar that
- * would reach it.
+ * the baseline to its value. `offset` is the signed gap from the value back to
+ * the baseline. Its sign points the reveal the way the value does: up or down
+ * for vertical, right or left for horizontal. A rule therefore animates like
+ * the bar that would reach it.
  *
  * @internal
  */
@@ -137,12 +147,13 @@ export function referenceRise(orientation: ChartOrientation, offset: number) {
 }
 
 /**
- * A stable signature of a chart's resolved series values — the generation key an
- * animated renderer swaps on to replay its reveal out-then-in when the data
- * changes. It reads the *values*, not the drawn geometry, so it holds through a
- * resize (same numbers at new coordinates) and a legend toggle (the caller feeds
- * every series, visible or not), and changes only when the underlying data does
- * — the Ship Date filter re-running the query. `null` gaps stringify distinctly
+ * A stable signature of a chart's resolved series values. It is the generation
+ * key an animated renderer swaps on to replay its reveal out-then-in when the
+ * data changes. It reads the *values*, not the drawn geometry. It therefore
+ * holds through a resize (same numbers at new coordinates), and a legend toggle
+ * (the caller feeds every series, visible or not). It changes only when the
+ * underlying data does, as under the Ship Date filter re-running the query.
+ * `null` gaps stringify distinctly
  * from a zero, so a value going missing counts as a change.
  *
  * @internal
@@ -153,9 +164,9 @@ export function seriesDataKey(values: readonly (readonly (number | null)[])[]): 
 
 /**
  * The generation key an animated renderer holds still on when it must not replay
- * the out-then-in transition — a reduced-motion preference, where a data change
- * skips straight to the new marks. A constant, so the generation never swaps and
- * the marks reconcile in place.
+ * the out-then-in transition. That is a reduced-motion preference, where a data
+ * change skips straight to the new marks. A constant, so the generation never
+ * swaps and the marks reconcile in place.
  *
  * @internal
  */

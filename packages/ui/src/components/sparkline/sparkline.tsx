@@ -17,7 +17,7 @@ type SparklineColor = keyof typeof k.color
 
 /**
  * Props for {@link Sparkline}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`), enforced at the type level by `AccessibleName` — a
+ * `aria-labelledby`), enforced at the type level by `AccessibleName`. A
  * sparkline is `role="img"`, so assistive tech needs a name for it.
  */
 export type SparklineProps = AccessibleName & {
@@ -49,7 +49,7 @@ export type SparklineProps = AccessibleName & {
 	 */
 	endPoint?: boolean
 	/**
-	 * Animate the marks in on mount with Framer Motion: the line draws itself
+	 * Animate the marks in on mount with Framer Motion. The line draws itself
 	 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
 	 * bars rise from the baseline in sequence. Honours `prefers-reduced-motion`
 	 * through {@link ReducedMotion}. Off by default — a static grid of many
@@ -217,7 +217,7 @@ function AnimatedSparklineMarks({
  * Compact inline trend chart — a line or bar sparkline — rendered as a
  * self-contained, decoration-free SVG (`role="img"`). Sized from enclosing
  * Density unless `width` / `height` override it, it maps `data` onto its
- * drawing box through {@link sparklineGeometry}: a flat or single-point series
+ * drawing box through {@link sparklineGeometry}. A flat or single-point series
  * still draws visibly, and a stray non-finite value doesn't collapse the scale.
  *
  * @remarks Built for a {@link Grid} cell — drop it into a column's `cell`

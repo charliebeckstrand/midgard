@@ -13,10 +13,11 @@ type KeyboardOptions = {
 	/**
 	 * Commits the draft and owns what is left behind.
 	 *
-	 * One callback rather than an `addTag`/`clearInput` pair, so Enter, blur, the Add button and a
-	 * paste all reach the same commit: the draft is tokenized once, in one place, and every entry
-	 * channel therefore accepts the same input. Splitting that across handlers is what let a paste
-	 * commit nothing while Enter worked.
+	 * One callback rather than an `addTag`/`clearInput` pair, so Enter, blur, the
+	 * Add button and a paste all reach the same commit. The draft is tokenized
+	 * once, in one place, and every entry channel therefore accepts the same input.
+	 * Splitting that across handlers is what let a paste commit nothing while Enter
+	 * worked.
 	 */
 	commit: (raw: string) => void
 	/** Removes the tag at `index`. */

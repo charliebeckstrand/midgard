@@ -8,16 +8,17 @@ import { createLinkIndex } from './link-resolver'
 
 /**
  * An incremental, disk-cached driver over {@link extractBarrel}. The docs plugin
- * holds one across a dev session: {@link ApiExtractor.getAll} returns the full
- * `{ key → ComponentApi[] }` record, and {@link ApiExtractor.notifyChanged}
- * feeds it the file a hot-update touched so the next `getAll` re-extracts only
- * the barrels that file feeds — replacing the whole-cache invalidation and the
- * per-request `new Project()` that re-type-checked the package on every edit.
+ * holds one across a dev session. Its {@link ApiExtractor.getAll} returns the
+ * full `{ key → ComponentApi[] }` record. Its {@link ApiExtractor.notifyChanged}
+ * feeds it the file a hot-update touched, so the next `getAll` re-extracts only
+ * the barrels that file feeds. That replaces the whole-cache invalidation and
+ * the per-request `new Project()` that re-type-checked the package on every
+ * edit.
  *
  * Extraction order (prop order, union member order) tracks the type checker's
- * warmup, so it must not vary with cache state. Two rules keep it stable: an
+ * warmup, so it must not vary with cache state. Two rules keep it stable. An
  * in-session re-extraction reuses the checker the first full pass warmed, and
- * the disk cache is whole-record — a clean restart replays the stored JSON
+ * the disk cache is whole-record. A clean restart replays the stored JSON
  * verbatim, and any source change triggers one full canonical pass.
  */
 export type ApiExtractor = {
@@ -72,14 +73,14 @@ function toPosix(file: string): string {
 
 /**
  * Directories that hold no barrel input. {@link isInputFile} rejects every path
- * under them, so the walk prunes them instead of descending and discarding —
- * they hold about a third of the files under this package's `src`.
+ * under them, so the walk prunes them instead of descending and discarding.
+ * They hold about a third of the files under this package's `src`.
  */
 const SKIPPED_DIRS = new Set(['node_modules', 'docs', '__tests__', '__benchmarks__'])
 
 /**
  * A file that can feed a barrel's output: project source, never `node_modules`,
- * the docs site, or test/bench fixtures — production barrels never import those,
+ * the docs site, or test/bench fixtures. Production barrels never import those,
  * so tracking them would re-extract on every unrelated test edit.
  */
 function isInputFile(file: string): boolean {
@@ -153,7 +154,7 @@ function hashFile(file: string, hashes: Map<string, string>): string | null {
  * this key labels. The memo gives the key the same blind spot, so the key and
  * the record agree.
  *
- * A key that reads disk on every call is worse: it can validate a record that
+ * A key that reads disk on every call is worse. It can validate a record that
  * the same missed edit made stale, and that pair survives every restart. A key
  * that agrees with its record fails the check on the next start instead,
  * because a fresh extractor starts with an empty memo.
@@ -338,7 +339,7 @@ export function createApiExtractor(
 			}
 		}
 
-		// A newly added file may pull in further dependencies; re-resolve so the
+		// A newly added file can pull in further dependencies; re-resolve so the
 		// checker sees the complete graph.
 		if (structural) proj.resolveSourceFileDependencies()
 

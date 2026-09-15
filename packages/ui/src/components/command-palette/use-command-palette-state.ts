@@ -27,8 +27,8 @@ type CommandPaletteStateOptions = {
 const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
 
 /**
- * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}:
- * the search value plus the refs and `onKeyDown` that drive
+ * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}.
+ * It returns the search value plus the refs and `onKeyDown` that drive
  * `aria-activedescendant` highlighting over options while focus stays on the
  * input. Resets the query on close and keeps the highlight on the top result as
  * the filtered set changes. `virtualSourceRef` is the registration point a
@@ -73,10 +73,10 @@ export function useCommandPaletteState({
 	 * The highlight's one readout, reported after each route that moves it.
 	 *
 	 * The roving hook writes `aria-activedescendant` on the input imperatively
-	 * rather than through state, so there is no committed React value to watch —
-	 * the attribute IS the state. Read back rather than tracked in parallel,
-	 * because the index and the DOM part company under a windowed list, and this
-	 * is the id the reader's assistive technology is given.
+	 * rather than through state, so there is no committed React value to watch.
+	 * The attribute IS the state. It is read back rather than tracked in parallel,
+	 * because the index and the DOM part company under a windowed list. This is
+	 * the id the reader's assistive technology is given.
 	 */
 	const notifyActiveChange = useEffectEvent((optionId: string | null) => {
 		onActiveChange?.(optionId)

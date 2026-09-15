@@ -1,14 +1,14 @@
 /**
- * Sequential colour-scale primitives shared by the data-driven colour charts —
- * the choropleth and the heatmap: sample an ordered colour ramp, and quantise a
- * numeric domain into equal-interval bins painted from it. Pure and
- * dependency-light so the mapping math is unit-testable in isolation and both
- * modules read one scale rather than forking it.
+ * Sequential colour-scale primitives shared by the data-driven colour charts:
+ * the choropleth and the heatmap. The primitives sample an ordered colour ramp,
+ * and quantise a numeric domain into equal-interval bins painted from it. Pure
+ * and dependency-light so the mapping math is unit-testable in isolation and
+ * both modules read one scale rather than forking it.
  *
  * `colorRange` is an ordered list of CSS colour stops, low → high — the
  * data-driven scale the consumer owns (mirrors AG Charts / ECharts / Vega). An
  * exact stop passes through verbatim, so any CSS colour works when a sample
- * lands on one (bins = stops); interpolation between stops goes through
+ * lands on one (bins = stops). Interpolation between stops goes through
  * {@link parseColor}, so `#rgb`, `rgb(…)`, `oklch(…)`, and the `white` / `black`
  * keywords all mix.
  */
@@ -99,7 +99,7 @@ export function valueExtent(
 
 /**
  * Quantises `domain` into equal-interval {@link ColorBin}s sampled from
- * `colorRange`, low → high: one bin per colour stop by default, or `bins`
+ * `colorRange`, low → high. The default is one bin per colour stop, or `bins`
  * buckets resampled from the stops when set. The last bin's `hi` is pinned to
  * the domain max so the top edge folds in rather than opening a bucket past it.
  */
@@ -123,9 +123,12 @@ export function resolveColorBins(
 
 /**
  * The equal-interval bin index `value` falls in across a `count`-bucket
- * `domain`: the top edge clamps into the last bin, a zero-span domain places
- * every value in bin `0`, and a non-finite value or a non-positive `count`
- * reads `null` — the no-data case.
+ * `domain`:
+ *
+ * - The top edge clamps into the last bin.
+ * - A zero-span domain places every value in bin `0`.
+ * - A non-finite value or a non-positive `count` reads `null`, the no-data
+ *   case.
  */
 export function binIndex(value: number, domain: [number, number], count: number): number | null {
 	if (count < 1 || !Number.isFinite(value)) return null
@@ -168,9 +171,9 @@ function quantileAt(sorted: number[], p: number): number {
  * equal-count (quantile) buckets — the value at each `i / count` quantile of the
  * sorted finite values. Empty when there is nothing to split (no finite values,
  * a flat domain, or `count < 2`), so the caller paints a single bin. Ties leave
- * repeated edges — the standard quantile-scale behaviour — so a heavily
- * duplicated value can leave some buckets zero-width rather than forcing an even
- * split that identical values can't honour.
+ * repeated edges, the standard quantile-scale behaviour. A heavily duplicated
+ * value can therefore leave some buckets zero-width, rather than forcing an
+ * even split that identical values can't honour.
  */
 export function quantileThresholds(values: number[], count: number): number[] {
 	return sortedThresholds(sortedFinite(values), count)
@@ -194,10 +197,10 @@ function sortedThresholds(sorted: number[], count: number): number[] {
 
 /**
  * The bin index `value` falls in for the quantile `thresholds` (from {@link
- * quantileThresholds}): the number of thresholds it meets or exceeds, so a value
- * sitting on an edge reads into the upper bucket (a right-bisect). `null` for a
- * non-finite value — the no-data case — and bin `0` for every finite value when
- * there are no thresholds (a single bucket).
+ * quantileThresholds}): the number of thresholds it meets or exceeds. A value
+ * sitting on an edge therefore reads into the upper bucket (a right-bisect).
+ * `null` for a non-finite value — the no-data case — and bin `0` for every
+ * finite value when there are no thresholds (a single bucket).
  */
 export function quantileBinIndex(value: number, thresholds: number[]): number | null {
 	if (!Number.isFinite(value)) return null
@@ -211,13 +214,13 @@ export function quantileBinIndex(value: number, thresholds: number[]): number | 
 
 /**
  * Splits `values` into equal-count quantile {@link ColorBin}s painted from
- * `colorRange`, low → high — the skew-aware counterpart to {@link
- * resolveColorBins}'s equal-interval buckets, so each shade covers a similar
+ * `colorRange`, low → high. It is the skew-aware counterpart to {@link
+ * resolveColorBins}'s equal-interval buckets. Each shade covers a similar
  * number of rows rather than a similar value span. Returns the bins and the
  * {@link quantileThresholds} rows are assigned by ({@link quantileBinIndex}).
- * `bins` buckets by default one per colour stop; ties or a flat domain yield
- * fewer real buckets, so the painted bin count tracks the actual edges rather
- * than mapping a colour onto a bucket the data can't fill.
+ * `bins` buckets by default one per colour stop. Ties or a flat domain yield
+ * fewer real buckets. The painted bin count therefore tracks the actual edges,
+ * rather than mapping a colour onto a bucket the data can't fill.
  */
 export function resolveQuantileBins(
 	values: number[],

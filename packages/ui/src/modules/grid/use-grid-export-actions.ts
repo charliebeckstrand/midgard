@@ -7,17 +7,19 @@ import type { GridExportAction, GridExportable, GridExportRows } from './engine/
 import type { GridColumn } from './types'
 
 /**
- * The export actions for a grid whose export control lives *outside* it — a page
- * header's own actions menu, say, which must be server-rendered where a grid
- * toolbar can't reach. Resolves the same {@link GridDataProps.exportable} shape
- * the grid resolves internally, so the labels, the built-in exporters, and the
- * async pending state all match the grid's own Export items.
+ * The export actions for a grid whose export control lives *outside* it. A page
+ * header's own actions menu is the example, which must be server-rendered where
+ * a grid toolbar can't reach. Resolves the same
+ * {@link GridDataProps.exportable} shape the grid resolves internally. The
+ * labels, the built-in exporters, and the async pending state therefore match
+ * the grid's own Export items.
  *
- * @remarks `exportRows` is required: without the grid's engine there is no
+ * @remarks `exportRows` is required. Without the grid's engine there is no
  * filtered/sorted row model (and no selection) to infer rows from, so the caller
- * supplies them — the same escape hatch a server-paginated grid uses. Return an
- * array for an in-memory list, or a promise for a round-trip; while one is in
- * flight `pending` is true, for a spinner on whatever control hosts the actions.
+ * supplies them. It is the same escape hatch a server-paginated grid uses.
+ * Return an array for an in-memory list, or a promise for a round-trip. While
+ * one is in flight `pending` is true, for a spinner on whatever control hosts
+ * the actions.
  *
  * The `exportable` surfaces are ignored here — the caller *is* the surface. Pair
  * with `exportable={false}` on the grid so its own Export items stay out and the

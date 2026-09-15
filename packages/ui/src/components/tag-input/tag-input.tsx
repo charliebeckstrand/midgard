@@ -25,7 +25,7 @@ import { useTagInputKeyboard } from './use-tag-input-keyboard'
  */
 export type TagInputProps = {
 	id?: string
-	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
+	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` must seed `string[]`. */
 	name?: string
 	size?: ControlSize
 	/** Badge color for every tag. @defaultValue 'zinc' */
@@ -73,9 +73,9 @@ export type TagInputProps = {
 
 /**
  * Token-entry field rendering its tags as removable badges in the `<Input>`
- * prefix; controlled or uncontrolled via `value`/`defaultValue`, committing
- * on Enter, comma, blur, the Add button or a paste, removing the trailing tag
- * with Backspace, and gating additions through `validate` and `max`.
+ * prefix. It is controlled or uncontrolled via `value`/`defaultValue`. It
+ * commits on Enter, comma, blur, the Add button or a paste. Backspace removes
+ * the trailing tag, and `validate` and `max` gate the additions.
  *
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
@@ -85,16 +85,17 @@ export type TagInputProps = {
  * the input after a removal (WCAG 4.1.3, 2.4.3).
  *
  * **A paste commits every token in it.** Pasting a list is the commonest way to
- * fill a token field and it used to commit nothing: the draft only tokenized on
- * a `keydown`, which a paste does not fire, so the whole string sat in the input
- * until blur refused it as one invalid tag. `onPaste` reads `clipboardData`
- * BEFORE the default insertion, which is the only point a newline-separated
- * spreadsheet column is still splittable — a native `<input>` strips newlines
- * from its own value, destroying the boundaries. Every commit channel routes
- * through one tokenizer, so all of them accept the same input.
+ * fill a token field, and it used to commit nothing. The draft only tokenized on
+ * a `keydown`, which a paste does not fire. The whole string therefore sat in
+ * the input until blur refused it as one invalid tag. `onPaste` reads
+ * `clipboardData` BEFORE the default insertion. That is the only point a
+ * newline-separated spreadsheet column is still splittable. A native `<input>`
+ * strips the newlines from its own value, which destroys the boundaries. Every
+ * commit channel routes through one tokenizer, so all of them accept the same
+ * input.
  *
- * Tokens `validate` refuses stay in the draft and mark the field invalid, so a
- * mistyped code in a list of forty is visible and directly editable rather than
+ * Tokens `validate` refuses stay in the draft and mark the field invalid. A
+ * mistyped code in a list of forty is thus visible and directly editable, not
  * announced once and lost.
  */
 export function TagInput({

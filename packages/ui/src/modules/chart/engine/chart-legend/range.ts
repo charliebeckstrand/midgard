@@ -2,10 +2,10 @@
  * Placement and orientation resolution for a colour-scaled chart's range
  * legend, kept React-free beside `chart-tier.ts` so the breakpoint math is
  * unit-testable in isolation. A colour-scaled chart (heatmap, choropleth) keys
- * its continuous scale bar off the same `legend` prop a categorical chart does,
- * then lets the measured box adjust it the way the categorical legend adjusts:
- * the bar sheds at the spark tier, and a box too narrow for a side rail drops a
- * side placement to a horizontal row under the plot. A `'left'` / `'right'`
+ * its continuous scale bar off the same `legend` prop a categorical chart does.
+ * The measured box then adjusts it the way the categorical legend adjusts. The
+ * bar sheds at the spark tier. A box too narrow for a side rail drops a side
+ * placement to a horizontal row under the plot. A `'left'` / `'right'`
  * placement stands the bar vertical, a `'top'` / `'bottom'` one lays it flat.
  */
 
@@ -15,11 +15,11 @@ import { type ChartLegendPlacement, legendAside } from './schema'
 
 /**
  * The object form of a colour-scaled chart's `legend` prop: the scale bar's
- * `placement`, which drives its orientation — a `'left'` / `'right'` placement
- * stands the bar vertical beside the plot, a `'top'` / `'bottom'` one lays it
- * horizontal above or below. The prop also takes a bare boolean (show at the
- * default placement, or drop it) or a bare placement string, so the object is
- * only needed when naming the placement through a keyed field.
+ * `placement`, which drives its orientation. A `'left'` / `'right'` placement
+ * stands the bar vertical beside the plot, and a `'top'` / `'bottom'` one lays
+ * it horizontal above or below. The prop also takes a bare boolean (show at the
+ * default placement, or drop it), or a bare placement string. The object is only
+ * needed when naming the placement through a keyed field.
  */
 export type ChartRangeLegendConfig = {
 	/**
@@ -65,16 +65,16 @@ function requestedPlacement(
 /**
  * Resolves a colour-scaled chart's `legend` prop against its measured box to the
  * range legend's placement, orientation, and whether it shows. The prop names a
- * placement — a bare boolean at the default, a bare string, or `{ placement }` —
- * and the box then adjusts it the way a categorical legend adjusts: the bar
- * sheds at the spark tier (its chrome stripped to bare marks), and a box too
- * narrow for a side rail (`compact` width) drops a side placement to a
- * horizontal row under the plot. A left/right placement stands the bar vertical,
+ * placement: a bare boolean at the default, a bare string, or `{ placement }`.
+ * The box then adjusts it the way a categorical legend adjusts. The bar sheds at
+ * the spark tier, its chrome stripped to bare marks. A box too narrow for a side
+ * rail (`compact` width) drops a side placement to a horizontal row under the
+ * plot. A left/right placement stands the bar vertical,
  * a top/bottom one lays it horizontal.
  *
  * @param legend The caller's `legend` prop.
- * @param width The box width the placement decides against — pass the chart's
- * own container, not the plot, so moving the bar off the side never feeds the
+ * @param width The box width the placement decides against. Pass the chart's own
+ * container, not the plot. Moving the bar off the side then never feeds the
  * plot's own width back and oscillates the placement.
  * @param height The box height, for the spark-floor check.
  * @param defaultPlacement Where the bar sits when the prop names none.

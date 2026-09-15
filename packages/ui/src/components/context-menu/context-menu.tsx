@@ -25,9 +25,9 @@ export type ContextMenuProps = ContextMenuConfig & {
 
 /**
  * Wraps content in a right-click context menu built from a host's `defaults`
- * merged with a caller's custom {@link ContextMenuConfig} — the custom items
- * before or after the defaults per `insert`, a separator between when both
- * show. With nothing to show — no defaults kept and no custom items, or
+ * merged with a caller's custom {@link ContextMenuConfig}. The custom items sit
+ * before or after the defaults per `insert`, with a separator between when
+ * both show. With nothing to show — no defaults kept and no custom items, or
  * `disabled` — it renders the content untouched, so the native menu still opens.
  *
  * @remarks Anchors at the cursor and tracks the right-clicked element on scroll,

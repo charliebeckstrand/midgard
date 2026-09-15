@@ -1,7 +1,7 @@
 /**
  * Pure geometry for the stacked {@link AreaChart}: each series' band sits on
- * the running total below it, its top edge a line and its fill the ribbon down
- * to the previous series' top. Independent of React and styling so the math is
+ * the running total below it. Its top edge is a line and its fill is the ribbon
+ * down to the previous series' top. Independent of React and styling so the math is
  * unit-testable in isolation. The unstacked variant reuses `lineGeometry`.
  */
 

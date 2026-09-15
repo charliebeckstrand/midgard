@@ -32,14 +32,14 @@ import { ChartFullscreenContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
 
 /**
- * The mark the pointer was over when the right-click landed, so a menu item can act on that mark rather
- * than the chart as a whole. `index` is the datum's index within the chart's categories — the same index
- * {@link SectorChartProps.onCategoryClick} reports — or `null` when the click landed off any mark
- * (plot padding, the legend, the header).
+ * The mark the pointer was over when the right-click landed. A menu item can act on that mark,
+ * rather than the chart as a whole. `index` is the datum's index within the chart's categories,
+ * the same index {@link SectorChartProps.onCategoryClick} reports. It is `null` when the click
+ * landed off any mark (plot padding, the legend, the header).
  *
- * An index rather than a label on purpose: labels are formatted for display (the sector charts run period
- * keys through a formatter), so a consumer that needs the underlying value must look it up in its own data
- * by position in the array.
+ * An index rather than a label on purpose. Labels are formatted for display (the sector charts run
+ * period keys through a formatter). A consumer that needs the underlying value must therefore look
+ * it up in its own data by position.
  */
 export type ChartContextMenuTarget = { index: number | null }
 
@@ -63,8 +63,9 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	/**
 	 * Custom entries to add to the menu, rendered in array order.
 	 *
-	 * Pass a function to build them from the mark under the pointer — the hook for a per-mark action
-	 * ("View the shipments behind this bar"), whose label can name the mark it will act on. It is called
+	 * Pass a function to build them from the mark under the pointer. It is the hook for a per-mark
+	 * action ("View the shipments behind this bar"), whose label can name the mark it will act on.
+	 * It is called
 	 * with `index: null` when the right-click missed every mark, so an item that needs one can be omitted.
 	 */
 	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
@@ -86,7 +87,7 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	/**
 	 * Fires when a Download PNG or Download JPG action finishes, either way.
 	 *
-	 * The rasterise runs behind the menu and a failure went into a bare `catch`, so a
+	 * The rasterise runs behind the menu and a failure went into a bare `catch`. A
 	 * reader whose export silently produced nothing had no way to learn why, and neither
 	 * did the caller. An image the browser refuses to decode, a tainted canvas, and a
 	 * canvas that yields no blob all arrive as `{ ok: false }`. Use it to report the
@@ -100,8 +101,8 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
  * The state-mirror reports the fullscreen copy must not raise.
  *
  * Each names a switchboard or a view the copy holds separately from the chart it
- * was cloned from — the legend's hidden set and emphasis, and the map's view
- * transform on a Choropleth. Shed on the clone rather than at each chart, because
+ * was cloned from. They are the legend's hidden set and emphasis, and the map's
+ * view transform on a Choropleth. Shed on the clone rather than at each chart, because
  * the clone is the one place that knows a second instance exists.
  *
  * @internal
@@ -111,8 +112,8 @@ const FULLSCREEN_SHED_REPORTS = ['onHiddenChange', 'onEmphasisChange', 'onViewCh
 /**
  * The shed, narrowed to the keys this element actually declares.
  *
- * `cloneElement` merges by key, so naming a prop the element does not take adds it
- * — and an unknown prop rides the chart's rest spread onto the plot element, where
+ * `cloneElement` merges by key, so naming a prop the element does not take adds
+ * it. An unknown prop rides the chart's rest spread onto the plot element, where
  * React warns and drops it. Only keys already present are overridden.
  *
  * @internal
@@ -142,7 +143,7 @@ export type ChartContextMenuProps = {
 	title?: string
 	/**
 	 * A fresh, re-mountable copy of the chart, rendered large in the fullscreen
-	 * dialog so hover and keyboard keep working — the chart re-measures at the
+	 * dialog so hover and keyboard keep working. The chart re-measures at the
 	 * dialog size rather than scaling a still. Absent, the Fullscreen item drops.
 	 */
 	fullscreen?: ReactElement
@@ -175,18 +176,19 @@ function exportCsv(readout: ChartReadoutSource): string {
 
 /**
  * The chart family's right-click menu and fullscreen view. Wraps a chart in a
- * {@link ContextMenu} whose default actions — Fullscreen, Download PNG / JPG, and
- * (with a readout) Download CSV / Copy data — merge with any caller
- * {@link ChartContextMenuConfig}. Fullscreen opens a large dialog holding a live,
- * re-mounted copy of the chart, centered at its aspect ratio; image downloads
- * rasterise the whole chart, legend included, unless `downloadLegend` is off.
+ * {@link ContextMenu} whose default actions merge with any caller
+ * {@link ChartContextMenuConfig}. Those actions are Fullscreen, Download PNG /
+ * JPG, and (with a readout) Download CSV / Copy data. Fullscreen opens a large
+ * dialog holding a live, re-mounted copy of the chart, centered at its aspect
+ * ratio. Image downloads rasterise the whole chart, legend included, unless
+ * `downloadLegend` is off.
  *
- * @remarks Image export draws the chart through an SVG `foreignObject` so its
- * HTML chrome and SVG marks capture together, inlining computed styles so the
- * bitmap carries its colours. `contextMenu={false}` renders the chart untouched,
- * leaving the browser's native menu. Inside the fullscreen dialog it renders
- * the chart untouched for a structural reason instead: there it is its own
- * re-mounted copy, so it refuses to wrap itself and no chart nests a second
+ * @remarks Image export draws the chart through an SVG `foreignObject`, so its
+ * HTML chrome and SVG marks capture together. It inlines computed styles, so
+ * the bitmap carries its colours. `contextMenu={false}` renders the chart
+ * untouched, leaving the browser's native menu. Inside the fullscreen dialog it
+ * renders the chart untouched for a structural reason instead. There it is its
+ * own re-mounted copy, so it refuses to wrap itself and no chart nests a second
  * menu.
  *
  * @internal

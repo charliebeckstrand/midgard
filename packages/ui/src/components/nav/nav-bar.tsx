@@ -14,10 +14,10 @@ export type NavBarProps = NavBarVariants & ComponentProps<'nav'>
  * scope for its child items.
  *
  * @remarks
- * That scope resolves nothing in any valid composition today: the only
+ * That scope resolves nothing in any valid composition today. The only
  * `ActiveIndicator` is `NavItem`, which always sits inside a `NavList` that
- * opens a nearer scope of its own. It stays because this doc promises it —
- * dropping it is a contract change, not a cleanup. Pagination is the clean
+ * opens a nearer scope of its own. It stays because this doc promises it.
+ * Dropping it is a contract change, not a cleanup. Pagination is the clean
  * contrast: only its list opens a scope.
  */
 export function NavBar({

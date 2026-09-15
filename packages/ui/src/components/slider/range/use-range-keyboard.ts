@@ -59,8 +59,8 @@ function focusSwappedThumb(
 }
 
 /**
- * Keyboard control for a range slider's two thumbs: arrows / Page / Home / End
- * move the thumb by `step`, clamped and snapped; in `swap` overlap, focus
+ * Keyboard control for a range slider's two thumbs. Arrows, Page, Home, and End
+ * move the thumb by `step`, clamped and snapped. In `swap` overlap, focus
  * follows a thumb that crosses past its partner.
  *
  * @returns A factory `(index) => onKeyDown` for the thumb at `index`.

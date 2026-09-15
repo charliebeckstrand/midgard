@@ -11,7 +11,7 @@ import type { Ma, Step } from '../../recipes'
  *
  * - **Control affix slots** (`<Input>` prefix / suffix,
  *   `<SelectTrigger>` chevron) broadcast a stepped-down value (`'xs'`
- *   at `'sm'`, `'sm'` at `'md'`), rendering icons and small buttons
+ *   at `'sm'`, `'sm'` at `'md'`). They render icons and small buttons
  *   one notch tighter than the host. Use `affixStepDown` below.
  * - **`<Button>`** broadcasts its own resolved size: loading spinners,
  *   prefix / suffix icons, and other wider-scale-aware descendants
@@ -31,9 +31,9 @@ const AFFIX_STEP_DOWN = { sm: 'xs', md: 'sm', lg: 'md' } as const satisfies Reco
 type AffixStep = (typeof AFFIX_STEP_DOWN)[Step]
 
 /**
- * Canonical affix step-down: for a host control rendering at the given
- * `Step`, returns the size to broadcast into its prefix / suffix slot,
- * one notch tighter, going below the `Step` floor at `'sm'` (returns
+ * Canonical affix step-down. For a host control rendering at the given
+ * `Step`, it returns the size to broadcast into its prefix / suffix slot,
+ * one notch tighter. It goes below the `Step` floor at `'sm'` (returns
  * `'xs'`). `<Input>` and `<SelectTrigger>` use it.
  *
  * @param hostSize - The host control's resolved Density `Step`.

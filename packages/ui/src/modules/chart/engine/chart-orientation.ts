@@ -2,13 +2,13 @@
  * The cartesian orientation and the single coordinate transpose every oriented
  * chart part reads. A cartesian chart has one continuous **value** axis and one
  * categorical **band** axis; orientation is only which screen axis each maps to.
- * Vertical keeps the value axis on y (bars grow up) and the band on x;
- * horizontal transposes both (bars grow right, categories run down the side).
+ * Vertical keeps the value axis on y (bars grow up) and the band on x.
+ * Horizontal transposes both (bars grow right, categories run down the side).
  *
- * Every oriented position — a bar corner, a gridline, a tick, a crosshair rule,
- * a tooltip anchor — is expressed in (value, band) space and projected through
- * {@link project}, so the transpose lives here and nothing else branches on the
- * orientation. Framework- and style-free, so the mapping is unit-testable in
+ * Every oriented position is expressed in (value, band) space and projected
+ * through {@link project}. That covers a bar corner, a gridline, a tick, a
+ * crosshair rule, and a tooltip anchor. The transpose therefore lives here, and
+ * nothing else branches on the orientation. Framework- and style-free, so the mapping is unit-testable in
  * isolation and reused by the pure geometry cores and the React parts alike.
  */
 

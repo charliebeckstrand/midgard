@@ -17,7 +17,7 @@ export const densityLevels: { label: string; value: DensityLevel }[] = [
 
 /**
  * Friendly density level → `Step` carried by the Density primitive, broadcast
- * by `<DensityProvider>`. 1:1 mapping (`loose` → `lg`, `snug` → `md`,
+ * by `<DensityProvider>`. A 1:1 mapping (`loose` → `lg`, `snug` → `md`,
  * `compact` → `sm`); `snug` / `md` is the baseline outside any provider.
  */
 export const densityToSize = {

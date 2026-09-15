@@ -11,7 +11,7 @@ export type ChartTableProps = {
  * plain markup, outside the `role="img"` region. Assistive tech gets full
  * value parity without the pointer, so the tooltip stays an enhancement.
  *
- * Takes the readout as a thunk and materializes it here — this render is the
+ * Takes the readout as a thunk and materializes it here. This render is the
  * frame's deferred low-priority pass, so the cell formatting lands off the
  * mount-critical commit (and warms the cache the tooltip shares).
  *

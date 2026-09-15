@@ -28,35 +28,35 @@ export type GridExportSurfaceActions = {
 	/** The header and cell right-click menus, and the builder contexts they hand out. */
 	contextMenu: GridExportAction[]
 	/**
-	 * Whether an async export is in flight, whichever surface started it — the
+	 * Whether an async export is in flight, whichever surface started it. The
 	 * grid's "Exporting" overlay and the toolbar trigger's spinner both read this
-	 * one fact, so the two can't disagree about whether the grid is busy.
+	 * one fact. The two therefore can't disagree about whether the grid is busy.
 	 */
 	pending: boolean
 }
 
 /**
  * Resolves the `exportable` prop (see {@link GridDataProps.exportable}) into
- * the export actions the toolbar dropdown and context menus render — one per
- * configured type, via {@link resolveExportActions}, split by the surfaces the
- * prop opens (see {@link resolveExportSurfaces}), so a grid can carry the
- * "Export" dropdown, the menu items, or both. Each action's context builds
- * lazily at run time, so it always reflects the grid's current state rather than
- * the state at the last render that changed `exportable`, `columns`, `table`, or
- * `exportRows`.
+ * the export actions the toolbar dropdown and context menus render. There is one
+ * per configured type, via {@link resolveExportActions}, split by the surfaces
+ * the prop opens (see {@link resolveExportSurfaces}). A grid can therefore carry
+ * the "Export" dropdown, the menu items, or both. Each action's context builds
+ * lazily at run time. It therefore always reflects the grid's current state,
+ * rather than the state at the last render that changed `exportable`, `columns`,
+ * `table`, or `exportRows`.
  *
  * Without `exportRows` the rows come from the engine's sorted row model, first
- * collapsed to its leaf set — the selected rows when a selection is active, else
- * the full filtered/sorted set (all pages the engine holds). With `exportRows`
- * set — the escape hatch for server pagination, where the engine only ever holds
- * the current page — its return value wins outright: the awaited list is
- * exported whole, and any selection is ignored.
+ * collapsed to its leaf set. Those are the selected rows when a selection is
+ * active, else the full filtered/sorted set (all pages the engine holds). With
+ * `exportRows` set, its return value wins outright. It is the escape hatch for
+ * server pagination, where the engine only ever holds the current page. The
+ * awaited list is exported whole, and any selection is ignored.
  *
  * @remarks
  * The collapse is load-bearing under grouping. Client grouping runs before
  * sorting in the engine's pipeline, so the sorted row model is the group-header
- * rows, and a group header's `original` is its first leaf's datum — exporting
- * that model directly yields one row per group. Group-header ids are also absent
+ * rows. A group header's `original` is its first leaf's datum. To export that
+ * model directly yields one row per group. Group-header ids are also absent
  * from the mirrored selection state, so an active selection reads as empty and
  * silently falls back to the full set. Collapsing to leaves first answers both.
  *

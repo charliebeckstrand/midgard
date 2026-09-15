@@ -27,10 +27,10 @@ const DEFAULT_HIGHLIGHT_COLOR: Color = 'amber'
  *
  * @remarks The document half arrives as arguments, not through {@link PdfViewerContext},
  * which is what {@link usePdfViewerMagnifier} already does with its settings. A hook that
- * reads the viewer's context runs only inside a mounted `<PdfViewer>`, so every proof about
+ * reads the viewer's context runs only inside a mounted `<PdfViewer>`. Every proof about
  * the page filter, the unit conversion or the navigate-to-region latch had to mount the
- * whole viewer — a document cache, a rasterizer, a toolbar and a thumbnail rail — to reach
- * one pure decision. `PdfViewer` reads the three off its own context value and passes them
+ * whole viewer to reach one pure decision. That means a document cache, a rasterizer, a
+ * toolbar and a thumbnail rail. `PdfViewer` reads the three off its own context value and passes them
  * down; nothing else changes about where the state lives or what re-renders.
  * @internal
  */
@@ -85,12 +85,12 @@ export type PdfViewerHighlightsResult = {
  * @returns The {@link PdfViewerHighlightsResult} the layer renders from.
  * @remarks Filters and converts inline rather than memoizing a derived array. A consumer
  * builds `highlights` by mapping its own data, so the reference changes every render and a
- * memo keyed on it would never hit — while its output identity would then flow onward as
+ * memo keyed on it would never hit. Its output identity would then flow onward as
  * though it were stable.
  *
  * The pass is O(every highlight in the document), not O(on-screen regions): filtering by
  * page has to visit them all. Measured, that is ~7 µs at 420 highlights and ~125 µs at
- * 15,000 — well under a memo's own overhead for any realistic document, and past roughly
+ * 15,000. That is well under a memo's own overhead for any realistic document. Past roughly
  * 5,000 it stops being free per frame under a continuous resize or zoom drag.
  * `'fraction'` (the default) is a pass-through.
  * @internal
@@ -120,7 +120,7 @@ export function usePdfViewerHighlights({
 
 	let missingExtent = false
 
-	// Looks past the page filter below: the active region may sit on a page the viewer is
+	// Looks past the page filter below: the active region can sit on a page the viewer is
 	// not showing, because the list beside the viewer selects by field, not by page. Read
 	// before that filter, so the one pass serves both it and the regions.
 	let activeHighlightPage: number | undefined
@@ -227,7 +227,7 @@ export function usePdfViewerHighlights({
 
 /**
  * Warns once, in development, when a physical `highlightUnit` has no page extent to divide
- * by — the regions render nothing, and silence would read as "there were none".
+ * by. The regions render nothing, and silence would read as "there were none".
  *
  * @remarks A private hook rather than an inline effect, matching the package's other two
  * dev-time warnings.

@@ -13,12 +13,12 @@ type FormattedInputOptions = {
 	 * separators.
 	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
 	 * @remarks
-	 * A padding formatter breaks this contract: CurrencyInput's `.` → `0.` and
-	 * DateInput's `1/` → `01/` insert a *meaningful* character, so the restore
+	 * A padding formatter breaks this contract. CurrencyInput's `.` → `0.` and
+	 * DateInput's `1/` → `01/` insert a *meaningful* character. The restore then
 	 * counts the pad and pins the caret one place short. Both call sites answer it
 	 * with a type-at-end branch that formats without queueing a restore. At a
 	 * third padding consumer, absorb it here as an `atEnd: 'jump' | 'restore'`
-	 * option — masks must keep `'restore'`, since a caret before trailing
+	 * option. Masks must keep `'restore'`, since a caret before trailing
 	 * separators is what makes backspace work.
 	 */
 	meaningful?: (char: string) => boolean
@@ -31,13 +31,13 @@ const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
 /**
  * Caret-preserving reformat engine for formatted text inputs: the stateless
  * core under `useMaskInput` and `CurrencyInput`. `reformat` applies `format`
- * to a change event's text and queues a caret restore (via the returned `ref`)
- * that keeps the cursor on the typed character when formatting inserts
+ * to a change event's text and queues a caret restore, via the returned `ref`.
+ * That restore keeps the cursor on the typed character when formatting inserts
  * separators. The caller owns the state the formatted text commits to.
  *
- * @returns `{ ref, reformat }`. Spread `ref` onto the input; call `reformat(e)`
- * in `onChange` to get the formatted string to commit (it also queues the
- * caret restore as a side effect).
+ * @returns `{ ref, reformat }`. Spread `ref` onto the input. Call `reformat(e)`
+ * in `onChange` to get the formatted string to commit. That call also queues
+ * the caret restore, as a side effect.
  */
 export function useFormattedInput({
 	format,
