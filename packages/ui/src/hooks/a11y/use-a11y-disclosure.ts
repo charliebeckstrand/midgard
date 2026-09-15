@@ -9,7 +9,7 @@ export type A11yDisclosureOptions = {
 	/**
 	 * Scope base id; falls back to a generated one. Pass a shared base when a
 	 * trigger and panel rendered as separate components must derive matching
-	 * ids; combine it with `key` to discriminate each pair.
+	 * ids. Combine it with `key` to discriminate each pair.
 	 */
 	id?: string
 	/** Per-pair discriminator when many disclosures share one base id. */
@@ -47,10 +47,10 @@ export type A11yDisclosure = {
  * `useA11yPanel` (modal dialog roots: `role` + `aria-modal`) and `useA11yScope`
  * (slot-aggregated labelling).
  *
- * Call it once where both ids are visible to both sides (e.g. the
- * component's context provider) or, when the trigger and panel are independent
- * components, call it in each with a shared `id` plus a per-pair `key`; the
- * ids derive purely from those, and both calls produce the same pair.
+ * Call it once where both ids are visible to both sides, e.g. the component's
+ * context provider. When the trigger and panel are independent components,
+ * call it in each with a shared `id` and a per-pair `key`. The ids derive
+ * purely from those, and both calls produce the same pair.
  *
  * @returns An `A11yDisclosure`: the matched `triggerId` / `panelId` and a
  * `triggerProps` / `panelProps` bag to spread onto each side (`aria-expanded`

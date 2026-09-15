@@ -36,7 +36,7 @@ export function extractDefaults(callable: ts.SignatureDeclaration): Map<string, 
 
 /**
  * Source text of a destructured default. A bare identifier that names a same-file
- * `const` literal collapses to that literal; every other shape keeps its own
+ * `const` literal collapses to that literal. Every other shape keeps its own
  * source text, leaving inline values and unresolved references untouched.
  */
 function defaultText(initializer: ts.Expression): string {
@@ -50,9 +50,9 @@ function defaultText(initializer: ts.Expression): string {
 }
 
 /**
- * Literal initializer of the same-file `const NAME`; null when the name resolves
+ * Literal initializer of the same-file `const NAME`. Null when the name resolves
  * to no top-level `const`, or to one whose value isn't a literal (a call, JSX, a
- * reference), which stays as the authored identifier.
+ * reference). Such a value stays as the authored identifier.
  */
 function resolveConstLiteral(id: ts.Identifier): string | null {
 	for (const stmt of id.getSourceFile().statements) {

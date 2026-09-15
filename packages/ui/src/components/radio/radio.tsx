@@ -15,12 +15,12 @@ export type RadioProps = RadioVariants & {
  * invalid state resolve from the enclosing Control and Density context.
  *
  * @remarks Unlike {@link Checkbox} and {@link Switch}, this binds no Form
- * field: it has no internal checked state and stays a native input controlled
+ * field. It has no internal checked state, and stays a native input controlled
  * by `checked`/`defaultChecked` and a shared `name`. Group radios with
  * {@link RadioGroup} and a common `name` for single-selection.
  *
  * `name` here is the native grouping name, not the CONVENTIONS §7.2 value
- * binding it carries on Checkbox and Switch — a radio group is one value across
+ * binding it carries on Checkbox and Switch. A radio group is one value across
  * N inputs, not a boolean per input, so no per-radio binding is correct. Inside
  * a Form, hold the group's value in the form field and drive each radio's
  * `checked` from it.

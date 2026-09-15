@@ -25,8 +25,8 @@ const KIND_COLOR: Record<LiteralKind, string> = {
  * A prop's default value, rendered inline with no surrounding badge. A
  * self-contained literal collapses to its bare value in a syntax-coloured
  * monospace run keyed to its kind. A descriptive `@defaultValue` — prose
- * carrying `{@link}` references and backtick literals — renders as Markdown,
- * with each link resolved to a name and each literal code span syntax-coloured
+ * carrying `{@link}` references and backtick literals — renders as Markdown.
+ * Each link resolves to a name and each literal code span is syntax-coloured
  * the same way (`` `'horizontal'` `` reads emerald in flow).
  */
 export function DefaultValue({ value }: { value: string }) {
@@ -44,7 +44,7 @@ export function DefaultValue({ value }: { value: string }) {
 
 /**
  * A non-literal default. A JSX/element expression (`<TableEmptyAlert />`,
- * `<ChevronRight />`) renders verbatim in monospace: the Markdown inline lexer
+ * `<ChevronRight />`) renders verbatim in monospace. The Markdown inline lexer
  * reads an HTML-like tag as raw HTML and drops it, blanking the cell. Everything
  * else — descriptive prose, `{@link}` references, backtick literals — renders
  * through {@link renderProse}.

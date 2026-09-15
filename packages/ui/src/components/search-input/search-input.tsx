@@ -29,9 +29,9 @@ export type SearchInputProps = Omit<
 	/** Fires when the field is cleared, whether by the clear button or by emptying it. */
 	onClear?: () => void
 	/**
-	 * Extra trailing content rendered after the field's own suffix (the spinner
-	 * or clear button) — e.g. a go-to-result action once a search resolves to a
-	 * single match. The field's own suffix keeps its slot either way.
+	 * Extra trailing content rendered after the field's own suffix: the spinner
+	 * or clear button. One example is a go-to-result action once a search resolves
+	 * to a single match. The field's own suffix keeps its slot either way.
 	 */
 	suffix?: ReactNode
 }
@@ -44,9 +44,9 @@ const SEARCH_PREFIX = <Icon icon={<Search />} />
  * `<Form>` field by `name`.
  *
  * @remarks
- * Clearing drives a native `input` event so controlled and uncontrolled
- * consumers see the same change, then returns focus to the field as the clear
- * button unmounts (WCAG 2.4.3). `loading` suppresses the clear button: a spinner
+ * Clearing drives a native `input` event, so controlled and uncontrolled
+ * consumers see the same change. It then returns focus to the field as the
+ * clear button unmounts (WCAG 2.4.3). `loading` suppresses the clear button: a spinner
  * occupies the suffix while a query is in flight.
  *
  * @see {@link SearchInputProps}

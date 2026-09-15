@@ -51,8 +51,8 @@ export type PivotTableResult = {
 
 /**
  * Headless aggregation for {@link PivotTable}: groups `rows` by the row/column
- * `keys`, reduces the value field per group, and memoizes the cell matrix and
- * totals into O(1) lookups. Powers `PivotTable`, but usable standalone for a
+ * `keys`, and reduces the value field per group. It memoizes the cell matrix
+ * and totals into O(1) lookups. Powers `PivotTable`, but usable standalone for a
  * custom layout.
  *
  * @typeParam T - The shape of each source row.
@@ -60,7 +60,7 @@ export type PivotTableResult = {
  * @param keys - Fields naming the row, column, and value dimensions.
  * @param options - Aggregation and explicit axis ordering.
  * @returns The {@link PivotTableResult}: resolved axis keys plus cell, row-total, column-total, and grand-total lookups.
- * @remarks Cells recompute when `rows`, `keys`, or `aggregation` change; the row and column totals additionally recompute when the axis ordering (`rowOrder` / `columnOrder`) changes, since they read the resolved key arrays. Non-numeric cells are dropped during grouping.
+ * @remarks Cells recompute when `rows`, `keys`, or `aggregation` change. The row and column totals additionally recompute when the axis ordering (`rowOrder` / `columnOrder`) changes, since they read the resolved key arrays. Non-numeric cells are dropped during grouping.
  */
 export function usePivotTable<T>(
 	rows: readonly T[],

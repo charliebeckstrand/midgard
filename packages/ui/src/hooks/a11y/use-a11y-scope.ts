@@ -34,8 +34,8 @@ export type A11yScope<Slot extends string = never> = {
 	ids: Record<Slot, string>
 	/**
 	 * Per-slot mount registrar: call inside an effect; the cleanup deregisters.
-	 * Pass the id the slot renders (a consumer `id` overriding the derived one);
-	 * the composed `aria-*` then references the rendered element, never a
+	 * Pass the id the slot renders, which is a consumer `id` overriding the derived
+	 * one. The composed `aria-*` then references the rendered element, never a
 	 * dangling generated id. Omit to register the derived id. Reference-counted:
 	 * the id stays until every instance of the slot unmounts.
 	 */
@@ -76,8 +76,8 @@ function bucketAriaIds(
 
 /**
  * Universal accessibility scope: a stable id plus slot-driven `aria-labelledby`
- * / `aria-describedby` wiring. Declare named slots and the relation each feeds;
- * the matching part registers on mount and the composed attributes reference
+ * / `aria-describedby` wiring. Declare named slots and the relation each feeds.
+ * The matching part registers on mount, and the composed attributes reference
  * only the slots present in the DOM, never a dangling id. Specialized hooks
  * (`useA11yPanel`, `useA11yControl`) layer their slot vocabulary over this base.
  *

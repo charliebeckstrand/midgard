@@ -39,11 +39,11 @@ export type TooltipProps = {
 	forceOpen?: boolean
 	/**
 	 * Fires when the tooltip opens or closes, whatever drove it: the hover delay, focus,
-	 * a click on a pointer-less device, `forceOpen`, `enabled` going false, the trigger
-	 * becoming `:disabled`, or the shared overlay-close signal.
+	 * or a click on a pointer-less device. `forceOpen`, `enabled` going false, the trigger
+	 * becoming `:disabled`, and the shared overlay-close signal also report here.
 	 *
 	 * Observation only. The tooltip owns its open state and there is no `open` prop to
-	 * pair with — hover cannot be driven from outside, which is why the triad stops here
+	 * pair with. Hover cannot be driven from outside, which is why the triad stops here
 	 * ({@link TooltipProps.forceOpen} is the one programmatic reveal). Use this to mirror
 	 * the state elsewhere, not to control it.
 	 */

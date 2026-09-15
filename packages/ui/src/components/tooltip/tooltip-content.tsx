@@ -14,9 +14,9 @@ import { useTooltipContext } from './context'
 
 /**
  * Tab cycle for the interactive trap: trigger first, then the panel's own
- * tabbables. Including the reference is what makes a tooltip trap reachable —
- * the trigger keeps focus when the tooltip opens, so a content-only cycle
- * would leave Tab walking into the page instead of the panel, and floating-ui
+ * tabbables. Including the reference is what makes a tooltip trap reachable.
+ * The trigger keeps focus when the tooltip opens, so a content-only cycle
+ * would leave Tab walking into the page instead of the panel. Floating-ui also
  * `aria-hidden`s everything outside the cycle, which would swallow the very
  * trigger the panel describes.
  */
@@ -51,9 +51,9 @@ export type TooltipContentProps = {
  *
  * @remarks Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel
- * that holds something tabbable also traps focus: Tab steps off the trigger
- * into the panel, cycles its controls, and wraps back to the trigger, with
- * focus restored there if the tooltip closes from inside (WCAG 2.1.2). The
+ * that holds something tabbable also traps focus. Tab steps off the trigger
+ * into the panel, cycles its controls, and wraps back to the trigger. Focus is
+ * restored there if the tooltip closes from inside (WCAG 2.1.2). The
  * trap engages only once the panel actually has a tabbable — a prose tooltip
  * the pointer can merely reach never captures the keyboard.
  * @see {@link useA11yHasTabbable}

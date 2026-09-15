@@ -13,12 +13,12 @@ export type A11yAnnouncementsOptions = {
 
 /**
  * Declaratively narrates a changing message to the live-region announcer. Pass
- * the current human-readable status (a result count, the active sort, the
- * current page); it speaks whenever that string changes, skipping the initial
+ * the current human-readable status: a result count, the active sort, the
+ * current page. It speaks whenever that string changes, skipping the initial
  * value and consecutive duplicates.
  *
  * The imperative `announce` underneath fires a message at a moment of the
- * caller's choosing; this hook owns the watch-and-dedupe wiring, and a widget
+ * caller's choosing. This hook owns the watch-and-dedupe wiring, so a widget
  * declares *what* its status is rather than *when* to speak it. Needs no
  * provider; the announcer creates its live region on demand.
  */
