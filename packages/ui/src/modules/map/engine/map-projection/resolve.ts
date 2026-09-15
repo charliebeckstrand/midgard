@@ -1,8 +1,8 @@
 /**
  * Naming a projection and fitting one: the `d3-geo` boundary the rest of the
- * projection engine sits above. Everything here is the direct route — resolve
- * the spec, fit it to a frame — where `fit.ts` derives the same result by
- * arithmetic to keep a resize off it.
+ * projection engine sits above. Everything here is the direct route: resolve the
+ * spec, fit it to a frame. `fit.ts` derives the same result by arithmetic, to
+ * keep a resize off it.
  */
 
 import {
@@ -22,8 +22,8 @@ import type { MapFeature, MapProjection } from '../types'
  *
  * Exported because a caller that streams the geography for its own reasons can
  * measure at this scale and skip {@link fitProjectionWidth}'s pass entirely
- * (`map-geometry/projected`), and the two must probe alike or the arithmetic
- * they share would divide out a scale the bounds were never taken at.
+ * (`map-geometry/projected`). The two must probe alike, or the arithmetic they
+ * share would divide out a scale the bounds were never taken at.
  *
  * @internal
  */
@@ -31,14 +31,14 @@ export const PROBE_SCALE = 150
 
 /**
  * d3's `fitWidth` arithmetic over bounds already measured at
- * {@link PROBE_SCALE}: the scale carries the probe factor, the horizontal
+ * {@link PROBE_SCALE}. The scale carries the probe factor. The horizontal
  * translate centres the span in the frame, and the vertical one lifts the
  * geography's top edge onto y 0. Fits `projection` in place and reports the
- * height the frame comes to, or `null` where the bounds collapse on either axis
- * — no geography, or a lone point.
+ * height the frame comes to. It returns `null` where the bounds collapse on
+ * either axis: no geography, or a lone point.
  *
  * Held apart from the pass that measures those bounds because two callers
- * measure them two ways and only one rule can place the result: this one runs a
+ * measure them two ways and only one rule can place the result. This one runs a
  * `geoPath` over the geography, and the projected-atlas buffer scans the points
  * it already holds.
  *
@@ -67,9 +67,9 @@ export function fitWidthFromProbeBounds(
 
 /**
  * The feature-collection wrapper d3-geo fits and measures against. The cast
- * bridges the module's minimal structural feature type to d3's own: the
+ * bridges the module's minimal structural feature type to d3's own. The
  * geometry is d3's union already, but `MapFeature` leaves `properties`
- * optional where `ExtendedFeature` requires it, which is what still parts the
+ * optional where `ExtendedFeature` requires it. That is what still parts the
  * two.
  *
  * @internal
@@ -80,8 +80,8 @@ export function collection(features: MapFeature[]): GeoPermissibleObjects {
 
 /**
  * Resolves a {@link MapProjection} to a d3-geo instance: a fresh projection
- * for the built-in names, the instance itself when one is passed — d3
- * projections are stateful, so fitting mutates a passed instance in place.
+ * for the built-in names, the instance itself when one is passed. A d3
+ * projection is stateful, so fitting mutates a passed instance in place.
  *
  * @internal
  */
@@ -121,21 +121,22 @@ export function fitMapProjection(
  * the bounds collapse on either axis — no geography, or a lone point.
  *
  * d3's `fitWidth` runs one probe pass to measure the geography and then keeps
- * only the scale and translate it derives, so a caller that needs the frame as
- * well as the fit had to project every coordinate a second time to read the
- * height back off the drawn map. This takes the probe pass itself and applies
+ * only the scale and translate it derives. A caller that needs the frame as
+ * well as the fit had to project every coordinate a second time. That second
+ * pass read the height back off the drawn map. This takes the probe pass itself
+ * and applies
  * the same arithmetic, which halves the cost of a fit on the mount path. The
  * frame is therefore measured at {@link PROBE_SCALE} rather than at drawing
- * scale, where adaptive resampling refines a curve differently; the two agree
+ * scale, where adaptive resampling refines a curve differently. The two agree
  * to the last bit on a real atlas, and `scaleCanonicalFit` (`fit.ts`) already
  * accepts a divergence of that kind by name.
  *
  * The clip extent is saved and restored around the pass, as d3's own `fit`
- * does: a projection a consumer clipped to some frame would otherwise report
+ * does. A projection a consumer clipped to some frame would otherwise report
  * that frame's bounds rather than the geography's. `albers-usa` carries no
- * `clipExtent` method at all — its composite derives the inset clips from the
- * scale and translate proportionally — so the guard tests the method rather
- * than its value.
+ * `clipExtent` method at all, because its composite derives the inset clips
+ * from the scale and translate proportionally. The guard therefore tests the
+ * method rather than its value.
  *
  * @internal
  */
