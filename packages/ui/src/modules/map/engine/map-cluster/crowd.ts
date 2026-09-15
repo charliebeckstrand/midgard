@@ -55,7 +55,7 @@ export type MapDotMark = {
 /**
  * How many marks a pass indexes before the grid pays for itself. Below it the
  * pairwise scan is the cheaper of the two — a `MapPoint` hands in one dot and a
- * `MapMarker` two, which are most of the marks on a map, and neither should
+ * `MapMarker` two, which are most of the marks on a map, and neither needs to
  * allocate a `Map` and probe nine cells to answer a question one subtraction
  * settles.
  *

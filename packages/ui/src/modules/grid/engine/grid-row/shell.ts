@@ -63,7 +63,7 @@ function rowPointerHandler<T>(args: {
 	}
 }
 
-/** The four row/cell click handlers a row may carry; any one makes it read as clickable. @internal */
+/** The four row/cell click handlers a row can carry; any one makes it read as clickable. @internal */
 type GridRowShellHandlers<T> = {
 	onRowClick?: GridRowClick<T>
 	onCellClick?: GridCellClick<T>

@@ -68,7 +68,7 @@ export function stopName(markLabel: string, stop: number): string {
 /**
  * One table row: a readout, and the key identifying which stop it came from. The
  * detail is resolved rather than optional — a row's value cell always reads
- * something, where a tooltip may show none.
+ * something, where a tooltip can show none.
  *
  * @internal
  */

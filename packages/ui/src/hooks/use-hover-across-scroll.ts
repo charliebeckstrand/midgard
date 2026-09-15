@@ -65,7 +65,7 @@ export function useHoverAcrossScroll(
 		let settle: ReturnType<typeof setTimeout> | undefined
 
 		const onScroll = () => {
-			// Hide while the surface moves; the pointer may now rest anywhere on it.
+			// Hide while the surface moves; the pointer can now rest anywhere on it.
 			clearReadout()
 
 			clearTimeout(settle)

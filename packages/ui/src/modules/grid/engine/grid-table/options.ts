@@ -368,7 +368,7 @@ export function sortOptions<T>(args: {
 	return {
 		getSortedRowModel: getSortedRowModel(),
 		onSortingChange: args.onSortingChange,
-		// The grid owns the additive Shift-click model, so the engine should honor a
+		// The grid owns the additive Shift-click model, so the engine must honor a
 		// multi-column sorting state rather than collapse it to one column.
 		enableMultiSort: true,
 	}

@@ -19,7 +19,7 @@
  * Chrome answers no pointer and joins no readout. It names no place and carries
  * no value, so it is decoration in the strict sense: the tooltip, the keyboard
  * cursor, and the data table never see it, and it never takes a hit the region
- * under it should have had.
+ * under it owns.
  */
 
 import { memo, useId } from 'react'

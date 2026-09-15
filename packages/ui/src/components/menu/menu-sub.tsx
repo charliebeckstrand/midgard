@@ -145,7 +145,7 @@ export function MenuSub({
 	// the cursor, a pointer sweep resolving elsewhere, the level closing the whole menu.
 	useOpenChange(open, onOpenChange)
 
-	// Whether the pending open should pull focus into the panel: set by the
+	// Whether the pending open must pull focus into the panel: set by the
 	// keyboard and click paths, left clear by hover so a pointer sweep across the
 	// menu doesn't yank focus off whatever the user is on.
 	const seatFocus = useRef(false)

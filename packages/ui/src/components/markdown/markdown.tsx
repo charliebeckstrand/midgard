@@ -5,7 +5,7 @@ import { k } from '../../recipes/kata/markdown'
 import { MarkdownRenderer } from './markdown-renderer'
 
 // Module-scoped instance: keeps options local instead of mutating the shared
-// `marked` singleton a consuming app may also configure. GFM is on (tables,
+// `marked` singleton a consuming app can also configure. GFM is on (tables,
 // task lists, strikethrough, autolinks).
 const md = new Marked({ gfm: true })
 

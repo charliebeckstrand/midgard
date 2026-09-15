@@ -19,7 +19,7 @@ export type GridColumnResize = {
 	getSize: (id: string | number) => number
 	/** Total width (px) of every column — the width of the fixed-layout table. */
 	totalSize: () => number
-	/** Whether the column may be resized (data columns only). */
+	/** Whether the column can be resized (data columns only). */
 	canResize: (id: string | number) => boolean
 	/** Whether the column is mid drag-resize. */
 	isResizing: (id: string | number) => boolean

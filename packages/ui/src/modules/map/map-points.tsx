@@ -61,7 +61,7 @@ type MapPointsDotsProps = {
 	groups: MapPointCluster[]
 	/** One stable React key per drawn group. */
 	keys: string[]
-	/** What each dot's fine-pointer target may reach, in device pixels. */
+	/** What each dot's fine-pointer target can reach, in device pixels. */
 	targets: number[]
 	/** Each drawn group's own stroke class, where a lone dot carries a colour of its own. */
 	paints: string[]

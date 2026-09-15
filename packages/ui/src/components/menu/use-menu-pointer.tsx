@@ -277,7 +277,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 			anchor.current = point
 
 			// Back on the row whose submenu is open: nothing to displace, and the
-			// cursor must not be pulled out of the panel it may be sitting in.
+			// cursor must not be pulled out of the panel where it sits.
 			if (subKey !== undefined && subKey === open) return
 
 			moveCursor(row)

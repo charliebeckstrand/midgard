@@ -112,7 +112,7 @@ export function PdfViewerHighlights() {
 
 	const { regions, interactive, activeLabel } = usePdfViewerHighlightsContext()
 
-	// A visual box announces nothing on its own. The page change an activation may cause
+	// A visual box announces nothing on its own. The page change an activation can cause
 	// already speaks through the viewport's own live region, so this says only the name —
 	// and only when the regions are in the tree at all, since a decorative layer is
 	// aria-hidden and an announcement would name something a reader cannot reach.
@@ -191,7 +191,7 @@ function PdfViewerHighlightLayer() {
 	 * **A preview sits beside the selection rather than replacing it.** The two are different
 	 * things to a reader — one is where they are working, the other is what they are checking —
 	 * and the selection has a form field, a scroll position and whatever else the consumer hangs
-	 * off it standing behind it. A pointer passing over a box should not quietly take the name
+	 * off it standing behind it. A pointer passing over a box must not quietly take the name
 	 * off the box the reader came here for.
 	 *
 	 * The element is kept beside the id because the label anchors to a node, while the id is

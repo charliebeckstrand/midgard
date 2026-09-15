@@ -69,19 +69,19 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 
 | Export | Summary |
 |---|---|
-| `clearNativeInput` | Clears an input through the native value setter and a bubbling `input` event, so controlled and uncontrolled consumers both observe it, then returns focus to it. |
+| `clearNativeInput` | Clears an input through the native value setter and a bubbling `input` event, so controlled and uncontrolled consumers both observe it. Returns focus to the input. |
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
-| `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content — the start of a pan, so a floating surface does not dismiss for it and a selection is not put down by it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. |
-| `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop, and on either failure route. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`); the optional `onFail` says what to do besides reclaiming, and its absence lets a blocked `print()` propagate. |
+| `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content. A gutter press starts a pan, so a floating surface does not dismiss for it and no selection follows it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. |
+| `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop, and on either failure route. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`). The optional `onFail` says what to do besides reclaiming, and its absence lets a blocked `print()` propagate. |
 
 ## Measurement
 
 | Export | Summary |
 |---|---|
-| `measureBox` | An element's border box (not `contentRect`, which excludes its own padding and border), taken from a `ResizeObserver` entry where the caller has one and measured where it does not — the entry is already measured, where `getBoundingClientRect` forces a layout. |
+| `measureBox` | An element's border box, not `contentRect`, which excludes its own padding and border. It comes from a `ResizeObserver` entry where the caller has one, and from a measurement where the caller does not. The entry is already measured, where `getBoundingClientRect` forces a layout. |
 | `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
 
 ## Keyboard navigation

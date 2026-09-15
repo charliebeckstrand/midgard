@@ -70,7 +70,7 @@ export function wheelPush(deltaY: number, deltaX: number): number {
  * after the modifier goes must be strictly smaller. A mouse notch reports a
  * fixed delta whatever the hand does, so an unchanged push is a wheel still
  * being turned, and holding those would strand a reader who let the key go and
- * kept scrolling. Once a stream is running down it may plateau — the decay
+ * kept scrolling. Once a stream is running down it can plateau — the decay
  * rounds to a pixel or two long before it stops — and by then it is momentum the
  * page must not be given.
  *

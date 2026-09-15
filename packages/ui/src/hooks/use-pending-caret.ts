@@ -42,8 +42,8 @@ export function usePendingCaret(externalRef?: Ref<HTMLInputElement>) {
 	const setCaret = (position: number | null) => {
 		pendingCaretRef.current = position
 
-		// A commit isn't guaranteed: a controlled consumer may reject the value,
-		// or formatting may collapse to the unchanged string (React then restores
+		// A commit isn't guaranteed: a controlled consumer can reject the value,
+		// or formatting can collapse to the unchanged string (React then restores
 		// the DOM value, pushing the caret to the end, without re-rendering).
 		// The microtask runs after that restore and no-ops when the layout effect
 		// already consumed the caret, so the pending value never leaks into a

@@ -75,7 +75,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
 
 /**
  * A drawn zone as the hit-target rule reads it: the rings it paints, the reach a
- * dot competing for its ground may take, and how far outside those rings still
+ * dot competing for its ground can take, and how far outside those rings still
  * counts as competing.
  *
  * The budget is one number for the whole zone rather than a measure per dot,
@@ -89,7 +89,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
 export type MapZoneBudget = {
 	/** The drawn rings, as the only reader below wants them — boxes to place a dot against. */
 	rings: readonly MapAreaBox[]
-	/** What a dot on this zone may reach, in device pixels. */
+	/** What a dot on this zone can reach, in device pixels. */
 	spare: number
 	/** The competing band around the rings, in frame units. */
 	margin: number

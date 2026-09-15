@@ -117,7 +117,7 @@ type MapClusterMark = {
  *
  * Every point reaches exactly one group, in the caller's own order. A `gap` of
  * `null` turns the grouping off and returns the points one per group, unchanged
- * and index for index — the caller asked for every dot, and no pass may take one
+ * and index for index — the caller asked for every dot, and no pass can take one
  * away. A dot the projection drops holds its own group too, so it keeps its
  * readout row where the map draws nothing for it.
  *
@@ -270,7 +270,7 @@ function mergeRound(
 
 		marks[host] = grown
 
-		// The centre moved and the mark grew, so the slot may belong to another
+		// The centre moved and the mark grew, so the slot can belong to another
 		// cell now; index it there too. The entry left behind costs at most a
 		// repeated test, never a missed pair, because every test reads the live
 		// mark rather than the cell it was filed under.

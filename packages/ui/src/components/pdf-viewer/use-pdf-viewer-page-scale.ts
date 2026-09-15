@@ -11,7 +11,7 @@ type Size = { width: number; height: number }
 type PageScaleOptions = {
 	viewportSize: Size | null
 	pageSize: Size | null
-	/** Raw rotation in degrees for the active page; may be ≥ 360. Transposition is derived from it. */
+	/** Raw rotation in degrees for the active page; can be ≥ 360. Transposition is derived from it. */
 	rotation: number
 	zoom: number
 	/** Drives whether the viewport reserves space. When false, `aspectRatio` is undefined and the viewer collapses. */

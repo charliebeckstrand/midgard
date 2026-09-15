@@ -74,8 +74,8 @@ export function hasPortalReference(portal: Element): boolean {
 
 /**
  * The floating portal a press landed in, when that portal is not `container`'s
- * own — the press is in some *other* surface, which may or may not be one this
- * container owns.
+ * own — the press is in some *other* surface, which this container can own, or
+ * not.
  *
  * @internal
  */

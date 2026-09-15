@@ -13,7 +13,7 @@ import type { LngLat, MapPoint2D, MapSwatchShape } from '../types'
 export type MapOverlayKind = 'route' | 'point' | 'marker' | 'geofence'
 
 /**
- * One stop's own readout. Either field may stand alone: a dot that carries a
+ * One stop's own readout. Either field can stand alone: a dot that carries a
  * count but no name of its own is as ordinary as one that carries a name.
  *
  * @internal
@@ -86,7 +86,7 @@ export type MapOverlayEntry = {
 	 */
 	activate?: (stop: number) => void
 	/**
-	 * The reach, in device pixels, a dot at this frame position may take before it
+	 * The reach, in device pixels, a dot at this frame position can take before it
 	 * starts eating ground this mark needs to stay pointable — `Infinity` where the
 	 * dot competes with nothing here, the identity of the minimum the plat folds
 	 * these into. Registered by the area-shaped marks alone, which spares the plat

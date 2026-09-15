@@ -98,7 +98,7 @@ export const AXIS_TITLE_WIDTH = 512
 /** Height the value-axis titles need before they draw. @internal */
 export const AXIS_TITLE_HEIGHT = 224
 
-/** Height a stacked legend needs before it may take a second row rather than one. @internal */
+/** Height a stacked legend needs before it can take a second row rather than one. @internal */
 export const TWO_ROW_LEGEND_HEIGHT = 224
 
 /** Plot height one value tick is given, so a taller plot targets more ticks (density still caps it). @internal */

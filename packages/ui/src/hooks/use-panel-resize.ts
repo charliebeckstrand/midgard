@@ -30,7 +30,7 @@ const SWIPE = 0.6
  * the edge it is anchored to, so a bottom drawer grows as the pointer goes up
  * and a top one grows as it goes down — the same axis, opposite signs, and the
  * same for a sheet on the left against one on the right. Keyed on the axis, one
- * side of each pair runs backwards: the drag shrinks what it should grow, the
+ * side of each pair runs backwards: the drag shrinks what it must grow, the
  * arrows swap, and a flick toward the screen dismisses instead of resizing.
  *
  * @internal

@@ -18,7 +18,7 @@ export type ListContextValue = {
 	liftedId: string | null
 	/** Number of items in the list. */
 	itemCount: number
-	/** Whether `<ListItem>` should auto-insert a `<ListHandle>`. */
+	/** Whether `<ListItem>` must auto-insert a `<ListHandle>`. */
 	sortable: boolean
 	/** Keyboard handler for list items: Space lifts, arrows move / navigate. */
 	onItemKeyDown: (id: string, event: KeyboardEvent) => void

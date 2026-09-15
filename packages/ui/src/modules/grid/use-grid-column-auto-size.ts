@@ -266,7 +266,7 @@ export function useGridColumnAutoSize<T>({
 	const structSigRef = useRef<string>('')
 
 	// Rendered rows' fingerprint — count and end keys — so a page turn, filter,
-	// or sort that changes the visible rows re-measures (new content may be
+	// or sort that changes the visible rows re-measures (new content can be
 	// wider). Supplied by the caller (see the option) rather than read off
 	// `table.getRowModel()`, which would materialize the engine's row model on
 	// every mount of every resizable-by-default grid.

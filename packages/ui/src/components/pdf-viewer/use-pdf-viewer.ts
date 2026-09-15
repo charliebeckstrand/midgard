@@ -195,7 +195,7 @@ export function usePdfViewer({
 	 * the context value every region on the page reads.
 	 *
 	 * They are events rather than a controlled binding on purpose: the reader owns these
-	 * switches — nothing outside the viewer should be able to turn the highlights back on
+	 * switches — nothing outside the viewer can turn the highlights back on
 	 * under them — while a consumer still needs to hear about it, because what it draws
 	 * *beside* the viewer can be claiming a region is there to point at.
 	 */
@@ -491,7 +491,7 @@ export function usePdfViewer({
 			viewportRef,
 			// Withheld while the loupe is off, which disables every interaction hook inside
 			// `usePdfViewerMagnifier` rather than merely hiding the lens: a switched-off loupe
-			// should not be tracking the pointer across the page and re-rendering on every move.
+			// must not track the pointer across the page and re-render on every move.
 			magnifierSettings: magnifierOn && magnifierChoice ? resolveMagnifier(magnifierChoice) : null,
 			magnifierOn,
 			setMagnifierOn,

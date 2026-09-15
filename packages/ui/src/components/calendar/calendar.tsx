@@ -67,7 +67,7 @@ export type CalendarDayProps = {
 
 /** Props for {@link Calendar}: value binding, range bounds, locale/size, the `getDayProps` cell hook, and the imperative `ref`. */
 export type CalendarProps = {
-	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` should seed `Date | null`. */
+	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` must seed `Date | null`. */
 	name?: string
 	value?: Date | null
 	defaultValue?: Date

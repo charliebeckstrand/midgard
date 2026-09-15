@@ -19,7 +19,7 @@ export type FiltersContextValue = {
 	setValue: (name: string, fieldValue: unknown) => void
 	clear: () => void
 	activeCount: number
-	/** How the bar lays out, which decides whether a field may be squeezed. */
+	/** How the bar lays out, which decides whether a field can be squeezed. */
 	layout: FiltersLayout
 }
 

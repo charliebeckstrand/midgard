@@ -6,7 +6,7 @@ import { accessibleName } from '../../core'
 /** Idle window after which the type-ahead buffer resets. */
 const TYPEAHEAD_TIMEOUT_MS = 500
 
-/** Whether a key event should drive type-ahead: a lone printable character. @internal */
+/** Whether a key event must drive type-ahead: a lone printable character. @internal */
 export function isTypeaheadKey(event: KeyboardEvent): boolean {
 	return (
 		event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey

@@ -15,7 +15,7 @@ export type { SignaturePadHandle }
  * @see {@link SignaturePadHandle} for the imperative `ref` API.
  */
 export type SignaturePadProps = {
-	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` should seed `string | null`. */
+	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` must seed `string | null`. */
 	name?: string
 	/** Controlled value: a data URL, or `null` / `undefined` when empty. */
 	value?: string | null

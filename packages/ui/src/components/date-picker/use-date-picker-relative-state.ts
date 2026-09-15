@@ -276,7 +276,7 @@ export function useDatePickerRelativeState({
 					: { from: next.to, to: next.from }
 
 			// A custom range isn't a preset, so drop any prior pick — the chip/highlight
-			// should range-match, not favor a stale preset.
+			// must range-match, not favor a stale preset.
 			setPickedIds(new Set())
 
 			setValue([span])

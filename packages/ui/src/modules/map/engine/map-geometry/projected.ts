@@ -179,7 +179,7 @@ function witnessOf(
 }
 
 /**
- * How far a witness may land from where the affine puts it before the buffer
+ * How far a witness can land from where the affine puts it before the buffer
  * refuses the fit. The emit rounds to a tenth of a frame unit, and the
  * arithmetic's own drift measures ~1e-13, so this sits far under what could
  * show and far over what floating point costs.
@@ -384,7 +384,7 @@ export function probeCanonicalFit(
 
 	// Saved and restored around the walk as `fitProjectionWidth` saves the clip,
 	// and for the same reason: a passed instance belongs to the consumer, and the
-	// refinement above is this pass's business rather than a setting it may keep.
+	// refinement above is this pass's business rather than a setting it can keep.
 	const precision = projection.precision?.() ?? null
 
 	projection.scale(PROBE_SCALE).translate([0, 0])

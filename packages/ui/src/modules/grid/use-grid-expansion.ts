@@ -22,7 +22,7 @@ export type GridExpansionResult<T> = {
 	toggle: (key: string | number) => void
 	/** The detail-panel renderer, or `null` when inactive. */
 	render: ((row: T) => ReactNode) | null
-	/** Whether a given row may expand at all. */
+	/** Whether a given row can expand at all. */
 	rowExpandable: (row: T) => boolean
 }
 

@@ -338,7 +338,7 @@ export function createApiExtractor(
 			}
 		}
 
-		// A newly added file may pull in further dependencies; re-resolve so the
+		// A newly added file can pull in further dependencies; re-resolve so the
 		// checker sees the complete graph.
 		if (structural) proj.resolveSourceFileDependencies()
 

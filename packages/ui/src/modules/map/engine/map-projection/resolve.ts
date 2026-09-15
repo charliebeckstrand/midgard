@@ -38,7 +38,7 @@ export const PROBE_SCALE = 150
  * — no geography, or a lone point.
  *
  * Held apart from the pass that measures those bounds because two callers
- * measure them two ways and only one rule may place the result: this one runs a
+ * measure them two ways and only one rule can place the result: this one runs a
  * `geoPath` over the geography, and the projected-atlas buffer scans the points
  * it already holds.
  *

@@ -239,7 +239,7 @@ export const k = {
 					 * A width step rather than a colour or a fill: `activeFill` is what *selected*
 					 * looks like, and a hover that previewed it would say the region is chosen a
 					 * moment before it is. This lands between `ring-1` and the selection's `ring-4`,
-					 * which is the order the three states should read in.
+					 * which is the order the three states must read in.
 					 *
 					 * Applied to resting regions only. On the selected one it would fight `ring-4`
 					 * and win — `:hover` outranks a bare class — undoing the emphasis that says

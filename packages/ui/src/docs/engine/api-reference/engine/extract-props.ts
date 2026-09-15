@@ -203,7 +203,7 @@ export function jsDocTags(symbol: ts.Symbol, checker: ts.TypeChecker): PropTags 
 /**
  * Whether a prop must be supplied. Trusts `SymbolFlags.Optional`; falls back to
  * the authored `?` token so a prop optional in any union/intersection arm reads
- * as optional (you may omit it), mirroring `collectAllProperties`.
+ * as optional (you can omit it), mirroring `collectAllProperties`.
  */
 export function isRequired(symbol: ts.Symbol): boolean {
 	if (symbol.flags & ts.SymbolFlags.Optional) return false

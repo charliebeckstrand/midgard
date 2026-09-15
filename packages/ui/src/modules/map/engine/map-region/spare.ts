@@ -45,7 +45,7 @@ export type MapRegionSpare = (at: MapPoint2D, unitsPerPixel: number) => number
 /**
  * The resolver for a layer that answers nothing. Exported so the plat can state
  * that case itself: whether the regions answer the pointer is its own policy, and
- * a geometry leaf should not take a boolean about a component's props.
+ * a geometry leaf must not take a boolean about a component's props.
  *
  * @internal
  */

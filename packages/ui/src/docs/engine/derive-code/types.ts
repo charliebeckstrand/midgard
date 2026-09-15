@@ -36,7 +36,7 @@ export type ComponentRegistry = {
 export type ElementFact = { name: string; props: Record<string, string>; children?: string }
 
 /**
- * A declaration statement an emitted snippet may reference: the identifiers it
+ * A declaration statement an emitted snippet can reference: the identifiers it
  * binds (a `useState` tuple lists both names) and its full source text.
  */
 export type DeclarationFact = { names: string[]; code: string }

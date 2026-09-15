@@ -109,13 +109,13 @@ export function useChartPointer(
 
 	// Whether the pointer is currently over the hit layer. The shared hover is also
 	// written by the keyboard, so the scroll rescue reads this to tell a
-	// pointer-owned readout — which it should hide and re-resolve — from a
+	// pointer-owned readout — which it must hide and re-resolve — from a
 	// keyboard-owned one, which a scroll must leave alone.
 	const pointerInside = useRef(false)
 
 	// Resolve hover from a viewport point against the hit element's live box, so
 	// a live pointer move and a post-scroll settle share one hit path. A live move
-	// only fires within the box; a settle may land off it after the plot slid out
+	// only fires within the box; a settle can land off it after the plot slid out
 	// from under the pointer, so `guard` clears rather than snapping to an edge band.
 	const track = useCallback(
 		(clientX: number, clientY: number, guard: boolean) => {

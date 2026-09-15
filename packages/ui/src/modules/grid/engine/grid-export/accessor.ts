@@ -10,7 +10,7 @@ export function escapeMarkup(value: string): string {
 
 /**
  * {@link escapeMarkup} plus the two quote entities. XML text nodes don't need
- * them, but the worksheet has always written them and a reader may hold the
+ * them, but the worksheet has always written them and a reader can hold the
  * bytes; HTML text keeps the shorter form, where `&apos;` is not a legacy
  * entity every clipboard parser resolves.
  *

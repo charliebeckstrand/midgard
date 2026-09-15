@@ -99,7 +99,7 @@ export function resolveLoadMore(args: {
 	// — no evidence either way, so hold until a real measurement arrives.
 	if (args.clientHeight <= 0) return 'hold'
 
-	// A fixed-length cap bounds the container by construction — its viewport may
+	// A fixed-length cap bounds the container by construction — its viewport can
 	// legitimately grow toward the cap while under-filled, and the fill is
 	// guaranteed to terminate at it. Without one, a viewport that grew alongside
 	// the appended batches is sizing to its content: virtualize is not windowing,

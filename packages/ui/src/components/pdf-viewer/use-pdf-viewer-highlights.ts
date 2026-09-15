@@ -120,7 +120,7 @@ export function usePdfViewerHighlights({
 
 	let missingExtent = false
 
-	// Looks past the page filter below: the active region may sit on a page the viewer is
+	// Looks past the page filter below: the active region can sit on a page the viewer is
 	// not showing, because the list beside the viewer selects by field, not by page. Read
 	// before that filter, so the one pass serves both it and the regions.
 	let activeHighlightPage: number | undefined

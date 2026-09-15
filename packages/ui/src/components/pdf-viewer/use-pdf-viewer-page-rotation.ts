@@ -17,7 +17,7 @@ export function isRotationTransposed(rotation: number): boolean {
 
 /** Active-page rotation state returned by {@link usePdfViewerPageRotation}. @internal */
 type PageRotationResult = {
-	/** Raw rotation in degrees for the active page. May be ≥ 360. */
+	/** Raw rotation in degrees for the active page. Can be ≥ 360. */
 	rotation: number
 	/** True at 90° / 270°, where the page's bbox width and height are swapped. False at 0° and 180°. */
 	isTransposed: boolean

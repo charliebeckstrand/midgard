@@ -35,7 +35,7 @@
  *
  * `toast` is topmost and unconditional. A toast reports something that
  * happened to the application, not to the surface in front of the user, so no
- * surface may cover it — a lens included.
+ * surface can cover it — a lens included.
  *
  * Layer: kiso · Concern: sou
  */

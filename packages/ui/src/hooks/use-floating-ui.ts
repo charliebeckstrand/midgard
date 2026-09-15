@@ -116,7 +116,7 @@ export type FloatingPanelOptions = {
 	 * `elements`, so it supersedes `refs.setReference` and needs no ref plumbing
 	 * of its own — which is what lets the panel live in a leaf beside the anchor
 	 * instead of in the component that renders it. `null` while there is nothing
-	 * to anchor to; the panel should be closed then anyway.
+	 * to anchor to; the panel is closed then anyway.
 	 */
 	reference?: HTMLElement | null
 	/**

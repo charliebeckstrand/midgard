@@ -94,7 +94,7 @@ export type ResizeHandlers = {
 }
 
 /**
- * The widest the frame may grow: its container's content box, so the width
+ * The widest the frame can grow: its container's content box, so the width
  * stays relative to the container even when `max` is auto. Falls back to
  * unbounded when the container can't be measured (e.g. no layout in tests).
  *

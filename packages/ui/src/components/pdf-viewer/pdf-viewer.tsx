@@ -111,7 +111,7 @@ export type PdfViewerProps = {
 	 *
 	 * @remarks Distinct from {@link onActiveHighlightChange}, which reports *selection*:
 	 * re-pressing the active region changes nothing to select, so that callback stays silent.
-	 * Use this one when a press should do something every time — reveal the region's row in a
+	 * Use this one when a press must do something every time — reveal the region's row in a
 	 * list beside the viewer, put the caret in the field it was read from.
 	 *
 	 * A keyboard activation arrives as a native click, so `Enter` on a region reports here too.
@@ -145,7 +145,7 @@ export type PdfViewerProps = {
 	 * @remarks What the overlay is doing is not only the viewer's business: a list beside it
 	 * routinely marks which of its rows can be located on the page, and that mark is a promise
 	 * the hidden overlay cannot keep. Not a controlled binding — these two switches are the
-	 * reader's, and nothing outside should be able to turn them back on under them.
+	 * reader's, and nothing outside can turn them back on under them.
 	 */
 	onHighlightsVisibleChange?: (visible: boolean) => void
 	/**

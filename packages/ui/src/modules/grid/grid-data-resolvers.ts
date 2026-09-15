@@ -372,7 +372,7 @@ export function resolveResizeLayout<T>(args: {
 }
 
 /**
- * What the grid's actions may act on: `hasRows`, the plain fact that source rows
+ * What the grid's actions can act on: `hasRows`, the plain fact that source rows
  * exist, and `hasData`, the gate the header's own affordances read.
  *
  * The two differ on one case — a view emptied by a filter or a search. That is not

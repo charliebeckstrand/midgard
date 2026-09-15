@@ -53,7 +53,7 @@ export type TooltipAnchorOptions = {
  * interaction hooks against the returned context — with none composed. `open` is
  * the caller's fact. `useInteractions([])` supplies the two props getters the
  * context type requires; with no hooks in the list they add nothing, which is the
- * point, since nothing may reach the anchored element.
+ * point, since nothing can reach the anchored element.
  *
  * @remarks Stamps no `role` and no aria — like `useTooltipPointer`, and for the
  * same reason: an anchored label names something that is already named to a

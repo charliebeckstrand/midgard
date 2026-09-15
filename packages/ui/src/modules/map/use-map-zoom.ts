@@ -574,7 +574,7 @@ function useMapWheelZoom(
 			const { transform: from, view: frame, max } = live.current
 
 			// Read fresh per event, unlike a pointer gesture's: a wheel has no press
-			// to measure at, and the page may have scrolled between two of them.
+			// to measure at, and the page can scroll between two of them.
 			const focus = clientToFrame(
 				{ x: event.clientX, y: event.clientY },
 				svg.getBoundingClientRect(),

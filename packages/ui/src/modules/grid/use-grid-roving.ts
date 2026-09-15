@@ -109,7 +109,7 @@ export function useGridRoving({
 		rovingRows: mode === 'row',
 		rovingCells: cellMode,
 		// The legacy per-row Tab stop the virtualized body keeps, where roving
-		// stands down but a clickable row should still be reachable by Tab.
+		// stands down but a clickable row must stay reachable by Tab.
 		rowStaticStop: onRowClick && virtualized && !navigable,
 		tableProps: mode === 'none' ? undefined : { ref: tableRef, onKeyDown: rovingKeyDown },
 	}

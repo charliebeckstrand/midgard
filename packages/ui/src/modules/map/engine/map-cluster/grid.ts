@@ -5,7 +5,7 @@
  * every group built before it — a linear pass where the naive scan is quadratic.
  *
  * Generic over what a cell holds, because the broad phase files seeds and the
- * merge round files slot indices, and neither pass may pay for the other's
+ * merge round files slot indices, and neither pass can pay for the other's
  * shape.
  */
 

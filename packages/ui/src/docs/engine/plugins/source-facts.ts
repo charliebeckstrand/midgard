@@ -207,7 +207,7 @@ function declarationOf(
 		ts.isEnumDeclaration(stmt) ||
 		ts.isFunctionDeclaration(stmt)
 	) {
-		// Only a function declaration may be anonymous (`export default function`).
+		// Only a function declaration can be anonymous (`export default function`).
 		return stmt.name ? { names: [stmt.name.text], code } : null
 	}
 

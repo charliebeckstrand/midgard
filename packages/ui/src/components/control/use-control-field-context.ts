@@ -5,7 +5,7 @@ import { useA11yControl } from '../../hooks'
 import { type ControlContextValue, type ControlSeverity, useControl } from './context'
 
 /**
- * The three axes a field wrapper may layer over the inherited cascade. Every
+ * The three axes a field wrapper can layer over the inherited cascade. Every
  * other key passes through from the parent unchanged.
  *
  * @internal

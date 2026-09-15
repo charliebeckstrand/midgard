@@ -242,7 +242,7 @@ export type MapOverlay = {
  *
  * The mark registers its keyboard stops and its activation alongside its legend
  * entry, so the plat's cursor can step onto it and Enter can pick it without the
- * plat knowing what kind of mark it is. A mark may hold more than one stop —
+ * plat knowing what kind of mark it is. A mark can hold more than one stop —
  * every dot of a {@link MapPoints} — and the cursor, the tooltip, and the click
  * all name the stop, while the legend, the toggle, and the emphasis stay with
  * the mark as a whole.
@@ -310,7 +310,7 @@ export function useMapOverlay({
 
 	// The live stops and reporters, read at fire time rather than captured in the
 	// registration: a consumer's inline handler is a fresh identity every render,
-	// and a mark's geometry changes as it lands — neither may churn the ledger,
+	// and a mark's geometry changes as it lands — neither can churn the ledger,
 	// whose every write re-sorts it and re-renders the legend.
 	const live = useRef({ stops, onClick, onContextMenu, resolveStop, ownSpare })
 

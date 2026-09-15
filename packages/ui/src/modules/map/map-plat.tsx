@@ -1067,7 +1067,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	//
 	// Deliberately unresolved on the render path — the `geoCentroid` pass behind
 	// the region half measures every ring in the atlas (~30 ms across 3,000
-	// counties, against a ~70 ms mount), and neither the mount nor a resize may
+	// counties, against a ~70 ms mount), and neither the mount nor a resize can
 	// pay that for a cursor most maps never carry. The hook calls this on the
 	// first navigation key instead. A stop whose position the projection drops
 	// (the US composite discards points outside its insets) is left out, so the
@@ -1082,7 +1082,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	//
 	// It reads `answers` rather than the caller's switch alone, so a backdrop map
 	// whose regions earn nothing drops them too — the marks over it keep their own
-	// stops, and a region that leads nowhere is not one a cursor should stand on.
+	// stops, and a region that leads nowhere is not one a cursor rests on.
 	const resolveStops = useCallback(
 		() =>
 			mapStops(

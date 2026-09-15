@@ -17,7 +17,7 @@ export const css = {
 	 * so a panel sized by what it holds cannot travel on this at all — Framer
 	 * Motion measures it the second length and moves it, on `spring.fit`. The
 	 * corner rides along because a panel that squares its top on reaching the
-	 * screen edge should square it on the way there.
+	 * screen edge must square it on the way there.
 	 */
 	size: 'motion-safe:transition-[height,border-radius]',
 	/**

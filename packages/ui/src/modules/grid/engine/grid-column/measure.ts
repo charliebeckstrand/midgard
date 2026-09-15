@@ -239,7 +239,7 @@ export type ColumnMeasurement = {
 	profiles: ColumnSizeProfile[]
 	/** Total width (px) of the columns excluded from allocation — non-data, `width`-held, and manually resized. */
 	fixed: number
-	/** Per-data-column hard floor (px) — held and auto-sized alike — the width a drag-resize may not cross (see {@link columnFloor}). */
+	/** Per-data-column hard floor (px) — held and auto-sized alike — the width a drag-resize cannot cross (see {@link columnFloor}). */
 	floors: Map<string, number>
 	/**
 	 * Body cells the pass read. Zero means the body rendered none — a loading

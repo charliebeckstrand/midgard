@@ -423,7 +423,7 @@ export function Combobox<T>({
 		[resolvedReadOnly, setOpen],
 	)
 
-	// Set when an arrow-key open should seat the highlight on the current
+	// Set when an arrow-key open must seat the highlight on the current
 	// selection rather than leave it empty; consumed by the highlight-anchoring
 	// effect below once the panel's options mount.
 	const anchorSelectedOnOpenRef = useRef(false)
@@ -454,7 +454,7 @@ export function Combobox<T>({
 	// `setVirtualActiveIndexed`/`clearVirtualActiveIndexed`. Anchoring to the
 	// *current selection* on an arrow-key open still needs the DOM (there's no
 	// index-space "find the selected row" without scanning rendered rows), which
-	// a windowed selection may not satisfy; it degrades to the top-match seed
+	// a windowed selection cannot satisfy; it degrades to the top-match seed
 	// below instead of guessing.
 	const lastQueryRef = useRef(deferredQuery)
 
@@ -507,7 +507,7 @@ export function Combobox<T>({
 	// Async option swaps for an unchanged query (e.g. address suggestions
 	// resolving) unmount the highlighted option while `deferredQuery`, the key
 	// of the effect above, never changes; `aria-activedescendant` dangles.
-	// The swap may also originate below this root (a query-context consumer
+	// The swap can also originate below this root (a query-context consumer
 	// re-rendering on its own async state), where no render of this component
 	// observes it; a MutationObserver on the options wrapper does.
 	//

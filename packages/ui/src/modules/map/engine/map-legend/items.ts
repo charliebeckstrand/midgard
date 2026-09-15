@@ -49,7 +49,7 @@ export type MapLegendItem = {
 /**
  * The toggle and emphasis id a merged group answers to, namespaced away from the
  * mark ids it holds and from {@link categoryLegendId}'s — the three share one
- * switchboard, so none of them may collide.
+ * switchboard, so none of them can collide.
  *
  * @internal
  */

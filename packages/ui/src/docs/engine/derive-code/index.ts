@@ -78,7 +78,7 @@ export function deriveCode(
 	if (context.imports.size === 0) return null
 
 	// The consistency rule keys on declarations already pulled, but a pull can
-	// happen after the prop that should honor it renders (`<Odometer
+	// happen after the prop that must honor it renders (`<Odometer
 	// value={value} />` before the `<Button onClick={() => setValue(…)}>` that
 	// pulls the pair). A second walk sees the full pull set; it can only turn
 	// live values into source identifiers, never pull further, so it converges.

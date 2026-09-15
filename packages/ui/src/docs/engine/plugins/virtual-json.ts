@@ -165,7 +165,7 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 
 				fam.record = null
 
-				// Invalidate the manifest (its key set may have changed) and every key
+				// Invalidate the manifest (its key set can change) and every key
 				// module already served, so a prop edit re-serves fresh data.
 				invalidate(fam.manifestResolved)
 

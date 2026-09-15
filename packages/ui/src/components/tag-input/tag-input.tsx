@@ -25,7 +25,7 @@ import { useTagInputKeyboard } from './use-tag-input-keyboard'
  */
 export type TagInputProps = {
 	id?: string
-	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
+	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` must seed `string[]`. */
 	name?: string
 	size?: ControlSize
 	/** Tag appearance; `color` is the badge color for every tag (default `'zinc'`). */

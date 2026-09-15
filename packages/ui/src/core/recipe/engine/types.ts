@@ -24,7 +24,7 @@ export type VariantAxis = Record<string, ClassValue>
  */
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
-/** Reserved top-level config field names; kata may not use these as axis names. */
+/** Reserved top-level config field names; kata must not use these as axis names. */
 export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
 
 /** The reserved fields' types. */

@@ -21,8 +21,8 @@ export type { MinBreakpoint }
  * means each call site transcribes the scale from memory and none of them move if the theme
  * changes; this takes the name, so `lg` here and `lg:` there are the same fact.
  *
- * Prefer CSS where CSS can do the job: a thing that is merely *hidden* below a breakpoint
- * should be hidden by a class, not unmounted by a hook. This is for the cases where the
+ * Prefer CSS where CSS can do the job: hide a thing that is merely *hidden* below a
+ * breakpoint with a class, not with a hook that unmounts it. This is for the cases where the
  * markup itself differs — a different component, a different handler — and the answer has
  * to exist in JavaScript before the render happens.
  *

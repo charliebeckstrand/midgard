@@ -1,6 +1,6 @@
 'use client'
 
-/** Where a node should land within the scroller, per axis. Mirrors native `scrollIntoView`. */
+/** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
 
 type ScrollWithinOptions = {

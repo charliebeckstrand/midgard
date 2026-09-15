@@ -137,7 +137,7 @@ function planarSide(ring: Ring): 'small' | 'large' | null {
 		if (absLat > maxAbsLat) maxAbsLat = absLat
 	}
 
-	// A ring spanning half the globe or more may enclose a pole, where the plane
+	// A ring spanning half the globe or more can enclose a pole, where the plane
 	// and the sphere stop agreeing. One that crosses the antimeridian in its own
 	// coordinates reads as a span of ~360° and is refused here too.
 	if (lonMax - lonMin >= 180) return null

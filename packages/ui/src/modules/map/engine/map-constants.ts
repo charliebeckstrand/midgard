@@ -82,7 +82,7 @@ export const POINT_RADIUS = 5.5
 export const POINT_HIT_RADIUS = 22
 
 /**
- * How much of a drawn shape's own inscribed reach a dot standing on it may take.
+ * How much of a drawn shape's own inscribed reach a dot standing on it can take.
  * Half, so the shape keeps at least as much room as it gives: a dot at the centre
  * of a circular catchment takes half the radius and leaves the rest, and the band
  * the boundary answers on ({@link ROUTE_HIT_WIDTH}) stays clear at any zone wide

@@ -63,7 +63,7 @@ type TrackedPromise<T> = Promise<T> & {
 
 /**
  * Return the cached tracked promise under `id`, or start one from `start` and
- * cache it. `start` runs only on a cache miss, so it may throw for an unknown
+ * cache it. `start` runs only on a cache miss, so it can throw for an unknown
  * id without poisoning the cache.
  */
 function tracked<T>(

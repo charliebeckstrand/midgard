@@ -872,7 +872,7 @@ export function GridData<T>({
 		manualGroupRow,
 	})
 
-	// Whether the table may paint yet; holds its first frame until the widths are
+	// Whether the table can paint yet; holds its first frame until the widths are
 	// settled (see `useTableRevealed`, and the width gate on the `<table>` below).
 	const showTable = useTableRevealed(widthsSettled, loading, renderRows.length)
 

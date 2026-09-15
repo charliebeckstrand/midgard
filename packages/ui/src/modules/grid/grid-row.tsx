@@ -130,7 +130,7 @@ export function renderGridRow<T>(
 	// `rowKeys` is built parallel to `rows` (see `Grid`), so the index is always present.
 	const key = props.rowKeys[dataRowIndex] as string | number
 
-	// Master-detail state for this row: whether it may expand and whether it is
+	// Master-detail state for this row: whether it can expand and whether it is
 	// open. Both flow to the row as primitives so the memoized row still holds.
 	const expandable = props.expansion?.rowExpandable(row) ?? false
 

@@ -372,7 +372,7 @@ export const MapRegions = memo(function MapRegions({
 
 	const receded = pointed !== null || emphasis !== null
 
-	// A selection naming no drawn region rings nothing: the id may match no
+	// A selection naming no drawn region rings nothing: the id can match no
 	// feature, and a region the geometry dropped has a `null` path.
 	const selectedPath = selected === null ? null : (paths[selected] ?? null)
 

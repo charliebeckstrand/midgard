@@ -433,7 +433,7 @@ export function scatterXRange(
 	return insetFrom < insetTo ? [insetFrom, insetTo] : span
 }
 
-/** How far a tick's mapped position may sit from a range end and still count as sitting on it. @internal */
+/** How far a tick's mapped position can sit from a range end and still count as sitting on it. @internal */
 const EDGE_EPSILON = 0.5
 
 /**
