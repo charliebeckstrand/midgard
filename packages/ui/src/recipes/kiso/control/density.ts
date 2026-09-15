@@ -6,13 +6,13 @@
  * step; the padding-to-radius ratio holds 1:1 across non-ControlFrame
  * controls (listbox, combobox, date-picker button). For ControlFrame
  * consumers (input, textarea, select trigger), `kata/control.ts` exposes
- * `frameRadius`, `<ControlFrame>` reads it from `useDensity()`, and the
+ * `frameRadius`. `<ControlFrame>` reads it from `useDensity()`, and the
  * chrome on the wrapping frame carries the matching radius. Gap = py/2 at
  * every step (rounded to the spacing scale).
  *
  * Each step also carries the affix autofill margins (`affix.autofill`,
- * see `./affix.ts`): `group-has`-gated `autofill:` margins that inset the
- * browser's autofill highlight from an adjacent affix slot by `px`. They
+ * see `./affix.ts`). They are `group-has`-gated `autofill:` margins that inset
+ * the browser's autofill highlight from an adjacent affix slot by `px`. They
  * live on this axis so every control input picks them up without
  * per-kata wiring; the gate keeps them dormant in slot-less frames.
  *

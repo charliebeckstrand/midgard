@@ -12,8 +12,8 @@
 import { mode } from '../../../core/recipe'
 
 /**
- * Base ring under the other layers. The ring uses solid colours (not
- * translucent like `sen.ring.inset`); adjacent rings in a group overlap
+ * Base ring under the other layers. The ring uses solid colours, not
+ * translucent like `sen.ring.inset`. Adjacent rings in a group overlap
  * by 1 px without alpha-stacking into a darker line at the join. Radius
  * is not bundled; composers add `radius(v)` (or `r(v)` for the
  * outer-only case) per component density step.
@@ -23,9 +23,9 @@ const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
 /**
  * `::before` inset fill: paints the surface inside the 1 px outer ring.
  * `pointer-events-none` keeps the decorative fill from stealing pointer events
- * from non-positioned affix slots beneath it — the `::before` belongs to the
- * frame, so without this a click on a chevron/icon affix targets the frame and
- * the affix's own cursor and handlers never fire (mirrors `overlay`'s `::after`).
+ * from non-positioned affix slots beneath it. The `::before` belongs to the
+ * frame. Without this a click on a chevron/icon affix targets the frame, and
+ * the affix's own cursor and handlers never fire. It mirrors `overlay`'s `::after`.
  * Surfaces toggle this layer per mode (`dark:before:hidden`), so the leak shows
  * in light mode only.
  */

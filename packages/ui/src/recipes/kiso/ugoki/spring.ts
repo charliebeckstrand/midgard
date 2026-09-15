@@ -1,6 +1,6 @@
 /**
  * Ugoki spring: the spring vocabulary, keyed by character. Each entry is a
- * complete Framer `transition` value; a kata exposes the one its unit moves
+ * complete Framer `transition` value. A kata exposes the one its unit moves
  * on, so every spring in the system is named and tuned here.
  *
  * Layer: kiso · Concern: spring transitions
@@ -20,9 +20,9 @@ export const spring = {
 	 * shrinking to what it now holds.
 	 *
 	 * Overdamped, where most of the vocabulary gives. The edge carries the
-	 * content with it, so an overshoot is not a flourish here: past the target on
-	 * the way in it clips what the panel is arriving at, and on the way out it
-	 * opens a strip of nothing under the last line.
+	 * content with it, so an overshoot is not a flourish here. Past the target on
+	 * the way in it clips what the panel is arriving at. On the way out it opens a
+	 * strip of nothing under the last line.
 	 */
 	fit: { type: 'spring', stiffness: 260, damping: 34 },
 } as const

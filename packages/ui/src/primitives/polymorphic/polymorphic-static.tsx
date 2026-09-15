@@ -16,7 +16,7 @@ import { type PolymorphicRenderProps, renderFallback } from './fallback'
  * with the resolved anchor props and the children.
  *
  * Static leaf components (Badge, Box, BreadcrumbLink, …) use this so they can
- * render in React Server Components; client components keep `Polymorphic`,
+ * render in React Server Components. Client components keep `Polymorphic`,
  * whose context read resolves the `<UIProvider>`-registered link without
  * call-site wiring.
  */
@@ -30,9 +30,9 @@ export type PolymorphicStaticProps<
 	| ({ href: string; render?: ReactElement<LinkProps> } & Omit<LinkProps, 'className' | Omitted>)
 
 /**
- * Renders an `href`-driven element switch: with `href`, clones `render` (the
- * call-site router link) with the resolved anchor props or falls back to a
- * plain `<a>`; without `href`, renders the `as` element. Forwards `ref`,
+ * Renders an `href`-driven element switch. With `href`, it clones `render` (the
+ * call-site router link) with the resolved anchor props, or falls back to a
+ * plain `<a>`. Without `href`, it renders the `as` element. Forwards `ref`,
  * `data-slot`, `className`, and remaining props to the chosen element.
  *
  * @typeParam Fallback - Element type rendered when no `href` is given; its
