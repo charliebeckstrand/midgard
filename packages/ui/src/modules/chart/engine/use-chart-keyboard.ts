@@ -8,26 +8,26 @@ import type { ChartHover } from './context'
 
 /**
  * The per-category anchor points a chart hands its frame for keyboard
- * navigation, already projected to frame coordinates so the cursor lands exactly
- * where the pointer would. `points` is indexed by category — a cartesian band, a
- * pie's slice — and each entry lists that category's navigable stops: one per
- * visible series for a cartesian chart, a single centroid for a pie slice. Two
- * series sharing a value keep two coincident stops, never one, so the cursor
- * visits each of them.
+ * navigation. They are already projected to frame coordinates, so the cursor
+ * lands exactly where the pointer would. `points` is indexed by category — a
+ * cartesian band, a pie's slice. Each entry lists that category's navigable
+ * stops: one per visible series for a cartesian chart, a single centroid for a
+ * pie slice. Two series sharing a value keep two coincident stops, never one, so
+ * the cursor visits each of them.
  *
  * `references` carries the reference lines: their value-axis screen positions,
  * band-independent because a rule spans every category. They intersperse into
- * the value-axis roving in screen order — a stop the cursor visits alongside the
- * series' points, receding the marks to the rule the way pointing it does — and
- * index-align with the drawn rules so an active one can be named. A `null` slot
- * holds a rule's place without a stop, keeping the finite rules at the indices
- * they draw at.
+ * the value-axis roving in screen order. Each is a stop the cursor visits
+ * alongside the series' points, receding the marks to the rule the way pointing
+ * it does. They also index-align with the drawn rules, so an active one can be
+ * named. A `null` slot holds a rule's place without a stop, keeping the finite
+ * rules at the indices they draw at.
  *
- * `series` names the series behind each of `points`' stops, in the same order,
- * so the cursor's value lane resolves to the series it sits on — the one it
- * emphasises while the rest recede. Omitted on a chart whose stops don't map to
- * a single series (a scatter column stacks several), which then reads no active
- * series and leaves the emphasis alone.
+ * `series` names the series behind each of `points`' stops, in the same order.
+ * The cursor's value lane therefore resolves to the series it sits on, the one
+ * it emphasises while the rest recede. Omitted on a chart whose stops don't map
+ * to a single series, where a scatter column stacks several. Such a chart reads
+ * no active series, and leaves the emphasis alone.
  *
  * @internal
  */
@@ -41,8 +41,8 @@ export type ChartFocusTargets = {
  * The keyboard focus cursor: a category crossed with one of its stops. `value`
  * indexes the series stops at `category`, so stepping it walks that category's
  * series — coincident points included. `reference`, when set, parks the cursor
- * on that reference line at `category`'s band instead; `value` rides along as the
- * series lane to return to when the value axis steps back off the rule.
+ * on that reference line at `category`'s band instead. `value` rides along as
+ * the series lane to return to, when the value axis steps back off the rule.
  *
  * @internal
  */
@@ -96,10 +96,10 @@ function isReferenceStop(targets: ChartFocusTargets, reference: number | undefin
 }
 
 /**
- * Snaps a cursor into range against the current targets: a category with no
+ * Snaps a cursor into range against the current targets. A category with no
  * stops falls to the first focusable one, and the value index clamps to that
- * category's count. A `reference` that no longer names a live rule drops, leaving
- * the cursor on its series lane. Returns `null` when nothing is focusable.
+ * category's count. A `reference` that no longer names a live rule drops,
+ * leaving the cursor on its series lane. Returns `null` when nothing is focusable.
  *
  * @internal
  */
@@ -139,7 +139,7 @@ export function cursorPoint(cursor: ChartCursor, targets: ChartFocusTargets): Ve
 
 /**
  * The series index the cursor sits on, or `null`. A cursor parked on a reference
- * line names no series, and a chart that maps no series to its stops — or a stop
+ * line names no series. A chart that maps no series to its stops — or a stop
  * past the map — reads `null` too, leaving the emphasis untouched. @internal
  */
 export function cursorSeries(cursor: ChartCursor, targets: ChartFocusTargets): number | null {
@@ -180,10 +180,10 @@ export function cartesianFocus(
 type CursorAction = 'category+' | 'category-' | 'value+' | 'value-' | 'first' | 'last' | 'clear'
 
 /**
- * Reads a key against the orientation. The band axis arrows step categories and
- * the value axis arrows cycle the series' value points, so a horizontal chart —
- * categories down the side — transposes which pair does which. Home / End jump
- * to the ends, Escape clears; anything else is `null` and left to the browser.
+ * Reads a key against the orientation. The band axis arrows step categories, and
+ * the value axis arrows cycle the series' value points. A horizontal chart —
+ * categories down the side — therefore transposes which pair does which. Home /
+ * End jump to the ends, Escape clears; anything else is `null` and left to the browser.
  *
  * @internal
  */
@@ -232,10 +232,10 @@ type Stop = { kind: 'data' | 'ref'; index: number; pos: number }
 
 /**
  * A category's value-axis stops in screen order: its series points crossed with
- * every reference line, sorted by their value-axis position so an arrow steps
- * through them the way it points — down a vertical chart, right a horizontal one.
- * Coincident stops tie-break to a stable order, series before a rule sharing the
- * value, so overlapping stops stay distinct and reachable.
+ * every reference line. They are sorted by their value-axis position, so an
+ * arrow steps through them the way it points. That is down a vertical chart, and
+ * right a horizontal one. Coincident stops tie-break to a stable order, series
+ * before a rule sharing the value, so overlapping stops stay distinct and reachable.
  *
  * @internal
  */
@@ -260,11 +260,11 @@ function orderedStops(
 }
 
 /**
- * The cursor one step `dir` along the value axis, walking the category's stops —
- * series points and reference lines alike — in screen order rather than the
- * order they arrive in. Landing on a reference line parks the cursor there while
- * keeping its series lane; landing on a series point clears the parking. The step
- * wraps at the ends.
+ * The cursor one step `dir` along the value axis. It walks the category's
+ * stops — series points and reference lines alike — in screen order, rather than
+ * the order they arrive in. Landing on a reference line parks the cursor there
+ * while keeping its series lane; landing on a series point clears the parking.
+ * The step wraps at the ends.
  *
  * @internal
  */
@@ -297,12 +297,12 @@ function stepStop(
 
 /**
  * Resolves a keypress to the next cursor. The band axis arrows move to the
- * neighbouring category, keeping the value lane where it exists and sliding a
- * parked reference line along to the new band; the value axis arrows step through
- * the current category's stops in screen order — every visible series, coincident
- * values included, and the reference lines interspersed among them — so a rule
- * roves alongside the data and receding the marks reads as one gesture. Unhandled
- * keys pass through untouched.
+ * neighbouring category. They keep the value lane where it exists, and slide a
+ * parked reference line along to the new band. The value axis arrows step
+ * through the current category's stops in screen order. That is every visible
+ * series, coincident values included, with the reference lines interspersed
+ * among them. A rule therefore roves alongside the data, and receding the marks
+ * reads as one gesture. Unhandled keys pass through untouched.
  *
  * @internal
  */
@@ -359,34 +359,45 @@ export type ChartKeyboardProps = {
 
 /**
  * Makes the plot region a single arrow-navigable tab stop that drives the
- * shared hover context, so the crosshair and tooltip answer the keyboard the
- * way they answer the pointer. Focus alone only rings the region — a click
- * focuses it too, and stealing the readout from the pointer would jar — so the
- * first arrow reads the first data point; from there the band axis arrows walk
- * categories, the value axis arrows step the series' value points at a category
- * in screen order (visiting each series, coincident values included), Home / End
- * jump to the ends, and Escape drops focus. Reference lines join the value-axis
- * roving as their own stops: landing on one recedes the marks to it — the same
- * emphasis pointing it applies — and drops the series readout, so the rule reads
- * against a quieted field; stepping off restores it. Landing on a series point
- * emphasises that series the way hovering its legend entry does — the other
- * series recede to a quarter opacity and the tooltip dims their rows — so the
- * dataset the cursor reads stands alone; stepping to another series moves the
- * emphasis with it, and leaving or reaching a rule clears it. Leaving after
- * navigating clears the readout; a
- * pointer-only focus leaves the pointer's readout alone. Escape drops focus to
- * the body, then re-arms the region as the next Tab's destination, so tabbing
- * back in returns to the chart the reader just left rather than stepping to the
- * following stop. Returns `null` — no tab
- * stop — when navigation is off or the chart carries no value point, leaving the
- * region the plain `role="img"` it was.
+ * shared hover context. The crosshair and tooltip therefore answer the keyboard
+ * the way they answer the pointer.
+ *
+ * Focus alone only rings the region. A click focuses it too, and stealing the
+ * readout from the pointer would jar, so the first arrow reads the first data
+ * point. From there:
+ *
+ * - The band axis arrows walk categories.
+ * - The value axis arrows step the series' value points at a category in screen
+ *   order, visiting each series, coincident values included.
+ * - Home / End jump to the ends.
+ * - Escape drops focus.
+ *
+ * Reference lines join the value-axis roving as their own stops. Landing on one
+ * recedes the marks to it, the same emphasis pointing it applies. It also drops
+ * the series readout, so the rule reads against a quieted field. Stepping off
+ * restores it.
+ *
+ * Landing on a series point emphasises that series the way hovering its legend
+ * entry does. The other series recede to a quarter opacity, and the tooltip dims
+ * their rows. The dataset the cursor reads therefore stands alone. Stepping to
+ * another series moves the emphasis with it, and leaving or reaching a rule
+ * clears it.
+ *
+ * Leaving after navigating clears the readout; a pointer-only focus leaves the
+ * pointer's readout alone. Escape drops focus to the body, then re-arms the
+ * region as the next Tab's destination. Tabbing back in therefore returns to the
+ * chart the reader just left, rather than stepping to the following stop.
+ * Returns `null` — no tab stop — when navigation is off or the chart carries no
+ * value point, leaving the region the plain `role="img"` it was.
  *
  * @param targets - The per-category anchor points and reference stops to navigate, or `undefined` on a chart with none.
  * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
  * @param enabled - Whether a readout is mounted to answer the cursor — the tooltip that makes navigation legible.
  * @param set - The hover context's setter, moved to the cursor's anchor on each step.
  * @param setReference - The emphasis setter, moved to the reference line the cursor parks on, or `null` off it.
- * @param setActiveSeries - The series-emphasis setter, moved to the series the cursor sits on, or `null` off any (a reference, a cleared cursor, or a chart with no series map).
+ * @param setActiveSeries - The series-emphasis setter, moved to the series the
+ * cursor sits on. It is `null` off any series: a reference, a cleared cursor, or
+ * a chart with no series map.
  * @internal
  */
 export function useChartKeyboard(

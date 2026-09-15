@@ -1,5 +1,4 @@
 {
-	"components/drawer/drawer.tsx": 18,
 	"components/pdf-viewer/pdf-viewer-document-cache.ts": 19,
 	"components/pdf-viewer/pdf-viewer-highlights.tsx": 32,
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": 23,
@@ -10,11 +9,9 @@
 	"modules/chart/engine/chart-layout.ts": 51,
 	"modules/chart/engine/chart-legend/legend.tsx": 24,
 	"modules/chart/engine/chart-reference-lines.tsx": 19,
-	"modules/chart/engine/chart-tier.ts": 18,
 	"modules/chart/engine/chart-value-labels.tsx": 19,
 	"modules/chart/engine/types.ts": 34,
 	"modules/chart/engine/use-chart-cartesian.ts": 33,
-	"modules/chart/engine/use-chart-keyboard.ts": 18,
 	"modules/grid/engine/grid-column/measure.ts": 22,
 	"modules/grid/types.ts": 32,
 	"modules/grid/use-grid-column-auto-size.ts": 23,
@@ -26,6 +23,5 @@
 	"modules/map/map-dot.tsx": 25,
 	"modules/map/map-points.tsx": 22,
 	"modules/map/map-regions.tsx": 34,
-	"modules/map/use-map-overlay.ts": 19,
-	"recipes/kata/map.ts": 18
+	"modules/map/use-map-overlay.ts": 19
 }

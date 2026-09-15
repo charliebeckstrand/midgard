@@ -4,21 +4,25 @@
  * so the breakpoint math is unit-testable in isolation, the same posture as the
  * scale, frame-layout, and geometry cores.
  *
- * A chart resolves its anatomy from the box it is handed, never the viewport:
- * each element binds to the dimension that pays for it — the value gutter and
- * the number format to width, the tick count and the band row to height — and
- * yields in a fixed order as the box shrinks, so one chart stays legible from a
- * wide tile down to a sparkline rather than rendering a squeezed copy of itself.
+ * A chart resolves its anatomy from the box it is handed, never the viewport.
+ * Each element binds to the dimension that pays for it. The value gutter and
+ * the number format bind to width; the tick count and the band row bind to
+ * height. They yield in a fixed order as the box shrinks. One chart therefore
+ * stays legible from a wide tile down to a sparkline, rather than rendering a
+ * squeezed copy of itself.
  * The marks, the tooltip, the keyboard layer, and the visually-hidden data table
  * are never on the ladder; only the chrome around them is.
  */
 
 /**
- * A chart's resolved anatomy tier, narrowest to widest. `spark` is pure marks —
- * a sparkline with the chrome stripped; `compact` keeps a value gutter (compact
- * number format) and end-only band labels; `standard` and `expanded` carry the
- * full frame, differing only as a styling label a dashboard tile can read off
- * `data-tier` (the cartesian anatomy is identical between them).
+ * A chart's resolved anatomy tier, narrowest to widest:
+ *
+ * - `spark` is pure marks, a sparkline with the chrome stripped.
+ * - `compact` keeps a value gutter (compact number format) and end-only band
+ *   labels.
+ * - `standard` and `expanded` carry the full frame. They differ only as a
+ *   styling label a dashboard tile can read off `data-tier`, and the cartesian
+ *   anatomy is identical between them.
  */
 export type ChartTier = 'spark' | 'compact' | 'standard' | 'expanded'
 
@@ -34,9 +38,9 @@ export type ChartBandAxisMode = 'thinned' | 'ends' | 'off'
 
 /**
  * The per-element anatomy a chart draws at its resolved {@link ChartTier}. Each
- * field answers one drawing decision the frame and layout read; a chart composes
- * them with the caller's own intent (an explicit `axes={false}` still wins over
- * a live gutter), so the policy stays a pure function of the box.
+ * field answers one drawing decision the frame and layout read. A chart composes
+ * them with the caller's own intent, where an explicit `axes={false}` still wins
+ * over a live gutter. The policy therefore stays a pure function of the box.
  *
  * @internal
  */
@@ -48,9 +52,10 @@ export type ChartPolicy = {
 	/** Whether the band axis thins its labels, shows only its ends, or stands down. */
 	bandAxis: ChartBandAxisMode
 	/**
-	 * How many value ticks to aim for — driven by height (about one per {@link
-	 * TICK_SPACING} px), capped by density so space can only take ticks away, never
-	 * add past what the density step allows; `0` at spark, where the axis is off.
+	 * How many value ticks to aim for, driven by height (about one per
+	 * {@link TICK_SPACING} px). Density caps it, so space can only take ticks
+	 * away, never add past what the density step allows. `0` at spark, where the
+	 * axis is off.
 	 */
 	tickTarget: number
 	/**
@@ -65,11 +70,14 @@ export type ChartPolicy = {
 	grid: boolean
 	/**
 	 * How many rows a stacked (top / bottom) legend band can take before the rest
-	 * collapse into a `+N` overflow chip: two where the frame is tall and wide,
-	 * one in a narrow or short frame, none at spark (the legend is gone with the
-	 * chrome). The cap bounds what the band takes from the aspect box, so the plot
-	 * can never be crushed below its floor. A side rail paginates instead and
-	 * ignores this.
+	 * collapse into a `+N` overflow chip:
+	 *
+	 * - Two where the frame is tall and wide.
+	 * - One in a narrow or short frame.
+	 * - None at spark, where the legend is gone with the chrome.
+	 *
+	 * The cap bounds what the band takes from the aspect box, so the plot can never
+	 * be crushed below its floor. A side rail paginates instead and ignores this.
 	 */
 	legendRows: 0 | 1 | 2
 }
@@ -110,9 +118,9 @@ export const MIN_TICK_TARGET = 2
 /**
  * Height, in px, of one clipped header line — a title or a subtitle. The header
  * never wraps (each line truncates to one line), so its height is a fixed
- * multiple of this, a two-line header adding {@link CHART_HEADER_LINE_GAP}
- * between the pair. Read off the rendered header, so the {@link
- * chartChromeReserve} budget matches the box the figure actually lays out.
+ * multiple of this. A two-line header adds {@link CHART_HEADER_LINE_GAP} between
+ * the pair. Read off the rendered header, so the {@link chartChromeReserve}
+ * budget matches the box the figure actually lays out.
  * @internal
  */
 export const CHART_HEADER_LINE_HEIGHT = 24
@@ -138,8 +146,13 @@ function tierOf(width: number, height: number): Exclude<ChartTier, 'spark'> {
 }
 
 /**
- * How the band axis presents in a non-spark box: dropped in a short frame (its
- * row costs height), only the ends in a compact-width one, else thinned. @internal
+ * How the band axis presents in a non-spark box:
+ *
+ * - Dropped in a short frame, where its row costs height.
+ * - Only the ends in a compact-width one.
+ * - Thinned otherwise.
+ *
+ * @internal
  */
 function bandAxisOf(width: number, height: number): ChartBandAxisMode {
 	if (height < BAND_ROW_HEIGHT) return 'off'
@@ -149,10 +162,10 @@ function bandAxisOf(width: number, height: number): ChartBandAxisMode {
 
 /**
  * Whether a plot box is small enough to strip to a bare sparkline — under the
- * spark width or the spark height. The spark threshold on its own, so a module
- * that sizes its own frame before the policy resolves (the pie, weighing whether
- * a callout band would starve the plot to this floor) reads the same line the
- * tier does rather than duplicating it.
+ * spark width or the spark height. This is the spark threshold on its own. A
+ * module that sizes its own frame before the policy resolves therefore reads the
+ * same line the tier does, rather than duplicating it. The pie is one, weighing
+ * whether a callout band would starve the plot to this floor.
  *
  * @internal
  */
@@ -163,10 +176,10 @@ export function isSparkBox(width: number, height: number): boolean {
 /**
  * Resolves the anatomy {@link ChartPolicy} for a plot box of `width` × `height`,
  * capping the height-driven tick target at the density ceiling `tickCap`. Pure
- * and space-only: it reads the box the frame measured and never the viewport,
- * and it never consults the caller's `axes` / `grid` intent — a chart
- * composes those at the layout boundary, so a policy is deterministic in its box
- * alone and testable without a render.
+ * and space-only. It reads the box the frame measured and never the viewport,
+ * and it never consults the caller's `axes` / `grid` intent. A chart composes
+ * those at the layout boundary. A policy is therefore deterministic in its box
+ * alone, and testable without a render.
  *
  * @param width The plot box's width in px — pays for the value gutter, the
  * number format, and the band-label density.
@@ -177,14 +190,14 @@ export function isSparkBox(width: number, height: number): boolean {
  * @param fill The frame fills its container (`aspectRatio={false}`), so the
  * measured `height` is the remainder the chart's own chrome leaves — a value
  * every chrome decision perturbs. Spark dropping the header and legend (or the
- * legend taking another row) moves the very remainder that decided it, a
- * feedback loop with no fixed point that a resize drives to React's update
- * depth; and no container measurement escapes it, since an indefinite-height
- * parent collapses any ancestor box to that same content. So under `fill` the
+ * legend taking another row) moves the very remainder that decided it. That is a
+ * feedback loop with no fixed point, which a resize drives to React's update
+ * depth. No container measurement escapes it, since an indefinite-height parent
+ * collapses any ancestor box to that same content. So under `fill` the
  * chrome-affecting decisions — spark and the legend-row cap — resolve from the
- * width alone, which no chrome can move, while the plot-internal anatomy (tick
- * target, band row, titles, the tier label) still reads the measured height it
- * cannot feed back into. A very short fill box draws a cramped-but-stable frame
+ * width alone, which no chrome can move. The plot-internal anatomy (tick target,
+ * band row, titles, the tier label) still reads the measured height it cannot
+ * feed back into. A very short fill box draws a cramped-but-stable frame
  * rather than a sparkline; a caller wanting spark-by-height passes a `height`
  * or ratio instead.
  * @internal
@@ -228,11 +241,11 @@ export function chartPolicy(
 }
 
 /**
- * The aspect-box chrome a chart draws around its plot, for the {@link
- * chartChromeReserve} budget: the header lines above the plot and whether a
- * stacked legend bands below it. Read from the chart's props — never the tier —
- * so the budget stays a pure function of the props and can't feed the tier it
- * helps resolve back into itself.
+ * The aspect-box chrome a chart draws around its plot, for the
+ * {@link chartChromeReserve} budget. It is the header lines above the plot, and
+ * whether a stacked legend bands below it. It is read from the chart's props,
+ * never the tier. The budget therefore stays a pure function of the props, and
+ * cannot feed the tier it helps resolve back into itself.
  *
  * @internal
  */
@@ -277,17 +290,20 @@ export function chartChromeReserve({ headerLines, legend }: ChartChrome): number
 
 /**
  * The plot height the {@link chartPolicy} tier resolves against. A stacked
- * aspect-fill figure shares its ratio box with the header and legend, so the
- * plot's *measured* remainder shrinks while the tier keeps that chrome and jumps
- * when spark drops it — feeding that remainder back into the tier oscillates with
- * no fixed point. Under that mode the height is derived from the figure's own
- * `width / ratio` less the {@link chartChromeReserve chrome reserve}, a value no
- * tier decision perturbs, while the drawing still fills the measured remainder.
- * Every other frame mode's measured height passes through untouched: a fixed or
- * side-legend frame's is already tier-independent, and a free-form `fill`
- * frame's — the same shared-box remainder, with no ratio to derive a safe height
- * from — is defused inside {@link chartPolicy} instead, whose `fill` flag
- * resolves the chrome-affecting decisions from the width alone.
+ * aspect-fill figure shares its ratio box with the header and legend. The plot's
+ * *measured* remainder therefore shrinks while the tier keeps that chrome, and
+ * jumps when spark drops it. Feeding that remainder back into the tier
+ * oscillates with no fixed point.
+ *
+ * Under that mode the height is derived from the figure's own `width / ratio`
+ * less the {@link chartChromeReserve chrome reserve}. No tier decision perturbs
+ * that value, and the drawing still fills the measured remainder.
+ *
+ * Every other frame mode's measured height passes through untouched. A fixed or
+ * side-legend frame's is already tier-independent. A free-form `fill` frame's is
+ * the same shared-box remainder, with no ratio to derive a safe height from. It
+ * is defused inside {@link chartPolicy} instead, whose `fill` flag resolves the
+ * chrome-affecting decisions from the width alone.
  *
  * @param measuredHeight The plot's measured drawing height, still the drawing's.
  * @param width The measured plot (and figure) width.
@@ -309,13 +325,14 @@ export function policyPlotHeight(
 }
 
 /**
- * A frame's tier resolved in one step: the plot height the tier reads —
- * {@link policyPlotHeight}'s figure-derived height under a stacked aspect-fill
- * frame, else the measured height — fed into {@link chartPolicy}. The one place
- * the two compose, so every engine resolves its tier the same way against the
- * figure's `width / ratio` less its chrome rather than the measured remainder
- * it would loop on. `fill` is the free-form fill mode alone (a definite-height
- * fill box with no ratio), which chartPolicy defuses by width.
+ * A frame's tier resolved in one step. The plot height the tier reads is fed
+ * into {@link chartPolicy}. That height is {@link policyPlotHeight}'s
+ * figure-derived one under a stacked aspect-fill frame, else the measured
+ * height. The one place the two compose. Every engine therefore resolves its
+ * tier the same way. It reads the figure's `width / ratio` less its chrome,
+ * rather than the measured remainder it would loop on. `fill` is the free-form
+ * fill mode alone (a definite-height fill box with no ratio), which chartPolicy
+ * defuses by width.
  *
  * @internal
  */
