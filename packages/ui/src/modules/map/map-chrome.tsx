@@ -1,25 +1,25 @@
 'use client'
 
 /**
- * The map's frame chrome — the graticule's meridians and parallels, and the
- * sphere outline — drawn beneath every region on the chart's own gridline inks,
- * so a dashboard's charts and maps rule their frames alike. Recessive by
+ * The map's frame chrome: the graticule's meridians and parallels, and the
+ * sphere outline. It draws beneath every region on the chart's own gridline
+ * inks, so a dashboard's charts and maps rule their frames alike. Recessive by
  * construction: it draws first, so region fills cover the lines that cross land
  * and only the frame around the geography carries them.
  *
  * The graticule draws only where the projection does. It is clipped to the
  * projection's own frame under the even-odd rule, which is what keeps a
- * composite legible: `albers-usa` streams the lines through all three of its
- * sub-projections, so without the clip each inset fills with fragments at its
- * own angle and the map reads as three graticules laid over one another. Under
+ * composite legible. `albers-usa` streams the lines through all three of its
+ * sub-projections. Without the clip each inset fills with fragments at its own
+ * angle, and the map reads as three graticules laid over one another. Under
  * the rule the inset boxes are holes in the outer frame, so the main map rules
  * and every inset stays clear. A whole-globe projection has one frame and no
  * holes, so the same clip changes nothing there.
  *
  * Chrome answers no pointer and joins no readout. It names no place and carries
- * no value, so it is decoration in the strict sense: the tooltip, the keyboard
- * cursor, and the data table never see it, and it never takes a hit the region
- * under it owns.
+ * no value, so it is decoration in the strict sense. The tooltip, the keyboard
+ * cursor, and the data table never see it. It never takes a hit the region under
+ * it owns.
  */
 
 import { memo, useId } from 'react'
@@ -46,9 +46,9 @@ type ChromeLineProps = {
 }
 
 /**
- * One chrome path: a hairline outline, never a fill — the graticule is a
- * multi-line path and the frame a closed one, and a fill on either would flood
- * the frame under the geography.
+ * One chrome path: a hairline outline, never a fill. The graticule is a
+ * multi-line path and the frame a closed one. A fill on either would flood the
+ * frame under the geography.
  *
  * @internal
  */
@@ -81,11 +81,11 @@ function ChromeLine({ part, d, clip }: ChromeLineProps) {
  * The graticule draws under the sphere outline, so the globe's edge reads as
  * the frame's own line over the hairlines that meet it.
  *
- * Memoised like the region layer beside it: the plat re-renders on every legend
- * focus, toggle, overlay registration, and resize commit, in none of which the
- * two paths move. Both props hold their identity across those — the paths come
+ * Memoised like the region layer beside it. The plat re-renders on every legend
+ * focus, toggle, overlay registration, and resize commit. The two paths move in
+ * none of those. Both props hold their identity across those. The paths come
  * from the cross-instance memo, and the shared empty value stands in while the
- * chrome is off — so the memo bails rather than rebuilding the subtree.
+ * chrome is off. The memo therefore bails, rather than rebuilding the subtree.
  *
  * @internal
  */
@@ -108,8 +108,8 @@ export const MapChrome = memo(function MapChrome({ paths, sphere }: MapChromePro
 			{bounded && (
 				<defs>
 					<clipPath id={clipId} data-slot="map-chrome-clip">
-						{/* The even-odd rule is the whole of the composite fix: it reads the
-						    inset boxes as holes in the outer frame rather than as part of it. */}
+						{/* The even-odd rule is the whole of the composite fix. It reads the
+						    inset boxes as holes in the outer frame, rather than as part of it. */}
 						<path d={frame} clipRule="evenodd" />
 					</clipPath>
 				</defs>

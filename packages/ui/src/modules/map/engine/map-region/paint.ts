@@ -2,9 +2,9 @@
  * The region layer's paint table — what colour, class, and wash timing each
  * category resolves to — and the input shape every layer draws it through. A
  * county atlas shares a handful of paints across thousands of regions, so this
- * runs per category and the layers read it per region; both the base tree and
- * the lit copies above it read this one resolution, so the two can never paint
- * the same category differently. {@link MapRegionLayer} is here for the same
+ * runs per category and the layers read it per region. Both the base tree and
+ * the lit copies above it read this one resolution. The two can therefore never
+ * paint the same category differently. {@link MapRegionLayer} is here for the same
  * reason: it is what those layers hold in common, so it has one author.
  *
  * React-free, so the paint rules are testable without mounting a layer.
@@ -46,19 +46,19 @@ const SETTLED_WASH_STYLE: CSSProperties = { transitionDuration: WASH_DURATION }
 
 /**
  * Which wash timing the region layer is on. The stagger belongs to the mount
- * reveal alone: it washes the geography on region by region, and once that has
- * played out a legend toggle must repaint at once. Left standing it delays every
- * later fill change by the region's own reveal delay — up to the cap, which on
- * an atlas of any size is where nearly every region sits.
+ * reveal alone. It washes the geography on region by region. Once that has
+ * played out, a legend toggle must repaint at once. Left standing it delays
+ * every later fill change by the region's own reveal delay, up to the cap. On an
+ * atlas of any size, that cap is where nearly every region sits.
  *
  * @internal
  */
 export type MapWash = 'none' | 'reveal' | 'settled'
 
 /**
- * The wash timing for a region: its own staggered delay below the cap (the
- * shared capped style past it) while the reveal runs, the bare fade once that
- * has settled, and nothing at all on a static map.
+ * The wash timing for a region. While the reveal runs it is the region's own
+ * staggered delay below the cap, or the shared capped style past it. It is the
+ * bare fade once that has settled, and nothing at all on a static map.
  *
  * @internal
  */
@@ -85,9 +85,9 @@ type ResolvedRegionPaints = { byCategory: RegionPaint[]; none: RegionPaint }
 
 /**
  * What either region layer draws from: the geometry, each region's category,
- * and the table those two resolve a paint through. Held here rather than on
- * one layer, because the base tree and the lit copies above it draw the same
- * regions from the same table and their inputs must not drift apart.
+ * and the table those two resolve a paint through. Held here rather than on one
+ * layer. The base tree and the lit copies above it draw the same regions from
+ * the same table. Their inputs must not drift apart.
  *
  * @internal
  */
@@ -101,9 +101,10 @@ export type MapRegionLayer = {
 }
 
 /**
- * One category's paint: the toggle / emphasis key is the category's stable
- * value ({@link categoryLegendId}), not its index, so a reorder or removal
- * can't re-point a hidden or emphasised entry at a different category. The
+ * One category's paint. The toggle / emphasis key is the category's stable
+ * value ({@link categoryLegendId}), not its index. A reorder or removal
+ * therefore can't re-point a hidden or emphasised entry at a different
+ * category. The
  * neutral fill covers no-data (`null`), a toggled-off category, and the
  * pre-reveal beat, so the colour — not the geometry — animates on.
  *
@@ -142,9 +143,9 @@ function categoryPaint(
 }
 
 /**
- * Every category's paint plus the no-data neutral, resolved once for the
- * whole layer: a county atlas shares a handful of paints across thousands of
- * regions, so the class joins and paint lookups run per category, not per
+ * Every category's paint plus the no-data neutral, resolved once for the whole
+ * layer. A county atlas shares a handful of paints across thousands of regions.
+ * The class joins and paint lookups therefore run per category, not per
  * region.
  *
  * @internal
