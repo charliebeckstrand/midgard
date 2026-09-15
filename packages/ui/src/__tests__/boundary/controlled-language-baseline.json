@@ -556,7 +556,7 @@
 	"modules/map/map-legend.tsx": 9,
 	"modules/map/map-line.tsx": 5,
 	"modules/map/map-marker.tsx": 5,
-	"modules/map/map-plat.tsx": 62,
+	"modules/map/map-plat.tsx": 27,
 	"modules/map/map-point.tsx": 13,
 	"modules/map/map-points.tsx": 22,
 	"modules/map/map-range-legend.tsx": 2,

@@ -60,8 +60,8 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * The geometry to draw: a TopoJSON topology or a GeoJSON feature
 		 * collection. The package ships no atlas data — pass `us-atlas`,
 		 * `world-atlas`, or any equivalent source. Optional so a lazily fetched
-		 * atlas passes straight through: `null` or omitted reserves the frame and
-		 * paints nothing, then the geography draws in the moment it arrives — no
+		 * atlas passes straight through. `null` or omitted reserves the frame and
+		 * paints nothing. The geography then draws in the moment it arrives, with no
 		 * `geography ? <MapPlat /> : null` guard at the call site.
 		 */
 		geography?: MapGeography | null
@@ -92,41 +92,42 @@ export type MapPlatProps<T = never> = AccessibleName &
 		/** Frame height in px; wins over `aspectRatio` when set (a free-form fixed height). */
 		height?: number
 		/**
-		 * Height as a ratio of the width: `'auto'` takes the fitted geography's
-		 * own projected proportions, a number or `"4/3"` string fixes one, and
-		 * `false` fills the container's height.
+		 * Height as a ratio of the width. `'auto'` takes the fitted geography's own
+		 * projected proportions. A number or `"4/3"` string fixes one, and `false`
+		 * fills the container's height.
 		 * @defaultValue 'auto'
 		 */
 		aspectRatio?: MapAspectRatio
 		/**
-		 * Hold the frame empty — its reserved box still owning the space — until the
-		 * container is measured, then paint the geography once at the measured aspect
-		 * with the legend already resolved, instead of painting the measurement-free
-		 * canonical fit and visibly refitting (and reserving a late legend rail) once
-		 * the measurement lands. For a chart-context map — a dashboard tile behind a
-		 * loading state, carrying an explicit `aspectRatio` that differs from the
-		 * geography's own — the canonical paint would draw at the wrong aspect and
-		 * legend-less, then jump; deferring trades the instant first paint (invisible
-		 * behind the tile's reserved box and its loading state) for a single settled
-		 * one. Off by default, so every other map keeps the instant canonical paint for
+		 * Hold the frame empty until the container is measured, with its reserved box
+		 * still owning the space. Then paint the geography once at the measured
+		 * aspect, with the legend already resolved. The alternative paints the
+		 * measurement-free canonical fit, then visibly refits and reserves a late
+		 * legend rail once the measurement lands.
+		 *
+		 * It suits a chart-context map: a dashboard tile behind a loading state,
+		 * carrying an explicit `aspectRatio` that differs from the geography's own.
+		 * There the canonical paint would draw at the wrong aspect and legend-less,
+		 * then jump. Deferring trades the instant first paint for a single settled
+		 * one, and the tile's reserved box and loading state hide that trade. Off by default, so every other map keeps the instant canonical paint for
 		 * SSR and the first client commit.
 		 * @defaultValue false
 		 */
 		deferPaint?: boolean
 		/**
 		 * Rule meridian and parallel hairlines under the geography, on the chart's
-		 * gridline ink: `true` takes d3-geo's ten-degree step, and a number sets
-		 * that step in degrees. The lines draw beneath every region — a region fill
-		 * covers the ones crossing it, so the graticule reads around the geography
-		 * and not across it — and answer no pointer.
+		 * gridline ink. `true` takes d3-geo's ten-degree step, and a number sets that
+		 * step in degrees. The lines draw beneath every region, and answer no
+		 * pointer. A region fill covers the ones crossing it, so the graticule reads
+		 * around the geography and not across it.
 		 *
-		 * The lines are bounded by the projection's own frame, so a composite draws
-		 * one graticule rather than three: `'albers-usa'` rules the main map and
-		 * leaves the Alaska and Hawaii insets clear, where each would otherwise fill
-		 * with fragments at its own angle.
+		 * The projection's own frame bounds the lines, so a composite draws one
+		 * graticule rather than three. `'albers-usa'` rules the main map and leaves
+		 * the Alaska and Hawaii insets clear. Each inset would otherwise fill with
+		 * fragments at its own angle.
 		 *
-		 * The lines cover the globe whatever the geography frames, and the frame
-		 * clips the rest, so a regional map's graticule costs what a world map's
+		 * The lines cover the globe whatever the geography frames, and the frame clips
+		 * the rest. A regional map's graticule therefore costs what a world map's
 		 * does. A step under one degree is floored there: below it the pass draws
 		 * millions of points the frame would only clip away.
 		 *
@@ -146,27 +147,29 @@ export type MapPlatProps<T = never> = AccessibleName &
 		sphere?: boolean
 		/**
 		 * Show the readout naming the pointed region or overlay. It also gates
-		 * keyboard navigation, which the readout is the whole output of: turned
-		 * off, the plot region takes no tab stop and stays a plain `role="img"`
-		 * leaf, and the data table carries the values alone.
+		 * keyboard navigation, which the readout is the whole output of. Turned off,
+		 * the plot region takes no tab stop and stays a plain `role="img"` leaf, and
+		 * the data table carries the values alone.
 		 * @defaultValue true
 		 * @remarks It asks for a readout rather than asserting one. A map no row
-		 * matches and no mark draws on has nothing to name — an unmatched region
-		 * raises no tooltip, takes no emphasis, and fills no table row — so it
-		 * takes no tab stop whatever this prop says. A pick or a zoom still earns
+		 * matches and no mark draws on has nothing to name, so it takes no tab stop
+		 * whatever this prop says. An unmatched region raises no tooltip, takes no
+		 * emphasis, and fills no table row. A pick or a zoom still earns
 		 * one, because each is an output of its own.
 		 */
 		tooltip?: boolean
 		/**
 		 * Name every region the pointer rests on, not only the ones a row matched.
 		 *
-		 * A region with no row has nothing to say about the data, but it is still a
-		 * shape the reader is pointing at, and on a navigation map — one the reader
-		 * picks a region from rather than reads a measure off — its name is the
-		 * whole readout. Without this the tooltip stays away there, because a
-		 * backdrop map drawing a hundred unmatched regions must not raise an empty
-		 * tooltip over each of them; that silence is the default, and this is how a
-		 * map that has names worth saying asks for them.
+		 * A region with no row has nothing to say about the data. It is still a shape
+		 * the reader is pointing at, and on a navigation map its name is the whole
+		 * readout. A navigation map is one the reader picks a region from rather than
+		 * reads a measure off.
+		 *
+		 * Without this the tooltip stays away there. A backdrop map drawing a hundred
+		 * unmatched regions must not raise an empty tooltip over each of them. That
+		 * silence is the default, and this is how a map with names worth saying asks
+		 * for them.
 		 *
 		 * The name is the one {@link regionLabel} resolves, which the geography
 		 * carries whether or not any row matched. A matched region is unaffected: it
@@ -181,41 +184,46 @@ export type MapPlatProps<T = never> = AccessibleName &
 		nameRegions?: boolean
 		/**
 		 * Let the reader zoom and pan the drawn geography. Shift and a wheel zoom
-		 * about the pointer, a drag pans, two touches pan and pinch, and the plot's
-		 * own tab stop takes `+`, `-`, and `0` — so the keyboard reaches every scale
+		 * about the pointer, a drag pans, and two touches pan and pinch. The plot's
+		 * own tab stop takes `+`, `-`, and `0`, so the keyboard reaches every scale
 		 * the pointer does. `true` takes the default ceiling, a number sets its own,
 		 * and the object form adds `modifier` (below).
 		 *
-		 * It is a transform over the fitted geography, not a refit: the projection
+		 * It is a transform over the fitted geography, not a refit. The projection
 		 * places the regions once and the layer moves what it placed, so a gesture
-		 * costs one attribute write rather than reprojecting every path. Every mark
-		 * spec rides device pixels through it — region seams and route lines stay
-		 * hairlines, dots and their hit targets keep their size, and a summary's
-		 * count stays inside the dot it sits in — so zooming in shows more ground
-		 * rather than a bigger picture of the same. `MapPoints` regroups as it goes,
-		 * because a merge distance is a pixel distance: the rounds a national frame
-		 * summarises separate into their own dots as the view closes on them.
+		 * costs one attribute write rather than reprojecting every path.
+		 *
+		 * Every mark spec rides device pixels through it, so zooming in shows more
+		 * ground rather than a bigger picture of the same. Region seams and route
+		 * lines stay hairlines. Dots and their hit targets keep their size, and a
+		 * summary's count stays inside the dot it sits in.
+		 *
+		 * `MapPoints` regroups as it goes, because a merge distance is a pixel
+		 * distance. The rounds a national frame summarises separate into their own
+		 * dots as the view closes on them.
 		 *
 		 * The view returns to the fit whenever the geography changes, since a new
 		 * geography frames itself. Zooming out never goes past that fit, and a pan
 		 * never carries the geography off the frame.
 		 *
 		 * Nothing on the map answers the pointer for the length of a gesture. A
-		 * scaling frame sweeps the geography under a stationary pointer, so without
-		 * that a wheel would drag the readout across every region and dot it
-		 * crossed. A wheel reports no end, so it is read from a gap in the notches.
+		 * scaling frame sweeps the geography under a stationary pointer. Without that,
+		 * a wheel would drag the readout across every region and dot it crossed. A wheel reports no end, so it is read from a gap in the notches.
 		 *
 		 * @defaultValue false
 		 * @remarks The page keeps every wheel the reader does not aim at the map.
-		 * Shift arms it — held, the wheel zooms and the page stays put; unheld, the
-		 * plot scrolls past like anything else — and touch keeps the same bargain,
-		 * one finger scrolling and two panning and pinching. That way a map dropped
-		 * into a page cannot swallow a scroll, which is the failure worth defaulting
-		 * against: it is silent, and it strands the reader rather than the author.
+		 * Shift arms it. Held, the wheel zooms and the page stays put; unheld, the plot
+		 * scrolls past like anything else. Touch keeps the same bargain, with one
+		 * finger scrolling and two panning and pinching.
+		 *
+		 * That way a map dropped into a page cannot swallow a scroll. That is the
+		 * failure worth defaulting against, because it is silent, and it strands the
+		 * reader rather than the author.
 		 *
 		 * `{ modifier: false }` arms the wheel outright, for a map that owns its
-		 * screen — a plain wheel zooms, the gesture goes back to the page only where
-		 * the view can no longer move, and the plot claims touch so one finger pans.
+		 * screen. A plain wheel zooms, and the gesture goes back to the page only
+		 * where the view can no longer move. The plot claims touch, so one finger
+		 * pans.
 		 * Reach for it rarely.
 		 */
 		zoom?: MapZoomInput
@@ -225,8 +233,8 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 *
 		 * The plat owns that transform outright, and nothing reported it, so the
 		 * package's own tests read it off the `transform` attribute. Use it to mirror
-		 * one map onto another, to persist a view, or to load detail for the ground
-		 * on screen. It fires on every wheel notch and every tracked pointer move of
+		 * one map onto another, to persist a view, or to load detail for the visible
+		 * ground. It fires on every wheel notch and every tracked pointer move of
 		 * a pan, like `ResizableGroup.onSizesChange`, so throttle what you drive from
 		 * it. A map with no `zoom` never transforms and never reports. The refit that
 		 * follows a new geography reports too, because the view did move.
@@ -235,31 +243,31 @@ export type MapPlatProps<T = never> = AccessibleName &
 		/**
 		 * Whether the drawn regions answer the pointer at all.
 		 *
-		 * `false` makes the layer inert: no readout, no pick, no menu — and the marks
+		 * `false` makes the layer inert: no readout, no pick, no menu. The marks
 		 * standing on it keep their whole target, since a dot only narrows to give
 		 * ground back to something that can answer with it.
 		 *
 		 * For a map drilled into one region, which is the ground its marks stand on
 		 * and has nothing left to say. It beats `nameRegions`, a matched `data` row,
-		 * and a click handler, all of which otherwise earn the layer its handlers —
-		 * so a caller states the layer is off in one place rather than withdrawing
-		 * each of them.
+		 * and a click handler, all of which otherwise earn the layer its handlers. A
+		 * caller therefore states the layer is off in one place, rather than
+		 * withdrawing each of them.
 		 *
-		 * Say it here rather than with a CSS `pointer-events` override, which the
-		 * plat cannot see: the marks go on paying a narrowed target for ground the
-		 * layer can no longer answer with.
+		 * Say it here rather than with a CSS `pointer-events` override, which the plat
+		 * cannot see. The marks otherwise go on paying a narrowed target for ground
+		 * the layer can no longer answer with.
 		 *
 		 * @defaultValue true
-		 * @remarks It withdraws rather than grants, the way `tooltip` does: `true` is
+		 * @remarks It withdraws rather than grants, the way `tooltip` does. `true` is
 		 * the default and asserts nothing, so a map whose regions earn nothing answers
 		 * with nothing whatever this says. Only `false` is an instruction.
 		 */
 		regionPointer?: boolean
 		/**
-		 * Animate the map in on mount: the neutral geography paints at once, then
-		 * category colour washes in region by region, routes draw themselves, and
-		 * points pop once their route lands — the geography itself never fades, so
-		 * the map is legible immediately and only the data animates on. Honours
+		 * Animate the map in on mount. The neutral geography paints at once, then
+		 * category colour washes in region by region. Routes draw themselves, and
+		 * points pop once their route lands. The geography itself never fades, so the
+		 * map is legible immediately and only the data animates on. Honours
 		 * `prefers-reduced-motion` through the `ReducedMotion` primitive and the
 		 * colour wash's `motion-reduce` fallback. Off by default — a static map
 		 * stays a plain-SVG tree with no motion runtime work.
@@ -268,27 +276,27 @@ export type MapPlatProps<T = never> = AccessibleName &
 		animate?: boolean
 		className?: string
 		/**
-		 * Fires when a click lands on a region — the whole shape is the target, the
-		 * same hit the tooltip reads — with the region's identity and its feature
-		 * index. Identity is the `regionId` value the rows match against, so a
-		 * click keys straight into the caller's own data; it is also what a
-		 * TopoJSON consumer would otherwise re-decode the topology to recover. The
+		 * Fires when a click lands on a region, with the region's identity and its
+		 * feature index. The whole shape is the target, the same hit the tooltip
+		 * reads. Identity is the `regionId` value the rows match against, so a click
+		 * keys straight into the caller's own data. It is also what a TopoJSON
+		 * consumer would otherwise re-decode the topology to recover. The
 		 * cross-filter hook the charts' `onCategoryClick` is, and the same shape.
 		 *
 		 * Set, the region layer carries a pointer cursor and every region answers a
 		 * click, unmatched ones included. The keyboard reports through the same
-		 * handler: the plot region is one tab stop, and Enter or Space picks the
-		 * region its arrow cursor sits on, so a pick carries the same identity
+		 * handler. The plot region is one tab stop, and Enter or Space picks the
+		 * region its arrow cursor sits on. A pick therefore carries the same identity
 		 * whichever input made it.
 		 */
 		onRegionClick?: (id: string, index: number) => void
 		/**
 		 * Fires when a right-click lands on a region, with the same identity and
-		 * feature index {@link onRegionClick} reports — for a context menu wrapping
-		 * the map that needs to name the region it opened over. The map's hover state
-		 * is provider-isolated so a pointer move repaints only the tooltip, which
-		 * means a menu outside that provider cannot read the pointed region and must
-		 * be told instead.
+		 * feature index {@link onRegionClick} reports. It suits a context menu that
+		 * wraps the map and needs to name the region it opened over. The map's hover state
+		 * is provider-isolated, so a pointer move repaints only the tooltip. A menu
+		 * outside that provider therefore cannot read the pointed region, and must be
+		 * told instead.
 		 *
 		 * Takes no pointer affordance and never prevents default: the menu still
 		 * opens, and the cursor stays as {@link onRegionClick} left it. See
@@ -297,29 +305,31 @@ export type MapPlatProps<T = never> = AccessibleName &
 		onRegionContextMenu?: (id: string, index: number) => void
 		/**
 		 * Fires when the reader holds a region long enough to read as intent to open
-		 * it, with the identity and index {@link onRegionClick} reports. The moment
-		 * to warm what the pick will need — a `queryClient.prefetchQuery` for the
-		 * county atlas a drill-down opens, the rows a detail panel reads — so the
-		 * data is there by the click. `Tab`'s `onPreload`, keyed by region.
+		 * it, with the identity and index {@link onRegionClick} reports. It is the
+		 * moment to warm what the pick will need, so the data is there by the click.
+		 * That covers a `queryClient.prefetchQuery` for the county atlas a drill-down
+		 * opens, and the rows a detail panel reads. `Tab`'s `onPreload`, keyed by region.
 		 *
-		 * The pointer and the keyboard cursor both signal it: the arrow keys move
-		 * the same hover target a pointer does, so a reader navigating a map by
-		 * keyboard warms what a pointing one warms. Latched per region for as long
-		 * as the geography stands, so sweeping back over a warmed region reports
-		 * nothing; a new `geography` re-arms every region, because a feature index
-		 * means nothing against features it did not come from.
+		 * The pointer and the keyboard cursor both signal it. The arrow keys move the
+		 * same hover target a pointer does, so a reader navigating a map by keyboard
+		 * warms what a pointing one warms.
+		 *
+		 * It is latched per region for as long as the geography stands, so sweeping
+		 * back over a warmed region reports nothing. A new `geography` re-arms every
+		 * region, because a feature index means nothing against features it did not
+		 * come from.
 		 *
 		 * The callback owns the work — the map stays agnostic to what loads, and
 		 * never waits on it. Warming is an optimisation and nothing more: it takes
 		 * no cursor, and every region it warms would have loaded on the click
 		 * regardless. It earns no tab stop either, so the keyboard half rides
-		 * whatever stop a readout, a pick, or a zoom already earned; a map carrying
+		 * whatever stop a readout, a pick, or a zoom already earned. A map carrying
 		 * this prop alone is drilled by some control beside it, and that control is
 		 * what a keyboard reader navigates.
 		 *
 		 * @remarks
-		 * Regions sit edge to edge, so the report is held behind a short dwell —
-		 * a pointer travelling to the far side of the map crosses every region on
+		 * Regions sit edge to edge, so the report is held behind a short dwell.
+		 * A pointer travelling to the far side of the map crosses every region on
 		 * the way, and warming each would spend a dozen requests to answer one. Only
 		 * a region the reader rests on warms, and leaving before the dwell elapses
 		 * warms nothing.
