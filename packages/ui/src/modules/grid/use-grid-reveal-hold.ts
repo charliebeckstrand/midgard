@@ -27,35 +27,35 @@ export type GridRevealHold = {
  *
  * @remarks
  * A grouped body stands virtualization down, so every leaf, detail, and total
- * row is mounted whatever its group's expansion, and each body render walks all
- * of them. Resting the collapsed ones moves that work off the visible commit —
- * it still runs, at the lower priority a hidden Activity renders under, but the
- * commit the user waits on carries the expanded rows alone.
+ * row is mounted whatever its group's expansion. Each body render walks all of
+ * them. Resting the collapsed ones moves that work off the visible commit. It
+ * still runs, at the lower priority a hidden Activity renders under. The commit
+ * the user waits on carries the expanded rows alone.
  *
  * The hold has to wait for the reveal, since `display: none` cannot tween
- * `grid-template-rows`: hiding on the toggle would snap a collapsing row away
+ * `grid-template-rows`. A hide on the toggle would snap a collapsing row away
  * instead of letting it shrink. The landing arrives as a `transitionend`
  * bubbling from the cells that animate — one per cell, but resting is
  * idempotent. Under `prefers-reduced-motion` the recipe drops the transition
- * (`motion-reduce:transition-none`), so no event is coming and the row rests on
+ * (`motion-reduce:transition-none`), so no event is coming. The row rests on
  * the toggle itself, which is what an instant collapse wants anyway. That is
  * read live rather than through motion's `useReducedMotion`, which samples the
- * query once at mount: a session that turns reduced motion on afterwards would
- * otherwise keep waiting for a landing the CSS had already stopped sending, and
- * no row would ever rest again.
+ * query once at mount. A session that turns reduced motion on afterwards would
+ * otherwise keep waiting for a landing the CSS had already stopped sending. No
+ * row would ever rest again.
  *
  * Rows always exist here (`mount="always"`) — the module renders every leaf of
  * every group, and this changes only whether a collapsed one is live.
  *
  * The rest is also why {@link GridRevealHold.open} exists apart from `expanded`.
  * A transition needs two rendered styles to run between, and a resting row has
- * none: it sits at `display: none`, so a wake that lifted the hold and opened
- * the track in one commit would give the browser its first style already open,
- * and the row would snap. The wake therefore takes two commits — the row comes
- * back on screen at the closed track, a forced style flush records that, and
- * only then does the track open. A collapse keeps its single commit, since the
- * row it starts from is on screen already, and so does an open under reduced
- * motion, which has no transition to prime.
+ * none: it sits at `display: none`. A wake that lifted the hold and opened the
+ * track in one commit would give the browser its first style already open. The
+ * row would snap. The wake therefore takes two commits. The row comes back on
+ * screen at the closed track, a forced style flush records that, and only then
+ * does the track open. A collapse keeps its single commit, since the row it
+ * starts from is on screen already. An open under reduced motion does the same,
+ * since it has no transition to prime.
  *
  * @param expanded - Whether the row's group is open.
  * @returns The row's {@link GridRevealHold}.
