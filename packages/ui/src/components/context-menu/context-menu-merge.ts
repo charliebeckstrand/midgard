@@ -19,9 +19,9 @@ export function mergeContextMenuItems(groups: ContextMenuEntry[][]): ContextMenu
 
 /**
  * Resolves a host's {@link ContextMenuConfig} against the default items it
- * supplies: the custom items in their array order, the defaults when
- * `defaultItems` is on, and a separator between the two groups when both show —
- * ordered by `position`. Either group empty, no separator renders; both empty,
+ * supplies, ordered by `position`. The result holds the custom items in array
+ * order, the defaults when `defaultItems` is on, and a separator between the
+ * groups when both show. Either group empty, no separator renders; both empty,
  * the result is empty and the host leaves the native menu alone.
  *
  * @param config - The caller's configuration, or `undefined` for all defaults.

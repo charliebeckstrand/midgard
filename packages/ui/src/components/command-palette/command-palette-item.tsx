@@ -28,9 +28,9 @@ export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
  * active-descendant pointing at it. Runs the consumer `onClick` then
  * `onAction`, closing the palette afterward unless `closeOnAction` is false;
  * `disabled` items are inert on every input path. Pass an explicit `id`
- * inside a `VirtualOptions` with `getOptionId` — it overrides the
- * auto-generated one, which React's `useId` mints per instance and can't
- * predict ahead of the row mounting.
+ * inside a `VirtualOptions` with `getOptionId`. It overrides the auto-generated
+ * one, which React's `useId` mints per instance and cannot predict ahead of the
+ * row mounting.
  */
 export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const { close } = useCommandPaletteContext()

@@ -17,8 +17,8 @@ import {
  * `aria-describedby` target when no explicit `description` slot renders.
  *
  * @remarks
- * `role="alertdialog"` requires its message referenced by `aria-describedby`;
- * in the title-plus-children form the children are that message, so this wrapper
+ * `role="alertdialog"` requires its message referenced by `aria-describedby`.
+ * In the title-plus-children form the children are that message, so this wrapper
  * stamps the panel's `descriptionId` and registers with the a11y context. Skipped
  * when a `description` is supplied, since {@link DialogDescription} already registers.
  * @see {@link usePanelA11y}

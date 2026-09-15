@@ -18,9 +18,9 @@ type ControlFieldOverrides = {
 }
 
 /**
- * Builds the `ControlContext` value a field wrapper broadcasts: inherits the
- * parent control cascade and spreads the `useA11yControl` bundle (label /
- * description / error slots) off the field id.
+ * Builds the `ControlContext` value a field wrapper broadcasts. It inherits the
+ * parent control cascade and spreads the `useA11yControl` bundle off the field
+ * id. That bundle is the label, description, and error slots.
  *
  * Two wrappers share it. {@link ControlField} — the envelope behind
  * `CheckboxField` / `RadioField` / `SwitchField` — passes no overrides and

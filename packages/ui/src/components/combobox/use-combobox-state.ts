@@ -31,9 +31,9 @@ type ComboboxStateParams<T> = {
  *   single-selection). `selectionValue`/`flushPending` come from the deferred
  *   toggle so the menu reads a value frozen until the panel finishes closing.
  *   `menuQuery`/`menuDeferredQuery` are the query the *menu content* reads,
- *   frozen at their close-time snapshot until `flushPending` runs so the filter
- *   (and thus a deeply scrolled virtual window) holds steady through the exit
- *   animation instead of snapping back to the full list.
+ *   frozen at their close-time snapshot until `flushPending` runs. The filter
+ *   therefore holds steady through the exit animation, instead of snapping back
+ *   to the full list. That holds a deeply scrolled virtual window too.
  * @remarks `closeOnSelect` defaults to `true` for single, `false` for multiple.
  * @internal
  */

@@ -41,7 +41,8 @@ function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
 
 /**
  * Numeric Input for a card security code, masked to digits and capped at the
- * brand-derived length (Amex 4, others 3; 4 until a brand is known). When the
+ * brand-derived length. That length is 4 for Amex and 3 for others, and 4 until
+ * a brand is known. When the
  * brand shrinks the length it re-truncates the stored value and re-reports
  * validity. Sets `autoComplete="cc-csc"` and defaults a "Security code"
  * aria-label, yielding to a registered Field `<Label>`.
