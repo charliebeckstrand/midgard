@@ -1,8 +1,13 @@
 /**
- * How an input reads as a zoom: what one notch of wheel travel is worth, how
- * two touches measure a pinch, and which keys step the scale. Held apart from
- * `transform.ts` so the arithmetic that moves the view stays free of the
- * gestures that drive it, and so each half is testable without the other.
+ * How an input reads as a zoom:
+ *
+ * - What one notch of wheel travel is worth.
+ * - How two touches measure a pinch.
+ * - Which keys step the scale.
+ *
+ * Held apart from `transform.ts` so the arithmetic that moves the view stays
+ * free of the gestures that drive it. Each half is then testable without the
+ * other.
  */
 
 import { MAP_WHEEL_ZOOM_RATE, MAP_ZOOM_STEP } from '../map-constants'
@@ -12,15 +17,15 @@ import type { MapPoint2D } from '../types'
  * Pixels one unit of `deltaY` stands for, by the `deltaMode` the wheel event
  * reports it in: pixel, line, then page. A page is read as a frame's worth of
  * travel rather than the box's own height, so one constant serves every frame
- * size — the mode is rare, and a mouse that reports it zooms in whole steps
+ * size. The mode is rare, and a mouse that reports it zooms in whole steps
  * either way.
  */
 const WHEEL_DELTA_PIXELS = [1, 16, 400]
 
 /**
  * The scale factor one wheel event asks for. Exponential in the travel, so the
- * gesture is geometric — a notch back always undoes a notch forward, at every
- * scale — and negative travel (wheel up, the conventional zoom in) grows it.
+ * gesture is geometric: a notch back always undoes a notch forward, at every
+ * scale. Negative travel (wheel up, the conventional zoom in) grows it.
  *
  * @internal
  */
@@ -31,10 +36,10 @@ export function wheelZoomFactor(deltaY: number, deltaMode: number): number {
 /**
  * The travel a wheel event carries toward the zoom.
  *
- * A browser moves a shift-held wheel onto the horizontal axis — the same
- * gesture the reader made, reported on `deltaX` with `deltaY` left at zero — so
- * a map whose modifier is that key has to read it there. `swapped` says the key
- * is held; without it the fallback never runs, because a horizontal delta with
+ * A browser moves a shift-held wheel onto the horizontal axis. It is the same
+ * gesture the reader made, reported on `deltaX` with `deltaY` left at zero. A
+ * map whose modifier is that key has to read it there. `swapped` says the key
+ * is held. Without it the fallback never runs, because a horizontal delta with
  * no key behind it is a sideways scroll and belongs to the page.
  *
  * @internal
@@ -65,14 +70,14 @@ export function wheelPush(deltaY: number, deltaX: number): number {
  * a push that grows is a hand back on the trackpad — a new gesture, which the
  * map holds no claim on.
  *
- * That decay is the only sign a wheel gives that anything is coasting at all, so
- * a stream has to show it before the map keeps a tail off it: the first push
+ * That decay is the only sign a wheel gives that anything is coasting at all. A
+ * stream has to show it before the map keeps a tail off it. The first push
  * after the modifier goes must be strictly smaller. A mouse notch reports a
  * fixed delta whatever the hand does, so an unchanged push is a wheel still
- * being turned, and holding those would strand a reader who let the key go and
- * kept scrolling. Once a stream is running down it can plateau — the decay
- * rounds to a pixel or two long before it stops — and by then it is momentum the
- * page must not be given.
+ * being turned. Holding those would strand a reader who let the key go and kept
+ * scrolling. Once a stream is running down it can plateau. The decay rounds to
+ * a pixel or two long before it stops. By then it is momentum the page must not
+ * be given.
  *
  * @internal
  */
@@ -94,7 +99,7 @@ export function pointerMidpoint(a: MapPoint2D, b: MapPoint2D): MapPoint2D {
 export type MapZoomKey = 'in' | 'out' | 'fit'
 
 /**
- * Reads a key to a zoom action, or `null` for every key that is not one — the
+ * Reads a key to a zoom action, or `null` for every key that is not one. The
  * cursor's arrows, Home, End, Enter, and Escape all fall through untouched.
  * `+` and `-` are read through their unshifted keys too, so the gesture needs no
  * modifier on a keyboard that shifts them.
