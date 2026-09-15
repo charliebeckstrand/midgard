@@ -27,8 +27,6 @@
 	"modules/map/engine/map-geometry/mark.ts": 38,
 	"modules/map/engine/map-geometry/projected.ts": 44,
 	"modules/map/engine/map-geometry/winding.ts": 21,
-	"modules/map/engine/map-region/data.ts": 15,
-	"modules/map/engine/map-region/spare.ts": 15,
 	"modules/map/map-dot.tsx": 25,
 	"modules/map/map-geofence.tsx": 16,
 	"modules/map/map-points.tsx": 22,

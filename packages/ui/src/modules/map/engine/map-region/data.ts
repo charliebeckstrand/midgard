@@ -1,9 +1,9 @@
 /**
  * The region-data shape {@link MapPlat} takes: a categorical field, a numeric
  * field (a choropleth), or nothing. Held apart from both readers because two
- * reach it — the plat's own props declare it, and `use-map-region-readout`
- * joins rows on it — and a union whose branches must stay mutually exclusive
- * has to have one definition.
+ * reach it: the plat's own props declare it, and `use-map-region-readout`
+ * joins rows on it. A union whose branches must stay mutually exclusive has to
+ * have one definition.
  */
 
 import { isRangeLegend, type MapLegendInput, type MapRangeLegendInput } from '../map-legend/plan'
@@ -13,22 +13,23 @@ import type { DataKey, MapCategory } from '../types'
  * Show the legend. Defaults to on when there are two or more categories or any
  * registered overlay — the identity channel colour alone must never carry. A
  * placement moves the centered row under the plot (`'bottom'`) or above it
- * (`'top'`), or a column panel beside it (`'left'` / `'right'`), side by side
- * from `lg` and under the map below that. The default placement is `'bottom'`
- * for categorical maps and `'right'` for the numeric choropleth.
+ * (`'top'`). It can also move it to a column panel beside the plot (`'left'` /
+ * `'right'`), side by side from `lg` and under the map below that. The default
+ * placement is `'bottom'` for categorical maps and `'right'` for the numeric
+ * choropleth.
  *
  * Overlay entries register from the client, so they join the legend after
- * hydration; the legend's box mounts ahead of them so late-landing buttons
+ * hydration. The legend's box mounts ahead of them, so late-landing buttons
  * never resize the map or shift the frame.
  *
- * The continuous range bar is the numeric branch's own form and is absent here:
- * a scale bar with no scale behind it has nothing to paint, and the resolver
- * drops the request and draws the binned switchboard instead. It is stated in
+ * The continuous range bar is the numeric branch's own form and is absent here.
+ * A scale bar with no scale behind it has nothing to paint. The resolver drops
+ * the request and draws the binned switchboard instead. It is stated in
  * the type so the request cannot be made rather than quietly ignored.
  *
  * Subtracted from {@link MapLegendInput} by the very type {@link isRangeLegend}
- * narrows to, so a form added to the prop later reaches all three branches, or
- * is refused here, without either side being re-listed by hand.
+ * narrows to. A form added to the prop later therefore reaches all three
+ * branches, or is refused here, without either side being re-listed by hand.
  *
  * @internal
  */
@@ -80,12 +81,13 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	 */
 	bins?: number
 	/**
-	 * How the bins divide the data: `'linear'` (the default) by equal value
-	 * span, or `'quantile'` by rank so each shade covers a similar number of
-	 * regions — the reading for skewed data, where an equal-interval ramp leaves
-	 * most regions in the lowest bucket. The range legend shows the ramp and the
-	 * data extent either way; under `'quantile'` the colour-to-value mapping is
-	 * non-linear, so the bar reads as an approximation of where the breaks fall.
+	 * How the bins divide the data. `'linear'` (the default) divides by equal
+	 * value span. `'quantile'` divides by rank, so each shade covers a similar
+	 * number of regions. Quantile is the reading for skewed data, where an
+	 * equal-interval ramp leaves most regions in the lowest bucket. The range legend shows the
+	 * ramp and the data extent either way. Under `'quantile'` the colour-to-value
+	 * mapping is non-linear, so the bar reads as an approximation of where the
+	 * breaks fall.
 	 * @defaultValue 'linear'
 	 */
 	binning?: 'linear' | 'quantile'
@@ -96,14 +98,14 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	/** The value's display name; the table's value-column header. */
 	valueName?: string
 	/**
-	 * Show the legend, in any form — this is the branch that carries a scale, so
-	 * it is the branch that can paint one. Beyond the switchboard's boolean and
+	 * Show the legend, in any form. This is the branch that carries a scale, so it
+	 * is the branch that can paint one. Beyond the switchboard's boolean and
 	 * placement, `'range'` swaps the binned switchboard for a continuous
-	 * colour-scale bar — the heatmap legend — and the object form `{ placement }`
-	 * places that bar explicitly. The bar follows its placement's orientation
-	 * (vertical beside the plot, horizontal above or below) and the chart's tier:
-	 * it sheds at the spark size and, in a box too narrow for a side rail, drops
-	 * to a horizontal row under the plot.
+	 * colour-scale bar, the heatmap legend. The object form `{ placement }` places
+	 * that bar explicitly. The bar follows its placement's orientation (vertical
+	 * beside the plot, horizontal above or below) and the chart's tier. It sheds
+	 * at the spark size and, in a box too narrow for a side rail, drops to a
+	 * horizontal row under the plot.
 	 *
 	 * @see the switchboard forms on the other two branches for what a legend
 	 * shows by default and when it shows at all.
@@ -128,7 +130,7 @@ type MapNoData = MapNumericAbsent &
  * each mode's fields travel together or not at all.
  *
  * `legend` rides the union rather than the props around it because one of its
- * forms is a mode: the continuous range bar paints a scale, and only the
+ * forms is a mode. The continuous range bar paints a scale, and only the
  * numeric branch has one.
  *
  * @internal
@@ -136,25 +138,27 @@ type MapNoData = MapNumericAbsent &
 export type MapRegionData<T> = MapCategoricalData<T> | MapNumericData<T> | MapNoData
 
 /**
- * The numeric branch's own shape with every field optional — the choropleth
- * fields as a caller holds them before it knows it has a scale to shade by.
+ * The numeric branch's own shape with every field optional. They are the
+ * choropleth fields as a caller holds them before it knows it has a scale to
+ * shade by.
  *
  * @internal
  */
 type MapNumericInput<T> = Partial<MapNumericData<T>>
 
 /**
- * Narrows loose choropleth fields onto one branch of {@link MapRegionData}: the
- * numeric branch when the rows, the join key, the value key, and the ramp are
- * all present, the data-less map when any one of them is missing.
+ * Narrows loose choropleth fields onto one branch of {@link MapRegionData}. It
+ * is the numeric branch when the rows, the join key, the value key, and the
+ * ramp are all present. It is the data-less map when any one is missing.
  *
  * @remarks A caller that reads its scale out of an optional series holds no
  * whole branch to hand on. `ChoroplethChart` takes `series[0]`, which
- * `noUncheckedIndexedAccess` types as possibly absent, so each field it reads
- * widens by `undefined` and the object it assembles matches no branch — the
- * reason that call site asserted its props rather than checking them. The four
- * fields the branch requires are tested together here, once, so the object
- * comes out of the test as a branch the union already accepts.
+ * `noUncheckedIndexedAccess` types as possibly absent. Each field it reads
+ * therefore widens by `undefined`, and the object it assembles matches no
+ * branch. That is the reason that call site asserted its props rather than
+ * checking them. The four fields the branch requires are tested together here,
+ * once. The object therefore comes out of the test as a branch the union
+ * already accepts.
  * @internal
  */
 export function numericRegionData<T>(fields: MapNumericInput<T>): MapRegionData<T> {
