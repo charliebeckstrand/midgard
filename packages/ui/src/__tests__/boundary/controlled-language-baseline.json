@@ -24,8 +24,6 @@
 	"modules/chart/engine/use-chart-keyboard.ts": 18,
 	"modules/grid/engine/grid-column/measure.ts": 22,
 	"modules/grid/engine/grid-sort/utilities.ts": 17,
-	"modules/grid/grid-data-resolvers.ts": 14,
-	"modules/grid/grid-data.tsx": 14,
 	"modules/grid/types.ts": 32,
 	"modules/grid/use-grid-column-auto-size.ts": 23,
 	"modules/grid/use-grid-table.ts": 15,
