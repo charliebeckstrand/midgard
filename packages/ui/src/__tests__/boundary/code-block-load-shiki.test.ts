@@ -29,8 +29,12 @@ function failShikiImport(error: Error) {
 }
 
 /**
- * Returns `loadShiki` from a module whose memo cell is empty. A `vi.doMock`
- * applies to the next import, so register the double before you call this.
+ * Returns `loadShiki` from a module whose memo cell is empty.
+ *
+ * @remarks
+ * This imports `code-block`, never `shiki` — the memo fills on the first
+ * `loadShiki()` call. A `vi.doMock('shiki')` therefore has to stand when that
+ * call runs, and it belongs after this reset rather than before it.
  */
 async function coldLoadShiki() {
 	vi.resetModules()
@@ -54,9 +58,12 @@ describe('loadShiki', () => {
 	})
 
 	it('drops a rejected import from the memo so a later call retries', async () => {
-		failShikiImport(new Error('chunk fetch failed'))
-
 		const loadShiki = await coldLoadShiki()
+
+		// Registered after the reset, not before it. The throwing factory has to
+		// stand when `loadShiki()` imports `shiki`. A registration made ahead of
+		// `vi.resetModules()` does not always survive it.
+		failShikiImport(new Error('chunk fetch failed'))
 
 		const rejected = loadShiki()
 
