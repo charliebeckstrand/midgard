@@ -1,6 +1,6 @@
 /**
- * applyRecipe: the merge helper a katakana bridge calls to fold a kata's
- * per-call overlay over an archetype's standard config / extras, then hand
+ * applyRecipe: the merge helper a katakana bridge calls. It folds a kata's
+ * per-call overlay over an archetype's standard config / extras, then hands
  * the result to `defineRecipe`. Preserves key-type inference via an explicit
  * return type, conditional intersection, and a single cast at the engine
  * boundary.
@@ -14,10 +14,11 @@ import type { Recipe, RecipeConfig, ReservedField } from './types'
 /**
  * Empty: the empty mapped type. `keyof Empty = never`, which `Merge`
  * folds against when the caller declares no overlay. Spelled
- * `Record<never, never>` rather than `{}` (`object`, `unknown`, and
- * `Record<keyof any, never>` all widen or carry an index signature that
- * poisons the engine's `AxesOf` and slot mapped types, resolving every
- * string axis to `boolean | undefined` in consumer prop unions).
+ * `Record<never, never>` rather than `{}`. The alternatives (`object`,
+ * `unknown`, `Record<keyof any, never>`) all widen or carry an index
+ * signature. That signature poisons the engine's `AxesOf` and slot mapped
+ * types, and resolves every string axis to `boolean | undefined` in consumer
+ * prop unions.
  */
 type Empty = Record<never, never>
 
@@ -32,11 +33,11 @@ type Merge<Base, Add> = [keyof Add] extends [never] ? Base : Base & Add
  * `RecipeConfig`: extra variant axes are top-level keys (like `density`
  * / `size` in `defineRecipe`), not nested under an `axes` field.
  * Callable siblings (`motion`, sub-recipes) flow through the
- * applicator's separate `extras` argument, mirroring
- * `defineRecipe(config, extras)` end-to-end; `skeleton` rides the
- * overlay itself and reaches `Recipe<…>` via the targeted exclusion in
- * `ApplicatorReturn`, which extracts slots and axes from the inferred
- * `Overlay` via `Omit` and `extends-infer`.
+ * applicator's separate `extras` argument, which mirrors
+ * `defineRecipe(config, extras)` end-to-end. The `skeleton` rides the
+ * overlay itself and reaches `Recipe<…>` through the targeted exclusion
+ * in `ApplicatorReturn`. That exclusion extracts slots and axes from the
+ * inferred `Overlay` via `Omit` and `extends-infer`.
  */
 type ApplicatorOverlay = RecipeConfig
 
@@ -52,8 +53,8 @@ type SlotsOf<Overlay> = Overlay extends { slots: infer S }
 
 /**
  * The shape `applyRecipe(...)` returns. Merges the standard config / extras
- * with the caller's overlay / extras and forwards to `Recipe<…>`, folding
- * the empty-overlay case via `Merge` to keep a wide index signature out of
+ * with the caller's overlay / extras, then forwards to `Recipe<…>`. It folds
+ * the empty-overlay case via `Merge`, to keep a wide index signature out of
  * the prop union. Internal to this module; the bridge derives its variant
  * types from the concrete `k` at the kata.
  */

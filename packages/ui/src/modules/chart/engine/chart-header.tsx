@@ -14,11 +14,11 @@ type ChartHeaderLineProps = {
 }
 
 /**
- * One header line — the title or the subtitle — clipped to a single line with a
- * reveal tooltip once it overflows, the same {@link useTruncation} affordance the
- * legend entries and grid cells wear. A header never wraps: a chart tile trades
- * its height for the plot, so a long line ellipsizes and hands the rest to the
- * tooltip rather than pushing the marks down.
+ * One header line: the title or the subtitle, clipped to a single line with a
+ * reveal tooltip once it overflows. It wears the same {@link useTruncation}
+ * affordance the legend entries and grid cells do. A header never wraps, because
+ * a chart tile trades its height for the plot. A long line ellipsizes and hands
+ * the rest to the tooltip, rather than pushing the marks down.
  *
  * @internal
  */
@@ -54,10 +54,10 @@ type ChartHeaderProps = {
 	title?: string
 	subtitle?: string
 	/**
-	 * The centered hover / focus veil over a spark plot rather than the inline
-	 * header above a framed one: it overlays the marks on a faint surface, faded
-	 * out until the chart is pointed at or holds focus, so the sparkline reads as
-	 * pure marks at rest.
+	 * The centered hover / focus veil over a spark plot, rather than the inline
+	 * header above a framed one. It overlays the marks on a faint surface, faded
+	 * out until the chart is pointed at or holds focus. The sparkline therefore
+	 * reads as pure marks at rest.
 	 */
 	veil?: boolean
 }
@@ -65,10 +65,10 @@ type ChartHeaderProps = {
 /**
  * The chart's header: a `title` and optional `subtitle`, each clipped to one line
  * with a reveal tooltip. Inline, it bands above the plot inside the aspect box so
- * the drawing fills the height it leaves. As a `veil` — the spark tier, where the
- * header would crowd the marks — it instead overlays the plot centered on a faint
- * surface, faded out until a pointer or keyboard focus asks what the sparkline
- * is. Renders nothing without a title or subtitle.
+ * the drawing fills the height it leaves. As a `veil` it instead overlays the
+ * plot centered on a faint surface. That surface is faded out until a pointer or
+ * keyboard focus asks what the sparkline is. The `veil` is the spark tier, where
+ * the header would crowd the marks. Renders nothing without a title or subtitle.
  *
  * @internal
  */
