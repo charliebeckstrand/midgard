@@ -66,11 +66,9 @@
 	"modules/map/map-point.tsx": 13,
 	"modules/map/map-points.tsx": 22,
 	"modules/map/map-regions.tsx": 34,
-	"modules/map/use-map-keyboard.ts": 10,
 	"modules/map/use-map-overlay.ts": 19,
 	"modules/map/use-map-zoom.ts": 15,
 	"recipes/kata/grid.ts": 13,
 	"recipes/kata/map.ts": 18,
-	"recipes/kata/pdf-viewer.ts": 17,
-	"recipes/kiso/control/affix.ts": 10
+	"recipes/kata/pdf-viewer.ts": 17
 }
