@@ -226,62 +226,8 @@ export function wordLimit(sentence: string): number {
 /** Rule 10 bans these three modals outright; `must` and `can` replace them. */
 export const MODAL = /\b(?:may|shall|should)\b/i
 
-// Rule 4 bans the passive in an instruction and permits it in descriptive text
-// where the active voice is longer or less clear. A linter cannot make that
-// call, so this counts candidates, never verdicts. These predicates read as
-// state rather than as an action, so they are not candidates at all.
-const STATE_PREDICATE = new Set([
-	'able',
-	'absent',
-	'aligned',
-	'allowed',
-	'based',
-	'closed',
-	'done',
-	'empty',
-	'expected',
-	'fixed',
-	'intended',
-	'left',
-	'limited',
-	'meant',
-	'mounted',
-	'omitted',
-	'open',
-	'present',
-	'related',
-	'required',
-	'right',
-	'set',
-	'unable',
-	'unset',
-])
-
-const PASSIVE =
-	/\b(?:is|are|was|were|be|been|being)\s+(?:not\s+|also\s+|only\s+|then\s+|already\s+|never\s+|still\s+)?([a-z]+)\b/gi
-
-/** The rule 4 candidates in a sentence, with the state predicates ruled out. */
-export function passiveCandidates(sentence: string): string[] {
-	const hits: string[] = []
-
-	for (const match of sentence.matchAll(PASSIVE)) {
-		const participle = (match[1] as string).toLowerCase()
-
-		if (!/(?:ed|en|wn|ne|t)$/.test(participle)) continue
-
-		if (STATE_PREDICATE.has(participle)) continue
-
-		hits.push(match[0])
-	}
-
-	return hits
-}
-
 /** One rule break, located well enough to fix without a second scan. */
-export type Break = { file: string; line: number; rule: 4 | 6 | 10; text: string }
-
-/** The per-file break counts a baseline records. */
-export type Counts = { rule4: number; rule6: number }
+export type Break = { file: string; line: number; rule: 6 | 10; text: string }
 
 /** Every rule break in one source text, reported against `file`. */
 export function fileBreaks(file: string, source: string): Break[] {
@@ -296,10 +242,6 @@ export function fileBreaks(file: string, source: string): Break[] {
 
 				if (MODAL.test(sentence)) {
 					breaks.push({ file, line: comment.line, rule: 10, text: sentence })
-				}
-
-				for (const _ of passiveCandidates(sentence)) {
-					breaks.push({ file, line: comment.line, rule: 4, text: sentence })
 				}
 			}
 		}
@@ -331,19 +273,14 @@ export function scanPackage(): Break[] {
 	return breaks.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
 }
 
-/** The rule 4 and rule 6 counts per file, holding only the files that carry one. */
-export function countsByFile(breaks: readonly Break[]): Record<string, Counts> {
-	const counts: Record<string, Counts> = {}
+/** The rule 6 count per file, holding only the files that carry one. */
+export function countsByFile(breaks: readonly Break[]): Record<string, number> {
+	const counts: Record<string, number> = {}
 
 	for (const item of breaks) {
-		if (item.rule === 10) continue
+		if (item.rule !== 6) continue
 
-		counts[item.file] ??= { rule4: 0, rule6: 0 }
-
-		const entry = counts[item.file] as Counts
-
-		if (item.rule === 4) entry.rule4++
-		else entry.rule6++
+		counts[item.file] = (counts[item.file] ?? 0) + 1
 	}
 
 	return Object.fromEntries(Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)))

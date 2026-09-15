@@ -38,13 +38,13 @@ This document obeys the rules that it defines; read it as the reference.
 
 ## Scope in this repository
 
-Rules 4, 6, and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) pins rule 10 at zero across the `ui` source tree. It holds rules 4 and 6 to a per-file ledger that can only shrink.
+Rules 6 and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) pins rule 10 at zero across the `ui` source tree, and holds rule 6 to a per-file ledger that can only shrink. The curated surface docs carry no debt in either rule.
 
 Refresh the ledger with `STE_BASELINE=write` when a change pays debt down. The diff is the burn-down record.
 
 Rule 6 counts a semicolon-joined compound as one sentence. A cap on the sentence is the point of the rule, so a long run of joined clauses is a break.
 
-Rule 4 counts candidates, not verdicts. The rule permits a descriptive passive where the active voice is longer or less clear, so each site needs a reader's call.
+Rule 4 is not gated, and a count of it misleads. The descriptive half is conditional, so no count of it has a correct value. The instruction half is empty by construction. An imperative starts with its main verb, which is active, so a passive inside one sits in a subordinate clause the rule permits. Read rule 4 in review.
 
 Rule 5 stays out of scope until this repository holds Part 2. The `-ing` category runs to about 7,000 sites in the `ui` comments alone. Most are participial adjectives — "the enclosing dialog", "the underlying seam" — and Part 2 approves a subset of them. A rewrite without the Dictionary degrades the prose it touches.
 

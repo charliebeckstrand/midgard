@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
 	baselinePath,
-	type Counts,
 	countsByFile,
 	LIVING_MARKDOWN,
 	markdownBreaks,
@@ -12,28 +11,35 @@ import {
 } from '../helpers/controlled-language'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
-// every authored statement. The 2026-08-02 documentation audit swept three of
-// its rules by hand and closed none of them for good, because nothing held the
-// tree to the result. Rule 10 went from 41 sites back to 89 in six weeks. The
-// audit that found that regression named the missing gate as the reason it
-// closed fewer categories than it could.
+// every authored statement. The 2026-08-02 documentation audit swept its rules
+// by hand and closed none of them for good, because nothing held the tree to
+// the result. Rule 10 went from 41 sites back to 89 in six weeks. The audit
+// that found that regression named the missing gate as the reason it closed
+// fewer categories than it could.
 //
-// This test is that gate, in two shapes:
+// This test is that gate, in three shapes:
 //
 //   1. Rule 10 is pinned at zero. The rule admits no judgment — "must" states a
 //      requirement and "can" states a possibility — so any site is a break.
-//   2. Rules 4 and 6 are pinned to a per-file ledger. Each needs a per-sentence
+//   2. Rule 6 is pinned to a per-file ledger. Each break is a per-sentence
 //      rewrite, so the tree carries a recorded debt that can only be paid down.
+//   3. The curated surface docs carry no debt at all, in either rule.
 //
-// The ledger holds counts, not verdicts. A rule 4 count is the candidates a
-// reader can find, and rule 4 permits a descriptive passive where the active
-// voice is longer or less clear. Read a count as "look here", never as "this is
-// wrong".
+// Rule 4 is deliberately absent, and the reason is worth keeping. Its two
+// halves behave differently. The descriptive half is conditional — the rule
+// permits a passive where the active voice is longer or less clear — so a count
+// of those has no correct value to reach. The instruction half is categorical
+// but empty by construction: an imperative's main verb is its first word, which
+// is active, so the only passives inside one sit in a subordinate clause that
+// the rule allows. Gating it measured about 1,600 sites nobody could drive to
+// zero, against 33 flagged instructions of which the readable ones were a
+// suffix heuristic mistaking "is that" and "is honest" for participles. Rule 4
+// stays a review concern.
 //
 // Refresh the ledger with STE_BASELINE=write after a change moves a count. The
 // diff is the burn-down record, so a commit that pays debt down shows it.
 
-type Baseline = Record<string, Counts>
+type Baseline = Record<string, number>
 
 function readBaseline(): Baseline {
 	return JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline
@@ -43,14 +49,13 @@ function readBaseline(): Baseline {
  * Serialize the ledger with one file to a line.
  *
  * @remarks
- * `JSON.stringify` spreads each entry over four lines, which costs 3,300 lines
- * for 826 files and hides the burn-down. One line to a file makes a count
- * change a one-line diff that carries the path beside it.
+ * `JSON.stringify` spreads each entry over three lines, which buries the
+ * burn-down. One line to a file makes a count change a one-line diff that
+ * carries the path beside it.
  */
 function formatBaseline(baseline: Baseline): string {
 	const rows = Object.entries(baseline).map(
-		([file, counts]) =>
-			`\t${JSON.stringify(file)}: { "rule4": ${counts.rule4}, "rule6": ${counts.rule6} }`,
+		([file, count]) => `\t${JSON.stringify(file)}: ${count}`,
 	)
 
 	return `{\n${rows.join(',\n')}\n}\n`
@@ -70,7 +75,7 @@ describe('controlled-language boundary', () => {
 		).toEqual([])
 	})
 
-	it('no file exceeds its recorded rule 4 and rule 6 debt (STE.md)', () => {
+	it('no file exceeds its recorded rule 6 debt (STE.md)', () => {
 		const current = countsByFile(breaks)
 
 		if (process.env.STE_BASELINE === 'write') {
@@ -84,18 +89,16 @@ describe('controlled-language boundary', () => {
 		const paid: string[] = []
 
 		for (const file of files) {
-			const was = baseline[file] ?? { rule4: 0, rule6: 0 }
-			const now = current[file] ?? { rule4: 0, rule6: 0 }
+			const was = baseline[file] ?? 0
+			const now = current[file] ?? 0
 
-			for (const rule of ['rule4', 'rule6'] as const) {
-				if (now[rule] > was[rule]) grown.push(`${file} ${rule}: ${was[rule]} → ${now[rule]}`)
-				if (now[rule] < was[rule]) paid.push(`${file} ${rule}: ${was[rule]} → ${now[rule]}`)
-			}
+			if (now > was) grown.push(`${file}: ${was} → ${now}`)
+			if (now < was) paid.push(`${file}: ${was} → ${now}`)
 		}
 
 		expect(
 			grown,
-			`new controlled-language debt — rewrite the sentence, or pay an equal amount down elsewhere in the file (STE.md rules 4 and 6):\n${grown.join('\n')}`,
+			`new rule 6 debt — split the sentence, or pay an equal amount down elsewhere in the file (STE.md rule 6):\n${grown.join('\n')}`,
 		).toEqual([])
 
 		expect(
