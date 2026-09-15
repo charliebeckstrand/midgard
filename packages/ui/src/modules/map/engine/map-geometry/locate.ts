@@ -1,25 +1,25 @@
 /**
  * Which region a position lands in, over a grid that keeps the question cheap.
  * A caller asks it once per thing it places, and the atlas behind it is a county
- * one — thousands of rings — so a walk of the features would cost thousands of
- * `geoContains` calls for each.
+ * one: thousands of rings. A walk of the features would therefore cost
+ * thousands of `geoContains` calls for each.
  *
  * The grid holds bounding boxes rather than geometry. A box is a conservative
- * test: a position outside it is outside the region for certain, and a position
+ * test. A position outside it is outside the region for certain, and a position
  * inside it still has to face `geoContains`. So the grid never decides the
- * answer, it only takes the candidates down to the two or three whose boxes
- * cover the cell, and the exact test settles those.
+ * answer. It only takes the candidates down to the two or three whose boxes
+ * cover the cell. The exact test settles those.
  *
  * The boxes come from a plain walk of the coordinates rather than from
  * `geoBounds`. A prefilter needs a box that is never too small, not one that is
- * exactly right, and the plain walk is the faster of the two. A region crossing
- * the antimeridian — an Alaska borough — reads as spanning every longitude under
- * that walk, which is too wide rather than too narrow, so it stays correct and
+ * exactly right. The plain walk is the faster of the two. A region crossing the
+ * antimeridian — an Alaska borough — reads as spanning every longitude under
+ * that walk. That is too wide rather than too narrow, so it stays correct and
  * merely joins the oversized list below.
  *
- * Geometry rather than any one consumer's concern: the coverage frame places a
- * ZIP code, and placing a geocoded result or rolling a measure up by region is
- * the same question asked by something else.
+ * Geometry rather than any one consumer's concern. The coverage frame places a
+ * ZIP code. A geocoded result placed, or a measure rolled up by region, is the
+ * same question asked by something else.
  */
 
 import { geoContains } from 'd3-geo'
@@ -43,7 +43,7 @@ const CELL_DEGREES = 1
  * How many cells one region can claim before it goes in the oversized list
  * instead. A box spanning the world would otherwise write 64,800 entries, which
  * is what an antimeridian-crossing region reads as under the walk above. The
- * oversized list is tested on every lookup, so it must stay short — and it does,
+ * oversized list is tested on every lookup, so it must stay short. It does,
  * because only a handful of regions are ever that wide.
  *
  * @internal
@@ -51,9 +51,11 @@ const CELL_DEGREES = 1
 const MAX_CELLS_PER_REGION = 64
 
 /**
- * A spatial index over a feature list: the regions whose box covers each grid
- * cell, the regions too wide to bucket, and every box for the exact test to
- * shortcut on.
+ * A spatial index over a feature list:
+ *
+ * - The regions whose box covers each grid cell.
+ * - The regions too wide to bucket.
+ * - Every box for the exact test to shortcut on.
  *
  * @internal
  */
@@ -76,7 +78,7 @@ function extend(box: MapBounds, lon: number, lat: number): void {
 
 /**
  * Widens a box to hold every position under a coordinates node, at whatever
- * depth they sit: a ring nests one deep, a polygon two, a multipolygon three.
+ * depth they sit. A ring nests one deep, a polygon two, a multipolygon three.
  * The recursion reads the depth off the data rather than off the geometry type,
  * so one walk serves all three.
  *
@@ -250,13 +252,13 @@ export function regionAt(index: MapRegionIndex, features: MapFeature[], at: LngL
  *
  * That one-sided error is what makes it useful. A caller cannot conclude from
  * this that a region holds a shape, but it can conclude that no region outside
- * the result does — so where every named region agrees on something, the exact
- * test can only agree with them, and never has to run.
+ * the result does. Where every named region agrees on something, the exact test
+ * can only agree with them, and never has to run.
  *
  * Yielded rather than collected, because the caller that reads it for agreement
- * stops at the first disagreement: a set would test and hold every candidate
+ * stops at the first disagreement. A set would test and hold every candidate
  * before that caller looked at two of them. A region can be yielded twice, where
- * its box covers two of the cells the query walks — which costs a reader looking
+ * its box covers two of the cells the query walks. That costs a reader looking
  * for agreement nothing, since a repeat agrees with itself. Wrap in a `Set` if
  * you need each once.
  *
