@@ -90,9 +90,9 @@ export type PdfViewerResult = {
 	/**
 	 * Desktop thumbnail sidebar open state; toggled from the toolbar.
 	 *
-	 * Mounts closed and opens once the document turns out to carry more than one page — a
-	 * single page has nothing to navigate to and would spend the rail's width on a tile of the
-	 * page already on screen. The reader's own toggle overrides that from the first press.
+	 * Mounts closed and opens once the document turns out to carry more than one page. A
+	 * single page has nothing to navigate to. It would spend the rail's width on a tile of
+	 * the page already on screen. The reader's own toggle overrides that from the first press.
 	 */
 	sidebarOpen: boolean
 	setSidebarOpen: (open: boolean) => void
@@ -100,13 +100,14 @@ export type PdfViewerResult = {
 	 * Whether the rail slides between open and closed.
 	 *
 	 * False until the reader presses the toggle. Where the rail starts is derived from the page
-	 * count, and that count arrives with the document, so a rail that travelled on that change
+	 * count, and that count arrives with the document. A rail that travelled on that change
 	 * would announce the parse rather than the pages. The reader's press is a change they made,
 	 * and it travels.
 	 *
 	 * False under `prefers-reduced-motion` too, which is what makes this one fact rather than
-	 * two: the rail carries the transition only while this is true, so it is also the answer to
-	 * "will a `transitionend` arrive" — the question the thumbnail rail's mount hold asks.
+	 * two. The rail carries the transition only while this is true. It is therefore also the
+	 * answer to "will a `transitionend` arrive", the question the thumbnail rail's mount
+	 * hold asks.
 	 */
 	sidebarAnimates: boolean
 	/** Mobile thumbnail Sheet open state. */
@@ -125,7 +126,7 @@ export type PdfViewerResult = {
 	rootRef: RefObject<HTMLElement | null>
 	viewportRef: RefObject<HTMLDivElement | null>
 	/**
-	 * Resolved loupe settings, or `null` when there is no loupe to draw — either the consumer
+	 * Resolved loupe settings, or `null` when there is no loupe to draw. Either the consumer
 	 * never asked for one, or the reader has switched it off.
 	 */
 	magnifierSettings: ResolvedMagnifier | null
@@ -134,7 +135,7 @@ export type PdfViewerResult = {
 	setMagnifierOn: (on: boolean) => void
 	/**
 	 * How the toolbar's magnifier control behaves: a switch, or the control that opens
-	 * {@link PdfViewerMagnifierSettings} — and `null` where the consumer asked for no loupe,
+	 * {@link PdfViewerMagnifierSettings}. It is `null` where the consumer asked for no loupe,
 	 * which is what keeps both controls out of the bar.
 	 *
 	 * @remarks Nullable rather than a second `magnifierAvailable` boolean beside it: the two
@@ -189,15 +190,15 @@ export function usePdfViewer({
 	 * The chrome the reader owns reports itself — the highlight overlay here, the loupe below.
 	 *
 	 * Through `useEffectEvent`, which is how this package raises an optional consumer callback
-	 * out of a state change (`use-copy-button-state.ts` does the same for `onCopiedChange`):
-	 * it always sees the latest render's props and its own identity never changes, so a
-	 * consumer passing an inline arrow cannot destabilize the setters below — and through them
-	 * the context value every region on the page reads.
+	 * out of a state change. `use-copy-button-state.ts` does the same for `onCopiedChange`. It
+	 * always sees the latest render's props, and its own identity never changes. A consumer
+	 * passing an inline arrow therefore cannot destabilize the setters below, nor the context
+	 * value every region on the page reads.
 	 *
-	 * They are events rather than a controlled binding on purpose: the reader owns these
-	 * switches — nothing outside the viewer can turn the highlights back on
-	 * under them — while a consumer still needs to hear about it, because what it draws
-	 * *beside* the viewer can be claiming a region is there to point at.
+	 * They are events rather than a controlled binding on purpose. The reader owns these
+	 * switches, and nothing outside the viewer can turn the highlights back on under them. A
+	 * consumer still needs to hear about it. What it draws *beside* the viewer can be claiming
+	 * a region is there to point at.
 	 */
 	const notifyHighlightsVisible = useEffectEvent((visible: boolean) => {
 		onHighlightsVisibleChange?.(visible)
@@ -218,11 +219,11 @@ export function usePdfViewer({
 	 * What the consumer asked for, independent of what the reader wants right now.
 	 *
 	 * Keyed on the settings rather than on the object that carries them. `magnifier={{ mode:
-	 * 'config' }}` written inline is a new object on every render of the consumer, and config
-	 * mode makes an object the common shape rather than the exception a different power used
-	 * to be. Keyed on identity, that rebuilt the resolved settings every render — and through
-	 * them the memoized context value the toolbar, the thumbnail rail and every region on the
-	 * page read, which is the one guarantee this hook's final memo exists to make.
+	 * 'config' }}` written inline is a new object on every render of the consumer. Config mode
+	 * makes an object the common shape, rather than the exception a different power used to
+	 * be. Keyed on identity, that rebuilt the resolved settings every render. It also rebuilt
+	 * the memoized context value the toolbar, the thumbnail rail and every region on the page
+	 * read. That value is the one guarantee this hook's final memo exists to make.
 	 */
 	const magnifierAsked = !!magnifierProp
 
@@ -252,9 +253,9 @@ export function usePdfViewer({
 	/*
 	 * The reader's own settings, and `null` until they have one.
 	 *
-	 * The same nullable shape as `sidebarChoice` below, for the same reason: until the reader
-	 * opens the dialog and picks something, the consumer's prop is the answer, and a consumer
-	 * that changes it keeps driving the loupe. From the first press in the dialog the reader's
+	 * The same nullable shape as `sidebarChoice` below, for the same reason. Until the reader
+	 * opens the dialog and picks something, the consumer's prop is the answer. A consumer that
+	 * changes it keeps driving the loupe. From the first press in the dialog the reader's
 	 * choice holds, and no re-render can take it back from them.
 	 */
 	const [magnifierChoiceState, setMagnifierChoiceState] = useState<MagnifierChoice | null>(null)
@@ -265,10 +266,10 @@ export function usePdfViewer({
 	 * One report for the whole of what the reader owns, rather than one per switch.
 	 *
 	 * Through `useEffectEvent` for the reason the highlight notifier above uses it, and for a
-	 * second one: it reads `magnifierOn` and `magnifierChoice` off the latest render, so the
-	 * two setters below can close over neither and keep the stable identities the context memo
-	 * needs. `next` is spread last, because the setter that raises this knows its own new value
-	 * while the render this reads from still holds the old one.
+	 * second one. It reads `magnifierOn` and `magnifierChoice` off the latest render. The two
+	 * setters below can therefore close over neither, and keep the stable identities the
+	 * context memo needs. `next` is spread last. The setter that raises this knows its own new
+	 * value, while the render this reads from still holds the old one.
 	 */
 	const notifyMagnifier = useEffectEvent((next: Partial<PdfViewerMagnifierState>) => {
 		if (!magnifierChoice) return
@@ -302,22 +303,22 @@ export function usePdfViewer({
 	/*
 	 * One report for each settle of one `src`.
 	 *
-	 * The load resolves into a module cache, not at a call site this hook runs, so
-	 * there is no line to hang the report on; the committed snapshot is the only
+	 * The load resolves into a module cache, not at a call site this hook runs.
+	 * There is no line to hang the report on. The committed snapshot is the only
 	 * honest source. A cache hit reports on the first render, which is correct: the
 	 * document IS ready. A viewer given `pages` directly loads nothing and reports
 	 * nothing.
 	 *
 	 * The ref keys on the src AND what it reported, not on the src alone. A failure
 	 * is published to the subscribers standing at the time and never cached, so the
-	 * next mount retries the same src — and this viewer, still subscribed, must
-	 * report the success that retry produces rather than hold its error banner over
-	 * a document rendering beside it.
+	 * next mount retries the same src. This viewer, still subscribed, must report
+	 * the success that retry produces. It must not hold its error banner over a
+	 * document rendering beside it.
 	 *
-	 * A settle with no pages and no error is a settle all the same: every page was
+	 * A settle with no pages and no error is a settle all the same. Every page was
 	 * skipped for want of a 2D context or a refused `toBlob`. It reports as a
-	 * failure, because a viewer painting an empty document has not loaded one, and
-	 * exactly one of the two callbacks owes an answer for each src.
+	 * failure, because a viewer painting an empty document has not loaded one.
+	 * Exactly one of the two callbacks owes an answer for each src.
 	 */
 	const reportedRef = useRef<string | undefined>(undefined)
 
@@ -372,25 +373,25 @@ export function usePdfViewer({
 	 * The thumbnail rail's own state, and `null` until the reader has an opinion.
 	 *
 	 * Nullable rather than a seeded boolean, because the answer depends on something no
-	 * initializer can see: a one-page document has no navigation to offer, so pinning a rail
-	 * beside it spends 224px of a panel that is often the narrower half of a split on a tile of
-	 * the page already on screen — and the page count arrives with the document, since pdf.js
-	 * has to parse the file first.
+	 * initializer can see. A one-page document has no navigation to offer. Pinning a rail
+	 * beside it spends 224px of a panel that is often the narrower half of a split. That width
+	 * goes on a tile of the page already on screen. The page count arrives with the document,
+	 * since pdf.js has to parse the file first.
 	 *
-	 * **`> 1`, so it mounts closed.** The obvious reading of the rule — open unless the count
-	 * is exactly one — is true while the count is still 0, which is every frame before the
+	 * **`> 1`, so it mounts closed.** The obvious reading of the rule is open unless the count
+	 * is exactly one. That is true while the count is still 0, which is every frame before the
 	 * document resolves. So a one-page PDF opened the rail and then visibly shut it, which is
 	 * the flicker this exists to avoid. Closed until something is known to be worth navigating
-	 * costs a multi-page document a slide open instead, and that is the better of the two: it
+	 * costs a multi-page document a slide open instead. That is the better of the two. It
 	 * arrives with the pages it is for, rather than being taken away from a reader who was
 	 * already looking at it.
 	 *
 	 * Derived rather than corrected by an effect, which would paint the wrong frame first
 	 * whichever way the rule ran.
 	 *
-	 * The override is what makes deriving it safe: the moment the reader touches the toolbar's
-	 * toggle their choice wins for good, so a rail they opened on a one-page document cannot be
-	 * closed under them by a re-render, nor can a document swap reopen one they shut.
+	 * The override is what makes deriving it safe. The moment the reader touches the toolbar's
+	 * toggle, their choice wins for good. A rail they opened on a one-page document cannot be
+	 * closed under them by a re-render. A document swap cannot reopen one they shut.
 	 */
 	const [sidebarChoice, setSidebarOpen] = useState<boolean | null>(null)
 
@@ -399,11 +400,11 @@ export function usePdfViewer({
 	/*
 	 * Only a reader's press moves the rail, and only where movement is wanted at all.
 	 *
-	 * Read live through the media query rather than through motion's `useReducedMotion`, which
-	 * samples once at mount: a reader who turns reduced motion on mid-session would otherwise
-	 * leave the rail carrying a transition whose `transitionend` the CSS had stopped sending,
-	 * and the rail's mount hold would wait for it forever. `use-grid-reveal-hold.ts` documents
-	 * the same trap.
+	 * It is read live through the media query, rather than through motion's
+	 * `useReducedMotion`, which samples once at mount. A reader who turns reduced motion on
+	 * mid-session would otherwise leave the rail carrying a transition whose `transitionend`
+	 * the CSS had stopped sending. The rail's mount hold would then wait for it forever.
+	 * `use-grid-reveal-hold.ts` documents the same trap.
 	 */
 	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
