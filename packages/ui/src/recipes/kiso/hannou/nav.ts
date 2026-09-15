@@ -1,7 +1,7 @@
 /**
- * Hannou nav: nav-item chrome shared by `kata/nav` and `kata/sidebar`,
+ * Hannou nav: nav-item chrome shared by `kata/nav` and `kata/sidebar`. It is
  * split into layers so a kata can re-seat the interaction surface on a
- * wrapper row (affixed items): `base` stays on the item while `tint` and
+ * wrapper row (affixed items). `base` stays on the item while `tint` and
  * `focus` move up to the row.
  *
  * Layer: kiso · Concern: nav-item interaction surface

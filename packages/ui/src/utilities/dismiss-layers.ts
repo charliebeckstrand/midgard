@@ -1,6 +1,6 @@
 /**
  * Stack of open Escape-dismissable surfaces. Layered dismissal closes one
- * surface per Escape press, innermost first: a menu inside a dialog, or a
+ * surface per Escape press, innermost first. A menu inside a dialog, or a
  * dialog over a sheet, each consume their own press instead of every open
  * surface closing at once. Surfaces register on open, so stack order is
  * open order and the topmost layer alone responds to Escape.

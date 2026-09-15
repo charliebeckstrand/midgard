@@ -1,7 +1,7 @@
 /**
  * Requires an accessible name at the type level. A component that emits a role
  * with no other naming source (a `toolbar`, `tree`, `radiogroup`, an icon-only
- * button, a bare progressbar) intersects this; exactly one of `aria-label` /
+ * button, a bare progressbar) intersects this. Exactly one of `aria-label` /
  * `aria-labelledby` becomes mandatory, and an unnamed instance is a compile
  * error.
  *

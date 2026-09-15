@@ -16,7 +16,7 @@ const root = defineRecipe({
 
 /**
  * List-side projections onto direct `dt` / `dd` children. Term and details
- * are static leaves carrying only their text styling; the list owns every
+ * are static leaves carrying only their text styling. The list owns every
  * orientation-varying property, so neither child reads context and both
  * render in React Server Components. Direct-child selectors keep a nested
  * `<DescriptionList>` inside a `dd` independent.

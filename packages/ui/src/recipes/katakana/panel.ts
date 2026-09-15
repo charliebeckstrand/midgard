@@ -1,8 +1,8 @@
 /**
  * Panel bridge: slot bundle shared by `dialog`, `drawer`, and `sheet`. A
  * pure bridge: it receives the `panel` token bundle plus the kata's
- * caller-supplied recipes and stitches them into the standard slot bundle
- * (title / description / header / body / footer / close), referencing kiso
+ * caller-supplied recipes. It stitches them into the standard slot bundle
+ * (title / description / header / body / footer / close), and references kiso
  * in neither value nor type.
  *
  * Each kata's panel has its own variant axes (width + surface + side for

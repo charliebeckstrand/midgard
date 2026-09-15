@@ -2,7 +2,7 @@
  * Omote backdrop: modal / sheet overlay fills. Two intensities: `base`
  * is the default modal scrim; `glass` is denser for use behind a glass
  * panel. Both are translucent, so `grayscale` rides on top of either to
- * drain the colour from what still shows through, leaving it inert rather
+ * drain the colour from what still shows through. That leaves it inert rather
  * than merely dimmed. The raw colour pairs live here, not in `bg.ts`; the
  * two filters are their own concerns (`blur`, `grayscale`).
  *
