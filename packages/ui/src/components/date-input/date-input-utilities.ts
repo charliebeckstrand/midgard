@@ -43,8 +43,10 @@ const ORDER_REFERENCE = new Date(Date.UTC(2026, 0, 2))
 
 /**
  * Locale tag → its layout. The answer has three possible values and depends on
- * nothing else, while `DateInput` resolves it on every render — every keystroke,
- * since it holds the editing text as state. @internal
+ * nothing else. `DateInput` resolves it on every render, and so on every
+ * keystroke, since it holds the editing text as state.
+ *
+ * @internal
  */
 const layoutByLocale = new Map<string, DateInputFormat>()
 
@@ -78,14 +80,16 @@ export function resolveDateInputFormat(
 
 /**
  * The supported layout whose field order matches `locale`, read from `Intl`'s
- * own part order for a numeric date: year-first locales (ja-JP, sv-SE) take
- * `YYYY-MM-DD`, day-first ones (en-GB, de-DE, fr-FR) `DD/MM/YYYY`, and the rest
- * `MM/DD/YYYY`.
+ * own part order for a numeric date:
+ *
+ * - year-first locales (ja-JP, sv-SE) take `YYYY-MM-DD`;
+ * - day-first ones (en-GB, de-DE, fr-FR) take `DD/MM/YYYY`;
+ * - the rest take `MM/DD/YYYY`.
  *
  * @remarks
  * Order alone is derived, not the locale's separator — de-DE writes `10.06.2026`
  * where this masks `10/06/2026`. Field order is what decides whether a typed
- * date is read correctly; the separator is presentational, and each of the three
+ * date is read correctly. The separator is presentational, and each of the three
  * supported layouts pins its own.
  *
  * @see {@link resolveDateInputFormat} for the prop-resolution wrapper.
@@ -125,7 +129,7 @@ type MaskState = {
 }
 
 /**
- * Carries over a capped segment (month/day): a leading digit too large to start
+ * Carries over a capped segment (month/day). A leading digit too large to start
  * it, or a second digit that overflows the cap, zero-pads and closes it.
  *
  * @returns The loop action, or `null` when no cap rule applies.
@@ -223,7 +227,7 @@ function joinMaskedSegments(state: MaskState, separator: string, segmentCount: n
 /**
  * Masks raw text into the format's `MM`/`DD`/`YYYY` segments. Digits fill the
  * current segment. A digit that would push a capped segment past its cap
- * zero-pads it and starts the next (`13` → `01/3`); an unseparated run like
+ * zero-pads it and starts the next (`13` → `01/3`). An unseparated run like
  * `152026` lands as `01/05/2026`. A typed separator zero-pads and closes a
  * short month or day (`1/` → `01/`), and a completed segment appends the
  * canonical separator for the next.

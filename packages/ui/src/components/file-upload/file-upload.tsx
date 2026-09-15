@@ -115,15 +115,16 @@ type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * accessible name; the visible trigger is presentational. Accepted selections are
  * announced to a live region (WCAG 4.1.3). Selection state, drag highlighting, and
  * `maxSize`/`maxCount` filtering live in {@link useFileUploadHandlers}. Once a
- * selection exists, `drop` and `input` show the file name (or an "x files
- * selected" summary once `multiple` yields more than one) and a control to clear
- * it — a suffix button for `input`, a `Reset` button under the label for `drop`.
- * The `drop` label truncates to one line and reveals the full name(s) in a
- * tooltip when the summary hides them or a single name is clipped, and its
- * dropzone stays clickable, focusable, and keyboard-operable so a different file
- * can be picked without clearing first. `button` keeps its upload trigger and
- * adds `Reset` beside it once a selection exists, so a different file can be
- * picked (or the selection cleared) without the trigger swapping out.
+ * selection exists, `drop` and `input` show the file name and a control to clear
+ * it. A `multiple` selection of more than one shows an "x files selected"
+ * summary instead. The clear control is a suffix button for `input`, and a
+ * `Reset` button under the label for `drop`. The `drop` label truncates to one
+ * line. It reveals the full name(s) in a tooltip when the summary hides them, or
+ * a single name is clipped. Its dropzone stays clickable, focusable, and
+ * keyboard-operable, so a different file can be picked without clearing first.
+ * The `button` variant keeps its upload trigger and adds `Reset` beside it once
+ * a selection exists. A different file can then be picked, or the selection
+ * cleared, without the trigger swapping out.
  *
  * @see {@link FileUploadProps}
  * @see {@link useFileUploadHandlers}
@@ -298,11 +299,11 @@ type DropSelectionProps = {
 /**
  * The `drop` variant's filled state: a full-area overlay trigger to re-pick,
  * the selection label, and a `Reset` button. The overlay is a sibling of
- * `Reset` (never its parent, which would nest interactive controls); the label
+ * `Reset`, never its parent, which would nest interactive controls. The label
  * paints above it but stays `pointer-events-none`, so a click anywhere but
- * `Reset` re-opens the picker. The label truncates to one line, and the overlay
- * — as the tooltip trigger — reveals the full name(s) on hover or focus when the
- * multi-file summary hides them or a single name is clipped.
+ * `Reset` re-opens the picker. The label truncates to one line. The overlay, as
+ * the tooltip trigger, reveals the full name(s) on hover or focus. That happens
+ * when the multi-file summary hides them, or a single name is clipped.
  *
  * @internal
  */
