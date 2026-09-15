@@ -12,9 +12,9 @@ export type CommitMenu = (
 /**
  * Handles a right-click that landed on a group-header row: resolves its menu by
  * the group's shared value (`data-group-key`) and opens it at the pointer.
- * Returns whether the target was a group row — checked first, since a group
- * header's aggregate cells carry `data-grid-col` but aren't ordinary body cells,
- * and its label cell carries none at all.
+ * Returns whether the target was a group row, checked first. A group header's
+ * aggregate cells carry `data-grid-col` but aren't ordinary body cells, and its
+ * label cell carries none at all.
  *
  * @internal
  */
@@ -34,8 +34,8 @@ export function tryGroupMenu(
 }
 
 /**
- * Handles a right-click that landed on a column-group band cell (its badge):
- * resolves its menu by the group's id (`data-group-id`) and opens it at the
+ * Handles a right-click that landed on a column-group band cell (its badge). It
+ * resolves the menu by the group's id (`data-group-id`) and opens it at the
  * pointer. Returns whether the target was a band cell — checked before the plain
  * cell path, since a band cell carries no `data-grid-col`.
  *
@@ -80,8 +80,8 @@ export function tryCellMenu(
 
 /**
  * Handles a keyboard context menu (Shift+F10 / the ContextMenu key), which fires
- * on the focused grid rather than a cell: retargets to the active cursor cell,
- * records the grid to restore focus to on close, and opens below the cell
+ * on the focused grid rather than a cell. It retargets to the active cursor
+ * cell, records the grid to restore focus to on close, and opens below the cell
  * (WCAG 2.1.1). No-ops when no cell is active.
  *
  * @internal

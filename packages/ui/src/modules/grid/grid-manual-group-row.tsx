@@ -36,13 +36,13 @@ type GridManualGroupRowProps<T> = {
 }
 
 /**
- * A manual-mode group-header row: the same disclosure chrome as the client
- * {@link GridGroupRow} — the group's value and child count (`Developer (3)`) at
- * the start, a rotating chevron at the trailing edge — but every figure comes
- * from the consumer's row rather than the engine: the label reads the
- * {@link GridGroupHeaderRow} descriptor (the backend's child count), expansion
- * is the binding's controlled key set, and once any column aggregates, each
- * aggregated column's cell shows the backend value carried on the group row
+ * A manual-mode group-header row, with the same disclosure chrome as the client
+ * {@link GridGroupRow}. The group's value and child count (`Developer (3)`) sit
+ * at the start, and a rotating chevron at the trailing edge. Every figure comes
+ * from the consumer's row rather than the engine. The label reads the
+ * {@link GridGroupHeaderRow} descriptor (the backend's child count), and
+ * expansion is the binding's controlled key set. Once any column aggregates,
+ * each aggregated column's cell shows the backend value carried on the group row
  * itself.
  *
  * @internal
@@ -92,14 +92,14 @@ export function GridManualGroupRow<T>({
 
 /**
  * Placeholder skeleton rows for an expanded manual group whose children are
- * still loading: the group opened the instant its header was toggled, and while
+ * still loading. The group opened the instant its header was toggled, and while
  * the consumer's {@link GridGroupBy.onGroupExpand} fetch is in flight these fill
- * the gap — {@link GridSkeletonCells}, the same silhouette the whole-grid
+ * the gap. They are {@link GridSkeletonCells}, the same silhouette the whole-grid
  * loading body draws, so the children arrive in the shape they load into.
- * Rendered `min(count, cap)` deep (see {@link MANUAL_GROUP_PLACEHOLDER_ROWS})
- * so an enormous group shows a brief affordance rather than thousands of rows,
- * and `aria-hidden` as a transient filler (like the infinite-scroll pending
- * row) — the leading cell carries the group rail so the loading rows sit under
+ * Rendered `min(count, cap)` deep (see {@link MANUAL_GROUP_PLACEHOLDER_ROWS}),
+ * so an enormous group shows a brief affordance rather than thousands of rows.
+ * They are `aria-hidden` as a transient filler, like the infinite-scroll pending
+ * row. The leading cell carries the group rail, so the loading rows sit under
  * the group as its children will.
  *
  * @internal
