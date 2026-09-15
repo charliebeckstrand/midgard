@@ -15,10 +15,10 @@ export function columnPinSide<T>(table: Table<T>, id: string | number): PinSide 
 }
 
 /**
- * One frozen column's resolved chrome: the edge it is frozen to, its sticky
- * offset (px) from that edge, and whether it sits at the frozen group's
- * scroll-facing boundary — the innermost column, which alone draws the edge rule
- * and the separating shadow.
+ * One frozen column's resolved chrome: the edge it is frozen to, and its sticky
+ * offset (px) from that edge. It also carries whether it sits at the frozen
+ * group's scroll-facing boundary. The boundary is the innermost column, which
+ * alone draws the edge rule and the separating shadow.
  *
  * @internal
  */
@@ -35,12 +35,12 @@ export type FrozenColumn = {
  * by stringified column id. A column the map omits scrolls.
  *
  * @remarks A snapshot, not a live reader. The pinned chrome rides `memo`
- * boundaries — rows, data cells, and header cells all hold on their props — so
- * the facts that chrome draws from must arrive as a value that changes when they
- * change. Read them through a stable object instead, and a cell that does not
- * re-render for its own reasons keeps painting the previous layout: the boundary
- * rule stays on the column a new pin displaced, and a sticky offset holds its
- * pre-drag pixels until the drag settles.
+ * boundaries, where rows, data cells, and header cells all hold on their props.
+ * The facts that chrome draws from must therefore arrive as a value that changes
+ * when they change. Read them through a stable object instead. A cell that does
+ * not re-render for its own reasons then keeps painting the previous layout. The
+ * boundary rule stays on the column a new pin displaced, and a sticky offset
+ * holds its pre-drag pixels until the drag settles.
  *
  * @internal
  */
@@ -51,12 +51,13 @@ export const EMPTY_FROZEN_LAYOUT: FrozenLayout = new Map<string, FrozenColumn>()
 
 /**
  * Resolves the frozen columns' chrome from the engine's own left and right
- * sections — the columns it holds at each edge, in edge order — so the layout
- * covers exactly what is frozen, whatever set the body happens to render.
+ * sections, the columns it holds at each edge, in edge order. The layout
+ * therefore covers exactly what is frozen, whatever set the body happens to
+ * render.
  *
  * `measured` carries the offsets read from the rendered header, and wins where it
  * has an entry. The engine's own offsets sum its column sizes, which are the
- * rendered widths only under the fixed layout a resizable grid sets from them; an
+ * rendered widths only under the fixed layout a resizable grid sets from them. An
  * auto-layout grid sizes each column to its content, so its frozen columns are
  * measured instead (see {@link FrozenOffsets}). `null` — the resizable case, and
  * every render before the first measurement — leaves the engine's sums.
@@ -93,9 +94,9 @@ export function frozenLayout<T>(table: Table<T>, measured: FrozenOffsets | null)
 
 /**
  * Whether two layouts freeze the same columns to the same edges, at the same
- * pixels, with the boundary on the same column — so a re-resolution that moved
- * nothing can hold its previous reference instead of re-rendering the header and
- * every row for the same chrome.
+ * pixels, with the boundary on the same column. A re-resolution that moved
+ * nothing can hold its previous reference, instead of re-rendering the header
+ * and every row for the same chrome.
  *
  * @internal
  */

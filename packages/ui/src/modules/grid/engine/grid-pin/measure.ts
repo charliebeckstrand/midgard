@@ -2,9 +2,9 @@ import type { GridColumn } from '../../types'
 import type { PinSide } from './overrides'
 
 /**
- * Sticky offsets (px) for the frozen columns, keyed by stringified column id:
- * `left` holds each left-frozen column's distance from the left edge, `right`
- * each right-frozen column's distance from the right one. Measured from the
+ * Sticky offsets (px) for the frozen columns, keyed by stringified column id.
+ * The `left` holds each left-frozen column's distance from the left edge, and
+ * `right` each right-frozen column's distance from the right one. Measured from the
  * rendered header (see {@link frozenOffsets}) for the grids whose column widths
  * the engine's size model does not set.
  *
@@ -25,8 +25,8 @@ export type FrozenCell = {
 /**
  * The rendered column-header cells in visible-column order, or `null` when no
  * header has rendered. Anchored on a data column's `data-grid-col` cell and read
- * through its row, so the column-header row resolves whether or not a
- * column-group band row sits above it — a band cell carries no column id.
+ * through its row. The column-header row therefore resolves whether or not a
+ * column-group band row sits above it. A band cell carries no column id.
  *
  * @internal
  */
@@ -40,8 +40,9 @@ function headerRowCells(container: HTMLElement): HTMLElement[] | null {
 
 /**
  * The frozen columns' rendered header cells, in visible-column order. The header
- * row carries one cell per visible column, so the columns index straight into it;
- * a row that does not match the column count is mid-render and yields nothing.
+ * row carries one cell per visible column, so the columns index straight into
+ * it. A row that does not match the column count is mid-render, and yields
+ * nothing.
  * These are the cells a measured offset sums — and the exact set whose width
  * change moves one.
  *
@@ -71,13 +72,13 @@ export function frozenHeaderCells<T>(
 }
 
 /**
- * The sticky offsets the frozen cells resolve to: each left-frozen column starts
- * after the ones ahead of it, each right-frozen column after the ones behind it.
- * Summed from the cells' rendered widths rather than the engine's column sizes,
- * which are the rendered widths only under the fixed layout a resizable grid
- * sets — an auto-layout grid sizes its columns to their content, so summing the
- * engine's sizes there spreads the frozen columns apart and lets the scrolling
- * columns show through the gaps.
+ * The sticky offsets the frozen cells resolve to. Each left-frozen column starts
+ * after the ones ahead of it, and each right-frozen column after the ones behind
+ * it. Summed from the cells' rendered widths rather than the engine's column
+ * sizes. Those sizes are the rendered widths only under the fixed layout a
+ * resizable grid sets. An auto-layout grid sizes its columns to their content.
+ * Summing the engine's sizes there spreads the frozen columns apart, and lets
+ * the scrolling columns show through the gaps.
  *
  * @internal
  */
@@ -123,9 +124,9 @@ function sameOffsetMap(a: Map<string, number>, b: Map<string, number>): boolean 
 }
 
 /**
- * Whether two measurements place every frozen column identically, so a
- * re-measure that moved nothing can hold its previous reference instead of
- * re-rendering the header and every row for the same pixels.
+ * Whether two measurements place every frozen column identically. A re-measure
+ * that moved nothing can hold its previous reference, instead of re-rendering
+ * the header and every row for the same pixels.
  *
  * @internal
  */

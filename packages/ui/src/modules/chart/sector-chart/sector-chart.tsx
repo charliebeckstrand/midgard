@@ -65,23 +65,23 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 */
 	series: [PieChartSeries<T>]
 	/**
-	 * Label switches for the plot. `segment` shows each slice's percent share
-	 * at its centroid, rendered only where it fits — never clipped; the
-	 * tooltip and data table always carry the full readout. `callouts` names
-	 * every slice from the outside with a leader line to its name and percent
-	 * share, declumping per side so a crowded pie never overlaps them and
-	 * shrinking the pie to make room — see `aspectRatio`, the default frame
-	 * shrinks with it too, rather than leaving the labels' margin empty on
-	 * every side. Unlike segment labels these name the slice, so they read
-	 * without the legend. In a box too narrow for their columns — where they
-	 * would starve the pie to the spark floor — they drop and the pie draws as
-	 * bare marks, its share read from the tooltip and table instead.
+	 * Label switches for the plot. The `segment` shows each slice's percent share
+	 * at its centroid, rendered only where it fits, never clipped. The tooltip and
+	 * data table always carry the full readout. The `callouts` names every slice
+	 * from the outside, with a leader line to its name and percent share. It
+	 * declumps per side, so a crowded pie never overlaps them, and it shrinks the
+	 * pie to make room. See `aspectRatio`. The default frame shrinks with it too,
+	 * rather than leaving the labels' margin empty on every side. Unlike segment
+	 * labels these name the slice, so they read without the legend. In a box too
+	 * narrow for their columns they drop, and the pie draws as bare marks. Such a
+	 * box is one where they would starve the pie to the spark floor. The share is
+	 * read from the tooltip and table instead.
 	 */
 	labels?: SectorLabels
 	/**
-	 * Fires when a click lands on a slice — its gap-spanning hit wedge, the same
-	 * generous target the tooltip reads — with the slice's `xKey` label and its
-	 * data index. The cross-filter hook: a dashboard toggles a filter on the
+	 * Fires when a click lands on a slice, with the slice's `xKey` label and its
+	 * data index. The target is its gap-spanning hit wedge, the same generous
+	 * target the tooltip reads. The cross-filter hook: a dashboard toggles a filter on the
 	 * clicked slice and narrows its neighbours. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins), and points the
 	 * cursor over the slices so they read as clickable.
@@ -98,10 +98,10 @@ export type SectorChartProps<T> = SectorBaseProps<T> & {
 }
 
 /**
- * The shared pie / donut engine: sweeps one dataset's positive shares into
+ * The shared pie / donut engine. It sweeps one dataset's positive shares into
  * slices clockwise from the top, separated by geometric gaps that show the
- * surface through, with a legend naming every slice, a per-slice hover
- * tooltip, fit-gated segment labels, and a visually-hidden data table.
+ * surface through. The frame carries a legend naming every slice, a per-slice
+ * hover tooltip, fit-gated segment labels, and a visually-hidden data table.
  * {@link PieChart} passes `innerRatio: 0`; {@link DonutChart} passes a positive
  * ratio and center `children`.
  *
@@ -333,9 +333,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			overlay={
 				innerRatio > 0 && children ? (
 					<div data-slot="chart-center" className="pointer-events-none absolute inset-0">
-						{/* Centre the content on the ring's hole, not the plot box: callouts
+						{/* Centre the content on the ring's hole, not the plot box. Callouts
 						    shift the pie centre off `frameWidth / 2` to balance the two label
-						    columns, and the content follows it rather than drifting out of the hole. */}
+						    columns. The content follows it, rather than drifting out of the hole. */}
 						<div
 							className="absolute -translate-x-1/2 -translate-y-1/2"
 							style={donutCenterStyle(center, frameWidth, frameHeight)}

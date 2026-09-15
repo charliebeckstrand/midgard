@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 
 /**
- * Scrolls one element to its own bottom. `scrollTop` rather than `scrollTo` for
- * the instant case, because it is the one form every environment implements and
- * both clamp to the maximum offset on their own.
+ * Scrolls one element to its own bottom. The `scrollTop` rather than `scrollTo`
+ * for the instant case, because it is the one form every environment implements.
+ * Both clamp to the maximum offset on their own.
  *
  * @internal
  */
@@ -24,25 +24,26 @@ function toBottom(element: HTMLElement, behavior: ScrollBehavior) {
  *
  * @remarks
  * Attach `containerRef` to the scrolling element itself — the one carrying
- * `overflow-y-auto`. On mount, including a remount a parent triggers with a new
- * `key` when it switches to a different chat, it jumps to the bottom before the
- * browser paints, so the transcript never flashes its top. After that, whenever
- * `dependency` changes — pass the message list (or its length) — it
- * smooth-scrolls to the bottom on the next animation frame, once the appended
- * content has laid out, so streamed chunks stay in view. `scrollToBottom` is
+ * `overflow-y-auto`. On mount it jumps to the bottom before the browser paints,
+ * so the transcript never flashes its top. That includes a remount a parent
+ * triggers with a new `key`, when it switches to a different chat. After that,
+ * whenever `dependency` changes, it smooth-scrolls to the bottom on the next
+ * animation frame. The scroll waits until the appended content has laid out, so
+ * streamed chunks stay in view. Pass the message list, or its length, as the
+ * dependency. `scrollToBottom` is
  * exposed for imperative scrolls (e.g. after an attachment renders).
  *
  * The container is named rather than searched, which is what keeps the scroll
  * inside it. An earlier form took a ref to a sentinel at the end of the
- * transcript and asked {@link useScrollWithin} to walk up to the sentinel's
- * nearest overflowing ancestor — rediscovering at runtime the element its own
+ * transcript. It asked {@link useScrollWithin} to walk up to the sentinel's
+ * nearest overflowing ancestor, rediscovering at runtime the element its own
  * caller had rendered. A transcript short enough not to overflow is not that
- * ancestor, so the walk passed through it and scrolled whatever container
- * outside it did overflow: the page moved, and whether it moved depended on how
- * much had been said. Scrolling the named element cannot reach past it, and
- * costs no `getComputedStyle` walk per streamed chunk.
+ * ancestor. The walk therefore passed through it, and scrolled whatever
+ * container outside it did overflow. The page moved, and whether it moved
+ * depended on how much had been said. Scrolling the named element cannot reach
+ * past it, and costs no `getComputedStyle` walk per streamed chunk.
  *
- * An element that is not a scroll container absorbs this harmlessly — its
+ * An element that is not a scroll container absorbs this harmlessly. Its
  * `scrollHeight` is its `clientHeight`, so the write is a no-op rather than a
  * scroll somewhere else.
  *
