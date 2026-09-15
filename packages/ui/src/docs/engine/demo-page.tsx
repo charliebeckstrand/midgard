@@ -14,9 +14,9 @@ import type { Demo } from './registry'
 import { hasComponentApi, loadComponentApi, loadDemo } from './registry'
 
 /**
- * The route body for one demo: its lazily-loaded component, a sidebar-lock
- * toggle in the layout header, and the component's API reference when one was
- * extracted at build time.
+ * The route body for one demo. It holds the lazily-loaded component, a
+ * sidebar-lock toggle in the layout header, and the component's API reference
+ * when one was extracted at build time.
  */
 export function DemoPage({
 	demo,

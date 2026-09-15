@@ -6,7 +6,7 @@ import { isOverflowing } from './use-truncation'
 /**
  * True when `text` overflows the element at `ref.current`. Measures through
  * {@link isOverflowing}, which owns the measurement and its rationale, in its
- * padded mode — this hook takes an element the caller already rendered, which
+ * padded mode. This hook takes an element the caller already rendered, which
  * can carry padding, where `useTruncation` owns the element it measures.
  *
  * @remarks
