@@ -28,10 +28,10 @@ export type SignaturePadProps = {
 	 *
 	 * `onValueChange` reports the end of a stroke, and nothing reports the start.
 	 * The two together bracket the gesture. Use this callback to mark the field
-	 * dirty as the pen lands, or to hold a save while the user signs. A press that
-	 * the pad refuses fires nothing: a disabled or read-only pad, a non-primary
-	 * mouse button, a point outside the canvas, and a canvas with no 2D context
-	 * all return before the stroke starts.
+	 * dirty as the pen lands. It can also hold a save while the user signs. A press
+	 * that the pad refuses fires nothing. That covers a disabled or read-only pad,
+	 * a non-primary mouse button, a point outside the canvas, and a canvas with no
+	 * 2D context. All of them return before the stroke starts.
 	 */
 	onDrawStart?: () => void
 	disabled?: boolean
@@ -74,7 +74,7 @@ export type SignaturePadProps = {
  * Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio.
  *
  * @remarks
- * Backs the controlled triad and an enclosing `<Form>`/`<Control>` field: a
+ * Backs the controlled triad and an enclosing `<Form>`/`<Control>` field. A
  * `name` binds the data URL to the form store, while ambient `<Control>` invalid
  * and description ids ride onto the canvas (`role="img"`). On clear, focus moves
  * to the canvas as the clear button unmounts (WCAG 2.4.3). The backing store is

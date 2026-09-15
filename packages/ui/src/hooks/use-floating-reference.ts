@@ -5,17 +5,17 @@ import { useComposedRef } from './use-composed-ref'
 
 /**
  * Compose a floating element's `setReference` with the refs a trigger owns
- * itself — its `triggerRef`, a cloned child's `ref` — into the one callback ref
- * the trigger node takes.
+ * itself, into the one callback ref the trigger takes. Those refs are its
+ * `triggerRef` and a cloned child's `ref`.
  *
  * `setReference` gets the node on attach and never gets `null`. React 19 skips
  * the null call on unmount when a ref callback returns a cleanup, and this
- * callback always returns one: `setReference(null)` runs during deletion
+ * callback always returns one. `setReference(null)` runs during deletion
  * effects, where its state update can cascade into a "Maximum update depth"
  * error while ancestor state is in flux. The other refs are safe to null, and
  * the cleanup nulls them.
  *
- * {@link useComposedRef} cannot carry `setReference` itself. floating-ui's
+ * {@link useComposedRef} cannot carry `setReference` itself. The floating-ui
  * `useMergeRefs` returns no cleanup of its own, so React calls it with `null` on
  * unmount and it nulls every input ref alike.
  *

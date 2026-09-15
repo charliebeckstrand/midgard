@@ -7,9 +7,9 @@ import { useSignaturePadCanvasSizing } from './use-signature-pad-canvas-sizing'
 import { useSignaturePadDrawing } from './use-signature-pad-drawing'
 
 /**
- * Imperative handle exposed via `ref`: clear the pad, read its current image
- * as a data URL (passing through the canvas `type`/`quality`), or test whether
- * any stroke has been drawn.
+ * Imperative handle exposed via `ref`. It can clear the pad, or read its current
+ * image as a data URL (passing through the canvas `type`/`quality`). It can also
+ * test whether any stroke has been drawn.
  *
  * @see {@link SignaturePadProps}
  */
@@ -37,8 +37,8 @@ export type SignaturePadStateOptions = {
 
 /**
  * Core state for {@link SignaturePad}: binds the data-URL value to a Form field,
- * tracks emptiness, drives the canvas through the sizing and drawing hooks, and
- * exposes the imperative {@link SignaturePadHandle}.
+ * and tracks emptiness. It drives the canvas through the sizing and drawing
+ * hooks, and exposes the imperative {@link SignaturePadHandle}.
  *
  * @internal
  * @param options - Controlled-triad value, `name` binding, stroke styling, the
@@ -49,8 +49,8 @@ export type SignaturePadStateOptions = {
  * @remarks
  * `commit` (stroke end) and `clear` both mark the bound field touched — the
  * pad's analogue of blur. A controlled `current` change that differs from the
- * last emitted value repaints from the snapshot via an effect, so external
- * resets stay in sync without re-emitting.
+ * last emitted value repaints from the snapshot via an effect. External resets
+ * therefore stay in sync without re-emitting.
  */
 export function useSignaturePadState({
 	name,
