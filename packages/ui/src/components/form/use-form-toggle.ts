@@ -26,10 +26,10 @@ export type FormToggleResult = {
  * `checked`/`onChange` props from the control.
  * @returns A {@link FormToggleResult} carrying the effective `checked`,
  * `onChange`, and `invalid`.
- * @remarks Resolution: an explicit `checked` prop wins; otherwise a form field
- * with this `name` drives the state (and `onChange` writes it, marks touched,
- * then chains the caller's `onChange`); otherwise the input stays native
- * uncontrolled (`defaultChecked`). Alongside an explicit `checked`, a bound
+ * @remarks Resolution runs in order. An explicit `checked` prop wins. Otherwise
+ * a form field with this `name` drives the state, where `onChange` writes it,
+ * marks touched, then chains the caller's `onChange`. Otherwise the input stays
+ * native uncontrolled (`defaultChecked`). Alongside an explicit `checked`, a bound
  * field still supplies `invalid` but overrides neither the prop nor `onChange`.
  * Subscribes through {@link useFormField}, re-rendering only on this field's
  * change.

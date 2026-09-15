@@ -68,9 +68,9 @@ function expectsClearCallback(child: ReactElement): boolean {
 }
 
 /**
- * Maps the slot value to control props: toggles read `checked` (Radio compares
- * its own option value; Checkbox/Switch reflect the boolean), others read
- * `value` (`null`, not `undefined`, to stay controlled).
+ * Maps the slot value to control props. Toggles read `checked`: Radio compares
+ * its own option value, and Checkbox and Switch reflect the boolean. Others
+ * read `value`, passing `null` rather than `undefined` to stay controlled.
  *
  * @internal
  */

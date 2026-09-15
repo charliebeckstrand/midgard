@@ -17,9 +17,9 @@ export type FormState<T> = {
 }
 
 /**
- * Discriminated action set for {@link formReducer}: write a value, mark a field
- * touched, merge external errors, re-sync controlled values, reset to defaults,
- * or commit a full-field submit validation.
+ * Discriminated action set for {@link formReducer}. An action writes a value,
+ * marks a field touched, merges external errors, re-syncs controlled values,
+ * resets to defaults, or commits a full-field submit validation.
  *
  * @internal
  */

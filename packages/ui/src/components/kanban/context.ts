@@ -5,9 +5,9 @@ import { createContext } from '../../core'
 
 /**
  * Card-facing board state: interactivity, keyboard-lifted card, the overlay map,
- * and card event handlers. Deliberately excludes the pointer-drag `activeId` and
- * per-column ordering (see {@link KanbanDragStateValue}) so a pointer drag — which
- * churns those every move — does not re-render every card on the board.
+ * and card event handlers. Deliberately excludes the pointer-drag `activeId`
+ * and per-column ordering; see {@link KanbanDragStateValue}. A pointer drag
+ * churns those every move, and must not re-render every card on the board.
  */
 export type KanbanContextValue = {
 	/** Whether cards in this board can be dragged or keyboard-reordered. */
