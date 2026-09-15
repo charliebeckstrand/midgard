@@ -1,8 +1,8 @@
 /**
  * The map's legend resolution, kept off {@link MapPlat} so the component stays
- * a thin assembly: whether the legend shows, where it sits, and whether the
- * binned switchboard or the continuous range bar paints it. Pure — every input
- * arrives resolved, so the rules are testable without a frame.
+ * a thin assembly. It decides whether the legend shows, where it sits, and
+ * whether the binned switchboard or the continuous range bar paints it. Pure —
+ * every input arrives resolved, so the rules are testable without a frame.
  */
 
 import type { ChartRangeLegendConfig } from '../../../chart/engine/chart-legend/range'
@@ -12,10 +12,14 @@ import { resolveValueFormat } from '../map-region/value'
 import type { MapLegendPlacement } from '../types'
 
 /**
- * The map's `legend` prop: the switchboard's boolean / placement, the `'range'`
- * discriminator that swaps in the continuous scale bar, or the object form
- * `{ placement }` naming that bar's placement — the same shape a chart's range
- * legend takes, so the choropleth and heatmap read alike.
+ * The map's `legend` prop:
+ *
+ * - The switchboard's boolean / placement.
+ * - The `'range'` discriminator that swaps in the continuous scale bar.
+ * - The object form `{ placement }` naming that bar's placement.
+ *
+ * It is the same shape a chart's range legend takes, so the choropleth and
+ * heatmap read alike.
  */
 export type MapLegendInput = boolean | MapLegendPlacement | MapRangeLegendInput
 
@@ -23,7 +27,7 @@ export type MapLegendInput = boolean | MapLegendPlacement | MapRangeLegendInput
  * The forms that ask for the continuous scale bar rather than the binned
  * switchboard: the discriminator, and the object form that places the bar.
  *
- * Named so the two readers of the distinction cannot drift — {@link
+ * Named so the two readers of the distinction cannot drift. {@link
  * isRangeLegend} narrows to it, and the region-data union subtracts it to state
  * that only the numeric branch can paint one.
  *
@@ -34,11 +38,11 @@ export type MapRangeLegendInput = 'range' | ChartRangeLegendConfig
 /**
  * Whether a `legend` prop asks for the continuous range bar rather than the
  * binned switchboard. Shared with the region-data union, which holds the bar a
- * numeric-mode form: one rule for what counts as a range request, so the type
- * that refuses it and the resolver that draws it can never disagree.
+ * numeric-mode form. One rule says what counts as a range request. The type
+ * that refuses it and the resolver that draws it can therefore never disagree.
  *
- * A predicate rather than a boolean, so the caller that has to drop a range
- * request is left holding the switchboard forms alone rather than a cast.
+ * A predicate rather than a boolean. The caller that has to drop a range
+ * request is left holding the switchboard forms alone, rather than a cast.
  *
  * @internal
  */
@@ -50,10 +54,11 @@ export function isRangeLegend(legend: MapLegendInput | undefined): legend is Map
 }
 
 /**
- * Whether the legend's box mounts: explicitly asked for, or able to appear —
- * two or more categories, a registered overlay, or overlay children whose
- * entries will register from the client. Deciding off the children keeps the
- * box mounted ahead of late registrations, so they never shift the frame.
+ * Whether the legend's box mounts: explicitly asked for, or able to appear. It
+ * can appear with two or more categories, a registered overlay, or overlay
+ * children whose entries will register from the client. Deciding off the
+ * children keeps the box mounted ahead of late registrations, so they never
+ * shift the frame.
  *
  * @internal
  */
@@ -69,8 +74,8 @@ function legendCanShow(
 }
 
 /**
- * The switchboard legend's placement: the numeric (choropleth) mode reads on the
- * right by default, categorical maps keep the centered bottom row, and an
+ * The switchboard legend's placement: the numeric (choropleth) mode reads on
+ * the right by default. Categorical maps keep the centered bottom row, and an
  * explicit placement always wins. The range bar resolves its own placement
  * through {@link resolveRangeLegend}, so this only serves the switchboard.
  *
@@ -99,7 +104,7 @@ type MapRangeScale = {
 /**
  * The resolved range bar: the shared scale the chart's slider takes, plus what
  * the map wires into it. Declared here rather than on the component, so the
- * engine owns the shape it builds and the view reads it — {@link MapRangeLegend}
+ * engine owns the shape it builds and the view reads it. {@link MapRangeLegend}
  * takes this as its props.
  *
  * @internal
@@ -126,12 +131,12 @@ type MapLegendPlan = {
 }
 
 /**
- * Resolves the map's legend against its measured box: the binned switchboard
- * keeps its own can-show and placement rules, while the range bar (numeric mode,
+ * Resolves the map's legend against its measured box. The binned switchboard
+ * keeps its own can-show and placement rules. The range bar (numeric mode,
  * `'range'` or the object form) resolves placement, orientation, and visibility
- * through the shared {@link resolveRangeLegend} — sheds at the spark tier, drops
- * a side placement to a horizontal row in a box too narrow for a rail — so the
- * choropleth's bar behaves exactly as the heatmap's does.
+ * through the shared {@link resolveRangeLegend}. That bar sheds at the spark
+ * tier. It drops a side placement to a horizontal row in a box too narrow for a
+ * rail. The choropleth's bar therefore behaves exactly as the heatmap's does.
  *
  * @internal
  */
