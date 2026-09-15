@@ -6,8 +6,6 @@
 	"modules/chart/engine/chart-geometry/scatter.ts": 20,
 	"modules/chart/engine/chart-layout.ts": 51,
 	"modules/chart/engine/chart-legend/legend.tsx": 24,
-	"modules/chart/engine/chart-reference-lines.tsx": 19,
-	"modules/chart/engine/chart-value-labels.tsx": 19,
 	"modules/chart/engine/types.ts": 34,
 	"modules/chart/engine/use-chart-cartesian.ts": 33,
 	"modules/grid/engine/grid-column/measure.ts": 22,
