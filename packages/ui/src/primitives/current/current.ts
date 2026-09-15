@@ -61,10 +61,10 @@ export const [CurrentFadeContext, useCurrentFade] = createContext<boolean>('Curr
 
 /**
  * Post-mount latch broadcast by a fading `CurrentContents`: a ref that flips
- * true once the container commits its initial render. A panel mounting later —
- * a `lazy` first visit or a fresh `active` mount — reads it to enter from
- * transparent, while panels present in the container's first render skip the
- * entrance so nothing fades on load. A ref rather than state so the flip
+ * true once the container commits its initial render. A panel mounting later
+ * reads it to enter from transparent, such as a `lazy` first visit or a fresh
+ * `active` mount. Panels present in the container's first render skip the
+ * entrance, so nothing fades on load. A ref rather than state so the flip
  * re-renders nothing. `undefined` outside a fading container.
  *
  * @internal
@@ -75,11 +75,11 @@ export const [CurrentSettledContext, useCurrentSettled] = createContext<
 
 /**
  * Whether the nearest enclosing {@link CurrentContent} is the active panel,
- * folded across nesting: a panel is active only when it matches its context and
+ * folded across nesting. A panel is active only when it matches its context and
  * every ancestor panel does too. Descendants read this to know they are on the
- * visible view rather than a fade-mode panel kept mounted but hidden — useful
- * for deferring work, pausing animation, or scoping registrations to the panel
- * in view. Defaults to `true` outside any panel, so ungrouped content always
+ * visible view, rather than a fade-mode panel kept mounted but hidden. That is
+ * useful for deferring work, pausing animation, or scoping registrations to the
+ * panel in view. Defaults to `true` outside any panel, so ungrouped content always
  * counts as active.
  */
 export const [CurrentPanelActiveContext, useCurrentPanelActive] = createContext<boolean>(

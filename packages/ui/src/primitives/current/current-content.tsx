@@ -30,8 +30,8 @@ export type CurrentContentProps = ComponentProps<'div'> & {
 
 /**
  * Exit hold for a panel whose mount policy would unmount it the instant it
- * stops being current: latches when `current` flips off while `hold` applies,
- * keeping the outgoing panel mounted so its fade-out can play; `release` clears
+ * stops being current. It latches when `current` flips off while `hold` applies,
+ * keeping the outgoing panel mounted so its fade-out can play. `release` clears
  * the latch once that animation completes. The previous-value comparison runs
  * in render (React's adjust-state-during-render form) so the hold takes effect
  * in the same pass that would otherwise have unmounted the panel.
@@ -70,16 +70,19 @@ function matchesCurrent(value: string | undefined, contextValue: string | undefi
 
 /**
  * Per-panel wrapper that renders when its `value` matches the surrounding
- * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy: a
- * fading container animates opacity in place; a non-fading one holds inactive
+ * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy. A
+ * fading container animates opacity in place. A non-fading one holds inactive
  * panels via `<Activity mode="hidden">` (state preserved, effects paused),
- * lazily mounts them on first activation, or unmounts them, per its resolved
- * `mount`. Under a fading container the lifecycle edges ride the cross-fade:
- * a panel mounting after the container settles enters from transparent, an
- * `active`-mounted outgoing panel holds its unmount until the fade-out
- * completes, and a held (`always`/`lazy`) panel rests in
- * `<Activity mode="hidden">` between crossfades — live only while a fade is
- * in flight or it is the current panel.
+ * lazily mounts them on first activation, or unmounts them. The resolved
+ * `mount` decides.
+ *
+ * Under a fading container the lifecycle edges ride the cross-fade:
+ *
+ * - a panel mounting after the container settles enters from transparent
+ * - an `active`-mounted outgoing panel holds its unmount until the fade-out
+ *   completes
+ * - a held (`always`/`lazy`) panel rests in `<Activity mode="hidden">` between
+ *   crossfades, live only while a fade is in flight or it is the current panel
  */
 export function CurrentContent({
 	slotPrefix,
