@@ -43,8 +43,8 @@ export type GridColumnResize = {
  * @remarks Unlike its two siblings here, this one reads a resolved
  * {@link FrozenLayout} snapshot rather than the engine. The pinned chrome rides
  * `memo` boundaries, so a cell that holds on its props sees a frozen-layout
- * change only through this object's identity — which a snapshot changes and a
- * live reader does not.
+ * change only through this object's identity. A snapshot changes that identity,
+ * and a live reader does not.
  *
  * @internal
  */
@@ -55,9 +55,9 @@ export type GridColumnPinning = {
 
 /**
  * Per-column filter controls the header filter sheets render from. The engine
- * methods read the table live; the {@link GridColumnFilterEngine} half is
- * therefore stable across renders, while the affordance and open-request ride
- * React state and re-identify the composed object when either changes.
+ * methods read the table live. The {@link GridColumnFilterEngine} half is
+ * therefore stable across renders. The affordance and open-request ride React
+ * state, and re-identify the composed object when either changes.
  *
  * @internal
  */
@@ -75,9 +75,9 @@ export type GridColumnFilter = {
 	 */
 	uniqueValues: (id: string | number) => string[]
 	/**
-	 * Whether any column carries a filter that actually constrains rows — the same
-	 * row-constraining test the header buttons read for their active accent (a
-	 * real value or a value-less operator, not a merely-seeded rule). Drives the
+	 * Whether any column carries a filter that actually constrains rows. It is the
+	 * same row-constraining test the header buttons read for their active accent
+	 * (a real value or a value-less operator, not a merely-seeded rule). Drives the
 	 * toolbar's "Clear filters" affordance.
 	 */
 	hasActive: () => boolean
@@ -86,9 +86,9 @@ export type GridColumnFilter = {
 	/**
 	 * How a filterable column surfaces its filter. `'header'` (default) shows the
 	 * funnel button in every filterable column header. `'menu'` drops the resting
-	 * funnel — reclaiming the header width — and offers the filter from the column's
-	 * right-click menu instead; the funnel returns only once a filter is applied, as
-	 * the edit/clear affordance.
+	 * funnel, reclaiming the header width, and offers the filter from the column's
+	 * right-click menu instead. The funnel returns only once a filter is applied,
+	 * as the edit/clear affordance.
 	 */
 	affordance: 'header' | 'menu'
 	/** The column whose filter sheet was asked to open (from the menu), or `null`. */
@@ -135,16 +135,18 @@ export function isQueryGroup(value: unknown): value is QueryGroupNode {
 
 /**
  * Derives the engine's `columnPinning` state from each column's effective frozen
- * edge ({@link frozenSide} — its `locked` side, else its `pinned` side, `true`
- * being left), plus whether any column is frozen at all.
+ * edge, plus whether any column is frozen at all. That edge is
+ * {@link frozenSide}: its `locked` side, else its `pinned` side, `true` being
+ * left.
  *
  * @remarks The selection column always leads the left edge, ahead of every
- * left-frozen data column, so the row checkboxes stay anchored to the far left
- * while the grid scrolls sideways. It is held out of the freeze filters (so an
- * explicit flag on it can't double-list its id) and never counts toward
- * `hasPinned` — that gate stays driven by the data columns, so a grid with
- * nothing frozen keeps the selection column inline (no sticky offset or boundary
- * shadow); the freeze only resolves once a data column is pinned or locked.
+ * left-frozen data column. The row checkboxes therefore stay anchored to the
+ * far left while the grid scrolls sideways. It is held out of the freeze
+ * filters (so an explicit flag on it can't double-list its id) and never counts
+ * toward `hasPinned`. That gate stays driven by the data columns, so a grid
+ * with nothing frozen keeps the selection column inline (no sticky offset or
+ * boundary shadow). The freeze only resolves once a data column is pinned or
+ * locked.
  *
  * @internal
  */
@@ -183,10 +185,11 @@ export function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 
 /**
  * The grid columns to render, resolved by the engine from its `columnOrder`,
- * `columnVisibility`, and `columnPinning` state: the visible leaf columns in
- * pinned-edge order (left, then centre, then right), each mapped back to its
- * source {@link GridColumn} through `meta`. This is the single source of column
- * order and visibility the header, body, and `<colgroup>` all read.
+ * `columnVisibility`, and `columnPinning` state. They are the visible leaf
+ * columns in pinned-edge order (left, then centre, then right), each mapped
+ * back to its source {@link GridColumn} through `meta`. This is the single
+ * source of column order and visibility the header, body, and `<colgroup>` all
+ * read.
  *
  * @internal
  */
@@ -203,9 +206,9 @@ export function deriveVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
  * Assembles the table-backed {@link GridColumnResize} controls (all but
  * `sizeToFit`, grafted on by the hook); every method reads it live. `columnFloors`
  * carries the autosizer's per-column hard floor, so the resize `min` matches the
- * width the header needs — a single-word header reports (and can't be dragged
- * below) its full width, a multi-word one its icons. A column the autosizer hasn't
- * measured falls back to the engine's `minSize`.
+ * width the header needs. A single-word header reports (and can't be dragged
+ * below) its full width, and a multi-word one its icons. A column the autosizer
+ * hasn't measured falls back to the engine's `minSize`.
  *
  * @internal
  */
@@ -273,10 +276,10 @@ export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
 
 /**
  * The single-field {@link QueryField} the active-filter test resolves a column's
- * operators against — only `name` (matched to each rule's field) and `type`
- * (selecting the operator set, so a value-less operator like "is empty" reads as
- * a real constraint) bear on {@link isQueryActive}, so the faceted `options` a
- * `select` editor needs are skipped here.
+ * operators against. Only `name` (matched to each rule's field) and `type` bear
+ * on {@link isQueryActive}. `type` selects the operator set, so a value-less
+ * operator like "is empty" reads as a real constraint. The faceted `options` a
+ * `select` editor needs are therefore skipped here.
  *
  * @internal
  */
@@ -287,9 +290,9 @@ function activeFilterField<T>(id: string, table: Table<T>): QueryField {
 }
 
 /**
- * The half of {@link GridColumnFilter} a table instance can answer on its own —
- * everything but the affordance and the open-request, which are React state the
- * hook owns. Split out so that default is spelled once, at the hook.
+ * The half of {@link GridColumnFilter} a table instance can answer on its own.
+ * That is everything but the affordance and the open-request, which are React
+ * state the hook owns. Split out so that default is spelled once, at the hook.
  *
  * @internal
  */
@@ -370,9 +373,10 @@ export function buildPaginationView<T>(args: {
 }
 
 /**
- * Whether a filterable column shows its filter button: when the grid has data,
- * or — even with an empty view — when this column carries an active filter, so a
- * filter that emptied the grid can still be reached and cleared.
+ * Whether a filterable column shows its filter button. It shows when the grid
+ * has data, or — even with an empty view — when this column carries an active
+ * filter. A filter that emptied the grid can therefore still be reached and
+ * cleared.
  *
  * @internal
  */
