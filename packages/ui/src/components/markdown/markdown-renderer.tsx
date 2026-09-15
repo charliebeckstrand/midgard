@@ -15,7 +15,7 @@ const SAFE_URL_SCHEMES = /^(?:https?|mailto|tel)$/i
  * anchor, and protocol-relative URLs pass through; an absolute URL passes only
  * on a known-safe scheme — http/https/mailto/tel, plus `data:` for images.
  * Untrusted Markdown can carry `javascript:`, `data:text/html`, or `vbscript:`
- * URLs that run script when the link is clicked, so those resolve to `undefined`
+ * URLs that run script when the link is clicked. Those resolve to `undefined`,
  * and no `href`/`src` renders.
  *
  * @internal
@@ -52,10 +52,10 @@ function safeUrl(url: string, allowData = false): string | undefined {
  *
  * @remarks
  * Pure and hook-free itself, so the {@link Markdown} leaf that mounts it stays
- * static and server-renderable; a fenced code token is the one exception,
+ * static and server-renderable. A fenced code token is the one exception,
  * rendered through {@link CodeBlock} (a `'use client'` leaf that lazily
- * syntax-highlights), so a code-bearing tree picks up one client boundary
- * there while the rest stays static. Raw HTML tokens render nothing: the tree
+ * syntax-highlights). A code-bearing tree therefore picks up one client boundary
+ * there, while the rest stays static. Raw HTML tokens render nothing: the tree
  * is built only from elements this renderer controls, so source markup never
  * reaches the DOM.
  *
@@ -237,10 +237,10 @@ function alignClass(align: Tokens.TableCell['align']): string | undefined {
 }
 
 /**
- * Resolve a fenced code block's info string to a Shiki grammar id: its first
- * word (info strings carry extra metadata, e.g. a filename, after the
- * language), or `'text'` — Shiki's built-in no-highlight grammar — for an
- * unlabeled fence. An id Shiki doesn't bundle still renders: {@link CodeBlock}
+ * Resolve a fenced code block's info string to a Shiki grammar id. That is its
+ * first word, since info strings carry extra metadata (a filename, say) after
+ * the language. An unlabeled fence resolves to `'text'`, Shiki's built-in
+ * no-highlight grammar. An id Shiki doesn't bundle still renders: {@link CodeBlock}
  * falls back to plain text rather than throwing.
  */
 function resolveLang(lang: string | undefined): BundledLanguage {

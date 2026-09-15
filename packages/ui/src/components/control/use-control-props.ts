@@ -47,18 +47,19 @@ export type ControlPropsResult = {
  * context's own `size` only seeds the `<Density>` scope a sized `<Control>`
  * opens (plus nested-Control inheritance).
  *
- * @param input - Explicit control props from the field; each wins over the
- * context value of the same name, except `invalid` (OR-merged with `error`
- * severity) and `aria-describedby` (merged ahead of the field's own ids).
+ * @param input - Explicit control props from the field. Each wins over the
+ * context value of the same name, except `invalid` and `aria-describedby`.
+ * `invalid` is OR-merged with `error` severity; `aria-describedby` is merged
+ * ahead of the field's own ids.
  * @returns The resolved `id`, `autoComplete`, `disabled`, `required`,
  * `readOnly`, `invalid`, and composed `aria-describedby`; any field is
  * `undefined` when neither input nor context supplies it.
  * @remarks `invalid` resolves `true` from an explicit `invalid` (the field's
- * own prop or form binding) or when the Control / Field `severity` is `error`;
- * a nested `<Message>` is presentational and never marks the control
+ * own prop or form binding), or when the Control / Field `severity` is `error`.
+ * A nested `<Message>` is presentational and never marks the control
  * invalid. `validation` collapses the resolved state into a single spreadable
- * attribute object — invalid wins, then a `warning` / `success` severity — so
- * the three validation rings stay mutually exclusive.
+ * attribute object: invalid wins, then a `warning` / `success` severity. The
+ * three validation rings therefore stay mutually exclusive.
  * @see {@link useControlToggle} for the Density-aware variant.
  * @example
  *   const { id, disabled, required, invalid, validation } = useControlProps({

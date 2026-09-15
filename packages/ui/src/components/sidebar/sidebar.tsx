@@ -18,17 +18,17 @@ export type SidebarProps = Omit<ComponentProps<'nav'>, 'children'> & {
 	 */
 	mini?: boolean
 	/**
-	 * Render-prop children receive the resolved mini state (true only when
-	 * `mini` is set and the viewport is desktop) to branch content between
-	 * the two presentations (a logo glyph standing in for the wordmark, say).
+	 * Render-prop children receive the resolved mini state, true only when
+	 * `mini` is set and the viewport is desktop. They branch content between
+	 * the two presentations, a logo glyph standing in for the wordmark, say.
 	 */
 	children?: ReactNode | ((mini: boolean) => ReactNode)
 }
 
 /**
- * Vertical navigation landmark with a true roving-tabindex keyboard model: the
- * item list is a single Tab stop, Up/Down arrows move focus between items,
- * Left/Right rove into an item's prefix/suffix actions, and the resting stop
+ * Vertical navigation landmark with a true roving-tabindex keyboard model. The
+ * item list is a single Tab stop, Up/Down arrows move focus between items, and
+ * Left/Right rove into an item's prefix/suffix actions. The resting stop
  * sits on the current page (`aria-current="page"`), falling back to the first
  * item. Establishes an active-indicator scope.
  */
@@ -49,8 +49,8 @@ export function Sidebar({
 		activeSelector: '[aria-current="page"]',
 		/**
 		 * Affix actions inside items (prefix/suffix buttons and links) join the
-		 * keyboard model on the cross axis: Left/Right rove through the focused row's
-		 * controls while the actions stay out of the Tab order.
+		 * keyboard model on the cross axis. Left/Right rove through the focused row's
+		 * controls, while the actions stay out of the Tab order.
 		 */
 		row: {
 			rowSelector: '[data-slot="sidebar-item"]',

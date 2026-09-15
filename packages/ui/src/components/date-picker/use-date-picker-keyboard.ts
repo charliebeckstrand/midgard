@@ -15,9 +15,9 @@ type DatePickerKeyDownParams = {
 	/**
 	 * `input` mode keeps DOM focus on the editable DateInput rather than the
 	 * dialog, so the same keydown stream drives the calendar and the text field.
-	 * Enter/Space are left to the input (Enter commits, Space is inert) except
-	 * when a grid day is highlighted, and only the vertical arrows open a closed
-	 * calendar — the button-trigger variant opens on Enter/Space too.
+	 * Enter/Space are left to the input (Enter commits, Space is inert), except
+	 * when a grid day is highlighted. Only the vertical arrows open a closed
+	 * calendar; the button-trigger variant opens on Enter/Space too.
 	 */
 	input?: boolean
 	active: CalendarActive | null
@@ -65,7 +65,7 @@ function isArrowKey(key: string): boolean {
 
 /**
  * While closed, opens the calendar. The button-trigger variant opens on
- * ArrowDown/ArrowUp/Enter/Space; `input` mode opens only on the vertical arrows,
+ * ArrowDown/ArrowUp/Enter/Space. `input` mode opens only on the vertical arrows,
  * leaving Enter (commit typed text) and Space (inert in the numeric field) to
  * the DateInput.
  *
@@ -144,9 +144,9 @@ function handleOpenGlobalKey(
  * Enter/Space selects the initial date, everything else is inert.
  *
  * In `input` mode "no highlight" means the user is editing text, not roving the
- * grid, so Enter is left to the DateInput (commit/blur) and Space is inert; a
- * lingering-open calendar is closed on the committing Enter so it does not hang
- * behind the field. The arrow keys still seed the grid.
+ * grid. Enter is therefore left to the DateInput (commit/blur), and Space is
+ * inert. A lingering-open calendar is closed on the committing Enter, so it does
+ * not hang behind the field. The arrow keys still seed the grid.
  *
  * @internal
  */
