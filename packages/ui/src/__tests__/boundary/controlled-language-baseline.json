@@ -3,7 +3,6 @@
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": 23,
 	"components/pdf-viewer/use-pdf-viewer.ts": 21,
 	"hooks/a11y/use-a11y-roving.ts": 23,
-	"modules/chart/engine/chart-geometry/scatter.ts": 20,
 	"modules/chart/engine/chart-layout.ts": 51,
 	"modules/chart/engine/chart-legend/legend.tsx": 24,
 	"modules/chart/engine/types.ts": 34,
@@ -18,6 +17,5 @@
 	"modules/map/engine/map-geometry/winding.ts": 21,
 	"modules/map/map-dot.tsx": 25,
 	"modules/map/map-points.tsx": 22,
-	"modules/map/map-regions.tsx": 34,
-	"modules/map/use-map-overlay.ts": 19
+	"modules/map/map-regions.tsx": 34
 }

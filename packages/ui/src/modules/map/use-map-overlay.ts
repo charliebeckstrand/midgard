@@ -32,11 +32,11 @@ function stopFrom(event: { currentTarget: Element }): number {
 export type MapOverlayProps = {
 	/**
 	 * Stable identity for the mark, reported by {@link onClick} and
-	 * {@link onContextMenu} so a click keys straight into the caller's own rows —
-	 * the overlays' twin of a region's `regionId`.
+	 * {@link onContextMenu}, so a click keys straight into the caller's own rows.
+	 * It is the overlays' twin of a region's `regionId`.
 	 *
-	 * It is also the legend key, so an explicit id survives a remount: the mark
-	 * keeps its slot colour and its toggled-off state where a generated one would
+	 * It is also the legend key, so an explicit id survives a remount. The mark
+	 * keeps its slot colour and its toggled-off state, where a generated one would
 	 * register afresh. Must be unique within the plat. Omitted, the mark generates
 	 * its own and the identity the reporters hand back is opaque but still stable
 	 * for the mount.
@@ -49,29 +49,29 @@ export type MapOverlayProps = {
 	label: string
 	/**
 	 * A name shared with the marks that stand for the same place, merging them into
-	 * ONE legend entry — a depot's catchment and the depot inside it as a single
-	 * row, rather than the same city listed twice.
+	 * ONE legend entry. That is a depot's catchment and the depot inside it as a
+	 * single row, rather than the same city listed twice.
 	 *
 	 * The group's first-registered member names the entry and gives it its
-	 * {@link detail}, so the order the marks are written in is the order that
-	 * decides it — the order a zone already has to be written in to draw behind the
-	 * marks it holds. The entry keys itself with one swatch per distinct mark shape
-	 * in the group, so a square beside a dot says an area and a point without a
-	 * word for either. Toggling it hides every member, and pointing it emphasises
-	 * them together.
+	 * {@link detail}. The order the marks are written in is therefore the order
+	 * that decides it. That is the order a zone already has to be written in, to
+	 * draw behind the marks it holds. The entry keys itself with one swatch per
+	 * distinct mark shape in the group. A square beside a dot therefore says an
+	 * area and a point, without a word for either. Toggling it hides every member,
+	 * and pointing it emphasises them together.
 	 *
-	 * The group also takes ONE slot colour — its first member's, whether that is an
-	 * explicit {@link color} or the slot the plat assigned — because two colours
+	 * The group also takes ONE slot colour, its first member's. That holds whether
+	 * it is an explicit {@link color} or the slot the plat assigned. Two colours
 	 * under one label would read as two things. So a group needs no `color` at all
 	 * to draw as one, and naming the first member's colour names the group's.
 	 *
-	 * Omitted, the mark takes an entry of its own, which is every mark's default:
-	 * merging is worth asking for where the marks are one thing to the reader, and
+	 * Omitted, the mark takes an entry of its own, which is every mark's default.
+	 * Merging is worth asking for where the marks are one thing to the reader, and
 	 * wrong where they are separately switchable.
 	 *
 	 * @remarks It groups the LEGEND alone. Each mark keeps its own tooltip, its own
-	 * table row, and its own keyboard stop, because the pointer lands on a mark and
-	 * not on a group — a reader pointing the zone still reads the zone.
+	 * table row, and its own keyboard stop. The pointer lands on a mark and not on
+	 * a group. A reader pointing the zone still reads the zone.
 	 */
 	group?: string
 	/** Named mark colour override; defaults to the next slot after the region categories. */
@@ -85,8 +85,8 @@ export type MapOverlayProps = {
 	 * both pickable reports both the one way.
 	 *
 	 * Set, the mark carries a pointer cursor. The keyboard reaches it through the
-	 * plot region's own cursor, which visits every overlay alongside the regions
-	 * and activates the one it sits on with Enter or Space.
+	 * plot region's own cursor. That cursor visits every overlay alongside the
+	 * regions, and activates the one it sits on with Enter or Space.
 	 *
 	 * A singular mark holds one stop, so it is called with a trailing `0` its type
 	 * omits — the plural {@link MapPoints} passes the dot's index there. A handler
@@ -98,17 +98,17 @@ export type MapOverlayProps = {
 	onClick?: (id: string) => void
 	/**
 	 * Fires when a right-click lands on the mark, with the same identity
-	 * {@link onClick} reports — for a context menu wrapping the map that needs to
-	 * name what it opened over. Takes no pointer affordance and never prevents
-	 * default, so the menu still opens.
+	 * {@link onClick} reports. It serves a context menu wrapping the map, which
+	 * needs to name what it opened over. Takes no pointer affordance and never
+	 * prevents default, so the menu still opens.
 	 */
 	onContextMenu?: (id: string) => void
 }
 
 /**
  * The reporters as the hook takes them, naming the stop as well as the mark. A
- * singular mark's public `(id) => void` is assignable to this, so it passes its
- * own prop straight through and never sees the stop it does not have.
+ * singular mark's public `(id) => void` is assignable to this. It passes its own
+ * prop straight through, and never sees the stop it does not have.
  *
  * @internal
  */
@@ -147,7 +147,7 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 * Which drawn stop holds a reported index, where the mark's clicks count in
 		 * another space than its stops — see {@link MapOverlayEntry.stopOf}. Passed
 		 * live rather than through the ref the registration rides, because the
-		 * grouping behind it answers the drawn frame: a refit that regroups must
+		 * grouping behind it answers the drawn frame. A refit that regroups must
 		 * move the halo with it.
 		 */
 		stopOf?: (index: number) => number | null
@@ -156,7 +156,7 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 /**
  * The DOM props one of a mark's hit shapes spreads — {@link MapOverlay.hit}'s
  * return. Named here so the hit-props factories take exactly what a mark
- * produces and nothing a caller could widen the target with, and named once so
+ * produces, and nothing a caller could widen the target with. Named once, so
  * the dot's factory and the line's read one type.
  *
  * @internal
@@ -171,9 +171,9 @@ export type MapOverlay = {
 	hidden: boolean
 	/**
 	 * How much reach the drawn zones and the region layer leave a mark at a
-	 * position — the plat's whole ledger asked at one point, tightest budget
-	 * winning. A dot-shaped mark reads it per dot to size its hit target: a dot
-	 * gives a zone only as much room as that zone can spare, and takes it all back
+	 * position. It is the plat's whole ledger asked at one point, tightest budget
+	 * winning. A dot-shaped mark reads it per dot to size its hit target. A dot
+	 * gives a zone only as much room as that zone can spare. It takes it all back
 	 * the moment the legend puts the zone away.
 	 *
 	 * Bound to the zoom scale here, which the plat's own resolver takes as a second
@@ -195,13 +195,13 @@ export type MapOverlay = {
 	 * {@link MapPlatContextValue.neighbours}. A dot-shaped mark divides its pointer target's ground
 	 * against these, so two marks standing on top of one another no longer overlap.
 	 *
-	 * A resolver rather than the pool itself, and bound to this mark's id so the exclusion — the one
-	 * part a mark could get wrong — is still not the mark's to state. Lazy because only a dot-shaped
-	 * mark reads it and the pool invokes every other entry's `stopsAt`, which `MapPoints` registers as
-	 * a thunk precisely so that pass lands on the one reader: resolved eagerly here, every mark would
-	 * trigger that pass for every other mark — M² of them — and discard the answer in all M cases
-	 * wherever no dot-shaped mark was mounted. Memoise the result at the call site; the resolver is
-	 * stable until the plat's ledger, toggles or fit change.
+	 * A resolver rather than the pool itself, and bound to this mark's id. The exclusion is the one
+	 * part a mark could get wrong, and it is still not the mark's to state. Lazy because only a
+	 * dot-shaped mark reads it, and the pool invokes every other entry's `stopsAt`. `MapPoints`
+	 * registers that as a thunk, precisely so the pass lands on the one reader. Resolved eagerly
+	 * here, every mark would trigger that pass for every other mark — M² of them. It would discard
+	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoise the result at the
+	 * call site; the resolver is stable until the plat's ledger, toggles or fit change.
 	 */
 	neighbours: () => MapPoint2D[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
@@ -241,10 +241,10 @@ export type MapOverlay = {
  * Each overlay keeps only its own geometry and its own drawn shapes.
  *
  * The mark registers its keyboard stops and its activation alongside its legend
- * entry, so the plat's cursor can step onto it and Enter can pick it without the
- * plat knowing what kind of mark it is. A mark can hold more than one stop —
- * every dot of a {@link MapPoints} — and the cursor, the tooltip, and the click
- * all name the stop, while the legend, the toggle, and the emphasis stay with
+ * entry. The plat's cursor can therefore step onto it, and Enter can pick it
+ * without the plat knowing what kind of mark it is. A mark can hold more than
+ * one stop, every dot of a {@link MapPoints}. The cursor, the tooltip, and the
+ * click all name the stop. The legend, the toggle, and the emphasis stay with
  * the mark as a whole.
  *
  * The stops and the reporters ride stable getters over a ref, so a moving mark —
