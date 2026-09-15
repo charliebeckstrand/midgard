@@ -24,7 +24,6 @@
 	"modules/chart/engine/use-chart-keyboard.ts": 18,
 	"modules/grid/engine/grid-column/measure.ts": 22,
 	"modules/grid/engine/grid-sort/utilities.ts": 17,
-	"modules/grid/grid-context-menu-utilities.tsx": 14,
 	"modules/grid/grid-data-resolvers.ts": 14,
 	"modules/grid/grid-data.tsx": 14,
 	"modules/grid/types.ts": 32,
@@ -46,7 +45,6 @@
 	"modules/map/map-regions.tsx": 34,
 	"modules/map/use-map-overlay.ts": 19,
 	"modules/map/use-map-zoom.ts": 15,
-	"recipes/kata/grid.ts": 13,
 	"recipes/kata/map.ts": 18,
 	"recipes/kata/pdf-viewer.ts": 17
 }
