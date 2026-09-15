@@ -13,16 +13,17 @@ import { flushSync } from 'react-dom'
 
 /**
  * Floating-point epsilon (px) on the `Range` overflow test. The single-line
- * element fits exactly when its content is no wider than its box, so the `Range`
- * width minus the box width is ≤ 0 while it fits (the line shrink-wraps to its
- * text, or fills and ends short) and turns positive — by one device sub-pixel
- * (~1/64px observed) — the instant the ellipsis paints. So the test wants a bare
- * `> 0`; this epsilon only clears float dust short of that first real fraction.
+ * element fits exactly when its content is no wider than its box. The `Range`
+ * width minus the box width is therefore ≤ 0 while it fits, because the line
+ * shrink-wraps to its text, or fills and ends short. It turns positive by one
+ * device sub-pixel (~1/64px observed), the instant the ellipsis paints. So the
+ * test wants a bare `> 0`; this epsilon only clears float dust short of that
+ * first real fraction.
  *
- * A larger slack (a prior tenth-of-a-pixel) left a dead zone: an element clipped
+ * A larger slack (a prior tenth-of-a-pixel) left a dead zone. An element clipped
  * by less than that read as fitting, so its reveal tooltip never armed until the
- * box shrank a further fraction — a clipped element with no tooltip until nudged
- * smaller.
+ * box shrank a further fraction. That was a clipped element with no tooltip
+ * until nudged smaller.
  *
  * @internal
  */
@@ -30,17 +31,18 @@ const OVERFLOW_SLACK = 0.01
 
 /**
  * Whether an element's single-line content overflows its content box. A whole
- * pixel of overflow is read straight from `scrollWidth`/`clientWidth` — integer,
- * but unambiguous and cross-browser, and never a false positive (`scrollWidth`
- * never dips below `clientWidth` for fitting content). Below a pixel those round
- * the gap away — a `clientWidth` rounded up to meet `scrollWidth` reads as a fit
- * while the ellipsis is already painted — so a `Range` over the contents supplies
- * the true sub-pixel width, unaffected by the overflow clip.
+ * pixel of overflow is read straight from `scrollWidth`/`clientWidth`. That is
+ * integer, but unambiguous and cross-browser, and never a false positive
+ * (`scrollWidth` never dips below `clientWidth` for fitting content). Below a
+ * pixel those round the gap away. A `clientWidth` rounded up to meet
+ * `scrollWidth` reads as a fit while the ellipsis is already painted. A `Range`
+ * over the contents therefore supplies the true sub-pixel width, unaffected by
+ * the overflow clip.
  *
  * @param el - The single-line element to measure.
  * @param padded - Subtract the element's horizontal padding from its box before
  * comparing. Off by default, since a truncating element must carry no padding or
- * border for its bounding width to *be* its content box; {@link useIsTruncated}
+ * border for its bounding width to *be* its content box. {@link useIsTruncated}
  * measures elements that do carry it.
  * @internal
  */
@@ -70,7 +72,7 @@ function horizontalPadding(el: HTMLElement): number {
 /**
  * A single {@link ResizeObserver} shared by every truncation element, fanning
  * each width change out to the affected element's `measure`. One observer for the
- * document beats one per element: a wide, virtualized grid mounts hundreds of
+ * document beats one per element. A wide, virtualized grid mounts hundreds of
  * truncation cells, and an observer apiece multiplies the registration and
  * per-frame dispatch cost a shared instance pays once.
  *
@@ -110,8 +112,9 @@ function observeTruncation(el: Element, measure: () => void): () => void {
 }
 
 /**
- * Set for the duration of a {@link focusWithoutReveal} call and read by
- * {@link useTruncation}'s arm, which skips its synchronous flush while it holds.
+ * Set for the duration of a {@link focusWithoutReveal} call.
+ * {@link useTruncation}'s arm reads it, and skips its synchronous flush while it
+ * holds.
  * Module-level because the arm is a native listener with no line to its caller.
  *
  * @internal
@@ -122,13 +125,13 @@ let programmaticFocus = false
  * Moves focus to `el` without arming the truncation reveal's eager flush.
  *
  * @remarks {@link useTruncation} arms on a native `focusin` that fires
- * synchronously inside `el.focus()`, and its arm flushes state synchronously so a
+ * synchronously inside `el.focus()`. Its arm flushes state synchronously, so a
  * genuine hover or keyboard focus opens the reveal on that same dispatch. A
- * programmatic focus wants neither: it opens no reveal, and it can land inside a
- * React commit (a grid editor focused from a post-mount effect), where `flushSync`
- * cannot flush and warns. Callers that move focus into a possibly-truncated cell
- * during render/commit route through here so the arm commits through a plain
- * update — the same eventual state, without the mid-render flush.
+ * programmatic focus wants neither. It opens no reveal. It can land inside a
+ * React commit (a grid editor focused from a post-mount effect), where
+ * `flushSync` cannot flush and warns. Callers that move focus into a possibly-truncated cell
+ * during render/commit route through here, so the arm commits through a plain
+ * update. That is the same eventual state, without the mid-render flush.
  *
  * @internal
  */
@@ -144,38 +147,45 @@ export function focusWithoutReveal(el: HTMLElement): void {
 
 /**
  * Tracks whether an element's single-line content overflows its box (clipped to
- * an ellipsis). Measured lazily: the first pointer or focus contact arms the
- * element and takes the first read, and an armed element then re-measures
- * eagerly — after every commit, on `ResizeObserver` width changes that don't
- * re-render, and once web fonts settle (which reflows text without resizing
- * the box) — so the flag is current whenever it can be seen. Every consumer
- * gates a hover/focus reveal (a tooltip's arming, a `cursor-help`) on
- * `truncated`, and none of those is observable before the pointer or focus
- * arrives, so an element that is never visited never pays a layout read; the
- * eager alternative charged every mounted cell a `Range` measure per commit,
- * which billed a virtualized grid's scroll step hundreds of forced reads.
+ * an ellipsis). Measured lazily. The first pointer or focus contact arms the
+ * element and takes the first read. An armed element then re-measures eagerly:
  *
- * The overflow test reads `scrollWidth`/`clientWidth` first and falls back to a
- * `Range` over the contents for sub-pixel clips, so the truncating element must
- * be a single line (`nowrap` + ellipsis) with no padding or border of its own.
+ * - After every commit.
+ * - On `ResizeObserver` width changes that don't re-render.
+ * - Once web fonts settle, which reflows text without resizing the box.
+ *
+ * The flag is therefore current whenever it can be seen. Every consumer gates a
+ * hover/focus reveal (a tooltip's arming, a `cursor-help`) on `truncated`, and
+ * none of those is observable before the pointer or focus arrives. An element
+ * that is never visited therefore never pays a layout read. The eager
+ * alternative charged every mounted cell a `Range` measure per commit, which
+ * billed a virtualized grid's scroll step hundreds of forced reads.
+ *
+ * The overflow test reads `scrollWidth`/`clientWidth` first, and falls back to
+ * a `Range` over the contents for sub-pixel clips. The truncating element must
+ * therefore be a single line (`nowrap` + ellipsis) with no padding or border of
+ * its own.
  *
  * Shared by the grid's data-cell and header truncation ({@link useGridTruncation}
  * layers a resize-settle backstop on top) and by the chart and map legends'
  * entry labels.
  *
- * @param options - `armRef`: element whose pointer/focus contact arms the
- * measure, when the reveal's trigger surface is an ancestor of the measured
- * element (a legend entry around its label span); defaults to the measured
- * element itself. `suspended`: stands every measure down (a column drag-resize,
- * whose reveal is held closed anyway); the first commit after suspension lifts
+ * @param options - `armRef` is the element whose pointer/focus contact arms the
+ * measure. It applies when the reveal's trigger surface is an ancestor of the
+ * measured element (a legend entry around its label span). It defaults to the
+ * measured element itself. `suspended` stands every measure down (a column
+ * drag-resize, whose reveal is held closed anyway); the first commit after suspension lifts
  * re-measures armed elements.
- * @returns `[ref, truncated, measure, contacted]`: attach `ref` to the
- * single-line element (a callback ref — it survives the element being
- * reparented, re-binding its listeners to the replacement node); read
- * `truncated` to gate the reveal tooltip; call `measure` to force a re-read
- * (e.g. a deferred backstop after a late layout settle) — a no-op until contact
- * arms the element; read `contacted` to defer mounting reveal machinery until
- * the first contact that could ever open it.
+ * @returns `[ref, truncated, measure, contacted]`:
+ *
+ * - Attach `ref` to the single-line element. It is a callback ref, so it
+ *   survives the element being reparented, re-binding its listeners to the
+ *   replacement node.
+ * - Read `truncated` to gate the reveal tooltip.
+ * - Call `measure` to force a re-read (e.g. a deferred backstop after a late
+ *   layout settle). It is a no-op until contact arms the element.
+ * - Read `contacted` to defer mounting reveal machinery until the first contact
+ *   that could ever open it.
  * @internal
  */
 export function useTruncation<E extends HTMLElement>(options?: {
