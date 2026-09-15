@@ -31,9 +31,11 @@ import type { GridColumnFilter } from './use-grid-table'
 const REORDER_MODIFIERS = [restrictToHorizontalAxis, restrictToFirstScrollableAncestor]
 
 /**
- * Column-drag auto-scroll: horizontal only — a wide table scrolls sideways to
- * reach off-screen columns (bounded by the scroll-ancestor modifier above) —
- * with the vertical axis off so a downward drag can't scroll the body. @internal
+ * Column-drag auto-scroll, horizontal only. A wide table scrolls sideways to
+ * reach off-screen columns, bounded by the scroll-ancestor modifier above. The
+ * vertical axis is off, so a downward drag can't scroll the body.
+ *
+ * @internal
  */
 const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
 
@@ -41,9 +43,11 @@ const REORDER_AUTO_SCROLL = { threshold: { x: 0.2, y: 0 } }
 const ROW_REORDER_MODIFIERS = [restrictToVerticalAxis, restrictToFirstScrollableAncestor]
 
 /**
- * Row-drag auto-scroll: vertical only — a tall grid scrolls up/down to reach
- * off-screen rows (bounded by the scroll-ancestor modifier) — with the
- * horizontal axis off so a sideways nudge can't scroll the columns. @internal
+ * Row-drag auto-scroll, vertical only. A tall grid scrolls up/down to reach
+ * off-screen rows, bounded by the scroll-ancestor modifier. The horizontal axis
+ * is off, so a sideways nudge can't scroll the columns.
+ *
+ * @internal
  */
 const ROW_REORDER_AUTO_SCROLL = { threshold: { x: 0, y: 0.2 } }
 
@@ -157,8 +161,8 @@ export function GridRegion<T>({
 /**
  * Wraps the table region in the row drag-reorder `<DndContext>` when rows are
  * reorderable, else renders the region untouched. The context sits outside the
- * `<table>` (its injected a11y nodes must not be table children) and locks drags
- * to the y-axis, bounding them to the scroll container. Split out so
+ * `<table>`, because its injected a11y nodes must not be table children. It
+ * locks drags to the y-axis, and bounds them to the scroll container. Split out so
  * {@link GridData} stays within its complexity budget.
  *
  * @internal
@@ -187,7 +191,7 @@ export function GridRowReorderRegion({
 
 /**
  * Mounts the "Manage rows" dialog when the row manager is reachable (client
- * grouping + the header context menu), else renders nothing — keeping the
+ * grouping + the header context menu), else renders nothing. That keeps the
  * reachability branch off {@link GridData}'s complexity budget.
  *
  * @internal
@@ -208,12 +212,13 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 
 /**
  * Broadcasts the grid's resolved density onto the *table region* as a density
- * cascade, so size-aware *client* cell content (a `Sparkline`, an inline `Input`,
- * the selection checkbox) tracks the grid's `density` — and its `condensed` step,
- * which {@link resolveDensity} folds to `compact`. Scoped to the table on purpose
- * — it sits inside the context-menu trigger, below the toolbar/footer, so a
- * portaled overlay (context menu, dialog) the grid spawns stays on the ambient
- * density rather than inheriting the grid's. Static leaves (`Badge`, `Icon`,
+ * cascade. Size-aware *client* cell content therefore tracks the grid's
+ * `density`, and its `condensed` step, which {@link resolveDensity} folds to
+ * `compact`. A `Sparkline`, an inline `Input`, and the selection checkbox are
+ * such content. Scoped to the table on purpose. It sits inside the context-menu
+ * trigger, below the toolbar/footer. A portaled overlay (context menu, dialog)
+ * the grid spawns therefore stays on the ambient density, rather than inheriting
+ * the grid's. Static leaves (`Badge`, `Icon`,
  * `Text`) read no density; the `<table>` class down-projects those under
  * `condensed` (see `condensedTableClass`). A grid already at the ambient density
  * broadcasts its own level — a no-op. Kept a component so the branch lives here,
@@ -245,10 +250,12 @@ export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<
  * Restores the ambient density inside an overlay whose trigger lives in the table
  * region, so a *dialog-sized* surface isn't sized like a *cell*.
  *
- * A portal is a DOM escape, not a React one: the surface stays a descendant of the
- * trigger, so it inherits the cell cascade unless something says otherwise. Only
- * the surface is wrapped, never the trigger — the trigger is header chrome and
- * belongs at the header's density. @internal
+ * A portal is a DOM escape, not a React one. The surface stays a descendant of
+ * the trigger, so it inherits the cell cascade unless something says otherwise.
+ * Only the surface is wrapped, never the trigger — the trigger is header chrome
+ * and belongs at the header's density.
+ *
+ * @internal
  */
 export function GridOverlayDensity({ children }: { children: ReactNode }) {
 	const ambient = useGridOverlayDensity()

@@ -65,8 +65,8 @@ export function reorderGroups(
 
 /**
  * A live zone → member-id map. Keys are stringified zone ids (a group id or
- * {@link UNGROUPED}), values are stringified column ids in zone order — the flat
- * shape the drag layer mutates each pointer move and the dnd ids match.
+ * {@link UNGROUPED}), and values are stringified column ids in zone order. It is
+ * the flat shape the drag layer mutates each pointer move, and the dnd ids match.
  *
  * @internal
  */
@@ -102,8 +102,9 @@ export function recolorGroupIn(
 
 /**
  * Moves a column into a group, or out to the ungrouped pool. The column is first
- * pulled from every group it currently sits in (so it lives in one group at
- * most), then appended to the target group's members unless `groupId` is `null`.
+ * pulled from every group it currently sits in, so it lives in one group at
+ * most. It is then appended to the target group's members, unless `groupId` is
+ * `null`.
  * Empty groups after the pull are kept — the user can still add members to them.
  * Backs the accessible "Move to" menu (the drag path commits through
  * {@link zoneMapToStores}).
@@ -137,9 +138,10 @@ export type GridGroupManagerZone = {
 }
 
 /**
- * Partitions the orderable columns into zones: one per group (its members that
- * exist and aren't frozen, in the group's order) followed by the ungrouped pool
- * (the rest, in column order). A column claimed by no group lands in the pool.
+ * Partitions the orderable columns into zones: one per group, then the ungrouped
+ * pool. A group's zone holds its members that exist and aren't frozen, in the
+ * group's order. The pool holds the rest, in column order. A column claimed by
+ * no group lands in the pool.
  *
  * @internal
  */
@@ -165,9 +167,9 @@ export function buildManagerZones(
 }
 
 /**
- * Resolves an id to its zone key: the zone whose id equals it (a drop on the
- * zone droppable itself — e.g. an empty zone), else the zone whose member list
- * contains it. `undefined` when it belongs to no zone.
+ * Resolves an id to its zone key. It is the zone whose id equals it, on a drop
+ * on the zone droppable itself, such as an empty zone. Otherwise it is the zone
+ * whose member list contains it. `undefined` when it belongs to no zone.
  *
  * @internal
  */
@@ -178,10 +180,10 @@ export function findZoneId(map: ZoneMap, id: string): string | undefined {
 }
 
 /**
- * Moves `activeStr` out of its zone and into `overStr`'s zone at the insertion
- * point — the end when dropping on the zone itself, else the over-item's slot,
- * nudged past it when the pointer is below the over-item's midpoint (`below`).
- * Returns the map unchanged (same reference) for a within-zone or invalid move,
+ * Moves `activeStr` out of its zone and into `overStr`'s zone, at the insertion
+ * point. That point is the end when dropping on the zone itself, else the
+ * over-item's slot. It is nudged past that slot when the pointer is below the
+ * over-item's midpoint (`below`). Returns the map unchanged (same reference) for a within-zone or invalid move,
  * so a no-op over-event skips the re-render. Drives the live cross-zone
  * re-parent in `onDragOver`.
  *
@@ -221,9 +223,9 @@ export function moveBetweenZones(
 
 /**
  * Settles a same-zone reorder on drop (a cross-zone move already landed live in
- * `onDragOver`). Moves `activeStr` to `overStr`'s slot within their shared zone —
- * to the end when dropped on the zone id itself — or returns the map unchanged
- * for a cross-zone drop or a no-op.
+ * `onDragOver`). Moves `activeStr` to `overStr`'s slot within their shared zone,
+ * or to the end when dropped on the zone id itself. It returns the map unchanged
+ * for a cross-zone drop, or a no-op.
  *
  * @internal
  */
@@ -247,9 +249,9 @@ export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string):
 
 /**
  * Translates a settled {@link ZoneMap} back into the group editor's two external
- * stores: each group's `columns` (membership + order, read straight from its
- * zone) and the ungrouped pool's order spliced back into the full column `order`
- * (holding grouped and frozen ids in place). One derivation covers both a
+ * stores. One is each group's `columns`: membership and order, read straight
+ * from its zone. The other is the ungrouped pool's order, spliced back into the
+ * full column `order`, holding grouped and frozen ids in place. One derivation covers both a
  * cross-zone membership change and a within-zone reorder, so the split commit
  * stays consistent.
  *
