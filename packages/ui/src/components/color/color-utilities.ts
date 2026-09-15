@@ -1,6 +1,6 @@
 /**
  * Colour math for the picker family: pure conversions between HSVA (the
- * interactive source of truth), RGBA, and hex strings, plus the parse /
+ * interactive source of truth), RGBA, and hex strings. It also holds the parse /
  * serialise / equality helpers the state hook leans on. Free of React.
  */
 
@@ -35,7 +35,7 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
 
 /**
  * True when two colours render identically: value and alpha must match, then
- * hue and saturation are compared only where they show — both collapse at zero
+ * hue and saturation are compared only where they show. Both collapse at zero
  * value (black), and hue additionally at zero saturation (grey).
  */
 export function equalHsva(a: Hsva, b: Hsva): boolean {

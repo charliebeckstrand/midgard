@@ -20,8 +20,8 @@ type CalendarMonthOptions = {
 }
 
 /**
- * Owns the calendar's `viewDate` (the month/year currently rendered) and the
- * rules that re-anchor it when `value` or the `active` grid date moves to a
+ * Owns the calendar's `viewDate`, the month/year currently rendered. It also owns
+ * the rules that re-anchor it when `value` or the `active` grid date moves to a
  * different month. The re-anchor happens during render via prev-ref tracking,
  * not in a `useEffect`; it costs no extra render cycle.
  *
@@ -108,8 +108,8 @@ export function useCalendarMonth({
 	 * One report for each month the calendar renders, read from the committed
 	 * `viewDate`.
 	 *
-	 * Five routes write that state — the two steppers, `navigateTo`, the mount
-	 * drift correction, and the two render-phase re-anchors — so no single call
+	 * Five routes write that state: the two steppers, `navigateTo`, the mount
+	 * drift correction, and the two render-phase re-anchors. No single call
 	 * site is the transition. Compared by instant rather than identity, because
 	 * `navigateTo` mints a fresh `Date` even when the reader re-picks the rendered
 	 * month. The mount announces nothing; the drift correction after hydration does

@@ -81,8 +81,8 @@ export type CalendarProps = {
 	 * changes.
 	 *
 	 * The calendar owns the rendered month outright, and `onValueChange` reports a
-	 * selection rather than a view, so a consumer that fetches per-month data had
-	 * to reverse-derive the month from `getDayProps` calls. The header arrows, the
+	 * selection rather than a view. A consumer that fetches per-month data therefore
+	 * had to reverse-derive the month from `getDayProps` calls. The header arrows, the
 	 * month and year pickers, keyboard roving across a month edge, and a `value`
 	 * that lands elsewhere all report here. Mounting reports nothing.
 	 */
@@ -98,9 +98,9 @@ export type CalendarProps = {
 	 */
 	listboxId?: string
 	/**
-	 * Id stamped on the active grid cell, so a parent that keeps DOM focus on its
-	 * own input can point that input's `aria-activedescendant` at the roved day
-	 * (the active-descendant pattern; pairs with `active` and `listboxId`).
+	 * Id stamped on the active grid cell. A parent that keeps DOM focus on its
+	 * own input can point that input's `aria-activedescendant` at the roved day.
+	 * That is the active-descendant pattern; it pairs with `active` and `listboxId`.
 	 */
 	activeDescendantId?: string
 	ref?: Ref<CalendarHandle>
