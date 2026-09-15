@@ -19,10 +19,10 @@ export type ResizableGroupProps = {
 	 * Fires with the handle's index when a pointer drag-resize begins. Pair with
 	 * {@link ResizableGroupProps.onResizeEnd} to bracket the drag.
 	 *
-	 * `onSizesChange` reports the sizes but not the gesture, and it fires once per frame
-	 * for the whole drag — so it cannot say when to persist, and it cannot say when to
-	 * hold something expensive down. A keyboard nudge has no drag lifecycle — it commits
-	 * straight through `onSizesChange` — so it fires neither of these.
+	 * `onSizesChange` reports the sizes but not the gesture, and it fires once per
+	 * frame for the whole drag. It therefore cannot say when to persist, nor when
+	 * to hold something expensive down. A keyboard nudge has no drag lifecycle and
+	 * commits straight through `onSizesChange`, so it fires neither of these.
 	 */
 	onResizeStart?: (handleIndex: number) => void
 	/**

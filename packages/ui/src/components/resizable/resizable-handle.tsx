@@ -36,8 +36,8 @@ function resizeDeltaForKey(key: string, isHorizontal: boolean, step: number): nu
 /**
  * Draggable divider between two {@link ResizablePanel}s. Renders a focusable
  * `role="separator"` whose `aria-orientation` is perpendicular to the group
- * axis; drag or arrow keys (Shift for a larger step, Home/End for the extremes)
- * adjust the adjacent panel within its min/max bounds.
+ * axis. A drag or the arrow keys adjust the adjacent panel within its min and
+ * max bounds. Shift takes a larger step, and Home/End reach the extremes.
  */
 export function ResizableHandle(props: ResizableHandleProps) {
 	const { 'aria-label': ariaLabel = 'Resize', className } = props

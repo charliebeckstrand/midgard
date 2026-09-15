@@ -24,7 +24,7 @@ type PdfPaginationResult = {
 
 /**
  * Manages 1-based page state for the PDF viewer in both controlled and
- * uncontrolled modes, exposing a clamped `safePage` and a `goToPage` setter
+ * uncontrolled modes. It exposes a clamped `safePage`, and a `goToPage` setter
  * that rounds and bounds incoming values.
  *
  * @returns `{ safePage, goToPage }`.

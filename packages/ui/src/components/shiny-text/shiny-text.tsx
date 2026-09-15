@@ -58,9 +58,9 @@ const OFF_LEFT = -50
  * Text masked by a gradient whose highlight sweeps across it on a loop.
  *
  * @remarks
- * The sweep is driven by an imperative `animate()` outside any `MotionConfig`,
- * so the hook reads the OS preference directly and renders static text under
- * reduced motion (WCAG 2.3.3).
+ * The sweep is driven by an imperative `animate()` outside any `MotionConfig`.
+ * The hook therefore reads the OS preference directly, and renders static text
+ * under reduced motion (WCAG 2.3.3).
  *
  * @see {@link ShinyTextSkeleton} for the loading placeholder.
  */

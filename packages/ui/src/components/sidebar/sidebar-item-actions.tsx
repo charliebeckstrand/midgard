@@ -5,11 +5,10 @@ import { cn } from '../../core'
 export type SidebarItemActionsProps = ComponentProps<'div'>
 
 /**
- * Trailing controls for a `SidebarItem`. Hoisted into the item's `suffix`
- * slot, so its contents render beside the row's button — inside the shared
- * hover tint and focus ring, joining the cross-axis roving model — rather
- * than nested inside the `<button>`, where an interactive control would
- * break markup. Equivalent to passing the same content to the `suffix` prop;
+ * Trailing controls for a `SidebarItem`. Hoisted into the item's `suffix` slot,
+ * so its contents render beside the row's button. Nested inside the `<button>`,
+ * an interactive control would break markup. Beside the button they sit inside
+ * the shared hover tint and focus ring, and join the cross-axis roving model. Equivalent to passing the same content to the `suffix` prop;
  * an explicit `suffix` wins. The suffix slot hides it on the mini rail.
  *
  * @see {@link SidebarItem}
