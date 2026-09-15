@@ -55,8 +55,8 @@ const compactFormatter = resolveFormat({ type: 'compact', maximumFractionDigits:
 
 /**
  * The compact default the tick labels take in a narrow frame: locale compact
- * notation to one fraction digit (`48.2K`, `1.3M`), so the value gutter stays
- * cheap where a full-format label would crowd the plot. Only the tick labels
+ * notation to one fraction digit (`48.2K`, `1.3M`). The value gutter therefore
+ * stays cheap where a full-format label would crowd the plot. Only the tick labels
  * compact; the readout — tooltip and hidden table — keeps {@link
  * formatChartValue}'s full precision, and an explicit `formatValue` overrides
  * both. Small values render plainly (`820`, `8`), the same as the full default.
@@ -86,10 +86,10 @@ export type SeriesMeta = {
 
 /**
  * Builds the readout behind the marks: category labels crossed with each
- * series' formatted values, each series formatted by its own axis's formatter
- * so a dual-axis tooltip and table read a currency beside a percent.
+ * series' formatted values. Each series is formatted by its own axis's
+ * formatter, so a dual-axis tooltip and table read a currency beside a percent.
  * `formatCategory` overrides the default `String` coercion of each row's
- * category — a time axis passes a date formatter so the tooltip and table read
+ * category. A time axis passes a date formatter, so the tooltip and table read
  * the same dates the axis labels do. The swatch takes the series' slot class
  * or, for a raw colour, an inline `currentColor`.
  *

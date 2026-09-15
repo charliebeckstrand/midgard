@@ -30,15 +30,16 @@ export type ChatTranscriptProps = {
  * from the old scroll position.
  *
  * The pulse is visual only, so a reader who cannot see it is told the same
- * things through the shared live region (WCAG 4.1.3): that a reply started, and
- * the reply once it settles. Never a chunk — a reply rewrites itself many times
- * a second, and a region that read every rewrite would be worse than silence.
+ * things through the shared live region (WCAG 4.1.3). Those are that a reply
+ * started, and the reply once it settles. Never a chunk. A reply rewrites itself
+ * many times a second, and a region that read every rewrite would be worse than
+ * silence.
  * An embedded view is counted rather than read, because a chart ships its own
  * hidden data table and the readout belongs there.
  *
  * The transcript is a `log`, and its `aria-live` is deliberately `off`. The role
  * says what the region is, so a reader can find it and knows entries arrive in
- * order; leaving it live as well would put a second channel over one reply and
+ * order. Leaving it live as well would put a second channel over one reply and
  * read it twice, once per streamed rewrite and once settled.
  *
  * A transcript that mounts with its history in hand announces nothing, because

@@ -15,21 +15,21 @@ const SETTLE_MS = 120
  * scroll, which slides the plot under a stationary pointer.
  *
  * The readout is raised by pointer-move handlers over the marks and cleared on
- * `pointerleave`. A scroll fires neither: the browser recomputes the element
+ * `pointerleave`. A scroll fires neither. The browser recomputes the element
  * under a still pointer once the scroll settles, and a synthetically dispatched
- * move does not reach React's delegated handlers, so replaying the pointer is no
- * substitute. This instead hides the readout the moment a scroll begins and, a
- * beat after it settles, recomputes hover directly at the pointer's unchanged
- * viewport position through `resolveAt` — the caller's own hit math, no event in
- * play. So the readout is gone while the surface moves and returns the instant
+ * move does not reach React's delegated handlers. Replaying the pointer is
+ * therefore no substitute. This instead hides the readout the moment a scroll
+ * begins. A beat after it settles, it recomputes hover directly at the pointer's
+ * unchanged viewport position through `resolveAt`. That is the caller's own hit
+ * math, with no event in play. So the readout is gone while the surface moves and returns the instant
  * it rests, showing whatever now sits under the pointer.
  *
  * @remarks Both callbacks are raised through effect events, so each scroll
  * frame reaches the latest render's closure and neither identity re-subscribes
  * the scroll listener mid-gesture.
  *
- * @param enabled - Whether the readout feature is on; pass a stable flag (the
- * tooltip prop), not the transient hover, so a scroll's own clear never tears
+ * @param enabled - Whether the readout feature is on. Pass a stable flag (the
+ * tooltip prop), not the transient hover. A scroll's own clear then never tears
  * the listener down mid-gesture.
  * @param clear - Hides the readout; called on each scroll frame. Make it bail
  * when already clear so a page scroll far from this plot costs no render.
