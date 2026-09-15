@@ -41,11 +41,11 @@ export type PdfViewerZoom = {
  * A highlighted region of the document — one box over the page, in the unit named by
  * `highlightUnit`.
  *
- * @remarks Geometry is a plain axis-aligned box because that is all any of the three
- * things a region does needs: paint the fill, take the press, and be scrolled to. A
- * producer holding a quadrilateral (Document Intelligence emits one) reduces it to its
- * bounding box, which needs nothing the viewer knows — unlike the unit conversion, which
- * needs the page's own extent and therefore happens here. If a skewed outline is ever
+ * @remarks Geometry is a plain axis-aligned box, because that is all any of the three
+ * things a region does needs. Those three are to paint the fill, take the press, and be
+ * scrolled to. A producer holding a quadrilateral (Document Intelligence emits one) reduces
+ * it to its bounding box, which needs nothing the viewer knows. The unit conversion is the
+ * contrast: it needs the page's own extent, and therefore happens here. If a skewed outline is ever
  * wanted, it widens this one field rather than joining it.
  */
 export type PdfViewerHighlight = {
@@ -76,9 +76,9 @@ export type PdfViewerHighlightRect = { x: number; y: number; width: number; heig
 /**
  * Unit for a {@link PdfViewerHighlight}'s `rect`.
  *
- * `'fraction'` is `[0, 1]` of the page — the canonical form, and the only one well-defined
- * for both a rasterized page and a caller's pre-rendered image, and invariant under zoom,
- * rotation and re-rasterization. `'inch'` is converted against the page's own
+ * The `'fraction'` is `[0, 1]` of the page, the canonical form. It is the only one
+ * well-defined for both a rasterized page and a caller's pre-rendered image. It is
+ * invariant under zoom, rotation and re-rasterization. `'inch'` is converted against the page's own
  * {@link PdfViewerPage.pointWidth}/{@link PdfViewerPage.pointHeight}. For points, pass
  * `pt / 72`.
  */
@@ -109,8 +109,8 @@ export type PdfViewerMagnifierMode = 'simple' | 'config'
  * How much the loupe magnifies what is under the cursor: 2×, 2.5× or 4×.
  *
  * @remarks A named step rather than a free multiplier. The reader picks one of a fixed set in
- * the config dialog, and a value outside that set has no option to select — so the prop and
- * the dialog name the same three powers.
+ * the config dialog, and a value outside that set has no option to select. The prop and the
+ * dialog therefore name the same three powers.
  */
 export type PdfViewerMagnifierZoom = 'sm' | 'md' | 'lg'
 
@@ -124,21 +124,21 @@ export type PdfViewerMagnifierSize = 'sm' | 'md' | 'lg'
 /**
  * How long the pointer must rest before the loupe appears: at once, or after 300ms.
  *
- * @remarks A dwell rather than an immediate open: the pointer crosses the page on its way to
- * the toolbar and the thumbnails constantly, and a loupe that answered every one of those
- * would be a strobe. Once open it tracks with no delay at all.
+ * @remarks A dwell rather than an immediate open. The pointer crosses the page on its way to
+ * the toolbar and the thumbnails constantly. A loupe that answered every one of those would
+ * be a strobe. Once open it tracks with no delay at all.
  */
 export type PdfViewerMagnifierDelay = 'none' | 'default'
 
 /**
  * Hover-loupe settings for {@link PdfViewerProps.magnifier}.
  *
- * @remarks Boolean-or-object, the same shape `Button`'s `loading` takes: `magnifier` on its
- * own is the common case, and an object is there for the page that needs a different power, a
- * different lens, or the dialog.
+ * @remarks Boolean-or-object, the same shape `Button`'s `loading` takes. The bare
+ * `magnifier` is the common case. An object is there for the page that needs a different
+ * power, a different lens, or the dialog.
  *
- * Every setting is a named step rather than a raw number, because the config dialog offers a
- * fixed set and has to show which of them is current. Each `'md'` is the value the loupe
+ * Every setting is a named step rather than a raw number. The config dialog offers a fixed
+ * set, and has to show which of them is current. Each `'md'` is the value the loupe
  * always had, so an object that names none of them is the loupe as it was.
  */
 export type PdfViewerMagnifierOptions = {

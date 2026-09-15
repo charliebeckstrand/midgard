@@ -12,17 +12,17 @@ type MemoNode = { value?: string; next?: Map<string, MemoNode> }
 
 /**
  * Nodes the memo grows to before it stops recording. A node holds its key
- * string for the process lifetime, so nodes — not entries — are the bound that
- * matters, and the only counter this module keeps.
+ * string for the process lifetime. Nodes, not entries, are therefore the bound
+ * that matters, and the only counter this module keeps.
  *
  * Past the cap `cn` keeps answering from what it holds and merges the surplus
  * directly; it never clears. A first cut that cleared wholesale at its cap
- * measured *slower* than no memo at all on a hundred-thousand-row grid scroll,
- * where the clear repopulated continually and every call paid the walk and the
+ * measured *slower* than no memo at all, on a hundred-thousand-row grid scroll.
+ * There the clear repopulated continually, and every call paid the walk and the
  * merge both.
  *
- * Read only where a node would be created, so a call that hits never touches
- * it — a snapshot taken once per call cost ~2% of the hit path for nothing.
+ * Read only where a node would be created, so a call that hits never touches it.
+ * A snapshot taken once per call cost ~2% of the hit path for nothing.
  *
  * @internal
  */
@@ -43,8 +43,8 @@ export function cnMemoNodes(): number {
  * objects, and numbers cannot, and send the whole call to the plain merge.
  *
  * @remarks Asked before the walk, not during it. A walk that tested as it went
- * would branch on the leading arguments and only then meet one it cannot key,
- * stranding nodes on a path no call can ever complete.
+ * would branch on the leading arguments, and only then meet one it cannot key.
+ * That strands nodes on a path no call can ever complete.
  *
  * @internal
  */
@@ -65,20 +65,20 @@ function keyable(inputs: ClassValue[]): boolean {
  * @remarks
  * Memoized on its arguments, which is what makes it cheap enough to call once
  * per element per render. `tailwind-merge` caches too, but on the *joined*
- * class string — and `clsx` builds that string fresh on every call, so the
- * lookup has to internalise a new key before it can read the cache, costing
- * more than the merge it was meant to skip. Branching on the arguments
- * sidesteps the join: a call site hands down the same string objects render
- * after render (a recipe's memoized output, a literal `className`), so a repeat
- * call is a couple of `Map` reads. Measured at ~20× the un-memoized call, and
+ * class string. `clsx` builds that string fresh on every call, so the lookup has
+ * to internalise a new key before it can read the cache. That costs more than
+ * the merge it was meant to skip. Branching on the arguments sidesteps the join.
+ * A call site hands down the same string objects render after render, such as a
+ * recipe's memoized output or a literal `className`. A repeat call is therefore
+ * a couple of `Map` reads. Measured at ~20× the un-memoized call, and
  * ~13% off a ten-thousand-row grid mount.
  *
  * Only string, boolean, and nullish arguments are memoized; arrays, objects,
  * and numbers take the plain merge, carrying no stable identity to branch on.
  *
- * The memo is resident for the process lifetime and never invalidates, which is
- * safe because the merge is pure — the same arguments always yield the same
- * classes — and bounded by {@link MEMO_CAP}.
+ * The memo is resident for the process lifetime and never invalidates. That is
+ * safe because the merge is pure: the same arguments always yield the same
+ * classes. It is also bounded by {@link MEMO_CAP}.
  */
 export function cn(...inputs: ClassValue[]): string {
 	if (!keyable(inputs)) return twMerge(clsx(inputs))
