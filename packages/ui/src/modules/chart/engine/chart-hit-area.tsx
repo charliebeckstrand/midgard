@@ -16,12 +16,13 @@ export type ChartHitAreaProps = {
 	band: BandScale
 	count: number
 	/**
-	 * The chart's mark hit test: the mark under the point — a bar, a line — that
-	 * isolation lifts and every other mark recedes behind, or `null` off the marks,
-	 * which is also where the tooltip stays shut. `held` carries the mark currently
-	 * emphasised, so a bounded catch can stay sticky across the midline between two
-	 * overlapping catches; `index` carries the resolved category, so a snapping
-	 * chart can hand the emphasis to the stop the tooltip anchors in that column.
+	 * The chart's mark hit test: the mark under the point, a bar or a line, that
+	 * isolation lifts and every other mark recedes behind. It is `null` off the
+	 * marks, which is also where the tooltip stays shut. `held` carries the mark
+	 * currently emphasised, so a bounded catch can stay sticky across the midline
+	 * between two overlapping catches. The `index` carries the resolved category,
+	 * so a snapping chart can hand the emphasis to the stop the tooltip anchors in
+	 * that column.
 	 */
 	markAt?: (
 		x: number,
@@ -42,8 +43,9 @@ export type ChartHitAreaProps = {
 	trigger?: ChartTooltipTrigger
 	/**
 	 * Whether the readout snaps to the nearest point, so it reads off the marks
-	 * too. Lets a `'click'` off the marks pin the snapped band rather than dismiss,
-	 * and carries the pointer cursor across the whole plot rather than the marks alone.
+	 * too. Lets a `'click'` off the marks pin the snapped band rather than dismiss.
+	 * It also carries the pointer cursor across the whole plot, rather than the
+	 * marks alone.
 	 * @defaultValue false
 	 */
 	snaps?: boolean
@@ -56,14 +58,14 @@ export type ChartHitAreaProps = {
 }
 
 /**
- * The transparent rectangle over the plot that feeds the hover context:
- * the whole band is the hit target, so readers aim at a category, never at
- * a 2px mark. Rendered inside the frame, after the marks, so it wins the
- * pointer without occluding anything.
+ * The transparent rectangle over the plot that feeds the hover context. The
+ * whole band is the hit target, so readers aim at a category, never at a 2px
+ * mark. Rendered inside the frame, after the marks, so it wins the pointer
+ * without occluding anything.
  *
- * Self-gating at spark through {@link ChartTierContext}: a sparkline is
- * read-only, so no hit rect — nor the pointer plumbing behind it — mounts,
- * and the crosshair and tooltip that ride its hover can never draw. A chart
+ * Self-gating at spark through {@link ChartTierContext}. A sparkline is
+ * read-only, so no hit rect mounts, nor the pointer plumbing behind it. The
+ * crosshair and tooltip that ride its hover can therefore never draw. A chart
  * mounts it whenever a tooltip or crosshair wants the pointer and leaves the
  * tier to the frame.
  *
@@ -120,9 +122,9 @@ function ChartHitRect({
 }
 
 /**
- * Whether a cartesian chart mounts its hit area: something must read the
- * pointer — a tooltip, a snapping crosshair, or a band-click handler — and
- * there must be data under it. The one gate the four cartesian charts share
+ * Whether a cartesian chart mounts its hit area. Something must read the
+ * pointer: a tooltip, a snapping crosshair, or a band-click handler. There must
+ * also be data under it. The one gate the four cartesian charts share
  * before their own mark hit-test.
  *
  * @internal

@@ -7,15 +7,16 @@ import { isJsxHelperStatement } from './collect-helpers'
 import { namedImportsOf, parseSource } from './ts-source'
 
 /**
- * Build-time companion to the runtime walker: extracts per-`Example` source
- * facts from a demo's TSX — authored prop expressions, render-prop children,
- * the declarations they reference, and where their identifiers import from —
- * and injects them as a `__facts` prop so `deriveCode` can synthesize what
- * runtime values can't express (see `derive-code/types.ts` for the shapes).
+ * Build-time companion to the runtime walker. It extracts per-`Example` source
+ * facts from a demo's TSX. Those are the authored prop expressions, the
+ * render-prop children, the declarations they reference, and where their
+ * identifiers import from. It injects them as a `__facts` prop, so `deriveCode`
+ * can synthesize what runtime values can't express (see `derive-code/types.ts`
+ * for the shapes).
  *
- * Extraction is name-based, mirroring the `__code` preamble matching: bindings
- * resolve lexically per Example (module scope, then each enclosing function),
- * and reference detection downstream is a whole-word scan, not a checker pass.
+ * Extraction is name-based, mirroring the `__code` preamble matching. Bindings
+ * resolve lexically per Example: module scope, then each enclosing function.
+ * Reference detection downstream is a whole-word scan, not a checker pass.
  */
 export type SourceFactsOptions = {
 	/** Absolute path of the demo file; anchors relative-import resolution. */
@@ -122,9 +123,10 @@ function propFacts(node: ts.JsxElement | ts.JsxSelfClosingElement, sf: ts.Source
 /**
  * Collect facts for every PascalCase element the runtime walker can reach
  * inside an Example's children, in source order. Recursion descends through
- * elements, fragments, and expressions (map callbacks, conditionals — those
- * produce walker-visible elements) but not into render-prop children (emitted
- * verbatim, never walked) or nested `Example`s (they own their extraction).
+ * elements, fragments, and expressions such as map callbacks and conditionals,
+ * which produce walker-visible elements. It does not descend into render-prop
+ * children (emitted verbatim, never walked), or nested `Example`s (they own
+ * their extraction).
  * Elements contributing no facts are omitted; the walker needs no entry to
  * render them, and absent entries can never mis-match.
  */
@@ -326,13 +328,14 @@ export type FileFacts = {
 }
 
 /**
- * Extract source facts for every `<Example>` in a demo: per-Example element
- * facts and lexical bindings, plus the file-shared declaration and import
- * tables, pruned to what the facts can transitively reference. Returns null
- * when no Example yields facts. Examples with an explicit `code` attribute
- * are skipped — the override wins at runtime, so facts would be dead weight
- * in the chunk — as are Examples whose children carry no expression props or
- * render props (the walker needs no help there).
+ * Extract source facts for every `<Example>` in a demo. The result is
+ * per-Example element facts and lexical bindings, plus the file-shared
+ * declaration and import tables. Those tables are pruned to what the facts can
+ * transitively reference. Returns null when no Example yields facts. Examples
+ * with an explicit `code` attribute are skipped, because the override wins at
+ * runtime and facts would be dead weight in the chunk. Examples whose children
+ * carry no expression props or render props are skipped too, because the walker
+ * needs no help there.
  */
 export function extractSourceFacts(
 	source: string,
@@ -498,10 +501,10 @@ export function extractSourceFacts(
 }
 
 /**
- * Splice a demo's extracted facts into its source: each qualifying Example's
- * open tag gains `__facts={__exampleFacts[k]}`, and one module-level const
- * carrying the facts — the shared declaration/import tables spread into each
- * per-Example entry — lands at the end of the file. The const is declared at
+ * Splice a demo's extracted facts into its source. Each qualifying Example's
+ * open tag gains `__facts={__exampleFacts[k]}`. One module-level const carrying
+ * the facts lands at the end of the file. The shared declaration/import tables
+ * spread into each per-Example entry. The const is declared at
  * module scope but read from render scope, so it is initialized before any
  * Example renders. Returns null when no Example yields facts, leaving the
  * module untouched.
