@@ -10,10 +10,10 @@ export type ChartPoint = {
 }
 
 /**
- * Hover state shared between a chart's hit layer and the frame's overlays:
- * the pointed category (or slice) index for snapping, and the precise pointer
- * point the tooltip tracks. Confined to its own context so pointer movement
- * re-renders only the crosshair and tooltip — never the marks.
+ * Hover state shared between a chart's hit layer and the frame's overlays. It
+ * holds the pointed category (or slice) index for snapping, and the precise
+ * pointer point the tooltip tracks. Confined to its own context so pointer
+ * movement re-renders only the crosshair and tooltip — never the marks.
  *
  * @internal
  */
@@ -31,17 +31,17 @@ export type ChartHover = {
 export const [ChartHoverContext, useChartHover] = createContext<ChartHover>('ChartHover')
 
 /**
- * A reference to one drawn mark: its series index (a slice's own index for the
- * pies), and the datum within that series — a bar's or point's position — or
- * `null` for the whole series, which is what a line, an area, and legend or
- * keyboard emphasis all point at.
+ * A reference to one drawn mark: its series index, and the datum within that
+ * series. A slice's own index is the series index for the pies, and a bar's or
+ * point's position is the datum. `null` names the whole series, which is what a
+ * line, an area, and legend or keyboard emphasis all point at.
  *
  * @internal
  */
 export type ChartMarkRef = { series: number; datum: number | null }
 
 /**
- * Whether `mark` lights the given series — and datum, when one is checked: a
+ * Whether `mark` lights the given series — and datum, when one is checked. A
  * whole-series emphasis (`datum: null`) lights every datum in its series, while
  * a datum emphasis lights only its own. A group-level query passes no `datum`
  * and reads the series alone. @internal
@@ -54,11 +54,12 @@ function markLights(mark: ChartMarkRef, series: number, datum: number | null | u
 
 /**
  * The one mark emphasis every cartesian and point chart shares: the mark the
- * pointer sits on — a bar, a line, a disc — else the series the legend or
- * keyboard picks, receding all the others behind it. Its own context so the
- * marks re-render only when the emphasised mark changes — a discrete crossing —
- * never on the per-pixel pointer movement the hover context carries; the frame
- * holds the marks as children, so its own hover state never reaches them.
+ * pointer sits on — a bar, a line, a disc. Else it is the series the legend or
+ * keyboard picks, receding all the others behind it. Its own context, so the
+ * marks re-render only when the emphasised mark changes: a discrete crossing.
+ * They never re-render on the per-pixel pointer movement the hover context
+ * carries. The frame holds the marks as children, so its own hover state never
+ * reaches them.
  *
  * The pointed mark wins over a still-held legend / keyboard one, the way the
  * reference emphasis resolves the pointer over the keyboard. A datum reference
@@ -87,8 +88,8 @@ export const [ChartMarkEmphasisContext, useChartMarkEmphasis] = createContext<Ch
 
 /**
  * Resolves the shared {@link ChartMarkEmphasis}: the pointed mark takes the
- * emphasis, else the legend / keyboard series lifts to a whole-series reference,
- * else nothing is emphasised and every mark reads lit. The frame builds it from
+ * emphasis, else the legend / keyboard series lifts to a whole-series reference.
+ * Else nothing is emphasised, and every mark reads lit. The frame builds it from
  * its own pointer state and the emphasis its chart passes down.
  *
  * @internal
@@ -113,11 +114,11 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
 }
 
 /**
- * Marks emphasis shared between a chart's reference layer and its marks:
- * pointing a reference rule — or roving the keyboard cursor onto it — recedes the
- * data marks to it and its sibling rules with them, the same focus the legend
- * applies to a series. Its own context so a rule's hover re-renders only the
- * marks and rules, never the frame.
+ * Marks emphasis shared between a chart's reference layer and its marks. A
+ * pointed reference rule — or the keyboard cursor roved onto it — recedes the
+ * data marks to it, and its sibling rules with them. It is the same focus the
+ * legend applies to a series. Its own context so a rule's hover re-renders only
+ * the marks and rules, never the frame.
  *
  * @internal
  */
@@ -146,7 +147,7 @@ export const [ChartEmphasisContext, useChartEmphasis] =
 /**
  * Whether the chart is rendering inside the fullscreen dialog. The chart the
  * menu re-mounts there is a live, interactive copy, so {@link ChartContextMenu}
- * reads this and renders its children bare — the enlarged chart is a child of
+ * reads this and renders its children bare. The enlarged chart is a child of
  * the menu, never another menu host, which would recurse. Default `false` for a
  * chart in the page.
  *
@@ -162,9 +163,9 @@ export const [ChartFullscreenContext, useChartFullscreen] = createContext<boolea
 
 /**
  * The frame's resolved {@link ChartTier}, published so the interactive layers
- * stand themselves down at spark — the hit areas and crosshair unmount, the
- * value labels drop, and the reference rules shed their hover rendering —
- * instead of every chart gating each of them at its call site. One half of the
+ * stand themselves down at spark. The hit areas and crosshair unmount, the
+ * value labels drop, and the reference rules shed their hover rendering. No
+ * chart gates each of them at its call site. One half of the
  * frame's spark posture; the other is the pointer veto `k.drawing` lays over
  * the drawing itself. Defaults to `'standard'`, so a layer rendered outside a
  * frame keeps its interactive behaviour.
