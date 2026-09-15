@@ -9,11 +9,11 @@ type ChartPlotBoxProps = {
 	/** The drawing height in px, used when nothing is reserved from the width. */
 	height: number
 	/**
-	 * Fill the region's own height rather than reserving one: the plot is a
+	 * Fill the region's own height rather than reserving one. The plot is a
 	 * `flex-1` child whose height the figure's `aspect-ratio` (or the container)
-	 * already set, and the box takes all of it — the legend-inside-the-aspect-box
-	 * and free-form `fill` cases, where the drawing height is measured, not
-	 * reserved from the width.
+	 * already set. The box takes all of it. This covers the
+	 * legend-inside-the-aspect-box and free-form `fill` cases. The drawing height
+	 * there is measured, not reserved from the width.
 	 * @defaultValue false
 	 */
 	fill?: boolean
@@ -22,9 +22,10 @@ type ChartPlotBoxProps = {
 }
 
 /**
- * The `content` reserve as a `padding-bottom` length: `max(min, width ± offset)`
- * — a share of the width shifted by the pixel offset, floored at the minimum so
- * a box narrower than the offset holds `min` instead of clamping to nothing.
+ * The `content` reserve as a `padding-bottom` length: `max(min, width ±
+ * offset)`. It is a share of the width shifted by the pixel offset, floored at
+ * the minimum. A box narrower than the offset therefore holds `min`, instead of
+ * clamping to nothing.
  *
  * @internal
  */
@@ -36,21 +37,21 @@ function contentPadding(offset: number, min: number): string {
 
 /**
  * The plot region's drawing box, shared by the chart and map frames. It
- * reserves its height from its own width so the frame holds steady before the
- * width is measured and across animation replays: an `aspect` reserve holds a
- * `width / height` ratio through CSS `aspect-ratio`, and a `content` reserve
- * holds the `max(min, width + offset)` — the affine height a
- * ratio can't express — through a padding box, whose percentage padding is
- * likewise a share of the box's own width. With nothing reserved (`fixed`) the
+ * reserves its height from its own width, so the frame holds steady before the
+ * width is measured and across animation replays. An `aspect` reserve holds a
+ * `width / height` ratio through CSS `aspect-ratio`. A `content` reserve holds
+ * the `max(min, width + offset)` through a padding box, whose percentage padding
+ * is likewise a share of the box's own width. That is the affine height a ratio
+ * cannot express. With nothing reserved (`fixed`) the
  * box takes the pixel `height` directly; under `fill` it takes the whole height
  * its `flex-1` region already holds.
  *
  * Every mode is a `relative overflow-hidden` box the SVG anchors to at its
- * committed pixel size (see {@link ChartFrame}), never one it stretches to fill:
- * a resize moves the box's CSS size at once while the SVG holds its last commit,
- * so the box clips a shrinking edge or reveals a growing sliver rather than
- * scaling the whole drawing — axis labels included — against a stale `viewBox`
- * until the next commit lands. The SVG is out of flow, so it never feeds its own
+ * committed pixel size (see {@link ChartFrame}), never one it stretches to fill.
+ * A resize moves the box's CSS size at once, while the SVG holds its last
+ * commit. The box therefore clips a shrinking edge, or reveals a growing sliver.
+ * It does not scale the whole drawing — axis labels included — against a stale
+ * `viewBox` until the next commit lands. The SVG is out of flow, so it never feeds its own
  * size back into the box the reserve is meant to own.
  *
  * @internal

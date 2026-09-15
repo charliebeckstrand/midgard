@@ -32,8 +32,8 @@ export type GridCellClickContext<T> = {
 	columnId: string | number
 	/**
 	 * The cell's data value: the column's {@link GridColumn.value} accessor when
-	 * set, else the row field named by the column id — the same resolution sort,
-	 * filter, and export read. `undefined` when the column has neither.
+	 * set, else the row field named by the column id. Sort, filter, and export
+	 * read the same resolution. `undefined` when the column has neither.
 	 */
 	value: unknown
 }
@@ -51,9 +51,11 @@ export type GridCellClick<T> = (
 ) => void
 
 /**
- * Activates a keyboard-focused data cell (cell roving): fires the cell click
- * then the row click for the given context, matching the order a pointer click
- * fires them in. @internal
+ * Activates a keyboard-focused data cell (cell roving). It fires the cell click
+ * then the row click for the given context, in the order a pointer click fires
+ * them.
+ *
+ * @internal
  */
 export type GridCellRovingActivate<T> = (
 	cell: GridCellClickContext<T>,
@@ -62,8 +64,10 @@ export type GridCellRovingActivate<T> = (
 
 /**
  * A cell's data value: the column's {@link GridColumn.value} accessor when set,
- * else the row field named by the column id — the resolution sort, filter, and
- * export share. @internal
+ * else the row field named by the column id. Sort, filter, and export share the
+ * resolution.
+ *
+ * @internal
  */
 export function cellValue<T>(col: GridColumn<T>, row: T): unknown {
 	return columnAccessor(col)(row)
@@ -106,9 +110,9 @@ export function fromInteractiveContent(target: EventTarget | null): boolean {
 }
 
 /**
- * Resolves a column's truncation tooltip: `auto` (the cell's own content) when
- * the column declares no `cellTooltip`, a `custom` node when it returns one, or
- * `none` when it returns null/undefined.
+ * Resolves a column's truncation tooltip. It is `auto` (the cell's own content)
+ * when the column declares no `cellTooltip`. It is a `custom` node when the
+ * column returns one, or `none` when it returns null/undefined.
  *
  * @internal
  */

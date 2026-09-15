@@ -44,11 +44,11 @@ const SETTLE_ACTIONS = [
 
 /**
  * The save and discard pair beside the editor on the cell a cell-scoped session
- * holds. Row scope shows none: its whole row edits at once, and the settle
- * control there is the consumer's own row action, at the granularity that
- * matches. Here the grid owns the session and nothing else on screen ends it, so
- * this is the only visible way out — and the only keyboard commit available to
- * an editor that spends its own Enter, which the inline listbox does.
+ * holds. Row scope shows none: its whole row edits at once. The settle control
+ * there is the consumer's own row action, at the granularity that matches. Here
+ * the grid owns the session and nothing else on screen ends it, so this is the
+ * only visible way out. It is also the only keyboard commit available to an
+ * editor that spends its own Enter, which the inline listbox does.
  *
  * @internal
  */
@@ -79,9 +79,9 @@ function GridSettleControls({
 }
 
 /**
- * A cell's in-place editor while its row is in edit mode. Owns its live display
- * value (seeded from the cell's current value) and mirrors each change into the
- * grid's staged drafts; the grid stays unrendered as the user types. Renders the
+ * A cell's in-place editor while its row is in edit mode. It owns its live
+ * display value (seeded from the cell's current value), and mirrors each change
+ * into the grid's staged drafts. The grid stays unrendered as the user types. Renders the
  * column's {@link GridColumn.editCell} slot, or the editor inferred from the cell
  * value's primitive type. A failed `validate` rings the editor and shows the
  * message beneath the cell; Escape reverts the cell.
@@ -201,9 +201,9 @@ function GridCellEditor<T>({
 
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
- * the column binds an editor, it mounts {@link GridCellEditor}; otherwise it
- * renders the column's display content through {@link GridNavCell} (which carries
- * the active-cursor ring). A cell-scoped session (`scope: 'cell'`) narrows that
+ * the column binds an editor, it mounts {@link GridCellEditor}. Otherwise it
+ * renders the column's display content through {@link GridNavCell}, which carries
+ * the active-cursor ring. A cell-scoped session (`scope: 'cell'`) narrows that
  * to the one cell it names. The editable set and the active cell flip only on a
  * session transition, so cells don't re-render as the user types.
  *

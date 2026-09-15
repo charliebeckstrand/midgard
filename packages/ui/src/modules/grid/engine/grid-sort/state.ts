@@ -5,12 +5,12 @@ const EMPTY_SORT: SortState[] = []
 
 /**
  * Next sort list after cycling `column`. A Shift-click (`additive`) folds the
- * column into the existing sort, preserving the others and their priority order:
- * appending it ascending, flipping it to descending, then dropping it. A plain
- * click collapses the sort to this column alone and cycles it per `cycle`:
- * `'tri-state'` (the default) runs ascending → descending → unsorted, so a lone
- * sorted column clears on its third click; `'toggle'` flips ascending ↔
- * descending and never clears (see `GridSort.cycle`).
+ * column into the existing sort, and keeps the others in their priority order.
+ * It appends the column ascending, flips it to descending, then drops it. A
+ * plain click collapses the sort to this column alone and cycles it per `cycle`.
+ * The `'tri-state'` default runs ascending → descending → unsorted, so a lone
+ * sorted column clears on its third click. The `'toggle'` cycle flips ascending
+ * ↔ descending and never clears (see `GridSort.cycle`).
  *
  * @internal
  */
@@ -50,10 +50,10 @@ export function nextSort(
 
 /**
  * Value equality for two sort lists: the same columns in the same priority
- * order, each at the same direction. Compares by value, not identity — the grid
- * clears a sort to a shared `EMPTY_SORT` constant, so a caller can't lean on
- * reference to tell "returned to the current order" from "a fresh sort", most
- * visibly the unsorted `[]` a cleared sort resolves to.
+ * order, each at the same direction. Compares by value, not identity. The grid
+ * clears a sort to a shared `EMPTY_SORT` constant. A caller therefore can't lean
+ * on reference to tell "returned to the current order" from "a fresh sort". The
+ * unsorted `[]` a cleared sort resolves to is the most visible case.
  *
  * @internal
  */
@@ -71,8 +71,9 @@ export function sortsEqual(a: SortState[], b: SortState[]): boolean {
 
 /**
  * A column's place in the priority-ordered sort: whether it sorts, its
- * direction, and its 1-based priority — surfaced only under a multi-column sort,
- * where the ranking is meaningful (a single sort needs no badge).
+ * direction, and its 1-based priority. The priority is surfaced only under a
+ * multi-column sort, where the ranking is meaningful (a single sort needs no
+ * badge).
  *
  * @internal
  */
