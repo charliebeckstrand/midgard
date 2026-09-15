@@ -75,10 +75,10 @@ function computeRangeDayFlags(
 
 /**
  * Range-aware variant of {@link Calendar}. Drives the underlying calendar's
- * per-day styling through `getDayProps`: paints the band between `rangeStart`
- * and the effective end (the `hoverDate` preview when set, else `rangeEnd`),
- * marks both endpoints selected, and rounds the leading/trailing edges in
- * either selection order. Hover over a day reports it through `onHoverDate`
+ * per-day styling through `getDayProps`. It paints the band between
+ * `rangeStart` and the effective end, marks both endpoints selected, and rounds
+ * the leading and trailing edges in either selection order. The effective end
+ * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day reports it through `onHoverDate`
  * for live in-progress feedback. Endpoint state is fully controlled by the
  * parent; forwards `locale`, `size`, bounds, and the imperative `ref` to
  * `Calendar`.

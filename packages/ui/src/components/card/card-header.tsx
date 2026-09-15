@@ -10,7 +10,7 @@ export type CardHeaderProps = ComponentProps<'div'>
  * {@link CardDescription}. Carries no gap of its own; the Card projects its
  * gap to the body onto this slot from outside, keyed to its `size`. A
  * {@link CardBody} as its next sibling collapses that gap to zero, so the two
- * sit flush; any other next sibling (or none) keeps the projected gap.
+ * sit flush. Any other next sibling, or none, keeps the projected gap.
  *
  * @remarks
  * Static leaf: renders in React Server Components.

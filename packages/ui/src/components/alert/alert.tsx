@@ -154,8 +154,8 @@ function AlertContent({
  *
  * @remarks
  * Client component. Polite severities (`info`/`success`, `role="status"`) are
- * re-announced through the persistent announcer on appear, since screen
- * readers can miss a live region inserted together with its text (WCAG 4.1.3);
+ * re-announced through the persistent announcer on appear. Screen readers can
+ * miss a live region inserted together with its text (WCAG 4.1.3).
  * `warning`/`error` use `role="alert"` and announce on insertion.
  */
 export function Alert({

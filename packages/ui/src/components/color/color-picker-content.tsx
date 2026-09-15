@@ -31,7 +31,7 @@ type ColorPickerContentProps = {
  * Mounts only while `open`; {@link https://floating-ui.com | Floating UI}
  * supplies `floatingStyles` and the dismiss/role props. `returnFocus={false}`
  * on the focus manager defers focus restoration to `useFloatingUI`'s
- * `returnFocusTo`, so Escape returns focus to the trigger while an
+ * `returnFocusTo`. Escape therefore returns focus to the trigger, while an
  * outside-press lets focus follow the pointer.
  *
  * @internal

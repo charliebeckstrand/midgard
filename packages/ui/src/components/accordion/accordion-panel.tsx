@@ -26,9 +26,9 @@ export type AccordionPanelProps = {
  *
  * Under the accordion's default `mount="active"` the panel is mounted only while
  * open, so reopening resets its state. `always` and `lazy` instead hold it in
- * `<Activity mode="hidden">` — state preserved, effects torn down — where it
- * animates between its open and closed states in place and drops into the hold
- * once the closing height transition lands.
+ * `<Activity mode="hidden">`, with state preserved and effects torn down. There
+ * it animates between its open and closed states in place, and drops into the
+ * hold once the closing height transition lands.
  *
  * @see {@link AccordionTrigger}
  */
