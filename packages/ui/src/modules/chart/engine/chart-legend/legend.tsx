@@ -22,11 +22,11 @@ const PAGE_SIZE = 5
 /**
  * How many of a stacked band's controls fit within `maxRows` rows before the
  * rest collapse into a `+N` chip. Measures an invisible ghost row that always
- * holds every control — so the cut is exact and never flashes on resize the way a
- * measure-then-cut of the visible row would — reading each control's wrapped row
- * and right edge and packing them through {@link visibleLegendCount}. Returns the
- * full `count` when nothing caps (no ghost, no measurement), so an uncapped or
- * side-panel legend pays nothing.
+ * holds every control. The cut is therefore exact, and never flashes on resize
+ * the way a measure-then-cut of the visible row would. It reads each control's
+ * wrapped row and right edge, and packs them through {@link visibleLegendCount}.
+ * Returns the full `count` when nothing caps (no ghost, no measurement), so an
+ * uncapped or side-panel legend pays nothing.
  *
  * @internal
  */
@@ -107,31 +107,31 @@ type ChartLegendEntryProps = {
 	/** Focus/blur emphasis, resolved through the shared `:focus-visible` gate. */
 	onFocusEmphasis: () => void
 	/**
-	 * Render for measurement only — the invisible ghost row a capped band packs
-	 * against: a distinct `chart-legend-ghost` slot (so it never double-counts with
-	 * the interactive row) and no reveal tooltip, but the same box, so its width is
-	 * the entry's own.
+	 * Renders for measurement only. It is the invisible ghost row a capped band
+	 * packs against. It carries a distinct `chart-legend-ghost` slot, so it never
+	 * double-counts with the interactive row. It has no reveal tooltip, but the same
+	 * box, so its width is the entry's own.
 	 * @defaultValue false
 	 */
 	ghost?: boolean
 }
 
 /**
- * One legend entry: a series switch whose label truncates
- * to one line so a side panel's static width can't force the row to overflow, with
- * a hover/focus tooltip that reveals the full label once the column clips it.
- * `-webkit-line-clamp` was the first pass, but its legacy box model centers a
- * clamped line that had to wrap internally before being cut — pulling a long label
- * away from its swatch — so a plain single-line `truncate` (`nowrap` + ellipsis)
- * stands in instead; it never wraps, so nothing is left to center.
+ * One legend entry: a series switch whose label truncates to one line, so a side
+ * panel's static width can't force the row to overflow. A hover/focus tooltip
+ * reveals the full label once the column clips it. `-webkit-line-clamp` was the
+ * first pass, but its legacy box model centers a clamped line that had to wrap
+ * internally before being cut. That pulled a long label away from its swatch. A
+ * plain single-line `truncate` (`nowrap` + ellipsis) stands in instead. It never
+ * wraps, so nothing is left to center.
  *
- * @remarks The tooltip wraps the whole control rather than the label span: a
+ * @remarks The tooltip wraps the whole control rather than the label span. A
  * switch is a {@link Button}, whose {@link TouchTarget} hit-area overlay captures
- * pointer events and forwards them to the button by bubbling, so a tooltip
- * anchored to an inner span would never see the hover. Overflow is still measured
- * on the label span through the shared {@link useTruncation} detector — the same
- * measure the grid's cells use — and the closed (untruncated) tooltip renders no
- * surface, so a fitting entry adds no DOM.
+ * pointer events and forwards them to the button by bubbling. A tooltip anchored
+ * to an inner span would therefore never see the hover. Overflow is still
+ * measured on the label span through the shared {@link useTruncation} detector,
+ * the same measure the grid's cells use. The closed (untruncated) tooltip renders
+ * no surface, so a fitting entry adds no DOM.
  * @internal
  */
 function ChartLegendEntry({
@@ -244,13 +244,13 @@ type ChartLegendOverflowSwitchProps = {
 
 /**
  * One switch in the `+N` overflow popover: the same series toggle and
- * hover-emphasis as a row entry, but with the full label and none of the row's
+ * hover-emphasis as a row entry. It carries the full label, and none of the row's
  * reveal-tooltip machinery. The popover is a roomy surface with no width
- * pressure, so nothing needs clipping — and the row's per-commit {@link
- * useTruncation} layout read would thrash against the floating surface's own
- * resize and reposition observers, a measure-perturbs-layout cycle that never
- * settles. A plain switch sidesteps it: the label wraps if long, and a deep
- * overflow scrolls rather than paginating.
+ * pressure, so nothing needs clipping. The row's per-commit
+ * {@link useTruncation} layout read would also thrash against the floating
+ * surface's own resize and reposition observers. That is a measure-perturbs-layout
+ * cycle that never settles. A plain switch sidesteps it: the label wraps if long,
+ * and a deep overflow scrolls rather than paginating.
  *
  * @internal
  */
@@ -298,9 +298,9 @@ function ChartLegendOverflowSwitch({
 /** One legend entry: the series name keyed by its mark-mirroring swatch. @internal */
 export type ChartLegendItem = {
 	/**
-	 * The series' own index — the toggle, emphasis, and `hidden` set key off it,
-	 * not the entry's position, so the legend can list its switches in a
-	 * different order than the series without misrouting a click or a colour.
+	 * The series' own index. The toggle, emphasis, and `hidden` set key off it, not
+	 * the entry's position. The legend can therefore list its switches in a
+	 * different order than the series, without misrouting a click or a colour.
 	 */
 	index: number
 	label: string
@@ -324,21 +324,22 @@ export type ChartLegendItem = {
 }
 
 /**
- * One legend entry for a reference line — a switch keyed to the rule the way a
- * series entry keys to its marks: the rule's label (or its value, unlabelled)
- * beside a line swatch in the rule's colour. Clicking it toggles the rule off,
- * pulling it from the plot, the domain, and the keyboard roving; pointing or
- * keyboard-focusing a still-shown chip recedes the marks to its rule, the same
- * emphasis as pointing the rule itself. {@link ChartReferenceList} carries the
- * value parity beside the data table.
+ * One legend entry for a reference line, a switch keyed to the rule the way a
+ * series entry keys to its marks. It is the rule's label (or its value,
+ * unlabelled) beside a line swatch in the rule's colour. Clicking it toggles the
+ * rule off, pulling it from the plot, the domain, and the keyboard roving.
+ * Pointing or keyboard-focusing a still-shown chip recedes the marks to its rule,
+ * the same emphasis as pointing the rule itself. {@link ChartReferenceList}
+ * carries the value parity beside the data table.
  *
  * @internal
  */
 export type ChartLegendReference = {
 	/**
-	 * The rule's own index in the chart's `reference` array — the emphasis keys off
-	 * it, not the chip's position, so a non-finite rule dropped from the chips still
-	 * lines the emphasis up with the rule the plot draws under that index.
+	 * The rule's own index in the chart's `reference` array. The emphasis keys off
+	 * it, not the chip's position. A non-finite rule dropped from the chips
+	 * therefore still lines the emphasis up with the rule the plot draws under that
+	 * index.
 	 */
 	index: number
 	label: string
@@ -378,26 +379,26 @@ export type ChartLegendProps = {
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
 	 * row — the side rail beside a pie or donut. Reserves a rail that scales with
-	 * the chart's container (`min(16rem, 40cqw)`, once it has room for it at `@sm`)
-	 * so the legend never dominates the plot, centers the left-aligned entry block
-	 * within it, and past five switches paginates them instead of clipping the
-	 * column.
+	 * the chart's container (`min(16rem, 40cqw)`, once it has room for it at
+	 * `@sm`). The legend therefore never dominates the plot. It centers the
+	 * left-aligned entry block within it. Past five switches it paginates them,
+	 * instead of clipping the column.
 	 */
 	panel?: boolean
 	/** The `texture` prop is on, so square swatches hatch in every mode, mirroring the marks. */
 	texture?: boolean
 	/**
-	 * The stacked (wrap-row) band's row cap from the frame's tier: past it the
-	 * overflow controls collapse into a `+N` chip opening the rest as a popover
-	 * switchboard, so the band never takes unbounded height from the aspect box and
-	 * never silently clips. Ignored by a side panel (it paginates instead); unset or
-	 * `0` applies no cap — the row grows freely (a spark frame passes `0`, its
-	 * chrome dropped elsewhere).
+	 * The stacked (wrap-row) band's row cap from the frame's tier. Past it the
+	 * overflow controls collapse into a `+N` chip, opening the rest as a popover
+	 * switchboard. The band therefore never takes unbounded height from the aspect
+	 * box, and never silently clips. Ignored by a side panel, which paginates
+	 * instead. Unset or `0` applies no cap, and the row grows freely. A spark frame
+	 * passes `0`, its chrome dropped elsewhere.
 	 */
 	maxRows?: number
 	/**
-	 * Render as a static key: the swatches and labels, but no series toggle,
-	 * emphasis, or tab stop — the identity channel without the switchboard.
+	 * Renders as a static key: the swatches and labels, but no series toggle,
+	 * emphasis, or tab stop. It is the identity channel without the switchboard.
 	 * @defaultValue false
 	 */
 	inert?: boolean
@@ -413,7 +414,7 @@ type LegendSplit = {
 
 /**
  * Splits the switches and chips into the run that shows and the overflow the
- * `+N` chip holds, cutting across the switches then the chips in render order so
+ * `+N` chip holds. It cuts across the switches then the chips in render order, so
  * the first `visibleCount` controls show. Uncapped, everything shows — the
  * paginated page a side panel passes as `pageItems` — and nothing overflows.
  *
@@ -449,29 +450,28 @@ function splitLegend(
 
 /**
  * The legend — the dependable identity channel for the series, and the chart's
- * series switchboard: pointing (or keyboard-focusing) an entry dims every other
- * series, clicking toggles its series off. The switches are plain HTML buttons
- * outside the `role="img"` region, so assistive tech reads and operates them;
- * swatches carry the colour, the text stays in ink. Every entry switches, a lone
- * series included — toggling the only one off empties the chart by design, with
- * the forced-on legend holding the switch that brings it back, and emphasis a
- * no-op with no sibling marks to dim.
+ * series switchboard. Pointing (or keyboard-focusing) an entry dims every other
+ * series, and clicking toggles its series off. The switches are plain HTML
+ * buttons outside the `role="img"` region, so assistive tech reads and operates
+ * them. Swatches carry the colour, and the text stays in ink. Every entry
+ * switches, a lone series included. Toggling the only one off empties the chart
+ * by design, with the forced-on legend holding the switch that brings it back.
+ * Emphasis is a no-op with no sibling marks to dim.
  *
- * @remarks The row is one Tab stop; the arrow keys
- * rove between the switches (Home / End jump to the ends) and Escape drops
- * focus, clearing the emphasis. Pointer and keyboard share the one emphasis
- * slot: the pointed-at entry wins, and leaving it reverts to a still-held
- * keyboard focus rather than clearing. That focus side rides `:focus-visible`,
- * the same gate as the ring, so a pointer click's lingering focus — or the
- * focus a backgrounded tab re-fires on return — dims nothing without a visible
- * ring to explain it. Reference lines follow the entries as their own switches:
- * clicking one toggles its rule off, and pointing or focusing a still-shown chip
- * recedes the marks to its rule (the whole-marks equivalent of a series entry's
- * dim); an off chip's hover recedes nothing, since its rule is gone.
- * {@link ChartReferenceList} still carries the value parity. A panel past five
- * switches pages instead of clipping: the visible page still renders in `items`
- * order, so the roving and emphasis wiring key off its position there rather than
- * the full list.
+ * @remarks The row is one Tab stop. The arrow keys rove between the switches
+ * (Home / End jump to the ends), and Escape drops focus, clearing the emphasis.
+ * Pointer and keyboard share the one emphasis slot: the pointed-at entry wins,
+ * and leaving it reverts to a still-held keyboard focus rather than clearing.
+ * That focus side rides `:focus-visible`, the same gate as the ring. A pointer
+ * click's lingering focus therefore dims nothing without a visible ring to
+ * explain it. So does the focus a backgrounded tab re-fires on return. Reference
+ * lines follow the entries as their own switches. Clicking one toggles its rule
+ * off. Pointing or focusing a still-shown chip recedes the marks to its rule, the
+ * whole-marks equivalent of a series entry's dim. An off chip's hover recedes
+ * nothing, since its rule is gone. {@link ChartReferenceList} still carries the
+ * value parity. A panel past five switches pages instead of clipping. The visible
+ * page still renders in `items` order, so the roving and emphasis wiring key off
+ * its position there rather than the full list.
  * @internal
  */
 export function ChartLegend({
