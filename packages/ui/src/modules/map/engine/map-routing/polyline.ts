@@ -1,8 +1,8 @@
 /**
  * The encoded-polyline codec. Valhalla answers its OSRM-mode requests with
- * precision-6 delta strings — a smaller payload and a cheaper parse than the
- * equivalent GeoJSON coordinate array — so the decode lives here, apart from
- * the clients that ask for it.
+ * precision-6 delta strings, a smaller payload and a cheaper parse than the
+ * equivalent GeoJSON coordinate array. The decode therefore lives here, apart
+ * from the clients that ask for it.
  */
 
 import type { LngLat } from '../types'
@@ -10,11 +10,11 @@ import type { LngLat } from '../types'
 /**
  * Decodes one zig-zag varint from `encoded` at `start`: the value, the index
  * just past it, and whether it terminated within bounds. The polyline codec
- * packs each coordinate delta this way — 5-bit chunks, low chunk first, high bit
- * set while more follow, the final value zig-zag-encoded so small negatives stay
- * short. `ok` is `false` when the chunks run off the end of a truncated string,
- * so the caller can drop the partial coordinate rather than read `charCodeAt`'s
- * `NaN` as a zero chunk.
+ * packs each coordinate delta this way: 5-bit chunks, low chunk first, high bit
+ * set while more follow. The final value is zig-zag-encoded, so small negatives
+ * stay short. `ok` is `false` when the chunks run off the end of a truncated
+ * string. The caller can then drop the partial coordinate, rather than read
+ * `charCodeAt`'s `NaN` as a zero chunk.
  *
  * @internal
  */

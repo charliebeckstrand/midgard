@@ -34,17 +34,17 @@ type GridPinnedOffsetsOptions<T> = {
  * stack of pinned and/or locked columns sits flush.
  *
  * A frozen column sticks at the summed width of the frozen columns ahead of it.
- * The engine can supply that sum only while it also sets the widths — which it
- * does through the fixed-layout `<colgroup>` of a resizable grid, and not at all
- * under the auto layout of a non-resizable one, where each column takes its
+ * The engine can supply that sum only while it also sets the widths. It does
+ * that through the fixed-layout `<colgroup>` of a resizable grid, and not at all
+ * under the auto layout of a non-resizable one. There each column takes its
  * content's width. Summing the engine's sizes there spreads the frozen columns
- * apart by the difference, and the scrolling columns show through the gaps; this
+ * apart by the difference, and the scrolling columns show through the gaps. This
  * reads the rendered widths instead.
  *
  * Measures before paint on mount, and again whenever a frozen header cell
- * changes width — a container resize, new content, a density change, or web
- * fonts settling all reach the offsets only through that width, so observing the
- * cells covers each of them without a trigger apiece. The result holds its
+ * changes width. A container resize, new content, a density change, or web
+ * fonts settling all reach the offsets only through that width. Observing the
+ * cells therefore covers each of them without a trigger apiece. The result holds its
  * reference while the pixels are unchanged, so a re-measure that moved nothing
  * re-renders neither the header nor a row. `null` until the first measurement
  * (and whenever disabled), which leaves the engine's sums in place.

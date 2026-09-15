@@ -1,7 +1,7 @@
 /**
  * How a region names itself: the defaults a consumer's `regionId` and
- * `regionLabel` override, kept apart from the category resolution because the
- * join key is resolved before any colour mode is chosen.
+ * `regionLabel` override. They are kept apart from the category resolution,
+ * because the join key is resolved before any colour mode is chosen.
  */
 
 import type { MapFeature } from '../types'
@@ -22,12 +22,12 @@ const STATE_FIPS_LENGTH = 2
 /**
  * The default group a region belongs to: the first two characters of its
  * identity. That is exactly the state FIPS code in every US county atlas, where
- * a county id is the five-digit `SSCCC` — `06037` is Los Angeles County in state
+ * a county id is the five-digit `SSCCC`. `06037` is Los Angeles County in state
  * `06`, California. Any other atlas takes the `regionGroup` override.
  *
- * Read through {@link defaultRegionId} rather than off `feature.id` directly, so
- * one rule decides how a region names itself and a grouping can never see an
- * identity the plat's own join does not.
+ * The identity is read through {@link defaultRegionId} rather than off
+ * `feature.id` directly. One rule therefore decides how a region names itself,
+ * and a grouping can never see an identity the plat's own join does not.
  *
  * @internal
  */
