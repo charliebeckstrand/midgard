@@ -1,15 +1,19 @@
 /**
  * Smart client-sort comparators for {@link Grid}. The default column sort runs
  * {@link compareSmart}, which recognizes the value shapes a naive lexical sort
- * mangles — numbers, comma-grouped numbers, currency, percentages, accounting
- * negatives, dates, booleans — and falls back to a natural, locale-aware string
- * compare for everything else.
+ * mangles:
+ *
+ * - Numbers, comma-grouped numbers, and currency.
+ * - Percentages and accounting negatives.
+ * - Dates and booleans.
+ *
+ * Everything else falls back to a natural, locale-aware string compare.
  */
 
 /**
  * The natural, locale-aware collation the string fallback orders by — built
  * once and reused. `String#localeCompare` with options re-resolves collation
- * machinery on every call, which a sort pays O(N log N) times; the shared
+ * machinery on every call, which a sort pays O(N log N) times. The shared
  * collator answers the same ordering at a fraction of the per-compare cost.
  *
  * @internal
@@ -26,25 +30,30 @@ const CURRENCY = /[$£€¥₹]/g
 const DECIMAL = /^[+-]?(?:\d+\.?\d*|\.\d+)$/
 
 /**
- * The characters a number can begin with — a digit, sign, decimal point, opening
- * paren (an accounting negative), or a currency symbol. A trimmed value that
- * starts with anything else (a letter, most punctuation) cannot parse to a number,
- * so it is rejected before the strip-and-test gauntlet runs. Every shape
- * {@link parseNumeric} accepts begins with one of these, so the gate never rejects
- * a real number.
+ * The characters a number can begin with — a digit, sign, decimal point,
+ * opening paren (an accounting negative), or a currency symbol. A trimmed
+ * value that starts with anything else (a letter, most punctuation) cannot
+ * parse to a number. It is rejected before the strip-and-test gauntlet runs.
+ * Every shape {@link parseNumeric} accepts begins with one of these, so the
+ * gate never rejects a real number.
  *
  * @internal
  */
 const NUMERIC_START = /^[-+.\d($£€¥₹]/
 
 /**
- * Parses a value to a number when it reads as one, else `null`. Accepts plain
- * numbers and numeric strings dressed as data usually is: comma/space grouping
- * (`1,234`), a currency symbol (`$1,234.50`, `€90`), a trailing percent (`45%`),
- * and accounting-style negatives (`(1,234)` → `-1234`). It only strips currency
- * *symbols*, never letters, so ambiguous strings (`Item 10`, `USD 90`,
- * `2024-01-05`, `555-1234`) return `null` and sort as text — where the natural
- * string fallback already orders any trailing number correctly.
+ * Parses a value to a number when it reads as one, else `null`. It accepts
+ * plain numbers, and numeric strings dressed as data usually is:
+ *
+ * - Comma/space grouping (`1,234`).
+ * - A currency symbol (`$1,234.50`, `€90`).
+ * - A trailing percent (`45%`).
+ * - Accounting-style negatives (`(1,234)` → `-1234`).
+ *
+ * It only strips currency *symbols*, never letters. Ambiguous strings
+ * (`Item 10`, `USD 90`, `2024-01-05`, `555-1234`) therefore return `null` and
+ * sort as text. The natural string fallback already orders any trailing
+ * number correctly.
  *
  * @remarks Assumes the US/UK convention (comma thousands, dot decimal); a
  * European `1.234,56` is read by its dots, not its comma.
@@ -84,8 +93,8 @@ export function parseNumeric(value: unknown): number | null {
 /**
  * A value decorated for sorting: the empty / date / boolean / numeric
  * classification {@link compareSmart} branches on, plus the string form for the
- * locale-aware fallback — all computed once so a sort orders a value without
- * reparsing it on every comparison.
+ * locale-aware fallback. All of it is computed once, so a sort orders a value
+ * without reparsing it on every comparison.
  *
  * @internal
  */
@@ -131,10 +140,13 @@ export function toSortKey(value: unknown): SortKey {
 }
 
 /**
- * Orders two {@link SortKey}s with the exact precedence of {@link compareSmart}:
- * empties last, then date-vs-date, boolean-vs-boolean, numeric (a lone number
- * ahead of a non-number), and finally a natural locale-aware string compare —
- * without reparsing either value.
+ * Orders two {@link SortKey}s with the exact precedence of
+ * {@link compareSmart}, and without reparsing either value:
+ *
+ * - Empties last.
+ * - Then date-vs-date, and boolean-vs-boolean.
+ * - Then numeric, a lone number ahead of a non-number.
+ * - Last, a natural locale-aware string compare.
  *
  * @internal
  */
@@ -159,12 +171,17 @@ export function compareSortKeys(a: SortKey, b: SortKey): number {
 }
 
 /**
- * Ascending comparator for two cell values that resists the cases a lexical sort
- * gets wrong. Empty/nullish values sink to the end; two numbers (via
- * {@link parseNumeric}) compare numerically and sort ahead of non-numbers; dates
- * and booleans compare by their natural order; everything else falls back to a
- * natural, locale-aware string compare (so `Item 2` precedes `Item 10`). The
- * grid negates the result for descending order.
+ * Ascending comparator for two cell values that resists the cases a lexical
+ * sort gets wrong:
+ *
+ * - Empty/nullish values sink to the end.
+ * - Two numbers (via {@link parseNumeric}) compare numerically, and sort ahead
+ *   of non-numbers.
+ * - Dates and booleans compare by their natural order.
+ * - Everything else falls back to a natural, locale-aware string compare (so
+ *   `Item 2` precedes `Item 10`).
+ *
+ * The grid negates the result for descending order.
  *
  * @internal
  */
@@ -175,11 +192,15 @@ export function compareSmart(a: unknown, b: unknown): number {
 }
 
 /**
- * One resolved column of a client sort: its direction, the accessor that reads
- * its value from a row (`value` or the id field, the engine's `accessorFn`),
- * and an optional custom `sortFn` that overrides the smart comparison. The
- * caller resolves these from the sort list and column set so this stays free of
- * any `GridColumn` dependency.
+ * One resolved column of a client sort:
+ *
+ * - Its direction.
+ * - The accessor that reads its value from a row (`value` or the id field, the
+ *   engine's `accessorFn`).
+ * - An optional custom `sortFn` that overrides the smart comparison.
+ *
+ * The caller resolves these from the sort list and column set, so this stays
+ * free of any `GridColumn` dependency.
  *
  * @internal
  */
@@ -191,24 +212,25 @@ export type SmartSortField<T> = {
 }
 
 /**
- * Orders `rows` by an ordered {@link SmartSortField} list, off the engine — the
- * client-sort fast path for a grid whose only transform is the sort, matching
- * {@link makeSmartSortingFn} exactly so it interchanges with the engine's
- * `getSortedRowModel`.
+ * Orders `rows` by an ordered {@link SmartSortField} list, off the engine. It
+ * is the client-sort fast path for a grid whose only transform is the sort. It
+ * matches {@link makeSmartSortingFn} exactly, so it interchanges with the
+ * engine's `getSortedRowModel`.
  *
- * A decorate-sort-undecorate: each smart field's {@link SortKey} is computed once
- * per row (the costly `parseNumeric` and type checks), and the sort then compares
- * pre-decoded keys with no reparsing — the per-comparison work the engine's
- * cached comparator also avoids, here without a `WeakMap`/`Map` lookup apiece.
- * Empties sink last under both directions; a `desc` field negates only the
- * non-empty comparison (the engine's negation-plus-pre-invert, folded into one
- * sign here). Fields are consulted in priority order, and equal rows fall back to
- * their original index, so the sort is stable — the tie-break the engine's
- * `sortIndex` supplies.
+ * A decorate-sort-undecorate. Each smart field's {@link SortKey} is computed
+ * once per row (the costly `parseNumeric` and type checks). The sort then
+ * compares pre-decoded keys with no reparsing. That is the per-comparison work
+ * the engine's cached comparator also avoids, here without a `WeakMap`/`Map`
+ * lookup apiece. Empties sink last under both directions; a `desc` field
+ * negates only the non-empty comparison (the engine's negation-plus-pre-invert,
+ * folded into one sign here). Fields are consulted in priority order, and equal
+ * rows fall back to their original index. The sort is therefore stable, the
+ * tie-break the engine's `sortIndex` supplies.
  *
  * @returns The reordered rows and their keys, each key taken at the row's
- * *original* index (the identity `getRowId` saw), so it matches the engine path's
- * `rowKeys` and the body's `getRow` lookups regardless of sorted position.
+ * *original* index (the identity `getRowId` saw). It therefore matches the
+ * engine path's `rowKeys` and the body's `getRow` lookups regardless of
+ * sorted position.
  * @internal
  */
 export function sortRowsSmart<T>(
@@ -220,17 +242,17 @@ export function sortRowsSmart<T>(
 }
 
 /**
- * The costly half of {@link sortRowsSmart}: decodes each smart field's
- * {@link SortKey} once (the `parseNumeric` and type checks) and sorts an index
- * array over the decoded keys, returning the row indices in sorted order — the
+ * The costly half of {@link sortRowsSmart}. It decodes each smart field's
+ * {@link SortKey} once (the `parseNumeric` and type checks), then sorts an index
+ * array over the decoded keys. It returns the row indices in sorted order — the
  * *permutation*, not the rows. Fields are consulted in priority order and equal
  * rows fall back to their original index, so the order is stable.
  *
- * Split from {@link materializeSort} because the permutation depends only on the
- * rows and the fields, not on `getKey`: a re-sort of unchanged rows by a spec
- * already computed (an asc/desc flip, the module's costliest interaction) reuses
- * this permutation and pays only the linear materialize, never the decode/sort
- * again.
+ * Split from {@link materializeSort} because the permutation depends only on
+ * the rows and the fields, not on `getKey`. A re-sort of unchanged rows by a
+ * spec already computed (an asc/desc flip, the module's costliest interaction)
+ * reuses this permutation. It pays only the linear materialize, never the
+ * decode/sort again.
  *
  * @internal
  */
@@ -263,11 +285,11 @@ export function computeSortOrder<T>(rows: T[], fields: SmartSortField<T>[]): num
 }
 
 /**
- * The cheap half of {@link sortRowsSmart}: projects a sort permutation (from
- * {@link computeSortOrder}) into the reordered rows and their keys in one O(rows)
- * pass, each key taken at the row's *original* index (the identity `getRowId`
- * saw), so it matches the engine path's `rowKeys` and the body's `getRow` lookups
- * regardless of sorted position.
+ * The cheap half of {@link sortRowsSmart}. It projects a sort permutation (from
+ * {@link computeSortOrder}) into the reordered rows and their keys in one
+ * O(rows) pass. Each key is taken at the row's *original* index (the identity
+ * `getRowId` saw). It therefore matches the engine path's `rowKeys` and the
+ * body's `getRow` lookups regardless of sorted position.
  *
  * @internal
  */
@@ -295,11 +317,11 @@ export function materializeSort<T>(
 }
 
 /**
- * Builds one field's index comparator: a custom `sortFn` compares the two rows
- * directly (negated for a descending field), while the smart path decodes each
- * row's {@link SortKey} once up front and compares the pre-decoded keys — empties
- * last under both directions, only the non-empty comparison flipping for
- * descending.
+ * Builds one field's index comparator. A custom `sortFn` compares the two rows
+ * directly, negated for a descending field. The smart path instead decodes each
+ * row's {@link SortKey} once up front, then compares the pre-decoded keys.
+ * Empties sink last under both directions, and only the non-empty comparison
+ * flips for descending.
  *
  * @internal
  */
