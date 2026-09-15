@@ -74,7 +74,9 @@ export type GridRowsProps<T> = {
 	/**
 	 * Whether rows are drag-reorderable right now. When true each row renders as a
 	 * vertical sortable ({@link GridReorderableRow}) and its drag-handle column's
-	 * grip is live; when false the grip (if any) is inert. @defaultValue false
+	 * grip is live. When false the grip (if any) is inert.
+	 *
+	 * @defaultValue false
 	 */
 	rowReorderActive: boolean
 	/**
@@ -190,8 +192,10 @@ export function renderGridRow<T>(
 
 /**
  * The dnd-kit sortable bindings a {@link GridReorderableRow} threads into its
- * row: the `<tr>` node ref and lifted transform/transition style, plus the
- * activator ref, attributes, and listeners the drag-handle grip carries. @internal
+ * row. They are the `<tr>` node ref and lifted transform/transition style, plus
+ * the activator ref, attributes, and listeners the drag-handle grip carries.
+ *
+ * @internal
  */
 export type GridRowSortable = {
 	setNodeRef: (node: HTMLElement | null) => void
@@ -207,11 +211,11 @@ type GridRowProps<T> = {
 	row: T
 	rowKey: string | number
 	/**
-	 * The visible columns, in display order; the row renders one cell per entry
+	 * The visible columns, in display order. The row renders one cell per entry
 	 * straight from the column's declaration (`cell` / `selectable` / `actions` /
-	 * …), with no engine row or cell objects in between — the layer that once
-	 * forced a `Row` per data row on grids no transform had touched. Passed in
-	 * (not derived) so the memoized row re-renders when the visible set changes.
+	 * …). No engine row or cell objects sit in between. That layer once forced a
+	 * `Row` per data row on grids no transform had touched. Passed in (not
+	 * derived) so the memoized row re-renders when the visible set changes.
 	 */
 	columns: GridColumn<T>[]
 	loading: boolean
@@ -263,8 +267,8 @@ type GridRowProps<T> = {
 	cellActivate?: GridCellRovingActivate<T>
 	/**
 	 * 1-based position in the full row set (header = 1). Set when the rendered
-	 * body is a window onto a larger set — virtualization or pagination — so
-	 * assistive tech reports position in the full set, not the rendered slice.
+	 * body is a window onto a larger set: virtualization or pagination. Assistive
+	 * tech then reports position in the full set, not the rendered slice.
 	 * Omitted for a plain, whole-set table.
 	 */
 	rowIndex?: number
@@ -279,14 +283,17 @@ type GridRowProps<T> = {
 	pinning: GridColumnPinning | null
 	/**
 	 * dnd-kit sortable bindings when this row is a live drag-reorder node (set by
-	 * {@link GridReorderableRow}); `undefined` for a plain row, whose drag-handle
-	 * cell (if any) then renders an inert grip. @internal
+	 * {@link GridReorderableRow}). `undefined` for a plain row, whose drag-handle
+	 * cell (if any) then renders an inert grip.
+	 *
+	 * @internal
 	 */
 	sortable?: GridRowSortable
 	/**
-	 * Whether this row animates to its sorted place (a Framer `layout` FLIP) when a
-	 * sort reorders it; ignored on a drag-reorder node ({@link GridRowProps.sortable}),
-	 * which drives its own transform. Threaded from {@link GridRowsProps.animateSortRows}.
+	 * Whether this row animates to its sorted place (a Framer `layout` FLIP) when
+	 * a sort reorders it. Ignored on a drag-reorder node
+	 * ({@link GridRowProps.sortable}), which drives its own transform. Threaded
+	 * from {@link GridRowsProps.animateSortRows}.
 	 * @defaultValue false
 	 */
 	animateSortRows?: boolean
@@ -307,7 +314,7 @@ type GridRowProps<T> = {
 }
 
 /**
- * A `TableRow` that can carry Framer's `layout` prop, so a sort-animated row
+ * A `TableRow` that can carry Framer's `layout` prop. A sort-animated row thus
  * FLIPs from its old slot to its new one when a sort reorders it (see
  * {@link GridRowProps.animateSortRows}). `motion.create` wraps the primitive
  * rather than a bare `motion.tr` so the row keeps `TableRow`'s base styling and
@@ -505,8 +512,8 @@ function GridRowImpl<T>({
 export const GridRow = memo(GridRowImpl) as typeof GridRowImpl
 
 /**
- * A drag-reorderable body row: registers the `<tr>` as a vertical dnd-kit
- * sortable keyed by its row key, composes the lift transform/transition, and
+ * A drag-reorderable body row. It registers the `<tr>` as a vertical dnd-kit
+ * sortable keyed by its row key, and composes the lift transform/transition. It
  * threads the activator ref and listeners down to its drag-handle grip. Unlike
  * {@link useSortableItem}, the dragged row stays visible (no `<DragOverlay>`) and
  * lifts in place via {@link k.rowReorder.dragging}.
@@ -550,7 +557,7 @@ type GridRowDragHandleProps = {
 /**
  * The grip in a {@link GridColumn.dragHandle} cell. When the row is reorderable
  * it carries the sortable's activator ref, attributes, and pointer/keyboard
- * listeners; otherwise it renders disabled — present for layout, inert because a
+ * listeners. Otherwise it renders disabled: present for layout, inert because a
  * manual order isn't meaningful right now (a column sort, a filtered view, …).
  *
  * @internal
