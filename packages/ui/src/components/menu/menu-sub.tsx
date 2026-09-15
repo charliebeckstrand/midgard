@@ -35,7 +35,7 @@ import { MENUITEM_SELECTOR } from './use-menu-state'
 
 /**
  * Keys that open a submenu from its roved parent row. Direction keys are
- * deliberately absent: the panel takes whichever side has room
+ * deliberately absent. The panel takes whichever side has room
  * ({@link SUBMENU_MIDDLEWARE}), so ArrowRight would open a panel that lands on
  * the left as often as not.
  *
@@ -45,11 +45,11 @@ const OPEN_KEYS = ['Enter', ' ']
 
 /**
  * Positions the panel beside its parent row on whichever side has the most
- * room, rather than committing to one and flipping only once it overflows:
- * `autoPlacement` measures both edges every reposition, so a menu opened near
- * the right edge of the viewport opens leftward from the start instead of being
- * clipped. Restricted to the horizontal sides — a submenu above or below its
- * parent would cover the menu it came from — and top-aligned with the row it
+ * room, rather than committing to one and flipping only once it overflows.
+ * `autoPlacement` measures both edges every reposition. A menu opened near the
+ * right edge of the viewport therefore opens leftward from the start, instead
+ * of being clipped. Restricted to the horizontal sides, because a submenu above
+ * or below its parent would cover the menu it came from. Top-aligned with the row it
  * hangs off, with `shift` nudging it back into view when it runs past the
  * bottom.
  *
@@ -70,9 +70,9 @@ export type MenuSubProps = {
 	/** Render the parent row inert and dimmed; the submenu never opens. @defaultValue false */
 	disabled?: boolean
 	/**
-	 * Fires when this submenu opens or closes, whatever drove it: hover intent, a click,
-	 * Enter / Space, `Escape`, a blur off the row, an outside press, or a sibling row
-	 * taking the level's cursor.
+	 * Fires when this submenu opens or closes, whatever drove it. That covers hover
+	 * intent, a click, Enter / Space, `Escape`, a blur off the row, an outside press,
+	 * or a sibling row taking the level's cursor.
 	 *
 	 * Observation only. The enclosing level owns which submenu is open — one at a time —
 	 * so there is no `open` prop to pair with. Use this to mirror the state elsewhere, not
@@ -85,32 +85,33 @@ export type MenuSubProps = {
 }
 
 /**
- * A menu row that opens a nested menu beside itself: a `role="menuitem"` parent
- * carrying `aria-haspopup="menu"` and a trailing chevron, plus the floating
- * panel its rows render in. Opens on hover, on click, and — while the row is
- * the roved one — on Enter / Space; closes on `Escape`, an outside press, or the
+ * A menu row that opens a nested menu beside itself. It is a `role="menuitem"`
+ * parent carrying `aria-haspopup="menu"` and a trailing chevron, plus the
+ * floating panel its rows render in. Opens on hover, on click, and — while the
+ * row is the roved one — on Enter / Space. Closes on `Escape`, an outside press, or the
  * cursor settling on another row. Selecting a row inside closes the whole menu,
  * as any {@link MenuItem} does.
  *
  * @remarks **An open submenu owns the arrows.** However it was opened, the
- * navigation keys work its rows and wrap inside them rather than roving on
- * through the menu the row sits in, which would leave the panel hanging open
- * behind the cursor; `Escape` closes it and hands them back, cursor on the
- * parent row. A hover open leaves focus on that row until the first such key —
- * hover is not a commitment (APG) — while Enter, Space, and click seat it on the
- * panel's first row outright.
+ * navigation keys work its rows and wrap inside them, rather than roving on
+ * through the menu the row sits in. That would leave the panel hanging open
+ * behind the cursor. `Escape` closes it and hands them back, cursor on the
+ * parent row. A hover open leaves focus on that row until the first such key,
+ * because hover is not a commitment (APG). Enter, Space, and click seat it on
+ * the panel's first row outright.
  *
  * The panel takes whichever side of the row has room
  * ({@link SUBMENU_MIDDLEWARE}), so it opens leftward near the viewport's right
- * edge rather than being clipped — which is why no direction key opens or closes
+ * edge rather than being clipped. That is why no direction key opens or closes
  * it. Open state is the enclosing level's, not this row's
- * ({@link MenuPointerLevel}), so one submenu hangs off a menu at a time and the
- * pointer reads its course against that one panel; the row's own panel provides
- * the next level down. Tab is held inside the open panel, cycling its rows. The
- * panel portals out of the enclosing {@link MenuContent}, so its height-capped,
- * scrolling viewport can't clip it. A dropdown keeps focus on its trigger and
- * roves by `aria-activedescendant`, so the arrows for a submenu open under one
- * arrive there instead; {@link MenuTrigger} hands them over the same way.
+ * ({@link MenuPointerLevel}), so one submenu hangs off a menu at a time. The
+ * pointer reads its course against that one panel, and the row's own panel
+ * provides the next level down. Tab is held inside the open panel, cycling its
+ * rows. The panel portals out of the enclosing {@link MenuContent}, so its
+ * height-capped, scrolling viewport can't clip it. A dropdown keeps focus on
+ * its trigger and roves by `aria-activedescendant`, so the arrows for a submenu
+ * open under one arrive there instead. {@link MenuTrigger} hands them over the
+ * same way.
  * @see {@link MenuItem}
  */
 export function MenuSub({
@@ -364,7 +365,7 @@ export function MenuSub({
 			</button>
 
 			{/* The level this row's own panel opens, wrapping the surface rather than
-			sitting inside it so it outlives each open — its rows rove by real focus,
+			sitting inside it so it outlives each open. Its rows rove by real focus,
 			whatever model the menu above them uses. */}
 			<MenuPointerLevel>
 				<FloatingSurface

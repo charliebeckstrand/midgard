@@ -1,7 +1,6 @@
 {
 	"components/combobox/combobox.tsx": 15,
 	"components/drawer/drawer.tsx": 18,
-	"components/menu/menu-sub.tsx": 12,
 	"components/menu/use-menu-pointer.tsx": 15,
 	"components/pdf-viewer/pdf-viewer-document-cache.ts": 19,
 	"components/pdf-viewer/pdf-viewer-highlights.tsx": 32,
@@ -12,7 +11,6 @@
 	"hooks/use-panel-resize.ts": 19,
 	"hooks/use-plot-frame.ts": 15,
 	"hooks/use-truncation.ts": 15,
-	"modules/chart/engine/chart-context-menu.tsx": 12,
 	"modules/chart/engine/chart-frame/frame.tsx": 12,
 	"modules/chart/engine/chart-geometry/pie.ts": 17,
 	"modules/chart/engine/chart-geometry/scatter.ts": 20,
