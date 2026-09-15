@@ -45,15 +45,15 @@ export type DateInputProps = Omit<
 	 * text.
 	 *
 	 * The field already holds that verdict — it is what renders the error Message
-	 * and sets `aria-invalid` — and kept it. `onValueChange` cannot stand in:
-	 * it emits `undefined` for a cleared field, a half-typed date, and an
-	 * unparsable one alike, so a caller cannot tell "not finished" from "wrong".
-	 * `isValid` says the text parses to a complete in-range date;
+	 * and sets `aria-invalid` — and kept it. The `onValueChange` cannot stand in.
+	 * It emits `undefined` for a cleared field, a half-typed date, and an
+	 * unparsable one alike. A caller therefore cannot tell "not finished" from
+	 * "wrong". The `isValid` says the text parses to a complete in-range date. The
 	 * `isPotentiallyValid` says it can still become one, so a growing entry is
 	 * potentially valid until it is both complete and refused. A value that arrives
-	 * from outside — a form reset, a calendar pick — clears any refusal and reports
-	 * the verdict it left behind, so the field's own `aria-invalid` and the reported
-	 * verdict never disagree. `CreditCardInputExpiry`
+	 * from outside clears any refusal, and reports the verdict it left behind. A
+	 * form reset or a calendar pick is such a value. The field's own `aria-invalid`
+	 * and the reported verdict therefore never disagree. `CreditCardInputExpiry`
 	 * ships this callback on the same payload, and names this field as its model.
 	 */
 	onValidityChange?: (validity: CardValidity) => void
@@ -70,8 +70,8 @@ export type DateInputProps = Omit<
 	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
 	max?: Date
 	/**
-	 * Renders a clear button before the suffix whenever the field holds any text —
-	 * including a partial, not-yet-complete entry; clearing empties the field,
+	 * Renders a clear button before the suffix whenever the field holds any text,
+	 * including a partial, not-yet-complete entry. Clearing empties the field,
 	 * emits `undefined`, and returns focus to the input. In a `DatePicker`'s
 	 * `input` mode this clears the picker itself through the bound `onValueChange`.
 	 *
@@ -93,9 +93,9 @@ export type DateInputProps = Omit<
 /**
  * Text Input that masks typed digits into a date pattern (`format`, defaulting
  * to the ambient locale's field order). Emits a `Date` via `onValueChange` once the text is a
- * complete, real, in-range date. Marks itself invalid — and renders the
- * `invalidMessage` — when a complete entry does not parse, when it falls
- * outside `min`/`max`, or when blur leaves a partial entry behind. Controlled
+ * complete, real, in-range date. Marks itself invalid, and renders the
+ * `invalidMessage`, in three cases. A complete entry does not parse, it falls
+ * outside `min`/`max`, or blur leaves a partial entry behind. Controlled
  * or uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form
  * field by `name` (the stored value is the `Date`).
  *
@@ -325,7 +325,7 @@ export function DateInput({
 			/>
 
 			{/* Visible feedback gated on the component's own detection, not the
-			    external `invalid` prop; the input's aria-invalid comes from the
+			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. `resolveInvalidMessage`
 			    picks the bound- or format-specific text. */}
 			{typedInvalid && activeMessage ? <Message severity="error">{activeMessage}</Message> : null}
@@ -334,10 +334,10 @@ export function DateInput({
 }
 
 /**
- * Picks the visible invalid message for the current text: a complete entry that
- * parses to a real date but is rejected only by the bounds reports the bound
- * (via {@link outOfRangeMessage}); everything else (incomplete, impossible) keeps
- * the generic `invalidMessage`. A falsy `invalidMessage` suppresses both.
+ * Picks the visible invalid message for the current text. A complete entry that
+ * parses to a real date but is rejected only by the bounds reports the bound, via
+ * {@link outOfRangeMessage}. Everything else, incomplete or impossible, keeps the
+ * generic `invalidMessage`. A falsy `invalidMessage` suppresses both.
  *
  * @internal
  */
@@ -359,8 +359,8 @@ function resolveInvalidMessage(
 
 /**
  * Resolves the {@link DateInput} suffix: a clear button ahead of the field's own
- * suffix while `clearable` and the field holds text, else the suffix unchanged —
- * so an absent suffix (`undefined`/`false`) leaves no empty affix slot.
+ * suffix while `clearable` and the field holds text, else the suffix unchanged.
+ * An absent suffix (`undefined`/`false`) therefore leaves no empty affix slot.
  *
  * @internal
  */
