@@ -39,6 +39,23 @@ function readBaseline(): Baseline {
 	return JSON.parse(readFileSync(baselinePath, 'utf8')) as Baseline
 }
 
+/**
+ * Serialize the ledger with one file to a line.
+ *
+ * @remarks
+ * `JSON.stringify` spreads each entry over four lines, which costs 3,300 lines
+ * for 826 files and hides the burn-down. One line to a file makes a count
+ * change a one-line diff that carries the path beside it.
+ */
+function formatBaseline(baseline: Baseline): string {
+	const rows = Object.entries(baseline).map(
+		([file, counts]) =>
+			`\t${JSON.stringify(file)}: { "rule4": ${counts.rule4}, "rule6": ${counts.rule6} }`,
+	)
+
+	return `{\n${rows.join(',\n')}\n}\n`
+}
+
 describe('controlled-language boundary', () => {
 	const breaks = scanPackage()
 
@@ -57,7 +74,7 @@ describe('controlled-language boundary', () => {
 		const current = countsByFile(breaks)
 
 		if (process.env.STE_BASELINE === 'write') {
-			writeFileSync(baselinePath, `${JSON.stringify(current, null, '\t')}\n`)
+			writeFileSync(baselinePath, formatBaseline(current))
 		}
 
 		const baseline = readBaseline()

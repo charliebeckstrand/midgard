@@ -1,3306 +1,828 @@
 {
-	"components/accordion/accordion-panel.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/accordion/accordion.tsx": {
-		"rule4": 4,
-		"rule6": 2
-	},
-	"components/accordion/use-accordion-selection.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/address-input/address-input-photon.ts": {
-		"rule4": 3,
-		"rule6": 4
-	},
-	"components/address-input/address-input.tsx": {
-		"rule4": 4,
-		"rule6": 5
-	},
-	"components/address-input/types.ts": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"components/address-input/use-address-input-suggestions.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/alert/alert.tsx": {
-		"rule4": 5,
-		"rule6": 1
-	},
-	"components/aspect-ratio/aspect-ratio.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/avatar/avatar.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/badge/badge.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/box/box.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/button/button.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/calendar/calendar-picker-reducer.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/calendar/calendar-range.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/calendar/calendar.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/calendar/use-calendar-focus.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"components/calendar/use-calendar-month.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/calendar/use-calendar-picker.tsx": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"components/card/card-footer.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/card/card-header.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/card/card.tsx": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"components/code/code-block.tsx": {
-		"rule4": 4,
-		"rule6": 3
-	},
-	"components/collapse/collapse-panel.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/collapse/collapse.tsx": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/collapse/context.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/color/color-constants.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/color/color-eyedropper.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/color/color-panel.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/color/color-picker-content.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/color/color-picker.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/color/color-utilities.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/color/use-color-drag.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/color/use-color-field.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/color/use-color-picker-state.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/color/use-color-state.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/combobox/combobox-create-option.tsx": {
-		"rule4": 5,
-		"rule6": 6
-	},
-	"components/combobox/combobox-option.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/combobox/combobox-utilities.ts": {
-		"rule4": 6,
-		"rule6": 8
-	},
-	"components/combobox/combobox.tsx": {
-		"rule4": 19,
-		"rule6": 15
-	},
-	"components/combobox/context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/combobox/use-combobox-input.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"components/combobox/use-combobox-state.ts": {
-		"rule4": 4,
-		"rule6": 1
-	},
-	"components/command-palette/command-palette-item.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/command-palette/command-palette.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"components/command-palette/use-command-palette-state.ts": {
-		"rule4": 4,
-		"rule6": 3
-	},
-	"components/confirm/confirm.tsx": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/context-menu/context-menu-merge.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/context-menu/context-menu.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/context-menu/types.ts": {
-		"rule4": 2,
-		"rule6": 5
-	},
-	"components/control/context.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/control/control-skeleton.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/control/control.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/control/use-control-field-context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/control/use-control-props.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"components/copy-button/copy-button.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/copy-button/use-copy-button-state.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/credit-card-input/credit-card-input-cvv.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/credit-card-input/credit-card-input-expiry.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/credit-card-input/credit-card-input-utilities.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/credit-card-input/credit-card-input.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/currency-input/currency-input.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/date-input/date-input-utilities.ts": {
-		"rule4": 4,
-		"rule6": 5
-	},
-	"components/date-input/date-input.tsx": {
-		"rule4": 10,
-		"rule6": 8
-	},
-	"components/date-picker/date-picker-content.tsx": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"components/date-picker/date-picker-range-reducer.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/date-picker/date-picker-relative-utilities.ts": {
-		"rule4": 3,
-		"rule6": 4
-	},
-	"components/date-picker/date-picker-relative.tsx": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"components/date-picker/date-picker-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/date-picker/date-picker-utilities.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/date-picker/date-picker.tsx": {
-		"rule4": 1,
-		"rule6": 7
-	},
-	"components/date-picker/use-date-picker-controlled.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/date-picker/use-date-picker-input-tab.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/date-picker/use-date-picker-keyboard.ts": {
-		"rule4": 5,
-		"rule6": 3
-	},
-	"components/date-picker/use-date-picker-range-state.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"components/date-picker/use-date-picker-relative-state.ts": {
-		"rule4": 5,
-		"rule6": 2
-	},
-	"components/date-picker/use-date-picker-state.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/dialog/dialog-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/dialog/dialog.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/divider/divider.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/dl/description-list.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/drawer/drawer-floor.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"components/drawer/drawer-handle.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/drawer/drawer-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/drawer/drawer.tsx": {
-		"rule4": 12,
-		"rule6": 18
-	},
-	"components/fieldset/field.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/fieldset/label.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/fieldset/message.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/file-upload/file-upload-hidden-input.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/file-upload/file-upload-utilities.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/file-upload/file-upload.tsx": {
-		"rule4": 8,
-		"rule6": 5
-	},
-	"components/file-upload/use-file-upload-handlers.ts": {
-		"rule4": 4,
-		"rule6": 2
-	},
-	"components/filters/context.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"components/filters/filters-clear.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/filters/filters-field.tsx": {
-		"rule4": 4,
-		"rule6": 1
-	},
-	"components/filters/filters.tsx": {
-		"rule4": 4,
-		"rule6": 6
-	},
-	"components/flex/flex-utilities.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/flex/flex.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/form/context.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/form/form-reducer.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/form/form-zod-resolver.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/form/form.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/form/use-form-reducer.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/form/use-form-store.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/form/use-form-text.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/form/use-form-toggle.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/form/use-form-value.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/group/group.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/group/use-group.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/hold-button/hold-button.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/hold-button/use-hold-button-gesture.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/icon/icon.tsx": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/input/input-frame.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/input/use-input-value.ts": {
-		"rule4": 4,
-		"rule6": 1
-	},
-	"components/json-tree/context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/json-tree/json-tree-node.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/json-tree/json-tree-utilities.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/json-tree/json-tree.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/kanban/context.ts": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/kanban/kanban-card.tsx": {
-		"rule4": 4,
-		"rule6": 1
-	},
-	"components/kanban/kanban-column-body.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/kanban/kanban-column.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/kanban/kanban.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/list/context.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/list/list-item-static.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/list/list-item.tsx": {
-		"rule4": 7,
-		"rule6": 6
-	},
-	"components/list/list.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/list/use-list-drag.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/list/use-list-keyboard.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/listbox/listbox.tsx": {
-		"rule4": 7,
-		"rule6": 4
-	},
-	"components/loading/loading-dots.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/loading/loading-spinner.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/markdown/markdown-renderer.tsx": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"components/markdown/markdown.tsx": {
-		"rule4": 5,
-		"rule6": 4
-	},
-	"components/mask-input/mask-input.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/mask-input/use-mask-input.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/menu/context.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"components/menu/menu-content.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/menu/menu-item.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/menu/menu-sub.tsx": {
-		"rule4": 6,
-		"rule6": 12
-	},
-	"components/menu/menu-trigger.tsx": {
-		"rule4": 4,
-		"rule6": 2
-	},
-	"components/menu/menu.tsx": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"components/menu/use-menu-pointer.tsx": {
-		"rule4": 6,
-		"rule6": 15
-	},
-	"components/menu/use-menu-state.ts": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"components/nav/nav-bar.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/nav/nav-item.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/nav/use-nav-item.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/number-input/number-input.tsx": {
-		"rule4": 6,
-		"rule6": 2
-	},
-	"components/odometer/use-odometer-animated-value.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/password-confirm/context.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/password-confirm/password-confirm-input.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/password-confirm/password-confirm-utilities.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/password-confirm/use-password-confirm-state.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/password-input/password-input.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/password-strength/use-password-strength.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/pdf-viewer/pdf-viewer-document-cache.ts": {
-		"rule4": 18,
-		"rule6": 19
-	},
-	"components/pdf-viewer/pdf-viewer-highlight-geometry.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/pdf-viewer/pdf-viewer-highlight-label.tsx": {
-		"rule4": 6,
-		"rule6": 6
-	},
-	"components/pdf-viewer/pdf-viewer-highlights-context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/pdf-viewer/pdf-viewer-highlights-provider.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/pdf-viewer/pdf-viewer-highlights.tsx": {
-		"rule4": 33,
-		"rule6": 32
-	},
-	"components/pdf-viewer/pdf-viewer-magnifier-context.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/pdf-viewer/pdf-viewer-magnifier-provider.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/pdf-viewer/pdf-viewer-magnifier-settings.tsx": {
-		"rule4": 5,
-		"rule6": 7
-	},
-	"components/pdf-viewer/pdf-viewer-magnifier.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"components/pdf-viewer/pdf-viewer-thumbnail-list.tsx": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/pdf-viewer/pdf-viewer-thumbnails.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/pdf-viewer/pdf-viewer-toolbar-button.tsx": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"components/pdf-viewer/pdf-viewer-toolbar.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/pdf-viewer/pdf-viewer-utilities.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/pdf-viewer/pdf-viewer-viewport.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/pdf-viewer/pdf-viewer-zoom-controls.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/pdf-viewer/pdf-viewer.tsx": {
-		"rule4": 8,
-		"rule6": 11
-	},
-	"components/pdf-viewer/types.ts": {
-		"rule4": 4,
-		"rule6": 7
-	},
-	"components/pdf-viewer/use-pdf-viewer-document.ts": {
-		"rule4": 12,
-		"rule6": 11
-	},
-	"components/pdf-viewer/use-pdf-viewer-highlights.ts": {
-		"rule4": 4,
-		"rule6": 4
-	},
-	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
-		"rule4": 18,
-		"rule6": 23
-	},
-	"components/pdf-viewer/use-pdf-viewer-page-rotation.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/pdf-viewer/use-pdf-viewer-page-scale.ts": {
-		"rule4": 4,
-		"rule6": 5
-	},
-	"components/pdf-viewer/use-pdf-viewer-pagination.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/pdf-viewer/use-pdf-viewer-viewport-size.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/pdf-viewer/use-pdf-viewer.ts": {
-		"rule4": 21,
-		"rule6": 21
-	},
-	"components/phone-input/phone-input.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/pivot-table/pivot-table-pivot.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"components/pivot-table/pivot-table.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/pivot-table/use-pivot-table.ts": {
-		"rule4": 5,
-		"rule6": 2
-	},
-	"components/placeholder/placeholder-skeleton.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/popover/context.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/popover/popover-content.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/popover/popover-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/popover/popover.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/radio/radio.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/rating/rating.tsx": {
-		"rule4": 8,
-		"rule6": 5
-	},
-	"components/resizable/resizable-group.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/resizable/resizable-handle.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/resizable/use-resizable-panel.ts": {
-		"rule4": 4,
-		"rule6": 1
-	},
-	"components/scroll-area/scroll-area.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/search-input/search-input.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/segment/segment.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/select/select.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/sheet/sheet-floor.ts": {
-		"rule4": 5,
-		"rule6": 4
-	},
-	"components/sheet/sheet-handle.tsx": {
-		"rule4": 4,
-		"rule6": 1
-	},
-	"components/sheet/sheet-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/sheet/sheet.tsx": {
-		"rule4": 11,
-		"rule6": 10
-	},
-	"components/shiny-text/shiny-text.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/sidebar/sidebar-item-actions.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/sidebar/sidebar-item.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/sidebar/sidebar-label.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/sidebar/sidebar-list.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/sidebar/sidebar.tsx": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"components/signature-pad/signature-pad-utilities.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/signature-pad/signature-pad.tsx": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"components/signature-pad/use-signature-pad-canvas-sizing.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/signature-pad/use-signature-pad-state.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"components/slider/range/range-slider.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/slider/range/use-range-keyboard.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/slider/range/use-range-pointer.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/slider/range/use-range-update.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/slider/slider.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/sparkline/sparkline-constants.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/sparkline/sparkline-geometry.ts": {
-		"rule4": 4,
-		"rule6": 4
-	},
-	"components/sparkline/sparkline.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"components/split/split.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/stack/stack.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/stat/stat-value.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/status/status-dot.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/stepper/context.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/stepper/stepper-panel.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/stepper/stepper-panels.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/stepper/stepper-step.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/stepper/stepper.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/swatch/swatch.tsx": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"components/switch/switch.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/table/table-loading.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/table/table.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/tabs/tab-contents.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"components/tabs/tab-list.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"components/tabs/tab-panel.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/tabs/tab.tsx": {
-		"rule4": 4,
-		"rule6": 4
-	},
-	"components/tabs/tabs.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/tabs/use-tab-list-scroll.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"components/tag-input/index.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/tag-input/tag-input-badge.tsx": {
-		"rule4": 3,
-		"rule6": 0
-	},
-	"components/tag-input/tag-input-utilities.ts": {
-		"rule4": 9,
-		"rule6": 11
-	},
-	"components/tag-input/tag-input.tsx": {
-		"rule4": 8,
-		"rule6": 4
-	},
-	"components/tag-input/use-tag-input-keyboard.ts": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/tag-input/use-tag-input.ts": {
-		"rule4": 4,
-		"rule6": 3
-	},
-	"components/textarea/textarea-skeleton.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/time-ago/time-ago-ticker.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"components/time-ago/time-ago.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/time-ago/use-time-ago-relative-time.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/timeline/timeline-item.tsx": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/timeline/timeline-marker.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/timeline/timeline.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/toast/toast-alert.tsx": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"components/toast/toast.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"components/toggle-icon-button/toggle-icon-button.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"components/tooltip/tooltip-anchor.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"components/tooltip/tooltip-content.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"components/tooltip/tooltip-pointer.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/tooltip/tooltip-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"components/tooltip/tooltip.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/tooltip/use-tooltip-anchor.ts": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"components/tooltip/use-tooltip-pointer.ts": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"components/tooltip/use-tooltip-state.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"components/tree/tree-item-children.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"components/tree/tree-item-content.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"components/tree/tree-item.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"components/tree/tree.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"components/zipcode-input/zipcode-input.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"core/announcer.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"core/cn.ts": {
-		"rule4": 4,
-		"rule6": 7
-	},
-	"core/compose-event-handlers.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"core/create-context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"core/create-slot.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"core/data-attr.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"core/recipe/colors.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"core/recipe/engine/applicator.ts": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"core/recipe/engine/palette.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"core/recipe/engine/recipe.ts": {
-		"rule4": 5,
-		"rule6": 6
-	},
-	"core/recipe/engine/types.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"core/recipe/mode.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"core/validation-attrs.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/api-reference/engine/api-extractor.ts": {
-		"rule4": 6,
-		"rule6": 5
-	},
-	"docs/engine/api-reference/engine/build-api.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"docs/engine/api-reference/engine/extract-defaults.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"docs/engine/api-reference/engine/extract-doc.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/api-reference/engine/extract-passthrough.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/api-reference/engine/extract-project-props.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"docs/engine/api-reference/engine/extract-props.ts": {
-		"rule4": 11,
-		"rule6": 7
-	},
-	"docs/engine/api-reference/engine/extract-references.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"docs/engine/api-reference/engine/format-type.ts": {
-		"rule4": 1,
-		"rule6": 7
-	},
-	"docs/engine/api-reference/engine/link-resolver.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/api-reference/link-syntax.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/api-reference/types.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"docs/engine/app.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/components/api-reference/api-reference.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/components/api-reference/default-value.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"docs/engine/components/api-reference/doc-description.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"docs/engine/components/api-reference/doc-inline.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/components/api-reference/prop-list.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/components/error-boundary.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/components/example-resize.tsx": {
-		"rule4": 4,
-		"rule6": 4
-	},
-	"docs/engine/components/example.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"docs/engine/components/labeled.tsx": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"docs/engine/components/options-listbox.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/components/settings-dialog.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/components/sidebar.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/demo-page.tsx": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/derive-code/index.ts": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"docs/engine/derive-code/internals.ts": {
-		"rule4": 4,
-		"rule6": 7
-	},
-	"docs/engine/derive-code/registry.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/derive-code/types.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"docs/engine/hooks/use-persisted-choice.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/hooks/use-theme.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"docs/engine/host.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"docs/engine/plugins/collect-helpers.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/plugins/docs.ts": {
-		"rule4": 7,
-		"rule6": 5
-	},
-	"docs/engine/plugins/source-facts.ts": {
-		"rule4": 4,
-		"rule6": 6
-	},
-	"docs/engine/plugins/virtual-json.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"docs/engine/registry.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"docs/engine/reserved-props.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"docs/engine/shiki.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"docs/engine/vite/index.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"hooks/a11y/use-a11y-announcements.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"hooks/a11y/use-a11y-control.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"hooks/a11y/use-a11y-disclosure.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"hooks/a11y/use-a11y-has-tabbable.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"hooks/a11y/use-a11y-live-region.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"hooks/a11y/use-a11y-panel.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"hooks/a11y/use-a11y-roving.ts": {
-		"rule4": 9,
-		"rule6": 23
-	},
-	"hooks/a11y/use-a11y-scope.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"hooks/a11y/use-typeahead.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"hooks/travel-height.ts": {
-		"rule4": 5,
-		"rule6": 4
-	},
-	"hooks/use-composed-ref.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"hooks/use-controllable.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"hooks/use-deferred-toggle.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"hooks/use-dismissable.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"hooks/use-enter-animation.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"hooks/use-escape-layer.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"hooks/use-floating-disclosure.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"hooks/use-floating-reference.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"hooks/use-floating-ui.ts": {
-		"rule4": 8,
-		"rule6": 13
-	},
-	"hooks/use-formatted-input.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"hooks/use-frozen-on-close.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"hooks/use-grabbing-cursor.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"hooks/use-hover-across-scroll.ts": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"hooks/use-id-scope.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"hooks/use-in-view.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"hooks/use-is-truncated.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"hooks/use-keybindings.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"hooks/use-keyboard-lifted.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"hooks/use-keyboard-settled.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"hooks/use-measured-width.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"hooks/use-min-breakpoint.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"hooks/use-min-width.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"hooks/use-offcanvas.ts": {
-		"rule4": 3,
-		"rule6": 0
-	},
-	"hooks/use-open-change.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"hooks/use-open-complete.ts": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"hooks/use-panel-fit.ts": {
-		"rule4": 9,
-		"rule6": 5
-	},
-	"hooks/use-panel-resize.ts": {
-		"rule4": 23,
-		"rule6": 19
-	},
-	"hooks/use-pending-caret.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"hooks/use-plot-frame.ts": {
-		"rule4": 16,
-		"rule6": 15
-	},
-	"hooks/use-plot-tab-stop.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"hooks/use-reported-change.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"hooks/use-resize-observer.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"hooks/use-scroll-lock.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"hooks/use-scroll-overflow.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"hooks/use-scroll-within.ts": {
-		"rule4": 7,
-		"rule6": 4
-	},
-	"hooks/use-selectable-value-change.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"hooks/use-sortable-item.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"hooks/use-sortable-list.ts": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"hooks/use-sortable-sensors.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"hooks/use-truncation.ts": {
-		"rule4": 5,
-		"rule6": 15
-	},
-	"hooks/use-virtual-window.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"layouts/dashboard.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"layouts/sidebar/sidebar.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/chart/area-chart/area-chart.tsx": {
-		"rule4": 0,
-		"rule6": 9
-	},
-	"modules/chart/bar-chart/bar-chart.tsx": {
-		"rule4": 0,
-		"rule6": 7
-	},
-	"modules/chart/bubble-chart/bubble-chart.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/chart/choropleth-chart/choropleth-chart.tsx": {
-		"rule4": 6,
-		"rule6": 7
-	},
-	"modules/chart/combo-chart/combo-chart.tsx": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"modules/chart/engine/chart-axes/axis.tsx": {
-		"rule4": 0,
-		"rule6": 7
-	},
-	"modules/chart/engine/chart-axes/cartesian.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/chart/engine/chart-axes/schema.ts": {
-		"rule4": 2,
-		"rule6": 10
-	},
-	"modules/chart/engine/chart-color/paint.ts": {
-		"rule4": 1,
-		"rule6": 6
-	},
-	"modules/chart/engine/chart-color/palette.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/chart/engine/chart-constants.ts": {
-		"rule4": 3,
-		"rule6": 8
-	},
-	"modules/chart/engine/chart-context-menu.tsx": {
-		"rule4": 11,
-		"rule6": 12
-	},
-	"modules/chart/engine/chart-coords.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/chart/engine/chart-crosshair.tsx": {
-		"rule4": 2,
-		"rule6": 9
-	},
-	"modules/chart/engine/chart-export.ts": {
-		"rule4": 2,
-		"rule6": 5
-	},
-	"modules/chart/engine/chart-frame/cartesian.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/chart/engine/chart-frame/frame.tsx": {
-		"rule4": 7,
-		"rule6": 12
-	},
-	"modules/chart/engine/chart-geometry/area.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"modules/chart/engine/chart-geometry/bar.ts": {
-		"rule4": 1,
-		"rule6": 7
-	},
-	"modules/chart/engine/chart-geometry/heatmap.ts": {
-		"rule4": 4,
-		"rule6": 3
-	},
-	"modules/chart/engine/chart-geometry/line.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"modules/chart/engine/chart-geometry/pie.ts": {
-		"rule4": 9,
-		"rule6": 17
-	},
-	"modules/chart/engine/chart-geometry/scatter.ts": {
-		"rule4": 4,
-		"rule6": 20
-	},
-	"modules/chart/engine/chart-header.tsx": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"modules/chart/engine/chart-hit-area.tsx": {
-		"rule4": 0,
-		"rule6": 6
-	},
-	"modules/chart/engine/chart-hit-test.ts": {
-		"rule4": 2,
-		"rule6": 9
-	},
-	"modules/chart/engine/chart-layout.ts": {
-		"rule4": 15,
-		"rule6": 51
-	},
-	"modules/chart/engine/chart-legend/cartesian.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/chart/engine/chart-legend/fit.ts": {
-		"rule4": 5,
-		"rule6": 5
-	},
-	"modules/chart/engine/chart-legend/legend.tsx": {
-		"rule4": 13,
-		"rule6": 24
-	},
-	"modules/chart/engine/chart-legend/range-legend.tsx": {
-		"rule4": 1,
-		"rule6": 17
-	},
-	"modules/chart/engine/chart-legend/range.ts": {
-		"rule4": 2,
-		"rule6": 5
-	},
-	"modules/chart/engine/chart-legend/schema.ts": {
-		"rule4": 1,
-		"rule6": 8
-	},
-	"modules/chart/engine/chart-marks/bar.tsx": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/chart/engine/chart-marks/layer.tsx": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"modules/chart/engine/chart-motion.ts": {
-		"rule4": 1,
-		"rule6": 15
-	},
-	"modules/chart/engine/chart-orientation.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"modules/chart/engine/chart-pattern-defs.tsx": {
-		"rule4": 2,
-		"rule6": 8
-	},
-	"modules/chart/engine/chart-plot-box.tsx": {
-		"rule4": 5,
-		"rule6": 4
-	},
-	"modules/chart/engine/chart-reference-lines.tsx": {
-		"rule4": 2,
-		"rule6": 19
-	},
-	"modules/chart/engine/chart-scale.ts": {
-		"rule4": 9,
-		"rule6": 9
-	},
-	"modules/chart/engine/chart-series.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/chart/engine/chart-snap.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/chart/engine/chart-table.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/chart/engine/chart-tier.ts": {
-		"rule4": 9,
-		"rule6": 18
-	},
-	"modules/chart/engine/chart-time.ts": {
-		"rule4": 1,
-		"rule6": 8
-	},
-	"modules/chart/engine/chart-tooltip.tsx": {
-		"rule4": 9,
-		"rule6": 10
-	},
-	"modules/chart/engine/chart-value-labels.tsx": {
-		"rule4": 6,
-		"rule6": 19
-	},
-	"modules/chart/engine/context.ts": {
-		"rule4": 6,
-		"rule6": 9
-	},
-	"modules/chart/engine/types.ts": {
-		"rule4": 8,
-		"rule6": 34
-	},
-	"modules/chart/engine/use-chart-cartesian.ts": {
-		"rule4": 11,
-		"rule6": 33
-	},
-	"modules/chart/engine/use-chart-keyboard.ts": {
-		"rule4": 3,
-		"rule6": 18
-	},
-	"modules/chart/engine/use-chart-pointer.ts": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"modules/chart/engine/use-chart-series-toggle.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"modules/chart/heatmap-chart/heatmap-chart-schema.ts": {
-		"rule4": 1,
-		"rule6": 9
-	},
-	"modules/chart/heatmap-chart/heatmap-chart.tsx": {
-		"rule4": 6,
-		"rule6": 11
-	},
-	"modules/chart/line-chart/line-chart.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/chart/pie-chart/pie-chart.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/chart/scatter-chart/scatter-chart-hit-area.tsx": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"modules/chart/scatter-chart/scatter-chart-marks.tsx": {
-		"rule4": 3,
-		"rule6": 5
-	},
-	"modules/chart/scatter-chart/scatter-chart.tsx": {
-		"rule4": 5,
-		"rule6": 12
-	},
-	"modules/chart/sector-chart/sector-chart-callouts.tsx": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"modules/chart/sector-chart/sector-chart-frame.ts": {
-		"rule4": 2,
-		"rule6": 8
-	},
-	"modules/chart/sector-chart/sector-chart-marks.tsx": {
-		"rule4": 0,
-		"rule6": 8
-	},
-	"modules/chart/sector-chart/sector-chart.tsx": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"modules/chat/chat-embed-provider.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/chat/chat-embed.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/chat/chat-list-item.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/chat/chat-list.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/chat/chat-message.tsx": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"modules/chat/chat-prompt.tsx": {
-		"rule4": 5,
-		"rule6": 2
-	},
-	"modules/chat/chat-tool.tsx": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"modules/chat/chat-transcript.tsx": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/chat/context.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/chat/engine/chat-announcements.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"modules/chat/engine/chat-content/normalize.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/chat/engine/chat-content/text.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"modules/chat/engine/chat-content/types.ts": {
-		"rule4": 11,
-		"rule6": 8
-	},
-	"modules/chat/engine/chat-draft.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/chat/engine/chat-stream.ts": {
-		"rule4": 6,
-		"rule6": 9
-	},
-	"modules/chat/engine/chat-transcript.ts": {
-		"rule4": 7,
-		"rule6": 11
-	},
-	"modules/chat/engine/types.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"modules/chat/use-chat-draft.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"modules/chat/use-chat-scroll.ts": {
-		"rule4": 5,
-		"rule6": 6
-	},
-	"modules/chat/use-chat-send.ts": {
-		"rule4": 8,
-		"rule6": 11
-	},
-	"modules/grid/context.ts": {
-		"rule4": 0,
-		"rule6": 7
-	},
-	"modules/grid/engine/grid-aggregate.ts": {
-		"rule4": 2,
-		"rule6": 8
-	},
-	"modules/grid/engine/grid-announcements.ts": {
-		"rule4": 3,
-		"rule6": 4
-	},
-	"modules/grid/engine/grid-column/accessor.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/engine/grid-column/allocate.ts": {
-		"rule4": 7,
-		"rule6": 10
-	},
-	"modules/grid/engine/grid-column/label.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/engine/grid-column/measure.ts": {
-		"rule4": 6,
-		"rule6": 22
-	},
-	"modules/grid/engine/grid-constants.ts": {
-		"rule4": 0,
-		"rule6": 9
-	},
-	"modules/grid/engine/grid-editing-utilities.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/grid/engine/grid-export/accessor.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/grid/engine/grid-export/csv.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"modules/grid/engine/grid-export/download.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/engine/grid-export/excel.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/grid/engine/grid-export/html-table.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/engine/grid-export/print.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"modules/grid/engine/grid-export/registry.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"modules/grid/engine/grid-export/resolve.ts": {
-		"rule4": 4,
-		"rule6": 8
-	},
-	"modules/grid/engine/grid-export/types.ts": {
-		"rule4": 3,
-		"rule6": 9
-	},
-	"modules/grid/engine/grid-group/compute.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/grid/engine/grid-group/resolve.ts": {
-		"rule4": 0,
-		"rule6": 6
-	},
-	"modules/grid/engine/grid-group/segments.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/grid/engine/grid-menu-targeting.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/grid/engine/grid-pagination-utilities.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"modules/grid/engine/grid-pin/layout.ts": {
-		"rule4": 4,
-		"rule6": 6
-	},
-	"modules/grid/engine/grid-pin/measure.ts": {
-		"rule4": 1,
-		"rule6": 6
-	},
-	"modules/grid/engine/grid-pin/overrides.ts": {
-		"rule4": 7,
-		"rule6": 5
-	},
-	"modules/grid/engine/grid-pin/styles.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/grid/engine/grid-reorder-compute.ts": {
-		"rule4": 5,
-		"rule6": 6
-	},
-	"modules/grid/engine/grid-row/bridges.ts": {
-		"rule4": 3,
-		"rule6": 5
-	},
-	"modules/grid/engine/grid-row/cell.ts": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"modules/grid/engine/grid-row/shell.ts": {
-		"rule4": 2,
-		"rule6": 5
-	},
-	"modules/grid/engine/grid-sort/state.ts": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"modules/grid/engine/grid-sort/utilities.ts": {
-		"rule4": 6,
-		"rule6": 17
-	},
-	"modules/grid/engine/grid-table/classes.ts": {
-		"rule4": 0,
-		"rule6": 5
-	},
-	"modules/grid/engine/grid-table/guards.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/grid/engine/grid-table/options.ts": {
-		"rule4": 4,
-		"rule6": 11
-	},
-	"modules/grid/engine/grid-table/state.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"modules/grid/engine/grid-table/views.ts": {
-		"rule4": 10,
-		"rule6": 12
-	},
-	"modules/grid/engine/grid-tools.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"modules/grid/engine/grid-zone/map.ts": {
-		"rule4": 5,
-		"rule6": 7
-	},
-	"modules/grid/grid-aggregate-cells.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/grid-auto-size-confirm-dialog.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/grid-body.tsx": {
-		"rule4": 0,
-		"rule6": 6
-	},
-	"modules/grid/grid-busy-status.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/grid/grid-cell-content.tsx": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"modules/grid/grid-column-filter-button.tsx": {
-		"rule4": 11,
-		"rule6": 5
-	},
-	"modules/grid/grid-column-header.tsx": {
-		"rule4": 7,
-		"rule6": 6
-	},
-	"modules/grid/grid-column-manager.tsx": {
-		"rule4": 16,
-		"rule6": 9
-	},
-	"modules/grid/grid-column-resize-handle.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/grid-context-menu-utilities.tsx": {
-		"rule4": 6,
-		"rule6": 14
-	},
-	"modules/grid/grid-context-menu.tsx": {
-		"rule4": 4,
-		"rule6": 3
-	},
-	"modules/grid/grid-data-cell.tsx": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/grid/grid-data-resolvers.ts": {
-		"rule4": 5,
-		"rule6": 14
-	},
-	"modules/grid/grid-data-types.ts": {
-		"rule4": 39,
-		"rule6": 75
-	},
-	"modules/grid/grid-data.tsx": {
-		"rule4": 14,
-		"rule6": 14
-	},
-	"modules/grid/grid-detail-row.tsx": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"modules/grid/grid-edit-inputs.tsx": {
-		"rule4": 2,
-		"rule6": 5
-	},
-	"modules/grid/grid-editing-cell.tsx": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"modules/grid/grid-editing-context.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/grid/grid-editing-types.ts": {
-		"rule4": 6,
-		"rule6": 13
-	},
-	"modules/grid/grid-export-overlay.tsx": {
-		"rule4": 3,
-		"rule6": 4
-	},
-	"modules/grid/grid-filter.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/grid/grid-footer-bar.tsx": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"modules/grid/grid-group-by-button.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/grid/grid-group-head.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/grid-group-leaf-row.tsx": {
-		"rule4": 4,
-		"rule6": 2
-	},
-	"modules/grid/grid-group-manager.tsx": {
-		"rule4": 5,
-		"rule6": 7
-	},
-	"modules/grid/grid-group-row.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/grid/grid-group-types.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/grid/grid-head.tsx": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"modules/grid/grid-highlight-utilities.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"modules/grid/grid-manager-dialog.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/grid-manual-group-row.tsx": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/grid/grid-menu-actions.ts": {
-		"rule4": 3,
-		"rule6": 0
-	},
-	"modules/grid/grid-pagination.tsx": {
-		"rule4": 5,
-		"rule6": 2
-	},
-	"modules/grid/grid-region.tsx": {
-		"rule4": 4,
-		"rule6": 7
-	},
-	"modules/grid/grid-reorder.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/grid/grid-row-actions.tsx": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"modules/grid/grid-row-group-types.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"modules/grid/grid-row-manager.tsx": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/grid/grid-row.tsx": {
-		"rule4": 9,
-		"rule6": 9
-	},
-	"modules/grid/grid-skeleton-cells.tsx": {
-		"rule4": 3,
-		"rule6": 6
-	},
-	"modules/grid/grid-sort-state.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"modules/grid/grid-table-views.ts": {
-		"rule4": 3,
-		"rule6": 7
-	},
-	"modules/grid/grid-toolbar.tsx": {
-		"rule4": 4,
-		"rule6": 3
-	},
-	"modules/grid/grid-total-row.tsx": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"modules/grid/grid-virtualized-body.tsx": {
-		"rule4": 5,
-		"rule6": 4
-	},
-	"modules/grid/grid.tsx": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"modules/grid/types.ts": {
-		"rule4": 28,
-		"rule6": 32
-	},
-	"modules/grid/use-grid-column-auto-size.ts": {
-		"rule4": 13,
-		"rule6": 23
-	},
-	"modules/grid/use-grid-columns.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"modules/grid/use-grid-cursor.tsx": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"modules/grid/use-grid-editing-columns.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/use-grid-editing.ts": {
-		"rule4": 17,
-		"rule6": 12
-	},
-	"modules/grid/use-grid-expansion.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/grid/use-grid-export-actions.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"modules/grid/use-grid-export.ts": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"modules/grid/use-grid-group-manager.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/grid/use-grid-group.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"modules/grid/use-grid-infinite-scroll.ts": {
-		"rule4": 6,
-		"rule6": 10
-	},
-	"modules/grid/use-grid-navigation-columns.tsx": {
-		"rule4": 5,
-		"rule6": 7
-	},
-	"modules/grid/use-grid-navigation.ts": {
-		"rule4": 7,
-		"rule6": 8
-	},
-	"modules/grid/use-grid-pinned-offsets.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/grid/use-grid-reorder.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"modules/grid/use-grid-reveal-hold.ts": {
-		"rule4": 2,
-		"rule6": 8
-	},
-	"modules/grid/use-grid-roving.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/grid/use-grid-row-grouping.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/grid/use-grid-row-manager.tsx": {
-		"rule4": 4,
-		"rule6": 6
-	},
-	"modules/grid/use-grid-row-reorder.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"modules/grid/use-grid-selection.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/grid/use-grid-table.ts": {
-		"rule4": 24,
-		"rule6": 15
-	},
-	"modules/grid/use-grid-truncation.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"modules/grid/use-grid-zone-sortable.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/map/context.ts": {
-		"rule4": 5,
-		"rule6": 15
-	},
-	"modules/map/engine/map-cluster/crowd.ts": {
-		"rule4": 13,
-		"rule6": 22
-	},
-	"modules/map/engine/map-cluster/geo.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/map/engine/map-cluster/grid.ts": {
-		"rule4": 1,
-		"rule6": 6
-	},
-	"modules/map/engine/map-cluster/ground.ts": {
-		"rule4": 12,
-		"rule6": 13
-	},
-	"modules/map/engine/map-cluster/group.ts": {
-		"rule4": 8,
-		"rule6": 17
-	},
-	"modules/map/engine/map-cluster/radius.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/map/engine/map-constants.ts": {
-		"rule4": 13,
-		"rule6": 39
-	},
-	"modules/map/engine/map-geofence.ts": {
-		"rule4": 6,
-		"rule6": 13
-	},
-	"modules/map/engine/map-geometry/cache.ts": {
-		"rule4": 17,
-		"rule6": 11
-	},
-	"modules/map/engine/map-geometry/chrome.ts": {
-		"rule4": 4,
-		"rule6": 8
-	},
-	"modules/map/engine/map-geometry/locate.ts": {
-		"rule4": 6,
-		"rule6": 12
-	},
-	"modules/map/engine/map-geometry/mark.ts": {
-		"rule4": 18,
-		"rule6": 38
-	},
-	"modules/map/engine/map-geometry/projected.ts": {
-		"rule4": 44,
-		"rule6": 44
-	},
-	"modules/map/engine/map-geometry/region.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/map/engine/map-geometry/topology.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"modules/map/engine/map-geometry/winding.ts": {
-		"rule4": 24,
-		"rule6": 21
-	},
-	"modules/map/engine/map-hover/anchor.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"modules/map/engine/map-hover/target.ts": {
-		"rule4": 4,
-		"rule6": 4
-	},
-	"modules/map/engine/map-keyboard/cursor.ts": {
-		"rule4": 1,
-		"rule6": 6
-	},
-	"modules/map/engine/map-keyboard/stops.ts": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"modules/map/engine/map-legend/items.ts": {
-		"rule4": 0,
-		"rule6": 5
-	},
-	"modules/map/engine/map-legend/plan.ts": {
-		"rule4": 0,
-		"rule6": 9
-	},
-	"modules/map/engine/map-motion.ts": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"modules/map/engine/map-overlay/entry.ts": {
-		"rule4": 3,
-		"rule6": 14
-	},
-	"modules/map/engine/map-overlay/readout.ts": {
-		"rule4": 5,
-		"rule6": 7
-	},
-	"modules/map/engine/map-overlay/selection.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/map/engine/map-overlay/slots.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/map/engine/map-projection/aspect.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/map/engine/map-projection/fit.ts": {
-		"rule4": 2,
-		"rule6": 6
-	},
-	"modules/map/engine/map-projection/frame.ts": {
-		"rule4": 3,
-		"rule6": 4
-	},
-	"modules/map/engine/map-projection/resolve.ts": {
-		"rule4": 4,
-		"rule6": 11
-	},
-	"modules/map/engine/map-region/category.ts": {
-		"rule4": 3,
-		"rule6": 10
-	},
-	"modules/map/engine/map-region/data.ts": {
-		"rule4": 4,
-		"rule6": 15
-	},
-	"modules/map/engine/map-region/identity.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/map/engine/map-region/paint.ts": {
-		"rule4": 1,
-		"rule6": 7
-	},
-	"modules/map/engine/map-region/spare.ts": {
-		"rule4": 8,
-		"rule6": 15
-	},
-	"modules/map/engine/map-region/value.ts": {
-		"rule4": 0,
-		"rule6": 5
-	},
-	"modules/map/engine/map-routing/failure.ts": {
-		"rule4": 3,
-		"rule6": 10
-	},
-	"modules/map/engine/map-routing/osrm.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/map/engine/map-routing/polyline.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/map/engine/map-routing/request.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/map/engine/map-routing/result.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/map/engine/map-routing/valhalla.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/map/engine/map-zip/dissolve.ts": {
-		"rule4": 5,
-		"rule6": 6
-	},
-	"modules/map/engine/map-zip/frame.ts": {
-		"rule4": 15,
-		"rule6": 10
-	},
-	"modules/map/engine/map-zip/selection.ts": {
-		"rule4": 18,
-		"rule6": 11
-	},
-	"modules/map/engine/map-zoom/gesture.ts": {
-		"rule4": 6,
-		"rule6": 10
-	},
-	"modules/map/engine/map-zoom/input.ts": {
-		"rule4": 7,
-		"rule6": 10
-	},
-	"modules/map/engine/map-zoom/transform.ts": {
-		"rule4": 7,
-		"rule6": 6
-	},
-	"modules/map/engine/types.ts": {
-		"rule4": 5,
-		"rule6": 8
-	},
-	"modules/map/map-chrome.tsx": {
-		"rule4": 4,
-		"rule6": 7
-	},
-	"modules/map/map-dot.tsx": {
-		"rule4": 10,
-		"rule6": 25
-	},
-	"modules/map/map-frame.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"modules/map/map-geofence.tsx": {
-		"rule4": 6,
-		"rule6": 16
-	},
-	"modules/map/map-halo.tsx": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"modules/map/map-hover-provider.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/map/map-legend-region.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/map/map-legend.tsx": {
-		"rule4": 10,
-		"rule6": 9
-	},
-	"modules/map/map-line.tsx": {
-		"rule4": 3,
-		"rule6": 5
-	},
-	"modules/map/map-marker.tsx": {
-		"rule4": 2,
-		"rule6": 5
-	},
-	"modules/map/map-plat.tsx": {
-		"rule4": 41,
-		"rule6": 62
-	},
-	"modules/map/map-point.tsx": {
-		"rule4": 5,
-		"rule6": 13
-	},
-	"modules/map/map-points.tsx": {
-		"rule4": 20,
-		"rule6": 22
-	},
-	"modules/map/map-range-legend.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/map/map-regions-lit.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/map/map-regions.tsx": {
-		"rule4": 11,
-		"rule6": 34
-	},
-	"modules/map/map-route.tsx": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"modules/map/map-skeleton.tsx": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"modules/map/map-swatch.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/map/map-table.tsx": {
-		"rule4": 4,
-		"rule6": 4
-	},
-	"modules/map/map-tooltip.tsx": {
-		"rule4": 3,
-		"rule6": 1
-	},
-	"modules/map/map-zoom-provider.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/map/use-map-coverage.ts": {
-		"rule4": 18,
-		"rule6": 6
-	},
-	"modules/map/use-map-keyboard.ts": {
-		"rule4": 3,
-		"rule6": 10
-	},
-	"modules/map/use-map-legend-registry.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/map/use-map-overlay.ts": {
-		"rule4": 13,
-		"rule6": 19
-	},
-	"modules/map/use-map-region-preload.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"modules/map/use-map-region-readout.ts": {
-		"rule4": 1,
-		"rule6": 4
-	},
-	"modules/map/use-map-shape.ts": {
-		"rule4": 10,
-		"rule6": 8
-	},
-	"modules/map/use-map-toggle.ts": {
-		"rule4": 4,
-		"rule6": 5
-	},
-	"modules/map/use-map-zoom.ts": {
-		"rule4": 19,
-		"rule6": 15
-	},
-	"modules/query/engine/query-active.ts": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"modules/query/engine/query-evaluate.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/query/engine/query-summary.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"modules/query/query-builder/context.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"modules/query/query-builder/query-builder-focus.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/query/query-builder/query-builder-group.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"modules/query/query-builder/query-builder-rule-value.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/query/query-builder/query-builder-rule.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"modules/query/query-builder/query-builder.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"modules/query/query-builder/use-query-builder-tree.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"modules/query/query-summary.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"modules/query/use-query-tree.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"primitives/active-indicator/active-indicator.tsx": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"primitives/affix/affix.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"primitives/chrome/chrome-registry.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"primitives/chrome/chrome.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"primitives/current/current-content.tsx": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"primitives/current/current-contents.tsx": {
-		"rule4": 2,
-		"rule6": 7
-	},
-	"primitives/current/current.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"primitives/current/use-current-contents-morph.ts": {
-		"rule4": 3,
-		"rule6": 4
-	},
-	"primitives/density/density.tsx": {
-		"rule4": 1,
-		"rule6": 7
-	},
-	"primitives/floating-surface/floating-surface.tsx": {
-		"rule4": 3,
-		"rule6": 3
-	},
-	"primitives/mount/held-motion.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"primitives/mount/hold.tsx": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"primitives/mount/mount.ts": {
-		"rule4": 4,
-		"rule6": 5
-	},
-	"primitives/option/option.tsx": {
-		"rule4": 7,
-		"rule6": 3
-	},
-	"primitives/overlay/overlay.tsx": {
-		"rule4": 3,
-		"rule6": 6
-	},
-	"primitives/panel/panel-handle.tsx": {
-		"rule4": 5,
-		"rule6": 2
-	},
-	"primitives/panel/panel-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"primitives/panel/panel.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"primitives/polymorphic/fallback.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"primitives/polymorphic/polymorphic-static.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"primitives/polymorphic/polymorphic.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"primitives/popover/popover.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"primitives/portal/portal.tsx": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"primitives/portal/presence-portal.tsx": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"primitives/ready-reveal/ready-reveal.tsx": {
-		"rule4": 8,
-		"rule6": 6
-	},
-	"primitives/reduced-motion/reduced-motion.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"primitives/select-trigger/capitalize.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"primitives/select-trigger/select-trigger.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"primitives/touch-target/touch-target.tsx": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"primitives/virtual-options/virtual-item-source-context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"primitives/virtual-options/virtual-options.tsx": {
-		"rule4": 4,
-		"rule6": 7
-	},
-	"providers/density/context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"providers/density/density.tsx": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"providers/glass/context.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"providers/headless/context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"providers/headless/headless.tsx": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"providers/locale/context.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"providers/locale/use-format.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"providers/toast/context.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"providers/toast/toast.tsx": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"providers/toast/types.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"providers/toast/use-toast-queue.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"providers/toast/use-toast-timer.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"providers/ui/ui.tsx": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"recipes/index.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"recipes/kata/aspect-ratio.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kata/avatar.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kata/badge.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kata/card.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kata/chart.ts": {
-		"rule4": 2,
-		"rule6": 9
-	},
-	"recipes/kata/chat-list-item.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kata/chat-message.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"recipes/kata/chat-transcript.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kata/code.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kata/color-panel.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kata/color-picker.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kata/command-palette.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kata/date-picker.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"recipes/kata/dl.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kata/drawer.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"recipes/kata/grid-group.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/kata/grid.ts": {
-		"rule4": 11,
-		"rule6": 13
-	},
-	"recipes/kata/group.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kata/heading.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kata/json-tree.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kata/list.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"recipes/kata/listbox.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kata/map.ts": {
-		"rule4": 7,
-		"rule6": 18
-	},
-	"recipes/kata/markdown.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"recipes/kata/menu.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"recipes/kata/nav.ts": {
-		"rule4": 0,
-		"rule6": 4
-	},
-	"recipes/kata/password-strength.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kata/pdf-viewer.ts": {
-		"rule4": 14,
-		"rule6": 17
-	},
-	"recipes/kata/progress.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"recipes/kata/query-builder.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kata/rating.ts": {
-		"rule4": 2,
-		"rule6": 7
-	},
-	"recipes/kata/sheet.ts": {
-		"rule4": 4,
-		"rule6": 4
-	},
-	"recipes/kata/sidebar.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"recipes/kata/sparkline.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kata/status.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kata/swatch.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"recipes/kata/table.ts": {
-		"rule4": 1,
-		"rule6": 5
-	},
-	"recipes/kata/tabs.ts": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"recipes/kata/tag-input.ts": {
-		"rule4": 2,
-		"rule6": 0
-	},
-	"recipes/kata/text.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/kata/timeline.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kata/tooltip.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"recipes/kata/tree.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/katakana/backdrop.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"recipes/katakana/control.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/katakana/index.ts": {
-		"rule4": 3,
-		"rule6": 5
-	},
-	"recipes/katakana/palette.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/katakana/panel.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/katakana/popover.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/katakana/segment.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/control/affix.ts": {
-		"rule4": 1,
-		"rule6": 10
-	},
-	"recipes/kiso/control/check.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/control/density.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"recipes/kiso/control/surface.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/hannou/cursor.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"recipes/kiso/hannou/nav.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/hannou/tint-filled.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"recipes/kiso/hannou/tint-surface.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/kiso/iro/bare.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/iro/extended-palette.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"recipes/kiso/iro/hover.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/kiso/iro/index.ts": {
-		"rule4": 3,
-		"rule6": 2
-	},
-	"recipes/kiso/iro/project.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/iro/ramp.ts": {
-		"rule4": 4,
-		"rule6": 8
-	},
-	"recipes/kiso/iro/soft.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kiso/iro/text.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/kara.ts": {
-		"rule4": 2,
-		"rule6": 2
-	},
-	"recipes/kiso/kasane/layers.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/kiso/kasane/radius.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/kokkaku/chart.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/ma/index.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/narabi/field.ts": {
-		"rule4": 4,
-		"rule6": 0
-	},
-	"recipes/kiso/narabi/toggle.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/omote/backdrop.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kiso/omote/grayscale.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/panel/grip.ts": {
-		"rule4": 1,
-		"rule6": 3
-	},
-	"recipes/kiso/panel/index.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/panel/layout.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kiso/popover/portal.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/sen/divider.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/sen/focus.ts": {
-		"rule4": 4,
-		"rule6": 3
-	},
-	"recipes/kiso/sen/forced.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/shaku/icon.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"recipes/kiso/sou.ts": {
-		"rule4": 2,
-		"rule6": 4
-	},
-	"recipes/kiso/sun.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/tsunagi.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/kiso/ugoki/base.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/ugoki/collapse.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"recipes/kiso/ugoki/css.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"recipes/kiso/ugoki/index.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"recipes/kiso/ugoki/mark.ts": {
-		"rule4": 0,
-		"rule6": 2
-	},
-	"recipes/kiso/ugoki/spring.ts": {
-		"rule4": 1,
-		"rule6": 2
-	},
-	"types/accessible-name.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"types/aria-props.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"types/responsive.ts": {
-		"rule4": 2,
-		"rule6": 3
-	},
-	"utilities/aspect-ratio.ts": {
-		"rule4": 0,
-		"rule6": 3
-	},
-	"utilities/clear-native-input.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"utilities/color-scale.ts": {
-		"rule4": 5,
-		"rule6": 8
-	},
-	"utilities/contrast.ts": {
-		"rule4": 4,
-		"rule6": 0
-	},
-	"utilities/dismiss-layers.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"utilities/document-listener.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"utilities/floating-portal-registry.ts": {
-		"rule4": 1,
-		"rule6": 6
-	},
-	"utilities/is-data-column.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"utilities/keyboard-navigation.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"utilities/measure-box.ts": {
-		"rule4": 4,
-		"rule6": 0
-	},
-	"utilities/media-query.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"utilities/memo-weak.ts": {
-		"rule4": 1,
-		"rule6": 0
-	},
-	"utilities/native-context-menu.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"utilities/once.ts": {
-		"rule4": 0,
-		"rule6": 1
-	},
-	"utilities/resolve-locale.ts": {
-		"rule4": 1,
-		"rule6": 1
-	},
-	"utilities/scrollbar-press.ts": {
-		"rule4": 2,
-		"rule6": 1
-	},
-	"utilities/to-numeric-cell.ts": {
-		"rule4": 0,
-		"rule6": 1
-	}
+	"components/accordion/accordion-panel.tsx": { "rule4": 0, "rule6": 1 },
+	"components/accordion/accordion.tsx": { "rule4": 4, "rule6": 2 },
+	"components/accordion/use-accordion-selection.ts": { "rule4": 2, "rule6": 0 },
+	"components/address-input/address-input-photon.ts": { "rule4": 3, "rule6": 4 },
+	"components/address-input/address-input.tsx": { "rule4": 4, "rule6": 5 },
+	"components/address-input/types.ts": { "rule4": 2, "rule6": 6 },
+	"components/address-input/use-address-input-suggestions.ts": { "rule4": 1, "rule6": 0 },
+	"components/alert/alert.tsx": { "rule4": 5, "rule6": 1 },
+	"components/aspect-ratio/aspect-ratio.tsx": { "rule4": 1, "rule6": 0 },
+	"components/avatar/avatar.tsx": { "rule4": 1, "rule6": 0 },
+	"components/badge/badge.tsx": { "rule4": 1, "rule6": 0 },
+	"components/box/box.tsx": { "rule4": 1, "rule6": 0 },
+	"components/button/button.tsx": { "rule4": 0, "rule6": 2 },
+	"components/calendar/calendar-picker-reducer.ts": { "rule4": 1, "rule6": 1 },
+	"components/calendar/calendar-range.tsx": { "rule4": 1, "rule6": 1 },
+	"components/calendar/calendar.tsx": { "rule4": 2, "rule6": 2 },
+	"components/calendar/use-calendar-focus.ts": { "rule4": 1, "rule6": 4 },
+	"components/calendar/use-calendar-month.ts": { "rule4": 0, "rule6": 2 },
+	"components/calendar/use-calendar-picker.tsx": { "rule4": 1, "rule6": 3 },
+	"components/card/card-footer.tsx": { "rule4": 0, "rule6": 1 },
+	"components/card/card-header.tsx": { "rule4": 0, "rule6": 1 },
+	"components/card/card.tsx": { "rule4": 2, "rule6": 3 },
+	"components/code/code-block.tsx": { "rule4": 4, "rule6": 3 },
+	"components/collapse/collapse-panel.tsx": { "rule4": 1, "rule6": 2 },
+	"components/collapse/collapse.tsx": { "rule4": 3, "rule6": 1 },
+	"components/collapse/context.ts": { "rule4": 2, "rule6": 0 },
+	"components/color/color-constants.ts": { "rule4": 1, "rule6": 0 },
+	"components/color/color-eyedropper.tsx": { "rule4": 2, "rule6": 1 },
+	"components/color/color-panel.tsx": { "rule4": 0, "rule6": 2 },
+	"components/color/color-picker-content.tsx": { "rule4": 0, "rule6": 1 },
+	"components/color/color-picker.tsx": { "rule4": 0, "rule6": 2 },
+	"components/color/color-utilities.ts": { "rule4": 1, "rule6": 2 },
+	"components/color/use-color-drag.ts": { "rule4": 2, "rule6": 0 },
+	"components/color/use-color-field.ts": { "rule4": 2, "rule6": 1 },
+	"components/color/use-color-picker-state.ts": { "rule4": 2, "rule6": 2 },
+	"components/color/use-color-state.ts": { "rule4": 0, "rule6": 1 },
+	"components/combobox/combobox-create-option.tsx": { "rule4": 5, "rule6": 6 },
+	"components/combobox/combobox-option.tsx": { "rule4": 1, "rule6": 0 },
+	"components/combobox/combobox-utilities.ts": { "rule4": 6, "rule6": 8 },
+	"components/combobox/combobox.tsx": { "rule4": 19, "rule6": 15 },
+	"components/combobox/context.ts": { "rule4": 0, "rule6": 1 },
+	"components/combobox/use-combobox-input.ts": { "rule4": 1, "rule6": 4 },
+	"components/combobox/use-combobox-state.ts": { "rule4": 4, "rule6": 1 },
+	"components/command-palette/command-palette-item.tsx": { "rule4": 2, "rule6": 1 },
+	"components/command-palette/command-palette.tsx": { "rule4": 3, "rule6": 2 },
+	"components/command-palette/use-command-palette-state.ts": { "rule4": 4, "rule6": 3 },
+	"components/confirm/confirm.tsx": { "rule4": 3, "rule6": 1 },
+	"components/context-menu/context-menu-merge.ts": { "rule4": 1, "rule6": 1 },
+	"components/context-menu/context-menu.tsx": { "rule4": 0, "rule6": 1 },
+	"components/context-menu/types.ts": { "rule4": 2, "rule6": 5 },
+	"components/control/context.ts": { "rule4": 1, "rule6": 0 },
+	"components/control/control-skeleton.tsx": { "rule4": 1, "rule6": 0 },
+	"components/control/control.tsx": { "rule4": 0, "rule6": 1 },
+	"components/control/use-control-field-context.ts": { "rule4": 0, "rule6": 1 },
+	"components/control/use-control-props.ts": { "rule4": 0, "rule6": 3 },
+	"components/copy-button/copy-button.tsx": { "rule4": 2, "rule6": 1 },
+	"components/copy-button/use-copy-button-state.ts": { "rule4": 2, "rule6": 0 },
+	"components/credit-card-input/credit-card-input-cvv.tsx": { "rule4": 1, "rule6": 1 },
+	"components/credit-card-input/credit-card-input-expiry.tsx": { "rule4": 0, "rule6": 2 },
+	"components/credit-card-input/credit-card-input-utilities.ts": { "rule4": 1, "rule6": 1 },
+	"components/credit-card-input/credit-card-input.tsx": { "rule4": 0, "rule6": 1 },
+	"components/currency-input/currency-input.tsx": { "rule4": 2, "rule6": 2 },
+	"components/date-input/date-input-utilities.ts": { "rule4": 4, "rule6": 5 },
+	"components/date-input/date-input.tsx": { "rule4": 10, "rule6": 8 },
+	"components/date-picker/date-picker-content.tsx": { "rule4": 1, "rule6": 4 },
+	"components/date-picker/date-picker-range-reducer.ts": { "rule4": 0, "rule6": 1 },
+	"components/date-picker/date-picker-relative-utilities.ts": { "rule4": 3, "rule6": 4 },
+	"components/date-picker/date-picker-relative.tsx": { "rule4": 2, "rule6": 3 },
+	"components/date-picker/date-picker-trigger.tsx": { "rule4": 1, "rule6": 0 },
+	"components/date-picker/date-picker-utilities.ts": { "rule4": 0, "rule6": 1 },
+	"components/date-picker/date-picker.tsx": { "rule4": 1, "rule6": 7 },
+	"components/date-picker/use-date-picker-controlled.ts": { "rule4": 0, "rule6": 1 },
+	"components/date-picker/use-date-picker-input-tab.ts": { "rule4": 0, "rule6": 2 },
+	"components/date-picker/use-date-picker-keyboard.ts": { "rule4": 5, "rule6": 3 },
+	"components/date-picker/use-date-picker-range-state.ts": { "rule4": 1, "rule6": 4 },
+	"components/date-picker/use-date-picker-relative-state.ts": { "rule4": 5, "rule6": 2 },
+	"components/date-picker/use-date-picker-state.ts": { "rule4": 0, "rule6": 1 },
+	"components/dialog/dialog-trigger.tsx": { "rule4": 1, "rule6": 0 },
+	"components/dialog/dialog.tsx": { "rule4": 2, "rule6": 2 },
+	"components/divider/divider.tsx": { "rule4": 1, "rule6": 1 },
+	"components/dl/description-list.tsx": { "rule4": 0, "rule6": 1 },
+	"components/drawer/drawer-floor.ts": { "rule4": 1, "rule6": 5 },
+	"components/drawer/drawer-handle.tsx": { "rule4": 1, "rule6": 0 },
+	"components/drawer/drawer-trigger.tsx": { "rule4": 1, "rule6": 0 },
+	"components/drawer/drawer.tsx": { "rule4": 12, "rule6": 18 },
+	"components/fieldset/field.tsx": { "rule4": 1, "rule6": 2 },
+	"components/fieldset/label.tsx": { "rule4": 1, "rule6": 1 },
+	"components/fieldset/message.tsx": { "rule4": 1, "rule6": 1 },
+	"components/file-upload/file-upload-hidden-input.tsx": { "rule4": 0, "rule6": 1 },
+	"components/file-upload/file-upload-utilities.ts": { "rule4": 2, "rule6": 1 },
+	"components/file-upload/file-upload.tsx": { "rule4": 8, "rule6": 5 },
+	"components/file-upload/use-file-upload-handlers.ts": { "rule4": 4, "rule6": 2 },
+	"components/filters/context.ts": { "rule4": 1, "rule6": 3 },
+	"components/filters/filters-clear.tsx": { "rule4": 2, "rule6": 2 },
+	"components/filters/filters-field.tsx": { "rule4": 4, "rule6": 1 },
+	"components/filters/filters.tsx": { "rule4": 4, "rule6": 6 },
+	"components/flex/flex-utilities.ts": { "rule4": 0, "rule6": 1 },
+	"components/flex/flex.tsx": { "rule4": 1, "rule6": 0 },
+	"components/form/context.tsx": { "rule4": 2, "rule6": 2 },
+	"components/form/form-reducer.ts": { "rule4": 1, "rule6": 1 },
+	"components/form/form-zod-resolver.ts": { "rule4": 2, "rule6": 1 },
+	"components/form/form.tsx": { "rule4": 1, "rule6": 0 },
+	"components/form/use-form-reducer.ts": { "rule4": 1, "rule6": 2 },
+	"components/form/use-form-store.ts": { "rule4": 1, "rule6": 0 },
+	"components/form/use-form-text.ts": { "rule4": 1, "rule6": 0 },
+	"components/form/use-form-toggle.ts": { "rule4": 0, "rule6": 1 },
+	"components/form/use-form-value.ts": { "rule4": 2, "rule6": 2 },
+	"components/group/group.tsx": { "rule4": 0, "rule6": 2 },
+	"components/group/use-group.ts": { "rule4": 0, "rule6": 1 },
+	"components/hold-button/hold-button.tsx": { "rule4": 2, "rule6": 0 },
+	"components/hold-button/use-hold-button-gesture.ts": { "rule4": 1, "rule6": 0 },
+	"components/icon/icon.tsx": { "rule4": 3, "rule6": 1 },
+	"components/input/input-frame.tsx": { "rule4": 0, "rule6": 1 },
+	"components/input/use-input-value.ts": { "rule4": 4, "rule6": 1 },
+	"components/json-tree/context.ts": { "rule4": 0, "rule6": 1 },
+	"components/json-tree/json-tree-node.tsx": { "rule4": 1, "rule6": 1 },
+	"components/json-tree/json-tree-utilities.tsx": { "rule4": 2, "rule6": 2 },
+	"components/json-tree/json-tree.tsx": { "rule4": 1, "rule6": 0 },
+	"components/kanban/context.ts": { "rule4": 3, "rule6": 1 },
+	"components/kanban/kanban-card.tsx": { "rule4": 4, "rule6": 1 },
+	"components/kanban/kanban-column-body.tsx": { "rule4": 2, "rule6": 0 },
+	"components/kanban/kanban-column.tsx": { "rule4": 0, "rule6": 1 },
+	"components/kanban/kanban.tsx": { "rule4": 0, "rule6": 1 },
+	"components/list/context.ts": { "rule4": 1, "rule6": 0 },
+	"components/list/list-item-static.tsx": { "rule4": 1, "rule6": 0 },
+	"components/list/list-item.tsx": { "rule4": 7, "rule6": 6 },
+	"components/list/list.tsx": { "rule4": 1, "rule6": 1 },
+	"components/list/use-list-drag.ts": { "rule4": 1, "rule6": 1 },
+	"components/list/use-list-keyboard.ts": { "rule4": 2, "rule6": 0 },
+	"components/listbox/listbox.tsx": { "rule4": 7, "rule6": 4 },
+	"components/loading/loading-dots.tsx": { "rule4": 2, "rule6": 0 },
+	"components/loading/loading-spinner.tsx": { "rule4": 1, "rule6": 0 },
+	"components/markdown/markdown-renderer.tsx": { "rule4": 3, "rule6": 3 },
+	"components/markdown/markdown.tsx": { "rule4": 5, "rule6": 4 },
+	"components/mask-input/mask-input.tsx": { "rule4": 1, "rule6": 0 },
+	"components/mask-input/use-mask-input.ts": { "rule4": 1, "rule6": 2 },
+	"components/menu/context.ts": { "rule4": 1, "rule6": 5 },
+	"components/menu/menu-content.tsx": { "rule4": 2, "rule6": 1 },
+	"components/menu/menu-item.tsx": { "rule4": 1, "rule6": 0 },
+	"components/menu/menu-sub.tsx": { "rule4": 6, "rule6": 12 },
+	"components/menu/menu-trigger.tsx": { "rule4": 4, "rule6": 2 },
+	"components/menu/menu.tsx": { "rule4": 1, "rule6": 4 },
+	"components/menu/use-menu-pointer.tsx": { "rule4": 6, "rule6": 15 },
+	"components/menu/use-menu-state.ts": { "rule4": 3, "rule6": 3 },
+	"components/nav/nav-bar.tsx": { "rule4": 0, "rule6": 1 },
+	"components/nav/nav-item.tsx": { "rule4": 0, "rule6": 1 },
+	"components/nav/use-nav-item.ts": { "rule4": 0, "rule6": 1 },
+	"components/number-input/number-input.tsx": { "rule4": 6, "rule6": 2 },
+	"components/odometer/use-odometer-animated-value.ts": { "rule4": 1, "rule6": 1 },
+	"components/password-confirm/context.ts": { "rule4": 1, "rule6": 0 },
+	"components/password-confirm/password-confirm-input.tsx": { "rule4": 0, "rule6": 1 },
+	"components/password-confirm/password-confirm-utilities.ts": { "rule4": 0, "rule6": 1 },
+	"components/password-confirm/use-password-confirm-state.ts": { "rule4": 0, "rule6": 1 },
+	"components/password-input/password-input.tsx": { "rule4": 2, "rule6": 2 },
+	"components/password-strength/use-password-strength.ts": { "rule4": 2, "rule6": 0 },
+	"components/pdf-viewer/pdf-viewer-document-cache.ts": { "rule4": 18, "rule6": 19 },
+	"components/pdf-viewer/pdf-viewer-highlight-geometry.ts": { "rule4": 2, "rule6": 1 },
+	"components/pdf-viewer/pdf-viewer-highlight-label.tsx": { "rule4": 6, "rule6": 6 },
+	"components/pdf-viewer/pdf-viewer-highlights-context.ts": { "rule4": 0, "rule6": 1 },
+	"components/pdf-viewer/pdf-viewer-highlights-provider.tsx": { "rule4": 0, "rule6": 2 },
+	"components/pdf-viewer/pdf-viewer-highlights.tsx": { "rule4": 33, "rule6": 32 },
+	"components/pdf-viewer/pdf-viewer-magnifier-context.ts": { "rule4": 0, "rule6": 2 },
+	"components/pdf-viewer/pdf-viewer-magnifier-provider.tsx": { "rule4": 1, "rule6": 2 },
+	"components/pdf-viewer/pdf-viewer-magnifier-settings.tsx": { "rule4": 5, "rule6": 7 },
+	"components/pdf-viewer/pdf-viewer-magnifier.tsx": { "rule4": 0, "rule6": 3 },
+	"components/pdf-viewer/pdf-viewer-thumbnail-list.tsx": { "rule4": 3, "rule6": 1 },
+	"components/pdf-viewer/pdf-viewer-thumbnails.tsx": { "rule4": 1, "rule6": 2 },
+	"components/pdf-viewer/pdf-viewer-toolbar-button.tsx": { "rule4": 2, "rule6": 6 },
+	"components/pdf-viewer/pdf-viewer-toolbar.tsx": { "rule4": 2, "rule6": 1 },
+	"components/pdf-viewer/pdf-viewer-utilities.ts": { "rule4": 1, "rule6": 0 },
+	"components/pdf-viewer/pdf-viewer-viewport.tsx": { "rule4": 1, "rule6": 1 },
+	"components/pdf-viewer/pdf-viewer-zoom-controls.tsx": { "rule4": 0, "rule6": 1 },
+	"components/pdf-viewer/pdf-viewer.tsx": { "rule4": 8, "rule6": 11 },
+	"components/pdf-viewer/types.ts": { "rule4": 4, "rule6": 7 },
+	"components/pdf-viewer/use-pdf-viewer-document.ts": { "rule4": 12, "rule6": 11 },
+	"components/pdf-viewer/use-pdf-viewer-highlights.ts": { "rule4": 4, "rule6": 4 },
+	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": { "rule4": 18, "rule6": 23 },
+	"components/pdf-viewer/use-pdf-viewer-page-rotation.ts": { "rule4": 2, "rule6": 0 },
+	"components/pdf-viewer/use-pdf-viewer-page-scale.ts": { "rule4": 4, "rule6": 5 },
+	"components/pdf-viewer/use-pdf-viewer-pagination.ts": { "rule4": 0, "rule6": 1 },
+	"components/pdf-viewer/use-pdf-viewer-viewport-size.ts": { "rule4": 1, "rule6": 0 },
+	"components/pdf-viewer/use-pdf-viewer.ts": { "rule4": 21, "rule6": 21 },
+	"components/phone-input/phone-input.tsx": { "rule4": 1, "rule6": 0 },
+	"components/pivot-table/pivot-table-pivot.ts": { "rule4": 3, "rule6": 2 },
+	"components/pivot-table/pivot-table.tsx": { "rule4": 2, "rule6": 0 },
+	"components/pivot-table/use-pivot-table.ts": { "rule4": 5, "rule6": 2 },
+	"components/placeholder/placeholder-skeleton.ts": { "rule4": 2, "rule6": 1 },
+	"components/popover/context.ts": { "rule4": 1, "rule6": 0 },
+	"components/popover/popover-content.tsx": { "rule4": 1, "rule6": 0 },
+	"components/popover/popover-trigger.tsx": { "rule4": 1, "rule6": 0 },
+	"components/popover/popover.tsx": { "rule4": 0, "rule6": 1 },
+	"components/radio/radio.tsx": { "rule4": 2, "rule6": 2 },
+	"components/rating/rating.tsx": { "rule4": 8, "rule6": 5 },
+	"components/resizable/resizable-group.tsx": { "rule4": 1, "rule6": 1 },
+	"components/resizable/resizable-handle.tsx": { "rule4": 0, "rule6": 1 },
+	"components/resizable/use-resizable-panel.ts": { "rule4": 4, "rule6": 1 },
+	"components/scroll-area/scroll-area.tsx": { "rule4": 1, "rule6": 0 },
+	"components/search-input/search-input.tsx": { "rule4": 1, "rule6": 2 },
+	"components/segment/segment.tsx": { "rule4": 1, "rule6": 0 },
+	"components/select/select.tsx": { "rule4": 1, "rule6": 0 },
+	"components/sheet/sheet-floor.ts": { "rule4": 5, "rule6": 4 },
+	"components/sheet/sheet-handle.tsx": { "rule4": 4, "rule6": 1 },
+	"components/sheet/sheet-trigger.tsx": { "rule4": 1, "rule6": 0 },
+	"components/sheet/sheet.tsx": { "rule4": 11, "rule6": 10 },
+	"components/shiny-text/shiny-text.tsx": { "rule4": 1, "rule6": 1 },
+	"components/sidebar/sidebar-item-actions.tsx": { "rule4": 0, "rule6": 1 },
+	"components/sidebar/sidebar-item.tsx": { "rule4": 1, "rule6": 2 },
+	"components/sidebar/sidebar-label.tsx": { "rule4": 1, "rule6": 0 },
+	"components/sidebar/sidebar-list.tsx": { "rule4": 0, "rule6": 1 },
+	"components/sidebar/sidebar.tsx": { "rule4": 1, "rule6": 3 },
+	"components/signature-pad/signature-pad-utilities.ts": { "rule4": 2, "rule6": 0 },
+	"components/signature-pad/signature-pad.tsx": { "rule4": 3, "rule6": 3 },
+	"components/signature-pad/use-signature-pad-canvas-sizing.ts": { "rule4": 1, "rule6": 1 },
+	"components/signature-pad/use-signature-pad-state.ts": { "rule4": 2, "rule6": 3 },
+	"components/slider/range/range-slider.tsx": { "rule4": 1, "rule6": 1 },
+	"components/slider/range/use-range-keyboard.ts": { "rule4": 0, "rule6": 1 },
+	"components/slider/range/use-range-pointer.ts": { "rule4": 1, "rule6": 1 },
+	"components/slider/range/use-range-update.ts": { "rule4": 0, "rule6": 1 },
+	"components/slider/slider.tsx": { "rule4": 2, "rule6": 1 },
+	"components/sparkline/sparkline-constants.ts": { "rule4": 1, "rule6": 1 },
+	"components/sparkline/sparkline-geometry.ts": { "rule4": 4, "rule6": 4 },
+	"components/sparkline/sparkline.tsx": { "rule4": 0, "rule6": 3 },
+	"components/split/split.tsx": { "rule4": 0, "rule6": 1 },
+	"components/stack/stack.tsx": { "rule4": 1, "rule6": 1 },
+	"components/stat/stat-value.tsx": { "rule4": 1, "rule6": 0 },
+	"components/status/status-dot.tsx": { "rule4": 1, "rule6": 1 },
+	"components/stepper/context.ts": { "rule4": 1, "rule6": 0 },
+	"components/stepper/stepper-panel.tsx": { "rule4": 1, "rule6": 1 },
+	"components/stepper/stepper-panels.tsx": { "rule4": 0, "rule6": 1 },
+	"components/stepper/stepper-step.tsx": { "rule4": 2, "rule6": 0 },
+	"components/stepper/stepper.tsx": { "rule4": 1, "rule6": 1 },
+	"components/swatch/swatch.tsx": { "rule4": 0, "rule6": 4 },
+	"components/switch/switch.tsx": { "rule4": 0, "rule6": 1 },
+	"components/table/table-loading.tsx": { "rule4": 0, "rule6": 1 },
+	"components/table/table.tsx": { "rule4": 1, "rule6": 0 },
+	"components/tabs/tab-contents.tsx": { "rule4": 3, "rule6": 2 },
+	"components/tabs/tab-list.tsx": { "rule4": 2, "rule6": 2 },
+	"components/tabs/tab-panel.tsx": { "rule4": 0, "rule6": 1 },
+	"components/tabs/tab.tsx": { "rule4": 4, "rule6": 4 },
+	"components/tabs/tabs.tsx": { "rule4": 1, "rule6": 0 },
+	"components/tabs/use-tab-list-scroll.ts": { "rule4": 0, "rule6": 3 },
+	"components/tag-input/index.ts": { "rule4": 2, "rule6": 0 },
+	"components/tag-input/tag-input-badge.tsx": { "rule4": 3, "rule6": 0 },
+	"components/tag-input/tag-input-utilities.ts": { "rule4": 9, "rule6": 11 },
+	"components/tag-input/tag-input.tsx": { "rule4": 8, "rule6": 4 },
+	"components/tag-input/use-tag-input-keyboard.ts": { "rule4": 3, "rule6": 1 },
+	"components/tag-input/use-tag-input.ts": { "rule4": 4, "rule6": 3 },
+	"components/textarea/textarea-skeleton.tsx": { "rule4": 0, "rule6": 1 },
+	"components/time-ago/time-ago-ticker.ts": { "rule4": 2, "rule6": 0 },
+	"components/time-ago/time-ago.tsx": { "rule4": 0, "rule6": 1 },
+	"components/time-ago/use-time-ago-relative-time.ts": { "rule4": 1, "rule6": 1 },
+	"components/timeline/timeline-item.tsx": { "rule4": 3, "rule6": 1 },
+	"components/timeline/timeline-marker.tsx": { "rule4": 0, "rule6": 1 },
+	"components/timeline/timeline.tsx": { "rule4": 0, "rule6": 1 },
+	"components/toast/toast-alert.tsx": { "rule4": 2, "rule6": 3 },
+	"components/toast/toast.tsx": { "rule4": 1, "rule6": 1 },
+	"components/toggle-icon-button/toggle-icon-button.tsx": { "rule4": 1, "rule6": 0 },
+	"components/tooltip/tooltip-anchor.tsx": { "rule4": 0, "rule6": 2 },
+	"components/tooltip/tooltip-content.tsx": { "rule4": 3, "rule6": 2 },
+	"components/tooltip/tooltip-pointer.tsx": { "rule4": 0, "rule6": 1 },
+	"components/tooltip/tooltip-trigger.tsx": { "rule4": 1, "rule6": 3 },
+	"components/tooltip/tooltip.tsx": { "rule4": 1, "rule6": 2 },
+	"components/tooltip/use-tooltip-anchor.ts": { "rule4": 2, "rule6": 6 },
+	"components/tooltip/use-tooltip-pointer.ts": { "rule4": 3, "rule6": 1 },
+	"components/tooltip/use-tooltip-state.ts": { "rule4": 2, "rule6": 3 },
+	"components/tree/tree-item-children.tsx": { "rule4": 0, "rule6": 1 },
+	"components/tree/tree-item-content.tsx": { "rule4": 2, "rule6": 1 },
+	"components/tree/tree-item.tsx": { "rule4": 3, "rule6": 2 },
+	"components/tree/tree.tsx": { "rule4": 1, "rule6": 2 },
+	"components/zipcode-input/zipcode-input.tsx": { "rule4": 1, "rule6": 1 },
+	"core/announcer.ts": { "rule4": 0, "rule6": 1 },
+	"core/cn.ts": { "rule4": 4, "rule6": 7 },
+	"core/compose-event-handlers.ts": { "rule4": 0, "rule6": 1 },
+	"core/create-context.ts": { "rule4": 0, "rule6": 1 },
+	"core/create-slot.ts": { "rule4": 1, "rule6": 1 },
+	"core/data-attr.ts": { "rule4": 0, "rule6": 1 },
+	"core/recipe/colors.ts": { "rule4": 0, "rule6": 1 },
+	"core/recipe/engine/applicator.ts": { "rule4": 0, "rule6": 4 },
+	"core/recipe/engine/palette.ts": { "rule4": 1, "rule6": 3 },
+	"core/recipe/engine/recipe.ts": { "rule4": 5, "rule6": 6 },
+	"core/recipe/engine/types.ts": { "rule4": 1, "rule6": 1 },
+	"core/recipe/mode.ts": { "rule4": 0, "rule6": 2 },
+	"core/validation-attrs.ts": { "rule4": 1, "rule6": 1 },
+	"docs/engine/api-reference/engine/api-extractor.ts": { "rule4": 6, "rule6": 5 },
+	"docs/engine/api-reference/engine/build-api.ts": { "rule4": 2, "rule6": 3 },
+	"docs/engine/api-reference/engine/extract-defaults.ts": { "rule4": 0, "rule6": 2 },
+	"docs/engine/api-reference/engine/extract-doc.ts": { "rule4": 1, "rule6": 1 },
+	"docs/engine/api-reference/engine/extract-passthrough.ts": { "rule4": 0, "rule6": 1 },
+	"docs/engine/api-reference/engine/extract-project-props.ts": { "rule4": 2, "rule6": 0 },
+	"docs/engine/api-reference/engine/extract-props.ts": { "rule4": 11, "rule6": 7 },
+	"docs/engine/api-reference/engine/extract-references.ts": { "rule4": 2, "rule6": 0 },
+	"docs/engine/api-reference/engine/format-type.ts": { "rule4": 1, "rule6": 7 },
+	"docs/engine/api-reference/engine/link-resolver.ts": { "rule4": 0, "rule6": 1 },
+	"docs/engine/api-reference/link-syntax.ts": { "rule4": 1, "rule6": 1 },
+	"docs/engine/api-reference/types.ts": { "rule4": 2, "rule6": 0 },
+	"docs/engine/app.tsx": { "rule4": 1, "rule6": 1 },
+	"docs/engine/components/api-reference/api-reference.tsx": { "rule4": 0, "rule6": 1 },
+	"docs/engine/components/api-reference/default-value.tsx": { "rule4": 0, "rule6": 2 },
+	"docs/engine/components/api-reference/doc-description.tsx": { "rule4": 0, "rule6": 2 },
+	"docs/engine/components/api-reference/doc-inline.tsx": { "rule4": 0, "rule6": 1 },
+	"docs/engine/components/api-reference/prop-list.tsx": { "rule4": 0, "rule6": 1 },
+	"docs/engine/components/error-boundary.tsx": { "rule4": 0, "rule6": 1 },
+	"docs/engine/components/example-resize.tsx": { "rule4": 4, "rule6": 4 },
+	"docs/engine/components/example.tsx": { "rule4": 2, "rule6": 2 },
+	"docs/engine/components/labeled.tsx": { "rule4": 3, "rule6": 1 },
+	"docs/engine/components/options-listbox.tsx": { "rule4": 0, "rule6": 1 },
+	"docs/engine/components/settings-dialog.tsx": { "rule4": 1, "rule6": 1 },
+	"docs/engine/components/sidebar.tsx": { "rule4": 0, "rule6": 1 },
+	"docs/engine/demo-page.tsx": { "rule4": 1, "rule6": 1 },
+	"docs/engine/derive-code/index.ts": { "rule4": 0, "rule6": 4 },
+	"docs/engine/derive-code/internals.ts": { "rule4": 4, "rule6": 7 },
+	"docs/engine/derive-code/registry.ts": { "rule4": 0, "rule6": 1 },
+	"docs/engine/derive-code/types.ts": { "rule4": 1, "rule6": 5 },
+	"docs/engine/hooks/use-persisted-choice.ts": { "rule4": 0, "rule6": 1 },
+	"docs/engine/hooks/use-theme.ts": { "rule4": 0, "rule6": 1 },
+	"docs/engine/host.tsx": { "rule4": 1, "rule6": 0 },
+	"docs/engine/plugins/collect-helpers.ts": { "rule4": 1, "rule6": 1 },
+	"docs/engine/plugins/docs.ts": { "rule4": 7, "rule6": 5 },
+	"docs/engine/plugins/source-facts.ts": { "rule4": 4, "rule6": 6 },
+	"docs/engine/plugins/virtual-json.ts": { "rule4": 1, "rule6": 3 },
+	"docs/engine/registry.ts": { "rule4": 2, "rule6": 1 },
+	"docs/engine/reserved-props.ts": { "rule4": 1, "rule6": 1 },
+	"docs/engine/shiki.ts": { "rule4": 2, "rule6": 0 },
+	"docs/engine/vite/index.ts": { "rule4": 2, "rule6": 1 },
+	"hooks/a11y/use-a11y-announcements.ts": { "rule4": 0, "rule6": 2 },
+	"hooks/a11y/use-a11y-control.ts": { "rule4": 2, "rule6": 0 },
+	"hooks/a11y/use-a11y-disclosure.ts": { "rule4": 2, "rule6": 2 },
+	"hooks/a11y/use-a11y-has-tabbable.ts": { "rule4": 0, "rule6": 2 },
+	"hooks/a11y/use-a11y-live-region.ts": { "rule4": 0, "rule6": 1 },
+	"hooks/a11y/use-a11y-panel.ts": { "rule4": 0, "rule6": 1 },
+	"hooks/a11y/use-a11y-roving.ts": { "rule4": 9, "rule6": 23 },
+	"hooks/a11y/use-a11y-scope.ts": { "rule4": 0, "rule6": 2 },
+	"hooks/a11y/use-typeahead.ts": { "rule4": 0, "rule6": 2 },
+	"hooks/travel-height.ts": { "rule4": 5, "rule6": 4 },
+	"hooks/use-composed-ref.ts": { "rule4": 0, "rule6": 1 },
+	"hooks/use-controllable.ts": { "rule4": 2, "rule6": 0 },
+	"hooks/use-deferred-toggle.ts": { "rule4": 0, "rule6": 2 },
+	"hooks/use-dismissable.ts": { "rule4": 1, "rule6": 2 },
+	"hooks/use-enter-animation.ts": { "rule4": 1, "rule6": 2 },
+	"hooks/use-escape-layer.ts": { "rule4": 2, "rule6": 0 },
+	"hooks/use-floating-disclosure.ts": { "rule4": 1, "rule6": 4 },
+	"hooks/use-floating-reference.ts": { "rule4": 0, "rule6": 3 },
+	"hooks/use-floating-ui.ts": { "rule4": 8, "rule6": 13 },
+	"hooks/use-formatted-input.ts": { "rule4": 1, "rule6": 4 },
+	"hooks/use-frozen-on-close.ts": { "rule4": 0, "rule6": 2 },
+	"hooks/use-grabbing-cursor.ts": { "rule4": 2, "rule6": 2 },
+	"hooks/use-hover-across-scroll.ts": { "rule4": 3, "rule6": 3 },
+	"hooks/use-id-scope.ts": { "rule4": 1, "rule6": 0 },
+	"hooks/use-in-view.ts": { "rule4": 2, "rule6": 2 },
+	"hooks/use-is-truncated.ts": { "rule4": 1, "rule6": 1 },
+	"hooks/use-keybindings.ts": { "rule4": 1, "rule6": 1 },
+	"hooks/use-keyboard-lifted.ts": { "rule4": 0, "rule6": 1 },
+	"hooks/use-keyboard-settled.ts": { "rule4": 2, "rule6": 0 },
+	"hooks/use-measured-width.ts": { "rule4": 2, "rule6": 2 },
+	"hooks/use-min-breakpoint.ts": { "rule4": 1, "rule6": 5 },
+	"hooks/use-min-width.ts": { "rule4": 1, "rule6": 0 },
+	"hooks/use-offcanvas.ts": { "rule4": 3, "rule6": 0 },
+	"hooks/use-open-change.ts": { "rule4": 2, "rule6": 1 },
+	"hooks/use-open-complete.ts": { "rule4": 2, "rule6": 4 },
+	"hooks/use-panel-fit.ts": { "rule4": 9, "rule6": 5 },
+	"hooks/use-panel-resize.ts": { "rule4": 23, "rule6": 19 },
+	"hooks/use-pending-caret.ts": { "rule4": 0, "rule6": 1 },
+	"hooks/use-plot-frame.ts": { "rule4": 16, "rule6": 15 },
+	"hooks/use-plot-tab-stop.ts": { "rule4": 1, "rule6": 3 },
+	"hooks/use-reported-change.ts": { "rule4": 3, "rule6": 2 },
+	"hooks/use-resize-observer.ts": { "rule4": 1, "rule6": 0 },
+	"hooks/use-scroll-lock.ts": { "rule4": 1, "rule6": 0 },
+	"hooks/use-scroll-overflow.ts": { "rule4": 2, "rule6": 1 },
+	"hooks/use-scroll-within.ts": { "rule4": 7, "rule6": 4 },
+	"hooks/use-selectable-value-change.ts": { "rule4": 1, "rule6": 0 },
+	"hooks/use-sortable-item.ts": { "rule4": 0, "rule6": 1 },
+	"hooks/use-sortable-list.ts": { "rule4": 3, "rule6": 1 },
+	"hooks/use-sortable-sensors.ts": { "rule4": 0, "rule6": 2 },
+	"hooks/use-truncation.ts": { "rule4": 5, "rule6": 15 },
+	"hooks/use-virtual-window.ts": { "rule4": 2, "rule6": 3 },
+	"layouts/dashboard.tsx": { "rule4": 1, "rule6": 0 },
+	"layouts/sidebar/sidebar.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/chart/area-chart/area-chart.tsx": { "rule4": 0, "rule6": 9 },
+	"modules/chart/bar-chart/bar-chart.tsx": { "rule4": 0, "rule6": 7 },
+	"modules/chart/bubble-chart/bubble-chart.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/chart/choropleth-chart/choropleth-chart.tsx": { "rule4": 6, "rule6": 7 },
+	"modules/chart/combo-chart/combo-chart.tsx": { "rule4": 2, "rule6": 6 },
+	"modules/chart/engine/chart-axes/axis.tsx": { "rule4": 0, "rule6": 7 },
+	"modules/chart/engine/chart-axes/cartesian.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/chart/engine/chart-axes/schema.ts": { "rule4": 2, "rule6": 10 },
+	"modules/chart/engine/chart-color/paint.ts": { "rule4": 1, "rule6": 6 },
+	"modules/chart/engine/chart-color/palette.ts": { "rule4": 0, "rule6": 1 },
+	"modules/chart/engine/chart-constants.ts": { "rule4": 3, "rule6": 8 },
+	"modules/chart/engine/chart-context-menu.tsx": { "rule4": 11, "rule6": 12 },
+	"modules/chart/engine/chart-coords.ts": { "rule4": 0, "rule6": 2 },
+	"modules/chart/engine/chart-crosshair.tsx": { "rule4": 2, "rule6": 9 },
+	"modules/chart/engine/chart-export.ts": { "rule4": 2, "rule6": 5 },
+	"modules/chart/engine/chart-frame/cartesian.tsx": { "rule4": 0, "rule6": 3 },
+	"modules/chart/engine/chart-frame/frame.tsx": { "rule4": 7, "rule6": 12 },
+	"modules/chart/engine/chart-geometry/area.ts": { "rule4": 1, "rule6": 1 },
+	"modules/chart/engine/chart-geometry/bar.ts": { "rule4": 1, "rule6": 7 },
+	"modules/chart/engine/chart-geometry/heatmap.ts": { "rule4": 4, "rule6": 3 },
+	"modules/chart/engine/chart-geometry/line.ts": { "rule4": 1, "rule6": 5 },
+	"modules/chart/engine/chart-geometry/pie.ts": { "rule4": 9, "rule6": 17 },
+	"modules/chart/engine/chart-geometry/scatter.ts": { "rule4": 4, "rule6": 20 },
+	"modules/chart/engine/chart-header.tsx": { "rule4": 2, "rule6": 4 },
+	"modules/chart/engine/chart-hit-area.tsx": { "rule4": 0, "rule6": 6 },
+	"modules/chart/engine/chart-hit-test.ts": { "rule4": 2, "rule6": 9 },
+	"modules/chart/engine/chart-layout.ts": { "rule4": 15, "rule6": 51 },
+	"modules/chart/engine/chart-legend/cartesian.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/chart/engine/chart-legend/fit.ts": { "rule4": 5, "rule6": 5 },
+	"modules/chart/engine/chart-legend/legend.tsx": { "rule4": 13, "rule6": 24 },
+	"modules/chart/engine/chart-legend/range-legend.tsx": { "rule4": 1, "rule6": 17 },
+	"modules/chart/engine/chart-legend/range.ts": { "rule4": 2, "rule6": 5 },
+	"modules/chart/engine/chart-legend/schema.ts": { "rule4": 1, "rule6": 8 },
+	"modules/chart/engine/chart-marks/bar.tsx": { "rule4": 2, "rule6": 3 },
+	"modules/chart/engine/chart-marks/layer.tsx": { "rule4": 1, "rule6": 4 },
+	"modules/chart/engine/chart-motion.ts": { "rule4": 1, "rule6": 15 },
+	"modules/chart/engine/chart-orientation.ts": { "rule4": 2, "rule6": 2 },
+	"modules/chart/engine/chart-pattern-defs.tsx": { "rule4": 2, "rule6": 8 },
+	"modules/chart/engine/chart-plot-box.tsx": { "rule4": 5, "rule6": 4 },
+	"modules/chart/engine/chart-reference-lines.tsx": { "rule4": 2, "rule6": 19 },
+	"modules/chart/engine/chart-scale.ts": { "rule4": 9, "rule6": 9 },
+	"modules/chart/engine/chart-series.ts": { "rule4": 0, "rule6": 3 },
+	"modules/chart/engine/chart-snap.ts": { "rule4": 1, "rule6": 3 },
+	"modules/chart/engine/chart-table.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/chart/engine/chart-tier.ts": { "rule4": 9, "rule6": 18 },
+	"modules/chart/engine/chart-time.ts": { "rule4": 1, "rule6": 8 },
+	"modules/chart/engine/chart-tooltip.tsx": { "rule4": 9, "rule6": 10 },
+	"modules/chart/engine/chart-value-labels.tsx": { "rule4": 6, "rule6": 19 },
+	"modules/chart/engine/context.ts": { "rule4": 6, "rule6": 9 },
+	"modules/chart/engine/types.ts": { "rule4": 8, "rule6": 34 },
+	"modules/chart/engine/use-chart-cartesian.ts": { "rule4": 11, "rule6": 33 },
+	"modules/chart/engine/use-chart-keyboard.ts": { "rule4": 3, "rule6": 18 },
+	"modules/chart/engine/use-chart-pointer.ts": { "rule4": 2, "rule6": 4 },
+	"modules/chart/engine/use-chart-series-toggle.ts": { "rule4": 3, "rule6": 2 },
+	"modules/chart/heatmap-chart/heatmap-chart-schema.ts": { "rule4": 1, "rule6": 9 },
+	"modules/chart/heatmap-chart/heatmap-chart.tsx": { "rule4": 6, "rule6": 11 },
+	"modules/chart/line-chart/line-chart.tsx": { "rule4": 0, "rule6": 3 },
+	"modules/chart/pie-chart/pie-chart.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/chart/scatter-chart/scatter-chart-hit-area.tsx": { "rule4": 0, "rule6": 4 },
+	"modules/chart/scatter-chart/scatter-chart-marks.tsx": { "rule4": 3, "rule6": 5 },
+	"modules/chart/scatter-chart/scatter-chart.tsx": { "rule4": 5, "rule6": 12 },
+	"modules/chart/sector-chart/sector-chart-callouts.tsx": { "rule4": 0, "rule6": 4 },
+	"modules/chart/sector-chart/sector-chart-frame.ts": { "rule4": 2, "rule6": 8 },
+	"modules/chart/sector-chart/sector-chart-marks.tsx": { "rule4": 0, "rule6": 8 },
+	"modules/chart/sector-chart/sector-chart.tsx": { "rule4": 2, "rule6": 6 },
+	"modules/chat/chat-embed-provider.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/chat/chat-embed.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/chat/chat-list-item.tsx": { "rule4": 0, "rule6": 3 },
+	"modules/chat/chat-list.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/chat/chat-message.tsx": { "rule4": 2, "rule6": 6 },
+	"modules/chat/chat-prompt.tsx": { "rule4": 5, "rule6": 2 },
+	"modules/chat/chat-tool.tsx": { "rule4": 1, "rule6": 4 },
+	"modules/chat/chat-transcript.tsx": { "rule4": 1, "rule6": 3 },
+	"modules/chat/context.ts": { "rule4": 1, "rule6": 3 },
+	"modules/chat/engine/chat-announcements.ts": { "rule4": 2, "rule6": 1 },
+	"modules/chat/engine/chat-content/normalize.ts": { "rule4": 1, "rule6": 2 },
+	"modules/chat/engine/chat-content/text.ts": { "rule4": 1, "rule6": 0 },
+	"modules/chat/engine/chat-content/types.ts": { "rule4": 11, "rule6": 8 },
+	"modules/chat/engine/chat-draft.ts": { "rule4": 0, "rule6": 1 },
+	"modules/chat/engine/chat-stream.ts": { "rule4": 6, "rule6": 9 },
+	"modules/chat/engine/chat-transcript.ts": { "rule4": 7, "rule6": 11 },
+	"modules/chat/engine/types.ts": { "rule4": 3, "rule6": 2 },
+	"modules/chat/use-chat-draft.ts": { "rule4": 1, "rule6": 0 },
+	"modules/chat/use-chat-scroll.ts": { "rule4": 5, "rule6": 6 },
+	"modules/chat/use-chat-send.ts": { "rule4": 8, "rule6": 11 },
+	"modules/grid/context.ts": { "rule4": 0, "rule6": 7 },
+	"modules/grid/engine/grid-aggregate.ts": { "rule4": 2, "rule6": 8 },
+	"modules/grid/engine/grid-announcements.ts": { "rule4": 3, "rule6": 4 },
+	"modules/grid/engine/grid-column/accessor.ts": { "rule4": 0, "rule6": 1 },
+	"modules/grid/engine/grid-column/allocate.ts": { "rule4": 7, "rule6": 10 },
+	"modules/grid/engine/grid-column/label.ts": { "rule4": 0, "rule6": 1 },
+	"modules/grid/engine/grid-column/measure.ts": { "rule4": 6, "rule6": 22 },
+	"modules/grid/engine/grid-constants.ts": { "rule4": 0, "rule6": 9 },
+	"modules/grid/engine/grid-editing-utilities.ts": { "rule4": 1, "rule6": 2 },
+	"modules/grid/engine/grid-export/accessor.ts": { "rule4": 0, "rule6": 2 },
+	"modules/grid/engine/grid-export/csv.ts": { "rule4": 3, "rule6": 2 },
+	"modules/grid/engine/grid-export/download.ts": { "rule4": 0, "rule6": 1 },
+	"modules/grid/engine/grid-export/excel.ts": { "rule4": 0, "rule6": 2 },
+	"modules/grid/engine/grid-export/html-table.ts": { "rule4": 0, "rule6": 1 },
+	"modules/grid/engine/grid-export/print.ts": { "rule4": 2, "rule6": 1 },
+	"modules/grid/engine/grid-export/registry.ts": { "rule4": 1, "rule6": 1 },
+	"modules/grid/engine/grid-export/resolve.ts": { "rule4": 4, "rule6": 8 },
+	"modules/grid/engine/grid-export/types.ts": { "rule4": 3, "rule6": 9 },
+	"modules/grid/engine/grid-group/compute.ts": { "rule4": 2, "rule6": 3 },
+	"modules/grid/engine/grid-group/resolve.ts": { "rule4": 0, "rule6": 6 },
+	"modules/grid/engine/grid-group/segments.ts": { "rule4": 2, "rule6": 3 },
+	"modules/grid/engine/grid-menu-targeting.ts": { "rule4": 0, "rule6": 3 },
+	"modules/grid/engine/grid-pagination-utilities.ts": { "rule4": 2, "rule6": 0 },
+	"modules/grid/engine/grid-pin/layout.ts": { "rule4": 4, "rule6": 6 },
+	"modules/grid/engine/grid-pin/measure.ts": { "rule4": 1, "rule6": 6 },
+	"modules/grid/engine/grid-pin/overrides.ts": { "rule4": 7, "rule6": 5 },
+	"modules/grid/engine/grid-pin/styles.ts": { "rule4": 1, "rule6": 2 },
+	"modules/grid/engine/grid-reorder-compute.ts": { "rule4": 5, "rule6": 6 },
+	"modules/grid/engine/grid-row/bridges.ts": { "rule4": 3, "rule6": 5 },
+	"modules/grid/engine/grid-row/cell.ts": { "rule4": 0, "rule6": 4 },
+	"modules/grid/engine/grid-row/shell.ts": { "rule4": 2, "rule6": 5 },
+	"modules/grid/engine/grid-sort/state.ts": { "rule4": 0, "rule6": 4 },
+	"modules/grid/engine/grid-sort/utilities.ts": { "rule4": 6, "rule6": 17 },
+	"modules/grid/engine/grid-table/classes.ts": { "rule4": 0, "rule6": 5 },
+	"modules/grid/engine/grid-table/guards.ts": { "rule4": 0, "rule6": 2 },
+	"modules/grid/engine/grid-table/options.ts": { "rule4": 4, "rule6": 11 },
+	"modules/grid/engine/grid-table/state.ts": { "rule4": 2, "rule6": 2 },
+	"modules/grid/engine/grid-table/views.ts": { "rule4": 10, "rule6": 12 },
+	"modules/grid/engine/grid-tools.ts": { "rule4": 1, "rule6": 0 },
+	"modules/grid/engine/grid-zone/map.ts": { "rule4": 5, "rule6": 7 },
+	"modules/grid/grid-aggregate-cells.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/grid/grid-auto-size-confirm-dialog.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/grid/grid-body.tsx": { "rule4": 0, "rule6": 6 },
+	"modules/grid/grid-busy-status.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/grid/grid-cell-content.tsx": { "rule4": 0, "rule6": 4 },
+	"modules/grid/grid-column-filter-button.tsx": { "rule4": 11, "rule6": 5 },
+	"modules/grid/grid-column-header.tsx": { "rule4": 7, "rule6": 6 },
+	"modules/grid/grid-column-manager.tsx": { "rule4": 16, "rule6": 9 },
+	"modules/grid/grid-column-resize-handle.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/grid/grid-context-menu-utilities.tsx": { "rule4": 6, "rule6": 14 },
+	"modules/grid/grid-context-menu.tsx": { "rule4": 4, "rule6": 3 },
+	"modules/grid/grid-data-cell.tsx": { "rule4": 1, "rule6": 3 },
+	"modules/grid/grid-data-resolvers.ts": { "rule4": 5, "rule6": 14 },
+	"modules/grid/grid-data-types.ts": { "rule4": 39, "rule6": 75 },
+	"modules/grid/grid-data.tsx": { "rule4": 14, "rule6": 14 },
+	"modules/grid/grid-detail-row.tsx": { "rule4": 2, "rule6": 4 },
+	"modules/grid/grid-edit-inputs.tsx": { "rule4": 2, "rule6": 5 },
+	"modules/grid/grid-editing-cell.tsx": { "rule4": 2, "rule6": 4 },
+	"modules/grid/grid-editing-context.ts": { "rule4": 2, "rule6": 3 },
+	"modules/grid/grid-editing-types.ts": { "rule4": 6, "rule6": 13 },
+	"modules/grid/grid-export-overlay.tsx": { "rule4": 3, "rule6": 4 },
+	"modules/grid/grid-filter.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/grid/grid-footer-bar.tsx": { "rule4": 3, "rule6": 3 },
+	"modules/grid/grid-group-by-button.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/grid/grid-group-head.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/grid/grid-group-leaf-row.tsx": { "rule4": 4, "rule6": 2 },
+	"modules/grid/grid-group-manager.tsx": { "rule4": 5, "rule6": 7 },
+	"modules/grid/grid-group-row.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/grid/grid-group-types.ts": { "rule4": 0, "rule6": 3 },
+	"modules/grid/grid-head.tsx": { "rule4": 2, "rule6": 4 },
+	"modules/grid/grid-highlight-utilities.tsx": { "rule4": 2, "rule6": 1 },
+	"modules/grid/grid-manager-dialog.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/grid/grid-manual-group-row.tsx": { "rule4": 2, "rule6": 3 },
+	"modules/grid/grid-menu-actions.ts": { "rule4": 3, "rule6": 0 },
+	"modules/grid/grid-pagination.tsx": { "rule4": 5, "rule6": 2 },
+	"modules/grid/grid-region.tsx": { "rule4": 4, "rule6": 7 },
+	"modules/grid/grid-reorder.ts": { "rule4": 0, "rule6": 3 },
+	"modules/grid/grid-row-actions.tsx": { "rule4": 2, "rule6": 2 },
+	"modules/grid/grid-row-group-types.ts": { "rule4": 1, "rule6": 5 },
+	"modules/grid/grid-row-manager.tsx": { "rule4": 2, "rule6": 3 },
+	"modules/grid/grid-row.tsx": { "rule4": 9, "rule6": 9 },
+	"modules/grid/grid-skeleton-cells.tsx": { "rule4": 3, "rule6": 6 },
+	"modules/grid/grid-sort-state.ts": { "rule4": 1, "rule6": 1 },
+	"modules/grid/grid-table-views.ts": { "rule4": 3, "rule6": 7 },
+	"modules/grid/grid-toolbar.tsx": { "rule4": 4, "rule6": 3 },
+	"modules/grid/grid-total-row.tsx": { "rule4": 2, "rule6": 6 },
+	"modules/grid/grid-virtualized-body.tsx": { "rule4": 5, "rule6": 4 },
+	"modules/grid/grid.tsx": { "rule4": 2, "rule6": 6 },
+	"modules/grid/types.ts": { "rule4": 28, "rule6": 32 },
+	"modules/grid/use-grid-column-auto-size.ts": { "rule4": 13, "rule6": 23 },
+	"modules/grid/use-grid-columns.ts": { "rule4": 2, "rule6": 1 },
+	"modules/grid/use-grid-cursor.tsx": { "rule4": 2, "rule6": 4 },
+	"modules/grid/use-grid-editing-columns.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/grid/use-grid-editing.ts": { "rule4": 17, "rule6": 12 },
+	"modules/grid/use-grid-expansion.ts": { "rule4": 0, "rule6": 1 },
+	"modules/grid/use-grid-export-actions.ts": { "rule4": 1, "rule6": 4 },
+	"modules/grid/use-grid-export.ts": { "rule4": 2, "rule6": 6 },
+	"modules/grid/use-grid-group-manager.ts": { "rule4": 1, "rule6": 2 },
+	"modules/grid/use-grid-group.ts": { "rule4": 3, "rule6": 2 },
+	"modules/grid/use-grid-infinite-scroll.ts": { "rule4": 6, "rule6": 10 },
+	"modules/grid/use-grid-navigation-columns.tsx": { "rule4": 5, "rule6": 7 },
+	"modules/grid/use-grid-navigation.ts": { "rule4": 7, "rule6": 8 },
+	"modules/grid/use-grid-pinned-offsets.ts": { "rule4": 2, "rule6": 3 },
+	"modules/grid/use-grid-reorder.ts": { "rule4": 2, "rule6": 2 },
+	"modules/grid/use-grid-reveal-hold.ts": { "rule4": 2, "rule6": 8 },
+	"modules/grid/use-grid-roving.ts": { "rule4": 2, "rule6": 3 },
+	"modules/grid/use-grid-row-grouping.ts": { "rule4": 0, "rule6": 2 },
+	"modules/grid/use-grid-row-manager.tsx": { "rule4": 4, "rule6": 6 },
+	"modules/grid/use-grid-row-reorder.ts": { "rule4": 1, "rule6": 1 },
+	"modules/grid/use-grid-selection.ts": { "rule4": 1, "rule6": 2 },
+	"modules/grid/use-grid-table.ts": { "rule4": 24, "rule6": 15 },
+	"modules/grid/use-grid-truncation.ts": { "rule4": 1, "rule6": 4 },
+	"modules/grid/use-grid-zone-sortable.ts": { "rule4": 0, "rule6": 1 },
+	"modules/map/context.ts": { "rule4": 5, "rule6": 15 },
+	"modules/map/engine/map-cluster/crowd.ts": { "rule4": 13, "rule6": 22 },
+	"modules/map/engine/map-cluster/geo.ts": { "rule4": 1, "rule6": 2 },
+	"modules/map/engine/map-cluster/grid.ts": { "rule4": 1, "rule6": 6 },
+	"modules/map/engine/map-cluster/ground.ts": { "rule4": 12, "rule6": 13 },
+	"modules/map/engine/map-cluster/group.ts": { "rule4": 8, "rule6": 17 },
+	"modules/map/engine/map-cluster/radius.ts": { "rule4": 0, "rule6": 1 },
+	"modules/map/engine/map-constants.ts": { "rule4": 13, "rule6": 39 },
+	"modules/map/engine/map-geofence.ts": { "rule4": 6, "rule6": 13 },
+	"modules/map/engine/map-geometry/cache.ts": { "rule4": 17, "rule6": 11 },
+	"modules/map/engine/map-geometry/chrome.ts": { "rule4": 4, "rule6": 8 },
+	"modules/map/engine/map-geometry/locate.ts": { "rule4": 6, "rule6": 12 },
+	"modules/map/engine/map-geometry/mark.ts": { "rule4": 18, "rule6": 38 },
+	"modules/map/engine/map-geometry/projected.ts": { "rule4": 44, "rule6": 44 },
+	"modules/map/engine/map-geometry/region.ts": { "rule4": 1, "rule6": 3 },
+	"modules/map/engine/map-geometry/topology.ts": { "rule4": 2, "rule6": 2 },
+	"modules/map/engine/map-geometry/winding.ts": { "rule4": 24, "rule6": 21 },
+	"modules/map/engine/map-hover/anchor.ts": { "rule4": 1, "rule6": 5 },
+	"modules/map/engine/map-hover/target.ts": { "rule4": 4, "rule6": 4 },
+	"modules/map/engine/map-keyboard/cursor.ts": { "rule4": 1, "rule6": 6 },
+	"modules/map/engine/map-keyboard/stops.ts": { "rule4": 3, "rule6": 3 },
+	"modules/map/engine/map-legend/items.ts": { "rule4": 0, "rule6": 5 },
+	"modules/map/engine/map-legend/plan.ts": { "rule4": 0, "rule6": 9 },
+	"modules/map/engine/map-motion.ts": { "rule4": 2, "rule6": 4 },
+	"modules/map/engine/map-overlay/entry.ts": { "rule4": 3, "rule6": 14 },
+	"modules/map/engine/map-overlay/readout.ts": { "rule4": 5, "rule6": 7 },
+	"modules/map/engine/map-overlay/selection.ts": { "rule4": 0, "rule6": 3 },
+	"modules/map/engine/map-overlay/slots.ts": { "rule4": 1, "rule6": 2 },
+	"modules/map/engine/map-projection/aspect.ts": { "rule4": 0, "rule6": 3 },
+	"modules/map/engine/map-projection/fit.ts": { "rule4": 2, "rule6": 6 },
+	"modules/map/engine/map-projection/frame.ts": { "rule4": 3, "rule6": 4 },
+	"modules/map/engine/map-projection/resolve.ts": { "rule4": 4, "rule6": 11 },
+	"modules/map/engine/map-region/category.ts": { "rule4": 3, "rule6": 10 },
+	"modules/map/engine/map-region/data.ts": { "rule4": 4, "rule6": 15 },
+	"modules/map/engine/map-region/identity.ts": { "rule4": 2, "rule6": 3 },
+	"modules/map/engine/map-region/paint.ts": { "rule4": 1, "rule6": 7 },
+	"modules/map/engine/map-region/spare.ts": { "rule4": 8, "rule6": 15 },
+	"modules/map/engine/map-region/value.ts": { "rule4": 0, "rule6": 5 },
+	"modules/map/engine/map-routing/failure.ts": { "rule4": 3, "rule6": 10 },
+	"modules/map/engine/map-routing/osrm.ts": { "rule4": 1, "rule6": 3 },
+	"modules/map/engine/map-routing/polyline.ts": { "rule4": 1, "rule6": 3 },
+	"modules/map/engine/map-routing/request.ts": { "rule4": 2, "rule6": 3 },
+	"modules/map/engine/map-routing/result.ts": { "rule4": 1, "rule6": 3 },
+	"modules/map/engine/map-routing/valhalla.ts": { "rule4": 0, "rule6": 1 },
+	"modules/map/engine/map-zip/dissolve.ts": { "rule4": 5, "rule6": 6 },
+	"modules/map/engine/map-zip/frame.ts": { "rule4": 15, "rule6": 10 },
+	"modules/map/engine/map-zip/selection.ts": { "rule4": 18, "rule6": 11 },
+	"modules/map/engine/map-zoom/gesture.ts": { "rule4": 6, "rule6": 10 },
+	"modules/map/engine/map-zoom/input.ts": { "rule4": 7, "rule6": 10 },
+	"modules/map/engine/map-zoom/transform.ts": { "rule4": 7, "rule6": 6 },
+	"modules/map/engine/types.ts": { "rule4": 5, "rule6": 8 },
+	"modules/map/map-chrome.tsx": { "rule4": 4, "rule6": 7 },
+	"modules/map/map-dot.tsx": { "rule4": 10, "rule6": 25 },
+	"modules/map/map-frame.tsx": { "rule4": 3, "rule6": 2 },
+	"modules/map/map-geofence.tsx": { "rule4": 6, "rule6": 16 },
+	"modules/map/map-halo.tsx": { "rule4": 1, "rule6": 5 },
+	"modules/map/map-hover-provider.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/map/map-legend-region.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/map/map-legend.tsx": { "rule4": 10, "rule6": 9 },
+	"modules/map/map-line.tsx": { "rule4": 3, "rule6": 5 },
+	"modules/map/map-marker.tsx": { "rule4": 2, "rule6": 5 },
+	"modules/map/map-plat.tsx": { "rule4": 41, "rule6": 62 },
+	"modules/map/map-point.tsx": { "rule4": 5, "rule6": 13 },
+	"modules/map/map-points.tsx": { "rule4": 20, "rule6": 22 },
+	"modules/map/map-range-legend.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/map/map-regions-lit.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/map/map-regions.tsx": { "rule4": 11, "rule6": 34 },
+	"modules/map/map-route.tsx": { "rule4": 3, "rule6": 3 },
+	"modules/map/map-skeleton.tsx": { "rule4": 1, "rule6": 3 },
+	"modules/map/map-swatch.ts": { "rule4": 0, "rule6": 2 },
+	"modules/map/map-table.tsx": { "rule4": 4, "rule6": 4 },
+	"modules/map/map-tooltip.tsx": { "rule4": 3, "rule6": 1 },
+	"modules/map/map-zoom-provider.tsx": { "rule4": 0, "rule6": 3 },
+	"modules/map/use-map-coverage.ts": { "rule4": 18, "rule6": 6 },
+	"modules/map/use-map-keyboard.ts": { "rule4": 3, "rule6": 10 },
+	"modules/map/use-map-legend-registry.ts": { "rule4": 0, "rule6": 1 },
+	"modules/map/use-map-overlay.ts": { "rule4": 13, "rule6": 19 },
+	"modules/map/use-map-region-preload.ts": { "rule4": 2, "rule6": 3 },
+	"modules/map/use-map-region-readout.ts": { "rule4": 1, "rule6": 4 },
+	"modules/map/use-map-shape.ts": { "rule4": 10, "rule6": 8 },
+	"modules/map/use-map-toggle.ts": { "rule4": 4, "rule6": 5 },
+	"modules/map/use-map-zoom.ts": { "rule4": 19, "rule6": 15 },
+	"modules/query/engine/query-active.ts": { "rule4": 0, "rule6": 4 },
+	"modules/query/engine/query-evaluate.ts": { "rule4": 1, "rule6": 2 },
+	"modules/query/engine/query-summary.ts": { "rule4": 1, "rule6": 5 },
+	"modules/query/query-builder/context.tsx": { "rule4": 2, "rule6": 0 },
+	"modules/query/query-builder/query-builder-focus.ts": { "rule4": 1, "rule6": 2 },
+	"modules/query/query-builder/query-builder-group.tsx": { "rule4": 2, "rule6": 0 },
+	"modules/query/query-builder/query-builder-rule-value.tsx": { "rule4": 0, "rule6": 1 },
+	"modules/query/query-builder/query-builder-rule.tsx": { "rule4": 0, "rule6": 3 },
+	"modules/query/query-builder/query-builder.tsx": { "rule4": 1, "rule6": 2 },
+	"modules/query/query-builder/use-query-builder-tree.ts": { "rule4": 0, "rule6": 1 },
+	"modules/query/query-summary.tsx": { "rule4": 0, "rule6": 2 },
+	"modules/query/use-query-tree.ts": { "rule4": 1, "rule6": 0 },
+	"primitives/active-indicator/active-indicator.tsx": { "rule4": 0, "rule6": 2 },
+	"primitives/affix/affix.ts": { "rule4": 0, "rule6": 2 },
+	"primitives/chrome/chrome-registry.ts": { "rule4": 3, "rule6": 2 },
+	"primitives/chrome/chrome.tsx": { "rule4": 1, "rule6": 2 },
+	"primitives/current/current-content.tsx": { "rule4": 2, "rule6": 3 },
+	"primitives/current/current-contents.tsx": { "rule4": 2, "rule6": 7 },
+	"primitives/current/current.ts": { "rule4": 1, "rule6": 3 },
+	"primitives/current/use-current-contents-morph.ts": { "rule4": 3, "rule6": 4 },
+	"primitives/density/density.tsx": { "rule4": 1, "rule6": 7 },
+	"primitives/floating-surface/floating-surface.tsx": { "rule4": 3, "rule6": 3 },
+	"primitives/mount/held-motion.ts": { "rule4": 0, "rule6": 3 },
+	"primitives/mount/hold.tsx": { "rule4": 1, "rule6": 2 },
+	"primitives/mount/mount.ts": { "rule4": 4, "rule6": 5 },
+	"primitives/option/option.tsx": { "rule4": 7, "rule6": 3 },
+	"primitives/overlay/overlay.tsx": { "rule4": 3, "rule6": 6 },
+	"primitives/panel/panel-handle.tsx": { "rule4": 5, "rule6": 2 },
+	"primitives/panel/panel-trigger.tsx": { "rule4": 1, "rule6": 0 },
+	"primitives/panel/panel.tsx": { "rule4": 0, "rule6": 1 },
+	"primitives/polymorphic/fallback.tsx": { "rule4": 0, "rule6": 1 },
+	"primitives/polymorphic/polymorphic-static.tsx": { "rule4": 3, "rule6": 2 },
+	"primitives/polymorphic/polymorphic.tsx": { "rule4": 2, "rule6": 0 },
+	"primitives/popover/popover.tsx": { "rule4": 3, "rule6": 2 },
+	"primitives/portal/portal.tsx": { "rule4": 0, "rule6": 1 },
+	"primitives/portal/presence-portal.tsx": { "rule4": 3, "rule6": 2 },
+	"primitives/ready-reveal/ready-reveal.tsx": { "rule4": 8, "rule6": 6 },
+	"primitives/reduced-motion/reduced-motion.tsx": { "rule4": 1, "rule6": 0 },
+	"primitives/select-trigger/capitalize.ts": { "rule4": 0, "rule6": 1 },
+	"primitives/select-trigger/select-trigger.tsx": { "rule4": 1, "rule6": 0 },
+	"primitives/touch-target/touch-target.tsx": { "rule4": 1, "rule6": 3 },
+	"primitives/virtual-options/virtual-item-source-context.ts": { "rule4": 0, "rule6": 1 },
+	"primitives/virtual-options/virtual-options.tsx": { "rule4": 4, "rule6": 7 },
+	"providers/density/context.ts": { "rule4": 0, "rule6": 1 },
+	"providers/density/density.tsx": { "rule4": 0, "rule6": 3 },
+	"providers/glass/context.ts": { "rule4": 0, "rule6": 2 },
+	"providers/headless/context.ts": { "rule4": 0, "rule6": 1 },
+	"providers/headless/headless.tsx": { "rule4": 1, "rule6": 0 },
+	"providers/locale/context.ts": { "rule4": 1, "rule6": 0 },
+	"providers/locale/use-format.ts": { "rule4": 0, "rule6": 1 },
+	"providers/toast/context.ts": { "rule4": 0, "rule6": 1 },
+	"providers/toast/toast.tsx": { "rule4": 2, "rule6": 1 },
+	"providers/toast/types.ts": { "rule4": 2, "rule6": 3 },
+	"providers/toast/use-toast-queue.ts": { "rule4": 0, "rule6": 1 },
+	"providers/toast/use-toast-timer.ts": { "rule4": 0, "rule6": 3 },
+	"providers/ui/ui.tsx": { "rule4": 2, "rule6": 0 },
+	"recipes/index.ts": { "rule4": 2, "rule6": 1 },
+	"recipes/kata/aspect-ratio.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kata/avatar.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kata/badge.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kata/card.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kata/chart.ts": { "rule4": 2, "rule6": 9 },
+	"recipes/kata/chat-list-item.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kata/chat-message.ts": { "rule4": 1, "rule6": 3 },
+	"recipes/kata/chat-transcript.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kata/code.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kata/color-panel.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kata/color-picker.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kata/command-palette.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kata/date-picker.ts": { "rule4": 2, "rule6": 1 },
+	"recipes/kata/dl.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kata/drawer.ts": { "rule4": 3, "rule6": 2 },
+	"recipes/kata/grid-group.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/kata/grid.ts": { "rule4": 11, "rule6": 13 },
+	"recipes/kata/group.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kata/heading.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kata/json-tree.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kata/list.ts": { "rule4": 2, "rule6": 1 },
+	"recipes/kata/listbox.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kata/map.ts": { "rule4": 7, "rule6": 18 },
+	"recipes/kata/markdown.ts": { "rule4": 0, "rule6": 3 },
+	"recipes/kata/menu.ts": { "rule4": 2, "rule6": 2 },
+	"recipes/kata/nav.ts": { "rule4": 0, "rule6": 4 },
+	"recipes/kata/password-strength.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kata/pdf-viewer.ts": { "rule4": 14, "rule6": 17 },
+	"recipes/kata/progress.ts": { "rule4": 0, "rule6": 2 },
+	"recipes/kata/query-builder.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kata/rating.ts": { "rule4": 2, "rule6": 7 },
+	"recipes/kata/sheet.ts": { "rule4": 4, "rule6": 4 },
+	"recipes/kata/sidebar.ts": { "rule4": 0, "rule6": 3 },
+	"recipes/kata/sparkline.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kata/status.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kata/swatch.ts": { "rule4": 0, "rule6": 2 },
+	"recipes/kata/table.ts": { "rule4": 1, "rule6": 5 },
+	"recipes/kata/tabs.ts": { "rule4": 2, "rule6": 4 },
+	"recipes/kata/tag-input.ts": { "rule4": 2, "rule6": 0 },
+	"recipes/kata/text.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/kata/timeline.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kata/tooltip.ts": { "rule4": 3, "rule6": 2 },
+	"recipes/kata/tree.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/katakana/backdrop.ts": { "rule4": 0, "rule6": 2 },
+	"recipes/katakana/control.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/katakana/index.ts": { "rule4": 3, "rule6": 5 },
+	"recipes/katakana/palette.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/katakana/panel.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/katakana/popover.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/katakana/segment.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/control/affix.ts": { "rule4": 1, "rule6": 10 },
+	"recipes/kiso/control/check.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/control/density.ts": { "rule4": 0, "rule6": 2 },
+	"recipes/kiso/control/surface.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/hannou/cursor.ts": { "rule4": 0, "rule6": 3 },
+	"recipes/kiso/hannou/nav.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/hannou/tint-filled.ts": { "rule4": 0, "rule6": 3 },
+	"recipes/kiso/hannou/tint-surface.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/kiso/iro/bare.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/iro/extended-palette.ts": { "rule4": 2, "rule6": 1 },
+	"recipes/kiso/iro/hover.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/kiso/iro/index.ts": { "rule4": 3, "rule6": 2 },
+	"recipes/kiso/iro/project.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/iro/ramp.ts": { "rule4": 4, "rule6": 8 },
+	"recipes/kiso/iro/soft.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kiso/iro/text.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/kara.ts": { "rule4": 2, "rule6": 2 },
+	"recipes/kiso/kasane/layers.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/kiso/kasane/radius.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/kokkaku/chart.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/ma/index.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/narabi/field.ts": { "rule4": 4, "rule6": 0 },
+	"recipes/kiso/narabi/toggle.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/omote/backdrop.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kiso/omote/grayscale.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/panel/grip.ts": { "rule4": 1, "rule6": 3 },
+	"recipes/kiso/panel/index.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/panel/layout.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kiso/popover/portal.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/sen/divider.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/sen/focus.ts": { "rule4": 4, "rule6": 3 },
+	"recipes/kiso/sen/forced.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/shaku/icon.ts": { "rule4": 1, "rule6": 1 },
+	"recipes/kiso/sou.ts": { "rule4": 2, "rule6": 4 },
+	"recipes/kiso/sun.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/tsunagi.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/kiso/ugoki/base.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/ugoki/collapse.ts": { "rule4": 1, "rule6": 0 },
+	"recipes/kiso/ugoki/css.ts": { "rule4": 1, "rule6": 2 },
+	"recipes/kiso/ugoki/index.ts": { "rule4": 0, "rule6": 1 },
+	"recipes/kiso/ugoki/mark.ts": { "rule4": 0, "rule6": 2 },
+	"recipes/kiso/ugoki/spring.ts": { "rule4": 1, "rule6": 2 },
+	"types/accessible-name.ts": { "rule4": 0, "rule6": 1 },
+	"types/aria-props.ts": { "rule4": 1, "rule6": 0 },
+	"types/responsive.ts": { "rule4": 2, "rule6": 3 },
+	"utilities/aspect-ratio.ts": { "rule4": 0, "rule6": 3 },
+	"utilities/clear-native-input.ts": { "rule4": 0, "rule6": 1 },
+	"utilities/color-scale.ts": { "rule4": 5, "rule6": 8 },
+	"utilities/contrast.ts": { "rule4": 4, "rule6": 0 },
+	"utilities/dismiss-layers.ts": { "rule4": 0, "rule6": 1 },
+	"utilities/document-listener.ts": { "rule4": 0, "rule6": 1 },
+	"utilities/floating-portal-registry.ts": { "rule4": 1, "rule6": 6 },
+	"utilities/is-data-column.ts": { "rule4": 0, "rule6": 1 },
+	"utilities/keyboard-navigation.ts": { "rule4": 0, "rule6": 1 },
+	"utilities/measure-box.ts": { "rule4": 4, "rule6": 0 },
+	"utilities/media-query.ts": { "rule4": 2, "rule6": 1 },
+	"utilities/memo-weak.ts": { "rule4": 1, "rule6": 0 },
+	"utilities/native-context-menu.ts": { "rule4": 1, "rule6": 1 },
+	"utilities/once.ts": { "rule4": 0, "rule6": 1 },
+	"utilities/resolve-locale.ts": { "rule4": 1, "rule6": 1 },
+	"utilities/scrollbar-press.ts": { "rule4": 2, "rule6": 1 },
+	"utilities/to-numeric-cell.ts": { "rule4": 0, "rule6": 1 }
 }
