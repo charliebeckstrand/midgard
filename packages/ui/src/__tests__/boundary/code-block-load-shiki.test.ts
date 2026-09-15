@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 /**
- * `loadShiki` memoises one dynamic import, so each case needs a module whose
- * memo cell starts empty, and the rejection case needs `import('shiki')` to
- * fail and then to succeed inside one test. Both want `vi.resetModules()` and a
+ * `loadShiki` memoises one dynamic import. Each case therefore needs a module
+ * whose memo cell starts empty. The rejection case also needs `import('shiki')`
+ * to fail and then to succeed in one test. Both want `vi.resetModules()` and a
  * mock of its own, which the `unit` project bars: one registry serves every
  * file a worker runs (see `test-isolation-boundary.test.ts`). This suite sits
  * in `boundary/`, which the `integration` project runs on forks, for the reason
@@ -22,9 +22,9 @@ function mockShiki() {
  * Makes the next `import('shiki')` reject — the failure that `loadShiki`'s memo
  * must not keep (an offline chunk fetch, a post-deploy 404).
  */
-function failShikiImport(error: Error) {
+function failShikiImport() {
 	vi.doMock('shiki', () => {
-		throw error
+		throw new Error('chunk fetch failed')
 	})
 }
 
@@ -60,10 +60,9 @@ describe('loadShiki', () => {
 	it('drops a rejected import from the memo so a later call retries', async () => {
 		const loadShiki = await coldLoadShiki()
 
-		// Registered after the reset, not before it. The throwing factory has to
-		// stand when `loadShiki()` imports `shiki`. A registration made ahead of
-		// `vi.resetModules()` does not always survive it.
-		failShikiImport(new Error('chunk fetch failed'))
+		// A registration made before `vi.resetModules()` does not always survive
+		// it.
+		failShikiImport()
 
 		const rejected = loadShiki()
 
