@@ -79,8 +79,8 @@ type ComboMarks = {
 }
 
 /**
- * The held mark's position among the strokes — the drawn slot the sticky
- * resolution keys on — or `null` when the held mark is a bar or absent.
+ * The held mark's position among the strokes: the drawn slot the sticky
+ * resolution keys on. It is `null` when the held mark is a bar or absent.
  *
  * @internal
  */
@@ -99,13 +99,13 @@ function comboStrokeRuns(strokes: ChartLineSeries[]) {
 
 /**
  * The combo's pointer-to-mark resolution. Strokes compete by proximity, never
- * draw order: the lines and the areas' top edges are all thin marks, so the
- * nearest one is the one being pointed at — a pointer on an area's dot resolves
- * that area even with a line inside the catch tolerance, and vice versa — with
- * the held stroke kept sticky across their midline. Kinds that can't be
- * compared by distance rank by the visual stack instead: any stroke outranks a
- * fill (strokes draw on top), and the fills resolve by containment with the
- * wash winning the bar it covers.
+ * draw order. The lines and the areas' top edges are all thin marks, so the
+ * nearest one is the one being pointed at. A pointer on an area's dot resolves
+ * that area, even with a line inside the catch tolerance, and vice versa. The
+ * held stroke stays sticky across their midline. Kinds that can't be compared
+ * by distance rank by the visual stack instead. Any stroke outranks a fill,
+ * because strokes draw on top. The fills resolve by containment, with the wash
+ * winning the bar it covers.
  *
  * @internal
  */
@@ -136,17 +136,17 @@ function comboMarkAt(
 
 /**
  * A combined bar, line, and area chart: one shared value axis by default, with
- * a second on request — a series carrying `axis: 'y2'` reads the secondary
- * scale the chart's `axes.y2` config shapes, so a count plots beside a currency
+ * a second on request. A series carrying `axis: 'y2'` reads the secondary scale
+ * the chart's `axes.y2` config shapes. A count therefore plots beside a currency
  * at its natural size. Bars sit at the back, the translucent area washes ride
- * over them, and lines draw on top; every series reads a zero-baseline domain,
- * and the frame is the cartesian standard: axes, grid, legend, crosshair
- * tooltip, and the visually-hidden data table.
+ * over them, and lines draw on top. Every series reads a zero-baseline domain.
+ * The frame is the cartesian standard: axes, grid, legend, crosshair tooltip,
+ * and the visually-hidden data table.
  *
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
  * draw together — one synchronized reveal across the x and y motions. Focus the
- * plot to drive the crosshair and tooltip by keyboard — the band-axis arrows
- * step categories, the value-axis arrows cycle each category's series values,
+ * plot to drive the crosshair and tooltip by keyboard. The band-axis arrows step
+ * categories, and the value-axis arrows cycle each category's series values,
  * both axes' points interleaved in screen order. A reference line joins that
  * value-axis roving, receding the marks when the cursor reaches it.
  * @example

@@ -47,10 +47,14 @@ type GridCursorRefs<T> = {
 /**
  * The cursor + editing layer for {@link GridData}, gathering the keyboard cursor
  * ({@link useGridNavigation}) and — when `editable` is set — the editing session
- * ({@link useGridEditing}) behind one surface. Resolves the column
- * augmentation (cursor-only vs. editing-aware), the `<table>` cursor props (with
- * the editing key handler layered on), the cursor store provider, and a `wrap`
- * that mounts the editing contexts around the table. Pulled out of
+ * ({@link useGridEditing}) behind one surface. Resolves four things:
+ *
+ * - the column augmentation (cursor-only vs. editing-aware);
+ * - the `<table>` cursor props, with the editing key handler layered on;
+ * - the cursor store provider;
+ * - a `wrap` that mounts the editing contexts around the table.
+ *
+ * Pulled out of
  * {@link GridData} so its body stays within the cognitive-complexity budget and
  * the editing wiring reads as one concern.
  *
@@ -160,20 +164,21 @@ export function useGridCursor<T>({
 	 * One report for each cell the cursor lands on, read from the committed
 	 * coordinate.
 	 *
-	 * Every arrow key, Home/End, PageUp/PageDown, a click that seats the cursor,
-	 * and the re-clamp that follows a filter or a hidden column all write that
-	 * state, so no single call site is the transition. The coordinate resolves to
+	 * Many call sites write that state: every arrow key, Home/End,
+	 * PageUp/PageDown, and a click that seats the cursor. The re-clamp that
+	 * follows a filter or a hidden column writes it too, so no single call site is
+	 * the transition. The coordinate resolves to
 	 * the same context `onCellClick` delivers, so the pointer and the keyboard
 	 * name a cell the same way. A cursor cleared by an emptied grid reports null.
 	 *
 	 * A grid mounts with no cursor, and that null is the rest state rather than a
 	 * transition, so the first run is skipped. The context is resolved when the
-	 * cursor moves, so rows replaced under a stationary cursor do not re-report;
-	 * the re-clamp moves the cursor whenever the bounds actually shrink.
+	 * cursor moves, so rows replaced under a stationary cursor do not re-report.
+	 * The re-clamp moves the cursor whenever the bounds actually shrink.
 	 *
-	 * Compared by coordinate rather than identity: `moveTo` mints a fresh `Coord`
-	 * even where the clamp returns the cell the cursor already sits on, which is
-	 * every arrow key held against an edge. No `cursorEnabled` gate, because
+	 * Compared by coordinate rather than identity. A `moveTo` mints a fresh
+	 * `Coord` even where the clamp returns the cell the cursor already sits on.
+	 * That is every arrow key held against an edge. No `cursorEnabled` gate, because
 	 * `useGridNavigation` already returns a null cursor while it is off.
 	 */
 	useReportedChange(

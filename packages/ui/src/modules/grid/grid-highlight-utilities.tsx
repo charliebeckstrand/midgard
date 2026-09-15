@@ -53,9 +53,9 @@ function markString(text: string, query: string, lowerQuery: string): ReactNode 
 
 /**
  * Marks every occurrence of `query` in a cell's rendered content, walking into
- * string and number leaves — including those nested inside a custom `cell` node,
- * whose elements are cloned around their re-marked children — and leaving any
- * non-text node (an icon, an image) untouched. Case-insensitive, matching the
+ * string and number leaves. Those leaves include ones nested inside a custom
+ * `cell` node, whose elements are cloned around their re-marked children. Any
+ * non-text node (an icon, an image) stays untouched. Case-insensitive, matching the
  * quick-search's `includesString`; the empty query is a no-op that returns the
  * node as-is.
  *

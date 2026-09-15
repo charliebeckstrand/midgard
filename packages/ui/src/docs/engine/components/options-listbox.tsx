@@ -14,10 +14,11 @@ type OptionsListboxProps<T extends string> = {
 
 /**
  * The docs chrome's shared single-select control: a {@link Listbox} over a fixed
- * labelled option set, backing the density / theme / size / variant pickers. The
- * `undefined`-guard lives here once — an empty selection never reaches
- * `onValueChange` — so callers pass a plain `(value: T) => void` without the
- * per-wrapper cast that pretended `undefined` couldn't arrive.
+ * labelled option set, backing the density, theme, size, and variant pickers.
+ *
+ * The `undefined`-guard lives here once, so an empty selection never reaches
+ * `onValueChange`. Callers therefore pass a plain `(value: T) => void`, without
+ * the per-wrapper cast that pretended `undefined` couldn't arrive.
  */
 export function OptionsListbox<T extends string>({
 	options,

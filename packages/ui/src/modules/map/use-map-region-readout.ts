@@ -25,13 +25,13 @@ type MapRegionReadout = {
 	regionNames: string[]
 	/** Each region's category / bin index, `null` where no datum matches. */
 	regionCategory: (number | null)[]
-	/** Each region's own formatted value in the numeric (choropleth) mode — the
-	 * tooltip and table readout, distinct from its bin's range label; `null` in
-	 * categorical mode and wherever no datum matches. */
+	/** Each region's own formatted value in the numeric (choropleth) mode. It is
+	 * the tooltip and table readout, distinct from its bin's range label. It is
+	 * `null` in categorical mode, and wherever no datum matches. */
 	regionValues: (string | null)[]
-	/** Each region's raw number in the numeric (choropleth) mode — the range
-	 * legend's arrow marks it on the continuous bar; `null` in categorical mode
-	 * and wherever no datum matches. */
+	/** Each region's raw number in the numeric (choropleth) mode. The range
+	 * legend's arrow marks it on the continuous bar. It is `null` in categorical
+	 * mode, and wherever no datum matches. */
 	regionNumbers: (number | null)[]
 	/** The numeric value extent in the numeric (choropleth) mode; `null` otherwise. Feeds the range legend. */
 	domain: [number, number] | null
@@ -41,10 +41,10 @@ type MapRegionReadout = {
  * Resolves the categories or choropleth bins and matches each region to its bin.
  *
  * @remarks Takes the region data whole, because the union's branches are
- * exclusive only while the object holds together — `MapPlat` hands it its own
+ * exclusive only while the object holds together. `MapPlat` hands it its own
  * props, whose identity React mints fresh on every render. So the fields come
- * apart in the signature and the memo below depends on each one; never depend on
- * the object itself, which would re-join every region on every render.
+ * apart in the signature, and the memo below depends on each one. Never depend
+ * on the object itself, which would re-join every region on every render.
  * @internal
  */
 export function useMapRegionReadout<T>(

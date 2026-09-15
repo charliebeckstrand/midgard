@@ -6,7 +6,7 @@ import { accessibleName } from '../../core'
 /** Idle window after which the type-ahead buffer resets. */
 const TYPEAHEAD_TIMEOUT_MS = 500
 
-/** Whether a key event should drive type-ahead: a lone printable character. @internal */
+/** Whether a key event must drive type-ahead: a lone printable character. @internal */
 export function isTypeaheadKey(event: KeyboardEvent): boolean {
 	return (
 		event.key.length === 1 && event.key !== ' ' && !event.ctrlKey && !event.metaKey && !event.altKey
@@ -68,7 +68,7 @@ function matchTypeaheadCore(
 /**
  * Extend the type-ahead buffer with `key` and return the index of the next
  * matching item, or null. Repeated presses of the same character cycle through
- * items that start with it (search resumes past `currentIndex`); distinct
+ * items that start with it (search resumes past `currentIndex`). Distinct
  * characters build a prefix matched from `currentIndex` onward. The buffer
  * self-clears after a 500 ms idle window.
  *
@@ -123,11 +123,11 @@ function matchTypeaheadIndexed(
 /**
  * WAI-ARIA type-ahead (jump to the item whose label starts with recently typed
  * characters). Owns one instance's buffer and its idle-reset timer, cleared on
- * unmount; returns stable matchers over that shared buffer: `match` with
- * `matchTypeahead` semantics (labels come from each item's accessible name —
- * `aria-label`, an `aria-labelledby` target, else trimmed `textContent`), and
- * `matchIndexed` with {@link matchTypeaheadIndexed} semantics, for roving over
- * a virtual item source instead of DOM elements. A widget routes each keypress
+ * unmount. It returns stable matchers over that shared buffer. `match` carries
+ * `matchTypeahead` semantics, where labels come from each item's accessible
+ * name (`aria-label`, an `aria-labelledby` target, else trimmed `textContent`).
+ * `matchIndexed` carries {@link matchTypeaheadIndexed} semantics, for roving
+ * over a virtual item source instead of DOM elements. A widget routes each keypress
  * to exactly one of the two, so sharing the buffer is safe.
  *
  * @internal

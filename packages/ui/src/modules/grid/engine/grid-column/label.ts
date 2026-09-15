@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
  * A titled item's display label: its `title` when a plain string, else its
  * `id` stringified. Columns and column groups share the shape, so one helper
  * covers header titles, filter and export labels, group-band and manager
- * labels, and `aria-label`s — the fallback stays uniform everywhere.
+ * labels, and `aria-label`s. The fallback stays uniform everywhere.
  *
  * @internal
  */

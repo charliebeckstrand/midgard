@@ -13,9 +13,9 @@ type ComboboxContextValue<T = unknown> = {
 }
 
 /**
- * Selection state shared from the {@link Combobox} root to its options:
- * the frozen `value`, the `multiple` flag, the `onSelect` callback, and the
- * `capitalize` flag for string option labels.
+ * Selection state shared from the {@link Combobox} root to its options. It
+ * carries the frozen `value`, the `multiple` flag, the `onSelect` callback, and
+ * the `capitalize` flag for string option labels.
  *
  * @internal
  */

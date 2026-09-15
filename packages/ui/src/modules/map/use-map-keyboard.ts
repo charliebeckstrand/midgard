@@ -22,7 +22,7 @@ import type { MapZoomCursor } from './use-map-zoom'
 
 /**
  * A stop as one string, so the cursor's position resolves through a map rather
- * than a scan. Keyed by the stop and not only by the mark: a plural mark holds
+ * than a scan. Keyed by the stop and not only by the mark. A plural mark holds
  * one key per dot, and collapsing them would point the cursor at whichever dot
  * registered last.
  *
@@ -45,9 +45,9 @@ export type MapKeyboardOptions = {
 	enabled: boolean
 	/**
 	 * Every place the cursor can stand — the regions at their centroids, then the
-	 * overlay marks at theirs — resolved on demand. A closure, not an array: the
+	 * overlay marks at theirs — resolved on demand. A closure, not an array. The
 	 * `geoCentroid` pass behind the region half measures every ring in the atlas
-	 * (~30 ms across 3,000 counties, against a ~70 ms mount), so it must never run
+	 * (~30 ms across 3,000 counties, against a ~70 ms mount). It must never run
 	 * on the mount or the resize path for a cursor most maps never carry. This is
 	 * called on the first navigation key and not again until a refit, a resize, or
 	 * an overlay registration replaces it.
@@ -62,39 +62,39 @@ export type MapKeyboardOptions = {
 	/**
 	 * The view the zoom layer draws through, or `null` on a map that does not
 	 * zoom. The cursor reads it to anchor its readout where the map draws the
-	 * stop, and drives it two ways: `+`, `-`, and `0` step and reset the scale,
-	 * and a step onto a stop the zoom put off-frame pans the view to it.
+	 * stop, and drives it two ways. `+`, `-`, and `0` step and reset the scale. A
+	 * step onto a stop the zoom put off-frame pans the view to it.
 	 */
 	zoom: MapZoomCursor | null
 }
 
 /**
  * Makes the plot region a single arrow-navigable tab stop driving the shared
- * hover context, so the readout and the pointed-mark recede answer the keyboard
- * the way they answer the pointer — the chart module's model
+ * hover context. The readout and the pointed-mark recede therefore answer the
+ * keyboard the way they answer the pointer. It is the chart module's model
  * (`use-chart-keyboard`), over a geography's own axes.
  *
  * Focus alone only rings the region: a click focuses it too, and to seize the
- * readout from the pointer would jar. The first arrow enters at the first stop;
- * from there each arrow steps to the nearest stop bearing that way — regions and
- * overlay marks in one field, as the pointer crosses them — Home and End jump to
- * the ends of the list, Enter or Space picks the stop under the cursor, and
- * Escape leaves through the shared {@link usePlotTabStop} exit.
+ * readout from the pointer would jar. The first arrow enters at the first stop.
+ * From there each arrow steps to the nearest stop bearing that way. Regions and
+ * overlay marks stand in one field, as the pointer crosses them. Home and End
+ * jump to the ends of the list. Enter or Space picks the stop under the cursor,
+ * and Escape leaves through the shared {@link usePlotTabStop} exit.
  *
- * A zooming map answers three more keys on that one stop — `+` and `-` step the
- * scale about the frame's centre, `0` returns to the fit — and the cursor takes
+ * A zooming map answers three more keys on that one stop. `+` and `-` step the
+ * scale about the frame's centre, and `0` returns to the fit. The cursor takes
  * the view with it: a step onto a stop the zoom put off-frame pans the map to
- * show it, so navigation never points a reader at something the plot does not
- * draw.
+ * show it. Navigation therefore never points a reader at something the plot
+ * does not draw.
  *
  * No drawn mark is focusable. The plot is a `role="img"` leaf over an
- * `aria-hidden` SVG, so a focusable path would be unreachable to assistive tech
- * and, at a county atlas's scale, thousands of invisible stops; the region
- * values ship in the visually-hidden table instead, and this drives the same
- * readout the pointer drives.
+ * `aria-hidden` SVG. A focusable path would therefore be unreachable to
+ * assistive tech and, at a county atlas's scale, thousands of invisible stops.
+ * The region values ship in the visually-hidden table instead, and this drives
+ * the same readout the pointer drives.
  *
  * @remarks A scroll clears the readout, as it does for the pointer
- * (`useHoverAcrossScroll`), and the cursor does not restore it: that hook
+ * (`useHoverAcrossScroll`), and the cursor does not restore it. That hook
  * re-resolves at the pointer's last position, which a keyboard reader never set.
  * The cursor itself survives, so the next arrow brings the readout back at the
  * map's new position.
@@ -185,14 +185,14 @@ export function useMapKeyboard({
 	}
 
 	/**
-	 * Steps the cursor onto a stop, taking the view with it: a zoomed map pans
+	 * Steps the cursor onto a stop, taking the view with it. A zoomed map pans
 	 * until the stop draws inside the frame, so navigation never points a reader
 	 * at something the plot does not draw. The pan's result is taken back rather
 	 * than waited for, so the readout anchors on the same beat as the step.
 	 *
 	 * Only a keypress calls this. A pointer gesture or a refit re-anchors through
-	 * {@link anchor} alone — driving the view from there would fight the gesture,
-	 * and commit a second transform for every one the reader made.
+	 * {@link anchor} alone. A drive of the view from there would fight the
+	 * gesture, and commit a second transform for every one the reader made.
 	 */
 	const show = (stop: MapStop | null) => {
 		anchor(stop, stop === null || zoom === null ? transform : zoom.show(stop.at, MAP_CURSOR_INSET))

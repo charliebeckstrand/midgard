@@ -31,19 +31,19 @@ const CELL_ITEM_SELECTOR = 'tr[data-grid-row]:not([inert]) td[data-roving]'
  * Resolves and wires the grid's roving-tabindex keyboard navigation over its
  * rows or data cells. A clickable grid (any row- or cell-level click handler)
  * that doesn't carry the {@link GridDataProps.navigable} cursor becomes a single
- * Tab stop whose active row/cell moves with the arrow keys — cell handlers rove
+ * Tab stop. Its active row/cell moves with the arrow keys. Cell handlers rove
  * the data cells (two-dimensional, addressed by `dataColCount`), else row
  * handlers rove the rows. Layers `useA11yRoving` (focus mode, single-tab-stop
  * ownership) over the grid `<table>`; the rows/cells mark themselves
  * `data-roving`, and the hook owns their `tabIndex`.
  *
- * Stands down (`mode: 'none'`) under the navigable cursor — which owns the
- * keyboard itself — and under virtualization, whose rows unmount as the window
- * scrolls, so a roved focus could land on an unmounted row.
+ * Stands down (`mode: 'none'`) under the navigable cursor, which owns the
+ * keyboard itself. It also stands down under virtualization, whose rows unmount
+ * as the window scrolls, so a roved focus could land on an unmounted row.
  *
  * @returns The resolved {@link GridRovingMode} and the `onKeyDown` to attach to
- * the `<table>` (undefined when inactive), which reads items from `tableRef` on
- * each press so the row/cell set can change between presses.
+ * the `<table>`, undefined when inactive. It reads items from `tableRef` on
+ * each press, so the row/cell set can change between presses.
  * @internal
  */
 export function useGridRoving({
@@ -109,7 +109,7 @@ export function useGridRoving({
 		rovingRows: mode === 'row',
 		rovingCells: cellMode,
 		// The legacy per-row Tab stop the virtualized body keeps, where roving
-		// stands down but a clickable row should still be reachable by Tab.
+		// stands down but a clickable row must stay reachable by Tab.
 		rowStaticStop: onRowClick && virtualized && !navigable,
 		tableProps: mode === 'none' ? undefined : { ref: tableRef, onKeyDown: rovingKeyDown },
 	}

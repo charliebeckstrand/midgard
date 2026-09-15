@@ -5,12 +5,12 @@
  *
  * **Gated on both spellings of disabled, and it has to be.** `not-disabled:`
  * alone compiles to `:not(:disabled)`, which an element carrying only
- * `data-disabled` still matches — and that is the pattern a control uses when
+ * `data-disabled` still matches. That is the pattern a control uses when
  * it must stay focusable to explain itself. A `Tooltip` suppresses itself over
  * a natively `disabled` reference (`use-tooltip-state`'s `isReferenceDisabled`
- * matches `:disabled` on the trigger or any descendant), so a button whose
- * whole job is to say *why* it cannot be pressed sets `aria-disabled` plus
- * `data-disabled` instead. `MenuItem` and the loading-anchor branch do the
+ * matches `:disabled` on the trigger or any descendant). A button whose
+ * whole job is to say *why* it cannot be pressed therefore sets `aria-disabled`
+ * plus `data-disabled` instead. `MenuItem` and the loading-anchor branch do the
  * same. Without the second guard those controls looked pressable on hover
  * while refusing the press — which is the one thing a disabled control must
  * not do.

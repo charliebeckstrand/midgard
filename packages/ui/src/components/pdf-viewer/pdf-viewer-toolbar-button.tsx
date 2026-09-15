@@ -21,19 +21,19 @@ type PdfViewerToolbarButtonProps = {
 	/**
 	 * Held-down treatment: `soft`'s wash while on, `plain` while off.
 	 *
-	 * @remarks The quietest fill that still reads as held down, and it leaves the button the
-	 * same size, so the bar does not reflow as a control flips. Left on the default zinc: this
-	 * bar is chrome, and the regions on the page below own the colour vocabulary — a blue
+	 * @remarks The quietest fill that still reads as held down. It leaves the button the same
+	 * size, so the bar does not reflow as a control flips. Left on the default zinc, because
+	 * this bar is chrome. The regions on the page below own the colour vocabulary, and a blue
 	 * toolbar button would compete with the very highlights it switches.
 	 *
-	 * Needed because every control in this bar keeps its glyph and names the *action* rather
-	 * than the state ("Hide highlights" while they are shown), so without it the only
-	 * difference between on and off is an ARIA attribute no recipe targets — nothing a pointer
-	 * user can see.
+	 * Needed because every control in this bar keeps its glyph, and names the *action* rather
+	 * than the state ("Hide highlights" while they are shown). Without it the only difference
+	 * between on and off is an ARIA attribute no recipe targets. A pointer user can see
+	 * nothing.
 	 *
 	 * A flag here rather than `ToggleIconButton`, which is the package's designated two-state
-	 * control: that one cross-fades between two icons — motion nothing else in this bar has, on
-	 * controls whose glyph never changes — and it hardcodes `variant="bare"`, so it could not
+	 * control. That one cross-fades between two icons, motion nothing else in this bar has, on
+	 * controls whose glyph never changes. It also hardcodes `variant="bare"`, so it could not
 	 * take this swap. The two-state semantics belong to the caller's ARIA attribute, not to
 	 * that component.
 	 * @defaultValue false
@@ -52,13 +52,13 @@ type PdfViewerToolbarButtonProps = {
 /**
  * One tooltipped icon button in the viewer's control bar. Every control across the toolbar,
  * the zoom group, and the document actions differs only in its glyph, label, handler and
- * state, so the Button and its Tooltip scaffold live here once.
+ * state. The Button and its Tooltip scaffold therefore live here once.
  *
  * @remarks Rest props reach the `Button`, and are spread **before** the wiring this component
  * owns — the type, the accessible name and the variant — per [CONVENTIONS.md](CONVENTIONS.md)
- * §3.9. That is what lets a caller stamp the state its own control needs (`aria-pressed` on a
- * toggle, `aria-expanded` on one that discloses a panel) without a second copy of this
- * scaffold; three of them had grown before the spread existed. A button that discloses
+ * §3.9. That is what lets a caller stamp the state its own control needs, without a second
+ * copy of this scaffold. Examples are `aria-pressed` on a toggle, and `aria-expanded` on one
+ * that discloses a panel. Three copies had grown before the spread existed. A button that discloses
  * nothing simply passes no `aria-expanded`, which renders no attribute rather than a false
  * one.
  * @internal

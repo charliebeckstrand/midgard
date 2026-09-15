@@ -2,8 +2,8 @@
  * Tabs kata: serves both the underline `<Tabs>` list and the `<Segment>` box,
  * two units through one surface. Orientation-/size-axed sub-recipes (`group`,
  * `list`, `scroll`, `tab`, `indicator`, `wrapper`, `trigger`) build the
- * underline tabs; `segment` bridges the shared segment recipe, and `skeleton`
- * carries a loading placeholder for each unit.
+ * underline tabs. The `segment` bridges the shared segment recipe, and
+ * `skeleton` carries a loading placeholder for each unit.
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { bridge } from '../katakana'
@@ -29,9 +29,9 @@ const group = defineRecipe({
 
 /**
  * Underline list drawing the baseline rail (`border-b` / `border-l`) the tabs
- * sit on. Horizontal sizes to `max-content` (never below `100%`) so the rail
- * spans the full scroll width: a block-level flex box otherwise fills only the
- * viewport, clipping the rail there and stranding overflowed tabs above bare
+ * sit on. Horizontal sizes to `max-content` (never below `100%`), so the rail
+ * spans the full scroll width. A block-level flex box otherwise fills only the
+ * viewport, which clips the rail there and strands overflowed tabs above bare
  * space. Vertical needs no counterpart — an auto-height column already grows to
  * its content, so `border-l` runs the full length of every stacked tab.
  */
@@ -46,10 +46,10 @@ const list = defineRecipe({
 
 /**
  * Overflow viewport around the underline list: an over-long tab row scrolls
- * within it instead of widening the page. The cross axis stays clipped (the
+ * within it instead of widening the page. The cross axis stays clipped: the
  * active-indicator/focus rail sits flush with the content edge, so nothing is
- * lost), and the native scrollbar is hidden so it never crosses the rail — the
- * active tab scrolls into view and roving keeps every tab reachable.
+ * lost. The native scrollbar is hidden, so it never crosses the rail. The
+ * active tab scrolls into view, and roving keeps every tab reachable.
  */
 const scroll = defineRecipe({
 	base: ['[scrollbar-width:none]', '[&::-webkit-scrollbar]:hidden'],
@@ -126,9 +126,9 @@ const trigger = defineRecipe({
 
 /**
  * Tab panel surface. A panel with no focusable content joins the tab order
- * (`tabIndex=0`, per the APG tabs pattern) so keyboard users can reach and
- * scroll it; the design-system blue focus ring then replaces the browser
- * default when it takes focus. The ring is `:focus-visible`-gated, so a panel
+ * (`tabIndex=0`, per the APG tabs pattern). Keyboard users can then reach and
+ * scroll it. The design-system blue focus ring replaces the browser default
+ * when it takes focus. The ring is `:focus-visible`-gated, so a panel
  * that holds its own focusable content — and is never tabbable — never shows it.
  */
 const panel = focus.ring

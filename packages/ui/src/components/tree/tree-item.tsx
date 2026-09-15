@@ -20,7 +20,7 @@ export type TreeItemProps = {
 	/**
 	 * Fires when the row is activated, by a click or by Enter/Space.
 	 *
-	 * A branch row toggles, which `onOpenChange` already reports; a leaf row
+	 * A branch row toggles, which `onOpenChange` already reports. A leaf row
 	 * forwards the activation to the first interactive control in `prefix` and
 	 * otherwise does nothing a caller can see. Without this, selecting a leaf
 	 * meant planting a control in `prefix` to catch the synthesized click. It
@@ -42,7 +42,7 @@ export type TreeItemProps = {
 }
 
 /**
- * A `role="treeitem"` row within a `<Tree>`: renders a chevron when it has
+ * A `role="treeitem"` row within a `<Tree>`. It renders a chevron when it has
  * children, the optional `icon` and `label`, and `prefix`/`suffix` slots
  * whose clicks don't toggle expansion. Tracks expanded state controllably
  * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), nests its

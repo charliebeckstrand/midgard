@@ -46,10 +46,10 @@ export function extractProps(
  * arm symbol for props that appear in multiple arms. Recursion splits nested
  * unions within intersection arms.
  *
- * Only the symbols are gathered here — resolving each arm's type is deferred to
- * `resolveArmTypes` so the name/project filters in `extractProps` can discard a
- * prop (e.g. one of the ~250 inherited HTML/aria symbols a `ComponentProps`
- * spread contributes) before its type is ever computed.
+ * Only the symbols are gathered here. Resolving each arm's type is deferred to
+ * `resolveArmTypes`. The name/project filters in `extractProps` can then discard
+ * a prop before its type is ever computed. One of the ~250 inherited HTML/aria
+ * symbols a `ComponentProps` spread contributes is the example.
  */
 function collectAllProperties(type: ts.Type): CollectedProp[] {
 	const seen = new Map<string, { symbol: ts.Symbol; symbols: ts.Symbol[] }>()
@@ -85,7 +85,7 @@ function collectAllProperties(type: ts.Type): CollectedProp[] {
 
 /**
  * Resolves each collected arm symbol to its type at the call site, deduped by
- * type identity so a prop present in multiple arms with the same type
+ * type identity. A prop present in multiple arms with the same type therefore
  * contributes once. Mirrors the per-arm dedupe `collectAllProperties` used to do
  * inline, now run only for props that survive the filter.
  */
@@ -201,9 +201,9 @@ export function jsDocTags(symbol: ts.Symbol, checker: ts.TypeChecker): PropTags 
 }
 
 /**
- * Whether a prop must be supplied. Trusts `SymbolFlags.Optional`; falls back to
- * the authored `?` token so a prop optional in any union/intersection arm reads
- * as optional (you may omit it), mirroring `collectAllProperties`.
+ * Whether a prop must be supplied. Trusts `SymbolFlags.Optional`. It falls back
+ * to the authored `?` token, so a prop optional in any union/intersection arm
+ * reads as optional, mirroring `collectAllProperties`.
  */
 export function isRequired(symbol: ts.Symbol): boolean {
 	if (symbol.flags & ts.SymbolFlags.Optional) return false
@@ -246,9 +246,9 @@ function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeCh
 
 /**
  * Join rendered arms with `|`, re-collapsing a `true`/`false` pair back into
- * `boolean` — discriminated-union arms collect the two literals separately, so
- * the merge would otherwise read `false | true` — and wrapping function-type
- * arms in parentheses so `(v: A) => void | (v: B) => void` doesn't parse as one
+ * `boolean`. Discriminated-union arms collect the two literals separately, so
+ * the merge would otherwise read `false | true`. Function-type arms are wrapped
+ * in parentheses, so `(v: A) => void | (v: B) => void` doesn't parse as one
  * function returning a union. A lone arm never needs either treatment.
  */
 function joinArms(arms: { text: string; fn: boolean }[]): string {
@@ -280,19 +280,19 @@ function joinArms(arms: { text: string; fn: boolean }[]): string {
 
 /**
  * Drops a collected arm-type that merely re-states the union of the others. A
- * prop present in every discriminated-union arm is collected twice over: once as
- * the synthetic *merged* property TS exposes on the parent union (the full
- * `false | true | Config`), and again as each arm's own slice (`false`,
- * `true | Config`). Whole-string dedupe can't fold the superset into its parts,
+ * prop present in every discriminated-union arm is collected twice over. Once is
+ * the synthetic *merged* property TS exposes on the parent union, the full
+ * `false | true | Config`. Again is each arm's own slice: `false`,
+ * `true | Config`. Whole-string dedupe can't fold the superset into its parts,
  * so it renders both (`false | true | Config | false | true | Config`).
  *
  * A type is redundant when every (non-`undefined`) member it contributes is
  * already contributed by another *kept* collected type. Members are compared by
  * rendered text; the kept arms are still emitted through `formatPropType`, so
  * named aliases (`Config`, `ReactNode`) survive intact. The merged superset is
- * collected first, so it is the one evaluated against — and dropped in favour
- * of — the arm slices; a narrower arm whose members aren't covered elsewhere is
- * always kept.
+ * collected first, so it is the one evaluated against the arm slices, and
+ * dropped in favour of them. A narrower arm whose members aren't covered
+ * elsewhere is always kept.
  *
  * A multi-arm prop therefore formats twice, deliberately: the two renderings
  * are not interchangeable. See `formatPropType`.
@@ -368,10 +368,10 @@ function literalUnionType(
 }
 
 /**
- * Prefer the author's source text over the formatter's expansion when the
- * declared type is either a mapped type (`{ [K in keyof T]?: … }`) or a
- * reference to a project-source alias / interface (`Responsive<number>`,
- * `GridGap`, `ButtonVariants`). The optional `?` lives on the property name,
+ * Prefer the author's source text over the formatter's expansion in two cases.
+ * The declared type is a mapped type (`{ [K in keyof T]?: … }`), or a reference
+ * to a project-source alias / interface (`Responsive<number>`, `GridGap`,
+ * `ButtonVariants`). The optional `?` lives on the property name,
  * not the type node, so `getText()` is already clean. Everything else — inline
  * unions, primitives, external and built-in references — returns null and
  * flows through `formatPropType` for alias resolution.

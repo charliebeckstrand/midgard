@@ -29,11 +29,11 @@ type PasswordConfirmStateResult = {
  * and the setters `setPassword`, `setConfirm` (which also marks confirm as last
  * edited), and `setLastEdited`.
  * @remarks
- * `onMatchChange(matched)` fires from an effect on transitions only (a
- * match→match repeat won't re-fire), read through a ref so a changed callback
- * identity doesn't retrigger. `disabled` suppresses both the `'match'` and
- * `'mismatch'` transitions — not mismatch alone — so a match fired while
- * disabled can't pin the transition tracker and swallow the real match after
+ * `onMatchChange(matched)` fires from an effect on transitions only, so a
+ * match→match repeat won't re-fire. It is read through a ref, so a changed
+ * callback identity doesn't retrigger. `disabled` suppresses both the `'match'`
+ * and `'mismatch'` transitions, not mismatch alone. A match fired while disabled
+ * therefore can't pin the transition tracker and swallow the real match after
  * re-enable.
  * @internal
  */

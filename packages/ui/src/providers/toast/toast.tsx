@@ -41,9 +41,9 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	/*
 	 * `dismissed` is the latch. It is written once, in `dismiss` below, at the moment a
-	 * toast starts leaving, and it rides the toast rather than a parallel register — so
-	 * the second `dismiss` of a departure, and the queue removing a toast that `dismiss`
-	 * already marked, both find it set and stay quiet.
+	 * toast starts leaving, and it rides the toast rather than a parallel register.
+	 * The second `dismiss` of a departure, and the queue removing a toast that
+	 * `dismiss` already marked, both find it set and stay quiet.
 	 */
 	const handleRemove = useCallback((toast: ToastData) => {
 		// The queue is the timeout exit; the other three routes report from `dismiss`.

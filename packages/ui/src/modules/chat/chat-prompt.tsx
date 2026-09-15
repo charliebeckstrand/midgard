@@ -15,10 +15,10 @@ export type ChatPromptProps = {
 	/**
 	 * Controlled value of the textarea.
 	 *
-	 * @remarks Deliberately controlled-only — unlike the rest of the library's
-	 * value controls there is no `defaultValue` arm, because {@link useChatDraft}
-	 * owns the draft (value, clear, submit, `canSubmit`) and an internal copy here
-	 * would be a second source of truth. Pair the two.
+	 * @remarks Deliberately controlled-only: unlike the rest of the library's
+	 * value controls there is no `defaultValue` arm. {@link useChatDraft} owns the
+	 * draft (value, clear, submit, `canSubmit`), and an internal copy here would be
+	 * a second source of truth. Pair the two.
 	 */
 	value: string
 	/** Called with the next value as the user types. */
@@ -71,9 +71,9 @@ export type ChatPromptProps = {
 /**
  * Auto-resizing chat composer built on Textarea and wrapped in a `<Control>` so
  * the textarea carries an inherent, stable id. Submits on Enter (Shift+Enter for
- * newlines), toggles its send button to a stop control while `streaming`, offers
- * a paperclip file picker when `onAttach` is provided, and surfaces `attachments`
- * as removable chips below the field. The action row — extra `actions`, the
+ * newlines), and toggles its send button to a stop control while `streaming`. It
+ * offers a paperclip file picker when `onAttach` is provided, and surfaces
+ * `attachments` as removable chips below the field. The action row — extra `actions`, the
  * paperclip, and send/stop — sits beneath the textarea, right-justified.
  */
 export function ChatPrompt({

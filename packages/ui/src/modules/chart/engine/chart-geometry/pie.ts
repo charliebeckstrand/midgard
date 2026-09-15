@@ -1,7 +1,7 @@
 /**
  * Pure geometry for the {@link PieChart}: value shares swept into slice (or
- * donut ring) paths clockwise from the top, independent of React and styling
- * so the angle math is unit-testable in isolation.
+ * donut ring) paths clockwise from the top. It is independent of React and
+ * styling, so the angle math is unit-testable in isolation.
  */
 
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
@@ -12,9 +12,9 @@ export type PieSlice = {
 	d: string
 	/**
 	 * The gapless full-wedge path behind {@link d} — the pointer hit target. Its
-	 * edges fall on each channel's own centre line, so a slice claims exactly
-	 * half of every neighbouring gap and a pointer crossing the channel keeps the
-	 * tooltip instead of falling through to the bare surface.
+	 * edges fall on each channel's own centre line. A slice therefore claims
+	 * exactly half of every neighbouring gap. A pointer that crosses the channel
+	 * keeps the tooltip instead of falling through to the bare surface.
 	 */
 	hit: string
 	/** The slice's part of the whole, `0..1`. */
@@ -39,11 +39,11 @@ export type PieSlicesOptions = {
 	 */
 	innerRadius?: number
 	/**
-	 * The constant gap between neighbouring slices, in px. Each slice is the
-	 * true inward offset of its wedge — its straight edges recede half the gap
-	 * and stay parallel to a neighbour's — so the channel holds exactly this
-	 * width at every radius and shows the real surface through, no painted
-	 * separator to mismatch a tinted card. On a pie the channels cross at the
+	 * The constant gap between neighbouring slices, in px. Each slice is the true
+	 * inward offset of its wedge. Its straight edges recede half the gap and stay
+	 * parallel to a neighbour's. The channel therefore holds exactly this width at
+	 * every radius. It shows the real surface through, with no painted separator
+	 * to mismatch a tinted card. On a pie the channels cross at the
 	 * middle the way knife cuts through a real pie do; a donut's ring never
 	 * reaches that crossing. `0` sweeps slices flush.
 	 * @defaultValue 0
@@ -62,9 +62,14 @@ function at(cx: number, cy: number, radius: number, angle: number): { x: number;
  * The radius at which a slice's label and anchor sit, along its bisector. A
  * donut keeps the mid-ring — the area centroid of a wide ring segment slides
  * into the hole, off the ring. A pie takes the sector's true area centroid,
- * `(2/3)·R·sin α / α` for half-angle `α = share·π`: a sliver tends to `2/3·R`,
- * a half slice pulls inward, a full circle collapses to the center — so every
- * label reads centered in its wedge, not stranded near the rim.
+ * `(2/3)·R·sin α / α` for half-angle `α = share·π`. That radius moves with the
+ * share:
+ *
+ * - A sliver tends to `2/3·R`.
+ * - A half slice pulls inward.
+ * - A full circle collapses to the center.
+ *
+ * Every label therefore reads centered in its wedge, not stranded near the rim.
  *
  * @internal
  */
@@ -104,10 +109,10 @@ function fullCircle(cx: number, cy: number, radius: number, inner: number): stri
 
 /**
  * A point on the radial edge at `angle`, `along` out from the center and
- * shifted `perp` sideways along the edge's tangent. Shifting both of a slice's
- * edges inward by half the gap keeps neighbouring edges parallel — a
- * constant-width channel at every radius, never a wedge that pinches shut at
- * the center. @internal
+ * shifted `perp` sideways along the edge's tangent. Both of a slice's edges
+ * shift inward by half the gap, which keeps neighbouring edges parallel. The
+ * result is a constant-width channel at every radius, never a wedge that
+ * pinches shut at the center. @internal
  */
 function edgePoint(
 	cx: number,
@@ -154,11 +159,11 @@ function donutBack(
  * A pie slice's inner boundary — the exact inward offset of its wedge, the
  * shape constant-width knife cuts leave. The offset edges run straight to
  * their natural intersection: a sharp tip on the bisector, `half / sin(s/2)`
- * from the center. A slice wider than a half-turn has no such tip; its edges
+ * from the center. A slice wider than a half-turn has no such tip. Its edges
  * are tangent to the tiny `half`-radius circle the cuts leave around the
- * middle, so it rides that circle between the tangent points. Nothing is
- * stepped, capped, or clamped — the cuts simply cross at the center, the way
- * they do through a real pie. @internal
+ * middle. It therefore rides that circle between the tangent points. Nothing
+ * is stepped, capped, or clamped — the cuts simply cross at the center, the
+ * way they do through a real pie. @internal
  */
 function pieBack(cx: number, cy: number, start: number, end: number, half: number): string {
 	if (half <= 0) return `L ${cx} ${cy}`
@@ -219,10 +224,10 @@ type SliceAngle = {
 }
 
 /**
- * Sweeps the positive values into angles, clockwise from the top — the
- * radius-independent half of {@link pieSlices}, so a caller that only needs
- * mid-angles (sizing a frame before a radius exists) never draws a path to
- * get them.
+ * Sweeps the positive values into angles, clockwise from the top. This is the
+ * radius-independent half of {@link pieSlices}. A caller that only needs
+ * mid-angles (sizing a frame before a radius exists) therefore never draws a
+ * path to get them.
  *
  * @remarks Non-finite and non-positive values take no slice — see
  * {@link pieSlices}.
@@ -258,14 +263,14 @@ function sliceAngles(values: (number | null)[]): SliceAngle[] {
  * Sweeps the positive values into slices, clockwise from the top, each
  * share's angle proportional to its part of the whole.
  *
- * @remarks Non-finite and non-positive values take no slice — a pie encodes
- * parts of a whole, and a negative part has no arc; they stay in the chart's
- * readout instead. A single positive value draws the full circle (two half
- * arcs — one 360° arc command collapses to nothing). Each slice also carries a
- * gapless {@link PieSlice.hit} wedge for pointer testing: the visible gap is a
- * channel centred on the boundary between two slices, so a full wedge hands
- * each neighbour exactly half of it and the tooltip never drops into the
- * channel.
+ * @remarks Non-finite and non-positive values take no slice. A pie encodes
+ * parts of a whole, and a negative part has no arc. Those values stay in the
+ * chart's readout instead. A single positive value draws the full circle (two
+ * half arcs — one 360° arc command collapses to nothing). Each slice also
+ * carries a gapless {@link PieSlice.hit} wedge for pointer testing. The visible
+ * gap is a channel centred on the boundary between two slices. A full wedge
+ * therefore hands each neighbour exactly half of it, and the tooltip never
+ * drops into the channel.
  * @internal
  */
 export function pieSlices(
@@ -324,10 +329,10 @@ export function pieSlices(
 }
 
 /**
- * Whether an estimated `chars`-wide label fits inside a slice at its
- * centroid: the clearance to both radial edges must cover half the text, and
- * the ring must be deep enough for a text line. Labels that fail are omitted
- * — never clipped — and the tooltip and data table still carry the value.
+ * Whether an estimated `chars`-wide label fits inside a slice at its centroid.
+ * The clearance to both radial edges must cover half the text, and the ring
+ * must be deep enough for a text line. Labels that fail are omitted — never
+ * clipped — and the tooltip and data table still carry the value.
  *
  * @internal
  */
@@ -362,10 +367,10 @@ export const CALLOUT_GAP = 6
 export const CALLOUT_LINE = 15
 
 /**
- * Estimated glyph advance of a callout label's character — a slice's name
+ * Estimated glyph advance of a callout label's character. A slice's name sits
  * beside real, proportionally-set letters, not the all-digit `tabular-nums`
- * strings {@link TICK_CHAR_WIDTH} is calibrated for — so the room reserved
- * for a callout doesn't overshoot the text it actually measures out to.
+ * strings {@link TICK_CHAR_WIDTH} is calibrated for. The room reserved for a
+ * callout therefore does not overshoot the text it measures out to.
  *
  * @internal
  */
@@ -435,11 +440,15 @@ function declumpLabels(ys: number[], top: number, bottom: number, gap: number): 
 }
 
 /**
- * Places a callout beside each slice: a short radial leader out from the edge
- * along the slice's bisector, a nub, then a label a constant gap past it.
- * Slices are split left / right of the center and their labels declumped per
- * side, so a crowded pie stacks them without overlap instead of piling them on
- * one point. Pure, so the placement is unit-testable in isolation.
+ * Places a callout beside each slice. Each callout has three parts:
+ *
+ * - A short radial leader out from the edge along the slice's bisector.
+ * - A nub.
+ * - A label a constant gap past it.
+ *
+ * Slices are split left / right of the center, and their labels declumped per
+ * side. A crowded pie therefore stacks them without overlap instead of piling
+ * them on one point. Pure, so the placement is unit-testable in isolation.
  *
  * @internal
  */
@@ -487,10 +496,10 @@ export type PieCalloutFit = {
 	/** The largest radius whose callouts, each hugging its own slice's angle, still land inside `frameWidth`. */
 	radius: number
 	/**
-	 * The pie's center x. Shifted off `frameWidth / 2` so the outermost callout
-	 * on each side lands flush against it — the two sides' demands rarely
-	 * match, so a centered pie leaves one side short of the edge; with fewer
-	 * than two slices there is nothing to balance and this stays `frameWidth / 2`.
+	 * The pie's center x. It is shifted off `frameWidth / 2` so the outermost
+	 * callout on each side lands flush against it. The two sides' demands rarely
+	 * match, so a centered pie leaves one side short of the edge. With fewer than
+	 * two slices there is nothing to balance, and this stays `frameWidth / 2`.
 	 */
 	cx: number
 }
@@ -513,19 +522,20 @@ function calloutPull(mid: number): number {
 }
 
 /**
- * The largest radius and the center-x under which every callout — each
- * hugging its own slice's angle the way {@link pieCallouts} places it — lands
- * exactly inside `frameWidth`: the tight inverse of that placement, so the
- * frame reserves only the room the real outermost label on each side needs
- * instead of a flat margin sized as if every label sat at 3 o'clock.
+ * The largest radius and the center-x under which every callout lands exactly
+ * inside `frameWidth`. Each callout hugs its own slice's angle, the way
+ * {@link pieCallouts} places it. This is the tight inverse of that placement.
+ * The frame therefore reserves only the room the real outermost label on
+ * each side needs. A flat margin, sized as if every label sat at 3 o'clock,
+ * reserves more.
  *
- * @remarks Each callout's reach from the center is affine in the radius — its
- * slice's horizontal pull times `radius + leader`, plus its fixed nub, gap,
- * and text — so a side's worst case is the upper envelope of a handful of
- * lines, and the pair of envelopes crossing `frameWidth` narrows to one radius
- * by bisection. Below two slices there is nothing to balance between two
- * sides, so `cx` stays centered and the margin falls back to the flat case
- * for the one label.
+ * @remarks Each callout's reach from the center is affine in the radius. It is
+ * its slice's horizontal pull times `radius + leader`, plus its fixed nub, gap,
+ * and text. A side's worst case is therefore the upper envelope of a handful of
+ * lines. The pair of envelopes crossing `frameWidth` narrows to one radius by
+ * bisection. Below two slices there is nothing to balance between two sides.
+ * Then `cx` stays centered, and the margin falls back to the flat case for the
+ * one label.
  * @internal
  */
 export function pieCalloutFit({

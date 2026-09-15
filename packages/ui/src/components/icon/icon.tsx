@@ -6,9 +6,10 @@ import type { IconSize } from '../../recipes/kiso'
 /** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {
 	/**
-	 * The element to clone. Its component must forward unknown props to the element it
-	 * renders — `className` and `data-slot` are injected here — so a wrapper component that
-	 * declares no props swallows both and the glyph falls back to its library's own size.
+	 * The element to clone. Its component must forward unknown props to the element
+	 * it renders, because `className` and `data-slot` are injected here. A wrapper
+	 * component that declares no props swallows both, and the glyph falls back to
+	 * its library's own size.
 	 */
 	icon: ReactElement
 	/**

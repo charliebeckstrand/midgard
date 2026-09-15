@@ -17,11 +17,11 @@ export type TabListProps = AccessibleName &
 
 /**
  * `role="tablist"` container for `<Tab>` children. Manages roving focus along
- * the resolved `orientation`; a MutationObserver keeps at least one tab tabbable
- * as a floor (the single Tab stop itself comes from each `<Tab>`'s roving
- * `tabIndex`), and it scopes the shared `<ActiveIndicator>` animation. The
- * underline variant sits in an overflow viewport so an over-long tab row
- * scrolls in place rather than widening the page; the active tab is scrolled
+ * the resolved `orientation`, and scopes the shared `<ActiveIndicator>`
+ * animation. A MutationObserver keeps at least one tab tabbable as a floor; the
+ * single Tab stop itself comes from each `<Tab>`'s roving `tabIndex`. The
+ * underline variant sits in an overflow viewport, so an over-long tab row
+ * scrolls in place rather than widening the page. The active tab is scrolled
  * into view on mount and as focus roves.
  */
 export function TabList({ className, children, ...props }: TabListProps) {

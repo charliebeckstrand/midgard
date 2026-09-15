@@ -17,8 +17,8 @@ type ChromaticPalette<C extends string = Color> = {
  * variant spread `plain: palette.plain.text` into their own matrix.
  *
  * Generic over the colour set: handed the standard `iro.palette` it returns
- * the five-colour matrix; handed `iro.spectrum` it carries the extended keys
- * through, widening the kata's `color` axis (Badge).
+ * the five-colour matrix. Handed `iro.spectrum` it carries the extended keys
+ * through, which widens the kata's `color` axis (Badge).
  */
 export function basePalette<C extends string = Color>(
 	palette: ChromaticPalette<C>,

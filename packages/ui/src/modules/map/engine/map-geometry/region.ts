@@ -1,11 +1,11 @@
 /**
- * What the region layer draws and what the keyboard cursor stands on: one SVG
- * path per feature under a fitted projection, and one spherical centroid per
- * feature under none. Both passes walk every ring in the atlas, so both are
+ * What the region layer draws and what the keyboard cursor stands on. That is
+ * one SVG path per feature under a fitted projection, and one spherical centroid
+ * per feature under none. Both passes walk every ring in the atlas, so both are
  * memoised a layer above (`cache.ts`) rather than re-run per mount.
  *
  * The path pass answers one fit at a time, which is why it is no longer the
- * ordinary route: a map draws the atlas under several, and `projected.ts` walks
+ * ordinary route. A map draws the atlas under several, and `projected.ts` walks
  * it once for all of them. This runs for the geography and the projections that
  * buffer declines, and the two answer identically — which
  * `map-geometry-projected` asserts byte for byte.
@@ -33,8 +33,8 @@ export function regionPaths(features: MapFeature[], projection: GeoProjection): 
  * cancel to no centre. The keyboard cursor anchors its readout to these, and
  * steps by the compass bearing between them.
  *
- * Deliberately in lon/lat, not in frame units: a centroid is a property of the
- * geography, so one pass per atlas serves every fit and a resize re-projects the
+ * Deliberately in lon/lat, not in frame units. A centroid is a property of the
+ * geography, so one pass per atlas serves every fit. A resize re-projects the
  * result instead of measuring the rings again. `geoCentroid` is spherical, so a
  * region that crosses the antimeridian centres correctly where a mean of its
  * projected coordinates would not.

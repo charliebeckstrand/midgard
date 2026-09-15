@@ -20,12 +20,12 @@ import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
  *
  * @remarks Renders nothing when there are no pages and the document isn't
  * loading. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
- * sliding off-canvas while staying mounted for the transition; when collapsed it
+ * sliding off-canvas while staying mounted for the transition. When collapsed it
  * is `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
- * lands, its contents drop into `<Activity mode="hidden">` as well, so a long
- * document's thumbnail rail stops laying out and re-rendering behind a closed
- * sidebar — the attributes cover the collapsed sidebar's semantics from the
- * first frame, the hold covers its cost from the last one. The mobile Sheet is
+ * lands, its contents drop into `<Activity mode="hidden">`, so a long document's
+ * thumbnail rail stops laying out and re-rendering behind a closed sidebar. The
+ * attributes cover the collapsed sidebar's semantics from the first frame, and
+ * the hold covers its cost from the last one. The mobile Sheet is
  * portaled into the viewer root so it overlays the viewer rather than the page.
  * @internal
  */

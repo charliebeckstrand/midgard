@@ -35,9 +35,9 @@ type SettingsDialogProps = {
  * `markOthers`, which `aria-hidden`s every body sibling; a panel portalled to
  * `body` vanishes from the accessibility tree.
  *
- * The mount node sits inside `DialogBody` (a plain block, no flex `gap`), and
- * the fields are gated on it: `FloatingPortal` captures its target on first
- * mount; the listboxes render only after the mount node exists.
+ * The mount node sits inside `DialogBody`, a plain block with no flex `gap`,
+ * and the fields are gated on it. `FloatingPortal` captures its target on first
+ * mount, so the listboxes render only after the mount node exists.
  */
 export function SettingsDialog({
 	mode,

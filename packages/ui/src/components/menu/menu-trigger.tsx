@@ -22,13 +22,13 @@ export type MenuTriggerProps =
 /**
  * Disclosure trigger for a dropdown {@link Menu}. Clones a single child element
  * or renders its own `<button>`, wiring `aria-haspopup="menu"`,
- * `aria-expanded`, and `aria-controls` and toggling open state on click while
- * composing with the consumer's own `onClick`. A cloned child's own `ref`
+ * `aria-expanded`, and `aria-controls`. It toggles open state on click, and
+ * composes with the consumer's own `onClick`. A cloned child's own `ref`
  * merges with the floating reference, so the trigger element stays reachable
  * (e.g. as a focus target).
  *
- * The trigger keeps focus while the menu is open, so Tab off it closes the menu
- * and lets focus proceed to the next tabbable in one keystroke.
+ * The trigger keeps focus while the menu is open. Tab off it therefore closes
+ * the menu, and lets focus proceed to the next tabbable in one keystroke.
  */
 export function MenuTrigger({ children, className, ...props }: MenuTriggerProps) {
 	const { open, menuId, getReferenceProps } = useMenuState()

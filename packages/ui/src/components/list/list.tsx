@@ -61,8 +61,8 @@ export type ListProps<T> = BaseListProps<T> &
 /**
  * Renders an ordered `items` source as a `<ul>` through a `children` render
  * function, in one of four `variant`s and either orientation. With `onReorder`
- * it becomes reorderable over `@dnd-kit` — pointer drag (with a drag overlay)
- * and keyboard lift (Space then arrows) — auto-inserting a {@link ListHandle}
+ * it becomes reorderable over `@dnd-kit`, by pointer drag (with a drag overlay)
+ * or keyboard lift (Space then arrows). It auto-inserts a {@link ListHandle}
  * per item unless `sortable: false`. Read-only lists skip per-item sortable
  * registration entirely. Compose {@link ListItem} (with {@link ListLabel} /
  * {@link ListDescription}) in the render function.

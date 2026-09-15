@@ -1,7 +1,7 @@
 /**
- * What both routing clients hand `fetch`: the travel profile they share, the
- * abort signal that combines a caller's own with an optional timeout, and the
- * send that turns a response into an answer.
+ * What both routing clients hand `fetch`. That is the travel profile they
+ * share, and the abort signal that combines a caller's own with an optional
+ * timeout. It also holds the send that turns a response into an answer.
  */
 
 import { httpFailure, thrownFailure } from './failure'
@@ -13,7 +13,7 @@ export type Profile = 'driving' | 'walking' | 'cycling'
 /**
  * The signal to hand `fetch`: the caller's, a fresh timeout, or both combined
  * through {@link AbortSignal.any}. `AbortSignal.timeout(undefined)` throws, so a
- * timeout signal is built only when `timeoutMs` is given; a fired timeout
+ * timeout signal is built only when `timeoutMs` is given. A fired timeout
  * rejects the fetch, which {@link routeFetch} reads back as its own failure kind.
  *
  * @internal
@@ -31,10 +31,10 @@ export function requestSignal(
 
 /**
  * Send one routing request and read what comes back. Both clients meet here, so
- * the three ways a request fails before its payload — a request that never
- * answered, a status the service refused with, and a body that does not parse —
- * are told apart once rather than once per service; each client keeps only the
- * url and the body its own service takes.
+ * the three ways a request fails before its payload are told apart once rather
+ * than once per service. Those are a request that never answered, a status the
+ * service refused with, and a body that does not parse. Each client keeps only
+ * the url and the body its own service takes.
  *
  * @param url - The service endpoint, with whatever the request rides in its path.
  * @param init - The method, headers, body, and signal for this service.

@@ -3,23 +3,24 @@
  * close enough to want some of it.
  *
  * The companion to `crowd.ts`, answering the same question — how much of this ground is mine — with a
- * shape instead of a radius. A radius is the right answer for a zone's claim: a `MapGeofence` is a
- * face, not a point, so there is no line to divide along and a dot standing on one can only give
- * reach back evenly. It is the wrong answer for a neighbouring DOT. Shrinking both targets to the gap
- * costs each of them reach in every direction, including the three quarters of the compass where
- * nothing is competing for anything, so two dots twenty pixels apart end up with targets a reader has
- * to aim at precisely — in exchange for an ambiguity that only ever existed between them.
+ * shape instead of a radius. A radius is the right answer for a zone's claim. A `MapGeofence` is a
+ * face, not a point, so there is no line to divide along. A dot standing on one can only give
+ * reach back evenly. It is the wrong answer for a neighbouring DOT. Shrinking both targets to the
+ * gap costs each of them reach in every direction. That includes the three quarters of the compass
+ * where nothing is competing for anything. Two dots twenty pixels apart therefore end up with
+ * targets a reader has to aim at precisely. They pay that for an ambiguity that only ever existed
+ * between them.
  *
  * A dot's ground is instead its full target MINUS whatever lies nearer to a neighbour. The boundary
- * between two dots is the perpendicular bisector of the segment joining them, so each keeps the whole
- * of its finger target outward and the contested middle divides once, evenly, along a line a reader
- * could have drawn themselves. Which is also the only division that cannot depend on draw order:
- * before this, the overlap belonged to whichever dot happened to render last, so the pin underneath
- * silently lost a crescent of its target and its tooltip with it.
+ * between two dots is the perpendicular bisector of the segment joining them. Each therefore keeps
+ * the whole of its finger target outward. The contested middle divides once, evenly, along a line a
+ * reader could have drawn themselves. It is also the only division that cannot depend on draw
+ * order. Before this, the overlap belonged to whichever dot happened to render last. The pin
+ * underneath silently lost a crescent of its target, and its tooltip with it.
  *
- * The result is a convex polygon rather than the true circle-minus-lens: the target is a `<circle>`
+ * The result is a convex polygon rather than the true circle-minus-lens. The target is a `<circle>`
  * under a `clip-path`, so the arc comes from the circle and this supplies only the straight cuts.
- * Convexity is what makes that sound — a half-plane intersection is always convex, and clipping a
+ * Convexity is what makes that sound. A half-plane intersection is always convex, and clipping a
  * convex region by another half-plane keeps it so, however many neighbours crowd in.
  *
  * Frame arithmetic, React-free, like the rest of the engine.
@@ -41,10 +42,10 @@ export type MapGround = MapPoint2D[]
  * How near two dots must be before the bisector cuts into the target at all.
  *
  * A bisector sits half the gap away, so it crosses a target of radius `reach` exactly when the gap is
- * under `2 * reach`. Below that there is nothing to divide and the dot keeps its plain circle, which
- * is the case almost every dot on almost every map is in — hence {@link ownGround} returning `null`
- * rather than a ring covering everything, so the overwhelmingly common answer costs no polygon, no
- * `clipPath` element and no id.
+ * under `2 * reach`. Below that there is nothing to divide, and the dot keeps its plain circle.
+ * That is the case almost every dot on almost every map is in. Hence {@link ownGround} returning
+ * `null` rather than a ring covering everything. The overwhelmingly common answer therefore costs
+ * no polygon, no `clipPath` element and no id.
  *
  * @internal
  */
@@ -112,7 +113,7 @@ function clipToHalf(ring: MapGround, mid: MapPoint2D, nx: number, ny: number): M
  * The ground a dot keeps, or `null` when no neighbour is close enough to want any of it.
  *
  * Starts from the square bounding the dot's own target, so the ring is finite for a `clipPath` to
- * draw, and every cut lands inside it — a bisector that contests the target at all crosses that
+ * draw. Every cut lands inside it, because a bisector that contests the target at all crosses that
  * square. The circle supplies the curve; this supplies only the straight edges.
  *
  * @param at - The dot's projected frame position.
@@ -161,9 +162,9 @@ export function ownGround(
 /**
  * A ring as an SVG `points` attribute.
  *
- * Rounded to a hundredth of a frame unit, through the `round` the `d` builders take: the ring is
- * regenerated on every zoom notch and every refit, and full float expansion puts seventeen
- * significant figures per ordinate into the DOM for a boundary no one can see to that precision.
+ * Rounded to a hundredth of a frame unit, through the `round` the `d` builders take. The ring is
+ * regenerated on every zoom notch and every refit. Full float expansion puts seventeen significant
+ * figures per ordinate into the DOM, for a boundary no one can see to that precision.
  *
  * @internal
  */
@@ -182,18 +183,18 @@ export function groundPoints(ring: MapGround): string {
 export type MapPooledDot = { owner: string; at: MapPoint2D }
 
 /**
- * Every visible dot-drawing mark's stops, projected into frame units — the pool a mark divides its
- * targets' ground against, once its own dots are dropped from it.
+ * Every visible dot-drawing mark's stops, projected into frame units. It is the pool a mark divides
+ * its targets' ground against, once its own dots are dropped from it.
  *
- * Gathers the whole map rather than taking an exclusion, because gathering is the expensive half: it
- * invokes each entry's `stopsAt`, which `MapPoints` registers as a thunk so that its O(N) build and the
- * spherical centroid behind every summary's anchor land on the one reader that wants them. Built per
- * asking mark, M marks would trigger that pass M times over the same entries and keep a different
- * (M-1)th of the answer each time.
+ * Gathers the whole map rather than taking an exclusion, because gathering is the expensive half. It
+ * invokes each entry's `stopsAt`, which `MapPoints` registers as a thunk. That O(N) build and the
+ * spherical centroid behind every summary's anchor therefore land on the one reader that wants
+ * them. Built per asking mark, M marks would trigger that pass M times over the same entries. Each
+ * would keep a different (M-1)th of the answer.
  *
  * Skips hidden marks, which hold no ground while the legend has them away. Skips the line and area
- * kinds: a route's waypoints and a zone's ring paint nothing a pointer could be aimed at instead of,
- * and a zone's claim on the ground is a `spare` budget rather than a boundary. Read as a negative so a
+ * kinds. A route's waypoints and a zone's ring paint nothing a pointer could be aimed at instead
+ * of. A zone's claim on the ground is a `spare` budget rather than a boundary. Read as a negative so a
  * dot-drawing kind added later joins the rule without this being edited.
  *
  * Off-projection stops are dropped — they draw nothing, so they crowd nothing; the US composite drops

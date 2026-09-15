@@ -9,8 +9,8 @@ export type { FormatSpec } from '../../utilities'
 /**
  * Resolves a {@link FormatSpec} to a memoized `(value) => string` formatter,
  * folding in the ambient `<LocaleProvider>` locale, currency, and number-format
- * defaults so `useFormat({ type: 'currency' })` renders the right currency with
- * no per-call wiring. Drops straight into any surface that takes a value
+ * defaults. `useFormat({ type: 'currency' })` therefore renders the right
+ * currency with no per-call wiring. Drops straight into any surface that takes a value
  * formatter — a chart's `formatValue`, a grid column's `cell`, an odometer's
  * `format`.
  *

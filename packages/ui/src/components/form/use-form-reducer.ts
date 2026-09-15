@@ -49,7 +49,7 @@ export type FormHelpers<T> = {
 }
 
 /**
- * Return nothing (or `Promise<void>`) for success; optionally return a
+ * Return nothing (or `Promise<void>`) for success. Optionally return a
  * `SubmitResult<T>`, sync or async, to surface server-side validation
  * issues without going through `helpers.setErrors`. Throw or reject to
  * trigger `onSettled({ ok: false, error })`. Annotate the return as
@@ -104,7 +104,7 @@ type FormReducerResult = {
  * exposes value/touched/error setters and `reset`, and builds the submit and
  * reset handlers. Submits validate every field, run `onSubmit`, and route a
  * `{ fieldErrors }` return back into the error map or settle through
- * `onSettled`; a monotonic token discards superseded in-flight submits. Syncs
+ * `onSettled`. A monotonic token discards superseded in-flight submits. Syncs
  * the controlled `values` prop before paint and re-anchors the dirty baseline.
  *
  * @returns The {@link FormReducerResult} consumed by the `Form` provider.

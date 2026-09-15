@@ -5,8 +5,8 @@ import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
 
 /**
- * Registers a manager group zone as an in-place sortable item so whole groups
- * reorder in one vertical list — the source dims (no `DragOverlay`) rather than
+ * Registers a manager group zone as an in-place sortable item, so whole groups
+ * reorder in one vertical list. The source dims (no `DragOverlay`) rather than
  * hides, since a group is a single container dnd-kit can animate in place. The
  * grip beside the group label carries the returned `attributes` / `listeners`.
  * Shared by the column group manager and the row manager.

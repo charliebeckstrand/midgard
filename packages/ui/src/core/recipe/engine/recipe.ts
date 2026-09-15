@@ -2,12 +2,12 @@
  * The recipe primitive: {@link defineRecipe} and its config expansion.
  *
  * @remarks Per-call composition order is `base` → matching `variants` →
- * `compound` rules; `slots` pre-merge at creation, `palette` expands into the
- * `color` axis (`palette.ts`), and `skeleton` rides through as `k.skeleton`.
- * The call path is compiled once at creation (entries hoisted, defaults
- * pre-stringified, palette pairs folded into an O(1) lookup) and its output
- * memoised per variant combination, so render-hot call sites pay a key join
- * and a map hit after the first call with a given combination.
+ * `compound` rules. The `slots` pre-merge at creation, `palette` expands into
+ * the `color` axis (`palette.ts`), and `skeleton` rides through as `k.skeleton`.
+ * The call path is compiled once at creation: entries hoisted, defaults
+ * pre-stringified, palette pairs folded into an O(1) lookup. Its output is
+ * memoised per variant combination. Render-hot call sites therefore pay a key
+ * join and a map hit, after the first call with a given combination.
  */
 
 import type { ClassValue } from 'clsx'
@@ -36,8 +36,8 @@ const RESERVED: ReadonlySet<ReservedField> = new Set([
 
 /**
  * Memo entries per recipe. Combinations of declared axis values stay far
- * below this; the cap only guards a caller feeding unbounded dynamic strings
- * into a variant prop, resetting the memo instead of growing it.
+ * below this. The cap only guards a caller feeding unbounded dynamic strings
+ * into a variant prop, and resets the memo instead of growing it.
  */
 const MEMO_CAP = 1024
 
@@ -83,12 +83,16 @@ type Expansion = {
 }
 
 /**
- * Builds a callable recipe from a `RecipeConfig`: `base`, `variants`,
- * `compound`, and `defaults` apply per call through `clsx` + `tailwind-merge`,
- * `slots` pre-merge onto the recipe as direct properties, `palette` expands
- * into an implicit `color` axis, and `extras` attach arbitrary kata-shaped
- * siblings. The kata binds the result as `k`: `k(...)` for the variant call,
- * `k.title` for slot classes.
+ * Builds a callable recipe from a `RecipeConfig`:
+ *
+ * - `base`, `variants`, `compound`, and `defaults` apply per call through
+ *   `clsx` + `tailwind-merge`;
+ * - `slots` pre-merge onto the recipe as direct properties;
+ * - `palette` expands into an implicit `color` axis;
+ * - `extras` attach arbitrary kata-shaped siblings.
+ *
+ * The kata binds the result as `k`: `k(...)` for the variant call, `k.title`
+ * for slot classes.
  *
  * @remarks Calls are memoised per resolved variant combination: the first
  * call with a given combination composes and merges classes, every later one
@@ -277,9 +281,9 @@ function collectRecipeClasses(
 }
 
 /**
- * Derives the per-call execution plan once at creation: variant entries
- * hoisted, defaults pre-stringified, the palette pair lookup taken straight
- * from {@link expandPalette}, and user rules pre-split so matching allocates
+ * Derives the per-call execution plan once at creation. Variant entries are
+ * hoisted, defaults pre-stringified, and the palette pair lookup taken straight
+ * from {@link expandPalette}. User rules are pre-split, so matching allocates
  * nothing.
  *
  * @internal
@@ -328,9 +332,9 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 /**
  * Splices a palette into the `variant` and `color` axes (mutating `variants`)
  * and returns its compound rules and pair lookup. Palette-matrix variant keys
- * absent from an explicit `variant:` axis join it as empty entries — valid
- * values with no structural class; the `color` axis becomes the palette's
- * colour scaffold.
+ * absent from an explicit `variant:` axis join it as empty entries, valid values
+ * with no structural class. The `color` axis becomes the palette's colour
+ * scaffold.
  *
  * @internal
  */

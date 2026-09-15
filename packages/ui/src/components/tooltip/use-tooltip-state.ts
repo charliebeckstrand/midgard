@@ -23,10 +23,10 @@ type TooltipStateOptions = {
 }
 
 /**
- * Whether the floating reference is disabled: the reference node itself
- * matches `:disabled` (the trigger cloned onto a `<button>` switched off by
- * its own `disabled` attribute or an ancestor `<fieldset disabled>`), or a
- * disabled control sits inside it (the wrapper-`<div>` fallback).
+ * Whether the floating reference is disabled. The reference node matches
+ * `:disabled`, where the trigger is cloned onto a `<button>` switched off by
+ * its own `disabled` attribute or an ancestor `<fieldset disabled>`. A
+ * disabled control can also sit inside it (the wrapper-`<div>` fallback).
  * `querySelector` scans descendants only; `matches` covers the
  * reference-is-the-control case.
  */
@@ -112,11 +112,11 @@ export function useTooltipState({
 
 	/*
 	 * Watched rather than wrapped around the disclosure's setter. `forceOpen` holds the
-	 * disclosure controlled, and `useControllable` fires on every set — even the ones a
-	 * controlled `open` then overrides, so hovering off a forced-open tooltip would report
-	 * a close that never happened. The committed value reports exactly what the reader
-	 * sees, on every route into it: hover, focus, click, `forceOpen`, `enabled`, the
-	 * `:disabled` poll above, and the overlay signal.
+	 * disclosure controlled, and `useControllable` fires on every set, even the ones a
+	 * controlled `open` then overrides. Hovering off a forced-open tooltip would therefore
+	 * report a close that never happened. The committed value reports exactly what the
+	 * reader sees, on every route into it. Those routes are hover, focus, click,
+	 * `forceOpen`, `enabled`, the `:disabled` poll above, and the overlay signal.
 	 */
 	useOpenChange(open, onOpenChange)
 

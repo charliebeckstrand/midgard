@@ -28,10 +28,10 @@ export type SliderProps = SliderBaseProps &
 	>
 
 /**
- * Range input for a single value; controlled or uncontrolled, resolving
- * `id`/`disabled`/`invalid` from an enclosing Control or Field, binding to an
- * enclosing Form field by `name`, `size` from the Density cascade, and exposing
- * fill position as a `--slider-value` CSS variable.
+ * Range input for a single value, controlled or uncontrolled. It resolves `id`,
+ * `disabled`, and `invalid` from an enclosing Control or Field, and binds to an
+ * enclosing Form field by `name`. `size` comes from the Density cascade, and the
+ * fill position is exposed as a `--slider-value` CSS variable.
  *
  * @remarks Renders a native `<input type="range">`, so screen-reader semantics
  * and arrow-key stepping come from the platform; only `aria-valuetext` is

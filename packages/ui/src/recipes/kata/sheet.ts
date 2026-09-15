@@ -1,8 +1,8 @@
 /**
  * Sheet kata: object-literal surface for the `<Sheet>` edge drawer, built by
  * bridging the shared `panel` recipe. The `panel` sub-recipe axes on `side`,
- * `width`, and `surface`; `backdrop` mirrors the glass/flat surface, and the
- * bridged `title` / `description` / `body` / `footer` slots plus `motion`
+ * `width`, and `surface`. The `backdrop` mirrors the glass/flat surface. The
+ * bridged `title` / `description` / `body` / `footer` slots, plus `motion`,
  * complete the dialog chrome.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
@@ -16,7 +16,7 @@ const { glass, backdrop } = omote
 /**
  * The widest a sheet is drawn at: the screen, less the inset it floats on.
  *
- * Stated once because it is the complement of the `sm:*-4` the sides set — move
+ * Stated once because it is the complement of the `sm:*-4` the sides set. Move
  * the panel's float and this has to move with it, and two copies would leave one
  * behind. `sheetCeiling` measures the same gap off the element for the gesture.
  */
@@ -81,10 +81,10 @@ export const k = {
 	 * the reader actually sees.
 	 *
 	 * It rides the panel's inline edge rather than sitting in the flow, because a
-	 * sheet resizes across its own scrolling body — laid out in the column with
+	 * sheet resizes across its own scrolling body. Laid out in the column with
 	 * the slots, the grip would scroll away from the edge it moves. The area is
-	 * the full height, so the reach is the panel's rather than the bar's, and
-	 * `hannou.grab` carries the rest including the `touch-none` that makes the
+	 * the full height, so the reach is the panel's rather than the bar's.
+	 * `hannou.grab` carries the rest, including the `touch-none` that makes the
 	 * gesture work at all under a finger.
 	 *
 	 * `side` puts it on the edge that faces the screen: a right-hand sheet grows

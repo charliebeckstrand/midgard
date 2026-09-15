@@ -9,14 +9,14 @@ export type DividerProps = DividerVariants & {
 
 /**
  * Thin rule that separates content, rendered as a styled `<hr>`. Draws a top
- * border when `horizontal` (default) and a left border when `vertical`, and
+ * border when `horizontal` (default) and a left border when `vertical`. It
  * lightens the line under `soft` (default false).
  *
  * @remarks
  * The `vertical` orientation adds `role="separator"` and
  * `aria-orientation="vertical"` for assistive tech; the default horizontal
  * rule relies on the native `<hr>` semantics. Both are load-bearing and are
- * written after the spread, while the `data-slot` anchor stays renameable so a
+ * written after the spread. The `data-slot` anchor stays renameable, so a
  * wrapper such as `ToolbarSeparator` can re-anchor the rule
  * ([CONVENTIONS.md](CONVENTIONS.md) §3.9).
  */

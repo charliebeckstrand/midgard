@@ -3,9 +3,9 @@ import { resolveLocale } from '../../utilities'
 import { fromCalendarDate, toCalendarDate } from '../calendar/calendar-utilities'
 
 /**
- * Trigger label for a single date, in `locale` — the ambient `<LocaleProvider>`
- * tag at every call site, so the trigger reads the same locale as the calendar
- * beside it rather than the runtime default.
+ * Trigger label for a single date, in `locale`. That is the ambient
+ * `<LocaleProvider>` tag at every call site. The trigger therefore reads the
+ * same locale as the calendar beside it, not the runtime default.
  *
  * @internal
  */

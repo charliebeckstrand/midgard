@@ -14,14 +14,14 @@ export type GridProps<T> = GridDataProps<T>
 
 /**
  * Data grid over a flat `rows` source. Maps each row through `columns`, keys rows
- * via `getKey`, sorts by column value on the engine, and shares that state with
- * head and cells via {@link useGrid}. Sort, selection, and `columnOrder` are
- * controllable; selecting rows surfaces a batch-action {@link Toolbar}, a column
- * manager dialog reorders and hides columns, `reorder` adds header drag handles,
- * and `navigable` adds a keyboard cell cursor (`role="grid"` with an
- * `aria-activedescendant` active cell). `density` tunes cell padding, and
- * `condensed` steps the whole grid down a notch — padding, cell font, header
- * chrome, and a compact cascade over client cell content.
+ * via `getKey`, and sorts by column value on the engine. It shares that state
+ * with head and cells via {@link useGrid}. Sort, selection, and `columnOrder`
+ * are controllable. Selecting rows surfaces a batch-action {@link Toolbar}, and
+ * a column manager dialog reorders and hides columns. The `reorder` adds header
+ * drag handles, and `navigable` adds a keyboard cell cursor (`role="grid"` with
+ * an `aria-activedescendant` active cell). The `density` tunes cell padding, and
+ * `condensed` steps the whole grid down a notch. That covers padding, cell font,
+ * header chrome, and a compact cascade over client cell content.
  *
  * Pass `editable` (a {@link GridEditableConfig}) to bake in inline editing. A
  * row in the editable set puts all of its editable cells into edit mode at once.
@@ -32,20 +32,23 @@ export type GridProps<T> = GridDataProps<T>
  * session ({@link GridEditableConfig.trigger}) can narrow to one cell instead
  * through {@link GridEditableConfig.scope}.
  *
- * Renders a loading skeleton (`aria-busy` with a polite status), an `empty` slot
- * when there are no rows, a sticky header, an optional `footer` summary bar (row
- * total, selected count, custom content), and — under `virtualize` — windowed
- * rows with full row/column counts.
+ * Renders:
+ *
+ * - a loading skeleton (`aria-busy` with a polite status);
+ * - an `empty` slot when there are no rows;
+ * - a sticky header;
+ * - an optional `footer` summary bar: row total, selected count, custom content;
+ * - under `virtualize`, windowed rows with full row/column counts.
  *
  * @remarks Client component. `virtualize` requires `maxHeight`; omitting it
  * throws, since virtualization needs a scroll container of known size.
  *
- * Memoized on its (shallow-equal) props, so a parent that re-renders while
- * holding the grid's `columns`, `rows`, `getKey`, and config identities steady —
- * a chat transcript re-rendering on every streamed token around a settled inline
- * grid — skips re-rendering it. A prop whose identity churns each render defeats
- * the memo; derive those once at the call site (memoize the parsed columns and
- * rows) so an embedded grid rests when its data is unchanged.
+ * Memoized on its (shallow-equal) props. A parent that re-renders while holding
+ * the grid's `columns`, `rows`, `getKey`, and config identities steady skips
+ * re-rendering it. A chat transcript re-rendering on every streamed token around
+ * a settled inline grid is the example. A prop whose identity churns each render
+ * defeats the memo. Derive those once at the call site, and memoize the parsed
+ * columns and rows. An embedded grid then rests when its data is unchanged.
  * @typeParam T - Shape of a single row.
  */
 function GridImpl<T>(props: GridProps<T>) {

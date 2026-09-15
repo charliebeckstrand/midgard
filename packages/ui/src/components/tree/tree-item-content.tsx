@@ -30,9 +30,9 @@ type TreeItemContentProps = {
 /**
  * The interactive `role="treeitem"` row rendered by {@link TreeItem}: chevron,
  * optional `icon`, `label`, and `prefix`/`suffix` slots. Toggles expansion on a
- * branch row, or forwards clicks and `Enter`/`Space` on a leaf row to the first
- * interactive control in the `prefix` slot; `ArrowRight`/`ArrowLeft` expand and
- * collapse. Reads depth, size, indent, and ARIA position from tree context.
+ * branch row. On a leaf row it forwards clicks and `Enter`/`Space` to the first
+ * interactive control in the `prefix` slot. `ArrowRight` and `ArrowLeft` expand
+ * and collapse. Reads depth, size, indent, and ARIA position from tree context.
  *
  * @internal
  */

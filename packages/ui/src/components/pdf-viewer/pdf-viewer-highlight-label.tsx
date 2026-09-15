@@ -7,27 +7,27 @@ import { TooltipAnchor } from '../tooltip/tooltip-anchor'
  * The name of the selected region, drawn above it.
  *
  * Because the boxes are the one thing on the page that cannot say what they are. A reviewer
- * arrives here from a list beside the viewer — hovering a field's label selects its region —
- * and on a dense page the ring and the deeper wash say *which* box was picked without saying
- * which of twenty fields picked it. The name is already required of every highlight and
+ * arrives here from a list beside the viewer, where hovering a field's label selects its
+ * region. On a dense page the ring and the deeper wash say *which* box was picked, without
+ * saying which of twenty fields picked it. The name is already required of every highlight and
  * already on the region as its `aria-label`; this is the sighted reader's copy of it.
  *
  * @remarks **A leaf, deliberately, and the layer must keep it that way.** Floating-ui commits
  * every reposition through `flushSync`, and `autoUpdate` fires on ancestor scroll, ancestor
- * resize, element resize and layout shift — so holding this state in the layer made one
- * un-batchable re-render of all 20-40 regions per frame of a scroll, on a path whose
+ * resize, element resize and layout shift. Holding this state in the layer therefore made one
+ * un-batchable re-render of all 20-40 regions per frame of a scroll. That path's
  * `regionClass` cache exists to save microseconds. Here the same commit touches three fibers.
  * The layer passes the anchor element down; nothing about the panel's position reaches it.
  *
  * **It takes no pointer events**, persisted or not. A name is not somewhere to travel to, and
- * on a dense page it lands on its neighbours: a reader who wants the box under it must be able
- * to point at the box, not at the name of another one. The layer answers for what that opens —
- * it fades the name over a box the pointer is reading, and it refuses to put the selection down
- * for a press that landed on the name and on nothing else.
+ * on a dense page it lands on its neighbours. A reader who wants the box under it must be able
+ * to point at the box, not at the name of another one. The layer answers for what that opens.
+ * It fades the name over a box the pointer is reading. It also refuses to put the selection
+ * down for a press that landed on the name and on nothing else.
  *
- * `aria-hidden`: the region carries this exact string as its `aria-label` and the layer
- * announces it through a live region besides, so a third copy would have a reader hear one
- * selection named twice.
+ * The `aria-hidden` is there because the region carries this exact string as its
+ * `aria-label`. The layer announces it through a live region besides, so a third copy would
+ * have a reader hear one selection named twice.
  * @internal
  */
 export function PdfViewerHighlightLabel({
@@ -50,9 +50,9 @@ export function PdfViewerHighlightLabel({
 	label: string | null
 	/**
 	 * Whether the overlay is drawn. Gated on it because a hidden layer is `hidden` rather than
-	 * unmounted — the selection survives a reader looking at the page underneath — and this
-	 * panel portals out of the layer, so `hidden` does not reach it and it would otherwise
-	 * float over a box that is not on screen.
+	 * unmounted. The selection survives a reader looking at the page underneath. This panel
+	 * portals out of the layer, so `hidden` does not reach it. It would otherwise float over a
+	 * box that is not on screen.
 	 */
 	open: boolean
 	/**

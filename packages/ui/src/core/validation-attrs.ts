@@ -19,11 +19,12 @@ const ATTRS = {
 /**
  * Returns the data-* / aria attribute object to spread onto a form control for
  * its resolved {@link Severity}, or undefined when there is none. JSX spread
- * treats undefined as a no-op, so callers spread unconditionally. The states
- * are mutually exclusive: `error` reuses the {@link invalidAttrs} pair
- * (`data-invalid` + `aria-invalid`), `warning` emits `data-warning`, and
- * `success` emits `data-valid` — each keying the matching kasane validation
- * ring (red / amber / green). Returns frozen singletons, so spreads stay
+ * treats undefined as a no-op, so callers spread unconditionally.
+ *
+ * The states are mutually exclusive. `error` reuses the {@link invalidAttrs}
+ * pair (`data-invalid` + `aria-invalid`), `warning` emits `data-warning`, and
+ * `success` emits `data-valid`. Each keys the matching kasane validation ring,
+ * red, amber, or green. Returns frozen singletons, so spreads stay
  * referentially stable across renders.
  *
  * @param severity - The resolved field severity, or undefined for no state.

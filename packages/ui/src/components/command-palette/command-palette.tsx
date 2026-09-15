@@ -62,7 +62,7 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	 * `getOptionId` for large lists: arrow then navigates the full set by
 	 * index, reaching items outside the rendered window. Unlike
 	 * `Combobox`/`Listbox`, whose panel already carries a fixed max-height,
-	 * `DialogBody` sizes to its content — give `VirtualOptions` a wrapper with
+	 * `DialogBody` sizes to its content. Give `VirtualOptions` a wrapper with
 	 * an explicit, definite height (not just `max-height`) and `overflow-y:
 	 * auto`, e.g. `<div style={{ height: 320, overflow: 'auto' }}>`.
 	 */
@@ -76,7 +76,7 @@ const DEFAULT_TRIGGER_SHORTCUT = '$mod+KeyK'
  * {@link useCommandPaletteQuery} for client-side filtering.
  *
  * @remarks Focus moves into the search input on open via the Dialog
- * `initialFocus`; arrow keys drive a virtual roving highlight via
+ * `initialFocus`. Arrow keys drive a virtual roving highlight via
  * `aria-activedescendant` while focus stays on the input. The listbox owns only
  * options (`aria-required-children`), so the no-results message lives in a
  * sibling live `<output>` that announces when the filtered set empties. A

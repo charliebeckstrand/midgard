@@ -88,14 +88,15 @@ type RelativeTimeResult = {
 }
 
 /**
- * Resolves a relative-time string for {@link TimeAgo}, re-rendering on a refresh
- * cadence that steps coarser as the timestamp ages (or a fixed `interval`).
+ * Resolves a relative-time string for {@link TimeAgo}. It re-renders on a
+ * refresh cadence that steps coarser as the timestamp ages, or on a fixed
+ * `interval`.
  *
  * @returns The parsed date, a validity flag, and the formatted relative text.
  * @remarks
- * Client-only clock: `now` is `null` until a post-mount effect establishes it,
- * so the first render on both server and client emits empty `text` and hydration
- * matches at unit boundaries. Picks the display unit by the rounded magnitude,
+ * Client-only clock. `now` is `null` until a post-mount effect establishes it.
+ * The first render on both server and client therefore emits empty `text`, and
+ * hydration matches at unit boundaries. Picks the display unit by the rounded magnitude,
  * caches one `Intl.RelativeTimeFormat` per locale, and floors an explicit
  * `interval` at {@link MIN_REFRESH_MS}.
  * @internal

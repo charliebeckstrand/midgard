@@ -1,8 +1,13 @@
 /**
- * Pure geometry for the {@link ScatterChart}: row parsing that survives ragged
- * data, the sorted unique-x columns the hover and readout key on, area-true
- * bubble radii, and the point hit test. Independent of React and styling so the
- * mark math is unit-testable in isolation.
+ * Pure geometry for the {@link ScatterChart}:
+ *
+ * - Row parsing that survives ragged data.
+ * - The sorted unique-x columns the hover and readout key on.
+ * - Area-true bubble radii.
+ * - The point hit test.
+ *
+ * Independent of React and styling so the mark math is unit-testable in
+ * isolation.
  */
 
 import type { ChartAxisTick } from '../chart-axes/axis'
@@ -35,10 +40,10 @@ type ScatterKeys<T> = {
 }
 
 /**
- * Reads one series' points off the rows: `Number(datum[key])` on both axes,
- * dropping a point whose x or y is non-finite — never the scale — so ragged or
- * agent-generated rows degrade to the points that parse. Duplicate positions
- * survive; each row that parses is a point.
+ * Reads one series' points off the rows: `Number(datum[key])` on both axes. It
+ * drops a point whose x or y is non-finite, never the scale. Ragged or
+ * agent-generated rows therefore degrade to the points that parse. Duplicate
+ * positions survive; each row that parses is a point.
  *
  * @internal
  */
@@ -57,9 +62,9 @@ export function scatterData<T>(data: T[], keys: ScatterKeys<T>): ScatterDatum[] 
 }
 
 /**
- * The ascending unique x values across every visible series — the columns the
- * hover index, crosshair snap, keyboard cursor, and readout all key on, the
- * scatter counterpart of the band charts' categories.
+ * The ascending unique x values across every visible series. They are the
+ * columns the hover index, crosshair snap, keyboard cursor, and readout all key
+ * on. That is the scatter counterpart of the band charts' categories.
  *
  * @internal
  */
@@ -89,9 +94,9 @@ export function diameterRange(size?: number, maxSize?: number): [number, number]
 }
 
 /**
- * A point's radius: bubbles interpolate on the square root of the size — area,
- * not diameter, carries the quantity — between the diameter range's ends over
- * the series' own size extent. A sizeless point (or series) takes the plain
+ * A point's radius. Bubbles interpolate on the square root of the size, between
+ * the diameter range's ends over the series' own size extent. Area, not
+ * diameter, carries the quantity. A sizeless point (or series) takes the plain
  * marker radius; a degenerate extent reads mid-range, because equal sizes must
  * read equal, not minimal.
  *
@@ -146,16 +151,16 @@ export function scatterMarks(
 
 /**
  * Every disc of a series concatenated into one path `d`. Each disc is a closed
- * subfigure — two half-arcs around its centre — so the fill fills every disc
- * and the stroke rings each one, exactly as separate circles did. Marks with a
- * non-positive radius are skipped — a degenerate arc would paint nothing and
- * only lengthen the string.
+ * subfigure, two half-arcs around its centre. The fill therefore fills every
+ * disc and the stroke rings each one, exactly as separate circles did. Marks
+ * with a non-positive radius are skipped — a degenerate arc would paint nothing
+ * and only lengthen the string.
  *
- * A plain series shares one radius across every disc, so the two arc commands
- * — which read only the radius, not the centre — are identical for all of
- * them; the builder caches that suffix and rebuilds it only when a radius
- * actually changes, leaving one move-to per disc as the sole per-mark
- * formatting. At ten thousand points that is the difference between fifty
+ * A plain series shares one radius across every disc. The two arc commands read
+ * only the radius, not the centre, so they are identical for all of them. The
+ * builder caches that suffix and rebuilds it only when a radius actually
+ * changes. One move-to per disc is left as the sole per-mark formatting. At ten
+ * thousand points that is the difference between fifty
  * thousand coordinate roundings and twenty thousand.
  *
  * @internal
@@ -194,11 +199,11 @@ export function scatterDiscsPath(marks: ScatterMark[]): string {
 export type ScatterSnapStop = { y: number; series: number; datum: number }
 
 /**
- * One series' points grouped by x in one pass, each mapped through `entry`, so
- * a per-column read costs a map lookup rather than a rescan of every point —
- * O(points) over the grid instead of O(uniqueXs × points), which turns
- * quadratic on the all-distinct x the docs advertise. Insertion order matches a
- * per-column filter, so a group keeps point order.
+ * One series' points grouped by x in one pass, each mapped through `entry`. A
+ * per-column read therefore costs a map lookup, rather than a rescan of every
+ * point. That is O(points) over the grid instead of O(uniqueXs × points), which
+ * turns quadratic on the all-distinct x the docs advertise. Insertion order
+ * matches a per-column filter, so a group keeps point order.
  *
  * @internal
  */
@@ -239,10 +244,10 @@ export function scatterSnapStops(
 }
 
 /**
- * Per unique x, the visible series' y screen positions — every point at that
- * x, duplicates included — the crosshair's and keyboard cursor's snap targets,
- * shaped exactly like the band charts' snap points. The positions half of
- * {@link scatterSnapStops}, index-aligned with it.
+ * Per unique x, the visible series' y screen positions: every point at that x,
+ * duplicates included. They are the crosshair's and keyboard cursor's snap
+ * targets, shaped exactly like the band charts' snap points. The positions half
+ * of {@link scatterSnapStops}, index-aligned with it.
  *
  * @internal
  */
@@ -253,8 +258,8 @@ export function scatterSnapColumns(stops: ScatterSnapStop[][]): number[][] {
 /**
  * The stop nearest `y` in column `index`, or `null` off every stop (an empty
  * column, or no column). The same resolution the snapped tooltip anchors with,
- * so the isolated disc and the readout can never disagree: moving along the
- * column hands both to the next point at the midpoint between stops.
+ * so the isolated disc and the readout can never disagree. Moving along the
+ * column hands both to the next point, at the midpoint between stops.
  *
  * @internal
  */
@@ -274,9 +279,9 @@ export function scatterSnappedStop(
 }
 
 /**
- * One series' readout cells, per unique x: each point's formatted y — with its
- * size measure in parentheses where one was read — duplicates at an x joined,
- * and an em-dash where the series has no point there.
+ * One series' readout cells, per unique x: each point's formatted y, with its
+ * size measure in parentheses where one was read. Duplicates at an x are
+ * joined, and an em-dash stands where the series has no point there.
  *
  * @internal
  */
@@ -300,8 +305,8 @@ export function scatterReadoutValues(
 }
 
 /**
- * Arbitrates the held disc against the nearest caught one: the held keeps the
- * win while it stayed caught (a finite distance) and no challenger
+ * Arbitrates the held disc against the nearest caught one. The held keeps the
+ * win while it stayed caught (a finite distance), and no challenger
  * {@link beatsHeldMark | decisively} closes.
  *
  * @internal
@@ -327,11 +332,11 @@ function resolveHeldDisc(
  * centre wins where discs overlap, so the isolation lifts the one the pointer
  * is truly on rather than whichever drew first. A `held` disc — the one
  * already emphasised — keeps the win while it stays caught, unless a
- * challenger decisively closes ({@link beatsHeldMark}): the resolution is
- * sticky across the midline between discs rather than flipping on it.
+ * challenger decisively closes ({@link beatsHeldMark}). The resolution is
+ * sticky across the midline between discs, rather than flipping on it.
  *
  * This scan runs per pointer move over every visible point, so it stays in
- * squared distances end to end — nearest-by-distance and nearest-by-squared
+ * squared distances end to end. Nearest-by-distance and nearest-by-squared
  * pick the same disc, and {@link beatsHeldMark} already compares squares.
  *
  * @internal
@@ -400,16 +405,16 @@ function discCatchSquared(point: ScatterMark, x: number, y: number, slack: numbe
 /**
  * Insets the x span so the extreme discs and the end tick labels clear the frame
  * — the horizontal layout's treatment, over a single probe scale. Ticks are
- * range-independent, so the probe answers before the final range is known; a
+ * range-independent, so the probe answers before the final range is known. A
  * frame too narrow to seat both keeps the span, since a clipped label beats an
  * inverted axis.
  *
- * @remarks The inset is sized to the end labels' half-width, which also seats the
- * extreme discs off the frame edge (a value-axis disc paints a smaller reach than
- * its label spans). The labels themselves then read inward through {@link
- * anchorEndTicks}, so this reservation is really the marks' — reclaiming it for a
- * tighter fit would mean insetting by the widest disc's reach instead, and pulling
- * the same reservation off the y range's top and floor.
+ * @remarks The inset is sized to the end labels' half-width. That also seats the
+ * extreme discs off the frame edge, since a value-axis disc paints a smaller
+ * reach than its label spans. The labels themselves then read inward through
+ * {@link anchorEndTicks}, so this reservation is really the marks'. Reclaiming it
+ * for a tighter fit would mean insetting by the widest disc's reach instead. It
+ * would also pull the same reservation off the y range's top and floor.
  * @internal
  */
 export function scatterXRange(
@@ -433,20 +438,21 @@ export function scatterXRange(
 	return insetFrom < insetTo ? [insetFrom, insetTo] : span
 }
 
-/** How far a tick's mapped position may sit from a range end and still count as sitting on it. @internal */
+/** How far a tick's mapped position can sit from a range end and still count as sitting on it. @internal */
 const EDGE_EPSILON = 0.5
 
 /**
- * Anchors a value axis's end tick labels inward: `'start'` on the tick sitting at
- * the range start, `'end'` on the one at its end, the interior ticks left centered
- * under their positions. The scatter x axis's floor tick abuts the value gutter
- * and its ceiling tick nears the frame's right edge; centered there, they crowd
- * the y-axis floor label at one corner and butt the frame at the other. Reading
- * the ends inward clears both without a width estimate — the treatment {@link
- * endBandTicks} gives the compact band axis, and which the x axis already honours
- * through {@link ChartAxisTick.anchor}. A tick sitting interior to the range — a
- * pinned domain whose edge carries no tick of its own — keeps the centered
- * default, since only an edge label crowds.
+ * Anchors a value axis's end tick labels inward. `'start'` goes on the tick
+ * sitting at the range start, and `'end'` on the one at its end. The interior
+ * ticks are left centered under their positions. The scatter x axis's floor tick
+ * abuts the value gutter, and its ceiling tick nears the frame's right edge.
+ * Centered there, they crowd the y-axis floor label at one corner and butt the
+ * frame at the other. Reading the ends inward clears both without a width
+ * estimate. That is the treatment {@link endBandTicks} gives the compact band
+ * axis, and which the x axis already honours through {@link ChartAxisTick.anchor}.
+ * A tick sitting interior to the range keeps the centered default, since only an
+ * edge label crowds. That is a pinned domain whose edge carries no tick of its
+ * own.
  *
  * @internal
  */

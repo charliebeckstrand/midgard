@@ -27,10 +27,11 @@ import { useGridColumnVisibility } from './use-grid-column-visibility'
 type PinChange = (id: string | number, side: 'left' | 'right' | false) => void
 
 /**
- * Status line standing in for a list the filter narrowed to nothing — the whole
- * editor, or just its scrolling region while a frozen row still matches. An
- * `output` (implicit `role="status"`) so the emptied result is announced, the
- * same idiom the {@link Combobox} and {@link CommandPalette} panels use.
+ * Status line standing in for a list the filter narrowed to nothing. That is
+ * the whole editor, or just its scrolling region while a frozen row still
+ * matches. An `output` (implicit `role="status"`) so the emptied result is
+ * announced, the same idiom the {@link Combobox} and {@link CommandPalette}
+ * panels use.
  *
  * @internal
  */
@@ -41,14 +42,14 @@ export type GridColumnManagerProps = {
 	columns: GridColumnManagerItem[]
 
 	/**
-	 * Whether the manager carries its filter field: a {@link SearchInput} above the
-	 * lists that narrows every group — frozen, orderable, and the group editor's
-	 * zones — to the columns whose label matches the typed text.
+	 * Whether the manager carries its filter field: a {@link SearchInput} above
+	 * the lists. It narrows every group — frozen, orderable, and the group
+	 * editor's zones — to the columns whose label matches the typed text.
 	 *
 	 * Filtering is display-only. A visibility toggle, a pin, or a reorder made
-	 * while a query is active commits exactly as it would unfiltered, holding every
-	 * filtered-out column in its slot and its group, so the field never has to be
-	 * cleared before editing. `false` drops it and lists every column.
+	 * while a query is active commits exactly as it would unfiltered. It holds
+	 * every filtered-out column in its slot and its group, so the field never has
+	 * to be cleared before editing. `false` drops it and lists every column.
 	 * @defaultValue true
 	 */
 	filterable?: boolean
@@ -79,17 +80,17 @@ export type GridColumnManagerProps = {
 
 	/**
 	 * Pins a column to an edge, or unpins it with `false`. Its presence turns each
-	 * column's pin indicator into an interactive control: a menu offering Pin left /
-	 * Pin right / Unpin on the scrolling and pinned columns, and a static edge arrow
-	 * on {@link GridColumnManagerItem.locked} ones. Omit it for a read-only view
-	 * where frozen columns still list in their groups but can't be moved.
+	 * column's pin indicator into an interactive control. A menu offers Pin left /
+	 * Pin right / Unpin on the scrolling and pinned columns, and a static edge
+	 * arrow on {@link GridColumnManagerItem.locked} ones. Omit it for a read-only
+	 * view where frozen columns still list in their groups but can't be moved.
 	 */
 	onPinChange?: PinChange
 
 	/**
 	 * Column groups the manager can edit. When paired with `onGroupsChange`, the
-	 * orderable region becomes a group editor — a "New group" button, a zone per
-	 * group (name, color, remove), and an ungrouped pool — where columns drag
+	 * orderable region becomes a group editor. It holds a "New group" button, a
+	 * zone per group (name, color, remove), and an ungrouped pool. Columns drag
 	 * between zones to change membership. Omit both for the flat reorderable list.
 	 */
 	groups?: GridColumnGroup[]
@@ -97,7 +98,11 @@ export type GridColumnManagerProps = {
 	/** Commits the next groups from the group editor; its presence turns on the editor. */
 	onGroupsChange?: (groups: GridColumnGroup[]) => void
 
-	/** Called with the current order and hidden ids as a {@link GridPreferences} snapshot when the save-preset button is pressed; presence of the handler also shows the button. */
+	/**
+	 * Called with the current order and hidden ids as a {@link GridPreferences}
+	 * snapshot when the save-preset button is pressed. Presence of the handler
+	 * also shows the button.
+	 */
 	onSavePreset?: (preset: GridPreferences) => void
 	/**
 	 * Label on the save-preset button.
@@ -156,9 +161,12 @@ function GridColumnPinControl({
 
 /**
  * Leading slot for a frozen row, aligned to where a scrolling row's drag grip
- * sits. A locked column gets a static edge arrow (its freeze is immutable); a
- * pinned column gets the interactive {@link GridColumnPinControl}; and, when no
- * `onPinChange` handler is supplied, a non-interactive pin indicator.
+ * sits:
+ *
+ * - A locked column gets a static edge arrow (its freeze is immutable).
+ * - A pinned column gets the interactive {@link GridColumnPinControl}.
+ * - Where no `onPinChange` handler is supplied, a non-interactive pin
+ *   indicator.
  *
  * @internal
  */
@@ -314,14 +322,14 @@ function GridColumnManagerOrderableList({
 }
 
 /**
- * Standalone column-manager editor: a checkbox field per orderable column, drag-
- * sortable in the middle when `reorderable` (read-only otherwise), that toggles
- * each column's hidden state and reorders the rest. Frozen columns list in two
- * fixed groups around it — left-pinned prepended, right-pinned appended — each
- * checked and disabled. With `onPinChange`, every column's pin indicator becomes
- * an interactive control:
- * Pin left / Pin right / Unpin on the scrolling and pinned columns, a static
- * edge arrow on {@link GridColumnManagerItem.locked} ones. Columns with
+ * Standalone column-manager editor: a checkbox field per orderable column,
+ * drag-sortable in the middle when `reorderable` (read-only otherwise). The
+ * field toggles each column's hidden state and reorders the rest. Frozen
+ * columns list in two fixed groups around it — left-pinned prepended,
+ * right-pinned appended — each checked and disabled. With `onPinChange`, every
+ * column's pin indicator becomes an interactive control. It offers Pin left /
+ * Pin right / Unpin on the scrolling and pinned columns, and a static edge
+ * arrow on {@link GridColumnManagerItem.locked} ones. Columns with
  * `hideable: false` show but cannot be unchecked. With `onSavePreset`, a footer
  * button captures the current order and hidden ids as a
  * {@link GridPreferences} snapshot. Order and hidden set are each controllable.

@@ -15,9 +15,9 @@ function columnLetter(index: number): string {
 }
 
 /**
- * One worksheet cell: a finite number serializes as a native numeric cell (so
- * Excel can aggregate it), everything else as inline text through the shared
- * {@link cellText} stringification the other export types use.
+ * One worksheet cell. A finite number serializes as a native numeric cell, so
+ * Excel can aggregate it. Everything else serializes as inline text, through the
+ * shared {@link cellText} stringification the other export types use.
  *
  * @internal
  */
@@ -36,9 +36,9 @@ function sheetCell(reference: string, value: unknown): string {
 const XML_DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
 
 /**
- * Serializes rows to a real `.xlsx` workbook (a zip of minimal OOXML parts):
- * one worksheet holding a header row of column labels and one row per datum,
- * numbers as native numeric cells and everything else as inline strings. The
+ * Serializes rows to a real `.xlsx` workbook, a zip of minimal OOXML parts.
+ * One worksheet holds a header row of column labels and one row per datum.
+ * Numbers become native numeric cells, everything else inline strings. The
  * columns and cell values come from the same export accessors CSV and print
  * read, so every export type emits identical data. Replaces the module's
  * former Excel-flavored HTML `.xls`, which opened with a format warning and

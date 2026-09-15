@@ -20,7 +20,7 @@ type State = { error: Error | null }
  * stale chunk after a deploy, an offline navigation) surfaced through
  * `use(loadDemo(...))`. Without it, one failed chunk throws past the root and
  * unmounts the whole docs site. `fallback` receives a `retry` that clears the
- * caught error so the subtree re-renders; paired with `loadDemo`'s rejection
+ * caught error, so the subtree re-renders. Paired with `loadDemo`'s rejection
  * eviction, the retry re-attempts the import rather than replaying the cached
  * failure. Keying the boundary by route also resets it on navigation.
  */

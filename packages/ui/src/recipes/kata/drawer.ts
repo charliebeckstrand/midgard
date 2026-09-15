@@ -10,9 +10,9 @@ const { css } = ugoki
 /**
  * The height transition, off for the length of a drag.
  *
- * Stated beside the transition it suspends rather than written into the element
- * mid-gesture: one decision in one place, and the panel already carries the
- * attribute family this keys on.
+ * Stated beside the transition it suspends, rather than written into the element
+ * mid-gesture. That is one decision in one place, and the panel already carries
+ * the attribute family this keys on.
  */
 const RESIZING = 'data-resizing:transition-none'
 const { surface, layout, grip } = panel
@@ -76,7 +76,7 @@ export const k = {
 	 * the reader actually sees.
 	 *
 	 * The area is the full width, so the reach is the panel's rather than the
-	 * bar's — `hannou.grab` carries the rest, including the `touch-none` that makes
+	 * bar's. `hannou.grab` carries the rest, including the `touch-none` that makes
 	 * the gesture work at all under a finger.
 	 */
 	handle: {

@@ -18,10 +18,10 @@ export type TabPanelProps = {
 } & Omit<ComponentProps<'div'>, 'id'>
 
 /**
- * Manually-wired tab panel for use without `<TabContent>`: emits
+ * Manually-wired tab panel for use without `<TabContent>`. It emits
  * `role="tabpanel"`, derives its id from the paired `<Tab id>` (`${id}-panel`),
- * sets `aria-labelledby`, and computes `tabIndex` (`0` only when the panel has
- * no focusable child, per APG). A content-only panel that becomes tab-focusable
+ * and sets `aria-labelledby`. It computes `tabIndex` as `0` only when the panel
+ * has no focusable child, per APG. A content-only panel that becomes tab-focusable
  * signals focus with the design-system blue ring rather than the browser default.
  */
 export function TabPanel({ id, className, ...props }: TabPanelProps) {

@@ -1,12 +1,13 @@
 /**
- * The {@link HeatmapChart}'s schema: the one series it reads (two categorical
- * keys and a value key with a data-driven colour scale) and the pure pivot from
- * flat rows to the row-major matrix the geometry projects. The series mirrors
- * {@link ChoroplethChartSeries} — the module's other sequential-colour chart —
- * and AG Charts' heatmap series (`xKey` / `yKey` / `colorKey` / `colorRange` /
- * `colorDomain` / `colorName`), so the two colour-scaled charts read the same.
+ * The {@link HeatmapChart}'s schema: the one series it reads, and the pure
+ * pivot from flat rows to the row-major matrix the geometry projects. The
+ * series carries two categorical keys and a value key with a data-driven colour
+ * scale. It mirrors {@link ChoroplethChartSeries} — the module's other
+ * sequential-colour chart — and AG Charts' heatmap series (`xKey` / `yKey` /
+ * `colorKey` / `colorRange` / `colorDomain` / `colorName`). The two
+ * colour-scaled charts therefore read the same.
  *
- * The frame props reuse {@link ChartBaseProps} unchanged; a heatmap adds no
+ * The frame props reuse {@link ChartBaseProps} unchanged. A heatmap adds no
  * value axis (both axes are categorical), so it takes none of the cartesian
  * value-domain or crosshair switches.
  */
@@ -16,10 +17,11 @@ import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartBaseProps, DataKey } from '../engine/types'
 
 /**
- * The one series a heatmap shades cells with: the two fields that place a cell
- * on the grid and the numeric field the sequential scale colours it by.
+ * The one series a heatmap shades cells with. It holds the two fields that
+ * place a cell on the grid, and the numeric field the sequential scale colours
+ * it by.
  *
- * @remarks `colorKey` is read as `Number(datum[colorKey])`; a non-finite result
+ * @remarks `colorKey` is read as `Number(datum[colorKey])`. A non-finite result
  * draws the cell in the neutral no-data fill and an em-dash table row, without
  * pulling on the colour domain.
  */
@@ -50,8 +52,8 @@ export type HeatmapChartSeries<T> = {
 /**
  * Props for {@link HeatmapChart}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`) — the plot is `role="img"`. Cell values also ship in the
- * visually-hidden data table (categories × rows), so the grid carries full
- * value parity without the pointer, the way every chart in the module does.
+ * visually-hidden data table (categories × rows). The grid therefore carries
+ * full value parity without the pointer, the way every chart in the module does.
  *
  * @remarks The grid wires neither `animate` nor `texture`; the component
  * destructures them off so they never reach the plot element. `legend` drives
@@ -63,11 +65,11 @@ export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend' | 'o
 	series: HeatmapChartSeries<T>[]
 	/**
 	 * Show the range scale bar, and where it sits. `true` (the default) stands it
-	 * vertical on the right; `false` drops it. A placement moves it — a horizontal
-	 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail beside
-	 * it (`'left'` / `'right'`) — and the object form `{ placement }` names the
+	 * vertical on the right; `false` drops it. A placement moves it: a horizontal
+	 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail
+	 * beside it (`'left'` / `'right'`). The object form `{ placement }` names the
 	 * same placement explicitly. Following the categorical legend, the bar sheds
-	 * at the spark tier and, in a box too narrow for a side rail, drops to a
+	 * at the spark tier. In a box too narrow for a side rail, it drops to a
 	 * horizontal row under the plot.
 	 * @defaultValue true
 	 */
@@ -75,9 +77,9 @@ export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend' | 'o
 }
 
 /**
- * The pivot from flat rows to the geometry's row-major matrix: the distinct
- * `yKey` values become rows (first-seen order), the distinct `xKey` values
- * columns, and each `[row][col]` holds the matching row's `colorKey` value —
+ * The pivot from flat rows to the geometry's row-major matrix. The distinct
+ * `yKey` values become rows (first-seen order), and the distinct `xKey` values
+ * columns. Each `[row][col]` holds the matching row's `colorKey` value, or
  * `null` where a pair has no row or a non-finite value. Preserving first-seen
  * order keeps the axes stable across data updates rather than resorting.
  *

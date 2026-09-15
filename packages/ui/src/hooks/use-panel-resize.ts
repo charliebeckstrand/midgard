@@ -16,7 +16,7 @@ const STEP = 0.1
 /**
  * How fast a release throws the panel away, in pixels per millisecond.
  *
- * Speed rather than position is what separates the two gestures: dragging the
+ * Speed rather than position is what separates the two gestures. Dragging the
  * edge to the floor is a resize, and flicking it away is a dismissal. A reader
  * doing the first slows to a stop as they place it; one doing the second is
  * still moving when they let go.
@@ -27,11 +27,12 @@ const SWIPE = 0.6
  * The edge a panel is docked to, which is what the gesture is really keyed on.
  *
  * The axis alone cannot say it. A panel grows when the pointer travels away from
- * the edge it is anchored to, so a bottom drawer grows as the pointer goes up
- * and a top one grows as it goes down — the same axis, opposite signs, and the
- * same for a sheet on the left against one on the right. Keyed on the axis, one
- * side of each pair runs backwards: the drag shrinks what it should grow, the
- * arrows swap, and a flick toward the screen dismisses instead of resizing.
+ * the edge it is anchored to. A bottom drawer therefore grows as the pointer
+ * goes up, and a top one grows as it goes down. That is the same axis with
+ * opposite signs, and the same holds for a sheet on the left against one on the
+ * right. Keyed on the axis, one side of each pair runs backwards. The drag
+ * shrinks what it must grow, the arrows swap, and a flick toward the screen
+ * dismisses instead of resizing.
  *
  * @internal
  */
@@ -44,8 +45,8 @@ export type PanelAxis = 'height' | 'width'
  * What one axis calls the things the gesture reads.
  *
  * `keys` is the pair of arrows along the axis, the one that lowers the
- * coordinate first — which is the one that grows a panel docked to the far
- * edge. See {@link SIDES} for the sign that decides which of the two that is.
+ * coordinate first. That is the one that grows a panel docked to the far edge.
+ * See {@link SIDES} for the sign that decides which of the two that is.
  */
 const AXES = {
 	height: {
@@ -63,14 +64,18 @@ const AXES = {
 /**
  * What each side is: the dimension it resizes, and the way it grows.
  *
- * `sign` is `1` where growing means a falling coordinate — a bottom drawer, a
- * right-hand sheet, both anchored to the far edge — and `-1` where it means a
- * rising one. It orients the whole gesture: which way the drag reads, which of
- * the axis's two arrows grows the panel, and which way a flick has to travel to
- * throw it away, since a panel is always thrown toward the edge it is docked to.
+ * `sign` is `1` where growing means a falling coordinate, and `-1` where it
+ * means a rising one. A bottom drawer and a right-hand sheet are both anchored
+ * to the far edge. It orients the whole gesture:
+ *
+ * - Which way the drag reads.
+ * - Which of the axis's two arrows grows the panel.
+ * - Which way a flick has to travel to throw it away.
+ *
+ * A panel is always thrown toward the edge it is docked to.
  *
  * Nothing here is stated twice. Everything else the gesture needs is a fact
- * about the axis, and lives on {@link AXES}, where a change to how a coordinate
+ * about the axis, and lives on {@link AXES}. There a change to how a coordinate
  * is read cannot reach one side of a pair and miss the other.
  */
 const SIDES = {
@@ -81,8 +86,8 @@ const SIDES = {
 } as const satisfies Record<PanelSide, { axis: PanelAxis; sign: 1 | -1 }>
 
 /**
- * Which dimension a side resizes, for the panels that dress the gesture: a grip
- * standing across a sheet is a different bar from one standing beside it, and a
+ * Which dimension a side resizes, for the panels that dress the gesture. A grip
+ * standing across a sheet is a different bar from one standing beside it. A
  * sheet's cap is measured on the axis it is docked across.
  *
  * @internal
@@ -95,8 +100,8 @@ export function panelAxis(side: PanelSide): PanelAxis {
  * The tallest a panel is drawn at, given the panel and the screen along its axis.
  *
  * The caller's, because it is a fact about how the panel is laid out rather than
- * about the axis it moves on — and it is shared, because the gesture and the fit
- * have to agree on where the panel stops.
+ * about the axis it moves on. It is shared, because the gesture and the fit have
+ * to agree on where the panel stops.
  *
  * @internal
  */
@@ -119,10 +124,10 @@ export function settleResize(size: number, velocity: number): 'close' | number {
  * How fast the pointer was moving away from the panel at the end, in pixels per
  * millisecond.
  *
- * Read off the last sample before the release rather than the whole gesture: a
- * reader who drags slowly and then flicks means the flick, and an average over
- * the travel would lose it. Negative while moving the other way, which no
- * dismissal reads.
+ * It is read off the last sample before the release, rather than the whole
+ * gesture. A reader who drags slowly and then flicks means the flick, and an
+ * average over the travel would lose it. Negative while moving the other way,
+ * which no dismissal reads.
  *
  * @internal
  */
@@ -182,13 +187,13 @@ export type PanelResizeOptions = {
 	 * now.
 	 *
 	 * The caller's, because the floor is a fact about what the panel holds rather
-	 * than about the axis. A drawer measures its own chrome — fall short of it and
-	 * the next pixel comes out of the footer, which slides off the screen with the
-	 * buttons on it — where a sheet, whose body scrolls the other way, wants a
-	 * plain minimum.
+	 * than about the axis. A drawer measures its own chrome. A panel that falls
+	 * short of it takes the next pixel out of the footer. The footer then slides
+	 * off the screen with the buttons on it. A sheet, whose body scrolls the other
+	 * way, wants a plain minimum instead.
 	 *
 	 * Reaching the floor closes nothing. A reader dragging the edge is choosing a
-	 * size, and the smallest size is a size — taking the panel away there would
+	 * size, and the smallest size is a size. Taking the panel away there would
 	 * surprise someone who was still placing it. A swipe is how it goes.
 	 */
 	floorOf: (panel: HTMLElement, size: number) => number
@@ -196,10 +201,10 @@ export type PanelResizeOptions = {
 	 * The largest this panel resizes to, given the panel and the screen along the
 	 * axis.
 	 *
-	 * The caller's for the same reason the floor is: it is a fact about how the
-	 * panel is laid out rather than about the axis it moves on. A drawer's own
-	 * variant caps it and the screen bounds the rest, where a sheet is inset from
-	 * the edges it floats against and has to keep that inset at its widest — a
+	 * The caller's for the same reason the floor is. It is a fact about how the
+	 * panel is laid out, rather than about the axis it moves on. A drawer's own
+	 * variant caps it, and the screen bounds the rest. A sheet is instead inset
+	 * from the edges it floats against, and has to keep that inset at its widest. A
 	 * ceiling of the whole screen would push its far edge off the other side.
 	 */
 	ceilingOf: PanelCeiling
@@ -208,7 +213,7 @@ export type PanelResizeOptions = {
 /**
  * Resizing an edge-docked panel by its far edge.
  *
- * Held by the component that owns the panel, not by the grab bar: the gesture
+ * Held by the component that owns the panel, not by the grab bar. The gesture
  * writes the panel's size, and a child reaching into its parent's node would
  * leave one property with two writers a boundary apart. The bar takes
  * `handleProps` and draws itself. It is the shape `ResizableGroup` and
@@ -216,19 +221,20 @@ export type PanelResizeOptions = {
  *
  * One gesture over four sides, because only the names and the direction differ.
  * Which coordinate to read and which viewport bounds it are facts about the axis
- * ({@link AXES}); which way the panel grows, and so which arrow grows it and
- * which way a flick throws it away, is a fact about the side ({@link SIDES}).
+ * ({@link AXES}). Which way the panel grows is a fact about the side
+ * ({@link SIDES}). So is which arrow grows it, and which way a flick throws
+ * it away.
  *
- * The size goes straight to the element for the length of the gesture rather
- * than through state: a drag moves the edge every frame, and a render per frame
- * would take the whole panel — a scrolling list of rows and all — with it. State
+ * The size goes straight to the element for the length of the gesture, rather
+ * than through state. A drag moves the edge every frame. A render per frame
+ * would take the whole panel with it, a scrolling list of rows and all. State
  * takes the value once, on release.
  *
  * Nothing is measured mid-gesture. Every bound is read at the start, because a
- * read after a write forces the browser to lay the document out synchronously —
- * once per pointer move, for the panel, its body, the backdrop, and whatever the
- * panel covers. None of the bounds can change without an event that ends the
- * gesture anyway.
+ * read after a write forces the browser to lay the document out synchronously.
+ * That is once per pointer move, for the panel, its body, the backdrop, and
+ * whatever the panel covers. None of the bounds can change without an event
+ * that ends the gesture anyway.
  *
  * @internal
  */
@@ -313,9 +319,9 @@ export function usePanelResize({
 	/**
 	 * Draws the panel at whatever size the pointer now means.
 	 *
-	 * A panel grows as the pointer travels away from the edge it is docked to,
-	 * which is a falling coordinate on one side of each axis and a rising one on
-	 * the other — see {@link SIDES}.
+	 * A panel grows as the pointer travels away from the edge it is docked to. That
+	 * is a falling coordinate on one side of each axis, and a rising one on the
+	 * other — see {@link SIDES}.
 	 */
 	function draw(at: Grab, coordinate: number): number {
 		return resize(at, at.size + sign * (at.at - coordinate))

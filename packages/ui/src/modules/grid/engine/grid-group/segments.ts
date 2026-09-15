@@ -5,8 +5,8 @@ import { compareSmart } from '../grid-sort/utilities'
 /**
  * One run of the manual grouped body: a group-header row (with its
  * {@link GridGroupHeaderRow} descriptor) followed by the leaf rows positionally
- * associated with it — or, for leaves preceding any header, a headerless run
- * that always renders expanded.
+ * associated with it. Leaves preceding any header form a headerless run that
+ * always renders expanded.
  *
  * @internal
  */
@@ -21,7 +21,7 @@ export type GridManualGroupSegment<T> = {
 
 /**
  * Splits the manual display rows into {@link GridManualGroupSegment}s by
- * position: each group-header row (per the binding's `groupRow` resolver)
+ * position. Each group-header row (per the binding's `groupRow` resolver)
  * opens a segment collecting the leaves after it, up to the next header. Leaves
  * before any header collect into a leading headerless segment. Pure, so the
  * positional-association contract is unit-testable on its own.
@@ -61,8 +61,8 @@ export function segmentManualGroupRows<T>(
 
 /**
  * Orders manual group {@link GridManualGroupSegment}s for a sort on the grouped
- * column: the header segments sort by their group `value` through
- * {@link compareSmart} (negated for descending), while a leading headerless run
+ * column. The header segments sort by their group `value` through
+ * {@link compareSmart} (negated for descending). A leading headerless run
  * — leaves before any header — stays at the front. The leaves within each
  * segment keep their supplied (backend) order — only the group blocks move, so
  * children never leave their header. Returns the segments untouched when no

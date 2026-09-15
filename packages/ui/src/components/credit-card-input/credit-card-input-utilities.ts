@@ -39,7 +39,7 @@ export function detectCardBrand(digits: string): CreditCardBrandInfo | undefined
 	}
 }
 
-/** Strips a raw string to digits, truncates to the brand's max length, and spaces it into brand-aware groups; returns the formatted text, digits, and detected brand. */
+/** Strips a raw string to digits, truncates to the brand's max length, and spaces it into brand-aware groups. Returns the formatted text, digits, and detected brand. */
 export function formatCardNumber(raw: string): {
 	formatted: string
 	digits: string

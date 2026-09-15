@@ -10,8 +10,8 @@ const registries = new Map<string, Registry>()
  * Subscribe to a media query through a single shared `MediaQueryList` per query
  * string. N components watching the same breakpoint (or `(hover: hover)` behind
  * every tooltip) share one `MediaQueryList` and one `change` listener instead of
- * each holding its own; the shared `MediaQueryList` and its `change` listener
- * are created for the first subscriber and dropped when the last leaves.
+ * each holding its own. The shared pair is created for the first subscriber and
+ * dropped when the last leaves.
  *
  * Handlers fire in subscription order and every subscriber is notified. Returns
  * an unsubscribe fn. `handler` must be a distinct function reference per

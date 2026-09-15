@@ -16,7 +16,7 @@ const ENTRY_EXPORT = 'Demo'
 const JSX_RETURN = /(?:return|=>)\s*\(?\s*<[A-Za-z>]/
 
 /**
- * A top-level declaration a helper may reference but which isn't itself a
+ * A top-level declaration a helper can reference but which isn't itself a
  * JSX-returning helper: type aliases, interfaces, and plain consts. `names`
  * lists the identifiers introduced; `code` is the full statement source for
  * verbatim prepending.
@@ -117,10 +117,10 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
 }
 
 /**
- * Finds every PascalCase top-level function/const that returns JSX. Skips the
- * entry export `Demo` (the demo page itself) — it renders as the route body,
- * never inside `<Example>`, so attaching its source only bloats the chunk with
- * a `__code` string nothing reads.
+ * Finds every PascalCase top-level function or const that returns JSX. It skips
+ * the entry export `Demo`, the demo page itself. That renders as the route body
+ * and never inside `<Example>`, so attaching its source only bloats the chunk
+ * with a `__code` string nothing reads.
  *
  * Prepends each helper's source with any sibling type alias, interface, or
  * `const` declaration it references by name, producing a self-contained

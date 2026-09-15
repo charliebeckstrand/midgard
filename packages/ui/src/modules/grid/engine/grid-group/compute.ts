@@ -22,9 +22,9 @@ export function groupByColumn(groups: GridColumnGroup[]): Map<string | number, G
 
 /**
  * Reorders the manager-controlled data columns so the grid matches the column
- * manager: the groups' members lead, in `groups` order then each group's own
- * `columns` order (the first group claims a shared column), followed by the
- * ungrouped columns in their incoming relative order. The resulting sequence is
+ * manager. The groups' members lead, in `groups` order then each group's own
+ * `columns` order (the first group claims a shared column). The ungrouped
+ * columns follow, in their incoming relative order. The resulting sequence is
  * spliced back into the orderable-data slots of `order`, holding selection,
  * actions, and frozen columns in place. `isOrderable` marks a manager-controlled
  * column (a non-frozen data column). Idempotent: a grouped order maps to itself,
@@ -82,11 +82,11 @@ export function collapsedHiddenIds(
 
 /**
  * Walks the visible column ids in display order and splits them into
- * {@link GridGroupSpan}s: a `group` band over each maximal contiguous run of
- * scrolling columns sharing a group, and a `plain` filler over every ungrouped
- * or pinned column. A pinned column never joins a band (it is partitioned to an
- * edge, away from its group), so it always yields a `plain` span the band row
- * can stick to its edge.
+ * {@link GridGroupSpan}s. A `group` band covers each maximal contiguous run of
+ * scrolling columns sharing a group, and a `plain` filler covers every ungrouped
+ * or pinned column. A pinned column never joins a band, because it is
+ * partitioned to an edge, away from its group. It always yields a `plain` span
+ * the band row can stick to its edge.
  *
  * @internal
  */

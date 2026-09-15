@@ -26,7 +26,7 @@ import { useChartEmphasis, useChartTier } from './context'
 /**
  * One reference line: a value-axis annotation drawn across the plot — a target,
  * threshold, budget, or average to read the marks against. It sits at a raw
- * domain `value`, so its position tracks the scale; the value also folds into
+ * domain `value`, so its position tracks the scale. The value also folds into
  * the domain, keeping an off-data target on-frame rather than clamped to an
  * edge.
  */
@@ -34,15 +34,15 @@ export type ChartReferenceLine = {
 	/** The domain value the line sits at, in the same units the series are read in. */
 	value: number
 	/**
-	 * A short label naming the rule — carried in its hover tooltip and legend chip,
-	 * and drawn beside the rule at its far end once a chart's `labels.references` is
-	 * on. Omitted, the rule reads by its value alone.
+	 * A short label naming the rule. It is carried in its hover tooltip and legend
+	 * chip. It is also drawn beside the rule at its far end, once a chart's
+	 * `labels.references` is on. Omitted, the rule reads by its value alone.
 	 */
 	label?: string
 	/**
 	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
-	 * classes) or any raw CSS colour string — a hex like `'#e11d48'`, an
-	 * `'oklch(…)'`, or any value CSS accepts — applied inline. Defaults to the
+	 * classes), or any raw CSS colour string applied inline. That is a hex like
+	 * `'#e11d48'`, an `'oklch(…)'`, or any value CSS accepts. Defaults to the
 	 * neutral de-emphasis slot, so a reference reads as chrome until coloured for
 	 * emphasis.
 	 * @defaultValue 'zinc'
@@ -87,24 +87,24 @@ export type ChartReferenceLinesProps = {
 	/** Formats each rule's tooltip value with its axis's formatter. @defaultValue locale integer / fraction */
 	format?: ReferenceFormat
 	/**
-	 * Reveal each rule on mount by sliding it in along the value axis from the
-	 * baseline to its value, in the direction the value points — the way the
-	 * matching bar grows, up or down (vertical) and right or left (horizontal) —
-	 * on the same beat as the marks. Honours `prefers-reduced-motion` through
-	 * {@link ReducedMotion}.
+	 * Reveal each rule on mount by sliding it in along the value axis, from the
+	 * baseline to its value. It slides in the direction the value points, on the
+	 * same beat as the marks. That is the way the matching bar grows: up or down
+	 * (vertical), and right or left (horizontal). Honours `prefers-reduced-motion`
+	 * through {@link ReducedMotion}.
 	 * @defaultValue false
 	 */
 	animate?: boolean
 	/**
 	 * Draw each rule's value as a standing label at its far end — the
 	 * `labels.references` mode — in place of the hover tooltip. The rules then
-	 * shed their pointer target and float no surface; the caller also drops their
+	 * shed their pointer target and float no surface. The caller also drops their
 	 * keyboard stop, since the label reads the value where pointing once did.
 	 * @defaultValue false
 	 */
 	labels?: boolean
 	/**
-	 * Reference indexes toggled off through their legend chips — their rules draw
+	 * Reference indexes toggled off through their legend chips. Their rules draw
 	 * nothing, holding their slot so a shown rule still keys its emphasis off its
 	 * own `reference` index. Empty by default.
 	 */
@@ -146,7 +146,7 @@ type ReferenceLabelAnchor = { x: number; y: number; textAnchor: 'end' | 'middle'
 /**
  * Where a rule's standing label sits: at the far end of the rule, clear of the
  * dashes. A vertical rule labels above its far (right) end, flipping below when
- * the value crowds the top edge; a horizontal rule labels at the top of its far
+ * the value crowds the top edge. A horizontal rule labels at the top of its far
  * end. @internal
  */
 function referenceLabelAnchor(
@@ -199,11 +199,11 @@ function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; point
 
 /**
  * The labelled rendering: the rule under a standing value label at its far end,
- * inked to match — a slot through its fill class, a raw colour inline — with the
- * rule's own label as a prefix where it has one. It floats no tooltip and lays no
- * hit target: the label reads what pointing would, so the rule drops the hover
- * path (and the caller drops its keyboard stop). The label rides the mount rise,
- * so rule and label reveal as one.
+ * inked to match. That is a slot through its fill class, or a raw colour inline.
+ * The rule's own label goes in as a prefix where it has one. It floats no
+ * tooltip and lays no hit target. The label reads what pointing would, so the
+ * rule drops the hover path (and the caller drops its keyboard stop). The label
+ * rides the mount rise, so rule and label reveal as one.
  *
  * @internal
  */
@@ -274,9 +274,9 @@ function LabelledReferenceRule({
  * sits inside the `aria-hidden` plot, so the readout is a pointer enhancement;
  * {@link ChartReferenceList} carries the parity.
  *
- * The keyboard reaches the rule the pointer can't hover: parking the roving
+ * The keyboard reaches the rule the pointer can't hover. Parking the roving
  * cursor here forces the same tooltip open, so focusing a rule reads exactly
- * like hovering it — the marks recede and the readout floats.
+ * like hovering it. The marks recede, and the readout floats.
  *
  * @internal
  */
@@ -361,7 +361,7 @@ function HoverReferenceRule({
 /**
  * The spark rendering: the dashed rule alone, pointer-inert — no hit target,
  * no tooltip, no standing label, no emphasis. A sparkline is read-only bare
- * marks, so a rule keeps only its ink; it still rides the mount rise, since
+ * marks, so a rule keeps only its ink. It still rides the mount rise, since
  * spark strips interactivity, not the drawing.
  *
  * @internal
@@ -385,13 +385,15 @@ function SparkReferenceRule({ line, start, end, rise }: ReferenceRuleProps) {
 }
 
 /**
- * One reference rule, in one of three renderings: the bare {@link
- * SparkReferenceRule} at the spark tier (read through {@link ChartTierContext},
- * so the frame decides and no chart gates it), the standing {@link
- * LabelledReferenceRule} under `labels`, else the interactive {@link
- * HoverReferenceRule}. All draw the same dashed rule; they differ only in
- * whether the value reads from nothing, a fixed label, or a hover-and-keyboard
- * tooltip.
+ * One reference rule, in one of three renderings:
+ *
+ * - The bare {@link SparkReferenceRule} at the spark tier, read through
+ *   {@link ChartTierContext} so the frame decides and no chart gates it.
+ * - The standing {@link LabelledReferenceRule} under `labels`.
+ * - The interactive {@link HoverReferenceRule} otherwise.
+ *
+ * All draw the same dashed rule; they differ only in whether the value reads
+ * from nothing, a fixed label, or a hover-and-keyboard tooltip.
  *
  * @internal
  */
@@ -404,24 +406,24 @@ function ReferenceRule(props: ReferenceRuleProps) {
 }
 
 /**
- * Reference lines at fixed values, drawn across the band axis — the same
- * value→project→draw path as {@link ChartGridLines}, but on a raw domain value
- * and over the marks instead of under them, so a target or threshold reads
- * against the data rather than hiding behind it. Each rule floats its value and
- * label from a {@link Tooltip} on hover, or — under `labels` — carries them in a
- * standing label at its far end.
+ * Reference lines at fixed values, drawn across the band axis. They take the
+ * same value→project→draw path as {@link ChartGridLines}, but on a raw domain
+ * value and over the marks instead of under them. A target or threshold
+ * therefore reads against the data, rather than hiding behind it. Each rule
+ * floats its value and label from a {@link Tooltip} on hover, or — under
+ * `labels` — carries them in a standing label at its far end.
  *
- * @remarks Self-gating: a chart mounts it unconditionally and it draws nothing
- * until both a scale and reference lines exist, so the gate lives here instead
- * of at every call site. Render it last, over the hit area, so the rules win
- * the pointer where they sit. Under `animate` each rule rises along the value
- * axis from the baseline to its value — {@link referenceRise} — inside a
- * {@link ReducedMotion} that settles it at rest for a reduced-motion preference.
- * Under `labels` each rule carries a standing value label at its far end and
- * drops the hover tooltip — the `labels.references` mode. At the spark tier —
- * read through {@link ChartTierContext}, over either mode — each rule sheds its
- * hit target, tooltip, and label to the bare dashed stroke: a sparkline is
- * read-only, so the rules keep their ink and give up the pointer.
+ * @remarks Self-gating. A chart mounts it unconditionally, and it draws nothing
+ * until both a scale and reference lines exist. The gate therefore lives here
+ * instead of at every call site. Render it last, over the hit area, so the rules
+ * win the pointer where they sit. Under `animate` each rule rises along the
+ * value axis from the baseline to its value ({@link referenceRise}). A
+ * {@link ReducedMotion} around it settles it at rest for a reduced-motion
+ * preference. Under `labels` each rule carries a standing value label at its far
+ * end and drops the hover tooltip — the `labels.references` mode. At the spark
+ * tier each rule sheds its hit target, tooltip, and label to the bare dashed
+ * stroke. That tier is read through {@link ChartTierContext}, over either mode.
+ * A sparkline is read-only, so the rules keep their ink and give up the pointer.
  * @internal
  */
 export function ChartReferenceLines({
@@ -489,17 +491,17 @@ export type ChartReferenceListProps = {
 	reference: ChartReferenceLine[] | undefined
 	format?: ReferenceFormat
 	/**
-	 * Reference indexes toggled off through their legend chips — dropped from the
-	 * parity so it reads the rules the plot still draws, the way the data table
-	 * follows the visible series. Empty by default.
+	 * Reference indexes toggled off through their legend chips. They are dropped
+	 * from the parity, so it reads the rules the plot still draws. That is the way
+	 * the data table follows the visible series. Empty by default.
 	 */
 	hidden?: ReadonlySet<number>
 }
 
 /**
  * The reference lines' visually-hidden parity: each rule's label and value in
- * plain markup outside the `role="img"` region, so assistive tech reads them
- * without the pointer — the hover tooltip stays an enhancement, the same
+ * plain markup outside the `role="img"` region. Assistive tech therefore reads
+ * them without the pointer. The hover tooltip stays an enhancement, the same
  * contract as the data table. A rule toggled off through its chip drops out, so
  * the parity tracks what the plot draws.
  *
@@ -527,13 +529,13 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 }
 
 /**
- * The legend entries for the reference lines: each finite rule's label — or its
- * value, unlabelled — keyed to a line swatch in the rule's colour, a palette
- * slot through its `text` class or a raw colour inline, and dashed to match the
- * rule unless it is drawn solid — all resolved the same way the rule itself
- * paints. The chart legend renders these as switches beside the series switches
- * when it shows, each toggling its rule off; {@link ChartReferenceList} still
- * carries the assistive-tech parity.
+ * The legend entries for the reference lines: each finite rule's label, or its
+ * value where it is unlabelled. Each is keyed to a line swatch in the rule's
+ * colour, a palette slot through its `text` class or a raw colour inline. The
+ * swatch is dashed to match the rule, unless the rule is drawn solid. All of it
+ * resolves the same way the rule itself paints. The chart legend renders these
+ * as switches beside the series switches when it shows, each toggling its rule
+ * off; {@link ChartReferenceList} still carries the assistive-tech parity.
  *
  * @internal
  */

@@ -83,8 +83,8 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 /**
  * Resolve an element type to its `ComponentInfo`. Build-time tags win.
  * Untagged types fall back to a `displayName` lookup against `byName`,
- * restricted to external entries (demo imports from packages like
- * lucide-react, whose components carry a stable `displayName` but no tag).
+ * restricted to external entries. Those are demo imports from packages like
+ * lucide-react, whose components carry a stable `displayName` but no tag.
  * UI components only resolve by tag; matching them by name could alias a
  * demo-local stand-in.
  */
@@ -94,8 +94,8 @@ export function resolveType(type: unknown, context: Context): ComponentInfo | un
 
 /**
  * {@link resolveType} against a bare registry, for callers that have no
- * {@link Context} to build — the emptiness probe answers the same "is this a
- * component we document?" question and must answer it the same way.
+ * {@link Context} to build. The emptiness probe answers the same "is this a
+ * component we document?" question, and must answer it the same way.
  */
 export function resolveTypeIn(
 	registry: ComponentRegistry,
@@ -140,15 +140,16 @@ export const PLACEHOLDER = '...'
 
 /**
  * Format an element's props in authored order. Live runtime values render as
- * today; props with no live form (functions, class instances, nested configs)
- * fall back to their authored source text when `fact` carries it, then to the
- * historical behavior (functions drop, everything else placeholders).
+ * today. Props with no live form (functions, class instances, nested configs)
+ * fall back to their authored source text when `fact` carries it. They then fall
+ * back to the historical behavior: functions drop, everything else
+ * placeholders.
  *
- * A second pass applies the consistency rule: a live primitive prop whose
- * authored source is a bare identifier renders as that identifier once the
- * identifier's declaration is already pulled into the preamble — so a
- * controlled pair reads `value={value} onValueChange={setValue}` rather than
- * mixing a frozen live value with source-form wiring.
+ * A second pass applies the consistency rule. A live primitive prop whose
+ * authored source is a bare identifier renders as that identifier. That holds
+ * once the identifier's declaration is already pulled into the preamble. A
+ * controlled pair therefore reads `value={value} onValueChange={setValue}`,
+ * rather than mixing a frozen live value with source-form wiring.
  */
 export function formatProps(
 	props: Record<string, unknown>,
@@ -215,8 +216,8 @@ export function formatProps(
 /**
  * Render a prop's live runtime value. Returns the formatted attribute, `null`
  * when the prop is semantically absent (`undefined`/`null`/`false`), or
- * `undefined` when the value is present but has no live form — the caller's
- * cue to try authored source.
+ * `undefined` when the value is present but has no live form. The `undefined`
+ * is the caller's cue to try authored source.
  */
 function formatLiveProp(key: string, value: unknown, context: Context): string | null | undefined {
 	if (value === undefined || value === null || value === false) return null
@@ -380,11 +381,11 @@ export function assemble(context: Context, jsx: string, preamble: string[] = [])
 
 /**
  * Resolve the source fact for a rendered element. Candidates share the
- * element's authored tag name and only claim props the runtime element
- * actually carries; a single survivor wins outright, and multiple survivors
- * reduce to their consensus — the props (and render-prop children) every
- * candidate agrees on — so an ambiguous match degrades to today's behavior
- * instead of attaching another element's source.
+ * element's authored tag name, and only claim props the runtime element
+ * actually carries. A single survivor wins outright. Multiple survivors reduce
+ * to their consensus: the props (and render-prop children) every candidate
+ * agrees on. An ambiguous match therefore degrades to today's behavior, instead
+ * of attaching another element's source.
  */
 export function matchElementFact(
 	name: string,
@@ -440,11 +441,11 @@ export function registerFactText(text: string, context: Context): string {
 }
 
 /**
- * Close over the declarations the emitted source snippets reference — a
- * snippet pulls its declarations, a pulled declaration's own source pulls
- * more, to fixpoint — and register the imports everything mentions: component
- * tags and hooks via {@link collectSnippetImports}, everything else via the
- * facts' import table. Returns the pulled declarations dedented, in source
+ * Close over the declarations the emitted source snippets reference. A snippet
+ * pulls its declarations, and a pulled declaration's own source pulls more, to
+ * fixpoint. Register the imports everything mentions: component tags and hooks
+ * via {@link collectSnippetImports}, everything else via the facts' import
+ * table. Returns the pulled declarations dedented, in source
  * order, ready to sit between the imports and the JSX.
  *
  * Like the build-time preamble matching, reference detection is a whole-word

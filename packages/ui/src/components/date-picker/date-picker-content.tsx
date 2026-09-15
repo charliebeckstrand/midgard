@@ -44,8 +44,8 @@ type DatePickerContentProps = {
 	size: ControlSize
 	/**
 	 * The picker's virtual-focus key handler (zones + active highlight). It
-	 * lives on the trigger and, via this prop, on the dialog itself; initial
-	 * focus lands on the dialog, not its first tabbable button, and the model
+	 * lives on the trigger and, via this prop, on the dialog itself. Initial
+	 * focus lands on the dialog, not its first tabbable button. The model
 	 * keeps working once a real browser moves focus into the modal trap.
 	 *
 	 * Presence is the contract: passing a handler declares that the dialog owns
@@ -65,7 +65,7 @@ type DatePickerContentProps = {
 	/**
 	 * Element to seed DOM focus on when the dialog opens. Defaults to the dialog
 	 * container for the virtual-highlight model. `input` mode passes the editable
-	 * DateInput so focus lands there — the user can type, and the same keydown
+	 * DateInput so focus lands there. The user can type, and the same keydown
 	 * stream roves the grid through the input's `aria-activedescendant`. The input
 	 * sits inside the reference (`getInsideElements`), so the modal focus manager
 	 * treats it as related and does not self-close.
@@ -82,15 +82,15 @@ type DatePickerContentProps = {
 }
 
 /**
- * Portaled, animated modal dialog shell for the picker popover: wires
+ * Portaled, animated modal dialog shell for the picker popover. It wires
  * `FloatingFocusManager`, seeds focus on the dialog container (not its first
  * tabbable) for the virtual-highlight model, and re-broadcasts `size` via
  * `<Density>`.
  *
  * @remarks
  * The dialog's `onKeyDown` reclaims DOM focus for the container on navigation
- * keys so a grid move that re-anchors the month cannot drop focus to `<body>`;
- * portaled descendants (the month/year picker) own their own keyboard.
+ * keys. A grid move that re-anchors the month therefore cannot drop focus to
+ * `<body>`. Portaled descendants (the month/year picker) own their own keyboard.
  *
  * @internal
  */

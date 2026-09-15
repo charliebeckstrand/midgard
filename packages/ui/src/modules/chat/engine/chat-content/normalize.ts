@@ -8,8 +8,8 @@ import type { ChatPart } from './types'
  * is enough, and no two messages share a part list.
  *
  * The fixed name also makes a cumulative snapshot unambiguous. Increment 5
- * replaces the text this name points to, so a string chunk that arrives after a
- * chart can neither delete that chart nor open a second running text.
+ * replaces the text this name points to. A string chunk that arrives after a
+ * chart can therefore neither delete that chart nor open a second running text.
  *
  * @internal
  */
@@ -34,8 +34,8 @@ export function toChatParts(content: string | ChatPart[]): ChatPart[] {
 
 /**
  * Whether one part holds nothing yet. The switch holds every kind and has no
- * default arm, so a kind added later must state what empty means for it, and
- * the compiler asks. This is the rule `partText` already stands on.
+ * default arm. A kind added later must therefore state what empty means for it,
+ * and the compiler asks. This is the rule `partText` already stands on.
  *
  * @internal
  */

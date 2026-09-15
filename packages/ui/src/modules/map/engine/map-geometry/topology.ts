@@ -1,5 +1,5 @@
 /**
- * The engine's entry to prop-supplied geography: TopoJSON and GeoJSON both
+ * The engine's entry to prop-supplied geography. TopoJSON and GeoJSON both
  * normalise to one flat feature list here, so nothing downstream asks which
  * form the atlas arrived in.
  */
@@ -13,9 +13,9 @@ import type { MapFeature, MapGeography, MapTopology } from '../types'
  * nothing.
  *
  * The default is a public contract (see `MapTopology`), so it is resolved here
- * alone: every reader of an atlas — the geography the plat draws, the codes a
- * territory is cut from — must land on the same layer, or one would draw a
- * different map than the other cuts.
+ * alone. Every reader of an atlas must land on the same layer: the geography
+ * the plat draws, and the codes a territory is cut from. Otherwise one would
+ * draw a different map than the other cuts.
  *
  * @internal
  */

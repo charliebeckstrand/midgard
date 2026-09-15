@@ -2,7 +2,7 @@
  * Status kata: the semantic surface for `<StatusDot>`, now a thin skin over
  * `<Swatch shape="circle">`. Maps each `status` to its `iro.marker` currentColor
  * shade (the graphical-mark ramp, ≥3:1 on the page surface) and carries the
- * `pulse` animation; the dot geometry and `solid`/`outline` fill come from
+ * `pulse` animation. The dot geometry and `solid`/`outline` fill come from
  * Swatch.
  */
 import { iro, ugoki } from '../kiso'

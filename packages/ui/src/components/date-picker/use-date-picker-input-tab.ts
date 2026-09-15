@@ -33,12 +33,12 @@ type DatePickerInputTabParams = {
  * Closes the Tab cycle for `input` mode while the calendar is open: DateInput
  * → calendar button → dialog content → back to the DateInput. The editable
  * reference group lives outside `FloatingFocusManager`'s modal guards, which
- * only wrap the floating element; without these handlers a Tab from the
- * calendar button walks into the aria-hidden page behind the dialog before
- * re-entering at the footer instead of the toolbar.
+ * only wrap the floating element. Without these handlers a Tab from the
+ * calendar button walks into the aria-hidden page behind the dialog. It then
+ * re-enters at the footer instead of the toolbar.
  *
  * @returns `onReferenceKeyDown` for the reference group and `onDialogKeyDown`
- * for the floating dialog; both no-op unless the calendar is open and the Tab
+ * for the floating dialog. Both no-op unless the calendar is open and the Tab
  * lands on a wrap edge.
  */
 export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePickerInputTabParams) {

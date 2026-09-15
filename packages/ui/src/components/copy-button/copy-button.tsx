@@ -30,9 +30,9 @@ export type CopyButtonProps = {
 	/**
 	 * Fires when the clipboard write rejects, with whatever the platform threw.
 	 *
-	 * The button cannot report this itself: a refused write leaves `copied` false, which
-	 * is also what it looks like before any copy, so the rest glyph means both "not copied
-	 * yet" and "copy failed". A denied permission, an insecure (`http`) context, and a
+	 * The button cannot report this itself. A refused write leaves `copied` false,
+	 * which is also what it looks like before any copy. The rest glyph therefore
+	 * means both "not copied yet" and "copy failed". A denied permission, an insecure (`http`) context, and a
 	 * missing Clipboard API all land here. Use it to surface the failure — a toast, say —
 	 * or to fall back to a selectable text field.
 	 */

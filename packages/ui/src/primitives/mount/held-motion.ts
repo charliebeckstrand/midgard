@@ -14,17 +14,17 @@ export type HeldMotionPreset = {
 /**
  * Motion props for a panel a deferred {@link MountHold} keeps mounted. Held, it
  * animates between its open and closed states in place rather than entering and
- * exiting, so it takes no `exit` (which only `AnimatePresence` reads) and both
- * landings — the close that rests the hold and the open the arrival gate
- * reports — arrive on one `onAnimationComplete`.
+ * exiting. It therefore takes no `exit`, which only `AnimatePresence` reads.
+ * Both landings arrive on one `onAnimationComplete`: the close that rests the
+ * hold, and the open the arrival gate reports.
  *
  * @remarks
  * `initial` keys on the state the panel mounted in, not on the policy. Motion
  * reads `initial` at its first `animateChanges`, which a held panel defers until
- * its first reveal — so `false` there would suppress the reveal rather than the
+ * its first reveal. `false` there would suppress the reveal rather than the
  * mount, leaving the panel shut and its landing unreported. A panel that mounted
- * open instead matches `initial` to the target, the other arm of the same guard,
- * so it still takes its open state without playing anything.
+ * open instead matches `initial` to the target, the other arm of the same guard.
+ * It still takes its open state without playing anything.
  *
  * @param preset - The recipe's enter/exit preset.
  * @param open - Whether the panel is open now.

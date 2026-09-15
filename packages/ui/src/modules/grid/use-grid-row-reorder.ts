@@ -69,10 +69,11 @@ function describeMove<T>(
 
 /**
  * Wires row drag-reordering onto `@dnd-kit`'s vertical sortable for {@link Grid}.
- * Each rendered row is a sortable item keyed by its row key; the enclosing grid
+ * Each rendered row is a sortable item keyed by its row key. The enclosing grid
  * renders the `<DndContext>` from the returned `dndContextProps` around the
- * table region (outside the `<table>`, whose children the context's a11y nodes
- * must not join) and a `<SortableContext>` around the body rows. A drop commits
+ * table region, and a `<SortableContext>` around the body rows. The
+ * `<DndContext>` sits outside the `<table>`, whose children the context's a11y
+ * nodes must not join. A drop commits
  * the reordered rows through the binding's `onReorder` and narrates the move.
  *
  * @returns `active` (whether reordering is live — the render gate), plus the

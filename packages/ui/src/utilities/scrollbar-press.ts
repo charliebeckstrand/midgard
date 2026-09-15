@@ -3,8 +3,8 @@ const SCROLLABLE_RE = /auto|scroll/
 /**
  * Whether a press landed on `target`'s own scrollbar gutter rather than on its content.
  *
- * A press there is the start of a pan, so it must not be read as a press on what the scroller
- * holds: a floating surface does not dismiss for it, and a selection drawn over a scrolling
+ * A press there is the start of a pan, so it must not read as a press on what the scroller
+ * holds. A floating surface does not dismiss for it, and a selection drawn over a scrolling
  * page is not put down by it.
  *
  * @param event - The press. Only `offsetX` and `offsetY` are read, so a `MouseEvent` or any of

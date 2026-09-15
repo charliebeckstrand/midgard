@@ -56,10 +56,11 @@ type NavItemOptions = {
 }
 
 /**
- * Shared behavior for nav-item components. Resolves the current state (explicit
- * `current` prop, or selection binding via `value`), scrolls the active item
- * into view, resolves the size against Density, and composes the click handler
- * (user `onClick` + selection change + offcanvas close).
+ * Shared behavior for nav-item components. Resolves the current state from an
+ * explicit `current` prop, or from the selection binding via `value`. It also
+ * scrolls the active item into view and resolves the size against Density. It
+ * composes the click handler from the user `onClick`, the selection change, and
+ * the offcanvas close.
  *
  * Only the wiring lives here; each consuming component owns its own markup,
  * slot names, classes, and icon sizing.

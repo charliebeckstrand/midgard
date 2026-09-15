@@ -39,9 +39,10 @@ type GridColumnsResult = {
 
 /**
  * Owns the data table's column slice: the controllable `columnOrder` (bound to
- * the top-level `columnOrder` prop) and `hiddenColumns`, the `columnVisibility`
- * map that feeds the engine, the `reorderColumns` header-drag committer, and the
- * `managerItems` shape consumed by the column-manager dialog. The engine owns
+ * the top-level `columnOrder` prop) and `hiddenColumns`. The slice also holds
+ * the `columnVisibility` map that feeds the engine, the `reorderColumns`
+ * header-drag committer, and the `managerItems` shape consumed by the
+ * column-manager dialog. The engine owns
  * the actual resolution (order + visibility + pinning) and produces the rendered
  * visible-column list; this hook only supplies its state. The column-manager's
  * enablement and toolbar-button gates live with the menu actions, not here.

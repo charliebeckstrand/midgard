@@ -1,15 +1,18 @@
 /**
  * Swatch kata: the colour key that stands in for a mark. Three independent
- * axes — `shape` (the mark geometry: `square` box, `circle` dot, `line` bar),
- * `variant` (the fill treatment: `solid` / `outline` / `soft`), and `size`
- * (`xs`–`xl`, one scale shared by legends, tooltips, and StatusDot). The hue is
- * a caller-supplied `currentColor` value (a `text-*` utility, a `kata/chart`
- * slot name, or a raw hex / `oklch()`, resolved by `Swatch`) applied on top, so
- * the CVD-validated data-viz palette stays in `kata/chart` and never forks, and
- * any hue works: `solid` fills with it, `outline` frames with it, `soft` tints
- * with it at 15%, and `dashed` renders it per shape — a dashed dash run across a
- * `line`, a dashed border around a `square` or `circle` — mirroring a dashed
- * reference rule in a legend.
+ * axes:
+ *
+ * - `shape`: the mark geometry — `square` box, `circle` dot, `line` bar
+ * - `variant`: the fill treatment — `solid` / `outline` / `soft`
+ * - `size`: `xs`–`xl`, one scale shared by legends, tooltips, and StatusDot
+ *
+ * The hue is a caller-supplied `currentColor` value applied on top: a `text-*`
+ * utility, a `kata/chart` slot name, or a raw hex / `oklch()`. `Swatch` resolves
+ * it. The CVD-validated data-viz palette therefore stays in `kata/chart` and
+ * never forks, and any hue works. `solid` fills with it, `outline` frames with
+ * it, and `soft` tints with it at 15%. `dashed` renders it per shape: a dashed
+ * dash run across a `line`, a dashed border around a `square` or `circle`.
+ * Either mirrors a dashed reference rule in a legend.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { omote } from '../kiso'

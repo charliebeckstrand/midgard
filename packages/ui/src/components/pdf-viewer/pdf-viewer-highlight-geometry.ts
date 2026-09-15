@@ -9,9 +9,9 @@ const POINTS_PER_INCH = 72
  * @param rect - The region's box, in `unit`.
  * @param unit - What `rect` is expressed in.
  * @param page - The page the region sits on; supplies the divisor for a physical unit.
- * @returns The box in `[0, 1]` page fractions, or `null` when `unit` is physical and the
- * page carries no extent to divide by — the caller renders nothing rather than guessing a
- * page size.
+ * @returns The box in `[0, 1]` page fractions. It returns `null` when `unit` is
+ * physical and the page carries no extent to divide by. The caller then renders
+ * nothing rather than guessing a page size.
  * @remarks A `'fraction'` rect is returned as-is, identity included: the canonical path
  * allocates nothing.
  *

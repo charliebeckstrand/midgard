@@ -24,9 +24,9 @@ export type KanbanColumnProps = {
 
 /**
  * Drop target and sortable context for one board column, keyed by `columnId`.
- * Highlights while a card hovers over it, provides column context to its cards
- * and title, and names its `<section>` from a mounted {@link KanbanColumnTitle}
- * (or an explicit `aria-label`). Compose {@link KanbanColumnHeader} and
+ * Highlights while a card hovers over it, and provides column context to its
+ * cards and title. It names its `<section>` from a mounted
+ * {@link KanbanColumnTitle}, or from an explicit `aria-label`. Compose {@link KanbanColumnHeader} and
  * {@link KanbanColumnBody} within.
  *
  * @remarks Client component.

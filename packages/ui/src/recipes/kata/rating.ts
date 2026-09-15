@@ -1,15 +1,16 @@
 /**
- * Rating kata: the star row that stands for a score. Two axes — `size` (the
- * `sun` density steps, so a rating inside a `<Field>` scales with the controls
- * beside it) and `color` (the hue a filled star takes).
+ * Rating kata: the star row that stands for a score. Two axes: `size` and
+ * `color`. The `size` takes the `sun` density steps, so a rating inside a
+ * `<Field>` scales with the controls beside it. The `color` is the hue a filled
+ * star takes.
  *
- * The hue rides the `iro.marker` ramp, not the text ramp: a star is a glyph and
+ * The hue rides the `iro.marker` ramp, not the text ramp. A star is a glyph and
  * not a word, so it answers the non-text 3:1 floor (WCAG 1.4.11). The empty
- * track keeps a neutral of its own, because a track that took the hue at a
- * lower opacity would read as a part-filled star.
+ * track keeps a neutral of its own. A track that took the hue at a lower opacity
+ * would read as a part-filled star.
  *
- * A star draws twice — a track glyph and a fill glyph clipped over it — so one
- * icon covers the whole range a value can land in. The `clip` slot is the
+ * A star draws twice: a track glyph, and a fill glyph clipped over it. One icon
+ * therefore covers the whole range a value can land in. The `clip` slot is the
  * window the fill draws inside; the component sets its width from the value.
  */
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
@@ -23,10 +24,10 @@ const { flex } = narabi
 const { focus } = sen
 
 /**
- * Filled-star hue. `current` inherits the surrounding text colour, for a rating
- * that takes the ink of the row it sits in; the named colours resolve to the
- * `marker` shade (600 light / 500 dark), which clears the graphical 3:1 floor
- * on the page surface.
+ * Filled-star hue. The `current` inherits the surrounding text colour, for a
+ * rating that takes the ink of the row it sits in. The named colours resolve to
+ * the `marker` shade (600 light / 500 dark), which clears the graphical 3:1
+ * floor on the page surface.
  */
 const color = {
 	current: 'text-current',
@@ -77,7 +78,7 @@ export const k = defineRecipe(
 		/**
 		 * The window a partly-filled star draws its fill inside. Absolute over the
 		 * track glyph and clipping at its own width, which the component sets from
-		 * the value; the glyph within keeps its full size, so the star is cut and
+		 * the value. The glyph within keeps its full size, so the star is cut and
 		 * never squeezed.
 		 */
 		clip: [
@@ -89,7 +90,7 @@ export const k = defineRecipe(
 		/**
 		 * The fill's treatment while the pointer rests on the star that would clear
 		 * the score. Every other star previews what a click would set, and this one
-		 * previews what a click would take away — without the recede it previews
+		 * previews what a click would take away. Without the recede it previews
 		 * nothing at all, because the row it would leave behind is the row already
 		 * drawn. Worst at a score of one, where the pointer is on the only filled
 		 * star and no part of the row answers it.

@@ -53,11 +53,11 @@ function ignoreActiveSeries(_series: number | null): void {}
 
 /**
  * The header, spark veil, and legend a framed chart draws at its resolved tier.
- * A framed tier bands the header above the plot inside the aspect box and keeps
- * the legend beside or below it; spark strips both to bare marks — the header
- * leaves the flow for a centered hover / focus veil over the plot, and the
- * legend drops entirely so the `flex-1` plot reclaims the whole aspect box and
- * draws as a pure sparkline, rather than wrapping under a legend band that
+ * A framed tier bands the header above the plot inside the aspect box, and keeps
+ * the legend beside or below it. Spark strips both to bare marks. The header
+ * leaves the flow for a centered hover / focus veil over the plot. The legend
+ * drops entirely, so the `flex-1` plot reclaims the whole aspect box and draws
+ * as a pure sparkline. It therefore never wraps under a legend band that
  * crushes it to a sliver of dashes. The series then read on the hover tooltip,
  * as the title does on the veil. A chart with no title or subtitle draws no
  * header either way.
@@ -85,8 +85,8 @@ function chartChrome(
 /**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
  * `keyboard` makes the region navigable, else a plain non-focusable region. It
- * takes the space its siblings leave — `flex-1` along the figure's main axis,
- * shrinkable across it — so a side legend narrows it (`min-w-0`) and a
+ * takes the space its siblings leave: `flex-1` along the figure's main axis,
+ * shrinkable across it. A side legend therefore narrows it (`min-w-0`), and a
  * height-driven frame grows it into the room the legend leaves (`min-h-0`).
  *
  * @internal
@@ -126,34 +126,34 @@ export type ChartFrameProps = AccessibleName & {
 	 * The plot takes the height its region already holds rather than reserving
 	 * one — a `flex-1` child grown into the space the legend leaves. Set for the
 	 * height-measured frames: a ratio shared with the legend (paired with {@link
-	 * ChartFrameProps.aspect}) and the free-form container-filling frame
-	 * (`aspectRatio={false}`), so a definite-height parent no longer collapses
+	 * ChartFrameProps.aspect}), and the free-form container-filling frame
+	 * (`aspectRatio={false}`). A definite-height parent then no longer collapses
 	 * the plot to nothing.
 	 * @defaultValue false
 	 */
 	fill?: boolean
 	/**
-	 * The `width / height` the figure wrapper carries as CSS `aspect-ratio`, so
-	 * the whole chart — plot and legend together — holds the ratio as a preference
-	 * a definite-height parent can clamp, the plot filling what the legend's
-	 * natural size leaves. Unset, no wrapper ratio: the plot box reserves its own
+	 * The `width / height` the figure wrapper carries as CSS `aspect-ratio`. The
+	 * whole chart — plot and legend together — therefore holds the ratio as a
+	 * preference a definite-height parent can clamp. The plot fills what the
+	 * legend's natural size leaves. Unset, no wrapper ratio: the plot box reserves its own
 	 * (a side legend banding beside it) or the frame is fixed / free-form.
 	 */
 	aspect?: number
 	/**
 	 * The resolved anatomy tier, published on the root as `data-tier` so a
 	 * dashboard tile can co-style its own chrome with the chart's resolution.
-	 * The frame also owns the tier's spark posture: at `'spark'` it stands the
-	 * tooltip and keyboard down, veils the header, renders the drawing
-	 * pointer-inert, and republishes the tier through `ChartTierContext` so the
-	 * interactive layers inside stand themselves down — a sparkline is read-only
+	 * The frame also owns the tier's spark posture. At `'spark'` it stands the
+	 * tooltip and keyboard down, veils the header, and renders the drawing
+	 * pointer-inert. It republishes the tier through `ChartTierContext`, so the
+	 * interactive layers inside stand themselves down. A sparkline is read-only
 	 * without any per-chart gating. Omitted, no attribute renders and the frame
 	 * treats the chart as framed (`'standard'`).
 	 */
 	tier?: ChartTier
 	/**
 	 * The chart title, drawn above the plot inside the aspect box (so the drawing
-	 * fills the height it leaves) and clipped to one line with a reveal tooltip. At
+	 * fills the height it leaves). It is clipped to one line with a reveal tooltip. At
 	 * the spark tier it leaves the flow for a centered hover / focus veil over the
 	 * marks instead.
 	 */
@@ -163,18 +163,18 @@ export type ChartFrameProps = AccessibleName & {
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
-	 * Where the legend sits: a row under or above the plot — centered on
-	 * mobile, justified edge to edge from `sm` — or a static panel beside it,
-	 * side by side once the chart's own container is wide enough and always under
-	 * the chart below that width.
+	 * Where the legend sits: a row under or above the plot, or a static panel
+	 * beside it. A row is centered on mobile, and justified edge to edge from
+	 * `sm`. A panel sits side by side once the chart's own container is wide
+	 * enough, and always under the chart below that width.
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement
 	/**
 	 * The values behind the marks as a cached thunk, or `null` when there is
 	 * nothing to read. A thunk so the mount-critical render never formats the
-	 * cells ({@link ChartReadoutSource}): the tooltip materializes it on the
-	 * first hover, the deferred data table a low-priority beat after mount.
+	 * cells ({@link ChartReadoutSource}). The tooltip materializes it on the first
+	 * hover, and the deferred data table a low-priority beat after mount.
 	 */
 	readout: ChartReadoutSource | null
 	/**
@@ -209,8 +209,8 @@ export type ChartFrameProps = AccessibleName & {
 	/**
 	 * Emphasises the series the keyboard cursor lands on (`null` off any), so the
 	 * marks recede the rest and the tooltip dims their rows. Pass the chart's
-	 * legend-emphasis setter to share one channel with the legend; omitted, keyboard
-	 * navigation leaves the emphasis alone — a chart whose stops name no single series.
+	 * legend-emphasis setter to share one channel with the legend. Omitted, keyboard
+	 * navigation leaves the emphasis alone: a chart whose stops name no single series.
 	 */
 	onActiveSeries?: (series: number | null) => void
 	/**
@@ -431,10 +431,10 @@ export function ChartFrame({
 			{...label}
 			{...plotRegionProps(keyboard, aside, fill)}
 		>
-			{/* ChartPlotBox reserves the box height from its own width — steady before
-			    the width is measured and across animation replays — takes a fixed
-			    pixel height, or (under `fill`) fills the height its region already
-			    holds. The tooltip sits outside so its clip never touches it. */}
+			{/* ChartPlotBox reserves the box height from its own width, steady before
+			    the width is measured and across animation replays. It takes a fixed
+			    pixel height instead, or (under `fill`) fills the height its region
+			    already holds. The tooltip sits outside so its clip never touches it. */}
 			<ChartPlotBox reserve={reserve} height={height} fill={fill}>
 				{svg}
 			</ChartPlotBox>
@@ -539,13 +539,14 @@ type ChartFigureProps = {
 }
 
 /**
- * The legend and plot laid out together under the whole-chart aspect-ratio: the
+ * The legend and plot laid out together under the whole-chart aspect-ratio. The
  * plot fills what the legend's natural size leaves, so the ratio describes the
- * chart rather than the plot alone, and it holds as a preference a definite-height
- * parent can clamp (the box-law) rather than a height the drawing forces. A side
- * legend lays the two out in a row once the container has room (`@sm`) — the panel
- * always under the chart below that, so a left panel reverses the row instead of
- * moving in the DOM — else they stack with the legend banding above or below.
+ * chart rather than the plot alone. It holds as a preference a definite-height
+ * parent can clamp (the box-law), rather than a height the drawing forces. A
+ * side legend lays the two out in a row once the container has room (`@sm`).
+ * The panel is always under the chart below that, so a left panel reverses the
+ * row instead of moving in the DOM. Else they stack, with the legend banding
+ * above or below.
  *
  * @internal
  */

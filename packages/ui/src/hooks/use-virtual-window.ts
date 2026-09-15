@@ -17,9 +17,9 @@ type VirtualWindowOptions = {
 type VirtualWindow = {
 	/**
 	 * The items currently in the viewport plus overscan, in order. Empty until the
-	 * virtualizer has resolved *and* measured the scroll element — the commit the
-	 * re-sync guard below recovers, plus every commit while the element measures
-	 * zero (a `display: none` ancestor, a server render) — so a caller holding
+	 * virtualizer has resolved *and* measured the scroll element. That is the commit
+	 * the re-sync guard below recovers, plus every commit while the element measures
+	 * zero (a `display: none` ancestor, a server render). A caller holding
 	 * items in hand must not read an empty window as "no items to show".
 	 */
 	virtualItems: VirtualItem[]
@@ -41,13 +41,13 @@ type VirtualWindow = {
  * @remarks Uniform heights only. The wrapper passes react-virtual no
  * `measureElement` and no `getItemKey`, so every row must measure
  * `estimateSize`; a row that does not misplaces the window below it. The limit
- * is this wrapper's, not the library's — react-virtual measures dynamic rows —
- * and it is what costs the grid two features their virtualization:
+ * is this wrapper's, not the library's; react-virtual measures dynamic rows. It
+ * is what costs the grid two features their virtualization.
  * `resolveGroupingGates` stands virtualization down whenever grouping or
  * master-detail is active, because each renders its own body of mixed-height
  * rows. Lifting it is more than passing the two options. `measureElement` on a
- * `<tr>` in a fixed-layout table with spacer rows is unverified, and the group
- * collapse animation needs its leaves mounted across the `1fr`↔`0fr`
+ * `<tr>` in a fixed-layout table with spacer rows is unverified. The group
+ * collapse animation also needs its leaves mounted across the `1fr`↔`0fr`
  * transition, which a measured window would unmount.
  */
 export function useVirtualWindow({

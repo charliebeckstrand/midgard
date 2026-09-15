@@ -12,9 +12,9 @@ type PdfViewerZoomControlsProps = {
 
 /**
  * Zoom out / in / reset buttons. In and out snap to the next discrete level
- * above or below the current scale; reset returns to 1 — which is the base fit,
- * whichever `fit` mode the viewer is in. Buttons disable at
- * the ends of the level range.
+ * above or below the current scale. Reset returns to 1, which is the base fit,
+ * whichever `fit` mode the viewer is in. Buttons disable at the ends of the
+ * level range.
  *
  * @internal
  */

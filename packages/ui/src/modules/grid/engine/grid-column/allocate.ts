@@ -1,15 +1,19 @@
 import { clamp } from '../../../../utilities'
 
 /**
- * A column's width bounds for {@link allocateColumnWidths}: its hard floor
- * (`min`), its preferred content width (`content`, the width that shows the
- * column's content without truncating), and its ceiling (`max`,
- * `Number.MAX_SAFE_INTEGER` when unbounded). A `width`-pinned column arrives with
- * `min === content === max`, so the allocator holds it exactly.
+ * A column's width bounds for {@link allocateColumnWidths}:
+ *
+ * - Its hard floor (`min`).
+ * - Its preferred content width (`content`, the width that shows the column's
+ *   content without truncating).
+ * - Its ceiling (`max`, `Number.MAX_SAFE_INTEGER` when unbounded).
+ *
+ * A `width`-pinned column arrives with `min === content === max`, so the
+ * allocator holds it exactly.
  *
  * A `frozen` column — one pinned or locked to an edge — is held at its content
- * width and passed over by the surplus level-up: a frozen rail stays only as wide
- * as it needs to be while the scrolling columns absorb the spare width.
+ * width and passed over by the surplus level-up. A frozen rail stays only as
+ * wide as it needs to be, while the scrolling columns absorb the spare width.
  *
  * @internal
  */
@@ -28,10 +32,10 @@ export type ColumnSizeProfile = {
 
 /**
  * Rounds the floating widths to integers that sum to exactly `target`, by the
- * largest-remainder method: floor each, then hand the leftover pixels to the
+ * largest-remainder method. Floor each, then hand the leftover pixels to the
  * columns with the largest fractional parts. Summing to an exact target is what
- * keeps the fixed-layout table off a phantom horizontal scrollbar — rounding each
- * column independently can leave a pixel or two of slack.
+ * keeps the fixed-layout table off a phantom horizontal scrollbar. A round of
+ * each column independently can leave a pixel or two of slack.
  *
  * @internal
  */
@@ -70,13 +74,13 @@ function roundToTarget(
 }
 
 /**
- * Raises columns from their `desired` width toward a common level `L`, capped at
- * each column's `max`, so the surplus `available - Σdesired` is absorbed by the
- * narrowest columns first — they rise to meet the wider ones (ending equal among
- * themselves) while a column already wider than `L` keeps its content width. The
- * level solves `Σ min(max, max(desired, L)) = available`, found by bisection;
- * when every column caps out below `available` the table holds at `Σmax` and the
- * surplus is left as trailing space rather than stretching past a ceiling.
+ * Raises columns from their `desired` width toward a common level `L`, capped
+ * at each column's `max`. The surplus `available - Σdesired` is absorbed by the
+ * narrowest columns first, which rise to meet the wider ones (ending equal among
+ * themselves). A column already wider than `L` keeps its content width. The
+ * level solves `Σ min(max, max(desired, L)) = available`, found by bisection.
+ * When every column caps out below `available` the table holds at `Σmax`. The
+ * surplus is left as trailing space, rather than stretching past a ceiling.
  *
  * @internal
  */
@@ -124,20 +128,20 @@ function levelUp(
  * Distributes `available` pixels across the columns from their measured
  * profiles, content-first in two regimes. Each column's `desired` width is its
  * `content` clamped to `[min, max]`. When the desired widths meet or exceed the
- * space (or there is none), every column holds at its desired width and the table
+ * space (or there is none), every column holds at its desired width. The table
  * overflows horizontally — content shows, the rest scrolls — rather than
  * shrinking below it and truncating. When there is room to spare, the surplus
- * lifts the narrowest columns toward an equal width (see {@link levelUp}), so a
- * column whose data would truncate gains the room while columns that don't need
- * it settle at the shared level. A `frozen` column (pinned or locked) sits out
- * that lift — its ceiling is capped at its content width, so it holds only as
- * wide as it needs to be and the surplus flows to the scrolling columns instead
- * of stretching the frozen rail. Returns integer widths keyed by column id,
- * summing to exactly the space consumed; an empty profile list yields `{}`.
+ * lifts the narrowest columns toward an equal width (see {@link levelUp}). A
+ * column whose data would truncate gains the room, while columns that don't
+ * need it settle at the shared level. A `frozen` column (pinned or locked) sits
+ * out that lift. Its ceiling is capped at its content width, so it holds only
+ * as wide as it needs to be. The surplus flows to the scrolling columns,
+ * instead of stretching the frozen rail. Returns integer widths keyed by column
+ * id, summing to exactly the space consumed; an empty profile list yields `{}`.
  *
  * Pure: non-data columns (selection / actions), `width`-pinned columns, and
  * manually drag-resized columns are resolved by the caller and excluded from
- * `profiles`, with their widths already subtracted from `available`.
+ * `profiles`. Their widths are already subtracted from `available`.
  *
  * @internal
  */

@@ -8,7 +8,7 @@ import { useEffect, useEffectEvent, useRef } from 'react'
  *
  * A value with one call site does not need this: there the call site is the transition,
  * and the report rides it directly. Reach for this where the value is derived, or is
- * written from routes the surface never runs itself — each caller names its own.
+ * written from routes the surface never runs itself. Each caller names its own.
  *
  * @param value The committed value.
  * @param onChange The caller's callback, raised once per change.
@@ -16,7 +16,7 @@ import { useEffect, useEffectEvent, useRef } from 'react'
  * Pass one where the value is rebuilt each render, so identity moves and the content does
  * not.
  * @remarks The ref seeds from the mount value, so a surface that mounts in a reported
- * state announces nothing — the contract the panel family's `onOpenChange` already keeps.
+ * state announces nothing. That is the contract the panel family's `onOpenChange` already keeps.
  * Suppressing that first run is the ref's whole job.
  *
  * The comparison sits inside the effect event rather than beside the effect, so the

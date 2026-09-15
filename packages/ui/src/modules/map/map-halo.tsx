@@ -1,20 +1,20 @@
 /**
- * The standing pick on an overlay mark, drawn behind the mark it marks: the
- * mark's own shape in the selection ink, widened by {@link MARK_SELECTED_HALO}
- * so the neutral shows as a band around the edge. Behind rather than over, so
- * the mark's colour, its count, and its geometry all read through untouched —
- * the region ring's `fill="none"` discipline in the one form a stroke-painted
- * mark allows.
+ * The standing pick on an overlay mark, drawn behind the mark it marks. It is
+ * the mark's own shape in the selection ink, widened by
+ * {@link MARK_SELECTED_HALO}, so the neutral shows as a band around the edge.
+ * Behind rather than over, so the mark's colour, its count, and its geometry all
+ * read through untouched. It is the region ring's `fill="none"` discipline, in
+ * the one form a stroke-painted mark allows.
  *
- * A halo draws outside its mark's dim wrapper, so a pick made before the pointer
- * arrived still marks its mark while the pointer isolates elsewhere, and it never
- * answers the pointer: the mark's own hit shape stays the sole target, so the
- * hover resolve can't read one mark twice.
+ * A halo draws outside its mark's dim wrapper. A pick made before the pointer
+ * arrived therefore still marks its mark while the pointer isolates elsewhere.
+ * The halo never answers the pointer: the mark's own hit shape stays the sole
+ * target, so the hover resolve can't read one mark twice.
  *
  * Widths are stated in device pixels, like every other mark spec, and convert to
  * frame units through the plat's zoom scale — the multiply {@link MapDot}
- * records. A halo takes the same `scale` its mark took, so the band around the
- * edge holds at every view rather than closing up as the mark grows.
+ * records. A halo takes the same `scale` its mark took. The band around the edge
+ * therefore holds at every view, rather than closing up as the mark grows.
  */
 
 import { cn } from '../../core'
@@ -67,10 +67,10 @@ type MapDotHaloProps = {
 
 /**
  * A picked dot's halo — a point, a marker pin, one of a `MapPoints` set. It is
- * the dot itself, one clear space wider and in the selection ink: drawing it
- * through {@link MapDot} keeps the dot's own spec — the zero-length round-capped
- * stroke, and the one multiply that converts its radius — in the one file that
- * owns it.
+ * the dot itself, one clear space wider and in the selection ink. Drawing it
+ * through {@link MapDot} keeps the dot's own spec in the one file that owns it.
+ * That spec is the zero-length round-capped stroke, and the one multiply that
+ * converts its radius.
  *
  * @internal
  */

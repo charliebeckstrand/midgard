@@ -24,16 +24,17 @@ export type TooltipAnchorProps = TooltipAnchorOptions & {
  * `<TooltipPointer>`, one anchoring mode over.
  *
  * A component rather than the bare hook so consumers never touch
- * `TooltipContext` — the same division `<Tooltip>` and `<TooltipPointer>` keep,
- * and what makes the context an implementation detail of this directory rather
+ * `TooltipContext`. That is the same division `<Tooltip>` and `<TooltipPointer>`
+ * keep. It makes the context an implementation detail of this directory rather
  * than an interface three component families assemble by hand.
  *
  * @remarks Mount it as a **leaf**, beside whatever renders the anchor rather
- * than inside it. That is the whole reason the anchor arrives as an element:
- * floating-ui commits its position through `flushSync`, and `autoUpdate` fires
- * on every ancestor scroll and resize — so a host that renders many siblings
- * (a list, an overlay of regions) would re-render all of them, synchronously,
- * per frame of a scroll. In a leaf the same commit touches this panel alone.
+ * than inside it. That is the whole reason the anchor arrives as an element.
+ * Floating-ui commits its position through `flushSync`, and `autoUpdate` fires
+ * on every ancestor scroll and resize. A host that renders many siblings
+ * (a list, an overlay of regions) would therefore re-render all of them,
+ * synchronously, per frame of a scroll. In a leaf the same commit touches this
+ * panel alone.
  *
  * The body is `aria-hidden` by design; see {@link useTooltipAnchor}.
  * @internal

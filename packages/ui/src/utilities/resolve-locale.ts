@@ -1,9 +1,9 @@
 import { once } from './once'
 
 /**
- * The runtime's own BCP 47 tag. Read through {@link once} because
+ * The runtime's own BCP 47 tag. The read goes through {@link once} because
  * `Intl.DateTimeFormat` construction is uncached and costs tens of microseconds,
- * while the document's locale is fixed for the process — a per-call read is pure
+ * while the document's locale is fixed for the process. A per-call read is pure
  * waste on the render paths that coalesce an absent locale.
  *
  * @internal

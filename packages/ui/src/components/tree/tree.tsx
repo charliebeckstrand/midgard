@@ -32,7 +32,7 @@ export type TreeProps = AccessibleName & {
 	 * What happens to a branch's children while it is closed.
 	 *
 	 * Under the default `active` a closed branch unmounts its children, so every
-	 * expansion inside it is lost: reopening shows them collapsed again, because
+	 * expansion inside it is lost. Reopening shows them collapsed again, because
 	 * an uncontrolled {@link TreeItem} keeps its own open state. `lazy` holds a
 	 * branch from its first open, preserving that state and any scroll position
 	 * or focus within it. `always` holds every branch from mount, which renders
@@ -45,7 +45,7 @@ export type TreeProps = AccessibleName & {
 	className?: string
 }
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation; keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation. It keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
 export function Tree({
 	size,
 	indent = false,

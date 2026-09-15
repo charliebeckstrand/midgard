@@ -57,18 +57,18 @@ type GridToolbarProps = {
 
 /**
  * The Grid's toolbar region: the single place its above-table controls are
- * assembled. The top row carries the quick-search field at the start — joined,
- * while a column filter constrains rows, by an amber "Clear filters" button
- * that lifts them all — and a "Table tools" cluster at the end: the
- * column-manager trigger and, when any export type is active, an "Export"
- * dropdown listing one item per action — its trigger swaps the download icon
- * for a spinner while an async export is in flight, from this dropdown or from a
- * right-click menu; a second row hosts the batch actions
- * while a row is selected, so the search stays reachable beside them. The tools
- * and batch actions are each their own
- * labelled {@link Toolbar} — "Table tools" and "Batch actions" — while the
- * search stays a plain field, so the toolbars' roving-tabindex arrow
- * navigation never swallows the text cursor.
+ * assembled. The top row carries the quick-search field at the start, and a
+ * "Table tools" cluster at the end. While a column filter constrains rows, an
+ * amber "Clear filters" button joins the search and lifts them all. The tools
+ * cluster holds the column-manager trigger and, when any export type is active,
+ * an "Export" dropdown listing one item per action. That dropdown's trigger
+ * swaps the download icon for a spinner while an async export is in flight. The
+ * export can start from this dropdown or from a right-click menu. A second row
+ * hosts the batch actions while a row is selected, so the search stays reachable
+ * beside them. The tools and batch actions are each their own labelled
+ * {@link Toolbar}: "Table tools" and "Batch actions". The search stays a plain
+ * field, so the toolbars' roving-tabindex arrow navigation never swallows the
+ * text cursor.
  *
  * Renders nothing when none of its slots are active, so an unconfigured grid
  * carries no toolbar chrome (and no stray gap above the table).
@@ -120,9 +120,9 @@ export function GridToolbar({
 						</Button>
 					)}
 
-					{/* The consumer's own, across from the search and ahead of the tools:
-					    it is the grid's row to lay out, and a filter the consumer adds
-					    belongs beside the one the grid renders rather than under it. */}
+					{/* The consumer's own, across from the search and ahead of the tools.
+					    It is the grid's row to lay out. A filter the consumer adds belongs
+					    beside the one the grid renders, rather than under it. */}
 					{content ? <div className={cn(k.toolbar.content)}>{content}</div> : null}
 
 					{showTools && (

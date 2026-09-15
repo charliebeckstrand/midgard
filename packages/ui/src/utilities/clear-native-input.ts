@@ -1,7 +1,7 @@
 /**
  * Clears `input` through the native value setter and a bubbling `input` event,
- * so controlled and uncontrolled consumers both observe the change, then
- * returns focus to it (WCAG 2.4.3) as its clear button unmounts.
+ * so controlled and uncontrolled consumers both observe the change. It then
+ * returns focus to the input (WCAG 2.4.3) as its clear button unmounts.
  */
 export function clearNativeInput(input: HTMLInputElement | null) {
 	if (!input) return

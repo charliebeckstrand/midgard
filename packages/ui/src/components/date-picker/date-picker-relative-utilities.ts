@@ -59,8 +59,8 @@ export type DatePickerRelativeConfig = {
 	multiple?: boolean
 	/**
 	 * Shows each committed span as a chip in the trigger. Set `false` to show the
-	 * selection as one line of text: a lone span reads as its own label — the
-	 * matched preset, or the formatted custom range — and anything past one as a
+	 * selection as one line of text. A lone span reads as its own label: the
+	 * matched preset, or the formatted custom range. Anything past one reads as a
 	 * `"N selected"` count.
 	 *
 	 * The chip row wraps, so each chip that does not fit grows the trigger a row
@@ -77,7 +77,7 @@ export type RelativeChip = { key: string; label: string }
 
 /**
  * Built-in relative presets, in popover order. All spans are day-granular and
- * inclusive of both endpoints; "Last N days" is inclusive of today, so its span
+ * inclusive of both endpoints. "Last N days" is inclusive of today, so its span
  * covers today and the preceding `N − 1` days (`from = today − (N − 1)`).
  */
 export const DEFAULT_RELATIVE_PRESETS: DatePickerRelativePreset[] = [
@@ -174,8 +174,8 @@ function isSameSpan(a: DatePickerRelativeValue, b: DatePickerRelativeValue): boo
  * months" and "This year" coincide on 1 July; "This month" and "This quarter"
  * coincide in the first month of a quarter. When the caller knows which presets
  * the user picked (`preferredIds`, in click order), the most recently picked one
- * that still resolves to `span` wins, so the chip and highlight reflect the
- * latest choice rather than list order. With no picks it falls back to the first
+ * that still resolves to `span` wins. The chip and highlight therefore reflect
+ * the latest choice rather than list order. With no picks it falls back to the first
  * list match.
  *
  * @internal
@@ -298,9 +298,9 @@ export function relativeChips(
 
 /**
  * The trigger's one-line label for the selection {@link relativeChips} renders
- * as chips, used while `chips` is off: a lone span reads as its own label,
- * anything past one as a `"N selected"` count, and none as `''` — the empty
- * string the trigger shows its placeholder for.
+ * as chips, used while `chips` is off. A lone span reads as its own label,
+ * anything past one as a `"N selected"` count, and none as `''`. That empty
+ * string is what the trigger shows its placeholder for.
  *
  * The threshold is `Combobox`'s, for the reason given at `resolveInputDisplay`:
  * one label fits the line, two contend for it.

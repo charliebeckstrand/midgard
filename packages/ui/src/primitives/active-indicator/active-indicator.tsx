@@ -25,8 +25,8 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
 
 /**
  * Scopes active indicators to a single nav / tab group, wrapping children in a
- * Motion `LayoutGroup` so descendant {@link ActiveIndicator}s morph against each
- * other rather than against indicators in sibling groups.
+ * Motion `LayoutGroup`. Descendant {@link ActiveIndicator}s then morph against
+ * each other rather than against indicators in sibling groups.
  *
  * @remarks Wraps the group in {@link ReducedMotion} so the morph degrades to a
  * fade under `prefers-reduced-motion`.
@@ -49,8 +49,8 @@ export function ActiveIndicatorScope({ children }: { children: ReactNode }) {
 /**
  * Wires the press-feedback animation for an active-indicator host.
  *
- * @returns A `ref` to attach to the indicator span and `tapHandlers` (pointer
- * down/up/leave) for the parent container; press dips the indicator to `0.99`
+ * @returns A `ref` to attach to the indicator span, and `tapHandlers` (pointer
+ * down/up/leave) for the parent container. Press dips the indicator to `0.99`
  * scale and releases it back to `1` on the shared spring.
  * @see {@link ActiveIndicator}
  */

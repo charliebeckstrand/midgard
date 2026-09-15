@@ -19,8 +19,8 @@ export type CollapsePanelProps = {
 
 /**
  * Collapsible content region for the {@link Collapse} compound API. Reads
- * `open`, the resolved `animate` mode, and the `mount` policy from context,
- * animating height (plus opacity for `'fade'`) via `AnimatePresence`; the
+ * `open`, the resolved `animate` mode, and the `mount` policy from context. It
+ * animates height (plus opacity for `'fade'`) via `AnimatePresence`; the
  * `false` mode renders synchronously without motion. Honors reduced-motion.
  *
  * @remarks
@@ -28,8 +28,8 @@ export type CollapsePanelProps = {
  * reopening resets its state. `always` and `lazy` instead hold it in
  * `<Activity mode="hidden">` — state preserved, effects torn down. A held panel
  * stays mounted, so it animates between its open and closed states in place
- * rather than entering and exiting, and drops into the hold only once the
- * closing height transition lands; `display: none` cannot animate, so the hold
+ * rather than entering and exiting. It drops into the hold only once the
+ * closing height transition lands: `display: none` cannot animate, so the hold
  * has to wait for it.
  */
 export function CollapsePanel({ children, className }: CollapsePanelProps) {

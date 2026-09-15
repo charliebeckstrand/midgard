@@ -5,11 +5,11 @@ const { size } = ji
 
 /**
  * Card-side projections onto its direct `data-slot=card-*` children. Header
- * and footer carry none of their own spacing — like the body, they're static
- * leaves that can't read `size` — so the card is the single source for the
- * header's gap to the body (`pb`), the footer's gap from the body (`pt`), and
- * the footer's own action-row gap (one step tighter than `ma.gap`, so actions
- * sit close). Direct-child selectors keep nested cards independent.
+ * and footer carry none of their own spacing: like the body, they're static
+ * leaves that can't read `size`. The card is therefore the single source for the
+ * header's gap to the body (`pb`) and the footer's gap from the body (`pt`). It
+ * also owns the footer's own action-row gap (one step tighter than `ma.gap`, so
+ * actions sit close). Direct-child selectors keep nested cards independent.
  */
 const slots = {
 	sm: [

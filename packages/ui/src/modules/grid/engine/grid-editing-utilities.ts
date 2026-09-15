@@ -2,7 +2,7 @@
 export type EditorKind = 'text' | 'number' | 'boolean'
 
 /**
- * Picks the inline editor for a cell from its value's primitive type: a boolean
+ * Picks the inline editor for a cell from its value's primitive type. A boolean
  * drives a yes/no listbox, a number a number input, and everything else (string,
  * null, undefined) a text input. A column's {@link GridColumn.editCell} slot
  * supersedes this for richer controls. @internal
@@ -40,7 +40,7 @@ export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): 
 }
 
 /**
- * Whether a cell's editor is open: its row is in the editable set and, when a
+ * Whether a cell's editor is open. Its row is in the editable set and, when a
  * cell-scoped session holds that row, the session's cell is this one. A session
  * narrows the one row it sits on and no other. A row the consumer opens beside
  * it reads row-shaped, every editable cell at once, as does every row while no

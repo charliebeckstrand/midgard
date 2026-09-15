@@ -1,6 +1,6 @@
 /**
- * The Valhalla client, in the service's OSRM-compatible response mode: a POST
- * whose locations ride the body and whose geometry comes back as an encoded
+ * The Valhalla client, in the service's OSRM-compatible response mode. It is a
+ * POST whose locations ride the body and whose geometry comes back as an encoded
  * polyline (`polyline.ts`).
  */
 

@@ -45,9 +45,9 @@ export const AREA_FILL_OPACITY = 0.16
 /**
  * Estimated glyph advance of a `text-sm` tick-label character, for the y-gutter
  * estimate — the size {@link k.tick} renders at. Sized a touch above a bare
- * tabular digit so a compact label's proportional suffix (`K` / `M`, wider than a
- * digit) still clears the frame; {@link GUTTER_EDGE_PAD} absorbs the rest of that
- * variance. Stays under {@link LABEL_CHAR_WIDTH}, which reserves for fully
+ * tabular digit, so a compact label's proportional suffix (`K` / `M`, wider than
+ * a digit) still clears the frame. {@link GUTTER_EDGE_PAD} absorbs the rest of
+ * that variance. Stays under {@link LABEL_CHAR_WIDTH}, which reserves for fully
  * proportional category labels. @internal
  */
 export const TICK_CHAR_WIDTH = 8.5
@@ -55,10 +55,12 @@ export const TICK_CHAR_WIDTH = 8.5
 /**
  * Estimated glyph advance of a proportional category label's character, for the
  * y-gutter estimate when band labels — not tabular value ticks — line it (the
- * heatmap's rows). Wider than {@link TICK_CHAR_WIDTH}: category labels are
- * proportionally set and often capital-initial, so a tabular-digit width
- * under-reserves the gutter and the widest label (a leading `M` or `W`) crosses
- * the frame's left edge and clips. @internal
+ * heatmap's rows). Wider than {@link TICK_CHAR_WIDTH}. Category labels are
+ * proportionally set and often capital-initial. A tabular-digit width therefore
+ * under-reserves the gutter. The widest label, a leading `M` or `W`, crosses the
+ * frame's left edge and clips.
+ *
+ * @internal
  */
 export const LABEL_CHAR_WIDTH = 9
 
@@ -67,8 +69,10 @@ export const GUTTER_GAP = 8
 
 /**
  * Slack between the frame edge and the widest label, absorbing per-char estimate
- * error — including a compact label's wide `K` / `M` suffix, which a single
- * per-char advance under-counts on a short label. @internal
+ * error. That includes a compact label's wide `K` / `M` suffix, which a single
+ * per-char advance under-counts on a short label.
+ *
+ * @internal
  */
 export const GUTTER_EDGE_PAD = 6
 
@@ -79,34 +83,40 @@ export const GUTTER_MAX = 96
 export const X_AXIS_HEIGHT = 24
 
 /**
- * Air inset at each end of a framed chart's band axis, holding the first and
- * last category centers — their marks and tick labels — off the plot's sides so
- * an edge label never crowds the value gutter it sits beside, and the endpoint
- * marks breathe rather than riding the frame. A spark chart insets by its mark
+ * Air inset at each end of a framed chart's band axis. It holds the first and
+ * last category centers, their marks and tick labels, off the plot's sides. An
+ * edge label therefore never crowds the value gutter it sits beside, and the
+ * endpoint marks breathe rather than riding the frame. A spark chart insets by its mark
  * reach instead (see {@link CartesianLayoutInput.markInset}); this is the framed
  * margin, wider than any mark's overhang. @internal
  */
 export const BAND_EDGE_PAD = 16
 
 /**
- * Degrees a category label tilts under {@link CartesianFrameProps.tickRotation}
- * once it would otherwise be thinned — negative so the label reads rising
- * left to right, its near end tucked under the tick. @internal
+ * Degrees a category label tilts under {@link CartesianFrameProps.tickRotation},
+ * once it would otherwise be thinned. It is negative, so the label reads rising
+ * left to right, its near end tucked under the tick.
+ *
+ * @internal
  */
 export const TICK_ROTATION_ANGLE = -35
 
 /**
  * Height reserved under the plot for a tilted run of category labels, in place
- * of {@link X_AXIS_HEIGHT} — flat like it, not sized off label content, since a
- * label long enough to need thinning already runs well past what any one
- * gutter estimate would cleanly bound. @internal
+ * of {@link X_AXIS_HEIGHT}. It is flat like that one, and not sized off label
+ * content. A label long enough to need thinning already runs well past what any
+ * one gutter estimate would cleanly bound.
+ *
+ * @internal
  */
 export const TICK_ROTATION_HEIGHT = 56
 
 /**
  * Vertical footprint of one `text-xs` category label stacked in a horizontal
- * chart's left axis — its line box, for thinning band labels by column room the
- * way {@link TICK_CHAR_WIDTH} thins them by row room. @internal
+ * chart's left axis. It is the label's line box, for thinning band labels by
+ * column room the way {@link TICK_CHAR_WIDTH} thins them by row room.
+ *
+ * @internal
  */
 export const BAND_LABEL_HEIGHT = 16
 
@@ -114,11 +124,13 @@ export const BAND_LABEL_HEIGHT = 16
 export const PLOT_TOP_PAD = 8
 
 /**
- * Air below the plot for the floor value-tick label's lower half when the band
- * axis is dropped (a short frame keeps its value gutter but sheds its band row) —
- * the mirror of {@link PLOT_TOP_PAD} for the ceiling tick, so the zero label
- * clears the frame edge instead of clipping where {@link X_AXIS_HEIGHT} would
- * otherwise have covered it. @internal
+ * Air below the plot for the floor value-tick label's lower half, when the band
+ * axis is dropped. A short frame keeps its value gutter but sheds its band row.
+ * It is the mirror of {@link PLOT_TOP_PAD} for the ceiling tick. The zero label
+ * therefore clears the frame edge, instead of clipping where
+ * {@link X_AXIS_HEIGHT} would otherwise have covered it.
+ *
+ * @internal
  */
 export const FLOOR_LABEL_PAD = 8
 

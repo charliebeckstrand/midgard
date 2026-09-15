@@ -1,9 +1,10 @@
 /**
  * Table kata: object-literal surface for the bare `<Table>` element and its
  * cells. The `cell` and `header` sub-recipes carry the density/outline leaf
- * styling; `projection` holds the density-, outline-, stripe-, and hover-varying
- * child selectors the `<table>` casts onto descendants so cells read no context
- * and the family renders in RSC. `head`, `row`, and `empty` are static slots.
+ * styling. The `projection` holds the density-, outline-, stripe-, and
+ * hover-varying child selectors the `<table>` casts onto descendants. Cells
+ * therefore read no context, and the family renders in RSC. `head`, `row`, and
+ * `empty` are static slots.
  */
 import { defineRecipe } from '../../core/recipe'
 import { iro, sen } from '../kiso'
@@ -38,20 +39,20 @@ const header = defineRecipe({
 
 /**
  * Table-side projections onto descendant cells. Cells and headers are
- * static leaves carrying their own md padding; the table overrides the
+ * static leaves carrying their own md padding. The table overrides the
  * density-, outline-, stripe-, and hover-varying properties from the
- * `<table>` element, so no descendant reads context and the whole family
- * renders in React Server Components. The exact-depth child chains (`>*>tr>`
- * walks thead/tbody/tfoot) keep a nested table's cells independent. md has no
- * density row: at the default step the cell's own classes already match,
- * and a consumer `className` on a cell keeps overriding them.
+ * `<table>` element. No descendant therefore reads context, and the whole
+ * family renders in React Server Components. The exact-depth child chains
+ * (`>*>tr>` walks thead/tbody/tfoot) keep a nested table's cells independent.
+ * The md step has no density row. At the default step the cell's own classes
+ * already match, and a consumer `className` on a cell keeps overriding them.
  *
- * `hover` scopes to `tbody` rows only (the head holds no data) and washes at
- * the 5% `hannou.tint` value, an interactive variant that out-cascades the
- * non-interactive 2.5% `striped` wash on the hovered row.
+ * The `hover` scopes to `tbody` rows only, because the head holds no data. It
+ * washes at the 5% `hannou.tint` value, an interactive variant that
+ * out-cascades the non-interactive 2.5% `striped` wash on the hovered row.
  *
- * Tailwind scans whole class literals; these rows can't be interpolated
- * from the unprefixed values they mirror (`cellDensity`, `sen.border.subtle`)
+ * Tailwind scans whole class literals. These rows can't be interpolated
+ * from the unprefixed values they mirror (`cellDensity`, `sen.border.subtle`),
  * or from each other (the `odd`/`even` `striped` parity below). Keep them in
  * step by hand.
  */

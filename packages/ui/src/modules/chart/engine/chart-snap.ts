@@ -1,7 +1,7 @@
 /**
- * Snap resolution shared by the crosshair and the tooltip: the per-category
- * band centers and value points a snapping crosshair meets, and the value
- * nearest a pointer among them. Pure and framework-free, so both overlays that
+ * Snap resolution shared by the crosshair and the tooltip. It holds the
+ * per-category band centers and value points a snapping crosshair meets, and the
+ * value nearest a pointer among them. Pure and framework-free, so both overlays that
  * ride the snap read it the same way, whichever way the chart faces.
  */
 
@@ -24,8 +24,8 @@ export type ChartSnap = {
 
 /**
  * The snap bundle for a chart's overlays, or `undefined` when the crosshair
- * doesn't snap — the shared gate every cartesian chart feeds its frame, so the
- * targets flow through only when a snap actually needs them.
+ * doesn't snap. It is the shared gate every cartesian chart feeds its frame, so
+ * the targets flow through only when a snap actually needs them.
  *
  * @internal
  */
@@ -79,9 +79,9 @@ export function nearestValue(candidates: number[] | undefined, value: number): n
  * The series behind the snapped stop nearest `coord` in category `index`'s
  * column, or `null` off every stop (an empty column, or no category). The same
  * resolution the tooltip anchors with ({@link nearestValue}), so the emphasised
- * mark and the snapped readout can never disagree: moving along the rule toward
- * another series' point hands both to it at the midpoint between the stops —
- * the tooltip always re-anchoring ahead of the pointer, never under it.
+ * mark and the snapped readout can never disagree. Moving along the rule toward
+ * another series' point hands both to it at the midpoint between the stops. The
+ * tooltip therefore always re-anchors ahead of the pointer, never under it.
  *
  * @internal
  */

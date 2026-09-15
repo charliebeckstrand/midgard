@@ -34,15 +34,15 @@ export type DatePickerRelativeMode = 'list' | 'custom'
  * Relative state for {@link DatePicker}: a multi-select preset list plus a
  * mutually-exclusive custom range typed into Start/End inputs, committed as a
  * {@link DatePickerRelativeValue}`[]` through the Form/Control binding. Holds the
- * `'list'`/`'custom'` mode; only the list runs a keyboard model (roving focus),
+ * `'list'`/`'custom'` mode. Only the list runs a keyboard model (roving focus),
  * while custom mode leans on the native inputs, so the two never collide.
  *
  * @remarks
  * Each preset toggles immediately (no buffered pending value) and the popover
  * stays open across edits, mirroring the multi-select filter feel. A custom range
- * commits once both Start and End hold a valid date (order normalized), replacing
- * the whole selection with that single span; custom mode stays open for further
- * edits. The reference `now` is stamped on open so preset math and the
+ * commits once both Start and End hold a valid date (order normalized), and
+ * replaces the whole selection with that single span. Custom mode stays open for
+ * further edits. The reference `now` is stamped on open so preset math and the
  * active-preset match stay stable through an interaction.
  *
  * @returns Trigger props, popover plumbing, the `chips`/`summary`/`showChips`/
@@ -276,7 +276,7 @@ export function useDatePickerRelativeState({
 					: { from: next.to, to: next.from }
 
 			// A custom range isn't a preset, so drop any prior pick — the chip/highlight
-			// should range-match, not favor a stale preset.
+			// must range-match, not favor a stale preset.
 			setPickedIds(new Set())
 
 			setValue([span])

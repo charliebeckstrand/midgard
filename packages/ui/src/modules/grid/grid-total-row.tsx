@@ -18,15 +18,16 @@ import { useGridRevealHold } from './use-grid-reveal-hold'
 const NO_ROWS: never[] = []
 
 /**
- * Resolves the grand-total row's state off the grid's: whether it renders —
- * `grandTotalRow` set, a visible aggregating column, and rows actually shown —
- * and the rows it aggregates. Those are the full filtered set, read from the
- * engine's filtered row model: all pages (filtering precedes pagination) and
- * the flat leaves (it precedes grouping), so one source serves the grouped,
- * paginated, and flat cases alike. Under server pagination the supplied page is
- * all the grid holds, so the total sums that page — the ceiling of what a
- * client-side aggregate can see. Manual grouping stands the row down entirely
- * (`manualGrouped`): the engine's filtered model there carries the consumer's
+ * Resolves the grand-total row's state off the grid's: whether it renders, and
+ * the rows it aggregates. It renders when `grandTotalRow` is set, a visible
+ * aggregating column exists, and rows are actually shown. Those rows are the
+ * full filtered set, read from the engine's filtered row model. It holds all
+ * pages, because filtering precedes pagination, and the flat leaves, because it
+ * precedes grouping. One source therefore serves the grouped, paginated, and
+ * flat cases alike. Under server pagination the supplied page is all the grid
+ * holds, so the total sums that page. That is the ceiling of what a client-side
+ * aggregate can see. Manual grouping stands the row down entirely
+ * (`manualGrouped`). The engine's filtered model there carries the consumer's
  * group-header rows as data, and the backend owns the figures.
  *
  * @internal
@@ -176,8 +177,8 @@ function GroupRevealCell({
 /**
  * A total row: a leading label cell spanning the columns before the first
  * aggregated one, then one aggregate cell per remaining column. The `'group'`
- * variant sits under its group's leaves, carries the group rail, and collapses
- * with the group through the same CSS reveal the leaves ride; the `'grand'`
+ * variant sits under its group's leaves and carries the group rail. It collapses
+ * with the group through the same CSS reveal the leaves ride. The `'grand'`
  * variant closes the whole body over the full filtered set.
  *
  * @internal
@@ -223,8 +224,8 @@ export function GridTotalRow<T>({
 }
 
 /**
- * A group's total row: it collapses with its group through the same CSS reveal
- * the leaves ride, and rests alongside them once that reveal lands so its
+ * A group's total row. It collapses with its group through the same CSS reveal
+ * the leaves ride. It rests alongside them once that reveal lands, so its
  * aggregates stop recomputing on every body render.
  *
  * @internal

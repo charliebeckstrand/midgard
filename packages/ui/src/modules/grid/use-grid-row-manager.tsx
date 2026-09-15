@@ -30,9 +30,9 @@ export type GridRowManagerGroup = {
 }
 
 /**
- * The body-facing presentation the overlay resolves to: a color lookup (always
- * live) and the manual group order (`null` when the overlay no longer covers
- * every group). {@link GridBody} reads it to tint and reorder the grouped rows.
+ * The body-facing presentation the overlay resolves to: a color lookup, always
+ * live, and the manual group order. The order is `null` when the overlay no
+ * longer covers every group. {@link GridBody} reads it to tint and reorder the grouped rows.
  * Rows within a group are not managed — they keep the engine's order.
  *
  * @internal
@@ -87,9 +87,9 @@ export function applyRowKeyOrder<I>(
 
 /**
  * Builds the row manager's natural-order view model from the engine's grouped
- * rows: one entry per group header (its shared value, formatted label, and leaf
- * count) with its leaves keyed by {@link GridDataProps.getKey} and labeled by
- * `rowLabel`. Empty outside client grouping. The overlay's color and ordering are
+ * rows. There is one entry per group header: its shared value, formatted label,
+ * and leaf count. Its leaves are keyed by {@link GridDataProps.getKey} and
+ * labeled by `rowLabel`. Empty outside client grouping. The overlay's color and ordering are
  * layered on later by {@link useGridRowManager}.
  *
  * @internal
@@ -118,17 +118,19 @@ type GridRowManagerOptions = {
 }
 
 /**
- * Resolves the {@link GridRowGroups} overlay into what the grid runs on: the
- * body {@link GridRowGroupPresentation} (color lookup + manual group/leaf order,
- * each standing down under a sort), the display-ordered {@link GridRowManagerGroup}
- * list the manager renders, and the recolor / reorder handlers that commit a
- * *complete* snapshot (an entry per current group) back through the binding.
+ * Resolves the {@link GridRowGroups} overlay into what the grid runs on:
  *
- * The snapshot is always complete in keys so the manual group order can apply
- * without a partial overlay shuffling groups on a mere recolor; the body applies
- * that order only while it still covers every group (`groupOrder` goes `null`
- * otherwise), so a group that appears after the overlay was captured leaves the
- * order intact rather than jumping.
+ * - the body {@link GridRowGroupPresentation}: a color lookup plus the manual
+ *   group/leaf order, each standing down under a sort;
+ * - the display-ordered {@link GridRowManagerGroup} list the manager renders;
+ * - the recolor / reorder handlers that commit a *complete* snapshot, an entry
+ *   per current group, back through the binding.
+ *
+ * The snapshot is always complete in keys, so the manual group order can apply
+ * without a partial overlay shuffling groups on a mere recolor. The body applies
+ * that order only while it still covers every group, and `groupOrder` goes
+ * `null` otherwise. A group that appears after the overlay was captured
+ * therefore leaves the order intact, rather than jumping.
  *
  * @internal
  */
@@ -230,10 +232,10 @@ type GridRowGroupMenuArgs = {
 }
 
 /**
- * The group-header context menu: "Manage rows" (opens the row manager), then the
- * group's expand controls under a separator — Collapse/Expand this group, Expand
- * all, Collapse all — and, once the group is colored, a "Clear color" shortcut
- * that spares a trip to the manager. Setting a color stays in the manager, where
+ * The group-header context menu: "Manage rows", which opens the row manager.
+ * Under a separator come the group's expand controls: Collapse/Expand this
+ * group, Expand all, Collapse all. Once the group is colored, a "Clear color"
+ * shortcut spares a trip to the manager. Setting a color stays in the manager, where
  * the palette renders as swatches (the flat menu can't nest a submenu).
  *
  * @internal
@@ -304,11 +306,11 @@ type GridRowManagerRegionOptions<T> = {
 }
 
 /**
- * The full row-manager wiring for {@link GridData}: resolves the overlay
- * (see {@link useGridRowManager}), owns the dialog's open state, and builds the
- * group-header menu resolver (keyed by the group's stringified value) that opens
- * the manager and drives the per-group / all-group expand toggles and the
- * clear-color shortcut. Returns `null`-safe values off client grouping so the
+ * The full row-manager wiring for {@link GridData}. It resolves the overlay
+ * (see {@link useGridRowManager}), and owns the dialog's open state. It builds
+ * the group-header menu resolver, keyed by the group's stringified value. That
+ * resolver opens the manager, and drives the per-group / all-group expand
+ * toggles and the clear-color shortcut. Returns `null`-safe values off client grouping so the
  * grid stands the whole feature down. Split out of {@link GridData} to keep its
  * body within the cognitive-complexity budget.
  *

@@ -1,6 +1,6 @@
 /**
  * Sen divider: separator lines. `top` is the `border-t` frame used
- * between standalone rows in a stacked layout; `between` paints
+ * between standalone rows in a stacked layout. `between` paints
  * `divide-y` on the parent, and direct children get an interior rule
  * without each owning a border.
  *

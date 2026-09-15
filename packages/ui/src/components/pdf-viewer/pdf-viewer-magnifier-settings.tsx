@@ -34,23 +34,25 @@ type PdfViewerMagnifierSettingsProps = {
 
 /**
  * The magnifier control the toolbar shows in `'config'` mode: a button that opens a dialog,
- * and the dialog it opens — the loupe's own switch, its power, its lens size and its dwell.
+ * and the dialog it opens. The dialog holds the loupe's own switch, its power, its lens size
+ * and its dwell.
  *
  * @remarks The button and the dialog are one control, so they live in one file. The open
  * state is chrome nothing outside the viewer drives, so it stays here rather than in
- * `PdfViewerContext`, where every region on the page would re-render for it. `DialogTrigger`
- * stamps the `aria-haspopup` and `aria-expanded` that report it — the ARIA belongs to the
- * panel, so it is written by the panel's own trigger rather than by hand here.
+ * `PdfViewerContext`. There every region on the page would re-render for it.
+ * `DialogTrigger` stamps the `aria-haspopup` and `aria-expanded` that report it. The ARIA
+ * belongs to the panel, so it is written by the panel's own trigger rather than by hand
+ * here.
  *
  * **Every control is a native input, and that is deliberate.** A modal `Dialog` runs
- * floating-ui's `markOthers`, which `aria-hidden`s every sibling of the body — so a `Listbox`
- * or `Select` inside one portals its panel out of the accessibility tree, and the docs
+ * floating-ui's `markOthers`, which `aria-hidden`s every sibling of the body. A `Listbox`
+ * or `Select` inside one therefore portals its panel out of the accessibility tree. The docs
  * engine's own settings dialog carries a `UIProvider portalContainer` workaround for exactly
  * that. Radios and a switch portal nothing, so there is nothing to work around.
  *
  * The dwell and the power keep their controls while the loupe is off. They are settings, not
- * actions: a reader who turns the lens off and sets it up for next time does something
- * reasonable, and a row of dead radios would only say they cannot.
+ * actions. A reader who turns the lens off and sets it up for next time does something
+ * reasonable. A row of dead radios would only say they cannot.
  * @internal
  */
 export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSettingsProps) {
@@ -155,11 +157,11 @@ type PdfViewerMagnifierChoiceProps<T extends string> = {
  * One captioned row of radios — the three choice groups below the switch are this, three
  * times over, differing only in caption and options.
  *
- * @remarks The legend names the group twice over: once as a `<legend>`, which names the
- * `<fieldset>`, and again through `aria-labelledby`, which names the `radiogroup` the
- * `RadioGroup` renders. Both are needed, because a legend does not reach a `radiogroup` div.
+ * @remarks The legend names the group twice over. It names the `<fieldset>` as a
+ * `<legend>`, and again names the `radiogroup` the `RadioGroup` renders through
+ * `aria-labelledby`. Both are needed, because a legend does not reach a `radiogroup` div.
  *
- * Local rather than a file of its own, the way `ToolbarToggle` is: it says nothing outside
+ * Local rather than a file of its own, the way `ToolbarToggle` is. It says nothing outside
  * this dialog, and a lift would only put three call sites further from the thing they
  * configure.
  * @internal

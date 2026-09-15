@@ -3,10 +3,14 @@ import type { GridPagination } from '../../types'
 
 /**
  * Validates the mutually-dependent grid props up front, throwing a pointed error
- * for a combination the grid can't render: virtualization (or the infinite
- * scroll that implies it) without a sized scroll container, infinite scroll
- * against an explicitly refused window, or alongside the paged footer it
- * replaces. Kept off {@link GridData}'s cognitive-complexity budget. @internal
+ * for a combination the grid can't render:
+ *
+ * - virtualization (or the infinite scroll that implies it) without a sized
+ *   scroll container
+ * - infinite scroll against an explicitly refused window
+ * - infinite scroll alongside the paged footer it replaces
+ *
+ * Kept off {@link GridData}'s cognitive-complexity budget. @internal
  */
 export function assertGridProps(args: {
 	virtualize: GridVirtualize | undefined
@@ -34,8 +38,8 @@ export function assertGridProps(args: {
 }
 
 /**
- * The `virtualize` setting with the `infiniteScroll` implication applied:
- * infinite scroll layers on the virtualized window, so setting it implies
+ * The `virtualize` setting with the `infiniteScroll` implication applied.
+ * Infinite scroll layers on the virtualized window, so setting it implies
  * `virtualize` rather than requiring three coupled props. An explicit
  * `virtualize` (object or `true`) still tunes the window; the contradictory
  * `virtualize={false}` + `infiniteScroll` throws in {@link assertGridProps}.

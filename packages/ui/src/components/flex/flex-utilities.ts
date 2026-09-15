@@ -13,8 +13,8 @@ function alignForDirection(dir: FlexDirection): FlexAlign {
 
 /**
  * Derives the cross-axis `align` default from `direction`, preserving the
- * responsive shape: a plain direction yields a plain align, an object yields an
- * align per provided breakpoint.
+ * responsive shape. A plain direction yields a plain align, and an object
+ * yields an align per provided breakpoint.
  *
  * @internal
  */

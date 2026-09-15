@@ -8,7 +8,7 @@ export type PanelHandleProps = {
 	/** The `data-slot` the panel's own family is named by. */
 	slot: string
 	/**
-	 * The line the separator draws, which is not the axis it moves on: the grip on
+	 * The line the separator draws, which is not the axis it moves on. The grip on
 	 * the inner edge of a right-hand sheet stands vertically and resizes the width.
 	 */
 	orientation: Orientation
@@ -26,8 +26,8 @@ export type PanelHandleProps = {
  * The grab bar of a resizable panel.
  *
  * A window splitter — `role="separator"` with a tab stop — which is what a
- * resize control is. It answers the arrow keys as well as the drag, because a
- * panel only a pointer can size is one a keyboard reader cannot open up.
+ * resize control is. It answers the arrow keys as well as the drag. A panel
+ * only a pointer can size is one a keyboard reader cannot open up.
  * `aria-valuenow` reads as the share of the screen the panel covers, so the
  * value means the same thing a reader can see.
  *

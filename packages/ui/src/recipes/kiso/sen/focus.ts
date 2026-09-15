@@ -5,10 +5,10 @@
  *   - `ring`      outset CSS outline + transparent offset gap. Renders as one
  *                 crisp stroke along the radius (unlike two stacked ring
  *                 shadows, which leave an anti-aliased seam at the corners).
- *                 The offset gap exposes the surface behind; the stroke
- *                 reads against the element's own fill even when the fill IS
- *                 the accent colour: a solid button, a selected day, an
- *                 arbitrary-colour swatch.
+ *                 The offset gap exposes the surface behind. The stroke reads
+ *                 against the element's own fill even when the fill IS the
+ *                 accent colour. That covers a solid button, a selected day,
+ *                 an arbitrary-colour swatch.
  *   - `virtual`   the `ring` stroke without its `:focus-visible` gate, for
  *                 virtual-highlight models (the date picker grid) where the
  *                 marked element never holds DOM focus
@@ -23,11 +23,11 @@
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
  *                 `raise` and one entry per indicator shape, because the host
- *                 that lifts is not always the host that takes focus: a
+ *                 that lifts is not always the host that takes focus. A
  *                 reorderable List row raises the `<li>` but seats the Tab
  *                 stop on its content area when that content is activatable.
  *                 Tailwind extracts whole class names, so the accent cannot be
- *                 interpolated into a shape — stating both here is what keeps
+ *                 interpolated into a shape. Stating both here is what keeps
  *                 one edit enough to change it everywhere.
  *
  * Layer: kiso · Concern: focus indicators

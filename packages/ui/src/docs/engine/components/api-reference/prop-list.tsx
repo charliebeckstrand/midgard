@@ -11,11 +11,11 @@ import { DocDescription } from './doc-description'
 import { TypeCell } from './type-cell'
 
 /**
- * Prop entries. Each row leads with the prop name, an optional info button whose
- * tooltip carries the prose summary, then the required / default / deprecated
- * badges, then the technical metadata (type via `TypeCell`, `@example`). The
- * info button and meta are omitted when absent, so undocumented props collapse
- * to name + type.
+ * Prop entries. Each row leads with the prop name, then an optional info button
+ * whose tooltip carries the prose summary. Then come the required, default, and
+ * deprecated badges, then the technical metadata: type via `TypeCell`, and
+ * `@example`. The info button and meta are omitted when absent, so undocumented
+ * props collapse to name and type.
  */
 export function PropList({ rows }: { rows: PropDef[] }) {
 	return (

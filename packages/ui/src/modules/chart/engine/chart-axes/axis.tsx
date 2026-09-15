@@ -11,10 +11,10 @@ export type ChartAxisTick = {
 	/**
 	 * Stable React identity across resizes — the tick's own value (linear axes),
 	 * category index (bands), or instant (time), never the mapped {@link
-	 * ChartAxisTick.at}. A collapsed plot maps every tick onto one coordinate (a
-	 * zero-height value range, a zero-width band), so `at` is not unique there and
-	 * would strand a duplicate-key node that ghosts on resize-back; the identity
-	 * is. Distinct whenever there are two or more ticks — a value axis only repeats
+	 * ChartAxisTick.at}. A collapsed plot maps every tick onto one coordinate: a
+	 * zero-height value range, a zero-width band. The `at` is therefore not unique
+	 * there, and would strand a duplicate-key node that ghosts on resize-back. The
+	 * identity is unique. Distinct whenever there are two or more ticks — a value axis only repeats
 	 * a value on a zero-span domain, which yields at most one tick.
 	 */
 	key: string | number
@@ -22,9 +22,10 @@ export type ChartAxisTick = {
 	rotate?: number
 	/**
 	 * Horizontal text anchor along a band (x) axis, overriding the centered
-	 * default: a band's end labels anchor `'start'` (first) and `'end'` (last) so
-	 * they read inward from their position and clear the frame edge without a
-	 * width estimate — the compact tier's first-and-last band labels. Ignored on a
+	 * default. A band's end labels anchor `'start'` (first) and `'end'` (last).
+	 * They therefore read inward from their position, and clear the frame edge
+	 * without a width estimate. These are the compact tier's first-and-last band
+	 * labels. Ignored on a
 	 * value (y) axis, whose gutter labels always right- (or left-) align, and
 	 * where a `rotate` is set, which anchors its own way.
 	 */
@@ -38,17 +39,17 @@ export type ChartAxisProps = {
 	plot: PlotRect
 	ticks: ChartAxisTick[]
 	/**
-	 * Which side of the plot the labels line: the y axis reads `'left'` (the
-	 * default) or `'right'` — a dual-axis chart's secondary gutter — and the x
-	 * axis `'bottom'` (the default) or `'top'`, the same secondary axis under the
+	 * Which side of the plot the labels line. The y axis reads `'left'` (the
+	 * default) or `'right'`, a dual-axis chart's secondary gutter. The x axis
+	 * reads `'bottom'` (the default) or `'top'`, the same secondary axis under the
 	 * horizontal transpose.
 	 */
 	position?: 'left' | 'right' | 'top' | 'bottom'
 	/**
 	 * The axis line's position along the cross axis — the zero line once negative
-	 * values pull it off the plot edge. The x axis reads it as a y (a horizontal
-	 * rule) and defaults to the plot floor; the y axis reads it as an x (a
-	 * vertical rule, for a horizontal chart's category baseline) and draws no line
+	 * values pull it off the plot edge. The x axis reads it as a y, a horizontal
+	 * rule, and defaults to the plot floor. The y axis reads it as an x, a
+	 * vertical rule for a horizontal chart's category baseline, and draws no line
 	 * without it.
 	 */
 	baseline?: number
@@ -62,12 +63,12 @@ export type ChartAxisProps = {
 }
 
 /**
- * One chart axis: the x axis draws the bottom baseline with labels under their
- * positions; the y axis right-aligns labels in the gutter and draws a line only
- * for a horizontal chart's category baseline, otherwise leaving the rule to the
- * gridlines and keeping the chrome recessive. `position` flips either to the
- * plot's far side — labels left-aligned in the right gutter, or hung above the
- * top edge — for a dual-axis chart's secondary scale. An x tick carrying
+ * One chart axis. The x axis draws the bottom baseline, with labels under their
+ * positions. The y axis right-aligns labels in the gutter, and draws a line only
+ * for a horizontal chart's category baseline. It otherwise leaves the rule to
+ * the gridlines, and keeps the chrome recessive. The `position` flips either to
+ * the plot's far side, for a dual-axis chart's secondary scale. Labels are then
+ * left-aligned in the right gutter, or hung above the top edge. An x tick carrying
  * `rotate` draws end-anchored and pivots about its own position instead of
  * hanging centered under it.
  *
@@ -155,9 +156,9 @@ export type ChartAxisTitlesProps = {
 }
 
 /**
- * The value-axis titles, drawn in the bands the layout reserved for them: a
- * rotated label along each titled vertical gutter, a horizontal one under (or
- * over) each titled band axis. Pure chrome — non-interactive, and outside the
+ * The value-axis titles, drawn in the bands the layout reserved for them. A
+ * rotated label runs along each titled vertical gutter, and a horizontal one
+ * under (or over) each titled band axis. Pure chrome — non-interactive, and outside the
  * readout, which names series through the legend and tooltip instead.
  *
  * @internal

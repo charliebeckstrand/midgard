@@ -23,10 +23,10 @@ type Texture = { transform?: string; d?: string; dash?: boolean; dot?: boolean }
 
 /**
  * The texture ladder, keyed to the categorical slot order: two hatch angles,
- * the axis-aligned lines, two crosses, then dots and a dashed diagonal — eight
- * shapes distinct enough that a series reads by its fill alone when colour
- * can't carry it (forced-colors, print, severe CVD). The `zinc` de-emphasis
- * slot sits outside the order and falls back to the first hatch.
+ * the axis-aligned lines, two crosses, then dots and a dashed diagonal. The
+ * eight shapes are distinct enough that a series reads by its fill alone when
+ * colour can't carry it (forced-colors, print, severe CVD). The `zinc`
+ * de-emphasis slot sits outside the order and falls back to the first hatch.
  *
  * @internal
  */
@@ -53,8 +53,8 @@ function textureFor(color: ChartColorSlot): Texture {
 
 /**
  * The hatch drawn over a tile's hue wash. White in both modes so it reads as a
- * streak across the 500/600 fills; `CanvasText` under forced colours, where the
- * wash drops to `Canvas` and the shape's angle carries the identity.
+ * streak across the 500/600 fills. `CanvasText` applies under forced colours,
+ * where the wash drops to `Canvas` and the shape's angle carries the identity.
  *
  * @internal
  */
@@ -134,13 +134,13 @@ export type ChartTexture = {
 
 /**
  * Assembles a chart's texture tiles and a slot-keyed fill resolver. The
- * `<defs>` and URLs are always built — a mark applies them in every mode when
- * `active`, or only where colour is gone (forced colours, print) otherwise — so
- * a chart survives High Contrast Mode without opting in. Tiles de-dupe to the
- * distinct slots, so a two-series chart defines two, not eight; pass every
- * visible series's slot so a combo's bars and areas both resolve. A raw-coloured
- * series carries a `null` slot: it opts out of the categorical palette, takes no
- * tile, and `fillFor` hands it back `undefined` so the mark fills flat.
+ * `<defs>` and URLs are always built. A mark applies them in every mode when
+ * `active`, or only where colour is gone (forced colours, print). A chart thus
+ * survives High Contrast Mode without opting in. Tiles de-dupe to the distinct
+ * slots, so a two-series chart defines two, not eight. Pass every visible
+ * series's slot so a combo's bars and areas both resolve. A raw-coloured series
+ * carries a `null` slot: it opts out of the categorical palette and takes no
+ * tile. `fillFor` hands it back `undefined` so the mark fills flat.
  *
  * @internal
  */
@@ -172,17 +172,17 @@ const SWATCH_BOX = 12
  * dot — lands at the box's centre instead of the tile's. The tile is narrower
  * than the box, so its own centre sits off to one side; this nudges it back.
  * Rotated tiles (the hatches) skip the shift: a diagonal has no centre line to
- * place, and leaving it phased keeps the hatch reading as a hatch.
+ * place. A phased hatch still reads as a hatch.
  *
  * @internal
  */
 const SWATCH_TILE_SHIFT = (SWATCH_BOX - TILE) / 2
 
 /**
- * A legend swatch that mirrors a textured mark: the shared colour key with, for
- * a square (bar / slice) swatch, the slot's hatch laid over it — always when the
- * `texture` prop is on, else only under forced colours and print, where the
- * legend's colour key collapses to one system colour. A `line` swatch is only
+ * A legend swatch that mirrors a textured mark: the shared colour key, with the
+ * slot's hatch laid over a square (bar / slice) swatch. The hatch applies always
+ * when the `texture` prop is on, else only under forced colours and print. There
+ * the legend's colour key collapses to one system colour. A `line` swatch is only
  * 2px tall — too thin to hatch — and its stroke mark carries no fill, so it
  * stays colour-only.
  *
@@ -286,8 +286,8 @@ export function textureStyle(fill: string | undefined): CSSProperties | undefine
 
 /**
  * Fill classes for a textured mark. The tile fill wins with `!` over the slot's
- * colour class: always when `active`, else only under forced colours and print,
- * where the colour channel is already gone. `forced-color-adjust-none` keeps
+ * colour class: always when `active`, else only under forced colours and print.
+ * There the colour channel is already gone. `forced-color-adjust-none` keeps
  * the browser from overriding the tile fill with a system colour.
  *
  * @internal

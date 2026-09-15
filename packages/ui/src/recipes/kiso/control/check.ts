@@ -62,8 +62,8 @@ const base = [...shell, ...surface]
 /**
  * Checked-state accent colours shared by the checkbox and radio kata: each
  * injects the foreground mark, fill, and border into `--check-mark` /
- * `--check-bg` / `--check-border` for one accent. zinc diverges per component
- * (checkbox uses a neutral fill, radio a high-contrast one); each kata
+ * `--check-bg` / `--check-border` for one accent. The zinc accent diverges per
+ * component (checkbox uses a neutral fill, radio a high-contrast one). Each kata
  * defines its own zinc and spreads these four. Literal class strings;
  * Tailwind's scanner extracts them statically.
  */

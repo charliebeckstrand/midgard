@@ -20,31 +20,32 @@ function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number)
 }
 
 /**
- * Pointer handlers for a chart's transparent hit layer: movement snaps the
- * shared hover index — the category `resolveIndex` returns for the frame point,
- * a band for the cartesian charts or the nearest unique-x column for a scatter —
- * and records the exact frame point the tooltip tracks; leaving (or a cancelled
- * pointer) clears both. The chart's `onData` hit test rides along, gating the
+ * Pointer handlers for a chart's transparent hit layer. Movement snaps the
+ * shared hover index, and records the exact frame point the tooltip tracks. The
+ * index is the category `resolveIndex` returns for the frame point. That is a
+ * band for the cartesian charts, or the nearest unique-x column for a scatter.
+ * Leaving the layer, or a cancelled pointer, clears both. The chart's `onData`
+ * hit test rides along, gating the
  * tooltip to the marks while the index keeps the crosshair tracking everywhere.
  *
  * A scroll slides the plot under a stationary pointer without firing a pointer
- * event, so {@link useHoverAcrossScroll} hides the readout while the surface
- * moves and, once it settles, re-runs the same resolve at the pointer's last
- * viewport position — the crosshair and tooltip return over whatever band now
- * sits under it, with no cursor move required.
+ * event. That is why {@link useHoverAcrossScroll} hides the readout while the
+ * surface moves. Once it settles, the hook re-runs the same resolve at the
+ * pointer's last viewport position. The crosshair and tooltip return over
+ * whatever band now sits under it, with no cursor move required.
  *
- * Under the `'click'` trigger the readout is pinned instead of tracked: a click
- * snaps the hover to the band under it, a second click of that same band clears
- * it, and pointer movement leaves the readout be — so the tooltip (and any
+ * Under the `'click'` trigger the readout is pinned instead of tracked. A click
+ * snaps the hover to the band under it, and a second click of that same band
+ * clears it. Pointer movement leaves the readout be, so the tooltip (and any
  * crosshair) stay put until dismissed. Movement only points the cursor, marking
  * the marks a click can read (a snapping chart reads anywhere, so its whole plot
  * stays a pointer). The scroll rescue stands down there; floating-ui's own
  * autoUpdate keeps the pinned readout anchored across a scroll.
  *
- * An `onIndexClick` rides either trigger: a click that resolves to a category
- * reports its index — after the `'click'` trigger's own pin/dismiss toggle, so
- * the two read one gesture — and carries a pointer cursor across the plot so
- * the marks read as clickable. It's the activation channel behind the charts'
+ * An `onIndexClick` rides either trigger. A click that resolves to a category
+ * reports its index. The report comes after the `'click'` trigger's own
+ * pin/dismiss toggle, so the two read one gesture. It also carries a pointer
+ * cursor across the plot, so the marks read as clickable. It's the activation channel behind the charts'
  * public `onCategoryClick`.
  *
  * @remarks The hit element's own bounding box anchors the coordinate math,
@@ -109,13 +110,13 @@ export function useChartPointer(
 
 	// Whether the pointer is currently over the hit layer. The shared hover is also
 	// written by the keyboard, so the scroll rescue reads this to tell a
-	// pointer-owned readout — which it should hide and re-resolve — from a
+	// pointer-owned readout — which it must hide and re-resolve — from a
 	// keyboard-owned one, which a scroll must leave alone.
 	const pointerInside = useRef(false)
 
 	// Resolve hover from a viewport point against the hit element's live box, so
 	// a live pointer move and a post-scroll settle share one hit path. A live move
-	// only fires within the box; a settle may land off it after the plot slid out
+	// only fires within the box; a settle can land off it after the plot slid out
 	// from under the pointer, so `guard` clears rather than snapping to an edge band.
 	const track = useCallback(
 		(clientX: number, clientY: number, guard: boolean) => {

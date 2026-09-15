@@ -1,8 +1,8 @@
 /**
  * The view transform the zoom layer draws through, and the arithmetic every
  * gesture moves it by. It is a scale about the frame origin and a translation,
- * both in frame units, so the projection under it never refits: the fit places
- * the geography once and the transform moves what it placed. Every operation
+ * both in frame units, so the projection under it never refits. The fit places
+ * the geography once, and the transform moves what it placed. Every operation
  * returns a constrained transform, so no caller holds a view the map cannot
  * draw.
  */
@@ -54,18 +54,18 @@ export function sameTransform(a: MapTransform, b: MapTransform): boolean {
  * The transform held inside the limits the map draws within.
  *
  * The scale floor is the fit itself, so the geography never draws smaller than
- * the projection framed it, and the translate is clamped so the frame stays
- * inside the scaled frame — the constraint is expressed against the fitted
- * frame rather than an arbitrary box, so it is the projection's own framing
- * that bounds the pan. At the fit the interval collapses to a point, which is
+ * the projection framed it. The translate is clamped so the frame stays inside
+ * the scaled frame. The constraint is expressed against the fitted frame rather
+ * than an arbitrary box, so the projection's own framing bounds the pan. At the
+ * fit the interval collapses to a point, which is
  * how a zoomed-out map returns to centre without a separate rule.
  *
  * @remarks A fixed `aspectRatio` letterboxes the fit on one axis, and a pan can
  * reach that band at the frame's edge. It is the band the map already shows at
- * rest, so the pan never uncovers ground the fitted view kept hidden; ending it
- * would need the geography's own projected bounds, and a passed `d3` instance
- * has no cached canonical fit to derive those from without a bounds pass on the
- * mount path.
+ * rest, so the pan never uncovers ground the fitted view kept hidden. To end it
+ * would need the geography's own projected bounds. A passed `d3` instance has no
+ * cached canonical fit to derive those from, without a bounds pass on the mount
+ * path.
  *
  * @internal
  */
@@ -85,10 +85,10 @@ export function constrainTransform(
 
 /**
  * Scales the view by `factor` about a frame point, which holds still under the
- * gesture: the ground beneath the pointer stays beneath the pointer, and the
+ * gesture. The ground beneath the pointer stays beneath the pointer, and the
  * pinch's midpoint stays between the fingers. The focus is where the transform
- * draws — the same space the pointer arrives in — so a caller converts the
- * event once and never inverts the transform.
+ * draws, the same space the pointer arrives in. A caller therefore converts the
+ * event once, and never inverts the transform.
  *
  * @internal
  */
@@ -138,7 +138,7 @@ export function panTransform(
 
 /**
  * Pans the view so a frame point draws inside it, `inset` clear of every edge,
- * and holds still where it already does. The keyboard cursor's follow: an arrow
+ * and holds still where it already does. The keyboard cursor's follow. An arrow
  * step onto a region the zoom put off-frame brings the view to it, so the
  * readout always anchors on the plot.
  *

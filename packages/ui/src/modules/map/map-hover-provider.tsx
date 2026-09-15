@@ -32,16 +32,20 @@ function samePoint(a: MapPoint2D | null, b: MapPoint2D | null): boolean {
 }
 
 /**
- * Owns the pointer readout and hands it down split three ways: the stable
- * mover through {@link MapHoverSetContext} — the marks read it, so they never
- * repaint as the pointer travels — the live {@link MapHoverState} through its
- * own context, which only the tooltip reads, and the pointed mark through
- * {@link MapPointedMarkContext}, whose identity holds across a same-mark move
- * so the marks reading it repaint only on discrete crossings. Holding the
- * state here, below {@link MapPlat} and around the plot alone, keeps a pointer
- * move from re-rendering the plat, the legend, or the region layer: the
- * provider re-renders and its stable `children` bail, so the tooltip is the
- * sole subtree that repaints.
+ * Owns the pointer readout and hands it down split three ways:
+ *
+ * - the stable mover through {@link MapHoverSetContext} — the marks read it, so
+ *   they never repaint as the pointer travels
+ * - the live {@link MapHoverState} through its own context, which only the
+ *   tooltip reads
+ * - the pointed mark through {@link MapPointedMarkContext}, whose identity holds
+ *   across a same-mark move so the marks reading it repaint only on discrete
+ *   crossings
+ *
+ * Holding the state here, below {@link MapPlat} and around the plot alone, keeps
+ * a pointer move off the plat, the legend, and the region layer. The provider
+ * re-renders and its stable `children` bail, so the tooltip is the sole subtree
+ * that repaints.
  *
  * @internal
  */

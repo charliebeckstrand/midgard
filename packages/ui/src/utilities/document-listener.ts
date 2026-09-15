@@ -15,7 +15,7 @@ const registries = new Map<string, Registry>()
  * event: deduplication, not top-most-only routing. Returns an unsubscribe fn.
  *
  * Each `handler` must be a distinct function reference (callers pass a fresh
- * closure per effect run); the same reference subscribed twice dedupes in
+ * closure per effect run). The same reference subscribed twice dedupes in
  * the handler set and detaches early on the first unsubscribe.
  */
 export function subscribeDocumentEvent<K extends keyof DocumentEventMap>(

@@ -9,9 +9,9 @@ type KeybindingsOptions = {
 	/** Listener target. @defaultValue window */
 	target?: Window | HTMLElement
 	/**
-	 * Predicate that returns true to skip an event. tinykeys' default skips
-	 * events originating inside form fields and contenteditable elements;
-	 * pass `() => false` to fire regardless of focus (e.g. ⌘K openers).
+	 * Predicate that returns true to skip an event. The tinykeys default skips
+	 * events originating inside form fields and contenteditable elements; pass
+	 * `() => false` to fire regardless of focus (e.g. ⌘K openers).
 	 */
 	ignore?: KeybindingFilter
 }

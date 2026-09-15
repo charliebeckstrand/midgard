@@ -13,17 +13,17 @@ import { useChartTier } from './context'
 
 /**
  * Selective value labels for a line-bearing chart: direct labels at the points
- * worth naming — and, with `references`, beside each reference rule — so a reader
- * gets the numbers without the tooltip. All default off; set any. The full
- * readout stays in the tooltip and data table.
+ * worth naming, and with `references` beside each reference rule. A reader
+ * therefore gets the numbers without the tooltip. All default off; set any. The
+ * full readout stays in the tooltip and data table.
  *
- * `endpoints` and `extremes` apply only to a single-series chart: with more
- * than one series the numbers would crowd between the lines with nowhere
- * reliable to sit, so they stand down and the tooltip carries the readout.
- * When they draw, the chart reserves value-axis room past the data extremes so
- * a label at an edge sits clear of the line instead of flipping onto it; a
- * plot too short to afford that room sheds the point labels whole rather than
- * render them crowded. `references` is unaffected by either rule.
+ * `endpoints` and `extremes` apply only to a single-series chart. With more than
+ * one series the numbers would crowd between the lines with nowhere reliable to
+ * sit. They therefore stand down, and the tooltip carries the readout. When they
+ * draw, the chart reserves value-axis room past the data extremes. A label at an
+ * edge therefore sits clear of the line, instead of flipping onto it. A plot too
+ * short to afford that room sheds the point labels whole, rather than render
+ * them crowded. `references` is unaffected by either rule.
  */
 export type ChartValueLabelConfig = {
 	/**
@@ -39,7 +39,7 @@ export type ChartValueLabelConfig = {
 	/**
 	 * Draw each reference line's value — prefixed by its label where it has one —
 	 * beside the rule at its far end, inked to match the rule. The standing
-	 * readout replaces the rule's hover tooltip: with it on, the rules shed their
+	 * readout replaces the rule's hover tooltip. With it on, the rules shed their
 	 * pointer target and keyboard stop, since the label already reads what the
 	 * tooltip would. The visually-hidden reference list keeps the assistive-tech
 	 * parity either way.
@@ -50,14 +50,14 @@ export type ChartValueLabelConfig = {
 
 /**
  * Selective value labels for a line-bearing chart's single series: direct
- * labels at its endpoints (first / last point) and extremes (min / max), so a
- * reader gets the numbers without the tooltip. The chart layer only feeds this
- * a lone series — a multi-series plot would crowd its labels between lines with
- * no reliable place to put them, so those charts fall back to the tooltip (see
- * {@link resolveValueLabels}). Placement measures every label first and keeps
- * each centred on its own point: one that would overshoot the top or bottom
- * flips to the point's other side — still pinned to its mark — but one that
- * would have to slide sideways to fit the plot hides instead, since a slid
+ * labels at its endpoints (first / last point) and extremes (min / max). A
+ * reader therefore gets the numbers without the tooltip. The chart layer only
+ * feeds this a lone series. A multi-series plot would crowd its labels between
+ * lines with no reliable place to put them. Those charts fall back to the
+ * tooltip (see {@link resolveValueLabels}). Placement measures every label
+ * first, and keeps each centred on its own point. One that would overshoot the
+ * top or bottom flips to the point's other side, still pinned to its mark. One
+ * that would have to slide sideways to fit the plot hides instead, since a slid
  * label lands on the neighbouring marks. Overlaps resolve by priority: extremes
  * outrank endpoints, and a label whose box meets one already placed is dropped
  * rather than stacked. The placement is pure and unit-testable; the
@@ -72,20 +72,20 @@ const HALF = HEIGHT / 2
 
 /**
  * The value-axis room a chart reserves past its data extremes for the labels:
- * the label's footprint (its offset from the point plus its height — exactly
- * the threshold {@link place} flips a clipping label at) plus slack, so the
- * reserved gap sits safely past that threshold rather than exactly on it. A
- * reservation that only met the threshold would leave every extreme's label on
- * the flip boundary, and a resize would dance it across — above, below, above —
- * landing it on the line each time it flips. @internal
+ * the label's footprint plus slack. That footprint is its offset from the point
+ * plus its height, exactly the threshold {@link place} flips a clipping label
+ * at. The reserved gap therefore sits safely past that threshold, rather than
+ * exactly on it. A reservation that only met the threshold would leave every
+ * extreme's label on the flip boundary. A resize would dance it across — above,
+ * below, above — landing it on the line each time it flips. @internal
  */
 export const VALUE_LABEL_HEADROOM = OFFSET + HEIGHT + 4
 
 /**
- * The headroom a chart passes for its point value labels: the
+ * The headroom a chart passes for its point value labels. It is the
  * {@link VALUE_LABEL_HEADROOM} footprint when a single-series chart switches
- * `endpoints` or `extremes` on — endpoints can sit at the data extremes too, so
- * both switches reserve — and nothing otherwise, matching the single-series
+ * `endpoints` or `extremes` on, and nothing otherwise. Endpoints can sit at the
+ * data extremes too, so both switches reserve. That matches the single-series
  * gate in {@link resolveValueLabels}. The layout answers whether the ask was
  * affordable through `valueLabelRoom`; a chart draws the labels only while it
  * holds.
@@ -105,14 +105,17 @@ export function valueLabelHeadroom(
 export type ValueLabelPoint = { x: number; y: number; value: number }
 
 /**
- * Pairs a series' rendered points with the values behind them. Two point
- * shapes reach this: a gap-skipping line (or unstacked area), whose `points`
- * already drop the null categories, so the finite values align one-to-one with
- * them in draw order; and a stacked ribbon's continuous top edge, whose
- * `points` carry one entry per category — nulls included — so each reads its
- * value straight off `values[index]` and a null category takes no label. The
- * point position, not the raw value, sets the label anchor, so a stacked ribbon
- * labels each series at its own edge.
+ * Pairs a series' rendered points with the values behind them. Two point shapes
+ * reach this:
+ *
+ * - A gap-skipping line (or unstacked area), whose `points` already drop the
+ *   null categories. The finite values align one-to-one with them in draw order.
+ * - A stacked ribbon's continuous top edge, whose `points` carry one entry per
+ *   category, nulls included. Each reads its value straight off `values[index]`,
+ *   and a null category takes no label.
+ *
+ * The point position, not the raw value, sets the label anchor, so a stacked
+ * ribbon labels each series at its own edge.
  *
  * @param gapSkipped Whether `points` already dropped the null categories (a
  * line's gap-split geometry) rather than carrying one entry per category (a
@@ -152,9 +155,9 @@ export type ValueLabelSeries = {
 }
 
 /**
- * Builds the label series from a line / area render list and its metas: each
- * series' rendered points paired with its values, inked to match its mark and —
- * where `formats` is given — formatted by its own axis's formatter. Keeps the
+ * Builds the label series from a line / area render list and its metas. Each
+ * series' rendered points pair with its values, inked to match its mark. Where
+ * `formats` is given, its own axis's formatter does the formatting. Keeps the
  * charts' own bodies flat — they hand this to {@link resolveValueLabels} as the
  * deferred builder.
  *
@@ -279,11 +282,11 @@ function candidatesFor(
 
 /**
  * Resolves a candidate to its placed label and collision box, or `null` where
- * it no longer fits. The label stays centred on its own point: clipping the top
- * or bottom flips it to the point's other side — vertically it never leaves its
- * mark — but a box that would cross the plot's sides hides rather than sliding
- * inward, since a slid label lands on the neighbouring marks, which is where a
- * small frame forces it.
+ * it no longer fits. The label stays centred on its own point. Clipping the top
+ * or bottom flips it to the point's other side, and vertically it never leaves
+ * its mark. A box that would cross the plot's sides hides rather than sliding
+ * inward. A slid label lands on the neighbouring marks, which is where a small
+ * frame forces it.
  *
  * @internal
  */
@@ -326,8 +329,8 @@ function overlaps(a: Box, b: Box): boolean {
 }
 
 /**
- * Places the selective value labels across every series, highest rank first,
- * dropping any that no longer fits its natural spot and any whose box meets one
+ * Places the selective value labels across every series, highest rank first. It
+ * drops any that no longer fits its natural spot, and any whose box meets one
  * already placed.
  *
  * @internal
@@ -357,8 +360,8 @@ export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
 }
 
 /**
- * Each visible series' value formatter, bound to its own value axis so a
- * dual-axis chart labels a currency series against `y` and a percent against
+ * Each visible series' value formatter, bound to its own value axis. A dual-axis
+ * chart therefore labels a currency series against `y` and a percent against
  * `y2`. The formatter array {@link resolveValueLabels} reads, built one way by
  * the line, area, and combo charts.
  *
@@ -372,15 +375,16 @@ export function axisLabelFormats(
 }
 
 /**
- * Gates the labels on the `labels` config and builds them from a line / area
- * render list: an empty (or absent) config draws none, so a chart calls this
- * with one flat statement and keeps its own branching under budget. The series
- * are built only when a label is actually asked for.
+ * Gates the labels on the `labels` config, and builds them from a line / area
+ * render list. An empty (or absent) config draws none. A chart therefore calls
+ * this with one flat statement, and keeps its own branching under budget. The
+ * series are built only when a label is actually asked for.
  *
- * Point labels are a single-series feature: with more than one labelable series
+ * Point labels are a single-series feature. With more than one labelable series
  * (`list`), the numbers would crowd between the lines with no reliable place to
- * sit, so the labels stand down and the tooltip carries the readout. Reference
- * labels are unaffected — they route through the reference rules, not here.
+ * sit. The labels therefore stand down, and the tooltip carries the readout.
+ * Reference labels are unaffected — they route through the reference rules, not
+ * here.
  *
  * @internal
  */
@@ -413,16 +417,17 @@ const LABEL_INK = 'text-xs font-semibold tabular-nums'
  * labels never take the pointer. Under `animate` each fades in once its line has
  * drawn, the same beat as the point markers.
  *
- * Self-gating at spark through {@link ChartTierContext}: a sparkline is bare
+ * Self-gating at spark through {@link ChartTierContext}. A sparkline is bare
  * marks, so the endpoint and extreme labels stand down with the rest of the
- * chrome — a chart passes its placed labels through and leaves the tier to the
+ * chrome. A chart passes its placed labels through, and leaves the tier to the
  * frame.
  *
  * Under `animate` each label fades in once its line has drawn, the same beat as
- * the point markers, and — on a genuine data change — fades out with the
- * outgoing marks before the new labels fade in: the group is keyed by
+ * the point markers. On a genuine data change it fades out with the outgoing
+ * marks, before the new labels fade in. The group is keyed by
  * {@link ChartValueLabelsProps.dataKey} inside an `AnimatePresence`, mirroring
- * the marks layer, so the labels transition in step with the data they annotate.
+ * the marks layer. The labels therefore transition in step with the data they
+ * annotate.
  * A reduced-motion preference pins the key steady, so the new labels swap in
  * place. (The per-label keys are geometry-derived, so a resize already remounts
  * them; the generation key sits above that and only swaps on a data change.)

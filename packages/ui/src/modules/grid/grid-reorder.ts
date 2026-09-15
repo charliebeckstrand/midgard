@@ -12,7 +12,7 @@ import { columnShiftVar } from './engine/grid-reorder-compute'
  * The id of the column being drag-reordered, or `null` when idle. Provided by
  * the grid around the sortable region and read by each reordering body cell so
  * only the dragged column's cells carry the `data-dragging` lift. The value
- * changes just at drag start and end — the per-frame translate rides a CSS
+ * changes just at drag start and end. The per-frame translate rides a CSS
  * variable instead (see {@link columnShiftStyle}), so a drag re-renders the body
  * cells twice, not on every pointer move.
  *
@@ -24,13 +24,13 @@ export const [GridReorderContext] = createContext<string | null>('GridReorder', 
 
 /**
  * Drives a reordering column's shift onto the CSS variable {@link columnShiftStyle}
- * reads, so the whole column — its header and every body cell — moves from one
- * variable without re-rendering a cell. Only the make-room shifts of an in-flight
- * drag spring: the actively dragged column tracks the pointer 1:1 (a spring would
- * lag the cursor), and once the drag ends (`!isSorting`) every column snaps
- * straight to its committed slot — there is no second animation gliding columns
- * "home", which on an index-keyed variable would spring each from the value the
- * previous occupant left. Reduced motion snaps everything (WCAG 2.3.3).
+ * reads. The whole column — its header and every body cell — therefore moves
+ * from one variable, without re-rendering a cell. Only the make-room shifts of an
+ * in-flight drag spring. The actively dragged column tracks the pointer 1:1,
+ * because a spring would lag the cursor. Once the drag ends (`!isSorting`) every
+ * column snaps straight to its committed slot. There is no second animation
+ * gliding columns "home", which on an index-keyed variable would spring each from
+ * the value the previous occupant left. Reduced motion snaps everything (WCAG 2.3.3).
  *
  * @param tableRef - The enclosing `<table>` the variable lives on; it cascades to the column's cells.
  * @param index - The column's visible index, keying its variable.

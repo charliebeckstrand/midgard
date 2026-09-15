@@ -25,9 +25,9 @@ type InputFrameProps = {
 
 /**
  * Density-scoped affix frame around the bare `<input>`. One definition of
- * "present" for both the wrapper class and the render guards: a null/false
- * affix styles the frame while rendering nothing, and `0` would leak as a bare
- * text node through a plain `&&`.
+ * "present" serves both the wrapper class and the render guards. A null or
+ * false affix styles the frame while rendering nothing, and `0` would leak as a
+ * bare text node through a plain `&&`.
  *
  * @internal
  */

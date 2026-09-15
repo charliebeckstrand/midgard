@@ -59,10 +59,9 @@ function resolveMessageElementId(
 
 /**
  * Validation or status feedback for a form control. The `error` severity renders
- * `role="alert"`, registers its id into the field's `aria-describedby`, and —
- * when bound to a form field by `name` — auto-renders that field's first error
- * (or every error as a `<ul>` with `all`), suppressing itself when there are
- * none. The `success` severity renders `role="status"` from its children and
+ * `role="alert"` and registers its id into the field's `aria-describedby`. Bound
+ * to a form field by `name`, it auto-renders that field's first error, or every
+ * error as a `<ul>` with `all`. It suppresses itself when there are none. The `success` severity renders `role="status"` from its children and
  * does not register as a description.
  *
  * @remarks A nested `<Message>` is presentational: it does not mark the control

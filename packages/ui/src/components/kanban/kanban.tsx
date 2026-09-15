@@ -33,9 +33,9 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 
 /**
  * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
- * by pointer drag (with a drag overlay) or keyboard lift, emitting the next
- * `columns` array through `onReorder`; the board is read-only when
- * `onReorder` is omitted or `disabled` is set. Shares drag/keyboard state
+ * by pointer drag (with a drag overlay) or keyboard lift, and emits the next
+ * `columns` array through `onReorder`. The board is read-only when `onReorder`
+ * is omitted or `disabled` is set. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
  * Compose the column header/body slots within.
  *

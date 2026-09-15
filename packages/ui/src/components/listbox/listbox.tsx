@@ -59,7 +59,7 @@ type ListboxBaseProps = {
 	nullable?: boolean
 	/**
 	 * Truncates the selected-value label when it overflows the trigger.
-	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
+	 * Set `false` to let the trigger grow to fit its content. That suits a
 	 * `<Group>` or another content-sized parent that collapses the label.
 	 * @defaultValue true
 	 */
@@ -84,8 +84,8 @@ type ListboxBaseProps = {
 	 * The widget already computes this — it is what marks a bound field touched —
 	 * and kept it. The prop bag is closed, with no rest spread and no `ref`, so a
 	 * caller had no other way to hear it. A blur into the portalled panel is not a
-	 * departure and never fires, which is the part a native `onBlur` on the trigger
-	 * would get wrong: the panel is portalled, so focus moving into it reads as
+	 * departure and never fires. That is the part a native `onBlur` on the trigger
+	 * would get wrong. The panel is portalled, so focus moving into it reads as
 	 * leaving the trigger.
 	 */
 	onBlur?: (event: FocusEvent<HTMLButtonElement>) => void
@@ -114,8 +114,8 @@ type ListboxMultipleProps<T> = {
 
 /**
  * Props for {@link Listbox}: the shared base (`name`, sizing, `clearable`,
- * `nullable`, open-state control, …) and an optional `displayValue` formatter,
- * discriminated on `multiple` into single- or array-valued value/handler shapes.
+ * `nullable`, open-state control, …) and an optional `displayValue` formatter.
+ * They are discriminated on `multiple` into single- or array-valued value/handler shapes.
  *
  * @typeParam T - The option value type.
  */
@@ -352,9 +352,9 @@ export function Listbox<T>({
 			{/* `display: contents` wrapper: while open, `FloatingFocusManager` inserts a
 			    hidden return-focus span as the reference's next sibling
 			    (`domReference.insertAdjacentElement('afterend', …)`). Scoping the trigger
-			    and panel under it keeps the control a single DOM child of its parent, so a
-			    `space-y`/`gap` container doesn't shift when the panel opens; `contents`
-			    leaves the trigger the flex/grid item it was. Mirrors `DatePicker`. */}
+			    and panel under it keeps the control a single DOM child of its parent. A
+			    `space-y`/`gap` container therefore doesn't shift when the panel opens.
+			    `contents` leaves the trigger the flex/grid item it was. Mirrors `DatePicker`. */}
 			<div className="contents">
 				<SelectTrigger
 					open={open}

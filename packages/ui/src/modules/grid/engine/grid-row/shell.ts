@@ -12,9 +12,9 @@ import {
 } from './cell'
 
 /**
- * Runs `activate` when Enter or Space lands on the element itself — not on a
- * descendant, so interactive inner content keeps its own key behaviour — and
- * suppresses the default (a Space scroll, an Enter click) first. The one
+ * Runs `activate` when Enter or Space lands on the element itself, and
+ * suppresses the default (a Space scroll, an Enter click) first. A descendant is
+ * exempt, so interactive inner content keeps its own key behaviour. The one
  * keyboard-activation gate the row shell and the roving cells share.
  *
  * @internal
@@ -31,10 +31,10 @@ function activateOnEnterSpace<E extends Element>(
 }
 
 /**
- * The row's DOM handler for a click or double-click: a click on interactive
- * cell content defers to that content; otherwise the cell-level handler fires
- * first — when the event landed on a data cell — then the row-level one,
- * matching the DOM's inside-out event order. `undefined` when the row carries
+ * The row's DOM handler for a click or double-click. A click on interactive
+ * cell content defers to that content. Otherwise the cell-level handler fires
+ * first, when the event landed on a data cell, then the row-level one. That
+ * matches the DOM's inside-out event order. `undefined` when the row carries
  * neither, so an inert row attaches no handler.
  *
  * @internal
@@ -63,7 +63,7 @@ function rowPointerHandler<T>(args: {
 	}
 }
 
-/** The four row/cell click handlers a row may carry; any one makes it read as clickable. @internal */
+/** The four row/cell click handlers a row can carry; any one makes it read as clickable. @internal */
 type GridRowShellHandlers<T> = {
 	onRowClick?: GridRowClick<T>
 	onCellClick?: GridCellClick<T>
@@ -104,11 +104,15 @@ type GridRowShellArgs<T> = GridRowShellHandlers<T> & {
 }
 
 /**
- * The `<tr>` wiring every row renderer shares: the identifying and state
- * `data-*`/`aria-*` attributes, the pointer handlers (cell-level first, then
- * row-level — see {@link rowPointerHandler}), and the Enter / Space keyboard
- * activation gated to the row itself. Callers spread this and layer their own
- * layout, focus, and animation props on top.
+ * The `<tr>` wiring every row renderer shares:
+ *
+ * - the identifying and state `data-*`/`aria-*` attributes;
+ * - the pointer handlers, cell-level first and then row-level (see
+ *   {@link rowPointerHandler});
+ * - the Enter / Space keyboard activation, gated to the row itself.
+ *
+ * Callers spread this and layer their own layout, focus, and animation props on
+ * top.
  *
  * @internal
  */
@@ -152,9 +156,9 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
 }
 
 /**
- * A data row's global `aria-rowindex`: the header occupies row 1, so data rows
- * are offset by 2, plus the page offset so a paginated (or windowed) row
- * reports its place in the full set.
+ * A data row's global `aria-rowindex`. The header occupies row 1, so data rows
+ * are offset by 2. The page offset is added too, so a paginated (or windowed)
+ * row reports its place in the full set.
  *
  * @internal
  */
@@ -163,10 +167,13 @@ export function ariaRowIndex(rowIndexOffset: number, index: number): number {
 }
 
 /**
- * The roving attributes a focusable data cell carries in cell mode: the
+ * The roving attributes a focusable data cell carries in cell mode. They are the
  * `data-roving` marker the grid's roving hook seats a `tabIndex` on, and an
- * Enter / Space handler that activates the cell — gated to the cell itself so an
- * inner control keeps its own key behaviour. `null` outside cell roving. @internal
+ * Enter / Space handler that activates the cell. That handler is gated to the
+ * cell itself, so an inner control keeps its own key behaviour. `null` outside
+ * cell roving.
+ *
+ * @internal
  */
 export function cellRovingAttrs<T>(args: {
 	cellRoving: boolean

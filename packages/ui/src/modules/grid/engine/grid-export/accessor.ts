@@ -10,8 +10,8 @@ export function escapeMarkup(value: string): string {
 
 /**
  * {@link escapeMarkup} plus the two quote entities. XML text nodes don't need
- * them, but the worksheet has always written them and a reader may hold the
- * bytes; HTML text keeps the shorter form, where `&apos;` is not a legacy
+ * them, but the worksheet has always written them and a reader can hold the
+ * bytes. HTML text keeps the shorter form, where `&apos;` is not a legacy
  * entity every clipboard parser resolves.
  *
  * @internal
@@ -27,9 +27,9 @@ export function cellText(value: unknown): string {
 
 /**
  * Data columns (selection/actions columns skipped), each resolved once to its
- * export label and {@link columnAccessor} — so a per-row export loop reads them
- * directly rather than re-branching on `value` for every cell, and exports the
- * same values sort, filter, and aggregation read.
+ * export label and {@link columnAccessor}. A per-row export loop therefore reads
+ * them directly rather than re-branching on `value` for every cell. It exports
+ * the same values sort, filter, and aggregation read.
  *
  * @internal
  */

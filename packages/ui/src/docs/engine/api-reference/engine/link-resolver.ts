@@ -16,9 +16,9 @@ export type LinkIndex = {
 /**
  * Index every declaration a `{@link}` can target, keyed by name. TSDoc links
  * resolve across files without an import, so resolution can't lean on lexical
- * scope; this maps every PascalCase top-level declaration in project source to
- * its symbol, which `resolve` turns into hover detail (signature + summary) on
- * demand.
+ * scope. This maps every PascalCase top-level declaration in project source to
+ * its symbol, and `resolve` turns that into hover detail (signature and
+ * summary) on demand.
  *
  * One build serves both lookups, because the walk covers every file in the
  * program. `extraction.bench.ts` measures it; measure there rather than through

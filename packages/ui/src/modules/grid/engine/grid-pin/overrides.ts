@@ -7,9 +7,9 @@ export type PinSide = 'left' | 'right'
 /**
  * Runtime pin changes keyed by stringified column id, layered over the static
  * {@link GridColumn.pinned} flags: a side pins the column, `'none'` unpins a
- * statically-pinned one. The header menu and column manager write here — through
- * the `pinning` binding's state — so a column can be frozen or released without
- * touching the column definitions.
+ * statically-pinned one. The header menu and column manager write here, through
+ * the `pinning` binding's state. A column can therefore be frozen or released
+ * without touching the column definitions.
  *
  * @internal
  */
@@ -35,9 +35,9 @@ export function toPinOverrides(state: GridPinningState | undefined): PinOverride
 }
 
 /**
- * A column's frozen edge from a `pinned` / `locked` flag, normalized: `'right'`
- * stays right, any other truthy value collapses to `'left'`, and an absent flag
- * is `undefined`.
+ * A column's frozen edge from a `pinned` / `locked` flag, normalized. A
+ * `'right'` flag stays right, any other truthy value collapses to `'left'`, and
+ * an absent flag is `undefined`.
  *
  * @internal
  */
@@ -60,8 +60,9 @@ export function isLocked<T>(column: GridColumn<T>): boolean {
 
 /**
  * A column's effective frozen edge: its {@link GridColumn.locked} side when
- * locked (the immutable freeze), else its {@link GridColumn.pinned} side (the
- * one the header menu and column manager move). `undefined` when the column
+ * locked, which is the immutable freeze. Otherwise it is its
+ * {@link GridColumn.pinned} side, the one the header menu and column manager
+ * move. `undefined` when the column
  * scrolls. This is the single resolution the engine, the column slice, the
  * header, and the menus all read.
  *
@@ -78,9 +79,9 @@ export function isFrozen<T>(column: GridColumn<T>): boolean {
 
 /**
  * Overlays the menu's {@link PinOverrides} onto each column's static `pinned`
- * flag, cloning only the columns an override touches — and returning the input
- * array untouched when there are none — so unrelated columns keep their identity
- * (and the downstream `visibleColumns` reference reuse holds). A locked column is
+ * flag. It clones only the columns an override touches, and returns the input
+ * array untouched when there are none. Unrelated columns therefore keep their
+ * identity, and the downstream `visibleColumns` reference reuse holds. A locked column is
  * skipped: its freeze is immutable, so an override never alters it.
  *
  * @internal
@@ -124,9 +125,9 @@ export type PinMenuChoice = {
 }
 
 /**
- * The pin choices a column's menu offers, from its current frozen edge: "Pin
- * left" / "Pin right" for the edges it is not already frozen to, and "Unpin"
- * once it is frozen. A scrolling column offers both edges; a left-pinned one
+ * The pin choices a column's menu offers, from its current frozen edge. They are
+ * "Pin left" / "Pin right" for the edges it is not already frozen to, and
+ * "Unpin" once it is frozen. A scrolling column offers both edges; a left-pinned one
  * offers Pin right and Unpin, and vice versa. The one decision tree behind the
  * header context menu's pin items and the column manager's pin control.
  *

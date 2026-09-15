@@ -13,21 +13,25 @@ import { useFloatingPanel } from '../../hooks'
 import type { PdfViewerMagnifierOptions } from './types'
 
 /**
- * The hover loupe's state: whether it is open, where on the page the pointer is, and the
- * floating-ui plumbing that puts the lens beside the cursor.
+ * The hover loupe's state:
+ *
+ * - Whether it is open.
+ * - Where on the page the pointer is.
+ * - The floating-ui plumbing that puts the lens beside the cursor.
  *
  * @remarks Hovering comes from floating-ui rather than from timers and listeners written
- * here. `useHover`'s open delay is the dwell, and `useClientPoint` is what makes the cursor the
- * positioning reference — so the lens follows the pointer with the same collision handling
- * (`shift`, `flip`) every other floating surface in the package gets, and stays on screen at
- * the edges of the page instead of hanging off them.
+ * here. `useHover`'s open delay is the dwell, and `useClientPoint` is what makes the cursor
+ * the positioning reference. The lens therefore follows the pointer with the same collision
+ * handling (`shift`, `flip`) every other floating surface in the package gets. It stays on
+ * screen at the edges of the page, instead of hanging off them.
  *
- * The one thing floating-ui does not supply is where the pointer is *within the page*, which
- * is what decides which part of the scan the lens shows. That is tracked here, in the frame's
+ * The one thing floating-ui does not supply is where the pointer is *within the page*. That
+ * is what decides which part of the scan the lens shows. It is tracked here, in the frame's
  * own coordinate space, so it composes with the page transform without knowing the rotation.
  *
- * Which is also why the pan is handled here and cannot be (see {@link handlePan}): floating-ui
- * reasons about pointers, and a pan is the one gesture that moves the page *without* one.
+ * Which is also why the pan is handled here and cannot be (see {@link handlePan}). The
+ * floating-ui library reasons about pointers, and a pan is the one gesture that moves the
+ * page *without* one.
  *
  * @internal
  */
@@ -41,9 +45,9 @@ export type MagnifierChoice = Required<Omit<PdfViewerMagnifierOptions, 'mode'>>
 /**
  * The same three settings, in the numbers the lens draws with.
  *
- * @remarks The seam the named steps exist for. Everything below this line — the dwell handed
- * to `useHover`, the diameter the lens is sized to, the magnification {@link lensOffset}
- * solves against — is arithmetic, and arithmetic has no use for a token. So the steps are
+ * @remarks The seam the named steps exist for. Everything below this line is arithmetic, and
+ * arithmetic has no use for a token. That is the dwell handed to `useHover`, the diameter the
+ * lens is sized to, and the magnification {@link lensOffset} solves against. So the steps are
  * resolved once, here, and the rest of the loupe never learns that they exist.
  * @internal
  */
@@ -58,10 +62,10 @@ const DEFAULT_CHOICE: MagnifierChoice = { zoom: 'md', size: 'md', delay: 'defaul
 /*
  * Each scale twice over: the number the lens draws with, and the option the dialog offers.
  *
- * The two halves sit together because they drift apart in silence — retune `zoomSteps.lg` and
- * a label three files away goes on claiming 4×, with no type error and no failing test to say
- * so. Same arrangement, for the same reason, as `densityLevels` beside `densityToSize` in
- * `providers/density/context.ts`.
+ * The two halves sit together because they drift apart in silence. A retune of
+ * `zoomSteps.lg` leaves a label three files away claiming 4×, with no type error and no
+ * failing test to say so. Same arrangement, for the same reason, as `densityLevels` beside
+ * `densityToSize` in `providers/density/context.ts`.
  */
 
 /** Magnification for each step. */
@@ -141,7 +145,7 @@ export type MagnifierPoint = { x: number; y: number }
  * @remarks With the origin pinned there, a point `p` maps to `offset + zoom * p`; solving for
  * the offset that puts it at the lens's centre gives `centre - zoom * p`.
  *
- * Pure, and exported for the same reason {@link toFractionRect} is: it is the one seam where
+ * Pure, and exported for the same reason {@link toFractionRect} is. It is the one seam where
  * this arithmetic is provable without a measured DOM and a real floating engine, neither of
  * which jsdom has.
  */
@@ -167,9 +171,9 @@ export type PdfViewerMagnifierResult = {
 /**
  * Drives the hover loupe over the page.
  *
- * @param settings - Resolved settings, or `null` when the consumer did not ask for a loupe —
- * in which case every interaction hook is disabled and the reference props are empty, so a
- * viewer without one pays nothing but a disabled hook.
+ * @param settings - Resolved settings, or `null` when the consumer did not ask for a loupe.
+ * In that case every interaction hook is disabled and the reference props are empty. A viewer
+ * without one therefore pays nothing but a disabled hook.
  * @internal
  */
 export function usePdfViewerMagnifier(
@@ -186,18 +190,18 @@ export function usePdfViewerMagnifier(
 	 * The pointer, in both spaces, in one piece of state.
 	 *
 	 * Frame-local coordinates decide which part of the scan the lens shows; client coordinates
-	 * are what positions the lens itself. One object rather than two states because they are
-	 * read from the same event and must never disagree — a lens positioned from one move and
+	 * are what positions the lens itself. One object rather than two states, because they are
+	 * read from the same event and must never disagree. A lens positioned from one move and
 	 * filled from another would show the wrong ink for exactly one frame.
 	 *
 	 * **The ref holds the client point until the lens is open, and only then does state carry
 	 * both.** This hook lives in `usePdfViewer`, so a state write here re-renders the whole
-	 * viewer — toolbar (ten floating stacks and a per-page Listbox), thumbnail rail, highlight
-	 * provider and every region on the page. A pointer merely crossing the scan on its way to
-	 * the toolbar does that 60-120 times a second for a lens that never appears, and the dwell
-	 * is 300ms, so most crossings never open one. The client point is all the open edge needs:
-	 * {@link locate} derives the frame-local one from it against a fresh rect. A closed lens
-	 * therefore pays no `getBoundingClientRect` per move.
+	 * viewer. That is the toolbar (ten floating stacks and a per-page Listbox), the thumbnail
+	 * rail, the highlight provider, and every region on the page. A pointer merely crossing the
+	 * scan on its way to the toolbar does that 60-120 times a second, for a lens that never
+	 * appears. The dwell is 300ms, so most crossings never open one. The client point is all
+	 * the open edge needs: {@link locate} derives the frame-local one from it against a fresh
+	 * rect. A closed lens therefore pays no `getBoundingClientRect` per move.
 	 */
 	const trackingRef = useRef<MagnifierPoint | null>(null)
 
@@ -211,10 +215,10 @@ export function usePdfViewerMagnifier(
 	/**
 	 * The frame, kept from the events that already carry it — see {@link track}.
 	 *
-	 * Not floating-ui's `domReference`, though it holds the same node: `useClientPoint` makes
-	 * the *cursor* the positioning reference, so which of that hook's refs still points at the
-	 * page is its business and not a thing to depend on. The pointer events are already
-	 * delivered by the frame; `currentTarget` is the frame by construction.
+	 * Not floating-ui's `domReference`, though it holds the same node. `useClientPoint` makes
+	 * the *cursor* the positioning reference. Which of that hook's refs still points at the
+	 * page is therefore its business, and not a thing to depend on. The pointer events are
+	 * already delivered by the frame; `currentTarget` is the frame by construction.
 	 */
 	const frameRef = useRef<HTMLElement | null>(null)
 
@@ -223,11 +227,11 @@ export function usePdfViewerMagnifier(
 	 *
 	 * The tracked point is two facts with different shelf lives. Client coordinates stay true
 	 * until the pointer moves, and the pointer reports every move. Frame-local coordinates stop
-	 * being true the moment anything moves the frame — a pan, a zoom step, a rotation — and
-	 * none of those is a pointer event, so nothing tells the lens its ink went stale. Re-deriving
-	 * one from the other at each moment the lens is about to paint costs a `getBoundingClientRect`
-	 * on an edge that happens at most twice per dwell, and makes every one of those cases the
-	 * same case.
+	 * being true the moment anything moves the frame: a pan, a zoom step, a rotation. None of
+	 * those is a pointer event, so nothing tells the lens its ink went stale. Re-deriving one
+	 * from the other at each moment the lens is about to paint costs a `getBoundingClientRect`.
+	 * That edge happens at most twice per dwell, and it makes every one of those cases the same
+	 * case.
 	 */
 	const locate = useCallback((): Tracking | null => {
 		const client = trackingRef.current
@@ -243,7 +247,7 @@ export function usePdfViewerMagnifier(
 
 	/*
 	 * Opening re-locates whatever the ref last saw, so the lens has true coordinates on the
-	 * frame it first paints; closing drops them rather than leaving a stale point behind.
+	 * frame it first paints. Closing drops them, rather than leaving a stale point behind.
 	 */
 	const handleOpenChange = useCallback(
 		(next: boolean) => {
@@ -285,9 +289,9 @@ export function usePdfViewerMagnifier(
 	 * left for the hook to observe.
 	 *
 	 * Gating this on `open` was the bug behind the lens appearing far to the right and then
-	 * snapping: on the tick the dwell fired, the hook had just been enabled and had recorded
-	 * nothing, so floating-ui positioned against the reference *element* — putting the lens
-	 * 24px past the whole page frame's right edge until the next pointer move gave it a real
+	 * snapping. On the tick the dwell fired, the hook had just been enabled and had recorded
+	 * nothing. The engine then positioned against the reference *element*. That put the lens
+	 * 24px past the whole page frame's right edge, until the next pointer move gave it a real
 	 * point. Handing it the coordinates already tracked above means the reference is the cursor
 	 * from the first frame the lens exists.
 	 */
@@ -300,7 +304,7 @@ export function usePdfViewerMagnifier(
 	const { getReferenceProps, getFloatingProps } = useInteractions([hover, clientPoint])
 
 	/*
-	 * Record the pointer. Also on enter, not only on move: a pointer that arrives and stops
+	 * Record the pointer. Also on enter, not only on move. A pointer that arrives and stops
 	 * fires no further move, and the dwell would then elapse with nothing tracked.
 	 *
 	 * Writes state only while the lens is open — see {@link trackingRef}.
@@ -355,16 +359,16 @@ export function usePdfViewerMagnifier(
 	/**
 	 * A pan withdraws the lens, and the page has to come to rest before it returns.
 	 *
-	 * A pan is the one gesture that moves the page under a pointer that has not moved, which
-	 * makes it the one the loupe cannot see: no pointer event fires, so the lens keeps holding
-	 * the ink it was filled with several hundred pixels ago and reads as pinned to the wrong
-	 * place. Following the scroll instead would be worse — a lens that repaints every frame of
-	 * a pan is a smear over the very page the reader is trying to move.
+	 * A pan is the one gesture that moves the page under a pointer that has not moved. That
+	 * makes it the one the loupe cannot see. No pointer event fires. The lens therefore keeps
+	 * holding the ink it was filled with several hundred pixels ago, and reads as pinned to the
+	 * wrong place. Following the scroll instead would be worse. A lens that repaints every
+	 * frame of a pan is a smear over the very page the reader is trying to move.
 	 *
 	 * So it leaves, and comes back the way it first arrived: after the same dwell. The pause is
-	 * doing the same work at the end of a pan that it does at the start of a hover — reading the
-	 * reader's stillness as the moment they have chosen somewhere to look — and reusing the
-	 * setting rather than inventing a second one means a consumer that tuned the dwell has
+	 * doing the same work at the end of a pan that it does at the start of a hover. It reads
+	 * the reader's stillness as the moment they have chosen somewhere to look. Reusing the
+	 * setting, rather than inventing a second one, means a consumer that tuned the dwell has
 	 * tuned this too.
 	 */
 	const handlePan = useCallback(() => {
@@ -397,11 +401,11 @@ export function usePdfViewerMagnifier(
 	 *
 	 * A scroll event does not bubble, so a handler on the viewer's own viewport hears only the
 	 * pans the reader makes inside it. The page moves under the lens just as far when the
-	 * scroller is a drawer around the viewer or the document itself, and neither of those
-	 * reaches a prop on the viewport. Caught on the way down instead, where every scroll in the
+	 * scroller is a drawer around the viewer, or the document itself. Neither of those reaches
+	 * a prop on the viewport. Caught on the way down instead, where every scroll in the
 	 * document passes through — {@link handlePan} answers for the cost of that.
 	 *
-	 * A pending re-open does not outlive the loupe being switched off, so a reader who turns it
+	 * A pending re-open does not outlive the loupe being switched off. A reader who turns it
 	 * off and back on inside one dwell does not get a lens they never hovered for.
 	 */
 	useEffect(() => {
@@ -433,10 +437,10 @@ export function usePdfViewerMagnifier(
 	}, [enabled, handlePan])
 
 	/*
-	 * Memoized because this object is a dependency of `usePdfViewer`'s context memo, whose
-	 * whole purpose is to keep the viewer's context identity stable across renders that touch
-	 * none of its fields. A fresh literal here would retire that guarantee for every consumer,
-	 * magnifier or not.
+	 * Memoized because this object is a dependency of `usePdfViewer`'s context memo. That
+	 * memo's whole purpose is to keep the viewer's context identity stable across renders that
+	 * touch none of its fields. A fresh literal here would retire that guarantee for every
+	 * consumer, magnifier or not.
 	 */
 	return useMemo(
 		() => ({

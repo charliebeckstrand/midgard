@@ -21,13 +21,13 @@ type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
  * dismiss-layer stack via `useEscapeLayer`) and on pointer-down outside the
  * boundary, both gated on `open`. Use `useScrollLock` for body-scroll locking.
  *
- * @remarks Pass a fresh `onDismiss` closure each render if that is convenient;
- * both routes reach the latest one, and neither re-subscribes its listener when
+ * @remarks Pass a fresh `onDismiss` closure each render if that is convenient.
+ * Both routes reach the latest one, and neither re-subscribes its listener when
  * the identity changes.
  *
- * A floating surface opened from inside the boundary — a menu in a non-modal
- * sheet's footer, say — portals out of its DOM subtree, so plain containment
- * reads a press in it as outside. Such a press counts as inside (see
+ * A floating surface opened from inside the boundary portals out of its DOM
+ * subtree — a menu in a non-modal sheet's footer, say. Plain containment
+ * therefore reads a press in it as outside. Such a press counts as inside (see
  * `pressLandsInSurfaceOpenedWithin`); without that, the boundary closes on
  * pointer-down and unmounts the menu before its click can fire.
  *

@@ -45,16 +45,18 @@ function barClass(
 }
 
 /**
- * The plain-SVG bars: each series drawn as a single `<path>` of every bar —
- * each a one-end-rounded subfigure — rather than a path apiece, so a dense
- * grouped chart is one DOM node per series and one paint. Bars are opaque and
- * never overlap, so the concatenation reads identically to separate paths.
+ * The plain-SVG bars: each series drawn as a single `<path>` of every bar,
+ * rather than a path apiece. Each bar is a one-end-rounded subfigure. A dense
+ * grouped chart is therefore one DOM node per series and one paint. Bars are
+ * opaque and never overlap, so the concatenation reads identically to separate
+ * paths.
  *
- * Isolation stays per-datum without re-drawing the series: a pointed bar
+ * Isolation stays per-datum without re-drawing the series. A pointed bar
  * recedes every other, so the whole series path dims and the one lit bar
- * re-draws over it — a single overlay path, not a rebuild. The series paths are
- * memoised on `marks`, so a pointer crossing (which re-runs this component only
- * through the emphasis context, never the chart body) rebuilds nothing.
+ * re-draws over it. That is a single overlay path, not a rebuild. The series
+ * paths are memoised on `marks`, so a pointer crossing rebuilds nothing. Such a
+ * crossing re-runs this component only through the emphasis context, never the
+ * chart body.
  *
  * @internal
  */

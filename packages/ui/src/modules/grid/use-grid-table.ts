@@ -133,11 +133,14 @@ type GridTableParams<T> = {
 	/**
 	 * Marks a row as a manual-grouping group header, or `null`/absent outside
 	 * manual grouping. When set, the supplied rows are a consumer-shaped grouped
-	 * sequence: the engine's client sort and filter transforms are forced manual
-	 * (a client reorder would tear children from their headers), the core row
-	 * model is materialized for the body's cells, and the row-model views split
-	 * into the full display list ({@link GridTableResult.manualRows}) and the
-	 * leaf-only `renderRows`/`rowKeys` backing selection and counts.
+	 * sequence. Three things follow:
+	 *
+	 * - The engine's client sort and filter transforms are forced manual, because
+	 *   a client reorder would tear children from their headers.
+	 * - The core row model is materialized for the body's cells.
+	 * - The row-model views split into the full display list
+	 *   ({@link GridTableResult.manualRows}) and the leaf-only
+	 *   `renderRows`/`rowKeys` backing selection and counts.
 	 */
 	manualGroupRow?: ((row: T) => boolean) | null
 	pagination?: GridPagination
@@ -168,17 +171,17 @@ type GridTableResult<T> = {
 	/** Rows to render: the engine-transformed slice when paginating/filtering client-side, else the supplied `rows`. */
 	renderRows: T[]
 	/**
-	 * Per-row keys parallel to {@link renderRows}: each is the value `getKey`
-	 * yields at the row's engine (original-data) index — the index `getRowId` saw —
-	 * so its stringified form matches the id `table.getRow` is keyed by, while the
-	 * raw `string | number` value still backs selection identity.
+	 * Per-row keys parallel to {@link renderRows}. Each is the value `getKey`
+	 * yields at the row's engine (original-data) index, the index `getRowId` saw.
+	 * Its stringified form therefore matches the id `table.getRow` is keyed by,
+	 * while the raw `string | number` value still backs selection identity.
 	 */
 	rowKeys: (string | number)[]
 	/** Whether row grouping is active (a valid `grouping` column is set). */
 	grouped: boolean
 	/**
-	 * The top-level group-header rows in display order (each with all its leaves on
-	 * `subRows`) for the grouped body to render, or `null` when grouping is off. The
+	 * The top-level group-header rows in display order, each with all its leaves on
+	 * `subRows`, for the grouped body to render. `null` when grouping is off. The
 	 * body keeps the leaves mounted and animates them open/closed. {@link renderRows}
 	 * / {@link rowKeys} still carry the flat leaf set for selection and counts.
 	 */
@@ -197,10 +200,10 @@ type GridTableResult<T> = {
 	resize: GridColumnResize | null
 	/**
 	 * Re-fits the columns when the body's rendered rows change and the last fit had
-	 * none to measure — the windowed body's case, whose rows land in a later commit
-	 * than the one that supplied them. Call from the body's layout effect, so the
-	 * fit precedes the rows' first paint; a no-op once a fit has read rows, and when
-	 * the autosizer stands down.
+	 * none to measure. That is the windowed body's case, whose rows land in a later
+	 * commit than the one that supplied them. Call from the body's layout effect,
+	 * so the fit precedes the rows' first paint. A no-op once a fit has read rows,
+	 * and when the autosizer stands down.
 	 */
 	fitRenderedRows: () => void
 	/**
@@ -223,7 +226,7 @@ type GridTableResult<T> = {
  * Builds the engine `ColumnDef[]` with referentially-stable per-id cell
  * renderers. `flexRender(columnDef.cell, …)` makes the cell's component type the
  * `cell` function itself, so a fresh function each render would remount every
- * cell — dropping editor focus and selection, and flooding reconciliation. Each
+ * cell. That drops editor focus and selection, and floods reconciliation. Each
  * id's renderer is created once and reads the latest column from a ref, so cell
  * content stays current while its identity holds. The rest of the def rebuilds
  * freely (only `cell`'s identity drives mounting); `meta` carries the source
@@ -277,9 +280,10 @@ function useStableColumnDefs<T>(
 
 /**
  * Resolves the engine's row-grouping slice from the grouped column id and the
- * expansion state: the `grouped` flag, TanStack's `GroupingState` (a one-element
- * array of the grouped column id, or empty), the resolved `expanded` state
- * (defaulting to all-expanded), and the change handlers. Grouping is driven only
+ * expansion state. It yields the `grouped` flag and TanStack's `GroupingState`
+ * (a one-element array of the grouped column id, or empty). It also yields the
+ * resolved `expanded` state (defaulting to all-expanded), and the change
+ * handlers. Grouping is driven only
  * by the `groupBy` binding, so `onGroupingChange` is a no-op keeping the
  * controlled state stable; expansion writes back through `onExpandedChange`.
  *
@@ -310,19 +314,21 @@ function useGroupingSlice(
 }
 
 /**
- * Derives the row-model views the body reads: the grouped display list
- * (`groupedRows` — group headers interleaved with expanded leaves, or `null`
- * when ungrouped) and the flat `renderRows`/`rowKeys` backing selection identity
- * and the data count. `getRowModel().rows` is reference-stable until the sort/
- * filter/pagination/grouping state changes, so memoizing on it keeps these —
- * and the `rowIndexMap` GridData derives from them — stable across unrelated
- * re-renders (resize-drag frames, selection toggles, search keystrokes).
+ * Derives the row-model views the body reads. One is the grouped display list
+ * (`groupedRows`, group headers interleaved with expanded leaves, or `null`
+ * when ungrouped). The other is the flat `renderRows`/`rowKeys` backing
+ * selection identity and the data count. `getRowModel().rows` is
+ * reference-stable until the sort, filter, pagination, or grouping state
+ * changes. Memoizing on it
+ * therefore keeps these stable across unrelated re-renders (resize-drag frames,
+ * selection toggles, search keystrokes), along with the `rowIndexMap` GridData
+ * derives from them.
  *
  * Each key is taken from the engine's original-data row index (`leaf.index`,
- * the index `getRowId` saw), not the rendered position: a client transform
- * reorders rows while their engine ids stay fixed to the original order, so a
- * rendered-index key would diverge from `getRowId` and miss the body's
- * `table.getRow(key)` lookups.
+ * the index `getRowId` saw), not the rendered position. A client transform
+ * reorders rows while their engine ids stay fixed to the original order. A
+ * rendered-index key would therefore diverge from `getRowId`, and miss the
+ * body's `table.getRow(key)` lookups.
  *
  * @internal
  */
@@ -383,16 +389,17 @@ function useGridRowModel<T>(args: {
 }
 
 /**
- * The off-engine client sort: when a sort is the grid's *only* transform, orders
- * `rows` directly through {@link sortRowsSmart} (which matches the engine's
- * `getSortedRowModel` exactly), so a plain sorted grid never materializes the
- * engine's Row-per-datum model — the same win the lite-cell body buys mount and
- * update, extended to sort. `null` when inactive (no sort, or a filter /
- * pagination / grouping is also live and the engine sorts inside its pipeline).
+ * The off-engine client sort. When a sort is the grid's *only* transform, it
+ * orders `rows` directly through {@link sortRowsSmart}, which matches the
+ * engine's `getSortedRowModel` exactly. A plain sorted grid therefore never
+ * materializes the engine's Row-per-datum model. That is the same win the
+ * lite-cell body buys mount and update, extended to sort. `null` when inactive
+ * (no sort, or a filter / pagination / grouping is also live and the engine
+ * sorts inside its pipeline).
  *
- * The sort columns are resolved to {@link SmartSortField}s in their own memo
- * keyed on the sort and columns, so a data change re-sorts without rebuilding
- * the field list; the sort itself re-runs on that or a `rows` change.
+ * The sort columns are resolved to {@link SmartSortField}s in their own memo,
+ * keyed on the sort and columns. A data change therefore re-sorts without
+ * rebuilding the field list. The sort itself re-runs on that or a `rows` change.
  *
  * @internal
  */
@@ -472,10 +479,10 @@ function useSortView<T>(args: {
 /**
  * Fires the column-resize drag lifecycle. The engine flags the column under an
  * active pointer/touch drag in `columnSizingInfo.isResizingColumn` (a keyboard
- * nudge writes the width straight through `columnSizing` instead), so a
- * transition off/onto a column id brackets the drag: the outgoing column ends
- * first (a settle, or a pointer that slid onto another handle), then the incoming
- * one starts. Read from the engine and fired from an effect, keeping the
+ * nudge writes the width straight through `columnSizing` instead). A transition
+ * off or onto a column id therefore brackets the drag. The outgoing column ends
+ * first (a settle, or a pointer that slid onto another handle), then the
+ * incoming one starts. Read from the engine and fired from an effect, keeping the
  * callbacks out of the controlled-state write path. Kept out of
  * {@link useGridTable} for its cognitive-complexity budget.
  *
@@ -506,10 +513,10 @@ function useColumnResizeLifecycle<T>(
 
 /**
  * Warns (dev only) when the global search and the column filters are both
- * configured but their `manual` flags disagree: the engine filters both through
- * one table-wide model, so {@link resolveFilterMode} runs manual for both and the
- * client-side surface silently stops filtering. Effect-scoped so it fires once
- * per config change, not every render. Kept out of {@link useGridTable} for its
+ * configured but their `manual` flags disagree. The engine filters both through
+ * one table-wide model, so {@link resolveFilterMode} runs manual for both. The
+ * client-side surface then silently stops filtering. Effect-scoped so it fires
+ * once per config change, not every render. Kept out of {@link useGridTable} for its
  * cognitive-complexity budget.
  *
  * @internal
@@ -537,9 +544,9 @@ function useFilterModeMismatchWarning(args: {
 
 /**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
- * powers a {@link Grid}: it adapts the grid's `GridColumn[]` to TanStack
- * `ColumnDef[]` (mapping `value` to an accessor) and `getKey` to `getRowId`,
- * then routes data through the table's row model so pagination, filtering, and
+ * powers a {@link Grid}. It adapts the grid's `GridColumn[]` to TanStack
+ * `ColumnDef[]` (mapping `value` to an accessor) and `getKey` to `getRowId`. It
+ * then routes data through the table's row model, so pagination, filtering, and
  * column sizing ride one engine.
  *
  * @remarks Each feature is opt-in. Pagination and filtering each run server-side

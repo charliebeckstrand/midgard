@@ -10,9 +10,9 @@ import {
 } from './cell'
 
 /**
- * Adapts the row-click into the cursor's `onRowActivate`: the cursor fires from
- * the grid `<table>` (its single tab stop), so the row-level event type is bridged
- * to the table-level one here. `undefined` when the grid has no row click.
+ * Adapts the row-click into the cursor's `onRowActivate`. The cursor fires from
+ * the grid `<table>`, its single tab stop. The row-level event type is therefore
+ * bridged to the table-level one here. `undefined` when the grid has no row click.
  *
  * @internal
  */
@@ -26,10 +26,10 @@ export function bridgeRowActivate<T>(
 }
 
 /**
- * Adapts the cell-click into the cursor's `onCellActivate`: the cursor speaks
- * display indices, so the bridge resolves them to the cell context — row datum,
- * key, data column, and value — through the live refs at activation time.
- * `undefined` when the grid has no cell click.
+ * Adapts the cell-click into the cursor's `onCellActivate`. The cursor speaks
+ * display indices, so the bridge resolves them to the cell context through the
+ * live refs at activation time. That context is the row datum, key, data column,
+ * and value. `undefined` when the grid has no cell click.
  *
  * @internal
  */
@@ -54,7 +54,8 @@ export function bridgeCellActivate<T>(
  * Resolves a display coordinate to the cell context every channel names a cell by.
  *
  * Shared by the keyboard activation above and the cursor's own report, because the
- * two must agree: the same guard, the same `value` accessor, the same payload. A
+ * two must agree. They use the same guard, the same `value` accessor, and the
+ * same payload. A
  * coordinate the engine cannot resolve — a row or column that moved out from under
  * it — yields `null` and the caller stays quiet.
  *
@@ -81,10 +82,12 @@ export function resolveCellAt<T>(
 }
 
 /**
- * Builds the cell-roving activation: a focused cell's Enter/Space fires the cell
- * click then the row click, the order (and pair) a pointer click on the cell
- * fires them in. `undefined` when the grid has neither handler. Kept off
- * {@link GridData}'s complexity budget. @internal
+ * Builds the cell-roving activation. A focused cell's Enter/Space fires the cell
+ * click then the row click. That is the order, and the pair, a pointer click on
+ * the cell fires them in. `undefined` when the grid has neither handler. Kept
+ * off {@link GridData}'s complexity budget.
+ *
+ * @internal
  */
 export function buildRovingCellActivate<T>(
 	handleCellClick: GridCellClick<T> | undefined,
@@ -104,7 +107,7 @@ export function buildRovingCellActivate<T>(
 /**
  * Composes the grid's own cell double-click intent (double-click-to-edit, see
  * {@link GridEditableConfig.trigger}) with the consumer's handler on the one
- * built-in event: the internal intent fires first, then the consumer is
+ * built-in event. The internal intent fires first, then the consumer is
  * notified. Either alone passes through untouched; `undefined` when neither is
  * set, so an inert row attaches no handler.
  *

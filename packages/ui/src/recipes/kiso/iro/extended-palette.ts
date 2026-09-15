@@ -10,7 +10,7 @@
  * color-major below alongside the standard ramp — same policy, same
  * `contrast.test.ts` guard. The solid / soft / outline / plain / bare fill and
  * border shades are the declared surface tables, keyed by every standard colour
- * plus the extended set; solid fills carry white text at a shade that clears
+ * plus the extended set. Solid fills carry white text at a shade that clears
  * text AA on the fill.
  *
  * Layer: kiso · Concern: extended palette

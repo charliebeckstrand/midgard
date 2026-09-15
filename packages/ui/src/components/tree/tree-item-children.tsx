@@ -47,10 +47,10 @@ type TreeItemChildrenProps = {
  *
  * @remarks
  * A held group stays mounted, so its items keep their own uncontrolled open
- * state across a parent's collapse — the reason the policy exists. It therefore
- * animates between its open and closed states in place rather than entering and
- * exiting, and rests only once the closing height transition lands, since
- * `display: none` cannot animate.
+ * state across a parent's collapse. That is the reason the policy exists. It
+ * therefore animates between its open and closed states in place, rather than
+ * entering and exiting. It rests only once the closing height transition lands,
+ * since `display: none` cannot animate.
  *
  * @internal
  */
