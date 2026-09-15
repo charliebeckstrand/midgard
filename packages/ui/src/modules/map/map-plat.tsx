@@ -329,30 +329,31 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 *
 		 * @remarks
 		 * Regions sit edge to edge, so the report is held behind a short dwell.
-		 * A pointer travelling to the far side of the map crosses every region on
-		 * the way, and warming each would spend a dozen requests to answer one. Only
+		 * A pointer travelling to the far side of the map crosses every region on the
+		 * way. Warming each would spend a dozen requests to answer one. Only
 		 * a region the reader rests on warms, and leaving before the dwell elapses
 		 * warms nothing.
 		 *
 		 * Unlike the pointed emphasis, this does not ask whether the region carries
-		 * data: a region with no row still opens into something, and gating warming
-		 * on the readout would leave a plain navigation map — a geography and this
-		 * prop, no `data` — reporting nothing.
+		 * data, because a region with no row still opens into something. A gate on
+		 * the readout would leave a plain navigation map reporting nothing. Such a
+		 * map is a geography and this prop, with no `data`.
 		 */
 		onRegionPreload?: (id: string, index: number) => void
 		/**
-		 * The selected region, by the identity {@link onRegionClick} reports — the
-		 * `regionId` value, so the pick a click hands the caller comes straight back
-		 * as the pick to draw. The map paints it and holds no selection state of its
-		 * own: whatever owns the value (the click, a Select beside the map, a route
-		 * parameter) stays the single source of truth, and the two halves of a
-		 * clickable map can't disagree about what is picked.
+		 * The selected region, by the identity {@link onRegionClick} reports. That is
+		 * the `regionId` value, so the pick a click hands the caller comes straight
+		 * back as the pick to draw.
 		 *
-		 * The selected region takes a foreground-ink outline above the region
-		 * layers, so it survives the hover recede — a pick made before the pointer
-		 * arrived is still marked while the pointer isolates elsewhere — and it
-		 * never dims the rest of the map, which would read as broken for as long as
-		 * the pick stood. Overlay children still draw over it, as they do over every
+		 * The map paints it and holds no selection state of its own. Whatever owns
+		 * the value stays the single source of truth, whether that is the click, a
+		 * Select beside the map, or a route parameter. The two halves of a clickable
+		 * map therefore can't disagree about what is picked.
+		 *
+		 * The selected region takes a foreground-ink outline above the region layers,
+		 * so it survives the hover recede. A pick made before the pointer arrived is
+		 * still marked while the pointer isolates elsewhere. It never dims the rest
+		 * of the map, which would read as broken for as long as the pick stood. Overlay children still draw over it, as they do over every
 		 * region. The region's row in the data table reads as the current one, so
 		 * the selection is in the accessible readout, not the pixels alone.
 		 *
@@ -364,28 +365,31 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Whether the region VALUES are still loading — the atlas is drawn and its numbers are
 		 * not in yet.
 		 *
-		 * The shapes pulse while it holds — a standing dim in place of the pulse for a reader
-		 * who asked for reduced motion — because a choropleth with no data takes the no-data
-		 * fill on every region and a fully grey map reads as "nobody covers anywhere", a
-		 * statement about the subject rather than about a request in flight. Distinct from an
-		 * absent `geography`, which reserves the frame and draws nothing at all; here there is
-		 * something to look at and only the paint is pending.
+		 * The shapes pulse while it holds, and a reader who asked for reduced motion
+		 * gets a standing dim in place of the pulse. A choropleth with no data takes
+		 * the no-data fill on every region, and a fully grey map reads as "nobody
+		 * covers anywhere". That is a statement about the subject rather than about a
+		 * request in flight.
 		 *
-		 * Say it in words too. This is nothing at all to a screen reader, so a caption or a
-		 * status line remains the load's actual disclosure — this only stops the drawn map
-		 * lying in the meantime.
+		 * It is distinct from an absent `geography`, which reserves the frame and
+		 * draws nothing at all. Here there is something to look at, and only the paint
+		 * is pending.
+		 *
+		 * Say it in words too. This is nothing at all to a screen reader, so a caption
+		 * or a status line remains the load's actual disclosure. This only stops the
+		 * drawn map lying in the meantime.
 		 */
 		pending?: boolean
 		/**
 		 * The selected overlay mark, in the pair its reporters hand back — see
-		 * {@link MapOverlaySelection} for how the pair reads. `selectedRegion` for
-		 * the marks drawn over the geography, on the same terms: the map paints the
-		 * pick and holds no selection state of its own, so whatever owns the value
-		 * stays the single source of truth.
+		 * {@link MapOverlaySelection} for how the pair reads. It is `selectedRegion`
+		 * for the marks drawn over the geography, on the same terms. The map paints
+		 * the pick and holds no selection state of its own, so whatever owns the
+		 * value stays the single source of truth.
 		 *
 		 * The picked mark takes a foreground-ink halo behind it, outside the hover
-		 * recede, so a pick made before the pointer arrived is still marked while the
-		 * pointer isolates elsewhere. Behind rather than over: the mark's own colour
+		 * recede. A pick made before the pointer arrived is therefore still marked
+		 * while the pointer isolates elsewhere. Behind rather than over: the mark's own colour
 		 * reads through, as a ringed region keeps its fill. The stop's row in the
 		 * data table reads as the current one, so the selection is in the accessible
 		 * readout and not the pixels alone.
@@ -399,13 +403,15 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * other group dims — what hovering a legend entry sets on its own.
 		 *
 		 * Passing it hands that state to the caller, so ONE legend rendered outside
-		 * the plat can emphasise across SEVERAL of them at once: give each plat
-		 * `legend={false}` and this prop, and drive it from whatever holds the
-		 * shared legend — a `ChoroplethChart`'s own range bar, or any control that
-		 * emits a bin id ({@link binEmphasisId}). The ids only line up across plats
-		 * when the bins do, which for the numeric mode means the same `colorRange`,
-		 * `bins`, and an explicit `domain` — without the last one each plat bins to
-		 * its own extent and an id from one means nothing to another.
+		 * the plat can emphasise across SEVERAL of them at once. Give each plat
+		 * `legend={false}` and this prop, and drive it from whatever holds the shared
+		 * legend. That is a `ChoroplethChart`'s own range bar, or any control that
+		 * emits a bin id ({@link binEmphasisId}).
+		 *
+		 * The ids only line up across plats when the bins do. For the numeric mode
+		 * that means the same `colorRange`, `bins`, and an explicit `domain`. Without
+		 * the last one each plat bins to its own extent, and an id from one means
+		 * nothing to another.
 		 *
 		 * Omitted, the plat owns the state and its own legend drives it. A `null`
 		 * keeps it controlled with no emphasis (CONVENTIONS §7.3).
@@ -415,9 +421,9 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Fires with the legend id this plat's own legend emphasises, or `null` when
 		 * the emphasis clears.
 		 *
-		 * The plat's legend writes that state on hover and on focus and reported
-		 * nothing, so a caller could either read the emphasis or keep the plat's own
-		 * legend behaviour, never both: passing
+		 * The plat's legend writes that state on hover and on focus, and reported
+		 * nothing. A caller could therefore either read the emphasis or keep the
+		 * plat's own legend behaviour, never both. Passing
 		 * {@link MapPlatProps.emphasis} silently takes the plat's legend out of the
 		 * decision. This reports what that legend wants whether or not `emphasis` is
 		 * controlled, which is the other half of the §7.3 triad. It carries only ids
@@ -445,11 +451,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 
 /**
  * The animated wrapper: `ReducedMotion` around the marks; static marks render
- * bare. The reveal plays when the marks mount — the beat the SVG first gains
- * a width — and never replays: a resize-keyed remount (the chart module's
- * generation key) would unmount the overlay children, whose cleanup
- * unregisters their legend entries, and the legend churn that follows can
- * feed a resize back into the plot and loop.
+ * bare. The reveal plays when the marks mount, at the beat the SVG first gains
+ * a width, and never replays. A resize-keyed remount would unmount the overlay
+ * children, whose cleanup unregisters their legend entries. The legend churn
+ * that follows can feed a resize back into the plot and loop. That remount is
+ * the chart module's generation key.
  *
  * @internal
  */
@@ -465,20 +471,22 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
 
 /**
  * The zoom layer: one transformed group over the whole drawing, mounted only
- * where the plat zooms — a static map keeps the plain-SVG tree it had, the way
- * it keeps one without {@link MapMarksLayer}. Everything under it draws in
- * frame units already, so the regions, the marks, and their hit shapes all
- * inherit the transform and none of them is reprojected.
+ * where the plat zooms. A static map keeps the plain-SVG tree it had, the way
+ * it keeps one without {@link MapMarksLayer}.
+ *
+ * Everything under it draws in frame units already. The regions, the marks, and
+ * their hit shapes therefore all inherit the transform, and none of them is
+ * reprojected.
  *
  * It publishes the scale beside the transform, because the two are one fact:
  * what the layer stretches, a mark divides back out ({@link MapZoomScaleContext}).
  * Mounting the provider here rather than over the whole plat keeps both halves
  * of the zoom's contribution to the tree behind one condition.
  *
- * It stops answering the pointer for the length of any view gesture — a pan, a
- * pinch, or a wheel that has not settled — so the geography travelling under a
- * held pointer raises no readout and fires no crossing. A gesture moves the
- * map, and nothing else: without this a wheel would drag a tooltip across every
+ * It stops answering the pointer for the length of any view gesture: a pan, a
+ * pinch, or a wheel that has not settled. The geography travelling under a held
+ * pointer therefore raises no readout and fires no crossing. A gesture moves the
+ * map, and nothing else. Without this a wheel would drag a tooltip across every
  * dot the scaling frame swept past the pointer.
  *
  * @internal
@@ -513,12 +521,12 @@ function valueColumnHeader(
 }
 
 /**
- * Adapts a public region handler — which reports identity beside the index — to
- * the index-only shape {@link MapRegions} delegates in, so the click and
- * right-click reporters resolve identity the one way.
+ * Adapts a public region handler to the index-only shape {@link MapRegions}
+ * delegates in, so the click and right-click reporters resolve identity the one
+ * way. A public handler reports identity beside the index.
  *
- * `noUncheckedIndexedAccess` types the lookup as optional, and an index outside
- * the ids would be a layer/geometry disagreement, so it reports nothing rather
+ * `noUncheckedIndexedAccess` types the lookup as optional. An index outside the
+ * ids would be a layer and geometry disagreement, so it reports nothing rather
  * than an empty identity.
  *
  * @internal
@@ -537,10 +545,10 @@ function bridgeRegionIdentity(
 }
 
 /**
- * The overlay pick, held on its primitives rather than on the prop's identity: a
- * consumer writing the pair inline hands a fresh object every render, and this
- * value rides the plat context, so its identity churning would re-render every
- * mark on the map for a pick that never moved.
+ * The overlay pick, held on its primitives rather than on the prop's identity.
+ * A consumer writing the pair inline hands a fresh object every render, and
+ * this value rides the plat context. A churning identity would therefore
+ * re-render every mark on the map for a pick that never moved.
  *
  * @internal
  */
@@ -567,13 +575,14 @@ type MapRegionPointerState = {
 	 * Whether anything under a mark answers — the third claimant on the ground a
 	 * dot stands on, and the one that claims first.
 	 *
-	 * A click is one of several ways a region answers, and the rarest of them: a
+	 * A click is one of several ways a region answers, and the rarest of them. A
 	 * matched region reads out under the pointer, a warmed one loads on the dwell,
-	 * and a right-click can open a menu on it. Read as clicks alone, a map whose
-	 * regions are read-only kept the full finger target on every dot — the several
-	 * county maps a coverage drill tiles take no county pick, because a pick could
-	 * only be read back onto one of them, and each of their pins went on putting a
-	 * 44px hole in the readout underneath.
+	 * and a right-click can open a menu on it.
+	 *
+	 * Read as clicks alone, a map whose regions are read-only kept the full finger
+	 * target on every dot. The several county maps a coverage drill tiles take no
+	 * county pick, because a pick could only be read back onto one of them. Each of
+	 * their pins went on putting a 44px hole in the readout underneath.
 	 */
 	answers: boolean
 	/** The pick the layer makes, on the pointer and on the keyboard alike. */
@@ -585,15 +594,15 @@ type MapRegionPointerState = {
 /**
  * Resolves the region layer's pointer state.
  *
- * Held apart from {@link MapPlat} because the four answers have to agree: read
- * inline they were branches in a component already at the complexity limit, and
- * the one that matters — a switched-off layer claiming no ground from the marks
- * above it — is the one a reader has to trace furthest to confirm.
+ * Held apart from {@link MapPlat} because the four answers have to agree. Read
+ * inline they were branches in a component already at the complexity limit. The
+ * one that matters is the hardest to confirm: a switched-off layer claiming no
+ * ground from the marks above it.
  *
  * `earned` is what the map itself justifies: a matched category, a warming
  * reporter, or `nameRegions`. The caller's `regionPointer` beats all of it, and
- * beats it here rather than at each reader, so a switched-off layer cannot go on
- * answering through a channel one of them forgot to gate. The two delegated
+ * beats it here rather than at each reader. A switched-off layer therefore
+ * cannot go on answering through a channel one reader forgot to gate. The two delegated
  * handlers are that risk: they ride the group rather than the paths, so
  * `tracked` never reaches them.
  *
@@ -624,13 +633,13 @@ function regionPointerState(
 const NO_CENTROIDS: (LngLat | null)[] = []
 
 /**
- * An SVG geography map on the chart module's interaction grammar: regions
- * coloured by category from typed rows, one merged legend where pointing an
- * entry dims everything outside its group and clicking toggles it off,
- * pointing a region or overlay on the map isolating it behind the same
- * recede, a pointer-anchored Tooltip readout, a ring on the region and a halo
- * on the overlay mark the consumer holds selected, and a visually-hidden data
- * table. Optional graticule and sphere chrome rules the frame beneath it all.
+ * An SVG geography map on the chart module's interaction grammar. Regions take
+ * their colour by category from typed rows. One merged legend dims everything
+ * outside a pointed entry's group, and a click toggles that group off. Pointing
+ * a region or overlay on the map isolates it behind the same recede. A
+ * pointer-anchored Tooltip carries the readout. A ring marks the region the
+ * consumer holds selected, and a halo marks the overlay mark. A visually-hidden
+ * data table carries the values. Optional graticule and sphere chrome rules the frame beneath it all.
  * Geometry is prop-supplied TopoJSON / GeoJSON; {@link MapRoute},
  * {@link MapPoint}, {@link MapMarker}, and {@link MapGeofence} children draw
  * over the geography and register their own legend entries.
@@ -1193,9 +1202,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			<MapPlatContext value={plat}>
 				<MapZoomLayer>
 					{/* Inside the zoom, above the marks layer. Inside, because a meridian
-					    is a position on the globe like every other: it draws in frame
+					    is a position on the globe like every other. It draws in frame
 					    units, so it must travel and scale with the geography it rules
-					    rather than hang over a map moving under it — its hairlines convert
+					    rather than hang over a map moving under it. Its hairlines convert
 					    their width through the same zoom scale every other mark here
 					    does. Above the marks layer rather than within it, because chrome
 					    is frame and not data: it never animates on, and it joins no
