@@ -20,8 +20,8 @@ export type LinePoint = {
 
 /**
  * Monotone cubic tangents (Fritsch–Carlson) for the run's y values: the
- * per-point slopes a smooth curve follows, clamped so the interpolation never
- * overshoots the data — a curve between two rising points can't dip.
+ * per-point slopes a smooth curve follows. They are clamped so the interpolation
+ * never overshoots the data, so a curve between two rising points can't dip.
  *
  * @internal
  */
@@ -139,16 +139,17 @@ export type LineSeriesGeometry = {
 
 /**
  * Min/max-per-pixel-column decimation of a dense run, for *drawing only*. A plot
- * `width` px wide can't show more than a couple of points per horizontal pixel,
- * so a run of thousands draws identically from its per-column vertical envelope:
- * keep each column's first, last, min-y, and max-y points, in original order.
- * The extremes hold every visible spike; the endpoints hold the slope into and
- * out of the column, so the drawn line is pixel-identical to the full path.
+ * `width` px wide can't show more than a couple of points per horizontal pixel.
+ * A run of thousands therefore draws identically from its per-column vertical
+ * envelope. Keep each column's first, last, min-y, and max-y points, in original
+ * order. The extremes hold every visible spike. The endpoints hold the slope
+ * into and out of the column, so the drawn line is pixel-identical to the full
+ * path.
  *
  * A run already at drawing resolution (at most two points per column) returns
  * unchanged, so a normal chart's path is byte-for-byte what it was. Only the
- * drawn `d` shrinks — the hit test, markers, value labels, and data table read
- * the full-resolution run, never this — so pointer values and parity stay exact.
+ * drawn `d` shrinks. The hit test, markers, value labels, and data table read
+ * the full-resolution run, never this, so pointer values and parity stay exact.
  *
  * @internal
  */
@@ -292,10 +293,10 @@ export function lineGeometry(
 }
 
 /**
- * The line render-series for a set of drawn cartesian series: each entry's
- * values projected through its own axis's scale into {@link lineGeometry},
- * carrying the meta's paint, label, and dash so the marks, hit-test, and value
- * labels all read one aligned list. Bar/line/area charts build their line-kind
+ * The line render-series for a set of drawn cartesian series. Each entry's
+ * values are projected through its own axis's scale into {@link lineGeometry}.
+ * Each entry carries the meta's paint, label, and dash, so the marks, hit-test,
+ * and value labels all read one aligned list. Bar/line/area charts build their line-kind
  * marks through this instead of repeating the map.
  *
  * @internal
