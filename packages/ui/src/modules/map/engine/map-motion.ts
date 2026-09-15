@@ -1,8 +1,8 @@
 /**
  * Motion timings for the map module's mount reveals, composed from the ugoki
- * `mark` family and tempo primitives (via `kata/map`) — the same source the
- * chart module composes its reveals from — so charts and maps animating side
- * by side read as one family. Kept apart from `map-constants.ts` so the metric
+ * `mark` family and tempo primitives (via `kata/map`). That is the same source
+ * the chart module composes its reveals from. Charts and maps animating side by
+ * side therefore read as one family. Kept apart from `map-constants.ts` so the metric
  * constants stay an import-free leaf for the geometry and projection modules.
  */
 
@@ -43,8 +43,8 @@ export const POINT_STAGGER_MAX = 0.6
 /**
  * A dot's pop, delayed by its ordinal so a set of them reveals in sequence, and
  * capped so a long set does not trail. Built per call rather than held in a
- * table: the cap admits only a handful of distinct delays, but `POINT_POP` is
- * frozen and the spread is one small object on the mount path alone.
+ * table. The cap admits only a handful of distinct delays. Yet `POINT_POP` is
+ * frozen, and the spread is one small object on the mount path alone.
  *
  * @internal
  */
@@ -53,10 +53,11 @@ export function pointPop(ordinal: number) {
 }
 
 /**
- * A geofence's wash, held until its boundary has drawn: the outline traces the
+ * A geofence's wash, held until its boundary has drawn. The outline traces the
  * zone, then the fill settles inside it, so the shape reads before the colour
- * does. The region fade's tempo, because the wash is the same kind of
- * fill-in. @internal
+ * does. The region fade's tempo, because the wash is the same kind of fill-in.
+ *
+ * @internal
  */
 export const GEOFENCE_WASH = { ...REGION_FADE, delay: ROUTE_DRAW.duration } as const
 
@@ -65,8 +66,10 @@ export const MARKER_DRAW = { ...ROUTE_DRAW, delay: POINT_POP.duration } as const
 
 /**
  * A marker's end pin, held until the start pin has popped and the connector
- * has drawn: start pin → line → end pin, so the journey plays in travel
- * order. @internal
+ * has drawn. The order is start pin → line → end pin, so the journey plays in
+ * travel order.
+ *
+ * @internal
  */
 export const MARKER_END_POP = {
 	...POINT_POP,

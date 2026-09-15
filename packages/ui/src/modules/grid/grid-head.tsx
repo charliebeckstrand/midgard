@@ -33,9 +33,9 @@ type GridHeadProps<T> = {
 	 */
 	selectAllLabel?: string
 	/**
-	 * When the rendered body is a window onto a larger set (virtualization or
-	 * pagination), the header is row 1 of the full `aria-rowcount` set and each
-	 * cell carries an `aria-colindex`.
+	 * When the rendered body is a window onto a larger set, the header is row 1 of
+	 * the full `aria-rowcount` set. Virtualization and pagination each open such a
+	 * window. Each cell carries an `aria-colindex`.
 	 */
 	gridSemantics?: boolean
 	/**
@@ -63,8 +63,9 @@ type GridHeadProps<T> = {
 	pinning?: GridColumnPinning | null
 	/**
 	 * Resolved column-group band row, rendered above the column headers. When it
-	 * carries at least one group span the header gains a leading band row and the
-	 * column headers drop to the second row; `null`/absent leaves a single row.
+	 * carries at least one group span, the header gains a leading band row. The
+	 * column headers then drop to the second row. A `null` or absent band leaves a
+	 * single row.
 	 */
 	groups?: GridGroupHeader | null
 }
@@ -73,7 +74,7 @@ type GridHeadProps<T> = {
  * Header row for {@link Grid}: one {@link GridHeaderCell} per column, reading
  * selection and sort state from {@link useGrid}. When `reorderable`, visible
  * non-pinned data columns carry a drag handle backed by the column-reorder
- * sortable; when `resize` is supplied, data columns size from the engine and
+ * sortable. When `resize` is supplied, data columns size from the engine and
  * gain a resize separator.
  *
  * @internal
@@ -150,11 +151,15 @@ type GridHeaderCellProps<T> = {
 }
 
 /**
- * Routes one column to its header cell: the select-all checkbox for the
- * selectable column, the empty drag-handle header for the row-reorder column, a
- * reorderable header for draggable data columns, or a plain sort header
- * otherwise — resolving the engine width and resize controls for data columns
- * along the way.
+ * Routes one column to its header cell:
+ *
+ * - the select-all checkbox, for the selectable column;
+ * - the empty drag-handle header, for the row-reorder column;
+ * - a reorderable header, for draggable data columns;
+ * - a plain sort header otherwise.
+ *
+ * It resolves the engine width and the resize controls for data columns along
+ * the way.
  *
  * @internal
  */

@@ -17,13 +17,17 @@ export type GridScrollRowIntoView = (rowIndex: number) => void
 
 /**
  * The single trailing row below the loaded rows for the infinite-scroll terminal
- * states, resolved in precedence order: a failed load (`error`) shows a
- * `Text severity="error"` message; an in-flight batch shows the opt-in loading
- * indicator (the custom `loadingIndicator`, else a per-column skeleton run
- * mirroring the initial loading skeleton); the reached end (`hasMore` false)
- * shows the muted `endMessage`. `null` for the common mid-scroll case, where none
- * applies. The loading row stays `aria-hidden` filler — the busy status announces
- * the grown total — while the message rows carry real text and stay in the tree.
+ * states, resolved in precedence order:
+ *
+ * - a failed load (`error`) shows a `Text severity="error"` message;
+ * - an in-flight batch shows the opt-in loading indicator: the custom
+ *   `loadingIndicator`, else a per-column skeleton run;
+ * - the reached end (`hasMore` false) shows the muted `endMessage`.
+ *
+ * The skeleton run mirrors the initial loading skeleton. The trailer is `null`
+ * for the common mid-scroll case, where none applies. The loading row stays
+ * `aria-hidden` filler — the busy status announces the grown total — while the
+ * message rows carry real text and stay in the tree.
  *
  * @internal
  */
@@ -97,12 +101,13 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 
 /**
  * Windowed body for {@link Grid}: renders only rows in view (plus overscan)
- * via {@link useVirtualWindow}, padding the leading and trailing gap with
- * aria-hidden spacer `<tr>`s so scroll height matches the full row count.
+ * via {@link useVirtualWindow}. It pads the leading and trailing gap with
+ * aria-hidden spacer `<tr>`s, so scroll height matches the full row count.
  *
- * Until that window resolves it holds the grid's loading skeleton rather than
- * rendering an empty body, so rows arriving after mount swap the skeleton
- * straight for data instead of flashing a rowless table (see the guard below).
+ * Until that window resolves it holds the grid's loading skeleton, rather than
+ * rendering an empty body. Rows that arrive after mount therefore swap the
+ * skeleton straight for data, instead of flashing a rowless table (see the
+ * guard below).
  *
  * @remarks Drives a `@tanstack/react-virtual` measurement lifecycle; assumes
  * uniform `estimateSize` row heights and requires a scroll container of known
@@ -214,8 +219,8 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 				</tr>
 			)}
 			{/* Trailing row below the last rendered rows for the infinite-scroll
-			    terminal states — a failed load, an in-flight batch (opt-in), or the
-			    reached end — resolved in precedence order (see the trailer). */}
+			    terminal states. A failed load, an in-flight batch (opt-in), or the
+			    reached end, resolved in precedence order (see the trailer). */}
 			{infiniteScroll && (
 				<GridInfiniteScrollTrailer<T>
 					infiniteScroll={infiniteScroll}
