@@ -5,7 +5,8 @@ import { subscribeDocumentEvent } from '../utilities/document-listener'
 import { pressLandsInSurfaceOpenedWithin } from '../utilities/floating-portal-registry'
 import { useEscapeLayer } from './use-escape-layer'
 
-type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
+/** Options for {@link useDismissable}: the boundary a press is measured against, the dismiss report, and the enable gate. */
+export type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
 	onDismiss: () => void
 	/** Escape key closes. @defaultValue true */

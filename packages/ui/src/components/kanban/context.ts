@@ -57,6 +57,8 @@ export type KanbanColumnContextValue = {
 	columnId: string
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
+	/** The card keys the board's `columns` entry holds for this column; a development-only check reads it. */
+	itemIds: readonly string[]
 }
 
 /**

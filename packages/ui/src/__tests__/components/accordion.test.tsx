@@ -463,3 +463,40 @@ describe('Accordion onOpenComplete', () => {
 		expect(onOpenComplete).not.toHaveBeenCalled()
 	})
 })
+
+describe('structure roots pass native props through', () => {
+	// The eight roots API row N8 named were closed prop bags while six siblings
+	// spread. One test covers them, because the rule is one rule: a root takes
+	// native attributes and a `ref`, and its own resolved wiring still wins.
+	it('spreads a consumer id and data attribute onto the root element', () => {
+		const { container } = renderUI(
+			<Accordion type="single" id="a11y-accordion" data-testid="acc">
+				<AccordionItem value="one">
+					<AccordionTrigger>One</AccordionTrigger>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		const root = bySlot(container, 'accordion')
+
+		expect(root).toHaveAttribute('id', 'a11y-accordion')
+
+		expect(root).toHaveAttribute('data-testid', 'acc')
+	})
+
+	it('keeps the resolved data-slot against a consumer that passes its own', () => {
+		const { container } = renderUI(
+			// `data-slot` types through as any other `data-*` attribute; the root
+			// writes its own after the spread, so the anchor survives the attempt.
+			<Accordion type="single" data-slot="mine">
+				<AccordionItem value="one">
+					<AccordionTrigger>One</AccordionTrigger>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(bySlot(container, 'accordion')).toBeInTheDocument()
+	})
+})

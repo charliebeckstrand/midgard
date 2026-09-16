@@ -3,7 +3,8 @@
 /** Where a node must land within the scroller, per axis. Mirrors native `scrollIntoView`. */
 type ScrollAlignment = 'start' | 'center' | 'end' | 'nearest'
 
-type ScrollWithinOptions = {
+/** Options for {@link useScrollWithin}: the scroll container and the behaviour a scroll into view takes. */
+export type ScrollWithinOptions = {
 	behavior?: ScrollBehavior
 	/**
 	 * Block-axis (vertical) alignment.

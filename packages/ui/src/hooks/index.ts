@@ -12,6 +12,7 @@ export {
 	type A11yRelation,
 	type A11yScope,
 	type A11yScopeOptions,
+	type RovingOptions,
 	useA11yAnnouncements,
 	useA11yAutoFocus,
 	useA11yControl,
@@ -25,26 +26,37 @@ export {
 } from './a11y'
 export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'
-export { type SetValue, useControllable } from './use-controllable'
-export { useDeferredToggle } from './use-deferred-toggle'
-export { useDismissable } from './use-dismissable'
-export { useEscapeLayer } from './use-escape-layer'
-export { useFloatingDisclosure } from './use-floating-disclosure'
-export { useFloatingPanel, useFloatingUI } from './use-floating-ui'
-export { useFormattedInput } from './use-formatted-input'
+export { type ControllableOptions, type SetValue, useControllable } from './use-controllable'
+export { type DeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
+export { type DismissableOptions, useDismissable } from './use-dismissable'
+export { type EscapeLayerOptions, useEscapeLayer } from './use-escape-layer'
+export {
+	type FloatingDisclosureOptions,
+	type FloatingDisclosureResult,
+	useFloatingDisclosure,
+} from './use-floating-disclosure'
+export {
+	type FloatingPanelOptions,
+	type FloatingPanelResult,
+	type FloatingUIOptions,
+	type FloatingUIResult,
+	useFloatingPanel,
+	useFloatingUI,
+} from './use-floating-ui'
+export { type FormattedInputOptions, useFormattedInput } from './use-formatted-input'
 export { useGrabbingCursor } from './use-grabbing-cursor'
 export { useHasHover } from './use-has-hover'
 export { useHoverAcrossScroll } from './use-hover-across-scroll'
-export { useIdScope } from './use-id-scope'
+export { type IdScopeOptions, useIdScope } from './use-id-scope'
 export { type InView, type InViewOptions, useInView } from './use-in-view'
 export { useIsTruncated } from './use-is-truncated'
-export { useKeybindings } from './use-keybindings'
+export { type KeybindingsOptions, useKeybindings } from './use-keybindings'
 export { useKeyboardLifted } from './use-keyboard-lifted'
 export { useKeyboardSettled } from './use-keyboard-settled'
 export { useMediaQuery } from './use-media-query'
 export { type MinBreakpoint, useMinBreakpoint } from './use-min-breakpoint'
 export { useMinWidth } from './use-min-width'
-export { useOffcanvas } from './use-offcanvas'
+export { type OffcanvasOptions, useOffcanvas } from './use-offcanvas'
 export { usePendingCaret } from './use-pending-caret'
 export {
 	type FrameReserve,
@@ -55,9 +67,9 @@ export {
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
 export { useScrollOverflow } from './use-scroll-overflow'
-export { useScrollWithin } from './use-scroll-within'
+export { type ScrollWithinOptions, useScrollWithin } from './use-scroll-within'
 export { useSelectableValueChange } from './use-selectable-value-change'
-export { useSortableItem } from './use-sortable-item'
-export { useSortableList } from './use-sortable-list'
-export { useSortableSensors } from './use-sortable-sensors'
-export { useVirtualWindow } from './use-virtual-window'
+export { type SortableItemOptions, useSortableItem } from './use-sortable-item'
+export { type SortableListOptions, useSortableList } from './use-sortable-list'
+export { type SortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
+export { useVirtualWindow, type VirtualWindowOptions } from './use-virtual-window'

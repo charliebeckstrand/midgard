@@ -730,7 +730,8 @@ function handleMainAxisNav(
 	moveTo(nextIndex, ctx)
 }
 
-type RovingOptions = NavigationConfig & {
+/** Options for {@link useA11yRoving}: the item selector, the navigation axis, Tab-stop ownership, and the virtual-item source a windowed list supplies. */
+export type RovingOptions = NavigationConfig & {
 	/** CSS selector for navigable items inside the container. */
 	itemSelector: string
 	/**

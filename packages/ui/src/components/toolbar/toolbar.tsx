@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k, type ToolbarVariants } from '../../recipes/kata/toolbar'
@@ -11,7 +11,8 @@ import type { ToolbarOrientation } from './types'
 
 /** Props for {@link Toolbar}. Requires `aria-label` or `aria-labelledby`. */
 export type ToolbarProps = AccessibleName &
-	Omit<ToolbarVariants, 'orientation'> & {
+	Omit<ToolbarVariants, 'orientation'> &
+	Omit<ComponentProps<'div'>, 'className' | 'onKeyDown' | 'aria-label' | 'aria-labelledby'> & {
 		/**
 		 * Layout axis and arrow-key navigation direction.
 		 * @defaultValue 'horizontal'
@@ -47,13 +48,13 @@ export function Toolbar({
 	return (
 		<ToolbarContext value={context}>
 			<div
+				{...labelProps}
 				ref={ref}
 				data-slot="toolbar"
 				role="toolbar"
 				aria-orientation={orientation}
 				onKeyDown={handleKeyDown}
 				className={cn(k.root({ orientation, variant }), className)}
-				{...labelProps}
 			>
 				{children}
 			</div>

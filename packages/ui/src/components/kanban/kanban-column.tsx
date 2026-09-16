@@ -2,7 +2,7 @@
 
 import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import {
@@ -41,7 +41,22 @@ export function KanbanColumn({
 
 	const { activeId, columnItemIds } = useKanbanDragState()
 
-	const itemIds = columnItemIds[columnId] ?? []
+	const known = columnItemIds[columnId]
+
+	const itemIds = known ?? []
+
+	// The board takes its columns as data and its structure as children, so the
+	// same key is written twice and nothing joins them. A key that names no
+	// column silently renders an empty, undroppable section.
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (known !== undefined) return
+
+		console.warn(
+			`Kanban: <KanbanColumn value="${columnId}"> names no column in the board's \`columns\`. The section renders, takes no drop, and holds no cards.`,
+		)
+	}, [columnId, known])
 
 	const { setNodeRef, isOver } = useDroppable({ id: columnId, disabled: !interactive })
 
@@ -55,7 +70,10 @@ export function KanbanColumn({
 		return () => setHasTitle(false)
 	}, [])
 
-	const value = useMemo(() => ({ columnId, registerTitle }), [columnId, registerTitle])
+	const value = useMemo(
+		() => ({ columnId, registerTitle, itemIds }),
+		[columnId, registerTitle, itemIds],
+	)
 
 	return (
 		<KanbanColumnContext value={value}>

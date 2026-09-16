@@ -503,3 +503,37 @@ describe('KanbanColumn naming', () => {
 		}
 	})
 })
+
+describe('Kanban key joins', () => {
+	// The board takes data and structure apart and joins them by key, which
+	// nothing in the type enforces (API row N12). Both halves warn.
+	it('warns when a column key names no column in the data', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="nope" />
+			</Kanban>,
+		)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('names no column'))
+
+		warn.mockRestore()
+	})
+
+	it('warns when a card key names no item in its column', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
+					<KanbanCard value="nope">Ghost</KanbanCard>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('names no item'))
+
+		warn.mockRestore()
+	})
+})

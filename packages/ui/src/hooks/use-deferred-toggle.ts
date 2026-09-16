@@ -3,7 +3,8 @@
 import { useCallback } from 'react'
 import { useFrozenOnClose } from './use-frozen-on-close'
 
-type DeferredToggleOptions<T> = {
+/** Options for {@link useDeferredToggle}: the flag it mirrors and how long it holds the old value. */
+export type DeferredToggleOptions<T> = {
 	/** Multi-select mode: the held value is an array and toggling adds / removes entries. */
 	multiple: boolean
 	/** Single-select mode: toggling the active value clears the selection. Ignored when `multiple` is true. */

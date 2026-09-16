@@ -4,7 +4,8 @@ import { useEffect, useEffectEvent } from 'react'
 import { isTopDismissLayer, registerDismissLayer } from '../utilities/dismiss-layers'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 
-type EscapeLayerOptions = {
+/** Options for {@link useEscapeLayer}: where the layer sits in the dismiss stack and what an Escape press does there. */
+export type EscapeLayerOptions = {
 	open: boolean
 	/** Gate dismissal without unmounting the hook. @defaultValue true */
 	enabled?: boolean
