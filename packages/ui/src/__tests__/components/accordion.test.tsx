@@ -465,9 +465,9 @@ describe('Accordion onOpenComplete', () => {
 })
 
 describe('structure roots pass native props through', () => {
-	// The eight roots API row N8 named were closed prop bags while six siblings
-	// spread. One test covers them, because the rule is one rule: a root takes
-	// native attributes and a `ref`, and its own resolved wiring still wins.
+	// Eight structure roots were closed prop bags while six siblings spread. One
+	// test covers them all, because the rule is one rule: a root takes native
+	// attributes and a `ref`, and its own resolved wiring still wins.
 	it('spreads a consumer id and data attribute onto the root element', () => {
 		const { container } = renderUI(
 			<Accordion type="single" id="a11y-accordion" data-testid="acc">

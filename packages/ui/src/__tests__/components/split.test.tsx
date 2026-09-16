@@ -48,9 +48,9 @@ describe('Split', () => {
 })
 
 describe('Split responsive axes', () => {
-	// API row L4: `Responsive<T>` was Flex- and Stack-only, and Split's
-	// `orientation` was the sharpest gap — a two-column split could not stack on
-	// a phone without a wrapper.
+	// `Responsive<T>` was Flex- and Stack-only once, and Split's `orientation`
+	// was the sharpest gap: a two-column split could not stack on a phone without
+	// a wrapper.
 	it('stacks at the base and splits from a breakpoint up', () => {
 		const { container } = renderUI(
 			<Split orientation={{ initial: 'vertical', md: 'horizontal' }}>a</Split>,

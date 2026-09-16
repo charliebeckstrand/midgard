@@ -24,9 +24,8 @@ describe('Alert', () => {
 
 	it('renders no body slot for an empty child', () => {
 		// The alert used to reconcile a slot trio against loose children by
-		// sniffing each child's `displayName` (props audit, the Alert REPLACE
-		// row). The title and description are props alone now, so children are
-		// always the body and the sniffing is gone.
+		// sniffing each child's `displayName`. The title and description are props
+		// alone now, so children are always the body and the sniffing is gone.
 		const { container } = renderUI(<Alert title="Title">{null}</Alert>)
 
 		expect(bySlot(container, 'alert-body')).not.toBeInTheDocument()

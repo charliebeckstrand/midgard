@@ -402,9 +402,9 @@ describe('Filter (uncontrolled)', () => {
 })
 
 describe('Filters extras', () => {
-	// The three regions were `ReactNode` props once (props audit, the Filters
-	// REPLACE row). The context already escaped the row, so only the layout ever
-	// needed them; `FiltersBar` and `FiltersRow` give that layout a name.
+	// The three regions were `ReactNode` props once. The context already escaped
+	// the row, so only the layout ever needed them; `FiltersBar` and `FiltersRow`
+	// give that layout a name.
 	it('renders the prefix and suffix regions where they are composed', () => {
 		const { container } = renderUI(
 			<Filters aria-label="Filters">

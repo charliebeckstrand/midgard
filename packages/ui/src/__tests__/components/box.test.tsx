@@ -125,8 +125,8 @@ describe('Box', () => {
 })
 
 describe('Box responsive padding', () => {
-	// API row L4's second half: `Responsive<T>` reached Flex and Stack alone,
-	// so a Box's padding could not change with the viewport.
+	// `Responsive<T>` reached Flex and Stack alone once, so a Box's padding could
+	// not change with the viewport.
 	it('emits one padding class per named breakpoint', () => {
 		const { container } = renderUI(<Box p={{ initial: 'sm', md: 'lg' }}>content</Box>)
 

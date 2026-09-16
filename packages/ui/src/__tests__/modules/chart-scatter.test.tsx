@@ -332,9 +332,9 @@ describe('ScatterChart', () => {
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
-	// API row C8: the module had no click hook off the map. The identity a
-	// scatter reports is the pair it actually has — the series and the datum —
-	// not the `(id, index)` a map region carries.
+	// A scatter point is named by a pair — the series and the datum — and not by
+	// one id, so it reports its own identity rather than the `(id, index)` a map
+	// region carries.
 	it('mounts the hit layer for a point-click report alone', () => {
 		const onPointClick = vi.fn()
 

@@ -99,9 +99,8 @@ describe('Overlay', () => {
 
 	it('takes the backdrop class the panel hands it, in place of the base scrim', () => {
 		// One styling channel: every panel drives its own surface through
-		// `backdropClassName`, so nothing can be set and then silently outranked
-		// (props audit, the Overlay MERGE row). The glass fill this asserts is
-		// what `Dialog` now passes from its own recipe.
+		// `backdropClassName`, so nothing can be set and then silently outranked.
+		// The glass fill this asserts is what `Dialog` passes from its own recipe.
 		renderUI(
 			<Overlay open backdropClassName="absolute inset-0 bg-white/75" onOpenChange={() => {}}>
 				<span>content</span>

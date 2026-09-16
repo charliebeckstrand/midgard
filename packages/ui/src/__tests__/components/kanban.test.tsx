@@ -506,7 +506,7 @@ describe('KanbanColumn naming', () => {
 
 describe('Kanban key joins', () => {
 	// The board takes data and structure apart and joins them by key, which
-	// nothing in the type enforces (API row N12). Both halves warn.
+	// nothing in the type enforces. Both halves warn.
 	it('warns when a column key names no column in the data', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 

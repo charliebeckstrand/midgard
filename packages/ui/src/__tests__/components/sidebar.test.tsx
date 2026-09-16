@@ -253,9 +253,9 @@ describe('Sidebar mini', () => {
 		)
 	})
 
-	// The root took a render prop for this once — the library's one root render
-	// prop (props audit, the Sidebar REPLACE row). The context it already
-	// broadcast does the same work, so the three cases below read it instead.
+	// The root took a render prop for this once, and it was the library's one
+	// root render prop. The context it already broadcast does the same work, so
+	// the three cases below read it instead.
 	function Branch() {
 		return <span data-testid="branch">{useSidebarMini() ? 'rail' : 'full'}</span>
 	}

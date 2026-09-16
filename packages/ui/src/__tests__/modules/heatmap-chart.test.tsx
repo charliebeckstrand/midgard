@@ -379,8 +379,8 @@ describe('HeatmapChart', () => {
 })
 
 describe('HeatmapChart cell clicks', () => {
-	// API row C8: the module had no click hook off the map. A heatmap cell is
-	// named by a pair of band labels, not by one id, so it reports its own.
+	// A heatmap cell is named by a pair of band labels and not by one id, so it
+	// reports its own identity rather than the `(id, index)` a map region does.
 	it('mounts the hit layer for a cell-click report alone', () => {
 		const onCellClick = vi.fn()
 
