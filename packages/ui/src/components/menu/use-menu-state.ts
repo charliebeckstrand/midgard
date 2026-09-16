@@ -67,10 +67,11 @@ function cursorAnchor(element: Element | null, clientX: number, clientY: number)
 /**
  * Disclosure, positioning, and density state for {@link Menu}, split into a
  * `state`/`actions` pair plus the right-click `handleContextMenu` and an
- * `isDropdown` flag. Drives all three menu modes: dropdown (a `placement`), and
- * static inline (`defaultOpen` with no `placement`). The right-click context
- * menu is the third, a position-only {@link cursorAnchor} opening at the cursor
- * yet tracking the right-clicked element on scroll.
+ * `isDropdown` flag. Drives all three menu modes. A `placement` gives the
+ * dropdown. A `defaultOpen` with no `placement` gives the static inline menu.
+ * Neither one gives the right-click context menu, a position-only
+ * {@link cursorAnchor} that opens at the cursor yet tracks the right-clicked
+ * element on scroll.
  *
  * @internal
  * @see {@link useFloatingDisclosure}

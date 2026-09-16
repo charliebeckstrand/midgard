@@ -13,8 +13,17 @@ import { useMenuState } from './use-menu-state'
  * surface, the `placement` that selects dropdown mode, and a density-resolved `size`.
  */
 export type MenuProps = {
+	/**
+	 * Open state, controlled. Pair it with `onOpenChange`.
+	 */
 	open?: boolean
+	/**
+	 * Open state at mount, uncontrolled. With no `placement`, a `true` value also
+	 * selects the static inline mode. The panel then renders in place, traps no
+	 * focus, and never dismisses. With a `placement`, the dropdown starts open.
+	 */
 	defaultOpen?: boolean
+	/** Fires when the open state changes, in any of the three modes. */
 	onOpenChange?: (open: boolean) => void
 	/**
 	 * Preferred side/alignment of the dropdown panel relative to the trigger;
@@ -46,6 +55,12 @@ export type MenuProps = {
  * and items via context. A `placement` makes it a floating dropdown. Without
  * one the wrapper opens as a right-click context menu, or renders as a static
  * inline menu when `defaultOpen` is set.
+ *
+ * @remarks
+ * The mode comes from prop presence by design. The three modes take one prop
+ * set and no prop is illegal in any of them, so a `mode` prop would restate
+ * `placement`. An explicit `StaticMenu` waits for a consumer: today every
+ * static inline call site is a test fixture.
  *
  * @see {@link MenuTrigger}
  * @see {@link MenuContent}
