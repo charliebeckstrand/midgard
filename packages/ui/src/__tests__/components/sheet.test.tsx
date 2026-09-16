@@ -114,6 +114,20 @@ describe('Sheet', () => {
 })
 
 describe('SheetTrigger', () => {
+	it('renders its own button for a non-element child, and opens from it', () => {
+		const onClick = vi.fn()
+
+		renderUI(<SheetTrigger onClick={onClick}>Open</SheetTrigger>)
+
+		const trigger = screen.getByRole('button', { name: 'Open' })
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		fireEvent.click(trigger)
+
+		expect(onClick).toHaveBeenCalledOnce()
+	})
+
 	it('invokes onClick and preserves the child onClick when clicked', () => {
 		const childOnClick = vi.fn()
 

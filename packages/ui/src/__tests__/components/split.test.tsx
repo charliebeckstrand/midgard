@@ -12,20 +12,16 @@ describe('Split', () => {
 		expect(el).toHaveAttribute('id', 'test')
 	})
 
-	it('uses grid-template-columns for horizontal orientation', () => {
+	it('uses a column template for horizontal orientation', () => {
 		const { container } = renderUI(<Split orientation="horizontal">a</Split>)
 
-		const el = bySlot(container, 'split') as HTMLElement
-
-		expect(el.style.gridTemplateColumns).toBe('1fr 1fr')
+		expect(bySlot(container, 'split')?.className).toContain('grid-cols-[1fr_1fr]')
 	})
 
-	it('uses grid-template-rows for vertical orientation', () => {
+	it('uses a row template for vertical orientation', () => {
 		const { container } = renderUI(<Split orientation="vertical">a</Split>)
 
-		const el = bySlot(container, 'split') as HTMLElement
-
-		expect(el.style.gridTemplateRows).toBe('1fr 1fr')
+		expect(bySlot(container, 'split')?.className).toContain('grid-rows-[1fr_1fr]')
 	})
 
 	it('applies the align class when provided', () => {
@@ -39,17 +35,64 @@ describe('Split', () => {
 	it('honours an explicit ratio', () => {
 		const { container } = renderUI(<Split ratio="1/3">a</Split>)
 
-		const el = bySlot(container, 'split') as HTMLElement
-
-		expect(el.style.gridTemplateColumns).toContain('1fr')
+		expect(bySlot(container, 'split')?.className).toContain('grid-cols-[1fr_2fr]')
 	})
 
-	it('merges caller style with the ratio style', () => {
+	it('passes a caller style through to the root', () => {
 		const { container } = renderUI(<Split style={{ background: 'red' }}>a</Split>)
 
 		const el = bySlot(container, 'split') as HTMLElement
 
 		expect(el.style.background).toBe('red')
+	})
+})
+
+describe('Split responsive axes', () => {
+	// API row L4: `Responsive<T>` was Flex- and Stack-only, and Split's
+	// `orientation` was the sharpest gap — a two-column split could not stack on
+	// a phone without a wrapper.
+	it('stacks at the base and splits from a breakpoint up', () => {
+		const { container } = renderUI(
+			<Split orientation={{ initial: 'vertical', md: 'horizontal' }}>a</Split>,
+		)
+
+		const className = bySlot(container, 'split')?.className ?? ''
+
+		expect(className).toContain('grid-rows-[1fr_1fr]')
+
+		expect(className).toContain('md:grid-cols-[1fr_1fr]')
+	})
+
+	it('carries the axis forward to a breakpoint only the ratio names', () => {
+		const { container } = renderUI(
+			<Split orientation="vertical" ratio={{ initial: '1/2', lg: '1/3' }}>
+				a
+			</Split>,
+		)
+
+		const className = bySlot(container, 'split')?.className ?? ''
+
+		// The ratio names `lg`; the axis does not, so `lg` takes the vertical it
+		// carried forward rather than falling back to the horizontal default.
+		expect(className).toContain('lg:grid-rows-[1fr_2fr]')
+	})
+
+	it('resolves a responsive gap and align', () => {
+		const { container } = renderUI(
+			<Split gap={{ initial: 'xs', md: 'xl' }} align={{ initial: 'start', md: 'center' }}>
+				a
+			</Split>,
+		)
+
+		const className = bySlot(container, 'split')?.className ?? ''
+
+		expect(className).toContain('gap-1')
+
+		expect(className).toContain('md:gap-6')
+
+		expect(className).toContain('items-start')
+
+		expect(className).toContain('md:items-center')
 	})
 })
 
