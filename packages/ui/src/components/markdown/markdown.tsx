@@ -14,21 +14,14 @@ export type MarkdownProps = {
 	/** Markdown source to render. */
 	children: string
 	className?: string
-	/**
-	 * Parse inline-only and render into a `<span>` instead of a block `<div>` —
-	 * for prose that sits in the flow of surrounding text. Block constructs
-	 * (headings, lists, code fences) do not parse in this mode.
-	 *
-	 * @defaultValue false
-	 */
-	inline?: boolean
 }
 
 /**
  * Markdown source rendered to a React element tree with
- * [marked](https://marked.js.org) and styled as prose. GitHub-flavored Markdown
- * is enabled, so tables, task lists, `~~strikethrough~~`, and autolinks all
- * parse.
+ * [marked](https://marked.js.org) and styled as prose, in a block `<div>`.
+ * GitHub-flavored Markdown is enabled, so tables, task lists,
+ * `~~strikethrough~~`, and autolinks all parse. For Markdown inside a line of
+ * text, reach for {@link MarkdownInline}.
  *
  * @remarks
  * Static, server-renderable leaf: lexing and rendering are synchronous and
@@ -52,22 +45,46 @@ export type MarkdownProps = {
  * re-rendering on every streamed chunk of the *last* message. Every earlier,
  * settled bubble's `children` stays the same string.
  */
-export const Markdown = memo(function Markdown({
-	children,
-	className,
-	inline = false,
-}: MarkdownProps) {
-	if (inline) {
-		return (
-			<span data-slot="markdown" className={cn(k.inline, className)}>
-				<MarkdownRenderer tokens={md.Lexer.lexInline(children, { gfm: true })} />
-			</span>
-		)
-	}
-
+export const Markdown = memo(function Markdown({ children, className }: MarkdownProps) {
 	return (
 		<div data-slot="markdown" className={cn(k.root, className)}>
 			<MarkdownRenderer tokens={md.lexer(children)} />
 		</div>
+	)
+})
+
+/** Props for {@link MarkdownInline}: the Markdown source string to render in a line of text. */
+export type MarkdownInlineProps = {
+	/** Markdown source to render. Block constructs do not parse here. */
+	children: string
+	className?: string
+}
+
+/**
+ * Markdown source rendered into a `<span>`, for prose that sits in the flow of
+ * surrounding text. It runs the inline lexer, so emphasis, code spans, and
+ * links parse and block constructs — headings, lists, code fences — do not.
+ *
+ * @remarks
+ * The explicit counterpart of {@link Markdown} rather than a mode of it. The
+ * two differ in lexer and in rendered element, and a block construct handed to
+ * the inline lexer parses as nothing at all. A boolean cannot make that visible
+ * at the call site; two names do.
+ *
+ * Shares {@link Markdown}'s renderer, and with it every security property: raw
+ * HTML is dropped rather than injected, and link and image URLs are
+ * scheme-checked. It is memoized on the same terms and is equally
+ * server-renderable.
+ *
+ * @see {@link Markdown} for the block form.
+ */
+export const MarkdownInline = memo(function MarkdownInline({
+	children,
+	className,
+}: MarkdownInlineProps) {
+	return (
+		<span data-slot="markdown" className={cn(k.inline, className)}>
+			<MarkdownRenderer tokens={md.Lexer.lexInline(children, { gfm: true })} />
+		</span>
 	)
 })

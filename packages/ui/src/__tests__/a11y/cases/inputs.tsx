@@ -7,7 +7,7 @@ import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
 import { DatePicker } from '../../../components/date-picker'
 import { Field, Label, Message } from '../../../components/fieldset'
-import { FileUpload } from '../../../components/file-upload'
+import { FileUploadButton, FileUploadDrop } from '../../../components/file-upload'
 import { Input } from '../../../components/input'
 import { MaskInput } from '../../../components/mask-input'
 import { NumberInput } from '../../../components/number-input'
@@ -92,8 +92,8 @@ export const inputCases: readonly Case[] = [
 		</Field>,
 	],
 	['rating (read-only)', <Rating key="r" readOnly value={4.5} />],
-	['file upload (drop)', <FileUpload key="fu" variant="drop" />],
-	['file upload (button)', <FileUpload key="fu" variant="button" />],
+	['file upload (drop)', <FileUploadDrop key="fu" />],
+	['file upload (button)', <FileUploadButton key="fub" />],
 	[
 		'checkbox',
 		<CheckboxGroup key="c">

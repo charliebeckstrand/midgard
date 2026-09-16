@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Markdown } from '../../components/markdown'
+import { Markdown, MarkdownInline } from '../../components/markdown'
 import { bySlot, renderUI, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts (its markup carries
@@ -59,7 +59,7 @@ describe('Markdown', () => {
 	})
 
 	it('renders inline mode into a span without block wrapping', () => {
-		const { container } = renderUI(<Markdown inline>{'Some **bold** text'}</Markdown>)
+		const { container } = renderUI(<MarkdownInline>{'Some **bold** text'}</MarkdownInline>)
 
 		const el = bySlot(container, 'markdown')
 
