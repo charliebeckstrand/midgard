@@ -62,6 +62,10 @@ const OFF_LEFT = -50
  * The hook therefore reads the OS preference directly, and renders static text
  * under reduced motion (WCAG 2.3.3).
  *
+ * The eight tuning props are deliberate. No app consumes this component, and
+ * its demo exercises every one of them. A decorative surface earns its knobs,
+ * so the zero-usage rule that deleted `delay` keeps the rest.
+ *
  * @see {@link ShinyTextSkeleton} for the loading placeholder.
  */
 export function ShinyText({
