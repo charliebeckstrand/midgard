@@ -256,6 +256,10 @@ type HeatmapHitLayerProps = {
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
+	/** Band labels, so a click reports the cell by name rather than by index alone. */
+	labels: { columns: string[]; rows: string[] }
+	/** The consumer's cell-click report, or `undefined` where there is none. */
+	onCellClick?: HeatmapChartProps['onCellClick']
 }
 
 /**
@@ -274,6 +278,8 @@ function HeatmapHitLayer({
 	xBand,
 	yBand,
 	trigger = 'hover',
+	labels,
+	onCellClick,
 }: HeatmapHitLayerProps) {
 	const { cell: active, set } = useHeatmapHover()
 
@@ -301,9 +307,31 @@ function HeatmapHitLayer({
 
 	const click = trigger === 'click'
 
+	// The consumer's report runs on any click, whichever trigger the readout is
+	// on, so a hover-tooltip heatmap is still clickable.
+	const report = (event: MouseEvent<SVGRectElement>) => {
+		if (!onCellClick) return
+
+		const hit = locate(event)
+
+		if (hit?.cell == null) return
+
+		const { row, col } = hit.cell
+
+		const x = labels.columns[col]
+
+		const y = labels.rows[row]
+
+		if (x === undefined || y === undefined) return
+
+		onCellClick({ x, y }, [row, col])
+	}
+
 	const handlers = click
 		? {
 				onClick: (event: MouseEvent<SVGRectElement>) => {
+					report(event)
+
 					const hit = locate(event)
 
 					if (hit === null) return
@@ -313,6 +341,7 @@ function HeatmapHitLayer({
 				},
 			}
 		: {
+				onClick: report,
 				onPointerMove: (event: PointerEvent<SVGRectElement>) => {
 					const hit = locate(event)
 
@@ -330,7 +359,7 @@ function HeatmapHitLayer({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(click && 'cursor-pointer')}
+			className={cn((click || onCellClick) && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)
@@ -683,6 +712,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		legend,
 		tooltip,
 		formatValue,
+		onCellClick,
 		className,
 		// Kept off the DOM so it never spreads onto the plot element as an invalid
 		// attribute, but still names the context menu's fullscreen view.
@@ -756,14 +786,18 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
 
-			{showTooltip && rows > 0 && cols > 0 && (
+			{/* The layer mounts for a readout or for a consumer's click report: a
+			    heatmap that only reports clicks still needs the pointer. */}
+			{(showTooltip || onCellClick !== undefined) && rows > 0 && cols > 0 && (
 				<HeatmapHitLayer
 					plot={plot}
 					rows={rows}
 					cols={cols}
 					xBand={xBand}
 					yBand={yBand}
-					trigger={trigger}
+					trigger={showTooltip ? trigger : undefined}
+					labels={{ columns: matrix.columns, rows: matrix.rows }}
+					onCellClick={onCellClick}
 				/>
 			)}
 		</svg>

@@ -116,6 +116,17 @@ export type ScatterChartProps<T = never> = AccessibleName &
 	ScatterFrameProps & {
 		/** The series to plot, one disc per parseable row; slot colours follow this order. */
 		series: ScatterChartSeries<T>[]
+		/**
+		 * Fires when a click lands on a point, with the point's series index and
+		 * its index within that series' data.
+		 *
+		 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
+		 * address space a scatter has. A point is named by a pair and not by one id,
+		 * so this does not take the module's shared `ChartItemClick`. Setting it
+		 * makes the plot interactive on its own, where the pointer layer otherwise
+		 * mounts only for a tooltip or a crosshair.
+		 */
+		onPointClick?: (at: { series: number; datum: number }) => void
 	}
 
 /** One series resolved to everything the frame parts read. @internal */
@@ -509,12 +520,16 @@ function ScatterHitLayer(props: {
 	/** Per column, the snap stops with the point behind each — the snapped isolation's targets. */
 	stops: ScatterSnapStop[][]
 	trigger: ChartTooltipTrigger
+	/** The consumer's point-click report; its presence alone makes the plot interactive. */
+	onPointClick?: (at: { series: number; datum: number }) => void
 }) {
-	const { plot, tooltip, crosshair, centers, marks, indices, stops, trigger } = props
+	const { plot, tooltip, crosshair, centers, marks, indices, stops, trigger, onPointClick } = props
 
 	const spark = useChartTier() === 'spark'
 
-	if (spark || centers.length === 0 || !(tooltip || crosshair !== null)) return null
+	if (spark || centers.length === 0 || !(tooltip || crosshair !== null || onPointClick)) {
+		return null
+	}
 
 	const snapping = crosshairSnaps(crosshair)
 
@@ -541,6 +556,9 @@ function ScatterHitLayer(props: {
 			}}
 			trigger={trigger}
 			snaps={snapping}
+			onMarkClick={
+				onPointClick && ((mark) => onPointClick({ series: mark.series, datum: mark.datum ?? 0 }))
+			}
 		/>
 	)
 }
@@ -585,6 +603,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		crosshair,
 		animate = false,
 		formatValue,
+		onPointClick,
 		className,
 		...label
 	} = props
@@ -786,6 +805,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				indices={indices}
 				stops={snapStops}
 				trigger={trigger}
+				onPointClick={onPointClick}
 			/>
 		</ChartFrame>
 	)

@@ -84,6 +84,17 @@ export type HeatmapChartProps<T = never> = Omit<
 	 */
 	series: [] | [HeatmapChartSeries<T>]
 	/**
+	 * Fires when a click lands on a cell, with the cell's two band labels and
+	 * its `[row, col]` position in the matrix.
+	 *
+	 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
+	 * address space a heatmap has. A cell is named by a pair and not by one id,
+	 * so this does not take the module's shared `ChartItemClick`. Setting it
+	 * makes the plot interactive on its own, where the pointer layer otherwise
+	 * mounts only for a tooltip.
+	 */
+	onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
+	/**
 	 * Show the range scale bar, and where it sits. `true` (the default) stands it
 	 * vertical on the right; `false` drops it. A placement moves it: a horizontal
 	 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail

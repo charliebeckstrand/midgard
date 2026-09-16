@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { act, bySlot, fireEvent, renderUI } from '../helpers'
@@ -375,5 +375,67 @@ describe('HeatmapChart', () => {
 		fireEvent.click(hit, { clientX: 330, clientY: 70 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+})
+
+describe('HeatmapChart cell clicks', () => {
+	// API row C8: the module had no click hook off the map. A heatmap cell is
+	// named by a pair of band labels, not by one id, so it reports its own.
+	it('mounts the hit layer for a cell-click report alone', () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				tooltip={false}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const hit = bySlot(container, 'heatmap-hit')
+
+		expect(hit).not.toBeNull()
+
+		expect(hit?.getAttribute('class')).toContain('cursor-pointer')
+	})
+
+	it('reports the clicked cell by its two band labels and its matrix position', () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const hit = bySlot(container, 'heatmap-hit') as Element
+
+		// The layer resolves a click through the rect it is drawn at, which jsdom
+		// measures at zero. Give it one, as the pointer-resolution test above does.
+		;(hit as Element).getBoundingClientRect = () =>
+			({
+				left: 100,
+				top: 50,
+				right: 340,
+				bottom: 210,
+				width: 240,
+				height: 160,
+				x: 100,
+				y: 50,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// Columns are ['9', '10'] and rows ['Mon', 'Tue'], so the top-left cell is
+		// Mon at hour 9 — matrix position [0, 0].
+		fireEvent.click(hit, { clientX: 130, clientY: 70 })
+
+		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
 	})
 })

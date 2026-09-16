@@ -41,6 +41,8 @@ export type ScatterChartHitAreaProps = {
 	 * @defaultValue false
 	 */
 	snaps?: boolean
+	/** The consumer's point-click report, resolved through the same hit test the isolation uses. */
+	onMarkClick?: (mark: ChartMarkRef) => void
 }
 
 /**
@@ -57,6 +59,7 @@ export function ScatterChartHitArea({
 	markAt,
 	trigger = 'hover',
 	snaps = false,
+	onMarkClick,
 }: ScatterChartHitAreaProps) {
 	// The nearest unique-x column stands in for the band charts' evenly spaced band.
 	const resolveIndex = useCallback((x: number) => nearestStopIndex(centers, x), [centers])
@@ -69,6 +72,7 @@ export function ScatterChartHitArea({
 		snaps,
 		undefined,
 		markAt,
+		onMarkClick,
 	)
 
 	return (
@@ -81,7 +85,7 @@ export function ScatterChartHitArea({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(trigger === 'click' && snaps && 'cursor-pointer')}
+			className={cn((onMarkClick || (trigger === 'click' && snaps)) && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)
