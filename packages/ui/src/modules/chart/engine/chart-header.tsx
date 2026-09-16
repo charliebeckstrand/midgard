@@ -36,7 +36,7 @@ function ChartHeaderLine({ text, subtitle = false }: ChartHeaderLineProps) {
 					<Text
 						as="span"
 						size={subtitle ? 'sm' : 'md'}
-						severity={subtitle ? 'muted' : undefined}
+						tone={subtitle ? 'muted' : undefined}
 						className={cn('leading-tight', !subtitle && 'font-medium')}
 					>
 						{text}

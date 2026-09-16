@@ -179,17 +179,20 @@ export function SidebarLayout({
 }
 
 /** Props for {@link SidebarLayoutHeader}. */
-export type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+export type SidebarLayoutHeaderProps = PropsWithChildren<{
+	className?: string
+	ref?: Ref<HTMLElement>
+}>
 
 /**
  * Header slot for {@link SidebarLayout} (`data-slot="header"`). Renders the
  * layout's `actions` alongside its children on desktop.
  */
-export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
+export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutHeaderProps) {
 	const { actions, size } = useSidebarLayoutContext()
 
 	return (
-		<header data-slot="header" className={cn(k.header({ size }), className)}>
+		<header ref={ref} data-slot="header" className={cn(k.header({ size }), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
 		</header>
@@ -212,12 +215,15 @@ export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBod
 }
 
 /** Props for {@link SidebarLayoutFooter}. */
-export type SidebarLayoutFooterProps = PropsWithChildren
+export type SidebarLayoutFooterProps = PropsWithChildren<{
+	className?: string
+	ref?: Ref<HTMLElement>
+}>
 
 /** Footer slot for {@link SidebarLayout} (`data-slot="footer"`). */
-export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
+export function SidebarLayoutFooter({ ref, children, className }: SidebarLayoutFooterProps) {
 	return (
-		<footer data-slot="footer" className={k.footer()}>
+		<footer ref={ref} data-slot="footer" className={cn(k.footer(), className)}>
 			{children}
 		</footer>
 	)

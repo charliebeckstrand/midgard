@@ -45,7 +45,7 @@ export function DemoLoadError({ onRetry }: { onRetry: () => void }) {
 	return (
 		<Stack gap="md" className="p-6">
 			<Heading>Couldn't load this demo</Heading>
-			<Text severity="muted">Try again or reload the page.</Text>
+			<Text tone="muted">Try again or reload the page.</Text>
 			<div>
 				<Button variant="outline" onClick={onRetry}>
 					Try again

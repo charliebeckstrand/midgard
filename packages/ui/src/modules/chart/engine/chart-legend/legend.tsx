@@ -165,7 +165,7 @@ function ChartLegendEntry({
 			<span ref={labelRef} className="block min-w-0 truncate">
 				<Text
 					as="span"
-					severity="muted"
+					tone="muted"
 					size="sm"
 					className={cn('text-left leading-tight', off && 'line-through opacity-60')}
 				>
@@ -176,7 +176,7 @@ function ChartLegendEntry({
 			{item.detail && (
 				<Text
 					as="span"
-					severity="muted"
+					tone="muted"
 					size="sm"
 					className={cn('text-left leading-tight tabular-nums', off && 'opacity-60')}
 				>
@@ -285,7 +285,7 @@ function ChartLegendOverflowSwitch({
 
 			<Text
 				as="span"
-				severity="muted"
+				tone="muted"
 				size="sm"
 				className={cn('min-w-0 text-left leading-tight', off && 'line-through opacity-60')}
 			>
@@ -725,7 +725,7 @@ export function ChartLegend({
 
 				<Text
 					as="span"
-					severity="muted"
+					tone="muted"
 					size="sm"
 					className={cn('text-left leading-tight', off && 'line-through opacity-60')}
 				>
@@ -760,7 +760,7 @@ export function ChartLegend({
 						<Icon icon={<ChevronLeft />} />
 					</Button>
 
-					<Text as="span" severity="muted" size="sm" className="tabular-nums">
+					<Text as="span" tone="muted" size="sm" className="tabular-nums">
 						{currentPage + 1} / {pageCount}
 					</Text>
 
@@ -793,7 +793,7 @@ export function ChartLegend({
 							variant="plain"
 							aria-label={`Show ${overflowCount} more`}
 						>
-							<Text as="span" severity="muted" size="sm" className="tabular-nums">
+							<Text as="span" tone="muted" size="sm" className="tabular-nums">
 								+{overflowCount}
 							</Text>
 						</Button>

@@ -27,7 +27,9 @@ export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className
  * attributes (`start` | `middle` | `end` | `only`) onto each child. The
  * container carries the `tsunagi` join classes (`recipes/kata/group`). Their
  * descendant selectors drop the inner radii and overlap adjacent borders by
- * 1 px, keyed on the stamped position.
+ * 1 px, keyed on the stamped position. Each child also takes
+ * `data-group-orientation`, which those selectors read; the root itself stamps
+ * plain `data-orientation`, the axis marker every oriented container carries.
  *
  * Provides the Density cascade for its descendants. Components that read
  * `useDensity()` (Button, Input, etc.) default their `size` prop to the
@@ -59,7 +61,7 @@ export function Group({
 		<div
 			data-slot="group"
 			data-size={resolvedSize}
-			data-group-orientation={orientation}
+			data-orientation={orientation}
 			className={cn(k.frame(orientation), className)}
 			{...props}
 		>

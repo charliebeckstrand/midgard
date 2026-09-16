@@ -28,13 +28,13 @@ function Board({ onValueChange }: { onValueChange?: (next: Column[]) => void } =
 			aria-label="Board"
 		>
 			{columns.map((column) => (
-				<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
+				<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 					</KanbanColumnHeader>
 					<KanbanColumnBody empty="Empty">
 						{column.items.map((item) => (
-							<KanbanCard key={item.id} cardId={item.id}>
+							<KanbanCard key={item.id} value={item.id}>
 								{item.title}
 							</KanbanCard>
 						))}
@@ -75,13 +75,13 @@ function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => 
 			}}
 		>
 			{cols.map((column) => (
-				<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
+				<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 					</KanbanColumnHeader>
 					<KanbanColumnBody empty="Empty">
 						{column.items.map((item) => (
-							<KanbanCard key={item.id} cardId={item.id}>
+							<KanbanCard key={item.id} value={item.id}>
 								{item.title}
 							</KanbanCard>
 						))}
@@ -139,14 +139,14 @@ describe('KanbanColumn', () => {
 		const empty: Column[] = [emptyColumn]
 
 		renderUI(
-			<Kanban columns={empty} getKey={(item: Item) => item.id}>
-				<KanbanColumn columnId="empty">
+			<Kanban columns={empty} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="empty">
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>Empty</KanbanColumnTitle>
 					</KanbanColumnHeader>
 					<KanbanColumnBody empty="No cards">
 						{emptyColumn.items.map((item) => (
-							<KanbanCard key={item.id} cardId={item.id}>
+							<KanbanCard key={item.id} value={item.id}>
 								{item.title}
 							</KanbanCard>
 						))}
@@ -174,10 +174,10 @@ describe('KanbanCard', () => {
 
 	it('marks cards read-only (not disabled) and omits the aria-label when onValueChange is absent', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id}>
-				<KanbanColumn columnId="todo">
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
 					<KanbanColumnBody>
-						<KanbanCard cardId="1">One</KanbanCard>
+						<KanbanCard value="1">One</KanbanCard>
 					</KanbanColumnBody>
 				</KanbanColumn>
 			</Kanban>,
@@ -194,10 +194,16 @@ describe('KanbanCard', () => {
 
 	it('marks cards disabled (not read-only) when the board is disabled', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id} onReorder={() => {}} disabled>
-				<KanbanColumn columnId="todo">
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				disabled
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo">
 					<KanbanColumnBody>
-						<KanbanCard cardId="1">One</KanbanCard>
+						<KanbanCard value="1">One</KanbanCard>
 					</KanbanColumnBody>
 				</KanbanColumn>
 			</Kanban>,
@@ -230,10 +236,15 @@ describe('KanbanCard', () => {
 
 	it('honors a custom aria-label on an interactive card', () => {
 		const { container } = renderUI(
-			<Kanban columns={columns} getKey={(item: Item) => item.id} onReorder={() => {}}>
-				<KanbanColumn columnId="todo">
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo">
 					<KanbanColumnBody>
-						<KanbanCard cardId="1" aria-label="Card One">
+						<KanbanCard value="1" aria-label="Card One">
 							One
 						</KanbanCard>
 					</KanbanColumnBody>
@@ -289,8 +300,12 @@ describe('KanbanColumnBody', () => {
 
 	it('renders nothing when the column is empty and no fallback is provided', () => {
 		const { container } = renderUI(
-			<Kanban columns={[{ id: 'x', title: 'X', items: [] }]} getKey={(i: Item) => i.id}>
-				<KanbanColumn columnId="x">
+			<Kanban
+				columns={[{ id: 'x', title: 'X', items: [] }]}
+				getKey={(i: Item) => i.id}
+				aria-label="Board"
+			>
+				<KanbanColumn value="x">
 					<KanbanColumnBody />
 				</KanbanColumn>
 			</Kanban>,
@@ -459,7 +474,7 @@ describe('KanbanColumn naming', () => {
 		renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
 				{columns.map((column) => (
-					<KanbanColumn key={column.id} columnId={column.id}>
+					<KanbanColumn key={column.id} value={column.id}>
 						<KanbanColumnHeader>
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 						</KanbanColumnHeader>
@@ -478,7 +493,7 @@ describe('KanbanColumn naming', () => {
 		const { container } = renderUI(
 			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
 				{columns.map((column) => (
-					<KanbanColumn key={column.id} columnId={column.id} />
+					<KanbanColumn key={column.id} value={column.id} />
 				))}
 			</Kanban>,
 		)

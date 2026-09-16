@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k, type TextVariants } from '../../recipes/kata/text'
 
-/** Props for {@link Text}: the `severity`/`color`/`size` recipe axes, the polymorphic `as`/`href`/`render` surface, and the chosen element's native attributes. */
+/** Props for {@link Text}: the `tone`/`color`/`size` recipe axes, the polymorphic `as`/`href`/`render` surface, and the chosen element's native attributes. */
 export type TextProps = TextVariants & {
 	/**
 	 * The element (or component) to render. Defaults to `<p>`; set `as="span"`
@@ -16,26 +16,18 @@ export type TextProps = TextVariants & {
 } & PolymorphicStaticProps<'p', 'color'>
 
 /**
- * Text styled by `severity`, `color`, and `size` from the text recipe. Polymorphic:
+ * Text styled by `tone`, `color`, and `size` from the text recipe. Polymorphic:
  * renders a `<p>`, a different element via `as`, a plain anchor when `href` is
  * set, or a composed element via `render` (e.g. `render={<Link />}`) to wire
  * the app router link at the call site. Static leaf: renders in React Server
  * Components. Compose `<TextSkeleton>` in the loading tree for a placeholder.
  */
-export function Text({
-	as = 'p',
-	severity,
-	color,
-	size,
-	className,
-	children,
-	...props
-}: TextProps) {
+export function Text({ as = 'p', tone, color, size, className, children, ...props }: TextProps) {
 	return (
 		<PolymorphicStatic
 			as={as}
 			data-slot="text"
-			className={cn(k({ severity, color, size }), className)}
+			className={cn(k({ tone, color, size }), className)}
 			{...props}
 		>
 			{children}

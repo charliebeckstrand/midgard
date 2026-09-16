@@ -111,7 +111,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 					as="span"
 					size="sm"
 					data-slot="map-legend-label"
-					severity="muted"
+					tone="muted"
 					className={cn('leading-tight', off && 'line-through opacity-60')}
 				>
 					{item.label}
@@ -126,7 +126,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 					as="span"
 					size="xs"
 					data-slot="map-legend-detail"
-					severity="muted"
+					tone="muted"
 					className={cn(
 						'shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
 						off && 'opacity-60',

@@ -394,7 +394,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * emits a bin id ({@link binEmphasisId}).
 		 *
 		 * The ids only line up across plats when the bins do. For the numeric mode
-		 * that means the same `colorRange`, `bins`, and an explicit `domain`. Without
+		 * that means the same `colorRange`, `bins`, and an explicit `colorDomain`. Without
 		 * the last one each plat bins to its own extent, and an id from one means
 		 * nothing to another.
 		 *
@@ -498,9 +498,9 @@ function MapZoomLayer({ children }: { children: ReactNode }) {
 function valueColumnHeader(
 	categoryKey: string | undefined,
 	valueKey: string | undefined,
-	valueName: string | undefined,
+	colorName: string | undefined,
 ): string {
-	if (valueKey !== undefined) return valueName ?? valueKey
+	if (valueKey !== undefined) return colorName ?? valueKey
 
 	return categoryKey ?? 'Detail'
 }
@@ -642,8 +642,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		categoryKey,
 		valueKey,
 		colorRange,
-		valueFormat,
-		valueName,
+		formatValue,
+		colorName,
 		regionId,
 		regionLabel,
 		width,
@@ -679,7 +679,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		categories: _categories,
 		bins: _bins,
 		binning: _binning,
-		domain: _domain,
+		colorDomain: _colorDomain,
 		...name
 	} = props
 
@@ -1169,7 +1169,14 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			entryCount: entries.length,
 			hasOverlayChildren: children != null,
 		},
-		{ colorRange, valueExtent, valueFormat, valueName, regionNumbers, onFocus: setFocus },
+		{
+			colorRange,
+			valueExtent,
+			valueFormat: formatValue,
+			valueName: colorName,
+			regionNumbers,
+			onFocus: setFocus,
+		},
 	)
 
 	const aside = legendAside(legendPlacement)
@@ -1231,7 +1238,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		() =>
 			hasReadout ? (
 				<MapTable
-					header={valueColumnHeader(categoryKey, valueKey, valueName)}
+					header={valueColumnHeader(categoryKey, valueKey, colorName)}
 					regionNames={regionNames}
 					regionCategory={regionCategory}
 					regionValues={regionValues}
@@ -1245,7 +1252,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			hasReadout,
 			categoryKey,
 			valueKey,
-			valueName,
+			colorName,
 			regionNames,
 			regionCategory,
 			regionValues,

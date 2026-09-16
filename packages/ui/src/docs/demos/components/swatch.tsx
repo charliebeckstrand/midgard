@@ -23,7 +23,7 @@ export function Demo() {
 						<Flex key={shape} gap="sm">
 							<Swatch shape={shape} color="blue" />
 
-							<Text as="span" severity="muted" size="sm">
+							<Text as="span" tone="muted" size="sm">
 								{shape}
 							</Text>
 						</Flex>
@@ -52,7 +52,7 @@ export function Demo() {
 						<Flex key={variant} gap="sm">
 							<Swatch shape={selectedShape} variant={variant} color="orange" />
 
-							<Text as="span" severity="muted" size="sm">
+							<Text as="span" tone="muted" size="sm">
 								{variant}
 							</Text>
 						</Flex>
@@ -65,7 +65,7 @@ export function Demo() {
 					<Flex gap="sm">
 						<Swatch color="violet" />
 
-						<Text as="span" severity="muted" size="sm">
+						<Text as="span" tone="muted" size="sm">
 							palette name
 						</Text>
 					</Flex>
@@ -73,7 +73,7 @@ export function Demo() {
 					<Flex gap="sm">
 						<Swatch color="#7c3aed" />
 
-						<Text as="span" severity="muted" size="sm">
+						<Text as="span" tone="muted" size="sm">
 							hex
 						</Text>
 					</Flex>
@@ -81,7 +81,7 @@ export function Demo() {
 					<Flex gap="sm">
 						<Swatch color="oklch(54.1% 0.281 293.009)" />
 
-						<Text as="span" severity="muted" size="sm">
+						<Text as="span" tone="muted" size="sm">
 							oklch
 						</Text>
 					</Flex>
@@ -89,7 +89,7 @@ export function Demo() {
 					<Flex gap="sm">
 						<Swatch color="text-violet-600 dark:text-violet-500" />
 
-						<Text as="span" severity="muted" size="sm">
+						<Text as="span" tone="muted" size="sm">
 							utility class
 						</Text>
 					</Flex>

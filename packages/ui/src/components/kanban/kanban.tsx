@@ -5,6 +5,7 @@ import { type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
+import type { AccessibleName } from '../../types'
 import { KanbanContext, KanbanDragStateContext } from './context'
 import type { KanbanColumnBase } from './types'
 import { useKanbanDrag } from './use-kanban-drag'
@@ -17,7 +18,7 @@ import { useKanbanKeyboard } from './use-kanban-keyboard'
  * @typeParam T - Item datum carried by each column.
  * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
  */
-export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
+export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName & {
 	/** Ordered columns. Each column must have a stable `id` and an `items` array. */
 	columns: C[]
 	/** Stable key extractor for items. */
@@ -28,7 +29,6 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
 	disabled?: boolean
 	children?: ReactNode
 	className?: string
-	'aria-label'?: string
 }
 
 /**
@@ -40,8 +40,8 @@ export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
  * Compose the column header/body slots within.
  *
  * @remarks
- * Client component. The board is a named `role="region"` (`<section>`); pass
- * `aria-label`.
+ * Client component. The board is a named `role="region"` (`<section>`), so the
+ * type requires one of `aria-label` / `aria-labelledby`.
  *
  * @typeParam T - Item datum carried by each column.
  * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
@@ -53,7 +53,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	disabled,
 	children,
 	className,
-	'aria-label': ariaLabel,
+	...labelProps
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onReorder
 
@@ -117,7 +117,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 				>
 					<section
 						ref={containerRef}
-						aria-label={ariaLabel}
+						{...labelProps}
 						data-slot="kanban"
 						className={cn(k.base, className)}
 					>

@@ -12,10 +12,10 @@ import {
 	useKanbanDragState,
 } from './context'
 
-/** Props for {@link KanbanColumn}: the `columnId` matching a board column, with an optional accessible-name override. */
+/** Props for {@link KanbanColumn}: the `value` matching a board column, with an optional accessible-name override. */
 export type KanbanColumnProps = {
-	/** Stable id matching an entry in the `columns` prop. */
-	columnId: string
+	/** Stable key matching an entry in the `columns` prop; the keyed-child `value` every compound in the library takes. */
+	value: string
 	children?: ReactNode
 	className?: string
 	/** Explicit name for the column section. Defaults to the rendered `KanbanColumnTitle`. */
@@ -23,7 +23,7 @@ export type KanbanColumnProps = {
 }
 
 /**
- * Drop target and sortable context for one board column, keyed by `columnId`.
+ * Drop target and sortable context for one board column, keyed by `value`.
  * Highlights while a card hovers over it, and provides column context to its
  * cards and title. It names its `<section>` from a mounted
  * {@link KanbanColumnTitle}, or from an explicit `aria-label`. Compose {@link KanbanColumnHeader} and
@@ -32,7 +32,7 @@ export type KanbanColumnProps = {
  * @remarks Client component.
  */
 export function KanbanColumn({
-	columnId,
+	value: columnId,
 	children,
 	className,
 	'aria-label': ariaLabel,

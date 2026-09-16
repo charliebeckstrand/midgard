@@ -276,11 +276,11 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			regionKey: primary?.idKey,
 			valueKey: primary?.colorKey,
 			colorRange: primary?.colorRange,
-			domain: primary?.colorDomain,
-			valueName: primary?.colorName,
+			colorDomain: primary?.colorDomain,
+			colorName: primary?.colorName,
 			bins: primary?.bins,
 			binning: primary?.binning,
-			valueFormat: formatValue,
+			formatValue,
 		}),
 	} satisfies MapPlatProps<T>
 

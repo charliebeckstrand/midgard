@@ -163,7 +163,7 @@ function SectionedSidebarExample() {
 
 					<SidebarSection>
 						<Flex align="center" gap="sm">
-							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
+							<Text tone="muted" className="text-xs uppercase tracking-wide flex-1">
 								Projects
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New project">
@@ -186,7 +186,7 @@ function SectionedSidebarExample() {
 
 					<SidebarSection>
 						<Flex align="center" gap="sm">
-							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
+							<Text tone="muted" className="text-xs uppercase tracking-wide flex-1">
 								Chats
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New chat">
@@ -210,7 +210,7 @@ function SectionedSidebarExample() {
 					<Spacer />
 
 					<SidebarSection>
-						<Text severity="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
+						<Text tone="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
 							Wade Cooper
 						</Text>
 						<SidebarList aria-label="Account">
@@ -370,7 +370,7 @@ export function Demo() {
 			<Example
 				title="Mini"
 				prefix={
-					<Text severity="muted">
+					<Text tone="muted">
 						In its mini variant, the sidebar collapses to a slim icon rail; on mobile, it reverts to
 						standard sidebar behavior.
 					</Text>

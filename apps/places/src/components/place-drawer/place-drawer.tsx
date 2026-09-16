@@ -328,7 +328,7 @@ export function PlaceDrawer({
 						) : null}
 
 						{shown.length === 0 ? (
-							<Text severity="warning">
+							<Text tone="warning">
 								No places match the selected {categories.length > 1 ? 'categories' : 'category'}.
 							</Text>
 						) : (

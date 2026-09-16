@@ -22,12 +22,15 @@ export function StackedLayout({ children, className }: StackedLayoutProps) {
 }
 
 /** Props for {@link StackedLayoutHeader}. */
-export type StackedLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+export type StackedLayoutHeaderProps = PropsWithChildren<{
+	className?: string
+	ref?: Ref<HTMLElement>
+}>
 
 /** Fixed-height header slot for {@link StackedLayout} (`data-slot="header"`). */
-export function StackedLayoutHeader({ children, className }: StackedLayoutHeaderProps) {
+export function StackedLayoutHeader({ ref, children, className }: StackedLayoutHeaderProps) {
 	return (
-		<header data-slot="header" className={cn('shrink-0', className)}>
+		<header ref={ref} data-slot="header" className={cn('shrink-0', className)}>
 			{children}
 		</header>
 	)
@@ -52,12 +55,15 @@ export function StackedLayoutBody({ ref, children, className }: StackedLayoutBod
 }
 
 /** Props for {@link StackedLayoutFooter}. */
-export type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
+export type StackedLayoutFooterProps = PropsWithChildren<{
+	className?: string
+	ref?: Ref<HTMLElement>
+}>
 
 /** Fixed-height footer slot for {@link StackedLayout} (`data-slot="footer"`). */
-export function StackedLayoutFooter({ children, className }: StackedLayoutFooterProps) {
+export function StackedLayoutFooter({ ref, children, className }: StackedLayoutFooterProps) {
 	return (
-		<footer data-slot="footer" className={cn('shrink-0', className)}>
+		<footer ref={ref} data-slot="footer" className={cn('shrink-0', className)}>
 			{children}
 		</footer>
 	)

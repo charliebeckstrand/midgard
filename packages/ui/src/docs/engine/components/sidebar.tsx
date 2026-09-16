@@ -209,7 +209,7 @@ export function SidebarContent({ route }: { route: string }) {
 				{sections.map(({ category, label, items }) => (
 					<SidebarSection key={category}>
 						<Text
-							severity="muted"
+							tone="muted"
 							className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX[size])}
 						>
 							{label}

@@ -81,13 +81,13 @@ export const dataComplexCases: readonly Case[] = [
 		'kanban',
 		<Kanban key="kb" columns={kanbanColumns} getKey={(load: Load) => load.id} aria-label="Loads">
 			{kanbanColumns.map((column) => (
-				<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
+				<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 					</KanbanColumnHeader>
 					<KanbanColumnBody>
 						{column.items.map((load) => (
-							<KanbanCard key={load.id} cardId={load.id} aria-label={load.code}>
+							<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
 								<span>{load.code}</span>
 								<span>{load.customer}</span>
 							</KanbanCard>

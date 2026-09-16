@@ -23,7 +23,7 @@ function CompoundCollapseExample() {
 				<TriggerLabel />
 			</CollapseTrigger>
 			<CollapsePanel>
-				<Text severity="muted">
+				<Text tone="muted">
 					The compound API exposes the open state through <code>useCollapseContext</code>, so a
 					child of the trigger can change its text or style based on whether the panel is open.
 				</Text>
@@ -40,7 +40,7 @@ function ControlledCollapseExample() {
 			<Button onClick={() => setOpen((o) => !o)}>{open ? 'Hide panel' : 'Show panel'}</Button>
 			<Collapse open={open} onOpenChange={setOpen}>
 				<CollapsePanel>
-					<Text severity="muted">
+					<Text tone="muted">
 						Pass <code>open</code> and <code>onOpenChange</code> to drive Collapse from parent
 						state. Any external button can toggle the panel.
 					</Text>
@@ -57,7 +57,7 @@ export function Demo() {
 				<Collapse>
 					<CollapseTrigger>Toggle details</CollapseTrigger>
 					<CollapsePanel>
-						<Text severity="muted">
+						<Text tone="muted">
 							A string in `CollapseTrigger` renders as muted text that highlights on hover. The
 							panel animates open with a smooth height transition.
 						</Text>
@@ -69,7 +69,7 @@ export function Demo() {
 				<Collapse defaultOpen>
 					<CollapseTrigger>Toggle details</CollapseTrigger>
 					<CollapsePanel>
-						<Text severity="muted">
+						<Text tone="muted">
 							This content is visible by default because the collapse starts open.
 						</Text>
 					</CollapsePanel>
