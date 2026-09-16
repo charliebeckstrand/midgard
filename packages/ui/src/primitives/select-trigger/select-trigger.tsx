@@ -4,6 +4,7 @@ import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/select'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { AffixContext, affixStepDown } from '../affix'
 import { ControlFrame } from '../control'
 
@@ -12,7 +13,7 @@ import { ControlFrame } from '../control'
  * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
  * presentation, and the prefix / suffix slot content.
  */
-export type SelectTriggerProps = {
+export type SelectTriggerProps = GroupStampProps & {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
@@ -25,8 +26,6 @@ export type SelectTriggerProps = {
 	suffixProps?: Omit<ComponentProps<'span'>, 'className' | 'children'>
 	className?: string
 	frameProps?: Omit<ComponentProps<typeof ControlFrame>, 'className' | 'children'>
-	'data-group'?: string
-	'data-group-orientation'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	children: ReactNode

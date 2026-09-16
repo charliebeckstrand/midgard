@@ -29,11 +29,15 @@ export type OverlayProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	dismissOnBackdrop?: boolean
-	glass?: boolean
 	/**
 	 * Class for the dimming backdrop. It fully replaces the backdrop's default
 	 * classes (including `absolute inset-0`), and applies only when a backdrop
 	 * renders; with `backdrop={false}` it has no effect.
+	 *
+	 * @remarks
+	 * The one channel that styles the backdrop. Every panel drives its glass
+	 * surface through its own recipe's `backdrop` here, so nothing can be set
+	 * and then silently outranked.
 	 */
 	backdropClassName?: string
 	children: ReactNode
@@ -104,7 +108,6 @@ export function Overlay({
 	open,
 	onOpenChange,
 	dismissOnBackdrop = true,
-	glass,
 	backdropClassName,
 	children,
 	container,
@@ -162,9 +165,7 @@ export function Overlay({
 					// After the preset spread, so it overrides the preset's own `initial`.
 					initial={animateEnter ? k.motion.initial : false}
 					data-slot="overlay-backdrop"
-					className={
-						backdropClassName ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
-					}
+					className={backdropClassName ?? cn('absolute inset-0', k.backdrop.base)}
 					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
 					aria-hidden="true"
 				/>

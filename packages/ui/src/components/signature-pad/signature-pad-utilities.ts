@@ -46,6 +46,30 @@ export function drawSnapshot(canvas: HTMLCanvasElement, src: string) {
  *
  * @internal
  */
+/**
+ * The colour a stroke paints in: the explicit `strokeColor`, else the canvas's
+ * own computed `color`.
+ *
+ * @remarks
+ * A canvas takes no `currentColor`, so the theme's ink has to be read off the
+ * element and handed to the 2D context. That is what makes an unset
+ * `strokeColor` follow the theme instead of painting one hard-coded hex on
+ * both a light and a dark surface. Falls back to `currentColor` where no
+ * computed style is available, which is the server and a detached node.
+ *
+ * @internal
+ */
+export function resolveStrokeColor(
+	canvas: HTMLCanvasElement | null,
+	strokeColor: string | undefined,
+): string {
+	if (strokeColor !== undefined) return strokeColor
+
+	if (canvas === null || typeof window === 'undefined') return 'currentColor'
+
+	return window.getComputedStyle(canvas).color || 'currentColor'
+}
+
 export function configureStroke(context: CanvasRenderingContext2D, color: string, width: number) {
 	context.lineCap = 'round'
 	context.lineJoin = 'round'

@@ -33,6 +33,7 @@ import { QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -47,7 +48,7 @@ import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
 
-type ComboboxBaseProps<T> = {
+type ComboboxBaseProps<T> = GroupStampProps & {
 	id?: string
 	name?: string
 	placeholder?: string
@@ -172,8 +173,6 @@ type ComboboxBaseProps<T> = {
 	 * paste left alone is ordinary typing and lands at the caret.
 	 */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
-	'data-group'?: string
-	'data-group-orientation'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	/**

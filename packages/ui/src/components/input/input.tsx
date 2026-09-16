@@ -7,25 +7,25 @@ import { useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { type InputVariants, k } from '../../recipes/kata/input'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { type ControlSize, type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
 
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
-export type InputProps = Omit<InputVariants, 'size' | 'variant'> & {
-	size?: ControlSize
-	variant?: ControlVariant
-	prefix?: ReactNode
-	suffix?: ReactNode
-	/** Forces the invalid state. When omitted, inherits from Control / Form context. */
-	invalid?: boolean
-	/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
-	value?: ComponentProps<'input'>['value'] | null
-	className?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
-} & Omit<ComponentProps<'input'>, 'className' | 'size' | 'prefix' | 'value'>
+export type InputProps = GroupStampProps &
+	Omit<InputVariants, 'size' | 'variant'> & {
+		size?: ControlSize
+		variant?: ControlVariant
+		prefix?: ReactNode
+		suffix?: ReactNode
+		/** Forces the invalid state. When omitted, inherits from Control / Form context. */
+		invalid?: boolean
+		/** Controlled value. `undefined` leaves the input uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
+		value?: ComponentProps<'input'>['value'] | null
+		className?: string
+	} & Omit<ComponentProps<'input'>, 'className' | 'size' | 'prefix' | 'value'>
 
 /**
  * Text input with optional `prefix`/`suffix` affixes.

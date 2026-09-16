@@ -5,6 +5,7 @@ import { type ReactElement, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/date-picker'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
 import { DateInput, type DateInputFormat } from '../date-input'
@@ -119,7 +120,7 @@ export type DatePickerFooterConfig = {
  * range); intersected with the discriminated value/handler shape in
  * {@link DatePickerProps}.
  */
-export type DatePickerBaseProps = {
+export type DatePickerBaseProps = GroupStampProps & {
 	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
 	/**
@@ -177,8 +178,6 @@ export type DatePickerBaseProps = {
 	onOpenChange?: (open: boolean) => void
 	/** Accessible name for the trigger when no Field/Label wraps the picker. */
 	'aria-label'?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
 }
 
 /**

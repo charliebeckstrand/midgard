@@ -138,7 +138,7 @@ export function Dialog({
 			modal={modal}
 			backdrop={backdrop}
 			container={container}
-			glass={isGlass}
+			backdropClassName={k.backdrop({ surface: resolvedSurface })}
 			initialFocus={initialFocus}
 		>
 			<div
