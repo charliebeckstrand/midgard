@@ -8,7 +8,7 @@ import type { ReactNode } from 'react'
  * holds one editor open. A session that narrowed a row already open is the
  * exception: the editors it closes emit together.
  */
-export type CellChange = {
+export type GridCellChange = {
 	rowKey: string | number
 	columnId: string | number
 	value: unknown
@@ -125,7 +125,7 @@ export type GridEditableConfig = {
 	 * the shape a form-like "edit this record" grid wants. `'cell'` narrows the
 	 * session to the entered cell alone. Only that cell mounts an editor, and
 	 * moving to another cell commits the one it leaves. A session that opened its
-	 * own row therefore commits one {@link CellChange} at a time: the spreadsheet
+	 * own row therefore commits one {@link GridCellChange} at a time: the spreadsheet
 	 * shape. Narrowing a row the consumer had already opened is the exception: the
 	 * editors that close with the narrowing commit together, in one batch. Escape under
 	 * `'cell'` drops the active cell's draft alone, because the cells before it
@@ -146,7 +146,7 @@ export type GridEditableConfig = {
 	 */
 	scope?: 'row' | 'cell'
 	/**
-	 * Called when staged cells commit, with one {@link CellChange} per changed cell
+	 * Called when staged cells commit, with one {@link GridCellChange} per changed cell
 	 * of a row, batched into a single call. Cells commit when their editor closes.
 	 * Saving a row — removing it from the set — closes all of them at once; a
 	 * cell-scoped session usually closes one as it moves on. Read the batch rather
@@ -156,7 +156,7 @@ export type GridEditableConfig = {
 	 * stopped being editable while the editor was open. Apply each change to your
 	 * own row data and feed it back as `rows`.
 	 */
-	onCommit: (changes: CellChange[]) => void
+	onCommit: (changes: GridCellChange[]) => void
 	/**
 	 * Fires with the cells that {@link GridColumn.validate} refused, one batch per
 	 * row, beside the {@link GridEditableConfig.onCommit} batch of the same flush.
@@ -168,5 +168,5 @@ export type GridEditableConfig = {
 	 * explain the refusal. Cells dropped for other reasons stay out: an unchanged
 	 * cell is no refusal, and a column that stopped being editable refused nothing.
 	 */
-	onReject?: (refused: CellChange[]) => void
+	onReject?: (refused: GridCellChange[]) => void
 }

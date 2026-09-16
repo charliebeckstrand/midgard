@@ -114,7 +114,7 @@ function CommandResults() {
 
 	if (!results.length) {
 		return (
-			<Alert severity="warning" block>
+			<Alert severity="warning" className="w-full">
 				<AlertTitle>No commands found</AlertTitle>
 			</Alert>
 		)
@@ -166,11 +166,7 @@ function VirtualizedCommandResults() {
 		// VirtualOptions a wrapper with an explicit, definite height (not just
 		// `max-height`) and `overflow-y: auto`.
 		<div style={{ height: 320, overflow: 'auto' }}>
-			<VirtualOptions
-				items={filtered}
-				estimateSize={36}
-				getOptionId={(command) => `virtual-command-${command.id}`}
-			>
+			<VirtualOptions items={filtered} getOptionId={(command) => `virtual-command-${command.id}`}>
 				{(command, _index, meta) => (
 					<CommandPaletteItem key={command.id} id={`virtual-command-${command.id}`} {...meta}>
 						<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
@@ -186,12 +182,7 @@ function VirtualizedCommandPaletteExample() {
 
 	return (
 		<>
-			<Button
-				color="blue"
-				variant="soft"
-				suffix={<Kbd command>K</Kbd>}
-				onClick={() => setOpen(true)}
-			>
+			<Button color="blue" variant="soft" suffix={<Kbd>⌘K</Kbd>} onClick={() => setOpen(true)}>
 				Open command palette
 			</Button>
 
@@ -208,12 +199,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<Button
-					color="blue"
-					variant="soft"
-					suffix={<Kbd command>K</Kbd>}
-					onClick={() => setOpen(true)}
-				>
+				<Button color="blue" variant="soft" suffix={<Kbd>⌘K</Kbd>} onClick={() => setOpen(true)}>
 					Open command palette
 				</Button>
 

@@ -203,7 +203,7 @@ export function Sheet({
 			initialFocus={initialFocus}
 			modal={modal}
 			backdrop={backdrop}
-			className={k.backdrop({ surface: resolvedSurface, desaturate })}
+			backdropClassName={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
 				{...preset}

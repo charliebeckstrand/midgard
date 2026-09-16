@@ -17,8 +17,6 @@ export type LocaleConfig = {
 	numberFormat?: Intl.NumberFormatOptions
 	/** Default options for `Intl.DateTimeFormat`-based components. */
 	dateFormat?: Intl.DateTimeFormatOptions
-	/** IANA time zone identifier (e.g. `'America/Los_Angeles'`). */
-	timeZone?: string
 }
 
 /** Reads the ambient {@link LocaleConfig} from the nearest `<LocaleProvider>`; returns `{}` outside one. */

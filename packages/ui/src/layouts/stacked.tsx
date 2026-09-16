@@ -15,7 +15,7 @@ export type StackedLayoutProps = PropsWithChildren<{
  */
 export function StackedLayout({ children, className }: StackedLayoutProps) {
 	return (
-		<Stack direction="col" gap="lg" className={cn('min-h-0', className)}>
+		<Stack gap="lg" className={cn('min-h-0', className)}>
 			{children}
 		</Stack>
 	)

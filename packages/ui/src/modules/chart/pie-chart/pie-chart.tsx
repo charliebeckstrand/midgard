@@ -7,7 +7,7 @@ import { type SectorBaseProps, SectorChart } from '../sector-chart'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type PieChartProps<T> = SectorBaseProps<T>
+export type PieChartProps<T = never> = SectorBaseProps<T>
 
 /**
  * A pie chart: one dataset's positive shares swept clockwise from the top

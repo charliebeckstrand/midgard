@@ -25,7 +25,7 @@ import {
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
-import type { SortState } from '../../context'
+import type { GridSortState } from '../../context'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
 import {
@@ -36,16 +36,16 @@ import {
 import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
 import { isQueryGroup } from './views'
 
-/** Adapts the grid's ordered {@link SortState} list to a TanStack `SortingState`, priority order preserved. @internal */
-export function toSortingState(sort: SortState[] | undefined): SortingState {
+/** Adapts the grid's ordered {@link GridSortState} list to a TanStack `SortingState`, priority order preserved. @internal */
+export function toSortingState(sort: GridSortState[] | undefined): SortingState {
 	return (sort ?? []).map((entry) => ({
 		id: String(entry.column),
 		desc: entry.direction === 'desc',
 	}))
 }
 
-/** Adapts a TanStack `SortingState` back to the grid's ordered {@link SortState} list. @internal */
-export function toSortState(sorting: SortingState): SortState[] {
+/** Adapts a TanStack `SortingState` back to the grid's ordered {@link GridSortState} list. @internal */
+export function toSortState(sorting: SortingState): GridSortState[] {
 	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
 }
 
@@ -125,7 +125,7 @@ queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.len
 
 /**
  * Highlight-mode global filter: matches every row, so the quick-search query
- * marks cells (see {@link GridSearch.filter}) without pruning any row. The value
+ * marks cells (see {@link GridSearch.mode}) without pruning any row. The value
  * still lives in engine state for the highlighter to read. Column filters keep
  * their own {@link queryFilterFn}, so they prune independently of the search.
  *

@@ -1,5 +1,6 @@
 import type { GeoGeometryObjects, GeoProjection } from 'd3-geo'
 import type { MapSeriesColor } from '../../../recipes/kata/map'
+import type { ChartLegendPlacement } from '../../chart/engine/chart-legend/schema'
 
 /** `[longitude, latitude]`: GeoJSON order, opposite of the idiomatic "lat / lng". */
 export type LngLat = [number, number]
@@ -158,4 +159,4 @@ export type MapAspectRatio = number | `${number}/${number}` | 'auto' | false
  * it, or a column panel beside it. The panel sits side by side from `lg`, and
  * under the map below that.
  */
-export type MapLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
+export type MapLegendPlacement = ChartLegendPlacement

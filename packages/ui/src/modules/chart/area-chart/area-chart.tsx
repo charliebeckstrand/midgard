@@ -45,7 +45,7 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type AreaChartProps<T> = CartesianChartProps<T> & {
+export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Draw a hover crosshair. Alone among the cartesian charts this defaults on:
 	 * a snapping vertical category rule (`{ y: true, snap: true }`) that meets the

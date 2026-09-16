@@ -120,7 +120,7 @@ export function Demo() {
 											value={80}
 											size={s}
 											color="amber"
-											label
+											centerLabel
 											aria-label={`${s} progress`}
 										/>
 									))}

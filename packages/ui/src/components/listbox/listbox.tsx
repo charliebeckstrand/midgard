@@ -14,11 +14,7 @@ import {
 import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
-import {
-	capitalizeFirst,
-	resolveCapitalize,
-	type SelectCapitalize,
-} from '../../primitives/select-trigger/capitalize'
+import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
@@ -69,11 +65,10 @@ type ListboxBaseProps = {
 	/**
 	 * Capitalizes the first letter (first word only) of the selected
 	 * `displayValue` and of each option's string label; custom label nodes
-	 * render as authored. Pass an object to target each surface independently.
-	 * Display-only: the underlying value is untouched.
+	 * render as authored. Display-only: the underlying value is untouched.
 	 * @defaultValue true
 	 */
-	capitalize?: SelectCapitalize
+	capitalize?: boolean
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -300,14 +295,11 @@ export function Listbox<T>({
 		onBlur?.(event)
 	}
 
-	const capitalization = resolveCapitalize(capitalize)
-
 	const resolvedLabel = resolveLabel({ value, displayValue, multiple })
 
 	// First-word-capitalize the resolved display string at the source; the
 	// trigger button renders it verbatim (`undefined` skips the placeholder).
-	const label =
-		capitalization.displayValue && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
+	const label = capitalize && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
 
 	const hasValue = hasListboxValue(value, multiple)
 
@@ -342,9 +334,9 @@ export function Listbox<T>({
 			value: selectionValue,
 			multiple,
 			onSelect: select as (v: unknown) => void,
-			capitalize: capitalization.options,
+			capitalize,
 		}),
-		[selectionValue, multiple, select, capitalization.options],
+		[selectionValue, multiple, select, capitalize],
 	)
 
 	return (

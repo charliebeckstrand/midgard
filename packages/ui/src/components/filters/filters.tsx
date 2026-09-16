@@ -176,10 +176,13 @@ export function Filters<T extends FilterValue = FilterValue>({
 						direction={direction}
 						gap="sm"
 						align={align}
-						equal={equal}
 						full
 						flex="auto"
-						className={cn(rail && ['min-w-0 overflow-x-auto overscroll-x-contain', railClassName])}
+						className={cn(
+							equal && '*:flex-1',
+							rail && 'min-w-0 overflow-x-auto overscroll-x-contain',
+							rail && railClassName,
+						)}
 					>
 						{children}
 					</Flex>

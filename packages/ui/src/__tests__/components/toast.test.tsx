@@ -530,8 +530,8 @@ describe('Toast: useToast behavior', () => {
 	})
 
 	it.each([
-		['default'],
-		['secondary'],
+		['info'],
+		['neutral'],
 		['success'],
 		['warning'],
 		['error'],

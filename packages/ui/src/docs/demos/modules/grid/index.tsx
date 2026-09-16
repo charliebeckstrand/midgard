@@ -17,7 +17,7 @@ import {
 	type GridColumnGroup,
 	type GridPaginationState,
 	type GridRowGroup,
-	type SortState,
+	type GridSortState,
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
 import { BulkEditExample, CellScopeExample, EditableExample, EditorTypesExample } from './editable'
@@ -309,7 +309,7 @@ function DefaultExample() {
 
 // Sort `people` by the ordered sort list — the work a backend does for a
 // server-side (manual) sort, walking the list in priority order.
-function sortPeople(sort: SortState[]): Person[] {
+function sortPeople(sort: GridSortState[]): Person[] {
 	if (!sort.length) return people
 
 	return [...people].sort((a, b) => {
@@ -328,7 +328,7 @@ function sortPeople(sort: SortState[]): Person[] {
 }
 
 function SortableExample() {
-	const [sort, setSort] = useState<SortState[]>([{ column: 'name', direction: 'asc' }])
+	const [sort, setSort] = useState<GridSortState[]>([{ column: 'name', direction: 'asc' }])
 
 	// Server-side (manual) sorting: the grid emits the sort change and leaves the
 	// row order untouched; the consumer fetches the reordered rows. The timeout
@@ -354,7 +354,7 @@ function SortableExample() {
 }
 
 function ClientSortExample() {
-	const [sort, setSort] = useState<SortState[]>([{ column: 'name', direction: 'asc' }])
+	const [sort, setSort] = useState<GridSortState[]>([{ column: 'name', direction: 'asc' }])
 
 	// Client-side is the default: the grid sorts `people` itself by each column's
 	// value (here an explicit `value`; columns without one sort by their field).
@@ -371,7 +371,7 @@ function ClientSortExample() {
 }
 
 function AnimatedSortExample() {
-	const [sort, setSort] = useState<SortState[]>([{ column: 'name', direction: 'asc' }])
+	const [sort, setSort] = useState<GridSortState[]>([{ column: 'name', direction: 'asc' }])
 
 	// `sort.animate` turns each re-sort into a Framer `layout` FLIP: click a header
 	// (or Shift-click a second) and the rows glide from their old places to their
@@ -390,7 +390,7 @@ function AnimatedSortExample() {
 function MultiSortExample() {
 	// Seeded with a two-column sort (Role, then Name) so the priority badges show
 	// at a glance; Shift-click any sortable header to extend or reorder the sort.
-	const [sort, setSort] = useState<SortState[]>([
+	const [sort, setSort] = useState<GridSortState[]>([
 		{ column: 'role', direction: 'asc' },
 		{ column: 'name', direction: 'asc' },
 	])
@@ -584,7 +584,7 @@ const ErrorExample = () => {
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			error={<Alert color="red" variant="soft" title="Couldn't load people" block />}
+			error={<Alert color="red" variant="soft" title="Couldn't load people" className="w-full" />}
 		/>
 	)
 }
@@ -717,8 +717,8 @@ const AggregationExample = () => (
 		rows={salesData}
 		getKey={(row) => row.id}
 		groupBy={{ value: 'region' }}
-		groupTotalRow="bottom"
-		grandTotalRow="bottom"
+		groupTotalRow
+		grandTotalRow
 	/>
 )
 
@@ -742,7 +742,7 @@ const RowManagerExample = () => {
 				value: 'region',
 				rowGroups: { value: rowGroups, onValueChange: setRowGroups },
 			}}
-			groupTotalRow="bottom"
+			groupTotalRow
 		/>
 	)
 }
@@ -878,12 +878,12 @@ const SearchHighlightExample = () => {
 			columns={searchableColumns}
 			rows={people}
 			getKey={(row) => row.id}
-			// `filter: false` marks matches in place instead of pruning the non-matching
+			// `mode: 'highlight'` marks matches in place instead of pruning the non-matching
 			// rows, so the query reads as an emphasis rather than a filter.
 			search={{
 				value: query,
 				onValueChange: setQuery,
-				filter: false,
+				mode: 'highlight',
 				placeholder: 'Highlight people',
 			}}
 		/>
@@ -921,7 +921,7 @@ const ColumnManagerExample = () => {
 	)
 }
 
-// A `groups` array bands a contiguous run of columns under a colored, labeled
+// A `columnGroups` array bands a contiguous run of columns under a colored, labeled
 // header. Each group names its member `columns` (kept adjacent and moved as a
 // block), a `title`, and a `color` from the standard + extended Badge palette.
 const columnGroups: GridColumnGroup[] = [
@@ -930,7 +930,7 @@ const columnGroups: GridColumnGroup[] = [
 ]
 
 const GroupsExample = () => (
-	<Grid columns={columns} rows={people} getKey={(row) => row.id} groups={columnGroups} />
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} columnGroups={columnGroups} />
 )
 
 // A `collapsible` group folds to its first column behind an expand toggle,
@@ -956,10 +956,10 @@ const collapsibleGroups: GridColumnGroup[] = [
 ]
 
 const CollapsibleGroupsExample = () => (
-	<Grid columns={columns} rows={people} getKey={(row) => row.id} groups={collapsibleGroups} />
+	<Grid columns={columns} rows={people} getKey={(row) => row.id} columnGroups={collapsibleGroups} />
 )
 
-// Passing a `groups` binding turns on the column manager's group editor: a "New
+// Passing a `columnGroups` binding turns on the column manager's group editor: a "New
 // group" button, a zone per group (name, color, remove), and an ungrouped pool.
 // Drag columns between zones — or use a row's "Move" menu — to change membership.
 const GroupManagerExample = () => {
@@ -970,7 +970,7 @@ const GroupManagerExample = () => {
 			columns={columns}
 			rows={people}
 			getKey={(row) => row.id}
-			groups={{ value: groups, onValueChange: setGroups }}
+			columnGroups={{ value: groups, onValueChange: setGroups }}
 			columnManager={{ toolbar: true }}
 		/>
 	)
@@ -1250,7 +1250,7 @@ function sparklineColumns(sortKey: string): GridColumn<Metric>[] {
 				<Sparkline
 					key={sortKey}
 					data={row.trend}
-					variant="bar"
+					shape="bar"
 					color="green"
 					animate
 					aria-label={`${row.name} by period, last 12 periods`}
@@ -1263,7 +1263,7 @@ function sparklineColumns(sortKey: string): GridColumn<Metric>[] {
 const SparklineExample = () => {
 	// A controlled sort so the cell renderers can key each sparkline on it: sorting
 	// flips `sortKey`, remounting every sparkline so it redraws in the new order.
-	const [sort, setSort] = useState<SortState[]>([])
+	const [sort, setSort] = useState<GridSortState[]>([])
 
 	const columns = useMemo(() => sparklineColumns(JSON.stringify(sort)), [sort])
 
@@ -1473,21 +1473,21 @@ export function Demo() {
 								<Stack gap="xl">
 									<Example
 										title="Column groups"
-										code={code`<Grid groups={[{ id, title, color, columns: [...] }]} />`}
+										code={code`<Grid columnGroups={[{ id, title, color, columns: [...] }]} />`}
 									>
 										<GroupsExample />
 									</Example>
 
 									<Example
 										title="Collapsible groups"
-										code={code`<Grid groups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
+										code={code`<Grid columnGroups={[{ ...group, collapsible: true, defaultCollapsed }]} />`}
 									>
 										<CollapsibleGroupsExample />
 									</Example>
 
 									<Example
 										title="Group editor"
-										code={code`<Grid groups={{ value, onValueChange }} columnManager={{ toolbar: true }} />`}
+										code={code`<Grid columnGroups={{ value, onValueChange }} columnManager={{ toolbar: true }} />`}
 									>
 										<GroupManagerExample />
 									</Example>
@@ -1512,14 +1512,14 @@ export function Demo() {
 
 									<Example
 										title="Aggregation & totals"
-										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow="bottom" grandTotalRow="bottom" columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
+										code={code`<Grid groupBy={{ value: 'region' }} groupTotalRow grandTotalRow columns={[{ …, aggFunc: 'sum' }, { …, aggFunc: (rows) => weightedRatio }]} />`}
 									>
 										<AggregationExample />
 									</Example>
 
 									<Example
 										title="Row manager"
-										code={code`<Grid groupBy={{ value: 'region', rowGroups: { value, onValueChange } }} groupTotalRow="bottom" />
+										code={code`<Grid groupBy={{ value: 'region', rowGroups: { value, onValueChange } }} groupTotalRow />
 // right-click a group header → "Manage rows" to color the groups and reorder them`}
 									>
 										<RowManagerExample />

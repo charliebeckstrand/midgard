@@ -30,7 +30,7 @@ describe('Grid column groups', () => {
 
 	it('renders a band spanning its member columns', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		const band = bandCell(container)
@@ -57,7 +57,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
 		)
 
 		expect(bandRule(container)?.className).toContain('bg-blue-600')
@@ -65,7 +65,7 @@ describe('Grid column groups', () => {
 
 	it('draws a neutral band underline for a colorless group', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		// The rule stays (a colorless group keeps a grey underline, like a row rail),
@@ -87,7 +87,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={split} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={split} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		const headers = Array.from(
@@ -103,7 +103,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={collapsible} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={collapsible} />,
 		)
 
 		const dataColHeaders = () =>
@@ -138,7 +138,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={collapsible} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={collapsible} />,
 		)
 
 		const toggle = () => container.querySelector<HTMLButtonElement>('th[scope="colgroup"] button')
@@ -158,7 +158,7 @@ describe('Grid column groups', () => {
 
 	it('offers Manage columns then Clear color (in that order) on a colored band', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
 		)
 
 		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
@@ -172,7 +172,7 @@ describe('Grid column groups', () => {
 
 	it('clears the band color when Clear color is chosen', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
 		)
 
 		expect(bandRule(container)?.className).toContain('bg-blue-600')
@@ -191,7 +191,7 @@ describe('Grid column groups', () => {
 
 	it('omits Clear color for a colorless band', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
@@ -235,7 +235,7 @@ describe('Grid column-group onCollapsedChange', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				groups={collapsible}
+				columnGroups={collapsible}
 				onCollapsedChange={onCollapsedChange}
 			/>,
 		)
@@ -274,7 +274,7 @@ describe('Grid column-group onCollapsedChange', () => {
 				columns={columns}
 				rows={rows}
 				getKey={getKey}
-				groups={seeded}
+				columnGroups={seeded}
 				onCollapsedChange={onCollapsedChange}
 			/>,
 		)

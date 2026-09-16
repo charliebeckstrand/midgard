@@ -16,6 +16,7 @@ import {
 import { type ReactNode, useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
+import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import {
@@ -39,7 +40,6 @@ import {
 	SidebarSection,
 } from '../../../components/sidebar'
 import { Spacer } from '../../../components/spacer'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { cn } from '../../../core'
 import { Example } from '../../engine'
@@ -162,14 +162,14 @@ function SectionedSidebarExample() {
 					<SidebarDivider />
 
 					<SidebarSection>
-						<Stack direction="row" align="center" gap="sm">
+						<Flex align="center" gap="sm">
 							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
 								Projects
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New project">
 								<Icon icon={<Plus />} />
 							</Button>
-						</Stack>
+						</Flex>
 						<SidebarList aria-label="Projects">
 							{projects.map(({ value, label }) => (
 								<SidebarItem
@@ -185,14 +185,14 @@ function SectionedSidebarExample() {
 					</SidebarSection>
 
 					<SidebarSection>
-						<Stack direction="row" align="center" gap="sm">
+						<Flex align="center" gap="sm">
 							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
 								Chats
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New chat">
 								<Icon icon={<Plus />} />
 							</Button>
-						</Stack>
+						</Flex>
 						<SidebarList aria-label="Chats">
 							{chats.map(({ value, label }) => (
 								<SidebarItem

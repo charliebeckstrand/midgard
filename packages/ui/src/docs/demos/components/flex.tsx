@@ -24,7 +24,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Align and justify">
-				<Card p="md" bg="none">
+				<Card bg="none">
 					<Flex gap="md" justify="between" align="center" full>
 						<Card>Start</Card>
 						<Card>Middle</Card>
@@ -46,7 +46,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Equal">
-				<Flex gap="md" equal>
+				<Flex gap="md" className="*:flex-1">
 					<Card>Narrow</Card>
 					<Card>Wider content here</Card>
 					<Card>Even wider content in this card</Card>

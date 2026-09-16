@@ -38,7 +38,6 @@ export function NavItem({
 	className,
 	children,
 	preventClose,
-	spring = false,
 	prefix,
 	suffix,
 	onClick,
@@ -57,7 +56,7 @@ export function NavItem({
 			ref={item.ref as Ref<HTMLLIElement>}
 			data-slot="nav-item"
 			className={k.item.base({ affix: hasAffix })}
-			{...(spring ? item.indicator.tapHandlers : {})}
+			{...item.indicator.tapHandlers}
 		>
 			{prefix != null && (
 				<span data-slot="nav-item-prefix" className={cn(k.item.prefix)}>

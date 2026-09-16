@@ -2,12 +2,12 @@
 
 import { useCallback } from 'react'
 import { useControllable } from '../../hooks'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import { nextSort } from './engine/grid-sort/state'
 import type { GridSort } from './grid-data-types'
 
 /** Stable empty sort default; the unsorted state, read-only and replaced wholesale. @internal */
-const EMPTY_SORT: SortState[] = []
+const EMPTY_SORT: GridSortState[] = []
 
 /**
  * Owns the grid's controllable sort. The resolved list is ordered and never
@@ -18,11 +18,11 @@ const EMPTY_SORT: SortState[] = []
  * @internal
  */
 export function useGridSort(config: GridSort | undefined): {
-	sort: SortState[]
-	setSort: (sort: SortState[]) => void
+	sort: GridSortState[]
+	setSort: (sort: GridSortState[]) => void
 	toggleSort: (column: string | number, additive: boolean) => void
 } {
-	const [sortState, setSortState] = useControllable<SortState[]>({
+	const [sortState, setSortState] = useControllable<GridSortState[]>({
 		value: config?.value,
 		defaultValue: config?.defaultValue ?? EMPTY_SORT,
 		// The list is never meaningfully `undefined`; coalesce so the public callback

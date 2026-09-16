@@ -33,7 +33,7 @@ const NO_ROWS: never[] = []
  * @internal
  */
 export function useGridGrandTotal<T>(args: {
-	grandTotalRow: 'bottom' | undefined
+	grandTotalRow: boolean | undefined
 	columns: GridColumn<T>[]
 	hasRows: boolean
 	loading: boolean
@@ -45,7 +45,7 @@ export function useGridGrandTotal<T>(args: {
 	const { grandTotalRow, columns, hasRows, loading, showingError, manualGrouped, table } = args
 
 	const active =
-		grandTotalRow === 'bottom' &&
+		grandTotalRow === true &&
 		hasRows &&
 		!loading &&
 		!showingError &&

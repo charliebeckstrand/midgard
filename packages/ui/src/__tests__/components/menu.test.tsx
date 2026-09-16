@@ -554,6 +554,26 @@ describe('MenuItem', () => {
 		expect(onAction).toHaveBeenCalled()
 	})
 
+	it('keeps the menu open after onAction when closeOnAction is false', () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem closeOnAction={false} onAction={onAction}>
+						Item
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByText('Item'))
+
+		expect(onAction).toHaveBeenCalled()
+
+		expect(screen.getByText('Item')).toBeInTheDocument()
+	})
+
 	it('does not call onAction when disabled', () => {
 		const onAction = vi.fn()
 

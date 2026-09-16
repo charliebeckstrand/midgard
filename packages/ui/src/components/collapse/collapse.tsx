@@ -27,11 +27,11 @@ export type CollapseProps = {
 	 */
 	onOpenComplete?: () => void
 	/**
-	 * Animation style for the panel. `true` or `'fade'` for height + opacity,
-	 * `'slide'` for height only, `false` to disable.
+	 * Animation style for the panel. `'fade'` for height + opacity, `'slide'`
+	 * for height only, `false` to disable.
 	 * @defaultValue 'fade'
 	 */
-	animate?: boolean | 'fade' | 'slide'
+	animate?: 'fade' | 'slide' | false
 	/**
 	 * How the panel is held while closed.
 	 *

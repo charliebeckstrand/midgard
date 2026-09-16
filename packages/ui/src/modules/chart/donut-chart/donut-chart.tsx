@@ -8,7 +8,7 @@ import { type SectorBaseProps, SectorChart } from '../sector-chart'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type DonutChartProps<T> = SectorBaseProps<T> & {
+export type DonutChartProps<T = never> = SectorBaseProps<T> & {
 	/** Center content, rendered over the hole — a total, a stat, an icon. */
 	children?: ReactNode
 }

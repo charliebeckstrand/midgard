@@ -6,18 +6,15 @@ import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { MaskInput, type MaskInputProps } from '../mask-input'
 
-/** Dialing locale selecting the formatting mask: NANP for `'US'`/`'CA'`, loose digit-and-`+` for `'international'`. */
-export type PhoneInputCountry = 'US' | 'CA' | 'international'
+/** Dialing locale selecting the formatting mask: NANP for `'US'`, loose digit-and-`+` for `'international'`. */
+export type PhoneInputCountry = 'US' | 'international'
 
 /**
  * Props for {@link PhoneInput}. Inherits `<MaskInput>` props except `format`,
- * `type`, `inputMode`, `autoComplete`, and `prefix`, which are derived from
+ * `type`, `inputMode`, and `prefix`, which are derived from
  * `country` or defaulted here.
  */
-export type PhoneInputProps = Omit<
-	MaskInputProps,
-	'format' | 'type' | 'inputMode' | 'autoComplete' | 'prefix'
-> & {
+export type PhoneInputProps = Omit<MaskInputProps, 'format' | 'type' | 'inputMode' | 'prefix'> & {
 	/**
 	 * Dialing locale driving the mask.
 	 * @defaultValue 'US'
@@ -56,11 +53,10 @@ function formatInternational(raw: string) {
 
 const formatters = {
 	US: formatNANP,
-	CA: formatNANP,
 	international: formatInternational,
 } satisfies Record<PhoneInputCountry, (raw: string) => string>
 
-/** Phone-number MaskInput: formats per `country` (NANP for `'US'`/`'CA'`, digit-and-`+` for `'international'`) with a leading phone-icon `prefix`. */
+/** Phone-number MaskInput: formats per `country` (NANP for `'US'`, digit-and-`+` for `'international'`) with a leading phone-icon `prefix`. */
 export function PhoneInput({ country = 'US', prefix, ...props }: PhoneInputProps) {
 	return (
 		<MaskInput

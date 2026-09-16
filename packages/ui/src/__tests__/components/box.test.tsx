@@ -61,24 +61,24 @@ describe('Box', () => {
 		expect(bySlot(container, 'box')).toHaveClass('outline-zinc-950/15')
 	})
 
-	it('applies radius, bg, padding, and margin tokens', () => {
+	it('applies radius, bg, and padding tokens', () => {
 		const { container } = renderUI(
-			<Box radius="md" bg="surface" p="md" m="sm">
+			<Box radius="md" bg="surface" p="md">
 				content
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'p-3', 'm-2')
+		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'p-3')
 	})
 
-	it('respects px / py / mx / my overrides', () => {
+	it('respects px / py overrides', () => {
 		const { container } = renderUI(
-			<Box px="lg" py="sm" mx="xs" my="md">
+			<Box px="lg" py="sm">
 				content
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toHaveClass('px-4', 'py-2', 'mx-1', 'my-3')
+		expect(bySlot(container, 'box')).toHaveClass('px-4', 'py-2')
 	})
 
 	it('renders with a custom data-slot', () => {

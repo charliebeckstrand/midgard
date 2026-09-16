@@ -6,7 +6,7 @@
  */
 
 import { describe } from 'vitest'
-import { mapNode, QueryBuilder, type QueryGroupNode } from '../modules/query'
+import { mapNode, QueryBuilder, type QueryGroup } from '../modules/query'
 import { collectRuleIds, makeQueryTree, QUERY_FIELDS } from './fixtures'
 import { mountBenches, rerenderBench } from './harness'
 
@@ -32,7 +32,7 @@ describe('QueryBuilder · initial render', () => {
 })
 
 describe(`QueryBuilder · rerender after single-rule edit (${EDITS} edits/iter)`, () => {
-	const built = (tree: QueryGroupNode) => <QueryBuilder fields={QUERY_FIELDS} value={tree} />
+	const built = (tree: QueryGroup) => <QueryBuilder fields={QUERY_FIELDS} value={tree} />
 
 	for (const { label, root } of [
 		{ label: 'balanced (~16 rules)', root: balanced },
@@ -51,7 +51,7 @@ describe(`QueryBuilder · rerender after single-rule edit (${EDITS} edits/iter)`
 					// rule already holds and bails on an equality guard.
 					tree = mapNode(tree, id, (node) =>
 						node.type === 'rule' ? { ...node, value: `v${iteration}-${edit}` } : node,
-					) as QueryGroupNode
+					) as QueryGroup
 
 					rerender(built(tree))
 				}

@@ -256,9 +256,9 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 		// 16/9 ratio (overridable) to match its neighbours, and defer the first paint:
 		// the map then draws once at that measured aspect with its legend resolved,
 		// instead of flashing the map's canonical (auto-aspect, legend-less) fit and
-		// refitting when measured (see MapPlat's `deferPaint`).
+		// refitting when measured; MapPlat defers its first paint whenever the
+		// aspect is fixed, which this is.
 		aspectRatio: map.aspectRatio ?? '16/9',
-		deferPaint: true,
 		...numericRegionData<T>({
 			legend,
 			data,

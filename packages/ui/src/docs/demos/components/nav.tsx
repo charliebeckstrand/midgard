@@ -96,7 +96,7 @@ export function Demo() {
 									<NavItem value="notifications">Notifications</NavItem>
 									<NavItem value="billing">Billing</NavItem>
 								</NavList>
-								<Card bg="none" p="lg">
+								<Card bg="none">
 									<NavContents>
 										<NavContent value="account">Account settings</NavContent>
 										<NavContent value="notifications">Notification preferences</NavContent>

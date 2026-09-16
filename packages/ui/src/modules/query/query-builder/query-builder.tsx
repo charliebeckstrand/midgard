@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react'
 import { Fieldset } from '../../../components/fieldset'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
-import type { QueryField, QueryGroup as QueryGroupNode } from '../engine/types'
+import type { QueryField, QueryGroup } from '../engine/types'
 import type { QueryBuilderStateValue } from './context'
 import { QueryBuilderProvider } from './context'
 import { QueryBuilderGroup } from './query-builder-group'
@@ -14,9 +14,9 @@ import { useQueryBuilderTree } from './use-query-builder-tree'
 export type QueryBuilderProps = {
 	/** Fields available to rules, each with a type and operator set. */
 	fields: QueryField[]
-	value?: QueryGroupNode
-	defaultValue?: QueryGroupNode
-	onValueChange?: (value: QueryGroupNode) => void
+	value?: QueryGroup
+	defaultValue?: QueryGroup
+	onValueChange?: (value: QueryGroup) => void
 	/** Disables every control in the tree. @defaultValue false */
 	disabled?: boolean
 	/**

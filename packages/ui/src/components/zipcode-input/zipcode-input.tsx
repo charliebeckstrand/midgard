@@ -11,13 +11,10 @@ export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
 
 /**
  * Props for {@link ZipcodeInput}. Inherits `<MaskInput>` props except
- * `format`, `type`, `inputMode`, `autoComplete`, and `prefix`, which are
+ * `format`, `type`, `inputMode`, and `prefix`, which are
  * derived from `country` or defaulted here.
  */
-export type ZipcodeInputProps = Omit<
-	MaskInputProps,
-	'format' | 'type' | 'inputMode' | 'autoComplete' | 'prefix'
-> & {
+export type ZipcodeInputProps = Omit<MaskInputProps, 'format' | 'type' | 'inputMode' | 'prefix'> & {
 	/**
 	 * Postal-code locale.
 	 * @defaultValue 'US'

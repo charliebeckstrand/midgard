@@ -28,8 +28,8 @@ export type TagInputProps = {
 	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` must seed `string[]`. */
 	name?: string
 	size?: ControlSize
-	/** Tag appearance; `color` is the badge color for every tag (default `'zinc'`). */
-	tag?: { color?: Color }
+	/** Badge color for every tag. @defaultValue 'zinc' */
+	tagColor?: Color
 	/** Current tag values (controlled). */
 	value?: string[]
 	/** Initial tag values (uncontrolled). */
@@ -102,7 +102,7 @@ export function TagInput({
 	id,
 	name,
 	size,
-	tag,
+	tagColor,
 	value,
 	defaultValue,
 	onValueChange,
@@ -138,7 +138,7 @@ export function TagInput({
 	// at all — the reason a refused paste read as nothing happening.
 	const [refused, setRefused] = useState(false)
 
-	const resolvedColor = tag?.color ?? 'zinc'
+	const resolvedColor = tagColor ?? 'zinc'
 
 	/**
 	 * The one commit path: tokenize, add what is addable, keep what was refused.

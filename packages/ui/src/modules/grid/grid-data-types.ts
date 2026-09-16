@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -152,9 +152,9 @@ export type GridInfiniteScroll = {
  * columns at once (see {@link GridContextValue.toggleSort}).
  */
 export type GridSort = {
-	value?: SortState[]
-	defaultValue?: SortState[]
-	onValueChange?: (sort: SortState[]) => void
+	value?: GridSortState[]
+	defaultValue?: GridSortState[]
+	onValueChange?: (sort: GridSortState[]) => void
 	/**
 	 * Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
 	 * their order untouched. When omitted, the grid sorts client-side by each
@@ -699,6 +699,15 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * density rather than adopting the condensed step. A context menu and the
 	 * column-manager dialog both do. Each therefore reads the same whether a
 	 * condensed grid opened it or not. Wrap the grid in a `DensityProvider` to size those overlays.
+	 *
+	 * @remarks
+	 * Orthogonal to {@link GridDataProps.density}, not a step on it. `density`
+	 * moves the space axis; `condensed` moves both axes and projects the text,
+	 * icon, and badge classes above, table-scoped. `DensityLevel` maps one-to-one
+	 * onto the `Step` scale and has no step below `sm`, so this cannot fold into
+	 * it. `condensed` with an explicit `density` is legal: the density cascade
+	 * still broadcasts what you name, and `condensed` layers its projection over
+	 * the table.
 	 * @defaultValue false
 	 */
 	condensed?: boolean
@@ -737,21 +746,20 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * is active, carrying every aggregating column's figure over that group's
 	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group —
 	 * whose header reads the same figures — and renders only once a visible
-	 * column aggregates. `'bottom'` names the placement. Stands down under
-	 * {@link GridGroupBy.manual} grouping, where the backend owns the figures.
+	 * column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
+	 * where the backend owns the figures.
 	 */
-	groupTotalRow?: 'bottom'
+	groupTotalRow?: boolean
 
 	/**
 	 * Appends a grand-total row after the body, aggregating every column with an
 	 * {@link GridColumn.aggFunc} over the full filtered set. That set is all pages
 	 * under client pagination, and the flat leaf set under grouping. Under server
 	 * pagination it is the supplied page, because the grid holds nothing more. Works grouped or
-	 * flat, and renders only once a visible column aggregates. `'bottom'` names
-	 * the placement. Stands down under {@link GridGroupBy.manual} grouping,
+	 * flat, and renders only once a visible column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
 	 * where the backend owns the figures.
 	 */
-	grandTotalRow?: 'bottom'
+	grandTotalRow?: boolean
 
 	selection?: GridSelection
 
@@ -808,7 +816,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 *
 	 * @see {@link GridColumnGroups}
 	 */
-	groups?: GridColumnGroups
+	columnGroups?: GridColumnGroups
 
 	/**
 	 * Pagination binding backed by the grid's TanStack Table engine. In server
@@ -1068,7 +1076,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Collapse is grid-owned view state, seeded once from each group's
 	 * {@link GridColumnGroup.defaultCollapsed}. It was never reported, so a band
 	 * the reader shut stayed shut, with nothing to persist and no way to know. The
-	 * {@link GridDataProps.groups} binding cannot carry it — that binding's
+	 * {@link GridDataProps.columnGroups} binding cannot carry it — that binding's
 	 * `onValueChange` is the group LAYOUT sink, and its own doccomment holds collapse
 	 * out of it. Top-level here, so the array shorthand reaches it too. Use it to
 	 * persist what the reader collapsed. Mounting reports nothing, whatever

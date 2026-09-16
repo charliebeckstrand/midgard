@@ -34,7 +34,7 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type BarChartProps<T> = CartesianChartProps<T> & {
+export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Which way the bars grow: `'vertical'` from a bottom baseline up the value
 	 * axis, or `'horizontal'` from a left baseline out along it. Categories then

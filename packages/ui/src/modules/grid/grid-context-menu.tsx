@@ -12,7 +12,7 @@ import {
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
 	openKeyboardMenu,
@@ -59,7 +59,7 @@ type GridContextMenuProps<T> = {
 	rows: T[]
 	rowKeys: (string | number)[]
 	/** Active sort columns in priority order; backs the menu's Sort items. */
-	sort: SortState[]
+	sort: GridSortState[]
 	sortColumn: SortColumn
 	/** Clears the grid's active sort. */
 	clearSort: () => void

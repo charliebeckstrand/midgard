@@ -9,9 +9,6 @@ export const k = {
 	padding: ma.p,
 	px: ma.px,
 	py: ma.py,
-	margin: { ...ma.m, auto: 'm-auto' },
-	mx: { ...ma.mx, auto: 'mx-auto' },
-	my: { ...ma.my, auto: 'my-auto' },
 	radius: kasane.rounded,
 	bg: {
 		none: 'bg-transparent',

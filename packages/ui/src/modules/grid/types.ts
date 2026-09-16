@@ -397,9 +397,9 @@ export type GridSearch = {
 	 */
 	manual?: boolean
 	/**
-	 * How the query acts on the rows. `true` filters — non-matching rows drop from
-	 * the view (the default quick-search). `false` highlights instead. Every row
-	 * stays, and the matched substring is marked in each cell the search scans (the
+	 * How the query acts on the rows. `'filter'` prunes — non-matching rows drop
+	 * from the view (the default quick-search). `'highlight'` keeps every row
+	 * instead. The matched substring is marked in each cell the search scans (the
 	 * columns declaring a {@link GridColumn.value}). A match therefore reads as an
 	 * emphasis rather than a prune.
 	 *
@@ -408,11 +408,11 @@ export type GridSearch = {
 	 * custom `cell` node. A non-text cell passes through unmarked. Independent of
 	 * {@link GridColumnFilters}, which always prune; a highlight-mode search paired
 	 * with active column filters marks matches among the rows those filters leave.
-	 * Under {@link GridSearch.manual} the grid never prunes anyway, so `filter` only
+	 * Under {@link GridSearch.manual} the grid never prunes anyway, so this only
 	 * governs whether the returned rows are also marked.
-	 * @defaultValue true
+	 * @defaultValue 'filter'
 	 */
-	filter?: boolean
+	mode?: 'filter' | 'highlight'
 	/**
 	 * Placeholder for the search input.
 	 * @defaultValue 'Search'

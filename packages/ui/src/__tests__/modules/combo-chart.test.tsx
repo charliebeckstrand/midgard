@@ -103,14 +103,14 @@ describe('ComboChart', () => {
 		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
 	})
 
-	it('marks line points by default and stands down on points={false}', () => {
-		const marked = renderUI(chart())
-
-		expect(allBySlot(marked.container, 'chart-point')).toHaveLength(3)
-
-		const bare = renderUI(chart({ points: false }))
+	it('leaves line points unmarked by default and marks them on points', () => {
+		const bare = renderUI(chart())
 
 		expect(allBySlot(bare.container, 'chart-point')).toHaveLength(0)
+
+		const marked = renderUI(chart({ points: true }))
+
+		expect(allBySlot(marked.container, 'chart-point')).toHaveLength(3)
 	})
 
 	it('draws an area series as a filled wash under its top-edge line', () => {
@@ -185,7 +185,9 @@ describe('ComboChart', () => {
 	})
 
 	it('isolates the nearer stroke where the line and area edge share the catch', () => {
-		const { container } = renderUI(chart({ series: [...TRIO] }))
+		// `points` marks the dots this reads coordinates from; it does not affect
+		// the isolation under test.
+		const { container } = renderUI(chart({ series: [...TRIO], points: true }))
 
 		const hit = bySlot(container, 'chart-hit') as Element
 

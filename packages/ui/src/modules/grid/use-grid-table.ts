@@ -31,7 +31,7 @@ import {
 } from 'react'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import {
@@ -121,8 +121,8 @@ type GridTableParams<T> = {
 	columnOrder?: (string | number)[]
 	/** Hidden-column map (`{ id: false }`) feeding the engine's `columnVisibility`. */
 	columnVisibility?: VisibilityState
-	sort?: SortState[]
-	setSort?: (sort: SortState[]) => void
+	sort?: GridSortState[]
+	setSort?: (sort: GridSortState[]) => void
 	sortManual?: boolean
 	/** The single column id the rows are grouped by, or `null`/absent for no grouping. */
 	grouping?: (string | number) | null
@@ -406,7 +406,7 @@ function useGridRowModel<T>(args: {
 function useSortView<T>(args: {
 	rows: T[]
 	getKey: (row: T, index: number) => string | number
-	sort: SortState[] | undefined
+	sort: GridSortState[] | undefined
 	/** Whether the grid sorts client-side (a manual/server sort orders `rows` itself). */
 	clientSort: boolean
 	/** Whether the engine model is already materialized for another transform, which then sorts inside its pipeline. */
@@ -705,7 +705,7 @@ export function useGridTable<T>({
 		hasColumnFilters,
 		globalManual: globalFilterConfig?.manual,
 		columnManual: columnFiltersConfig?.manual,
-		globalFiltersRows: globalFilterConfig?.filter,
+		globalFiltersRows: globalFilterConfig?.mode !== 'highlight',
 	})
 
 	// The engine filters the global search and the column filters through one

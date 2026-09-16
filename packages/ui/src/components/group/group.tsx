@@ -1,9 +1,8 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { Density, useDensity } from '../../primitives/density'
-import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import type { GroupOrientation, Step } from '../../recipes'
 import { k } from '../../recipes/kata/group'
 import { useGroup } from './use-group'
@@ -20,8 +19,8 @@ type GroupBaseProps = {
 	children?: ReactNode
 }
 
-/** Props for {@link Group}: `orientation` and `size` plus polymorphic `as`/`href` host attributes. */
-export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
+/** Props for {@link Group}: `orientation` and `size` atop native `<div>` attributes. */
+export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Joins adjacent children visually by stamping `data-group` position
@@ -47,9 +46,7 @@ export type GroupProps = GroupBaseProps & PolymorphicProps<'div'>
 export function Group({
 	orientation = 'horizontal',
 	size,
-	ref,
 	className,
-	href,
 	children,
 	...props
 }: GroupProps) {
@@ -59,17 +56,14 @@ export function Group({
 	const resolvedSize = size ?? inherited.size
 
 	return (
-		<Polymorphic
-			as="div"
-			ref={ref}
+		<div
 			data-slot="group"
-			href={href}
 			data-size={resolvedSize}
 			data-group-orientation={orientation}
 			className={cn(k.frame(orientation), className)}
 			{...props}
 		>
 			<Density scale={resolvedSize}>{stamped}</Density>
-		</Polymorphic>
+		</div>
 	)
 }

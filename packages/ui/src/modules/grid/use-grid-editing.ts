@@ -22,7 +22,7 @@ import {
 } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridEditingSession } from './grid-editing-context'
-import type { CellChange, GridEditableConfig } from './grid-editing-types'
+import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 
 /** The editing layer's surface, consumed by {@link useGridCursor}. @internal */
@@ -68,7 +68,7 @@ function restoreGridFocus(): void {
 type RowDrafts = Map<string | number, unknown>
 
 /**
- * Resolves a row's staged drafts into committed {@link CellChange}s. It keeps
+ * Resolves a row's staged drafts into committed {@link GridCellChange}s. It keeps
  * each changed cell (its draft differs from the row's current value) that
  * passes the column's {@link GridColumn.validate}, dropping unchanged and
  * invalid ones. Module-level so the flush effect stays within its complexity
@@ -91,7 +91,7 @@ function flushRow<T>(
 	rowKey: string | number,
 	drafts: RowDrafts,
 	source: GridEditSource<T>,
-): { changes: CellChange[]; refused: CellChange[] } {
+): { changes: GridCellChange[]; refused: GridCellChange[] } {
 	const { rows, columns, getKey } = source
 
 	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
@@ -100,9 +100,9 @@ function flushRow<T>(
 
 	if (row == null) return { changes: [], refused: [] }
 
-	const changes: CellChange[] = []
+	const changes: GridCellChange[] = []
 
-	const refused: CellChange[] = []
+	const refused: GridCellChange[] = []
 
 	for (const [columnId, value] of drafts) {
 		const col = columns.find((candidate) => candidate.id === columnId)
@@ -116,7 +116,7 @@ function flushRow<T>(
 
 		if (Object.is(value, original)) continue
 
-		const cell: CellChange = { rowKey, columnId, value }
+		const cell: GridCellChange = { rowKey, columnId, value }
 
 		// A refused cell leaves the staging map like any other closed cell, so
 		// without this list the value the user typed is gone with no report.
@@ -155,8 +155,8 @@ function flushClosedCells<T>(args: {
 	editableRows: Set<string | number>
 	activeEdit: GridActiveEdit | null
 	source: GridEditSource<T>
-	onCommit: ((changes: CellChange[]) => void) | undefined
-	onReject: ((refused: CellChange[]) => void) | undefined
+	onCommit: ((changes: GridCellChange[]) => void) | undefined
+	onReject: ((refused: GridCellChange[]) => void) | undefined
 }): number {
 	let saved = 0
 
@@ -224,7 +224,7 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, sessionOwned: boolea
  * stages into a grid-held ref (no per-keystroke grid render). A row leaves the
  * set on the consumer's save action, or on a grid-owned session exit under
  * `trigger: 'doubleClick'` (an editor's Enter saves, Escape abandons). Its
- * drafts then flush as a single {@link CellChange} batch through `onCommit`,
+ * drafts then flush as a single {@link GridCellChange} batch through `onCommit`,
  * dropping unchanged and invalid cells. Inert when `enabled` is false, so a
  * read-only grid pays nothing.
  *

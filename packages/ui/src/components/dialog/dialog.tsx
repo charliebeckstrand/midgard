@@ -11,7 +11,7 @@ import { PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
-/** Props for {@link Dialog}: open-state control, `width` variant, placement, dismissal, and accessible naming. */
+/** Props for {@link Dialog}: open-state control, `width` variant, align, dismissal, and accessible naming. */
 export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	/** Controlled open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -39,7 +39,7 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	 */
 	onOpenComplete?: () => void
 	/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
-	placement?: 'center' | 'top'
+	align?: 'center' | 'top'
 	/** Whether clicking the backdrop closes the dialog. @defaultValue true */
 	dismissOnBackdrop?: boolean
 	/**
@@ -71,7 +71,7 @@ export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
 	'data-slot'?: string
 }
 
-const placementClasses = {
+const alignClasses = {
 	center: 'sm:items-center',
 	top: 'sm:items-start',
 } as const
@@ -94,7 +94,7 @@ export function Dialog({
 	defaultOpen,
 	onOpenChange,
 	onOpenComplete,
-	placement = 'center',
+	align = 'center',
 	dismissOnBackdrop = true,
 	width,
 	glass,
@@ -139,7 +139,7 @@ export function Dialog({
 			<div
 				className={cn(
 					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
-					placementClasses[placement],
+					alignClasses[align],
 				)}
 			>
 				<motion.div

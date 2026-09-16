@@ -148,20 +148,16 @@ describe('Button', () => {
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('renders the spring wrapper around a link button', () => {
-		const { container } = renderUI(
-			<Button href="/spring" spring>
-				Springy
-			</Button>,
-		)
+	it('renders the motion wrapper around a link button', () => {
+		const { container } = renderUI(<Button href="/spring">Springy</Button>)
 
 		expect(bySlot(container, 'button')).toBeInTheDocument()
 
 		expect(screen.getByText('Springy').closest('a')).toHaveAttribute('href', '/spring')
 	})
 
-	it('renders the spring wrapper around a button-shaped button', () => {
-		const { container } = renderUI(<Button spring>Click</Button>)
+	it('renders the motion wrapper around a button-shaped button', () => {
+		const { container } = renderUI(<Button>Click</Button>)
 
 		expect(bySlot(container, 'button')?.tagName).toBe('BUTTON')
 	})

@@ -247,7 +247,7 @@ export function Drawer({
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
 			animateOnMount={animateOnMount}
-			className={k.backdrop({ surface: resolvedSurface, desaturate })}
+			backdropClassName={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>
 			<motion.div
 				{...k.motion}

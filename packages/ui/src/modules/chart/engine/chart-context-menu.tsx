@@ -56,7 +56,7 @@ export type ChartExportOutcome =
 
 /**
  * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
- * (custom `items`, `defaultItems`, `position`) plus the chart's own export
+ * (custom `items`, `defaultItems`, `insert`) plus the chart's own export
  * options.
  */
 export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
@@ -414,7 +414,7 @@ export function ChartContextMenu({
 				defaults={defaults}
 				items={customItems}
 				defaultItems={config?.defaultItems}
-				position={config?.position}
+				insert={config?.insert}
 				capped={config?.capped}
 			>
 				{children}

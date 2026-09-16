@@ -1,5 +1,5 @@
 import { isDataColumn } from '../../../../utilities'
-import type { SortState } from '../../context'
+import type { GridSortState } from '../../context'
 import type { GridGroupHeaderRow } from '../../grid-data-types'
 import type { GridGroupByContextValue } from '../../grid-group-by-button'
 import type { GridRowsProps } from '../../grid-row'
@@ -98,7 +98,7 @@ export function resolveManualGroupBody<T>(args: {
  */
 export function manualGroupSortDirection(args: {
 	active: boolean
-	sort: SortState[]
+	sort: GridSortState[]
 	grouping: (string | number) | null
 }): 'asc' | 'desc' | null {
 	if (!args.active) return null

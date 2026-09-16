@@ -1,4 +1,4 @@
-export { type GridContextValue, type SortState, useGrid } from './context'
+export { type GridContextValue, type GridSortState, useGrid } from './context'
 export { downloadExcel, rowsToXlsx } from './engine/grid-export/excel'
 export type {
 	GridExportAction,
@@ -42,7 +42,7 @@ export type {
 	GridVirtualize,
 } from './grid-data-types'
 export type {
-	CellChange,
+	GridCellChange,
 	GridEditableConfig,
 	GridEditCell,
 	GridEditCellContext,

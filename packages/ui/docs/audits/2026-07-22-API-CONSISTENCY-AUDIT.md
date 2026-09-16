@@ -40,12 +40,12 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | F6 | TagInput/AddressInput closed prop bags, no rest (T7) | `tag-input.tsx:25-59` | Extend `Omit<InputProps, …>`, spread rest | ◯ OPEN |
 | F7 | TagInput/AddressInput unconditional `aria-label` shadows a Field label | `tag-input.tsx:176`, `address-input.tsx:110` vs `date-input.tsx:187` | Adopt the `control?.labelledBy` yield | ◯ OPEN |
 | F8 | Clear affordance split: `onClear` (SearchInput) vs `clearable` (DateInput) (T5) | `search-input.tsx:27,109-121` vs `date-input.tsx:57` | Both get `clearable`; `onValueChange(null)` is the clear signal | ◯ OPEN |
-| F9 | `autoComplete` hard-Omitted on Phone/Zipcode, default-overridable on CreditCard/Date | `phone-input.tsx:17-20` vs `credit-card-input.tsx:71,91` | Default-then-overridable everywhere | ◯ OPEN |
+| F9 | `autoComplete` hard-Omitted on Phone/Zipcode, default-overridable on CreditCard/Date | `phone-input.tsx:17-20` vs `credit-card-input.tsx:71,91` | Default-then-overridable everywhere | ✅ RESOLVED (`autoComplete` un-Omitted on Phone and Zipcode; each still defaults its own token before the spread, as CreditCardInput does) |
 | F10 | Affix override policy drifts; NumberInput bans `prefix` outright | `number-input.tsx:16` vs `currency-input.tsx:101-102`, `search-input.tsx:28-33` | Un-Omit `prefix`; rule: own chrome keeps its slot, caller content joins beside | ✅ RESOLVED (`prefix` un-Omitted) |
 | F11 | Inline `variant` unions and `MessageSeverity` re-spell exported aliases (T9) | `input.tsx:19`, `fieldset/message.tsx:13` vs `control/context.ts:9`, `validation-attrs.ts:4` | Reference `ControlVariant`; alias `MessageSeverity = Severity` | ✅ RESOLVED (`Message` imports the shared `Severity`) |
-| F12 | `tag?: { color }` single-key config bag | `tag-input.tsx:31` | Flatten to `tagColor` | ◯ OPEN |
-| F13 | Expiry/Cvv/PasswordConfirmInput missing or bespoke `data-slot` anchors | `credit-card-input-expiry.tsx:84-126`, `password-confirm-input.tsx:52` | Stamp proper `data-slot` values | ◯ OPEN |
-| F14 | Cvv lacks the `invalidMessage` surface Expiry and DateInput share | `credit-card-input-cvv.tsx:22` vs `credit-card-input-expiry.tsx:31,131` | Add or document the omission | ◯ OPEN |
+| F12 | `tag?: { color }` single-key config bag | `tag-input.tsx:31` | Flatten to `tagColor` | ✅ RESOLVED (`tagColor`) |
+| F13 | Expiry/Cvv/PasswordConfirmInput missing or bespoke `data-slot` anchors | `credit-card-input-expiry.tsx:84-126`, `password-confirm-input.tsx:52` | Stamp proper `data-slot` values | ✅ RESOLVED (`credit-card-input-expiry`, `credit-card-input-cvv`, `password-confirm-input`; the bespoke `data-password-confirm-input` anchor and its selector move to the house attribute) |
+| F14 | Cvv lacks the `invalidMessage` surface Expiry and DateInput share | `credit-card-input-cvv.tsx:22` vs `credit-card-input-expiry.tsx:31,131` | Add or document the omission | ✅ RESOLVED as a documented omission (the row offered either). A CVV's only rule is its length, and the mask already caps the entry and strips non-digits, so `length === maxLength` always implies valid — there is no complete-but-wrong state to message, and an `invalidMessage` here could never render. The TSDoc now states this; `onValidityChange` still reports the growing verdict) |
 | F15 | CurrencyInput advertises inert native `min`/`max`/`step` | `currency-input.tsx:13-16` vs `number-input.tsx:22-28` | Omit or implement clamping | ✅ RESOLVED (the inert native `min`/`max`/`step` are gone) |
 | F16 | Suppress-a-sub-element idiom: `toggleButton` (noun-as-boolean) vs `showRules` vs `clearable` | `password-input.tsx:13`, `password-strength.tsx:45`, `date-input.tsx:57` | Rename `toggleButton`; keep `X \| false` only where the prop carries data | ◯ OPEN |
 
@@ -59,21 +59,21 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | S4 | Combobox missing `aria-labelledby`/`aria-describedby` Listbox has (its own doc asserts parity) | `combobox.tsx:52-108` vs `listbox.tsx:46,55-56` | Add via `useAriaIds` | ◯ OPEN |
 | S5 | Calendar callback can't emit clear; `defaultValue` excludes `null` (T2) | `calendar.tsx:72-74` | `onValueChange(value: Date \| null)`; widen `defaultValue` | ✅ RESOLVED (`onValueChange?: (value: Date | null)`) |
 | S6 | `SelectOptionComponentProps` naming breaks §8.1 (T9) | `select-option.tsx:3-7` | `SelectOptionProps` / `SelectLabelProps` / `SelectDescriptionProps` | ✅ RESOLVED (renamed to `SelectOptionProps`) |
-| S7 | Rest-spread ordering: Checkbox/Radio let rest clobber the form cascade (T7) | `checkbox.tsx:100`, `radio.tsx:59` vs `switch.tsx:114-118` | Adopt Switch's protected ordering | ◯ OPEN |
+| S7 | Rest-spread ordering: Checkbox/Radio let rest clobber the form cascade (T7) | `checkbox.tsx:100`, `radio.tsx:59` vs `switch.tsx:114-118` | Adopt Switch's protected ordering | ✅ RESOLVED (both spread rest first, as Switch does, so the resolved §7.2 binding wins) |
 | S8 | `onHoldStart`/`onHoldCancel`/bare `onComplete` (T4) | `hold-button.tsx:22-26` | `onHoldComplete` | ✅ RESOLVED (`onHoldComplete`) |
 | S9 | `onFiles`/`onReject` asymmetric pair (T4) | `file-upload.tsx:37-39` | `onAccept`/`onReject` | ✅ RESOLVED (`onAccept` / `onReject`) |
-| S10 | `SelectCapitalize` unreachable from barrels (T9) | `select-trigger/capitalize.ts:8`, `select-trigger/index.ts:1` | Export it. `SelectTriggerProps` landed in [#1021](https://github.com/charliebeckstrand/midgard/pull/1021); the barrel's `export *` covers `select-trigger.tsx` alone, so `capitalize.ts` is still dark | ◯ OPEN |
-| S11 | Radio is the only toggle outside the §7.2 cascade — `name` binds on Checkbox/Switch, not Radio | `radio.tsx:17-22` vs `checkbox.tsx:47`, `switch.tsx:42` | Resolve the bound field in RadioGroup, or mirror the remark onto `RadioGroupProps` | ◯ OPEN |
-| S12 | CopyButton overloads `value` for the clipboard payload (T5) | `copy-button.tsx:14-15` | Rename `text` | ◯ OPEN |
+| S10 | `SelectCapitalize` unreachable from barrels (T9) | `select-trigger/capitalize.ts:8`, `select-trigger/index.ts:1` | Export it. `SelectTriggerProps` landed in [#1021](https://github.com/charliebeckstrand/midgard/pull/1021); the barrel's `export *` covers `select-trigger.tsx` alone, so `capitalize.ts` is still dark | ✅ RESOLVED (moot — `SelectCapitalize` no longer exists; `capitalize` is a boolean) |
+| S11 | Radio is the only toggle outside the §7.2 cascade — `name` binds on Checkbox/Switch, not Radio | `radio.tsx:17-22` vs `checkbox.tsx:47`, `switch.tsx:42` | Resolve the bound field in RadioGroup, or mirror the remark onto `RadioGroupProps` | ✅ RESOLVED (the binding remark is mirrored onto `RadioGroupProps`; no per-radio `name` binding is added, because a radio group is one value across N inputs) |
+| S12 | CopyButton overloads `value` for the clipboard payload (T5) | `copy-button.tsx:14-15` | Rename `text` | ✅ RESOLVED (`text`; `value` stays reserved for controlled state) |
 | S13 | ToggleIconButton controlled-only, no `onPressedChange`/`defaultPressed` (T3) | `toggle-icon-button.tsx:15-16` | Add both | ✅ RESOLVED (`defaultPressed` and `onPressedChange` added) |
-| S14 | RangeSlider drops `name`/`ref`/rest that Slider carries (T3, T7) | `range-slider.tsx:13-41` vs `slider.tsx:12-29,70` | Add `name` via `useFormValue`, root `ref` | ◯ OPEN |
+| S14 | RangeSlider drops `name`/`ref`/rest that Slider carries (T3, T7) | `range-slider.tsx:13-41` vs `slider.tsx:12-29,70` | Add `name` via `useFormValue`, root `ref` | ✅ RESOLVED for `name` and `ref` (both landed before this pass: `useFormValue` binds `name`, and the root takes `ref`). The rest half is NOT done — RangeSlider still declares a closed prop bag with no `{...props}`, where `slider.tsx` spreads at `:125`. Corrected here: the first pass flipped this row claiming rest too |
 
 ## Findings — overlays & floating surfaces
 
 | # | Finding | Evidence | Fix | Status |
 |---|---|---|---|---|
 | O1 | `size` = width on Dialog/Sheet, density Step on Drawer/Popover/Tooltip/Menu (T1) | `recipes/kiso/shaku/panel.ts:9-22` vs `drawer.tsx:28` | Rename the width axis `width`; `size` stays the Step | ✅ RESOLVED (the panel width axis is `width`; `size` stays the Step) |
-| O2 | Placement fractured: Dialog `placement: 'center'\|'top'`, ContextMenu `position` = ordering (T5) | `dialog.tsx:22`, `context-menu/types.ts:42,65` | Dialog → `align`; ContextMenu → `insert`; `placement` reserved for anchored geometry | ◯ OPEN |
+| O2 | Placement fractured: Dialog `placement: 'center'\|'top'`, ContextMenu `position` = ordering (T5) | `dialog.tsx:22`, `context-menu/types.ts:42,65` | Dialog → `align`; ContextMenu → `insert`; `placement` reserved for anchored geometry | ✅ RESOLVED (Dialog takes `align`, ContextMenu takes `insert` with `ContextMenuInsert`; `placement` is now anchored geometry only) |
 | O3 | `dismissOnBackdrop`/`modal`/`container` unevenly exposed across Dialog/Sheet/Drawer | `dialog.tsx:24` vs `sheet.tsx:31,46,54`; `overlay.tsx:28,44` | Expose the Overlay knobs uniformly | ◯ OPEN |
 | O4 | `onSelect` (ContextMenu) vs `onAction` (Menu, CommandPalette) (T4) | `context-menu/types.ts:22` vs `menu-item.tsx:17` | `onAction` | ✅ RESOLVED (`onAction`) |
 | O5 | Tooltip `enabled` vs house `disabled` polarity (T5) | `tooltip.tsx:30` vs `context-menu.tsx:20` | `disabled`, inverted default | ◯ OPEN |
@@ -81,10 +81,10 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | O7 | `glass` opt-in on panels only; floating content parts are ambient-only though the primitive supports it | `dialog.tsx:26` vs `primitives/popover/popover.tsx:69` | Expose `glass` on Popover/Tooltip/Menu content | ◯ OPEN |
 | O8 | PanelTrigger demands `ReactElement` + hand-threaded `open`; PopoverTrigger reads context (T10) | `panel-trigger.tsx:8,16` vs `popover-trigger.tsx:20` | Align on the PopoverTrigger contract | ◯ OPEN |
 | O9 | `SheetContent`/`DrawerContent` unexported; CommandPalette groups by `title` prop vs Menu's Section+Heading (T10) | `panel.tsx:157-161`, `command-palette/slots.tsx:8` | Export the slots; add Section/Heading pair | ◯ OPEN |
-| O10 | `Overlay.className` styles the backdrop and no-ops when `backdrop={false}`; `Menu.className` lands on `display: contents` (T7) | `overlay.tsx:30-35,139`, `menu.tsx:65` | `backdropClassName`; drop or document `Menu.className` | ◯ OPEN |
-| O11 | ToastSeverity mixes style words into the severity axis (T6) | `providers/toast/types.ts:3`, `toast-alert.tsx:27-33` | `info`/`neutral` replace `default`/`secondary` | ◯ OPEN |
+| O10 | `Overlay.className` styles the backdrop and no-ops when `backdrop={false}`; `Menu.className` lands on `display: contents` (T7) | `overlay.tsx:30-35,139`, `menu.tsx:65` | `backdropClassName`; drop or document `Menu.className` | ✅ RESOLVED (Overlay takes `backdropClassName`; native `className` reaches the root and merges there, so neither silently no-ops. Menu `className` is a separate row) |
+| O11 | ToastSeverity mixes style words into the severity axis (T6) | `providers/toast/types.ts:3`, `toast-alert.tsx:27-33` | `info`/`neutral` replace `default`/`secondary` | ✅ RESOLVED (`info` / `neutral` / `success` / `warning` / `error`; PROVIDERS.md updated) |
 | O12 | Confirm can't distinguish Cancel from backdrop dismissal | `confirm.tsx:60,104,130` | Add `onCancel` fired only by the button | ◯ OPEN |
-| O13 | `closeOnAction` on CommandPaletteItem but not MenuItem | `command-palette-item.tsx:16` vs `menu-item.tsx:49-54` | Add to MenuItem, same default | ◯ OPEN |
+| O13 | `closeOnAction` on CommandPaletteItem but not MenuItem | `command-palette-item.tsx:16` vs `menu-item.tsx:49-54` | Add to MenuItem, same default | ✅ RESOLVED (`closeOnAction` on MenuItem, same default as CommandPaletteItem, with a test) |
 | O14 | `dismiss({ id })` object beside `toast() → string` (T4) | `providers/toast/context.ts:7-8` | `dismiss(id)` | ✅ RESOLVED (`dismiss(id: string)`) |
 
 ## Findings — layout & display
@@ -92,20 +92,20 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | # | Finding | Evidence | Fix | Status |
 |---|---|---|---|---|
 | L1 | Tone axis: Alert `severity`, StatusDot/Avatar `status`, Text `severity`-as-tone (T6) | `alert.tsx:22`, `recipes/kata/status.ts:15`, `recipes/kata/text.ts:18-25` | Text axis → `tone`; `severity` reserved for the feedback quartet | ◯ OPEN |
-| L2 | ProgressGauge `sm`–`xl` vs ProgressBar `Step`; ScrollArea `size` = dimension presets (T1) | `recipes/kata/progress.ts:59-64`, `recipes/kiso/shaku/scroll-area.ts:13-22` | Align Gauge; ScrollArea → `extent` | ◯ OPEN |
-| L3 | `radius` (Box) vs `rounded` tokens (Badge) vs `rounded: boolean` (ScrollArea) (T5) | `box.tsx:34`, `recipes/kata/badge.ts:37`, `recipes/kata/scroll-area.ts:26-29` | `radius` + tokens everywhere | ◯ OPEN |
+| L2 | ProgressGauge `sm`–`xl` vs ProgressBar `Step`; ScrollArea `size` = dimension presets (T1) | `recipes/kata/progress.ts:59-64`, `recipes/kiso/shaku/scroll-area.ts:13-22` | Align Gauge; ScrollArea → `extent` | ✅ RESOLVED (ScrollArea takes `extent`; ProgressGauge is on the `Step` set — the last open T1 row) |
+| L3 | `radius` (Box) vs `rounded` tokens (Badge) vs `rounded: boolean` (ScrollArea) (T5) | `box.tsx:34`, `recipes/kata/badge.ts:37`, `recipes/kata/scroll-area.ts:26-29` | `radius` + tokens everywhere | ✅ RESOLVED for Badge (`radius`, a token axis). ScrollArea keeps boolean `rounded`: it is a gate, not a token axis, and it also drives a coordinated scrollbar-track inset in a second recipe, so `radius` would misname it. Adjacent: ListItem carries the same boolean |
 | L4 | `Responsive<T>` support is Flex/Stack-only; Split `orientation` is the sharpest gap | `flex.tsx:22-28` vs `split/split.tsx:19-31` | Extend to Split first, Box spacing second | ◯ OPEN |
-| L5 | ShinyText `direction: 'left'\|'right'` collides with the layout axis (T5) | `shiny-text.tsx:49` | Rename (`sweep`) | ◯ OPEN |
-| L6 | ProgressGauge `label` = visible content while five siblings use `label` = accessible name (T5) | `progress-gauge.tsx:28` vs `icon.tsx:22` | `centerLabel` | ◯ OPEN |
-| L7 | `full` (Flex) vs `block` (Alert; Banner must Omit it) (T5) | `flex.tsx:36`, `alert.tsx:73` | `full` | ◯ OPEN |
-| L8 | Box TSDoc promises `as` it doesn't expose; `as` re-added ad hoc on Text/ListItem | `box.tsx:51-52`, `polymorphic-static.tsx:25-33` | Add `as` to Box (and Heading) or fix the doc; state the rule | ◯ OPEN |
-| L9 | `ref` parity arbitrary across static leaves (T7) | `box.tsx:45` (yes) vs `flex.tsx:40`, `container.tsx:27` (no) | React-19 `ref` on every static leaf | ◯ OPEN |
+| L5 | ShinyText `direction: 'left'\|'right'` collides with the layout axis (T5) | `shiny-text.tsx:49` | Rename (`sweep`) | ✅ RESOLVED (`sweep`) |
+| L6 | ProgressGauge `label` = visible content while five siblings use `label` = accessible name (T5) | `progress-gauge.tsx:28` vs `icon.tsx:22` | `centerLabel` | ✅ RESOLVED (`centerLabel`) |
+| L7 | `full` (Flex) vs `block` (Alert; Banner must Omit it) (T5) | `flex.tsx:36`, `alert.tsx:73` | `full` | ✅ RESOLVED (`block` deleted rather than renamed; `full` survives on Flex as the one full-width prop) |
+| L8 | Box TSDoc promises `as` it doesn't expose; `as` re-added ad hoc on Text/ListItem | `box.tsx:51-52`, `polymorphic-static.tsx:25-33` | Add `as` to Box (and Heading) or fix the doc; state the rule | ✅ RESOLVED (the doc drops the `as` promise the static tier never carried; `render` is the static-tier surface, `as` the client tier's) |
+| L9 | `ref` parity arbitrary across static leaves (T7) | `box.tsx:45` (yes) vs `flex.tsx:40`, `container.tsx:27` (no) | React-19 `ref` on every static leaf | ✅ RESOLVED ([#1143](https://github.com/charliebeckstrand/midgard/pull/1143) made `ComponentProps<'tag'>` the one native base, which carries `ref`; pinned by `props-base-boundary.test.ts`) |
 | L10 | Zero-spacing spelled `0` (Flex), `'none'` (Container), absent (Split/Box) | `flex/variants.ts:6`, `recipes/kata/container.ts:14`, `split/variants.ts:12` | One `0` stop on the Ma scale | ◯ OPEN |
-| L11 | Sparkline `variant: 'line'\|'bar'` is mark geometry — Swatch calls that `shape` | `sparkline.tsx:30` vs `recipes/kata/swatch.ts:23-27` | `shape` | ◯ OPEN |
-| L12 | Container `padding` duplicates Box `px` under a different name and silently different scale | `recipes/kata/container.ts:16` vs `recipes/kiso/ma/padding.ts:10-16` | Rename `px`, re-key onto Ma | ◯ OPEN |
+| L11 | Sparkline `variant: 'line'\|'bar'` is mark geometry — Swatch calls that `shape` | `sparkline.tsx:30` vs `recipes/kata/swatch.ts:23-27` | `shape` | ✅ RESOLVED (`shape`) |
+| L12 | Container `padding` duplicates Box `px` under a different name and silently different scale | `recipes/kata/container.ts:16` vs `recipes/kiso/ma/padding.ts:10-16` | Rename `px`, re-key onto Ma | ◯ WONT DO (different axes, not one under two names: Container padding is `lg:`-gated, a responsive gutter that disengages below `lg`; Box `px` is unprefixed. Sharing the name would be the T5 sin, not its cure) |
 | L13 | `data-orientation` stamped by Dl/List/Resizable, differently by Group, not at all by Divider/ScrollArea | `description-list.tsx:38`, `group.tsx:69`, `divider.tsx:23-25` | Stamp uniformly | ◯ OPEN |
 | L14 | Layout slot surfaces drift: SidebarLayoutFooter takes no `className`, Body slots get `ref` while Header/Footer don't | `layouts/sidebar/sidebar.tsx:204` vs `stacked.tsx:56` | Uniform `className`/`ref` on slots; rule: wrapping regions compound, off-tree panels props | ◯ OPEN |
-| L15 | Banner `position: 'static'\|'sticky'` vs SidebarLayout `stickyHeader: boolean` (T5) | `banner.tsx:10`, `layouts/sidebar/sidebar.tsx:42` | Boolean `sticky` both | ◯ OPEN |
+| L15 | Banner `position: 'static'\|'sticky'` vs SidebarLayout `stickyHeader: boolean` (T5) | `banner.tsx:10`, `layouts/sidebar/sidebar.tsx:42` | Boolean `sticky` both | ✅ RESOLVED (Banner takes `sticky?: boolean`; SidebarLayout keeps `stickyHeader`, which names which of its four regions pins) |
 
 ## Findings — navigation & structure
 
@@ -114,14 +114,14 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | N1 | Kanban `onValueChange` is a reorder sink; List spells it `onReorder` (T4) | `kanban.tsx:26` vs `list.tsx:47` | `onReorder` | ✅ RESOLVED (`onReorder`) |
 | N2 | Tabs/Nav `current` cascade can't express controlled-empty; Accordion can (T2) | `primitives/current/current.ts:36-37` vs `use-accordion-selection.ts:12-14` | Widen to `string \| null` | ✅ RESOLVED (`value?: string | null` on the `current` cascade) |
 | N3 | Stepper and Nav are controlled-only; Nav bypasses `useCurrentState` (T3) | `stepper.tsx:14-15`, `nav.tsx:7-17` | Full triads via the shared primitive | ✅ RESOLVED (Stepper takes `defaultValue`) |
-| N4 | "Panel" (Accordion/Collapse/Stepper) vs "Content" (Tabs/Nav); Tabs ships both to encode wiring (T10) | `tab-panel.tsx:10,16` vs `tab-contents.tsx:13-14` | One pairing rule; fold or document | ◯ OPEN |
-| N5 | TimelineItem emits `aria-current` bare `true` while Stepper emits `'step'` | `timeline-item.tsx:15,50` vs `stepper-step.tsx:130,148` | `aria-current="step"` | ◯ OPEN |
+| N4 | "Panel" (Accordion/Collapse/Stepper) vs "Content" (Tabs/Nav); Tabs ships both to encode wiring (T10) | `tab-panel.tsx:10,16` vs `tab-contents.tsx:13-14` | One pairing rule; fold or document | ✅ RESOLVED (the Tabs half went with `TabPanel`, so no surface ships both spellings. The rest is not one axis: Accordion/Collapse `Panel` are disclosure bodies keyed on `open`, `Content` is the value-matched region — `StepperPanel` is the lone misfit and is recorded for the next breaking pass) |
+| N5 | TimelineItem emits `aria-current` bare `true` while Stepper emits `'step'` | `timeline-item.tsx:15,50` vs `stepper-step.tsx:130,148` | `aria-current="step"` | ✅ RESOLVED (`aria-current="step"`, matching Stepper, with a test) |
 | N6 | Kanban keys parts with `columnId`/`cardId`; siblings use `value` (T10) | `kanban-column.tsx:18`, `kanban-card.tsx:12` vs `tab.tsx:22` | `value` | ◯ OPEN |
 | N7 | `AccessibleName` on Toolbar/TabList/Tree/Filters vs loose `'aria-label'?` on Kanban/List | `toolbar.tsx:13` vs `kanban.tsx:31`, `list.tsx:33` | Intersect with `AccessibleName` | ◯ OPEN |
 | N8 | Eight structure roots are closed prop bags; six siblings spread (T7) | `accordion.tsx:19-23` vs `tabs.tsx:11` | Default to native passthrough | ◯ OPEN |
-| N9 | PivotTable narrows Table's `striped` axis and silently drops `hover`/`bleed` | `pivot-table.tsx:44` vs `table.tsx:25` | `TableVariants['striped']` | ◯ OPEN |
+| N9 | PivotTable narrows Table's `striped` axis and silently drops `hover`/`bleed` | `pivot-table.tsx:44` vs `table.tsx:25` | `TableVariants['striped']` | ✅ RESOLVED (PivotTable mirrors Table: `striped` takes the full union, and `hover` and `bleed` forward) |
 | N10 | NavList inline orientation union; `TreeSize` hand-written (T9) | `nav-list.tsx:15`, `recipes/kata/tree.ts:19` | Alias `Orientation` / `Step` | ✅ RESOLVED (NavList aliases the shared `Orientation`) |
-| N11 | Skeleton count props: `pages`/`steps`/`tabs` vs `BreadcrumbSkeleton.items` (T10) | `breadcrumb-skeleton.tsx:10` | `crumbs` | ◯ OPEN |
+| N11 | Skeleton count props: `pages`/`steps`/`tabs` vs `BreadcrumbSkeleton.items` (T10) | `breadcrumb-skeleton.tsx:10` | `crumbs` | ✅ RESOLVED (`crumbs`) |
 | N12 | Kanban's data-prop + compound-children hybrid requires the same ids twice, unenforced | `kanban.tsx:22`, `kanban-column.tsx:45` | Render-function modeling, or document + dev-warn | ◯ OPEN |
 
 ## Findings — chart & map modules
@@ -130,17 +130,17 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 |---|---|---|---|---|
 | C1 | Documented legend form `{ type: 'range' }` doesn't typecheck | TSDoc ×4 (`heatmap-chart-schema.ts:68` et al.) vs `chart-legend/range.ts:24-31` | Correct the four doccomments to `{ placement }`; [#993](https://github.com/charliebeckstrand/midgard/pull/993) deleted the `type` key, so the docs are the half that is wrong | ✅ RESOLVED ([#1118](https://github.com/charliebeckstrand/midgard/pull/1118)) |
 | C2 | Choropleth→MapPlat seam renames five of six shared fields, both public | `choropleth-chart.tsx:30-42,240-247` vs `engine/map-region/data.ts:44-69` | Align MapPlat on the chart spelling (`formatValue`, `colorDomain`, `colorName`) | ◯ OPEN |
-| C3 | `tooltip` narrowed to bare `boolean` on Choropleth/MapPlat — click-pin unavailable on maps | `engine/types.ts:233` vs `choropleth-chart.tsx:126`, `map-plat.tsx:129` | Widen to the union | ◯ OPEN |
+| C3 | `tooltip` narrowed to bare `boolean` on Choropleth/MapPlat — click-pin unavailable on maps | `engine/types.ts:233` vs `choropleth-chart.tsx:126`, `map-plat.tsx:129` | Widen to the union | ◯ WONT DO here (the map draws its own `MapTooltip`, not the shared chart tooltip, so this needs click-pin implemented, not the type widened; a type accepting a config nothing reads is worse than the honest boolean) |
 | C4 | Single-series modeled three ways: tuple (pie) vs array-ignore (heatmap) vs array-first (choropleth) | `sector-chart.tsx:66`, `heatmap-chart-schema.ts:62-63`, `choropleth-chart.tsx:68-69` | Tuple everywhere | ◯ OPEN |
-| C5 | Unsupported base props accept-and-ignored instead of Omitted (T8) | `heatmap-chart.tsx:672-675`, `scatter-chart.tsx:554-555` vs `types.ts:99` | Extend the Omits | ◯ OPEN |
+| C5 | Unsupported base props accept-and-ignored instead of Omitted (T8) | `heatmap-chart.tsx:672-675`, `scatter-chart.tsx:554-555` vs `types.ts:99` | Extend the Omits | ✅ RESOLVED (heatmap Omits all three; scatter Omits `texture`) |
 | C6 | Scatter/bubble series `color` slot-only; cartesian takes slot-or-raw | `types.ts:125` vs `types.ts:59` | Widen to `ChartSeriesColor` | ◯ OPEN |
 | C7 | `binning` on choropleth/MapPlat, missing on heatmap despite claimed parity | `engine/map-region/data.ts:62` vs `heatmap-chart-schema.ts:43-47,5-7` | Add | ◯ OPEN |
 | C8 | `onCategoryClick` redeclared not shared; no click hook on scatter/heatmap/choropleth/map | `types.ts:325` + `sector-chart.tsx:89` | Shared handler type; add `onRegionClick`-shaped hooks | ◯ OPEN |
-| C9 | Three private spellings of `Orientation`, two of legend placement (T9) | `chart-orientation.ts:22`, `chart-legend/range-legend.tsx:21`, `map/types.ts:85` | Alias the shared types | ◯ OPEN (orientation half done: `ChartOrientation`, `RangeOrientation`, and `PanelHandleProps.orientation` alias `Orientation`, pinned by `variant-axis-boundary.test.ts`; legend placement still two names) |
-| C10 | `points` default `false` (Line/Area) vs `true` (Combo) | `line-chart.tsx:40-44` vs `combo-chart.tsx:51-54` | `false` everywhere | ◯ OPEN |
-| C11 | Generic defaults: `<T = never>` on map-side only (T9) | `heatmap-chart-schema.ts:61` vs `bar-chart.tsx:37` | `= never` everywhere | ◯ OPEN |
+| C9 | Three private spellings of `Orientation`, two of legend placement (T9) | `chart-orientation.ts:22`, `chart-legend/range-legend.tsx:21`, `map/types.ts:85` | Alias the shared types | ✅ RESOLVED (`MapLegendPlacement = ChartLegendPlacement`; the orientation half — `ChartOrientation`, `RangeOrientation`, `PanelHandleProps.orientation` — already aliased `Orientation`, pinned by `variant-axis-boundary.test.ts`) |
+| C10 | `points` default `false` (Line/Area) vs `true` (Combo) | `line-chart.tsx:40-44` vs `combo-chart.tsx:51-54` | `false` everywhere | ✅ RESOLVED (Combo defaults `points` to `false`, matching Line and Area) |
+| C11 | Generic defaults: `<T = never>` on map-side only (T9) | `heatmap-chart-schema.ts:61` vs `bar-chart.tsx:37` | `= never` everywhere | ✅ RESOLVED (`<T = never>` on all nine chart prop types) |
 | C12 | Map barrel exports `@internal` symbols; `RangeOrientation` referenced but unexported (T9) | `map-range-legend.tsx:25-133`, `map/index.ts:5-10` | De-internal + export, or unbarrel | ✅ RESOLVED (unbarrelled — the slider moved to `chart/engine/chart-legend/range-legend.tsx`, and no public type names `RangeOrientation` now) |
-| C13 | `MapSkeleton.ratio` vs `MapPlat.aspectRatio`; ChartSkeleton can't reserve the aspect box (T10) | `map-skeleton.tsx:17` vs `map-plat.tsx:88`; `chart-skeleton.tsx:6` | Rename; add `aspectRatio` | ◯ OPEN |
+| C13 | `MapSkeleton.ratio` vs `MapPlat.aspectRatio`; ChartSkeleton can't reserve the aspect box (T10) | `map-skeleton.tsx:17` vs `map-plat.tsx:88`; `chart-skeleton.tsx:6` | Rename; add `aspectRatio` | ✅ RESOLVED (`MapSkeleton.aspectRatio`; the ChartSkeleton aspect box is a separate addition, not a rename) |
 
 ## Findings — grid & query modules
 
@@ -149,9 +149,9 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | G1 | Five feature-enable idioms on one root (T8) | `grid-data-types.ts:26,516,671,790,833,858,890` | Presence enables; default-on takes `\| false`; drop `columnManager.enabled` | ◯ OPEN |
 | G2 | `GridEditableConfig.onValueChange` is a commit sink (T4) | `grid-editing-types.ts:96` vs fourteen echo bindings | `onCommit`; row set becomes the standard triad | ✅ RESOLVED (`onCommit`) |
 | G3 | Column identity: `column` vs `id` vs `columnId`, `string` vs `string \| number` | `context.ts:7`, `types.ts:358,417` | `columnId: string \| number` in every payload | ◯ OPEN |
-| G4 | `SortState`/`CellChange` unprefixed in the barrel (T9) | `index.ts:1,41` | `GridSortState`/`GridCellChange` + deprecated aliases | ◯ OPEN |
+| G4 | `SortState`/`CellChange` unprefixed in the barrel (T9) | `index.ts:1,41` | `GridSortState`/`GridCellChange` + deprecated aliases | ✅ RESOLVED (`GridSortState` / `GridCellChange`; no aliases, because nothing outside `ui` names either) |
 | G5 | Expansion state `value` (expandable) vs `expanded` (groupBy); `defaultExpanded: boolean \| Set` double duty | `grid-data-types.ts:340-347` vs `:239,280,286` | Split the union; document the named-triad rule | ◯ OPEN |
-| G6 | "Group" names three axes: `groupBy`, `groups`, `rowGroups` | `grid-data-types.ts:317,692,761` | Column bands → `columnGroups` | ◯ OPEN |
+| G6 | "Group" names three axes: `groupBy`, `groups`, `rowGroups` | `grid-data-types.ts:317,692,761` | Column bands → `columnGroups` | ✅ RESOLVED (the root column-band prop is `columnGroups`; `groupBy` and `rowGroups` keep their own meanings) |
 | G7 | Server total: `rowCount` (pagination) vs `totalRows` (infiniteScroll); footer `rows`/`total` third vocabulary | `types.ts:311` vs `grid-data-types.ts:92,576,583` | `rowCount`; footer → `visibleRows`/`totalRows` | ◯ OPEN |
 | G8 | Column has three row-property channels (`value`, `field`, id-fallback); `field` ignored by sort/filter | `accessor.ts:15-17`, `types.ts:113` | `field` primary; fallback `value ?? row[field] ?? row[id]` | ◯ OPEN |
 | G9 | `width: string` (CSS) vs `minWidth`/`maxWidth: number`, and width is parsed as px anyway | `types.ts:198-221` | `width?: number \| string` | ◯ OPEN |
@@ -159,11 +159,11 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | G11 | `preferences` prop vs `onSavePreset` callback; snapshot field style and `hidden` array-vs-Set drift | `grid-data-types.ts:470-476,529-548,733` | One noun, one field style, one collection type | ◯ OPEN |
 | G12 | Visibility state nested in `columnManager` while order/sizing/pinning are top-level bindings | `grid-data-types.ts:529-540` vs `:735,744,798` | Top-level `columnVisibility`; manager = dialog UI only | ◯ OPEN |
 | G13 | `filterType`/`filterOptions` duplicate query's types verbatim; filter state untyped (T9) | `types.ts:63,70` = `engine/types.ts:26,52` | Alias `QueryFieldType`; type the filter value | ◯ OPEN |
-| G14 | `GridSearch.filter: boolean` encodes two presentation modes | `types.ts:408` | `mode?: 'filter' \| 'highlight'` | ◯ OPEN |
-| G15 | `groupTotalRow`/`grandTotalRow?: 'bottom'` single-valued enums | `grid-data-types.ts:702,713` | Boolean, or commit to `'top'` | ◯ OPEN |
+| G14 | `GridSearch.filter: boolean` encodes two presentation modes | `types.ts:408` | `mode?: 'filter' \| 'highlight'` | ✅ RESOLVED (`mode?: 'filter' | 'highlight'`) |
+| G15 | `groupTotalRow`/`grandTotalRow?: 'bottom'` single-valued enums | `grid-data-types.ts:702,713` | Boolean, or commit to `'top'` | ✅ RESOLVED (booleans, with the props audit row) |
 | G16 | `selectable` (-able, means "is the selector column") beside nouns `dragHandle`/`expander`; `readOnly` where flags predict `editable: false` | `types.ts:80,92,102,120` | `selector?: boolean`; `editable?: boolean` default true | ◯ OPEN |
-| G17 | QueryBuilder edits `value`, QuerySummary reads `root`; barrel renames `QueryGroup` → `QueryGroupNode` with no collision (T9) | `query-builder.tsx:17` vs `query-summary.tsx:11`; `index.ts:11-14` | `value` on the summary; export declared names | ◯ OPEN |
-| G18 | `condensed` boolean overlaps the `density` axis it sits beside | `grid-data-types.ts:638,663` | Fourth density level, or explicit decomposition | ◯ OPEN |
+| G17 | QueryBuilder edits `value`, QuerySummary reads `root`; barrel renames `QueryGroup` → `QueryGroupNode` with no collision (T9) | `query-builder.tsx:17` vs `query-summary.tsx:11`; `index.ts:11-14` | `value` on the summary; export declared names | ✅ RESOLVED (QuerySummary takes `value`; the barrel exports `QueryGroup` and `QueryRule` under their declared names, which collided with nothing) |
+| G18 | `condensed` boolean overlaps the `density` axis it sits beside | `grid-data-types.ts:638,663` | Fourth density level, or explicit decomposition | ✅ KEEP, documented with the props-audit row (orthogonal to `density`, not decomposable into it) |
 
 ## Findings — chat, providers, hooks
 
@@ -173,13 +173,13 @@ The architecture is in good shape where it is centralized: polymorphism runs thr
 | P2 | `Chat` is the package's only snake_case public type | `types.ts:4-6` | camelCase, or move the wire shape out of `ui` (§4.1) | ✅ RESOLVED (moved out of `ui`; the wire shape lives with the route that fetches it) |
 | P3 | `sending` (hook) vs `streaming` (every component it feeds) | `use-chat-send.ts:45` vs `chat-prompt.tsx:27` | Rename hook field `streaming` | ✅ RESOLVED (hook field renamed `streaming`) |
 | P4 | Provider `*Props`/config types unexported: Density, Locale (`LocaleConfig`), Toast (`ToastInput`, `ToastSeverity`, `ToastPosition`), UI (T9) | barrels at `density/index.ts`, `locale/index.ts:1-3`, `toast/index.ts:1-2`, `ui/index.ts` | Export all | ✅ RESOLVED ([#1021](https://github.com/charliebeckstrand/midgard/pull/1021)) |
-| P5 | Nested-provider semantics diverge: UIProvider per-binding, LocaleProvider full-replace, undocumented | `ui.tsx:39-46` vs `locale.tsx:23-27` | Fold ambient config in, or document | ◯ OPEN |
+| P5 | Nested-provider semantics diverge: UIProvider per-binding, LocaleProvider full-replace, undocumented | `ui.tsx:39-46` vs `locale.tsx:23-27` | Fold ambient config in, or document | ✅ RESOLVED (LocaleProvider folds the ambient config in per field, as UIProvider does, with a test; both now document the rule) |
 | P6 | `@internal` hooks in the public barrel (T9) | `use-hover-across-scroll.ts:34-36`, `use-plot-frame.ts:204-206` vs `hooks/index.ts:36,46-53` | Unbarrel or de-internal | ✅ RESOLVED ([#1033](https://github.com/charliebeckstrand/midgard/pull/1033)), and `internal-barrel-boundary.test.ts` now holds it |
 | P7 | Hook option-type naming: three schemes, most unexported (T9) | `use-chat-draft.ts:6,14` vs `hooks/a11y/index.ts` vs `use-dismissable.ts:7` | One scheme; export options/results of every public hook | ◯ OPEN (the `Use` prefix is gone from `modules`, which `hook-type-name-boundary.test.ts` now scans; the unexported options of public hooks stand) |
-| P8 | ChatPrompt controlled-only (T3) | `chat-prompt.tsx:15-17` | Add `defaultValue`, or document the contract | ◯ OPEN |
+| P8 | ChatPrompt controlled-only (T3) | `chat-prompt.tsx:15-17` | Add `defaultValue`, or document the contract | ✅ RESOLVED (the TSDoc states the controlled-only contract — T3's documented-exception arm) |
 | P9 | `onSubmit` vs `onSent` for one lifecycle (T4) | `use-chat-draft.ts:8` vs `use-chat-send.ts:35` | `onSubmit` = gesture; rename/document `onSent` | ✅ RESOLVED (`onSent` documented as the completed send, against `onSubmit` the gesture) |
 | P10 | chat-list-item recipe ships a `timestamp` slot no prop feeds (§5.2) | `recipes/kata/chat-list-item.ts:50-53` vs `chat-list-item.tsx:12-24` | Delete or restore the prop | ✅ RESOLVED (dead slot deleted) |
-| P11 | Density primitive doc names the wrong level labels | `primitives/density/density.tsx:25-26` | Fix the comment | ◯ OPEN |
+| P11 | Density primitive doc names the wrong level labels | `primitives/density/density.tsx:25-26` | Fix the comment | ✅ RESOLVED (the comment names `loose | snug | compact`) |
 | P12 | `useChatList(): boolean` reads as a state accessor, returns a nesting flag | `modules/chat/context.ts:10` | `useInChatList`, or unbarrel | ✅ RESOLVED (renamed `useInChatList`) |
 
 ## Verified consistent — recorded so the next audit doesn't relitigate

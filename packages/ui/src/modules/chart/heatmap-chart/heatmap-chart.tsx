@@ -634,8 +634,8 @@ function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
- * fitting its aspect to the grid shape; pass `aspectRatio` to override. Motion
- * (`animate`) is not yet wired — the heatmap renders as a static SVG tree.
+ * fitting its aspect to the grid shape; pass `aspectRatio` to override. The
+ * heatmap renders as a static SVG tree and takes no `animate`.
  * @example
  * ```tsx
  * <HeatmapChart
@@ -656,14 +656,9 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		tooltip,
 		formatValue,
 		className,
-		// Destructured off so the unwired base switches never fall into `...label` and
-		// spread onto the plot element as invalid DOM attributes. The heatmap draws no
-		// header (a range legend, not a series frame), so `subtitle` joins them; `title`
-		// is kept off the DOM too but still names the context menu's fullscreen view.
-		animate: _animate,
-		texture: _texture,
+		// Kept off the DOM so it never spreads onto the plot element as an invalid
+		// attribute, but still names the context menu's fullscreen view.
 		title,
-		subtitle: _subtitle,
 		contextMenu,
 		...label
 	} = props

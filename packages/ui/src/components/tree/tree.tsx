@@ -26,7 +26,10 @@ export type TreeProps = AccessibleName & {
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
 	 */
 	size?: TreeSize
-	/** Indent nested items so a child's chevron lines up under its parent's prefix slot. @defaultValue false */
+	/**
+	 * Indent each depth by the chevron width plus the row gap.
+	 * @defaultValue true
+	 */
 	indent?: boolean
 	/**
 	 * What happens to a branch's children while it is closed.
@@ -48,7 +51,7 @@ export type TreeProps = AccessibleName & {
 /** Root of a `role="tree"` with roving-tabindex keyboard navigation. It keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
 export function Tree({
 	size,
-	indent = false,
+	indent = true,
 	mount = 'active',
 	children,
 	className,

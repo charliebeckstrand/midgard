@@ -19,7 +19,7 @@ export function mergeContextMenuItems(groups: ContextMenuEntry[][]): ContextMenu
 
 /**
  * Resolves a host's {@link ContextMenuConfig} against the default items it
- * supplies, ordered by `position`. The result holds the custom items in array
+ * supplies, ordered by `insert`. The result holds the custom items in array
  * order, the defaults when `defaultItems` is on, and a separator between the
  * groups when both show. Either group empty, no separator renders; both empty,
  * the result is empty and the host leaves the native menu alone.
@@ -41,6 +41,6 @@ export function resolveContextMenuEntries(
 	// and fed the result back in, producing duplicate React keys. No in-repo
 	// consumer composes them that way.
 	return mergeContextMenuItems(
-		(config?.position ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom],
+		(config?.insert ?? 'after') === 'before' ? [custom, shownDefaults] : [shownDefaults, custom],
 	)
 }

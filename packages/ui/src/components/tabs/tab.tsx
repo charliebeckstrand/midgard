@@ -21,7 +21,10 @@ import { useTabsContext } from './context'
 export type TabProps = {
 	value?: string
 	current?: boolean
-	/** Links this tab to its panel via aria-controls. */
+	/**
+	 * Links this tab to a panel the consumer renders itself, via `aria-controls`
+	 * (`${id}-panel`). Leave it unset to auto-wire a `<TabContent value>`.
+	 */
 	id?: string
 	/**
 	 * Fills the available cross-axis space (equal-width tabs).
@@ -120,8 +123,8 @@ export function Tab({
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
 	// Derives a matched tab/panel id pair from the Tabs base id + value,
-	// auto-wiring <TabContent value>. An explicit `id` prop overrides this
-	// for manual <TabPanel id> linkage. Segments have no panels and never
+	// auto-wiring <TabContent value>. An explicit `id` prop overrides this to
+	// link a panel the consumer renders. Segments have no panels and never
 	// auto-wire `aria-controls`.
 	const disclosure = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 

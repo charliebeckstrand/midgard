@@ -31,10 +31,6 @@ import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useControlSize } from '../../primitives/density'
 import { QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
-import {
-	resolveCapitalize,
-	type SelectCapitalize,
-} from '../../primitives/select-trigger/capitalize'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
 import { Button } from '../button'
@@ -150,7 +146,7 @@ type ComboboxBaseProps<T> = {
 	 * Display-only: the underlying query and value are untouched.
 	 * @defaultValue true
 	 */
-	capitalize?: SelectCapitalize
+	capitalize?: boolean
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -543,8 +539,6 @@ export function Combobox<T>({
 		role: null,
 	})
 
-	const capitalization = resolveCapitalize(capitalize)
-
 	const inputDisplay = resolveInputDisplay({
 		editing,
 		query,
@@ -634,9 +628,9 @@ export function Combobox<T>({
 			value: selectionValue,
 			multiple,
 			onSelect: select as (v: unknown) => void,
-			capitalize: capitalization.options,
+			capitalize,
 		}),
-		[selectionValue, multiple, select, capitalization.options],
+		[selectionValue, multiple, select, capitalize],
 	)
 
 	// The menu content reads the frozen-through-close query so its filter (and a
@@ -686,7 +680,7 @@ export function Combobox<T>({
 						placeholder={placeholder}
 						title={inputTitle}
 						editing={editing}
-						capitalize={capitalization.displayValue}
+						capitalize={capitalize}
 						density={token.space}
 						size={token.size}
 						handlers={inputHandlers}

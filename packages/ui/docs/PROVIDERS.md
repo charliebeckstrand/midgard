@@ -64,7 +64,7 @@ Broadcasts i18n defaults; explicit component props still win.
 |---|---|
 | `LocaleProvider` | Broadcasts i18n defaults (locale, currency, number/date formatting, time zone); explicit component props still win. |
 | `LocaleProviderProps` *(type)* | Props for `LocaleProvider`. |
-| `LocaleConfig` *(type)* | Ambient i18n defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`, `timeZone`. |
+| `LocaleConfig` *(type)* | Ambient i18n defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`. A nested provider folds over the enclosing config per field. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |
@@ -77,10 +77,10 @@ App-root toast state; pairs with the `Toast` component which portals the queue.
 |---|---|
 | `ToastProvider` | App-root toast state: manages queue, timers, and pause/resume; exposes `useToast()` to descendants. |
 | `ToastProviderProps` *(type)* | Props for `ToastProvider`. |
-| `useToast` | Caller-facing toast API (`toast(data)` enqueues and returns id, `dismiss({ id })` removes); throws outside a provider. |
+| `useToast` | Caller-facing toast API (`toast(data)` enqueues and returns id, `dismiss(id)` removes); throws outside a provider. |
 | `ToastInput` *(type)* | A toast to enqueue via `useToast().toast(...)`: `title` plus optional `description` / `severity` / `actions` / `duration` / `id` / `closable` / `persist` / `onDismiss`. |
 | `ToastDismissReason` *(type)* | Why a toast left the queue, handed to its `onDismiss`: `timeout` / `close` / `evicted` / `dismissed`. |
-| `ToastSeverity` *(type)* | Severity of a toast, mapped to the underlying `Alert` tone. |
+| `ToastSeverity` *(type)* | Severity of a toast, mapped to the underlying `Alert` tone: `info` / `neutral` / `success` / `warning` / `error`. |
 | `ToastPosition` *(type)* | Viewport corner the toast stack anchors to. |
 
 ---

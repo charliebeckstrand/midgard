@@ -99,22 +99,6 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		aspectRatio?: MapAspectRatio
 		/**
-		 * Hold the frame empty until the container is measured, with its reserved box
-		 * still owning the space. Then paint the geography once at the measured
-		 * aspect, with the legend already resolved. The alternative paints the
-		 * measurement-free canonical fit, then visibly refits and reserves a late
-		 * legend rail once the measurement lands.
-		 *
-		 * It suits a chart-context map: a dashboard tile behind a loading state,
-		 * carrying an explicit `aspectRatio` that differs from the geography's own.
-		 * There the canonical paint would draw at the wrong aspect and legend-less,
-		 * then jump. Deferring trades the instant first paint for a single settled
-		 * one, and the tile's reserved box and loading state hide that trade. Off by default, so every other map keeps the instant canonical paint for
-		 * SSR and the first client commit.
-		 * @defaultValue false
-		 */
-		deferPaint?: boolean
-		/**
 		 * Rule meridian and parallel hairlines under the geography, on the chart's
 		 * gridline ink. `true` takes d3-geo's ten-degree step, and a number sets that
 		 * step in degrees. The lines draw beneath every region, and answer no
@@ -664,7 +648,6 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		width,
 		height,
 		aspectRatio = 'auto',
-		deferPaint = false,
 		graticule = false,
 		sphere = false,
 		legend,
@@ -706,7 +689,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		width,
 		height,
 		aspectRatio,
-		deferPaint,
+		// A fixed aspect is the documented trigger: the frame must measure before the
+		// first paint, or the map flashes its canonical fit and refits.
+		deferPaint: aspectRatio !== 'auto',
 		graticule: graticuleStep(graticule),
 		sphere,
 	})

@@ -66,7 +66,6 @@ export function SidebarItem({
 	className,
 	children,
 	preventClose,
-	spring = false,
 	prefix,
 	suffix,
 	onClick,
@@ -125,7 +124,7 @@ export function SidebarItem({
 			ref={item.ref as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
 			className={k.item.row({ affix: hasAffix, size: item.size })}
-			{...(spring ? item.indicator.tapHandlers : {})}
+			{...item.indicator.tapHandlers}
 		>
 			{prefix != null && (
 				<span data-slot="sidebar-item-prefix" className={cn(k.item.prefix({ size: item.size }))}>

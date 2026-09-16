@@ -14,7 +14,7 @@ import {
 	isQueryActive,
 	QueryBuilder,
 	type QueryField,
-	type QueryGroupNode,
+	type QueryGroup,
 } from '../query'
 import { columnLabel } from './engine/grid-column/label'
 import { GridOverlayDensity, useGridOverlayDensity } from './grid-region'
@@ -53,7 +53,7 @@ type GridColumnFilterButtonProps = {
 	 * header cell. That keeps the active accent and the sheet's reopened draft in
 	 * step with what's actually applied.
 	 */
-	query: QueryGroupNode | undefined
+	query: QueryGroup | undefined
 }
 
 /**
@@ -112,7 +112,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// cells (see `GridOverlayDensity`).
 	const overlayDensity = useGridOverlayDensity()
 
-	const [draft, setDraft] = useState<QueryGroupNode>(seeded)
+	const [draft, setDraft] = useState<QueryGroup>(seeded)
 
 	// Close the sheet and, if it was opened from the right-click menu (the `'menu'`
 	// affordance), consume that request so it doesn't immediately reopen.

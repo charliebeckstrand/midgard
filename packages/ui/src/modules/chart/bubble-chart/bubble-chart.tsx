@@ -9,7 +9,7 @@ import { ScatterChart, type ScatterFrameProps } from '../scatter-chart'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type BubbleChartProps<T> = ChartBaseProps<T> &
+export type BubbleChartProps<T = never> = ChartBaseProps<T> &
 	ScatterFrameProps & {
 		/** The series to plot, each row a disc sized by its `sizeKey` measure. */
 		series: BubbleChartSeries<T>[]

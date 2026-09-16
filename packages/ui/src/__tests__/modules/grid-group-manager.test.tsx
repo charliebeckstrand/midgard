@@ -275,7 +275,7 @@ describe('Grid column-group editor', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(row) => row.id}
-				groups={{ value: groups, onValueChange: setGroups }}
+				columnGroups={{ value: groups, onValueChange: setGroups }}
 				columnManager={{ toolbar: true, defaultOpen: true }}
 			/>
 		)
@@ -359,7 +359,7 @@ describe('Grid column-group editor', () => {
 					columns={columns}
 					rows={rows}
 					getKey={(row) => row.id}
-					groups={{ value: groups, onValueChange: setGroups }}
+					columnGroups={{ value: groups, onValueChange: setGroups }}
 				/>
 			)
 		}
@@ -398,7 +398,7 @@ describe('Grid column-group editor', () => {
 					columns={columns}
 					rows={rows}
 					getKey={(row) => row.id}
-					groups={{ value: groups, onValueChange: setGroups }}
+					columnGroups={{ value: groups, onValueChange: setGroups }}
 					columnManager={{ toolbar: true, defaultOpen: true }}
 				/>
 			)
@@ -429,7 +429,7 @@ describe('Grid column-group editor', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(row) => row.id}
-				groups={colored}
+				columnGroups={colored}
 				columnManager={{ defaultOpen: true }}
 			/>,
 		)
@@ -449,7 +449,7 @@ describe('Grid column-group editor', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(row) => row.id}
-				groups={plain}
+				columnGroups={plain}
 				columnManager={{ defaultOpen: true }}
 			/>,
 		)

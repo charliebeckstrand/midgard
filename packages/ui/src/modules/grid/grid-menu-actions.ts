@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import { resolveToolSurfaces, SURFACES_OFF } from './engine/grid-tools'
 import type { GridColumnManagerConfig } from './grid-data-types'
 import type { GridContextMenu as GridContextMenuConfig } from './types'
@@ -37,7 +37,7 @@ export function useGridMenuActions<T>({
 	 */
 	columnManager: GridColumnManagerConfig | false | undefined
 	resize: GridColumnResize | null
-	setSort: (sort: SortState[]) => void
+	setSort: (sort: GridSortState[]) => void
 	/** Right-click menus stand down with no source data (its items act on rows). */
 	hasData: boolean
 	/**

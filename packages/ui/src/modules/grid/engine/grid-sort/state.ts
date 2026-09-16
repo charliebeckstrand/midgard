@@ -1,7 +1,7 @@
-import type { SortState } from '../../context'
+import type { GridSortState } from '../../context'
 
 /** Stable empty sort list; the unsorted state, read-only and replaced wholesale. @internal */
-const EMPTY_SORT: SortState[] = []
+const EMPTY_SORT: GridSortState[] = []
 
 /**
  * Next sort list after cycling `column`. A Shift-click (`additive`) folds the
@@ -15,11 +15,11 @@ const EMPTY_SORT: SortState[] = []
  * @internal
  */
 export function nextSort(
-	current: SortState[],
+	current: GridSortState[],
 	column: string | number,
 	additive: boolean,
 	cycle: 'tri-state' | 'toggle' = 'tri-state',
-): SortState[] {
+): GridSortState[] {
 	const existing = current.find((entry) => entry.column === column)
 
 	if (additive) {
@@ -57,7 +57,7 @@ export function nextSort(
  *
  * @internal
  */
-export function sortsEqual(a: SortState[], b: SortState[]): boolean {
+export function sortsEqual(a: GridSortState[], b: GridSortState[]): boolean {
 	if (a === b) return true
 
 	if (a.length !== b.length) return false
@@ -78,7 +78,7 @@ export function sortsEqual(a: SortState[], b: SortState[]): boolean {
  * @internal
  */
 export function columnSort(
-	sort: SortState[],
+	sort: GridSortState[],
 	columnId: string | number,
 ): { sorted: boolean; direction: 'asc' | 'desc' | undefined; priority: number | undefined } {
 	const index = sort.findIndex((entry) => entry.column === columnId)

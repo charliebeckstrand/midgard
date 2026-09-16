@@ -55,12 +55,15 @@ export type HeatmapChartSeries<T> = {
  * visually-hidden data table (categories × rows). The grid therefore carries
  * full value parity without the pointer, the way every chart in the module does.
  *
- * @remarks The grid wires neither `animate` nor `texture`; the component
- * destructures them off so they never reach the plot element. `legend` drives
+ * @remarks The grid wires neither `animate` nor `texture`, and the heatmap
+ * draws no series header, so it takes neither those nor `subtitle`. `legend` drives
  * the continuous range scale bar — the heatmap's only legend, so the object
  * form's `type` is always `'range'` and only its `placement` matters.
  */
-export type HeatmapChartProps<T = never> = Omit<ChartBaseProps<T>, 'legend' | 'onHiddenChange'> & {
+export type HeatmapChartProps<T = never> = Omit<
+	ChartBaseProps<T>,
+	'legend' | 'onHiddenChange' | 'animate' | 'texture' | 'subtitle'
+> & {
 	/** The single series to shade cells with; extra entries are ignored. */
 	series: HeatmapChartSeries<T>[]
 	/**

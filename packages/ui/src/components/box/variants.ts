@@ -4,9 +4,6 @@ import type { k } from '../../recipes/kata/box'
 /** Spacing-scale step for {@link Box} padding props. */
 export type BoxPadding = Ma
 
-/** Spacing-scale step for {@link Box} margin props; adds `'auto'` for centering. */
-export type BoxMargin = Ma | 'auto'
-
 /** Background surface token for {@link Box}. */
 export type BoxBg = keyof typeof k.bg
 

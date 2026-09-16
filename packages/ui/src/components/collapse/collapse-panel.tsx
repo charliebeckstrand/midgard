@@ -39,7 +39,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 	// The preset itself rather than its key, so one `undefined` covers `animate={false}`
 	// and narrows every read below it.
-	const preset = animate === false ? undefined : k.motion[animate === true ? 'fade' : animate]
+	const preset = animate === false ? undefined : k.motion[animate]
 
 	// The arrival target the motion library hands back on the way in, compared by
 	// identity. Presets are module constants, so the identity holds.

@@ -43,13 +43,13 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type ComboChartProps<T> = ChartBaseProps<T> &
+export type ComboChartProps<T = never> = ChartBaseProps<T> &
 	CartesianFrameProps & {
 		/** The series to plot, each drawn as bars, a line, or a filled area; slot colours follow this order. */
 		series: ComboChartSeries<T>[]
 		/**
 		 * Mark every line and area point with a filled, surface-ringed dot.
-		 * @defaultValue true
+		 * @defaultValue false
 		 */
 		points?: boolean
 		/**
@@ -175,7 +175,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		tooltip,
 		crosshair,
 		animate = false,
-		points = true,
+		points = false,
 		interpolation = 'linear',
 		reference,
 		texture = false,

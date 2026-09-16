@@ -29,11 +29,6 @@ export type NavItemProps = {
 	className?: string
 	/** Keep an enclosing offcanvas drawer open on click instead of dismissing it. */
 	preventClose?: boolean
-	/**
-	 * Enable the press-spring tap animation on the active indicator.
-	 * @defaultValue `false`
-	 */
-	spring?: boolean
 	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
 	prefix?: ReactNode
 	/** Rendered after the inner button, outside it; the slot can host its own interactive element (e.g. an actions button). Slot controls auto-step one size down; an explicit `size` prop overrides. */

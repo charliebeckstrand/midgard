@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Grid, type GridColumn, type SortState } from '../../modules/grid'
+import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 // The server-sort settle wash is projected from the `<table>` onto its data
@@ -37,7 +37,7 @@ describe('Grid server-sort settle', () => {
 	// Manual mode with an async row handoff: the sort change lands first, the
 	// reordered rows a commit later — the interval the wash covers.
 	function AsyncHarness() {
-		const [sort, setSort] = useState<SortState[]>([])
+		const [sort, setSort] = useState<GridSortState[]>([])
 
 		const [rows, setRows] = useState(initialRows)
 
@@ -83,7 +83,7 @@ describe('Grid server-sort settle', () => {
 		// A synchronous re-sort: the rows derive from the sort, so both change in one
 		// commit and the grid settles at once — no dim flash.
 		function SyncHarness() {
-			const [sort, setSort] = useState<SortState[]>([])
+			const [sort, setSort] = useState<GridSortState[]>([])
 
 			const rows = useMemo(() => (sort.length ? [...initialRows].reverse() : initialRows), [sort])
 
@@ -116,11 +116,11 @@ describe('Grid server-sort settle', () => {
 		// the consumer hands back the same `rows` reference. The grid must still read
 		// the cleared sort as settled, not stay stuck mid-flight (the reported bug).
 		function RapidHarness() {
-			const [sort, setSort] = useState<SortState[]>([])
+			const [sort, setSort] = useState<GridSortState[]>([])
 
 			const [rows, setRows] = useState(initialRows)
 
-			const onValueChange = (next: SortState[]) => {
+			const onValueChange = (next: GridSortState[]) => {
 				setSort(next)
 
 				// Non-empty sorts are in flight (their rows land later); clearing snaps
@@ -160,7 +160,7 @@ describe('Grid server-sort settle', () => {
 
 	it('leaves a client-sorted grid untouched', () => {
 		function ClientHarness() {
-			const [sort, setSort] = useState<SortState[]>([])
+			const [sort, setSort] = useState<GridSortState[]>([])
 
 			return (
 				<Grid

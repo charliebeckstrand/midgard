@@ -8,10 +8,10 @@ export type {
 	QueryCombinator,
 	QueryField,
 	QueryFieldType,
-	QueryGroup as QueryGroupNode,
+	QueryGroup,
 	QueryNode,
 	QueryOperator,
-	QueryRule as QueryRuleNode,
+	QueryRule,
 } from './engine/types'
 export {
 	QueryBuilder,

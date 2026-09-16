@@ -4,8 +4,8 @@ import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../box'
 
-/** Props for {@link Card}: Box surface props (radius is fixed per `size`) plus the section/density `size` step. */
-export type CardProps = BoxProps<'radius'> & {
+/** Props for {@link Card}: Box surface props (radius and padding are fixed per `size`) plus the section/density `size` step. */
+export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py'> & {
 	/**
 	 * Step for the card's own padding, its sections, and its radius, broadcast
 	 * to children through the density cascade.

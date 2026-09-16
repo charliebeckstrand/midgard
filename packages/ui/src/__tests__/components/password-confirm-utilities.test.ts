@@ -80,7 +80,7 @@ describe('handlePasswordInput', () => {
 		expect(setPasswordName).toHaveBeenCalledWith(undefined)
 	})
 
-	it('ignores the confirm input identified by data-password-confirm-input', () => {
+	it('ignores the confirm input identified by its data-slot', () => {
 		const setPassword = vi.fn()
 
 		const setPasswordName = vi.fn()
@@ -89,7 +89,7 @@ describe('handlePasswordInput', () => {
 
 		const input = document.createElement('input')
 
-		input.dataset.passwordConfirmInput = ''
+		input.dataset.slot = 'password-confirm-input'
 
 		input.value = 'hunter2'
 

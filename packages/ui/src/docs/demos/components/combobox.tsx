@@ -128,11 +128,7 @@ function VirtualizedPeople() {
 	)
 
 	return (
-		<VirtualOptions
-			items={filtered}
-			estimateSize={36}
-			getOptionId={(person) => `virtual-person-${person.id}`}
-		>
+		<VirtualOptions items={filtered} getOptionId={(person) => `virtual-person-${person.id}`}>
 			{(person, _index, meta) => (
 				<ComboboxOption
 					key={person.id}

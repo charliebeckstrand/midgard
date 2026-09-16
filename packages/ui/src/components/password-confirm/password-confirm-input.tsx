@@ -49,13 +49,16 @@ export function PasswordConfirmInput({
 
 	return (
 		<PasswordInput
-			data-password-confirm-input
 			{...(showWarning ? { 'data-warning': true } : {})}
 			// Otherwise only the visual `data-warning` signals a mismatch; surface
 			// it programmatically too. A caller-supplied `invalid` still wins.
 			invalid={invalid ?? (showWarning || undefined)}
 			aria-describedby={describedBy}
 			{...props}
+			// After the spread and locked: `password-confirm-utilities` selects on
+			// this anchor to tell the confirm field from the password field, so a
+			// consumer `data-slot` must not take it (CONVENTIONS.md §3.9).
+			data-slot="password-confirm-input"
 			onChange={(event) => {
 				setConfirm(event.target.value)
 

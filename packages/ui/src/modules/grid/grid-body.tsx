@@ -84,7 +84,7 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	/** Group-header label override from the {@link GridGroupBy} binding, if any. */
 	groupRenderHeader: GridGroupBy['renderHeader']
 	/** Append a per-group total row under each group's leaves; effective only while columns aggregate. */
-	groupTotalRow: 'bottom' | undefined
+	groupTotalRow: boolean | undefined
 	/** Row-key resolver, so grouped leaf rows derive their key straight from the engine row. */
 	getKey: (row: T, index: number) => string | number
 	/** Grid density, threaded to the grouped leaf rows so their reveal wrappers carry the matching cell padding. */
@@ -312,7 +312,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		return (
 			<TableEmpty columns={visibleColumns.length}>
 				{error === true ? (
-					<Alert severity="error" variant="soft" title="Couldn't load data" block />
+					<Alert severity="error" variant="soft" title="Couldn't load data" className="w-full" />
 				) : (
 					error
 				)}
@@ -367,7 +367,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 		// The per-group total is meaningful only once a column aggregates; the gate
 		// is body-wide, so resolve it once here rather than per group in renderGroup.
-		const totalled = props.groupTotalRow === 'bottom' && hasAggregation(visibleColumns)
+		const totalled = props.groupTotalRow === true && hasAggregation(visibleColumns)
 
 		return (
 			<TableBody>
