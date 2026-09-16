@@ -7,7 +7,7 @@ import { cn } from '../../core'
 import { useA11yHasTabbable } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { useGlass } from '../../providers/glass/context'
+import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
@@ -41,13 +41,21 @@ export type TooltipContentProps = {
 	 * composes with the entrance instead of fighting it.
 	 */
 	surfaceClassName?: string
+	/**
+	 * Opt the surface into the translucent glass chrome, as the panel family
+	 * does. An ambient `<GlassProvider>` already turns it on; this is the
+	 * per-surface opt-in for a tree that has none.
+	 *
+	 * @defaultValue false
+	 */
+	glass?: boolean
 	children: ReactNode
 }
 
 /**
  * Floating panel rendered when the enclosing `<Tooltip>` is open. Positions
- * via `<FloatingSurface>`, animates in, and adopts the glass surface when a
- * `<GlassProvider>` is active.
+ * via `<FloatingSurface>`, animates in, and adopts the glass surface from
+ * `glass` or an active `<GlassProvider>`.
  *
  * @remarks Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel
@@ -62,12 +70,13 @@ export function TooltipContent({
 	size,
 	className,
 	surfaceClassName,
+	glass: glassProp,
 	children,
 }: TooltipContentProps) {
 	const { open, interactive, setFloating, floatingStyles, getFloatingProps, floatingContext } =
 		useTooltipContext()
 
-	const glass = useGlass()
+	const glass = useResolvedSurface(glassProp) === 'glass'
 	const inherited = useDensity()
 
 	// State, not a ref: the panel mounts a commit after the portal node exists,

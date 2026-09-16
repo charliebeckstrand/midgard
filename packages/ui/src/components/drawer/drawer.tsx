@@ -12,7 +12,7 @@ import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
 import { Density, useDensity } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
-import { PanelProviders } from '../../primitives/panel'
+import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
@@ -20,129 +20,130 @@ import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
 
 /** Props for {@link Drawer}: open-state control, panel `height`, density `size` cascade, and accessible naming. */
-export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> & {
-	/** Controlled open state. Pair with `onOpenChange`. */
-	open?: boolean
-	/** Initial open state when uncontrolled. */
-	defaultOpen?: boolean
-	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
-	onOpenChange?: (open: boolean) => void
-	/**
-	 * Fires once the panel has finished arriving — it is docked, at rest, and covering
-	 * whatever it covers.
-	 *
-	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
-	 * one reports it having *landed*. Use it for anything that has to hold until the panel
-	 * is actually up. Do not guess at the slide with a matching delay.
-	 *
-	 * Deliberately named for the open, not for the animation. It fires whether or not the
-	 * panel animated. It fires on the enter slide's landing. It also fires on the mount
-	 * itself, for a panel that arrives in place (`animateOnMount={false}`) with no slide
-	 * to land. A slide the user's reduced-motion preference collapses still resolves, and
-	 * so still reports. That is the same property the accordion's hold relies on to
-	 * unmount a closed panel.
-	 *
-	 * Once per arrival, and never for a close.
-	 */
-	onOpenComplete?: () => void
-	/**
-	 * Size step that propagates to descendants via the Density context.
-	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
-	 * @defaultValue inherited Density size, falling back to 'md'
-	 */
-	size?: Step
-	/**
-	 * How much of the screen the panel docks over.
-	 *
-	 * `auto` and `fit` grow to the content. `half` and `full` fix the height
-	 * instead, for a panel whose own body scrolls. It suits a detail panel beside
-	 * the thing it describes, or a form that owns the screen while it is up.
-	 *
-	 * The two grown steps differ in where they stop, and in whether the panel
-	 * travels there. `auto` stops short of the top edge, which is what a drawer is
-	 * for: the page it came from stays visible behind it. It also snaps, since a
-	 * box sized by what it holds has no second length to interpolate against.
-	 *
-	 * `fit` takes the whole screen when the content asks for that much. It
-	 * measures each new height, so the panel grows or shrinks into it rather than
-	 * jumping. It is the answer wherever the panel's own content decides how tall
-	 * it is, which is two cases in practice.
-	 *
-	 * One is a panel whose content is *swapped*, under a breadcrumb, a back step,
-	 * or a detail opened from a list. There a fixed height fits one step and
-	 * strands the rest, and a snapping one resizes under the reader's hand.
-	 *
-	 * The other is a panel that simply has a size, and whose last part is the one
-	 * the reader is heading for. That part is a form's final field, or an action
-	 * row. `auto`'s stop short of the edge is above such a panel on a tall window,
-	 * and under it on a short one. The difference is a field below the fold of a
-	 * body nothing announced as scrollable.
-	 *
-	 * `full` squares the top corners, because a rounded corner against the screen
-	 * edge reads as a panel that failed to reach it. `fit` squares them on the
-	 * steps that stand it there.
-	 *
-	 * The body scrolls within the panel whichever is set, so no height ever
-	 * strands content; it decides where the panel stops, not what fits.
-	 * @defaultValue 'auto'
-	 */
-	height?: DrawerPanelVariants['height']
-	/**
-	 * Give the panel a drag handle. The reader can then resize it between the
-	 * fixed `height` steps, and throw it away downward.
-	 *
-	 * The drag sets the height directly, rather than stepping between the `height`
-	 * variants. The reader is deciding how much of the screen the panel gets, and
-	 * the answer is wherever they let go. `height` still states where it opens.
-	 *
-	 * A panel flicked downward closes, which arrives through `onOpenChange` like
-	 * every other close. Speed, not position, is what tells a dismissal from a
-	 * reader placing the edge at its shortest. A resize is the drawer's own state,
-	 * and reports nowhere. Nothing outside it needs to hold a pixel height that
-	 * only means anything on the screen it was set on.
-	 *
-	 * @defaultValue false
-	 */
-	handle?: boolean
-	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
-	glass?: boolean
-	/**
-	 * Drain the colour from whatever shows through the backdrop. Both scrims are
-	 * translucent, so the page behind stays legible while the drawer is up. This
-	 * renders it in grey, marking it as the inert surface rather than merely the
-	 * dimmed one.
-	 *
-	 * @defaultValue false
-	 */
-	desaturate?: boolean
-	className?: string
-	/**
-	 * Whether the panel plays its enter slide on mount.
-	 *
-	 * `false` mounts it already in place, backdrop included. The enter animation is keyed
-	 * to *mount*, not to the open transition. A drawer whose open state comes from the URL
-	 * therefore slides up again every time its route mounts. That is a restored tab, or a
-	 * pasted deep link. It re-animates something the user never opened. Pass `false` for
-	 * that case and leave it alone for a drawer opened by a press.
-	 *
-	 * Only that arrival is suppressed. Once the drawer has closed, a reopen while it is
-	 * still mounted slides up regardless — the user asked for that one.
-	 *
-	 * @defaultValue true
-	 */
-	animateOnMount?: boolean
-	children: ReactNode
-	/**
-	 * Element to receive initial focus when the drawer opens.
-	 * @defaultValue the first tabbable child
-	 */
-	initialFocus?: RefObject<HTMLElement | null>
-	/**
-	 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
-	 * `DrawerTitle` registers.
-	 */
-	'aria-label'?: string
-}
+export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
+	PanelOverlayProps & {
+		/** Controlled open state. Pair with `onOpenChange`. */
+		open?: boolean
+		/** Initial open state when uncontrolled. */
+		defaultOpen?: boolean
+		/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
+		onOpenChange?: (open: boolean) => void
+		/**
+		 * Fires once the panel has finished arriving — it is docked, at rest, and covering
+		 * whatever it covers.
+		 *
+		 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
+		 * one reports it having *landed*. Use it for anything that has to hold until the panel
+		 * is actually up. Do not guess at the slide with a matching delay.
+		 *
+		 * Deliberately named for the open, not for the animation. It fires whether or not the
+		 * panel animated. It fires on the enter slide's landing. It also fires on the mount
+		 * itself, for a panel that arrives in place (`animateOnMount={false}`) with no slide
+		 * to land. A slide the user's reduced-motion preference collapses still resolves, and
+		 * so still reports. That is the same property the accordion's hold relies on to
+		 * unmount a closed panel.
+		 *
+		 * Once per arrival, and never for a close.
+		 */
+		onOpenComplete?: () => void
+		/**
+		 * Size step that propagates to descendants via the Density context.
+		 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+		 * @defaultValue inherited Density size, falling back to 'md'
+		 */
+		size?: Step
+		/**
+		 * How much of the screen the panel docks over.
+		 *
+		 * `auto` and `fit` grow to the content. `half` and `full` fix the height
+		 * instead, for a panel whose own body scrolls. It suits a detail panel beside
+		 * the thing it describes, or a form that owns the screen while it is up.
+		 *
+		 * The two grown steps differ in where they stop, and in whether the panel
+		 * travels there. `auto` stops short of the top edge, which is what a drawer is
+		 * for: the page it came from stays visible behind it. It also snaps, since a
+		 * box sized by what it holds has no second length to interpolate against.
+		 *
+		 * `fit` takes the whole screen when the content asks for that much. It
+		 * measures each new height, so the panel grows or shrinks into it rather than
+		 * jumping. It is the answer wherever the panel's own content decides how tall
+		 * it is, which is two cases in practice.
+		 *
+		 * One is a panel whose content is *swapped*, under a breadcrumb, a back step,
+		 * or a detail opened from a list. There a fixed height fits one step and
+		 * strands the rest, and a snapping one resizes under the reader's hand.
+		 *
+		 * The other is a panel that simply has a size, and whose last part is the one
+		 * the reader is heading for. That part is a form's final field, or an action
+		 * row. `auto`'s stop short of the edge is above such a panel on a tall window,
+		 * and under it on a short one. The difference is a field below the fold of a
+		 * body nothing announced as scrollable.
+		 *
+		 * `full` squares the top corners, because a rounded corner against the screen
+		 * edge reads as a panel that failed to reach it. `fit` squares them on the
+		 * steps that stand it there.
+		 *
+		 * The body scrolls within the panel whichever is set, so no height ever
+		 * strands content; it decides where the panel stops, not what fits.
+		 * @defaultValue 'auto'
+		 */
+		height?: DrawerPanelVariants['height']
+		/**
+		 * Give the panel a drag handle. The reader can then resize it between the
+		 * fixed `height` steps, and throw it away downward.
+		 *
+		 * The drag sets the height directly, rather than stepping between the `height`
+		 * variants. The reader is deciding how much of the screen the panel gets, and
+		 * the answer is wherever they let go. `height` still states where it opens.
+		 *
+		 * A panel flicked downward closes, which arrives through `onOpenChange` like
+		 * every other close. Speed, not position, is what tells a dismissal from a
+		 * reader placing the edge at its shortest. A resize is the drawer's own state,
+		 * and reports nowhere. Nothing outside it needs to hold a pixel height that
+		 * only means anything on the screen it was set on.
+		 *
+		 * @defaultValue false
+		 */
+		handle?: boolean
+		/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
+		glass?: boolean
+		/**
+		 * Drain the colour from whatever shows through the backdrop. Both scrims are
+		 * translucent, so the page behind stays legible while the drawer is up. This
+		 * renders it in grey, marking it as the inert surface rather than merely the
+		 * dimmed one.
+		 *
+		 * @defaultValue false
+		 */
+		desaturate?: boolean
+		className?: string
+		/**
+		 * Whether the panel plays its enter slide on mount.
+		 *
+		 * `false` mounts it already in place, backdrop included. The enter animation is keyed
+		 * to *mount*, not to the open transition. A drawer whose open state comes from the URL
+		 * therefore slides up again every time its route mounts. That is a restored tab, or a
+		 * pasted deep link. It re-animates something the user never opened. Pass `false` for
+		 * that case and leave it alone for a drawer opened by a press.
+		 *
+		 * Only that arrival is suppressed. Once the drawer has closed, a reopen while it is
+		 * still mounted slides up regardless — the user asked for that one.
+		 *
+		 * @defaultValue true
+		 */
+		animateOnMount?: boolean
+		children: ReactNode
+		/**
+		 * Element to receive initial focus when the drawer opens.
+		 * @defaultValue the first tabbable child
+		 */
+		initialFocus?: RefObject<HTMLElement | null>
+		/**
+		 * Accessible name for drawers without a visible `DrawerTitle`. Ignored once a
+		 * `DrawerTitle` registers.
+		 */
+		'aria-label'?: string
+	}
 
 /**
  * Bottom-sheet overlay rendered in an `Overlay` with focus trapping and backdrop dismiss.
@@ -182,6 +183,10 @@ export function Drawer({
 	animateOnMount = true,
 	children,
 	initialFocus,
+	dismissOnBackdrop,
+	modal = true,
+	backdrop,
+	container,
 	'aria-label': ariaLabel,
 }: DrawerProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
@@ -235,7 +240,7 @@ export function Drawer({
 	// and the fit writes the height the content asks for; both need the element.
 	const panelRef = useComposedRef(resize.ref, fitRef)
 
-	const { ariaProps, a11y } = useA11yPanel()
+	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
 	const inherited = useDensity()
 
@@ -246,6 +251,10 @@ export function Drawer({
 			open={resolvedOpen}
 			onOpenChange={setOpen}
 			initialFocus={initialFocus}
+			dismissOnBackdrop={dismissOnBackdrop}
+			modal={modal}
+			backdrop={backdrop}
+			container={container}
 			animateOnMount={animateOnMount}
 			backdropClassName={k.backdrop({ surface: resolvedSurface, desaturate })}
 		>

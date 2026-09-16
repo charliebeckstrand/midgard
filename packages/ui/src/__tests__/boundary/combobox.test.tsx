@@ -66,7 +66,7 @@ describe('Combobox', () => {
 	it('names the listbox from aria-labelledby when no aria-label is given', async () => {
 		const user = userEvent.setup({ delay: null })
 
-		const { container } = renderUI(
+		renderUI(
 			<>
 				<span id="city-label">City</span>
 				<Combobox aria-labelledby="city-label">
@@ -77,7 +77,7 @@ describe('Combobox', () => {
 			</>,
 		)
 
-		await user.click(bySlot(container, 'combobox-input'))
+		await user.click(screen.getByRole('combobox'))
 
 		expect(await screen.findByRole('listbox')).toHaveAttribute('aria-labelledby', 'city-label')
 	})

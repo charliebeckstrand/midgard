@@ -6,7 +6,7 @@ import { cn } from '../../core'
 import { useA11yAutoFocus } from '../../hooks'
 import { Density, useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { useGlass } from '../../providers/glass/context'
+import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import { Box, type BoxPadding } from '../box'
@@ -31,6 +31,14 @@ export type PopoverContentProps = {
 	 * @defaultValue false
 	 */
 	modal?: boolean
+	/**
+	 * Opt the surface into the translucent glass chrome, as the panel family
+	 * does. An ambient `<GlassProvider>` already turns it on; this is the
+	 * per-surface opt-in for a tree that has none.
+	 *
+	 * @defaultValue false
+	 */
+	glass?: boolean
 	/**
 	 * Size step that propagates to descendants via the Density context.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
@@ -60,6 +68,7 @@ export function PopoverContent({
 	autoFocus = false,
 	modal = false,
 	size,
+	glass: glassProp,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	children,
@@ -69,7 +78,7 @@ export function PopoverContent({
 
 	const contentRef = useRef<HTMLDivElement | null>(null)
 
-	const glass = useGlass()
+	const glass = useResolvedSurface(glassProp) === 'glass'
 	const inherited = useDensity()
 
 	const resolvedSize = size ?? inherited.size

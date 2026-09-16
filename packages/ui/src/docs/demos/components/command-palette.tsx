@@ -16,6 +16,7 @@ import {
 	CommandPalette,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
+	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	CommandPaletteShortcut,
@@ -126,7 +127,8 @@ function CommandResults() {
 		if (!items.length) return null
 
 		return (
-			<CommandPaletteGroup key={group} title={group}>
+			<CommandPaletteGroup key={group}>
+				<CommandPaletteHeading>{group}</CommandPaletteHeading>
 				{items.map((c) => (
 					<CommandPaletteItem key={c.id}>
 						<Icon icon={c.icon} size="sm" />

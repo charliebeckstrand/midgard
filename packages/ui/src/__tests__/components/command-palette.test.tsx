@@ -3,6 +3,7 @@ import {
 	CommandPalette,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
+	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	useCommandPaletteQuery,
@@ -177,9 +178,10 @@ describe('CommandPalette active descendant', () => {
 })
 
 describe('CommandPaletteGroup', () => {
-	it('renders the title when provided and labels the group with it', () => {
+	it('names the group from a nested heading', () => {
 		const { container } = renderUI(
-			<CommandPaletteGroup title="Actions">
+			<CommandPaletteGroup>
+				<CommandPaletteHeading>Actions</CommandPaletteHeading>
 				<div>child</div>
 			</CommandPaletteGroup>,
 		)
@@ -195,7 +197,7 @@ describe('CommandPaletteGroup', () => {
 		expect(group).toHaveAttribute('aria-labelledby', title?.id)
 	})
 
-	it('omits the title slot when no title is provided', () => {
+	it('leaves the group unnamed when no heading is nested', () => {
 		const { container } = renderUI(
 			<CommandPaletteGroup>
 				<div>child</div>
@@ -203,6 +205,8 @@ describe('CommandPaletteGroup', () => {
 		)
 
 		expect(bySlot(container, 'command-palette-title')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'command-palette-group')).not.toHaveAttribute('aria-labelledby')
 	})
 
 	it('applies a custom className to the group', () => {

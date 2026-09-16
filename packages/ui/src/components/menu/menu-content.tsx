@@ -6,7 +6,7 @@ import { useScrollOverflow } from '../../hooks'
 import { Density } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
-import { useGlass } from '../../providers/glass/context'
+import { useResolvedSurface } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions, useMenuCapped, useMenuState } from './context'
 import { MENUITEM_SELECTOR } from './use-menu-state'
@@ -18,6 +18,14 @@ export type MenuContentProps = {
 	'aria-label'?: string
 	/** Id of a visible element naming a `static` menu. */
 	'aria-labelledby'?: string
+	/**
+	 * Opt the surface into the translucent glass chrome, as the panel family
+	 * does. An ambient `<GlassProvider>` already turns it on; this is the
+	 * per-surface opt-in for a tree that has none.
+	 *
+	 * @defaultValue false
+	 */
+	glass?: boolean
 	children: ReactNode
 }
 
@@ -35,13 +43,14 @@ export function MenuContent({
 	className,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
+	glass: glassProp,
 	children,
 }: MenuContentProps) {
 	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, density, size } =
 		useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const capped = useMenuCapped()
-	const glass = useGlass()
+	const glass = useResolvedSurface(glassProp) === 'glass'
 
 	// The mask fading the scroll edges lives on this inner viewport, not the
 	// panel: masking the panel would dissolve its border and shadow with the

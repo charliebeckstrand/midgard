@@ -59,6 +59,15 @@ export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
 	/** Fires when the confirm action is pressed; does not close the dialog (drive `open` from your handler). */
 	onConfirm: () => void
 	/**
+	 * Fires when the Cancel button is pressed, and only then.
+	 *
+	 * `onOpenChange(false)` reports every dismissal: the button, the backdrop,
+	 * Escape, and the close affordance. A caller that has to tell a refusal from
+	 * a walk-away reads it here instead. It runs before the dialog closes, and
+	 * the close still runs.
+	 */
+	onCancel?: () => void
+	/**
 	 * Heading text, rendered as the {@link DialogTitle}.
 	 * @defaultValue 'Are you sure?'
 	 */
@@ -84,7 +93,8 @@ export type ConfirmProps = Pick<DialogPanelVariants, 'width'> & {
  *
  * @remarks
  * Controlled-only: `open`/`onOpenChange` are required, and `onConfirm` leaves the dialog
- * open so the caller decides when to dismiss. The accessible message comes from either
+ * open so the caller decides when to dismiss. `onCancel` fires for the Cancel button
+ * alone, where `onOpenChange(false)` reports every dismissal. The accessible message comes from either
  * `description` (a registered {@link DialogDescription}) or, in the title-plus-children
  * form, the `children` wrapped in {@link ConfirmBody}; `description` takes precedence.
  * @see {@link Dialog}
@@ -93,6 +103,7 @@ export function Confirm({
 	open,
 	onOpenChange,
 	onConfirm,
+	onCancel,
 	title = 'Are you sure?',
 	description,
 	children,
@@ -102,6 +113,13 @@ export function Confirm({
 	className,
 }: ConfirmProps) {
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
+
+	// The button's own path: report the refusal, then close as any dismissal does.
+	const handleCancel = useCallback(() => {
+		onCancel?.()
+
+		close()
+	}, [onCancel, close])
 
 	return (
 		<Dialog
@@ -126,7 +144,7 @@ export function Confirm({
 					variant="plain"
 					color={cancel?.color}
 					disabled={cancel?.disabled}
-					onClick={close}
+					onClick={handleCancel}
 				>
 					{cancel?.label ?? 'Cancel'}
 				</Button>
