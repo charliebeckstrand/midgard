@@ -1,16 +1,15 @@
 'use client'
 
-import { cn } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
-import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
 import { once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
 import { ChartGridLines } from '../engine/chart-axes/grid-lines'
 import { type ChartValueAxis, resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
-import type { SlotPaint } from '../engine/chart-color/paint'
+import { type ChartPaint, rawColor, resolvePaint, textClass } from '../engine/chart-color/paint'
+import type { ChartSeriesColor } from '../engine/chart-color/palette'
 import { paletteSlot } from '../engine/chart-color/palette'
 import {
 	AXIS_TITLE_BAND,
@@ -123,8 +122,8 @@ export type ScatterChartProps<T = never> = AccessibleName &
 type ScatterMeta = {
 	index: number
 	label: string
-	paint: SlotPaint
-	color: ChartColorSlot
+	paint: ChartPaint
+	color: ChartSeriesColor
 	points: ScatterDatum[]
 	sized: boolean
 	sizeName: string | null
@@ -153,7 +152,7 @@ function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMet
 		return {
 			index,
 			label: entry.yName ?? entry.yKey,
-			paint: k.series[color],
+			paint: resolvePaint(color),
 			color,
 			points,
 			sized: domain !== null,
@@ -177,7 +176,8 @@ function scatterReadout(
 		rows: visible.map((meta) => ({
 			index: meta.index,
 			label: meta.label,
-			swatchClass: cn(meta.paint.text),
+			swatchClass: textClass(meta.paint) ?? '',
+			swatchColor: rawColor(meta.paint),
 			swatch: 'rect',
 			values: scatterReadoutValues(
 				meta.points,
@@ -257,9 +257,12 @@ function scatterLegendItems(
 	return metas.map((meta) => ({
 		index: meta.index,
 		label: meta.label,
-		swatchClass: meta.paint.text.join(' '),
+		swatchClass: textClass(meta.paint) ?? '',
+		swatchColor: rawColor(meta.paint),
 		swatch: 'rect',
-		color: meta.color,
+		// The slot alone, so a textured swatch mirrors the mark's tile; a raw
+		// colour carries no tile and inks through `swatchColor` instead.
+		color: meta.paint.kind === 'slot' ? meta.paint.slot : undefined,
 	}))
 }
 

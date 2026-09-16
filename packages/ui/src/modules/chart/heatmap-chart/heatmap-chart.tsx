@@ -13,7 +13,15 @@ import { cn, createContext } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
 import { k } from '../../../recipes/kata/chart'
-import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
+import {
+	binIndex,
+	type ColorBin,
+	once,
+	quantileBinIndex,
+	resolveColorBins,
+	resolveQuantileBins,
+	valueExtent,
+} from '../../../utilities'
 import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,
@@ -502,10 +510,34 @@ function useHeatmap<T>(
 		[matrix, primary],
 	)
 
-	const bins = useMemo(
-		() => (domain && primary ? resolveColorBins(domain, primary.colorRange, primary.bins) : []),
-		[domain, primary],
-	)
+	// One resolution per mode, each yielding both the painted bins and the
+	// assignment the cells read, so the fills and the legend cannot disagree on
+	// where the buckets fall. `MapPlat` resolves its own the same way.
+	const { bins, assign } = useMemo(() => {
+		if (!domain || !primary) return { bins: [] as ColorBin[], assign: () => null }
+
+		if (primary.binning === 'quantile') {
+			const values = matrix.values.flat().filter((value): value is number => value !== null)
+
+			const { bins: quantileBins, thresholds } = resolveQuantileBins(
+				values,
+				primary.colorRange,
+				primary.bins,
+			)
+
+			return {
+				bins: quantileBins,
+				assign: (value: number) => quantileBinIndex(value, thresholds),
+			}
+		}
+
+		const linearBins = resolveColorBins(domain, primary.colorRange, primary.bins)
+
+		return {
+			bins: linearBins,
+			assign: (value: number) => binIndex(value, domain, linearBins.length),
+		}
+	}, [domain, primary, matrix])
 
 	// Memoized so their identity holds across a re-render with unchanged data —
 	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/
@@ -534,12 +566,8 @@ function useHeatmap<T>(
 	// value lands in, `null` for a no-data cell. The legend dims against it.
 	const cellBins = useMemo(
 		() =>
-			cells.map((cell) =>
-				cell.value === null || domain === null || bins.length === 0
-					? null
-					: binIndex(cell.value, domain, bins.length),
-			),
-		[cells, domain, bins],
+			cells.map((cell) => (cell.value === null || bins.length === 0 ? null : assign(cell.value))),
+		[cells, bins, assign],
 	)
 
 	// Fill per cell from its bin: the bin's colour, or `null` for the neutral

@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
-import type { SlotPaint } from '../engine/chart-color/paint'
+import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/paint'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
 import { type ScatterMark, scatterDiscsPath } from '../engine/chart-geometry/scatter'
 import { POINT_POP } from '../engine/chart-motion'
@@ -26,7 +26,7 @@ export type ChartScatterSeries = {
 	/** The series' own index in the caller's list — the React key, unique where two series share a label. */
 	index: number
 	label: string
-	paint: SlotPaint
+	paint: ChartPaint
 	marks: ScatterMark[]
 	/** Whether the series carries the bubble size encoding — sized discs fill translucently. */
 	sized: boolean
@@ -37,12 +37,19 @@ export type ScatterChartMarksProps = {
 	list: ChartScatterSeries[]
 }
 
-/** A disc's presentation: series fill under a surface ring, translucent once sized. @internal */
-function markProps(paint: SlotPaint, sized: boolean) {
+/**
+ * A disc's presentation: series fill under a surface ring, translucent once
+ * sized. A palette slot fills through its class; a raw colour fills inline, as
+ * the bar and line marks do.
+ *
+ * @internal
+ */
+function markProps(paint: ChartPaint, sized: boolean) {
 	return {
 		strokeWidth: MARKER_RING_WIDTH,
 		fillOpacity: sized ? BUBBLE_FILL_OPACITY : undefined,
-		className: cn(paint.fill, k.stroke),
+		fill: rawColor(paint),
+		className: cn(fillClass(paint), k.stroke),
 	}
 }
 

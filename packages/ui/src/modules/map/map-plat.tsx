@@ -8,6 +8,7 @@ import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { once } from '../../utilities'
 import { legendAside } from '../chart/engine/chart-legend/schema'
+import type { ChartItemClick } from '../chart/engine/types'
 import {
 	MapPlatContext,
 	type MapPlatContextValue,
@@ -273,7 +274,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * region its arrow cursor sits on. A pick therefore carries the same identity
 		 * whichever input made it.
 		 */
-		onRegionClick?: (id: string, index: number) => void
+		onRegionClick?: ChartItemClick
 		/**
 		 * Fires when a right-click lands on a region, with the same identity and
 		 * feature index {@link onRegionClick} reports. It suits a context menu that

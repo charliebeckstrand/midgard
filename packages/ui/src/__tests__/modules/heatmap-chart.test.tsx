@@ -16,7 +16,7 @@ const RANGE = ['#f7fee7', '#365314']
 
 const SERIES = [
 	{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: RANGE, colorName: 'Commits' },
-] satisfies HeatmapChartSeries<Row>[]
+] satisfies [HeatmapChartSeries<Row>]
 
 const cellRects = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll('[data-slot="heatmap-cells"] rect'))
@@ -43,6 +43,32 @@ describe('HeatmapChart', () => {
 		const noData = rects.find((rect) => rect.getAttribute('fill') === null)
 
 		expect(noData?.getAttribute('class')).toContain('fill-zinc')
+	})
+
+	it('separates a skewed field under quantile binning that a linear scale flattens', () => {
+		// Three cells sit at the bottom of the range and one far above it. A linear
+		// scale drops the low three into one bin; quantile cuts between them.
+		const skewed = [
+			{ day: 'Mon', hour: '9', commits: 1 },
+			{ day: 'Mon', hour: '10', commits: 2 },
+			{ day: 'Tue', hour: '9', commits: 3 },
+			{ day: 'Tue', hour: '10', commits: 400 },
+		]
+
+		const fillsFor = (binning?: 'linear' | 'quantile') => {
+			const { container } = renderUI(
+				<HeatmapChart
+					aria-label="Commits"
+					data={skewed}
+					series={[{ ...(SERIES[0] as HeatmapChartSeries<Row>), bins: 4, binning }]}
+					width={400}
+				/>,
+			)
+
+			return cellRects(container).map((rect) => rect.getAttribute('fill'))
+		}
+
+		expect(new Set(fillsFor('linear')).size).toBeLessThan(new Set(fillsFor('quantile')).size)
 	})
 
 	it('carries full value parity in the visually-hidden table', () => {

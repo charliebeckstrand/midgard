@@ -17,7 +17,7 @@ import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
-import type { ChartReadout, DataKey } from '../engine/types'
+import type { ChartItemClick, ChartReadout, DataKey } from '../engine/types'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to
@@ -65,8 +65,12 @@ export type ChoroplethChartSeries<T> = {
 export type ChoroplethChartProps<T = never> = AccessibleName & {
 	/** The rows to shade regions by. */
 	data: T[]
-	/** The series to shade with; the first shades the regions. */
-	series: ChoroplethChartSeries<T>[]
+	/**
+	 * The one series to shade regions with. A one-element tuple, as pie and donut
+	 * take: the map draws one colour scale, so a second entry had no reading.
+	 * Empty draws the data-less map, every region in the one neutral fill.
+	 */
+	series: [] | [ChoroplethChartSeries<T>]
 	/** Formats the tooltip value, table cell, and legend labels. */
 	formatValue?: (value: number) => string
 	/**
@@ -124,6 +128,13 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * @defaultValue true
 	 */
 	tooltip?: boolean
+	/**
+	 * Fires when a click lands on a region, with the region's id and its feature
+	 * index. The cross-filter hook the cartesian charts' `onCategoryClick` is,
+	 * and the same {@link ChartItemClick} shape. It also points the cursor over
+	 * the regions, so they read as clickable.
+	 */
+	onRegionClick?: ChartItemClick
 	/**
 	 * Animate the scale in on mount: the neutral geography paints at once, then
 	 * the colour washes in region by region.

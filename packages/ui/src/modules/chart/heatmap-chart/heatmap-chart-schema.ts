@@ -43,10 +43,23 @@ export type HeatmapChartSeries<T> = {
 	/** The value's display name; the legend caption and table header. AG Charts' `colorName`. */
 	colorName?: string
 	/**
-	 * Equal-interval bin count for the scale and its legend.
+	 * Bin count for the scale and its legend.
 	 * @defaultValue one bin per `colorRange` stop
 	 */
 	bins?: number
+	/**
+	 * How the bins divide the data. `'linear'` cuts the domain into equal
+	 * intervals. `'quantile'` cuts it so each bin holds about as many cells,
+	 * which separates a skewed field that a linear scale flattens into one
+	 * colour.
+	 *
+	 * The choropleth takes the same option, under the same name. Under
+	 * `'quantile'` the colour-to-value mapping is non-linear, so a `'range'`
+	 * legend bar reads as an approximation of where the breaks fall.
+	 *
+	 * @defaultValue 'linear'
+	 */
+	binning?: 'linear' | 'quantile'
 }
 
 /**
@@ -64,8 +77,12 @@ export type HeatmapChartProps<T = never> = Omit<
 	ChartBaseProps<T>,
 	'legend' | 'onHiddenChange' | 'animate' | 'texture' | 'subtitle'
 > & {
-	/** The single series to shade cells with; extra entries are ignored. */
-	series: HeatmapChartSeries<T>[]
+	/**
+	 * The one series to shade cells with. A one-element tuple, as pie and donut
+	 * take: the heatmap draws one colour scale, so a second entry had no reading.
+	 * Empty reserves the frame and shades nothing.
+	 */
+	series: [] | [HeatmapChartSeries<T>]
 	/**
 	 * Show the range scale bar, and where it sits. `true` (the default) stands it
 	 * vertical on the right; `false` drops it. A placement moves it: a horizontal
