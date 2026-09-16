@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
+import { Label } from '../../components/fieldset'
 import {
 	Filters,
 	FiltersBar,
@@ -162,6 +163,61 @@ describe('FiltersField', () => {
 		await user.type(input, 'b')
 
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
+	})
+
+	// The element form matches on component identity, so it reaches a control this
+	// library exports and nothing else. These two pin that boundary, which the
+	// doccomment sends a wrapper to the render function to cross.
+	it('leaves a wrapped control unbound', async () => {
+		const onChange = vi.fn()
+
+		function WrappedInput() {
+			return <Input />
+		}
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
+				<FiltersField name="name">
+					<WrappedInput />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.type(input, 'b')
+
+		// The control took the text, so the field rendered it and never bound it.
+		expect(input.value).toBe('b')
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	it('lets a wrapped decoration take the control slot', async () => {
+		const onChange = vi.fn()
+
+		function WrappedLabel() {
+			return <Label>Name</Label>
+		}
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
+				<FiltersField name="name">
+					<WrappedLabel />
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.type(input, 'b')
+
+		expect(input.value).toBe('b')
+		expect(onChange).not.toHaveBeenCalled()
 	})
 })
 
