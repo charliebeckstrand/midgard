@@ -191,6 +191,7 @@ describe('FiltersField', () => {
 
 		// The control took the text, so the field rendered it and never bound it.
 		expect(input.value).toBe('b')
+
 		expect(onChange).not.toHaveBeenCalled()
 	})
 
@@ -217,6 +218,7 @@ describe('FiltersField', () => {
 		await user.type(input, 'b')
 
 		expect(input.value).toBe('b')
+
 		expect(onChange).not.toHaveBeenCalled()
 	})
 })
