@@ -12,6 +12,12 @@ import { useColorPickerState } from './use-color-picker-state'
 
 type ColorPickerBaseProps = {
 	/**
+	 * Binds the colour to the enclosing Form field of this name (CONVENTIONS
+	 * §7.2). Seed `Form.defaultValues` in the picker's own `format`; the field's
+	 * errors mark the control invalid.
+	 */
+	name?: string
+	/**
 	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
 	 *
 	 * @defaultValue `false`
@@ -82,6 +88,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 	const format = props.format ?? 'hex'
 
 	const state = useColorPickerState({
+		name: props.name,
 		value: props.value,
 		defaultValue: props.defaultValue,
 		format,

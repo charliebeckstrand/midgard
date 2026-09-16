@@ -29,6 +29,8 @@ type ComboboxInputProps = {
 	type?: ComponentProps<'input'>['type']
 	autoComplete?: ComponentProps<'input'>['autoComplete']
 	'aria-label'?: string
+	'aria-labelledby'?: string
+	'aria-describedby'?: string
 	open: boolean
 	controlsId: string
 	disabled?: boolean
@@ -62,6 +64,8 @@ export function ComboboxInput({
 	type = 'text',
 	autoComplete,
 	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
+	'aria-describedby': ariaDescribedBy,
 	open,
 	controlsId,
 	disabled,
@@ -90,6 +94,8 @@ export function ComboboxInput({
 				aria-controls={open ? controlsId : undefined}
 				aria-autocomplete="list"
 				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledby}
+				aria-describedby={ariaDescribedBy}
 				title={title}
 				// role="combobox" overrides the native textbox semantics, so the
 				// required/readOnly host-language attributes need explicit ARIA to

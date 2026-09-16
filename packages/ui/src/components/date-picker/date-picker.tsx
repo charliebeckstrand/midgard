@@ -153,7 +153,7 @@ export type DatePickerBaseProps = {
 	 * matching the `clearable` affordance on Listbox/Combobox. In `input` mode the
 	 * typed {@link DateInput} owns the clear button instead.
 	 *
-	 * @defaultValue true
+	 * @defaultValue false
 	 */
 	clearable?: boolean
 	/**
@@ -197,8 +197,8 @@ export type DatePickerProps = DatePickerBaseProps &
  * `multiple: true`. It supports controlled or uncontrolled `value`. `size` resolves through
  * the explicit prop, then `<Control>`, then Density, then `'md'`. With `input`, a
  * typed DateInput replaces the trigger and the calendar opens from its suffix
- * button. A `clearable` clear button (default on) replaces the calendar icon once
- * a value is set, mirroring Listbox/Combobox.
+ * button. A `clearable` clear button replaces the calendar icon once a value is
+ * set, mirroring Listbox/Combobox, which default it off as well.
  *
  * @remarks
  * In the calendar variants, keyboard navigation runs on a virtual highlight
@@ -251,7 +251,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		truncate = true,
 		input = false,
 		format = 'MM/DD/YYYY',
-		clearable = true,
+		clearable = false,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,

@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 /** Props for {@link PasswordInput}: {@link InputProps} (less `type`/`suffix`) plus the visibility-toggle switch. */
 export type PasswordInputProps = Omit<InputProps, 'type' | 'suffix'> & {
 	/** Renders the suffix show/hide toggle. Pass `false` to suppress it. @defaultValue true */
-	toggleButton?: boolean
+	showToggle?: boolean
 	/**
 	 * Fires when the plaintext goes on or off screen.
 	 *
@@ -68,9 +68,9 @@ function VisibilityToggle({ visible, onToggle, showLabel, hideLabel, disabled }:
 	)
 }
 
-/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `toggleButton={false}`. */
+/** Masked Input with a tooltip-labeled suffix button that toggles plaintext visibility; suppress it via `showToggle={false}`. */
 export function PasswordInput({
-	toggleButton = true,
+	showToggle = true,
 	onVisibleChange,
 	...props
 }: PasswordInputProps) {
@@ -96,7 +96,7 @@ export function PasswordInput({
 			{...props}
 			type={revealed ? 'text' : 'password'}
 			suffix={
-				toggleButton ? (
+				showToggle ? (
 					<VisibilityToggle
 						visible={revealed}
 						onToggle={() => setVisible((v) => !v)}

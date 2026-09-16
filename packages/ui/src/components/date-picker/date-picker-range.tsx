@@ -19,7 +19,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		placeholder = 'Select dates',
 		size = 'md',
 		truncate = true,
-		clearable = true,
+		clearable = false,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,

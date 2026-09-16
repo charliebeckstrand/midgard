@@ -13,7 +13,7 @@ import { classifyTokens, describeBatch, type TokenRejection } from './tag-input-
 type TagInputOptions = {
 	/** Form field name; binds the tag list to an enclosing `<Form>`. */
 	name?: string
-	value?: string[]
+	value?: string[] | null
 	defaultValue?: string[]
 	onValueChange?: (value: string[]) => void
 	/** Maximum number of tags. */

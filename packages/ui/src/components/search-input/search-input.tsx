@@ -12,7 +12,7 @@ import { Input, type InputProps } from '../input'
 import { LoadingSpinner } from '../loading'
 
 /**
- * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`) plus a loading flag and clear callback.
+ * Props for {@link SearchInput}: {@link InputProps} (less `type`/`prefix`/`suffix`/`value`/`defaultValue`) plus a loading flag and the clear affordance.
  *
  * @see {@link SearchInput}
  */
@@ -26,6 +26,16 @@ export type SearchInputProps = Omit<
 	onValueChange?: (value: string) => void
 	/** Replaces the clear button with a spinner suffix while a query is in flight. */
 	loading?: boolean
+	/**
+	 * Renders a clear button in the suffix once the query is non-empty, under the
+	 * same name the rest of the family uses.
+	 *
+	 * @defaultValue true
+	 * @remarks
+	 * The typed-text fields default it on (DateInput does the same), and the
+	 * picker family defaults it off, because a trigger states its own emptiness.
+	 */
+	clearable?: boolean
 	/** Fires when the field is cleared, whether by the clear button or by emptying it. */
 	onClear?: () => void
 	/**
@@ -47,7 +57,8 @@ const SEARCH_PREFIX = <Icon icon={<Search />} />
  * Clearing drives a native `input` event, so controlled and uncontrolled
  * consumers see the same change. It then returns focus to the field as the
  * clear button unmounts (WCAG 2.4.3). `loading` suppresses the clear button: a spinner
- * occupies the suffix while a query is in flight.
+ * occupies the suffix while a query is in flight. `clearable={false}` suppresses it
+ * outright.
  *
  * @see {@link SearchInputProps}
  */
@@ -55,6 +66,7 @@ export function SearchInput({
 	value,
 	defaultValue,
 	loading,
+	clearable = true,
 	onChange,
 	onValueChange,
 	onClear,
@@ -106,7 +118,7 @@ export function SearchInput({
 
 	const ownSuffix = loading ? (
 		<LoadingSpinner />
-	) : currentValue !== '' ? (
+	) : clearable && currentValue !== '' ? (
 		<Button
 			type="button"
 			variant="bare"

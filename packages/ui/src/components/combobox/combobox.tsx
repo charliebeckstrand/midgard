@@ -105,6 +105,10 @@ type ComboboxBaseProps<T> = {
 	 * the combobox, since the placeholder is not a programmatic name.
 	 */
 	'aria-label'?: string
+	/** Element naming the input, for a name already on the page. `aria-label` wins over it. */
+	'aria-labelledby'?: string
+	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
+	'aria-describedby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
 	/**
@@ -312,6 +316,8 @@ export function Combobox<T>({
 	className,
 	autoComplete = 'off',
 	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
+	'aria-describedby': ariaDescribedBy,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'combobox',
@@ -670,6 +676,10 @@ export function Combobox<T>({
 						type="text"
 						autoComplete={autoComplete}
 						aria-label={ariaLabel}
+						aria-labelledby={ariaLabelledby}
+						// Passed raw: the `<Input>` beneath runs the same `useControlProps`
+						// merge, so resolving it here would join the field's ids twice.
+						aria-describedby={ariaDescribedBy}
 						open={open}
 						controlsId={comboboxId}
 						disabled={resolvedDisabled}
@@ -697,8 +707,8 @@ export function Combobox<T>({
 					size={token.size}
 					ariaLabel={ariaLabel}
 					// Names the listbox from the input's name: an explicit aria-label
-					// wins, else the field's Label (via Control).
-					ariaLabelledby={ariaLabel ? undefined : control?.labelledBy}
+					// wins, else aria-labelledby, else the field's Label (via Control).
+					ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
 					floatingStyles={floatingStyles}
 					getFloatingProps={getFloatingProps}
 					optionsRef={optionsRef}

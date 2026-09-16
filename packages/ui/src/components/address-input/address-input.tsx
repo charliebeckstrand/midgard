@@ -5,7 +5,13 @@ import { useState } from 'react'
 import { cn } from '../../core'
 import { useControllable } from '../../hooks'
 import { keyByOccurrence } from '../../utilities'
-import { Combobox, ComboboxDescription, ComboboxLabel, ComboboxOption } from '../combobox'
+import {
+	Combobox,
+	ComboboxDescription,
+	ComboboxLabel,
+	ComboboxOption,
+	type ComboboxProps,
+} from '../combobox'
 import { useControl } from '../control/context'
 import { useFormField } from '../form/context'
 import { Icon } from '../icon'
@@ -15,8 +21,21 @@ import type { AddressProvider, AddressSuggestion } from './types'
 import { useAddressInputSuggestions } from './use-address-input-suggestions'
 
 /** Props for {@link AddressInput}; selection is an {@link AddressSuggestion}, bound by `name`, controlled via `value`, or uncontrolled via `defaultValue`. */
-export type AddressInputProps = {
-	id?: string
+export type AddressInputProps = Omit<
+	ComboboxProps<AddressSuggestion>,
+	| 'value'
+	| 'defaultValue'
+	| 'onValueChange'
+	| 'multiple'
+	| 'displayValue'
+	| 'summarize'
+	| 'suffix'
+	| 'open'
+	| 'onOpenChange'
+	| 'onQueryChange'
+	| 'clearOnEmpty'
+	| 'children'
+> & {
 	/**
 	 * Binds the selection to the enclosing Form field of this name
 	 * (CONVENTIONS §7.2). Seed `Form.defaultValues` with an
@@ -55,8 +74,7 @@ export type AddressInputProps = {
 	 * a plain text field.
 	 */
 	onError?: (error: unknown) => void
-	className?: string
-	/** Accessible name for the field. Defaults to the placeholder. */
+	/** Accessible name for the field. Defaults to the placeholder, where no `<Field>`/`<Label>` names it. */
 	'aria-label'?: string
 }
 
@@ -126,9 +144,12 @@ export function AddressInput({
 
 	const selected = bound === undefined ? held : (bound.value as AddressSuggestion | undefined)
 
+	const control = useControl()
+
 	// Disabled suppresses the clear button; keep the pin rather than letting
-	// the slot fall back to the Combobox chevron.
-	const disabled = useControl()?.disabled
+	// the slot fall back to the Combobox chevron. The explicit prop wins, as it
+	// does everywhere in the cascade.
+	const disabled = props.disabled ?? control?.disabled
 
 	const suffix = loading ? (
 		<LoadingSpinner />
@@ -147,7 +168,9 @@ export function AddressInput({
 			onValueChange={setHeld}
 			className={cn(loading && 'animate-pulse', className)}
 			placeholder={placeholder}
-			aria-label={ariaLabel ?? placeholder}
+			// Yields to a wrapping `<Field>`/`<Label>`: an own name shadows it, and a
+			// placeholder is not a programmatic name.
+			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : placeholder)}
 			clearOnEmpty
 			clearable
 			suffix={suffix}

@@ -1,7 +1,7 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { type ClipboardEvent, type Ref, useCallback, useRef, useState } from 'react'
+import { type ClipboardEvent, useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
@@ -9,10 +9,10 @@ import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
 import { keyByOccurrence } from '../../utilities'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
+import { useControl } from '../control/context'
 import { Flex } from '../flex'
 import { Icon } from '../icon'
-import { Input } from '../input'
+import { Input, type InputProps } from '../input'
 import { TagInputBadge } from './tag-input-badge'
 import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
 import { useTagInput } from './use-tag-input'
@@ -23,28 +23,35 @@ import { useTagInputKeyboard } from './use-tag-input-keyboard'
  *
  * @see {@link TagInput}
  */
-export type TagInputProps = {
-	id?: string
-	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` must seed `string[]`. */
+export type TagInputProps = Omit<
+	InputProps,
+	| 'value'
+	| 'defaultValue'
+	| 'onChange'
+	| 'prefix'
+	| 'suffix'
+	| 'readOnly'
+	| 'invalid'
+	| 'type'
+	| 'children'
+> & {
+	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` seeds `string[]`. */
 	name?: string
-	size?: ControlSize
 	/** Badge color for every tag. @defaultValue 'zinc' */
 	tagColor?: Color
-	/** Current tag values (controlled). */
-	value?: string[]
+	/** Current tag values (controlled); `null` is controlled-and-empty (CONVENTIONS §7.3). */
+	value?: string[] | null
 	/** Initial tag values (uncontrolled). */
 	defaultValue?: string[]
 	/** Called when the tag list changes. */
 	onValueChange?: (value: string[]) => void
 	/**
-	 * Placeholder shown while the tag list is empty; doubles as the input's
-	 * `aria-label`.
+	 * Placeholder shown while the tag list is empty. It also names the input,
+	 * where no `aria-label` and no wrapping `<Field>`/`<Label>` does.
 	 *
 	 * @defaultValue `'Add tags'` (aria-label fallback when unset)
 	 */
 	placeholder?: string
-	/** Disables editing and removal. */
-	disabled?: boolean
 	/** Maximum number of tags; at the cap the field goes read-only (further additions are rejected) while existing tags stay removable. */
 	max?: number
 	/**
@@ -67,8 +74,6 @@ export type TagInputProps = {
 	 * both.
 	 */
 	onReject?: (rejected: TokenRejection) => void
-	ref?: Ref<HTMLInputElement>
-	className?: string
 }
 
 /**
@@ -99,7 +104,6 @@ export type TagInputProps = {
  * announced once and lost.
  */
 export function TagInput({
-	id,
 	name,
 	size,
 	tagColor,
@@ -113,10 +117,14 @@ export function TagInput({
 	onReject,
 	ref,
 	className,
+	'aria-label': ariaLabel,
+	...props
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const setRefs = useComposedRef(inputRef, ref)
+
+	const control = useControl()
 
 	// The tag row rides the control's density; resolve the step to pad it.
 	const { space } = useControlSize(size)
@@ -239,8 +247,8 @@ export function TagInput({
 
 	return (
 		<Input
+			{...props}
 			ref={setRefs}
-			id={id}
 			size={size}
 			disabled={disabled}
 			// At the cap the field is read-only, not disabled: a disabled child trips
@@ -251,7 +259,10 @@ export function TagInput({
 			// Control/Field state. The inner Input is intentionally nameless.
 			invalid={invalid || refused || undefined}
 			placeholder={tags.length === 0 ? placeholder : undefined}
-			aria-label={placeholder ?? 'Add tags'}
+			// Yields to a wrapping `<Field>`/`<Label>`: an own name shadows it, and a
+			// placeholder is not a programmatic name. Names the field only when
+			// nothing else does.
+			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : (placeholder ?? 'Add tags'))}
 			value={inputValue}
 			onChange={(event) => {
 				setInputValue(event.target.value)

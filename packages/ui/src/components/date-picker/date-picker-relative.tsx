@@ -32,7 +32,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 		placeholder = 'Select range',
 		size = 'md',
 		truncate = true,
-		clearable = true,
+		clearable = false,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,

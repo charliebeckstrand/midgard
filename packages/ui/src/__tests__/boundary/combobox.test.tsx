@@ -45,6 +45,43 @@ describe('Combobox', () => {
 		expect(bySlot(container, 'combobox-input')).toHaveAttribute('aria-label', 'City')
 	})
 
+	it('names the input via aria-labelledby, and describes it via aria-describedby', () => {
+		const { container } = renderUI(
+			<>
+				<span id="city-label">City</span>
+				<span id="city-hint">Start typing</span>
+				<Combobox aria-labelledby="city-label" aria-describedby="city-hint">
+					<div>Option</div>
+				</Combobox>
+			</>,
+		)
+
+		const input = bySlot(container, 'combobox-input')
+
+		expect(input).toHaveAttribute('aria-labelledby', 'city-label')
+
+		expect(input).toHaveAttribute('aria-describedby', 'city-hint')
+	})
+
+	it('names the listbox from aria-labelledby when no aria-label is given', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const { container } = renderUI(
+			<>
+				<span id="city-label">City</span>
+				<Combobox aria-labelledby="city-label">
+					<ComboboxOption value="a">
+						<ComboboxLabel>A</ComboboxLabel>
+					</ComboboxOption>
+				</Combobox>
+			</>,
+		)
+
+		await user.click(bySlot(container, 'combobox-input'))
+
+		expect(await screen.findByRole('listbox')).toHaveAttribute('aria-labelledby', 'city-label')
+	})
+
 	it('renders icon slot', () => {
 		const { container } = renderUI(
 			<Combobox>
