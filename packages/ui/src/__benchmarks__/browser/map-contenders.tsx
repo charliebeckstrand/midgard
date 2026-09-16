@@ -266,7 +266,7 @@ export function choroplethMapContenders(atlas: MapAtlas): Contender<ValueData>[]
 				regionKey="fips"
 				valueKey="value"
 				colorRange={VALUE_RAMP}
-				domain={[0, VALUE_MAX]}
+				colorDomain={[0, VALUE_MAX]}
 				width={WIDTH}
 				height={HEIGHT}
 			/>

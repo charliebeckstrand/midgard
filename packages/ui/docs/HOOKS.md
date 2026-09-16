@@ -100,6 +100,21 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
 | `MinBreakpoint` | The argument `useMinBreakpoint` takes: every breakpoint name but the unprefixed base, which has no width of its own. |
+| `RovingOptions` | Options for `useA11yRoving`: the item selector, axis, Tab-stop ownership, and the virtual-item source. |
+| `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
+| `DeferredToggleOptions` | Options for `useDeferredToggle`. |
+| `DismissableOptions` | Options for `useDismissable`: the boundary, the dismiss report, and the enable gate. |
+| `EscapeLayerOptions` | Options for `useEscapeLayer`: where the layer sits in the stack and what a press does. |
+| `FloatingDisclosureOptions` / `FloatingDisclosureResult` | Options and return shape of `useFloatingDisclosure`. |
+| `FloatingUIOptions` / `FloatingUIResult` | Options and return shape of `useFloatingUI`. |
+| `FloatingPanelOptions` / `FloatingPanelResult` | Options and return shape of `useFloatingPanel`. |
+| `FormattedInputOptions` | Options for `useFormattedInput`: the `format` pass, the meaningful-character test, and the ref to compose. |
+| `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
+| `KeybindingsOptions` | Options for `useKeybindings`: the bindings and the enable gate. |
+| `OffcanvasOptions` | Options for `useOffcanvas`. |
+| `ScrollWithinOptions` | Options for `useScrollWithin`. |
+| `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the three `@dnd-kit` wrappers. |
+| `VirtualWindowOptions` | Options for `useVirtualWindow`: the item count, the size estimate, and the overscan. |
 
 `usePlotFrame` exports the types its own signature names: the sizing policy it takes, the reserve it returns, and its measuring handle. The chart and map modules share them with their frame-sizing helpers. The resolver behind it (`resolveFrameSizing`) and that resolver's return shape stay module-private. Reach them at `hooks/use-plot-frame` from inside the package.
 

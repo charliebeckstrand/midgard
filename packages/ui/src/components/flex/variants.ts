@@ -2,8 +2,8 @@ import type { Ma } from '../../recipes'
 import { k } from '../../recipes/kata/flex'
 import { type Breakpoint, type Responsive, resolveResponsive } from '../../types'
 
-/** Spacing scale for the gap between flex children; a `Ma` step or `0`. */
-export type FlexGap = Ma | 0
+/** Spacing scale for the gap between flex children; a `Ma` step, `0` included. */
+export type FlexGap = Ma
 
 const gapMap = k.gap
 

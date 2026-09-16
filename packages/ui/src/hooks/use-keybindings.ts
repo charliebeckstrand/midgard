@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { type KeybindingFilter, type KeybindingsMap, tinykeys } from 'tinykeys'
 
-type KeybindingsOptions = {
+/** Options for {@link useKeybindings}: the bindings to match and the enable gate. */
+export type KeybindingsOptions = {
 	/** Disable without unmounting. @defaultValue true */
 	enabled?: boolean
 	/** Listener target. @defaultValue window */

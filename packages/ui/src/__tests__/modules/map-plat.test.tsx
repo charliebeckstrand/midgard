@@ -678,7 +678,7 @@ describe('MapPlat choropleth mode', () => {
 			regionKey: 'state',
 			valueKey: 'value',
 			colorRange: RANGE,
-			valueName: 'Density',
+			colorName: 'Density',
 			width: 400,
 			...extra,
 		} as Parameters<typeof MapPlat<(typeof NUMERIC)[number]>>[0]

@@ -9,6 +9,8 @@ export {
 	type CommandPaletteDescriptionProps,
 	CommandPaletteGroup,
 	type CommandPaletteGroupProps,
+	CommandPaletteHeading,
+	type CommandPaletteHeadingProps,
 	CommandPaletteLabel,
 	type CommandPaletteLabelProps,
 	CommandPaletteShortcut,

@@ -67,14 +67,14 @@ function DefaultExample() {
 					aria-label="Load dispatch board"
 				>
 					{columns.map((column) => (
-						<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
+						<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
 							<KanbanColumnHeader>
 								<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 								<ColumnTotalBadge items={column.items} />
 							</KanbanColumnHeader>
 							<KanbanColumnBody>
 								{column.items.map((load) => (
-									<KanbanCard key={load.id} cardId={load.id} aria-label={load.code}>
+									<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
 										<span className="font-medium">{load.code}</span>
 										<span className="text-zinc-500 dark:text-zinc-400">{load.customer}</span>
 										<span className="text-xs text-zinc-500 dark:text-zinc-400">{load.weight}</span>
@@ -94,14 +94,14 @@ function ReadOnlyExample() {
 		<Example title="Read-only">
 			<Kanban columns={initialColumns} getKey={(load: Load) => load.id} aria-label="Loads">
 				{initialColumns.map((column) => (
-					<KanbanColumn key={column.id} columnId={column.id}>
+					<KanbanColumn key={column.id} value={column.id}>
 						<KanbanColumnHeader>
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 							<ColumnTotalBadge items={column.items} />
 						</KanbanColumnHeader>
 						<KanbanColumnBody>
 							{column.items.map((load) => (
-								<KanbanCard key={load.id} cardId={load.id}>
+								<KanbanCard key={load.id} value={load.id}>
 									<span className="font-medium">{load.code}</span>
 									<span className="text-zinc-500 dark:text-zinc-400">{load.customer}</span>
 								</KanbanCard>
@@ -119,16 +119,22 @@ function DisabledExample() {
 
 	return (
 		<Example title="Disabled">
-			<Kanban columns={columns} getKey={(load: Load) => load.id} onReorder={setColumns} disabled>
+			<Kanban
+				columns={columns}
+				getKey={(load: Load) => load.id}
+				onReorder={setColumns}
+				disabled
+				aria-label="Loads"
+			>
 				{columns.map((column) => (
-					<KanbanColumn key={column.id} columnId={column.id}>
+					<KanbanColumn key={column.id} value={column.id}>
 						<KanbanColumnHeader>
 							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
 							<ColumnTotalBadge items={column.items} />
 						</KanbanColumnHeader>
 						<KanbanColumnBody>
 							{column.items.map((load) => (
-								<KanbanCard key={load.id} cardId={load.id}>
+								<KanbanCard key={load.id} value={load.id}>
 									<span className="font-medium">{load.code}</span>
 								</KanbanCard>
 							))}

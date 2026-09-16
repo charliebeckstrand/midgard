@@ -50,7 +50,7 @@ function GridInfiniteScrollTrailer<T>({
 		return (
 			<tr data-slot="grid-load-error">
 				<TableCell colSpan={colSpan}>
-					<Text severity="error">{error}</Text>
+					<Text tone="error">{error}</Text>
 				</TableCell>
 			</tr>
 		)
@@ -73,7 +73,7 @@ function GridInfiniteScrollTrailer<T>({
 		return (
 			<tr data-slot="grid-load-end">
 				<TableCell colSpan={colSpan}>
-					<Text severity="muted">{endMessage}</Text>
+					<Text tone="muted">{endMessage}</Text>
 				</TableCell>
 			</tr>
 		)

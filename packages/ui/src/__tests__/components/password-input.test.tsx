@@ -156,7 +156,7 @@ describe('PasswordInput onVisibleChange', () => {
 	// Nothing can flip the reveal without the toggle, so the absent button is the
 	// whole of it; the mount silence is asserted by the first case above.
 	it('renders no toggle to report from when suppressed', () => {
-		renderUI(<PasswordInput toggleButton={false} />)
+		renderUI(<PasswordInput showToggle={false} />)
 
 		expect(screen.queryByRole('button', { name: 'Show password' })).not.toBeInTheDocument()
 	})

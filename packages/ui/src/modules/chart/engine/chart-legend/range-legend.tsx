@@ -243,11 +243,11 @@ function RangeScaleLabels({
 		<div className={cn('relative flex justify-between', horizontal ? 'flex-row' : 'flex-col')}>
 			{/* The endpoint that leads the reading order: the low value at a horizontal
 			    bar's left, the high value at a vertical bar's top. */}
-			<Text as="span" severity="muted" size="sm" className={endpoint}>
+			<Text as="span" tone="muted" size="sm" className={endpoint}>
 				{format(horizontal ? min : max)}
 			</Text>
 
-			<Text as="span" severity="muted" size="sm" className={endpoint}>
+			<Text as="span" tone="muted" size="sm" className={endpoint}>
 				{format(horizontal ? max : min)}
 			</Text>
 

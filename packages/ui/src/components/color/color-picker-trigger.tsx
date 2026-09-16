@@ -6,12 +6,13 @@ import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/color-picker'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
-type ColorPickerTriggerProps = {
+type ColorPickerTriggerProps = GroupStampProps & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
@@ -26,8 +27,6 @@ type ColorPickerTriggerProps = {
 	required?: boolean
 	invalid?: boolean
 	className?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
 }
 
 /**

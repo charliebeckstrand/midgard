@@ -3,6 +3,7 @@ import {
 	CommandPalette,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
+	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
 } from '../../../components/command-palette'
@@ -78,7 +79,8 @@ export const roved: readonly RovedCase[] = [
 		// here is the binding one.
 		'command palette item',
 		<CommandPalette key="rcp" open onOpenChange={noop}>
-			<CommandPaletteGroup title="Files">
+			<CommandPaletteGroup>
+				<CommandPaletteHeading>Files</CommandPaletteHeading>
 				<CommandPaletteItem>
 					<CommandPaletteLabel>New file</CommandPaletteLabel>
 					<CommandPaletteDescription>Start from an empty document</CommandPaletteDescription>

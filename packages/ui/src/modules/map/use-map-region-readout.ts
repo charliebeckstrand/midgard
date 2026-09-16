@@ -58,8 +58,8 @@ export function useMapRegionReadout<T>(
 		colorRange,
 		bins,
 		binning,
-		domain,
-		valueFormat,
+		colorDomain,
+		formatValue,
 	}: MapRegionData<T>,
 	/** Region identities, resolved by the caller — the join key every branch below matches rows on. */
 	regionIds: string[],
@@ -113,7 +113,7 @@ export function useMapRegionReadout<T>(
 		if (data === undefined || regionKey === undefined) return neutral
 
 		if (valueKey !== undefined && colorRange !== undefined) {
-			const format = resolveValueFormat(valueFormat)
+			const format = resolveValueFormat(formatValue)
 
 			const {
 				metas,
@@ -123,7 +123,7 @@ export function useMapRegionReadout<T>(
 				colorRange,
 				bins,
 				binning,
-				domain,
+				domain: colorDomain,
 				format,
 			})
 
@@ -160,8 +160,8 @@ export function useMapRegionReadout<T>(
 		colorRange,
 		bins,
 		binning,
-		domain,
-		valueFormat,
+		colorDomain,
+		formatValue,
 		regionIds,
 	])
 

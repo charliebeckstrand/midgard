@@ -18,7 +18,7 @@ describe('a11y focus trap (real browser): date picker input mode', () => {
 		renderUI(
 			<>
 				<Button>Before</Button>
-				<DatePicker input defaultValue={new Date(2025, 5, 15)} />
+				<DatePicker input clearable defaultValue={new Date(2025, 5, 15)} />
 				<Button>After</Button>
 			</>,
 		)

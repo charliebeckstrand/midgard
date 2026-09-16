@@ -10,12 +10,13 @@ import {
 	User,
 } from 'lucide-react'
 import { type ReactElement, useMemo, useState } from 'react'
-import { Alert, AlertTitle } from '../../../components/alert'
+import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import {
 	CommandPalette,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
+	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	CommandPaletteShortcut,
@@ -113,11 +114,7 @@ function CommandResults() {
 	const results = filterCommands(deferredQuery)
 
 	if (!results.length) {
-		return (
-			<Alert severity="warning" className="w-full">
-				<AlertTitle>No commands found</AlertTitle>
-			</Alert>
-		)
+		return <Alert severity="warning" className="w-full" title="No commands found" />
 	}
 
 	return groups.map((group) => {
@@ -126,7 +123,8 @@ function CommandResults() {
 		if (!items.length) return null
 
 		return (
-			<CommandPaletteGroup key={group} title={group}>
+			<CommandPaletteGroup key={group}>
+				<CommandPaletteHeading>{group}</CommandPaletteHeading>
 				{items.map((c) => (
 					<CommandPaletteItem key={c.id}>
 						<Icon icon={c.icon} size="sm" />

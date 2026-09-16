@@ -2,7 +2,15 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { DatePicker } from '../../../components/date-picker'
 import { Label } from '../../../components/fieldset'
-import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
+import {
+	Filters,
+	FiltersBar,
+	FiltersClear,
+	FiltersField,
+	FiltersRow,
+	FiltersSuffix,
+	useFilters,
+} from '../../../components/filters'
 import { Flex } from '../../../components/flex'
 import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
@@ -62,29 +70,35 @@ function BasicExample() {
 		<Filters
 			aria-label="Filters"
 			value={filters}
-			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
-			clear={<FiltersClearButton />}
 			onValueChange={setFilters}
 			onClear={() => setExpanded(new Set())}
 		>
-			<FiltersField name="search">
-				<Label>Search</Label>
-				<Input placeholder="Search" />
-			</FiltersField>
-			<FiltersField name="status">
-				<Label>Status</Label>
-				<Select nullable placeholder="All statuses" displayValue={(v: string) => v}>
-					<SelectOption value="active">
-						<SelectLabel>Active</SelectLabel>
-					</SelectOption>
-					<SelectOption value="inactive">
-						<SelectLabel>Inactive</SelectLabel>
-					</SelectOption>
-					<SelectOption value="pending">
-						<SelectLabel>Pending</SelectLabel>
-					</SelectOption>
-				</Select>
-			</FiltersField>
+			<FiltersBar>
+				<FiltersRow>
+					<FiltersField name="search">
+						<Label>Search</Label>
+						<Input placeholder="Search" />
+					</FiltersField>
+					<FiltersField name="status">
+						<Label>Status</Label>
+						<Select nullable placeholder="All statuses" displayValue={(v: string) => v}>
+							<SelectOption value="active">
+								<SelectLabel>Active</SelectLabel>
+							</SelectOption>
+							<SelectOption value="inactive">
+								<SelectLabel>Inactive</SelectLabel>
+							</SelectOption>
+							<SelectOption value="pending">
+								<SelectLabel>Pending</SelectLabel>
+							</SelectOption>
+						</Select>
+					</FiltersField>
+				</FiltersRow>
+				<FiltersClearButton />
+			</FiltersBar>
+			<FiltersSuffix>
+				<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />
+			</FiltersSuffix>
 		</Filters>
 	)
 }
@@ -108,33 +122,39 @@ function DateExample() {
 		<Filters
 			aria-label="Filters"
 			value={filters}
-			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
-			clear={<FiltersClearButton />}
 			onValueChange={setFilters}
 			onClear={() => setExpanded(new Set())}
 		>
-			<FiltersField name="search">
-				<Label>Search</Label>
-				<Input placeholder="Search" />
-			</FiltersField>
-			<FiltersField name="dateRange">
-				<Label>Date Range</Label>
-				<DatePicker range />
-			</FiltersField>
-			<FiltersField name="category">
-				<Label>Category</Label>
-				<Select nullable placeholder="All categories" displayValue={(v: string) => v}>
-					<SelectOption value="engineering">
-						<SelectLabel>Engineering</SelectLabel>
-					</SelectOption>
-					<SelectOption value="design">
-						<SelectLabel>Design</SelectLabel>
-					</SelectOption>
-					<SelectOption value="marketing">
-						<SelectLabel>Marketing</SelectLabel>
-					</SelectOption>
-				</Select>
-			</FiltersField>
+			<FiltersBar>
+				<FiltersRow>
+					<FiltersField name="search">
+						<Label>Search</Label>
+						<Input placeholder="Search" />
+					</FiltersField>
+					<FiltersField name="dateRange">
+						<Label>Date Range</Label>
+						<DatePicker range />
+					</FiltersField>
+					<FiltersField name="category">
+						<Label>Category</Label>
+						<Select nullable placeholder="All categories" displayValue={(v: string) => v}>
+							<SelectOption value="engineering">
+								<SelectLabel>Engineering</SelectLabel>
+							</SelectOption>
+							<SelectOption value="design">
+								<SelectLabel>Design</SelectLabel>
+							</SelectOption>
+							<SelectOption value="marketing">
+								<SelectLabel>Marketing</SelectLabel>
+							</SelectOption>
+						</Select>
+					</FiltersField>
+				</FiltersRow>
+				<FiltersClearButton />
+			</FiltersBar>
+			<FiltersSuffix>
+				<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />
+			</FiltersSuffix>
 		</Filters>
 	)
 }
@@ -158,41 +178,47 @@ function RenderPropsExample() {
 		<Filters
 			aria-label="Filters"
 			value={filters}
-			suffix={<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />}
-			clear={<FiltersClearButton />}
 			onValueChange={setFilters}
 			onClear={() => setExpanded(new Set())}
 		>
-			<FiltersField name="search">
-				<Label>Search</Label>
-				<Input placeholder="Search" />
-			</FiltersField>
-			<FiltersField name="minPrice">
-				{({ value, onValueChange }) => (
-					<>
-						<Label>Min Price</Label>
-						<NumberInput
-							placeholder="0"
-							min={0}
-							value={value as number | null}
-							onValueChange={onValueChange}
-						/>
-					</>
-				)}
-			</FiltersField>
-			<FiltersField name="maxPrice">
-				{({ value, onValueChange }) => (
-					<>
-						<Label>Max Price</Label>
-						<NumberInput
-							placeholder="1000"
-							min={0}
-							value={value as number | null}
-							onValueChange={onValueChange}
-						/>
-					</>
-				)}
-			</FiltersField>
+			<FiltersBar>
+				<FiltersRow>
+					<FiltersField name="search">
+						<Label>Search</Label>
+						<Input placeholder="Search" />
+					</FiltersField>
+					<FiltersField name="minPrice">
+						{({ value, onValueChange }) => (
+							<>
+								<Label>Min Price</Label>
+								<NumberInput
+									placeholder="0"
+									min={0}
+									value={value as number | null}
+									onValueChange={onValueChange}
+								/>
+							</>
+						)}
+					</FiltersField>
+					<FiltersField name="maxPrice">
+						{({ value, onValueChange }) => (
+							<>
+								<Label>Max Price</Label>
+								<NumberInput
+									placeholder="1000"
+									min={0}
+									value={value as number | null}
+									onValueChange={onValueChange}
+								/>
+							</>
+						)}
+					</FiltersField>
+				</FiltersRow>
+				<FiltersClearButton />
+			</FiltersBar>
+			<FiltersSuffix>
+				<FilterOutput expanded={expanded} onExpandedChange={setExpanded} />
+			</FiltersSuffix>
 		</Filters>
 	)
 }

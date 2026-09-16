@@ -3,7 +3,8 @@
 import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
 import { useCallback, useEffect, useReducer } from 'react'
 
-type VirtualWindowOptions = {
+/** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
+export type VirtualWindowOptions = {
 	/** Total number of items in the full (unvirtualized) list. */
 	count: number
 	/** Returns the scroll container, or null before it mounts. */

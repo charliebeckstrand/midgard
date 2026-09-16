@@ -24,15 +24,15 @@ type Board = { id: string; items: KanbanItem[] }[]
 
 function Board({ columns }: { columns: Board }) {
 	return (
-		<Kanban columns={columns} getKey={getKey} onReorder={noop}>
+		<Kanban columns={columns} getKey={getKey} onReorder={noop} aria-label="Board">
 			{columns.map((column) => (
-				<KanbanColumn key={column.id} columnId={column.id}>
+				<KanbanColumn key={column.id} value={column.id}>
 					<KanbanColumnHeader>
 						<KanbanColumnTitle>{column.id}</KanbanColumnTitle>
 					</KanbanColumnHeader>
 					<KanbanColumnBody>
 						{column.items.map((item) => (
-							<KanbanCard key={item.id} cardId={item.id}>
+							<KanbanCard key={item.id} value={item.id}>
 								{item.title}
 							</KanbanCard>
 						))}

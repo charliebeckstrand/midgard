@@ -7,13 +7,13 @@ import {
 	type SetStateAction,
 	useRef,
 } from 'react'
-import { getCanvasPoint } from './signature-pad-utilities'
+import { getCanvasPoint, resolveStrokeColor } from './signature-pad-utilities'
 
 type SignatureDrawingOptions = {
 	canvasRef: RefObject<HTMLCanvasElement | null>
 	disabled?: boolean
 	readOnly?: boolean
-	strokeColor: string
+	strokeColor: string | undefined
 	strokeWidth: number
 	empty: boolean
 	setEmpty: Dispatch<SetStateAction<boolean>>
@@ -91,7 +91,7 @@ export function useSignaturePadDrawing({
 		// Draws a dot; a bare tap leaves a mark.
 		context.arc(point.x, point.y, strokeWidth / 2, 0, Math.PI * 2)
 
-		context.fillStyle = strokeColor
+		context.fillStyle = resolveStrokeColor(canvasRef.current, strokeColor)
 
 		context.fill()
 

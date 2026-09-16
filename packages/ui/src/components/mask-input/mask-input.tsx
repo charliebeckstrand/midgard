@@ -5,7 +5,8 @@ import { useMaskInput } from './use-mask-input'
 
 /** Props for {@link MaskInput}: {@link InputProps} with `onChange` replaced by string-valued masking callbacks. */
 export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChange'> & {
-	value?: string
+	/** Controlled text; `null` is controlled-and-empty (CONVENTIONS §7.3). */
+	value?: string | null
 	defaultValue?: string
 	/** Fires with the formatted value after each edit. */
 	onValueChange?: (value: string) => void

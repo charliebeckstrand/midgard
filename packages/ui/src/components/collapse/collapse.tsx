@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useEffectEvent, useMemo } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useEffectEvent, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
@@ -9,7 +9,7 @@ import { k } from '../../recipes/kata/collapse'
 import { CollapseContext } from './context'
 
 /** Props for {@link Collapse}. */
-export type CollapseProps = {
+export type CollapseProps = Omit<ComponentProps<'div'>, 'className' | 'children'> & {
 	/** @defaultValue false */
 	defaultOpen?: boolean
 	open?: boolean
@@ -68,6 +68,7 @@ export function Collapse({
 	mount = 'active',
 	children,
 	className,
+	...props
 }: CollapseProps) {
 	const [currentOpen, setCurrentOpen] = useControllable<boolean>({
 		value: openProp,
@@ -104,7 +105,12 @@ export function Collapse({
 
 	return (
 		<CollapseContext value={value}>
-			<div data-slot="collapse" data-open={dataAttr(open)} className={cn(k.base, className)}>
+			<div
+				{...props}
+				data-slot="collapse"
+				data-open={dataAttr(open)}
+				className={cn(k.base, className)}
+			>
 				{children}
 			</div>
 		</CollapseContext>

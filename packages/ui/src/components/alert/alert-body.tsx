@@ -1,9 +1,13 @@
-import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
 import { k } from '../../recipes/kata/alert'
 
-/** Props for {@link AlertBody}: standard `<div>` slot props. */
-export type AlertBodyProps = ComponentProps<'div'>
-
-/** Default content slot for {@link Alert}; wraps bare children when no other slot is present. */
+/**
+ * Default content slot for {@link Alert}, wrapping its loose children.
+ *
+ * Not barrelled. The title and description are props on `Alert`, so no slot
+ * trio remains for this to complete. A caller passes children, and the alert
+ * wraps them here.
+ *
+ * @internal
+ */
 export const AlertBody = createSlot('div', 'alert-body', k.body)

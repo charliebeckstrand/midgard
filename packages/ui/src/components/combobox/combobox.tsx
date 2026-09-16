@@ -33,6 +33,7 @@ import { QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -47,7 +48,7 @@ import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
 
-type ComboboxBaseProps<T> = {
+type ComboboxBaseProps<T> = GroupStampProps & {
 	id?: string
 	name?: string
 	placeholder?: string
@@ -105,6 +106,10 @@ type ComboboxBaseProps<T> = {
 	 * the combobox, since the placeholder is not a programmatic name.
 	 */
 	'aria-label'?: string
+	/** Element naming the input, for a name already on the page. `aria-label` wins over it. */
+	'aria-labelledby'?: string
+	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
+	'aria-describedby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
 	/**
@@ -168,8 +173,6 @@ type ComboboxBaseProps<T> = {
 	 * paste left alone is ordinary typing and lands at the caret.
 	 */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
-	'data-group'?: string
-	'data-group-orientation'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	/**
@@ -312,6 +315,8 @@ export function Combobox<T>({
 	className,
 	autoComplete = 'off',
 	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
+	'aria-describedby': ariaDescribedBy,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'combobox',
@@ -670,6 +675,10 @@ export function Combobox<T>({
 						type="text"
 						autoComplete={autoComplete}
 						aria-label={ariaLabel}
+						aria-labelledby={ariaLabelledby}
+						// Passed raw: the `<Input>` beneath runs the same `useControlProps`
+						// merge, so resolving it here would join the field's ids twice.
+						aria-describedby={ariaDescribedBy}
 						open={open}
 						controlsId={comboboxId}
 						disabled={resolvedDisabled}
@@ -697,8 +706,8 @@ export function Combobox<T>({
 					size={token.size}
 					ariaLabel={ariaLabel}
 					// Names the listbox from the input's name: an explicit aria-label
-					// wins, else the field's Label (via Control).
-					ariaLabelledby={ariaLabel ? undefined : control?.labelledBy}
+					// wins, else aria-labelledby, else the field's Label (via Control).
+					ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
 					floatingStyles={floatingStyles}
 					getFloatingProps={getFloatingProps}
 					optionsRef={optionsRef}

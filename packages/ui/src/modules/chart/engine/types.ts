@@ -12,7 +12,6 @@
  */
 
 import type { Step } from '../../../recipes'
-import type { ChartColorSlot } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
 import type { CartesianAxes, ChartValueAxisId } from './chart-axes/schema'
 import type { ChartSeriesColor } from './chart-color/palette'
@@ -123,10 +122,13 @@ export type ScatterChartSeries<T> = {
 	 */
 	yName?: string
 	/**
-	 * Named mark colour override. Defaults to the categorical slot palette in
-	 * fixed order, so a series keeps its colour when siblings toggle.
+	 * Mark colour override: a named palette slot (rendered through the CVD-safe
+	 * slot classes, with its texture tile), or any raw CSS colour string applied
+	 * inline. Matches the cartesian series' own `color`. Defaults to the
+	 * categorical slot palette in fixed order, so a series keeps its colour when
+	 * siblings toggle.
 	 */
-	color?: ChartColorSlot
+	color?: ChartSeriesColor
 	/**
 	 * The field sizing each point — the bubble encoding. Sizes scale by area
 	 * (radii on a square root) between `size` and `maxSize` over this series' own
@@ -159,6 +161,16 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
 	/** The field sizing each point; the bubble chart's third measure. */
 	sizeKey: DataKey<T>
 }
+
+/**
+ * A click on one item of a chart — a category band, a pie slice, or a map
+ * region. It carries the item's own identity and its data index. It is the
+ * cross-filter hook: a dashboard toggles a filter on what was clicked, and
+ * narrows its neighbours.
+ *
+ * One shape across the module, so a dashboard wires every chart the same way.
+ */
+export type ChartItemClick = (id: string, index: number) => void
 
 /**
  * The props every chart shares: the data plus the frame's sizing, legend,
@@ -348,7 +360,7 @@ export type CartesianFrameProps = {
 	 * either trigger (a `'click'`-triggered readout still pins). It carries a
 	 * pointer cursor across the plot, so the marks read as clickable.
 	 */
-	onCategoryClick?: (category: string, index: number) => void
+	onCategoryClick?: ChartItemClick
 }
 
 /**

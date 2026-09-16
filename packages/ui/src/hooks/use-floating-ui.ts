@@ -40,17 +40,17 @@ import { useEscapeLayer } from './use-escape-layer'
  * Explicit return shape for {@link useFloatingPanel}.
  *
  * @remarks `useFloating`'s inferred shape references `@floating-ui/react-dom`,
- * a transitive dep TS can't express in a portable `.d.ts` (TS2742); declaring
- * it locally avoids the error. The barrel does not re-export it.
- * @internal
+ * a transitive dep TS cannot express in a portable `.d.ts` (TS2742); declaring
+ * it locally avoids the error.
  */
-type FloatingPanelResult = {
+export type FloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
 }
 
-type FloatingUIResult = FloatingPanelResult & {
+/** Return shape of {@link useFloatingUI}: the refs, the positioned styles, the floating context, and the prop getters. */
+export type FloatingUIResult = FloatingPanelResult & {
 	getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>
 	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
@@ -72,6 +72,7 @@ function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middle
 	]
 }
 
+/** Options for {@link useFloatingPanel}: placement, offset, and the middleware the surface positions through. */
 export type FloatingPanelOptions = {
 	placement: Placement
 	open: boolean
@@ -390,7 +391,8 @@ function pressLandsInNestedSurface(
 	return !(reference != null && targetPortal.contains(reference))
 }
 
-type FloatingUIOptions = FloatingPanelOptions & {
+/** Options for {@link useFloatingUI}: the {@link FloatingPanelOptions} plus the open state, the dismiss wiring, and the role. */
+export type FloatingUIOptions = FloatingPanelOptions & {
 	/**
 	 * Popup role floating-ui stamps on the floating element, plus the matching
 	 * `aria-haspopup`/`aria-controls`/`aria-expanded` on the reference. Pass

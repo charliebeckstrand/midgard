@@ -356,12 +356,12 @@ describe('DatePicker', () => {
 
 describe('DatePicker clearable', () => {
 	it('shows a trigger clear button only when clearable and a value is set', () => {
-		const { rerender } = renderUI(<DatePicker value={new Date(2025, 0, 15)} />)
+		const { rerender } = renderUI(<DatePicker clearable value={new Date(2025, 0, 15)} />)
 
 		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
 
 		// No value → no clear affordance; the calendar icon keeps the slot.
-		rerender(<DatePicker value={undefined} />)
+		rerender(<DatePicker clearable value={undefined} />)
 
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 	})
@@ -372,7 +372,7 @@ describe('DatePicker clearable', () => {
 		const onChange = vi.fn()
 
 		const { container } = renderUI(
-			<DatePicker defaultValue={new Date(2025, 0, 15)} onValueChange={onChange} />,
+			<DatePicker clearable defaultValue={new Date(2025, 0, 15)} onValueChange={onChange} />,
 		)
 
 		await user.click(screen.getByRole('button', { name: 'Clear selection' }))
@@ -393,7 +393,7 @@ describe('DatePicker clearable', () => {
 	})
 
 	it('omits the trigger clear button when disabled', () => {
-		renderUI(<DatePicker disabled value={new Date(2025, 0, 15)} />)
+		renderUI(<DatePicker clearable disabled value={new Date(2025, 0, 15)} />)
 
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 	})
@@ -406,6 +406,7 @@ describe('DatePicker clearable', () => {
 		renderUI(
 			<DatePicker
 				range
+				clearable
 				defaultValue={[new Date(2025, 5, 1), new Date(2025, 5, 3)]}
 				onValueChange={onChange}
 			/>,

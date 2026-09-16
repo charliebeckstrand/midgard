@@ -2,7 +2,7 @@
 
 import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
@@ -12,7 +12,7 @@ import { ListItemStatic, STATIC_CONTEXT } from './list-item-static'
 import { useListDrag } from './use-list-drag'
 import { useListKeyboard } from './use-list-keyboard'
 
-type BaseListProps<T> = {
+type BaseListProps<T> = Omit<ComponentProps<'ul'>, 'className' | 'children'> & {
 	/** Ordered items. */
 	items: T[]
 	/** Visual variant. `separated` spaces cards apart; `outline` draws one border around the whole list with dividers; `plain` uses dividers only; `solid` renders tinted cards. @defaultValue 'separated' */
@@ -86,6 +86,7 @@ export function List<T>({
 	children,
 	className,
 	'aria-label': ariaLabel,
+	...props
 }: ListProps<T>) {
 	const {
 		effectiveGetKey,
@@ -131,36 +132,41 @@ export function List<T>({
 	)
 
 	// Memoized so an active-drag change (which only drives the overlay below) does
-	// not recreate every item element and re-run their sortable wiring. The body
-	// depends on none of the volatile drag state, only the item set and layout.
-	const ul = useMemo(
-		() => (
-			<ul
-				ref={containerRef}
-				aria-label={ariaLabel}
-				data-slot="list"
-				data-orientation={orientation}
-				className={cn(k.root({ variant, orientation }), className)}
-			>
-				{items.map((item, index) => {
-					const id = effectiveGetKey(item)
+	// not recreate every item element and re-run their sortable wiring. Only the
+	// rows are held: the consumer rest spread is a fresh object every render, so
+	// keeping the `<ul>` itself in here would make the memo miss every time.
+	const rows = useMemo(
+		() =>
+			items.map((item, index) => {
+				const id = effectiveGetKey(item)
 
-					// Read-only lists use `ListItemStatic`, skipping sortable-item
-					// registration. `useSortableItem` does non-trivial per-item work
-					// (ref wiring, dnd context reads) even when `disabled: true`.
-					return interactive ? (
-						<ListItemSortable key={id} id={id}>
-							{children(item, index)}
-						</ListItemSortable>
-					) : (
-						<ListItemStatic key={id} id={id}>
-							{children(item, index)}
-						</ListItemStatic>
-					)
-				})}
-			</ul>
-		),
-		[ariaLabel, orientation, variant, className, items, effectiveGetKey, interactive, children],
+				// Read-only lists use `ListItemStatic`, skipping sortable-item
+				// registration. `useSortableItem` does non-trivial per-item work
+				// (ref wiring, dnd context reads) even when `disabled: true`.
+				return interactive ? (
+					<ListItemSortable key={id} id={id}>
+						{children(item, index)}
+					</ListItemSortable>
+				) : (
+					<ListItemStatic key={id} id={id}>
+						{children(item, index)}
+					</ListItemStatic>
+				)
+			}),
+		[items, effectiveGetKey, interactive, children],
+	)
+
+	const ul = (
+		<ul
+			{...props}
+			ref={containerRef}
+			aria-label={ariaLabel}
+			data-slot="list"
+			data-orientation={orientation}
+			className={cn(k.root({ variant, orientation }), className)}
+		>
+			{rows}
+		</ul>
 	)
 
 	return (

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Alert, AlertDescription } from '../../../components/alert'
+import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import { Control } from '../../../components/control'
 import { Label, Message } from '../../../components/fieldset'
@@ -39,11 +39,12 @@ function RequiredExample() {
 export function Demo() {
 	return (
 		<>
-			<Alert severity="info" variant="soft" closable>
-				<AlertDescription>
-					Control propagates a stable ID and state to control-aware children.
-				</AlertDescription>
-			</Alert>
+			<Alert
+				severity="info"
+				variant="soft"
+				closable
+				description="Control propagates a stable ID and state to control-aware children."
+			/>
 
 			<Example title="Default">
 				<Control>

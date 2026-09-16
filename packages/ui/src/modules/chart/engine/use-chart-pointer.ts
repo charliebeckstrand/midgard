@@ -69,6 +69,12 @@ export function useChartPointer(
 		held: ChartMarkRef | null,
 		index: number | null,
 	) => ChartMarkRef | null,
+	/**
+	 * The consumer's mark-click report, for a chart whose items are marks rather
+	 * than categories — a scatter point, say. It rides the same probe
+	 * {@link markAt} runs, so the mark it reports is the one the isolation lit.
+	 */
+	onMarkClick?: (mark: ChartMarkRef) => void,
 ): ChartPointerHandlers {
 	const { index: active, set } = useChartHover()
 
@@ -162,7 +168,7 @@ export function useChartPointer(
 
 			const index = resolveIndex(x, y)
 
-			const { onData: onDataHit } = probe(x, y, index)
+			const { mark, onData: onDataHit } = probe(x, y, index)
 
 			// Toggle the shown category off; and a click that would read nothing — off
 			// the marks on a chart that doesn't snap — dismisses rather than pinning a
@@ -171,8 +177,10 @@ export function useChartPointer(
 			else set(index, { x, y }, onDataHit)
 
 			if (index !== null) onIndexClick?.(index)
+
+			if (mark !== null) onMarkClick?.(mark)
 		},
-		[plot, resolveIndex, probe, snaps, active, set, onIndexClick],
+		[plot, resolveIndex, probe, snaps, active, set, onIndexClick, onMarkClick],
 	)
 
 	// The hover trigger's activation click: resolve the band under the click and
@@ -181,15 +189,23 @@ export function useChartPointer(
 		(clientX: number, clientY: number) => {
 			const box = ref.current?.getBoundingClientRect()
 
-			if (box === undefined || onIndexClick === undefined) return
+			if (box === undefined || (onIndexClick === undefined && onMarkClick === undefined)) return
 
 			const { x, y } = toFrame(plot, box, clientX, clientY)
 
 			const index = resolveIndex(x, y)
 
-			if (index !== null) onIndexClick(index)
+			if (index !== null) onIndexClick?.(index)
+
+			// Only where a consumer reads marks. `probe` scans the series, and a
+			// chart that takes category clicks alone has no use for the result.
+			if (onMarkClick === undefined) return
+
+			const { mark } = probe(x, y, index)
+
+			if (mark !== null) onMarkClick(mark)
 		},
-		[plot, resolveIndex, onIndexClick],
+		[plot, resolveIndex, probe, onIndexClick, onMarkClick],
 	)
 
 	// The click trigger's pointer move: isolation stays a hover affordance even with
@@ -252,7 +268,8 @@ export function useChartPointer(
 	return {
 		ref,
 		// Activation only — the tracked readout stays hover-owned.
-		onClick: onIndexClick ? (event) => activate(event.clientX, event.clientY) : undefined,
+		onClick:
+			onIndexClick || onMarkClick ? (event) => activate(event.clientX, event.clientY) : undefined,
 		onPointerMove: (event) => {
 			pointerInside.current = true
 

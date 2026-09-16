@@ -4,7 +4,8 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
 
-type SortableItemOptions = {
+/** Options for {@link useSortableItem}: the item's id and whether it takes a drag. */
+export type SortableItemOptions = {
 	/** Stable id matching the enclosing `SortableContext` items array. */
 	id: string
 	/** Disable pointer + keyboard interaction for this item. @defaultValue false */

@@ -33,6 +33,7 @@ export type { ChartTier } from './engine/chart-tier'
 export type { ChartTooltipConfig, ChartTooltipTrigger } from './engine/chart-tooltip'
 export type {
 	BubbleChartSeries,
+	ChartItemClick,
 	ChartSeries,
 	ComboChartSeries,
 	DataKey,

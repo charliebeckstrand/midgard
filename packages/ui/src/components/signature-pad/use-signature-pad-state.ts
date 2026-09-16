@@ -29,7 +29,7 @@ export type SignaturePadStateOptions = {
 	onValueChange?: (value: string | null) => void
 	disabled?: boolean
 	readOnly?: boolean
-	strokeColor: string
+	strokeColor: string | undefined
 	strokeWidth: number
 	onDrawStart?: () => void
 	ref?: Ref<SignaturePadHandle>

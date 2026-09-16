@@ -14,7 +14,7 @@ describe('Group', () => {
 
 		const root = bySlot(container, 'group')
 
-		expect(root).toHaveAttribute('data-group-orientation', 'horizontal')
+		expect(root).toHaveAttribute('data-orientation', 'horizontal')
 
 		expect(root?.className).toContain('inline-flex')
 
@@ -35,7 +35,7 @@ describe('Group', () => {
 
 		expect(root?.className).not.toContain('flex-row')
 
-		expect(root).toHaveAttribute('data-group-orientation', 'vertical')
+		expect(root).toHaveAttribute('data-orientation', 'vertical')
 	})
 
 	it('stamps "only" on a single child', () => {

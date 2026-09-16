@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type ComponentProps,
 	type FocusEvent,
 	type KeyboardEvent,
 	type ReactNode,
@@ -20,33 +21,37 @@ import { stampTreePositions } from './tree-item-children'
 import { ensureFirstItemActive, setActiveItem } from './tree-utilities'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
-export type TreeProps = AccessibleName & {
-	/**
-	 * Controls icon size and text size for all items.
-	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
-	 */
-	size?: TreeSize
-	/**
-	 * Indent each depth by the chevron width plus the row gap.
-	 * @defaultValue true
-	 */
-	indent?: boolean
-	/**
-	 * What happens to a branch's children while it is closed.
-	 *
-	 * Under the default `active` a closed branch unmounts its children, so every
-	 * expansion inside it is lost. Reopening shows them collapsed again, because
-	 * an uncontrolled {@link TreeItem} keeps its own open state. `lazy` holds a
-	 * branch from its first open, preserving that state and any scroll position
-	 * or focus within it. `always` holds every branch from mount, which renders
-	 * the whole tree up front — appropriate only for a bounded one.
-	 *
-	 * @defaultValue 'active'
-	 */
-	mount?: Mount
-	children: ReactNode
-	className?: string
-}
+export type TreeProps = AccessibleName &
+	Omit<
+		ComponentProps<'div'>,
+		'className' | 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'
+	> & {
+		/**
+		 * Controls icon size and text size for all items.
+		 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+		 */
+		size?: TreeSize
+		/**
+		 * Indent each depth by the chevron width plus the row gap.
+		 * @defaultValue true
+		 */
+		indent?: boolean
+		/**
+		 * What happens to a branch's children while it is closed.
+		 *
+		 * Under the default `active` a closed branch unmounts its children, so every
+		 * expansion inside it is lost. Reopening shows them collapsed again, because
+		 * an uncontrolled {@link TreeItem} keeps its own open state. `lazy` holds a
+		 * branch from its first open, preserving that state and any scroll position
+		 * or focus within it. `always` holds every branch from mount, which renders
+		 * the whole tree up front — appropriate only for a bounded one.
+		 *
+		 * @defaultValue 'active'
+		 */
+		mount?: Mount
+		children: ReactNode
+		className?: string
+	}
 
 /** Root of a `role="tree"` with roving-tabindex keyboard navigation. It keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
 export function Tree({
@@ -138,13 +143,13 @@ export function Tree({
 	return (
 		<TreeContext value={rootContextValue}>
 			<div
+				{...labelProps}
 				ref={ref}
 				role="tree"
 				data-slot="tree"
 				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}
 				onFocus={handleFocus}
-				{...labelProps}
 			>
 				{stampTreePositions(children)}
 			</div>

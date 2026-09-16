@@ -59,6 +59,7 @@ export function ScrollArea({
 	return (
 		<div
 			data-slot="scroll-area"
+			data-orientation={orientation}
 			className={cn(k.wrapper({ rounded, orientation, extent, bare }), className)}
 		>
 			{/* Keyboard-focusable on any enabled axis (axe scrollable-region-focusable).

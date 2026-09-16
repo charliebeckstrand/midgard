@@ -21,7 +21,7 @@ import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
 /**
- * A map's `valueFormat`, or the plain-string fallback where it has none. The
+ * A map's `formatValue`, or the plain-string fallback where it has none. The
  * readout and the range legend resolve it through here, rather than each
  * defaulting for itself. A map without the prop would otherwise format its
  * tooltip and table by one rule, and its bar's endpoints by another. Nothing
@@ -30,9 +30,9 @@ import type { MapCategoryMeta } from './category'
  * @internal
  */
 export function resolveValueFormat(
-	valueFormat: ((value: number) => string) | undefined,
+	formatValue: ((value: number) => string) | undefined,
 ): (value: number) => string {
-	return valueFormat ?? String
+	return formatValue ?? String
 }
 
 /** Options a choropleth resolves its bins with. @internal */

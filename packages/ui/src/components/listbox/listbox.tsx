@@ -16,6 +16,7 @@ import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { useGlass } from '../../providers/glass/context'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -27,7 +28,7 @@ import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
-type ListboxBaseProps = {
+type ListboxBaseProps = GroupStampProps & {
 	name?: string
 	placeholder?: string
 	placement?: Placement
@@ -84,8 +85,6 @@ type ListboxBaseProps = {
 	 * leaving the trigger.
 	 */
 	onBlur?: (event: FocusEvent<HTMLButtonElement>) => void
-	'data-group'?: string
-	'data-group-orientation'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	children: ReactNode

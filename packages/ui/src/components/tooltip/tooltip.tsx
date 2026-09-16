@@ -26,20 +26,21 @@ export type TooltipProps = {
 	 */
 	interactive?: boolean
 	/**
-	 * Whether the tooltip can open; false suppresses it and closes any open instance.
-	 * @defaultValue true
+	 * Suppresses the tooltip and closes any open instance. The house polarity —
+	 * every other surface spells suppression `disabled`.
+	 * @defaultValue false
 	 */
-	enabled?: boolean
+	disabled?: boolean
 	/**
 	 * Hold the tooltip open regardless of pointer, for a trigger that can't take
 	 * hover — an SVG shape a roving keyboard cursor drives, say. Releasing it hands
-	 * control back to hover / focus / click; `enabled: false` still wins.
+	 * control back to hover / focus / click; `disabled` still wins.
 	 * @defaultValue false
 	 */
 	forceOpen?: boolean
 	/**
 	 * Fires when the tooltip opens or closes, whatever drove it: the hover delay, focus,
-	 * or a click on a pointer-less device. `forceOpen`, `enabled` going false, the trigger
+	 * or a click on a pointer-less device. `forceOpen`, `disabled` going true, the trigger
 	 * becoming `:disabled`, and the shared overlay-close signal also report here.
 	 *
 	 * Observation only. The tooltip owns its open state and there is no `open` prop to
@@ -62,8 +63,10 @@ export type TooltipProps = {
  * trigger via `<TooltipTrigger>`.
  * @see {@link useTooltipState}
  */
-export function Tooltip({ children, ...props }: TooltipProps) {
-	const contextValue = useTooltipState(props)
+export function Tooltip({ disabled, children, ...props }: TooltipProps) {
+	// The public polarity is `disabled`; the state hook and floating-ui's own
+	// hooks under it read `enabled`, so the inversion happens once, here.
+	const contextValue = useTooltipState({ ...props, enabled: !disabled })
 
 	return <TooltipContext value={contextValue}>{children}</TooltipContext>
 }

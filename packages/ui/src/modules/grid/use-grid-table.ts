@@ -82,6 +82,7 @@ import {
 import { useFrozenLayout, useVisibleColumns } from './grid-table-views'
 import type {
 	GridColumn,
+	GridColumnFilterState,
 	GridColumnFilters,
 	GridColumnSizing,
 	GridColumnSizingState,
@@ -680,7 +681,10 @@ export function useGridTable<T>({
 
 	const hasColumnFilters = columns.some((col) => col.filterable && col.value)
 
-	const [columnFiltersState, setColumnFiltersState] = useControllable<ColumnFiltersState>({
+	// Keyed on the public row type rather than TanStack's, whose `value` is
+	// `unknown`. The grid's filter function evaluates a query tree, so the public
+	// binding says so, and the narrower row is assignable to the engine's.
+	const [columnFiltersState, setColumnFiltersState] = useControllable<GridColumnFilterState[]>({
 		value: columnFiltersConfig?.value,
 		defaultValue: columnFiltersConfig?.defaultValue ?? EMPTY_COLUMN_FILTERS,
 		onValueChange: (next) => columnFiltersConfig?.onValueChange?.(next ?? []),
@@ -692,9 +696,17 @@ export function useGridTable<T>({
 
 	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
 
+	// The one narrowing in the binding, and the only place it is needed. TanStack
+	// types a filter's value `unknown`; every value this grid writes is the query
+	// tree its own filter function evaluates, which is what the public
+	// `GridColumnFilterState` says. The engine's updater cannot carry that, so the
+	// assertion sits here rather than widening the public type back to `unknown`.
 	const onColumnFiltersChange = useCallback<OnChangeFn<ColumnFiltersState>>(
 		(updater) =>
-			setColumnFiltersState((prev) => functionalUpdate(updater, prev ?? EMPTY_COLUMN_FILTERS)),
+			setColumnFiltersState(
+				(prev) =>
+					functionalUpdate(updater, prev ?? EMPTY_COLUMN_FILTERS) as GridColumnFilterState[],
+			),
 		[setColumnFiltersState],
 	)
 

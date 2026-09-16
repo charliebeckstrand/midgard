@@ -2,6 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { useDensity } from '../../primitives/density'
+import type { GroupStampProps } from '../../types/group-stamp'
 import type { ControlSize } from '../control/context'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
@@ -10,7 +11,13 @@ import { serializeColor, toHsva } from './color-utilities'
 import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
 
-type ColorPickerBaseProps = {
+type ColorPickerBaseProps = GroupStampProps & {
+	/**
+	 * Binds the colour to the enclosing Form field of this name (CONVENTIONS
+	 * §7.2). Seed `Form.defaultValues` in the picker's own `format`; the field's
+	 * errors mark the control invalid.
+	 */
+	name?: string
 	/**
 	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
 	 *
@@ -41,8 +48,6 @@ type ColorPickerBaseProps = {
 	size?: ControlSize
 	disabled?: boolean
 	className?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
 }
 
 /** Props for {@link ColorPicker}: presentation and placement options plus format-discriminated value props. */
@@ -82,6 +87,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 	const format = props.format ?? 'hex'
 
 	const state = useColorPickerState({
+		name: props.name,
 		value: props.value,
 		defaultValue: props.defaultValue,
 		format,

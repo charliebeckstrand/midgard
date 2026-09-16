@@ -43,9 +43,10 @@ export type SignaturePadProps = {
 	 */
 	placeholder?: string
 	/**
-	 * Stroke colour.
+	 * Stroke colour, as any CSS colour the canvas context accepts.
 	 *
-	 * @defaultValue `'#18181b'` (zinc-900)
+	 * @defaultValue the pad's own computed `color` — the theme's ink, so an
+	 * unset pad draws dark on a light surface and light on a dark one
 	 */
 	strokeColor?: string
 	/**
@@ -92,7 +93,7 @@ export function SignaturePad({
 	disabled,
 	readOnly,
 	placeholder = 'Sign here',
-	strokeColor = '#18181b',
+	strokeColor,
 	strokeWidth = 2,
 	clearable = true,
 	'aria-label': ariaLabel = 'Signature',

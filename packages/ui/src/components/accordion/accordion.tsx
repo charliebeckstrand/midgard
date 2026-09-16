@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffectEvent, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useEffectEvent, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import type { Mount } from '../../primitives/mount'
@@ -18,7 +18,8 @@ import {
  * shapes.
  */
 export type AccordionProps = (SingleProps | MultipleProps) &
-	AccordionVariants & {
+	AccordionVariants &
+	Omit<ComponentProps<'div'>, 'className' | 'onKeyDown' | 'value' | 'defaultValue' | 'onChange'> & {
 		/**
 		 * How item panels are held while closed.
 		 *
@@ -66,7 +67,22 @@ export type AccordionProps = (SingleProps | MultipleProps) &
  * @see {@link AccordionPanel}
  */
 export function Accordion(props: AccordionProps) {
-	const { variant, mount = 'active', onOpenComplete, className, children } = props
+	// The selection triad comes out with the rest of the component's own props:
+	// `useAccordionSelection` reads it off `props` whole, and a `defaultValue`
+	// left in the rest would reach the `<div>` as the native attribute of the
+	// same name.
+	const {
+		variant,
+		mount = 'active',
+		onOpenComplete,
+		className,
+		children,
+		type: _type,
+		value: _value,
+		defaultValue: _defaultValue,
+		onValueChange: _onValueChange,
+		...rest
+	} = props
 
 	const { isOpen, toggle } = useAccordionSelection(props)
 
@@ -99,6 +115,7 @@ export function Accordion(props: AccordionProps) {
 		<AccordionContext value={context}>
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the roving tabindex handler must live here to navigate between header buttons */}
 			<div
+				{...rest}
 				ref={ref}
 				data-slot="accordion"
 				className={cn(k({ variant }), className)}

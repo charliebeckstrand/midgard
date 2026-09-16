@@ -63,7 +63,7 @@ describe('grid footer content truncation tooltip (real browser)', () => {
 
 		return (
 			<span className="flex min-w-0 items-center gap-1">
-				<Tooltip enabled={truncated}>
+				<Tooltip disabled={!truncated}>
 					<TooltipTrigger>
 						<span ref={labelRef} data-testid="label" className="block truncate">
 							{label}

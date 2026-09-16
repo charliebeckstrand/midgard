@@ -10,13 +10,14 @@ import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/date-picker'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 /** Props for {@link DatePickerTrigger}. @internal */
-type DatePickerTriggerProps = {
+type DatePickerTriggerProps = GroupStampProps & {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	triggerId?: string
@@ -48,8 +49,6 @@ type DatePickerTriggerProps = {
 	/** Accessible name for the trigger when no Field label wraps it; the placeholder is not a programmatic name. */
 	'aria-label'?: string
 	className?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
 }
 
 /**
@@ -133,7 +132,7 @@ export function DatePickerTrigger({
 						className={cn(k.button({ density: size, size }))}
 					>
 						{children ?? (
-							<Tooltip enabled={truncate && isTruncated && Boolean(displayValue)}>
+							<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
 								<TooltipTrigger>{valueNode}</TooltipTrigger>
 								<TooltipContent>{displayValue}</TooltipContent>
 							</Tooltip>

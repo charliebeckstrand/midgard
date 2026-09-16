@@ -4,4 +4,5 @@ export type {
 	BoxOutline,
 	BoxPadding,
 	BoxRadius,
+	ResponsiveBoxPadding,
 } from './variants'

@@ -38,6 +38,7 @@ import {
 	SidebarLabel,
 	SidebarList,
 	SidebarSection,
+	useSidebarMini,
 } from '../../../components/sidebar'
 import { Spacer } from '../../../components/spacer'
 import { Text } from '../../../components/text'
@@ -163,7 +164,7 @@ function SectionedSidebarExample() {
 
 					<SidebarSection>
 						<Flex align="center" gap="sm">
-							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
+							<Text tone="muted" className="text-xs uppercase tracking-wide flex-1">
 								Projects
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New project">
@@ -186,7 +187,7 @@ function SectionedSidebarExample() {
 
 					<SidebarSection>
 						<Flex align="center" gap="sm">
-							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
+							<Text tone="muted" className="text-xs uppercase tracking-wide flex-1">
 								Chats
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New chat">
@@ -210,7 +211,7 @@ function SectionedSidebarExample() {
 					<Spacer />
 
 					<SidebarSection>
-						<Text severity="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
+						<Text tone="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
 							Wade Cooper
 						</Text>
 						<SidebarList aria-label="Account">
@@ -300,45 +301,52 @@ function ActionsSidebarExample() {
 	)
 }
 
+/**
+ * The rail's brand mark: a glyph on the mini rail, the wordmark otherwise. It
+ * reads the resolved state with `useSidebarMini`, which is how content branches
+ * between the two presentations now that the root takes no render prop.
+ */
+function MiniBrand() {
+	const mini = useSidebarMini()
+
+	if (!mini) return <Heading level={3}>Acme Inc.</Heading>
+
+	return (
+		// Fills the header row so the glyph centers on the rail's icon column
+		// (the items' symmetric padding does the rest).
+		<div className="flex flex-1 justify-center">
+			<Icon
+				icon={<Aperture />}
+				size="lg"
+				className="hover:rotate-360 transition-transform duration-300"
+			/>
+		</div>
+	)
+}
+
 function MiniSidebarExample() {
 	const [active, setActive] = useState('home')
 
 	return (
 		<SidebarFrame className="lg:w-fit">
 			<Sidebar mini>
-				{(mini) => (
-					<>
-						<SidebarHeader>
-							{mini ? (
-								// Fills the header row so the glyph centers on the rail's
-								// icon column (the items' symmetric padding does the rest).
-								<div className="flex flex-1 justify-center">
-									<Icon
-										icon={<Aperture />}
-										size="lg"
-										className="hover:rotate-360 transition-transform duration-300"
-									/>
-								</div>
-							) : (
-								<Heading level={3}>Acme Inc.</Heading>
-							)}
-						</SidebarHeader>
-						<SidebarBody>
-							<SidebarList aria-label="Main">
-								{primary.map(({ value, label, icon }) => (
-									<SidebarItem
-										key={value}
-										icon={icon}
-										current={active === value}
-										onClick={() => setActive(value)}
-									>
-										<SidebarLabel>{label}</SidebarLabel>
-									</SidebarItem>
-								))}
-							</SidebarList>
-						</SidebarBody>
-					</>
-				)}
+				<SidebarHeader>
+					<MiniBrand />
+				</SidebarHeader>
+				<SidebarBody>
+					<SidebarList aria-label="Main">
+						{primary.map(({ value, label, icon }) => (
+							<SidebarItem
+								key={value}
+								icon={icon}
+								current={active === value}
+								onClick={() => setActive(value)}
+							>
+								<SidebarLabel>{label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarList>
+				</SidebarBody>
 			</Sidebar>
 		</SidebarFrame>
 	)
@@ -370,7 +378,7 @@ export function Demo() {
 			<Example
 				title="Mini"
 				prefix={
-					<Text severity="muted">
+					<Text tone="muted">
 						In its mini variant, the sidebar collapses to a slim icon rail; on mobile, it reverts to
 						standard sidebar behavior.
 					</Text>

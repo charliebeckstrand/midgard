@@ -2,13 +2,13 @@
 
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { useResizeObserver } from '../../hooks'
-import { configureStroke, drawSnapshot } from './signature-pad-utilities'
+import { configureStroke, drawSnapshot, resolveStrokeColor } from './signature-pad-utilities'
 
 type CanvasSizingOptions = {
 	containerRef: RefObject<HTMLDivElement | null>
 	canvasRef: RefObject<HTMLCanvasElement | null>
 	empty: boolean
-	strokeColor: string
+	strokeColor: string | undefined
 	strokeWidth: number
 }
 
@@ -73,7 +73,7 @@ export function useSignaturePadCanvasSizing({
 
 		context.scale(dpr, dpr)
 
-		configureStroke(context, strokeColor, strokeWidth)
+		configureStroke(context, resolveStrokeColor(canvas, strokeColor), strokeWidth)
 
 		if (snapshot) {
 			drawSnapshot(canvas, snapshot)
@@ -84,11 +84,13 @@ export function useSignaturePadCanvasSizing({
 	// it to the live context when strokeColor / strokeWidth change (no
 	// resize/clear).
 	useEffect(() => {
-		const context = canvasRef.current?.getContext('2d')
+		const canvas = canvasRef.current
+
+		const context = canvas?.getContext('2d')
 
 		if (!context) return
 
-		configureStroke(context, strokeColor, strokeWidth)
+		configureStroke(context, resolveStrokeColor(canvas, strokeColor), strokeWidth)
 	}, [canvasRef, strokeColor, strokeWidth])
 
 	useResizeObserver(containerRef, resize)

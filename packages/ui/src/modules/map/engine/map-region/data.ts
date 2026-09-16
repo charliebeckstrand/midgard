@@ -51,9 +51,9 @@ type MapNumericAbsent = {
 	colorRange?: undefined
 	bins?: undefined
 	binning?: undefined
-	domain?: undefined
-	valueFormat?: undefined
-	valueName?: undefined
+	colorDomain?: undefined
+	formatValue?: undefined
+	colorName?: undefined
 }
 
 /** Regions coloured by a categorical field, its slot colours resolved in a fixed order. @internal */
@@ -91,12 +91,12 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	 * @defaultValue 'linear'
 	 */
 	binning?: 'linear' | 'quantile'
-	/** Fixed `[min, max]` for the ramp; derived from the data extent when omitted. */
-	domain?: [number, number]
-	/** Formats the bin-range labels, the tooltip value, and the table cell. */
-	valueFormat?: (value: number) => string
-	/** The value's display name; the table's value-column header. */
-	valueName?: string
+	/** Fixed `[min, max]` for the ramp; derived from the data extent when omitted. `ChoroplethChartSeries` spells it the same. */
+	colorDomain?: [number, number]
+	/** Formats the bin-range labels, the tooltip value, and the table cell. `ChoroplethChart` spells it the same. */
+	formatValue?: (value: number) => string
+	/** The value's display name; the table's value-column header. `ChoroplethChartSeries` spells it the same. */
+	colorName?: string
 	/**
 	 * Show the legend, in any form. This is the branch that carries a scale, so it
 	 * is the branch that can paint one. Beyond the switchboard's boolean and

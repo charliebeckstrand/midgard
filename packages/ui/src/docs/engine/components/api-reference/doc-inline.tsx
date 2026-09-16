@@ -1,12 +1,12 @@
 'use client'
 
 import { Link } from '../../../../components/link'
-import { Markdown } from '../../../../components/markdown'
+import { MarkdownInline } from '../../../../components/markdown'
 import type { LinkToken } from '../../api-reference/link-syntax'
 
 /** An inline prose run, GFM-parsed so backtick code and emphasis render in flow. */
 export function Prose({ text }: { text: string }) {
-	return <Markdown inline>{text}</Markdown>
+	return <MarkdownInline>{text}</MarkdownInline>
 }
 
 /**

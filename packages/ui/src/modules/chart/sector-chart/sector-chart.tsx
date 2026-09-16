@@ -17,7 +17,7 @@ import { formatChartValue, seriesValues } from '../engine/chart-series'
 import { chartFramePolicy } from '../engine/chart-tier'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
-import type { ChartBaseProps, PieChartSeries } from '../engine/types'
+import type { ChartBaseProps, ChartItemClick, PieChartSeries } from '../engine/types'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import {
 	buildCallouts,
@@ -86,7 +86,7 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * either trigger (a `'click'`-triggered readout still pins), and points the
 	 * cursor over the slices so they read as clickable.
 	 */
-	onCategoryClick?: (category: string, index: number) => void
+	onCategoryClick?: ChartItemClick
 }
 
 /** Props for {@link SectorChart}: the shared pie base plus the hole size and center content. @internal */

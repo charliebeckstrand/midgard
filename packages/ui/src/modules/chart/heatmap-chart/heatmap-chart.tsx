@@ -13,7 +13,15 @@ import { cn, createContext } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
 import { k } from '../../../recipes/kata/chart'
-import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
+import {
+	binIndex,
+	type ColorBin,
+	once,
+	quantileBinIndex,
+	resolveColorBins,
+	resolveQuantileBins,
+	valueExtent,
+} from '../../../utilities'
 import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,
@@ -248,6 +256,10 @@ type HeatmapHitLayerProps = {
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
+	/** Band labels, so a click reports the cell by name rather than by index alone. */
+	labels: { columns: string[]; rows: string[] }
+	/** The consumer's cell-click report, or `undefined` where there is none. */
+	onCellClick?: HeatmapChartProps['onCellClick']
 }
 
 /**
@@ -266,6 +278,8 @@ function HeatmapHitLayer({
 	xBand,
 	yBand,
 	trigger = 'hover',
+	labels,
+	onCellClick,
 }: HeatmapHitLayerProps) {
 	const { cell: active, set } = useHeatmapHover()
 
@@ -293,18 +307,41 @@ function HeatmapHitLayer({
 
 	const click = trigger === 'click'
 
+	// The consumer's report runs on any click, whichever trigger the readout is
+	// on, so a hover-tooltip heatmap is still clickable. It takes the hit the
+	// caller already resolved: `locate` reads the layout box, so a click that
+	// both reports and pins must not pay for it twice.
+	const report = (hit: ReturnType<typeof locate>) => {
+		if (!onCellClick) return
+
+		if (hit?.cell == null) return
+
+		const { row, col } = hit.cell
+
+		const x = labels.columns[col]
+
+		const y = labels.rows[row]
+
+		if (x === undefined || y === undefined) return
+
+		onCellClick({ x, y }, [row, col])
+	}
+
+	const handleClick = (event: MouseEvent<SVGRectElement>) => {
+		const hit = locate(event)
+
+		report(hit)
+
+		if (!click || hit === null) return
+
+		if (sameCell(active, hit.cell)) set(null, null)
+		else set(hit.cell, hit.point)
+	}
+
 	const handlers = click
-		? {
-				onClick: (event: MouseEvent<SVGRectElement>) => {
-					const hit = locate(event)
-
-					if (hit === null) return
-
-					if (sameCell(active, hit.cell)) set(null, null)
-					else set(hit.cell, hit.point)
-				},
-			}
+		? { onClick: handleClick }
 		: {
+				onClick: handleClick,
 				onPointerMove: (event: PointerEvent<SVGRectElement>) => {
 					const hit = locate(event)
 
@@ -322,7 +359,7 @@ function HeatmapHitLayer({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(click && 'cursor-pointer')}
+			className={cn((click || onCellClick) && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)
@@ -493,19 +530,41 @@ function useHeatmap<T>(
 	// the accessible name, and the data table still carry the grid's values.
 	const spark = isSparkBox(frameWidth, frameHeight)
 
-	const domain = useMemo(
-		() =>
-			valueExtent(
-				matrix.values.flat().filter((value): value is number => value !== null),
-				primary?.colorDomain,
-			),
-		[matrix, primary],
+	// The extent and the quantile thresholds read the same cells, so the grid is
+	// flattened once. Each did its own pass over every row before this.
+	const values = useMemo(
+		() => matrix.values.flat().filter((value): value is number => value !== null),
+		[matrix],
 	)
 
-	const bins = useMemo(
-		() => (domain && primary ? resolveColorBins(domain, primary.colorRange, primary.bins) : []),
-		[domain, primary],
-	)
+	const domain = useMemo(() => valueExtent(values, primary?.colorDomain), [values, primary])
+
+	// One resolution per mode, each yielding both the painted bins and the
+	// assignment the cells read, so the fills and the legend cannot disagree on
+	// where the buckets fall. `MapPlat` resolves its own the same way.
+	const { bins, assign } = useMemo(() => {
+		if (!domain || !primary) return { bins: [] as ColorBin[], assign: () => null }
+
+		if (primary.binning === 'quantile') {
+			const { bins: quantileBins, thresholds } = resolveQuantileBins(
+				values,
+				primary.colorRange,
+				primary.bins,
+			)
+
+			return {
+				bins: quantileBins,
+				assign: (value: number) => quantileBinIndex(value, thresholds),
+			}
+		}
+
+		const linearBins = resolveColorBins(domain, primary.colorRange, primary.bins)
+
+		return {
+			bins: linearBins,
+			assign: (value: number) => binIndex(value, domain, linearBins.length),
+		}
+	}, [domain, primary, values])
 
 	// Memoized so their identity holds across a re-render with unchanged data —
 	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/
@@ -534,12 +593,8 @@ function useHeatmap<T>(
 	// value lands in, `null` for a no-data cell. The legend dims against it.
 	const cellBins = useMemo(
 		() =>
-			cells.map((cell) =>
-				cell.value === null || domain === null || bins.length === 0
-					? null
-					: binIndex(cell.value, domain, bins.length),
-			),
-		[cells, domain, bins],
+			cells.map((cell) => (cell.value === null || bins.length === 0 ? null : assign(cell.value))),
+		[cells, bins, assign],
 	)
 
 	// Fill per cell from its bin: the bin's colour, or `null` for the neutral
@@ -655,6 +710,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		legend,
 		tooltip,
 		formatValue,
+		onCellClick,
 		className,
 		// Kept off the DOM so it never spreads onto the plot element as an invalid
 		// attribute, but still names the context menu's fullscreen view.
@@ -728,14 +784,18 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
 
-			{showTooltip && rows > 0 && cols > 0 && (
+			{/* The layer mounts for a readout or for a consumer's click report: a
+			    heatmap that only reports clicks still needs the pointer. */}
+			{(showTooltip || onCellClick !== undefined) && rows > 0 && cols > 0 && (
 				<HeatmapHitLayer
 					plot={plot}
 					rows={rows}
 					cols={cols}
 					xBand={xBand}
 					yBand={yBand}
-					trigger={trigger}
+					trigger={showTooltip ? trigger : undefined}
+					labels={{ columns: matrix.columns, rows: matrix.rows }}
+					onCellClick={onCellClick}
 				/>
 			)}
 		</svg>

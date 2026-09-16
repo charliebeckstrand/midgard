@@ -5,6 +5,7 @@ import { type ReactElement, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/date-picker'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
 import { DateInput, type DateInputFormat } from '../date-input'
@@ -119,7 +120,7 @@ export type DatePickerFooterConfig = {
  * range); intersected with the discriminated value/handler shape in
  * {@link DatePickerProps}.
  */
-export type DatePickerBaseProps = {
+export type DatePickerBaseProps = GroupStampProps & {
 	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
 	/**
@@ -153,7 +154,7 @@ export type DatePickerBaseProps = {
 	 * matching the `clearable` affordance on Listbox/Combobox. In `input` mode the
 	 * typed {@link DateInput} owns the clear button instead.
 	 *
-	 * @defaultValue true
+	 * @defaultValue false
 	 */
 	clearable?: boolean
 	/**
@@ -177,8 +178,6 @@ export type DatePickerBaseProps = {
 	onOpenChange?: (open: boolean) => void
 	/** Accessible name for the trigger when no Field/Label wraps the picker. */
 	'aria-label'?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
 }
 
 /**
@@ -197,8 +196,8 @@ export type DatePickerProps = DatePickerBaseProps &
  * `multiple: true`. It supports controlled or uncontrolled `value`. `size` resolves through
  * the explicit prop, then `<Control>`, then Density, then `'md'`. With `input`, a
  * typed DateInput replaces the trigger and the calendar opens from its suffix
- * button. A `clearable` clear button (default on) replaces the calendar icon once
- * a value is set, mirroring Listbox/Combobox.
+ * button. A `clearable` clear button replaces the calendar icon once a value is
+ * set, mirroring Listbox/Combobox, which default it off as well.
  *
  * @remarks
  * In the calendar variants, keyboard navigation runs on a virtual highlight
@@ -251,7 +250,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		truncate = true,
 		input = false,
 		format = 'MM/DD/YYYY',
-		clearable = true,
+		clearable = false,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,

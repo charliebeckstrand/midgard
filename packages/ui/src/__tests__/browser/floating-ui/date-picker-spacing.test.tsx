@@ -16,11 +16,13 @@ import { renderUI, screen, waitFor } from '../../helpers'
  */
 describe('layout stability (real browser): date picker in space-y container', () => {
 	const cases: Array<{ name: string; element: ReactElement }> = [
-		{ name: 'trigger', element: <DatePicker defaultValue={new Date(2025, 5, 15)} /> },
-		{ name: 'input', element: <DatePicker input defaultValue={new Date(2025, 5, 15)} /> },
+		{ name: 'trigger', element: <DatePicker clearable defaultValue={new Date(2025, 5, 15)} /> },
+		{ name: 'input', element: <DatePicker input clearable defaultValue={new Date(2025, 5, 15)} /> },
 		{
 			name: 'range',
-			element: <DatePicker range defaultValue={[new Date(2025, 5, 15), new Date(2025, 5, 20)]} />,
+			element: (
+				<DatePicker range clearable defaultValue={[new Date(2025, 5, 15), new Date(2025, 5, 20)]} />
+			),
 		},
 	]
 

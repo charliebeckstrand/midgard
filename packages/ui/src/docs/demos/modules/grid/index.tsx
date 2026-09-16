@@ -766,7 +766,7 @@ const MasterDetailExample = () => {
 				render: (row) => (
 					<Stack gap="sm">
 						<Text className="font-medium">{row.name}</Text>
-						<Text size="sm" severity="muted">
+						<Text size="sm" tone="muted">
 							{row.email} · {row.role} · currently {row.status}
 						</Text>
 						<Badge color={row.status === 'active' ? 'green' : 'zinc'}>{row.status}</Badge>

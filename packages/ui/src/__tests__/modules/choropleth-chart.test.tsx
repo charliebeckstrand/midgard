@@ -98,6 +98,27 @@ describe('ChoroplethChart', () => {
 		expect(bySlot(container, 'map-range-track')?.getAttribute('style')).toContain('linear-gradient')
 	})
 
+	it('reports a region click, with its id and feature index', () => {
+		const onRegionClick = vi.fn()
+
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={ROWS}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: RANGE }]}
+				width={400}
+				onRegionClick={onRegionClick}
+			/>,
+		)
+
+		const [, beta] = allRegions(container)
+
+		fireEvent.click(beta as Element)
+
+		expect(onRegionClick).toHaveBeenCalledWith('B', 1)
+	})
+
 	it('draws the data-less map with no series', () => {
 		const { container } = renderUI(
 			<ChoroplethChart

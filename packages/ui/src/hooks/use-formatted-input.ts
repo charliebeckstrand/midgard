@@ -4,7 +4,8 @@ import type { ChangeEvent, Ref } from 'react'
 import { countMeaningful, cursorForCount } from '../utilities'
 import { usePendingCaret } from './use-pending-caret'
 
-type FormattedInputOptions = {
+/** Options for {@link useFormattedInput}: the `format` pass, the meaningful-character test the caret rides, and the ref to compose. */
+export type FormattedInputOptions = {
 	/** Reformats raw text on every change. */
 	format: (raw: string) => string
 	/**

@@ -7,7 +7,7 @@ export function Demo() {
 	return (
 		<Example title="Padding">
 			<Stack gap="lg">
-				<Container padding="none">
+				<Container padding={0}>
 					<Card bg="tint">No padding</Card>
 				</Container>
 				<Container padding="sm">

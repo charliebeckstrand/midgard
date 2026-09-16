@@ -4,7 +4,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { matchesMediaQuery, subscribeMediaQuery } from '../utilities/media-query'
 import { useOpenChange } from './use-open-change'
 
-type OffcanvasOptions = {
+/** Options for {@link useOffcanvas}: the open-state binding the offcanvas panel reads. */
+export type OffcanvasOptions = {
 	/**
 	 * Fires when the panel opens or closes, whatever drove it: a trigger, a dismissal,
 	 * `close`, or the viewport crossing `--breakpoint-lg`.

@@ -8,124 +8,100 @@ import { useControllable } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { Overlay } from '../../primitives/overlay'
-import { PanelProviders } from '../../primitives/panel'
+import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k, type SheetPanelVariants } from '../../recipes/kata/sheet'
 import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 
 /** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
-export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> & {
-	/**
-	 * How wide the panel opens.
-	 *
-	 * The named steps are max-widths: the panel fills the screen on a phone and
-	 * caps at the named width from `sm` up.
-	 *
-	 * `fit` takes the width of what it holds instead, capped at the screen less
-	 * the inset the panel floats on. Pass it for a panel built around its content
-	 * rather than a step chosen for it. A table whose columns decide how much room
-	 * they need is one. What is inside has to be able to state a width of its own.
-	 * A child that fills its container instead (`<Grid>` by default) leaves the
-	 * two measuring each other. Pair this with that child's own fit — see
-	 * {@link GridDataProps.width}.
-	 *
-	 * It settles rather than travels, unlike the drawer's `fit` height. A panel
-	 * docked across the screen is navigated within and swaps what it holds. This
-	 * one is built around content that has a width and keeps it. A width that
-	 * does move — a grid re-measuring as wider rows page in — arrives in one step.
-	 *
-	 * Only on the sides a width is docked across (`right`, `left`). A `top` or
-	 * `bottom` sheet spans the screen, so it stays full-width.
-	 * @defaultValue 'md'
-	 */
-	width?: SheetPanelVariants['width']
-	/** Controlled open state. Pair with `onOpenChange`. */
-	open?: boolean
-	/** Initial open state when uncontrolled. */
-	defaultOpen?: boolean
-	/**
-	 * Give the panel a drag handle. The reader can then resize it past the `width`
-	 * scale, and throw it away toward its own edge.
-	 *
-	 * The drag sets the width directly rather than stepping between the `width`
-	 * variants. The reader is deciding how much of the screen the panel gets, and
-	 * the answer is wherever they let go. `width` still states where it
-	 * opens, and a closed panel forgets what it was dragged to.
-	 *
-	 * @defaultValue false
-	 */
-	handle?: boolean
-	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
-	onOpenChange?: (open: boolean) => void
-	/**
-	 * Fires once the panel has finished arriving — it is in from its edge, at rest, and
-	 * covering whatever it covers.
-	 *
-	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
-	 * one reports it having *landed*. Use it for anything that has to hold until
-	 * the panel is actually up. That covers measuring it, or starting work that
-	 * must not compete with the slide. It beats guessing at the slide with a
-	 * matching delay.
-	 *
-	 * Deliberately named for the open, not for the animation. It reports from whichever
-	 * `side` preset ran. A slide the user's reduced-motion preference collapses still
-	 * resolves, and so still reports.
-	 *
-	 * Once per arrival, and never for a close.
-	 *
-	 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
-	 */
-	onOpenComplete?: () => void
-	/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
-	glass?: boolean
-	/**
-	 * Drain the colour from whatever shows through the backdrop. Both scrims are
-	 * translucent, so the page behind stays legible while the sheet is up. This
-	 * renders it in grey, marking it as the inert surface rather than merely the
-	 * dimmed one. No effect where no backdrop renders (see `backdrop`).
-	 *
-	 * @defaultValue false
-	 */
-	desaturate?: boolean
-	className?: string
-	children: ReactNode
-	/**
-	 * Optional element to portal into. When provided, the sheet is scoped to this
-	 * element (rendered with `absolute` positioning, no body scroll lock). The
-	 * container must establish a positioning context (e.g. `position: relative`).
-	 * @defaultValue `document.body` with full-viewport `fixed` positioning
-	 */
-	container?: HTMLElement | null
-	/**
-	 * Element to receive initial focus when the sheet opens.
-	 * @defaultValue the first tabbable child
-	 */
-	initialFocus?: RefObject<HTMLElement | null>
-	/**
-	 * Modal sheets (the default) trap focus, move it into the panel on open,
-	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
-	 * `false` for transient, pointer-driven surfaces (e.g. a hover-revealed
-	 * peek) that must not steal focus or block the page. No backdrop renders
-	 * (unless `backdrop` is set), and the page behind stays interactive. Escape
-	 * or a pointer press outside the panel dismisses.
-	 * @defaultValue true
-	 */
-	modal?: boolean
-	/**
-	 * Paint the dimming backdrop even when `modal={false}`. A non-modal sheet
-	 * renders none by default; opt in to blur and dim the page behind a
-	 * hover-revealed peek. The scrim stays non-interactive, so the page remains
-	 * usable.
-	 * @defaultValue `modal`
-	 */
-	backdrop?: boolean
-	/**
-	 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
-	 * `SheetTitle` registers.
-	 */
-	'aria-label'?: string
-}
+export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> &
+	PanelOverlayProps & {
+		/**
+		 * How wide the panel opens.
+		 *
+		 * The named steps are max-widths: the panel fills the screen on a phone and
+		 * caps at the named width from `sm` up.
+		 *
+		 * `fit` takes the width of what it holds instead, capped at the screen less
+		 * the inset the panel floats on. Pass it for a panel built around its content
+		 * rather than a step chosen for it. A table whose columns decide how much room
+		 * they need is one. What is inside has to be able to state a width of its own.
+		 * A child that fills its container instead (`<Grid>` by default) leaves the
+		 * two measuring each other. Pair this with that child's own fit — see
+		 * {@link GridDataProps.width}.
+		 *
+		 * It settles rather than travels, unlike the drawer's `fit` height. A panel
+		 * docked across the screen is navigated within and swaps what it holds. This
+		 * one is built around content that has a width and keeps it. A width that
+		 * does move — a grid re-measuring as wider rows page in — arrives in one step.
+		 *
+		 * Only on the sides a width is docked across (`right`, `left`). A `top` or
+		 * `bottom` sheet spans the screen, so it stays full-width.
+		 * @defaultValue 'md'
+		 */
+		width?: SheetPanelVariants['width']
+		/** Controlled open state. Pair with `onOpenChange`. */
+		open?: boolean
+		/** Initial open state when uncontrolled. */
+		defaultOpen?: boolean
+		/**
+		 * Give the panel a drag handle. The reader can then resize it past the `width`
+		 * scale, and throw it away toward its own edge.
+		 *
+		 * The drag sets the width directly rather than stepping between the `width`
+		 * variants. The reader is deciding how much of the screen the panel gets, and
+		 * the answer is wherever they let go. `width` still states where it
+		 * opens, and a closed panel forgets what it was dragged to.
+		 *
+		 * @defaultValue false
+		 */
+		handle?: boolean
+		/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
+		onOpenChange?: (open: boolean) => void
+		/**
+		 * Fires once the panel has finished arriving — it is in from its edge, at rest, and
+		 * covering whatever it covers.
+		 *
+		 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
+		 * one reports it having *landed*. Use it for anything that has to hold until
+		 * the panel is actually up. That covers measuring it, or starting work that
+		 * must not compete with the slide. It beats guessing at the slide with a
+		 * matching delay.
+		 *
+		 * Deliberately named for the open, not for the animation. It reports from whichever
+		 * `side` preset ran. A slide the user's reduced-motion preference collapses still
+		 * resolves, and so still reports.
+		 *
+		 * Once per arrival, and never for a close.
+		 *
+		 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
+		 */
+		onOpenComplete?: () => void
+		/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
+		glass?: boolean
+		/**
+		 * Drain the colour from whatever shows through the backdrop. Both scrims are
+		 * translucent, so the page behind stays legible while the sheet is up. This
+		 * renders it in grey, marking it as the inert surface rather than merely the
+		 * dimmed one. No effect where no backdrop renders (see `backdrop`).
+		 *
+		 * @defaultValue false
+		 */
+		desaturate?: boolean
+		className?: string
+		children: ReactNode
+		/**
+		 * Element to receive initial focus when the sheet opens.
+		 * @defaultValue the first tabbable child
+		 */
+		initialFocus?: RefObject<HTMLElement | null>
+		/**
+		 * Accessible name for sheets without a visible `SheetTitle`. Ignored once a
+		 * `SheetTitle` registers.
+		 */
+		'aria-label'?: string
+	}
 
 /**
  * Edge-anchored overlay panel sliding in from `side` (default `'right'`),
@@ -160,6 +136,7 @@ export function Sheet({
 	className,
 	children,
 	container,
+	dismissOnBackdrop,
 	initialFocus,
 	modal,
 	backdrop,
@@ -201,6 +178,7 @@ export function Sheet({
 			onOpenChange={setOpen}
 			container={container}
 			initialFocus={initialFocus}
+			dismissOnBackdrop={dismissOnBackdrop}
 			modal={modal}
 			backdrop={backdrop}
 			backdropClassName={k.backdrop({ surface: resolvedSurface, desaturate })}

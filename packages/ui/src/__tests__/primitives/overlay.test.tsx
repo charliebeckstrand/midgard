@@ -97,9 +97,12 @@ describe('Overlay', () => {
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})
 
-	it('uses the glass backdrop class when glass is true', () => {
+	it('takes the backdrop class the panel hands it, in place of the base scrim', () => {
+		// One styling channel: every panel drives its own surface through
+		// `backdropClassName`, so nothing can be set and then silently outranked.
+		// The glass fill this asserts is what `Dialog` passes from its own recipe.
 		renderUI(
-			<Overlay open glass onOpenChange={() => {}}>
+			<Overlay open backdropClassName="absolute inset-0 bg-white/75" onOpenChange={() => {}}>
 				<span>content</span>
 			</Overlay>,
 		)
@@ -108,13 +111,10 @@ describe('Overlay', () => {
 			'[data-slot="overlay-backdrop"]',
 		) as HTMLElement
 
-		// The glass backdrop swaps the denser fill (bg-white/75 + its dark pair)
-		// for the base scrim and drops the blur. Asserting the glass fill plus the
-		// absence of backdrop-blur-sm fails on both counts if `glass` were ignored
-		// and the base backdrop (bg-white/50 + backdrop-blur-sm) rendered instead.
 		expect(backdrop.className).toContain('bg-white/75')
 
-		expect(backdrop.className).toContain('dark:bg-zinc-950/75')
+		// The base scrim's own fill and blur are replaced, not merged.
+		expect(backdrop.className).not.toContain('bg-white/50')
 
 		expect(backdrop.className).not.toContain('backdrop-blur')
 	})

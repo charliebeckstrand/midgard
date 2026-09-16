@@ -6,6 +6,7 @@ export {
 	type PanelDescriptionProps,
 	type PanelFooterProps,
 	type PanelHeaderProps,
+	type PanelOverlayProps,
 	PanelProviders,
 	type PanelProvidersProps,
 	type PanelTitleProps,

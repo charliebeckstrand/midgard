@@ -123,3 +123,33 @@ describe('Box', () => {
 		expect(el.className).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
 	})
 })
+
+describe('Box responsive padding', () => {
+	// `Responsive<T>` reached Flex and Stack alone once, so a Box's padding could
+	// not change with the viewport.
+	it('emits one padding class per named breakpoint', () => {
+		const { container } = renderUI(<Box p={{ initial: 'sm', md: 'lg' }}>content</Box>)
+
+		const className = bySlot(container, 'box')?.className ?? ''
+
+		expect(className).toContain('p-2')
+
+		expect(className).toContain('md:p-4')
+	})
+
+	it('resolves the axis padding the same way', () => {
+		const { container } = renderUI(
+			<Box px={{ initial: 0, lg: 'xl' }} py={{ initial: 'xs' }}>
+				content
+			</Box>,
+		)
+
+		const className = bySlot(container, 'box')?.className ?? ''
+
+		expect(className).toContain('px-0')
+
+		expect(className).toContain('lg:px-6')
+
+		expect(className).toContain('py-1')
+	})
+})

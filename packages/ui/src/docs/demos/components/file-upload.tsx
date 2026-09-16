@@ -1,5 +1,10 @@
 import { type ReactNode, useState } from 'react'
-import { FileUpload, formatFileNames } from '../../../components/file-upload'
+import {
+	FileUploadButton,
+	FileUploadDrop,
+	FileUploadInput,
+	formatFileNames,
+} from '../../../components/file-upload'
 import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Text } from '../../../components/text'
@@ -13,7 +18,7 @@ function Sizer({ children }: { children: ReactNode }) {
 function DropSingleExample() {
 	return (
 		<Sizer>
-			<FileUpload />
+			<FileUploadDrop />
 		</Sizer>
 	)
 }
@@ -21,7 +26,7 @@ function DropSingleExample() {
 function DropMultipleExample() {
 	return (
 		<Sizer>
-			<FileUpload multiple />
+			<FileUploadDrop multiple />
 		</Sizer>
 	)
 }
@@ -29,7 +34,7 @@ function DropMultipleExample() {
 function DropAcceptExample() {
 	return (
 		<Sizer>
-			<FileUpload accept="image/*" />
+			<FileUploadDrop accept="image/*" />
 		</Sizer>
 	)
 }
@@ -37,7 +42,7 @@ function DropAcceptExample() {
 function InputSingleExample() {
 	return (
 		<Sizer>
-			<FileUpload variant="input" />
+			<FileUploadInput />
 		</Sizer>
 	)
 }
@@ -45,7 +50,7 @@ function InputSingleExample() {
 function InputMultipleExample() {
 	return (
 		<Sizer>
-			<FileUpload variant="input" multiple />
+			<FileUploadInput multiple />
 		</Sizer>
 	)
 }
@@ -53,7 +58,7 @@ function InputMultipleExample() {
 function InputAcceptExample() {
 	return (
 		<Sizer>
-			<FileUpload variant="input" accept="image/*" />
+			<FileUploadInput accept="image/*" />
 		</Sizer>
 	)
 }
@@ -64,8 +69,8 @@ function ButtonSingleExample() {
 	return (
 		<Sizer>
 			<Stack gap="md">
-				<FileUpload variant="button" onAccept={setFiles} />
-				{files.length > 0 && <Text severity="muted">{formatFileNames(files)}</Text>}
+				<FileUploadButton onAccept={setFiles} />
+				{files.length > 0 && <Text tone="muted">{formatFileNames(files)}</Text>}
 			</Stack>
 		</Sizer>
 	)
@@ -79,11 +84,11 @@ function ButtonMultipleExample() {
 	return (
 		<Sizer>
 			<Stack gap="md">
-				<FileUpload variant="button" multiple onAccept={setFiles} />
+				<FileUploadButton multiple onAccept={setFiles} />
 				{files.length > 0 && (
-					<Tooltip enabled={manyFiles}>
+					<Tooltip disabled={!manyFiles}>
 						<TooltipTrigger>
-							<Text severity="muted">
+							<Text tone="muted">
 								{manyFiles ? `${files.length} files` : formatFileNames(files)}
 							</Text>
 						</TooltipTrigger>
@@ -101,8 +106,8 @@ function ButtonAcceptExample() {
 	return (
 		<Sizer>
 			<Stack gap="md">
-				<FileUpload variant="button" accept="image/*" onAccept={setFiles} />
-				{files.length > 0 && <Text severity="muted">{formatFileNames(files)}</Text>}
+				<FileUploadButton accept="image/*" onAccept={setFiles} />
+				{files.length > 0 && <Text tone="muted">{formatFileNames(files)}</Text>}
 			</Stack>
 		</Sizer>
 	)

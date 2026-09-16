@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react'
-import { Alert, AlertDescription } from '../../../components/alert'
+import { Alert } from '../../../components/alert'
 import {
 	Stepper,
 	StepperPanel,
@@ -27,12 +27,16 @@ export function Demo() {
 
 	return (
 		<>
-			<Alert severity="info" closable>
-				<AlertDescription>
-					When <code>orientation</code> is not explicitly set, the stepper defaults to{' '}
-					<code>vertical</code> on mobile.
-				</AlertDescription>
-			</Alert>
+			<Alert
+				severity="info"
+				closable
+				description={
+					<>
+						When <code>orientation</code> is not explicitly set, the stepper defaults to{' '}
+						<code>vertical</code> on mobile.
+					</>
+				}
+			/>
 
 			<Example
 				title="Horizontal"

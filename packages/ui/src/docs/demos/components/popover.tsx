@@ -20,7 +20,7 @@ const iconMap = {
 const popoverContent = (
 	<>
 		<Text>Popover content</Text>
-		<Text severity="muted">This is a general-purpose floating container.</Text>
+		<Text tone="muted">This is a general-purpose floating container.</Text>
 	</>
 )
 

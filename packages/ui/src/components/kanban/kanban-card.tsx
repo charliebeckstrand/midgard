@@ -6,10 +6,10 @@ import { useSortableItem } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext, useKanbanContext } from './context'
 
-/** Props for {@link KanbanCard}: the `cardId` matching a parent-column item, with an optional accessible-name override. */
+/** Props for {@link KanbanCard}: the `value` matching a parent-column item, with an optional accessible-name override. */
 export type KanbanCardProps = {
-	/** Stable id matching an entry in the parent column's `items`. */
-	cardId: string
+	/** Stable key matching an entry in the parent column's `items`; the keyed-child `value` every compound in the library takes. */
+	value: string
 	/**
 	 * Overrides the card's accessible name. By default the card is named by its
 	 * own content; dnd-kit already announces draggability (`aria-roledescription`)
@@ -22,7 +22,7 @@ export type KanbanCardProps = {
 }
 
 /**
- * Draggable card within a {@link KanbanColumn}, keyed by `cardId`. Wires
+ * Draggable card within a {@link KanbanColumn}, keyed by `value`. Wires
  * `@dnd-kit` sortable bindings and the board's keyboard handlers when the board
  * is interactive, and mirrors its content into the drag overlay. Renders inert
  * when the board is read-only.
@@ -33,12 +33,30 @@ export type KanbanCardProps = {
  * content yields no usable name. Memoized: the card reads only the card-facing
  * {@link KanbanContext}, so a pointer drag doesn't re-render the whole board.
  */
-function KanbanCardImpl({ cardId, 'aria-label': ariaLabel, children, className }: KanbanCardProps) {
+function KanbanCardImpl({
+	value: cardId,
+	'aria-label': ariaLabel,
+	children,
+	className,
+}: KanbanCardProps) {
 	const { interactive, disabled, liftedCardId, overlayMap, onCardKeyDown, onCardBlur } =
 		useKanbanContext()
 
 	// Surfaces the column context for use within this card.
-	useKanbanColumnContext()
+	const { itemIds } = useKanbanColumnContext()
+
+	// The board's other unjoined key. A card key its column's `items` does not
+	// hold drags nowhere: `onReorder` computes the next columns from the data,
+	// which never held it.
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (itemIds.includes(cardId)) return
+
+		console.warn(
+			`Kanban: <KanbanCard value="${cardId}"> names no item in its column's \`items\`. The card renders and never reorders.`,
+		)
+	}, [cardId, itemIds])
 
 	const { setNodeRef, attributes, listeners, style, dragging } = useSortableItem({
 		id: cardId,

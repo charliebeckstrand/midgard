@@ -22,7 +22,8 @@ type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
 
 type FloatingDisclosureGate = (next: boolean, refs: ExtendedRefs<ReferenceType>) => boolean
 
-type FloatingDisclosureOptions = Omit<
+/** Options for {@link useFloatingDisclosure}: the open-state triad it binds. */
+export type FloatingDisclosureOptions = Omit<
 	FloatingPanelOptions,
 	'open' | 'onOpenChange' | 'returnFocusTo'
 > & {
@@ -55,7 +56,8 @@ type FloatingDisclosureOptions = Omit<
 
 // Explicit return type: `@floating-ui/react-dom` is a transitive dep TS
 // can't express in a portable `.d.ts` (TS2742); same constraint as `useFloatingPanel`.
-type FloatingDisclosureResult = {
+/** Return shape of {@link useFloatingDisclosure}: the resolved open state and its setter. */
+export type FloatingDisclosureResult = {
 	open: boolean
 	setOpen: (open: boolean) => void
 	close: () => void

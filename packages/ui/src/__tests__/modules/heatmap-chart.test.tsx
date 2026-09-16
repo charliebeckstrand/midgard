@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { act, bySlot, fireEvent, renderUI } from '../helpers'
@@ -16,7 +16,7 @@ const RANGE = ['#f7fee7', '#365314']
 
 const SERIES = [
 	{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: RANGE, colorName: 'Commits' },
-] satisfies HeatmapChartSeries<Row>[]
+] satisfies [HeatmapChartSeries<Row>]
 
 const cellRects = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll('[data-slot="heatmap-cells"] rect'))
@@ -43,6 +43,32 @@ describe('HeatmapChart', () => {
 		const noData = rects.find((rect) => rect.getAttribute('fill') === null)
 
 		expect(noData?.getAttribute('class')).toContain('fill-zinc')
+	})
+
+	it('separates a skewed field under quantile binning that a linear scale flattens', () => {
+		// Three cells sit at the bottom of the range and one far above it. A linear
+		// scale drops the low three into one bin; quantile cuts between them.
+		const skewed = [
+			{ day: 'Mon', hour: '9', commits: 1 },
+			{ day: 'Mon', hour: '10', commits: 2 },
+			{ day: 'Tue', hour: '9', commits: 3 },
+			{ day: 'Tue', hour: '10', commits: 400 },
+		]
+
+		const fillsFor = (binning?: 'linear' | 'quantile') => {
+			const { container } = renderUI(
+				<HeatmapChart
+					aria-label="Commits"
+					data={skewed}
+					series={[{ ...(SERIES[0] as HeatmapChartSeries<Row>), bins: 4, binning }]}
+					width={400}
+				/>,
+			)
+
+			return cellRects(container).map((rect) => rect.getAttribute('fill'))
+		}
+
+		expect(new Set(fillsFor('linear')).size).toBeLessThan(new Set(fillsFor('quantile')).size)
 	})
 
 	it('carries full value parity in the visually-hidden table', () => {
@@ -349,5 +375,67 @@ describe('HeatmapChart', () => {
 		fireEvent.click(hit, { clientX: 330, clientY: 70 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+})
+
+describe('HeatmapChart cell clicks', () => {
+	// A heatmap cell is named by a pair of band labels and not by one id, so it
+	// reports its own identity rather than the `(id, index)` a map region does.
+	it('mounts the hit layer for a cell-click report alone', () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				tooltip={false}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const hit = bySlot(container, 'heatmap-hit')
+
+		expect(hit).not.toBeNull()
+
+		expect(hit?.getAttribute('class')).toContain('cursor-pointer')
+	})
+
+	it('reports the clicked cell by its two band labels and its matrix position', () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const hit = bySlot(container, 'heatmap-hit') as Element
+
+		// The layer resolves a click through the rect it is drawn at, which jsdom
+		// measures at zero. Give it one, as the pointer-resolution test above does.
+		;(hit as Element).getBoundingClientRect = () =>
+			({
+				left: 100,
+				top: 50,
+				right: 340,
+				bottom: 210,
+				width: 240,
+				height: 160,
+				x: 100,
+				y: 50,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// Columns are ['9', '10'] and rows ['Mon', 'Tue'], so the top-left cell is
+		// Mon at hour 9 — matrix position [0, 0].
+		fireEvent.click(hit, { clientX: 130, clientY: 70 })
+
+		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
 	})
 })

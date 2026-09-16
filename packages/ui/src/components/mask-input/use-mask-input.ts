@@ -10,7 +10,7 @@ type MaskedInputOptions = {
 	 * supply form defaults for masked fields pre-formatted.
 	 */
 	name?: string
-	value?: string
+	value?: string | null
 	defaultValue?: string
 	onChange?: (value: string) => void
 	format: (raw: string) => string

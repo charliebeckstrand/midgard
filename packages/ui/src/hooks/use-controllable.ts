@@ -5,7 +5,8 @@ import { useCallback, useRef, useState } from 'react'
 /** Argument to {@link useControllable}'s setter: a next value, `null`/`undefined` to clear, or a functional updater over the previous value. */
 export type SetValue<T> = T | null | undefined | ((prev: T | undefined) => T | null | undefined)
 
-type ControllableOptions<T> = {
+/** Options for {@link useControllable}: the controlled `value`, the uncontrolled `defaultValue`, and the change report. */
+export type ControllableOptions<T> = {
 	/** Controlled value. `undefined` leaves the hook uncontrolled; pass `null` to stay controlled with no current value. */
 	value?: T | null
 	/** Initial value when uncontrolled. Pass a thunk for a lazy initializer, evaluated once on mount (mirrors `useState`). */

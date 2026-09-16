@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react'
 import type { ContextMenuEntry } from '../../components/context-menu'
+import type { QueryField, QueryFieldType, QueryGroup } from '../query'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { GridEditCell, GridRowActionsContext } from './grid-editing-types'
 
@@ -60,14 +61,14 @@ export type GridColumn<T> = {
 	 * string for `date`, a boolean for `boolean`.
 	 * @defaultValue 'text'
 	 */
-	filterType?: 'text' | 'number' | 'select' | 'date' | 'boolean'
+	filterType?: QueryFieldType
 	/**
 	 * Options for a `select` {@link GridColumn.filterType}. Omit to offer the
 	 * column's own values instead, faceted from the data (the distinct
 	 * {@link GridColumn.value}s among the rows other filters leave, sorted and
 	 * de-duplicated). Unavailable under server-side filtering.
 	 */
-	filterOptions?: { label: string; value: string }[]
+	filterOptions?: NonNullable<QueryField['options']>
 	/**
 	 * Marks this as the selection column; renders the row-select checkboxes
 	 * instead of a cell value. Defaults to a natural checkbox width rather than a
@@ -208,8 +209,13 @@ export type GridColumn<T> = {
 	 * single-word header stays whole. Omit it to size to content from the first
 	 * render. Columns share the width evenly when there is room to spare, and any
 	 * column whose content would truncate takes more.
+	 *
+	 * A number is px, matching {@link GridColumn.minWidth} and
+	 * {@link GridColumn.maxWidth}, which are numbers already. A string is a CSS
+	 * width. Only a plain `px` or unitless one is read as a seed; a relative or
+	 * `auto` width leaves the column on content sizing.
 	 */
-	width?: string
+	width?: number | string
 	/**
 	 * Minimum width (px); the floor the automatic sizing and a drag-resize never go
 	 * below. A single-word header sets its own floor (its full width, so it never
@@ -420,8 +426,16 @@ export type GridSearch = {
 	placeholder?: string
 }
 
-/** One column's filter — its id and filter value, structurally TanStack's `ColumnFilter`. */
-export type GridColumnFilterState = { id: string; value: unknown }
+/**
+ * One column's filter: its id and the query tree the column filters by,
+ * structurally TanStack's `ColumnFilter`.
+ *
+ * @remarks The value is typed rather than `unknown`. The grid's filter function
+ * evaluates it as a {@link QueryGroup} and reads anything else as no filter.
+ * The engine's own state stays `unknown`-valued, which a narrower type is
+ * assignable to.
+ */
+export type GridColumnFilterState = { id: string; value: QueryGroup }
 
 /**
  * Controlled/uncontrolled per-column filter binding for

@@ -51,7 +51,8 @@ class PrimaryPointerSensor extends PointerSensor {
  */
 const POINTER_ACTIVATION = { activationConstraint: { distance: 3 } }
 
-type SortableSensorsOptions = {
+/** Options for {@link useSortableSensors}: which input sensors the list arms. */
+export type SortableSensorsOptions = {
 	/** Include dnd-kit's keyboard sensor. Disable when the caller handles keyboard reordering itself. @defaultValue true */
 	keyboard?: boolean
 	/**

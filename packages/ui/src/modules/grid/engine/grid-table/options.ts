@@ -102,9 +102,17 @@ export function usesClientModel(args: {
 	)
 }
 
-/** Parses a plain `px`/unitless CSS width to a number, or `undefined` for relative/auto widths. @internal */
-export function parsePxWidth(width: string | undefined): number | undefined {
+/**
+ * Parses a column width to px. A number passes through. A string yields a
+ * number only where it is a plain `px` or unitless value. A relative or `auto`
+ * width returns `undefined`, which leaves the column on content sizing.
+ *
+ * @internal
+ */
+export function parsePxWidth(width: number | string | undefined): number | undefined {
 	if (width == null) return undefined
+
+	if (typeof width === 'number') return Number.isFinite(width) ? width : undefined
 
 	const match = /^(\d+(?:\.\d+)?)(?:px)?$/.exec(width.trim())
 

@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Description, Message } from '../../components/fieldset'
-import { FileUpload } from '../../components/file-upload'
+import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
 import { expectAnnouncement, fireEvent, makeFileList, renderUI, screen } from '../helpers'
 
 describe('FileUpload', () => {
 	it('renders a visually hidden file input', () => {
-		const { container } = renderUI(<FileUpload>Upload</FileUpload>)
+		const { container } = renderUI(<FileUploadDrop>Upload</FileUploadDrop>)
 
 		const input = container.querySelector('input[type="file"]') as HTMLInputElement
 
@@ -16,7 +16,7 @@ describe('FileUpload', () => {
 	})
 
 	it('accepts the accept prop', () => {
-		const { container } = renderUI(<FileUpload accept="image/*">Upload</FileUpload>)
+		const { container } = renderUI(<FileUploadDrop accept="image/*">Upload</FileUploadDrop>)
 
 		const input = container.querySelector('input[type="file"]') as HTMLInputElement
 
@@ -32,13 +32,13 @@ describe('FileUpload drop variant selection', () => {
 	}
 
 	it('shows the drop prompt when empty', () => {
-		renderUI(<FileUpload />)
+		renderUI(<FileUploadDrop />)
 
 		expect(screen.getByText('Drop files here or click to browse')).toBeInTheDocument()
 	})
 
 	it('replaces the prompt with the filename and a Reset button once a file is selected', () => {
-		const { container } = renderUI(<FileUpload />)
+		const { container } = renderUI(<FileUploadDrop />)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -50,7 +50,7 @@ describe('FileUpload drop variant selection', () => {
 	})
 
 	it('keeps the dropzone operable so a different file can be picked after a selection', () => {
-		const { container } = renderUI(<FileUpload />)
+		const { container } = renderUI(<FileUploadDrop />)
 
 		const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
 
@@ -64,7 +64,7 @@ describe('FileUpload drop variant selection', () => {
 	})
 
 	it('shows an "x files selected" summary for a multi-file selection', () => {
-		const { container } = renderUI(<FileUpload multiple />)
+		const { container } = renderUI(<FileUploadDrop multiple />)
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
@@ -74,7 +74,7 @@ describe('FileUpload drop variant selection', () => {
 	it('clears the selection and restores the drop prompt when Reset is clicked', () => {
 		const onAccept = vi.fn()
 
-		const { container } = renderUI(<FileUpload onAccept={onAccept} />)
+		const { container } = renderUI(<FileUploadDrop onAccept={onAccept} />)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -86,7 +86,7 @@ describe('FileUpload drop variant selection', () => {
 	})
 
 	it('ignores the built-in selection display when custom children are provided', () => {
-		const { container } = renderUI(<FileUpload>Custom prompt</FileUpload>)
+		const { container } = renderUI(<FileUploadDrop>Custom prompt</FileUploadDrop>)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -100,7 +100,7 @@ describe('FileUpload drop variant selection', () => {
 
 describe('FileUpload input variant', () => {
 	it('renders a read-only input with the configured placeholder', () => {
-		renderUI(<FileUpload variant="input" placeholder="Choose…" />)
+		renderUI(<FileUploadInput placeholder="Choose…" />)
 
 		const input = screen.getByPlaceholderText('Choose…')
 
@@ -110,19 +110,19 @@ describe('FileUpload input variant', () => {
 	})
 
 	it('falls back to a default placeholder when none is provided', () => {
-		renderUI(<FileUpload variant="input" />)
+		renderUI(<FileUploadInput />)
 
 		expect(screen.getByPlaceholderText('Choose a file')).toBeInTheDocument()
 	})
 
 	it('disables the input when disabled is set', () => {
-		renderUI(<FileUpload variant="input" disabled />)
+		renderUI(<FileUploadInput disabled />)
 
 		expect(screen.getByPlaceholderText('Choose a file')).toBeDisabled()
 	})
 
 	it('renders the empty-state upload affordance as a button that opens the picker', () => {
-		const { container } = renderUI(<FileUpload variant="input" />)
+		const { container } = renderUI(<FileUploadInput />)
 
 		const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
 
@@ -142,7 +142,7 @@ describe('FileUpload input variant selection', () => {
 	}
 
 	it('shows the filename as the value once a file is selected', () => {
-		const { container } = renderUI(<FileUpload variant="input" />)
+		const { container } = renderUI(<FileUploadInput />)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -150,7 +150,7 @@ describe('FileUpload input variant selection', () => {
 	})
 
 	it('shows an "x files selected" summary for a multi-file selection', () => {
-		const { container } = renderUI(<FileUpload variant="input" multiple />)
+		const { container } = renderUI(<FileUploadInput multiple />)
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
@@ -158,7 +158,7 @@ describe('FileUpload input variant selection', () => {
 	})
 
 	it('swaps the suffix to a clear button once a file is selected', () => {
-		const { container } = renderUI(<FileUpload variant="input" />)
+		const { container } = renderUI(<FileUploadInput />)
 
 		expect(screen.queryByRole('button', { name: 'Clear selected file(s)' })).not.toBeInTheDocument()
 
@@ -170,9 +170,7 @@ describe('FileUpload input variant selection', () => {
 	it('clears the selection and restores the placeholder when the clear button is clicked', () => {
 		const onAccept = vi.fn()
 
-		const { container } = renderUI(
-			<FileUpload variant="input" placeholder="Choose…" onAccept={onAccept} />,
-		)
+		const { container } = renderUI(<FileUploadInput placeholder="Choose…" onAccept={onAccept} />)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -186,29 +184,25 @@ describe('FileUpload input variant selection', () => {
 
 describe('FileUpload button variant', () => {
 	it('renders a button with default copy when no children are provided', () => {
-		renderUI(<FileUpload variant="button" />)
+		renderUI(<FileUploadButton />)
 
 		expect(screen.getByRole('button', { name: 'Upload' })).toBeInTheDocument()
 	})
 
 	it('uses children as the button label when provided', () => {
-		renderUI(<FileUpload variant="button">Pick a file</FileUpload>)
+		renderUI(<FileUploadButton>Pick a file</FileUploadButton>)
 
 		expect(screen.getByRole('button', { name: 'Pick a file' })).toBeInTheDocument()
 	})
 
 	it('leaves the button enabled when disabled is not set', () => {
-		renderUI(<FileUpload variant="button">Pick</FileUpload>)
+		renderUI(<FileUploadButton>Pick</FileUploadButton>)
 
 		expect(screen.getByRole('button', { name: 'Pick' })).not.toBeDisabled()
 	})
 
 	it('disables the button when disabled is set', () => {
-		renderUI(
-			<FileUpload variant="button" disabled>
-				Pick
-			</FileUpload>,
-		)
+		renderUI(<FileUploadButton disabled>Pick</FileUploadButton>)
 
 		expect(screen.getByRole('button', { name: 'Pick' })).toBeDisabled()
 	})
@@ -222,7 +216,7 @@ describe('FileUpload button variant selection', () => {
 	}
 
 	it('keeps the Upload trigger and adds a Reset button once a file is selected', () => {
-		const { container } = renderUI(<FileUpload variant="button" />)
+		const { container } = renderUI(<FileUploadButton />)
 
 		const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement
 
@@ -241,7 +235,7 @@ describe('FileUpload button variant selection', () => {
 	it('clears the selection and removes Reset when Reset is clicked', () => {
 		const onAccept = vi.fn()
 
-		const { container } = renderUI(<FileUpload variant="button" onAccept={onAccept} />)
+		const { container } = renderUI(<FileUploadButton onAccept={onAccept} />)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -259,7 +253,7 @@ describe('FileUpload + Control', () => {
 	it('surfaces invalid and required state onto the hidden file input', () => {
 		const { container } = renderUI(
 			<Control severity="error" required>
-				<FileUpload>Upload</FileUpload>
+				<FileUploadDrop>Upload</FileUploadDrop>
 			</Control>,
 		)
 
@@ -274,7 +268,7 @@ describe('FileUpload + Control', () => {
 		const { container } = renderUI(
 			<Control id="doc" severity="error">
 				<Description>PDF only</Description>
-				<FileUpload>Upload</FileUpload>
+				<FileUploadDrop>Upload</FileUploadDrop>
 				<Message>A file is required</Message>
 			</Control>,
 		)
@@ -294,7 +288,7 @@ describe('FileUpload disabled dropzone', () => {
 		container.querySelector('[data-slot="file-upload"]') as HTMLElement
 
 	it('does not light up data-drag-over while disabled', () => {
-		const { container } = renderUI(<FileUpload disabled>Upload</FileUpload>)
+		const { container } = renderUI(<FileUploadDrop disabled>Upload</FileUploadDrop>)
 
 		const zone = dropzone(container)
 
@@ -307,9 +301,9 @@ describe('FileUpload disabled dropzone', () => {
 		const onAccept = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload disabled onAccept={onAccept}>
+			<FileUploadDrop disabled onAccept={onAccept}>
 				Upload
-			</FileUpload>,
+			</FileUploadDrop>,
 		)
 
 		const zone = dropzone(container)
@@ -326,7 +320,7 @@ describe('FileUpload disabled dropzone', () => {
 	it('accepts dropped files when enabled', () => {
 		const onAccept = vi.fn()
 
-		const { container } = renderUI(<FileUpload onAccept={onAccept}>Upload</FileUpload>)
+		const { container } = renderUI(<FileUploadDrop onAccept={onAccept}>Upload</FileUploadDrop>)
 
 		const zone = dropzone(container)
 
@@ -352,9 +346,9 @@ describe('FileUpload constraints', () => {
 		const big = fileOfSize('big.txt', 500)
 
 		const { container } = renderUI(
-			<FileUpload multiple maxSize={100} onAccept={onAccept} onReject={onReject}>
+			<FileUploadDrop multiple maxSize={100} onAccept={onAccept} onReject={onReject}>
 				Upload
-			</FileUpload>,
+			</FileUploadDrop>,
 		)
 
 		fireEvent.drop(dropzone(container), { dataTransfer: { files: makeFileList([small, big]) } })
@@ -370,9 +364,9 @@ describe('FileUpload constraints', () => {
 		const onReject = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload multiple maxCount={2} onAccept={onAccept} onReject={onReject}>
+			<FileUploadDrop multiple maxCount={2} onAccept={onAccept} onReject={onReject}>
 				Upload
-			</FileUpload>,
+			</FileUploadDrop>,
 		)
 
 		fireEvent.drop(dropzone(container), {
@@ -396,7 +390,7 @@ describe('FileUpload announcements', () => {
 	}
 
 	it('announces a single selected file by name', async () => {
-		const { container } = renderUI(<FileUpload>Upload</FileUpload>)
+		const { container } = renderUI(<FileUploadDrop>Upload</FileUploadDrop>)
 
 		selectFiles(container, [new File(['x'], 'resume.pdf')])
 
@@ -404,7 +398,7 @@ describe('FileUpload announcements', () => {
 	})
 
 	it('announces the count and names for a multi-file selection', async () => {
-		const { container } = renderUI(<FileUpload multiple>Upload</FileUpload>)
+		const { container } = renderUI(<FileUploadDrop multiple>Upload</FileUploadDrop>)
 
 		selectFiles(container, [new File(['a'], 'a.png'), new File(['b'], 'b.png')])
 
@@ -420,7 +414,7 @@ describe('FileUpload drag-over reporting', () => {
 		const onDragOverChange = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload onDragOverChange={onDragOverChange}>Upload</FileUpload>,
+			<FileUploadDrop onDragOverChange={onDragOverChange}>Upload</FileUploadDrop>,
 		)
 
 		const zone = dropzone(container)
@@ -445,9 +439,9 @@ describe('FileUpload drag-over reporting', () => {
 		const onDragOverChange = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload onDragOverChange={onDragOverChange}>
+			<FileUploadDrop onDragOverChange={onDragOverChange}>
 				<span data-testid="child">Upload</span>
-			</FileUpload>,
+			</FileUploadDrop>,
 		)
 
 		const zone = dropzone(container)
@@ -471,7 +465,7 @@ describe('FileUpload drag-over reporting', () => {
 		const onDragOverChange = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload onDragOverChange={onDragOverChange}>Upload</FileUpload>,
+			<FileUploadDrop onDragOverChange={onDragOverChange}>Upload</FileUploadDrop>,
 		)
 
 		const zone = dropzone(container)
@@ -489,9 +483,9 @@ describe('FileUpload drag-over reporting', () => {
 		const onDragOverChange = vi.fn()
 
 		const { container } = renderUI(
-			<FileUpload disabled onDragOverChange={onDragOverChange}>
+			<FileUploadDrop disabled onDragOverChange={onDragOverChange}>
 				Upload
-			</FileUpload>,
+			</FileUploadDrop>,
 		)
 
 		expect(onDragOverChange).not.toHaveBeenCalled()
