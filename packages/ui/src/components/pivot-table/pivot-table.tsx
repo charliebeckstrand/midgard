@@ -28,8 +28,6 @@ export type PivotTableProps<T> = {
 	format?: (value: number) => ReactNode
 	/** Label for the row-dimension column. */
 	rowHeader?: ReactNode
-	/** Label for the total row / column. @defaultValue 'Total' */
-	totalLabel?: string
 	/** Which totals to render. @defaultValue 'none' */
 	totals?: PivotTotals
 	/** Explicit ordering of row values. Extras in `rows` are appended. */
@@ -66,7 +64,6 @@ export function PivotTable<T>({
 	aggregation = 'sum',
 	format,
 	rowHeader,
-	totalLabel = 'Total',
 	totals = 'none',
 	rowOrder,
 	columnOrder,
@@ -114,7 +111,7 @@ export function PivotTable<T>({
 					))}
 					{showRowTotals && (
 						<TableHeader scope="col" className="text-right">
-							{totalLabel}
+							Total
 						</TableHeader>
 					)}
 				</TableRow>
@@ -148,7 +145,7 @@ export function PivotTable<T>({
 				{showColTotals && (
 					<TableRow className="font-semibold">
 						<TableHeader scope="row" className="font-semibold">
-							{totalLabel}
+							Total
 						</TableHeader>
 						{columnKeys.map((col, i) => {
 							const total = colTotals[i]

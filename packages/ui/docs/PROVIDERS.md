@@ -58,13 +58,13 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 
 ## `ui/providers/locale`
 
-Broadcasts i18n defaults; explicit component props still win.
+Broadcasts `Intl` formatting defaults; explicit component props still win. This is a formatting provider, not a translation layer. It holds no string catalogue, so control strings stay hardcoded English. A catalogue waits for a real second locale.
 
 | Export | Summary |
 |---|---|
-| `LocaleProvider` | Broadcasts i18n defaults (locale, currency, number/date formatting, time zone); explicit component props still win. |
+| `LocaleProvider` | Broadcasts `Intl` formatting defaults (locale tag, currency, number and date options); explicit component props still win. |
 | `LocaleProviderProps` *(type)* | Props for `LocaleProvider`. |
-| `LocaleConfig` *(type)* | Ambient i18n defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`. A nested provider folds over the enclosing config per field. |
+| `LocaleConfig` *(type)* | Ambient `Intl` defaults a `<LocaleProvider>` broadcasts: `locale`, `currency`, `numberFormat`, `dateFormat`. Every field feeds an `Intl.*` formatter, and none holds strings. A nested provider folds over the enclosing config per field. |
 | `useLocale` | Reads the ambient `LocaleConfig` from the nearest `<LocaleProvider>`; returns `{}` outside one. |
 | `useFormat` | Resolves a `FormatSpec` to a memoized `(value) => string` formatter, folding in the ambient locale / currency / number-format defaults. |
 | `FormatSpec` *(type)* | What `useFormat` formats a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id` (`INV-42`). |

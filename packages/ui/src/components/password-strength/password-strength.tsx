@@ -8,7 +8,6 @@ import { Icon } from '../icon'
 import {
 	type PasswordRule,
 	type PasswordStrengthChange,
-	type StrengthLevel,
 	usePasswordStrength,
 } from './use-password-strength'
 
@@ -43,8 +42,6 @@ export type PasswordStrengthProps = {
 	 * @defaultValue `true`
 	 */
 	showRules?: boolean
-	/** Overrides the default level labels (Weak/Fair/Good/Strong). */
-	labels?: Partial<Record<StrengthLevel, string>>
 	/**
 	 * Fires on every strength transition, including first render. See
 	 * {@link PasswordStrengthChange} for the payload.
@@ -62,7 +59,6 @@ export function PasswordStrength({
 	value,
 	rules = defaultPasswordRules,
 	showRules = true,
-	labels,
 	onStrengthChange,
 	className,
 }: PasswordStrengthProps) {
@@ -72,9 +68,7 @@ export function PasswordStrength({
 
 	const activeCount = level === 'empty' ? 0 : strengthLevels.findIndex((l) => l.id === level) + 1
 
-	const label =
-		labels?.[level] ??
-		(activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? ''))
+	const label = activeCount === 0 ? 'Empty' : (strengthLevels[activeCount - 1]?.label ?? '')
 
 	return (
 		<div data-slot="password-strength" className={cn(k.root, className)}>
