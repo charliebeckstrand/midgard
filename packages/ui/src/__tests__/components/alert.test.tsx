@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Alert, AlertTitle } from '../../components/alert'
+import { Alert } from '../../components/alert'
 import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
@@ -12,7 +12,7 @@ describe('Alert', () => {
 		expect(screen.getByText('Description')).toBeInTheDocument()
 	})
 
-	it('auto-wraps non-slot children in AlertBody', () => {
+	it('wraps children in the body slot', () => {
 		const { container } = renderUI(<Alert>plain text</Alert>)
 
 		const body = bySlot(container, 'alert-body')
@@ -22,12 +22,12 @@ describe('Alert', () => {
 		expect(body).toHaveTextContent('plain text')
 	})
 
-	it('does not auto-wrap when children include a slot', () => {
-		const { container } = renderUI(
-			<Alert>
-				<AlertTitle>Title</AlertTitle>
-			</Alert>,
-		)
+	it('renders no body slot for an empty child', () => {
+		// The alert used to reconcile a slot trio against loose children by
+		// sniffing each child's `displayName` (props audit, the Alert REPLACE
+		// row). The title and description are props alone now, so children are
+		// always the body and the sniffing is gone.
+		const { container } = renderUI(<Alert title="Title">{null}</Alert>)
 
 		expect(bySlot(container, 'alert-body')).not.toBeInTheDocument()
 	})

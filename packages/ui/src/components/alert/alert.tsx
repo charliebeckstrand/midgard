@@ -2,8 +2,6 @@
 
 import { AlertTriangle, CheckCircle, Info, X, XCircle } from 'lucide-react'
 import {
-	Children,
-	isValidElement,
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
@@ -37,24 +35,11 @@ const severityIconMap = {
 	error: <XCircle />,
 } satisfies Record<AlertSeverity, ReactElement>
 
-const SLOT_DISPLAY_NAMES = new Set(['alert-title', 'alert-description', 'alert-body'])
-
-/** True when `node` is one of the alert's content slots. @internal */
-function isSlotChild(node: ReactNode): boolean {
-	if (!isValidElement(node)) return false
-
-	const type = node.type as { displayName?: string } | string
-
-	return typeof type !== 'string' && SLOT_DISPLAY_NAMES.has(type.displayName ?? '')
-}
-
-/** Wraps loose children in {@link AlertBody}; passes explicit slot children through. @internal */
+/** Wraps loose children in {@link AlertBody}; renders nothing for an empty child. @internal */
 function renderChildren(children: ReactNode): ReactNode {
 	if (children === undefined || children === null || children === false) return null
 
-	const hasSlot = Children.toArray(children).some(isSlotChild)
-
-	return hasSlot ? children : <AlertBody>{children}</AlertBody>
+	return <AlertBody>{children}</AlertBody>
 }
 
 /** Props for {@link Alert}; merges recipe variants with severity, content slots, and controlled/uncontrolled open state. */
@@ -144,13 +129,19 @@ function AlertContent({
 }
 
 /**
- * Dismissible message bar with severity-driven color, icon, and ARIA role;
- * accepts `title`/`description`/`actions` props or slotted children
- * ({@link AlertTitle}/{@link AlertDescription}/{@link AlertBody}), and runs
- * controlled or uncontrolled via `open`/`defaultOpen`. A `closable` close
- * button can return focus to `returnFocusTo` on dismiss.
+ * Dismissible message bar with severity-driven color, icon, and ARIA role. It
+ * takes its content through `title`, `description`, `actions`, and `children`,
+ * and runs controlled or uncontrolled via `open`/`defaultOpen`. A `closable`
+ * close button can return focus to `returnFocusTo` on dismiss.
  *
  * @remarks
+ * The content is props here, and not the compound children §3.6 prefers
+ * elsewhere, which is a deliberate reversal. Toast renders an Alert from a
+ * queue entry — data, with no children to compose — so the prop form is the
+ * one both paths can use. There used to be a slot trio beside it, reconciled
+ * by sniffing each child's `displayName`. That is the cost the second channel
+ * carried, and it is gone with the slots.
+ *
  * Client component. Polite severities (`info`/`success`, `role="status"`) are
  * re-announced through the persistent announcer on appear. Screen readers can
  * miss a live region inserted together with its text (WCAG 4.1.3).

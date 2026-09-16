@@ -253,54 +253,47 @@ describe('Sidebar mini', () => {
 		)
 	})
 
-	it('hands the resolved mini state to render-prop children on desktop', () => {
+	// The root took a render prop for this once — the library's one root render
+	// prop (props audit, the Sidebar REPLACE row). The context it already
+	// broadcast does the same work, so the three cases below read it instead.
+	function Branch() {
+		return <span data-testid="branch">{useSidebarMini() ? 'rail' : 'full'}</span>
+	}
+
+	it('resolves mini to true on desktop, for a descendant reading the context', () => {
 		stubMatchMedia(() => true)
 
 		renderUI(
 			<Sidebar mini>
-				{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}
+				<Branch />
 			</Sidebar>,
 		)
 
 		expect(screen.getByTestId('branch')).toHaveTextContent('rail')
 	})
 
-	it('resolves render-prop mini to false below the desktop breakpoint', () => {
+	it('resolves mini to false below the desktop breakpoint', () => {
 		stubMatchMedia(() => false)
 
 		renderUI(
 			<Sidebar mini>
-				{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}
+				<Branch />
 			</Sidebar>,
 		)
 
 		expect(screen.getByTestId('branch')).toHaveTextContent('full')
 	})
 
-	it('resolves render-prop mini to false when the prop is unset', () => {
+	it('resolves mini to false when the prop is unset', () => {
 		stubMatchMedia(() => true)
 
 		renderUI(
-			<Sidebar>{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}</Sidebar>,
-		)
-
-		expect(screen.getByTestId('branch')).toHaveTextContent('full')
-	})
-
-	it('exposes the resolved mini state to descendants via useSidebarMini', () => {
-		stubMatchMedia(() => true)
-
-		function Probe() {
-			return <span data-testid="probe">{useSidebarMini() ? 'rail' : 'full'}</span>
-		}
-
-		renderUI(
-			<Sidebar mini>
-				<Probe />
+			<Sidebar>
+				<Branch />
 			</Sidebar>,
 		)
 
-		expect(screen.getByTestId('probe')).toHaveTextContent('rail')
+		expect(screen.getByTestId('branch')).toHaveTextContent('full')
 	})
 })
 

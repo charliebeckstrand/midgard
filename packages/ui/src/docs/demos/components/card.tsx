@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from '../../../components/alert'
+import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import {
 	Card,
@@ -16,16 +16,20 @@ import { Example } from '../../engine'
 export function Demo() {
 	return (
 		<>
-			<Alert severity="info" closable>
-				<AlertTitle>Card extends Box.</AlertTitle>
-				<AlertDescription>
-					See the{' '}
-					<Link href="#box" underline>
-						Box documentation
-					</Link>{' '}
-					for more details and examples.
-				</AlertDescription>
-			</Alert>
+			<Alert
+				severity="info"
+				closable
+				title="Card extends Box."
+				description={
+					<>
+						See the{' '}
+						<Link href="#box" underline>
+							Box documentation
+						</Link>{' '}
+						for more details and examples.
+					</>
+				}
+			/>
 
 			<Example title="Default">
 				<Card size="lg">Content</Card>
