@@ -8,11 +8,7 @@ import { Icon } from '../icon'
 import { Input } from '../input'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
-import {
-	type FileUploadInputProps,
-	type FileUploadRenderState,
-	useFileUploadState,
-} from './file-upload-state'
+import { type FileUploadInputProps, useFileUploadState } from './file-upload-state'
 import { activateOnEnterSpace, formatFileNames, selectionSummary } from './file-upload-utilities'
 
 /**
@@ -30,10 +26,8 @@ import { activateOnEnterSpace, formatFileNames, selectionSummary } from './file-
  * @see {@link FileUploadDrop} · {@link FileUploadButton}
  */
 export function FileUploadInput(props: FileUploadInputProps) {
-	return renderInputVariant(props, useFileUploadState(props))
-}
+	const state = useFileUploadState(props)
 
-function renderInputVariant(props: FileUploadInputProps, state: FileUploadRenderState) {
 	const { accept, multiple, disabled, className, size, placeholder } = props
 	const { control, inputRef, files, hasFiles, showTooltip, handleChange, openPicker, clearFiles } =
 		state

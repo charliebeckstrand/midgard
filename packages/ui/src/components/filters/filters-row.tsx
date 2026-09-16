@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { Flex } from '../flex'
-import { useFilters } from './context'
+import { useFiltersAxis } from './context'
 
 /** Props for {@link FiltersRow}: the bar's field row, plus the `equal` and scroll knobs it owns. */
 export type FiltersRowProps = {
@@ -36,16 +36,14 @@ export type FiltersRowProps = {
  * than scroll.
  */
 export function FiltersRow({ equal, className, children }: FiltersRowProps) {
-	const { layout } = useFilters()
-
-	const rail = layout === 'rail'
+	const { rail, direction, align } = useFiltersAxis()
 
 	return (
 		<Flex
 			data-slot="filters-row"
-			direction={rail ? 'row' : { initial: 'col', sm: 'row' }}
+			direction={direction}
 			gap="sm"
-			align={rail ? 'center' : { initial: 'start', md: 'end' }}
+			align={align}
 			full
 			flex="auto"
 			className={cn(

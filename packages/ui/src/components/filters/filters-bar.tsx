@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { Flex } from '../flex'
-import { useFilters } from './context'
+import { useFiltersAxis } from './context'
 
 /** Props for {@link FiltersBar}: the row-and-actions line of a filter bar. */
 export type FiltersBarProps = {
@@ -20,16 +20,14 @@ export type FiltersBarProps = {
  * at every width. A `stack` drops to a column on a narrow screen.
  */
 export function FiltersBar({ children, className }: FiltersBarProps) {
-	const { layout } = useFilters()
-
-	const rail = layout === 'rail'
+	const { direction, align } = useFiltersAxis()
 
 	return (
 		<Flex
 			data-slot="filters-bar"
-			direction={rail ? 'row' : { initial: 'col', sm: 'row' }}
+			direction={direction}
 			gap="sm"
-			align={rail ? 'center' : { initial: 'start', md: 'end' }}
+			align={align}
 			full
 			className={className}
 		>

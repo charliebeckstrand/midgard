@@ -9,40 +9,8 @@ import { Button } from '../button'
 import { Icon } from '../icon'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
-import {
-	type FileUploadDropProps,
-	type FileUploadRenderState,
-	useFileUploadState,
-} from './file-upload-state'
+import { type FileUploadDropProps, useFileUploadState } from './file-upload-state'
 import { formatFileNames, selectionSummary, triggerLabel } from './file-upload-utilities'
-
-/**
- * Drag-and-drop file zone over a hidden `<input type="file">`. Files drop onto
- * it or a click opens the picker, and it mirrors enclosing `<Control>` /
- * `<Field>` invalid and required state onto the real input.
- *
- * @remarks
- * The visually-hidden input is the real control and carries the accessible
- * name; the visible zone is presentational. Accepted selections are announced
- * to a live region (WCAG 4.1.3). Selection state, drag highlighting, and
- * `maxSize` / `maxCount` filtering live in {@link useFileUploadHandlers}.
- *
- * Once a selection exists the zone shows the file name and a `Reset` button
- * under it. A `multiple` selection past one shows an "x files selected"
- * summary instead. The label truncates to one line and reveals the full name
- * or names in a tooltip. The zone stays clickable, focusable, and keyboard-operable, so
- * another file can be picked without clearing first.
- *
- * It stands a fixed height and takes another through `className`, the way
- * `<SignaturePad>` does. It used to wrap itself in an `<AspectRatio>` for a
- * `ratio` prop, which is a whole dependency for what one class states.
- *
- * @see {@link FileUploadInput} · {@link FileUploadButton}
- * @see {@link useFileUploadHandlers}
- */
-export function FileUploadDrop(props: FileUploadDropProps) {
-	return renderDropVariant(props, useFileUploadState(props))
-}
 
 /** The empty dropzone's icon and prompt, or the caller's `children` in its place. */
 function dropPrompt(children: ReactNode) {
@@ -129,7 +97,33 @@ function DropSelection({
 	)
 }
 
-function renderDropVariant(props: FileUploadDropProps, state: FileUploadRenderState) {
+/**
+ * Drag-and-drop file zone over a hidden `<input type="file">`. Files drop onto
+ * it or a click opens the picker, and it mirrors enclosing `<Control>` /
+ * `<Field>` invalid and required state onto the real input.
+ *
+ * @remarks
+ * The visually-hidden input is the real control and carries the accessible
+ * name; the visible zone is presentational. Accepted selections are announced
+ * to a live region (WCAG 4.1.3). Selection state, drag highlighting, and
+ * `maxSize` / `maxCount` filtering live in {@link useFileUploadHandlers}.
+ *
+ * Once a selection exists the zone shows the file name and a `Reset` button
+ * under it. A `multiple` selection past one shows an "x files selected"
+ * summary instead. The label truncates to one line and reveals the full name
+ * or names in a tooltip. The zone stays clickable, focusable, and keyboard-operable, so
+ * another file can be picked without clearing first.
+ *
+ * It stands a fixed height and takes another through `className`, the way
+ * `<SignaturePad>` does. It used to wrap itself in an `<AspectRatio>` for a
+ * `ratio` prop, which is a whole dependency for what one class states.
+ *
+ * @see {@link FileUploadInput} · {@link FileUploadButton}
+ * @see {@link useFileUploadHandlers}
+ */
+export function FileUploadDrop(props: FileUploadDropProps) {
+	const state = useFileUploadState(props)
+
 	const { accept, multiple, disabled, className, children } = props
 	const {
 		control,

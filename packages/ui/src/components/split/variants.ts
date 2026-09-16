@@ -1,14 +1,11 @@
 import type { Ma } from '../../recipes'
 import { BREAKPOINTS, type Breakpoint, type Orientation, type Responsive } from '../../types'
 import {
-	alignMap,
 	type ResponsiveAlign,
 	type ResponsiveGap,
 	resolveAlign,
 	resolveGap,
 } from '../flex/variants'
-
-export { alignMap }
 
 /** Gap step between the two panes, drawn from the shared `Ma` spacing scale. */
 export type SplitGap = Ma
@@ -177,7 +174,7 @@ export function resolveTemplate(
 	)
 }
 
-/** {@link SplitAlign} per breakpoint, or a single value applied at all sizes; the Flex axis. */
+/** Flex's align values per breakpoint, or a single value applied at all sizes; the Flex axis. */
 export type ResponsiveSplitAlign = ResponsiveAlign
 /** {@link SplitGap} per breakpoint, or a single value applied at all sizes; the Flex axis. */
 export type ResponsiveSplitGap = ResponsiveGap

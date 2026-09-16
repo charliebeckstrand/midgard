@@ -57,7 +57,16 @@ export type KanbanColumnContextValue = {
 	columnId: string
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
-	/** The card keys the board's `columns` entry holds for this column; a development-only check reads it. */
+	/**
+	 * The card keys the board's `columns` entry holds for this column.
+	 *
+	 * @remarks
+	 * Development only, and empty in a production build. One development check
+	 * reads it, and the board's data changes on every drag-over move. Carrying
+	 * that here in production would change this value's identity per move.
+	 * `KanbanCard`'s memo holds the board still through a drag, and it holds
+	 * because this value does not change.
+	 */
 	itemIds: readonly string[]
 }
 

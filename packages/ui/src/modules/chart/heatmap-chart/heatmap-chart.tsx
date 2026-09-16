@@ -308,11 +308,11 @@ function HeatmapHitLayer({
 	const click = trigger === 'click'
 
 	// The consumer's report runs on any click, whichever trigger the readout is
-	// on, so a hover-tooltip heatmap is still clickable.
-	const report = (event: MouseEvent<SVGRectElement>) => {
+	// on, so a hover-tooltip heatmap is still clickable. It takes the hit the
+	// caller already resolved: `locate` reads the layout box, so a click that
+	// both reports and pins must not pay for it twice.
+	const report = (hit: ReturnType<typeof locate>) => {
 		if (!onCellClick) return
-
-		const hit = locate(event)
 
 		if (hit?.cell == null) return
 
@@ -327,21 +327,21 @@ function HeatmapHitLayer({
 		onCellClick({ x, y }, [row, col])
 	}
 
+	const handleClick = (event: MouseEvent<SVGRectElement>) => {
+		const hit = locate(event)
+
+		report(hit)
+
+		if (!click || hit === null) return
+
+		if (sameCell(active, hit.cell)) set(null, null)
+		else set(hit.cell, hit.point)
+	}
+
 	const handlers = click
-		? {
-				onClick: (event: MouseEvent<SVGRectElement>) => {
-					report(event)
-
-					const hit = locate(event)
-
-					if (hit === null) return
-
-					if (sameCell(active, hit.cell)) set(null, null)
-					else set(hit.cell, hit.point)
-				},
-			}
+		? { onClick: handleClick }
 		: {
-				onClick: report,
+				onClick: handleClick,
 				onPointerMove: (event: PointerEvent<SVGRectElement>) => {
 					const hit = locate(event)
 
@@ -530,14 +530,14 @@ function useHeatmap<T>(
 	// the accessible name, and the data table still carry the grid's values.
 	const spark = isSparkBox(frameWidth, frameHeight)
 
-	const domain = useMemo(
-		() =>
-			valueExtent(
-				matrix.values.flat().filter((value): value is number => value !== null),
-				primary?.colorDomain,
-			),
-		[matrix, primary],
+	// The extent and the quantile thresholds read the same cells, so the grid is
+	// flattened once. Each did its own pass over every row before this.
+	const values = useMemo(
+		() => matrix.values.flat().filter((value): value is number => value !== null),
+		[matrix],
 	)
+
+	const domain = useMemo(() => valueExtent(values, primary?.colorDomain), [values, primary])
 
 	// One resolution per mode, each yielding both the painted bins and the
 	// assignment the cells read, so the fills and the legend cannot disagree on
@@ -546,8 +546,6 @@ function useHeatmap<T>(
 		if (!domain || !primary) return { bins: [] as ColorBin[], assign: () => null }
 
 		if (primary.binning === 'quantile') {
-			const values = matrix.values.flat().filter((value): value is number => value !== null)
-
 			const { bins: quantileBins, thresholds } = resolveQuantileBins(
 				values,
 				primary.colorRange,
@@ -566,7 +564,7 @@ function useHeatmap<T>(
 			bins: linearBins,
 			assign: (value: number) => binIndex(value, domain, linearBins.length),
 		}
-	}, [domain, primary, matrix])
+	}, [domain, primary, values])
 
 	// Memoized so their identity holds across a re-render with unchanged data —
 	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/

@@ -197,9 +197,13 @@ export function useChartPointer(
 
 			if (index !== null) onIndexClick?.(index)
 
+			// Only where a consumer reads marks. `probe` scans the series, and a
+			// chart that takes category clicks alone has no use for the result.
+			if (onMarkClick === undefined) return
+
 			const { mark } = probe(x, y, index)
 
-			if (mark !== null) onMarkClick?.(mark)
+			if (mark !== null) onMarkClick(mark)
 		},
 		[plot, resolveIndex, probe, onIndexClick, onMarkClick],
 	)

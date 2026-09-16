@@ -94,8 +94,8 @@ function resolveLegendPlacement(
 type MapRangeScale = {
 	colorRange: string[] | undefined
 	valueExtent: [number, number] | null
-	valueFormat: ((value: number) => string) | undefined
-	valueName: string | undefined
+	formatValue: ((value: number) => string) | undefined
+	colorName: string | undefined
 	/** Each region's raw value — the bar's hover arrow marks the pointed one. */
 	regionNumbers: (number | null)[]
 	onFocus: (id: string | null) => void
@@ -174,10 +174,10 @@ export function planMapLegend(
 					colorRange: scale.colorRange,
 					domain: scale.valueExtent,
 					// Through the shared resolver, not a second inline fallback: a map with
-					// no `valueFormat` would otherwise format its bar's endpoints by one
+					// no `formatValue` would otherwise format its bar's endpoints by one
 					// rule and its tooltip and table by another.
-					format: resolveValueFormat(scale.valueFormat),
-					label: scale.valueName,
+					format: resolveValueFormat(scale.formatValue),
+					label: scale.colorName,
 					bins: switchboard.categoryCount,
 					regionNumbers: scale.regionNumbers,
 					onFocus: scale.onFocus,

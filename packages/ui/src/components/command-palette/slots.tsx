@@ -1,14 +1,18 @@
 'use client'
 
-import { type ComponentProps, useEffect, useId, useMemo, useState } from 'react'
+import { type ComponentProps, useEffect, useMemo } from 'react'
 import { cn, createContext, createSlot } from '../../core'
+import { type A11yRelation, useA11yScope } from '../../hooks'
 import { k } from '../../recipes/kata/command-palette'
 import { Kbd, type KbdProps } from '../kbd'
 
+// A stable reference; an inline literal re-derives the scope every render.
+const GROUP_SLOTS = { heading: 'labelledby' } satisfies Record<string, A11yRelation>
+
 type CommandPaletteGroupContextValue = {
 	headingId: string
-	/** Called by a mounted heading; the group names itself from it while one is rendered. */
-	register: () => () => void
+	/** Called by a mounted heading with the id it renders; the group names itself from that id. */
+	register: (renderedId?: string) => () => void
 }
 
 /**
@@ -37,20 +41,14 @@ export type CommandPaletteGroupProps = ComponentProps<'div'>
  * `role="listbox"` owner would reject.
  */
 export function CommandPaletteGroup({ className, children, ...props }: CommandPaletteGroupProps) {
-	const headingId = useId()
-
-	const [named, setNamed] = useState(false)
+	// The library's slot-registration scope, which Panel and Control also build
+	// on. It reference-counts, so a remounting heading cannot drop the name, and
+	// it takes the id the heading renders rather than assuming the derived one.
+	const scope = useA11yScope({ slots: GROUP_SLOTS })
 
 	const value = useMemo<CommandPaletteGroupContextValue>(
-		() => ({
-			headingId,
-			register: () => {
-				setNamed(true)
-
-				return () => setNamed(false)
-			},
-		}),
-		[headingId],
+		() => ({ headingId: scope.ids.heading, register: scope.register.heading }),
+		[scope.ids.heading, scope.register.heading],
 	)
 
 	return (
@@ -58,7 +56,7 @@ export function CommandPaletteGroup({ className, children, ...props }: CommandPa
 		<div
 			data-slot="command-palette-group"
 			role="group"
-			aria-labelledby={named ? headingId : undefined}
+			{...scope.ariaProps}
 			className={cn(k.group, className)}
 			{...props}
 		>
@@ -74,16 +72,21 @@ export type CommandPaletteHeadingProps = ComponentProps<'div'>
  * Names the enclosing {@link CommandPaletteGroup}; renders the group's visible
  * title and registers as its `aria-labelledby` target.
  */
-export function CommandPaletteHeading({ className, ...props }: CommandPaletteHeadingProps) {
+export function CommandPaletteHeading({ className, id, ...props }: CommandPaletteHeadingProps) {
 	const group = useCommandPaletteGroupContext()
 
 	const register = group?.register
 
-	useEffect(() => register?.(), [register])
+	// The id the element renders, which a caller's own `id` wins. It is the id
+	// registered too, so the group's `aria-labelledby` always names the element
+	// that is there.
+	const headingId = id ?? group?.headingId
+
+	useEffect(() => register?.(headingId), [register, headingId])
 
 	return (
 		<div
-			id={group?.headingId}
+			id={headingId}
 			data-slot="command-palette-title"
 			className={cn(k.title, className)}
 			{...props}

@@ -6,11 +6,7 @@ import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
-import {
-	type FileUploadButtonProps,
-	type FileUploadRenderState,
-	useFileUploadState,
-} from './file-upload-state'
+import { type FileUploadButtonProps, useFileUploadState } from './file-upload-state'
 import { triggerLabel } from './file-upload-utilities'
 
 /**
@@ -24,10 +20,8 @@ import { triggerLabel } from './file-upload-utilities'
  * @see {@link FileUploadDrop} · {@link FileUploadInput}
  */
 export function FileUploadButton(props: FileUploadButtonProps) {
-	return renderButtonVariant(props, useFileUploadState(props))
-}
+	const state = useFileUploadState(props)
 
-function renderButtonVariant(props: FileUploadButtonProps, state: FileUploadRenderState) {
 	const { accept, multiple, disabled, className, children, size, color } = props
 	const { control, inputRef, hasFiles, handleChange, openPicker, clearFiles } = state
 

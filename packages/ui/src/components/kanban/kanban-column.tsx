@@ -12,6 +12,10 @@ import {
 	useKanbanDragState,
 } from './context'
 
+// One frozen array for every column that names nothing, so a mis-keyed column
+// does not mint a new identity per render and miss the memo below.
+const NO_ITEMS: string[] = []
+
 /** Props for {@link KanbanColumn}: the `value` matching a board column, with an optional accessible-name override. */
 export type KanbanColumnProps = {
 	/** Stable key matching an entry in the `columns` prop; the keyed-child `value` every compound in the library takes. */
@@ -43,7 +47,7 @@ export function KanbanColumn({
 
 	const known = columnItemIds[columnId]
 
-	const itemIds = known ?? []
+	const itemIds = known ?? NO_ITEMS
 
 	// The board takes its columns as data and its structure as children, so the
 	// same key is written twice and nothing joins them. A key that names no
@@ -70,9 +74,15 @@ export function KanbanColumn({
 		return () => setHasTitle(false)
 	}, [])
 
+	// The card key check is a development diagnostic, so production carries no
+	// ids and this value's identity never follows the board's data. `Kanban`
+	// states that the card-facing cascade holds still through a drag, and
+	// `KanbanCard` is memoized on that.
+	const knownIds = process.env.NODE_ENV === 'production' ? NO_ITEMS : itemIds
+
 	const value = useMemo(
-		() => ({ columnId, registerTitle, itemIds }),
-		[columnId, registerTitle, itemIds],
+		() => ({ columnId, registerTitle, itemIds: knownIds }),
+		[columnId, registerTitle, knownIds],
 	)
 
 	return (

@@ -42,11 +42,6 @@ export function drawSnapshot(canvas: HTMLCanvasElement, src: string) {
 }
 
 /**
- * Sets line cap, join, colour, and width on a 2D context for stroke rendering.
- *
- * @internal
- */
-/**
  * The colour a stroke paints in: the explicit `strokeColor`, else the canvas's
  * own computed `color`.
  *
@@ -70,6 +65,11 @@ export function resolveStrokeColor(
 	return window.getComputedStyle(canvas).color || 'currentColor'
 }
 
+/**
+ * Sets line cap, join, colour, and width on a 2D context for stroke rendering.
+ *
+ * @internal
+ */
 export function configureStroke(context: CanvasRenderingContext2D, color: string, width: number) {
 	context.lineCap = 'round'
 	context.lineJoin = 'round'

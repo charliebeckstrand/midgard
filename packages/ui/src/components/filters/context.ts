@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { ResponsiveAlign, ResponsiveDirection } from '../flex/variants'
 
 /**
  * How a bar answers a width that cannot hold its fields.
@@ -30,3 +31,32 @@ export type FiltersContextValue = {
  * @throws If called outside a `Filters`.
  */
 export const [FiltersContext, useFilters] = createContext<FiltersContextValue>('Filters')
+
+/**
+ * The flex axis the bar's regions share, read from the layout.
+ *
+ * @remarks
+ * {@link FiltersBar} and {@link FiltersRow} lay out on one axis, so they read
+ * it from one place. Each spelled the pair itself once, and a bar whose regions
+ * disagree cross-aligns.
+ *
+ * @returns The `rail` flag, and the `direction` and `align` a `Flex` takes.
+ */
+export function useFiltersAxis(): {
+	rail: boolean
+	direction: ResponsiveDirection
+	align: ResponsiveAlign
+} {
+	const { layout } = useFilters()
+
+	const rail = layout === 'rail'
+
+	return {
+		rail,
+		// One row at every width on a rail, a column on a narrow screen otherwise.
+		direction: rail ? 'row' : ({ initial: 'col', sm: 'row' } as const),
+		// A rail's controls are all the same height, so they centre. A stack lines
+		// its fields up on their baselines once it is a row.
+		align: rail ? 'center' : ({ initial: 'start', md: 'end' } as const),
+	}
+}

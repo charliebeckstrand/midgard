@@ -1172,8 +1172,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		{
 			colorRange,
 			valueExtent,
-			valueFormat: formatValue,
-			valueName: colorName,
+			formatValue,
+			colorName,
 			regionNumbers,
 			onFocus: setFocus,
 		},
