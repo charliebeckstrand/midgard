@@ -1,7 +1,14 @@
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
+import {
+	Filters,
+	FiltersBar,
+	FiltersClear,
+	FiltersField,
+	FiltersRow,
+	useFilters,
+} from '../../../components/filters'
 import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
@@ -73,28 +80,28 @@ type OrdersFiltersProps = {
 
 function OrdersFilters({ value, onValueChange }: OrdersFiltersProps) {
 	return (
-		<Filters
-			aria-label="Order filters"
-			value={value}
-			clear={<ResetButton />}
-			onValueChange={onValueChange}
-		>
-			<FiltersField name="id">
-				<SearchInput placeholder="Search by order ID" autoComplete="off" />
-			</FiltersField>
-			<FiltersField name="status">
-				<Select placeholder="All statuses" displayValue={(v: string) => v}>
-					<SelectOption value="Completed">
-						<SelectLabel>Completed</SelectLabel>
-					</SelectOption>
-					<SelectOption value="Processing">
-						<SelectLabel>Processing</SelectLabel>
-					</SelectOption>
-					<SelectOption value="Pending">
-						<SelectLabel>Pending</SelectLabel>
-					</SelectOption>
-				</Select>
-			</FiltersField>
+		<Filters aria-label="Order filters" value={value} onValueChange={onValueChange}>
+			<FiltersBar>
+				<FiltersRow>
+					<FiltersField name="id">
+						<SearchInput placeholder="Search by order ID" autoComplete="off" />
+					</FiltersField>
+					<FiltersField name="status">
+						<Select placeholder="All statuses" displayValue={(v: string) => v}>
+							<SelectOption value="Completed">
+								<SelectLabel>Completed</SelectLabel>
+							</SelectOption>
+							<SelectOption value="Processing">
+								<SelectLabel>Processing</SelectLabel>
+							</SelectOption>
+							<SelectOption value="Pending">
+								<SelectLabel>Pending</SelectLabel>
+							</SelectOption>
+						</Select>
+					</FiltersField>
+				</FiltersRow>
+				<ResetButton />
+			</FiltersBar>
 		</Filters>
 	)
 }
