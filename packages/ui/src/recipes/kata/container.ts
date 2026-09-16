@@ -9,7 +9,7 @@ export const k = {
 		full: 'lg:max-w-full',
 	},
 	padding: {
-		none: 'lg:px-0',
+		0: 'lg:px-0',
 		sm: 'lg:px-2',
 		md: 'lg:px-4',
 		lg: 'lg:px-6',

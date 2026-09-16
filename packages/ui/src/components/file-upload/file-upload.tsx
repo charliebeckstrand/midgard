@@ -179,7 +179,7 @@ function renderInputVariant(props: FileUploadInputProps, state: FileUploadRender
 				filesEmpty={!hasFiles}
 				onChange={handleChange}
 			/>
-			<Tooltip enabled={showTooltip}>
+			<Tooltip disabled={!showTooltip}>
 				<TooltipTrigger>
 					<Input
 						readOnly
@@ -323,7 +323,7 @@ function DropSelection({
 
 	return (
 		<>
-			<Tooltip enabled={alwaysTooltip || truncated}>
+			<Tooltip disabled={!alwaysTooltip && !truncated}>
 				<TooltipTrigger>
 					<button
 						type="button"

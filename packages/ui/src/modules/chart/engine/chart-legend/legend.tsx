@@ -221,7 +221,7 @@ function ChartLegendEntry({
 	if (ghost) return control
 
 	return (
-		<Tooltip enabled={truncated}>
+		<Tooltip disabled={!truncated}>
 			<TooltipTrigger>{control}</TooltipTrigger>
 
 			<TooltipContent>{item.label}</TooltipContent>

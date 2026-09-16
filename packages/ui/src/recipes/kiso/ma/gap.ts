@@ -9,6 +9,7 @@
 import type { Ma } from './scale'
 
 export const gap = {
+	0: 'gap-0',
 	xs: 'gap-1',
 	sm: 'gap-2',
 	md: 'gap-3',

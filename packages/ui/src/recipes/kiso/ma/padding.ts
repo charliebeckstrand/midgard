@@ -8,6 +8,7 @@
 import type { Ma } from './scale'
 
 export const p = {
+	0: 'p-0',
 	xs: 'p-1',
 	sm: 'p-2',
 	md: 'p-3',
@@ -16,6 +17,7 @@ export const p = {
 } as const satisfies Record<Ma, string>
 
 export const px = {
+	0: 'px-0',
 	xs: 'px-1',
 	sm: 'px-2',
 	md: 'px-3',
@@ -24,6 +26,7 @@ export const px = {
 } as const satisfies Record<Ma, string>
 
 export const py = {
+	0: 'py-0',
 	xs: 'py-1',
 	sm: 'py-2',
 	md: 'py-3',

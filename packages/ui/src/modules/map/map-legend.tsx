@@ -139,7 +139,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 	)
 
 	return (
-		<Tooltip enabled={truncated}>
+		<Tooltip disabled={!truncated}>
 			<TooltipTrigger>{control}</TooltipTrigger>
 
 			<TooltipContent>{item.label}</TooltipContent>
