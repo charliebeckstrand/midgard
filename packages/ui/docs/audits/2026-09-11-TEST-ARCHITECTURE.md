@@ -89,7 +89,7 @@ The speed gain is small: about 37ms of setup per file, or six seconds of worker 
 
 Set `experimental.fsModuleCache: true` in both configs and add its directory to the CI cache beside `.turbo`, keyed on the lockfile with a restore prefix. The warm path took 9.3s off the unit project on this machine and 31s off its transform phase; on CI the restore turns every run into a warm run. The option is experimental, so pin the Vitest version and drop the flag if a release note changes its semantics.
 
-*Applied in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) for `vitest.config.ts` and the CI cache. The browser config took no `experimental` block; the residue note under Order holds what is left.*
+*Applied in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) for `vitest.config.ts` and the CI cache. "Both configs" is wrong: the browser suite cannot use the cache, and the Ruled out entry below holds the measurement.*
 
 ### 4. One component registry, every sweep derived
 
@@ -133,6 +133,8 @@ The speed gain here is small, because the boundary rules take 72ms at the median
 
 **Snapshot tests.** The suite has none, and the proposal adds none. A snapshot pins structure, which is the class of assertion this proposal reduces.
 
+**The disk module cache for the browser suite.** Measured. With `experimental.fsModuleCache: true` added to `vitest.browser.config.ts`, a cleared cache, and a warm Vite optimizer, the 102-file suite took 33.9s cold and 34.4s warm against a 32.8s baseline with the flag off, and every run reported `transform 0ms`. The cache directory held one file after each run: `_metadata.json`, the lockfile hash. No module was ever written. The flag gates `ModuleFetcher` (`cli-api` in `vitest/dist/chunks`), which serves the node-side module runner; `@vitest/browser` never calls `createFetchModuleFunction`, because the page fetches its modules over HTTP from the Vite dev server. Vite's own optimizer cache under `node_modules/.vite` is what makes a browser run warm, and the CI browser job caches `.turbo` and `~/.cache/ms-playwright` rather than the Vitest cache. Revisit only if Vitest routes browser modules through the fetcher.
+
 **Running the current browser suite in isolation.** With `--no-isolate` on the existing browser config, the 100-file suite ran in 43.8s against 190.3s, and all 539 tests passed. That result is a free win to take now, ahead of part 1, and it is the same lever the migrated suite depends on.
 
 *Taken in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125).*
@@ -152,7 +154,7 @@ The `Status` cell takes `◯ OPEN` for a step with nothing landed, `◐ FIXED` f
 | 7 | Move the import rules to Biome and delete their tests, one rule per commit, with the test's fixture run against the lint rule before the test goes. | ◯ OPEN |
 | 8 | Add properties to the engines last. Nothing depends on them, and each one is a small, independent change. | ◯ OPEN |
 
-Step 1 carries a residue. `vitest.browser.config.ts` never took the flag, so `fsModuleCache` is on in the jsdom config alone; turn it on there, or record why the browser suite must not have it. [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) also settled two of the step's conditions differently from the text above: it keys the CI cache on the commit SHA with a restore prefix, not on the lockfile, and it pins no Vitest version. `vitest.config.ts` carries the release-note instruction beside the flag instead, against `vitest` at `^4.1.10`.
+Step 1 reads "both configs", and only the jsdom config has the flag. That half is settled, not outstanding: the browser suite writes no module to the cache, and the Ruled out entry above holds the measurement. [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) settled two more of the step's conditions differently from the text above. It keys the CI cache on the commit SHA with a restore prefix, not on the lockfile, and it pins no Vitest version; `vitest.config.ts` carries the release-note instruction beside the flag instead, against `vitest` at `^4.1.10`.
 
 Steps 4 to 8 are untouched. The jsdom project, its workaround layer, the eight browser twins, the 2,367 `bySlot` sites, the ten import-layering boundary tests, and the un-reset singletons of the Findings section all stand as this document describes them.
 
