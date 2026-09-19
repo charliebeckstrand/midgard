@@ -1,16 +1,23 @@
-import { Profiler } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { act, bySlot, renderUI } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
- * The fading current-panel container rests at `height: auto` and reacts to
- * panel resizes only when a height moves on its own — a panel switch or
- * content growing at constant width. Width-coupled resizes (a window drag)
- * must pass through with no morph and, critically, no re-render at all:
- * that silence is what keeps a resize from cascading into every panel's
- * subtree once per `ResizeObserver` frame.
+ * The morph's pin arithmetic, over notifications a browser cannot stage.
+ *
+ * What the container does against real layout is asserted in
+ * `browser/current-morph.test.tsx`: that it tweens rather than snapping, that
+ * it rests at `height: auto`, and that a real width-coupled drag passes through
+ * with no morph and no React commit. The two cases below cannot move there, for
+ * the reason that also keeps the chart frame's equality guard under jsdom. Both
+ * need a resize sequence delivered on demand — a height-only frame at a fixed
+ * width, then a width-coupled frame arriving mid-morph — and a real
+ * `ResizeObserver` delivers what layout produces, never what a case asks for. A
+ * browser attempt at the interrupt could not observe the pin reliably, so it
+ * would have asserted nothing at all.
+ *
+ * The stub is the subject here, and the pin values are the claim.
  */
 
 /** Stubs an element's `getBoundingClientRect` box (jsdom always reports 0). */
@@ -21,36 +28,25 @@ function mockRect(el: Element, box: { width: number; height: number }) {
 	})
 }
 
-describe('CurrentContents resize morph', () => {
+describe('CurrentContents morph pin arithmetic', () => {
 	let observers: ResizeObserverStub[]
-
-	let commits = 0
 
 	beforeEach(() => {
 		observers = stubResizeObserver()
-
-		commits = 0
 	})
 
 	function mount(value: string) {
 		return renderUI(
-			<Profiler
-				id="host"
-				onRender={() => {
-					commits++
-				}}
-			>
-				<CurrentContext value={{ value, onValueChange: undefined }}>
-					<CurrentContents slotPrefix="test" fade mount="always">
-						<CurrentContent slotPrefix="test" value="a">
-							Panel A
-						</CurrentContent>
-						<CurrentContent slotPrefix="test" value="b">
-							Panel B
-						</CurrentContent>
-					</CurrentContents>
-				</CurrentContext>
-			</Profiler>,
+			<CurrentContext value={{ value, onValueChange: undefined }}>
+				<CurrentContents slotPrefix="test" fade mount="always">
+					<CurrentContent slotPrefix="test" value="a">
+						Panel A
+					</CurrentContent>
+					<CurrentContent slotPrefix="test" value="b">
+						Panel B
+					</CurrentContent>
+				</CurrentContents>
+			</CurrentContext>,
 		)
 	}
 
@@ -67,33 +63,6 @@ describe('CurrentContents resize morph', () => {
 			}
 		})
 	}
-
-	it('rests at auto height with no inline pin', () => {
-		const { container } = mount('a')
-
-		const contents = bySlot(container, 'test-contents')
-
-		expect(contents?.style.height).toBe('')
-	})
-
-	it('passes a width-coupled resize burst through with no re-render and no pin', () => {
-		const { container } = mount('a')
-
-		const contents = bySlot(container, 'test-contents')
-
-		// Baseline delivery, then a drag: width and height move together.
-		fire({ inline: 600, block: 300 })
-
-		const before = commits
-
-		for (let step = 1; step <= 10; step++) {
-			fire({ inline: 600 + step * 10, block: 300 + step * 5 })
-		}
-
-		expect(commits).toBe(before)
-
-		expect(contents?.style.height).toBe('')
-	})
 
 	it('morphs on a height-only change, pinning the outgoing height before paint', () => {
 		const { container } = mount('a')
@@ -137,47 +106,5 @@ describe('CurrentContents resize morph', () => {
 		fire({ inline: 640, block: 500 })
 
 		expect(contents.style.height).toBe('320px')
-	})
-
-	it('morphs across a panel switch, from the outgoing height toward the incoming panel', async () => {
-		const { container, rerender } = mount('a')
-
-		const contents = bySlot(container, 'test-contents')
-
-		if (!contents) throw new Error('no contents box rendered')
-
-		mockRect(contents, { width: 600, height: 300 })
-
-		const [panelA, panelB] = Array.from(container.querySelectorAll('[data-slot="test-content"]'))
-
-		if (!panelA || !panelB) throw new Error('panels not rendered')
-
-		mockRect(panelB, { width: 600, height: 500 })
-
-		// Switching flips `data-current`; the mutation observer re-collects the
-		// panels and pins the container at its outgoing height in the same frame.
-		await act(async () => {
-			rerender(
-				<Profiler
-					id="host"
-					onRender={() => {
-						commits++
-					}}
-				>
-					<CurrentContext value={{ value: 'b', onValueChange: undefined }}>
-						<CurrentContents slotPrefix="test" fade mount="always">
-							<CurrentContent slotPrefix="test" value="a">
-								Panel A
-							</CurrentContent>
-							<CurrentContent slotPrefix="test" value="b">
-								Panel B
-							</CurrentContent>
-						</CurrentContents>
-					</CurrentContext>
-				</Profiler>,
-			)
-		})
-
-		expect(contents.style.height).toBe('300px')
 	})
 })
