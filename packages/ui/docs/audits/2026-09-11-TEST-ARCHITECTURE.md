@@ -35,6 +35,24 @@ The trial failed 48 of 3,016 tests in 16 files, and every failure is test infras
 | real layout and real CSS serialization | 3 | assert the behaviour, not the pixel or the shorthand |
 | timezone and locale not pinned in the page | 2 | `timezoneId` and `locale` on the Playwright context |
 
+**`modules/` runs in Chromium too, and beats jsdom on wall clock.** The trial the paragraph above left open ran on 2026-09-19. A trial config pointed the 96 DOM files under `src/__tests__/modules/` at the browser provider with `isolate: false`, the browser setup files, and all four `unit` doubles (`@floating-ui/react`, `motion`, `motion/react`, `shiki`). The 47 node-docblock files in that directory stayed out, because part 2 keeps them in `pure`. jsdom runs the same 96 files and 1,398 tests in 26.2s of duration and 33s of wall clock on four workers. Chromium runs them in 34.1s cold and 28.1s warm, and 36s then 30s of wall clock, on one page. So the browser takes the directory in less wall clock than jsdom while using a quarter of the parallelism, and the reason is the phase jsdom cannot avoid: `environment` sums to 207.1s there and to zero in the browser. Test bodies fall to 0.59 of their jsdom cost, 38.2s against 65.2s, which is better than the 0.70 the components trial measured.
+
+The trial failed 52 of 1,398 tests in 18 of 96 files. That is 3.7 percent of tests and 19 percent of files, against 1.6 percent and 7.4 percent for the components trial, so the prediction above holds: this directory costs more per file to move. Two failures differed between the cold and the warm run, which is an order dependency under `isolate: false` and wants `VITEST_SEED` replay before anyone calls it fixed. Every failure is test infrastructure again, and the causes are not the components' causes. A tilde marks a bucket whose edges overlap another's, because a chart tooltip can miss on the pointer or on the geometry; the 52 and the 18 are exact:
+
+| cause | tests | fix |
+|---|---|---|
+| synthetic pointer coordinates against real geometry (chart tooltips and band clicks) | ~13 | drive the pointer from the rendered geometry, or assert through the keyboard path |
+| deferred content is really deferred: the jsdom `IntersectionObserver` stub reports every target intersecting at `observe()` | ~11 | scroll the target into view, or give the deferral a test seam |
+| CSS number serialization and computed style (`aspect-ratio: 1.77778`, `default` against `pointer`) | ~9 | assert the behaviour, not the serialized shorthand |
+| real layout geometry (`viewBox`, measured heights) | ~6 | assert the behaviour, not the pixel |
+| live-region residue: `browser/setup/index.ts` never calls `__resetAnnouncer`, which `setup/index.ts:24` does | ~6 | port that one line into the browser setup |
+| real transitions not yet settled | 2 | await the settled state |
+| the remainder, one case each (a revoked object URL, a visibility assertion, a stray click) | 5 | per case |
+
+Two of those rows are new. The `IntersectionObserver` stub is named in the Findings below as a jsdom workaround, but not as a migration cost, and it is the second largest cause here. The pointer rows are the `mockDomGeometry` dependency surfacing exactly where the paragraph above predicted it. The live-region row is the components trial's row again, unchanged and still one line.
+
+One failure argues part 5 on its own. `bar-chart.test.tsx:90` reads `expect(tooltip?.textContent).toContain('Q3')` after `bySlot(container, 'tooltip-content')` returned `null`, so the run reports "the given combination of arguments (undefined and string) is invalid for this assertion" rather than naming the missing element. Ten of the 52 failures report that way. `getBySlot` through `buildQueries` would have thrown with a DOM dump at the query.
+
 **The disk module cache pays for itself on the second run.** Vitest 4.1 ships `experimental.fsModuleCache`. With it on, the `unit` project ran in 60.0s cold and 50.7s warm; transform fell from 40.0s to 8.9s and import from 57.1s to 24.2s. The cache is 29 MB on disk.
 
 ## Findings
@@ -73,7 +91,7 @@ What the change deletes: `setup/jsdom-stubs.ts`, `setup/restore-prototype-focus.
 
 What the change keeps: `renderUI`, `bySlot`, the module mocks, the corpus, `sequence.shuffle`, the timeout policy, and the reporter setup. `IS_REACT_ACT_ENVIRONMENT` stays `true`: the trial ran with RTL's default and the synchronous tests passed. The current browser files that set it to `false` for real `ResizeObserver` callbacks keep their `waitFor` form.
 
-Two parts of the trial are unverified. `modules/` (143 files, 83s of jsdom test time) did not run in the trial; the grid, chart, and map suites use `mockDomGeometry` and the ResizeObserver stub most, so their edit count will be higher than the components' 48. And the wall clock for the full suite on a machine with more cores is unmeasured: the four-instance variant lost on four cores because each page pays the graph import, and that trade reverses only where the cores outnumber the pages. Measure the full suite on the CI runner before the jsdom project goes; if the browser suite lands above the jsdom suite by more than its fixed startup, keep both runners and move only the files that jsdom fakes (the nine `mockDomGeometry` files, the seven ResizeObserver-stub files, and the virtualizer suites).
+One part of the trial is still unverified, and one is now measured. `modules/` (143 files, 83s of jsdom test time) did not run in the first trial; the grid, chart, and map suites use `mockDomGeometry` and the ResizeObserver stub most, so their edit count will be higher than the components' 48. The Measured section now holds that run: the prediction held at 52 failures in 18 files, and the directory took less wall clock in one browser page than on four jsdom workers. The wall clock for the full suite on a machine with more cores is unmeasured: the four-instance variant lost on four cores because each page pays the graph import, and that trade reverses only where the cores outnumber the pages. Measure the full suite on the CI runner before the jsdom project goes; if the browser suite lands above the jsdom suite by more than its fixed startup, keep both runners and move only the files that jsdom fakes (the nine `mockDomGeometry` files, the seven ResizeObserver-stub files, and the virtualizer suites).
 
 ### 2. A node environment for the pure layer
 
