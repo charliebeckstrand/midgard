@@ -1,7 +1,8 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { bySlot, renderUI, waitFor } from '../helpers'
+import { PieChart } from '../../modules/chart/pie-chart'
+import { bySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * A side (left / right) legend keeps the `aspectRatio` on the plot box and bands
@@ -68,5 +69,157 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 
 		expect(boxRect.width).toBeLessThan(600)
 		expect(boxRect.width).toBeGreaterThan(400)
+	})
+})
+
+/**
+ * Where the ratio lives, and what fills it, measured rather than read off class
+ * strings.
+ *
+ * A stacked (top / bottom) legend folds into the whole chart: the figure wrapper
+ * carries the CSS aspect-ratio, the band takes its natural height, and the plot
+ * draws into whatever that leaves. A side legend instead keeps the ratio on the
+ * plot box and bands beside it. jsdom asserted all of this through
+ * `figure.style.aspectRatio` and the presence of `flex-1`, `min-h-0` and
+ * `size-full` in class strings — every one of which is there whether or not the
+ * box resolves — and supplied the plot's measured remainder itself before
+ * asserting the drawing followed it.
+ */
+describe('chart aspect ratio and legend placement, measured (real browser)', () => {
+	const DATA = [
+		{ quarter: 'Q1', revenue: 40, costs: 24 },
+		{ quarter: 'Q2', revenue: 80, costs: 31 },
+		{ quarter: 'Q3', revenue: 65, costs: 28 },
+	]
+
+	const SERIES = [
+		{ xKey: 'quarter' as const, yKey: 'revenue' as const, yName: 'Revenue' },
+		{ xKey: 'quarter' as const, yKey: 'costs' as const, yName: 'Costs' },
+	]
+
+	/** A legended bar chart in a definite-width box. */
+	function chart(extra: Record<string, unknown>) {
+		return renderUI(
+			<div style={{ width: 600 }}>
+				<BarChart aria-label="Revenue by quarter" data={DATA} series={SERIES} {...extra} />
+			</div>,
+		)
+	}
+
+	/** The plot SVG's `viewBox`, as `[minX, minY, width, height]`. */
+	function viewBox(container: HTMLElement): number[] {
+		const raw = present(bySlot(container, 'chart-plot'), 'the plot region')
+			.querySelector('svg')
+			?.getAttribute('viewBox')
+
+		if (!raw) throw new Error('no viewBox on the plot SVG')
+
+		return raw.split(' ').map(Number)
+	}
+
+	it('resolves the figure to the ratio and draws the plot into the legend remainder', async () => {
+		const { container } = chart({ aspectRatio: 16 / 9, legend: 'bottom' })
+
+		const figure = present(bySlot(container, 'chart-figure'), 'the figure')
+
+		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+
+		const legend = present(bySlot(container, 'chart-legend'), 'the legend')
+
+		await waitFor(() => expect(viewBox(container)[3]).toBeGreaterThan(0))
+
+		// The whole chart holds the ratio, and it actually resolves to it.
+		const box = figure.getBoundingClientRect()
+
+		expect(box.width / box.height).toBeCloseTo(16 / 9, 1)
+
+		// The plot reserves nothing of its own; it takes what the band leaves.
+		expect(bySlot(container, 'aspect-ratio')).toBeNull()
+
+		expect(legend.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+			plot.getBoundingClientRect().bottom - 1,
+		)
+
+		// The drawing height is the measured remainder, not the ratio's full
+		// height — which is the claim jsdom could only make by supplying the
+		// remainder itself.
+		expect(viewBox(container)[3]).toBeCloseTo(plot.clientHeight, 0)
+
+		expect(viewBox(container)[3]).toBeLessThan(box.height)
+	})
+
+	it('bands a side legend beside the plot and keeps the ratio on the plot box', async () => {
+		const { container } = chart({ aspectRatio: 16 / 9, legend: 'right' })
+
+		const figure = present(bySlot(container, 'chart-figure'), 'the figure')
+
+		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+
+		const legend = present(bySlot(container, 'chart-legend'), 'the legend')
+
+		const reserve = present(bySlot(container, 'aspect-ratio'), 'the plot aspect box')
+
+		await waitFor(() => expect(reserve.getBoundingClientRect().width).toBeGreaterThan(0))
+
+		// The figure reserves nothing; the plot box carries the ratio itself.
+		expect(figure.style.aspectRatio).toBe('')
+
+		const drawn = reserve.getBoundingClientRect()
+
+		expect(drawn.width / drawn.height).toBeCloseTo(16 / 9, 1)
+
+		// Beside, not below: a real row.
+		expect(legend.getBoundingClientRect().left).toBeGreaterThanOrEqual(
+			plot.getBoundingClientRect().right - 1,
+		)
+	})
+
+	it('fills the plot into a definite container height under aspectRatio={false}', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 600, height: 320 }}>
+				<BarChart aria-label="Revenue by quarter" data={DATA} series={SERIES} aspectRatio={false} />
+			</div>,
+		)
+
+		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+
+		await waitFor(() => expect(viewBox(container)[3]).toBeGreaterThan(0))
+
+		// Free-form fill: the plot grows into the container's height rather than
+		// reserving one from its own width and collapsing to the zero that reserve
+		// would measure. jsdom read this off class strings.
+		expect(plot.getBoundingClientRect().height).toBeGreaterThan(150)
+
+		expect(viewBox(container)[3]).toBeCloseTo(plot.clientHeight, 0)
+	})
+
+	it('shares a square between a pie and its legend, filling the pie into the remainder', async () => {
+		const { container } = renderUI(
+			<div style={{ width: 400 }}>
+				<PieChart
+					aria-label="Share by quarter"
+					data={DATA}
+					series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+					aspectRatio={1}
+					legend="bottom"
+				/>
+			</div>,
+		)
+
+		const figure = present(bySlot(container, 'chart-figure'), 'the figure')
+
+		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+
+		await waitFor(() => expect(plot.getBoundingClientRect().height).toBeGreaterThan(0))
+
+		// Three slices show a legend, so the square describes the whole chart and
+		// the pie takes the remainder beneath the band.
+		const box = figure.getBoundingClientRect()
+
+		expect(box.width / box.height).toBeCloseTo(1, 1)
+
+		expect(bySlot(container, 'aspect-ratio')).toBeNull()
+
+		expect(plot.getBoundingClientRect().height).toBeLessThan(box.height)
 	})
 })
