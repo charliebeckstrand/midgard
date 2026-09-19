@@ -40,6 +40,49 @@ describe('useIsTruncated (real browser)', () => {
 		)
 	}
 
+	/** The hook with a ref that never attaches: the guard path, with no element to measure. */
+	function DetachedProbe() {
+		const ref = useRef<HTMLElement>(null)
+
+		const truncated = useIsTruncated(ref, 'hello')
+
+		return <span data-testid="result">{truncated ? 'truncated' : 'fits'}</span>
+	}
+
+	/** The rendered verdict, or `undefined` before the probe paints. */
+	function verdict(container: HTMLElement): string | undefined {
+		return container.querySelector('[data-testid="result"]')?.textContent ?? undefined
+	}
+
+	it('returns false for empty text, however narrow the box', async () => {
+		const { container } = renderUI(<Probe text="" width={4} />)
+
+		await waitFor(() => expect(verdict(container)).toBe('fits'))
+	})
+
+	it('returns false when the ref never attaches', async () => {
+		const { container } = renderUI(<DetachedProbe />)
+
+		await waitFor(() => expect(verdict(container)).toBe('fits'))
+	})
+
+	it('re-measures when the box resizes, with no re-render to prompt it', async () => {
+		const { container } = renderUI(<Probe text="a label with several words" width={700} />)
+
+		await waitFor(() => expect(verdict(container)).toBe('fits'))
+
+		const label = container.querySelector<HTMLElement>('[data-testid="label"]')
+
+		if (!label) throw new Error('no label rendered')
+
+		// A real resize, not a prop change: nothing re-renders the probe, so the
+		// verdict can only move if the hook's own observer re-measured. jsdom
+		// staged this by swapping its layout stub and firing the observer by hand.
+		label.style.width = '60px'
+
+		await waitFor(() => expect(verdict(container)).toBe('truncated'))
+	})
+
 	it('reads a clipped string as truncated', async () => {
 		const { container } = renderUI(
 			<Probe text="a considerably longer label than the box can hold" width={80} />,
