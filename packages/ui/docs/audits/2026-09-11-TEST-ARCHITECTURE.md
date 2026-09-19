@@ -91,7 +91,13 @@ The proposal has six parts. The first three change where tests run; the last thr
 
 ### 1. The browser for what jsdom fakes, the rest behind one number
 
-Move into the browser suite the tests jsdom cannot answer honestly: the nine `mockDomGeometry` files, the seven ResizeObserver-stub files, and the virtualizer suites. Each of them asserts against geometry that a stub invents, so the move buys accuracy on the day it lands, and it costs only the seams the three trials below have already priced. Retire each jsdom twin as its browser file takes the behaviour. Nothing in this step has to be undone if the full move lands later.
+Move into the browser suite the tests jsdom cannot answer honestly. The file list was the nine `mockDomGeometry` files and the seven ResizeObserver-stub files, and doing the work proved that list wrong: a file is not the unit, a case is. Both helpers serve two purposes, and only one of them is a workaround.
+
+A case that writes a box onto an element and then asserts the engine agreed with it moves, and gains a real box. A case whose subject is the notification itself stays, because a browser cannot stage it: a real `ResizeObserver` never fires for a box that did not change, so an equality guard has no browser expression; a morph interrupt needs a height-only frame followed by a width-coupled one on demand; a detached-node measurement needs a notification from a node already gone. Counting how many observers a hook constructs, or that it disconnected one, is the same category. So is arithmetic at a boundary, where a case needs two widths set exactly equal and a browser gives what the font produces.
+
+A third group leaves the DOM entirely. `computeThumb` and `resolveFrameSizing` take numbers and return numbers; they were under jsdom only because each shared a file with something that reads elements. Those are part 2's work, found by doing part 1's.
+
+Retire each jsdom twin as its browser file takes the behaviour, and where a twin already covers a case, drop it rather than move it. Nothing in this step has to be undone if the full move lands later.
 
 The full move, every rendering test in a browser with jsdom and its workaround layer deleted, stays the destination and waits on one number. The trials agree on what it is worth: the DOM is accurate, test bodies run at 0.59 to 0.70 of their jsdom cost, the eight twins collapse into one file each, and the workaround layer goes. They agree on its price too. `components/`, `hooks/`, and `primitives/` reached wall-clock parity for 48 test edits across five seams; `modules/` beat jsdom by 3s for 52; the whole movable suite lost, 124s against today's 108s, because 445 files on two pages cannot use four cores while jsdom uses all of them. The `environment` phase the browser deletes is real and large, 703.3s summed across `unit` and `integration`, and at full scale the lost parallelism gives it back.
 
@@ -186,7 +192,7 @@ The `Status` cell takes `◯ OPEN` for a step with nothing landed, `◐ FIXED` f
 | 1 | Turn on `fsModuleCache` in both configs and cache its directory in CI. One commit; measure the CI wall clock before and after. | ✅ RESOLVED ([#1125](https://github.com/charliebeckstrand/midgard/pull/1125)) |
 | 2 | Set `isolate: false` on the existing browser config. One commit; the measured number above is the acceptance test. | ✅ RESOLVED ([#1125](https://github.com/charliebeckstrand/midgard/pull/1125)) |
 | 3 | Stamp the node docblock on the no-DOM files and land its boundary rule in the same commit, so the rule's second direction has nothing to flag. | ✅ RESOLVED ([#1125](https://github.com/charliebeckstrand/midgard/pull/1125)) |
-| 4 | Move the files jsdom fakes into the browser suite: the nine `mockDomGeometry` files, the seven ResizeObserver-stub files, and the virtualizer suites, retiring each jsdom twin as its browser file takes the behaviour. Fix the infrastructure seams in the first commit. Then measure the full suite on the CI runner, and take the full migration, in directory-sized commits, only if more cores put it under today's two-run wall clock. | ◯ OPEN |
+| 4 | Move the geometry cases out of the twelve files that carry `mockDomGeometry` or the ResizeObserver stub, case by case rather than file by file, retiring each jsdom twin as its browser file takes the behaviour. Then measure the full suite on the CI runner, and take the full migration, in directory-sized commits, only if more cores put it under today's two-run wall clock. | ◐ FIXED |
 | 5 | Grow the registry and derive the five sweeps. Delete the hand-written copies in the same commit as each sweep. | ◯ OPEN |
 | 6 | Land the slot queries by codemod, then remove the class assertions directory by directory. | ◯ OPEN |
 | 7 | Move the import rules to Biome and delete their tests, one rule per commit, with the test's fixture run against the lint rule before the test goes. | ◯ OPEN |
@@ -194,7 +200,11 @@ The `Status` cell takes `◯ OPEN` for a step with nothing landed, `◐ FIXED` f
 
 Step 1 reads "both configs", and only the jsdom config has the flag. That half is settled, not outstanding: the browser suite writes no module to the cache, and the Ruled out entry above holds the measurement. [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) settled two more of the step's conditions differently from the text above. It keys the CI cache on the commit SHA with a restore prefix, not on the lockfile, and it pins no Vitest version; `vitest.config.ts` carries the release-note instruction beside the flag instead, against `vitest` at `^4.1.10`.
 
-Steps 4 to 8 are untouched. The jsdom project, its workaround layer, the eight browser twins, the 2,367 `bySlot` sites, the ten import-layering boundary tests, and the un-reset singletons of the Findings section all stand as this document describes them.
+Step 4's move is done on a branch, and the paragraph under part 1 records the rule it produced. Twelve files were in scope: `map-plat-resize` and `chart-aspect-legend` are gone entirely, `computeThumb` and `resolveFrameSizing` left the DOM for the `pure` project, and the rest split. `mockDomGeometry` is down to five importers from nine and the ResizeObserver stub to four from seven, and every file still holding one keeps it for a reason written into that file. The CI-runner measurement is the half still open.
+
+Steps 5 to 8 are untouched. The jsdom project, its workaround layer, the 2,367 `bySlot` sites, the ten import-layering boundary tests, and the un-reset singletons of the Findings section all stand as this document describes them.
+
+One measurement belongs with the residue note above. Run the browser suite repeatedly and it fails about one run in four, on a different file each time, with the shuffle off. That rate reproduces with this step's work stashed, so it predates the step; taken with the order dependencies the shuffle exposed, the browser suite needs its residue work before it grows further.
 
 ---
 
