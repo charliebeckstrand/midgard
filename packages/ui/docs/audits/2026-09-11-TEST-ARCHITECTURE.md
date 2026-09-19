@@ -1,6 +1,6 @@
 # Test Architecture Proposal
 
-Proposal for the `packages/ui` test suite (2026-09-11): one real-browser DOM suite, a node environment for the pure layer, a disk module cache, one component registry that feeds every sweep gate, and lint rules in place of the import-layering boundary tests. The measured speed wins are the browser suite without isolation (190s to 44s) and the module cache (60s to 51s on the unit project); the browser convergence is a simplification at wall-clock parity, and the rest is structure. [#1039](https://github.com/charliebeckstrand/midgard/pull/1039) banked the runner wins: pool, isolation, and sequencer took the jsdom suite from 143s to about 47s. This document starts where that work stopped. Every number below comes from a run on this machine; the method is the one the audits set, so a claim is a finding only after a run showed it.
+Proposal for the `packages/ui` test suite (2026-09-11): one real-browser DOM suite, a node environment for the pure layer, a disk module cache, one component registry that feeds every sweep gate, and lint rules in place of the import-layering boundary tests. The measured speed wins are the browser suite without isolation (190s to 44s) and the module cache (60s to 51s on the unit project); the browser convergence is a simplification at wall-clock parity, and the rest is structure. [#1039](https://github.com/charliebeckstrand/midgard/pull/1039) banked the runner wins: pool, isolation, and sequencer took the jsdom suite from 143s to about 47s. This document starts where that work stopped. [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) landed this document and the first three steps of its Order together, so read the Order table for the state of each step. Every number below comes from a run on this machine; the method is the one the audits set, so a claim is a finding only after a run showed it.
 
 The suite holds 592 test files and about 115,000 lines. 492 files and 6,743 tests run under `pnpm test`; 100 files and 539 tests run in the browser suite. The test infrastructure is 2,223 lines across 44 files, and about half of those lines are comments that explain a jsdom workaround.
 
@@ -61,7 +61,7 @@ The proposal has six parts. The first three change where tests run; the last thr
 
 ### 1. One real-browser suite for every DOM test
 
-Move every test that renders into Vitest browser mode on Chromium, with `isolate: false`, and retire the jsdom environment. The trial shows the price is 48 test edits in five infrastructure seams and a fixed startup of about nine seconds. The return is an accurate DOM, test bodies at 0.70 of their jsdom cost, one runner in place of two, and the deletion of the workaround layer. This is the simplification move of the proposal, not the speed move; parts 2 and 3 and the `isolate` fix under Ruled out are the speed moves, and they come first in the Order.
+Move every test that renders into Vitest browser mode on Chromium, with `isolate: false`, and retire the jsdom environment. The trial shows the price is 48 test edits in five infrastructure seams and a fixed startup of about nine seconds. The return is an accurate DOM, test bodies at 0.70 of their jsdom cost, one runner in place of two, and the deletion of the workaround layer. This is the simplification move of the proposal, not the speed move; parts 2 and 3 and the `isolate` fix under Ruled out are the speed moves, and they landed first in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125).
 
 Keep three instances, split by what a setup-file `vi.mock` must toggle:
 
@@ -83,9 +83,13 @@ Two earlier cuts of this part are recorded because each failed for a reason the 
 
 The speed gain is small: about 37ms of setup per file, or six seconds of worker time. The accuracy gain is the point. A pure test cannot reach the shared window, cannot depend on a mock it did not ask for, and runs anywhere Node runs, with no browser.
 
+*Applied in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125). 144 files carry the docblock, `vitest.config.ts` builds the `pure` project from it, `node-environment-boundary.test.ts` holds both directions of the rule, and `CONVENTIONS.md` §10.5 states the placement.*
+
 ### 3. The disk module cache, on every machine
 
 Set `experimental.fsModuleCache: true` in both configs and add its directory to the CI cache beside `.turbo`, keyed on the lockfile with a restore prefix. The warm path took 9.3s off the unit project on this machine and 31s off its transform phase; on CI the restore turns every run into a warm run. The option is experimental, so pin the Vitest version and drop the flag if a release note changes its semantics.
+
+*Applied in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) for `vitest.config.ts` and the CI cache. The browser config took no `experimental` block; the residue note under Order holds what is left.*
 
 ### 4. One component registry, every sweep derived
 
@@ -117,7 +121,7 @@ The speed gain here is small, because the boundary rules take 72ms at the median
 
 **`isolate: false` in a browser shares one window across files.** The jsdom suite has run that way since August and its residue rules apply unchanged: remove appended nodes in `onTestFinished`, never `vi.mock` per file, and keep `sequence.shuffle` on so an order dependency fails early. The `test-isolation-boundary` rule extends to the new instances by adding them to its project list, but it guards the module registry only; the module-scope singletons in the Findings section are the other half of this risk, and no rule covers them.
 
-**The fs module cache is experimental.** Vitest documents it as such. If a release changes its invalidation, a stale module serves a test; the CI key on the lockfile bounds that to one dependency bump, and `VITEST_SEED` replay does not depend on it.
+**The fs module cache is experimental.** Vitest documents it as such. If a release changes its invalidation, a stale module serves a test. [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) keys the CI cache on the commit SHA with a restore prefix, and the prefix carries an entry across commits, so the key bounds nothing on its own. Vitest's own invalidation is the only guard, which is why `vitest.config.ts` states beside the flag that each Vitest bump needs its release note read. `VITEST_SEED` replay does not depend on it.
 
 ## Ruled out
 
@@ -131,23 +135,26 @@ The speed gain here is small, because the boundary rules take 72ms at the median
 
 **Running the current browser suite in isolation.** With `--no-isolate` on the existing browser config, the 100-file suite ran in 43.8s against 190.3s, and all 539 tests passed. That result is a free win to take now, ahead of part 1, and it is the same lever the migrated suite depends on.
 
+*Taken in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125).*
+
 ## Order
 
-1. Turn on `fsModuleCache` in both configs and cache its directory in CI. One commit; measure the CI wall clock before and after.
+The `Status` cell takes `◯ OPEN` for a step with nothing landed, `◐ FIXED` for work on a branch, and `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))` for a merged step ([`CONVENTIONS.md`](../../../../CONVENTIONS.md) §12.4).
 
-2. Set `isolate: false` on the existing browser config. One commit; the measured number above is the acceptance test.
+| Step | Action | Status |
+|---|---|---|
+| 1 | Turn on `fsModuleCache` in both configs and cache its directory in CI. One commit; measure the CI wall clock before and after. | ✅ RESOLVED ([#1125](https://github.com/charliebeckstrand/midgard/pull/1125)) |
+| 2 | Set `isolate: false` on the existing browser config. One commit; the measured number above is the acceptance test. | ✅ RESOLVED ([#1125](https://github.com/charliebeckstrand/midgard/pull/1125)) |
+| 3 | Stamp the node docblock on the no-DOM files and land its boundary rule in the same commit, so the rule's second direction has nothing to flag. | ✅ RESOLVED ([#1125](https://github.com/charliebeckstrand/midgard/pull/1125)) |
+| 4 | Migrate the DOM suite to the browser in directory-sized commits: `components/`, then `hooks/` and `primitives/`, then `modules/`, then the `integration` files, then delete the jsdom project and its workaround layer. Fix the five infrastructure seams in the first commit, so each later directory lands with fewer edits. | ◯ OPEN |
+| 5 | Grow the registry and derive the five sweeps. Delete the hand-written copies in the same commit as each sweep. | ◯ OPEN |
+| 6 | Land the slot queries by codemod, then remove the class assertions directory by directory. | ◯ OPEN |
+| 7 | Move the import rules to Biome and delete their tests, one rule per commit, with the test's fixture run against the lint rule before the test goes. | ◯ OPEN |
+| 8 | Add properties to the engines last. Nothing depends on them, and each one is a small, independent change. | ◯ OPEN |
 
-3. Stamp the node docblock on the no-DOM files and land its boundary rule in the same commit, so the rule's second direction has nothing to flag.
+Step 1 carries a residue. `vitest.browser.config.ts` never took the flag, so `fsModuleCache` is on in the jsdom config alone; turn it on there, or record why the browser suite must not have it. [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) also settled two of the step's conditions differently from the text above: it keys the CI cache on the commit SHA with a restore prefix, not on the lockfile, and it pins no Vitest version. `vitest.config.ts` carries the release-note instruction beside the flag instead, against `vitest` at `^4.1.10`.
 
-4. Migrate the DOM suite to the browser in directory-sized commits: `components/`, then `hooks/` and `primitives/`, then `modules/`, then the `integration` files, then delete the jsdom project and its workaround layer. Fix the five infrastructure seams in the first commit, so each later directory lands with fewer edits.
-
-5. Grow the registry and derive the five sweeps. Delete the hand-written copies in the same commit as each sweep.
-
-6. Land the slot queries by codemod, then remove the class assertions directory by directory.
-
-7. Move the import rules to Biome and delete their tests, one rule per commit, with the test's fixture run against the lint rule before the test goes.
-
-8. Add properties to the engines last. Nothing depends on them, and each one is a small, independent change.
+Steps 4 to 8 are untouched. The jsdom project, its workaround layer, the eight browser twins, the 2,367 `bySlot` sites, the ten import-layering boundary tests, and the un-reset singletons of the Findings section all stand as this document describes them.
 
 ---
 
