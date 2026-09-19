@@ -1,15 +1,18 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { PieChart } from '../../modules/chart/pie-chart'
 import { act, bySlot, mockDomGeometry, renderUI } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
- * Charts track their container live: every resize notification the frame
- * measures commits through a transition, so the drawn geometry follows the
- * box with no settle window and no timers — the final size lands the moment
- * its notification does. The plot's `viewBox` carries the committed frame
- * width, so it is the faithful signal for what the marks were built against.
+ * The frame's equality guard, which is a mechanism rather than a measurement.
+ *
+ * Charts commit every resize notification their frame measures, and that the
+ * drawn geometry follows a real box is asserted against a real engine in
+ * `browser/chart-resize-tracking.test.tsx` — where the host genuinely resizes.
+ * This case is the one a browser cannot stage: a notification reporting a size
+ * the frame already holds. A real `ResizeObserver` does not fire for a box that
+ * did not change, so the redundant notification has to be synthesised, and the
+ * stub is the subject here rather than a stand-in for layout.
  */
 
 const DATA = [
@@ -18,7 +21,7 @@ const DATA = [
 	{ x: 'Q3', y: 65 },
 ]
 
-describe('chart resize tracking', () => {
+describe('chart frame equality guard', () => {
 	let observers: ResizeObserverStub[]
 
 	beforeEach(() => {
@@ -47,55 +50,6 @@ describe('chart resize tracking', () => {
 			?.getAttribute('viewBox')
 			?.split(' ')[2]
 	}
-
-	it('tracks a cartesian chart resize burst live, landing the final width without timers', () => {
-		const { container } = renderUI(
-			<BarChart
-				aria-label="Values by quarter"
-				data={DATA}
-				series={[{ xKey: 'x', yKey: 'y', yName: 'Value' }]}
-				aspectRatio={2}
-			/>,
-		)
-
-		// The first real width paints at once.
-		resizeTo(container, 300)
-
-		expect(frameWidth(container)).toBe('300')
-
-		// Each notification commits: the geometry follows the container with no
-		// quiet window holding it at a stale size.
-		resizeTo(container, 320)
-
-		expect(frameWidth(container)).toBe('320')
-
-		resizeTo(container, 360)
-
-		expect(frameWidth(container)).toBe('360')
-	})
-
-	it('tracks a pie chart resize burst live, landing the final width without timers', () => {
-		const { container } = renderUI(
-			<PieChart
-				aria-label="Share by quarter"
-				data={DATA}
-				series={[{ xKey: 'x', yKey: 'y' }]}
-				aspectRatio={2}
-			/>,
-		)
-
-		resizeTo(container, 300)
-
-		expect(frameWidth(container)).toBe('300')
-
-		resizeTo(container, 320)
-
-		expect(frameWidth(container)).toBe('320')
-
-		resizeTo(container, 360)
-
-		expect(frameWidth(container)).toBe('360')
-	})
 
 	it('holds the committed frame through a notification that changes nothing', () => {
 		const { container } = renderUI(
