@@ -70,6 +70,21 @@ function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
 	return { outer, node }
 }
 
+/**
+ * The offset arithmetic, pinned over geometry this file states.
+ *
+ * Each case builds a scroller with a known client box and a known content box,
+ * spies on `scrollTo`, and asserts the offset the hook asked for. That is the
+ * right shape for the fine-grained claims: the scroller's top border coming out
+ * of the offset, each axis resolving independently under `nearest`, and the
+ * walk stopping at an ancestor that clips the requested axis. A browser gives
+ * what layout produces, so those inputs could only be approached, never set.
+ *
+ * It is not the whole contract, because a spy on `scrollTo` reads the number
+ * the hook asked for and stops there. Whether that number puts the node where
+ * the caller meant is asserted against a real scroller in
+ * `browser/scroll-within.test.tsx`.
+ */
 describe('useScrollWithin', () => {
 	it('returns a function', () => {
 		const { result } = renderHook(() => useScrollWithin())

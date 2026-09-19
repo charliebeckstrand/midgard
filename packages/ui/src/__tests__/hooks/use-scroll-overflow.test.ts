@@ -3,6 +3,19 @@ import { describe, expect, it } from 'vitest'
 import { useScrollOverflow } from '../../hooks/use-scroll-overflow'
 import { mockDomGeometry } from '../helpers/mock-dom-geometry'
 
+/**
+ * The ref's own contract, and the one comparison a browser cannot be asked for.
+ *
+ * What the hook does to a real scroller is asserted in
+ * `browser/scroll-overflow.test.tsx`: a box that overflows, a scroll between
+ * its edges, content growing under it, and a detach that stops the listening.
+ * Three cases stay. Two are about the callback ref rather than any geometry —
+ * that it keeps its identity across renders, and that it tolerates `null`. The
+ * third is the edge tolerance, which needs a scroll offset a fraction short of
+ * the end: a browser settles `scrollTop` where the engine and the device pixel
+ * ratio put it, so the fraction has to be written rather than requested.
+ */
+
 function buildScroller(geometry: {
 	scrollTop: number
 	clientHeight: number
@@ -38,62 +51,6 @@ describe('useScrollOverflow', () => {
 		expect(() => result.current(null)).not.toThrow()
 	})
 
-	it('stamps no attributes when content fits', () => {
-		const { result } = renderHook(() => useScrollOverflow())
-
-		const node = buildScroller({ scrollTop: 0, clientHeight: 200, scrollHeight: 200 })
-
-		result.current(node)
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(false)
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-		node.remove()
-	})
-
-	it('stamps data-overflow-below on attach when content overflows', () => {
-		const { result } = renderHook(() => useScrollOverflow())
-
-		const node = buildScroller({ scrollTop: 0, clientHeight: 200, scrollHeight: 400 })
-
-		result.current(node)
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(false)
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(true)
-
-		node.remove()
-	})
-
-	it('flips the attributes as the node scrolls between its edges', () => {
-		const { result } = renderHook(() => useScrollOverflow())
-
-		const node = buildScroller({ scrollTop: 0, clientHeight: 200, scrollHeight: 400 })
-
-		result.current(node)
-
-		scrollTo(node, 100)
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(true)
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(true)
-
-		scrollTo(node, 200)
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(true)
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-		scrollTo(node, 0)
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(false)
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(true)
-
-		node.remove()
-	})
-
 	it('tolerates fractional offsets within a pixel of an edge', () => {
 		const { result } = renderHook(() => useScrollOverflow())
 
@@ -105,52 +62,6 @@ describe('useScrollOverflow', () => {
 		scrollTo(node, 199.6)
 
 		expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-		node.remove()
-	})
-
-	it('removes listeners and attributes via the ref cleanup', () => {
-		const { result } = renderHook(() => useScrollOverflow())
-
-		const node = buildScroller({ scrollTop: 100, clientHeight: 200, scrollHeight: 400 })
-
-		const cleanup = result.current(node)
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(true)
-
-		expect(typeof cleanup).toBe('function')
-
-		if (typeof cleanup === 'function') cleanup()
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(false)
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-		// A scroll after detach must not restamp the attributes.
-		scrollTo(node, 100)
-
-		expect(node.hasAttribute('data-overflow-above')).toBe(false)
-
-		node.remove()
-	})
-
-	it('re-measures when children are added or removed', async () => {
-		const { result } = renderHook(() => useScrollOverflow())
-
-		const node = buildScroller({ scrollTop: 0, clientHeight: 200, scrollHeight: 200 })
-
-		result.current(node)
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-		mockDomGeometry(node, { scrollHeight: 400 })
-
-		node.appendChild(document.createElement('div'))
-
-		// MutationObserver callbacks flush as microtasks.
-		await Promise.resolve()
-
-		expect(node.hasAttribute('data-overflow-below')).toBe(true)
 
 		node.remove()
 	})
