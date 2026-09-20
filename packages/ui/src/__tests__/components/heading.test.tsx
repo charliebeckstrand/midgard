@@ -1,7 +1,35 @@
 import { describe, expect, it } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { Density } from '../../primitives/density'
-import { bySlot, renderUI } from '../helpers'
+import { headingScale, headingWeight } from '../../recipes/kata/heading'
+import { ji } from '../../recipes/kiso'
+import { steps } from '../../recipes/kiso/sun'
+import { bySlot, present, renderUI } from '../helpers'
+
+// The ladder is `recipes/heading-scale.test.ts`, in node, over all eighteen
+// level-by-step pairs. What stays here is the wiring: the component gives
+// `headingScale` the level and the step in that order, and the rung it answers
+// reaches the recipe. Both expectations derive from the kata, so a deliberate
+// move of the scale stays one edit.
+
+const { size } = ji
+
+const levels = [1, 2, 3, 4, 5, 6] as const
+
+const rungs = new Set<string>(Object.values(size))
+
+/**
+ * The type-scale classes an element carries.
+ *
+ * @remarks
+ * The rung set keeps the resting ink (`text-zinc-950`) out of the answer, which
+ * a `text-` prefix does not. The result is a list, so a caller states that
+ * exactly one rung survives the merge.
+ *
+ * @param el - The rendered heading.
+ * @returns Every `ji.size` class on the element, in source order.
+ */
+const rungsOf = (el: Element) => el.className.split(' ').filter((name) => rungs.has(name))
 
 describe('Heading', () => {
 	it('renders an h1 by default with data-slot="heading"', () => {
@@ -14,7 +42,7 @@ describe('Heading', () => {
 		expect(heading?.tagName).toBe('H1')
 	})
 
-	it.each([1, 2, 3, 4, 5, 6] as const)('renders an h%i when level=%i', (level) => {
+	it.each(levels)('renders an h%i when level=%i', (level) => {
 		const { container } = renderUI(<Heading level={level}>Title</Heading>)
 
 		const heading = bySlot(container, 'heading')
@@ -23,57 +51,18 @@ describe('Heading', () => {
 	})
 
 	describe('size', () => {
-		it('renders each level at its natural size by default', () => {
-			const { container } = renderUI(
-				<>
-					<Heading level={1}>One</Heading>
-					<Heading level={6}>Six</Heading>
-				</>,
-			)
+		it.each(steps)('renders every level at its %s rung', (step) => {
+			const rendered = levels.map((level) => {
+				const { container } = renderUI(
+					<Heading level={level} size={step}>
+						Title
+					</Heading>,
+				)
 
-			const [one, six] = container.querySelectorAll('[data-slot="heading"]')
+				return rungsOf(present(bySlot(container, 'heading'), `the level ${level} heading`))
+			})
 
-			expect(one?.className).toContain('text-3xl')
-
-			expect(six?.className).toContain('text-sm')
-		})
-
-		it('shifts every level one rung down with size="sm"', () => {
-			const { container } = renderUI(
-				<>
-					<Heading level={1} size="sm">
-						One
-					</Heading>
-					<Heading level={6} size="sm">
-						Six
-					</Heading>
-				</>,
-			)
-
-			const [one, six] = container.querySelectorAll('[data-slot="heading"]')
-
-			expect(one?.className).toContain('text-2xl')
-
-			expect(six?.className).toContain('text-xs')
-		})
-
-		it('shifts every level one rung up with size="lg"', () => {
-			const { container } = renderUI(
-				<>
-					<Heading level={1} size="lg">
-						One
-					</Heading>
-					<Heading level={3} size="lg">
-						Three
-					</Heading>
-				</>,
-			)
-
-			const [one, three] = container.querySelectorAll('[data-slot="heading"]')
-
-			expect(one?.className).toContain('text-4xl')
-
-			expect(three?.className).toContain('text-2xl')
+			expect(rendered).toStrictEqual(levels.map((level) => [size[headingScale(level, step)]]))
 		})
 
 		it('ignores an ambient Density provider', () => {
@@ -84,17 +73,17 @@ describe('Heading', () => {
 			)
 
 			// Static leaf: the rung shifts only through the explicit size prop.
-			expect(bySlot(container, 'heading')?.className).toContain('text-3xl')
+			expect(bySlot(container, 'heading')?.className).toContain(size[headingScale(1, 'md')])
 		})
 
-		it('keeps weight tied to the level regardless of size', () => {
+		it.each(levels)('keeps level %i at its own weight regardless of size', (level) => {
 			const { container } = renderUI(
-				<Heading level={1} size="sm">
-					One
+				<Heading level={level} size="sm">
+					Title
 				</Heading>,
 			)
 
-			expect(bySlot(container, 'heading')?.className).toContain('font-bold')
+			expect(bySlot(container, 'heading')?.className).toContain(headingWeight(level))
 		})
 	})
 
