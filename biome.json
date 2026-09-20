@@ -263,6 +263,17 @@
 				"!packages/ui/src/core/create-context.ts"
 			],
 			"plugins": ["./biome-plugins/no-react-create-context.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
+				"!packages/ui/src/__tests__/**",
+				"!packages/ui/src/__benchmarks__/**",
+				"!packages/ui/src/recipes/kata/**/*.ts",
+				"!packages/ui/src/recipes/katakana/**/*.ts",
+				"!packages/ui/src/layouts/*/variants.ts"
+			],
+			"plugins": ["./biome-plugins/no-unsanctioned-define-recipe.grit"]
 		}
 	],
 	"files": {
