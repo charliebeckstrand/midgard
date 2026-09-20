@@ -254,6 +254,15 @@
 					}
 				}
 			}
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
+				"!packages/ui/src/__tests__/**",
+				"!packages/ui/src/__benchmarks__/**",
+				"!packages/ui/src/core/create-context.ts"
+			],
+			"plugins": ["./biome-plugins/no-react-create-context.grit"]
 		}
 	],
 	"files": {
