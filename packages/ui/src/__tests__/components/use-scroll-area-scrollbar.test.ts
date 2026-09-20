@@ -3,6 +3,23 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useScrollAreaScrollbar } from '../../components/scroll-area/use-scroll-area-scrollbar'
 import { makePointerEvent, mockDomGeometry } from '../helpers'
 
+/**
+ * Hook mechanics, and they belong under jsdom.
+ *
+ * Almost nothing here is a measurement. The orientation flags, the initial
+ * state, the `scrollbar="auto"` fade timers, the pointer listeners `startDrag`
+ * attaches and the cleanup it runs on unmount, mid-drag and on a second call —
+ * these are the hook's own bookkeeping, asserted through spies and a driven rAF
+ * queue. The thumb cases are arithmetic on four numbers, which
+ * `scroll-area-compute-thumb.test.ts` pins directly in a node environment.
+ *
+ * Where the scroll area does read layout, the case has moved:
+ * `browser/scroll-area-wheel.test.tsx` decides shift+wheel against real
+ * horizontal overflow, and `browser/scroll-area-scrollable-ancestor.test.tsx`
+ * walks real scrollers. What stays is what a browser would only make slower and
+ * harder to steer.
+ */
+
 // The scroll path coalesces thumb re-measures into one animation frame, so the
 // hook tests drive a controllable rAF queue and flush it after handleScroll to
 // observe the committed thumb state.

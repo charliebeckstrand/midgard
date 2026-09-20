@@ -1,0 +1,106 @@
+import { describeNode } from './label'
+
+/**
+ * Fails a test that leaves page state behind.
+ *
+ * Both browser instances run `isolate: false`, so one page serves every file
+ * the instance runs. Testing Library's `cleanup` removes the containers React
+ * owns and nothing else, so what a test leaves outside them outlives it.
+ *
+ * The check reports at the culprit and then absorbs the leak. The test that
+ * left the state fails, and the tests after it are not punished for it. Without
+ * that, a leak is only ever visible as a failure somewhere downstream. That is
+ * how the missing `__resetAnnouncer` call in this file's sibling survived a
+ * suite that passes 583 tests.
+ *
+ * What it watches is every surface a shipped module is known to write outside
+ * a React tree. Appended body children cover portals and injected regions.
+ * `body.style` covers `use-scroll-lock`, which sets `overflow` and a
+ * compensating `paddingRight` under a reference count. The marked head style
+ * covers `use-grabbing-cursor`, which appends one under a count of its own.
+ * Both unbalance exactly when a holder unmounts wrongly, which is the failure
+ * this guard exists for, and neither is a body child.
+ *
+ * It is a guard rather than a cure. It was written against the suite's
+ * intermittent failures and does not explain them: it stayed silent through a
+ * failing run. What it closes is a residue rule the 2026-09-11 test
+ * architecture document has stated since August, which nothing enforced and no
+ * file in this suite practised.
+ */
+
+/** Node names a test may leave in the body: the page's own injected assets. */
+const INJECTED = new Set(['STYLE', 'LINK', 'SCRIPT'])
+
+/** The grabbing cursor's marker; `use-grabbing-cursor` stamps it on its style. */
+const GRABBING = '[data-grabbing-cursor]'
+
+let children = new WeakSet<Element>()
+
+let bodyStyle = ''
+
+let bodyClass = ''
+
+let rootStyle = ''
+
+/**
+ * Records the page state this test inherits. Call it from a `beforeEach`,
+ * before the test renders anything.
+ */
+export function absorbResidue(): void {
+	children = new WeakSet<Element>()
+
+	for (const node of document.body.children) children.add(node)
+
+	bodyStyle = document.body.style.cssText
+
+	bodyClass = document.body.className
+
+	rootStyle = document.documentElement.style.cssText
+}
+
+/** Every leak the test is answerable for, named for the message. */
+function collect(): string[] {
+	const leaks: string[] = []
+
+	for (const node of document.body.children) {
+		if (!children.has(node) && !INJECTED.has(node.tagName)) leaks.push(describeNode(node))
+	}
+
+	if (document.body.style.cssText !== bodyStyle) {
+		leaks.push(`body style: "${document.body.style.cssText}" (was "${bodyStyle}")`)
+	}
+
+	if (document.body.className !== bodyClass) {
+		leaks.push(`body class: "${document.body.className}" (was "${bodyClass}")`)
+	}
+
+	if (document.documentElement.style.cssText !== rootStyle) {
+		leaks.push(`root style: "${document.documentElement.style.cssText}" (was "${rootStyle}")`)
+	}
+
+	if (document.head.querySelector(GRABBING)) leaks.push('a grabbing-cursor style, left in head')
+
+	return leaks
+}
+
+/**
+ * Throws when the page carries state the test did not inherit.
+ *
+ * Call it at the END of the teardown that clears the page, in the same hook
+ * rather than a later one. Vitest runs `afterEach` as a stack, so a hook
+ * registered after the teardown runs before it, and reads every render
+ * container as a leak.
+ */
+export function assertNoResidue(): void {
+	const leaks = collect()
+
+	// Absorb before throwing. The next test inherits a clean expectation, and
+	// fails only for what it leaks itself.
+	absorbResidue()
+
+	if (leaks.length === 0) return
+
+	throw new Error(
+		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nRemove it in onTestFinished, or render inside the container renderUI returns.`,
+	)
+}

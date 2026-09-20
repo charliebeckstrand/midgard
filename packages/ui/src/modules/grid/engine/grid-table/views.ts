@@ -1,4 +1,4 @@
-import type { ColumnPinningState, PaginationState, Table } from '@tanstack/react-table'
+import type { ColumnPinningState, PaginationState, Table, Updater } from '@tanstack/react-table'
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import type { QueryField, QueryGroup } from '../../../query/engine/types'
@@ -117,7 +117,13 @@ export type GridPaginationView = {
 	canPrevious: boolean
 	canNext: boolean
 	pageSizeOptions: number[] | undefined
-	setPageIndex: (index: number) => void
+	/**
+	 * Moves to a page, by absolute index or by an updater the engine applies to the
+	 * live index. Two navigations that land on one render compose under an updater;
+	 * an absolute index computed from the rendered page resolves both to the same
+	 * page. The engine clamps the result to the page count.
+	 */
+	setPageIndex: (index: Updater<number>) => void
 	setPageSize: (size: number) => void
 }
 
