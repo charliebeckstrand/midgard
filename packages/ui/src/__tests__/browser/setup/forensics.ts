@@ -15,8 +15,11 @@ import { onTestFailed } from 'vitest'
  * could be ruled out one hunt at a time, or the next occurrence could carry its
  * own evidence. This is the second option, and it costs nothing on a green run.
  *
- * Read what it prints as the state AFTER the failing assertion, not at the
- * moment the test began.
+ * The snapshot is taken at the top of the teardown, before `cleanup` empties
+ * the body, because `onTestFailed` runs after the teardown: a dump read there
+ * reports an emptied body and an unfocused document for every failure, which
+ * looks like evidence and is not. So the two halves are separate. The setup
+ * captures first and prints later.
  */
 
 /** Names an element the way a reader can find it. */
@@ -53,12 +56,22 @@ function pageState(): string {
 	].join('\n  ')
 }
 
+let captured = ''
+
+/**
+ * Records the page state. Call it at the TOP of the teardown, before anything
+ * clears the body, so the dump describes the page the failing test left.
+ */
+export function capturePageState(): void {
+	captured = pageState()
+}
+
 /**
  * Registers the dump. Call it from a `beforeEach` in the setup file, which binds
  * it to each test in turn; `onTestFailed` has to run inside a test's context.
  */
 export function reportPageStateOnFailure(): void {
 	onTestFailed(() => {
-		console.error(`page state at failure:\n  ${pageState()}`)
+		console.error(`page state at failure:\n  ${captured || pageState()}`)
 	})
 }

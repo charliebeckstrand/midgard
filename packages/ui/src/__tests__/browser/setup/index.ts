@@ -3,7 +3,7 @@ import { cleanup } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, beforeEach, expect } from 'vitest'
 import { resetSingletons } from '../../helpers/reset-singletons'
-import { reportPageStateOnFailure } from './forensics'
+import { capturePageState, reportPageStateOnFailure } from './forensics'
 import { absorbBodyResidue, assertNoBodyResidue } from './residue'
 import { restoreViewportAfterFile } from './viewport'
 import './tailwind.css'
@@ -24,6 +24,9 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+	// Before cleanup, so a failure's dump describes the page the test left.
+	capturePageState()
+
 	cleanup()
 
 	// The announcer's live region lives on document.body, outside React's tree;
