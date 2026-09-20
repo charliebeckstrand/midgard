@@ -27,22 +27,6 @@ describe('Pagination', () => {
 })
 
 describe('PaginationPage', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Pagination>
-				<PaginationList>
-					<PaginationPage href="/page/1">1</PaginationPage>
-				</PaginationList>
-			</Pagination>,
-		)
-
-		const el = bySlot(container, 'pagination-page')
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/page/1')
-	})
-
 	it('marks the current page with aria-current="page"', () => {
 		const { container } = renderUI(
 			<Pagination>

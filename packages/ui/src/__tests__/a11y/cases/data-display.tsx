@@ -92,6 +92,12 @@ export const dataDisplayCases: readonly Case[] = [
 				absentSlot: 'badge',
 			},
 		],
+		link: [
+			{
+				render: (href) => <Badge href={href}>Tag</Badge>,
+				slot: 'badge',
+			},
+		],
 	},
 	{
 		// Status indicator paired with a visible text label.

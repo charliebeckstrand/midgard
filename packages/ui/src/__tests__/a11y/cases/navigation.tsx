@@ -72,6 +72,18 @@ export const navigationCases: readonly Case[] = [
 				placeholders: 5,
 			},
 		],
+		link: [
+			{
+				render: (href) => (
+					<Pagination>
+						<PaginationList>
+							<PaginationPage href={href}>1</PaginationPage>
+						</PaginationList>
+					</Pagination>
+				),
+				slot: 'pagination-page',
+			},
+		],
 	},
 	{
 		// Navigation, not a menu: links with aria-current, no menubar/menuitem.
@@ -97,6 +109,18 @@ export const navigationCases: readonly Case[] = [
 			},
 			{ render: (props) => <NavBar {...props}>content</NavBar>, slot: 'nav-bar' },
 		],
+		link: [
+			{
+				render: (href) => (
+					<Nav>
+						<NavList>
+							<NavItem href={href}>Home</NavItem>
+						</NavList>
+					</Nav>
+				),
+				slot: 'nav-item-inner',
+			},
+		],
 	},
 	{
 		// Sidebar navigation: items wrapped in a SidebarList <ul> that exposes
@@ -116,6 +140,16 @@ export const navigationCases: readonly Case[] = [
 				</SidebarBody>
 			</Sidebar>
 		),
+		link: [
+			{
+				render: (href) => (
+					<Sidebar>
+						<SidebarItem href={href}>Home</SidebarItem>
+					</Sidebar>
+				),
+				slot: 'sidebar-item-inner',
+			},
+		],
 	},
 	{
 		name: 'breadcrumb',
@@ -138,6 +172,20 @@ export const navigationCases: readonly Case[] = [
 				element: <BreadcrumbSkeleton crumbs={3} />,
 				absentSlot: 'breadcrumb',
 				placeholders: 5,
+			},
+		],
+		link: [
+			{
+				render: (href) => (
+					<Breadcrumb>
+						<BreadcrumbList>
+							<BreadcrumbItem>
+								<BreadcrumbLink href={href}>Home</BreadcrumbLink>
+							</BreadcrumbItem>
+						</BreadcrumbList>
+					</Breadcrumb>
+				),
+				slot: 'breadcrumb-link',
 			},
 		],
 	},

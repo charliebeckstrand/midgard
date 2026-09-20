@@ -15,18 +15,6 @@ describe('Box', () => {
 		expect(ref.current).toBe(bySlot(container, 'box'))
 	})
 
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(<Box href="/path">Link</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/path')
-	})
-
 	it('forwards ref when rendered as a link', () => {
 		const ref = createRef<HTMLAnchorElement>()
 

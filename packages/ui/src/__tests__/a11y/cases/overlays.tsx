@@ -124,6 +124,18 @@ export const overlays: readonly Case[] = [
 				</MenuContent>
 			</Menu>
 		),
+		link: [
+			{
+				render: (href) => (
+					<Menu defaultOpen>
+						<MenuContent>
+							<MenuItem href={href}>Docs</MenuItem>
+						</MenuContent>
+					</Menu>
+				),
+				slot: 'menu-item',
+			},
+		],
 	},
 	{
 		// Command palette: a modal search dialog over a grouped result list.
@@ -140,6 +152,17 @@ export const overlays: readonly Case[] = [
 				</CommandPaletteGroup>
 			</CommandPalette>
 		),
+		link: [
+			{
+				render: (href) => (
+					<CommandPalette open onOpenChange={noop}>
+						<CommandPaletteItem href={href}>Docs</CommandPaletteItem>
+					</CommandPalette>
+				),
+				slot: 'command-palette-item',
+				portals: true,
+			},
+		],
 	},
 	{
 		// Live toast: each toast carries its own status/alert role for politeness.

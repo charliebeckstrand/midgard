@@ -68,22 +68,6 @@ describe('NavList', () => {
 })
 
 describe('NavItem', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Nav>
-				<NavList>
-					<NavItem href="/home">Home</NavItem>
-				</NavList>
-			</Nav>,
-		)
-
-		const inner = bySlot(container, 'nav-item-inner')
-
-		expect(inner?.tagName).toBe('A')
-
-		expect(inner).toHaveAttribute('href', '/home')
-	})
-
 	it('renders as a button by default', () => {
 		const { container } = renderUI(
 			<Nav>

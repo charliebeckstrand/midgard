@@ -63,18 +63,6 @@ describe('Button', () => {
 		expect(onClick).toHaveBeenCalledOnce()
 	})
 
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(<Button href="/about">About</Button>)
-
-		const link = bySlot(container, 'button')
-
-		expect(link).toBeInTheDocument()
-
-		expect(link?.tagName).toBe('A')
-
-		expect(link).toHaveAttribute('href', '/about')
-	})
-
 	it('forwards ref to the button element', () => {
 		const ref = createRef<HTMLButtonElement>()
 

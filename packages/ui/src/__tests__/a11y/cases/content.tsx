@@ -37,6 +37,12 @@ export const contentCases: readonly Case[] = [
 				absentSlot: 'button',
 			},
 		],
+		link: [
+			{
+				render: (href) => <Button href={href}>About</Button>,
+				slot: 'button',
+			},
+		],
 	},
 	{
 		name: 'heading + text',

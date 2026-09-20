@@ -40,24 +40,6 @@ describe('BreadcrumbItem', () => {
 })
 
 describe('BreadcrumbLink', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Breadcrumb>
-				<BreadcrumbList>
-					<BreadcrumbItem>
-						<BreadcrumbLink href="/home">Home</BreadcrumbLink>
-					</BreadcrumbItem>
-				</BreadcrumbList>
-			</Breadcrumb>,
-		)
-
-		const el = bySlot(container, 'breadcrumb-link')
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/home')
-	})
-
 	it('marks a current crumb that is still a link with aria-current', () => {
 		const { container } = renderUI(
 			<Breadcrumb>

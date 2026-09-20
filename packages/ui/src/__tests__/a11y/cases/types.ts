@@ -27,6 +27,16 @@ export type SkeletonSubject = {
 	note?: string
 }
 
+/** A subject that becomes an anchor when it is given an `href`. */
+export type LinkSubject = {
+	/** Renders the subject with `href` on the element that must become the anchor. */
+	render: (href: string) => ReactElement
+	/** The `data-slot` that must render an `<a>`. */
+	slot: string
+	/** Set where the subject portals, so the sweep reads the document rather than the container. */
+	portals?: boolean
+}
+
 /** A named, canonical render the baseline gate asserts is axe-clean. */
 export type Case = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
@@ -45,6 +55,11 @@ export type Case = {
 	 * more than one silhouette: `progress` has a bar and a gauge.
 	 */
 	skeleton?: readonly SkeletonSubject[]
+	/**
+	 * Subjects that swap their element for an anchor when given an `href`. A
+	 * list, because one entry can publish more than one such subject.
+	 */
+	link?: readonly LinkSubject[]
 }
 
 /**
