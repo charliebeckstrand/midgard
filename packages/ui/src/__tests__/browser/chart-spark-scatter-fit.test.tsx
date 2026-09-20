@@ -3,7 +3,7 @@ import { page } from 'vitest/browser'
 import { BubbleChart } from '../../modules/chart/bubble-chart'
 import { MARKER_RING_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, present, renderUI } from '../helpers'
 
 /** How far a disc paints past its center: the radius plus the ring stroked outside it. */
 const paintedReach = (mark: { r: number }) => mark.r + MARKER_RING_WIDTH / 2
@@ -42,7 +42,10 @@ describe('spark scatter fits and centers in its box (real browser)', () => {
 	 * move-to x plus the radius.
 	 */
 	const discs = (container: HTMLElement) => {
-		const svg = bySlot(container, 'chart-plot')?.querySelector('svg') as SVGSVGElement
+		const svg = present<SVGSVGElement>(
+			bySlot(container, 'chart-plot')?.querySelector('svg'),
+			'chart-plot',
+		)
 
 		const box = { width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height }
 

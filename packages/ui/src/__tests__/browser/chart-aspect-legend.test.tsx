@@ -46,9 +46,9 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 			</div>,
 		)
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
-		const box = bySlot(container, 'aspect-ratio') as HTMLElement
-		const legend = bySlot(container, 'chart-legend') as HTMLElement
+		const figure = present(bySlot(container, 'chart-figure'), 'chart-figure')
+		const box = present(bySlot(container, 'aspect-ratio'), 'aspect-ratio')
+		const legend = present(bySlot(container, 'chart-legend'), 'chart-legend')
 
 		// The plot box carries the ratio itself — the figure reserves none, so the
 		// drawing can't be squeezed to fit the whole chart into 16:9.

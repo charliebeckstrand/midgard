@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { present, renderUI, waitFor } from '../helpers'
 
 /**
  * Resize-handle geometry against a real layout engine. The handle lives in the
@@ -48,7 +48,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		return { container, table }
 	}
@@ -85,7 +85,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
@@ -186,7 +186,7 @@ describe('grid resize grip alignment (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
@@ -210,7 +210,7 @@ describe('grid resize grip alignment (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 

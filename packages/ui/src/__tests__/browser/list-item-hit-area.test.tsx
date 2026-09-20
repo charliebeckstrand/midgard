@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem, ListLabel } from '../../components/list'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, present, renderUI } from '../helpers'
 
 /**
  * An interactive row answers the pointer everywhere it is painted (WCAG 2.5.8,
@@ -64,9 +64,9 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = bySlot(container, 'list-item') as HTMLElement
+		const row = present(bySlot(container, 'list-item'), 'list-item')
 
-		const content = bySlot(container, 'list-item-content') as HTMLElement
+		const content = present(bySlot(container, 'list-item-content'), 'list-item-content')
 
 		// 5px in from the row's top-left corner: inside the 1px border and the 12px
 		// padding, and well clear of the content column.
@@ -104,7 +104,7 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = bySlot(container, 'list-item') as HTMLElement
+		const row = present(bySlot(container, 'list-item'), 'list-item')
 
 		// No handler to serve, so the padding stays the row's own — a row that grew
 		// a target it does not paint would read as clickable and act on nothing.
@@ -122,9 +122,9 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = bySlot(container, 'list-item') as HTMLElement
+		const row = present(bySlot(container, 'list-item'), 'list-item')
 
-		const handle = bySlot(container, 'list-handle') as HTMLElement
+		const handle = present(bySlot(container, 'list-handle'), 'list-handle')
 
 		const box = handle.getBoundingClientRect()
 
@@ -161,7 +161,10 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const suffix = container.querySelector('button[type="button"]:not([data-slot])') as HTMLElement
+		const suffix = present(
+			container.querySelector('button[type="button"]:not([data-slot])'),
+			'button[type="button"]:not([data-slot])',
+		)
 
 		await userEvent.click(suffix)
 

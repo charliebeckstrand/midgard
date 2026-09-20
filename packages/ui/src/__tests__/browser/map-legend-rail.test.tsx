@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { MapGeofence, MapPlat, MapPoint } from '../../modules/map'
-import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
+import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
@@ -44,7 +44,7 @@ describe('map legend rail (real browser)', () => {
 			{ city: 'Los Angeles', detail: 'Same day' },
 		])
 
-		const box = bySlot(container, 'map-legend-box') as HTMLElement
+		const box = present(bySlot(container, 'map-legend-box'), 'map-legend-box')
 
 		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(2))
 
@@ -76,9 +76,9 @@ describe('map legend rail (real browser)', () => {
 
 		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(1))
 
-		const entry = bySlot(container, 'map-legend-item') as HTMLElement
+		const entry = present(bySlot(container, 'map-legend-item'), 'map-legend-item')
 
-		const label = bySlot(entry, 'map-legend-label') as HTMLElement
+		const label = present(bySlot(entry, 'map-legend-label'), 'map-legend-label')
 
 		// The name's own painted box, through a Range over its contents — the label
 		// span stretches to the column, so its bounding rect is not what the keys read
@@ -109,7 +109,7 @@ describe('map legend rail (real browser)', () => {
 
 		const entries = allBySlot(container, 'map-legend-item') as HTMLElement[]
 
-		const clip = (entry: HTMLElement) => entry.querySelector('.truncate') as HTMLElement
+		const clip = (entry: HTMLElement) => present(entry.querySelector('.truncate'), '.truncate')
 
 		const [long, short] = entries as [HTMLElement, HTMLElement]
 

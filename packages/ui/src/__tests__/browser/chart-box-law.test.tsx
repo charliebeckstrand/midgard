@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
+import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The box-law in a real browser: a chart's aspect ratio is a preference a
@@ -54,7 +54,7 @@ describe('chart box-law (real browser)', () => {
 		)
 
 		const tile = container.firstElementChild as HTMLElement
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
+		const figure = present(bySlot(container, 'chart-figure'), 'chart-figure')
 
 		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
 
@@ -83,7 +83,7 @@ describe('chart box-law (real browser)', () => {
 
 		await waitFor(() => expect(svgHeight(container)).toBeGreaterThan(0))
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
+		const figure = present(bySlot(container, 'chart-figure'), 'chart-figure')
 
 		// 360 / (16 / 9) ≈ 202, the ratio's own height, not a clamped remainder.
 		expect(figure.getBoundingClientRect().height).toBeGreaterThan(190)

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { allBySlot, renderUI, waitFor } from '../helpers'
+import { allBySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The legend emphasises a series — dimming every other — while an entry is
@@ -85,7 +85,7 @@ describe('chart legend focus persistence (real browser)', () => {
 			</>,
 		)
 
-		const before = container.querySelector('button') as HTMLButtonElement
+		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
 
 		// Tab into the legend from the preceding control: a keyboard focus carries
@@ -114,7 +114,7 @@ describe('chart legend focus persistence (real browser)', () => {
 			</>,
 		)
 
-		const before = container.querySelector('button') as HTMLButtonElement
+		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
 
 		// Keyboard-focus the first switch — the other series dims — then point at it
@@ -154,7 +154,7 @@ describe('chart legend focus persistence (real browser)', () => {
 			</>,
 		)
 
-		const before = container.querySelector('button') as HTMLButtonElement
+		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
 
 		// Tab into the legend (landing on the first switch), then rove past the two

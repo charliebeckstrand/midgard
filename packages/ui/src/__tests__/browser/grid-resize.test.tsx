@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, waitFor } from '../helpers'
 
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
@@ -65,7 +65,7 @@ describe('grid column resizing (real browser)', () => {
 	it('confines the resize handle to the header, not down the column', async () => {
 		const { container, separator } = setup()
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		// The handle tracks the header cell's height — the affordance lives in the
 		// header — within a hairline cell border.
@@ -202,15 +202,21 @@ describe('grid column resizing (real browser)', () => {
 	it('accents the dragged column grip while a resize is in flight', async () => {
 		const { container, separator } = setup()
 
-		const wrapper = container.querySelector('[data-slot="grid"]') as HTMLElement
+		const wrapper = present(container.querySelector('[data-slot="grid"]'), '[data-slot="grid"]')
 
 		const ageHandle = container.querySelector(
 			'[role="separator"][aria-label="Resize Age"]',
 		) as HTMLElement
 
-		const nameGrip = separator.querySelector('span[aria-hidden="true"]') as HTMLElement
+		const nameGrip = present(
+			separator.querySelector('span[aria-hidden="true"]'),
+			'span[aria-hidden="true"]',
+		)
 
-		const ageGrip = ageHandle.querySelector('span[aria-hidden="true"]') as HTMLElement
+		const ageGrip = present(
+			ageHandle.querySelector('span[aria-hidden="true"]'),
+			'span[aria-hidden="true"]',
+		)
 
 		const rect = separator.getBoundingClientRect()
 

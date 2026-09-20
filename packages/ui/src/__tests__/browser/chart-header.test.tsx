@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { bySlot, renderUI, waitFor } from '../helpers'
+import { bySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * A chart title and subtitle band above the plot inside the aspect box, so the
@@ -47,9 +47,9 @@ describe('chart header (real browser)', () => {
 
 		expect((bySlot(container, 'chart-subtitle') as HTMLElement).textContent).toBe('by quarter')
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
+		const figure = present(bySlot(container, 'chart-figure'), 'chart-figure')
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = present(bySlot(container, 'chart-plot'), 'chart-plot')
 
 		// Inline, not a veil: the header sits in the flow, above the plot.
 		expect(getComputedStyle(header).position).not.toBe('absolute')

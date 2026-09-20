@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, waitFor } from '../helpers'
 
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
@@ -41,7 +41,7 @@ describe('grid column auto-sizing (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
 
@@ -374,7 +374,7 @@ describe('grid column auto-sizing (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
 

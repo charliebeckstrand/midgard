@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Infinite scroll over the real virtualizer (jsdom renders zero windowed rows,
@@ -75,7 +75,10 @@ describe('grid infinite scroll (real browser)', () => {
 		// A full window at the top, far from the loaded end, doesn't request more.
 		expect(onLoadMore).not.toHaveBeenCalled()
 
-		const scroll = container.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
 		scroll.scrollTop = scroll.scrollHeight
 
@@ -110,7 +113,10 @@ describe('grid infinite scroll (real browser)', () => {
 		// rows; one 50-row batch overshoots that), then stops without a scroll.
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
 
-		const scroll = document.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+		const scroll = present(
+			document.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
 		await waitFor(() => expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight))
 
@@ -157,7 +163,10 @@ describe('grid infinite scroll (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
-		const scroll = container.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
 		scroll.scrollTop = scroll.scrollHeight
 
@@ -225,7 +234,10 @@ describe('grid infinite scroll (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
-		const scroll = container.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
 		scroll.scrollTop = scroll.scrollHeight
 
@@ -283,7 +295,10 @@ describe('grid infinite scroll (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
-		const scroll = container.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
 		// Park deep in the old set — short of its end, so nothing fires yet.
 		scroll.scrollTop = scroll.scrollHeight / 2
@@ -339,7 +354,10 @@ describe('grid infinite scroll (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 
-		const scroll = container.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
 		// The scroll region bound to the parent's 200px box: it overflows (windowing
 		// is real) instead of growing to the 50 loaded rows' full height.
@@ -410,7 +428,10 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 	/** Scroll to the wide tail, appending batches until the last (wide) row renders. */
 	async function loadWideTail(container: HTMLElement) {
-		const scroll = container.querySelector('[data-slot="grid-scroll"]') as HTMLElement
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
 
 		await waitFor(
 			() => {

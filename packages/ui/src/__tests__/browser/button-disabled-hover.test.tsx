@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../components/button'
-import { renderUI } from '../helpers'
+import { present, renderUI } from '../helpers'
 
 /**
  * A disabled control must not answer the pointer, however its disabledness is spelled.
@@ -30,7 +30,7 @@ describe('a disabled button under the pointer (real browser)', () => {
 			</Button>,
 		)
 
-		const button = container.querySelector('button') as HTMLElement
+		const button = present(container.querySelector('button'), 'button')
 
 		const before = getComputedStyle(button).backgroundColor
 

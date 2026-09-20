@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
+import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The side rail reserves a share of the chart's container (`min(16rem, 40cqw)`)
@@ -34,8 +34,8 @@ describe('chart legend panel (real browser)', () => {
 			/>,
 		)
 
-		const panel = bySlot(container, 'chart-legend') as HTMLElement
-		const block = bySlot(container, 'chart-legend-items') as HTMLElement
+		const panel = present(bySlot(container, 'chart-legend'), 'chart-legend')
+		const block = present(bySlot(container, 'chart-legend-items'), 'chart-legend-items')
 
 		// The rail is `min(16rem, 40cqw)` — 40cqw of this 640px chart is 256px, which
 		// meets the 16rem cap, so it reads ~256 here (not a half-width ~320 panel).
@@ -82,7 +82,7 @@ describe('chart legend panel (real browser)', () => {
 		// The whole entry (button) is the tooltip trigger — the label span it wraps
 		// carries the clip, and the trigger gains `cursor-help` once truncated.
 		const entries = allBySlot(container, 'chart-legend-item') as HTMLElement[]
-		const clip = (entry: HTMLElement) => entry.querySelector('.truncate') as HTMLElement
+		const clip = (entry: HTMLElement) => present(entry.querySelector('.truncate'), '.truncate')
 
 		await waitFor(() => {
 			const long = clip(entries[0] as HTMLElement)
