@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import {
 	bandBoundaries,
@@ -300,5 +301,223 @@ describe('nearestBandIndex', () => {
 		expect(nearestBandIndex(500, scale, 4)).toBe(3)
 
 		expect(nearestBandIndex(50, bandScale({ count: 0, range: [0, 400] }), 0)).toBeNull()
+	})
+})
+
+// The tables above hold the documented examples. The properties below read the
+// same scales over a generated domain, so a tick that lands off its step
+// shrinks to the smallest series that shows it.
+//
+// The generators stay on realistic chart numbers — integers, and thousandths of
+// one. A pair of subnormal doubles gives a span whose nice step underflows to
+// zero, which is a shape no chart reaches and no tick loop ends on.
+const value = () =>
+	fc.oneof(
+		fc.integer({ min: -10_000, max: 10_000 }),
+		fc.integer({ min: -1_000_000, max: 1_000_000 }).map((raw) => raw / 1000),
+	)
+
+const values = () => fc.array(value(), { minLength: 1, maxLength: 8 })
+
+/** A plot extent in pixels, written top-to-bottom as the charts write it. */
+const range = () =>
+	fc
+		.tuple(fc.integer({ min: 0, max: 400 }), fc.integer({ min: 0, max: 400 }))
+		.filter(([from, to]) => from !== to)
+
+/** A tick target that asks for an axis, so the spark tier stays out of these. */
+const tickTarget = () => fc.integer({ min: 1, max: 12 })
+
+/**
+ * The mantissa of `step`, in `[1, 10)`. A clean step is a mantissa of 1, 2, or
+ * 5 over a power of ten, and the scaling loop reads that power off without
+ * `Math.log10`, whose result at a power of ten is not always exact.
+ */
+function mantissa(step: number): number {
+	let scaled = step
+
+	while (scaled >= 9.999_999_9) scaled /= 10
+
+	while (scaled < 0.999_999_9) scaled *= 10
+
+	return scaled
+}
+
+/** Whether two numbers agree to within `slack` parts of `scale`. */
+function near(a: number, b: number, scale: number, slack = 1e-6): boolean {
+	return Math.abs(a - b) <= Math.abs(scale) * slack
+}
+
+describe('linearScale · tick properties', () => {
+	test.prop([values(), range(), tickTarget()])(
+		'spaces every tick by one step',
+		(series, extent, target) => {
+			const scale = linearScale({ values: series, range: extent, tickTarget: target })
+
+			if (!scale) throw new Error('a finite series must resolve')
+
+			expect(scale.ticks.length).toBeGreaterThanOrEqual(1)
+
+			if (scale.ticks.length < 2) return
+
+			const step = (scale.ticks[1] as number) - (scale.ticks[0] as number)
+
+			expect(step).toBeGreaterThan(0)
+
+			for (let index = 1; index < scale.ticks.length; index++) {
+				const gap = (scale.ticks[index] as number) - (scale.ticks[index - 1] as number)
+
+				expect(near(gap, step, step, 1e-5)).toBe(true)
+			}
+		},
+	)
+
+	test.prop([values(), range(), tickTarget()])(
+		'steps by one, two, or five over a power of ten',
+		(series, extent, target) => {
+			const scale = linearScale({ values: series, range: extent, tickTarget: target })
+
+			if (!scale || scale.ticks.length < 2) return
+
+			const step = (scale.ticks[1] as number) - (scale.ticks[0] as number)
+
+			const unit = mantissa(step)
+
+			expect([1, 2, 5].some((clean) => near(unit, clean, clean, 1e-6))).toBe(true)
+		},
+	)
+
+	test.prop([values(), range(), tickTarget()])(
+		'keeps every tick inside the domain',
+		(series, extent, target) => {
+			const scale = linearScale({ values: series, range: extent, tickTarget: target })
+
+			if (!scale) throw new Error('a finite series must resolve')
+
+			const [low, high] = scale.domain
+
+			const slack = (high - low) * 1e-6
+
+			for (const tick of scale.ticks) {
+				expect(tick).toBeGreaterThanOrEqual(low - slack)
+
+				expect(tick).toBeLessThanOrEqual(high + slack)
+			}
+		},
+	)
+
+	test.prop([values(), range(), tickTarget()])(
+		'holds the whole series inside an unpinned domain',
+		(series, extent, target) => {
+			const scale = linearScale({ values: series, range: extent, tickTarget: target })
+
+			if (!scale) throw new Error('a finite series must resolve')
+
+			const [low, high] = scale.domain
+
+			const slack = (high - low) * 1e-9
+
+			for (const datum of series) {
+				expect(datum).toBeGreaterThanOrEqual(low - slack)
+
+				expect(datum).toBeLessThanOrEqual(high + slack)
+			}
+		},
+	)
+
+	test.prop([values(), range()])('draws no tick at the spark tier', (series, extent) => {
+		const scale = linearScale({ values: series, range: extent, tickTarget: 0 })
+
+		expect(scale?.ticks).toEqual([])
+	})
+})
+
+describe('linearScale · map properties', () => {
+	test.prop([values(), range(), tickTarget()])(
+		'sends each domain edge to its own range edge',
+		(series, extent, target) => {
+			const scale = linearScale({ values: series, range: extent, tickTarget: target })
+
+			if (!scale) throw new Error('a finite series must resolve')
+
+			expect(scale.map(scale.domain[0])).toBe(extent[0])
+
+			expect(scale.map(scale.domain[1])).toBe(extent[1])
+		},
+	)
+
+	test.prop([values(), range(), tickTarget(), value(), value()])(
+		'never reverses the order of two values',
+		(series, extent, target, a, b) => {
+			const scale = linearScale({ values: series, range: extent, tickTarget: target })
+
+			if (!scale) throw new Error('a finite series must resolve')
+
+			const [low, high] = a <= b ? [a, b] : [b, a]
+
+			const travel = (scale.map(high) - scale.map(low)) * (extent[1] - extent[0])
+
+			expect(travel).toBeGreaterThanOrEqual(0)
+		},
+	)
+
+	test.prop([values(), range(), tickTarget(), fc.integer({ min: 1, max: 5000 })])(
+		'clamps a value outside the domain to that edge',
+		(series, extent, target, beyond) => {
+			const scale = linearScale({ values: series, range: extent, tickTarget: target })
+
+			if (!scale) throw new Error('a finite series must resolve')
+
+			expect(scale.map(scale.domain[0] - beyond)).toBe(scale.map(scale.domain[0]))
+
+			expect(scale.map(scale.domain[1] + beyond)).toBe(scale.map(scale.domain[1]))
+		},
+	)
+})
+
+describe('bandScale · properties', () => {
+	const band = () =>
+		fc.record({
+			count: fc.integer({ min: 1, max: 24 }),
+			width: fc.integer({ min: 24, max: 1200 }),
+			padding: fc.integer({ min: 0, max: 90 }).map((percent) => percent / 100),
+		})
+
+	test.prop([band()])('reads a band centre back as its own index', ({ count, width, padding }) => {
+		const scale = bandScale({ count, range: [0, width], padding })
+
+		for (let index = 0; index < count; index++) {
+			expect(nearestBandIndex(scale.center(index), scale, count)).toBe(index)
+		}
+	})
+
+	test.prop([band()])('centres each band in its slot', ({ count, width, padding }) => {
+		const scale = bandScale({ count, range: [0, width], padding })
+
+		for (let index = 0; index < count; index++) {
+			expect(near(scale.center(index) - scale.at(index), scale.width / 2, scale.step)).toBe(true)
+		}
+	})
+
+	test.prop([band()])('leaves no band overlapping the next', ({ count, width, padding }) => {
+		const scale = bandScale({ count, range: [0, width], padding })
+
+		for (let index = 0; index + 1 < count; index++) {
+			expect(scale.at(index) + scale.width).toBeLessThanOrEqual(scale.at(index + 1) + 1e-9)
+		}
+	})
+
+	test.prop([band()])('rules one boundary per gap, midway', ({ count, width, padding }) => {
+		const scale = bandScale({ count, range: [0, width], padding })
+
+		const boundaries = bandBoundaries(scale, count)
+
+		expect(boundaries).toHaveLength(Math.max(0, count - 1))
+
+		boundaries.forEach((boundary, index) => {
+			const midpoint = (scale.center(index) + scale.center(index + 1)) / 2
+
+			expect(near(boundary, midpoint, scale.step)).toBe(true)
+		})
 	})
 })
