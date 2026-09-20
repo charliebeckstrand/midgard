@@ -80,6 +80,9 @@ function horizontalPadding(el: HTMLElement): number {
  */
 let sharedResizeObserver: ResizeObserver | null = null
 
+/** The `ResizeObserver` the shared observer was built from. @internal */
+let sharedResizeObserverSource: typeof ResizeObserver | null = null
+
 /** Per-element `measure` callbacks the {@link sharedResizeObserver} dispatches to. @internal */
 const measureCallbacks = new WeakMap<Element, () => void>()
 
@@ -98,6 +101,8 @@ function observeTruncation(el: Element, measure: () => void): () => void {
 		sharedResizeObserver = new ResizeObserver((entries) => {
 			for (const entry of entries) measureCallbacks.get(entry.target)?.()
 		})
+
+		sharedResizeObserverSource = ResizeObserver
 	}
 
 	measureCallbacks.set(el, measure)
@@ -120,9 +125,18 @@ function observeTruncation(el: Element, measure: () => void): () => void {
  * Every project runs `isolate: false`, so the next file measures through it.
  */
 export function __resetTruncationObserver(): void {
-	sharedResizeObserver?.disconnect()
+	// Only when the global has moved under the cache. A suite that stubs
+	// `ResizeObserver` leaves the stub here after restoring the real one, and that
+	// is the leak. Dropping a correctly built observer instead would cost every
+	// later test a rebuild and a re-observe, which is the economy this module
+	// documents above.
+	if (!sharedResizeObserver || sharedResizeObserverSource === ResizeObserver) return
+
+	sharedResizeObserver.disconnect()
 
 	sharedResizeObserver = null
+
+	sharedResizeObserverSource = null
 }
 
 /**

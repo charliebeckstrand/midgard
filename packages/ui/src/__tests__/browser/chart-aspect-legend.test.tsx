@@ -12,12 +12,14 @@ import { bySlot, present, renderUI, waitFor } from '../helpers'
  * computed-layout claim — flex sizing and CSS `aspect-ratio` — that jsdom can't
  * measure, so it rides the real browser.
  */
-describe('chart aspect ratio with a side legend (real browser)', () => {
-	// The side-by-side row and the rail are `@sm`-gated on the chart's own width
-	// (384px); the 800px chart below clears it, so the row layout — not the stack —
-	// is what these assertions measure.
-	beforeAll(() => page.viewport(960, 700))
+// File scope, so both blocks below declare the same size. The side-by-side row
+// and the rail are `@sm`-gated on the chart's own width (384px); the 800px chart
+// clears it, so the row layout — not the stack — is what these assertions
+// measure. The second block asserts pixels too, and a `beforeAll` inside the
+// first would leave it running at whatever the page happened to hold.
+beforeAll(() => page.viewport(960, 700))
 
+describe('chart aspect ratio with a side legend (real browser)', () => {
 	const months = [
 		{ month: 'Jan', revenue: 40, costs: 24 },
 		{ month: 'Feb', revenue: 52, costs: 28 },
@@ -106,15 +108,13 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 		)
 	}
 
-	/** The plot SVG's `viewBox`, as `[minX, minY, width, height]`. */
-	function viewBox(container: HTMLElement): number[] {
-		const raw = present(bySlot(container, 'chart-plot'), 'the plot region')
-			.querySelector('svg')
-			?.getAttribute('viewBox')
+	/** The plot SVG's `viewBox`, parsed by the engine rather than by hand. */
+	function viewBox(container: HTMLElement): SVGRect {
+		const svg = present(bySlot(container, 'chart-plot'), 'the plot region').querySelector('svg')
 
-		if (!raw) throw new Error('no viewBox on the plot SVG')
+		if (!svg) throw new Error('no plot SVG')
 
-		return raw.split(' ').map(Number)
+		return svg.viewBox.baseVal
 	}
 
 	it('resolves the figure to the ratio and draws the plot into the legend remainder', async () => {
@@ -126,7 +126,7 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 
 		const legend = present(bySlot(container, 'chart-legend'), 'the legend')
 
-		await waitFor(() => expect(viewBox(container)[3]).toBeGreaterThan(0))
+		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
 
 		// The whole chart holds the ratio, and it actually resolves to it.
 		const box = figure.getBoundingClientRect()
@@ -143,9 +143,9 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 		// The drawing height is the measured remainder, not the ratio's full
 		// height — which is the claim jsdom could only make by supplying the
 		// remainder itself.
-		expect(viewBox(container)[3]).toBeCloseTo(plot.clientHeight, 0)
+		expect(viewBox(container).height).toBeCloseTo(plot.clientHeight, 0)
 
-		expect(viewBox(container)[3]).toBeLessThan(box.height)
+		expect(viewBox(container).height).toBeLessThan(box.height)
 	})
 
 	it('bands a side legend beside the plot and keeps the ratio on the plot box', async () => {
@@ -183,14 +183,14 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 
 		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
 
-		await waitFor(() => expect(viewBox(container)[3]).toBeGreaterThan(0))
+		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
 
 		// Free-form fill: the plot grows into the container's height rather than
 		// reserving one from its own width and collapsing to the zero that reserve
 		// would measure. jsdom read this off class strings.
 		expect(plot.getBoundingClientRect().height).toBeGreaterThan(150)
 
-		expect(viewBox(container)[3]).toBeCloseTo(plot.clientHeight, 0)
+		expect(viewBox(container).height).toBeCloseTo(plot.clientHeight, 0)
 	})
 
 	it('shares a square between a pie and its legend, filling the pie into the remainder', async () => {

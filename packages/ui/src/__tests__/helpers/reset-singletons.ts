@@ -30,6 +30,7 @@ export function resetSingletons(): void {
 	__resetAnnouncer()
 
 	// The shared ResizeObserver is built from whichever global existed at first
-	// use, and four jsdom files stub that global.
+	// use, and four jsdom files stub that global. It drops the cache only when
+	// the global has moved, so the suites that stub nothing keep their observer.
 	__resetTruncationObserver()
 }

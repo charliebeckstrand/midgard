@@ -1,7 +1,7 @@
 import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { allRegions, bySlot, present, renderUI, waitFor } from '../helpers'
+import { bySlot, firstRegion, present, renderUI, waitFor } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
@@ -19,20 +19,18 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * assertions read the size the plot actually took.
  */
 
-/** The plot SVG's `viewBox`, as `[minX, minY, width, height]`. */
-function viewBox(container: HTMLElement): number[] {
-	const raw = present(bySlot(container, 'map-plot'), 'plot region')
-		.querySelector('svg')
-		?.getAttribute('viewBox')
+/** The plot SVG's `viewBox`, parsed by the engine rather than by hand. */
+function viewBox(container: HTMLElement): SVGRect {
+	const svg = present(bySlot(container, 'map-plot'), 'plot region').querySelector('svg')
 
-	if (!raw) throw new Error('no viewBox on the plot SVG')
+	if (!svg) throw new Error('no plot SVG')
 
-	return raw.split(' ').map(Number)
+	return svg.viewBox.baseVal
 }
 
 /** The first region's path `d`, or `null` before any region is drawn. */
 function firstRegionPath(container: HTMLElement): string | null {
-	return allRegions(container)[0]?.getAttribute('d') ?? null
+	return firstRegion(container)?.getAttribute('d') ?? null
 }
 
 describe('MapPlat resize with a passed projection instance (real browser)', () => {
@@ -54,7 +52,7 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 
 		const plot = present(bySlot(container, 'map-plot'), 'plot region')
 
-		await waitFor(() => expect(viewBox(container)[2]).toBeGreaterThan(0))
+		await waitFor(() => expect(viewBox(container).width).toBeGreaterThan(0))
 
 		const atFirst = firstRegionPath(container)
 
@@ -62,15 +60,15 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 
 		// The viewBox follows the box the plot was actually given, not a figure the
 		// test supplied — which is the half jsdom could not assert.
-		expect(viewBox(container)[2]).toBeCloseTo(plot.clientWidth, 0)
+		expect(viewBox(container).width).toBeCloseTo(plot.clientWidth, 0)
 
-		const firstWidth = viewBox(container)[2] as number
+		const firstWidth = viewBox(container).width
 
 		frame.style.width = '600px'
 
-		await waitFor(() => expect(viewBox(container)[2]).toBeGreaterThan(firstWidth))
+		await waitFor(() => expect(viewBox(container).width).toBeGreaterThan(firstWidth))
 
-		expect(viewBox(container)[2]).toBeCloseTo(plot.clientWidth, 0)
+		expect(viewBox(container).width).toBeCloseTo(plot.clientWidth, 0)
 
 		// A named projection carries its paths onto a refit by one group transform
 		// and leaves every `d` alone. This is the other branch: `fitSize` refits a
@@ -91,7 +89,7 @@ describe('MapPlat free-form fill sizing, aspectRatio={false} (real browser)', ()
 
 		const plot = present(bySlot(container, 'map-plot'), 'plot region')
 
-		await waitFor(() => expect(viewBox(container)[3]).toBeGreaterThan(0))
+		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
 
 		// The frame takes the container's height and the plot grows into it, rather
 		// than reserving a height from its own width and feeding back the zero that
@@ -101,8 +99,8 @@ describe('MapPlat free-form fill sizing, aspectRatio={false} (real browser)', ()
 
 		expect(box.height).toBeGreaterThan(200)
 
-		expect(viewBox(container)[2]).toBeCloseTo(plot.clientWidth, 0)
+		expect(viewBox(container).width).toBeCloseTo(plot.clientWidth, 0)
 
-		expect(viewBox(container)[3]).toBeCloseTo(plot.clientHeight, 0)
+		expect(viewBox(container).height).toBeCloseTo(plot.clientHeight, 0)
 	})
 })
