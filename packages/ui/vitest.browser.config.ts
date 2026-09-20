@@ -4,6 +4,8 @@ import { playwright } from '@vitest/browser-playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { docsPlugin } from './src/docs/engine/plugins'
 
+const CI = Boolean(process.env.CI)
+
 /**
  * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
  * into two instances along the `@floating-ui/react` mock boundary — the mock
@@ -86,6 +88,36 @@ export default defineConfig({
 	},
 	test: {
 		globals: true,
+		// The same rule `vitest.config.ts` states: machine speed must change when a
+		// test passes, never whether it passes. Both budgets were Vitest's own
+		// browser defaults until now — `testTimeout ??= browser.enabled ? 15e3 :
+		// 5e3` and `hookTimeout ??= browser.enabled ? 3e4 : 1e4` — so the suite ran
+		// to a number no one here chose and a version bump can move. They are
+		// declared at those values, which changes nothing today and pins what a
+		// bump would take away.
+		//
+		// `asyncUtilTimeout` is RTL's waitFor/findBy budget, injected by
+		// `browser/setup/index.ts`. The browser suite had none, so it ran at RTL's
+		// own 1s default on every machine — the one suite that does real layout, on
+		// the most loaded page. It scales to 4s on CI now, as the jsdom projects
+		// do, and stays at 1s locally. It sits far below `testTimeout`, so a stuck
+		// wait fails as an RTL timeout carrying the callback's last error rather
+		// than as an opaque test timeout.
+		testTimeout: 15_000,
+		hookTimeout: 30_000,
+		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
+		// Both instances run `isolate: false`, so one page and one module registry
+		// serve every file the instance runs. A spy or a stub that a test does not
+		// restore therefore outlives its own file, exactly as it would in `unit`.
+		// These are the four settings `vitest.config.ts` carries for that reason,
+		// and the browser config carried none of them: restoreMocks reverts
+		// `vi.spyOn` spies, clearMocks drops call history, and the two unstub
+		// settings revert `vi.stubGlobal` and `vi.stubEnv`. All four run ahead of
+		// `beforeEach`, so setup in a hook or a test body is reapplied untouched.
+		restoreMocks: true,
+		clearMocks: true,
+		unstubGlobals: true,
+		unstubEnvs: true,
 		// One page per instance, and one module graph across the files it runs.
 		// The default re-imports the graph for every file: measured on a
 		// 4-core container, the 100-file suite spent 566s summed in import and
@@ -98,6 +130,15 @@ export default defineConfig({
 		isolate: false,
 		setupFiles: [
 			'./src/__tests__/browser/setup/index.ts',
+			// `userEvent.setup()` patches HTMLElement.prototype.focus with a
+			// getter-only accessor and never restores it. Under `isolate: false` the
+			// prototype is shared across the instance's files, so the patch outlives
+			// its own file. The jsdom projects have carried this guard since the
+			// shared worker landed; this suite shares a page on the same terms and
+			// did not. No browser file assigns `el.focus` today, so this is
+			// prevention rather than a fix — the 2026-09-11 document counts seven
+			// tests that hit the leak when it moved files into a browser.
+			'./src/__tests__/setup/restore-prototype-focus.ts',
 			'./src/__tests__/browser/setup/act-environment.ts',
 		],
 		browser: {

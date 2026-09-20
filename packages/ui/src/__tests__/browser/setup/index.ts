@@ -1,18 +1,24 @@
 import '@testing-library/jest-dom/vitest'
-import { cleanup } from '@testing-library/react'
+import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, beforeEach, expect } from 'vitest'
+import { afterEach, beforeEach, expect, inject } from 'vitest'
 import { resetSingletons } from '../../helpers/reset-singletons'
 import { pageState } from './forensics'
 import { absorbResidue, assertNoResidue } from './residue'
 import './tailwind.css'
 
 /**
- * Browser-suite setup. Registers the axe and jest-dom matchers and tears down
- * the DOM between cases. No `matchMedia` / `ResizeObserver` stubs; the real
- * engine provides them.
+ * Browser-suite setup. Registers the axe and jest-dom matchers, sets the
+ * waitFor/findBy budget, and tears down the DOM between cases. No `matchMedia`
+ * / `ResizeObserver` stubs; the real engine provides them.
  */
 expect.extend(toHaveNoViolations)
+
+// The budget is provided by vitest.browser.config.ts, which owns the CI
+// wall-clock headroom policy alongside testTimeout. Without this the suite that
+// does real layout ran at RTL's own 1s default on every machine, while the
+// jsdom projects took 4s on CI.
+configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
 beforeEach(absorbResidue)
 
