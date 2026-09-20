@@ -14,7 +14,7 @@ import { fireEvent } from '../../helpers'
  * How many `+` presses reach the zoom ceiling, derived rather than counted, so a
  * softer step or a higher ceiling still sweeps the whole range a case claims.
  */
-export const CEILING_PRESSES = Math.ceil(Math.log(MAP_ZOOM_MAX) / Math.log(MAP_ZOOM_STEP))
+const CEILING_PRESSES = Math.ceil(Math.log(MAP_ZOOM_MAX) / Math.log(MAP_ZOOM_STEP))
 
 /**
  * Zooms a plat from its fit to its ceiling, one `+` at a time.
