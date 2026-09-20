@@ -7,9 +7,14 @@ allowBuilds:
   lefthook: true
   sharp: false
 
+# These entries set a minimum safe version for transitive packages with known
+# advisories. Each entry is a range, not a pin. pnpm resolves the newest match,
+# so a lockfile refresh carries the floor forward without an edit here. Renovate
+# does not read this file, because its npm manager takes overrides from
+# package.json alone.
 overrides:
-  esbuild: 0.28.1
-  postcss: 8.5.26
+  esbuild: '>=0.28.2 <0.29'
+  postcss: '>=8.5.28 <9'
   sharp: '>=0.35.0 <1'
   undici: '>=7.29.0 <8'
 
