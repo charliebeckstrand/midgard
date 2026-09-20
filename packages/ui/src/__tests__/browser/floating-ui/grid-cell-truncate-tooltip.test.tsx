@@ -56,7 +56,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 	})
 
 	it('disables the tooltip when cellTooltip returns null', async () => {
-		renderUI(
+		const { container } = renderUI(
 			<Grid
 				resizable
 				columns={[{ ...nameCol, cellTooltip: () => null }]}
@@ -72,11 +72,18 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		// (no pointer-leave to cancel) and assert none surfaced.
 		await pause(400)
 
+		// The reveal wrap mounts only where the component decides to reveal
+		// (`grid-cell-content.tsx`), so no cell-scoped trigger says no tooltip
+		// *can* open. The assertion below says only that none has opened yet,
+		// which reads the same whether the decision was right or the machinery is
+		// dead — the header keeps its own trigger, hence the `td` scope.
+		expect(container.querySelectorAll('td [data-slot="tooltip-trigger"]')).toHaveLength(0)
+
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
 
 	it('shows no tooltip when the content fits the column (precise detection)', async () => {
-		renderUI(
+		const { container } = renderUI(
 			<Grid
 				resizable
 				columns={[nameCol]}
@@ -91,6 +98,13 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		// A short value in a wide column does not overflow; no tooltip should open
 		// even after the hover delay (guards against a sub-pixel false positive).
 		await pause(400)
+
+		// The reveal wrap mounts only where the component decides to reveal
+		// (`grid-cell-content.tsx`), so no cell-scoped trigger says no tooltip
+		// *can* open. The assertion below says only that none has opened yet,
+		// which reads the same whether the decision was right or the machinery is
+		// dead — the header keeps its own trigger, hence the `td` scope.
+		expect(container.querySelectorAll('td [data-slot="tooltip-trigger"]')).toHaveLength(0)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
@@ -136,7 +150,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 	})
 
 	it('does not truncate or tooltip when truncate is false', async () => {
-		renderUI(
+		const { container } = renderUI(
 			<Grid
 				resizable
 				truncate={false}
@@ -150,6 +164,13 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		await userEvent.hover(screen.getByText(longName))
 
 		await pause(400)
+
+		// The reveal wrap mounts only where the component decides to reveal
+		// (`grid-cell-content.tsx`), so no cell-scoped trigger says no tooltip
+		// *can* open. The assertion below says only that none has opened yet,
+		// which reads the same whether the decision was right or the machinery is
+		// dead — the header keeps its own trigger, hence the `td` scope.
+		expect(container.querySelectorAll('td [data-slot="tooltip-trigger"]')).toHaveLength(0)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
