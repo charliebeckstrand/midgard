@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { TooltipContext } from '../../components/tooltip/context'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { act, bySlot, noop, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, getSlot, noop, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function makeContext(overrides: { open?: boolean; interactive?: boolean } = {}) {
 	return {
@@ -181,7 +181,7 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		await user.click(bySlot(container, 'tooltip-trigger') as HTMLElement)
+		await user.click(getSlot(container, 'tooltip-trigger'))
 
 		expect(onClick).toHaveBeenCalledOnce()
 	})
@@ -235,13 +235,13 @@ describe('Tooltip', () => {
 			</Tooltip>,
 		)
 
-		const trigger = bySlot(container, 'tooltip-trigger') as HTMLElement
+		const trigger = getSlot(container, 'tooltip-trigger')
 
 		await user.click(trigger)
 
 		expect(bySlot(container, 'tooltip-content')).toBeInTheDocument()
 
-		const panel = bySlot(container, 'tooltip-content') as HTMLElement
+		const panel = getSlot(container, 'tooltip-content')
 
 		// The description relationship is anchored on the focusable trigger itself,
 		// pointing at the role="tooltip" panel.
@@ -318,7 +318,7 @@ describe('TooltipContent', () => {
 			</TooltipContext>,
 		)
 
-		const panel = bySlot(container, 'tooltip-content') as HTMLElement
+		const panel = getSlot(container, 'tooltip-content')
 
 		expect(panel).toBeInTheDocument()
 
@@ -332,7 +332,7 @@ describe('TooltipContent', () => {
 			</TooltipContext>,
 		)
 
-		const panel = bySlot(container, 'tooltip-content') as HTMLElement
+		const panel = getSlot(container, 'tooltip-content')
 
 		expect(panel.style.pointerEvents).toBe('none')
 	})
@@ -344,7 +344,7 @@ describe('TooltipContent', () => {
 			</TooltipContext>,
 		)
 
-		const panel = bySlot(container, 'tooltip-content') as HTMLElement
+		const panel = getSlot(container, 'tooltip-content')
 
 		expect(panel).toHaveAttribute('data-size', 'lg')
 	})

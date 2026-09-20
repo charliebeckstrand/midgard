@@ -115,6 +115,8 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 10.5 Placement: a guarantee that must hold for every component of a kind goes in the shared corpus (`a11y/cases`) and is asserted by a sweep gate, so adding a corpus entry buys every gate; behaviour specific to one component goes in its own test file. An assertion that reads the DOM tree (roles, attributes, events, focus order) runs under jsdom; one that reads layout, computed style, or colour (contrast, target size, geometry invariants, focus traps) runs in the browser suite (`test:browser`). A test that reads no DOM at all opens with `// @vitest-environment node` and runs with no window; `node-environment-boundary.test.ts` holds the docblock and the file's DOM use in step.
 
+10.6 A browser test arrives at the viewport `vitest.browser.config.ts` declares, and Vitest resets the page to it before each file, so a file inherits no size from the file before it. A file whose geometry needs another size states it once, as `beforeAll(() => page.viewport(w, h))`; `test-isolation-boundary.test.ts` holds that placement, because a call inside an `it` reaches the file's later cases and nothing restores it there.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge — today the sole reader is the `auth` package's `env.ts` (`BIFROST_URL`); apps reach env through `auth`, not scattered through features.

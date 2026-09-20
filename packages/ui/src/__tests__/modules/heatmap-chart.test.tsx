@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
-import { act, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
 
@@ -227,7 +227,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		const track = bySlot(container, 'heatmap-range-track') as HTMLElement
+		const track = getSlot(container, 'heatmap-range-track')
 
 		const dimmed = () =>
 			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))

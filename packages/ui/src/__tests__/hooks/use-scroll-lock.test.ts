@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, onTestFinished } from 'vitest'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 
 describe('useScrollLock', () => {
@@ -68,6 +68,17 @@ describe('useScrollLock', () => {
 
 		Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1015 })
 
+		// In `onTestFinished`, not after the assertions below: `innerWidth` and the
+		// patched element metrics are process-global, and a failed assertion would
+		// otherwise carry them into the next file on this worker.
+		onTestFinished(() => {
+			for (const key of ['scrollHeight', 'clientHeight', 'clientWidth'] as const) {
+				patch(key, 0)
+			}
+
+			if (innerWidth) Object.defineProperty(window, 'innerWidth', innerWidth)
+		})
+
 		const { unmount } = renderHook(() => useScrollLock(true))
 
 		expect(document.body.style.paddingRight).toBe('15px')
@@ -75,12 +86,5 @@ describe('useScrollLock', () => {
 		unmount()
 
 		expect(document.body.style.paddingRight).toBe('')
-
-		// Reset the patched globals.
-		for (const key of ['scrollHeight', 'clientHeight', 'clientWidth'] as const) {
-			patch(key, 0)
-		}
-
-		if (innerWidth) Object.defineProperty(window, 'innerWidth', innerWidth)
 	})
 })

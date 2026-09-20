@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
+import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * A callout-labelled pie reserves a wide horizontal band for its two label
@@ -54,7 +54,10 @@ describe('pie callout labels at the spark floor (real browser)', () => {
 
 		// The frame squared to a bare pie's own footprint — its viewBox height tracks
 		// its width — rather than the thin callout band that collapsed it before.
-		const svg = bySlot(container, 'chart-plot')?.querySelector('svg') as SVGSVGElement
+		const svg = present<SVGSVGElement>(
+			bySlot(container, 'chart-plot')?.querySelector('svg'),
+			'the chart-plot svg',
+		)
 
 		const [, , boxW, boxH] = (svg.getAttribute('viewBox') ?? '').split(' ').map(Number)
 

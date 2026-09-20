@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { MapGeofence, MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import { clusterRadius } from '../../modules/map/engine/map-cluster/radius'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
-import { allBySlot, bySlot, present, renderUI } from '../helpers'
+import { allBySlot, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { zoomToCeiling } from './helpers/map-zoom'
 
@@ -48,7 +48,7 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const hit = present(bySlot(document.body, 'map-point-hit'), 'point hit target')
+		const hit = getSlot(document.body, 'map-point-hit')
 
 		// The attribute is the fallback a browser without CSS `r` keeps.
 		expect(hit.getAttribute('r')).toBe(String(POINT_HIT_RADIUS))
@@ -71,7 +71,7 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const hit = present(bySlot(document.body, 'map-point-hit'), 'point hit target')
+		const hit = getSlot(document.body, 'map-point-hit')
 
 		// No class to narrow it, so the used value is the attribute's own: a mouse
 		// gets the same reach a finger does where the pixels have nowhere to go.
@@ -89,9 +89,9 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const dot = present(bySlot(document.body, 'map-point-hit'), 'point hit target')
+		const dot = getSlot(document.body, 'map-point-hit')
 
-		const zone = present(bySlot(document.body, 'map-geofence-hit'), 'geofence hit target')
+		const zone = getSlot(document.body, 'map-geofence-hit')
 
 		const { x: cx, y: cy } = centreOf(dot)
 
@@ -132,7 +132,7 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const summary = present(bySlot(container, 'map-points-hit'), 'summary hit target')
+		const summary = getSlot(container, 'map-points-hit')
 
 		// The grade it draws at, not the 22px coarse reach the attribute carries and
 		// not the sliver the yard could spare: a summary took that whole finger target
@@ -150,9 +150,9 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const plot = present(bySlot(container, 'map-plot'), 'plot region')
+		const plot = getSlot(container, 'map-plot')
 
-		const dot = present(bySlot(container, 'map-point-hit'), 'point hit target')
+		const dot = getSlot(container, 'map-point-hit')
 
 		const radii = [radiusOf(dot)]
 
@@ -182,7 +182,7 @@ describe('dot hit target by pointer modality', () => {
 			</MapPlat>,
 		)
 
-		const plot = present(bySlot(container, 'map-plot'), 'plot region')
+		const plot = getSlot(container, 'map-plot')
 
 		zoomToCeiling(plot)
 

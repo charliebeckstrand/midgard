@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid } from '../../../modules/grid'
-import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * Column-header truncation tooltip against the real floating engine and real
@@ -119,10 +120,10 @@ describe('grid header truncation tooltip (real browser)', () => {
 		// Container-scoped throughout — the pointer can be parked over the grid from
 		// an earlier test, auto-opening the hover tooltip whose content duplicates
 		// the title and makes a document-wide text query ambiguous.
-		const settledSpan = async (root: HTMLElement, settle = 20) => {
+		const settledSpan = async (root: HTMLElement) => {
 			await waitFor(() => expect(titleSpan(root)).not.toBeNull())
 
-			await new Promise((resolve) => setTimeout(resolve, settle))
+			await frames()
 
 			const span = titleSpan(root)
 
@@ -142,7 +143,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 			/>,
 		)
 
-		const probed = await settledSpan(probe.container, 30)
+		const probed = await settledSpan(probe.container)
 
 		const boundary = probed.scrollWidth + (300 - probed.clientWidth)
 
@@ -230,7 +231,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		// A short title in a wide header does not overflow; no tooltip should open
 		// even after the hover delay (guards against a sub-pixel false positive).
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})

@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridEditableConfig, type GridProps } from '../../modules/grid'
-import { allBySlot, bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	liveRegion,
+	present,
+	renderUI,
+} from '../helpers'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
 
@@ -149,7 +158,7 @@ describe('Grid per-row editing', () => {
 
 		editRow1()
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
@@ -175,14 +184,14 @@ describe('Grid per-row editing', () => {
 
 		editRow1()
 
-		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
 
 		fireEvent.change(input, { target: { value: 'Discarded' } })
 
 		fireEvent.keyDown(input, { key: 'Escape' })
 
 		// The editor stays open (the row is still editing) and resets to the value.
-		expect((bySlot(container, 'grid-edit-input') as HTMLInputElement).value).toBe('Alice')
+		expect(getSlot<HTMLInputElement>(container, 'grid-edit-input').value).toBe('Alice')
 
 		save()
 
@@ -214,7 +223,7 @@ describe('Grid per-row editing', () => {
 
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
 
-		fireEvent.change(bySlot(container, 'custom-edit') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'custom-edit'), {
 			target: { value: 'Slotted' },
 		})
 
@@ -238,7 +247,7 @@ describe('Grid per-row editing', () => {
 
 		editRow1()
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: '' },
 		})
 
@@ -252,7 +261,7 @@ describe('Grid per-row editing', () => {
 		// A valid value saves.
 		editRow1()
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Fixed' },
 		})
 
@@ -276,11 +285,11 @@ describe('Grid per-row editing', () => {
 
 		editRow1()
 
-		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
 
 		fireEvent.change(input, { target: { value: '' } })
 
-		const alert = container.querySelector('[role="alert"]') as HTMLElement
+		const alert = present(container.querySelector('[role="alert"]'), '[role="alert"]')
 
 		expect(alert).toHaveTextContent('Required')
 
@@ -298,7 +307,7 @@ describe('Grid per-row editing', () => {
 
 		editRow1()
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
@@ -347,7 +356,7 @@ describe('Grid per-row editing', () => {
 
 		const view = renderUI(<Harness />)
 
-		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
@@ -440,7 +449,7 @@ describe('Grid per-row editing', () => {
 
 		const view = renderUI(<Harness />)
 
-		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
@@ -490,7 +499,7 @@ describe('Grid per-row editing', () => {
 		// The slot is told which rows edit, so it needs no state of its own.
 		expect(bySlot(view.container, 'editing-flag')).toHaveTextContent('true')
 
-		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
 			target: { value: 'Discarded' },
 		})
 
@@ -531,7 +540,7 @@ describe('Grid per-row editing', () => {
 
 		const view = renderUI(<Harness />)
 
-		fireEvent.change(bySlot(view.container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
@@ -564,7 +573,7 @@ describe('Grid per-row editing', () => {
 
 		editRow1()
 
-		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
 
 		fireEvent.change(input, { target: { value: 'Alicia' } })
 
@@ -585,7 +594,9 @@ describe('Grid per-row editing', () => {
 	it('does not enter edit mode on a cell double-click in the default manual mode', () => {
 		const { container } = renderGrid()
 
-		fireEvent.doubleClick(container.querySelector('td[data-grid-col="name"]') as HTMLElement)
+		fireEvent.doubleClick(
+			present(container.querySelector('td[data-grid-col="name"]'), 'td[data-grid-col="name"]'),
+		)
 
 		expect(bySlot(container, 'grid-edit-input')).toBeNull()
 	})
@@ -640,7 +651,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		fireEvent.doubleClick(cell('name'))
 
-		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
 
 		fireEvent.change(input, { target: { value: 'Alicia' } })
 
@@ -661,7 +672,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		fireEvent.doubleClick(cell('name'))
 
-		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
 
 		fireEvent.change(input, { target: { value: 'Discarded' } })
 
@@ -674,7 +685,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 		// The drafts are dropped, not held: re-entering shows the row's value.
 		fireEvent.doubleClick(cell('name'))
 
-		expect((bySlot(container, 'grid-edit-input') as HTMLInputElement).value).toBe('Alice')
+		expect(getSlot<HTMLInputElement>(container, 'grid-edit-input').value).toBe('Alice')
 	})
 
 	it("discards a number editor's value on Escape, past the stage its exit blur takes", () => {
@@ -682,7 +693,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		fireEvent.doubleClick(cell('count'))
 
-		const number = bySlot(container, 'grid-edit-number-input') as HTMLInputElement
+		const number = getSlot<HTMLInputElement>(container, 'grid-edit-number-input')
 
 		fireEvent.change(number, { target: { value: '42' } })
 
@@ -718,7 +729,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		// Escape from the (closed) boolean listbox abandons like from a text input:
 		// the editing cell's host owns the key, not each editor.
-		fireEvent.keyDown(bySlot(container, 'grid-edit-boolean-input') as HTMLElement, {
+		fireEvent.keyDown(getSlot(container, 'grid-edit-boolean-input'), {
 			key: 'Escape',
 		})
 
@@ -732,7 +743,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		fireEvent.doubleClick(cell('name'))
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Discarded' },
 		})
 
@@ -771,7 +782,7 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 
 		// The press belongs to the open surface — its document-level escape layer
 		// closes it after this handler — so the session stays alive.
-		fireEvent.keyDown(bySlot(container, 'open-disclosure') as HTMLElement, { key: 'Escape' })
+		fireEvent.keyDown(getSlot(container, 'open-disclosure'), { key: 'Escape' })
 
 		expect(bySlot(container, 'open-disclosure')).toBeInTheDocument()
 	})
@@ -805,7 +816,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		fireEvent.doubleClick(cell('name'))
 
-		const input = bySlot(container, 'grid-edit-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
 
 		fireEvent.change(input, { target: { value: 'Alicia' } })
 
@@ -829,11 +840,11 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		const { container, cell, onCommit } = renderCellGrid({ defaultRows: new Set([1]) })
 
 		// The row opened row-shaped, so both cells staged before any session ran.
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
-		fireEvent.change(bySlot(container, 'grid-edit-number-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-number-input'), {
 			target: { value: '9' },
 		})
 
@@ -854,7 +865,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		expect(onRowsChange).toHaveBeenCalledTimes(1)
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
@@ -881,7 +892,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		fireEvent.doubleClick(cell('name'))
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
@@ -899,13 +910,13 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		fireEvent.doubleClick(cell('name'))
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Alicia' },
 		})
 
 		fireEvent.doubleClick(cell('count'))
 
-		const number = bySlot(container, 'grid-edit-number-input') as HTMLInputElement
+		const number = getSlot<HTMLInputElement>(container, 'grid-edit-number-input')
 
 		fireEvent.change(number, { target: { value: '99' } })
 
@@ -1093,7 +1104,9 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		const view = renderUI(<Harness />)
 
-		fireEvent.doubleClick(view.container.querySelector('td[data-grid-col="name"]') as HTMLElement)
+		fireEvent.doubleClick(
+			present(view.container.querySelector('td[data-grid-col="name"]'), 'td[data-grid-col="name"]'),
+		)
 
 		expect(bySlot(view.container, 'grid-edit-input')).toBeInTheDocument()
 
@@ -1184,7 +1197,7 @@ describe('Grid editing onReject', () => {
 
 		editRow1()
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: '' },
 		})
 
@@ -1205,11 +1218,11 @@ describe('Grid editing onReject', () => {
 
 		editRow1()
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: '' },
 		})
 
-		fireEvent.change(bySlot(container, 'grid-edit-number-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-number-input'), {
 			target: { value: '9' },
 		})
 
@@ -1225,7 +1238,7 @@ describe('Grid editing onReject', () => {
 
 		editRow1()
 
-		fireEvent.change(bySlot(container, 'grid-edit-input') as HTMLInputElement, {
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
 			target: { value: 'Fixed' },
 		})
 

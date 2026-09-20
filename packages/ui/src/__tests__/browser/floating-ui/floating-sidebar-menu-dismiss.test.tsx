@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
 import { SidebarLayout } from '../../../layouts/sidebar/sidebar'
-import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Outside-press on the floating sidebar's own menu (real floating engine).
@@ -39,7 +39,9 @@ describe('floating sidebar menu dismissal (real browser)', () => {
 			</SidebarLayout>,
 		)
 
-		fireEvent.pointerEnter(container.querySelector('[aria-hidden="true"]') as HTMLElement)
+		fireEvent.pointerEnter(
+			present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]'),
+		)
 
 		const trigger = await screen.findByRole('button', { name: 'user menu' })
 

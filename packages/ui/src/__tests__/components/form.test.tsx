@@ -10,7 +10,15 @@ import {
 	useFormStatus,
 	useFormText,
 } from '../../components/form'
-import { bySlot, fireEvent, makeChangeEvent, makeFocusEvent, renderUI, screen } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	makeChangeEvent,
+	makeFocusEvent,
+	renderUI,
+	screen,
+} from '../helpers'
 import { makeFormWrapper } from '../helpers/form-wrapper'
 
 describe('Form', () => {
@@ -54,10 +62,10 @@ describe('Form', () => {
 
 		const bAfterMount = renders.b
 
-		fireEvent.change(bySlot(container, 'field-a') as HTMLInputElement, { target: { value: 'x' } })
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'field-a'), { target: { value: 'x' } })
 
 		// The edited field re-renders with its new value.
-		expect((bySlot(container, 'field-a') as HTMLInputElement).value).toBe('x')
+		expect(getSlot<HTMLInputElement>(container, 'field-a').value).toBe('x')
 
 		expect(renders.a).toBeGreaterThan(bAfterMount)
 
@@ -74,7 +82,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		// handleSubmit awaits onSubmit then calls setSubmitting(false); wrap so
 		// the trailing setState lands inside act.
@@ -94,7 +102,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		fireEvent.reset(form)
 
@@ -133,7 +141,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -157,7 +165,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -190,7 +198,7 @@ describe('Form', () => {
 
 		expect(screen.getByTestId('value').textContent).toBe('Changed')
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		act(() => {
 			fireEvent.reset(form)
@@ -243,7 +251,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -268,7 +276,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -321,7 +329,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -353,7 +361,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -381,7 +389,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -407,7 +415,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -437,7 +445,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -462,7 +470,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -490,7 +498,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -520,7 +528,7 @@ describe('Form', () => {
 		// validator pass that can't see server errors.
 		expect(screen.getByTestId('valid').textContent).toBe('true')
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
@@ -672,7 +680,7 @@ describe('Form', () => {
 
 		const { container } = renderUI(<Host />)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		// Touch the form so `touched.name` and `errors.name` exist before sync.
 		act(() => {
@@ -789,7 +797,7 @@ describe('Form', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		// Dirty the form and provoke an error before the reset.
 		act(() => {
@@ -1010,7 +1018,7 @@ function InvalidProbe({ name }: { name: string }) {
 
 describe('Form onInvalidSubmit', () => {
 	const submit = async (container: HTMLElement) => {
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)

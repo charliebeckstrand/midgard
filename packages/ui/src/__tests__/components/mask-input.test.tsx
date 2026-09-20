@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { MaskInput } from '../../components/mask-input'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 const formatGroups = (raw: string) => {
 	const d = raw.replace(/\D/g, '').slice(0, 6)
@@ -44,7 +44,7 @@ describe('MaskInput', () => {
 
 		const { container } = renderUI(<MaskInput format={formatGroups} onValueChange={onChange} />)
 
-		const input = bySlot(container, 'mask-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -58,7 +58,7 @@ describe('MaskInput', () => {
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} defaultValue="123456" />)
 
-		const input = bySlot(container, 'mask-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('123-456')
 	})
@@ -66,7 +66,7 @@ describe('MaskInput', () => {
 	it('reflects controlled value updates', () => {
 		const { container, rerender } = renderUI(<MaskInput format={formatGroups} value="123" />)
 
-		const input = bySlot(container, 'mask-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('123')
 
@@ -78,7 +78,7 @@ describe('MaskInput', () => {
 	it('keeps the caret next to the typed character when format inserts separators', async () => {
 		const { container } = renderUI(<MaskInput format={formatGroups} defaultValue="123456" />)
 
-		const input = bySlot(container, 'mask-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('123-456')
 
@@ -108,7 +108,7 @@ describe('MaskInput', () => {
 			<MaskInput format={format} meaningful={meaningful} defaultValue="ab" />,
 		)
 
-		const input = bySlot(container, 'mask-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		input.focus()
 
@@ -143,7 +143,7 @@ describe('MaskInput', () => {
 
 		const user = userEvent.setup({ delay: null })
 
-		const input = bySlot(container, 'mask-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		await user.type(input, '123456')
 

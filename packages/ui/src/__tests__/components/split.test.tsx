@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Split } from '../../components/split'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('Split', () => {
 	it('uses a column template for horizontal orientation', () => {
@@ -33,7 +33,7 @@ describe('Split', () => {
 	it('passes a caller style through to the root', () => {
 		const { container } = renderUI(<Split style={{ background: 'red' }}>a</Split>)
 
-		const el = bySlot(container, 'split') as HTMLElement
+		const el = getSlot(container, 'split')
 
 		expect(el.style.background).toBe('red')
 	})
@@ -108,7 +108,7 @@ describe('Split gap resolution', () => {
 			</DensityProvider>,
 		)
 
-		const el = bySlot(container, 'split') as HTMLElement
+		const el = getSlot(container, 'split')
 
 		expect(el.className).toContain('gap-6')
 

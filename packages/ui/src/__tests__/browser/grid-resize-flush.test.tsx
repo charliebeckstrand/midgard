@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { present, renderUI, waitFor } from '../helpers'
 
 /**
  * The grid's table is `table-fixed` at a pixel width the autosizer computes, so between a
@@ -42,7 +42,7 @@ describe('grid refit on container resize (real browser)', () => {
 			{ container: frameEl },
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		await waitFor(() => expect(table.getBoundingClientRect().width).toBeGreaterThan(700))
 

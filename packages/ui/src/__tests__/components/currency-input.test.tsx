@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
 import { Form } from '../../components/form'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('CurrencyInput', () => {
 	it('renders an input with data-slot="currency-input"', () => {
@@ -34,7 +34,7 @@ describe('CurrencyInput', () => {
 	it('renders the currency symbol as a prefix alongside the grouped value', () => {
 		const { container } = renderUI(<CurrencyInput defaultValue={1234.56} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		expect(input.value).toBe('1,234.56')
 
@@ -46,7 +46,7 @@ describe('CurrencyInput', () => {
 			<CurrencyInput currency="EUR" locale="en-IE" defaultValue={1000} />,
 		)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		expect(input.value).toBe('1,000.00')
 
@@ -56,7 +56,7 @@ describe('CurrencyInput', () => {
 	it('respects the precision prop', () => {
 		const { container } = renderUI(<CurrencyInput precision={4} defaultValue={2.5} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		expect(input.value).toBe('2.5000')
 	})
@@ -64,7 +64,7 @@ describe('CurrencyInput', () => {
 	it('preserves grouping while editing', async () => {
 		const { container } = renderUI(<CurrencyInput />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -82,7 +82,7 @@ describe('CurrencyInput', () => {
 	it('keeps grouping when focusing a prefilled value', async () => {
 		const { container } = renderUI(<CurrencyInput defaultValue={1234.5} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -94,7 +94,7 @@ describe('CurrencyInput', () => {
 	it('keeps the caret next to the typed digit when grouping separators shift', async () => {
 		const { container } = renderUI(<CurrencyInput />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -120,7 +120,7 @@ describe('CurrencyInput', () => {
 
 		const { container } = renderUI(<CurrencyInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -140,7 +140,7 @@ describe('CurrencyInput', () => {
 
 		const { container } = renderUI(<CurrencyInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -160,7 +160,7 @@ describe('CurrencyInput', () => {
 
 		const { container } = renderUI(<CurrencyInput defaultValue={50} onValueChange={onChange} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -178,7 +178,7 @@ describe('CurrencyInput', () => {
 	it('reflects external value changes when not focused', () => {
 		const { container, rerender } = renderUI(<CurrencyInput value={10} onValueChange={() => {}} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		expect(input.value).toBe('10.00')
 
@@ -198,7 +198,7 @@ describe('CurrencyInput', () => {
 	it('blurs the input when Enter is pressed', async () => {
 		const { container } = renderUI(<CurrencyInput defaultValue={10} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -218,7 +218,7 @@ describe('CurrencyInput', () => {
 
 		const { container } = renderUI(<CurrencyInput defaultValue={10} onKeyDown={onKeyDown} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -234,7 +234,7 @@ describe('CurrencyInput', () => {
 
 		const { container } = renderUI(<CurrencyInput defaultValue={10} onBlur={onBlur} />)
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -267,7 +267,7 @@ describe('CurrencyInput', () => {
 
 		const user = userEvent.setup({ delay: null })
 
-		const input = bySlot(container, 'currency-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
 
 		await user.type(input, '1234.5')
 

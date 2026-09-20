@@ -13,7 +13,7 @@ import {
 } from '../../modules/map/engine/map-constants'
 import { circleRing, zoneBudget, zoneSpare } from '../../modules/map/engine/map-geofence'
 import { projectArea } from '../../modules/map/engine/map-geometry/mark'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /** A ring over the fixture geography, wide enough to hold a mark inside it. */
@@ -248,13 +248,13 @@ describe('MapGeofence', () => {
 	it('unmounts its marks while toggled off', () => {
 		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
-		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		expect(bySlot(container, 'map-geofence')).toBeNull()
 
 		expect(bySlot(container, 'map-geofence-wash')).toBeNull()
 
-		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		expect(bySlot(container, 'map-geofence')).not.toBeNull()
 	})
@@ -467,7 +467,7 @@ describe('MapGeofence group', () => {
 	it('keys the entry with one swatch per mark shape in the group', () => {
 		const { container } = renderUI(pair())
 
-		const keys = allBySlot(bySlot(container, 'map-legend-keys') as HTMLElement, 'swatch')
+		const keys = allBySlot(getSlot(container, 'map-legend-keys'), 'swatch')
 
 		// The area then the point, in registration order: the pair says what it holds
 		// without a word for either.
@@ -496,13 +496,13 @@ describe('MapGeofence group', () => {
 	it('toggles every member off through the merged entry', () => {
 		const { container } = renderUI(pair())
 
-		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		expect(bySlot(container, 'map-geofence')).toBeNull()
 
 		expect(bySlot(container, 'map-point')).toBeNull()
 
-		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		expect(bySlot(container, 'map-geofence')).not.toBeNull()
 

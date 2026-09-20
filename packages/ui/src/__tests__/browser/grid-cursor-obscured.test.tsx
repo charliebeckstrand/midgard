@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The navigable cursor keeps its active cell clear of the grid's sticky header
@@ -52,7 +52,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 
 		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
 
-		const active = grid.querySelector('[data-active]') as HTMLElement
+		const active = present(grid.querySelector('[data-active]'), '[data-active]')
 
 		// The top margin clears the sticky header's full height, so a scroll never
 		// tucks the active cell beneath it.
@@ -94,7 +94,7 @@ describe('grid cursor focus not obscured (real browser)', () => {
 
 		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
 
-		const active = grid.querySelector('[data-active]') as HTMLElement
+		const active = present(grid.querySelector('[data-active]'), '[data-active]')
 
 		expect(Number.parseFloat(active.style.scrollMarginLeft)).toBeCloseTo(
 			pinnedHeader.getBoundingClientRect().width,

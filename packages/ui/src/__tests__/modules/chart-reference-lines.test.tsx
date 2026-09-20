@@ -2,7 +2,16 @@ import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference-lines'
 import { LineChart } from '../../modules/chart/line-chart'
-import { allBySlot, bySlot, fireEvent, renderUI, userEvent, waitFor } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	fireEvent,
+	getSlot,
+	present,
+	renderUI,
+	userEvent,
+	waitFor,
+} from '../helpers'
 
 const DATA = [
 	{ month: 'Jan', revenue: 40 },
@@ -131,7 +140,7 @@ describe('reference lines', () => {
 
 		expect(bySlot(container, 'chart-axis-y')?.textContent).toContain('200')
 
-		const svg = container.querySelector('svg') as SVGSVGElement
+		const svg = present<SVGSVGElement>(container.querySelector('svg'), 'svg')
 
 		const height = Number((svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ')[3])
 
@@ -295,7 +304,7 @@ describe('reference line keyboard navigation', () => {
 	it('roves onto the rule, receding the marks and floating its tooltip', async () => {
 		const { container } = bar([{ value: 60, label: 'Goal' }])
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// The first arrow enters at the first bar; the marks stay lit and no rule
 		// tooltip floats yet.
@@ -324,7 +333,7 @@ describe('reference line keyboard navigation', () => {
 	it('restores the marks stepping back off the rule', async () => {
 		const { container } = bar([{ value: 60 }])
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -346,7 +355,7 @@ describe('reference line keyboard navigation', () => {
 	it('releases the emphasis on Escape', async () => {
 		const { container } = bar([{ value: 60 }])
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -366,7 +375,7 @@ describe('reference line keyboard navigation', () => {
 	it('transposes the roving with orientation — the value axis reaches the rule', async () => {
 		const { container } = bar([{ value: 60 }], 'horizontal')
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// Down the band axis walks categories under horizontal orientation and never
 		// touches the rule.
@@ -513,7 +522,7 @@ describe('reference lines in the legend', () => {
 			/>,
 		)
 
-		const chip = () => bySlot(container, 'chart-legend-reference') as HTMLElement
+		const chip = () => getSlot(container, 'chart-legend-reference')
 
 		// The rule draws and the chip reads pressed while it is shown.
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
@@ -587,7 +596,7 @@ describe('reference lines in the legend', () => {
 			/>,
 		)
 
-		const chip = bySlot(container, 'chart-legend-reference') as HTMLElement
+		const chip = getSlot(container, 'chart-legend-reference')
 
 		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 
@@ -668,7 +677,7 @@ describe('reference lines in the legend', () => {
 
 		expect(slotSwatch?.getAttribute('style')).toBeNull()
 
-		const rawSwatch = raw?.querySelector('[data-slot="swatch"]') as HTMLElement
+		const rawSwatch = present(raw?.querySelector('[data-slot="swatch"]'), 'swatch')
 
 		// A raw colour bypasses the slot classes and paints inline instead.
 		expect(rawSwatch?.getAttribute('class') ?? '').not.toContain('text-')
@@ -781,7 +790,7 @@ describe('reference value labels', () => {
 	it('drops the rule from the keyboard roving, so it never recedes the marks', () => {
 		const { container } = lineLabels([{ value: 60, label: 'Goal' }])
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 

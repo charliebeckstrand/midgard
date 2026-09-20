@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
 import { LineChart } from '../../modules/chart/line-chart'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 const DATA = [
 	{ week: 'W1', signups: 12, churn: 3 },
@@ -365,7 +365,7 @@ describe('LineChart', () => {
 		// probe lands.
 		fireEvent.pointerMove(bySlot(container, 'chart-hit') as Element, { clientX: 200, clientY: 10 })
 
-		const text = (bySlot(container, 'tooltip-content') as HTMLElement).textContent ?? ''
+		const text = getSlot(container, 'tooltip-content').textContent ?? ''
 
 		// 'High' runs above 'Low', so the readout reads it first though it is the
 		// second series — the same value order the legend takes, not the declared one.

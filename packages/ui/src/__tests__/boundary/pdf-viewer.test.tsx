@@ -11,6 +11,7 @@ import {
 	allBySlot,
 	bySlot,
 	fireEvent,
+	getSlot,
 	noop,
 	present,
 	renderUI,
@@ -111,7 +112,10 @@ describe('PdfViewer', () => {
 	it('rotates the active page in 90 degree steps', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		const img = bySlot(container, 'pdf-viewer-viewport')?.querySelector('img') as HTMLImageElement
+		const img = present<HTMLImageElement>(
+			getSlot(container, 'pdf-viewer-viewport').querySelector('img'),
+			'img',
+		)
 
 		const user = userEvent.setup()
 
@@ -220,7 +224,7 @@ describe('PdfViewer', () => {
 	it('takes no slide until the reader presses the toggle', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		const rail = present(bySlot(container, 'pdf-viewer-sidebar'), 'the thumbnail rail')
+		const rail = getSlot(container, 'pdf-viewer-sidebar')
 
 		expect(rail.className).not.toContain('transition-[margin]')
 
@@ -254,9 +258,9 @@ describe('PdfViewer', () => {
 	it("does not size the next page using the previous page's natural dimensions", () => {
 		const { container, rerender } = renderUI(<PdfViewer pages={pages} page={1} />)
 
-		const viewport = bySlot(container, 'pdf-viewer-viewport') as HTMLElement
+		const viewport = getSlot(container, 'pdf-viewer-viewport')
 
-		const img = viewport.querySelector('img') as HTMLImageElement
+		const img = present<HTMLImageElement>(viewport.querySelector('img'), 'img')
 
 		Object.defineProperty(img, 'naturalWidth', { value: 800, configurable: true })
 
@@ -743,7 +747,7 @@ describe('PdfViewer highlights', () => {
 
 		expect(highlightLabels()).toEqual(['Total charges', 'Invoice number'])
 
-		fireEvent.mouseLeave(bySlot(container, 'pdf-viewer-highlights') as HTMLElement)
+		fireEvent.mouseLeave(getSlot(container, 'pdf-viewer-highlights'))
 
 		// The preview withdraws; the one the reader came here for does not.
 		expect(highlightLabels()).toEqual(['Total charges'])
@@ -935,7 +939,7 @@ describe('PdfViewer highlights', () => {
 
 		expect(onActiveHighlightChange).toHaveBeenLastCalledWith('total')
 
-		fireEvent.mouseDown(present(bySlot(container, 'pdf-viewer-viewport'), 'the viewport'))
+		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
 
 		expect(onActiveHighlightChange).toHaveBeenLastCalledWith(null)
 
@@ -981,7 +985,7 @@ describe('PdfViewer highlights', () => {
 
 		fireEvent.click(screen.getByLabelText('Hide highlights'))
 
-		fireEvent.mouseDown(present(bySlot(container, 'pdf-viewer-viewport'), 'the viewport'))
+		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
 
 		expect(onActiveHighlightChange).not.toHaveBeenCalledWith(null)
 	})
@@ -999,7 +1003,7 @@ describe('PdfViewer highlights', () => {
 		// The name is what says a region is marked; a decorative layer has no `aria-current`.
 		expect(highlightLabels()).toEqual(['Total charges'])
 
-		fireEvent.mouseDown(present(bySlot(container, 'pdf-viewer-viewport'), 'the viewport'))
+		fireEvent.mouseDown(getSlot(container, 'pdf-viewer-viewport'))
 
 		expect(highlightLabels()).toEqual(['Total charges'])
 	})

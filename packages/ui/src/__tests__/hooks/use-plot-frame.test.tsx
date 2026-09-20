@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
 import { act, mockDomGeometry, renderUI, screen } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
@@ -63,10 +63,6 @@ describe('usePlotFrame observer lifecycle', () => {
 
 	beforeEach(() => {
 		observers = stubResizeObserver()
-	})
-
-	afterEach(() => {
-		vi.useRealTimers()
 	})
 
 	function firstObserver(): ResizeObserverStub {

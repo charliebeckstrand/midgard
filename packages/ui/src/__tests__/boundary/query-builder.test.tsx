@@ -8,7 +8,7 @@ import {
 	type QueryField,
 	type QueryGroup,
 } from '../../modules/query'
-import { bySlot, fireEvent, renderUI, screen, within } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen, within } from '../helpers'
 
 // Overrides the shared `motion/react` mock: the pass-through `AnimatePresence`
 // never fires `onExitComplete`, blocking the Listbox's deferred-select flush.
@@ -223,7 +223,10 @@ describe('QueryBuilder', () => {
 			<QueryBuilder fields={fields} defaultValue={tree} onValueChange={onChange} />,
 		)
 
-		const input = container.querySelector('input[type="text"]') as HTMLInputElement
+		const input = present<HTMLInputElement>(
+			container.querySelector('input[type="text"]'),
+			'input[type="text"]',
+		)
 
 		fireEvent.change(input, { target: { value: 'Ada' } })
 
@@ -241,7 +244,10 @@ describe('QueryBuilder', () => {
 			<QueryBuilder fields={fields} defaultValue={tree} onValueChange={onChange} />,
 		)
 
-		const input = container.querySelector('input[type="number"]') as HTMLInputElement
+		const input = present<HTMLInputElement>(
+			container.querySelector('input[type="number"]'),
+			'input[type="number"]',
+		)
 
 		fireEvent.change(input, { target: { value: '42' } })
 
@@ -433,7 +439,7 @@ describe('QueryBuilderRuleValue', () => {
 			<QueryBuilderRuleValue field={field} value="hi" onValueChange={onChange} />,
 		)
 
-		const input = container.querySelector('input') as HTMLInputElement
+		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 		expect(input).toHaveAttribute('type', 'text')
 
@@ -455,7 +461,7 @@ describe('QueryBuilderRuleValue', () => {
 			<QueryBuilderRuleValue field={field} value={10} onValueChange={onChange} />,
 		)
 
-		const input = container.querySelector('input') as HTMLInputElement
+		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 		expect(input).toHaveAttribute('type', 'number')
 
@@ -475,7 +481,7 @@ describe('QueryBuilderRuleValue', () => {
 			<QueryBuilderRuleValue field={field} value={3} onValueChange={onChange} />,
 		)
 
-		const input = container.querySelector('input') as HTMLInputElement
+		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 		fireEvent.change(input, { target: { value: '' } })
 
@@ -489,7 +495,7 @@ describe('QueryBuilderRuleValue', () => {
 			<QueryBuilderRuleValue field={field} value={null} onValueChange={() => {}} />,
 		)
 
-		const input = container.querySelector('input') as HTMLInputElement
+		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 		expect(input.value).toBe('')
 	})
@@ -597,7 +603,7 @@ describe('QueryBuilderRuleValue', () => {
 			<QueryBuilderRuleValue field={field} value={undefined} onValueChange={() => {}} />,
 		)
 
-		const input = container.querySelector('input') as HTMLInputElement
+		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 		expect(input).toHaveAttribute('type', 'text')
 

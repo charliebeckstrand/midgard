@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapMarker, MapPlat } from '../../modules/map'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const START: LngLat = [2, 2]
@@ -98,7 +98,7 @@ describe('MapMarker', () => {
 	it('unmounts while toggled off', () => {
 		const { container } = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
 
-		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		expect(bySlot(container, 'map-marker')).toBeNull()
 	})

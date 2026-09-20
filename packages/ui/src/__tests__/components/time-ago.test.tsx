@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TimeAgo } from '../../components/time-ago'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { act, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 const SEC = 1000
 
@@ -76,7 +76,7 @@ describe('TimeAgo', () => {
 
 		// Clicking a plain <time> wires no tooltip, so nothing opens.
 		act(() => {
-			fireEvent.click(bySlot(container, 'time-ago') as HTMLElement)
+			fireEvent.click(getSlot(container, 'time-ago'))
 		})
 
 		expect(bySlot(container, 'tooltip-content')).not.toBeInTheDocument()
@@ -97,7 +97,7 @@ describe('TimeAgo', () => {
 		// The <time> becomes the tooltip trigger; the absolute time only mounts
 		// once the tooltip opens.
 		act(() => {
-			fireEvent.click(bySlot(container, 'tooltip-trigger') as HTMLElement)
+			fireEvent.click(getSlot(container, 'tooltip-trigger'))
 		})
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toBe(date.toLocaleString('en-US'))

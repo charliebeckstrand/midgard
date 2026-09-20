@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { useGridTruncation } from '../../modules/grid/use-grid-truncation'
 import { act, renderUI, waitFor } from '../helpers'
+import { pause } from './helpers/wall-clock'
 
 /**
  * Resize-settle reconciliation for the grid's overflow detector. A column
@@ -66,7 +67,7 @@ describe('useGridTruncation resize-settle reconciliation (real browser)', () => 
 			// rAF measure can catch it.
 			leaf.style.letterSpacing = '-20px'
 
-			await new Promise((resolve) => setTimeout(resolve, 80))
+			await pause(80)
 		})
 
 		expect(flag()).toBe('fits')

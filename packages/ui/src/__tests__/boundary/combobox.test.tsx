@@ -6,7 +6,18 @@ import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor, within } from '../helpers'
+import {
+	act,
+	bySlot,
+	fireEvent,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+	userEvent,
+	waitFor,
+	within,
+} from '../helpers'
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {
@@ -961,7 +972,7 @@ describe('Combobox required', () => {
 			</Combobox>,
 		)
 
-		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 		expect(input).toBeRequired()
 
@@ -983,7 +994,7 @@ describe('Combobox required', () => {
 
 describe('Combobox readOnly', () => {
 	const chevron = (container: HTMLElement) =>
-		bySlot(container, 'suffix')?.querySelector<HTMLElement>('[data-slot="icon"]') as HTMLElement
+		present(getSlot(container, 'suffix').querySelector('[data-slot="icon"]'), '[data-slot="icon"]')
 
 	it('marks the input read-only without disabling it', () => {
 		const { container } = renderUI(
@@ -992,7 +1003,7 @@ describe('Combobox readOnly', () => {
 			</Combobox>,
 		)
 
-		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 		expect(input).toHaveAttribute('readonly')
 
@@ -1013,7 +1024,7 @@ describe('Combobox readOnly', () => {
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 
-		fireEvent.keyDown(bySlot(container, 'combobox-input') as HTMLElement, { key: 'ArrowDown' })
+		fireEvent.keyDown(getSlot<HTMLInputElement>(container, 'combobox-input'), { key: 'ArrowDown' })
 
 		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
 	})

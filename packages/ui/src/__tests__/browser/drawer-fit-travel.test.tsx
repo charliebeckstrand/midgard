@@ -2,10 +2,9 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Drawer, DrawerBody } from '../../components/drawer'
 import {
-	bySlot,
 	frames,
+	getSlot,
 	hasIntermediate,
-	present,
 	renderUI,
 	sampleHeights,
 	screen,
@@ -45,7 +44,7 @@ describe('fit drawer height (real browser)', () => {
 	it('opens at the height its content asks for, and travels to the next one', async () => {
 		renderUI(<FitProbe short={120} tall={320} />)
 
-		const panel = present(bySlot(document.body, 'drawer'), 'drawer panel')
+		const panel = getSlot(document.body, 'drawer')
 
 		const swap = screen.getByTestId('swap')
 
@@ -81,11 +80,11 @@ describe('fit drawer height (real browser)', () => {
 	it('leaves a dragged height alone when the content changes under it', async () => {
 		renderUI(<FitProbe short={120} tall={320} handle />)
 
-		const panel = present(bySlot(document.body, 'drawer'), 'drawer panel')
+		const panel = getSlot(document.body, 'drawer')
 
 		const swap = screen.getByTestId('swap')
 
-		const handle = present(bySlot(document.body, 'drawer-handle'), 'drag handle')
+		const handle = getSlot(document.body, 'drawer-handle')
 
 		await frames()
 
@@ -128,7 +127,7 @@ describe('fit drawer height (real browser)', () => {
 			</Drawer>,
 		)
 
-		const panel = present(bySlot(document.body, 'drawer'), 'drawer panel')
+		const panel = getSlot(document.body, 'drawer')
 
 		expect(panel.getBoundingClientRect().height).toBeCloseTo(window.innerHeight, 0)
 

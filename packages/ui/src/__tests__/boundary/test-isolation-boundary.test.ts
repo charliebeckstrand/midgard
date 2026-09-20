@@ -41,6 +41,30 @@ const FORBIDDEN_PATTERNS = [
 	{ label: 'module registry reset', regex: /\b(?:vi|vitest)\.resetModules\(/g },
 ] as const
 
+// The browser instances share one page, and `page.viewport` writes to it. A
+// call inside an `it` reaches every later case in the same file and nothing
+// can restore it there, which is how one block in `chart-aspect-legend` came
+// to pass on a width a sibling block above it had set. A call in a `beforeAll`
+// states the file's width once, before any case runs. Vitest resets the page
+// to `browser.viewport` before each file, so nothing crosses a file boundary
+// and no departure hook is needed.
+const LOOSE_VIEWPORT = {
+	label: 'viewport set outside a beforeAll',
+	regex: /^(?!\s*beforeAll\(\(\) => page\.viewport\().*page\.viewport\(.*$/gm,
+} as const
+
+// `bySlot` and `querySelector` both return null, and a cast that says otherwise
+// moves the miss to whatever reads the result next: a `getBoundingClientRect`
+// on null, or a `fireEvent` that reports only that it got no element. That is
+// how the suite's most frequent intermittent failure read for twelve runs
+// before it was root-caused. `getSlot` states the slot name once and throws at
+// the query; `present` does the same for any other lookup. A cast to `T | null`
+// keeps the null and is honest, so it passes.
+const NULLABLE_CAST = {
+	label: 'non-null cast over a nullable query',
+	regex: /(?:bySlot|querySelector(?:All)?)\([^\n]*\)\s+as\s+(?:HTML|SVG)[A-Za-z]*Element(?!\s*\|)/g,
+} as const
+
 describe('test isolation boundary', () => {
 	it('no file in a shared-registry project mutates the module registry', () => {
 		const violations = SHARED_REGISTRY_SCANS.flatMap((scan) =>
@@ -74,5 +98,41 @@ describe('test isolation boundary', () => {
 			shared.sort(),
 			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
 		).toEqual(['boundary', 'pure', 'unit'])
+
+		// The browser config is the fourth scan above, and it is a separate file
+		// the parse over vitest.config.ts cannot reach. Its two instances share one
+		// page each, which is why that scan exists at all.
+		const browser = readFileSync(join(srcDir, '..', 'vitest.browser.config.ts'), 'utf8')
+
+		expect(
+			/^\s*isolate: false/m.test(browser),
+			'vitest.browser.config.ts no longer shares a page — drop the browser scan above, which exists for that setting',
+		).toBe(true)
+	})
+
+	it('sets a browser viewport only in a beforeAll', () => {
+		const loose = collectPatternViolations({
+			dir: join(testsDir, 'browser'),
+			patterns: [LOOSE_VIEWPORT],
+			stripComments: true,
+		})
+
+		expect(
+			loose,
+			`a browser file states its width once, as \`beforeAll(() => page.viewport(w, h))\` — a call inside an \`it\` reaches the file's later cases, and nothing restores it there:\n  ${loose.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('casts no nullable query to a non-null element', () => {
+		const casts = collectPatternViolations({
+			dir: testsDir,
+			patterns: [NULLABLE_CAST],
+			stripComments: true,
+		})
+
+		expect(
+			casts,
+			`a cast cannot make a query non-null — take \`getSlot(container, name)\` for a slot, or \`present(query, 'what')\` for anything else:\n  ${casts.join('\n  ')}`,
+		).toEqual([])
 	})
 })

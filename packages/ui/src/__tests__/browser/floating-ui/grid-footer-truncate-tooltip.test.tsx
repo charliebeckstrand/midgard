@@ -1,10 +1,11 @@
 import { useRef } from 'react'
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { useIsTruncated } from '../../../hooks'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI, screen } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * The reveal half of a truncating footer summary, against the real floating
@@ -26,12 +27,15 @@ describe('grid footer content truncation tooltip (real browser)', () => {
 
 	const rows: Row[] = [{ id: 1, name: 'Name 1' }]
 
+	// The suite arrives at the size vitest.browser.config.ts declares, and a
+	// size set inside an `it` reaches this file's later cases and nothing else.
+	// Declare it once, so the file owns its own width.
+	beforeAll(() => page.viewport(960, 640))
+
 	const LONG =
 		'Carrier is one of ACME Freight Systems, Blue Ridge Logistics, Continental Cartage Group and 14 more'
 
 	it('reveals the full label on hover when the summary is clipped', async () => {
-		await page.viewport(960, 640)
-
 		renderFooter(LONG)
 
 		await userEvent.hover(screen.getByTestId('label'))
@@ -42,15 +46,13 @@ describe('grid footer content truncation tooltip (real browser)', () => {
 	})
 
 	it('opens no tooltip on a summary that fits the bar', async () => {
-		await page.viewport(960, 640)
-
 		renderFooter('Carrier is ACME')
 
 		await userEvent.hover(screen.getByTestId('label'))
 
 		// The tooltip would open at the 250ms hover delay if enabled; wait past it
 		// (no pointer-leave to cancel) and assert none surfaced.
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})

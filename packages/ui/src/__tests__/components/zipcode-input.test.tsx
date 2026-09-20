@@ -2,7 +2,7 @@ import { type ComponentProps, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form, useFormField } from '../../components/form'
 import { ZipcodeInput } from '../../components/zipcode-input'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('ZipcodeInput', () => {
 	it('renders an input with data-slot="zipcode-input" and a map-pin icon prefix by default', () => {
@@ -54,7 +54,7 @@ describe('ZipcodeInput', () => {
 
 		const { container } = renderUI(<ZipcodeInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -68,7 +68,7 @@ describe('ZipcodeInput', () => {
 	it('strips non-digit characters for US', async () => {
 		const { container } = renderUI(<ZipcodeInput />)
 
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -80,7 +80,7 @@ describe('ZipcodeInput', () => {
 	it('uppercases and spaces Canadian postal codes', async () => {
 		const { container } = renderUI(<ZipcodeInput country="CA" />)
 
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -114,7 +114,7 @@ describe('ZipcodeInput', () => {
 	])('%s', (_name, props, expected) => {
 		const { container } = renderUI(<ZipcodeInput {...props} />)
 
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
 
 		expect(input.value).toBe(expected)
 	})
@@ -122,7 +122,7 @@ describe('ZipcodeInput', () => {
 	it('uses an empty default placeholder for international codes', () => {
 		const { container } = renderUI(<ZipcodeInput country="international" />)
 
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
 
 		expect(input).toHaveAttribute('placeholder', '')
 
@@ -149,7 +149,7 @@ describe('ZipcodeInput', () => {
 
 		const user = userEvent.setup({ delay: null })
 
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
 
 		await user.type(input, '941031234')
 
@@ -177,7 +177,7 @@ describe('ZipcodeInput', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'zipcode-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
 
 		const user = userEvent.setup({ delay: null })
 

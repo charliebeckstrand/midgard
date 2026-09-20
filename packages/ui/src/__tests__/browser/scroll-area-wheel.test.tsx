@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
-import { bySlot, present, renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 
 /**
  * Shift+wheel is the horizontal-scroll gesture, and a `ScrollArea` has to decide
@@ -33,7 +33,7 @@ describe('ScrollArea shift+wheel against real overflow', () => {
 			</div>,
 		)
 
-		const viewport = present(bySlot(container, 'scroll-area-viewport'), 'the viewport')
+		const viewport = getSlot(container, 'scroll-area-viewport')
 
 		expect(viewport.scrollWidth).toBeGreaterThan(viewport.clientWidth)
 
@@ -51,7 +51,7 @@ describe('ScrollArea shift+wheel against real overflow', () => {
 			</div>,
 		)
 
-		const viewport = present(bySlot(container, 'scroll-area-viewport'), 'the viewport')
+		const viewport = getSlot(container, 'scroll-area-viewport')
 
 		expect(viewport.scrollWidth).toBe(viewport.clientWidth)
 

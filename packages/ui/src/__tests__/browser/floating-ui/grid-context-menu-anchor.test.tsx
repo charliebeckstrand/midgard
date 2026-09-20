@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * Grid context-menu anchoring against the real floating engine and real layout.
@@ -95,7 +96,7 @@ describe('grid context menu anchoring (real browser)', () => {
 		fireEvent.contextMenu(item, { clientX: itemRect.left + 4, clientY: itemRect.top + 4 })
 
 		// Let any stray autoUpdate ticks settle, then confirm the panel did not move.
-		await new Promise((resolve) => setTimeout(resolve, 100))
+		await pause(100)
 
 		const after = menu.getBoundingClientRect()
 

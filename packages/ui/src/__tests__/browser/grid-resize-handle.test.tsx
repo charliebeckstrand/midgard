@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { present, renderUI, waitFor } from '../helpers'
 
 /**
  * Resize-handle geometry against a real layout engine. The handle lives in the
@@ -48,7 +48,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		return { container, table }
 	}
@@ -62,9 +62,13 @@ describe('grid resize handle geometry (real browser)', () => {
 			'th[data-grid-col="role"]',
 		) as HTMLElement
 
-		const grip = container
-			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Role"]')
-			?.querySelector('span[aria-hidden="true"]') as HTMLElement
+		const grip = present(
+			present(
+				container.querySelector('[role="separator"][aria-label="Resize Role"]'),
+				'[aria-label="Resize Role"]',
+			).querySelector('span[aria-hidden="true"]'),
+			'span[aria-hidden="true"]',
+		)
 
 		// The grip's trailing edge stops at the column boundary — it does not spill
 		// past it into the neighbour, whose opaque sticky header would clip it.
@@ -85,7 +89,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
@@ -104,7 +108,7 @@ describe('grid resize handle geometry (real browser)', () => {
 			),
 		).toBeLessThanOrEqual(2)
 
-		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
+		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
 
 		// No phantom vertical scroll.
 		expect(scroll.scrollHeight).toBeLessThanOrEqual(scroll.clientHeight)
@@ -170,11 +174,18 @@ describe('grid resize grip alignment (real browser)', () => {
 	// Distance from the 'name' column's trailing border to its grip's right edge:
 	// about one cell-padding when the grip centres in the grab zone.
 	function gripInset(container: HTMLElement): number {
-		const header = container.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
+		const header = present(
+			container.querySelector('th[data-grid-col="name"]'),
+			'th[data-grid-col="name"]',
+		)
 
-		const grip = container
-			.querySelector<HTMLElement>('[role="separator"][aria-label="Resize Name"]')
-			?.querySelector('span[aria-hidden="true"]') as HTMLElement
+		const grip = present(
+			present(
+				container.querySelector('[role="separator"][aria-label="Resize Name"]'),
+				'[aria-label="Resize Name"]',
+			).querySelector('span[aria-hidden="true"]'),
+			'span[aria-hidden="true"]',
+		)
 
 		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
 	}
@@ -186,7 +197,7 @@ describe('grid resize grip alignment (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
@@ -210,7 +221,7 @@ describe('grid resize grip alignment (real browser)', () => {
 			</div>,
 		)
 
-		const table = container.querySelector('table') as HTMLElement
+		const table = present(container.querySelector('table'), 'table')
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 

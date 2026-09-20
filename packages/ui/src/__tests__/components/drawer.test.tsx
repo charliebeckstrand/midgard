@@ -4,7 +4,7 @@ import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
 import { settleResize, speedOf } from '../../hooks/use-panel-resize'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, present, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Drawer', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -50,9 +50,7 @@ describe('Drawer', () => {
 			</Drawer>,
 		)
 
-		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).toHaveClass(
-			'backdrop-grayscale',
-		)
+		expect(getSlot(document.body, 'overlay-backdrop')).toHaveClass('backdrop-grayscale')
 	})
 
 	it('leaves the backdrop in colour by default', () => {
@@ -62,9 +60,7 @@ describe('Drawer', () => {
 			</Drawer>,
 		)
 
-		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).not.toHaveClass(
-			'backdrop-grayscale',
-		)
+		expect(getSlot(document.body, 'overlay-backdrop')).not.toHaveClass('backdrop-grayscale')
 	})
 
 	it('moves initial focus to the initialFocus element on open', () => {
@@ -84,7 +80,7 @@ describe('Drawer', () => {
 describe('Drawer enter animation', () => {
 	// The motion mock surfaces `initial.y` as `data-initial-y`, so the enter offset —
 	// the slide the panel starts from — is observable without an animation runtime.
-	const panel = () => present(bySlot(document.body, 'drawer'), 'drawer panel')
+	const panel = () => getSlot(document.body, 'drawer')
 
 	it('slides the panel up from the bottom edge on mount', () => {
 		renderUI(
@@ -492,8 +488,8 @@ describe('Drawer drag handle', () => {
 
 		return {
 			...rendered,
-			handle: present(bySlot(rendered.container, 'drawer-handle'), 'drag handle'),
-			panel: present(bySlot(rendered.container, 'drawer'), 'panel') as HTMLElement,
+			handle: getSlot(rendered.container, 'drawer-handle'),
+			panel: getSlot(rendered.container, 'drawer') as HTMLElement,
 		}
 	}
 
@@ -565,6 +561,6 @@ describe('Drawer drag handle', () => {
 
 		// Back at the size the consumer asked for, which is the one a reader coming
 		// back to the panel expects.
-		expect((present(bySlot(container, 'drawer'), 'panel') as HTMLElement).style.height).toBe('')
+		expect((getSlot(container, 'drawer') as HTMLElement).style.height).toBe('')
 	})
 })

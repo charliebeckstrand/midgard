@@ -3,7 +3,7 @@ import { Description } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Switch, SwitchField } from '../../components/switch'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 
 function FieldProbe({ name }: { name: string }) {
 	const field = useFormField(name)
@@ -15,7 +15,7 @@ describe('Switch', () => {
 	it('keeps the switch role and synced aria-checked over consumer props', () => {
 		const { container } = renderUI(<Switch checked onChange={() => {}} role="checkbox" />)
 
-		const input = container.querySelector('input') as HTMLInputElement
+		const input = present<HTMLInputElement>(container.querySelector('input'), 'input')
 
 		// Internal wiring wins over a consumer spread.
 		expect(input).toHaveAttribute('role', 'switch')
@@ -46,7 +46,7 @@ describe('Switch', () => {
 
 		const { container } = renderUI(<Switch checked={true} onChange={onChange} />)
 
-		const input = bySlot(container, 'switch') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'switch')
 
 		expect(input.checked).toBe(true)
 
@@ -67,7 +67,7 @@ describe('Switch in a Form', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'switch') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'switch')
 
 		expect(input.checked).toBe(false)
 
@@ -92,7 +92,7 @@ describe('Switch in a Form', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'switch') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'switch')
 
 		expect(input.checked).toBe(true)
 
@@ -138,9 +138,9 @@ describe('SwitchField aria-describedby', () => {
 			</SwitchField>,
 		)
 
-		const input = bySlot(container, 'switch') as HTMLElement
+		const input = getSlot<HTMLInputElement>(container, 'switch')
 
-		const description = bySlot(container, 'description') as HTMLElement
+		const description = getSlot(container, 'description')
 
 		expect(description.id).toBeTruthy()
 

@@ -4,7 +4,7 @@ import { userEvent } from 'vitest/browser'
 import { ColorPicker } from '../../../components/color'
 import { Listbox, ListboxOption } from '../../../components/listbox'
 import { Select, SelectOption } from '../../../components/select'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Layout stability on open (real floating engine), the sibling of
@@ -67,9 +67,15 @@ describe('layout stability (real browser): portal pickers in a space-y container
 				</div>,
 			)
 
-			const stack = container.querySelector('[data-testid="stack"]') as HTMLElement
+			const stack = present(
+				container.querySelector('[data-testid="stack"]'),
+				'[data-testid="stack"]',
+			)
 
-			const control = stack.querySelector(`[data-slot="${controlSlot}"]`) as HTMLElement
+			const control = present(
+				stack.querySelector(`[data-slot="${controlSlot}"]`),
+				`[data-slot="${controlSlot}"]`,
+			)
 
 			const closedHeight = Math.round(stack.getBoundingClientRect().height)
 

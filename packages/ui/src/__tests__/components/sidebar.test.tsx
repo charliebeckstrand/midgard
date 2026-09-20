@@ -11,7 +11,7 @@ import {
 	useSidebarMini,
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
-import { bySlot, fireEvent, renderUI, screen, stubMatchMedia, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, stubMatchMedia, userEvent } from '../helpers'
 
 describe('Sidebar', () => {
 	it('renders with data-slot="sidebar" and a default aria-label', () => {
@@ -36,7 +36,7 @@ describe('Sidebar', () => {
 			</Sidebar>,
 		)
 
-		const nav = bySlot(container, 'sidebar') as HTMLElement
+		const nav = getSlot(container, 'sidebar')
 
 		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
 
@@ -64,7 +64,7 @@ describe('Sidebar', () => {
 			</Sidebar>,
 		)
 
-		const nav = bySlot(container, 'sidebar') as HTMLElement
+		const nav = getSlot(container, 'sidebar')
 
 		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
 

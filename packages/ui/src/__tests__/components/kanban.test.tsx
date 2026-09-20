@@ -8,7 +8,16 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../components/kanban'
-import { allBySlot, bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+} from '../helpers'
 
 type Item = { id: string; title: string }
 
@@ -258,7 +267,7 @@ describe('KanbanCard', () => {
 	it('marks an interactive card as lifted after pressing Space', async () => {
 		const { container } = renderUI(<Board onValueChange={() => {}} />)
 
-		const card = bySlot(container, 'kanban-card') as HTMLElement
+		const card = getSlot(container, 'kanban-card')
 
 		card.focus()
 
@@ -272,7 +281,7 @@ describe('KanbanCard', () => {
 	it('clears the lifted attribute when the card blurs', async () => {
 		const { container } = renderUI(<Board onValueChange={() => {}} />)
 
-		const card = bySlot(container, 'kanban-card') as HTMLElement
+		const card = getSlot(container, 'kanban-card')
 
 		card.focus()
 
@@ -325,7 +334,7 @@ describe('KanbanColumnBody', () => {
 // Reorders surface through onValueChange.
 describe('Kanban keyboard reorder', () => {
 	const cardOf = (root: HTMLElement, id: string) =>
-		root.querySelector(`[data-card-id="${id}"]`) as HTMLElement
+		present(root.querySelector(`[data-card-id="${id}"]`), `[data-card-id="${id}"]`)
 
 	const itemIds = (next: Column[], columnId: string) =>
 		next.find((column) => column.id === columnId)?.items.map((item) => item.id)
@@ -423,7 +432,7 @@ describe('Kanban keyboard reorder', () => {
 
 describe('Kanban keyboard announcements', () => {
 	const cardOf = (root: HTMLElement, id: string) =>
-		root.querySelector(`[data-card-id="${id}"]`) as HTMLElement
+		present(root.querySelector(`[data-card-id="${id}"]`), `[data-card-id="${id}"]`)
 
 	// Dependent keydowns fire synchronously (each fireEvent is act-flushed) so the
 	// lifted state can't be lost to an `await` yielding mid-sequence; only the

@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 
 describe('useOffcanvas', () => {
@@ -84,7 +84,7 @@ function stubBreakpoint(value: string): void {
 
 	const impl: typeof window.getComputedStyle = () => partial as CSSStyleDeclaration
 
-	window.getComputedStyle = impl
+	vi.stubGlobal('getComputedStyle', impl)
 }
 
 type MqlMock = Pick<
@@ -92,10 +92,21 @@ type MqlMock = Pick<
 	'matches' | 'media' | 'addEventListener' | 'removeEventListener'
 >
 
-function stubMatchMedia(mql: MqlMock): void {
+/**
+ * Serves one caller-owned `MediaQueryList` for every query.
+ *
+ * Named apart from the `stubMatchMedia` helper on the test barrel, which it
+ * would otherwise shadow: that one builds a fresh inert list per query from a
+ * predicate, and these cases need one object they keep a handle on, so they can
+ * flip `matches` and fire the listener the hook registered.
+ */
+function stubFixedMediaQuery(mql: MqlMock): void {
 	const partial: Partial<MediaQueryList> = mql
 
-	window.matchMedia = vi.fn((_query: string): MediaQueryList => partial as MediaQueryList)
+	vi.stubGlobal(
+		'matchMedia',
+		vi.fn((_query: string): MediaQueryList => partial as MediaQueryList),
+	)
 }
 
 /**
@@ -117,7 +128,7 @@ function stubViewportCrossing(): { mql: MqlMock; cross: (matches: boolean) => vo
 
 	stubBreakpoint('1024px')
 
-	stubMatchMedia(mql)
+	stubFixedMediaQuery(mql)
 
 	return {
 		mql,
@@ -130,16 +141,6 @@ function stubViewportCrossing(): { mql: MqlMock; cross: (matches: boolean) => vo
 }
 
 describe('useOffcanvas: breakpoint listener', () => {
-	const originalGetComputedStyle = window.getComputedStyle
-
-	const originalMatchMedia = window.matchMedia
-
-	afterEach(() => {
-		window.getComputedStyle = originalGetComputedStyle
-
-		window.matchMedia = originalMatchMedia
-	})
-
 	it('auto-closes when the viewport crosses --breakpoint-lg', () => {
 		const { cross } = stubViewportCrossing()
 
@@ -201,7 +202,7 @@ describe('useOffcanvas: breakpoint listener', () => {
 
 		const matchMediaSpy = vi.fn()
 
-		window.matchMedia = matchMediaSpy as typeof window.matchMedia
+		vi.stubGlobal('matchMedia', matchMediaSpy)
 
 		renderHook(() => useOffcanvas())
 

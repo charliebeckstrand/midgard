@@ -6,7 +6,7 @@ import { localeDateInputFormat } from '../../components/date-input/date-input-ut
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
 // while the input holds in-progress text.
@@ -88,7 +88,7 @@ describe('DateInput', () => {
 	it('shows the clear button by default for any entered text and clears partial input', async () => {
 		const { container } = renderUI(<DateInput />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -112,7 +112,7 @@ describe('DateInput', () => {
 			<DateInput defaultValue={new Date(2026, 5, 15)} onValueChange={onChange} />,
 		)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		expect(input.value).toBe('06/15/2026')
 
@@ -187,7 +187,7 @@ describe('DateInput', () => {
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -207,7 +207,7 @@ describe('DateInput', () => {
 	it('pads segments typed with separators', async () => {
 		const { container } = renderUI(<DateInput />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -221,7 +221,7 @@ describe('DateInput', () => {
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -237,7 +237,7 @@ describe('DateInput', () => {
 	it('deletes the digit before a trailing separator on backspace', async () => {
 		const { container } = renderUI(<DateInput />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -255,7 +255,7 @@ describe('DateInput', () => {
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -279,7 +279,7 @@ describe('DateInput', () => {
 			/>,
 		)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -298,7 +298,7 @@ describe('DateInput', () => {
 	it('keeps partial text on blur and marks it invalid', async () => {
 		const { container } = renderUI(<DateInput />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -318,7 +318,7 @@ describe('DateInput', () => {
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -345,7 +345,7 @@ describe('DateInput', () => {
 
 		const { container } = renderUI(<DateInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -369,7 +369,7 @@ describe('DateInput', () => {
 	it('renders the invalid-format message for a complete impossible date', async () => {
 		const { container } = renderUI(<DateInput />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -394,7 +394,7 @@ describe('DateInput', () => {
 			</Field>,
 		)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -412,7 +412,7 @@ describe('DateInput', () => {
 	it('uses a custom invalid message and clears it once valid', async () => {
 		const { container } = renderUI(<DateInput invalidMessage="Bad date" />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -430,7 +430,7 @@ describe('DateInput', () => {
 	it('suppresses the built-in message when invalidMessage is null', async () => {
 		const { container } = renderUI(<DateInput invalidMessage={null} />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -444,7 +444,7 @@ describe('DateInput', () => {
 	it('clears the invalid mark once edited back to valid', async () => {
 		const { container } = renderUI(<DateInput />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -487,13 +487,13 @@ describe('DateInput', () => {
 	])('%s', (_name, ui, expected) => {
 		const { container } = renderUI(ui())
 
-		expect((bySlot(container, 'date-input') as HTMLInputElement).value).toBe(expected)
+		expect(getSlot<HTMLInputElement>(container, 'date-input').value).toBe(expected)
 	})
 
 	it('lets an external value change override in-progress text', async () => {
 		const { container } = renderUI(<ControlledDateInput />)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -513,7 +513,7 @@ describe('DateInput', () => {
 			<DateInput value={new Date(2026, 5, 15, 9, 30)} onValueChange={onChange} />,
 		)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -549,7 +549,7 @@ describe('DateInput', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -593,7 +593,7 @@ describe('DateInput locale-derived layout', () => {
 			</LocaleProvider>,
 		)
 
-		const input = bySlot(container, 'date-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
 
 		await user.type(input, '10062026')
 
@@ -615,12 +615,12 @@ describe('DateInput locale-derived layout', () => {
 			</LocaleProvider>,
 		)
 
-		expect((bySlot(container, 'date-input') as HTMLInputElement).placeholder).toBe('MM/DD/YYYY')
+		expect(getSlot<HTMLInputElement>(container, 'date-input').placeholder).toBe('MM/DD/YYYY')
 	})
 })
 
 describe('DateInput onValidityChange', () => {
-	const field = (container: HTMLElement) => bySlot(container, 'date-input') as HTMLInputElement
+	const field = (container: HTMLElement) => getSlot<HTMLInputElement>(container, 'date-input')
 
 	it('calls a growing entry potentially valid, and a complete one valid', async () => {
 		const user = userEvent.setup()

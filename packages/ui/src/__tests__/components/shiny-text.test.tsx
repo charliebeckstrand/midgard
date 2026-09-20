@@ -1,7 +1,7 @@
 import { animate } from 'motion'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ShinyText } from '../../components/shiny-text'
-import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 
 // `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts,
 // which is also why this file drives that mock with spies rather than declaring
@@ -97,7 +97,7 @@ describe('ShinyText', () => {
 			</ShinyText>,
 		)
 
-		const el = bySlot(container, 'shiny-text') as HTMLElement
+		const el = getSlot(container, 'shiny-text')
 
 		const user = userEvent.setup()
 

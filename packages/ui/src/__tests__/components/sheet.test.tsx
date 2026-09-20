@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
 import { panelAxis } from '../../hooks/use-panel-resize'
-import { bySlot, fireEvent, present, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Sheet', () => {
 	// The named `width` steps are max-widths on a panel that fills to them. `fit`
@@ -16,7 +16,7 @@ describe('Sheet', () => {
 			</Sheet>,
 		)
 
-		const panel = present(bySlot(document.body, 'sheet'), 'sheet panel')
+		const panel = getSlot(document.body, 'sheet')
 
 		expect(panel).toHaveClass('sm:w-max')
 
@@ -97,9 +97,7 @@ describe('Sheet', () => {
 			</Sheet>,
 		)
 
-		expect(present(bySlot(document.body, 'overlay-backdrop'), 'backdrop')).toHaveClass(
-			'backdrop-grayscale',
-		)
+		expect(getSlot(document.body, 'overlay-backdrop')).toHaveClass('backdrop-grayscale')
 	})
 
 	it('names a title-less sheet via the aria-label escape hatch', () => {
@@ -295,8 +293,8 @@ describe('Sheet handle', () => {
 		)
 
 		return {
-			handle: present(bySlot(rendered.container, 'sheet-handle'), 'drag handle'),
-			panel: present(bySlot(rendered.container, 'sheet'), 'panel'),
+			handle: getSlot(rendered.container, 'sheet-handle'),
+			panel: getSlot(rendered.container, 'sheet'),
 		}
 	}
 

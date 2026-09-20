@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, renderUI, screen } from '../../helpers'
+import { fireEvent, present, renderUI, screen } from '../../helpers'
 
 /**
  * Keyboard access to the grid's context menu against the real floating engine
@@ -30,7 +30,7 @@ describe('grid context menu keyboard access (real browser)', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} navigable contextMenu={{ cell: true }} />,
 		)
 
-		const grid = container.querySelector<HTMLElement>('[role="grid"]') as HTMLTableElement
+		const grid = present(container.querySelector('[role="grid"]'), '[role="grid"]')
 
 		// Seat the cursor on a cell.
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })

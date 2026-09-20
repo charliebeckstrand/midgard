@@ -1,7 +1,7 @@
 import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { MapPlat } from '../../modules/map'
-import { bySlot, firstRegion, present, renderUI, waitFor } from '../helpers'
+import { firstRegion, getSlot, present, renderUI, waitFor } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
@@ -21,7 +21,7 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /** The plot SVG's `viewBox`, parsed by the engine rather than by hand. */
 function viewBox(container: HTMLElement): SVGRect {
-	const svg = present(bySlot(container, 'map-plot'), 'plot region').querySelector('svg')
+	const svg = getSlot(container, 'map-plot').querySelector('svg')
 
 	if (!svg) throw new Error('no plot SVG')
 
@@ -50,7 +50,7 @@ describe('MapPlat resize with a passed projection instance (real browser)', () =
 
 		const frame = present(container.firstElementChild as HTMLElement | null, 'the sizing frame')
 
-		const plot = present(bySlot(container, 'map-plot'), 'plot region')
+		const plot = getSlot(container, 'map-plot')
 
 		await waitFor(() => expect(viewBox(container).width).toBeGreaterThan(0))
 
@@ -87,7 +87,7 @@ describe('MapPlat free-form fill sizing, aspectRatio={false} (real browser)', ()
 			</div>,
 		)
 
-		const plot = present(bySlot(container, 'map-plot'), 'plot region')
+		const plot = getSlot(container, 'map-plot')
 
 		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
 

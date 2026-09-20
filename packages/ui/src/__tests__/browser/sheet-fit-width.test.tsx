@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Sheet, SheetBody } from '../../components/sheet'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, frames, present, renderUI } from '../helpers'
+import { frames, getSlot, present, renderUI } from '../helpers'
 
 /**
  * Real-browser check of the `fit` sheet around a `fit` grid. Both halves are
@@ -45,11 +45,11 @@ async function openSheet(columns: GridColumn<Row>[], label: string) {
 
 	await frames()
 
-	const panel = present(bySlot(document.body, 'sheet'), 'sheet panel')
+	const panel = getSlot(document.body, 'sheet')
 
 	return {
 		panel,
-		scroll: present(bySlot(panel, 'table'), 'table scroll region'),
+		scroll: getSlot(panel, 'table'),
 		table: present(panel.querySelector<HTMLElement>('table'), 'grid table'),
 	}
 }

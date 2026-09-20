@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, present, renderUI } from '../helpers'
 
 /**
  * The intrinsic tiers resolved in a real browser, where computed layout is real:
@@ -133,7 +133,10 @@ describe('chart intrinsic tiers (real browser)', () => {
 
 		expect(gutter.length).toBeGreaterThan(0)
 
-		const svg = bySlot(container, 'chart-plot')?.querySelector('svg') as SVGSVGElement
+		const svg = present<SVGSVGElement>(
+			bySlot(container, 'chart-plot')?.querySelector('svg'),
+			'the chart-plot svg',
+		)
 
 		const bottom = svg.getBoundingClientRect().bottom
 

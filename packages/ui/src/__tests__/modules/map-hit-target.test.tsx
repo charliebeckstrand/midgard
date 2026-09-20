@@ -16,7 +16,7 @@ import {
 	POINT_RADIUS,
 } from '../../modules/map/engine/map-constants'
 import { k } from '../../recipes/kata/map'
-import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 function plat(children: ReactNode) {
@@ -620,7 +620,7 @@ describe('a dot over regions that answer the pointer', () => {
 		// A coarse pointer cannot aim at 11px (WCAG 2.5.5), and a region is a large shape it can reach
 		// elsewhere.
 		expect(
-			Number.parseFloat(present(bySlot(container, 'map-point-hit'), 'r').getAttribute('r') ?? ''),
+			Number.parseFloat(getSlot(container, 'map-point-hit').getAttribute('r') ?? ''),
 		).toBeCloseTo(POINT_HIT_RADIUS, 5)
 	})
 })

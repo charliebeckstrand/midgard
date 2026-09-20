@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem, ListLabel } from '../../components/list'
-import { bySlot, renderUI } from '../helpers'
+import { fireEvent, getSlot, present, renderUI } from '../helpers'
 
 /**
  * An interactive row answers the pointer everywhere it is painted (WCAG 2.5.8,
@@ -64,9 +64,9 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = bySlot(container, 'list-item') as HTMLElement
+		const row = getSlot(container, 'list-item')
 
-		const content = bySlot(container, 'list-item-content') as HTMLElement
+		const content = getSlot(container, 'list-item-content')
 
 		// 5px in from the row's top-left corner: inside the 1px border and the 12px
 		// padding, and well clear of the content column.
@@ -87,9 +87,23 @@ describe('list item hit area (real browser)', () => {
 		// a press that lands on the bare row passes that check and reports a
 		// successful click. The count alone then reads 0 with nothing to say why.
 		// Name the slot under the pointer beside it.
-		expect({ calls: onClick.mock.calls.length, under: slotAt(point) }).toEqual({
+		const calls = onClick.mock.calls.length
+
+		// This case is an intermittent failure of the suite, and its one recorded
+		// reproduction reads `calls: 0` with the pointer on the right slot — which
+		// rules out neither the pointer nor React's own wiring. A `fireEvent` on
+		// the content area reaches the handler through no hit test at all, so
+		// `wired` separates them: false says the tree was not listening, true says
+		// it was and the pointer is the half to read. It goes to the content area
+		// and not the row, because that is where the handler sits — the `<li>` acts
+		// on nothing, which is the whole reason the stretched overlay exists.
+		// Measured after `calls`, so the count above is the pointer's alone.
+		fireEvent.click(getSlot(container, 'list-item-content'))
+
+		expect({ calls, under: slotAt(point), wired: onClick.mock.calls.length > calls }).toEqual({
 			calls: 1,
 			under: 'list-item-content',
+			wired: true,
 		})
 	})
 
@@ -104,7 +118,7 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = bySlot(container, 'list-item') as HTMLElement
+		const row = getSlot(container, 'list-item')
 
 		// No handler to serve, so the padding stays the row's own — a row that grew
 		// a target it does not paint would read as clickable and act on nothing.
@@ -122,9 +136,9 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = bySlot(container, 'list-item') as HTMLElement
+		const row = getSlot(container, 'list-item')
 
-		const handle = bySlot(container, 'list-handle') as HTMLElement
+		const handle = getSlot(container, 'list-handle')
 
 		const box = handle.getBoundingClientRect()
 
@@ -161,7 +175,10 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const suffix = container.querySelector('button[type="button"]:not([data-slot])') as HTMLElement
+		const suffix = present(
+			container.querySelector('button[type="button"]:not([data-slot])'),
+			'button[type="button"]:not([data-slot])',
+		)
 
 		await userEvent.click(suffix)
 

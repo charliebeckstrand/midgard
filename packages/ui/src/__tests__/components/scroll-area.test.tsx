@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
-import { bySlot, fireEvent, renderUI } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 /**
  * The ScrollArea's structural and event-wiring contract. Its two overflow
@@ -14,7 +14,7 @@ describe('ScrollArea', () => {
 
 		const { container } = renderUI(<ScrollArea onScroll={onScroll}>content</ScrollArea>)
 
-		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
+		const viewport = getSlot(container, 'scroll-area-viewport')
 
 		// The consumer handler must not clobber the internal scroll handler
 		// (which drives thumb tracking and auto-fade); both fire.

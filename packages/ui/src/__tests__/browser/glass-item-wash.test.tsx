@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { CommandPalette, CommandPaletteItem } from '../../components/command-palette'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
-import { bySlot, noop, present, renderUI, screen } from '../helpers'
+import { getSlot, noop, renderUI, screen } from '../helpers'
 
 /**
  * Glass item wash (real paint). `hannou.glassItem` deepens a row's hover fill
@@ -68,7 +68,7 @@ describe('Glass item wash (real browser)', () => {
 
 		expect(washOf(row)).toBeCloseTo(GLASS_WASH, 3)
 
-		const panel = present(bySlot(document.body, 'popover-panel'), 'the popover panel')
+		const panel = getSlot(document.body, 'popover-panel')
 
 		expect(panel).toHaveClass('group/glass')
 

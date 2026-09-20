@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { bySlot, present, renderUI, waitFor } from '../helpers'
+import { bySlot, getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * A side (left / right) legend keeps the `aspectRatio` on the plot box and bands
@@ -46,9 +46,9 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 			</div>,
 		)
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
-		const box = bySlot(container, 'aspect-ratio') as HTMLElement
-		const legend = bySlot(container, 'chart-legend') as HTMLElement
+		const figure = getSlot(container, 'chart-figure')
+		const box = getSlot(container, 'aspect-ratio')
+		const legend = getSlot(container, 'chart-legend')
 
 		// The plot box carries the ratio itself — the figure reserves none, so the
 		// drawing can't be squeezed to fit the whole chart into 16:9.
@@ -110,7 +110,7 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 
 	/** The plot SVG's `viewBox`, parsed by the engine rather than by hand. */
 	function viewBox(container: HTMLElement): SVGRect {
-		const svg = present(bySlot(container, 'chart-plot'), 'the plot region').querySelector('svg')
+		const svg = getSlot(container, 'chart-plot').querySelector('svg')
 
 		if (!svg) throw new Error('no plot SVG')
 
@@ -120,11 +120,11 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 	it('resolves the figure to the ratio and draws the plot into the legend remainder', async () => {
 		const { container } = chart({ aspectRatio: 16 / 9, legend: 'bottom' })
 
-		const figure = present(bySlot(container, 'chart-figure'), 'the figure')
+		const figure = getSlot(container, 'chart-figure')
 
-		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+		const plot = getSlot(container, 'chart-plot')
 
-		const legend = present(bySlot(container, 'chart-legend'), 'the legend')
+		const legend = getSlot(container, 'chart-legend')
 
 		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
 
@@ -151,13 +151,13 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 	it('bands a side legend beside the plot and keeps the ratio on the plot box', async () => {
 		const { container } = chart({ aspectRatio: 16 / 9, legend: 'right' })
 
-		const figure = present(bySlot(container, 'chart-figure'), 'the figure')
+		const figure = getSlot(container, 'chart-figure')
 
-		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+		const plot = getSlot(container, 'chart-plot')
 
-		const legend = present(bySlot(container, 'chart-legend'), 'the legend')
+		const legend = getSlot(container, 'chart-legend')
 
-		const reserve = present(bySlot(container, 'aspect-ratio'), 'the plot aspect box')
+		const reserve = getSlot(container, 'aspect-ratio')
 
 		await waitFor(() => expect(reserve.getBoundingClientRect().width).toBeGreaterThan(0))
 
@@ -181,7 +181,7 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 			</div>,
 		)
 
-		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+		const plot = getSlot(container, 'chart-plot')
 
 		await waitFor(() => expect(viewBox(container).height).toBeGreaterThan(0))
 
@@ -206,9 +206,9 @@ describe('chart aspect ratio and legend placement, measured (real browser)', () 
 			</div>,
 		)
 
-		const figure = present(bySlot(container, 'chart-figure'), 'the figure')
+		const figure = getSlot(container, 'chart-figure')
 
-		const plot = present(bySlot(container, 'chart-plot'), 'the plot region')
+		const plot = getSlot(container, 'chart-plot')
 
 		await waitFor(() => expect(plot.getBoundingClientRect().height).toBeGreaterThan(0))
 

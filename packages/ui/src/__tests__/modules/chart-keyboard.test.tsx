@@ -12,7 +12,7 @@ import {
 } from '../../modules/chart/engine/use-chart-keyboard'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 // Category 0 carries two coincident points (a chart whose series overlap on the
 // same value); the later categories separate them.
@@ -354,7 +354,7 @@ describe('LineChart keyboard navigation', () => {
 
 		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		expect(plot).not.toHaveAttribute('tabindex')
 
@@ -370,7 +370,7 @@ describe('LineChart keyboard navigation', () => {
 	it('holds the readout until the first arrow, then reads the first data point', () => {
 		const { container } = renderUI(line())
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// Focus alone rings the region without seizing the readout from the pointer.
 		act(() => plot.focus())
@@ -392,7 +392,7 @@ describe('LineChart keyboard navigation', () => {
 	it('walks categories with the arrow keys and clears on Escape', () => {
 		const { container } = renderUI(line())
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -414,7 +414,7 @@ describe('LineChart keyboard navigation', () => {
 	it('cycles the value crosshair through both series at a category', () => {
 		const { container } = renderUI(line({ crosshair: { x: true, y: false } }))
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// Enter at W1's first series point (a = 10).
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
@@ -437,7 +437,7 @@ describe('LineChart keyboard navigation', () => {
 	it('drops a parked crosshair when navigation switches off without a blur', () => {
 		const { container, rerender } = renderUI(line({ crosshair: { x: true, y: false } }))
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -454,7 +454,7 @@ describe('LineChart keyboard navigation', () => {
 	it('re-anchors a parked crosshair when the frame resizes', () => {
 		const { container, rerender } = renderUI(line({ crosshair: { x: false, y: true }, width: 400 }))
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -479,7 +479,7 @@ describe('LineChart keyboard navigation', () => {
 
 		const { container } = renderUI(line({ data: same }))
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		fireEvent.keyDown(plot, { key: 'ArrowDown' })
 
@@ -496,7 +496,7 @@ describe('LineChart keyboard navigation', () => {
 	it('emphasises the series the cursor reads, dimming the other marks and its tooltip row', () => {
 		const { container } = renderUI(line())
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// The first arrow enters on the first series (A); the other series (B) recedes.
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
@@ -553,7 +553,7 @@ describe('LineChart keyboard navigation', () => {
 			/>,
 		)
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// Enter at W1's series A, then step the band to W2 where only B has a stop.
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
@@ -582,7 +582,7 @@ describe('AreaChart keyboard navigation', () => {
 			<AreaChart aria-label="Stacked" data={stacked} series={[...SERIES]} width={400} stacked />,
 		)
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		expect(plot).toHaveAttribute('tabindex', '0')
 
@@ -612,7 +612,7 @@ describe('PieChart and DonutChart keyboard navigation', () => {
 			<PieChart aria-label="Share" data={SLICES} series={[...SLICE_SERIES]} width={400} />,
 		)
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		expect(plot).toHaveAttribute('tabindex', '0')
 
@@ -635,7 +635,7 @@ describe('PieChart and DonutChart keyboard navigation', () => {
 			<DonutChart aria-label="Share" data={SLICES} series={[...SLICE_SERIES]} width={400} />,
 		)
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		expect(plot).toHaveAttribute('tabindex', '0')
 

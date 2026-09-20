@@ -6,13 +6,13 @@ import { Form } from '../../components/form'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
 import { DensityProvider } from '../../providers/density'
-import { allBySlot, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Slider', () => {
 	it('renders as a range input with data-slot="slider"', () => {
 		const { container } = renderUI(<Slider />)
 
-		const el = bySlot(container, 'slider') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(el).toBeInTheDocument()
 
@@ -22,7 +22,7 @@ describe('Slider', () => {
 	it('passes through min, max, and step', () => {
 		const { container } = renderUI(<Slider min={0} max={50} step={5} />)
 
-		const el = bySlot(container, 'slider') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(el.min).toBe('0')
 
@@ -44,7 +44,7 @@ describe('Slider', () => {
 
 		const { container } = renderUI(<Slider defaultValue={20} onValueChange={onValueChange} />)
 
-		const el = bySlot(container, 'slider') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		fireEvent.change(el, { target: { value: '50' } })
 
@@ -54,7 +54,7 @@ describe('Slider', () => {
 	it('reflects a controlled value', () => {
 		const { container } = renderUI(<Slider value={42} onValueChange={() => {}} />)
 
-		const el = bySlot(container, 'slider') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(el.value).toBe('42')
 	})
@@ -62,7 +62,7 @@ describe('Slider', () => {
 	it('merges caller-supplied inline style with the slider --slider-value var', () => {
 		const { container } = renderUI(<Slider defaultValue={25} style={{ width: '300px' }} />)
 
-		const el = bySlot(container, 'slider') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(el.style.width).toBe('300px')
 	})
@@ -246,7 +246,7 @@ describe('RangeSlider density inheritance', () => {
 			</DensityProvider>,
 		)
 
-		const el = bySlot(container, 'slider-range') as HTMLElement
+		const el = getSlot(container, 'slider-range')
 
 		expect(el.className).toContain(padClassFor.lg)
 
@@ -317,7 +317,7 @@ describe('Slider + Form', () => {
 			</Form>,
 		)
 
-		const slider = bySlot(container, 'slider') as HTMLInputElement
+		const slider = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(slider.value).toBe('30')
 
@@ -344,7 +344,7 @@ describe('Slider + Form', () => {
 			</Form>,
 		)
 
-		const el = bySlot(container, 'slider') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(el).not.toHaveAttribute('aria-invalid')
 
@@ -383,7 +383,7 @@ describe('Slider density inheritance', () => {
 			</DensityProvider>,
 		)
 
-		const el = bySlot(container, 'slider') as HTMLElement
+		const el = getSlot<HTMLInputElement>(container, 'slider')
 
 		expect(el.className).toContain(padClassFor.lg)
 

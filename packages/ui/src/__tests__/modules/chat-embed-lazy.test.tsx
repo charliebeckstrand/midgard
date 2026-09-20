@@ -2,7 +2,7 @@ import { act } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChatEmbedProvider, ChatMessage } from '../../modules/chat'
 import type { ChatEmbedPart } from '../../modules/chat/engine/chat-content/types'
-import { bySlot, present, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, renderUI, screen } from '../helpers'
 
 /**
  * A controllable `IntersectionObserver`: nothing intersects until a test says
@@ -103,7 +103,7 @@ describe('a held-back embed', () => {
 			</ChatEmbedProvider>,
 		)
 
-		const block = present(bySlot(container, 'chat-embed'), 'embed')
+		const block = getSlot(container, 'chat-embed')
 
 		expect(block).toHaveAttribute('data-deferred')
 
@@ -117,7 +117,7 @@ describe('a held-back embed', () => {
 			</ChatEmbedProvider>,
 		)
 
-		expect(present(bySlot(container, 'chat-embed'), 'embed').style.minHeight).toBe('320px')
+		expect(getSlot(container, 'chat-embed').style.minHeight).toBe('320px')
 	})
 
 	it('stops reserving space once it has drawn', () => {
@@ -129,7 +129,7 @@ describe('a held-back embed', () => {
 
 		reveal?.()
 
-		const block = present(bySlot(container, 'chat-embed'), 'embed')
+		const block = getSlot(container, 'chat-embed')
 
 		expect(block).not.toHaveAttribute('data-deferred')
 

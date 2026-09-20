@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { bySlot, renderUI, screen } from '../../helpers'
+import { bySlot, present, renderUI, screen } from '../../helpers'
 
 /**
  * Why the inline listbox editor has no Enter-to-commit, recorded as a test
@@ -33,7 +33,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 		)
 
 		await userEvent.dblClick(
-			view.container.querySelector('td[data-grid-col="done"]') as HTMLElement,
+			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
 		)
 
 		const trigger = await screen.findByRole('combobox')
@@ -64,7 +64,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 		)
 
 		await userEvent.dblClick(
-			view.container.querySelector('td[data-grid-col="done"]') as HTMLElement,
+			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
 		)
 
 		const trigger = await screen.findByRole('combobox')

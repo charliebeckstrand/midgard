@@ -3,10 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { useCurrentContentsMorph } from '../../primitives/current/use-current-contents-morph'
 import {
-	bySlot,
 	frames,
+	getSlot,
 	hasIntermediate,
-	present,
 	renderUI,
 	sampleHeights,
 	screen,
@@ -164,7 +163,7 @@ describe('current-panel morph, width-coupled resizes (real browser)', () => {
 
 		const host = screen.getByTestId('host')
 
-		const box = present(bySlot(container, 'test-contents'), 'the contents box')
+		const box = getSlot(container, 'test-contents')
 
 		await waitFor(() => expect(box.getBoundingClientRect().height).toBeGreaterThan(0))
 

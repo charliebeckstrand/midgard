@@ -9,7 +9,7 @@ import {
 	hsvaToRgba,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -123,7 +123,7 @@ describe('ColorPanel', () => {
 	it('supports Home/End and Page keys on the area (APG slider pattern)', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
-		const area = bySlot(container, 'color-area') as HTMLElement
+		const area = getSlot(container, 'color-area')
 
 		const brightness = () =>
 			Number(/brightness (\d+)%/.exec(area.getAttribute('aria-valuetext') ?? '')?.[1])
@@ -152,7 +152,7 @@ describe('ColorPanel', () => {
 	it('supports Page keys on the sliders (APG slider pattern)', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
-		const slider = bySlot(container, 'color-slider') as HTMLElement
+		const slider = getSlot(container, 'color-slider')
 
 		const hue = () => Number(slider.getAttribute('aria-valuenow'))
 
@@ -237,7 +237,7 @@ describe('ColorPicker', () => {
 	it('leaves the positioning wrapper free of floating-ui popup attributes', () => {
 		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
 
-		const button = present(bySlot(container, 'color-picker-button'), 'the trigger')
+		const button = getSlot(container, 'color-picker-button')
 
 		fireEvent.click(button)
 

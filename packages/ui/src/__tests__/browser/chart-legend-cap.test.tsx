@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { allBySlot, bySlot, renderUI, waitFor } from '../helpers'
+import { allBySlot, bySlot, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * A stacked legend caps to the frame tier's row budget: the controls past it
@@ -71,7 +71,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 		// The cap holds the visible row to its one-row budget: the ghost carries all
 		// ten (many rows) but sits out of flow, so the wrapper it shares with the
 		// visible row measures the one row, not the ghost's stack.
-		const legend = bySlot(container, 'chart-legend') as HTMLElement
+		const legend = getSlot(container, 'chart-legend')
 
 		const wrapper = legend.parentElement as HTMLElement
 
@@ -90,7 +90,7 @@ describe('chart stacked legend row cap (real browser)', () => {
 
 		// The visible row itself, so its switch count reads free of the popover's own
 		// (which may portal inside the container once open).
-		const row = bySlot(container, 'chart-legend') as HTMLElement
+		const row = getSlot(container, 'chart-legend')
 
 		const before = allBySlot(row, 'chart-legend-item').length
 
@@ -179,7 +179,10 @@ describe('pie stacked legend row cap (real browser)', () => {
 
 		await waitFor(() => expect(container.querySelector('[aria-label^="Show "]')).not.toBeNull())
 
-		const chip = container.querySelector('[aria-label^="Show "]') as HTMLButtonElement
+		const chip = present<HTMLButtonElement>(
+			container.querySelector('[aria-label^="Show "]'),
+			'[aria-label^="Show "]',
+		)
 
 		const visible = allBySlot(container, 'chart-legend-item')
 
@@ -196,7 +199,7 @@ describe('pie stacked legend row cap (real browser)', () => {
 
 		// The capped legend holds to its one-row budget rather than stacking ten rows
 		// under the pie.
-		const legend = bySlot(container, 'chart-legend') as HTMLElement
+		const legend = getSlot(container, 'chart-legend')
 
 		const rowHeight = (visible[0] as HTMLElement).offsetHeight
 
@@ -243,7 +246,7 @@ describe('spark drops the legend to reclaim the box (real browser)', () => {
 			/>,
 		)
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// Settle the aspect-fill height measurement before reading the box.
 		await waitFor(() => expect(plot.getBoundingClientRect().height).toBeGreaterThan(0))

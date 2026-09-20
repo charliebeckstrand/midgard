@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { TouchTarget } from '../../primitives/touch-target'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('TouchTarget', () => {
 	it('renders its children', () => {
@@ -68,7 +68,10 @@ describe('TouchTarget', () => {
 			</button>,
 		)
 
-		const touchArea = container.querySelector('[aria-hidden="true"]') as HTMLElement
+		const touchArea = present(
+			container.querySelector('[aria-hidden="true"]'),
+			'[aria-hidden="true"]',
+		)
 
 		fireEvent.click(touchArea)
 

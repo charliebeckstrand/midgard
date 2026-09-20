@@ -1,7 +1,17 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ChatPrompt } from '../../modules/chat'
-import { bySlot, fireEvent, makeFileList, noop, renderUI, screen, userEvent } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	makeFileList,
+	noop,
+	present,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 describe('ChatPrompt', () => {
 	it('renders a textarea marked with data-slot="chat-prompt"', () => {
@@ -49,7 +59,7 @@ describe('ChatPrompt', () => {
 			</>,
 		)
 
-		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
 		expect(el).toHaveAttribute('aria-labelledby', 'composer-label')
 
@@ -65,7 +75,7 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="" onValueChange={onValueChange} onSubmit={noop} />,
 		)
 
-		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -81,7 +91,7 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="hello" onValueChange={noop} onSubmit={onSubmit} />,
 		)
 
-		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
 		el.focus()
 
@@ -99,7 +109,7 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="hello" onValueChange={noop} onSubmit={onSubmit} />,
 		)
 
-		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
 		el.focus()
 
@@ -117,7 +127,7 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="   " onValueChange={noop} onSubmit={onSubmit} />,
 		)
 
-		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
 		el.focus()
 
@@ -189,7 +199,7 @@ describe('ChatPrompt', () => {
 			/>,
 		)
 
-		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
 		el.focus()
 
@@ -228,7 +238,10 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} onAttach={noop} />,
 		)
 
-		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+		const input = present<HTMLInputElement>(
+			container.querySelector('input[type="file"]'),
+			'input[type="file"]',
+		)
 
 		const openPicker = vi.spyOn(input, 'click')
 
@@ -246,7 +259,10 @@ describe('ChatPrompt', () => {
 			<ChatPrompt value="" onValueChange={noop} onSubmit={noop} onAttach={onAttach} />,
 		)
 
-		const input = container.querySelector('input[type="file"]') as HTMLInputElement
+		const input = present<HTMLInputElement>(
+			container.querySelector('input[type="file"]'),
+			'input[type="file"]',
+		)
 
 		const file = new File(['x'], 'loads.csv', { type: 'text/csv' })
 
@@ -274,7 +290,7 @@ describe('ChatPrompt', () => {
 	it('gives the textarea an inherent id via the built-in Control', () => {
 		const { container } = renderUI(<ChatPrompt value="" onValueChange={noop} onSubmit={noop} />)
 
-		const el = bySlot(container, 'chat-prompt') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'chat-prompt')
 
 		expect(el.id).toBeTruthy()
 	})

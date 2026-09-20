@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Box } from '../../components/box'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('Box', () => {
 	it('forwards ref', () => {
@@ -88,7 +88,7 @@ describe('Box', () => {
 			</DensityProvider>,
 		)
 
-		const el = bySlot(container, 'box') as HTMLElement
+		const el = getSlot(container, 'box')
 
 		expect(el.className).toContain('p-4')
 
@@ -98,7 +98,7 @@ describe('Box', () => {
 	it('does not apply any padding class when no p and no ambient Density are present', () => {
 		const { container } = renderUI(<Box>content</Box>)
 
-		const el = bySlot(container, 'box') as HTMLElement
+		const el = getSlot(container, 'box')
 
 		expect(el.className).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
 	})

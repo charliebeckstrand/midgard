@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { bySlot, renderUI, screen, waitFor } from '../../helpers'
+import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * A grid edit session's Escape against this library's own `Listbox` (real
@@ -34,7 +34,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 		)
 
 		await userEvent.dblClick(
-			view.container.querySelector('td[data-grid-col="done"]') as HTMLElement,
+			present(view.container.querySelector('td[data-grid-col="done"]'), 'td[data-grid-col="done"]'),
 		)
 
 		const trigger = await screen.findByRole('combobox')

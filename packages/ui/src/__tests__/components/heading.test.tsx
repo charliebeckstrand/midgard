@@ -4,7 +4,7 @@ import { Density } from '../../primitives/density'
 import { headingScale, headingWeight } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { steps } from '../../recipes/kiso/sun'
-import { bySlot, present, renderUI } from '../helpers'
+import { bySlot, getSlot, renderUI } from '../helpers'
 
 // The ladder is `recipes/heading-scale.test.ts`, in node, over all eighteen
 // level-by-step pairs. What stays here is the wiring: the component gives
@@ -59,7 +59,7 @@ describe('Heading', () => {
 					</Heading>,
 				)
 
-				return rungsOf(present(bySlot(container, 'heading'), `the level ${level} heading`))
+				return rungsOf(getSlot(container, 'heading'))
 			})
 
 			expect(rendered).toStrictEqual(levels.map((level) => [size[headingScale(level, step)]]))

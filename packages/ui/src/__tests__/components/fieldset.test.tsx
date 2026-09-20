@@ -7,7 +7,7 @@ import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Listbox } from '../../components/listbox'
 import { Select } from '../../components/select'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 describe('Fieldset', () => {
 	it('renders with data-slot="fieldset"', () => {
@@ -151,10 +151,10 @@ describe('Field', () => {
 		expect(bySlot(container, 'message')).toBeNull()
 
 		await act(async () => {
-			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
 		})
 
-		expect((bySlot(container, 'message') as HTMLElement).textContent).toBe('required')
+		expect(getSlot(container, 'message').textContent).toBe('required')
 
 		expect(bySlot(container, 'input')).toHaveAttribute('aria-invalid', 'true')
 	})
@@ -225,9 +225,9 @@ describe('Message', () => {
 			</Field>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLElement
+		const input = getSlot(container, 'input')
 
-		const message = bySlot(container, 'message') as HTMLElement
+		const message = getSlot(container, 'message')
 
 		expect(input).not.toHaveAttribute('aria-invalid')
 
@@ -295,13 +295,13 @@ describe('Message', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
 		})
 
-		const message = bySlot(container, 'message') as HTMLElement
+		const message = getSlot(container, 'message')
 
 		expect(message.textContent).toBe('required')
 	})
@@ -321,13 +321,13 @@ describe('Message', () => {
 			</Form>,
 		)
 
-		const form = bySlot(container, 'form') as HTMLFormElement
+		const form = getSlot<HTMLFormElement>(container, 'form')
 
 		await act(async () => {
 			fireEvent.submit(form)
 		})
 
-		const message = bySlot(container, 'message') as HTMLElement
+		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('UL')
 
@@ -354,10 +354,10 @@ describe('Message', () => {
 		)
 
 		await act(async () => {
-			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
 		})
 
-		const message = bySlot(container, 'message') as HTMLElement
+		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('P')
 
@@ -380,10 +380,10 @@ describe('Message', () => {
 		)
 
 		await act(async () => {
-			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
 		})
 
-		const message = bySlot(container, 'message') as HTMLElement
+		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('UL')
 
@@ -408,10 +408,10 @@ describe('Message', () => {
 		)
 
 		await act(async () => {
-			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
 		})
 
-		const message = bySlot(container, 'message') as HTMLElement
+		const message = getSlot(container, 'message')
 
 		expect(message.tagName).toBe('UL')
 
@@ -449,9 +449,9 @@ describe('Field aria-describedby', () => {
 			</Field>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLElement
+		const input = getSlot(container, 'input')
 
-		const description = bySlot(container, 'description') as HTMLElement
+		const description = getSlot(container, 'description')
 
 		expect(description.id).toBeTruthy()
 
@@ -467,11 +467,11 @@ describe('Field aria-describedby', () => {
 			</Field>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLElement
+		const input = getSlot(container, 'input')
 
-		const description = bySlot(container, 'description') as HTMLElement
+		const description = getSlot(container, 'description')
 
-		const message = bySlot(container, 'message') as HTMLElement
+		const message = getSlot(container, 'message')
 
 		expect((input.getAttribute('aria-describedby') ?? '').split(' ')).toEqual([
 			description.id,
@@ -508,9 +508,9 @@ describe('Field aria-describedby', () => {
 			</Field>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLElement
+		const input = getSlot(container, 'input')
 
-		const description = bySlot(container, 'description') as HTMLElement
+		const description = getSlot(container, 'description')
 
 		expect(input).toHaveAttribute('aria-describedby', `external ${description.id}`)
 	})
@@ -551,9 +551,9 @@ describe('Field aria-describedby: composite triggers', () => {
 				</Field>,
 			)
 
-			const trigger = bySlot(container, triggerSlot) as HTMLElement
+			const trigger = getSlot(container, triggerSlot)
 
-			const description = bySlot(container, 'description') as HTMLElement
+			const description = getSlot(container, 'description')
 
 			expect(description.id).toBeTruthy()
 

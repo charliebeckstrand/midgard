@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, present, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, renderUI, screen } from '../helpers'
 
 /**
  * The toolbar's consumer slot: a narrowing the grid does not own, laid out on
@@ -26,7 +26,7 @@ describe('Grid toolbar content', () => {
 			/>,
 		)
 
-		const bar = present(bySlot(container, 'grid-toolbar'), 'toolbar')
+		const bar = getSlot(container, 'grid-toolbar')
 
 		// One row holding both, so the consumer's filter reads as a sibling of the
 		// grid's own rather than as something about the surface around it.

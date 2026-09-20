@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form, useFormField } from '../../components/form'
 import { SearchInput } from '../../components/search-input'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('SearchInput', () => {
 	it('renders an input with data-slot="search-input" and a search icon prefix', () => {
@@ -104,7 +104,7 @@ describe('SearchInput', () => {
 
 		const { container } = renderUI(<SearchInput onChange={onChange} />)
 
-		const input = bySlot(container, 'search-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -118,7 +118,7 @@ describe('SearchInput', () => {
 
 		const { container } = renderUI(<SearchInput defaultValue="abc" onClear={onClear} />)
 
-		const input = bySlot(container, 'search-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -137,7 +137,7 @@ describe('SearchInput', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'search-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -165,7 +165,7 @@ describe('SearchInput', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'search-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'search-input')
 
 		const user = userEvent.setup({ delay: null })
 

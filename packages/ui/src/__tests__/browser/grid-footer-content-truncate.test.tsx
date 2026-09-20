@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, renderUI, screen, waitFor } from '../helpers'
+import { getSlot, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The footer's trailing slot shrinks past its content, so custom
@@ -33,7 +33,7 @@ describe('grid footer trailing content truncates (real browser)', () => {
 
 		// The label gave up the width, not the figure: the whole bar stays inside the
 		// grid rather than overflowing it, and the pinned text keeps its full extent.
-		const bar = bySlot(container, 'grid-footer') as HTMLElement
+		const bar = getSlot(container, 'grid-footer')
 
 		expect(bar.scrollWidth).toBeLessThanOrEqual(bar.clientWidth + 1)
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, renderUI, screen } from '../../helpers'
+import { fireEvent, present, renderUI, screen } from '../../helpers'
 
 /**
  * An editable grid's keyboard cursor against the real floating engine. The jsdom
@@ -32,7 +32,7 @@ describe('editable grid header menu focus (real browser)', () => {
 			/>,
 		)
 
-		const grid = container.querySelector<HTMLElement>('[role="grid"]') as HTMLTableElement
+		const grid = present(container.querySelector('[role="grid"]'), '[role="grid"]')
 
 		const header = container.querySelector<HTMLElement>('th[data-grid-col="rate"]')
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, screen, waitFor } from '../helpers'
+import { budget } from './helpers/wall-clock'
 
 /**
  * A virtualized fill-height grid whose rows arrive asynchronously (loading
@@ -70,7 +71,9 @@ describe('grid virtualized fill with async rows', () => {
 	it('renders the rows once they load', async () => {
 		renderUI(<AsyncGrid />)
 
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), { timeout: 3000 })
+		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
+			timeout: budget(3000),
+		})
 
 		expect(screen.getByText('Row 2')).toBeInTheDocument()
 	})
@@ -78,19 +81,25 @@ describe('grid virtualized fill with async rows', () => {
 	it('variant: without the loading skeleton', async () => {
 		renderUI(<AsyncGrid useLoading={false} />)
 
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), { timeout: 3000 })
+		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
+			timeout: budget(3000),
+		})
 	})
 
 	it('variant: without infiniteScroll', async () => {
 		renderUI(<AsyncGrid useInfinite={false} />)
 
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), { timeout: 3000 })
+		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
+			timeout: budget(3000),
+		})
 	})
 
 	it('variant: without virtualize (or infinite)', async () => {
 		renderUI(<AsyncGrid useVirtualize={false} useInfinite={false} />)
 
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), { timeout: 3000 })
+		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
+			timeout: budget(3000),
+		})
 	})
 
 	/** Rows (data or skeleton) in the grid's data `<tbody>`, excluding the window's spacers. */
@@ -134,6 +143,8 @@ describe('grid virtualized fill with async rows', () => {
 		wrapper.style.display = 'block'
 
 		// Revealed, the container measures and the window fills with real rows.
-		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), { timeout: 3000 })
+		await waitFor(() => expect(screen.getByText('Row 1')).toBeInTheDocument(), {
+			timeout: budget(3000),
+		})
 	})
 })

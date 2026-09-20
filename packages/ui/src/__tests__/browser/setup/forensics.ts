@@ -1,4 +1,4 @@
-import { describeNode } from './label'
+import { describeNode } from '../../helpers/describe-node'
 
 /**
  * The shared page's state, for a failure message to carry.

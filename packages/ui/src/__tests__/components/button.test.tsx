@@ -6,7 +6,7 @@ import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { AffixContext } from '../../primitives/affix'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 describe('Button', () => {
 	it('renders a button element with data-slot', () => {
@@ -22,7 +22,7 @@ describe('Button', () => {
 	it('defaults to the native submit type without emitting a type attribute', () => {
 		const { container } = renderUI(<Button>Submit</Button>)
 
-		const button = bySlot(container, 'button') as HTMLButtonElement
+		const button = getSlot<HTMLAnchorElement>(container, 'button')
 
 		// No explicit attribute — the DOM applies the native `submit` default, so
 		// the IDL property reads `submit` while the attribute stays absent.
@@ -46,7 +46,7 @@ describe('Button', () => {
 			</form>,
 		)
 
-		fireEvent.click(bySlot(container, 'button') as HTMLElement)
+		fireEvent.click(getSlot<HTMLAnchorElement>(container, 'button'))
 
 		expect(onSubmit).toHaveBeenCalledOnce()
 	})
@@ -110,7 +110,7 @@ describe('Button', () => {
 			</Button>,
 		)
 
-		const link = bySlot(container, 'button') as HTMLAnchorElement
+		const link = getSlot<HTMLAnchorElement>(container, 'button')
 
 		expect(link).toHaveAttribute('aria-disabled', 'true')
 
