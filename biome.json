@@ -99,6 +99,34 @@
 			}
 		},
 		{
+			"includes": ["packages/ui/src/recipes/kiso/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"**/recipes/katakana/**",
+											"**/recipes/kata/**",
+											"**/components/**",
+											"**/layouts/**",
+											"**/primitives/**",
+											"**/hooks/**",
+											"**/providers/**"
+										],
+										"message": "kiso holds the design-system tokens and sits at the bottom of the recipe stack. A kiso module may compose its siblings within kiso. An import from katakana, kata, components, layouts, primitives, hooks, or providers inverts the dependency direction. It can also pull stateful React context into the recipe substrate. Per-module consumer documentation is in recipes/kiso/README.md."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs/demos/modules/chat.tsx",
