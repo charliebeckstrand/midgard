@@ -147,6 +147,27 @@
 			}
 		},
 		{
+			"includes": ["packages/ui/src/components/**", "!packages/ui/src/components/**/variants.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/recipes", "**/recipes/**"],
+										"importNamePattern": "Ma",
+										"message": "Ma is kiso's spacing axis: padding, margin, gap. Layout primitives (Box, Flex, Grid, Split) compose it into their variants.ts files; that is its public role. Every other component derives the same union from its kata recipe's VariantProps. A direct import of Ma anywhere else silently crosses the spacing / sizing boundary."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs/demos/modules/chat.tsx",
