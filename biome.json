@@ -88,7 +88,12 @@
 							"options": {
 								"patterns": [
 									{
-										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"group": [
+											"**/recipes/katakana",
+											"**/recipes/katakana/**",
+											"**/recipes/kiso",
+											"**/recipes/kiso/**"
+										],
 										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
 									},
 									{
@@ -160,7 +165,12 @@
 							"options": {
 								"patterns": [
 									{
-										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"group": [
+											"**/recipes/katakana",
+											"**/recipes/katakana/**",
+											"**/recipes/kiso",
+											"**/recipes/kiso/**"
+										],
 										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
 									},
 									{
@@ -185,7 +195,12 @@
 							"options": {
 								"patterns": [
 									{
-										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"group": [
+											"**/recipes/katakana",
+											"**/recipes/katakana/**",
+											"**/recipes/kiso",
+											"**/recipes/kiso/**"
+										],
 										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
 									}
 								]
@@ -205,7 +220,12 @@
 							"options": {
 								"patterns": [
 									{
-										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"group": [
+											"**/recipes/katakana",
+											"**/recipes/katakana/**",
+											"**/recipes/kiso",
+											"**/recipes/kiso/**"
+										],
 										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
 									}
 								]
