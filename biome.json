@@ -79,6 +79,26 @@
 			}
 		},
 		{
+			"includes": ["packages/ui/src/primitives/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/components/**", "**/layouts/**"],
+										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components or layouts. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs/demos/modules/chat.tsx",
