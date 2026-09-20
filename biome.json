@@ -197,6 +197,31 @@
 		},
 		{
 			"includes": [
+				"packages/ui/src/**",
+				"!packages/ui/src/__tests__/**",
+				"!packages/ui/src/__benchmarks__/**",
+				"!packages/ui/src/core/create-context.ts"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"paths": {
+									"react": {
+										"importNames": ["createContext"],
+										"message": "All component, primitive, and layout contexts must go through the local core/create-context helper. The helper supports a required mode, which throws when the provider is missing. It also supports an optional mode, which returns a default. A direct import of createContext from React bypasses the convention."
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs/demos/modules/chat.tsx",
 				"**/src/__tests__/modules/chat-*",
