@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem, ListLabel } from '../../components/list'
-import { getSlot, present, renderUI } from '../helpers'
+import { fireEvent, getSlot, present, renderUI } from '../helpers'
 
 /**
  * An interactive row answers the pointer everywhere it is painted (WCAG 2.5.8,
@@ -87,9 +87,23 @@ describe('list item hit area (real browser)', () => {
 		// a press that lands on the bare row passes that check and reports a
 		// successful click. The count alone then reads 0 with nothing to say why.
 		// Name the slot under the pointer beside it.
-		expect({ calls: onClick.mock.calls.length, under: slotAt(point) }).toEqual({
+		const calls = onClick.mock.calls.length
+
+		// This case is an intermittent failure of the suite, and its one recorded
+		// reproduction reads `calls: 0` with the pointer on the right slot — which
+		// rules out neither the pointer nor React's own wiring. A `fireEvent` on
+		// the content area reaches the handler through no hit test at all, so
+		// `wired` separates them: false says the tree was not listening, true says
+		// it was and the pointer is the half to read. It goes to the content area
+		// and not the row, because that is where the handler sits — the `<li>` acts
+		// on nothing, which is the whole reason the stretched overlay exists.
+		// Measured after `calls`, so the count above is the pointer's alone.
+		fireEvent.click(getSlot(container, 'list-item-content'))
+
+		expect({ calls, under: slotAt(point), wired: onClick.mock.calls.length > calls }).toEqual({
 			calls: 1,
 			under: 'list-item-content',
+			wired: true,
 		})
 	})
 
