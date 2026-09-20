@@ -2,6 +2,7 @@ import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { configDefaults, defineConfig } from 'vitest/config'
+import { docsPlugin } from './src/docs/engine/plugins'
 
 /**
  * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
@@ -30,11 +31,30 @@ import { configDefaults, defineConfig } from 'vitest/config'
  * config, unlike project-level paths which Vite resolves normally.
  */
 export default defineConfig({
-	plugins: [tailwindcss()],
+	// `docsPlugin` serves `virtual:component-modules`. Without it the module has
+	// no resolver, esbuild's dependency scan stops at the first import of it, and
+	// Vite reports "Failed to run dependency scan. Skipping dependency
+	// pre-bundling." The optimizer then pre-bundles only the `include` list
+	// below, and finds every other package one request at a time. Measured cold
+	// on a 4-core container: eight packages arrived that way, two of them after
+	// the first test started. Each arrival re-runs the optimizer, and Vitest
+	// reloads the page to pick up the new bundle — which drops the in-flight
+	// test's imports. `@vitest/browser` names the cost in its own warning: "Vite
+	// unexpectedly reloaded a test. This may cause tests to fail, lead to flaky
+	// behaviour or duplicated test runs."
+	//
+	// The plugin is the same one `vitest.config.ts` gives `unit` and `pure`.
+	// `vitest: true` keeps the real component-modules map and builds no
+	// TypeScript project, so it costs one virtual module and no scan of its own.
+	// With the scan whole, lazy arrivals fall to zero and the warm run takes
+	// 26.3s against 30.3s.
+	plugins: [tailwindcss(), docsPlugin({ vitest: true })],
 	// Pre-bundle the component dependency set so the optimizer doesn't discover
 	// them lazily and reload the page mid-run (which drops the in-flight test
 	// import). The browser pool can't recover from that reload the way the node
-	// pool can, so these must be declared up front.
+	// pool can, so these must be declared up front. The scan above finds the
+	// same packages on its own now, so this list is the floor and not the whole
+	// set: it still covers the heavy graph if a later edit breaks the scan.
 	optimizeDeps: {
 		include: [
 			'@dnd-kit/core',
