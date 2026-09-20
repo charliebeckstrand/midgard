@@ -42,6 +42,12 @@
 			"matchUpdateTypes": ["minor", "patch"]
 		},
 		{
+			"description": "A catalogued dependency carries the depType `pnpm.catalog.default` and no longer reads as a runtime or a development dependency, so the two rules above cannot see it. This rule is their equivalent for the catalog; the family groups below still win for their own members.",
+			"groupName": "catalog (non-major)",
+			"matchDepTypes": ["pnpm.catalog.default"],
+			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
 			"description": "React and its type packages must move together, because a mismatched @types/react breaks check-types across all five workspaces.",
 			"groupName": "react",
 			"matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"]

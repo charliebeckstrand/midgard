@@ -2,6 +2,33 @@ packages:
   - apps/*
   - packages/*
 
+# This block holds one version for each dependency that two or more workspaces
+# share. A member manifest writes `catalog:` in place of the range, so a bump
+# edits one line here rather than five manifests. A peer range stays literal in
+# its manifest, because it states a compatibility contract and not a version to
+# track.
+catalog:
+  '@biomejs/biome': ^2.5.3
+  '@tailwindcss/postcss': ^4.1.0
+  '@tanstack/react-query': ^5.101.2
+  '@types/d3-geo': ^3.1.0
+  '@types/node': ^25.3.3
+  '@types/react': ^19.2.0
+  '@types/react-dom': ^19.2.3
+  '@types/topojson-client': ^3.1.5
+  d3-geo: ^3.1.1
+  lucide-react: ^1.21.0
+  next: ^16.2.12
+  react: ^19.2.7
+  react-dom: ^19.2.7
+  tailwindcss: ^4.3.0
+  topojson-client: ^3.1.0
+  tsup: ^8.5.1
+  typescript: ^6.0.3
+  us-atlas: ^3.0.1
+  vitest: ^4.1.10
+  world-atlas: ^2.0.2
+
 allowBuilds:
   esbuild: false
   lefthook: true
