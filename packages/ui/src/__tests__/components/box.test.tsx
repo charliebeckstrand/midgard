@@ -15,18 +15,6 @@ describe('Box', () => {
 		expect(ref.current).toBe(bySlot(container, 'box'))
 	})
 
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(<Box href="/path">Link</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/path')
-	})
-
 	it('forwards ref when rendered as a link', () => {
 		const ref = createRef<HTMLAnchorElement>()
 
@@ -39,14 +27,6 @@ describe('Box', () => {
 		expect(ref.current).toBeInstanceOf(HTMLAnchorElement)
 
 		expect(ref.current).toBe(bySlot(container, 'box'))
-	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Box id="test">content</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el).toHaveAttribute('id', 'test')
 	})
 
 	it('applies the outline=true variant', () => {

@@ -38,58 +38,64 @@ const openFrom = (label: string, surface: () => Promise<unknown>) => async (user
  * without pulling focus into the panel), so neither moves focus to a surface.
  */
 export const focus: readonly FocusCase[] = [
-	[
+	{
 		// Command palette: a modal search dialog that focuses its search input on
 		// open via an explicit initial-focus ref.
-		'command palette',
-		<Disclosure
-			key="fcp"
-			label="Open command palette"
-			render={(open, onOpenChange) => (
-				<CommandPalette open={open} onOpenChange={onOpenChange}>
-					<CommandPaletteGroup title="Files">
-						<CommandPaletteItem>
-							<CommandPaletteLabel>New file</CommandPaletteLabel>
-						</CommandPaletteItem>
-						<CommandPaletteItem>
-							<CommandPaletteLabel>Open file</CommandPaletteLabel>
-						</CommandPaletteItem>
-					</CommandPaletteGroup>
-				</CommandPalette>
-			)}
-		/>,
-		openFrom('Open command palette', () => screen.findByRole('dialog')),
-	],
-	[
+		name: 'command palette',
+		element: (
+			<Disclosure
+				key="fcp"
+				label="Open command palette"
+				render={(open, onOpenChange) => (
+					<CommandPalette open={open} onOpenChange={onOpenChange}>
+						<CommandPaletteGroup title="Files">
+							<CommandPaletteItem>
+								<CommandPaletteLabel>New file</CommandPaletteLabel>
+							</CommandPaletteItem>
+							<CommandPaletteItem>
+								<CommandPaletteLabel>Open file</CommandPaletteLabel>
+							</CommandPaletteItem>
+						</CommandPaletteGroup>
+					</CommandPalette>
+				)}
+			/>
+		),
+		open: openFrom('Open command palette', () => screen.findByRole('dialog')),
+	},
+	{
 		// Non-modal popover opted into `autoFocus`: the panel focuses itself on open
 		// rather than leaving focus on the trigger.
-		'popover',
-		<Popover key="fpo">
-			<PopoverTrigger>
-				<Button variant="outline">Open popover</Button>
-			</PopoverTrigger>
-			<PopoverContent autoFocus aria-label="Details">
-				<Button>Action</Button>
-			</PopoverContent>
-		</Popover>,
-		openFrom('Open popover', () => screen.findByRole('dialog', { name: 'Details' })),
-	],
-	[
+		name: 'popover',
+		element: (
+			<Popover key="fpo">
+				<PopoverTrigger>
+					<Button variant="outline">Open popover</Button>
+				</PopoverTrigger>
+				<PopoverContent autoFocus aria-label="Details">
+					<Button>Action</Button>
+				</PopoverContent>
+			</Popover>
+		),
+		open: openFrom('Open popover', () => screen.findByRole('dialog', { name: 'Details' })),
+	},
+	{
 		// Select: clicking the combobox trigger opens its listbox popover, whose
 		// panel takes focus off the trigger.
-		'select',
-		<Field key="fsl">
-			<Label>Country</Label>
-			<Select placeholder="Select a country" displayValue={(value: string) => value}>
-				<SelectOption value="United States">
-					<SelectLabel>United States</SelectLabel>
-				</SelectOption>
-				<SelectOption value="Canada">
-					<SelectLabel>Canada</SelectLabel>
-				</SelectOption>
-			</Select>
-		</Field>,
-		async (user) => {
+		name: 'select',
+		element: (
+			<Field key="fsl">
+				<Label>Country</Label>
+				<Select placeholder="Select a country" displayValue={(value: string) => value}>
+					<SelectOption value="United States">
+						<SelectLabel>United States</SelectLabel>
+					</SelectOption>
+					<SelectOption value="Canada">
+						<SelectLabel>Canada</SelectLabel>
+					</SelectOption>
+				</Select>
+			</Field>
+		),
+		open: async (user) => {
 			const trigger = screen.getByRole('combobox')
 
 			await user.click(trigger)
@@ -98,5 +104,5 @@ export const focus: readonly FocusCase[] = [
 
 			return trigger
 		},
-	],
+	},
 ]

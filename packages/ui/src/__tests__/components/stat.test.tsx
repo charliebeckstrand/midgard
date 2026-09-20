@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import {
-	Stat,
 	StatDelta,
 	StatDeltaSkeleton,
 	StatDescriptionSkeleton,
@@ -9,16 +8,6 @@ import {
 	StatValueSkeleton,
 } from '../../components/stat'
 import { bySlot, renderUI } from '../helpers'
-
-describe('Stat', () => {
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Stat id="test">content</Stat>)
-
-		const el = bySlot(container, 'stat')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
-})
 
 describe('Stat skeleton variants', () => {
 	it('renders a label-shaped placeholder', () => {

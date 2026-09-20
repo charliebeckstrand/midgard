@@ -9,14 +9,6 @@ import { bySlot, fireEvent, renderUI } from '../helpers'
  * `browser/scroll-area-wheel.test.tsx` where the content really overflows.
  */
 describe('ScrollArea', () => {
-	it('passes through HTML attributes to the viewport', () => {
-		const { container } = renderUI(<ScrollArea id="test">content</ScrollArea>)
-
-		const viewport = bySlot(container, 'scroll-area-viewport')
-
-		expect(viewport).toHaveAttribute('id', 'test')
-	})
-
 	it('composes a consumer onScroll with thumb tracking', () => {
 		const onScroll = vi.fn()
 

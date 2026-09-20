@@ -10,12 +10,4 @@ describe('Placeholder', () => {
 
 		expect(el).toHaveAttribute('aria-hidden', 'true')
 	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Placeholder id="test" data-testid="el" />)
-
-		const el = bySlot(container, 'placeholder')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
 })

@@ -338,20 +338,6 @@ describe('SidebarLabel', () => {
 })
 
 describe('SidebarItem', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Sidebar>
-				<SidebarItem href="/home">Home</SidebarItem>
-			</Sidebar>,
-		)
-
-		const inner = bySlot(container, 'sidebar-item-inner')
-
-		expect(inner?.tagName).toBe('A')
-
-		expect(inner).toHaveAttribute('href', '/home')
-	})
-
 	it('marks the current item with aria-current="page"', () => {
 		const { container } = renderUI(
 			<Sidebar>

@@ -24,99 +24,109 @@ import type { TrapCase } from './types'
  * (`browser/floating-ui/trap-corpus.test.tsx`); see `TrapCase`.
  */
 export const traps: readonly TrapCase[] = [
-	[
-		'dialog',
-		'Open dialog',
-		<Disclosure
-			key="td"
-			label="Open dialog"
-			render={(open, onOpenChange) => (
-				<Dialog open={open} onOpenChange={onOpenChange}>
-					<DialogTitle>Edit profile</DialogTitle>
-					<DialogBody>
-						<Button>First</Button>
-						<Button>Last</Button>
-					</DialogBody>
-				</Dialog>
-			)}
-		/>,
-		() => screen.findByRole('dialog', { name: 'Edit profile' }),
-	],
-	[
-		'drawer',
-		'Open drawer',
-		<Disclosure
-			key="tdr"
-			label="Open drawer"
-			render={(open, onOpenChange) => (
-				<Drawer open={open} onOpenChange={onOpenChange}>
-					<DrawerTitle>Drawer</DrawerTitle>
-					<DrawerBody>
-						<Button>First</Button>
-						<Button>Last</Button>
-					</DrawerBody>
-				</Drawer>
-			)}
-		/>,
-		() => screen.findByRole('dialog', { name: 'Drawer' }),
-	],
-	[
-		'sheet',
-		'Open sheet',
-		<Disclosure
-			key="tsh"
-			label="Open sheet"
-			render={(open, onOpenChange) => (
-				<Sheet open={open} onOpenChange={onOpenChange}>
-					<SheetTitle>Right Sheet</SheetTitle>
-					<SheetBody>
-						<Button>First</Button>
-						<Button>Last</Button>
-					</SheetBody>
-				</Sheet>
-			)}
-		/>,
-		() => screen.findByRole('dialog', { name: 'Right Sheet' }),
-	],
-	[
-		'confirm',
-		'Open confirm',
-		<Disclosure
-			key="tcf"
-			label="Open confirm"
-			render={(open, onOpenChange) => (
-				<Confirm
-					open={open}
-					onOpenChange={onOpenChange}
-					onConfirm={noop}
-					title="Discard changes?"
-					description="You have unsaved changes that will be lost."
-					confirm={{ label: 'Discard changes', color: 'amber' }}
-					cancel={{ label: 'Keep editing' }}
-				/>
-			)}
-		/>,
-		() => screen.findByRole('alertdialog', { name: 'Discard changes?' }),
-	],
-	[
-		'command palette',
-		'Open command palette',
-		<Disclosure
-			key="tcp"
-			label="Open command palette"
-			render={(open, onOpenChange) => (
-				<CommandPalette open={open} onOpenChange={onOpenChange}>
-					<CommandPaletteGroup title="Files">
-						<CommandPaletteItem>
-							<CommandPaletteLabel>New file</CommandPaletteLabel>
-						</CommandPaletteItem>
-						<CommandPaletteItem>
-							<CommandPaletteLabel>Open file</CommandPaletteLabel>
-						</CommandPaletteItem>
-					</CommandPaletteGroup>
-				</CommandPalette>
-			)}
-		/>,
-		() => screen.findByRole('dialog'),
-	],
+	{
+		name: 'dialog',
+		trigger: 'Open dialog',
+		element: (
+			<Disclosure
+				key="td"
+				label="Open dialog"
+				render={(open, onOpenChange) => (
+					<Dialog open={open} onOpenChange={onOpenChange}>
+						<DialogTitle>Edit profile</DialogTitle>
+						<DialogBody>
+							<Button>First</Button>
+							<Button>Last</Button>
+						</DialogBody>
+					</Dialog>
+				)}
+			/>
+		),
+		surface: () => screen.findByRole('dialog', { name: 'Edit profile' }),
+	},
+	{
+		name: 'drawer',
+		trigger: 'Open drawer',
+		element: (
+			<Disclosure
+				key="tdr"
+				label="Open drawer"
+				render={(open, onOpenChange) => (
+					<Drawer open={open} onOpenChange={onOpenChange}>
+						<DrawerTitle>Drawer</DrawerTitle>
+						<DrawerBody>
+							<Button>First</Button>
+							<Button>Last</Button>
+						</DrawerBody>
+					</Drawer>
+				)}
+			/>
+		),
+		surface: () => screen.findByRole('dialog', { name: 'Drawer' }),
+	},
+	{
+		name: 'sheet',
+		trigger: 'Open sheet',
+		element: (
+			<Disclosure
+				key="tsh"
+				label="Open sheet"
+				render={(open, onOpenChange) => (
+					<Sheet open={open} onOpenChange={onOpenChange}>
+						<SheetTitle>Right Sheet</SheetTitle>
+						<SheetBody>
+							<Button>First</Button>
+							<Button>Last</Button>
+						</SheetBody>
+					</Sheet>
+				)}
+			/>
+		),
+		surface: () => screen.findByRole('dialog', { name: 'Right Sheet' }),
+	},
+	{
+		name: 'confirm',
+		trigger: 'Open confirm',
+		element: (
+			<Disclosure
+				key="tcf"
+				label="Open confirm"
+				render={(open, onOpenChange) => (
+					<Confirm
+						open={open}
+						onOpenChange={onOpenChange}
+						onConfirm={noop}
+						title="Discard changes?"
+						description="You have unsaved changes that will be lost."
+						confirm={{ label: 'Discard changes', color: 'amber' }}
+						cancel={{ label: 'Keep editing' }}
+					/>
+				)}
+			/>
+		),
+		surface: () => screen.findByRole('alertdialog', { name: 'Discard changes?' }),
+	},
+	{
+		name: 'command palette',
+		trigger: 'Open command palette',
+		element: (
+			<Disclosure
+				key="tcp"
+				label="Open command palette"
+				render={(open, onOpenChange) => (
+					<CommandPalette open={open} onOpenChange={onOpenChange}>
+						<CommandPaletteGroup title="Files">
+							<CommandPaletteItem>
+								<CommandPaletteLabel>New file</CommandPaletteLabel>
+							</CommandPaletteItem>
+							<CommandPaletteItem>
+								<CommandPaletteLabel>Open file</CommandPaletteLabel>
+							</CommandPaletteItem>
+						</CommandPaletteGroup>
+					</CommandPalette>
+				)}
+			/>
+		),
+		surface: () => screen.findByRole('dialog'),
+	},
 ]

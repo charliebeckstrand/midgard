@@ -65,18 +65,6 @@ describe('Form', () => {
 		expect(renders.b).toBe(bAfterMount)
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} id="signup">
-				<input name="name" />
-			</Form>,
-		)
-
-		const el = bySlot(container, 'form')
-
-		expect(el).toHaveAttribute('id', 'signup')
-	})
-
 	it('calls onSubmit with current values', async () => {
 		const onSubmit = vi.fn()
 

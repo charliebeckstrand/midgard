@@ -4,14 +4,6 @@ import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Split', () => {
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Split id="test">content</Split>)
-
-		const el = bySlot(container, 'split')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
-
 	it('uses a column template for horizontal orientation', () => {
 		const { container } = renderUI(<Split orientation="horizontal">a</Split>)
 

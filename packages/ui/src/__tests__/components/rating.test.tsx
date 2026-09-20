@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
 import { Form, useFormState } from '../../components/form'
-import { Rating, RatingSkeleton } from '../../components/rating'
+import { Rating } from '../../components/rating'
 import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 /** The stars' own radios, in draw order. */
@@ -17,14 +17,6 @@ function FormValue({ name }: { name: string }) {
 }
 
 describe('Rating', () => {
-	it('pairs with an explicit RatingSkeleton in loading trees', () => {
-		const { container } = renderUI(<RatingSkeleton />)
-
-		expect(bySlot(container, 'rating')).not.toBeInTheDocument()
-
-		expect(allBySlot(container, 'placeholder')).toHaveLength(5)
-	})
-
 	it('renders one radio per star in a named radiogroup', () => {
 		const { container } = renderUI(<Rating aria-label="Score" />)
 

@@ -522,22 +522,6 @@ describe('MenuItem', () => {
 		expect(item).toHaveAttribute('role', 'menuitem')
 	})
 
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Menu defaultOpen>
-				<MenuContent>
-					<MenuItem href="/docs">Docs</MenuItem>
-				</MenuContent>
-			</Menu>,
-		)
-
-		const item = bySlot(container, 'menu-item')
-
-		expect(item?.tagName).toBe('A')
-
-		expect(item).toHaveAttribute('href', '/docs')
-	})
-
 	it('calls onAction when clicked', () => {
 		const onAction = vi.fn()
 

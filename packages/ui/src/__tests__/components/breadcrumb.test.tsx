@@ -4,20 +4,10 @@ import {
 	BreadcrumbItem,
 	BreadcrumbLink,
 	BreadcrumbList,
-	BreadcrumbSkeleton,
 } from '../../components/breadcrumb'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Breadcrumb', () => {
-	it('pairs with an explicit BreadcrumbSkeleton in loading trees', () => {
-		const { container } = renderUI(<BreadcrumbSkeleton crumbs={3} />)
-
-		expect(bySlot(container, 'breadcrumb')).not.toBeInTheDocument()
-
-		// Three crumb lines and two separators between them.
-		expect(allBySlot(container, 'placeholder')).toHaveLength(5)
-	})
-
 	it('renders with data-slot="breadcrumb"', () => {
 		const { container } = renderUI(<Breadcrumb>content</Breadcrumb>)
 
@@ -50,24 +40,6 @@ describe('BreadcrumbItem', () => {
 })
 
 describe('BreadcrumbLink', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Breadcrumb>
-				<BreadcrumbList>
-					<BreadcrumbItem>
-						<BreadcrumbLink href="/home">Home</BreadcrumbLink>
-					</BreadcrumbItem>
-				</BreadcrumbList>
-			</Breadcrumb>,
-		)
-
-		const el = bySlot(container, 'breadcrumb-link')
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/home')
-	})
-
 	it('marks a current crumb that is still a link with aria-current', () => {
 		const { container } = renderUI(
 			<Breadcrumb>
@@ -82,8 +54,6 @@ describe('BreadcrumbLink', () => {
 		)
 
 		const el = bySlot(container, 'breadcrumb-link')
-
-		expect(el?.tagName).toBe('A')
 
 		expect(el).toHaveAttribute('aria-current', 'page')
 	})

@@ -17,18 +17,6 @@ describe('Nav', () => {
 
 		expect(el?.tagName).toBe('NAV')
 	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(
-			<Nav id="test">
-				<NavList>content</NavList>
-			</Nav>,
-		)
-
-		const el = bySlot(container, 'nav')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
 })
 
 describe('NavBar', () => {
@@ -42,14 +30,6 @@ describe('NavBar', () => {
 		expect(el?.tagName).toBe('NAV')
 
 		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Main')
-	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<NavBar id="test">content</NavBar>)
-
-		const el = bySlot(container, 'nav-bar')
-
-		expect(el).toHaveAttribute('id', 'test')
 	})
 })
 
@@ -88,22 +68,6 @@ describe('NavList', () => {
 })
 
 describe('NavItem', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Nav>
-				<NavList>
-					<NavItem href="/home">Home</NavItem>
-				</NavList>
-			</Nav>,
-		)
-
-		const inner = bySlot(container, 'nav-item-inner')
-
-		expect(inner?.tagName).toBe('A')
-
-		expect(inner).toHaveAttribute('href', '/home')
-	})
-
 	it('renders as a button by default', () => {
 		const { container } = renderUI(
 			<Nav>

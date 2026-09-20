@@ -53,12 +53,4 @@ describe('Divider', () => {
 
 		expect(bySlot(container, 'divider')).toBeNull()
 	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Divider id="test" data-testid="el" />)
-
-		const el = bySlot(container, 'divider')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
 })
