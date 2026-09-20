@@ -46,92 +46,130 @@ function ToastCase() {
  * open state via a controlled `open`/`defaultOpen` prop.
  */
 export const overlays: readonly Case[] = [
-	[
+	{
 		// Modal dialog: named by its title via aria-labelledby; aria-modal set.
-		'dialog',
-		<Dialog key="d" open onOpenChange={noop}>
-			<DialogTitle>Create project</DialogTitle>
-			<DialogBody>Enter the details for your new project.</DialogBody>
-		</Dialog>,
-	],
-	[
+		name: 'dialog',
+		element: (
+			<Dialog key="d" open onOpenChange={noop}>
+				<DialogTitle>Create project</DialogTitle>
+				<DialogBody>Enter the details for your new project.</DialogBody>
+			</Dialog>
+		),
+	},
+	{
 		// Bottom drawer: a modal surface named by its title.
-		'drawer',
-		<Drawer key="dr" open onOpenChange={noop}>
-			<DrawerTitle>Drawer</DrawerTitle>
-			<DrawerBody>Slides up from the bottom.</DrawerBody>
-		</Drawer>,
-	],
-	[
+		name: 'drawer',
+		element: (
+			<Drawer key="dr" open onOpenChange={noop}>
+				<DrawerTitle>Drawer</DrawerTitle>
+				<DrawerBody>Slides up from the bottom.</DrawerBody>
+			</Drawer>
+		),
+	},
+	{
 		// Side sheet: a modal surface named by its title.
-		'sheet',
-		<Sheet key="sh" open onOpenChange={noop}>
-			<SheetTitle>Right Sheet</SheetTitle>
-			<SheetBody>Slides in from the right.</SheetBody>
-		</Sheet>,
-	],
-	[
+		name: 'sheet',
+		element: (
+			<Sheet key="sh" open onOpenChange={noop}>
+				<SheetTitle>Right Sheet</SheetTitle>
+				<SheetBody>Slides in from the right.</SheetBody>
+			</Sheet>
+		),
+	},
+	{
 		// Confirmation dialog: named by its title, with confirm/cancel actions.
-		'confirm',
-		<Confirm
-			key="cf"
-			open
-			onOpenChange={noop}
-			onConfirm={noop}
-			title="Discard changes?"
-			description="You have unsaved changes that will be lost."
-			confirm={{ label: 'Discard changes', color: 'amber' }}
-			cancel={{ label: 'Keep editing' }}
-		/>,
-	],
-	[
+		name: 'confirm',
+		element: (
+			<Confirm
+				key="cf"
+				open
+				onOpenChange={noop}
+				onConfirm={noop}
+				title="Discard changes?"
+				description="You have unsaved changes that will be lost."
+				confirm={{ label: 'Discard changes', color: 'amber' }}
+				cancel={{ label: 'Keep editing' }}
+			/>
+		),
+	},
+	{
 		// Non-modal popover anchored to its trigger button.
-		'popover',
-		<Popover key="po" open>
-			<PopoverTrigger>
-				<Button variant="outline">Open popover</Button>
-			</PopoverTrigger>
-			<PopoverContent>This is a general-purpose floating container.</PopoverContent>
-		</Popover>,
-	],
-	[
+		name: 'popover',
+		element: (
+			<Popover key="po" open>
+				<PopoverTrigger>
+					<Button variant="outline">Open popover</Button>
+				</PopoverTrigger>
+				<PopoverContent>This is a general-purpose floating container.</PopoverContent>
+			</Popover>
+		),
+	},
+	{
 		// Dropdown menu: role=menu with grouped menuitems, opened on mount.
-		'menu',
-		<Menu key="mn" defaultOpen>
-			<MenuTrigger>
-				<Button variant="outline">Options</Button>
-			</MenuTrigger>
-			<MenuContent>
-				<MenuSection>
-					<MenuItem>
-						<MenuLabel>Edit</MenuLabel>
-					</MenuItem>
-					<MenuItem>
-						<MenuLabel>Duplicate</MenuLabel>
-					</MenuItem>
-				</MenuSection>
-			</MenuContent>
-		</Menu>,
-	],
-	[
+		name: 'menu',
+		element: (
+			<Menu key="mn" defaultOpen>
+				<MenuTrigger>
+					<Button variant="outline">Options</Button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuSection>
+						<MenuItem>
+							<MenuLabel>Edit</MenuLabel>
+						</MenuItem>
+						<MenuItem>
+							<MenuLabel>Duplicate</MenuLabel>
+						</MenuItem>
+					</MenuSection>
+				</MenuContent>
+			</Menu>
+		),
+		link: [
+			{
+				render: (href) => (
+					<Menu defaultOpen>
+						<MenuContent>
+							<MenuItem href={href}>Docs</MenuItem>
+						</MenuContent>
+					</Menu>
+				),
+				slot: 'menu-item',
+			},
+		],
+	},
+	{
 		// Command palette: a modal search dialog over a grouped result list.
-		'command palette',
-		<CommandPalette key="cp" open onOpenChange={noop}>
-			<CommandPaletteGroup title="Files">
-				<CommandPaletteItem>
-					<CommandPaletteLabel>New file</CommandPaletteLabel>
-				</CommandPaletteItem>
-				<CommandPaletteItem>
-					<CommandPaletteLabel>Open file</CommandPaletteLabel>
-				</CommandPaletteItem>
-			</CommandPaletteGroup>
-		</CommandPalette>,
-	],
-	[
+		name: 'command palette',
+		element: (
+			<CommandPalette key="cp" open onOpenChange={noop}>
+				<CommandPaletteGroup title="Files">
+					<CommandPaletteItem>
+						<CommandPaletteLabel>New file</CommandPaletteLabel>
+					</CommandPaletteItem>
+					<CommandPaletteItem>
+						<CommandPaletteLabel>Open file</CommandPaletteLabel>
+					</CommandPaletteItem>
+				</CommandPaletteGroup>
+			</CommandPalette>
+		),
+		link: [
+			{
+				render: (href) => (
+					<CommandPalette open onOpenChange={noop}>
+						<CommandPaletteItem href={href}>Docs</CommandPaletteItem>
+					</CommandPalette>
+				),
+				slot: 'command-palette-item',
+			},
+		],
+	},
+	{
 		// Live toast: each toast carries its own status/alert role for politeness.
-		'toast',
-		<ToastProvider key="ts">
-			<ToastCase />
-		</ToastProvider>,
-	],
+		name: 'toast',
+		element: (
+			<ToastProvider key="ts">
+				<ToastCase />
+			</ToastProvider>
+		),
+	},
 ]

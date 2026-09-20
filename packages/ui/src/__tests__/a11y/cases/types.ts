@@ -1,18 +1,80 @@
 import type { UserEvent } from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
-/** A named, canonical render the baseline gate asserts is axe-clean. */
-export type Case = readonly [name: string, element: ReactElement]
+/**
+ * A subject of the pass-through sweep: a render that takes the props the sweep
+ * spreads, and the `data-slot` those props must reach.
+ */
+export type PassthroughSubject = {
+	/** Renders the subject with `props` spread onto the element that must receive them. */
+	render: (props: { id: string }) => ReactElement
+	/** The `data-slot` the props must reach. */
+	slot: string
+}
+
+/** A skeleton the component publishes for a loading tree. */
+export type SkeletonSubject = {
+	/** The skeleton render. */
+	element: ReactElement
+	/** The `data-slot` the real component publishes, which the skeleton must not render. */
+	absentSlot: string
+	/**
+	 * How many placeholders the silhouette draws, where the count is part of the
+	 * contract. Omit it where the skeleton only claims to draw something.
+	 */
+	placeholders?: number
+}
+
+/** A subject that becomes an anchor when it is given an `href`. */
+export type LinkSubject = {
+	/** Renders the subject with `href` on the element that must become the anchor. */
+	render: (href: string) => ReactElement
+	/** The `data-slot` that must render an `<a>`. */
+	slot: string
+}
+
+/** A named, canonical render a gate drives. */
+export type Scenario = {
+	/** Scenario name, printed by every gate that sweeps this entry. */
+	name: string
+	/** The canonical render. */
+	element: ReactElement
+}
+
+/**
+ * A scenario in one of the three axe-gated corpora, so it may carry capability
+ * columns. The gates that keep their own list — focus, traps, roved — extend
+ * {@link Scenario} instead, because `corpus` does not reach them and a column
+ * written there would be swept by nothing.
+ */
+export type Case = Scenario & {
+	/**
+	 * Subjects for the pass-through sweep. A family entry carries one per
+	 * component it publishes, so `description list` covers its list, its term,
+	 * and its details. Omit it where the entry's subject is not a component that
+	 * takes DOM props.
+	 */
+	passthrough?: readonly PassthroughSubject[]
+	/**
+	 * Skeletons the component publishes. A list, because one entry can publish
+	 * more than one silhouette: `progress` has a bar and a gauge.
+	 */
+	skeleton?: readonly SkeletonSubject[]
+	/**
+	 * Subjects that swap their element for an anchor when given an `href`. A
+	 * list, because one entry can publish more than one such subject.
+	 */
+	link?: readonly LinkSubject[]
+}
 
 /**
  * A case whose overlay has no controlled-open prop: `open` drives it open
  * through a real interaction before the gate asserts against the document.
  */
-export type InteractiveCase = readonly [
-	name: string,
-	element: ReactElement,
-	open: (user: UserEvent) => Promise<void>,
-]
+export type InteractiveCase = Case & {
+	/** Drives the real interaction that opens the surface. */
+	open: (user: UserEvent) => Promise<void>
+}
 
 /**
  * A dismissable surface that moves keyboard focus into itself when it opens.
@@ -21,11 +83,10 @@ export type InteractiveCase = readonly [
  * Overlay family's layout-dependent trap is real-browser-only (see
  * `focus.test.tsx`).
  */
-export type FocusCase = readonly [
-	name: string,
-	element: ReactElement,
-	open: (user: UserEvent) => Promise<HTMLElement>,
-]
+export type FocusCase = Scenario & {
+	/** Drives the real interaction that opens the surface, and returns the element the trigger focus left. */
+	open: (user: UserEvent) => Promise<HTMLElement>
+}
 
 /**
  * A modal surface whose trap must contain Tab while open and return focus to
@@ -35,12 +96,12 @@ export type FocusCase = readonly [
  * the trap walks floating-ui's layout-dependent `tabbable` pass, which jsdom
  * resolves to zero-size, so the focus guards never engage there.
  */
-export type TrapCase = readonly [
-	name: string,
-	trigger: string,
-	element: ReactElement,
-	surface: () => Promise<HTMLElement>,
-]
+export type TrapCase = Scenario & {
+	/** Accessible name of the opening button. */
+	trigger: string
+	/** Resolves the open trapped surface. */
+	surface: () => Promise<HTMLElement>
+}
 
 /**
  * A roved item whose description ink lands on the item wash.
@@ -53,4 +114,7 @@ export type TrapCase = readonly [
  * `descriptionSlot` names the `data-slot` the recipe inks, stated beside the
  * fixture that renders it so a rename moves both together.
  */
-export type RovedCase = readonly [name: string, element: ReactElement, descriptionSlot: string]
+export type RovedCase = Scenario & {
+	/** The `data-slot` the recipe inks, stated beside the fixture that renders it. */
+	descriptionSlot: string
+}

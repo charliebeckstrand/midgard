@@ -1,6 +1,6 @@
 import { animate } from 'motion'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ShinyText, ShinyTextSkeleton } from '../../components/shiny-text'
+import { ShinyText } from '../../components/shiny-text'
 import { bySlot, renderUI, stubMatchMedia, userEvent } from '../helpers'
 
 // `animate` is the imperative sweep, stubbed globally in setup/module-mocks.ts,
@@ -57,20 +57,6 @@ describe('ShinyText', () => {
 		expect(el).toHaveClass('bg-clip-text', 'text-transparent')
 
 		expect(el?.style.backgroundImage).toContain('red')
-	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<ShinyText id="hero">Shine</ShinyText>)
-
-		expect(bySlot(container, 'shiny-text')).toHaveAttribute('id', 'hero')
-	})
-
-	it('pairs with an explicit ShinyTextSkeleton in loading trees', () => {
-		const { container } = renderUI(<ShinyTextSkeleton />)
-
-		expect(bySlot(container, 'shiny-text')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
 	it('starts the sweep when motion is allowed', () => {

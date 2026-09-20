@@ -1,4 +1,6 @@
 // @vitest-environment node
+
+import { fc, test } from '@fast-check/vitest'
 import { geoArea } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import { GEOFENCE_CIRCLE_STEPS } from '../../modules/map/engine/map-constants'
@@ -797,5 +799,243 @@ describe('areaAnchor', () => {
 		expect(areaAnchor([])).toEqual([])
 
 		expect(areaAnchor([[]])).toEqual([])
+	})
+})
+
+// The tables above hold the documented examples. The properties below read
+// `rewindFeatures` over generated rings.
+//
+// The winding property is the one that earns the machinery. `planarSide`
+// settles almost every ring by a shoelace on the plane, and the claim is that
+// its answer agrees with the exact spherical measure. A table of five rings
+// samples that thinly. `geoArea` is the independent measure here, so each
+// generated ring puts the fast path against the figure it stands in for.
+
+/** The spherical area of one ring, read as its own polygon. */
+function ringArea(ring: number[][]): number {
+	return geoArea({ type: 'Polygon', coordinates: [ring] } as never)
+}
+
+/**
+ * A closed simple ring around `centre`, drawn by an angular sweep.
+ *
+ * Evenly spaced angles with a per-vertex radius give a star-shaped polygon,
+ * which never crosses itself. That matters: the source states that a
+ * self-crossing ring can read the wrong side on the plane, so such a ring is
+ * outside the contract this property states.
+ *
+ * The two radii are separate, so a ring can span a lune wider than 180° while
+ * its latitudes stay on the globe. That is the span `planarSide` refuses, which
+ * hands the ring to the spherical measure instead.
+ */
+function ringAround(
+	centreLon: number,
+	centreLat: number,
+	radiusLon: number,
+	radiusLat: number,
+	jitters: number[],
+	clockwise: boolean,
+): number[][] {
+	const points = jitters.map((jitter, index) => {
+		const angle = (2 * Math.PI * index) / jitters.length
+
+		return [
+			centreLon + radiusLon * jitter * Math.cos(angle),
+			centreLat + radiusLat * jitter * Math.sin(angle),
+		]
+	})
+
+	const wound = clockwise ? points.toReversed() : points
+
+	return [...wound, wound[0] as number[]]
+}
+
+/**
+ * The longest edge a generated ring carries, in degrees.
+ *
+ * Edge length is not a detail here. `planarSide` reads the ring as a polygon on
+ * the plate carrée, where an edge is a straight line in lon/lat. `geoArea`
+ * joins the same two vertices with a great-circle arc. The two enclose the same
+ * region only while an edge is short.
+ *
+ * A wide thin triangle shows the gap: three vertices spanning 117° of longitude
+ * measure 3.3e-5 sr as drawn and 12.56 sr once the edges are cut into degree
+ * steps. A real atlas is dense — `counties-10m` carries vertices a fraction of
+ * a degree apart — so the two readings agree there, which is the ground the
+ * source states its measurement on. The generator matches that density, so the
+ * spherical measure is a fair oracle for the planar decision.
+ */
+const MAX_EDGE_DEGREES = 2
+
+/** A ring cut so no edge runs longer than {@link MAX_EDGE_DEGREES}. */
+function densified(ring: number[][]): number[][] {
+	const out: number[][] = []
+
+	for (let index = 0; index + 1 < ring.length; index++) {
+		const [fromLon, fromLat] = ring[index] as number[]
+
+		const [toLon, toLat] = ring[index + 1] as number[]
+
+		const steps = Math.max(
+			1,
+			Math.ceil(
+				Math.max(
+					Math.abs((toLon as number) - (fromLon as number)),
+					Math.abs((toLat as number) - (fromLat as number)),
+				) / MAX_EDGE_DEGREES,
+			),
+		)
+
+		for (let step = 0; step < steps; step++) {
+			const at = step / steps
+
+			out.push([
+				(fromLon as number) + ((toLon as number) - (fromLon as number)) * at,
+				(fromLat as number) + ((toLat as number) - (fromLat as number)) * at,
+			])
+		}
+	}
+
+	out.push(ring[0] as number[])
+
+	return out
+}
+
+/** A ring scaled toward `centre`, which keeps it inside the ring it came from. */
+function shrunk(ring: number[][], centreLon: number, centreLat: number): number[][] {
+	return ring.map(([lon, lat]) => [
+		centreLon + ((lon as number) - centreLon) / 2,
+		centreLat + ((lat as number) - centreLat) / 2,
+	])
+}
+
+/** The parameters one generated polygon is drawn from. */
+const polygonSpec = () =>
+	fc.record({
+		centreLon: fc.integer({ min: -60, max: 60 }),
+		centreLat: fc.integer({ min: -30, max: 30 }),
+		// A floor of half a degree keeps every ring well clear of the degenerate
+		// band, so nothing is dropped and the rings pair up one for one.
+		radiusLon: fc.integer({ min: 5, max: 1000 }).map((tenth) => tenth / 10),
+		radiusLat: fc.integer({ min: 5, max: 500 }).map((tenth) => tenth / 10),
+		jitters: fc.array(
+			fc.integer({ min: 6, max: 10 }).map((tenth) => tenth / 10),
+			{
+				minLength: 3,
+				maxLength: 8,
+			},
+		),
+		clockwise: fc.boolean(),
+		withHole: fc.boolean(),
+	})
+
+type PolygonSpec = ReturnType<typeof polygonSpec> extends fc.Arbitrary<infer T> ? T : never
+
+/** The rings one spec draws: an exterior, and a hole inside it when asked. */
+function ringsFor(spec: PolygonSpec): number[][][] {
+	const exterior = ringAround(
+		spec.centreLon,
+		spec.centreLat,
+		spec.radiusLon,
+		spec.radiusLat,
+		spec.jitters,
+		spec.clockwise,
+	)
+
+	if (!spec.withHole) return [densified(exterior)]
+
+	return [densified(exterior), densified(shrunk(exterior, spec.centreLon, spec.centreLat))]
+}
+
+const polygonFeatures = () =>
+	fc
+		.array(polygonSpec(), { minLength: 1, maxLength: 4 })
+		.map((specs) => specs.map((spec, index) => polygonFeature(`P${index}`, ringsFor(spec))))
+
+/** Every polygon of a feature, whatever its geometry kind. */
+function polygonsOf(feature: MapFeature): number[][][][] {
+	const geometry = feature.geometry as { type: string; coordinates: unknown }
+
+	if (geometry?.type === 'Polygon') return [geometry.coordinates as number[][][]]
+
+	if (geometry?.type === 'MultiPolygon') return geometry.coordinates as number[][][][]
+
+	return []
+}
+
+describe('rewindFeatures · properties', () => {
+	// The claim the planar fast path stands on, put against the measure it
+	// replaces: an exterior encloses the small side of the sphere, a hole the
+	// large one.
+	test.prop([polygonFeatures()])('winds every exterior small and every hole large', (features) => {
+		for (const feature of rewindFeatures(features)) {
+			for (const rings of polygonsOf(feature)) {
+				rings.forEach((ring, index) => {
+					if (index === 0) expect(ringArea(ring)).toBeLessThanOrEqual(HALF_SPHERE)
+					else expect(ringArea(ring)).toBeGreaterThanOrEqual(HALF_SPHERE)
+				})
+			}
+		}
+	})
+
+	// Every position is the caller's own array, so no coordinate is rebuilt. A
+	// reversal clones the ring and keeps the positions inside it.
+	test.prop([polygonFeatures()])('reuses the caller’s positions, reversed at most', (features) => {
+		const source = new Set<unknown>()
+
+		for (const feature of features) {
+			for (const rings of polygonsOf(feature))
+				for (const ring of rings) for (const at of ring) source.add(at)
+		}
+
+		for (const feature of rewindFeatures(features)) {
+			for (const rings of polygonsOf(feature)) {
+				for (const ring of rings) for (const at of ring) expect(source.has(at)).toBe(true)
+			}
+		}
+	})
+
+	test.prop([polygonFeatures()])('keeps every ring, above the degenerate band', (features) => {
+		const before = features.map((feature) => polygonsOf(feature).map((rings) => rings.length))
+
+		const after = rewindFeatures(features).map((feature) =>
+			polygonsOf(feature).map((rings) => rings.length),
+		)
+
+		expect(after).toEqual(before)
+	})
+
+	// The pass runs on the cached decode stage, so a second pass must find
+	// nothing left to do and hand the same array back.
+	test.prop([polygonFeatures()])('settles after one pass', (features) => {
+		const once = rewindFeatures(features)
+
+		expect(rewindFeatures(once)).toBe(once)
+	})
+
+	test.prop([polygonFeatures()])('never mutates the geometry it was handed', (features) => {
+		const before = JSON.stringify(features)
+
+		rewindFeatures(features)
+
+		expect(JSON.stringify(features)).toBe(before)
+	})
+
+	test.prop([
+		fc.array(
+			fc.record({
+				lon: fc.integer({ min: -170, max: 170 }),
+				lat: fc.integer({ min: -80, max: 80 }),
+			}),
+			{ minLength: 1, maxLength: 4 },
+		),
+	])('passes geometry that winds nothing straight through', (points) => {
+		const features: MapFeature[] = points.map((point, index) => ({
+			type: 'Feature',
+			id: `N${index}`,
+			geometry: { type: 'Point', coordinates: [point.lon, point.lat] },
+		}))
+
+		expect(rewindFeatures(features)).toBe(features)
 	})
 })

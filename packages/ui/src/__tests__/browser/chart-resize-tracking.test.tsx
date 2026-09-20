@@ -70,6 +70,37 @@ describe('chart resize tracking (real browser)', () => {
 		await waitFor(() => expect(frameWidth(container)).toBe('720'))
 	})
 
+	it('follows a pie chart resize burst to the final width as well', async () => {
+		// The pie frame reserves its box on a different path from the cartesian one
+		// above, so the burst is worth walking twice. jsdom walked it by writing a
+		// width onto the plot and firing the observer by hand; here the host really
+		// resizes and the engine's own observer reports it.
+		const { container } = renderUI(
+			<div data-testid="host" style={{ width: 600 }}>
+				<PieChart
+					aria-label="Share by quarter"
+					data={DATA}
+					series={[{ xKey: 'x', yKey: 'y' }]}
+					aspectRatio={2}
+				/>
+			</div>,
+		)
+
+		const host = container.querySelector<HTMLElement>('[data-testid="host"]')
+
+		if (!host) throw new Error('no host rendered')
+
+		await waitFor(() => expect(frameWidth(container)).toBe('600'))
+
+		for (const width of [640, 680, 720]) {
+			host.style.width = `${width}px`
+
+			await frames()
+		}
+
+		await waitFor(() => expect(frameWidth(container)).toBe('720'))
+	})
+
 	it('resizes a chart inside the fading tab surface without pinning the panel height', async () => {
 		const { container } = renderUI(
 			<div data-testid="host" style={{ width: 600 }}>

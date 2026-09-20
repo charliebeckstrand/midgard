@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react'
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Button, ButtonSkeleton } from '../../components/button'
+import { Button } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { AffixContext } from '../../primitives/affix'
@@ -61,18 +61,6 @@ describe('Button', () => {
 		fireEvent.click(button as HTMLElement)
 
 		expect(onClick).toHaveBeenCalledOnce()
-	})
-
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(<Button href="/about">About</Button>)
-
-		const link = bySlot(container, 'button')
-
-		expect(link).toBeInTheDocument()
-
-		expect(link?.tagName).toBe('A')
-
-		expect(link).toHaveAttribute('href', '/about')
 	})
 
 	it('forwards ref to the button element', () => {
@@ -138,14 +126,6 @@ describe('Button', () => {
 		expect(notCancelled).toBe(false)
 
 		expect(onClick).not.toHaveBeenCalled()
-	})
-
-	it('pairs with an explicit ButtonSkeleton in loading trees', () => {
-		const { container } = renderUI(<ButtonSkeleton />)
-
-		expect(bySlot(container, 'button')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
 	it('renders the motion wrapper around a link button', () => {

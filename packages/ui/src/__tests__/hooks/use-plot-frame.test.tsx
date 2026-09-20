@@ -1,7 +1,6 @@
 import { memo } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { type FrameSizing, usePlotFrame } from '../../hooks'
-import { resolveFrameSizing } from '../../hooks/use-plot-frame'
 import { act, mockDomGeometry, renderUI, screen } from '../helpers'
 import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-resize-observer'
 
@@ -42,7 +41,24 @@ function Probe({
 	)
 }
 
-describe('usePlotFrame', () => {
+/**
+ * The observer's own lifecycle, which is what the stub is for.
+ *
+ * Which axis a sizing policy reads is a question about a real container, and
+ * `browser/plot-frame.test.tsx` now asks it there: a height-only resize that an
+ * aspect policy must ignore, and the same resize that a fill policy must redraw
+ * on. What stays is the bookkeeping around it, and none of it is a measurement.
+ * That a fully fixed size constructs no observer at all, that an unchanged size
+ * is equality-guarded out, that a positional swap re-targets the observer onto
+ * the live node, and that a notification arriving from a detached node is
+ * skipped rather than committed as a zero.
+ *
+ * Each needs a notification produced on demand — one that repeats a size, or
+ * arrives from a node already detached — and a real `ResizeObserver` delivers
+ * what layout produces. `resolveFrameSizing`, the pure function these resolve
+ * through, is pinned in `resolve-frame-sizing.test.ts` with no DOM at all.
+ */
+describe('usePlotFrame observer lifecycle', () => {
 	let observers: ResizeObserverStub[]
 
 	beforeEach(() => {
@@ -71,31 +87,6 @@ describe('usePlotFrame', () => {
 			observer.callback([], observer as unknown as ResizeObserver)
 		})
 	}
-
-	it('redraws on a width change but not a height-only change under an aspect policy', () => {
-		const onMarks = vi.fn()
-
-		renderUI(<Probe width={undefined} sizing={{ mode: 'aspect', ratio: 2 }} onMarks={onMarks} />)
-
-		const plot = screen.getByTestId('plot')
-
-		// The width resolves, and the height derives from it — not the container.
-		resizeTo(plot, { width: 300, height: 200 })
-
-		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
-
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
-
-		const drawsAfterWidth = onMarks.mock.calls.length
-
-		// A height-only resize changes nothing the policy consumes, so the
-		// untracked axis stays unread and the marks never redraw.
-		resizeTo(plot, { width: 300, height: 500 })
-
-		expect(onMarks).toHaveBeenCalledTimes(drawsAfterWidth)
-
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('150')
-	})
 
 	it('constructs no observer and resolves from props when the size is fully fixed', () => {
 		const onMarks = vi.fn()
@@ -222,112 +213,5 @@ describe('usePlotFrame', () => {
 
 		// The garbage measurement is skipped: the frame holds its last real size.
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('300')
-	})
-
-	it('redraws on a height change under a fill policy', () => {
-		const onMarks = vi.fn()
-
-		renderUI(<Probe width={undefined} sizing={{ mode: 'fill' }} onMarks={onMarks} />)
-
-		const plot = screen.getByTestId('plot')
-
-		resizeTo(plot, { width: 300, height: 200 })
-
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
-
-		const drawsAfterFirst = onMarks.mock.calls.length
-
-		// The free-form height feeds the sizing, so a height change must redraw.
-		resizeTo(plot, { width: 300, height: 260 })
-
-		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('260')
-
-		expect(onMarks.mock.calls.length).toBeGreaterThan(drawsAfterFirst)
-	})
-})
-
-describe('resolveFrameSizing', () => {
-	it('derives the height from the width and reserves the same ratio', () => {
-		expect(resolveFrameSizing({ mode: 'aspect', ratio: 16 / 9 }, 320, 0)).toEqual({
-			height: 180,
-			reserve: { mode: 'aspect', ratio: 16 / 9 },
-		})
-
-		expect(resolveFrameSizing({ mode: 'aspect', ratio: 2 }, 400, 0)).toEqual({
-			height: 200,
-			reserve: { mode: 'aspect', ratio: 2 },
-		})
-	})
-
-	it('holds a fixed height with nothing to reserve, ignoring the container', () => {
-		expect(resolveFrameSizing({ mode: 'fixed', height: 240 }, 320, 275)).toEqual({
-			height: 240,
-			reserve: null,
-		})
-	})
-
-	it('fills the container height and reserves nothing when free-form', () => {
-		expect(resolveFrameSizing({ mode: 'fill' }, 320, 275)).toEqual({
-			height: 275,
-			reserve: null,
-		})
-	})
-
-	it('takes the measured remainder under aspect-fill, reserving nothing', () => {
-		// The legend leaves the plot 200px inside a 320-wide 16/9 figure; the plot
-		// takes that measured remainder rather than the full 180 the ratio would give.
-		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 320, 200)).toEqual({
-			height: 200,
-			reserve: null,
-		})
-	})
-
-	it('falls back to the full ratio height under aspect-fill before the remainder is measured', () => {
-		// No measured height yet (server render, explicit width, test frame), so the
-		// plot draws from the width alone at the full ratio rather than collapsing —
-		// the browser refines it to the measured remainder once it lands.
-		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 320, 0)).toEqual({
-			height: 180,
-			reserve: null,
-		})
-
-		// With no width either, nothing to derive from — the frame shell, no marks.
-		expect(resolveFrameSizing({ mode: 'aspect-fill', ratio: 16 / 9 }, 0, 0)).toEqual({
-			height: 0,
-			reserve: null,
-		})
-	})
-
-	it('yields no height until the width is measured, still reserving the ratio', () => {
-		expect(resolveFrameSizing({ mode: 'aspect', ratio: 16 / 9 }, 0, 0)).toEqual({
-			height: 0,
-			reserve: { mode: 'aspect', ratio: 16 / 9 },
-		})
-	})
-
-	it('fits the height to the width-bound radius plus the vertical margin, reserving offset and floor', () => {
-		// radius = 400/2 - 100 = 100; height = 2*100 + 2*20; offset = 2*(20 - 100); min = 2*20.
-		expect(resolveFrameSizing({ mode: 'content', hMargin: 100, vMargin: 20 }, 400, 0)).toEqual({
-			height: 240,
-			reserve: { mode: 'content', offset: -160, min: 40 },
-		})
-	})
-
-	it('floors the content radius at zero instead of going negative', () => {
-		// The margin alone exceeds the half-width, so only the vertical margin remains,
-		// which is exactly the reserved `min` the CSS floor holds the box at.
-		expect(resolveFrameSizing({ mode: 'content', hMargin: 300, vMargin: 20 }, 400, 0)).toEqual({
-			height: 40,
-			reserve: { mode: 'content', offset: -560, min: 40 },
-		})
-	})
-
-	it('reserves the content offset and floor before the width is measured, so the box holds', () => {
-		// height stays 0 until the width lands, but the reserve is already known —
-		// the box holds its height from the first paint instead of collapsing.
-		expect(resolveFrameSizing({ mode: 'content', hMargin: 100, vMargin: 20 }, 0, 0)).toEqual({
-			height: 0,
-			reserve: { mode: 'content', offset: -160, min: 40 },
-		})
 	})
 })

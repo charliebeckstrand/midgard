@@ -5,19 +5,10 @@ import {
 	PaginationNext,
 	PaginationPage,
 	PaginationPrevious,
-	PaginationSkeleton,
 } from '../../components/pagination'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Pagination', () => {
-	it('pairs with an explicit PaginationSkeleton in loading trees', () => {
-		const { container } = renderUI(<PaginationSkeleton pages={5} />)
-
-		expect(bySlot(container, 'pagination')).not.toBeInTheDocument()
-
-		expect(allBySlot(container, 'placeholder')).toHaveLength(5)
-	})
-
 	it('renders with data-slot="pagination"', () => {
 		const { container } = renderUI(
 			<Pagination>
@@ -36,22 +27,6 @@ describe('Pagination', () => {
 })
 
 describe('PaginationPage', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Pagination>
-				<PaginationList>
-					<PaginationPage href="/page/1">1</PaginationPage>
-				</PaginationList>
-			</Pagination>,
-		)
-
-		const el = bySlot(container, 'pagination-page')
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/page/1')
-	})
-
 	it('marks the current page with aria-current="page"', () => {
 		const { container } = renderUI(
 			<Pagination>

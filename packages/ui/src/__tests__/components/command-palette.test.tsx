@@ -235,20 +235,6 @@ describe('CommandPaletteItem', () => {
 		expect(item).toHaveAttribute('role', 'option')
 	})
 
-	it('renders as a link when href is provided', () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem href="/docs">Docs</CommandPaletteItem>
-			</CommandPalette>,
-		)
-
-		const item = bySlot(document.body, 'command-palette-item')
-
-		expect(item?.tagName).toBe('A')
-
-		expect(item).toHaveAttribute('href', '/docs')
-	})
-
 	it('calls onAction and closes the palette on click', async () => {
 		const onOpenChange = vi.fn()
 

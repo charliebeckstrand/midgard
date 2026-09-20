@@ -4,8 +4,8 @@ import {
 	AccordionPanel,
 	AccordionTrigger,
 } from '../../../components/accordion'
-import { Avatar } from '../../../components/avatar'
-import { Badge } from '../../../components/badge'
+import { Avatar, AvatarSkeleton } from '../../../components/avatar'
+import { Badge, BadgeSkeleton } from '../../../components/badge'
 import { Code } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from '../../../components/dl'
@@ -16,8 +16,8 @@ import { List, ListDescription, ListItem, ListLabel } from '../../../components/
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 import { Odometer } from '../../../components/odometer'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../../components/resizable'
-import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
-import { Sparkline } from '../../../components/sparkline'
+import { Segment, SegmentControl, SegmentItem, SegmentSkeleton } from '../../../components/segment'
+import { Sparkline, SparklineSkeleton } from '../../../components/sparkline'
 import { Stat, StatLabel, StatValue } from '../../../components/stat'
 import { StatusDot } from '../../../components/status'
 import {
@@ -83,331 +83,419 @@ const listTasks = [
 
 /** Data display: badges, status, disclosures, trees, and tabular data. */
 export const dataDisplayCases: readonly Case[] = [
-	['badge', <Badge key="b">New</Badge>],
-	[
+	{
+		name: 'badge',
+		element: <Badge key="b">New</Badge>,
+		skeleton: [{ element: <BadgeSkeleton />, absentSlot: 'badge' }],
+		link: [{ render: (href) => <Badge href={href}>Tag</Badge>, slot: 'badge' }],
+	},
+	{
 		// Status indicator paired with a visible text label.
-		'status',
-		<span key="sd">
-			<StatusDot status="active" /> Active
-		</span>,
-	],
-	[
+		name: 'status',
+		element: (
+			<span key="sd">
+				<StatusDot status="active" /> Active
+			</span>
+		),
+		passthrough: [{ render: (props) => <StatusDot {...props} />, slot: 'status-dot' }],
+	},
+	{
 		// Disclosure pattern: each trigger is a button that controls its panel via
 		// aria-expanded/aria-controls; one item open by default.
-		'accordion',
-		<Accordion key="ac" defaultValue="shipping">
-			<AccordionItem value="shipping">
-				<AccordionTrigger>Shipping</AccordionTrigger>
-				<AccordionPanel>Orders ship within one business day.</AccordionPanel>
-			</AccordionItem>
-			<AccordionItem value="returns">
-				<AccordionTrigger>Returns</AccordionTrigger>
-				<AccordionPanel>Unworn items can be returned within 30 days.</AccordionPanel>
-			</AccordionItem>
-		</Accordion>,
-	],
-	[
+		name: 'accordion',
+		element: (
+			<Accordion key="ac" defaultValue="shipping">
+				<AccordionItem value="shipping">
+					<AccordionTrigger>Shipping</AccordionTrigger>
+					<AccordionPanel>Orders ship within one business day.</AccordionPanel>
+				</AccordionItem>
+				<AccordionItem value="returns">
+					<AccordionTrigger>Returns</AccordionTrigger>
+					<AccordionPanel>Unworn items can be returned within 30 days.</AccordionPanel>
+				</AccordionItem>
+			</Accordion>
+		),
+	},
+	{
 		// Single-select segmented control (radiogroup); the group carries an
 		// accessible name and one item is selected.
-		'segment',
-		<Segment key="sg" defaultValue="list" aria-label="View">
-			<SegmentControl aria-label="View">
-				<SegmentItem value="list">List</SegmentItem>
-				<SegmentItem value="grid">Grid</SegmentItem>
-			</SegmentControl>
-		</Segment>,
-	],
-	[
+		name: 'segment',
+		element: (
+			<Segment key="sg" defaultValue="list" aria-label="View">
+				<SegmentControl aria-label="View">
+					<SegmentItem value="list">List</SegmentItem>
+					<SegmentItem value="grid">Grid</SegmentItem>
+				</SegmentControl>
+			</Segment>
+		),
+		skeleton: [{ element: <SegmentSkeleton />, absentSlot: 'tab-list' }],
+	},
+	{
 		// role=tree with nested role=group; each item exposes its label and
 		// expanded state.
-		'tree',
-		<Tree key="tr" aria-label="File tree">
-			<TreeItem label="Documents">
-				<TreeItem label="report.pdf" />
-				<TreeItem label="budget.xlsx" />
-			</TreeItem>
-			<TreeItem label="Photos">
-				<TreeItem label="vacation.jpg" />
-			</TreeItem>
-		</Tree>,
-	],
-	[
+		name: 'tree',
+		element: (
+			<Tree key="tr" aria-label="File tree">
+				<TreeItem label="Documents">
+					<TreeItem label="report.pdf" />
+					<TreeItem label="budget.xlsx" />
+				</TreeItem>
+				<TreeItem label="Photos">
+					<TreeItem label="vacation.jpg" />
+				</TreeItem>
+			</Tree>
+		),
+	},
+	{
 		// Closed listbox: the trigger is a button named by its Field Label; the
 		// option popover only mounts when opened.
-		'listbox in field',
-		<Field key="lb">
-			<Label>Status</Label>
-			<Listbox<string> nullable displayValue={(value: string) => value} placeholder="Select status">
-				<ListboxOption value="active">
-					<ListboxLabel>Active</ListboxLabel>
-				</ListboxOption>
-				<ListboxOption value="paused">
-					<ListboxLabel>Paused</ListboxLabel>
-				</ListboxOption>
-			</Listbox>
-		</Field>,
-	],
-	[
+		name: 'listbox in field',
+		element: (
+			<Field key="lb">
+				<Label>Status</Label>
+				<Listbox<string>
+					nullable
+					displayValue={(value: string) => value}
+					placeholder="Select status"
+				>
+					<ListboxOption value="active">
+						<ListboxLabel>Active</ListboxLabel>
+					</ListboxOption>
+					<ListboxOption value="paused">
+						<ListboxLabel>Paused</ListboxLabel>
+					</ListboxOption>
+				</Listbox>
+			</Field>
+		),
+	},
+	{
 		// Data grid with a sortable column header (aria-sort) and keyed rows.
-		'data table',
-		<Grid key="dt" columns={dataTableColumns} rows={dataTableRows} getKey={(row) => row.id} />,
-	],
-	[
+		name: 'data table',
+		element: (
+			<Grid key="dt" columns={dataTableColumns} rows={dataTableRows} getKey={(row) => row.id} />
+		),
+	},
+	{
 		// Static semantic table: thead/tbody with column headers.
-		'table',
-		<Table key="tbl">
-			<TableHead>
-				<TableRow>
-					<TableHeader>Name</TableHeader>
-					<TableHeader>Email</TableHeader>
-				</TableRow>
-			</TableHead>
-			<TableBody>
-				{dataTableRows.map((row) => (
-					<TableRow key={row.id}>
-						<TableCell>{row.name}</TableCell>
-						<TableCell>{row.email}</TableCell>
+		name: 'table',
+		element: (
+			<Table key="tbl">
+				<TableHead>
+					<TableRow>
+						<TableHeader>Name</TableHeader>
+						<TableHeader>Email</TableHeader>
 					</TableRow>
-				))}
-			</TableBody>
-		</Table>,
-	],
-	[
+				</TableHead>
+				<TableBody>
+					{dataTableRows.map((row) => (
+						<TableRow key={row.id}>
+							<TableCell>{row.name}</TableCell>
+							<TableCell>{row.email}</TableCell>
+						</TableRow>
+					))}
+				</TableBody>
+			</Table>
+		),
+	},
+	{
 		// Named list of items; the set is labelled and not sortable here.
-		'list',
-		<List key="ls" items={listTasks} aria-label="Tasks" sortable={false}>
-			{(task) => (
-				<ListItem>
-					<ListLabel>{task.label}</ListLabel>
-				</ListItem>
-			)}
-		</List>,
-	],
-	[
+		name: 'list',
+		element: (
+			<List key="ls" items={listTasks} aria-label="Tasks" sortable={false}>
+				{(task) => (
+					<ListItem>
+						<ListLabel>{task.label}</ListLabel>
+					</ListItem>
+				)}
+			</List>
+		),
+	},
+	{
 		// The `solid` variant, whose rows sit on `omote.bg.tint` rather than the page
 		// surface, carrying both muted inks that ground is the hard case for (WCAG
 		// 1.4.3): the `ListDescription`, and the content column's own muted treatment,
 		// which an `href` row takes. The `list` case above renders the default
 		// `separated` variant with a label only, so it exercises neither.
-		'list (solid, described interactive rows)',
-		<List key="lss" items={listTasks} aria-label="Described tasks" variant="solid" sortable={false}>
-			{(task) => (
-				<ListItem href={`#${task.id}`}>
-					<ListLabel>{task.label}</ListLabel>
-					<ListDescription>Due next week</ListDescription>
-				</ListItem>
-			)}
-		</List>,
-	],
-	[
+		name: 'list (solid, described interactive rows)',
+		element: (
+			<List
+				key="lss"
+				items={listTasks}
+				aria-label="Described tasks"
+				variant="solid"
+				sortable={false}
+			>
+				{(task) => (
+					<ListItem href={`#${task.id}`}>
+						<ListLabel>{task.label}</ListLabel>
+						<ListDescription>Due next week</ListDescription>
+					</ListItem>
+				)}
+			</List>
+		),
+	},
+	{
 		// Description list: term/details pairs in a <dl>.
-		'description list',
-		<DescriptionList key="dl">
-			<DescriptionTerm>Name</DescriptionTerm>
-			<DescriptionDetails>Wade Cooper</DescriptionDetails>
-			<DescriptionTerm>Email</DescriptionTerm>
-			<DescriptionDetails>wade@example.com</DescriptionDetails>
-		</DescriptionList>,
-	],
-	[
-		'timeline',
-		<Timeline key="tl">
-			<TimelineItem>
-				<TimelineTimestamp>Jan 2026</TimelineTimestamp>
-				<TimelineTitle>Project kicked off</TimelineTitle>
-				<TimelineDescription>Initial planning and team assembly.</TimelineDescription>
-			</TimelineItem>
-			<TimelineItem status="info">
-				<TimelineTimestamp>Feb 2026</TimelineTimestamp>
-				<TimelineTitle>Design completed</TimelineTitle>
-			</TimelineItem>
-		</Timeline>,
-	],
-	[
-		'stat',
-		<Stat key="st">
-			<StatLabel>Monthly recurring revenue</StatLabel>
-			<StatValue>$12,345</StatValue>
-		</Stat>,
-	],
-	[
+		name: 'description list',
+		element: (
+			<DescriptionList key="dl">
+				<DescriptionTerm>Name</DescriptionTerm>
+				<DescriptionDetails>Wade Cooper</DescriptionDetails>
+				<DescriptionTerm>Email</DescriptionTerm>
+				<DescriptionDetails>wade@example.com</DescriptionDetails>
+			</DescriptionList>
+		),
+		passthrough: [
+			{ render: (props) => <DescriptionList {...props}>content</DescriptionList>, slot: 'dl' },
+			{ render: (props) => <DescriptionTerm {...props}>Term</DescriptionTerm>, slot: 'dl-term' },
+			{
+				render: (props) => <DescriptionDetails {...props}>Value</DescriptionDetails>,
+				slot: 'dl-details',
+			},
+		],
+	},
+	{
+		name: 'timeline',
+		element: (
+			<Timeline key="tl">
+				<TimelineItem>
+					<TimelineTimestamp>Jan 2026</TimelineTimestamp>
+					<TimelineTitle>Project kicked off</TimelineTitle>
+					<TimelineDescription>Initial planning and team assembly.</TimelineDescription>
+				</TimelineItem>
+				<TimelineItem status="info">
+					<TimelineTimestamp>Feb 2026</TimelineTimestamp>
+					<TimelineTitle>Design completed</TimelineTitle>
+				</TimelineItem>
+			</Timeline>
+		),
+	},
+	{
+		name: 'stat',
+		element: (
+			<Stat key="st">
+				<StatLabel>Monthly recurring revenue</StatLabel>
+				<StatValue>$12,345</StatValue>
+			</Stat>
+		),
+		passthrough: [{ render: (props) => <Stat {...props}>content</Stat>, slot: 'stat' }],
+	},
+	{
 		// Trend chart exposed as role="img" with a summarizing accessible name.
-		'sparkline',
-		<Sparkline key="sp" data={[3, 5, 4, 8, 7, 11]} aria-label="Revenue, up over 6 periods" />,
-	],
-	[
+		name: 'sparkline',
+		element: (
+			<Sparkline key="sp" data={[3, 5, 4, 8, 7, 11]} aria-label="Revenue, up over 6 periods" />
+		),
+		skeleton: [{ element: <SparklineSkeleton />, absentSlot: 'sparkline' }],
+	},
+	{
 		// Charts: a role="img" plot with legend and a hidden data table beside it.
-		'bar chart',
-		<BarChart
-			key="bc"
-			aria-label="Revenue by quarter"
-			data={chartRows}
-			series={chartSeries}
-			width={360}
-		/>,
-	],
-	[
-		'line chart',
-		<LineChart
-			key="lc"
-			aria-label="Revenue trend by quarter"
-			data={chartRows}
-			series={chartSeries}
-			width={360}
-			points
-		/>,
-	],
-	[
-		'area chart',
-		<AreaChart
-			key="ac"
-			aria-label="Revenue and costs by quarter, stacked"
-			data={chartRows}
-			series={chartSeries}
-			width={360}
-			stacked
-		/>,
-	],
-	[
-		'pie chart',
-		<PieChart
-			key="pc"
-			aria-label="Revenue share by quarter"
-			data={chartRows}
-			series={[{ xKey: 'quarter', yKey: 'revenue' }]}
-			width={240}
-			height={160}
-		/>,
-	],
-	[
+		name: 'bar chart',
+		element: (
+			<BarChart
+				key="bc"
+				aria-label="Revenue by quarter"
+				data={chartRows}
+				series={chartSeries}
+				width={360}
+			/>
+		),
+	},
+	{
+		name: 'line chart',
+		element: (
+			<LineChart
+				key="lc"
+				aria-label="Revenue trend by quarter"
+				data={chartRows}
+				series={chartSeries}
+				width={360}
+				points
+			/>
+		),
+	},
+	{
+		name: 'area chart',
+		element: (
+			<AreaChart
+				key="ac"
+				aria-label="Revenue and costs by quarter, stacked"
+				data={chartRows}
+				series={chartSeries}
+				width={360}
+				stacked
+			/>
+		),
+	},
+	{
+		name: 'pie chart',
+		element: (
+			<PieChart
+				key="pc"
+				aria-label="Revenue share by quarter"
+				data={chartRows}
+				series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+				width={240}
+				height={160}
+			/>
+		),
+	},
+	{
 		// The interactive side panel: a toolbar of toggle buttons with live
 		// shares, beside the role="img" plot.
-		'pie chart with side panel',
-		<PieChart
-			key="pp"
-			aria-label="Revenue share by quarter"
-			data={chartRows}
-			series={[{ xKey: 'quarter', yKey: 'revenue' }]}
-			width={240}
-			height={160}
-			legend="right"
-		/>,
-	],
-	[
+		name: 'pie chart with side panel',
+		element: (
+			<PieChart
+				key="pp"
+				aria-label="Revenue share by quarter"
+				data={chartRows}
+				series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+				width={240}
+				height={160}
+				legend="right"
+			/>
+		),
+	},
+	{
 		// Ring variant of the pie: same role="img" plot and hidden table, with a
 		// total named in the hole.
-		'donut chart',
-		<DonutChart
-			key="dc"
-			aria-label="Revenue share by quarter"
-			data={chartRows}
-			series={[{ xKey: 'quarter', yKey: 'revenue' }]}
-			width={240}
-			height={160}
-		>
-			<Stat>
-				<StatLabel>Total</StatLabel>
-				<StatValue>$185</StatValue>
-			</Stat>
-		</DonutChart>,
-	],
-	[
-		'combo chart',
-		<ComboChart
-			key="cc"
-			aria-label="Revenue and costs by quarter"
-			data={chartRows}
-			series={[
-				{ type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
-				{ type: 'line', xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
-			]}
-			width={360}
-		/>,
-	],
-	[
+		name: 'donut chart',
+		element: (
+			<DonutChart
+				key="dc"
+				aria-label="Revenue share by quarter"
+				data={chartRows}
+				series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+				width={240}
+				height={160}
+			>
+				<Stat>
+					<StatLabel>Total</StatLabel>
+					<StatValue>$185</StatValue>
+				</Stat>
+			</DonutChart>
+		),
+	},
+	{
+		name: 'combo chart',
+		element: (
+			<ComboChart
+				key="cc"
+				aria-label="Revenue and costs by quarter"
+				data={chartRows}
+				series={[
+					{ type: 'bar', xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+					{ type: 'line', xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
+				]}
+				width={360}
+			/>
+		),
+	},
+	{
 		// Geography map: a role="img" plot with the merged legend toolbar and a
 		// hidden region×category table beside it; overlays add their own entries.
-		'map',
-		<MapPlat
-			key="mp"
-			aria-label="Delivery map"
-			geography={FIXTURE_GEOJSON}
-			data={FIXTURE_ROWS}
-			regionKey="state"
-			categoryKey="zone"
-			width={400}
-		>
-			<MapRoute
-				label="Line haul"
-				stops={[
-					[2, 2],
-					[28, 8],
-				]}
-				detail="312 mi"
-			/>
+		name: 'map',
+		element: (
+			<MapPlat
+				key="mp"
+				aria-label="Delivery map"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				width={400}
+			>
+				<MapRoute
+					label="Line haul"
+					stops={[
+						[2, 2],
+						[28, 8],
+					]}
+					detail="312 mi"
+				/>
 
-			<MapPoint label="Depot" at={[15, 5]} />
-		</MapPlat>,
-	],
-	[
+				<MapPoint label="Depot" at={[15, 5]} />
+			</MapPlat>
+		),
+	},
+	{
 		// The same plot with the zoom on and the readout off: the gestures are the
 		// pointer's, so the scale has to stay reachable from the one tab stop the
 		// zoom earns, and nothing under the aria-hidden SVG may become focusable
 		// with it.
-		'map (zoom)',
-		<MapPlat
-			key="mz"
-			aria-label="Delivery map"
-			geography={FIXTURE_GEOJSON}
-			data={FIXTURE_ROWS}
-			regionKey="state"
-			categoryKey="zone"
-			width={400}
-			tooltip={false}
-			zoom
-		/>,
-	],
-	['avatar', <Avatar key="av" initials="WC" alt="Wade Cooper" />],
-	['kbd', <Kbd key="kb">K</Kbd>],
-	['code', <Code key="cd">pnpm install</Code>],
-	[
+		name: 'map (zoom)',
+		element: (
+			<MapPlat
+				key="mz"
+				aria-label="Delivery map"
+				geography={FIXTURE_GEOJSON}
+				data={FIXTURE_ROWS}
+				regionKey="state"
+				categoryKey="zone"
+				width={400}
+				tooltip={false}
+				zoom
+			/>
+		),
+	},
+	{
+		name: 'avatar',
+		element: <Avatar key="av" initials="WC" alt="Wade Cooper" />,
+		skeleton: [{ element: <AvatarSkeleton size="md" />, absentSlot: 'avatar' }],
+	},
+	{
+		name: 'kbd',
+		element: <Kbd key="kb">K</Kbd>,
+		passthrough: [{ render: (props) => <Kbd {...props}>K</Kbd>, slot: 'kbd' }],
+	},
+	{
+		name: 'code',
+		element: <Code key="cd">pnpm install</Code>,
+		passthrough: [{ render: (props) => <Code {...props}>x</Code>, slot: 'code' }],
+	},
+	{
 		// Animated number; renders the current value as readable text.
-		'odometer',
-		<Odometer key="od" value={1234} />,
-	],
-	[
+		name: 'odometer',
+		element: <Odometer key="od" value={1234} />,
+		passthrough: [{ render: (props) => <Odometer value={0} {...props} />, slot: 'odometer' }],
+	},
+	{
 		// Relative timestamp rendered into a <time> with a machine-readable datetime.
-		'time ago',
-		<TimeAgo key="ta" date={new Date('2026-01-01T00:00:00Z')} />,
-	],
-	[
+		name: 'time ago',
+		element: <TimeAgo key="ta" date={new Date('2026-01-01T00:00:00Z')} />,
+	},
+	{
 		// Disclosure: the trigger button controls its panel via aria-expanded/
 		// aria-controls; opened on mount.
-		'collapse',
-		<Collapse key="cl" defaultOpen>
-			<CollapseTrigger>Hide details</CollapseTrigger>
-			<CollapsePanel>The panel body content.</CollapsePanel>
-		</Collapse>,
-	],
-	[
+		name: 'collapse',
+		element: (
+			<Collapse key="cl" defaultOpen>
+				<CollapseTrigger>Hide details</CollapseTrigger>
+				<CollapsePanel>The panel body content.</CollapsePanel>
+			</Collapse>
+		),
+	},
+	{
 		// Resizable split: each handle is a focusable role=separator with aria-valuenow.
-		'resizable',
-		<div key="rz" style={{ height: 80 }}>
-			<ResizableGroup>
-				<ResizablePanel defaultSize={50} minSize={20}>
-					Left
-				</ResizablePanel>
-				<ResizableHandle />
-				<ResizablePanel defaultSize={50} minSize={20}>
-					Right
-				</ResizablePanel>
-			</ResizableGroup>
-		</div>,
-	],
-	[
+		name: 'resizable',
+		element: (
+			<div key="rz" style={{ height: 80 }}>
+				<ResizableGroup>
+					<ResizablePanel defaultSize={50} minSize={20}>
+						Left
+					</ResizablePanel>
+					<ResizableHandle />
+					<ResizablePanel defaultSize={50} minSize={20}>
+						Right
+					</ResizablePanel>
+				</ResizableGroup>
+			</div>
+		),
+	},
+	{
 		// Labelled icon: role=img with an accessible name (decorative icons stay
 		// aria-hidden and need no case).
-		'icon',
-		<Icon key="ic" icon={<svg />} label="Information" />,
-	],
+		name: 'icon',
+		element: <Icon key="ic" icon={<svg />} label="Information" />,
+	},
 ]

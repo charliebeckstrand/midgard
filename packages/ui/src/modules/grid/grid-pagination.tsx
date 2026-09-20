@@ -1,6 +1,7 @@
 'use client'
 
-import { useLayoutEffect, useRef } from 'react'
+import type { Updater } from '@tanstack/react-table'
+import { useLayoutEffect, useRef, useState } from 'react'
 import {
 	Pagination,
 	PaginationGap,
@@ -91,24 +92,24 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	// When a page change disables the control the user activated (reaching an
 	// extent), or scrolls its number out of the window, the browser drops focus to
 	// the body. Restore it to the current-page marker so focus stays in the nav
-	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `restoreFocus`.
+	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `navigations`.
 	const navRef = useRef<HTMLDivElement>(null)
 
-	const restoreFocus = useRef(false)
+	// Counts the navigations the reader drives. The restore keys on this rather
+	// than on `pageIndex`, because a navigation onto the page already current
+	// changes no index: a latch keyed on `pageIndex` would stay armed and spend
+	// itself on a later change that the consumer drove.
+	const [navigations, setNavigations] = useState(0)
 
-	const goToPage = (index: number) => {
-		restoreFocus.current = true
+	const goToPage = (index: Updater<number>) => {
+		setNavigations((count) => count + 1)
 
 		setPageIndex(index)
 	}
 
 	useLayoutEffect(() => {
-		// Re-run on each page change so a restore can follow the control that moved.
-		void pageIndex
-
-		if (!restoreFocus.current) return
-
-		restoreFocus.current = false
+		// The first render drove nothing.
+		if (navigations === 0) return
 
 		const nav = navRef.current
 
@@ -128,14 +129,17 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 		if (heldInNav) return
 
 		nav.querySelector<HTMLElement>('[aria-current="page"]')?.focus()
-	}, [pageIndex])
+	}, [navigations])
 
 	return (
 		<div data-slot="grid-pagination" className={cn(k.footer.bar)}>
 			{showNav && (
 				<div ref={navRef} className={cn(k.footer.nav)}>
 					<Pagination>
-						<PaginationPrevious onClick={() => goToPage(pageIndex - 1)} disabled={!canPrevious} />
+						<PaginationPrevious
+							onClick={() => goToPage((index) => index - 1)}
+							disabled={!canPrevious}
+						/>
 
 						{knownPages && (
 							<PaginationList>
@@ -156,7 +160,7 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 							</PaginationList>
 						)}
 
-						<PaginationNext onClick={() => goToPage(pageIndex + 1)} disabled={!canNext} />
+						<PaginationNext onClick={() => goToPage((index) => index + 1)} disabled={!canNext} />
 					</Pagination>
 				</div>
 			)}

@@ -4,7 +4,7 @@ import { Dialog, DialogBody } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { renderUI, userEvent } from '../helpers'
 import { axe } from '../helpers/axe'
-import { baseline, interactive, overlays } from './cases'
+import { baseline, interactive, overlays, rows } from './cases'
 
 /**
  * Component a11y compliance gate (axe-core): every component, rendered in its
@@ -16,7 +16,7 @@ import { baseline, interactive, overlays } from './cases'
  */
 
 describe('a11y baseline (axe)', () => {
-	it.each(baseline)('%s has no axe violations', async (_name, element) => {
+	it.each(rows(baseline))('%s has no axe violations', async (_name, { element }) => {
 		const { container } = renderUI(element)
 
 		expect(await axe(container)).toHaveNoViolations()
@@ -30,7 +30,7 @@ describe('a11y baseline (axe)', () => {
  * between cases.
  */
 describe('a11y baseline (axe): overlays', () => {
-	it.each(overlays)('%s has no axe violations', async (_name, element) => {
+	it.each(rows(overlays))('%s has no axe violations', async (_name, { element }) => {
 		renderUI(element)
 
 		expect(await axe(document.body)).toHaveNoViolations()
@@ -44,7 +44,7 @@ describe('a11y baseline (axe): overlays', () => {
  * and cleanup as the overlays gate.
  */
 describe('a11y baseline (axe): interactive', () => {
-	it.each(interactive)('%s has no axe violations', async (_name, element, open) => {
+	it.each(rows(interactive))('%s has no axe violations', async (_name, { element, open }) => {
 		const user = userEvent.setup()
 
 		renderUI(element)

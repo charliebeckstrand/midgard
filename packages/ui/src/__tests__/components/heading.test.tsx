@@ -22,14 +22,6 @@ describe('Heading', () => {
 		expect(heading?.tagName).toBe(`H${level}`)
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Heading id="main-title">Main</Heading>)
-
-		const heading = bySlot(container, 'heading')
-
-		expect(heading).toHaveAttribute('id', 'main-title')
-	})
-
 	describe('size', () => {
 		it('renders each level at its natural size by default', () => {
 			const { container } = renderUI(

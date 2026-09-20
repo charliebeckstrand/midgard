@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ColorPanel, ColorPanelSkeleton, ColorPicker } from '../../components/color'
+import { ColorPanel, ColorPicker } from '../../components/color'
 import {
 	equalHsva,
 	hexToHsva,
@@ -191,14 +191,6 @@ describe('ColorPanel', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" swatches={false} />)
 
 		expect(allBySlot(container, 'color-swatch')).toHaveLength(0)
-	})
-
-	it('pairs with an explicit ColorPanelSkeleton in loading trees', () => {
-		const { container } = renderUI(<ColorPanelSkeleton />)
-
-		expect(bySlot(container, 'color-panel')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
 

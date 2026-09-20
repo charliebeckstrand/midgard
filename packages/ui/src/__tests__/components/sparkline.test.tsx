@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Sparkline, SparklineSkeleton } from '../../components/sparkline'
+import { Sparkline } from '../../components/sparkline'
 import { sparklineGeometry } from '../../components/sparkline/sparkline-geometry'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { DensityProvider } from '../../providers/density'
@@ -95,14 +95,6 @@ describe('Sparkline', () => {
 		)
 
 		expect(bySlot(container, 'sparkline')).toHaveAttribute('aria-labelledby', 'lbl')
-	})
-
-	it('pairs with an explicit SparklineSkeleton in loading trees', () => {
-		const { container } = renderUI(<SparklineSkeleton />)
-
-		expect(bySlot(container, 'sparkline')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
 

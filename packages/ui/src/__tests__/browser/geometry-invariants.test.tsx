@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { baseline } from '../a11y/cases'
+import { baseline, rows } from '../a11y/cases'
 import { renderUI } from '../helpers'
 import {
 	clippedText,
@@ -25,7 +25,7 @@ import {
  * geometry, so overlap/overflow assertions would test the mock.
  */
 describe('geometry invariants: baseline', () => {
-	it.each(baseline)('%s holds the layout invariants', (_name, element) => {
+	it.each(rows(baseline))('%s holds the layout invariants', (_name, { element }) => {
 		const { container } = renderUI(element)
 
 		expect(collapsedTargets(container)).toEqual([])
