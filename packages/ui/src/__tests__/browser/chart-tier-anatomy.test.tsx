@@ -135,7 +135,7 @@ describe('chart intrinsic tiers (real browser)', () => {
 
 		const svg = present<SVGSVGElement>(
 			bySlot(container, 'chart-plot')?.querySelector('svg'),
-			'chart-plot',
+			'the chart-plot svg',
 		)
 
 		const bottom = svg.getBoundingClientRect().bottom

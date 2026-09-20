@@ -1,8 +1,8 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
-import { afterEach, beforeEach, inject, onTestFinished } from 'vitest'
+import { afterEach, inject, vi } from 'vitest'
 import { resetSingletons } from '../helpers/reset-singletons'
-import { absorbResidue, assertNoResidue } from '../helpers/residue'
+import { installResidueGuard } from '../helpers/residue'
 
 import './jsdom-stubs'
 import './locale-guard'
@@ -22,13 +22,17 @@ configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 // `cleanup()` removes the containers React owns and nothing else, so a node a
 // case appended to the body outlives it. See `helpers/residue.ts` for the
 // placement this registration depends on.
-beforeEach(() => {
-	absorbResidue()
-
-	onTestFinished(assertNoResidue)
-})
+installResidueGuard()
 
 afterEach(() => {
+	// Fifteen files install a fake clock, and a `finally` in a case restores it
+	// when the body throws but not when the runner aborts the body at
+	// `testTimeout`. The clock then leaks into the next case and, on a shared
+	// worker, into the next file. `useRealTimers` is guarded internally, so this
+	// is a no-op wherever no clock is installed, and no file in the package
+	// installs one in a `beforeAll` that it means to outlive a case.
+	vi.useRealTimers()
+
 	cleanup()
 
 	// The announcer's live region lives on document.body, outside React's tree;

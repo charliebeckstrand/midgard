@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { bySlot, present, renderUI, waitFor } from '../helpers'
+import { getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * A side legend lays out against the chart's own container width, not the
@@ -40,9 +40,9 @@ describe('chart side-legend container query (real browser)', () => {
 		// (576) — the rail now engages here, where it once still stacked.
 		const { container } = renderUI(<div style={{ width: 500 }}>{chart()}</div>)
 
-		const body = present(bySlot(container, 'chart-body'), 'chart-body')
-		const legend = present(bySlot(container, 'chart-legend'), 'chart-legend')
-		const box = present(bySlot(container, 'aspect-ratio'), 'aspect-ratio')
+		const body = getSlot(container, 'chart-body')
+		const legend = getSlot(container, 'chart-legend')
+		const box = getSlot(container, 'aspect-ratio')
 
 		await waitFor(() => expect(box.getBoundingClientRect().width).toBeGreaterThan(0))
 
@@ -69,8 +69,8 @@ describe('chart side-legend container query (real browser)', () => {
 	it('stacks the legend below and gives the plot full width in a narrow container', async () => {
 		const { container } = renderUI(<div style={{ width: 340 }}>{chart()}</div>)
 
-		const body = present(bySlot(container, 'chart-body'), 'chart-body')
-		const box = present(bySlot(container, 'aspect-ratio'), 'aspect-ratio')
+		const body = getSlot(container, 'chart-body')
+		const box = getSlot(container, 'aspect-ratio')
 
 		await waitFor(() => expect(box.getBoundingClientRect().width).toBeGreaterThan(0))
 

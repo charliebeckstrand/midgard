@@ -44,7 +44,7 @@ describe('spark scatter fits and centers in its box (real browser)', () => {
 	const discs = (container: HTMLElement) => {
 		const svg = present<SVGSVGElement>(
 			bySlot(container, 'chart-plot')?.querySelector('svg'),
-			'chart-plot',
+			'the chart-plot svg',
 		)
 
 		const box = { width: svg.viewBox.baseVal.width, height: svg.viewBox.baseVal.height }

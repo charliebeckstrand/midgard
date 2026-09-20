@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, waitFor } from '../helpers'
 
 /**
  * Column pinning against a real layout engine: sticky positioning only resolves
@@ -201,7 +201,7 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		const edges = (id: string) => (cell(container, id) as HTMLElement).getBoundingClientRect()
 
 		// The selection column leads the left edge; it carries no `data-grid-col`.
-		const select = (container.querySelector('tbody td') as HTMLElement).getBoundingClientRect()
+		const select = present(container.querySelector('tbody td'), 'tbody td').getBoundingClientRect()
 
 		await waitFor(() => expect(edges('name').left).toBeCloseTo(select.right, 0))
 
@@ -266,10 +266,10 @@ describe('frozen chrome tracks live pin and size changes (real browser)', () => 
 	const getKey = (row: Row) => row.id
 
 	const cell = (root: HTMLElement, id: string) =>
-		root.querySelector<HTMLElement>(`td[data-grid-col="${id}"]`) as HTMLElement
+		present(root.querySelector(`td[data-grid-col="${id}"]`), `td[data-grid-col="${id}"]`)
 
 	const head = (root: HTMLElement, id: string) =>
-		root.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`) as HTMLElement
+		present(root.querySelector(`th[data-grid-col="${id}"]`), `th[data-grid-col="${id}"]`)
 
 	// The boundary rule is drawn as an `::after` overlay, so "carries the rule"
 	// reads off the painted pseudo-element rather than the class list.

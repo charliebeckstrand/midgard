@@ -18,14 +18,6 @@ function stubClipboard(writeText: (value: string) => Promise<void>) {
 }
 
 describe('CopyButton', () => {
-	// A `finally` in a case restores the clock when the body throws, and not
-	// when the runner aborts the body at `testTimeout` — which leaks a fake
-	// clock into the next case, and into the next file on a shared worker.
-	// This hook runs either way.
-	afterEach(() => {
-		vi.useRealTimers()
-	})
-
 	afterEach(() => {
 		vi.restoreAllMocks()
 	})

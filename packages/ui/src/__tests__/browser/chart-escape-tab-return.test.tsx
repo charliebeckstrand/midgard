@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LineChart } from '../../modules/chart/line-chart'
-import { bySlot, present, renderUI, userEvent, waitFor } from '../helpers'
+import { getSlot, present, renderUI, userEvent, waitFor } from '../helpers'
 
 /**
  * Escape leaves a chart's keyboard navigation by dropping focus to the body, the
@@ -33,7 +33,7 @@ describe('chart Escape then Tab returns to the plot (real browser)', () => {
 			</>,
 		)
 
-		const plot = present(bySlot(container, 'chart-plot'), 'chart-plot')
+		const plot = getSlot(container, 'chart-plot')
 
 		const after = present(container.querySelector('button:last-child'), 'button:last-child')
 

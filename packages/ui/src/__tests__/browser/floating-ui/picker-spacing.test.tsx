@@ -72,7 +72,10 @@ describe('layout stability (real browser): portal pickers in a space-y container
 				'[data-testid="stack"]',
 			)
 
-			const control = stack.querySelector(`[data-slot="${controlSlot}"]`) as HTMLElement
+			const control = present(
+				stack.querySelector(`[data-slot="${controlSlot}"]`),
+				`[data-slot="${controlSlot}"]`,
+			)
 
 			const closedHeight = Math.round(stack.getBoundingClientRect().height)
 

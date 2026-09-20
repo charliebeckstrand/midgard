@@ -4,7 +4,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
+import { allBySlot, bySlot, getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * A sparkline is non-interactive. At the spark tier a chart draws bare marks and
@@ -172,9 +172,9 @@ describe('spark tier is non-interactive (real browser)', () => {
 	it('a spark bar takes no hover styling — the drawing is pointer-inert', async () => {
 		const { container } = renderUI(hoverBar(140, 100))
 
-		const root = present(bySlot(container, 'chart'), 'chart')
+		const root = getSlot(container, 'chart')
 
-		const mark = present(bySlot(container, 'chart-bar'), 'chart-bar')
+		const mark = getSlot(container, 'chart-bar')
 
 		// The bar really sits under the chart's center, where the hover will park.
 		const rect = root.getBoundingClientRect()
@@ -207,9 +207,9 @@ describe('spark tier is non-interactive (real browser)', () => {
 	it('a framed bar keeps its hover lift', async () => {
 		const { container } = renderUI(hoverBar(520, 320))
 
-		const mark = present(bySlot(container, 'chart-bar'), 'chart-bar')
+		const mark = getSlot(container, 'chart-bar')
 
-		const hit = present(bySlot(container, 'chart-hit'), 'chart-hit')
+		const hit = getSlot(container, 'chart-hit')
 
 		expect(lifted(container)).toBe(false)
 
@@ -247,7 +247,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 	it('a spark reference rule draws bare and takes no pointer events', async () => {
 		const { container } = renderUI(referenced(140, 100))
 
-		const rule = present(bySlot(container, 'chart-reference-line'), 'chart-reference-line')
+		const rule = getSlot(container, 'chart-reference-line')
 
 		// The rule still draws — spark strips interactivity, not the ink — but as
 		// the bare stroke alone: no transparent hit line widens it into a target.
@@ -257,7 +257,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		expect(getComputedStyle(rule).pointerEvents).toBe('none')
 
-		const root = present(bySlot(container, 'chart'), 'chart')
+		const root = getSlot(container, 'chart')
 
 		await userEvent.hover(root)
 
@@ -265,7 +265,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		// Pointing where the rule sits recedes no marks — the hover rendering, whose
 		// pointer-enter drives that emphasis (and the tooltip), never mounted.
-		const marks = present(bySlot(container, 'chart-marks'), 'chart-marks')
+		const marks = getSlot(container, 'chart-marks')
 
 		expect(marks.classList.contains('opacity-25')).toBe(false)
 	})
@@ -273,7 +273,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 	it('a framed reference rule keeps its hover target and emphasis', async () => {
 		const { container } = renderUI(referenced(520, 320))
 
-		const rule = present(bySlot(container, 'chart-reference-line'), 'chart-reference-line')
+		const rule = getSlot(container, 'chart-reference-line')
 
 		// The hover rendering: the drawn stroke under its wide transparent hit line.
 		expect(rule.querySelectorAll('line')).toHaveLength(2)
@@ -285,7 +285,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 		// pointer-enter fired; the readout it also opens rides the floating engine
 		// this suite mocks, so the live-tooltip contract stays with the floating-ui
 		// suite's Tooltip cases.
-		const region = present(bySlot(container, 'chart-plot'), 'chart-plot')
+		const region = getSlot(container, 'chart-plot')
 
 		const regionBox = region.getBoundingClientRect()
 
@@ -299,9 +299,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 		})
 
 		await waitFor(() =>
-			expect(
-				(bySlot(container, 'chart-marks') as HTMLElement).classList.contains('opacity-25'),
-			).toBe(true),
+			expect(getSlot(container, 'chart-marks').classList.contains('opacity-25')).toBe(true),
 		)
 	})
 

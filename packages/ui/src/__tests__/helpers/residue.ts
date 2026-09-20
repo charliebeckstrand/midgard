@@ -1,3 +1,5 @@
+import { beforeEach, onTestFinished } from 'vitest'
+
 import { describeNode } from './describe-node'
 
 /**
@@ -52,11 +54,8 @@ let bodyClass = ''
 
 let rootStyle = ''
 
-/**
- * Records the page state this test inherits. Call it from a `beforeEach`,
- * before the test renders anything.
- */
-export function absorbResidue(): void {
+/** Records the page state this test inherits. */
+function absorbResidue(): void {
 	children = new WeakSet<Element>()
 
 	for (const node of document.body.children) children.add(node)
@@ -96,26 +95,41 @@ function collect(): string[] {
 /**
  * Throws when the page carries state the test did not inherit.
  *
- * Register it with `onTestFinished` from the setup's `beforeEach`, which is the
- * one placement that reads what every other teardown left. Measured: the order
- * is the setup's `afterEach`, then each test's own `onTestFinished` in reverse,
- * then this. A test's `afterEach` runs earlier still, so both spellings of a
- * per-test cleanup land before the check.
- *
- * Calling it from the setup's own `afterEach` instead — where it began — reads
- * the page before any `onTestFinished` has run, and so fails a test that
- * removed its node exactly as the message below tells it to.
+ * Both halves are private, because the order they run in is the whole contract
+ * and a caller that could spell it could spell it wrong. {@link guardResidue}
+ * is the only way in.
  */
-export function assertNoResidue(): void {
+function assertNoResidue(): void {
 	const leaks = collect()
-
-	// Absorb before throwing. The next test inherits a clean expectation, and
-	// fails only for what it leaks itself.
-	absorbResidue()
 
 	if (leaks.length === 0) return
 
 	throw new Error(
 		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nRemove it in onTestFinished or an afterEach, or render inside the container renderUI returns.`,
 	)
+}
+
+/**
+ * Guards the page for every test of a suite. Call it from a setup file's
+ * `beforeEach`.
+ *
+ * The snapshot is taken now, and the check is registered with
+ * `onTestFinished` — the one placement that reads what every other teardown
+ * left. Measured, the order is the setup's `afterEach`, then each test's own
+ * `onTestFinished` in reverse, then this. A test's `afterEach` runs earlier
+ * still, so both spellings of a per-test cleanup land before the check.
+ *
+ * The check ran from the setup's own `afterEach` first, which reads the page
+ * before any `onTestFinished` has, and so failed eleven cases that removed
+ * their node exactly as the message above tells them to.
+ */
+export function guardResidue(): void {
+	absorbResidue()
+
+	onTestFinished(assertNoResidue)
+}
+
+/** Registers {@link guardResidue} for every test a setup file serves. */
+export function installResidueGuard(): void {
+	beforeEach(guardResidue)
 }

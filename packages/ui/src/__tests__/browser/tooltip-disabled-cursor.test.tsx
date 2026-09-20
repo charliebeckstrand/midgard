@@ -34,7 +34,10 @@ describe('a disabled tooltip trigger (real browser)', () => {
 
 		return {
 			control,
-			child: control.querySelector('[data-slot="probe-child"]') as HTMLElement,
+			child: present(
+				control.querySelector('[data-slot="probe-child"]'),
+				'[data-slot="probe-child"]',
+			),
 		}
 	}
 

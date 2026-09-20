@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { bySlot, renderUI, screen, waitFor } from '../../helpers'
+import { getSlot, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Tooltip `:disabled` gating against the real floating engine. The jsdom and
@@ -23,7 +23,7 @@ describe('Tooltip disabled gating (real browser)', () => {
 			</Tooltip>,
 		)
 
-		await userEvent.hover(bySlot(container, 'tooltip-trigger') as HTMLElement)
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
 
 		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
 	})
@@ -51,7 +51,7 @@ describe('Tooltip disabled gating (real browser)', () => {
 		)
 
 		// The hover stays on the disabled trigger; the gate must veto its open.
-		await userEvent.hover(bySlot(container, 'tooltip-trigger') as HTMLElement)
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
 
 		// Focus (not hover) the enabled sentinel so the pointer never leaves the
 		// disabled trigger. Awaiting the sentinel's focus tooltip is a deterministic
@@ -80,7 +80,7 @@ describe('Tooltip disabled gating (real browser)', () => {
 
 		const { container, rerender } = renderUI(<Harness disabled={false} />)
 
-		await userEvent.hover(bySlot(container, 'tooltip-trigger') as HTMLElement)
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
 
 		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
 

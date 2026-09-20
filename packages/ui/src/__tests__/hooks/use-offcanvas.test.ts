@@ -141,10 +141,6 @@ function stubViewportCrossing(): { mql: MqlMock; cross: (matches: boolean) => vo
 }
 
 describe('useOffcanvas: breakpoint listener', () => {
-	// No restore hook: both stubs go through `vi.stubGlobal`, which the config's
-	// `unstubGlobals` reverts before the next test. A raw `window.x =` assignment
-	// is invisible to it and needs the hand-written hook this replaces.
-
 	it('auto-closes when the viewport crosses --breakpoint-lg', () => {
 		const { cross } = stubViewportCrossing()
 

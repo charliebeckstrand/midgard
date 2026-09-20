@@ -1,13 +1,8 @@
 import { readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import {
-	collectPatternViolations,
-	srcDir,
-	stripSourceComments,
-	walkSource,
-} from '../helpers/walk-source'
+import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 // A project that runs `isolate: false` shares one module registry across every
 // file a worker runs; vitest.config.ts records what that buys. Two calls break
@@ -53,9 +48,10 @@ const FORBIDDEN_PATTERNS = [
 // states the file's width once, before any case runs. Vitest resets the page
 // to `browser.viewport` before each file, so nothing crosses a file boundary
 // and no departure hook is needed.
-const VIEWPORT_CALL = /page\.viewport\(/
-
-const VIEWPORT_DECLARATION = /^\s*beforeAll\(\(\) => page\.viewport\(\d+, \d+\)\)$/
+const LOOSE_VIEWPORT = {
+	label: 'viewport set outside a beforeAll',
+	regex: /^(?!\s*beforeAll\(\(\) => page\.viewport\().*page\.viewport\(.*$/gm,
+} as const
 
 describe('test isolation boundary', () => {
 	it('no file in a shared-registry project mutates the module registry', () => {
@@ -103,18 +99,10 @@ describe('test isolation boundary', () => {
 	})
 
 	it('sets a browser viewport only in a beforeAll', () => {
-		const loose: string[] = []
-
-		walkSource(join(testsDir, 'browser'), (file, content) => {
-			stripSourceComments(content)
-				.split('\n')
-				.forEach((line, index) => {
-					if (!VIEWPORT_CALL.test(line)) return
-
-					if (VIEWPORT_DECLARATION.test(line)) return
-
-					loose.push(`${relative(srcDir, file)}:${index + 1}`)
-				})
+		const loose = collectPatternViolations({
+			dir: join(testsDir, 'browser'),
+			patterns: [LOOSE_VIEWPORT],
+			stripComments: true,
 		})
 
 		expect(

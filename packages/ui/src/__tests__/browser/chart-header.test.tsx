@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { bySlot, present, renderUI, waitFor } from '../helpers'
+import { bySlot, getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * A chart title and subtitle band above the plot inside the aspect box, so the
@@ -43,13 +43,13 @@ describe('chart header (real browser)', () => {
 			return el as HTMLElement
 		})
 
-		expect((bySlot(container, 'chart-title') as HTMLElement).textContent).toBe('Revenue')
+		expect(getSlot(container, 'chart-title').textContent).toBe('Revenue')
 
-		expect((bySlot(container, 'chart-subtitle') as HTMLElement).textContent).toBe('by quarter')
+		expect(getSlot(container, 'chart-subtitle').textContent).toBe('by quarter')
 
-		const figure = present(bySlot(container, 'chart-figure'), 'chart-figure')
+		const figure = getSlot(container, 'chart-figure')
 
-		const plot = present(bySlot(container, 'chart-plot'), 'chart-plot')
+		const plot = getSlot(container, 'chart-plot')
 
 		// Inline, not a veil: the header sits in the flow, above the plot.
 		expect(getComputedStyle(header).position).not.toBe('absolute')
@@ -93,7 +93,7 @@ describe('chart header (real browser)', () => {
 		expect(getComputedStyle(veil).opacity).toBe('0')
 
 		// Hovering the chart fades it in.
-		await userEvent.hover(bySlot(container, 'chart') as HTMLElement)
+		await userEvent.hover(getSlot(container, 'chart'))
 
 		await waitFor(() => expect(getComputedStyle(veil).opacity).toBe('1'))
 	})

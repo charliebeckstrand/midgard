@@ -56,7 +56,7 @@ describe('pie callout labels at the spark floor (real browser)', () => {
 		// its width — rather than the thin callout band that collapsed it before.
 		const svg = present<SVGSVGElement>(
 			bySlot(container, 'chart-plot')?.querySelector('svg'),
-			'chart-plot',
+			'the chart-plot svg',
 		)
 
 		const [, , boxW, boxH] = (svg.getAttribute('viewBox') ?? '').split(' ').map(Number)

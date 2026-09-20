@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, beforeEach, expect, inject, onTestFinished } from 'vitest'
+import { afterEach, expect, inject } from 'vitest'
 import { resetSingletons } from '../../helpers/reset-singletons'
-import { absorbResidue, assertNoResidue } from '../../helpers/residue'
+import { installResidueGuard } from '../../helpers/residue'
 import { pageState } from './forensics'
 import './tailwind.css'
 
@@ -20,20 +20,13 @@ expect.extend(toHaveNoViolations)
 // jsdom projects took 4s on CI.
 declare module 'vitest' {
 	interface ProvidedContext {
-		slowFactor: number
+		budgetFactor: number
 	}
 }
 
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
-beforeEach(() => {
-	absorbResidue()
-
-	// Registered here rather than called from the teardown below, so the check
-	// reads what every other teardown left. The order is that `afterEach`, then
-	// each test's own `onTestFinished` in reverse, then this one.
-	onTestFinished(assertNoResidue)
-})
+installResidueGuard()
 
 afterEach((ctx) => {
 	// Read before cleanup, so the dump describes the page the failing test left,

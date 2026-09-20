@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { bySlot, present, renderUI, waitFor } from '../helpers'
+import { bySlot, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * A side (left / right) legend keeps the `aspectRatio` on the plot box and bands
@@ -46,9 +46,9 @@ describe('chart aspect ratio with a side legend (real browser)', () => {
 			</div>,
 		)
 
-		const figure = present(bySlot(container, 'chart-figure'), 'chart-figure')
-		const box = present(bySlot(container, 'aspect-ratio'), 'aspect-ratio')
-		const legend = present(bySlot(container, 'chart-legend'), 'chart-legend')
+		const figure = getSlot(container, 'chart-figure')
+		const box = getSlot(container, 'aspect-ratio')
+		const legend = getSlot(container, 'chart-legend')
 
 		// The plot box carries the ratio itself — the figure reserves none, so the
 		// drawing can't be squeezed to fit the whole chart into 16:9.

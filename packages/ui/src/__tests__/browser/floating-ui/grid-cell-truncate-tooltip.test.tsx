@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { fireEvent, frames, renderUI, screen, waitFor } from '../../helpers'
 import { pause } from '../helpers/wall-clock'
 
 /**
@@ -239,7 +239,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const settledSpan = async (root: HTMLElement) => {
 			await waitFor(() => expect(cellSpan(root)).not.toBeNull())
 
-			await pause(20)
+			await frames()
 
 			const span = cellSpan(root)
 

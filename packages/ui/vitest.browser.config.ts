@@ -1,10 +1,48 @@
 import { resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
+import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
-import { docsPlugin } from './src/docs/engine/plugins'
 
 const CI = Boolean(process.env.CI)
+
+const COMPONENT_MODULES = 'virtual:component-modules'
+
+/**
+ * Resolves `virtual:component-modules` to an empty map.
+ *
+ * Nothing this suite runs imports it — a crawl of every relative import from
+ * `src/__tests__/browser/` reaches 1,492 files and none under `src/docs/`.
+ * Esbuild's dependency scan reaches it anyway, and an unresolvable module stops
+ * the scan dead: Vite then reports "Failed to run dependency scan. Skipping
+ * dependency pre-bundling" and pre-bundles only the `include` list below,
+ * finding every other package one request at a time. Measured cold on a 4-core
+ * container: eight packages arrived that way, two of them after the first test
+ * started, and each arrival re-runs the optimizer and reloads the page.
+ * `@vitest/browser` names the cost in its own warning — "Vite unexpectedly
+ * reloaded a test. This may cause tests to fail, lead to flaky behaviour or
+ * duplicated test runs."
+ *
+ * A stub rather than the real `docsPlugin` the node config gives `unit` and
+ * `pure`. The plugin resolves the module, but it also imports ts-morph and
+ * typescript at module scope, walks every barrel and demo to build the real
+ * map, and rewrites each barrel it serves to carry `__module` / `__name` — so
+ * the suite would test docs-tagged barrels rather than the ones it ships. An
+ * empty map is semantically exact here, because no file reads it.
+ *
+ * With the scan whole, lazy arrivals fall to zero and the warm run takes 26.3s
+ * against 30.3s.
+ */
+function componentModulesStub(): Plugin {
+	return {
+		name: 'component-modules-stub',
+		resolveId: (source) => (source === COMPONENT_MODULES ? `\0${COMPONENT_MODULES}` : null),
+		load: (resolved) =>
+			resolved === `\0${COMPONENT_MODULES}`
+				? 'export default { packageName: "", names: {} }'
+				: null,
+	}
+}
 
 /**
  * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
@@ -33,30 +71,10 @@ const CI = Boolean(process.env.CI)
  * config, unlike project-level paths which Vite resolves normally.
  */
 export default defineConfig({
-	// `docsPlugin` serves `virtual:component-modules`. Without it the module has
-	// no resolver, esbuild's dependency scan stops at the first import of it, and
-	// Vite reports "Failed to run dependency scan. Skipping dependency
-	// pre-bundling." The optimizer then pre-bundles only the `include` list
-	// below, and finds every other package one request at a time. Measured cold
-	// on a 4-core container: eight packages arrived that way, two of them after
-	// the first test started. Each arrival re-runs the optimizer, and Vitest
-	// reloads the page to pick up the new bundle — which drops the in-flight
-	// test's imports. `@vitest/browser` names the cost in its own warning: "Vite
-	// unexpectedly reloaded a test. This may cause tests to fail, lead to flaky
-	// behaviour or duplicated test runs."
-	//
-	// The plugin is the same one `vitest.config.ts` gives `unit` and `pure`.
-	// `vitest: true` keeps the real component-modules map and builds no
-	// TypeScript project, so it costs one virtual module and no scan of its own.
-	// With the scan whole, lazy arrivals fall to zero and the warm run takes
-	// 26.3s against 30.3s.
-	plugins: [tailwindcss(), docsPlugin({ vitest: true })],
-	// Pre-bundle the component dependency set so the optimizer doesn't discover
-	// them lazily and reload the page mid-run (which drops the in-flight test
-	// import). The browser pool can't recover from that reload the way the node
-	// pool can, so these must be declared up front. The scan above finds the
-	// same packages on its own now, so this list is the floor and not the whole
-	// set: it still covers the heavy graph if a later edit breaks the scan.
+	plugins: [tailwindcss(), componentModulesStub()],
+	// The floor, not the whole set: the scan above finds these on its own, and
+	// this list still covers the heavy graph if a later edit breaks it. The cost
+	// of a package the optimizer finds late is written above the stub.
 	optimizeDeps: {
 		include: [
 			'@dnd-kit/core',
@@ -105,20 +123,17 @@ export default defineConfig({
 		// than as an opaque test timeout.
 		testTimeout: 15_000,
 		hookTimeout: 30_000,
-		// `slowFactor` scales the wall-clock holds a few cases cannot express as a
-		// `waitFor` — a component's own delay must expire before "nothing
-		// happened" means anything. `browser/helpers/wall-clock.ts` reads it. It
-		// takes 2 rather than the budget's 4, because a hold spends its time on
-		// every green run where a budget only bounds a failure.
-		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, slowFactor: CI ? 2 : 1 },
-		// Both instances run `isolate: false`, so one page and one module registry
-		// serve every file the instance runs. A spy or a stub that a test does not
-		// restore therefore outlives its own file, exactly as it would in `unit`.
-		// These are the four settings `vitest.config.ts` carries for that reason,
-		// and the browser config carried none of them: restoreMocks reverts
-		// `vi.spyOn` spies, clearMocks drops call history, and the two unstub
-		// settings revert `vi.stubGlobal` and `vi.stubEnv`. All four run ahead of
-		// `beforeEach`, so setup in a hook or a test body is reapplied untouched.
+		// A `waitFor` override in a case that needs longer than the budget above
+		// scales by the same rule; `browser/helpers/wall-clock.ts` reads this.
+		// It governs no real-time hold: a budget costs nothing on a green run,
+		// where a hold spends its full value every time.
+		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, budgetFactor: CI ? 2 : 1 },
+		// The four settings `vitest.config.ts` carries for the shared registry
+		// `isolate` declares below, and which this config carried none of:
+		// restoreMocks reverts `vi.spyOn` spies, clearMocks drops call history,
+		// and the two unstub settings revert `vi.stubGlobal` and `vi.stubEnv`.
+		// All four run ahead of `beforeEach`, so setup in a hook or a test body
+		// is reapplied untouched.
 		restoreMocks: true,
 		clearMocks: true,
 		unstubGlobals: true,
@@ -151,25 +166,22 @@ export default defineConfig({
 			provider: playwright(),
 			headless: true,
 			screenshotFailures: false,
-			// The size every file arrives at. Vitest resets the iframe to this
-			// value before each file, so a file that sets its own size keeps it to
-			// itself: measured across a full run, all 108 files arrive here and
-			// sixteen depart at a size of their own. A file therefore inherits
-			// nothing from the file before it, and needs no restore.
+			// The size every file arrives at. Vitest resets the iframe to this value
+			// before each file, so a file that sets its own size keeps it to itself:
+			// measured across a full run, all 108 files arrive here and sixteen
+			// depart at a size of their own. A file inherits nothing from the file
+			// before it, and needs no restore.
 			//
 			// 414x896 is the value the suite has always run at, because it is
 			// Vitest's own default (`resolved.browser.viewport.width ??= 414`).
 			// Declaring it changes nothing today and stops a version bump from
-			// moving it. It is also the right end of the range to gate at: this is
-			// the narrow width, where horizontal overflow and target-size
-			// violations surface, and `browser/geometry-invariants.test.tsx` states
-			// its own contract as "no page-level horizontal overflow at the default
-			// viewport". At a desktop width that gate asserts almost nothing.
+			// moving it. It is also the right end of the range to gate at:
+			// `browser/geometry-invariants.test.tsx` states its contract as no
+			// page-level horizontal overflow at the default viewport, which asserts
+			// almost nothing at a desktop width. The whole suite passes at 1280x800,
+			// so gating wide later costs no edits.
 			//
-			// A file whose geometry needs another size declares it once, in a
-			// `beforeAll` at the top of its describe; `test-isolation-boundary`
-			// holds that placement. The whole suite passes at 1280x800 as well, so
-			// a later decision to gate at a desktop width costs no edits.
+			// `test-isolation-boundary` holds where a file may declare another size.
 			viewport: { width: 414, height: 896 },
 			instances: [
 				{

@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
+import { allBySlot, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The side rail reserves a share of the chart's container (`min(16rem, 40cqw)`)
@@ -34,8 +34,8 @@ describe('chart legend panel (real browser)', () => {
 			/>,
 		)
 
-		const panel = present(bySlot(container, 'chart-legend'), 'chart-legend')
-		const block = present(bySlot(container, 'chart-legend-items'), 'chart-legend-items')
+		const panel = getSlot(container, 'chart-legend')
+		const block = getSlot(container, 'chart-legend-items')
 
 		// The rail is `min(16rem, 40cqw)` — 40cqw of this 640px chart is 256px, which
 		// meets the 16rem cap, so it reads ~256 here (not a half-width ~320 panel).

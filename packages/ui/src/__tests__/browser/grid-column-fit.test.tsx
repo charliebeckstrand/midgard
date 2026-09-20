@@ -43,13 +43,13 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		const table = present(container.querySelector('table'), 'table')
 
-		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
+		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
 
 		const header = (id: string) =>
-			container.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`) as HTMLElement
+			present(container.querySelector(`th[data-grid-col="${id}"]`), `th[data-grid-col="${id}"]`)
 
 		const title = (id: string) =>
-			header(id).querySelector<HTMLElement>('[data-grid-content]') as HTMLElement
+			present(header(id).querySelector('[data-grid-content]'), '[data-grid-content]')
 
 		return { container, table, scroll, header, title }
 	}
@@ -222,12 +222,18 @@ describe('grid column auto-sizing (real browser)', () => {
 		)
 
 		// Nothing in the chip row is cut off by its wrapper…
-		const wrap = container.querySelector<HTMLElement>('td [data-grid-content] > div') as HTMLElement
+		const wrap = present(
+			container.querySelector('td [data-grid-content] > div'),
+			'td [data-grid-content] > div',
+		)
 
 		expect(wrap.scrollWidth).toBeLessThanOrEqual(wrap.clientWidth + 1)
 
 		// …and the row isn't clipped by the cell's truncating leaf either.
-		const leaf = container.querySelector<HTMLElement>('td [data-grid-content]') as HTMLElement
+		const leaf = present(
+			container.querySelector('td [data-grid-content]'),
+			'td [data-grid-content]',
+		)
 
 		expect(leaf.scrollWidth).toBeLessThanOrEqual(leaf.clientWidth + 1)
 	})
@@ -376,7 +382,7 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		const table = present(container.querySelector('table'), 'table')
 
-		const scroll = container.querySelector<HTMLElement>('[data-slot="table"]') as HTMLElement
+		const scroll = present(container.querySelector('[data-slot="table"]'), '[data-slot="table"]')
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
@@ -462,7 +468,7 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 		const { container } = renderUI(<AsyncGrid stable />)
 
 		const header = () =>
-			container.querySelector<HTMLElement>('th[data-grid-col="loadId"]') as HTMLElement
+			present(container.querySelector('th[data-grid-col="loadId"]'), 'th[data-grid-col="loadId"]')
 
 		// Sample every frame across the skeleton → rows transition, keeping the width
 		// each frame that had rendered rows in it.

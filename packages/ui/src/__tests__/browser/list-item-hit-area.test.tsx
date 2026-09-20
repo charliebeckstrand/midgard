@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { List, ListItem, ListLabel } from '../../components/list'
-import { bySlot, present, renderUI } from '../helpers'
+import { getSlot, present, renderUI } from '../helpers'
 
 /**
  * An interactive row answers the pointer everywhere it is painted (WCAG 2.5.8,
@@ -64,9 +64,9 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = present(bySlot(container, 'list-item'), 'list-item')
+		const row = getSlot(container, 'list-item')
 
-		const content = present(bySlot(container, 'list-item-content'), 'list-item-content')
+		const content = getSlot(container, 'list-item-content')
 
 		// 5px in from the row's top-left corner: inside the 1px border and the 12px
 		// padding, and well clear of the content column.
@@ -104,7 +104,7 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = present(bySlot(container, 'list-item'), 'list-item')
+		const row = getSlot(container, 'list-item')
 
 		// No handler to serve, so the padding stays the row's own — a row that grew
 		// a target it does not paint would read as clickable and act on nothing.
@@ -122,9 +122,9 @@ describe('list item hit area (real browser)', () => {
 			</List>,
 		)
 
-		const row = present(bySlot(container, 'list-item'), 'list-item')
+		const row = getSlot(container, 'list-item')
 
-		const handle = present(bySlot(container, 'list-handle'), 'list-handle')
+		const handle = getSlot(container, 'list-handle')
 
 		const box = handle.getBoundingClientRect()
 

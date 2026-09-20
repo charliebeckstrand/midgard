@@ -61,7 +61,7 @@ describe('grid column resizing (real browser)', () => {
 	}
 
 	const nameHeader = (root: HTMLElement) =>
-		root.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
+		present(root.querySelector('th[data-grid-col="name"]'), 'th[data-grid-col="name"]')
 
 	it('confines the resize handle to the header, not down the column', async () => {
 		const { container, separator } = setup()
@@ -88,7 +88,10 @@ describe('grid column resizing (real browser)', () => {
 	it('shows a short grip at rest, centred in the header trailing edge', async () => {
 		const { container, separator } = setup()
 
-		const grip = separator.querySelector<HTMLElement>('span[aria-hidden="true"]') as HTMLElement
+		const grip = present(
+			separator.querySelector('span[aria-hidden="true"]'),
+			'span[aria-hidden="true"]',
+		)
 
 		// Always visible — no hover needed; the edge reads as resizable at rest, the
 		// whole point of the change versus the old hidden-until-hover grip.
@@ -286,7 +289,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
 	}
 
 	const nameHeader = (root: HTMLElement) =>
-		root.querySelector<HTMLElement>('th[data-grid-col="name"]') as HTMLElement
+		present(root.querySelector('th[data-grid-col="name"]'), 'th[data-grid-col="name"]')
 
 	it('keeps the resize handle topmost on the header trailing edge', async () => {
 		const { separator } = setup()
@@ -345,7 +348,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 		Array.from({ length: count }, (_, i) => ({ id: i + 1, a: 'a', b: 'b', c: 'c' }))
 
 	const header = (root: HTMLElement, id: string) =>
-		root.querySelector<HTMLElement>(`th[data-grid-col="${id}"]`) as HTMLElement
+		present(root.querySelector(`th[data-grid-col="${id}"]`), `th[data-grid-col="${id}"]`)
 
 	function setup() {
 		const view = (

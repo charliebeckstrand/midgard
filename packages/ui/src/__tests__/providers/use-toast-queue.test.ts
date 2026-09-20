@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { ToastData } from '../../providers/toast/types'
 import { useToastQueue } from '../../providers/toast/use-toast-queue'
 import { useToastTimer } from '../../providers/toast/use-toast-timer'
@@ -9,14 +9,6 @@ function makeToast(id: string, persist = false): ToastData {
 }
 
 describe('useToastQueue', () => {
-	// A `finally` in a case restores the clock when the body throws, and not
-	// when the runner aborts the body at `testTimeout` — which leaks a fake
-	// clock into the next case, and into the next file on a shared worker.
-	// This hook runs either way.
-	afterEach(() => {
-		vi.useRealTimers()
-	})
-
 	it('drains non-persistent toasts from the head until the list is empty', () => {
 		const toastsRef = { current: [makeToast('a'), makeToast('b'), makeToast('c')] }
 
