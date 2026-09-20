@@ -268,9 +268,16 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		// The user-invoked fit lifts the cap: the column grows to the smallest width
 		// that shows the content untruncated, overflowing the frame.
-		await waitFor(() => expect(leaf().scrollWidth).toBeLessThanOrEqual(leaf().clientWidth + 1))
+		//
+		// Both claims wait together. A provisional pass — one that read no body cells
+		// — leaves the column at its header floor, where the content fits a far
+		// narrower column, so "the content fits" alone returns on a width this case
+		// does not mean.
+		await waitFor(() => {
+			expect(header('big').getBoundingClientRect().width).toBeGreaterThan(600)
 
-		expect(header('big').getBoundingClientRect().width).toBeGreaterThan(600)
+			expect(leaf().scrollWidth).toBeLessThanOrEqual(leaf().clientWidth + 1)
+		})
 	})
 
 	it('"Auto-size this column" shrinks a surplus-stretched column to its content', async () => {
@@ -336,9 +343,20 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		// The single-column fit measures uncapped: the column lands at the smallest
 		// width that shows its content untruncated.
-		await waitFor(() => expect(leaf().scrollWidth).toBeLessThanOrEqual(leaf().clientWidth + 1))
+		//
+		// Both claims wait together, because either alone is a proxy the other can
+		// outlive. `measureColumnIntrinsics` reports `cells: 0` for a pass that read
+		// no body cells, and `use-grid-column-auto-size` treats such a pass as
+		// provisional and re-measures: the column sits at its header floor in the
+		// meantime, where the content genuinely fits a column far narrower than the
+		// fit will land on. Waiting on "the content fits" alone therefore returns on
+		// that provisional width, and the width assertion below reads it. This has
+		// failed in the suite at 480 against the 600 it wants.
+		await waitFor(() => {
+			expect(header('big').getBoundingClientRect().width).toBeGreaterThan(600)
 
-		expect(header('big').getBoundingClientRect().width).toBeGreaterThan(600)
+			expect(leaf().scrollWidth).toBeLessThanOrEqual(leaf().clientWidth + 1)
+		})
 	})
 
 	it('fills the container without a phantom scrollbar under outline borders', async () => {
