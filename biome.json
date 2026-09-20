@@ -88,6 +88,10 @@
 							"options": {
 								"patterns": [
 									{
+										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
+									},
+									{
 										"group": ["**/components/**", "**/layouts/**"],
 										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components or layouts. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
 									}
@@ -156,9 +160,53 @@
 							"options": {
 								"patterns": [
 									{
+										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
+									},
+									{
 										"group": ["**/recipes", "**/recipes/**"],
 										"importNamePattern": "Ma",
 										"message": "Ma is kiso's spacing axis: padding, margin, gap. Layout primitives (Box, Flex, Grid, Split) compose it into their variants.ts files; that is its public role. Every other component derives the same union from its kata recipe's VariantProps. A direct import of Ma anywhere else silently crosses the spacing / sizing boundary."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/ui/src/modules/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/ui/src/components/**/variants.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/recipes/katakana/**", "**/recipes/kiso/**"],
+										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
 									}
 								]
 							}
