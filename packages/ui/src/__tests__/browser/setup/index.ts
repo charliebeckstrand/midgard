@@ -2,8 +2,10 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, beforeEach, expect } from 'vitest'
-import { __resetAnnouncer } from '../../../core/announcer'
+import { resetSingletons } from '../../helpers/reset-singletons'
+import { reportPageStateOnFailure } from './forensics'
 import { absorbBodyResidue, assertNoBodyResidue } from './residue'
+import { restoreViewportAfterFile } from './viewport'
 import './tailwind.css'
 
 /**
@@ -13,7 +15,13 @@ import './tailwind.css'
  */
 expect.extend(toHaveNoViolations)
 
-beforeEach(absorbBodyResidue)
+beforeEach(() => {
+	absorbBodyResidue()
+
+	// Bound per test: `onTestFailed` needs a test context, and a green run
+	// never calls it.
+	reportPageStateOnFailure()
+})
 
 afterEach(() => {
 	cleanup()
@@ -22,9 +30,11 @@ afterEach(() => {
 	// cleanup() won't remove it. This project runs `isolate: false`, so one page
 	// serves every file it runs and the region outlives its own file without
 	// this. `setup/index.ts` resets it for the jsdom projects for the same reason.
-	__resetAnnouncer()
+	resetSingletons()
 
 	// Last, so it reads what survived the teardown above rather than this
 	// test's own render container.
 	assertNoBodyResidue()
 })
+
+restoreViewportAfterFile()

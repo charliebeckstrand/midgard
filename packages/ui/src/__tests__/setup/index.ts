@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, inject } from 'vitest'
-import { __resetAnnouncer } from '../../core/announcer'
+import { resetSingletons } from '../helpers/reset-singletons'
 
 import './jsdom-stubs'
 import './locale-guard'
@@ -21,5 +21,5 @@ afterEach(() => {
 
 	// The announcer's live region lives on document.body, outside React's tree;
 	// cleanup() won't remove it. `__resetAnnouncer` clears it between tests.
-	__resetAnnouncer()
+	resetSingletons()
 })

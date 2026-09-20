@@ -112,6 +112,20 @@ function observeTruncation(el: Element, measure: () => void): () => void {
 }
 
 /**
+ * Test-only: drops the shared observer.
+ *
+ * `observeTruncation` builds the observer from whichever `ResizeObserver` is
+ * global at first use, and keeps it for the life of the module. A suite that
+ * stubs that global leaves the stub cached here after it restores the real one.
+ * Every project runs `isolate: false`, so the next file measures through it.
+ */
+export function __resetTruncationObserver(): void {
+	sharedResizeObserver?.disconnect()
+
+	sharedResizeObserver = null
+}
+
+/**
  * Set for the duration of a {@link focusWithoutReveal} call.
  * {@link useTruncation}'s arm reads it, and skips its synchronous flush while it
  * holds.
