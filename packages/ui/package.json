@@ -94,6 +94,7 @@
 	"devDependencies": {
 		"@emotion/react": "^11.14.0",
 		"@emotion/styled": "^11.14.1",
+		"@fast-check/vitest": "^0.5.0",
 		"@mui/material": "^9.2.0",
 		"@mui/x-data-grid": "^9.9.0",
 		"@tailwindcss/vite": "^4.2.1",

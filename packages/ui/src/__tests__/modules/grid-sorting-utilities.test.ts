@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import {
 	compareSmart,
@@ -226,5 +227,211 @@ describe('sortRowsSmart', () => {
 
 			expect(desc).toEqual([0, 2, 1])
 		})
+	})
+})
+
+// The tables above hold the documented examples. The properties below read the
+// same comparator and sorter over generated rows, so a stability break shrinks
+// to the smallest set of rows that shows it.
+
+/** A row the generated fields read: an original index, and two cells. */
+type PropertyRow = { id: number; a: unknown; b: unknown }
+
+// Values of every kind the comparator branches on, drawn from a small pool so
+// ties are common. Stability is a claim about ties, and a wide pool never makes
+// one.
+const plainCell = () =>
+	fc.oneof(
+		fc.constantFrom(null, undefined, '', 'Item 2', 'Item 10', 'alpha', 'Beta'),
+		fc.integer({ min: -20, max: 20 }),
+		fc.integer({ min: -20, max: 20 }).map((amount) => `$${amount}`),
+		fc.boolean(),
+	)
+
+const dateCell = () =>
+	fc.oneof(
+		fc.constantFrom(null, undefined, ''),
+		fc.integer({ min: 0, max: 6 }).map((day) => new Date(2026, 0, 1 + day)),
+	)
+
+/**
+ * Cells of one kind at a time, where the comparator is a true order.
+ *
+ * A column that mixes `Date` values with strings is not such a domain. Two
+ * dates compare by time, and a date against a string falls to the collator over
+ * `String(date)`. The two orders disagree, so three such values can cycle. The
+ * ordering properties below therefore read one kind at a time.
+ */
+const orderableRows = () =>
+	fc.oneof(rowsOf(plainCell()), rowsOf(dateCell())).filter((rows) => rows.length > 0)
+
+/** Rows built from a cell generator, each carrying its original index. */
+function rowsOf(cell: fc.Arbitrary<unknown>) {
+	return fc
+		.array(fc.tuple(cell, cell), { minLength: 1, maxLength: 12 })
+		.map((pairs) => pairs.map(([a, b], id) => ({ id, a, b }) as PropertyRow))
+}
+
+/** Cells of any kind, including the mix the ordering properties leave out. */
+const anyRows = () => rowsOf(fc.oneof(plainCell(), dateCell()))
+
+/** One smart field over a named cell. */
+function field(key: 'a' | 'b', descending: boolean): SmartSortField<PropertyRow> {
+	return { descending, accessor: (row) => row[key], sortFn: null }
+}
+
+// A key that reads both arguments. A key built from the row alone cannot tell
+// the original index from the sorted position, which is the whole claim.
+const rowKey = (row: PropertyRow, index: number) => `${row.id}@${index}`
+
+/** Whether a cell sinks to the end, in the comparator's own reading. */
+function isEmpty(value: unknown): boolean {
+	return value == null || value === ''
+}
+
+describe('compareSmart · properties', () => {
+	test.prop([plainCell()])('reads a value as equal to itself', (value) => {
+		expect(compareSmart(value, value)).toBe(0)
+	})
+
+	// Compared as a boolean rather than through `toBe`, which parts `-0` from
+	// `0` and reads a tie as a break.
+	test.prop([plainCell(), plainCell()])('reverses its sign when the sides swap', (a, b) => {
+		expect(Math.sign(compareSmart(a, b)) === -Math.sign(compareSmart(b, a))).toBe(true)
+	})
+
+	test.prop([orderableRows()])('orders one kind of value transitively', (rows) => {
+		const cells = rows.map((row) => row.a)
+
+		for (const a of cells) {
+			for (const b of cells) {
+				if (compareSmart(a, b) > 0) continue
+
+				for (const c of cells) {
+					if (compareSmart(b, c) > 0) continue
+
+					expect(compareSmart(a, c)).toBeLessThanOrEqual(0)
+				}
+			}
+		}
+	})
+})
+
+describe('computeSortOrder · properties', () => {
+	test.prop([anyRows(), fc.boolean()])('returns every row once', (rows, descending) => {
+		const order = computeSortOrder(rows, [field('a', descending)])
+
+		expect([...order].sort((x, y) => x - y)).toEqual(rows.map((_, index) => index))
+	})
+
+	// Stability is the tie-break the engine's `sortIndex` supplies: rows the
+	// fields cannot part hold the order they arrived in.
+	test.prop([anyRows(), fc.boolean()])('holds the order of tied rows', (rows, descending) => {
+		const order = computeSortOrder(rows, [field('a', descending)])
+
+		for (let at = 0; at + 1 < order.length; at++) {
+			const before = (rows[order[at] as number] as PropertyRow).a
+
+			const after = (rows[order[at + 1] as number] as PropertyRow).a
+
+			if (compareSmart(before, after) === 0) {
+				expect(order[at] as number).toBeLessThan(order[at + 1] as number)
+			}
+		}
+	})
+
+	test.prop([orderableRows()])('leaves an ascending run non-decreasing', (rows) => {
+		const order = computeSortOrder(rows, [field('a', false)])
+
+		for (let at = 0; at + 1 < order.length; at++) {
+			const before = (rows[order[at] as number] as PropertyRow).a
+
+			const after = (rows[order[at + 1] as number] as PropertyRow).a
+
+			if (isEmpty(before) || isEmpty(after)) continue
+
+			expect(compareSmart(before, after)).toBeLessThanOrEqual(0)
+		}
+	})
+
+	test.prop([orderableRows()])('leaves a descending run non-increasing', (rows) => {
+		const order = computeSortOrder(rows, [field('a', true)])
+
+		for (let at = 0; at + 1 < order.length; at++) {
+			const before = (rows[order[at] as number] as PropertyRow).a
+
+			const after = (rows[order[at + 1] as number] as PropertyRow).a
+
+			if (isEmpty(before) || isEmpty(after)) continue
+
+			expect(compareSmart(before, after)).toBeGreaterThanOrEqual(0)
+		}
+	})
+
+	test.prop([anyRows(), fc.boolean()])('sinks empties last either way', (rows, descending) => {
+		const order = computeSortOrder(rows, [field('a', descending)])
+
+		const empties = order.map((index) => isEmpty((rows[index] as PropertyRow).a))
+
+		expect(empties).toEqual([...empties].sort((a, b) => Number(a) - Number(b)))
+	})
+
+	// The second field only parts rows the first cannot.
+	test.prop([anyRows(), fc.boolean(), fc.boolean()])(
+		'consults the second field on a tie alone',
+		(rows, first, second) => {
+			const order = computeSortOrder(rows, [field('a', first), field('b', second)])
+
+			for (let at = 0; at + 1 < order.length; at++) {
+				const before = rows[order[at] as number] as PropertyRow
+
+				const after = rows[order[at + 1] as number] as PropertyRow
+
+				if (compareSmart(before.a, after.a) !== 0) continue
+
+				if (isEmpty(before.b) || isEmpty(after.b)) continue
+
+				const ordered = compareSmart(before.b, after.b)
+
+				expect(second ? ordered >= 0 : ordered <= 0).toBe(true)
+			}
+		},
+	)
+})
+
+describe('sortRowsSmart · properties', () => {
+	test.prop([anyRows(), fc.boolean()])(
+		'is its permutation half followed by its materialize half',
+		(rows, descending) => {
+			const fields = [field('a', descending)]
+
+			expect(sortRowsSmart(rows, rowKey, fields)).toEqual(
+				materializeSort(rows, computeSortOrder(rows, fields), rowKey),
+			)
+		},
+	)
+
+	// A key is read at the row's original index, so it matches the engine path's
+	// `rowKeys` whatever the sort did with the row.
+	test.prop([anyRows(), fc.boolean()])('keys a row at its original index', (rows, descending) => {
+		const fields = [field('a', descending)]
+
+		const order = computeSortOrder(rows, fields)
+
+		const { rows: sorted, keys } = sortRowsSmart(rows, rowKey, fields)
+
+		order.forEach((index, at) => {
+			expect(sorted[at]).toBe(rows[index])
+
+			expect(keys[at]).toBe(rowKey(rows[index] as PropertyRow, index))
+		})
+	})
+
+	test.prop([anyRows()])('leaves the rows it was handed untouched', (rows) => {
+		const before = [...rows]
+
+		sortRowsSmart(rows, rowKey, [field('a', false)])
+
+		expect(rows).toEqual(before)
 	})
 })
