@@ -1,0 +1,70 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended"],
+	"description": [
+		"Renovate owns npm and pnpm. Dependabot owns GitHub Actions; see .github/dependabot.yml.",
+		"The CI gate in .github/workflows/ci.yml judges every pull request this bot opens, so grouping trades pull-request count against the width of a failure.",
+		"Schedules have no timezone and therefore read as UTC."
+	],
+	"schedule": ["before 6am on monday"],
+	"semanticCommits": "enabled",
+	"semanticCommitScope": "midgard",
+	"rangeStrategy": "update-lockfile",
+	"minimumReleaseAge": "3 days",
+	"prConcurrentLimit": 5,
+	"dependencyDashboard": true,
+	"postUpdateOptions": ["pnpmDedupe"],
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": ["before 6am on the first day of the month"]
+	},
+	"packageRules": [
+		{
+			"description": "Dependabot owns this manager. Two bots on one ecosystem duplicate every pull request.",
+			"matchManagers": ["github-actions"],
+			"enabled": false
+		},
+		{
+			"description": "The minor and patch tail for runtime dependencies, as one pull request.",
+			"groupName": "dependencies (non-major)",
+			"matchDepTypes": ["dependencies", "peerDependencies", "optionalDependencies"],
+			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
+			"description": "The minor and patch tail for build and test tooling, as one pull request.",
+			"groupName": "devDependencies (non-major)",
+			"matchDepTypes": ["devDependencies"],
+			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
+			"description": "React and its type packages must move together, because a mismatched @types/react breaks check-types across all five workspaces.",
+			"groupName": "react",
+			"matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"]
+		},
+		{
+			"description": "The Tailwind packages share one version line across admin, places, and ui.",
+			"groupName": "tailwindcss",
+			"matchPackageNames": ["tailwindcss", "@tailwindcss/*"]
+		},
+		{
+			"description": "Vitest, its browser packages, and Playwright share a release train. packages/ui pins @vitest/browser, @vitest/browser-playwright, and playwright exactly, and the browser job installs Chromium against them, so a partial bump breaks test:browser.",
+			"groupName": "vitest",
+			"matchPackageNames": ["vitest", "@vitest/*", "playwright"]
+		},
+		{
+			"description": "Every major waits for a click on the dependency dashboard, so each one lands on its own branch with its own gate run.",
+			"matchUpdateTypes": ["major"],
+			"dependencyDashboardApproval": true
+		},
+		{
+			"description": "pnpm-workspace.yaml patches @floating-ui/react at an exact version. A bump invalidates the patch key, and re-applying the patch needs a person: overlay-activity-hold.test.tsx must pass again and tms-ui must take the identical copy.",
+			"matchPackageNames": ["@floating-ui/react"],
+			"enabled": false
+		},
+		{
+			"description": "hlidskjalf is first-party. pnpm-workspace.yaml already exempts its releases from the install cooldown, so the bot waits for nothing either.",
+			"matchPackageNames": ["hlidskjalf"],
+			"minimumReleaseAge": null
+		}
+	]
+}
