@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { useCalendarFocus } from '../../components/calendar/use-calendar-focus'
-import { makeKeyEvent } from '../helpers'
+import { makeKeyEvent, present } from '../helpers'
 
 afterEach(() => {
 	document.body.innerHTML = ''
@@ -94,7 +94,7 @@ describe('useCalendarFocus: grid', () => {
 		const { header, grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14 })
 
 		// Top row = first `cols` buttons. Focus index 0.
-		const first = grid.querySelector('button') as HTMLButtonElement
+		const first = present<HTMLButtonElement>(grid.querySelector('button'), 'button')
 
 		first.focus()
 
@@ -154,7 +154,7 @@ describe('useCalendarFocus: footer', () => {
 	it('ArrowUp moves focus back to the last grid button', () => {
 		const { grid, footer, handleFooterKeyDown } = setup({ footer: true })
 
-		const footerFirst = footer?.querySelector('button') as HTMLButtonElement
+		const footerFirst = present<HTMLButtonElement>(footer?.querySelector('button'), 'button')
 
 		footerFirst.focus()
 
@@ -265,7 +265,7 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 	it('stopPropagation propagates from header keydown when the roving handler prevents default', () => {
 		const { header, handleHeaderKeyDown } = setup({ stopPropagation: true })
 
-		;(header.querySelector('button') as HTMLButtonElement).focus()
+		present<HTMLButtonElement>(header.querySelector('button'), 'button').focus()
 
 		// ArrowRight goes through the header roving handler, which calls
 		// preventDefault; that's the path line 82 guards.
@@ -291,7 +291,7 @@ describe('useCalendarFocus: stopPropagation paths', () => {
 	it('stopPropagation propagates from ArrowUp at the top row of the grid when configured', () => {
 		const { grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14, stopPropagation: true })
 
-		;(grid.querySelector('button') as HTMLButtonElement).focus()
+		present<HTMLButtonElement>(grid.querySelector('button'), 'button').focus()
 
 		const event = makeKeyEvent('ArrowUp')
 

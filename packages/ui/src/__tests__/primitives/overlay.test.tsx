@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Overlay } from '../../primitives/overlay'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Overlay', () => {
 	it('renders children when open', () => {
@@ -174,7 +174,10 @@ describe('Overlay', () => {
 
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
 
-		const overlay = document.querySelector('[data-slot="overlay"]') as HTMLElement
+		const overlay = present(
+			document.querySelector('[data-slot="overlay"]'),
+			'[data-slot="overlay"]',
+		)
 
 		expect(overlay.className).toContain('pointer-events-none')
 	})
@@ -190,7 +193,10 @@ describe('Overlay', () => {
 
 		// The wrapper stays pointer-events-none, so the backdrop never intercepts
 		// a press and the page behind remains interactive.
-		const overlay = document.querySelector('[data-slot="overlay"]') as HTMLElement
+		const overlay = present(
+			document.querySelector('[data-slot="overlay"]'),
+			'[data-slot="overlay"]',
+		)
 
 		expect(overlay.className).toContain('pointer-events-none')
 
@@ -256,7 +262,7 @@ describe('Overlay', () => {
 				</Overlay>,
 			)
 
-			const overlay = host.querySelector<HTMLElement>('[data-slot="overlay"]') as HTMLElement
+			const overlay = present(host.querySelector('[data-slot="overlay"]'), '[data-slot="overlay"]')
 
 			expect(overlay).not.toBeNull()
 

@@ -18,6 +18,7 @@ import {
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
+	getSlot,
 	liveRegion,
 	renderUI,
 	screen,
@@ -48,7 +49,7 @@ describe('FiltersField', () => {
 			</Filters>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'input')
 
 		expect(input.value).toBe('hello')
 	})
@@ -64,7 +65,7 @@ describe('FiltersField', () => {
 			</Filters>,
 		)
 
-		const checkbox = bySlot(container, 'checkbox') as HTMLInputElement
+		const checkbox = getSlot<HTMLInputElement>(container, 'checkbox')
 
 		// A toggle reads `checked`, not `value`; without it the control never
 		// reflects the filter state.
@@ -130,7 +131,7 @@ describe('FiltersField', () => {
 			</Filters>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -156,7 +157,7 @@ describe('FiltersField', () => {
 			</Filters>,
 		)
 
-		const input = bySlot(container, 'raw-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'raw-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -183,7 +184,7 @@ describe('FiltersField', () => {
 			</Filters>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -211,7 +212,7 @@ describe('FiltersField', () => {
 			</Filters>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -449,7 +450,7 @@ describe('Filter (uncontrolled)', () => {
 			</Filters>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -545,7 +546,7 @@ describe('Filters extras', () => {
 			</Filters>,
 		)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'input')
 
 		const user = userEvent.setup({ delay: null })
 

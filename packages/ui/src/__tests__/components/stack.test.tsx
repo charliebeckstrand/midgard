@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { Stack } from '../../components/stack'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('Stack', () => {
 	it('leaves gap unset outside any Density provider, matching Flex', () => {
 		const { container } = renderUI(<Stack>content</Stack>)
 
-		const el = bySlot(container, 'stack') as HTMLElement
+		const el = getSlot(container, 'stack')
 
 		// No 'md' fallback: gap stays unset, matching Flex and the documented
 		// contract.

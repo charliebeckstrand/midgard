@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { MapPlat } from '../../modules/map'
-import { act, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 const DATA = [
@@ -79,7 +79,7 @@ describe('tooltip across a scroll', () => {
 			<BarChart aria-label="Revenue by quarter" data={DATA} series={[...SERIES]} width={400} />,
 		)
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		// Drive the readout by keyboard, never pointing the plot.
 		act(() => plot.focus())
@@ -108,7 +108,7 @@ describe('tooltip across a scroll', () => {
 			/>,
 		)
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		act(() => plot.focus())
 

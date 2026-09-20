@@ -3,7 +3,7 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { ComboChart } from '../../modules/chart/combo-chart'
 import type { ChartValueAxis } from '../../modules/chart/engine/chart-axes/schema'
 import { LineChart } from '../../modules/chart/line-chart'
-import { act, allBySlot, bySlot, fireEvent, renderUI, userEvent } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI, userEvent } from '../helpers'
 
 type Week = { week: string; shipments: number; rate: number }
 
@@ -216,7 +216,7 @@ describe('secondary y-axis', () => {
 	it('reads both axes from the keyboard with per-axis formatting', () => {
 		const { container } = line()
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		act(() => plot.focus())
 

@@ -1,7 +1,7 @@
 import { act, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CopyButton } from '../../components/copy-button'
-import { expectAnnouncement, fireEvent, renderUI } from '../helpers'
+import { expectAnnouncement, fireEvent, present, renderUI } from '../helpers'
 
 function stubClipboard(writeText: (value: string) => Promise<void>) {
 	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
@@ -52,7 +52,7 @@ describe('CopyButton', () => {
 		try {
 			const { container } = renderUI(<CopyButton text="hello" />)
 
-			const button = container.querySelector('button') as HTMLButtonElement
+			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
 			fireEvent.click(button)
 
@@ -79,7 +79,7 @@ describe('CopyButton', () => {
 				<CopyButton text="hello" onCopyError={onCopyError} onCopiedChange={onCopiedChange} />,
 			)
 
-			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
+			fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
 
 			await waitFor(() => expect(onCopyError).toHaveBeenCalledExactlyOnceWith(denial))
 
@@ -101,7 +101,7 @@ describe('CopyButton', () => {
 
 			const { container } = renderUI(<CopyButton text="hello" onCopyError={onCopyError} />)
 
-			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
+			fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
 
 			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
 
@@ -147,7 +147,7 @@ describe('CopyButton', () => {
 				<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
 			)
 
-			const button = container.querySelector('button') as HTMLButtonElement
+			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
 			await act(async () => {
 				fireEvent.click(button)
@@ -179,7 +179,7 @@ describe('CopyButton', () => {
 		try {
 			const { container } = renderUI(<CopyButton text="hello" />)
 
-			const button = container.querySelector('button') as HTMLButtonElement
+			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
 			button.focus()
 
@@ -215,7 +215,7 @@ describe('CopyButton', () => {
 		try {
 			const { container } = renderUI(<CopyButton text="hello" onClick={onClick} />)
 
-			const button = container.querySelector('button') as HTMLButtonElement
+			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
 			fireEvent.click(button)
 
@@ -235,7 +235,7 @@ describe('CopyButton', () => {
 		try {
 			const { container } = renderUI(<CopyButton text="hello" />)
 
-			fireEvent.click(container.querySelector('button') as HTMLButtonElement)
+			fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
 
 			await expectAnnouncement('Copied')
 		} finally {

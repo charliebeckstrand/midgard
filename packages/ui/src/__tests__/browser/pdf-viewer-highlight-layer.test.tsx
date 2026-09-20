@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
-import { bySlot, fireEvent, noop, present, renderUI, screen, waitFor } from '../helpers'
+import { bySlot, fireEvent, getSlot, noop, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The overlay's one geometry invariant, in a real browser: the highlight layer is the page
@@ -60,7 +60,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 	}
 
 	function layerOf(container: HTMLElement) {
-		return present(bySlot(container, 'pdf-viewer-highlights'), 'the highlight layer')
+		return getSlot(container, 'pdf-viewer-highlights')
 	}
 
 	/** Every edge, to a twentieth of a pixel: the two are one box, or the regions are wrong. */
@@ -101,7 +101,7 @@ describe('pdf-viewer highlight layer (real browser)', () => {
 
 		// The image keeps its own width and height under `rotate()`; the frame around it is
 		// what transposes. So wait on the frame, which is the box that visibly changes.
-		const frame = present(bySlot(container, 'pdf-viewer-page-frame'), 'the page frame')
+		const frame = getSlot(container, 'pdf-viewer-page-frame')
 
 		await waitFor(() => expect(frame.getBoundingClientRect().height).not.toBeCloseTo(upright, 0))
 

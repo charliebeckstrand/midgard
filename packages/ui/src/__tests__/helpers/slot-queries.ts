@@ -26,11 +26,18 @@ export function allBySlot(container: HTMLElement, name: string) {
  * Use `bySlot` where absence is the contract, as `expect(bySlot(…)).toBeNull()`
  * asserts, and where the slot has more than one match in the container.
  *
+ * The narrowing defaults to `HTMLElement`, as `present` does. A caller reading
+ * an interface a slot publishes — an input's `value`, a details element's
+ * `open` — names the type instead (`getSlot<HTMLInputElement>(…)`).
+ *
  * @param container - The subtree to search.
  * @param name - The `data-slot` value.
- * @returns The first match.
+ * @returns The first match, narrowed to `T`.
  * @throws If nothing matches.
  */
-export function getSlot(container: HTMLElement, name: string) {
-	return present(bySlot(container, name), `[data-slot="${name}"]`)
+export function getSlot<T extends HTMLElement = HTMLElement>(
+	container: HTMLElement,
+	name: string,
+): T {
+	return present<T>(bySlot(container, name), `[data-slot="${name}"]`)
 }

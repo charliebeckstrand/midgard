@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Density } from '../../primitives/density'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {
 	it('renders with data-slot="radio"', () => {
@@ -18,7 +18,7 @@ describe('Radio', () => {
 	it('renders as a radio input', () => {
 		const { container } = renderUI(<Radio />)
 
-		const el = bySlot(container, 'radio') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'radio')
 
 		expect(el.type).toBe('radio')
 	})
@@ -26,7 +26,7 @@ describe('Radio', () => {
 	it('passes through HTML attributes', () => {
 		const { container } = renderUI(<Radio name="choice" value="a" />)
 
-		const el = bySlot(container, 'radio') as HTMLInputElement
+		const el = getSlot<HTMLInputElement>(container, 'radio')
 
 		expect(el.name).toBe('choice')
 
@@ -102,9 +102,9 @@ describe('RadioField aria-describedby', () => {
 			</RadioField>,
 		)
 
-		const input = bySlot(container, 'radio') as HTMLElement
+		const input = getSlot<HTMLInputElement>(container, 'radio')
 
-		const description = bySlot(container, 'description') as HTMLElement
+		const description = getSlot(container, 'description')
 
 		expect(description.id).toBeTruthy()
 

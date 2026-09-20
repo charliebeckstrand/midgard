@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Example } from '../../components/example'
 import { maxDefined, resolveResize, resolveWidth, SNAP_STEP } from '../../components/example-resize'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 // Example derives its code block from children; a bare string keeps derivation
 // trivial and leaves the resize surface the only thing under test.
@@ -257,11 +257,11 @@ describe('Example resize drag', () => {
 	function startDrag() {
 		const { container } = renderExample({ min: 0 })
 
-		const handle = bySlot(container, 'example-resize-handle') as HTMLElement
+		const handle = getSlot(container, 'example-resize-handle')
 
 		stubPointerCapture(handle)
 
-		const frame = bySlot(container, 'example-frame') as HTMLElement
+		const frame = getSlot(container, 'example-frame')
 
 		fireEvent.pointerDown(handle, { button: 0, buttons: 1, clientX: 0, pointerId: 1 })
 

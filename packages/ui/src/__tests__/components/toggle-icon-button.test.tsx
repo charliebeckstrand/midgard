@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ToggleIconButton } from '../../components/toggle-icon-button'
-import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent, within } from '../helpers'
 
 describe('ToggleIconButton', () => {
 	const icon = <svg data-testid="icon" />
@@ -65,7 +65,7 @@ describe('ToggleIconButton', () => {
 			/>,
 		)
 
-		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+		const el = getSlot(container, 'toggle-icon-button')
 
 		expect(el).toBeInTheDocument()
 
@@ -85,7 +85,7 @@ describe('ToggleIconButton', () => {
 			/>,
 		)
 
-		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+		const el = getSlot(container, 'toggle-icon-button')
 
 		expect(within(el).queryByTestId('pressed-icon')).toBeInTheDocument()
 
@@ -102,7 +102,7 @@ describe('ToggleIconButton', () => {
 			/>,
 		)
 
-		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+		const el = getSlot(container, 'toggle-icon-button')
 
 		expect(within(el).queryByTestId('icon')).toBeInTheDocument()
 
@@ -121,7 +121,7 @@ describe('ToggleIconButton', () => {
 			/>,
 		)
 
-		const el = bySlot(container, 'toggle-icon-button') as HTMLElement
+		const el = getSlot(container, 'toggle-icon-button')
 
 		expect(el.querySelectorAll(':scope > [data-slot=icon]')).toHaveLength(2)
 	})

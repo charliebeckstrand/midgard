@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Input } from '../../components/input'
 import { Density } from '../../primitives/density'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, userEvent } from '../helpers'
 
 describe('Input', () => {
 	it('renders an input with data-slot="input"', () => {
@@ -80,7 +80,7 @@ describe('Input', () => {
 
 		const { container } = renderUI(<Input onChange={onChange} />)
 
-		const input = bySlot(container, 'input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'input')
 
 		const user = userEvent.setup({ delay: null })
 

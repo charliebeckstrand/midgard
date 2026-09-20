@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form, useFormField } from '../../components/form'
 import { PhoneInput } from '../../components/phone-input'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('PhoneInput', () => {
 	it('renders an input with type tel and a phone icon prefix by default', () => {
@@ -38,7 +38,7 @@ describe('PhoneInput', () => {
 
 		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -54,7 +54,7 @@ describe('PhoneInput', () => {
 
 		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -66,7 +66,7 @@ describe('PhoneInput', () => {
 	it('preserves leading + for international country', async () => {
 		const { container } = renderUI(<PhoneInput country="international" />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -78,7 +78,7 @@ describe('PhoneInput', () => {
 	it('formats defaultValue on initial render', () => {
 		const { container } = renderUI(<PhoneInput defaultValue="5551234567" />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		expect(input.value).toBe('(555) 123-4567')
 	})
@@ -86,7 +86,7 @@ describe('PhoneInput', () => {
 	it('keeps the caret next to the typed digit when format inserts separators', async () => {
 		const { container } = renderUI(<PhoneInput defaultValue="5556789" />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		expect(input.value).toBe('555-6789')
 
@@ -122,7 +122,7 @@ describe('PhoneInput', () => {
 	it('strips a leading country-code 1 from an 11-digit US number', () => {
 		const { container } = renderUI(<PhoneInput defaultValue="15551234567" />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		expect(input.value).toBe('(555) 123-4567')
 	})
@@ -130,7 +130,7 @@ describe('PhoneInput', () => {
 	it('preserves a leading + with no digits for international country', async () => {
 		const { container } = renderUI(<PhoneInput country="international" />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -144,7 +144,7 @@ describe('PhoneInput', () => {
 			<PhoneInput country="international" defaultValue="14155551234" />,
 		)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		expect(input.value).toBe('14155551234')
 	})
@@ -152,7 +152,7 @@ describe('PhoneInput', () => {
 	it('renders an empty string for an empty US value', () => {
 		const { container } = renderUI(<PhoneInput defaultValue="" />)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		expect(input.value).toBe('')
 	})
@@ -169,7 +169,7 @@ describe('PhoneInput', () => {
 
 		const user = userEvent.setup({ delay: null })
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		await user.type(input, '5551234567')
 
@@ -197,7 +197,7 @@ describe('PhoneInput', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'phone-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'phone-input')
 
 		const user = userEvent.setup({ delay: null })
 

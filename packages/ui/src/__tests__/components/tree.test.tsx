@@ -1,7 +1,7 @@
 import { fireEvent } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tree, TreeItem } from '../../components/tree'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
 
 describe('Tree', () => {
 	it('announces sibling position via aria-posinset/aria-setsize', () => {
@@ -208,7 +208,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		expect(row).toHaveAttribute('aria-expanded', 'false')
 
@@ -226,7 +226,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 
@@ -244,7 +244,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		fireEvent.keyDown(row, { key: 'Enter' })
 
@@ -260,7 +260,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		fireEvent.keyDown(row, { key: ' ' })
 
@@ -283,7 +283,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		fireEvent.keyDown(row, { key: 'Enter' })
 
@@ -299,10 +299,10 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		// Simulate a key event that originated from the inner span.
-		const label = row.querySelector('span:last-of-type') as HTMLElement
+		const label = present(row.querySelector('span:last-of-type'), 'span:last-of-type')
 
 		fireEvent.keyDown(label, { key: 'Enter' })
 
@@ -318,7 +318,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		fireEvent.keyDown(row, { key: 'ArrowRight' })
 
@@ -334,7 +334,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		fireEvent.keyDown(row, { key: 'ArrowLeft' })
 
@@ -376,7 +376,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const root = container.querySelector<HTMLElement>('[data-slot="tree"]') as HTMLElement
+		const root = present(container.querySelector('[data-slot="tree"]'), '[data-slot="tree"]')
 
 		const row = container.querySelector<HTMLElement>(
 			'[data-slot="tree-item-content"]',
@@ -422,7 +422,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		expect(row).toBeInTheDocument()
 
@@ -446,7 +446,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		expect(row.className).toContain('my-row')
 	})
@@ -460,7 +460,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		expect(row).toHaveAttribute('aria-expanded', 'true')
 	})
@@ -476,7 +476,7 @@ describe('TreeItem', () => {
 			</Tree>,
 		)
 
-		const row = bySlot(container, 'tree-item-content') as HTMLElement
+		const row = getSlot(container, 'tree-item-content')
 
 		fireEvent.click(screen.getByText('Parent'))
 

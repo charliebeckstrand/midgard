@@ -5,6 +5,7 @@ import {
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
+	getSlot,
 	liveRegion,
 	present,
 	renderUI,
@@ -42,7 +43,7 @@ describe('ChatTranscript', () => {
 	it('signals keyboard focus with the design-system ring, not the browser default', () => {
 		const { container } = renderUI(<ChatTranscript messages={messages} />)
 
-		const transcript = present(bySlot(container, 'chat-transcript'), 'transcript')
+		const transcript = getSlot(container, 'chat-transcript')
 
 		// Scroll containers are keyboard-focusable; suppress the UA outline and
 		// draw the inset blue ring the rest of the library uses.
@@ -84,7 +85,7 @@ describe('ChatTranscript', () => {
 			// second channel over one reply and read it twice.
 			const { container } = renderUI(<ChatTranscript messages={messages} />)
 
-			const transcript = present(bySlot(container, 'chat-transcript'), 'transcript')
+			const transcript = getSlot(container, 'chat-transcript')
 
 			expect(transcript).toHaveAttribute('role', 'log')
 

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { MapPlat, MapPoints } from '../../modules/map'
-import { bySlot, present, renderUI } from '../helpers'
+import { bySlot, getSlot, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
@@ -51,7 +51,7 @@ describe('picking a zooming map', () => {
 	it('opens a mark the reader clicks', async () => {
 		const { onPointClick } = setup()
 
-		await userEvent.click(present(bySlot(document.body, 'map-points-hit'), 'point hit target'))
+		await userEvent.click(getSlot(document.body, 'map-points-hit'))
 
 		expect(onPointClick).toHaveBeenCalled()
 	})
@@ -73,7 +73,7 @@ describe('picking a zooming map', () => {
 	it('reports no pick from the click a pan ends on', async () => {
 		const { onRegionClick, onPointClick } = setup()
 
-		const plot = present(bySlot(document.body, 'map-plot'), 'plot')
+		const plot = getSlot(document.body, 'map-plot')
 
 		const box = plot.getBoundingClientRect()
 

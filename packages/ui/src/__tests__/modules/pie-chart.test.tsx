@@ -14,7 +14,7 @@ import {
 } from '../../modules/chart/engine/chart-geometry/pie'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 const DATA = [
 	{ source: 'Search', visits: 60 },
@@ -341,7 +341,7 @@ describe('PieChart', () => {
 			chart({ data: [{ source: 'Search', visits: 60 }], legend: true }),
 		)
 
-		const item = bySlot(container, 'chart-legend-item') as HTMLButtonElement
+		const item = getSlot<HTMLButtonElement>(container, 'chart-legend-item')
 
 		expect(item.tagName).toBe('BUTTON')
 

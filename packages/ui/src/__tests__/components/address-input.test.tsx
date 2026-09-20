@@ -3,7 +3,16 @@ import { describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
 import { Form, useFormState } from '../../components/form'
-import { bySlot, fireEvent, renderUI, screen, userEvent, waitFor, withFakeTime } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	userEvent,
+	waitFor,
+	withFakeTime,
+} from '../helpers'
 
 const mockProvider: AddressProvider = async (query) => [
 	{ id: '1', label: `${query} Main St`, description: 'Somewhere, CA' },
@@ -72,7 +81,7 @@ describe('AddressInput', () => {
 
 			const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			await clock.user.type(input, '123')
 
@@ -93,7 +102,7 @@ describe('AddressInput', () => {
 			<AddressInput provider={provider} debounceMs={0} minQueryLength={3} />,
 		)
 
-		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -111,7 +120,7 @@ describe('AddressInput', () => {
 				<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
 			)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			await clock.user.type(input, 'x')
 
@@ -143,7 +152,7 @@ describe('AddressInput', () => {
 					<AddressInput provider={colliding} debounceMs={0} minQueryLength={1} />,
 				)
 
-				const input = bySlot(container, 'combobox-input') as HTMLInputElement
+				const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 				await clock.user.type(input, 'c')
 
@@ -171,7 +180,7 @@ describe('AddressInput', () => {
 				</Form>,
 			)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			await clock.user.type(input, 'x')
 
@@ -192,7 +201,7 @@ describe('AddressInput', () => {
 			</Form>,
 		)
 
-		expect((bySlot(container, 'combobox-input') as HTMLInputElement).value).toBe('10 Main St')
+		expect(getSlot<HTMLInputElement>(container, 'combobox-input').value).toBe('10 Main St')
 	})
 
 	it('aborts the in-flight request when the query changes', async () => {
@@ -209,7 +218,7 @@ describe('AddressInput', () => {
 				<AddressInput provider={provider} debounceMs={0} minQueryLength={1} />,
 			)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			await clock.user.type(input, 'a')
 
@@ -231,7 +240,7 @@ describe('AddressInput', () => {
 				<AddressInput provider={provider} debounceMs={0} minQueryLength={0} />,
 			)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			// The menu has not been requested yet; the provider stays idle.
 			expect(provider).not.toHaveBeenCalled()
@@ -261,7 +270,7 @@ describe('AddressInput', () => {
 
 		const { container } = renderUI(<AddressInput value={selected} />)
 
-		const input = bySlot(container, 'combobox-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 		expect(input.value).toBe('10 Main St')
 	})
@@ -284,7 +293,7 @@ describe('AddressInput', () => {
 		await withFakeTime(async (clock) => {
 			const { container } = renderUI(<Controlled />)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			await clock.user.type(input, 'x')
 
@@ -320,7 +329,7 @@ describe('AddressInput', () => {
 				/>,
 			)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 
@@ -371,7 +380,7 @@ describe('AddressInput', () => {
 
 			const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			const field = bySlot(container, 'address-input')
 
@@ -751,7 +760,7 @@ describe('AddressInput onError', () => {
 				/>,
 			)
 
-			await clock.user.type(bySlot(container, 'combobox-input') as HTMLInputElement, 'a')
+			await clock.user.type(getSlot<HTMLInputElement>(container, 'combobox-input'), 'a')
 
 			await clock.advance(0)
 
@@ -774,7 +783,7 @@ describe('AddressInput onError', () => {
 				<AddressInput provider={provider} debounceMs={0} minQueryLength={1} onError={onError} />,
 			)
 
-			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+			const input = getSlot<HTMLInputElement>(container, 'combobox-input')
 
 			await clock.user.type(input, 'a')
 
@@ -801,7 +810,7 @@ describe('AddressInput onError', () => {
 				/>,
 			)
 
-			await clock.user.type(bySlot(container, 'combobox-input') as HTMLInputElement, 'a')
+			await clock.user.type(getSlot<HTMLInputElement>(container, 'combobox-input'), 'a')
 
 			await clock.advance(0)
 

@@ -4,7 +4,7 @@ import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbo
 import { Description } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 function FieldProbe({ name }: { name: string }) {
 	const field = useFormField(name)
@@ -36,7 +36,7 @@ describe('Checkbox', () => {
 
 		const { container } = renderUI(<Checkbox checked={true} onChange={onChange} />)
 
-		const input = bySlot(container, 'checkbox') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
 
 		expect(input.checked).toBe(true)
 
@@ -64,7 +64,7 @@ describe('Checkbox', () => {
 	it('sets the indeterminate flag on the input element when indeterminate is true', () => {
 		const { container } = renderUI(<Checkbox indeterminate />)
 
-		const input = bySlot(container, 'checkbox') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
 
 		expect(input.indeterminate).toBe(true)
 	})
@@ -81,7 +81,7 @@ describe('Checkbox in a Form', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'checkbox') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
 
 		expect(input.checked).toBe(false)
 
@@ -104,7 +104,7 @@ describe('Checkbox in a Form', () => {
 			</Form>,
 		)
 
-		const input = bySlot(container, 'checkbox') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
 
 		expect(input.checked).toBe(true)
 
@@ -188,9 +188,9 @@ describe('CheckboxField aria-describedby', () => {
 			</CheckboxField>,
 		)
 
-		const input = bySlot(container, 'checkbox') as HTMLElement
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
 
-		const description = bySlot(container, 'description') as HTMLElement
+		const description = getSlot(container, 'description')
 
 		expect(description.id).toBeTruthy()
 

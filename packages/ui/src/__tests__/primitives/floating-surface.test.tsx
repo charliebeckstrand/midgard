@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { fireEvent, noop, renderUI, screen } from '../helpers'
+import { fireEvent, noop, present, renderUI, screen } from '../helpers'
 
 // Mirrors floating-ui's contract: user props merge into the result.
 const mergeFloatingProps = (userProps?: object) => ({ ...userProps })
@@ -56,7 +56,7 @@ describe('FloatingSurface', () => {
 		// clobbered by its return.
 		expect(getFloatingProps).toHaveBeenCalledWith(expect.objectContaining({ onKeyDown }))
 
-		const el = document.querySelector<HTMLElement>('[data-slot="composed"]') as HTMLElement
+		const el = present(document.querySelector('[data-slot="composed"]'), '[data-slot="composed"]')
 
 		fireEvent.keyDown(el, { key: 'a' })
 

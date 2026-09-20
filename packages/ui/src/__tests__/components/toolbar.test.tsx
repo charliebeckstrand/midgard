@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../components/toolbar'
 import { TOOLBAR_ITEM_SELECTOR } from '../../components/toolbar/toolbar-constants'
-import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Toolbar', () => {
 	it('renders children with role="toolbar"', () => {
@@ -53,7 +53,7 @@ describe('Toolbar', () => {
 
 		expect(document.activeElement).toBe(first)
 
-		fireEvent.keyDown(bySlot(container, 'toolbar') as HTMLElement, { key: 'ArrowRight' })
+		fireEvent.keyDown(getSlot(container, 'toolbar'), { key: 'ArrowRight' })
 
 		expect(document.activeElement).toBe(second)
 	})
@@ -73,7 +73,7 @@ describe('Toolbar', () => {
 
 		buttons[0]?.focus()
 
-		fireEvent.keyDown(bySlot(container, 'toolbar') as HTMLElement, { key: 'ArrowRight' })
+		fireEvent.keyDown(getSlot(container, 'toolbar'), { key: 'ArrowRight' })
 
 		expect(document.activeElement).toBe(buttons[2])
 	})
@@ -94,7 +94,7 @@ describe('Toolbar', () => {
 
 		buttons[0]?.focus()
 
-		fireEvent.keyDown(bySlot(container, 'toolbar') as HTMLElement, { key: 'ArrowRight' })
+		fireEvent.keyDown(getSlot(container, 'toolbar'), { key: 'ArrowRight' })
 
 		// The roving stop moves with focus so re-Tabbing returns to the last item.
 		expect(buttons.map((b) => b.tabIndex)).toEqual([-1, 0, -1])
@@ -162,7 +162,7 @@ describe('Toolbar', () => {
 		// It must still be matched by the toolbar item selector so arrow-key
 		// navigation can land on it.
 		const matched = Array.from(
-			(bySlot(container, 'toolbar') as HTMLElement).querySelectorAll(TOOLBAR_ITEM_SELECTOR),
+			getSlot(container, 'toolbar').querySelectorAll(TOOLBAR_ITEM_SELECTOR),
 		)
 
 		expect(matched).toContain(custom)

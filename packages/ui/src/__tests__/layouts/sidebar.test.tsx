@@ -6,7 +6,7 @@ import {
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('SidebarLayout', () => {
 	it('renders the sidebar content', () => {
@@ -150,7 +150,7 @@ describe('SidebarLayout floating mode', () => {
 			</SidebarLayout>,
 		)
 
-		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		expect(hotZone).not.toBeNull()
 
@@ -168,7 +168,7 @@ describe('SidebarLayout floating mode', () => {
 			</SidebarLayout>,
 		)
 
-		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		fireEvent.pointerEnter(hotZone)
 
@@ -177,7 +177,7 @@ describe('SidebarLayout floating mode', () => {
 		// Hovering the sheet body itself keeps it open.
 		fireEvent.pointerEnter(inner)
 
-		const buffer = document.body.querySelector('[class*="left-80"]') as HTMLElement
+		const buffer = present(document.body.querySelector('[class*="left-80"]'), '[class*="left-80"]')
 
 		expect(buffer).toBeInTheDocument()
 
@@ -198,11 +198,11 @@ describe('SidebarLayout floating mode', () => {
 			</SidebarLayout>,
 		)
 
-		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		fireEvent.pointerEnter(hotZone)
 
-		const buffer = document.body.querySelector('[class*="left-80"]') as HTMLElement
+		const buffer = present(document.body.querySelector('[class*="left-80"]'), '[class*="left-80"]')
 
 		expect(buffer).toBeInTheDocument()
 
@@ -221,7 +221,7 @@ describe('SidebarLayout floating mode', () => {
 		// No backdrop until the peek opens.
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
 
-		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		fireEvent.pointerEnter(hotZone)
 
@@ -233,7 +233,10 @@ describe('SidebarLayout floating mode', () => {
 		expect(backdrop?.className).toContain('backdrop-blur')
 
 		// The wrapper stays non-interactive so the blurred page is still usable.
-		const overlay = document.querySelector('[data-slot="overlay"]') as HTMLElement
+		const overlay = present(
+			document.querySelector('[data-slot="overlay"]'),
+			'[data-slot="overlay"]',
+		)
 
 		expect(overlay.className).toContain('pointer-events-none')
 	})
@@ -255,7 +258,7 @@ describe('SidebarLayout floating mode', () => {
 
 		pageButton.focus()
 
-		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		fireEvent.pointerEnter(hotZone)
 
@@ -290,7 +293,7 @@ describe('SidebarLayout floating mode', () => {
 			</SidebarLayout>,
 		)
 
-		const hotZone = container.querySelector('[aria-hidden="true"]') as HTMLElement
+		const hotZone = present(container.querySelector('[aria-hidden="true"]'), '[aria-hidden="true"]')
 
 		fireEvent.pointerEnter(hotZone)
 

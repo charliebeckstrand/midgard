@@ -6,7 +6,7 @@ import {
 	REGION_STROKE_WIDTH,
 	ROUTE_STROKE_WIDTH,
 } from '../../modules/map/engine/map-constants'
-import { bySlot, present, renderUI } from '../helpers'
+import { bySlot, getSlot, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { firstRegion } from '../helpers/map-queries'
 import { zoomToCeiling } from './helpers/map-zoom'
@@ -68,7 +68,7 @@ describe('map stroke width through the view', () => {
 	it('draws every mark at its device-pixel spec, at every scale the view takes', () => {
 		const { container } = marked()
 
-		const plot = present(bySlot(container, 'map-plot'), 'plot region')
+		const plot = getSlot(container, 'map-plot')
 
 		const specs = [
 			['map-point', POINT_RADIUS * 2],
@@ -111,7 +111,7 @@ describe('map stroke width through the view', () => {
 	it('holds the region seam at one device pixel, on a width no path states', () => {
 		const { container } = marked()
 
-		const plot = present(bySlot(container, 'map-plot'), 'plot region')
+		const plot = getSlot(container, 'map-plot')
 
 		const region = present<SVGGraphicsElement>(firstRegion(container), 'a region path')
 
@@ -136,7 +136,7 @@ describe('map stroke width through the view', () => {
 		// it, since a `pathLength` dash under one covers 1/k of its path. Read
 		// computed, so a class that reintroduced it fails here too.
 		for (const slot of ['map-point', 'map-route', 'map-geofence']) {
-			const mark = present(bySlot(container, slot), slot)
+			const mark = getSlot(container, slot)
 
 			expect(getComputedStyle(mark).vectorEffect, slot).toBe('none')
 		}

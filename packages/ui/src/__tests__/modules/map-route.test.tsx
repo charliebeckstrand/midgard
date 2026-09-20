@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapPlat, MapRoute } from '../../modules/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const STOPS: LngLat[] = [
@@ -100,11 +100,11 @@ describe('MapRoute', () => {
 	it('unmounts its marks while toggled off', () => {
 		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} />))
 
-		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		expect(bySlot(container, 'map-route')).toBeNull()
 
-		fireEvent.click(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		expect(bySlot(container, 'map-route')).not.toBeNull()
 	})
@@ -142,7 +142,7 @@ describe('MapRoute', () => {
 		const anyDimmed = () =>
 			(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes('opacity-25')
 
-		fireEvent.pointerEnter(bySlot(container, 'map-legend-item') as HTMLButtonElement)
+		fireEvent.pointerEnter(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
 		// The route is emphasised, so the regions dim against it.
 		expect(anyDimmed()).toBe(true)

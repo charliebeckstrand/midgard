@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChatList, ChatListItem } from '../../modules/chat'
-import { allBySlot, bySlot, fireEvent, present, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 
 function renderList() {
 	return renderUI(
@@ -61,7 +61,7 @@ describe('ChatList', () => {
 	it('roves between items with Up/Down arrows', () => {
 		const { container } = renderList()
 
-		const list = present(bySlot(container, 'chat-list'), 'chat list')
+		const list = getSlot(container, 'chat-list')
 
 		const items = allBySlot(container, 'chat-list-item-select')
 
@@ -79,7 +79,7 @@ describe('ChatList', () => {
 	it('roves into a row action with Right and back to the item with Left', () => {
 		const { container } = renderList()
 
-		const list = present(bySlot(container, 'chat-list'), 'chat list')
+		const list = getSlot(container, 'chat-list')
 
 		const items = allBySlot(container, 'chat-list-item-select')
 

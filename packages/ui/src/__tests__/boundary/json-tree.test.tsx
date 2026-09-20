@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { JsonTree } from '../../components/json-tree'
 import { JsonTreeNodeRow } from '../../components/json-tree/json-tree-node-row'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 describe('JsonTree', () => {
 	it('renders with data-slot="json-tree" and role="tree"', () => {
@@ -493,7 +493,7 @@ describe('JsonTreeNodeRow', () => {
 			/>,
 		)
 
-		const toggle = bySlot(container, 'json-node-toggle') as HTMLButtonElement
+		const toggle = getSlot<HTMLButtonElement>(container, 'json-node-toggle')
 
 		fireEvent.click(toggle)
 

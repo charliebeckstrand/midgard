@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ResizableGroup, ResizableHandle, ResizablePanel } from '../../components/resizable'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 describe('Resizable', () => {
 	it('handle has role="separator"', () => {
@@ -134,7 +134,7 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.keyDown(handle, { key: 'ArrowRight' })
 
@@ -156,7 +156,7 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.keyDown(handle, { key: 'ArrowLeft' })
 
@@ -174,7 +174,7 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.keyDown(handle, { key: 'ArrowRight', shiftKey: true })
 
@@ -194,7 +194,7 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.keyDown(handle, { key: 'Home' })
 
@@ -214,7 +214,7 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.keyDown(handle, { key: 'End' })
 
@@ -232,7 +232,7 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.keyDown(handle, { key: 'ArrowDown' })
 
@@ -250,7 +250,7 @@ describe('Resizable: keyboard', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.keyDown(handle, { key: 'ArrowUp' })
 
@@ -268,11 +268,11 @@ describe('Resizable: drag', () => {
 			</ResizableGroup>,
 		)
 
-		const group = bySlot(container, 'resizable-group') as HTMLElement
+		const group = getSlot(container, 'resizable-group')
 
 		group.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 20 })
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.pointerDown(handle, { button: 0, clientX: 100, clientY: 0 })
 
@@ -294,7 +294,7 @@ describe('Resizable: drag', () => {
 			</ResizableGroup>,
 		)
 
-		const handle = bySlot(container, 'resizable-handle') as HTMLElement
+		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.pointerDown(handle, { button: 2, clientX: 100, clientY: 0 })
 

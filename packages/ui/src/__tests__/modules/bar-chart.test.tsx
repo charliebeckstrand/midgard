@@ -8,7 +8,7 @@ import {
 	stackedBarSnapSeries,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
-import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 
 /**
  * How many bars drew. Each visible series is one `chart-bar` path and each bar
@@ -112,7 +112,7 @@ describe('BarChart', () => {
 	it('pins the readout to a click under trigger click, ignoring hover', () => {
 		const { container } = renderUI(chart({ tooltip: { trigger: 'click' } }))
 
-		const hit = bySlot(container, 'chart-hit') as HTMLElement
+		const hit = getSlot(container, 'chart-hit')
 
 		// Movement never summons the readout under the click trigger; it only points
 		// the cursor at the bars — a pointer over Q3's bar, the default over the gap
@@ -155,7 +155,7 @@ describe('BarChart', () => {
 			chart({ onCategoryClick: (category, index) => clicks.push([category, index]) }),
 		)
 
-		const hit = bySlot(container, 'chart-hit') as HTMLElement
+		const hit = getSlot(container, 'chart-hit')
 
 		// The bands read as clickable, and a click on Q3's band reports it.
 		expect(hit.getAttribute('class')).toContain('cursor-pointer')
@@ -180,7 +180,7 @@ describe('BarChart', () => {
 			}),
 		)
 
-		const hit = bySlot(container, 'chart-hit') as HTMLElement
+		const hit = getSlot(container, 'chart-hit')
 
 		// One gesture pins the readout AND reports the activation.
 		fireEvent.click(hit, { clientX: 280, clientY: 100 })
@@ -197,7 +197,7 @@ describe('BarChart', () => {
 			chart({ tooltip: false, onCategoryClick: (category) => clicks.push(category) }),
 		)
 
-		const hit = bySlot(container, 'chart-hit') as HTMLElement
+		const hit = getSlot(container, 'chart-hit')
 
 		fireEvent.click(hit, { clientX: 60, clientY: 100 })
 
@@ -443,7 +443,7 @@ describe('BarChart', () => {
 			chart({ series: [{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' }], legend: true }),
 		)
 
-		const item = bySlot(container, 'chart-legend-item') as HTMLButtonElement
+		const item = getSlot<HTMLButtonElement>(container, 'chart-legend-item')
 
 		expect(item.textContent).toBe('Revenue')
 
@@ -582,7 +582,7 @@ describe('BarChart', () => {
 		// legend leaves, rather than the plot box reserving the ratio alone.
 		const { container } = renderUI(chart({ aspectRatio: '16/9' }))
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
+		const figure = getSlot(container, 'chart-figure')
 
 		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
@@ -602,14 +602,14 @@ describe('BarChart', () => {
 			}),
 		)
 
-		const figure = bySlot(container, 'chart-figure') as HTMLElement
+		const figure = getSlot(container, 'chart-figure')
 
 		expect(figure.style.aspectRatio.replace(/\s*\/\s*1$/, '')).toBe('1.7777777777777777')
 
 		// The plot box reserves no ratio of its own — it fills and measures the figure.
 		expect(bySlot(container, 'aspect-ratio')).toBeNull()
 
-		const plot = bySlot(container, 'chart-plot') as HTMLElement
+		const plot = getSlot(container, 'chart-plot')
 
 		expect(plot.className).toContain('flex-1')
 
@@ -668,8 +668,7 @@ describe('BarChart', () => {
 			clientY: 40,
 		})
 
-		const groupedText =
-			(bySlot(grouped.container, 'tooltip-content') as HTMLElement).textContent ?? ''
+		const groupedText = getSlot(grouped.container, 'tooltip-content').textContent ?? ''
 
 		// Grouped bars grow from one baseline, so the readout keeps the declared order.
 		expect(groupedText).toContain('Revenue')
@@ -683,8 +682,7 @@ describe('BarChart', () => {
 			clientY: 40,
 		})
 
-		const stackedText =
-			(bySlot(stacked.container, 'tooltip-content') as HTMLElement).textContent ?? ''
+		const stackedText = getSlot(stacked.container, 'tooltip-content').textContent ?? ''
 
 		// Costs piles on top of Revenue, so the readout reverses to read the column top
 		// to bottom — the top segment first.
@@ -704,7 +702,7 @@ describe('BarChart', () => {
 		// The first bar's left edge, off the `M x0 …` that opens its path.
 		const leftEdge = (container: HTMLElement) =>
 			Number(
-				(bySlot(container, 'chart-bar') as HTMLElement)
+				getSlot(container, 'chart-bar')
 					.getAttribute('d')
 					?.match(/^M\s+([\d.]+)/)?.[1],
 			)
@@ -854,7 +852,7 @@ describe('BarChart horizontal', () => {
 	it('keeps the bottom value labels inside the viewBox instead of clipping them', () => {
 		const { container } = renderUI(chart({ orientation: 'horizontal' }))
 
-		const svg = container.querySelector('svg') as SVGSVGElement
+		const svg = present<SVGSVGElement>(container.querySelector('svg'), 'svg')
 
 		const width = Number((svg.getAttribute('viewBox') ?? '0 0 0 0').split(' ')[2])
 

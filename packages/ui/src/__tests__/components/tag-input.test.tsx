@@ -6,14 +6,16 @@ import {
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
+	getSlot,
 	liveRegion,
+	present,
 	renderUI,
 	screen,
 	userEvent,
 } from '../helpers'
 
 function getInput(container: HTMLElement) {
-	return bySlot(container, 'input') as HTMLInputElement
+	return getSlot<HTMLInputElement>(container, 'input')
 }
 
 function getRemoveButtons(container: HTMLElement) {
@@ -318,7 +320,10 @@ describe('TagInput', () => {
 
 		expect(input).not.toBeDisabled()
 
-		const addButton = bySlot(container, 'suffix')?.querySelector('button') as HTMLButtonElement
+		const addButton = present<HTMLButtonElement>(
+			getSlot(container, 'suffix').querySelector('button'),
+			'button',
+		)
 
 		expect(addButton).toBeDisabled()
 
@@ -398,7 +403,7 @@ describe('TagInput', () => {
 	it('exposes the tags as an enumerable list', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react', 'vue']} />)
 
-		const list = bySlot(container, 'tags') as HTMLElement
+		const list = getSlot(container, 'tags')
 
 		expect(list).toHaveAttribute('role', 'list')
 
@@ -434,7 +439,10 @@ describe('TagInput', () => {
 
 		await user.type(input, 'svelte')
 
-		const addButton = bySlot(container, 'suffix')?.querySelector('button') as HTMLButtonElement
+		const addButton = present<HTMLButtonElement>(
+			getSlot(container, 'suffix').querySelector('button'),
+			'button',
+		)
 
 		await user.click(addButton)
 

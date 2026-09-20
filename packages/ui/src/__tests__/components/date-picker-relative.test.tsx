@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
-import { allBySlot, bySlot, renderUI, screen, userEvent, within } from '../helpers'
+import { allBySlot, bySlot, getSlot, renderUI, screen, userEvent, within } from '../helpers'
 
 // Controlled relative picker: the parent holds the (always-array) value so a
 // toggle round-trips back into the trigger. `multiple` opts into multi-select;
@@ -51,7 +51,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(screen.getByRole('dialog', { name: 'Select range' })).toBeInTheDocument()
 
@@ -69,7 +69,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(screen.queryByRole('button', { name: 'Last 14 days' })).not.toBeInTheDocument()
 
@@ -216,7 +216,7 @@ describe('DatePicker (relative)', () => {
 			/>,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(screen.getByRole('button', { name: 'This sprint' })).toBeInTheDocument()
 
@@ -231,7 +231,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
@@ -257,7 +257,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
@@ -286,7 +286,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		await user.click(screen.getByRole('button', { name: 'Custom range' }))
 
@@ -528,7 +528,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
-		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const trigger = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		trigger.focus()
 
@@ -546,7 +546,7 @@ describe('DatePicker (relative)', () => {
 
 		const { container } = renderUI(<DatePicker relative aria-label="Range" />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		await user.keyboard('{End}')
 

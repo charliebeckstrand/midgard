@@ -9,6 +9,10 @@ import { GlassContext } from '../../../providers/glass'
 
 export { fireEvent, screen } from '@testing-library/react'
 
+// Re-exported rather than redeclared: these were a verbatim second copy, and a
+// change to the `data-slot` convention has to reach both programs at once.
+export { allBySlot, bySlot, getSlot } from '../../../__tests__/helpers/slot-queries'
+
 type UIRenderOptions = { glass?: boolean } & Omit<RenderOptions, 'wrapper'>
 
 /**
@@ -24,14 +28,4 @@ export function renderUI(ui: ReactElement, options: UIRenderOptions = {}): Rende
 	}
 
 	return render(ui, { wrapper: Wrapper, ...renderOptions })
-}
-
-/** Query a single element by its `data-slot` attribute, mirroring `querySelector`. */
-export function bySlot(container: HTMLElement, name: string) {
-	return container.querySelector<HTMLElement>(`[data-slot="${name}"]`)
-}
-
-/** Query all elements matching a `data-slot` attribute. */
-export function allBySlot(container: HTMLElement, name: string) {
-	return Array.from(container.querySelectorAll<HTMLElement>(`[data-slot="${name}"]`))
 }

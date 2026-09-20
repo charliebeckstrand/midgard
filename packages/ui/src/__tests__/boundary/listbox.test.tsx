@@ -5,7 +5,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { act, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 const option = (
 	<div role="option" tabIndex={-1} aria-selected="false">
@@ -148,7 +148,7 @@ describe('Listbox', () => {
 			</Listbox>,
 		)
 
-		const button = bySlot(container, 'listbox-button') as HTMLElement
+		const button = getSlot<HTMLButtonElement>(container, 'listbox-button')
 
 		fireEvent.click(button)
 
@@ -172,7 +172,7 @@ describe('Listbox', () => {
 			</Listbox>,
 		)
 
-		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'listbox-button'))
 
 		expect(screen.getByRole('listbox', { name: 'Current page' })).toBeInTheDocument()
 	})
@@ -204,7 +204,7 @@ describe('Listbox', () => {
 			</Field>,
 		)
 
-		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'listbox-button'))
 
 		// The popup's aria-labelledby resolves to the registered Label id.
 		expect(screen.getByRole('listbox', { name: 'Country' })).toBeInTheDocument()
@@ -219,7 +219,7 @@ describe('Listbox', () => {
 			</Listbox>,
 		)
 
-		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'listbox-button'))
 
 		expect(screen.getByRole('listbox')).toHaveAttribute('aria-multiselectable', 'true')
 	})
@@ -277,7 +277,7 @@ describe('Listbox', () => {
 	])('%s', (_name, ui, slot, expected) => {
 		const { container } = renderUI(ui())
 
-		const notCancelled = fireEvent.mouseDown(bySlot(container, slot) as HTMLElement)
+		const notCancelled = fireEvent.mouseDown(getSlot(container, slot))
 
 		expect(notCancelled).toBe(expected)
 	})
@@ -394,7 +394,7 @@ describe('Listbox', () => {
 			</Listbox>,
 		)
 
-		const button = bySlot(container, 'listbox-button') as HTMLElement
+		const button = getSlot<HTMLButtonElement>(container, 'listbox-button')
 
 		// No label resolved → placeholder visible.
 		expect(button.textContent).toContain('Select')
@@ -527,7 +527,7 @@ describe('Listbox readOnly', () => {
 			</Listbox>,
 		)
 
-		const button = bySlot(container, 'listbox-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'listbox-button')
 
 		expect(button).toHaveAttribute('aria-readonly', 'true')
 
@@ -542,7 +542,7 @@ describe('Listbox readOnly', () => {
 			</Listbox>,
 		)
 
-		const button = bySlot(container, 'listbox-button') as HTMLElement
+		const button = getSlot<HTMLButtonElement>(container, 'listbox-button')
 
 		fireEvent.click(button)
 
@@ -615,7 +615,7 @@ describe('Listbox onBlur', () => {
 			</Listbox>,
 		)
 
-		fireEvent.click(bySlot(container, 'listbox-button') as HTMLElement)
+		fireEvent.click(getSlot<HTMLButtonElement>(container, 'listbox-button'))
 
 		const panel = screen.getByRole('listbox')
 

@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
-import { act, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 describe('HoldButton', () => {
 	it('renders a button with data-slot="hold-button"', () => {
@@ -29,7 +29,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerDown(el)
 
@@ -47,7 +47,7 @@ describe('HoldButton', () => {
 			</HoldButton>,
 		)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerDown(el)
 
@@ -63,7 +63,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onHoldCancel={onHoldCancel}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerDown(el)
 
@@ -86,7 +86,7 @@ describe('HoldButton', () => {
 				</HoldButton>,
 			)
 
-			const el = bySlot(container, 'hold-button') as HTMLElement
+			const el = getSlot(container, 'hold-button')
 
 			fireEvent.keyDown(el, { key: ' ' })
 
@@ -118,7 +118,7 @@ describe('HoldButton', () => {
 				</HoldButton>,
 			)
 
-			const el = bySlot(container, 'hold-button') as HTMLElement
+			const el = getSlot(container, 'hold-button')
 
 			fireEvent.keyDown(el, { key: ' ' })
 
@@ -148,7 +148,7 @@ describe('HoldButton', () => {
 				</HoldButton>,
 			)
 
-			const el = bySlot(container, 'hold-button') as HTMLElement
+			const el = getSlot(container, 'hold-button')
 
 			// Space starts the hold; pressing and releasing Enter must not abort it.
 			fireEvent.keyDown(el, { key: ' ' })
@@ -179,7 +179,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.keyDown(el, { key: ' ' })
 
@@ -191,7 +191,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.keyDown(el, { key: ' ' })
 
@@ -209,7 +209,7 @@ describe('HoldButton', () => {
 			</HoldButton>,
 		)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerDown(el)
 
@@ -229,7 +229,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onPointerDown={onPointerDown}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerDown(el)
 
@@ -241,7 +241,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onPointerUp={onPointerUp}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerUp(el)
 
@@ -253,7 +253,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onPointerCancel={onPointerCancel}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerCancel(el)
 
@@ -265,7 +265,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onPointerLeave={onPointerLeave}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerLeave(el)
 
@@ -283,7 +283,7 @@ describe('HoldButton', () => {
 			</HoldButton>,
 		)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.keyDown(el, { key: 'Enter' })
 
@@ -299,7 +299,7 @@ describe('HoldButton', () => {
 
 		const { container } = renderUI(<HoldButton onHoldStart={onHoldStart}>Hold</HoldButton>)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		fireEvent.pointerDown(el, { button: 2 })
 
@@ -315,7 +315,7 @@ describe('HoldButton', () => {
 			</form>,
 		)
 
-		const el = bySlot(container, 'hold-button') as HTMLElement
+		const el = getSlot(container, 'hold-button')
 
 		expect(el).toHaveAttribute('type', 'button')
 
@@ -349,7 +349,7 @@ describe('HoldButton', () => {
 				</HoldButton>,
 			)
 
-			const el = bySlot(container, 'hold-button') as HTMLElement
+			const el = getSlot(container, 'hold-button')
 
 			fireEvent.pointerDown(el)
 
@@ -371,7 +371,7 @@ describe('HoldButton', () => {
 				</HoldButton>,
 			)
 
-			const el = bySlot(container, 'hold-button') as HTMLElement
+			const el = getSlot(container, 'hold-button')
 
 			fireEvent.pointerDown(el)
 
@@ -408,7 +408,7 @@ describe('HoldButton', () => {
 				</HoldButton>,
 			)
 
-			const el = bySlot(container, 'hold-button') as HTMLElement
+			const el = getSlot(container, 'hold-button')
 
 			fireEvent.pointerDown(el)
 

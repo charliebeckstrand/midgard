@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
 import { DensityProvider } from '../../providers/density'
-import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, fireEvent, getSlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('TabList', () => {
 	it('forwards the full button surface to the tab', () => {
@@ -300,7 +300,7 @@ describe('Tab', () => {
 			</TabList>,
 		)
 
-		const tab = bySlot(container, 'tab') as HTMLElement
+		const tab = getSlot(container, 'tab')
 
 		fireEvent.click(tab)
 
@@ -314,7 +314,7 @@ describe('Tab', () => {
 			</TabList>,
 		)
 
-		const tab = bySlot(container, 'tab') as HTMLElement
+		const tab = getSlot(container, 'tab')
 
 		expect(tab).toHaveAttribute('id', 'settings')
 

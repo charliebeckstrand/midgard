@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { corpus } from '../a11y/cases'
-import { allBySlot, bySlot, present, renderUI } from '../helpers'
+import { allBySlot, bySlot, getSlot, renderUI } from '../helpers'
 
 /**
  * Capability sweeps, derived from the shared corpus: a guarantee that holds for
@@ -30,7 +30,7 @@ describe('component pass-through', () => {
 		it(`${slot} passes through HTML attributes`, () => {
 			const { container } = renderUI(render({ id: PASS_THROUGH_ID }))
 
-			expect(present(bySlot(container, slot), slot)).toHaveAttribute('id', PASS_THROUGH_ID)
+			expect(getSlot(container, slot)).toHaveAttribute('id', PASS_THROUGH_ID)
 		})
 	}
 
@@ -69,7 +69,7 @@ describe('component links', () => {
 			// and anything portalled out of it alike.
 			const { baseElement } = renderUI(render(LINK_HREF))
 
-			const anchor = present(bySlot(baseElement, slot), slot)
+			const anchor = getSlot(baseElement, slot)
 
 			expect(anchor.tagName).toBe('A')
 

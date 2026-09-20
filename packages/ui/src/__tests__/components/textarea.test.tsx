@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { Textarea } from '../../components/textarea'
-import { bySlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Textarea', () => {
 	it('renders with data-slot="textarea"', () => {
@@ -17,7 +17,7 @@ describe('Textarea', () => {
 	it('passes through placeholder', () => {
 		const { container } = renderUI(<Textarea placeholder="Enter text" />)
 
-		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		expect(el.placeholder).toBe('Enter text')
 	})
@@ -27,7 +27,7 @@ describe('Textarea', () => {
 
 		const { container } = renderUI(<Textarea onChange={onChange} />)
 
-		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -61,7 +61,7 @@ describe('Textarea', () => {
 		// controlled rather than silently flipping it to uncontrolled.
 		const { container } = renderUI(<Textarea value={null} onChange={() => {}} />)
 
-		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		expect(el.value).toBe('')
 
@@ -80,7 +80,7 @@ describe('Textarea', () => {
 			<Textarea value={undefined} defaultValue="hi" onChange={() => {}} />,
 		)
 
-		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		expect(el.value).toBe('hi')
 
@@ -99,7 +99,7 @@ describe('Textarea', () => {
 			</Form>,
 		)
 
-		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		expect(el.value).toBe('explicit')
 	})
@@ -107,7 +107,7 @@ describe('Textarea', () => {
 	it('stays uncontrolled when no value prop is passed', async () => {
 		const { container } = renderUI(<Textarea defaultValue="hi" />)
 
-		const el = bySlot(container, 'textarea') as HTMLTextAreaElement
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
 
 		expect(el.value).toBe('hi')
 

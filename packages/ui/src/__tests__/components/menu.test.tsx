@@ -15,7 +15,7 @@ import {
 import { useMenuContext } from '../../components/menu/context'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
@@ -760,7 +760,7 @@ describe('MenuTrigger fallback button', () => {
 			</Menu>,
 		)
 
-		const trigger = bySlot(container, 'menu-trigger') as HTMLElement
+		const trigger = getSlot(container, 'menu-trigger')
 
 		fireEvent.click(trigger)
 
@@ -778,7 +778,7 @@ describe('Menu context-menu mode', () => {
 			</Menu>,
 		)
 
-		const root = bySlot(container, 'menu') as HTMLElement
+		const root = getSlot(container, 'menu')
 
 		// Without a placement prop the root wrapper opts into context-menu mode.
 		// The wrapper holds arbitrary page content and implements no keyboard
@@ -804,7 +804,7 @@ describe('Menu context-menu mode', () => {
 			</Menu>,
 		)
 
-		const root = bySlot(container, 'menu') as HTMLElement
+		const root = getSlot(container, 'menu')
 
 		fireEvent.contextMenu(root, { clientX: 50, clientY: 80 })
 

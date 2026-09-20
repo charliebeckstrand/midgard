@@ -53,6 +53,18 @@ const LOOSE_VIEWPORT = {
 	regex: /^(?!\s*beforeAll\(\(\) => page\.viewport\().*page\.viewport\(.*$/gm,
 } as const
 
+// `bySlot` and `querySelector` both return null, and a cast that says otherwise
+// moves the miss to whatever reads the result next: a `getBoundingClientRect`
+// on null, or a `fireEvent` that reports only that it got no element. That is
+// how the suite's most frequent intermittent failure read for twelve runs
+// before it was root-caused. `getSlot` states the slot name once and throws at
+// the query; `present` does the same for any other lookup. A cast to `T | null`
+// keeps the null and is honest, so it passes.
+const NULLABLE_CAST = {
+	label: 'non-null cast over a nullable query',
+	regex: /(?:bySlot|querySelector(?:All)?)\([^\n]*\)\s+as\s+(?:HTML|SVG)[A-Za-z]*Element(?!\s*\|)/g,
+} as const
+
 describe('test isolation boundary', () => {
 	it('no file in a shared-registry project mutates the module registry', () => {
 		const violations = SHARED_REGISTRY_SCANS.flatMap((scan) =>
@@ -108,6 +120,19 @@ describe('test isolation boundary', () => {
 		expect(
 			loose,
 			`a browser file states its width once, as \`beforeAll(() => page.viewport(w, h))\` — a call inside an \`it\` reaches the file's later cases, and nothing restores it there:\n  ${loose.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('casts no nullable query to a non-null element', () => {
+		const casts = collectPatternViolations({
+			dir: testsDir,
+			patterns: [NULLABLE_CAST],
+			stripComments: true,
+		})
+
+		expect(
+			casts,
+			`a cast cannot make a query non-null — take \`getSlot(container, name)\` for a slot, or \`present(query, 'what')\` for anything else:\n  ${casts.join('\n  ')}`,
 		).toEqual([])
 	})
 })

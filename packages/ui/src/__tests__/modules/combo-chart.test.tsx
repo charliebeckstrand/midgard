@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ComboChart } from '../../modules/chart/combo-chart'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 
 /** Bars in a combo draw as one path per series; each bar is an `M`-opened subfigure. */
 function barCount(container: HTMLElement): number {
@@ -47,7 +47,7 @@ describe('ComboChart', () => {
 
 		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
 
-		const svg = bySlot(container, 'chart-plot')?.querySelector('svg') as SVGSVGElement
+		const svg = present<SVGSVGElement>(getSlot(container, 'chart-plot').querySelector('svg'), 'svg')
 
 		const order = [...svg.querySelectorAll('[data-slot="chart-bar"], [data-slot="chart-line"]')]
 
@@ -128,7 +128,7 @@ describe('ComboChart', () => {
 	it('stacks bars at the back, the area wash over them, the line on top', () => {
 		const { container } = renderUI(chart({ series: [...TRIO] }))
 
-		const svg = bySlot(container, 'chart-plot')?.querySelector('svg') as SVGSVGElement
+		const svg = present<SVGSVGElement>(getSlot(container, 'chart-plot').querySelector('svg'), 'svg')
 
 		const slots = [
 			...svg.querySelectorAll(

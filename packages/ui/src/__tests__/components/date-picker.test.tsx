@@ -10,6 +10,7 @@ import {
 	act,
 	bySlot,
 	fireEvent,
+	getSlot,
 	renderUI,
 	screen,
 	userEvent,
@@ -156,7 +157,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<DatePicker />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
 
@@ -170,7 +171,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<DatePicker />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
 
@@ -192,7 +193,7 @@ describe('DatePicker', () => {
 			<DatePicker defaultValue={defaultValue} onValueChange={onChange} />,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		const day = findDay(20)
 
@@ -220,7 +221,7 @@ describe('DatePicker', () => {
 			<DatePicker defaultValue={defaultValue} onValueChange={onChange} />,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		await user.click(footerClear())
 
@@ -232,7 +233,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<ControlledDatePicker />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
 
@@ -258,7 +259,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<DatePicker onValueChange={onChange} />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		await user.click(screen.getByRole('button', { name: 'Today' }))
 
@@ -274,7 +275,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<DatePicker />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
 
@@ -294,7 +295,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<DatePicker defaultValue={defaultValue} />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
 
@@ -314,7 +315,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<CloseReasonHarness apiRef={apiRef} />)
 
-		const trigger = bySlot(container, 'harness-trigger') as HTMLButtonElement
+		const trigger = getSlot<HTMLButtonElement>(container, 'harness-trigger')
 
 		act(() => apiRef.current?.onOpenChange(true))
 
@@ -328,7 +329,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<CloseReasonHarness apiRef={apiRef} />)
 
-		const trigger = bySlot(container, 'harness-trigger') as HTMLButtonElement
+		const trigger = getSlot<HTMLButtonElement>(container, 'harness-trigger')
 
 		act(() => apiRef.current?.onOpenChange(true))
 
@@ -342,7 +343,7 @@ describe('DatePicker', () => {
 
 		const { container } = renderUI(<CloseReasonHarness apiRef={apiRef} />)
 
-		const input = bySlot(container, 'harness-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'harness-input')
 
 		act(() => apiRef.current?.onOpenChange(true))
 
@@ -432,7 +433,7 @@ describe('DatePicker open state', () => {
 
 		const { container } = renderUI(<DatePicker onOpenChange={onOpenChange} aria-label="Due date" />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(onOpenChange).toHaveBeenCalledWith(true)
 	})
@@ -444,7 +445,7 @@ describe('DatePicker open state', () => {
 			<DatePicker open={false} onOpenChange={() => {}} aria-label="Due date" />,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 	})
@@ -454,7 +455,7 @@ describe('DatePicker open state', () => {
 
 		const { container } = renderUI(<DatePicker readOnly aria-label="Due date" />)
 
-		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const trigger = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(trigger)
 
@@ -476,7 +477,7 @@ describe('DatePicker footer', () => {
 			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false }} />,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(screen.queryByRole('button', { name: 'Today' })).not.toBeInTheDocument()
 
@@ -490,7 +491,7 @@ describe('DatePicker footer', () => {
 			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ clear: false }} />,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		const toolbar = screen.getByRole('toolbar', { name: 'Date picker actions' })
 
@@ -509,7 +510,7 @@ describe('DatePicker footer', () => {
 			<DatePicker defaultValue={new Date(2025, 5, 15)} footer={{ today: false, clear: false }} />,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
 	})
@@ -523,7 +524,7 @@ describe('DatePicker footer', () => {
 			<DatePicker range defaultValue={defaultValue} footer={{ clear: false }} />,
 		)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
 	})
@@ -542,7 +543,7 @@ describe('DatePicker keyboard', () => {
 
 		const { container } = renderUI(<DatePicker />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		button.focus()
 
@@ -558,7 +559,7 @@ describe('DatePicker keyboard', () => {
 
 		const { container } = renderUI(<DatePicker />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		button.focus()
 
@@ -577,7 +578,7 @@ describe('DatePicker keyboard', () => {
 		// June 2025; the initial highlight lands on the 15th.
 		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		button.focus()
 
@@ -605,7 +606,7 @@ describe('DatePicker keyboard', () => {
 
 		const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		button.focus()
 
@@ -629,7 +630,7 @@ describe('DatePicker keyboard', () => {
 		await withFakeTime(async (clock) => {
 			const { container } = renderUI(<DatePicker defaultValue={new Date(2025, 5, 15)} />)
 
-			const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+			const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 			button.focus()
 
@@ -672,7 +673,7 @@ describe('DatePicker keyboard', () => {
 			<DatePicker defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />,
 		)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		button.focus()
 
@@ -738,7 +739,7 @@ describe('DatePicker range', () => {
 
 		const { container } = renderUI(<DatePicker range />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
 
@@ -760,7 +761,7 @@ describe('DatePicker range', () => {
 
 		const { container } = renderUI(<DatePicker range />)
 
-		const button = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(button)
 
@@ -778,7 +779,7 @@ describe('DatePicker range', () => {
 
 		const { container } = renderUI(<DatePicker range defaultValue={defaultValue} />)
 
-		await user.click(bySlot(container, 'datepicker-button') as HTMLButtonElement)
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
 
 		expect(footerClear()).toBeInTheDocument()
 	})
@@ -810,7 +811,7 @@ describe('DatePicker input', () => {
 	it('renders the value through the format', () => {
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2026, 5, 15)} />)
 
-		expect((bySlot(container, 'datepicker-input') as HTMLInputElement).value).toBe('06/15/2026')
+		expect(getSlot<HTMLInputElement>(container, 'datepicker-input').value).toBe('06/15/2026')
 	})
 
 	it('emits a typed date through onValueChange', async () => {
@@ -820,7 +821,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input onValueChange={onChange} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		await user.type(input, '12252026')
 
@@ -860,7 +861,7 @@ describe('DatePicker input', () => {
 
 		await user.click(day)
 
-		expect((bySlot(container, 'datepicker-input') as HTMLInputElement).value).toBe('06/20/2025')
+		expect(getSlot<HTMLInputElement>(container, 'datepicker-input').value).toBe('06/20/2025')
 	})
 
 	it('disables the input and the calendar button when disabled', () => {
@@ -880,7 +881,7 @@ describe('DatePicker input', () => {
 			<DatePicker input max={new Date(2026, 11, 31)} onValueChange={onChange} />,
 		)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		await user.type(input, '06152027')
 
@@ -894,7 +895,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input max={new Date(2026, 11, 31)} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		await user.type(input, '06152027')
 
@@ -918,7 +919,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
@@ -940,7 +941,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		const calendar = screen.getByRole('button', { name: 'Open calendar' })
 
@@ -963,7 +964,7 @@ describe('DatePicker input', () => {
 	it('leaves Tab alone while the calendar is closed', () => {
 		const { container } = renderUI(<DatePicker input />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		input.focus()
 
@@ -979,7 +980,7 @@ describe('DatePicker input', () => {
 
 		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		await user.click(input)
 
@@ -1003,7 +1004,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
@@ -1022,7 +1023,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input onValueChange={onChange} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		await user.click(screen.getByRole('button', { name: 'Open calendar' }))
 
@@ -1039,7 +1040,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		input.focus()
 
@@ -1057,7 +1058,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input onValueChange={onChange} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		await user.type(input, '12252026')
 
@@ -1078,7 +1079,7 @@ describe('DatePicker input', () => {
 		// June 2025; the initial highlight lands on the 15th.
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		input.focus()
 
@@ -1130,7 +1131,7 @@ describe('DatePicker input', () => {
 			<DatePicker input defaultValue={new Date(2025, 5, 15)} onValueChange={onChange} />,
 		)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		input.focus()
 
@@ -1161,7 +1162,7 @@ describe('DatePicker input', () => {
 
 		const { container } = renderUI(<DatePicker input defaultValue={new Date(2025, 5, 15)} />)
 
-		const input = bySlot(container, 'datepicker-input') as HTMLInputElement
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
 
 		input.focus()
 
@@ -1195,7 +1196,7 @@ describe('DatePicker + Form', () => {
 			</Form>,
 		)
 
-		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const trigger = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		// Seeded from the form store: the trigger shows a formatted date.
 		expect(trigger).not.toHaveTextContent('Select a date')
@@ -1224,7 +1225,7 @@ describe('DatePicker + Form', () => {
 			</Form>,
 		)
 
-		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const trigger = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		expect(trigger).not.toHaveTextContent('Select a date')
 	})
@@ -1246,7 +1247,7 @@ describe('DatePicker + Form', () => {
 			</Form>,
 		)
 
-		const trigger = bySlot(container, 'datepicker-button') as HTMLButtonElement
+		const trigger = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
 		await user.click(trigger)
 
