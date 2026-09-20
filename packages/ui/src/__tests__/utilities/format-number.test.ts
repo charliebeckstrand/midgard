@@ -46,12 +46,21 @@ describe('formatFraction', () => {
 // same three functions over a generated domain, so a rounding or grouping break
 // shrinks to the smallest number that shows it.
 //
-// The scale cap is 1e15. Above it a double carries no fraction, so the rounding
-// claim stops saying anything about rounding.
+// The scale cap is 1e15, which is past any number a chart or a grid formats.
 const SCALE = 1e15
 
 /** A finite double in the band the properties read. */
 const scaled = () => fc.double({ min: -SCALE, max: SCALE, noNaN: true })
+
+/**
+ * A band where the gap between neighbouring doubles stays well under the
+ * rounding error, so the round trip below measures the rounding alone.
+ *
+ * Above about 2.2e13 the gap passes 0.005. A value there reads back as the
+ * neighbouring double rather than itself, and the error is the gap, not the
+ * rounding. The cap is 1e12, where the gap is about 0.00012.
+ */
+const ROUNDED = 1e12
 
 /**
  * The number a formatted string states, read back through the en-US grouping.
@@ -94,9 +103,12 @@ describe('formatFraction · properties', () => {
 
 	// Half-expand rounding to two digits moves a value by half of the last digit
 	// kept, and never by more. The slack absorbs float drift at the cap.
-	test.prop([scaled()])('states the value inside half of the digit it drops', (value) => {
-		expect(Math.abs(parseFormatted(formatFraction(value)) - value)).toBeLessThanOrEqual(0.0050001)
-	})
+	test.prop([fc.double({ min: -ROUNDED, max: ROUNDED, noNaN: true })])(
+		'states the value inside half of the digit it drops',
+		(value) => {
+			expect(Math.abs(parseFormatted(formatFraction(value)) - value)).toBeLessThanOrEqual(0.0050001)
+		},
+	)
 
 	test.prop([scaled(), scaled()])('holds the order of two values', (a, b) => {
 		const [low, high] = a <= b ? [a, b] : [b, a]
