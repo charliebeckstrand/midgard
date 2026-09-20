@@ -2,10 +2,15 @@
 
 ## 1. Quick start
 
+This repository pins pnpm 12 in the `packageManager` field. Install pnpm 12 on your machine before you start.
+
 ```sh
+npm install --global pnpm@12
 pnpm install
 pnpm dev
 ```
+
+An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot start the launcher at that path, so the pre-push hook fails. A global pnpm 12 avoids the delegation and the failure.
 
 `pnpm dev` launches [`hlidskjalf`](https://www.npmjs.com/package/hlidskjalf), a terminal UI for monitoring the Turborepo dev tasks.
 
