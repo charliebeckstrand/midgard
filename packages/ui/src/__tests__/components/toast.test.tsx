@@ -529,28 +529,25 @@ describe('Toast: useToast behavior', () => {
 		expect(animated).toHaveAttribute('data-initial-y', expectedY)
 	})
 
-	it.each([
-		['info'],
-		['neutral'],
-		['success'],
-		['warning'],
-		['error'],
-	] as const)('renders a %s-severity toast', (severity) => {
-		let api: ReturnType<typeof useToast> | undefined
+	it.each([['info'], ['neutral'], ['success'], ['warning'], ['error']] as const)(
+		'renders a %s-severity toast',
+		(severity) => {
+			let api: ReturnType<typeof useToast> | undefined
 
-		renderUI(
-			<ToastProvider>
-				<Toast />
-				<Trigger onReady={(c) => (api = c)} />
-			</ToastProvider>,
-		)
+			renderUI(
+				<ToastProvider>
+					<Toast />
+					<Trigger onReady={(c) => (api = c)} />
+				</ToastProvider>,
+			)
 
-		act(() => {
-			api?.toast({ title: `T-${severity}`, severity })
-		})
+			act(() => {
+				api?.toast({ title: `T-${severity}`, severity })
+			})
 
-		expect(screen.getByText(`T-${severity}`)).toBeInTheDocument()
-	})
+			expect(screen.getByText(`T-${severity}`)).toBeInTheDocument()
+		},
+	)
 
 	it('renders a toast without a close button when closable is false', () => {
 		let api: ReturnType<typeof useToast> | undefined

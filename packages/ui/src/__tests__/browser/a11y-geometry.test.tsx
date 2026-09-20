@@ -21,13 +21,14 @@ const GEOMETRY_EXEMPT = new Set(['kanban'])
 const geometryBaseline = baseline.filter(({ name }) => !GEOMETRY_EXEMPT.has(name))
 
 describe('a11y geometry (axe): baseline', () => {
-	it.each(rows(geometryBaseline))('%s meets contrast and target-size', async (_name, {
-		element,
-	}) => {
-		const { container } = renderUI(element)
+	it.each(rows(geometryBaseline))(
+		'%s meets contrast and target-size',
+		async (_name, { element }) => {
+			const { container } = renderUI(element)
 
-		expect(await axeGeometry(container)).toHaveNoViolations()
-	})
+			expect(await axeGeometry(container)).toHaveNoViolations()
+		},
+	)
 })
 
 /**

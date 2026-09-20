@@ -19,24 +19,24 @@ import { focus, rows } from './cases'
  * drives the real open interaction and returns the trigger focus left.
  */
 describe('a11y focus: overlays capture focus on open', () => {
-	it.each(rows(focus))('%s moves focus off the trigger into the surface', async (_name, {
-		element,
-		open,
-	}) => {
-		const user = userEvent.setup({ delay: null })
+	it.each(rows(focus))(
+		'%s moves focus off the trigger into the surface',
+		async (_name, { element, open }) => {
+			const user = userEvent.setup({ delay: null })
 
-		renderUI(element)
+			renderUI(element)
 
-		const trigger = await open(user)
+			const trigger = await open(user)
 
-		// Focus leaves the trigger…
-		expect(trigger).not.toHaveFocus()
+			// Focus leaves the trigger…
+			expect(trigger).not.toHaveFocus()
 
-		// …and lands on a real element inside the surface.
-		expect(document.activeElement).not.toBe(document.body)
+			// …and lands on a real element inside the surface.
+			expect(document.activeElement).not.toBe(document.body)
 
-		expect(document.activeElement).not.toBeNull()
-	})
+			expect(document.activeElement).not.toBeNull()
+		},
+	)
 })
 
 /**

@@ -17,18 +17,18 @@ const GEOMETRY_DEFERRED = new Set(['select', 'listbox'])
 const interactiveGeometry = interactive.filter(({ name }) => !GEOMETRY_DEFERRED.has(name))
 
 describe('a11y geometry (axe): interactive', () => {
-	it.each(rows(interactiveGeometry))('%s meets contrast and target-size when open', async (_name, {
-		element,
-		open,
-	}) => {
-		const user = userEvent.setup()
+	it.each(rows(interactiveGeometry))(
+		'%s meets contrast and target-size when open',
+		async (_name, { element, open }) => {
+			const user = userEvent.setup()
 
-		renderUI(element)
+			renderUI(element)
 
-		await open(user)
+			await open(user)
 
-		expect(await axeGeometry(document.body)).toHaveNoViolations()
-	})
+			expect(await axeGeometry(document.body)).toHaveNoViolations()
+		},
+	)
 })
 
 /**
@@ -40,21 +40,21 @@ describe('a11y geometry (axe): interactive', () => {
  * to it.
  */
 describe('a11y geometry (axe): roved item descriptions', () => {
-	it.each(rows(roved))('%s description meets contrast while roved', async (_name, {
-		element,
-		descriptionSlot: slot,
-	}) => {
-		renderUI(element)
+	it.each(rows(roved))(
+		'%s description meets contrast while roved',
+		async (_name, { element, descriptionSlot: slot }) => {
+			renderUI(element)
 
-		const item = present(document.querySelector('[role="option"], [role="menuitem"]'), 'an item')
+			const item = present(document.querySelector('[role="option"], [role="menuitem"]'), 'an item')
 
-		item.setAttribute('data-active', 'true')
+			item.setAttribute('data-active', 'true')
 
-		const description = present(
-			item.querySelector(`[data-slot="${slot}"]`),
-			"the item's description",
-		)
+			const description = present(
+				item.querySelector(`[data-slot="${slot}"]`),
+				"the item's description",
+			)
 
-		expect(await axeGeometry(description)).toHaveNoViolations()
-	})
+			expect(await axeGeometry(description)).toHaveNoViolations()
+		},
+	)
 })
