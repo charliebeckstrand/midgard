@@ -26,7 +26,7 @@ catalog:
   tsup: ^8.5.1
   typescript: ^6.0.3
   us-atlas: ^3.0.1
-  vitest: ^4.1.10
+  vitest: 4.1.11
   world-atlas: ^2.0.2
 
 allowBuilds:
