@@ -127,6 +127,26 @@
 			}
 		},
 		{
+			"includes": ["packages/ui/src/recipes/katakana/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["**/kiso", "**/kiso/**"],
+										"message": "katakana is the bridge layer. A bridge receives kiso token bundles by argument and wires them into the recipe surface a kata exports. It must not import kiso at all, not even types. Each bridge declares the token shape it needs as its own contract, and is generic over the bundle passed in. A kiso import, value or type, means a token reference is hardcoded in the bridge rather than injected by the calling kata."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs/demos/modules/chat.tsx",
