@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen, userEvent } from '../helpers'
+import { act, renderUI, screen, userEvent } from '../helpers'
 
 describe('Grid pagination', () => {
 	type Row = { id: number; name: string }
@@ -68,6 +68,28 @@ describe('Grid pagination', () => {
 			expect(screen.getByText('Row 6')).toBeInTheDocument()
 
 			expect(screen.queryByText('Row 1')).not.toBeInTheDocument()
+		})
+
+		it('advances two pages when two clicks land on one render', async () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={many}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 0, pageSize: 10 } }}
+				/>,
+			)
+
+			// Both clicks dispatch before React commits either, which is what a
+			// double-click on the control does. A control that reads its target from
+			// the rendered page index computes the same page twice and advances one.
+			await act(async () => {
+				screen.getByRole('button', { name: 'Next page' }).click()
+
+				screen.getByRole('button', { name: 'Next page' }).click()
+			})
+
+			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
 		})
 	})
 
