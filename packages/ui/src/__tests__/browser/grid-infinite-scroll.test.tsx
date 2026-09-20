@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
+import { budget, pause } from './helpers/wall-clock'
 
 /**
  * Infinite scroll over the real virtualizer (jsdom renders zero windowed rows,
@@ -98,7 +99,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 				expect(screen.queryByText('Name 200')).not.toBeNull()
 			},
-			{ timeout: 5000 },
+			{ timeout: budget(5000) },
 		)
 	})
 
@@ -121,7 +122,7 @@ describe('grid infinite scroll (real browser)', () => {
 		await waitFor(() => expect(scroll.scrollHeight).toBeGreaterThan(scroll.clientHeight))
 
 		// Overflow reached: no further fill fires at rest.
-		await new Promise((resolve) => setTimeout(resolve, 100))
+		await pause(100)
 
 		expect(onLoadMore).toHaveBeenCalledTimes(1)
 	})
@@ -176,7 +177,7 @@ describe('grid infinite scroll (real browser)', () => {
 		// the 30-row threshold, but the next fetch waits for the next scroll.
 		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
 
-		await new Promise((resolve) => setTimeout(resolve, 150))
+		await pause(150)
 
 		expect(onLoadMore).toHaveBeenCalledTimes(1)
 	})
@@ -203,7 +204,7 @@ describe('grid infinite scroll (real browser)', () => {
 		// At most the bounded fill fired — nothing close to draining the 200-row set.
 		expect(onLoadMore.mock.calls.length).toBeLessThanOrEqual(2)
 
-		await new Promise((resolve) => setTimeout(resolve, 150))
+		await pause(150)
 
 		expect(screen.queryByText('Name 200')).toBeNull()
 	})
@@ -316,7 +317,7 @@ describe('grid infinite scroll (real browser)', () => {
 
 		// …and the stale deep position doesn't cascade a fetch against it: the new
 		// 30 rows overflow the 180px viewport, so the next fetch needs a real scroll.
-		await new Promise((resolve) => setTimeout(resolve, 150))
+		await pause(150)
 
 		expect(onLoadMore).not.toHaveBeenCalled()
 	})
@@ -441,7 +442,7 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 				expect(screen.queryByText(/Row 200/)).not.toBeNull()
 			},
-			{ timeout: 5000 },
+			{ timeout: budget(5000) },
 		)
 	}
 

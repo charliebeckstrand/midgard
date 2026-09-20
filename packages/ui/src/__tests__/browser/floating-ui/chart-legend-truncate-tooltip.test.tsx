@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, renderUI, screen } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * Legend truncation tooltip against the real floating engine and real layout.
@@ -41,7 +42,7 @@ describe('chart legend truncation tooltip (real browser)', () => {
 
 		// The tooltip would open at the 250ms hover delay if enabled; wait past it
 		// (no pointer-leave to cancel) and assert none surfaced.
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})

@@ -105,7 +105,12 @@ export default defineConfig({
 		// than as an opaque test timeout.
 		testTimeout: 15_000,
 		hookTimeout: 30_000,
-		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000 },
+		// `slowFactor` scales the wall-clock holds a few cases cannot express as a
+		// `waitFor` — a component's own delay must expire before "nothing
+		// happened" means anything. `browser/helpers/wall-clock.ts` reads it. It
+		// takes 2 rather than the budget's 4, because a hold spends its time on
+		// every green run where a budget only bounds a failure.
+		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, slowFactor: CI ? 2 : 1 },
 		// Both instances run `isolate: false`, so one page and one module registry
 		// serve every file the instance runs. A spy or a stub that a test does not
 		// restore therefore outlives its own file, exactly as it would in `unit`.

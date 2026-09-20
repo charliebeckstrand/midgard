@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * Cell truncation tooltip against the real floating engine and real layout. The
@@ -69,7 +70,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		// The tooltip would open at the 250ms hover delay if enabled; wait past it
 		// (no pointer-leave to cancel) and assert none surfaced.
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
@@ -89,7 +90,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		// A short value in a wide column does not overflow; no tooltip should open
 		// even after the hover delay (guards against a sub-pixel false positive).
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
@@ -129,7 +130,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		// the unremounted span) has cleared truncation and no tooltip surfaces.
 		await userEvent.hover(screen.getByText(longName))
 
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
@@ -148,7 +149,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await userEvent.hover(screen.getByText(longName))
 
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
@@ -170,7 +171,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await screen.findByText(`${longName} 0`)
 
-		await new Promise((resolve) => setTimeout(resolve, 100))
+		await pause(100)
 
 		// Twenty truncated cells, all closed — no portal nodes left in the DOM.
 		expect(document.querySelectorAll('[data-floating-ui-portal]')).toHaveLength(0)
@@ -192,7 +193,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await screen.findByText(`${huge} 0`)
 
-		await new Promise((resolve) => setTimeout(resolve, 200))
+		await pause(200)
 
 		const spans = container.querySelectorAll<HTMLElement>('td[data-grid-col="name"] span.truncate')
 
@@ -238,7 +239,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 		const settledSpan = async (root: HTMLElement) => {
 			await waitFor(() => expect(cellSpan(root)).not.toBeNull())
 
-			await new Promise((resolve) => setTimeout(resolve, 20))
+			await pause(20)
 
 			const span = cellSpan(root)
 
@@ -361,7 +362,7 @@ describe('grid cell truncation tooltip (real browser)', () => {
 
 		await screen.findByText('Wade Cooper')
 
-		await new Promise((resolve) => setTimeout(resolve, 100))
+		await pause(100)
 
 		const spans = container.querySelectorAll<HTMLElement>('td[data-grid-col="name"] span.truncate')
 

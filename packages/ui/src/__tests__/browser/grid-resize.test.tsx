@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../helpers'
+import { pause } from './helpers/wall-clock'
 
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
@@ -143,7 +144,7 @@ describe('grid column resizing (real browser)', () => {
 			expect(nameHeader(container).getBoundingClientRect().width).toBeGreaterThan(0),
 		)
 
-		await new Promise((resolve) => setTimeout(resolve, 50))
+		await pause(50)
 
 		// The autosizer sized the columns, but that fit is not a user preference.
 		expect(onValueChange).not.toHaveBeenCalled()

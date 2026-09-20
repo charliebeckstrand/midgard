@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { Grid } from '../../../modules/grid'
 import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * Column-header truncation tooltip against the real floating engine and real
@@ -122,7 +123,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 		const settledSpan = async (root: HTMLElement, settle = 20) => {
 			await waitFor(() => expect(titleSpan(root)).not.toBeNull())
 
-			await new Promise((resolve) => setTimeout(resolve, settle))
+			await pause(settle)
 
 			const span = titleSpan(root)
 
@@ -230,7 +231,7 @@ describe('grid header truncation tooltip (real browser)', () => {
 
 		// A short title in a wide header does not overflow; no tooltip should open
 		// even after the hover delay (guards against a sub-pixel false positive).
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})

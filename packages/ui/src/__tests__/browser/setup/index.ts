@@ -18,6 +18,12 @@ expect.extend(toHaveNoViolations)
 // wall-clock headroom policy alongside testTimeout. Without this the suite that
 // does real layout ran at RTL's own 1s default on every machine, while the
 // jsdom projects took 4s on CI.
+declare module 'vitest' {
+	interface ProvidedContext {
+		slowFactor: number
+	}
+}
+
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
 beforeEach(absorbResidue)

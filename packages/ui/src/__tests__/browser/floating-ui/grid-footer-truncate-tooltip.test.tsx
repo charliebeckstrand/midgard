@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { useIsTruncated } from '../../../hooks'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { renderUI, screen } from '../../helpers'
+import { pause } from '../helpers/wall-clock'
 
 /**
  * The reveal half of a truncating footer summary, against the real floating
@@ -51,7 +52,7 @@ describe('grid footer content truncation tooltip (real browser)', () => {
 
 		// The tooltip would open at the 250ms hover delay if enabled; wait past it
 		// (no pointer-leave to cancel) and assert none surfaced.
-		await new Promise((resolve) => setTimeout(resolve, 400))
+		await pause(400)
 
 		expect(screen.queryByRole('tooltip')).toBeNull()
 	})
