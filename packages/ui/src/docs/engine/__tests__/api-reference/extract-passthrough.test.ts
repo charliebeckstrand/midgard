@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { extractPassThrough } from '../../api-reference/engine/extract-passthrough'
 import { createInMemoryProgram, firstTypeAlias } from './helpers'

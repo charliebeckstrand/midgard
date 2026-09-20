@@ -44,9 +44,9 @@ function region(assertive: boolean): HTMLElement {
 /**
  * Imperative screen-reader announcement. Sends `message` to a visually-hidden
  * `aria-live` region appended to `document.body`, lazily created on first use
- * and shared process-wide. Use for one-off, event-driven feedback ("Copied",
- * "Tag added") with no natural focus or DOM home; for narrating a changing
- * value, prefer the declarative `useA11yAnnouncements`. No-op during SSR and
+ * and shared process-wide. Use it for one-off, event-driven feedback with no
+ * natural focus or DOM home, such as "Copied" or "Tag added". To narrate a
+ * changing value, prefer the declarative `useA11yAnnouncements`. No-op during SSR and
  * for empty messages.
  */
 export function announce(message: string, { assertive = false }: AnnounceOptions = {}): void {

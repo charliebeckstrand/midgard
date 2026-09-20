@@ -2,7 +2,7 @@
 
 import { type AnimationPlaybackControls, animate } from 'motion'
 import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
-import { type ComponentPropsWithoutRef, type Ref, useEffect, useRef } from 'react'
+import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 
 /** Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`. */
@@ -43,13 +43,12 @@ export type ShinyTextProps = {
 	 */
 	pauseOnHover?: boolean
 	/**
-	 * Travel direction of the shine.
+	 * Direction the shine travels: `'left'` or `'right'`.
 	 * @defaultValue `'left'`
 	 */
-	direction?: 'left' | 'right'
-	ref?: Ref<HTMLSpanElement>
+	sweep?: 'left' | 'right'
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
 // Background-position percentages that park the shine past each edge.
 const OFF_RIGHT = 150
@@ -59,9 +58,13 @@ const OFF_LEFT = -50
  * Text masked by a gradient whose highlight sweeps across it on a loop.
  *
  * @remarks
- * The sweep is driven by an imperative `animate()` outside any `MotionConfig`,
- * so the hook reads the OS preference directly and renders static text under
- * reduced motion (WCAG 2.3.3).
+ * The sweep is driven by an imperative `animate()` outside any `MotionConfig`.
+ * The hook therefore reads the OS preference directly, and renders static text
+ * under reduced motion (WCAG 2.3.3).
+ *
+ * The eight tuning props are deliberate. No app consumes this component, and
+ * its demo exercises every one of them. A decorative surface earns its knobs,
+ * so the zero-usage rule that deleted `delay` keeps the rest.
  *
  * @see {@link ShinyTextSkeleton} for the loading placeholder.
  */
@@ -73,7 +76,7 @@ export function ShinyText({
 	spread = 120,
 	yoyo = false,
 	pauseOnHover = false,
-	direction = 'left',
+	sweep = 'left',
 	ref,
 	className,
 	children,
@@ -83,9 +86,9 @@ export function ShinyText({
 }: ShinyTextProps) {
 	const reduceMotion = useReducedMotion()
 
-	const from = direction === 'left' ? OFF_RIGHT : OFF_LEFT
+	const from = sweep === 'left' ? OFF_RIGHT : OFF_LEFT
 
-	const to = direction === 'left' ? OFF_LEFT : OFF_RIGHT
+	const to = sweep === 'left' ? OFF_LEFT : OFF_RIGHT
 
 	const position = useMotionValue(from)
 
@@ -131,7 +134,7 @@ export function ShinyText({
 				backgroundPosition,
 			}}
 			{...(props as Omit<
-				ComponentPropsWithoutRef<'span'>,
+				ComponentProps<'span'>,
 				'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 			>)}
 			// Composed after the spread so a consumer handler can't clobber

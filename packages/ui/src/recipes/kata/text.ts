@@ -1,11 +1,12 @@
 /**
  * Text kata: recipe-shaped surface for `<Text>` with two independent colour
- * axes plus a type scale. `severity` pulls the semantic `iro.text` tokens
+ * axes plus a type scale. `tone` pulls the semantic `iro.text` tokens
  * (default / primary / success / warning / error / muted) and is the
- * meaning-bearing axis; `color` is a separate literal-hue override authored
- * inline with `mode()`. A consumer sets one or the other — severity for status,
- * color for a bespoke tint. `size` steps the type scale (`xs`/`sm`/`md`/`lg` →
- * `text-xs`/`text-sm`/`text-base`/`text-lg`); it has no default, so an unset
+ * meaning-bearing axis. It is an emphasis ladder, not the feedback quartet
+ * `severity` names on Alert and the Control cascade. `color` is a separate
+ * literal-hue override authored inline with `mode()`. A consumer sets one or
+ * the other — tone for emphasis, color for a bespoke tint. `size` steps the type scale (`xs`/`sm`/`md`/`lg` →
+ * `text-xs`/`text-sm`/`text-base`/`text-lg`). It has no default, so an unset
  * size leaves Text at its inherited size and existing call sites are unchanged.
  * `xs` is the scale's own smallest step (`ji.size`), for a subordinate line set
  * under a `sm` one — a legend entry's trailing readout under its label.
@@ -17,7 +18,7 @@ const { text } = iro
 const { size } = ji
 
 export const k = defineRecipe({
-	severity: {
+	tone: {
 		default: [...text.default],
 		primary: [...text.primary],
 		success: [...text.success],
@@ -39,9 +40,9 @@ export const k = defineRecipe({
 		md: size.md,
 		lg: size.lg,
 	},
-	defaults: { severity: 'default' },
+	defaults: { tone: 'default' },
 	skeleton: kokkaku.text,
 })
 
-/** Recipe variant props for {@link Text} — the styling axes its kata exposes (`severity`, `color`, `size`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Text} — the styling axes its kata exposes (`tone`, `color`, `size`), for consumers composing custom slots. */
 export type TextVariants = VariantProps<typeof k>

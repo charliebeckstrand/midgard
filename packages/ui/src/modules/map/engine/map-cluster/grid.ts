@@ -1,12 +1,12 @@
 /**
- * The uniform grid both clustering passes bucket into, at one cell per
- * reach: an entry within reach of a point can only sit in that point's own cell
- * or one of the eight around it, so each mark reads nine buckets rather than
- * every group built before it — a linear pass where the naive scan is quadratic.
+ * The uniform grid both clustering passes bucket into, at one cell per reach. An
+ * entry within reach of a point can only sit in that point's own cell, or one of
+ * the eight around it. Each mark therefore reads nine buckets, rather than every
+ * group built before it. That is a linear pass where the naive scan is
+ * quadratic.
  *
  * Generic over what a cell holds, because the broad phase files seeds and the
- * merge round files slot indices, and neither pass may pay for the other's
- * shape.
+ * merge round files slot indices. Neither pass can pay for the other's shape.
  */
 
 import type { MapPoint2D } from '../types'
@@ -21,9 +21,9 @@ import type { MapPoint2D } from '../types'
 const CELL_STRIDE = 65_536
 
 /**
- * The grid key for one cell. Packed into a number rather than a string:
- * {@link walkNear} reads nine cells per mark, and building nine strings each
- * would allocate by the thousand across a set of hundreds. See
+ * The grid key for one cell. Packed into a number rather than a string.
+ * {@link walkNear} reads nine cells per mark, and nine strings each would
+ * allocate by the thousand across a set of hundreds. See
  * {@link CELL_STRIDE} for the range the packing holds.
  *
  * Shared with the geometry engine's own grid (`map-geometry/locate`), which
@@ -44,9 +44,9 @@ export function cellOf(at: MapPoint2D, reach: number): number {
 
 /**
  * The squared distance between two frame points, so a comparison takes no square
- * root. Held here with the grid rather than in either pass that reads it: the
- * clustering rule and the crowding rule both measure marks against a reach, and
- * one copy each is one place for the two to drift.
+ * root. Held here with the grid, rather than in either pass that reads it. The
+ * clustering rule and the crowding rule both measure marks against a reach. One
+ * copy each is one place for the two to drift.
  *
  * @internal
  */
@@ -72,13 +72,13 @@ export function bucket<T>(cells: Map<number, T[]>, key: number): T[] {
 }
 
 /**
- * Walks every entry indexed in the nine cells around a point — at one cell per
- * reach, the whole field a merge can cross — and stops as soon as `visit`
- * answers `true`.
+ * Walks every entry indexed in the nine cells around a point, and stops as soon
+ * as `visit` answers `true`. At one cell per reach, those nine are the whole
+ * field a merge can cross.
  *
- * A walk rather than a returned list: both passes run this per mark across sets
- * of hundreds, and a list would allocate one array each — the cost the numeric
- * cell key above exists to avoid.
+ * A walk rather than a returned list. Both passes run this per mark across sets
+ * of hundreds, and a list would allocate one array each. That is the cost the
+ * numeric cell key above exists to avoid.
  *
  * @internal
  */

@@ -1,9 +1,10 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/select'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { AffixContext, affixStepDown } from '../affix'
 import { ControlFrame } from '../control'
 
@@ -12,7 +13,7 @@ import { ControlFrame } from '../control'
  * owns (`open`, `setReference`, `getReferenceProps`), the `glass` / `size`
  * presentation, and the prefix / suffix slot content.
  */
-export type SelectTriggerProps = {
+export type SelectTriggerProps = GroupStampProps & {
 	open: boolean
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
@@ -22,11 +23,9 @@ export type SelectTriggerProps = {
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
 	suffix?: ReactNode
 	/** Props spread onto the suffix `<span>` slot; Combobox makes the chevron a click target here. */
-	suffixProps?: Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'children'>
+	suffixProps?: Omit<ComponentProps<'span'>, 'className' | 'children'>
 	className?: string
-	frameProps?: Omit<ComponentPropsWithoutRef<typeof ControlFrame>, 'className' | 'children'>
-	'data-group'?: string
-	'data-group-orientation'?: string
+	frameProps?: Omit<ComponentProps<typeof ControlFrame>, 'className' | 'children'>
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	children: ReactNode

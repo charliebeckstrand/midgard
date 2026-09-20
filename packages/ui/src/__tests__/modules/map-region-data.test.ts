@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { numericRegionData } from '../../modules/map/engine/map-region/data'
 
@@ -23,9 +24,9 @@ describe('numericRegionData', () => {
 			...WHOLE,
 			bins: 5,
 			binning: 'quantile' as const,
-			domain: [0, 100] as [number, number],
-			valueName: 'Population',
-			valueFormat: (value: number) => `${value}%`,
+			colorDomain: [0, 100] as [number, number],
+			colorName: 'Population',
+			formatValue: (value: number) => `${value}%`,
 		}
 
 		expect(numericRegionData<Row>(dressed)).toEqual(dressed)

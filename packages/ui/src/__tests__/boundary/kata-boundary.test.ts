@@ -1,6 +1,5 @@
-import { relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 const RECIPE_IMPORT =
 	/import\s+\{[^}]*\bdefineRecipe\b[^}]*\}\s+from\s+['"][^'"]*\bcore\/recipe['"]/
@@ -29,7 +28,7 @@ describe('kata boundary', () => {
 		walkSource(srcDir, (path, source) => {
 			if (!/\.tsx?$/.test(path)) return
 
-			const rel = relative(srcDir, path)
+			const rel = srcRelative(path)
 
 			if (!RECIPE_IMPORT.test(source)) return
 

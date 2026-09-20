@@ -67,7 +67,7 @@ export type CalendarDayProps = {
 
 /** Props for {@link Calendar}: value binding, range bounds, locale/size, the `getDayProps` cell hook, and the imperative `ref`. */
 export type CalendarProps = {
-	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` should seed `Date | null`. */
+	/** Binds the selected date to an enclosing Form field. `Form.defaultValues` must seed `Date | null`. */
 	name?: string
 	value?: Date | null
 	defaultValue?: Date
@@ -76,6 +76,17 @@ export type CalendarProps = {
 	max?: Date
 	/** Externally-driven roving-focus cell, letting a parent (e.g. DatePicker) steer focus across the header, grid, and footer zones. */
 	active?: CalendarActive | null
+	/**
+	 * Fires with the first of the month the grid renders, whenever that month
+	 * changes.
+	 *
+	 * The calendar owns the rendered month outright, and `onValueChange` reports a
+	 * selection rather than a view. A consumer that fetches per-month data therefore
+	 * had to reverse-derive the month from `getDayProps` calls. The header arrows, the
+	 * month and year pickers, keyboard roving across a month edge, and a `value`
+	 * that lands elsewhere all report here. Mounting reports nothing.
+	 */
+	onMonthChange?: (month: Date) => void
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
 	getDayProps?: (context: CalendarDayContextValue) => CalendarDayProps
 	/** Element holding the calendar's footer controls; lets roving focus extend into a parent-owned footer zone. */
@@ -87,9 +98,9 @@ export type CalendarProps = {
 	 */
 	listboxId?: string
 	/**
-	 * Id stamped on the active grid cell, so a parent that keeps DOM focus on its
-	 * own input can point that input's `aria-activedescendant` at the roved day
-	 * (the active-descendant pattern; pairs with `active` and `listboxId`).
+	 * Id stamped on the active grid cell. A parent that keeps DOM focus on its
+	 * own input can point that input's `aria-activedescendant` at the roved day.
+	 * That is the active-descendant pattern; it pairs with `active` and `listboxId`.
 	 */
 	activeDescendantId?: string
 	ref?: Ref<CalendarHandle>
@@ -136,6 +147,7 @@ export function Calendar({
 	min,
 	max,
 	active,
+	onMonthChange,
 	getDayProps,
 	footerRef,
 	listboxId,
@@ -177,6 +189,7 @@ export function Calendar({
 		value,
 		defaultValue,
 		activeGridDate,
+		onMonthChange,
 	})
 
 	const days = useMemo(() => getCalendarDays(year, month), [year, month])

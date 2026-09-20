@@ -11,7 +11,7 @@ export type DensityProviderProps = {
 /**
  * Friendly t-shirt-named density wrapper (`compact` / `snug` / `loose`) and the
  * app-wide entry point for ambient density. Wrap a region or the app root to
- * set its baseline; it broadcasts the matching `Step` through the universal
+ * set its baseline. It broadcasts the matching `Step` through the universal
  * Density primitive, and every size-aware client component (Input, Button,
  * Tabs, …) inherits it. Static components (Card, Badge, Text, …) ignore it;
  * size them with explicit props.
@@ -36,13 +36,13 @@ export function DensityProvider({ density, children }: DensityProviderProps) {
 /**
  * Resolves a friendly `DensityLevel`: `explicit ?? ambient ?? 'snug'`. For a
  * client component whose prop surface speaks `DensityLevel` rather than the
- * primitive `Step` (e.g. {@link Grid}, which projects density onto a `Table`
- * that itself reads no context — REFERENCE.md §2) but that must still
- * inherit an enclosing `<DensityProvider>` when the prop is omitted.
+ * primitive `Step`. It must still inherit an enclosing `<DensityProvider>` when
+ * the prop is omitted. {@link Grid} is one: it projects density onto a `Table`
+ * that itself reads no context (REFERENCE.md §2).
  *
  * Reads the ambient token's `space` axis (the padding/gap dimension density
- * here controls), not `size`; the two only diverge under a split
- * `<Density space size>`; `DensityProvider` always sets both together.
+ * here controls), not `size`. The two only diverge under a split
+ * `<Density space size>`. `DensityProvider` always sets both together.
  */
 export function useDensityLevel(explicit?: DensityLevel): DensityLevel {
 	const ambient = useDensityNullable()

@@ -21,6 +21,16 @@ import {
 
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
+	/**
+	 * Fires with the day the reader clicked.
+	 *
+	 * @remarks
+	 * An event, not the `on<State>Change` echo the name suggests. The endpoint
+	 * state machine lives in DatePicker. This reports a raw click rather than a
+	 * settled range. Sibling `Calendar.onValueChange` does echo bound state, so
+	 * the two read alike and behave differently. Renaming it `onDayClick` waits
+	 * for the next breaking pass.
+	 */
 	onValueChange?: (date: Date) => void
 	min?: Date
 	max?: Date
@@ -32,6 +42,8 @@ export type CalendarRangeProps = {
 	hoverDate?: Date | null
 	/** Reports the day entered or left so the parent can drive the `hoverDate` preview. */
 	onHoverDate?: (date: Date | null) => void
+	/** Forwarded to `<Calendar>`. Fires with the first of the month the grid renders. */
+	onMonthChange?: (month: Date) => void
 	active?: CalendarActive | null
 	footerRef?: RefObject<HTMLElement | null>
 	ref?: Ref<CalendarHandle>
@@ -73,10 +85,10 @@ function computeRangeDayFlags(
 
 /**
  * Range-aware variant of {@link Calendar}. Drives the underlying calendar's
- * per-day styling through `getDayProps`: paints the band between `rangeStart`
- * and the effective end (the `hoverDate` preview when set, else `rangeEnd`),
- * marks both endpoints selected, and rounds the leading/trailing edges in
- * either selection order. Hover over a day reports it through `onHoverDate`
+ * per-day styling through `getDayProps`. It paints the band between
+ * `rangeStart` and the effective end, marks both endpoints selected, and rounds
+ * the leading and trailing edges in either selection order. The effective end
+ * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day reports it through `onHoverDate`
  * for live in-progress feedback. Endpoint state is fully controlled by the
  * parent; forwards `locale`, `size`, bounds, and the imperative `ref` to
  * `Calendar`.
@@ -91,6 +103,7 @@ export function CalendarRange({
 	rangeEnd,
 	hoverDate,
 	onHoverDate,
+	onMonthChange,
 	active,
 	footerRef,
 	ref,
@@ -143,6 +156,7 @@ export function CalendarRange({
 			min={min}
 			max={max}
 			active={active}
+			onMonthChange={onMonthChange}
 			getDayProps={getDayProps}
 			footerRef={footerRef}
 			locale={locale}

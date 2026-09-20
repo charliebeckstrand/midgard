@@ -10,7 +10,7 @@ import {
 } from '../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
 import { renderUI, screen, userEvent } from '../helpers'
-import { focus } from './cases'
+import { focus, rows } from './cases'
 
 /**
  * Focus-management gate. Asserts that opening a dismissable overlay pulls
@@ -19,9 +19,10 @@ import { focus } from './cases'
  * drives the real open interaction and returns the trigger focus left.
  */
 describe('a11y focus: overlays capture focus on open', () => {
-	it.each(
-		focus,
-	)('%s moves focus off the trigger into the surface', async (_name, element, open) => {
+	it.each(rows(focus))('%s moves focus off the trigger into the surface', async (_name, {
+		element,
+		open,
+	}) => {
 		const user = userEvent.setup({ delay: null })
 
 		renderUI(element)

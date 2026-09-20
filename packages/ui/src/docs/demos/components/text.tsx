@@ -10,7 +10,7 @@ export function Demo() {
 		<>
 			<Example title="Severity">
 				{severities.map((severity) => (
-					<Text key={severity} severity={severity}>
+					<Text key={severity} tone={severity}>
 						{severity} - The lazy dog jumps over the quick brown fox.
 					</Text>
 				))}

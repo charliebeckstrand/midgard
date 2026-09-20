@@ -3,8 +3,8 @@ import { OPTION_SELECTOR } from './combobox-constants'
 /**
  * A `multiple` selection as a plain array, whatever the stored value is.
  *
- * Both resolvers below take the selection this way, so the coercion — and the decision that a
- * `multiple` field holding a non-array holds nothing — is stated once.
+ * Both resolvers below take the selection this way, so the coercion is stated once. That
+ * includes the decision that a `multiple` field holding a non-array holds nothing.
  *
  * @internal
  */
@@ -14,29 +14,29 @@ function selectedValues<T>(value: T | T[] | undefined): T[] {
 
 /**
  * Resolves the input's displayed string. While editing, shows the live `query`.
- * Otherwise shows the selection through `displayValue` — the formatted value for a
- * single selection, and a `"N selected"` count for any `multiple` selection past
- * one, or whatever `summarize` names it. An unresolved value or an empty selection
- * shows empty, which is what lets the placeholder through.
+ * Otherwise shows the selection through `displayValue`. That is the formatted value
+ * for a single selection, and a `"N selected"` count for any `multiple` selection
+ * past one, or whatever `summarize` names it. An unresolved value or an empty
+ * selection shows empty, which is what lets the placeholder through.
  *
  * **One label, then a count** — deliberately tighter than `Listbox`, which joins up
- * to three. The two differ because their triggers do: a listbox trigger is a button
- * whose text truncates and stops, while this is a real text input, so a joined value
- * longer than the field becomes horizontally scrollable — the field shows the middle
+ * to three. The two differ because their triggers do. A listbox trigger is a button
+ * whose text truncates and stops. This is a real text input, so a joined value
+ * longer than the field becomes horizontally scrollable. The field shows the middle
  * of a sentence, and scrolling right reveals blank space past the end of the text.
- * It also has to stay typeable, and a value the user must first scroll to read is
- * worse than a count that says how much is there. The full list is still one hover
- * away; see {@link resolveInputTitle}.
+ * It also has to stay typeable. A value the user must first scroll to read is worse
+ * than a count that says how much is there. The full list is still one hover away;
+ * see {@link resolveInputTitle}.
  *
- * `summarize` names the count without moving that threshold: the decision about WHEN
- * to stop listing belongs to the control, and what the things ARE belongs to the
- * caller — "2 selected" in a row of six filters says how many of nothing in
+ * The `summarize` names the count without moving that threshold. The decision about
+ * WHEN to stop listing belongs to the control, and what the things ARE belongs to
+ * the caller. "2 selected" in a row of six filters says how many of nothing in
  * particular.
  *
  * It used to return empty here, which left a `multiple` combobox showing nothing at
  * all above a selection that *was* applied — the trigger's whole job. Editing still
- * wins, so the summary never blocks typing: every pick resets `editing`, so a query
- * replaces the summary and the summary comes back with the next pick.
+ * wins, so the summary never blocks typing. Every pick resets `editing`, so a query
+ * replaces the summary, and the summary comes back with the next pick.
  *
  * @returns The string to render in the input.
  * @internal
@@ -104,10 +104,10 @@ export function selectSoleOption(container: HTMLElement): boolean {
 /**
  * The input's `title` — the whole `multiple` selection, spelled out, or `undefined`.
  *
- * The counterpart to the count {@link resolveInputDisplay} shows: the field says HOW MANY are picked
- * and this says WHICH, on hover, without the field having to hold a string longer than itself. A
- * native `title` rather than a `Tooltip` on purpose — a floating tooltip over a combobox would
- * contend with the options panel the combobox is already positioning, and `title` reaches the
+ * The counterpart to the count {@link resolveInputDisplay} shows. The field says HOW MANY are
+ * picked, and this says WHICH, on hover. The field therefore holds no string longer than itself. A
+ * native `title` rather than a `Tooltip` on purpose. A floating tooltip over a combobox would
+ * contend with the options panel the combobox is already positioning. The `title` also reaches the
  * accessible description for free.
  *
  * Only past one selection: a single label is already the field's own text, so a tooltip repeating it

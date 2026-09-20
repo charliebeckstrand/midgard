@@ -1,7 +1,7 @@
 'use client'
 
 import { Calendar as CalendarIcon, X } from 'lucide-react'
-import { type ReactNode, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
@@ -9,6 +9,7 @@ import { useLocale } from '../../providers/locale'
 import { clearNativeInput } from '../../utilities'
 import { Button } from '../button'
 import { useControl } from '../control/context'
+import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
 import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
@@ -40,6 +41,23 @@ export type DateInputProps = Omit<
 	/** Fires with the parsed Date once the text is a complete in-range date; fires `undefined` when it stops being one. */
 	onValueChange?: (value: Date | null) => void
 	/**
+	 * Fires on every change and on blur with the field's verdict on the typed
+	 * text.
+	 *
+	 * The field already holds that verdict — it is what renders the error Message
+	 * and sets `aria-invalid` — and kept it. The `onValueChange` cannot stand in.
+	 * It emits `undefined` for a cleared field, a half-typed date, and an
+	 * unparsable one alike. A caller therefore cannot tell "not finished" from
+	 * "wrong". The `isValid` says the text parses to a complete in-range date. The
+	 * `isPotentiallyValid` says it can still become one, so a growing entry is
+	 * potentially valid until it is both complete and refused. A value that arrives
+	 * from outside clears any refusal, and reports the verdict it left behind. A
+	 * form reset or a calendar pick is such a value. The field's own `aria-invalid`
+	 * and the reported verdict therefore never disagree. `CreditCardInputExpiry`
+	 * ships this callback on the same payload, and names this field as its model.
+	 */
+	onValidityChange?: (validity: CardValidity) => void
+	/**
 	 * Pattern that masks and parses the typed text.
 	 *
 	 * @defaultValue The layout matching the ambient `<LocaleProvider>` locale —
@@ -52,8 +70,8 @@ export type DateInputProps = Omit<
 	/** Latest accepted day; a complete date after it marks the input invalid and emits `undefined`. */
 	max?: Date
 	/**
-	 * Renders a clear button before the suffix whenever the field holds any text —
-	 * including a partial, not-yet-complete entry; clearing empties the field,
+	 * Renders a clear button before the suffix whenever the field holds any text,
+	 * including a partial, not-yet-complete entry. Clearing empties the field,
 	 * emits `undefined`, and returns focus to the input. In a `DatePicker`'s
 	 * `input` mode this clears the picker itself through the bound `onValueChange`.
 	 *
@@ -75,9 +93,9 @@ export type DateInputProps = Omit<
 /**
  * Text Input that masks typed digits into a date pattern (`format`, defaulting
  * to the ambient locale's field order). Emits a `Date` via `onValueChange` once the text is a
- * complete, real, in-range date. Marks itself invalid — and renders the
- * `invalidMessage` — when a complete entry does not parse, when it falls
- * outside `min`/`max`, or when blur leaves a partial entry behind. Controlled
+ * complete, real, in-range date. Marks itself invalid, and renders the
+ * `invalidMessage`, in three cases. A complete entry does not parse, it falls
+ * outside `min`/`max`, or blur leaves a partial entry behind. Controlled
  * or uncontrolled via `value`/`defaultValue`, and bound to an enclosing Form
  * field by `name` (the stored value is the `Date`).
  *
@@ -93,6 +111,7 @@ export function DateInput({
 	value,
 	defaultValue,
 	onValueChange,
+	onValidityChange,
 	format: formatProp,
 	min,
 	max,
@@ -151,6 +170,11 @@ export function DateInput({
 
 	const known = useRef(date)
 
+	// An external change clears the typed verdict during render, where a report
+	// must not run. The effect below carries it, so the reported verdict cannot
+	// drift from the one the field renders.
+	const clearedVerdict = useRef(false)
+
 	if (known.current !== date) {
 		known.current = date
 
@@ -159,10 +183,43 @@ export function DateInput({
 			setEditingText(null)
 
 			setTypedInvalid(false)
+
+			clearedVerdict.current = true
 		}
 	}
 
 	const text = editingText ?? (date === undefined ? '' : formatDateValue(date, format))
+
+	/*
+	 * The field's one verdict on the typed text, stated where both writers reach it.
+	 *
+	 * `closed` is what the caller means by "this entry is finished": a full-length
+	 * mask on a keystroke, any non-empty text on blur. A finished entry the parser
+	 * refuses is the only wrong one — everything else can still become a date. The
+	 * Message, `aria-invalid` and the report all come from this decision, so they
+	 * cannot disagree.
+	 */
+	const settle = (parsed: Date | undefined, closed: boolean) => {
+		const refused = closed && !parsed
+
+		setTypedInvalid(refused)
+
+		onValidityChange?.({ isValid: Boolean(parsed), isPotentiallyValid: !refused })
+	}
+
+	const reportClearedVerdict = useEffectEvent(() => {
+		onValidityChange?.({ isValid: date !== undefined, isPotentiallyValid: true })
+	})
+
+	// Runs unkeyed, because the flag is written during render rather than derived
+	// from a value React can compare.
+	useEffect(() => {
+		if (!clearedVerdict.current) return
+
+		clearedVerdict.current = false
+
+		reportClearedVerdict()
+	})
 
 	// Resolved eagerly though only the `typedInvalid` branch renders it: gating it
 	// buys one skipped parse of a ≤10-character text and costs this component its
@@ -240,9 +297,9 @@ export function DateInput({
 
 					setEditingText(next)
 
-					const parsed = commit(next)
-
-					setTypedInvalid(next.length === format.length && !parsed)
+					// A complete entry the parser refuses is the only wrong one; a
+					// growing entry can still become a date.
+					settle(commit(next), next.length === format.length)
 				}}
 				onBlur={(event) => {
 					if (editingText !== null) {
@@ -252,7 +309,9 @@ export function DateInput({
 						// partial one stays as typed and reads invalid.
 						if (parsed || editingText === '') setEditingText(null)
 
-						setTypedInvalid(editingText !== '' && !parsed)
+						// Blur closes the entry, so a partial one is refused here where a
+						// keystroke would have left it growing.
+						settle(parsed, editingText !== '')
 					}
 
 					setTouched()
@@ -266,7 +325,7 @@ export function DateInput({
 			/>
 
 			{/* Visible feedback gated on the component's own detection, not the
-			    external `invalid` prop; the input's aria-invalid comes from the
+			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. `resolveInvalidMessage`
 			    picks the bound- or format-specific text. */}
 			{typedInvalid && activeMessage ? <Message severity="error">{activeMessage}</Message> : null}
@@ -275,10 +334,10 @@ export function DateInput({
 }
 
 /**
- * Picks the visible invalid message for the current text: a complete entry that
- * parses to a real date but is rejected only by the bounds reports the bound
- * (via {@link outOfRangeMessage}); everything else (incomplete, impossible) keeps
- * the generic `invalidMessage`. A falsy `invalidMessage` suppresses both.
+ * Picks the visible invalid message for the current text. A complete entry that
+ * parses to a real date but is rejected only by the bounds reports the bound, via
+ * {@link outOfRangeMessage}. Everything else, incomplete or impossible, keeps the
+ * generic `invalidMessage`. A falsy `invalidMessage` suppresses both.
  *
  * @internal
  */
@@ -300,8 +359,8 @@ function resolveInvalidMessage(
 
 /**
  * Resolves the {@link DateInput} suffix: a clear button ahead of the field's own
- * suffix while `clearable` and the field holds text, else the suffix unchanged —
- * so an absent suffix (`undefined`/`false`) leaves no empty affix slot.
+ * suffix while `clearable` and the field holds text, else the suffix unchanged.
+ * An absent suffix (`undefined`/`false`) therefore leaves no empty affix slot.
  *
  * @internal
  */

@@ -12,7 +12,7 @@ import {
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
 	openKeyboardMenu,
@@ -47,7 +47,7 @@ type GridContextMenuProps<T> = {
 	/**
 	 * Whether right-clicks resolve to a menu at all. When `false` every click
 	 * falls through to the native menu — the stand-down for a grid with no data.
-	 * A *flag* rather than unmounting this wrapper: the wrapper appearing later
+	 * A *flag* rather than unmounting this wrapper. The wrapper appearing later
 	 * (data arriving) would remount the whole table region, tearing down the
 	 * scroll container out from under the virtualizer mid-commit.
 	 * @defaultValue true
@@ -59,7 +59,7 @@ type GridContextMenuProps<T> = {
 	rows: T[]
 	rowKeys: (string | number)[]
 	/** Active sort columns in priority order; backs the menu's Sort items. */
-	sort: SortState[]
+	sort: GridSortState[]
 	sortColumn: SortColumn
 	/** Clears the grid's active sort. */
 	clearSort: () => void
@@ -145,8 +145,8 @@ export function useColumnGroupMenu(args: {
  * Right-click context menus for a {@link Grid}: a single cursor-anchored
  * {@link Menu} wrapping the table region. A right-click on a header (`th`) or
  * data cell (`td`) is resolved to its column and row through the
- * `data-grid-col` / `data-grid-row` attributes, then its items — the grid
- * defaults, optionally reshaped by a `column` / `cell` builder — render. A click
+ * `data-grid-col` / `data-grid-row` attributes. Its items then render: the grid
+ * defaults, optionally reshaped by a `column` / `cell` builder. A click
  * that lands on neither leaves the native menu alone.
  *
  * @typeParam T - Shape of a single row.
@@ -367,10 +367,10 @@ export function GridContextMenu<T>({
  * The right-click / keyboard delegation surface, rendered inside {@link Menu} so it
  * can open the menu through the menu's {@link useMenuActions} `openAt`. A
  * `contents` wrapper keeps it out of layout. A right-click resolves the cell or
- * header under the pointer and opens the menu there; the keyboard context-menu
- * (Shift+F10 / the ContextMenu key), which fires on the focused grid rather than a
- * cell, is retargeted to the active cursor cell (WCAG 2.1.1), recording the grid to
- * restore focus to on close. Stops propagation either way so the menu opens once.
+ * header under the pointer and opens the menu there. The keyboard context-menu
+ * (Shift+F10 / the ContextMenu key) fires on the focused grid rather than a
+ * cell. It is retargeted to the active cursor cell (WCAG 2.1.1), recording the
+ * grid to restore focus to on close. Stops propagation either way so the menu opens once.
  *
  * @internal
  */

@@ -5,9 +5,19 @@ import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
 import { type CardValidity, formatCvv, validateCardCvv } from './credit-card-input-utilities'
-import type { CreditCardBrand, CreditCardBrandInfo } from './types'
+import type { CreditCardBrand } from './types'
 
-/** Props for {@link CreditCardInputCvv}; extends Input minus the masked value and change slots. */
+/**
+ * Props for {@link CreditCardInputCvv}; extends Input minus the masked value and
+ * change slots.
+ *
+ * @remarks
+ * Unlike {@link CreditCardInputExpiry} and DateInput, this field takes no
+ * `invalidMessage`. A CVV's only rule is its length. The mask already caps the
+ * entry at the brand's length and strips non-digits. A complete entry is
+ * therefore always valid, so there is no complete-but-wrong state to report.
+ * `onValidityChange` still reports the length verdict while the entry grows.
+ */
 export type CreditCardInputCvvProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
@@ -17,31 +27,22 @@ export type CreditCardInputCvvProps = Omit<
 	placeholder?: string
 	onValueChange?: (value: string) => void
 	/** Brand controls the CVV length (Amex accepts 4 digits; others accept 3). */
-	brand?: CreditCardBrand | CreditCardBrandInfo
+	brand?: CreditCardBrand
 	/** Fires on every change with the CVV's length verdict (vs the brand-derived max). */
 	onValidityChange?: (validity: CardValidity) => void
 }
 
-function resolveBrand(brand: CreditCardInputCvvProps['brand']): CreditCardBrand | undefined {
-	if (!brand) return undefined
-
-	if (typeof brand === 'string') return brand
-
-	return brand.brand
-}
-
-function resolveCvvLength(brand: CreditCardInputCvvProps['brand']): number {
+function resolveCvvLength(brand: CreditCardBrand | undefined): number {
 	if (!brand) return 4
 
 	// Same rule as `validateCardCvv`: Amex takes 4 digits, every other brand 3.
-	if (typeof brand === 'string') return brand === 'amex' ? 4 : 3
-
-	return brand.cvvLength
+	return brand === 'amex' ? 4 : 3
 }
 
 /**
  * Numeric Input for a card security code, masked to digits and capped at the
- * brand-derived length (Amex 4, others 3; 4 until a brand is known). When the
+ * brand-derived length. That length is 4 for Amex and 3 for others, and 4 until
+ * a brand is known. When the
  * brand shrinks the length it re-truncates the stored value and re-reports
  * validity. Sets `autoComplete="cc-csc"` and defaults a "Security code"
  * aria-label, yielding to a registered Field `<Label>`.
@@ -65,8 +66,6 @@ export function CreditCardInputCvv({
 
 	const maxLength = resolveCvvLength(brand)
 
-	const resolvedBrand = resolveBrand(brand)
-
 	const masked = useMaskInput({
 		name,
 		value,
@@ -85,30 +84,30 @@ export function CreditCardInputCvv({
 	// Previous brand, not a mount flag: StrictMode runs setup → cleanup → setup,
 	// so a flag set by the first setup lets the second run the body and fire one
 	// spurious dev-only `onValidityChange`. Comparing values is re-entrant.
-	const prevBrandRef = useRef({ maxLength, brand: resolvedBrand })
+	const prevBrandRef = useRef(brand)
 
 	useEffect(() => {
-		const prev = prevBrandRef.current
+		if (prevBrandRef.current === brand) return
 
-		if (prev.maxLength === maxLength && prev.brand === resolvedBrand) return
-
-		prevBrandRef.current = { maxLength, brand: resolvedBrand }
+		prevBrandRef.current = brand
 
 		// A brand change can shrink the CVV length (Amex 4 → Visa 3):
 		// re-truncates the stored value to the new maxLength and re-reports
-		// validity (which also branches on brand).
+		// validity (which also branches on brand). `maxLength` is a function of
+		// `brand` alone, so the brand is the whole of what can change here.
 		const { value, setValue, onValidityChange: onValidity } = latestRef.current
 
 		const truncated = formatCvv(value, maxLength)
 
 		if (truncated !== value) setValue(truncated)
 
-		onValidity?.(validateCardCvv(truncated, resolvedBrand))
-	}, [maxLength, resolvedBrand])
+		onValidity?.(validateCardCvv(truncated, brand))
+	}, [maxLength, brand])
 
 	return (
 		<Input
 			ref={masked.ref}
+			data-slot="credit-card-input-cvv"
 			type="text"
 			inputMode="numeric"
 			autoComplete="cc-csc"
@@ -127,7 +126,7 @@ export function CreditCardInputCvv({
 			onChange={(event) => {
 				masked.onChange(event)
 
-				onValidityChange?.(validateCardCvv(event.target.value, resolvedBrand))
+				onValidityChange?.(validateCardCvv(event.target.value, brand))
 			}}
 			{...props}
 		/>

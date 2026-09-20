@@ -1,10 +1,11 @@
 'use client'
 
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
-import { type ReactNode, useCallback, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/kanban'
+import type { AccessibleName } from '../../types'
 import { KanbanContext, KanbanDragStateContext } from './context'
 import type { KanbanColumnBase } from './types'
 import { useKanbanDrag } from './use-kanban-drag'
@@ -17,31 +18,40 @@ import { useKanbanKeyboard } from './use-kanban-keyboard'
  * @typeParam T - Item datum carried by each column.
  * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
  */
-export type KanbanProps<T, C extends KanbanColumnBase<T>> = {
-	/** Ordered columns. Each column must have a stable `id` and an `items` array. */
-	columns: C[]
-	/** Stable key extractor for items. */
-	getKey: (item: T) => string
-	/** Called with the next columns whenever ordering changes. Omit for read-only. */
-	onReorder?: (next: C[]) => void
-	/** Disable all drag / keyboard reorder interaction. */
-	disabled?: boolean
-	children?: ReactNode
-	className?: string
-	'aria-label'?: string
-}
+export type KanbanProps<T, C extends KanbanColumnBase<T>> = AccessibleName &
+	Omit<ComponentProps<'section'>, 'className' | 'children' | 'aria-label' | 'aria-labelledby'> & {
+		/** Ordered columns. Each column must have a stable `id` and an `items` array. */
+		columns: C[]
+		/** Stable key extractor for items. */
+		getKey: (item: T) => string
+		/** Called with the next columns whenever ordering changes. Omit for read-only. */
+		onReorder?: (next: C[]) => void
+		/** Disable all drag / keyboard reorder interaction. */
+		disabled?: boolean
+		children?: ReactNode
+		className?: string
+	}
 
 /**
  * Multi-column board over `@dnd-kit`. Reorders cards within and across columns
- * by pointer drag (with a drag overlay) or keyboard lift, emitting the next
- * `columns` array through `onReorder`; the board is read-only when
- * `onReorder` is omitted or `disabled` is set. Shares drag/keyboard state
+ * by pointer drag (with a drag overlay) or keyboard lift, and emits the next
+ * `columns` array through `onReorder`. The board is read-only when `onReorder`
+ * is omitted or `disabled` is set. Shares drag/keyboard state
  * with descendant {@link KanbanColumn} and {@link KanbanCard} via context.
  * Compose the column header/body slots within.
  *
  * @remarks
- * Client component. The board is a named `role="region"` (`<section>`); pass
- * `aria-label`.
+ * Client component. The board is a named `role="region"` (`<section>`), so the
+ * type requires one of `aria-label` / `aria-labelledby`.
+ *
+ * **The board takes its data and its structure apart, and the keys join them.**
+ * `columns` carries the ordering the board reorders, and the children carry
+ * what each column and card renders. A `<KanbanColumn value>` therefore repeats
+ * a key from `columns`, and a `<KanbanCard value>` repeats one from that
+ * column's `items`. Nothing in the type holds the two together. A key that
+ * matches nothing renders and then does nothing: an unknown column takes no
+ * drop, and an unknown card never reorders. Both warn in development, at the
+ * part that carries the key.
  *
  * @typeParam T - Item datum carried by each column.
  * @typeParam C - Column shape, extending {@link KanbanColumnBase}.
@@ -53,7 +63,7 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 	disabled,
 	children,
 	className,
-	'aria-label': ariaLabel,
+	...labelProps
 }: KanbanProps<T, C>) {
 	const interactive = !disabled && !!onReorder
 
@@ -116,8 +126,8 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 					onDragCancel={interactive ? handleDragCancel : undefined}
 				>
 					<section
+						{...labelProps}
 						ref={containerRef}
-						aria-label={ariaLabel}
 						data-slot="kanban"
 						className={cn(k.base, className)}
 					>

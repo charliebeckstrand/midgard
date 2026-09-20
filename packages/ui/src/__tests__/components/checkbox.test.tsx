@@ -1,6 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Checkbox, CheckboxField, CheckboxGroup, CheckboxSkeleton } from '../../components/checkbox'
+import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
 import { Density } from '../../primitives/density'
@@ -31,14 +31,6 @@ describe('Checkbox', () => {
 		expect(check).toHaveAttribute('aria-hidden', 'true')
 	})
 
-	it('supports custom icon', () => {
-		const { container } = renderUI(<Checkbox icon={<span data-testid="custom-icon">X</span>} />)
-
-		expect(container.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument()
-
-		expect(bySlot(container, 'checkbox-check')).not.toBeInTheDocument()
-	})
-
 	it('forwards checked and onChange', () => {
 		const onChange = vi.fn()
 
@@ -51,14 +43,6 @@ describe('Checkbox', () => {
 		fireEvent.click(input)
 
 		expect(onChange).toHaveBeenCalled()
-	})
-
-	it('pairs with an explicit CheckboxSkeleton in loading trees', () => {
-		const { container } = renderUI(<CheckboxSkeleton />)
-
-		expect(bySlot(container, 'checkbox')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
 	it('forwards a createRef to the input element', () => {
@@ -137,6 +121,17 @@ describe('CheckboxGroup', () => {
 	it('exposes role="group" and accepts an accessible name', () => {
 		renderUI(<CheckboxGroup aria-label="Notifications">items</CheckboxGroup>)
 
+		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
+	})
+
+	it('keeps the group role when a consumer supplies one', () => {
+		renderUI(
+			<CheckboxGroup aria-label="Notifications" role="presentation">
+				items
+			</CheckboxGroup>,
+		)
+
+		// §3.9: `role` is load-bearing, so the group semantics stay.
 		expect(screen.getByRole('group', { name: 'Notifications' })).toBeInTheDocument()
 	})
 })

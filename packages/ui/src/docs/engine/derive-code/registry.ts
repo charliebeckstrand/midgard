@@ -11,11 +11,13 @@ type Tagged = { __module?: string; __name?: string }
  * helpers, or any function without a build-time tag.
  *
  * @remarks Exported so agnostic-engine tests can assemble a synthetic
- * {@link ComponentRegistry} (the real tag reader + their own `byName` map) and
- * pass it into `deriveCode`, instead of `vi.mock`-ing `virtual:component-modules`
- * — a module-level mock that bleeds across files under the unit project's
- * shared module registry (`isolate: false`) and corrupts the real-registry
- * integration test.
+ * {@link ComponentRegistry} — the real tag reader plus their own `byName` map —
+ * and pass it into `deriveCode`.
+ *
+ * The alternative is `vi.mock`-ing `virtual:component-modules`. That is a
+ * module-level mock, and it bleeds across files under the unit project's shared
+ * module registry (`isolate: false`), corrupting the real-registry integration
+ * test.
  */
 export function readTag(type: unknown): ComponentInfo | undefined {
 	if (type == null) return undefined

@@ -32,28 +32,40 @@ import { ChartFullscreenContext, useChartFullscreen } from './context'
 import type { ChartReadoutSource } from './types'
 
 /**
- * The mark the pointer was over when the right-click landed, so a menu item can act on that mark rather
- * than the chart as a whole. `index` is the datum's index within the chart's categories — the same index
- * {@link ChartCartesianProps.onCategoryClick} reports — or `null` when the click landed off any mark
- * (plot padding, the legend, the header).
+ * The mark the pointer was over when the right-click landed. A menu item can act on that mark,
+ * rather than the chart as a whole. `index` is the datum's index within the chart's categories,
+ * the same index {@link SectorChartProps.onCategoryClick} reports. It is `null` when the click
+ * landed off any mark (plot padding, the legend, the header).
  *
- * An index rather than a label on purpose: labels are formatted for display (the sector charts run period
- * keys through a formatter), so a consumer that needs the underlying value must look it up in its own data
- * by position.
+ * An index rather than a label on purpose. Labels are formatted for display (the sector charts run
+ * period keys through a formatter). A consumer that needs the underlying value must therefore look
+ * it up in its own data by position.
  */
 export type ChartContextMenuTarget = { index: number | null }
 
 /**
+ * The outcome of one image export, delivered to {@link ChartContextMenuConfig.onExport}.
+ *
+ * Shaped like the form's `SubmitOutcome`, because it answers the same question: the operation
+ * finished, and the caller needs to know which way. `type` is on both arms, so a caller that
+ * offers PNG and JPG can tell which one the reader asked for.
+ */
+export type ChartExportOutcome =
+	| { ok: true; type: ChartImageType; fileName: string }
+	| { ok: false; type: ChartImageType; error: unknown }
+
+/**
  * A chart's right-click menu configuration: the shared {@link ContextMenuConfig}
- * (custom `items`, `defaultItems`, `position`) plus the chart's own export
+ * (custom `items`, `defaultItems`, `insert`) plus the chart's own export
  * options.
  */
 export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	/**
 	 * Custom entries to add to the menu, rendered in array order.
 	 *
-	 * Pass a function to build them from the mark under the pointer — the hook for a per-mark action
-	 * ("View the shipments behind this bar"), whose label can name the mark it will act on. It is called
+	 * Pass a function to build them from the mark under the pointer. It is the hook for a per-mark
+	 * action ("View the shipments behind this bar"), whose label can name the mark it will act on.
+	 * It is called
 	 * with `index: null` when the right-click missed every mark, so an item that needs one can be omitted.
 	 */
 	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
@@ -72,6 +84,44 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 * elsewhere. Never fires without a `fullscreen` element to open.
 	 */
 	onFullscreenChange?: (fullscreen: boolean) => void
+	/**
+	 * Fires when a Download PNG or Download JPG action finishes, either way.
+	 *
+	 * The rasterise runs behind the menu and a failure went into a bare `catch`. A
+	 * reader whose export silently produced nothing had no way to learn why, and neither
+	 * did the caller. An image the browser refuses to decode, a tainted canvas, and a
+	 * canvas that yields no blob all arrive as `{ ok: false }`. Use it to report the
+	 * failure, or to count a successful download. The CSV and copy actions have their own
+	 * readout and do not come through here.
+	 */
+	onExport?: (outcome: ChartExportOutcome) => void
+}
+
+/**
+ * The state-mirror reports the fullscreen copy must not raise.
+ *
+ * Each names a switchboard or a view the copy holds separately from the chart it
+ * was cloned from. They are the legend's hidden set and emphasis, and the map's
+ * view transform on a Choropleth. Shed on the clone rather than at each chart, because
+ * the clone is the one place that knows a second instance exists.
+ *
+ * @internal
+ */
+const FULLSCREEN_SHED_REPORTS = ['onHiddenChange', 'onEmphasisChange', 'onViewChange'] as const
+
+/**
+ * The shed, narrowed to the keys this element actually declares.
+ *
+ * `cloneElement` merges by key, so naming a prop the element does not take adds
+ * it. An unknown prop rides the chart's rest spread onto the plot element, where
+ * React warns and drops it. Only keys already present are overridden.
+ *
+ * @internal
+ */
+function shedReports(props: Record<string, unknown>): Record<string, undefined> {
+	return Object.fromEntries(
+		FULLSCREEN_SHED_REPORTS.filter((key) => key in props).map((key) => [key, undefined]),
+	)
 }
 
 /** Props for {@link ChartContextMenu}. @internal */
@@ -93,7 +143,7 @@ export type ChartContextMenuProps = {
 	title?: string
 	/**
 	 * A fresh, re-mountable copy of the chart, rendered large in the fullscreen
-	 * dialog so hover and keyboard keep working — the chart re-measures at the
+	 * dialog so hover and keyboard keep working. The chart re-measures at the
 	 * dialog size rather than scaling a still. Absent, the Fullscreen item drops.
 	 */
 	fullscreen?: ReactElement
@@ -126,18 +176,19 @@ function exportCsv(readout: ChartReadoutSource): string {
 
 /**
  * The chart family's right-click menu and fullscreen view. Wraps a chart in a
- * {@link ContextMenu} whose default actions — Fullscreen, Download PNG / JPG, and
- * (with a readout) Download CSV / Copy data — merge with any caller
- * {@link ChartContextMenuConfig}. Fullscreen opens a large dialog holding a live,
- * re-mounted copy of the chart, centered at its aspect ratio; image downloads
- * rasterise the whole chart, legend included, unless `downloadLegend` is off.
+ * {@link ContextMenu} whose default actions merge with any caller
+ * {@link ChartContextMenuConfig}. Those actions are Fullscreen, Download PNG /
+ * JPG, and (with a readout) Download CSV / Copy data. Fullscreen opens a large
+ * dialog holding a live, re-mounted copy of the chart, centered at its aspect
+ * ratio. Image downloads rasterise the whole chart, legend included, unless
+ * `downloadLegend` is off.
  *
- * @remarks Image export draws the chart through an SVG `foreignObject` so its
- * HTML chrome and SVG marks capture together, inlining computed styles so the
- * bitmap carries its colours. `contextMenu={false}` renders the chart untouched,
- * leaving the browser's native menu. Inside the fullscreen dialog it renders
- * the chart untouched for a structural reason instead: there it is its own
- * re-mounted copy, so it refuses to wrap itself and no chart nests a second
+ * @remarks Image export draws the chart through an SVG `foreignObject`, so its
+ * HTML chrome and SVG marks capture together. It inlines computed styles, so
+ * the bitmap carries its colours. `contextMenu={false}` renders the chart
+ * untouched, leaving the browser's native menu. Inside the fullscreen dialog it
+ * renders the chart untouched for a structural reason instead. There it is its
+ * own re-mounted copy, so it refuses to wrap itself and no chart nests a second
  * menu.
  *
  * @internal
@@ -197,6 +248,13 @@ export function ChartContextMenu({
 		[onFullscreenChange],
 	)
 
+	// Read through a ref, not a dep: `exportImage` feeds the `defaults` memo this
+	// file keeps because it re-renders on every pointer move across the plot, and an
+	// inline `contextMenu={{ onExport }}` would rebuild it and its five icons.
+	const onExportRef = useRef(config?.onExport)
+
+	onExportRef.current = config?.onExport
+
 	const exportImage = useCallback(
 		async (type: ChartImageType, extension: string): Promise<void> => {
 			const root = rootRef.current
@@ -206,9 +264,27 @@ export function ChartContextMenu({
 			try {
 				const blob = await rasterizeChartImage(root, { type, includeLegend })
 
-				if (blob) downloadBlob(blob, chartFileName(title, extension))
-			} catch {
-				// A failed rasterise (image decode) has no retry affordance to drive.
+				// A null blob is a failure too: the canvas rasterized and then yielded
+				// nothing, so no file is downloaded and the menu looks like it worked.
+				if (!blob) {
+					onExportRef.current?.({
+						ok: false,
+						type,
+						error: new Error('The chart produced no image.'),
+					})
+
+					return
+				}
+
+				const fileName = chartFileName(title, extension)
+
+				downloadBlob(blob, fileName)
+
+				onExportRef.current?.({ ok: true, type, fileName })
+			} catch (error) {
+				// A failed rasterise (image decode) has no retry affordance to drive,
+				// so the menu shows nothing. The caller hears about it instead.
+				onExportRef.current?.({ ok: false, type, error })
 			}
 		},
 		[rootRef, includeLegend, title],
@@ -289,6 +365,13 @@ export function ChartContextMenu({
 								{cloneElement(fullscreen as ReactElement<Record<string, unknown>>, {
 									width: undefined,
 									height: undefined,
+									// The copy owns its own switchboard state: its legend starts
+									// with nothing hidden and is destroyed on close, so a report
+									// from it describes a set the chart underneath never had. A
+									// consumer persisting one would come back to a chart that
+									// disagrees with what it stored. Action callbacks stay — a
+									// click on a mark in here means what it always meant.
+									...shedReports(fullscreen.props as Record<string, unknown>),
 									// The dialog is auto-height and sized for the default 16/9 ratio,
 									// so a consumer's fill mode (`aspectRatio={false}`) — which fills
 									// its parent's height — has nothing to fill and collapses the plot
@@ -331,7 +414,7 @@ export function ChartContextMenu({
 				defaults={defaults}
 				items={customItems}
 				defaultItems={config?.defaultItems}
-				position={config?.position}
+				insert={config?.insert}
 				capped={config?.capped}
 			>
 				{children}

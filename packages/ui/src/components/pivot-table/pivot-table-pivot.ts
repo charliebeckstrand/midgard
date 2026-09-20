@@ -20,8 +20,8 @@ export function resolveAxis<T>(
 
 /**
  * Buckets each row's numeric `valueKey` into a `row → column → values` map,
- * skipping any cell that isn't a finite number or a numeric string (`null`,
- * `''`, and other non-numeric values are dropped, not counted as `0`).
+ * skipping any cell that isn't a finite number or a numeric string. `null`,
+ * `''`, and other non-numeric values are dropped, not counted as `0`.
  */
 export function groupValues<T>(
 	rows: readonly T[],
@@ -79,9 +79,9 @@ export function aggregate(values: readonly number[], op: PivotAggregation): numb
  * values.
  *
  * @remarks
- * Near-identical to {@link aggregateColumn} — fix one axis, walk the other — and
- * deliberately so: row and column are distinct boundaries and each body is about
- * six lines, so a shared walk would cost more in indirection than it saves
+ * Near-identical to {@link aggregateColumn}: fix one axis, walk the other. That
+ * is deliberate: row and column are distinct boundaries, and each body is about
+ * six lines. A shared walk would cost more in indirection than it saves
  * (CLAUDE.md 1.1).
  */
 export function aggregateRow(

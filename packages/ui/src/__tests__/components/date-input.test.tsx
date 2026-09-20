@@ -618,3 +618,125 @@ describe('DateInput locale-derived layout', () => {
 		expect((bySlot(container, 'date-input') as HTMLInputElement).placeholder).toBe('MM/DD/YYYY')
 	})
 })
+
+describe('DateInput onValidityChange', () => {
+	const field = (container: HTMLElement) => bySlot(container, 'date-input') as HTMLInputElement
+
+	it('calls a growing entry potentially valid, and a complete one valid', async () => {
+		const user = userEvent.setup()
+
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+
+		await user.type(field(container), '06')
+
+		// Half a date is not wrong yet, which is exactly what `onValueChange`
+		// cannot say: it reports `undefined` here and for a refused entry alike.
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: false,
+			isPotentiallyValid: true,
+		})
+
+		await user.type(field(container), '152026')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	// 31 February masks cleanly and parses to nothing, which is the shape this
+	// callback exists to separate from a half-typed entry.
+	it('refuses a complete entry the parser rejects', async () => {
+		const user = userEvent.setup()
+
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+
+		await user.type(field(container), '02312025')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: false,
+			isPotentiallyValid: false,
+		})
+	})
+
+	// Blur closes the entry, so a partial one that was still growing is refused.
+	it('refuses a partial entry on blur', async () => {
+		const user = userEvent.setup()
+
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+
+		await user.type(field(container), '06')
+
+		await user.tab()
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: false,
+			isPotentiallyValid: false,
+		})
+	})
+
+	// The field clears its own refusal when a value arrives from outside — a form
+	// reset, a calendar pick. Without a report there, the caller's last verdict
+	// says "wrong" over a field rendering clean, with no route back but retyping.
+	it('reports the verdict a value from outside leaves behind', async () => {
+		const user = userEvent.setup()
+
+		const onValidityChange = vi.fn()
+
+		function Harness() {
+			const [value, setValue] = useState<Date | null>(null)
+
+			return (
+				<>
+					<DateInput value={value} onValidityChange={onValidityChange} />
+					<button type="button" onClick={() => setValue(new Date(2026, 5, 15))}>
+						pick
+					</button>
+				</>
+			)
+		}
+
+		const { container } = renderUI(<Harness />)
+
+		await user.type(field(container), '02312025')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: false,
+			isPotentiallyValid: false,
+		})
+
+		await user.click(screen.getByRole('button', { name: 'pick' }))
+
+		expect(field(container)).not.toHaveAttribute('aria-invalid')
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: true,
+			isPotentiallyValid: true,
+		})
+	})
+
+	it('keeps an emptied field potentially valid on blur', async () => {
+		const user = userEvent.setup()
+
+		const onValidityChange = vi.fn()
+
+		const { container } = renderUI(<DateInput onValidityChange={onValidityChange} />)
+
+		await user.type(field(container), '06')
+
+		await user.clear(field(container))
+
+		await user.tab()
+
+		expect(onValidityChange).toHaveBeenLastCalledWith({
+			isValid: false,
+			isPotentiallyValid: true,
+		})
+	})
+})

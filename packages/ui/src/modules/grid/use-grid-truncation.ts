@@ -4,29 +4,30 @@ import { type RefCallback, useEffect, useRef } from 'react'
 import { useTruncation } from '../../hooks/use-truncation'
 
 /**
- * Grid truncation tracking: {@link useTruncation}'s eager overflow measure plus a
- * resize-settle backstop, so a column resize that moves a cell's width through
- * the `<colgroup>` alone re-reads overflow even when the memoized body cell does
- * not re-render on its own.
+ * Grid truncation tracking: {@link useTruncation}'s eager overflow measure, plus
+ * a resize-settle backstop. A column resize can move a cell's width through the
+ * `<colgroup>` alone. The backstop re-reads overflow there, even where the
+ * memoized body cell does not re-render on its own.
  *
  * Shared by the data-cell ({@link GridCellContent}) and column-header
  * (`GridHeaderTitle`) truncation surfaces.
  *
  * @param resizeSettleKey - A per-column width snapshot whose change re-measures
- * truncation: the data cell passes the engine width frozen to `undefined` while
- * a drag is in flight, then the settled width once the drag ends or a keyboard
- * nudge lands. A column resize moves the cell's width through the `<colgroup>`
- * alone, and the body cell is memoized, so the commit measure does not re-run on
- * its own; the key's change re-renders the cell (re-running the commit measure)
- * and this hook backs that up with a deferred frame in case the layout settled
- * after the synchronous read. The header omits it — it already re-renders on its
+ * truncation. The data cell passes the engine width frozen to `undefined` while
+ * a drag is in flight. It passes the settled width once the drag ends, or a
+ * keyboard nudge lands. A column resize moves the cell's width through the
+ * `<colgroup>` alone, and the body cell is memoized. The commit measure
+ * therefore does not re-run on its own. The key's change re-renders the cell,
+ * which re-runs the commit measure. This hook backs that up with a deferred
+ * frame, in case the layout settled after the synchronous read. The header omits it — it already re-renders on its
  * own `width` prop.
  * @param suspended - Stands the measure down entirely (a drag-resize in flight,
  * whose reveal the cell holds closed anyway); the first commit after it lifts
  * re-measures.
- * @returns `[ref, truncated, contacted]`: attach `ref` to the single-line
- * element; read `truncated` to gate the reveal tooltip and `contacted` to defer
- * mounting the reveal machinery until the first contact that could open it.
+ * @returns `[ref, truncated, contacted]`. Attach `ref` to the single-line
+ * element. Read `truncated` to gate the reveal tooltip. Read `contacted` to
+ * defer mounting the reveal machinery until the first contact that could open
+ * it.
  * @internal
  */
 export function useGridTruncation<E extends HTMLElement>(

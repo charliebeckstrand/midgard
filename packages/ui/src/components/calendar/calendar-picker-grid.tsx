@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { cn, dataAttr } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
@@ -100,7 +100,7 @@ export function CalendarPickerGrid({
 						key={cell.key}
 						role="option"
 						aria-selected={cell.selected}
-						aria-current={ariaAttr(cell.current)}
+						aria-current={cell.current ? 'date' : undefined}
 						variant={cell.selected ? 'solid' : 'plain'}
 						data-selected={dataAttr(cell.selected)}
 						onClick={cell.onSelect}

@@ -25,7 +25,7 @@ export type ColorState = {
  * Owns the HSVA and reconciles against the `value` prop, skipping echoes of
  * its own emission, compared on the serialised form.
  *
- * @returns The live `hsva` and a `setHsva` accepting a value or an updater;
+ * @returns The live `hsva` and a `setHsva` accepting a value or an updater.
  * `setHsva` clamps, pins alpha to `1` when `alpha` is off, and emits the
  * serialised value through `onValueChange`.
  * @remarks

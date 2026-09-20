@@ -22,7 +22,7 @@ import { srcDir } from './paths'
 // (`build-api.ts`) fans out to, on one shared Project so setup cost is paid
 // once. Setup resolves each fixture's props type up front, warming the
 // checker's caches for it — the numbers isolate extractor cost, not
-// first-resolution cost, which `build-api.bench.ts` covers end to end.
+// first-resolution cost, which `extractor.bench.ts` covers end to end.
 
 // `openProject`, not a tsconfig-wide Project: the tsconfig include resolves
 // 1864 files against production's 1197, and the link-index walk is proportional

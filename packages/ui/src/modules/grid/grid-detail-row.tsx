@@ -27,10 +27,10 @@ type GridExpandToggleProps = {
 }
 
 /**
- * The disclosure chevron in an {@link GridColumn.expander} cell: toggles the
- * row's detail panel, carrying `aria-expanded` and `aria-controls` naming the
- * panel so assistive tech ties the two — the master-detail analog of the group
- * header's disclosure button. A row the binding marks non-expandable renders
+ * The disclosure chevron in an {@link GridColumn.expander} cell. It toggles the
+ * row's detail panel, and carries `aria-expanded` and `aria-controls` naming the
+ * panel, so assistive tech ties the two. It is the master-detail analog of the
+ * group header's disclosure button. A row the binding marks non-expandable renders
  * nothing, so the column stays a quiet rail for it.
  *
  * @internal
@@ -57,11 +57,12 @@ export function GridExpandToggle({
 			aria-controls={detailPanelId(rowKey)}
 			aria-label={`${expanded ? 'Collapse' : 'Expand'} details for ${name}`}
 		>
-			{/* `data-open` rides the chevron element itself: `Icon` clones it and
+			{/* `data-open` rides the chevron element itself. An `Icon` clones it and
 			    preserves props it doesn't set, and a lucide glyph forwards `data-*`
-			    onto its `<svg>` — so the rotate cue and the recipe's rotate class land
-			    on the same svg with no wrapper. `Icon` also stamps `data-slot="icon"`,
-			    so the Button reads the control as icon-only and holds its square floor. */}
+			    onto its `<svg>`. The rotate cue and the recipe's rotate class therefore
+			    land on the same svg with no wrapper. The `Icon` also stamps
+			    `data-slot="icon"`, so the Button reads the control as icon-only and
+			    holds its square floor. */}
 			<Icon
 				icon={<ChevronRight data-open={dataAttr(expanded)} />}
 				className={cn(k.detail.chevron)}
@@ -83,15 +84,15 @@ type GridDetailRowProps = {
 
 /**
  * A master-detail panel row: a full-width `<tr>` whose single cell nests the
- * detail content in the same one-row CSS-grid reveal the group leaves ride
- * (`1fr` ↔ `0fr`), so the panel grows and shrinks to its content height over a
- * transition — reliable in a `<table>`, where a JS height tween on a `<td>` is
- * not. It stays mounted whatever the expansion; a closed panel is `inert` and
+ * detail content. The nest is the same one-row CSS-grid reveal the group leaves
+ * ride (`1fr` ↔ `0fr`). The panel therefore grows and shrinks to its content
+ * height over a transition. That is reliable in a `<table>`, where a JS height
+ * tween on a `<td>` is not. It stays mounted whatever the expansion; a closed panel is `inert` and
  * hidden from assistive tech, and its `id` ties back to the expander's
  * `aria-controls`. Once the reveal has shrunk it rests in
  * `<Activity mode="hidden">`, keeping its state but leaving the visible commit.
- * The track opens on the reveal's own flag rather than on `expanded`, which is
- * what carries a panel out of that rest over the transition and not in a snap.
+ * The track opens on the reveal's own flag rather than on `expanded`. That flag
+ * carries a panel out of that rest over the transition, and not in a snap.
  *
  * @internal
  */

@@ -5,6 +5,8 @@ export { DrawerTrigger, type DrawerTriggerProps } from './drawer-trigger'
 export {
 	DrawerBody,
 	type DrawerBodyProps,
+	DrawerContent,
+	type DrawerContentProps,
 	DrawerDescription,
 	type DrawerDescriptionProps,
 	DrawerFooter,

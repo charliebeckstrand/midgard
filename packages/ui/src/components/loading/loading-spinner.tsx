@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k, type LoadingSpinnerVariants } from '../../recipes/kata/loading'
 
@@ -10,7 +10,7 @@ export type LoadingSpinnerProps = LoadingSpinnerVariants & {
 	 */
 	label?: string
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'output'>, 'className' | 'color'>
+} & Omit<ComponentProps<'output'>, 'className' | 'color'>
 
 const SPINNER_SVG = (
 	<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="size-full">

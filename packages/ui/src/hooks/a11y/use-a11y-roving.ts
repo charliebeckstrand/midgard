@@ -11,11 +11,11 @@ import { useScrollWithin } from '../use-scroll-within'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
 /**
- * Pluggable index-based item source for virtual (windowed) roving: lets
- * {@link useA11yRoving} navigate a list by index instead of querying the DOM,
- * so arrow / type-ahead reach items outside a virtualized window (Home/End
- * likewise, for a container that routes them to roving rather than reserving
- * them, as `Combobox`/`CommandPalette` do for the textbox caret).
+ * Pluggable index-based item source for virtual (windowed) roving. It lets
+ * {@link useA11yRoving} navigate a list by index instead of querying the DOM.
+ * Arrow / type-ahead therefore reach items outside a virtualized window.
+ * Home/End do likewise, for a container that routes them to roving rather than
+ * reserving them, as `Combobox`/`CommandPalette` do for the textbox caret.
  * `VirtualOptions` constructs and registers one from its `items` plus the
  * `getOptionId` / `isDisabled` / `getTextValue` props.
  */
@@ -68,9 +68,10 @@ export function queryItems(container: HTMLElement | null, selector: string): HTM
  * Move the virtual-mode active marker to `items[index]`: shifts `data-active`
  * and, when `activeDescendantRef` is given, points `aria-activedescendant` on
  * the owner at the active item. By default it also mirrors `aria-selected`
- * onto the items (highlight doubles as selection, the command palette model);
- * pass `ariaSelected: false` when items carry their own `aria-selected` for a
- * stored value (e.g. a combobox), keeping the highlight a pure focus cue.
+ * onto the items, where the highlight doubles as selection (the command
+ * palette model). Pass `ariaSelected: false` when items carry their own
+ * `aria-selected` for a stored value (e.g. a combobox). That keeps the
+ * highlight a pure focus cue.
  * Pass a negative `index` (or an empty list) to clear the active state. The
  * `data-active` marker identifies the prior active item; callers don't track
  * an index.
@@ -121,16 +122,20 @@ function resolveVirtualItemId(source: VirtualItemSource, index: number): string 
 }
 
 /**
- * Syncs the DOM to the logical active id for an indexed source: clears a
- * stale `data-active` row, points the owner's `aria-activedescendant` at `id`
- * (even before the row mounts — a windowed-out row isn't in the DOM yet), and
- * marks `data-active`/`aria-selected` on it once it is. Idempotent, so it is
- * safe to call again once a row that wasn't mounted the first time appears.
+ * Syncs the DOM to the logical active id for an indexed source:
+ *
+ * - Clears a stale `data-active` row.
+ * - Points the owner's `aria-activedescendant` at `id`, even before the row
+ *   mounts — a windowed-out row isn't in the DOM yet.
+ * - Marks `data-active`/`aria-selected` on it once it is.
+ *
+ * Idempotent, so it is safe to call again once a row that wasn't mounted the
+ * first time appears.
  *
  * @returns True once `id`'s row is confirmed active in the DOM (already was,
- * or just applied); false when there's no id to apply, or its row isn't
- * mounted inside `container` yet — the signal callers use to decide whether
- * to keep watching for it.
+ * or just applied). False when there's no id to apply, or its row isn't
+ * mounted inside `container` yet. It is the signal callers use to decide
+ * whether to keep watching for it.
  * @internal
  */
 function applyVirtualActiveDom(
@@ -171,7 +176,7 @@ function applyVirtualActiveDom(
 }
 
 /**
- * The in-flight mount watcher per container. Each navigation owns at most one;
+ * The in-flight mount watcher per container. Each navigation owns at most one.
  * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
  * superseded watcher doesn't linger (or stack) waiting for a mutation that
  * never comes.
@@ -181,10 +186,10 @@ function applyVirtualActiveDom(
 const pendingMountWatchers = new WeakMap<HTMLElement, MutationObserver>()
 
 /**
- * Watches `container` for `id`'s row to mount — a windowed target scrolled
+ * Watches `container` for `id`'s row to mount. A windowed target scrolled
  * into view via `scrollToIndex` doesn't mount synchronously, since the
  * virtualizer re-renders on its own schedule, decoupled from this call.
- * Scoped to this specific navigation via `index`: on each mutation, a stale
+ * Scoped to this specific navigation via `index`. On each mutation, a stale
  * watcher (superseded by a newer move that already changed `activeIndexRef`)
  * disconnects instead of applying an outdated highlight.
  *
@@ -215,12 +220,15 @@ function watchForIndexedMount(
 }
 
 /**
- * Indexed-source counterpart to {@link setVirtualActive}: records `index` on
- * `activeIndexRef` (the logical active index, since a windowed-out row has no
- * DOM `data-active` marker to read it back off of), scrolls it into the
- * window via the source's `scrollToIndex`, and applies the DOM highlight
- * immediately if the row is already mounted — else watches `container` until
- * it mounts. Pass a negative `index` (or a null `source`) to clear, matching
+ * Indexed-source counterpart to {@link setVirtualActive}:
+ *
+ * - Records `index` on `activeIndexRef`, the logical active index. A
+ *   windowed-out row has no DOM `data-active` marker to read it back off of.
+ * - Scrolls it into the window via the source's `scrollToIndex`.
+ * - Applies the DOM highlight immediately if the row is already mounted, else
+ *   watches `container` until it mounts.
+ *
+ * Pass a negative `index` (or a null `source`) to clear, matching
  * {@link setVirtualActive}.
  *
  * @internal
@@ -271,10 +279,10 @@ export function clearVirtualActiveIndexed(
 
 /**
  * Seeds the virtual highlight to the top match, or clears it when there is
- * none: index 0 of `source` when a `VirtualOptions` has registered one, else
- * the first DOM `itemSelector` match. The owner-side move `Combobox` and
- * `CommandPalette` make on each filter change so `data-active` /
- * `aria-activedescendant` always point at a live option; kept here so the
+ * none. That is index 0 of `source` when a `VirtualOptions` has registered
+ * one, else the first DOM `itemSelector` match. The owner-side move `Combobox`
+ * and `CommandPalette` make on each filter change, so `data-active` /
+ * `aria-activedescendant` always point at a live option. Kept here so the
  * source-vs-DOM branch stays in one place as more owners adopt an indexed
  * source.
  *
@@ -327,9 +335,12 @@ function pinRowActions(container: HTMLElement, actionSelector: string): void {
 }
 
 /**
- * Resolves which item holds the focus-mode resting stop: the focused item if
- * any, else the single existing stop (the user has roved), else the
- * `activeSelector` match, else the first item.
+ * Resolves which item holds the focus-mode resting stop:
+ *
+ * - The focused item if any.
+ * - Else the single existing stop, where the user has roved.
+ * - Else the `activeSelector` match.
+ * - Else the first item.
  *
  * @internal
  */
@@ -362,7 +373,6 @@ type RovingKeyContext = {
 	manageTabIndex: boolean
 	activeDescendantRef: RefObject<HTMLElement | null> | undefined
 	manageAriaSelected: boolean
-	scrollIntoView: boolean
 	scrollWithin: ScrollWithin
 	containerEl: HTMLElement | null
 	/** Set (with `activeIndexRef`) when navigating an indexed source instead of `items`. */
@@ -372,12 +382,12 @@ type RovingKeyContext = {
 
 /**
  * Resolves the per-keystroke {@link RovingKeyContext} plus the current active
- * element and index, or null when there's nothing to navigate (`items` is
- * empty in DOM mode, `itemSource.count` is 0 in indexed mode). Indexed mode
+ * element and index. It is null when there's nothing to navigate: `items` is
+ * empty in DOM mode, `itemSource.count` is 0 in indexed mode. Indexed mode
  * (a virtual `itemSource` paired with `activeIndexRef`) reads the current
- * index off `activeIndexRef` — clamped to the source's live `count`, since a
- * filter can shrink it between keystrokes — instead of a DOM scan, which
- * cannot see an active row that is not mounted.
+ * index off `activeIndexRef`, instead of a DOM scan. It is clamped to the
+ * source's live `count`, since a filter can shrink it between keystrokes. A
+ * DOM scan cannot see an active row that is not mounted.
  *
  * @internal
  */
@@ -391,7 +401,6 @@ function resolveRovingContext(
 		manageTabIndex: boolean
 		activeDescendantRef: RefObject<HTMLElement | null> | undefined
 		manageAriaSelected: boolean
-		scrollIntoView: boolean
 		scrollWithin: ScrollWithin
 	},
 ): { ctx: RovingKeyContext; active: HTMLElement | null; currentIndex: number } | null {
@@ -421,7 +430,6 @@ function resolveRovingContext(
 			manageTabIndex: config.manageTabIndex,
 			activeDescendantRef: config.activeDescendantRef,
 			manageAriaSelected: config.manageAriaSelected,
-			scrollIntoView: config.scrollIntoView,
 			scrollWithin: config.scrollWithin,
 			containerEl: container,
 			itemSource: indexed,
@@ -444,11 +452,11 @@ function resolveDomCurrentIndex(
 }
 
 /**
- * {@link nextIndexForKey} extended to skip indices `isDisabled` marks: walks
- * from the naive target in the key's implied direction, wrapping until it
- * finds an enabled index or exhausts the source (returns null). DOM-mode
- * roving gets disabled-skipping for free — `itemSelector` excludes disabled
- * rows from `items` entirely — but an index-based source has no DOM to
+ * {@link nextIndexForKey} extended to skip indices `isDisabled` marks. It
+ * walks from the naive target in the key's implied direction, wrapping until
+ * it finds an enabled index or exhausts the source (returns null). DOM-mode
+ * roving gets disabled-skipping for free, because `itemSelector` excludes
+ * disabled rows from `items` entirely. An index-based source has no DOM to
  * filter, so the walk is explicit. Grid (`cols`) navigation is out of scope:
  * `itemSource` targets flat option lists, so the walk always treats `key` as
  * linear.
@@ -495,8 +503,9 @@ type RowContextOptions = {
 }
 
 /**
- * Moves to `items[index]`: real focus in focus mode, the virtual marker (plus
- * optional scroll) in virtual mode.
+ * Moves to `items[index]`: real focus in focus mode, the virtual marker in
+ * virtual mode. A `scrollWithin` rides the DOM-backed path there, where the
+ * indexed path leaves scrolling to the virtualizer.
  *
  * @internal
  */
@@ -532,17 +541,15 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
 		ariaSelected: ctx.manageAriaSelected,
 	})
 
-	if (ctx.scrollIntoView) {
-		const next = ctx.items[index]
+	const next = ctx.items[index]
 
-		if (next) ctx.scrollWithin(next, { block: 'nearest' })
-	}
+	if (next) ctx.scrollWithin(next, { block: 'nearest' })
 }
 
 /**
- * Routes a keypress when focus sits on a row's action control: cross-axis
- * arrows move through the row's own controls; main-axis moves anchor to the
- * row's item so Up / Down reach the adjacent row.
+ * Routes a keypress when focus sits on a row's action control. Cross-axis
+ * arrows move through the row's own controls. Main-axis moves anchor to the
+ * row's item, so Up / Down reach the adjacent row.
  *
  * @returns `handled` plus the (possibly anchored) current index for the
  * main-axis fallthrough.
@@ -723,9 +730,18 @@ function handleMainAxisNav(
 	moveTo(nextIndex, ctx)
 }
 
-type RovingOptions = NavigationConfig & {
+/** Options for {@link useA11yRoving}: the item selector, the navigation axis, Tab-stop ownership, and the virtual-item source a windowed list supplies. */
+export type RovingOptions = NavigationConfig & {
 	/** CSS selector for navigable items inside the container. */
 	itemSelector: string
+	/**
+	 * Whether the hook navigates at all. When false it observes nothing, seats no
+	 * tab stop, and returns a handler that ignores every key. That serves a
+	 * container whose items are decorative in one of its states (an `aria-hidden`
+	 * layer). There roving would seat a tab stop inside a subtree nothing reaches.
+	 * @defaultValue true
+	 */
+	enabled?: boolean
 	/**
 	 * `focus` moves real DOM focus to the active item; `virtual` marks it with
 	 * `data-active` while a separate input retains focus.
@@ -737,8 +753,8 @@ type RovingOptions = NavigationConfig & {
 	/**
 	 * Focus mode: hold Tab inside the widget — Tab / Shift+Tab step through the
 	 * items and wrap at the ends rather than carrying focus out. For a surface
-	 * the user leaves by dismissing it (a menu closed with `Escape` or a
-	 * selection), never for one embedded in the page's tab order.
+	 * the user leaves by dismissing it, such as a menu closed with `Escape` or a
+	 * selection. Never for one embedded in the page's tab order.
 	 * @defaultValue false
 	 */
 	trapTab?: boolean
@@ -750,12 +766,10 @@ type RovingOptions = NavigationConfig & {
 	 * @defaultValue false
 	 */
 	typeahead?: boolean
-	/** Virtual mode: scroll the active item into view after each move. @defaultValue true */
-	scrollIntoView?: boolean
 	/**
 	 * Virtual mode: mirror the highlight onto each item's `aria-selected`. Leave
-	 * on when the highlight *is* the selection (command palette); turn off when
-	 * the items own `aria-selected` for a stored value (combobox), where moving
+	 * on when the highlight *is* the selection (command palette). Turn off when
+	 * the items own `aria-selected` for a stored value (combobox). There moving
 	 * the highlight only repoints `aria-activedescendant`.
 	 * @defaultValue true
 	 */
@@ -770,8 +784,8 @@ type RovingOptions = NavigationConfig & {
 	/**
 	 * Focus mode: own the roving `tabIndex` so the widget is a single Tab stop.
 	 * Seats `tabIndex=0` on the resting item (see `activeSelector`, else the first
-	 * item) and `-1` on the rest, keeps that invariant as the subtree mutates, and
-	 * moves the `0` with focus on each arrow press. Leave off for widgets whose
+	 * item) and `-1` on the rest. It keeps that invariant as the subtree mutates,
+	 * and moves the `0` with focus on each arrow press. Leave off for widgets whose
 	 * items already drive their own `tabIndex` (e.g. `Tab`'s `tabIndex={current?0:-1}`)
 	 * or that must stay individually Tab-focusable (plain site-nav links).
 	 * @defaultValue false
@@ -785,8 +799,8 @@ type RovingOptions = NavigationConfig & {
 	activeSelector?: string
 	/**
 	 * Virtual mode: a `combobox`/`textbox` element that owns the listbox. When
-	 * provided, the hook mirrors the active item into ARIA: it sets
-	 * `aria-selected` on the item (clearing the previous one) and points the
+	 * provided, the hook mirrors the active item into ARIA. It sets
+	 * `aria-selected` on the item, clearing the previous one. It points the
 	 * element's `aria-activedescendant` at the active item's `id` while focus
 	 * stays on the input.
 	 */
@@ -807,10 +821,10 @@ type RovingOptions = NavigationConfig & {
 	 * Virtual mode: pluggable index-based item source for a windowed list,
 	 * where options outside the rendered window never mount in the DOM (see
 	 * `VirtualOptions`). When both this and `activeIndexRef` are set, arrow /
-	 * Home / End / type-ahead navigate `itemSource.current` by index instead of
-	 * querying `itemSelector`, calling `scrollToIndex` to mount the target row
-	 * and applying the highlight once it renders (`setVirtualActiveIndexed`
-	 * watches for the mount, since the row doesn't render synchronously). Leave
+	 * Home / End / type-ahead navigate `itemSource.current` by index, instead of
+	 * querying `itemSelector`. They call `scrollToIndex` to mount the target row,
+	 * and apply the highlight once it renders. `setVirtualActiveIndexed` watches
+	 * for the mount, since the row doesn't render synchronously. Leave
 	 * unset for the default DOM-query source — every existing consumer,
 	 * unchanged.
 	 */
@@ -846,13 +860,13 @@ export function useA11yRoving(
 	containerRef: RefObject<HTMLElement | null>,
 	{
 		itemSelector,
+		enabled = true,
 		cols,
 		orientation,
 		mode = 'focus',
 		focusOnEmpty = false,
 		trapTab = false,
 		typeahead = false,
-		scrollIntoView = true,
 		activationKey = 'Enter',
 		activeDescendantRef,
 		manageAriaSelected = true,
@@ -879,7 +893,7 @@ export function useA11yRoving(
 	// stop to whatever item takes focus. Writes only on divergence; the observer
 	// fires on its own tabindex edits.
 	useEffect(() => {
-		if (mode !== 'focus' || !manageTabIndex) return
+		if (!enabled || mode !== 'focus' || !manageTabIndex) return
 
 		const el = containerRef.current
 
@@ -942,6 +956,7 @@ export function useA11yRoving(
 	}, [
 		containerRef,
 		itemSelector,
+		enabled,
 		mode,
 		manageTabIndex,
 		activeSelector,
@@ -951,13 +966,14 @@ export function useA11yRoving(
 
 	return useCallback(
 		(event: KeyboardEvent) => {
+			if (!enabled) return
+
 			const resolved = resolveRovingContext(containerRef.current, itemSelector, mode, {
 				itemSource: itemSource?.current ?? null,
 				activeIndexRef,
 				manageTabIndex,
 				activeDescendantRef,
 				manageAriaSelected,
-				scrollIntoView,
 				scrollWithin,
 			})
 
@@ -994,9 +1010,9 @@ export function useA11yRoving(
 			focusOnEmpty,
 			trapTab,
 			typeahead,
-			scrollIntoView,
 			activationKey,
 			activeDescendantRef,
+			enabled,
 			scrollWithin,
 			manageAriaSelected,
 			manageTabIndex,

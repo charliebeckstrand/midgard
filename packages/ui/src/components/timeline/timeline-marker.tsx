@@ -33,10 +33,10 @@ export type TimelineMarkerProps = TimelineMarkerConfig & {
 }
 
 /**
- * Dot and connector lines for a timeline row. With no `children`, renders a
- * semantic, labelled `<StatusDot>` when `status` is set, or a decorative
- * `<Swatch>` dot in the requested hue when `color` is set — both styled to the
- * orientation and variant from context. Custom `children` replace the dot
+ * Dot and connector lines for a timeline row. With no `children`, it renders a
+ * semantic, labelled `<StatusDot>` when `status` is set. It renders a decorative
+ * `<Swatch>` dot in the requested hue when `color` is set. Both are styled to
+ * the orientation and variant from context. Custom `children` replace the dot
  * entirely. ARIA stays on the parent `<li>`; the marker itself is decorative.
  */
 export function TimelineMarker({

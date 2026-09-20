@@ -29,7 +29,7 @@ export function sliceActivation(
 
 /**
  * The inline position that centres a donut's overlay on the ring's hole rather
- * than the plot box: callouts shift the pie centre off `frameWidth / 2` to
+ * than the plot box. Callouts shift the pie centre off `frameWidth / 2` to
  * balance the two label columns, so the content follows `center` into the hole.
  * Falls back to the box centre before the frame is measured.
  *
@@ -48,20 +48,24 @@ export function donutCenterStyle(
 
 /**
  * The ratio a default pie / donut takes inside the fullscreen dialog. The
- * dialog panel is sized for a 16/9 chart — the same ratio the cartesian charts
- * default to — so a pie left at its square content fit fills the panel's width
- * and overruns its height cap; there it adopts the panel's ratio instead. An
- * explicit `aspectRatio` still wins. See {@link ChartContextMenu}.
+ * dialog panel is sized for a 16/9 chart, the same ratio the cartesian charts
+ * default to. A pie left at its square content fit therefore fills the panel's
+ * width and overruns its height cap. There it adopts the panel's ratio instead.
+ * An explicit `aspectRatio` still wins. See {@link ChartContextMenu}.
  *
  * @internal
  */
 const FULLSCREEN_ASPECT_RATIO: ChartAspectRatio = '16/9'
 
 /**
- * The aspect a pie frame resolves its sizing through: the caller's explicit
- * `aspectRatio` when set, else the {@link FULLSCREEN_ASPECT_RATIO} while the
- * chart is the fullscreen dialog's re-mounted copy, else free-form so the frame
- * fits the pie's own content. Kept off {@link SectorChart}'s own branch count.
+ * The aspect a pie frame resolves its sizing through:
+ *
+ * - The caller's explicit `aspectRatio` when set.
+ * - Else the {@link FULLSCREEN_ASPECT_RATIO} while the chart is the fullscreen
+ *   dialog's re-mounted copy.
+ * - Else free-form, so the frame fits the pie's own content.
+ *
+ * Kept off {@link SectorChart}'s own branch count.
  *
  * @internal
  */
@@ -75,12 +79,12 @@ export function sectorAspectRatio(
 /**
  * The pie frame's sizing policy: an explicit `height` or `aspectRatio` always
  * wins, resolved the same way every cartesian chart does. Left at both
- * defaults, the frame instead fits its height to the pie's own footprint —
- * twice the width-bound radius plus the vertical margin — so a wide callout
- * label never leaves an empty band the aspect ratio didn't need. `radius`
- * refines that footprint once a real width lands, to a callout-labelled
- * pie's tight, asymmetric fit rather than the flat `hMargin` every chart
- * frame otherwise falls back to.
+ * defaults, the frame instead fits its height to the pie's own footprint:
+ * twice the width-bound radius plus the vertical margin. A wide callout label
+ * thus never leaves an empty band the aspect ratio didn't need. `radius`
+ * refines that footprint once a real width lands, to a callout-labelled pie's
+ * tight, asymmetric fit. Every other chart frame falls back to the flat
+ * `hMargin`.
  *
  * @internal
  */
@@ -114,11 +118,11 @@ type SectorFrame = {
 }
 
 /**
- * Folds a stacked legend into the pie's aspect box: a live ratio with a top /
+ * Folds a stacked legend into the pie's aspect box. A live ratio with a top /
  * bottom legend hands the ratio to the figure wrapper and measures the pie's
- * remaining height, so a pie and its legend band fill a fixed-aspect box
+ * remaining height. A pie and its legend band thus fill a fixed-aspect box
  * together. A side legend instead keeps the ratio on the pie box and bands
- * beside it at its own width, so the pie never squeezes to fit the panel. The
+ * beside it at its own width. The pie then never squeezes to fit the panel. The
  * `content` fit (the default) and a `fixed` height band the legend beside the
  * plot as before, reserving nothing extra.
  *
@@ -179,8 +183,8 @@ export function sectorReadout(
 
 /**
  * The legend entries, one per row of data. A side panel's entries also carry
- * the slice's live share — re-shared over the surviving whole as slices
- * toggle, an em-dash while a slice is off or takes no slice.
+ * the slice's live share, re-shared over the surviving whole as slices toggle.
+ * The share reads as an em-dash while a slice is off or takes no slice.
  *
  * @internal
  */

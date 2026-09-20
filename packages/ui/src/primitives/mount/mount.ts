@@ -3,8 +3,9 @@
 import { useCallback, useRef, useState } from 'react'
 
 /**
- * Mount policy for a panel that spends part of its life inactive — the view a
- * cascade isn't showing, a disclosure's closed body, a wizard step off screen:
+ * Mount policy for a panel that spends part of its life inactive. Examples are
+ * the view a cascade isn't showing, a disclosure's closed body, and a wizard
+ * step off screen:
  *
  * - `always` — every panel is mounted up front and inactive ones are held
  *   (state preserved, effects paused).
@@ -21,9 +22,9 @@ export type MountHold = {
 	present: boolean
 	/**
 	 * Whether the policy holds inactive panels, so this panel needs the
-	 * `<Activity>` wrapper. Constant for a given policy: the wrapper stays on
-	 * whether or not the panel is currently hidden, because adding it only at
-	 * rest would change the tree shape and remount the subtree each switch.
+	 * `<Activity>` wrapper. Constant for a given policy. The wrapper stays on
+	 * whether or not the panel is currently hidden. To add it only at rest would
+	 * change the tree shape, and remount the subtree each switch.
 	 */
 	held: boolean
 	/** Whether the held panel is resting — the `<Activity mode="hidden">` state. */
@@ -35,9 +36,10 @@ export type MountHold = {
 	mountedActive: boolean
 	/**
 	 * Latches a deferred hold to rest. Call it when the panel's close animation
-	 * lands — unconditionally is fine: it ignores a landing that arrives while the
-	 * panel is active (the entrance of a panel that just opened), and an
-	 * undeferred hold hides on the `active` flip itself and ignores it entirely.
+	 * lands. Unconditionally is fine. It ignores a landing that arrives while the
+	 * panel is active, which is the entrance of a panel that just opened. An
+	 * undeferred hold hides on the `active` flip itself, and ignores the landing
+	 * entirely.
 	 */
 	rest: () => void
 }
@@ -60,15 +62,15 @@ export function mountsEveryPanel(mount: Mount): boolean {
  * @remarks
  * `defer` splits the two ways a hold can hide. Undeferred, `hidden` tracks
  * `active` directly, which suits a panel that swaps without animating. Deferred,
- * it tracks a rest latch instead: `display: none` cannot animate, so an
- * animating panel must stay live and in flow for its close transition and drop
+ * it tracks a rest latch instead. A `display: none` cannot animate, so an
+ * animating panel must stay live and in flow for its close transition. It drops
  * into the hidden Activity only once {@link MountHold.rest} says the transition
  * landed. Either way a panel mounting inactive starts hidden, so a held panel
  * never pays a visible first render it doesn't need.
  *
- * The latch clears during render (React's adjust-state-during-render form), so
- * a resting panel that becomes active — or whose policy stops holding it —
- * wakes in the same pass that reveals it rather than a commit later.
+ * The latch clears during render, in React's adjust-state-during-render form. A
+ * resting panel that becomes active, or whose policy stops holding it, therefore
+ * wakes in the same pass that reveals it. It does not wake a commit later.
  *
  * @param active - Whether the panel is the one currently shown.
  * @param mount - The policy governing inactive panels.

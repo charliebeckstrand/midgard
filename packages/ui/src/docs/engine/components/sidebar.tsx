@@ -202,14 +202,14 @@ export function SidebarContent({ route }: { route: string }) {
 					<Icon icon={direction === 'asc' ? <ArrowDownAZ /> : <ArrowUpZA />} />
 				</Button>
 			</Flex>
-			{/* Reversing the keyed list moves every item; without this the browser's
-			    scroll anchoring follows a visible item to its mirrored position
+			{/* Reversing the keyed list moves every item. Without this the browser's
+			    scroll anchoring follows a visible item to its mirrored position,
 			    instead of keeping the scroller where it is. */}
 			<SidebarBody className="[overflow-anchor:none]">
 				{sections.map(({ category, label, items }) => (
 					<SidebarSection key={category}>
 						<Text
-							severity="muted"
+							tone="muted"
 							className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX[size])}
 						>
 							{label}

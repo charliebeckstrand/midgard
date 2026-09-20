@@ -1,7 +1,7 @@
 /**
  * Pure geometry for the {@link Sparkline}: maps a numeric series onto an SVG
- * coordinate box, independent of React and styling so it can be unit-tested in
- * isolation. All outputs are in the same user-space units as the `viewBox` the
+ * coordinate box. It is independent of React and styling, so it can be
+ * unit-tested in isolation. All outputs are in the same user-space units as the `viewBox` the
  * component renders.
  */
 
@@ -15,9 +15,9 @@ export type SparklineBar = { x: number; y: number; width: number; height: number
 
 /**
  * The resolved marks for one series: the polyline `points` and its `line`
- * path, the closed `area` path under it, the `bars` for the bar variant, the
- * `last` point (for the end-of-series marker), and the `baseline` y the area
- * and bars sit on. Empty paths and an empty `bars` array signal there is
+ * path, and the closed `area` path under it. It also holds the `bars` for the
+ * bar variant, and the `last` point for the end-of-series marker. The
+ * `baseline` y is where the area and bars sit. Empty paths and an empty `bars` array signal there is
  * nothing to draw (no finite data).
  *
  * @internal
@@ -54,11 +54,11 @@ export type SparklineGeometryOptions = {
  * marks a {@link Sparkline} draws.
  *
  * @remarks Non-finite entries (`NaN`, `±Infinity`) are ignored both when deriving
- * the domain and when drawing the marks: the line bridges across a dropped sample
- * and its bar is omitted, rather than emitting an invalid path or a vertex clamped
+ * the domain and when drawing the marks. The line bridges across a dropped sample
+ * and its bar is omitted. That beats emitting an invalid path or a vertex clamped
  * to an edge. A flat series (or one point) maps to the vertical middle rather than
- * dividing by a zero span; a single point draws as a horizontal line across the
- * box so it stays visible.
+ * dividing by a zero span. A single point draws as a horizontal line across the
+ * box, so it stays visible.
  * @internal
  */
 export function sparklineGeometry(

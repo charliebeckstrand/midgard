@@ -1,7 +1,7 @@
 /**
  * Triggers a client-side download of `content` as a file named `filename`
- * with the given MIME `type`: wraps it in a `Blob`, clicks a transient
- * object-URL anchor, then revokes the URL. Shared by every download-based
+ * with the given MIME `type`. It wraps the content in a `Blob`, clicks a
+ * transient object-URL anchor, then revokes the URL. Shared by every download-based
  * export type (CSV, Excel); print opens a browser dialog instead (`print.ts`).
  *
  * @internal

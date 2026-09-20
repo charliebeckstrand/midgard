@@ -13,7 +13,7 @@ type FormValueOptions<T> = {
 	onValueChange?: (value: T | null) => void
 }
 
-/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, a `setTouched` for blur, and an `invalid` flag from any bound field's errors. */
+/** Resolved value binding: the current `value`, a `setValue` accepting a value or updater, and a `setTouched` for blur. It also carries an `invalid` flag from any bound field's errors. */
 export type FormValueResult<T> = {
 	value: T | undefined
 	setValue: (value: SetValue<T>) => void
@@ -35,10 +35,10 @@ export type FormValueResult<T> = {
  * @returns A {@link FormValueResult} with `value`, `setValue`, `setTouched`,
  * and `invalid`.
  * @typeParam T - The control's value type.
- * @remarks Resolution mirrors Input's cascade: an explicit `value` prop wins;
- * otherwise a field with this `name` drives the state (the store is the single
- * source of truth and `defaultValue` is ignored, with writes chaining
- * `onValueChange`); otherwise the hook is plain controlled/uncontrolled state.
+ * @remarks Resolution mirrors Input's cascade. An explicit `value` prop wins.
+ * Otherwise a field with this `name` drives the state: the store is the single
+ * source of truth, `defaultValue` is ignored, and writes chain `onValueChange`.
+ * Without either, the hook is plain controlled/uncontrolled state.
  * Subscribes through {@link useFormField}, re-rendering only on this field's
  * change.
  */

@@ -1,14 +1,14 @@
 /**
  * Pure fit math for the stacked legend's row cap: how many entries show before
  * the rest collapse into a `+N` overflow chip. Kept React-free so the packing
- * logic is unit-testable without a layout engine — the measurement that feeds it
- * (each entry's wrapped row and right edge) is the browser's job; deciding the
+ * logic is unit-testable without a layout engine. The measurement that feeds it
+ * (each entry's wrapped row and right edge) is the browser's job. Deciding the
  * cut from those numbers is this file's.
  *
- * A stacked band is capped to a tier-resolved number of rows so it can never take
- * unbounded height from the aspect box and crush the plot. Entries past the cap
- * do not clip silently: they fold into a chip that opens the same switchboard, so
- * the count is exact and every switch stays reachable.
+ * A stacked band is capped to a tier-resolved number of rows. It can therefore
+ * never take unbounded height from the aspect box and crush the plot. Entries
+ * past the cap do not clip silently. They fold into a chip that opens the same
+ * switchboard, so the count is exact and every switch stays reachable.
  */
 
 /** One measured legend entry: its wrapped row (0-based) and its right edge in the container's content box. @internal */
@@ -21,9 +21,9 @@ export type LegendEntryRect = {
 
 /**
  * The reserve a `+N` chip needs beside the last visible entry: a gap plus the
- * chip's own box. A fixed estimate, not a measurement — the chip reads `+N` (a
- * digit or two after a plus), whose width barely varies, unlike the proportional
- * series labels the fit measures exactly. Generous enough that the chip never
+ * chip's own box. A fixed estimate, not a measurement. The chip reads `+N` (a
+ * digit or two after a plus), whose width barely varies. The proportional series
+ * labels the fit measures exactly are the contrast. Generous enough that the chip never
  * itself overflows the row it is reserved on.
  *
  * @internal
@@ -33,10 +33,10 @@ export const OVERFLOW_CHIP_RESERVE = 48
 /**
  * How many of the measured `rects` show before the `+N` chip, given a `maxRows`
  * cap. Everything fits — no chip — when no entry wrapped past the cap; the full
- * count returns. Otherwise the cut is the entries within the cap, trimmed back
- * while the last one sits on the final capped row with no room for the chip
- * beside it, so the chip always lands on a row it fits rather than spilling to a
- * new one. Entries wrap in order, so the first `n` rects are exactly the first
+ * count returns. Otherwise the cut is the entries within the cap. It is trimmed
+ * back while the last one sits on the final capped row with no room for the chip
+ * beside it. The chip therefore always lands on a row it fits, rather than
+ * spilling to a new one. Entries wrap in order, so the first `n` rects are exactly the first
  * `n` entries — the return is a prefix length.
  *
  * @param rects Each entry's wrapped row and right edge, in DOM (wrap) order.

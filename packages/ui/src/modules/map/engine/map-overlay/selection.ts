@@ -1,8 +1,8 @@
 /**
  * The one resolution of what a standing pick names on the overlays. A pick has
- * to reach two surfaces — the halo behind the mark, and `aria-current` on the
- * mark's table row — and those two must never name different stops, which is the
- * failure this file exists to prevent: the picture would then mark one dot while
+ * to reach two surfaces: the halo behind the mark, and `aria-current` on the
+ * mark's table row. Those two must never name different stops, which is the
+ * failure this file exists to prevent. The picture would then mark one dot while
  * a screen reader read another.
  *
  * React-free beside the module's other pure helpers, so the rule is testable
@@ -14,8 +14,8 @@ import type { MapOverlayEntry } from './entry'
 import { markRowKey } from './readout'
 
 /**
- * The stop mapper a mark registers when it draws the stops it reports: its one
- * stop is index `0`, and any other index names nothing — the silence a
+ * The stop mapper a mark registers when it draws the stops it reports. Its one
+ * stop is index `0`, and any other index names nothing. That is the silence a
  * `selectedRegion` naming no region keeps, rather than a mark haloed for an
  * index it never had.
  *
@@ -46,8 +46,8 @@ export function pickedStop(
 }
 
 /**
- * The table row key a pick marks, or `null` where it marks none — an id no mark
- * registered, or a stop the named mark does not draw. Resolved through the
+ * The table row key a pick marks, or `null` where it marks none. That is an id
+ * no mark registered, or a stop the named mark does not draw. Resolved through the
  * mark's own registered mapper, the same one the mark reads for its halo.
  *
  * @internal

@@ -7,7 +7,7 @@ import { createContext } from '../../core'
  *
  * The flag is `true` inside `<HeadlessProvider>`. Headless-aware components
  * (Input, Button) drop their chrome and render the bare semantic element when
- * it is set, keeping the rest of their behavior (Control / Form wiring, disabled
+ * it is set. The rest of their behavior stays (Control / Form wiring, disabled
  * state, `data-slot`, ref forwarding).
  *
  * @returns `useHeadless()` reads the ambient flag; `false` outside any

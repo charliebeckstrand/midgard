@@ -1,7 +1,7 @@
 /**
  * Kasane radius: numeric corner-rounding helpers tied to the kasane
  * layer stack. `r(v)` / `ri(v)` / `ro(v)` / `all(v)` map a `--spacing(n)`
- * stop to the matching outer / inset-fill / overlay class, giving a 1:1
+ * stop to the matching outer / inset-fill / overlay class. That gives a 1:1
  * padding-to-radius ratio at every density step: a component with
  * `py('2')` lands on `r('2')`. `all(v)` returns the coordinated trio,
  * mirroring the `kasane.layers.all` bundle. The named-radius scale

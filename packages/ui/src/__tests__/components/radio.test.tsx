@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Description } from '../../components/fieldset'
-import { Radio, RadioField, RadioGroup, RadioSkeleton } from '../../components/radio'
+import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { Density } from '../../primitives/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
@@ -21,14 +21,6 @@ describe('Radio', () => {
 		const el = bySlot(container, 'radio') as HTMLInputElement
 
 		expect(el.type).toBe('radio')
-	})
-
-	it('pairs with an explicit RadioSkeleton in loading trees', () => {
-		const { container } = renderUI(<RadioSkeleton />)
-
-		expect(bySlot(container, 'radio')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
 	it('passes through HTML attributes', () => {
@@ -57,6 +49,17 @@ describe('RadioGroup', () => {
 		expect(screen.getByRole('radiogroup')).toBeInTheDocument()
 
 		expect(screen.getByRole('radiogroup')).toHaveAccessibleName('Plan')
+	})
+
+	it('keeps the radiogroup role when a consumer supplies one', () => {
+		renderUI(
+			<RadioGroup aria-label="Plan" role="group">
+				content
+			</RadioGroup>,
+		)
+
+		// §3.9: `role` is load-bearing, so the radiogroup semantics stay.
+		expect(screen.getByRole('radiogroup')).toBeInTheDocument()
 	})
 })
 

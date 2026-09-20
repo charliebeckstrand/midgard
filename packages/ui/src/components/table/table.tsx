@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 // Deep import on purpose: context.ts is the directive-free level
 // vocabulary (DensityLevel, densityToSize); the barrel would pull the
@@ -34,8 +34,7 @@ export type TableVariants = {
 }
 
 /** Attributes spread onto the underlying `<table>` element, including a `ref` and arbitrary `data-*` keys. */
-export type TableElementProps = ComponentPropsWithoutRef<'table'> & {
-	ref?: Ref<HTMLTableElement>
+export type TableElementProps = ComponentProps<'table'> & {
 	[key: `data-${string}`]: string | number | boolean | undefined
 }
 

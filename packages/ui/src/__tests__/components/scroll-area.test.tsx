@@ -1,16 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
-import { bySlot, fireEvent, mockDomGeometry, renderUI } from '../helpers'
+import { bySlot, fireEvent, renderUI } from '../helpers'
 
+/**
+ * The ScrollArea's structural and event-wiring contract. Its two overflow
+ * decisions — whether shift+wheel is kept or forwarded — read `scrollWidth`
+ * against `clientWidth`, which jsdom reports as zero, so they moved to
+ * `browser/scroll-area-wheel.test.tsx` where the content really overflows.
+ */
 describe('ScrollArea', () => {
-	it('passes through HTML attributes to the viewport', () => {
-		const { container } = renderUI(<ScrollArea id="test">content</ScrollArea>)
-
-		const viewport = bySlot(container, 'scroll-area-viewport')
-
-		expect(viewport).toHaveAttribute('id', 'test')
-	})
-
 	it('composes a consumer onScroll with thumb tracking', () => {
 		const onScroll = vi.fn()
 
@@ -23,36 +21,6 @@ describe('ScrollArea', () => {
 		fireEvent.scroll(viewport)
 
 		expect(onScroll).toHaveBeenCalledTimes(1)
-	})
-
-	it('lets a horizontally scrollable viewport keep shift+wheel', () => {
-		const { container } = renderUI(<ScrollArea orientation="horizontal">content</ScrollArea>)
-
-		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
-
-		mockDomGeometry(viewport, { scrollWidth: 400, clientWidth: 100 })
-
-		const event = new WheelEvent('wheel', { shiftKey: true, deltaY: 10, cancelable: true })
-
-		viewport.dispatchEvent(event)
-
-		// The viewport scrolls horizontally itself; forwarding the gesture to an
-		// ancestor would hijack it from its own content.
-		expect(event.defaultPrevented).toBe(false)
-	})
-
-	it('forwards shift+wheel when the viewport has no horizontal overflow', () => {
-		const { container } = renderUI(<ScrollArea>content</ScrollArea>)
-
-		const viewport = bySlot(container, 'scroll-area-viewport') as HTMLElement
-
-		mockDomGeometry(viewport, { scrollWidth: 100, clientWidth: 100 })
-
-		const event = new WheelEvent('wheel', { shiftKey: true, deltaY: 10, cancelable: true })
-
-		viewport.dispatchEvent(event)
-
-		expect(event.defaultPrevented).toBe(true)
 	})
 
 	it('does not render scrollbar elements when scrollbar is hidden', () => {

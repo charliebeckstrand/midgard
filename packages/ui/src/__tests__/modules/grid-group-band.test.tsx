@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
 
@@ -30,7 +30,7 @@ describe('Grid column groups', () => {
 
 	it('renders a band spanning its member columns', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		const band = bandCell(container)
@@ -57,7 +57,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
 		)
 
 		expect(bandRule(container)?.className).toContain('bg-blue-600')
@@ -65,7 +65,7 @@ describe('Grid column groups', () => {
 
 	it('draws a neutral band underline for a colorless group', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		// The rule stays (a colorless group keeps a grey underline, like a row rail),
@@ -87,7 +87,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={split} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={split} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		const headers = Array.from(
@@ -103,7 +103,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={collapsible} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={collapsible} />,
 		)
 
 		const dataColHeaders = () =>
@@ -138,7 +138,7 @@ describe('Grid column groups', () => {
 		]
 
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={collapsible} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={collapsible} />,
 		)
 
 		const toggle = () => container.querySelector<HTMLButtonElement>('th[scope="colgroup"] button')
@@ -158,7 +158,7 @@ describe('Grid column groups', () => {
 
 	it('offers Manage columns then Clear color (in that order) on a colored band', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
 		)
 
 		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
@@ -172,7 +172,7 @@ describe('Grid column groups', () => {
 
 	it('clears the band color when Clear color is chosen', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={colored} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={colored} />,
 		)
 
 		expect(bandRule(container)?.className).toContain('bg-blue-600')
@@ -191,7 +191,7 @@ describe('Grid column groups', () => {
 
 	it('omits Clear color for a colorless band', () => {
 		const { container } = renderUI(
-			<Grid columns={columns} rows={rows} getKey={getKey} groups={groups} />,
+			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
 		fireEvent.contextMenu(bandCell(container) as HTMLTableCellElement)
@@ -199,5 +199,91 @@ describe('Grid column groups', () => {
 		expect(screen.queryByRole('menuitem', { name: 'Clear color' })).not.toBeInTheDocument()
 
 		expect(screen.getByRole('menuitem', { name: 'Manage columns' })).toBeInTheDocument()
+	})
+})
+
+describe('Grid column-group onCollapsedChange', () => {
+	type Row = { id: number; first: string; last: string; email: string }
+
+	const rows: Row[] = [
+		{ id: 1, first: 'Ada', last: 'Byron', email: 'ada@example.com' },
+		{ id: 2, first: 'Bo', last: 'Diddley', email: 'bo@example.com' },
+	]
+
+	const getKey = (row: Row) => row.id
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'first', title: 'First', cell: (r) => r.first },
+		{ id: 'last', title: 'Last', cell: (r) => r.last },
+		{ id: 'email', title: 'Email', cell: (r) => r.email },
+	]
+
+	const collapsible: GridColumnGroup[] = [
+		{ id: 'name', title: 'Name', columns: ['first', 'last'], collapsible: true },
+	]
+
+	const bandToggle = (container: HTMLElement, expanded: boolean) =>
+		container.querySelector<HTMLButtonElement>(
+			`thead button[aria-expanded="${String(expanded)}"]`,
+		) as HTMLButtonElement
+
+	it('reports the collapsed band ids, and the set that reopening leaves', () => {
+		const onCollapsedChange = vi.fn()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnGroups={collapsible}
+				onCollapsedChange={onCollapsedChange}
+			/>,
+		)
+
+		// Every band starts open; that is the rest state.
+		expect(onCollapsedChange).not.toHaveBeenCalled()
+
+		fireEvent.click(bandToggle(container, true))
+
+		expect(onCollapsedChange).toHaveBeenCalledExactlyOnceWith(new Set(['name']))
+
+		fireEvent.click(bandToggle(container, false))
+
+		expect(onCollapsedChange).toHaveBeenLastCalledWith(new Set())
+
+		expect(onCollapsedChange).toHaveBeenCalledTimes(2)
+	})
+
+	// The seed is the mount's rest state however it was set, so a band that
+	// mounts shut is not a transition either.
+	it('says nothing for a band seeded collapsed', () => {
+		const onCollapsedChange = vi.fn()
+
+		const seeded: GridColumnGroup[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				columns: ['first', 'last'],
+				collapsible: true,
+				defaultCollapsed: true,
+			},
+		]
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnGroups={seeded}
+				onCollapsedChange={onCollapsedChange}
+			/>,
+		)
+
+		expect(onCollapsedChange).not.toHaveBeenCalled()
+
+		// It is genuinely collapsed, and reopening it reports.
+		fireEvent.click(bandToggle(container, false))
+
+		expect(onCollapsedChange).toHaveBeenCalledExactlyOnceWith(new Set())
 	})
 })

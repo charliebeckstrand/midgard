@@ -1,7 +1,7 @@
 'use client'
 
 import {
-	type HTMLAttributes,
+	type ComponentProps,
 	type MouseEvent,
 	type ReactNode,
 	type RefObject,
@@ -20,16 +20,16 @@ import { type Coord, useGridNavContext } from './use-grid-navigation'
 
 /**
  * The insets that the grid's own sticky chrome would lay over a cell scrolled to
- * the viewport edge: the sticky header's height (top) and the pinned columns'
- * widths (left/right), measured from the header row's sticky cells. Applied as
+ * the viewport edge. Those are the sticky header's height (top) and the pinned
+ * columns' widths (left/right), measured from the header row's sticky cells. Applied as
  * the active cell's `scroll-margin` so `scrollIntoView` keeps it clear of that
  * chrome (WCAG 2.4.11, Focus Not Obscured). Zero on every side for a grid with
  * neither, so the margin is cleared.
  *
- * @remarks Read fresh on each activation (O(cols) `getComputedStyle`, human-paced
- * per keystroke) rather than cached: the insets shift on any resize, pin, or
- * density change, and a stale value would scroll the cell under the very chrome it
- * is meant to clear (WCAG 2.4.11). A cache would need a layout-invalidation signal
+ * @remarks Read fresh on each activation rather than cached, at O(cols)
+ * `getComputedStyle`, human-paced per keystroke. The insets shift on any resize,
+ * pin, or density change. A stale value would scroll the cell under the very
+ * chrome it is meant to clear (WCAG 2.4.11). A cache would need a layout-invalidation signal
  * this hook does not have, so correctness is kept over a micro-optimization.
  *
  * @internal
@@ -62,13 +62,14 @@ function obscuringInsets(cell: HTMLElement): { top: number; left: number; right:
 }
 
 /**
- * Active-cell flag for one navigable cell. Subscribes to the cursor store and,
- * when this cell becomes (or stops being) the active one, toggles `data-active`
- * on its owning `role="gridcell"` `<td>` — the read-only mirror of the editable
- * grid's `aria-selected` write. The `<td>`'s `cellProps` are non-reactive so the
- * memoized row holds across cursor moves, so the styling rides this imperative
- * attribute instead; the active cell also scrolls into view, clear of the grid's
- * sticky header and pinned columns. Renders a hidden locator span, not a wrapper,
+ * Active-cell flag for one navigable cell. Subscribes to the cursor store, and
+ * toggles `data-active` on its owning `role="gridcell"` `<td>` when this cell
+ * becomes (or stops being) the active one. It is the read-only mirror of the
+ * editable grid's `aria-selected` write. The `<td>`'s `cellProps` are
+ * non-reactive, so the memoized row holds across cursor moves. The styling
+ * therefore rides this imperative attribute instead. The active cell also
+ * scrolls into view, clear of the grid's sticky header and pinned columns.
+ * Renders a hidden locator span, not a wrapper,
  * so cell layout is untouched.
  *
  * @internal
@@ -129,9 +130,9 @@ export function GridNavCell({
 /**
  * The cursor-seating `cellProps` shared by the navigable and editable column
  * projections: a stable per-cell id, `role="gridcell"`, and a click-to-seat
- * `onMouseDown` that — unless the click landed on focusable cell content (links,
- * buttons, an editor) — moves the cursor to this cell and pulls focus onto the
- * grid container. Merged over the consumer's own `cellProps` and any `extra`
+ * `onMouseDown`. That handler moves the cursor to this cell, and pulls focus onto
+ * the grid container. It stands down where the click landed on focusable cell
+ * content: links, buttons, an editor. Merged over the consumer's own `cellProps` and any `extra`
  * attributes the caller layers on (the editable projection adds `aria-readonly`).
  *
  * @internal
@@ -143,8 +144,8 @@ export function seatingCellProps<T>(args: {
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
-	extra?: HTMLAttributes<HTMLTableCellElement>
-}): HTMLAttributes<HTMLTableCellElement> {
+	extra?: ComponentProps<'td'>
+}): ComponentProps<'td'> {
 	const { col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo, extra } = args
 
 	const rowIdx = rowIndexMapRef.current.get(row) ?? -1
@@ -171,13 +172,13 @@ export function seatingCellProps<T>(args: {
 }
 
 /**
- * Projects the read-only grid's data columns into navigable ones: each gains a
- * stable per-cell id (matched by the grid's `aria-activedescendant`),
- * `role="gridcell"`, a click-to-focus `onMouseDown`, and an active-cell marker
- * wrapping its content. Display-order row/column indices resolve at cell-render
- * time from `rowIndexMapRef`/`colIndexMapRef`, so the augmented columns stay
- * referentially stable across cursor moves and the memoized rows hold — only the
- * marker whose active flag flipped re-renders. Select/actions columns, and a
+ * Projects the read-only grid's data columns into navigable ones. Each gains a
+ * stable per-cell id, matched by the grid's `aria-activedescendant`. Each also
+ * gains `role="gridcell"`, a click-to-focus `onMouseDown`, and an active-cell
+ * marker wrapping its content. Display-order row/column indices resolve at
+ * cell-render time from `rowIndexMapRef`/`colIndexMapRef`. The augmented columns
+ * therefore stay referentially stable across cursor moves, and the memoized rows
+ * hold. Only the marker whose active flag flipped re-renders. Select/actions columns, and a
  * non-navigable grid (`enabled` false), pass through untouched.
  *
  * @returns The augmented `GridColumn<T>[]` to feed the engine.
@@ -211,7 +212,7 @@ export function useGridNavigationColumns<T>({
 			return {
 				...col,
 				className: cn(k.nav.cell, col.className),
-				cellProps: (row: T): HTMLAttributes<HTMLTableCellElement> =>
+				cellProps: (row: T): ComponentProps<'td'> =>
 					seatingCellProps({ col, row, rowIndexMapRef, colIndexMapRef, cellId, moveTo }),
 				cell: (row: T): ReactNode => {
 					const rowIdx = rowIndexMapRef.current.get(row) ?? -1

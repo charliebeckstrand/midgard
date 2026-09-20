@@ -51,7 +51,7 @@ export const k = {
 		],
 		draggable: 'cursor-grab touch-none select-none',
 		dragging: '',
-		lifted: focus.lifted,
+		lifted: [...focus.lifted.raise, focus.lifted.ring],
 		active: 'z-10 shadow-lg relative opacity-95',
 	},
 } as const

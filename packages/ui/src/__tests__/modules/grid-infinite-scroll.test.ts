@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { resolveAriaRowCount, resolveInfiniteScroll } from '../../modules/grid/grid-data-resolvers'
 import { resolveLoadMore } from '../../modules/grid/use-grid-infinite-scroll'

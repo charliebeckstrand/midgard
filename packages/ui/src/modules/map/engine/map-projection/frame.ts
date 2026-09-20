@@ -1,8 +1,8 @@
 /**
  * The frame-to-viewport conversion the keyboard readout anchors through, and
  * the inverse the zoom gestures arrive by. It is the one place the engine
- * leaves frame units for the page, and it is arithmetic rather than a DOM read,
- * so the placement is testable without a layout engine.
+ * leaves frame units for the page. It is arithmetic rather than a DOM read, so
+ * the placement is testable without a layout engine.
  */
 
 import type { MapPoint2D } from '../types'
@@ -39,9 +39,9 @@ export function frameScale(box: MapClientBox, viewWidth: number, viewHeight: num
  * same way.
  *
  * It reproduces the SVG letterboxing through {@link frameScale} rather than a
- * `getScreenCTM` read, because the two frame states differ (a measured frame
- * matches its box exactly, a canonical one is letterboxed until the container is
- * measured) and because the math is then testable without a layout engine.
+ * `getScreenCTM` read. The two frame states differ: a measured frame matches its
+ * box exactly, and a canonical one is letterboxed until the container is
+ * measured. The math is also testable without a layout engine.
  *
  * @internal
  */
@@ -65,10 +65,10 @@ export function frameToClient(
  * The inverse of {@link frameToClient}: where a client point lands in the frame,
  * or `null` for a box or a view frame with no area. A wheel and a pinch name
  * their focus in viewport coordinates, and the transform holds that focus still
- * in frame ones, so the conversion runs once per gesture at the edge.
+ * in frame ones. The conversion therefore runs once per gesture, at the edge.
  *
  * The frame point it returns is where the zoom layer *draws*, not where the
- * projection placed the geography: the transform is applied above this
+ * projection placed the geography. The transform is applied above this
  * conversion, so a gesture reads the same coordinate space it moves.
  *
  * @internal

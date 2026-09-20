@@ -1,23 +1,29 @@
 'use client'
 
-import { PanelLeft, PanelLeftDashed, RotateCw } from 'lucide-react'
+import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'lucide-react'
 
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
-import { Button } from '../button'
-import { Icon } from '../icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
+import { PdfViewerMagnifierSettings } from './pdf-viewer-magnifier-settings'
+import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
- * The viewer's top control bar: the thumbnail toggle (collapses the desktop
- * sidebar, opens the mobile Sheet), page navigation, zoom and rotate, and the
- * download / print actions. Reads everything from {@link PdfViewerContext};
- * controls disable while loading or empty.
+ * The viewer's top control bar. It carries the thumbnail toggle, page
+ * navigation, zoom and rotate, and the download and print actions. The
+ * thumbnail toggle collapses the desktop sidebar and opens the mobile Sheet.
+ * The highlight visibility toggle appears when there are regions, and the
+ * magnifier control when the consumer asked for a loupe.
+ *
+ * Reads everything from {@link PdfViewerContext}. Controls disable while
+ * loading or empty.
+ *
+ * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
+ * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.
  *
  * @internal
  */
@@ -37,6 +43,12 @@ export function PdfViewerToolbar() {
 		setSidebarOpen,
 		thumbsOpen,
 		setThumbsOpen,
+		hasHighlights,
+		highlightsVisible,
+		setHighlightsVisible,
+		magnifierOn,
+		setMagnifierOn,
+		magnifierMode,
 	} = usePdfViewerContext()
 
 	const isEmpty = total === 0
@@ -45,45 +57,34 @@ export function PdfViewerToolbar() {
 
 	const sidebarToggleLabel = sidebarOpen ? 'Hide thumbnails' : 'Show thumbnails'
 
+	const highlightsToggleLabel = highlightsVisible ? 'Hide highlights' : 'Show highlights'
+
+	// Names the action rather than the state, matching the toggles above it.
+	const magnifierToggleLabel = magnifierOn ? 'Turn magnifier off' : 'Turn magnifier on'
+
 	return (
 		<Toolbar aria-label="PDF controls" className={cn(k.toolbar.base)}>
 			<div className={cn(k.toolbar.section)}>
 				{total > 0 && (
 					<>
 						{isDesktop && (
-							<Tooltip>
-								<TooltipTrigger>
-									<Button
-										type="button"
-										variant="plain"
-										aria-label={sidebarToggleLabel}
-										aria-expanded={sidebarOpen}
-										disabled={loading}
-										onClick={() => setSidebarOpen(!sidebarOpen)}
-									>
-										<Icon icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />} />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>{sidebarToggleLabel}</TooltipContent>
-							</Tooltip>
+							<PdfViewerToolbarButton
+								label={sidebarToggleLabel}
+								icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />}
+								aria-expanded={sidebarOpen}
+								disabled={loading}
+								onClick={() => setSidebarOpen(!sidebarOpen)}
+							/>
 						)}
 
 						{!isDesktop && (
-							<Tooltip>
-								<TooltipTrigger>
-									<Button
-										type="button"
-										variant="plain"
-										aria-label="Show thumbnails"
-										aria-expanded={thumbsOpen}
-										disabled={loading}
-										onClick={() => setThumbsOpen(true)}
-									>
-										<Icon icon={<PanelLeft />} />
-									</Button>
-								</TooltipTrigger>
-								<TooltipContent>Show thumbnails</TooltipContent>
-							</Tooltip>
+							<PdfViewerToolbarButton
+								label="Show thumbnails"
+								icon={<PanelLeft />}
+								aria-expanded={thumbsOpen}
+								disabled={loading}
+								onClick={() => setThumbsOpen(true)}
+							/>
 						)}
 
 						<ToolbarGroup aria-label="Page navigation">
@@ -119,20 +120,40 @@ export function PdfViewerToolbar() {
 			<div className={cn(k.toolbar.section)}>
 				<PdfViewerZoomControls zoom={zoom} disabled={controlsDisabled} />
 				<ToolbarGroup aria-label="View">
-					<Tooltip>
-						<TooltipTrigger>
-							<Button
-								type="button"
-								variant="plain"
-								aria-label="Rotate"
-								disabled={controlsDisabled}
-								onClick={rotate}
-							>
-								<Icon icon={<RotateCw />} />
-							</Button>
-						</TooltipTrigger>
-						<TooltipContent>Rotate</TooltipContent>
-					</Tooltip>
+					<PdfViewerToolbarButton
+						label="Rotate"
+						icon={<RotateCw />}
+						disabled={controlsDisabled}
+						onClick={rotate}
+					/>
+					{/* Only offered when there is something to hide. `active` carries the two-state
+					    treatment and the argument for it. */}
+					{hasHighlights && (
+						<PdfViewerToolbarButton
+							label={highlightsToggleLabel}
+							icon={<Highlighter />}
+							active={highlightsVisible}
+							aria-pressed={highlightsVisible}
+							disabled={controlsDisabled}
+							onClick={() => setHighlightsVisible(!highlightsVisible)}
+						/>
+					)}
+					{/* The two magnifier controls, and `magnifierMode` says which — `null` where the
+					    consumer asked for no loupe, which is what keeps both out of the bar. The
+					    toggle stays put once switched off: that is the press that brings it back. In
+					    `'config'` mode the press opens the dialog, and the switch it took the place
+					    of is in there. */}
+					{magnifierMode === 'simple' && (
+						<PdfViewerToolbarButton
+							label={magnifierToggleLabel}
+							icon={<ScanSearch />}
+							active={magnifierOn}
+							aria-pressed={magnifierOn}
+							disabled={controlsDisabled}
+							onClick={() => setMagnifierOn(!magnifierOn)}
+						/>
+					)}
+					{magnifierMode === 'config' && <PdfViewerMagnifierSettings disabled={controlsDisabled} />}
 				</ToolbarGroup>
 				{documentSrc && (
 					<>

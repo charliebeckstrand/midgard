@@ -36,9 +36,9 @@ type PdfViewerThumbnailListProps = {
 
 /**
  * The thumbnail rail shared by the sidebar and grid layouts. Renders skeleton
- * placeholders until the first thumbnail resolves, then one button per page;
- * the current page is marked `aria-current` and receives the scroll-into-view
- * ref so it stays visible as the document is paged.
+ * placeholders until the first thumbnail resolves, then one button per page.
+ * The current page is marked `aria-current` and receives the scroll-into-view
+ * ref, so it stays visible as the document is paged.
  *
  * @internal
  */

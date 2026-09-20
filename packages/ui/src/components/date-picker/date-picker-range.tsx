@@ -19,7 +19,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		placeholder = 'Select dates',
 		size = 'md',
 		truncate = true,
-		clearable = true,
+		clearable = false,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,
@@ -72,6 +72,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 					rangeEnd={state.calendar.rangeEnd}
 					hoverDate={state.calendar.hoverDate}
 					onHoverDate={state.calendar.onHoverDate}
+					onMonthChange={props.onMonthChange}
 					active={state.calendar.active}
 					footerRef={state.calendar.footerRef}
 				/>

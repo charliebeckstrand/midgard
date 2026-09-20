@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { defaultRegistry, deriveCode, hasDerivableCode } from '../../derive-code'
 import type { ComponentInfo, ComponentRegistry } from '../../derive-code/types'

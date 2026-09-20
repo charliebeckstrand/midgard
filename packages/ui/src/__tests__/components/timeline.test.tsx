@@ -24,6 +24,18 @@ describe('Timeline', () => {
 
 		expect(el?.tagName).toBe('OL')
 	})
+
+	it('marks the current item as a step, as Stepper does', () => {
+		const { container } = renderUI(
+			<Timeline>
+				<TimelineItem current>
+					<TimelineTitle>Event</TimelineTitle>
+				</TimelineItem>
+			</Timeline>,
+		)
+
+		expect(bySlot(container, 'timeline-item')).toHaveAttribute('aria-current', 'step')
+	})
 })
 
 describe('TimelineTimestamp', () => {

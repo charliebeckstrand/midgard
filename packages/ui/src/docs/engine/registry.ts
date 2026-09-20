@@ -63,7 +63,7 @@ type TrackedPromise<T> = Promise<T> & {
 
 /**
  * Return the cached tracked promise under `id`, or start one from `start` and
- * cache it. `start` runs only on a cache miss, so it may throw for an unknown
+ * cache it. `start` runs only on a cache miss, so it can throw for an unknown
  * id without poisoning the cache.
  */
 function tracked<T>(
@@ -155,10 +155,10 @@ export let demos: Demo[] = []
 export let defaultDemo = ''
 
 /**
- * Bind the registry to a consuming library's demo loaders. Builds the sorted
- * sidebar list, resolves each demo's name from its build-time meta, and returns
- * the initial route's preload promise so the entry can await the first chunk
- * before mounting. Called once, from the consumer's entry, before render.
+ * Bind the registry to a consuming library's demo loaders. It builds the sorted
+ * sidebar list, and resolves each demo's name from its build-time meta. It
+ * returns the initial route's preload promise, so the entry can await the first
+ * chunk before mounting. Called once, from the consumer's entry, before render.
  */
 export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<unknown> } {
 	loaderById = new Map()

@@ -1,18 +1,18 @@
 /**
  * Markdown kata: per-element prose surface for `<Markdown>`. The renderer walks
- * marked's tokens to a React tree and pulls each element's classes from the
- * matching slot, so styling rides on the target element, not the wrapper. No
+ * marked's tokens to a React tree, and pulls each element's classes from the
+ * matching slot. Styling therefore rides on the target element, not the wrapper. No
  * variants axis — one slot per prose element: `root`/`inline`, the `heading`
  * level map, block text, lists, table parts, and `img`. Code spans and fenced
  * blocks render through the `Code` / `CodeBlock` components instead of a slot
  * here — see `markdown-renderer.tsx`.
  *
- * Deliberately text-color-agnostic: no slot sets a `text-*` color, so the
- * whole tree inherits the foreground of whatever container it renders in (the
- * page in the docs, a `ChatMessage` bubble in chat). Color is an inherited CSS
- * property, so simply omitting it is enough — and it spares every consumer
- * from having to override a baked-in palette to recolor the prose (e.g. white
- * text on the chat user bubble's blue fill). Rhythm, weight, size, list
+ * Deliberately text-color-agnostic: no slot sets a `text-*` color. The whole
+ * tree therefore inherits the foreground of whatever container it renders in
+ * (the page in the docs, a `ChatMessage` bubble in chat). Color is an inherited
+ * CSS property, so simply omitting it is enough. It also spares every consumer
+ * from having to override a baked-in palette to recolor the prose. White text
+ * on the chat user bubble's blue fill is one. Rhythm, weight, size, list
  * markers, and the structural rule/border colors are the kata's concern;
  * foreground color is the container's.
  */

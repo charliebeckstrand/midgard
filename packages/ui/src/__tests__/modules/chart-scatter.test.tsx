@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BubbleChart } from '../../modules/chart/bubble-chart'
 import {
 	anchorEndTicks,
@@ -330,6 +330,53 @@ describe('ScatterChart', () => {
 		fireEvent.click(hit, { clientX: 240, clientY: 80 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	// A scatter point is named by a pair — the series and the datum — and not by
+	// one id, so it reports its own identity rather than the `(id, index)` a map
+	// region carries.
+	it('mounts the hit layer for a point-click report alone', () => {
+		const onPointClick = vi.fn()
+
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				tooltip={false}
+				onPointClick={onPointClick}
+			/>,
+		)
+
+		const hit = bySlot(container, 'chart-hit')
+
+		// No tooltip and no crosshair: the report alone is what mounted this, and
+		// it points the cursor so the discs read as clickable.
+		expect(hit).not.toBeNull()
+
+		expect(hit?.getAttribute('class')).toContain('cursor-pointer')
+	})
+
+	it('reports the clicked point by series and datum', () => {
+		const onPointClick = vi.fn()
+
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+				crosshair={{ snap: true }}
+				onPointClick={onPointClick}
+			/>,
+		)
+
+		fireEvent.click(bySlot(container, 'chart-hit') as Element, { clientX: 240, clientY: 80 })
+
+		expect(onPointClick).toHaveBeenCalledWith(
+			expect.objectContaining({ series: expect.any(Number), datum: expect.any(Number) }),
+		)
 	})
 
 	it('dims the non-emphasised tooltip row when a legend entry is focused', () => {

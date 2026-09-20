@@ -1,9 +1,9 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/breadcrumb'
 
 /** Props for {@link BreadcrumbItem}: the underlying `<li>` attributes. */
-export type BreadcrumbItemProps = ComponentPropsWithoutRef<'li'>
+export type BreadcrumbItemProps = ComponentProps<'li'>
 
 /**
  * A crumb list item (`<li>`). The current-page marker (`aria-current="page"`

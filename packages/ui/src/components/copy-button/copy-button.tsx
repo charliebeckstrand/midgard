@@ -1,8 +1,8 @@
 'use client'
 
 import { Check, Clipboard } from 'lucide-react'
-import { type ComponentPropsWithoutRef, type ReactElement, useCallback } from 'react'
-import type { Size } from '../../types'
+import { type ComponentProps, type ReactElement, useCallback } from 'react'
+import type { ButtonVariants } from '../button'
 import { ToggleIconButton } from '../toggle-icon-button'
 import { useCopyButtonState } from './use-copy-button-state'
 
@@ -12,35 +12,35 @@ import { useCopyButtonState } from './use-copy-button-state'
  */
 export type CopyButtonProps = {
 	/** Text written to the clipboard on activation. */
-	value: string
+	text: string
 	/**
 	 * Rest-state glyph.
 	 * @defaultValue a Clipboard icon
 	 */
 	icon?: ReactElement
-	size?: Size
+	size?: ButtonVariants['size']
 	/**
 	 * Milliseconds the copied state holds before reverting to the rest glyph.
 	 * @defaultValue 2000
 	 */
 	timeout?: number
 	className?: string
-	/** Fires on every copied-state transition, with the new value. */
+	/** Fires on every copied-state transition, with the new text. */
 	onCopiedChange?: (copied: boolean) => void
 	/**
 	 * Fires when the clipboard write rejects, with whatever the platform threw.
 	 *
-	 * The button cannot report this itself: a refused write leaves `copied` false, which
-	 * is also what it looks like before any copy, so the rest glyph means both "not copied
-	 * yet" and "copy failed". A denied permission, an insecure (`http`) context, and a
+	 * The button cannot report this itself. A refused write leaves `copied` false,
+	 * which is also what it looks like before any copy. The rest glyph therefore
+	 * means both "not copied yet" and "copy failed". A denied permission, an insecure (`http`) context, and a
 	 * missing Clipboard API all land here. Use it to surface the failure — a toast, say —
 	 * or to fall back to a selectable text field.
 	 */
 	onCopyError?: (error: unknown) => void
-} & Omit<ComponentPropsWithoutRef<'button'>, 'children' | 'type' | 'color'>
+} & Omit<ComponentProps<'button'>, 'children' | 'type' | 'color'>
 
 /**
- * Clipboard-copy control built on ToggleIconButton. Writes `value`, flips to a check glyph, and reverts after `timeout`.
+ * Clipboard-copy control built on ToggleIconButton. Writes `text`, flips to a check glyph, and reverts after `timeout`.
  *
  * @remarks
  * Stays enabled and keeps focus through the success window so keyboard focus
@@ -51,7 +51,7 @@ export type CopyButtonProps = {
  * @see {@link ToggleIconButton} for the underlying two-state icon control.
  */
 export function CopyButton({
-	value,
+	text,
 	icon,
 	size,
 	timeout = 2000,
@@ -63,7 +63,7 @@ export function CopyButton({
 	'aria-label': ariaLabel,
 	...props
 }: CopyButtonProps) {
-	const { copied, copy } = useCopyButtonState({ value, timeout, onCopiedChange, onCopyError })
+	const { copied, copy } = useCopyButtonState({ text, timeout, onCopiedChange, onCopyError })
 
 	// The button stays enabled and focused through the success window;
 	// disabling a focused control drops keyboard focus to <body> (WCAG 2.4.3).

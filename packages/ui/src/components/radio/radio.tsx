@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, Ref } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -8,20 +8,19 @@ import { useControlToggle } from '../control/use-control-toggle'
 /** Props for {@link Radio}: recipe `color`/`size` plus native `<input>` attributes (less `type`/`size`). */
 export type RadioProps = RadioVariants & {
 	className?: string
-	ref?: Ref<HTMLInputElement>
-} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
+} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
 
 /**
  * Single radio control wrapped in its label; id, disabled, required, and
  * invalid state resolve from the enclosing Control and Density context.
  *
  * @remarks Unlike {@link Checkbox} and {@link Switch}, this binds no Form
- * field: it has no internal checked state and stays a native input controlled
+ * field. It has no internal checked state, and stays a native input controlled
  * by `checked`/`defaultChecked` and a shared `name`. Group radios with
  * {@link RadioGroup} and a common `name` for single-selection.
  *
  * `name` here is the native grouping name, not the CONVENTIONS §7.2 value
- * binding it carries on Checkbox and Switch — a radio group is one value across
+ * binding it carries on Checkbox and Switch. A radio group is one value across
  * N inputs, not a boolean per input, so no per-radio binding is correct. Inside
  * a Form, hold the group's value in the form field and drive each radio's
  * `checked` from it.
@@ -53,6 +52,10 @@ export function Radio({
 			className={cn(k({ color, size: resolvedSize }), className)}
 		>
 			<input
+				// Consumer props spread first; `type`, the native grouping `name`,
+				// the validation attributes, and data-slot below take precedence.
+				// Radio carries no §7.2 value binding — see the remarks above.
+				{...props}
 				type="radio"
 				data-slot="radio"
 				ref={ref}
@@ -62,7 +65,6 @@ export function Radio({
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
 				className={k.input()}
-				{...props}
 			/>
 			<span
 				data-slot="radio-indicator"

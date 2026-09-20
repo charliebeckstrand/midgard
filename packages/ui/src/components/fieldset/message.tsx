@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, type ReactNode, useEffect } from 'react'
+import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
 import { cn, type Severity } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -12,14 +12,14 @@ import { hasIssues } from '../form/form-reducer'
 /** Tone of a `<Message>`: an assertive `error`, or a polite `warning` / `success`. Aliases the shared {@link Severity} so the validation vocabulary stays single-sourced. */
 export type MessageSeverity = Severity
 
-/** Props for {@link Message}: `severity`, optional form-field `name` binding, and the `all`-errors flag atop native `<p>` attributes. */
+/** Props for {@link Message}: `severity`, optional form-field `name` binding, and the `all`-errors flag atop the native attributes of the `<p>` or the `<ul>` that it renders. */
 export type MessageProps = {
 	severity?: MessageSeverity
 	className?: string
 	name?: string
 	/** When form-bound and the field has multiple errors, render every one as a list. Defaults to the first error only. */
 	all?: boolean
-} & Omit<ComponentPropsWithoutRef<'p'>, 'className' | 'name'>
+} & Omit<HTMLAttributes<HTMLElement>, 'className' | 'name'>
 
 /**
  * True when the error severity auto-renders: form-bound with errors, or
@@ -59,10 +59,9 @@ function resolveMessageElementId(
 
 /**
  * Validation or status feedback for a form control. The `error` severity renders
- * `role="alert"`, registers its id into the field's `aria-describedby`, and —
- * when bound to a form field by `name` — auto-renders that field's first error
- * (or every error as a `<ul>` with `all`), suppressing itself when there are
- * none. The `success` severity renders `role="status"` from its children and
+ * `role="alert"` and registers its id into the field's `aria-describedby`. Bound
+ * to a form field by `name`, it auto-renders that field's first error, or every
+ * error as a `<ul>` with `all`. It suppresses itself when there are none. The `success` severity renders `role="status"` from its children and
  * does not register as a description.
  *
  * @remarks A nested `<Message>` is presentational: it does not mark the control
@@ -130,8 +129,11 @@ export function Message({
 				data-slot="message"
 				data-severity={severity}
 				id={elementId}
-				role={role}
 				className={classes}
+				// Consumer props spread first; the live-region role below takes
+				// precedence.
+				{...props}
+				role={role}
 			>
 				{keyed.map(({ key, value }) => (
 					<li key={key}>{value}</li>
@@ -147,9 +149,11 @@ export function Message({
 			data-slot="message"
 			data-severity={severity}
 			id={elementId}
-			role={role}
 			className={classes}
+			// Consumer props spread first; the live-region role below takes
+			// precedence.
 			{...props}
+			role={role}
 		>
 			{content}
 		</p>

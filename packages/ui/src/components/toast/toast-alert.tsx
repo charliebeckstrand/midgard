@@ -25,8 +25,8 @@ const layoutTransition = { layout: k.spring }
  * @internal
  */
 const severityAlertMap = {
-	default: { variant: 'solid', color: 'blue' },
-	secondary: { variant: 'solid', color: 'zinc' },
+	info: { variant: 'solid', color: 'blue' },
+	neutral: { variant: 'solid', color: 'zinc' },
 	success: { variant: 'solid', color: 'green' },
 	warning: { variant: 'solid', color: 'amber' },
 	error: { variant: 'solid', color: 'red' },
@@ -50,15 +50,15 @@ type ToastAlertProps = {
 
 /**
  * Single animated toast: maps severity to an {@link Alert} variant and a live
- * `role`, slides in from the viewport edge, and drives the pause/resume/reset
+ * `role`, and slides in from the viewport edge. It drives the pause/resume/reset
  * lifecycle on pointer and focus.
  *
  * @remarks `warning`/`error` use `role="alert"` (assertive, announces on
- * insertion); other severities use `role="status"` and are mirrored through the
- * persistent announcer on mount, since screen readers can miss a live region
+ * insertion). Other severities use `role="status"` and are mirrored through the
+ * persistent announcer on mount. A screen reader can miss a live region
  * inserted with its text (WCAG 4.1.3). Auto-dismiss pauses while the pointer or
- * focus is inside the toast (WCAG 2.2.1); hover and focus hold the shared timer
- * independently (source-counted), and unmount releases this toast's holds — a
+ * focus is inside the toast (WCAG 2.2.1). Hover and focus hold the shared timer
+ * independently (source-counted), and unmount releases this toast's holds. A
  * node removed under a stationary pointer or held focus gets no
  * `mouseleave`/`blur`, and an unreleased hold would freeze auto-dismiss for
  * every later toast. Not exported; rendered by {@link Toast}.
@@ -78,7 +78,7 @@ export function ToastAlert({
 
 	const motionConfig = positionTop ? k.motion.top : k.motion.bottom
 
-	const { variant, color } = severityAlertMap[t.severity ?? 'default']
+	const { variant, color } = severityAlertMap[t.severity ?? 'info']
 
 	// Warning/error interrupt (assertive); everything else queues politely.
 	const assertive = t.severity === 'warning' || t.severity === 'error'

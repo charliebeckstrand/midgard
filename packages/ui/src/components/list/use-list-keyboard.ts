@@ -119,7 +119,15 @@ export function useListKeyboard<T>({
 }: Options<T>) {
 	const focusItem = useCallback(
 		(id: string) => {
-			querySlot(containerRef.current, 'list-item', 'item-id', id)?.focus()
+			const row = querySlot(containerRef.current, 'list-item', 'item-id', id)
+
+			// The row's stop is its content area when that area is activatable (a link or a
+			// button is already focusable, so it takes the reorder keys and there is only one
+			// Tab stop per row); otherwise the `<li>` itself holds them. `ListItem` decides
+			// which, and the `tabindex` it wrote is what says so here.
+			const content = row?.querySelector<HTMLElement>('[data-slot="list-item-content"][tabindex]')
+
+			;(content ?? row)?.focus()
 		},
 		[containerRef],
 	)

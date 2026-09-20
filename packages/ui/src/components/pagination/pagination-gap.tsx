@@ -1,9 +1,9 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pagination'
 
 /** Props for {@link PaginationGap}: native `<span>` attributes. */
-export type PaginationGapProps = ComponentPropsWithoutRef<'span'>
+export type PaginationGapProps = ComponentProps<'span'>
 
 /** Ellipsis spacer marking a skipped range of pages; presentational and hidden from assistive tech. */
 export function PaginationGap({ className, ...props }: PaginationGapProps) {

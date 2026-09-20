@@ -14,12 +14,9 @@ import {
 import { useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
-import {
-	capitalizeFirst,
-	resolveCapitalize,
-	type SelectCapitalize,
-} from '../../primitives/select-trigger/capitalize'
+import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { useGlass } from '../../providers/glass/context'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -31,7 +28,7 @@ import { ListboxPanel } from './listbox-panel'
 import { resolveLabel } from './listbox-utilities'
 import { useListboxState } from './use-listbox-state'
 
-type ListboxBaseProps = {
+type ListboxBaseProps = GroupStampProps & {
 	name?: string
 	placeholder?: string
 	placement?: Placement
@@ -59,7 +56,7 @@ type ListboxBaseProps = {
 	nullable?: boolean
 	/**
 	 * Truncates the selected-value label when it overflows the trigger.
-	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
+	 * Set `false` to let the trigger grow to fit its content. That suits a
 	 * `<Group>` or another content-sized parent that collapses the label.
 	 * @defaultValue true
 	 */
@@ -69,17 +66,25 @@ type ListboxBaseProps = {
 	/**
 	 * Capitalizes the first letter (first word only) of the selected
 	 * `displayValue` and of each option's string label; custom label nodes
-	 * render as authored. Pass an object to target each surface independently.
-	 * Display-only: the underlying value is untouched.
+	 * render as authored. Display-only: the underlying value is untouched.
 	 * @defaultValue true
 	 */
-	capitalize?: SelectCapitalize
+	capitalize?: boolean
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
 	onOpenChange?: (open: boolean) => void
-	'data-group'?: string
-	'data-group-orientation'?: string
+	/**
+	 * Fires when focus leaves the whole widget, with the trigger's blur event.
+	 *
+	 * The widget already computes this — it is what marks a bound field touched —
+	 * and kept it. The prop bag is closed, with no rest spread and no `ref`, so a
+	 * caller had no other way to hear it. A blur into the portalled panel is not a
+	 * departure and never fires. That is the part a native `onBlur` on the trigger
+	 * would get wrong. The panel is portalled, so focus moving into it reads as
+	 * leaving the trigger.
+	 */
+	onBlur?: (event: FocusEvent<HTMLButtonElement>) => void
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	children: ReactNode
@@ -103,8 +108,8 @@ type ListboxMultipleProps<T> = {
 
 /**
  * Props for {@link Listbox}: the shared base (`name`, sizing, `clearable`,
- * `nullable`, open-state control, …) and an optional `displayValue` formatter,
- * discriminated on `multiple` into single- or array-valued value/handler shapes.
+ * `nullable`, open-state control, …) and an optional `displayValue` formatter.
+ * They are discriminated on `multiple` into single- or array-valued value/handler shapes.
  *
  * @typeParam T - The option value type.
  */
@@ -151,6 +156,7 @@ export function Listbox<T>({
 	capitalize = true,
 	open: openProp,
 	onOpenChange,
+	onBlur,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	'aria-label': ariaLabel,
@@ -282,16 +288,17 @@ export function Listbox<T>({
 		if (next !== null && document.getElementById(listboxId)?.contains(next)) return
 
 		setTouched()
-	}
 
-	const capitalization = resolveCapitalize(capitalize)
+		// Past both guards the focus has genuinely left the widget, which is the
+		// fact the caller could not reach.
+		onBlur?.(event)
+	}
 
 	const resolvedLabel = resolveLabel({ value, displayValue, multiple })
 
 	// First-word-capitalize the resolved display string at the source; the
 	// trigger button renders it verbatim (`undefined` skips the placeholder).
-	const label =
-		capitalization.displayValue && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
+	const label = capitalize && resolvedLabel ? capitalizeFirst(resolvedLabel) : resolvedLabel
 
 	const hasValue = hasListboxValue(value, multiple)
 
@@ -326,9 +333,9 @@ export function Listbox<T>({
 			value: selectionValue,
 			multiple,
 			onSelect: select as (v: unknown) => void,
-			capitalize: capitalization.options,
+			capitalize,
 		}),
-		[selectionValue, multiple, select, capitalization.options],
+		[selectionValue, multiple, select, capitalize],
 	)
 
 	return (
@@ -336,9 +343,9 @@ export function Listbox<T>({
 			{/* `display: contents` wrapper: while open, `FloatingFocusManager` inserts a
 			    hidden return-focus span as the reference's next sibling
 			    (`domReference.insertAdjacentElement('afterend', …)`). Scoping the trigger
-			    and panel under it keeps the control a single DOM child of its parent, so a
-			    `space-y`/`gap` container doesn't shift when the panel opens; `contents`
-			    leaves the trigger the flex/grid item it was. Mirrors `DatePicker`. */}
+			    and panel under it keeps the control a single DOM child of its parent. A
+			    `space-y`/`gap` container therefore doesn't shift when the panel opens.
+			    `contents` leaves the trigger the flex/grid item it was. Mirrors `DatePicker`. */}
 			<div className="contents">
 				<SelectTrigger
 					open={open}

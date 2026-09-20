@@ -20,7 +20,7 @@ type State = { error: Error | null }
  * stale chunk after a deploy, an offline navigation) surfaced through
  * `use(loadDemo(...))`. Without it, one failed chunk throws past the root and
  * unmounts the whole docs site. `fallback` receives a `retry` that clears the
- * caught error so the subtree re-renders; paired with `loadDemo`'s rejection
+ * caught error, so the subtree re-renders. Paired with `loadDemo`'s rejection
  * eviction, the retry re-attempts the import rather than replaying the cached
  * failure. Keying the boundary by route also resets it on navigation.
  */
@@ -45,7 +45,7 @@ export function DemoLoadError({ onRetry }: { onRetry: () => void }) {
 	return (
 		<Stack gap="md" className="p-6">
 			<Heading>Couldn't load this demo</Heading>
-			<Text severity="muted">Try again or reload the page.</Text>
+			<Text tone="muted">Try again or reload the page.</Text>
 			<div>
 				<Button variant="outline" onClick={onRetry}>
 					Try again

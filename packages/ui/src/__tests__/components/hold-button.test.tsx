@@ -1,3 +1,4 @@
+import type { FormEvent } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { HoldButton } from '../../components/hold-button'
 import { act, bySlot, fireEvent, renderUI } from '../helpers'
@@ -11,6 +12,16 @@ describe('HoldButton', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(el?.tagName).toBe('BUTTON')
+	})
+
+	it('takes a caller data-slot rename', () => {
+		const { container } = renderUI(<HoldButton data-slot="delete-hold">Hold</HoldButton>)
+
+		// No library selector reads this anchor, so a wrapper can rename the leaf
+		// it renders (CONVENTIONS.md §3.9).
+		expect(bySlot(container, 'delete-hold')).toBeInTheDocument()
+
+		expect(bySlot(container, 'hold-button')).toBeNull()
 	})
 
 	it('fires onHoldStart on pointer down', () => {
@@ -295,18 +306,29 @@ describe('HoldButton', () => {
 		expect(onHoldStart).not.toHaveBeenCalled()
 	})
 
-	it('passes through HTML attributes', () => {
+	it('keeps type="button" so a caller type cannot submit an enclosing form', () => {
+		const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
+
 		const { container } = renderUI(
-			<HoldButton id="test" aria-label="Hold to delete">
-				Hold
-			</HoldButton>,
+			<form onSubmit={onSubmit}>
+				<HoldButton type="submit">Delete</HoldButton>
+			</form>,
 		)
 
-		const el = bySlot(container, 'hold-button')
+		const el = bySlot(container, 'hold-button') as HTMLElement
 
-		expect(el).toHaveAttribute('id', 'test')
+		expect(el).toHaveAttribute('type', 'button')
 
-		expect(el).toHaveAttribute('aria-label', 'Hold to delete')
+		// A quick press cancels the hold, but the browser sends a native click
+		// after the pointer pair. A caller `type="submit"` would then submit the
+		// form, and the hold gate would stop nothing.
+		fireEvent.pointerDown(el)
+
+		fireEvent.pointerUp(el)
+
+		fireEvent.click(el)
+
+		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
 	describe('hold completion', () => {

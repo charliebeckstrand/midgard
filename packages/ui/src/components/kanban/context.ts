@@ -5,9 +5,9 @@ import { createContext } from '../../core'
 
 /**
  * Card-facing board state: interactivity, keyboard-lifted card, the overlay map,
- * and card event handlers. Deliberately excludes the pointer-drag `activeId` and
- * per-column ordering (see {@link KanbanDragStateValue}) so a pointer drag — which
- * churns those every move — does not re-render every card on the board.
+ * and card event handlers. Deliberately excludes the pointer-drag `activeId`
+ * and per-column ordering; see {@link KanbanDragStateValue}. A pointer drag
+ * churns those every move, and must not re-render every card on the board.
  */
 export type KanbanContextValue = {
 	/** Whether cards in this board can be dragged or keyboard-reordered. */
@@ -57,6 +57,17 @@ export type KanbanColumnContextValue = {
 	columnId: string
 	/** Title-slot registrar; the column emits `aria-labelledby` only while a title is mounted. */
 	registerTitle: () => () => void
+	/**
+	 * The card keys the board's `columns` entry holds for this column.
+	 *
+	 * @remarks
+	 * Development only, and empty in a production build. One development check
+	 * reads it, and the board's data changes on every drag-over move. Carrying
+	 * that here in production would change this value's identity per move.
+	 * `KanbanCard`'s memo holds the board still through a drag, and it holds
+	 * because this value does not change.
+	 */
+	itemIds: readonly string[]
 }
 
 /**

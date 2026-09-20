@@ -1,29 +1,19 @@
 'use client'
 
-import { motion } from 'motion/react'
-import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import type { ComponentProps, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { ariaAttr, cn } from '../../core'
 import { AffixContext } from '../../primitives/affix'
 import { useResolvedSize } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
-import { ReducedMotion } from '../../primitives/reduced-motion'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useHeadless } from '../../providers/headless/context'
 import { type ButtonVariants, k } from '../../recipes/kata/button'
 import { Link } from '../link'
-import { LoadingSpinner, type LoadingSpinnerProps } from '../loading'
-import { buttonSpring, loadingProps } from './button-constants'
+import { LoadingSpinner } from '../loading'
+import { loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { isIconElement } from './button-utilities'
-
-/**
- * Spinner overrides forwarded to the loading `<LoadingSpinner>` when `loading`
- * is an object rather than a bare boolean.
- *
- * @internal
- */
-type LoadingOptions = Pick<LoadingSpinnerProps, 'color' | 'size' | 'label'>
 
 /**
  * Shared, element-agnostic half of {@link ButtonProps}: the recipe variants plus
@@ -33,16 +23,10 @@ type LoadingOptions = Pick<LoadingSpinnerProps, 'color' | 'size' | 'label'>
  */
 type ButtonBaseProps = ButtonVariants & {
 	/**
-	 * Apply the tap-scale press spring; collapses under prefers-reduced-motion.
+	 * Swap the leading content for a spinner and gate activation.
 	 * @defaultValue false
 	 */
-	spring?: boolean
-	/**
-	 * Swap the leading content for a spinner and gate activation. `true` uses
-	 * defaults; an object forwards `color`/`size`/`label` to the spinner.
-	 * @defaultValue false
-	 */
-	loading?: boolean | LoadingOptions
+	loading?: boolean
 	/** Content before the label; hidden while `loading`. */
 	prefix?: ReactNode
 	/** Content after the label. */
@@ -53,28 +37,20 @@ type ButtonBaseProps = ButtonVariants & {
 
 /**
  * Props for {@link Button}: visual `variant`/`color`/`size`, the
- * `spring`/`loading` behavior flags, `prefix`/`suffix` adornments, and
+ * the `loading` behavior flag, `prefix`/`suffix` adornments, and
  * the polymorphic surface — a `<button>`, or an anchor when `href` is set.
  */
-export type ButtonProps = ButtonBaseProps &
-	(
-		| (Extract<PolymorphicProps<'button', 'prefix'>, { href?: never }> & {
-				ref?: Ref<HTMLButtonElement>
-		  })
-		| (Extract<PolymorphicProps<'button', 'prefix'>, { href: string }> & {
-				ref?: Ref<HTMLAnchorElement>
-		  })
-	)
+export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
 
 /**
  * Polymorphic action control: renders a `<button>` or, when `href` is set,
- * a `<Link>` anchor. Resolves `size` against enclosing Density, swaps in a
- * `<LoadingSpinner>` while `loading`, collapses to a square hit area when icon-only,
- * and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
+ * a `<Link>` anchor. Resolves `size` against enclosing Density and swaps in a
+ * `<LoadingSpinner>` while `loading`. It collapses to a square hit area when
+ * icon-only, and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
  * in loading trees.
  *
  * @remarks
- * Mirrors native `<button>` submission semantics: an untyped Button emits no
+ * Mirrors native `<button>` submission semantics. An untyped Button emits no
  * `type` attribute, so the DOM applies its native `submit` default and the
  * Button submits an enclosing `<Form>`/`<form>`. Pass `type="button"` for
  * non-submitting actions and `type="reset"` to reset.
@@ -87,18 +63,13 @@ export function Button({
 	children,
 	href,
 	ref,
-	spring = false,
-	loading: loadingProp = false,
+	loading = false,
 	prefix,
 	suffix,
 	type,
 	'data-slot': slot = 'button',
 	...props
 }: ButtonProps) {
-	const loading = !!loadingProp
-
-	const loadingOptions = typeof loadingProp === 'object' ? loadingProp : undefined
-
 	const headless = useHeadless()
 
 	const resolvedSize = useResolvedSize(size)
@@ -111,8 +82,8 @@ export function Button({
 				data-slot={slot}
 				className={className}
 				loading={loading}
-				type={type as ComponentPropsWithoutRef<'button'>['type']}
-				{...(props as ComponentPropsWithoutRef<'button'>)}
+				type={type as ComponentProps<'button'>['type']}
+				{...(props as ComponentProps<'button'>)}
 			>
 				{children}
 			</ButtonHeadless>
@@ -138,8 +109,8 @@ export function Button({
 
 	const content = (
 		<AffixContext value={resolvedSize}>
-			{/* LoadingSpinner reads no context; `loadingOptions.size` wins when set. */}
-			{loading ? <LoadingSpinner size={resolvedSize} {...loadingOptions} /> : prefix}
+			{/* LoadingSpinner reads no context, so the resolved size must be passed. */}
+			{loading ? <LoadingSpinner size={resolvedSize} /> : prefix}
 			{children}
 			{suffix}
 		</AffixContext>
@@ -147,42 +118,36 @@ export function Button({
 
 	if (href !== undefined) {
 		return (
-			<ReducedMotion>
-				<motion.span {...(spring && buttonSpring)}>
-					<Link
-						ref={ref as Ref<HTMLAnchorElement>}
-						{...sharedProps}
-						href={href}
-						className={classes}
-						{...(props as Omit<ComponentPropsWithoutRef<typeof Link>, 'href' | 'className'>)}
-						{...(loading && loadingProps)}
-					>
-						<TouchTarget>{content}</TouchTarget>
-					</Link>
-				</motion.span>
-			</ReducedMotion>
+			// The wrapping span is the anchor branch's layout box; it carried the
+			// press spring before that prop went, and the DOM shape stays.
+			<span>
+				<Link
+					ref={ref as Ref<HTMLAnchorElement>}
+					{...sharedProps}
+					href={href}
+					className={classes}
+					{...(props as Omit<ComponentProps<typeof Link>, 'href' | 'className'>)}
+					{...(loading && loadingProps)}
+				>
+					<TouchTarget>{content}</TouchTarget>
+				</Link>
+			</span>
 		)
 	}
 
-	const buttonProps = props as Omit<
-		ComponentPropsWithoutRef<'button'>,
-		'className' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
-	>
+	const buttonProps = props as Omit<ComponentProps<'button'>, 'className'>
 
 	return (
-		<ReducedMotion>
-			<motion.button
-				{...(spring && buttonSpring)}
-				ref={ref as Ref<HTMLButtonElement>}
-				{...sharedProps}
-				type={type}
-				className={classes}
-				{...buttonProps}
-				disabled={loading || buttonProps.disabled}
-				aria-busy={ariaAttr(loading)}
-			>
-				<TouchTarget>{content}</TouchTarget>
-			</motion.button>
-		</ReducedMotion>
+		<button
+			ref={ref as Ref<HTMLButtonElement>}
+			{...sharedProps}
+			type={type}
+			className={classes}
+			{...buttonProps}
+			disabled={loading || buttonProps.disabled}
+			aria-busy={ariaAttr(loading)}
+		>
+			<TouchTarget>{content}</TouchTarget>
+		</button>
 	)
 }

@@ -7,7 +7,7 @@
  */
 
 import { describe } from 'vitest'
-import { Grid, type GridColumn, type SortState } from '../modules/grid'
+import { Grid, type GridColumn, type GridSortState } from '../modules/grid'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'
 
@@ -116,7 +116,7 @@ describe('Grid · rerender after sort toggle (1,000 rows · truncating)', () => 
 	// only the narrow resizing context, not the table-wide value the sort lives in).
 	const rows = shipments(1_000)
 
-	const sorted = (direction: SortState['direction']) => (
+	const sorted = (direction: GridSortState['direction']) => (
 		<Grid
 			columns={COLUMNS}
 			rows={rows}

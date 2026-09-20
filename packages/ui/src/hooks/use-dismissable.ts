@@ -2,9 +2,11 @@
 
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
+import { pressLandsInSurfaceOpenedWithin } from '../utilities/floating-portal-registry'
 import { useEscapeLayer } from './use-escape-layer'
 
-type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
+/** Options for {@link useDismissable}: the boundary a press is measured against, the dismiss report, and the enable gate. */
+export type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
 	open: boolean
 	onDismiss: () => void
 	/** Escape key closes. @defaultValue true */
@@ -20,9 +22,15 @@ type DismissableOptions<T extends HTMLElement = HTMLDivElement> = {
  * dismiss-layer stack via `useEscapeLayer`) and on pointer-down outside the
  * boundary, both gated on `open`. Use `useScrollLock` for body-scroll locking.
  *
- * @remarks Pass a fresh `onDismiss` closure each render if that is convenient;
- * both routes reach the latest one, and neither re-subscribes its listener when
+ * @remarks Pass a fresh `onDismiss` closure each render if that is convenient.
+ * Both routes reach the latest one, and neither re-subscribes its listener when
  * the identity changes.
+ *
+ * A floating surface opened from inside the boundary portals out of its DOM
+ * subtree — a menu in a non-modal sheet's footer, say. Plain containment
+ * therefore reads a press in it as outside. Such a press counts as inside (see
+ * `pressLandsInSurfaceOpenedWithin`); without that, the boundary closes on
+ * pointer-down and unmounts the menu before its click can fire.
  *
  * @returns The container ref defining the outside-pointer boundary. Attach it
  * to the overlay root, or pass your own via `containerRef` and ignore the
@@ -55,7 +63,17 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 		const onPointerDown = (event: PointerEvent) => {
 			const el = ref.current
 
-			if (el && !el.contains(event.target as Node)) dismiss()
+			if (!el) return
+
+			const target = event.target
+
+			if (
+				target instanceof Node &&
+				(el.contains(target) || pressLandsInSurfaceOpenedWithin(el, target))
+			)
+				return
+
+			dismiss()
 		}
 
 		return subscribeDocumentEvent('pointerdown', onPointerDown)

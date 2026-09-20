@@ -5,7 +5,6 @@ import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import type { AccessibleName } from '../../types'
-import { Flex } from '../flex'
 import { FiltersContext, type FiltersContextValue, type FiltersLayout } from './context'
 
 type FilterValue = Record<string, unknown>
@@ -35,37 +34,22 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 	defaultValue?: T
 	onValueChange?: (value: T) => void
 	onClear?: () => void
-	/** Clear control rendered at the bar's trailing edge, typically a {@link FiltersClear}. */
-	clear?: ReactNode
-	/** Content placed above the control row. */
-	prefix?: ReactNode
-	/** Content placed below the control row. */
-	suffix?: ReactNode
-	/** Stretch each field to equal width. */
-	equal?: boolean
 	/**
 	 * How the bar answers a width that cannot hold its fields — see
 	 * {@link FiltersLayout}.
 	 *
-	 * A `rail` keeps its fields at the width they were given, so give them one: a
-	 * field left at its `w-full` default would fill the rail and the reader would
+	 * A `rail` keeps its fields at the width they were given, so give them one. A
+	 * field left at its `w-full` default would fill the rail, and the reader would
 	 * scroll one field at a time.
 	 *
 	 * @defaultValue 'stack'
 	 */
 	layout?: FiltersLayout
 	/**
-	 * Classes for the scrolling row itself, which only a `rail` has.
-	 *
-	 * The bar's padding belongs here rather than on `className`. Set outside the
-	 * scroll container, a padded band is dead to the wheel: the reader aims at the
-	 * strip above or below the controls — most of the bar's own height — and
-	 * nothing moves. Set here it scrolls with the fields.
-	 *
-	 * `className` still reaches the bar as a whole, which is where anything the
-	 * clear action shares belongs.
+	 * The bar's regions, in order. An optional {@link FiltersPrefix} comes first.
+	 * Then a {@link FiltersBar}, holding a {@link FiltersRow} of fields and
+	 * whatever acts on the whole bar. Then an optional {@link FiltersSuffix}.
 	 */
-	railClassName?: string
 	children: ReactNode
 	className?: string
 }
@@ -73,8 +57,8 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 /**
  * Coordinator for a row of filter controls over a `Record` value. Shares
  * set/clear and an active-count through context to enclosed {@link FiltersField}
- * and {@link FiltersClear}, dropping empty fields (undefined, null, `''`, empty
- * array) from the payload so the value stays minimal.
+ * and {@link FiltersClear}. It drops empty fields (undefined, null, `''`, empty
+ * array) from the payload, so the value stays minimal.
  *
  * @remarks
  * Controlled via `value`/`onValueChange`, uncontrolled from `defaultValue`.
@@ -83,6 +67,13 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
  * semantics) — pass `aria-label` or `aria-labelledby`. The active count is
  * announced to assistive tech on change (WCAG 4.1.3).
  *
+ * The root is the coordinator and a column; its regions are children. It took
+ * `prefix`, `suffix`, and `clear` as `ReactNode` props once. The context made
+ * those unnecessary — a {@link FiltersClear} works anywhere inside the
+ * provider — so only the layout ever needed them. {@link FiltersBar} and
+ * {@link FiltersRow} give that layout a name, and take the `equal` and scroll
+ * knobs that went with it.
+ *
  * @typeParam T - Shape of the filter-value record.
  */
 export function Filters<T extends FilterValue = FilterValue>({
@@ -90,14 +81,9 @@ export function Filters<T extends FilterValue = FilterValue>({
 	defaultValue,
 	onValueChange,
 	onClear,
-	clear,
-	prefix,
-	suffix,
-	equal,
 	layout = 'stack',
 	children,
 	className,
-	railClassName,
 	...labelProps
 }: FiltersProps<T>) {
 	const [state, setState] = useControllable<T>({
@@ -146,46 +132,16 @@ export function Filters<T extends FilterValue = FilterValue>({
 		[filterValue, setValue, handleClear, activeCount, layout],
 	)
 
-	const rail = layout === 'rail'
-
-	// One row at every width on a rail, a column on a narrow screen otherwise.
-	const direction = rail ? 'row' : ({ initial: 'col', sm: 'row' } as const)
-
-	// A rail's controls are all the same height, so they centre; a stack lines its
-	// fields up on their baselines once it is a row.
-	const align = rail ? 'center' : ({ initial: 'start', md: 'end' } as const)
-
 	return (
 		<FiltersContext value={context}>
-			{/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes form-field semantics and min-content layout quirks on this flex bar; a named role="group" is the right grouping for a row of filter controls */}
+			{/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes form-field semantics and layout quirks on this flex bar. A named role="group" is the right grouping here */}
 			<div
+				{...labelProps}
 				data-slot="filters"
 				role="group"
 				className={cn('flex flex-col gap-4', className)}
-				{...labelProps}
 			>
-				{prefix && <div data-slot="filters-prefix">{prefix}</div>}
-				<Flex direction={direction} gap="sm" align={align} full>
-					{/* The scroll rides the fields alone, so the clear action stays put while
-					    they travel under it — it acts on the whole bar, and an action that
-					    scrolls out of reach of what it acts on is one the reader has to go
-					    looking for. `min-w-0` is what lets the row overflow at all: a flex
-					    child sizes to its content otherwise, and this one would push the
-					    clear off the bar instead of scrolling. */}
-					<Flex
-						direction={direction}
-						gap="sm"
-						align={align}
-						equal={equal}
-						full
-						flex="auto"
-						className={cn(rail && ['min-w-0 overflow-x-auto overscroll-x-contain', railClassName])}
-					>
-						{children}
-					</Flex>
-					{clear}
-				</Flex>
-				{suffix && <div data-slot="filters-suffix">{suffix}</div>}
+				{children}
 			</div>
 		</FiltersContext>
 	)

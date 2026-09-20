@@ -1,5 +1,6 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import type { SortState } from '../../modules/grid/context'
+import type { GridSortState } from '../../modules/grid/context'
 import { nextSort, sortsEqual } from '../../modules/grid/engine/grid-sort/state'
 
 describe('nextSort', () => {
@@ -21,7 +22,7 @@ describe('nextSort', () => {
 		})
 
 		it('collapses a multi-column sort to the clicked column ascending', () => {
-			const multi: SortState[] = [
+			const multi: GridSortState[] = [
 				{ column: 'a', direction: 'asc' },
 				{ column: 'b', direction: 'desc' },
 			]
@@ -45,7 +46,7 @@ describe('nextSort', () => {
 		})
 
 		it('still collapses a multi-column sort to the clicked column ascending', () => {
-			const multi: SortState[] = [
+			const multi: GridSortState[] = [
 				{ column: 'a', direction: 'asc' },
 				{ column: 'b', direction: 'desc' },
 			]
@@ -54,7 +55,7 @@ describe('nextSort', () => {
 		})
 
 		it("explicit 'tri-state' matches the default and clears on the third click", () => {
-			const desc: SortState[] = [{ column: 'a', direction: 'desc' }]
+			const desc: GridSortState[] = [{ column: 'a', direction: 'desc' }]
 
 			expect(nextSort(desc, 'a', false, 'tri-state')).toEqual([])
 			expect(nextSort(desc, 'a', false)).toEqual([])
@@ -63,7 +64,7 @@ describe('nextSort', () => {
 
 	describe('shift click (additive)', () => {
 		it('appends a new column ascending, keeping the others in priority order', () => {
-			const base: SortState[] = [{ column: 'a', direction: 'asc' }]
+			const base: GridSortState[] = [{ column: 'a', direction: 'asc' }]
 
 			expect(nextSort(base, 'b', true)).toEqual([
 				{ column: 'a', direction: 'asc' },
@@ -72,7 +73,7 @@ describe('nextSort', () => {
 		})
 
 		it('flips an existing additive column ascending → descending in place', () => {
-			const base: SortState[] = [
+			const base: GridSortState[] = [
 				{ column: 'a', direction: 'asc' },
 				{ column: 'b', direction: 'asc' },
 			]
@@ -84,7 +85,7 @@ describe('nextSort', () => {
 		})
 
 		it('drops a descending additive column on the third shift-click', () => {
-			const base: SortState[] = [
+			const base: GridSortState[] = [
 				{ column: 'a', direction: 'asc' },
 				{ column: 'b', direction: 'desc' },
 			]
@@ -93,14 +94,14 @@ describe('nextSort', () => {
 		})
 
 		it("keeps additive semantics — including the drop — under cycle: 'toggle'", () => {
-			const base: SortState[] = [{ column: 'a', direction: 'asc' }]
+			const base: GridSortState[] = [{ column: 'a', direction: 'asc' }]
 
 			expect(nextSort(base, 'b', true, 'toggle')).toEqual([
 				{ column: 'a', direction: 'asc' },
 				{ column: 'b', direction: 'asc' },
 			])
 
-			const desc: SortState[] = [
+			const desc: GridSortState[] = [
 				{ column: 'a', direction: 'asc' },
 				{ column: 'b', direction: 'desc' },
 			]
@@ -118,12 +119,12 @@ describe('sortsEqual', () => {
 	})
 
 	it('matches lists with the same columns and directions in the same order', () => {
-		const a: SortState[] = [
+		const a: GridSortState[] = [
 			{ column: 'a', direction: 'asc' },
 			{ column: 'b', direction: 'desc' },
 		]
 
-		const b: SortState[] = [
+		const b: GridSortState[] = [
 			{ column: 'a', direction: 'asc' },
 			{ column: 'b', direction: 'desc' },
 		]
@@ -138,12 +139,12 @@ describe('sortsEqual', () => {
 	})
 
 	it('distinguishes priority order', () => {
-		const a: SortState[] = [
+		const a: GridSortState[] = [
 			{ column: 'a', direction: 'asc' },
 			{ column: 'b', direction: 'asc' },
 		]
 
-		const b: SortState[] = [
+		const b: GridSortState[] = [
 			{ column: 'b', direction: 'asc' },
 			{ column: 'a', direction: 'asc' },
 		]

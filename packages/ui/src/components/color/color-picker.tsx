@@ -2,6 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { useDensity } from '../../primitives/density'
+import type { GroupStampProps } from '../../types/group-stamp'
 import type { ControlSize } from '../control/context'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
@@ -10,7 +11,13 @@ import { serializeColor, toHsva } from './color-utilities'
 import type { ColorValueProps, Hsva } from './types'
 import { useColorPickerState } from './use-color-picker-state'
 
-type ColorPickerBaseProps = {
+type ColorPickerBaseProps = GroupStampProps & {
+	/**
+	 * Binds the colour to the enclosing Form field of this name (CONVENTIONS
+	 * §7.2). Seed `Form.defaultValues` in the picker's own `format`; the field's
+	 * errors mark the control invalid.
+	 */
+	name?: string
 	/**
 	 * Enable the alpha channel: adds the alpha slider and emits `#rrggbbaa` / an `a < 1`.
 	 *
@@ -34,15 +41,13 @@ type ColorPickerBaseProps = {
 	 * outside press, or `Escape`.
 	 *
 	 * Observation only. The picker owns its open state and there is no `open` prop to pair
-	 * with, so use this to mirror the state elsewhere, not to drive it.
+	 * with. Use this to mirror the state elsewhere, not to drive it.
 	 */
 	onOpenChange?: (open: boolean) => void
 	/** Size step; resolves through the explicit prop, then `<Control>`, then Density, then `'md'`. */
 	size?: ControlSize
 	disabled?: boolean
 	className?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
 }
 
 /** Props for {@link ColorPicker}: presentation and placement options plus format-discriminated value props. */
@@ -51,8 +56,8 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
 /**
  * Popover color picker: a Control-integrated swatch trigger that opens a
  * floating {@link ColorPanel}, which it drives as a controlled child. Reflects
- * the current color in the trigger swatch, speaks a hex string (default) or an
- * HSVA object per `format`, positions via Floating UI (`placement`), and
+ * the current color in the trigger swatch, and speaks a hex string (default) or
+ * an HSVA object per `format`. It positions via Floating UI (`placement`), and
  * resolves `size` through the explicit prop, then `<Control>`, then Density,
  * then `'md'`. Controlled or uncontrolled.
  *
@@ -82,6 +87,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 	const format = props.format ?? 'hex'
 
 	const state = useColorPickerState({
+		name: props.name,
 		value: props.value,
 		defaultValue: props.defaultValue,
 		format,

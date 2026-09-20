@@ -34,7 +34,7 @@ export type MapPointDatum = {
 	label?: string
 	/**
 	 * This dot's trailing readout, independent of {@link label}. It never falls
-	 * back to the group's `detail`: that describes the set, so a dot with no count
+	 * back to the group's `detail`. That describes the set, so a dot with no count
 	 * of its own would misreport itself as the whole round.
 	 */
 	detail?: string
@@ -43,15 +43,15 @@ export type MapPointDatum = {
 	 * to tell apart — a place's category, a stop's status. Omitted, the dot takes
 	 * the mark's slot colour, which is the whole of an undivided set.
 	 *
-	 * A summary dot keeps the mark's colour whatever its members carry: it stands
+	 * A summary dot keeps the mark's colour whatever its members carry. It stands
 	 * for several stops at once, so any one of their colours would name it wrongly.
-	 * That is what lets a set both cluster and stay legible — the merges read as
+	 * That is what lets a set both cluster and stay legible. The merges read as
 	 * merges, and the dots that did not merge say what they are.
 	 *
 	 * The mark still registers ONE legend entry in its own slot, because it is one
-	 * mark. A reader who needs the kinds named wants a key beside the map — a
-	 * filter listing them, a legend of its own — and these colours are what that
-	 * key points at.
+	 * mark. A reader who needs the kinds named wants a key beside the map: a
+	 * filter listing them, or a legend of its own. These colours are what that key
+	 * points at.
 	 */
 	color?: MapSeriesColor
 }
@@ -61,7 +61,7 @@ type MapPointsDotsProps = {
 	groups: MapPointCluster[]
 	/** One stable React key per drawn group. */
 	keys: string[]
-	/** What each dot's fine-pointer target may reach, in device pixels. */
+	/** What each dot's fine-pointer target can reach, in device pixels. */
 	targets: number[]
 	/** Each drawn group's own stroke class, where a lone dot carries a colour of its own. */
 	paints: string[]
@@ -76,16 +76,16 @@ type MapPointsDotsProps = {
 
 /**
  * The drawn dots. Deliberately blind to the pointed mark and to the legend
- * emphasis — the recede class and the pointer-leave sit on the wrapper above —
- * so a pointer crossing anywhere on the map re-renders that wrapper and this
- * holds its render. It is `MapRegionsBase`'s treatment, for the same reason and
- * at a similar count: two hundred dots each rebuild a `MapDot`, an optional
+ * emphasis. The recede class and the pointer-leave sit on the wrapper above. A
+ * pointer crossing anywhere on the map therefore re-renders that wrapper, and
+ * this holds its render. It is `MapRegionsBase`'s treatment, for the same reason
+ * and at a similar count. Two hundred dots each rebuild a `MapDot`, an optional
  * count, a hit circle, and two prop objects.
  *
  * The crossing that matters most is the one that does not concern this mark at
  * all. The pointed-mark context republishes on every discrete crossing, region
- * to region included, and `dim` does not change on those — so without the memo
- * the whole set rebuilt to produce the output it already had.
+ * to region included, and `dim` does not change on those. Without the memo the
+ * whole set rebuilt to produce the output it already had.
  *
  * @internal
  */
@@ -180,19 +180,19 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	points: MapPointDatum[]
 	/**
 	 * Draw dots the frame puts too close together to tell apart as one summary
-	 * dot, whose size grades with how many stops it holds and whose label carries
+	 * dot. Its size grades with how many stops it holds, and its label carries
 	 * the count. A number sets the clear space, in device pixels, two marks keep
-	 * between their edges before they merge — edge to edge, so the one number
-	 * holds however wide a summary grows, and `0` lets marks touch but never
-	 * overlap. A negative gap would ask for the overlap this exists to remove, so
-	 * it reads as `0`.
+	 * between their edges before they merge. It is measured edge to edge, so the
+	 * one number holds however wide a summary grows. `0` lets marks touch but
+	 * never overlap. A negative gap would ask for the overlap this exists to
+	 * remove, so it reads as `0`.
 	 *
 	 * Grouping reads the drawn frame, not the data, so it answers the scale the
-	 * map is at: a national frame summarises a metro round to one mark, and the
-	 * same round separates into its own dots as the frame narrows to the state.
-	 * A summary is one mark to everything downstream — one tooltip, one keyboard
-	 * stop, one table row, one pick — so the picture, the readout, and the cursor
-	 * can never disagree about what is on the map.
+	 * map is at. A national frame summarises a metro round to one mark. The same
+	 * round separates into its own dots as the frame narrows to the state. A
+	 * summary is one mark to everything downstream: one tooltip, one keyboard
+	 * stop, one table row, one pick. The picture, the readout, and the cursor can
+	 * therefore never disagree about what is on the map.
 	 *
 	 * `false` draws every dot, however they stack.
 	 * @defaultValue true
@@ -201,18 +201,18 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	/**
 	 * The trailing readout a summary dot carries, from the stops it holds, how far
 	 * they spread, and what they are called. The spread is the diameter, in metres,
-	 * of the circle about the group that holds every one of them; the module formats
-	 * no distances of its own, so a caller that wants it in the readout states the
-	 * units it works in:
+	 * of the circle about the group that holds every one of them. The module
+	 * formats no distances of its own. A caller that wants it in the readout
+	 * therefore states the units it works in:
 	 * `` (count, span) => `${count} stops · ${miles(span)} across` ``.
 	 *
-	 * `labels` is the merged stops' own names, in draw order — a summary is ONE mark
-	 * downstream, one tooltip and one row, so without them a reader who sees a `3`
-	 * has no way to learn which three it stands for. A caller naming small sets
+	 * `labels` is the merged stops' own names, in draw order. A summary is ONE mark
+	 * downstream, one tooltip and one row. Without them a reader who sees a `3` has
+	 * no way to learn which three it stands for. A caller naming small sets
 	 * outright wants `` (_count, _span, labels) => labels.join(', ') ``; one
 	 * summarising hundreds wants the count. Each entry is that stop's own `label`,
-	 * or its position in the set where it has none — the same fallback a lone dot's
-	 * tooltip takes, so a stop reads identically merged or not.
+	 * or its position in the set where it has none. That is the same fallback a
+	 * lone dot's tooltip takes, so a stop reads identically merged or not.
 	 * @defaultValue the count alone
 	 */
 	clusterDetail?: (count: number, span: number, labels: string[]) => string
@@ -220,8 +220,8 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	 * Fires when a click lands on a dot; see {@link MapPointsPick} for what it
 	 * reports.
 	 *
-	 * Set, every dot carries a pointer cursor, and the keyboard cursor picks the
-	 * dot it stands on with Enter or Space.
+	 * When it is set, every dot carries a pointer cursor. The keyboard cursor picks
+	 * the dot it stands on with Enter or Space.
 	 */
 	onClick?: MapPointsPick
 	/** Fires on a right-click, with the same arguments {@link onClick} reports. */
@@ -229,37 +229,43 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 }
 
 /**
- * A set of dots under one legend entry — a fleet's stops, a chain's branches,
- * a survey's sites — filled in one slot colour and toggled as one. The group is
- * the mark: it registers once, draws one legend row, and takes the emphasis
- * whole, so hovering any dot isolates the set rather than the dot.
+ * A set of dots under one legend entry, filled in one slot colour and toggled as
+ * one. That is a fleet's stops, a chain's branches, or a survey's sites. The
+ * group is the mark. It registers once, draws one legend row, and takes the
+ * emphasis whole. Hovering any dot therefore isolates the set, rather than
+ * the dot.
  *
  * Dots the frame draws on top of one another summarise into a single graded
- * mark carrying their count, and separate back into themselves as the frame
+ * mark carrying their count. They separate back into themselves as the frame
  * widens on them — see {@link MapPointsProps.cluster}.
  *
  * Each dot keeps its own readout and its own pick. Hovering one raises the
- * tooltip with that dot's name and detail, falling back to the group's; the
+ * tooltip with that dot's name and detail, falling back to the group's. The
  * keyboard cursor walks the dots one at a time, and `onClick` reports which was
  * picked. An invisible hit circle per dot keeps each aimable. The plat's
  * `selectedOverlay` haloes the dot holding the picked point — the summary it
  * merged into where the frame draws one.
  *
- * Those circles are finger-sized targets, and for a mouse a dot narrows to what
- * the ground around it can spare — the gap to a neighbour that close, or the
- * share a drawn {@link MapGeofence} under it leaves — so the dots a zoom has just
- * parted stay separately aimable and a zone under a dot keeps a band of its own
- * face. It never narrows past the dot it draws, and a dot standing clear of both
- * keeps the full target.
+ * Those circles are finger-sized targets. For a mouse a dot narrows to what the
+ * ground around it can spare:
+ *
+ * - The gap to a neighbour that close.
+ * - The share a drawn {@link MapGeofence} under it leaves.
+ * - The share a region layer under it takes.
+ *
+ * The dots a zoom has just parted therefore stay separately aimable, and a zone
+ * under a dot keeps a band of its own face. The narrowing never goes past the
+ * dot it draws, and a dot standing clear of all three keeps the full target.
  *
  * @remarks Renders only inside {@link MapPlat}. Prefer this to a `MapPoint` per
- * position past a handful: `MapPoint` registers its own legend entry, so two
- * hundred of them cost two hundred state commits, two hundred re-sorts, and two
- * hundred legend rows against an eight-slot palette. This costs one of each.
+ * position past a handful. `MapPoint` registers its own legend entry. Two
+ * hundred of them therefore cost two hundred state commits, two hundred
+ * re-sorts, and two hundred legend rows against an eight-slot palette. This
+ * costs one of each.
  *
- * A dot whose position the projection has no image for is omitted — the US
- * composite drops points outside its insets — and the rest keep their readouts,
- * so the index a click reports always names the caller's own point. Under the
+ * A dot whose position the projection has no image for is omitted, and the rest
+ * keep their readouts. The US composite drops points outside its insets. The
+ * index a click reports therefore always names the caller's own point. Under the
  * plat's `animate` the dots pop in staggered, so the set reveals in sequence.
  */
 export function MapPoints({
@@ -387,8 +393,8 @@ export function MapPoints({
 	const picked = selected === null ? null : groups[selected]
 
 	// How far each dot's target reaches: the whole of it where the dot stands
-	// clear, and less where a drawn zone under it or a neighbour inside that reach
-	// wants some of the same ground.
+	// clear, and less where something else wants the same ground.
+	// `map-cluster/crowd.ts` holds the list of claimants.
 	//
 	// Memoised on the grouping and the plat's zone resolver, neither of which a
 	// pointer crossing moves — where this mark re-renders on every crossing of

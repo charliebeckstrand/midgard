@@ -1,9 +1,9 @@
 /**
  * Map-shaped adapters over the shared sequential colour scale
- * ({@link ../../../../utilities/color-scale}): quantise a `valueKey` into
- * equal-interval or equal-count (quantile) bins and emit them as the map's
- * {@link MapCategoryMeta} shape (a `value`-kind paint) so the region fills,
- * legend, tooltip, and table read them the way they read categorical slots. The
+ * ({@link ../../../../utilities/color-scale}). They quantise a `valueKey` into
+ * equal-interval or equal-count (quantile) bins. They emit the bins as the map's
+ * {@link MapCategoryMeta} shape, a `value`-kind paint. The region fills, legend,
+ * tooltip, and table then read them the way they read categorical slots. The
  * numeric analogue of `category.ts`. The colour maths itself — sampling the
  * ramp, binning the domain — lives in the shared utility, so the choropleth and
  * the heatmap share one scale.
@@ -21,18 +21,18 @@ import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
 /**
- * A map's `valueFormat`, or the plain-string fallback where it has none. The
- * readout and the range legend resolve it through here rather than each
- * defaulting for itself: a map without the prop would otherwise format its
- * tooltip and table by one rule and its bar's endpoints by another, with
- * nothing to catch the drift.
+ * A map's `formatValue`, or the plain-string fallback where it has none. The
+ * readout and the range legend resolve it through here, rather than each
+ * defaulting for itself. A map without the prop would otherwise format its
+ * tooltip and table by one rule, and its bar's endpoints by another. Nothing
+ * would catch the drift.
  *
  * @internal
  */
 export function resolveValueFormat(
-	valueFormat: ((value: number) => string) | undefined,
+	formatValue: ((value: number) => string) | undefined,
 ): (value: number) => string {
-	return valueFormat ?? String
+	return formatValue ?? String
 }
 
 /** Options a choropleth resolves its bins with. @internal */
@@ -46,10 +46,11 @@ export type ValueScaleOptions = {
 	/** Formats the bin-range endpoints for the legend and table labels. */
 	format: (value: number) => string
 	/**
-	 * How the bins divide the data: `'linear'` (the default) cuts the value span
-	 * into equal-interval buckets; `'quantile'` cuts by rank into equal-count
-	 * buckets, so each shade carries a similar number of rows — the reading for
-	 * skewed data, where equal-interval would pile most rows into the lowest bucket.
+	 * How the bins divide the data. The `'linear'` default cuts the value span into
+	 * equal-interval buckets. The `'quantile'` mode cuts by rank into equal-count
+	 * buckets, so each shade carries a similar number of rows. That is the reading
+	 * for skewed data, where equal-interval would pile most rows into the lowest
+	 * bucket.
 	 */
 	binning?: 'linear' | 'quantile'
 }
@@ -57,10 +58,10 @@ export type ValueScaleOptions = {
 /**
  * Resolves the choropleth bins: one {@link MapCategoryMeta} per bucket, labelled
  * by its value range and painted a colour sampled from `colorRange`. Returns the
- * resolved domain (for the range legend's extent) and an `assign` that maps a
- * raw value to its bin — equal-interval or quantile per `binning` — so
- * {@link regionValueJoin} colours regions through the same scale the legend
- * describes. Empty (with a `null` domain and a no-op `assign`) when no row
+ * resolved domain (for the range legend's extent), plus an `assign` that maps a
+ * raw value to its bin. The `assign` is equal-interval or quantile per
+ * `binning`. {@link regionValueJoin} therefore colours regions through the same
+ * scale the legend describes. Empty (with a `null` domain and a no-op `assign`) when no row
  * carries a finite value.
  *
  * @internal
@@ -123,12 +124,17 @@ export type RegionValueJoin = {
 }
 
 /**
- * Matches each region to its row in one pass: the row whose `regionKey` equals
- * the region's id yields the bin its colour reads from (through `assign` — the
- * {@link resolveValueBins} scale, equal-interval or quantile alike), its own
- * formatted value (the tooltip and table show "2,088", not the bin's "1–135"),
- * and its raw number. `null` throughout where no row matches or the value is
- * non-finite — the region draws in the neutral no-data fill and reads silent.
+ * Matches each region to its row in one pass. The row whose `regionKey` equals
+ * the region's id yields:
+ *
+ * - the bin its colour reads from, through `assign` (the
+ *   {@link resolveValueBins} scale, equal-interval or quantile alike);
+ * - its own formatted value: the tooltip and table show "2,088", not the bin's
+ *   "1–135";
+ * - its raw number.
+ *
+ * `null` throughout where no row matches or the value is non-finite — the region
+ * draws in the neutral no-data fill and reads silent.
  *
  * @internal
  */

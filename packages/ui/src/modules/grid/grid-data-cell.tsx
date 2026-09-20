@@ -1,6 +1,6 @@
 'use client'
 
-import { type HTMLAttributes, memo, type ReactNode, use } from 'react'
+import { type ComponentProps, memo, type ReactNode, use } from 'react'
 import { TableCell } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -37,8 +37,8 @@ type GridDataCellProps<T> = {
 }
 
 /**
- * One data cell: renders the column's `cell` slot directly against the row,
- * wrapping it in the truncation reveal unless the grid opts out, then in a
+ * One data cell: renders the column's `cell` slot directly against the row. It
+ * wraps that in the truncation reveal unless the grid opts out, then in a
  * reorder-aware `<td>`. A column with no `cell` yields null content and stays
  * bare. The direct call — no engine `Cell`, no `flexRender` component boundary —
  * is what lets a body render without materializing the engine row model.
@@ -125,10 +125,10 @@ function GridDataCellImpl<T>({
 }
 
 /**
- * Memoized {@link GridDataCellImpl}: when a row re-renders, only the cells whose
- * own props (column, row, pinning) changed re-render, so a row-level change
- * (selection, truncation) doesn't re-run the cell renderer and `cellProps` for
- * every cell in the row. @internal
+ * Memoized {@link GridDataCellImpl}. When a row re-renders, only the cells whose
+ * own props (column, row, pinning) changed re-render. A row-level change
+ * (selection, truncation) therefore doesn't re-run the cell renderer and
+ * `cellProps` for every cell in the row. @internal
  */
 export const GridDataCell = memo(GridDataCellImpl) as typeof GridDataCellImpl
 
@@ -139,7 +139,7 @@ type GridReorderableCellProps = {
 	columnIndex: number
 	colIndex: number | undefined
 	className: string | undefined
-	cellProps: Omit<HTMLAttributes<HTMLTableCellElement>, 'children'> | undefined
+	cellProps: Omit<ComponentProps<'td'>, 'children'> | undefined
 	children: ReactNode
 }
 
@@ -147,9 +147,9 @@ type GridReorderableCellProps = {
  * Body cell for a reordering column. It no longer registers a sortable of its
  * own — that put the column's header id on every body row, a duplicate-id churn
  * dnd-kit re-measures over. Instead the whole column glides via the CSS variable
- * its header writes (see {@link columnShiftStyle}), and this cell only reflects
- * the dragged-column lift from {@link GridReorderContext} — a value that
- * flips just at drag start and end, so a drag re-renders it twice, never per move.
+ * its header writes (see {@link columnShiftStyle}). This cell only reflects
+ * the dragged-column lift from {@link GridReorderContext}, a value that
+ * flips just at drag start and end. A drag therefore re-renders it twice, never per move.
  *
  * @internal
  */

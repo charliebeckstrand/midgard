@@ -3,6 +3,7 @@ import {
 	CommandPalette,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
+	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	useCommandPaletteQuery,
@@ -177,9 +178,10 @@ describe('CommandPalette active descendant', () => {
 })
 
 describe('CommandPaletteGroup', () => {
-	it('renders the title when provided and labels the group with it', () => {
+	it('names the group from a nested heading', () => {
 		const { container } = renderUI(
-			<CommandPaletteGroup title="Actions">
+			<CommandPaletteGroup>
+				<CommandPaletteHeading>Actions</CommandPaletteHeading>
 				<div>child</div>
 			</CommandPaletteGroup>,
 		)
@@ -195,7 +197,7 @@ describe('CommandPaletteGroup', () => {
 		expect(group).toHaveAttribute('aria-labelledby', title?.id)
 	})
 
-	it('omits the title slot when no title is provided', () => {
+	it('leaves the group unnamed when no heading is nested', () => {
 		const { container } = renderUI(
 			<CommandPaletteGroup>
 				<div>child</div>
@@ -203,6 +205,8 @@ describe('CommandPaletteGroup', () => {
 		)
 
 		expect(bySlot(container, 'command-palette-title')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'command-palette-group')).not.toHaveAttribute('aria-labelledby')
 	})
 
 	it('applies a custom className to the group', () => {
@@ -229,20 +233,6 @@ describe('CommandPaletteItem', () => {
 		expect(item?.tagName).toBe('BUTTON')
 
 		expect(item).toHaveAttribute('role', 'option')
-	})
-
-	it('renders as a link when href is provided', () => {
-		renderUI(
-			<CommandPalette open onOpenChange={() => {}}>
-				<CommandPaletteItem href="/docs">Docs</CommandPaletteItem>
-			</CommandPalette>,
-		)
-
-		const item = bySlot(document.body, 'command-palette-item')
-
-		expect(item?.tagName).toBe('A')
-
-		expect(item).toHaveAttribute('href', '/docs')
 	})
 
 	it('calls onAction and closes the palette on click', async () => {
@@ -514,5 +504,88 @@ describe('CommandPalette open/close transitions', () => {
 		)
 
 		expect(document.activeElement).toBe(screen.getByRole('combobox'))
+	})
+})
+
+describe('CommandPalette onActiveChange', () => {
+	it('reports the option the arrow keys highlight', async () => {
+		const onActiveChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+				<CommandPaletteItem>Beta</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		// Nothing is highlighted until the first arrow key.
+		expect(onActiveChange).not.toHaveBeenCalled()
+
+		await user.keyboard('{ArrowDown}')
+
+		const options = screen.getAllByRole('option')
+
+		// The id is what `aria-activedescendant` carries, which is the readout this
+		// callback replaces.
+		expect(onActiveChange).toHaveBeenCalledExactlyOnceWith(
+			screen.getByRole('combobox').getAttribute('aria-activedescendant'),
+		)
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(options[0]?.id)
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(options[1]?.id)
+
+		expect(onActiveChange).toHaveBeenCalledTimes(2)
+	})
+
+	// A reserved textbox key never reaches roving, so the highlight does not move
+	// and there is nothing to report.
+	it('says nothing for a key the textbox keeps', async () => {
+		const onActiveChange = vi.fn()
+
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+				<CommandPaletteItem>Beta</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.keyboard('{ArrowDown}')
+
+		onActiveChange.mockClear()
+
+		await user.keyboard('{End}')
+
+		expect(onActiveChange).not.toHaveBeenCalled()
+	})
+
+	it('reports null when the palette closes', async () => {
+		const onActiveChange = vi.fn()
+
+		const { rerender } = renderUI(
+			<CommandPalette open onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.keyboard('{ArrowDown}')
+
+		expect(onActiveChange.mock.calls.at(-1)?.[0]).toBeTruthy()
+
+		rerender(
+			<CommandPalette open={false} onOpenChange={() => {}} onActiveChange={onActiveChange}>
+				<CommandPaletteItem>Alpha</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		expect(onActiveChange).toHaveBeenLastCalledWith(null)
 	})
 })

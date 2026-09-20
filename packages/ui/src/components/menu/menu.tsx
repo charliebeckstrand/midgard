@@ -13,14 +13,23 @@ import { useMenuState } from './use-menu-state'
  * surface, the `placement` that selects dropdown mode, and a density-resolved `size`.
  */
 export type MenuProps = {
+	/**
+	 * Open state, controlled. Pair it with `onOpenChange`.
+	 */
 	open?: boolean
+	/**
+	 * Open state at mount, uncontrolled. With no `placement`, a `true` value also
+	 * selects the static inline mode. The panel then renders in place, traps no
+	 * focus, and never dismisses. With a `placement`, the dropdown starts open.
+	 */
 	defaultOpen?: boolean
+	/** Fires when the open state changes, in any of the three modes. */
 	onOpenChange?: (open: boolean) => void
 	/**
 	 * Preferred side/alignment of the dropdown panel relative to the trigger;
-	 * flips on collision. Its presence is what selects dropdown mode: omit it and
-	 * the wrapper instead opens as a right-click context menu (or, with
-	 * `defaultOpen`, a static inline menu). Dropdowns fall back to `'bottom-start'`.
+	 * flips on collision. Its presence is what selects dropdown mode. Omit it and
+	 * the wrapper instead opens as a right-click context menu, or, with
+	 * `defaultOpen`, a static inline menu. Dropdowns fall back to `'bottom-start'`.
 	 */
 	placement?: Placement
 	/**
@@ -29,9 +38,9 @@ export type MenuProps = {
 	 */
 	size?: Step
 	/**
-	 * Cap the panel at its density height, scrolling past it. Off by default: a
-	 * menu is normally a short, fixed item set, where a cap clips the last row and
-	 * reads as truncation rather than as more content below. Turn it on for a menu
+	 * Cap the panel at its density height, scrolling past it. Off by default. A
+	 * menu is normally a short, fixed item set. A cap there clips the last row and
+	 * reads as truncation, rather than as more content below. Turn it on for a menu
 	 * long enough to run past the viewport — the panel then scrolls inside the cap
 	 * instead of growing. Applies to the panel and to every submenu under it.
 	 * @defaultValue false
@@ -43,9 +52,15 @@ export type MenuProps = {
 
 /**
  * Composition root for menus; provides open state and actions to its trigger
- * and items via context. A `placement` makes it a floating dropdown; without
- * one the wrapper opens as a right-click context menu, or — when `defaultOpen`
- * is set — renders as a static inline menu.
+ * and items via context. A `placement` makes it a floating dropdown. Without
+ * one the wrapper opens as a right-click context menu, or renders as a static
+ * inline menu when `defaultOpen` is set.
+ *
+ * @remarks
+ * The mode comes from prop presence by design. The three modes take one prop
+ * set and no prop is illegal in any of them, so a `mode` prop would restate
+ * `placement`. An explicit `StaticMenu` waits for a consumer: today every
+ * static inline call site is a test fixture.
  *
  * @see {@link MenuTrigger}
  * @see {@link MenuContent}
@@ -74,7 +89,7 @@ export function Menu({
 			<MenuCappedContext value={capped}>
 				<MenuStateContext value={state}>
 					{/* The menu's own pointer level, spanning the trigger as well as the
-				panel: a dropdown's trigger keeps focus while open, so it is where an
+				panel. A dropdown's trigger keeps focus while open, so it is where an
 				open submenu's arrow keys arrive. A dropdown roves by
 				`aria-activedescendant` from there, so the pointer marks `data-active`;
 				every other mode roves by real focus and the pointer moves it. */}

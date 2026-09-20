@@ -6,7 +6,7 @@ import { type RefCallback, useCallback } from 'react'
 const EDGE_EPSILON_PX = 1
 
 /**
- * Stamps vertical scroll-overflow state onto a scroll container: the node
+ * Stamps vertical scroll-overflow state onto a scroll container. The node
  * carries `data-overflow-above` / `data-overflow-below` while content extends
  * past the respective edge, and drops each attribute when that edge is
  * reached. Style the attributes to build scroll affordances — edge fades,

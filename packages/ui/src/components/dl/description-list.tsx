@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/dl'
 import type { Orientation } from '../../types'
@@ -13,13 +13,13 @@ export type DescriptionListVariants = {
 /** Props for {@link DescriptionList}: `orientation` variant plus native `<dl>` attributes. */
 export type DescriptionListProps = DescriptionListVariants & {
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'dl'>, 'className'>
+} & Omit<ComponentProps<'dl'>, 'className'>
 
 /**
  * Semantic description list (`<dl>`) pairing `<DescriptionTerm>` with `<DescriptionDetails>`.
- * Lays out `horizontal` (terms beside details) or `vertical` (terms above details) and owns
- * every orientation-varying style, projecting it onto direct `dt` / `dd` children so term and
- * details stay context-free.
+ * Lays out `horizontal` (terms beside details) or `vertical` (terms above
+ * details). It owns every orientation-varying style, and projects it onto
+ * direct `dt` / `dd` children, so term and details stay context-free.
  *
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components. Projection targets

@@ -73,13 +73,13 @@ describe('MapPlat', () => {
 		expect(allRegions(container)).toHaveLength(3)
 	})
 
-	it('holds the paint until measured under deferPaint, the reserve still owning the box', () => {
-		// deferPaint inverts the default above: an unmeasured frame (jsdom never
+	it('holds the paint until measured under a fixed aspect, the reserve still owning the box', () => {
+		// A fixed aspect inverts the default above: an unmeasured frame (jsdom never
 		// measures) mounts no SVG — the geography waits to paint once at the
 		// measured aspect instead of flashing the canonical fit and refitting —
 		// while the plot region still stands and reserves the space.
 		const { container } = renderUI(
-			<MapPlat aria-label="Tile" geography={FIXTURE_GEOJSON} deferPaint />,
+			<MapPlat aria-label="Tile" geography={FIXTURE_GEOJSON} aspectRatio="16/9" />,
 		)
 
 		expect(container.querySelector('svg')).toBeNull()
@@ -87,10 +87,10 @@ describe('MapPlat', () => {
 		expect(bySlot(container, 'map-plot')).toBeInTheDocument()
 	})
 
-	it('paints immediately under deferPaint when an explicit width fixes the frame', () => {
+	it('paints immediately under a fixed aspect when an explicit width fixes the frame', () => {
 		// An explicit width is already "measured" (the SSR / test path), so there is
 		// nothing to defer for: the map draws on the first commit as usual.
-		const { container } = renderUI(plat({ deferPaint: true }))
+		const { container } = renderUI(plat({ aspectRatio: '16/9' }))
 
 		expect(allRegions(container)).toHaveLength(3)
 	})
@@ -678,7 +678,7 @@ describe('MapPlat choropleth mode', () => {
 			regionKey: 'state',
 			valueKey: 'value',
 			colorRange: RANGE,
-			valueName: 'Density',
+			colorName: 'Density',
 			width: 400,
 			...extra,
 		} as Parameters<typeof MapPlat<(typeof NUMERIC)[number]>>[0]
@@ -1162,5 +1162,107 @@ describe('MapPlat controlled emphasis', () => {
 		fireEvent.pointerEnter(east as HTMLButtonElement)
 
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).toContain('opacity-25')
+	})
+})
+
+describe('MapPlat legend reporting', () => {
+	const entries = (container: HTMLElement) =>
+		allBySlot(container, 'map-legend-item') as HTMLButtonElement[]
+
+	const labelOf = (el: Element) => bySlot(el as HTMLElement, 'map-legend-label')?.textContent ?? ''
+
+	it('reports the ids a legend switch turns off, and the set it restores', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container } = renderUI(plat({ onHiddenChange }))
+
+		// Every entry shows on mount; the empty set is the rest state.
+		expect(onHiddenChange).not.toHaveBeenCalled()
+
+		const [first] = entries(container)
+
+		fireEvent.click(first as HTMLButtonElement)
+
+		expect(onHiddenChange).toHaveBeenCalledOnce()
+
+		const hidden = onHiddenChange.mock.calls[0]?.[0] as ReadonlySet<string>
+
+		expect(hidden.size).toBe(1)
+
+		fireEvent.click(first as HTMLButtonElement)
+
+		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set())
+	})
+
+	it('carries every id switched off, not only the last', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container } = renderUI(plat({ onHiddenChange }))
+
+		const [first, second] = entries(container)
+
+		fireEvent.click(first as HTMLButtonElement)
+
+		fireEvent.click(second as HTMLButtonElement)
+
+		const hidden = onHiddenChange.mock.calls.at(-1)?.[0] as ReadonlySet<string>
+
+		expect(hidden.size).toBe(2)
+	})
+
+	it('reports the id the legend emphasises, and null when it clears', () => {
+		const onEmphasisChange = vi.fn()
+
+		const { container } = renderUI(plat({ onEmphasisChange }))
+
+		expect(onEmphasisChange).not.toHaveBeenCalled()
+
+		const [first] = entries(container)
+
+		fireEvent.pointerEnter(first as HTMLButtonElement)
+
+		expect(onEmphasisChange).toHaveBeenCalledOnce()
+
+		expect(onEmphasisChange.mock.calls[0]?.[0]).toBeTypeOf('string')
+
+		fireEvent.pointerLeave(first as HTMLButtonElement)
+
+		expect(onEmphasisChange).toHaveBeenLastCalledWith(null)
+	})
+
+	// The triad's whole point: a controlled `emphasis` used to take the plat's own
+	// legend out of the decision with no way to hear what it wanted.
+	it('reports the legend intent even while emphasis is controlled', () => {
+		const onEmphasisChange = vi.fn()
+
+		const { container } = renderUI(plat({ emphasis: null, onEmphasisChange }))
+
+		const [first] = entries(container)
+
+		fireEvent.pointerEnter(first as HTMLButtonElement)
+
+		expect(onEmphasisChange).toHaveBeenCalledOnce()
+
+		expect(onEmphasisChange.mock.calls[0]?.[0]).toBeTypeOf('string')
+	})
+
+	// A hidden entry cannot hold the emphasis, so switching one off while it is
+	// emphasised clears the emphasis too.
+	it('clears the emphasis when the emphasised entry is switched off', () => {
+		const onEmphasisChange = vi.fn()
+
+		const { container } = renderUI(plat({ onEmphasisChange }))
+
+		const [first] = entries(container)
+
+		expect(labelOf(first as HTMLButtonElement)).not.toBe('')
+
+		fireEvent.pointerEnter(first as HTMLButtonElement)
+
+		onEmphasisChange.mockClear()
+
+		fireEvent.click(first as HTMLButtonElement)
+
+		expect(onEmphasisChange).toHaveBeenLastCalledWith(null)
 	})
 })

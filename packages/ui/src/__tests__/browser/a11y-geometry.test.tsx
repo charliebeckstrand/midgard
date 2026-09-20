@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { baseline, overlays } from '../a11y/cases'
+import { baseline, overlays, rows } from '../a11y/cases'
 import { renderUI } from '../helpers'
 import { axeGeometry } from './helpers/axe-geometry'
 
@@ -18,10 +18,12 @@ import { axeGeometry } from './helpers/axe-geometry'
 // baseline.
 const GEOMETRY_EXEMPT = new Set(['kanban'])
 
-const geometryBaseline = baseline.filter(([name]) => !GEOMETRY_EXEMPT.has(name))
+const geometryBaseline = baseline.filter(({ name }) => !GEOMETRY_EXEMPT.has(name))
 
 describe('a11y geometry (axe): baseline', () => {
-	it.each(geometryBaseline)('%s meets contrast and target-size', async (_name, element) => {
+	it.each(rows(geometryBaseline))('%s meets contrast and target-size', async (_name, {
+		element,
+	}) => {
 		const { container } = renderUI(element)
 
 		expect(await axeGeometry(container)).toHaveNoViolations()
@@ -33,7 +35,7 @@ describe('a11y geometry (axe): baseline', () => {
  * the whole document, matching the jsdom overlay gate.
  */
 describe('a11y geometry (axe): overlays', () => {
-	it.each(overlays)('%s meets contrast and target-size', async (_name, element) => {
+	it.each(rows(overlays))('%s meets contrast and target-size', async (_name, { element }) => {
 		renderUI(element)
 
 		expect(await axeGeometry(document.body)).toHaveNoViolations()

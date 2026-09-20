@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { regionAt, regionIndex } from '../../modules/map/engine/map-geometry/locate'
 import { rewindFeatures } from '../../modules/map/engine/map-geometry/winding'

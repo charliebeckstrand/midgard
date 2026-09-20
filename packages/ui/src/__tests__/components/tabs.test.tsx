@@ -1,28 +1,11 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import {
-	Tab,
-	TabContent,
-	TabContents,
-	TabList,
-	TabListSkeleton,
-	TabPanel,
-	TabPanels,
-	Tabs,
-} from '../../components/tabs'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
 import { DensityProvider } from '../../providers/density'
-import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('TabList', () => {
-	it('pairs with an explicit TabListSkeleton in loading trees', () => {
-		const { container } = renderUI(<TabListSkeleton tabs={4} />)
-
-		expect(bySlot(container, 'tab')).not.toBeInTheDocument()
-
-		expect(allBySlot(container, 'placeholder')).toHaveLength(4)
-	})
-
 	it('forwards the full button surface to the tab', () => {
 		renderUI(
 			<Tabs value="a" onValueChange={() => {}}>
@@ -74,9 +57,9 @@ describe('TabList', () => {
 				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
+				<TabContents>
+					<TabContent value="a">Panel A</TabContent>
+				</TabContents>
 			</Tabs>,
 		)
 
@@ -179,9 +162,9 @@ describe('TabList', () => {
 				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
+				<TabContents>
+					<TabContent value="a">Panel A</TabContent>
+				</TabContents>
 			</Tabs>,
 		)
 
@@ -202,9 +185,9 @@ describe('Tab', () => {
 				<TabList aria-label="Tabs">
 					<Tab value="a">Tab A</Tab>
 				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
+				<TabContents>
+					<TabContent value="a">Panel A</TabContent>
+				</TabContents>
 			</Tabs>,
 		)
 
@@ -454,61 +437,6 @@ describe('Tab onPreload', () => {
 	})
 })
 
-describe('TabPanel', () => {
-	it('renders with data-slot="tab-panel" and role="tabpanel"', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
-			</Tabs>,
-		)
-
-		const el = bySlot(container, 'tab-panel')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el).toHaveAttribute('role', 'tabpanel')
-	})
-
-	it('derives id and aria-labelledby from the provided id prop', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabPanels>
-					<TabPanel id="t1">Panel A</TabPanel>
-				</TabPanels>
-			</Tabs>,
-		)
-
-		const panel = bySlot(container, 'tab-panel')
-
-		expect(panel).toHaveAttribute('id', 't1-panel')
-
-		expect(panel).toHaveAttribute('aria-labelledby', 't1')
-	})
-
-	it('carries the design-system focus ring, not the browser default', () => {
-		const { container } = renderUI(
-			<Tabs defaultValue="a">
-				<TabList aria-label="Tabs">
-					<Tab value="a">Tab A</Tab>
-				</TabList>
-				<TabPanels>
-					<TabPanel>Panel A</TabPanel>
-				</TabPanels>
-			</Tabs>,
-		)
-
-		expect(bySlot(container, 'tab-panel')?.className).toContain('focus-visible:outline-blue-600')
-	})
-})
-
 describe('TabContent (idiomatic)', () => {
 	function renderContents(panelChildren?: Record<string, ReactNode>) {
 		return renderUI(
@@ -688,11 +616,11 @@ describe('Tabs keyboard navigation', () => {
 					</Tab>
 					<Tab value="c">C</Tab>
 				</TabList>
-				<TabPanels>
-					<TabPanel>PA</TabPanel>
-					<TabPanel>PB</TabPanel>
-					<TabPanel>PC</TabPanel>
-				</TabPanels>
+				<TabContents>
+					<TabContent value="a">PA</TabContent>
+					<TabContent value="b">PB</TabContent>
+					<TabContent value="c">PC</TabContent>
+				</TabContents>
 			</Tabs>,
 		)
 	}

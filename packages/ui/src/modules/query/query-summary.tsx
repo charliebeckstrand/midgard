@@ -6,9 +6,9 @@ import { k } from '../../recipes/kata/query-summary'
 import { type QuerySummaryToken, spacedBefore, summarizeQuery } from './engine/query-summary'
 import type { QueryField, QueryGroup } from './engine/types'
 
-/** Props for {@link QuerySummary}: the query `root` to describe and the `fields` resolving each rule's labels. */
+/** Props for {@link QuerySummary}: the query `value` to describe and the `fields` resolving each rule's labels. */
 export type QuerySummaryProps = {
-	root: QueryGroup
+	value: QueryGroup
 	fields: QueryField[]
 	className?: string
 }
@@ -38,19 +38,19 @@ function SummaryToken({ token }: { token: QuerySummaryToken }) {
 }
 
 /**
- * Read-only, human-readable rendering of a query tree: each active rule as
- * `field operator value`, joined by AND/OR and bracketed per nested group, over
- * the same `engine/` the builder edits. Renders `null` when the query imposes no
- * constraint (in step with {@link isQueryActive}), so it can sit beside a filter
- * affordance and appear only once a filter is set.
+ * A read-only, human-readable rendering of a query tree: each active rule as
+ * `field operator value`, joined by AND/OR and bracketed per nested group. It
+ * reads the same `engine/` the builder edits. Renders `null` when the query
+ * imposes no constraint, in step with {@link isQueryActive}. It can therefore
+ * sit beside a filter affordance and appear only once a filter is set.
  *
  * @remarks
  * A blank or half-built rule drops out, mirroring the evaluator; a `select`
  * value shows its option label and a one-sided range a `≥`/`≤` bound. For a
  * plain string (a `title`, an aria-label, a log), reach for `formatQuerySummary`.
  */
-export function QuerySummary({ root, fields, className }: QuerySummaryProps) {
-	const tokens = summarizeQuery(root, fields)
+export function QuerySummary({ value, fields, className }: QuerySummaryProps) {
+	const tokens = summarizeQuery(value, fields)
 
 	if (tokens.length === 0) return null
 

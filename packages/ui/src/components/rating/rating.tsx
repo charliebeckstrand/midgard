@@ -37,7 +37,7 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
 	count?: number
 	/**
 	 * Binds the value to the enclosing Form field of this name (CONVENTIONS §7.2).
-	 * It is not the native grouping name: the stars group under an id of their
+	 * It is not the native grouping name. The stars group under an id of their
 	 * own, so two ratings bound to different fields never merge into one native
 	 * group.
 	 */
@@ -63,8 +63,8 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
 	 * The stars recede while the pointer rests on the one that would clear them,
 	 * so that click previews its result like every other one does. Without it the
 	 * clearing star is the only star on the row that answers the pointer with the
-	 * row already drawn — worst at a score of one, where the pointer sits on the
-	 * only filled star and nothing at all moves.
+	 * row already drawn. It is worst at a score of one, where the pointer sits on
+	 * the only filled star and nothing at all moves.
 	 * @defaultValue true
 	 */
 	clearable?: boolean
@@ -99,20 +99,20 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
  * Star rating: a row of stars standing for a score out of {@link RatingProps.count}.
  *
  * Interactive, it is a `role="radiogroup"` over one native `<input type="radio">`
- * per star, so arrow keys, focus, and the announced position come from the
- * platform rather than from key handlers of its own — `Slider`'s bargain, for
- * the same reason. `readOnly` drops the inputs and renders one `role="img"`
+ * per star. Arrow keys, focus, and the announced position therefore come from
+ * the platform, rather than from key handlers of its own. It is `Slider`'s
+ * bargain, for the same reason. `readOnly` drops the inputs and renders one `role="img"`
  * carrying the readout, because colour and shape alone do not carry a score
  * (WCAG 1.4.1).
  *
- * Binds to an enclosing Form field by `name`, resolves `id` / `disabled` /
+ * Binds to an enclosing Form field by `name`. Resolves `id` / `disabled` /
  * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`, and takes
  * `size` from the Density cascade.
  *
  * @remarks A click on the current score clears it while `clearable` holds. The
- * click is cancelled rather than handled after the fact: a radio restores its
- * own checkedness when its activation is cancelled, so the clear never races the
- * `change` that would otherwise set the same star again.
+ * click is cancelled rather than handled after the fact. A radio restores its
+ * own checkedness when its activation is cancelled. The clear therefore never
+ * races the `change` that would otherwise set the same star again.
  *
  * The display form draws a fractional score — an average of reviews is not a
  * whole number — by clipping a filled star over an empty one. The interactive

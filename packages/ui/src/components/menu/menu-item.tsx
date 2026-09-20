@@ -16,6 +16,12 @@ type MenuItemBaseProps = {
 	children?: ReactNode
 	/** Runs on selection (click or Enter/Space), then closes the menu. */
 	onAction?: () => void
+	/**
+	 * Close the menu after `onAction`. Set `false` for a row that toggles
+	 * state the reader keeps adjusting.
+	 * @defaultValue true
+	 */
+	closeOnAction?: boolean
 }
 
 /** Props for {@link MenuItem}: a base set plus polymorphic `<button>`/anchor attributes; `href` switches it to a link. */
@@ -38,7 +44,7 @@ export function MenuItem(props: MenuItemProps) {
 
 	const { component: LinkComponent } = useLink()
 
-	const { disabled, className, children, onAction } = props
+	const { disabled, className, children, onAction, closeOnAction = true } = props
 
 	// A stable id so a dropdown's `aria-activedescendant` (roving with focus on the
 	// trigger) can point at this row; a consumer-supplied id wins.
@@ -51,7 +57,7 @@ export function MenuItem(props: MenuItemProps) {
 
 		onAction?.()
 
-		close()
+		if (closeOnAction) close()
 	}
 
 	// The pointer moves the same cursor the arrows do, so the menu carries one
@@ -87,6 +93,7 @@ export function MenuItem(props: MenuItemProps) {
 			className: _className,
 			children: _children,
 			onAction: _onAction,
+			closeOnAction: _closeOnAction,
 			onClick: consumerOnClick,
 			onPointerMove: consumerOnPointerMove,
 			...rest
@@ -120,6 +127,7 @@ export function MenuItem(props: MenuItemProps) {
 		className: _className,
 		children: _children,
 		onAction: _onAction,
+		closeOnAction: _closeOnAction,
 		onClick: consumerOnClick,
 		onKeyDown: consumerOnKeyDown,
 		onPointerMove: consumerOnPointerMove,

@@ -1,6 +1,7 @@
 import {
 	createPanel,
 	type PanelBodyProps,
+	type PanelContentProps,
 	type PanelDescriptionProps,
 	type PanelFooterProps,
 	type PanelHeaderProps,
@@ -18,14 +19,16 @@ export type SheetHeaderProps = PanelHeaderProps
 export type SheetBodyProps = PanelBodyProps
 /** Props for {@link SheetFooter} (`<div>` attributes). */
 export type SheetFooterProps = PanelFooterProps
+/** Props for {@link SheetContent} (`<div>` attributes). */
+export type SheetContentProps = PanelContentProps
 
 /**
  * Sheet content slots, exported as `SheetTitle`, `SheetDescription`,
- * `SheetHeader`, `SheetBody`, and `SheetFooter`. `Title`/`Description` register
+ * `SheetHeader`, `SheetBody`, `SheetFooter`, and `SheetContent`. `Title`/`Description` register
  * with the panel's a11y context to supply the dialog's accessible name and
  * description; `Header`/`Body`/`Footer` lay out the panel's regions.
  */
-const { Title, Description, Header, Body, Footer } = createPanel('sheet', {
+const { Title, Description, Header, Body, Footer, Content } = createPanel('sheet', {
 	title: k.title,
 	description: k.description,
 	header: k.header,
@@ -36,6 +39,8 @@ const { Title, Description, Header, Body, Footer } = createPanel('sheet', {
 export {
 	/** `<div>` scroll region for the sheet's main content; fills remaining height and scrolls on overflow. */
 	Body as SheetBody,
+	/** `<div>` wrapper for arbitrary sheet content outside the header/body/footer rhythm. */
+	Content as SheetContent,
 	/** `<p>` supporting copy; registers as the sheet's `aria-describedby` target. */
 	Description as SheetDescription,
 	/** `<div>` action row pinned to the sheet's foot. */

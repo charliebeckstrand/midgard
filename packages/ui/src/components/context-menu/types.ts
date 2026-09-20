@@ -4,14 +4,14 @@ import type { ReactElement, ReactNode } from 'react'
  * One actionable entry in a {@link ContextMenu}: a label, an optional leading
  * icon, and the handler run when it is chosen. The menu closes after `onAction`.
  * This is the public shape a host's default actions and a caller's custom items
- * share, so a chart's built-in "Fullscreen" and an app's own "View details"
- * read as one list.
+ * share. A chart's built-in "Fullscreen" and an app's own "View details"
+ * therefore read as one list.
  */
 export type ContextMenuItem = {
 	/**
 	 * Stable identity for the entry, used as its React key. Falls back to the
-	 * render index when omitted — enough for a static list, but set it on a list
-	 * that reorders so React keeps each row's state.
+	 * render index when omitted, which is enough for a static list. Set it on a
+	 * list that reorders, so React keeps each row's state.
 	 */
 	key?: string
 	/** The entry's label. */
@@ -25,9 +25,9 @@ export type ContextMenuItem = {
 }
 
 /**
- * A divider between groups of {@link ContextMenuItem}s — the rule
+ * A divider between groups of {@link ContextMenuItem}s. The rule is what
  * {@link resolveContextMenuEntries} inserts between a host's defaults and a
- * caller's custom items, and that a host can place between its own groups.
+ * caller's custom items. A host can also place one between its own groups.
  */
 export type ContextMenuSeparator = {
 	/** Stable identity for the separator, used as its React key. */
@@ -36,9 +36,10 @@ export type ContextMenuSeparator = {
 }
 
 /**
- * A row that opens a nested menu beside itself rather than acting: the parent
- * label a group of related entries collapses under (a column menu's Sort, Pin,
- * or Export), revealed on hover, on click, or on Enter / Space. Once open it
+ * A row that opens a nested menu beside itself rather than acting. It is the
+ * parent label a group of related entries collapses under, such as a column
+ * menu's Sort, Pin, or Export. It is revealed on hover, on click, or on Enter /
+ * Space. Once open it
  * owns the arrows until `Escape` closes it. Nests arbitrarily — a submenu's
  * `items` can hold submenus of their own.
  */
@@ -62,13 +63,13 @@ export type ContextMenuSubmenu = {
  */
 export type ContextMenuEntry = ContextMenuItem | ContextMenuSeparator | ContextMenuSubmenu
 
-/** Where a caller's custom items sit relative to a host's default items. @see {@link ContextMenuConfig.position} */
-export type ContextMenuPosition = 'before' | 'after'
+/** Where a caller's custom items sit relative to a host's default items. @see {@link ContextMenuConfig.insert} */
+export type ContextMenuInsert = 'before' | 'after'
 
 /**
  * A host's right-click-menu configuration, exposed as a prop (a chart's
- * `contextMenu`, say): the custom `items` to add, whether to keep the host's
- * default items, and where the custom block sits relative to them. A separator
+ * `contextMenu`, say). It holds the custom `items` to add, whether to keep the
+ * host's default items, and where the custom block sits relative to them. A separator
  * divides the two groups when both show.
  *
  * @see {@link resolveContextMenuEntries}
@@ -86,7 +87,7 @@ export type ContextMenuConfig = {
 	 * (the default) or `'before'` them.
 	 * @defaultValue 'after'
 	 */
-	position?: ContextMenuPosition
+	insert?: ContextMenuInsert
 	/**
 	 * Cap the menu at its density height, scrolling past it. Off by default, since
 	 * a right-click menu is normally a short, fixed item set where a cap clips the

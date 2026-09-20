@@ -20,12 +20,12 @@ import { PdfViewerThumbnailList } from './pdf-viewer-thumbnail-list'
  *
  * @remarks Renders nothing when there are no pages and the document isn't
  * loading. The desktop sidebar collapses via the toolbar toggle (`sidebarOpen`),
- * sliding off-canvas while staying mounted for the transition; when collapsed it
+ * sliding off-canvas while staying mounted for the transition. When collapsed it
  * is `inert` and `aria-hidden`, off the tab order and a11y tree. Once the slide
- * lands, its contents drop into `<Activity mode="hidden">` as well, so a long
- * document's thumbnail rail stops laying out and re-rendering behind a closed
- * sidebar — the attributes cover the collapsed sidebar's semantics from the
- * first frame, the hold covers its cost from the last one. The mobile Sheet is
+ * lands, its contents drop into `<Activity mode="hidden">`, so a long document's
+ * thumbnail rail stops laying out and re-rendering behind a closed sidebar. The
+ * attributes cover the collapsed sidebar's semantics from the first frame, and
+ * the hold covers its cost from the last one. The mobile Sheet is
  * portaled into the viewer root so it overlays the viewer rather than the page.
  * @internal
  */
@@ -37,6 +37,7 @@ export function PdfViewerThumbnails() {
 		loading,
 		isDesktop,
 		sidebarOpen,
+		sidebarAnimates,
 		thumbsOpen,
 		setThumbsOpen,
 		rootRef,
@@ -46,7 +47,9 @@ export function PdfViewerThumbnails() {
 
 	// The sidebar is always mounted; the hold only decides whether its contents
 	// are live, and defers to the slide so the rail doesn't blank mid-transition.
-	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: true })
+	// Deferred only where there is a slide to wait on: a rail that opens without
+	// travelling fires no `transitionend`, so a deferred hold would wait forever.
+	const sidebarHold = useMountHold(sidebarOpen, 'always', { defer: sidebarAnimates })
 
 	const sidebarRef = useRef<HTMLElement>(null)
 
@@ -80,7 +83,11 @@ export function PdfViewerThumbnails() {
 					data-slot="pdf-viewer-sidebar"
 					aria-hidden={!sidebarOpen}
 					inert={!sidebarOpen}
-					className={cn(k.sidebar.base, !sidebarOpen && k.sidebar.closed)}
+					className={cn(
+						k.sidebar.base,
+						sidebarAnimates && k.sidebar.travel,
+						!sidebarOpen && k.sidebar.closed,
+					)}
 					onKeyDown={handleSidebarKeyDown}
 					// The slide is a CSS margin transition, so its landing is the
 					// element's own `transitionend` rather than an animation callback.

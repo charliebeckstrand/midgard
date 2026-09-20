@@ -12,9 +12,9 @@ export type LastEdited = 'password' | 'confirm' | null
  * @returns `'warning'` only once both fields are non-empty and unequal;
  * `'idle'` otherwise.
  * @remarks
- * While the user is still typing the confirmation (`lastEdited === 'confirm'`
- * and it's shorter than the password) the result stays `'idle'`, so a
- * not-yet-finished entry isn't flagged as a mismatch.
+ * While the user is still typing the confirmation the result stays `'idle'`, so
+ * a not-yet-finished entry isn't flagged as a mismatch. That is the case where
+ * `lastEdited === 'confirm'` and it is shorter than the password.
  * @internal
  */
 export function deriveStatus(password: string, confirm: string, lastEdited: LastEdited): Status {
@@ -32,8 +32,8 @@ export function deriveStatus(password: string, confirm: string, lastEdited: Last
  * value and name from a bubbled event.
  *
  * @remarks
- * Ignores events from non-input targets and from the confirmation field (tagged
- * with `data-password-confirm-input`), so only the password field feeds these
+ * Ignores events from non-input targets and from the confirmation field (which
+ * carries `data-slot="password-confirm-input"`), so only the password field feeds these
  * setters. Marks `'password'` as last edited.
  * @internal
  */
@@ -47,7 +47,7 @@ export function handlePasswordInput(
 
 	if (!(target instanceof HTMLInputElement)) return
 
-	if ('passwordConfirmInput' in target.dataset) return
+	if (target.dataset.slot === 'password-confirm-input') return
 
 	setPassword(target.value)
 	setPasswordName(target.name || undefined)

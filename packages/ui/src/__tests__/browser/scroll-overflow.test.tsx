@@ -1,0 +1,127 @@
+import { useState } from 'react'
+import { describe, expect, it } from 'vitest'
+import { useScrollOverflow } from '../../hooks/use-scroll-overflow'
+import { frames, present, renderUI, screen, waitFor } from '../helpers'
+
+/**
+ * {@link useScrollOverflow} stamps `data-overflow-above` / `data-overflow-below`
+ * on a scroller so a recipe can fade the edge that has more content behind it.
+ * Every one of those decisions is a comparison of `scrollTop`, `clientHeight`
+ * and `scrollHeight` — three numbers jsdom reports as zero and its unit suite
+ * therefore wrote by hand, alongside a hand-dispatched `scroll` event and a
+ * hand-edited `scrollHeight` standing in for content that grew.
+ *
+ * Here the box really overflows, the scroll really happens, and the content
+ * really grows, so the attributes answer to layout rather than to the case.
+ */
+
+/** A fixed-height scroller whose content height the case controls. */
+function Probe({ initial }: { initial: number }) {
+	const attach = useScrollOverflow()
+
+	const [extra, setExtra] = useState(0)
+
+	return (
+		<div>
+			<button type="button" data-testid="grow" onClick={() => setExtra(400)}>
+				grow
+			</button>
+
+			<div ref={attach} data-testid="scroller" style={{ height: 200, overflowY: 'auto' }}>
+				<div style={{ height: initial + extra }} />
+			</div>
+		</div>
+	)
+}
+
+/** The scroller node, once painted. */
+function scroller(): HTMLElement {
+	return present(screen.getByTestId('scroller'), 'the scroller')
+}
+
+/** `[above, below]` as the hook currently has them stamped. */
+function edges(): [boolean, boolean] {
+	const el = scroller()
+
+	return [el.hasAttribute('data-overflow-above'), el.hasAttribute('data-overflow-below')]
+}
+
+describe('useScrollOverflow against a real scroller', () => {
+	it('stamps neither edge when the content fits', async () => {
+		renderUI(<Probe initial={150} />)
+
+		await frames()
+
+		expect(edges()).toEqual([false, false])
+	})
+
+	it('stamps the lower edge on attach when the content overflows', async () => {
+		renderUI(<Probe initial={400} />)
+
+		await waitFor(() => expect(edges()).toEqual([false, true]))
+	})
+
+	it('flips the edges as the box scrolls between them', async () => {
+		renderUI(<Probe initial={400} />)
+
+		const el = scroller()
+
+		await waitFor(() => expect(edges()).toEqual([false, true]))
+
+		// Mid-travel: content behind both edges.
+		el.scrollTop = 100
+
+		await waitFor(() => expect(edges()).toEqual([true, true]))
+
+		// The bottom: 200 of travel in a 400 box with a 200 viewport.
+		el.scrollTop = 200
+
+		await waitFor(() => expect(edges()).toEqual([true, false]))
+
+		el.scrollTop = 0
+
+		await waitFor(() => expect(edges()).toEqual([false, true]))
+	})
+
+	it('re-measures when the content grows under it', async () => {
+		renderUI(<Probe initial={150} />)
+
+		await frames()
+
+		expect(edges()).toEqual([false, false])
+
+		// A real child grows the content past the viewport; the hook's mutation
+		// observer has to notice without any scroll to prompt it.
+		screen.getByTestId('grow').click()
+
+		await waitFor(() => expect(edges()).toEqual([false, true]))
+	})
+
+	it('unstamps both edges and stops listening once the ref detaches', async () => {
+		const { unmount, container } = renderUI(<Probe initial={400} />)
+
+		const el = scroller()
+
+		await waitFor(() => expect(edges()).toEqual([false, true]))
+
+		el.scrollTop = 100
+
+		await waitFor(() => expect(edges()).toEqual([true, true]))
+
+		// Detaching runs the callback ref's cleanup: the attributes come off, and
+		// a later scroll must not restamp them through a listener left behind.
+		unmount()
+
+		expect(el.hasAttribute('data-overflow-above')).toBe(false)
+
+		expect(el.hasAttribute('data-overflow-below')).toBe(false)
+
+		el.dispatchEvent(new Event('scroll'))
+
+		await frames()
+
+		expect(el.hasAttribute('data-overflow-above')).toBe(false)
+
+		expect(container.isConnected).toBe(true)
+	})
+})

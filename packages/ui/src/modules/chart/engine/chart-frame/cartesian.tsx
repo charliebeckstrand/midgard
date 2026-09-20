@@ -33,16 +33,16 @@ export type ChartCartesianFrameProps = AccessibleName &
 	}
 
 /**
- * The frame scaffold every cartesian chart (bar, line, area, combo) shares: the
- * {@link ChartFrame} wired to the resolved chart's sizing, tier, cartesian
- * legend, readout, and reference annotations, with the texture defs mounted
- * ahead of the chart's own layers. Hook-free — the entry components own every
- * hook and hand the resolved values in — so it adds no hook to their order and
- * never rebuilds their layers. Only the genuinely per-chart pieces stay props:
- * the fullscreen copy, the snap and focus targets (each engine derives them from
- * its own marks), and the `children` layer stack, whose draw order is the
- * chart's to own (a bar draws its marks before the crosshair, the line charts
- * after).
+ * The frame scaffold every cartesian chart (bar, line, area, combo) shares. It
+ * is the {@link ChartFrame} wired to the resolved chart's sizing, tier,
+ * cartesian legend, readout, and reference annotations. The texture defs mount
+ * ahead of the chart's own layers. Hook-free: the entry components own every
+ * hook and hand the resolved values in. It therefore adds no hook to their
+ * order, and never rebuilds their layers. Only the genuinely per-chart pieces
+ * stay props: the fullscreen copy, the snap and focus targets, and the
+ * `children` layer stack. Each engine derives the snap and focus targets from
+ * its own marks. The stack's draw order is the chart's to own — a bar draws its
+ * marks before the crosshair, the line charts after.
  *
  * @internal
  */

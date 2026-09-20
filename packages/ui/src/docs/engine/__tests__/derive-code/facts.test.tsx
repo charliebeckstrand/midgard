@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { createElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ComponentRegistry, deriveCode, type SourceFacts } from '../../derive-code'

@@ -15,8 +15,8 @@ import { MENUITEM_SELECTOR } from './use-menu-state'
 
 /**
  * Slack (px) added to each end of the open panel's near edge when it forms the
- * base of the travel triangle, so a sweep aimed at the panel's first or last row
- * isn't ruled off-course by a pixel.
+ * base of the travel triangle. A sweep aimed at the panel's first or last row
+ * is therefore not ruled off-course by a pixel.
  *
  * @internal
  */
@@ -26,8 +26,9 @@ type Point = { x: number; y: number }
 
 /**
  * Which end of an open submenu each key seats the cursor on. Down and Home enter
- * at the top, Up and End at the bottom — the same ends they would reach in the
- * menu the row sits in, applied to the panel that has taken navigation over.
+ * at the top, Up and End at the bottom. Those are the same ends they would reach
+ * in the menu the row sits in, applied to the panel that has taken navigation
+ * over.
  *
  * @internal
  */
@@ -40,15 +41,15 @@ const SUBMENU_ENTRY: Record<string, 'first' | 'last' | undefined> = {
 
 /**
  * Whether `point` lies in the corridor a pointer travels from `from` — the row
- * it set off from — into `rect`, the panel that row opened: the triangle with
- * its apex on the row and its base along the panel's facing edge, so it tapers
- * from the whole panel back to the point of departure.
+ * it set off from — into `rect`, the panel that row opened. The corridor is the
+ * triangle with its apex on the row and its base along the panel's facing edge.
+ * It therefore tapers from the whole panel back to the point of departure.
  *
- * Measured along the run between the two, since the base is vertical: at
+ * Measured along the run between the two, since the base is vertical. At
  * `progress` of the way across, the corridor spans the base interpolated back
  * toward the apex. Progress outside `(0, 1]` is a pointer standing still,
- * heading away, or already past the edge — never travel toward the panel, which
- * is what keeps one parked mid-corridor from freezing the cursor there.
+ * heading away, or already past the edge. It is never travel toward the panel,
+ * which is what keeps one parked mid-corridor from freezing the cursor there.
  *
  * @internal
  */
@@ -70,9 +71,9 @@ function inCorridor(point: Point, from: Point, rect: DOMRect): boolean {
 
 /**
  * What one menu level does about the pointer: the arrivals that move its roving
- * cursor, and the submenu those arrivals open. A level is a panel — the root
- * {@link Menu} owns the first, and every {@link MenuSub} owns another for its own
- * rows — so at most one submenu hangs off each.
+ * cursor, and the submenu those arrivals open. A level is a panel. The root
+ * {@link Menu} owns the first, and every {@link MenuSub} owns another for its
+ * own rows, so at most one submenu hangs off each.
  *
  * @remarks Every member is stable for the level's lifetime, so a row that only
  * reports arrivals never re-renders on account of one. Which submenu is
@@ -90,10 +91,10 @@ export type MenuPointerValue = {
 	openSubmenu: (subKey: string) => void
 	/**
 	 * Hands `key` to the submenu open at this level, seating the cursor on the row
-	 * it points at: `ArrowDown` / `Home` on the first, `ArrowUp` / `End` on the
-	 * last. An open submenu owns navigation for as long as it is up, so the arrows
-	 * work its rows rather than roving past it in the menu it hangs off; `Escape`
-	 * is the way back out ({@link MenuSub}).
+	 * it points at. `ArrowDown` / `Home` land on the first, `ArrowUp` / `End` on
+	 * the last. An open submenu owns navigation for as long as it is up. The
+	 * arrows therefore work its rows, rather than roving past it in the menu it
+	 * hangs off. `Escape` is the way back out ({@link MenuSub}).
 	 *
 	 * @returns Whether `key` was one of those and a submenu took it — `false`
 	 * leaves the caller's own roving to handle the press.
@@ -114,7 +115,7 @@ const [MenuPointerContext, useMenuPointer] = createContext<MenuPointerValue>('Me
 /**
  * Key of the submenu open at the enclosing level, or `null` when none is. Split
  * from {@link MenuPointerContext} the way {@link MenuStateContext} is split from
- * {@link MenuActionsContext}, and for the same reason: this is the one value
+ * {@link MenuActionsContext}, and for the same reason. This is the one value
  * that changes as the pointer sweeps, and only a {@link MenuSub} needs it.
  */
 const [MenuOpenSubContext, useMenuOpenSub] = createContext<string | null>('Menu')
@@ -126,12 +127,13 @@ export { useMenuOpenSub, useMenuPointer }
  * enclosing level to make of what it will. `subKey` marks the row a submenu's
  * parent, so settling on it opens that submenu.
  *
- * @remarks `pointermove` rather than `pointerenter`: a menu opening under a
- * resting cursor must not seize the row it happens to cover, a pointer already
- * parked on a row the keyboard has since roved off of still takes the cursor
- * back on the first nudge, and the level reads a sweep's course off the
- * coordinates every move carries. Touch has no hover to express intent with — a
- * tap goes straight to selection, or to opening the submenu it lands on.
+ * @remarks `pointermove` rather than `pointerenter`, for three reasons. A menu
+ * opening under a resting cursor must not seize the row it happens to cover. A
+ * pointer already parked on a row the keyboard has since roved off of still
+ * takes the cursor back on the first nudge. The level reads a sweep's course off
+ * the coordinates every move carries. Touch has no hover to express intent
+ * with — a tap goes straight to selection, or to opening the submenu it lands
+ * on.
  */
 export function useMenuRowPointer(
 	disabled: boolean | undefined,
@@ -168,27 +170,28 @@ export type MenuPointerLevelProps = {
  * report arrivals through, plus the `openKey` naming the submenu those arrivals
  * have opened.
  *
- * @remarks The pointer drives the same cursor the arrow keys do, so a menu
- * carries one highlight rather than a hover wash beside a stale focus ring, and
- * a keyboard rove picks up from the row the pointer left off on. Which cursor
- * that is follows the level's roving model: real focus for a right-click menu
- * and for every submenu panel, `data-active` plus the trigger's
- * `aria-activedescendant` for a dropdown, whose focus stays on its trigger.
+ * @remarks The pointer drives the same cursor the arrow keys do. A menu
+ * therefore carries one highlight, rather than a hover wash beside a stale
+ * focus ring. A keyboard rove picks up from the row the pointer left off on.
+ * Which cursor that is follows the level's roving model. It is real focus for a
+ * right-click menu and for every submenu panel. It is `data-active` plus the
+ * trigger's `aria-activedescendant` for a dropdown, whose focus stays on its
+ * trigger.
  *
  * Nothing here waits on a clock. The cursor lands on the row under the pointer
- * in the same frame and the panels follow it there at once, so a menu answers a
- * sweep the way a scroll answers a wheel. What would otherwise need a grace
- * period — the diagonal from a parent row to a row inside the panel it opened,
- * which cuts across the rows between — is read off the pointer's course instead:
- * that corridor is the triangle from where the pointer left the parent row to
- * the panel's near edge ({@link inCorridor}), and arrivals inside it are the
- * sweep passing through, not a new destination. Geometry says what a timer would
- * have had to guess, and says it without holding anything up.
+ * in the same frame, and the panels follow it there at once. A menu therefore
+ * answers a sweep the way a scroll answers a wheel. One move would otherwise
+ * need a grace period. That is the diagonal from a parent row to a row inside
+ * the panel it opened, which cuts across the rows between. It is read off the
+ * pointer's course instead. That corridor is the triangle from where the pointer left the
+ * parent row to the panel's near edge ({@link inCorridor}). Arrivals inside it
+ * are the sweep passing through, not a new destination. Geometry says what a
+ * timer would have had to guess, and says it without holding anything up.
  *
  * The level provides both halves itself rather than handing them back, so no
- * caller can wire one without the other, and `openKey` changing — which it does
- * on every sweep — re-renders neither the menu nor the row that owns the panel's
- * subtree, only the rows that read it.
+ * caller can wire one without the other. `openKey` changes on every sweep. It
+ * re-renders neither the menu nor the row that owns the panel's subtree, only
+ * the rows that read it.
  */
 export function MenuPointerLevel({ virtual = false, owner, children }: MenuPointerLevelProps) {
 	const [openKey, setOpenKey] = useState<string | null>(null)
@@ -277,7 +280,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 			anchor.current = point
 
 			// Back on the row whose submenu is open: nothing to displace, and the
-			// cursor must not be pulled out of the panel it may be sitting in.
+			// cursor must not be pulled out of the panel where it sits.
 			if (subKey !== undefined && subKey === open) return
 
 			moveCursor(row)

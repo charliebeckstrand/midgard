@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, UIEvent } from 'react'
+import type { ComponentProps, UIEvent } from 'react'
 import { cn } from '../../core'
 import {
 	k,
@@ -19,7 +19,7 @@ export type ScrollAreaProps = ScrollAreaWrapperVariants &
 		 */
 		scrollbar?: ScrollbarMode
 		className?: string
-	} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+	} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Scrollable viewport with custom overlay scrollbars and draggable thumbs.
@@ -59,6 +59,7 @@ export function ScrollArea({
 	return (
 		<div
 			data-slot="scroll-area"
+			data-orientation={orientation}
 			className={cn(k.wrapper({ rounded, orientation, extent, bare }), className)}
 		>
 			{/* Keyboard-focusable on any enabled axis (axe scrollable-region-focusable).

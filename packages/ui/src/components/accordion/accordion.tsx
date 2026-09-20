@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffectEvent, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useEffectEvent, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import type { Mount } from '../../primitives/mount'
@@ -18,14 +18,15 @@ import {
  * shapes.
  */
 export type AccordionProps = (SingleProps | MultipleProps) &
-	AccordionVariants & {
+	AccordionVariants &
+	Omit<ComponentProps<'div'>, 'className' | 'onKeyDown' | 'value' | 'defaultValue' | 'onChange'> & {
 		/**
 		 * How item panels are held while closed.
 		 *
 		 * @remarks
 		 * Defaults to `active` — a closed panel is unmounted, so reopening it
 		 * resets whatever state it held. `always` mounts every panel up front and
-		 * `lazy` mounts each on its first open; either way a closed panel then
+		 * `lazy` mounts each on its first open. Either way a closed panel then
 		 * rests in `<Activity mode="hidden">` with its state preserved and effects
 		 * torn down. Prefer `lazy` over `always` for a long accordion: `always`
 		 * pays every panel's first render before any of them is opened.
@@ -40,8 +41,8 @@ export type AccordionProps = (SingleProps | MultipleProps) &
 		 * A state change is not an arrival: `onValueChange` reports the flip, and the panel
 		 * is still growing when it does. Use this to focus, measure, or start work that
 		 * needs the section at its settled height. Never fires for a close, and never for a
-		 * section that mounts already open — so a `type='single'` swap reports only the
-		 * section that opened, not the one it replaced.
+		 * section that mounts already open. A `type='single'` swap therefore reports only
+		 * the section that opened, not the one it replaced.
 		 *
 		 * @see {@link DrawerProps.onOpenComplete} for the panel family's form of this callback.
 		 */
@@ -66,7 +67,22 @@ export type AccordionProps = (SingleProps | MultipleProps) &
  * @see {@link AccordionPanel}
  */
 export function Accordion(props: AccordionProps) {
-	const { variant, mount = 'active', onOpenComplete, className, children } = props
+	// The selection triad comes out with the rest of the component's own props:
+	// `useAccordionSelection` reads it off `props` whole, and a `defaultValue`
+	// left in the rest would reach the `<div>` as the native attribute of the
+	// same name.
+	const {
+		variant,
+		mount = 'active',
+		onOpenComplete,
+		className,
+		children,
+		type: _type,
+		value: _value,
+		defaultValue: _defaultValue,
+		onValueChange: _onValueChange,
+		...rest
+	} = props
 
 	const { isOpen, toggle } = useAccordionSelection(props)
 
@@ -99,6 +115,7 @@ export function Accordion(props: AccordionProps) {
 		<AccordionContext value={context}>
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the roving tabindex handler must live here to navigate between header buttons */}
 			<div
+				{...rest}
 				ref={ref}
 				data-slot="accordion"
 				className={cn(k({ variant }), className)}

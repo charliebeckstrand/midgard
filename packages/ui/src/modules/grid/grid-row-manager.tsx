@@ -36,8 +36,8 @@ export type GridRowManagerProps = {
 /**
  * The row manager's editor: a zone per row-group — a reorder grip, the group's
  * label + row count, and a color {@link Menu}. Whole groups reorder as a vertical
- * list (the grip beside each label, or its keyboard lift), the drag locked to the
- * y-axis and bounded to the list. A colored group outlines its whole Card in its
+ * list, through the grip beside each label or its keyboard lift. The drag is
+ * locked to the y-axis and bounded to the list. A colored group outlines its whole Card in its
  * hue. Rows within a group are not managed — they follow the grid's order. Every
  * edit commits through the handlers, which write the {@link GridGroupBy.rowGroups}
  * overlay.
@@ -90,7 +90,7 @@ type GridRowManagerZoneProps = {
 }
 
 /**
- * One group zone: a Card (outlined in the group's color) whose header carries the
+ * One group zone: a Card outlined in the group's color. Its header carries the
  * reorder grip, the group label + count, and the color Menu (pushed to the
  * trailing edge).
  *
@@ -104,8 +104,8 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 
 	return (
 		<div ref={setNodeRef} style={style} data-dragging={dataAttr(dragging)}>
-			{/* Content sits directly in the Card so its padding is uniform on every
-			    edge — a CardHeader would add a bottom gap for a body that isn't here. */}
+			{/* Content sits directly in the Card, so its padding is uniform on every
+			    edge. A CardHeader would add a bottom gap for a body that isn't here. */}
 			<Card className={cn(group.color && groupK.cardOutline[group.color])}>
 				<div className={cn(k.zone.header)}>
 					<div className={cn(k.zone.main)}>

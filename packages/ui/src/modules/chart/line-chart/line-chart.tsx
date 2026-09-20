@@ -35,7 +35,7 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type LineChartProps<T> = CartesianChartProps<T> & {
+export type LineChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Mark every plotted point with a filled dot. Points isolated between gaps
 	 * always get one — they'd be invisible otherwise.
@@ -54,26 +54,27 @@ export type LineChartProps<T> = CartesianChartProps<T> & {
 	 */
 	interpolation?: LineInterpolation
 	/**
-	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
-	 * — placed clear of the marks with overlaps dropped by priority, and, with
-	 * `references`, each reference rule's value beside it in place of its hover
-	 * tooltip. Off by default; the tooltip and data table carry the full readout.
+	 * Draw selective value labels: each series' `endpoints` and / or `extremes`,
+	 * placed clear of the marks with overlaps dropped by priority. With
+	 * `references`, each reference rule's value draws beside it in place of its
+	 * hover tooltip. Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
 
 /**
- * A multi-series line chart on the shared cartesian frame: 2px round-joined
- * lines that break at missing values, an optional area wash and point
- * markers, a crosshair-snapped tooltip reading every series at the pointed
- * category, and a visually-hidden data table for assistive tech.
+ * A multi-series line chart on the shared cartesian frame. It draws 2px
+ * round-joined lines that break at missing values, plus an optional area wash
+ * and point markers. It also carries a crosshair-snapped tooltip reading every
+ * series at the pointed category, and a visually-hidden data table for
+ * assistive tech.
  *
  * @remarks The value domain follows the data; pin `min` / `max` to compare
  * charts on one scale. Focus the plot to drive the crosshair and tooltip by
  * keyboard — the band-axis arrows step categories, the value-axis arrows cycle
  * each category's series values. A reference line joins that value-axis roving,
- * receding the marks when the cursor reaches it — unless `labels.references`
- * draws its value beside it, which stands in for the hover and drops the rove.
+ * receding the marks when the cursor reaches it. `labels.references` drawing its
+ * value beside it stands in for the hover and drops the rove.
  * @example
  * ```tsx
  * <LineChart
@@ -104,6 +105,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		reference,
 		labels,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label
@@ -203,21 +205,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			reference={reference}
 			className={className}
 		>
-			<ChartCartesianAxes
-				orientation={chart.orientation}
-				plot={chart.plot}
-				valueTicks={chart.yTicks}
-				hasScale={chart.yScale !== null}
-				y2Ticks={chart.y2Ticks}
-				hasY2Scale={chart.y2Scale !== null}
-				categoryTicks={chart.xTicks}
-				hasData={data.length > 0}
-				axes={chart.axes}
-				gridPositions={chart.gridPositions}
-				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={chart.categorySeparator}
-				titles={chart.axisTitles}
-			/>
+			<ChartCartesianAxes chart={chart} />
 
 			{rails && (
 				<ChartCrosshair

@@ -66,8 +66,6 @@ describe('useResizablePanel', () => {
 	})
 
 	afterEach(() => {
-		vi.unstubAllGlobals()
-
 		document.body.innerHTML = ''
 	})
 

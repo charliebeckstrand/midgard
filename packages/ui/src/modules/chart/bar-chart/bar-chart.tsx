@@ -34,18 +34,18 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type BarChartProps<T> = CartesianChartProps<T> & {
+export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Which way the bars grow: `'vertical'` from a bottom baseline up the value
-	 * axis, or `'horizontal'` from a left baseline out along it — categories then
+	 * axis, or `'horizontal'` from a left baseline out along it. Categories then
 	 * run down the side, so long labels read straight and many categories fit.
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
 	/**
-	 * Stack each category's series into one column — segments piled to their
-	 * running total, the value axis scaled to that sum — instead of grouping them
-	 * side by side. A surface gap separates the segments and only the outermost
+	 * Stack each category's series into one column, instead of grouping them side
+	 * by side. Segments pile to their running total, and the value axis scales to
+	 * that sum. A surface gap separates the segments and only the outermost
 	 * keeps a rounded end.
 	 * @remarks Positive values only: a non-positive value takes no segment, the
 	 * same part-to-whole reading as the stacked {@link AreaChart}.
@@ -53,8 +53,8 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
 	 */
 	stacked?: boolean
 	/**
-	 * Let the bars fill their band instead of capping at the spec thickness:
-	 * grouped bars split the band by series and the surface gaps, a stacked
+	 * Let the bars fill their band instead of capping at the spec thickness.
+	 * Grouped bars split the band by series and the surface gaps, and a stacked
 	 * column takes the whole band. Suits a sparse category axis, where the
 	 * default ceiling would otherwise strand narrow bars in wide bands.
 	 * @defaultValue false
@@ -64,21 +64,21 @@ export type BarChartProps<T> = CartesianChartProps<T> & {
 
 /**
  * A grouped bar chart: one band per row of `data`, one zero-baseline bar per
- * series inside it, on the shared cartesian frame — value axis with clean
- * ticks, hairline gridlines, a legend for two or more series, a hover
- * tooltip reading every series at the pointed category, and a
- * visually-hidden data table for assistive tech.
+ * series inside it, on the shared cartesian frame. The frame carries a value
+ * axis with clean ticks, hairline gridlines, and a legend for two or more
+ * series. It also carries a hover tooltip reading every series at the pointed
+ * category, and a visually-hidden data table for assistive tech.
  *
- * @remarks Bars cap at the spec thickness with a rounded data end and a
- * square baseline end; negative values grow the other way from the zero line.
+ * @remarks Bars cap at the spec thickness, with a rounded data end and a square
+ * baseline end. Negative values grow the other way from the zero line.
  * `orientation="horizontal"` transposes the whole frame — value axis on the
  * bottom, categories down the left — which suits long category labels and
- * ranked lists. `stacked` piles each category's series into one part-to-whole
- * column on the summed value axis instead of grouping them side by side; `thick`
- * lifts the thickness cap so the bars fill their band, for a sparse axis. Focus
- * the plot to drive the crosshair and tooltip by keyboard — the band-axis
- * arrows step categories, the value-axis arrows cycle each category's series
- * values, transposed with the orientation. A reference line joins that
+ * ranked lists. The `stacked` piles each category's series into one
+ * part-to-whole column on the summed value axis, instead of grouping them side
+ * by side. The `thick` lifts the thickness cap so the bars fill their band, for
+ * a sparse axis. Focus the plot to drive the crosshair and tooltip by keyboard.
+ * The band-axis arrows step categories, and the value-axis arrows cycle each
+ * category's series values, transposed with the orientation. A reference line joins that
  * value-axis roving, receding the marks when the cursor reaches it.
  * @example
  * ```tsx
@@ -111,6 +111,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		texture = false,
 		reference,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label
@@ -122,6 +123,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 
 	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
 		zeroBaseline: true,
+		categoryRule: 'zero',
 		swatch: () => 'rect',
 		orientation,
 		stack: stacked,
@@ -225,22 +227,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			reference={reference}
 			className={className}
 		>
-			<ChartCartesianAxes
-				orientation={chart.orientation}
-				plot={chart.plot}
-				valueTicks={chart.yTicks}
-				hasScale={chart.yScale !== null}
-				y2Ticks={chart.y2Ticks}
-				hasY2Scale={chart.y2Scale !== null}
-				categoryTicks={chart.xTicks}
-				hasData={data.length > 0}
-				baseline={chart.baseline}
-				axes={chart.axes}
-				gridPositions={chart.gridPositions}
-				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={chart.categorySeparator}
-				titles={chart.axisTitles}
-			/>
+			<ChartCartesianAxes chart={chart} />
 
 			<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
 				{marksNode}

@@ -43,13 +43,13 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type ComboChartProps<T> = ChartBaseProps<T> &
+export type ComboChartProps<T = never> = ChartBaseProps<T> &
 	CartesianFrameProps & {
 		/** The series to plot, each drawn as bars, a line, or a filled area; slot colours follow this order. */
 		series: ComboChartSeries<T>[]
 		/**
 		 * Mark every line and area point with a filled, surface-ringed dot.
-		 * @defaultValue true
+		 * @defaultValue false
 		 */
 		points?: boolean
 		/**
@@ -79,8 +79,8 @@ type ComboMarks = {
 }
 
 /**
- * The held mark's position among the strokes — the drawn slot the sticky
- * resolution keys on — or `null` when the held mark is a bar or absent.
+ * The held mark's position among the strokes: the drawn slot the sticky
+ * resolution keys on. It is `null` when the held mark is a bar or absent.
  *
  * @internal
  */
@@ -99,13 +99,13 @@ function comboStrokeRuns(strokes: ChartLineSeries[]) {
 
 /**
  * The combo's pointer-to-mark resolution. Strokes compete by proximity, never
- * draw order: the lines and the areas' top edges are all thin marks, so the
- * nearest one is the one being pointed at — a pointer on an area's dot resolves
- * that area even with a line inside the catch tolerance, and vice versa — with
- * the held stroke kept sticky across their midline. Kinds that can't be
- * compared by distance rank by the visual stack instead: any stroke outranks a
- * fill (strokes draw on top), and the fills resolve by containment with the
- * wash winning the bar it covers.
+ * draw order. The lines and the areas' top edges are all thin marks, so the
+ * nearest one is the one being pointed at. A pointer on an area's dot resolves
+ * that area, even with a line inside the catch tolerance, and vice versa. The
+ * held stroke stays sticky across their midline. Kinds that can't be compared
+ * by distance rank by the visual stack instead. Any stroke outranks a fill,
+ * because strokes draw on top. The fills resolve by containment, with the wash
+ * winning the bar it covers.
  *
  * @internal
  */
@@ -136,17 +136,17 @@ function comboMarkAt(
 
 /**
  * A combined bar, line, and area chart: one shared value axis by default, with
- * a second on request — a series carrying `axis: 'y2'` reads the secondary
- * scale the chart's `axes.y2` config shapes, so a count plots beside a currency
+ * a second on request. A series carrying `axis: 'y2'` reads the secondary scale
+ * the chart's `axes.y2` config shapes. A count therefore plots beside a currency
  * at its natural size. Bars sit at the back, the translucent area washes ride
- * over them, and lines draw on top; every series reads a zero-baseline domain,
- * and the frame is the cartesian standard: axes, grid, legend, crosshair
- * tooltip, and the visually-hidden data table.
+ * over them, and lines draw on top. Every series reads a zero-baseline domain.
+ * The frame is the cartesian standard: axes, grid, legend, crosshair tooltip,
+ * and the visually-hidden data table.
  *
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
  * draw together — one synchronized reveal across the x and y motions. Focus the
- * plot to drive the crosshair and tooltip by keyboard — the band-axis arrows
- * step categories, the value-axis arrows cycle each category's series values,
+ * plot to drive the crosshair and tooltip by keyboard. The band-axis arrows step
+ * categories, and the value-axis arrows cycle each category's series values,
  * both axes' points interleaved in screen order. A reference line joins that
  * value-axis roving, receding the marks when the cursor reaches it.
  * @example
@@ -175,12 +175,13 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		tooltip,
 		crosshair,
 		animate = false,
-		points = true,
+		points = false,
 		interpolation = 'linear',
 		reference,
 		texture = false,
 		labels,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label
@@ -190,6 +191,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
 		zeroBaseline: true,
+		categoryRule: 'zero',
 		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
 		// Only the line and area series paint past their coordinate — bars end at
 		// theirs — so the inset stands only where such a series exists to need it.
@@ -266,11 +268,9 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// hidden the curves stand alone and the dots need no stroke.
 	const stroke = bars.length > 0
 
-	// No line delay: the bars rise and the lines draw at once, so the x and y
-	// motions land together rather than the lines waiting on the bars. Bars sit
-	// at the back, then the translucent area washes over them — a wash behind
-	// opaque bars would vanish wherever the area falls short of them — then the
-	// lines ride on top.
+	// Bars sit at the back, then the translucent area washes over them — a wash
+	// behind opaque bars would vanish wherever the area falls short of them —
+	// then the lines ride on top.
 	const marksNode = animate ? (
 		<>
 			<AnimatedChartBarMarks
@@ -340,22 +340,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			reference={reference}
 			className={className}
 		>
-			<ChartCartesianAxes
-				orientation={chart.orientation}
-				plot={chart.plot}
-				valueTicks={chart.yTicks}
-				hasScale={chart.yScale !== null}
-				y2Ticks={chart.y2Ticks}
-				hasY2Scale={chart.y2Scale !== null}
-				categoryTicks={chart.xTicks}
-				hasData={data.length > 0}
-				baseline={chart.baseline}
-				axes={chart.axes}
-				gridPositions={chart.gridPositions}
-				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={chart.categorySeparator}
-				titles={chart.axisTitles}
-			/>
+			<ChartCartesianAxes chart={chart} />
 
 			{rails && (
 				<ChartCrosshair

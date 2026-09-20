@@ -1,10 +1,10 @@
 /**
  * Pure geometry for the {@link HeatmapChart}: a row-major value matrix
  * projected onto a grid of axis-aligned cells, one band scale per axis.
- * Framework- and colour-free so the cell math is unit-testable in isolation —
- * the component resolves each cell's fill from the sequential colour scale by
- * its value, the way the bar geometry emits shapes and leaves the slot colour
- * to the render. Both axes are band scales, so a heatmap is the two-categorical
+ * Framework- and colour-free, so the cell math is unit-testable in isolation.
+ * The component resolves each cell's fill from the sequential colour scale by
+ * its value. That is the way the bar geometry emits shapes and leaves the slot
+ * colour to the render. Both axes are band scales, so a heatmap is the two-categorical
  * twin of the cartesian frame rather than a value-axis chart.
  */
 
@@ -43,14 +43,14 @@ export type HeatmapCell = {
 }
 
 /**
- * Projects a row-major value matrix onto cell marks: cell `[row][col]` fills
- * its column's x-band slot crossed with its row's y-band slot, inset by half
- * {@link MARK_GAP} on every side for the surface gap between tiles. The bands
+ * Projects a row-major value matrix onto cell marks. Cell `[row][col]` fills
+ * its column's x-band slot crossed with its row's y-band slot. It is inset by
+ * half {@link MARK_GAP} on every side, for the surface gap between tiles. The bands
  * are expected to be built with near-zero padding, so the gap comes from the
  * inset alone rather than doubling with band air.
  *
- * @remarks A `null` cell is still emitted (it holds a grid slot and a table
- * cell); the component paints it the no-data fill rather than sampling the
+ * @remarks A `null` cell is still emitted, since it holds a grid slot and a
+ * table cell. The component paints it the no-data fill rather than sampling the
  * scale. The inset is dropped on a cell too small to hold it, so a dense grid
  * degrades to touching tiles instead of vanishing.
  * @internal

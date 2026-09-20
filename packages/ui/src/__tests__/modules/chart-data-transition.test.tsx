@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { STATIC_GENERATION } from '../../modules/chart/engine/chart-motion'
 import { PieChart } from '../../modules/chart/pie-chart'
@@ -50,10 +50,6 @@ function generation(container: HTMLElement): string | null {
 }
 
 describe('chart data-change transition', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	it('swaps the marks generation when the data changes', () => {
 		const { container, rerender } = renderUI(bars(DATA))
 

@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/dl'
 
 /** Props for {@link DescriptionDetails}: native `<dd>` attributes. */
-export type DescriptionDetailsProps = SlotProps<'dd'>
+export type DescriptionDetailsProps = ComponentProps<'dd'>
 
 /**
  * Details cell (`<dd>`) for a `<DescriptionList>` term/details pair. Carries text styling only;

@@ -4,8 +4,8 @@ import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 /**
  * Whether a value counts as filled for an operator that needs one. Nullish,
  * blank or whitespace-only strings, and empty arrays read as empty. Shared with
- * the evaluator so a rule the builder reads as inactive imposes no constraint on
- * rows (the "active" notion and the filter result stay in step).
+ * the evaluator, so a rule the builder reads as inactive imposes no constraint
+ * on rows. The "active" notion and the filter result stay in step.
  *
  * @internal
  */
@@ -24,8 +24,8 @@ export function isEmptyValue(value: unknown): boolean {
 /**
  * Resolves a rule against the field set: the `field` it names and the
  * `operator` from that field's set, each `undefined` when unresolved. The
- * single place a rule is read into its field and operator — shared by the
- * active judgement and the summary so both interpret a rule identically.
+ * single place a rule is read into its field and operator. The active judgement
+ * and the summary share it, so both interpret a rule identically.
  *
  * @internal
  */
@@ -65,11 +65,11 @@ function isRuleActive(rule: QueryRule, fields: QueryField[]): boolean {
 }
 
 /**
- * Whether a query would actually constrain its result: true when any rule (at
- * any depth) carries a non-empty value or uses a value-less operator (`is
- * Empty`, `is true`, …). A tree of only blank rules — what a freshly seeded or
- * fully cleared builder leaves behind — reads as inactive, so a filter
- * affordance can reflect a real constraint rather than the mere presence of a
+ * Whether a query would actually constrain its result. It is true when any rule
+ * (at any depth) carries a non-empty value, or uses a value-less operator (`is
+ * Empty`, `is true`, …). A tree of only blank rules reads as inactive. A freshly
+ * seeded or fully cleared builder leaves such a tree behind. A filter affordance
+ * can therefore reflect a real constraint, rather than the mere presence of a
  * rule.
  *
  * @param group - The query group (typically the root) to test.

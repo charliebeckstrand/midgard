@@ -212,7 +212,7 @@ export function PlacesMap({
 	}, [selected, places])
 
 	if (geography === null) {
-		return <MapSkeleton projection={atlasProjection} ratio={false} className="size-full" />
+		return <MapSkeleton projection={atlasProjection} aspectRatio={false} className="size-full" />
 	}
 
 	return (

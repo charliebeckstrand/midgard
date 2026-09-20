@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { Project } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { createLinkIndex } from '../../api-reference/engine/link-resolver'

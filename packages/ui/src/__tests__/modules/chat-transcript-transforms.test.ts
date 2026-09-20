@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { ChatPart } from '../../modules/chat/engine/chat-content/types'
 import {

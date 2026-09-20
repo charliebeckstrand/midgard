@@ -1,9 +1,9 @@
 /**
  * Date-picker kata: object-literal surface for the `<DatePicker>` trigger and
  * its popover. Density-/size-axed `button` and `body` sub-recipes drive the
- * control and popover insets; `surface`, `value`, `control` (the input-mode
+ * control and popover insets. `surface`, `value`, `control` (the input-mode
  * field adjacency), `icon`, `placeholder`, `affix`, and the `content` group are
- * slots, and `relative` adds the relative popover's layout-only preset list,
+ * slots. `relative` adds the relative popover's layout-only preset list,
  * custom-range affordance, and trigger chip row.
  */
 import { defineRecipe } from '../../core/recipe'

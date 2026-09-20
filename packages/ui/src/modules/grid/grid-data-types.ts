@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
-import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
+import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumnGroups } from './grid-group-types'
 import type { GridRowGroups } from './grid-row-group-types'
@@ -27,45 +27,47 @@ import type {
 export type GridVirtualize = boolean | { estimateSize?: number; overscan?: number }
 
 /**
- * Infinite-scroll binding for {@link GridProps.infiniteScroll}: as the
+ * Infinite-scroll binding for {@link GridProps.infiniteScroll}. As the
  * virtualized window nears the end of the loaded rows, the grid calls
- * `onLoadMore` so the consumer can grow `rows` with the next batch. Implies
+ * `onLoadMore`. The consumer then grows `rows` with the next batch. Implies
  * {@link GridProps.virtualize} (which supplies the windowed scroll container —
  * so `maxHeight` is still required), and replaces the paged
  * {@link GridProps.pagination} footer — the two are mutually exclusive.
  *
- * @remarks One binding, two data sources. A *local* set appends synchronously
- * (leave `loadingMore` unset and gate on `hasMore`); a *server* set fetches the
- * next page and appends it — hold `loadingMore` true while the request is in
- * flight so the grid holds off re-requesting (and, with `loadingIndicator`,
- * shows a trailing skeleton row). In both, `hasMore` is the master gate: once
- * `false`, `onLoadMore` never fires again and the indicator drops. Supply
- * {@link GridInfiniteScroll.totalRows} when the backend reports its total and
- * `hasMore` derives itself; the grid then also reports a determinate
- * `aria-rowcount` and a real footer `rowTotal` instead of the loaded extent,
- * and its busy status announces each grown total as a batch settles.
+ * @remarks One binding, two data sources. A *local* set appends synchronously:
+ * leave `loadingMore` unset and gate on `hasMore`. A *server* set fetches the
+ * next page and appends it. Hold `loadingMore` true while the request is in
+ * flight, so the grid holds off re-requesting. With `loadingIndicator`, that
+ * also shows a trailing skeleton row. In both, `hasMore` is the master gate:
+ * once `false`, `onLoadMore` never fires again and the indicator drops. Supply
+ * {@link GridInfiniteScroll.totalRows} when the backend reports its total, and
+ * `hasMore` derives itself. The grid then reports a determinate `aria-rowcount`
+ * and a real footer `rowTotal` instead of the loaded extent. Its busy status
+ * announces each grown total as a batch settles.
  *
  * The trailing row below the loaded rows resolves the terminal states in
- * precedence order: an `error` (a failed load) shows a `Text severity="error"`
- * message; an in-flight batch shows the opt-in loading indicator; the reached
- * end (`hasMore` false) shows the muted `endMessage`.
+ * precedence order:
+ *
+ * - An `error` (a failed load) shows a `Text severity="error"` message.
+ * - An in-flight batch shows the opt-in loading indicator.
+ * - The reached end (`hasMore` false) shows the muted `endMessage`.
  *
  * Firing upholds one invariant: *`onLoadMore` never fires more than once per
  * user scroll interaction, except for a bounded initial viewport-fill.* A
- * post-fill fetch needs the scroll container to actually overflow and a scroll
- * event since the last fire — so an append that lands still within `threshold`
- * of the new end waits for the next scroll rather than chain-fetching, and a
- * *failed* fetch (the count never grew) re-arms on the next scroll instead of
- * dead-locking. While the loaded rows don't yet fill the viewport the grid
- * auto-fetches to fill it, bounded by the viewport's geometry; a container
- * with no bounded height (a `maxHeight` that never bound — see
- * {@link GridProps.maxHeight}) stops fetching and fails loud in dev rather
- * than chain-fetching the whole backend. Replacing the row set with a shorter
- * one (a sort/filter/search swap) scrolls back to the top and resets the
- * firing state.
+ * post-fill fetch needs two things: the scroll container must overflow, and a
+ * scroll event must arrive since the last fire. An append that lands still
+ * within `threshold` of the new end therefore waits for the next scroll rather
+ * than chain-fetching. A *failed* fetch (the count never grew) re-arms on the
+ * next scroll instead of dead-locking. While the loaded rows do not yet fill
+ * the viewport, the grid auto-fetches to fill it, bounded by the viewport's
+ * geometry. A container with no bounded height stops fetching and fails loud in
+ * dev, rather than chain-fetching the whole backend. That is a `maxHeight` that
+ * never bound; see {@link GridProps.maxHeight}. Replacing the row set with a
+ * shorter one (a sort/filter/search swap) scrolls back to the top and resets
+ * the firing state.
  *
- * Seed the first page as `rows` — an empty `rows` shows the `empty` slot rather
- * than auto-fetching (use {@link GridProps.loading} for the initial load); the
+ * Seed the first page as `rows`. An empty `rows` shows the `empty` slot rather
+ * than auto-fetching; use {@link GridProps.loading} for the initial load. The
  * grid grows the set from there as the scroll advances.
  *
  * @see {@link GridProps.infiniteScroll}
@@ -73,9 +75,10 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
 export type GridInfiniteScroll = {
 	/**
 	 * Called when the scroll reaches within {@link GridInfiniteScroll.threshold}
-	 * rows of the loaded end and more rows remain — at most once per scroll
-	 * interaction (plus the bounded viewport-fill; see the binding remarks).
-	 * Append the next rows to your `rows` — a local slice, or a server fetch.
+	 * rows of the loaded end and more rows remain. It fires at most once per
+	 * scroll interaction, plus the bounded viewport-fill; see the binding
+	 * remarks. Append the next rows to your `rows` — a local slice, or a server
+	 * fetch.
 	 */
 	onLoadMore: () => void
 	/**
@@ -86,7 +89,7 @@ export type GridInfiniteScroll = {
 	hasMore?: boolean
 	/**
 	 * Total rows in the full (server) set, when the backend reports it. Derives
-	 * `hasMore` (unless explicitly set), makes `aria-rowcount` determinate
+	 * `hasMore`, unless it is explicitly set. Makes `aria-rowcount` determinate
 	 * instead of the indeterminate `-1`, and reports the real set through the
 	 * {@link GridFooter.rowTotal | footer} rather than the loaded extent.
 	 */
@@ -101,16 +104,16 @@ export type GridInfiniteScroll = {
 	loadingMore?: boolean
 	/**
 	 * How many rows from the end of the loaded set the scroll can come within
-	 * before `onLoadMore` fires, so the next batch is requested ahead of the
+	 * before `onLoadMore` fires. The next batch therefore arrives ahead of the
 	 * viewport reaching the last row.
 	 * @defaultValue The grid's virtualization `overscan`.
 	 */
 	threshold?: number
 	/**
 	 * The trailing indicator shown while `loadingMore`, presence-implied and off
-	 * by default: `true` shows the default per-column skeleton cells; a node
-	 * renders that content instead, in a single cell spanning every column (e.g.
-	 * a run of skeleton rows); omit (or `false`) to load silently.
+	 * by default. `true` shows the default per-column skeleton cells. A node
+	 * renders that content instead, in a single cell spanning every column, such
+	 * as a run of skeleton rows. Omit it (or pass `false`) to load silently.
 	 */
 	loadingIndicator?: boolean | ReactNode
 	/**
@@ -128,12 +131,13 @@ export type GridInfiniteScroll = {
 	 */
 	error?: ReactNode
 	/**
-	 * Freeze the auto-fit column widths at their first measurement of rendered rows
-	 * so an appended batch never reflows the columns (later content wider than a
-	 * column truncates instead of widening it); a structural change — columns,
-	 * density, or a container resize — still re-fits. Rows that arrive after mount
-	 * are the first measurement, not an append: a grid that mounts on a loading
-	 * skeleton fits to its data when the data renders, then freezes there. Builds on
+	 * Freeze the auto-fit column widths at their first measurement of rendered
+	 * rows, so an appended batch never reflows the columns. Later content wider
+	 * than a column truncates instead of widening it. A structural change —
+	 * columns, density, or a container resize — still re-fits. Rows that arrive
+	 * after mount are the first measurement, not an append. A grid that mounts on
+	 * a loading skeleton fits to its data when the data renders, then freezes
+	 * there. Builds on
 	 * the default column auto-fit, so it has no effect when `resizable` is off or
 	 * `columnSizing` is controlled.
 	 * @defaultValue false
@@ -148,33 +152,34 @@ export type GridInfiniteScroll = {
  * columns at once (see {@link GridContextValue.toggleSort}).
  */
 export type GridSort = {
-	value?: SortState[]
-	defaultValue?: SortState[]
-	onValueChange?: (sort: SortState[]) => void
+	value?: GridSortState[]
+	defaultValue?: GridSortState[]
+	onValueChange?: (sort: GridSortState[]) => void
 	/**
 	 * Server-side (manual) sorting: the consumer sorts `rows` and the grid leaves
 	 * their order untouched. When omitted, the grid sorts client-side by each
-	 * sortable column's value — its {@link GridColumn.value} accessor, or the row
-	 * field named by the column id when none is given.
+	 * sortable column's value. That value is its {@link GridColumn.value}
+	 * accessor, or the row field named by the column id when none is given.
 	 * @defaultValue false
 	 */
 	manual?: boolean
 	/**
-	 * Animate rows sliding to their new places when a sort reorders them — a
-	 * Framer Motion layout (FLIP) glide over the rows' position change, rather than
-	 * an instant repaint. Applies to the plain body only: it stands down under
-	 * `virtualize` (windowed rows mount and unmount on scroll, so there is no stable
-	 * element to glide) and under grouping (whose group and leaf rows run their own
-	 * reveals), and honors `prefers-reduced-motion` (no motion at all).
+	 * Animate rows sliding to their new places when a sort reorders them. It is a
+	 * Framer Motion layout (FLIP) glide over the rows' position change, rather
+	 * than an instant repaint. Applies to the plain body only. It stands down
+	 * under `virtualize`, where windowed rows mount and unmount on scroll, so no
+	 * stable element remains to glide. It stands down under grouping too, whose
+	 * group and leaf rows run their own reveals. It honors
+	 * `prefers-reduced-motion`, which means no motion at all.
 	 * @defaultValue false
 	 */
 	animate?: boolean
 	/**
 	 * How a plain header click cycles the sole sorted column. `'tri-state'`
-	 * cycles ascending → descending → unsorted; `'toggle'` flips asc ↔ desc on
-	 * the sorted column instead of clearing to unsorted — for grids whose empty
-	 * sort state re-applies a server default, where the tri-state third click
-	 * reads as a dead click. Additive (Shift-click) multi-column semantics are
+	 * cycles ascending → descending → unsorted. `'toggle'` flips asc ↔ desc on
+	 * the sorted column instead of clearing to unsorted. It suits grids whose
+	 * empty sort state re-applies a server default, where the tri-state third
+	 * click reads as a dead click. Additive (Shift-click) multi-column semantics are
 	 * unchanged under either cycle.
 	 * @defaultValue 'tri-state'
 	 */
@@ -196,9 +201,9 @@ export type GridGroupHeaderContext = {
 
 /**
  * What a manual-mode {@link GridGroupBy.groupRow} resolver returns to mark a row
- * as a group header. It carries the group's stable `key` — the identity the
- * expanded set and {@link GridGroupBy.onGroupExpand} speak — plus the grouped
- * column's shared `value`, which is the default header label. The backend also
+ * as a group header. It carries the group's stable `key`, which is the identity
+ * the expanded set and {@link GridGroupBy.onGroupExpand} speak. It also carries
+ * the grouped column's shared `value`, the default header label. The backend
  * supplies the group's child `count`, because the grid holds no child row of a
  * collapsed group.
  */
@@ -251,7 +256,7 @@ export type GridGroupBy<T = unknown> = {
 	 * Whether groups start expanded (rows visible) or collapsed (just the group
 	 * headers). Each group's header toggles it thereafter. Under
 	 * {@link GridGroupBy.manual} a boolean can't enumerate the (server-known)
-	 * groups, so pass a `Set` of group keys to seed the uncontrolled expanded
+	 * groups. Pass a `Set` of group keys to seed the uncontrolled expanded
 	 * state instead; a manual grid otherwise starts fully collapsed.
 	 * @defaultValue true
 	 */
@@ -265,21 +270,22 @@ export type GridGroupBy<T = unknown> = {
 	renderHeader?: (context: GridGroupHeaderContext) => ReactNode
 	/**
 	 * Server-side (manual) grouping: the backend groups, and the consumer
-	 * supplies `rows` as the rendered sequence — group-header rows (marked by
-	 * {@link GridGroupBy.groupRow}, carrying the backend's counts and
-	 * aggregates) interleaved with the child rows of expanded groups. The grid
+	 * supplies `rows` as the rendered sequence. That sequence interleaves
+	 * group-header rows with the child rows of expanded groups.
+	 * {@link GridGroupBy.groupRow} marks a header, which carries the backend's
+	 * counts and aggregates. The grid
 	 * associates children positionally: a leaf row belongs to the nearest group
 	 * header above it, indents under its rail, and collapses with it. Expansion
 	 * is a controllable set of group keys ({@link GridGroupBy.expanded} /
-	 * {@link GridGroupBy.onExpandedChange}); expanding fires
-	 * {@link GridGroupBy.onGroupExpand} so the consumer can lazily fetch that
+	 * {@link GridGroupBy.onExpandedChange}). An expand fires
+	 * {@link GridGroupBy.onGroupExpand}, so the consumer can lazily fetch that
 	 * group's children and feed them back in `rows`. Every row — header and
 	 * leaf alike — still needs a stable, unique {@link GridDataProps.getKey}.
 	 * Single-level, like client grouping; the aggregate total rows
 	 * ({@link GridDataProps.groupTotalRow} / {@link GridDataProps.grandTotalRow})
 	 * stand down, since the backend owns the figures. Sorting the grouped column
-	 * reorders the group blocks client-side (by group value, each header's
-	 * children moving with it); sorting any other column stays manual, emitted
+	 * reorders the group blocks client-side, by group value, and each header's
+	 * children move with it. Sorting any other column stays manual, emitted
 	 * through the `sort` binding for the backend to honour.
 	 * @defaultValue false
 	 */
@@ -304,22 +310,23 @@ export type GridGroupBy<T = unknown> = {
 	 */
 	onExpandedChange?: (expanded: Set<string | number>) => void
 	/**
-	 * Fires with a group's key when its collapsed header expands — the manual
-	 * mode's lazy-load hook: fetch that group's children and append them to
-	 * `rows` after its header. Not fired on collapse, nor by client grouping.
+	 * Fires with a group's key when its collapsed header expands. It is the
+	 * manual mode's lazy-load hook: fetch that group's children and append them
+	 * to `rows` after its header. Not fired on collapse, nor by client grouping.
 	 *
 	 * @remarks The group opens the instant its header is toggled (expansion is
 	 * controlled state, not gated on the fetch). Until the children land the grid
-	 * fills the opened group with a single placeholder skeleton row — for a group
-	 * whose backend `count` is positive but whose children aren't present yet — so
-	 * the expand reads as immediate rather than waiting on the request. A group the
+	 * fills the opened group with a single placeholder skeleton row. That covers
+	 * a group whose backend `count` is positive but whose children aren't present
+	 * yet. The expand therefore reads as immediate rather than as a wait on the
+	 * request. A group the
 	 * backend reports empty (`count` of 0) shows nothing.
 	 */
 	onGroupExpand?: (key: string | number) => void
 	/**
 	 * Adds a group-by button to each {@link GridColumn.groupable} column header:
-	 * press it to group the rows by that column, press it again to ungroup —
-	 * each emitting through {@link GridGroupBy.onValueChange}. The active
+	 * press it to group the rows by that column, and press it again to ungroup.
+	 * Each press emits through {@link GridGroupBy.onValueChange}. The active
 	 * column's button holds a blue accent, like an applied column filter. Works
 	 * in both modes; single-level, so grouping one column replaces any current
 	 * grouping.
@@ -335,9 +342,9 @@ export type GridGroupBy<T = unknown> = {
 	 */
 	rowGroups?: GridRowGroups
 	/**
-	 * The row manager — a "Manage rows" dialog reached from the group-header
-	 * right-click menu, where each group takes a color and reorders, and its rows
-	 * reorder within it (committed through {@link GridGroupBy.rowGroups}). On by
+	 * The row manager, a "Manage rows" dialog reached from the group-header
+	 * right-click menu. Each group takes a color and reorders there, and its rows
+	 * reorder within it. The dialog commits through {@link GridGroupBy.rowGroups}. On by
 	 * default whenever client grouping and the header context menu are both live;
 	 * `false` is the off switch — no "Manage rows" item, no dialog.
 	 * @defaultValue true
@@ -377,7 +384,7 @@ export type GridExpandable<T> = {
 /**
  * Row drag-reorder binding for {@link GridProps.rowReorder}. The consumer owns
  * the `rows` source, so the grid reports the reordered rows through `onReorder`
- * rather than mutating them — apply the new order to your state (or persist it)
+ * rather than mutating them. Apply the new order to your state, or persist it,
  * to make it stick.
  *
  * @typeParam T - Shape of a single row.
@@ -392,8 +399,9 @@ export type GridRowReorder<T> = {
 	/**
 	 * Turns the drag handles off without dropping the handle column, e.g. while a
 	 * mutation is in flight. The grid also stands reordering down on its own
-	 * whenever a manual order wouldn't be meaningful — an active column sort,
-	 * pagination, virtualization, an empty/loading grid, or a filtered view.
+	 * whenever a manual order wouldn't be meaningful. That covers an active column
+	 * sort, pagination, virtualization, an empty or loading grid, and a filtered
+	 * view.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -444,8 +452,8 @@ export type GridReorder = {
 	/**
 	 * The drag affordance. `true` prefixes each reorderable header with a grip
 	 * button that carries the drag activator. `false` makes the *entire* header
-	 * the drag handle: the header cell takes the grab cursor (grabbing while
-	 * lifted) and the pointer/keyboard activator, and no grip renders. A sortable
+	 * the drag handle. The header cell takes the grab cursor, grabbing while
+	 * lifted, plus the pointer and keyboard activator, and no grip renders. A sortable
 	 * column's sort control keeps its pointer cursor — set on the control itself,
 	 * it out-resolves the header's inherited grab cursor on that child.
 	 * @defaultValue true
@@ -464,10 +472,10 @@ export type GridPinningState = Record<string, 'left' | 'right' | 'none'>
 
 /**
  * Controlled/uncontrolled runtime-pinning binding for
- * {@link GridProps.pinning}: the pin changes the header context menu's Pin
- * left / Pin right / Unpin items and the column manager's per-column pin
- * control apply, layered over each column's static {@link GridColumn.pinned}
- * flag. Omit it and the grid keeps the state internally, exactly as before —
+ * {@link GridProps.pinning}. It holds the pin changes that the header context
+ * menu's Pin left / Pin right / Unpin items and the column manager's
+ * per-column pin control apply. Those layer over each column's static
+ * {@link GridColumn.pinned} flag. Omit it and the grid keeps the state internally, exactly as before —
  * bind it to persist the user's pins.
  */
 export type GridPinning = {
@@ -673,24 +681,33 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Tight, all-dimensions-down preset that steps the grid below what
 	 * {@link GridDataProps.density | density} alone reaches. On its own `density`
-	 * controls padding only; `condensed` forces the compact padding step
-	 * (overriding `density` for every density-derived metric — cell padding,
-	 * resize-handle width, the virtualized row-height estimate, autosize
-	 * measurement) and additionally:
+	 * controls padding only. `condensed` forces the compact padding step, which
+	 * overrides `density` for every density-derived metric: cell padding,
+	 * resize-handle width, the virtualized row-height estimate, and autosize
+	 * measurement. It additionally:
 	 *
 	 * - steps header and body cell text below the table's base to `text-sm`;
-	 * - steps every icon in a header or body cell — the grid's own chrome (sort
-	 *   arrow, pin, grip, filter) and a consumer's `Icon` or `Badge`-slot icon —
-	 *   to the compact size, and steps a consumer `Badge`'s text down to match;
-	 *   and
+	 * - steps every icon in a header or body cell to the compact size, and steps
+	 *   a consumer `Badge`'s text down to match. That covers the grid's own
+	 *   chrome (sort arrow, pin, grip, filter) and a consumer's `Icon` or
+	 *   `Badge`-slot icon; and
 	 * - broadcasts a `compact` density cascade over the *table*, so size-aware
 	 *   *client* cell content (an inline `Input`, the selection checkbox) shrinks
 	 *   with it.
 	 *
-	 * Scoped to the table: a portaled overlay the grid spawns — a context menu, the
-	 * column-manager dialog — stays on the ambient density rather than adopting the
-	 * condensed step, so it reads consistently whether opened from a condensed grid
-	 * or not. Wrap the grid in a `DensityProvider` to size those overlays.
+	 * Scoped to the table. A portaled overlay the grid spawns stays on the ambient
+	 * density rather than adopting the condensed step. A context menu and the
+	 * column-manager dialog both do. Each therefore reads the same whether a
+	 * condensed grid opened it or not. Wrap the grid in a `DensityProvider` to size those overlays.
+	 *
+	 * @remarks
+	 * Orthogonal to {@link GridDataProps.density}, not a step on it. `density`
+	 * moves the space axis; `condensed` moves both axes and projects the text,
+	 * icon, and badge classes above, table-scoped. `DensityLevel` maps one-to-one
+	 * onto the `Step` scale and has no step below `sm`, so this cannot fold into
+	 * it. `condensed` with an explicit `density` is legal: the density cascade
+	 * still broadcasts what you name, and `condensed` layers its projection over
+	 * the table.
 	 * @defaultValue false
 	 */
 	condensed?: boolean
@@ -707,16 +724,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Groups rows by a single column's value, drawing an expandable group-header
 	 * row (the shared value plus a row count) above each run. Pass a
 	 * {@link GridGroupBy} binding whose `value` is the grouped column id, or `null`
-	 * to leave the grid ungrouped. Client-side by default — backed by the
-	 * engine's grouped/expanded row models — or server-side with
-	 * {@link GridGroupBy.manual}, where the backend groups and `rows` carries the
-	 * group-header rows (marked by {@link GridGroupBy.groupRow}) interleaved with
-	 * lazily fetched children.
+	 * to leave the grid ungrouped. Client-side by default, backed by the engine's
+	 * grouped and expanded row models. Server-side with
+	 * {@link GridGroupBy.manual}, where the backend groups, and `rows` carries the
+	 * group-header rows interleaved with lazily fetched children.
+	 * {@link GridGroupBy.groupRow} marks each header.
 	 *
-	 * Grouping renders its own body, so while active it takes precedence over — and
-	 * stands down — {@link GridDataProps.virtualize} and the
-	 * {@link GridDataProps.navigable} cursor; sorting, filtering, search,
-	 * selection, resizing, and pinning still apply. Client grouping also stands
+	 * Grouping renders its own body. While active it takes precedence over
+	 * {@link GridDataProps.virtualize} and the {@link GridDataProps.navigable}
+	 * cursor, and stands both down. Sorting, filtering, search, selection,
+	 * resizing, and pinning still apply. Client grouping also stands
 	 * {@link GridDataProps.pagination} down; manual grouping composes with
 	 * manual pagination and forces sort/search/filter manual.
 	 *
@@ -729,32 +746,31 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * is active, carrying every aggregating column's figure over that group's
 	 * rows (see {@link GridColumn.aggFunc}). The row collapses with its group —
 	 * whose header reads the same figures — and renders only once a visible
-	 * column aggregates. `'bottom'` names the placement. Stands down under
-	 * {@link GridGroupBy.manual} grouping, where the backend owns the figures.
+	 * column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
+	 * where the backend owns the figures.
 	 */
-	groupTotalRow?: 'bottom'
+	groupTotalRow?: boolean
 
 	/**
 	 * Appends a grand-total row after the body, aggregating every column with an
-	 * {@link GridColumn.aggFunc} over the full filtered set — all pages under
-	 * client pagination, the flat leaf set under grouping, the supplied page
-	 * under server pagination (the grid holds nothing more). Works grouped or
-	 * flat, and renders only once a visible column aggregates. `'bottom'` names
-	 * the placement. Stands down under {@link GridGroupBy.manual} grouping,
+	 * {@link GridColumn.aggFunc} over the full filtered set. That set is all pages
+	 * under client pagination, and the flat leaf set under grouping. Under server
+	 * pagination it is the supplied page, because the grid holds nothing more. Works grouped or
+	 * flat, and renders only once a visible column aggregates. Stands down under {@link GridGroupBy.manual} grouping,
 	 * where the backend owns the figures.
 	 */
-	grandTotalRow?: 'bottom'
+	grandTotalRow?: boolean
 
 	selection?: GridSelection
 
 	/**
 	 * A saved column layout applied as the initial state of every dimension it
-	 * carries — order, hidden ids, widths, and pins — in one storage-agnostic
-	 * {@link GridPreferences} snapshot, so a consumer wires persistence once
-	 * rather than threading four `defaultValue`s. Applied at first render, so it
-	 * lands **server-side**: SSR paints the saved order and widths, and a seeded
-	 * width holds as a manual one (the content auto-fit fills the rest around it)
-	 * rather than reflowing after mount. Each dimension is exactly the matching
+	 * carries: order, hidden ids, widths, and pins. It arrives as one
+	 * storage-agnostic {@link GridPreferences} snapshot, so a consumer wires
+	 * persistence once rather than threading four `defaultValue`s. Applied at first
+	 * render, so it lands **server-side**. SSR paints the saved order and widths,
+	 * and a seeded width holds as a manual one rather than reflowing after mount.
+	 * The content auto-fit fills the rest around it. Each dimension is exactly the matching
 	 * binding's `defaultValue` — an explicit `columnOrder`/`columnSizing`/
 	 * `pinning` `value`/`defaultValue` (or `columnManager.defaultHidden`) wins
 	 * for that dimension. Changes still flow out through those bindings'
@@ -790,17 +806,17 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Column groups: a colored, labeled band drawn above a contiguous run of
 	 * columns. Pass a plain array of {@link GridColumnGroup} for the declarative
-	 * case, or a {@link GridColumnGroups} binding to control the group layout the
-	 * column manager produces. Each group names its member `columns` (kept
-	 * adjacent and moved as a block), a `title`, and a `color` from the standard +
-	 * extended {@link Badge} palette; a `collapsible` group folds to its first
-	 * column with an expand toggle. When the column manager is enabled, its dialog
+	 * case. Pass a {@link GridColumnGroups} binding to control the group layout the
+	 * column manager produces. Each group names its member `columns`, a `title`,
+	 * and a `color` from the standard and extended {@link Badge} palette. Member
+	 * columns stay adjacent and move as a block. A `collapsible` group folds to its
+	 * first column with an expand toggle. When the column manager is enabled, its dialog
 	 * gains a group editor — create a group, drag columns into it, and set its name
 	 * and color.
 	 *
 	 * @see {@link GridColumnGroups}
 	 */
-	groups?: GridColumnGroups
+	columnGroups?: GridColumnGroups
 
 	/**
 	 * Pagination binding backed by the grid's TanStack Table engine. In server
@@ -817,13 +833,13 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Enables drag- and keyboard-resizing of data columns through the grid's
 	 * TanStack Table engine, over the automatic content sizing. Each data column's
 	 * header gains a resize handle on its trailing edge, carrying an always-visible
-	 * grip — a short centred bar that tints on hover and turns accent on keyboard
-	 * focus or active drag. Columns auto-size to their content by default (a `px`
+	 * grip. The grip is a short centred bar that tints on hover, and turns accent
+	 * on keyboard focus or active drag. Columns auto-size to their content by default (a `px`
 	 * {@link GridColumn.width} seeds one's initial width instead). The first manual
-	 * resize — a drag or a keyboard nudge — takes width control: every column holds
-	 * where it sits, so resizing one never reflows the others, and the table then
-	 * grows or shrinks freely (trailing space or a horizontal scroll) rather than
-	 * re-fitting. Widths persist through {@link GridDataProps.columnSizing}. The
+	 * resize takes width control, whether it is a drag or a keyboard nudge. Every
+	 * column holds where it sits, so resizing one never reflows the others. The
+	 * table then grows or shrinks freely, into trailing space or a horizontal
+	 * scroll, rather than re-fitting. Widths persist through {@link GridDataProps.columnSizing}. The
 	 * header context menu's "Auto-size all columns" clears every held width — manually
 	 * resized and `width`-seeded alike — and re-arms auto-fit. Set `false` to drop
 	 * the handles (columns still auto-size).
@@ -835,9 +851,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Custom content for the toolbar's top row, rendered at its trailing edge —
 	 * across from the quick search, ahead of the table-tools cluster.
 	 *
-	 * For a narrowing the grid does not own: a filter over a value the rows are
-	 * joined to rather than one they carry, or one the consumer applies before the
-	 * grid ever sees the rows. It sits beside the search because it does the same
+	 * For a narrowing the grid does not own. That is a filter over a value the rows
+	 * are joined to rather than one they carry. It is also one the consumer applies
+	 * before the grid ever sees the rows. It sits beside the search because it does the same
 	 * job; under the panel's title it would read as being about the panel.
 	 *
 	 * The row renders for this alone, so a grid with no search and no tools still
@@ -848,19 +864,19 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * What the columns are sized against.
 	 *
-	 * `fill` spends the width the grid is given: every column clears its content
-	 * and the surplus lifts the narrow ones toward a shared level, so the table is
-	 * exactly as wide as its container. That is what a grid inside a box should do.
+	 * `fill` spends the width the grid is given. Every column clears its content,
+	 * and the surplus lifts the narrow ones toward a shared level. The table is
+	 * then exactly as wide as its container. That is what a grid inside a box must do.
 	 *
 	 * `fit` sizes the columns to their own content and lets the table be however
-	 * wide that comes to — for a container built around the grid rather than the
-	 * other way round. A box that shrink-wraps a `fill` grid asks it how wide it
-	 * wants to be while the grid is asking the box, and the pair settles wherever
-	 * the layout lands, differently on different renders; `fit` is the answer that
-	 * does not depend on the question. Pair it with a container that shrink-wraps,
-	 * such as `<Sheet width="fit">`, and give that container a cap — a grid whose
-	 * columns cannot fit the screen still scrolls sideways, which is the honest
-	 * outcome rather than a defect.
+	 * wide that comes to. It suits a container built around the grid rather than
+	 * the other way round. A box that shrink-wraps a `fill` grid asks it how wide
+	 * it wants to be while the grid is asking the box. The pair then settles
+	 * wherever the layout lands, differently on different renders. `fit` is the
+	 * answer that does not depend on the question. Pair it with a container that
+	 * shrink-wraps, such as `<Sheet width="fit">`, and give that container a cap. A
+	 * grid whose columns cannot fit the screen still scrolls sideways, which is the
+	 * honest outcome rather than a defect.
 	 * @defaultValue 'fill'
 	 */
 	width?: 'fill' | 'fit'
@@ -893,14 +909,14 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	columnFilters?: GridColumnFilters
 
 	/**
-	 * Right-click context menus: a `column` menu on headers (the Sort, Pin, and
-	 * Auto-size menus plus Group by, then Manage columns and the Export menu) and
-	 * a `cell` menu on body cells (Copy, then the Export menu). Related actions
+	 * Right-click context menus. A `column` menu on headers carries the Sort, Pin,
+	 * and Auto-size menus plus Group by, then Manage columns and the Export menu. A
+	 * `cell` menu on body cells carries Copy, then the Export menu. Related actions
 	 * are consolidated into hover-opened submenus, so the menu opens one row per
 	 * concern. On by default; pass `false` to disable. Each side takes the
 	 * defaults (`true`) or a builder that reshapes them. "Manage columns" opens
-	 * the column manager, rendering its dialog even without the toolbar button —
-	 * unless `columnManager={false}` drops it, or its own
+	 * the column manager, rendering its dialog even without the toolbar button.
+	 * `columnManager={false}` drops it, and its own
 	 * {@link GridToolSurfaces.contextMenu} switch keeps it to the toolbar. The
 	 * export items answer to the same switch on
 	 * {@link GridDataProps.exportable | exportable}.
@@ -911,17 +927,20 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	contextMenu?: GridContextMenuConfig<T> | false
 
 	/**
-	 * Enables export of the grid's rows, in one of four forms. The shorthand
-	 * `true` enables the default set — CSV, Excel, and print; an explicit
-	 * {@link GridExportEntry} array chooses a subset, reorders it, or overrides a
-	 * type's behavior — a bare type (`'csv'`) runs its built-in exporter, while an
-	 * object entry (`{ csv: { onExport } }`) replaces it, required for any type
-	 * beyond the three built-ins, which have no default to fall back to; a
-	 * {@link GridExportConfig} names those same types under `types` *and* the
-	 * surfaces they appear on; and `false` disables export outright.
+	 * Enables export of the grid's rows, in one of four forms.
 	 *
-	 * The header and cell context menus carry the export items by default, and the
-	 * toolbar's "Export" dropdown is opt-in — `exportable={{ toolbar: true }}` —
+	 * - The shorthand `true` enables the default set: CSV, Excel, and print.
+	 * - An explicit {@link GridExportEntry} array chooses a subset, reorders it, or
+	 *   overrides a type's behavior. A bare type (`'csv'`) runs its built-in
+	 *   exporter. An object entry (`{ csv: { onExport } }`) replaces it, and is
+	 *   required for any type beyond the three built-ins, which have no default to
+	 *   fall back to.
+	 * - A {@link GridExportConfig} names those same types under `types` *and* the
+	 *   surfaces they appear on.
+	 * - `false` disables export outright.
+	 *
+	 * The header and cell context menus carry the export items by default. The
+	 * toolbar's "Export" dropdown is opt-in through `exportable={{ toolbar: true }}`,
 	 * matching the column manager's own button. Set either
 	 * {@link GridToolSurfaces | surface} to keep export to the other:
 	 * `{ types: ['csv'], toolbar: true, contextMenu: false }` is a toolbar-only
@@ -948,9 +967,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Overrides the rows every export type serializes with a consumer-supplied
 	 * list, sidestepping the grid's own filtered/sorted set. Meant for
 	 * server-side {@link GridDataProps.pagination | pagination}, where the grid
-	 * holds only the current page: return the full dataset synchronously if it's
-	 * already in memory, or a promise for a server round-trip, and CSV, Excel,
-	 * and print all export the awaited list whole.
+	 * holds only the current page. Return the full dataset synchronously if it is
+	 * already in memory, or a promise for a server round-trip. CSV, Excel, and
+	 * print all export the awaited list whole.
 	 *
 	 * When set it wins outright — any active {@link GridDataProps.selection} is
 	 * ignored, since off-page selections can't be reconciled with a server fetch.
@@ -958,9 +977,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * downloading a partial file. Has no effect unless {@link GridDataProps.exportable}
 	 * is on.
 	 *
-	 * A promise is also what puts the grid's "Exporting" overlay up: the wait is
-	 * covered whichever surface the export ran from, and it lifts when the promise
-	 * settles either way. Return the rows synchronously and there is no wait to
+	 * A promise is also what puts the grid's "Exporting" overlay up. The wait is
+	 * covered whichever surface the export ran from, and the overlay lifts when the
+	 * promise settles either way. Return the rows synchronously and there is no wait to
 	 * cover, so nothing appears.
 	 *
 	 * @see {@link GridExportRows}
@@ -988,29 +1007,30 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * column for the disclosure chevron. The panel spans the full row width and
 	 * opens over an auto-height transition.
 	 *
-	 * Renders in the plain flat body, so — like grouping — it stands down
-	 * {@link GridProps.virtualize | virtualization} (detail rows break the
-	 * uniform row height a window assumes), the {@link GridProps.navigable |
-	 * cursor}, and row {@link GridProps.rowReorder | reorder} while active;
-	 * sorting, filtering, search, selection, pagination, resizing, and pinning
-	 * still apply.
+	 * Renders in the plain flat body, so it stands down three things while active,
+	 * as grouping does: {@link GridProps.virtualize | virtualization}, the
+	 * {@link GridProps.navigable | cursor}, and row
+	 * {@link GridProps.rowReorder | reorder}. Detail rows break the uniform row
+	 * height a window assumes. Sorting, filtering, search, selection, pagination,
+	 * resizing, and pinning still apply.
 	 *
 	 * @see {@link GridExpandable}
 	 */
 	expandable?: GridExpandable<T>
 
 	/**
-	 * Enables drag-reordering of rows. Add a {@link GridColumn.dragHandle} column
-	 * (usually leading) for the grip, and pass this binding's `onReorder` to
-	 * commit the new order back onto your `rows` — the consumer owns the data, so
-	 * the grid reports the reordered set rather than mutating it. Each row's grip
+	 * Enables drag-reordering of rows. Add a {@link GridColumn.dragHandle} column,
+	 * usually leading, for the grip. Pass this binding's `onReorder` to commit the
+	 * new order back onto your `rows`. The consumer owns the data, so the grid
+	 * reports the reordered set rather than mutating it. Each row's grip
 	 * drags by pointer or keyboard (`@dnd-kit`), moving the row within the set.
 	 *
 	 * Reordering is a manual ordering of the natural row order, so the grid stands
-	 * it down — the handles turn inert — whenever that order isn't what's shown: an
-	 * active column {@link GridProps.sort | sort}, a filtered/searched view,
-	 * {@link GridProps.pagination | pagination}, {@link GridProps.virtualize |
-	 * virtualization}, or an empty/loading grid. Not combinable with column
+	 * it down whenever that order isn't what's shown. The handles then turn inert.
+	 * That covers an active column {@link GridProps.sort | sort}, a filtered or
+	 * searched view, {@link GridProps.pagination | pagination},
+	 * {@link GridProps.virtualize | virtualization}, and an empty or loading grid.
+	 * Not combinable with column
 	 * {@link GridProps.reorder} on the same grid (row reorder takes precedence).
 	 *
 	 * @see {@link GridRowReorder}
@@ -1019,9 +1039,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 
 	/**
 	 * Adds a keyboard cell cursor over the data cells. The grid becomes a single
-	 * tab stop (`role="grid"`) whose active cell moves with the arrow keys, Home/End
-	 * (row edges), Ctrl/Cmd+Home/End (grid corners), and PageUp/PageDown, tracked
-	 * for assistive tech through `aria-activedescendant` and ringed on screen.
+	 * tab stop (`role="grid"`) whose active cell moves with the arrow keys. Home/End
+	 * reach the row edges, Ctrl/Cmd+Home/End the grid corners, and PageUp/PageDown
+	 * the page steps. The cursor is tracked for assistive tech through
+	 * `aria-activedescendant`, and ringed on screen.
 	 * Enter/Space activates the active cell's {@link GridDataProps.onCellClick}
 	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
 	 * clicking a cell seats the cursor there.
@@ -1035,8 +1056,37 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	navigable?: boolean
 
 	/**
-	 * Truncate overflowing cell content to a single line with an ellipsis, and
-	 * show a tooltip with the full content on hover/focus when a cell is
+	 * Fires with the cell the keyboard cursor sits on, whenever the cursor moves,
+	 * and with `null` when it clears.
+	 *
+	 * The cursor moves on every arrow key, Home/End, PageUp/PageDown, and on a
+	 * click that seats it. {@link GridDataProps.onCellClick} covers the pointer
+	 * alone, so a consumer that mirrors the cursor elsewhere could read it only
+	 * through `aria-activedescendant`. The payload is the same
+	 * {@link GridCellClickContext} the click delivers, so both channels name a
+	 * cell the same way. Needs {@link GridDataProps.navigable} or
+	 * {@link GridDataProps.editable}; a grid with neither has no cursor and stays
+	 * silent. Mounting reports nothing.
+	 */
+	onActiveCellChange?: (cell: GridCellClickContext<T> | null) => void
+
+	/**
+	 * Fires with the ids of the column-group bands currently collapsed.
+	 *
+	 * Collapse is grid-owned view state, seeded once from each group's
+	 * {@link GridColumnGroup.defaultCollapsed}. It was never reported, so a band
+	 * the reader shut stayed shut, with nothing to persist and no way to know. The
+	 * {@link GridDataProps.columnGroups} binding cannot carry it — that binding's
+	 * `onValueChange` is the group LAYOUT sink, and its own doccomment holds collapse
+	 * out of it. Top-level here, so the array shorthand reaches it too. Use it to
+	 * persist what the reader collapsed. Mounting reports nothing, whatever
+	 * `defaultCollapsed` seeded.
+	 */
+	onCollapsedChange?: (collapsed: ReadonlySet<string | number>) => void
+
+	/**
+	 * Truncate overflowing cell content to a single line with an ellipsis. Show a
+	 * tooltip with the full content on hover or focus when a cell is
 	 * truncated. A column supersedes or disables that tooltip via
 	 * {@link GridColumn.cellTooltip}. Set `false` to let cells wrap instead.
 	 * @defaultValue true
@@ -1053,27 +1103,28 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * working. Place primary actions in an interactive cell rather than relying
 	 * on the row click alone for the clearest screen-reader semantics.
 	 *
-	 * @remarks A row handler makes the rows a roving-tabindex group: the grid is
-	 * one Tab stop, Up/Down move focus between rows, and Enter / Space activates
+	 * @remarks A row handler makes the rows a roving-tabindex group. The grid is
+	 * one Tab stop, Up/Down move focus between rows, and Enter or Space activates
 	 * the focused row. A {@link GridDataProps.onCellClick | cell handler} takes
-	 * precedence (the cells rove instead); the navigable cursor and the
-	 * virtualized body stand row roving down — the latter keeping a per-row Tab
-	 * stop instead.
+	 * precedence, and the cells rove instead. The navigable cursor and the
+	 * virtualized body stand row roving down, and the virtualized body keeps a
+	 * per-row Tab stop instead.
 	 */
 	onRowClick?: GridRowClick<T>
 
 	/**
 	 * Invoked when a data cell is clicked, with the {@link GridCellClickContext}
-	 * — the row datum, its key, the column id, and the cell's value (the
-	 * column's {@link GridColumn.value} accessor, else the row field named by
-	 * the column id) — and the originating event. Fires ahead of
+	 * and the originating event. That context carries the row datum, its key, the
+	 * column id, and the cell's value. The value is the column's
+	 * {@link GridColumn.value} accessor, else the row field named by the column
+	 * id. Fires ahead of
 	 * {@link GridDataProps.onRowClick} on the same click. The
 	 * interactive-content guard of `onRowClick` applies, and a click on a
 	 * non-data cell (selection, actions, drag handle, expander) is ignored.
 	 *
-	 * @remarks A cell handler makes the data cells a roving-tabindex group: the
-	 * grid is one Tab stop, the arrow keys move focus between cells
-	 * (Up/Down/Left/Right), and Enter / Space activates the focused cell — the
+	 * @remarks A cell handler makes the data cells a roving-tabindex group. The
+	 * grid is one Tab stop, and the arrow keys move focus between cells, up, down,
+	 * left, and right. Enter or Space activates the focused cell, which is the
 	 * keyboard peer of the pointer click. Stands down under
 	 * {@link GridDataProps.navigable}, whose cursor owns the keyboard (its Enter
 	 * fires this too), and under {@link GridDataProps.virtualize}, whose rows
@@ -1092,9 +1143,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 
 	/**
 	 * Invoked when a data cell is double-clicked, with the
-	 * {@link GridCellClickContext} and the originating event — the cell-level
-	 * counterpart of {@link GridDataProps.onRowDoubleClick}, fired ahead of it
-	 * on the same double-click.
+	 * {@link GridCellClickContext} and the originating event. It is the cell-level
+	 * counterpart of {@link GridDataProps.onRowDoubleClick}, fired ahead of it on
+	 * the same double-click.
 	 */
 	onCellDoubleClick?: GridCellClick<T>
 
@@ -1113,9 +1164,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	header?: GridHeader
 
 	/**
-	 * Footer configuration: an opt-in summary bar below the table with a row-count
-	 * total, a selected-row count, and a custom content slot — each rendered only
-	 * when enabled. Independent of {@link GridDataProps.pagination}, whose own
+	 * Footer configuration: an opt-in summary bar below the table. It holds a
+	 * row-count total, a selected-row count, and a custom content slot. Each one
+	 * renders only when enabled. Independent of {@link GridDataProps.pagination}, whose own
 	 * footer sits beneath this bar when both are set. Omit for no footer.
 	 *
 	 * @see {@link GridFooter}
@@ -1125,12 +1176,13 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Caps the table height behind a scroll wrapper; required by
 	 * {@link GridDataProps.virtualize}. A fixed CSS length (`'320px'`,
-	 * `'50vh'`), or `'fill'` to take the consumer's box: the grid stretches to
-	 * its parent's height and the scroll region flexes to the remainder under
-	 * the toolbar, so the grid sizes correctly inside any CSS-sized parent.
-	 * A *percentage* can't bind — the grid's own wrapper is auto-height, so
+	 * `'50vh'`), or `'fill'` to take the consumer's box. Under `'fill'` the grid
+	 * stretches to its parent's height, and the scroll region flexes to the
+	 * remainder under the toolbar. The grid therefore sizes correctly inside any
+	 * CSS-sized parent.
+	 * A *percentage* can't bind, because the grid's own wrapper is auto-height. So
 	 * `'100%'` resolves to no constraint, virtualization silently degrades to
-	 * rendering every row, and the grid warns in dev; use `'fill'` instead.
+	 * rendering every row, and the grid warns in dev. Use `'fill'` instead.
 	 */
 	maxHeight?: string
 
@@ -1151,7 +1203,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	empty?: ReactNode
 
 	/**
-	 * Error state shown in place of the body — for a failed data fetch, where
+	 * Error state shown in place of the body. It covers a failed data fetch, where
 	 * there are no rows to render but the cause isn't "no items". Takes
 	 * precedence over `empty` and is hidden while `loading`. Pass a node (e.g. an
 	 * `Alert` with a retry control) to render it, or `true` for a default error
@@ -1164,9 +1216,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * the scroll viewport (plus overscan) render to the DOM. Requires
 	 * `maxHeight`, which sizes the scroll container.
 	 *
-	 * Pass `true` for defaults (10 overscan, and a row-height estimate that
-	 * scales with {@link GridDataProps.density} — 36 / 44 / 52px for
-	 * compact / snug / loose), or an object to tune. Assumes uniform row
+	 * Pass `true` for defaults, or an object to tune. The defaults are 10 overscan
+	 * and a row-height estimate that scales with {@link GridDataProps.density}:
+	 * 36, 44, or 52px for compact, snug, or loose. Assumes uniform row
 	 * heights.
 	 *
 	 * Without virtualization every row in `rows` renders to the DOM; past
@@ -1176,14 +1228,16 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	virtualize?: GridVirtualize
 
 	/**
-	 * Infinite-scroll binding: as the {@link GridDataProps.virtualize | virtualized}
-	 * window nears the end of the loaded rows, the grid calls `onLoadMore` so you
-	 * can append the next batch to `rows` — a local slice, or a server fetch. Opt
-	 * into a trailing skeleton row while `loadingMore` with `loadingIndicator`,
-	 * close the list with `endMessage`, surface a failed load with `error`, and
-	 * hold the columns steady against appends with `stableColumnWidths`. Implies
-	 * `virtualize` (an explicit `virtualize` object still tunes the window;
-	 * `virtualize={false}` throws) but still needs `maxHeight`, which sizes the
+	 * Infinite-scroll binding. As the {@link GridDataProps.virtualize | virtualized}
+	 * window nears the end of the loaded rows, the grid calls `onLoadMore`. Append
+	 * the next batch to `rows` — a local slice, or a server fetch.
+	 *
+	 * Opt into a trailing skeleton row while `loadingMore` with `loadingIndicator`.
+	 * Close the list with `endMessage`, and surface a failed load with `error`.
+	 * Hold the columns steady against appends with `stableColumnWidths`.
+	 *
+	 * Implies `virtualize`, where an explicit `virtualize` object still tunes the
+	 * window and `virtualize={false}` throws. It still needs `maxHeight`, which sizes the
 	 * windowed scroll container, and replaces the paged
 	 * {@link GridDataProps.pagination} footer; passing both throws. Stands down
 	 * with virtualization under {@link GridDataProps.groupBy | grouping}.
@@ -1206,13 +1260,14 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * {@link GridEditableConfig}: which rows are editable and a commit sink. A row
 	 * in the editable set puts all of its editable cells into edit mode at once.
 	 * Edits stage live, and removing the row from the set saves its changed cells
-	 * as one batch. A column binds to a row property via {@link GridColumn.field},
-	 * and the editor is inferred from the value's primitive type unless the column
-	 * supplies an {@link GridColumn.editCell} slot. Set
-	 * {@link GridEditableConfig.trigger} to `'doubleClick'` for grid-owned edit
-	 * sessions: double-clicking an editable cell (or Enter on the keyboard
-	 * cursor's active cell) starts its row's edit, an editor's Enter saves the
-	 * row, and Escape abandons it. Such a session can narrow to the entered cell
+	 * as one batch. A column binds to a row property via {@link GridColumn.field}.
+	 * The editor is inferred from the value's primitive type, unless the column
+	 * supplies an {@link GridColumn.editCell} slot.
+	 *
+	 * Set {@link GridEditableConfig.trigger} to `'doubleClick'` for grid-owned edit
+	 * sessions. Double-clicking an editable cell starts its row's edit, as does
+	 * Enter on the keyboard cursor's active cell. An editor's Enter saves the row,
+	 * and Escape abandons it. Such a session can narrow to the entered cell
 	 * rather than its whole row through {@link GridEditableConfig.scope}. Omit for
 	 * a read-only grid.
 	 */

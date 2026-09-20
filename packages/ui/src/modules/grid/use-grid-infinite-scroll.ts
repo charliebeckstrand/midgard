@@ -5,8 +5,10 @@ import { type RefObject, useEffect, useRef } from 'react'
 /**
  * Pixels the scroll viewport can grow between viewport-fill fetches before the
  * fill is declared unbounded. A bounded container's `clientHeight` holds still
- * while rows append (give or take scrollbar/zoom rounding); a container sizing
- * to its content grows by at least a row per batch, far past this. @internal
+ * while rows append (give or take scrollbar/zoom rounding). A container sizing
+ * to its content grows by at least a row per batch, far past this.
+ *
+ * @internal
  */
 const FILL_GROWTH_TOLERANCE = 8
 
@@ -17,16 +19,17 @@ export type LoadMoreDecision =
 	/** Conditions not met — wait for a scroll, a grown count, or a gate to clear. */
 	| 'hold'
 	/**
-	 * The scroll container shows no bounded height — zero, or grown alongside a
-	 * viewport-fill append — so virtualize is not windowing and a fetch would
-	 * chain without end. Stop fetching and fail loud in dev.
+	 * The scroll container shows no bounded height: zero, or grown alongside a
+	 * viewport-fill append. Virtualize is therefore not windowing, and a fetch
+	 * would chain without end. Stop fetching and fail loud in dev.
 	 */
 	| 'unbounded'
 
 /**
  * Resolves whether the virtualized scroll can call `onLoadMore`, upholding the
- * infinite-scroll firing invariant: *`onLoadMore` never fires more than once
- * per user scroll interaction, except for a bounded initial viewport-fill.*
+ * infinite-scroll firing invariant. That invariant: *`onLoadMore` never fires
+ * more than once per user scroll interaction, except for a bounded initial
+ * viewport-fill.*
  * The pure seam {@link useGridInfiniteScroll} and its tests share — fed plain
  * indices and scroll-box measurements, returning the decision with no
  * virtualizer or effect.
@@ -35,24 +38,24 @@ export type LoadMoreDecision =
  *
  * - **Overflowing** (`scrollHeight > clientHeight` — real evidence of a bounded
  *   window): fire only when `armed`, i.e. a user scroll interaction happened
- *   since the last fire. Each fire consumes the arm, so an append that leaves
- *   the window near the new end (a `threshold` at or past the batch size)
- *   waits for the next scroll instead of chain-fetching; and since a scroll
- *   re-arms unconditionally, a *failed* fetch (the count never grew) is
- *   retried on the next scroll rather than dead-locking the latch.
+ *   since the last fire. Each fire consumes the arm. An append can leave the
+ *   window near the new end, with a `threshold` at or past the batch size.
+ *   Such an append waits for the next scroll, instead of chain-fetching. A
+ *   scroll re-arms unconditionally, so a *failed* fetch (the count never grew)
+ *   is retried on the next scroll rather than dead-locking the latch.
  * - **Viewport-fill** (not overflowing — the loaded rows don't fill the
  *   viewport yet): fire once per loaded extent (the `requestedCount` latch)
- *   with no scroll needed, so a short first page grows until the window
+ *   with no scroll needed. A short first page then grows until the window
  *   overflows. Bounded by geometry: a capped viewport can only take
  *   `maxHeight / rowHeight` rows before overflowing. When the container's cap
  *   resolved to a fixed length (`capBounded`) that termination is guaranteed
  *   — its `clientHeight` can legitimately grow *toward* the cap while
  *   under-filled. Without a resolved cap, a `clientHeight` that grew past
- *   `fillBase` (the viewport measured when the fill began) as batches
- *   appended is a container sizing to its content — the unbounded-window
- *   failure that once chain-fetched a 30K-row backend — so the fill stops
- *   with the `'unbounded'` verdict instead. A zero-height viewport holds (a
- *   hidden or not-yet-laid-out grid isn't evidence either way).
+ *   `fillBase` as batches appended is a container sizing to its content. Here
+ *   `fillBase` is the viewport measured when the fill began. That is the
+ *   unbounded-window failure that once chain-fetched a 30K-row backend, so the
+ *   fill stops with the `'unbounded'` verdict instead. A zero-height viewport
+ *   holds (a hidden or not-yet-laid-out grid isn't evidence either way).
  *
  * @param args.lastRenderedIndex - Index of the last row in the window, or `-1` when none render.
  * @param args.count - Rows currently loaded (the virtualized count).
@@ -99,7 +102,7 @@ export function resolveLoadMore(args: {
 	// — no evidence either way, so hold until a real measurement arrives.
 	if (args.clientHeight <= 0) return 'hold'
 
-	// A fixed-length cap bounds the container by construction — its viewport may
+	// A fixed-length cap bounds the container by construction — its viewport can
 	// legitimately grow toward the cap while under-filled, and the fill is
 	// guaranteed to terminate at it. Without one, a viewport that grew alongside
 	// the appended batches is sizing to its content: virtualize is not windowing,
@@ -155,10 +158,10 @@ function initialLoadMoreState(count: number): LoadMoreState {
 
 /**
  * Handles a row-set replacement: the loaded set shrank (a sort/filter/search
- * swapped the rows rather than appending), so the old scroll position is
+ * swapped the rows rather than appending). The old scroll position is therefore
  * meaningless against the new set. Scrolls back to the top and clears the
  * latch, arm, and fill state, requiring fresh overflow-plus-scroll evidence
- * before the next fetch — otherwise a position deep in the old set would sit
+ * before the next fetch. Otherwise a position deep in the old set would sit
  * past the new end and re-trigger an immediate fetch cascade. Returns whether
  * a replacement was handled (the caller then skips this run's evaluation).
  *
@@ -276,7 +279,7 @@ function evaluateLoadMore(args: {
 }
 
 /** Parameters for {@link useGridInfiniteScroll}. @internal */
-type UseGridInfiniteScrollParams = {
+type GridInfiniteScrollParams = {
 	/** Index of the last row currently in the virtual window, or `-1` when none. */
 	lastRenderedIndex: number
 	/** Rows currently loaded (the virtualized count). */
@@ -295,14 +298,15 @@ type UseGridInfiniteScrollParams = {
 /**
  * Fires the infinite-scroll `onLoadMore` when the virtualized window nears the
  * end of the loaded rows, upholding the firing invariant {@link resolveLoadMore}
- * resolves: at most one fire per user scroll interaction (a scroll event on the
- * container arms the next fire; firing consumes the arm), plus a geometry-bounded
- * viewport-fill while the loaded rows don't yet overflow the container. When the
- * container turns out unbounded — its height grows with the content instead of
- * windowing it — fetching stops and a dev-only error names the failure. Replacing
- * the row set with a shorter one (a sort/filter/search swap under
- * `keepPreviousData`) scrolls back to the top and resets the latch and arm, so a
- * scroll position deep in the old set can't cascade fetches against the new one.
+ * resolves. That means at most one fire per user scroll interaction. A scroll
+ * event on the container arms the next fire, and firing consumes the arm. A
+ * geometry-bounded viewport-fill also fires while the loaded rows don't yet
+ * overflow the container. When the container turns out unbounded — its height
+ * grows with the content instead of windowing it — fetching stops and a
+ * dev-only error names the failure. Replacing the row set with a shorter one
+ * scrolls back to the top and resets the latch and arm. Such a swap comes from
+ * a sort, filter, or search under `keepPreviousData`. A scroll position deep in
+ * the old set then can't cascade fetches against the new one.
  * Inert when `infiniteScroll` is `null`. Reads `onLoadMore` through a ref so an
  * inline consumer callback doesn't re-arm the effect.
  *
@@ -313,7 +317,7 @@ export function useGridInfiniteScroll({
 	count,
 	infiniteScroll,
 	scrollRef,
-}: UseGridInfiniteScrollParams): void {
+}: GridInfiniteScrollParams): void {
 	const onLoadMoreRef = useRef<(() => void) | null>(null)
 
 	onLoadMoreRef.current = infiniteScroll?.onLoadMore ?? null

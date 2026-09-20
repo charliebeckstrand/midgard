@@ -30,9 +30,7 @@ already shipped.
   owning `ROADMAP.md` tracks status. A plan stays as the historical record after
   its work lands.
 
-New top-level subjects get their own folder here as they appear; keep
-single-lens, point-in-time sweeps under `audits/` and design records under
-`plans/`.
+New top-level subjects get their own folder here as they appear.
 
 ## Audit and plan naming
 

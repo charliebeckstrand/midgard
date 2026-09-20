@@ -5,11 +5,11 @@
 
 /**
  * Which value axis a series or reference line reads against: the key of the
- * chart's {@link CartesianAxes | axes} object configuring it — the primary
- * `'y'` axis or the secondary `'y2'`. The names are roles, not geometry: `y`
- * lines the left gutter and `y2` the right when vertical, and the transpose
- * under `orientation="horizontal"` moves them to the bottom and top with the
- * binding reading the same either way.
+ * chart's {@link CartesianAxes | axes} object configuring it. That is the
+ * primary `'y'` axis or the secondary `'y2'`. The names are roles, not
+ * geometry. `y` lines the left gutter and `y2` the right when vertical. The
+ * transpose under `orientation="horizontal"` moves them to the bottom and top,
+ * with the binding reading the same either way.
  */
 export type ChartValueAxisId = 'y' | 'y2'
 
@@ -17,9 +17,9 @@ export type ChartValueAxisId = 'y' | 'y2'
  * One value axis's configuration — a `y` / `y2` entry of a cartesian chart's
  * {@link CartesianAxes | axes} object, or either {@link ScatterAxes} entry of a
  * point chart's. An independent domain, tick formatter, title, and grid-line
- * participation, so two measures of different scale — a count against a
- * currency, a rate against a weight — each read their own axis instead of
- * sharing one domain.
+ * participation. Two measures of different scale each read their own axis,
+ * instead of sharing one domain. That is a count against a currency, or a rate
+ * against a weight.
  */
 export type ChartValueAxis = {
 	/** Domain floor; defaults to this axis's data (and zero on a bar-bearing chart). */
@@ -36,10 +36,10 @@ export type ChartValueAxis = {
 	title?: string
 	/**
 	 * Draw this axis's ticks as the chart's grid. On a cartesian chart one axis
-	 * normally carries them — two independent tick sets rarely align, and doubled
-	 * hairlines read as noise — so `y` defaults on and `y2` off, standing in
-	 * only when no `y`-bound series resolves a scale; a point chart's grid
-	 * reads both ways, so both its axes default on. Set an axis's `grid` false to
+	 * normally carries them. Two independent tick sets rarely align, and doubled
+	 * hairlines read as noise. `y` therefore defaults on and `y2` off, standing in
+	 * only when no `y`-bound series resolves a scale. A point chart's grid reads
+	 * both ways, so both its axes default on. Set an axis's `grid` false to
 	 * drop its hairlines; drop every axis's to clear the layer.
 	 * @defaultValue `true`, except a cartesian chart's `y2`
 	 */
@@ -53,12 +53,13 @@ export type ChartValueAxis = {
  */
 export type ChartCategoryAxis = {
 	/**
-	 * Type the band axis. `'time'` reads each row's `xKey` as a date — a `Date`,
-	 * epoch milliseconds, or an ISO string (a bare `YYYY-MM-DD` as a local day) —
-	 * and lines the axis with calendar-boundary ticks (year, quarter, month, week,
-	 * day, hour) chosen against the tick target, each placed at its true position
-	 * between the evenly spaced rows and formatted for the runtime locale through
-	 * `@internationalized/date`; the tooltip and data table read the same dates.
+	 * Type the band axis. `'time'` reads each row's `xKey` as a date: a `Date`,
+	 * epoch milliseconds, or an ISO string (a bare `YYYY-MM-DD` as a local day).
+	 * It lines the axis with calendar-boundary ticks (year, quarter, month, week,
+	 * day, hour) chosen against the tick target. Each tick sits at its true
+	 * position between the evenly spaced rows, formatted for the runtime locale
+	 * through `@internationalized/date`. The tooltip and data table read the same
+	 * dates.
 	 * Rows stay index-aligned, so spacing is uniform — the ticks track time, the
 	 * marks track order. Under `orientation="horizontal"` this types the vertical
 	 * band axis. Falls back to plain labels when fewer than two rows carry a
@@ -69,17 +70,17 @@ export type ChartCategoryAxis = {
 	/**
 	 * Format each row's category — the band-axis labels and the tooltip and data
 	 * table readout — from its raw `xKey` value. Overrides the default `String`
-	 * coercion and the automatic date normalization: with no formatter set, a band
+	 * coercion and the automatic date normalization. With no formatter set, a band
 	 * axis whose every value parses as a date labels itself in the locale's own
-	 * numeric month/day order, gaining the year across years. Ignored on the ticks of a `type: 'time'`
-	 * axis, which places and labels its own calendar ticks, though it still formats
-	 * that axis's readout.
+	 * numeric month/day order. It gains the year across years. Ignored on the
+	 * ticks of a `type: 'time'` axis, which places and labels its own calendar
+	 * ticks, though it still formats that axis's readout.
 	 */
 	format?: (value: unknown) => string
 	/**
-	 * Rule a divider between each category — one hairline at every band boundary,
-	 * none at the outer edges — so a dense axis reads which marks belong to which
-	 * row: `'solid'` or `'dashed'`, omitted draws none. Recessive under the marks
+	 * Rule a divider between each category: one hairline at every band boundary,
+	 * none at the outer edges. A dense axis then reads which marks belong to which
+	 * row. `'solid'` or `'dashed'`; omitted draws none. Recessive under the marks
 	 * beside the value grid, and it stands down with the rest of the chrome
 	 * at the spark tier. Under `orientation="horizontal"` the dividers run between
 	 * the stacked bands.
@@ -100,9 +101,13 @@ export type ChartCategoryAxis = {
 }
 
 /**
- * A cartesian chart's axes, one optional config under each axis's own key: the
- * category (band) axis as `x`, the primary value axis as `y`, the secondary as
- * `y2` — the same names a series' or reference line's `axis` binding uses. An
+ * A cartesian chart's axes, one optional config under each axis's own key:
+ *
+ * - The category (band) axis as `x`.
+ * - The primary value axis as `y`.
+ * - The secondary as `y2`.
+ *
+ * They are the same names a series' or reference line's `axis` binding uses. An
  * omitted key keeps that axis's defaults, so a chart names only the axes it
  * tunes.
  */
@@ -120,8 +125,8 @@ export type CartesianAxes = {
 
 /**
  * A point chart's axes (Scatter / Bubble), one optional config per role. Both
- * are value axes here — there is no band axis and no `y2` — so each takes the
- * same domain pins, tick formatter, title, and grid participation.
+ * are value axes here: there is no band axis and no `y2`. Each takes the same
+ * domain pins, tick formatter, title, and grid participation.
  */
 export type ScatterAxes = {
 	/** The horizontal value axis. */
@@ -131,9 +136,9 @@ export type ScatterAxes = {
 }
 
 /**
- * Reads an `axes` prop's boolean-or-object union: whether the axis chrome draws
- * at all (`false` alone drops it, the bare-marks plot) and the per-axis configs
- * (the booleans read as none — every axis at its defaults).
+ * Reads an `axes` prop's boolean-or-object union. It reads whether the axis
+ * chrome draws at all (`false` alone drops it, the bare-marks plot), and the
+ * per-axis configs. The booleans read as none: every axis at its defaults.
  *
  * @internal
  */

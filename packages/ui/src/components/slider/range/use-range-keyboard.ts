@@ -1,12 +1,10 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { type KeyboardEvent, useCallback } from 'react'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'
-import type { OverlapMode, ThumbIndex } from './types'
+import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeUpdate } from './use-range-update'
-
-type ThumbButtonRefs = [RefObject<HTMLButtonElement | null>, RefObject<HTMLButtonElement | null>]
 
 /**
  * Raw value for an arrow / page / home / end key, or null when the key is not a
@@ -61,8 +59,8 @@ function focusSwappedThumb(
 }
 
 /**
- * Keyboard control for a range slider's two thumbs: arrows / Page / Home / End
- * move the thumb by `step`, clamped and snapped; in `swap` overlap, focus
+ * Keyboard control for a range slider's two thumbs. Arrows, Page, Home, and End
+ * move the thumb by `step`, clamped and snapped. In `swap` overlap, focus
  * follows a thumb that crosses past its partner.
  *
  * @returns A factory `(index) => onKeyDown` for the thumb at `index`.

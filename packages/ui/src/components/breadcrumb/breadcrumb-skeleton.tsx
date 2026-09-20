@@ -7,7 +7,7 @@ import { Placeholder } from '../placeholder'
 /** Props for {@link BreadcrumbSkeleton}; the placeholder crumb count. */
 export type BreadcrumbSkeletonProps = {
 	/** Crumb placeholders to render. @defaultValue 3 */
-	items?: number
+	crumbs?: number
 	className?: string
 }
 
@@ -16,8 +16,8 @@ export type BreadcrumbSkeletonProps = {
  * separators between them. Keyed off the crumb count rather than a size
  * step; it does not use the size-driven `createSkeleton` factory.
  */
-export function BreadcrumbSkeleton({ items = 3, className }: BreadcrumbSkeletonProps) {
-	const itemKeys = rangeKeys(items, 'item')
+export function BreadcrumbSkeleton({ crumbs = 3, className }: BreadcrumbSkeletonProps) {
+	const itemKeys = rangeKeys(crumbs, 'item')
 
 	return (
 		<div className={cn(k.list(), className)}>

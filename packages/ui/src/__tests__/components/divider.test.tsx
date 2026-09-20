@@ -31,11 +31,26 @@ describe('Divider', () => {
 		expect(el).not.toHaveAttribute('role')
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Divider id="test" data-testid="el" />)
+	it('keeps the computed role and aria-orientation when a consumer supplies them', () => {
+		const { container } = renderUI(
+			<Divider orientation="vertical" role="presentation" aria-orientation="horizontal" />,
+		)
 
 		const el = bySlot(container, 'divider')
 
-		expect(el).toHaveAttribute('id', 'test')
+		// §3.9: `role` and the widget ARIA state are load-bearing, so the vertical
+		// separator semantics stay.
+		expect(el).toHaveAttribute('role', 'separator')
+
+		expect(el).toHaveAttribute('aria-orientation', 'vertical')
+	})
+
+	it('renders with a custom data-slot', () => {
+		// The anchor is renameable per §3.9, and ToolbarSeparator depends on it.
+		const { container } = renderUI(<Divider data-slot="toolbar-separator" />)
+
+		expect(bySlot(container, 'toolbar-separator')).toBeInTheDocument()
+
+		expect(bySlot(container, 'divider')).toBeNull()
 	})
 })

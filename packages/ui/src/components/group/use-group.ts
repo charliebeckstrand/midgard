@@ -42,10 +42,10 @@ function flattenChildren(children: ReactNode, prefix = ''): FlatChild[] {
 /**
  * Stamps `data-group={start|middle|end|only}` and
  * `data-group-orientation={horizontal|vertical}` onto each child of a group.
- * Descendants that swap their render path (e.g. a leaf control rendering
- * `<Placeholder>` in skeleton mode) pick up the join geometry from those data
- * attributes through the container-scoped `tsunagi` selectors, without each
- * control forwarding `data-group` itself.
+ * Descendants that swap their render path pick up the join geometry from those
+ * data attributes, through the container-scoped `tsunagi` selectors. No control
+ * has to forward `data-group` itself. A leaf control rendering `<Placeholder>`
+ * in skeleton mode is one such descendant.
  *
  * Use this hook directly when a group component owns additional concerns
  * (keyboard navigation, focus management) and renders its own container.

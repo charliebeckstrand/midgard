@@ -8,8 +8,8 @@ import type { Ref, RefCallback } from 'react'
  * function) receives the node on attach. Useful when a component keeps an
  * internal ref (for measurement or caret restoration) yet must also forward an
  * external `ref`. Delegates to floating-ui's `useMergeRefs`, which also honors
- * React 19 ref cleanup functions and rewires when an input ref swaps identity
- * (detach old, attach new) so the replacement ref receives the node instead of
+ * React 19 ref cleanup functions. It rewires when an input ref swaps identity
+ * (detach old, attach new), so the replacement ref receives the node instead of
  * going stale. Returns `null` when every input ref is absent.
  */
 export function useComposedRef<T>(...refs: (Ref<T> | undefined)[]): RefCallback<T> | null {

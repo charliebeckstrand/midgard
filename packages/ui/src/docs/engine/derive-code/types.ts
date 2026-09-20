@@ -1,8 +1,8 @@
 /**
  * A recognized component: the symbol/function the demo renders and where to
- * import it from. `external` marks components from outside the documented
- * library (demo imports like lucide icons); their `module` is the bare package
- * specifier rather than a library module name.
+ * import it from. The `external` flag marks components from outside the
+ * documented library, such as demo imports of lucide icons. Their `module` is
+ * the bare package specifier, rather than a library module name.
  */
 export type ComponentInfo = { name: string; module: string; external?: boolean }
 
@@ -28,15 +28,18 @@ export type ComponentRegistry = {
 }
 
 /**
- * Build-time source knowledge for one JSX element inside an `Example`: the
- * authored tag `name`, each expression-valued prop's source text (literals the
- * runtime recovers on its own are omitted), and — when the element's sole
- * child is a function — the render-prop source in `children`.
+ * Build-time source knowledge for one JSX element inside an `Example`:
+ *
+ * - the authored tag `name`;
+ * - each expression-valued prop's source text, less the literals the runtime
+ *   recovers on its own;
+ * - the render-prop source in `children`, when the element's sole child is a
+ *   function.
  */
 export type ElementFact = { name: string; props: Record<string, string>; children?: string }
 
 /**
- * A declaration statement an emitted snippet may reference: the identifiers it
+ * A declaration statement an emitted snippet can reference: the identifiers it
  * binds (a `useState` tuple lists both names) and its full source text.
  */
 export type DeclarationFact = { names: string[]; code: string }
@@ -50,10 +53,13 @@ export type ImportFact = { module: string; external?: boolean }
 
 /**
  * Per-`Example` source knowledge extracted by the docs plugin's pre-transform
- * and injected as the `__facts` prop. `elements` lists the authored JSX
- * elements in source order; `bindings` resolves an identifier to its index in
- * `declarations`, respecting the Example's scope chain; `declarations` and
- * `imports` are shared per demo file, pruned to what the facts can reference.
+ * and injected as the `__facts` prop.
+ *
+ * - `elements` lists the authored JSX elements in source order;
+ * - `bindings` resolves an identifier to its index in `declarations`,
+ *   respecting the Example's scope chain;
+ * - `declarations` and `imports` are shared per demo file, pruned to what the
+ *   facts can reference.
  */
 export type SourceFacts = {
 	elements: ElementFact[]
@@ -64,15 +70,15 @@ export type SourceFacts = {
 
 /**
  * Per-call state threaded through the traversal. Carries the registry and
- * accumulates discovered imports. `packageName` is the documented library's
- * import prefix; `externalModules` records which import modules are bare
+ * accumulates discovered imports. The `packageName` is the documented library's
+ * import prefix. `externalModules` records which import modules are bare
  * package specifiers (`lucide-react`) rather than library module names, so
  * `assemble` skips the prefix for them.
  *
- * When the docs plugin supplied {@link SourceFacts}, `facts` carries them;
+ * When the docs plugin supplied {@link SourceFacts}, `facts` carries them.
  * `factTexts` accumulates every authored source snippet the walk emits (prop
- * expressions, render-prop children) for the preamble closure and import scan,
- * and `pulledDecls` the declaration indices those snippets reference.
+ * expressions, render-prop children), for the preamble closure and import scan.
+ * `pulledDecls` carries the declaration indices those snippets reference.
  */
 export type Context = {
 	registry: ComponentRegistry

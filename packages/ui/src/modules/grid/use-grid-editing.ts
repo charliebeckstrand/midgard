@@ -22,7 +22,7 @@ import {
 } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridEditingSession } from './grid-editing-context'
-import type { CellChange, GridEditableConfig } from './grid-editing-types'
+import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 
 /** The editing layer's surface, consumed by {@link useGridCursor}. @internal */
@@ -34,16 +34,16 @@ export type GridEditingApi = {
 	 * cell names the row to open, and re-entering a row already editing is a
 	 * no-op. Under `scope: 'cell'` it re-points the session: the cell it leaves
 	 * commits, and a previous row leaves the set. A transition that changes which
-	 * rows edit goes through the controllable set, so `onRowsChange` reports it; a
+	 * rows edit goes through the controllable set, so `onRowsChange` reports it. A
 	 * move between cells of one row leaves that set alone.
 	 */
 	enterEdit: (rowKey: string | number, columnId: string | number) => void
 	/**
 	 * Abandons an editing row's session when an Escape bubbles up from one of its
-	 * editors — layered onto the grid `<table>`'s key handler by
-	 * {@link useGridCursor}, so every editor (inferred input, listbox, `editCell`
-	 * slot) inherits it without wiring of its own. `undefined` unless the grid
-	 * owns the session (`trigger: 'doubleClick'`).
+	 * editors. It is layered onto the grid `<table>`'s key handler by
+	 * {@link useGridCursor}. Every editor (inferred input, listbox, `editCell`
+	 * slot) therefore inherits it without wiring of its own. `undefined` unless the
+	 * grid owns the session (`trigger: 'doubleClick'`).
 	 */
 	sessionEscape: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 }
@@ -53,7 +53,7 @@ const EDITOR_FOCUSABLE = 'input, select, textarea, button, [tabindex]'
 
 /**
  * Reseats focus on the grid's single tab stop when it currently sits inside the
- * grid — called before a grid-owned session exit unmounts the focused editor, so
+ * grid. Called before a grid-owned session exit unmounts the focused editor, so
  * the keyboard lands back on the cursor rather than falling to `<body>`.
  *
  * @internal
@@ -68,20 +68,21 @@ function restoreGridFocus(): void {
 type RowDrafts = Map<string | number, unknown>
 
 /**
- * Resolves a row's staged drafts into committed {@link CellChange}s: keeps each
- * changed cell (its draft differs from the row's current value) that passes the
- * column's {@link GridColumn.validate}, dropping unchanged and invalid ones.
- * Module-level so the flush effect stays within its complexity budget.
+ * Resolves a row's staged drafts into committed {@link GridCellChange}s. It keeps
+ * each changed cell (its draft differs from the row's current value) that
+ * passes the column's {@link GridColumn.validate}, dropping unchanged and
+ * invalid ones. Module-level so the flush effect stays within its complexity
+ * budget.
  *
  * @remarks The walk is over the drafts, not the columns, so every staged cell is
  * visited whether or not its column is still on screen. Both lookups read
- * {@link GridEditSource} rather than the render window: a row that pages out and
- * a column that hides still commit, and one the consumer removed resolves to
- * nothing and drops.
+ * {@link GridEditSource} rather than the render window. A row that pages out
+ * and a column that hides still commit, and one the consumer removed resolves
+ * to nothing and drops.
  *
  * Two reads here are deliberately live rather than taken when the cell staged. A
  * column can lock mid-session, and `onCommit` on an earlier cell can hand back
- * new rows before a later one flushes; a snapshot would answer for the state the
+ * new rows before a later one flushes. A snapshot would answer for the state the
  * editor opened against instead of the state it commits into.
  *
  * @internal
@@ -90,16 +91,18 @@ function flushRow<T>(
 	rowKey: string | number,
 	drafts: RowDrafts,
 	source: GridEditSource<T>,
-): CellChange[] {
+): { changes: GridCellChange[]; refused: GridCellChange[] } {
 	const { rows, columns, getKey } = source
 
 	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
 	// index a positional `getKey` reads is the one the engine gave the row.
 	const row = rows.find((candidate, index) => getKey(candidate, index) === rowKey)
 
-	if (row == null) return []
+	if (row == null) return { changes: [], refused: [] }
 
-	const changes: CellChange[] = []
+	const changes: GridCellChange[] = []
+
+	const refused: GridCellChange[] = []
 
 	for (const [columnId, value] of drafts) {
 		const col = columns.find((candidate) => candidate.id === columnId)
@@ -113,21 +116,25 @@ function flushRow<T>(
 
 		if (Object.is(value, original)) continue
 
-		if (col.validate?.(value, row) != null) continue
+		const cell: GridCellChange = { rowKey, columnId, value }
 
-		changes.push({ rowKey, columnId, value })
+		// A refused cell leaves the staging map like any other closed cell, so
+		// without this list the value the user typed is gone with no report.
+		if (col.validate?.(value, row) != null) refused.push(cell)
+		else changes.push(cell)
 	}
 
-	return changes
+	return { changes, refused }
 }
 
 /**
  * Commits every staged cell whose editor has closed, one `onCommit` batch per
- * row, and returns the cells saved across them (for the commit announcement).
+ * row. It hands the cells `validate` refused to `onReject`, and returns the
+ * cells saved across them (for the commit announcement).
  * A row with no sink to reach counts nothing, so the announcement never speaks a
  * commit that did not happen.
  * Takes each committed draft out of the staging map on the way, and drops a row's
- * map once nothing is left in it; a still-open cell's draft stays staged.
+ * map once nothing is left in it. A still-open cell's draft stays staged.
  *
  * @remarks One rule covers every way a session ends, because each is the same
  * event seen from the cell. A consumer's save and a grid-owned exit close a whole
@@ -136,10 +143,10 @@ function flushRow<T>(
  * share a path. It is also why a cell-scoped batch usually carries one change
  * with no arithmetic saying so: one cell was open, so one closes. A session that
  * narrowed an already-open row is the exception, and it needs no special case
- * either — the editors it closed commit together, per row, like any other.
+ * either. The editors it closed commit together, per row, like any other.
  *
  * The take stays here rather than inside {@link flushRow}, because this is where
- * the open state is read: the partition into open and closed is what decides
+ * the open state is read. The partition into open and closed is what decides
  * which drafts leave the map at all.
  * @internal
  */
@@ -148,7 +155,8 @@ function flushClosedCells<T>(args: {
 	editableRows: Set<string | number>
 	activeEdit: GridActiveEdit | null
 	source: GridEditSource<T>
-	onCommit: ((changes: CellChange[]) => void) | undefined
+	onCommit: ((changes: GridCellChange[]) => void) | undefined
+	onReject: ((refused: GridCellChange[]) => void) | undefined
 }): number {
 	let saved = 0
 
@@ -175,7 +183,11 @@ function flushClosedCells<T>(args: {
 
 		if (closed.size === 0) continue
 
-		const changes = flushRow(rowKey, closed, args.source)
+		const { changes, refused } = flushRow(rowKey, closed, args.source)
+
+		// Reported per row, like the commit batch beside it, and independent of it:
+		// a row whose every cell was refused reaches no sink at all otherwise.
+		if (refused.length > 0) args.onReject?.(refused)
 
 		if (!changes.length || !args.onCommit) continue
 
@@ -209,10 +221,10 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, sessionOwned: boolea
  * Owns per-row inline editing: the editable rows (a controllable `Set<key>`,
  * consumer-driven by default) and the staged drafts of cells in those rows. A
  * row in the set renders all its editable cells as editors at once; each edit
- * stages into a grid-held ref (no per-keystroke grid render). When a row leaves
- * the set — the consumer's save action, or a grid-owned session exit under
- * `trigger: 'doubleClick'` (an editor's Enter saves, Escape abandons) — its
- * drafts flush as a single {@link CellChange} batch through `onCommit`,
+ * stages into a grid-held ref (no per-keystroke grid render). A row leaves the
+ * set on the consumer's save action, or on a grid-owned session exit under
+ * `trigger: 'doubleClick'` (an editor's Enter saves, Escape abandons). Its
+ * drafts then flush as a single {@link GridCellChange} batch through `onCommit`,
  * dropping unchanged and invalid cells. Inert when `enabled` is false, so a
  * read-only grid pays nothing.
  *
@@ -301,6 +313,10 @@ export function useGridEditing<T>({
 	const onCommitRef = useRef(config?.onCommit)
 
 	onCommitRef.current = config?.onCommit
+
+	const onRejectRef = useRef(config?.onReject)
+
+	onRejectRef.current = config?.onReject
 
 	// Staged drafts per editing row, keyed rowKey → (columnId → value). Held in a
 	// ref so staging never re-renders the grid; read at flush time.
@@ -429,10 +445,10 @@ export function useGridEditing<T>({
 	}, [editableRows, activeEdit, cellId, rowKeysRef, dataColumnsRef])
 
 	/**
-	 * Ends a grid-owned session on `rowKey`: reseats focus on the grid's tab stop,
-	 * drops the row from the set, and lets the flush sweep commit the editors that
-	 * closed with it. `'discard'` drops the session's staged values ahead of the
-	 * sweep, so it finds nothing left to emit.
+	 * Ends a grid-owned session on `rowKey`. It reseats focus on the grid's tab
+	 * stop and drops the row from the set. The flush sweep then commits the
+	 * editors that closed with it. `'discard'` drops the session's staged values
+	 * ahead of the sweep, so it finds nothing left to emit.
 	 */
 	const endSession = useCallback(
 		(rowKey: string | number, outcome: 'save' | 'discard') => {
@@ -526,6 +542,7 @@ export function useGridEditing<T>({
 			activeEdit,
 			source: editSourceRef.current,
 			onCommit: onCommitRef.current,
+			onReject: onRejectRef.current,
 		})
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3).

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { ts } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { extractProps } from '../../api-reference/engine/extract-props'

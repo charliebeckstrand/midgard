@@ -46,10 +46,13 @@ function fromIsoDate(value: string): Date | undefined {
 }
 
 /**
- * Value input for a query rule, chosen by the field's type: a {@link Select}
- * for `select`, a {@link NumberInput} for `number` (a `[min, max]` pair of them
- * when the operator is a range), a {@link DatePicker} (round-tripped as a
- * local-wall-clock ISO date) for `date`, and a text {@link Input} otherwise.
+ * Value input for a query rule, chosen by the field's type:
+ *
+ * - `select`: a {@link Select}
+ * - `number`: a {@link NumberInput}, or a `[min, max]` pair of them when the
+ *   operator is a range
+ * - `date`: a {@link DatePicker}, round-tripped as a local-wall-clock ISO date
+ * - anything else: a text {@link Input}
  */
 export function QueryBuilderRuleValue({
 	field,

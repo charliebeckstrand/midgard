@@ -2,7 +2,7 @@
 
 import { Check } from 'lucide-react'
 import {
-	type ComponentPropsWithoutRef,
+	type ComponentProps,
 	memo,
 	type Context as ReactContext,
 	type ReactNode,
@@ -22,7 +22,6 @@ import { capitalizeFirst } from '../select-trigger/capitalize'
  */
 export type BaseOptionProps = {
 	className?: string
-	icon?: ReactNode
 	selected: boolean
 	disabled?: boolean
 	onSelect: () => void
@@ -42,7 +41,7 @@ export type BaseOptionProps = {
 	 */
 	commitOnTab?: boolean
 } & Omit<
-	ComponentPropsWithoutRef<'div'>,
+	ComponentProps<'div'>,
 	| 'className'
 	| 'onSelect'
 	| 'onClick'
@@ -57,7 +56,7 @@ export type BaseOptionProps = {
 /**
  * Shared option row for select-like components: stamps `role="option"` with
  * `aria-selected`/`aria-disabled`, renders a Density-sized selected-state check
- * icon (overridable via `icon`), and handles Enter/Space activation.
+ * icon, and handles Enter/Space activation.
  *
  * @remarks
  * For active-descendant lists it mints a stable `id` and `preventDefault`s
@@ -65,13 +64,12 @@ export type BaseOptionProps = {
  * wins. With `commitOnTab`, an unselected option commits on Tab before the
  * keystroke leaves the widget. Reads ambient Density via `useDensity`. Memoized:
  * with a stable `onSelect`, an option skips re-rendering when its own `selected`
- * state is unchanged, so committing a selection re-renders only the rows that
- * actually changed rather than every option in the list.
+ * state is unchanged. Committing a selection therefore re-renders only the rows
+ * that actually changed, rather than every option in the list.
  */
 function BaseOptionImpl({
 	children,
 	className,
-	icon,
 	selected,
 	disabled,
 	onSelect,
@@ -89,7 +87,7 @@ function BaseOptionImpl({
 
 	// A bare `<Check>` sized from the recipe's icon scale: this primitive
 	// never imports `<Icon>` from `components/`.
-	const checkIcon = icon ?? (
+	const checkIcon = (
 		<Check
 			aria-hidden="true"
 			data-slot="icon"
@@ -139,16 +137,12 @@ function BaseOptionImpl({
 export const BaseOption = memo(BaseOptionImpl)
 
 /** Primary label for a select-like option. */
-export function OptionLabel({ className, ...props }: ComponentPropsWithoutRef<'span'>) {
+export function OptionLabel({ className, ...props }: ComponentProps<'span'>) {
 	return <span {...props} className={cn(k.label, className)} />
 }
 
 /** Secondary description for a select-like option. */
-export function OptionDescription({
-	className,
-	children,
-	...props
-}: ComponentPropsWithoutRef<'span'>) {
+export function OptionDescription({ className, children, ...props }: ComponentProps<'span'>) {
 	return (
 		<span {...props} className={cn(k.description, className)}>
 			<span className="flex-1 truncate">{children}</span>
@@ -160,15 +154,14 @@ export function OptionDescription({
 export type OptionProps<TValue = unknown> = {
 	value: TValue
 	disabled?: boolean
-	icon?: ReactNode
 	className?: string
 	children?: ReactNode
 	/**
 	 * Explicit id, overriding the auto-generated one. Set this when the option
-	 * renders inside a `VirtualOptions` with `getOptionId`: the host needs a
+	 * renders inside a `VirtualOptions` with `getOptionId`. The host needs a
 	 * data-driven, predictable id to point `aria-activedescendant` at before the
-	 * row mounts, which React's auto-`id` (opaque, minted per instance) can't
-	 * supply.
+	 * row mounts. React's auto-`id` is opaque and minted per instance, so it can't
+	 * supply one.
 	 */
 	id?: string
 	/**
@@ -182,16 +175,16 @@ export type OptionProps<TValue = unknown> = {
 }
 
 /** Props for `OptionLabel`. */
-export type OptionLabelProps = ComponentPropsWithoutRef<'span'>
+export type OptionLabelProps = ComponentProps<'span'>
 
 /** Props for `OptionDescription`. */
-export type OptionDescriptionProps = ComponentPropsWithoutRef<'span'>
+export type OptionDescriptionProps = ComponentProps<'span'>
 
 /**
  * Selection state a {@link createSelectOption} host exposes through its context:
- * the current `value` (an array when `multiple`), the `multiple` flag, the
- * `onSelect` callback fired when an option is activated, and the `capitalize`
- * flag that first-word-capitalizes string option labels at render.
+ * the current `value` (an array when `multiple`), and the `multiple` flag. It
+ * also holds the `onSelect` callback fired when an option is activated, and the
+ * `capitalize` flag that first-word-capitalizes string option labels at render.
  */
 export type OptionSelectionContext<TValue = unknown> = {
 	value: TValue | TValue[] | undefined
@@ -226,7 +219,7 @@ function isOptionSelected(
  * `Option` reads it with React's `use`.
  *
  * `BaseOption` owns the selected-state check icon and sizes it from the
- * ambient Density. Per-option `icon` overrides it.
+ * ambient Density.
  *
  * @returns The bound `{ Option, Label, Description }` triad, each pre-wired with
  * the host's `data-slot` prefix and selection context.
@@ -247,7 +240,6 @@ export function createSelectOption<
 	function Option({
 		value,
 		disabled,
-		icon,
 		className,
 		children,
 		id,
@@ -269,7 +261,6 @@ export function createSelectOption<
 				id={id}
 				selected={selected}
 				disabled={disabled}
-				icon={icon}
 				onSelect={handleSelect}
 				data-slot={`${config.slotPrefix}-option`}
 				className={className}

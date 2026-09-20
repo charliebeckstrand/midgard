@@ -17,7 +17,7 @@ type FileUploadHiddenInputProps = {
 
 /**
  * The visually-hidden `<input type="file">` is the real control in every
- * variant; screen readers reach it even at `tabIndex -1`, so each variant
+ * variant. Screen readers reach it even at `tabIndex -1`, so each variant
  * supplies an accessible name drawn from its visible trigger.
  */
 export function FileUploadHiddenInput({

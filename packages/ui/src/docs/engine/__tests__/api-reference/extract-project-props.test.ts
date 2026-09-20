@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { extractProjectPropNames } from '../../api-reference/engine/extract-project-props'
 import { createInMemoryProgram, firstTypeAlias } from './helpers'

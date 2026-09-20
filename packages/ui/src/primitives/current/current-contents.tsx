@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { ReducedMotion } from '../reduced-motion'
 import {
@@ -12,7 +12,7 @@ import {
 import { useCurrentContentsMorph } from './use-current-contents-morph'
 
 /** Props for {@link CurrentContents}: the `slotPrefix` stamp, the `fade` height animation, and the inactive-panel `mount` policy, over `<div>` attributes. */
-export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
+export type CurrentContentsProps = ComponentProps<'div'> & {
 	/** Slot prefix stamped as `data-slot="<slotPrefix>-contents"`; pairs with `CurrentContent` siblings. */
 	slotPrefix: string
 	/**
@@ -22,23 +22,24 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 	 */
 	fade?: boolean
 	/**
-	 * How inactive panels are held. Defaults to `active` — only the active panel
-	 * sits in the DOM — so keeping inactive panels mounted is opt-in through
-	 * `always` or `lazy`, independent of `fade` (which only drives the height
-	 * animation).
+	 * How inactive panels are held. Defaults to `active`, where only the active
+	 * panel sits in the DOM. Keeping inactive panels mounted is therefore opt-in
+	 * through `always` or `lazy`, independent of `fade`, which only drives the
+	 * height animation.
 	 *
 	 * @remarks
 	 * With `always`/`lazy`, held-inactive panels wrap in
-	 * `<Activity mode="hidden">`: kept in the DOM with state preserved, but their
-	 * effects are torn down and re-rendering is deferred until shown. Under
-	 * `fade` — whose `display: none` can't animate — the Activity hold applies
-	 * only at rest: a held panel wakes for the crossfade and drops back into the
-	 * hidden Activity once its fade-out lands.
+	 * `<Activity mode="hidden">`. They are kept in the DOM with state preserved,
+	 * but their effects are torn down and re-rendering is deferred until shown.
+	 * Under `fade` the Activity hold applies only at rest, because its
+	 * `display: none` can't animate. A held panel wakes for the crossfade, and
+	 * drops back into the hidden Activity once its fade-out lands.
 	 *
 	 * Under `fade`, mount and unmount ride the cross-fade rather than defeating
-	 * it: a panel mounting after the container's initial render (a `lazy` first
-	 * visit or a fresh `active` mount) enters from transparent, and an `active`
-	 * outgoing panel stays mounted until its fade-out completes, then unmounts.
+	 * it. A panel mounting after the container's initial render enters from
+	 * transparent. A `lazy` first visit or a fresh `active` mount is such a panel.
+	 * An `active` outgoing panel stays mounted until its fade-out completes, then
+	 * unmounts.
 	 *
 	 * @see {@link CurrentMount}
 	 */
@@ -47,14 +48,14 @@ export type CurrentContentsProps = ComponentPropsWithoutRef<'div'> & {
 
 /**
  * Outer container for the current-panel cascade. When `fade` is true, the box
- * rests at `height: auto` and animates height only across discrete changes —
- * a panel switch, or content growing in place — then hands the height back to
- * layout, so a window resize reflows the box without re-rendering anything.
- * It also signals its `CurrentContent` children to fade in place. When `fade`
- * is false, renders a plain wrapper. Either way it broadcasts the resolved
- * {@link CurrentMount} policy so `CurrentContent` knows whether to keep,
- * lazily mount, or unmount unmatched children; a fading container also
- * broadcasts its post-mount latch so late-mounting panels enter from
+ * rests at `height: auto` and animates height only across discrete changes. A
+ * panel switch, or content growing in place, is such a change. It then hands the
+ * height back to layout, so a window resize reflows the box without re-rendering
+ * anything. It also signals its `CurrentContent` children to fade in place. When
+ * `fade` is false, renders a plain wrapper. Either way it broadcasts the
+ * resolved {@link CurrentMount} policy, so `CurrentContent` knows whether to
+ * keep, lazily mount, or unmount unmatched children. A fading container also
+ * broadcasts its post-mount latch, so late-mounting panels enter from
  * transparent.
  */
 export function CurrentContents({
@@ -97,8 +98,8 @@ export function CurrentContents({
 			<CurrentMountContext value={mount}>
 				<CurrentSettledContext value={settledRef}>
 					<ReducedMotion>
-						{/* A plain div: the morph hook pins and tweens the inline height
-						    itself, outside React, so no render can stamp the resting
+						{/* A plain div. The morph hook pins and tweens the inline height
+						    itself, outside React. No render can therefore stamp the resting
 						    `auto` back over an in-flight morph. */}
 						<div
 							ref={containerRef}

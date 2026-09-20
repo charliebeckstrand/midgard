@@ -9,7 +9,7 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 
 // Shipped-source directories. Tests, benchmarks, generated docs, and build
 // output are excluded.
-const SCAN_DIRS = ['components', 'hooks', 'primitives', 'core', 'providers', 'layouts']
+const SCAN_DIRS = ['components', 'hooks', 'primitives', 'core', 'providers', 'layouts', 'modules']
 
 const USE_PREFIXED_TYPE = /\b(?:type|interface)\s+(Use[A-Z]\w*)/g
 

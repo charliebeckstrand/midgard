@@ -16,9 +16,9 @@ type JsonTreeContextValue = {
 	/**
 	 * Uncontrolled toggles, keyed by node path, owned above every node so they
 	 * outlive one. Collapsing a branch unmounts its descendants and takes their
-	 * local state with it, so without this a reopened branch would forget every
-	 * expansion inside it — which the controlled path over `expanded`, and the
-	 * virtualized path over its own set, both survive.
+	 * local state with it. Without this a reopened branch would forget every
+	 * expansion inside it. The controlled path over `expanded` survives that, and
+	 * so does the virtualized path over its own set.
 	 *
 	 * A ref, not state: nodes seed their local state from it on mount and write
 	 * through on toggle, so the memory costs no re-render. Holding it in the

@@ -1,8 +1,10 @@
 'use client'
 
 import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { isColumnEditable } from './engine/grid-editing-utilities'
-import type { GridCellClick } from './engine/grid-row/cell'
+import { resolveCellAt } from './engine/grid-row/bridges'
+import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -10,12 +12,18 @@ import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
+	type Coord,
 	type GridCellActivate,
 	type GridNavTableProps,
 	type GridRowActivate,
 	useGridNavigation,
 } from './use-grid-navigation'
 import { useGridNavigationColumns } from './use-grid-navigation-columns'
+
+/** Whether two cursor positions name the same cell; `moveTo` mints a fresh `Coord` per move. @internal */
+function sameCoord(a: Coord | null, b: Coord | null): boolean {
+	return a?.row === b?.row && a?.col === b?.col
+}
 
 /**
  * Live refs the cursor and editing layers read at event/render time, all populated
@@ -39,10 +47,14 @@ type GridCursorRefs<T> = {
 /**
  * The cursor + editing layer for {@link GridData}, gathering the keyboard cursor
  * ({@link useGridNavigation}) and — when `editable` is set — the editing session
- * ({@link useGridEditing}) behind one surface. Resolves the column
- * augmentation (cursor-only vs. editing-aware), the `<table>` cursor props (with
- * the editing key handler layered on), the cursor store provider, and a `wrap`
- * that mounts the editing contexts around the table. Pulled out of
+ * ({@link useGridEditing}) behind one surface. Resolves four things:
+ *
+ * - the column augmentation (cursor-only vs. editing-aware);
+ * - the `<table>` cursor props, with the editing key handler layered on;
+ * - the cursor store provider;
+ * - a `wrap` that mounts the editing contexts around the table.
+ *
+ * Pulled out of
  * {@link GridData} so its body stays within the cognitive-complexity budget and
  * the editing wiring reads as one concern.
  *
@@ -55,6 +67,7 @@ export function useGridCursor<T>({
 	columns,
 	onRowActivate,
 	onCellActivate,
+	onActiveCellChange,
 	selectableRef,
 	toggleActiveRow,
 	scrollRowIntoViewRef,
@@ -68,6 +81,8 @@ export function useGridCursor<T>({
 	onRowActivate: GridRowActivate | undefined
 	/** Activates the cell under the cursor on Enter, ahead of the row activation. */
 	onCellActivate: GridCellActivate | undefined
+	/** Reports the cell the cursor sits on, whatever moved it. */
+	onActiveCellChange: ((cell: GridCellClickContext<T> | null) => void) | undefined
 	/** Whether the grid has a selection column; gates the cursor's Space-to-select. */
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
@@ -144,6 +159,49 @@ export function useGridCursor<T>({
 		scrollRowIntoViewRef,
 		scrollContainerRef,
 	})
+
+	/*
+	 * One report for each cell the cursor lands on, read from the committed
+	 * coordinate.
+	 *
+	 * Many call sites write that state: every arrow key, Home/End,
+	 * PageUp/PageDown, and a click that seats the cursor. The re-clamp that
+	 * follows a filter or a hidden column writes it too, so no single call site is
+	 * the transition. The coordinate resolves to
+	 * the same context `onCellClick` delivers, so the pointer and the keyboard
+	 * name a cell the same way. A cursor cleared by an emptied grid reports null.
+	 *
+	 * A grid mounts with no cursor, and that null is the rest state rather than a
+	 * transition, so the first run is skipped. The context is resolved when the
+	 * cursor moves, so rows replaced under a stationary cursor do not re-report.
+	 * The re-clamp moves the cursor whenever the bounds actually shrink.
+	 *
+	 * Compared by coordinate rather than identity. A `moveTo` mints a fresh
+	 * `Coord` even where the clamp returns the cell the cursor already sits on.
+	 * That is every arrow key held against an edge. No `cursorEnabled` gate, because
+	 * `useGridNavigation` already returns a null cursor while it is off.
+	 */
+	useReportedChange(
+		nav.active,
+		(coord) => {
+			// Resolved behind the callback check, not before it: the resolver runs the
+			// column's own accessor, and every grid without this prop would pay for it
+			// on each cursor move. Through the resolver the pointer channel takes, so
+			// the two cannot name a cell differently.
+			if (!onActiveCellChange) return
+
+			if (!coord) {
+				onActiveCellChange(null)
+
+				return
+			}
+
+			const cell = resolveCellAt({ rowsRef, rowKeysRef, dataColumnsRef }, coord.row, coord.col)
+
+			if (cell) onActiveCellChange(cell)
+		},
+		sameCoord,
+	)
 
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,

@@ -1,7 +1,7 @@
 /**
  * The size grade a summary draws at. Held on its own because two layers read
- * it and neither owns it: the merge rule measures marks by it, and `MapPoints`
- * draws them by it, so a change to the grade reaches the picture and the
+ * it and neither owns it. The merge rule measures marks by it, and `MapPoints`
+ * draws them by it. A change to the grade therefore reaches the picture and the
  * grouping together.
  */
 

@@ -16,6 +16,7 @@ import {
 import { type ReactNode, useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
+import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import {
@@ -37,9 +38,9 @@ import {
 	SidebarLabel,
 	SidebarList,
 	SidebarSection,
+	useSidebarMini,
 } from '../../../components/sidebar'
 import { Spacer } from '../../../components/spacer'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { cn } from '../../../core'
 import { Example } from '../../engine'
@@ -162,14 +163,14 @@ function SectionedSidebarExample() {
 					<SidebarDivider />
 
 					<SidebarSection>
-						<Stack direction="row" align="center" gap="sm">
-							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
+						<Flex align="center" gap="sm">
+							<Text tone="muted" className="text-xs uppercase tracking-wide flex-1">
 								Projects
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New project">
 								<Icon icon={<Plus />} />
 							</Button>
-						</Stack>
+						</Flex>
 						<SidebarList aria-label="Projects">
 							{projects.map(({ value, label }) => (
 								<SidebarItem
@@ -185,14 +186,14 @@ function SectionedSidebarExample() {
 					</SidebarSection>
 
 					<SidebarSection>
-						<Stack direction="row" align="center" gap="sm">
-							<Text severity="muted" className="text-xs uppercase tracking-wide flex-1">
+						<Flex align="center" gap="sm">
+							<Text tone="muted" className="text-xs uppercase tracking-wide flex-1">
 								Chats
 							</Text>
 							<Button variant="plain" size="sm" aria-label="New chat">
 								<Icon icon={<Plus />} />
 							</Button>
-						</Stack>
+						</Flex>
 						<SidebarList aria-label="Chats">
 							{chats.map(({ value, label }) => (
 								<SidebarItem
@@ -210,7 +211,7 @@ function SectionedSidebarExample() {
 					<Spacer />
 
 					<SidebarSection>
-						<Text severity="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
+						<Text tone="muted" className="text-xs uppercase tracking-wide flex-1 py-2">
 							Wade Cooper
 						</Text>
 						<SidebarList aria-label="Account">
@@ -300,45 +301,52 @@ function ActionsSidebarExample() {
 	)
 }
 
+/**
+ * The rail's brand mark: a glyph on the mini rail, the wordmark otherwise. It
+ * reads the resolved state with `useSidebarMini`, which is how content branches
+ * between the two presentations now that the root takes no render prop.
+ */
+function MiniBrand() {
+	const mini = useSidebarMini()
+
+	if (!mini) return <Heading level={3}>Acme Inc.</Heading>
+
+	return (
+		// Fills the header row so the glyph centers on the rail's icon column
+		// (the items' symmetric padding does the rest).
+		<div className="flex flex-1 justify-center">
+			<Icon
+				icon={<Aperture />}
+				size="lg"
+				className="hover:rotate-360 transition-transform duration-300"
+			/>
+		</div>
+	)
+}
+
 function MiniSidebarExample() {
 	const [active, setActive] = useState('home')
 
 	return (
 		<SidebarFrame className="lg:w-fit">
 			<Sidebar mini>
-				{(mini) => (
-					<>
-						<SidebarHeader>
-							{mini ? (
-								// Fills the header row so the glyph centers on the rail's
-								// icon column (the items' symmetric padding does the rest).
-								<div className="flex flex-1 justify-center">
-									<Icon
-										icon={<Aperture />}
-										size="lg"
-										className="hover:rotate-360 transition-transform duration-300"
-									/>
-								</div>
-							) : (
-								<Heading level={3}>Acme Inc.</Heading>
-							)}
-						</SidebarHeader>
-						<SidebarBody>
-							<SidebarList aria-label="Main">
-								{primary.map(({ value, label, icon }) => (
-									<SidebarItem
-										key={value}
-										icon={icon}
-										current={active === value}
-										onClick={() => setActive(value)}
-									>
-										<SidebarLabel>{label}</SidebarLabel>
-									</SidebarItem>
-								))}
-							</SidebarList>
-						</SidebarBody>
-					</>
-				)}
+				<SidebarHeader>
+					<MiniBrand />
+				</SidebarHeader>
+				<SidebarBody>
+					<SidebarList aria-label="Main">
+						{primary.map(({ value, label, icon }) => (
+							<SidebarItem
+								key={value}
+								icon={icon}
+								current={active === value}
+								onClick={() => setActive(value)}
+							>
+								<SidebarLabel>{label}</SidebarLabel>
+							</SidebarItem>
+						))}
+					</SidebarList>
+				</SidebarBody>
 			</Sidebar>
 		</SidebarFrame>
 	)
@@ -370,7 +378,7 @@ export function Demo() {
 			<Example
 				title="Mini"
 				prefix={
-					<Text severity="muted">
+					<Text tone="muted">
 						In its mini variant, the sidebar collapses to a slim icon rail; on mobile, it reverts to
 						standard sidebar behavior.
 					</Text>

@@ -1,10 +1,22 @@
 import { type CSSProperties, cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/icon'
-import type { Size } from '../../types/size'
+
+/**
+ * Named step of the icon scale, derived from the kata rather than from kiso.
+ * A component reaches the recipe layer through its own kata, and this kata's
+ * `size` map is the `shaku` row the scale publishes.
+ */
+type IconSize = keyof typeof k.size
 
 /** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {
+	/**
+	 * The element to clone. Its component must forward unknown props to the element
+	 * it renders, because `className` and `data-slot` are injected here. A wrapper
+	 * component that declares no props swallows both, and the glyph falls back to
+	 * its library's own size.
+	 */
 	icon: ReactElement
 	/**
 	 * Named scale step or a raw pixel value. Inside a sized host (Button, Badge,
@@ -12,7 +24,7 @@ export type IconProps = {
 	 * the size and overrides this.
 	 * @defaultValue `'md'`
 	 */
-	size?: Size | number
+	size?: IconSize | number
 	className?: string
 	/**
 	 * Accessible name for a meaningful icon. When set, the icon is exposed to
@@ -23,7 +35,8 @@ export type IconProps = {
 }
 
 /**
- * Sizing and accessibility wrapper that clones a Lucide-style `icon` element.
+ * Sizing and accessibility wrapper that clones a Lucide-style `icon` element (which must
+ * forward the props cloned onto it — see {@link IconProps.icon}).
  *
  * @remarks
  * Static leaf: renders in React Server Components. A `label` exposes the icon

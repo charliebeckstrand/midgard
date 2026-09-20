@@ -1,7 +1,14 @@
 import { Activity, Inbox, Pencil, Settings, Trash, Users } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Filters, FiltersClear, FiltersField, useFilters } from '../../../components/filters'
+import {
+	Filters,
+	FiltersBar,
+	FiltersClear,
+	FiltersField,
+	FiltersRow,
+	useFilters,
+} from '../../../components/filters'
 import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
@@ -26,8 +33,8 @@ import {
 } from '../../../components/table'
 import { Text } from '../../../components/text'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../../layouts'
-import { type DensityLevel, DensityProvider } from '../../../providers/density'
-import { DensityListbox, Example } from '../../engine'
+import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
+import { Example, OptionsListbox } from '../../engine'
 
 export const meta = { name: 'Density' }
 
@@ -73,28 +80,28 @@ type OrdersFiltersProps = {
 
 function OrdersFilters({ value, onValueChange }: OrdersFiltersProps) {
 	return (
-		<Filters
-			aria-label="Order filters"
-			value={value}
-			clear={<ResetButton />}
-			onValueChange={onValueChange}
-		>
-			<FiltersField name="id">
-				<SearchInput placeholder="Search by order ID" autoComplete="off" />
-			</FiltersField>
-			<FiltersField name="status">
-				<Select placeholder="All statuses" displayValue={(v: string) => v}>
-					<SelectOption value="Completed">
-						<SelectLabel>Completed</SelectLabel>
-					</SelectOption>
-					<SelectOption value="Processing">
-						<SelectLabel>Processing</SelectLabel>
-					</SelectOption>
-					<SelectOption value="Pending">
-						<SelectLabel>Pending</SelectLabel>
-					</SelectOption>
-				</Select>
-			</FiltersField>
+		<Filters aria-label="Order filters" value={value} onValueChange={onValueChange}>
+			<FiltersBar>
+				<FiltersRow>
+					<FiltersField name="id">
+						<SearchInput placeholder="Search by order ID" autoComplete="off" />
+					</FiltersField>
+					<FiltersField name="status">
+						<Select placeholder="All statuses" displayValue={(v: string) => v}>
+							<SelectOption value="Completed">
+								<SelectLabel>Completed</SelectLabel>
+							</SelectOption>
+							<SelectOption value="Processing">
+								<SelectLabel>Processing</SelectLabel>
+							</SelectOption>
+							<SelectOption value="Pending">
+								<SelectLabel>Pending</SelectLabel>
+							</SelectOption>
+						</Select>
+					</FiltersField>
+				</FiltersRow>
+				<ResetButton />
+			</FiltersBar>
 		</Filters>
 	)
 }
@@ -131,7 +138,11 @@ export function Demo() {
 	)
 
 	return (
-		<Example actions={<DensityListbox value={density} onValueChange={setDensity} />}>
+		<Example
+			actions={
+				<OptionsListbox options={densityLevels} value={density} onValueChange={setDensity} />
+			}
+		>
 			<Stack gap="md">
 				<DensityProvider density={density}>
 					<SidebarLayout sidebar={sidebar}>
@@ -182,7 +193,7 @@ export function Demo() {
 										</TableBody>
 									</Table>
 								) : (
-									<Text severity="warning">No orders match your filters.</Text>
+									<Text tone="warning">No orders match your filters.</Text>
 								)}
 							</Stack>
 						</SidebarLayoutBody>

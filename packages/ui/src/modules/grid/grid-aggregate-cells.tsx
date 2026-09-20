@@ -26,9 +26,9 @@ type GridAggregateCellsProps<T> = {
 
 /**
  * The aggregate cells after an aggregate row's label span: one `<td>` per
- * remaining visible column, carrying the column's aggregate where it declares
- * one and staying empty otherwise, so every figure sits under its own column. A
- * `color` washes each cell in the group's hue at low opacity. Shared by the
+ * remaining visible column. Each cell carries the column's aggregate where it
+ * declares one and stays empty otherwise, so every figure sits under its own
+ * column. A `color` washes each cell in the group's hue at low opacity. Shared by the
  * client group header, the manual group header (which reads its backend
  * figures off `headerRow`), and the grand-total row.
  *

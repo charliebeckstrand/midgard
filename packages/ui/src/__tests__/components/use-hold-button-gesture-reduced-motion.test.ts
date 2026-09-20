@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { useEffect } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
 	type HoldGestureOptions,
 	useHoldButtonGesture,
@@ -33,10 +33,6 @@ describe('useHoldButtonGesture under prefers-reduced-motion', () => {
 	// not a per-file `vi.mock('motion/react')` (see setup/module-mocks.ts).
 	beforeEach(() => {
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
-	})
-
-	afterEach(() => {
-		vi.unstubAllGlobals()
 	})
 
 	it('still animates the progress fill over the full duration (essential feedback)', () => {

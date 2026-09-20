@@ -17,20 +17,21 @@ import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyb
 
 /**
  * Range state for {@link DatePicker}: a two-tap start/end selection held in a
- * reducer, committed as `[Date, Date]` through the Form/Control binding, plus
- * popover wiring, the virtual-highlight keyboard handler, and the clear footer.
+ * reducer, committed as `[Date, Date]` through the Form/Control binding. It also
+ * holds popover wiring, the virtual-highlight keyboard handler, and the clear
+ * footer.
  *
  * @remarks
- * Selection commits the `[Date, Date]` immediately, so the trigger label and
- * any `onValueChange` update on the click that closes the popover rather than
- * after its exit animation. The in-progress reducer state (the pinned start
- * and previewed end) is reset on `onExitComplete` so both endpoints stay
- * rendered through the exit animation instead of snapping to the freshly
+ * Selection commits the `[Date, Date]` immediately. The trigger label and any
+ * `onValueChange` therefore update on the click that closes the popover, rather
+ * than after its exit animation. The in-progress reducer state (the pinned start
+ * and previewed end) is reset on `onExitComplete`. Both endpoints therefore stay
+ * rendered through the exit animation, instead of snapping to the freshly
  * committed value mid-fade.
  *
  * @returns Trigger props, popover plumbing, `onTriggerKeyDown`,
  * `onExitComplete` (resets the in-progress selection after the exit
- * animation), and the `calendar`/`footer` prop bundles; `calendar` exposes
+ * animation), and the `calendar`/`footer` prop bundles. `calendar` exposes
  * `rangeStart`/`rangeEnd`/`hoverDate` for the in-progress selection.
  * @internal
  */

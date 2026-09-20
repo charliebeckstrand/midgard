@@ -1,16 +1,20 @@
 /**
  * Pure clustering math for the map module: which dots fall close enough on the
  * frame to draw as one summary, and where that summary sits. React-free like
- * the rest of the engine, so the grouping is unit-testable without a frame. The
- * spatial index both passes bucket into is `grid.ts`, the size a summary draws
- * at is `radius.ts`, and what a group reads out on the ground is `geo.ts`.
+ * the rest of the engine, so the grouping is unit-testable without a frame.
+ * Three neighbours carry the parts this one does not:
+ *
+ * - `grid.ts` — the spatial index both passes bucket into.
+ * - `radius.ts` — the size a summary draws at.
+ * - `geo.ts` — what a group reads out on the ground.
  *
  * One rule decides the output: no two marks draw within `gap` of one another
- * ({@link marksOverlap}). {@link seedGroups} is a broad phase under it — a
- * linear pass that can only merge dots the rule would merge anyway, so it takes
- * the count down cheaply before the rule runs, and never decides the result on
- * its own. Both phases live here with the rule they serve: they share the seed
- * algebra below, and a reader following one clustering pass reads one file.
+ * ({@link marksOverlap}). {@link seedGroups} is a broad phase under it. It is a
+ * linear pass that can only merge dots the rule would merge anyway. It
+ * therefore takes the count down cheaply before the rule runs, and never
+ * decides the result on its own. Both phases live here with the rule they
+ * serve: they share the seed algebra below, and a reader following one
+ * clustering pass reads one file.
  */
 
 import { POINT_CLUSTER_GAP, POINT_RADIUS } from '../map-constants'
@@ -23,10 +27,10 @@ import { clusterRadius, MAX_CLUSTER_RADIUS } from './radius'
  * an ordinary dot, so a mark draws its summaries and its single dots through one
  * path.
  *
- * It carries frame arithmetic alone. What a group reads out — its anchor and its
- * spread — is spherical, costs a `d3-geo` pass per group, and is wanted by one
- * caller each, so `geo.ts` resolves it where it is read rather than on every
- * pass.
+ * It carries frame arithmetic alone. What a group reads out — its anchor and
+ * its spread — is spherical. It costs a `d3-geo` pass per group, and is wanted
+ * by one caller each. `geo.ts` therefore resolves it where it is read, rather
+ * than on every pass.
  *
  * @internal
  */
@@ -36,7 +40,7 @@ export type MapPointCluster = {
 	/**
 	 * Where the group draws, in frame units: the mean of its members' projected
 	 * positions. `null` where the projection has no image for the dots — the US
-	 * composite drops points outside its insets — so the group draws nothing and
+	 * composite drops points outside its insets. The group then draws nothing and
 	 * keeps its readout.
 	 */
 	at: MapPoint2D | null
@@ -56,14 +60,14 @@ export function clusterGap(cluster: boolean | number): number | null {
 }
 
 /**
- * Which group holds each of the caller's dots, by the index the mark reports —
- * the resolution a pick needs, since a click names a point the caller passed
+ * Which group holds each of the caller's dots, by the index the mark reports.
+ * That is the resolution a pick needs. A click names a point the caller passed,
  * while the mark draws the groups those points merged into.
  *
- * Built as a whole rather than searched per lookup: a pick is read on every
+ * Built as a whole rather than searched per lookup. A pick is read on every
  * render of the mark it names, and every hover crossing on the map re-renders
- * every mark — so a scan per read would walk the set hundreds of times over one
- * pointer sweep, where this walks it once per regrouping.
+ * every mark. A scan per read would therefore walk the set hundreds of times
+ * over one pointer sweep. This walks it once per regrouping.
  *
  * @internal
  */
@@ -100,24 +104,24 @@ type MapClusterMark = {
  *
  * `gap` is the clear space two marks keep between their edges, in device
  * pixels. Measured edge to edge, so the one number holds however wide a mark
- * grows: it decides the broad phase's dot-to-dot reach and the overlap rule
+ * grows. It decides the broad phase's dot-to-dot reach and the overlap rule
  * alike.
  *
- * `unitsPerPixel` is what one device pixel spans in frame units — `1` at rest,
- * and `1 / k` under the zoom layer's transform, which scales the drawn frame
- * without refitting the projection. The gap and the marks' own radii are both
- * pixel measures, as every mark spec in the module is, so this converts them
- * once on the way in and every comparison below reads frame units alone. A
+ * `unitsPerPixel` is what one device pixel spans in frame units: `1` at rest,
+ * and `1 / k` under the zoom layer's transform. That transform scales the drawn
+ * frame without refitting the projection. The gap and the marks' own radii are
+ * both pixel measures, as every mark spec in the module is. This converts them
+ * once on the way in, and every comparison below reads frame units alone. A
  * zoom that spreads the dots apart on screen therefore separates them here on
  * the same beat.
  *
  * Grouping runs on the projected frame rather than on lon/lat, because overlap
- * is a property of the drawn picture: the same round summarises in a small frame
- * and separates in a large one without its coordinates changing.
+ * is a property of the drawn picture. The same round summarises in a small
+ * frame and separates in a large one, without its coordinates changing.
  *
  * Every point reaches exactly one group, in the caller's own order. A `gap` of
- * `null` turns the grouping off and returns the points one per group, unchanged
- * and index for index — the caller asked for every dot, and no pass may take one
+ * `null` turns the grouping off. It returns the points one per group, unchanged
+ * and index for index. The caller asked for every dot, and no pass can take one
  * away. A dot the projection drops holds its own group too, so it keeps its
  * readout row where the map draws nothing for it.
  *
@@ -145,12 +149,12 @@ export function clusterPoints(
  * The broad phase: dots within `reach` of a group's first member join it, and
  * every other dot starts its own.
  *
- * Measuring from a fixed first member rather than from the group's moving mean
- * is what makes the `grid.ts` lookup exact — a mean that drifted as members
- * landed could leave a group in a different cell from the one its own lookup
- * keys name. It also merges strictly less than the overlap rule does, since two
- * dots inside `reach` are two marks inside their own: this pass can only take
- * work off {@link consolidate}, never decide against it.
+ * Measuring from a fixed first member, rather than from the group's moving
+ * mean, is what makes the `grid.ts` lookup exact. A mean that drifted as
+ * members landed could leave a group in a different cell from the one its own
+ * lookup keys name. It also merges strictly less than the overlap rule does,
+ * since two dots inside `reach` are two marks inside their own. This pass can
+ * only take work off {@link consolidate}, never decide against it.
  *
  * @internal
  */
@@ -201,9 +205,9 @@ function seedGroups(
  * Merges the groups whose marks draw within `gap` of one another, until none do.
  *
  * A merge moves a group's centre and grades its mark up, so the overlapping
- * pairs change as merges land — the rule is a fixpoint, not a single sweep. Each
+ * pairs change as merges land. The rule is a fixpoint, not a single sweep. Each
  * round folds every overlapping group into the first it meets, so the count
- * strictly falls and the rounds run out; in practice one settles it, and a set
+ * strictly falls and the rounds run out. In practice one settles it, and a set
  * with nothing to merge costs one indexed pass.
  *
  * @internal
@@ -270,7 +274,7 @@ function mergeRound(
 
 		marks[host] = grown
 
-		// The centre moved and the mark grew, so the slot may belong to another
+		// The centre moved and the mark grew, so the slot can belong to another
 		// cell now; index it there too. The entry left behind costs at most a
 		// repeated test, never a missed pair, because every test reads the live
 		// mark rather than the cell it was filed under.
@@ -322,9 +326,9 @@ function hostFor(
 
 /**
  * The nearest group whose first member lies within `reach` of `at`, or `null`
- * where the dot stands alone. Distance is compared squared, so the scan takes no
- * square root, and a tie keeps the earlier group — the grouping then reads the
- * same on every pass over the same input.
+ * where the dot stands alone. Distance is compared squared, so the scan takes
+ * no square root, and a tie keeps the earlier group. The grouping then reads
+ * the same on every pass over the same input.
  *
  * @internal
  */
@@ -372,8 +376,8 @@ function markOf(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | 
  * The one rule the output obeys — everything above it only decides how few pairs
  * have to be asked.
  *
- * Every term is frame units by the time it reaches here — `clusterPoints` scaled
- * the gap and `markOf` scaled the radii — so the rule reads in one unit.
+ * Every term is frame units by the time it reaches here: `clusterPoints` scaled
+ * the gap, and `markOf` scaled the radii. The rule therefore reads in one unit.
  *
  * @internal
  */

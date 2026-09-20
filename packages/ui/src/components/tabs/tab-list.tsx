@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect, useRef } from 'react'
+import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
@@ -13,15 +13,15 @@ import { useTabListScroll } from './use-tab-list-scroll'
 
 /** Props for {@link TabList}. Requires an accessible name (`aria-label` or `aria-labelledby`). */
 export type TabListProps = AccessibleName &
-	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>
 
 /**
  * `role="tablist"` container for `<Tab>` children. Manages roving focus along
- * the resolved `orientation`; a MutationObserver keeps at least one tab tabbable
- * as a floor (the single Tab stop itself comes from each `<Tab>`'s roving
- * `tabIndex`), and it scopes the shared `<ActiveIndicator>` animation. The
- * underline variant sits in an overflow viewport so an over-long tab row
- * scrolls in place rather than widening the page; the active tab is scrolled
+ * the resolved `orientation`, and scopes the shared `<ActiveIndicator>`
+ * animation. A MutationObserver keeps at least one tab tabbable as a floor; the
+ * single Tab stop itself comes from each `<Tab>`'s roving `tabIndex`. The
+ * underline variant sits in an overflow viewport, so an over-long tab row
+ * scrolls in place rather than widening the page. The active tab is scrolled
  * into view on mount and as focus roves.
  */
 export function TabList({ className, children, ...props }: TabListProps) {

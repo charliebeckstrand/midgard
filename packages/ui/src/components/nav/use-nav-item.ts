@@ -29,11 +29,6 @@ export type NavItemProps = {
 	className?: string
 	/** Keep an enclosing offcanvas drawer open on click instead of dismissing it. */
 	preventClose?: boolean
-	/**
-	 * Enable the press-spring tap animation on the active indicator.
-	 * @defaultValue `false`
-	 */
-	spring?: boolean
 	/** Rendered before the inner button, outside it; the slot can host its own interactive element (e.g. a drag handle button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
 	prefix?: ReactNode
 	/** Rendered after the inner button, outside it; the slot can host its own interactive element (e.g. an actions button). Slot controls auto-step one size down; an explicit `size` prop overrides. */
@@ -56,10 +51,11 @@ type NavItemOptions = {
 }
 
 /**
- * Shared behavior for nav-item components. Resolves the current state (explicit
- * `current` prop, or selection binding via `value`), scrolls the active item
- * into view, resolves the size against Density, and composes the click handler
- * (user `onClick` + selection change + offcanvas close).
+ * Shared behavior for nav-item components. Resolves the current state from an
+ * explicit `current` prop, or from the selection binding via `value`. It also
+ * scrolls the active item into view and resolves the size against Density. It
+ * composes the click handler from the user `onClick`, the selection change, and
+ * the offcanvas close.
  *
  * Only the wiring lives here; each consuming component owns its own markup,
  * slot names, classes, and icon sizing.

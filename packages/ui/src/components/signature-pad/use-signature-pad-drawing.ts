@@ -7,18 +7,19 @@ import {
 	type SetStateAction,
 	useRef,
 } from 'react'
-import { getCanvasPoint } from './signature-pad-utilities'
+import { getCanvasPoint, resolveStrokeColor } from './signature-pad-utilities'
 
 type SignatureDrawingOptions = {
 	canvasRef: RefObject<HTMLCanvasElement | null>
 	disabled?: boolean
 	readOnly?: boolean
-	strokeColor: string
+	strokeColor: string | undefined
 	strokeWidth: number
 	empty: boolean
 	setEmpty: Dispatch<SetStateAction<boolean>>
 	lastEmittedRef: RefObject<string | null>
 	setCurrent: (value: string | null) => void
+	onDrawStart?: () => void
 }
 
 /**
@@ -27,7 +28,8 @@ type SignatureDrawingOptions = {
  *
  * @internal
  * @param options - The `canvasRef`, stroke styling, the `disabled`/`readOnly`
- * flags, and the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks.
+ * flags, the `empty`/`setEmpty`/`lastEmittedRef`/`setCurrent` state hooks, and
+ * the `onDrawStart` report.
  * @returns The `handlePointerDown`, `handlePointerMove`, and `commit` handlers
  * to wire onto the `<canvas>`.
  * @remarks
@@ -46,6 +48,7 @@ export function useSignaturePadDrawing({
 	setEmpty,
 	lastEmittedRef,
 	setCurrent,
+	onDrawStart,
 }: SignatureDrawingOptions) {
 	const drawingRef = useRef(false)
 
@@ -74,6 +77,11 @@ export function useSignaturePadDrawing({
 
 		drawingRef.current = true
 
+		// The stroke is now established: every guard above passed, and `commit`
+		// owes a value. The report rides this line, so a pad that draws nothing
+		// stays silent.
+		onDrawStart?.()
+
 		lastPointRef.current = point
 
 		context.beginPath()
@@ -83,7 +91,7 @@ export function useSignaturePadDrawing({
 		// Draws a dot; a bare tap leaves a mark.
 		context.arc(point.x, point.y, strokeWidth / 2, 0, Math.PI * 2)
 
-		context.fillStyle = strokeColor
+		context.fillStyle = resolveStrokeColor(canvasRef.current, strokeColor)
 
 		context.fill()
 

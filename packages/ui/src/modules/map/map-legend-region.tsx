@@ -8,8 +8,8 @@ import { MapRangeLegend, type MapRangeLegendProps } from './map-range-legend'
 
 /**
  * The side panel's reserved shape. The panel's tokens are an array and the
- * row's a string, so the ternary between the two can be neither spread nor
- * keyed by `cn` — and neither takes a dynamic input worth re-merging per render
+ * row's a string. The ternary between the two can therefore be neither spread
+ * nor keyed by `cn`. Neither takes a dynamic input worth re-merging per render
  * of the plat, so both are joined here.
  *
  * @internal
@@ -32,9 +32,9 @@ type MapLegendSlotProps = {
 }
 
 /**
- * The legend's reserved box: it owns the space — one row of height, or the
- * side panel's fixed column — and the toolbar mounts inside it only once it
- * has buttons, so the frame holds steady while overlay entries load in.
+ * The legend's reserved box: it owns the space, one row of height, or the
+ * side panel's fixed column. The toolbar mounts inside it only once it has
+ * buttons, so the frame holds steady while overlay entries load in.
  *
  * @internal
  */

@@ -3,7 +3,7 @@ import { bridge } from '../katakana'
 import { omote, shaku, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
-const { glass } = omote
+const { glass, backdrop } = omote
 const { popover } = ugoki
 const { surface, layout } = panel
 
@@ -26,6 +26,7 @@ export const k = {
 			width: shaku.panel,
 			defaults: { width: 'lg', surface: 'flat' },
 		}),
+		backdrop: bridge.backdrop(backdrop),
 	}),
 	motion: { desktop: popover, mobile: ugoki.panel.bottom },
 }

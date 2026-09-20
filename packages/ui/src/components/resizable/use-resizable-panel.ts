@@ -281,9 +281,9 @@ export function useResizablePanel({
 				/*
 				 * Last, and that ordering is what keeps the bracket balanced without a latch.
 				 * The abort drops all four listeners, so a cancelled pointer that also fires
-				 * pointerup cannot re-enter; clearing `cleanupRef` disarms the supersede and
-				 * unmount exits, so a consumer starting a fresh drag from inside this callback
-				 * gets a clean one. The flush above has already delivered the settled sizes
+				 * pointerup cannot re-enter. Clearing `cleanupRef` disarms the supersede and
+				 * unmount exits, so a consumer starting a fresh drag from inside this
+				 * callback gets a clean one. The flush above has already delivered the settled sizes
 				 * through `onSizesChange`.
 				 */
 				onResizeEndRef.current?.(handleIndex)

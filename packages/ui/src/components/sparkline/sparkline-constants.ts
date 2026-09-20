@@ -2,10 +2,10 @@ import type { Step } from '../../recipes'
 
 /**
  * Fixed drawing metrics for a {@link Sparkline} at each density step, in the
- * SVG's user units. The `width` / `height` set the default coordinate box (and
- * the intrinsic size when no explicit `width` / `height` is passed); the rest
- * tune the marks: the inter-bar `barGap`, the bar corner `barRadius`, and the
- * end-point marker `pointRadius`.
+ * SVG's user units. The `width` and `height` set the default coordinate box,
+ * and the intrinsic size when no explicit `width` or `height` is passed. The
+ * rest tune the marks: the inter-bar `barGap`, the bar corner `barRadius`, and
+ * the end-point marker `pointRadius`.
  *
  * @internal
  */

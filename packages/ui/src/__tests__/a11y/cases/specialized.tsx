@@ -7,9 +7,8 @@ import {
 	ChatTranscript,
 } from '../../../modules/chat'
 import { HeadlessProvider } from '../../../providers/headless'
+import { noop } from '../../helpers'
 import type { Case } from './types'
-
-const noop = () => {}
 
 // Pre-rendered image pages: bypass the pdf.js (`src`) path; synchronous, no
 // canvas or worker.
@@ -60,60 +59,68 @@ const unclaimedEmbed: ChatMessageData[] = [
 
 /** Domain & specialized surfaces, plus the headless escape hatch. */
 export const specializedCases: readonly Case[] = [
-	[
-		'chat message',
-		<ChatMessage key="cm" role="assistant" timestamp="11:10 AM">
-			How can I help you today?
-		</ChatMessage>,
-	],
-	[
+	{
+		name: 'chat message',
+		element: (
+			<ChatMessage key="cm" role="assistant" timestamp="11:10 AM">
+				How can I help you today?
+			</ChatMessage>
+		),
+	},
+	{
 		// The `log` region increment 6 gave the transcript, with its own aria-live
 		// off so the shared announcer stays the one channel.
-		'chat transcript',
-		<ChatTranscript key="ct" messages={transcript} />,
-	],
-	[
-		'chat transcript with an unclaimed embed',
-		<ChatTranscript key="cte" messages={unclaimedEmbed} />,
-	],
-	[
+		name: 'chat transcript',
+		element: <ChatTranscript key="ct" messages={transcript} />,
+	},
+	{
+		name: 'chat transcript with an unclaimed embed',
+		element: <ChatTranscript key="cte" messages={unclaimedEmbed} />,
+	},
+	{
 		// A step is a disclosure inside the bubble: its trigger has to clear
 		// target-size, and its status dot conveys state by hue alone, so the dot
 		// carries the word as its accessible name.
-		'chat transcript with steps',
-		<ChatTranscript key="cts" messages={toolSteps} />,
-	],
-	[
+		name: 'chat transcript with steps',
+		element: <ChatTranscript key="cts" messages={toolSteps} />,
+	},
+	{
 		// Controlled prompt composer; the textarea is the labelled control.
-		'chat prompt',
-		<ChatPrompt key="cp" value="" onValueChange={noop} onSubmit={noop} placeholder="Message" />,
-	],
-	[
+		name: 'chat prompt',
+		element: (
+			<ChatPrompt key="cp" value="" onValueChange={noop} onSubmit={noop} placeholder="Message" />
+		),
+	},
+	{
 		// Removable attachment chips: the outline badge + bare remove button must
 		// clear contrast and carry an accessible name.
-		'chat prompt with attachments',
-		<ChatPrompt
-			key="cpa"
-			value=""
-			onValueChange={noop}
-			onSubmit={noop}
-			placeholder="Message"
-			attachments={[new File(['x'], 'report.pdf', { type: 'application/pdf' })]}
-			onRemoveAttachment={noop}
-		/>,
-	],
-	[
+		name: 'chat prompt with attachments',
+		element: (
+			<ChatPrompt
+				key="cpa"
+				value=""
+				onValueChange={noop}
+				onSubmit={noop}
+				placeholder="Message"
+				attachments={[new File(['x'], 'report.pdf', { type: 'application/pdf' })]}
+				onRemoveAttachment={noop}
+			/>
+		),
+	},
+	{
 		// Escape hatch: renders its single child untouched, suppressing default
 		// control chrome. Wrapping a labelled input must stay axe-clean.
-		'headless',
-		<HeadlessProvider key="hl">
-			<Input aria-label="Raw input" />
-		</HeadlessProvider>,
-	],
-	[
+		name: 'headless',
+		element: (
+			<HeadlessProvider key="hl">
+				<Input aria-label="Raw input" />
+			</HeadlessProvider>
+		),
+	},
+	{
 		// Document viewer driven by pre-rendered image pages (no pdf.js): a labelled
 		// region with toolbar controls and alt-texted page images.
-		'pdf viewer',
-		<PdfViewer key="pv" pages={pdfPages} aria-label="Quarterly report" />,
-	],
+		name: 'pdf viewer',
+		element: <PdfViewer key="pv" pages={pdfPages} aria-label="Quarterly report" />,
+	},
 ]

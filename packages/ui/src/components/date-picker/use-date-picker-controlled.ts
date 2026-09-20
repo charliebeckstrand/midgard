@@ -8,7 +8,7 @@ import { useRef } from 'react'
  *
  * `useControllable` reads `value === undefined` as "uncontrolled". A controlled
  * picker clears by emitting `onValueChange(undefined)`, and the consumer feeds
- * `value={undefined}` back, which would flip the field to uncontrolled,
+ * `value={undefined}` back. That would flip the field to uncontrolled,
  * resurface the stale internal value, and take a second clear to empty it.
  * After the first defined value the field stays controlled; a later
  * `undefined` forwards as `null` (a controlled clear).

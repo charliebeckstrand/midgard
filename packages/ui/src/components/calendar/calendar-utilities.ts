@@ -53,7 +53,7 @@ export function isBeforeDay(a: Date, b: Date): boolean {
 	return toCalendarDate(a).compare(toCalendarDate(b)) < 0
 }
 
-/** True when `date` falls strictly between the endpoints (exclusive); endpoints may be given in either order. @internal */
+/** True when `date` falls strictly between the endpoints (exclusive); the caller can give the endpoints in either order. @internal */
 export function isBetween(date: Date, start: Date, end: Date): boolean {
 	const [lo, hi] = isBeforeDay(start, end) ? [start, end] : [end, start]
 

@@ -6,7 +6,7 @@ const { flex } = narabi
 export const k = {
 	base: ['relative', flex.row, 'items-center justify-center', rounded.lg],
 	transition:
-		'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale]',
+		'transition-[opacity,filter,scale] duration-300 ease-in-out will-change-[opacity,filter,scale] motion-reduce:transition-none',
 	active: 'scale-100 opacity-100 blur-0',
 	inactive: 'blur-xs scale-[0.25] opacity-0',
 	skeleton: kokkaku.toggleIconButton,

@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { makeMediaQueryList } from '../helpers/stub-match-media'
 import { stubWindowScrollBy } from '../helpers/stub-window-scroll'
 
 /** Browser API stubs jsdom doesn't ship. Imported for side effects from setup.ts. */
@@ -7,16 +8,7 @@ if (typeof window.matchMedia !== 'function') {
 	Object.defineProperty(window, 'matchMedia', {
 		writable: true,
 		configurable: true,
-		value: vi.fn().mockImplementation((query: string) => ({
-			matches: false,
-			media: query,
-			onchange: null,
-			addEventListener: vi.fn(),
-			removeEventListener: vi.fn(),
-			addListener: vi.fn(),
-			removeListener: vi.fn(),
-			dispatchEvent: vi.fn(),
-		})),
+		value: vi.fn((query: string) => makeMediaQueryList(query, false)),
 	})
 }
 

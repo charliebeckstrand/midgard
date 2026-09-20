@@ -1,20 +1,22 @@
 /**
- * What a zone is, apart from how it draws: the circle-to-polygon math a circular
- * geofence starts from, and the room the drawn zone can spare the marks standing
- * on it. One leaf at the engine root rather than a concept directory, because the
- * two are the zone's own rules and nothing else asks them — the ring's path and
- * its keyboard anchor sit with their own kin in `map-geometry/mark.ts`.
+ * What a zone is, apart from how it draws. It is the circle-to-polygon math a
+ * circular geofence starts from, and the room the drawn zone can spare the
+ * marks standing on it. One leaf at the engine root rather than a concept
+ * directory, because the two are the zone's own rules and nothing else asks
+ * them. The ring's path and its keyboard anchor sit with their own kin in
+ * `map-geometry/mark.ts`.
  *
  * The circle is built on `d3-geo`'s own rather than on plane trigonometry. A
- * circle on the ground is a small circle of the sphere, so a ring stepped in
- * degrees of longitude and latitude reads as an ellipse away from the equator and
- * breaks at a pole. `geoCircle` steps around the centre instead, so the ring holds
- * its shape wherever the centre sits.
+ * circle on the ground is a small circle of the sphere. A ring stepped in
+ * degrees of longitude and latitude therefore reads as an ellipse away from the
+ * equator, and breaks at a pole. `geoCircle` steps around the centre instead,
+ * so the ring holds its shape wherever the centre sits.
  *
- * The budget is the zone half of the hit-target rule, whose other half is
- * `map-cluster/crowd.ts` and whose join is `markTargets`. All three are frame
- * arithmetic with no React in them, which is why they sit here and not beside the
- * mark that registers them.
+ * The budget is the zone part of the hit-target rule. Its siblings are
+ * `map-cluster/crowd.ts`, which holds the neighbour part and the list of
+ * claimants, and `map-region/spare.ts` for the region under the dot. All three
+ * are frame arithmetic with no React in them, which is why they sit here and not
+ * beside the mark that registers them.
  */
 
 import { geoCircle } from 'd3-geo'
@@ -39,10 +41,10 @@ const HALF_SPHERE_DEGREES = 180
  * ring is and what {@link ringAnchor} reads.
  *
  * The radius is a ground distance in metres, measured on the mean-radius sphere
- * a cluster's span reads on, so one map never holds two ideas of how far a metre
- * is. It is not a frame distance: a geofence covers the same ground however far
- * out the map sits, where every other mark in this module holds its size in
- * device pixels.
+ * a cluster's span reads on. One map therefore never holds two ideas of how far
+ * a metre is. It is not a frame distance: a geofence covers the same ground
+ * however far out the map sits. Every other mark in this module holds its size
+ * in device pixels.
  *
  * @param at - The circle's centre.
  * @param radius - The ground radius, in metres.
@@ -73,14 +75,16 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
 }
 
 /**
- * A drawn zone as the hit-target rule reads it: the rings it paints, the reach a
- * dot competing for its ground may take, and how far outside those rings still
- * counts as competing.
+ * A drawn zone as the hit-target rule reads it:
+ *
+ * - The rings it paints.
+ * - The reach a dot competing for its ground can take.
+ * - How far outside those rings still counts as competing.
  *
  * The budget is one number for the whole zone rather than a measure per dot,
- * which is the point of it — every mark on one zone points alike, whatever the
+ * which is the point of it. Every mark on one zone points alike, whatever the
  * ring runs through. Resolving it here rather than inside the per-dot answer is
- * what makes that structural: the shape below can only be built once per zone,
+ * what makes that structural. The shape below can only be built once per zone,
  * where a per-dot resolver was free to walk every vertex again for each mark.
  *
  * @internal
@@ -88,7 +92,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
 export type MapZoneBudget = {
 	/** The drawn rings, as the only reader below wants them — boxes to place a dot against. */
 	rings: readonly MapAreaBox[]
-	/** What a dot on this zone may reach, in device pixels. */
+	/** What a dot on this zone can reach, in device pixels. */
 	spare: number
 	/** The competing band around the rings, in frame units. */
 	margin: number
@@ -99,15 +103,15 @@ export type MapZoneBudget = {
  * zone.
  *
  * A dot takes {@link AREA_SPARE_FRACTION} of the zone's own inscribed room, so
- * the zone keeps at least as much as it gives — at every size, and with no
- * threshold anywhere for a reader to land on the wrong side of. The reach is a
- * device-pixel figure and the rings are frame units, so the zone's own measure
- * divides by the zoom scale on the way out.
+ * the zone keeps at least as much as it gives. That holds at every size, with
+ * no threshold anywhere for a reader to land on the wrong side of. The reach is
+ * a device-pixel figure, and the rings are frame units. The zone's own measure
+ * therefore divides by the zoom scale on the way out.
  *
- * The competing band is a whole finger target wide, so a dot just outside a small
- * zone is budgeted too — its target would blanket that zone as surely as one
- * standing in the middle of it. Being generous there costs a dot nothing it can
- * see: a zone with room to spare hands back more than a target can use, and
+ * The competing band is a whole finger target wide, so a dot just outside a
+ * small zone is budgeted too. Its target would blanket that zone as surely as
+ * one standing in the middle of it. Being generous there costs a dot nothing it
+ * can see. A zone with room to spare hands back more than a target can use, and
  * `markTargets` caps it.
  *
  * @param rings - The zone's projected rings, from `projectArea`.
@@ -125,8 +129,9 @@ export function zoneBudget(rings: readonly MapAreaRing[], unitsPerPixel: number)
 }
 
 /**
- * How much reach this zone leaves a dot at a frame position: its budget where the
- * dot competes for the zone's ground, and no claim at all where it does not.
+ * How much reach this zone leaves a dot at a frame position. It is the zone's
+ * budget where the dot competes for that ground, and no claim at all where it
+ * does not.
  *
  * The whole per-dot cost is the box scan, because {@link zoneBudget} has already
  * measured everything that does not depend on where the dot stands.

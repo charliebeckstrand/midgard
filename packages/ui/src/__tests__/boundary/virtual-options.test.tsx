@@ -61,7 +61,7 @@ describe('VirtualOptions', () => {
 // builds and publishes the source from `items`/`getOptionId` regardless of the
 // (jsdom-zero-height) windowed subset — so these run under plain jsdom; real
 // windowing + keyboard-reachability across the window edge is covered by the
-// browser suite (`test:browser`) and `__tests__/hooks/use-a11y-roving.test.ts`.
+// browser suite (`test:browser`) and `__tests__/hooks/use-a11y-roving.test.tsx`.
 describe('VirtualOptions: indexed item source registration', () => {
 	const items = Array.from({ length: 50 }, (_, i) => ({
 		id: i,

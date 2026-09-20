@@ -3,8 +3,8 @@ import type { GridColumn } from '../../types'
 /**
  * A column's value accessor — its explicit {@link GridColumn.value}, else the
  * row field named by the column id. The one resolution sort, filtering,
- * aggregation, and export all read a cell through, so the value a column sorts
- * by is the value it exports and aggregates. The engine's `accessorFn` (see
+ * aggregation, and export all read a cell through. The value a column sorts by
+ * is therefore the value it exports and aggregates. The engine's `accessorFn` (see
  * `deriveColumnBehavior`) builds the same accessor for data columns.
  *
  * Framework-free (only the {@link GridColumn} type), so every reader — including

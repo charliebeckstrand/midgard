@@ -10,7 +10,7 @@ import {
 	useCurrentPanelActive,
 	useCurrentState,
 } from '../../primitives/current'
-import { renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 function ActiveProbe({ id }: { id: string }) {
 	return <span data-testid={id}>{String(useCurrentPanelActive())}</span>
@@ -109,6 +109,24 @@ describe('CurrentContents / CurrentContent', () => {
 		expect(panel).toHaveAttribute('id', 'panel-a')
 
 		expect(panel).toHaveAttribute('aria-labelledby', 'tab-a')
+	})
+
+	it.each([true, false])('takes a caller data-slot rename with fade=%s', (fade) => {
+		const { container } = renderUI(
+			<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
+				<CurrentContents slotPrefix="test" fade={fade}>
+					<CurrentContent slotPrefix="test" value="a" data-slot="my-panel">
+						Content A
+					</CurrentContent>
+				</CurrentContents>
+			</CurrentContext>,
+		)
+
+		// The anchor a test author queries by must not change with the container's
+		// fade flag: the caller's rename wins in both branches.
+		expect(bySlot(container, 'my-panel')).toBeInTheDocument()
+
+		expect(bySlot(container, 'test-content')).toBeNull()
 	})
 
 	it('preserves caller style under the positioning keys in fade mode', () => {

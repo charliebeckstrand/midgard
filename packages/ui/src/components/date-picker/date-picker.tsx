@@ -5,6 +5,7 @@ import { type ReactElement, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/date-picker'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
 import type { ControlSize } from '../control/context'
 import { DateInput, type DateInputFormat } from '../date-input'
@@ -31,9 +32,9 @@ export type DatePickerSingleProps = {
 	/**
 	 * Renders a typed DateInput in place of the popover trigger. The calendar
 	 * icon becomes a labeled suffix button that opens the calendar, and a
-	 * picked date writes back into the input. Opening keeps focus on the input;
-	 * ArrowDown opens and the arrow keys then rove the grid through the input's
-	 * `aria-activedescendant`, and Enter commits the highlighted day.
+	 * picked date writes back into the input. Opening keeps focus on the input.
+	 * ArrowDown opens, and the arrow keys then rove the grid through the input's
+	 * `aria-activedescendant`. Enter commits the highlighted day.
 	 */
 	input?: boolean
 	/**
@@ -62,7 +63,7 @@ export type DatePickerRangeProps = {
  * preset replaces it and re-picking clears — while `relative={{ multiple: true }}`
  * lets several stack. A "Custom range" row swaps to Start/End date fields (typed
  * or calendar-picked) for an arbitrary absolute span, mutually exclusive with the
- * presets. Pass `relative` (bare `true`) for the built-in presets, or a
+ * presets. Pass `relative` (bare `true`) for the built-in presets. Pass a
  * {@link DatePickerRelativeConfig} to override the list, enable `multiple`, or
  * turn the trigger's chips off.
  *
@@ -119,9 +120,18 @@ export type DatePickerFooterConfig = {
  * range); intersected with the discriminated value/handler shape in
  * {@link DatePickerProps}.
  */
-export type DatePickerBaseProps = {
+export type DatePickerBaseProps = GroupStampProps & {
 	/** Binds the value to an enclosing Form field. Seed `Form.defaultValues` with a `Date` (single), `[Date, Date]` (range), or a {@link DatePickerRelativeValue}`[]` (relative). */
 	name?: string
+	/**
+	 * Forwarded to the calendar. Fires with the first of the month the grid
+	 * renders, whenever that month changes.
+	 *
+	 * Use it to fetch per-month data behind an open picker. The relative variant
+	 * shows no grid until the reader opens a custom range, so it reports only from
+	 * there.
+	 */
+	onMonthChange?: (month: Date) => void
 	min?: Date
 	max?: Date
 	placeholder?: string
@@ -133,8 +143,8 @@ export type DatePickerBaseProps = {
 	size?: ControlSize
 	/**
 	 * Truncates the displayed date label when it overflows the trigger.
-	 * Set `false` to let the trigger grow to fit its content, e.g. inside a
-	 * `<Group>` or another content-sized parent that collapses the label.
+	 * Set `false` to let the trigger grow to fit its content. An example is inside
+	 * a `<Group>`, or another content-sized parent that collapses the label.
 	 *
 	 * @defaultValue true
 	 */
@@ -144,7 +154,7 @@ export type DatePickerBaseProps = {
 	 * matching the `clearable` affordance on Listbox/Combobox. In `input` mode the
 	 * typed {@link DateInput} owns the clear button instead.
 	 *
-	 * @defaultValue true
+	 * @defaultValue false
 	 */
 	clearable?: boolean
 	/**
@@ -168,8 +178,6 @@ export type DatePickerBaseProps = {
 	onOpenChange?: (open: boolean) => void
 	/** Accessible name for the trigger when no Field/Label wraps the picker. */
 	'aria-label'?: string
-	'data-group'?: string
-	'data-group-orientation'?: string
 }
 
 /**
@@ -182,26 +190,26 @@ export type DatePickerProps = DatePickerBaseProps &
 	(DatePickerSingleProps | DatePickerRangeProps | DatePickerRelativeProps)
 
 /**
- * Popover date picker; switches between single and range calendar selection on
- * the `range` prop, or a relative-range picker on the `relative` prop
- * (single-select by default, multi-select with `multiple: true`), and supports
- * controlled or uncontrolled `value`. `size` resolves through
+ * Popover date picker. It switches between single and range calendar selection
+ * on the `range` prop, or a relative-range picker on the `relative` prop. The
+ * relative picker is single-select by default, and multi-select with
+ * `multiple: true`. It supports controlled or uncontrolled `value`. `size` resolves through
  * the explicit prop, then `<Control>`, then Density, then `'md'`. With `input`, a
  * typed DateInput replaces the trigger and the calendar opens from its suffix
- * button. A `clearable` clear button (default on) replaces the calendar icon once
- * a value is set, mirroring Listbox/Combobox.
+ * button. A `clearable` clear button replaces the calendar icon once a value is
+ * set, mirroring Listbox/Combobox, which default it off as well.
  *
  * @remarks
  * In the calendar variants, keyboard navigation runs on a virtual highlight
- * rather than DOM focus: the open dialog itself holds focus and routes
- * arrow/Page keys to the active zone. `input` mode instead keeps DOM focus on
- * the editable DateInput on open and drives the grid through the input's
- * `aria-activedescendant` (the active-descendant pattern, as on Combobox), so a
- * keyboard user never loses the field; it also keeps the reference group out of
- * the modal trap's `aria-hidden` marking and closes its own Tab cycle. The
- * `relative` variant's preset list uses real focusable toggle buttons
- * shown as chips in the trigger, swapping to Start/End `input`-mode date fields
- * for a custom range.
+ * rather than DOM focus. The open dialog itself holds focus, and routes
+ * arrow/Page keys to the active zone. The `input` mode instead keeps DOM focus
+ * on the editable DateInput on open. It drives the grid through the input's
+ * `aria-activedescendant`, the active-descendant pattern, as on Combobox. A
+ * keyboard user therefore never loses the field. It also keeps the reference
+ * group out of the modal trap's `aria-hidden` marking, and closes its own Tab
+ * cycle. The `relative` variant's preset list uses real focusable toggle
+ * buttons, shown as chips in the trigger. It swaps to Start/End `input`-mode
+ * date fields for a custom range.
  *
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
@@ -242,7 +250,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		truncate = true,
 		input = false,
 		format = 'MM/DD/YYYY',
-		clearable = true,
+		clearable = false,
 		className,
 		'aria-label': ariaLabel,
 		'data-group': dataGroup,
@@ -296,6 +304,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				min={props.min}
 				max={props.max}
 				active={state.calendar.active}
+				onMonthChange={props.onMonthChange}
 				footerRef={state.calendar.footerRef}
 				listboxId={state.listboxId}
 				activeDescendantId={state.activeDescendantId}

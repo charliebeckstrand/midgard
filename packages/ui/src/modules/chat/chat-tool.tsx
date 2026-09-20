@@ -12,8 +12,8 @@ type StatusLook = { status: StatusDotProps['status']; label: string; pulse: bool
 
 /**
  * The look and the word per status. Colour alone conveys a status, so the dot
- * carries the word as its accessible name rather than standing mute beside a
- * name that does not say how the step ended (WCAG 1.4.1).
+ * carries the word as its accessible name. A mute dot beside a name that does
+ * not say how the step ended fails WCAG 1.4.1.
  *
  * @internal
  */
@@ -35,9 +35,9 @@ export type ChatToolProps = {
  * and how it ended, over the detail it opens to.
  *
  * @remarks
- * A step with `detail` is a disclosure over {@link Collapse}, closed to start,
- * because a reader wants the answer first and the working only when they doubt
- * it. The panel mounts lazily and is then held, so a step nobody opens costs no
+ * A step with `detail` is a disclosure over {@link Collapse}, closed to start. A
+ * reader wants the answer first, and the working only when they doubt it. The
+ * panel mounts lazily and is then held. A step nobody opens therefore costs no
  * Markdown lex, and one closed after opening keeps what it drew.
  *
  * A step with no detail draws as a plain line. There is nothing behind it, and
@@ -45,9 +45,9 @@ export type ChatToolProps = {
  * something to show.
  *
  * The step takes no colour of its own beyond the status dot's. It sits in a
- * bubble whose fill differs by speaker, and a muted foreground that clears AA
- * against the page does not clear it against the assistant's fill — the defect
- * the embed fallback shipped with. Its rule rides `currentColor` instead, so it
+ * bubble whose fill differs by speaker. A muted foreground that clears AA
+ * against the page does not clear it against the assistant's fill. That is the
+ * defect the embed fallback shipped with. Its rule rides `currentColor` instead, so it
  * holds on every bubble.
  *
  * @internal

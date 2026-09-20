@@ -76,10 +76,10 @@ export function App() {
 				sidebar={<SidebarContent route={route} />}
 			>
 				<div ref={contentRef}>
-					{/* One Suspense boundary spans every route. Keeping it mounted (rather
-					    than keyed per demo) is what lets the deferred route hold the previous
-					    demo on screen while the next chunk loads; a boundary recreated per
-					    navigation has no revealed content to keep and flashes its fallback
+					{/* One Suspense boundary spans every route. Keeping it mounted, rather
+					    than keyed per demo, is what lets the deferred route hold the previous
+					    demo on screen while the next chunk loads. A boundary recreated per
+					    navigation has no revealed content to keep, and flashes its fallback
 					    instead. The error boundary stays keyed so a load failure resets per
 					    demo. */}
 					<Suspense fallback={null}>

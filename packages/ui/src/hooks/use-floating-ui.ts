@@ -26,23 +26,31 @@ import {
 	useRef,
 } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
+import {
+	closestFloatingPortal,
+	foreignFloatingPortal,
+	hasPortalReference,
+	publishPortalReference,
+	referenceOpenedWithin,
+} from '../utilities/floating-portal-registry'
+import { isScrollbarPress } from '../utilities/scrollbar-press'
 import { useEscapeLayer } from './use-escape-layer'
 
 /**
  * Explicit return shape for {@link useFloatingPanel}.
  *
  * @remarks `useFloating`'s inferred shape references `@floating-ui/react-dom`,
- * a transitive dep TS can't express in a portable `.d.ts` (TS2742); declaring
- * it locally avoids the error. The barrel does not re-export it.
- * @internal
+ * a transitive dep TS cannot express in a portable `.d.ts` (TS2742); declaring
+ * it locally avoids the error.
  */
-type FloatingPanelResult = {
+export type FloatingPanelResult = {
 	refs: ExtendedRefs<ReferenceType>
 	floatingStyles: CSSProperties
 	context: FloatingRootContext
 }
 
-type FloatingUIResult = FloatingPanelResult & {
+/** Return shape of {@link useFloatingUI}: the refs, the positioned styles, the floating context, and the prop getters. */
+export type FloatingUIResult = FloatingPanelResult & {
 	getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>
 	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
@@ -64,34 +72,7 @@ function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middle
 	]
 }
 
-const SCROLLABLE_RE = /auto|scroll/
-
-/** True when a pointerdown landed on `target`'s own scrollbar gutter; such presses don't dismiss the panel. @internal */
-function isScrollbarPress(event: PointerEvent, target: HTMLElement): boolean {
-	const style = getComputedStyle(target)
-
-	// The root (html/body) scrolls the page even though its computed overflow is
-	// `visible`; floating-ui treats the last traversable node as scrollable.
-	const isRoot = target === document.documentElement || target === document.body
-
-	const scrollableX = isRoot || SCROLLABLE_RE.test(style.overflowX)
-	const scrollableY = isRoot || SCROLLABLE_RE.test(style.overflowY)
-
-	const canScrollX =
-		scrollableX && target.clientWidth > 0 && target.scrollWidth > target.clientWidth
-	const canScrollY =
-		scrollableY && target.clientHeight > 0 && target.scrollHeight > target.clientHeight
-
-	const onVerticalScrollbar =
-		canScrollY &&
-		(style.direction === 'rtl'
-			? event.offsetX <= target.offsetWidth - target.clientWidth
-			: event.offsetX > target.clientWidth)
-	const onHorizontalScrollbar = canScrollX && event.offsetY > target.clientHeight
-
-	return onVerticalScrollbar || onHorizontalScrollbar
-}
-
+/** Options for {@link useFloatingPanel}: placement, offset, and the middleware the surface positions through. */
 export type FloatingPanelOptions = {
 	placement: Placement
 	open: boolean
@@ -115,19 +96,37 @@ export type FloatingPanelOptions = {
 	 * Reposition strategy while mounted. `'auto'` wires `autoUpdate`
 	 * (ResizeObserver plus ancestor scroll/resize listeners), the right default
 	 * for a DOM-anchored panel whose reference moves independently. `'point'`
-	 * drops `whileElementsMounted`: a pointer-anchored surface reseats its
+	 * drops `whileElementsMounted`. A pointer-anchored surface reseats its
 	 * virtual reference on every coordinate change, which already triggers a
-	 * reposition, so the observer wiring is redundant per-open cost.
+	 * reposition. The observer wiring is therefore redundant per-open cost.
 	 * @defaultValue 'auto'
 	 */
 	track?: 'auto' | 'point'
 	/**
+	 * CSS positioning strategy for the floating element. `'fixed'` resolves the
+	 * panel against the viewport instead of the portal's offset parent. That is
+	 * what a surface anchored to viewport coordinates needs. An `'absolute'`
+	 * panel lands short by however far any scroll container between them has
+	 * scrolled.
+	 * @defaultValue 'absolute'
+	 */
+	strategy?: 'absolute' | 'fixed'
+	/**
+	 * Reference element to anchor to, for a panel whose anchor the caller already
+	 * holds rather than attaches a ref to. Handed straight to floating-ui's
+	 * `elements`, so it supersedes `refs.setReference` and needs no ref plumbing
+	 * of its own. That is what lets the panel live in a leaf beside the anchor,
+	 * instead of in the component that renders it. `null` while there is nothing
+	 * to anchor to; the panel is closed then anyway.
+	 */
+	reference?: HTMLElement | null
+	/**
 	 * When the panel transitions from open to closed, return focus to this
-	 * element (or its first `button`/`[tabindex]` descendant when the element
-	 * itself is a non-focusable wrapper). An `'outside-press'` close skips the
-	 * restore (focus follows the pointer), as does a `'focus-out'` close
-	 * (Tab already carried focus to the next tabbable; snapping back would
-	 * undo it). Focus already inside the element also skips it: there is
+	 * element. A non-focusable wrapper hands focus to its first
+	 * `button`/`[tabindex]` descendant instead. An `'outside-press'` close skips
+	 * the restore, because focus follows the pointer. So does a `'focus-out'`
+	 * close: Tab already carried focus to the next tabbable, and snapping back
+	 * would undo it. Focus already inside the element also skips it. There is
 	 * nothing to restore, and snapping to the descendant would yank a caret
 	 * (Escape while typing in an input-mode DatePicker's DateInput).
 	 */
@@ -155,6 +154,8 @@ export function useFloatingPanel({
 	middleware,
 	returnFocusTo,
 	track = 'auto',
+	strategy,
+	reference,
 }: FloatingPanelOptions): FloatingPanelResult {
 	const resolvedMiddleware = useMemo(
 		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
@@ -182,6 +183,11 @@ export function useFloatingPanel({
 		placement,
 		open,
 		onOpenChange: handleOpenChange,
+		...(strategy ? { strategy } : {}),
+		// Only when the caller anchors by element. Left off otherwise so
+		// `refs.setReference` stays the reference for every ref-attached panel —
+		// passing `elements: { reference: undefined }` would clear it.
+		...(reference !== undefined ? { elements: { reference } } : {}),
 		// A point-anchored surface (`track: 'point'`) repositions itself on every
 		// coordinate change, so it skips the observer-based `autoUpdate` wiring.
 		whileElementsMounted: track === 'point' ? undefined : autoUpdate,
@@ -223,9 +229,9 @@ type FloatingOutsidePressRefs = Pick<
 
 /**
  * The DOM element a floating panel is anchored to: its `domReference` for a
- * normal disclosure, or — for a right-click context menu anchored at the cursor
- * via `setPositionReference` — the position reference's `contextElement`, since
- * that route leaves `domReference` null. Both point at where in the DOM the
+ * normal disclosure. A right-click context menu anchored at the cursor via
+ * `setPositionReference` takes the position reference's `contextElement`
+ * instead. That route leaves `domReference` null. Both point at where in the DOM the
  * panel was opened from, which the ancestor-portal test needs even when no DOM
  * reference was set.
  *
@@ -240,22 +246,6 @@ function floatingReferenceElement(refs: FloatingOutsidePressRefs): Element | nul
 		? (positionReference.contextElement ?? null)
 		: null
 }
-
-/**
- * Portal node → a getter for the reference element the surface inside it opened
- * from. Published by every panel that shares {@link isFloatingOutsidePress}, and
- * read there to tell a genuinely nested surface from an unrelated one.
- *
- * @remarks
- * The DOM cannot answer this. `PresencePortal` passes an explicit `root` under a
- * `<UIProvider>`, so every surface's portal is a sibling `<div>` under one node
- * whatever opened it — ancestry carries no nesting information. A getter rather
- * than an element because a panel's reference can change while it is open (a
- * context menu re-anchoring to a new cursor point).
- *
- * @internal
- */
-const portalReferences = new WeakMap<Element, () => Element | null>()
 
 /**
  * Publishes this panel's reference against its portal node while it is open, so
@@ -277,19 +267,11 @@ export function useFloatingPortalReference(
 	useEffect(() => {
 		if (!open) return
 
-		const portal = floatingElement?.closest('[data-floating-ui-portal]')
+		const portal = closestFloatingPortal(floatingElement)
 
 		if (!portal) return
 
-		const getReference = () => floatingReferenceElement(refs)
-
-		portalReferences.set(portal, getReference)
-
-		// Guarded so a portal node reused by a later surface keeps that surface's
-		// entry rather than this one's teardown clearing it.
-		return () => {
-			if (portalReferences.get(portal) === getReference) portalReferences.delete(portal)
-		}
+		return publishPortalReference(portal, () => floatingReferenceElement(refs))
 	}, [open, refs, floatingElement])
 }
 
@@ -332,10 +314,11 @@ export function useFloatingOutsidePress(
 
 /**
  * True when a document `pointerdown` at `event` falls outside the floating
- * panel described by `refs` — not inside the panel or its reference, not a
- * press on the panel's own scrollbar, and not inside a floating surface opened
- * from within this panel (e.g. a Select listbox, or the calendar's month/year
- * popover inside a DatePicker dialog). Those surfaces teleport outside this
+ * panel described by `refs`. Outside means not inside the panel or its
+ * reference, and not a press on the panel's own scrollbar. It also means not
+ * inside a floating surface opened from within this panel. A Select listbox is
+ * one, as is the calendar's month/year popover inside a DatePicker dialog.
+ * Those surfaces teleport outside this
  * panel's DOM subtree, so the containment checks miss them;
  * {@link pressLandsInNestedSurface} owns that relation and the rule it applies.
  *
@@ -379,12 +362,14 @@ export function isFloatingOutsidePress(
  * a descendant, whose presses this panel must survive.
  *
  * @remarks
- * A surface that published its reference is a descendant only when that
- * reference sits inside this panel; publishing nothing but no reference (a
- * context menu anchored at a bare coordinate) means no descendancy to claim, so
- * the press dismisses. A portal that never registered at all — an `Overlay`,
- * which dismisses through `useDismissable` rather than this predicate — keeps
- * the older ancestor test, which is all that is knowable about it.
+ * The descendancy rule itself lives in `referenceOpenedWithin`, shared with the
+ * `Overlay` boundaries that ask the same question through
+ * `pressLandsInSurfaceOpenedWithin`. A surface that published its reference is a
+ * descendant only when that reference sits inside this panel. A getter that
+ * yields nothing (a context menu anchored at a bare coordinate) claims no
+ * descendancy, so the press dismisses. What this predicate adds is the fallback
+ * below. A portal that never registered at all keeps the older ancestor test,
+ * which is all that is knowable about it.
  *
  * @internal
  */
@@ -393,28 +378,26 @@ function pressLandsInNestedSurface(
 	target: Node,
 	refs: FloatingOutsidePressRefs,
 ): boolean {
-	const targetPortal =
-		target instanceof Element ? target.closest('[data-floating-ui-portal]') : null
+	const targetPortal = foreignFloatingPortal(floating, target)
 
-	if (!targetPortal || targetPortal === floating.closest('[data-floating-ui-portal]')) return false
+	if (!targetPortal) return false
 
-	if (portalReferences.has(targetPortal)) {
-		const targetReference = portalReferences.get(targetPortal)?.()
+	// A surface that published a reference answers for itself, by the shared rule.
+	if (hasPortalReference(targetPortal)) return referenceOpenedWithin(floating, targetPortal)
 
-		return targetReference != null && floating.contains(targetReference)
-	}
-
+	// Nothing published: the older ancestor test is all that is knowable.
 	const reference = floatingReferenceElement(refs)
 
 	return !(reference != null && targetPortal.contains(reference))
 }
 
-type FloatingUIOptions = FloatingPanelOptions & {
+/** Options for {@link useFloatingUI}: the {@link FloatingPanelOptions} plus the open state, the dismiss wiring, and the role. */
+export type FloatingUIOptions = FloatingPanelOptions & {
 	/**
 	 * Popup role floating-ui stamps on the floating element, plus the matching
 	 * `aria-haspopup`/`aria-controls`/`aria-expanded` on the reference. Pass
 	 * `null` when the component hand-rolls its own roles on inner elements (the
-	 * trigger button and the panel); a role here also stamps the positioning
+	 * trigger button and the panel). A role here also stamps the positioning
 	 * wrapper, nesting a duplicate widget around the real one
 	 * (combobox-in-combobox, listbox-in-listbox). @defaultValue 'listbox'
 	 */
@@ -425,11 +408,10 @@ type FloatingUIOptions = FloatingPanelOptions & {
  * Floating panel with built-in dismiss and role interactions: the common
  * pattern for listbox, combobox, dropdown menu, and date picker surfaces.
  *
- * Outside-press uses a custom document-level pointerdown listener that checks
+ * Outside-press uses a custom document-level pointerdown listener. It checks
  * the press target directly against the floating panel and reference, with no
  * false positives from sibling portals inside a `Sheet`/`Dialog`. A press
- * inside a nested floating-ui portal (an overlay opened from within this
- * panel, e.g. the calendar's month/year picker) counts as inside, mirroring
+ * inside a nested floating-ui portal counts as inside, mirroring
  * floating-ui's own node-tree handling.
  *
  * @returns `useFloatingPanel`'s `{ refs, floatingStyles, context }` plus

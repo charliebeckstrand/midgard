@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef, ReactNode, Ref } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useControlSize } from '../../primitives/density'
@@ -18,9 +18,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none` and a min-height floor. */
 	actions?: ReactNode
 	/** Controlled value. `undefined` leaves the textarea uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
-	value?: ComponentPropsWithoutRef<'textarea'>['value'] | null
-	ref?: Ref<HTMLTextAreaElement>
-} & Omit<ComponentPropsWithoutRef<'textarea'>, 'className' | 'size' | 'value'>
+	value?: ComponentProps<'textarea'>['value'] | null
+} & Omit<ComponentProps<'textarea'>, 'className' | 'size' | 'value'>
 
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useMediaQuery } from '../../hooks/use-media-query'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities'
 import { REGION_FADE } from './engine/map-motion'
 
@@ -18,40 +19,44 @@ export type MapToggle = {
 }
 
 /**
- * Owns the map legend's interactions: which entries — region categories and
- * overlays alike — are toggled off, and which one is emphasised by a hovered
- * or focused legend entry. The chart's series switchboard re-keyed by string
+ * Owns the map legend's interactions. It tracks which entries — region
+ * categories and overlays alike — are toggled off, and which one a hovered or
+ * focused legend entry emphasises. The chart's series switchboard re-keyed by string
  * id, since the map's legend merges two entry sources. A hidden entry can't
  * hold the emphasis — dimming everything against an invisible entry would
  * read as a broken map.
  *
  * @remarks Nor can an entry still arriving. Under `animate` a toggled-on entry
  * washes its colour back in, and the emphasis would cover that wash the moment
- * it landed: the layer recedes and the emphasised marks redraw above it at full
+ * it landed. The layer recedes and the emphasised marks redraw above it at full
  * strength, painted at the colour the marks beneath are still travelling to. The
  * toggle that turned it on is also the click that put the pointer on its legend
- * entry, so the two always coincide — and the wash would never be seen in that
- * direction, where toggling off (which clears the emphasis by hiding the entry)
- * plays in the open. So the emphasis waits out one fade, and the entry arrives
+ * entry, so the two always coincide. The wash would never be seen in that
+ * direction. Toggling off clears the emphasis by hiding the entry, so it plays
+ * in the open. So the emphasis waits out one fade, and the entry arrives
  * before the map dims around it.
  *
  * The wait is the region wash's, because the region layer is the only thing an
- * emphasis paints a copy over: an overlay's marks unmount when hidden, so a
- * toggled-on overlay has nothing dimmed underneath to cover, and it rides the
- * same wait only because one legend drives both. Held for the fade alone, not
+ * emphasis paints a copy over. An overlay's marks unmount when hidden, so a
+ * toggled-on overlay has nothing dimmed underneath to cover. It rides the same
+ * wait only because one legend drives both. Held for the fade alone, not
  * the reveal's fade-plus-stagger, since the stagger retires with the reveal that
  * owns it ({@link MapWash}).
  *
  * It is skipped where there is no wash to protect: a static map, and a
- * reduced-motion reader, whose `motion-reduce` fallback drops the transition, so
- * the colour is already there and the wait would be dead time. That preference
+ * reduced-motion reader. That reader's `motion-reduce` fallback drops the
+ * transition, so the colour is already there and the wait would be dead time. That preference
  * is read live rather than sampled at mount, so turning it on mid-session takes
  * effect on the next toggle.
  *
  * @param animate - Whether the plat animates, so a toggle has a wash to wait for.
+ * @param onHiddenChange - Reports each committed hidden set to the caller.
  * @internal
  */
-export function useMapToggle(animate: boolean): MapToggle {
+export function useMapToggle(
+	animate: boolean,
+	onHiddenChange?: (hidden: ReadonlySet<string>) => void,
+): MapToggle {
 	const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set())
 
 	const [focus, setFocus] = useState<string | null>(null)
@@ -90,6 +95,10 @@ export function useMapToggle(animate: boolean): MapToggle {
 		},
 		[hidden, washes],
 	)
+
+	// Read from the committed set rather than from `toggle`, because the set is
+	// written through an updater. A map with every entry shown says nothing.
+	useReportedChange(hidden, onHiddenChange)
 
 	return {
 		hidden,

@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ToggleField } from '../../primitives/toggle'
 import { k } from '../../recipes/kata/checkbox'
@@ -10,7 +10,7 @@ import { ControlField } from '../control/control-field'
 export type CheckboxFieldProps = {
 	/** Pins the generated control id instead of auto-generating one. */
 	htmlFor?: string
-} & ComponentPropsWithoutRef<'div'>
+} & ComponentProps<'div'>
 
 /**
  * Pairs a Checkbox with its Label. Generates a scoped id and broadcasts it

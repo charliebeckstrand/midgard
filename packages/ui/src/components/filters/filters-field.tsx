@@ -68,9 +68,9 @@ function expectsClearCallback(child: ReactElement): boolean {
 }
 
 /**
- * Maps the slot value to control props: toggles read `checked` (Radio compares
- * its own option value; Checkbox/Switch reflect the boolean), others read
- * `value` (`null`, not `undefined`, to stay controlled).
+ * Maps the slot value to control props. Toggles read `checked`: Radio compares
+ * its own option value, and Checkbox and Switch reflect the boolean. Others
+ * read `value`, passing `null` rather than `undefined` to stay controlled.
  *
  * @internal
  */
@@ -111,6 +111,18 @@ export type FiltersFieldProps = {
  * event; others receive value-shaped `onValueChange`. Checkbox/Switch bind
  * `checked` to the boolean slot, a Radio is checked when its `value` matches the
  * slot, and SearchInput's `onClear` clears the slot. Must render inside a `Filters`.
+ *
+ * The element form matches on component identity, so it fits a control this
+ * library exports directly. A wrapper around one of those controls is a
+ * different component, and the match fails: the field renders the wrapper and
+ * binds nothing. The same holds for a wrapped `Label`, which then takes the
+ * control slot and leaves the real control unbound.
+ *
+ * Use the render function for a wrapper, for your own control, or for one that
+ * rejects `null`. The element form binds `value={slot ?? null}` as its explicit
+ * empty, which a multi-select or a range control refuses. The two forms are
+ * deliberate: the element form keeps the common call site terse, and the render
+ * function covers everything identity cannot reach.
  */
 export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	const { value: filterValue, setValue, layout } = useFilters()

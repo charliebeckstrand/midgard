@@ -22,7 +22,7 @@ function arrowDelta(key: string, forward: string, back: string): number | null {
 
 /**
  * Next roving index for a key press, or null if unhandled.
- * -1 means nothing is active; a forward key lands on the first item, back on the last.
+ * An index of -1 means nothing is active; a forward key lands on the first item, back on the last.
  * Indices wrap at both ends.
  */
 export function nextIndexForKey(

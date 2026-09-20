@@ -123,7 +123,7 @@ export function PlacesIndex({
 				id: 'region',
 				title: 'Region',
 				value: (place) => regionByPlace.get(place.id) ?? '',
-				cell: (place) => regionByPlace.get(place.id) ?? <Text severity="warning">Unplaced</Text>,
+				cell: (place) => regionByPlace.get(place.id) ?? <Text tone="warning">Unplaced</Text>,
 			},
 			...(stateByPlace === undefined
 				? []

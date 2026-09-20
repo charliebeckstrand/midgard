@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { clampSizingToFloors } from '../../modules/grid/engine/grid-table/options'
 

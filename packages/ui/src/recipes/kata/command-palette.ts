@@ -1,13 +1,13 @@
 /**
  * Command-palette kata: object-literal surface for `<CommandPalette>`'s grouped
- * result listbox. Static slots only, no variants axis — `group` / `list` (the
- * listbox, hidden when empty), the peer-driven `empty` status, plus `title`,
- * `item`, `label`, `description`, and `shortcut` for each result row.
+ * result listbox. Static slots only, no variants axis: `group` / `list` (the
+ * listbox, hidden when empty), and the peer-driven `empty` status. Each result
+ * row adds `title`, `item`, `label`, `description`, and `shortcut`.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kara, narabi } from '../kiso'
 
-const { text } = iro
+const { onWash, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 
@@ -39,6 +39,8 @@ export const k = {
 		),
 	],
 	label: 'truncate',
-	description: [description, size.xs, text.muted],
+	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
+	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
+	description: [description, size.xs, onWash.muted],
 	shortcut: 'ml-auto',
 } as const

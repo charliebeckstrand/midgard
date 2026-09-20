@@ -2,13 +2,13 @@
 
 import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import { useResizeObserver } from '../../hooks'
-import { configureStroke, drawSnapshot } from './signature-pad-utilities'
+import { configureStroke, drawSnapshot, resolveStrokeColor } from './signature-pad-utilities'
 
 type CanvasSizingOptions = {
 	containerRef: RefObject<HTMLDivElement | null>
 	canvasRef: RefObject<HTMLCanvasElement | null>
 	empty: boolean
-	strokeColor: string
+	strokeColor: string | undefined
 	strokeWidth: number
 }
 
@@ -21,11 +21,13 @@ type CanvasSizingOptions = {
  * current stroke styling.
  * @remarks
  * A `ResizeObserver` resizes the backing store to `width * dpr` and scales the
- * context so strokes stay crisp on HiDPI displays; the non-empty canvas is
+ * context, so strokes stay crisp on HiDPI displays. The non-empty canvas is
  * snapshotted to a data URL and repainted afterward, since resizing the backing
- * store clears it. Stroke styling flows through a mutable ref to keep the resize
- * callback identity-stable; a separate effect re-applies styling when
- * `strokeColor`/`strokeWidth` change without a resize.
+ * store clears it.
+ *
+ * Stroke styling flows through a mutable ref, to keep the resize callback
+ * identity-stable. A separate effect re-applies styling when `strokeColor` or
+ * `strokeWidth` change without a resize.
  */
 export function useSignaturePadCanvasSizing({
 	containerRef,
@@ -71,7 +73,7 @@ export function useSignaturePadCanvasSizing({
 
 		context.scale(dpr, dpr)
 
-		configureStroke(context, strokeColor, strokeWidth)
+		configureStroke(context, resolveStrokeColor(canvas, strokeColor), strokeWidth)
 
 		if (snapshot) {
 			drawSnapshot(canvas, snapshot)
@@ -82,11 +84,13 @@ export function useSignaturePadCanvasSizing({
 	// it to the live context when strokeColor / strokeWidth change (no
 	// resize/clear).
 	useEffect(() => {
-		const context = canvasRef.current?.getContext('2d')
+		const canvas = canvasRef.current
+
+		const context = canvas?.getContext('2d')
 
 		if (!context) return
 
-		configureStroke(context, strokeColor, strokeWidth)
+		configureStroke(context, resolveStrokeColor(canvas, strokeColor), strokeWidth)
 	}, [canvasRef, strokeColor, strokeWidth])
 
 	useResizeObserver(containerRef, resize)

@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
-import { type ReactNode, useState } from 'react'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Form,
@@ -11,6 +11,7 @@ import {
 	useFormText,
 } from '../../components/form'
 import { bySlot, fireEvent, makeChangeEvent, makeFocusEvent, renderUI, screen } from '../helpers'
+import { makeFormWrapper } from '../helpers/form-wrapper'
 
 describe('Form', () => {
 	it('renders with data-slot="form"', () => {
@@ -62,18 +63,6 @@ describe('Form', () => {
 
 		// The untouched sibling does not re-render.
 		expect(renders.b).toBe(bAfterMount)
-	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(
-			<Form defaultValues={{ name: '' }} id="signup">
-				<input name="name" />
-			</Form>,
-		)
-
-		const el = bySlot(container, 'form')
-
-		expect(el).toHaveAttribute('id', 'signup')
 	})
 
 	it('calls onSubmit with current values', async () => {
@@ -861,12 +850,6 @@ describe('Form', () => {
 	})
 })
 
-function makeWrapper<T extends Record<string, unknown>>(defaultValues: T) {
-	return ({ children }: { children: ReactNode }) => (
-		<Form defaultValues={defaultValues}>{children}</Form>
-	)
-}
-
 describe('form hooks outside a Form', () => {
 	it.each<[string, () => unknown]>([
 		['useFormContext returns undefined', () => useFormContext()],
@@ -884,7 +867,7 @@ describe('form hooks outside a Form', () => {
 
 describe('useFormContext', () => {
 	it('returns combined state + actions inside a Form', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: 'Ada' } })
 
 		const { result } = renderHook(() => useFormContext(), { wrapper })
 
@@ -898,7 +881,7 @@ describe('useFormContext', () => {
 
 describe('useFormActions', () => {
 	it('returns a stable actions object across re-renders', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: 'Ada' } })
 
 		const { result, rerender } = renderHook(() => useFormActions(), { wrapper })
 
@@ -912,7 +895,7 @@ describe('useFormActions', () => {
 
 describe('useFormState', () => {
 	it('reflects current values', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: 'Ada' } })
 
 		const { result } = renderHook(() => useFormState(), { wrapper })
 
@@ -922,7 +905,7 @@ describe('useFormState', () => {
 
 describe('useFormField', () => {
 	it('returns undefined when name is missing', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: 'Ada' } })
 
 		const { result } = renderHook(() => useFormField(undefined), { wrapper })
 
@@ -930,7 +913,7 @@ describe('useFormField', () => {
 	})
 
 	it('updates value via setValue and dirties the field', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: 'Ada' } })
 
 		const { result } = renderHook(() => useFormField('name'), { wrapper })
 
@@ -948,7 +931,7 @@ describe('useFormField', () => {
 	})
 
 	it('marks the field as touched via setTouched', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: 'Ada' } })
 
 		const { result } = renderHook(() => useFormField('name'), { wrapper })
 
@@ -966,7 +949,7 @@ describe('useFormText', () => {
 	it('returns a binding that updates the form value and calls external onChange', () => {
 		const onChange = vi.fn()
 
-		const wrapper = makeWrapper({ name: '' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: '' } })
 
 		const { result } = renderHook(() => useFormText<HTMLInputElement>('name', { onChange }), {
 			wrapper,
@@ -990,7 +973,7 @@ describe('useFormText', () => {
 	it('marks the field as touched and calls external onBlur', () => {
 		const onBlur = vi.fn()
 
-		const wrapper = makeWrapper({ name: '' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: '' } })
 
 		const { result } = renderHook(() => useFormText<HTMLInputElement>('name', { onBlur }), {
 			wrapper,
@@ -1006,10 +989,125 @@ describe('useFormText', () => {
 
 describe('useFormStatus', () => {
 	it('returns form-level status flags', () => {
-		const wrapper = makeWrapper({ name: 'Ada' })
+		const wrapper = makeFormWrapper({ defaultValues: { name: 'Ada' } })
 
 		const { result } = renderHook(() => useFormStatus(), { wrapper })
 
 		expect(result.current).toEqual({ submitting: false, dirty: false, valid: true })
+	})
+})
+
+/** Renders `aria-invalid` from the committed field state, so the DOM shows it only after React commits. */
+function InvalidProbe({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return (
+		<output data-slot="probe" aria-invalid={field?.errors?.length ? 'true' : undefined}>
+			{name}
+		</output>
+	)
+}
+
+describe('Form onInvalidSubmit', () => {
+	const submit = async (container: HTMLElement) => {
+		const form = bySlot(container, 'form') as HTMLFormElement
+
+		await act(async () => {
+			fireEvent.submit(form)
+		})
+	}
+
+	// A refused submit reaches neither `onSubmit` nor a terminal outcome, so this
+	// report is the only signal the attempt happened at all.
+	it('reports the failed fields and skips onSubmit and onSettled', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const onSubmit = vi.fn()
+
+		const onSettled = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '', email: 'ada@example.com' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSubmit={onSubmit}
+				onSettled={onSettled}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+
+		expect(onSubmit).not.toHaveBeenCalled()
+
+		expect(onSettled).not.toHaveBeenCalled()
+	})
+
+	// The clean field validated too, and its entry in the errors map is
+	// `undefined`. The payload is the refused partition, so it holds neither the
+	// clean field nor an empty issue list.
+	it('carries only the fields that failed', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '', email: '' }}
+				validate={{
+					name: (value) => (value ? undefined : 'required'),
+					email: () => undefined,
+				}}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).toHaveBeenCalledExactlyOnceWith({ name: ['required'] })
+	})
+
+	// The documented use is to scroll to the first error, so the fields must
+	// already carry aria-invalid by the time the report lands.
+	it('reports after the errors are committed to the DOM', async () => {
+		const marked: number[] = []
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onInvalidSubmit={() => marked.push(document.querySelectorAll('[aria-invalid]').length)}
+			>
+				<InvalidProbe name="name" />
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(marked).toEqual([1])
+	})
+
+	it('says nothing when every validator passes', async () => {
+		const onInvalidSubmit = vi.fn()
+
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: 'Ada' }}
+				validate={{ name: (value) => (value ? undefined : 'required') }}
+				onSubmit={() => {}}
+				onInvalidSubmit={onInvalidSubmit}
+			>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await submit(container)
+
+		expect(onInvalidSubmit).not.toHaveBeenCalled()
 	})
 })

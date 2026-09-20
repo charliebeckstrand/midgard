@@ -1,7 +1,7 @@
 'use client'
 
 import { Children, isValidElement, type ReactNode, useMemo } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/timeline'
 import { TimelineContext, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
@@ -22,9 +22,9 @@ export type TimelineItemProps = {
 
 /**
  * A single `<li>` row within a `<Timeline>`. Renders an implicit
- * `<TimelineMarker>` from its marker-config props unless one is composed
- * explicitly among `children`, carries `aria-current` when `current`, and
- * re-shares the resolved orientation/variant to descendants via context.
+ * `<TimelineMarker>` from its marker-config props, unless one is composed
+ * explicitly among `children`. It carries `aria-current` when `current`, and
+ * re-shares the resolved orientation and variant to descendants via context.
  */
 export function TimelineItem(props: TimelineItemProps) {
 	const { current, variant: variantProp, className, children, ...markerConfig } = props
@@ -47,7 +47,7 @@ export function TimelineItem(props: TimelineItemProps) {
 		<li
 			data-slot="timeline-item"
 			data-current={dataAttr(current)}
-			aria-current={ariaAttr(current)}
+			aria-current={current ? 'step' : undefined}
 			className={cn(k.item({ orientation }), className)}
 		>
 			<TimelineContext value={providerValue}>

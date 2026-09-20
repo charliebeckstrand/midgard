@@ -43,15 +43,15 @@ export type ChatEmbedRegistry = {
 	 * `lazy` — the default — holds a renderer back until its block is near the
 	 * viewport, then keeps it. A transcript's embeds are mostly scrolled away
 	 * above the newest reply, and a view is the most expensive thing a reply can
-	 * carry: a bar chart on every reply of a 500-message transcript measured
-	 * 1,383 ms to mount against 300 ms for the same transcript carrying none.
+	 * carry. A bar chart on every reply of a 500-message transcript measured
+	 * 1,383 ms to mount, against 300 ms for the same transcript carrying none.
 	 *
 	 * `always` mounts every renderer up front, for a caller who would rather pay
 	 * that than reserve space for one. `active` unmounts a renderer that scrolls
 	 * away, trading a remount — and whatever state the view held — for the
 	 * memory of a long transcript.
 	 *
-	 * Where nothing can observe the viewport, every policy mounts eagerly: the
+	 * Where nothing can observe the viewport, every policy mounts eagerly. The
 	 * gate is an optimization, and the safe answer when the environment cannot
 	 * tell is to draw.
 	 *
@@ -67,9 +67,9 @@ const NO_EMBEDS: ChatEmbedRegistry = { renderers: {} }
  * The embed renderers in scope, as {@link ChatEmbedProvider} supplied them.
  *
  * Optional context with an empty default, and never a throw. A transcript of
- * prose is the common case and must not need a provider; a transcript that does
- * hold an embed states the missing renderer in the bubble, which reaches the
- * reader who can see the gap rather than only the developer who reads a stack
+ * prose is the common case and must not need a provider. A transcript that does
+ * hold an embed states the missing renderer in the bubble. That reaches the
+ * reader who can see the gap, rather than only the developer who reads a stack
  * trace.
  *
  * @internal

@@ -4,7 +4,7 @@ import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown, X } from 'lucide-react'
 import {
 	type ClipboardEventHandler,
-	type InputHTMLAttributes,
+	type ComponentProps,
 	type ReactNode,
 	type RefObject,
 	useCallback,
@@ -31,14 +31,12 @@ import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useControlSize } from '../../primitives/density'
 import { QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
-import {
-	resolveCapitalize,
-	type SelectCapitalize,
-} from '../../primitives/select-trigger/capitalize'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
+import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
-import { type ControlSeverity, type ControlSize, useControl } from '../control/context'
+import { type ControlSize, useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { OPTION_SELECTOR } from './combobox-constants'
@@ -50,41 +48,42 @@ import { useComboboxInput } from './use-combobox-input'
 import { useComboboxState } from './use-combobox-state'
 import { useComboboxTrigger } from './use-combobox-trigger'
 
-type ComboboxBaseProps<T> = {
+type ComboboxBaseProps<T> = GroupStampProps & {
 	id?: string
 	name?: string
 	placeholder?: string
 	/**
 	 * Formats a stored value for the input's resting display — what shows when the
-	 * user is not typing. Under `multiple` a single selection reads as its label and
-	 * anything past one as a `"N selected"` count, with the full list on hover as the
-	 * input's `title`.
+	 * user is not typing. Under `multiple` a single selection reads as its label,
+	 * and anything past one as a `"N selected"` count. The full list shows on hover
+	 * as the input's `title`.
 	 *
-	 * Tighter than `Listbox`, which joins up to three, and for a reason particular to
-	 * this control: a listbox trigger is a button whose text truncates and stops, while
-	 * this is a text input, so a joined value longer than the field scrolls — showing
-	 * the middle of a sentence, with blank space past its end. Without a resolver a
-	 * `multiple` combobox can only ever show the count, and a single-selection one
-	 * shows nothing, so supply one wherever the selection needs to be legible with the
-	 * panel closed.
+	 * Tighter than `Listbox`, which joins up to three, and for a reason particular
+	 * to this control. A listbox trigger is a button whose text truncates and
+	 * stops, while this is a text input. A joined value longer than the field
+	 * therefore scrolls, showing the middle of a sentence, with blank space past
+	 * its end. Without a resolver a `multiple` combobox can only ever show the
+	 * count, and a single-selection one shows nothing. Supply one wherever the
+	 * selection needs to be legible with the panel closed.
 	 */
 	displayValue?: (value: T) => string
 	/**
 	 * Names a `multiple` selection the field can only count — everything past one, and
 	 * every selection at all when there is no {@link ComboboxBaseProps.displayValue}.
 	 *
-	 * The threshold stays the control's: WHEN to stop listing labels is a property of a
-	 * text input whose content scrolls (see `displayValue`), while WHAT the things are is
-	 * the caller's. The default `"2 selected"` says how many of nothing in particular,
-	 * which is fine beside its own label and ambiguous in a row of six filters — where
-	 * `summarize={(codes) => \`${codes.length} postal codes\`}` reads.
+	 * The threshold stays the control's. WHEN to stop listing labels is a property
+	 * of a text input whose content scrolls (see `displayValue`). WHAT the things
+	 * are is the caller's. The default `"2 selected"` says how many of nothing in
+	 * particular. That is fine beside its own label, and ambiguous in a row of six
+	 * filters. There `summarize={(codes) => \`${codes.length} postal codes\`}` reads.
 	 *
 	 * **Return an empty string to let the `placeholder` through**, which is the same rule an
-	 * empty selection already follows. That is what a field whose values are TYPED IN rather
-	 * than picked wants: the input stays blank and ready after every commit instead of holding
-	 * a summary the next keystroke has to displace, and the placeholder carries the count. Note
-	 * the trade — a placeholder is not a programmatic name and is announced inconsistently, so
-	 * a field doing that owes the selection another reading.
+	 * empty selection already follows. That is what a field whose values are TYPED IN
+	 * rather than picked wants. The input stays blank and ready after every commit,
+	 * instead of holding a summary the next keystroke has to displace. The
+	 * placeholder carries the count. Note the trade. A placeholder is not a
+	 * programmatic name and is announced inconsistently. A field doing that owes the
+	 * selection another reading.
 	 *
 	 * The full list is still the input's `title` on hover, unsummarized.
 	 *
@@ -101,12 +100,16 @@ type ComboboxBaseProps<T> = {
 	/** Marks the field required; surfaces `required`/`aria-required` on the input. */
 	required?: boolean
 	className?: string
-	autoComplete?: InputHTMLAttributes<HTMLInputElement>['autoComplete']
+	autoComplete?: ComponentProps<'input'>['autoComplete']
 	/**
 	 * Accessible name for the input. Required when no `<Field>`/`<Label>` wraps
 	 * the combobox, since the placeholder is not a programmatic name.
 	 */
 	'aria-label'?: string
+	/** Element naming the input, for a name already on the page. `aria-label` wins over it. */
+	'aria-labelledby'?: string
+	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description/error ids. */
+	'aria-describedby'?: string
 	/** Clicking the selected option clears it. */
 	nullable?: boolean
 	/**
@@ -121,7 +124,7 @@ type ComboboxBaseProps<T> = {
 	clearable?: boolean
 	/**
 	 * Runs when the clear button empties the selection, with the combobox's own
-	 * input — and *instead of* the default's return-focus, so the handler owns
+	 * input. It runs *instead of* the default's return-focus, so the handler owns
 	 * where focus lands after a clear.
 	 *
 	 * With no handler, focus returns to the input, because the clear button
@@ -134,9 +137,9 @@ type ComboboxBaseProps<T> = {
 	 * <Combobox clearable onClear={(input) => input?.focus()} />  // the default, kept
 	 * ```
 	 *
-	 * Leaving the field costs the focus the default was protecting: a clear from
+	 * Leaving the field costs the focus the default was protecting. A clear from
 	 * the keyboard lands on `<body>`, so a keyboard user loses their place in the
-	 * page (WCAG 2.4.3) — prefer it where clearing is a pointer affordance. The
+	 * page (WCAG 2.4.3). Prefer it where clearing is a pointer affordance. The
 	 * cleared value itself still reports through `onValueChange`; this hook is
 	 * about what happens next, not about the value.
 	 */
@@ -148,7 +151,7 @@ type ComboboxBaseProps<T> = {
 	 * Display-only: the underlying query and value are untouched.
 	 * @defaultValue true
 	 */
-	capitalize?: SelectCapitalize
+	capitalize?: boolean
 	/** Controlled menu open state. */
 	open?: boolean
 	/** Fires when the menu open state changes. */
@@ -158,20 +161,18 @@ type ComboboxBaseProps<T> = {
 	/**
 	 * A paste into the input, before the browser inserts it.
 	 *
-	 * For a combobox whose values are TYPED IN rather than picked from a fetched list, where a pasted
-	 * delimited list is one value per token: call `preventDefault` and commit them through
-	 * `onValueChange`. Reading `clipboardData` here is the only point such a list is still splittable —
-	 * a native `<input>` strips newlines from its own value, so by `onChange` a pasted spreadsheet
-	 * column has arrived as one undelimited run with every boundary destroyed.
+	 * For a combobox whose values are TYPED IN rather than picked from a fetched list, a pasted
+	 * delimited list is one value per token. Call `preventDefault` and commit them through
+	 * `onValueChange`. Reading `clipboardData` here is the only point such a list is still
+	 * splittable. A native `<input>` strips newlines from its own value. By `onChange` a pasted
+	 * spreadsheet column has arrived as one undelimited run, with every boundary destroyed.
 	 *
-	 * Preventing the default is how the combobox is told the paste was consumed: the draft it replaced
-	 * is then dropped and editing ends, the same way selecting an option does, so the field is not left
-	 * holding a query the handler has already turned into a selection. A paste left alone is ordinary
-	 * typing and lands at the caret.
+	 * Preventing the default is how the combobox is told the paste was consumed. The draft it
+	 * replaced is then dropped and editing ends, the same way selecting an option does. The field
+	 * is therefore not left holding a query the handler has already turned into a selection. A
+	 * paste left alone is ordinary typing and lands at the caret.
 	 */
 	onPaste?: ClipboardEventHandler<HTMLInputElement>
-	'data-group'?: string
-	'data-group-orientation'?: string
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	/**
@@ -220,9 +221,9 @@ function seedTopMatch(
 /**
  * Re-anchors the highlight when an option swap (async data, unrelated to the
  * query) drops the active one. Under a registered `virtualSourceRef`, a
- * missing DOM row is the normal windowed-out state — `setVirtualActiveIndexed`
- * already watches for it to mount — so this only re-anchors when
- * `activeIndexRef` is out of bounds for the source's live `count`, the
+ * missing DOM row is the normal windowed-out state. `setVirtualActiveIndexed`
+ * already watches for it to mount. This therefore only re-anchors when
+ * `activeIndexRef` is out of bounds for the source's live `count`. That is the
  * unambiguous signal that the underlying data (not just the window) dropped
  * it. Without a registered source, DOM absence is checked directly.
  *
@@ -261,33 +262,17 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 	(ComboboxSingleProps<T> | ComboboxMultipleProps<T>)
 
 /**
- * The bound field's own errors OR'd with an ambient `error` severity — the
- * resolution `useControlProps` makes for every other field, which this component
- * makes by hand because it resolves the rest of the cascade by hand too. Without
- * it a bound Combobox rang only for a `<Field severity>` its consumer set, where
- * the Input beside it rang for its own validator.
- *
- * @internal
- */
-function resolveInvalid(
-	bound: boolean | undefined,
-	severity: ControlSeverity | undefined,
-): boolean | undefined {
-	return bound || severity === 'error' || undefined
-}
-
-/**
  * Type-ahead select pairing a text input with a floating option panel.
  * Supports single or `multiple` selection, controlled or uncontrolled `value`,
- * and `clearable`/`nullable` affordances; resolves `size`, `disabled`,
- * `readOnly`, and `required` against an enclosing `<Control>`/Density and
+ * and `clearable`/`nullable` affordances. Resolves `size`, `disabled`,
+ * `readOnly`, and `required` against an enclosing `<Control>`/Density, and
  * registers with `<Form>` under `name`. Tracks the highlight as a virtual
  * active-descendant (APG editable combobox) with DOM focus held on the input,
  * re-anchoring across filter and async option changes. Filtering is
  * consumer-driven: `children` read the live and deferred query via
  * {@link useComboboxQuery} and render matching {@link ComboboxOption}s,
  * supporting both synchronous lists and async option sources. Wrap the
- * options in `VirtualOptions` with `getOptionId` for large lists: arrow /
+ * options in `VirtualOptions` with `getOptionId` for large lists. Arrow and
  * type-ahead then navigate the full option set by index, reaching options
  * outside the rendered window instead of stopping at its edge.
  *
@@ -330,6 +315,8 @@ export function Combobox<T>({
 	className,
 	autoComplete = 'off',
 	'aria-label': ariaLabel,
+	'aria-labelledby': ariaLabelledby,
+	'aria-describedby': ariaDescribedBy,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
 	'data-slot': slot = 'combobox',
@@ -342,12 +329,6 @@ export function Combobox<T>({
 	const token = useControlSize(size)
 
 	const resolvedSize = token.size
-
-	const resolvedDisabled = disabled ?? control?.disabled
-
-	const resolvedReadOnly = readOnly ?? control?.readOnly
-
-	const resolvedRequired = required ?? control?.required
 
 	const handleValueChange = useSelectableValueChange<T>(
 		onValueChange as ((value: T | T[] | null) => void) | undefined,
@@ -365,7 +346,16 @@ export function Combobox<T>({
 		onValueChange: handleValueChange,
 	})
 
-	const resolvedInvalid = resolveInvalid(boundInvalid, control?.severity)
+	// Resolved after the binding, so the bound field's own errors reach the
+	// control: `useControlProps` ORs them with an ambient `error` severity, and a
+	// Combobox that withheld them rang only for a `<Field severity>` its consumer
+	// set by hand — where the Input beside it rang for its own validator.
+	const {
+		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
+		required: resolvedRequired,
+		invalid: resolvedInvalid,
+	} = useControlProps({ disabled, readOnly, required, invalid: boundInvalid })
 
 	const comboboxId = useId()
 
@@ -435,7 +425,7 @@ export function Combobox<T>({
 		[resolvedReadOnly, setOpen],
 	)
 
-	// Set when an arrow-key open should seat the highlight on the current
+	// Set when an arrow-key open must seat the highlight on the current
 	// selection rather than leave it empty; consumed by the highlight-anchoring
 	// effect below once the panel's options mount.
 	const anchorSelectedOnOpenRef = useRef(false)
@@ -466,7 +456,7 @@ export function Combobox<T>({
 	// `setVirtualActiveIndexed`/`clearVirtualActiveIndexed`. Anchoring to the
 	// *current selection* on an arrow-key open still needs the DOM (there's no
 	// index-space "find the selected row" without scanning rendered rows), which
-	// a windowed selection may not satisfy; it degrades to the top-match seed
+	// a windowed selection cannot satisfy; it degrades to the top-match seed
 	// below instead of guessing.
 	const lastQueryRef = useRef(deferredQuery)
 
@@ -519,7 +509,7 @@ export function Combobox<T>({
 	// Async option swaps for an unchanged query (e.g. address suggestions
 	// resolving) unmount the highlighted option while `deferredQuery`, the key
 	// of the effect above, never changes; `aria-activedescendant` dangles.
-	// The swap may also originate below this root (a query-context consumer
+	// The swap can also originate below this root (a query-context consumer
 	// re-rendering on its own async state), where no render of this component
 	// observes it; a MutationObserver on the options wrapper does.
 	//
@@ -553,8 +543,6 @@ export function Combobox<T>({
 		// suppresses floating-ui's wrapper roles.
 		role: null,
 	})
-
-	const capitalization = resolveCapitalize(capitalize)
 
 	const inputDisplay = resolveInputDisplay({
 		editing,
@@ -645,9 +633,9 @@ export function Combobox<T>({
 			value: selectionValue,
 			multiple,
 			onSelect: select as (v: unknown) => void,
-			capitalize: capitalization.options,
+			capitalize,
 		}),
-		[selectionValue, multiple, select, capitalization.options],
+		[selectionValue, multiple, select, capitalize],
 	)
 
 	// The menu content reads the frozen-through-close query so its filter (and a
@@ -687,6 +675,10 @@ export function Combobox<T>({
 						type="text"
 						autoComplete={autoComplete}
 						aria-label={ariaLabel}
+						aria-labelledby={ariaLabelledby}
+						// Passed raw: the `<Input>` beneath runs the same `useControlProps`
+						// merge, so resolving it here would join the field's ids twice.
+						aria-describedby={ariaDescribedBy}
 						open={open}
 						controlsId={comboboxId}
 						disabled={resolvedDisabled}
@@ -697,7 +689,7 @@ export function Combobox<T>({
 						placeholder={placeholder}
 						title={inputTitle}
 						editing={editing}
-						capitalize={capitalization.displayValue}
+						capitalize={capitalize}
 						density={token.space}
 						size={token.size}
 						handlers={inputHandlers}
@@ -714,8 +706,8 @@ export function Combobox<T>({
 					size={token.size}
 					ariaLabel={ariaLabel}
 					// Names the listbox from the input's name: an explicit aria-label
-					// wins, else the field's Label (via Control).
-					ariaLabelledby={ariaLabel ? undefined : control?.labelledBy}
+					// wins, else aria-labelledby, else the field's Label (via Control).
+					ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
 					floatingStyles={floatingStyles}
 					getFloatingProps={getFloatingProps}
 					optionsRef={optionsRef}

@@ -124,6 +124,32 @@ describe('Confirm', () => {
 		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
+	it('calls onCancel, then closes, when the cancel button is clicked', () => {
+		const onCancel = vi.fn()
+
+		const onOpenChange = vi.fn()
+
+		renderUI(<Confirm open onOpenChange={onOpenChange} onConfirm={() => {}} onCancel={onCancel} />)
+
+		fireEvent.click(screen.getByText('Cancel'))
+
+		expect(onCancel).toHaveBeenCalledTimes(1)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
+	})
+
+	it('leaves onCancel unfired when the dialog is dismissed with Escape', () => {
+		const onCancel = vi.fn()
+
+		const onOpenChange = vi.fn()
+
+		renderUI(<Confirm open onOpenChange={onOpenChange} onConfirm={() => {}} onCancel={onCancel} />)
+
+		fireEvent.keyDown(screen.getByRole('alertdialog'), { key: 'Escape' })
+
+		expect(onCancel).not.toHaveBeenCalled()
+	})
+
 	it('disables the confirm button when confirm.disabled is true', () => {
 		renderUI(
 			<Confirm open onOpenChange={() => {}} onConfirm={() => {}} confirm={{ disabled: true }} />,

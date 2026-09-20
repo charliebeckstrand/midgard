@@ -1,10 +1,11 @@
-import type { ComponentPropsWithoutRef, ElementType, ReactNode, Ref } from 'react'
+import type { ComponentProps, ElementType, ReactNode, Ref } from 'react'
 import type { LinkProps } from '../link'
 
 /**
- * Render props shared by `Polymorphic` and `PolymorphicStatic`: the `as`
- * fallback, the optional `href`, the forwarded `ref` / `data-slot` /
- * `className` / `children`, and the remaining props of whichever arm applies.
+ * The render props shared by `Polymorphic` and `PolymorphicStatic`: the `as`
+ * fallback and the optional `href`. It also carries the forwarded `ref` /
+ * `data-slot` / `className` / `children`, and the remaining props of whichever
+ * arm applies.
  *
  * @internal
  */
@@ -16,7 +17,7 @@ export type PolymorphicRenderProps<Fallback extends ElementType> = {
 	className: string
 	children: ReactNode
 } & (
-	| Omit<ComponentPropsWithoutRef<Fallback>, 'href' | 'ref' | 'className' | 'children'>
+	| Omit<ComponentProps<Fallback>, 'href' | 'ref' | 'className' | 'children'>
 	| Omit<LinkProps, 'href' | 'ref' | 'className' | 'children'>
 )
 
@@ -27,7 +28,7 @@ type FallbackRender<Fallback extends ElementType> = {
 	slot: string
 	className: string
 	children: ReactNode
-	rest: ComponentPropsWithoutRef<Fallback>
+	rest: ComponentProps<Fallback>
 }
 
 /**

@@ -4,7 +4,7 @@
  * Container-scoped classes that flatten the join-side radii and overlap
  * adjacent borders for the children of a `<Group>`. `useGroup()` stamps
  * `data-group` (`start` | `middle` | `end` | `only`) and
- * `data-group-orientation` (`horizontal` | `vertical`) onto each child;
+ * `data-group-orientation` (`horizontal` | `vertical`) onto each child.
  * `<Group>` carries the matching orientation bundle on its container, and
  * the descendant selectors apply only once a child reports a position.
  *
@@ -15,7 +15,7 @@
  * Depth-tolerant: the bordered element is `ControlFrame`, nested below a
  * control wrapper in Select / DatePicker; a direct-child combinator
  * wouldn't reach it. Nest-safe: the orientation match keeps an inner
- * vertical group clear of an outer horizontal one, and same-orientation
+ * vertical group clear of an outer horizontal one. Same-orientation
  * nesting reapplies identical position-keyed declarations, staying
  * idempotent on the cascade.
  *

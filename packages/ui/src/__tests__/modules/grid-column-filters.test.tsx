@@ -572,10 +572,12 @@ describe('Grid per-column filters', () => {
 
 			fireEvent.contextMenu(nameHeader())
 
-			expect(screen.getByRole('menuitem', { name: 'Filter Name' })).toBeInTheDocument()
+			// The column name is quoted, so the row reads as the column being filtered
+			// rather than as part of the item's own wording.
+			expect(screen.getByRole('menuitem', { name: 'Filter “Name”' })).toBeInTheDocument()
 
 			// Role declares no `filterable`, so its menu offers no filter row.
-			expect(screen.queryByRole('menuitem', { name: 'Filter Role' })).toBeNull()
+			expect(screen.queryByRole('menuitem', { name: 'Filter “Role”' })).toBeNull()
 		})
 
 		it("withholds the menu row under the 'header' affordance, where the funnel already offers it", () => {
@@ -585,7 +587,7 @@ describe('Grid per-column filters', () => {
 
 			fireEvent.contextMenu(nameHeader())
 
-			expect(screen.queryByRole('menuitem', { name: 'Filter Name' })).toBeNull()
+			expect(screen.queryByRole('menuitem', { name: 'Filter “Name”' })).toBeNull()
 		})
 	})
 	describe('a server-side filter that empties the grid', () => {

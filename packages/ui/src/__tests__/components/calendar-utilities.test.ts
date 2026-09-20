@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { CalendarDate } from '@internationalized/date'
 import { describe, expect, it } from 'vitest'
 import {

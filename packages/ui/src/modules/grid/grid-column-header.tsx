@@ -19,7 +19,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn, dataAttr } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/grid'
-import type { QueryGroupNode } from '../query'
+import type { QueryGroup } from '../query'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
@@ -40,8 +40,8 @@ import { useGridTruncation } from './use-grid-truncation'
  *
  * A `reorder={{ handle: false }}` header *is* its own activator, so every control
  * inside it — the filter button, its applied-state menu — sits on the drag
- * target. Pressing one arms the sensor; a few pixels of drift past the activation
- * distance lifts the column, and then the surface that opens takes the `pointerup`
+ * target. Pressing one arms the sensor. A few pixels of drift past the activation
+ * distance lifts the column. The surface that opens then takes the `pointerup`
  * with it, stranding the column as if it were still held. The user sees columns
  * reordering under a pointer that is only moving toward the sheet they just
  * opened. (Same shape as the macOS Ctrl-click case {@link PrimaryPointerSensor}
@@ -74,9 +74,9 @@ function useSurfaceSafeActivators(
 }
 
 /**
- * Header cell for the row drag-handle column: an empty, grip-width `<th>` (the
- * handles live in the body rows) carrying a screen-reader label so the column
- * still names itself. Sticky/pinned like any header.
+ * Header cell for the row drag-handle column: an empty, grip-width `<th>`, since
+ * the handles live in the body rows. It carries a screen-reader label, so the
+ * column still names itself. Sticky/pinned like any header.
  *
  * @internal
  */
@@ -132,7 +132,7 @@ type GridColumnHeaderProps = {
 	/** Per-column filter controls; a filter button shows when the column is filterable. */
 	filter: GridColumnFilter | null
 	/** The column's live query tree, passed so a filter change re-renders this memoized cell. */
-	filterQuery: QueryGroupNode | undefined
+	filterQuery: QueryGroup | undefined
 	/** Frozen-column controls; a pinned header sticks to its edge. `null` when none. */
 	pinning: GridColumnPinning | null
 	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
@@ -207,14 +207,14 @@ function sortDirectionIcon(
 /**
  * A column's title on a single line, truncated to an ellipsis when it overflows
  * the header. A truncated title gains a hover/focus {@link Tooltip} revealing the
- * full text — sharing the data cell's sub-pixel overflow detection so the header
- * and its column clip in step. An untruncated title renders just the span; the
- * closed tooltip adds no surface.
+ * full text. It shares the data cell's sub-pixel overflow detection, so the
+ * header and its column clip in step. An untruncated title renders just the span;
+ * the closed tooltip adds no surface.
  *
- * @remarks Like {@link GridCellContent}, the span stays mounted and the tooltip
- * is gated by `enabled` rather than mounted only while truncated, so the overflow
- * `ResizeObserver` never detaches and a widened column re-measures and closes the
- * tooltip.
+ * @remarks Like {@link GridCellContent}, the span stays mounted, and the tooltip
+ * is gated by `enabled` rather than mounted only while truncated. The overflow
+ * `ResizeObserver` therefore never detaches, and a widened column re-measures
+ * and closes the tooltip.
  * @internal
  */
 function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
@@ -229,7 +229,7 @@ function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {
 		// `!resizing` holds the tooltip closed through a column drag-resize: the
 		// drag reflows the header, and the overflow tooltip would otherwise flash
 		// open over the content the resize is reshaping.
-		<Tooltip enabled={truncated && !resizing}>
+		<Tooltip disabled={!truncated || resizing}>
 			<TooltipTrigger>
 				{/* `data-grid-content` marks the title leaf so the autosizer reads its
 				    intrinsic width and decides the column's header-driven minimum. */}
@@ -287,8 +287,8 @@ function ColumnHeaderLabel({
 
 /**
  * Pinned column header: an unpin button leading its title. A locked column shows
- * no indicator here — its frozen edge is marked by the boundary border — and a
- * scrolling column renders its title alone; both bypass this.
+ * no indicator here, because its frozen edge is marked by the boundary border. A
+ * scrolling column renders its title alone. Both bypass this.
  *
  * @internal
  */
@@ -392,10 +392,10 @@ type GridReorderableColumnHeaderProps = GridColumnHeaderProps & {
 
 /**
  * Reorderable column header cell: registers the `<th>` as a horizontal sortable
- * item and adds a resize separator when the grid is resizable. With `handle`,
+ * item and adds a resize separator when the grid is resizable. With `handle`, it
  * prefixes the title (and any sort control) with a grip drag handle carrying the
- * pointer/keyboard activator; without it, the whole header cell carries the
- * activator and a grab cursor, and no grip renders — its sort control keeps the
+ * pointer/keyboard activator. Without it, the whole header cell carries the
+ * activator and a grab cursor, and no grip renders. Its sort control keeps the
  * pointer cursor as a more specific child.
  *
  * @internal

@@ -21,10 +21,10 @@ const easeOutCubic = (t: number) => 1 - (1 - t) ** 3
  *
  * @returns The current in-flight display value, re-rendering each animation frame.
  * @remarks
- * Client-only: runs `motion`'s `animate()` in an effect and reads the OS
- * reduced-motion preference directly (the tween runs outside any `MotionConfig`),
- * snapping straight to the target when motion is reduced or `duration <= 0`
- * (WCAG 2.3.3).
+ * Client-only. It runs `motion`'s `animate()` in an effect and reads the OS
+ * reduced-motion preference directly, because the tween runs outside any
+ * `MotionConfig`. It snaps straight to the target when motion is reduced or
+ * `duration <= 0` (WCAG 2.3.3).
  * @internal
  */
 export function useOdometerAnimatedValue({ value, duration = 800 }: AnimatedValueOptions): number {

@@ -1,14 +1,14 @@
 'use client'
 
 import { ChevronDown } from 'lucide-react'
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
 import { useAccordionItem } from './context'
 
 /** Props for {@link AccordionTrigger}. */
-export type AccordionTriggerProps = ComponentPropsWithoutRef<'button'> & {
+export type AccordionTriggerProps = ComponentProps<'button'> & {
 	/**
 	 * Heading level (1-6) of the element wrapping the trigger button. The
 	 * WAI-ARIA accordion pattern requires each header button to sit inside a
@@ -42,10 +42,11 @@ export function AccordionTrigger({
 	return (
 		<Heading data-slot="accordion-heading" className="m-0">
 			<button
-				type="button"
-				// Consumer props spread first; the a11y id wiring, roving tabindex,
-				// context-driven disabled, and data-slot below take precedence.
+				// Consumer props spread first; the type, a11y id wiring, roving
+				// tabindex, context-driven disabled, and data-slot below take
+				// precedence.
 				{...props}
+				type="button"
 				data-slot="accordion-trigger"
 				{...triggerProps}
 				// The panel unmounts while closed (AnimatePresence); the reference

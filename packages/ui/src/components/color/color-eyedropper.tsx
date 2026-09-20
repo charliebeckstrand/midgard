@@ -22,8 +22,8 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
  * nothing where the API is unavailable.
  *
  * @remarks
- * Support is probed in a post-mount effect rather than during render: reading
- * `window.EyeDropper` on the server yields `undefined` but yields the
+ * Support is probed in a post-mount effect rather than during render. Reading
+ * `window.EyeDropper` on the server yields `undefined`, but yields the
  * constructor on a supporting client, so a render-time check would mismatch
  * hydration. The button is therefore absent on the first client paint and
  * appears once the effect commits. A dismissed picker rejects with

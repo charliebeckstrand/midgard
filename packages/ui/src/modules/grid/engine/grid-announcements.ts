@@ -5,20 +5,20 @@
  * so the wording is unit-testable without rendering.
  */
 
-import type { SortState } from '../context'
+import type { GridSortState } from '../context'
 import type { GridColumn } from '../types'
 import { columnLabel } from './grid-column/label'
 
 /**
  * The polite announcement for the grid's current sort, narrated to assistive
- * tech when it changes (WCAG 4.1.3): `Sorting cleared` when unsorted, else the
- * sorted columns by display label and direction, in priority order (`Sorted by
- * Name ascending, then Age descending`). Resolves each label from the visible
+ * tech when it changes (WCAG 4.1.3). It reads `Sorting cleared` when unsorted,
+ * else the sorted columns by display label and direction, in priority order
+ * (`Sorted by Name ascending, then Age descending`). Resolves each label from the visible
  * columns so multi-column sort priority is spoken, not just shown.
  *
  * @internal
  */
-export function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): string {
+export function describeSort<T>(sort: GridSortState[], columns: GridColumn<T>[]): string {
 	if (sort.length === 0) return 'Sorting cleared'
 
 	const parts = sort.map((entry) => {
@@ -34,11 +34,15 @@ export function describeSort<T>(sort: SortState[], columns: GridColumn<T>[]): st
 
 /**
  * The polite announcement for the row selection, narrated when it changes (WCAG
- * 4.1.3): `All rows selected` — or `All rows on this page selected` when
- * paginated, since the select-all is page-scoped and the label says as much —
- * `Selection cleared`, or the running count (`3 rows selected`). The caller
- * gates announcing on a selection column being present, so a non-selectable grid
- * stays silent.
+ * 4.1.3). It reads one of:
+ *
+ * - `All rows selected`, or `All rows on this page selected` when paginated,
+ *   since the select-all is page-scoped and the label says as much;
+ * - `Selection cleared`;
+ * - the running count (`3 rows selected`).
+ *
+ * The caller gates announcing on a selection column being present, so a
+ * non-selectable grid stays silent.
  *
  * @internal
  */
@@ -63,8 +67,8 @@ export function describeRowReorder(name: string, position: number, total: number
 
 /**
  * The polite announcement for a column pin change, narrated when the header menu
- * or pin button moves a column (WCAG 4.1.3): `Pinned Name to the left`, `Pinned
- * Name to the right`, or `Unpinned Name` when released.
+ * or pin button moves a column (WCAG 4.1.3). It reads `Pinned Name to the left`,
+ * `Pinned Name to the right`, or `Unpinned Name` when released.
  *
  * @internal
  */
@@ -95,7 +99,7 @@ export function describeResize(label: string, width: number): string {
 
 /**
  * The polite announcement for an inline-edit commit, narrated when staged cells
- * reach the sink (WCAG 4.1.3): the count of cells saved across the batches of
+ * reach the sink (WCAG 4.1.3). It counts the cells saved across the batches of
  * one session transition (`3 cells updated`). A cell-scoped session saves one
  * cell at a time, so it usually speaks the singular. The caller gates on a
  * non-zero count, so a session that changed nothing stays silent.

@@ -11,17 +11,17 @@ import { useChartHover } from './context'
 import type { ChartReadout, ChartReadoutSource } from './types'
 
 /**
- * How the tooltip is summoned: `'hover'` tracks the pointer, the default;
- * `'click'` pins the readout to a click, gives the plot a pointer cursor to read
- * as clickable, and dismisses on a second click of the same mark.
+ * How the tooltip is summoned: `'hover'` tracks the pointer, the default.
+ * `'click'` pins the readout to a click, and gives the plot a pointer cursor to
+ * read as clickable. It dismisses on a second click of the same mark.
  */
 export type ChartTooltipTrigger = 'hover' | 'click'
 
 /**
  * The object form of a chart's `tooltip` prop: the tooltip stays on, its
- * `trigger` choosing how it opens. The prop also takes a bare boolean — `true`
- * for the hover default, `false` to drop the tooltip — so the object is only
- * needed to switch the trigger.
+ * `trigger` choosing how it opens. The prop also takes a bare boolean: `true`
+ * for the hover default, `false` to drop the tooltip. The object is only needed
+ * to switch the trigger.
  */
 export type ChartTooltipConfig = {
 	/**
@@ -48,8 +48,9 @@ export type ResolvedTooltip = {
 
 /**
  * Resolves the `tooltip` prop's boolean-or-object union to a {@link ResolvedTooltip}.
- * `undefined` and `true` are the shown hover default, `false` drops the readout,
- * and the object form is always shown on its own `trigger` (hover when unset).
+ * `undefined` and `true` are the shown hover default, and `false` drops the
+ * readout. The object form is always shown on its own `trigger` (hover when
+ * unset).
  *
  * @internal
  */
@@ -65,12 +66,12 @@ export function resolveTooltip(tooltip: boolean | ChartTooltipConfig | undefined
 export type ChartTooltipProps = {
 	/**
 	 * The plot region element. Its viewport rect maps the hover's frame
-	 * coordinates to the client point floating-ui anchors to — the SVG fills the
+	 * coordinates to the client point floating-ui anchors to. The SVG fills the
 	 * region one-to-one, so the rect origin plus a frame point is that point.
 	 */
 	plotRef: RefObject<HTMLDivElement | null>
 	/**
-	 * The values behind the marks as a cached thunk — materialized here only
+	 * The values behind the marks as a cached thunk. They materialize here only
 	 * while a hover is live, so an idle chart never pays the cell formatting.
 	 */
 	readout: ChartReadoutSource
@@ -86,9 +87,9 @@ export type ChartTooltipProps = {
 	 */
 	orientation?: ChartOrientation
 	/**
-	 * The series indices, in the order the rows must read — the marks' own
-	 * visible top-to-bottom order, so a stacked column reads its top segment first
-	 * and overlapping lines read in their drawn value order. Omitted, the rows keep
+	 * The series indices, in the order the rows must read: the marks' own visible
+	 * top-to-bottom order. A stacked column thus reads its top segment first, and
+	 * overlapping lines read in their drawn value order. Omitted, the rows keep
 	 * the readout's series order. The readout itself is untouched, so the
 	 * visually-hidden table still reads in series order.
 	 */
@@ -101,8 +102,8 @@ export type ChartTooltipProps = {
 	emphasis?: number | null
 	/**
 	 * How the readout is summoned, forwarded from the chart. `'hover'` tracks the
-	 * pointer — the tooltip repositions on every move, so it drops `autoUpdate`
-	 * (`track: 'point'`); a scroll under a stationary pointer is handled by the
+	 * pointer. The tooltip repositions on every move, so it drops `autoUpdate`
+	 * (`track: 'point'`). A scroll under a stationary pointer is handled by the
 	 * chart's own hover-across-scroll rescue, not `autoUpdate`. `'click'` pins the
 	 * readout, which relies on `autoUpdate` to re-anchor across a scroll that fires
 	 * no pointer event, so it keeps `track: 'auto'`. Undefined keeps the
@@ -135,21 +136,21 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
 
 /**
  * The hover readout: one tooltip listing every series at the pointed category,
- * values leading their labels. The panel is the real Tooltip component's —
+ * values leading their labels. The panel is the real Tooltip component's:
  * `TooltipContent` driven through `TooltipContext` with the chart's own
- * floating state, anchored to the point through `useClientPoint` — so the chart
- * readout wears exactly the Tooltip chrome, motion, and glass adoption, and
- * `flip` / `shift` keep it inside the frame at the edges.
+ * floating state, anchored to the point through `useClientPoint`. The chart
+ * readout therefore wears exactly the Tooltip chrome, motion, and glass
+ * adoption. `flip` / `shift` keep it inside the frame at the edges.
  *
- * Snapped, it rides the nearest point — the band center crossed with the value
- * nearest the pointer, the line it sits closest to — and reads there wherever
- * the pointer is in the plot; `placement: 'top'` centers it over that point so
- * the snapped category is unmistakable. Off the snap it tracks the pointer and
+ * Snapped, it rides the nearest point: the band center crossed with the value
+ * nearest the pointer, the line it sits closest to. It reads there wherever the
+ * pointer is in the plot. `placement: 'top'` centers it over that point, so the
+ * snapped category is unmistakable. Off the snap it tracks the pointer and
  * shows only over a mark.
  *
  * With a series emphasised — the keyboard cursor reading one dataset — that
- * series' row stays lit while the rest dim to a quarter opacity, the same recede
- * the marks take, so the readout foregrounds the row the cursor is on.
+ * series' row stays lit while the rest dim to a quarter opacity. It is the same
+ * recede the marks take, so the readout foregrounds the row the cursor is on.
  *
  * @remarks A pointer enhancement, `aria-hidden` by design: the same values ship
  * in the visually-hidden table, so nothing is gated behind hover.

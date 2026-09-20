@@ -358,3 +358,108 @@ describe('Grid cursor selection', () => {
 		expect(onRowClick).toHaveBeenCalledTimes(1)
 	})
 })
+
+describe('Grid onActiveCellChange', () => {
+	it('reports each cell the cursor lands on, with the click context shape', () => {
+		const onActiveCellChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				onActiveCellChange={onActiveCellChange}
+			/>,
+		)
+
+		// The grid mounts with no cursor; that null is the rest state.
+		expect(onActiveCellChange).not.toHaveBeenCalled()
+
+		const grid = screen.getByRole('grid')
+
+		const cells = screen.getAllByRole('gridcell')
+
+		fireEvent.mouseDown(cells[NAME] as HTMLElement)
+
+		expect(onActiveCellChange).toHaveBeenCalledExactlyOnceWith({
+			row: rows[0],
+			rowKey: 1,
+			columnId: 'name',
+			value: 'Alice',
+		})
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(onActiveCellChange).toHaveBeenLastCalledWith({
+			row: rows[1],
+			rowKey: 2,
+			columnId: 'name',
+			value: 'Bob',
+		})
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+		expect(onActiveCellChange).toHaveBeenLastCalledWith({
+			row: rows[1],
+			rowKey: 2,
+			columnId: 'role',
+			value: 'User',
+		})
+
+		expect(onActiveCellChange).toHaveBeenCalledTimes(3)
+	})
+
+	// The pointer and the keyboard must name a cell the same way, which is the
+	// whole reason the payload is the click context rather than a coordinate.
+	it('names a cell as onCellClick names it', () => {
+		const onActiveCellChange = vi.fn()
+
+		const onCellClick = vi.fn()
+
+		const valued: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		]
+
+		renderUI(
+			<Grid
+				columns={valued}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				onCellClick={onCellClick}
+				onActiveCellChange={onActiveCellChange}
+			/>,
+		)
+
+		const cell = screen.getAllByRole('gridcell')[0] as HTMLElement
+
+		// The cursor seats on the press; the cell handler fires on the click.
+		fireEvent.mouseDown(cell)
+
+		fireEvent.click(cell)
+
+		const clicked = onCellClick.mock.calls[0]?.[0] as GridCellClickContext<Row>
+
+		expect(onActiveCellChange).toHaveBeenLastCalledWith(clicked)
+
+		expect(clicked.value).toBe('Alice')
+	})
+
+	it('says nothing on a grid with no cursor', () => {
+		const onActiveCellChange = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				onActiveCellChange={onActiveCellChange}
+			/>,
+		)
+
+		fireEvent.click(screen.getAllByRole('cell')[0] as HTMLElement)
+
+		expect(onActiveCellChange).not.toHaveBeenCalled()
+	})
+})

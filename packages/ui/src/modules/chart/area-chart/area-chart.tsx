@@ -45,7 +45,7 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
  * name for it.
  */
-export type AreaChartProps<T> = CartesianChartProps<T> & {
+export type AreaChartProps<T = never> = CartesianChartProps<T> & {
 	/**
 	 * Draw a hover crosshair. Alone among the cartesian charts this defaults on:
 	 * a snapping vertical category rule (`{ y: true, snap: true }`) that meets the
@@ -57,8 +57,8 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	 */
 	crosshair?: boolean | Crosshair
 	/**
-	 * Stack the series so each rides the running total below it and the fills
-	 * read as parts of a whole; otherwise each is its own area from the zero
+	 * Stack the series so each rides the running total below it. The fills then
+	 * read as parts of a whole. Otherwise each is its own area from the zero
 	 * baseline, washes overlapping.
 	 * @defaultValue false
 	 */
@@ -76,16 +76,16 @@ export type AreaChartProps<T> = CartesianChartProps<T> & {
 	interpolation?: LineInterpolation
 	/**
 	 * Draw selective value labels — each series' `endpoints` and / or `extremes`
-	 * — on its band-edge line, overlaps dropped by priority, and, with
-	 * `references`, each reference rule's value beside it in place of its hover
-	 * tooltip. Off by default; the tooltip and data table carry the full readout.
+	 * — on its band-edge line, overlaps dropped by priority. With `references`,
+	 * each reference rule's value draws beside it in place of its hover tooltip.
+	 * Off by default; the tooltip and data table carry the full readout.
 	 */
 	labels?: ChartValueLabelConfig
 }
 
 /**
  * The tooltip's value snap targets. Stacked, a column reads as one whole with
- * no single series value to meet, so it hands over none — the tooltip then
+ * no single series value to meet, so it hands over none. The tooltip then
  * tracks the pointer's height (held inside the plot by the hit area) and floats
  * free of the fill. Unstacked, each series is its own line, so its per-series
  * points snap the tooltip to the nearest one.
@@ -99,9 +99,9 @@ function tooltipSnapPoints(stacked: boolean, snapPoints: number[][], count: numb
 /**
  * The value points keyboard navigation anchors to. Unstacked, they are the
  * per-series points the pointer snaps to. Stacked, the pointer floats free but
- * the keyboard still needs a stop per band, so each category hands over its
- * ribbons' cumulative top edges — the boundaries the eye already reads — top to
- * bottom of the stack.
+ * the keyboard still needs a stop per band. Each category therefore hands over
+ * its ribbons' cumulative top edges — the boundaries the eye already reads —
+ * top to bottom of the stack.
  *
  * @internal
  */
@@ -128,7 +128,7 @@ function focusPoints(
 
 /**
  * The reference lines' keyboard stops, or none when `labels.references` draws
- * their values beside them instead: a labelled rule reads its value without the
+ * their values beside them instead. A labelled rule reads its value without the
  * rove, so it leaves the value-axis roving the way it leaves the hover tooltip.
  *
  * @internal
@@ -145,8 +145,8 @@ function referenceStops(
  * the cursor's value lane resolves to the series it reads. Unstacked, the stops
  * are the per-series snap points, so the cartesian series map carries straight
  * through. Stacked, each stop is a ribbon's top edge, so the drawn series behind
- * that ribbon names it — dropped by the same finite-edge gate the points use, so
- * the two stay in step.
+ * that ribbon names it. Stops drop by the same finite-edge gate the points use,
+ * so the two stay in step.
  *
  * @internal
  */
@@ -232,8 +232,8 @@ function stackedRibbons(
 
 /**
  * A filled area chart on the shared cartesian frame: each series is a wash
- * under its band-edge line, stacked into a part-to-whole ribbon set or left
- * as independent overlapping areas. Carries the cartesian standard — value
+ * under its band-edge line. The series stack into a part-to-whole ribbon set,
+ * or stay independent overlapping areas. Carries the cartesian standard — value
  * axis, gridlines, legend, crosshair tooltip, and the visually-hidden table.
  *
  * @remarks Stacked bands treat a missing value as zero to stay continuous;
@@ -241,12 +241,12 @@ function stackedRibbons(
  * crosshair defaults on here — a snapping y-rule meeting the nearest point —
  * dropping the snap under smooth interpolation; override it with the
  * `crosshair` prop. Focus the plot to drive the crosshair and tooltip by
- * keyboard — the band-axis arrows step categories, the value-axis arrows step
- * each category's points in screen order (a stack's cumulative band edges when
- * stacked, each series' own point otherwise). A reference line joins that
- * value-axis roving, receding the marks when the cursor reaches it — unless
- * `labels.references` draws its value beside it, which stands in for the hover
- * and drops the rove.
+ * keyboard. The band-axis arrows step categories, and the value-axis arrows
+ * step each category's points in screen order. Those points are a stack's
+ * cumulative band edges when stacked, and each series' own point otherwise. A
+ * reference line joins that value-axis roving, receding the marks when the
+ * cursor reaches it. `labels.references` is the exception: it draws the value
+ * beside the rule, which stands in for the hover and drops the rove.
  * @example
  * ```tsx
  * <AreaChart
@@ -280,6 +280,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		reference,
 		labels,
 		onCategoryClick,
+		onHiddenChange,
 		formatValue,
 		className,
 		...label
@@ -392,21 +393,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			reference={reference}
 			className={className}
 		>
-			<ChartCartesianAxes
-				orientation={chart.orientation}
-				plot={chart.plot}
-				valueTicks={chart.yTicks}
-				hasScale={chart.yScale !== null}
-				y2Ticks={chart.y2Ticks}
-				hasY2Scale={chart.y2Scale !== null}
-				categoryTicks={chart.xTicks}
-				hasData={data.length > 0}
-				axes={chart.axes}
-				gridPositions={chart.gridPositions}
-				categoryGridPositions={chart.categoryGridPositions}
-				categorySeparator={chart.categorySeparator}
-				titles={chart.axisTitles}
-			/>
+			<ChartCartesianAxes chart={chart} />
 
 			{rails && (
 				<ChartCrosshair

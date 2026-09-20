@@ -1,2 +1,10 @@
 export { Split, type SplitProps } from './split'
-export type { SplitGap, SplitOrientation, SplitRatio } from './variants'
+export type {
+	ResponsiveSplitAlign,
+	ResponsiveSplitGap,
+	ResponsiveSplitOrientation,
+	ResponsiveSplitRatio,
+	SplitGap,
+	SplitOrientation,
+	SplitRatio,
+} from './variants'

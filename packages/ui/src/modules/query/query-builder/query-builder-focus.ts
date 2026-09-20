@@ -8,15 +8,15 @@ export type FocusTarget = { kind: 'node'; id: string } | { kind: 'add'; groupId:
 
 /**
  * Ordered focus candidates for the neighbourhood around node `id`, used when
- * removal takes `id` out of the tree; focus then moves to a neighbour instead
+ * removal takes `id` out of the tree. Focus then moves to a neighbour instead
  * of dropping to <body> (WCAG 2.4.3).
  *
  * Returns several candidates, best first, and leaves the choice to the
  * caller, which focuses the first that resolves to a live element. A
  * disabled, unmounted, or otherwise unfocusable target degrades to the next
  * one. The ladder follows the APG list pattern: previous sibling, then next
- * sibling, then the enclosing group's add control, then the same for each
- * ancestor on the way to the root. Empty when `id` isn't found.
+ * sibling, then the enclosing group's add control. The same ladder then runs
+ * for each ancestor on the way to the root. Empty when `id` isn't found.
  */
 export function findFocusTarget(tree: QueryGroup, id: string): FocusTarget[] {
 	const index = tree.children.findIndex((child) => child.id === id)

@@ -1,6 +1,6 @@
 /**
  * Shaku icon: icon dimension scale. One scale, two projections:
- * `iconSize` sizes an icon element directly (the `<Icon>` self form);
+ * `iconSize` sizes an icon element directly (the `<Icon>` self form).
  * `icon` sizes a parent's `data-slot="icon"` descendants (the slot form
  * read by Button, Badge, Nav, Sidebar). Tailwind's JIT scans for whole class
  * literals; the slot form can't be interpolated from `iconSize`. Keep
@@ -22,3 +22,6 @@ export const icon = {
 	md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 	lg: '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0',
 }
+
+/** One step of the icon dimension scale; the `size` axis of every icon-sized surface. */
+export type IconSize = keyof typeof iconSize

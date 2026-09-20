@@ -10,7 +10,7 @@ import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
 const { cursor, fg } = hannou
-const { text } = iro
+const { onWash, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
@@ -26,19 +26,21 @@ const sortIcon = defineRecipe({
 
 /**
  * Density-scaled resize metrics, projected from the `<table>` element onto the
- * resizable headers (those carrying `data-resizable`) so they override the
- * density cell padding at higher specificity without `!important`. Keyed by the
- * friendly density level the grid forwards to `<Table>`. Two coupled measures:
+ * resizable headers (those carrying `data-resizable`). They therefore override
+ * the density cell padding at higher specificity without `!important`. Keyed by
+ * the friendly density level the grid forwards to `<Table>`. Two coupled
+ * measures:
  *
  * - the header's trailing padding, so its label clears the handle; and
  * - the resize handle's own width (the handle can't size itself — only the table
  *   knows the density).
  *
  * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
- * 4/8/12px): the grab zone is twice that padding and anchored to the trailing
- * edge, so its centred grip (`justify-center`; see `handle`) lands exactly one
- * cell-padding in from that edge — flush with where the header label and body
- * values truncate, so the grip meets the value instead of cutting through it.
+ * 4/8/12px). The grab zone is twice that padding and anchored to the trailing
+ * edge. Its centred grip (`justify-center`; see `handle`) therefore lands
+ * exactly one cell-padding in from that edge. That is flush with where the
+ * header label and body values truncate, so the grip meets the value instead of
+ * cutting through it.
  */
 const resizeMetrics = defineRecipe({
 	density: {
@@ -53,25 +55,25 @@ const resizeMetrics = defineRecipe({
 })
 
 /**
- * Opaque fill behind every sticky grid surface — the sticky header bar and the
- * frozen header/body cells alike — so the rows and columns scrolling under them
- * stay hidden. It tracks the content host (`omote.content` — the same
- * viewport-aware surface the sidebar layout paints behind its sticky headers):
- * the card surface at `lg`, and the flush page background below it. A plain
- * `bg.surface` painted the desktop card colour at every width, so on mobile —
- * where the content block is transparent over the darker page — these surfaces
- * read a shade off (standing out as a box against the page).
+ * Opaque fill behind every sticky grid surface: the sticky header bar and the
+ * frozen header/body cells alike. The rows and columns scrolling under them
+ * therefore stay hidden. It tracks the content host (`omote.content`), the same
+ * viewport-aware surface the sidebar layout paints behind its sticky headers.
+ * That is the card surface at `lg`, and the flush page background below it. A
+ * plain `bg.surface` painted the desktop card colour at every width. On mobile
+ * the content block is transparent over the darker page. These surfaces then
+ * read a shade off, standing out as a box against the page.
  */
 const hostSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
 
 /**
  * Opaque fill the actively dragged reorder column paints while lifted, so the
- * sibling columns it slides over stay hidden behind it — a transparent `<th>` /
- * `<td>` let their text bleed through (and `opacity` could only soften, never
- * stop, that bleed). Tracks the same viewport-aware content host as
- * {@link hostSurface} — the table's own effective background — so the lifted
- * column reads as a solid slice of the table rather than a shade-off box, gated
- * on the `data-[dragging]` state the dragged column's cells carry.
+ * sibling columns it slides over stay hidden behind it. A transparent `<th>` /
+ * `<td>` let their text bleed through, and `opacity` could only soften, never
+ * stop, that bleed. Tracks the same viewport-aware content host as
+ * {@link hostSurface}, the table's own effective background. The lifted column
+ * therefore reads as a solid slice of the table rather than a shade-off box. It
+ * is gated on the `data-[dragging]` state the dragged column's cells carry.
  */
 const draggingSurface = mode('data-[dragging]:bg-white', [
 	'dark:data-[dragging]:bg-zinc-950',
@@ -80,29 +82,30 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
 
 /**
  * The group rail's 2px neutral left border — a continuous bar down the group's
- * leading edge. Shared by the padded group cells (which add `py-0`, managing
- * their own padding through the reveal wrapper) and the loading placeholder
- * rows (which keep ordinary cell padding), so the rail runs unbroken while a
- * group's children load.
+ * leading edge. Shared by the padded group cells and the loading placeholder
+ * rows. The cells add `py-0` and manage their own padding through the reveal
+ * wrapper, while the rows keep ordinary cell padding. The rail therefore runs
+ * unbroken while a group's children load.
  *
  * The neutral is a *left-side* border color (`border-l-<neutral>`), not the
- * all-sides `border-color` — so when {@link railColor} layers a palette color on
- * the same cell they land in one tailwind-merge group (`border-left-color`) and
- * the color cleanly replaces the neutral, in both light and dark, without an
- * `!important`. (An all-sides neutral would sit in a different group and survive
- * the merge, and its `dark:` variant — one extra class under class-based dark
- * mode — would then outrank the un-variant color and win in dark mode.)
+ * all-sides `border-color`. When {@link railColor} layers a palette color on
+ * the same cell they land in one tailwind-merge group (`border-left-color`).
+ * The color then cleanly replaces the neutral, in both light and dark, without
+ * an `!important`. (An all-sides neutral would sit in a different group and
+ * survive the merge. Its `dark:` variant — one extra class under class-based
+ * dark mode — would then outrank the un-variant color and win in dark mode.)
  */
 const railBorder = ['border-l-2', ...mode('border-l-zinc-950/5', 'dark:border-l-white/10')]
 
 /**
  * A colored group rail, keyed by {@link PaletteColor} so a group reads
  * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
- * group's palette hue at the solid `-600` shade — matching a column group's
- * `bandColor` underline — when the row manager assigns one. Left-side-specific
- * (`border-l-<color>`) with a matching `dark:` variant, so it shares the neutral
- * rail's tailwind-merge group *and* variants and replaces it outright (no
- * `!important`, no dark-mode fallthrough). Full literals for Tailwind's scanner.
+ * group's palette hue at the solid `-600` shade, when the row manager assigns
+ * one. That shade matches a column group's `bandColor` underline.
+ * Left-side-specific (`border-l-<color>`) with a matching `dark:` variant, so it
+ * shares the neutral rail's tailwind-merge group *and* variants. It replaces the
+ * neutral outright (no `!important`, no dark-mode fallthrough). Full literals
+ * for Tailwind's scanner.
  */
 const railColor: Record<PaletteColor, string> = {
 	zinc: 'border-l-2 border-l-zinc-600 dark:border-l-zinc-600',
@@ -118,8 +121,9 @@ const railColor: Record<PaletteColor, string> = {
 /**
  * A group's aggregation / total-footer tint, keyed by {@link PaletteColor} so a
  * cell reads `rowGroupTint[group.color]`. A low-opacity fill of the group's hue
- * (`/10`), so the summarizing figures sit on a faint wash of the group color
- * while staying legible over both surfaces. Full literals for Tailwind's scanner.
+ * (`/10`). The summarizing figures therefore sit on a faint wash of the group
+ * color while staying legible over both surfaces. Full literals for Tailwind's
+ * scanner.
  */
 const rowGroupTint: Record<PaletteColor, string> = {
 	zinc: 'bg-zinc-500/10',
@@ -282,7 +286,9 @@ export const k = {
 			'border-b',
 			bg.tint,
 		],
-		count: [weight.medium, 'whitespace-nowrap', size.sm, text.muted],
+		// `count` nests inside `bar`, so it inks on that tint wash, which `muted` is
+		// not legal over. See `iro/ramp.ts`.
+		count: [weight.medium, 'whitespace-nowrap', size.sm, onWash.muted],
 	},
 	cell: {
 		// Utility columns sized to their content: the selection checkbox, the

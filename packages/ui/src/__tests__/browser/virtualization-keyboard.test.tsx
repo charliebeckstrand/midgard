@@ -20,7 +20,7 @@ import { renderUI, screen, waitFor } from '../helpers'
  *
  * Neither `Combobox` nor `CommandPalette` enables roving type-ahead (their
  * input owns typing as a filter query, not a listbox jump — see
- * `use-a11y-roving.test.ts` for type-ahead-over-an-indexed-source coverage);
+ * `use-a11y-roving.test.tsx` for type-ahead-over-an-indexed-source coverage);
  * arrow reachability is the gap that matters for them. ArrowUp from an empty
  * highlight wraps straight to the last item — the sharpest one-keystroke
  * demonstration that navigation reaches far outside the rendered window,

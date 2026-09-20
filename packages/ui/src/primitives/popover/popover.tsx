@@ -16,8 +16,8 @@ import { ReducedMotion } from '../reduced-motion'
 /**
  * Animated listbox-style panel for floating dropdowns (Select, Combobox,
  * Menu). Wires up roving keyboard navigation, optional type-ahead and Tab
- * containment, and autofocus of the selected item — or the panel itself when
- * nothing is selected — on open.
+ * containment, and autofocus on open. Autofocus lands on the selected item, or
+ * on the panel itself when nothing is selected.
  *
  * @remarks Defaults to `role="listbox"`; override `role` for menus and the
  * like. `aria-multiselectable` is honored only on listbox roles. Pass `glass`
@@ -70,8 +70,9 @@ export function PopoverPanel({
 	/**
 	 * Hold Tab inside the panel: Tab / Shift+Tab step through the rows and wrap
 	 * at the ends rather than carrying focus to whatever follows the portal.
-	 * For a panel the user leaves by dismissing it — a menu closed with `Escape`
-	 * or a selection — not one whose owner keeps focus and expects Tab to exit.
+	 * For a panel the user leaves by dismissing it, such as a menu closed with
+	 * `Escape` or a selection. Not for one whose owner keeps focus and expects Tab
+	 * to exit.
 	 *
 	 * @defaultValue false
 	 */

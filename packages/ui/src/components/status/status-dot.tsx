@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import {
 	pulse as pulseAnimation,
@@ -18,7 +18,7 @@ export type StatusDotProps = StatusDotVariants & {
 	 * sr-only status label, and its dot stays silent).
 	 */
 	label?: string
-} & Omit<ComponentPropsWithoutRef<'span'>, 'className' | 'color'>
+} & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
 /**
  * Colored status indicator dot: a `currentColor`-filled (`solid`) or
@@ -30,9 +30,9 @@ export type StatusDotProps = StatusDotVariants & {
  * @remarks
  * `size` is explicit and defaults to `md`; hosts that render the dot (Avatar)
  * pass their resolved Density size rather than relying on the default. Color
- * alone conveys status, so pass `label` for a standalone dot to name it via
- * `role="img"` (WCAG 1.4.1 / 1.1.1) and omit it when the dot is decorative
- * beside visible text.
+ * alone conveys status. Pass `label` for a standalone dot to name it via
+ * `role="img"` (WCAG 1.4.1 / 1.1.1). Omit it when the dot is decorative beside
+ * visible text.
  */
 export function StatusDot({
 	variant = 'solid',

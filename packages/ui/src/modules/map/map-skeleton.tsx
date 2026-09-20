@@ -14,17 +14,17 @@ export type MapSkeletonProps = {
 	 * @defaultValue what `projection` reserves, else the plat's own `'auto'`
 	 * fallback ratio (16 / 9)
 	 */
-	ratio?: Exclude<MapAspectRatio, 'auto'>
+	aspectRatio?: Exclude<MapAspectRatio, 'auto'>
 	/**
 	 * The projection the {@link MapPlat} behind this will draw, so the skeleton
 	 * reserves what that plat reserves. A projection whose subject is fixed knows
-	 * its ratio before its atlas loads — `'albers-usa'` is the United States — and
+	 * its ratio before its atlas loads. `'albers-usa'` is the United States, and
 	 * an atlas-less plat on the default `aspectRatio: 'auto'` reserves exactly
 	 * that. Without it the skeleton reserved 16/9 in front of a plat reserving
-	 * 1.709, which is an ~18px jump at 800px wide, in the swap this component
+	 * 1.709. That is an ~18px jump at 800px wide, in the swap this component
 	 * exists to prevent.
 	 *
-	 * An explicit {@link ratio} still wins: it is the narrower statement, and a
+	 * An explicit {@link aspectRatio} still wins: it is the narrower statement, and a
 	 * plat given an `aspectRatio` of its own is the case it answers.
 	 *
 	 * The world projections and a passed instance frame arbitrary geography, so
@@ -36,23 +36,27 @@ export type MapSkeletonProps = {
 
 /**
  * Map-shaped loading placeholder reserving the frame a {@link MapPlat} will
- * take: an `AspectRatio` box holding `ratio`, so swapping the loaded map in
- * causes no layout shift. Compose it in loading trees that stand in for a
- * plat — a Suspense fallback while geography data fetches, for instance —
- * passing the plat's own `aspectRatio` when it fixes one, and its `projection`
- * otherwise so the two reserve the same box.
+ * take. An `AspectRatio` box holds the resolved ratio, so swapping the loaded
+ * map in causes no layout shift. Compose it in loading trees that stand in for a
+ * plat, such as a Suspense fallback while geography data fetches. Pass the
+ * plat's own `aspectRatio` when it fixes one, and its `projection` otherwise,
+ * so the two reserve the same box.
  */
-export function MapSkeleton({ ratio, projection, className }: MapSkeletonProps) {
+export function MapSkeleton({ aspectRatio, projection, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function
 	// `use-map-shape` resolves the frame through, so the order — an explicit
-	// ratio, then what the projection knows before its atlas lands, then the
+	// the explicit aspect, then what the projection knows before its atlas lands, then the
 	// generic fallback — and the rule that an unparseable ratio fills instead of
 	// reserving are both stated once. Sharing only `projectionFallbackAspect`
 	// would share the number and duplicate the policy over it.
-	// No height of its own: a fixed-height plat is mirrored with `ratio={false}`
+	// No height of its own: a fixed-height plat is mirrored with `aspectRatio={false}`
 	// and a height class, which is the same statement made once rather than a
 	// second prop saying it again.
-	const sizing = mapFrameSizing(undefined, ratio ?? 'auto', projectionFallbackAspect(projection))
+	const sizing = mapFrameSizing(
+		undefined,
+		aspectRatio ?? 'auto',
+		projectionFallbackAspect(projection),
+	)
 
 	if (sizing.mode !== 'aspect') return <Placeholder className={cn(...k.skeleton.base, className)} />
 

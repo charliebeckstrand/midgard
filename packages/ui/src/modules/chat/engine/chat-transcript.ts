@@ -48,8 +48,8 @@ export function openReply(messages: ChatMessageData[], id: string): ChatMessageD
  * The transcript with one transport chunk folded into the reply `id` names. An
  * id that names no message changes nothing.
  *
- * The fold itself is [`applyChunk`](chat-stream.ts): a string is the full reply
- * so far and replaces the running text, and a part list carries the blocks that
+ * The fold itself is [`applyChunk`](chat-stream.ts). A string is the full reply
+ * so far and replaces the running text. A part list carries the blocks that
  * changed and merges by id. This rule only finds the reply the chunk belongs
  * to; what a chunk means to the content it lands in belongs to one place.
  *
@@ -86,19 +86,19 @@ export function dropEmptyReply(messages: ChatMessageData[], id: string): ChatMes
 /**
  * The transcript with every still-running step in the reply `id` names marked
  * failed. An id that names no message, and a reply holding no running step,
- * both change nothing — and return the transcript by reference, so the settle
+ * both change nothing. Both return the transcript by reference, so the settle
  * costs a re-render only where it settled something.
  *
  * This is what lets a `tool` block carry a `running` status at all. The chat
  * roadmap refuted a per-part completeness flag on the grounds that nothing in
- * the shell settles one, so a stopped or failed reply would strand a part as
- * forever unfinished and draw a spinner that never stops. `useChatSend` runs
- * this rule in its `finally`, which every exit takes — the last chunk, a stop,
- * or a throw — so no step outlives the stream that opened it.
+ * the shell settles one. A stopped or failed reply would strand a part as
+ * forever unfinished, and draw a spinner that never stops. `useChatSend` runs
+ * this rule in its `finally`, which every exit takes: the last chunk, a stop,
+ * or a throw. No step therefore outlives the stream that opened it.
  *
  * The settle itself is [`failRunningTools`](chat-stream.ts), beside the fold a
  * chunk takes. This rule only finds the reply, as `applyReplyChunk` above it
- * only finds the reply: what an end-of-stream means to the content it lands in
+ * only finds the reply. What an end-of-stream means to the content it lands in
  * belongs in one place, with the switch over part kinds that a later kind
  * extends.
  *
@@ -120,9 +120,9 @@ export function failReplyTools(messages: ChatMessageData[], id: string): ChatMes
  * Whether a message names itself. An empty id is no id: a rule that matched on
  * `''` would name every message that carries none.
  *
- * `seedMessages` and `duplicateMessageIds` both read this, so the rule that
- * assigns an id and the rule that reports a collision cannot disagree about what
- * an id is.
+ * `seedMessages` and `duplicateMessageIds` both read this. The rule that
+ * assigns an id and the rule that reports a collision therefore cannot disagree
+ * about what an id is.
  *
  * @internal
  */
@@ -131,17 +131,17 @@ function hasMessageId(message: ChatMessageData): message is ChatMessageData & { 
 }
 
 /**
- * The transcript with an id on every message: one that carries an id keeps it,
+ * The transcript with an id on every message. One that carries an id keeps it,
  * and one that carries none takes the next id `mintId` returns.
  *
  * A seed message's id is the one a store persisted. Every target the transcript
- * holds is named by it, so a fresh id would re-key the whole conversation at
- * each mount, and a target written before a reload would name a message that no
- * longer exists.
+ * holds is named by it. A fresh id would re-key the whole conversation at each
+ * mount. A target written before a reload would name a message that no longer
+ * exists.
  *
  * The caller mints, as it does for every rule here. It mints through a function
  * rather than an argument, because the rule cannot know how many ids it needs
- * until it reads the list — and a test can still name every id it assigns.
+ * until it reads the list. A test can still name every id it assigns.
  *
  * @internal
  * @param mintId - Returns the id for one message that carries none.
@@ -156,7 +156,7 @@ export function seedMessages(messages: ChatMessageData[], mintId: () => string):
  *
  * Every rule here reads an id rather than a position, so two messages under one
  * id are edited, truncated, and rolled back together. The shell warns on this in
- * development; the rule is here because it is a fact about a transcript, and a
+ * development. The rule is here because it is a fact about a transcript, and a
  * pure test can state it.
  *
  * @internal
@@ -211,7 +211,7 @@ export function userMessage(messages: ChatMessageData[], id: string): ChatMessag
 
 /**
  * The transcript cut to the message `id` names, with `content` in place of that
- * message's own: what `edit` discards is the reply to the old content, and every
+ * message's own. What `edit` discards is the reply to the old content, and every
  * turn after it. An id that names no message changes nothing.
  *
  * @internal

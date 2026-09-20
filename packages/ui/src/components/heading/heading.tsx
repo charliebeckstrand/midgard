@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { headingScale, k } from '../../recipes/kata/heading'
@@ -17,7 +17,7 @@ export type HeadingProps = {
 	 */
 	size?: Step
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'h1'>, 'className'>
+} & Omit<ComponentProps<'h1'>, 'className'>
 
 /**
  * Semantic heading rendering `h1`-`h6` per `level`. Weight tracks the level;

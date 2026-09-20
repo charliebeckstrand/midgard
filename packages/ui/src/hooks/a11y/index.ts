@@ -22,7 +22,7 @@ export {
 	type A11yPanelRole,
 	useA11yPanel,
 } from './use-a11y-panel'
-export { useA11yRoving, type VirtualItemSource } from './use-a11y-roving'
+export { type RovingOptions, useA11yRoving, type VirtualItemSource } from './use-a11y-roving'
 export {
 	type A11yRelation,
 	type A11yScope,

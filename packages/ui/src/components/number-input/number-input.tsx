@@ -10,10 +10,18 @@ import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
 
-/** Props for {@link NumberInput}: {@link InputProps} with numeric `value`/range fields and a number-valued change callback. */
+/**
+ * Props for {@link NumberInput}: {@link InputProps} with numeric `value`/range fields and a
+ * number-valued change callback.
+ *
+ * @remarks `suffix` is withheld and `prefix` is not, which is the difference between a slot
+ * this component owns and one it merely inherits. The steppers *are* the suffix, and a
+ * consumer's own would replace them. The prefix slot is untouched here. A numeric field
+ * with a unit or a currency mark in front of it is what it is for.
+ */
 export type NumberInputProps = Omit<
 	InputProps,
-	'type' | 'value' | 'defaultValue' | 'onChange' | 'suffix' | 'prefix' | 'min' | 'max' | 'step'
+	'type' | 'value' | 'defaultValue' | 'onChange' | 'suffix' | 'min' | 'max' | 'step'
 > & {
 	value?: number | null
 	defaultValue?: number
@@ -144,7 +152,6 @@ export function NumberInput({
 					<Button
 						type="button"
 						variant="bare"
-						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMin}
 						aria-label="Decrease"
@@ -156,7 +163,6 @@ export function NumberInput({
 					<Button
 						type="button"
 						variant="bare"
-						spring={false}
 						tabIndex={-1}
 						disabled={disabled || atMax}
 						aria-label="Increase"

@@ -364,6 +364,68 @@ describe('Message', () => {
 		expect(message.textContent).toBe('Required')
 	})
 
+	it('forwards a consumer attribute to the multi-error list', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
+					helpers.setErrors({ name: ['Too short', 'Required'] })
+				}}
+			>
+				<Message name="name" all data-testid="errors">
+					fallback
+				</Message>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await act(async () => {
+			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+		})
+
+		const message = bySlot(container, 'message') as HTMLElement
+
+		expect(message.tagName).toBe('UL')
+
+		// §3.9: the list branch spreads the consumer props that the paragraph
+		// branch spreads, so a second error does not drop a native attribute.
+		expect(message).toHaveAttribute('data-testid', 'errors')
+	})
+
+	it('keeps the alert role on the multi-error list when a consumer supplies one', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ name: '' }}
+				onSubmit={(_v, helpers: { setErrors: (e: Record<string, string | string[]>) => void }) => {
+					helpers.setErrors({ name: ['Too short', 'Required'] })
+				}}
+			>
+				<Message name="name" all role="note">
+					fallback
+				</Message>
+				<button type="submit">Submit</button>
+			</Form>,
+		)
+
+		await act(async () => {
+			fireEvent.submit(bySlot(container, 'form') as HTMLFormElement)
+		})
+
+		const message = bySlot(container, 'message') as HTMLElement
+
+		expect(message.tagName).toBe('UL')
+
+		// §3.9: `role` is load-bearing, so the assertive live region survives.
+		expect(message).toHaveAttribute('role', 'alert')
+	})
+
+	it('keeps the alert role when a consumer supplies one', () => {
+		const { container } = renderUI(<Message role="note">Required</Message>)
+
+		// §3.9: `role` is load-bearing, so the assertive live region survives.
+		expect(bySlot(container, 'message')).toHaveAttribute('role', 'alert')
+	})
+
 	it('renders verbatim children for the success variant inside a form', () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }}>

@@ -4,11 +4,15 @@ import { cn } from '../../core'
 import { useA11yLiveRegion } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
+import { PdfViewerHighlights } from './pdf-viewer-highlights'
+import { PdfViewerMagnifier } from './pdf-viewer-magnifier'
+import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
 
 /**
- * Renders the page surface inside the measured viewport: either the active
- * page image, an error message, a loading placeholder, or an empty state.
- * The `scale` input drives the viewport's aspect ratio; the container
+ * Renders the page surface inside the measured viewport. That is the active
+ * page image, an error message, a loading placeholder, or an empty state. The
+ * highlight overlay sits over the image, sharing its frame and its transform.
+ * The `scale` input drives the viewport's aspect ratio, and the container
  * reserves space before the image paints.
  *
  * @remarks A visually hidden live region announces "Page X of Y" on
@@ -23,14 +27,16 @@ export function PdfViewerViewport() {
 		activePage,
 		safePage,
 		total,
-		rotation,
 		loading,
 		error,
 		visible,
+		fit,
 		onImageLoad,
 	} = usePdfViewerContext()
 
-	const { aspectRatio, frameWidth, frameHeight, imageWidth, imageHeight } = scale
+	const magnifier = usePdfViewerMagnifierContext()
+
+	const { aspectRatio, frameWidth, frameHeight, imageWidth, imageHeight, transform } = scale
 
 	const pageStatus = useA11yLiveRegion({ srOnly: true })
 
@@ -38,7 +44,7 @@ export function PdfViewerViewport() {
 		<div
 			ref={viewportRef}
 			data-slot="pdf-viewer-viewport"
-			className={cn(k.viewport.base)}
+			className={cn(k.viewport.base, fit === 'width' && k.viewport.scrolls)}
 			style={{ aspectRatio }}
 		>
 			{/* Live region announces "Page X of Y" on page navigation. */}
@@ -49,6 +55,10 @@ export function PdfViewerViewport() {
 			)}
 			{activePage && !loading ? (
 				<div
+					// The frame, not the image: it is the box the loupe's own copy is sized from,
+					// and it does not move under rotation the way the image inside it does.
+					ref={magnifier.setReference}
+					{...magnifier.referenceProps}
 					data-slot="pdf-viewer-page-frame"
 					className={cn(k.viewport.page.frame)}
 					style={{ width: frameWidth, height: frameHeight }}
@@ -61,11 +71,13 @@ export function PdfViewerViewport() {
 						style={{
 							width: imageWidth,
 							height: imageHeight,
-							transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+							transform,
 							visibility: visible ? 'visible' : 'hidden',
 						}}
 						onLoad={onImageLoad}
 					/>
+					<PdfViewerHighlights />
+					<PdfViewerMagnifier />
 				</div>
 			) : error ? (
 				<div role="alert" className={cn(k.viewport.page.empty)}>

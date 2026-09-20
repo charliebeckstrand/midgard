@@ -1,13 +1,7 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import {
-	type ComponentPropsWithoutRef,
-	type ReactNode,
-	type Ref,
-	useLayoutEffect,
-	useRef,
-} from 'react'
+import { type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
@@ -18,11 +12,8 @@ import { useFormToggle } from '../form/use-form-toggle'
 export type CheckboxProps = CheckboxVariants & {
 	/** Renders the partial tri-state: a minus glyph and `indeterminate` DOM property regardless of `checked`. */
 	indeterminate?: boolean
-	/** Replaces the default check/minus glyph with custom content. */
-	icon?: ReactNode
 	className?: string
-	ref?: Ref<HTMLInputElement>
-} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
+} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
 
 /**
  * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
@@ -33,7 +24,6 @@ export function Checkbox({
 	className,
 	color,
 	size,
-	icon,
 	indeterminate,
 	id,
 	disabled,
@@ -90,6 +80,9 @@ export function Checkbox({
 			className={cn(k({ color, size: resolvedSize }), className)}
 		>
 			<input
+				// Consumer props spread first; the resolved §7.2 binding, the
+				// validation attributes, and data-slot below take precedence.
+				{...props}
 				type="checkbox"
 				data-slot="checkbox"
 				ref={setRef}
@@ -102,16 +95,8 @@ export function Checkbox({
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
 				className={k.input()}
-				{...props}
 			/>
-			{icon ?? (
-				<Mark
-					data-slot="checkbox-check"
-					aria-hidden="true"
-					className={checkClass}
-					strokeWidth={2}
-				/>
-			)}
+			<Mark data-slot="checkbox-check" aria-hidden="true" className={checkClass} strokeWidth={2} />
 		</label>
 	)
 }

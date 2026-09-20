@@ -30,8 +30,8 @@ export type PanelFitOptions = {
 	 * Whether a drag holds the panel's height.
 	 *
 	 * A dragged height is the reader's answer to how much of the screen the panel
-	 * gets, and it beats the content's until the panel closes — so this stands the
-	 * whole measurement down rather than racing it for the same property. The
+	 * gets. It beats the content's until the panel closes. This therefore stands
+	 * the whole measurement down, rather than racing it for the same property. The
 	 * number itself is the gesture's; only whether there is one reaches here.
 	 */
 	dragged: boolean
@@ -46,27 +46,27 @@ export type PanelFitOptions = {
  *
  * The counterpart to `usePanelResize`: that one is the height the reader sets,
  * this one the height the content asks for. Both write the panel's height, so
- * only one of them may be live — a drag stands this down.
+ * only one of them can be live — a drag stands this down.
  *
  * The panel carries `data-full` while its content asks for more room than it
- * has, so it stands at its ceiling; style it to square a corner that now meets
+ * has, so it stands at its ceiling. Style it to square a corner that now meets
  * the screen edge. Stamped rather than reported back, because it is a
- * measurement the component never holds: state would re-render the panel's whole
+ * measurement the component never holds. State would re-render the panel's whole
  * subtree on every crossing, and square the corner a frame after it arrived.
  *
  * The resting height stays CSS's. The panel carries no inline height between
- * travels, so the cap its variant sets is what bounds it and nothing here has to
- * restate a `dvh` — see {@link travelHeight}, which is where the travel itself
- * lives and which hands the box back on arrival.
+ * travels. The cap its variant sets is what bounds it, and nothing here has to
+ * restate a `dvh`. See {@link travelHeight}, which is where the travel itself
+ * lives, and which hands the box back on arrival.
  *
  * That leaves the observer reading the *arrived* height, since layout has
- * already reflowed by the time it fires, so the origin is the last height the
- * panel rested at rather than the one it reports.
+ * already reflowed by the time it fires. The origin is therefore the last height
+ * the panel rested at, rather than the one it reports.
  *
  * The crossfading panel stack runs the same travel over its children, because a
  * container at `height: auto` cannot see its own content change. A drawer's own
  * box is the measurement instead: capped, it stops moving exactly where it
- * should.
+ * must.
  *
  * @returns A callback ref to attach to the panel, beside the gesture's own.
  * @internal

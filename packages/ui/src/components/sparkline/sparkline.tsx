@@ -17,7 +17,7 @@ type SparklineColor = keyof typeof k.color
 
 /**
  * Props for {@link Sparkline}. Requires an accessible name (`aria-label` or
- * `aria-labelledby`), enforced at the type level by `AccessibleName` — a
+ * `aria-labelledby`), enforced at the type level by `AccessibleName`. A
  * sparkline is `role="img"`, so assistive tech needs a name for it.
  */
 export type SparklineProps = AccessibleName & {
@@ -27,7 +27,7 @@ export type SparklineProps = AccessibleName & {
 	 * Draw the series as a connected line or as discrete bars.
 	 * @defaultValue 'line'
 	 */
-	variant?: 'line' | 'bar'
+	shape?: 'line' | 'bar'
 	/** @defaultValue 'zinc' */
 	color?: SparklineColor
 	/** Resolves against enclosing Density; sets the default drawing box and mark scale. */
@@ -38,18 +38,18 @@ export type SparklineProps = AccessibleName & {
 	height?: number
 	/**
 	 * Fill the region under the line with a translucent wash. Ignored for the
-	 * `bar` variant.
+	 * `bar` shape.
 	 * @defaultValue false
 	 */
 	fill?: boolean
 	/**
 	 * Mark the last point with a filled dot — the end-of-series value. Ignored for
-	 * the `bar` variant.
+	 * the `bar` shape.
 	 * @defaultValue false
 	 */
 	endPoint?: boolean
 	/**
-	 * Animate the marks in on mount with Framer Motion: the line draws itself
+	 * Animate the marks in on mount with Framer Motion. The line draws itself
 	 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
 	 * bars rise from the baseline in sequence. Honours `prefers-reduced-motion`
 	 * through {@link ReducedMotion}. Off by default — a static grid of many
@@ -71,7 +71,7 @@ export type SparklineProps = AccessibleName & {
 
 /** Shared shape for the static and animated mark renderers. @internal */
 type SparklineMarksProps = {
-	variant: 'line' | 'bar'
+	shape: 'line' | 'bar'
 	geometry: SparklineGeometry
 	strokeWidth: number
 	fill: boolean
@@ -87,7 +87,7 @@ type SparklineMarksProps = {
  * no motion runtime. @internal
  */
 function SparklineMarks({
-	variant,
+	shape,
 	geometry,
 	strokeWidth,
 	fill,
@@ -97,7 +97,7 @@ function SparklineMarks({
 	strokeClass,
 	fillClass,
 }: SparklineMarksProps) {
-	if (variant === 'bar') {
+	if (shape === 'bar') {
 		return geometry.bars.map((bar) => (
 			<rect
 				key={bar.x}
@@ -146,7 +146,7 @@ function SparklineMarks({
  * reduced-motion preference settles them at their final state. @internal
  */
 function AnimatedSparklineMarks({
-	variant,
+	shape,
 	geometry,
 	strokeWidth,
 	fill,
@@ -156,7 +156,7 @@ function AnimatedSparklineMarks({
 	strokeClass,
 	fillClass,
 }: SparklineMarksProps) {
-	if (variant === 'bar') {
+	if (shape === 'bar') {
 		return geometry.bars.map((bar, index) => (
 			<motion.rect
 				key={bar.x}
@@ -217,7 +217,7 @@ function AnimatedSparklineMarks({
  * Compact inline trend chart — a line or bar sparkline — rendered as a
  * self-contained, decoration-free SVG (`role="img"`). Sized from enclosing
  * Density unless `width` / `height` override it, it maps `data` onto its
- * drawing box through {@link sparklineGeometry}: a flat or single-point series
+ * drawing box through {@link sparklineGeometry}. A flat or single-point series
  * still draws visibly, and a stray non-finite value doesn't collapse the scale.
  *
  * @remarks Built for a {@link Grid} cell — drop it into a column's `cell`
@@ -230,7 +230,7 @@ function AnimatedSparklineMarks({
  */
 export function Sparkline({
 	data,
-	variant = 'line',
+	shape = 'line',
 	color = 'zinc',
 	size,
 	width,
@@ -253,7 +253,7 @@ export function Sparkline({
 	const boxHeight = height ?? metrics.height
 
 	// Inset enough to keep the stroke and the (optional) end-point marker inside
-	// the viewBox; the marker only applies to the line variant.
+	// the viewBox; the marker only applies to the line shape.
 	const padding = Math.max(strokeWidth / 2, endPoint ? metrics.pointRadius : 0) + 1
 
 	const geometry = sparklineGeometry(data, {
@@ -266,7 +266,7 @@ export function Sparkline({
 	})
 
 	const marksProps: SparklineMarksProps = {
-		variant,
+		shape,
 		geometry,
 		strokeWidth,
 		fill,

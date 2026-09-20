@@ -1,9 +1,9 @@
 /**
  * Ugoki base: the tempo primitives every Framer Motion token composes from —
- * a constrained, named palette of durations and the easing vocabulary. Call
- * sites pick a step from the scale instead of minting a literal, so every
- * duration and easing in the system is enumerable here; per-item stagger
- * steps live in their timing specs.
+ * a constrained, named palette of durations and the easing vocabulary. A call
+ * site picks a step from the scale instead of minting a literal, so every
+ * duration and easing is enumerable here. Per-item stagger steps live in their
+ * timing specs.
  *
  * Layer: kiso · Concern: tempo primitives
  */

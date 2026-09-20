@@ -1,8 +1,8 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 
 /** Props for {@link TableBody}: native `<tbody>` attributes. */
-export type TableBodyProps = SlotProps<'tbody'>
+export type TableBodyProps = ComponentProps<'tbody'>
 
 /**
  * The `<tbody>` of a {@link Table}, grouping its data rows. Static leaf:

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
 	Sidebar,
@@ -127,10 +127,6 @@ describe('Sidebar', () => {
 })
 
 describe('Sidebar mini', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	it('marks the nav with data-mini', () => {
 		const { container } = renderUI(<Sidebar mini>content</Sidebar>)
 
@@ -257,54 +253,47 @@ describe('Sidebar mini', () => {
 		)
 	})
 
-	it('hands the resolved mini state to render-prop children on desktop', () => {
+	// The root took a render prop for this once, and it was the library's one
+	// root render prop. The context it already broadcast does the same work, so
+	// the three cases below read it instead.
+	function Branch() {
+		return <span data-testid="branch">{useSidebarMini() ? 'rail' : 'full'}</span>
+	}
+
+	it('resolves mini to true on desktop, for a descendant reading the context', () => {
 		stubMatchMedia(() => true)
 
 		renderUI(
 			<Sidebar mini>
-				{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}
+				<Branch />
 			</Sidebar>,
 		)
 
 		expect(screen.getByTestId('branch')).toHaveTextContent('rail')
 	})
 
-	it('resolves render-prop mini to false below the desktop breakpoint', () => {
+	it('resolves mini to false below the desktop breakpoint', () => {
 		stubMatchMedia(() => false)
 
 		renderUI(
 			<Sidebar mini>
-				{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}
+				<Branch />
 			</Sidebar>,
 		)
 
 		expect(screen.getByTestId('branch')).toHaveTextContent('full')
 	})
 
-	it('resolves render-prop mini to false when the prop is unset', () => {
+	it('resolves mini to false when the prop is unset', () => {
 		stubMatchMedia(() => true)
 
 		renderUI(
-			<Sidebar>{(mini) => <span data-testid="branch">{mini ? 'rail' : 'full'}</span>}</Sidebar>,
-		)
-
-		expect(screen.getByTestId('branch')).toHaveTextContent('full')
-	})
-
-	it('exposes the resolved mini state to descendants via useSidebarMini', () => {
-		stubMatchMedia(() => true)
-
-		function Probe() {
-			return <span data-testid="probe">{useSidebarMini() ? 'rail' : 'full'}</span>
-		}
-
-		renderUI(
-			<Sidebar mini>
-				<Probe />
+			<Sidebar>
+				<Branch />
 			</Sidebar>,
 		)
 
-		expect(screen.getByTestId('probe')).toHaveTextContent('rail')
+		expect(screen.getByTestId('branch')).toHaveTextContent('full')
 	})
 })
 
@@ -349,20 +338,6 @@ describe('SidebarLabel', () => {
 })
 
 describe('SidebarItem', () => {
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(
-			<Sidebar>
-				<SidebarItem href="/home">Home</SidebarItem>
-			</Sidebar>,
-		)
-
-		const inner = bySlot(container, 'sidebar-item-inner')
-
-		expect(inner?.tagName).toBe('A')
-
-		expect(inner).toHaveAttribute('href', '/home')
-	})
-
 	it('marks the current item with aria-current="page"', () => {
 		const { container } = renderUI(
 			<Sidebar>

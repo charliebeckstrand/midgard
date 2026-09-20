@@ -3,84 +3,83 @@
 import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useA11yPanel, useMinWidth } from '../../hooks'
+import { useA11yPanel, useMinBreakpoint } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { Overlay } from '../../primitives/overlay'
-import { PanelProviders } from '../../primitives/panel'
+import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DialogPanelVariants, k } from '../../recipes/kata/dialog'
 
-/** Props for {@link Dialog}: open-state control, `width` variant, placement, dismissal, and accessible naming. */
-export type DialogProps = Omit<DialogPanelVariants, 'surface'> & {
-	/** Controlled open state. Pair with `onOpenChange`. */
-	open?: boolean
-	/** Initial open state when uncontrolled. */
-	defaultOpen?: boolean
-	/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
-	onOpenChange?: (open: boolean) => void
-	/**
-	 * Fires once the panel has finished arriving — it is up, at rest, and covering
-	 * whatever it covers.
-	 *
-	 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
-	 * one reports it having *landed*. Use it for anything that has to hold until the panel
-	 * is actually up — measuring it, or starting work that must not compete with the
-	 * animation — rather than guessing at the motion with a matching delay.
-	 *
-	 * Deliberately named for the open, not for the animation. The panel plays a different
-	 * preset on each side of the `sm` breakpoint, and reports from whichever one ran. A
-	 * transition the user's reduced-motion preference collapses still resolves, and so
-	 * still reports.
-	 *
-	 * Once per arrival, and never for a close.
-	 *
-	 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
-	 */
-	onOpenComplete?: () => void
-	/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
-	placement?: 'center' | 'top'
-	/** Whether clicking the backdrop closes the dialog. @defaultValue true */
-	dismissOnBackdrop?: boolean
-	/**
-	 * Opt into the glass surface treatment.
-	 *
-	 * @remarks Items inside — a command palette's results — take the deeper glass
-	 * wash on hover and focus.
-	 */
-	glass?: boolean
-	className?: string
-	children: ReactNode
-	/**
-	 * Dialog role. Use `'alertdialog'` for confirmations and other prompts that
-	 * require a response before proceeding.
-	 * @defaultValue 'dialog'
-	 */
-	role?: 'dialog' | 'alertdialog'
-	/**
-	 * Element to receive initial focus when the dialog opens.
-	 * @defaultValue the first tabbable child
-	 */
-	initialFocus?: RefObject<HTMLElement | null>
-	/**
-	 * Accessible name for dialogs without a visible `DialogTitle` (e.g. a command
-	 * palette). Ignored once a `DialogTitle` registers.
-	 */
-	'aria-label'?: string
-	/** Root slot identifier. Wrappers override it to stamp their own name. */
-	'data-slot'?: string
-}
+/** Props for {@link Dialog}: open-state control, `width` variant, align, dismissal, and accessible naming. */
+export type DialogProps = Omit<DialogPanelVariants, 'surface'> &
+	PanelOverlayProps & {
+		/** Controlled open state. Pair with `onOpenChange`. */
+		open?: boolean
+		/** Initial open state when uncontrolled. */
+		defaultOpen?: boolean
+		/** Fires when the open state changes (backdrop dismiss, Escape, close button). */
+		onOpenChange?: (open: boolean) => void
+		/**
+		 * Fires once the panel has finished arriving — it is up, at rest, and covering
+		 * whatever it covers.
+		 *
+		 * The counterpart to `onOpenChange`, which reports the state being *asked for*: this
+		 * one reports it having *landed*. Use it for anything that has to hold until the panel
+		 * is actually up. That means measuring it, or starting work that must not compete
+		 * with the animation. Either beats guessing at the motion with a matching delay.
+		 *
+		 * Deliberately named for the open, not for the animation. The panel plays a different
+		 * preset on each side of the `sm` breakpoint, and reports from whichever one ran. A
+		 * transition the user's reduced-motion preference collapses still resolves, and so
+		 * still reports.
+		 *
+		 * Once per arrival, and never for a close.
+		 *
+		 * @see {@link DrawerProps.onOpenComplete} for the same contract on the sibling panel.
+		 */
+		onOpenComplete?: () => void
+		/** Desktop vertical alignment of the panel within the viewport; mobile always docks to the bottom. @defaultValue 'center' */
+		align?: 'center' | 'top'
+		/**
+		 * Opt into the glass surface treatment.
+		 *
+		 * @remarks Items inside — a command palette's results — take the deeper glass
+		 * wash on hover and focus.
+		 */
+		glass?: boolean
+		className?: string
+		children: ReactNode
+		/**
+		 * Dialog role. Use `'alertdialog'` for confirmations and other prompts that
+		 * require a response before proceeding.
+		 * @defaultValue 'dialog'
+		 */
+		role?: 'dialog' | 'alertdialog'
+		/**
+		 * Element to receive initial focus when the dialog opens.
+		 * @defaultValue the first tabbable child
+		 */
+		initialFocus?: RefObject<HTMLElement | null>
+		/**
+		 * Accessible name for dialogs without a visible `DialogTitle` (e.g. a command
+		 * palette). Ignored once a `DialogTitle` registers.
+		 */
+		'aria-label'?: string
+		/** Root slot identifier. Wrappers override it to stamp their own name. */
+		'data-slot'?: string
+	}
 
-const placementClasses = {
+const alignClasses = {
 	center: 'sm:items-center',
 	top: 'sm:items-start',
 } as const
 
 /**
  * Modal surface rendered in an `Overlay` with focus trapping and backdrop dismiss.
- * Drives open state controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`),
- * animates as a bottom sheet on mobile and a centered (or `top`-aligned) panel on desktop,
- * and resolves the surface variant against the enclosing Glass provider. Compose
+ * Drives open state controlled (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`).
+ * It animates as a bottom sheet on mobile and a centered (or `top`-aligned) panel on
+ * desktop. The surface variant resolves against the enclosing Glass provider. Compose
  * `<DialogTrigger>`, `<DialogClose>`, and the slot family (`<DialogContent>`, `<DialogHeader>`,
  * `<DialogTitle>`, `<DialogDescription>`, `<DialogBody>`, `<DialogFooter>`) within.
  *
@@ -94,8 +93,11 @@ export function Dialog({
 	defaultOpen,
 	onOpenChange,
 	onOpenComplete,
-	placement = 'center',
-	dismissOnBackdrop = true,
+	align = 'center',
+	dismissOnBackdrop,
+	modal = true,
+	backdrop,
+	container,
 	width,
 	glass,
 	className,
@@ -117,13 +119,13 @@ export function Dialog({
 
 	const isGlass = resolvedSurface === 'glass'
 
-	const isDesktop = useMinWidth(640)
+	const isDesktop = useMinBreakpoint('sm')
 
 	const preset = isDesktop ? k.motion.desktop : k.motion.mobile
 
 	const { onAnimationComplete } = useOpenComplete(resolvedOpen, preset.animate, onOpenComplete)
 
-	const { ariaProps, a11y } = useA11yPanel(role)
+	const { ariaProps, a11y } = useA11yPanel(role, modal)
 
 	// aria-labelledby (a registered DialogTitle) takes precedence over aria-label.
 	const ariaLabelledBy = ariaProps['aria-labelledby']
@@ -133,13 +135,16 @@ export function Dialog({
 			open={resolvedOpen}
 			onOpenChange={setOpen}
 			dismissOnBackdrop={dismissOnBackdrop}
-			glass={isGlass}
+			modal={modal}
+			backdrop={backdrop}
+			container={container}
+			backdropClassName={k.backdrop({ surface: resolvedSurface })}
 			initialFocus={initialFocus}
 		>
 			<div
 				className={cn(
 					'pointer-events-none fixed inset-0 flex min-h-full items-end sm:justify-center sm:p-4',
-					placementClasses[placement],
+					alignClasses[align],
 				)}
 			>
 				<motion.div

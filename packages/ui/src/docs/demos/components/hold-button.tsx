@@ -47,7 +47,7 @@ export function Demo() {
 					<HoldButton variant={variant} onHoldComplete={() => setCount((c) => c + 1)}>
 						Hold to confirm
 					</HoldButton>
-					<Text severity="muted">Confirmed {count} times</Text>
+					<Text tone="muted">Confirmed {count} times</Text>
 				</Flex>
 			</Example>
 
@@ -79,7 +79,7 @@ export function Demo() {
 					>
 						Hold me
 					</HoldButton>
-					<Text severity="muted">Status: {status}</Text>
+					<Text tone="muted">Status: {status}</Text>
 				</Flex>
 			</Example>
 

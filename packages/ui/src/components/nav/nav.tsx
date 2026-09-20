@@ -1,10 +1,10 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 
 /** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange`). */
-export type NavProps = Omit<ComponentPropsWithoutRef<'nav'>, 'onChange'> & {
+export type NavProps = Omit<ComponentProps<'nav'>, 'onChange'> & {
 	/** Controlled active value. Pair with `onValueChange`. */
 	value?: string | null
 	/** Initial active value when uncontrolled. */

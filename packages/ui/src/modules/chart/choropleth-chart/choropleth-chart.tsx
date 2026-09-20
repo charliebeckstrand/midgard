@@ -17,7 +17,7 @@ import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
-import type { ChartReadout, DataKey } from '../engine/types'
+import type { ChartItemClick, ChartReadout, DataKey } from '../engine/types'
 
 /**
  * The one series a choropleth shades regions with: the id and value fields to
@@ -47,9 +47,9 @@ export type ChoroplethChartSeries<T> = {
 	bins?: number
 	/**
 	 * How the bins divide the data: `'linear'` (the default) by equal value span,
-	 * or `'quantile'` by rank so each shade covers a similar number of regions —
-	 * the reading for skewed data, where an equal-interval ramp leaves most
-	 * regions in the lowest bucket. Pair it with a `bins` count above the ramp's
+	 * or `'quantile'` by rank. The quantile cut gives each shade a similar number
+	 * of regions. That is the reading for skewed data, where an equal-interval
+	 * ramp leaves most regions in the lowest bucket. Pair it with a `bins` count above the ramp's
 	 * stop count for a finer gradient.
 	 * @defaultValue 'linear'
 	 */
@@ -65,8 +65,12 @@ export type ChoroplethChartSeries<T> = {
 export type ChoroplethChartProps<T = never> = AccessibleName & {
 	/** The rows to shade regions by. */
 	data: T[]
-	/** The series to shade with; the first shades the regions. */
-	series: ChoroplethChartSeries<T>[]
+	/**
+	 * The one series to shade regions with. A one-element tuple, as pie and donut
+	 * take: the map draws one colour scale, so a second entry had no reading.
+	 * Empty draws the data-less map, every region in the one neutral fill.
+	 */
+	series: [] | [ChoroplethChartSeries<T>]
 	/** Formats the tooltip value, table cell, and legend labels. */
 	formatValue?: (value: number) => string
 	/**
@@ -99,10 +103,10 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	/** Frame height in px; wins over `aspectRatio` when set. */
 	height?: number
 	/**
-	 * Height as a ratio of the width. Defaults to `'16/9'` — the shared chart-tile
-	 * ratio the cartesian and pie charts hold — rather than the map's own `'auto'`
-	 * fit, so a choropleth lines up with the charts it sits beside in a dashboard
-	 * row instead of running taller and driving the row height. Pass `'auto'` to
+	 * Height as a ratio of the width. Defaults to `'16/9'`, the shared chart-tile
+	 * ratio the cartesian and pie charts hold, rather than the map's own `'auto'`
+	 * fit. A choropleth therefore lines up with the charts it sits beside in a
+	 * dashboard row, instead of running taller and driving the row height. Pass `'auto'` to
 	 * take the fitted geography's own projected proportions.
 	 * @defaultValue '16/9'
 	 */
@@ -111,11 +115,11 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * Show the legend. `'range'` swaps the binned switchboard for a continuous
 	 * colour-scale bar — the heatmap legend — and the object form `{ placement }`
 	 * places that bar explicitly. A placement moves the legend above (`'top'`),
-	 * below (`'bottom'`), or beside the plot
-	 * (`'left'` / `'right'`); the range bar follows its placement's orientation
-	 * (vertical beside the plot, horizontal above or below) and the chart's tier —
-	 * it sheds at the spark size and, in a box too narrow for a side rail, drops to
-	 * a horizontal row under the plot. Defaults to the right for the choropleth.
+	 * below (`'bottom'`), or beside the plot (`'left'` / `'right'`). The range bar
+	 * follows its placement's orientation: vertical beside the plot, horizontal
+	 * above or below. It also follows the chart's tier. It sheds at the spark
+	 * size. In a box too narrow for a side rail it drops to a horizontal row under
+	 * the plot. Defaults to the right for the choropleth.
 	 * @defaultValue 'right'
 	 */
 	legend?: MapLegendInput
@@ -124,6 +128,13 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * @defaultValue true
 	 */
 	tooltip?: boolean
+	/**
+	 * Fires when a click lands on a region, with the region's id and its feature
+	 * index. The cross-filter hook the cartesian charts' `onCategoryClick` is,
+	 * and the same {@link ChartItemClick} shape. It also points the cursor over
+	 * the regions, so they read as clickable.
+	 */
+	onRegionClick?: ChartItemClick
 	/**
 	 * Animate the scale in on mount: the neutral geography paints at once, then
 	 * the colour washes in region by region.
@@ -136,12 +147,13 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 */
 	title?: string
 	/**
-	 * The right-click context menu. By default the choropleth offers Fullscreen (a
-	 * live, interactive copy in a large dialog), image downloads (PNG / JPG, legend
-	 * included), and — from the `data` — Download CSV / Copy data. Pass a config to
-	 * add custom `items`, place them `'before'` or `'after'` the defaults, or drop
-	 * the defaults with `defaultItems: false`; set `downloadLegend: false` to export
-	 * the map without its legend. `false` disables the menu, leaving the browser's
+	 * The right-click context menu. By default the choropleth offers Fullscreen, a
+	 * live interactive copy in a large dialog. It also offers image downloads
+	 * (PNG / JPG, legend included), and Download CSV / Copy data from the `data`.
+	 * Pass a config to add custom `items`, place them `'before'` or `'after'` the
+	 * defaults, or drop them with `defaultItems: false`. Set
+	 * `downloadLegend: false` to export the map without its legend. `false`
+	 * disables the menu, leaving the browser's
 	 * native one.
 	 * @see {@link ChartContextMenuConfig}
 	 */
@@ -151,8 +163,8 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 
 /**
  * The context menu's CSV / copy readout: one column of region ids against one
- * column of formatted values, built from the input `data` — a faithful export of
- * the rows the caller passed, keyed by the `idKey` they join on. Distinct from
+ * column of formatted values, built from the input `data`. It is a faithful
+ * export of the rows the caller passed, keyed by the `idKey` they join on. Distinct from
  * the map's own feature-joined table, which names regions from the geography and
  * carries the no-data ones; this mirrors the data instead. `null` with no series
  * or no rows, which drops the data actions from the menu.
@@ -187,9 +199,9 @@ function choroplethReadout<T>(
 
 /**
  * A choropleth: geographic regions shaded by a numeric value along a
- * data-driven colour scale. It re-composes the map module's {@link MapPlat} —
- * the same geography loading, projection, merged legend, pointer tooltip, and
- * visually-hidden data table — driving its numeric mode from an
+ * data-driven colour scale. It re-composes the map module's {@link MapPlat}: the
+ * same geography loading, projection, merged legend, pointer tooltip, and
+ * visually-hidden data table. It drives the numeric mode from an
  * AG-Charts-aligned `series` (`idKey` / `colorKey` / `colorRange`). Pass
  * `legend="range"` for the continuous heatmap scale bar. Regions with no
  * matching row take the neutral no-data fill.
@@ -255,20 +267,20 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 		// 16/9 ratio (overridable) to match its neighbours, and defer the first paint:
 		// the map then draws once at that measured aspect with its legend resolved,
 		// instead of flashing the map's canonical (auto-aspect, legend-less) fit and
-		// refitting when measured (see MapPlat's `deferPaint`).
+		// refitting when measured; MapPlat defers its first paint whenever the
+		// aspect is fixed, which this is.
 		aspectRatio: map.aspectRatio ?? '16/9',
-		deferPaint: true,
 		...numericRegionData<T>({
 			legend,
 			data,
 			regionKey: primary?.idKey,
 			valueKey: primary?.colorKey,
 			colorRange: primary?.colorRange,
-			domain: primary?.colorDomain,
-			valueName: primary?.colorName,
+			colorDomain: primary?.colorDomain,
+			colorName: primary?.colorName,
 			bins: primary?.bins,
 			binning: primary?.binning,
-			valueFormat: formatValue,
+			formatValue,
 		}),
 	} satisfies MapPlatProps<T>
 

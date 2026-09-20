@@ -43,6 +43,7 @@ export default defineConfig({
 			'lucide-react',
 			'motion',
 			'motion/react',
+			'pdfjs-dist',
 			'react',
 			'react-dom',
 			'react-dom/client',

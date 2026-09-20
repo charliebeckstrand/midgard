@@ -43,8 +43,8 @@ function embedCount(content: string | ChatPart[]): number {
  * the whole reply.
  *
  * The view's own content is not read here either, and that is the design rather
- * than a gap: a chart in the package ships its own hidden data table, so the
- * readout belongs to the embed and the transcript states only that one arrived.
+ * than a gap. A chart in the package ships its own hidden data table, so the
+ * readout belongs to the embed. The transcript states only that one arrived.
  *
  * @internal
  */

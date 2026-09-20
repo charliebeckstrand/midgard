@@ -52,9 +52,9 @@ function isBelowOverMidpoint(event: DragOverEvent): boolean {
  * State and handlers for the column-manager's group editor. The zones (groups +
  * ungrouped pool) and the create/remove/rename/recolor/assign actions commit
  * through `onGroupsChange`. Dragging follows the house multi-container pattern
- * (see {@link Kanban}): a local {@link ZoneMap} override re-parents the active
- * column between zones live in `onDragOver` — so it never disappears and the
- * reflow animates — then `onDragEnd` settles the same-zone order and translates
+ * (see {@link Kanban}). A local {@link ZoneMap} override re-parents the active
+ * column between zones live in `onDragOver`, so it never disappears and the
+ * reflow animates. `onDragEnd` then settles the same-zone order and translates
  * the map back into the split stores via {@link zoneMapToStores}. `zoneMap` is
  * the render source (override while dragging, else derived from props);
  * `activeId` drives the drag overlay.
@@ -221,8 +221,8 @@ export function useGroupZoneDroppable(zoneId: string | number) {
 /**
  * Registers a sortable column row for the group editor. Delegates to the shared
  * {@link useSortableItem}, so the source row hides (`opacity: 0`) while dragging
- * and the editor's `<DragOverlay>` stands in — the same composition List and
- * Kanban use. `dragging` also gates the row's checkbox.
+ * and the editor's `<DragOverlay>` stands in. That is the same composition List
+ * and Kanban use. `dragging` also gates the row's checkbox.
  *
  * @internal
  */

@@ -13,7 +13,15 @@ import { cn, createContext } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
 import { k } from '../../../recipes/kata/chart'
-import { binIndex, type ColorBin, once, resolveColorBins, valueExtent } from '../../../utilities'
+import {
+	binIndex,
+	type ColorBin,
+	once,
+	quantileBinIndex,
+	resolveColorBins,
+	resolveQuantileBins,
+	valueExtent,
+} from '../../../utilities'
 import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,
@@ -62,8 +70,8 @@ function sameCell(a: HeatmapHover['cell'], b: HeatmapHover['cell']): boolean {
 }
 
 /**
- * Owns the pointer readout so a pointer move re-renders only the tooltip: the
- * cells and axes are stable children and bail, the tooltip alone reads the
+ * Owns the pointer readout so a pointer move re-renders only the tooltip. The
+ * cells and axes are stable children and bail, and the tooltip alone reads the
  * hover. Mirrors the map's and cartesian frame's confined-hover pattern.
  *
  * @internal
@@ -102,8 +110,8 @@ const [HeatmapFocusContext, useHeatmapFocus] = createContext<HeatmapFocus>('Heat
 
 /**
  * Owns the legend's probed bin, kept off the hover context so a pointer move
- * over the plot never touches it: the cells subscribe here alone, so only
- * probing the legend — not hovering the grid — repaints them to dim.
+ * over the plot never touches it. The cells subscribe here alone, so only a
+ * legend probe — not a grid hover — repaints them to dim.
  *
  * @internal
  */
@@ -164,8 +172,9 @@ function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
 
 /**
  * The legend's hover arrow: it marks the exact value of the cell the pointer
- * is on, its own {@link useHeatmapHover} consumer so a grid hover re-renders
- * only the glyph. The choropleth's region arrow, keyed to a cell instead.
+ * is on. It is its own {@link useHeatmapHover} consumer, so a grid hover
+ * re-renders only the glyph. The choropleth's region arrow, keyed to a cell
+ * instead.
  *
  * @internal
  */
@@ -199,7 +208,7 @@ type HeatmapRangeLegendProps = RangeScale & {
 
 /**
  * The heatmap's range legend: the shared {@link RangeLegend} scale-bar slider,
- * wired to the grid — its arrow tracks the pointed cell's bin, and probing the
+ * wired to the grid. Its arrow tracks the pointed cell's bin, and a probe of the
  * bar emphasises that class's cells through the focus context, dimming the rest.
  * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
  * the bar's resolved placement — vertical beside the plot, horizontal above or
@@ -241,16 +250,20 @@ type HeatmapHitLayerProps = {
 	xBand: ReturnType<typeof bandScale>
 	yBand: ReturnType<typeof bandScale>
 	/**
-	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
-	 * — which also gives the layer a pointer cursor and toggles the readout off on
-	 * a second click of the same cell.
+	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`.
+	 * A pinning click also gives the layer a pointer cursor, and toggles the
+	 * readout off on a second click of the same cell.
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
+	/** Band labels, so a click reports the cell by name rather than by index alone. */
+	labels: { columns: string[]; rows: string[] }
+	/** The consumer's cell-click report, or `undefined` where there is none. */
+	onCellClick?: HeatmapChartProps['onCellClick']
 }
 
 /**
- * The transparent rectangle over the plot that feeds the hover context: the
+ * The transparent rectangle over the plot that feeds the hover context. The
  * pointer resolves to its `[row, col]` through the band arithmetic, so a reader
  * aims at a cell without the marks repainting. Under the `'click'` trigger it
  * pins the pointed cell instead — a second click of the same cell clears it —
@@ -265,6 +278,8 @@ function HeatmapHitLayer({
 	xBand,
 	yBand,
 	trigger = 'hover',
+	labels,
+	onCellClick,
 }: HeatmapHitLayerProps) {
 	const { cell: active, set } = useHeatmapHover()
 
@@ -292,18 +307,41 @@ function HeatmapHitLayer({
 
 	const click = trigger === 'click'
 
+	// The consumer's report runs on any click, whichever trigger the readout is
+	// on, so a hover-tooltip heatmap is still clickable. It takes the hit the
+	// caller already resolved: `locate` reads the layout box, so a click that
+	// both reports and pins must not pay for it twice.
+	const report = (hit: ReturnType<typeof locate>) => {
+		if (!onCellClick) return
+
+		if (hit?.cell == null) return
+
+		const { row, col } = hit.cell
+
+		const x = labels.columns[col]
+
+		const y = labels.rows[row]
+
+		if (x === undefined || y === undefined) return
+
+		onCellClick({ x, y }, [row, col])
+	}
+
+	const handleClick = (event: MouseEvent<SVGRectElement>) => {
+		const hit = locate(event)
+
+		report(hit)
+
+		if (!click || hit === null) return
+
+		if (sameCell(active, hit.cell)) set(null, null)
+		else set(hit.cell, hit.point)
+	}
+
 	const handlers = click
-		? {
-				onClick: (event: MouseEvent<SVGRectElement>) => {
-					const hit = locate(event)
-
-					if (hit === null) return
-
-					if (sameCell(active, hit.cell)) set(null, null)
-					else set(hit.cell, hit.point)
-				},
-			}
+		? { onClick: handleClick }
 		: {
+				onClick: handleClick,
 				onPointerMove: (event: PointerEvent<SVGRectElement>) => {
 					const hit = locate(event)
 
@@ -321,7 +359,7 @@ function HeatmapHitLayer({
 			height={plot.height}
 			fill="none"
 			pointerEvents="all"
-			className={cn(click && 'cursor-pointer')}
+			className={cn((click || onCellClick) && 'cursor-pointer')}
 			{...handlers}
 		/>
 	)
@@ -492,19 +530,41 @@ function useHeatmap<T>(
 	// the accessible name, and the data table still carry the grid's values.
 	const spark = isSparkBox(frameWidth, frameHeight)
 
-	const domain = useMemo(
-		() =>
-			valueExtent(
-				matrix.values.flat().filter((value): value is number => value !== null),
-				primary?.colorDomain,
-			),
-		[matrix, primary],
+	// The extent and the quantile thresholds read the same cells, so the grid is
+	// flattened once. Each did its own pass over every row before this.
+	const values = useMemo(
+		() => matrix.values.flat().filter((value): value is number => value !== null),
+		[matrix],
 	)
 
-	const bins = useMemo(
-		() => (domain && primary ? resolveColorBins(domain, primary.colorRange, primary.bins) : []),
-		[domain, primary],
-	)
+	const domain = useMemo(() => valueExtent(values, primary?.colorDomain), [values, primary])
+
+	// One resolution per mode, each yielding both the painted bins and the
+	// assignment the cells read, so the fills and the legend cannot disagree on
+	// where the buckets fall. `MapPlat` resolves its own the same way.
+	const { bins, assign } = useMemo(() => {
+		if (!domain || !primary) return { bins: [] as ColorBin[], assign: () => null }
+
+		if (primary.binning === 'quantile') {
+			const { bins: quantileBins, thresholds } = resolveQuantileBins(
+				values,
+				primary.colorRange,
+				primary.bins,
+			)
+
+			return {
+				bins: quantileBins,
+				assign: (value: number) => quantileBinIndex(value, thresholds),
+			}
+		}
+
+		const linearBins = resolveColorBins(domain, primary.colorRange, primary.bins)
+
+		return {
+			bins: linearBins,
+			assign: (value: number) => binIndex(value, domain, linearBins.length),
+		}
+	}, [domain, primary, values])
 
 	// Memoized so their identity holds across a re-render with unchanged data —
 	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/
@@ -533,12 +593,8 @@ function useHeatmap<T>(
 	// value lands in, `null` for a no-data cell. The legend dims against it.
 	const cellBins = useMemo(
 		() =>
-			cells.map((cell) =>
-				cell.value === null || domain === null || bins.length === 0
-					? null
-					: binIndex(cell.value, domain, bins.length),
-			),
-		[cells, domain, bins],
+			cells.map((cell) => (cell.value === null || bins.length === 0 ? null : assign(cell.value))),
+		[cells, bins, assign],
 	)
 
 	// Fill per cell from its bin: the bin's colour, or `null` for the neutral
@@ -587,18 +643,19 @@ type HeatmapFigureProps = {
 }
 
 /**
- * The plot and the range bar arranged by placement: a side (vertical) rail bands
- * beside the plot in a row — a left rail reversing it rather than moving in the
- * DOM — a stacked (horizontal) bar bands above or below. Kept off
+ * The plot and the range bar arranged by placement. A side (vertical) rail bands
+ * beside the plot in a row, with a left rail reversing it rather than moving in
+ * the DOM. A stacked (horizontal) bar bands above or below. Kept off
  * {@link HeatmapChart} so its render stays a thin assembly of parts, the way the
  * map frame keeps its own layout.
  *
- * One figure div, keyed children: the placement is measured-width-driven (the
- * rail drops to a bottom band across the compact boundary), so a flip re-arranges
- * this tree at runtime. The keys make React *move* the plot node through a flip
- * rather than recreate it positionally — the plot frame's ResizeObserver is bound
- * to that node, and a recreated node would strand the observer on the detached
- * one, freezing the drawing at its last committed size while the box resizes on.
+ * One figure div, keyed children. The placement is measured-width-driven (the
+ * rail drops to a bottom band across the compact boundary), so a flip
+ * re-arranges this tree at runtime. The keys make React *move* the plot node
+ * through a flip, rather than recreate it positionally. The plot frame's
+ * ResizeObserver is bound to that node. A recreated node would strand the
+ * observer on the detached one, freezing the drawing at its last committed size
+ * while the box resizes on.
  *
  * @internal
  */
@@ -624,16 +681,16 @@ function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
 /**
  * A heatmap: a grid of cells across two categorical axes, each shaded by a
  * numeric value along a sequential colour scale. The two-categorical member of
- * the chart family — it reuses the shared plot frame, band scales, and axis
+ * the chart family. It reuses the shared plot frame, band scales, and axis
  * chrome, and the same data-driven colour scale the {@link ChoroplethChart}
  * shades regions with. Cells with no matching row take the neutral no-data
- * fill; a hover tooltip names the pointed cell and a visually-hidden data table
+ * fill. A hover tooltip names the pointed cell, and a visually-hidden data table
  * carries full value parity for assistive tech.
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
- * fitting its aspect to the grid shape; pass `aspectRatio` to override. Motion
- * (`animate`) is not yet wired — the heatmap renders as a static SVG tree.
+ * fitting its aspect to the grid shape; pass `aspectRatio` to override. The
+ * heatmap renders as a static SVG tree and takes no `animate`.
  * @example
  * ```tsx
  * <HeatmapChart
@@ -653,15 +710,11 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		legend,
 		tooltip,
 		formatValue,
+		onCellClick,
 		className,
-		// Destructured off so the unwired base switches never fall into `...label` and
-		// spread onto the plot element as invalid DOM attributes. The heatmap draws no
-		// header (a range legend, not a series frame), so `subtitle` joins them; `title`
-		// is kept off the DOM too but still names the context menu's fullscreen view.
-		animate: _animate,
-		texture: _texture,
+		// Kept off the DOM so it never spreads onto the plot element as an invalid
+		// attribute, but still names the context menu's fullscreen view.
 		title,
-		subtitle: _subtitle,
 		contextMenu,
 		...label
 	} = props
@@ -731,14 +784,18 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
 
-			{showTooltip && rows > 0 && cols > 0 && (
+			{/* The layer mounts for a readout or for a consumer's click report: a
+			    heatmap that only reports clicks still needs the pointer. */}
+			{(showTooltip || onCellClick !== undefined) && rows > 0 && cols > 0 && (
 				<HeatmapHitLayer
 					plot={plot}
 					rows={rows}
 					cols={cols}
 					xBand={xBand}
 					yBand={yBand}
-					trigger={trigger}
+					trigger={showTooltip ? trigger : undefined}
+					labels={{ columns: matrix.columns, rows: matrix.rows }}
+					onCellClick={onCellClick}
 				/>
 			)}
 		</svg>

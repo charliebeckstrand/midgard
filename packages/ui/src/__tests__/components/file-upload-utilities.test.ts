@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import {
 	fileListToArray,
@@ -5,7 +6,7 @@ import {
 	partitionFiles,
 	selectionSummary,
 } from '../../components/file-upload/file-upload-utilities'
-import { makeFileList } from '../helpers'
+import { makeFileList } from '../helpers/make-file-list'
 
 // File.size is the byte length of its parts; a string of length n yields size n.
 const fileOfSize = (name: string, size: number) => new File(['x'.repeat(size)], name)

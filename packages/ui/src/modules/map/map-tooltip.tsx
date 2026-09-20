@@ -137,7 +137,7 @@ function resolve(
  * The hover readout: the pointed region's name over its category, or an
  * overlay's name over its detail. It is a {@link TooltipPointer} anchored at the
  * pointer client point, so the map's readout wears exactly the Tooltip chrome,
- * motion, and glass adoption, flipping and shifting at the viewport edges.
+ * motion, and glass adoption. It flips and shifts at the viewport edges.
  *
  * @remarks An enhancement, never the only channel: the same values ship in the
  * visually-hidden table, so nothing is gated behind a readout. The keyboard

@@ -29,23 +29,23 @@ type MapLegendEntryProps = {
  * its trailing readout — on one line, always. The name truncates to hold that
  * line and a hover or keyboard focus reveals it in full once it clips.
  *
- * The reveal is the chart legend's, and deliberately: both legends cap a name
- * against a rail narrower than the names people give things, and a reader who
+ * The reveal is the chart legend's, and deliberately. Both legends cap a name
+ * against a rail narrower than the names people give things. A reader who
  * cannot finish reading one must not have to learn a second way to.
  *
- * @remarks The tooltip wraps the whole control rather than the label span,
- * because a {@link Button}'s touch-target overlay captures the pointer and
- * forwards it by bubbling — a tooltip anchored to an inner span would never see
- * the hover. Overflow is measured on the span through the shared
- * {@link useTruncation}, and a closed (unclipped) tooltip renders no surface, so
- * an entry that fits adds no DOM.
+ * @remarks The tooltip wraps the whole control rather than the label span. A
+ * {@link Button}'s touch-target overlay captures the pointer and forwards it by
+ * bubbling. A tooltip anchored to an inner span would never see the hover.
+ * Overflow is measured on the span through the shared {@link useTruncation}. A
+ * closed (unclipped) tooltip renders no surface, so an entry that fits adds no
+ * DOM.
  *
- * Memoised, because the plat re-renders on every legend point and leave and the
- * entry is no longer a bare button: it now carries the truncation measure and
- * the floating stack behind the reveal, both of which run per commit. Every prop
- * holds across those renders — the items are memoised, and the two handlers are
- * `useMapToggle`'s own — so the whole legend bails out of a crossing that
- * changed nothing but which entry is emphasised.
+ * Memoised, because the plat re-renders on every legend point and leave, and
+ * the entry is no longer a bare button. It now carries the truncation measure
+ * and the floating stack behind the reveal, both of which run per commit. Every
+ * prop holds across those renders: the items are memoised, and the two handlers
+ * are `useMapToggle`'s own. The whole legend therefore bails out of a crossing
+ * that changed nothing but which entry is emphasised.
  * @internal
  */
 const MapLegendEntry = memo(function MapLegendEntry({
@@ -79,9 +79,9 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			onFocus={() => onFocus(item.id)}
 			onBlur={() => onFocus(null)}
 		>
-			{/* One key per distinct mark shape the entry stands for — a lone swatch for
-			    a category or an ungrouped mark, a square beside a dot where a zone and
-			    the mark inside it merged into one place. */}
+			{/* One key per distinct mark shape the entry stands for. That is a lone
+			    swatch for a category or an ungrouped mark. It is a square beside a dot
+			    where a zone and the mark inside it merged into one place. */}
 			<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1">
 				{item.swatches.map((swatch) => (
 					<Swatch
@@ -94,16 +94,16 @@ const MapLegendEntry = memo(function MapLegendEntry({
 				))}
 			</span>
 
-			{/* Beside the label rather than under it: the readout is a short,
-			    predictable word — a mileage, a count, a service class — so it holds its
-			    own right-hand column, where stacking the two spent a second line on
-			    every entry that carried one.
+			{/* Beside the label rather than under it. The readout is a short,
+			    predictable word: a mileage, a count, a service class. It holds its own
+			    right-hand column, where stacking the two spent a second line on every
+			    entry that carried one.
 
 			    The entry is one line whatever it holds. The name gives up the width,
-			    because it is the half that can be given up gracefully: it clips to an
-			    ellipsis and the reveal above hands it back in full, where a readout
-			    clipped to "Same d…" says nothing and a wrapped one costs the line the
-			    stack was traded away to save. */}
+			    because it is the half that can be given up gracefully. It clips to an
+			    ellipsis, and the reveal above hands it back in full. A readout clipped
+			    to "Same d…" says nothing, and a wrapped one costs the line the stack
+			    was traded away to save. */}
 			{/* The clipping box is structural and nothing else: the off treatment stays
 			    on the label itself, which is the slot that names it. */}
 			<span ref={labelRef} className="block min-w-0 flex-1 truncate text-left">
@@ -111,7 +111,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 					as="span"
 					size="sm"
 					data-slot="map-legend-label"
-					severity="muted"
+					tone="muted"
 					className={cn('leading-tight', off && 'line-through opacity-60')}
 				>
 					{item.label}
@@ -126,7 +126,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 					as="span"
 					size="xs"
 					data-slot="map-legend-detail"
-					severity="muted"
+					tone="muted"
 					className={cn(
 						'shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
 						off && 'opacity-60',
@@ -139,7 +139,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 	)
 
 	return (
-		<Tooltip enabled={truncated}>
+		<Tooltip disabled={!truncated}>
 			<TooltipTrigger>{control}</TooltipTrigger>
 
 			<TooltipContent>{item.label}</TooltipContent>
@@ -164,9 +164,9 @@ export type MapLegendProps = {
 }
 
 /**
- * The map's legend — one switchboard merging the region categories with every
- * registered overlay: pointing (or keyboard-focusing) an entry dims all marks
- * outside its group, clicking toggles it off. Plain HTML buttons outside the
+ * The map's legend: one switchboard merging the region categories with every
+ * registered overlay. Pointing (or keyboard-focusing) an entry dims all marks
+ * outside its group, and clicking toggles it off. Plain HTML buttons outside the
  * `role="img"` region, so assistive tech reads and operates them; swatches
  * carry the colour, the text stays in ink.
  *

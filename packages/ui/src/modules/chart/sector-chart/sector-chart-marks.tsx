@@ -25,7 +25,7 @@ export function sliceGroupClass(emphasis: number | null, index: number): string 
 
 /**
  * When the sweep reveal reaches `mid` degrees: the moment a label's slice is
- * half uncovered, so text fades in just as its slice appears under it.
+ * half uncovered. Text fades in just as its slice appears under it.
  *
  * @internal
  */
@@ -44,7 +44,7 @@ type SectorSegmentLabelsProps = {
 
 /**
  * The fit-gated labels set inside the slices. Text on a mark's own fill is
- * the one place ink follows the series colour — each hue's `onFill` pick is
+ * the one place ink follows the series colour. Each hue's `onFill` pick is
  * white-first, dropping to near-black only where white can't clear the 3:1
  * graphical floor against that fill (see `kata/chart`). Under `animate` a label
  * fades in as the sweep uncovers its slice.
@@ -137,9 +137,9 @@ type SectorChartMarksProps = {
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
 	/**
-	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`
-	 * — which gives each slice a pointer cursor and toggles the readout off on a
-	 * second click of the same slice.
+	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on
+	 * `'click'`. A pinning click gives each slice a pointer cursor and toggles the
+	 * readout off on a second click of the same slice.
 	 * @defaultValue 'hover'
 	 */
 	trigger?: ChartTooltipTrigger
@@ -150,28 +150,28 @@ type SectorChartMarksProps = {
 	 */
 	onIndexClick?: (index: number) => void
 	/**
-	 * Emphasises a slice while the pointer sits on it (`null` clears) — the same
-	 * channel the legend hover drives, so hovering a slice isolates it and recedes
-	 * the rest exactly as its legend chip does.
+	 * Emphasises a slice while the pointer sits on it (`null` clears). It is the
+	 * same channel the legend hover drives. A hovered slice isolates itself and
+	 * recedes the rest, exactly as its legend chip does.
 	 */
 	onEmphasis?: (index: number | null) => void
 }
 
 /**
  * The slice paths — clean fills with no separator stroke. The gap between
- * neighbours is geometric, cut into the arc angles by {@link pieSlices}, so the
- * real surface behind the chart shows through it — nothing painted to mismatch
- * a tinted or glass card. A gapless hit wedge behind each slice takes the
- * pointer across that channel, splitting it down the middle between the two
- * neighbours, so sweeping the gap moves the hover index rather than dropping
- * the tooltip — the way a grouped bar chart holds its readout across the gap
- * between bars. The visible slice, drawn over its wedge, still wins the pointer
- * on its own body and keeps the hover brightness.
+ * neighbours is geometric, cut into the arc angles by {@link pieSlices}. The
+ * real surface behind the chart thus shows through it, with nothing painted to
+ * mismatch a tinted or glass card. A gapless hit wedge behind each slice takes
+ * the pointer across that channel, and splits it down the middle between the
+ * two neighbours. A sweep across the gap therefore moves the hover index rather
+ * than dropping the tooltip. A grouped bar chart holds its readout across the
+ * gap between bars the same way. The visible slice, drawn over its wedge, still
+ * wins the pointer on its own body and keeps the hover brightness.
  *
- * @remarks Under `animate` the disc wipes in clockwise from the top: a mask
+ * @remarks Under `animate` the disc wipes clockwise from the top. A mask
  * stroke thick enough to cover the whole disc draws itself (`pathLength`
- * 0 → 1), the same self-drawing reveal as the line chart — the pie sweeps in
- * along its angular axis the way a line draws along x. The slices themselves
+ * 0 → 1). It is the same self-drawing reveal as the line chart. The pie sweeps
+ * in along its angular axis the way a line draws along x. The slices themselves
  * stay static, so hover and dimming behave identically mid-reveal.
  * @internal
  */
@@ -272,10 +272,10 @@ export function SectorChartMarks({
 					return (
 						<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
 							{/* The gapless wedge sits behind the visible slice and takes the
-							    pointer only where the slice recedes — its half of each channel —
-							    so sweeping across the gap keeps the tooltip instead of dropping
-							    it onto the bare surface. The visible slice, drawn over it, wins
-							    the pointer on its own body and isolates itself on hover. */}
+							    pointer only where the slice recedes: its half of each channel.
+							    A sweep across the gap therefore keeps the tooltip instead of
+							    dropping it onto the bare surface. The visible slice, drawn over it,
+							    wins the pointer on its own body and isolates itself on hover. */}
 							<path
 								data-slot="chart-slice-hit"
 								d={slice.hit}

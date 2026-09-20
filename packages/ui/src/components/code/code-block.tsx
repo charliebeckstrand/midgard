@@ -10,8 +10,8 @@ const MAX_CACHE_SIZE = 200
 
 /**
  * Token cache keyed by theme + language + code. Process-wide, so it serves every
- * CodeBlock instance, not only a remounting one — a mount policy that keeps a
- * hidden block alive shifts the hit rate here but never retires the cache.
+ * CodeBlock instance, not only a remounting one. A mount policy that keeps a
+ * hidden block alive shifts the hit rate here, but never retires the cache.
  */
 const htmlCache = new Map<string, string>()
 
@@ -42,11 +42,23 @@ let shikiPromise: Promise<typeof import('shiki')> | null = null
  * in-flight promise so the heavy module is fetched at most once per session.
  *
  * @returns The resolved `shiki` module exports.
- * @remarks Call to warm the highlighter ahead of rendering a {@link CodeBlock}.
+ * @remarks
+ * Call to warm the highlighter ahead of rendering a {@link CodeBlock}. Only a
+ * pending or resolved import stays memoized. A rejection clears the cell and
+ * reaches the caller, so the next call fetches again. That beats replaying one
+ * transient chunk failure for the rest of the session.
  */
 export function loadShiki() {
 	if (!shikiPromise) {
-		shikiPromise = import('shiki')
+		shikiPromise = import('shiki').catch((error) => {
+			// Drop the memo before the rejection leaves. A cell left holding it
+			// answers every later call with the same failure, and CodeBlock
+			// swallows it, so one bad chunk fetch paints the plain fallback for the
+			// rest of the session.
+			shikiPromise = null
+
+			throw error
+		})
 	}
 
 	return shikiPromise
@@ -68,7 +80,7 @@ export type CodeBlockProps = {
 /**
  * Syntax-highlighted code block. Lazily loads Shiki via {@link loadShiki},
  * tokenizes `code` for the given `lang` and `theme`, and renders an unstyled
- * `<pre>` fallback during the async pass; an optional CopyButton overlays the
+ * `<pre>` fallback during the async pass. An optional CopyButton overlays the
  * snippet.
  *
  * @remarks
@@ -151,7 +163,7 @@ export function CodeBlock({
 					</pre>
 				)}
 			</div>
-			{copy && <CopyButton value={code} size="sm" className={cn(k.copy)} />}
+			{copy && <CopyButton text={code} size="sm" className={cn(k.copy)} />}
 		</div>
 	)
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
 import { Form, useFormState } from '../../components/form'
@@ -395,10 +395,6 @@ describe('AddressInput', () => {
 })
 
 describe('photonProvider', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	function makeFeature(
 		properties: Record<string, unknown>,
 		coordinates: [number, number] = [10, 20],
@@ -653,10 +649,6 @@ describe('photonProvider', () => {
 })
 
 describe('createPhotonProvider', () => {
-	afterEach(() => {
-		vi.unstubAllGlobals()
-	})
-
 	/** The one URL the stubbed fetch was called with. */
 	function requestedUrl(fetchMock: ReturnType<typeof vi.fn>): URL {
 		return new URL(String(fetchMock.mock.calls[0]?.[0]))
@@ -740,5 +732,80 @@ describe('createPhotonProvider', () => {
 		expect(url.searchParams.has('lat')).toBe(false)
 
 		expect(url.searchParams.getAll('layer')).toEqual([])
+	})
+})
+
+describe('AddressInput onError', () => {
+	it('hands the provider rejection to onError', async () => {
+		await withFakeTime(async (clock) => {
+			const outage = new Error('geocoder unavailable')
+
+			const onError = vi.fn()
+
+			const { container } = renderUI(
+				<AddressInput
+					provider={() => Promise.reject(outage)}
+					debounceMs={0}
+					minQueryLength={1}
+					onError={onError}
+				/>,
+			)
+
+			await clock.user.type(bySlot(container, 'combobox-input') as HTMLInputElement, 'a')
+
+			await clock.advance(0)
+
+			await waitFor(() => expect(onError).toHaveBeenCalledExactlyOnceWith(outage))
+		})
+	})
+
+	// An abort is the field's own doing — a keystroke supersedes the request in
+	// flight — so it is no failure to report.
+	it('says nothing when the request is aborted', async () => {
+		await withFakeTime(async (clock) => {
+			const onError = vi.fn()
+
+			const provider: AddressProvider = (_, { signal }) =>
+				new Promise((_resolve, reject) => {
+					signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')))
+				})
+
+			const { container } = renderUI(
+				<AddressInput provider={provider} debounceMs={0} minQueryLength={1} onError={onError} />,
+			)
+
+			const input = bySlot(container, 'combobox-input') as HTMLInputElement
+
+			await clock.user.type(input, 'a')
+
+			await clock.advance(0)
+
+			await clock.user.type(input, 'b')
+
+			await clock.advance(0)
+
+			expect(onError).not.toHaveBeenCalled()
+		})
+	})
+
+	it('says nothing when the provider resolves, even with no matches', async () => {
+		await withFakeTime(async (clock) => {
+			const onError = vi.fn()
+
+			const { container } = renderUI(
+				<AddressInput
+					provider={async () => []}
+					debounceMs={0}
+					minQueryLength={1}
+					onError={onError}
+				/>,
+			)
+
+			await clock.user.type(bySlot(container, 'combobox-input') as HTMLInputElement, 'a')
+
+			await clock.advance(0)
+
+			expect(onError).not.toHaveBeenCalled()
+		})
 	})
 })

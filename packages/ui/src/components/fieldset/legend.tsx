@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/fieldset'
 
 /** Props for {@link Legend}: the native `<legend>` attributes plus `className`. */
-export type LegendProps = SlotProps<'legend'>
+export type LegendProps = ComponentProps<'legend'>
 
 /**
  * Caption for a `<Fieldset>`, rendered as a native `<legend>` that names the

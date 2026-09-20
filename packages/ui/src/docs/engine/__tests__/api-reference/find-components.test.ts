@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { Node, Project, ScriptKind, type SourceFile } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { findComponent, readPublicExports } from '../../api-reference/engine/find-components'

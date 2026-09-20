@@ -1,8 +1,17 @@
-import { useRef, useState } from 'react'
+import { Profiler, useRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { useCurrentContentsMorph } from '../../primitives/current/use-current-contents-morph'
-import { hasIntermediate, renderUI, sampleHeights, screen, waitFor } from '../helpers'
+import {
+	bySlot,
+	frames,
+	hasIntermediate,
+	present,
+	renderUI,
+	sampleHeights,
+	screen,
+	waitFor,
+} from '../helpers'
 
 /**
  * Real-browser probe of the current-panel height morph. The jsdom morph test
@@ -106,5 +115,92 @@ describe('current-panel height morph (real browser)', () => {
 		await waitFor(() => expect(box.getBoundingClientRect().height).toBeCloseTo(80, 0))
 
 		await waitFor(() => expect(box.style.height).toBe(''))
+	})
+})
+
+/**
+ * The other half of the morph contract: what must NOT happen. A width-coupled
+ * resize — a window drag, a panel reflowing text at a new width — has to pass
+ * through with no morph, no inline pin, and no React commit at all. That
+ * silence is what stops one drag frame cascading into every panel's subtree
+ * once per `ResizeObserver` frame.
+ *
+ * jsdom asserted this by stubbing `ResizeObserver`, hand-building
+ * `borderBoxSize` entries for a synthetic burst, and stubbing
+ * `getBoundingClientRect` to fixed boxes — so it proved the hook's arithmetic
+ * over numbers the test supplied, never that a real drag is silent. Here the
+ * host really narrows, the panel's text really reflows, and the engine's own
+ * observer delivers the frames.
+ */
+describe('current-panel morph, width-coupled resizes (real browser)', () => {
+	const PROSE =
+		'A panel whose text reflows as the container narrows, so its height is coupled to its width and every drag frame reports a new border box.'
+
+	/** A fading container whose sole panel reflows, under a commit counter. */
+	function ReflowProbe({ onCommit }: { onCommit: () => void }) {
+		return (
+			<div data-testid="host" style={{ width: 600 }}>
+				<Profiler id="host" onRender={onCommit}>
+					<CurrentContext value={{ value: 'a', onValueChange: undefined }}>
+						<CurrentContents slotPrefix="test" fade mount="always">
+							<CurrentContent slotPrefix="test" value="a">
+								<p style={{ margin: 0 }}>{PROSE}</p>
+							</CurrentContent>
+							<CurrentContent slotPrefix="test" value="b">
+								<p style={{ margin: 0 }}>{PROSE}</p>
+							</CurrentContent>
+						</CurrentContents>
+					</CurrentContext>
+				</Profiler>
+			</div>
+		)
+	}
+
+	/** Mounts the probe and settles the observer baseline. */
+	async function settled() {
+		let commits = 0
+
+		const { container } = renderUI(<ReflowProbe onCommit={() => commits++} />)
+
+		const host = screen.getByTestId('host')
+
+		const box = present(bySlot(container, 'test-contents'), 'the contents box')
+
+		await waitFor(() => expect(box.getBoundingClientRect().height).toBeGreaterThan(0))
+
+		await frames()
+
+		await frames()
+
+		return { box, host, commits: () => commits }
+	}
+
+	it('rests at auto height with no inline pin', async () => {
+		const { box } = await settled()
+
+		expect(box.style.height).toBe('')
+	})
+
+	it('passes a width-coupled drag through with no re-render and no pin', async () => {
+		const { box, host, commits } = await settled()
+
+		const before = commits()
+
+		// The drag: each step narrows the host, which reflows the prose, which
+		// moves the panel height. Height follows width, so nothing here is a
+		// height-only change and nothing may morph.
+		for (const width of [560, 520, 480, 440, 400]) {
+			host.style.width = `${width}px`
+
+			await frames()
+
+			expect(box.style.height).toBe('')
+		}
+
+		// The container measured a new box on every one of those frames and
+		// re-rendered for none of them.
+		expect(commits()).toBe(before)
+
+		expect(box.style.height).toBe('')
 	})
 })

@@ -3,10 +3,15 @@
 import { createContext } from '../../core'
 
 /**
- * App-wide internationalization defaults. Locale-aware components (currency,
+ * App-wide `Intl` formatting defaults. Format-aware components (currency,
  * number, date, time, phone fields) read this when their own props are
  * unspecified. A single `<LocaleProvider>` at the app root configures the
  * whole tree.
+ *
+ * @remarks
+ * Every field feeds an `Intl.*` formatter. The type carries no string
+ * catalogue, and it is not a translation layer. A catalogue waits for a real
+ * second locale.
  */
 export type LocaleConfig = {
 	/** BCP 47 locale tag (e.g. `'en-US'`, `'fr-FR'`). */
@@ -17,8 +22,6 @@ export type LocaleConfig = {
 	numberFormat?: Intl.NumberFormatOptions
 	/** Default options for `Intl.DateTimeFormat`-based components. */
 	dateFormat?: Intl.DateTimeFormatOptions
-	/** IANA time zone identifier (e.g. `'America/Los_Angeles'`). */
-	timeZone?: string
 }
 
 /** Reads the ambient {@link LocaleConfig} from the nearest `<LocaleProvider>`; returns `{}` outside one. */

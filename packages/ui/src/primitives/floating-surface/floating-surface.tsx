@@ -6,8 +6,8 @@ import {
 	type FloatingRootContext,
 } from '@floating-ui/react'
 import {
+	type ComponentProps,
 	type CSSProperties,
-	type HTMLAttributes,
 	type ReactNode,
 	useLayoutEffect,
 	useRef,
@@ -35,25 +35,25 @@ export type FloatingSurfaceProps = {
 	/**
 	 * Escape hatch: `FloatingFocusManager` props merged over the surface
 	 * defaults, read only alongside `trapFocusContext`. Gate a conditional trap
-	 * through `disabled` here rather than by dropping `trapFocusContext` — the
+	 * through `disabled` here, rather than by dropping `trapFocusContext`. The
 	 * manager's presence decides the element type wrapping the surface, so
-	 * withdrawing it mid-open remounts the live panel; a `disabled` manager
+	 * withdrawing it mid-open remounts the live panel. A `disabled` manager
 	 * renders neither guards nor listeners, leaving the DOM as it is untrapped.
 	 */
 	trapFocusProps?: Omit<FloatingFocusManagerProps, 'context' | 'children'>
 	onExitComplete?: () => void
 	children: ReactNode
-} & Omit<HTMLAttributes<HTMLDivElement>, 'children'>
+} & Omit<ComponentProps<'div'>, 'children'>
 
 /**
- * Positioning shell shared by Tooltip, Popover, and Menu surfaces: owns the
+ * Positioning shell shared by Tooltip, Popover, and Menu surfaces. It owns the
  * positioned wrapper that receives the floating-ui reference over a
- * {@link PresencePortal}, which handles the teleport, the mount-while-open
+ * {@link PresencePortal}. That portal handles the teleport, the mount-while-open
  * lifecycle, and the exit animation. Consumers render the animated inner
  * surface as `children`.
  *
  * @remarks Passing `trapFocusContext` wraps the open surface in a modal
- * `FloatingFocusManager` that traps Tab; it cedes initial focus and close-time
+ * `FloatingFocusManager` that traps Tab. It cedes initial focus and close-time
  * restore to the consuming panel hook, which `trapFocusProps` overrides
  * per-surface.
  */

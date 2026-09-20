@@ -22,7 +22,7 @@ import {
 import type { ReactElement, ReactNode } from 'react'
 import { mergeContextMenuItems } from '../../components/context-menu'
 import { isDataColumn } from '../../utilities'
-import type { SortState } from './context'
+import type { GridSortState } from './context'
 import { columnLabel } from './engine/grid-column/label'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
@@ -41,10 +41,10 @@ function exportIcon(type: GridExportAction['type']): ReactElement {
 }
 
 /**
- * Maps active export actions to menu items — the rows the Export submenu holds
- * in the column and cell menus, and the same rows a menu hosted *outside* the
- * grid renders from {@link useGridExportActions}, so every route to export reads
- * the same.
+ * Maps active export actions to menu items. They are the rows the Export
+ * submenu holds in the column and cell menus. A menu hosted *outside* the grid
+ * renders the same rows from {@link useGridExportActions}. Every route to
+ * export therefore reads the same.
  */
 export function gridExportMenuItems(exportActions: GridExportAction[]): GridMenuItem[] {
 	return exportActions.map((action) => ({
@@ -56,11 +56,11 @@ export function gridExportMenuItems(exportActions: GridExportAction[]): GridMenu
 }
 
 /**
- * Collapses a group of related rows under one parent that opens them on hover
- * — the Sort / Pin / Export / Auto-size menus a grid's context menu is built
- * from. A lone row needs no parent to disambiguate it and renders in place
- * (a grid exporting one format offers "Export to CSV" outright, not an Export
- * menu holding it); an empty group contributes nothing.
+ * Collapses a group of related rows under one parent that opens them on hover.
+ * Those are the Sort / Pin / Export / Auto-size menus a grid's context menu is
+ * built from. A lone row needs no parent to disambiguate it and renders in
+ * place. A grid exporting one format offers "Export to CSV" outright, not an
+ * Export menu holding it. An empty group contributes nothing.
  *
  * @returns The rows to splice into the menu: one submenu entry, the lone item,
  * or nothing.
@@ -80,15 +80,15 @@ function submenuItems(args: {
 }
 
 /**
- * The sort rows for a column's menu: the directions it doesn't already hold —
- * sorted ascending, it offers "Sort descending" — plus "Clear sort" once it
- * carries the active sort, so every row changes the sort rather than repeating
- * it. Empty when the column doesn't sort, which withholds the Sort menu
- * entirely.
+ * The sort rows for a column's menu: the directions it doesn't already hold,
+ * plus "Clear sort" once it carries the active sort. Sorted ascending, it
+ * offers "Sort descending". Every row therefore changes the sort rather than
+ * repeating it. Empty when the column doesn't sort, which withholds the Sort
+ * menu entirely.
  *
  * @remarks A direction is withheld only where choosing it would be a no-op.
  * These rows commit a single-column sort wholesale, so that means the grid
- * already sorts by this column alone at that direction; under a multi-column
+ * already sorts by this column alone at that direction. Under a multi-column
  * sort either direction still collapses the sort onto this column, and both
  * stay on offer. Two rows at least, so the Sort parent never collapses to a
  * plain action.
@@ -97,7 +97,7 @@ function submenuItems(args: {
 function sortMenuItems<T>(args: {
 	column: GridColumn<T>
 	/** The active sort, to tell a direction that changes it from one that repeats it. */
-	sort: SortState[]
+	sort: GridSortState[]
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn
 	clearSort: () => void
@@ -139,10 +139,10 @@ function sortMenuItems<T>(args: {
 }
 
 /**
- * The auto-size rows for a column's menu: "Auto-size this column" — a
+ * The auto-size rows for a column's menu. "Auto-size this column" is a
  * per-column fit, offered only on a resizable data column, since a selection or
- * actions column has no content to fit — then the grid-wide "Auto-size all
- * columns". Empty when the grid is not resizable.
+ * actions column has no content to fit. The grid-wide "Auto-size all columns"
+ * follows it. Empty when the grid is not resizable.
  *
  * @internal
  */
@@ -183,9 +183,9 @@ export type SortColumn = (column: string | number, direction: 'asc' | 'desc') =>
 export type PinColumn = (column: string | number, side: 'left' | 'right' | false) => void
 
 /**
- * The group-by toggle a `groupable` column's header menu offers: the active
- * grouped column id and the write-back that groups by a column (or `null` to
- * ungroup). `null` at the call site turns the menu's group item off.
+ * The group-by toggle a `groupable` column's header menu offers. It holds the
+ * active grouped column id, and the write-back that groups by a column (or
+ * `null` to ungroup). `null` at the call site turns the menu's group item off.
  *
  * @internal
  */
@@ -238,7 +238,7 @@ export type ColumnMenuFilter = {
 type ColumnMenuDefaultArgs<T> = {
 	column: GridColumn<T>
 	/** The active sort in priority order, so a direction that would only repeat it stays off the menu. */
-	sort: SortState[]
+	sort: GridSortState[]
 	/** This column's active sort direction, or `undefined` when it is not the sorted column. */
 	sortDirection: 'asc' | 'desc' | undefined
 	sortColumn: SortColumn
@@ -256,11 +256,12 @@ type ColumnMenuDefaultArgs<T> = {
 }
 
 /**
- * The filter row for a column's menu: "Filter {column}", present only where the
- * grid surfaces filtering through the menu (the `'menu'` affordance) — the
- * primary way to filter a column whose header carries no resting funnel. In the
- * `'header'` affordance the funnel already offers it, so this contributes
- * nothing.
+ * The filter row for a column's menu: Filter “{column}”. The column name is
+ * quoted, so it reads as the column being filtered rather than as part of the
+ * item's own wording. Present only where the grid surfaces filtering through
+ * the menu (the `'menu'` affordance). That is the primary way to filter a
+ * column whose header carries no resting funnel. In the `'header'` affordance
+ * the funnel already offers it, so this contributes nothing.
  *
  * @internal
  */
@@ -273,7 +274,7 @@ function filterMenuItems<T>(
 	return [
 		{
 			key: 'filter-column',
-			label: `Filter ${columnLabel(column)}`,
+			label: `Filter “${columnLabel(column)}”`,
 			icon: <ListFilter />,
 			onAction: filter.openFilter,
 		},
@@ -281,11 +282,12 @@ function filterMenuItems<T>(
 }
 
 /**
- * The group item for a column's menu: "Group by {column}" on an ungrouped
- * groupable column (naming the column dynamically), flipping to a plain
- * "Ungroup" once it is the active group — single-level, so only one column is
- * ever grouped. The header button's toggle as a menu action. Empty when the
- * group button is off or the column isn't groupable.
+ * The group item for a column's menu: Group by “{column}” on an ungrouped
+ * groupable column. The column name is quoted, as the filter row quotes it. The
+ * name therefore reads as the column acted on, rather than as part of the
+ * item's own wording. Flips to a plain "Ungroup" once it is the active group —
+ * single-level, so only one column is ever grouped. The header button's toggle as a menu
+ * action. Empty when the group button is off or the column isn't groupable.
  *
  * @internal
  */
@@ -306,7 +308,7 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 	return [
 		{
 			key: 'group-by',
-			label: `Group by ${columnLabel(column)}`,
+			label: `Group by “${columnLabel(column)}”`,
 			icon: <Group />,
 			onAction: () => groupBy.setGrouping(column.id),
 		},
@@ -341,17 +343,21 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
 
 /**
  * Default header-menu items, consolidated into hover-opened submenus so the
- * menu opens one row per concern rather than a dozen flat actions: "Manage
+ * menu opens one row per concern rather than a dozen flat actions. "Manage
  * columns" (when a manager is reachable) leads, then the clicked column's own
- * concerns — Sort (the directions the column doesn't already hold, with "Clear
- * sort" once it is the sorted one), Pin (Pin left / Pin right / Unpin), the
- * group-by toggle, a single action so it stays a plain row, and Auto-size (this
- * column, then all columns) — and Export (one row per active export type)
- * closes them out.
+ * concerns:
  *
- * @remarks Each menu withholds itself when it has nothing to offer — a locked
- * column shows no Pin, an unsortable one no Sort — and collapses to a plain row
- * when it holds a single action, so no submenu ever opens onto one item. The
+ * - Sort (the directions the column doesn't already hold, with "Clear sort"
+ *   once it is the sorted one).
+ * - Pin (Pin left / Pin right / Unpin).
+ * - The group-by toggle, a single action so it stays a plain row.
+ * - Auto-size (this column, then all columns).
+ *
+ * Export (one row per active export type) closes them out.
+ *
+ * @remarks Each menu withholds itself when it has nothing to offer. A locked
+ * column shows no Pin, and an unsortable one no Sort. Each collapses to a plain
+ * row when it holds a single action, so no submenu ever opens onto one item. The
  * defaults carry no rule of their own; a host's builder places any it wants.
  * @internal
  */
@@ -408,10 +414,10 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 }
 
 /**
- * Default cell-menu items: Copy, acting on the right-clicked cell, then — when
- * export is on — the Export submenu, a grid-wide tool scoped to the selection
- * when rows are selected. Unruled, as the column menu's defaults are; a host's
- * builder places any separator it wants.
+ * Default cell-menu items: Copy, acting on the right-clicked cell. When export
+ * is on, the Export submenu follows it, a grid-wide tool scoped to the
+ * selection when rows are selected. Unruled, as the column menu's defaults are;
+ * a host's builder places any separator it wants.
  *
  * @internal
  */
@@ -431,10 +437,10 @@ export function cellMenuDefaults(
 }
 
 /**
- * The column-group band's context menu (right-clicking the group's badge):
- * "Manage columns" when the column manager is reachable, then — under a
- * separator — "Clear color" at the bottom when the group carries one. Empty when
- * neither applies, so the surface leaves the native menu alone.
+ * The column-group band's context menu (right-clicking the group's badge).
+ * "Manage columns" comes first when the column manager is reachable. Under a
+ * separator, "Clear color" sits at the bottom when the group carries one. Empty
+ * when neither applies, so the surface leaves the native menu alone.
  *
  * @internal
  */

@@ -1,9 +1,9 @@
 /**
  * Query-builder kata: object-literal surface for the `<QueryBuilder>` rule
- * editor. No variants axis — flat slots for the `base` container, the
- * `group.base` and `group.nested` condition boxes, a `rule` row, its `remove`
- * control, the fixed `value` text standing in for a value-less operator's input,
- * the AND/OR `separator`, and the `actions` cluster.
+ * editor. No variants axis: flat slots for the `base` container, the
+ * `group.base` and `group.nested` condition boxes, a `rule` row, and its
+ * `remove` control. The rest are the fixed `value` text standing in for a
+ * value-less operator's input, the AND/OR `separator`, and the `actions` cluster.
  */
 import { mode } from '../../core/recipe'
 import { iro, ji, kasane, narabi, sen } from '../kiso'

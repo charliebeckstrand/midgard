@@ -34,8 +34,6 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // Curated paths are relative to `src/components`.
 const STATIC_COMPONENT_FILES = [
 	'alert/alert-body.tsx',
-	'alert/alert-description.tsx',
-	'alert/alert-title.tsx',
 	'aspect-ratio/aspect-ratio.tsx',
 	'avatar/avatar.tsx',
 	'avatar/avatar-group.tsx',

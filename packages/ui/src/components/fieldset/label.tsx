@@ -1,6 +1,6 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, useEffect } from 'react'
+import { type ComponentProps, useEffect } from 'react'
 import { cn } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
@@ -13,12 +13,12 @@ import { useControl } from '../control/context'
 export type LabelProps = {
 	className?: string
 	htmlFor?: string
-} & Omit<ComponentPropsWithoutRef<'label'>, 'className'>
+} & Omit<ComponentProps<'label'>, 'className'>
 
 /**
  * Caption for a single form control, rendered as a `<label>`. Defaults `htmlFor`
- * to the enclosing `<Field>`/`<Control>` id and registers its own id so the
- * control can name itself via `aria-labelledby`; resolves type scale from the
+ * to the enclosing `<Field>`/`<Control>` id, and registers its own id so the
+ * control can name itself via `aria-labelledby`. Resolves type scale from the
  * Density cascade.
  */
 export function Label({ className, htmlFor, id, ...props }: LabelProps) {

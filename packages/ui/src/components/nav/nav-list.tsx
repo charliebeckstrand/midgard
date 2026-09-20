@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/nav'
@@ -8,7 +8,7 @@ import type { Orientation } from '../../types'
 import { useNavBar } from './context'
 
 /** Props for {@link NavList}: an optional `orientation` plus native `<ul>` attributes. */
-export type NavListProps = ComponentPropsWithoutRef<'ul'> & {
+export type NavListProps = ComponentProps<'ul'> & {
 	/**
 	 * Layout axis for the items.
 	 * @defaultValue `'horizontal'` inside a {@link NavBar}, otherwise `'vertical'`

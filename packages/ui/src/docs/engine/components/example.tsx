@@ -26,9 +26,9 @@ import {
  * omitted. The optional `title`, `actions`, `prefix`, `preview`, and `footer`
  * slots frame the preview.
  *
- * The optional `width` and `minWidth` props size the frame, and `resize` makes
- * it horizontally draggable via a right-edge handle and switches its border to
- * dashed; see {@link resolveResize} for how the boolean and object forms normalize.
+ * The optional `width` and `minWidth` props size the frame. `resize` makes it
+ * horizontally draggable via a right-edge handle, and switches its border to
+ * dashed. See {@link resolveResize} for how the boolean and object forms normalize.
  */
 export function Example({
 	title,
@@ -54,8 +54,8 @@ export function Example({
 	width?: number
 	/**
 	 * The frame's minimum width in pixels: a CSS floor the frame never shrinks
-	 * below, and — when `resize` is on — the drag lower bound, composed with any
-	 * `resize.min` (the larger wins). Auto when omitted.
+	 * below. When `resize` is on it is also the drag lower bound, composed with
+	 * any `resize.min` (the larger wins). Auto when omitted.
 	 */
 	minWidth?: number
 	/**

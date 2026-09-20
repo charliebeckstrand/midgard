@@ -6,10 +6,10 @@ import { renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
- * A `deferPaint` map must build no region path before its container is measured.
+ * A fixed-aspect map must build no region path before its container is measured.
  * It holds an empty frame until the measurement lands and then draws from the
  * measured fit alone, so a canonical pass builds paths nothing ever renders. It
- * is not a corner of the API either: `ChoroplethChart` sets `deferPaint` on every
+ * is not a corner of the API either: `ChoroplethChart` fixes the aspect on every
  * chart it draws.
  *
  * What that saves is now the emit rather than the walk. The walk draws the
@@ -79,7 +79,7 @@ describe('map canonical path deferral', () => {
 	})
 
 	it('builds no region path on a deferred map that has not been measured', () => {
-		renderUI(plat({ deferPaint: true }))
+		renderUI(plat({ aspectRatio: '16/9' }))
 
 		expect(emitRegionPaths).not.toHaveBeenCalled()
 
@@ -104,7 +104,7 @@ describe('map canonical path deferral', () => {
 		// The fold's own invariant: the fit is measured from the buffer, so the
 		// walk that fills it is the only one either mode runs. A second would mean
 		// the fit had gone back to measuring its own bounds.
-		renderUI(plat({ deferPaint: true }))
+		renderUI(plat({ aspectRatio: '16/9' }))
 
 		expect(probeCanonicalFit).toHaveBeenCalledTimes(1)
 

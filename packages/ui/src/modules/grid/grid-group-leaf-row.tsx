@@ -144,10 +144,10 @@ type GridGroupLeafCellProps<T> = {
 }
 
 /**
- * One collapsible leaf cell: the `<td>` sits at inline `padding: 0` so nothing
- * holds it open, and its content nests in a CSS grid whose single row tweens
- * `1fr`↔`0fr` (`data-open`) — the modern auto-height reveal, which collapses the
- * cell (and so the row) to nothing without JS measurement. `min-h-0` +
+ * One collapsible leaf cell. The `<td>` sits at inline `padding: 0`, so nothing
+ * holds it open. Its content nests in a CSS grid whose single row tweens
+ * `1fr`↔`0fr` (`data-open`). That is the modern auto-height reveal, which
+ * collapses the cell (and so the row) to nothing without JS measurement. `min-h-0` +
  * `overflow-hidden` on the clip lets the track shrink past the content; the
  * density padding rides the innermost wrapper so it collapses with the row.
  *
@@ -227,9 +227,10 @@ function GridGroupLeafCell<T>({
 /**
  * A collapsible group leaf row: an ordinary `<tr>` whose every cell nests its
  * content in a CSS `grid-template-rows: 1fr↔0fr` reveal (see
- * {@link GridGroupLeafCell}), so the row grows and shrinks with its group over a
- * CSS transition — reliable in a `<table>` where a JS height tween on a `<td>` is
- * not, and honouring `prefers-reduced-motion` through `motion-reduce`. The row
+ * {@link GridGroupLeafCell}). The row therefore grows and shrinks with its group
+ * over a CSS transition. That is reliable in a `<table>` where a JS height tween
+ * on a `<td>` is not, and it honours `prefers-reduced-motion` through
+ * `motion-reduce`. The row
  * stays mounted whatever the group's expansion; a closed group's leaves are
  * `inert` and hidden from assistive tech. Kept apart from the plain
  * {@link GridRow} so the non-grouped hot path stays untouched.

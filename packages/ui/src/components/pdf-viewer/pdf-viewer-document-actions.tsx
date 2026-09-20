@@ -1,8 +1,6 @@
 import { Download, Printer } from 'lucide-react'
-import { Button } from '../button'
-import { Icon } from '../icon'
 import { ToolbarGroup } from '../toolbar'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
+import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { downloadPdf, printPdf } from './pdf-viewer-utilities'
 
 /** Props for {@link PdfViewerDocumentActions}. @internal */
@@ -31,34 +29,18 @@ export function PdfViewerDocumentActions({
 
 	return (
 		<ToolbarGroup aria-label="Document">
-			<Tooltip>
-				<TooltipTrigger>
-					<Button
-						type="button"
-						variant="plain"
-						aria-label="Download"
-						disabled={disabled}
-						onClick={download}
-					>
-						<Icon icon={<Download />} />
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent>Download</TooltipContent>
-			</Tooltip>
-			<Tooltip>
-				<TooltipTrigger>
-					<Button
-						type="button"
-						variant="plain"
-						aria-label="Print"
-						disabled={disabled}
-						onClick={print}
-					>
-						<Icon icon={<Printer />} />
-					</Button>
-				</TooltipTrigger>
-				<TooltipContent>Print</TooltipContent>
-			</Tooltip>
+			<PdfViewerToolbarButton
+				label="Download"
+				icon={<Download />}
+				disabled={disabled}
+				onClick={download}
+			/>
+			<PdfViewerToolbarButton
+				label="Print"
+				icon={<Printer />}
+				disabled={disabled}
+				onClick={print}
+			/>
 		</ToolbarGroup>
 	)
 }

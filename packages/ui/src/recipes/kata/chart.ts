@@ -1,21 +1,26 @@
 /**
  * Chart kata: object-literal surface for the chart module (Bar / Line / Pie /
- * Combo). Carries the categorical series palette — eight fixed slots plus the
- * `zinc` de-emphasis colour — with the chart chrome inks (gridlines, axis
- * baseline, tick labels, legend/tooltip text) and the tooltip surface, so
- * every chart kind reads one colour system.
+ * Combo). Carries the categorical series palette: eight fixed slots plus the
+ * `zinc` de-emphasis colour. It also carries the chart chrome inks (gridlines,
+ * axis baseline, tick labels, legend/tooltip text) and the tooltip surface.
+ * Every chart kind therefore reads one colour system.
  *
  * Slot shades track `kata/progress` and `kata/sparkline` (600 light / 500
- * dark, per-hue dark steps where the 500 leaves the dark lightness band) so
- * the data-viz family reads as one. The slot *order* is the colourblind-safety
- * mechanism, not cosmetic: it was derived by exhaustively scoring orderings on
- * the minimum adjacent-pair Machado CVD ΔE (protan / deutan / tritan, CIE76)
- * in both modes — blue anchored first, warm reds held out of the leading four
- * slots — and validated with the six-checks palette validator: light on
- * `#ffffff` worst adjacent ΔE 21.7 (tritan 32.5), dark on zinc-900 worst 15.8
- * (tritan 25.1), every slot inside the OKLCH lightness band, over the chroma
- * floor, and ≥ 3:1 contrast on its surface. Re-run the validator before
- * reordering or re-shading.
+ * dark, per-hue dark steps where the 500 leaves the dark lightness band). The
+ * data-viz family thus reads as one. The slot *order* is the
+ * colourblind-safety mechanism, not cosmetic. It was derived by exhaustively
+ * scoring orderings on the minimum adjacent-pair Machado CVD ΔE (protan /
+ * deutan / tritan, CIE76) in both modes. Blue is anchored first, and warm reds
+ * are held out of the leading four slots. The six-checks palette validator then
+ * confirmed it:
+ *
+ * - Light on `#ffffff`: worst adjacent ΔE 21.7 (tritan 32.5).
+ * - Dark on zinc-900: worst 15.8 (tritan 25.1).
+ * - Every slot inside the OKLCH lightness band.
+ * - Every slot over the chroma floor.
+ * - Every slot at ≥ 3:1 contrast on its surface.
+ *
+ * Re-run the validator before reordering or re-shading.
  */
 import { mode } from '../../core/recipe'
 import { iro, kokkaku, sen, ugoki } from '../kiso'
@@ -24,16 +29,21 @@ const { text } = iro
 const { duration, ease, mark } = ugoki
 
 /**
- * Per-colour mark classes: `stroke` for lines and markers, `fill` for bars,
- * areas, slices, and SVG text, `text` (a currentColor class) for HTML swatches
- * (legend keys, tooltip rows — `<Swatch>` fills from it), and `onFill` for
- * label text set inside the mark's own fill — the one place text sits on a
- * series colour. `onFill` is white-first: the percent label is a redundant
- * graphical annotation — the tooltip and hidden data table carry the
- * authoritative value — so it clears the non-text 3:1 floor (WCAG 1.4.11)
- * rather than the 4.5:1 text floor, which the luminance formula overstates on
- * saturated mid-tone fills. Every categorical slot reads `white` in both modes;
- * only the de-emphasis `zinc` drops to near-black `zinc-950`, on its light
+ * Per-colour mark classes:
+ *
+ * - `stroke` for lines and markers.
+ * - `fill` for bars, areas, slices, and SVG text.
+ * - `text` (a currentColor class) for HTML swatches (legend keys, tooltip rows
+ *   — `<Swatch>` fills from it).
+ * - `onFill` for label text set inside the mark's own fill, the one place text
+ *   sits on a series colour.
+ *
+ * `onFill` is white-first. The percent label is a redundant graphical
+ * annotation, since the tooltip and hidden data table carry the authoritative
+ * value. It therefore clears the non-text 3:1 floor (WCAG 1.4.11) rather than
+ * the 4.5:1 text floor. The luminance formula overstates that floor on
+ * saturated mid-tone fills. Every categorical slot reads `white` in both modes.
+ * Only the de-emphasis `zinc` drops to near-black `zinc-950`, on its light
  * `zinc-400` dark step where white falls under 3:1. The
  * `__tests__/recipes/chart-label-contrast` guard re-derives each pick from
  * Tailwind's theme with the `readableInk` utility and fails on drift. The eight
@@ -138,19 +148,19 @@ export const k = {
 	arrow: text.default,
 	/**
 	 * The drawing SVG's pointer posture at the resolved tier: at spark the whole
-	 * drawing goes inert — a sparkline is read-only, so no mark hover styling,
+	 * drawing goes inert. A sparkline is read-only, so no mark hover styling,
 	 * cursor, or hit target can engage. The descendant rule is the load-bearing
-	 * half: the hit layers re-enable themselves through `pointerEvents="all"` /
-	 * `"stroke"` presentation attributes, which win over an inherited
-	 * `pointer-events: none` but lose to any author CSS rule. Wider tiers add
+	 * half. The hit layers re-enable themselves through `pointerEvents="all"` /
+	 * `"stroke"` presentation attributes. Those attributes win over an inherited
+	 * `pointer-events: none`, but lose to any author CSS rule. Wider tiers add
 	 * nothing.
 	 */
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
 	/**
-	 * Motion vocabulary for the mount reveals: the shared data-viz `mark`
-	 * family plus the tempo primitives the timing specs (`chart-motion.ts`,
-	 * and `map-motion.ts` via `kata/map`) compose their module-specific
-	 * timings from.
+	 * Motion vocabulary for the mount reveals: the shared data-viz `mark` family
+	 * plus the tempo primitives. The timing specs (`chart-motion.ts`, and
+	 * `map-motion.ts` via `kata/map`) compose their module-specific timings from
+	 * those primitives.
 	 */
 	motion: { mark, duration, ease },
 	skeleton: kokkaku.chart,

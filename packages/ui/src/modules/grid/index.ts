@@ -1,4 +1,4 @@
-export { type GridContextValue, type SortState, useGrid } from './context'
+export { type GridContextValue, type GridSortState, useGrid } from './context'
 export { downloadExcel, rowsToXlsx } from './engine/grid-export/excel'
 export type {
 	GridExportAction,
@@ -10,38 +10,39 @@ export type {
 	GridExportType,
 	GridExportTypeConfig,
 } from './engine/grid-export/types'
-export {
-	Grid,
-	type GridCellClick,
-	type GridCellClickContext,
-	type GridColumnManagerConfig,
-	type GridColumnOrder,
-	type GridExpandable,
-	type GridFooter,
-	type GridFooterStats,
-	type GridGroupBy,
-	type GridGroupHeaderContext,
-	type GridGroupHeaderRow,
-	type GridHeader,
-	type GridInfiniteScroll,
-	type GridPinning,
-	type GridPinningState,
-	type GridPreferences,
-	type GridProps,
-	type GridReorder,
-	type GridRowClick,
-	type GridRowReorder,
-	type GridSelection,
-	type GridSort,
-	type GridVirtualize,
-} from './grid'
+export type {
+	GridCellClick,
+	GridCellClickContext,
+	GridRowClick,
+} from './engine/grid-row/cell'
+export { Grid, type GridProps } from './grid'
 export {
 	GridColumnManager,
 	type GridColumnManagerProps,
 } from './grid-column-manager'
 export { gridExportMenuItems } from './grid-context-menu-utilities'
 export type {
-	CellChange,
+	GridColumnManagerConfig,
+	GridColumnOrder,
+	GridExpandable,
+	GridFooter,
+	GridFooterStats,
+	GridGroupBy,
+	GridGroupHeaderContext,
+	GridGroupHeaderRow,
+	GridHeader,
+	GridInfiniteScroll,
+	GridPinning,
+	GridPinningState,
+	GridPreferences,
+	GridReorder,
+	GridRowReorder,
+	GridSelection,
+	GridSort,
+	GridVirtualize,
+} from './grid-data-types'
+export type {
+	GridCellChange,
 	GridEditableConfig,
 	GridEditCell,
 	GridEditCellContext,

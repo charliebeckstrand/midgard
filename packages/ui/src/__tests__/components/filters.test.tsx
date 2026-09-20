@@ -1,7 +1,17 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Checkbox } from '../../components/checkbox'
-import { Filters, FiltersClear, FiltersField, useFilters } from '../../components/filters'
+import { Label } from '../../components/fieldset'
+import {
+	Filters,
+	FiltersBar,
+	FiltersClear,
+	FiltersField,
+	FiltersPrefix,
+	FiltersRow,
+	FiltersSuffix,
+	useFilters,
+} from '../../components/filters'
 import { Input } from '../../components/input'
 import { Radio } from '../../components/radio'
 import {
@@ -153,6 +163,63 @@ describe('FiltersField', () => {
 		await user.type(input, 'b')
 
 		expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ name: 'b' }))
+	})
+
+	// The element form matches on component identity, so it reaches a control this
+	// library exports and nothing else. These two pin that boundary, which the
+	// doccomment sends a wrapper to the render function to cross.
+	it('leaves a wrapped control unbound', async () => {
+		const onChange = vi.fn()
+
+		function WrappedInput() {
+			return <Input />
+		}
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
+				<FiltersField name="name">
+					<WrappedInput />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.type(input, 'b')
+
+		// The control took the text, so the field rendered it and never bound it.
+		expect(input.value).toBe('b')
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	it('lets a wrapped decoration take the control slot', async () => {
+		const onChange = vi.fn()
+
+		function WrappedLabel() {
+			return <Label>Name</Label>
+		}
+
+		const { container } = renderUI(
+			<Filters aria-label="Filters" value={{ name: '' }} onValueChange={onChange}>
+				<FiltersField name="name">
+					<WrappedLabel />
+					<Input />
+				</FiltersField>
+			</Filters>,
+		)
+
+		const input = bySlot(container, 'input') as HTMLInputElement
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.type(input, 'b')
+
+		expect(input.value).toBe('b')
+
+		expect(onChange).not.toHaveBeenCalled()
 	})
 })
 
@@ -393,38 +460,35 @@ describe('Filter (uncontrolled)', () => {
 })
 
 describe('Filters extras', () => {
-	it('renders the prefix slot when provided', () => {
-		const { container } = renderUI(
-			<Filters aria-label="Filters" prefix={<span>prefix node</span>}>
-				<span>child</span>
-			</Filters>,
-		)
-
-		const prefix = bySlot(container, 'filters-prefix')
-
-		expect(prefix).toBeInTheDocument()
-
-		expect(prefix?.textContent).toBe('prefix node')
-	})
-
-	it('renders the suffix slot when provided', () => {
-		const { container } = renderUI(
-			<Filters aria-label="Filters" suffix={<span>suffix node</span>}>
-				<span>child</span>
-			</Filters>,
-		)
-
-		const suffix = bySlot(container, 'filters-suffix')
-
-		expect(suffix).toBeInTheDocument()
-
-		expect(suffix?.textContent).toBe('suffix node')
-	})
-
-	it('omits the prefix and suffix slots when not provided', () => {
+	// The three regions were `ReactNode` props once. The context already escaped
+	// the row, so only the layout ever needed them; `FiltersBar` and `FiltersRow`
+	// give that layout a name.
+	it('renders the prefix and suffix regions where they are composed', () => {
 		const { container } = renderUI(
 			<Filters aria-label="Filters">
-				<span>child</span>
+				<FiltersPrefix>prefix node</FiltersPrefix>
+				<FiltersBar>
+					<FiltersRow>
+						<span>child</span>
+					</FiltersRow>
+				</FiltersBar>
+				<FiltersSuffix>suffix node</FiltersSuffix>
+			</Filters>,
+		)
+
+		expect(bySlot(container, 'filters-prefix')?.textContent).toBe('prefix node')
+
+		expect(bySlot(container, 'filters-suffix')?.textContent).toBe('suffix node')
+	})
+
+	it('renders no region a caller did not compose', () => {
+		const { container } = renderUI(
+			<Filters aria-label="Filters">
+				<FiltersBar>
+					<FiltersRow>
+						<span>child</span>
+					</FiltersRow>
+				</FiltersBar>
 			</Filters>,
 		)
 
@@ -451,19 +515,23 @@ describe('Filters extras', () => {
 		expect(onClear).toHaveBeenCalled()
 	})
 
-	it('renders the equal layout variant without error', () => {
+	it('stretches its fields to equal width from the row', () => {
 		const { container } = renderUI(
-			<Filters aria-label="Filters" equal>
-				<FiltersField name="a">
-					<Input />
-				</FiltersField>
-				<FiltersField name="b">
-					<Input />
-				</FiltersField>
+			<Filters aria-label="Filters">
+				<FiltersBar>
+					<FiltersRow equal>
+						<FiltersField name="a">
+							<Input />
+						</FiltersField>
+						<FiltersField name="b">
+							<Input />
+						</FiltersField>
+					</FiltersRow>
+				</FiltersBar>
 			</Filters>,
 		)
 
-		expect(bySlot(container, 'filters')).toBeInTheDocument()
+		expect(bySlot(container, 'filters-row')?.className).toContain('*:flex-1')
 	})
 
 	it('removes a key from the value when the field is set to an empty/inactive value', async () => {

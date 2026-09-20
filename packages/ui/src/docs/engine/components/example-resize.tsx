@@ -94,7 +94,7 @@ export type ResizeHandlers = {
 }
 
 /**
- * The widest the frame may grow: its container's content box, so the width
+ * The widest the frame can grow: its container's content box, so the width
  * stays relative to the container even when `max` is auto. Falls back to
  * unbounded when the container can't be measured (e.g. no layout in tests).
  *
@@ -127,15 +127,17 @@ type DragStart = { pointerX: number; width: number; containerMax: number }
 
 /**
  * Drives an {@link Example} frame's manual width. Returns the container ref to
- * measure and size, the current pixel `width` (undefined until first resized, so
- * the frame stays auto), the `resizing` flag, and the handle's handlers.
+ * measure and size, plus the current pixel `width`. It also returns the
+ * `resizing` flag and the handle's handlers. The `width` is undefined until the
+ * first resize, so the frame stays auto.
  *
  * @param resolved - The resize settings, or `null` when resizing is off.
  * @remarks
  * The width is capped at the container's content box (see {@link availableWidth})
  * even when `max` is auto. Pointer drags use pointer capture, so a drag that
- * leaves the handle still tracks; a move with no button down — or a
- * `pointercancel` — ends the drag so a missed `pointerup` can't leave it stuck.
+ * leaves the handle still tracks. A move with no button down, or a
+ * `pointercancel`, ends the drag. A missed `pointerup` thus cannot leave the
+ * drag stuck.
  * Arrow keys nudge by a grid step (Shift for a coarser jump) and Home/End jump
  * to a defined bound. The latest `resolved` is read through a ref, keeping the
  * handlers stable across renders.
@@ -280,14 +282,14 @@ type ExampleResizeHandleProps = {
 }
 
 /**
- * The grip on an {@link Example} frame's right edge, an interactive
- * window-splitter rendered as a focusable `div` with `role="separator"` — an
- * `<hr>` is a non-interactive thematic break, so it can't carry the splitter's
+ * The grip on an {@link Example} frame's right edge: an interactive
+ * window-splitter rendered as a focusable `div` with `role="separator"`. An
+ * `<hr>` is a non-interactive thematic break, so it cannot carry the splitter's
  * value semantics. Its `aria-valuenow` tracks the current width; drag it or use
  * the arrow keys (Home/End for a defined bound) to resize the frame. A
- * {@link TouchTarget} floors the pointer/touch hit area to the WCAG minimums
- * (24px on fine pointers, 44px on coarse) without widening the slim visible
- * grip, whose two bars are the {@link TouchTarget}'s children.
+ * {@link TouchTarget} floors the pointer/touch hit area to the WCAG minimums:
+ * 24px on fine pointers, 44px on coarse. It does not widen the slim visible
+ * grip, whose two bars are its children.
  *
  * @internal
  */

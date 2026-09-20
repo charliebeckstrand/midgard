@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 
 /** Severity of a toast, mapped to the underlying `Alert` tone. */
-export type ToastSeverity = 'default' | 'secondary' | 'success' | 'warning' | 'error'
+export type ToastSeverity = 'info' | 'neutral' | 'success' | 'warning' | 'error'
 
 /** Viewport corner the toast stack anchors to. */
 export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
@@ -9,9 +9,11 @@ export type ToastPosition = 'top-right' | 'top-left' | 'bottom-right' | 'bottom-
 /**
  * Why a toast left the queue, handed to {@link ToastData.onDismiss}.
  *
- * `timeout` is the toast's own lifetime running out; `close` is the reader pressing its
- * close button; `evicted` is the `maxToasts` cap pushing out the oldest to make room for
- * a newer one; `dismissed` is a `dismiss(id)` call from the application.
+ * - `timeout`: the toast's own lifetime running out
+ * - `close`: the reader pressing its close button
+ * - `evicted`: the `maxToasts` cap pushing out the oldest to make room for a
+ *   newer one
+ * - `dismissed`: a `dismiss(id)` call from the application
  */
 export type ToastDismissReason = 'timeout' | 'close' | 'evicted' | 'dismissed'
 
@@ -29,7 +31,7 @@ export type ToastData = {
 	 * Fires once when this toast leaves the queue, with the reason it left.
 	 *
 	 * `toast()` hands back an id and nothing else, so the caller who raised a toast cannot
-	 * otherwise learn that it is gone — the four exits are all internal. Rides the one
+	 * otherwise learn that it is gone. The four exits are all internal. Rides the one
 	 * toast it was enqueued with, rather than the provider, so a caller hears about its
 	 * own toast and not the whole stack.
 	 *
@@ -40,8 +42,8 @@ export type ToastData = {
 
 /**
  * Argument to the toast provider's `toast()` call: {@link ToastData} without the fields the
- * provider derives, and without `dismissed`, which the provider owns — it marks a toast as
- * leaving and doubles as the latch that keeps `onDismiss` to one report.
+ * provider derives, and without `dismissed`, which the provider owns. `dismissed` marks a
+ * toast as leaving, and doubles as the latch that keeps `onDismiss` to one report.
  */
 export type ToastInput = Omit<ToastData, 'id' | 'duration' | 'dismissed'> & {
 	duration?: number

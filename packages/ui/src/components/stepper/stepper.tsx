@@ -1,8 +1,16 @@
 'use client'
 
-import { Children, isValidElement, type ReactNode, useId, useMemo, useRef } from 'react'
+import {
+	Children,
+	type ComponentProps,
+	isValidElement,
+	type ReactNode,
+	useId,
+	useMemo,
+	useRef,
+} from 'react'
 import { cn } from '../../core'
-import { useA11yRoving, useMinWidth } from '../../hooks'
+import { useA11yRoving, useMinBreakpoint } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
@@ -12,7 +20,10 @@ import { StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
-export type StepperProps = {
+export type StepperProps = Omit<
+	ComponentProps<'div'>,
+	'className' | 'children' | 'onKeyDown' | 'aria-label' | 'aria-orientation' | 'defaultValue'
+> & {
 	/** Controlled current step index. Pair with `onValueChange`. */
 	value?: number
 	/**
@@ -33,10 +44,10 @@ export type StepperProps = {
 	 * @remarks
 	 * Defaults to `active` — only the current step's panel is mounted, so
 	 * stepping away discards whatever it held and stepping back rebuilds it
-	 * empty. A flow whose panels carry entry — a form split across steps — wants
-	 * `lazy`, which mounts each panel on its first visit and then holds it in
-	 * `<Activity mode="hidden">`, preserving its state (and its DOM, so scroll
-	 * position and uncontrolled inputs survive) while its effects stay torn down.
+	 * empty. A flow whose panels carry entry wants `lazy` — a form split across
+	 * steps, say. It mounts each panel on its first visit, then holds it in
+	 * `<Activity mode="hidden">`. That preserves its state and its DOM, so scroll
+	 * position and uncontrolled inputs survive, while its effects stay torn down.
 	 * `always` mounts every panel up front, paying the whole flow's first render
 	 * before the first step is answered.
 	 *
@@ -91,6 +102,7 @@ export function Stepper({
 	mount = 'active',
 	className,
 	children,
+	...props
 }: StepperProps) {
 	const [current = 0, setCurrent] = useControllable<number>({
 		value,
@@ -103,7 +115,7 @@ export function Stepper({
 	// handler. A `value`-only stepper stays a display-only progress readout.
 	const interactive = onValueChange !== undefined || defaultValue !== undefined
 
-	const isDesktop = useMinWidth(640)
+	const isDesktop = useMinBreakpoint('sm')
 
 	// Defaults to vertical on mobile (horizontal overflows narrow viewports).
 	const resolvedOrientation: StepperOrientation =
@@ -146,6 +158,7 @@ export function Stepper({
 
 	const row = (
 		<div
+			{...props}
 			ref={rowRef}
 			data-slot="stepper"
 			data-orientation={resolvedOrientation}

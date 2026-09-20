@@ -36,8 +36,8 @@ export type DocsConfigOptions = {
 /**
  * Build the Vite config for a library's docs site. The shared engine supplies
  * the plugin, React, Tailwind, the curated Shiki-core alias, and the bundle
- * visualizer (under `ANALYZE=1`); the consumer supplies only its
- * `packageName` and, if non-standard, its `root`.
+ * visualizer (under `ANALYZE=1`). The consumer supplies only its `packageName`
+ * and, if non-standard, its `root`.
  *
  * ```ts
  * // packages/ui/vite.docs.config.ts

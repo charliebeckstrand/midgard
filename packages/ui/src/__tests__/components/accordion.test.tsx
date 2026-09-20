@@ -4,10 +4,11 @@ import {
 	AccordionItem,
 	AccordionPanel,
 	AccordionTrigger,
+	type AccordionTriggerProps,
 	useAccordionItem,
 } from '../../components/accordion'
 import type { Mount } from '../../primitives/mount'
-import { act, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
 
 describe('AccordionTrigger', () => {
 	it('fires a consumer onClick alongside the toggle', () => {
@@ -28,6 +29,26 @@ describe('AccordionTrigger', () => {
 		expect(onClick).toHaveBeenCalledTimes(1)
 
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
+	})
+
+	// `data-slot` is admitted on JSX but not on a props object, so widen it.
+	const triggered = (props: AccordionTriggerProps & { 'data-slot'?: string }) => (
+		<Accordion>
+			<AccordionItem value="a">
+				<AccordionTrigger {...props}>Toggle</AccordionTrigger>
+				<AccordionPanel>Panel A</AccordionPanel>
+			</AccordionItem>
+		</Accordion>
+	)
+
+	it('ignores a custom data-slot', () => {
+		// Accordion's roving itemSelector reads this anchor, so a rename must not
+		// drop the header out of the item set (§3.9).
+		const { container } = renderUI(triggered({ 'data-slot': 'renamed' }))
+
+		expect(bySlot(container, 'accordion-trigger')).toBeInTheDocument()
+
+		expect(bySlot(container, 'renamed')).toBeNull()
 	})
 
 	it('only references the panel via aria-controls while it is mounted', () => {
@@ -52,6 +73,14 @@ describe('AccordionTrigger', () => {
 		expect(controls).toBeTruthy()
 
 		expect(document.getElementById(controls as string)).toBe(screen.getByRole('region'))
+	})
+
+	it('keeps type="button" when a consumer supplies a type', () => {
+		renderUI(triggered({ type: 'submit' }))
+
+		// §3.9: a stray `type` must not turn a header into a submit button for the
+		// form that encloses the accordion.
+		expect(screen.getByRole('button', { name: 'Toggle' })).toHaveAttribute('type', 'button')
 	})
 })
 
@@ -432,5 +461,42 @@ describe('Accordion onOpenComplete', () => {
 		renderUI(accordion({ value: 'one', onOpenComplete }))
 
 		expect(onOpenComplete).not.toHaveBeenCalled()
+	})
+})
+
+describe('structure roots pass native props through', () => {
+	// Eight structure roots were closed prop bags while six siblings spread. One
+	// test covers them all, because the rule is one rule: a root takes native
+	// attributes and a `ref`, and its own resolved wiring still wins.
+	it('spreads a consumer id and data attribute onto the root element', () => {
+		const { container } = renderUI(
+			<Accordion type="single" id="a11y-accordion" data-testid="acc">
+				<AccordionItem value="one">
+					<AccordionTrigger>One</AccordionTrigger>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		const root = bySlot(container, 'accordion')
+
+		expect(root).toHaveAttribute('id', 'a11y-accordion')
+
+		expect(root).toHaveAttribute('data-testid', 'acc')
+	})
+
+	it('keeps the resolved data-slot against a consumer that passes its own', () => {
+		const { container } = renderUI(
+			// `data-slot` types through as any other `data-*` attribute; the root
+			// writes its own after the spread, so the anchor survives the attempt.
+			<Accordion type="single" data-slot="mine">
+				<AccordionItem value="one">
+					<AccordionTrigger>One</AccordionTrigger>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(bySlot(container, 'accordion')).toBeInTheDocument()
 	})
 })

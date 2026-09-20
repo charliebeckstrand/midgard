@@ -5,17 +5,19 @@ import { useMemo } from 'react'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
-import type { SlotPaint } from '../engine/chart-color/paint'
+import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/paint'
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
 import { type ScatterMark, scatterDiscsPath } from '../engine/chart-geometry/scatter'
 import { POINT_POP } from '../engine/chart-motion'
 import { useChartMarkEmphasis } from '../engine/context'
 
 /**
- * The opacity a receded disc fades to — the numeric twin of the `opacity-25`
- * utility the bar and line dims use, so the animated discs (which drive opacity
- * through motion, where a class would lose to the inline value) recede to the
- * same depth. @internal
+ * The opacity a receded disc fades to: the numeric twin of the `opacity-25`
+ * utility the bar and line dims use. The animated discs therefore recede to the
+ * same depth. Those discs drive opacity through motion, where a class would lose
+ * to the inline value.
+ *
+ * @internal
  */
 const DIM_OPACITY = 0.25
 
@@ -24,7 +26,7 @@ export type ChartScatterSeries = {
 	/** The series' own index in the caller's list — the React key, unique where two series share a label. */
 	index: number
 	label: string
-	paint: SlotPaint
+	paint: ChartPaint
 	marks: ScatterMark[]
 	/** Whether the series carries the bubble size encoding — sized discs fill translucently. */
 	sized: boolean
@@ -35,32 +37,39 @@ export type ScatterChartMarksProps = {
 	list: ChartScatterSeries[]
 }
 
-/** A disc's presentation: series fill under a surface ring, translucent once sized. @internal */
-function markProps(paint: SlotPaint, sized: boolean) {
+/**
+ * A disc's presentation: series fill under a surface ring, translucent once
+ * sized. A palette slot fills through its class; a raw colour fills inline, as
+ * the bar and line marks do.
+ *
+ * @internal
+ */
+function markProps(paint: ChartPaint, sized: boolean) {
 	return {
 		strokeWidth: MARKER_RING_WIDTH,
 		fillOpacity: sized ? BUBBLE_FILL_OPACITY : undefined,
-		className: cn(paint.fill, k.stroke),
+		fill: rawColor(paint),
+		className: cn(fillClass(paint), k.stroke),
 	}
 }
 
 /**
  * The plain-SVG scatter discs. A plain (unsized) series draws as a single
- * `<path>` of every disc — one surface-ringed subfigure per point — instead of
- * a circle element apiece, so a ten-thousand-point cloud is one DOM node per
- * series and one paint; the ring still keeps overlapping points severally
+ * `<path>` of every disc, one surface-ringed subfigure per point, instead of a
+ * circle element apiece. A ten-thousand-point cloud is therefore one DOM node
+ * per series and one paint. The ring still keeps overlapping points severally
  * readable, the way the line charts' dot markers stay legible over bars. A
- * sized (bubble) series keeps a circle per point: its fill is translucent, so
- * overlaps must composite disc over disc — which one filled path can't do — and
- * a bubble field is the sparse, few-mark case the collapse doesn't pay off on.
+ * sized (bubble) series keeps a circle per point. Its fill is translucent, so
+ * overlaps must composite disc over disc, which one filled path can't do. A
+ * bubble field is also the sparse, few-mark case the collapse doesn't pay off on.
  *
- * Isolation stays per-datum without re-drawing a plain cloud: the pointed disc
- * recedes every other, so the whole series path dims and the one lit disc
- * re-draws at full strength over it — a single overlay circle, not a rebuild —
- * which reads identically to dimming every sibling. The series paths are
- * memoised on `list`, so a pointer crossing (which only re-runs this component
- * through the emphasis context, never the chart body) rebuilds nothing: it
- * swaps a dim class and one overlay disc, not the ten thousand marks under it.
+ * Isolation stays per-datum without re-drawing a plain cloud. The pointed disc
+ * recedes every other, so the whole series path dims. The one lit disc re-draws
+ * at full strength over it, as a single overlay circle rather than a rebuild.
+ * That reads identically to dimming every sibling. The series paths are memoised
+ * on `list`. A pointer crossing only re-runs this component through the emphasis
+ * context, never the chart body, so it rebuilds nothing. It swaps a dim class
+ * and one overlay disc, not the ten thousand marks under it.
  *
  * @internal
  */

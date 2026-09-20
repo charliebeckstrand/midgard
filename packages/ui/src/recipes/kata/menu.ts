@@ -1,15 +1,15 @@
 /**
  * Menu kata: object-literal surface for `<Menu>` / `<Dropdown>` popover lists.
  * The `item` and `viewport` sub-recipes carry the density- and size-axed
- * option row and the capped scroll container; the rest are static slots —
- * `content` (the panel box), `section`, `heading`, `label`, `description`,
- * `shortcut`, the `subTrigger` wash on an open submenu parent, and the
- * `separator` divider.
+ * option row and the capped scroll container. The rest are static slots:
+ * `content` (the panel box), `section`, `heading`, `label`, `description`, and
+ * `shortcut`. The `subTrigger` wash on an open submenu parent and the
+ * `separator` divider join them.
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, narabi, sen } from '../kiso'
 
-const { text } = iro
+const { onWash, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 const { divider } = sen
@@ -38,8 +38,8 @@ const item = defineRecipe({
 
 /**
  * The panel's height cap per density, tuned to cut the last visible row roughly
- * in half (assuming plain items on the diagonal density/size axis), so a clipped
- * row — not just the edge fade — signals more content below. Applied through
+ * in half (assuming plain items on the diagonal density/size axis). A clipped
+ * row, not just the edge fade, therefore signals more content below. Applied through
  * `compound` so a panel that opts out carries no `max-h` at all.
  */
 const MENU_CAPS = [
@@ -86,7 +86,9 @@ export const k = {
 	section: 'first:pt-0 last:pb-0',
 	heading: ['px-3 pb-1 pt-2', size.xs, weight.medium, text.muted],
 	label: 'truncate',
-	description: [description, text.muted, 'group-focus/option:text-white'],
+	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
+	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
+	description: [description, onWash.muted, 'group-focus/option:text-white'],
 	shortcut: 'ml-auto',
 	separator: divider.top,
 } as const

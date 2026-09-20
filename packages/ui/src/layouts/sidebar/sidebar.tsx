@@ -31,16 +31,17 @@ const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 /** Mobile navbar padding per Density step. @internal */
 const NAVBAR_PADDING = { sm: 'p-4', md: 'p-6', lg: 'p-8' } satisfies Record<Step, string>
 
-type SidebarLayoutProps = PropsWithChildren<{
+/** Props for {@link SidebarLayout}: the sidebar content and the slots beside it. */
+export type SidebarLayoutProps = PropsWithChildren<{
 	navbar?: ReactNode
 	sidebar: ReactNode
 	actions?: ReactNode
 	stickyHeader?: boolean
 	floating?: boolean
 	/**
-	 * Fires when the mobile navigation drawer opens or closes, whatever drove it: the
-	 * navbar button, a dismissal, a descendant calling `close`, or the viewport widening
-	 * past `--breakpoint-lg`.
+	 * Fires when the mobile navigation drawer opens or closes, whatever drove it. The
+	 * drivers are the navbar button, a dismissal, a descendant calling `close`, or the
+	 * viewport widening past `--breakpoint-lg`.
 	 *
 	 * Observation only, and the mobile drawer alone. The desktop sidebar is inline, and
 	 * the `floating` variant's hover peek is a pointer affordance rather than a
@@ -51,8 +52,8 @@ type SidebarLayoutProps = PropsWithChildren<{
 
 /**
  * App shell with a persistent sidebar: an inline desktop panel (or a
- * hover-revealed floating {@link Sheet} when `floating`), a mobile
- * {@link Drawer}, and a content column hosting {@link SidebarLayoutHeader},
+ * hover-revealed floating {@link Sheet} when `floating`), and a mobile
+ * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
  * @remarks Sizes its padding and panel from ambient Density. The floating
@@ -177,24 +178,29 @@ export function SidebarLayout({
 	)
 }
 
-type SidebarLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+/** Props for {@link SidebarLayoutHeader}. */
+export type SidebarLayoutHeaderProps = PropsWithChildren<{
+	className?: string
+	ref?: Ref<HTMLElement>
+}>
 
 /**
  * Header slot for {@link SidebarLayout} (`data-slot="header"`). Renders the
  * layout's `actions` alongside its children on desktop.
  */
-export function SidebarLayoutHeader({ children, className }: SidebarLayoutHeaderProps) {
+export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutHeaderProps) {
 	const { actions, size } = useSidebarLayoutContext()
 
 	return (
-		<header data-slot="header" className={cn(k.header({ size }), className)}>
+		<header ref={ref} data-slot="header" className={cn(k.header({ size }), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
 		</header>
 	)
 }
 
-type SidebarLayoutBodyProps = PropsWithChildren<{
+/** Props for {@link SidebarLayoutBody}; `ref` reaches the scrolling `<main>`. */
+export type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
 	ref?: Ref<HTMLElement>
 }>
@@ -208,12 +214,16 @@ export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBod
 	)
 }
 
-type SidebarLayoutFooterProps = PropsWithChildren
+/** Props for {@link SidebarLayoutFooter}. */
+export type SidebarLayoutFooterProps = PropsWithChildren<{
+	className?: string
+	ref?: Ref<HTMLElement>
+}>
 
 /** Footer slot for {@link SidebarLayout} (`data-slot="footer"`). */
-export function SidebarLayoutFooter({ children }: SidebarLayoutFooterProps) {
+export function SidebarLayoutFooter({ ref, children, className }: SidebarLayoutFooterProps) {
 	return (
-		<footer data-slot="footer" className={k.footer()}>
+		<footer ref={ref} data-slot="footer" className={cn(k.footer(), className)}>
 			{children}
 		</footer>
 	)

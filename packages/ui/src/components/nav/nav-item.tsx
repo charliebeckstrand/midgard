@@ -20,8 +20,8 @@ export type NavMenuItemProps = NavItemProps & { value?: string }
 /**
  * Navigation link/button within a {@link NavList}. Renders a polymorphic
  * {@link Button} as an `<li>`, marking itself `aria-current="page"` and mounting
- * the scope's active indicator when current (resolved from `current`, else the
- * `value` selection binding). Hosts `prefix`/`suffix` affix slots outside the
+ * the scope's active indicator when current. Current resolves from `current`,
+ * else from the `value` selection binding. Hosts `prefix`/`suffix` affix slots outside the
  * inner button and closes an enclosing offcanvas on click unless `preventClose`.
  *
  * @remarks
@@ -38,7 +38,6 @@ export function NavItem({
 	className,
 	children,
 	preventClose,
-	spring = false,
 	prefix,
 	suffix,
 	onClick,
@@ -57,7 +56,7 @@ export function NavItem({
 			ref={item.ref as Ref<HTMLLIElement>}
 			data-slot="nav-item"
 			className={k.item.base({ affix: hasAffix })}
-			{...(spring ? item.indicator.tapHandlers : {})}
+			{...item.indicator.tapHandlers}
 		>
 			{prefix != null && (
 				<span data-slot="nav-item-prefix" className={cn(k.item.prefix)}>

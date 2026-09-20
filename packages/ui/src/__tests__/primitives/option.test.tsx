@@ -125,16 +125,6 @@ describe('BaseOption', () => {
 		expect(onSelect).not.toHaveBeenCalled()
 	})
 
-	it('renders a custom icon when provided in place of the default check', () => {
-		const { container } = renderUI(
-			<BaseOption selected={true} icon={<svg data-testid="custom-icon" />} onSelect={() => {}}>
-				Option
-			</BaseOption>,
-		)
-
-		expect(container.querySelector('[data-testid="custom-icon"]')).toBeInTheDocument()
-	})
-
 	it('renders the default check icon hidden until the row is selected', () => {
 		const { container } = renderUI(
 			<BaseOption selected={false} onSelect={() => {}}>

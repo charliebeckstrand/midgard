@@ -1,9 +1,9 @@
 /**
  * Segment bridge: segmented-control archetype shared by `<Segment>`
  * (standalone) and `<Tabs variant="segment">`. A pure bridge: it receives
- * the `segment` token bundle and returns the kata `k` surface, importing
- * only the recipe engine and declaring the token shape it needs as its own
- * contract; katakana references kiso in neither value nor type.
+ * the `segment` token bundle and returns the kata `k` surface. It imports
+ * only the recipe engine and declares the token shape it needs as its own
+ * contract. Katakana references kiso in neither value nor type.
  *
  *   - `control`: outer chrome recipe, callable as `control({ size })`
  *   - `item`: per-segment recipe, callable as `item({ size })`

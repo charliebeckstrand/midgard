@@ -51,10 +51,10 @@ export function isReservedTextboxKey(event: KeyboardEvent<HTMLInputElement>): bo
 
 /**
  * Whether an arrow key opens the closed menu rather than move the caret.
- * The menu opens only from the far edge of the text in the key's direction —
- * ArrowDown at the end, ArrowUp at the start — so a mid-value caret or a ranged
- * selection travels to that edge natively first, as in a plain textbox, and the
- * next press opens. With no caret to traverse — an empty value, or an element
+ * The menu opens only from the far edge of the text in the key's direction:
+ * ArrowDown at the end, ArrowUp at the start. A mid-value caret or a ranged
+ * selection therefore travels to that edge natively first, as in a plain
+ * textbox, and the next press opens. With no caret to traverse — an empty value, or an element
  * reporting a null selection — either key opens immediately.
  *
  * @remarks
@@ -79,10 +79,10 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
  *   enters editing mode, updates the query, opens the menu, and clears the value
  *   on empty when `clearOnEmpty`. `onFocus` opens once the keyboard has settled.
  *   `onBlur` ignores focus moving into the floating panel, else marks touched and
- *   closes. `onKeyDown` handles Escape/Enter, reserves Home/End and Shift+Arrow
- *   for native caret/selection, opens the closed menu from an arrow key at the
- *   matching text edge (ArrowDown at the end, ArrowUp at the start), then
- *   delegates to the roving handler.
+ *   closes. `onKeyDown` handles Escape/Enter, and reserves Home/End and
+ *   Shift+Arrow for native caret/selection. It opens the closed menu from an
+ *   arrow key at the matching text edge: ArrowDown at the end, ArrowUp at the
+ *   start. It then delegates to the roving handler.
  * @remarks Enter selects the sole remaining option when the list has narrowed to
  *   one; the roving handler's activation key selects the highlighted option.
  * @internal
@@ -188,11 +188,11 @@ export function useComboboxInput<T>({
 	/*
 	 * A paste, offered to the consumer first.
 	 *
-	 * When the handler takes it — `preventDefault`, meaning it read the clipboard itself and turned it
-	 * into a selection — the draft that paste replaced is dropped and editing ends, exactly as
-	 * selecting an option does. Without that the field kept the half-typed text it had just committed
-	 * over: still `editing`, so the resting display (and any placeholder standing in for it) stayed
-	 * suppressed by a query the consumer had already consumed.
+	 * When the handler takes it, the draft that paste replaced is dropped and editing ends, exactly as
+	 * selecting an option does. Taking it means `preventDefault`: the handler read the clipboard itself
+	 * and turned it into a selection. Without that the field kept the half-typed text it had just
+	 * committed over. It was still `editing`, so the resting display stayed suppressed by a query the
+	 * consumer had already consumed. Any placeholder standing in for that display stayed suppressed too.
 	 *
 	 * A paste the handler leaves alone is ordinary typing and falls through to `onChange`.
 	 */

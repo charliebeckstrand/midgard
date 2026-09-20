@@ -1,14 +1,11 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { useTimeAgoRelativeTime } from './use-time-ago-relative-time'
 
 /** Props for {@link TimeAgo}: the `date` to age plus `format`/`locale`/`interval` overrides over the `<time>` surface. */
-export type TimeAgoProps = Omit<
-	ComponentPropsWithoutRef<'time'>,
-	'dateTime' | 'children' | 'title'
-> & {
+export type TimeAgoProps = Omit<ComponentProps<'time'>, 'dateTime' | 'children' | 'title'> & {
 	date: Date | string | number
 	/** Override the default `Intl.RelativeTimeFormat` output. */
 	format?: (diffMs: number, now: Date, then: Date) => string
@@ -20,14 +17,14 @@ export type TimeAgoProps = Omit<
 
 /**
  * Self-refreshing relative timestamp rendered in a `<time>` element. Formats via
- * `Intl.RelativeTimeFormat`, falls back to a plain `<span>` for invalid dates, and
- * steps its refresh `interval` coarser as the value ages. To reveal the absolute
+ * `Intl.RelativeTimeFormat`, and falls back to a plain `<span>` for invalid
+ * dates. It steps its refresh `interval` coarser as the value ages. To reveal the absolute
  * time on hover, wrap it in a `<Tooltip>` with a `<TooltipContent>` of your own.
  *
  * @remarks
- * Client-only clock: the first render on both server and client emits an empty
- * `<time>` (no relative text), then the text appears after mount and refreshes on
- * the resolved interval. This keeps hydration deterministic and the markup
+ * Client-only clock. The first render on both server and client emits an empty
+ * `<time>`, with no relative text. The text then appears after mount, and
+ * refreshes on the resolved interval. This keeps hydration deterministic and the markup
  * timezone-stable; lay out for the eventual text to avoid a shift on hydrate.
  */
 export function TimeAgo({

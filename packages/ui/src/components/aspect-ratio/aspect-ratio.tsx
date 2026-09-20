@@ -1,4 +1,4 @@
-import type { ComponentPropsWithoutRef, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/aspect-ratio'
 
@@ -11,7 +11,7 @@ export type AspectRatioProps = {
 	ratio?: AspectRatioPreset | number
 	className?: string
 	children?: ReactNode
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className' | 'children'>
+} & Omit<ComponentProps<'div'>, 'className' | 'children'>
 
 /**
  * Box constraining its content to a fixed aspect ratio with overflow clipped.

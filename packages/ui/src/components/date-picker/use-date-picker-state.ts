@@ -20,10 +20,10 @@ import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyb
  * clear/today footer.
  *
  * @returns Trigger props (`triggerId`, `displayValue`, `disabled`, `invalid`,
- * …), popover plumbing (`open`, `onOpenChange`, `setReference`, `setFloating`,
- * `floatingStyles`, floating-ui prop getters, `context`), the keyboard handler
- * `onTriggerKeyDown`, and the `calendar`/`footer` prop bundles for the open
- * dialog.
+ * …) and popover plumbing (`open`, `onOpenChange`, `setReference`,
+ * `setFloating`, `floatingStyles`, floating-ui prop getters, `context`). It
+ * also returns the keyboard handler `onTriggerKeyDown`, and the
+ * `calendar`/`footer` prop bundles for the open dialog.
  * @internal
  */
 export function useDatePickerState({

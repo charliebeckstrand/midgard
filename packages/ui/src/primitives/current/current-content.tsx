@@ -1,7 +1,7 @@
 'use client'
 
 import { type HTMLMotionProps, motion } from 'motion/react'
-import { type ComponentPropsWithoutRef, type Ref, useCallback, useState } from 'react'
+import { type ComponentProps, useCallback, useState } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
 import { Hold, useMountHold } from '../mount'
@@ -15,19 +15,23 @@ import {
 } from './current'
 
 /** Props for {@link CurrentContent}: the `slotPrefix` stamp, the `value` to match, and a `ref`, over `<div>` attributes. */
-export type CurrentContentProps = ComponentPropsWithoutRef<'div'> & {
-	/** Slot prefix stamped as `data-slot="<slotPrefix>-content"`. */
+export type CurrentContentProps = ComponentProps<'div'> & {
+	/** Slot prefix. It gives the default anchor `data-slot="<slotPrefix>-content"`. */
 	slotPrefix: string
 	/** Match against the surrounding `CurrentContext`. Omit to render unconditionally. */
 	value?: string
-	/** Ref to the rendered element (forwarded in both fade and non-fade modes). */
-	ref?: Ref<HTMLDivElement>
+	/**
+	 * Panel slot identifier. Wrappers override it to rename the anchor.
+	 *
+	 * @defaultValue `${slotPrefix}-content`
+	 */
+	'data-slot'?: string
 }
 
 /**
  * Exit hold for a panel whose mount policy would unmount it the instant it
- * stops being current: latches when `current` flips off while `hold` applies,
- * keeping the outgoing panel mounted so its fade-out can play; `release` clears
+ * stops being current. It latches when `current` flips off while `hold` applies,
+ * keeping the outgoing panel mounted so its fade-out can play. `release` clears
  * the latch once that animation completes. The previous-value comparison runs
  * in render (React's adjust-state-during-render form) so the hold takes effect
  * in the same pass that would otherwise have unmounted the panel.
@@ -66,16 +70,19 @@ function matchesCurrent(value: string | undefined, contextValue: string | undefi
 
 /**
  * Per-panel wrapper that renders when its `value` matches the surrounding
- * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy: a
- * fading container animates opacity in place; a non-fading one holds inactive
+ * `CurrentContext`. The surrounding `CurrentContents` sets the mount policy. A
+ * fading container animates opacity in place. A non-fading one holds inactive
  * panels via `<Activity mode="hidden">` (state preserved, effects paused),
- * lazily mounts them on first activation, or unmounts them, per its resolved
- * `mount`. Under a fading container the lifecycle edges ride the cross-fade:
- * a panel mounting after the container settles enters from transparent, an
- * `active`-mounted outgoing panel holds its unmount until the fade-out
- * completes, and a held (`always`/`lazy`) panel rests in
- * `<Activity mode="hidden">` between crossfades — live only while a fade is
- * in flight or it is the current panel.
+ * lazily mounts them on first activation, or unmounts them. The resolved
+ * `mount` decides.
+ *
+ * Under a fading container the lifecycle edges ride the cross-fade:
+ *
+ * - a panel mounting after the container settles enters from transparent
+ * - an `active`-mounted outgoing panel holds its unmount until the fade-out
+ *   completes
+ * - a held (`always`/`lazy`) panel rests in `<Activity mode="hidden">` between
+ *   crossfades, live only while a fade is in flight or it is the current panel
  */
 export function CurrentContent({
 	slotPrefix,
@@ -84,6 +91,7 @@ export function CurrentContent({
 	style,
 	children,
 	ref,
+	'data-slot': slot = `${slotPrefix}-content`,
 	...props
 }: CurrentContentProps) {
 	const context = useCurrent()
@@ -123,13 +131,7 @@ export function CurrentContent({
 		// state while hidden but tears down effects and defers re-rendering.
 		return (
 			<Hold hold={hold} name={`${slotPrefix}-content`}>
-				<div
-					ref={ref}
-					data-slot={`${slotPrefix}-content`}
-					className={className}
-					style={style}
-					{...props}
-				>
+				<div ref={ref} data-slot={slot} className={className} style={style} {...props}>
 					<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
 				</div>
 			</Hold>
@@ -142,7 +144,7 @@ export function CurrentContent({
 			// Forward caller props (id, role, aria-*) in fade mode; the cast
 			// sidesteps motion's redefined animation/drag handler signatures.
 			{...(props as HTMLMotionProps<'div'>)}
-			data-slot={`${slotPrefix}-content`}
+			data-slot={slot}
 			data-current={dataAttr(current)}
 			animate={{ opacity: current ? 1 : 0 }}
 			// A panel mounting after the container settles enters from

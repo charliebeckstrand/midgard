@@ -1,3 +1,5 @@
+import { printInHiddenFrame } from '../../utilities'
+
 /**
  * Triggers a download of the PDF at `src` via a transient anchor click.
  *
@@ -25,73 +27,16 @@ export function downloadPdf(src: string, filename?: string) {
 /**
  * Prints the PDF at `src` through a hidden iframe.
  *
- * @remarks Cleans up the iframe on `afterprint`, with a window-`focus` backstop
- * for browsers that never fire it (e.g. older Safari) or when the dialog is
- * dismissed. Falls back to opening the PDF in a new tab when the iframe can't be
- * printed (e.g. a cross-origin source).
+ * @remarks Falls back to opening the PDF in a new tab when the frame cannot be
+ * printed — a cross-origin source, or a `print()` the browser blocks. See
+ * {@link printInHiddenFrame}.
  * @internal
  */
 export function printPdf(src: string) {
-	const iframe = document.createElement('iframe')
-
-	Object.assign(iframe.style, {
-		position: 'fixed',
-		right: '0',
-		bottom: '0',
-		width: '0',
-		height: '0',
-		border: '0',
+	printInHiddenFrame({
+		prepare: (iframe) => {
+			iframe.src = src
+		},
+		onFail: () => window.open(src, '_blank', 'noopener,noreferrer'),
 	})
-
-	iframe.setAttribute('aria-hidden', 'true')
-
-	let cleaned = false
-
-	const cleanup = () => {
-		if (cleaned) return
-
-		cleaned = true
-
-		window.removeEventListener('focus', cleanup)
-
-		iframe.remove()
-	}
-
-	iframe.addEventListener('load', () => {
-		const win = iframe.contentWindow
-
-		if (!win) {
-			cleanup()
-
-			return
-		}
-
-		try {
-			win.addEventListener('afterprint', cleanup)
-
-			// Backstop for browsers that never fire `afterprint` (e.g. older Safari)
-			// or where the user dismisses the dialog: reclaims the iframe when
-			// focus returns to the main window after the print dialog closes.
-			window.addEventListener('focus', cleanup, { once: true })
-
-			win.focus()
-			win.print()
-		} catch {
-			// Same-origin blob URL should not throw; if it does (e.g. pages + remote src),
-			// falls back to opening the PDF in a new tab for manual printing.
-			window.open(src, '_blank', 'noopener,noreferrer')
-
-			cleanup()
-		}
-	})
-
-	iframe.addEventListener('error', () => {
-		window.open(src, '_blank', 'noopener,noreferrer')
-
-		cleanup()
-	})
-
-	iframe.src = src
-
-	document.body.appendChild(iframe)
 }

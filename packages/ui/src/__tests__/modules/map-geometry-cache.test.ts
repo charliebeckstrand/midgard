@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { geoMercator } from 'd3-geo'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'

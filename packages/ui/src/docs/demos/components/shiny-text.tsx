@@ -6,7 +6,7 @@ import { ShinyText } from '../../../components/shiny-text'
 import { Stack } from '../../../components/stack'
 import { Example, ValueStepper, VariantListbox } from '../../engine'
 
-const directions = ['left', 'right'] as const
+const sweeps = ['left', 'right'] as const
 
 const palettes = [
 	{ name: 'Zinc', color: 'var(--color-zinc-600)', shineColor: 'var(--color-white)' },
@@ -39,18 +39,16 @@ function SpeedExample() {
 	)
 }
 
-function DirectionExample() {
-	const [direction, setDirection] = useState<(typeof directions)[number]>('left')
+function SweepExample() {
+	const [sweep, setSweep] = useState<(typeof sweeps)[number]>('left')
 
 	return (
 		<Example
-			title="Direction"
-			actions={
-				<VariantListbox variants={directions} value={direction} onValueChange={setDirection} />
-			}
+			title="Sweep"
+			actions={<VariantListbox variants={sweeps} value={sweep} onValueChange={setSweep} />}
 		>
-			<ShinyText direction={direction} className="text-3xl font-semibold">
-				Sweep {direction}
+			<ShinyText sweep={sweep} className="text-3xl font-semibold">
+				Sweep {sweep}
 			</ShinyText>
 		</Example>
 	)
@@ -80,7 +78,7 @@ export function Demo() {
 				</Stack>
 			</Example>
 
-			<DirectionExample />
+			<SweepExample />
 
 			<Example title="Spread">
 				<Flex gap="lg" wrap>

@@ -27,6 +27,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-turbo-gate-
       - run: pnpm install --frozen-lockfile
+      # Vitest's disk module cache (vitest.config.ts, `experimental.fsModuleCache`).
+      # Vitest writes it under the workspace root's node_modules, not the
+      # package's. Restored after install so the directory lands inside a
+      # populated node_modules; keyed like `.turbo` so the newest prior run
+      # seeds it.
+      - uses: actions/cache@v4
+        with:
+          path: node_modules/.experimental-vitest-cache
+          key: ${{ runner.os }}-vitest-cache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vitest-cache-
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why.
       - run: pnpm turbo run lint check-types test knip build bundle:budget

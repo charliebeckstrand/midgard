@@ -5,6 +5,7 @@ import {
 	useCallback,
 	useDeferredValue,
 	useEffect,
+	useEffectEvent,
 	useId,
 	useMemo,
 	useRef,
@@ -20,24 +21,31 @@ import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 type CommandPaletteStateOptions = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
+	onActiveChange?: (optionId: string | null) => void
 }
 
 const ITEM_SELECTOR = '[data-slot="command-palette-item"]:not([data-disabled])'
 
 /**
- * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}:
- * the search value plus the refs and `onKeyDown` that drive
+ * Query, deferred query, and virtual-roving wiring for {@link CommandPalette}.
+ * It returns the search value plus the refs and `onKeyDown` that drive
  * `aria-activedescendant` highlighting over options while focus stays on the
  * input. Resets the query on close and keeps the highlight on the top result as
  * the filtered set changes. `virtualSourceRef` is the registration point a
  * `VirtualOptions` (with `getOptionId`) inside `children` publishes into, so the
  * arrow keys reach items outside a windowed list. Navigation is arrow-only —
  * roving `typeahead` stays off, since the search input owns printable keys.
+ * `onActiveChange` reports the highlighted option's id after each route that
+ * moves it: an arrow key, a filter change, and the close that clears it.
  *
  * @internal
  * @see {@link useA11yRoving}
  */
-export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteStateOptions) {
+export function useCommandPaletteState({
+	open,
+	onOpenChange,
+	onActiveChange,
+}: CommandPaletteStateOptions) {
 	const [query, setQuery] = useState('')
 
 	// Bypasses deferral on empty query: the deferred copy paints one stale
@@ -61,6 +69,39 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 	// can't be read back off the DOM.
 	const activeIndexRef = useRef(-1)
 
+	/*
+	 * The highlight's one readout, reported after each route that moves it.
+	 *
+	 * The roving hook writes `aria-activedescendant` on the input imperatively
+	 * rather than through state, so there is no committed React value to watch.
+	 * The attribute IS the state. It is read back rather than tracked in parallel,
+	 * because the index and the DOM part company under a windowed list. This is
+	 * the id the reader's assistive technology is given.
+	 */
+	const notifyActiveChange = useEffectEvent((optionId: string | null) => {
+		onActiveChange?.(optionId)
+	})
+
+	const reportedActiveRef = useRef<string | null>(null)
+
+	const reportActive = useCallback((next: string | null) => {
+		if (reportedActiveRef.current === next) return
+
+		reportedActiveRef.current = next
+
+		notifyActiveChange(next)
+	}, [])
+
+	const reportsRef = useRef(onActiveChange !== undefined)
+
+	reportsRef.current = onActiveChange !== undefined
+
+	const reportActiveFromDom = useCallback(() => {
+		if (!reportsRef.current) return
+
+		reportActive(inputRef.current?.getAttribute('aria-activedescendant') ?? null)
+	}, [reportActive])
+
 	const rovingKeyDown = useA11yRoving(listRef, {
 		mode: 'virtual',
 		itemSelector: ITEM_SELECTOR,
@@ -78,8 +119,12 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 			if (isReservedTextboxKey(event)) return
 
 			rovingKeyDown(event)
+
+			// The roving handler writes the attribute synchronously, so the read is
+			// of the highlight this keypress just moved.
+			reportActiveFromDom()
 		},
-		[rovingKeyDown],
+		[rovingKeyDown, reportActiveFromDom],
 	)
 
 	// On each filter change, moves the keyboard highlight to the top result so
@@ -110,7 +155,9 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 			activeIndexRef,
 			inputRef,
 		)
-	}, [deferredQuery, open])
+
+		reportActiveFromDom()
+	}, [deferredQuery, open, reportActiveFromDom])
 
 	// Resets the query and the virtual-highlight index when closed; done during
 	// render, not in an effect. Clearing `activeIndexRef` stops a virtualized
@@ -129,6 +176,16 @@ export function useCommandPaletteState({ open, onOpenChange }: CommandPaletteSta
 			activeIndexRef.current = -1
 		}
 	}
+
+	// The closing panel unmounts its options, so nothing is highlighted any more.
+	// Reported from an effect rather than beside the render-phase reset above,
+	// because a report is a side effect and the render phase is no place for one.
+	// `reportActive` dedupes, so a palette that closed with no highlight is silent.
+	useEffect(() => {
+		if (open) return
+
+		reportActive(null)
+	}, [open, reportActive])
 
 	const close = useCallback(() => onOpenChange(false), [onOpenChange])
 

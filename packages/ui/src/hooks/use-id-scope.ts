@@ -2,7 +2,8 @@
 
 import { useCallback, useId, useMemo } from 'react'
 
-type IdScopeOptions = {
+/** Options for {@link useIdScope}: an id to adopt in place of the generated one. */
+export type IdScopeOptions = {
 	id?: string
 }
 

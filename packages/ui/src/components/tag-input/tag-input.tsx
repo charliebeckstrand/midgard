@@ -1,7 +1,7 @@
 'use client'
 
 import { CornerLeftDown } from 'lucide-react'
-import { type ClipboardEvent, type Ref, useCallback, useRef, useState } from 'react'
+import { type ClipboardEvent, useCallback, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
@@ -9,42 +9,49 @@ import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
 import { keyByOccurrence } from '../../utilities'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
+import { useControl } from '../control/context'
 import { Flex } from '../flex'
 import { Icon } from '../icon'
-import { Input } from '../input'
+import { Input, type InputProps } from '../input'
 import { TagInputBadge } from './tag-input-badge'
-import { hasSeparator, splitTokens } from './tag-input-utilities'
+import { hasSeparator, splitTokens, type TokenRejection } from './tag-input-utilities'
 import { useTagInput } from './use-tag-input'
 import { useTagInputKeyboard } from './use-tag-input-keyboard'
 
 /**
- * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, and `<Form>` binding via `name`.
+ * Props for {@link TagInput}: controlled/uncontrolled tag list plus `max`, `validate`, the `onReject` report, and `<Form>` binding via `name`.
  *
  * @see {@link TagInput}
  */
-export type TagInputProps = {
-	id?: string
-	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` should seed `string[]`. */
+export type TagInputProps = Omit<
+	InputProps,
+	| 'value'
+	| 'defaultValue'
+	| 'onChange'
+	| 'prefix'
+	| 'suffix'
+	| 'readOnly'
+	| 'invalid'
+	| 'type'
+	| 'children'
+> & {
+	/** Binds the tag list to an enclosing Form field. `Form.defaultValues` seeds `string[]`. */
 	name?: string
-	size?: ControlSize
-	/** Tag appearance; `color` is the badge color for every tag (default `'zinc'`). */
-	tag?: { color?: Color }
-	/** Current tag values (controlled). */
-	value?: string[]
+	/** Badge color for every tag. @defaultValue 'zinc' */
+	tagColor?: Color
+	/** Current tag values (controlled); `null` is controlled-and-empty (CONVENTIONS §7.3). */
+	value?: string[] | null
 	/** Initial tag values (uncontrolled). */
 	defaultValue?: string[]
 	/** Called when the tag list changes. */
 	onValueChange?: (value: string[]) => void
 	/**
-	 * Placeholder shown while the tag list is empty; doubles as the input's
-	 * `aria-label`.
+	 * Placeholder shown while the tag list is empty. It also names the input,
+	 * where no `aria-label` and no wrapping `<Field>`/`<Label>` does.
 	 *
 	 * @defaultValue `'Add tags'` (aria-label fallback when unset)
 	 */
 	placeholder?: string
-	/** Disables editing and removal. */
-	disabled?: boolean
 	/** Maximum number of tags; at the cap the field goes read-only (further additions are rejected) while existing tags stay removable. */
 	max?: number
 	/**
@@ -55,15 +62,25 @@ export type TagInputProps = {
 	 * within-limit candidates.
 	 */
 	validate?: (tag: string) => boolean
-	ref?: Ref<HTMLInputElement>
-	className?: string
+	/**
+	 * Fires with the refused part of a commit: the tags `validate` turned away, the
+	 * ones already held, and how many had no room.
+	 *
+	 * Every commit splits four ways, and `onValueChange` reports one part of it.
+	 * The other three reach the live region and stop there, which no caller can
+	 * read. Use this callback to explain a refusal in the caller's own words, or to
+	 * count what a paste dropped. `rejected` is also what the field puts back in the
+	 * draft; `duplicates` and `overLimit` are not, because the field already shows
+	 * both.
+	 */
+	onReject?: (rejected: TokenRejection) => void
 }
 
 /**
  * Token-entry field rendering its tags as removable badges in the `<Input>`
- * prefix; controlled or uncontrolled via `value`/`defaultValue`, committing
- * on Enter, comma, blur, the Add button or a paste, removing the trailing tag
- * with Backspace, and gating additions through `validate` and `max`.
+ * prefix. It is controlled or uncontrolled via `value`/`defaultValue`. It
+ * commits on Enter, comma, blur, the Add button or a paste. Backspace removes
+ * the trailing tag, and `validate` and `max` gate the additions.
  *
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
@@ -73,23 +90,23 @@ export type TagInputProps = {
  * the input after a removal (WCAG 4.1.3, 2.4.3).
  *
  * **A paste commits every token in it.** Pasting a list is the commonest way to
- * fill a token field and it used to commit nothing: the draft only tokenized on
- * a `keydown`, which a paste does not fire, so the whole string sat in the input
- * until blur refused it as one invalid tag. `onPaste` reads `clipboardData`
- * BEFORE the default insertion, which is the only point a newline-separated
- * spreadsheet column is still splittable — a native `<input>` strips newlines
- * from its own value, destroying the boundaries. Every commit channel routes
- * through one tokenizer, so all of them accept the same input.
+ * fill a token field, and it used to commit nothing. The draft only tokenized on
+ * a `keydown`, which a paste does not fire. The whole string therefore sat in
+ * the input until blur refused it as one invalid tag. `onPaste` reads
+ * `clipboardData` BEFORE the default insertion. That is the only point a
+ * newline-separated spreadsheet column is still splittable. A native `<input>`
+ * strips the newlines from its own value, which destroys the boundaries. Every
+ * commit channel routes through one tokenizer, so all of them accept the same
+ * input.
  *
- * Tokens `validate` refuses stay in the draft and mark the field invalid, so a
- * mistyped code in a list of forty is visible and directly editable rather than
+ * Tokens `validate` refuses stay in the draft and mark the field invalid. A
+ * mistyped code in a list of forty is thus visible and directly editable, not
  * announced once and lost.
  */
 export function TagInput({
-	id,
 	name,
 	size,
-	tag,
+	tagColor,
 	value,
 	defaultValue,
 	onValueChange,
@@ -97,12 +114,17 @@ export function TagInput({
 	disabled,
 	max,
 	validate,
+	onReject,
 	ref,
 	className,
+	'aria-label': ariaLabel,
+	...props
 }: TagInputProps) {
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const setRefs = useComposedRef(inputRef, ref)
+
+	const control = useControl()
 
 	// The tag row rides the control's density; resolve the step to pad it.
 	const { space } = useControlSize(size)
@@ -114,6 +136,7 @@ export function TagInput({
 		onValueChange,
 		max,
 		validate,
+		onReject,
 	})
 
 	const [inputValue, setInputValue] = useState('')
@@ -123,7 +146,7 @@ export function TagInput({
 	// at all — the reason a refused paste read as nothing happening.
 	const [refused, setRefused] = useState(false)
 
-	const resolvedColor = tag?.color ?? 'zinc'
+	const resolvedColor = tagColor ?? 'zinc'
 
 	/**
 	 * The one commit path: tokenize, add what is addable, keep what was refused.
@@ -224,8 +247,8 @@ export function TagInput({
 
 	return (
 		<Input
+			{...props}
 			ref={setRefs}
-			id={id}
 			size={size}
 			disabled={disabled}
 			// At the cap the field is read-only, not disabled: a disabled child trips
@@ -236,7 +259,10 @@ export function TagInput({
 			// Control/Field state. The inner Input is intentionally nameless.
 			invalid={invalid || refused || undefined}
 			placeholder={tags.length === 0 ? placeholder : undefined}
-			aria-label={placeholder ?? 'Add tags'}
+			// Yields to a wrapping `<Field>`/`<Label>`: an own name shadows it, and a
+			// placeholder is not a programmatic name. Names the field only when
+			// nothing else does.
+			aria-label={ariaLabel ?? (control?.labelledBy ? undefined : (placeholder ?? 'Add tags'))}
 			value={inputValue}
 			onChange={(event) => {
 				setInputValue(event.target.value)

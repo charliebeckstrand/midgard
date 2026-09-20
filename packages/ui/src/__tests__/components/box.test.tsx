@@ -15,18 +15,6 @@ describe('Box', () => {
 		expect(ref.current).toBe(bySlot(container, 'box'))
 	})
 
-	it('renders as a link when href is provided', () => {
-		const { container } = renderUI(<Box href="/path">Link</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el).toBeInTheDocument()
-
-		expect(el?.tagName).toBe('A')
-
-		expect(el).toHaveAttribute('href', '/path')
-	})
-
 	it('forwards ref when rendered as a link', () => {
 		const ref = createRef<HTMLAnchorElement>()
 
@@ -41,14 +29,6 @@ describe('Box', () => {
 		expect(ref.current).toBe(bySlot(container, 'box'))
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Box id="test">content</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
-
 	it('applies the outline=true variant', () => {
 		const { container } = renderUI(<Box outline>content</Box>)
 
@@ -61,24 +41,24 @@ describe('Box', () => {
 		expect(bySlot(container, 'box')).toHaveClass('outline-zinc-950/15')
 	})
 
-	it('applies radius, bg, padding, and margin tokens', () => {
+	it('applies radius, bg, and padding tokens', () => {
 		const { container } = renderUI(
-			<Box radius="md" bg="surface" p="md" m="sm">
+			<Box radius="md" bg="surface" p="md">
 				content
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'p-3', 'm-2')
+		expect(bySlot(container, 'box')).toHaveClass('rounded-md', 'bg-white', 'p-3')
 	})
 
-	it('respects px / py / mx / my overrides', () => {
+	it('respects px / py overrides', () => {
 		const { container } = renderUI(
-			<Box px="lg" py="sm" mx="xs" my="md">
+			<Box px="lg" py="sm">
 				content
 			</Box>,
 		)
 
-		expect(bySlot(container, 'box')).toHaveClass('px-4', 'py-2', 'mx-1', 'my-3')
+		expect(bySlot(container, 'box')).toHaveClass('px-4', 'py-2')
 	})
 
 	it('renders with a custom data-slot', () => {
@@ -121,5 +101,35 @@ describe('Box', () => {
 		const el = bySlot(container, 'box') as HTMLElement
 
 		expect(el.className).not.toMatch(/(^|\s)p-(xs|sm|md|lg|xl)(\s|$)/)
+	})
+})
+
+describe('Box responsive padding', () => {
+	// `Responsive<T>` reached Flex and Stack alone once, so a Box's padding could
+	// not change with the viewport.
+	it('emits one padding class per named breakpoint', () => {
+		const { container } = renderUI(<Box p={{ initial: 'sm', md: 'lg' }}>content</Box>)
+
+		const className = bySlot(container, 'box')?.className ?? ''
+
+		expect(className).toContain('p-2')
+
+		expect(className).toContain('md:p-4')
+	})
+
+	it('resolves the axis padding the same way', () => {
+		const { container } = renderUI(
+			<Box px={{ initial: 0, lg: 'xl' }} py={{ initial: 'xs' }}>
+				content
+			</Box>,
+		)
+
+		const className = bySlot(container, 'box')?.className ?? ''
+
+		expect(className).toContain('px-0')
+
+		expect(className).toContain('lg:px-6')
+
+		expect(className).toContain('py-1')
 	})
 })

@@ -9,6 +9,7 @@ type AddressSuggestionsOptions = {
 	query: string
 	debounceMs: number
 	minQueryLength: number
+	onError?: (error: unknown) => void
 }
 
 export function useAddressInputSuggestions({
@@ -17,6 +18,7 @@ export function useAddressInputSuggestions({
 	query,
 	debounceMs,
 	minQueryLength,
+	onError,
 }: AddressSuggestionsOptions) {
 	const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([])
 
@@ -28,6 +30,12 @@ export function useAddressInputSuggestions({
 
 	// Read from the debounce timer, so a new provider identity never restarts the fetch effect.
 	const fetchSuggestions = useEffectEvent(provider)
+
+	// Raised the same way, and for the same reason: a new callback identity must
+	// not restart a fetch that is already in flight.
+	const notifyError = useEffectEvent((error: unknown) => {
+		onError?.(error)
+	})
 
 	useEffect(() => {
 		if (!enabled) {
@@ -90,6 +98,11 @@ export function useAddressInputSuggestions({
 					setLoading(false)
 
 					setReady(true)
+
+					// An empty list is also what a genuine no-match renders, so the
+					// field shows a provider outage as "no results". The rejection
+					// goes to the caller rather than nowhere.
+					notifyError(error)
 				})
 		}, delay)
 

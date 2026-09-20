@@ -31,7 +31,7 @@ import {
 import { AllCommunityModule, createGrid, type GridApi, ModuleRegistry } from 'ag-grid-community'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { Grid, type GridColumn, type SortState } from '../../modules/grid'
+import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey } from '../fixtures'
 
 // AG Grid draws nothing until its feature modules register; the community
@@ -136,7 +136,7 @@ function uiContender(): GridContender {
 
 			let current = rows
 
-			let sort: SortState[] = []
+			let sort: GridSortState[] = []
 
 			let search = ''
 

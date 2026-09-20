@@ -24,9 +24,9 @@ export type SidebarItemProps = NavItemProps & {
 
 /**
  * Partitions a `SidebarItem`'s children. A `SidebarItemActions` child hoists
- * into the `suffix` slot — rendering beside the button rather than nested
- * inside it, where an interactive control would break markup — and drops out
- * of the inner content; an explicit `suffix` prop wins. The mini-rail tooltip
+ * into the `suffix` slot, and drops out of the inner content. It renders beside
+ * the button rather than nested inside it, where an interactive control would
+ * break markup. An explicit `suffix` prop wins. The mini-rail tooltip
  * (portaled past the rail's group-scoped hiding) carries only the
  * `SidebarLabel` children, falling back to the inner content when composed
  * without one.
@@ -51,8 +51,8 @@ function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
  * Navigation row inside a `Sidebar`, rendering as a `Button` (or `Link` when
  * `href` is set) marked `aria-current="page"` while `current`. Wraps in an
  * `<li>` inside a `SidebarList`, else a `<span>`. A `prefix`/`suffix` affix
- * flips the row to a flex layout whose slots join the cross-axis roving model
- * and sit inside the shared hover tint and focus ring; a `SidebarItemActions`
+ * flips the row to a flex layout. Its slots join the cross-axis roving model,
+ * and sit inside the shared hover tint and focus ring. A `SidebarItemActions`
  * child hoists into the `suffix` slot (an explicit `suffix` prop wins). Under
  * the parent's mini rail the label is hidden in place (preserving the
  * accessible name) and echoed into a hover tooltip.
@@ -66,7 +66,6 @@ export function SidebarItem({
 	className,
 	children,
 	preventClose,
-	spring = false,
 	prefix,
 	suffix,
 	onClick,
@@ -125,7 +124,7 @@ export function SidebarItem({
 			ref={item.ref as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
 			className={k.item.row({ affix: hasAffix, size: item.size })}
-			{...(spring ? item.indicator.tapHandlers : {})}
+			{...item.indicator.tapHandlers}
 		>
 			{prefix != null && (
 				<span data-slot="sidebar-item-prefix" className={cn(k.item.prefix({ size: item.size }))}>

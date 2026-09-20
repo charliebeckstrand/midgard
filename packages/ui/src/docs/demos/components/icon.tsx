@@ -1,5 +1,5 @@
 import { Heart, Plus, Search, Star } from 'lucide-react'
-import { Alert, AlertDescription, AlertTitle } from '../../../components/alert'
+import { Alert } from '../../../components/alert'
 import { Code } from '../../../components/code'
 import { Flex } from '../../../components/flex'
 import { Icon } from '../../../components/icon'
@@ -10,13 +10,18 @@ const sizes = ['xs', 'sm', 'md', 'lg'] as const
 export function Demo() {
 	return (
 		<>
-			<Alert severity="info" closable>
-				<AlertTitle>SVG support</AlertTitle>
-				<AlertDescription>
-					The <Code>&lt;Icon&gt;</Code> component can wrap any SVG icon component. It provides a
-					consistent interface for sizing and styling icons.
-				</AlertDescription>
-			</Alert>
+			<Alert
+				severity="info"
+				closable
+				title="SVG support"
+				description={
+					<>
+						The <Code>&lt;Icon&gt;</Code> component can wrap any SVG icon component that forwards
+						its props to the element it renders. It provides a consistent interface for sizing and
+						styling icons.
+					</>
+				}
+			/>
 
 			<Example title="Default">
 				<Flex gap="lg" className="dark:text-white">

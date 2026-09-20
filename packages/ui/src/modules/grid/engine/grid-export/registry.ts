@@ -28,8 +28,8 @@ export const BUILTIN_EXPORT_LABEL: Record<'csv' | 'excel' | 'print', string> = {
  * The built-in exporter for each shipped {@link GridExportType}: `csv` and
  * `excel` trigger a client-side download, `print` opens the browser print
  * dialog over the same rows. Adding a shipped type is one entry here (plus its
- * own file alongside `csv.ts` / `excel.ts` / `print.ts`) — nothing else in the
- * module changes; a consumer-defined type instead supplies its own
+ * own file alongside `csv.ts` / `excel.ts` / `print.ts`), and nothing else in
+ * the module changes. A consumer-defined type instead supplies its own
  * `onExport` (see {@link GridExportTypeConfig}), bypassing this registry
  * entirely.
  *

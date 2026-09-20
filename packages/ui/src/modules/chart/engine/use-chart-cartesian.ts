@@ -58,6 +58,8 @@ export type CartesianData<T> = Pick<
 > & {
 	/** The `legend` prop already resolved to its show value — the entry component resolves it before the hook reads it. */
 	legend?: ResolvedLegend['value']
+	/** The legend's hidden-set report, carried straight from the caller's props. */
+	onHiddenChange?: (hidden: ReadonlySet<number>) => void
 	/** Whether the category axis tilts colliding labels, resolved from `axes.x.tickRotation`. */
 	tickRotation?: boolean
 }
@@ -69,10 +71,10 @@ function categoryTickRotation(axes: boolean | CartesianAxes | undefined): boolea
 
 /**
  * The hook input picked off an entry component's props with its `legend`
- * resolved — the one place the four cartesian charts' shared field list lives,
- * so each hands the hook `cartesianData(props, resolvedLegend.value)` rather
- * than repeating it. The header fields travel to the frame through the props'
- * rest, and the hook reads them too so its tier reserves the header band.
+ * resolved. It is the one place the four cartesian charts' shared field list
+ * lives, so each hands the hook `cartesianData(props, resolvedLegend.value)`
+ * rather than repeating it. The header fields travel to the frame through the
+ * props' rest, and the hook reads them too so its tier reserves the header band.
  *
  * @internal
  */
@@ -89,6 +91,7 @@ export function cartesianData<T>(
 		aspectRatio: props.aspectRatio,
 		axes: props.axes,
 		legend,
+		onHiddenChange: props.onHiddenChange,
 		reference: props.reference,
 		tickRotation: categoryTickRotation(props.axes),
 		onCategoryClick: props.onCategoryClick,
@@ -116,9 +119,9 @@ export type CartesianConfig<T> = {
 	 */
 	orientation?: ChartOrientation
 	/**
-	 * Order the legend switches by each series' latest value, largest first, so
-	 * they read top-to-bottom in the marks' own visible order rather than the
-	 * caller's series order — the overlapping lines a {@link LineChart} draws.
+	 * Order the legend switches by each series' latest value, largest first. They
+	 * then read top-to-bottom in the marks' own visible order, rather than the
+	 * caller's series order. That is the overlapping lines a {@link LineChart} draws.
 	 * Off — the default — keeps the series order, which the drawn order of
 	 * grouped bars and stacks must match.
 	 * @defaultValue false
@@ -128,19 +131,29 @@ export type CartesianConfig<T> = {
 	 * How far, in px, the chart's widest mark paints past its data coordinate —
 	 * see {@link CartesianLayoutInput.markInset}. The layouts reserve it on every
 	 * plot edge whenever the axis chrome is off (spark, or an explicit
-	 * `axes={false}`), so a mark at a data extreme clears the frame instead of
-	 * clipping at it. Bars end at their coordinate, so {@link BarChart} omits it.
+	 * `axes={false}`). A mark at a data extreme therefore clears the frame, instead
+	 * of clipping at it. Bars end at their coordinate, so {@link BarChart} omits it.
 	 * @defaultValue 0
 	 */
 	markInset?: number
 	/**
 	 * Pixels of clear room to reserve past a data extreme on the value axis — see
 	 * {@link CartesianLayoutInput.valueHeadroom}. The line-bearing charts set it
-	 * when they draw single-series extreme value labels, so the label sits clear
-	 * of its edge instead of flipping onto the line.
+	 * when they draw single-series extreme value labels. The label then sits clear
+	 * of its edge, instead of flipping onto the line.
 	 * @defaultValue 0
 	 */
 	valueHeadroom?: number
+	/**
+	 * Where the category axis rules. `'zero'` draws it at the value scale's zero,
+	 * which is what a chart whose marks stand on that zero wants. That is bars, and
+	 * the bar half of a combo. `'edge'`, the default, leaves the rule at the plot
+	 * floor. `'zero'` is honoured only where {@link CartesianConfig.zeroBaseline}
+	 * put zero in the domain. Without it the scale clamps `map(0)` to whichever end
+	 * is nearer, and an all-negative domain would rule across the plot ceiling.
+	 * @defaultValue 'edge'
+	 */
+	categoryRule?: 'zero' | 'edge'
 }
 
 /** Everything the cartesian frame and marks derive from the props. @internal */
@@ -152,28 +165,28 @@ export type CartesianChart = {
 	/** How the plot box reserves its height from its own width, or `null` for a pixel height. */
 	reserve: FrameReserve | null
 	/**
-	 * The plot grows into the height its region holds rather than reserving one —
-	 * the height-measured frames, where a ratio is shared with the legend or the
-	 * frame fills a free-form container.
+	 * The plot grows into the height its region holds, rather than reserving one.
+	 * Those are the height-measured frames, where a ratio is shared with the legend
+	 * or the frame fills a free-form container.
 	 */
 	fill: boolean
 	/**
 	 * The whole-chart `width / height` the figure carries as CSS `aspect-ratio`
-	 * when the legend shares the aspect box; `null` when the plot box holds the
-	 * ratio itself or none is reserved.
+	 * when the legend shares the aspect box. It is `null` when the plot box holds
+	 * the ratio itself, or none is reserved.
 	 */
 	outerAspect: number | null
 	/**
-	 * The resolved anatomy tier for the measured plot box — the `data-tier` styling
-	 * hook a dashboard tile reads, and the summary behind the axis / band / format
-	 * budgets already folded into the layout below.
+	 * The resolved anatomy tier for the measured plot box. It is the `data-tier`
+	 * styling hook a dashboard tile reads. It is also the summary behind the axis /
+	 * band / format budgets already folded into the layout below.
 	 */
 	tier: ChartTier
 	/**
 	 * How many rows a stacked legend can take before the rest fold into a `+N`
-	 * chip — the frame tier's `legendRows` budget, threaded to the legend as its
-	 * `maxRows`. `0` at spark, but moot there: the frame drops the legend with the
-	 * rest of the spark chrome, so it never mounts to read a cap. A side legend
+	 * chip. It is the frame tier's `legendRows` budget, threaded to the legend as
+	 * its `maxRows`. `0` at spark, but moot there. The frame drops the legend with
+	 * the rest of the spark chrome, so it never mounts to read a cap. A side legend
 	 * paginates and ignores this.
 	 */
 	legendRows: 0 | 1 | 2
@@ -191,6 +204,12 @@ export type CartesianChart = {
 	y2Scale: LinearScale | null
 	/** The primary zero line's position along the value axis, for bar baselines and the category axis. */
 	baseline: number
+	/**
+	 * Where the category axis rules, resolved from {@link CartesianConfig.categoryRule}
+	 * and gated on a domain that holds zero; `undefined` leaves the rule at the
+	 * plot floor.
+	 */
+	categoryBaseline: number | undefined
 	/** The `y2` scale's zero position, for the marks bound to it; the primary baseline when absent. */
 	y2Baseline: number
 	/** Primary value ticks along the value axis (y when vertical, x when horizontal). */
@@ -204,9 +223,9 @@ export type CartesianChart = {
 	/**
 	 * A signature of every series' values — {@link seriesDataKey} — the animated
 	 * marks swap their generation on to replay the reveal out-then-in when the
-	 * data changes. Read off all series, not the visible ones, so a legend toggle
-	 * holds it steady; derived from the values, not the geometry, so a resize does
-	 * too. The static path ignores it.
+	 * data changes. It is read off all series, not the visible ones, so a legend
+	 * toggle holds it steady. It is derived from the values, not the geometry, so a
+	 * resize does too. The static path ignores it.
 	 */
 	dataKey: string
 	/** The series still toggled on — scales, marks, and readout draw these. */
@@ -240,8 +259,9 @@ export type CartesianChart = {
 	snapPoints: number[][]
 	/**
 	 * Per category, the series index behind each {@link CartesianChart.snapPoints}
-	 * stop, in the same order — the keyboard cursor maps its value lane back through
-	 * this to the series it sits on, so it can emphasise that one and recede the rest.
+	 * stop, in the same order. The keyboard cursor maps its value lane back through
+	 * this to the series it sits on. It can then emphasise that one, and recede the
+	 * rest.
 	 */
 	snapSeries: number[][]
 	/**
@@ -252,17 +272,17 @@ export type CartesianChart = {
 	 */
 	valueLabelRoom: boolean
 	/**
-	 * Each reference line's value-axis position — projected through its own
-	 * axis's scale — index-aligned to the `reference` prop so a keyboard stop
-	 * maps back to the rule it draws; `null` where the value is non-finite (no
-	 * rule, no stop) or its scale never resolved.
+	 * Each reference line's value-axis position, projected through its own axis's
+	 * scale. It is index-aligned to the `reference` prop, so a keyboard stop maps
+	 * back to the rule it draws. It is `null` where the value is non-finite (no
+	 * rule, no stop), or its scale never resolved.
 	 */
 	referencePositions: (number | null)[]
 	/**
 	 * The grid positions along the value axis, per-axis participation already
-	 * applied — the `y` axis's ticks by default, `y2`'s on request (or standing
-	 * in when no `y` scale resolves). The chart's `grid` switch still gates the
-	 * layer.
+	 * applied. That is the `y` axis's ticks by default, and `y2`'s on request (or
+	 * standing in when no `y` scale resolves). The chart's `grid` switch still
+	 * gates the layer.
 	 */
 	gridPositions: number[]
 	/**
@@ -281,19 +301,19 @@ export type CartesianChart = {
 	orientation: ChartOrientation
 	/**
 	 * The consumer's `onCategoryClick` resolved to the hit layer's index-based
-	 * contract, or `undefined` when unset — pass to {@link ChartHitArea}'s
-	 * `onIndexClick`, and mount the hit area whenever it's set so the clicks
-	 * land even with the tooltip off.
+	 * contract, or `undefined` when unset. Pass it to {@link ChartHitArea}'s
+	 * `onIndexClick`. Mount the hit area whenever it's set, so the clicks land
+	 * even with the tooltip off.
 	 */
 	onBandClick?: (index: number) => void
 }
 
 /**
  * Each reference line's value-axis position, projected through its own axis's
- * scale and index-aligned to the prop so a keyboard stop maps back to the rule
- * {@link ChartReferenceLines} draws for it. A non-finite value, an axis with no
- * resolved scale, or a rule toggled off through its legend chip holds its slot
- * with `null`, drawing no rule and offering no stop.
+ * scale. It is index-aligned to the prop, so a keyboard stop maps back to the
+ * rule {@link ChartReferenceLines} draws for it. A non-finite value, an axis
+ * with no resolved scale, or a rule toggled off through its legend chip holds
+ * its slot with `null`. It draws no rule, and offers no stop.
  *
  * @internal
  */
@@ -344,9 +364,10 @@ function seriesMetas<T>(
 }
 
 /**
- * One axis's domain candidates: its visible series' values — the per-category
- * stack sums where stacked — plus the reference values bound to it, folded in
- * the way min / max pins are so an off-data target line stays inside the frame.
+ * One axis's domain candidates: its visible series' values, plus the reference
+ * values bound to it. Where stacked, those values are the per-category stack
+ * sums. The references fold in the way min / max pins do, so an off-data target
+ * line stays inside the frame.
  * A reference toggled off through its chip drops out with the series switched
  * off beside it, so the axis rescales to what is still drawn.
  *
@@ -397,10 +418,9 @@ type AxisFormatters = {
 }
 
 /**
- * One axis's tick and readout formatters: an explicit per-axis or chart
- * `format` wins for both; absent, the tick labels take `tickDefault` (compact in
- * a narrow frame) while the readout keeps {@link formatChartValue}'s full
- * precision.
+ * One axis's tick and readout formatters. An explicit per-axis or chart `format`
+ * wins for both. Absent, the tick labels take `tickDefault` (compact in a narrow
+ * frame), while the readout keeps {@link formatChartValue}'s full precision.
  *
  * @internal
  */
@@ -413,13 +433,17 @@ function axisFormatters(
 
 /**
  * Resolves both value axes from the `axes` config and the frame's tier budget:
- * each axis's domain candidates and pins, its `format` (winning over the
- * chart's `formatValue`), its tick and readout formatters, and its title. Two
- * formatters per axis, not one: the tick labels
- * take the compact default in a narrow frame (`compactFormat`) while the readout
- * — tooltip, hidden table, reference rules — always reads full precision, so a
- * gutter stays cheap without coarsening the numbers a reader opens the tooltip
- * for; an explicit `format` / `formatValue` overrides both. Titles resolve only
+ *
+ * - Each axis's domain candidates and pins.
+ * - Its `format`, winning over the chart's `formatValue`.
+ * - Its tick and readout formatters.
+ * - Its title.
+ *
+ * Two formatters per axis, not one. The tick labels take the compact default in
+ * a narrow frame (`compactFormat`). The readout always reads full precision, so
+ * a gutter stays cheap without coarsening the numbers a reader opens the tooltip
+ * for. That readout is the tooltip, the hidden table, and the reference rules.
+ * An explicit `format` / `formatValue` overrides both. Titles resolve only
  * when the tier affords them (`axisTitles`), so a narrow frame reserves no title
  * band.
  *
@@ -505,9 +529,9 @@ function resolveValueAxes<T>(
 }
 
 /**
- * The grid positions along the value axis: each axis contributes its ticks
- * while its `grid` flag holds — `y` on by default, `y2` standing in only when
- * no `y` scale resolves — so one hairline layer serves both axes. The tier's
+ * The grid positions along the value axis. Each axis contributes its ticks while
+ * its `grid` flag holds, so one hairline layer serves both axes. `y` is on by
+ * default, and `y2` stands in only when no `y` scale resolves. The tier's
  * grid gate stands the whole layer down at spark, where the value ticks are
  * already gone.
  *
@@ -538,7 +562,7 @@ function gridPositionsOf(
  * The band-axis divider positions — one per boundary between adjacent rows, none
  * at the ends — when the category axis sets a `separator`. Gated by the same tier
  * grid switch as the value grid, so the dividers stand down together with the
- * rest of the chrome at spark; empty otherwise.
+ * rest of the chrome at spark. Empty otherwise.
  *
  * @internal
  */
@@ -566,12 +590,12 @@ type ResolvedCategories = {
 /**
  * Resolves the band axis's category labels and readout formatter from the raw
  * `xKey` values. An explicit `formatCategory` wins for both the labels and the
- * readout; with none set, a plain axis whose every value parses as a date
- * normalizes itself to the locale's numeric month/day order (see {@link dateCategoryFormat}), while a time
- * axis leaves its labels to its own calendar ticks and formats only its
- * readout. The formatter resolves once over every value so a whole-dataset
- * decision — the date normalization's year elision — reads the same for every
- * label.
+ * readout. With none set, a plain axis whose every value parses as a date
+ * normalizes itself to the locale's numeric month/day order (see
+ * {@link dateCategoryFormat}). A time axis leaves its labels to its own calendar
+ * ticks, and formats only its readout. The formatter resolves once over every
+ * value, so a whole-dataset decision — the date normalization's year elision —
+ * reads the same for every label.
  *
  * @param locale - BCP 47 tag from `<LocaleProvider>`; `undefined` falls back to
  * the runtime locale, which is what a chart outside a provider gets.
@@ -603,8 +627,8 @@ function resolveCategories<T>(
 /**
  * The legend entries: on request, or by default once a second series needs
  * telling apart. Opted into `byValue`, the switches list in the marks' visible
- * order — each series by its latest value — while every entry keeps its own
- * index, so the reorder is display-only and a toggle still finds its series.
+ * order, each series by its latest value. Every entry keeps its own index, so
+ * the reorder is display-only and a toggle still finds its series.
  *
  * @internal
  */
@@ -628,10 +652,10 @@ function cartesianLegendItems(
 
 /**
  * The chrome a cartesian chart lays out around its plot inside a stacked
- * aspect-fill figure — the header lines, and whether a stacked legend bands below
- * — for the tier's {@link chartChromeReserve chrome reserve}. A side legend never
- * shares the aspect box, so it counts as no stacked band; the legend otherwise
- * shows for two or more series unless forced, the same rule
+ * aspect-fill figure, for the tier's {@link chartChromeReserve chrome reserve}.
+ * That is the header lines, and whether a stacked legend bands below. A side
+ * legend never shares the aspect box, so it counts as no stacked band. The
+ * legend otherwise shows for two or more series unless forced, the same rule
  * {@link cartesianLegendItems} reads.
  *
  * @internal
@@ -653,10 +677,10 @@ export type DrawnSeries = {
 }
 
 /**
- * The visible series paired with the scale and baseline each draws through:
- * a series reads its own axis's scale — the stack's one shared side when
- * `stacked` — and one whose scale never resolved drops out, since it can take
- * no marks. The mark geometry, fills, and value labels all derive from this
+ * The visible series paired with the scale and baseline each draws through. A
+ * series reads its own axis's scale, the stack's one shared side when `stacked`.
+ * One whose scale never resolved drops out, since it can take no marks. The mark
+ * geometry, fills, and value labels all derive from this
  * one list so their indices stay aligned.
  *
  * @internal
@@ -686,7 +710,7 @@ export function bandCenters(chart: CartesianChart): number[] {
 
 /**
  * Per-series projection callbacks for `barMarks`, read off the drawn list so
- * each bar series maps and grows through its own axis's scale; `fallback`
+ * each bar series maps and grows through its own axis's scale. `fallback`
  * answers an index past the list, which the geometry never emits marks for.
  *
  * @internal
@@ -741,10 +765,10 @@ function orderLegend(metas: SeriesMeta[], byValue: boolean | undefined): SeriesM
  * top-to-bottom in the marks' own visible order. The readout itself stays in the
  * caller's series order for the hidden data table; this reorders only the
  * display. A vertical stack piles the first series at the bottom, so its rows
- * reverse — the top segment reads first; a horizontal stack runs first-to-last
- * left to right and keeps the series order. Off a stack the rows take the
- * legend's own {@link orderLegend} order, so overlapping lines read in their
- * drawn value order and the tooltip agrees with the legend.
+ * reverse and the top segment reads first. A horizontal stack runs first-to-last
+ * left to right, and keeps the series order. Off a stack the rows take the
+ * legend's own {@link orderLegend} order. Overlapping lines therefore read in
+ * their drawn value order, and the tooltip agrees with the legend.
  *
  * @internal
  */
@@ -767,10 +791,10 @@ function orderReadout(
  * config's `orientation` and returns its normalized result. Charts add only
  * their geometry and mark renderers on top.
  *
- * @remarks Series binding to the right axis split the domain: each side's
+ * @remarks Series binding to the right axis split the domain. Each side's
  * visible series (and the references bound to it) feed its own scale, each
- * formatted by its own axis's formatter, and the secondary scale — with its
- * gutter, ticks, and title — exists only while something binds to it.
+ * formatted by its own axis's formatter. The secondary scale — with its gutter,
+ * ticks, and title — exists only while something binds to it.
  * @internal
  */
 export function useChartCartesian<T>(
@@ -837,7 +861,7 @@ export function useChartCartesian<T>(
 	// gate on this downstream.
 	const drawAxes = draw && policy.tier !== 'spark'
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle()
+	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(props.onHiddenChange)
 
 	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle()
 
@@ -954,6 +978,8 @@ export function useChartCartesian<T>(
 		yScale: layout.valueScale,
 		y2Scale: layout.value2Scale,
 		baseline: layout.baseline,
+		categoryBaseline:
+			config.categoryRule === 'zero' && config.zeroBaseline ? layout.baseline : undefined,
 		y2Baseline: layout.value2Baseline,
 		yTicks: layout.valueTicks,
 		y2Ticks: layout.value2Ticks,

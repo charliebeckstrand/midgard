@@ -1,9 +1,9 @@
 export { Select, type SelectProps } from './select'
 export {
 	SelectDescription,
-	type SelectDescriptionComponentProps,
+	type SelectDescriptionProps,
 	SelectLabel,
-	type SelectLabelComponentProps,
+	type SelectLabelProps,
 	SelectOption,
-	type SelectOptionComponentProps,
+	type SelectOptionProps,
 } from './select-option'

@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react'
+import type { Color } from '../../core/recipe'
 
 /** A pre-rendered page supplied to {@link PdfViewer}: its image source plus optional thumbnail, label, and intrinsic size. */
 export type PdfViewerPage = {
@@ -14,6 +15,18 @@ export type PdfViewerPage = {
 	width?: number
 	/** Intrinsic height in pixels. Sizes the viewport before the image loads. */
 	height?: number
+	/**
+	 * Intrinsic page width in PDF user-space units (points, 1/72"), as printed —
+	 * distinct from {@link PdfViewerPage.width}, which is the rasterized image's pixels.
+	 *
+	 * @remarks Set by the `src` rasterizer from the page's own dimensions, independently of
+	 * the image it produces. Supply it on pre-rendered pages to enable
+	 * `highlightUnit: 'inch'`; a page carrying neither this nor
+	 * {@link PdfViewerPage.pointHeight} renders none of its inch-specified highlights.
+	 */
+	pointWidth?: number
+	/** Intrinsic page height in points. See {@link PdfViewerPage.pointWidth}. */
+	pointHeight?: number
 }
 
 /** Zoom state passed to {@link PdfViewerZoomControls}: the current scale, its setter, and the discrete levels to step through. @internal */
@@ -22,4 +35,146 @@ export type PdfViewerZoom = {
 	setValue: Dispatch<SetStateAction<number>>
 	/** Discrete zoom levels; in/out steps to the next level above/below `value`. */
 	levels: number[]
+}
+
+/**
+ * A highlighted region of the document — one box over the page, in the unit named by
+ * `highlightUnit`.
+ *
+ * @remarks Geometry is a plain axis-aligned box, because that is all any of the three
+ * things a region does needs. Those three are to paint the fill, take the press, and be
+ * scrolled to. A producer holding a quadrilateral (Document Intelligence emits one) reduces
+ * it to its bounding box, which needs nothing the viewer knows. The unit conversion is the
+ * contrast: it needs the page's own extent, and therefore happens here. If a skewed outline is ever
+ * wanted, it widens this one field rather than joining it.
+ */
+export type PdfViewerHighlight = {
+	/** Stable identity. The active-highlight binding and the React key both use it. */
+	id: string
+	/** 1-based page the region sits on. */
+	page: number
+	/** Axis-aligned bounding box, origin top-left, in the unit named by `highlightUnit`. */
+	rect: PdfViewerHighlightRect
+	/**
+	 * Accessible name, and what the announcement speaks on activation.
+	 *
+	 * @remarks Required: a region is a control whenever `onActiveHighlightChange` is set,
+	 * and a control must have a name (WCAG 4.1.2). It is also the region's whole meaning —
+	 * {@link PdfViewerHighlight.color} is decoration and never carries it.
+	 */
+	label: string
+	/**
+	 * Decorative paint, from the shared five-colour palette.
+	 * @defaultValue `'amber'`
+	 */
+	color?: Color
+}
+
+/** One region's box: fractions of the page, inches, or whatever `highlightUnit` names. Origin top-left. */
+export type PdfViewerHighlightRect = { x: number; y: number; width: number; height: number }
+
+/**
+ * Unit for a {@link PdfViewerHighlight}'s `rect`.
+ *
+ * The `'fraction'` is `[0, 1]` of the page, the canonical form. It is the only one
+ * well-defined for both a rasterized page and a caller's pre-rendered image. It is
+ * invariant under zoom, rotation and re-rasterization. `'inch'` is converted against the page's own
+ * {@link PdfViewerPage.pointWidth}/{@link PdfViewerPage.pointHeight}. For points, pass
+ * `pt / 72`.
+ */
+export type PdfViewerHighlightUnit = 'fraction' | 'inch'
+
+/**
+ * How a page is scaled into the viewport before `zoom` multiplies it.
+ *
+ * `'page'` fits the whole page and lets the viewer size itself from the page's aspect ratio.
+ * `'width'` fits the page width, lets it overflow, and fills the height its container gives
+ * it — so the container has to give it one.
+ */
+export type PdfViewerFit = 'page' | 'width'
+
+/**
+ * How the toolbar's magnifier control behaves.
+ *
+ * @remarks `'simple'` makes the control a switch: a press turns the loupe off, and the next
+ * press turns it on again. `'config'` makes it open a dialog, where the reader sets the
+ * power, the lens size and the dwell — and turns the loupe off.
+ *
+ * The off switch moves into the dialog because the toolbar control is no longer a switch.
+ * Without it, `'config'` would take away the one thing `'simple'` always offered.
+ */
+export type PdfViewerMagnifierMode = 'simple' | 'config'
+
+/**
+ * How much the loupe magnifies what is under the cursor: 2×, 2.5× or 4×.
+ *
+ * @remarks A named step rather than a free multiplier. The reader picks one of a fixed set in
+ * the config dialog, and a value outside that set has no option to select. The prop and the
+ * dialog therefore name the same three powers.
+ */
+export type PdfViewerMagnifierZoom = 'sm' | 'md' | 'lg'
+
+/**
+ * The loupe's diameter: 140, 180 or 240 pixels.
+ *
+ * @see {@link PdfViewerMagnifierZoom} for why the scale is named and not numeric.
+ */
+export type PdfViewerMagnifierSize = 'sm' | 'md' | 'lg'
+
+/**
+ * How long the pointer must rest before the loupe appears: at once, or after 300ms.
+ *
+ * @remarks A dwell rather than an immediate open. The pointer crosses the page on its way to
+ * the toolbar and the thumbnails constantly. A loupe that answered every one of those would
+ * be a strobe. Once open it tracks with no delay at all.
+ */
+export type PdfViewerMagnifierDelay = 'none' | 'default'
+
+/**
+ * Hover-loupe settings for {@link PdfViewerProps.magnifier}.
+ *
+ * @remarks Boolean-or-object, the same shape `Button`'s `loading` takes. The bare
+ * `magnifier` is the common case. An object is there for the page that needs a different
+ * power, a different lens, or the dialog.
+ *
+ * Every setting is a named step rather than a raw number. The config dialog offers a fixed
+ * set, and has to show which of them is current. Each `'md'` is the value the loupe
+ * always had, so an object that names none of them is the loupe as it was.
+ */
+export type PdfViewerMagnifierOptions = {
+	/**
+	 * How the reader reaches these settings from the toolbar.
+	 * @defaultValue 'simple'
+	 */
+	mode?: PdfViewerMagnifierMode
+	/**
+	 * How much the loupe magnifies what is under the cursor.
+	 * @defaultValue 'md'
+	 */
+	zoom?: PdfViewerMagnifierZoom
+	/**
+	 * The loupe's diameter.
+	 * @defaultValue 'md'
+	 */
+	size?: PdfViewerMagnifierSize
+	/**
+	 * How long the pointer must rest before the loupe appears.
+	 * @defaultValue 'default'
+	 */
+	delay?: PdfViewerMagnifierDelay
+}
+
+/**
+ * The loupe as the reader left it: whether it is on, and the three settings they chose.
+ *
+ * @remarks What {@link PdfViewerProps.onMagnifierChange} reports. A consumer that keeps the
+ * reader's preference across sessions stores this and hands it back through
+ * {@link PdfViewerProps.magnifier}.
+ */
+export type PdfViewerMagnifierState = {
+	/** Whether the loupe is on. */
+	enabled: boolean
+	zoom: PdfViewerMagnifierZoom
+	size: PdfViewerMagnifierSize
+	delay: PdfViewerMagnifierDelay
 }

@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
@@ -58,7 +59,7 @@ export type MapZoomCursor = {
 	fit: () => void
 	/**
 	 * Pans so a frame point draws inside the frame, `inset` clear of every edge,
-	 * and returns where the view landed — the caller anchors through the result
+	 * and returns where the view landed. The caller anchors through the result
 	 * rather than waiting a render for it. The margin is the cursor's own, since
 	 * the rule it serves is the cursor's.
 	 */
@@ -102,6 +103,8 @@ export type MapZoomOptions = {
 	 * that fit rather than holding a transform made against the last one.
 	 */
 	subject: unknown
+	/** Reports the committed transform, on every change. */
+	onViewChange?: (view: MapTransform) => void
 }
 
 /** A press in flight: where it landed, and whether it has travelled far enough to be a pan. */
@@ -114,8 +117,8 @@ type MapPress = {
 type MapWheelStream = {
 	push: number
 	/**
-	 * Whether one push has already come in smaller than the one before it, which
-	 * is the only sign a wheel gives that a device is coasting rather than being
+	 * Whether one push has already come in smaller than the one before it. It is
+	 * the only sign a wheel gives that a device is coasting rather than being
 	 * turned. Until it does, the map claims no tail off the stream.
 	 */
 	coasting: boolean
@@ -123,32 +126,38 @@ type MapWheelStream = {
 
 /**
  * Zoom and pan over the fitted geography, as a transform rather than a refit.
- * The projection places the geography once and this moves what it placed, so a
- * gesture costs one attribute write where a refit would reproject every region
- * path — and every mark keeps its device-pixel size, because the strokes that
- * paint them do not scale.
+ * The projection places the geography once and this moves what it placed. A
+ * gesture therefore costs one attribute write, where a refit would reproject
+ * every region path. Every mark keeps its device-pixel size, because the
+ * strokes that paint them do not scale.
  *
  * Wheel, drag, and pinch drive it. The wheel rides a non-passive listener on the
  * SVG, because React registers `onWheel` passively and a passive handler cannot
- * take the gesture from the page; it takes the gesture only where the transform
- * actually moves, so a scroll at the fit — or past the ceiling — falls through
- * and the page scrolls rather than trapping the reader. A drag pans once it
- * passes {@link MAP_PAN_THRESHOLD}, and the click that follows is swallowed, so
+ * take the gesture from the page. It takes the gesture only where the transform
+ * actually moves. A scroll at the fit — or past the ceiling — therefore falls
+ * through, and the page scrolls rather than trapping the reader. A drag pans
+ * once it passes {@link MAP_PAN_THRESHOLD}, and the click that follows is swallowed, so
  * a pan across a clickable map never reports a pick. Two pointers pinch about
  * their own midpoint.
  *
  * The transform is derived against the live frame on every render, not only when
- * a gesture writes it: a resize changes the pan limits, and re-constraining here
+ * a gesture writes it. A resize changes the pan limits, and re-constraining here
  * keeps the view inside them without an effect chasing the box.
  *
  * @remarks Hosted by {@link MapZoomProvider}, below the plat and around the plot
- * alone, for the reason {@link MapHoverProvider} is: a gesture writes on every
- * wheel notch and every tracked pointer move, and held any higher each of those
+ * alone, for the reason {@link MapHoverProvider} is. A gesture writes on every
+ * wheel notch and every tracked pointer move. Held any higher, each of those
  * would re-render the plat and re-plan its legend.
  *
  * @internal
  */
-export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): MapZoom | null {
+export function useMapZoom({
+	zoom,
+	view,
+	svgRef,
+	subject,
+	onViewChange,
+}: MapZoomOptions): MapZoom | null {
 	const settings = mapZoomSettings(zoom)
 
 	const max = settings?.max ?? 0
@@ -170,6 +179,17 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 
 	const transform =
 		settings === null ? MAP_FIT_TRANSFORM : constrainTransform(held.transform, view, max)
+
+	/*
+	 * One report for each committed transform.
+	 *
+	 * The wheel, the drag, the pinch, the keyboard steps, and the refit that
+	 * follows a new geography all write `held`. The value the map draws is the
+	 * constrained read above, so the report watches that, not any one gesture.
+	 * Compared by value, because `constrainTransform` mints a fresh object each
+	 * render and a settled view must not report per notch.
+	 */
+	useReportedChange(transform, onViewChange, sameTransform)
 
 	const [gesturing, setGesturing] = useState(false)
 
@@ -291,10 +311,10 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	 *
 	 * Held off until the press has become one, rather than taken on contact. A
 	 * captured pointer retargets its own `pointerup` to the capturing element,
-	 * and the `click` a down/up pair produces is retargeted with it — so a plot
-	 * that captured on contact would answer every click itself and no region or
-	 * mark would ever see a pick. Once the press is a gesture there is no pick
-	 * left to lose: `onClickCapture` swallows the click a pan ends on, and a
+	 * and the `click` a down/up pair produces is retargeted with it. A plot that
+	 * captured on contact would therefore answer every click itself, and no region
+	 * or mark would ever see a pick. Once the press is a gesture there is no pick
+	 * left to lose. `onClickCapture` swallows the click a pan ends on, and a
 	 * second finger is never a click at all.
 	 */
 	function hold(event: PointerEvent<HTMLElement>) {
@@ -343,8 +363,8 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
 	/**
 	 * Moves the view by what two pointers did: the midpoint's travel pans, and the
 	 * change in their spread scales about where the midpoint now sits. Both halves
-	 * matter — a two-finger drag at a constant spread is a pan, which on a map
-	 * that leaves one-finger touch to the page is the only pan touch has.
+	 * matter. A two-finger drag at a constant spread is a pan. On a map that
+	 * leaves one-finger touch to the page, it is the only pan touch has.
 	 */
 	function pinch(first: MapPoint2D, second: MapPoint2D) {
 		const { transform: from, view: frame, max: limit } = live.current
@@ -508,11 +528,11 @@ export function useMapZoom({ zoom, view, svgRef, subject }: MapZoomOptions): Map
  * registers `onWheel` passively at the root, so a React handler could never call
  * `preventDefault` and the page would scroll out from under every zoom.
  *
- * A modifier map holds the stream it takes until the stream itself ends rather
- * than until the key is let go, which is what {@link takeWheelTail} answers.
+ * A modifier map holds the stream it takes until the stream itself ends, rather
+ * than until the key is let go. {@link takeWheelTail} answers that.
  *
  * Split out because it is the one part of the gesture set that carries a
- * dependency array — which is why `commit` above is the hook's one memoised
+ * dependency array. That is why `commit` above is the hook's one memoised
  * callback. Everything it reads per event comes off `live`, so the listener
  * binds once per frame size rather than once per gesture.
  *
@@ -554,7 +574,7 @@ function useMapWheelZoom(
 			const { transform: from, view: frame, max } = live.current
 
 			// Read fresh per event, unlike a pointer gesture's: a wheel has no press
-			// to measure at, and the page may have scrolled between two of them.
+			// to measure at, and the page can scroll between two of them.
 			const focus = clientToFrame(
 				{ x: event.clientX, y: event.clientY },
 				svg.getBoundingClientRect(),
@@ -591,14 +611,14 @@ function useMapWheelZoom(
 }
 
 /**
- * Answers a wheel event that arrives with the modifier let go: the tail of a
- * stream the key armed, or a scroll the page is owed.
+ * Answers a wheel event that arrives with the modifier let go. It is the tail of
+ * a stream the key armed, or a scroll the page is owed.
  *
  * A trackpad keeps sending after the fingers leave, and the key can go before
  * that stream does. Handing the rest of it back would scroll the page a little
- * under a reader who only meant to stop zooming, so the map swallows it — and
- * only swallows it, since the release is what stops the zoom. It is the tail and
- * never a fresh gesture, because momentum only decays: a push that grew is a
+ * under a reader who only meant to stop zooming. The map therefore swallows it,
+ * and only swallows it, since the release is what stops the zoom. It is the tail
+ * and never a fresh gesture, because momentum only decays. A push that grew is a
  * hand back on the trackpad, and that ends the map's claim rather than extending
  * it.
  *

@@ -16,18 +16,18 @@ export type MeasuredWidth = {
  * the map's plat and the heatmap.
  *
  * Measured off the container rather than off the plot, which is the whole
- * reason it exists: a bar placed beside the plot shrinks the plot, so keying
- * the placement to the plot's own width feeds the move back on itself and
+ * reason it exists. A bar placed beside the plot shrinks the plot, so keying
+ * the placement to the plot's own width feeds the move back on itself. That
  * oscillates. `usePlotFrame` measures the plot box and deliberately answers a
  * different question, so neither caller can reach this through it.
  *
  * An explicit `width` wins outright and never observes, so a fixed-width chart
  * reads deterministically under SSR and in tests.
  *
- * @remarks The write lands as a transition — the priority the plot's own refit
- * rides — so a resize burst coalesces rather than an urgent write preempting
- * the refit and stranding it at an intermediate frame, which would fatten the
- * strokes it was about to sharpen.
+ * @remarks The write lands as a transition, the priority the plot's own refit
+ * rides. A resize burst therefore coalesces, rather than an urgent write
+ * preempting the refit and stranding it at an intermediate frame. That would
+ * fatten the strokes it was about to sharpen.
  *
  * @internal
  */

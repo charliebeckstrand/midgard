@@ -36,7 +36,7 @@ describe('MapSkeleton', () => {
 		)
 
 		// An explicit ratio is the narrower statement and wins over both.
-		const fixed = renderUI(<MapSkeleton projection="albers-usa" ratio="4/3" />)
+		const fixed = renderUI(<MapSkeleton projection="albers-usa" aspectRatio="4/3" />)
 
 		expect(bySlot(fixed.container, 'aspect-ratio')?.getAttribute('style')).toContain(
 			`aspect-ratio: ${4 / 3}`,
@@ -44,13 +44,13 @@ describe('MapSkeleton', () => {
 	})
 
 	it('takes an explicit ratio, and fills the container under ratio={false}', () => {
-		const fixed = renderUI(<MapSkeleton ratio="4/3" />)
+		const fixed = renderUI(<MapSkeleton aspectRatio="4/3" />)
 
 		expect(bySlot(fixed.container, 'aspect-ratio')?.getAttribute('style')).toContain(
 			`aspect-ratio: ${4 / 3}`,
 		)
 
-		const fill = renderUI(<MapSkeleton ratio={false} />)
+		const fill = renderUI(<MapSkeleton aspectRatio={false} />)
 
 		expect(bySlot(fill.container, 'aspect-ratio')).toBeNull()
 

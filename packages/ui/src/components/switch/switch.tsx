@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChangeEvent, type ComponentPropsWithoutRef, type Ref, useEffect, useRef } from 'react'
+import { type ChangeEvent, type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef, useControllable } from '../../hooks'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
@@ -10,15 +10,14 @@ import { useFormToggle } from '../form/use-form-toggle'
 /** Props for {@link Switch}: recipe variants (`color`, `size`), an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {
 	className?: string
-	ref?: Ref<HTMLInputElement>
-} & Omit<ComponentPropsWithoutRef<'input'>, 'className' | 'type' | 'size'>
+} & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
 
 /**
  * Toggle control backed by a native `role="switch"` checkbox; controlled via
  * `checked` or uncontrolled. Owns its checked state, keeping `aria-checked` in
- * sync. Integrates with enclosing `<Form>` and `<Control>` for binding,
- * sizing, and validation; an explicit `checked` prop wins over the bound
- * field, and `onChange` fires in either mode.
+ * sync. Integrates with enclosing `<Form>` and `<Control>` for binding, sizing,
+ * and validation. An explicit `checked` prop wins over the bound field, and
+ * `onChange` fires in either mode.
  */
 export function Switch({
 	className,

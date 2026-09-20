@@ -1,7 +1,7 @@
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, shaku } from '../kiso'
 
-const { text } = iro
+const { onWash } = iro
 const { rounded } = kasane
 const { flex, description } = narabi
 
@@ -28,7 +28,9 @@ export const k = {
 	size,
 	content: [flex.row, 'min-w-0', narabi.item],
 	label: 'truncate group-data-selected/option:font-bold',
-	description: [description, text.muted],
+	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
+	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
+	description: [description, onWash.muted],
 	check: mode('text-green-600', 'dark:text-green-500'),
 	/** Per-Density-step size of the selected-state check icon; `<Icon>`'s own scale. */
 	checkSize: shaku.iconSize,

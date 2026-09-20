@@ -22,8 +22,8 @@ import { NumberInput } from '../../../../components/number-input'
 import { Stack } from '../../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import {
-	type CellChange,
 	Grid,
+	type GridCellChange,
 	type GridColumn,
 	type GridEditCellContext,
 } from '../../../../modules/grid'
@@ -32,7 +32,7 @@ import { useFormat } from '../../../../providers/locale'
 // Applies committed cell changes onto the row state: each change patches one
 // field on the row it keys. The grid emits these (as one batch per row) through
 // `editable.onCommit` when an editing row is saved.
-function applyChanges<T extends { id: number }>(rows: T[], changes: CellChange[]): T[] {
+function applyChanges<T extends { id: number }>(rows: T[], changes: GridCellChange[]): T[] {
 	if (!changes.length) return rows
 
 	const byKey = new Map<string | number, Record<string, unknown>>()

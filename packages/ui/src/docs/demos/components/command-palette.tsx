@@ -10,12 +10,13 @@ import {
 	User,
 } from 'lucide-react'
 import { type ReactElement, useMemo, useState } from 'react'
-import { Alert, AlertTitle } from '../../../components/alert'
+import { Alert } from '../../../components/alert'
 import { Button } from '../../../components/button'
 import {
 	CommandPalette,
 	CommandPaletteDescription,
 	CommandPaletteGroup,
+	CommandPaletteHeading,
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	CommandPaletteShortcut,
@@ -113,11 +114,7 @@ function CommandResults() {
 	const results = filterCommands(deferredQuery)
 
 	if (!results.length) {
-		return (
-			<Alert severity="warning" block>
-				<AlertTitle>No commands found</AlertTitle>
-			</Alert>
-		)
+		return <Alert severity="warning" className="w-full" title="No commands found" />
 	}
 
 	return groups.map((group) => {
@@ -126,7 +123,8 @@ function CommandResults() {
 		if (!items.length) return null
 
 		return (
-			<CommandPaletteGroup key={group} title={group}>
+			<CommandPaletteGroup key={group}>
+				<CommandPaletteHeading>{group}</CommandPaletteHeading>
 				{items.map((c) => (
 					<CommandPaletteItem key={c.id}>
 						<Icon icon={c.icon} size="sm" />
@@ -166,11 +164,7 @@ function VirtualizedCommandResults() {
 		// VirtualOptions a wrapper with an explicit, definite height (not just
 		// `max-height`) and `overflow-y: auto`.
 		<div style={{ height: 320, overflow: 'auto' }}>
-			<VirtualOptions
-				items={filtered}
-				estimateSize={36}
-				getOptionId={(command) => `virtual-command-${command.id}`}
-			>
+			<VirtualOptions items={filtered} getOptionId={(command) => `virtual-command-${command.id}`}>
 				{(command, _index, meta) => (
 					<CommandPaletteItem key={command.id} id={`virtual-command-${command.id}`} {...meta}>
 						<CommandPaletteLabel>{command.label}</CommandPaletteLabel>
@@ -186,12 +180,7 @@ function VirtualizedCommandPaletteExample() {
 
 	return (
 		<>
-			<Button
-				color="blue"
-				variant="soft"
-				suffix={<Kbd command>K</Kbd>}
-				onClick={() => setOpen(true)}
-			>
+			<Button color="blue" variant="soft" suffix={<Kbd>⌘K</Kbd>} onClick={() => setOpen(true)}>
 				Open command palette
 			</Button>
 
@@ -208,12 +197,7 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<Button
-					color="blue"
-					variant="soft"
-					suffix={<Kbd command>K</Kbd>}
-					onClick={() => setOpen(true)}
-				>
+				<Button color="blue" variant="soft" suffix={<Kbd>⌘K</Kbd>} onClick={() => setOpen(true)}>
 					Open command palette
 				</Button>
 

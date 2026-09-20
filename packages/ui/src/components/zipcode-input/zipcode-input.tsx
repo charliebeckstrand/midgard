@@ -11,13 +11,10 @@ export type ZipcodeInputCountry = 'US' | 'CA' | 'GB' | 'international'
 
 /**
  * Props for {@link ZipcodeInput}. Inherits `<MaskInput>` props except
- * `format`, `type`, `inputMode`, `autoComplete`, and `prefix`, which are
+ * `format`, `type`, `inputMode`, and `prefix`, which are
  * derived from `country` or defaulted here.
  */
-export type ZipcodeInputProps = Omit<
-	MaskInputProps,
-	'format' | 'type' | 'inputMode' | 'autoComplete' | 'prefix'
-> & {
+export type ZipcodeInputProps = Omit<MaskInputProps, 'format' | 'type' | 'inputMode' | 'prefix'> & {
 	/**
 	 * Postal-code locale.
 	 * @defaultValue 'US'
@@ -80,10 +77,10 @@ const placeholders = {
 } satisfies Record<ZipcodeInputCountry, string>
 
 /**
- * Postal-code field built on `<MaskInput>`. Selects a live formatting mask
- * from `country` (US ZIP/ZIP+4, Canadian FSA/LDU, UK outward/inward, or a
- * loose international fallback) and matches the keyboard (`inputMode`) and
- * placeholder to it. Forwards `autoComplete="postal-code"` and a leading
+ * Postal-code field built on `<MaskInput>`. Selects a live formatting mask from
+ * `country`, and matches the keyboard (`inputMode`) and placeholder to it. The
+ * masks cover US ZIP and ZIP+4, Canadian FSA and LDU, UK outward and inward,
+ * and a loose international fallback. Forwards `autoComplete="postal-code"` and a leading
  * map-pin-icon `prefix`; an explicit `placeholder` overrides the locale
  * default.
  */

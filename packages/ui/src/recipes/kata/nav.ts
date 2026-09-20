@@ -1,9 +1,12 @@
 /**
- * Nav kata: object-literal surface for the `<Nav>` family. `list` sets the
- * orientation-keyed axis; `item` groups the row's parts — the `affix`-axed
- * `base` `<li>` wrapper and inner `button` (which trade off the interaction
- * chrome), the focus-projection `indicator`, and the `prefix`/`suffix` slot
- * wrappers; `bar` is the `<NavBar>` landmark frame.
+ * Nav kata: object-literal surface for the `<Nav>` family.
+ *
+ * - `list` sets the orientation-keyed axis;
+ * - `item` groups the row's parts: the `affix`-axed `base` `<li>` wrapper and
+ *   inner `button`, which trade off the interaction chrome;
+ * - `item` also carries the focus-projection `indicator` and the
+ *   `prefix`/`suffix` slot wrappers;
+ * - `bar` is the `<NavBar>` landmark frame.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { hannou, ji, kasane, narabi, omote, sen, shaku } from '../kiso'
@@ -38,10 +41,11 @@ const itemShell = [
 ]
 
 /**
- * The `<li>` wrapper. Affixless it is a bare list row carrying no chrome; with
- * an affix it goes flex and takes over the interaction surface — the hover tint
- * wraps the whole row and the inner button's keyboard focus projects onto the
- * row ring via `:has`, so the affix slots sit inside the tint and focus ring.
+ * The `<li>` wrapper. Affixless it is a bare list row carrying no chrome. With
+ * an affix it goes flex and takes over the interaction surface. The hover tint
+ * wraps the whole row, and the inner button's keyboard focus projects onto the
+ * row ring via `:has`. The affix slots therefore sit inside the tint and focus
+ * ring.
  */
 const base = defineRecipe({
 	base: ['group relative list-none'],
@@ -59,8 +63,9 @@ const base = defineRecipe({
 
 /**
  * The inner polymorphic button. Affixless it carries the full interaction
- * surface (hover tint + inset keyboard focus); affixed the row owns that chrome,
- * so the button only suppresses the UA outline and flexes to fill the row.
+ * surface (hover tint + inset keyboard focus). Affixed, the row owns that
+ * chrome, so the button only suppresses the UA outline and flexes to fill the
+ * row.
  */
 const button = defineRecipe({
 	base: [...itemShell, 'relative z-10'],
@@ -99,9 +104,9 @@ export const k = {
 		button,
 		/**
 		 * Focus projection for the active indicator inside an affixed row.
-		 * Browsers paint the row's own ring beneath the indicator's opaque pill
-		 * (rings and outlines render with the element's layer, under positioned
-		 * descendants), so the focused current row re-draws the ring on the
+		 * Browsers paint the row's own ring beneath the indicator's opaque pill.
+		 * Rings and outlines render with the element's layer, under positioned
+		 * descendants. The focused current row therefore re-draws the ring on the
 		 * pill.
 		 */
 		indicator: [

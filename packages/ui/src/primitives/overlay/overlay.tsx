@@ -3,7 +3,7 @@
 import { type FloatingContext, FloatingFocusManager, useFloating } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import {
-	type HTMLAttributes,
+	type ComponentProps,
 	type ReactElement,
 	type ReactNode,
 	type RefObject,
@@ -29,13 +29,17 @@ export type OverlayProps = {
 	open: boolean
 	onOpenChange: (open: boolean) => void
 	dismissOnBackdrop?: boolean
-	glass?: boolean
 	/**
-	 * Class for the dimming backdrop — not the root. It fully replaces the
-	 * backdrop's default classes (including `absolute inset-0`), and applies
-	 * only when a backdrop renders; with `backdrop={false}` it has no effect.
+	 * Class for the dimming backdrop. It fully replaces the backdrop's default
+	 * classes (including `absolute inset-0`), and applies only when a backdrop
+	 * renders; with `backdrop={false}` it has no effect.
+	 *
+	 * @remarks
+	 * The one channel that styles the backdrop. Every panel drives its glass
+	 * surface through its own recipe's `backdrop` here, so nothing can be set
+	 * and then silently outranked.
 	 */
-	className?: string
+	backdropClassName?: string
 	children: ReactNode
 	/**
 	 * Optional element to portal into. When provided, the overlay is scoped to this
@@ -54,10 +58,10 @@ export type OverlayProps = {
 	/**
 	 * Modal overlays (the default) trap focus, move it into the panel on open,
 	 * lock body scroll, and dim the page behind a blocking backdrop. Pass
-	 * `false` for transient, pointer-driven surfaces (e.g. a hover-revealed
-	 * sheet) that must not steal focus or block the page: no backdrop renders
-	 * (unless `backdrop` is set), the page behind stays interactive (the panel
-	 * re-enables its own pointer events), and Escape or a pointer press outside
+	 * `false` for transient, pointer-driven surfaces that must not steal focus or
+	 * block the page. A hover-revealed sheet is the example. No backdrop renders
+	 * unless `backdrop` is set. The page behind stays interactive, because the
+	 * panel re-enables its own pointer events. Escape or a pointer press outside
 	 * the panel dismisses.
 	 */
 	modal?: boolean
@@ -65,26 +69,26 @@ export type OverlayProps = {
 	 * Whether the backdrop plays its enter animation on mount.
 	 *
 	 * `false` mounts it already in place. For a surface that is open because the URL says
-	 * so — a restored route, a pasted deep link — the fade announces an opening the user
-	 * never performed, and on a route that remounts it replays on every arrival.
+	 * so, the fade announces an opening the user never performed. A restored route or a
+	 * pasted deep link is the case. On a route that remounts it replays on every arrival.
 	 *
 	 * It suppresses that arrival only. A surface that closes and opens again while still
-	 * mounted plays the enter every time, whatever this says: by then the open is the
+	 * mounted plays the enter every time, whatever this says. By then the open is the
 	 * user's own doing.
 	 *
 	 * @defaultValue true
 	 */
 	animateOnMount?: boolean
 	/**
-	 * Paint the dimming backdrop independently of modality. A non-modal surface
-	 * (e.g. a hover-revealed sheet) can opt in to blur and dim the page while
-	 * staying interactive: the backdrop inherits the wrapper's
+	 * Paint the dimming backdrop independently of modality. A non-modal surface,
+	 * such as a hover-revealed sheet, can opt in to blur and dim the page while
+	 * staying interactive. The backdrop inherits the wrapper's
 	 * `pointer-events-none`, so it never intercepts a press.
 	 *
 	 * @defaultValue `modal`
 	 */
 	backdrop?: boolean
-} & Omit<HTMLAttributes<HTMLDivElement>, 'className' | 'children'>
+} & Omit<ComponentProps<'div'>, 'children'>
 
 /**
  * Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,
@@ -94,7 +98,7 @@ export type OverlayProps = {
  * @remarks Client-only: returns `null` during SSR. Renders into the explicit
  * `container`, else the ambient `<UIProvider>` portal node, else
  * `document.body`. A `container` scopes the overlay to that element
- * (`absolute`, no scroll lock); for transient pointer-driven surfaces
+ * (`absolute`, no scroll lock). For transient pointer-driven surfaces,
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
  * `backdrop` is set). Any `PersistentChrome` region stays reachable through the
  * trap without modality being given up. Fires the overlay signal on open so
@@ -104,14 +108,14 @@ export function Overlay({
 	open,
 	onOpenChange,
 	dismissOnBackdrop = true,
-	glass,
-	className,
+	backdropClassName,
 	children,
 	container,
 	initialFocus,
 	modal = true,
 	backdrop = modal,
 	animateOnMount = true,
+	className,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
@@ -147,8 +151,13 @@ export function Overlay({
 		<div
 			ref={setPanel}
 			data-slot="overlay"
-			className={cn(k.root, scoped ? 'absolute' : 'fixed', !modal && 'pointer-events-none')}
 			{...props}
+			className={cn(
+				k.root,
+				scoped ? 'absolute' : 'fixed',
+				!modal && 'pointer-events-none',
+				className,
+			)}
 		>
 			{backdrop && (
 				<motion.div
@@ -156,9 +165,7 @@ export function Overlay({
 					// After the preset spread, so it overrides the preset's own `initial`.
 					initial={animateEnter ? k.motion.initial : false}
 					data-slot="overlay-backdrop"
-					className={
-						className ?? cn('absolute inset-0', glass ? k.backdrop.glass : k.backdrop.base)
-					}
+					className={backdropClassName ?? cn('absolute inset-0', k.backdrop.base)}
 					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
 					aria-hidden="true"
 				/>
@@ -177,9 +184,10 @@ export function Overlay({
 }
 
 /**
- * Wraps the overlay panel in a modal `FloatingFocusManager` (trap focus, move it
- * in on open, restore on close), or renders it bare for a non-modal surface — no
- * trap, no initial-focus steal, no focus return; focus stays where it is.
+ * Wraps the overlay panel in a modal `FloatingFocusManager`, which traps focus,
+ * moves it in on open, and restores it on close. A non-modal surface renders
+ * bare: no trap, no initial-focus steal, no focus return. Focus stays where it
+ * is.
  *
  * @internal
  */

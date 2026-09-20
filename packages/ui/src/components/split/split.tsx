@@ -1,41 +1,45 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import {
-	alignMap,
-	gapMap,
-	ratioTuples,
-	type SplitAlign,
-	type SplitGap,
-	type SplitOrientation,
-	type SplitRatio,
+	type ResponsiveSplitAlign,
+	type ResponsiveSplitGap,
+	type ResponsiveSplitOrientation,
+	type ResponsiveSplitRatio,
+	resolveAlign,
+	resolveGap,
+	resolveTemplate,
 } from './variants'
 
 /** Props for {@link Split}: layout knobs (`orientation`, `ratio`, `gap`, `align`) plus `<div>` attributes. */
 export type SplitProps = {
 	/**
 	 * Split orientation: two columns (`horizontal`) or two rows (`vertical`).
+	 * Supports responsive breakpoints, so a two-column split can stack on a
+	 * phone.
 	 * @defaultValue 'horizontal'
 	 */
-	orientation?: SplitOrientation
+	orientation?: ResponsiveSplitOrientation
 	/**
 	 * Size of the first pane relative to the second; `'1/2'` is an equal split.
+	 * Supports responsive breakpoints.
 	 * @defaultValue '1/2'
 	 */
-	ratio?: SplitRatio
+	ratio?: ResponsiveSplitRatio
 	/**
-	 * Gap between the two panes.
+	 * Gap between the two panes. Supports responsive breakpoints.
 	 * @defaultValue 'lg'
 	 */
-	gap?: SplitGap
-	/** Cross-axis alignment. */
-	align?: SplitAlign
+	gap?: ResponsiveSplitGap
+	/** Cross-axis alignment. Supports responsive breakpoints. */
+	align?: ResponsiveSplitAlign
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
- * Two-pane CSS-grid layout. `orientation` chooses columns or rows, `ratio`
- * sizes the first pane against the second via `fr` tracks, and `gap` (explicit,
- * defaulting to `lg`) and `align` tune spacing and cross-axis placement.
+ * Two-pane CSS-grid layout. `orientation` chooses columns or rows, and `ratio`
+ * sizes the first pane against the second via `fr` tracks. `gap` and `align`
+ * tune spacing and cross-axis placement; `gap` is explicit and defaults to
+ * `lg`.
  * Expects exactly two children. A static leaf with no client hooks, so it
  * renders in React Server Components.
  */
@@ -45,24 +49,20 @@ export function Split({
 	gap = 'lg',
 	align,
 	className,
-	style,
 	children,
 	...props
 }: SplitProps) {
-	const [a, b] = ratioTuples[ratio]
-	const template = `${a}fr ${b}fr`
-
-	const ratioStyle =
-		orientation === 'horizontal'
-			? { gridTemplateColumns: template }
-			: { gridTemplateRows: template }
-
 	return (
 		<div
-			data-slot="split"
-			className={cn('grid', gapMap[gap], align && alignMap[align], className)}
-			style={{ ...ratioStyle, ...style }}
 			{...props}
+			data-slot="split"
+			className={cn(
+				'grid',
+				resolveTemplate(orientation, ratio),
+				resolveGap(gap),
+				resolveAlign(align),
+				className,
+			)}
 		>
 			{children}
 		</div>

@@ -5,6 +5,8 @@ export { SheetTrigger, type SheetTriggerProps } from './sheet-trigger'
 export {
 	SheetBody,
 	type SheetBodyProps,
+	SheetContent,
+	type SheetContentProps,
 	SheetDescription,
 	type SheetDescriptionProps,
 	SheetFooter,

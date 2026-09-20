@@ -7,20 +7,20 @@ export function Demo() {
 	return (
 		<>
 			<Example title="Default">
-				<CopyButton value="Hello, world!" />
+				<CopyButton text="Hello, world!" />
 			</Example>
 
 			<Example title="Sizes">
 				<Flex gap="lg">
-					<CopyButton value="Large" size="lg" />
-					<CopyButton value="Medium" size="md" />
-					<CopyButton value="Small" size="sm" />
-					<CopyButton value="Extra small" size="xs" />
+					<CopyButton text="Large" size="lg" />
+					<CopyButton text="Medium" size="md" />
+					<CopyButton text="Small" size="sm" />
+					<CopyButton text="Extra small" size="xs" />
 				</Flex>
 			</Example>
 
 			<Example title="Custom icon">
-				<CopyButton value="https://example.com" icon={<Copy />} />
+				<CopyButton text="https://example.com" icon={<Copy />} />
 			</Example>
 		</>
 	)

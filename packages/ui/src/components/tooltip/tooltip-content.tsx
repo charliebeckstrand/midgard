@@ -7,16 +7,16 @@ import { cn } from '../../core'
 import { useA11yHasTabbable } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
-import { useGlass } from '../../providers/glass/context'
+import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
 /**
  * Tab cycle for the interactive trap: trigger first, then the panel's own
- * tabbables. Including the reference is what makes a tooltip trap reachable —
- * the trigger keeps focus when the tooltip opens, so a content-only cycle
- * would leave Tab walking into the page instead of the panel, and floating-ui
+ * tabbables. Including the reference is what makes a tooltip trap reachable.
+ * The trigger keeps focus when the tooltip opens, so a content-only cycle
+ * would leave Tab walking into the page instead of the panel. Floating-ui also
  * `aria-hidden`s everything outside the cycle, which would swallow the very
  * trigger the panel describes.
  */
@@ -31,28 +31,52 @@ export type TooltipContentProps = {
 	 */
 	size?: Step
 	className?: string
+	/**
+	 * Class for the positioned wrapper around the panel, rather than for the panel
+	 * itself.
+	 *
+	 * For the properties the panel's own entrance animates — `opacity` and
+	 * `scale` — which `motion` writes as inline styles that no class can outrank.
+	 * A caller that wants to fade a standing panel sets the fade here, where it
+	 * composes with the entrance instead of fighting it.
+	 */
+	surfaceClassName?: string
+	/**
+	 * Opt the surface into the translucent glass chrome, as the panel family
+	 * does. An ambient `<GlassProvider>` already turns it on; this is the
+	 * per-surface opt-in for a tree that has none.
+	 *
+	 * @defaultValue false
+	 */
+	glass?: boolean
 	children: ReactNode
 }
 
 /**
  * Floating panel rendered when the enclosing `<Tooltip>` is open. Positions
- * via `<FloatingSurface>`, animates in, and adopts the glass surface when a
- * `<GlassProvider>` is active.
+ * via `<FloatingSurface>`, animates in, and adopts the glass surface from
+ * `glass` or an active `<GlassProvider>`.
  *
  * @remarks Pointer events are disabled unless the tooltip is `interactive`,
  * so a non-interactive panel never intercepts hover. An `interactive` panel
- * that holds something tabbable also traps focus: Tab steps off the trigger
- * into the panel, cycles its controls, and wraps back to the trigger, with
- * focus restored there if the tooltip closes from inside (WCAG 2.1.2). The
+ * that holds something tabbable also traps focus. Tab steps off the trigger
+ * into the panel, cycles its controls, and wraps back to the trigger. Focus is
+ * restored there if the tooltip closes from inside (WCAG 2.1.2). The
  * trap engages only once the panel actually has a tabbable — a prose tooltip
  * the pointer can merely reach never captures the keyboard.
  * @see {@link useA11yHasTabbable}
  */
-export function TooltipContent({ size, className, children }: TooltipContentProps) {
+export function TooltipContent({
+	size,
+	className,
+	surfaceClassName,
+	glass: glassProp,
+	children,
+}: TooltipContentProps) {
 	const { open, interactive, setFloating, floatingStyles, getFloatingProps, floatingContext } =
 		useTooltipContext()
 
-	const glass = useGlass()
+	const glass = useResolvedSurface(glassProp) === 'glass'
 	const inherited = useDensity()
 
 	// State, not a ref: the panel mounts a commit after the portal node exists,
@@ -69,6 +93,7 @@ export function TooltipContent({ size, className, children }: TooltipContentProp
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
+			className={surfaceClassName}
 			// `pointer-events` is inherited, so gating it here gates the whole panel
 			// subtree; the inner surface carries no rule of its own.
 			style={{ pointerEvents: interactive ? 'auto' : 'none' }}

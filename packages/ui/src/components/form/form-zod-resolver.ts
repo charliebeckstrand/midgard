@@ -50,8 +50,8 @@ function bucketZodIssues(issues: ReadonlyArray<ZodIssue>): Record<string, string
  * `Form`'s `validate` prop.
  * @typeParam T - The form-value record shape.
  * @remarks Parses the whole schema once per `values` identity and caches the
- * result, so per-field calls within one reducer pass — and any cross-field
- * refinements — share the same memoized parse. Collects every issue at
+ * result. Per-field calls within one reducer pass therefore share the same
+ * memoized parse, and so does any cross-field refinement. Collects every issue at
  * `path[0] === <field>`, preserving schema order and de-duplicating identical
  * messages. Drops form-level issues (`path: []`); attach them to a real field
  * via `.refine(..., { path: ['…'] })`.

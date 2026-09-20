@@ -1,8 +1,9 @@
-import type { PropsWithChildren, Ref } from 'react'
+import type { ComponentProps, PropsWithChildren } from 'react'
 import { Stack } from '../components/stack'
-import { cn } from '../core'
+import { cn, createSlot } from '../core'
 
-type StackedLayoutProps = PropsWithChildren<{
+/** Props for {@link StackedLayout}: the header, body, and footer slots to stack. */
+export type StackedLayoutProps = PropsWithChildren<{
 	className?: string
 }>
 
@@ -14,47 +15,33 @@ type StackedLayoutProps = PropsWithChildren<{
  */
 export function StackedLayout({ children, className }: StackedLayoutProps) {
 	return (
-		<Stack direction="col" gap="lg" className={cn('min-h-0', className)}>
+		<Stack gap="lg" className={cn('min-h-0', className)}>
 			{children}
 		</Stack>
 	)
 }
 
-type StackedLayoutHeaderProps = PropsWithChildren<{ className?: string }>
+// Each slot is element + `data-slot` + class composition, which is what
+// `createSlot` is for. It also carries `ref` and every native attribute of the
+// element, so these three take the same surface the structure roots took.
+
+/** Props for {@link StackedLayoutHeader} (`<header>` attributes). */
+export type StackedLayoutHeaderProps = ComponentProps<'header'>
 
 /** Fixed-height header slot for {@link StackedLayout} (`data-slot="header"`). */
-export function StackedLayoutHeader({ children, className }: StackedLayoutHeaderProps) {
-	return (
-		<header data-slot="header" className={cn('shrink-0', className)}>
-			{children}
-		</header>
-	)
-}
+export const StackedLayoutHeader = createSlot('header', 'header', 'shrink-0')
 
-type StackedLayoutBodyProps = PropsWithChildren<{
-	className?: string
-	ref?: Ref<HTMLElement>
-}>
+/** Props for {@link StackedLayoutBody} (`<main>` attributes); `ref` reaches the scrolling `<main>`. */
+export type StackedLayoutBodyProps = ComponentProps<'main'>
 
 /**
  * Flexible, vertically scrolling main slot for {@link StackedLayout}
  * (`data-slot="body"`). Takes the remaining height between header and footer.
  */
-export function StackedLayoutBody({ ref, children, className }: StackedLayoutBodyProps) {
-	return (
-		<main ref={ref} data-slot="body" className={cn('flex-1 min-h-0 overflow-y-auto', className)}>
-			{children}
-		</main>
-	)
-}
+export const StackedLayoutBody = createSlot('main', 'body', 'flex-1 min-h-0 overflow-y-auto')
 
-type StackedLayoutFooterProps = PropsWithChildren<{ className?: string }>
+/** Props for {@link StackedLayoutFooter} (`<footer>` attributes). */
+export type StackedLayoutFooterProps = ComponentProps<'footer'>
 
 /** Fixed-height footer slot for {@link StackedLayout} (`data-slot="footer"`). */
-export function StackedLayoutFooter({ children, className }: StackedLayoutFooterProps) {
-	return (
-		<footer data-slot="footer" className={cn('shrink-0', className)}>
-			{children}
-		</footer>
-	)
-}
+export const StackedLayoutFooter = createSlot('footer', 'footer', 'shrink-0')

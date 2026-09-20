@@ -14,7 +14,7 @@ import {
 	isQueryActive,
 	QueryBuilder,
 	type QueryField,
-	type QueryGroupNode,
+	type QueryGroup,
 } from '../query'
 import { columnLabel } from './engine/grid-column/label'
 import { GridOverlayDensity, useGridOverlayDensity } from './grid-region'
@@ -48,24 +48,25 @@ type GridColumnFilterButtonProps = {
 	column: FilterColumn
 	filter: GridColumnFilter
 	/**
-	 * The column's current query tree, threaded as a prop (not read live off
-	 * `filter`) so a change re-renders this button through the memoized header
-	 * cell — keeping the active accent and the sheet's reopened draft in step
-	 * with what's actually applied.
+	 * The column's current query tree, threaded as a prop rather than read live
+	 * off `filter`. A change therefore re-renders this button through the memoized
+	 * header cell. That keeps the active accent and the sheet's reopened draft in
+	 * step with what's actually applied.
 	 */
-	query: QueryGroupNode | undefined
+	query: QueryGroup | undefined
 }
 
 /**
  * Filter affordance for a filterable column header: an icon button opening a
- * right-side {@link Sheet} that hosts a single-field {@link QueryBuilder} — no
- * field selector, no nested groups, just operator + value rules joined by AND/OR.
+ * right-side {@link Sheet} that hosts a single-field {@link QueryBuilder}. There
+ * is no field selector and no nested groups, just operator + value rules joined
+ * by AND/OR.
  *
- * Edits accumulate in a local draft; nothing reaches the engine until the
- * sheet's **Apply** settles it, and dismissing (Cancel, Escape, backdrop)
- * discards the draft so the applied filter stands. While a filter is applied the
- * header button turns into a menu — **Edit filters** reopens the sheet on the
- * applied query, **Clear filters** lifts it outright — so a filter is cleared
+ * Edits accumulate in a local draft, and nothing reaches the engine until the
+ * sheet's **Apply** settles it. Dismissing (Cancel, Escape, backdrop) discards
+ * the draft, so the applied filter stands. While a filter is applied the header
+ * button turns into a menu. **Edit filters** reopens the sheet on the applied
+ * query, and **Clear filters** lifts it outright. A filter is therefore cleared
  * without stepping through the sheet. The button reads accent from the applied
  * query, not the draft.
  *
@@ -111,7 +112,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// cells (see `GridOverlayDensity`).
 	const overlayDensity = useGridOverlayDensity()
 
-	const [draft, setDraft] = useState<QueryGroupNode>(seeded)
+	const [draft, setDraft] = useState<QueryGroup>(seeded)
 
 	// Close the sheet and, if it was opened from the right-click menu (the `'menu'`
 	// affordance), consume that request so it doesn't immediately reopen.
@@ -241,13 +242,17 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 			) : null}
 
 			<GridOverlayDensity>
-				<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter ${label}`}>
+				<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter “${label}”`}>
 					{/* A `contents` form so Enter in a rule input submits (Apply) without
 				    imposing a box — the panel's `gap-4` slot rhythm survives the
 				    display:contents wrapper. It spans the title too so the body stays a
 				    non-first child, keeping its `first:` top padding off. */}
 					<form className="contents" onSubmit={submit}>
-						<SheetTitle>Filter {label}</SheetTitle>
+						{/* The column name is quoted, as the row that opens this sheet quotes
+						    it. The name therefore reads as the column being filtered, rather
+						    than as part of the title's own wording. The dialog's `aria-label` above
+						    carries the same string. */}
+						<SheetTitle>Filter “{label}”</SheetTitle>
 
 						<SheetBody>
 							<QueryBuilder

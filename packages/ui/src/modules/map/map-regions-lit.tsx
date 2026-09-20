@@ -12,13 +12,13 @@ type MapRegionsLitProps = MapRegionLayer & {
 }
 
 /**
- * The lit copies above the receded layer — the chart marks' isolation
- * pattern: the layer dims as one group and the emphasised marks draw again
+ * The lit copies above the receded layer, the chart marks' isolation
+ * pattern. The layer dims as one group, and the emphasised marks draw again
  * at full strength over it. A pointed region redraws alone; a legend focus
  * redraws its category. The copies are `pointer-events-none` and carry no
- * anchor attribute, so the base paths stay the hit targets and the scroll
- * resolve never sees a double; opaque fills over identical geometry cover
- * their dimmed originals exactly.
+ * anchor attribute. The base paths therefore stay the hit targets, and the
+ * scroll resolve never sees a double. Opaque fills over identical geometry
+ * cover their dimmed originals exactly.
  *
  * @internal
  */
@@ -30,12 +30,12 @@ export function MapRegionsLit({
 	paints,
 }: MapRegionsLitProps) {
 	// The lit set is the exact complement of the shared dim rule
-	// (`mapMarkDimmed` in context.ts — change one, change both): the pointed
-	// mark wins over a still-held legend focus, so a pointed region lights
-	// alone, a pointed overlay entry lights nothing here (the whole layer
-	// recedes behind it), else the focused category lights. Resolved by branch
-	// rather than through the helper so a pointer crossing costs O(1), not a
-	// per-region scan.
+	// (`mapMarkDimmed` in engine/map-hover/target.ts — change one, change
+	// both): the pointed mark wins over a still-held legend focus, so a
+	// pointed region lights alone, a pointed overlay entry lights nothing
+	// here (the whole layer recedes behind it), else the focused category
+	// lights. Resolved by branch rather than through the helper so a pointer
+	// crossing costs O(1), not a per-region scan.
 	const lit: number[] = []
 
 	if (pointed !== null) {

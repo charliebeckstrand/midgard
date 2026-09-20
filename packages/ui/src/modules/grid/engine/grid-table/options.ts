@@ -25,7 +25,7 @@ import {
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
-import type { SortState } from '../../context'
+import type { GridSortState } from '../../context'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
 import {
@@ -36,16 +36,16 @@ import {
 import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
 import { isQueryGroup } from './views'
 
-/** Adapts the grid's ordered {@link SortState} list to a TanStack `SortingState`, priority order preserved. @internal */
-export function toSortingState(sort: SortState[] | undefined): SortingState {
+/** Adapts the grid's ordered {@link GridSortState} list to a TanStack `SortingState`, priority order preserved. @internal */
+export function toSortingState(sort: GridSortState[] | undefined): SortingState {
 	return (sort ?? []).map((entry) => ({
 		id: String(entry.column),
 		desc: entry.direction === 'desc',
 	}))
 }
 
-/** Adapts a TanStack `SortingState` back to the grid's ordered {@link SortState} list. @internal */
-export function toSortState(sorting: SortingState): SortState[] {
+/** Adapts a TanStack `SortingState` back to the grid's ordered {@link GridSortState} list. @internal */
+export function toSortState(sorting: SortingState): GridSortState[] {
 	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
 }
 
@@ -102,9 +102,17 @@ export function usesClientModel(args: {
 	)
 }
 
-/** Parses a plain `px`/unitless CSS width to a number, or `undefined` for relative/auto widths. @internal */
-export function parsePxWidth(width: string | undefined): number | undefined {
+/**
+ * Parses a column width to px. A number passes through. A string yields a
+ * number only where it is a plain `px` or unitless value. A relative or `auto`
+ * width returns `undefined`, which leaves the column on content sizing.
+ *
+ * @internal
+ */
+export function parsePxWidth(width: number | string | undefined): number | undefined {
 	if (width == null) return undefined
+
+	if (typeof width === 'number') return Number.isFinite(width) ? width : undefined
 
 	const match = /^(\d+(?:\.\d+)?)(?:px)?$/.exec(width.trim())
 
@@ -125,9 +133,9 @@ queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.len
 
 /**
  * Highlight-mode global filter: matches every row, so the quick-search query
- * marks cells (see {@link GridSearch.filter}) without pruning any row. The value
- * still lives in engine state for the highlighter to read, and column filters
- * keep their own {@link queryFilterFn}, so they prune independently of the search.
+ * marks cells (see {@link GridSearch.mode}) without pruning any row. The value
+ * still lives in engine state for the highlighter to read. Column filters keep
+ * their own {@link queryFilterFn}, so they prune independently of the search.
  *
  * @internal
  */
@@ -138,8 +146,8 @@ const passThroughGlobalFilterFn: FilterFn<unknown> = () => true
  * compares a row O(log N) times; without this the smart comparator would reparse
  * the value (the currency / percent / accounting regexes) on every comparison.
  * Keyed by the stable engine `Row` and resolved through the engine's own cached
- * `getValue`, so a value is decoded once per sort and the entry falls away with
- * the row model when the data changes — a `WeakMap` holds no row alive.
+ * `getValue`. A value is therefore decoded once per sort, and the entry falls
+ * away with the row model when the data changes. A `WeakMap` holds no row alive.
  *
  * @internal
  */
@@ -168,14 +176,15 @@ function rowSortKey(row: Row<unknown>, columnId: string): SortKey {
 
 /**
  * Builds the default column sort: it orders rows by the smart {@link SortKey} of
- * their accessor value — numbers, money, percentages, dates, and the like sort
- * correctly out of the box rather than lexically — decorating each value once per
- * sort (see {@link rowSortKey}). Row-shape-agnostic; cast to a column's row type.
+ * their accessor value. Numbers, money, percentages, dates, and the like
+ * therefore sort correctly out of the box rather than lexically. Each value is
+ * decorated once per sort (see {@link rowSortKey}). Row-shape-agnostic; cast to
+ * a column's row type.
  *
  * Direction-aware so empties sink to the end under both directions. The engine
  * negates a comparator's result for a `desc` column, and its `sortUndefined`
- * escape fires only for a literal `undefined`, so a fixed empties-last sign would
- * flip to empties-first on `desc`. Reading the live direction through
+ * escape fires only for a literal `undefined`. A fixed empties-last sign would
+ * therefore flip to empties-first on `desc`. Reading the live direction through
  * `isDescending`, the empty partition is pre-inverted so the engine's negation
  * lands empties last either way; the non-empty comparison negates normally.
  *
@@ -205,11 +214,15 @@ export function makeSmartSortingFn(
 const defaultSmartSortingFn = makeSmartSortingFn(() => false)
 
 /**
- * Resolves a column's engine behaviors from its declaration: the sort/filter
- * value `accessorFn` (an explicit `value`, else the row field named by a data
- * column's id — so columns sort client-side out of the box), the `sortingFn` (a
- * column's manual `sortFn`, else the smart default; data columns only), and the
- * query `filterFn` (a filterable column with a value). Each is `undefined` when
+ * Resolves a column's engine behaviors from its declaration:
+ *
+ * - The sort/filter value `accessorFn` (an explicit `value`, else the row field
+ *   named by a data column's id, so columns sort client-side out of the box).
+ * - The `sortingFn` (a column's manual `sortFn`, else the smart default; data
+ *   columns only).
+ * - The query `filterFn` (a filterable column with a value).
+ *
+ * Each is `undefined` when
  * the column opts out, so {@link toColumnDef} spreads only what applies. The
  * comparator and filter are row-shape agnostic, cast to the column's row type.
  *
@@ -234,7 +247,21 @@ function deriveColumnBehavior<T>(col: GridColumn<T>, smartSortingFn: SortingFn<u
 	return { accessorFn, sortingFn, filterFn }
 }
 
-/** The natural affordance width a non-data column holds, or `undefined` for a data column. @internal */
+/**
+ * The natural width of a non-data column whose content the design system fixes: a checkbox, a
+ * grip, a chevron.
+ *
+ * An `actions` column deliberately gets none. Its content is the consumer's: one text button,
+ * a save/discard pair, a lone icon. Any number here would be a guess that is wrong for most of
+ * them. The consequence is worth knowing before you write one. An `actions` column sits out
+ * the autosizer's fit ({@link measureColumnIntrinsics}). A `resizable` grid takes the engine
+ * width verbatim through its fixed-layout colgroup, so the `w-px` on the cell never gets to
+ * shrink anything. **A width-less `actions` column therefore renders at
+ * {@link DEFAULT_COLUMN_SIZE}, not at its content width** — declare a `width` unless that is
+ * what you want.
+ *
+ * @internal
+ */
 function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
 	if (col.selectable) return SELECT_COLUMN_SIZE
 
@@ -354,7 +381,7 @@ export function sortOptions<T>(args: {
 	return {
 		getSortedRowModel: getSortedRowModel(),
 		onSortingChange: args.onSortingChange,
-		// The grid owns the additive Shift-click model, so the engine should honor a
+		// The grid owns the additive Shift-click model, so the engine must honor a
 		// multi-column sorting state rather than collapse it to one column.
 		enableMultiSort: true,
 	}
@@ -400,18 +427,19 @@ export function resizeOptions<T>(args: {
 
 /**
  * Raises each width in a column-sizing update to its measured floor, so a
- * drag-resize can't pull a column below the width its header needs — a
- * single-word header stays whole (it never truncates), a multi-word one keeps
- * its affordance icons. The engine's resize handler writes the dragged width
- * clamped only at zero (the `minSize` floor is applied later, at read time), and
- * every write — drag, keyboard, autosizer — funnels through here, so this is the
- * one place a sub-floor width is caught before it reaches the controlled state.
+ * drag-resize can't pull a column below the width its header needs. A
+ * single-word header stays whole (it never truncates), and a multi-word one
+ * keeps its affordance icons. The engine's resize handler writes the dragged
+ * width clamped only at zero (the `minSize` floor is applied later, at read
+ * time). Every write — drag, keyboard, autosizer — funnels through here. This
+ * is therefore the one place a sub-floor width is caught before it reaches the
+ * controlled state.
  *
- * `floors` carries only the columns the autosizer has measured; a column without
+ * `floors` carries only the columns the autosizer has measured. A column without
  * an entry (none recorded yet, or width-controlled) is left to the engine's own
  * `minSize`. Returns the input object unchanged when nothing sits below its
- * floor, so the autosizer's no-op ticks don't churn a fresh object through the
- * controlled state and re-render the grid for nothing.
+ * floor. The autosizer's no-op ticks therefore don't churn a fresh object
+ * through the controlled state, and re-render the grid for nothing.
  *
  * @internal
  */

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import type { QueryField } from '../../modules/query/engine/types'

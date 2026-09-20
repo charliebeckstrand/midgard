@@ -1,7 +1,7 @@
 'use client'
 
 import {
-	type ComponentPropsWithoutRef,
+	type ComponentProps,
 	type FocusEvent,
 	type MouseEvent,
 	type PointerEvent,
@@ -21,7 +21,10 @@ import { useTabsContext } from './context'
 export type TabProps = {
 	value?: string
 	current?: boolean
-	/** Links this tab to its panel via aria-controls. */
+	/**
+	 * Links this tab to a panel the consumer renders itself, via `aria-controls`
+	 * (`${id}-panel`). Leave it unset to auto-wire a `<TabContent value>`.
+	 */
 	id?: string
 	/**
 	 * Fills the available cross-axis space (equal-width tabs).
@@ -30,25 +33,26 @@ export type TabProps = {
 	stretch?: boolean
 	disabled?: boolean
 	/**
-	 * Fires once when the user first signals intent to open an inactive tab —
-	 * the pointer enters its trigger or the trigger takes focus — with the tab's
-	 * `value`. The moment to warm what the panel will need: prefetch its data
-	 * (a `queryClient.prefetchQuery`, a route fetch) so the panel is ready by the
-	 * click. Latched to fire at most once per tab, skipped for the active tab and
-	 * a `disabled` one; runs after any `onPointerEnter` / `onFocus` a caller also
-	 * passes. The callback owns the work — the tab stays agnostic to what loads.
+	 * Fires once when the user first signals intent to open an inactive tab, with
+	 * the tab's `value`. Intent is the pointer entering its trigger, or the
+	 * trigger taking focus. The moment to warm what the panel will need: prefetch
+	 * its data (a `queryClient.prefetchQuery`, a route fetch) so the panel is
+	 * ready by the click. Latched to fire at most once per tab, skipped for the
+	 * active tab and a `disabled` one. It runs after any `onPointerEnter` /
+	 * `onFocus` a caller also passes. The callback owns the work — the tab stays agnostic to what loads.
 	 *
 	 * @remarks
 	 * A `mount` policy on `TabContents` covers only half of this. A held panel
-	 * rests in a hidden `<Activity>`, which renders its children, so render-phase
-	 * work warms for free: a `lazy()` chunk resolves, a `use()`d promise starts.
+	 * rests in a hidden `<Activity>`, which renders its children. Render-phase
+	 * work therefore warms for free: a `lazy()` chunk resolves, a `use()`d promise
+	 * starts.
 	 * A hidden Activity mounts no effects, so effect-driven work does not — a
 	 * `useQuery` inside a held panel still waits to be shown. `onPreload` is what
 	 * warms that half, under every mount policy.
 	 */
 	onPreload?: (value: string | undefined) => void
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'button'>, 'className' | 'id' | 'value' | 'color'>
+} & Omit<ComponentProps<'button'>, 'className' | 'id' | 'value' | 'color'>
 
 /**
  * Resolves the tab's current state plus its auto-wired tab/panel id pair (an
@@ -83,9 +87,10 @@ function resolveTabState(opts: {
 /**
  * Single tab trigger: a headless `<Button>` carrying `role="tab"`, roving
  * `tabIndex`, and an `<ActiveIndicator>` while selected. Resolves `size` against
- * the Tabs context (or the Density cascade à la carte), and in the `tab` variant
- * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id + `value`;
- * `segment` tabs have no panels. Clicking sets the enclosing selection state.
+ * the Tabs context, or the Density cascade à la carte. In the `tab` variant it
+ * auto-wires `aria-controls` to its `<TabContent>` via the Tabs base id +
+ * `value`. A `segment` tab has no panel. Clicking sets the enclosing selection
+ * state.
  */
 export function Tab({
 	value,
@@ -118,8 +123,8 @@ export function Tab({
 	const orientation = tabsContext?.orientation ?? 'horizontal'
 
 	// Derives a matched tab/panel id pair from the Tabs base id + value,
-	// auto-wiring <TabContent value>. An explicit `id` prop overrides this
-	// for manual <TabPanel id> linkage. Segments have no panels and never
+	// auto-wiring <TabContent value>. An explicit `id` prop overrides this to
+	// link a panel the consumer renders. Segments have no panels and never
 	// auto-wire `aria-controls`.
 	const disclosure = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 

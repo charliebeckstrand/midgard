@@ -25,9 +25,9 @@ export type ContextMenuProps = ContextMenuConfig & {
 
 /**
  * Wraps content in a right-click context menu built from a host's `defaults`
- * merged with a caller's custom {@link ContextMenuConfig} — the custom items
- * before or after the defaults per `position`, a separator between when both
- * show. With nothing to show — no defaults kept and no custom items, or
+ * merged with a caller's custom {@link ContextMenuConfig}. The custom items sit
+ * before or after the defaults per `insert`, with a separator between when
+ * both show. With nothing to show — no defaults kept and no custom items, or
  * `disabled` — it renders the content untouched, so the native menu still opens.
  *
  * @remarks Anchors at the cursor and tracks the right-clicked element on scroll,
@@ -39,15 +39,15 @@ export function ContextMenu({
 	defaults,
 	items,
 	defaultItems,
-	position,
+	insert,
 	capped,
 	disabled = false,
 	className,
 	children,
 }: ContextMenuProps) {
 	const entries = useMemo(
-		() => resolveContextMenuEntries({ items, defaultItems, position }, defaults ?? []),
-		[items, defaultItems, position, defaults],
+		() => resolveContextMenuEntries({ items, defaultItems, insert }, defaults ?? []),
+		[items, defaultItems, insert, defaults],
 	)
 
 	if (disabled || entries.length === 0) return <>{children}</>

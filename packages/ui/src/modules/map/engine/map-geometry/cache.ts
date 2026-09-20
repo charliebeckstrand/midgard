@@ -3,34 +3,37 @@
  * atlas and cost tens of milliseconds to rebuild.
  *
  * The mount-critical pair leads: decoding the geography and fitting the
- * measurement-free canonical projection, with that fit's region paths a call
+ * measurement-free canonical projection. That fit's region paths are a call
  * away for the map that paints before it is measured. Every {@link MapPlat}
- * mount pays them afresh on the render path before
- * the geography can paint — tens of milliseconds on a US states atlas, more on
- * a county one. Two plats drawing one atlas (the docs' Route tab renders two; a
- * dashboard's small multiples) and a remount of the same map (a tab switch
- * under `mount="active"`, a route revisit) reuse the first mount's result
- * instead of recomputing it, so the geography paints on the first commit
- * without re-paying the fit.
+ * mount pays them afresh on the render path before the geography can paint.
+ * That is tens of milliseconds on a US states atlas, and more on a county one.
+ * Two plats drawing one atlas (the docs' Route tab renders two; a dashboard's
+ * small multiples) reuse the first mount's result. So does a remount of the
+ * same map: a tab switch under `mount="active"`, or a route revisit. The
+ * geography therefore paints on the first commit, without re-paying the fit.
  *
- * The rest resolve on their first read: the decode alone, which the coverage
- * hook wants without a fit; the canonical region paths, which an ordinary map
- * does pay at mount but a `deferPaint` one never asks for; the region
- * centroids, which only a keyboard cursor reads; and the chrome paths. Each
- * says in its own doccomment who reads it and when.
+ * The rest resolve on their first read:
+ *
+ * - The decode alone, which the coverage hook wants without a fit.
+ * - The canonical region paths, which an ordinary map does pay at mount but a
+ *   `deferPaint` one never asks for.
+ * - The region centroids, which only a keyboard cursor reads.
+ * - The chrome paths.
+ *
+ * Each says in its own doccomment who reads it and when.
  *
  * The atlas keys a {@link WeakMap} by identity, so the cache never pins one in
  * memory and a freshly fetched atlas misses. Only named projections cache: a
  * passed d3 instance is stateful — fitting mutates it in place — so its
  * geometry is computed directly and never shared. The per-container-size
- * measured refit stays with {@link MapPlat}; it reprojects to constant-pixel
+ * measured refit stays with {@link MapPlat}. It reprojects to constant-pixel
  * marks a beat after mount, landing after the first paint this canonical draw
  * already served.
  *
  * A mount policy that holds a hidden map is not a substitute. It removes the
- * remount case above and nothing else — two plats drawing one atlas still need
- * the shared result — so a hold shifts this cache's hit rate without retiring
- * it.
+ * remount case above and nothing else. Two plats drawing one atlas still need
+ * the shared result. A hold therefore shifts this cache's hit rate without
+ * retiring it.
  */
 
 import type { GeoProjection } from 'd3-geo'
@@ -81,14 +84,14 @@ const decoded = new WeakMap<MapGeography, Map<string | undefined, MapFeature[]>>
  * name, and shared across instances and mounts.
  *
  * Rewound here rather than at each reader, because both readers need it and for
- * the same reason: a raw-GeoJSON exterior wound opposite d3's spherical
+ * the same reason. A raw-GeoJSON exterior wound opposite d3's spherical
  * convention reads as the region's complement. That floods the frame when it is
  * fit, and swallows the globe when a position is tested against it.
  *
  * Absent geography yields the shared empty list, as {@link staticMapGeometry}
- * yields the empty geometry — so a caller waiting on a fetched atlas neither
- * guards nor mints an empty array whose fresh identity would defeat the memo
- * below it.
+ * yields the empty geometry. A caller waiting on a fetched atlas therefore
+ * neither guards nor mints an empty array whose fresh identity would defeat the
+ * memo below it.
  *
  * Shared, so treat the result as read-only.
  *
@@ -239,10 +242,10 @@ const chrome = new WeakMap<
  * and graticule step. Chrome off yields {@link EMPTY_CHROME} without touching
  * the cache, so the default map pays neither the pass nor a slot.
  *
- * `sphere` only gates that early return: the frame path resolves for either part
- * — drawn it is the sphere outline, unstroked it bounds the graticule — so it
- * stays out of the key, and toggling the outline re-renders rather than
- * redrawing the graticule.
+ * `sphere` only gates that early return. The frame path resolves for either
+ * part: drawn it is the sphere outline, unstroked it bounds the graticule. It
+ * therefore stays out of the key, and a toggle of the outline re-renders rather
+ * than redrawing the graticule.
  *
  * @internal
  */
@@ -312,14 +315,14 @@ function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (st
 /**
  * Region paths under a measured fit, memoised on the shared
  * {@link StaticMapGeometry} entry by frame box. A geometry computed outside
- * the cache (a passed d3 instance) is a fresh object each time, so it misses
- * here and pays the projection directly — its stateful projection couldn't
- * key a shared entry anyway.
+ * the cache (a passed d3 instance) is a fresh object each time. It therefore
+ * misses here and pays the projection directly. Its stateful projection
+ * couldn't key a shared entry anyway.
  *
- * Emitted from the shared buffer ({@link cachedProjectedAtlas}), which is what
- * takes a resize off the projection entirely: the slot above holds one box, so a
- * drag re-drew the whole atlas at every size it committed — 248 ms per step
- * across 3,108 counties, against 24 ms to emit them.
+ * {@link emitRegionPaths} emits these from the shared buffer, which is what
+ * takes a resize off the projection entirely. The slot above holds one box, so
+ * a drag re-drew the whole atlas at every size it committed. That was 248 ms
+ * per step across 3,108 counties, against 24 ms to emit them.
  *
  * @internal
  */

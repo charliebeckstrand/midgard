@@ -4,13 +4,13 @@ import type { PaletteColor } from '../../core/recipe'
 /**
  * One column group of a {@link Grid}: a labeled, colored band drawn above a
  * contiguous run of columns. `columns` lists the member column ids in the order
- * they sit under the band — the grid keeps them adjacent and in this order, so a
+ * they sit under the band. The grid keeps them adjacent and in this order, so a
  * group moves and reorders as a block.
  *
- * @remarks The band's color accepts any {@link PaletteColor} — the standard
- * palette (`zinc` / `red` / `amber` / `green` / `blue`) plus the extended set
- * (`mist` / `rose` / `violet` / `sky`) — rendered through {@link Badge}, so the
- * presets match the Badge surface exactly.
+ * @remarks The band's color accepts any {@link PaletteColor}, rendered through
+ * {@link Badge}, so the presets match the Badge surface exactly. That is the
+ * standard palette (`zinc` / `red` / `amber` / `green` / `blue`) plus the
+ * extended set (`mist` / `rose` / `violet` / `sky`).
  */
 export type GridColumnGroup = {
 	/** Stable identity for the group; keys its band and its column-manager zone. */
@@ -44,9 +44,9 @@ export type GridColumnGroup = {
 }
 
 /**
- * Controlled/uncontrolled binding for {@link GridDataProps.groups}. The plain
- * array shorthand seeds the groups uncontrolled (the column manager mutates them
- * from there); the object form threads a controlled `value` with an
+ * Controlled/uncontrolled binding for {@link GridDataProps.columnGroups}. The plain
+ * array shorthand seeds the groups uncontrolled, and the column manager mutates
+ * them from there. The object form threads a controlled `value` with an
  * `onValueChange` sink, so a consumer can persist the group layout the manager
  * produces.
  */

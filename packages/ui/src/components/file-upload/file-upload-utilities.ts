@@ -49,9 +49,9 @@ export function formatFileNames(files: File[]): string | undefined {
 }
 
 /**
- * Selection status text for the `drop` and `input` variants: the file name
- * for a single pick, or an "x files selected" summary once `multiple` yields
- * more than one.
+ * Selection status text for the `drop` and `input` variants. It is the file
+ * name for a single pick. Once `multiple` yields more than one, it is an
+ * "x files selected" summary.
  *
  * @returns The status text, or `undefined` when there are no files.
  * @internal

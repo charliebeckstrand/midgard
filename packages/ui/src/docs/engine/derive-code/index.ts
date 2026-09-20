@@ -44,12 +44,17 @@ export type {
  *   lucide icons) resolve by `displayName` against the demos' package imports.
  *
  * `facts` — build-time source knowledge injected by the docs plugin — lets the
- * walk synthesize what runtime values can't express: props with no literal
- * form (handlers, hook results, data configs) render as their authored source,
- * render-prop children emit verbatim, and the declarations those snippets
- * reference (`useState` lines, format helpers, data consts) assemble into a
- * preamble between the imports and the JSX. Live primitive values still win,
- * so control-driven demos keep reflecting their current state.
+ * walk synthesize what runtime values can't express:
+ *
+ * - props with no literal form (handlers, hook results, data configs) render as
+ *   their authored source;
+ * - render-prop children emit verbatim;
+ * - the declarations those snippets reference (`useState` lines, format
+ *   helpers, data consts) assemble into a preamble between the imports and the
+ *   JSX.
+ *
+ * Live primitive values still win, so control-driven demos keep reflecting
+ * their current state.
  *
  * Returns `null` when the subtree contains no recognized components; the
  * caller then provides an explicit `code` override or omits the code block.
@@ -78,7 +83,7 @@ export function deriveCode(
 	if (context.imports.size === 0) return null
 
 	// The consistency rule keys on declarations already pulled, but a pull can
-	// happen after the prop that should honor it renders (`<Odometer
+	// happen after the prop that must honor it renders (`<Odometer
 	// value={value} />` before the `<Button onClick={() => setValue(…)}>` that
 	// pulls the pair). A second walk sees the full pull set; it can only turn
 	// live values into source identifiers, never pull further, so it converges.
@@ -100,15 +105,15 @@ export function deriveCode(
  * there instead of rendering the whole JSX string, resolving a preamble, and
  * possibly walking a second pass for the consistency rule.
  *
- * Resolution goes through the same {@link resolveTypeIn} the real walk uses, so
- * a tagged library component and an external one matched by `displayName` (a
- * lucide icon, say) both count — reading tags alone would hide the code trigger
- * on an icons-only demo.
+ * Resolution goes through the same {@link resolveTypeIn} the real walk uses. A
+ * tagged library component and an external one matched by `displayName` (a
+ * lucide icon, say) both count. To read the tags alone would hide the code
+ * trigger on an icons-only demo.
  *
  * @remarks
  * Descends `children` only. `deriveCode` also collects imports from
- * element-valued props and from `__code` snippets, so a demo whose *only*
- * recognized component reaches it by one of those paths still reports `false`.
+ * element-valued props and from `__code` snippets. A demo whose *only*
+ * recognized component reaches it by one of those paths thus reports `false`.
  * Both are rare next to the walk this covers, and the failure is a hidden code
  * block rather than a broken one.
  */
@@ -143,7 +148,7 @@ export function hasDerivableCode(
 
 /**
  * Renders a list of React children as a JSX snippet. Pass-through wrappers
- * flatten, text leaves keep their position relative to surrounding elements,
+ * flatten. Text leaves keep their position relative to surrounding elements,
  * and consecutive iterated siblings (3+ identical renders) collapse to a
  * single representative. Authored siblings without keys stay intact.
  */

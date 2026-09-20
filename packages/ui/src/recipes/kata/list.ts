@@ -2,7 +2,7 @@ import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, ma, narabi, omote, sen, steps } from '../kiso'
 
 const { cursor, disabled, fg, glassItem, tint, tintFilled, tintSurface } = hannou
-const { text } = iro
+const { onWash, text } = iro
 const { size } = ji
 const { rounded } = kasane
 const { p } = ma
@@ -32,7 +32,11 @@ const root = defineRecipe({
 const variants = ['separated', 'outline', 'solid'] as const
 
 const item = defineRecipe({
-	base: ['group', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
+	// `list-none` is stated, not inherited from the flex display: a row only avoids
+	// drawing a marker today because `display: flex` generates no marker box, so a
+	// future non-flex variant — or a row lifted into a `<DragOverlay>`, which renders
+	// outside the `<ul>` preflight strips — would grow a bullet.
+	base: ['group', 'list-none', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
 	variant: {
 		separated: [...bg.surface, border.default, rounded.lg],
 		outline: '',
@@ -48,7 +52,7 @@ const item = defineRecipe({
 		false: '',
 	},
 	lifted: {
-		true: focus.lifted,
+		true: [...focus.lifted.raise, focus.lifted.ring],
 		false: '',
 	},
 	// Whether the row acts on activation. It carries no classes of its own: the
@@ -56,6 +60,16 @@ const item = defineRecipe({
 	// variant compounds below and this axis only gates them.
 	interactive: {
 		true: '',
+		false: '',
+	},
+	// Whether the content column's hit area covers the whole row. The row turns
+	// into the containing block for that overlay (see `content.stretched`), and
+	// every slot beside the content column steps over it — a drag handle or a
+	// trailing control stays pressable. `z-index` alone does that: a flex item
+	// takes one while it stays static, so the slots need no `position` of their
+	// own, and a consumer's `prefix` keeps whatever containing block it had.
+	stretched: {
+		true: ['relative', '[&>*:not([data-slot=list-item-content])]:z-10'],
 		false: '',
 	},
 	// Opt-in corners, for the variants that carry none. `separated` and `solid`
@@ -95,6 +109,7 @@ const item = defineRecipe({
 		active: false,
 		lifted: false,
 		interactive: false,
+		stretched: false,
 		rounded: false,
 	},
 })
@@ -105,15 +120,35 @@ const item = defineRecipe({
 const content = defineRecipe({
 	// `text-left` is for the `as="button"` content area: the UA centres button
 	// text, and a row's label/description column never wants that. `focus.ring`
-	// paints the only keyboard-focus indicator a row can get — in a non-sortable
-	// list the `<li>` takes no `tabIndex`, so its own `focus.inset` never fires and
-	// this content area is the sole focus target.
+	// paints the keyboard-focus indicator for the whole row: an activatable content
+	// area is natively focusable, so it — not the `<li>` around it — is the row's
+	// one focus target, reorderable or not.
 	base: [flex.col, 'flex-1 min-w-0 text-left', focus.ring],
+	// One rung across the whole axis, not a `variant` × `interactive` compound:
+	// `onWash.muted` is legal on the page surface and on `solid`'s wash alike.
 	interactive: {
-		true: [text.muted, fg.hover, ...cursor],
+		true: [onWash.muted, fg.hover, ...cursor],
 		false: '',
 	},
-	defaults: { interactive: false },
+	// Picked up for a keyboard move. The row's own `lifted` raises and shadows it;
+	// the accent belongs here, on whatever is actually focused — the same kiso
+	// declaration the row's ring takes, in the shape this element's indicator uses.
+	lifted: {
+		true: focus.lifted.outline,
+		false: '',
+	},
+	// Whether the hit area covers the whole row. This column is only `flex-1`, so
+	// the row's padding, the gaps, and the prefix / suffix chrome sit outside it,
+	// and a press on any of that reached the `<li>`, which acts on nothing. A
+	// pointer-capturing `::after` — the inverse of `kasane.layers.overlay`, which
+	// adds `pointer-events-none` to stop exactly this — pulls the painted row into
+	// the one click and hover target, cursor and text step included. The `<li>` is
+	// the containing block, so `item.stretched` rides with it.
+	stretched: {
+		true: 'after:absolute after:inset-0',
+		false: '',
+	},
+	defaults: { interactive: false, lifted: false, stretched: false },
 })
 
 export const k = {
@@ -131,8 +166,16 @@ export const k = {
 		),
 		...disabled,
 	],
-	/** Content column. Pass whether the row acts on activation (`href` or `onClick`). */
-	content: (interactive?: boolean) => content({ interactive }),
+	/**
+	 * Content column. Pass three flags:
+	 *
+	 * - whether the row acts on activation (`href` or `onClick`)
+	 * - whether the row is currently picked up for a keyboard move
+	 * - whether its hit area covers the whole row
+	 */
+	content,
 	label: 'min-w-0 truncate',
-	description: ['min-w-0 truncate', size.sm, text.muted],
+	// `onWash.muted`, not `muted`: the `solid` variant grounds a row on the
+	// wash, which `muted` is not legal over. See `iro/ramp.ts`.
+	description: ['min-w-0 truncate', size.sm, onWash.muted],
 } as const

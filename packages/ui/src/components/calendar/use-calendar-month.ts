@@ -2,18 +2,26 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { useReportedChange } from '../../hooks/use-reported-change'
+
 import { firstOfMonth } from './calendar-utilities'
+
+/** Whether two rendered months are the same instant; `firstOfMonth` mints a fresh `Date` each call. @internal */
+function sameInstant(a: Date, b: Date): boolean {
+	return a.getTime() === b.getTime()
+}
 
 /** Options for {@link useCalendarMonth}: the bound `value`, initial `defaultValue` seed, and the roving-focus grid date that pulls the view along. @internal */
 type CalendarMonthOptions = {
 	value: Date | null | undefined
 	defaultValue?: Date
 	activeGridDate: Date | null
+	onMonthChange?: (month: Date) => void
 }
 
 /**
- * Owns the calendar's `viewDate` (the month/year currently rendered) and the
- * rules that re-anchor it when `value` or the `active` grid date moves to a
+ * Owns the calendar's `viewDate`, the month/year currently rendered. It also owns
+ * the rules that re-anchor it when `value` or the `active` grid date moves to a
  * different month. The re-anchor happens during render via prev-ref tracking,
  * not in a `useEffect`; it costs no extra render cycle.
  *
@@ -23,7 +31,12 @@ type CalendarMonthOptions = {
  * server-safe month synchronously, then a mount effect corrects any
  * day-boundary or timezone drift once after hydration.
  */
-export function useCalendarMonth({ value, defaultValue, activeGridDate }: CalendarMonthOptions) {
+export function useCalendarMonth({
+	value,
+	defaultValue,
+	activeGridDate,
+	onMonthChange,
+}: CalendarMonthOptions) {
 	const [viewDate, setViewDate] = useState(() => {
 		const seed = value ?? defaultValue ?? new Date()
 
@@ -90,6 +103,19 @@ export function useCalendarMonth({ value, defaultValue, activeGridDate }: Calend
 	}
 
 	prevValueRef.current = value
+
+	/*
+	 * One report for each month the calendar renders, read from the committed
+	 * `viewDate`.
+	 *
+	 * Five routes write that state: the two steppers, `navigateTo`, the mount
+	 * drift correction, and the two render-phase re-anchors. No single call
+	 * site is the transition. Compared by instant rather than identity, because
+	 * `navigateTo` mints a fresh `Date` even when the reader re-picks the rendered
+	 * month. The mount announces nothing; the drift correction after hydration does
+	 * report, because the month on screen genuinely changed.
+	 */
+	useReportedChange(viewDate, onMonthChange, sameInstant)
 
 	return { viewDate, year, month, prevMonth, nextMonth, navigateTo }
 }

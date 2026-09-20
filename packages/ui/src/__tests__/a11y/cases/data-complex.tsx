@@ -13,9 +13,8 @@ import {
 import { PivotTable } from '../../../components/pivot-table'
 import { Grid, type GridColumn } from '../../../modules/grid'
 import { QueryBuilder, type QueryField } from '../../../modules/query'
+import { noop } from '../../helpers'
 import type { Case } from './types'
-
-const noop = () => {}
 
 const jsonSample = {
 	id: 42,
@@ -67,67 +66,75 @@ const gridColumns: GridColumn<GridRow>[] = [
 
 /** Complex, interactive data surfaces: trees, grids, boards, and query UIs. */
 export const dataComplexCases: readonly Case[] = [
-	[
+	{
 		// role=tree of expandable nodes; expanded two levels deep.
-		'json tree',
-		<JsonTree key="jt" data={jsonSample} defaultExpandDepth={2} />,
-	],
-	[
+		name: 'json tree',
+		element: <JsonTree key="jt" data={jsonSample} defaultExpandDepth={2} />,
+	},
+	{
 		// Nested group / rule editor; renders an empty root group with its controls.
-		'query builder',
-		<QueryBuilder key="qb" fields={queryFields} />,
-	],
-	[
+		name: 'query builder',
+		element: <QueryBuilder key="qb" fields={queryFields} />,
+	},
+	{
 		// Read-only board: each column and card is labelled; no reorder handlers.
-		'kanban',
-		<Kanban key="kb" columns={kanbanColumns} getKey={(load: Load) => load.id} aria-label="Loads">
-			{kanbanColumns.map((column) => (
-				<KanbanColumn key={column.id} columnId={column.id} aria-label={column.title}>
-					<KanbanColumnHeader>
-						<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
-					</KanbanColumnHeader>
-					<KanbanColumnBody>
-						{column.items.map((load) => (
-							<KanbanCard key={load.id} cardId={load.id} aria-label={load.code}>
-								<span>{load.code}</span>
-								<span>{load.customer}</span>
-							</KanbanCard>
-						))}
-					</KanbanColumnBody>
-				</KanbanColumn>
-			))}
-		</Kanban>,
-	],
-	[
+		name: 'kanban',
+		element: (
+			<Kanban key="kb" columns={kanbanColumns} getKey={(load: Load) => load.id} aria-label="Loads">
+				{kanbanColumns.map((column) => (
+					<KanbanColumn key={column.id} value={column.id} aria-label={column.title}>
+						<KanbanColumnHeader>
+							<KanbanColumnTitle>{column.title}</KanbanColumnTitle>
+						</KanbanColumnHeader>
+						<KanbanColumnBody>
+							{column.items.map((load) => (
+								<KanbanCard key={load.id} value={load.id} aria-label={load.code}>
+									<span>{load.code}</span>
+									<span>{load.customer}</span>
+								</KanbanCard>
+							))}
+						</KanbanColumnBody>
+					</KanbanColumn>
+				))}
+			</Kanban>
+		),
+	},
+	{
 		// Pivot of rows into a row × column matrix with an aggregated value.
-		'pivot table',
-		<PivotTable
-			key="pt"
-			rows={pivotRows}
-			keys={{ row: 'lane', column: 'period', value: 'loads' }}
-			rowHeader="Lane"
-		/>,
-	],
-	[
+		name: 'pivot table',
+		element: (
+			<PivotTable
+				key="pt"
+				rows={pivotRows}
+				keys={{ row: 'lane', column: 'period', value: 'loads' }}
+				rowHeader="Lane"
+			/>
+		),
+	},
+	{
 		// Editable data grid with column headers and keyed rows.
-		'editable grid',
-		<Grid
-			key="eg"
-			columns={gridColumns}
-			rows={gridRows}
-			getKey={(row) => row.id}
-			editable={{ rows: new Set([1]), onCommit: noop }}
-		/>,
-	],
-	[
+		name: 'editable grid',
+		element: (
+			<Grid
+				key="eg"
+				columns={gridColumns}
+				rows={gridRows}
+				getKey={(row) => row.id}
+				editable={{ rows: new Set([1]), onCommit: noop }}
+			/>
+		),
+	},
+	{
 		// Filter bar: FiltersField owns the control context; Label names the
 		// Input directly (no Field wrapper) and the value binds through the slot.
-		'filters',
-		<Filters key="fl" aria-label="Filters" defaultValue={{ search: undefined }}>
-			<FiltersField name="search">
-				<Label>Search</Label>
-				<Input placeholder="Search" />
-			</FiltersField>
-		</Filters>,
-	],
+		name: 'filters',
+		element: (
+			<Filters key="fl" aria-label="Filters" defaultValue={{ search: undefined }}>
+				<FiltersField name="search">
+					<Label>Search</Label>
+					<Input placeholder="Search" />
+				</FiltersField>
+			</Filters>
+		),
+	},
 ]

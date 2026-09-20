@@ -1,13 +1,13 @@
 /**
- * Client-side export helpers behind the chart context menu: rasterising the
- * chart to a bitmap, building a CSV from the readout, and the download plumbing
- * they hand off to. Pure DOM work run on a menu action, so they touch
+ * Client-side export helpers behind the chart context menu. They rasterise the
+ * chart to a bitmap, build a CSV from the readout, and hand off to the download
+ * plumbing. Pure DOM work run on a menu action, so they touch
  * `document` only when called.
  */
 
 import type { ChartReadout } from './types'
 
-/** The bitmap formats the chart exports to. @internal */
+/** The bitmap formats the chart exports to; {@link ChartExportOutcome} names the one a download asked for. */
 export type ChartImageType = 'image/png' | 'image/jpeg'
 
 /** The pixel scale a rasterised chart is drawn at, so the bitmap stays crisp on hi-dpi displays. @internal */
@@ -23,8 +23,8 @@ const LEGEND_SELECTOR =
 /**
  * Copies a source element's full computed style inline onto its clone.
  * Rasterising through a `foreignObject` renders the clone detached from the
- * document's stylesheets, so every class-driven and inherited value — colour,
- * layout, and font — has to travel on the element itself.
+ * document's stylesheets. Every class-driven and inherited value — colour,
+ * layout, and font — therefore has to travel on the element itself.
  *
  * @internal
  */
@@ -40,9 +40,9 @@ function copyComputedStyle(source: Element, clone: Element): void {
 }
 
 /**
- * Walks a source tree and its clone in lockstep, freezing each node's computed
- * style onto the clone ({@link copyComputedStyle}) so the detached copy lays out
- * and paints exactly as rendered.
+ * Walks a source tree and its clone in lockstep, and freezes each node's
+ * computed style onto the clone ({@link copyComputedStyle}). The detached copy
+ * then lays out and paints exactly as rendered.
  *
  * @internal
  */
@@ -66,8 +66,8 @@ function freezeStyleTree(source: Element, clone: Element): void {
 
 /**
  * Hides a chart's legend containers in place, returning a restore per node. Used
- * to reflow the live chart without its legend before the styles are frozen, so
- * an export that drops the legend leaves no gap where it sat. Synchronous — the
+ * to reflow the live chart without its legend before the styles are frozen. An
+ * export that drops the legend then leaves no gap where it sat. Synchronous — the
  * caller restores before yielding, so the page never repaints the hidden state.
  *
  * @internal
@@ -136,8 +136,8 @@ async function encode(
 /**
  * Rasterises a whole chart — plot, header, and (by default) legend — to a
  * {@link Blob}. Clones the root, freezes its computed styles onto the clone, and
- * draws it through an SVG `foreignObject` so the HTML chrome and the SVG marks
- * export as one image. `includeLegend: false` hides the legend first, so the
+ * draws it through an SVG `foreignObject`. The HTML chrome and the SVG marks
+ * then export as one image. `includeLegend: false` hides the legend first, so the
  * chart reflows without it and no gap remains. JPEG gets an opaque white ground;
  * PNG stays transparent.
  *

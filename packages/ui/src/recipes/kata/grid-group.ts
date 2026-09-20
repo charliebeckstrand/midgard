@@ -1,7 +1,7 @@
 /**
  * Column-group band kata: layout for the header row of group bands the Grid
- * draws above its column headers. Color is not here — the band's tint comes from
- * the {@link Badge} it renders (standard + extended palette), so this surface
+ * draws above its column headers. Color is not here. The band's tint comes from
+ * the {@link Badge} it renders (standard + extended palette). This surface
  * carries only the band's flex layout, the collapse toggle, and the separating
  * rule beneath the row.
  */
@@ -32,9 +32,9 @@ const bandColor: Record<PaletteColor, string> = {
 }
 
 /**
- * The neutral fill for a colorless group's underline rule — the band analog of a
- * colorless row group's grey rail, so an uncolored (or color-cleared) group keeps
- * its underline in grey rather than dropping it. Full literals for Tailwind's scanner.
+ * The neutral fill for a colorless group's underline rule, the band analog of a
+ * colorless row group's grey rail. An uncolored (or color-cleared) group therefore
+ * keeps its underline in grey rather than dropping it. Full literals for Tailwind's scanner.
  */
 const bandNeutral = 'bg-zinc-950/10 dark:bg-white/15'
 

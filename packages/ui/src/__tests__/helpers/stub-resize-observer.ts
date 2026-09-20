@@ -21,7 +21,7 @@ export type ResizeObserverStub = {
  * Returns the live array, which fills as the subject renders. `unstubGlobals`
  * puts the suite-wide stub back before the next test, so no caller restores it.
  *
- * Kept off `helpers/index.ts`: that barrel reaches ~210 test files and seven
+ * Kept off `helpers/index.ts`: that barrel reaches ~360 test files and seven
  * need this one.
  */
 export function stubResizeObserver(): ResizeObserverStub[] {

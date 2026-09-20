@@ -1,9 +1,9 @@
+import type { ComponentProps } from 'react'
 import { createSlot } from '../../core'
-import type { SlotProps } from '../../core/create-slot'
 import { k } from '../../recipes/kata/stat'
 
 /** Props for {@link StatLabel}: an optional `className` plus `<div>` attributes. */
-export type StatLabelProps = SlotProps<'div'>
+export type StatLabelProps = ComponentProps<'div'>
 
 /**
  * Caption naming the metric a `Stat` reports, sitting above its value. Static

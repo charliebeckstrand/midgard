@@ -28,8 +28,6 @@ export type PivotTableProps<T> = {
 	format?: (value: number) => ReactNode
 	/** Label for the row-dimension column. */
 	rowHeader?: ReactNode
-	/** Label for the total row / column. @defaultValue 'Total' */
-	totalLabel?: string
 	/** Which totals to render. @defaultValue 'none' */
 	totals?: PivotTotals
 	/** Explicit ordering of row values. Extras in `rows` are appended. */
@@ -41,7 +39,12 @@ export type PivotTableProps<T> = {
 	density?: DensityLevel
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean
-	striped?: boolean
+	/** Zebra-stripe the body rows; `'odd'` / `'even'` pick which. @defaultValue false */
+	striped?: boolean | 'odd' | 'even'
+	/** Wash the body row under the pointer. @defaultValue false */
+	hover?: boolean
+	/** Run the table edge-to-edge, dropping the outer gutter. @defaultValue false */
+	bleed?: boolean
 	className?: string
 	/** Accessible name for the table: a caption-equivalent for a dense pivot. Optional; a native `<table>` is valid unnamed. */
 	'aria-label'?: string
@@ -61,7 +64,6 @@ export function PivotTable<T>({
 	aggregation = 'sum',
 	format,
 	rowHeader,
-	totalLabel = 'Total',
 	totals = 'none',
 	rowOrder,
 	columnOrder,
@@ -69,6 +71,8 @@ export function PivotTable<T>({
 	density,
 	outline,
 	striped,
+	hover,
+	bleed,
 	className,
 	'aria-label': ariaLabel,
 }: PivotTableProps<T>) {
@@ -93,6 +97,8 @@ export function PivotTable<T>({
 			density={density}
 			outline={outline}
 			striped={striped}
+			hover={hover}
+			bleed={bleed}
 			tableProps={{ 'data-slot': 'pivot-table', 'aria-label': ariaLabel }}
 		>
 			<TableHead>
@@ -105,7 +111,7 @@ export function PivotTable<T>({
 					))}
 					{showRowTotals && (
 						<TableHeader scope="col" className="text-right">
-							{totalLabel}
+							Total
 						</TableHeader>
 					)}
 				</TableRow>
@@ -139,7 +145,7 @@ export function PivotTable<T>({
 				{showColTotals && (
 					<TableRow className="font-semibold">
 						<TableHeader scope="row" className="font-semibold">
-							{totalLabel}
+							Total
 						</TableHeader>
 						{columnKeys.map((col, i) => {
 							const total = colTotals[i]

@@ -1,5 +1,5 @@
 import type { ColumnFiltersState, GroupingState, Row, VisibilityState } from '@tanstack/react-table'
-import type { GridColumnSizingState, GridPaginationState } from '../../types'
+import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
 import { resolveFilterMode, usesClientModel } from './options'
 
@@ -12,8 +12,8 @@ export const DEFAULT_PAGINATION_STATE: GridPaginationState = {
 /** Stable empty sizing default; read-only, replaced wholesale on change. @internal */
 export const EMPTY_SIZING: GridColumnSizingState = {}
 
-/** Stable empty column-filters default; read-only, replaced wholesale on change. @internal */
-export const EMPTY_COLUMN_FILTERS: ColumnFiltersState = []
+/** Stable empty column-filters default; read-only, replaced wholesale on change. Typed as the public row, which the engine's own `ColumnFiltersState` accepts. @internal */
+export const EMPTY_COLUMN_FILTERS: GridColumnFilterState[] = []
 
 /** Stable empty column-order default (engine reads definition order); read-only. @internal */
 export const EMPTY_COLUMN_ORDER: (string | number)[] = []
@@ -30,8 +30,8 @@ export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
 /**
  * Collapses a row set to its flat leaf set — the data rows, whatever the
  * grouping mode. Client grouping leaves group headers among only the expanded
- * leaves, so each header expands to its full leaf set regardless of expansion;
- * manual grouping keeps the engine ungrouped and hands its headers through as
+ * leaves, so each header expands to its full leaf set regardless of expansion.
+ * Manual grouping keeps the engine ungrouped and hands its headers through as
  * ordinary rows, so those drop by predicate. Ungrouped rows are already the
  * leaves, and `null` passes through.
  *
@@ -58,7 +58,7 @@ export function deriveLeafRows<T>(
 
 /**
  * Resolves the engine's sort and filter transform modes. Manual grouping forces
- * both manual: the supplied rows are a positional header/children sequence, and
+ * both manual. The supplied rows are a positional header/children sequence, and
  * a client reorder or prune would tear children from their group headers. Kept
  * out of {@link useGridTable} for its cognitive-complexity budget.
  *
@@ -76,7 +76,7 @@ export function resolveTransformModes(args: {
 }): {
 	clientSort: boolean
 	filterMode: { configured: boolean; manual: boolean }
-	/** Whether the global search marks matches instead of pruning rows (`search.filter === false`). */
+	/** Whether the global search marks matches instead of pruning rows (`search.mode === 'highlight'`). */
 	globalHighlights: boolean
 } {
 	return {

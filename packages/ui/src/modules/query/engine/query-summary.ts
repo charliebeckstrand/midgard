@@ -3,9 +3,9 @@ import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
  * One active rule as three resolved, display-ready parts: the field and
- * operator labels and its value — the rule's own, the operator's fixed
- * `valueLabel` (`is Empty`), or none at all for a value-less operator without
- * one (`is true`). A `select` value resolves to its option label; a one-sided
+ * operator labels, and its value. The value is the rule's own, the operator's
+ * fixed `valueLabel` (`is Empty`), or none at all for a value-less operator
+ * without one (`is true`). A `select` value resolves to its option label; a one-sided
  * range renders as a `≥`/`≤` bound.
  *
  * @internal
@@ -18,12 +18,15 @@ type QuerySummaryRuleToken = {
 }
 
 /**
- * One element of a rendered query summary: an active {@link
- * QuerySummaryRuleToken}, the `AND`/`OR` `label` joining it to the preceding
- * sibling, or a `group-open`/`group-close` bracket around a nested group. A
- * flat, ordered stream of display-ready pieces — a sentence renderer joins it
- * left-to-right; a chip renderer draws each rule token as a chip and the rest as
- * separators.
+ * One element of a rendered query summary:
+ *
+ * - an active {@link QuerySummaryRuleToken};
+ * - the `AND`/`OR` `label` joining it to the preceding sibling;
+ * - a `group-open`/`group-close` bracket around a nested group.
+ *
+ * A flat, ordered stream of display-ready pieces. A sentence renderer joins it
+ * left-to-right. A chip renderer draws each rule token as a chip, and the rest
+ * as separators.
  *
  * @internal
  */
@@ -105,7 +108,7 @@ function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleTo
 
 /**
  * Describes a group's active children in order, each joined to the previous by
- * its `AND`/`OR` label; a nested group with any active child is wrapped in
+ * its `AND`/`OR` label. A nested group with any active child is wrapped in
  * brackets. Inactive rules and empty groups drop out, taking their leading
  * combinator with them.
  *
@@ -154,9 +157,9 @@ export function summarizeQuery(group: QueryGroup, fields: QueryField[]): QuerySu
 }
 
 /**
- * Whether a space precedes `token` in a rendered summary: not at the start, not
- * after an opening bracket, and not before a closing one, so brackets hug their
- * contents. Shared by the string and React renderers so their spacing can't
+ * Whether a space precedes `token` in a rendered summary. There is none at the
+ * start, none after an opening bracket, and none before a closing one, so
+ * brackets hug their contents. Shared by the string and React renderers so their spacing can't
  * drift.
  *
  * @internal

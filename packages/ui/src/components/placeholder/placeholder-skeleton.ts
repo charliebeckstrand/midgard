@@ -22,9 +22,9 @@ type BaseSkeletonRecipe = {
 
 type SizedSkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
 	/**
-	 * Per-size shape classes, keyed by the resolved size. `md` is required
-	 * because it is the default an omitted `size` prop resolves to, so a map
-	 * without it would render a silhouette carrying no size class.
+	 * Per-size shape classes, keyed by the resolved size. `md` is required because
+	 * it is the default an omitted `size` prop resolves to. A map without it would
+	 * render a silhouette carrying no size class.
 	 */
 	size: Record<S | 'md', ClassValue>
 }

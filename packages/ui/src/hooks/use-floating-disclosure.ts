@@ -22,7 +22,8 @@ type FloatingDisclosureRole = 'dialog' | 'menu' | 'tooltip' | 'listbox'
 
 type FloatingDisclosureGate = (next: boolean, refs: ExtendedRefs<ReferenceType>) => boolean
 
-type FloatingDisclosureOptions = Omit<
+/** Options for {@link useFloatingDisclosure}: the open-state triad it binds. */
+export type FloatingDisclosureOptions = Omit<
 	FloatingPanelOptions,
 	'open' | 'onOpenChange' | 'returnFocusTo'
 > & {
@@ -32,7 +33,7 @@ type FloatingDisclosureOptions = Omit<
 	/**
 	 * Popup role floating-ui stamps on the floating element plus the reference's
 	 * `aria-haspopup`/`aria-controls`/`aria-expanded`. Pass `null` when the
-	 * component hand-rolls those on inner elements; a role here also stamps
+	 * component hand-rolls those on inner elements. A role here also stamps
 	 * the positioning wrapper with a duplicate.
 	 */
 	role: FloatingDisclosureRole | null
@@ -42,10 +43,11 @@ type FloatingDisclosureOptions = Omit<
 	 * Whether the surface answers the shared dismiss affordances: Escape through
 	 * the dismiss-layer stack, and an outside pointer press.
 	 *
-	 * Pass `false` for a surface that is not really a disclosure — an inline
+	 * Pass `false` for a surface that is not really a disclosure. An inline
 	 * static menu renders open in the document flow and has no dismissed state.
-	 * Registered, it would claim a slot on the dismiss stack, report a close it
-	 * never performs, and swallow the Escape press meant for a Dialog above it.
+	 * Registered, it would claim a slot on the dismiss stack and report a close
+	 * it never performs. It would also swallow the Escape press meant for a
+	 * Dialog above it.
 	 *
 	 * @defaultValue true
 	 */
@@ -54,7 +56,8 @@ type FloatingDisclosureOptions = Omit<
 
 // Explicit return type: `@floating-ui/react-dom` is a transitive dep TS
 // can't express in a portable `.d.ts` (TS2742); same constraint as `useFloatingPanel`.
-type FloatingDisclosureResult = {
+/** Return shape of {@link useFloatingDisclosure}: the resolved open state and its setter. */
+export type FloatingDisclosureResult = {
 	open: boolean
 	setOpen: (open: boolean) => void
 	close: () => void
@@ -76,10 +79,11 @@ type FloatingDisclosureResult = {
  * overlay opts out of both dismiss affordances with `dismissable: false`.
  *
  * @returns `{ open, setOpen, close, triggerRef, refs, floatingStyles, context,
- * dismiss, role }`: the resolved open flag and its gated setter / `close`
- * shortcut, the trigger ref focus restores to, floating-ui's `refs` /
- * `floatingStyles` / `context`, and the pre-built `dismiss` and `role`
- * `ElementProps` to merge with the consumer's own interaction hooks.
+ * dismiss, role }`. These are the resolved open flag with its gated setter /
+ * `close` shortcut, and the trigger ref focus restores to. They also carry
+ * floating-ui's `refs` / `floatingStyles` / `context`. The `dismiss` and `role`
+ * `ElementProps` come pre-built, to merge with the consumer's own interaction
+ * hooks.
  */
 export function useFloatingDisclosure({
 	open: openProp,

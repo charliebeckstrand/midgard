@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { reindent } from '../../derive-code/indent'
 import { collectSnippetImports, readSnippet } from '../../derive-code/internals'

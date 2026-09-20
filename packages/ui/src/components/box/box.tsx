@@ -1,22 +1,23 @@
-import type { Ref } from 'react'
 import { cn } from '../../core'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
-import type { BoxBg, BoxMargin, BoxOutline, BoxPadding, BoxRadius } from './variants'
+import {
+	type BoxBg,
+	type BoxOutline,
+	type BoxRadius,
+	type ResponsiveBoxPadding,
+	resolvePadding,
+	resolvePx,
+	resolvePy,
+} from './variants'
 
 type BoxBaseProps = {
-	/** Padding on all sides. */
-	p?: BoxPadding
-	/** Horizontal padding. Overrides p. */
-	px?: BoxPadding
-	/** Vertical padding. Overrides p. */
-	py?: BoxPadding
-	/** Margin on all sides. */
-	m?: BoxMargin
-	/** Horizontal margin. Overrides m. */
-	mx?: BoxMargin
-	/** Vertical margin. Overrides m. */
-	my?: BoxMargin
+	/** Padding on all sides. Supports responsive breakpoints. */
+	p?: ResponsiveBoxPadding
+	/** Horizontal padding. Overrides p. Supports responsive breakpoints. */
+	px?: ResponsiveBoxPadding
+	/** Vertical padding. Overrides p. Supports responsive breakpoints. */
+	py?: ResponsiveBoxPadding
 	/** Border radius token. */
 	radius?: BoxRadius
 	/** Background surface token. */
@@ -29,14 +30,17 @@ type BoxBaseProps = {
 	 * @defaultValue 'box'
 	 */
 	'data-slot'?: string
-	ref?: Ref<HTMLDivElement>
 	className?: string
 }
 
 /**
  * Props for {@link Box}: spacing, radius, background, and outline tokens plus
- * the polymorphic `as` / `render` surface. `Omitted` drops keys for consumers
- * that fix a dimension (e.g. Card omits `radius`).
+ * the static-tier `render` surface. `Omitted` drops keys for consumers that fix
+ * a dimension (e.g. Card omits `radius`).
+ *
+ * @remarks
+ * Box renders a `<div>` and takes no `as`. The static tier carries `render`
+ * alone; `as` belongs to the client-tier {@link Polymorphic}.
  *
  * @typeParam Omitted - Prop keys to remove from the public surface.
  */
@@ -58,17 +62,14 @@ function resolveOutline(outline: BoxOutline | undefined): string | readonly stri
 }
 
 /**
- * Polymorphic layout primitive for padding, margin, radius, background, and
- * outline tokens. Static leaf: renders in React Server Components. Every
- * spacing token is explicit; an omitted token applies no style.
+ * Static layout primitive for padding, radius, background, and outline tokens.
+ * Renders in React Server Components. Every token is explicit; an omitted token
+ * applies no style.
  */
 export function Box({
 	p,
 	px,
 	py,
-	m,
-	mx,
-	my,
 	radius,
 	bg,
 	outline,
@@ -88,12 +89,9 @@ export function Box({
 			href={href}
 			render={render}
 			className={cn(
-				p !== undefined && k.padding[p],
-				px !== undefined && k.px[px],
-				py !== undefined && k.py[py],
-				m !== undefined && k.margin[m],
-				mx !== undefined && k.mx[mx],
-				my !== undefined && k.my[my],
+				resolvePadding(p),
+				resolvePx(px),
+				resolvePy(py),
 				radius && k.radius[radius],
 				bg && k.bg[bg],
 				resolveOutline(outline),

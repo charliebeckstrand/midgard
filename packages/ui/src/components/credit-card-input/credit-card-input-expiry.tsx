@@ -34,9 +34,9 @@ export type CreditCardInputExpiryProps = Omit<
 /**
  * Numeric Input for a card expiry that masks digits into "MM/YY", auto-inserting
  * the slash and handling backspace across it. Emits the month-range + not-in-past
- * verdict through `onValidityChange`. Marks itself invalid — and renders the
- * `invalidMessage` — when a complete entry can't be valid (a bad month or a past
- * date) or when blur leaves a partial entry behind. Sets `autoComplete="cc-exp"`
+ * verdict through `onValidityChange`. Marks itself invalid, and renders the
+ * `invalidMessage`, when a complete entry can't be valid (a bad month or a past
+ * date). It does the same when blur leaves a partial entry behind. Sets `autoComplete="cc-exp"`
  * and defaults an "Expiration date" aria-label, yielding to a registered Field
  * `<Label>`.
  *
@@ -83,6 +83,7 @@ export function CreditCardInputExpiry({
 		<>
 			<Input
 				ref={masked.ref}
+				data-slot="credit-card-input-expiry"
 				type="text"
 				inputMode="numeric"
 				autoComplete="cc-exp"
@@ -126,7 +127,7 @@ export function CreditCardInputExpiry({
 			/>
 
 			{/* Visible feedback gated on the component's own detection, not the
-			    external `invalid` prop; the input's aria-invalid comes from the
+			    external `invalid` prop. The input's aria-invalid comes from the
 			    `invalid` prop above, never from this Message. */}
 			{typedInvalid && invalidMessage ? <Message severity="error">{invalidMessage}</Message> : null}
 		</>

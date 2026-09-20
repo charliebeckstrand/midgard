@@ -1,3 +1,4 @@
+// @vitest-environment node
 import type { SyntheticEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { composeEventHandlers } from '../../core/compose-event-handlers'

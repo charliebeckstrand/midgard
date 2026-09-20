@@ -19,8 +19,8 @@ export type CollapsePanelProps = {
 
 /**
  * Collapsible content region for the {@link Collapse} compound API. Reads
- * `open`, the resolved `animate` mode, and the `mount` policy from context,
- * animating height (plus opacity for `'fade'`) via `AnimatePresence`; the
+ * `open`, the resolved `animate` mode, and the `mount` policy from context. It
+ * animates height (plus opacity for `'fade'`) via `AnimatePresence`; the
  * `false` mode renders synchronously without motion. Honors reduced-motion.
  *
  * @remarks
@@ -28,8 +28,8 @@ export type CollapsePanelProps = {
  * reopening resets its state. `always` and `lazy` instead hold it in
  * `<Activity mode="hidden">` — state preserved, effects torn down. A held panel
  * stays mounted, so it animates between its open and closed states in place
- * rather than entering and exiting, and drops into the hold only once the
- * closing height transition lands; `display: none` cannot animate, so the hold
+ * rather than entering and exiting. It drops into the hold only once the
+ * closing height transition lands: `display: none` cannot animate, so the hold
  * has to wait for it.
  */
 export function CollapsePanel({ children, className }: CollapsePanelProps) {
@@ -39,7 +39,7 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 	// The preset itself rather than its key, so one `undefined` covers `animate={false}`
 	// and narrows every read below it.
-	const preset = animate === false ? undefined : k.motion[animate === true ? 'fade' : animate]
+	const preset = animate === false ? undefined : k.motion[animate]
 
 	// The arrival target the motion library hands back on the way in, compared by
 	// identity. Presets are module constants, so the identity holds.

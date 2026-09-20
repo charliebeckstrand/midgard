@@ -1,15 +1,21 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { ToggleGroup } from '../../primitives/toggle'
 import type { AccessibleName } from '../../types'
 
 /**
  * Props for {@link RadioGroup}. Requires an accessible name (`aria-label` or
  * `aria-labelledby`), enforced at the type level by `AccessibleName`.
+ *
+ * @remarks
+ * RadioGroup carries no `name` binding, and neither does {@link Radio}. A radio
+ * group is one value across N inputs, so the §7.2 per-control binding does not
+ * apply. `name` on a {@link Radio} is the native grouping name that makes the
+ * inputs one set. Bind the group's value through a {@link Field} instead.
  */
 // An enclosing `<fieldset>`'s `<legend>` does not name a `radiogroup` div;
 // pass an explicit `aria-label` or `aria-labelledby`.
 export type RadioGroupProps = AccessibleName &
-	Omit<ComponentPropsWithoutRef<'div'>, 'aria-label' | 'aria-labelledby'>
+	Omit<ComponentProps<'div'>, 'aria-label' | 'aria-labelledby'>
 
 /**
  * Group layout container for a set of {@link Radio} controls, rendered as a
@@ -22,5 +28,6 @@ export type RadioGroupProps = AccessibleName &
  * @see {@link Radio}
  */
 export function RadioGroup(props: RadioGroupProps) {
-	return <ToggleGroup role="radiogroup" {...props} />
+	// Consumer props spread first; the radiogroup role after them takes precedence.
+	return <ToggleGroup {...props} role="radiogroup" />
 }

@@ -1,13 +1,13 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
+import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/timeline'
 import type { TimelineOrientation, TimelineVariant } from './context'
 import { TimelineContext } from './context'
 
 /** Props for {@link Timeline}. */
-export type TimelineProps = {
+export type TimelineProps = Omit<ComponentProps<'ol'>, 'className' | 'children'> & {
 	/**
 	 * Layout axis shared with descendant items via context.
 	 * @defaultValue 'vertical'
@@ -24,21 +24,26 @@ export type TimelineProps = {
 
 /**
  * Ordered sequence of events rendered as an `<ol>` of `<TimelineItem>` rows.
- * Lays out along `orientation` (vertical or horizontal) and propagates both
- * `orientation` and `variant` to its items via context, so markers and
- * connector lines stay consistent across the run.
+ * Lays out along `orientation`, vertical or horizontal. It propagates both
+ * `orientation` and `variant` to its items via context, so markers and connector
+ * lines stay consistent across the run.
  */
 export function Timeline({
 	orientation = 'vertical',
 	variant = 'solid',
 	className,
 	children,
+	...props
 }: TimelineProps) {
 	const value = useMemo(() => ({ orientation, variant }), [orientation, variant])
 
 	return (
 		<TimelineContext value={value}>
-			<ol data-slot="timeline" className={cn(k.root({ orientation, variant }), className)}>
+			<ol
+				{...props}
+				data-slot="timeline"
+				className={cn(k.root({ orientation, variant }), className)}
+			>
 				{children}
 			</ol>
 		</TimelineContext>

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { getOperators } from '../../modules/query/engine/query-operators'
 import type { QueryField } from '../../modules/query/engine/types'

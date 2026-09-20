@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Sparkline, SparklineSkeleton } from '../../components/sparkline'
+import { Sparkline } from '../../components/sparkline'
 import { sparklineGeometry } from '../../components/sparkline/sparkline-geometry'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { DensityProvider } from '../../providers/density'
@@ -34,7 +34,7 @@ describe('Sparkline', () => {
 
 	it('draws one bar rect per datum in the bar variant', () => {
 		const { container } = renderUI(
-			<Sparkline data={[1, 4, 2, 8]} variant="bar" aria-label="By period" />,
+			<Sparkline data={[1, 4, 2, 8]} shape="bar" aria-label="By period" />,
 		)
 
 		expect(container.querySelectorAll('rect')).toHaveLength(4)
@@ -70,7 +70,7 @@ describe('Sparkline', () => {
 		expect(line.container.querySelector('circle')).toBeInTheDocument()
 
 		const bar = renderUI(
-			<Sparkline data={[1, 4, 2, 8]} animate variant="bar" aria-label="Animated bars" />,
+			<Sparkline data={[1, 4, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
 		)
 
 		expect(bar.container.querySelectorAll('rect')).toHaveLength(4)
@@ -95,14 +95,6 @@ describe('Sparkline', () => {
 		)
 
 		expect(bySlot(container, 'sparkline')).toHaveAttribute('aria-labelledby', 'lbl')
-	})
-
-	it('pairs with an explicit SparklineSkeleton in loading trees', () => {
-		const { container } = renderUI(<SparklineSkeleton />)
-
-		expect(bySlot(container, 'sparkline')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
 

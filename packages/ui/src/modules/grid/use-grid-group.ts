@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
+import { useReportedChange } from '../../hooks/use-reported-change'
 import { buildGroupSpans, collapsedHiddenIds, groupByColumn } from './engine/grid-group/compute'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
 
@@ -11,10 +12,9 @@ function resolveGroupsBinding(groups: GridColumnGroups | undefined): {
 	defaultValue: GridColumnGroup[]
 	onValueChange: ((groups: GridColumnGroup[]) => void) | undefined
 } {
-	if (!groups) return { value: undefined, defaultValue: [], onValueChange: undefined }
-
-	if (Array.isArray(groups))
-		return { value: undefined, defaultValue: groups, onValueChange: undefined }
+	// The array shorthand and the absent prop differ only in the seed.
+	if (!groups || Array.isArray(groups))
+		return { value: undefined, defaultValue: groups ?? [], onValueChange: undefined }
 
 	return {
 		value: groups.value,
@@ -56,17 +56,20 @@ export type GridGroupResult = {
 
 /**
  * Owns the grid's column-group slice: the controllable `groups` binding (array
- * shorthand or object binding), the grid-owned collapse state (seeded once from
- * each group's `defaultCollapsed`), the ids collapsed groups hide from the
- * engine, and a `resolveHeader` that maps the current visible columns into the
+ * shorthand or object binding). It also owns the collapse state, seeded once
+ * from each group's `defaultCollapsed`, and the ids collapsed groups hide from
+ * the engine. A `resolveHeader` maps the current visible columns into the
  * band-row {@link GridGroupSpan}s. Kept apart from the engine so `grid-data`
- * only wires it: it feeds the grouped order (via {@link groupedColumnOrder}) and
- * `collapsedHidden` into the column slice, then renders `resolveHeader` above the
- * column header.
+ * only wires it. That module feeds the grouped order (via
+ * {@link groupedColumnOrder}) and `collapsedHidden` into the column slice, then
+ * renders `resolveHeader` above the column header.
  *
  * @internal
  */
-export function useGridGroup(groups: GridColumnGroups | undefined): GridGroupResult {
+export function useGridGroup(
+	groups: GridColumnGroups | undefined,
+	onCollapsedChange?: (collapsed: ReadonlySet<string | number>) => void,
+): GridGroupResult {
 	const binding = resolveGroupsBinding(groups)
 
 	const [resolvedGroups = binding.defaultValue, setGroups] = useControllable<GridColumnGroup[]>({
@@ -94,6 +97,11 @@ export function useGridGroup(groups: GridColumnGroups | undefined): GridGroupRes
 			return next
 		})
 	}, [])
+
+	// Read from the committed set rather than from `toggleCollapse`, because the set
+	// is written through an updater. The seed above is the mount state, not a
+	// transition, so a grid that mounts with a band already shut says nothing.
+	useReportedChange(collapsed, onCollapsedChange)
 
 	const collapsedHidden = useMemo(
 		() => collapsedHiddenIds(resolvedGroups, collapsed),

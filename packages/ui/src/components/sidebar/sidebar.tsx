@@ -1,14 +1,14 @@
 'use client'
 
-import { type ComponentPropsWithoutRef, type ReactNode, useRef } from 'react'
+import { type ComponentProps, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useA11yRoving, useMinWidth } from '../../hooks'
+import { useA11yRoving, useMinBreakpoint } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
 
-/** Props for {@link Sidebar}: `mini` rail toggle and render-prop `children`, plus native `<nav>` attributes (less `children`). */
-export type SidebarProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
+/** Props for {@link Sidebar}: the `mini` rail toggle plus native `<nav>` attributes. */
+export type SidebarProps = ComponentProps<'nav'> & {
 	/**
 	 * Collapse to an icon rail on desktop (`lg+`): labels turn `sr-only`,
 	 * affixes and item actions hide, and items gain a hover tooltip naming the
@@ -17,20 +17,21 @@ export type SidebarProps = Omit<ComponentPropsWithoutRef<'nav'>, 'children'> & {
 	 * @defaultValue `false`
 	 */
 	mini?: boolean
-	/**
-	 * Render-prop children receive the resolved mini state (true only when
-	 * `mini` is set and the viewport is desktop) to branch content between
-	 * the two presentations (a logo glyph standing in for the wordmark, say).
-	 */
-	children?: ReactNode | ((mini: boolean) => ReactNode)
 }
 
 /**
- * Vertical navigation landmark with a true roving-tabindex keyboard model: the
- * item list is a single Tab stop, Up/Down arrows move focus between items,
- * Left/Right rove into an item's prefix/suffix actions, and the resting stop
+ * Vertical navigation landmark with a true roving-tabindex keyboard model. The
+ * item list is a single Tab stop, Up/Down arrows move focus between items, and
+ * Left/Right rove into an item's prefix/suffix actions. The resting stop
  * sits on the current page (`aria-current="page"`), falling back to the first
  * item. Establishes an active-indicator scope.
+ *
+ * @remarks
+ * Content that has to differ between the full sidebar and the mini rail reads
+ * the resolved state with {@link useSidebarMini}, from a component inside the
+ * sidebar. The root took a render prop for that once, and it was the library's
+ * one root render prop. The context it already broadcasts does the same work
+ * without one.
  */
 export function Sidebar({
 	'aria-label': ariaLabel = 'Sidebar',
@@ -49,8 +50,8 @@ export function Sidebar({
 		activeSelector: '[aria-current="page"]',
 		/**
 		 * Affix actions inside items (prefix/suffix buttons and links) join the
-		 * keyboard model on the cross axis: Left/Right rove through the focused row's
-		 * controls while the actions stay out of the Tab order.
+		 * keyboard model on the cross axis. Left/Right rove through the focused row's
+		 * controls, while the actions stay out of the Tab order.
 		 */
 		row: {
 			rowSelector: '[data-slot="sidebar-item"]',
@@ -62,7 +63,7 @@ export function Sidebar({
 	// Mini is desktop-only: the recipe's `lg:` scoping handles the CSS collapse,
 	// and the same breakpoint resolves the state handed to the render prop and
 	// to items (which mount their label tooltips off it).
-	const desktop = useMinWidth(1024)
+	const desktop = useMinBreakpoint('lg')
 
 	const resolvedMini = mini && desktop
 
@@ -81,7 +82,7 @@ export function Sidebar({
 					}}
 					{...props}
 				>
-					{typeof children === 'function' ? children(resolvedMini) : children}
+					{children}
 				</nav>
 			</SidebarMiniContext>
 		</ActiveIndicatorScope>

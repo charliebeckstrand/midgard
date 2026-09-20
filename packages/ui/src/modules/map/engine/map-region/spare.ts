@@ -1,22 +1,25 @@
 /**
- * What the region under a dot can spare it — the region half of the hit-target
- * rule, whose zone half is `map-geofence.ts` and whose join is `markTargets`.
+ * What the region under a dot can spare it — the region part of the hit-target
+ * rule. `map-cluster/crowd.ts` holds the neighbour part and the list of
+ * claimants, `map-geofence.ts` the zone part, and `markTargets` joins them.
  *
- * The zone half learned the rule first: a figure that suits one shape blankets a
- * smaller one, so a zone publishes its own inscribed room and a dot takes a share
- * of it ({@link AREA_SPARE_FRACTION}). Regions are the same question asked of
- * shapes three orders of magnitude apart in area, which is why the one figure
- * this replaced could only be safe at the small end: the dot's own paint, held
- * against every region on every map, so a state with room to spare took the same
- * bite as one with none and a dot over open water paid as much as either.
+ * The zone half learned the rule first. A figure that suits one shape blankets
+ * a smaller one. A zone therefore publishes its own inscribed room, and a dot
+ * takes a share of it ({@link AREA_SPARE_FRACTION}). Regions are the same
+ * question asked of shapes three orders of magnitude apart in area. That is why
+ * the one figure this replaced could only be safe at the small end. It was the
+ * dot's own paint, held against every region on every map. A state with room to
+ * spare therefore took the same bite as one with none. A dot over open water
+ * paid as much as either.
  *
  * The claim used to be resolved map-wide because no dot could ask what region it
- * stood on: the module resolves a region off a pointed DOM element, not off a
- * coordinate. It can ask now. `map-geometry/locate.ts` already indexes an atlas by
- * bounding box for the coverage frame, and the fit inverts, so a frame position
- * becomes a lon/lat and the grid takes the candidates down to a handful.
+ * stood on. The module resolves a region off a pointed DOM element, not off a
+ * coordinate. It can ask now. `map-geometry/locate.ts` already indexes an atlas
+ * by bounding box for the coverage frame, and the fit inverts. A frame position
+ * therefore becomes a lon/lat, and the grid takes the candidates down to a
+ * handful.
  *
- * Frame arithmetic with no React in it, like both of its siblings.
+ * Frame arithmetic with no React in it, like its two siblings.
  */
 
 import { AREA_SPARE_FRACTION, POINT_HIT_RADIUS, POINT_RADIUS } from '../map-constants'
@@ -34,8 +37,8 @@ import type { LngLat, MapFeature, MapPoint2D } from '../types'
 
 /**
  * How much reach the region layer leaves a dot at a frame position, in device
- * pixels — `Infinity` where it claims nothing, which is the identity of the
- * minimum `markTargets` folds every claimant into.
+ * pixels. It is `Infinity` where it claims nothing, which is the identity of
+ * the minimum `markTargets` folds every claimant into.
  *
  * @internal
  */
@@ -43,8 +46,8 @@ export type MapRegionSpare = (at: MapPoint2D, unitsPerPixel: number) => number
 
 /**
  * The resolver for a layer that answers nothing. Exported so the plat can state
- * that case itself: whether the regions answer the pointer is its own policy, and
- * a geometry leaf should not take a boolean about a component's props.
+ * that case itself. Whether the regions answer the pointer is its own policy,
+ * and a geometry leaf must not take a boolean about a component's props.
  *
  * @internal
  */
@@ -55,9 +58,9 @@ export const NO_REGION_CLAIM: MapRegionSpare = () => Number.POSITIVE_INFINITY
  * inside it, and the room they hold.
  *
  * The outer box is the reject the ring walk needs in front of it. `ringsNear`
- * returns on its first hit and walks every ring on a miss, and a miss is the
- * common case for a candidate the geographic grid admitted — so a dot that
- * admits Alaska pays 137 box tests to learn it stands in Florida. One test
+ * returns on its first hit and walks every ring on a miss. A miss is the common
+ * case for a candidate the geographic grid admitted. A dot that admits
+ * Alaska therefore pays 137 box tests to learn it stands in Florida. One test
  * settles it, and the box is free while the rings are being measured.
  *
  * @internal
@@ -68,7 +71,7 @@ type MeasuredRegion = { whole: MapFrameBox | null; boxes: MapAreaBox[]; reach: n
  * The lon/lat box a dot's widest possible target covers, from the frame box
  * around it. Both corners invert rather than the centre alone, because the
  * conversion from pixels to degrees is the projection's own and varies with
- * latitude — and an inset composite changes it outright.
+ * latitude. An inset composite changes it outright.
  *
  * `null` where either corner does not invert, which reads as no claim. The
  * alternative is a box grown to the whole sphere, and a dot the projection has
@@ -105,8 +108,8 @@ function reachBounds(
 
 /**
  * The one box holding every ring's, or `null` for a region that projected
- * nothing — which then rejects every dot, the right answer for a shape that
- * draws nothing to claim with.
+ * nothing. Such a region then rejects every dot, the right answer for a shape
+ * that draws nothing to claim with.
  *
  * @internal
  */
@@ -133,13 +136,13 @@ function wholeBox(boxes: readonly MapAreaBox[]): MapFrameBox | null {
 /**
  * Whether a measured region draws within `reach` of a position.
  *
- * The whole-region box answers first and answers most: the grid admits a
- * candidate on a lon/lat box, which for an antimeridian-crossing region reads as
- * spanning every longitude, so such a region is offered to every dot on the map
- * and one comparison sends it away. The ring walk behind it says more only where
- * there are several rings to tell apart — an archipelago, or a state with
- * islands — and for a single-ring region it would re-ask what the whole box has
- * already settled.
+ * The whole-region box answers first and answers most. The grid admits a
+ * candidate on a lon/lat box, which for an antimeridian-crossing region reads
+ * as spanning every longitude. Such a region is therefore offered to every dot
+ * on the map, and one comparison sends it away. The ring walk behind it says
+ * more only where there are several rings to tell apart, as in an archipelago
+ * or a state with islands. For a single-ring region it would re-ask what the
+ * whole box has already settled.
  *
  * @internal
  */
@@ -154,21 +157,21 @@ function regionNear(region: MeasuredRegion, at: MapPoint2D, reach: number): bool
  * under one fit.
  *
  * A dot answers to every region its target could cover rather than to the one it
- * stands in. That is the zone half's own reading — a dot overlapping two zones
- * satisfies both — and it is what keeps a dot just inside a large state from
+ * stands in. That is the zone half's own reading, where a dot overlapping two
+ * zones satisfies both. It is what keeps a dot just inside a large state from
  * blanketing the small one across the border.
  *
- * Containment is never tested. `ringsNear` asks whether a region draws within the
- * dot's reach, which is the question the claim actually turns on: a dot outside a
- * region but near enough to cover part of it takes that region's ground as surely
- * as one standing in the middle. The grid's own answer is a box test and so names
- * regions the dot cannot reach; `ringsNear` is the tighter filter behind it that
- * makes the over-approximation harmless, and it reads the projected boxes rather
- * than the geographic ones.
+ * Containment is never tested. `ringsNear` asks whether a region draws within
+ * the dot's reach, which is the question the claim actually turns on. A dot
+ * outside a region but near enough to cover part of it takes that region's
+ * ground as surely as one standing in the middle. The grid's own answer is a
+ * box test, and so names regions the dot cannot reach. `ringsNear` is the
+ * tighter filter behind it that makes the over-approximation harmless, and it
+ * reads the projected boxes rather than the geographic ones.
  *
  * The two projectors travel together because both leave one memo in
- * `useMapShape` — a pair from different fits would measure rings in one frame and
- * place dots in another.
+ * `useMapShape`. A pair from different fits would measure rings in one frame
+ * and place dots in another.
  *
  * @param features - The decoded regions, as the layer draws them.
  * @param unproject - Frame position back to lon/lat, for asking the grid.

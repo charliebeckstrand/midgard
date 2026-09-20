@@ -1,13 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
-import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form, useFormField, useFormValue } from '../../components/form'
-
-function makeWrapper<T extends Record<string, unknown>>(defaultValues: T) {
-	return ({ children }: { children: ReactNode }) => (
-		<Form defaultValues={defaultValues}>{children}</Form>
-	)
-}
+import { useFormField, useFormValue } from '../../components/form'
+import { makeFormWrapper } from '../helpers/form-wrapper'
 
 describe('useFormValue', () => {
 	it('acts as plain controllable state outside a Form', () => {
@@ -31,7 +25,7 @@ describe('useFormValue', () => {
 	})
 
 	it('reads the form field value and writes back through it', () => {
-		const wrapper = makeWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(
 			() => ({
@@ -53,7 +47,7 @@ describe('useFormValue', () => {
 	})
 
 	it('ignores defaultValue when form-bound', () => {
-		const wrapper = makeWrapper({ amount: undefined })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: undefined } })
 
 		const { result } = renderHook(() => useFormValue<number>('amount', { defaultValue: 9 }), {
 			wrapper,
@@ -63,7 +57,7 @@ describe('useFormValue', () => {
 	})
 
 	it('lets an explicit value prop win over the form field', () => {
-		const wrapper = makeWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(() => useFormValue<number>('amount', { value: 3 }), { wrapper })
 
@@ -71,7 +65,7 @@ describe('useFormValue', () => {
 	})
 
 	it('marks the field touched via setTouched', () => {
-		const wrapper = makeWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(
 			() => ({
@@ -93,7 +87,7 @@ describe('useFormValue', () => {
 	it('still notifies onValueChange while form-bound', () => {
 		const onValueChange = vi.fn()
 
-		const wrapper = makeWrapper({ amount: 5 })
+		const wrapper = makeFormWrapper({ defaultValues: { amount: 5 } })
 
 		const { result } = renderHook(() => useFormValue<number>('amount', { onValueChange }), {
 			wrapper,

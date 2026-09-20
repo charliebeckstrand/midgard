@@ -19,7 +19,7 @@ const summary = (container: HTMLElement) => container.querySelector('[data-slot=
 
 describe('QuerySummary', () => {
 	it('renders nothing for a query with no active rules', () => {
-		const { container } = renderUI(<QuerySummary root={createGroup()} fields={fields} />)
+		const { container } = renderUI(<QuerySummary value={createGroup()} fields={fields} />)
 
 		expect(summary(container)).toBeNull()
 	})
@@ -29,7 +29,7 @@ describe('QuerySummary', () => {
 			{ ...createRule(fields[2]), operator: 'equals', value: 'active' },
 		])
 
-		const { container } = renderUI(<QuerySummary root={root} fields={fields} />)
+		const { container } = renderUI(<QuerySummary value={root} fields={fields} />)
 
 		expect(summary(container)).toHaveTextContent('Status is Active')
 	})
@@ -40,7 +40,7 @@ describe('QuerySummary', () => {
 			createGroup('or', [{ ...createRule(fields[1]), operator: 'gt', value: 30 }]),
 		])
 
-		const { container } = renderUI(<QuerySummary root={root} fields={fields} />)
+		const { container } = renderUI(<QuerySummary value={root} fields={fields} />)
 
 		expect(summary(container)).toHaveTextContent('Name contains lee OR (Age > 30)')
 	})

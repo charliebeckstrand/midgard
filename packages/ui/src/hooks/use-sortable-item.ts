@@ -4,7 +4,8 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import type { CSSProperties } from 'react'
 
-type SortableItemOptions = {
+/** Options for {@link useSortableItem}: the item's id and whether it takes a drag. */
+export type SortableItemOptions = {
 	/** Stable id matching the enclosing `SortableContext` items array. */
 	id: string
 	/** Disable pointer + keyboard interaction for this item. @defaultValue false */
@@ -13,9 +14,9 @@ type SortableItemOptions = {
 
 /**
  * Wraps dnd-kit's `useSortable` with the standard style composition used by
- * sortable components in this package: transform via `CSS.Transform.toString`,
- * the hook's transition value, and a hidden opacity while dragging (the
- * `<DragOverlay>` owns the dragged visual).
+ * sortable components in this package. That composition is transform via
+ * `CSS.Transform.toString`, the hook's transition value, and a hidden opacity
+ * while dragging (the `<DragOverlay>` owns the dragged visual).
  *
  * @returns `{ setNodeRef, setActivatorNodeRef, attributes, listeners, style,
  * dragging }`: dnd-kit's node and activator refs, the spreadable `attributes`

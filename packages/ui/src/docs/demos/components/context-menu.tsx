@@ -19,7 +19,7 @@ export function Demo() {
 
 	const surface = (
 		<Box className="flex items-center justify-center rounded-lg border border-zinc-300 border-dashed p-20 dark:border-zinc-700">
-			<Text severity="muted" className="select-none">
+			<Text tone="muted" className="select-none">
 				Right-click here
 			</Text>
 		</Box>
@@ -38,7 +38,7 @@ export function Demo() {
 			</Example>
 
 			<Example title="Custom items before the defaults">
-				<ContextMenu defaults={defaults} items={custom} position="before">
+				<ContextMenu defaults={defaults} items={custom} insert="before">
 					{surface}
 				</ContextMenu>
 			</Example>

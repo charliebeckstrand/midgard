@@ -1,26 +1,27 @@
 /**
  * The language a territory is written in, and the matcher it compiles to. Three
- * forms carry every way a broker states coverage — a whole code, a leading
- * prefix, an inclusive range — and one parser reads all three out of the string
- * a caller types or pastes. A `!` in front of a term subtracts it, so a prefix
+ * forms carry every way a broker states coverage: a whole code, a leading
+ * prefix, an inclusive range. One parser reads all three out of the string a
+ * caller types or pastes. A `!` in front of a term subtracts it, so a prefix
  * less its exceptions is one line rather than a range arithmetic exercise.
  *
- * The matcher compiles rather than walks. A territory runs to tens of rules and
- * an atlas runs to tens of thousands of codes, so a rule-by-rule test would be
- * the whole cost of the pass: a set of whole codes and a sorted list of merged
- * spans answer each code in one lookup and one bisect, however many rules stand
- * behind them.
+ * The matcher compiles rather than walks. A territory runs to tens of rules,
+ * and an atlas runs to tens of thousands of codes. A rule-by-rule test would
+ * therefore be the whole cost of the pass. A set of whole codes and a sorted
+ * list of merged spans answer each code in one lookup and one bisect. That
+ * holds however many rules stand behind them.
  *
  * A prefix is a span, and compiles to one. `606` is every code from `60600` to
- * `60699`, which is what {@link lowest} and {@link highest} already widen a
- * stated range's ends to — so the two forms differ in how they are written and
- * not in what they mean, and a territory stating both merges them into one list
- * rather than holding two unrelated structures.
+ * `60699`. That is what {@link lowest} and {@link highest} already widen a
+ * stated range's ends to. The two forms therefore differ in how they are
+ * written and not in what they mean. A territory stating both merges them into
+ * one list, rather than holding two unrelated structures.
  *
  * Codes are compared as their five-digit strings rather than as numbers. Every
- * ZIP is five digits with its leading zeros kept — `01001` is Agawam,
- * Massachusetts, and `1001` is nothing — so string order and numeric order are
- * the same order here, and the string never loses a zero on the way through.
+ * ZIP is five digits with its leading zeros kept: `01001` is Agawam,
+ * Massachusetts, and `1001` is nothing. String order and numeric order are
+ * therefore the same order here, and the string never loses a zero on the way
+ * through.
  */
 
 import { digitsOnly } from '../../../../utilities'
@@ -30,8 +31,9 @@ const ZIP_LENGTH = 5
 
 /**
  * An inclusive span, stated at any width: `60601-60640` between two codes, and
- * `600-609` between two prefixes — the ZIP3 span a broker states a whole region
- * by. Each end widens to the code it means, the low end down and the high end
+ * `600-609` between two prefixes. The latter is the ZIP3 span a broker states a
+ * whole region by. Each end widens to the code it means, the low end down and
+ * the high end
  * up, so one rule reads both.
  *
  * @internal
@@ -40,9 +42,9 @@ const RANGE_TERM = /^(\d{1,5})-(\d{1,5})$/
 
 /**
  * A ZIP+4, `60601-1234`: one code, written with the delivery segment the map
- * cannot draw. Read before {@link RANGE_TERM}, which this shape also satisfies —
- * a written ZIP+4 is common and a span from `12340` to `60601` stated backwards
- * in that exact form is not.
+ * cannot draw. Read before {@link RANGE_TERM}, which this shape also satisfies.
+ * A written ZIP+4 is common, and a span from `12340` to `60601` stated
+ * backwards in that exact form is not.
  *
  * @internal
  */
@@ -62,9 +64,9 @@ const RANGE_SPACING = /\s*-\s*/g
 
 /**
  * One rule of a territory: a whole code, a leading prefix, or an inclusive span.
- * A prefix is the ZIP3 form a broker states a region by — `606` is every code
- * from `60600` to `60699` — and holds one to four digits, since five digits is a
- * whole code.
+ * A prefix is the ZIP3 form a broker states a region by, and holds one to four
+ * digits, since five digits is a whole code. `606` is every code from `60600`
+ * to `60699`.
  *
  * @internal
  */
@@ -76,7 +78,7 @@ export type MapZipRule =
 /**
  * A parsed territory: the rules that add codes to it, the rules that take codes
  * back out, and the terms the parser could not read. The invalid terms are kept
- * rather than dropped so a field can mark what a reader mistyped — the map draws
+ * rather than dropped so a field can mark what a reader mistyped. The map draws
  * from the rules alone and never from these.
  *
  * @internal
@@ -96,8 +98,9 @@ export type MapZipSelection = string | readonly string[]
 
 /**
  * A stated territory as one string, whichever form it arrived in. The one place
- * a list becomes text, so a caller keying work on a territory's content and the
- * parser reading that territory can never disagree about what a list means.
+ * a list becomes text. A caller keying work on a territory's content and the
+ * parser reading that territory can therefore never disagree about what a list
+ * means.
  *
  * @internal
  */
@@ -189,8 +192,9 @@ type ZipIndex = {
 }
 
 /**
- * The spans sorted by their low end and merged where they overlap, so a bisect
- * over the result has one candidate to test rather than a run of them. Two spans
+ * The spans sorted by their low end and merged where they overlap. A bisect
+ * over the result then has one candidate to test rather than a run of them. Two
+ * spans
  * that merely abut stay apart, which costs one extra candidate and saves the
  * engine an idea of what the code after `60640` is.
  *
@@ -219,8 +223,9 @@ function mergeSpans(spans: { from: string; to: string }[]): { from: string; to: 
 /**
  * Compiles one side's rules into the two lookups a match reads. A prefix widens
  * to the span it names, so it joins the spans rather than needing an index of
- * its own. The spans sort and merge here rather than at each test, so the pass
- * pays that once for a territory rather than once for every code in the atlas.
+ * its own. The spans sort and merge here rather than at each test. The pass
+ * therefore pays that once for a territory, and not once for every code in the
+ * atlas.
  *
  * @internal
  */

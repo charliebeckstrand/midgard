@@ -1,8 +1,13 @@
 import { renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import type { ThumbButtonRefs, ThumbIndex } from '../../components/slider/range/types'
 import { useRangePointer } from '../../components/slider/range/use-range-pointer'
 import { makePointerEvent } from '../helpers'
+
+afterEach(() => {
+	document.body.innerHTML = ''
+})
 
 function makeTrack() {
 	const el = document.createElement('div')
@@ -10,6 +15,18 @@ function makeTrack() {
 	el.getBoundingClientRect = () => DOMRect.fromRect({ width: 100, height: 10 })
 
 	return el
+}
+
+// The buttons attach to the document: a detached node takes no focus, so an
+// assertion against `activeElement` would pass for the wrong reason.
+function makeThumbs(): { refs: ThumbButtonRefs; buttons: [HTMLButtonElement, HTMLButtonElement] } {
+	const lo = document.createElement('button')
+
+	const hi = document.createElement('button')
+
+	document.body.append(lo, hi)
+
+	return { refs: [{ current: lo }, { current: hi }], buttons: [lo, hi] }
 }
 
 function makeEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
@@ -25,7 +42,13 @@ function setup(
 ) {
 	const track = makeTrack()
 
+	const { refs, buttons } = makeThumbs()
+
 	const setRange = vi.fn()
+
+	const onDragStart = vi.fn()
+
+	const onDragEnd = vi.fn()
 
 	const { result } = renderHook(() =>
 		useRangePointer({
@@ -37,10 +60,13 @@ function setup(
 			trackRef: { current: track },
 			setRange,
 			overlap: options.overlap ?? 'clamp',
+			thumbRefs: refs,
+			onDragStart,
+			onDragEnd,
 		}),
 	)
 
-	return { api: result.current, track, setRange }
+	return { api: result.current, setRange, thumbs: buttons, onDragStart, onDragEnd }
 }
 
 describe('useRangePointer', () => {
@@ -81,6 +107,22 @@ describe('useRangePointer', () => {
 		expect(updater([20, 80])).toEqual([20, 70])
 	})
 
+	// The press focuses the thumb it resolves; a press on a stack focuses thumb 1,
+	// which the source states as `closestThumb`'s equidistant tie-break.
+	it.each<[string, [number, number], number, ThumbIndex]>([
+		['focuses the nearest thumb', [20, 80], 30, 0],
+		['focuses the upper thumb when the pointer is closer to it', [20, 80], 70, 1],
+		['focuses the lower thumb when the pointer lands below a stack', [50, 50], 20, 0],
+		['focuses the upper thumb when the pointer lands above a stack', [50, 50], 90, 1],
+		['focuses the upper thumb when the press lands on a stack', [50, 50], 50, 1],
+	])('onPointerDown %s', (_name, current, clientX, thumb) => {
+		const { api, thumbs } = setup({ current })
+
+		api.onPointerDown(makeEvent({ clientX }))
+
+		expect(document.activeElement).toBe(thumbs[thumb])
+	})
+
 	it('onPointerDown captures the pointer on the target', () => {
 		const { api } = setup()
 
@@ -91,16 +133,21 @@ describe('useRangePointer', () => {
 		expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1)
 	})
 
-	it('onPointerDown is a no-op when disabled', () => {
-		const { api, setRange } = setup({ disabled: true })
+	it.each<[string, { disabled?: boolean }, Partial<ReactPointerEvent>]>([
+		['when disabled', { disabled: true }, {}],
+		['on a non-primary press', {}, { button: 2 }],
+	])('onPointerDown is a no-op %s', (_name, options, overrides) => {
+		const { api, setRange } = setup(options)
 
-		const event = makeEvent({ clientX: 30 })
+		const event = makeEvent({ clientX: 30, ...overrides })
 
 		api.onPointerDown(event)
 
+		expect(setRange).not.toHaveBeenCalled()
+
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
-		expect(setRange).not.toHaveBeenCalled()
+		expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled()
 	})
 
 	it('onPointerMove does nothing before pointerdown', () => {
@@ -219,6 +266,16 @@ describe('useRangePointer', () => {
 		expect(setRange).toHaveBeenCalled()
 	})
 
+	it('moves focus to the lower thumb when the first move resolves to it', () => {
+		const { api, thumbs } = setup({ current: [50, 50] })
+
+		api.onPointerDown(makeEvent({ clientX: 50 }))
+
+		api.onPointerMove(makeEvent({ clientX: 40 }))
+
+		expect(document.activeElement).toBe(thumbs[0])
+	})
+
 	it('stays pending when stacked at min and pointer moves left', () => {
 		const { api, setRange } = setup({ current: [0, 0] })
 
@@ -289,6 +346,7 @@ describe('useRangePointer', () => {
 				trackRef: { current: null },
 				setRange,
 				overlap: 'clamp',
+				thumbRefs: makeThumbs().refs,
 			}),
 		)
 
@@ -311,5 +369,105 @@ describe('useRangePointer', () => {
 		api.onPointerMove(makeEvent({ clientX: 50 }))
 
 		expect(setRange).not.toHaveBeenCalled()
+	})
+	describe('the drag bracket', () => {
+		it.each<[string, [number, number], number, ThumbIndex]>([
+			['the nearest thumb', [20, 80], 30, 0],
+			['the upper thumb when the pointer is closer to it', [20, 80], 70, 1],
+			['the lower thumb when the pointer lands below a stack', [50, 50], 20, 0],
+			['the upper thumb when the pointer lands above a stack', [50, 50], 90, 1],
+		])('onPointerDown starts the drag on %s', (_name, current, clientX, thumb) => {
+			const { api, onDragStart, onDragEnd } = setup({ current })
+
+			api.onPointerDown(makeEvent({ clientX }))
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(thumb)
+
+			expect(onDragEnd).not.toHaveBeenCalled()
+		})
+
+		it.each<[string, (api: ReturnType<typeof setup>['api']) => void]>([
+			['onPointerUp', (api) => api.onPointerUp()],
+			['onPointerCancel', (api) => api.onPointerCancel()],
+			['onLostPointerCapture', (api) => api.onLostPointerCapture()],
+		])('%s ends the drag on the grabbed thumb', (_name, end) => {
+			const { api, onDragStart, onDragEnd } = setup({ current: [20, 80] })
+
+			api.onPointerDown(makeEvent({ clientX: 70 }))
+
+			end(api)
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(1)
+
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(1)
+		})
+
+		// A press on the stack grabs no thumb: the direction is still unknown, and
+		// nothing has moved. A release from there closes a bracket that never opened.
+		it('says nothing for a press on a stack that never moves', () => {
+			const { api, onDragStart, onDragEnd } = setup({ current: [50, 50] })
+
+			api.onPointerDown(makeEvent({ clientX: 50 }))
+
+			expect(onDragStart).not.toHaveBeenCalled()
+
+			api.onPointerUp()
+
+			expect(onDragEnd).not.toHaveBeenCalled()
+		})
+
+		it('starts the drag on the thumb the first move resolves after a stacked press', () => {
+			const { api, onDragStart } = setup({ current: [50, 50] })
+
+			api.onPointerDown(makeEvent({ clientX: 50 }))
+
+			api.onPointerMove(makeEvent({ clientX: 20 }))
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		it('starts once across a whole drag, however many moves it takes', () => {
+			const { api, onDragStart } = setup({ current: [20, 80] })
+
+			api.onPointerDown(makeEvent({ clientX: 30 }))
+
+			api.onPointerMove(makeEvent({ clientX: 40 }))
+
+			api.onPointerMove(makeEvent({ clientX: 50 }))
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		// Under `swap` the dragged value crosses into the other slot, and
+		// `draggingRef` follows it. The bracket must not: a start on 0 that ended on
+		// 1 would leave a consumer's per-thumb flag raised for good.
+		it('reports the grabbed thumb at both ends of a swap', () => {
+			const { api, onDragStart, onDragEnd } = setup({ current: [20, 80], overlap: 'swap' })
+
+			api.onPointerDown(makeEvent({ clientX: 30 }))
+
+			api.onPointerMove(makeEvent({ clientX: 90 }))
+
+			api.onPointerUp()
+
+			expect(onDragStart).toHaveBeenCalledExactlyOnceWith(0)
+
+			expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(0)
+		})
+
+		it.each<[string, { disabled?: boolean }, Partial<ReactPointerEvent>]>([
+			['when disabled', { disabled: true }, {}],
+			['on a non-primary press', {}, { button: 2 }],
+		])('says nothing %s', (_name, options, overrides) => {
+			const { api, onDragStart, onDragEnd } = setup(options)
+
+			api.onPointerDown(makeEvent({ clientX: 30, ...overrides }))
+
+			api.onPointerUp()
+
+			expect(onDragStart).not.toHaveBeenCalled()
+
+			expect(onDragEnd).not.toHaveBeenCalled()
+		})
 	})
 })

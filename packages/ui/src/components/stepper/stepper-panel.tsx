@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentPropsWithoutRef } from 'react'
+import type { ComponentProps } from 'react'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { Hold, useMountHold } from '../../primitives/mount'
 import { useStepper } from './context'
@@ -9,7 +9,7 @@ import { useStepper } from './context'
 export type StepperPanelProps = {
 	value: number
 	className?: string
-} & Omit<ComponentPropsWithoutRef<'div'>, 'className'>
+} & Omit<ComponentProps<'div'>, 'className'>
 
 /**
  * Content region for a single step, shown while its `value` matches the
@@ -20,8 +20,8 @@ export type StepperPanelProps = {
  * @remarks
  * The stepper's `mount` policy decides what happens off the current step. Under
  * the default `active` the panel renders nothing, so leaving the step discards
- * its state; under `lazy` or `always` it is held in `<Activity mode="hidden">`
- * instead — kept in the DOM with its state and scroll position intact, its
+ * its state. Under `lazy` or `always` it is held in `<Activity mode="hidden">`
+ * instead. It stays in the DOM with its state and scroll position intact, its
  * effects torn down, and its re-renders deferred until it is shown again. The
  * panel has no transition to wait on, so the hold takes effect on the step
  * change itself.

@@ -40,15 +40,23 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 3.8 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([REFERENCE.md](packages/ui/REFERENCE.md) §2).
 
-3.9 Spread order decides what a consumer may override. Load-bearing structural attributes — `role`, `tabIndex`, `type`, widget ARIA state, and the resolved wiring of the §7.2 binding cascade — are written *after* `{...props}`, so a stray prop can't drop a row out of roving, turn a button into a form submit, or clobber a bound field; `menu-item.tsx` is the composite precedent and `switch.tsx` the cascade one. Presentational attributes stay overridable: a leaf's `data-slot` default is destructured so a consumer can rename the anchor, and `className` merges through `cn`.
+3.9 Spread order decides what a consumer may override. Load-bearing structural attributes — `role`, `tabIndex`, `type`, widget ARIA state, and the resolved wiring of the §7.2 binding cascade — are written *after* `{...props}`, so a stray prop can't drop a row out of roving, turn a button into a form submit, or clobber a bound field; `menu-item.tsx` is the composite precedent and `switch.tsx` the cascade one. A `data-slot` anchor binds by who reads it: a leaf whose anchor the library itself selects on — a roving `itemSelector`, or a kata `has-[]` rule — writes it *after* the spread and locks it, as `accordion-trigger.tsx` does for Accordion's roving; every other leaf writes it *before* the spread, so a wrapper can re-anchor the leaf it renders. Presentational attributes stay overridable: `className` merges through `cn`. Both halves are enforced by `spread-order-boundary.test.ts`, which computes the read set rather than listing it, and carries the known backlog as an allowlist.
 
 ## 4. TypeScript
 
 4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary.
 
-4.2 Prefer `type` aliases for props and data shapes; co-locate small ones, extract to `types.ts` once shared or large.
+4.2 Use `type` aliases for props and data shapes; never `interface`. Co-locate small ones, extract to `types.ts` once shared or large.
 
-4.3 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
+4.3 `ComponentProps<'tag'>` is the only native-prop base. It carries `ref`, so a props type never declares a `ref` beside it. A component that does not forward the ref omits it (`Omit<ComponentProps<'div'>, 'ref'>`); one that renders more than one element keeps an element-agnostic base, because the arms are not mutually assignable. An imperative handle declares `ref?: Ref<<Name>Handle>` after that omit. Pinned by `props-base-boundary.test.ts`.
+
+4.4 A variant axis reaches props from the recipe that declares it — `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; `variant-axis-boundary.test.ts` pins the orientation axis.
+
+4.5 Props live beside the component that takes them, and a barrel reaches a type at the module that declares it — never through a component that re-exports it. Every barrelled component ships its `<Name>Props`.
+
+4.6 A barrel names every symbol it re-exports, once per source module: a type rides its module's statement with the inline `type` modifier (`export { Button, type ButtonProps } from './button'`), and a module that exports types alone takes `export type { … } from`. Never `export *` — a wildcard re-exports whatever the module gains next, and the barrel tests cannot read through it. Pinned by `barrel-export-boundary.test.ts`.
+
+4.7 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
 
 ## 5. Styling
 
@@ -86,7 +94,7 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 9.1 In apps, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains.
 
-From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/primitives/*`, `ui/providers/*`, `ui/types`. No root barrel.
+From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*`, `ui/primitives/*`, `ui/providers/*`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
@@ -105,7 +113,7 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 10.4 While editing, run a scoped subset (`test:changed`, `test:related`). Prove changes pass before claiming done ([CLAUDE.md](CLAUDE.md) §3.4).
 
-10.5 Placement: a guarantee that must hold for every component of a kind goes in the shared corpus (`a11y/cases`) and is asserted by a sweep gate, so adding a corpus entry buys every gate; behaviour specific to one component goes in its own test file. An assertion that reads the DOM tree (roles, attributes, events, focus order) runs under jsdom; one that reads layout, computed style, or colour (contrast, target size, geometry invariants, focus traps) runs in the browser suite (`test:browser`).
+10.5 Placement: a guarantee that must hold for every component of a kind goes in the shared corpus (`a11y/cases`) and is asserted by a sweep gate, so adding a corpus entry buys every gate; behaviour specific to one component goes in its own test file. An assertion that reads the DOM tree (roles, attributes, events, focus order) runs under jsdom; one that reads layout, computed style, or colour (contrast, target size, geometry invariants, focus traps) runs in the browser suite (`test:browser`). A test that reads no DOM at all opens with `// @vitest-environment node` and runs with no window; `node-environment-boundary.test.ts` holds the docblock and the file's DOM use in step.
 
 ## 11. Environment
 

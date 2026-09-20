@@ -1,1 +1,1 @@
-export * from './offcanvas'
+export { OffcanvasContext } from './offcanvas'

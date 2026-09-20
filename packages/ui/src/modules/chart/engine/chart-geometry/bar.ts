@@ -1,7 +1,7 @@
 /**
  * Pure geometry for the {@link BarChart}: grouped bars as zero-baseline spans
- * rendered to one-end-rounded paths, independent of React and styling so the
- * mark math is unit-testable in isolation. One slot-splitting pass serves both
+ * rendered to one-end-rounded paths. It is independent of React and styling, so
+ * the mark math is unit-testable in isolation. One slot-splitting pass serves both
  * orientations; only the path and the hit rect transpose, through
  * {@link barSpan}.
  */
@@ -151,8 +151,8 @@ function horizontalSquarePath(y0: number, y1: number, valueX: number, baseline: 
 
 /**
  * One stacked segment's path from its `baseEdge`→`dataEdge` value span and its
- * band slot `c0`→`c1`: rounded at the data end only when it is the outermost
- * segment, square at both ends within the stack.
+ * band slot `c0`→`c1`. It is rounded at the data end only when it is the
+ * outermost segment, and square at both ends within the stack.
  *
  * @internal
  */
@@ -176,11 +176,11 @@ function stackSegmentPath(
 }
 
 /**
- * Projects series-major values onto grouped bar marks: each category's band
- * splits into per-series bars capped at the spec thickness, separated by the
- * surface gap, and centered as a group in their band. `map` receives the
- * series index beside the value, and `baseline` takes a per-series resolver,
- * so a dual-axis chart projects each series through its own scale; a
+ * Projects series-major values onto grouped bar marks. Each category's band
+ * splits into per-series bars capped at the spec thickness. They are separated
+ * by the surface gap, and centered as a group in their band. The `map` receives
+ * the series index beside the value, and `baseline` takes a per-series resolver.
+ * A dual-axis chart therefore projects each series through its own scale. A
  * single-scale chart passes its scale's `map` and one number unchanged.
  *
  * @remarks A `null` value yields a `null` mark (an omitted bar, not a zero
@@ -260,10 +260,10 @@ type StackedSegment = {
 }
 
 /**
- * One stacked segment: its hit span keeps the full running-total range so the
- * column reads as one contiguous target, while its drawn path insets each
- * shared edge by half {@link MARK_GAP} for the surface gap — the gap dropped on
- * a segment too thin to hold it, rather than inverting.
+ * One stacked segment. Its hit span keeps the full running-total range, so the
+ * column reads as one contiguous target. Its drawn path insets each shared edge
+ * by half {@link MARK_GAP}, for the surface gap. The gap is dropped on a segment
+ * too thin to hold it, rather than inverting.
  *
  * @internal
  */
@@ -344,9 +344,10 @@ export function stackedBarMarks(
 /**
  * Per category, each stacked segment's cumulative top along the value axis,
  * piled bottom to top — the boundaries the drawn segments actually sit at. The
- * from-zero snap points a value scale maps only coincide with the marks when the
- * bars grow from one shared baseline (grouped); a stack piles them, so the
- * crosshair snap and keyboard cursor read these cumulative edges instead.
+ * from-zero snap points a value scale maps coincide with the marks only in the
+ * grouped case. There the bars grow from one shared baseline. A stack piles
+ * them, so the crosshair snap and keyboard cursor read these cumulative edges
+ * instead.
  * Vertical reads the value off `top`, horizontal off `x1` — the segment's data
  * end either way, since stacked segments are positive-only.
  *
@@ -372,8 +373,8 @@ export function stackedBarSnapPoints(
 
 /**
  * The series index behind each {@link stackedBarSnapPoints} stop, in the same
- * order and dropped by the same non-null gate, so the keyboard cursor's value
- * lane resolves to the series whose segment it lands on. `seriesIndices[order]`
+ * order and dropped by the same non-null gate. The keyboard cursor's value lane
+ * therefore resolves to the series whose segment it lands on. `seriesIndices[order]`
  * names the series the caller drew at stack position `order`.
  *
  * @internal

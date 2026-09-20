@@ -10,12 +10,12 @@ import { type SignaturePadHandle, useSignaturePadState } from './use-signature-p
 export type { SignaturePadHandle }
 
 /**
- * Props for {@link SignaturePad}; controls the bound field value, stroke styling, and the optional clear affordance.
+ * Props for {@link SignaturePad}; controls the bound field value, stroke styling, the stroke bracket, and the optional clear affordance.
  *
  * @see {@link SignaturePadHandle} for the imperative `ref` API.
  */
 export type SignaturePadProps = {
-	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` should seed `string | null`. */
+	/** Binds the data-URL signature to an enclosing Form field. `Form.defaultValues` must seed `string | null`. */
 	name?: string
 	/** Controlled value: a data URL, or `null` / `undefined` when empty. */
 	value?: string | null
@@ -23,6 +23,17 @@ export type SignaturePadProps = {
 	defaultValue?: string | null
 	/** Fires when a stroke ends. Receives the signature as a data URL, or `null` when cleared. */
 	onValueChange?: (value: string | null) => void
+	/**
+	 * Fires when a stroke starts, after the pad accepts the press.
+	 *
+	 * `onValueChange` reports the end of a stroke, and nothing reports the start.
+	 * The two together bracket the gesture. Use this callback to mark the field
+	 * dirty as the pen lands. It can also hold a save while the user signs. A press
+	 * that the pad refuses fires nothing. That covers a disabled or read-only pad,
+	 * a non-primary mouse button, a point outside the canvas, and a canvas with no
+	 * 2D context. All of them return before the stroke starts.
+	 */
+	onDrawStart?: () => void
 	disabled?: boolean
 	readOnly?: boolean
 	/**
@@ -32,9 +43,10 @@ export type SignaturePadProps = {
 	 */
 	placeholder?: string
 	/**
-	 * Stroke colour.
+	 * Stroke colour, as any CSS colour the canvas context accepts.
 	 *
-	 * @defaultValue `'#18181b'` (zinc-900)
+	 * @defaultValue the pad's own computed `color` — the theme's ink, so an
+	 * unset pad draws dark on a light surface and light on a dark one
 	 */
 	strokeColor?: string
 	/**
@@ -63,7 +75,7 @@ export type SignaturePadProps = {
  * Pointer-driven canvas for capturing a signature; emits a data URL when a stroke ends and stays sized to its container under devicePixelRatio.
  *
  * @remarks
- * Backs the controlled triad and an enclosing `<Form>`/`<Control>` field: a
+ * Backs the controlled triad and an enclosing `<Form>`/`<Control>` field. A
  * `name` binds the data URL to the form store, while ambient `<Control>` invalid
  * and description ids ride onto the canvas (`role="img"`). On clear, focus moves
  * to the canvas as the clear button unmounts (WCAG 2.4.3). The backing store is
@@ -77,10 +89,11 @@ export function SignaturePad({
 	value,
 	defaultValue,
 	onValueChange,
+	onDrawStart,
 	disabled,
 	readOnly,
 	placeholder = 'Sign here',
-	strokeColor = '#18181b',
+	strokeColor,
 	strokeWidth = 2,
 	clearable = true,
 	'aria-label': ariaLabel = 'Signature',
@@ -106,6 +119,7 @@ export function SignaturePad({
 		value,
 		defaultValue,
 		onValueChange,
+		onDrawStart,
 		disabled,
 		readOnly,
 		strokeColor,

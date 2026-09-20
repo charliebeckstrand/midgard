@@ -4,6 +4,8 @@ import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here
 // would bleed across files (see markdown.test.tsx for the failure it caused).
+// The `loadShiki` cases need their own registry, so they sit in
+// boundary/code-block-load-shiki.test.ts, which runs on forks.
 
 describe('CodeBlock', () => {
 	it('renders with data-slot="code-block"', async () => {
