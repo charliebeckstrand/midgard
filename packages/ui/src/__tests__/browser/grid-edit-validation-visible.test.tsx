@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * Editor validation messages stay in view (WCAG 1.4.10). The message renders below
@@ -71,7 +71,18 @@ describe('grid edit validation visibility (real browser)', () => {
 		// Edit the last row, whose cell sits below the 140px scroll window.
 		fireEvent.click(screen.getByRole('button', { name: 'edit-last' }))
 
-		const input = container.querySelector('[data-slot="grid-edit-input"]') as HTMLInputElement
+		// `act-environment.ts` lowers IS_REACT_ACT_ENVIRONMENT for this suite, so
+		// the click's commit lands on React's own schedule rather than inside the
+		// dispatch. A read here can therefore precede the editor. Wait for it, and
+		// name it: a cast over the bare query gave `fireEvent` a null, which
+		// reports `Unable to fire a "change" event` and names neither the editor
+		// nor the wait it needed.
+		const input = await waitFor(() =>
+			present<HTMLInputElement>(
+				container.querySelector('[data-slot="grid-edit-input"]'),
+				'the edit input',
+			),
+		)
 
 		// Trigger the validation error.
 		fireEvent.change(input, { target: { value: 'bad' } })
