@@ -15,70 +15,88 @@ import type { Case } from './types'
 
 /** Layout & surface primitives: structural containers with no interactive role. */
 export const layoutCases: readonly Case[] = [
-	['box', <Box key="bx">Content</Box>],
-	[
-		'flex',
-		<Flex key="fx" gap="md">
-			<span>One</span>
-			<span>Two</span>
-		</Flex>,
-	],
-	[
-		'grid',
-		<Box key="gr" className="grid grid-cols-2 gap-3">
-			<span>One</span>
-			<span>Two</span>
-		</Box>,
-	],
-	[
-		'stack',
-		<Stack key="sk" gap="md">
-			<span>One</span>
-			<span>Two</span>
-		</Stack>,
-	],
-	[
-		'group',
-		<Group key="gp">
-			<span>One</span>
-			<span>Two</span>
-		</Group>,
-	],
-	[
-		'split',
-		<Split key="sp">
-			<span>Leading</span>
-			<span>Trailing</span>
-		</Split>,
-	],
-	['container', <Container key="ct">Content</Container>],
-	[
-		'card',
-		<Card key="cd">
-			<CardBody>
-				<CardTitle>Project settings</CardTitle>
-			</CardBody>
-		</Card>,
-	],
-	[
-		'glass',
-		<GlassProvider key="gl">
-			<span>Content</span>
-		</GlassProvider>,
-	],
-	[
-		'aspect ratio',
-		<AspectRatio key="ar" ratio="square">
-			<div>Content</div>
-		</AspectRatio>,
-	],
-	['spacer', <Spacer key="sr" />],
-	['divider', <Divider key="dv" />],
-	['placeholder', <Placeholder key="pl" />],
-	[
-		'scroll area',
-		<ScrollArea key="sa" className="max-h-24">
-			<div className="h-48">Scrollable content</div>
-		</ScrollArea>,
-	],
+	{ name: 'box', element: <Box key="bx">Content</Box> },
+	{
+		name: 'flex',
+		element: (
+			<Flex key="fx" gap="md">
+				<span>One</span>
+				<span>Two</span>
+			</Flex>
+		),
+	},
+	{
+		name: 'grid',
+		element: (
+			<Box key="gr" className="grid grid-cols-2 gap-3">
+				<span>One</span>
+				<span>Two</span>
+			</Box>
+		),
+	},
+	{
+		name: 'stack',
+		element: (
+			<Stack key="sk" gap="md">
+				<span>One</span>
+				<span>Two</span>
+			</Stack>
+		),
+	},
+	{
+		name: 'group',
+		element: (
+			<Group key="gp">
+				<span>One</span>
+				<span>Two</span>
+			</Group>
+		),
+	},
+	{
+		name: 'split',
+		element: (
+			<Split key="sp">
+				<span>Leading</span>
+				<span>Trailing</span>
+			</Split>
+		),
+	},
+	{ name: 'container', element: <Container key="ct">Content</Container> },
+	{
+		name: 'card',
+		element: (
+			<Card key="cd">
+				<CardBody>
+					<CardTitle>Project settings</CardTitle>
+				</CardBody>
+			</Card>
+		),
+	},
+	{
+		name: 'glass',
+		element: (
+			<GlassProvider key="gl">
+				<span>Content</span>
+			</GlassProvider>
+		),
+	},
+	{
+		name: 'aspect ratio',
+		element: (
+			<AspectRatio key="ar" ratio="square">
+				<div>Content</div>
+			</AspectRatio>
+		),
+	},
+	{ name: 'spacer', element: <Spacer key="sr" /> },
+	{ name: 'divider', element: <Divider key="dv" /> },
+	{ name: 'placeholder', element: <Placeholder key="pl" /> },
+	{
+		name: 'scroll area',
+		element: (
+			<ScrollArea key="sa" className="max-h-24">
+				<div className="h-48">Scrollable content</div>
+			</ScrollArea>
+		),
+	},
 ]

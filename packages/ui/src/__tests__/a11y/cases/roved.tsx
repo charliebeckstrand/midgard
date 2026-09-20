@@ -40,53 +40,59 @@ import type { RovedCase } from './types'
  * identical ground and cost another full axe pass.
  */
 export const roved: readonly RovedCase[] = [
-	[
+	{
 		// `kata/option` — the row shared by Listbox / Select / Combobox.
-		'listbox option',
-		<Field key="rlb">
-			<Label>Status</Label>
-			<Listbox<string> open nullable displayValue={(value) => value} placeholder="Select status">
-				<ListboxOption value="active">
-					<ListboxLabel>Active</ListboxLabel>
-					<ListboxDescription>Currently moving freight</ListboxDescription>
-				</ListboxOption>
-			</Listbox>
-		</Field>,
-		'listbox-description',
-	],
-	[
+		name: 'listbox option',
+		element: (
+			<Field key="rlb">
+				<Label>Status</Label>
+				<Listbox<string> open nullable displayValue={(value) => value} placeholder="Select status">
+					<ListboxOption value="active">
+						<ListboxLabel>Active</ListboxLabel>
+						<ListboxDescription>Currently moving freight</ListboxDescription>
+					</ListboxOption>
+				</Listbox>
+			</Field>
+		),
+		descriptionSlot: 'listbox-description',
+	},
+	{
 		// `kata/menu` — its `group-focus/option:text-white` override covers the
 		// focus case only, so a `data-active` row still inks with the muted rung.
-		'menu item',
-		<Menu key="rmn" defaultOpen>
-			<MenuTrigger>
-				<Button variant="outline">Options</Button>
-			</MenuTrigger>
-			<MenuContent>
-				<MenuSection>
-					<MenuItem>
-						<MenuLabel>Edit</MenuLabel>
-						<MenuDescription>Change this record</MenuDescription>
-					</MenuItem>
-				</MenuSection>
-			</MenuContent>
-		</Menu>,
-		'menu-description',
-	],
-	[
+		name: 'menu item',
+		element: (
+			<Menu key="rmn" defaultOpen>
+				<MenuTrigger>
+					<Button variant="outline">Options</Button>
+				</MenuTrigger>
+				<MenuContent>
+					<MenuSection>
+						<MenuItem>
+							<MenuLabel>Edit</MenuLabel>
+							<MenuDescription>Change this record</MenuDescription>
+						</MenuItem>
+					</MenuSection>
+				</MenuContent>
+			</Menu>
+		),
+		descriptionSlot: 'menu-description',
+	},
+	{
 		// `kata/command-palette` — the same wash. Its `data-active:hover` deepening
 		// to `/10` is a stronger ground than this case paints, so the `/5` measured
 		// here is the binding one.
-		'command palette item',
-		<CommandPalette key="rcp" open onOpenChange={noop}>
-			<CommandPaletteGroup>
-				<CommandPaletteHeading>Files</CommandPaletteHeading>
-				<CommandPaletteItem>
-					<CommandPaletteLabel>New file</CommandPaletteLabel>
-					<CommandPaletteDescription>Start from an empty document</CommandPaletteDescription>
-				</CommandPaletteItem>
-			</CommandPaletteGroup>
-		</CommandPalette>,
-		'command-palette-description',
-	],
+		name: 'command palette item',
+		element: (
+			<CommandPalette key="rcp" open onOpenChange={noop}>
+				<CommandPaletteGroup>
+					<CommandPaletteHeading>Files</CommandPaletteHeading>
+					<CommandPaletteItem>
+						<CommandPaletteLabel>New file</CommandPaletteLabel>
+						<CommandPaletteDescription>Start from an empty document</CommandPaletteDescription>
+					</CommandPaletteItem>
+				</CommandPaletteGroup>
+			</CommandPalette>
+		),
+		descriptionSlot: 'command-palette-description',
+	},
 ]

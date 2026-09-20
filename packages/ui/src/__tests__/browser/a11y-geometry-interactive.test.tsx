@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { interactive, roved } from '../a11y/cases'
+import { interactive, roved, rows } from '../a11y/cases'
 import { present, renderUI, userEvent } from '../helpers'
 import { axeGeometry } from './helpers/axe-geometry'
 
@@ -14,12 +14,13 @@ import { axeGeometry } from './helpers/axe-geometry'
  */
 const GEOMETRY_DEFERRED = new Set(['select', 'listbox'])
 
-const interactiveGeometry = interactive.filter(([name]) => !GEOMETRY_DEFERRED.has(name))
+const interactiveGeometry = interactive.filter(({ name }) => !GEOMETRY_DEFERRED.has(name))
 
 describe('a11y geometry (axe): interactive', () => {
-	it.each(
-		interactiveGeometry,
-	)('%s meets contrast and target-size when open', async (_name, element, open) => {
+	it.each(rows(interactiveGeometry))('%s meets contrast and target-size when open', async (_name, {
+		element,
+		open,
+	}) => {
 		const user = userEvent.setup()
 
 		renderUI(element)
@@ -39,7 +40,10 @@ describe('a11y geometry (axe): interactive', () => {
  * to it.
  */
 describe('a11y geometry (axe): roved item descriptions', () => {
-	it.each(roved)('%s description meets contrast while roved', async (_name, element, slot) => {
+	it.each(rows(roved))('%s description meets contrast while roved', async (_name, {
+		element,
+		descriptionSlot: slot,
+	}) => {
 		renderUI(element)
 
 		const item = present(document.querySelector('[role="option"], [role="menuitem"]'), 'an item')

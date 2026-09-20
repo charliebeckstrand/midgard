@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { traps } from '../../a11y/cases'
+import { rows, traps } from '../../a11y/cases'
 import { renderUI, screen, waitFor } from '../../helpers'
 import { tabbables } from '../helpers/tabbables'
 
@@ -19,9 +19,11 @@ import { tabbables } from '../helpers/tabbables'
  * simulation strands focus on a guard sentinel.
  */
 describe('a11y focus trap (real browser): modal family', () => {
-	it.each(
-		traps,
-	)('%s contains Tab and restores focus on Escape', async (_name, trigger, element, surface) => {
+	it.each(rows(traps))('%s contains Tab and restores focus on Escape', async (_name, {
+		trigger,
+		element,
+		surface,
+	}) => {
 		renderUI(element)
 
 		await userEvent.click(screen.getByRole('button', { name: trigger }))
