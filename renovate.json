@@ -18,6 +18,11 @@
 		"enabled": true,
 		"schedule": ["before 6am on the first day of the month"]
 	},
+	"vulnerabilityAlerts": {
+		"description": "A security fix must not wait for monday, for the cooldown, or for a click. Renovate's own defaults already drop all three here; this block records the intent and names GitHub's alerts as the source.",
+		"enabled": true,
+		"labels": ["security"]
+	},
 	"packageRules": [
 		{
 			"description": "Dependabot owns this manager. Two bots on one ecosystem duplicate every pull request.",
@@ -57,7 +62,7 @@
 			"dependencyDashboardApproval": true
 		},
 		{
-			"description": "pnpm-workspace.yaml patches @floating-ui/react at an exact version. A bump invalidates the patch key, and re-applying the patch needs a person: overlay-activity-hold.test.tsx must pass again and tms-ui must take the identical copy.",
+			"description": "pnpm-workspace.yaml patches @floating-ui/react at an exact version. A bump invalidates the patch key, and re-applying the patch needs a person: overlay-activity-hold.test.tsx must pass again and tms-ui must take the identical copy. A security alert for this package therefore needs that person too.",
 			"matchPackageNames": ["@floating-ui/react"],
 			"enabled": false
 		},
