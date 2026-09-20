@@ -29,6 +29,27 @@ describe('list item hit area (real browser)', () => {
 		return document.elementFromPoint(box.left + dx, box.top + dy)
 	}
 
+	/**
+	 * The client point a `position` offset names, which is the point a click
+	 * lands on. Playwright measures `position` from the padding box, and
+	 * `getBoundingClientRect` reports the border box, so the two differ by the
+	 * row's own border and a probe of one says nothing about the other.
+	 */
+	const pointFor = (el: HTMLElement, { x, y }: { x: number; y: number }) => {
+		const box = el.getBoundingClientRect()
+
+		const style = getComputedStyle(el)
+
+		return {
+			x: box.left + Number.parseFloat(style.borderLeftWidth) + x,
+			y: box.top + Number.parseFloat(style.borderTopWidth) + y,
+		}
+	}
+
+	/** The slot under a client point, for a failure that has to name it. */
+	const slotAt = ({ x, y }: { x: number; y: number }) =>
+		document.elementFromPoint(x, y)?.getAttribute('data-slot') ?? null
+
 	it('presses the row’s handler from the padding', async () => {
 		const onClick = vi.fn()
 
@@ -53,11 +74,23 @@ describe('list item hit area (real browser)', () => {
 			row.getBoundingClientRect().left + 5,
 		)
 
+		const position = { x: 5, y: 5 }
+
 		expect(at(row, 5, 5)).toBe(content)
 
-		await userEvent.click(row, { position: { x: 5, y: 5 } })
+		const point = pointFor(row, position)
 
-		expect(onClick).toHaveBeenCalledTimes(1)
+		await userEvent.click(row, { position })
+
+		// Playwright's hit-target check walks up from the element under the pointer
+		// to the click target, and the content area is a descendant of the row — so
+		// a press that lands on the bare row passes that check and reports a
+		// successful click. The count alone then reads 0 with nothing to say why.
+		// Name the slot under the pointer beside it.
+		expect({ calls: onClick.mock.calls.length, under: slotAt(point) }).toEqual({
+			calls: 1,
+			under: 'list-item-content',
+		})
 	})
 
 	it('leaves an inert row’s padding inert', async () => {
