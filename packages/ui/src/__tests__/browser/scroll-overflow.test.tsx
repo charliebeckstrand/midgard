@@ -27,6 +27,10 @@ function Probe({ initial }: { initial: number }) {
 				grow
 			</button>
 
+			<button type="button" data-testid="shrink" onClick={() => setExtra(0)}>
+				shrink
+			</button>
+
 			<div ref={attach} data-testid="scroller" style={{ height: 200, overflowY: 'auto' }}>
 				<div style={{ height: initial + extra }} />
 			</div>
@@ -53,6 +57,18 @@ describe('useScrollOverflow against a real scroller', () => {
 		await frames()
 
 		expect(edges()).toEqual([false, false])
+
+		// `toggleAttribute(…, false)` adds nothing, so an unstamped node reads the
+		// same whether the hook measured it and found a fit or never measured it at
+		// all. Drive the round trip: the edge that arrives and then leaves proves
+		// the reading above is a measurement and not a silence.
+		screen.getByTestId('grow').click()
+
+		await waitFor(() => expect(edges()).toEqual([false, true]))
+
+		screen.getByTestId('shrink').click()
+
+		await waitFor(() => expect(edges()).toEqual([false, false]))
 	})
 
 	it('stamps the lower edge on attach when the content overflows', async () => {
@@ -90,8 +106,10 @@ describe('useScrollOverflow against a real scroller', () => {
 
 		expect(edges()).toEqual([false, false])
 
-		// A real child grows the content past the viewport; the hook's mutation
-		// observer has to notice without any scroll to prompt it.
+		// A real child grows the content past the viewport, with no scroll to prompt
+		// the hook. The child keeps its identity, so this is the per-child resize
+		// observer's to catch: the mutation observer watches `childList` and sees
+		// nothing, and the scroller itself is pinned at its own height.
 		screen.getByTestId('grow').click()
 
 		await waitFor(() => expect(edges()).toEqual([false, true]))
@@ -116,11 +134,23 @@ describe('useScrollOverflow against a real scroller', () => {
 
 		expect(el.hasAttribute('data-overflow-below')).toBe(false)
 
+		// Put the node back in the document before prompting it. Detached, it
+		// reports `scrollTop`, `clientHeight` and `scrollHeight` as zero, so a
+		// listener left behind would compute both edges false and the assertion
+		// below would hold whether or not one survived the cleanup.
+		document.body.append(el)
+
+		el.scrollTop = 100
+
 		el.dispatchEvent(new Event('scroll'))
 
 		await frames()
 
 		expect(el.hasAttribute('data-overflow-above')).toBe(false)
+
+		expect(el.hasAttribute('data-overflow-below')).toBe(false)
+
+		el.remove()
 
 		expect(container.isConnected).toBe(true)
 	})

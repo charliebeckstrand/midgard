@@ -91,11 +91,21 @@ describe('fit drawer height (real browser)', () => {
 
 		// The keyboard half of the same gesture: one arrow commits a height the way
 		// a released drag does, without a synthetic pointer.
+		const covers = handle.getAttribute('aria-valuenow')
+
 		handle.focus()
 
 		handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }))
 
-		await waitFor(() => expect(panel.style.height).not.toBe(''))
+		// Not `panel.style.height`. Three writers set that property, and the fit
+		// travel is one of them: it pins the panel at the height it is *leaving*, so
+		// a non-empty inline height reads the same whether the gesture put it there
+		// or a stray measurement did. It is also the wrong clock — measured, the
+		// gesture writes it in the same task as the dispatch, so the wait passed on
+		// its first poll and ordered nothing. `aria-valuenow` moves on the commit
+		// that takes the size into state, which is the commit that hands the panel
+		// to the gesture.
+		await waitFor(() => expect(handle.getAttribute('aria-valuenow')).not.toBe(covers))
 
 		const dragged = panel.getBoundingClientRect().height
 
