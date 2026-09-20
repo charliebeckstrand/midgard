@@ -1,8 +1,9 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, expect } from 'vitest'
+import { afterEach, beforeEach, expect } from 'vitest'
 import { __resetAnnouncer } from '../../../core/announcer'
+import { absorbBodyResidue, assertNoBodyResidue } from './residue'
 import './tailwind.css'
 
 /**
@@ -12,6 +13,8 @@ import './tailwind.css'
  */
 expect.extend(toHaveNoViolations)
 
+beforeEach(absorbBodyResidue)
+
 afterEach(() => {
 	cleanup()
 
@@ -20,4 +23,8 @@ afterEach(() => {
 	// serves every file it runs and the region outlives its own file without
 	// this. `setup/index.ts` resets it for the jsdom projects for the same reason.
 	__resetAnnouncer()
+
+	// Last, so it reads what survived the teardown above rather than this
+	// test's own render container.
+	assertNoBodyResidue()
 })

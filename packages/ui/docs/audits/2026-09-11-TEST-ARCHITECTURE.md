@@ -204,7 +204,13 @@ Step 4's move is done on a branch, and the paragraph under part 1 records the ru
 
 Steps 5 to 8 are untouched. The jsdom project, its workaround layer, the 2,367 `bySlot` sites, the ten import-layering boundary tests, and the un-reset singletons of the Findings section all stand as this document describes them.
 
-One measurement belongs with the residue note above. Run the browser suite repeatedly and it fails about one run in four, on a different file each time, with the shuffle off. That rate reproduces with this step's work stashed, so it predates the step; taken with the order dependencies the shuffle exposed, the browser suite needs its residue work before it grows further.
+**The browser suite's intermittent failure, measured and still undiagnosed.** Twenty-three full runs with the shuffle off produced three failures, so about one run in eight rather than the one in four an earlier six-run sample suggested. Three victims so far, and they have less in common than they first appear: `map-zoom-pick` clicking a mark, `list-item-hit-area` clicking a row at (5, 5) and reading `elementFromPoint`, and `grid-pagination-focus` finding `aria-current` null after focus moves. The first two are coordinate-driven and the third is not, so "the click lands somewhere else" does not cover it. Every victim passes alone: `list-item-hit-area` ran ten times on its own without failing.
+
+Six mechanisms are ruled out, and they are recorded because each cost a measurement. The wait budget: raising `asyncUtilTimeout` to 4s turned eight green seeds red instead, and a 5s local budget on the case that wanted one did not help. Predecessor residue: running the two files that preceded a failure straight before it reproduces nothing. A leaked dismiss layer: `dismiss-layers.ts` answers Escape and never a click. The shared truncation observer: `use-pdf-viewer-viewport-size.ts:53` builds its own. Body residue: the guard in `browser/setup/residue.ts` fails any test that leaves a node on `document.body`, and it stayed silent through a failing run. The shared viewport: the failing case passes at 600x600, 800x600 and 1280x800, which spans what the seventeen viewport-setting files leave behind.
+
+What that leaves is state shared across a page that is neither the DOM under `body` nor the viewport. Document focus and the input pipeline are the obvious next places to look, since all three victims drive `userEvent`. Measure before believing it; six hypotheses have already failed here.
+
+The residue guard lands anyway, as prevention rather than a cure. No file in this suite used `onTestFinished` to clear appended nodes, so the residue rule this document has stated since August had nothing enforcing it and nothing practising it, and part 1 would move roughly 350 more files onto that page.
 
 ---
 
