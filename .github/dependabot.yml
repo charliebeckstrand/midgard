@@ -1,28 +1,25 @@
 version: 2
 
 updates:
-  # Dependabot covers GitHub Actions alone. Renovate covers npm and pnpm, and
-  # renovate.json disables its `github-actions` manager. The split is the point:
-  # two bots on one ecosystem open duplicate pull requests for the same bump and
-  # then fight over the lockfile.
+  # GitHub Actions only. Renovate owns npm and pnpm; renovate.json states the
+  # split and enforces it.
   - package-ecosystem: github-actions
-    # `/` means the whole repository for this ecosystem. Dependabot finds
-    # `.github/workflows/*` on its own; it does not take the workflow directory.
     directory: /
     schedule:
       interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    # One pull request for the whole set. ci.yml pins `actions/checkout`,
-    # `actions/setup-node`, `actions/cache`, and `pnpm/action-setup` to major
-    # tags, and a major tag moves rarely, so separate pull requests buy nothing.
+    # One pull request for every action in ci.yml. They are pinned to major
+    # tags, which move rarely, so separate pull requests buy nothing.
     groups:
       github-actions:
         patterns:
           - '*'
+    # These pull requests touch workflow files alone, so a lockfile merge on the
+    # default branch cannot affect them. Without this, every Renovate merge
+    # rebases them into another full CI run.
+    rebase-strategy: disabled
     commit-message:
       # commitlint.config.mjs holds a `scope-enum`, and Dependabot's default
-      # `deps` scope is not a member. An absent scope passes, because
-      # config-conventional leaves `scope-empty` off. A configured prefix also
-      # makes Dependabot write a lower-case `bump`, which `subject-case` needs.
+      # `deps` scope is not a member. An absent scope passes. A configured
+      # prefix also makes Dependabot write a lower-case `bump`, which
+      # `subject-case` needs.
       prefix: chore

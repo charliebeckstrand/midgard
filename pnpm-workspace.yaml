@@ -4,9 +4,9 @@ packages:
 
 # This block holds one version for each dependency that two or more workspaces
 # share. A member manifest writes `catalog:` in place of the range, so a bump
-# edits one line here rather than five manifests. A peer range stays literal in
-# its manifest, because it states a compatibility contract and not a version to
-# track.
+# edits one line here rather than every manifest that names the package. A peer
+# range stays literal in its manifest, because it states a compatibility
+# contract and not a version to track.
 catalog:
   '@biomejs/biome': ^2.5.3
   '@tailwindcss/postcss': ^4.1.0

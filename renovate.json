@@ -1,66 +1,35 @@
 {
 	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
 	"extends": ["config:recommended"],
-	"description": [
-		"Renovate owns npm and pnpm. Dependabot owns GitHub Actions; see .github/dependabot.yml.",
-		"The CI gate in .github/workflows/ci.yml judges every pull request this bot opens, so grouping trades pull-request count against the width of a failure.",
-		"Schedules have no timezone and therefore read as UTC."
-	],
 	"schedule": ["before 6am on monday"],
 	"semanticCommits": "enabled",
 	"semanticCommitScope": "midgard",
 	"rangeStrategy": "update-lockfile",
 	"minimumReleaseAge": "3 days",
 	"prConcurrentLimit": 5,
-	"dependencyDashboard": true,
-	"postUpdateOptions": ["pnpmDedupe"],
 	"lockFileMaintenance": {
 		"enabled": true,
 		"schedule": ["before 6am on the first day of the month"]
 	},
 	"vulnerabilityAlerts": {
-		"description": "A security fix must not wait for monday, for the cooldown, or for a click. Renovate's own defaults already drop all three here; this block records the intent and names GitHub's alerts as the source.",
-		"enabled": true,
+		"description": "The label is the only local decision. A security fix must not wait for monday, for the cooldown, or for a click, and Renovate already drops all three without being told.",
 		"labels": ["security"]
 	},
 	"packageRules": [
 		{
-			"description": "Dependabot owns this manager. Two bots on one ecosystem duplicate every pull request.",
+			"description": "Dependabot owns GitHub Actions; see .github/dependabot.yml. Two bots on one ecosystem open a duplicate pull request for every bump and then conflict in the lockfile.",
 			"matchManagers": ["github-actions"],
 			"enabled": false
 		},
 		{
-			"description": "The minor and patch tail for runtime dependencies, as one pull request.",
-			"groupName": "dependencies (non-major)",
-			"matchDepTypes": ["dependencies", "peerDependencies", "optionalDependencies"],
+			"description": "The whole minor and patch tail as one pull request. A split by depType earns nothing here: `update-lockfile` makes each of these a lockfile-only diff, and the catalog gives twenty of them one depType whether they are used at runtime or not. One branch also keeps the lockfile conflicts down, because every branch touches it.",
+			"groupName": "non-major",
 			"matchUpdateTypes": ["minor", "patch"]
 		},
 		{
-			"description": "The minor and patch tail for build and test tooling, as one pull request.",
-			"groupName": "devDependencies (non-major)",
-			"matchDepTypes": ["devDependencies"],
-			"matchUpdateTypes": ["minor", "patch"]
-		},
-		{
-			"description": "A catalogued dependency carries the depType `pnpm.catalog.default` and no longer reads as a runtime or a development dependency, so the two rules above cannot see it. This rule is their equivalent for the catalog; the family groups below still win for their own members.",
-			"groupName": "catalog (non-major)",
-			"matchDepTypes": ["pnpm.catalog.default"],
-			"matchUpdateTypes": ["minor", "patch"]
-		},
-		{
-			"description": "React and its type packages must move together, because a mismatched @types/react breaks check-types across all five workspaces.",
-			"groupName": "react",
-			"matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"]
-		},
-		{
-			"description": "The Tailwind packages share one version line across admin, places, and ui.",
-			"groupName": "tailwindcss",
-			"matchPackageNames": ["tailwindcss", "@tailwindcss/*"]
-		},
-		{
-			"description": "Vitest, its browser packages, and Playwright share a release train. packages/ui pins @vitest/browser, @vitest/browser-playwright, and playwright exactly, and the browser job installs Chromium against them, so a partial bump breaks test:browser.",
-			"groupName": "vitest",
-			"matchPackageNames": ["vitest", "@vitest/*", "playwright"]
+			"description": "Vitest and Playwright ship as one train here. packages/ui pins @vitest/browser, @vitest/browser-playwright, and playwright exactly, and the browser job installs Chromium against them, so a partial bump breaks test:browser. Membership comes from the upstream presets; the coupling is the only local fact. react and tailwindcss need no rule of their own, because config:recommended already groups each of them.",
+			"extends": ["monorepo:vitest", "monorepo:playwright"],
+			"groupName": "vitest"
 		},
 		{
 			"description": "Every major waits for a click on the dependency dashboard, so each one lands on its own branch with its own gate run.",
@@ -68,12 +37,12 @@
 			"dependencyDashboardApproval": true
 		},
 		{
-			"description": "pnpm-workspace.yaml patches @floating-ui/react at an exact version. A bump invalidates the patch key, and re-applying the patch needs a person: overlay-activity-hold.test.tsx must pass again and tms-ui must take the identical copy. A security alert for this package therefore needs that person too.",
+			"description": "Patched at an exact version; the patchedDependencies comment in pnpm-workspace.yaml states what a bump costs. Approval rather than `enabled: false`, so a security alert still reaches the dashboard instead of going silent.",
 			"matchPackageNames": ["@floating-ui/react"],
-			"enabled": false
+			"dependencyDashboardApproval": true
 		},
 		{
-			"description": "hlidskjalf is first-party. pnpm-workspace.yaml already exempts its releases from the install cooldown, so the bot waits for nothing either.",
+			"description": "hlidskjalf is first-party, so the supply-chain cooldown buys nothing.",
 			"matchPackageNames": ["hlidskjalf"],
 			"minimumReleaseAge": null
 		}
