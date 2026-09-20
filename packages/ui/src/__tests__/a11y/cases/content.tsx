@@ -1,10 +1,10 @@
-import { Button } from '../../../components/button'
+import { Button, ButtonSkeleton } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
 import { Heading } from '../../../components/heading'
 import { HoldButton } from '../../../components/hold-button'
 import { Markdown } from '../../../components/markdown'
-import { ShinyText } from '../../../components/shiny-text'
-import { Text } from '../../../components/text'
+import { ShinyText, ShinyTextSkeleton } from '../../../components/shiny-text'
+import { Text, TextSkeleton } from '../../../components/text'
 import type { Case } from './types'
 
 // Trusted GFM source exercising the prose tree the gate asserts: heading order
@@ -28,7 +28,16 @@ The **Markdown** component renders trusted [GitHub-flavored Markdown](https://gi
 
 /** Typography atoms and button actions. */
 export const contentCases: readonly Case[] = [
-	{ name: 'button', element: <Button key="b">Save</Button> },
+	{
+		name: 'button',
+		element: <Button key="b">Save</Button>,
+		skeleton: [
+			{
+				element: <ButtonSkeleton />,
+				absentSlot: 'button',
+			},
+		],
+	},
 	{
 		name: 'heading + text',
 		element: (
@@ -40,6 +49,12 @@ export const contentCases: readonly Case[] = [
 		passthrough: [
 			{ render: (props) => <Heading {...props}>Main</Heading>, slot: 'heading' },
 			{ render: (props) => <Text {...props}>Intro</Text>, slot: 'text' },
+		],
+		skeleton: [
+			{
+				element: <TextSkeleton />,
+				absentSlot: 'text',
+			},
 		],
 	},
 	{
@@ -57,6 +72,12 @@ export const contentCases: readonly Case[] = [
 		element: <ShinyText key="sh">Premium</ShinyText>,
 		passthrough: [
 			{ render: (props) => <ShinyText {...props}>Shine</ShinyText>, slot: 'shiny-text' },
+		],
+		skeleton: [
+			{
+				element: <ShinyTextSkeleton />,
+				absentSlot: 'shiny-text',
+			},
 		],
 	},
 	{

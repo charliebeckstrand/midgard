@@ -12,6 +12,21 @@ export type PassthroughSubject = {
 	slot: string
 }
 
+/** A skeleton the component publishes for a loading tree. */
+export type SkeletonSubject = {
+	/** The skeleton render. */
+	element: ReactElement
+	/** The `data-slot` the real component publishes, which the skeleton must not render. */
+	absentSlot: string
+	/**
+	 * How many placeholders the silhouette draws, where the count is part of the
+	 * contract. Omit it where the skeleton only claims to draw something.
+	 */
+	placeholders?: number
+	/** Why the count is what it is, for a silhouette whose arithmetic is not obvious. */
+	note?: string
+}
+
 /** A named, canonical render the baseline gate asserts is axe-clean. */
 export type Case = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
@@ -25,6 +40,11 @@ export type Case = {
 	 * takes DOM props.
 	 */
 	passthrough?: readonly PassthroughSubject[]
+	/**
+	 * Skeletons the component publishes. A list, because one entry can publish
+	 * more than one silhouette: `progress` has a bar and a gauge.
+	 */
+	skeleton?: readonly SkeletonSubject[]
 }
 
 /**

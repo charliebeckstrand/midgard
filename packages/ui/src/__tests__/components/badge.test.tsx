@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Badge, BadgeSkeleton } from '../../components/badge'
+import { Badge } from '../../components/badge'
 import { bySlot, renderUI, screen } from '../helpers'
 
 describe('Badge', () => {
@@ -13,14 +13,6 @@ describe('Badge', () => {
 		expect(badge?.tagName).toBe('A')
 
 		expect(badge).toHaveAttribute('href', '/tags')
-	})
-
-	it('pairs with an explicit BadgeSkeleton in loading trees', () => {
-		const { container } = renderUI(<BadgeSkeleton />)
-
-		expect(bySlot(container, 'badge')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
 	it('renders prefix content with data-has-prefix', () => {

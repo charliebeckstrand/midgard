@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Text, TextSkeleton } from '../../components/text'
+import { Text } from '../../components/text'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Text', () => {
@@ -19,13 +19,5 @@ describe('Text', () => {
 		expect(text).not.toHaveClass('text-base')
 
 		expect(text).not.toHaveClass('text-lg')
-	})
-
-	it('pairs with an explicit TextSkeleton in loading trees', () => {
-		const { container } = renderUI(<TextSkeleton />)
-
-		expect(bySlot(container, 'text')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { baseline, rows } from '../a11y/cases'
+import { corpus, rows } from '../a11y/cases'
 import { bySlot, renderUI } from '../helpers'
 
 /**
@@ -15,7 +15,7 @@ import { bySlot, renderUI } from '../helpers'
 const PASS_THROUGH_ID = 'pass-through-subject'
 
 /** Every subject the corpus declares, named by the slot its props must reach. */
-const subjects = baseline.flatMap((entry) =>
+const subjects = corpus.flatMap((entry) =>
 	(entry.passthrough ?? []).map((subject) => ({ ...subject, name: subject.slot })),
 )
 

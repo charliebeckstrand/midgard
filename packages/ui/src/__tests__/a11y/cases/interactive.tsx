@@ -1,5 +1,5 @@
 import { Button } from '../../../components/button'
-import { ColorPicker } from '../../../components/color'
+import { ColorPanelSkeleton, ColorPicker } from '../../../components/color'
 import {
 	Combobox,
 	ComboboxLabel,
@@ -189,5 +189,11 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('dialog')
 		},
+		skeleton: [
+			{
+				element: <ColorPanelSkeleton />,
+				absentSlot: 'color-panel',
+			},
+		],
 	},
 ]

@@ -1,19 +1,11 @@
 import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Tab, TabContent, TabContents, TabList, TabListSkeleton, Tabs } from '../../components/tabs'
+import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
 import { DensityProvider } from '../../providers/density'
-import { act, allBySlot, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
+import { act, bySlot, fireEvent, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('TabList', () => {
-	it('pairs with an explicit TabListSkeleton in loading trees', () => {
-		const { container } = renderUI(<TabListSkeleton tabs={4} />)
-
-		expect(bySlot(container, 'tab')).not.toBeInTheDocument()
-
-		expect(allBySlot(container, 'placeholder')).toHaveLength(4)
-	})
-
 	it('forwards the full button surface to the tab', () => {
 		renderUI(
 			<Tabs value="a" onValueChange={() => {}}>

@@ -1,4 +1,5 @@
 export { baseline } from './baseline'
+export { corpus } from './corpus'
 export { focus } from './focus'
 export { interactive } from './interactive'
 export { overlays } from './overlays'

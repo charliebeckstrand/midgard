@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { Calendar, type CalendarHandle, CalendarSkeleton } from '../../components/calendar'
+import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { Form } from '../../components/form'
 import { act, bySlot, liveRegion, renderUI, screen, userEvent } from '../helpers'
 
@@ -9,14 +9,6 @@ const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
 
 describe('Calendar', () => {
-	it('pairs with an explicit CalendarSkeleton in loading trees', () => {
-		const { container } = renderUI(<CalendarSkeleton />)
-
-		expect(bySlot(container, 'calendar')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
-	})
-
 	it('renders navigation buttons, weekday labels, and day buttons in a listbox', () => {
 		const { container } = renderUI(<Calendar />)
 

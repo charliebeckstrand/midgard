@@ -1,7 +1,11 @@
 import { Alert } from '../../../components/alert'
 import { Banner } from '../../../components/banner'
 import { LoadingDots, LoadingSpinner } from '../../../components/loading'
-import { ProgressBar } from '../../../components/progress'
+import {
+	ProgressBar,
+	ProgressBarSkeleton,
+	ProgressGaugeSkeleton,
+} from '../../../components/progress'
 import type { Case } from './types'
 
 /** Feedback: loading indicators, progress, and inline alerts and banners. */
@@ -13,6 +17,16 @@ export const feedbackCases: readonly Case[] = [
 		// label in this canonical form).
 		name: 'progress',
 		element: <ProgressBar key="pb" value={60} aria-label="Upload progress" />,
+		skeleton: [
+			{
+				element: <ProgressBarSkeleton />,
+				absentSlot: 'progress-bar',
+			},
+			{
+				element: <ProgressGaugeSkeleton />,
+				absentSlot: 'progress-gauge',
+			},
+		],
 	},
 	{
 		name: 'alert',

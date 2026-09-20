@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Form, useFormField } from '../../components/form'
-import { Switch, SwitchField, SwitchSkeleton } from '../../components/switch'
+import { Switch, SwitchField } from '../../components/switch'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -53,14 +53,6 @@ describe('Switch', () => {
 		fireEvent.click(input)
 
 		expect(onChange).toHaveBeenCalled()
-	})
-
-	it('pairs with an explicit SwitchSkeleton in loading trees', () => {
-		const { container } = renderUI(<SwitchSkeleton />)
-
-		expect(bySlot(container, 'switch')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 })
 

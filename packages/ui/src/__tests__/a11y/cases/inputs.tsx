@@ -1,6 +1,11 @@
 import { AddressInput, type AddressProvider } from '../../../components/address-input'
-import { Calendar } from '../../../components/calendar'
-import { Checkbox, CheckboxField, CheckboxGroup } from '../../../components/checkbox'
+import { Calendar, CalendarSkeleton } from '../../../components/calendar'
+import {
+	Checkbox,
+	CheckboxField,
+	CheckboxGroup,
+	CheckboxSkeleton,
+} from '../../../components/checkbox'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
 import { CreditCardInput } from '../../../components/credit-card-input'
 import { CurrencyInput } from '../../../components/currency-input'
@@ -15,16 +20,16 @@ import { PasswordConfirm, PasswordConfirmInput } from '../../../components/passw
 import { PasswordInput } from '../../../components/password-input'
 import { PasswordStrength } from '../../../components/password-strength'
 import { PhoneInput } from '../../../components/phone-input'
-import { Radio, RadioField, RadioGroup } from '../../../components/radio'
-import { Rating } from '../../../components/rating'
+import { Radio, RadioField, RadioGroup, RadioSkeleton } from '../../../components/radio'
+import { Rating, RatingSkeleton } from '../../../components/rating'
 import { SearchInput } from '../../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { SignaturePad } from '../../../components/signature-pad'
-import { Slider } from '../../../components/slider'
-import { Switch, SwitchField } from '../../../components/switch'
+import { Slider, SliderSkeleton } from '../../../components/slider'
+import { Switch, SwitchField, SwitchSkeleton } from '../../../components/switch'
 import { TagInput } from '../../../components/tag-input'
-import { Textarea } from '../../../components/textarea'
-import { ToggleIconButton } from '../../../components/toggle-icon-button'
+import { Textarea, TextareaSkeleton } from '../../../components/textarea'
+import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { ZipcodeInput } from '../../../components/zipcode-input'
 import type { Case } from './types'
 
@@ -80,6 +85,12 @@ export const inputCases: readonly Case[] = [
 				<Textarea id="axe-bio" />
 			</Field>
 		),
+		skeleton: [
+			{
+				element: <TextareaSkeleton />,
+				absentSlot: 'textarea',
+			},
+		],
 	},
 	{
 		// No explicit id: the Field generates one and both Label and Slider read
@@ -92,6 +103,12 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		passthrough: [{ render: (props) => <Slider {...props} />, slot: 'slider' }],
+		skeleton: [
+			{
+				element: <SliderSkeleton />,
+				absentSlot: 'slider',
+			},
+		],
 	},
 	{
 		// The Field's Label names the radiogroup through Control context, so the
@@ -104,7 +121,17 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 	},
-	{ name: 'rating (read-only)', element: <Rating key="r" readOnly value={4.5} /> },
+	{
+		name: 'rating (read-only)',
+		element: <Rating key="r" readOnly value={4.5} />,
+		skeleton: [
+			{
+				element: <RatingSkeleton />,
+				absentSlot: 'rating',
+				placeholders: 5,
+			},
+		],
+	},
 	{ name: 'file upload (drop)', element: <FileUploadDrop key="fu" /> },
 	{ name: 'file upload (button)', element: <FileUploadButton key="fub" /> },
 	{
@@ -117,6 +144,12 @@ export const inputCases: readonly Case[] = [
 				</CheckboxField>
 			</CheckboxGroup>
 		),
+		skeleton: [
+			{
+				element: <CheckboxSkeleton />,
+				absentSlot: 'checkbox',
+			},
+		],
 	},
 	{
 		name: 'switch',
@@ -126,6 +159,12 @@ export const inputCases: readonly Case[] = [
 				<Switch />
 			</SwitchField>
 		),
+		skeleton: [
+			{
+				element: <SwitchSkeleton />,
+				absentSlot: 'switch',
+			},
+		],
 	},
 	{
 		// Radios share a name to form a single group; each input is named by its
@@ -143,6 +182,12 @@ export const inputCases: readonly Case[] = [
 				</RadioField>
 			</RadioGroup>
 		),
+		skeleton: [
+			{
+				element: <RadioSkeleton />,
+				absentSlot: 'radio',
+			},
+		],
 	},
 	{
 		// Icon-only toggle: aria-pressed reflects state, aria-label supplies the
@@ -157,6 +202,12 @@ export const inputCases: readonly Case[] = [
 				aria-label="Toggle dark mode"
 			/>
 		),
+		skeleton: [
+			{
+				element: <ToggleIconButtonSkeleton />,
+				absentSlot: 'toggle-icon-button',
+			},
+		],
 	},
 	{
 		// Tags edited inline; the composite is named by its Field Label through
@@ -169,7 +220,16 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 	},
-	{ name: 'calendar', element: <Calendar key="ca" /> },
+	{
+		name: 'calendar',
+		element: <Calendar key="ca" />,
+		skeleton: [
+			{
+				element: <CalendarSkeleton />,
+				absentSlot: 'calendar',
+			},
+		],
+	},
 	{
 		// Closed select: the trigger is a button named by its Field Label; the
 		// option popover only mounts when opened (covered in the overlays corpus).

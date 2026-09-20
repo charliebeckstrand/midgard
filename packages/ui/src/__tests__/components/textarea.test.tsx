@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
-import { Textarea, TextareaSkeleton } from '../../components/textarea'
+import { Textarea } from '../../components/textarea'
 import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Textarea', () => {
@@ -34,14 +34,6 @@ describe('Textarea', () => {
 		await user.type(el, 'a')
 
 		expect(onChange).toHaveBeenCalled()
-	})
-
-	it('pairs with an explicit TextareaSkeleton in loading trees', () => {
-		const { container } = renderUI(<TextareaSkeleton />)
-
-		expect(bySlot(container, 'textarea')).not.toBeInTheDocument()
-
-		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
 	it('picks up the glass variant from a glass context', () => {

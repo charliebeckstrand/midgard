@@ -4,6 +4,7 @@ import {
 	BreadcrumbLink,
 	BreadcrumbList,
 	BreadcrumbSeparator,
+	BreadcrumbSkeleton,
 } from '../../../components/breadcrumb'
 import { Button } from '../../../components/button'
 import { Link } from '../../../components/link'
@@ -14,6 +15,7 @@ import {
 	PaginationNext,
 	PaginationPage,
 	PaginationPrevious,
+	PaginationSkeleton,
 } from '../../../components/pagination'
 import {
 	Sidebar,
@@ -22,8 +24,21 @@ import {
 	SidebarLabel,
 	SidebarList,
 } from '../../../components/sidebar'
-import { Stepper, StepperSeparator, StepperStep, StepperTitle } from '../../../components/stepper'
-import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import {
+	Stepper,
+	StepperSeparator,
+	StepperSkeleton,
+	StepperStep,
+	StepperTitle,
+} from '../../../components/stepper'
+import {
+	Tab,
+	TabContent,
+	TabContents,
+	TabList,
+	TabListSkeleton,
+	Tabs,
+} from '../../../components/tabs'
 import { Toolbar, ToolbarSeparator } from '../../../components/toolbar'
 import type { Case } from './types'
 
@@ -50,6 +65,13 @@ export const navigationCases: readonly Case[] = [
 				<PaginationNext />
 			</Pagination>
 		),
+		skeleton: [
+			{
+				element: <PaginationSkeleton pages={5} />,
+				absentSlot: 'pagination',
+				placeholders: 5,
+			},
+		],
 	},
 	{
 		// Navigation, not a menu: links with aria-current, no menubar/menuitem.
@@ -110,6 +132,14 @@ export const navigationCases: readonly Case[] = [
 				</BreadcrumbList>
 			</Breadcrumb>
 		),
+		skeleton: [
+			{
+				// Three crumb lines and two separators between them.
+				element: <BreadcrumbSkeleton crumbs={3} />,
+				absentSlot: 'breadcrumb',
+				placeholders: 5,
+			},
+		],
 	},
 	{
 		// tablist/tab/tabpanel: the selected tab is named and its panel labelled by
@@ -127,6 +157,13 @@ export const navigationCases: readonly Case[] = [
 				</TabContents>
 			</Tabs>
 		),
+		skeleton: [
+			{
+				element: <TabListSkeleton tabs={4} />,
+				absentSlot: 'tab',
+				placeholders: 4,
+			},
+		],
 	},
 	{
 		// Process steps with separators between them; current step marked via the
@@ -147,6 +184,14 @@ export const navigationCases: readonly Case[] = [
 				</StepperStep>
 			</Stepper>
 		),
+		skeleton: [
+			{
+				// One indicator dot and one title line per step.
+				element: <StepperSkeleton steps={3} />,
+				absentSlot: 'stepper',
+				placeholders: 6,
+			},
+		],
 	},
 	{
 		// role=toolbar with an accessible name; grouped controls named by their
