@@ -90,6 +90,16 @@ describe('test isolation boundary', () => {
 			shared.sort(),
 			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
 		).toEqual(['boundary', 'pure', 'unit'])
+
+		// The browser config is the fourth scan above, and it is a separate file
+		// the parse over vitest.config.ts cannot reach. Its two instances share one
+		// page each, which is why that scan exists at all.
+		const browser = readFileSync(join(srcDir, '..', 'vitest.browser.config.ts'), 'utf8')
+
+		expect(
+			/^\s*isolate: false/m.test(browser),
+			'vitest.browser.config.ts no longer shares a page — drop the browser scan above, which exists for that setting',
+		).toBe(true)
 	})
 
 	it('sets a browser viewport only in a beforeAll', () => {

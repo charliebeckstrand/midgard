@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { useDismissable } from '../../hooks/use-dismissable'
 
 describe('useDismissable', () => {
@@ -48,6 +48,10 @@ describe('useDismissable', () => {
 
 		document.body.appendChild(container)
 
+		// In `onTestFinished`, not after the assertion below: a failed assertion
+		// would otherwise leave the node on the shared body for the next file.
+		onTestFinished(() => container.remove())
+
 		Object.defineProperty(result.current, 'current', { value: container, writable: true })
 
 		rerender()
@@ -55,8 +59,6 @@ describe('useDismissable', () => {
 		document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
 		expect(onDismiss).toHaveBeenCalled()
-
-		document.body.removeChild(container)
 	})
 
 	it('ignores outside pointer when outsidePointer is disabled', () => {

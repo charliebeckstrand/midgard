@@ -68,6 +68,12 @@ describe('CodeBlock', () => {
 	})
 
 	it('does not throw when unmounted before shiki resolves', async () => {
+		// The case asserted nothing at all, so it reported green whatever the
+		// component did. React reports an update on an unmounted tree through
+		// `console.error` rather than by throwing, which is the observable the
+		// contract actually has.
+		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 		const { unmount } = renderUI(<CodeBlock code="unique-unmount-token" />)
 
 		// Tear the component down on the same tick; the cancelled flag inside the effect
@@ -76,5 +82,9 @@ describe('CodeBlock', () => {
 
 		// Let pending microtasks settle so the effect cleanup runs.
 		await Promise.resolve()
+
+		expect(reported).not.toHaveBeenCalled()
+
+		expect(screen.queryByText('unique-unmount-token')).toBeNull()
 	})
 })

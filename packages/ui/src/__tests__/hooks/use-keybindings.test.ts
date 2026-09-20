@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { useKeybindings } from '../../hooks/use-keybindings'
 
 // tinykeys requires a `code` property; always populate it.
@@ -81,13 +81,15 @@ describe('useKeybindings', () => {
 
 		document.body.appendChild(target)
 
+		// In `onTestFinished`, not after the assertion below: a failed assertion
+		// would otherwise leave the node on the shared body for the next file.
+		onTestFinished(() => target.remove())
+
 		renderHook(() => useKeybindings({ 'Shift+a': handler }, { target }))
 
 		pressShiftA(target)
 
 		expect(handler).toHaveBeenCalledOnce()
-
-		document.body.removeChild(target)
 	})
 
 	it('forwards the ignore option', () => {
