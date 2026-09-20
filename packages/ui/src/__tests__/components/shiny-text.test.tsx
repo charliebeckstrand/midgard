@@ -59,12 +59,6 @@ describe('ShinyText', () => {
 		expect(el?.style.backgroundImage).toContain('red')
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<ShinyText id="hero">Shine</ShinyText>)
-
-		expect(bySlot(container, 'shiny-text')).toHaveAttribute('id', 'hero')
-	})
-
 	it('pairs with an explicit ShinyTextSkeleton in loading trees', () => {
 		const { container } = renderUI(<ShinyTextSkeleton />)
 

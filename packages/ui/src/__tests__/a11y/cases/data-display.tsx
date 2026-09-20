@@ -92,6 +92,7 @@ export const dataDisplayCases: readonly Case[] = [
 				<StatusDot status="active" /> Active
 			</span>
 		),
+		passthrough: [{ render: (props) => <StatusDot {...props} />, slot: 'status-dot' }],
 	},
 	{
 		// Disclosure pattern: each trigger is a button that controls its panel via
@@ -238,6 +239,14 @@ export const dataDisplayCases: readonly Case[] = [
 				<DescriptionDetails>wade@example.com</DescriptionDetails>
 			</DescriptionList>
 		),
+		passthrough: [
+			{ render: (props) => <DescriptionList {...props}>content</DescriptionList>, slot: 'dl' },
+			{ render: (props) => <DescriptionTerm {...props}>Term</DescriptionTerm>, slot: 'dl-term' },
+			{
+				render: (props) => <DescriptionDetails {...props}>Value</DescriptionDetails>,
+				slot: 'dl-details',
+			},
+		],
 	},
 	{
 		name: 'timeline',
@@ -263,6 +272,7 @@ export const dataDisplayCases: readonly Case[] = [
 				<StatValue>$12,extra2: 345</StatValue>
 			</Stat>
 		),
+		passthrough: [{ render: (props) => <Stat {...props}>content</Stat>, slot: 'stat' }],
 	},
 	{
 		// Trend chart exposed as role="img" with a summarizing accessible name.
@@ -422,12 +432,21 @@ export const dataDisplayCases: readonly Case[] = [
 		),
 	},
 	{ name: 'avatar', element: <Avatar key="av" initials="WC" alt="Wade Cooper" /> },
-	{ name: 'kbd', element: <Kbd key="kb">K</Kbd> },
-	{ name: 'code', element: <Code key="cd">pnpm install</Code> },
+	{
+		name: 'kbd',
+		element: <Kbd key="kb">K</Kbd>,
+		passthrough: [{ render: (props) => <Kbd {...props}>K</Kbd>, slot: 'kbd' }],
+	},
+	{
+		name: 'code',
+		element: <Code key="cd">pnpm install</Code>,
+		passthrough: [{ render: (props) => <Code {...props}>x</Code>, slot: 'code' }],
+	},
 	{
 		// Animated number; renders the current value as readable text.
 		name: 'odometer',
 		element: <Odometer key="od" value={1234} />,
+		passthrough: [{ render: (props) => <Odometer value={0} {...props} />, slot: 'odometer' }],
 	},
 	{
 		// Relative timestamp rendered into a <time> with a machine-readable datetime.

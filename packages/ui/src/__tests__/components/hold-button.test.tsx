@@ -306,20 +306,6 @@ describe('HoldButton', () => {
 		expect(onHoldStart).not.toHaveBeenCalled()
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(
-			<HoldButton id="test" aria-label="Hold to delete">
-				Hold
-			</HoldButton>,
-		)
-
-		const el = bySlot(container, 'hold-button')
-
-		expect(el).toHaveAttribute('id', 'test')
-
-		expect(el).toHaveAttribute('aria-label', 'Hold to delete')
-	})
-
 	it('keeps type="button" so a caller type cannot submit an enclosing form', () => {
 		const onSubmit = vi.fn((event: FormEvent) => event.preventDefault())
 

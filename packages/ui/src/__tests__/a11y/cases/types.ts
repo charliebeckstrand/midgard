@@ -1,12 +1,30 @@
 import type { UserEvent } from '@testing-library/user-event'
 import type { ReactElement } from 'react'
 
+/**
+ * A subject of the pass-through sweep: a render that takes the props the sweep
+ * spreads, and the `data-slot` those props must reach.
+ */
+export type PassthroughSubject = {
+	/** Renders the subject with `props` spread onto the element that must receive them. */
+	render: (props: { id: string }) => ReactElement
+	/** The `data-slot` the props must reach. */
+	slot: string
+}
+
 /** A named, canonical render the baseline gate asserts is axe-clean. */
 export type Case = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
 	name: string
 	/** The canonical render. */
 	element: ReactElement
+	/**
+	 * Subjects for the pass-through sweep. A family entry carries one per
+	 * component it publishes, so `description list` covers its list, its term,
+	 * and its details. Omit it where the entry's subject is not a component that
+	 * takes DOM props.
+	 */
+	passthrough?: readonly PassthroughSubject[]
 }
 
 /**

@@ -37,6 +37,10 @@ export const contentCases: readonly Case[] = [
 				<Text>Body copy.</Text>
 			</div>
 		),
+		passthrough: [
+			{ render: (props) => <Heading {...props}>Main</Heading>, slot: 'heading' },
+			{ render: (props) => <Text {...props}>Intro</Text>, slot: 'text' },
+		],
 	},
 	{
 		// Static prose leaf: parses trusted GFM to a styled prose tree. Structure
@@ -51,6 +55,9 @@ export const contentCases: readonly Case[] = [
 		// concern.
 		name: 'shiny text',
 		element: <ShinyText key="sh">Premium</ShinyText>,
+		passthrough: [
+			{ render: (props) => <ShinyText {...props}>Shine</ShinyText>, slot: 'shiny-text' },
+		],
 	},
 	{
 		// Icon-only copy control; ships its own accessible name and a status live
@@ -62,5 +69,8 @@ export const contentCases: readonly Case[] = [
 		// Press-and-hold action; named by its text, with aria for the hold progress.
 		name: 'hold button',
 		element: <HoldButton key="hb">Hold to confirm</HoldButton>,
+		passthrough: [
+			{ render: (props) => <HoldButton {...props}>Hold</HoldButton>, slot: 'hold-button' },
+		],
 	},
 ]

@@ -15,7 +15,11 @@ import type { Case } from './types'
 
 /** Layout & surface primitives: structural containers with no interactive role. */
 export const layoutCases: readonly Case[] = [
-	{ name: 'box', element: <Box key="bx">Content</Box> },
+	{
+		name: 'box',
+		element: <Box key="bx">Content</Box>,
+		passthrough: [{ render: (props) => <Box {...props}>content</Box>, slot: 'box' }],
+	},
 	{
 		name: 'flex',
 		element: (
@@ -24,6 +28,7 @@ export const layoutCases: readonly Case[] = [
 				<span>Two</span>
 			</Flex>
 		),
+		passthrough: [{ render: (props) => <Flex {...props}>content</Flex>, slot: 'flex' }],
 	},
 	{
 		name: 'grid',
@@ -42,6 +47,7 @@ export const layoutCases: readonly Case[] = [
 				<span>Two</span>
 			</Stack>
 		),
+		passthrough: [{ render: (props) => <Stack {...props}>content</Stack>, slot: 'stack' }],
 	},
 	{
 		name: 'group',
@@ -60,8 +66,15 @@ export const layoutCases: readonly Case[] = [
 				<span>Trailing</span>
 			</Split>
 		),
+		passthrough: [{ render: (props) => <Split {...props}>content</Split>, slot: 'split' }],
 	},
-	{ name: 'container', element: <Container key="ct">Content</Container> },
+	{
+		name: 'container',
+		element: <Container key="ct">Content</Container>,
+		passthrough: [
+			{ render: (props) => <Container {...props}>content</Container>, slot: 'container' },
+		],
+	},
 	{
 		name: 'card',
 		element: (
@@ -87,10 +100,25 @@ export const layoutCases: readonly Case[] = [
 				<div>Content</div>
 			</AspectRatio>
 		),
+		passthrough: [
+			{ render: (props) => <AspectRatio {...props}>content</AspectRatio>, slot: 'aspect-ratio' },
+		],
 	},
-	{ name: 'spacer', element: <Spacer key="sr" /> },
-	{ name: 'divider', element: <Divider key="dv" /> },
-	{ name: 'placeholder', element: <Placeholder key="pl" /> },
+	{
+		name: 'spacer',
+		element: <Spacer key="sr" />,
+		passthrough: [{ render: (props) => <Spacer {...props} />, slot: 'spacer' }],
+	},
+	{
+		name: 'divider',
+		element: <Divider key="dv" />,
+		passthrough: [{ render: (props) => <Divider {...props} />, slot: 'divider' }],
+	},
+	{
+		name: 'placeholder',
+		element: <Placeholder key="pl" />,
+		passthrough: [{ render: (props) => <Placeholder {...props} />, slot: 'placeholder' }],
+	},
 	{
 		name: 'scroll area',
 		element: (
@@ -98,5 +126,11 @@ export const layoutCases: readonly Case[] = [
 				<div className="h-48">Scrollable content</div>
 			</ScrollArea>
 		),
+		passthrough: [
+			{
+				render: (props) => <ScrollArea {...props}>content</ScrollArea>,
+				slot: 'scroll-area-viewport',
+			},
+		],
 	},
 ]

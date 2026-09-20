@@ -7,7 +7,7 @@ import {
 } from '../../../components/breadcrumb'
 import { Button } from '../../../components/button'
 import { Link } from '../../../components/link'
-import { NavBar, NavItem, NavList } from '../../../components/nav'
+import { Nav, NavBar, NavItem, NavList } from '../../../components/nav'
 import {
 	Pagination,
 	PaginationList,
@@ -64,6 +64,17 @@ export const navigationCases: readonly Case[] = [
 				</NavList>
 			</NavBar>
 		),
+		passthrough: [
+			{
+				render: (props) => (
+					<Nav {...props}>
+						<NavList>content</NavList>
+					</Nav>
+				),
+				slot: 'nav',
+			},
+			{ render: (props) => <NavBar {...props}>content</NavBar>, slot: 'nav-bar' },
+		],
 	},
 	{
 		// Sidebar navigation: items wrapped in a SidebarList <ul> that exposes

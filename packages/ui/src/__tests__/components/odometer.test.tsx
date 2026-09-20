@@ -63,12 +63,6 @@ describe('Odometer', () => {
 		expect(el).toHaveAttribute('aria-label', '1,234')
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Odometer value={0} id="score" />)
-
-		expect(bySlot(container, 'odometer')).toHaveAttribute('id', 'score')
-	})
-
 	it('cancels the running animation when unmounted', async () => {
 		await withFakeTime(async (clock) => {
 			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})

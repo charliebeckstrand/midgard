@@ -39,14 +39,6 @@ describe('Slider', () => {
 		expect(el.step).toBe('5')
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Slider id="test" />)
-
-		const el = bySlot(container, 'slider')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
-
 	it('announces the value via getValueText', () => {
 		const { container } = renderUI(
 			<Slider defaultValue={3} max={5} getValueText={(v) => `${v} of 5 stars`} />,

@@ -91,6 +91,7 @@ export const inputCases: readonly Case[] = [
 				<Slider defaultValue={50} />
 			</Field>
 		),
+		passthrough: [{ render: (props) => <Slider {...props} />, slot: 'slider' }],
 	},
 	{
 		// The Field's Label names the radiogroup through Control context, so the

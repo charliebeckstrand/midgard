@@ -17,18 +17,6 @@ describe('Nav', () => {
 
 		expect(el?.tagName).toBe('NAV')
 	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(
-			<Nav id="test">
-				<NavList>content</NavList>
-			</Nav>,
-		)
-
-		const el = bySlot(container, 'nav')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
 })
 
 describe('NavBar', () => {
@@ -42,14 +30,6 @@ describe('NavBar', () => {
 		expect(el?.tagName).toBe('NAV')
 
 		expect(bySlot(container, 'nav-bar')).toHaveAttribute('aria-label', 'Main')
-	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<NavBar id="test">content</NavBar>)
-
-		const el = bySlot(container, 'nav-bar')
-
-		expect(el).toHaveAttribute('id', 'test')
 	})
 })
 

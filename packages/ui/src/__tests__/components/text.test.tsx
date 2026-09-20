@@ -3,14 +3,6 @@ import { Text, TextSkeleton } from '../../components/text'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Text', () => {
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Text id="intro">Intro</Text>)
-
-		const text = bySlot(container, 'text')
-
-		expect(text).toHaveAttribute('id', 'intro')
-	})
-
 	it('applies the type scale from an explicit size', () => {
 		const { container } = renderUI(<Text size="lg">Large</Text>)
 

@@ -3,14 +3,6 @@ import { StatusDot } from '../../components/status'
 import { bySlot, renderUI } from '../helpers'
 
 describe('StatusDot', () => {
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<StatusDot id="test" />)
-
-		const el = bySlot(container, 'status-dot')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
-
 	it('is decorative (no role or name) by default', () => {
 		const { container } = renderUI(<StatusDot status="error" />)
 

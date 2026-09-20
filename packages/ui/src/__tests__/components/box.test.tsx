@@ -41,14 +41,6 @@ describe('Box', () => {
 		expect(ref.current).toBe(bySlot(container, 'box'))
 	})
 
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Box id="test">content</Box>)
-
-		const el = bySlot(container, 'box')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
-
 	it('applies the outline=true variant', () => {
 		const { container } = renderUI(<Box outline>content</Box>)
 

@@ -24,12 +24,4 @@ describe('Kbd', () => {
 
 		expect(screen.getByText('⌃⌘K')).toBeInTheDocument()
 	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<Kbd id="test">K</Kbd>)
-
-		const el = bySlot(container, 'kbd')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
 })

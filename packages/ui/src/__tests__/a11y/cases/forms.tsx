@@ -23,6 +23,16 @@ export const formCases: readonly Case[] = [
 				</Button>
 			</Form>
 		),
+		passthrough: [
+			{
+				render: (props) => (
+					<Form defaultValues={{ name: '' }} {...props}>
+						<input name="name" />
+					</Form>
+				),
+				slot: 'form',
+			},
+		],
 	},
 	{
 		// The control primitive Field is built on: it provides the id/label context

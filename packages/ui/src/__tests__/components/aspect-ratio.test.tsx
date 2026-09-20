@@ -10,12 +10,4 @@ describe('AspectRatio', () => {
 
 		expect(el).toHaveStyle({ aspectRatio: `${16 / 9}` })
 	})
-
-	it('passes through HTML attributes', () => {
-		const { container } = renderUI(<AspectRatio id="test">content</AspectRatio>)
-
-		const el = bySlot(container, 'aspect-ratio')
-
-		expect(el).toHaveAttribute('id', 'test')
-	})
 })
