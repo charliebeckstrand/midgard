@@ -24,7 +24,6 @@ pnpm dev
 
 | Path | Role |
 |---|---|
-| [`apps/admin`](apps/admin/README.md) | Next.js admin app (App Router, Turbopack). |
 | [`packages/ui`](packages/ui/README.md) | Design system: components, primitives, hooks, providers, recipes. |
 | [`packages/auth`](packages/auth/README.md) | Auth library: config, proxy, user. |
 | [`packages/shared`](packages/shared/README.md) | Shared auth/chat utilities and CSS themes. |
