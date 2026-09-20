@@ -68,13 +68,21 @@ jobs:
             ${{ runner.os }}-turbo-browser-
       - run: pnpm install --frozen-lockfile
       # Chromium only: vitest.browser.config.ts declares no other browser. The
-      # download is ~170MB, so cache it. The key is the lockfile, so a dependency
-      # bump re-downloads even when playwright itself did not move.
+      # download is ~170MB, so key it on the one input that decides the browser
+      # build: the resolved `playwright` version, which `pnpm install` above has
+      # already put on disk. A lockfile hash missed on every dependency bump,
+      # and `rangeStrategy: update-lockfile` makes each bot pull request one.
+      # No restore key: a prefix match would hand back a superseded revision
+      # that `install` then downloads alongside, so the cache would carry both.
       # `install` is idempotent — on a hit it skips the download and installs
       # the system libraries alone.
+      - id: playwright
+        working-directory: packages/ui
+        run: |
+          echo "version=$(node -p "require('playwright/package.json').version")" >> "$GITHUB_OUTPUT"
       - uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
       - run: pnpm --filter ui exec playwright install --with-deps chromium
       - run: pnpm turbo run test:browser

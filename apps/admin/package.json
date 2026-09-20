@@ -15,19 +15,19 @@
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
 		"auth": "workspace:*",
-		"next": "^16.3.3",
-		"react": "^19.2.7",
-		"react-dom": "^19.2.7",
+		"next": "catalog:",
+		"react": "catalog:",
+		"react-dom": "catalog:",
 		"shared": "workspace:*",
 		"ui": "workspace:*"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.3",
-		"@tailwindcss/postcss": "^4.1.0",
-		"@types/node": "^25.3.3",
-		"@types/react": "^19.2.0",
-		"@types/react-dom": "^19.2.0",
-		"tailwindcss": "^4.1.0",
-		"typescript": "^6.0.2"
+		"@biomejs/biome": "catalog:",
+		"@tailwindcss/postcss": "catalog:",
+		"@types/node": "catalog:",
+		"@types/react": "catalog:",
+		"@types/react-dom": "catalog:",
+		"tailwindcss": "catalog:",
+		"typescript": "catalog:"
 	}
 }

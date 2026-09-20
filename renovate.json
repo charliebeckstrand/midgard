@@ -1,0 +1,50 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended"],
+	"schedule": ["before 6am on monday"],
+	"semanticCommits": "enabled",
+	"semanticCommitScope": "midgard",
+	"rangeStrategy": "update-lockfile",
+	"minimumReleaseAge": "3 days",
+	"prConcurrentLimit": 5,
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": ["before 6am on the first day of the month"]
+	},
+	"vulnerabilityAlerts": {
+		"description": "The label is the only local decision. A security fix must not wait for monday, for the cooldown, or for a click, and Renovate already drops all three without being told.",
+		"labels": ["security"]
+	},
+	"packageRules": [
+		{
+			"description": "Dependabot owns GitHub Actions; see .github/dependabot.yml. Two bots on one ecosystem open a duplicate pull request for every bump and then conflict in the lockfile.",
+			"matchManagers": ["github-actions"],
+			"enabled": false
+		},
+		{
+			"description": "The whole minor and patch tail as one pull request. A split by depType earns nothing here: `update-lockfile` makes each of these a lockfile-only diff, and the catalog gives twenty of them one depType whether they are used at runtime or not. One branch also keeps the lockfile conflicts down, because every branch touches it.",
+			"groupName": "non-major",
+			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
+			"description": "Vitest and Playwright ship as one train here. packages/ui pins @vitest/browser, @vitest/browser-playwright, and playwright exactly, and the browser job installs Chromium against them, so a partial bump breaks test:browser. Membership comes from the upstream presets; the coupling is the only local fact. react and tailwindcss need no rule of their own, because config:recommended already groups each of them.",
+			"extends": ["monorepo:vitest", "monorepo:playwright"],
+			"groupName": "vitest"
+		},
+		{
+			"description": "Every major waits for a click on the dependency dashboard, so each one lands on its own branch with its own gate run.",
+			"matchUpdateTypes": ["major"],
+			"dependencyDashboardApproval": true
+		},
+		{
+			"description": "Patched at an exact version; the patchedDependencies comment in pnpm-workspace.yaml states what a bump costs. Approval rather than `enabled: false`, so a security alert still reaches the dashboard instead of going silent.",
+			"matchPackageNames": ["@floating-ui/react"],
+			"dependencyDashboardApproval": true
+		},
+		{
+			"description": "hlidskjalf is first-party, so the supply-chain cooldown buys nothing.",
+			"matchPackageNames": ["hlidskjalf"],
+			"minimumReleaseAge": null
+		}
+	]
+}

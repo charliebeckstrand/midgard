@@ -1,0 +1,25 @@
+version: 2
+
+updates:
+  # GitHub Actions only. Renovate owns npm and pnpm; renovate.json states the
+  # split and enforces it.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # One pull request for every action in ci.yml. They are pinned to major
+    # tags, which move rarely, so separate pull requests buy nothing.
+    groups:
+      github-actions:
+        patterns:
+          - '*'
+    # These pull requests touch workflow files alone, so a lockfile merge on the
+    # default branch cannot affect them. Without this, every Renovate merge
+    # rebases them into another full CI run.
+    rebase-strategy: disabled
+    commit-message:
+      # commitlint.config.mjs holds a `scope-enum`, and Dependabot's default
+      # `deps` scope is not a member. An absent scope passes. A configured
+      # prefix also makes Dependabot write a lower-case `bump`, which
+      # `subject-case` needs.
+      prefix: chore

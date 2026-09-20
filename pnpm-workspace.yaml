@@ -2,14 +2,46 @@ packages:
   - apps/*
   - packages/*
 
+# This block holds one version for each dependency that two or more workspaces
+# share. A member manifest writes `catalog:` in place of the range, so a bump
+# edits one line here rather than every manifest that names the package. A peer
+# range stays literal in its manifest, because it states a compatibility
+# contract and not a version to track.
+catalog:
+  '@biomejs/biome': ^2.5.3
+  '@tailwindcss/postcss': ^4.1.0
+  '@tanstack/react-query': ^5.101.2
+  '@types/d3-geo': ^3.1.0
+  '@types/node': ^25.3.3
+  '@types/react': ^19.2.0
+  '@types/react-dom': ^19.2.3
+  '@types/topojson-client': ^3.1.5
+  d3-geo: ^3.1.1
+  lucide-react: ^1.21.0
+  next: ^16.3.3
+  react: ^19.2.7
+  react-dom: ^19.2.7
+  tailwindcss: ^4.3.0
+  topojson-client: ^3.1.0
+  tsup: ^8.5.1
+  typescript: ^6.0.3
+  us-atlas: ^3.0.1
+  vitest: ^4.1.10
+  world-atlas: ^2.0.2
+
 allowBuilds:
   esbuild: false
   lefthook: true
   sharp: false
 
+# These entries set a minimum safe version for transitive packages with known
+# advisories. Each entry is a range, not a pin. pnpm resolves the newest match,
+# so a lockfile refresh carries the floor forward without an edit here. Renovate
+# does not read this file, because its npm manager takes overrides from
+# package.json alone.
 overrides:
-  esbuild: 0.28.1
-  postcss: 8.5.26
+  esbuild: '>=0.28.2 <0.29'
+  postcss: '>=8.5.28 <9'
   sharp: '>=0.35.0 <1'
   undici: '>=7.29.0 <8'
 
