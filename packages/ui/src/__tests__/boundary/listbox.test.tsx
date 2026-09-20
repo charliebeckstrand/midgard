@@ -121,23 +121,22 @@ describe('Listbox', () => {
 		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it.each([
-		null,
-		false,
-		'',
-	] as const)('falls back to the default chevron when suffix is %p', (value) => {
-		const { container } = renderUI(
-			<Listbox suffix={value}>
-				<div>Option</div>
-			</Listbox>,
-		)
+	it.each([null, false, ''] as const)(
+		'falls back to the default chevron when suffix is %p',
+		(value) => {
+			const { container } = renderUI(
+				<Listbox suffix={value}>
+					<div>Option</div>
+				</Listbox>,
+			)
 
-		const suffix = bySlot(container, 'suffix')
+			const suffix = bySlot(container, 'suffix')
 
-		expect(suffix).toBeInTheDocument()
+			expect(suffix).toBeInTheDocument()
 
-		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
-	})
+			expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+		},
+	)
 
 	it('opens the panel and exposes a listbox role when the trigger is clicked', () => {
 		const { container } = renderUI(

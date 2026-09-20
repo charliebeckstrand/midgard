@@ -533,26 +533,24 @@ describe('DatePicker footer', () => {
 // Focus stays on the trigger while an aria-activedescendant model drives the
 // grid. Covers the keyboard path: opening, moving the highlight, and committing.
 describe('DatePicker keyboard', () => {
-	it.each([
-		'{ArrowDown}',
-		'{ArrowUp}',
-		'{Enter}',
-		' ',
-	])('opens the calendar from the closed trigger with %s', async (key) => {
-		const user = userEvent.setup({ delay: null })
+	it.each(['{ArrowDown}', '{ArrowUp}', '{Enter}', ' '])(
+		'opens the calendar from the closed trigger with %s',
+		async (key) => {
+			const user = userEvent.setup({ delay: null })
 
-		const { container } = renderUI(<DatePicker />)
+			const { container } = renderUI(<DatePicker />)
 
-		const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
+			const button = getSlot<HTMLButtonElement>(container, 'datepicker-button')
 
-		button.focus()
+			button.focus()
 
-		await user.keyboard(key)
+			await user.keyboard(key)
 
-		expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
+			expect(bySlot(container, 'datepicker-content')).toBeInTheDocument()
 
-		expect(button).toHaveAttribute('aria-expanded', 'true')
-	})
+			expect(button).toHaveAttribute('aria-expanded', 'true')
+		},
+	)
 
 	it('closes the open calendar with Escape', async () => {
 		const user = userEvent.setup({ delay: null })

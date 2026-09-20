@@ -90,19 +90,18 @@ describe('ChatMessage', () => {
 		expect(container.querySelector('strong')?.textContent).toBe('bold')
 	})
 
-	it.each([
-		'user',
-		'assistant',
-		'system',
-	] as const)('injects no color override onto Markdown for the %s bubble — the prose inherits the bubble foreground', (role) => {
-		const { container } = renderUI(<ChatMessage role={role}>content</ChatMessage>)
+	it.each(['user', 'assistant', 'system'] as const)(
+		'injects no color override onto Markdown for the %s bubble — the prose inherits the bubble foreground',
+		(role) => {
+			const { container } = renderUI(<ChatMessage role={role}>content</ChatMessage>)
 
-		// Markdown is color-agnostic and the bubble sets its own foreground, so
-		// ChatMessage must not pour any `text-*` color (nor a per-element
-		// override) onto the markdown wrapper — the bubble's color cascades in.
-		const markdown = bySlot(container, 'markdown')
+			// Markdown is color-agnostic and the bubble sets its own foreground, so
+			// ChatMessage must not pour any `text-*` color (nor a per-element
+			// override) onto the markdown wrapper — the bubble's color cascades in.
+			const markdown = bySlot(container, 'markdown')
 
-		expect(markdown?.className ?? '').not.toMatch(/text-(?:inherit|zinc|white|black)/)
-		expect(markdown?.className ?? '').not.toMatch(/\[&_/)
-	})
+			expect(markdown?.className ?? '').not.toMatch(/text-(?:inherit|zinc|white|black)/)
+			expect(markdown?.className ?? '').not.toMatch(/\[&_/)
+		},
+	)
 })

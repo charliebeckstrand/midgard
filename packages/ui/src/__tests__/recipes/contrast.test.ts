@@ -314,25 +314,24 @@ describe('tint wash foreground contrast', () => {
 
 	// Only the consumers that declare an ink of their own; a `surfaces: []` entry
 	// has nothing to measure and would assert `[] === []` in its name's stead.
-	describe.each(TINT_CONSUMERS.filter(({ surfaces }) => surfaces.length > 0))('$file', ({
-		surfaces,
-		ground = WASH,
-		regrounded = [],
-	}) => {
-		const inks = inksByMode(surfaces)
+	describe.each(TINT_CONSUMERS.filter(({ surfaces }) => surfaces.length > 0))(
+		'$file',
+		({ surfaces, ground = WASH, regrounded = [] }) => {
+			const inks = inksByMode(surfaces)
 
-		it.each(MODES)('grounds no ink below text AA on the wash in %s mode', (m) => {
-			const failing = inks[m]
-				.filter((ink) => !regrounded.includes(ink))
-				.flatMap((ink) => {
-					const ratio = contrastOf(ink, ground[m])
+			it.each(MODES)('grounds no ink below text AA on the wash in %s mode', (m) => {
+				const failing = inks[m]
+					.filter((ink) => !regrounded.includes(ink))
+					.flatMap((ink) => {
+						const ratio = contrastOf(ink, ground[m])
 
-					return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
-				})
+						return ratio < TEXT_AA ? [`${ink} @ ${ratio.toFixed(2)}:1`] : []
+					})
 
-			expect(failing).toEqual([])
-		})
-	})
+				expect(failing).toEqual([])
+			})
+		},
+	)
 })
 
 /**

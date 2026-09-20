@@ -105,29 +105,28 @@ describe('Combobox', () => {
 		expect(icon).toBeInTheDocument()
 	})
 
-	it.each([
-		null,
-		false,
-		'',
-	] as const)('falls back to the default chevron when suffix is %p', (value) => {
-		const { container } = renderUI(
-			<Combobox suffix={value}>
-				<div>Option</div>
-			</Combobox>,
-		)
+	it.each([null, false, ''] as const)(
+		'falls back to the default chevron when suffix is %p',
+		(value) => {
+			const { container } = renderUI(
+				<Combobox suffix={value}>
+					<div>Option</div>
+				</Combobox>,
+			)
 
-		const suffix = bySlot(container, 'suffix')
+			const suffix = bySlot(container, 'suffix')
 
-		expect(suffix).toBeInTheDocument()
+			expect(suffix).toBeInTheDocument()
 
-		// The chevron is a decorative mouse affordance, not a second button; the
-		// input carries the combobox semantics.
-		expect(suffix).not.toHaveAttribute('role', 'button')
+			// The chevron is a decorative mouse affordance, not a second button; the
+			// input carries the combobox semantics.
+			expect(suffix).not.toHaveAttribute('role', 'button')
 
-		expect(suffix).toHaveAttribute('aria-hidden', 'true')
+			expect(suffix).toHaveAttribute('aria-hidden', 'true')
 
-		expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
-	})
+			expect(suffix?.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+		},
+	)
 
 	it('toggles the panel and shows a pointer cursor on the default chevron', async () => {
 		const { container } = renderUI(

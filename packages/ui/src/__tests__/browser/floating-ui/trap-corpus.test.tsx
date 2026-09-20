@@ -19,54 +19,53 @@ import { tabbables } from '../helpers/tabbables'
  * simulation strands focus on a guard sentinel.
  */
 describe('a11y focus trap (real browser): modal family', () => {
-	it.each(rows(traps))('%s contains Tab and restores focus on Escape', async (_name, {
-		trigger,
-		element,
-		surface,
-	}) => {
-		renderUI(element)
+	it.each(rows(traps))(
+		'%s contains Tab and restores focus on Escape',
+		async (_name, { trigger, element, surface }) => {
+			renderUI(element)
 
-		await userEvent.click(screen.getByRole('button', { name: trigger }))
+			await userEvent.click(screen.getByRole('button', { name: trigger }))
 
-		const panel = await surface()
+			const panel = await surface()
 
-		// Opening moves keyboard focus into the surface, off the trigger.
-		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+			// Opening moves keyboard focus into the surface, off the trigger.
+			await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
 
-		expect(screen.getByRole('button', { name: trigger, hidden: true })).not.toHaveFocus()
+			expect(screen.getByRole('button', { name: trigger, hidden: true })).not.toHaveFocus()
 
-		const focusables = tabbables(panel)
+			const focusables = tabbables(panel)
 
-		const first = focusables[0] as HTMLElement
+			const first = focusables[0] as HTMLElement
 
-		const last = focusables[focusables.length - 1] as HTMLElement
+			const last = focusables[focusables.length - 1] as HTMLElement
 
-		expect(first).toBeDefined()
+			expect(first).toBeDefined()
 
-		// Forward Tab from the last focusable wraps back to the first…
-		last.focus()
+			// Forward Tab from the last focusable wraps back to the first…
+			last.focus()
 
-		await userEvent.keyboard('{Tab}')
+			await userEvent.keyboard('{Tab}')
 
-		await waitFor(() => expect(first).toHaveFocus())
+			await waitFor(() => expect(first).toHaveFocus())
 
-		expect(panel.contains(document.activeElement)).toBe(true)
+			expect(panel.contains(document.activeElement)).toBe(true)
 
-		// …and backward Tab from the first wraps to the last.
-		first.focus()
+			// …and backward Tab from the first wraps to the last.
+			first.focus()
 
-		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+			await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
 
-		await waitFor(() => expect(last).toHaveFocus())
+			await waitFor(() => expect(last).toHaveFocus())
 
-		expect(panel.contains(document.activeElement)).toBe(true)
+			expect(panel.contains(document.activeElement)).toBe(true)
 
-		// Escape dismisses the surface and returns focus to the trigger.
-		await userEvent.keyboard('{Escape}')
+			// Escape dismisses the surface and returns focus to the trigger.
+			await userEvent.keyboard('{Escape}')
 
-		await waitFor(() => expect(panel.isConnected).toBe(false))
+			await waitFor(() => expect(panel.isConnected).toBe(false))
 
-		// Re-query: the trigger node may be recreated across the open/close cycle.
-		await waitFor(() => expect(screen.getByRole('button', { name: trigger })).toHaveFocus())
-	})
+			// Re-query: the trigger node may be recreated across the open/close cycle.
+			await waitFor(() => expect(screen.getByRole('button', { name: trigger })).toHaveFocus())
+		},
+	)
 })
