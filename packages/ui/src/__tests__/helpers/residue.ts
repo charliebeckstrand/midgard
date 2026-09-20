@@ -1,4 +1,4 @@
-import { describeNode } from './label'
+import { describeNode } from './describe-node'
 
 /**
  * Fails a test that leaves page state behind.
@@ -21,11 +21,21 @@ import { describeNode } from './label'
  * Both unbalance exactly when a holder unmounts wrongly, which is the failure
  * this guard exists for, and neither is a body child.
  *
- * It is a guard rather than a cure. It was written against the suite's
+ * It is a guard rather than a cure. It was written against the browser suite's
  * intermittent failures and does not explain them: it stayed silent through a
  * failing run. What it closes is a residue rule the 2026-09-11 test
- * architecture document has stated since August, which nothing enforced and no
- * file in this suite practised.
+ * architecture document has stated since August, which nothing enforced.
+ *
+ * Both setups serve it now, because `unit` shares a window across a worker's
+ * files on the same terms a browser instance shares a page.
+ *
+ * Extending it exposed a trap in its own placement. Called from the setup's
+ * `afterEach`, where it began, it failed eleven cases in six jsdom files — and
+ * not one was a leak. Every one reclaimed its node in `onTestFinished`, which
+ * is what the message below and the 2026-09-11 document both instruct, and
+ * `afterEach` runs first. So the guard failed the files that obeyed the rule it
+ * enforces. No browser file clears a node that way, which is why the browser
+ * suite never showed it.
  */
 
 /** Node names a test may leave in the body: the page's own injected assets. */
@@ -86,10 +96,15 @@ function collect(): string[] {
 /**
  * Throws when the page carries state the test did not inherit.
  *
- * Call it at the END of the teardown that clears the page, in the same hook
- * rather than a later one. Vitest runs `afterEach` as a stack, so a hook
- * registered after the teardown runs before it, and reads every render
- * container as a leak.
+ * Register it with `onTestFinished` from the setup's `beforeEach`, which is the
+ * one placement that reads what every other teardown left. Measured: the order
+ * is the setup's `afterEach`, then each test's own `onTestFinished` in reverse,
+ * then this. A test's `afterEach` runs earlier still, so both spellings of a
+ * per-test cleanup land before the check.
+ *
+ * Calling it from the setup's own `afterEach` instead — where it began — reads
+ * the page before any `onTestFinished` has run, and so fails a test that
+ * removed its node exactly as the message below tells it to.
  */
 export function assertNoResidue(): void {
 	const leaks = collect()
@@ -101,6 +116,6 @@ export function assertNoResidue(): void {
 	if (leaks.length === 0) return
 
 	throw new Error(
-		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nRemove it in onTestFinished, or render inside the container renderUI returns.`,
+		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nRemove it in onTestFinished or an afterEach, or render inside the container renderUI returns.`,
 	)
 }

@@ -1,10 +1,10 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, beforeEach, expect, inject } from 'vitest'
+import { afterEach, beforeEach, expect, inject, onTestFinished } from 'vitest'
 import { resetSingletons } from '../../helpers/reset-singletons'
+import { absorbResidue, assertNoResidue } from '../../helpers/residue'
 import { pageState } from './forensics'
-import { absorbResidue, assertNoResidue } from './residue'
 import './tailwind.css'
 
 /**
@@ -26,7 +26,14 @@ declare module 'vitest' {
 
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
-beforeEach(absorbResidue)
+beforeEach(() => {
+	absorbResidue()
+
+	// Registered here rather than called from the teardown below, so the check
+	// reads what every other teardown left. The order is that `afterEach`, then
+	// each test's own `onTestFinished` in reverse, then this one.
+	onTestFinished(assertNoResidue)
+})
 
 afterEach((ctx) => {
 	// Read before cleanup, so the dump describes the page the failing test left,
@@ -43,8 +50,4 @@ afterEach((ctx) => {
 	// serves every file it runs and the region outlives its own file without
 	// this. `setup/index.ts` resets it for the jsdom projects for the same reason.
 	resetSingletons()
-
-	// Last, so it reads what survived the teardown above rather than this
-	// test's own render container.
-	assertNoResidue()
 })
