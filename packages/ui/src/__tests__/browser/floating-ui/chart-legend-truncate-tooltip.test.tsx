@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { PieChart } from '../../../modules/chart/pie-chart'
 import { allBySlot, renderUI, screen } from '../../helpers'
@@ -10,11 +10,14 @@ import { allBySlot, renderUI, screen } from '../../helpers'
  * an over-long slice label clips and must reveal its full text on hover.
  */
 describe('chart legend truncation tooltip (real browser)', () => {
+	// The suite arrives at the size vitest.browser.config.ts declares, and a
+	// size set inside an `it` reaches this file's later cases and nothing else.
+	// Declare it once, so the file owns its own width.
+	beforeAll(() => page.viewport(960, 640))
+
 	const longLabel = 'A carrier name far too long to fit the reserved legend column'
 
 	it('reveals the full label on hover when a panel entry is clipped', async () => {
-		await page.viewport(960, 640)
-
 		const { container } = renderPie()
 
 		// The clipped entry (a whole switch) — hovering it, overlay and all, must
@@ -29,8 +32,6 @@ describe('chart legend truncation tooltip (real browser)', () => {
 	})
 
 	it('opens no tooltip on an entry whose label fits the column', async () => {
-		await page.viewport(960, 640)
-
 		const { container } = renderPie()
 
 		// "XPO" fits the reserved column, so hovering it must not arm the tooltip.

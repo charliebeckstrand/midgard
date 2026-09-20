@@ -1,8 +1,13 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { collectPatternViolations, srcDir } from '../helpers/walk-source'
+import {
+	collectPatternViolations,
+	srcDir,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
 // A project that runs `isolate: false` shares one module registry across every
 // file a worker runs; vitest.config.ts records what that buys. Two calls break
@@ -41,6 +46,17 @@ const FORBIDDEN_PATTERNS = [
 	{ label: 'module registry reset', regex: /\b(?:vi|vitest)\.resetModules\(/g },
 ] as const
 
+// The browser instances share one page, and `page.viewport` writes to it. A
+// call inside an `it` reaches every later case in the same file and nothing
+// can restore it there, which is how one block in `chart-aspect-legend` came
+// to pass on a width a sibling block above it had set. A call in a `beforeAll`
+// states the file's width once, before any case runs. Vitest resets the page
+// to `browser.viewport` before each file, so nothing crosses a file boundary
+// and no departure hook is needed.
+const VIEWPORT_CALL = /page\.viewport\(/
+
+const VIEWPORT_DECLARATION = /^\s*beforeAll\(\(\) => page\.viewport\(\d+, \d+\)\)$/
+
 describe('test isolation boundary', () => {
 	it('no file in a shared-registry project mutates the module registry', () => {
 		const violations = SHARED_REGISTRY_SCANS.flatMap((scan) =>
@@ -74,5 +90,26 @@ describe('test isolation boundary', () => {
 			shared.sort(),
 			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
 		).toEqual(['boundary', 'pure', 'unit'])
+	})
+
+	it('sets a browser viewport only in a beforeAll', () => {
+		const loose: string[] = []
+
+		walkSource(join(testsDir, 'browser'), (file, content) => {
+			stripSourceComments(content)
+				.split('\n')
+				.forEach((line, index) => {
+					if (!VIEWPORT_CALL.test(line)) return
+
+					if (VIEWPORT_DECLARATION.test(line)) return
+
+					loose.push(`${relative(srcDir, file)}:${index + 1}`)
+				})
+		})
+
+		expect(
+			loose,
+			`a browser file states its width once, as \`beforeAll(() => page.viewport(w, h))\` — a call inside an \`it\` reaches the file's later cases, and nothing restores it there:\n  ${loose.join('\n  ')}`,
+		).toEqual([])
 	})
 })

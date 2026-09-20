@@ -146,6 +146,26 @@ export default defineConfig({
 			provider: playwright(),
 			headless: true,
 			screenshotFailures: false,
+			// The size every file arrives at. Vitest resets the iframe to this
+			// value before each file, so a file that sets its own size keeps it to
+			// itself: measured across a full run, all 108 files arrive here and
+			// sixteen depart at a size of their own. A file therefore inherits
+			// nothing from the file before it, and needs no restore.
+			//
+			// 414x896 is the value the suite has always run at, because it is
+			// Vitest's own default (`resolved.browser.viewport.width ??= 414`).
+			// Declaring it changes nothing today and stops a version bump from
+			// moving it. It is also the right end of the range to gate at: this is
+			// the narrow width, where horizontal overflow and target-size
+			// violations surface, and `browser/geometry-invariants.test.tsx` states
+			// its own contract as "no page-level horizontal overflow at the default
+			// viewport". At a desktop width that gate asserts almost nothing.
+			//
+			// A file whose geometry needs another size declares it once, in a
+			// `beforeAll` at the top of its describe; `test-isolation-boundary`
+			// holds that placement. The whole suite passes at 1280x800 as well, so
+			// a later decision to gate at a desktop width costs no edits.
+			viewport: { width: 414, height: 896 },
 			instances: [
 				{
 					browser: 'chromium',
