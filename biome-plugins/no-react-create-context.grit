@@ -16,7 +16,7 @@ language js
 // which reproduces what `walkSource` skipped.
 `import $clause from 'react'` where {
 	$clause <: contains or { `createContext`, `createContext as $_` }
-} => . where {
+} where {
 	register_diagnostic(
 		span = $clause,
 		message = "take createContext from `ui/core`, not from React: the local helper carries the required and optional modes this package's contexts rely on"

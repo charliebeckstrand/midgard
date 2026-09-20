@@ -16,7 +16,7 @@ language js
 `import $clause from $src` where {
 	$clause <: contains or { `defineRecipe`, `defineRecipe as $_` },
 	$src <: r"['\"].*core/recipe['\"]"
-} => . where {
+} where {
 	register_diagnostic(
 		span = $clause,
 		message = "defineRecipe belongs to the kata surface: call it from `recipes/kata`, route through `recipes/katakana`, or keep it in the layout's own `variants.ts`"

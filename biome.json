@@ -274,6 +274,10 @@
 				"!packages/ui/src/layouts/*/variants.ts"
 			],
 			"plugins": ["./biome-plugins/no-unsanctioned-define-recipe.grit"]
+		},
+		{
+			"includes": ["packages/ui/src/**", "!packages/ui/src/**/*.d.ts"],
+			"plugins": ["./biome-plugins/no-camel-case-data-slot.grit"]
 		}
 	],
 	"files": {
