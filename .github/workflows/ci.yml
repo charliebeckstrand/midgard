@@ -30,14 +30,18 @@ jobs:
       # Vitest's disk module cache (vitest.config.ts, `experimental.fsModuleCache`).
       # Vitest writes it under the workspace root's node_modules, not the
       # package's. Restored after install so the directory lands inside a
-      # populated node_modules; keyed like `.turbo` so the newest prior run
-      # seeds it.
+      # populated node_modules.
+      #
+      # The key is the lockfile, and there is no restore key. Entries hold
+      # absolute paths into the pnpm virtual store, and the cache carries no
+      # marker of the tree that wrote it, so a cache from one dependency tree
+      # is wrong for every other. A prefix restore key handed a vitest 4.1.10
+      # cache to a 4.1.11 run, and all 500 test files failed to import
+      # `vitest`.
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-vitest-cache-
+          key: ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why.
       - run: pnpm turbo run lint check-types test knip build bundle:budget
