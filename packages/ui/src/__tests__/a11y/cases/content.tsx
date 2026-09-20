@@ -31,18 +31,8 @@ export const contentCases: readonly Case[] = [
 	{
 		name: 'button',
 		element: <Button key="b">Save</Button>,
-		skeleton: [
-			{
-				element: <ButtonSkeleton />,
-				absentSlot: 'button',
-			},
-		],
-		link: [
-			{
-				render: (href) => <Button href={href}>About</Button>,
-				slot: 'button',
-			},
-		],
+		skeleton: [{ element: <ButtonSkeleton />, absentSlot: 'button' }],
+		link: [{ render: (href) => <Button href={href}>About</Button>, slot: 'button' }],
 	},
 	{
 		name: 'heading + text',
@@ -56,12 +46,7 @@ export const contentCases: readonly Case[] = [
 			{ render: (props) => <Heading {...props}>Main</Heading>, slot: 'heading' },
 			{ render: (props) => <Text {...props}>Intro</Text>, slot: 'text' },
 		],
-		skeleton: [
-			{
-				element: <TextSkeleton />,
-				absentSlot: 'text',
-			},
-		],
+		skeleton: [{ element: <TextSkeleton />, absentSlot: 'text' }],
 	},
 	{
 		// Static prose leaf: parses trusted GFM to a styled prose tree. Structure
@@ -79,12 +64,7 @@ export const contentCases: readonly Case[] = [
 		passthrough: [
 			{ render: (props) => <ShinyText {...props}>Shine</ShinyText>, slot: 'shiny-text' },
 		],
-		skeleton: [
-			{
-				element: <ShinyTextSkeleton />,
-				absentSlot: 'shiny-text',
-			},
-		],
+		skeleton: [{ element: <ShinyTextSkeleton />, absentSlot: 'shiny-text' }],
 	},
 	{
 		// Icon-only copy control; ships its own accessible name and a status live

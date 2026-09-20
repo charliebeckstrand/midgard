@@ -160,7 +160,6 @@ export const overlays: readonly Case[] = [
 					</CommandPalette>
 				),
 				slot: 'command-palette-item',
-				portals: true,
 			},
 		],
 	},

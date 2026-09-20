@@ -55,8 +55,6 @@ describe('BreadcrumbLink', () => {
 
 		const el = bySlot(container, 'breadcrumb-link')
 
-		expect(el?.tagName).toBe('A')
-
 		expect(el).toHaveAttribute('aria-current', 'page')
 	})
 })

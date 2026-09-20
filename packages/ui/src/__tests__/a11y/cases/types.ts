@@ -23,8 +23,6 @@ export type SkeletonSubject = {
 	 * contract. Omit it where the skeleton only claims to draw something.
 	 */
 	placeholders?: number
-	/** Why the count is what it is, for a silhouette whose arithmetic is not obvious. */
-	note?: string
 }
 
 /** A subject that becomes an anchor when it is given an `href`. */
@@ -33,16 +31,23 @@ export type LinkSubject = {
 	render: (href: string) => ReactElement
 	/** The `data-slot` that must render an `<a>`. */
 	slot: string
-	/** Set where the subject portals, so the sweep reads the document rather than the container. */
-	portals?: boolean
 }
 
-/** A named, canonical render the baseline gate asserts is axe-clean. */
-export type Case = {
+/** A named, canonical render a gate drives. */
+export type Scenario = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
 	name: string
 	/** The canonical render. */
 	element: ReactElement
+}
+
+/**
+ * A scenario in one of the three axe-gated corpora, so it may carry capability
+ * columns. The gates that keep their own list — focus, traps, roved — extend
+ * {@link Scenario} instead, because `corpus` does not reach them and a column
+ * written there would be swept by nothing.
+ */
+export type Case = Scenario & {
 	/**
 	 * Subjects for the pass-through sweep. A family entry carries one per
 	 * component it publishes, so `description list` covers its list, its term,
@@ -78,7 +83,7 @@ export type InteractiveCase = Case & {
  * Overlay family's layout-dependent trap is real-browser-only (see
  * `focus.test.tsx`).
  */
-export type FocusCase = Case & {
+export type FocusCase = Scenario & {
 	/** Drives the real interaction that opens the surface, and returns the element the trigger focus left. */
 	open: (user: UserEvent) => Promise<HTMLElement>
 }
@@ -91,7 +96,7 @@ export type FocusCase = Case & {
  * the trap walks floating-ui's layout-dependent `tabbable` pass, which jsdom
  * resolves to zero-size, so the focus guards never engage there.
  */
-export type TrapCase = Case & {
+export type TrapCase = Scenario & {
 	/** Accessible name of the opening button. */
 	trigger: string
 	/** Resolves the open trapped surface. */
@@ -109,7 +114,7 @@ export type TrapCase = Case & {
  * `descriptionSlot` names the `data-slot` the recipe inks, stated beside the
  * fixture that renders it so a rename moves both together.
  */
-export type RovedCase = Case & {
+export type RovedCase = Scenario & {
 	/** The `data-slot` the recipe inks, stated beside the fixture that renders it. */
 	descriptionSlot: string
 }

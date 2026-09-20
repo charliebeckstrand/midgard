@@ -19,12 +19,7 @@ export const layoutCases: readonly Case[] = [
 		name: 'box',
 		element: <Box key="bx">Content</Box>,
 		passthrough: [{ render: (props) => <Box {...props}>content</Box>, slot: 'box' }],
-		link: [
-			{
-				render: (href) => <Box href={href}>Link</Box>,
-				slot: 'box',
-			},
-		],
+		link: [{ render: (href) => <Box href={href}>Link</Box>, slot: 'box' }],
 	},
 	{
 		name: 'flex',

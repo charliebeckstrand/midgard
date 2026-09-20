@@ -205,13 +205,7 @@ export const navigationCases: readonly Case[] = [
 				</TabContents>
 			</Tabs>
 		),
-		skeleton: [
-			{
-				element: <TabListSkeleton tabs={4} />,
-				absentSlot: 'tab',
-				placeholders: 4,
-			},
-		],
+		skeleton: [{ element: <TabListSkeleton tabs={4} />, absentSlot: 'tab', placeholders: 4 }],
 	},
 	{
 		// Process steps with separators between them; current step marked via the

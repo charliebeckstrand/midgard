@@ -86,18 +86,8 @@ export const dataDisplayCases: readonly Case[] = [
 	{
 		name: 'badge',
 		element: <Badge key="b">New</Badge>,
-		skeleton: [
-			{
-				element: <BadgeSkeleton />,
-				absentSlot: 'badge',
-			},
-		],
-		link: [
-			{
-				render: (href) => <Badge href={href}>Tag</Badge>,
-				slot: 'badge',
-			},
-		],
+		skeleton: [{ element: <BadgeSkeleton />, absentSlot: 'badge' }],
+		link: [{ render: (href) => <Badge href={href}>Tag</Badge>, slot: 'badge' }],
 	},
 	{
 		// Status indicator paired with a visible text label.
@@ -138,12 +128,7 @@ export const dataDisplayCases: readonly Case[] = [
 				</SegmentControl>
 			</Segment>
 		),
-		skeleton: [
-			{
-				element: <SegmentSkeleton />,
-				absentSlot: 'tab-list',
-			},
-		],
+		skeleton: [{ element: <SegmentSkeleton />, absentSlot: 'tab-list' }],
 	},
 	{
 		// role=tree with nested role=group; each item exposes its label and
@@ -290,7 +275,7 @@ export const dataDisplayCases: readonly Case[] = [
 		element: (
 			<Stat key="st">
 				<StatLabel>Monthly recurring revenue</StatLabel>
-				<StatValue>$12,extra2: 345</StatValue>
+				<StatValue>$12,345</StatValue>
 			</Stat>
 		),
 		passthrough: [{ render: (props) => <Stat {...props}>content</Stat>, slot: 'stat' }],
@@ -301,12 +286,7 @@ export const dataDisplayCases: readonly Case[] = [
 		element: (
 			<Sparkline key="sp" data={[3, 5, 4, 8, 7, 11]} aria-label="Revenue, up over 6 periods" />
 		),
-		skeleton: [
-			{
-				element: <SparklineSkeleton />,
-				absentSlot: 'sparkline',
-			},
-		],
+		skeleton: [{ element: <SparklineSkeleton />, absentSlot: 'sparkline' }],
 	},
 	{
 		// Charts: a role="img" plot with legend and a hidden data table beside it.
@@ -461,12 +441,7 @@ export const dataDisplayCases: readonly Case[] = [
 	{
 		name: 'avatar',
 		element: <Avatar key="av" initials="WC" alt="Wade Cooper" />,
-		skeleton: [
-			{
-				element: <AvatarSkeleton size="md" />,
-				absentSlot: 'avatar',
-			},
-		],
+		skeleton: [{ element: <AvatarSkeleton size="md" />, absentSlot: 'avatar' }],
 	},
 	{
 		name: 'kbd',

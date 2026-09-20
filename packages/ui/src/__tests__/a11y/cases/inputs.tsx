@@ -85,12 +85,7 @@ export const inputCases: readonly Case[] = [
 				<Textarea id="axe-bio" />
 			</Field>
 		),
-		skeleton: [
-			{
-				element: <TextareaSkeleton />,
-				absentSlot: 'textarea',
-			},
-		],
+		skeleton: [{ element: <TextareaSkeleton />, absentSlot: 'textarea' }],
 	},
 	{
 		// No explicit id: the Field generates one and both Label and Slider read
@@ -103,12 +98,7 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		passthrough: [{ render: (props) => <Slider {...props} />, slot: 'slider' }],
-		skeleton: [
-			{
-				element: <SliderSkeleton />,
-				absentSlot: 'slider',
-			},
-		],
+		skeleton: [{ element: <SliderSkeleton />, absentSlot: 'slider' }],
 	},
 	{
 		// The Field's Label names the radiogroup through Control context, so the
@@ -124,13 +114,7 @@ export const inputCases: readonly Case[] = [
 	{
 		name: 'rating (read-only)',
 		element: <Rating key="r" readOnly value={4.5} />,
-		skeleton: [
-			{
-				element: <RatingSkeleton />,
-				absentSlot: 'rating',
-				placeholders: 5,
-			},
-		],
+		skeleton: [{ element: <RatingSkeleton />, absentSlot: 'rating', placeholders: 5 }],
 	},
 	{ name: 'file upload (drop)', element: <FileUploadDrop key="fu" /> },
 	{ name: 'file upload (button)', element: <FileUploadButton key="fub" /> },
@@ -144,12 +128,7 @@ export const inputCases: readonly Case[] = [
 				</CheckboxField>
 			</CheckboxGroup>
 		),
-		skeleton: [
-			{
-				element: <CheckboxSkeleton />,
-				absentSlot: 'checkbox',
-			},
-		],
+		skeleton: [{ element: <CheckboxSkeleton />, absentSlot: 'checkbox' }],
 	},
 	{
 		name: 'switch',
@@ -159,12 +138,7 @@ export const inputCases: readonly Case[] = [
 				<Switch />
 			</SwitchField>
 		),
-		skeleton: [
-			{
-				element: <SwitchSkeleton />,
-				absentSlot: 'switch',
-			},
-		],
+		skeleton: [{ element: <SwitchSkeleton />, absentSlot: 'switch' }],
 	},
 	{
 		// Radios share a name to form a single group; each input is named by its
@@ -182,12 +156,7 @@ export const inputCases: readonly Case[] = [
 				</RadioField>
 			</RadioGroup>
 		),
-		skeleton: [
-			{
-				element: <RadioSkeleton />,
-				absentSlot: 'radio',
-			},
-		],
+		skeleton: [{ element: <RadioSkeleton />, absentSlot: 'radio' }],
 	},
 	{
 		// Icon-only toggle: aria-pressed reflects state, aria-label supplies the
@@ -202,12 +171,7 @@ export const inputCases: readonly Case[] = [
 				aria-label="Toggle dark mode"
 			/>
 		),
-		skeleton: [
-			{
-				element: <ToggleIconButtonSkeleton />,
-				absentSlot: 'toggle-icon-button',
-			},
-		],
+		skeleton: [{ element: <ToggleIconButtonSkeleton />, absentSlot: 'toggle-icon-button' }],
 	},
 	{
 		// Tags edited inline; the composite is named by its Field Label through
@@ -223,12 +187,7 @@ export const inputCases: readonly Case[] = [
 	{
 		name: 'calendar',
 		element: <Calendar key="ca" />,
-		skeleton: [
-			{
-				element: <CalendarSkeleton />,
-				absentSlot: 'calendar',
-			},
-		],
+		skeleton: [{ element: <CalendarSkeleton />, absentSlot: 'calendar' }],
 	},
 	{
 		// Closed select: the trigger is a button named by its Field Label; the

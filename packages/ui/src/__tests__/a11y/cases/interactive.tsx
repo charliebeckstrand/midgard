@@ -189,11 +189,6 @@ export const interactive: readonly InteractiveCase[] = [
 
 			await screen.findByRole('dialog')
 		},
-		skeleton: [
-			{
-				element: <ColorPanelSkeleton />,
-				absentSlot: 'color-panel',
-			},
-		],
+		skeleton: [{ element: <ColorPanelSkeleton />, absentSlot: 'color-panel' }],
 	},
 ]
