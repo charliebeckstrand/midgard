@@ -53,6 +53,32 @@
 			}
 		},
 		{
+			"includes": ["packages/ui/src/hooks/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"**/components/**",
+											"**/layouts/**",
+											"**/providers/**",
+											"**/recipes/kata/**",
+											"**/recipes/katakana/**"
+										],
+										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, layouts, providers, or recipe-layer internals (kata / katakana). Importing from primitives is allowed; hooks may read context from primitive providers."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
 			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs/demos/modules/chat.tsx",
