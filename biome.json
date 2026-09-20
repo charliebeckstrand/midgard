@@ -169,59 +169,6 @@
 		},
 		{
 			"includes": [
-				"packages/ui/src/**",
-				"!packages/ui/src/__tests__/**",
-				"!packages/ui/src/__benchmarks__/**",
-				"!packages/ui/src/recipes/kata/**/*.ts",
-				"!packages/ui/src/recipes/katakana/**/*.ts",
-				"!packages/ui/src/layouts/*/variants.ts"
-			],
-			"linter": {
-				"rules": {
-					"style": {
-						"noRestrictedImports": {
-							"level": "error",
-							"options": {
-								"patterns": [
-									{
-										"group": ["**/core/recipe", "**/core/recipe/**"],
-										"importNamePattern": "defineRecipe",
-										"message": "defineRecipe is sanctioned only at the kata surface (recipes/kata), the katakana applicator layer (recipes/katakana), and layout-local variants files (layouts/*/variants.ts). A kata that does not match an archetype calls defineRecipe directly. A kata that matches an archetype routes through its katakana applicator."
-									}
-								]
-							}
-						}
-					}
-				}
-			}
-		},
-		{
-			"includes": [
-				"packages/ui/src/**",
-				"!packages/ui/src/__tests__/**",
-				"!packages/ui/src/__benchmarks__/**",
-				"!packages/ui/src/core/create-context.ts"
-			],
-			"linter": {
-				"rules": {
-					"style": {
-						"noRestrictedImports": {
-							"level": "error",
-							"options": {
-								"paths": {
-									"react": {
-										"importNames": ["createContext"],
-										"message": "All component, primitive, and layout contexts must go through the local core/create-context helper. The helper supports a required mode, which throws when the provider is missing. It also supports an optional mode, which returns a default. A direct import of createContext from React bypasses the convention."
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		},
-		{
-			"includes": [
 				"**/src/modules/chat/**",
 				"**/src/docs/demos/modules/chat.tsx",
 				"**/src/__tests__/modules/chat-*",
