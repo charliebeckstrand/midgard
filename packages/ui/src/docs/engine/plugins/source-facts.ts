@@ -199,7 +199,7 @@ function declarationOf(
 	sf: ts.SourceFile,
 	excludeJsxHelpers: boolean,
 ): Omit<Declaration, 'index'> | null {
-	if (excludeJsxHelpers && isJsxHelperStatement(stmt, sf)) return null
+	if (excludeJsxHelpers && isJsxHelperStatement(stmt)) return null
 
 	const code = stmt.getText(sf)
 

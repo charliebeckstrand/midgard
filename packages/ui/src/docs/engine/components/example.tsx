@@ -85,9 +85,9 @@ export function Example({
 	// visible through the close animation (`AnimatePresence` keeps the panel
 	// mounted while it slides shut).
 	//
-	// The mount probe asks `hasDerivableCode`, which stops at the first tagged
-	// element, rather than deriving the whole block to test it against `null`: a
-	// demo page mounts many Examples at once and none of them needs the string yet.
+	// The mount probe asks `hasDerivableCode`, which stops at the first element
+	// that would import something, rather than deriving the whole block to test it
+	// against `null`: a demo page mounts many Examples and none needs the string yet.
 	const [hasDerivedCode] = useState(() => !code && hasDerivableCode(children))
 
 	const derivedRef = useRef<string | null>(null)

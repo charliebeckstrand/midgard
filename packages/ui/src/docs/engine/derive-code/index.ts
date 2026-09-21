@@ -5,19 +5,19 @@ import { reindent } from './indent'
 import {
 	addImport,
 	assemble,
+	classifyElement,
 	collectChildItems,
 	collectSnippetImports,
+	createContext,
 	elementChildren,
 	formatProps,
 	INDENT,
 	matchElementFact,
 	PLACEHOLDER,
-	readSnippet,
 	registerFactText,
 	renderOpenTag,
 	resolvePreamble,
-	resolveType,
-	resolveTypeIn,
+	snippetHasImports,
 } from './internals'
 import { defaultRegistry } from './registry'
 import type { ComponentRegistry, Context, SourceFacts } from './types'
@@ -68,15 +68,7 @@ export function deriveCode(
 	registry: ComponentRegistry = defaultRegistry,
 	facts?: SourceFacts,
 ): string | null {
-	const context: Context = {
-		registry,
-		imports: new Map(),
-		externalModules: new Set(),
-		packageName: registry.packageName,
-		facts,
-		factTexts: [],
-		pulledDecls: new Set(),
-	}
+	const context = createContext(registry, facts)
 
 	let jsx = renderNodes(Children.toArray(children), context, '')
 
@@ -98,49 +90,51 @@ export function deriveCode(
 
 /**
  * Whether {@link deriveCode} would produce anything for this subtree — that is,
- * whether it holds at least one component the docs recognize.
+ * whether anything in it registers an import.
  *
  * `deriveCode` returns `null` exactly when its walk collected no imports, so
- * finding one recognized element answers the question. This short-circuits
- * there instead of rendering the whole JSX string, resolving a preamble, and
- * possibly walking a second pass for the consistency rule.
+ * finding one element that contributes answers the question. This
+ * short-circuits there instead of rendering the whole JSX string, resolving a
+ * preamble, and possibly walking a second pass for the consistency rule.
  *
- * Resolution goes through the same {@link resolveTypeIn} the real walk uses. A
- * tagged library component and an external one matched by `displayName` (a
- * lucide icon, say) both count. To read the tags alone would hide the code
- * trigger on an icons-only demo.
+ * Both walks sort an element through {@link classifyElement}, so neither
+ * restates the other's rule. A recognized component imports itself. An
+ * unrecognized one renders its children in its place, so the walk descends.
+ * Without children it stands for its build-time snippet, whose imports
+ * {@link snippetHasImports} counts — the case a demo-local helper rests on,
+ * as in `<Example><ClosableExample /></Example>`.
  *
  * @remarks
- * Descends `children` only. `deriveCode` also collects imports from
- * element-valued props and from `__code` snippets. A demo whose *only*
- * recognized component reaches it by one of those paths thus reports `false`.
- * Both are rare next to the walk this covers, and the failure is a hidden code
- * block rather than a broken one.
+ * Element-valued props and {@link SourceFacts} need no case of their own.
+ * `renderElement` reads both only from an element it has already recognized,
+ * which answers `true` on its own.
  */
 export function hasDerivableCode(
 	children: ReactNode,
 	registry: ComponentRegistry = defaultRegistry,
 ): boolean {
-	const stack: ReactNode[] = [children]
+	const stack: ReactNode[] = Children.toArray(children)
 
 	while (stack.length > 0) {
 		const node = stack.pop()
 
-		if (Array.isArray(node)) {
-			// Not `push(...node)`: a spread passes each entry as an argument and
-			// blows the call-argument ceiling on a large array.
-			for (const child of node) stack.push(child)
+		if (!isValidElement(node)) continue
+
+		const classified = classifyElement(node, registry)
+
+		if (classified.kind === 'recognized') return true
+
+		if (classified.kind === 'snippet') {
+			if (snippetHasImports(classified.code, registry)) return true
 
 			continue
 		}
 
-		if (!isValidElement(node)) continue
+		if (classified.kind === 'none') continue
 
-		if (resolveTypeIn(registry, node.type) !== undefined) return true
-
-		const { children: nested } = node.props as { children?: ReactNode }
-
-		if (nested !== undefined) stack.push(nested)
+		// Not `push(...nodes)`: a spread passes each entry as an argument and
+		// blows the call-argument ceiling on a large array.
+		for (const child of classified.nodes) stack.push(child)
 	}
 
 	return false
@@ -256,29 +250,26 @@ function hasExplicitKey(element: ReactElement): element is ReactElement & { key:
  * their children render in place.
  */
 function renderElement(element: ReactElement, context: Context, indent: string): string {
-	const info = resolveType(element.type, context)
+	const classified = classifyElement(element, context.registry)
 
-	if (!info) {
+	switch (classified.kind) {
 		// Unknown component (e.g. a locally-defined demo wrapper): walk its
 		// children for recognizable components.
-		const children = elementChildren(element)
+		case 'children':
+			return renderNodes(classified.nodes, context, indent).trimStart()
 
-		if (children.length > 0) {
-			return renderNodes(children, context, indent).trimStart()
-		}
+		// Self-closing helper with a build-time snippet attached by the docs
+		// plugin's `pre` transform: use the raw JSX verbatim.
+		case 'snippet':
+			collectSnippetImports(classified.code, context)
 
-		// Self-closing helper with a build-time snippet attached by the
-		// docs plugin's `pre` transform: use the raw JSX verbatim.
-		const snippet = readSnippet(element.type)
+			return reindent(classified.code, indent)
 
-		if (snippet !== null) {
-			collectSnippetImports(snippet, context)
-
-			return reindent(snippet, indent)
-		}
-
-		return ''
+		case 'none':
+			return ''
 	}
+
+	const { info } = classified
 
 	if (info.module) addImport(context, info.module, info.name, info.external)
 

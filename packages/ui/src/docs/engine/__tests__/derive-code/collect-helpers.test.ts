@@ -149,6 +149,67 @@ describe('collectHelpers preamble inclusion', () => {
 	})
 })
 
+// A helper the JSX test misses carries no `__code`, so its `<Example>` renders
+// no code block at all. See `rendersJsx` for the scan these cases retired.
+describe('collectHelpers JSX detection', () => {
+	it('collects a helper whose return is a conditional', () => {
+		const source = [
+			`function DestructiveExample() {`,
+			`\tconst [deleted, setDeleted] = useState(false)`,
+			`\treturn deleted ? <Text>Deleted</Text> : <HoldButton>Hold</HoldButton>`,
+			`}`,
+		].join('\n')
+
+		expect(collectHelpers(source).map((h) => h.name)).toEqual(['DestructiveExample'])
+	})
+
+	it('collects a helper whose JSX sits behind a comment', () => {
+		const source = [
+			`const PinnedExample = () => (`,
+			`\t// The Name column freezes to the left.`,
+			`\t<Grid columns={columns} />`,
+			`)`,
+		].join('\n')
+
+		expect(collectHelpers(source).map((h) => h.name)).toEqual(['PinnedExample'])
+	})
+
+	it('collects a helper returning a mapped array of elements', () => {
+		const source = [
+			`function FilteredPeople() {`,
+			`\treturn people.map((person) => <Option key={person} value={person} />)`,
+			`}`,
+		].join('\n')
+
+		expect(collectHelpers(source).map((h) => h.name)).toEqual(['FilteredPeople'])
+	})
+
+	it('skips a PascalCase function that returns no JSX', () => {
+		const source = [
+			`function BuildColumns() {`,
+			`\tconst columns = [{ id: 'name' }]`,
+			`\treturn columns`,
+			`}`,
+		].join('\n')
+
+		expect(collectHelpers(source)).toHaveLength(0)
+	})
+
+	// A callback's returns belong to the callback. Read as the host's, the arrow
+	// below would make `Registry` a helper and attach it a `__code` nothing
+	// renders.
+	it('reads the returns of the function itself, not those of a nested one', () => {
+		const source = [
+			`function Registry() {`,
+			`\tconst render = () => <Badge />`,
+			`\treturn render`,
+			`}`,
+		].join('\n')
+
+		expect(collectHelpers(source)).toHaveLength(0)
+	})
+})
+
 describe('collectHelpers entry export', () => {
 	it('skips the `Demo` page function so its source is not embedded as dead __code', () => {
 		const source = [

@@ -4,7 +4,7 @@ import * as ReactDOM from 'react-dom'
 import { wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { reindent } from './indent'
-import type { ComponentInfo, ComponentRegistry, Context, ElementFact } from './types'
+import type { ComponentInfo, ComponentRegistry, Context, ElementFact, SourceFacts } from './types'
 
 /**
  * Fragment and intrinsic HTML elements are transparent: styling/grouping
@@ -78,6 +78,55 @@ export function collectChildItems(nodes: ReactNode[]): ChildItem[] {
 	flushText()
 
 	return items
+}
+
+/**
+ * A fresh walk state over `registry`, with empty accumulators. The one place
+ * the {@link Context} shape is written out, so a new field reaches every caller
+ * at once.
+ */
+export function createContext(registry: ComponentRegistry, facts?: SourceFacts): Context {
+	return {
+		registry,
+		imports: new Map(),
+		externalModules: new Set(),
+		packageName: registry.packageName,
+		facts,
+		factTexts: [],
+		pulledDecls: new Set(),
+	}
+}
+
+/**
+ * Which of the walk's cases an element falls in. `recognized` carries the
+ * component the docs document. `children` carries the nodes that render in an
+ * unrecognized element's place. `snippet` carries the build-time source the
+ * docs plugin attached to a childless helper, and `none` is an element the
+ * walk drops.
+ */
+export type ElementCase =
+	| { kind: 'recognized'; info: ComponentInfo }
+	| { kind: 'children'; nodes: ReactNode[] }
+	| { kind: 'snippet'; code: string }
+	| { kind: 'none' }
+
+/**
+ * Sort one element into its case. The renderer and the emptiness probe both
+ * switch on the result, so neither restates the other's rule. That drift is
+ * what once hid the code block under every demo-local helper.
+ */
+export function classifyElement(element: ReactElement, registry: ComponentRegistry): ElementCase {
+	const info = resolveTypeIn(registry, element.type)
+
+	if (info) return { kind: 'recognized', info }
+
+	const nodes = elementChildren(element)
+
+	if (nodes.length > 0) return { kind: 'children', nodes }
+
+	const code = readSnippet(element.type)
+
+	return code === null ? { kind: 'none' } : { kind: 'snippet', code }
 }
 
 /**
@@ -543,6 +592,24 @@ export const HOOK_MODULES: ReadonlyMap<string, string> = new Map([
 const HOOK_RE = new RegExp(`(?<!\\.)\\b(${[...HOOK_MODULES.keys()].join('|')})\\b(?=\\s*[(<])`, 'g')
 
 const TAG_RE = /<([A-Z][\w]*)/g
+
+/**
+ * Whether `snippet` would register at least one import. The walk answers this
+ * by mutating its `Context`. A caller with no walk in progress has none, so it
+ * asks here against a scratch one. A snippet that names no recognized component
+ * and calls no hook contributes nothing, and leaves the code block hidden.
+ *
+ * @remarks
+ * Delegates to {@link collectSnippetImports} rather than re-scanning, so a new
+ * import source inside that function counts here too.
+ */
+export function snippetHasImports(snippet: string, registry: ComponentRegistry): boolean {
+	const context = createContext(registry)
+
+	collectSnippetImports(snippet, context)
+
+	return context.imports.size > 0
+}
 
 /**
  * Register imports for anything the snippet references: UI components via

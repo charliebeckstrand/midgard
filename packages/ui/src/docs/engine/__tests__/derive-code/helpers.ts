@@ -1,4 +1,5 @@
 import type { FunctionComponent } from 'react'
+import { createContext } from '../../derive-code/internals'
 import { defaultRegistry } from '../../derive-code/registry'
 import type { ComponentRegistry, Context } from '../../derive-code/types'
 
@@ -29,24 +30,28 @@ export function external<P>(name: string): FunctionComponent<P> {
 }
 
 /**
+ * A stand-in for a demo-local helper component, carrying the `__code` source
+ * the docs plugin's `pre` transform attaches. It has no build-time tag, so the
+ * walk renders `code` verbatim and reads the snippet's imports from it.
+ */
+export function snippet<P>(code: string): FunctionComponent<P> {
+	const Component: FunctionComponent<P> = () => null
+
+	Object.assign(Component, { __code: code })
+
+	return Component
+}
+
+/**
  * Builds a fresh `Context` with an empty import accumulator. `byType` defaults
  * to the production tag reader (`defaultRegistry.byType`), resolving `tag()`
  * components; pass `byName` to resolve snippet tag names and `external()`
  * components.
  */
 export function makeContext(registry?: Partial<ComponentRegistry>): Context {
-	const packageName = registry?.packageName ?? 'ui'
-
-	return {
-		registry: {
-			byType: registry?.byType ?? defaultRegistry.byType,
-			byName: registry?.byName ?? new Map(),
-			packageName,
-		},
-		imports: new Map(),
-		externalModules: new Set(),
-		packageName,
-		factTexts: [],
-		pulledDecls: new Set(),
-	}
+	return createContext({
+		byType: registry?.byType ?? defaultRegistry.byType,
+		byName: registry?.byName ?? new Map(),
+		packageName: registry?.packageName ?? 'ui',
+	})
 }
