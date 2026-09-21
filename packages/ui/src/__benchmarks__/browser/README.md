@@ -1,6 +1,6 @@
 # Competitive benchmarks
 
-> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three suites; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
+> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three. It also runs the scenarios that keep no score against a rival and are here because jsdom cannot price them — the menu, tooltip, and PDF-viewer benches. The jsdom benches one directory up keep localizing regressions; this suite sizes them.
 
 ## Why a browser suite
 
@@ -237,3 +237,35 @@ Probed and rejected — **a direct projection walk in place of d3's stream**. Th
 Probed, not landed: lazy value labels (the chart's lever 7 shape — `regionValueLabels` off the urgent render) measured ~2.7ms on the choropleth mount, the default `String` format being nothing like the chart's per-cell `Intl` work; dropping the `hover:brightness-110` filter measured ~1.1ms of the states sweep; the destroy half of the mount-plus-teardown scenarios measured ~10ms of ~150. Each priced below its complexity. Path precision was already spent when the module landed (`REGION_PATH_DIGITS = 1` — the chart's lever 6 shape).
 
 Open: nothing stands beaten against the module by mean — the states hover sweep's residual median gap (~17 vs ~13, the settle frame around a committing iteration) is the last trace of the React-commit-per-crossing trade, shared with the chart suite's scatter hover.
+
+## Menus
+
+This suite keeps no standings. `Menu` has no contender here. It runs in a browser because jsdom prices two of its paths wrong.
+
+### Methodology
+
+Every probe ([`menu-probe.tsx`](menu-probe.tsx)) mounts one open dropdown. It settles three frames, so the engine has placed the panel. It then hands the bench that menu's trigger and its rows. Focus rests on the trigger, so the rows rove by `aria-activedescendant` — the model the jsdom suite also drives. Nothing settles a frame inside a timed region, so no sample reads the frame period rather than the work. The row centres are resolved at mount, so no sample carries the layout read that resolving them needs.
+
+- [`menu-keyboard.bench.tsx`](menu-keyboard.bench.tsx) — one `keydown` on the trigger. `dispatch only` carries a key no handler acts on, and is the floor to subtract. Each row count runs twice, capped and uncapped. A capped panel has a real scroller for the roving move to find. An uncapped one — the default — has none.
+
+- [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then also measures that panel, to read the pointer's course.
+
+### Findings (2026-09-21, this container)
+
+Mean ms per press, and per sweep, in Chromium.
+
+| Scenario | 8 rows | 24 rows | 64 rows |
+| --- | ---: | ---: | ---: |
+| `keydown`, no handler acts | — | 0.020 | — |
+| ArrowDown · uncapped | 0.118 | 0.118 | 0.132 |
+| ArrowDown · capped | 0.120 | 0.132 | 0.148 |
+| typeahead · one letter | 0.232 | 0.191 | 0.194 |
+| pointer sweep · one pass | 0.118 | 0.358 | 0.993 |
+
+**The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.12 ms for the whole press, 0.10 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by under 0.02 ms. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
+
+**The travel triangle is free.** A 24-row sweep costs 0.358 ms with no submenu open. With one open it costs 0.359 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
+
+### Optimization log
+
+1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.019 → 0.015 ms at 8 rows, 0.024 → 0.015 at 24, 0.036 → 0.015 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 2.32 → 0.99 ms, **2.34× faster**.

@@ -16,6 +16,14 @@
  * panel's item list per event, so an O(rows) per-event cost surfaces here. A
  * sweep visits every row once, so it pays that cost per row.
  *
+ * Read the rove and typeahead rungs as jsdom figures, not as what a reader
+ * pays. Both call `getComputedStyle` while they look for a scroll container,
+ * and jsdom resolves style in JavaScript. The same press costs about 0.12 ms
+ * in Chromium and 1.4 ms here. Capping the panel gives that walk a scroller to
+ * find, and moves the browser number by under 0.02 ms.
+ * `browser/menu-keyboard.bench.tsx` holds those figures. These rungs still
+ * localize a regression; they do not size one.
+ *
  * Those run-lifetime mounts settle floating-ui a tick after the mount returns,
  * which React reports as an update outside `act`. The warnings land at
  * collection, before the first sample, and no timed region contains one. Read
