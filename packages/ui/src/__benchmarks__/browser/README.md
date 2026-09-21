@@ -272,24 +272,26 @@ Mean ms per press, and per sweep, in Chromium.
 
 A grid puts a filter menu on every column and an action menu on every row. The closed menu is therefore the one a page multiplies. Mean ms for 50, median of three runs.
 
-| Rung | Median | Step | Per menu |
-| --- | ---: | ---: | ---: |
-| 1 · bare buttons | 0.151 | — | — |
-| 2 · useMenuState only | 0.939 | 0.788 | 0.0158 |
-| 3 · trigger only (no panel to build) | 3.127 | 2.188 | 0.0438 |
-| 4 · closed menus (the real thing) | 3.347 | 0.220 | 0.0044 |
+| Rung | Before | After | Step after | Per menu |
+| --- | ---: | ---: | ---: | ---: |
+| 1 · bare buttons | 0.151 | 0.152 | — | — |
+| 2 · useMenuState only | 0.939 | 0.937 | 0.785 | 0.0157 |
+| 3 · trigger only (no panel to build) | 3.127 | 1.768 | 0.831 | 0.0166 |
+| 4 · closed menus (the real thing) | 3.347 | 1.953 | 0.185 | 0.0037 |
 
-**A closed menu costs 0.064 ms, which is 22× a bare button.** Fifty of them cost 3.3 ms of mount. This one is not a jsdom artifact: the jsdom suite reads the same fan-out at 10× a bare button, and the browser reads 22×.
+**A closed menu cost 0.064 ms, which was 22× a bare button. It now costs 0.036 ms, or 12×.** Fifty went from 3.3 ms of mount to 2.0 ms. This one was never a jsdom artifact. The jsdom suite read the same fan-out at 10× a bare button and the browser read 22×, so jsdom understated it.
 
-**Two thirds of it is `MenuTrigger`.** Within that step, attaching the merged reference ref costs about 0.016 ms per menu and the reference-props pass another 0.006. The ref is the expensive half for a reason worth naming. `setReference` is a state setter, called from the ref callback during commit, so **every closed menu renders twice**. That was counted directly rather than inferred: one closed menu renders twice with the reference ref attached and once without.
+**Two thirds of the original figure was `MenuTrigger`, and most of that was one wasted render.** `setReference` is a state setter, and the ref callback called it during the commit, so every closed menu rendered twice. That was counted on the component itself rather than inferred: `MenuTrigger` ran twice per closed menu before the change and once after. Lever 2 below is the fix.
 
 **The panel tree the portal discards is the smallest term, at 7%.** `MenuContent` and `FloatingSurface` build a viewport, a `Density`, and a `PopoverPanel` on every render, for a portal that renders none of them. Gating that construction would save under 0.003 ms per menu. That sits inside the run-to-run spread of the rung, so it is not worth the branch.
 
-None of this is a mistake. It is the price of wiring floating-ui to a trigger, and a page pays it per menu whether or not a reader opens one. The lever is that a closed menu needs none of it: positioning, dismissal, and roving all begin at the first open. Deferring the machinery to that moment would reach about 60% of the figure. That is an architectural change to how `Menu` splits, not a local one.
+What remains is the price of wiring floating-ui to a trigger. A page still pays it per menu, whether or not a reader opens one. The hook tree is now the largest term at 0.0157 ms. Reaching it means deferring the whole machinery to the first open, which is an architectural change to how `Menu` splits. It would need `useClick`'s trigger behaviour reproduced on the closed path, against a delicate keyboard model, for about another 0.016 ms per menu.
 
 ### Optimization log
 
 1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.018 → 0.013 ms at 8 rows, 0.022 → 0.014 at 24, 0.031 → 0.014 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 1.99 → 0.90 ms, **2.20× faster**. Both halves were measured against this bench as it now stands. The prior file was restored and re-run, rather than compared against a figure from an earlier session.
+
+2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency is unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe.
 
 ## Icons
 

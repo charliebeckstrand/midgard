@@ -7,6 +7,8 @@ import {
 	type KeyboardEvent,
 	type ReactElement,
 	type Ref,
+	useCallback,
+	useLayoutEffect,
 	useRef,
 } from 'react'
 import { cn } from '../../core'
@@ -45,7 +47,41 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		? ((children.props as { ref?: Ref<HTMLElement> }).ref ?? undefined)
 		: undefined
 
-	const mergeRefs = useFloatingReference<HTMLElement>(setReference, triggerRef, childRef)
+	// The node the engine anchors to, stashed rather than handed over at mount.
+	// A closed menu has no use for a reference: positioning, `autoUpdate`, the
+	// escape layer, and outside-press all begin at the open. Registering it at
+	// mount instead renders every closed menu on the page twice. `setReference`
+	// is a state setter, and the ref callback calls it during the commit.
+	// Deferring it takes a closed menu from 0.064ms to 0.036ms, measured at a
+	// fan-out of fifty (`__benchmarks__/browser/menu-mount.bench.tsx`).
+	const referenceNode = useRef<HTMLElement | null>(null)
+
+	// Set once the engine holds a reference, after which a node swap forwards at
+	// once rather than waiting for another open — the behaviour registering at
+	// mount gave for free.
+	const registered = useRef(false)
+
+	const captureReference = useCallback(
+		(node: HTMLElement | null) => {
+			referenceNode.current = node
+
+			if (registered.current) setReference(node)
+		},
+		[setReference],
+	)
+
+	const mergeRefs = useFloatingReference<HTMLElement>(captureReference, triggerRef, childRef)
+
+	// A layout effect, not a passive one: it runs in the commit that mounts the
+	// panel, so the engine has its reference before that commit paints and the
+	// panel is placed in the frame it first appears in.
+	useLayoutEffect(() => {
+		if (!open) return
+
+		registered.current = true
+
+		setReference(referenceNode.current)
+	}, [open, setReference])
 
 	// The menu opens once per discrete activation-key press on the trigger. The
 	// trigger keeps native timing — Enter fires the button's click on keydown,
