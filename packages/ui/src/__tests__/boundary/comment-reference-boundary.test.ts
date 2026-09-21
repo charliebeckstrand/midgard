@@ -2,13 +2,14 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
+import { extractComments } from '../helpers/controlled-language'
 import { srcDir, srcRelative } from '../helpers/walk-source'
 
-// A comment that names a file or a symbol states a fact about the tree, and
-// the tree moves. CONVENTIONS.md §12.4 already bans one spelling of the defect
-// — an audit named from code — because the reference dangles when the audit
-// goes. These two cases hold the same rule for the two references a scan can
-// check: the name of a test or benchmark file, and a `{@link}` target.
+// A comment that names a file or a symbol states a fact about the tree, and the
+// tree moves. CONVENTIONS.md §12.4 bans the nearest spelling of the defect — an
+// audit named from code — on the ground that the reference dangles once the
+// audit goes. These two cases hold that ground for the two references a scan
+// can check: the name of a test or benchmark file, and a `{@link}` target.
 //
 // The 2026-09-12 documentation audit closed thirteen rows across both
 // categories and added no gate, and both rotted inside a month. Steps 7 and 9
@@ -30,9 +31,16 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //   found by hand.
 //
 // Membership answers the question the defect asks: does the package declare
-// this name anywhere? It cannot answer the narrower one — whether the target
-// names the right symbol of several — and no renderer answers that either,
-// because TSDoc declaration references are not resolved here.
+// this name anywhere? Two narrower questions it does not answer, both stated
+// here so the failure message does not have to overreach:
+//
+//   Whether the target names the right symbol of several, which nothing in the
+//   tree answers today. And whether the target renders as a link, which
+//   `docs/engine/api-reference/engine/link-resolver.ts` decides on a much
+//   smaller index — PascalCase top-level declarations outside `docs/`. 652 of
+//   this tree's 2,515 targets have a lowercase head, `dataAttr` among them, so
+//   they resolve here and render as plain text there. Gating on that index is
+//   the stronger rule and a larger change: it starts red on those 652.
 //
 // Scope stops at `src`, and `docs/` stays out on purpose. An audit records the
 // dangling citation it fixed by quoting it, and a plan names the test file it
@@ -49,14 +57,15 @@ const SKIP = new Set(['node_modules', 'dist'])
  * included.
  *
  * @remarks
- * A local collector rather than `walkSource`, which prunes `__tests__`
- * and `__benchmarks__` by default and prunes them at every depth. Handing in
- * the two roots beside `src` is not enough: the docs engine carries a second
- * pair at `docs/engine/`, and a walk blind to those trees reads a file that
- * exists as a dangling citation. The walker's own remarks sanction this shape
- * for a rule that spans both trees at once.
+ * A local collector rather than `walkSource`, whose `SKIP` set is module-private
+ * and whose `skip` parameter only adds to it, so a caller can prune more and
+ * never less. Naming the pruned roots instead of walking them does not scale:
+ * the tree holds four such trees, because the docs engine keeps its own pair
+ * under `docs/engine/`, and a list of roots goes quietly stale when a fifth
+ * appears. A walk blind to any of them reads a file that exists as a dangling
+ * citation.
  *
- * Both halves of this rule need both trees. Three of the four citation defects
+ * Both halves of this rule need those trees. Three of the four citation defects
  * the 2026-09-12 audit found sat inside a pruned tree, and so did one of its
  * five dangling links.
  */
@@ -79,46 +88,28 @@ const SOURCE_FILE = /\.tsx?$/
 
 const MARKDOWN_FILE = /\.md$/
 
-/** The script kind the parser and the scanner both read a file under. */
-function scriptKind(file: string): ts.ScriptKind {
-	return file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-}
+const TEST_FILE = /\.(?:test|bench)\.tsx?$/
 
-// A concrete test or benchmark basename. The leading `[\w-]` is what separates
-// a citation from a glob: `*.test.ts` in a config offers no word character
-// before the dot, so it cannot start a match.
-const CITATION = /\b[\w-][\w.-]*\.(?:test|bench)\.tsx?\b/g
+// A concrete test or benchmark basename. The lookbehind is what separates a
+// citation from a glob: `-` sits inside the character class, so without it
+// `*-boundary.test.ts` in a config matches from its `b` and reports a file that
+// was never named. No real citation opens after a `*` or a `-`, because a name
+// that carries one matches from its own first character.
+const CITATION = /(?<![*-])\b[\w-][\w.-]*\.(?:test|bench)\.tsx?\b/g
 
-/**
- * The text of every comment in a source file.
- *
- * @remarks
- * Scanned rather than parsed, because a comment that documents nothing is
- * trivia the parser attaches to no node. Reading comments alone is also what
- * keeps synthetic paths out of the result: the docs engine's api-extractor
- * suite asserts on the path of a test file that is not supposed to exist, and
- * a scan of whole file text would read that argument as a citation.
- */
-function commentTexts(file: string, content: string): string[] {
-	const scanner = ts.createScanner(
-		ts.ScriptTarget.ESNext,
-		false,
-		file.endsWith('.tsx') ? ts.LanguageVariant.JSX : ts.LanguageVariant.Standard,
-		content,
-	)
+/** The 1-based line `index` falls on, for a violation the reader has to open. */
+function lineAt(content: string, index: number): number {
+	let line = 1
 
-	const texts: string[] = []
-
-	for (let token = scanner.scan(); token !== ts.SyntaxKind.EndOfFileToken; token = scanner.scan()) {
-		if (
-			token === ts.SyntaxKind.SingleLineCommentTrivia ||
-			token === ts.SyntaxKind.MultiLineCommentTrivia
-		) {
-			texts.push(scanner.getTokenText())
-		}
+	for (
+		let at = content.indexOf('\n');
+		at !== -1 && at < index;
+		at = content.indexOf('\n', at + 1)
+	) {
+		line++
 	}
 
-	return texts
+	return line
 }
 
 /**
@@ -141,13 +132,19 @@ function isLink(part: ts.Node): part is ts.JSDocLink | ts.JSDocLinkCode | ts.JSD
 	return ts.isJSDocLink(part) || ts.isJSDocLinkCode(part) || ts.isJSDocLinkPlain(part)
 }
 
-/** The comment parts of a doccomment: its own body, then each tag's body. */
-function commentParts(doc: ts.JSDoc): readonly (string | ts.Node)[] {
-	const parts: (string | ts.Node)[] = []
+/**
+ * The node parts of a doccomment: its own body, then each tag's body.
+ *
+ * @remarks
+ * A `comment` is a plain string when the doccomment holds no inline tag at all,
+ * and a link is a node by construction, so the string form carries nothing this
+ * rule reads and is dropped here rather than at the call site.
+ */
+function commentParts(doc: ts.JSDoc): readonly ts.JSDocComment[] {
+	const parts: ts.JSDocComment[] = []
 
 	const push = (comment: ts.JSDoc['comment']) => {
-		if (typeof comment === 'string') parts.push(comment)
-		else if (comment) parts.push(...comment)
+		if (typeof comment !== 'string' && comment) parts.push(...comment)
 	}
 
 	push(doc.comment)
@@ -157,9 +154,9 @@ function commentParts(doc: ts.JSDoc): readonly (string | ts.Node)[] {
 	return parts
 }
 
-type LinkSite = { file: string; target: string }
+type LinkSite = { file: string; line: number; target: string }
 
-/** Every name the package declares, and every `{@link}` target it names. */
+/** Every name the package declares, and every `{@link}` target it names once. */
 function readDeclarationsAndLinks(): { declared: Set<string>; links: LinkSite[] } {
 	const declared = new Set<string>()
 
@@ -168,36 +165,48 @@ function readDeclarationsAndLinks(): { declared: Set<string>; links: LinkSite[] 
 	eachFile((file, content) => {
 		if (!SOURCE_FILE.test(file)) return
 
-		const source = ts.createSourceFile(
-			file,
-			content,
-			ts.ScriptTarget.ESNext,
-			true,
-			scriptKind(file),
-		)
+		// Two thirds of the tree carries no link at all. `getJSDocCommentsAndTags`
+		// reads parent pointers, so the lookup and the cost of building them move
+		// together: without a link to find, neither is worth paying, and the
+		// `declared` walk below still covers every file. The guard is TypeScript's
+		// own trigger — `{ @link Foo }` with a space parses to no link node, and
+		// `{@linkcode` and `{@linkplain` both open with this prefix.
+		const hasLink = content.includes('{@link')
 
-		// One doccomment is reachable from several nodes, so each is read once.
-		const read = new Set<ts.JSDoc>()
+		const source = ts.createSourceFile(file, content, ts.ScriptTarget.ESNext, hasLink)
+
+		// A doccomment is reachable from several nodes, so the same target is
+		// visited more than once. The file is the reporting unit, so one target
+		// per file is what this rule has to say.
+		const seen = new Set<string>()
 
 		const visit = (node: ts.Node) => {
 			const name = declaredName(node)
 
 			if (name) declared.add(name)
 
-			for (const doc of ts.getJSDocCommentsAndTags(node)) {
-				if (!ts.isJSDoc(doc) || read.has(doc)) continue
-
-				read.add(doc)
+			for (const doc of hasLink ? ts.getJSDocCommentsAndTags(node) : []) {
+				if (!ts.isJSDoc(doc)) continue
 
 				for (const part of commentParts(doc)) {
-					if (typeof part === 'string' || !isLink(part) || !part.name) continue
+					if (!isLink(part) || !part.name) continue
 
 					// `{@link https://example.com}` parses as the name `https` and the
 					// text `://example.com`. An external link resolves against nothing
 					// in this package and is not this rule's subject.
 					if (part.text.startsWith('://')) continue
 
-					links.push({ file: srcRelative(file), target: part.name.getText(source) })
+					const target = part.name.getText(source)
+
+					if (seen.has(target)) continue
+
+					seen.add(target)
+
+					links.push({
+						file: srcRelative(file),
+						line: source.getLineAndCharacterOfPosition(part.getStart(source)).line + 1,
+						target,
+					})
 				}
 			}
 
@@ -229,11 +238,13 @@ function libraryGlobals(): Set<string> {
 	for (const entry of readdirSync(libDir)) {
 		if (!/^lib\..*\.d\.ts$/.test(entry)) continue
 
+		// Top-level declarations only, and no parent pointers: nothing below the
+		// source file is read, so the parse stays as cheap as the read.
 		const source = ts.createSourceFile(
 			entry,
 			readFileSync(join(libDir, entry), 'utf8'),
 			ts.ScriptTarget.ESNext,
-			true,
+			false,
 		)
 
 		ts.forEachChild(source, (node) => {
@@ -250,30 +261,47 @@ describe('comment reference boundary', () => {
 	it('every test or benchmark file a comment names exists', () => {
 		const existing = new Set<string>()
 
-		eachFile((file) => {
-			if (/\.(?:test|bench)\.tsx?$/.test(file)) existing.add(basename(file))
-		})
+		const cited: { file: string; line: number; name: string }[] = []
 
-		const violations: string[] = []
-
-		const report = (file: string, text: string) => {
-			for (const match of text.matchAll(CITATION)) {
-				if (!existing.has(match[0])) violations.push(`${srcRelative(file)} → ${match[0]}`)
-			}
-		}
-
+		// One pass: the same walk answers which files exist and which are named.
 		eachFile((file, content) => {
+			if (TEST_FILE.test(file)) existing.add(basename(file))
+
+			// A comment's text is a substring of its file's text, so a file whose
+			// text holds neither stem cannot hold a citation, and 2,183 of 2,256
+			// source files hold neither. `.test.tsx` and `.bench.tsx` carry the same
+			// two stems, so both spellings survive the guard.
+			if (!content.includes('.test.ts') && !content.includes('.bench.ts')) return
+
+			const collect = (text: string, line: (index: number) => number) => {
+				for (const match of text.matchAll(CITATION)) {
+					cited.push({ file: srcRelative(file), line: line(match.index), name: match[0] })
+				}
+			}
+
 			// Markdown is prose end to end, and five of the nine defects that opened
 			// this rule sat in a README rather than in a comment.
-			if (MARKDOWN_FILE.test(file)) report(file, content)
+			if (MARKDOWN_FILE.test(file)) collect(content, (index) => lineAt(content, index))
 			else if (SOURCE_FILE.test(file)) {
-				for (const comment of commentTexts(file, content)) report(file, comment)
+				// `extractComments` rather than a raw `ts` scanner, which carries no
+				// parser context: a template literal holding a substitution — a
+				// `${number}/${number}` type is enough — desynchronizes it, and it then
+				// swallows every comment to the next backtick. That costs
+				// `chart-layout.ts` 118 of its 120 comments, and the tree 4,703 of
+				// 25,007. Reading comments alone is what keeps a synthetic path out of
+				// the result: the docs engine's api-extractor suite asserts on the path
+				// of a test file that is not supposed to exist.
+				for (const comment of extractComments(content)) collect(comment.text, () => comment.line)
 			}
 		})
+
+		const violations = cited
+			.filter(({ name }) => !existing.has(name))
+			.map(({ file, line, name }) => `${file}:${line} → ${name}`)
 
 		expect(
 			violations,
-			`comments naming a test or benchmark file that does not exist — cite the rule's current home, or drop the citation (CONVENTIONS.md §12.4):\n${violations.join('\n')}`,
+			`comments naming a test or benchmark file that does not exist — cite the rule's current home, or drop the citation:\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 
@@ -284,27 +312,19 @@ describe('comment reference boundary', () => {
 
 		const violations: string[] = []
 
-		const seen = new Set<string>()
-
-		for (const { file, target } of links) {
-			const key = `${file}|${target}`
-
-			if (seen.has(key)) continue
-
-			seen.add(key)
-
+		for (const { file, line, target } of links) {
 			// A member or a qualified target resolves through its head: `Props.size`
 			// and `Class#method` both stand or fall with the declaration named first.
 			const head = target.split(/[.#]/)[0]?.trim()
 
 			if (!head || declared.has(head) || globals.has(head)) continue
 
-			violations.push(`${file} → {@link ${target}}`)
+			violations.push(`${file}:${line} → {@link ${target}}`)
 		}
 
 		expect(
 			violations,
-			`{@link} targets naming a symbol nothing declares — the renderer prints these as plain text, so none of them link (CONVENTIONS.md §12.1):\n${violations.join('\n')}`,
+			`{@link} targets naming a symbol no file here and no TypeScript library declares — repoint or drop each one (CONVENTIONS.md §12.1):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 })

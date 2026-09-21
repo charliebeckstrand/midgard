@@ -26,8 +26,9 @@ export function srcRelative(file: string): string {
 // Entries a scan of the shipped tree must not descend into: test and bench
 // trees, build output, and dot-directories. A caller that scans the test tree
 // hands in its root directly, which no entry filter can prune — see
-// test-isolation-boundary. data-slot-boundary keeps its own collector for the
-// same reason, plus a rule that spans both trees at once.
+// test-isolation-boundary. This set prunes at every depth and `skip` only adds
+// to it, so a rule that spans both trees at once keeps its own collector
+// instead; comment-reference-boundary is the one that does.
 const SKIP = new Set(['__tests__', '__benchmarks__', 'node_modules', 'dist'])
 
 /**
