@@ -21,11 +21,25 @@ function containsJsx(node: ts.Node): boolean {
 }
 
 /**
+ * Whether a statement subtree holds a `return` of JSX. A nested function's
+ * returns are its own, so the walk stops at one. The returned expression is
+ * then searched whole, which is what lets `return items.map((i) => <Option />)`
+ * count.
+ */
+function returnsJsx(node: ts.Node): boolean {
+	if (ts.isFunctionLike(node)) return false
+
+	if (ts.isReturnStatement(node)) {
+		return node.expression !== undefined && containsJsx(node.expression)
+	}
+
+	return node.forEachChild(returnsJsx) ?? false
+}
+
+/**
  * Whether a function renders JSX, which is the test for a component. An arrow's
- * concise body counts, as does the expression of any `return` in a block body.
- * A nested function's returns are its own, so the search for `return` stops at
- * one. The returned expression is then searched whole, which is what lets
- * `return items.map((i) => <Option />)` count.
+ * concise body is itself the returned expression; a block body goes to
+ * {@link returnsJsx}.
  *
  * @remarks
  * Replaces a `/(?:return|=>)\s*\(?\s*</` scan of the source text, which read
@@ -41,27 +55,7 @@ function rendersJsx(
 
 	if (!body) return false
 
-	if (!ts.isBlock(body)) return containsJsx(body)
-
-	let found = false
-
-	const visit = (node: ts.Node) => {
-		if (found) return
-
-		if (ts.isFunctionLike(node)) return
-
-		if (ts.isReturnStatement(node)) {
-			if (node.expression && containsJsx(node.expression)) found = true
-
-			return
-		}
-
-		node.forEachChild(visit)
-	}
-
-	visit(body)
-
-	return found
+	return ts.isBlock(body) ? returnsJsx(body) : containsJsx(body)
 }
 
 /**
@@ -78,7 +72,6 @@ type Preamble = { names: string[]; code: string }
  *
  * The JSX test runs against the initializer alone, not the surrounding
  * statement: in `const A = () => <X />, B = somethingElse`, only A matches.
- * This predicate drives both helper collection and the preamble exclusion.
  */
 function jsxHelperName(decl: ts.VariableDeclaration): string | null {
 	if (!ts.isIdentifier(decl.name)) return null
@@ -91,30 +84,56 @@ function jsxHelperName(decl: ts.VariableDeclaration): string | null {
 
 	if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) return null
 
-	if (!rendersJsx(init)) return null
-
-	return decl.name.text
-}
-
-function isJsxReturningVariableStatement(stmt: ts.VariableStatement): boolean {
-	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl) !== null)
+	return rendersJsx(init) ? decl.name.text : null
 }
 
 /**
- * Whether a top-level statement declares a JSX-returning helper component —
- * a PascalCase function declaration or arrow/function-expression declarator
- * whose body renders JSX. These belong to the `__code` pipeline, not to
- * declaration preambles: pulling one into a snippet would duplicate a whole
- * component the walker already renders.
+ * The helper components a top-level statement declares: a PascalCase function
+ * declaration or arrow/function-expression declarator whose body renders JSX.
+ * Empty for anything else.
+ *
+ * @remarks
+ * The one answer both readers take. {@link collectHelpers} attaches `__code`
+ * to these. {@link isJsxHelperStatement} keeps them out of declaration
+ * preambles, because pulling one into a snippet would duplicate a component
+ * the walker already renders. Were the two to read different rules, a helper
+ * would come out with a snippet and a preamble copy, or with neither.
  */
-export function isJsxHelperStatement(stmt: ts.Statement): boolean {
-	if (ts.isFunctionDeclaration(stmt) && stmt.name && isPascalCase(stmt.name.text) && stmt.body) {
-		return rendersJsx(stmt)
+function helperNames(stmt: ts.Statement): string[] {
+	if (ts.isFunctionDeclaration(stmt)) {
+		const name = stmt.name?.text
+
+		if (!name || !isPascalCase(name) || !stmt.body) return []
+
+		return rendersJsx(stmt) ? [name] : []
 	}
 
-	if (ts.isVariableStatement(stmt)) return isJsxReturningVariableStatement(stmt)
+	if (!ts.isVariableStatement(stmt)) return []
 
-	return false
+	return stmt.declarationList.declarations.flatMap((decl) => {
+		const name = jsxHelperName(decl)
+
+		return name === null ? [] : [name]
+	})
+}
+
+/** Whether a top-level statement declares a helper component. */
+export function isJsxHelperStatement(stmt: ts.Statement): boolean {
+	return helperNames(stmt).length > 0
+}
+
+/**
+ * Whether the statement is `export default`. Only a function declaration takes
+ * the modifier; a variable statement never does.
+ */
+function isDefaultExported(stmt: ts.Statement): boolean {
+	if (!ts.isFunctionDeclaration(stmt)) return false
+
+	// `ExportDefault` is the `Export | Default` pair, so the test is an equality
+	// against both bits: a plain `export function` sets only one.
+	const flags = ts.getCombinedModifierFlags(stmt)
+
+	return (flags & ts.ModifierFlags.ExportDefault) === ts.ModifierFlags.ExportDefault
 }
 
 function collectPreambles(sf: ts.SourceFile): Preamble[] {
@@ -130,7 +149,7 @@ function collectPreambles(sf: ts.SourceFile): Preamble[] {
 		if (ts.isVariableStatement(stmt)) {
 			// JSX-returning helper statements belong to `collectHelpers`, not the
 			// preamble.
-			if (isJsxReturningVariableStatement(stmt)) continue
+			if (isJsxHelperStatement(stmt)) continue
 
 			const names: string[] = []
 
@@ -183,33 +202,12 @@ export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Help
 	const helpers: Helper[] = []
 
 	for (const stmt of sf.statements) {
-		if (ts.isFunctionDeclaration(stmt) && stmt.name && isPascalCase(stmt.name.text) && stmt.body) {
-			// `ExportDefault` is the `Export | Default` pair, so the test is an
-			// equality against both bits: a plain `export function` sets only one.
-			const flags = ts.getCombinedModifierFlags(stmt)
+		if (isDefaultExported(stmt)) continue
 
-			const isDefaultExport =
-				(flags & ts.ModifierFlags.ExportDefault) === ts.ModifierFlags.ExportDefault
+		for (const name of helperNames(stmt)) {
+			if (name === ENTRY_EXPORT) continue
 
-			if (isDefaultExport || stmt.name.text === ENTRY_EXPORT) continue
-
-			if (!rendersJsx(stmt)) continue
-
-			const code = stmt.getText(sf)
-
-			helpers.push({ name: stmt.name.text, code: prependReferencedPreamble(code, preambles) })
-
-			continue
-		}
-
-		if (ts.isVariableStatement(stmt)) {
-			for (const decl of stmt.declarationList.declarations) {
-				const name = jsxHelperName(decl)
-
-				if (!name || name === ENTRY_EXPORT) continue
-
-				helpers.push({ name, code: prependReferencedPreamble(stmt.getText(sf), preambles) })
-			}
+			helpers.push({ name, code: prependReferencedPreamble(stmt.getText(sf), preambles) })
 		}
 	}
 

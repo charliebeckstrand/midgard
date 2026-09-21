@@ -5,19 +5,18 @@ import { reindent } from './indent'
 import {
 	addImport,
 	assemble,
+	classifyElement,
 	collectChildItems,
 	collectSnippetImports,
+	createContext,
 	elementChildren,
 	formatProps,
 	INDENT,
 	matchElementFact,
 	PLACEHOLDER,
-	readSnippet,
 	registerFactText,
 	renderOpenTag,
 	resolvePreamble,
-	resolveType,
-	resolveTypeIn,
 	snippetHasImports,
 } from './internals'
 import { defaultRegistry } from './registry'
@@ -69,15 +68,7 @@ export function deriveCode(
 	registry: ComponentRegistry = defaultRegistry,
 	facts?: SourceFacts,
 ): string | null {
-	const context: Context = {
-		registry,
-		imports: new Map(),
-		externalModules: new Set(),
-		packageName: registry.packageName,
-		facts,
-		factTexts: [],
-		pulledDecls: new Set(),
-	}
+	const context = createContext(registry, facts)
 
 	let jsx = renderNodes(Children.toArray(children), context, '')
 
@@ -106,16 +97,12 @@ export function deriveCode(
  * short-circuits there instead of rendering the whole JSX string, resolving a
  * preamble, and possibly walking a second pass for the consistency rule.
  *
- * The walk mirrors `renderElement`'s three cases. A recognized type imports
- * itself. An unrecognized type with children renders those in its place, so the
- * walk descends. An unrecognized type without children falls back to its
- * `__code` snippet, whose imports {@link snippetHasImports} weighs.
- *
- * Resolution goes through the same {@link resolveTypeIn} the walk uses. To read
- * the build-time tags alone would miss an external component, which carries
- * only a `displayName`, and hide the code trigger on an icons-only demo. The
- * snippet case carries the demo-local helper, which reaches an import no other
- * way: `<Example><ClosableExample /></Example>`.
+ * Both walks sort an element through {@link classifyElement}, so neither
+ * restates the other's rule. A recognized component imports itself. An
+ * unrecognized one renders its children in its place, so the walk descends.
+ * Without children it stands for its build-time snippet, whose imports
+ * {@link snippetHasImports} counts — the case a demo-local helper rests on,
+ * as in `<Example><ClosableExample /></Example>`.
  *
  * @remarks
  * Element-valued props and {@link SourceFacts} need no case of their own.
@@ -133,19 +120,21 @@ export function hasDerivableCode(
 
 		if (!isValidElement(node)) continue
 
-		if (resolveTypeIn(registry, node.type) !== undefined) return true
+		const classified = classifyElement(node, registry)
 
-		const nested = elementChildren(node)
+		if (classified.kind === 'recognized') return true
 
-		if (nested.length > 0) {
-			// Not `push(...nested)`: a spread passes each entry as an argument and
-			// blows the call-argument ceiling on a large array.
-			for (const child of nested) stack.push(child)
+		if (classified.kind === 'snippet') {
+			if (snippetHasImports(classified.code, registry)) return true
 
 			continue
 		}
 
-		if (snippetHasImports(node.type, registry)) return true
+		if (classified.kind === 'none') continue
+
+		// Not `push(...nodes)`: a spread passes each entry as an argument and
+		// blows the call-argument ceiling on a large array.
+		for (const child of classified.nodes) stack.push(child)
 	}
 
 	return false
@@ -261,29 +250,26 @@ function hasExplicitKey(element: ReactElement): element is ReactElement & { key:
  * their children render in place.
  */
 function renderElement(element: ReactElement, context: Context, indent: string): string {
-	const info = resolveType(element.type, context)
+	const classified = classifyElement(element, context.registry)
 
-	if (!info) {
+	switch (classified.kind) {
 		// Unknown component (e.g. a locally-defined demo wrapper): walk its
 		// children for recognizable components.
-		const children = elementChildren(element)
+		case 'children':
+			return renderNodes(classified.nodes, context, indent).trimStart()
 
-		if (children.length > 0) {
-			return renderNodes(children, context, indent).trimStart()
-		}
+		// Self-closing helper with a build-time snippet attached by the docs
+		// plugin's `pre` transform: use the raw JSX verbatim.
+		case 'snippet':
+			collectSnippetImports(classified.code, context)
 
-		// Self-closing helper with a build-time snippet attached by the
-		// docs plugin's `pre` transform: use the raw JSX verbatim.
-		const snippet = readSnippet(element.type)
+			return reindent(classified.code, indent)
 
-		if (snippet !== null) {
-			collectSnippetImports(snippet, context)
-
-			return reindent(snippet, indent)
-		}
-
-		return ''
+		case 'none':
+			return ''
 	}
+
+	const { info } = classified
 
 	if (info.module) addImport(context, info.module, info.name, info.external)
 

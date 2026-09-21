@@ -4,7 +4,7 @@ import { createElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ComponentRegistry, deriveCode } from '../../derive-code'
 import { readTag } from '../../derive-code/registry'
-import { tag } from './helpers'
+import { snippet, tag } from './helpers'
 
 // Agnostic: a synthetic registry stands in for a real library's, so snippet-tag
 // and external-icon resolution are exercised without scanning ui. It pairs the
@@ -209,23 +209,18 @@ describe('deriveCode prop formatting', () => {
 
 describe('deriveCode + __code', () => {
 	it('renders the helper function snippet verbatim and infers imports', () => {
-		const AreaDemo = Object.assign(
-			function AreaDemo() {
-				return null
-			},
-			{
-				__code: [
-					'function AreaDemo() {',
-					'\tconst [files, setFiles] = useState<File[]>([])',
-					'',
-					'\treturn (',
-					'\t\t<Stack>',
-					'\t\t\t<FileUpload accept="image/*" onAccept={setFiles} />',
-					'\t\t</Stack>',
-					'\t)',
-					'}',
-				].join('\n'),
-			},
+		const AreaDemo = snippet(
+			[
+				'function AreaDemo() {',
+				'\tconst [files, setFiles] = useState<File[]>([])',
+				'',
+				'\treturn (',
+				'\t\t<Stack>',
+				'\t\t\t<FileUpload accept="image/*" onAccept={setFiles} />',
+				'\t\t</Stack>',
+				'\t)',
+				'}',
+			].join('\n'),
 		)
 
 		const result = deriveCode(createElement(AreaDemo), registry)
@@ -249,21 +244,16 @@ describe('deriveCode + __code', () => {
 	})
 
 	it('infers React 19 hook imports, sourcing react-dom hooks from react-dom', () => {
-		const FormDemo = Object.assign(
-			function FormDemo() {
-				return null
-			},
-			{
-				__code: [
-					'function FormDemo() {',
-					'\tconst data = use(promise)',
-					'\tconst [state, action] = useActionState(submit, null)',
-					'\tconst [optimistic, addOptimistic] = useOptimistic(items)',
-					'\tconst status = useFormStatus()',
-					'\treturn <form />',
-					'}',
-				].join('\n'),
-			},
+		const FormDemo = snippet(
+			[
+				'function FormDemo() {',
+				'\tconst data = use(promise)',
+				'\tconst [state, action] = useActionState(submit, null)',
+				'\tconst [optimistic, addOptimistic] = useOptimistic(items)',
+				'\tconst status = useFormStatus()',
+				'\treturn <form />',
+				'}',
+			].join('\n'),
 		)
 
 		const result = deriveCode(createElement(FormDemo), registry)
@@ -280,18 +270,13 @@ describe('deriveCode + __code', () => {
 	it('does not mistake method calls for React hooks', () => {
 		// `<Stack />` is a recognized component (synthetic map), so `deriveCode`
 		// returns a non-null block, enabling the `toMatch` assertion below.
-		const MethodDemo = Object.assign(
-			function MethodDemo() {
-				return null
-			},
-			{
-				__code: [
-					'function MethodDemo() {',
-					'\tconst result = router.use(plugin)',
-					'\treturn <Stack />',
-					'}',
-				].join('\n'),
-			},
+		const MethodDemo = snippet(
+			[
+				'function MethodDemo() {',
+				'\tconst result = router.use(plugin)',
+				'\treturn <Stack />',
+				'}',
+			].join('\n'),
 		)
 
 		const result = deriveCode(createElement(MethodDemo), registry)

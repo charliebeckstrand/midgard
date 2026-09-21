@@ -1,4 +1,5 @@
 import type { FunctionComponent } from 'react'
+import { createContext } from '../../derive-code/internals'
 import { defaultRegistry } from '../../derive-code/registry'
 import type { ComponentRegistry, Context } from '../../derive-code/types'
 
@@ -48,18 +49,9 @@ export function snippet<P>(code: string): FunctionComponent<P> {
  * components.
  */
 export function makeContext(registry?: Partial<ComponentRegistry>): Context {
-	const packageName = registry?.packageName ?? 'ui'
-
-	return {
-		registry: {
-			byType: registry?.byType ?? defaultRegistry.byType,
-			byName: registry?.byName ?? new Map(),
-			packageName,
-		},
-		imports: new Map(),
-		externalModules: new Set(),
-		packageName,
-		factTexts: [],
-		pulledDecls: new Set(),
-	}
+	return createContext({
+		byType: registry?.byType ?? defaultRegistry.byType,
+		byName: registry?.byName ?? new Map(),
+		packageName: registry?.packageName ?? 'ui',
+	})
 }

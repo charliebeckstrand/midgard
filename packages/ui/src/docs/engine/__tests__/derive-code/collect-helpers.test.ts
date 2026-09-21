@@ -150,8 +150,7 @@ describe('collectHelpers preamble inclusion', () => {
 })
 
 // A helper the JSX test misses carries no `__code`, so its `<Example>` renders
-// no code block at all. The text scan this replaced read only as far as the
-// token after `return` / `=>`.
+// no code block at all. See `rendersJsx` for the scan these cases retired.
 describe('collectHelpers JSX detection', () => {
 	it('collects a helper whose return is a conditional', () => {
 		const source = [
