@@ -15,9 +15,13 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // this half's exemption, and this half stays a test.
 //
 // `layouts` is deliberately absent from both halves: `layouts/sidebar/variants.ts`
-// value-imports kiso, which `kata-boundary.test.ts` sanctions, so sweeping it
-// here would fire a false violation. Named for the contract rather than `LAYERS`,
-// which `internal-barrel-boundary.test.ts` already uses for a different set.
+// value-imports kiso, and nothing forbids it. `biome.json` scopes the recipe
+// import ban to the three layers named below and never to `layouts`, and it
+// exempts `layouts/*/variants.ts` from the `defineRecipe` plugin, which is a
+// separate rule about where a recipe may be authored. So the import is unruled
+// rather than sanctioned, and sweeping layouts here would invent a contract.
+// Named for the contract rather than `LAYERS`, which
+// `internal-barrel-boundary.test.ts` already uses for a different set.
 const RECIPE_CONSUMERS = ['components', 'modules', 'primitives'] as const
 
 const IMPORT_RE = /^(import(?:\s+type)?\s+(?:[^'"]+from\s+)?)['"]([^'"]+)['"]/gm

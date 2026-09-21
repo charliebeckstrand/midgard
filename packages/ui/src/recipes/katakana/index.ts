@@ -6,8 +6,8 @@
  * kata exports. It imports only the recipe engine (`core/recipe`). A bridge
  * imports nothing from kiso, neither values nor types. It declares the token
  * shape it needs as its own contract, and takes the data by argument. The
- * "no kiso import" contract is pinned by
- * `src/__tests__/boundary/katakana-purity-boundary.test.ts`.
+ * "no kiso import" contract is pinned by the `recipes/katakana/**` override in
+ * `biome.json`.
  *
  * Five archetypes, six bridges:
  *

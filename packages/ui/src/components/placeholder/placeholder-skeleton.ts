@@ -4,8 +4,9 @@ import { cn } from '../../core'
 import { Placeholder } from './placeholder'
 
 // Spelled out rather than imported as `Ma`. This is a component file, and
-// `component-ma-boundary.test.ts` admits that import in `variants.ts` alone —
-// the spacing axis reaching a sizing axis is the drift it guards. Keep the two
+// `biome.json` admits that import in `variants.ts` alone — its `components/**`
+// override bans the name and exempts `components/**/variants.ts`, because the
+// spacing axis reaching a sizing axis is the drift it guards. Keep the two
 // unions in step by hand; the gate is what stops the shortcut.
 //
 // Call sites pin `S` to their kata's `VariantProps['size']`, so the `size` prop

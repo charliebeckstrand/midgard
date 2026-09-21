@@ -6,7 +6,7 @@
 
 `katakana/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. A bridge imports **only** the recipe engine (`applyRecipe`, `defineRecipe`, `RecipeConfig`) from [`core/recipe`](../../core/recipe). It **imports nothing from kiso** — not values, not types: each bridge declares the token shape it needs as its own contract and receives the token *data* as the first argument. This keeps the bridge free of any dependency on kiso; data location is kiso's job, application is kata's, and the bridge owns only the wiring in between.
 
-The contract is pinned by `katakana-purity-boundary.test.ts` (no kiso imports at all); the full boundary-test list lives in [`../README.md`](../README.md#3-boundary).
+The contract is pinned by the `recipes/katakana/**` override in `biome.json` (no kiso imports at all); the full boundary list lives in [`../README.md`](../README.md#3-boundary).
 
 ## 2. Shape
 

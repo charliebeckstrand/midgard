@@ -12,8 +12,8 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 
 // Shipped-source directories. Tests, benchmarks, and the docs engine are
 // excluded. `recipes/katakana` is excluded too: it declares its token contract
-// structurally and imports nothing from `recipes/kiso`, pinned by
-// `katakana-purity-boundary.test.ts`.
+// structurally and imports nothing from `recipes/kiso`, pinned by the
+// `recipes/katakana/**` override in `biome.json`.
 const SCAN_DIRS = [
 	'components',
 	'core',
