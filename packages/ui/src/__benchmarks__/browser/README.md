@@ -1,6 +1,6 @@
 # Competitive benchmarks
 
-> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three. It also runs the scenarios that keep no score against a rival and are here because jsdom cannot price them — the menu, tooltip, and PDF-viewer benches. The jsdom benches one directory up keep localizing regressions; this suite sizes them.
+> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three. It also runs the scenarios that keep no score against a rival and are here because jsdom cannot price them — the menu, popover, tooltip, and PDF-viewer benches. The jsdom benches one directory up keep localizing regressions; this suite sizes them.
 
 ## Why a browser suite
 
@@ -345,6 +345,38 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency is unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe.
 
 3. **The same deferral on `MenuSub`** ([`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). A submenu row registered its own trigger with the engine at mount. Every one of them therefore rendered twice, inside a panel that had just opened. It now stashes the node and registers it on the submenu's first open, exactly as lever 2 does for the root. One `MenuSub`: 0.159 → 0.091 ms, **1.75× faster**, and a panel with six of them opens 0.44 ms sooner.
+
+## Popovers
+
+`Popover` has no contender here either. It shares `Menu`'s trigger shape, so it shares one of `Menu`'s findings.
+
+### Methodology
+
+[`popover-mount.bench.tsx`](popover-mount.bench.tsx) is [`menu-mount.bench.tsx`](menu-mount.bench.tsx) one component over: fifty closed popovers, mounted and torn down. A closed popover renders no panel, because `PresencePortal` mounts nothing until it opens, so the rungs price the shell. Each rung contains the one above it, so a step is what that layer costs across the whole fan-out.
+
+### Fan-out: what a closed popover costs (2026-09-21, a slower container)
+
+A page multiplies the closed popover the way a grid multiplies the closed menu: an info affordance beside every field. Mean ms for 50, median of three runs.
+
+| Rung | Before | After |
+| --- | ---: | ---: |
+| 1 · bare buttons | 0.211 | 0.195 |
+| 2 · trigger only (no panel to build) | 3.894 | 2.472 |
+| 3 · closed popovers (the real thing) | 4.457 | 2.535 |
+
+**A closed popover cost 0.085 ms, which was 21× a bare button. It now costs 0.047 ms, or 13×.** Fifty went from 4.5 ms of mount to 2.5 ms, **1.76× faster**. That puts it level with the closed menu, which reads 0.053 ms per menu in this same container.
+
+**The cause was the same wasted render `Menu` paid.** `PopoverTrigger` handed floating-ui its node through the ref callback, and `setReference` is a state setter, so every closed popover rendered twice. That was counted on the component itself, not inferred: ten closed popovers ran `PopoverTrigger` twenty times before the change and ten times after.
+
+The panel-tree step — rung 3 over rung 2 — is 0.06 ms across fifty after the change. That sits inside the run-to-run spread of the rung, so read it as the menu's own 7% finding, not as a figure.
+
+### Optimization log
+
+1. **Reference registered at the first open, not at mount** ([`popover-trigger.tsx`](../../components/popover/popover-trigger.tsx)). Lever 2 of the menu log, transferred. `Popover` wires `useClick`, `dismiss`, and `role` exactly as `Menu` does, and its outside-press is armed on `open`, so the trigger has no use for a reference while it is shut. It now stashes the node and registers it in a layout effect on the first open. A node swap after that open still forwards at once. Fifty closed popovers: 4.46 → 2.54 ms, **1.76× faster**. The panel still lands at its anchored position, on the first open and on every later one.
+
+**Not transferred to `Tooltip`.** `useHover` runs an effect keyed on `elements.domReference`, which binds its listeners to the reference node itself. Deferring registration there would break the hover close path and the safe-polygon handling, so `TooltipTrigger` needs its reference at mount.
+
+**Not transferred to the colour picker.** `use-color-picker-state.ts` reaches `refs.setReference` through the same shared hook, but its interactions are not the menu's. It wires no `useClick`: the trigger owns its own toggle, and `useFloatingUI` gives it `useDismiss` with `outsidePress` and `escapeKey` both off. Its reference is also the `Control` wrapper, not the button. The deferral would therefore be a new shape rather than a copy, and no rung sizes it yet. The same holds for `DatePicker`, `Listbox`, and `Combobox`, which register their own references at mount.
 
 ## Icons
 
