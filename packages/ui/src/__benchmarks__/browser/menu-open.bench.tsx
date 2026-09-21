@@ -20,10 +20,17 @@
  * which keeps the panel mounted for several frames, so the next open of the
  * same menu would find the tree still up and rebuild none of it.
  *
- * Read the gaps, not the rows. `never opened` is the floor: the same mount and
- * the same teardown, with no click. The step above it is the open. The empty
- * panel then separates the shell from the rows, and each row rung reads
- * against that.
+ * Read the gaps, not the rows. `never opened` is the floor: the same mount, the
+ * same address, and no click. Its teardown is of a closed tree, while every
+ * rung above it tears down what the open built — the portal, the rows, and the
+ * listeners. The step is therefore the open plus that teardown, and no closed
+ * floor can subtract it. Read each step as an upper bound on the open alone.
+ * The empty panel then separates the shell from the rows, and each row rung
+ * reads against that.
+ *
+ * The held panels of the second scenario mount at module scope, so two open
+ * panels and their listeners stand in the document while this scenario runs.
+ * Every rung here pays that alike, so the steps stay symmetric.
  *
  * The second scenario prices what it costs to hold a panel open. A reposition
  * re-renders `Menu`, `MenuTrigger`, `MenuContent`, `FloatingSurface`, and
@@ -38,6 +45,11 @@
  * un-memoized merge. Every open panel in the library therefore takes that path
  * on every render. The rung prices one such call against a pre-flattened
  * string, so a reader can weigh it against the open and the re-render above.
+ *
+ * `cn` touches no DOM, so `../recipe.bench.ts` is where its other rungs live.
+ * This one sits here because the whole finding is a ratio. The open and the
+ * re-render are the terms it divides into, and one engine must price all
+ * three. The file already holds a browser, so the rung costs four windows.
  */
 
 import { bench, describe } from 'vitest'
@@ -100,8 +112,12 @@ const HELD_ROWS = [0, 24] as const
  * Mounts one open dropdown and returns the re-render a bench drives it
  * through. Settles three frames first, so the engine has placed the panel and
  * no sample carries the first placement.
+ *
+ * @remarks The element is rebuilt per call rather than hoisted. React bails out
+ * of a render that hands it the element it already holds, so a hoisted one
+ * would measure nothing.
  */
-async function held(count: number): Promise<() => void> {
+async function holdOpen(count: number): Promise<() => void> {
 	const panel = `menu-held-${count}`
 
 	const mounted = reactHost()
@@ -115,13 +131,18 @@ async function held(count: number): Promise<() => void> {
 	}
 }
 
-const rerenders = await Promise.all(HELD_ROWS.map((count) => held(count)))
+/** One held panel a bench re-renders: its row count, and the re-render itself. */
+const held: { count: number; rerender: () => void }[] = []
+
+for (const count of HELD_ROWS) {
+	held.push({ count, rerender: await holdOpen(count) })
+}
 
 describe('menu · open panel, one re-render', () => {
-	for (const [index, count] of HELD_ROWS.entries()) {
+	for (const { count, rerender } of held) {
 		bench(
 			count === 0 ? 'no rows (what a reposition rebuilds)' : `${count} rows`,
-			rerenders[index] as () => void,
+			rerender,
 			WINDOW.slow,
 		)
 	}

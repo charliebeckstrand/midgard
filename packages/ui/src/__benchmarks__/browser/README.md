@@ -286,6 +286,8 @@ This is the path a reader waits on, and it had no rung until now. Mean ms for on
 | open · 24 rows | 5.137 | 4.824 | 0.091 |
 | open · 64 rows | 8.917 | 8.604 | 0.093 |
 
+**Read every figure below as an upper bound on the open alone.** The floor tears down a closed tree, while each rung above it tears down what the open built. A closed floor cannot subtract an open teardown, so the step is the open plus that teardown. The shares and the shape hold; the absolute milliseconds run high by whatever the teardown costs.
+
 **The shell is the open, not the rows.** An empty panel costs 2.65 ms above the floor. That is the portal, the positioned wrapper, the animated surface, the `Density`, and the viewport, with nothing in it. A 24-row panel costs 4.82 ms, and 55% of that is the shell. Even at 64 rows the shell is 31%.
 
 **A row costs about 0.09 ms.** Eight rows read 0.079 ms each and sixty-four read 0.093, so the panel is very nearly linear in its row count. These rows carry a `MenuLabel` and nothing else. A row with an icon costs the `## Icons` rung on top.
@@ -373,6 +375,8 @@ The panel-tree step — rung 3 over rung 2 — is 0.06 ms across fifty after the
 ### Optimization log
 
 1. **Reference registered at the first open, not at mount** ([`popover-trigger.tsx`](../../components/popover/popover-trigger.tsx)). Lever 2 of the menu log, transferred. `Popover` wires `useClick`, `dismiss`, and `role` exactly as `Menu` does, and its outside-press is armed on `open`, so the trigger has no use for a reference while it is shut. It now stashes the node and registers it in a layout effect on the first open. A node swap after that open still forwards at once. Fifty closed popovers: 4.46 → 2.54 ms, **1.76× faster**. The panel still lands at its anchored position, on the first open and on every later one.
+
+**The deferral moves one render; it does not delete it.** `setReference` is a state setter, so the open now pays the shell re-render the mount used to pay. That is the `no rows` rung of the re-render table above: 0.103 ms, against 0.038 ms saved for each closed popover. The trade therefore pays from the third closed popover on a page, and a fan-out of fifty is a wide margin. A later open costs nothing, because both floating-ui setters compare the node before they set it. The first-open cost is reasoned from the bench above, not measured on `Popover` itself.
 
 **Not transferred to `Tooltip`.** `useHover` runs an effect keyed on `elements.domReference`, which binds its listeners to the reference node itself. Deferring registration there would break the hover close path and the safe-polygon handling, so `TooltipTrigger` needs its reference at mount.
 

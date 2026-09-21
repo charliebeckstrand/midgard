@@ -20,10 +20,13 @@ import { useComposedRef } from './use-composed-ref'
  * unmount and it nulls every input ref alike.
  *
  * @remarks A caller can pass its own capture function here rather than the
- * engine's setter, and register the node later. {@link MenuTrigger} and
- * {@link MenuSub} defer registration to the first open, so a closed menu
- * renders once instead of twice. The contract above holds for whatever
- * callback this parameter receives.
+ * engine's setter, and register the node later. {@link MenuTrigger},
+ * {@link MenuSub}, and {@link PopoverTrigger} defer registration to the first
+ * open, so a closed one renders once instead of twice. A trigger whose
+ * interactions bind to the reference node must not defer: floating-ui keys
+ * `useHover`'s listener effect on `elements.domReference`, so
+ * {@link TooltipTrigger} registers at mount. The contract above holds for
+ * whatever callback this parameter receives.
  *
  * @param setReference - The floating element's reference setter, or a caller's
  * own stand-in for it.
