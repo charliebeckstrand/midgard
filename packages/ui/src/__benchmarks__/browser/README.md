@@ -269,3 +269,29 @@ Mean ms per press, and per sweep, in Chromium.
 ### Optimization log
 
 1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.018 → 0.013 ms at 8 rows, 0.022 → 0.014 at 24, 0.031 → 0.014 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 1.99 → 0.90 ms, **2.20× faster**. Both halves were measured against this bench as it now stands. The prior file was restored and re-run, rather than compared against a figure from an earlier session.
+
+## Icons
+
+`Icon` wraps a lucide element, and every menu row, button affix, nav item, and badge can carry one. This rung says whose cost that is.
+
+### Methodology
+
+[`icon-mount.bench.tsx`](icon-mount.bench.tsx) builds the same 24 glyphs five ways, each one step further from the bare element, and mounts and tears down each way. A mount is what a reader pays for an icon, and no memo helps a mount, so no rung re-renders. `empty spans` carries the host, the React root, and 24 trivial elements, so every later rung reads against it.
+
+### Findings (2026-09-21, this container)
+
+Mean ms for 24 glyphs, in Chromium. Each figure is the median of four runs, because the steps here are small enough that one run cannot separate them.
+
+| Rung | Median | Step | Per icon |
+| --- | ---: | ---: | ---: |
+| empty spans | 0.100 | — | — |
+| plain svg | 0.321 | 0.222 | 0.0092 |
+| lucide bare | 0.435 | 0.114 | 0.0047 |
+| Icon + lucide | 0.469 | 0.034 | 0.0014 |
+| Icon + lucide · numeric size | 0.483 | 0.015 | 0.0006 |
+
+**An icon costs about 0.015 ms, and the SVG elements are most of it.** Building the elements is 0.0092 ms per glyph and lucide's own wrapper another 0.0047 ms. Twenty-four icons cost 0.37 ms above a bare span. A 24-row menu with an icon on every row therefore pays about a third of a millisecond for the set.
+
+**This package's wrapper does not separate from the noise.** The `Icon` step is 0.034 ms over 24 glyphs, and `lucide bare` alone swings 0.411 to 0.470 across the four runs. The step is smaller than the spread of the rung it is measured against, so read it as an upper bound, not as a figure. The numeric-size branch, which also builds a `style` object, sits the same way.
+
+**The jsdom ratio is the engine again.** The jsdom menu suite reads a row with an icon at twice the cost of a row without one. The same tree costs 2.90 ms in jsdom and 0.37 ms here — 7.9× — because jsdom builds DOM and resolves style in JavaScript. No change is warranted. `Icon` is a `cloneElement` and a memoized `cn` call, and the numbers say so.
