@@ -265,7 +265,10 @@ export function Listbox<T>({
 
 			triggerRef.current?.focus()
 		},
-		[context],
+		// The handler, not the context that holds it: the engine rebuilds
+		// `context` on every reposition, while `onOpenChange` keeps one identity
+		// for the mount (see {@link useFloatingOutsidePress}).
+		[context.onOpenChange],
 	)
 
 	// Marks the bound field touched when focus leaves the widget; a blur into the

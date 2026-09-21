@@ -213,10 +213,15 @@ export function useDatePickerState({
 	// Public open-change entry: routes through floating-ui's context so a
 	// caller-supplied close reason reaches `useFloatingPanel`'s reason-aware
 	// focus return.
+	//
+	// The dependency is the handler, not the context that holds it. The engine
+	// rebuilds `context` on every reposition, while `onOpenChange` keeps one
+	// identity for the mount (see {@link useFloatingOutsidePress}), so naming
+	// the whole object would re-identify this callback as the panel moves.
 	const onOpenChange = useCallback(
 		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) =>
 			context.onOpenChange(nextOpen, event, reason),
-		[context],
+		[context.onOpenChange],
 	)
 
 	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`;
