@@ -14,9 +14,11 @@
  * The rove and sweep scenarios drive one mounted, open menu across every
  * iteration, and both walk the level's cursor over the rows. The rove re-reads
  * the panel's item list per press, so an O(rows) per-event cost surfaces
- * there. The sweep addresses its row directly, so its rungs must hold flat per
- * move. A sweep visits every row once, so a rung still grows with the row
- * count.
+ * there. The sweep addresses its row directly and holds flat per move in a real
+ * engine (`browser/menu-pointer.bench.tsx`). It does not hold flat here,
+ * because the one query it still makes is `querySelector`, which jsdom runs in
+ * JavaScript over the panel's subtree. Read these rungs against each other,
+ * not as a per-move cost.
  *
  * Read the rove and typeahead rungs as jsdom figures, not as what a reader
  * pays. Both call `getComputedStyle` while they look for a scroll container,
