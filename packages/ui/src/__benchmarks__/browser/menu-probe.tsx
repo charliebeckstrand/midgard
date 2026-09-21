@@ -9,6 +9,9 @@
  * not the cost of opening it. Nothing here settles a frame inside a timed
  * region, so no sample reads the frame period rather than the work.
  *
+ * `menu-open.bench.tsx` measures the open itself, and shares the `Dropdown`
+ * here rather than declaring a second one. It mounts the component closed.
+ *
  * The probes stay mounted for the whole run, so the document carries one
  * escape-layer listener and one outside-press listener per probe. Measured
  * against a run holding one probe alone, that costs the 8-row rung about 7%
@@ -41,20 +44,28 @@ function Rows({ count }: { count: number }) {
 	)
 }
 
-/** One open dropdown. Focus rests on the trigger, so the rows rove by `aria-activedescendant`. */
-function Dropdown({
+/**
+ * One dropdown, open by default. Focus rests on the trigger, so the rows rove
+ * by `aria-activedescendant`.
+ *
+ * @param open - Mount the panel open. Pass `false` for a closed menu a bench
+ * then clicks open, which is what `menu-open.bench.tsx` measures.
+ */
+export function Dropdown({
 	count,
 	capped,
 	panel,
 	submenu = false,
+	open = true,
 }: {
 	count: number
 	capped: boolean
 	panel: string
 	submenu?: boolean
+	open?: boolean
 }) {
 	return (
-		<Menu placement="bottom-start" defaultOpen capped={capped}>
+		<Menu placement="bottom-start" defaultOpen={open} capped={capped}>
 			<MenuTrigger className={`${panel}-trigger`}>Options</MenuTrigger>
 
 			<MenuContent className={panel}>
