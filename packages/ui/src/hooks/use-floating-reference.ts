@@ -19,7 +19,14 @@ import { useComposedRef } from './use-composed-ref'
  * `useMergeRefs` returns no cleanup of its own, so React calls it with `null` on
  * unmount and it nulls every input ref alike.
  *
- * @param setReference - The floating element's reference setter.
+ * @remarks A caller can pass its own capture function here rather than the
+ * engine's setter, and register the node later. {@link MenuTrigger} and
+ * {@link MenuSub} defer registration to the first open, so a closed menu
+ * renders once instead of twice. The contract above holds for whatever
+ * callback this parameter receives.
+ *
+ * @param setReference - The floating element's reference setter, or a caller's
+ * own stand-in for it.
  * @param triggerRef - The trigger's own ref, or `undefined` where it keeps none.
  * @param childRef - A cloned child's `ref`, or `undefined` where there is no child.
  * @returns One callback ref for the trigger node.

@@ -176,6 +176,34 @@ function applyVirtualActiveDom(
 }
 
 /**
+ * Element-addressed counterpart to {@link setVirtualActive}, for a caller that
+ * already holds the row. It marks `row` active inside `container` and repoints
+ * the owner's `aria-activedescendant`.
+ *
+ * @remarks
+ * {@link setVirtualActive} takes an index into a list. A pointer arrival has to
+ * build that list and search it for its own row. The callee then scans the list
+ * again for the row that was active. This one takes the row, so the build and
+ * the search go. It reads the previous row off `container` in one engine-side
+ * query.
+ *
+ * `row` must carry an `id`, because that is what `aria-activedescendant` points
+ * at. A row without one leaves the highlight where it is.
+ *
+ * @internal
+ */
+export function setVirtualActiveElement(
+	container: HTMLElement | null,
+	row: HTMLElement,
+	activeDescendantRef?: RefObject<HTMLElement | null>,
+	{ ariaSelected = true }: { ariaSelected?: boolean } = {},
+): void {
+	if (!row.id) return
+
+	applyVirtualActiveDom(container, row.id, activeDescendantRef, ariaSelected)
+}
+
+/**
  * The in-flight mount watcher per container. Each navigation owns at most one.
  * {@link setVirtualActiveIndexed} disconnects the previous one up front, so a
  * superseded watcher doesn't linger (or stack) waiting for a mutation that

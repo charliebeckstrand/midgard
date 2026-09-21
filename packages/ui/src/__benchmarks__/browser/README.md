@@ -1,6 +1,6 @@
 # Competitive benchmarks
 
-> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three suites; the jsdom benches one directory up keep localizing regressions, this suite keeps score.
+> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three. It also runs the scenarios that keep no score against a rival and are here because jsdom cannot price them — the menu, tooltip, and PDF-viewer benches. The jsdom benches one directory up keep localizing regressions; this suite sizes them.
 
 ## Why a browser suite
 
@@ -237,3 +237,100 @@ Probed and rejected — **a direct projection walk in place of d3's stream**. Th
 Probed, not landed: lazy value labels (the chart's lever 7 shape — `regionValueLabels` off the urgent render) measured ~2.7ms on the choropleth mount, the default `String` format being nothing like the chart's per-cell `Intl` work; dropping the `hover:brightness-110` filter measured ~1.1ms of the states sweep; the destroy half of the mount-plus-teardown scenarios measured ~10ms of ~150. Each priced below its complexity. Path precision was already spent when the module landed (`REGION_PATH_DIGITS = 1` — the chart's lever 6 shape).
 
 Open: nothing stands beaten against the module by mean — the states hover sweep's residual median gap (~17 vs ~13, the settle frame around a committing iteration) is the last trace of the React-commit-per-crossing trade, shared with the chart suite's scatter hover.
+
+## Menus
+
+This suite keeps no standings. `Menu` has no contender here. It runs in a browser because jsdom prices two of its paths wrong.
+
+### Methodology
+
+Every probe ([`menu-probe.tsx`](menu-probe.tsx)) mounts one open dropdown. It settles three frames, so the engine has placed the panel. It then hands the bench that menu's trigger and its rows. Focus rests on the trigger, so the rows rove by `aria-activedescendant` — the model the jsdom suite also drives. Nothing settles a frame inside a timed region, so no sample reads the frame period rather than the work. The row centres are resolved at mount, so no sample carries the layout read that resolving them needs.
+
+- [`menu-keyboard.bench.tsx`](menu-keyboard.bench.tsx) — one `keydown` on the trigger. `dispatch only` carries a key no handler acts on, and is the floor to subtract. Each row count runs twice, capped and uncapped. A capped panel has a real scroller for the roving move to find. An uncapped one — the default — has none.
+
+- [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then also measures that panel, to read the pointer's course.
+
+- [`menu-mount.bench.tsx`](menu-mount.bench.tsx) — fifty closed menus, mounted and torn down. Four rungs ladder the shell apart, each containing the one above it, so a step is what that layer costs across the whole fan-out. A second scenario mounts one open 24-row panel, plain and with six of its rows as submenus. The step over six is what one `MenuSub` costs above the `MenuItem` it replaces.
+
+### Findings (2026-09-21, this container)
+
+Mean ms per press, and per sweep, in Chromium.
+
+| Scenario | 8 rows | 24 rows | 64 rows |
+| --- | ---: | ---: | ---: |
+| `keydown`, no handler acts | — | 0.017 | — |
+| ArrowDown · uncapped | 0.106 | 0.110 | 0.128 |
+| ArrowDown · capped | 0.111 | 0.119 | 0.132 |
+| typeahead · one letter | 0.224 | 0.182 | 0.191 |
+| pointer sweep · one pass | 0.106 | 0.324 | 0.903 |
+
+**The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.12 ms for the whole press, 0.10 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by under 0.02 ms. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
+
+**The travel triangle is free.** A 24-row sweep costs 0.324 ms with no submenu open. With one open it costs 0.327 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
+
+### Fan-out: what a closed menu costs (2026-09-21, this container)
+
+A grid puts a filter menu on every column and an action menu on every row. The closed menu is therefore the one a page multiplies. Mean ms for 50, median of three runs.
+
+| Rung | Before | After | Step after | Per menu |
+| --- | ---: | ---: | ---: | ---: |
+| 1 · bare buttons | 0.151 | 0.152 | — | — |
+| 2 · useMenuState only | 0.939 | 0.937 | 0.785 | 0.0157 |
+| 3 · trigger only (no panel to build) | 3.127 | 1.768 | 0.831 | 0.0166 |
+| 4 · closed menus (the real thing) | 3.347 | 1.953 | 0.185 | 0.0037 |
+
+**A closed menu cost 0.064 ms, which was 22× a bare button. It now costs 0.036 ms, or 12×.** Fifty went from 3.3 ms of mount to 2.0 ms. This one was never a jsdom artifact. The jsdom suite read the same fan-out at 10× a bare button and the browser read 22×, so jsdom understated it.
+
+**Two thirds of the original figure was `MenuTrigger`, and most of that was one wasted render.** `setReference` is a state setter, and the ref callback called it during the commit, so every closed menu rendered twice. That was counted on the component itself rather than inferred: `MenuTrigger` ran twice per closed menu before the change and once after. Lever 2 below is the fix.
+
+**The panel tree the portal discards is the smallest term, at 7%.** `MenuContent` and `FloatingSurface` build a viewport, a `Density`, and a `PopoverPanel` on every render, for a portal that renders none of them. Gating that construction would save under 0.003 ms per menu. That sits inside the run-to-run spread of the rung, so it is not worth the branch.
+
+What remains is the price of wiring floating-ui to a trigger. A page still pays it per menu, whether or not a reader opens one. The hook tree is now the largest term at 0.0157 ms. Reaching it means deferring the whole machinery to the first open, which is an architectural change to how `Menu` splits. It would need `useClick`'s trigger behaviour reproduced on the closed path, against a delicate keyboard model, for about another 0.016 ms per menu.
+
+### Submenu rows: the other multiplier (2026-09-21, this container)
+
+A submenu row lives inside the panel, so a menu pays for it on every open rather than once at mount. It carries a floating surface of its own. Mean ms for one open 24-row panel, median of three runs.
+
+| Scenario | Before | After |
+| --- | ---: | ---: |
+| plain rows | 3.932 | 3.899 |
+| 6 of them submenus | 4.886 | 4.443 |
+| **cost of one `MenuSub`** | **0.159** | **0.091** |
+
+**A `MenuSub` cost 0.159 ms above the `MenuItem` it replaces, and now costs 0.091 ms.** It rendered twice for the same reason the root trigger did, and lever 3 below is the same fix one level down. An open menu carrying six of them saves 0.44 ms per open.
+
+What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, a `useScrollOverflow`, and a closed floating surface. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
+
+### Optimization log
+
+1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.018 → 0.013 ms at 8 rows, 0.022 → 0.014 at 24, 0.031 → 0.014 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 1.99 → 0.90 ms, **2.20× faster**. Both halves were measured against this bench as it now stands. The prior file was restored and re-run, rather than compared against a figure from an earlier session.
+
+2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency is unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe.
+
+3. **The same deferral on `MenuSub`** ([`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). A submenu row registered its own trigger with the engine at mount. Every one of them therefore rendered twice, inside a panel that had just opened. It now stashes the node and registers it on the submenu's first open, exactly as lever 2 does for the root. One `MenuSub`: 0.159 → 0.091 ms, **1.75× faster**, and a panel with six of them opens 0.44 ms sooner.
+
+## Icons
+
+`Icon` wraps a lucide element, and every menu row, button affix, nav item, and badge can carry one. This rung says whose cost that is.
+
+### Methodology
+
+[`icon-mount.bench.tsx`](icon-mount.bench.tsx) builds the same 24 glyphs five ways, each one step further from the bare element, and mounts and tears down each way. A mount is what a reader pays for an icon, and no memo helps a mount, so no rung re-renders. `empty spans` carries the host, the React root, and 24 trivial elements, so every later rung reads against it.
+
+### Findings (2026-09-21, this container)
+
+Mean ms for 24 glyphs, in Chromium. Each figure is the median of four runs, because the steps here are small enough that one run cannot separate them.
+
+| Rung | Median | Step | Per icon |
+| --- | ---: | ---: | ---: |
+| empty spans | 0.100 | — | — |
+| plain svg | 0.321 | 0.222 | 0.0092 |
+| lucide bare | 0.435 | 0.114 | 0.0047 |
+| Icon + lucide | 0.469 | 0.034 | 0.0014 |
+| Icon + lucide · numeric size | 0.483 | 0.015 | 0.0006 |
+
+**An icon costs about 0.015 ms, and the SVG elements are most of it.** Building the elements is 0.0092 ms per glyph and lucide's own wrapper another 0.0047 ms. Twenty-four icons cost 0.37 ms above a bare span. A 24-row menu with an icon on every row therefore pays about a third of a millisecond for the set.
+
+**This package's wrapper does not separate from the noise.** The `Icon` step is 0.034 ms over 24 glyphs, and `lucide bare` alone swings 0.411 to 0.470 across the four runs. The step is smaller than the spread of the rung it is measured against, so read it as an upper bound, not as a figure. The numeric-size branch, which also builds a `style` object, sits the same way.
+
+**The jsdom ratio is the engine again.** The jsdom menu suite reads a row with an icon at twice the cost of a row without one. The same tree costs 2.90 ms in jsdom and 0.37 ms here — 7.9× — because jsdom builds DOM and resolves style in JavaScript. No change is warranted. `Icon` is a `cloneElement` and a memoized `cn` call, and the numbers say so.

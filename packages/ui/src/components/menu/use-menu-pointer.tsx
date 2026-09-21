@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react'
 import { createContext } from '../../core'
-import { queryItems, setVirtualActive } from '../../hooks/a11y/use-a11y-roving'
+import { queryItems, setVirtualActiveElement } from '../../hooks/a11y/use-a11y-roving'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
 /**
@@ -236,13 +236,14 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 			if (row.dataset.active !== undefined) return
 
-			const items = queryItems(row.closest<HTMLElement>('[role="menu"]'), MENUITEM_SELECTOR)
-
-			const index = items.indexOf(row)
-
-			// `aria-selected` is not a `menuitem` state, so the highlight stays a
-			// pure cursor — matching the dropdown's own roving.
-			if (index !== -1) setVirtualActive(items, index, owner, { ariaSelected: false })
+			// Addressed by element, not by index: the arrival carries its own row,
+			// so reading the panel's whole item list back out to find that row's
+			// index would put three linear passes on a sweep that moves one
+			// attribute. `aria-selected` is not a `menuitem` state, so the
+			// highlight stays a pure cursor — matching the dropdown's own roving.
+			setVirtualActiveElement(row.closest<HTMLElement>('[role="menu"]'), row, owner, {
+				ariaSelected: false,
+			})
 		},
 		[virtual, owner],
 	)

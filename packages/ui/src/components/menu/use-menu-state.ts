@@ -124,9 +124,16 @@ export function useMenuState({
 	// reason so the disclosure's focus-return effect leaves focus where the Tab is
 	// carrying it — forward to the next tabbable, back with Shift+Tab — instead of
 	// snapping it back to the trigger and swallowing the keystroke.
+	//
+	// `context.onOpenChange`, not `context`: floating-ui rebuilds the context
+	// object on every reposition, and this callback feeds the `actions` memo that
+	// backs `MenuActionsContext`. Depending on the whole object would therefore
+	// re-identify that context on each `autoUpdate` tick and re-render every
+	// `MenuItem` under it. The handler itself holds one identity for the mount
+	// (see {@link useFloatingOutsidePress}), so naming it alone is safe.
 	const dismissToTab = useCallback(
 		(event: Event) => context.onOpenChange(false, event, 'focus-out'),
-		[context],
+		[context.onOpenChange],
 	)
 
 	// A dropdown keeps focus on its trigger, so its items rove by
