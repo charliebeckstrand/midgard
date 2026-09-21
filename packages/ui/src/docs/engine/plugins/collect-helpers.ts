@@ -9,11 +9,60 @@ type Helper = { name: string; code: string }
 // `__code` is never read — skip it rather than shipping the whole page source.
 const ENTRY_EXPORT = 'Demo'
 
-// Matches `return <Tag`, `return (<Tag`, `return <>`, `=> <Tag`, `=> (<Tag`, `=> <>`.
-// Identifier-prefixed `<` (e.g. `useState<string>()`) doesn't match; the
-// pattern requires `return` or `=>` immediately before the optional paren
-// and `<`.
-const JSX_RETURN = /(?:return|=>)\s*\(?\s*<[A-Za-z>]/
+/** Whether a node's subtree holds a JSX element or fragment. */
+function containsJsx(node: ts.Node): boolean {
+	if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node) || ts.isJsxFragment(node)) {
+		return true
+	}
+
+	// `forEachChild` yields the first truthy result its visitor returns, and
+	// `undefined` once every child answers false.
+	return node.forEachChild(containsJsx) ?? false
+}
+
+/**
+ * Whether a function renders JSX, which is the test for a component. An arrow's
+ * concise body counts, as does the expression of any `return` in a block body.
+ * A nested function's returns are its own, so the search for `return` stops at
+ * one. The returned expression is then searched whole, which is what lets
+ * `return items.map((i) => <Option />)` count.
+ *
+ * @remarks
+ * Replaces a `/(?:return|=>)\s*\(?\s*</` scan of the source text, which read
+ * neither through a ternary (`return deleted ? <Text /> : <HoldButton />`) nor
+ * past a comment between `=> (` and the tag. Both are ordinary demo shapes, and
+ * both left the helper without its `__code` — so its `<Example>` showed no code
+ * block at all.
+ */
+function rendersJsx(
+	fn: ts.ArrowFunction | ts.FunctionExpression | ts.FunctionDeclaration,
+): boolean {
+	const { body } = fn
+
+	if (!body) return false
+
+	if (!ts.isBlock(body)) return containsJsx(body)
+
+	let found = false
+
+	const visit = (node: ts.Node) => {
+		if (found) return
+
+		if (ts.isFunctionLike(node)) return
+
+		if (ts.isReturnStatement(node)) {
+			if (node.expression && containsJsx(node.expression)) found = true
+
+			return
+		}
+
+		node.forEachChild(visit)
+	}
+
+	visit(body)
+
+	return found
+}
 
 /**
  * A top-level declaration a helper can reference but which isn't itself a
@@ -27,11 +76,11 @@ type Preamble = { names: string[]; code: string }
  * Returns the PascalCase name of a JSX-returning arrow / function-expression
  * declarator (`const Demo = () => <X />`), or null when `decl` isn't one.
  *
- * The JSX test runs against the initializer's own source, not the surrounding
+ * The JSX test runs against the initializer alone, not the surrounding
  * statement: in `const A = () => <X />, B = somethingElse`, only A matches.
  * This predicate drives both helper collection and the preamble exclusion.
  */
-function jsxHelperName(decl: ts.VariableDeclaration, sf: ts.SourceFile): string | null {
+function jsxHelperName(decl: ts.VariableDeclaration): string | null {
 	if (!ts.isIdentifier(decl.name)) return null
 
 	if (!isPascalCase(decl.name.text)) return null
@@ -42,13 +91,13 @@ function jsxHelperName(decl: ts.VariableDeclaration, sf: ts.SourceFile): string 
 
 	if (!ts.isArrowFunction(init) && !ts.isFunctionExpression(init)) return null
 
-	if (!JSX_RETURN.test(init.getText(sf))) return null
+	if (!rendersJsx(init)) return null
 
 	return decl.name.text
 }
 
-function isJsxReturningVariableStatement(stmt: ts.VariableStatement, sf: ts.SourceFile): boolean {
-	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl, sf) !== null)
+function isJsxReturningVariableStatement(stmt: ts.VariableStatement): boolean {
+	return stmt.declarationList.declarations.some((decl) => jsxHelperName(decl) !== null)
 }
 
 /**
@@ -58,12 +107,12 @@ function isJsxReturningVariableStatement(stmt: ts.VariableStatement, sf: ts.Sour
  * declaration preambles: pulling one into a snippet would duplicate a whole
  * component the walker already renders.
  */
-export function isJsxHelperStatement(stmt: ts.Statement, sf: ts.SourceFile): boolean {
+export function isJsxHelperStatement(stmt: ts.Statement): boolean {
 	if (ts.isFunctionDeclaration(stmt) && stmt.name && isPascalCase(stmt.name.text) && stmt.body) {
-		return JSX_RETURN.test(stmt.getText(sf))
+		return rendersJsx(stmt)
 	}
 
-	if (ts.isVariableStatement(stmt)) return isJsxReturningVariableStatement(stmt, sf)
+	if (ts.isVariableStatement(stmt)) return isJsxReturningVariableStatement(stmt)
 
 	return false
 }
@@ -81,7 +130,7 @@ function collectPreambles(sf: ts.SourceFile): Preamble[] {
 		if (ts.isVariableStatement(stmt)) {
 			// JSX-returning helper statements belong to `collectHelpers`, not the
 			// preamble.
-			if (isJsxReturningVariableStatement(stmt, sf)) continue
+			if (isJsxReturningVariableStatement(stmt)) continue
 
 			const names: string[] = []
 
@@ -144,9 +193,9 @@ export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Help
 
 			if (isDefaultExport || stmt.name.text === ENTRY_EXPORT) continue
 
-			const code = stmt.getText(sf)
+			if (!rendersJsx(stmt)) continue
 
-			if (!JSX_RETURN.test(code)) continue
+			const code = stmt.getText(sf)
 
 			helpers.push({ name: stmt.name.text, code: prependReferencedPreamble(code, preambles) })
 
@@ -155,7 +204,7 @@ export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Help
 
 		if (ts.isVariableStatement(stmt)) {
 			for (const decl of stmt.declarationList.declarations) {
-				const name = jsxHelperName(decl, sf)
+				const name = jsxHelperName(decl)
 
 				if (!name || name === ENTRY_EXPORT) continue
 

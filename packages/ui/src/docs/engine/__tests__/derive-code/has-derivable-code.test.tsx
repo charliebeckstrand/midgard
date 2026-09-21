@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { defaultRegistry, deriveCode, hasDerivableCode } from '../../derive-code'
 import type { ComponentInfo, ComponentRegistry } from '../../derive-code/types'
-import { external, tag } from './helpers'
+import { external, snippet, tag } from './helpers'
 
 // `hasDerivableCode` exists to answer "would `deriveCode` return anything?"
 // without paying for the derivation, so every case here asserts the two agree.
@@ -70,5 +70,53 @@ describe('hasDerivableCode', () => {
 		}
 
 		expect(agrees(<Icon />, registry)).toBe(true)
+	})
+
+	// The shape most demos take: `<Example><ClosableExample /></Example>`, where
+	// the helper is demo-local and its components appear only inside the
+	// build-time snippet.
+	const snippetRegistry: ComponentRegistry = {
+		...defaultRegistry,
+		byName: new Map<string, ComponentInfo>([['Alert', { name: 'Alert', module: 'alert' }]]),
+	}
+
+	it('finds a recognized component inside a childless helper snippet', () => {
+		const Helper = snippet<Record<string, never>>(
+			'function Helper() {\n\treturn <Alert severity="success" />\n}',
+		)
+
+		expect(agrees(<Helper />, snippetRegistry)).toBe(true)
+	})
+
+	it('finds a React hook call inside a childless helper snippet', () => {
+		const Helper = snippet<Record<string, never>>(
+			'function Helper() {\n\tconst [open, setOpen] = useState(false)\n\n\treturn <p>{open}</p>\n}',
+		)
+
+		expect(agrees(<Helper />, snippetRegistry)).toBe(true)
+	})
+
+	it('reports nothing for a snippet naming no recognized component or hook', () => {
+		const Helper = snippet<Record<string, never>>('function Helper() {\n\treturn <Unknown />\n}')
+
+		expect(agrees(<Helper />, snippetRegistry)).toBe(false)
+	})
+
+	// `renderElement` reads the snippet only when the element has no children;
+	// with children it renders those in the helper's place. The probe follows,
+	// so a helper wrapping plain markup stays `false` however rich its snippet.
+	it('descends a helper with children instead of reading its snippet', () => {
+		const Helper = snippet<{ children?: React.ReactNode }>(
+			'function Helper({ children }) {\n\treturn <Alert>{children}</Alert>\n}',
+		)
+
+		expect(
+			agrees(
+				<Helper>
+					<span>plain</span>
+				</Helper>,
+				snippetRegistry,
+			),
+		).toBe(false)
 	})
 })

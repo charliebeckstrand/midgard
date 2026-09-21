@@ -545,6 +545,32 @@ const HOOK_RE = new RegExp(`(?<!\\.)\\b(${[...HOOK_MODULES.keys()].join('|')})\\
 const TAG_RE = /<([A-Z][\w]*)/g
 
 /**
+ * Whether the build-time snippet on `type` would register at least one import.
+ * The walk answers this by mutating its `Context`; {@link hasDerivableCode} has
+ * none to mutate, so it asks here against a scratch one. A snippet that names
+ * no recognized component and calls no hook contributes nothing, and leaves the
+ * block hidden.
+ */
+export function snippetHasImports(type: unknown, registry: ComponentRegistry): boolean {
+	const snippet = readSnippet(type)
+
+	if (snippet === null) return false
+
+	const context: Context = {
+		registry,
+		imports: new Map(),
+		externalModules: new Set(),
+		packageName: registry.packageName,
+		factTexts: [],
+		pulledDecls: new Set(),
+	}
+
+	collectSnippetImports(snippet, context)
+
+	return context.imports.size > 0
+}
+
+/**
  * Register imports for anything the snippet references: UI components via
  * JSX opening tags, and React hooks via bare identifier use. `addImport`
  * dedupes per-(module,name).

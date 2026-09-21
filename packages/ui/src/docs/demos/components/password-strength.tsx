@@ -29,7 +29,7 @@ function BasicExample() {
 	)
 }
 
-function MeterOnlyExample() {
+function WithoutRulesExample() {
 	const [value, setValue] = useState('')
 
 	return (
@@ -77,12 +77,12 @@ function CustomRulesExample() {
 export function Demo() {
 	return (
 		<>
-			<Example title="With password input">
+			<Example title="With rules">
 				<BasicExample />
 			</Example>
 
-			<Example title="Meter only">
-				<MeterOnlyExample />
+			<Example title="Without rules">
+				<WithoutRulesExample />
 			</Example>
 
 			<Example title="Custom rules">

@@ -29,6 +29,19 @@ export function external<P>(name: string): FunctionComponent<P> {
 }
 
 /**
+ * A stand-in for a demo-local helper component, carrying the `__code` source
+ * the docs plugin's `pre` transform attaches. It has no build-time tag, so the
+ * walk renders `code` verbatim and reads the snippet's imports from it.
+ */
+export function snippet<P>(code: string): FunctionComponent<P> {
+	const Component: FunctionComponent<P> = () => null
+
+	Object.assign(Component, { __code: code })
+
+	return Component
+}
+
+/**
  * Builds a fresh `Context` with an empty import accumulator. `byType` defaults
  * to the production tag reader (`defaultRegistry.byType`), resolving `tag()`
  * components; pass `byName` to resolve snippet tag names and `external()`

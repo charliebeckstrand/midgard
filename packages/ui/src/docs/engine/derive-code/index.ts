@@ -18,6 +18,7 @@ import {
 	resolvePreamble,
 	resolveType,
 	resolveTypeIn,
+	snippetHasImports,
 } from './internals'
 import { defaultRegistry } from './registry'
 import type { ComponentRegistry, Context, SourceFacts } from './types'
@@ -98,49 +99,53 @@ export function deriveCode(
 
 /**
  * Whether {@link deriveCode} would produce anything for this subtree — that is,
- * whether it holds at least one component the docs recognize.
+ * whether anything in it registers an import.
  *
  * `deriveCode` returns `null` exactly when its walk collected no imports, so
- * finding one recognized element answers the question. This short-circuits
- * there instead of rendering the whole JSX string, resolving a preamble, and
- * possibly walking a second pass for the consistency rule.
+ * finding one element that contributes answers the question. This
+ * short-circuits there instead of rendering the whole JSX string, resolving a
+ * preamble, and possibly walking a second pass for the consistency rule.
  *
- * Resolution goes through the same {@link resolveTypeIn} the real walk uses. A
- * tagged library component and an external one matched by `displayName` (a
- * lucide icon, say) both count. To read the tags alone would hide the code
- * trigger on an icons-only demo.
+ * The walk mirrors `renderElement`'s three cases. A recognized type imports
+ * itself. An unrecognized type with children renders those in its place, so the
+ * walk descends. An unrecognized type without children falls back to its
+ * `__code` snippet, whose imports {@link snippetHasImports} weighs.
+ *
+ * Resolution goes through the same {@link resolveTypeIn} the walk uses. To read
+ * the build-time tags alone would miss an external component, which carries
+ * only a `displayName`, and hide the code trigger on an icons-only demo. The
+ * snippet case carries the demo-local helper, which reaches an import no other
+ * way: `<Example><ClosableExample /></Example>`.
  *
  * @remarks
- * Descends `children` only. `deriveCode` also collects imports from
- * element-valued props and from `__code` snippets. A demo whose *only*
- * recognized component reaches it by one of those paths thus reports `false`.
- * Both are rare next to the walk this covers, and the failure is a hidden code
- * block rather than a broken one.
+ * Element-valued props and {@link SourceFacts} need no case of their own.
+ * `renderElement` reads both only from an element it has already recognized,
+ * which answers `true` on its own.
  */
 export function hasDerivableCode(
 	children: ReactNode,
 	registry: ComponentRegistry = defaultRegistry,
 ): boolean {
-	const stack: ReactNode[] = [children]
+	const stack: ReactNode[] = Children.toArray(children)
 
 	while (stack.length > 0) {
 		const node = stack.pop()
-
-		if (Array.isArray(node)) {
-			// Not `push(...node)`: a spread passes each entry as an argument and
-			// blows the call-argument ceiling on a large array.
-			for (const child of node) stack.push(child)
-
-			continue
-		}
 
 		if (!isValidElement(node)) continue
 
 		if (resolveTypeIn(registry, node.type) !== undefined) return true
 
-		const { children: nested } = node.props as { children?: ReactNode }
+		const nested = elementChildren(node)
 
-		if (nested !== undefined) stack.push(nested)
+		if (nested.length > 0) {
+			// Not `push(...nested)`: a spread passes each entry as an argument and
+			// blows the call-argument ceiling on a large array.
+			for (const child of nested) stack.push(child)
+
+			continue
+		}
+
+		if (snippetHasImports(node.type, registry)) return true
 	}
 
 	return false
