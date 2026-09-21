@@ -250,7 +250,7 @@ Every probe ([`menu-probe.tsx`](menu-probe.tsx)) mounts one open dropdown. It se
 
 - [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then also measures that panel, to read the pointer's course.
 
-- [`menu-mount.bench.tsx`](menu-mount.bench.tsx) — fifty closed menus, mounted and torn down. Four rungs ladder the shell apart, each containing the one above it, so a step is what that layer costs across the whole fan-out.
+- [`menu-mount.bench.tsx`](menu-mount.bench.tsx) — fifty closed menus, mounted and torn down. Four rungs ladder the shell apart, each containing the one above it, so a step is what that layer costs across the whole fan-out. A second scenario mounts one open 24-row panel, plain and with six of its rows as submenus. The step over six is what one `MenuSub` costs above the `MenuItem` it replaces.
 
 ### Findings (2026-09-21, this container)
 
@@ -287,11 +287,27 @@ A grid puts a filter menu on every column and an action menu on every row. The c
 
 What remains is the price of wiring floating-ui to a trigger. A page still pays it per menu, whether or not a reader opens one. The hook tree is now the largest term at 0.0157 ms. Reaching it means deferring the whole machinery to the first open, which is an architectural change to how `Menu` splits. It would need `useClick`'s trigger behaviour reproduced on the closed path, against a delicate keyboard model, for about another 0.016 ms per menu.
 
+### Submenu rows: the other multiplier (2026-09-21, this container)
+
+A submenu row lives inside the panel, so a menu pays for it on every open rather than once at mount. It carries a floating surface of its own. Mean ms for one open 24-row panel, median of three runs.
+
+| Scenario | Before | After |
+| --- | ---: | ---: |
+| plain rows | 3.932 | 3.899 |
+| 6 of them submenus | 4.886 | 4.443 |
+| **cost of one `MenuSub`** | **0.159** | **0.091** |
+
+**A `MenuSub` cost 0.159 ms above the `MenuItem` it replaces, and now costs 0.091 ms.** It rendered twice for the same reason the root trigger did, and lever 3 below is the same fix one level down. An open menu carrying six of them saves 0.44 ms per open.
+
+What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, a `useScrollOverflow`, and a closed floating surface. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
+
 ### Optimization log
 
 1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.018 → 0.013 ms at 8 rows, 0.022 → 0.014 at 24, 0.031 → 0.014 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 1.99 → 0.90 ms, **2.20× faster**. Both halves were measured against this bench as it now stands. The prior file was restored and re-run, rather than compared against a figure from an earlier session.
 
 2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency is unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe.
+
+3. **The same deferral on `MenuSub`** ([`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). A submenu row registered its own trigger with the engine at mount. Every one of them therefore rendered twice, inside a panel that had just opened. It now stashes the node and registers it on the submenu's first open, exactly as lever 2 does for the root. One `MenuSub`: 0.159 → 0.091 ms, **1.75× faster**, and a panel with six of them opens 0.44 ms sooner.
 
 ## Icons
 

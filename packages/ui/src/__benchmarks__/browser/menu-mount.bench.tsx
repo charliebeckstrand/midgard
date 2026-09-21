@@ -14,11 +14,17 @@
  *
  * Read the gaps, not the rows. Each rung contains the one above it, so the step
  * between two is what that layer costs across the whole fan-out.
+ *
+ * The second scenario prices the other menu a page multiplies: a submenu row.
+ * It lives inside the panel, so a menu pays for it on every open rather than
+ * once at mount. It also carries a floating surface of its own. Its step over
+ * the plain rung, divided by the submenu count, is what one `MenuSub` costs
+ * above the `MenuItem` it replaces.
  */
 
 import type { ReactNode } from 'react'
 import { bench, describe } from 'vitest'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSub, MenuTrigger } from '../../components/menu'
 import { useMenuState } from '../../components/menu/use-menu-state'
 import { comboboxOptions } from '../fixtures'
 import { reactHost, WINDOW } from './harness'
@@ -85,6 +91,54 @@ const RUNGS: [string, (key: string) => ReactNode][] = [
 		),
 	],
 ]
+
+/** Rows in the open panel of the submenu scenario, and how many of them are submenus. */
+const PANEL_ROWS = 24
+
+const SUBMENUS = 6
+
+const panelRows = comboboxOptions(PANEL_ROWS)
+
+/** One open menu whose last `subs` rows open submenus of their own. */
+function OpenPanel({ subs }: { subs: number }) {
+	return (
+		<Menu placement="bottom-start" defaultOpen>
+			<MenuTrigger>Options</MenuTrigger>
+
+			<MenuContent>
+				{panelRows.slice(subs).map((option) => (
+					<MenuItem key={option.value}>
+						<MenuLabel>{option.label}</MenuLabel>
+					</MenuItem>
+				))}
+
+				{panelRows.slice(0, subs).map((option) => (
+					<MenuSub key={option.value} label={option.label}>
+						<MenuItem>
+							<MenuLabel>Child</MenuLabel>
+						</MenuItem>
+					</MenuSub>
+				))}
+			</MenuContent>
+		</Menu>
+	)
+}
+
+describe(`menu · ${PANEL_ROWS} rows, open`, () => {
+	for (const subs of [0, SUBMENUS]) {
+		bench(
+			subs === 0 ? 'plain rows' : `${subs} of them submenus`,
+			() => {
+				const mounted = reactHost()
+
+				mounted.render(<OpenPanel subs={subs} />)
+
+				mounted.destroy()
+			},
+			WINDOW.slow,
+		)
+	}
+})
 
 describe(`menu · ${FAN_OUT} per mount, closed`, () => {
 	for (const [name, render] of RUNGS) {
