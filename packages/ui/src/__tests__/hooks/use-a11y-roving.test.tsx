@@ -6,6 +6,7 @@ import {
 	clearVirtualActiveIndexed,
 	queryItems,
 	setVirtualActive,
+	setVirtualActiveElement,
 	setVirtualActiveIndexed,
 	useA11yRoving,
 	type VirtualItemSource,
@@ -102,6 +103,96 @@ describe('setVirtualActive', () => {
 		expect(items[0]?.hasAttribute('data-active')).toBe(true)
 
 		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
+	})
+})
+
+describe('setVirtualActiveElement', () => {
+	// Attached, unlike the detached lists the index-addressed tests build:
+	// `aria-activedescendant` ids are document-unique by spec, so the lookup
+	// behind this path resolves through the document.
+	const attached: HTMLElement[] = []
+
+	let panels = 0
+
+	afterEach(() => {
+		for (const node of attached.splice(0)) node.remove()
+	})
+
+	function makePanel(count: number) {
+		const scope = `p${panels++}`
+
+		const panel = document.createElement('div')
+
+		panel.setAttribute('role', 'menu')
+
+		const rows = Array.from({ length: count }, (_, index) => {
+			const row = document.createElement('button')
+
+			row.setAttribute('role', 'menuitem')
+
+			row.id = `${scope}-row-${index}`
+
+			panel.append(row)
+
+			return row
+		})
+
+		const owner = document.createElement('button')
+
+		document.body.append(panel, owner)
+
+		attached.push(panel, owner)
+
+		return { panel, rows, owner, scope }
+	}
+
+	/** The options every menu call passes: `aria-selected` is not a `menuitem` state. */
+	const asCursor = { ariaSelected: false }
+
+	it('moves data-active off the previous row and repoints the owner', () => {
+		const { panel, rows, owner, scope } = makePanel(3)
+
+		setVirtualActiveElement(panel, rows[0] as HTMLElement, { current: owner }, asCursor)
+
+		expect(rows[0]?.hasAttribute('data-active')).toBe(true)
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe(`${scope}-row-0`)
+
+		setVirtualActiveElement(panel, rows[2] as HTMLElement, { current: owner }, asCursor)
+
+		expect(rows[0]?.hasAttribute('data-active')).toBe(false)
+
+		expect(rows[2]?.hasAttribute('data-active')).toBe(true)
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe(`${scope}-row-2`)
+	})
+
+	it('leaves aria-selected alone, because it is not a menuitem state', () => {
+		const { panel, rows, owner } = makePanel(2)
+
+		setVirtualActiveElement(panel, rows[0] as HTMLElement, { current: owner }, asCursor)
+
+		expect(rows[0]?.hasAttribute('aria-selected')).toBe(false)
+	})
+
+	it('leaves the highlight where it is for a row carrying no id', () => {
+		const { panel, rows, owner, scope } = makePanel(2)
+
+		setVirtualActiveElement(panel, rows[0] as HTMLElement, { current: owner }, asCursor)
+
+		const anonymous = document.createElement('button')
+
+		anonymous.setAttribute('role', 'menuitem')
+
+		panel.append(anonymous)
+
+		setVirtualActiveElement(panel, anonymous, { current: owner }, asCursor)
+
+		expect(rows[0]?.hasAttribute('data-active')).toBe(true)
+
+		expect(anonymous.hasAttribute('data-active')).toBe(false)
+
+		expect(owner.getAttribute('aria-activedescendant')).toBe(`${scope}-row-0`)
 	})
 })
 

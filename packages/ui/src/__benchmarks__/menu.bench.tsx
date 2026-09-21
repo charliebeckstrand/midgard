@@ -12,9 +12,11 @@
  * menus against fifty bare buttons, the floor a closed menu cannot beat.
  *
  * The rove and sweep scenarios drive one mounted, open menu across every
- * iteration. Both walk the level's cursor over the rows. Both re-read the
- * panel's item list per event, so an O(rows) per-event cost surfaces here. A
- * sweep visits every row once, so it pays that cost per row.
+ * iteration, and both walk the level's cursor over the rows. The rove re-reads
+ * the panel's item list per press, so an O(rows) per-event cost surfaces
+ * there. The sweep addresses its row directly, so its rungs must hold flat per
+ * move. A sweep visits every row once, so a rung still grows with the row
+ * count.
  *
  * Read the rove and typeahead rungs as jsdom figures, not as what a reader
  * pays. Both call `getComputedStyle` while they look for a scroll container,
@@ -47,11 +49,8 @@ import {
 	MenuSub,
 	MenuTrigger,
 } from '../components/menu'
-import { comboboxOptions } from './fixtures'
-import { mountBenches, persistentTree, rerenderBench } from './harness'
-
-/** The row counts every mount scenario sweeps: a toolbar menu, a column menu, an overflowing one. */
-const ROWS = [8, 24, 64] as const
+import { comboboxOptions, MENU_ROWS } from './fixtures'
+import { mountBench, mountBenches, persistentTree, rerenderBench } from './harness'
 
 /** Rows per section in the sectioned composition, and children per submenu. */
 const GROUP = 6
@@ -99,7 +98,7 @@ function Dropdown({
 
 describe('Menu · closed dropdown (panel not rendered)', () => {
 	mountBenches(
-		ROWS,
+		MENU_ROWS,
 		(count) => `${count} rows`,
 		(count) => (
 			<Dropdown>
@@ -111,7 +110,7 @@ describe('Menu · closed dropdown (panel not rendered)', () => {
 
 describe('Menu · open dropdown (panel portaled)', () => {
 	mountBenches(
-		ROWS,
+		MENU_ROWS,
 		(count) => `${count} rows · open`,
 		(count) => (
 			<Dropdown open>
@@ -125,7 +124,7 @@ describe('Menu · static inline (no portal, no positioning)', () => {
 	// `defaultOpen` with no `placement`: the panel renders in place. Held beside
 	// the open dropdown of the same size, the pair prices the floating layer.
 	mountBenches(
-		ROWS,
+		MENU_ROWS,
 		(count) => `${count} rows · static`,
 		(count) => (
 			<Menu defaultOpen>
@@ -138,48 +137,48 @@ describe('Menu · static inline (no portal, no positioning)', () => {
 })
 
 /** The row shapes a menu is written in, each one slot heavier than the last. */
-const COMPOSITIONS = [
-	['label only', (label: string) => <MenuLabel>{label}</MenuLabel>],
-	[
-		'label + icon',
-		(label: string) => (
+const COMPOSITIONS: { name: string; row: (label: string) => ReactNode }[] = [
+	{ name: 'label only', row: (label) => <MenuLabel>{label}</MenuLabel> },
+	{
+		name: 'label + icon',
+		row: (label) => (
 			<>
 				<Icon icon={<SquarePen />} />
 
 				<MenuLabel>{label}</MenuLabel>
 			</>
 		),
-	],
-	[
-		'label + shortcut',
-		(label: string) => (
+	},
+	{
+		name: 'label + shortcut',
+		row: (label) => (
 			<>
 				<MenuLabel>{label}</MenuLabel>
 
 				<MenuShortcut>⌘K</MenuShortcut>
 			</>
 		),
-	],
-	[
-		'label + description',
-		(label: string) => (
+	},
+	{
+		name: 'label + description',
+		row: (label) => (
 			<>
 				<MenuLabel>{label}</MenuLabel>
 
 				<MenuDescription>Applies to the current selection</MenuDescription>
 			</>
 		),
-	],
-] as const
+	},
+]
 
 describe('Menu · row composition (24 rows, open)', () => {
 	mountBenches(
 		COMPOSITIONS,
-		([name]) => name,
-		([, content]) => (
+		(composition) => composition.name,
+		(composition) => (
 			<Dropdown open>
 				{comboboxOptions(24).map((option) => (
-					<MenuItem key={option.value}>{content(option.label)}</MenuItem>
+					<MenuItem key={option.value}>{composition.row(option.label)}</MenuItem>
 				))}
 			</Dropdown>
 		),
@@ -187,29 +186,32 @@ describe('Menu · row composition (24 rows, open)', () => {
 })
 
 describe('Menu · row kind (24 rows, open)', () => {
-	// The three branches `MenuItem` renders through, plus the sectioned layout —
-	// a `<fieldset>` and `<legend>` per group, with a separator between.
+	// The three branches `MenuItem` renders through.
 	mountBenches(
-		['button', 'link', 'disabled', 'sectioned'] as const,
+		['button', 'link', 'disabled'] as const,
 		(kind) => `${kind} rows`,
 		(kind) => (
 			<Dropdown open>
-				{kind === 'sectioned' ? (
-					<Sections count={24} />
-				) : (
-					comboboxOptions(24).map((option) => (
-						<MenuItem
-							key={option.value}
-							href={kind === 'link' ? '#row' : undefined}
-							disabled={kind === 'disabled'}
-						>
-							<MenuLabel>{option.label}</MenuLabel>
-						</MenuItem>
-					))
-				)}
+				{comboboxOptions(24).map((option) => (
+					<MenuItem
+						key={option.value}
+						href={kind === 'link' ? '#row' : undefined}
+						disabled={kind === 'disabled'}
+					>
+						<MenuLabel>{option.label}</MenuLabel>
+					</MenuItem>
+				))}
 			</Dropdown>
 		),
 	)
+
+	// The sectioned layout renders a different tree, not a fourth row branch: a
+	// `<fieldset>` and `<legend>` per group, with a separator between.
+	mountBench('sectioned rows', () => (
+		<Dropdown open>
+			<Sections count={24} />
+		</Dropdown>
+	))
 })
 
 /** `count` rows grouped into headed sections of {@link GROUP}, divided by separators. */
@@ -332,14 +334,19 @@ function pressKey(target: HTMLElement, key: string) {
 	target.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key }))
 }
 
+/** One open menu, held for the run: the trigger keys arrive on, and the rows a sweep visits. */
+type Probe = { trigger: HTMLElement; rows: HTMLElement[] }
+
 /**
- * Mounts one open menu for the whole run and returns its rows. A dropdown's
- * panel portals out of the tree, so both models are reached by class.
+ * Mounts one open menu for the whole run. A dropdown's panel portals out of the
+ * tree, so the rows are reached by class rather than through the container.
+ * Every driven scenario shares these mounts, because each surplus menu leaves
+ * its rows and its dismiss listeners in the one document the others measure in.
  */
-function openRows(count: number, model: 'virtual' | 'focus'): HTMLElement[] {
+function openMenu(count: number, model: 'virtual' | 'focus'): Probe {
 	const panel = `menu-bench-${model}-${count}`
 
-	persistentTree(
+	const container = persistentTree(
 		model === 'virtual' ? (
 			<Dropdown open className={panel}>
 				<Rows count={count} />
@@ -353,14 +360,27 @@ function openRows(count: number, model: 'virtual' | 'focus'): HTMLElement[] {
 		),
 	)
 
-	return [...document.querySelectorAll<HTMLElement>(`.${panel} [role="menuitem"]`)]
+	return {
+		trigger: container.querySelector<HTMLElement>('[data-slot="menu-trigger"]') as HTMLElement,
+		rows: [...document.querySelectorAll<HTMLElement>(`.${panel} [role="menuitem"]`)],
+	}
+}
+
+/** The dropdown probes, shared by the sweep, the rove, and the typeahead scenarios. */
+const virtualProbes = new Map(MENU_ROWS.map((count) => [count, openMenu(count, 'virtual')]))
+
+const focusProbes = new Map(MENU_ROWS.map((count) => [count, openMenu(count, 'focus')]))
+
+/** The probe for `count`, which the maps above always hold. */
+function probeAt(probes: Map<number, Probe>, count: number): Probe {
+	return probes.get(count) as Probe
 }
 
 describe('Menu · pointer sweep · virtual cursor (dropdown)', () => {
-	// A dropdown keeps focus on its trigger, so each accepted arrival re-reads
-	// the panel's rows and re-stamps the `data-active` cursor.
-	for (const count of ROWS) {
-		const rows = openRows(count, 'virtual')
+	// A dropdown keeps focus on its trigger, so an arrival stamps the
+	// `data-active` cursor rather than moving focus.
+	for (const count of MENU_ROWS) {
+		const { rows } = probeAt(virtualProbes, count)
 
 		bench(`${count} rows · one pass`, () => {
 			rows.forEach(sweepTo)
@@ -370,8 +390,8 @@ describe('Menu · pointer sweep · virtual cursor (dropdown)', () => {
 
 describe('Menu · pointer sweep · real focus (static)', () => {
 	// Every other mode roves by real focus, so an arrival moves focus instead.
-	for (const count of ROWS) {
-		const rows = openRows(count, 'focus')
+	for (const count of MENU_ROWS) {
+		const { rows } = probeAt(focusProbes, count)
 
 		bench(`${count} rows · one pass`, () => {
 			rows.forEach(sweepTo)
@@ -381,19 +401,10 @@ describe('Menu · pointer sweep · real focus (static)', () => {
 
 describe('Menu · keyboard rove (dropdown, focus on trigger)', () => {
 	// Arrow presses arrive on the trigger and move the `aria-activedescendant`
-	// cursor. One pass walks the cursor down the whole panel.
-	for (const count of ROWS) {
-		const panel = `menu-rove-${count}`
-
-		const container = persistentTree(
-			<Dropdown open className={panel}>
-				<Rows count={count} />
-			</Dropdown>,
-		)
-
-		const trigger = container.querySelector<HTMLElement>(
-			'[data-slot="menu-trigger"]',
-		) as HTMLElement
+	// cursor. One pass walks the cursor down the whole panel. This is the one
+	// scenario that still re-reads the panel's item list per event.
+	for (const count of MENU_ROWS) {
+		const { trigger } = probeAt(virtualProbes, count)
 
 		bench(`${count} rows · ArrowDown ×${count}`, () => {
 			for (let step = 0; step < count; step++) pressKey(trigger, 'ArrowDown')
@@ -403,18 +414,10 @@ describe('Menu · keyboard rove (dropdown, focus on trigger)', () => {
 
 describe('Menu · typeahead (dropdown, focus on trigger)', () => {
 	// A printable key seeds the type-ahead buffer and scans the rows for a match.
-	for (const count of ROWS) {
-		const panel = `menu-typeahead-${count}`
-
-		const container = persistentTree(
-			<Dropdown open className={panel}>
-				<Rows count={count} />
-			</Dropdown>,
-		)
-
-		const trigger = container.querySelector<HTMLElement>(
-			'[data-slot="menu-trigger"]',
-		) as HTMLElement
+	// It reads the same mounted menus the rove scenario drives: typeahead seeds
+	// its own buffer and does not depend on where the cursor starts.
+	for (const count of MENU_ROWS) {
+		const { trigger } = probeAt(virtualProbes, count)
 
 		bench(`${count} rows · one letter`, () => {
 			pressKey(trigger, 'o')

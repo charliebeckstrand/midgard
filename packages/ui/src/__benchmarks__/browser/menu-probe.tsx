@@ -10,20 +10,36 @@
  * region, so no sample reads the frame period rather than the work.
  *
  * The probes stay mounted for the whole run, so the document carries one
- * escape-layer listener and one outside-press listener per probe. Each bails
- * on the first key comparison, and every rung pays the same set, so the cost
- * is symmetric across the report.
+ * escape-layer listener and one outside-press listener per probe. Measured
+ * against a run holding one probe alone, that costs the 8-row rung about 7%
+ * and the 64-row rung nothing, and no rung's standing moves. Every rung pays
+ * the same set, so the report stays symmetric.
  */
 
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSub, MenuTrigger } from '../../components/menu'
-import { comboboxOptions } from '../fixtures'
+import { comboboxOptions, MENU_ROWS } from '../fixtures'
 import { reactHost, settle } from './harness'
 
-/** Row counts every menu scenario sweeps: a toolbar menu, a column menu, an overflowing one. */
-export const ROWS = [8, 24, 64] as const
+export { MENU_ROWS }
 
-/** Rows inside each submenu of the corridor probe. */
+/** Rows inside the submenu of the corridor probe. */
 const SUBMENU_ROWS = 6
+
+/** Rows in the panel of the corridor probe, which its bench names as well. */
+export const CORRIDOR_ROWS = 24
+
+/** The rows a consumer writes: a label apiece. */
+function Rows({ count }: { count: number }) {
+	return (
+		<>
+			{comboboxOptions(count).map((option) => (
+				<MenuItem key={option.value}>
+					<MenuLabel>{option.label}</MenuLabel>
+				</MenuItem>
+			))}
+		</>
+	)
+}
 
 /** One open dropdown. Focus rests on the trigger, so the rows rove by `aria-activedescendant`. */
 function Dropdown({
@@ -37,8 +53,6 @@ function Dropdown({
 	panel: string
 	submenu?: boolean
 }) {
-	const rows = comboboxOptions(count)
-
 	return (
 		<Menu placement="bottom-start" defaultOpen capped={capped}>
 			<MenuTrigger className={`${panel}-trigger`}>Options</MenuTrigger>
@@ -46,35 +60,44 @@ function Dropdown({
 			<MenuContent className={panel}>
 				{submenu ? (
 					<MenuSub label="More" className={`${panel}-sub`}>
-						{comboboxOptions(SUBMENU_ROWS).map((option) => (
-							<MenuItem key={option.value}>
-								<MenuLabel>{option.label}</MenuLabel>
-							</MenuItem>
-						))}
+						<Rows count={SUBMENU_ROWS} />
 					</MenuSub>
 				) : null}
 
-				{rows.map((option) => (
-					<MenuItem key={option.value}>
-						<MenuLabel>{option.label}</MenuLabel>
-					</MenuItem>
-				))}
+				<Rows count={count} />
 			</MenuContent>
 		</Menu>
 	)
 }
 
-/** One open menu a bench drives: its trigger, its rows, and the points they sit at. */
+/** One open menu a bench drives: its trigger, and the point each row sits at. */
 export type Probe = {
 	trigger: HTMLElement
-	rows: HTMLElement[]
 	/** The centre of each row, resolved once so no sample pays for the layout read. */
 	points: { row: HTMLElement; x: number; y: number }[]
 }
 
-/** Every `[role="menuitem"]` inside the panel `panel` names, in DOM order. */
-function panelRows(panel: string): HTMLElement[] {
-	return [...document.querySelectorAll<HTMLElement>(`.${panel} [role="menuitem"]`)]
+/** The client point at the middle of `node`. */
+function centre(node: HTMLElement): [number, number] {
+	const rect = node.getBoundingClientRect()
+
+	return [rect.left + rect.width / 2, rect.top + rect.height / 2]
+}
+
+/** Reads the handles off the panel `panel` names, less `skip` — a submenu's own parent row. */
+function readProbe(panel: string, skip?: HTMLElement): Probe {
+	const rows = [...document.querySelectorAll<HTMLElement>(`.${panel} [role="menuitem"]`)]
+
+	return {
+		trigger: document.querySelector<HTMLElement>(`.${panel}-trigger`) as HTMLElement,
+		points: rows
+			.filter((row) => row !== skip)
+			.map((row) => {
+				const [x, y] = centre(row)
+
+				return { row, x, y }
+			}),
+	}
 }
 
 /**
@@ -86,23 +109,11 @@ function panelRows(panel: string): HTMLElement[] {
  * the wrapper's origin.
  */
 export async function openDropdown(count: number, capped: boolean, panel: string): Promise<Probe> {
-	const mounted = reactHost()
-
-	mounted.render(<Dropdown count={count} capped={capped} panel={panel} />)
+	reactHost().render(<Dropdown count={count} capped={capped} panel={panel} />)
 
 	await settle(3)
 
-	const rows = panelRows(panel)
-
-	return {
-		trigger: document.querySelector<HTMLElement>(`.${panel}-trigger`) as HTMLElement,
-		rows,
-		points: rows.map((row) => {
-			const rect = row.getBoundingClientRect()
-
-			return { row, x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-		}),
-	}
+	return readProbe(panel)
 }
 
 /**
@@ -112,41 +123,28 @@ export async function openDropdown(count: number, capped: boolean, panel: string
  *
  * @returns The sibling rows alone, so a sweep never lands back on the parent.
  */
-export async function openCorridor(count: number, panel: string): Promise<Probe> {
-	const mounted = reactHost()
-
-	mounted.render(<Dropdown count={count} capped={false} panel={panel} submenu />)
+export async function openCorridor(panel: string): Promise<Probe> {
+	reactHost().render(<Dropdown count={CORRIDOR_ROWS} capped={false} panel={panel} submenu />)
 
 	await settle(3)
 
 	const parent = document.querySelector<HTMLElement>(`.${panel}-sub`) as HTMLElement
 
-	pointerAt(parent, ...centre(parent))
+	pointerMove(parent, ...centre(parent))
 
 	await settle(3)
 
-	const rows = panelRows(panel).filter((row) => row !== parent)
-
-	return {
-		trigger: document.querySelector<HTMLElement>(`.${panel}-trigger`) as HTMLElement,
-		rows,
-		points: rows.map((row) => {
-			const [x, y] = centre(row)
-
-			return { row, x, y }
-		}),
-	}
+	return readProbe(panel, parent)
 }
 
-/** The client point at the middle of `node`. */
-function centre(node: HTMLElement): [number, number] {
-	const rect = node.getBoundingClientRect()
-
-	return [rect.left + rect.width / 2, rect.top + rect.height / 2]
-}
-
-/** One mouse `pointermove` at a point, the arrival a sweep across the panel makes. */
-export function pointerAt(row: HTMLElement, x: number, y: number) {
+/**
+ * One mouse `pointermove` at a point, the arrival a sweep across the panel
+ * makes. Deliberately not `harness.ts`'s own `pointerAt`, which also sends a
+ * `mousemove` to keep dispatch symmetric across competing libraries. A menu has
+ * no contender here, and the second event would inflate the dispatch floor the
+ * keyboard bench subtracts.
+ */
+export function pointerMove(row: HTMLElement, x: number, y: number) {
 	row.dispatchEvent(
 		new PointerEvent('pointermove', {
 			bubbles: true,

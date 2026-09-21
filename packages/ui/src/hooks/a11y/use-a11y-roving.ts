@@ -181,11 +181,11 @@ function applyVirtualActiveDom(
  * the owner's `aria-activedescendant`.
  *
  * @remarks
- * {@link setVirtualActive} takes an index into a list, and then scans that list
- * twice. One pass finds the row that was active. A second reads back the row at
- * the index. A pointer move has its row in hand, so both scans — and the query
- * that built the list — are work it does not need. This one reads the previous
- * row off `container` in a single engine-side query instead.
+ * {@link setVirtualActive} takes an index into a list. A pointer arrival has to
+ * build that list and search it for its own row. The callee then scans the list
+ * again for the row that was active. This one takes the row, so the build and
+ * the search go. It reads the previous row off `container` in one engine-side
+ * query.
  *
  * `row` must carry an `id`, because that is what `aria-activedescendant` points
  * at. A row without one leaves the highlight where it is.

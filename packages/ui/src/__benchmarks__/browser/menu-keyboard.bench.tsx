@@ -13,30 +13,49 @@
  * nothing. The gap between the two pairs is the cost of the fruitless walk.
  *
  * `dispatch only` is the floor to subtract: the same event on the same trigger,
- * carrying a key no handler acts on. What remains above it is the rove.
+ * carrying a key no handler acts on. What remains above it is the rove. It
+ * takes a menu of its own, so the rove rungs keep their own cursor.
  */
 
 import { bench, describe } from 'vitest'
 import { WINDOW } from './harness'
-import { openDropdown, pressKey, ROWS } from './menu-probe'
+import { MENU_ROWS, openDropdown, type Probe, pressKey } from './menu-probe'
 
-const uncapped = new Map<number, Awaited<ReturnType<typeof openDropdown>>>()
+/** One row count, mounted both ways, so the pair prices the walk at that size. */
+type Rung = { count: number; uncapped: Probe; capped: Probe }
 
-const capped = new Map<number, Awaited<ReturnType<typeof openDropdown>>>()
+const rungs: Rung[] = []
 
-for (const count of ROWS) {
-	uncapped.set(count, await openDropdown(count, false, `menu-key-plain-${count}`))
-
-	capped.set(count, await openDropdown(count, true, `menu-key-capped-${count}`))
+for (const count of MENU_ROWS) {
+	rungs.push({
+		count,
+		uncapped: await openDropdown(count, false, `menu-key-plain-${count}`),
+		capped: await openDropdown(count, true, `menu-key-capped-${count}`),
+	})
 }
 
-const floor = uncapped.get(24) as Awaited<ReturnType<typeof openDropdown>>
+const FLOOR_ROWS = 24
+
+const floor = await openDropdown(FLOOR_ROWS, false, 'menu-key-floor')
+
+/** Registers one press bench per rung, against the panel `pick` names. */
+function pressBenches(pick: (rung: Rung) => Probe, key: string, label: string) {
+	for (const rung of rungs) {
+		bench(
+			`${rung.count} rows · ${label}`,
+			() => {
+				pressKey(pick(rung).trigger, key)
+			},
+			WINDOW.settled,
+		)
+	}
+}
 
 describe('menu · keystroke floor', () => {
 	// A key the trigger's handler reads and passes over: React's own dispatch,
 	// the composed handlers, and nothing else.
 	bench(
-		'24 rows · dispatch only',
+		`${FLOOR_ROWS} rows · dispatch only`,
 		() => {
 			pressKey(floor.trigger, 'F9')
 		},
@@ -45,43 +64,13 @@ describe('menu · keystroke floor', () => {
 })
 
 describe('menu · keyboard rove · uncapped panel (the default)', () => {
-	for (const count of ROWS) {
-		const probe = uncapped.get(count) as Awaited<ReturnType<typeof openDropdown>>
-
-		bench(
-			`${count} rows · ArrowDown`,
-			() => {
-				pressKey(probe.trigger, 'ArrowDown')
-			},
-			WINDOW.settled,
-		)
-	}
+	pressBenches((rung) => rung.uncapped, 'ArrowDown', 'ArrowDown')
 })
 
 describe('menu · keyboard rove · capped panel (a real scroller)', () => {
-	for (const count of ROWS) {
-		const probe = capped.get(count) as Awaited<ReturnType<typeof openDropdown>>
-
-		bench(
-			`${count} rows · ArrowDown`,
-			() => {
-				pressKey(probe.trigger, 'ArrowDown')
-			},
-			WINDOW.settled,
-		)
-	}
+	pressBenches((rung) => rung.capped, 'ArrowDown', 'ArrowDown')
 })
 
 describe('menu · typeahead · uncapped panel', () => {
-	for (const count of ROWS) {
-		const probe = uncapped.get(count) as Awaited<ReturnType<typeof openDropdown>>
-
-		bench(
-			`${count} rows · one letter`,
-			() => {
-				pressKey(probe.trigger, 'o')
-			},
-			WINDOW.settled,
-		)
-	}
+	pressBenches((rung) => rung.uncapped, 'o', 'one letter')
 })

@@ -256,16 +256,16 @@ Mean ms per press, and per sweep, in Chromium.
 
 | Scenario | 8 rows | 24 rows | 64 rows |
 | --- | ---: | ---: | ---: |
-| `keydown`, no handler acts | — | 0.020 | — |
-| ArrowDown · uncapped | 0.118 | 0.118 | 0.132 |
-| ArrowDown · capped | 0.120 | 0.132 | 0.148 |
-| typeahead · one letter | 0.232 | 0.191 | 0.194 |
-| pointer sweep · one pass | 0.118 | 0.358 | 0.993 |
+| `keydown`, no handler acts | — | 0.017 | — |
+| ArrowDown · uncapped | 0.106 | 0.110 | 0.128 |
+| ArrowDown · capped | 0.111 | 0.119 | 0.132 |
+| typeahead · one letter | 0.224 | 0.182 | 0.191 |
+| pointer sweep · one pass | 0.106 | 0.324 | 0.903 |
 
 **The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.12 ms for the whole press, 0.10 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by under 0.02 ms. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
 
-**The travel triangle is free.** A 24-row sweep costs 0.358 ms with no submenu open. With one open it costs 0.359 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
+**The travel triangle is free.** A 24-row sweep costs 0.324 ms with no submenu open. With one open it costs 0.327 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
 
 ### Optimization log
 
-1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.019 → 0.015 ms at 8 rows, 0.024 → 0.015 at 24, 0.036 → 0.015 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 2.32 → 0.99 ms, **2.34× faster**.
+1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.018 → 0.013 ms at 8 rows, 0.022 → 0.014 at 24, 0.031 → 0.014 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 1.99 → 0.90 ms, **2.20× faster**. Both halves were measured against this bench as it now stands. The prior file was restored and re-run, rather than compared against a figure from an earlier session.

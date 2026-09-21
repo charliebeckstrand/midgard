@@ -18,24 +18,29 @@
 
 import { bench, describe } from 'vitest'
 import { WINDOW } from './harness'
-import { openCorridor, openDropdown, pointerAt, ROWS } from './menu-probe'
+import {
+	CORRIDOR_ROWS,
+	MENU_ROWS,
+	openCorridor,
+	openDropdown,
+	type Probe,
+	pointerMove,
+} from './menu-probe'
 
-const plain = new Map<number, Awaited<ReturnType<typeof openDropdown>>>()
+const plain: { count: number; probe: Probe }[] = []
 
-for (const count of ROWS) {
-	plain.set(count, await openDropdown(count, false, `menu-sweep-${count}`))
+for (const count of MENU_ROWS) {
+	plain.push({ count, probe: await openDropdown(count, false, `menu-sweep-${count}`) })
 }
 
-const corridor = await openCorridor(24, 'menu-corridor')
+const corridor = await openCorridor('menu-corridor')
 
 describe('menu · pointer sweep · no submenu open', () => {
-	for (const count of ROWS) {
-		const probe = plain.get(count) as Awaited<ReturnType<typeof openDropdown>>
-
+	for (const { count, probe } of plain) {
 		bench(
 			`${count} rows · one pass`,
 			() => {
-				for (const { row, x, y } of probe.points) pointerAt(row, x, y)
+				for (const { row, x, y } of probe.points) pointerMove(row, x, y)
 			},
 			WINDOW.settled,
 		)
@@ -43,12 +48,12 @@ describe('menu · pointer sweep · no submenu open', () => {
 })
 
 describe('menu · pointer sweep · submenu open (travel test runs)', () => {
-	// Every arrival here measures the open submenu panel, which the rung above
-	// never touches. Held beside `24 rows · one pass` it prices that read.
+	// Every arrival here measures the open submenu panel, which the rungs above
+	// never touch. Held beside the plain rung of the same size it prices that read.
 	bench(
-		'24 rows · one pass',
+		`${CORRIDOR_ROWS} rows · one pass`,
 		() => {
-			for (const { row, x, y } of corridor.points) pointerAt(row, x, y)
+			for (const { row, x, y } of corridor.points) pointerMove(row, x, y)
 		},
 		WINDOW.settled,
 	)
