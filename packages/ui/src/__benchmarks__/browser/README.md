@@ -250,6 +250,8 @@ Every probe ([`menu-probe.tsx`](menu-probe.tsx)) mounts one open dropdown. It se
 
 - [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then also measures that panel, to read the pointer's course.
 
+- [`menu-mount.bench.tsx`](menu-mount.bench.tsx) — fifty closed menus, mounted and torn down. Four rungs ladder the shell apart, each containing the one above it, so a step is what that layer costs across the whole fan-out.
+
 ### Findings (2026-09-21, this container)
 
 Mean ms per press, and per sweep, in Chromium.
@@ -265,6 +267,25 @@ Mean ms per press, and per sweep, in Chromium.
 **The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.12 ms for the whole press, 0.10 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by under 0.02 ms. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
 
 **The travel triangle is free.** A 24-row sweep costs 0.324 ms with no submenu open. With one open it costs 0.327 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
+
+### Fan-out: what a closed menu costs (2026-09-21, this container)
+
+A grid puts a filter menu on every column and an action menu on every row. The closed menu is therefore the one a page multiplies. Mean ms for 50, median of three runs.
+
+| Rung | Median | Step | Per menu |
+| --- | ---: | ---: | ---: |
+| 1 · bare buttons | 0.151 | — | — |
+| 2 · useMenuState only | 0.939 | 0.788 | 0.0158 |
+| 3 · trigger only (no panel to build) | 3.127 | 2.188 | 0.0438 |
+| 4 · closed menus (the real thing) | 3.347 | 0.220 | 0.0044 |
+
+**A closed menu costs 0.064 ms, which is 22× a bare button.** Fifty of them cost 3.3 ms of mount. This one is not a jsdom artifact: the jsdom suite reads the same fan-out at 10× a bare button, and the browser reads 22×.
+
+**Two thirds of it is `MenuTrigger`.** Within that step, attaching the merged reference ref costs about 0.016 ms per menu and the reference-props pass another 0.006. The ref is the expensive half for a reason worth naming. `setReference` is a state setter, called from the ref callback during commit, so **every closed menu renders twice**. That was counted directly rather than inferred: one closed menu renders twice with the reference ref attached and once without.
+
+**The panel tree the portal discards is the smallest term, at 7%.** `MenuContent` and `FloatingSurface` build a viewport, a `Density`, and a `PopoverPanel` on every render, for a portal that renders none of them. Gating that construction would save under 0.003 ms per menu. That sits inside the run-to-run spread of the rung, so it is not worth the branch.
+
+None of this is a mistake. It is the price of wiring floating-ui to a trigger, and a page pays it per menu whether or not a reader opens one. The lever is that a closed menu needs none of it: positioning, dismissal, and roving all begin at the first open. Deferring the machinery to that moment would reach about 60% of the figure. That is an architectural change to how `Menu` splits, not a local one.
 
 ### Optimization log
 
