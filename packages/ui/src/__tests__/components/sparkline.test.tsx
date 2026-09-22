@@ -89,7 +89,7 @@ describe('Sparkline', () => {
 
 		expect(after).toHaveLength(5)
 
-		// Keyed on x, a longer series moves every key and remounts the whole row.
+		// Keyed on x, a longer series would move every key and remount the whole row.
 		for (const [index, rect] of before.entries()) expect(after[index]).toBe(rect)
 	})
 
