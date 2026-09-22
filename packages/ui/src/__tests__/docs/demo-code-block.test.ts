@@ -3,9 +3,15 @@ import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
-import { defaultRegistry } from '../../docs/engine/derive-code'
-import { snippetHasImports } from '../../docs/engine/derive-code/internals'
-import { collectHelpers } from '../../docs/engine/plugins/collect-helpers'
+import { defaultRegistry, type ImportFact } from '../../docs/engine/derive-code'
+import {
+	collectSnippetImports,
+	createContext,
+	snippetHasImports,
+} from '../../docs/engine/derive-code/internals'
+import { wordRe } from '../../docs/engine/identifiers'
+import { collectHelpers, declaredNames } from '../../docs/engine/plugins/collect-helpers'
+import { importFacts } from '../../docs/engine/plugins/source-facts'
 import { namedImportsOf, parseSource } from '../../docs/engine/plugins/ts-source'
 import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
@@ -48,6 +54,9 @@ const EXAMPLE_TAG = 'Example'
 // show.
 const ALLOW_NO_CODE = new Set<string>([])
 
+/** What the docs plugin attaches to one helper: its `__code` and its `__imports`. */
+type Snippet = { code: string; imports: Record<string, ImportFact> }
+
 /**
  * One parsed demo: the helpers the docs plugin attaches `__code` to, the sibling
  * demo behind each imported name, and every named declaration — the targets an
@@ -55,7 +64,7 @@ const ALLOW_NO_CODE = new Set<string>([])
  */
 type Demo = {
 	file: ts.SourceFile
-	helpers: Map<string, string>
+	helpers: Map<string, Snippet>
 	imports: Map<string, { file: string; name: string }>
 	declarations: Map<string, ts.Node[]>
 }
@@ -70,7 +79,11 @@ function resolveDemo(from: string, specifier: string): string | undefined {
 function parseDemo(path: string, source: string): Demo {
 	const file = parseSource(path, source)
 
-	const helpers = new Map(collectHelpers(source, file).map(({ name, code }) => [name, code]))
+	const table = importFacts(file, { filePath: path, srcDir })
+
+	const helpers = new Map(
+		collectHelpers(source, file, table).map(({ name, code, imports }) => [name, { code, imports }]),
+	)
 
 	const imports = new Map<string, { file: string; name: string }>()
 
@@ -164,8 +177,8 @@ function collectNames(node: ts.Node, into: Names): void {
 	node.forEachChild((child) => collectNames(child, into))
 }
 
-/** The `__code` the plugin attaches to `tag`, following an import to a sibling demo. */
-function helperCode(tag: string, demo: Demo, demos: Map<string, Demo>): string | undefined {
+/** The snippet the plugin attaches to `tag`, following an import to a sibling demo. */
+function helperSnippet(tag: string, demo: Demo, demos: Map<string, Demo>): Snippet | undefined {
 	const own = demo.helpers.get(tag)
 
 	if (own !== undefined) return own
@@ -203,9 +216,9 @@ function reachesAnImport(example: ts.JsxElement, demo: Demo, demos: Map<string, 
 		}
 
 		for (const tag of names.childless) {
-			const code = helperCode(tag, demo, demos)
+			const snippet = helperSnippet(tag, demo, demos)
 
-			if (code !== undefined && snippetHasImports(code, defaultRegistry)) return true
+			if (snippet && snippetHasImports(snippet.code, defaultRegistry, snippet.imports)) return true
 		}
 
 		// An identifier child renders whatever its binding holds, so the tree the
@@ -289,6 +302,51 @@ describe('demo code blocks', () => {
 		expect(
 			violations,
 			`<Example> with no code block — its children reach no component the docs recognize, so the "Show code" trigger stays hidden. Render a documented component, pass an explicit \`code\`, or allowlist it with a reason:\n${violations.join('\n')}`,
+		).toEqual([])
+	})
+
+	// A snippet is what a reader copies, so each name it uses from its own demo
+	// file has to come with it. The snippet declares the name, or an import line
+	// brings it in. A name from a module that no reader can import, such as the
+	// docs engine or a sibling demo file, has no import line to take, so this
+	// case leaves it out. The scan is by whole word, the same scan that builds
+	// the snippet.
+	it('every helper snippet declares or imports each name it uses', () => {
+		const violations: string[] = []
+
+		for (const [path, demo] of demos) {
+			const siblings = demo.file.statements.flatMap(declaredNames).filter((name) => name !== 'Demo')
+
+			const importable = Object.keys(importFacts(demo.file, { filePath: path, srcDir }))
+
+			for (const [helper, snippet] of demo.helpers) {
+				const declared = new Set(
+					parseSource('snippet.tsx', snippet.code).statements.flatMap(declaredNames),
+				)
+
+				const context = createContext(defaultRegistry)
+
+				collectSnippetImports(snippet.code, context, snippet.imports)
+
+				const imported = new Set(
+					[...context.imports.values()].flatMap((names) =>
+						[...names].map((entry) => entry.replace(/^type /, '')),
+					),
+				)
+
+				for (const name of [...siblings, ...importable]) {
+					if (declared.has(name) || imported.has(name)) continue
+
+					if (wordRe(name).test(snippet.code)) {
+						violations.push(`${srcRelative(path)}#${helper} → ${name}`)
+					}
+				}
+			}
+		}
+
+		expect(
+			violations,
+			`a helper snippet uses a name it neither declares nor imports, so the code a reader copies does not run:\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 })
