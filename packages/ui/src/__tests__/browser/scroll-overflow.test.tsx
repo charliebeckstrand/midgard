@@ -38,6 +38,27 @@ function Probe({ initial }: { initial: number }) {
 	)
 }
 
+/** A fixed-height scroller whose second child mounts on demand. */
+function AppendProbe() {
+	const attach = useScrollOverflow()
+
+	const [second, setSecond] = useState(false)
+
+	return (
+		<div>
+			<button type="button" data-testid="append" onClick={() => setSecond(true)}>
+				append
+			</button>
+
+			<div ref={attach} data-testid="scroller" style={{ height: 200, overflowY: 'auto' }}>
+				<div style={{ height: 150 }} />
+
+				{second && <div style={{ height: 400 }} />}
+			</div>
+		</div>
+	)
+}
+
 /** The scroller node, once painted. */
 function scroller(): HTMLElement {
 	return present(screen.getByTestId('scroller'), 'the scroller')
@@ -111,6 +132,21 @@ describe('useScrollOverflow against a real scroller', () => {
 		// observer's to catch: the mutation observer watches `childList` and sees
 		// nothing, and the scroller itself is pinned at its own height.
 		screen.getByTestId('grow').click()
+
+		await waitFor(() => expect(edges()).toEqual([false, true]))
+	})
+
+	it('re-measures when a child mounts into it', async () => {
+		renderUI(<AppendProbe />)
+
+		await frames()
+
+		expect(edges()).toEqual([false, false])
+
+		// A new child grows the content, and no observed box changes size: the
+		// scroller is pinned at its own height, and the first child keeps its
+		// own. So the mutation observer is the one path that sees it.
+		screen.getByTestId('append').click()
 
 		await waitFor(() => expect(edges()).toEqual([false, true]))
 	})

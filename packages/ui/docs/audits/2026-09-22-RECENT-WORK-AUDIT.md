@@ -81,7 +81,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `SRC-07` | `packages/ui/src/recipes/kiso/index.ts` | `IconSize` | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ◯ OPEN |
+| `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ◐ FIXED |
 | `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ◯ OPEN |
 | `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ◯ OPEN |
 | `TESTS-06` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `LOOSE_VIEWPORT` | correctness | low | CONFIRMED | ◯ OPEN |
