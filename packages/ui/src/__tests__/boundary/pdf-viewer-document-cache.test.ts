@@ -55,24 +55,16 @@ function page(id: number): PdfViewerPage {
 /** Lets the cache's `.then` handlers run. A macrotask, so no chain length has to be guessed at. */
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
 
-const originalCreateObjectURL = globalThis.URL.createObjectURL
-
-const originalRevokeObjectURL = globalThis.URL.revokeObjectURL
-
 beforeEach(() => {
-	globalThis.URL.createObjectURL = vi.fn(() => 'blob:mock')
+	vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
 
-	globalThis.URL.revokeObjectURL = vi.fn()
+	vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
 })
 
 afterEach(() => {
 	resetDocumentCache()
 
 	vi.restoreAllMocks()
-
-	globalThis.URL.createObjectURL = originalCreateObjectURL
-
-	globalThis.URL.revokeObjectURL = originalRevokeObjectURL
 })
 
 describe('pdf viewer document cache', () => {

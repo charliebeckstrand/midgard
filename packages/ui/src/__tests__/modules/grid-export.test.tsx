@@ -3,6 +3,7 @@ import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
 import { downloadCsv, rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
 import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
 import { fireEvent, renderUI, screen, waitFor, within } from '../helpers'
+import { captureDownload } from '../helpers/capture-download'
 
 describe('rowsToCsv', () => {
 	type Row = { id: number; name: string; role: string }
@@ -97,20 +98,13 @@ describe('rowsToCsv', () => {
 
 describe('downloadCsv', () => {
 	it('wraps the CSV in a BOM-led blob and clicks an object-URL anchor', async () => {
-		// jsdom-stubs.ts stubs URL.createObjectURL/revokeObjectURL, so vi.spyOn can
-		// wrap them and restoreMocks auto-reverts — no manual save/restore, nothing
-		// to leak across the worker.
-		const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
-
-		const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL')
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		downloadCsv('grid.csv', 'A,B\r\n1,2')
 
-		expect(createObjectURL).toHaveBeenCalledTimes(1)
+		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		expect(blob.type).toBe('text/csv;charset=utf-8')
 
@@ -122,17 +116,15 @@ describe('downloadCsv', () => {
 
 		expect(await blob.text()).toBe('A,B\r\n1,2')
 
-		expect(click).toHaveBeenCalledTimes(1)
+		expect(download.click).toHaveBeenCalledTimes(1)
 
 		// The object URL is revoked on the next macrotask (not synchronously, which
 		// can abort the download), so flush timers before asserting.
-		expect(revokeObjectURL).not.toHaveBeenCalled()
+		expect(download.revokeObjectURL).not.toHaveBeenCalled()
 
 		await new Promise((resolve) => setTimeout(resolve, 0))
 
-		expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock')
-
-		click.mockRestore()
+		expect(download.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
 	})
 })
 
@@ -309,13 +301,7 @@ describe('Grid export', () => {
 	})
 
 	it('downloads the rows as CSV from the header menu', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
 
@@ -323,9 +309,9 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		expect(createObjectURL).toHaveBeenCalledTimes(1)
+		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		const text = await blob.text()
 
@@ -335,19 +321,11 @@ describe('Grid export', () => {
 
 		expect(text).toContain('Bob,Designer')
 
-		expect(click).toHaveBeenCalledTimes(1)
-
-		click.mockRestore()
+		expect(download.click).toHaveBeenCalledTimes(1)
 	})
 
 	it('downloads the rows from the toolbar Export dropdown', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(
 			<Grid
@@ -362,13 +340,11 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		expect(createObjectURL).toHaveBeenCalledTimes(1)
+		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		expect(await blob.text()).toContain('Alice,Developer')
-
-		click.mockRestore()
 	})
 
 	it('shares one tools toolbar with the column-manager button', () => {
@@ -390,13 +366,7 @@ describe('Grid export', () => {
 	})
 
 	it('exports only the selected rows when a selection is active', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(
 			<Grid
@@ -412,7 +382,7 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		const text = await blob.text()
 
@@ -423,18 +393,10 @@ describe('Grid export', () => {
 		expect(text).toContain('Bob,Designer')
 
 		expect(text).not.toContain('Alice,Developer')
-
-		click.mockRestore()
 	})
 
 	it('exports the selected rows from the cell context menu', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(
 			<Grid
@@ -454,7 +416,7 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		const text = await blob.text()
 
@@ -462,18 +424,10 @@ describe('Grid export', () => {
 		expect(text).toContain('Alice,Developer')
 
 		expect(text).not.toContain('Bob,Designer')
-
-		click.mockRestore()
 	})
 
 	it('falls back to every row when the selection is empty', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(
 			<Grid
@@ -489,15 +443,13 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		const text = await blob.text()
 
 		expect(text).toContain('Alice,Developer')
 
 		expect(text).toContain('Bob,Designer')
-
-		click.mockRestore()
 	})
 
 	it("replaces a built-in type's behavior with an object entry's onExport", () => {
@@ -595,13 +547,7 @@ describe('Grid export', () => {
 	]
 
 	it('exports a synchronous exportRows list, not just the loaded page', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(
 			<Grid
@@ -618,7 +564,7 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		const text = await blob.text()
 
@@ -628,18 +574,10 @@ describe('Grid export', () => {
 		expect(text).toContain('Bob,Designer')
 
 		expect(text).toContain('Carol,Manager')
-
-		click.mockRestore()
 	})
 
 	it('awaits an async exportRows server function before downloading', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		const fetchAll = vi.fn().mockResolvedValue(fullList)
 
@@ -661,23 +599,15 @@ describe('Grid export', () => {
 		expect(fetchAll).toHaveBeenCalledTimes(1)
 
 		// The download waits for the fetch to resolve rather than firing on click.
-		await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1))
+		await waitFor(() => expect(download.createObjectURL).toHaveBeenCalledTimes(1))
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		expect(await blob.text()).toContain('Carol,Manager')
-
-		click.mockRestore()
 	})
 
 	it('swaps the download icon for a spinner while an async export is in flight', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		let release: (rows: Row[]) => void = () => {}
 
@@ -726,19 +656,11 @@ describe('Grid export', () => {
 
 		expect(trigger).toBeEnabled()
 
-		expect(createObjectURL).toHaveBeenCalledTimes(1)
-
-		click.mockRestore()
+		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 	})
 
 	it('lets exportRows win over an active selection', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(
 			<Grid
@@ -755,7 +677,7 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		const text = await blob.text()
 
@@ -765,8 +687,6 @@ describe('Grid export', () => {
 		expect(text).toContain('Bob,Designer')
 
 		expect(text).toContain('Carol,Manager')
-
-		click.mockRestore()
 	})
 
 	it('feeds the exportRows list into an onExport override', () => {
@@ -794,11 +714,7 @@ describe('Grid export', () => {
 	it('swallows a rejected exportRows with a dev-only warning, downloading nothing', async () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
+		const download = captureDownload()
 
 		renderUI(
 			<Grid
@@ -816,7 +732,7 @@ describe('Grid export', () => {
 
 		await waitFor(() => expect(error).toHaveBeenCalled())
 
-		expect(createObjectURL).not.toHaveBeenCalled()
+		expect(download.createObjectURL).not.toHaveBeenCalled()
 
 		error.mockRestore()
 	})
@@ -827,13 +743,7 @@ describe('Grid export', () => {
 	const overlay = () => document.querySelector('[data-slot="grid-export-overlay"]')
 
 	it('covers the grid with an Exporting overlay while a menu-fired export is in flight', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		let release: (rows: Row[]) => void = () => {}
 
@@ -870,9 +780,7 @@ describe('Grid export', () => {
 
 		await waitFor(() => expect(overlay()).toBeNull())
 
-		expect(createObjectURL).toHaveBeenCalledTimes(1)
-
-		click.mockRestore()
+		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 	})
 
 	it('lifts the overlay when an export fails, rather than covering the grid for good', async () => {
@@ -908,13 +816,7 @@ describe('Grid export', () => {
 	})
 
 	it('leaves a synchronous export uncovered — there is no wait to report', () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(<Grid exportable={['csv']} columns={columns} rows={rows} getKey={getKey} />)
 
@@ -922,21 +824,13 @@ describe('Grid export', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		expect(createObjectURL).toHaveBeenCalledTimes(1)
+		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 
 		expect(overlay()).toBeNull()
-
-		click.mockRestore()
 	})
 
 	it('spins the toolbar trigger for an export fired from a right-click menu', async () => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		captureDownload()
 
 		let release: (rows: Row[]) => void = () => {}
 
@@ -975,8 +869,6 @@ describe('Grid export', () => {
 		await waitFor(() => expect(overlay()).toBeNull())
 
 		expect(trigger.querySelector('svg.lucide-download')).not.toBeNull()
-
-		click.mockRestore()
 	})
 })
 
@@ -1000,13 +892,7 @@ describe('Grid export under grouping', () => {
 
 	/** Downloads a CSV through the toolbar and returns its text. */
 	const exportCsv = async (ui: Parameters<typeof renderUI>[0]): Promise<string> => {
-		const createObjectURL = vi.fn().mockReturnValue('blob:mock')
-
-		URL.createObjectURL = createObjectURL
-
-		URL.revokeObjectURL = vi.fn()
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		renderUI(ui)
 
@@ -1014,9 +900,7 @@ describe('Grid export under grouping', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
-
-		click.mockRestore()
+		const blob = download.blob()
 
 		return blob.text()
 	}

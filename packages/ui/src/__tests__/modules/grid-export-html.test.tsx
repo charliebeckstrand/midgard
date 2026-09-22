@@ -5,6 +5,7 @@ import { downloadExcel, rowsToXlsx } from '../../modules/grid/engine/grid-export
 import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-table'
 import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
 import { captureAppended } from '../helpers/capture-appended'
+import { captureDownload } from '../helpers/capture-download'
 
 type Row = { id: number; name: string; role: string }
 
@@ -93,33 +94,25 @@ describe('rowsToXlsx', () => {
 
 describe('downloadExcel', () => {
 	it('wraps the workbook in an xlsx-typed blob and clicks an object-URL anchor', async () => {
-		// URL.createObjectURL/revokeObjectURL are stubbed in jsdom-stubs.ts; spy on
-		// them so restoreMocks auto-reverts (no raw reassignment to leak).
-		const createObjectURL = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
-
-		const revokeObjectURL = vi.spyOn(URL, 'revokeObjectURL')
-
-		const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+		const download = captureDownload()
 
 		downloadExcel('grid.xlsx', rowsToXlsx(columns, rows))
 
-		expect(createObjectURL).toHaveBeenCalledTimes(1)
+		expect(download.createObjectURL).toHaveBeenCalledTimes(1)
 
-		const blob = createObjectURL.mock.calls[0]?.[0] as Blob
+		const blob = download.blob()
 
 		expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
-		expect(click).toHaveBeenCalledTimes(1)
+		expect(download.click).toHaveBeenCalledTimes(1)
 
 		// The object URL is revoked on the next macrotask (not synchronously, which
 		// can abort the download), so flush timers before asserting.
-		expect(revokeObjectURL).not.toHaveBeenCalled()
+		expect(download.revokeObjectURL).not.toHaveBeenCalled()
 
 		await new Promise((resolve) => setTimeout(resolve, 0))
 
-		expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock')
-
-		click.mockRestore()
+		expect(download.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
 	})
 })
 

@@ -18,28 +18,20 @@ import {
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 
-const originalCreateObjectURL = globalThis.URL.createObjectURL
-
-const originalRevokeObjectURL = globalThis.URL.revokeObjectURL
-
 beforeEach(() => {
 	getDocumentMock.mockReset()
 
 	globalWorkerOptions.workerSrc = 'mock-worker'
 
-	globalThis.URL.createObjectURL = vi.fn(() => 'blob:mock')
+	vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')
 
-	globalThis.URL.revokeObjectURL = vi.fn()
+	vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
 })
 
 afterEach(() => {
 	resetDocumentCache()
 
 	vi.restoreAllMocks()
-
-	globalThis.URL.createObjectURL = originalCreateObjectURL
-
-	globalThis.URL.revokeObjectURL = originalRevokeObjectURL
 
 	globalThis.fetch = originalFetch
 })
