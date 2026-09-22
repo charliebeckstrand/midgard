@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
+import { useMemo } from 'react'
 import { cn } from '../../core'
 import { useResolvedSize } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
@@ -257,14 +258,21 @@ export function Sparkline({
 	// the viewBox; the marker only applies to the line shape.
 	const padding = Math.max(strokeWidth / 2, endPoint ? metrics.pointRadius : 0) + 1
 
-	const geometry = sparklineGeometry(data, {
-		width: boxWidth,
-		height: boxHeight,
-		padding,
-		barGap: metrics.barGap,
-		min,
-		max,
-	})
+	// A Grid cell holds one sparkline per row, so a grid render pays this
+	// projection once per visible row. It rebuilds only when the series or the
+	// box changes, which holds while a caller keeps the `data` array stable.
+	const geometry = useMemo(
+		() =>
+			sparklineGeometry(data, {
+				width: boxWidth,
+				height: boxHeight,
+				padding,
+				barGap: metrics.barGap,
+				min,
+				max,
+			}),
+		[data, boxWidth, boxHeight, padding, metrics.barGap, min, max],
+	)
 
 	const marksProps: SparklineMarksProps = {
 		shape,
