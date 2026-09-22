@@ -54,7 +54,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TOOL-03` | `renovate.json` | the `@floating-ui/react` approval rule | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-04` | `.github/dependabot.yml`, `renovate.json` | npm security updates | correctness | medium | PLAUSIBLE | ◯ OPEN |
 | `TOOL-05` | `pnpm-workspace.yaml` | `overrides` | correctness | medium | CONFIRMED | ◯ OPEN |
-| `TOOL-06` | `turbo.json` | `lint.inputs` | correctness | medium | CONFIRMED | ◯ OPEN |
+| `TOOL-06` | `turbo.json` | `lint.inputs` | correctness | medium | CONFIRMED | ◐ FIXED |
 | `MENU-02` | `packages/ui/src/hooks/a11y/use-a11y-roving.ts` | `setVirtualActiveElement` | correctness | low | CONFIRMED | ◯ OPEN |
 | `MENU-03` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` (TSDoc) | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `MENU-04` | `packages/ui/src/__tests__/browser/menu-scroll-overflow.test.tsx` | the gate comment | cleanliness | low | CONFIRMED | ◯ OPEN |
