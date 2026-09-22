@@ -51,8 +51,6 @@ export function MenuContent({
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
-	// The height policy, the density axis, the edge fade, and the overflow watch
-	// all live in the viewport, which `MenuSub` renders too.
 	const viewport = <MenuViewport>{children}</MenuViewport>
 
 	if (isStatic) {

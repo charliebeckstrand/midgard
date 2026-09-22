@@ -430,7 +430,7 @@ A submenu row lives inside the panel, so a menu pays for it on every open rather
 
 **A `MenuSub` cost 0.159 ms above the `MenuItem` it replaces, and now costs 0.091 ms.** It rendered twice for the same reason the root trigger did, and lever 3 below is the same fix one level down. An open menu carrying six of them saves 0.44 ms per open.
 
-What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, a `useScrollOverflow`, and a closed floating surface. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
+What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, and a closed floating surface. The `useScrollOverflow` this once listed left the closed row with lever 6, which moved it into `MenuViewport` — a component the shut panel never renders. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
 
 ### Optimization log
 

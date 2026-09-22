@@ -79,7 +79,7 @@ describe('Menu scroll overflow (real browser)', () => {
 		expect(viewport).not.toHaveAttribute('data-overflow-above')
 	})
 
-	// The gate `MenuContent` puts on the watch rests on one invariant: an
+	// The gate `MenuViewport` puts on the watch rests on one invariant: an
 	// uncapped viewport never overflows, a capped one always does. The row
 	// counts match the open bench's ladder, so the test pins the range the
 	// finding measured over. See `__benchmarks__/browser/README.md` §Menus.

@@ -446,11 +446,7 @@ describe('MenuContent', () => {
 				</Menu>,
 			)
 
-			const viewport = bySlot(container, 'menu-viewport')
-
-			if (!viewport) throw new Error('no menu viewport')
-
-			return viewport
+			return getSlot(container, 'menu-viewport')
 		}
 
 		it('emits no height cap by default, so the panel grows to its content', () => {
@@ -469,6 +465,24 @@ describe('MenuContent', () => {
 			for (const viewport of [viewportFor(), viewportFor(true)]) {
 				expect(viewport).toHaveClass('overflow-y-auto')
 			}
+		})
+
+		/**
+		 * The panel delegates its viewport to `MenuViewport`, which is what carries
+		 * the watch. One arm, and an attribute rather than a class: the surviving
+		 * class cases pass against a hand-written div, so only a stamped edge
+		 * proves the panel still renders the component that watches.
+		 *
+		 * `MenuViewport`'s own case pins the gate both ways. This pins the link.
+		 */
+		it('scrolls its rows through a watched viewport', () => {
+			const viewport = viewportFor(true)
+
+			mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
+
+			fireEvent.scroll(viewport)
+
+			expect(viewport).toHaveAttribute('data-overflow-below')
 		})
 
 		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
@@ -740,12 +754,6 @@ describe('MenuViewport', () => {
 
 			expect(viewport.hasAttribute('data-overflow-below')).toBe(capped)
 		}
-	})
-
-	it('emits the density cap only while capped', () => {
-		expect(viewportFor(false).viewport.className).not.toMatch(/(^|\s)max-h-/)
-
-		expect(viewportFor(true).viewport).toHaveClass('max-h-52')
 	})
 
 	it('composes an incoming ref with the watch and tears both down together', () => {
