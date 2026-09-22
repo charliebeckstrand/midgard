@@ -12,8 +12,8 @@ language js
 // was a violation there and stays one here.
 //
 // Reach is the `includes` beside this plugin in `biome.json` — the package
-// source, minus the test and benchmark trees, minus the one sanctioned file —
-// which reproduces what `walkSource` skipped.
+// source, minus each test and benchmark tree at any depth, minus the one
+// sanctioned file — which reproduces what `walkSource` skipped.
 `import $clause from 'react'` where {
 	$clause <: contains or { `createContext`, `createContext as $_` }
 } where {
