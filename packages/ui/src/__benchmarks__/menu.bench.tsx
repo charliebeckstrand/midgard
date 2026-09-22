@@ -268,7 +268,7 @@ describe('Menu · fan-out (one menu per row of a page)', () => {
 })
 
 describe('Menu · submenus (24 rows, open)', () => {
-	// Every fourth row opens a submenu of its own, each one a `MenuPointerLevel`
+	// The last six rows open a submenu of their own, each one a `MenuPointerLevel`
 	// plus a second floating surface the closed panel still builds the shell for.
 	mountBenches(
 		[0, 6] as const,
