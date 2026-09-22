@@ -73,7 +73,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-07` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the gate comment | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
@@ -186,7 +186,7 @@ Over the 213 helpers, 38 render a helper that they do not define. About 45 use a
 
 **DOCS-08.** `demo-code-block.test.ts` accepts a helper tag by its snippet, whatever the tag holds. The runtime reads the snippet only for a helper with no children. So `<Example><Wrapper>plain</Wrapper></Example>` passes the gate, but `hasDerivableCode` returns false. The file header lists two approximations that err toward a pass, and not this one. No live case exists. Fix: use the snippet only for a helper with no children.
 
-**DOCS-09.** #1166 renames `MeterOnlyExample` and two titles in the password-strength demo. The fix does not need the rename, and the commit gives no reason ([`CLAUDE.md`](../../../../CLAUDE.md) §1.2).
+**DOCS-09.** #1166 renames `MeterOnlyExample` and two titles in the password-strength demo. The fix does not need the rename, and the commit gives no reason ([`CLAUDE.md`](../../../../CLAUDE.md) §1.2). Disposition: the rename stays. The two Examples differ only in `showRules`, and the new titles name that difference. A revert would change the page a second time and gain nothing.
 
 **DOCS-10.** The `resolveTypeIn` TSDoc still gives the emptiness probe as its reason to exist. The probe and the renderer now reach it through `classifyElement`. Fix: point the sentence at `classifyElement`.
 
