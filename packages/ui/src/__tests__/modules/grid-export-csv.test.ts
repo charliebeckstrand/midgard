@@ -199,9 +199,12 @@ describe('rowsToCsv · properties', () => {
 		}
 	})
 
-	// A signed number is data, not a formula, so the guard lets it through.
-	// `Number` is the independent reading of "this is a number".
-	test.prop([sheet()])('lets a signed number through the guard', ({ labels, rows }) => {
+	// A sign opens a formula unless the whole field is a number, so the guard
+	// prefixes every other sign-led field. Each sign-led field that reaches the
+	// file is therefore a number. `Number` is the independent reading of "this is
+	// a number". The next property covers the other direction: a number that the
+	// guard lets through.
+	test.prop([sheet()])('guards each sign-led field that is not a number', ({ labels, rows }) => {
 		for (const record of parseCsv(write(labels, rows))) {
 			for (const field of record) {
 				if (field.text[0] === '+' || field.text[0] === '-') {
