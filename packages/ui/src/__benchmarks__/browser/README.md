@@ -1,6 +1,6 @@
 # Competitive benchmarks
 
-> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three. It also runs the scenarios that keep no score against a rival and are here because jsdom cannot price them — the menu, tooltip, and PDF-viewer benches. The jsdom benches one directory up keep localizing regressions; this suite sizes them.
+> **The chart module measured against AG Charts and Highcharts, the grid module against AG Grid and MUI X DataGrid, and the map module against Highcharts Maps and ECharts, in real Chromium — so every optimization lands against the market, not against yesterday's self.** `pnpm bench:browser` runs all three. It also runs the scenarios that keep no score against a rival and are here because jsdom cannot price them — the menu, popover, tooltip, and PDF-viewer benches. The jsdom benches one directory up keep localizing regressions; this suite sizes them.
 
 ## Why a browser suite
 
@@ -246,9 +246,13 @@ This suite keeps no standings. `Menu` has no contender here. It runs in a browse
 
 Every probe ([`menu-probe.tsx`](menu-probe.tsx)) mounts one open dropdown. It settles three frames, so the engine has placed the panel. It then hands the bench that menu's trigger and its rows. Focus rests on the trigger, so the rows rove by `aria-activedescendant` — the model the jsdom suite also drives. Nothing settles a frame inside a timed region, so no sample reads the frame period rather than the work. The row centres are resolved at mount, so no sample carries the layout read that resolving them needs.
 
+The open bench is the one exception. It mounts that same `Dropdown` closed, and clicks it open.
+
 - [`menu-keyboard.bench.tsx`](menu-keyboard.bench.tsx) — one `keydown` on the trigger. `dispatch only` carries a key no handler acts on, and is the floor to subtract. Each row count runs twice, capped and uncapped. A capped panel has a real scroller for the roving move to find. An uncapped one — the default — has none.
 
 - [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then also measures that panel, to read the pointer's course.
+
+- [`menu-open.bench.tsx`](menu-open.bench.tsx) — one click on a closed menu. The timed region is the commit the click drives, from the event to the panel in the DOM. It stops there, because the engine places the panel a frame later. A second scenario re-renders a panel that is already open, which is what a reposition does. A third prices one `cn` call on the panel classes, so a reader can weigh it against the first two.
 
 - [`menu-mount.bench.tsx`](menu-mount.bench.tsx) — fifty closed menus, mounted and torn down. Four rungs ladder the shell apart, each containing the one above it, so a step is what that layer costs across the whole fan-out. A second scenario mounts one open 24-row panel, plain and with six of its rows as submenus. The step over six is what one `MenuSub` costs above the `MenuItem` it replaces.
 
@@ -267,6 +271,101 @@ Mean ms per press, and per sweep, in Chromium.
 **The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.12 ms for the whole press, 0.10 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by under 0.02 ms. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
 
 **The travel triangle is free.** A 24-row sweep costs 0.324 ms with no submenu open. With one open it costs 0.327 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
+
+### The open: what a click costs (2026-09-21, a slower container)
+
+This is the path a reader waits on, and it had no rung until now. Mean ms for one open, median of three runs.
+
+**This table comes from a different container from the tables above and below, and that container is slower.** The closed-menu fan-out rung reads 1.953 ms there and 2.872 ms here. Read rows inside one table against each other, never across the two.
+
+| Rung | Median | Above the floor | Per row |
+| --- | ---: | ---: | ---: |
+| never opened (the floor) | 0.313 | — | — |
+| open · empty panel | 2.960 | 2.647 | — |
+| open · 8 rows | 3.593 | 3.280 | 0.079 |
+| open · 24 rows | 5.137 | 4.824 | 0.091 |
+| open · 64 rows | 8.917 | 8.604 | 0.093 |
+
+**Read every figure below as an upper bound on the open alone.** The floor tears down a closed tree, while each rung above it tears down what the open built. A closed floor cannot subtract an open teardown, so the step is the open plus that teardown. The shares and the shape hold; the absolute milliseconds run high by whatever the teardown costs.
+
+**The shell is the open, not the rows.** An empty panel costs 2.65 ms above the floor. That is the portal, the positioned wrapper, the animated surface, the `Density`, and the viewport, with nothing in it. A 24-row panel costs 4.82 ms, and 55% of that is the shell. Even at 64 rows the shell is 31%.
+
+**A row costs about 0.09 ms.** Eight rows read 0.079 ms each and sixty-four read 0.093, so the panel is very nearly linear in its row count. These rows carry a `MenuLabel` and nothing else. A row with an icon costs the `## Icons` rung on top.
+
+Holding the panel open is a different order of cost. Mean ms for one re-render of an open panel, median of three runs.
+
+| Scenario | Median |
+| --- | ---: |
+| no rows (what a reposition rebuilds) | 0.103 |
+| 24 rows | 0.176 |
+
+**A reposition costs 0.103 ms.** It re-renders `Menu`, `MenuTrigger`, `MenuContent`, `FloatingSurface`, and `PopoverPanel`. The rows keep their element identity and stand, so the 24-row figure is the upper bound a change that reached them would pay. A panel that repositions for a whole second of scrolling therefore spends about 6 ms, against 4.8 ms to open once.
+
+**The `cn` memo miss on the panel classes costs nothing a reader could feel.** `cn` memoizes only string, boolean, and nullish arguments, so `PopoverPanel`'s array bundles take an un-memoized merge on every render. Priced directly, that call costs 1.01 µs where a pre-flattened string costs 0.25 µs. The saving is 0.77 µs.
+
+The call count is the rest of the answer, and it was counted rather than assumed. An open of a 24-row panel makes two such calls, and a re-render makes one. Pre-flattening the bundles would therefore take 0.03% off an open and 0.7% off a reposition. The worst shape in the component is a `MenuDescription` on every row, whose recipe value is an array as well: twenty-four rows make 26 calls, which is 0.020 ms of a 4.8 ms open, or 0.4%.
+
+**No change is warranted.** The saving is two orders of magnitude below the run-to-run spread of the rung it would land in, so no bench in this suite could show it. The `cn` doccomment's ~13% figure is a ten-thousand-row grid, where the call runs once per row per render. A panel is one element, and the arithmetic does not carry across.
+
+### Where the empty shell goes (2026-09-22, a slower container)
+
+The open table above leaves 2.65 ms on an empty panel and names no layer. [`menu-shell.bench.tsx`](menu-shell.bench.tsx) ablates it. Every rung mounts one empty open surface and tears it down, so a step is what that layer costs on one open. Mean ms, median of three runs.
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · plain div | 0.106 | — |
+| 2 · motion.div | 0.229 | 0.123 |
+| 3 · AnimatePresence + motion.div | 0.258 | 0.030 |
+| 4 · PopoverPanel | 0.252 | — |
+| 5 · static menu (no portal, no positioning) | 0.744 | 0.493 |
+| 6 · open dropdown (the real thing) | 1.800 | 1.056 |
+
+**The floating layer is 62% of the shell.** It costs 1.06 ms of the 1.69 ms an open dropdown spends above a plain div. `static menu` is the ablation the library already ships: `MenuContent` gates the portal on `isStatic`, so that rung builds the same panel with no portal, no positioned wrapper, and no `autoUpdate`.
+
+**`PopoverPanel`'s own hooks are free.** The roving handler, the scroll-within helper, and the autofocus effect do not separate from the rung below them. Its cost is the `motion.div`, at 0.123 ms, and `AnimatePresence` at 0.030. Motion was the first suspect and it is 9% of the shell.
+
+Most of the floating layer is the engine, not the wrapper. These rungs read floating-ui directly, against a plain `div`, so nothing of this package is in them.
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · button + plain div | 0.104 | — |
+| 2 · useFloating, no autoUpdate | 0.389 | 0.285 |
+| 3 · useFloating + autoUpdate | 0.600 | 0.211 |
+| 4 · + FloatingPortal | 0.749 | 0.149 |
+
+**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.39 — is `FloatingSurface`, `PresencePortal`, and `MenuTrigger`.
+
+The other 25% is `MenuContent`. Split at the `Menu` root:
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · Menu root only (no panel to build) | 0.183 | — |
+| 2 · + MenuContent, static | 0.754 | 0.571 |
+
+The root's whole hook tree is 0.077 ms above a plain div, so `MenuContent` is 0.571 of it. `PopoverPanel` accounts for 0.146. One hook accounts for most of the rest.
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · plain div | 0.099 | — |
+| 2 · + useScrollOverflow | 0.233 | 0.134 |
+| 3 · + Density around it | 0.222 | — |
+
+**`Density` is free. The overflow watch is not.** `useScrollOverflow` reads `scrollTop`, `clientHeight`, and `scrollHeight` the moment its ref attaches, which forces style and layout on a node the browser has just inserted. It then starts a `ResizeObserver` over the node **and each of its children**, a `MutationObserver`, and a scroll listener.
+
+That per-child `observe` makes the watch scale with the row count, so it lands in the open table's per-row figure as well.
+
+| Rung | Median | Watch |
+| --- | ---: | ---: |
+| 24 rows · plain | 0.189 | — |
+| 24 rows · watched | 0.938 | 0.749 |
+| 64 rows · plain | 0.325 | — |
+| 64 rows · watched | 1.919 | 1.594 |
+
+**The overflow watch is about a third of what a row costs to open.** It runs 0.031 ms per row at 24 rows and 0.025 at 64, against the 0.09 ms the open table charges for a whole row. On a 24-row menu it is 0.75 ms of rows plus its own 0.13 ms.
+
+**On the default menu it can never fire.** `capped` defaults to `false`, and an uncapped viewport carries no `max-h`, so it grows with its content. Measured directly: at 8, 24, and 64 rows an uncapped viewport reads `clientHeight === scrollHeight`, and neither overflow attribute is ever stamped. Only a capped panel overflows, at any size. The watch therefore starts a `ResizeObserver` per row, a `MutationObserver`, and a forced layout read, to maintain two attributes that cannot change.
+
+**This is the open path's largest addressable figure, and it is ours.** About 0.88 ms of a 24-row open, or 18%. The fix is to wire the watch only where a scroller exists — `MenuContent` already knows, because `capped` is what emits the `max-h`. No change is made here; this bench is the evidence for one.
 
 ### Fan-out: what a closed menu costs (2026-09-21, this container)
 
@@ -308,6 +407,40 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency is unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe.
 
 3. **The same deferral on `MenuSub`** ([`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). A submenu row registered its own trigger with the engine at mount. Every one of them therefore rendered twice, inside a panel that had just opened. It now stashes the node and registers it on the submenu's first open, exactly as lever 2 does for the root. One `MenuSub`: 0.159 → 0.091 ms, **1.75× faster**, and a panel with six of them opens 0.44 ms sooner.
+
+## Popovers
+
+`Popover` has no contender here either. It shares `Menu`'s trigger shape, so it shares one of `Menu`'s findings.
+
+### Methodology
+
+[`popover-mount.bench.tsx`](popover-mount.bench.tsx) is [`menu-mount.bench.tsx`](menu-mount.bench.tsx) one component over: fifty closed popovers, mounted and torn down. A closed popover renders no panel, because `PresencePortal` mounts nothing until it opens, so the rungs price the shell. Each rung contains the one above it, so a step is what that layer costs across the whole fan-out.
+
+### Fan-out: what a closed popover costs (2026-09-21, a slower container)
+
+A page multiplies the closed popover the way a grid multiplies the closed menu: an info affordance beside every field. Mean ms for 50, median of three runs.
+
+| Rung | Before | After |
+| --- | ---: | ---: |
+| 1 · bare buttons | 0.211 | 0.195 |
+| 2 · trigger only (no panel to build) | 3.894 | 2.472 |
+| 3 · closed popovers (the real thing) | 4.457 | 2.535 |
+
+**A closed popover cost 0.085 ms, which was 21× a bare button. It now costs 0.047 ms, or 13×.** Fifty went from 4.5 ms of mount to 2.5 ms, **1.76× faster**. That puts it level with the closed menu, which reads 0.053 ms per menu in this same container.
+
+**The cause was the same wasted render `Menu` paid.** `PopoverTrigger` handed floating-ui its node through the ref callback, and `setReference` is a state setter, so every closed popover rendered twice. That was counted on the component itself, not inferred: ten closed popovers ran `PopoverTrigger` twenty times before the change and ten times after.
+
+The panel-tree step — rung 3 over rung 2 — is 0.06 ms across fifty after the change. That sits inside the run-to-run spread of the rung, so read it as the menu's own 7% finding, not as a figure.
+
+### Optimization log
+
+1. **Reference registered at the first open, not at mount** ([`popover-trigger.tsx`](../../components/popover/popover-trigger.tsx)). Lever 2 of the menu log, transferred. `Popover` wires `useClick`, `dismiss`, and `role` exactly as `Menu` does, and its outside-press is armed on `open`, so the trigger has no use for a reference while it is shut. It now stashes the node and registers it in a layout effect on the first open. A node swap after that open still forwards at once. Fifty closed popovers: 4.46 → 2.54 ms, **1.76× faster**. The panel still lands at its anchored position, on the first open and on every later one.
+
+**The deferral moves one render; it does not delete it.** `setReference` is a state setter, so the open now pays the shell re-render the mount used to pay. That is the `no rows` rung of the re-render table above: 0.103 ms, against 0.038 ms saved for each closed popover. The trade therefore pays from the third closed popover on a page, and a fan-out of fifty is a wide margin. A later open costs nothing, because both floating-ui setters compare the node before they set it. The first-open cost is reasoned from the bench above, not measured on `Popover` itself.
+
+**Not transferred to `Tooltip`.** `useHover` runs an effect keyed on `elements.domReference`, which binds its listeners to the reference node itself. Deferring registration there would break the hover close path and the safe-polygon handling, so `TooltipTrigger` needs its reference at mount.
+
+**Not transferred to the colour picker.** `use-color-picker-state.ts` reaches `refs.setReference` through the same shared hook, but its interactions are not the menu's. It wires no `useClick`: the trigger owns its own toggle, and `useFloatingUI` gives it `useDismiss` with `outsidePress` and `escapeKey` both off. Its reference is also the `Control` wrapper, not the button. The deferral would therefore be a new shape rather than a copy, and no rung sizes it yet. The same holds for `DatePicker`, `Listbox`, and `Combobox`, which register their own references at mount.
 
 ## Icons
 

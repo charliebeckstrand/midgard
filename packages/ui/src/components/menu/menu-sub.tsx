@@ -10,13 +10,12 @@ import {
 	useCallback,
 	useEffect,
 	useId,
-	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI, useScrollOverflow } from '../../hooks'
-import { useFloatingReference } from '../../hooks/use-floating-reference'
+import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
@@ -220,44 +219,18 @@ export function MenuSub({
 
 	const { setReference } = refs
 
-	// The node the engine anchors to, stashed rather than handed over at mount,
-	// as {@link MenuTrigger} does it. A closed submenu has no use for a
-	// reference, and every row of an open menu that carries one would otherwise
-	// render twice: `setReference` is a state setter, and the ref callback calls
-	// it during the commit. A menu pays that per submenu row on every open.
-	const referenceNode = useRef<HTMLElement | null>(null)
-
-	// Set once the engine holds a reference, after which a node swap forwards at
-	// once rather than waiting for another open.
-	const registered = useRef(false)
-
-	const captureReference = useCallback(
-		(node: HTMLElement | null) => {
-			referenceNode.current = node
-
-			if (registered.current) setReference(node)
-		},
-		[setReference],
-	)
-
-	// Its own `<button>`, so no cloned child's ref joins here. A submenu unmounts
-	// inside its parent menu's deletion, which is exactly where nulling the
-	// reference can cascade, so it takes the guarded composition too.
-	const setTrigger = useFloatingReference<HTMLButtonElement>(
-		captureReference,
+	// Registration waits for the first open, as it does on {@link MenuTrigger}.
+	// Every row of an open menu that carries a submenu would otherwise render
+	// twice, and a menu pays that per submenu row on every open. Its own
+	// `<button>`, so no cloned child's ref joins here. A submenu unmounts inside
+	// its parent menu's deletion, which is exactly where nulling the reference
+	// can cascade, so it takes the guarded composition too.
+	const setTrigger = useDeferredFloatingReference<HTMLButtonElement>(
+		setReference,
+		open,
 		triggerRef,
 		undefined,
 	)
-
-	// A layout effect, not a passive one: it runs in the commit that mounts the
-	// panel, so the engine has its reference before that commit paints.
-	useLayoutEffect(() => {
-		if (!open) return
-
-		registered.current = true
-
-		setReference(referenceNode.current)
-	}, [open, setReference])
 
 	// The positioned wrapper doubles as the panel's rect for the level's travel
 	// triangle; it shrink-wraps the panel (see the `relative` note below), so the

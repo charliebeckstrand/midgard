@@ -12,7 +12,7 @@ import {
 	useCallback,
 } from 'react'
 import { cn } from '../../core'
-import { useFloatingReference } from '../../hooks/use-floating-reference'
+import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { k } from '../../recipes/kata/popover'
 import { usePopoverContext } from './context'
 
@@ -42,7 +42,16 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	// reference; both receive the node.
 	const childRef = (child?.props as { ref?: Ref<HTMLElement> } | undefined)?.ref
 
-	const mergeRefs = useFloatingReference<HTMLElement>(setReference, triggerRef, childRef)
+	// Registration waits for the first open, so a closed popover renders once
+	// rather than twice. `Popover` wires `useClick`, and its outside-press is
+	// armed on `open`, so nothing binds to the node while it is shut. The
+	// fan-out is measured in `__benchmarks__/browser/popover-mount.bench.tsx`.
+	const mergeRefs = useDeferredFloatingReference<HTMLElement>(
+		setReference,
+		open,
+		triggerRef,
+		childRef,
+	)
 
 	const shouldIgnore = useCallback((event: SyntheticEvent<HTMLElement>): boolean => {
 		return event.target instanceof Element && event.target.closest('[data-popover-ignore]') !== null

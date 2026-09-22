@@ -1,13 +1,17 @@
 /**
- * The mounted, open menus the browser menu benches drive, plus the dispatch
- * helpers they share. Held in one place because the two benches measure
- * different things through one surface. The keyboard bench times one arrow
- * press. The pointer bench times one sweep across the rows.
+ * The menus the browser menu benches drive, plus the dispatch helpers they
+ * share. Held in one place because the benches measure different things
+ * through one surface. The keyboard bench times one arrow press. The pointer
+ * bench times one sweep across the rows. The open bench times one click.
  *
- * Every probe mounts open and settles before a bench registers against it.
- * What these benches measure is one input event on a menu that is already up,
- * not the cost of opening it. Nothing here settles a frame inside a timed
- * region, so no sample reads the frame period rather than the work.
+ * Every probe here mounts open and settles before a bench registers against it.
+ * What the keyboard and pointer benches measure is one input event on a menu
+ * that is already up, not the cost of opening it. Nothing here settles a frame
+ * inside a timed region, so no sample reads the frame period rather than the
+ * work.
+ *
+ * `menu-open.bench.tsx` measures the open itself. It shares the {@link Dropdown}
+ * below rather than declaring a second one, and mounts it closed.
  *
  * The probes stay mounted for the whole run, so the document carries one
  * escape-layer listener and one outside-press listener per probe. Measured
@@ -41,20 +45,28 @@ function Rows({ count }: { count: number }) {
 	)
 }
 
-/** One open dropdown. Focus rests on the trigger, so the rows rove by `aria-activedescendant`. */
-function Dropdown({
+/**
+ * One dropdown, open by default. Focus rests on the trigger, so the rows rove
+ * by `aria-activedescendant`.
+ *
+ * @param open - Mount the panel open. Pass `false` for a closed menu a bench
+ * then clicks open, which is what `menu-open.bench.tsx` measures.
+ */
+export function Dropdown({
 	count,
 	capped,
 	panel,
 	submenu = false,
+	open = true,
 }: {
 	count: number
 	capped: boolean
 	panel: string
 	submenu?: boolean
+	open?: boolean
 }) {
 	return (
-		<Menu placement="bottom-start" defaultOpen capped={capped}>
+		<Menu placement="bottom-start" defaultOpen={open} capped={capped}>
 			<MenuTrigger className={`${panel}-trigger`}>Options</MenuTrigger>
 
 			<MenuContent className={panel}>
