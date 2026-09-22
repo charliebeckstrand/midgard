@@ -42,7 +42,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 
 | Row | File | Symbol | Lens | Severity | Verdict | Status |
 |---|---|---|---|---|---|---|
-| `TOOL-01` | `packages/*/package.json`, `apps/*/package.json` | the `lint` script | correctness | high | CONFIRMED | ◯ OPEN |
+| `TOOL-01` | `packages/*/package.json`, `apps/*/package.json` | the `lint` script | correctness | high | CONFIRMED | ◐ FIXED |
 | `BENCH-01` | `packages/ui/src/__benchmarks__/browser/menu-pointer.bench.tsx` | the travel-test rung (`openCorridor`) | correctness | high | CONFIRMED | ◯ OPEN |
 | `MENU-01` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` | correctness | medium | CONFIRMED | ◯ OPEN |
 | `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ◯ OPEN |
@@ -100,7 +100,7 @@ TESTS-07 and TOOL-07 found the same defect, so the table keeps it once as TOOL-0
 
 **TOOL-01 — CI applies no `packages/ui` override of Biome.** Each package `lint` script ran `biome check --config-path=../.. .`. With that flag, Biome matches each override's `includes` against a path relative to the package, such as `src/hooks/x.ts`. No `packages/ui/**` glob matches that path. So CI's `turbo run lint` applied none of the eleven `packages/ui` overrides: the seven layer-import rules, the three GritQL plugins, and the complexity override. #1152 and #1164 moved eight boundary tests into those overrides, so the move took their rules out of CI. Only the Lefthook `pre-push` hook ran them, from the root.
 
-A probe under `components/` imported `createContext` from `react`, imported the `kiso` barrel, and declared a `dataSlot` key. The package run passed it, and the root run failed it with three errors. Without the flag, Biome finds the root `biome.json` itself and matches the globs from the root. Fix: drop the flag from all five scripts.
+A probe under `components/` imported `createContext` from `react`, imported the `kiso` barrel, and declared a `dataSlot` key. The package run passed it, and the root run failed it with three errors. Without the flag, Biome finds the root `biome.json` itself and matches the globs from the root. Fix: drop the flag from each package script, which covers `lint`, `lint:fix`, and `format`. `lint:fix` had the same fault as `lint`.
 
 **BENCH-01 — The travel-test rung never runs the travel test.** `openCorridor` hovers the submenu parent open at its centre, and the sweep then visits the sibling rows at the same x. `inCorridor` computes a progress of 0 on the first arrival and returns false, so `hoverRow` closes the submenu. Each later arrival returns early, because no submenu is open. A Chromium probe counted one rect read in the first pass and none in the second, with `aria-expanded="false"` after the settle.
 
