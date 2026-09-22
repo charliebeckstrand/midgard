@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useScrollOverflow } from '../../hooks/use-scroll-overflow'
-import { present, renderUI, screen } from '../helpers'
-import { mockDomGeometry } from '../helpers/mock-dom-geometry'
+import { mockDomGeometry, present, renderUI, screen } from '../helpers'
+import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
  * The ref's own contract, and the comparisons a browser cannot be asked for.
@@ -86,13 +86,15 @@ describe('useScrollOverflow', () => {
 
 			const node = buildScroller({ scrollTop: 0, clientHeight: 200, scrollHeight: 400 })
 
-			const observe = vi.spyOn(ResizeObserver.prototype, 'observe')
+			// The live list of observers the subject constructs. A wired watch builds
+			// one on attach, so an empty list reads the absence itself.
+			const observers = stubResizeObserver()
 
 			// No cleanup comes back, which is the shape of a ref that wired nothing:
 			// React has nothing to run on detach.
 			expect(result.current(node)).toBeUndefined()
 
-			expect(observe).not.toHaveBeenCalled()
+			expect(observers).toHaveLength(0)
 
 			expect(node.hasAttribute('data-overflow-above')).toBe(false)
 
@@ -103,8 +105,6 @@ describe('useScrollOverflow', () => {
 			scrollTo(node, 0)
 
 			expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-			observe.mockRestore()
 
 			node.remove()
 		})

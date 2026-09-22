@@ -168,7 +168,9 @@ export function MenuSub({
 	// A hand-written wrapper returns nothing, so React falls back to a `null`
 	// call — which the hook ignores — and the watch outlives the panel.
 	// `useComposedRef` forwards each ref's own cleanup, and nulls `rows` on the
-	// same detach.
+	// same detach. A `capped` flip swaps the watch ref, so `rows` cycles through
+	// `null` and the row renders once more. The flag is a height policy, not
+	// interaction state, so a flip is rare.
 	const setRowContainer = useComposedRef<HTMLElement>(setRows, scrollOverflowRef)
 
 	const triggerId = useId()

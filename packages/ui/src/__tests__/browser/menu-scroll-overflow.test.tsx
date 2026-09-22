@@ -112,22 +112,23 @@ describe('Menu scroll overflow (real browser)', () => {
 
 describe('MenuSub scroll overflow (real browser)', () => {
 	/**
-	 * The scroll viewport of a submenu panel, opened by a click on its parent
-	 * row. The panel portals out of the enclosing menu, so the viewport is
-	 * reached from one of its own rows rather than from the render container.
+	 * The scroll viewport of a twelve-row submenu panel, opened by a click on its
+	 * parent row. The panel portals out of the enclosing menu, so the viewport is
+	 * reached from one of its own rows rather than from the render container. The
+	 * row count is the one the capped cases above overflow at.
 	 */
-	async function submenuViewportFor(capped?: boolean, count = 12) {
+	async function submenuViewportFor(capped?: boolean) {
 		renderUI(
 			<Menu defaultOpen capped={capped}>
 				<MenuContent aria-label="Actions">
-					<MenuSub label="More">{rows(count)}</MenuSub>
+					<MenuSub label="More">{rows(12)}</MenuSub>
 				</MenuContent>
 			</Menu>,
 		)
 
 		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
 
-		const first = await waitFor(() => screen.getByRole('menuitem', { name: 'Item 1' }))
+		const first = await screen.findByRole('menuitem', { name: 'Item 1' })
 
 		return present(
 			first.closest<HTMLElement>('[data-slot="menu-viewport"]'),
