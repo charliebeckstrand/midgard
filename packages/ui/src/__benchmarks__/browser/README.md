@@ -338,7 +338,7 @@ Most of the floating layer is the engine, not the wrapper. These rungs read floa
 | 3 · useFloating + autoUpdate | 0.600 | 0.211 |
 | 4 · + FloatingPortal | 0.749 | 0.149 |
 
-**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.39 — is `FloatingSurface`, `PresencePortal`, and `MenuTrigger`.
+**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.41 — is `FloatingSurface`, `PresencePortal`, and `MenuTrigger`.
 
 The other 25% is `MenuContent`. Split at the `Menu` root:
 
@@ -415,13 +415,13 @@ A grid puts a filter menu on every column and an action menu on every row. The c
 | 3 · trigger only (no panel to build) | 3.127 | 1.768 | 0.831 | 0.0166 |
 | 4 · closed menus (the real thing) | 3.347 | 1.953 | 0.185 | 0.0037 |
 
-**A closed menu cost 0.064 ms, which was 22× a bare button. It now costs 0.036 ms, or 12×.** Fifty went from 3.3 ms of mount to 2.0 ms. This one was never a jsdom artifact. The jsdom suite read the same fan-out at 10× a bare button and the browser read 22×, so jsdom understated it.
+**A closed menu cost 0.064 ms, which was 22× a bare button. It now costs 0.036 ms, or 13×.** Fifty went from 3.3 ms of mount to 2.0 ms. This one was never a jsdom artifact. The jsdom suite read the same fan-out at 10× a bare button and the browser read 22×, so jsdom understated it.
 
 **Two thirds of the original figure was `MenuTrigger`, and most of that was one wasted render.** `setReference` is a state setter, and the ref callback called it during the commit, so every closed menu rendered twice. That was counted on the component itself rather than inferred: `MenuTrigger` ran twice per closed menu before the change and once after. Lever 2 below is the fix.
 
-**The panel tree the portal discards is the smallest term, at 7%.** `MenuContent` and `FloatingSurface` build a viewport, a `Density`, and a `PopoverPanel` on every render, for a portal that renders none of them. Gating that construction would save under 0.003 ms per menu. That sits inside the run-to-run spread of the rung, so it is not worth the branch.
+**The panel tree the portal discards is the smallest term, at 7%.** `MenuContent` and `FloatingSurface` build a viewport, a `Density`, and a `PopoverPanel` on every render, for a portal that renders none of them. Gating that construction would save about 0.004 ms per menu. That sits inside the run-to-run spread of the rung, so it is not worth the branch.
 
-What remains is the price of wiring floating-ui to a trigger. A page still pays it per menu, whether or not a reader opens one. The hook tree is now the largest term at 0.0157 ms. Reaching it means deferring the whole machinery to the first open, which is an architectural change to how `Menu` splits. It would need `useClick`'s trigger behaviour reproduced on the closed path, against a delicate keyboard model, for about another 0.016 ms per menu.
+What remains is the price of wiring floating-ui to a trigger. A page still pays it per menu, whether or not a reader opens one. The trigger and the hook tree are now the two largest terms, at 0.0166 and 0.0157 ms. Reaching the hook tree means deferring the whole machinery to the first open, which is an architectural change to how `Menu` splits. It would need `useClick`'s trigger behaviour reproduced on the closed path, against a delicate keyboard model, for about another 0.016 ms per menu.
 
 ### Submenu rows: the other multiplier (2026-09-21, this container)
 
@@ -435,7 +435,7 @@ A submenu row lives inside the panel, so a menu pays for it on every open rather
 
 **A `MenuSub` cost 0.159 ms above the `MenuItem` it replaces, and now costs 0.091 ms.** It rendered twice for the same reason the root trigger did, and lever 3 below is the same fix one level down. An open menu carrying six of them saves 0.44 ms per open.
 
-What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, and a closed floating surface. The `useScrollOverflow` this once listed left the closed row with lever 6, which moved it into `MenuViewport` — a component the shut panel never renders. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
+What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, and a closed floating surface. The `useScrollOverflow` this once listed left the closed row with lever 6, which moved it into `MenuViewport` — a component the shut panel never renders. That is per row, while the submenu is shut. That is two and a half times what a closed root menu costs.
 
 ### Optimization log
 
