@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useKeybindings } from '../../hooks/use-keybindings'
+import { attach } from '../helpers'
 
 // tinykeys requires a `code` property; always populate it.
 function pressShiftA(target: EventTarget = window) {
@@ -77,13 +78,7 @@ describe('useKeybindings', () => {
 	it('listens on a custom HTMLElement target', () => {
 		const handler = vi.fn()
 
-		const target = document.createElement('div')
-
-		document.body.appendChild(target)
-
-		// In `onTestFinished`, not after the assertion below: a failed assertion
-		// would otherwise leave the node on the shared body for the next file.
-		onTestFinished(() => target.remove())
+		const target = attach(document.createElement('div'))
 
 		renderHook(() => useKeybindings({ 'Shift+a': handler }, { target }))
 

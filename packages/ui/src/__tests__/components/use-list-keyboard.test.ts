@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useListKeyboard } from '../../components/list/use-list-keyboard'
-import { makeKeyEvent } from '../helpers'
+import { attach, makeKeyEvent } from '../helpers'
 
 const containerRef = { current: document.body }
 
@@ -21,21 +21,11 @@ function mountListDom(ids: string[]): HTMLElement[] {
 
 		el.tabIndex = 0
 
-		document.body.appendChild(el)
-
-		return el
+		return attach(el)
 	})
 }
 
 describe('useListKeyboard', () => {
-	beforeEach(() => {
-		document.body.innerHTML = ''
-	})
-
-	afterEach(() => {
-		document.body.innerHTML = ''
-	})
-
 	describe('lift state (Space)', () => {
 		it('starts with liftedId null', () => {
 			const { result } = renderHook(() =>

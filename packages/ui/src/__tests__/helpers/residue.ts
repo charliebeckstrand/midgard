@@ -168,7 +168,7 @@ function assertNoResidue(): void {
 	if (leaks.length === 0) return
 
 	throw new Error(
-		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nRemove it in onTestFinished or an afterEach, render inside the container renderUI returns, remove the listener the test added, or release a drag through drag().`,
+		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nPut a node on the body through attach(), remove other state in onTestFinished or an afterEach, render inside the container renderUI returns, remove the listener the test added, or release a drag through drag().`,
 	)
 }
 

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { createRef, type RefObject } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PanelConfig } from '../../components/resizable/types'
 import { useResizablePanel } from '../../components/resizable/use-resizable-panel'
 import { makePointerEvent } from '../helpers'
@@ -63,10 +63,6 @@ describe('useResizablePanel', () => {
 		})
 
 		vi.stubGlobal('cancelAnimationFrame', () => {})
-	})
-
-	afterEach(() => {
-		document.body.innerHTML = ''
 	})
 
 	describe('initial sizes', () => {

@@ -1,20 +1,15 @@
 import { renderHook, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useA11yHasTabbable } from '../../hooks/a11y/use-a11y-has-tabbable'
+import { attach } from '../helpers'
 
 function mountPanel(html: string) {
 	const el = document.createElement('div')
 
 	el.innerHTML = html
 
-	document.body.append(el)
-
-	return el
+	return attach(el)
 }
-
-afterEach(() => {
-	document.body.innerHTML = ''
-})
 
 describe('useA11yHasTabbable', () => {
 	it('reports a tabbable descendant', () => {

@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react'
 import { createRef } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useFloatingPanel, useFloatingUI } from '../../hooks/use-floating-ui'
+import { attach } from '../helpers'
 
 describe('useFloatingPanel', () => {
 	afterEach(() => {
@@ -127,9 +128,11 @@ describe('useFloatingUI', () => {
 
 			floating.appendChild(floatingChild)
 
-			document.body.append(reference, floating)
+			attach(reference)
 
-			const { result, unmount } = renderHook(() =>
+			attach(floating)
+
+			const { result } = renderHook(() =>
 				useFloatingUI({ placement: 'bottom-start', open, onOpenChange }),
 			)
 
@@ -142,13 +145,6 @@ describe('useFloatingUI', () => {
 				reference,
 				floating,
 				floatingChild,
-				cleanup: () => {
-					unmount()
-
-					reference.remove()
-
-					floating.remove()
-				},
 			}
 		}
 
@@ -157,49 +153,41 @@ describe('useFloatingUI', () => {
 		}
 
 		it('fires onOpenChange(false) on a press outside the reference and floating elements', () => {
-			const { onOpenChange, cleanup } = setup(true)
+			const { onOpenChange } = setup(true)
 
 			const outside = document.createElement('div')
 
-			document.body.appendChild(outside)
+			attach(outside)
 
 			dispatchPointerDown(outside)
 
 			expect(onOpenChange).toHaveBeenCalledTimes(1)
 
 			expect(onOpenChange).toHaveBeenCalledWith(false, expect.any(PointerEvent), 'outside-press')
-
-			outside.remove()
-
-			cleanup()
 		})
 
 		it('does not fire on a press inside the floating element', () => {
-			const { onOpenChange, floatingChild, cleanup } = setup(true)
+			const { onOpenChange, floatingChild } = setup(true)
 
 			dispatchPointerDown(floatingChild)
 
 			expect(onOpenChange).not.toHaveBeenCalled()
-
-			cleanup()
 		})
 
 		it('does not fire on a press inside the reference element', () => {
-			const { onOpenChange, reference, cleanup } = setup(true)
+			const { onOpenChange, reference } = setup(true)
 
 			dispatchPointerDown(reference)
 
 			expect(onOpenChange).not.toHaveBeenCalled()
-
-			cleanup()
 		})
 
 		it('does not fire on a scrollbar press', () => {
-			const { onOpenChange, cleanup } = setup(true)
+			const { onOpenChange } = setup(true)
 
 			const scroller = document.createElement('div')
 
-			document.body.appendChild(scroller)
+			attach(scroller)
 
 			Object.defineProperties(scroller, {
 				clientWidth: { value: 100, configurable: true },
@@ -225,26 +213,18 @@ describe('useFloatingUI', () => {
 			expect(onOpenChange).not.toHaveBeenCalled()
 
 			vi.restoreAllMocks()
-
-			scroller.remove()
-
-			cleanup()
 		})
 
 		it('does not attach a listener when closed', () => {
-			const { onOpenChange, cleanup } = setup(false)
+			const { onOpenChange } = setup(false)
 
 			const outside = document.createElement('div')
 
-			document.body.appendChild(outside)
+			attach(outside)
 
 			dispatchPointerDown(outside)
 
 			expect(onOpenChange).not.toHaveBeenCalled()
-
-			outside.remove()
-
-			cleanup()
 		})
 	})
 
@@ -266,7 +246,9 @@ describe('useFloatingUI', () => {
 
 			const floating = document.createElement('div')
 
-			document.body.append(reference, floating)
+			attach(reference)
+
+			attach(floating)
 
 			const { result, rerender } = renderHook(
 				({ open }: { open: boolean }) =>
@@ -285,7 +267,7 @@ describe('useFloatingUI', () => {
 
 			const outside = document.createElement('div')
 
-			document.body.appendChild(outside)
+			attach(outside)
 
 			outside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
@@ -294,12 +276,6 @@ describe('useFloatingUI', () => {
 			rerender({ open: false })
 
 			expect(focus).not.toHaveBeenCalled()
-
-			outside.remove()
-
-			reference.remove()
-
-			floating.remove()
 		})
 
 		it('returns focus when the close was an Escape press', () => {
@@ -340,7 +316,9 @@ describe('useFloatingUI', () => {
 
 			const floating = document.createElement('div')
 
-			document.body.append(reference, floating)
+			attach(reference)
+
+			attach(floating)
 
 			const { result, unmount } = renderHook(() =>
 				useFloatingUI({ placement: 'bottom-start', open: true, onOpenChange }),
@@ -354,17 +332,11 @@ describe('useFloatingUI', () => {
 
 			const outside = document.createElement('div')
 
-			document.body.appendChild(outside)
+			attach(outside)
 
 			outside.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 
 			expect(onOpenChange).not.toHaveBeenCalled()
-
-			outside.remove()
-
-			reference.remove()
-
-			floating.remove()
 		})
 	})
 })

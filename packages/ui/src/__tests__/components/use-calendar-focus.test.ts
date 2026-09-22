@@ -1,11 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useCalendarFocus } from '../../components/calendar/use-calendar-focus'
-import { makeKeyEvent, present } from '../helpers'
-
-afterEach(() => {
-	document.body.innerHTML = ''
-})
+import { attach, makeKeyEvent, present } from '../helpers'
 
 function makeContainer(buttonCount: number) {
 	const el = document.createElement('div')
@@ -20,9 +16,7 @@ function makeContainer(buttonCount: number) {
 		el.appendChild(btn)
 	}
 
-	document.body.appendChild(el)
-
-	return el
+	return attach(el)
 }
 
 function setup(
@@ -55,10 +49,6 @@ function setup(
 }
 
 describe('useCalendarFocus: header', () => {
-	beforeEach(() => {
-		document.body.innerHTML = ''
-	})
-
 	it('ArrowDown moves focus from header to the first grid button', () => {
 		const { header, grid, handleHeaderKeyDown } = setup()
 
@@ -86,10 +76,6 @@ describe('useCalendarFocus: header', () => {
 })
 
 describe('useCalendarFocus: grid', () => {
-	beforeEach(() => {
-		document.body.innerHTML = ''
-	})
-
 	it('ArrowUp from the top row focuses the middle header button', () => {
 		const { header, grid, handleGridKeyDown } = setup({ cols: 7, gridButtons: 14 })
 
@@ -147,10 +133,6 @@ describe('useCalendarFocus: grid', () => {
 })
 
 describe('useCalendarFocus: footer', () => {
-	beforeEach(() => {
-		document.body.innerHTML = ''
-	})
-
 	it('ArrowUp moves focus back to the last grid button', () => {
 		const { grid, footer, handleFooterKeyDown } = setup({ footer: true })
 
@@ -258,10 +240,6 @@ describe('useCalendarFocus: footer', () => {
 })
 
 describe('useCalendarFocus: stopPropagation paths', () => {
-	beforeEach(() => {
-		document.body.innerHTML = ''
-	})
-
 	it('stopPropagation propagates from header keydown when the roving handler prevents default', () => {
 		const { header, handleHeaderKeyDown } = setup({ stopPropagation: true })
 

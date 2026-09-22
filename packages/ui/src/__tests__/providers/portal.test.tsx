@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Dialog } from '../../components/dialog'
 import { type PortalContainer, usePortalContainer } from '../../primitives/portal'
 import { UIProvider } from '../../providers/ui'
-import { renderUI, screen } from '../helpers'
+import { attach, renderUI, screen } from '../helpers'
 
 function PortalProbe({ container }: { container?: PortalContainer }) {
 	const resolved = usePortalContainer(container)
@@ -11,10 +11,6 @@ function PortalProbe({ container }: { container?: PortalContainer }) {
 }
 
 describe('UIProvider portalContainer', () => {
-	afterEach(() => {
-		document.getElementById('app-portal')?.remove()
-	})
-
 	it('broadcasts the container through usePortalContainer()', () => {
 		const target = document.createElement('div')
 
@@ -36,11 +32,9 @@ describe('UIProvider portalContainer', () => {
 	})
 
 	it('mounts a portalled overlay into the provider container', () => {
-		const target = document.createElement('div')
+		const target = attach(document.createElement('div'))
 
 		target.id = 'app-portal'
-
-		document.body.append(target)
 
 		renderUI(
 			<UIProvider portalContainer={target}>

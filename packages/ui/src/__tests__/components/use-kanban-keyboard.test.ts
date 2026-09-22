@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { KanbanColumnBase } from '../../components/kanban/types'
 import { useKanbanKeyboard } from '../../components/kanban/use-kanban-keyboard'
-import { makeKeyEvent } from '../helpers'
+import { attach, makeKeyEvent } from '../helpers'
 
 const containerRef = { current: document.body }
 
@@ -115,12 +115,8 @@ describe('useKanbanKeyboard: focus navigation', () => {
 
 			el.setAttribute('tabindex', '0')
 
-			document.body.appendChild(el)
+			attach(el)
 		}
-	})
-
-	afterEach(() => {
-		document.body.innerHTML = ''
 	})
 
 	it('moves focus to the next card in the column on ArrowDown', () => {

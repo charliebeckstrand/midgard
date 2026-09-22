@@ -1,6 +1,6 @@
 import { renderHook, waitFor } from '@testing-library/react'
 import { type RefObject, useRef } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	clearVirtualActive,
 	clearVirtualActiveIndexed,
@@ -11,20 +11,7 @@ import {
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
-import { makeKeyEvent } from '../helpers'
-
-// Containers are appended to document.body for real focus/roving; RTL cleanup()
-// only unmounts React roots, not these manual nodes. Track and remove them so a
-// leftover option list can't contaminate a later test's DOM queries. The unit
-// project runs `isolate: false`, so document.body is shared with every later
-// file in the worker, not just with later tests in this one.
-const appendedContainers: HTMLElement[] = []
-
-afterEach(() => {
-	for (const el of appendedContainers) el.remove()
-
-	appendedContainers.length = 0
-})
+import { attach, makeKeyEvent } from '../helpers'
 
 describe('queryItems', () => {
 	it('returns empty array for null container', () => {
@@ -110,13 +97,7 @@ describe('setVirtualActiveElement', () => {
 	// Attached, unlike the detached lists the index-addressed tests build, as a
 	// menu's rows are. The decoy case needs a second element with a row's id
 	// elsewhere in the document.
-	const attached: HTMLElement[] = []
-
 	let panels = 0
-
-	afterEach(() => {
-		for (const node of attached.splice(0)) node.remove()
-	})
 
 	function makePanel(count: number) {
 		const scope = `p${panels++}`
@@ -139,9 +120,9 @@ describe('setVirtualActiveElement', () => {
 
 		const owner = document.createElement('button')
 
-		document.body.append(panel, owner)
+		attach(panel)
 
-		attached.push(panel, owner)
+		attach(owner)
 
 		return { panel, rows, owner, scope }
 	}
@@ -221,9 +202,7 @@ describe('setVirtualActiveElement', () => {
 
 		decoy.id = `${scope}-row-1`
 
-		document.body.prepend(decoy)
-
-		attached.push(decoy)
+		attach(decoy, 'prepend')
 
 		setVirtualActiveElement(panel, rows[1] as HTMLElement, ROW, { current: owner }, asCursor)
 
@@ -284,9 +263,7 @@ function makeContainer(count: number) {
 		container.appendChild(btn)
 	}
 
-	document.body.appendChild(container)
-
-	appendedContainers.push(container)
+	attach(container)
 
 	return container
 }
@@ -306,9 +283,7 @@ function makeLabeledContainer(labels: string[]) {
 		container.appendChild(btn)
 	}
 
-	document.body.appendChild(container)
-
-	appendedContainers.push(container)
+	attach(container)
 
 	return container
 }
@@ -351,7 +326,7 @@ describe('useA11yRoving', () => {
 	it('does nothing when the container has no items', () => {
 		const empty = document.createElement('div')
 
-		document.body.appendChild(empty)
+		attach(empty)
 
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(empty)
@@ -362,8 +337,6 @@ describe('useA11yRoving', () => {
 		const event = makeKeyEvent('ArrowDown')
 
 		expect(() => result.current(event)).not.toThrow()
-
-		empty.remove()
 	})
 
 	it('focus mode: moves focus to the next item on ArrowDown', () => {
@@ -388,8 +361,6 @@ describe('useA11yRoving', () => {
 		expect(event.preventDefault).toHaveBeenCalled()
 
 		expect(document.activeElement).toBe(items[1])
-
-		container.remove()
 	})
 
 	it('focus mode: does nothing when no item is focused and focusOnEmpty is false', () => {
@@ -406,8 +377,6 @@ describe('useA11yRoving', () => {
 		result.current(event)
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
-
-		container.remove()
 	})
 
 	it('focus mode: focuses first item when focusOnEmpty is true and nothing is focused', () => {
@@ -424,8 +393,6 @@ describe('useA11yRoving', () => {
 		result.current(event)
 
 		expect(document.activeElement).toBe(container.querySelectorAll('button')[0])
-
-		container.remove()
 	})
 
 	it('virtual mode: marks the first item active on ArrowDown when empty', () => {
@@ -444,8 +411,6 @@ describe('useA11yRoving', () => {
 		const items = container.querySelectorAll('button')
 
 		expect(items[0]?.hasAttribute('data-active')).toBe(true)
-
-		container.remove()
 	})
 
 	it('virtual mode: moves the active marker between items', () => {
@@ -466,8 +431,6 @@ describe('useA11yRoving', () => {
 		expect(items[0]?.hasAttribute('data-active')).toBe(false)
 
 		expect(items[1]?.hasAttribute('data-active')).toBe(true)
-
-		container.remove()
 	})
 
 	it('virtual mode: activation key clicks the active item', () => {
@@ -490,8 +453,6 @@ describe('useA11yRoving', () => {
 		result.current(makeKeyEvent('Enter'))
 
 		expect(clickSpy).toHaveBeenCalled()
-
-		container.remove()
 	})
 
 	it('virtual mode: any key in an activationKey list clicks the active item', () => {
@@ -519,8 +480,6 @@ describe('useA11yRoving', () => {
 		result.current(makeKeyEvent(' '))
 
 		expect(clickSpy).toHaveBeenCalledTimes(1)
-
-		container.remove()
 	})
 
 	it('virtual mode: mirrors the active item into aria-selected and aria-activedescendant', () => {
@@ -534,7 +493,7 @@ describe('useA11yRoving', () => {
 
 		const controller = document.createElement('input')
 
-		document.body.appendChild(controller)
+		attach(controller)
 
 		const { result } = renderHook(() => {
 			const ref = useRef<HTMLElement>(container)
@@ -561,10 +520,6 @@ describe('useA11yRoving', () => {
 		expect(items[1]?.getAttribute('aria-selected')).toBe('true')
 
 		expect(controller.getAttribute('aria-activedescendant')).toBe('opt-1')
-
-		container.remove()
-
-		controller.remove()
 	})
 
 	it('virtual mode: leaves ARIA untouched when no activeDescendantRef is given', () => {
@@ -581,8 +536,6 @@ describe('useA11yRoving', () => {
 		result.current(makeKeyEvent('ArrowDown'))
 
 		expect(items[0]?.hasAttribute('aria-selected')).toBe(false)
-
-		container.remove()
 	})
 
 	it('virtual mode: activation key is a no-op when nothing is active', () => {
@@ -599,8 +552,6 @@ describe('useA11yRoving', () => {
 		result.current(event)
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
-
-		container.remove()
 	})
 
 	it('type-ahead: a letter focuses the matching item when enabled', () => {
@@ -621,8 +572,6 @@ describe('useA11yRoving', () => {
 		expect(event.preventDefault).toHaveBeenCalled()
 
 		expect(document.activeElement).toBe(items[2])
-
-		container.remove()
 	})
 
 	it('type-ahead: printable keys are ignored when disabled', () => {
@@ -639,8 +588,6 @@ describe('useA11yRoving', () => {
 		result.current(event)
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
-
-		container.remove()
 	})
 
 	it('type-ahead: a non-matching letter is consumed without moving focus', () => {
@@ -657,8 +604,6 @@ describe('useA11yRoving', () => {
 		result.current(event)
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
-
-		container.remove()
 	})
 })
 
@@ -680,7 +625,7 @@ describe('useA11yRoving: manageTabIndex', () => {
 			container.appendChild(btn)
 		}
 
-		document.body.appendChild(container)
+		attach(container)
 
 		return container
 	}
@@ -721,8 +666,6 @@ describe('useA11yRoving: manageTabIndex', () => {
 		})
 
 		expect(tabIndices(container)).toEqual(expected)
-
-		container.remove()
 	})
 
 	it('carries the resting stop to the focused item on arrow', () => {
@@ -743,8 +686,6 @@ describe('useA11yRoving: manageTabIndex', () => {
 		expect(document.activeElement).toBe(items[1])
 
 		expect(tabIndices(container)).toEqual([-1, 0, -1])
-
-		container.remove()
 	})
 
 	it('carries the resting stop to a focused item without an arrow key (click / programmatic)', () => {
@@ -765,8 +706,6 @@ describe('useA11yRoving: manageTabIndex', () => {
 		items[2]?.focus()
 
 		expect(tabIndices(container)).toEqual([-1, -1, 0])
-
-		container.remove()
 	})
 })
 
@@ -806,7 +745,7 @@ describe('useA11yRoving: row actions', () => {
 			container.appendChild(rowEl)
 		})
 
-		document.body.appendChild(container)
+		attach(container)
 
 		return container
 	}
@@ -838,8 +777,6 @@ describe('useA11yRoving: row actions', () => {
 		expect(event.preventDefault).toHaveBeenCalled()
 
 		expect(document.activeElement).toBe(byText(container, 'suffix-0'))
-
-		container.remove()
 	})
 
 	it.each<[string, Parameters<typeof makeRows>[0], string, string, string]>([
@@ -875,8 +812,6 @@ describe('useA11yRoving: row actions', () => {
 		result.current(makeKeyEvent(key))
 
 		expect(document.activeElement).toBe(byText(container, expectedActive))
-
-		container.remove()
 	})
 
 	it('anchors main-axis arrows from an action to the row, landing on the adjacent item', () => {
@@ -893,8 +828,6 @@ describe('useA11yRoving: row actions', () => {
 		expect(event.preventDefault).toHaveBeenCalled()
 
 		expect(document.activeElement).toBe(byText(container, 'item-1'))
-
-		container.remove()
 	})
 
 	it('leaves cross-axis keys alone when nothing in a row has focus', () => {
@@ -907,8 +840,6 @@ describe('useA11yRoving: row actions', () => {
 		result.current(event)
 
 		expect(event.preventDefault).not.toHaveBeenCalled()
-
-		container.remove()
 	})
 
 	it('manageTabIndex: pins actions at tabIndex -1 and rests the stop on the item', () => {
@@ -928,8 +859,6 @@ describe('useA11yRoving: row actions', () => {
 		expect(byText(container, 'item-0')?.tabIndex).toBe(0)
 
 		expect(byText(container, 'suffix-0')?.tabIndex).toBe(-1)
-
-		container.remove()
 	})
 })
 
@@ -952,9 +881,7 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 			container.appendChild(row)
 		}
 
-		document.body.appendChild(container)
-
-		appendedContainers.push(container)
+		attach(container)
 
 		return container
 	}
@@ -1025,7 +952,7 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 
 		const controller = document.createElement('input')
 
-		document.body.appendChild(controller)
+		attach(controller)
 
 		const source = makeSource(10_000)
 
@@ -1056,10 +983,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		await waitFor(() => {
 			expect(container.querySelector('#opt-3')?.hasAttribute('data-active')).toBe(true)
 		})
-
-		container.remove()
-
-		controller.remove()
 	})
 
 	it('Home jumps straight to index 0 of a 10,000-item source without touching the DOM window', () => {
@@ -1074,8 +997,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		expect(source.scrollToIndex).toHaveBeenCalledWith(0, { align: 'auto' })
 
 		expect(activeIndexRef.current).toBe(0)
-
-		container.remove()
 	})
 
 	it('End jumps to the last index of a 10,000-item source', () => {
@@ -1090,8 +1011,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		expect(source.scrollToIndex).toHaveBeenCalledWith(9_999, { align: 'auto' })
 
 		expect(activeIndexRef.current).toBe(9_999)
-
-		container.remove()
 	})
 
 	it('type-ahead matches an offscreen item by its data text value, not the DOM', () => {
@@ -1115,8 +1034,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		expect(activeIndexRef.current).toBe(2)
 
 		expect(source.scrollToIndex).toHaveBeenCalledWith(2, { align: 'auto' })
-
-		container.remove()
 	})
 
 	it('type-ahead is a no-op (consumed, no move) when the source has no getTextValue', () => {
@@ -1136,8 +1053,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		expect(event.preventDefault).not.toHaveBeenCalled()
 
 		expect(activeIndexRef.current).toBe(-1)
-
-		container.remove()
 	})
 
 	it('skips disabled indices on ArrowDown, wrapping past them', () => {
@@ -1196,8 +1111,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		result.current(makeKeyEvent('Enter'))
 
 		expect(clickSpy).toHaveBeenCalled()
-
-		container.remove()
 	})
 
 	it('Enter is a no-op when the active row jumped past the window and has not mounted yet', () => {
@@ -1208,8 +1121,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		const { result } = setup(container, source, { activeIndex: 500 })
 
 		expect(() => result.current(makeKeyEvent('Enter'))).not.toThrow()
-
-		container.remove()
 	})
 
 	it('clamps a stale activeIndexRef when the source shrinks (e.g. a filter narrows the list)', () => {
@@ -1226,8 +1137,6 @@ describe('useA11yRoving: itemSource (indexed navigation over a windowed list)', 
 		expect(activeIndexRef.current).toBe(0)
 
 		expect(source.scrollToIndex).toHaveBeenCalledWith(0, { align: 'auto' })
-
-		container.remove()
 	})
 })
 
@@ -1243,11 +1152,11 @@ describe('setVirtualActiveIndexed', () => {
 
 		container.appendChild(row)
 
-		document.body.appendChild(container)
+		attach(container)
 
 		const owner = document.createElement('input')
 
-		document.body.appendChild(owner)
+		attach(owner)
 
 		const source: VirtualItemSource = {
 			count: 5,
@@ -1266,20 +1175,16 @@ describe('setVirtualActiveIndexed', () => {
 		expect(row.hasAttribute('data-active')).toBe(true)
 
 		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-2')
-
-		container.remove()
-
-		owner.remove()
 	})
 
 	it('points aria-activedescendant at the predicted id even when the row is not mounted', () => {
 		const container = document.createElement('div')
 
-		document.body.appendChild(container)
+		attach(container)
 
 		const owner = document.createElement('input')
 
-		document.body.appendChild(owner)
+		attach(owner)
 
 		const source: VirtualItemSource = {
 			count: 5,
@@ -1294,10 +1199,6 @@ describe('setVirtualActiveIndexed', () => {
 		expect(owner.getAttribute('aria-activedescendant')).toBe('opt-4')
 
 		expect(container.querySelector('[data-active]')).toBeNull()
-
-		container.remove()
-
-		owner.remove()
 	})
 })
 
@@ -1313,13 +1214,13 @@ describe('clearVirtualActiveIndexed', () => {
 
 		container.appendChild(row)
 
-		document.body.appendChild(container)
+		attach(container)
 
 		const owner = document.createElement('input')
 
 		owner.setAttribute('aria-activedescendant', 'opt-0')
 
-		document.body.appendChild(owner)
+		attach(owner)
 
 		const activeIndexRef = { current: 0 }
 
@@ -1330,10 +1231,6 @@ describe('clearVirtualActiveIndexed', () => {
 		expect(owner.hasAttribute('aria-activedescendant')).toBe(false)
 
 		expect(row.hasAttribute('data-active')).toBe(false)
-
-		container.remove()
-
-		owner.remove()
 	})
 })
 
@@ -1347,13 +1244,11 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 	it('applies the highlight once the target row mounts after the initial call found nothing', async () => {
 		const container = document.createElement('div')
 
-		document.body.appendChild(container)
-
-		appendedContainers.push(container)
+		attach(container)
 
 		const owner = document.createElement('input')
 
-		document.body.appendChild(owner)
+		attach(owner)
 
 		const source: VirtualItemSource = {
 			count: 5,
@@ -1377,16 +1272,12 @@ describe('setVirtualActiveIndexed: mount-catch-up watcher', () => {
 		container.appendChild(row)
 
 		await waitFor(() => expect(row.hasAttribute('data-active')).toBe(true))
-
-		owner.remove()
 	})
 
 	it('a stale watcher declines to apply once a newer move supersedes it', async () => {
 		const container = document.createElement('div')
 
-		document.body.appendChild(container)
-
-		appendedContainers.push(container)
+		attach(container)
 
 		const source: VirtualItemSource = {
 			count: 5,

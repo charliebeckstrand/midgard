@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Overlay } from '../../primitives/overlay'
-import { fireEvent, present, renderUI, screen } from '../helpers'
+import { attach, fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Overlay', () => {
 	it('renders children when open', () => {
@@ -134,25 +134,17 @@ describe('Overlay', () => {
 	})
 
 	it('does not steal focus when modal=false', () => {
-		const outside = document.createElement('button')
+		const outside = attach(document.createElement('button'))
 
-		document.body.appendChild(outside)
+		outside.focus()
 
-		// try/finally so a failing assertion can't skip the cleanup and leave the
-		// button on document.body for the next (shuffled) test's focus queries.
-		try {
-			outside.focus()
+		renderUI(
+			<Overlay open modal={false} onOpenChange={() => {}}>
+				<button type="button">inside</button>
+			</Overlay>,
+		)
 
-			renderUI(
-				<Overlay open modal={false} onOpenChange={() => {}}>
-					<button type="button">inside</button>
-				</Overlay>,
-			)
-
-			expect(document.activeElement).toBe(outside)
-		} finally {
-			outside.remove()
-		}
+		expect(document.activeElement).toBe(outside)
 	})
 
 	it('does not lock body scroll when modal=false', () => {
@@ -247,31 +239,23 @@ describe('Overlay', () => {
 	})
 
 	it('renders into a scoped container when one is provided', () => {
-		const host = document.createElement('div')
+		const host = attach(document.createElement('div'))
 
 		host.style.position = 'relative'
 
-		document.body.appendChild(host)
+		renderUI(
+			<Overlay open container={host} onOpenChange={() => {}}>
+				<span>scoped content</span>
+			</Overlay>,
+		)
 
-		// try/finally so a failing assertion can't leave `host` (and a mounted
-		// overlay) on document.body for the next shuffled test.
-		try {
-			renderUI(
-				<Overlay open container={host} onOpenChange={() => {}}>
-					<span>scoped content</span>
-				</Overlay>,
-			)
+		const overlay = present(host.querySelector('[data-slot="overlay"]'), '[data-slot="overlay"]')
 
-			const overlay = present(host.querySelector('[data-slot="overlay"]'), '[data-slot="overlay"]')
+		expect(overlay).not.toBeNull()
 
-			expect(overlay).not.toBeNull()
+		expect(overlay.className).toContain('absolute')
 
-			expect(overlay.className).toContain('absolute')
-
-			// Scoped overlays do not apply the body scroll lock.
-			expect(document.body.style.overflow).toBe('')
-		} finally {
-			host.remove()
-		}
+		// Scoped overlays do not apply the body scroll lock.
+		expect(document.body.style.overflow).toBe('')
 	})
 })

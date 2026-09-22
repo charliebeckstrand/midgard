@@ -1,11 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { usePendingCaret } from '../../hooks/use-pending-caret'
+import { attach } from '../helpers'
 
 function setup() {
-	const input = document.createElement('input')
-
-	document.body.appendChild(input)
+	const input = attach(document.createElement('input'))
 
 	input.value = 'hello world'
 
@@ -25,10 +24,6 @@ async function flushMicrotasks() {
 }
 
 describe('usePendingCaret', () => {
-	afterEach(() => {
-		document.body.innerHTML = ''
-	})
-
 	it('applies the pending caret on the next commit', () => {
 		const { input, result, rerender } = setup()
 

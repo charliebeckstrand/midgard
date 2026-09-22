@@ -1,26 +1,16 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { accessibleName } from '../../core/accessible-name'
+import { attach } from '../helpers'
 
 // aria-labelledby resolves through ownerDocument.getElementById, so labelled
-// fixtures must live in the document; hosts are removed after each test for
-// isolation.
-const hosts: HTMLElement[] = []
-
+// fixtures must live in the document.
 function mount(html: string): HTMLElement {
-	const host = document.createElement('div')
+	const host = attach(document.createElement('div'))
 
 	host.innerHTML = html
 
-	document.body.append(host)
-
-	hosts.push(host)
-
 	return host
 }
-
-afterEach(() => {
-	for (const host of hosts.splice(0)) host.remove()
-})
 
 describe('accessibleName', () => {
 	it('returns an empty string for a null element', () => {

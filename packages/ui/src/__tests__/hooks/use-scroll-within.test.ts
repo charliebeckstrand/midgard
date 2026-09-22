@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useScrollWithin } from '../../hooks/use-scroll-within'
-import { mockDomGeometry } from '../helpers'
+import { attach, mockDomGeometry } from '../helpers'
 
 function buildScrollable() {
 	const scroller = document.createElement('div')
@@ -10,7 +10,7 @@ function buildScrollable() {
 
 	scroller.appendChild(node)
 
-	document.body.appendChild(scroller)
+	attach(scroller)
 
 	Object.defineProperty(scroller, 'clientHeight', { configurable: true, value: 100 })
 
@@ -48,7 +48,7 @@ function buildClippedTree(clip: { overflowX: string; overflowY: string }) {
 
 	wrapper.appendChild(node)
 
-	document.body.appendChild(outer)
+	attach(outer)
 
 	overflow.set(outer, { overflowX: 'auto', overflowY: 'auto' })
 
@@ -113,18 +113,14 @@ describe('useScrollWithin', () => {
 
 		const node = document.createElement('div')
 
-		document.body.appendChild(node)
+		attach(node)
 
 		expect(() => result.current(node)).not.toThrow()
-
-		node.remove()
 	})
 
 	describe('inside a scrollable ancestor', () => {
 		afterEach(() => {
 			vi.restoreAllMocks()
-
-			document.body.innerHTML = ''
 		})
 
 		function stubScrollable() {
@@ -286,8 +282,6 @@ describe('useScrollWithin', () => {
 describe('useScrollWithin inline axis', () => {
 	afterEach(() => {
 		vi.restoreAllMocks()
-
-		document.body.innerHTML = ''
 	})
 
 	/** A scroller that overflows on both axes, with the metrics jsdom reports as 0. */
@@ -303,7 +297,7 @@ describe('useScrollWithin inline axis', () => {
 
 		scroller.appendChild(node)
 
-		document.body.appendChild(scroller)
+		attach(scroller)
 
 		mockDomGeometry(scroller, {
 			clientHeight: 100,

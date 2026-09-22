@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { ITEM_SELECTOR } from '../../components/tree/tree-constants'
 import { ensureFirstItemActive, setActiveItem } from '../../components/tree/tree-utilities'
+import { attach } from '../helpers'
 
 function makeTree(count: number): { container: HTMLDivElement; items: HTMLElement[] } {
 	const container = document.createElement('div')
@@ -13,14 +14,10 @@ function makeTree(count: number): { container: HTMLDivElement; items: HTMLElemen
 		container.appendChild(item)
 	}
 
-	document.body.appendChild(container)
+	attach(container)
 
 	return { container, items: Array.from(container.querySelectorAll<HTMLElement>(ITEM_SELECTOR)) }
 }
-
-afterEach(() => {
-	document.body.innerHTML = ''
-})
 
 describe('setActiveItem', () => {
 	it('makes the target item tabbable and detunes every other item', () => {
@@ -62,9 +59,7 @@ describe('ensureFirstItemActive', () => {
 	})
 
 	it('is a no-op when the container has no items', () => {
-		const empty = document.createElement('div')
-
-		document.body.appendChild(empty)
+		const empty = attach(document.createElement('div'))
 
 		expect(() => ensureFirstItemActive(empty)).not.toThrow()
 	})
