@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { toFractionRect } from '../../components/pdf-viewer/pdf-viewer-highlight-geometry'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'

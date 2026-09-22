@@ -127,13 +127,13 @@ export default defineConfig({
 		outputFile: {
 			junit: 'test-results/junit.xml',
 		},
-		// @tanstack/virtual-core's isScrolling debounce can outlive its test
-		// file's jsdom environment; the late timer then throws "window is not
-		// defined" from a virtual-core frame. The integration project isolates
-		// those suites per file, so the stray timer only ever fires after its
-		// own file's teardown — ignore exactly that error (message and a
-		// virtual-core stack frame together) so a same-message error from any
-		// other source stays fatal.
+		// @tanstack/virtual-core's isScrolling debounce can outlive the jsdom
+		// environment that ran it; the late timer then throws "window is not
+		// defined" from a virtual-core frame. The virtualizer suites run on a
+		// shared `unit` worker, whose window outlives each file, so the stray
+		// timer can only land after the worker tears its environment down —
+		// ignore exactly that error (message and a virtual-core stack frame
+		// together) so a same-message error from any other source stays fatal.
 		onUnhandledError(error) {
 			return !(
 				error.message?.includes('window is not defined') && error.stack?.includes('virtual-core')
@@ -238,18 +238,20 @@ export default defineConfig({
 			},
 			{
 				extends: true as const,
-				// Integration suites: virtualizer, canvas, PDF, map — integrations
-				// that schedule work past a test's lifetime or lean on jsdom's
-				// edges — plus suites that vi.mock a shared source module
+				// Integration suites: the ones that vi.mock a shared source module
 				// (map-points-render) and need forks' per-file module graph for
 				// the mock to stay authoritative. A suite that needs a cold
 				// module registry belongs here too: `vi.resetModules()` is barred
 				// in the shared-registry projects, so a case that must re-evaluate
 				// a module to empty its module-scope state
 				// (code-block-load-shiki, for one memo cell) cannot run above.
-				// Process-isolated forks keep their leakage from perturbing
-				// sibling files; everything else stays on the fast shared-worker
-				// pool above.
+				//
+				// Nothing else belongs here. Each file here pays a fork and a
+				// fresh jsdom, which the pool above pays once per worker. The
+				// virtualizer, canvas, and PDF suites that declare no mock ran
+				// here once, and they pass on the shared window: the residue
+				// guard holds them to its terms. Moving those 21 files took the
+				// jsdom run from about 62s to 54s warm on four cores.
 				test: {
 					name: 'integration',
 					setupFiles,
