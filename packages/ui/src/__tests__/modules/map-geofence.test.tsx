@@ -1,5 +1,4 @@
 import { geoDistance } from 'd3-geo'
-import type { ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { LngLat } from '../../modules/map'
 import { MapGeofence, MapPlat, MapPoint } from '../../modules/map'
@@ -15,6 +14,7 @@ import { circleRing, zoneBudget, zoneSpare } from '../../modules/map/engine/map-
 import { projectArea } from '../../modules/map/engine/map-geometry/mark'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { overlayPlat } from '../helpers/map-plat'
 
 /** A ring over the fixture geography, wide enough to hold a mark inside it. */
 const ZONE: LngLat[] = [
@@ -23,14 +23,6 @@ const ZONE: LngLat[] = [
 	[14, 8],
 	[14, 2],
 ]
-
-function plat(children: ReactNode) {
-	return (
-		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
-			{children}
-		</MapPlat>
-	)
-}
 
 /**
  * The great-circle distance between two positions, in metres — measured the way
@@ -93,7 +85,7 @@ describe('circleRing', () => {
 
 describe('MapGeofence', () => {
 	it('draws a closed wash under a boundary, with an invisible hit stroke on the edge', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
 		const edge = bySlot(container, 'map-geofence')
 
@@ -120,7 +112,7 @@ describe('MapGeofence', () => {
 	})
 
 	it('answers the pointer across its whole face, not along its boundary alone', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
 		const hit = bySlot(container, 'map-geofence-hit')
 
@@ -133,7 +125,7 @@ describe('MapGeofence', () => {
 	})
 
 	it('keeps its wash out of the pointer, so one zone never reads as two targets', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
 		// The hit shape above covers the same face. Left hittable too, the wash
 		// would be a second target for one mark, which is the drawn/hit split every
@@ -142,7 +134,7 @@ describe('MapGeofence', () => {
 	})
 
 	it('draws its hit shape last, so nothing of its own paints over the target', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
 		const group = bySlot(container, 'map-geofence')?.parentElement
 
@@ -155,7 +147,9 @@ describe('MapGeofence', () => {
 	})
 
 	it('draws a circle from a centre and a ground radius', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Depot" at={[8, 5]} radius={200_000} />))
+		const { container } = renderUI(
+			overlayPlat(<MapGeofence label="Depot" at={[8, 5]} radius={200_000} />),
+		)
 
 		const d = bySlot(container, 'map-geofence')?.getAttribute('d') ?? ''
 
@@ -166,14 +160,16 @@ describe('MapGeofence', () => {
 	})
 
 	it('draws nothing for a circle that describes no area', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Depot" at={[8, 5]} radius={0} />))
+		const { container } = renderUI(
+			overlayPlat(<MapGeofence label="Depot" at={[8, 5]} radius={0} />),
+		)
 
 		expect(bySlot(container, 'map-geofence')).toBeNull()
 	})
 
 	it('registers one legend entry with an area swatch', () => {
 		const { container } = renderUI(
-			plat(<MapGeofence label="Zone A" boundary={ZONE} detail="42 stops" />),
+			overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} detail="42 stops" />),
 		)
 
 		const items = allBySlot(container, 'map-legend-item')
@@ -186,7 +182,7 @@ describe('MapGeofence', () => {
 
 	it('takes an explicit colour over its slot', () => {
 		const { container } = renderUI(
-			plat(<MapGeofence label="Zone A" boundary={ZONE} color="rose" />),
+			overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} color="rose" />),
 		)
 
 		expect(bySlot(container, 'map-geofence')?.getAttribute('class')).toContain('stroke-rose-600')
@@ -196,7 +192,7 @@ describe('MapGeofence', () => {
 
 	it('raises the tooltip with its name and detail from the hit stroke', () => {
 		const { container } = renderUI(
-			plat(<MapGeofence label="Zone A" boundary={ZONE} detail="42 stops" />),
+			overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} detail="42 stops" />),
 		)
 
 		fireEvent.pointerEnter(bySlot(container, 'map-geofence-hit') as Element, {
@@ -215,7 +211,7 @@ describe('MapGeofence', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
-			plat(<MapGeofence id="zone-a" label="Zone A" boundary={ZONE} onClick={onClick} />),
+			overlayPlat(<MapGeofence id="zone-a" label="Zone A" boundary={ZONE} onClick={onClick} />),
 		)
 
 		fireEvent.click(bySlot(container, 'map-geofence-hit') as Element)
@@ -246,7 +242,7 @@ describe('MapGeofence', () => {
 	})
 
 	it('unmounts its marks while toggled off', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} />))
 
 		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
@@ -261,7 +257,7 @@ describe('MapGeofence', () => {
 
 	it('dims against a focused sibling entry', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapGeofence label="Zone A" boundary={ZONE} />
 
@@ -285,7 +281,7 @@ describe('MapGeofence', () => {
 
 	it('carries a row in the data table', () => {
 		const { container } = renderUI(
-			plat(<MapGeofence label="Zone A" boundary={ZONE} detail="42 stops" />),
+			overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} detail="42 stops" />),
 		)
 
 		expect(bySlot(container, 'map-table')?.textContent).toContain('Zone A')
@@ -325,9 +321,13 @@ describe('MapGeofence area', () => {
 	]
 
 	it('draws a one-ring area exactly as the same ring drawn as a boundary', () => {
-		const { container: asArea } = renderUI(plat(<MapGeofence label="Zone A" area={AS_AREA} />))
+		const { container: asArea } = renderUI(
+			overlayPlat(<MapGeofence label="Zone A" area={AS_AREA} />),
+		)
 
-		const { container: asRing } = renderUI(plat(<MapGeofence label="Zone A" boundary={ZONE} />))
+		const { container: asRing } = renderUI(
+			overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} />),
+		)
 
 		expect(bySlot(asArea, 'map-geofence')?.getAttribute('d')).toBe(
 			bySlot(asRing, 'map-geofence')?.getAttribute('d'),
@@ -335,7 +335,7 @@ describe('MapGeofence area', () => {
 	})
 
 	it('draws every part of a split territory under one mark', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={SPLIT} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Coverage" area={SPLIT} />))
 
 		// Two parts, one mark: two closed subpaths in one `d`, and one edge, one
 		// wash, and one hit shape between them.
@@ -347,7 +347,7 @@ describe('MapGeofence area', () => {
 	})
 
 	it('fills and hit-tests a hole under the even-odd rule, so it reads as ground', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={HOLED} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Coverage" area={HOLED} />))
 
 		expect(bySlot(container, 'map-geofence-wash')?.getAttribute('fill-rule')).toBe('evenodd')
 
@@ -357,7 +357,7 @@ describe('MapGeofence area', () => {
 	})
 
 	it('registers one legend entry for a territory however many parts it holds', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={SPLIT} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Coverage" area={SPLIT} />))
 
 		expect(allBySlot(container, 'map-legend-item').map((item) => item.textContent)).toEqual([
 			'Coverage',
@@ -365,7 +365,7 @@ describe('MapGeofence area', () => {
 	})
 
 	it('draws nothing where the territory holds no rings', () => {
-		const { container } = renderUI(plat(<MapGeofence label="Coverage" area={[]} />))
+		const { container } = renderUI(overlayPlat(<MapGeofence label="Coverage" area={[]} />))
 
 		expect(bySlot(container, 'map-geofence')).toBeNull()
 	})
@@ -443,7 +443,7 @@ describe('zoneBudget and zoneSpare', () => {
 describe('MapGeofence group', () => {
 	/** A catchment and the depot standing in it, named as one place. */
 	function pair(group = 'Dallas') {
-		return plat(
+		return overlayPlat(
 			<>
 				<MapGeofence label="Dallas" group={group} boundary={ZONE} detail="Next day" />
 
@@ -476,7 +476,7 @@ describe('MapGeofence group', () => {
 
 	it('paints every member in the colour its first member takes', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapGeofence label="Dallas" group="Dallas" boundary={ZONE} color="rose" />
 
@@ -511,7 +511,7 @@ describe('MapGeofence group', () => {
 
 	it('emphasises the group together and dims what stands outside it', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapGeofence label="Dallas" group="Dallas" boundary={ZONE} />
 
@@ -550,7 +550,7 @@ describe('MapGeofence group', () => {
 
 	it('leaves an ungrouped mark its own entry', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapGeofence label="Dallas" group="Dallas" boundary={ZONE} />
 

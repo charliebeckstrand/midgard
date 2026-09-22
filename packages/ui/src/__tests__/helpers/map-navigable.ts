@@ -8,8 +8,8 @@ import { bySlot } from './slot-queries'
 const PLOT_BOX = { width: 400, height: 200 } as const
 
 /**
- * Renders a plat and gives its SVG a real box, returning the plot region beside
- * the usual render result.
+ * Renders a plat and gives its SVG a real box, returning the SVG and the plot
+ * region beside the usual render result.
  *
  * jsdom reports every rect as zero, and a zero box collapses the frame scale —
  * so `frameToClient` resolves no position, the keyboard cursor writes no hover
@@ -21,7 +21,9 @@ const PLOT_BOX = { width: 400, height: 200 } as const
  * @throws If the plat drew no SVG or no plot region, which means the assertions
  * that follow would read an empty map rather than a navigable one.
  */
-export function renderNavigable(ui: ReactElement): RenderResult & { plot: HTMLElement } {
+export function renderNavigable(
+	ui: ReactElement,
+): RenderResult & { plot: HTMLElement; svg: SVGSVGElement } {
 	const view = renderUI(ui)
 
 	const svg = view.container.querySelector('svg')
@@ -43,5 +45,5 @@ export function renderNavigable(ui: ReactElement): RenderResult & { plot: HTMLEl
 
 	if (plot === null) throw new Error('the plat drew no plot region')
 
-	return { ...view, plot }
+	return { ...view, plot, svg }
 }

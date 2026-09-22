@@ -18,14 +18,7 @@ import {
 import { k } from '../../recipes/kata/map'
 import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
-
-function plat(children: ReactNode) {
-	return (
-		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
-			{children}
-		</MapPlat>
-	)
-}
+import { overlayPlat } from '../helpers/map-plat'
 
 /**
  * The zone the depot cases stand on. The default is wide enough to hold the
@@ -33,7 +26,7 @@ function plat(children: ReactNode) {
  * over it are wider than, which is the other side of the rule.
  */
 function catchment(children: ReactNode, radius = 300_000) {
-	return plat(
+	return overlayPlat(
 		<>
 			<MapGeofence label="Catchment" at={[15, 5]} radius={radius} />
 
@@ -154,7 +147,7 @@ describe('dot hit targets', () => {
 		]
 
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapGeofence label="Region" boundary={CORNERS} />
 
@@ -177,7 +170,7 @@ describe('dot hit targets', () => {
 	})
 
 	it('keeps the whole target where a lone dot stands on open geography', () => {
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
+		const { container } = renderUI(overlayPlat(<MapPoint label="Depot" at={[15, 5]} />))
 
 		const target = bySlot(container, 'map-point-hit')
 
@@ -218,7 +211,7 @@ describe('dot hit targets', () => {
 			// and inside the 22px coarse reach, so each stands in the other's target.
 			// Spaced off the merge distance rather than onto it — the pair sat at
 			// 14.000000000000012px, which any change to the fit's last bit merges.
-			plat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.2, 5] }]} />),
+			overlayPlat(<MapPoints label="Stops" points={[{ at: [15, 5] }, { at: [16.2, 5] }]} />),
 		)
 
 		const targets = allBySlot(container, 'map-points-hit')
@@ -232,7 +225,7 @@ describe('dot hit targets', () => {
 
 	it('leaves the dots of a spread-out set on the whole target', () => {
 		const { container } = renderUI(
-			plat(<MapPoints label="Stops" points={[{ at: [2, 2] }, { at: [28, 8] }]} />),
+			overlayPlat(<MapPoints label="Stops" points={[{ at: [2, 2] }, { at: [28, 8] }]} />),
 		)
 
 		const targets = allBySlot(container, 'map-points-hit')
@@ -264,7 +257,7 @@ describe('dot hit targets', () => {
 	})
 
 	it('keeps the hit target a transparent fill, so it answers where the dot does not paint', () => {
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={[8, 5]} />))
+		const { container } = renderUI(overlayPlat(<MapPoint label="Depot" at={[8, 5]} />))
 
 		expect(bySlot(container, 'map-point-hit')?.getAttribute('fill')).toBe('transparent')
 	})
@@ -286,7 +279,7 @@ describe('dot hit targets', () => {
 		const { container } = renderUI(
 			// About 15px apart in a 400px frame — each pin's coarse target would cover
 			// the other's face.
-			plat(<MapMarker label="Shuttle" start={[15, 5]} end={[16.05, 5]} />),
+			overlayPlat(<MapMarker label="Shuttle" start={[15, 5]} end={[16.05, 5]} />),
 		)
 
 		expect(fine(bySlot(container, 'map-marker-start-hit'))).toBe(true)
@@ -295,7 +288,9 @@ describe('dot hit targets', () => {
 	})
 
 	it('leaves a long haul’s pins on the whole target', () => {
-		const { container } = renderUI(plat(<MapMarker label="Haul" start={[2, 2]} end={[28, 8]} />))
+		const { container } = renderUI(
+			overlayPlat(<MapMarker label="Haul" start={[2, 2]} end={[28, 8]} />),
+		)
 
 		expect(fine(bySlot(container, 'map-marker-start-hit'))).toBe(false)
 
@@ -326,7 +321,7 @@ describe('crowded marks divide their targets', () => {
 	/** Two points near enough that each target reaches the other — the case every clip test wants. */
 	function crowded() {
 		return renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapPoint label="Depot" at={[15, 5]} />
 
@@ -337,7 +332,7 @@ describe('crowded marks divide their targets', () => {
 	}
 
 	it('leaves a lone point unclipped', () => {
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
+		const { container } = renderUI(overlayPlat(<MapPoint label="Depot" at={[15, 5]} />))
 
 		// The common case pays for nothing: no clip attribute, no clipPath element, no id.
 		expect(clipOf(bySlot(container, 'map-point-hit'))).toBeNull()
@@ -347,7 +342,7 @@ describe('crowded marks divide their targets', () => {
 
 	it('leaves two distant points unclipped', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapPoint label="West" at={[-60, 5]} />
 

@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { MapPlat } from '../../modules/map'
 import { emitRegionPaths, probeCanonicalFit } from '../../modules/map/engine/map-geometry/projected'
 import { regionPaths } from '../../modules/map/engine/map-geometry/region'
 import { renderUI } from '../helpers'
-import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { categoricalPlat } from '../helpers/map-plat'
 
 /**
  * A fixed-aspect map must build no region path before its container is measured.
@@ -47,8 +47,6 @@ vi.mock('../../modules/map/engine/map-geometry/region', async (importActual) => 
 	return { ...actual, regionPaths: vi.fn(actual.regionPaths) }
 })
 
-type Row = (typeof FIXTURE_ROWS)[number]
-
 /**
  * Deliberately without a `width`: an explicit one measures the frame on the
  * first commit, which is the state after the deferral rather than the one under
@@ -56,17 +54,12 @@ type Row = (typeof FIXTURE_ROWS)[number]
  * atlas object and a shared fixture would hand the second case the first's
  * entry — paths and all.
  */
-function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const props = {
-		'aria-label': 'Zones',
+function plat(extra?: Parameters<typeof categoricalPlat>[0]) {
+	return categoricalPlat({
 		geography: structuredClone(FIXTURE_GEOJSON),
-		data: FIXTURE_ROWS,
-		regionKey: 'state',
-		categoryKey: 'zone',
+		width: undefined,
 		...extra,
-	} as Parameters<typeof MapPlat<Row>>[0]
-
-	return <MapPlat {...props} />
+	})
 }
 
 describe('map canonical path deferral', () => {

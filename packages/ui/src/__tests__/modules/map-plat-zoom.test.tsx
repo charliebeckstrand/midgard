@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { type MapFeatureCollection, MapPlat } from '../../modules/map'
+import type { MapFeatureCollection } from '../../modules/map'
 import { REGION_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
-import { act, bySlot, fireEvent, layerScale, renderUI, withFakeTime } from '../helpers'
-import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { act, bySlot, fireEvent, layerScale, withFakeTime } from '../helpers'
+import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { renderNavigable } from '../helpers/map-navigable'
+import { categoricalPlat } from '../helpers/map-plat'
 
 /**
  * The zoom is a transform over the fitted geography, so these assert what the
@@ -11,51 +13,16 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * view state. The pure arithmetic behind it is `map-zoom.test.ts`.
  */
 
-type Row = (typeof FIXTURE_ROWS)[number]
-
-function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const props = {
-		'aria-label': 'Zones',
-		geography: FIXTURE_GEOJSON,
-		data: FIXTURE_ROWS,
-		regionKey: 'state',
-		categoryKey: 'zone',
-		width: 400,
-		zoom: true,
-		...extra,
-	} as Parameters<typeof MapPlat<Row>>[0]
-
-	return <MapPlat {...props} />
-}
-
 /**
  * Renders the plat with a real SVG box and a plot region that answers pointer
  * capture. jsdom reports every rect as zero and implements none of the capture
  * API, and the gestures convert through both — without them a wheel would find
  * no focus and a drag would throw on its first press.
  */
-function renderZoomable(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const view = renderUI(plat(extra))
+function renderZoomable(extra?: Parameters<typeof categoricalPlat>[0]) {
+	const view = renderNavigable(categoricalPlat({ zoom: true, ...extra }))
 
-	const svg = view.container.querySelector('svg')
-
-	if (svg === null) throw new Error('the plat drew no SVG to zoom')
-
-	vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
-		left: 0,
-		top: 0,
-		width: 400,
-		height: 200,
-		right: 400,
-		bottom: 200,
-		x: 0,
-		y: 0,
-		toJSON: () => ({}),
-	})
-
-	const plot = bySlot(view.container, 'map-plot')
-
-	if (plot === null) throw new Error('the plat drew no plot region')
+	const { plot } = view
 
 	plot.setPointerCapture = vi.fn()
 
@@ -63,7 +30,7 @@ function renderZoomable(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
 
 	plot.hasPointerCapture = vi.fn(() => true)
 
-	return { ...view, plot, svg }
+	return view
 }
 
 /** The zoom layer's transform, or `null` where the plat drew no layer. */
@@ -688,7 +655,7 @@ describe('MapPlat zoom across a geography change', () => {
 			features: FIXTURE_GEOJSON.features.slice(0, 1),
 		}
 
-		rerender(plat({ geography: one }))
+		rerender(categoricalPlat({ zoom: true, geography: one }))
 
 		expect(transformOf(container)).toBe('translate(0 0) scale(1)')
 	})

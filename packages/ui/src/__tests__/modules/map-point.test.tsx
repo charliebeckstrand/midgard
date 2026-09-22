@@ -1,21 +1,13 @@
-import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { MapPlat, MapPoint } from '../../modules/map'
 import { POINT_HIT_RADIUS, POINT_RADIUS } from '../../modules/map/engine/map-constants'
 import { allBySlot, allRegions, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
-
-function plat(children: ReactNode) {
-	return (
-		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
-			{children}
-		</MapPlat>
-	)
-}
+import { overlayPlat } from '../helpers/map-plat'
 
 describe('MapPoint', () => {
 	it('draws a solid dot at the projected position with a wide hit circle', () => {
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} />))
+		const { container } = renderUI(overlayPlat(<MapPoint label="Depot" at={[15, 5]} />))
 
 		const dot = bySlot(container, 'map-point')
 
@@ -48,7 +40,9 @@ describe('MapPoint', () => {
 	})
 
 	it('registers a legend entry and answers hover with the tooltip', () => {
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={[15, 5]} detail="18 loads" />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoint label="Depot" at={[15, 5]} detail="18 loads" />),
+		)
 
 		expect(allBySlot(container, 'map-legend-item').map((el) => el.textContent)).toEqual([
 			'Depot18 loads',
@@ -68,7 +62,7 @@ describe('MapPoint', () => {
 
 	it('unmounts while toggled off and keeps its slot colour beside siblings', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapPoint label="Depot" at={[5, 5]} />
 

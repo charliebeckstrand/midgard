@@ -18,30 +18,12 @@ import {
 	tableRows,
 	withFakeTime,
 } from '../helpers'
-import { FIXTURE_GEOJSON, FIXTURE_ROWS, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
-
-type Row = (typeof FIXTURE_ROWS)[number]
-
-function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	// The categorical base merged with arbitrary overrides can name both a
-	// category and a value key, which the prop union forbids; assert the mode
-	// at the spread so a test can still override any single field.
-	const props = {
-		'aria-label': 'Zones',
-		geography: FIXTURE_GEOJSON,
-		data: FIXTURE_ROWS,
-		regionKey: 'state',
-		categoryKey: 'zone',
-		width: 400,
-		...extra,
-	} as Parameters<typeof MapPlat<Row>>[0]
-
-	return <MapPlat {...props} />
-}
+import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
+import { categoricalPlat } from '../helpers/map-plat'
 
 describe('MapPlat', () => {
 	it('draws one region per feature under a labelled role="img" plot', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		expect(allRegions(container)).toHaveLength(3)
 
@@ -53,7 +35,7 @@ describe('MapPlat', () => {
 	})
 
 	it('decodes a TopoJSON topology to the same regions', () => {
-		const { container } = renderUI(plat({ geography: FIXTURE_TOPOLOGY }))
+		const { container } = renderUI(categoricalPlat({ geography: FIXTURE_TOPOLOGY }))
 
 		expect(allRegions(container)).toHaveLength(3)
 	})
@@ -90,7 +72,7 @@ describe('MapPlat', () => {
 	it('paints immediately under a fixed aspect when an explicit width fixes the frame', () => {
 		// An explicit width is already "measured" (the SSR / test path), so there is
 		// nothing to defer for: the map draws on the first commit as usual.
-		const { container } = renderUI(plat({ aspectRatio: '16/9' }))
+		const { container } = renderUI(categoricalPlat({ aspectRatio: '16/9' }))
 
 		expect(allRegions(container)).toHaveLength(3)
 	})
@@ -127,7 +109,7 @@ describe('MapPlat', () => {
 	})
 
 	it('washes colour in over solid geography under animate, never fading the paths', () => {
-		const { container } = renderUI(plat({ animate: true }))
+		const { container } = renderUI(categoricalPlat({ animate: true }))
 
 		const [alpha] = allRegions(container)
 
@@ -145,7 +127,7 @@ describe('MapPlat', () => {
 
 	it('retires the reveal stagger, so a later toggle repaints without waiting one out', async () => {
 		await withFakeTime(async (clock) => {
-			const { container } = renderUI(plat({ animate: true }))
+			const { container } = renderUI(categoricalPlat({ animate: true }))
 
 			const region = () => allRegions(container)[2]?.getAttribute('style') ?? ''
 
@@ -167,7 +149,7 @@ describe('MapPlat', () => {
 	})
 
 	it('colours matched regions by category slot and leaves the rest neutral', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [alpha, beta, gamma] = allRegions(container)
 
@@ -181,7 +163,7 @@ describe('MapPlat', () => {
 
 	it('honours explicit category order, colour, and label', () => {
 		const { container } = renderUI(
-			plat({
+			categoricalPlat({
 				categories: [{ value: 'West', label: 'Western zone', color: 'rose' }, { value: 'East' }],
 			}),
 		)
@@ -200,7 +182,7 @@ describe('MapPlat', () => {
 	})
 
 	it('shows the legend for two categories and drops it without data', () => {
-		const withData = renderUI(plat())
+		const withData = renderUI(categoricalPlat())
 
 		expect(allBySlot(withData.container, 'map-legend-item')).toHaveLength(2)
 
@@ -226,13 +208,13 @@ describe('MapPlat', () => {
 
 		expect(bySlot(pending.container, 'map-legend')).toBeNull()
 
-		const off = renderUI(plat({ legend: false }))
+		const off = renderUI(categoricalPlat({ legend: false }))
 
 		expect(bySlot(off.container, 'map-legend-box')).toBeNull()
 	})
 
 	it('reserves a fixed-width column for the side panel placements', () => {
-		const { container } = renderUI(plat({ legend: 'left' }))
+		const { container } = renderUI(categoricalPlat({ legend: 'left' }))
 
 		const box = bySlot(container, 'map-legend-box')
 
@@ -242,13 +224,13 @@ describe('MapPlat', () => {
 		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('lg:w-full')
 
 		// Row placements reserve one item-row of height instead.
-		const row = renderUI(plat({ legend: 'top' }))
+		const row = renderUI(categoricalPlat({ legend: 'top' }))
 
 		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
 	})
 
 	it('lays the under-map legend out as a centered grid', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const legend = bySlot(container, 'map-legend')
 
@@ -259,7 +241,7 @@ describe('MapPlat', () => {
 	})
 
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [east] = allBySlot(container, 'map-legend-item')
 
@@ -290,7 +272,7 @@ describe('MapPlat', () => {
 
 		// First-appearance order: East, then West.
 		const { container, rerender } = renderUI(
-			plat({
+			categoricalPlat({
 				data: [
 					{ state: 'A', zone: 'East' },
 					{ state: 'B', zone: 'West' },
@@ -308,7 +290,7 @@ describe('MapPlat', () => {
 		// index-keyed toggle would now strike East — the token `category:1` moved to
 		// it; the value key keeps West hidden.
 		rerender(
-			plat({
+			categoricalPlat({
 				data: [
 					{ state: 'B', zone: 'West' },
 					{ state: 'A', zone: 'East' },
@@ -320,7 +302,7 @@ describe('MapPlat', () => {
 	})
 
 	it('dims everything outside the focused legend group', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [east] = allBySlot(container, 'map-legend-item')
 
@@ -347,7 +329,7 @@ describe('MapPlat', () => {
 
 	it('holds the emphasis off while a toggled-on category washes back in', async () => {
 		await withFakeTime(async (clock) => {
-			const { container } = renderUI(plat({ animate: true }))
+			const { container } = renderUI(categoricalPlat({ animate: true }))
 
 			const lit = () => bySlot(container, 'map-regions-lit')
 
@@ -404,7 +386,7 @@ describe('MapPlat', () => {
 	it('emphasises a toggled-on category at once on a static map', () => {
 		// `animate` is what arms the transition, so a static map paints the colour
 		// outright and the hold above would be dead time.
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		roundTrip(container)
 
@@ -417,7 +399,7 @@ describe('MapPlat', () => {
 		// mid-flight takes it on the next toggle.
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 
-		const { container } = renderUI(plat({ animate: true }))
+		const { container } = renderUI(categoricalPlat({ animate: true }))
 
 		roundTrip(container)
 
@@ -425,7 +407,7 @@ describe('MapPlat', () => {
 	})
 
 	it('isolates the pointed region, dimming every other region', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [alpha] = allRegions(container)
 
@@ -451,7 +433,7 @@ describe('MapPlat', () => {
 	})
 
 	it('lets the pointed region win over a still-held legend emphasis', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [east] = allBySlot(container, 'map-legend-item')
 
@@ -478,7 +460,7 @@ describe('MapPlat', () => {
 	})
 
 	it('keeps the map lit while the pointer sits on a no-data or toggled-off region', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const lit = () =>
 			!(bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? '').includes(
@@ -504,7 +486,7 @@ describe('MapPlat', () => {
 	})
 
 	it('names an unmatched region under `nameRegions`, where it otherwise stays silent', () => {
-		const { container } = renderUI(plat({ nameRegions: true }))
+		const { container } = renderUI(categoricalPlat({ nameRegions: true }))
 
 		const [alpha, , gamma] = allRegions(container)
 
@@ -538,7 +520,7 @@ describe('MapPlat', () => {
 	})
 
 	it('raises the Tooltip readout over a matched region and stays silent off data', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [alpha, , gamma] = allRegions(container)
 
@@ -581,7 +563,7 @@ describe('MapPlat', () => {
 
 		// Rows landing after the mount re-arm it: the gate is a derivation of the
 		// join, so the layer re-renders and the handlers arrive with the data.
-		rerender(plat())
+		rerender(categoricalPlat())
 
 		const [matched] = allRegions(container)
 
@@ -591,7 +573,7 @@ describe('MapPlat', () => {
 	})
 
 	it('suppresses the tooltip for a toggled-off category and under tooltip={false}', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [east] = allBySlot(container, 'map-legend-item')
 
@@ -603,7 +585,7 @@ describe('MapPlat', () => {
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
 
-		const silent = renderUI(plat({ tooltip: false }))
+		const silent = renderUI(categoricalPlat({ tooltip: false }))
 
 		const [first] = allRegions(silent.container)
 
@@ -613,7 +595,7 @@ describe('MapPlat', () => {
 	})
 
 	it('ships every region × category in the visually-hidden table', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const table = bySlot(container, 'map-table')
 
@@ -641,7 +623,7 @@ describe('MapPlat', () => {
 		]
 
 		const { container } = renderUI(
-			plat({
+			categoricalPlat({
 				data: byName,
 				regionId: (feature) => String(feature.properties?.name),
 				regionLabel: (feature) => String(feature.id),
@@ -886,11 +868,11 @@ describe('MapPlat choropleth mode', () => {
 
 describe('MapPlat legend orientation', () => {
 	it('roves vertically for a side panel and horizontally under the map', () => {
-		const aside = renderUI(plat({ legend: 'left' }))
+		const aside = renderUI(categoricalPlat({ legend: 'left' }))
 
 		expect(bySlot(aside.container, 'map-legend')?.getAttribute('aria-orientation')).toBe('vertical')
 
-		const below = renderUI(plat({ legend: 'bottom' }))
+		const below = renderUI(categoricalPlat({ legend: 'bottom' }))
 
 		expect(bySlot(below.container, 'map-legend')?.getAttribute('aria-orientation')).toBe(
 			'horizontal',
@@ -902,7 +884,7 @@ describe('MapPlat region click', () => {
 	it('reports the clicked region by identity and feature index, matched or not', () => {
 		const onRegionClick = vi.fn()
 
-		const { container } = renderUI(plat({ onRegionClick }))
+		const { container } = renderUI(categoricalPlat({ onRegionClick }))
 
 		const [, beta, gamma] = allRegions(container)
 
@@ -925,7 +907,7 @@ describe('MapPlat region click', () => {
 		// The id a TopoJSON consumer would otherwise re-decode the topology to
 		// recover — here the feature's name rather than its id.
 		const { container } = renderUI(
-			plat({
+			categoricalPlat({
 				geography: FIXTURE_TOPOLOGY,
 				regionId: (feature) => String(feature.properties?.name),
 				onRegionClick,
@@ -940,7 +922,7 @@ describe('MapPlat region click', () => {
 	it('ignores a click that lands on the layer but outside every region', () => {
 		const onRegionClick = vi.fn()
 
-		const { container } = renderUI(plat({ onRegionClick }))
+		const { container } = renderUI(categoricalPlat({ onRegionClick }))
 
 		// The gap between regions carries no `data-region-index` anchor. A miss must
 		// report nothing — never coerce the absent attribute to region 0.
@@ -950,7 +932,7 @@ describe('MapPlat region click', () => {
 	})
 
 	it('takes the pointer cursor and hovers every region only when clickable', () => {
-		const plain = renderUI(plat())
+		const plain = renderUI(categoricalPlat())
 
 		expect(bySlot(plain.container, 'map-regions')?.getAttribute('class')).not.toContain(
 			'cursor-pointer',
@@ -959,7 +941,7 @@ describe('MapPlat region click', () => {
 		// Gamma is unmatched, so on a non-clickable layer it carries no hover emphasis.
 		expect(allRegions(plain.container)[2]?.getAttribute('class')).not.toContain('hover:')
 
-		const clickable = renderUI(plat({ onRegionClick: () => {} }))
+		const clickable = renderUI(categoricalPlat({ onRegionClick: () => {} }))
 
 		expect(bySlot(clickable.container, 'map-regions')?.getAttribute('class')).toContain(
 			'cursor-pointer',
@@ -973,7 +955,7 @@ describe('MapPlat region click', () => {
 	it('reports the right-clicked region, and nothing when the right-click misses one', () => {
 		const onRegionContextMenu = vi.fn()
 
-		const { container } = renderUI(plat({ onRegionContextMenu }))
+		const { container } = renderUI(categoricalPlat({ onRegionContextMenu }))
 
 		fireEvent.contextMenu(allRegions(container)[1] as Element)
 
@@ -989,13 +971,13 @@ describe('MapPlat region click', () => {
 	it('takes no pointer affordance for a right-click alone', () => {
 		// A right-click is not advertised by a cursor — only `onRegionClick` earns
 		// one, so a map that merely names its right-clicked region reads as inert.
-		const { container } = renderUI(plat({ onRegionContextMenu: () => {} }))
+		const { container } = renderUI(categoricalPlat({ onRegionContextMenu: () => {} }))
 
 		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
 	})
 
 	it('leaves the plot a role="img" leaf — the click is a pointer enhancement', () => {
-		const { container } = renderUI(plat({ onRegionClick: () => {} }))
+		const { container } = renderUI(categoricalPlat({ onRegionClick: () => {} }))
 
 		// The keyboard and assistive path is a control the consumer supplies beside
 		// the map; the paths stay presentational, so nothing focusable hides in the
@@ -1010,7 +992,7 @@ describe('MapPlat region click', () => {
 
 describe('MapPlat selected region', () => {
 	it('rings the selected region by the identity a click reports', () => {
-		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
+		const { container, rerender } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
 
 		const ring = bySlot(container, 'map-region-selected')
 
@@ -1022,7 +1004,7 @@ describe('MapPlat selected region', () => {
 		// a selected region still shows its category colour.
 		expect(ring).toHaveAttribute('fill', 'none')
 
-		rerender(plat({ selectedRegion: 'C' }))
+		rerender(categoricalPlat({ selectedRegion: 'C' }))
 
 		expect(bySlot(container, 'map-region-selected')?.getAttribute('d')).toBe(
 			allRegions(container)[2]?.getAttribute('d'),
@@ -1031,7 +1013,7 @@ describe('MapPlat selected region', () => {
 
 	it('rings the region a regionId accessor names, not the atlas id', () => {
 		const { container } = renderUI(
-			plat({
+			categoricalPlat({
 				geography: FIXTURE_TOPOLOGY,
 				regionId: (feature) => String(feature.properties?.name),
 				selectedRegion: 'Alpha',
@@ -1044,28 +1026,28 @@ describe('MapPlat selected region', () => {
 	})
 
 	it('rings nothing unset, cleared, or named by an id no region carries', () => {
-		const { container, rerender } = renderUI(plat())
+		const { container, rerender } = renderUI(categoricalPlat())
 
 		expect(bySlot(container, 'map-region-selected')).toBeNull()
 
 		// A stale id — a pick outliving the geography it was made against — must
 		// ring nothing rather than falling to region 0, the miss `indexOf` reports
 		// as -1.
-		rerender(plat({ selectedRegion: 'Z' }))
+		rerender(categoricalPlat({ selectedRegion: 'Z' }))
 
 		expect(bySlot(container, 'map-region-selected')).toBeNull()
 
-		rerender(plat({ selectedRegion: 'A' }))
+		rerender(categoricalPlat({ selectedRegion: 'A' }))
 
 		expect(bySlot(container, 'map-region-selected')).toBeInTheDocument()
 
-		rerender(plat({ selectedRegion: null }))
+		rerender(categoricalPlat({ selectedRegion: null }))
 
 		expect(bySlot(container, 'map-region-selected')).toBeNull()
 	})
 
 	it('stands the ring above the layer, outside the recede and off the hit path', () => {
-		const { container } = renderUI(plat({ selectedRegion: 'B' }))
+		const { container } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
 
 		const ring = bySlot(container, 'map-region-selected')
 
@@ -1087,13 +1069,13 @@ describe('MapPlat selected region', () => {
 		// A map showing a pick made elsewhere — a Select, a route parameter — is a
 		// readout, not a picker: without `onRegionClick` there is no click to
 		// promise.
-		const { container } = renderUI(plat({ selectedRegion: 'B' }))
+		const { container } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
 
 		expect(bySlot(container, 'map-regions')?.getAttribute('class')).not.toContain('cursor-pointer')
 	})
 
 	it('reads the selected region as current in the visually-hidden table', () => {
-		const { container, rerender } = renderUI(plat({ selectedRegion: 'B' }))
+		const { container, rerender } = renderUI(categoricalPlat({ selectedRegion: 'B' }))
 
 		// Value parity for the pick: assistive tech reads the selection off the
 		// table, never off the ring alone.
@@ -1103,7 +1085,7 @@ describe('MapPlat selected region', () => {
 			['Gamma', null],
 		])
 
-		rerender(plat({ selectedRegion: null }))
+		rerender(categoricalPlat({ selectedRegion: null }))
 
 		expect(tableRows(container)).toEqual([
 			['Alpha', null],
@@ -1117,7 +1099,7 @@ describe('MapPlat controlled emphasis', () => {
 	it('dims every group outside a controlled emphasis, with no legend of its own', () => {
 		// One legend outside several plats drives them all through this prop, so the
 		// emphasis has to land without the plat's own legend being involved.
-		const { container } = renderUI(plat({ legend: false, emphasis: 'category:East' }))
+		const { container } = renderUI(categoricalPlat({ legend: false, emphasis: 'category:East' }))
 
 		expect(bySlot(container, 'map-legend')).toBeNull()
 
@@ -1135,7 +1117,7 @@ describe('MapPlat controlled emphasis', () => {
 	})
 
 	it('treats a controlled null as "no emphasis", not as uncontrolled', () => {
-		const { container } = renderUI(plat({ legend: false, emphasis: null }))
+		const { container } = renderUI(categoricalPlat({ legend: false, emphasis: null }))
 
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
 			'opacity-25',
@@ -1147,7 +1129,7 @@ describe('MapPlat controlled emphasis', () => {
 	it('ignores an emphasis naming a group this plat has no marks for', () => {
 		// Sharing one legend across plats means an id can arrive that this plat's data
 		// never produced; dimming the whole map against nothing would read as broken.
-		const { container } = renderUI(plat({ legend: false, emphasis: 'category:Nowhere' }))
+		const { container } = renderUI(categoricalPlat({ legend: false, emphasis: 'category:Nowhere' }))
 
 		expect(bySlot(container, 'map-regions-recede')?.getAttribute('class')).not.toContain(
 			'opacity-25',
@@ -1155,7 +1137,7 @@ describe('MapPlat controlled emphasis', () => {
 	})
 
 	it('lets its own legend drive the emphasis when the prop is omitted', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const [east] = allBySlot(container, 'map-legend-item')
 
@@ -1174,7 +1156,7 @@ describe('MapPlat legend reporting', () => {
 	it('reports the ids a legend switch turns off, and the set it restores', () => {
 		const onHiddenChange = vi.fn()
 
-		const { container } = renderUI(plat({ onHiddenChange }))
+		const { container } = renderUI(categoricalPlat({ onHiddenChange }))
 
 		// Every entry shows on mount; the empty set is the rest state.
 		expect(onHiddenChange).not.toHaveBeenCalled()
@@ -1197,7 +1179,7 @@ describe('MapPlat legend reporting', () => {
 	it('carries every id switched off, not only the last', () => {
 		const onHiddenChange = vi.fn()
 
-		const { container } = renderUI(plat({ onHiddenChange }))
+		const { container } = renderUI(categoricalPlat({ onHiddenChange }))
 
 		const [first, second] = entries(container)
 
@@ -1213,7 +1195,7 @@ describe('MapPlat legend reporting', () => {
 	it('reports the id the legend emphasises, and null when it clears', () => {
 		const onEmphasisChange = vi.fn()
 
-		const { container } = renderUI(plat({ onEmphasisChange }))
+		const { container } = renderUI(categoricalPlat({ onEmphasisChange }))
 
 		expect(onEmphasisChange).not.toHaveBeenCalled()
 
@@ -1235,7 +1217,7 @@ describe('MapPlat legend reporting', () => {
 	it('reports the legend intent even while emphasis is controlled', () => {
 		const onEmphasisChange = vi.fn()
 
-		const { container } = renderUI(plat({ emphasis: null, onEmphasisChange }))
+		const { container } = renderUI(categoricalPlat({ emphasis: null, onEmphasisChange }))
 
 		const [first] = entries(container)
 
@@ -1251,7 +1233,7 @@ describe('MapPlat legend reporting', () => {
 	it('clears the emphasis when the emphasised entry is switched off', () => {
 		const onEmphasisChange = vi.fn()
 
-		const { container } = renderUI(plat({ onEmphasisChange }))
+		const { container } = renderUI(categoricalPlat({ onEmphasisChange }))
 
 		const [first] = entries(container)
 

@@ -1,24 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
-import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
-
-type Row = (typeof FIXTURE_ROWS)[number]
-
-function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const props = {
-		'aria-label': 'Zones',
-		geography: FIXTURE_GEOJSON,
-		data: FIXTURE_ROWS,
-		regionKey: 'state',
-		categoryKey: 'zone',
-		width: 400,
-		...extra,
-	} as Parameters<typeof MapPlat<Row>>[0]
-
-	return <MapPlat {...props} />
-}
+import { categoricalPlat } from '../helpers/map-plat'
 
 /** The tooltip's current text, or `null` while the readout is away. */
 function readout(container: HTMLElement): string | null {
@@ -27,7 +12,7 @@ function readout(container: HTMLElement): string | null {
 
 describe('MapPlat keyboard navigation', () => {
 	it('makes the plot region one tab stop', () => {
-		const { plot } = renderNavigable(plat())
+		const { plot } = renderNavigable(categoricalPlat())
 
 		// The stop is the role="img" region itself, never a region path: the SVG
 		// is aria-hidden, so a focusable path would be an unreachable stop — and
@@ -38,7 +23,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('enters at the first region on the first arrow rather than stepping past it', () => {
-		const { container, plot } = renderNavigable(plat())
+		const { container, plot } = renderNavigable(categoricalPlat())
 
 		expect(readout(container)).toBeNull()
 
@@ -48,7 +33,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('steps between regions by compass direction, holding at the edge', () => {
-		const { container, plot } = renderNavigable(plat())
+		const { container, plot } = renderNavigable(categoricalPlat())
 
 		// The fixture lays Alpha, Beta, and Gamma west to east.
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
@@ -69,7 +54,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('jumps to the ends of the atlas order with Home and End', () => {
-		const { container, plot } = renderNavigable(plat())
+		const { container, plot } = renderNavigable(categoricalPlat())
 
 		fireEvent.keyDown(plot, { key: 'End' })
 
@@ -89,7 +74,7 @@ describe('MapPlat keyboard navigation', () => {
 	it('picks the region under the cursor with Enter and with Space', () => {
 		const onRegionClick = vi.fn()
 
-		const { plot } = renderNavigable(plat({ onRegionClick }))
+		const { plot } = renderNavigable(categoricalPlat({ onRegionClick }))
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -109,7 +94,7 @@ describe('MapPlat keyboard navigation', () => {
 	it('picks nothing before an arrow has placed the cursor', () => {
 		const onRegionClick = vi.fn()
 
-		const { plot } = renderNavigable(plat({ onRegionClick }))
+		const { plot } = renderNavigable(categoricalPlat({ onRegionClick }))
 
 		fireEvent.keyDown(plot, { key: 'Enter' })
 
@@ -117,7 +102,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('clears the readout on Escape and on leaving the region', () => {
-		const { container, plot } = renderNavigable(plat())
+		const { container, plot } = renderNavigable(categoricalPlat())
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -135,7 +120,7 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('takes no tab stop when the cursor would have nothing to output', () => {
-		const { container } = renderUI(plat({ tooltip: false }))
+		const { container } = renderUI(categoricalPlat({ tooltip: false }))
 
 		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
 	})
@@ -146,7 +131,7 @@ describe('MapPlat keyboard navigation', () => {
 		// — the cursor still isolates the region it sits on, so it stays legible.
 		const onRegionClick = vi.fn()
 
-		const { container } = renderUI(plat({ tooltip: false, onRegionClick }))
+		const { container } = renderUI(categoricalPlat({ tooltip: false, onRegionClick }))
 
 		const plot = bySlot(container, 'map-plot')
 
@@ -160,11 +145,11 @@ describe('MapPlat keyboard navigation', () => {
 	})
 
 	it('takes no tab stop before the geography lands', () => {
-		const { container, rerender } = renderUI(plat({ geography: null }))
+		const { container, rerender } = renderUI(categoricalPlat({ geography: null }))
 
 		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
 
-		rerender(plat())
+		rerender(categoricalPlat())
 
 		expect(bySlot(container, 'map-plot')).toHaveAttribute('tabindex', '0')
 	})
@@ -186,7 +171,7 @@ describe('MapPlat keyboard navigation', () => {
 	it('takes no tab stop when the rows match no region the map draws', () => {
 		// Rows that join to nothing leave the same silence no rows do, so the gate
 		// reads the join rather than the presence of a `data` array.
-		const { container } = renderUI(plat({ data: [{ state: 'Z', zone: 'East' }] }))
+		const { container } = renderUI(categoricalPlat({ data: [{ state: 'Z', zone: 'East' }] }))
 
 		expect(bySlot(container, 'map-plot')).not.toHaveAttribute('tabindex')
 
@@ -202,7 +187,9 @@ describe('MapPlat keyboard navigation', () => {
 		// Enter, and got nothing — the pick the same switch had already emptied.
 		const onRegionClick = vi.fn()
 
-		const { container, plot } = renderNavigable(plat({ regionPointer: false, onRegionClick }))
+		const { container, plot } = renderNavigable(
+			categoricalPlat({ regionPointer: false, onRegionClick }),
+		)
 
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 
@@ -216,7 +203,7 @@ describe('MapPlat keyboard navigation', () => {
 	it('keeps the stop while the legend holds every category off', () => {
 		// A toggle is transient: it silences the readout for as long as it holds,
 		// and to take the tab stop away with it would move focus under the reader.
-		const { container } = renderNavigable(plat())
+		const { container } = renderNavigable(categoricalPlat())
 
 		const toggles = allBySlot(container, 'map-legend-item')
 

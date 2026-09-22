@@ -1,25 +1,16 @@
-import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
-import { MapMarker, MapPlat } from '../../modules/map'
+import { MapMarker } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
-import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { overlayPlat } from '../helpers/map-plat'
 
 const START: LngLat = [2, 2]
 
 const END: LngLat = [28, 8]
 
-function plat(children: ReactNode) {
-	return (
-		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
-			{children}
-		</MapPlat>
-	)
-}
-
 describe('MapMarker', () => {
 	it('draws solid origin and destination pins and the connector between them', () => {
-		const { container } = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
+		const { container } = renderUI(overlayPlat(<MapMarker label="A → C" start={START} end={END} />))
 
 		const start = bySlot(container, 'map-marker-start')
 
@@ -46,10 +37,10 @@ describe('MapMarker', () => {
 	})
 
 	it('follows routed path geometry through intermediate waypoints', () => {
-		const straight = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
+		const straight = renderUI(overlayPlat(<MapMarker label="A → C" start={START} end={END} />))
 
 		const routed = renderUI(
-			plat(<MapMarker label="A → C" start={START} end={END} path={[START, [15, 8], END]} />),
+			overlayPlat(<MapMarker label="A → C" start={START} end={END} path={[START, [15, 8], END]} />),
 		)
 
 		expect(bySlot(routed.container, 'map-marker-path')?.getAttribute('d')).not.toBe(
@@ -60,9 +51,11 @@ describe('MapMarker', () => {
 	it('draws the straight connector when the routed path is empty', () => {
 		// A totals-only routed leg (an `overview: 'false'` result) carries an empty
 		// path; the connector must still draw start→end, matching the omitted case.
-		const empty = renderUI(plat(<MapMarker label="A → C" start={START} end={END} path={[]} />))
+		const empty = renderUI(
+			overlayPlat(<MapMarker label="A → C" start={START} end={END} path={[]} />),
+		)
 
-		const straight = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
+		const straight = renderUI(overlayPlat(<MapMarker label="A → C" start={START} end={END} />))
 
 		expect(bySlot(empty.container, 'map-marker-path')?.getAttribute('d')).toBe(
 			bySlot(straight.container, 'map-marker-path')?.getAttribute('d'),
@@ -71,7 +64,7 @@ describe('MapMarker', () => {
 
 	it('registers one legend entry for the pair and answers hover on any part', () => {
 		const { container } = renderUI(
-			plat(<MapMarker label="A → C" start={START} end={END} detail="2,015 mi" />),
+			overlayPlat(<MapMarker label="A → C" start={START} end={END} detail="2,015 mi" />),
 		)
 
 		expect(allBySlot(container, 'map-legend-item').map((el) => el.textContent)).toEqual([
@@ -96,7 +89,7 @@ describe('MapMarker', () => {
 	})
 
 	it('unmounts while toggled off', () => {
-		const { container } = renderUI(plat(<MapMarker label="A → C" start={START} end={END} />))
+		const { container } = renderUI(overlayPlat(<MapMarker label="A → C" start={START} end={END} />))
 
 		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
