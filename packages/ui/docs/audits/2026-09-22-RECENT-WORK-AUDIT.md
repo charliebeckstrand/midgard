@@ -85,7 +85,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ◐ FIXED |
 | `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ◐ FIXED |
 | `TESTS-06` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `LOOSE_VIEWPORT` | correctness | low | CONFIRMED | ◐ FIXED |
-| `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `TESTS-09` | `packages/ui/src/__tests__/browser/floating-ui/grid-cell-truncate-tooltip.test.tsx` | the negative cases | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `TESTS-10` | `packages/ui/src/__tests__/helpers/residue.ts` | the header, `guardResidue` | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `TOOL-07` | `biome-plugins/no-camel-case-data-slot.grit` | the template-literal form | correctness | low | CONFIRMED | ◯ OPEN |
