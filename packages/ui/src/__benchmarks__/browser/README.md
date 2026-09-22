@@ -314,7 +314,7 @@ The call count is the rest of the answer, and it was counted rather than assumed
 
 ### Where the empty shell goes (2026-09-22, a slower container)
 
-The open table above leaves 2.65 ms on an empty panel and names no layer. [`menu-shell.bench.tsx`](menu-shell.bench.tsx) ablates it. Every rung mounts one empty open surface and tears it down, so a step is what that layer costs on one open. Mean ms, median of three runs.
+The open table above leaves 2.65 ms on an empty panel and names no layer. [`menu-shell.bench.tsx`](menu-shell.bench.tsx) ablates it. Every rung mounts one empty open surface and tears it down, so a step is what that layer costs on one open. Mean ms, median of three runs. These tables predate the gate in the next section, so the static and dropdown rungs still carry the overflow watch.
 
 | Rung | Median | Step |
 | --- | ---: | ---: |
@@ -374,7 +374,7 @@ That per-child `observe` makes the watch scale with the row count, so it lands i
 
 ### Gating the overflow watch (2026-09-22, this container)
 
-The watch is now gated on `capped` ([`menu-content.tsx`](../../components/menu/menu-content.tsx)). `MenuContent` reads that flag through `useMenuCapped`, and the flag is what emits the `max-h`. An uncapped viewport therefore attaches no ref, so the default menu wires no observer it can never use.
+The watch is now gated on `capped`. Since lever 6, [`MenuViewport`](../../components/menu/menu-viewport.tsx) reads that flag through `useMenuCapped` and passes it to the hook as `enabled`, and the flag is what emits the `max-h`. An uncapped viewport's ref therefore attaches and does nothing, so the default menu wires no observer it can never use.
 
 The open path was measured before and after, back to back in this session. The prior file was restored and re-run, rather than compared against a figure from an earlier hour. Mean ms for one open, median of three runs.
 
@@ -400,7 +400,7 @@ A tighter ablation toggles the ref in one process, so no cross-run drift enters 
 
 `MenuSub` now takes the same gate, and the gate itself moved into the hook as an `enabled` option ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts)). **That half is unmeasured, and no figure above stands in for it.** No bench in this suite opens a submenu: [`menu-mount.bench.tsx`](menu-mount.bench.tsx) prices a *closed* submenu row, and [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) sweeps with one *already* open. The mount bench is the wrong instrument besides. The reflow control above collapsed its 24-row gap from 0.749 ms to 0.028, so a figure quoted from it here would repeat the error this section corrects.
 
-The submenu gate therefore lands on the dead work alone. The invariant holds verbatim: `MenuSub` reads the same `capped` and renders the same `k.viewport({ density: space, capped })`. `FloatingSurface` mounts the panel per open through `PresencePortal`, so the watch was set up on every submenu open, to hold two attributes that cannot change.
+The submenu gate therefore lands on the dead work alone. The invariant holds verbatim: `MenuSub` renders the same `MenuViewport`, which reads the same `capped`. `FloatingSurface` mounts the panel per open through `PresencePortal`, so the watch was set up on every submenu open, to hold two attributes that cannot change.
 
 The submenu's teardown was a separate defect, and it closed first. `MenuSub` wrapped the hook's ref in a callback that discarded the return, so React held no ref cleanup and the observers outlived every closed panel. [#1171](https://github.com/charliebeckstrand/midgard/pull/1171) composed the two refs, and the watch now stops on detach.
 
@@ -449,7 +449,7 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 
 5. **The gate moved into the hook, and `MenuSub` took it** ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts), [`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). Lever 4 gated `MenuContent` with a ternary at the ref. `useScrollOverflow` now takes an `enabled` option, and both menu call sites state the gate once, where the hook is called. `MenuSub` read the same `capped` and rendered the same capped viewport, so it wired the same dead watch on every submenu open. **Unmeasured.** No bench in this suite opens a submenu, and the mount bench overprices this class of change — see `Gating the overflow watch` above.
 
-6. **The viewport extracted, and the gate with it** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx)). Levers 4 and 5 left both panels stating the same three decisions: the `data-slot` anchor, `k.viewport({ density, capped })`, and the gated watch. `MenuViewport` now owns all three, and `MenuContent` and `MenuSub` render it. **No perf claim.** The work per open is unchanged. What changes is that one place states the gate, where two did.
+6. **The viewport extracted, and the gate with it** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx)). Levers 4 and 5 left both panels stating the same three decisions: the `data-slot` anchor, `k.viewport({ density, capped })`, and the gated watch. `MenuViewport` now owns all three, and `MenuContent` and `MenuSub` render it. **No perf claim for an open.** The work per open is unchanged. A closed `MenuSub` row no longer calls `useScrollOverflow`, because the hook moved into a component that the shut panel never renders; that saving is unmeasured. What changes otherwise is that one place states the gate, where two did.
 
 ## Popovers
 

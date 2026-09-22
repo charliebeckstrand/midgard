@@ -59,7 +59,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `MENU-03` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` (TSDoc) | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `MENU-04` | `packages/ui/src/__tests__/browser/menu-scroll-overflow.test.tsx` | the gate comment | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `BENCH-03` | `packages/ui/src/__benchmarks__/browser/README.md` | §Menus figures | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `BENCH-05` | `packages/ui/src/__benchmarks__/browser/menu-open.bench.tsx` | `FLOOR_ROWS` | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `BENCH-06` | `packages/ui/src/__benchmarks__/browser/README.md` | lever 2 | cleanliness | low | PLAUSIBLE | ◯ OPEN |
 | `BENCH-07` | `packages/ui/src/__benchmarks__/fixtures.ts` | `MENU_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
