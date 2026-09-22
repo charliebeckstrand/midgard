@@ -14,7 +14,7 @@ import {
 	useState,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { useComposedRef, useFloatingUI, useScrollOverflow } from '../../hooks'
+import { useFloatingUI } from '../../hooks'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useDensity } from '../../primitives/density'
@@ -23,7 +23,7 @@ import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
 import { Icon } from '../icon'
-import { useMenuCapped } from './context'
+import { MenuViewport } from './menu-viewport'
 import { MenuLabel } from './slots'
 import {
 	MenuPointerLevel,
@@ -124,10 +124,6 @@ export function MenuSub({
 }: MenuSubProps) {
 	const { space, size } = useDensity()
 
-	// The parent menu's height policy, so a submenu panel caps (or doesn't) the
-	// same way the menu it hangs off does.
-	const capped = useMenuCapped()
-
 	const glass = useGlass()
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
@@ -151,27 +147,14 @@ export function MenuSub({
 	// menu doesn't yank focus off whatever the user is on.
 	const seatFocus = useRef(false)
 
-	// The panel's rows scroll in the same capped, edge-faded viewport
-	// {@link MenuContent} gives the root menu, so a long submenu reads alike.
-	// The watch takes the same `capped` gate, for the same reason: an uncapped
-	// panel grows with its rows, so it never overflows.
-	const scrollOverflowRef = useScrollOverflow({ enabled: capped })
-
 	// The panel's row container once it mounts. State, not a ref: the portal
 	// renders its children a commit *after* `open` flips, so the focus-seating
 	// effect below needs a re-render to fire on — an `open`-keyed effect alone
 	// would run against an empty panel.
+	//
+	// `MenuViewport` composes this with its own overflow watch, so the setter
+	// still runs on attach and on detach.
 	const [rows, setRows] = useState<HTMLElement | null>(null)
-
-	// Composed rather than wrapped by hand: `useScrollOverflow` returns its
-	// teardown from the ref, and React 19 keeps that return as the ref cleanup.
-	// A hand-written wrapper returns nothing, so React falls back to a `null`
-	// call — which the hook ignores — and the watch outlives the panel.
-	// `useComposedRef` forwards each ref's own cleanup, and nulls `rows` on the
-	// same detach. A `capped` flip swaps the watch ref, so `rows` cycles through
-	// `null` and the row renders once more. The flag is a height policy, not
-	// interaction state, so a flip is rare.
-	const setRowContainer = useComposedRef<HTMLElement>(setRows, scrollOverflowRef)
 
 	const triggerId = useId()
 
@@ -404,13 +387,7 @@ export function MenuSub({
 						className={cn('relative', k.content)}
 						onKeyDown={handlePanelKeyDown}
 					>
-						<div
-							ref={setRowContainer}
-							data-slot="menu-viewport"
-							className={k.viewport({ density: space, capped })}
-						>
-							{children}
-						</div>
+						<MenuViewport ref={setRows}>{children}</MenuViewport>
 					</PopoverPanel>
 				</FloatingSurface>
 			</MenuPointerLevel>

@@ -430,7 +430,7 @@ A submenu row lives inside the panel, so a menu pays for it on every open rather
 
 **A `MenuSub` cost 0.159 ms above the `MenuItem` it replaces, and now costs 0.091 ms.** It rendered twice for the same reason the root trigger did, and lever 3 below is the same fix one level down. An open menu carrying six of them saves 0.44 ms per open.
 
-What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, a `useScrollOverflow`, and a closed floating surface. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
+What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, and a closed floating surface. The `useScrollOverflow` this once listed left the closed row with lever 6, which moved it into `MenuViewport` — a component the shut panel never renders. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
 
 ### Optimization log
 
@@ -443,6 +443,8 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 4. **The overflow watch gated on `capped`** ([`menu-content.tsx`](../../components/menu/menu-content.tsx)). The watch attached to the viewport on every open, and observed the node and each row, to hold two edge attributes. On the uncapped default it can never fire: the viewport carries no `max-h`, so it never overflows. It now attaches only while `capped`, and [`menu-scroll-overflow.test.tsx`](../../__tests__/browser/menu-scroll-overflow.test.tsx) pins that invariant. One open commit: 0.22 ms saved at 24 rows, measured wired against gated in one process. That is the modest end of a change made for its correctness — see `Gating the overflow watch` above for why the earlier projection was larger. `MenuSub` kept the same dead watch until lever 5. Its teardown closed separately, in [#1171](https://github.com/charliebeckstrand/midgard/pull/1171).
 
 5. **The gate moved into the hook, and `MenuSub` took it** ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts), [`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). Lever 4 gated `MenuContent` with a ternary at the ref. `useScrollOverflow` now takes an `enabled` option, and both menu call sites state the gate once, where the hook is called. `MenuSub` read the same `capped` and rendered the same capped viewport, so it wired the same dead watch on every submenu open. **Unmeasured.** No bench in this suite opens a submenu, and the mount bench overprices this class of change — see `Gating the overflow watch` above.
+
+6. **The viewport extracted, and the gate with it** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx)). Levers 4 and 5 left both panels stating the same three decisions: the `data-slot` anchor, `k.viewport({ density, capped })`, and the gated watch. `MenuViewport` now owns all three, and `MenuContent` and `MenuSub` render it. **No perf claim.** The work per open is unchanged. What changes is that one place states the gate, where two did.
 
 ## Popovers
 

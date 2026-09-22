@@ -2,13 +2,13 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { useScrollOverflow } from '../../hooks'
 import { Density } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/menu'
-import { useMenuActions, useMenuCapped, useMenuState } from './context'
+import { useMenuActions, useMenuState } from './context'
+import { MenuViewport } from './menu-viewport'
 import { MENUITEM_SELECTOR } from './use-menu-state'
 
 /** Props for {@link MenuContent}: an optional accessible name for `static` menus. */
@@ -49,28 +49,9 @@ export function MenuContent({
 	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, density, size } =
 		useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
-	const capped = useMenuCapped()
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
-	// The mask fading the scroll edges lives on this inner viewport, not the
-	// panel: masking the panel would dissolve its border and shadow with the
-	// content wherever a fade is open.
-	//
-	// Gated on `capped`, the flag that emits the viewport's `max-h`. An uncapped
-	// viewport grows with its rows, so it never overflows.
-	// `browser/menu-scroll-overflow.test.tsx` pins that invariant, and
-	// `__benchmarks__/browser/README.md` §Menus prices the gate.
-	const scrollOverflowRef = useScrollOverflow({ enabled: capped })
-
-	const viewport = (
-		<div
-			ref={scrollOverflowRef}
-			data-slot="menu-viewport"
-			className={k.viewport({ density, capped })}
-		>
-			{children}
-		</div>
-	)
+	const viewport = <MenuViewport>{children}</MenuViewport>
 
 	if (isStatic) {
 		return (

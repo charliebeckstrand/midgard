@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Menu, MenuContent, MenuItem, MenuSub } from '../../components/menu'
-import { fireEvent, getSlot, present, renderUI, screen, waitFor } from '../helpers'
+import { Menu, MenuContent, MenuItem } from '../../components/menu'
+import { getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * Menu scroll-overflow affordance (real layout). The viewport's max-height,
@@ -11,19 +11,10 @@ import { fireEvent, getSlot, present, renderUI, screen, waitFor } from '../helpe
  * classes to actual CSS. It hides the flip side too: only real layout proves
  * that an uncapped panel grows to all its rows and stamps neither edge.
  *
- * `MenuSub` gates its own watch off the same flag, and its panel portals out of
- * the menu it hangs off. The submenu cases therefore read the same invariant on
- * a second, separately mounted viewport.
+ * `MenuViewport` is the one component both menu panels render for this, so the
+ * premise holds for a submenu panel too. `components/menu.test.tsx` pins the
+ * gate that rests on it, and the policy's reach through the submenu portal.
  */
-
-/** `count` plain rows, for whichever viewport the case mounts. */
-function rows(count: number) {
-	return Array.from({ length: count }, (_, index) => (
-		// biome-ignore lint/suspicious/noArrayIndexKey: static list
-		<MenuItem key={index}>Item {index + 1}</MenuItem>
-	))
-}
-
 describe('Menu scroll overflow (real browser)', () => {
 	/**
 	 * The scroll viewport of a `count`-row menu, opened `static` so no pointer
@@ -34,7 +25,12 @@ describe('Menu scroll overflow (real browser)', () => {
 	function viewportFor(capped?: boolean, count = 12) {
 		const { container } = renderUI(
 			<Menu defaultOpen capped={capped}>
-				<MenuContent aria-label="Actions">{rows(count)}</MenuContent>
+				<MenuContent aria-label="Actions">
+					{Array.from({ length: count }, (_, index) => (
+						// biome-ignore lint/suspicious/noArrayIndexKey: static list
+						<MenuItem key={index}>Item {index + 1}</MenuItem>
+					))}
+				</MenuContent>
 			</Menu>,
 		)
 
@@ -83,7 +79,7 @@ describe('Menu scroll overflow (real browser)', () => {
 		expect(viewport).not.toHaveAttribute('data-overflow-above')
 	})
 
-	// The gate `MenuContent` puts on the watch rests on one invariant: an
+	// The gate `MenuViewport` puts on the watch rests on one invariant: an
 	// uncapped viewport never overflows, a capped one always does. The row
 	// counts match the open bench's ladder, so the test pins the range the
 	// finding measured over. See `__benchmarks__/browser/README.md` §Menus.
@@ -108,53 +104,4 @@ describe('Menu scroll overflow (real browser)', () => {
 			expect(viewport).not.toHaveAttribute('data-overflow-above')
 		})
 	}
-})
-
-describe('MenuSub scroll overflow (real browser)', () => {
-	/**
-	 * The scroll viewport of a twelve-row submenu panel, opened by a click on its
-	 * parent row. The panel portals out of the enclosing menu, so the viewport is
-	 * reached from one of its own rows rather than from the render container. The
-	 * row count is the one the capped cases above overflow at.
-	 */
-	async function submenuViewportFor(capped?: boolean) {
-		renderUI(
-			<Menu defaultOpen capped={capped}>
-				<MenuContent aria-label="Actions">
-					<MenuSub label="More">{rows(12)}</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
-
-		const first = await screen.findByRole('menuitem', { name: 'Item 1' })
-
-		return present(
-			first.closest<HTMLElement>('[data-slot="menu-viewport"]'),
-			'the submenu [data-slot="menu-viewport"]',
-		)
-	}
-
-	it('grows to its rows on the default submenu, leaving no edge to stamp', async () => {
-		// The flag is omitted, not passed `false`, so this is the tree a consumer
-		// gets by default. That default is what the gate keys off.
-		const viewport = await submenuViewportFor()
-
-		await waitFor(() => expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight))
-
-		expect(viewport).not.toHaveAttribute('data-overflow-above')
-
-		expect(viewport).not.toHaveAttribute('data-overflow-below')
-	})
-
-	it('overflows a capped submenu and stamps the below edge', async () => {
-		const viewport = await submenuViewportFor(true)
-
-		expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight)
-
-		await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
-
-		expect(viewport).not.toHaveAttribute('data-overflow-above')
-	})
 })
