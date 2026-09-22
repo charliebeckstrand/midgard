@@ -248,29 +248,34 @@ Every probe ([`menu-probe.tsx`](menu-probe.tsx)) mounts one open dropdown. It se
 
 The open bench is the one exception. It mounts that same `Dropdown` closed, and clicks it open.
 
-- [`menu-keyboard.bench.tsx`](menu-keyboard.bench.tsx) — one `keydown` on the trigger. `dispatch only` carries a key no handler acts on, and is the floor to subtract. Each row count runs twice, capped and uncapped. A capped panel has a real scroller for the roving move to find. An uncapped one — the default — has none.
+- [`menu-keyboard.bench.tsx`](menu-keyboard.bench.tsx) — one `keydown` on the trigger. `dispatch only` carries a key no handler acts on, and is the floor to subtract. Each row count runs twice, capped and uncapped. A capped panel has a real scroller for the roving move to find. An uncapped one — the default — has none. The typeahead rung fires the buffer's idle reset after each press, on a fake clock, so each press starts from an empty buffer. A floor rung prices that clock.
 
-- [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then also measures that panel, to read the pointer's course.
+- [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then lies on the course into that panel, so it measures the panel, passes the travel test, and leaves the cursor where it is.
 
 - [`menu-open.bench.tsx`](menu-open.bench.tsx) — one click on a closed menu. The timed region is the commit the click drives, from the event to the panel in the DOM. It stops there, because the engine places the panel a frame later. A second scenario re-renders a panel that is already open, which is what a reposition does. A third prices one `cn` call on the panel classes, so a reader can weigh it against the first two.
 
 - [`menu-mount.bench.tsx`](menu-mount.bench.tsx) — fifty closed menus, mounted and torn down. Four rungs ladder the shell apart, each containing the one above it, so a step is what that layer costs across the whole fan-out. A second scenario mounts one open 24-row panel, plain and with six of its rows as submenus. The step over six is what one `MenuSub` costs above the `MenuItem` it replaces.
 
-### Findings (2026-09-21, this container)
+### Findings (2026-09-22, a third container)
 
-Mean ms per press, and per sweep, in Chromium.
+Mean ms per press, and per sweep, in Chromium, median of three runs. The whole table was measured in one session, on a container slower than the one the 2026-09-21 figures came from, so its rows read against each other only.
 
 | Scenario | 8 rows | 24 rows | 64 rows |
 | --- | ---: | ---: | ---: |
-| `keydown`, no handler acts | — | 0.017 | — |
-| ArrowDown · uncapped | 0.106 | 0.110 | 0.128 |
-| ArrowDown · capped | 0.111 | 0.119 | 0.132 |
-| typeahead · one letter | 0.224 | 0.182 | 0.191 |
-| pointer sweep · one pass | 0.106 | 0.324 | 0.903 |
+| `keydown`, no handler acts | — | 0.025 | — |
+| ArrowDown · uncapped | 0.178 | 0.176 | 0.207 |
+| ArrowDown · capped | 0.174 | 0.187 | 0.227 |
+| typeahead · one letter | 0.190 | 0.205 | 0.234 |
+| pointer sweep · one pass | 0.169 | 0.536 | 1.555 |
+| pointer sweep · submenu open | — | 0.433 | — |
 
-**The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.12 ms for the whole press, 0.10 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by under 0.02 ms. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
+The fake clock that the typeahead rung carries costs 0.003 ms a press.
 
-**The travel triangle is free.** A 24-row sweep costs 0.324 ms with no submenu open. With one open it costs 0.327 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
+**The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.18 ms for the whole press, 0.15 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by 0.02 ms or less. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
+
+**Typeahead costs about one arrow press.** Every label starts with the letter, so each press stops at its first candidate and moves the cursor one row. An earlier version of the rung let the buffer grow by one letter on each iteration, so the match walked a longer query each time. That is why the 2026-09-21 table read 8 rows as slower than 24.
+
+**The travel test costs less than the move it replaces.** With a submenu open, an arrival on the course into its panel reads the panel's rect, passes the test, and returns before it moves the cursor. A 24-row sweep then costs 0.433 ms, against 0.536 ms with no submenu open, where every arrival moves the cursor. The geometry that replaces a hover timer therefore costs nothing a reader could feel. An earlier version of the rung sent each arrival to its row's centre, which shares the parent row's x. The first arrival failed the test and closed the submenu, so the rung timed a plain sweep, and its 0.327 ms against 0.324 compared a sweep with itself.
 
 ### The open: what a click costs (2026-09-21, a slower container)
 
