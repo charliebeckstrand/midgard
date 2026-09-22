@@ -81,9 +81,10 @@ describe('Grid pagination', () => {
 				/>,
 			)
 
-			// Both clicks dispatch before React commits either, which is what a
-			// double-click on the control does. A control that reads its target from
-			// the rendered page index computes the same page twice and advances one.
+			// Both clicks dispatch in one task, before React commits either. A real
+			// double-click commits between its clicks, so this is the programmatic
+			// case. A control that reads its target from the rendered page index
+			// computes the same page twice and advances one.
 			await act(async () => {
 				screen.getByRole('button', { name: 'Next page' }).click()
 
