@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
+import { createGroup, createRule, type QueryField } from '../../modules/query'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid context menus', () => {
@@ -187,6 +188,42 @@ describe('Grid context menus', () => {
 
 		// Shift+F10 / the ContextMenu key fires a contextmenu on the focused grid (not
 		// a cell); the menu retargets it to the active cell rather than the native menu.
+		fireEvent.contextMenu(grid)
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	// An applied filter marks its header button `data-active`, the attribute that
+	// the cursor cell carries. The header comes first inside the grid, so a bare
+	// attribute query found the button and opened no cell menu.
+	it('retargets a keyboard context-menu event past an applied filter button', () => {
+		const nameField: QueryField = { name: 'name', label: 'Name', type: 'text' }
+
+		const filterable = columns.map((column) =>
+			column.id === 'name' ? { ...column, filterable: true } : column,
+		)
+
+		const nameHasA = createGroup('and', [
+			{ ...createRule(nameField), operator: 'contains', value: 'A' },
+		])
+
+		renderUI(
+			<Grid
+				columns={filterable}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				contextMenu={{ cell: true }}
+				columnFilters={{ value: [{ id: 'name', value: nameHasA }] }}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Filter Name, active' })).toBeInTheDocument()
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
 		fireEvent.contextMenu(grid)
 
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()

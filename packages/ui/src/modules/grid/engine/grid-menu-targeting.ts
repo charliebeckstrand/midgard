@@ -94,7 +94,10 @@ export function openKeyboardMenu(
 ): void {
 	const grid = target.closest<HTMLElement>('[role="grid"]')
 
-	const active = grid?.querySelector<HTMLElement>('[data-active]')
+	// The cursor marks its gridcell alone. An applied filter and an active group
+	// mark their header buttons with the same attribute, and the header comes
+	// first in the grid.
+	const active = grid?.querySelector<HTMLElement>('[role="gridcell"][data-active]')
 
 	if (!active) return
 
