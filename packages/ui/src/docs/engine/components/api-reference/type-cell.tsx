@@ -76,9 +76,9 @@ function unquote(part: string): string {
 
 /**
  * One badge per top-level union arm: `'sm' | 'md'` renders as two badges.
- * Identical arms collapse to a single badge — a union can format to repeated
- * text (e.g. two type parameters that both resolve to `string`), which would
- * otherwise render redundant badges and collide on the React key.
+ * Identical arms collapse to a single badge. A union can format to repeated
+ * text, such as two type parameters that both resolve to `string`. Without the
+ * collapse, those arms render redundant badges and collide on the React key.
  */
 function TypeBadges({ type }: { type: string }) {
 	const arms = [...new Set(splitUnion(type))]

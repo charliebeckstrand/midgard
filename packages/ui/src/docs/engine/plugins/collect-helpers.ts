@@ -9,30 +9,77 @@ type Helper = { name: string; code: string }
 // `__code` is never read — skip it rather than shipping the whole page source.
 const ENTRY_EXPORT = 'Demo'
 
-/** Whether a node's subtree holds a JSX element or fragment. */
-function containsJsx(node: ts.Node): boolean {
+/**
+ * Whether an expression evaluates to rendered JSX: an element or a fragment, a
+ * conditional or logical choice that yields one, or an array of them. A call
+ * counts when it receives an element or a callback that renders one, as in
+ * `items.map((i) => <Option />)` and `createPortal(<Panel />, node)`.
+ *
+ * @remarks
+ * A function or an object that holds JSX is not rendered JSX. A render-prop
+ * factory returns the first, and a column list returns the second, and neither
+ * is a component.
+ */
+function isRenderedJsx(node: ts.Expression): boolean {
+	if (
+		ts.isParenthesizedExpression(node) ||
+		ts.isAsExpression(node) ||
+		ts.isSatisfiesExpression(node) ||
+		ts.isNonNullExpression(node)
+	) {
+		return isRenderedJsx(node.expression)
+	}
+
 	if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node) || ts.isJsxFragment(node)) {
 		return true
 	}
 
-	// `forEachChild` yields the first truthy result its visitor returns, and
-	// `undefined` once every child answers false.
-	return node.forEachChild(containsJsx) ?? false
+	if (ts.isConditionalExpression(node)) {
+		return isRenderedJsx(node.whenTrue) || isRenderedJsx(node.whenFalse)
+	}
+
+	if (ts.isBinaryExpression(node)) {
+		const operator = node.operatorToken.kind
+
+		const chooses =
+			operator === ts.SyntaxKind.AmpersandAmpersandToken ||
+			operator === ts.SyntaxKind.BarBarToken ||
+			operator === ts.SyntaxKind.QuestionQuestionToken
+
+		return chooses && (isRenderedJsx(node.left) || isRenderedJsx(node.right))
+	}
+
+	if (ts.isArrayLiteralExpression(node)) {
+		return node.elements.some((element) =>
+			isRenderedJsx(ts.isSpreadElement(element) ? element.expression : element),
+		)
+	}
+
+	if (ts.isCallExpression(node)) {
+		return node.arguments.some(
+			(arg) =>
+				isRenderedJsx(arg) ||
+				((ts.isArrowFunction(arg) || ts.isFunctionExpression(arg)) && rendersJsx(arg)),
+		)
+	}
+
+	return false
 }
 
 /**
- * Whether a statement subtree holds a `return` of JSX. A nested function's
- * returns are its own, so the walk stops at one. The returned expression is
- * then searched whole, which is what lets `return items.map((i) => <Option />)`
- * count.
+ * Whether a statement subtree holds a `return` of rendered JSX. A nested
+ * function's returns are its own, so the walk stops at one. The returned
+ * expression goes to {@link isRenderedJsx}.
  */
 function returnsJsx(node: ts.Node): boolean {
 	if (ts.isFunctionLike(node)) return false
 
 	if (ts.isReturnStatement(node)) {
-		return node.expression !== undefined && containsJsx(node.expression)
+		return node.expression !== undefined && isRenderedJsx(node.expression)
 	}
 
+	// `forEachChild` yields the first truthy result its visitor returns, and
+	// `undefined` once every child answers false.
 	return node.forEachChild(returnsJsx) ?? false
 }
 
@@ -55,7 +102,7 @@ function rendersJsx(
 
 	if (!body) return false
 
-	return ts.isBlock(body) ? returnsJsx(body) : containsJsx(body)
+	return ts.isBlock(body) ? returnsJsx(body) : isRenderedJsx(body)
 }
 
 /**

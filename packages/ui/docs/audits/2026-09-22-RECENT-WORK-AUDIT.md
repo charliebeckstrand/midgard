@@ -50,7 +50,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◯ OPEN |
 | `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
-| `TOOL-02` | `biome.json` | the `hooks`, `primitives`, and `kiso` layer rules | correctness | medium | CONFIRMED | ◐ FIXED |
+| `TOOL-02` | `biome.json` | the `hooks`, `primitives`, and `kiso` layer rules | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
 | `TOOL-03` | `renovate.json` | the `@floating-ui/react` approval rule | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-04` | `.github/dependabot.yml`, `renovate.json` | npm security updates | correctness | medium | PLAUSIBLE | ◯ OPEN |
 | `TOOL-05` | `pnpm-workspace.yaml` | `overrides` | correctness | medium | CONFIRMED | ◯ OPEN |
@@ -66,21 +66,21 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
-| `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-05` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `declaredName` | correctness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-07` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the gate comment | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-05` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `declaredName` | correctness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-07` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the gate comment | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
-| `SRC-07` | `packages/ui/src/recipes/kiso/index.ts` | `IconSize` | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `SRC-07` | `packages/ui/src/recipes/kiso/index.ts` | `IconSize` | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
 | `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
@@ -88,11 +88,11 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-09` | `packages/ui/src/__tests__/browser/floating-ui/grid-cell-truncate-tooltip.test.tsx` | the negative cases | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-10` | `packages/ui/src/__tests__/helpers/residue.ts` | the header, `guardResidue` | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
-| `TOOL-07` | `biome-plugins/no-camel-case-data-slot.grit` | the template-literal form | correctness | low | CONFIRMED | ◐ FIXED |
-| `TOOL-08` | `biome.json` | the two plugin excludes | correctness | low | CONFIRMED | ◐ FIXED |
-| `TOOL-09` | `packages/ui/docs/RECIPES.md`, `packages/ui/vitest.config.ts` | tooling prose | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `TOOL-07` | `biome-plugins/no-camel-case-data-slot.grit` | the template-literal form | correctness | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
+| `TOOL-08` | `biome.json` | the two plugin excludes | correctness | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
+| `TOOL-09` | `packages/ui/docs/RECIPES.md`, `packages/ui/vitest.config.ts` | tooling prose | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
 | `TOOL-10` | `.github/workflows/ci.yml`, `README.md` | the commit gate | correctness | low | PLAUSIBLE | ◯ OPEN |
-| `TOOL-11` | `turbo.json`, `pnpm-workspace.yaml` | `$schema`, `minimumReleaseAgeExclude` | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `TOOL-11` | `turbo.json`, `pnpm-workspace.yaml` | `$schema`, `minimumReleaseAgeExclude` | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
 
 TESTS-07 and TOOL-07 found the same defect, so the table keeps it once as TOOL-07.
 
@@ -186,7 +186,7 @@ Over the 213 helpers, 38 render a helper that they do not define. About 45 use a
 
 **DOCS-08.** `demo-code-block.test.ts` accepts a helper tag by its snippet, whatever the tag holds. The runtime reads the snippet only for a helper with no children. So `<Example><Wrapper>plain</Wrapper></Example>` passes the gate, but `hasDerivableCode` returns false. The file header lists two approximations that err toward a pass, and not this one. No live case exists. Fix: use the snippet only for a helper with no children.
 
-**DOCS-09.** #1166 renames `MeterOnlyExample` and two titles in the password-strength demo. The fix does not need the rename, and the commit gives no reason ([`CLAUDE.md`](../../../../CLAUDE.md) §1.2).
+**DOCS-09.** #1166 renames `MeterOnlyExample` and two titles in the password-strength demo. The fix does not need the rename, and the commit gives no reason ([`CLAUDE.md`](../../../../CLAUDE.md) §1.2). Disposition: the rename stays. The two Examples differ only in `showRules`, and the new titles name that difference. A revert would change the page a second time and gain nothing.
 
 **DOCS-10.** The `resolveTypeIn` TSDoc still gives the emptiness probe as its reason to exist. The probe and the renderer now reach it through `classifyElement`. Fix: point the sentence at `classifyElement`.
 
@@ -235,7 +235,7 @@ These rows came up during the sweep. They predate `5c75a88`, so they sit outside
 | `ADJ-01` | `packages/ui/src/components/accordion/accordion.tsx` | `Accordion` | low | CONFIRMED | ◯ OPEN |
 | `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ◯ OPEN |
 | `ADJ-03` | `packages/ui/src/modules/grid/engine/grid-menu-targeting.ts` | the active-cell query | low | PLAUSIBLE | ◯ OPEN |
-| `ADJ-04` | several | dangling citations | low | CONFIRMED | ◯ OPEN |
+| `ADJ-04` | several | dangling citations | low | CONFIRMED | ◐ FIXED |
 
 **ADJ-01.** #1150 spread `...rest` onto the root `<div>`, but did not take `collapsible` out of it. Each `<Accordion collapsible>` writes an invalid attribute, and React warns; the warning shows in the stderr of the jsdom run. Fix: destructure `collapsible` with the other selection props.
 

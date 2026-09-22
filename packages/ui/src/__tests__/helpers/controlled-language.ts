@@ -1,10 +1,11 @@
 import { join } from 'node:path'
+import ts from 'typescript'
 import { srcDir, srcRelative, walkSource } from './walk-source'
 
 /**
- * The controlled-language scan the 2026-08-02 documentation audit ran by hand,
- * as a reusable reader. It reports the rule 4, rule 6, and rule 10 breaks in
- * the comments of the shipped tree (STE.md).
+ * The controlled-language scan, once run by hand, as a reusable reader. It
+ * reports the rule 6 and rule 10 breaks in the comments of the shipped tree
+ * (STE.md).
  *
  * @remarks
  * The scan reads comments only. Code is never prose, and a rule that bans a
@@ -15,114 +16,101 @@ import { srcDir, srcRelative, walkSource } from './walk-source'
 export type Comment = { text: string; line: number; block: boolean }
 
 /**
- * Every comment in `source`, block and line alike.
+ * Every comment in the source text of `file`, block and line alike.
  *
  * @remarks
- * A character reader, not a regular expression. It steps over string and
- * template literals, so a `//` inside a URL literal opens no comment, and it
- * counts newlines as it goes, so each result carries a true line number.
+ * The ranges come from the TypeScript parse. A character reader has no parser
+ * context, so a regex literal that holds a quote puts it out of step. So does
+ * an apostrophe in JSX text. It then skips each comment up to the next matching
+ * quote.
+ *
+ * Trivia sits in two places. Between the child nodes of a node, the text holds
+ * only punctuation, keywords, and trivia, so a plain scan reads it safely. A
+ * token opens with its own leading trivia, which the comment-range reads take.
+ * The rest of a token is literal text, and JSX text holds no comment at all.
+ *
+ * @param file - The path of the source. Its extension selects the TSX grammar.
  */
-export function extractComments(source: string): Comment[] {
+export function extractComments(file: string, source: string): Comment[] {
+	const parsed = ts.createSourceFile(
+		file,
+		source,
+		ts.ScriptTarget.ESNext,
+		false,
+		file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+	)
+
+	const scanner = ts.createScanner(ts.ScriptTarget.ESNext, false)
+
 	const found: Comment[] = []
 
-	let index = 0
-	let line = 1
-	let state: 'code' | 'block' | 'line' = 'code'
-	let buffer = ''
-	let opened = 0
+	// At offset 0, the leading read and the trailing read both return the first
+	// comment.
+	const seen = new Set<number>()
 
-	while (index < source.length) {
-		const char = source[index]
-		const next = source[index + 1]
+	const take = (pos: number, end: number, kind: ts.CommentKind) => {
+		if (seen.has(pos)) return
 
-		if (state === 'code') {
-			if (char === '\n') line++
+		seen.add(pos)
 
-			if (char === '/' && next === '*') {
-				state = 'block'
-				buffer = ''
-				opened = line
-				index += 2
-				continue
-			}
+		const block = kind === ts.SyntaxKind.MultiLineCommentTrivia
 
-			if (char === '/' && next === '/') {
-				state = 'line'
-				buffer = ''
-				opened = line
-				index += 2
-				continue
-			}
-
-			if (char === '"' || char === "'" || char === '`') {
-				index = skipLiteral(source, index, char, (crossed) => {
-					line += crossed
-				})
-				continue
-			}
-
-			index++
-			continue
-		}
-
-		if (state === 'block') {
-			if (char === '\n') line++
-
-			if (char === '*' && next === '/') {
-				found.push({ text: buffer, line: opened, block: true })
-				state = 'code'
-				index += 2
-				continue
-			}
-
-			buffer += char
-			index++
-			continue
-		}
-
-		if (char === '\n') {
-			found.push({ text: buffer, line: opened, block: false })
-			state = 'code'
-			line++
-			index++
-			continue
-		}
-
-		buffer += char
-		index++
+		found.push({
+			text: source.slice(pos + 2, block ? end - 2 : end),
+			line: parsed.getLineAndCharacterOfPosition(pos).line + 1,
+			block,
+		})
 	}
 
-	if (state !== 'code') found.push({ text: buffer, line: opened, block: state === 'block' })
+	const scanGap = (start: number, end: number) => {
+		if (start >= end) return
+
+		scanner.setText(source, start, end - start)
+
+		for (
+			let token = scanner.scan();
+			token !== ts.SyntaxKind.EndOfFileToken;
+			token = scanner.scan()
+		) {
+			if (
+				token === ts.SyntaxKind.SingleLineCommentTrivia ||
+				token === ts.SyntaxKind.MultiLineCommentTrivia
+			) {
+				take(scanner.getTokenStart(), scanner.getTokenEnd(), token)
+			}
+		}
+	}
+
+	const visit = (node: ts.Node) => {
+		if (ts.isToken(node)) {
+			if (node.kind === ts.SyntaxKind.JsxText) return
+
+			for (const range of [
+				...(ts.getTrailingCommentRanges(source, node.pos) ?? []),
+				...(ts.getLeadingCommentRanges(source, node.pos) ?? []),
+			]) {
+				take(range.pos, range.end, range.kind)
+			}
+
+			return
+		}
+
+		let pos = node.pos
+
+		ts.forEachChild(node, (child) => {
+			scanGap(pos, child.pos)
+
+			visit(child)
+
+			pos = child.end
+		})
+
+		scanGap(pos, node.end)
+	}
+
+	visit(parsed)
 
 	return found
-}
-
-/** Step past the literal that opens at `start`, reporting the newlines crossed. */
-function skipLiteral(
-	source: string,
-	start: number,
-	quote: string,
-	crossed: (lines: number) => void,
-): number {
-	let index = start + 1
-	let lines = 0
-
-	while (index < source.length) {
-		if (source[index] === '\\') {
-			index += 2
-			continue
-		}
-
-		if (source[index] === '\n') lines++
-
-		if (source[index] === quote) break
-
-		index++
-	}
-
-	crossed(lines)
-
-	return index + 1
 }
 
 // Tags whose payload is code or a bare value, never prose to measure.
@@ -233,7 +221,7 @@ export type Break = { file: string; line: number; rule: 6 | 10; text: string }
 export function fileBreaks(file: string, source: string): Break[] {
 	const breaks: Break[] = []
 
-	for (const comment of extractComments(source)) {
+	for (const comment of extractComments(file, source)) {
 		for (const unit of proseUnits(comment)) {
 			for (const sentence of sentences(unit)) {
 				if (wordCount(sentence) > wordLimit(sentence)) {
@@ -250,7 +238,7 @@ export function fileBreaks(file: string, source: string): Break[] {
 	return breaks
 }
 
-// The audit's own scope: the shipped tree, less the demo pages. walkSource
+// The scan's scope: the shipped tree, less the demo pages. walkSource
 // prunes the test and benchmark trees already.
 const SKIP_ENTRIES = new Set(['demos'])
 
@@ -274,7 +262,7 @@ export function scanPackage(): Break[] {
 }
 
 /**
- * The living Markdown the audit scoped: the curated surface docs and the hub
+ * The living Markdown the scan covers: the curated surface docs and the hub
  * (CONVENTIONS.md §12.2). Paths are relative to the package root.
  */
 export const LIVING_MARKDOWN = [

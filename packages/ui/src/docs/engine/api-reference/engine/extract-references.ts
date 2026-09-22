@@ -123,13 +123,14 @@ function collectTypeNames(text: string): string[] {
 
 /**
  * Type-visible symbols at a node, indexed by name. `getSymbolsInScope` returns
- * thousands of symbols and is the dominant per-component cost; every top-level
- * name resolves from the same `callable` node and every transitively discovered
- * name from the same declaration, so one scan per node — memoized here — serves
- * every lookup against it, and the `name → symbol` map turns each lookup from a
- * linear scan into O(1). Keyed first by checker so entries never outlive the
- * program that produced them (each program yields fresh nodes and its own
- * checker); the inner `WeakMap` lets scopes be reclaimed with their nodes.
+ * thousands of symbols and is the dominant per-component cost. Every top-level
+ * name resolves from the same `callable` node, and every transitively
+ * discovered name from the same declaration. So one scan per node, memoized
+ * here, serves every lookup against it. The `name → symbol` map turns each
+ * lookup from a linear scan into O(1). The outer key is the checker, so entries
+ * never outlive the program that produced them. Each program yields fresh nodes
+ * and its own checker. The inner `WeakMap` lets scopes be reclaimed with their
+ * nodes.
  */
 const scopeCache = new WeakMap<ts.TypeChecker, WeakMap<ts.Node, Map<string, ts.Symbol>>>()
 
@@ -210,12 +211,12 @@ function resolveAliasDefinition(
 
 /**
  * Resolved values for an enum-like alias whose body is a *computed* literal
- * union — `keyof typeof map`, an indexed access, etc. — rendered as
+ * union, such as `keyof typeof map` or an indexed access. They render as
  * `'start' | 'center' | …` instead of the opaque source text (`keyof typeof
- * alignMap`). Aliases written as a literal union directly (`'a' | 'b'`) already
- * read well as source and keep their authored order, so they fall through to
- * the caller's `getText()` path. Returns null for generic aliases and any body
- * that is not a pure string/number-literal union.
+ * alignMap`). An alias written as a literal union directly (`'a' | 'b'`)
+ * already reads well as source and keeps its authored order. So it falls
+ * through to the caller's `getText()` path. Returns null for generic aliases
+ * and any body that is not a pure string/number-literal union.
  */
 function computedLiteralUnion(
 	decl: ts.TypeAliasDeclaration,

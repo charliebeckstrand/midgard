@@ -11,12 +11,11 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // audit goes. These two cases hold that ground for the two references a scan
 // can check: the name of a test or benchmark file, and a `{@link}` target.
 //
-// The 2026-09-12 documentation audit closed thirteen rows across both
-// categories and added no gate, and both rotted inside a month. Steps 7 and 9
-// of the 2026-09-11 test architecture audit moved four boundary rules into
-// `biome.json` and `biome-plugins/`, and deleted the tests that had held them.
-// Nine comments still named those four files. The contracts survived the move;
-// only the pin changed, and no run said so.
+// A hand sweep closed thirteen rows across both categories and added no gate,
+// and both categories rotted inside a month. #1152 and #1164 moved eight
+// boundary rules into `biome.json` and `biome-plugins/`, and deleted the tests
+// that had held them. Comments still named the deleted files. The contracts
+// survived the move; only the pin changed, and no run said so.
 //
 // Both cases test membership against a set, not resolution in a scope. The
 // distinction decides the link case, so it is written down here:
@@ -27,8 +26,8 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //   "absent" for a symbol that is present in the package. Measured against a
 //   program over every barrel, that reads 1,255 of 3,759 sites as unresolved.
 //   Such a program is also blind to every file no barrel reaches, and
-//   `__benchmarks__/fixtures.ts` carried one of the five defects the audit
-//   found by hand.
+//   `__benchmarks__/fixtures.ts` carried one of the five defects that the hand
+//   sweep found.
 //
 // Membership answers the question the defect asks: does the package declare
 // this name anywhere? Two narrower questions it does not answer, both stated
@@ -66,8 +65,8 @@ const SKIP = new Set(['node_modules', 'dist'])
  * citation.
  *
  * Both halves of this rule need those trees. Three of the four citation defects
- * the 2026-09-12 audit found sat inside a pruned tree, and so did one of its
- * five dangling links.
+ * that the hand sweep found sat inside a pruned tree, and so did one of its five
+ * dangling links.
  */
 function eachFile(visit: (file: string, content: string) => void): void {
 	const walk = (dir: string) => {
@@ -95,7 +94,28 @@ const TEST_FILE = /\.(?:test|bench)\.tsx?$/
 // `*-boundary.test.ts` in a config matches from its `b` and reports a file that
 // was never named. No real citation opens after a `*` or a `-`, because a name
 // that carries one matches from its own first character.
+//
+// A bare stem, with no extension, stays out of reach. Prose uses the same
+// `-boundary` compound as a plain word, as in "calendar-boundary ticks", so a
+// stem match cannot tell a citation from a word. A citation that this rule
+// checks names its file in full.
 const CITATION = /(?<![*-])\b[\w-][\w.-]*\.(?:test|bench)\.tsx?\b/g
+
+// Emphasis around a name, as in `**recipe-boundary.test.ts**`, is Markdown and
+// not a glob. The name opens after a `*`, which the lookbehind refuses, and an
+// underscore run takes away the word boundary. So the markers go before the
+// match. Each one turns into spaces of its own width, and an index keeps its
+// line.
+const EMPHASIZED = /(\*{1,2}|_{1,2})([\w-][\w.-]*\.(?:test|bench)\.tsx?)\1/g
+
+/** `text` with the emphasis markers around each citation blanked out. */
+function unemphasize(text: string): string {
+	return text.replace(EMPHASIZED, (_, mark: string, name: string) => {
+		const blank = ' '.repeat(mark.length)
+
+		return `${blank}${name}${blank}`
+	})
+}
 
 /** The 1-based line `index` falls on, for a violation the reader has to open. */
 function lineAt(content: string, index: number): number {
@@ -120,8 +140,21 @@ function lineAt(content: string, index: number): number {
  * a narrowed `Declaration`. Every shape that carries a name puts it on `name` —
  * a function, a type, a destructured binding, an import specifier, an object
  * member, a parameter — so one read collects them all.
+ *
+ * Some references carry a `name` too: a property access, a JSX attribute and
+ * its namespaced name, and `import.meta`. They declare nothing, so they are
+ * skipped. Otherwise a link to a name that occurs only as `o.name` passes.
  */
 function declaredName(node: ts.Node): string | undefined {
+	if (
+		ts.isPropertyAccessExpression(node) ||
+		ts.isJsxAttribute(node) ||
+		ts.isJsxNamespacedName(node) ||
+		ts.isMetaProperty(node)
+	) {
+		return undefined
+	}
+
 	const { name } = node as ts.Node & { name?: ts.Node }
 
 	return name && ts.isIdentifier(name) ? name.text : undefined
@@ -258,7 +291,7 @@ function libraryGlobals(): Set<string> {
 }
 
 describe('comment reference boundary', () => {
-	it('every test or benchmark file a comment names exists', () => {
+	it('every test or benchmark file a comment names in full exists', () => {
 		const existing = new Set<string>()
 
 		const cited: { file: string; line: number; name: string }[] = []
@@ -274,7 +307,7 @@ describe('comment reference boundary', () => {
 			if (!content.includes('.test.ts') && !content.includes('.bench.ts')) return
 
 			const collect = (text: string, line: (index: number) => number) => {
-				for (const match of text.matchAll(CITATION)) {
+				for (const match of unemphasize(text).matchAll(CITATION)) {
 					cited.push({ file: srcRelative(file), line: line(match.index), name: match[0] })
 				}
 			}
@@ -283,15 +316,13 @@ describe('comment reference boundary', () => {
 			// this rule sat in a README rather than in a comment.
 			if (MARKDOWN_FILE.test(file)) collect(content, (index) => lineAt(content, index))
 			else if (SOURCE_FILE.test(file)) {
-				// `extractComments` rather than a raw `ts` scanner, which carries no
-				// parser context: a template literal holding a substitution — a
-				// `${number}/${number}` type is enough — desynchronizes it, and it then
-				// swallows every comment to the next backtick. That costs
-				// `chart-layout.ts` 118 of its 120 comments, and the tree 4,703 of
-				// 25,007. Reading comments alone is what keeps a synthetic path out of
-				// the result: the docs engine's api-extractor suite asserts on the path
-				// of a test file that is not supposed to exist.
-				for (const comment of extractComments(content)) collect(comment.text, () => comment.line)
+				// Comments only, read from the parse. `extractComments` gives the reason
+				// that a scan without parser context fails. Reading comments alone keeps
+				// a synthetic path out of the result: the docs engine's api-extractor
+				// suite asserts on the path of a test file that is not supposed to exist.
+				for (const comment of extractComments(file, content)) {
+					collect(comment.text, () => comment.line)
+				}
 			}
 		})
 

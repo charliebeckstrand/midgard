@@ -143,8 +143,9 @@ export function resolveType(type: unknown, context: Context): ComponentInfo | un
 
 /**
  * {@link resolveType} against a bare registry, for callers that have no
- * {@link Context} to build. The emptiness probe answers the same "is this a
- * component we document?" question, and must answer it the same way.
+ * {@link Context} to build. {@link classifyElement} is one. The renderer and
+ * the emptiness probe both sort an element through it, so both answer "is this
+ * a component we document?" the same way.
  */
 export function resolveTypeIn(
 	registry: ComponentRegistry,

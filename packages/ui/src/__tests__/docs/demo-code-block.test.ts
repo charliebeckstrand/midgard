@@ -31,11 +31,13 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // walk's cases once for the renderer and the probe together, and
 // `has-derivable-code.test.tsx` asserts the two agree at the seam.
 //
-// Source, not a rendered tree, so two approximations stand. A tag resolves by
+// Source, not a rendered tree, so three approximations stand. A tag resolves by
 // name, which a demo-local component sharing a library export's name would pass
 // on. An identifier child (`{dropdown}`) resolves against every declaration of
-// that name in its file, rather than through the scope chain. Both err toward
-// passing, and neither reaches the shape this test exists to catch.
+// that name in its file, rather than through the scope chain. And a `children`
+// prop given as an attribute or a spread reads as no children, so the helper's
+// snippet stands in for them. All three err toward passing, and none reaches
+// the shape this test exists to catch.
 
 const DEMOS = join(srcDir, 'docs', 'demos')
 
@@ -109,17 +111,38 @@ function parseDemo(path: string, source: string): Demo {
 	return { file, helpers, imports, declarations }
 }
 
-type Names = { tags: Set<string>; idents: Set<string> }
+type Names = { tags: Set<string>; childless: Set<string>; idents: Set<string> }
+
+/**
+ * Whether a JSX child reaches the element's `children` at runtime. Whitespace
+ * that holds a line break and an empty `{}` compile to nothing.
+ */
+function rendersChild(child: ts.JsxChild): boolean {
+	if (ts.isJsxText(child)) return !child.containsOnlyTriviaWhiteSpaces
+
+	if (ts.isJsxExpression(child)) return child.expression !== undefined
+
+	return true
+}
 
 /**
  * The JSX tags a subtree renders, and the identifiers its expression children
  * name. Attributes stay out, and so does an element's own tag identifier: the
  * walk reads a prop only from an element it already recognized, which ends the
  * search on its own.
+ *
+ * @remarks
+ * `childless` holds the tags that render with no children. The walk reads a
+ * helper's snippet only there. For an element with children it walks the
+ * children in its place, and this search collects their tags already.
  */
 function collectNames(node: ts.Node, into: Names): void {
 	if (ts.isJsxElement(node)) {
-		into.tags.add(node.openingElement.tagName.getText())
+		const tag = node.openingElement.tagName.getText()
+
+		into.tags.add(tag)
+
+		if (!node.children.some(rendersChild)) into.childless.add(tag)
 
 		for (const child of node.children) collectNames(child, into)
 
@@ -127,7 +150,11 @@ function collectNames(node: ts.Node, into: Names): void {
 	}
 
 	if (ts.isJsxSelfClosingElement(node)) {
-		into.tags.add(node.tagName.getText())
+		const tag = node.tagName.getText()
+
+		into.tags.add(tag)
+
+		into.childless.add(tag)
 
 		return
 	}
@@ -150,7 +177,8 @@ function helperCode(tag: string, demo: Demo, demos: Map<string, Demo>): string |
 
 /**
  * Whether anything the Example renders registers an import. A tag passes as a
- * component the docs document, or as a helper whose snippet carries one.
+ * component the docs document, or as a childless helper whose snippet carries
+ * one.
  *
  * A tag that is neither names a demo-local component the walk cannot see
  * inside, so the search never follows its declaration. That is what makes a
@@ -166,13 +194,15 @@ function reachesAnImport(example: ts.JsxElement, demo: Demo, demos: Map<string, 
 
 		if (node === undefined) continue
 
-		const names: Names = { tags: new Set(), idents: new Set() }
+		const names: Names = { tags: new Set(), childless: new Set(), idents: new Set() }
 
 		collectNames(node, names)
 
 		for (const tag of names.tags) {
 			if (defaultRegistry.byName.has(tag)) return true
+		}
 
+		for (const tag of names.childless) {
 			const code = helperCode(tag, demo, demos)
 
 			if (code !== undefined && snippetHasImports(code, defaultRegistry)) return true
