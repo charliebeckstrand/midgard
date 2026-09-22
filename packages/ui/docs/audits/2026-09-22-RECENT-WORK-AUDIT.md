@@ -80,7 +80,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
-| `SRC-07` | `packages/ui/src/recipes/kiso/index.ts` | `IconSize` | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `SRC-07` | `packages/ui/src/recipes/kiso/index.ts` | `IconSize` | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
