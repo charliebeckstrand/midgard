@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, expect, inject } from 'vitest'
-import { resetSingletons } from '../../helpers/reset-singletons'
+import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
 import { pageState } from './forensics'
 import './tailwind.css'
@@ -28,6 +28,9 @@ configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
 installResidueGuard()
 
+// Registered before the `afterEach` below, whose `cleanup` then runs first.
+installSingletonResets()
+
 afterEach((ctx) => {
 	// Read before cleanup, so the dump describes the page the failing test left,
 	// and only when there is a failure to explain: the runner sets the result
@@ -37,10 +40,4 @@ afterEach((ctx) => {
 	if (ctx.task.result?.state === 'fail') console.error(`page state at failure:\n  ${pageState()}`)
 
 	cleanup()
-
-	// The announcer's live region lives on document.body, outside React's tree;
-	// cleanup() won't remove it. This project runs `isolate: false`, so one page
-	// serves every file it runs and the region outlives its own file without
-	// this. `setup/index.ts` resets it for the jsdom projects for the same reason.
-	resetSingletons()
 })
