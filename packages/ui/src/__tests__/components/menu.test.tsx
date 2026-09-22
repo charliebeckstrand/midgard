@@ -469,6 +469,31 @@ describe('MenuContent', () => {
 			}
 		})
 
+		/**
+		 * The gate on the viewport's overflow watch. `capped` emits the `max-h`, so
+		 * an uncapped viewport grows with its rows and can never overflow. The panel
+		 * therefore passes `enabled: capped` to `useScrollOverflow`.
+		 *
+		 * Written geometry and one scroll event, because real layout cannot read
+		 * this half: an uncapped panel never overflows, so it stamps nothing whether
+		 * or not a watch runs. `browser/menu-scroll-overflow.test.tsx` pins that
+		 * premise, and this pins the gate resting on it.
+		 */
+		it('wires the overflow watch only while capped', () => {
+			for (const [capped, stamped] of [
+				[undefined, false],
+				[true, true],
+			] as const) {
+				const viewport = viewportFor(capped)
+
+				mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
+
+				fireEvent.scroll(viewport)
+
+				expect(viewport.hasAttribute('data-overflow-below')).toBe(stamped)
+			}
+		})
+
 		it('carries the policy into a submenu panel, which portals out of the viewport', () => {
 			renderUI(
 				<Menu defaultOpen capped>
@@ -728,19 +753,14 @@ describe('MenuSub', () => {
 	})
 
 	/**
-	 * The teardown the panel's viewport owes on detach.
-	 *
-	 * `useScrollOverflow` returns its cleanup from the callback ref, and React 19
-	 * keeps that return as the ref cleanup. A wrapper that drops the return
-	 * leaves React with nothing to run, so the watch outlives the panel.
-	 *
-	 * This reads attributes and one event, so it stays under jsdom. The hook's
-	 * own case covers the ref, and `browser/menu-scroll-overflow.test.tsx` covers
-	 * the real layout. Neither crosses this row's wrapper.
+	 * The submenu panel's scroll viewport, opened by a click on its parent row,
+	 * with an overflowing extent written onto it. The panel portals out of the
+	 * enclosing menu, so the viewport is reached from one of its own rows. jsdom
+	 * reports a zero extent, so the two cases below write the one the watch reads.
 	 */
-	it('tears the viewport overflow watch down when the panel detaches', () => {
+	const submenuViewport = (capped?: boolean) => {
 		const { unmount } = renderUI(
-			<Menu defaultOpen>
+			<Menu defaultOpen capped={capped}>
 				<MenuContent>
 					<MenuSub label="More">
 						<MenuItem>Nested</MenuItem>
@@ -758,10 +778,31 @@ describe('MenuSub', () => {
 			'submenu [data-slot="menu-viewport"]',
 		)
 
-		// jsdom reports a zero scroll extent, so write one and scroll. The watch
-		// then stamps an edge, which gives the teardown something to remove.
 		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
 
+		return { viewport, unmount }
+	}
+
+	/**
+	 * The teardown the panel's viewport owes on detach.
+	 *
+	 * `useScrollOverflow` returns its cleanup from the callback ref, and React 19
+	 * keeps that return as the ref cleanup. A wrapper that drops the return
+	 * leaves React with nothing to run, so the watch outlives the panel.
+	 *
+	 * This reads attributes and one event, so it stays under jsdom. The hook's
+	 * own case covers the ref, and `browser/menu-scroll-overflow.test.tsx` covers
+	 * the real layout. Neither crosses this row's wrapper.
+	 *
+	 * `capped` is what wires the watch at all, so the case passes it. Without the
+	 * flag there is no watch to tear down, and the assertions below would read a
+	 * node that never carried an attribute.
+	 */
+	it('tears the viewport overflow watch down when the panel detaches', () => {
+		const { viewport, unmount } = submenuViewport(true)
+
+		// The written extent overflows, so a scroll stamps an edge, which gives
+		// the teardown something to remove.
 		fireEvent.scroll(viewport)
 
 		expect(viewport).toHaveAttribute('data-overflow-below')
@@ -778,6 +819,24 @@ describe('MenuSub', () => {
 		fireEvent.scroll(viewport)
 
 		expect(viewport).not.toHaveAttribute('data-overflow-below')
+	})
+
+	/**
+	 * The gate, read from the other side. `capped` emits the viewport's `max-h`,
+	 * so an uncapped panel grows with its rows and can never overflow. The row
+	 * therefore passes `enabled: capped` to `useScrollOverflow`.
+	 *
+	 * A wired watch would stamp the below edge over the written extent.
+	 * `browser/menu-scroll-overflow.test.tsx` holds the real-layout half.
+	 */
+	it('wires no overflow watch on an uncapped submenu panel', () => {
+		const { viewport } = submenuViewport()
+
+		fireEvent.scroll(viewport)
+
+		expect(viewport).not.toHaveAttribute('data-overflow-below')
+
+		expect(viewport).not.toHaveAttribute('data-overflow-above')
 	})
 })
 

@@ -64,7 +64,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useMinWidth` | True when the viewport is at least `px` wide; true during SSR. For a width the breakpoint scale has no name for. |
 | `useIsTruncated` | True when text overflows the element, measured with a `Range` over its own contents (not `scrollWidth`, and injecting nothing). |
 | `useInView` | True when `ref.current` is in (or near) the viewport, over one `IntersectionObserver`. It disconnects on first sight by default, and reads true where nothing can observe, so a gate never hides content. |
-| `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a scroll container while content extends past an edge, for CSS scroll affordances. |
+| `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a scroll container while content extends past an edge, for CSS scroll affordances. Gate it off with `enabled: false` where the container cannot overflow. |
 | `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. `block` (default `'nearest'`) and opt-in `inline` align each axis. |
 | `useVirtualWindow` | Drives a vertical windowed list off `@tanstack/react-virtual`: visible items plus top/bottom spacer heights. |
 
@@ -112,6 +112,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `IdScopeOptions` | Options for `useIdScope`: the id to adopt in place of a generated one. |
 | `KeybindingsOptions` | Options for `useKeybindings`: the bindings and the enable gate. |
 | `OffcanvasOptions` | Options for `useOffcanvas`. |
+| `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollWithinOptions` | Options for `useScrollWithin`. |
 | `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the three `@dnd-kit` wrappers. |
 | `VirtualWindowOptions` | Options for `useVirtualWindow`: the item count, the size estimate, and the overscan. |

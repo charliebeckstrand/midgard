@@ -66,7 +66,7 @@ export {
 } from './use-plot-frame'
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
-export { useScrollOverflow } from './use-scroll-overflow'
+export { type ScrollOverflowOptions, useScrollOverflow } from './use-scroll-overflow'
 export { type ScrollWithinOptions, useScrollWithin } from './use-scroll-within'
 export { useSelectableValueChange } from './use-selectable-value-change'
 export { type SortableItemOptions, useSortableItem } from './use-sortable-item'

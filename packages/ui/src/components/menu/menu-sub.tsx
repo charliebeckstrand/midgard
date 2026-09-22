@@ -153,7 +153,9 @@ export function MenuSub({
 
 	// The panel's rows scroll in the same capped, edge-faded viewport
 	// {@link MenuContent} gives the root menu, so a long submenu reads alike.
-	const scrollOverflowRef = useScrollOverflow()
+	// The watch takes the same `capped` gate, for the same reason: an uncapped
+	// panel grows with its rows, so it never overflows.
+	const scrollOverflowRef = useScrollOverflow({ enabled: capped })
 
 	// The panel's row container once it mounts. State, not a ref: the portal
 	// renders its children a commit *after* `open` flips, so the focus-seating
@@ -166,7 +168,9 @@ export function MenuSub({
 	// A hand-written wrapper returns nothing, so React falls back to a `null`
 	// call — which the hook ignores — and the watch outlives the panel.
 	// `useComposedRef` forwards each ref's own cleanup, and nulls `rows` on the
-	// same detach.
+	// same detach. A `capped` flip swaps the watch ref, so `rows` cycles through
+	// `null` and the row renders once more. The flag is a height policy, not
+	// interaction state, so a flip is rare.
 	const setRowContainer = useComposedRef<HTMLElement>(setRows, scrollOverflowRef)
 
 	const triggerId = useId()
