@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
-import { releaseDrag } from './helpers/drag'
+import { renderUI, screen } from '../helpers'
+import { drag } from './helpers/drag'
 
 /**
  * During a column-reorder drag the body cells shift via a CSS variable their
@@ -27,9 +27,6 @@ describe('grid column reorder: header/body shift stay in phase (real browser)', 
 		{ id: 2, a: 'a2', b: 'b2', c: 'c2' },
 	]
 
-	const raf = () =>
-		new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())))
-
 	function columnTransform(id: string) {
 		const head = document.querySelector(`th[data-grid-col="${id}"]`)
 		const body = document.querySelector(`td[data-grid-col="${id}"]`)
@@ -45,16 +42,12 @@ describe('grid column reorder: header/body shift stay in phase (real browser)', 
 
 		const grip = screen.getByRole('button', { name: 'Reorder A' })
 
-		fireEvent.pointerDown(grip, { isPrimary: true, button: 0, clientX: 60, clientY: 10 })
-
-		fireEvent.pointerMove(grip, { clientX: 75, clientY: 10 })
-
-		await raf()
-
-		// Drag A past B's midpoint so B shifts and a transition is in flight.
-		fireEvent.pointerMove(grip, { clientX: 230, clientY: 10 })
-
-		await raf()
+		// Lift A, then drag it past B's midpoint so B shifts and a transition is in
+		// flight.
+		const held = await drag(grip, { x: 60, y: 10 }, [
+			{ x: 75, y: 10 },
+			{ x: 230, y: 10 },
+		])
 
 		for (const id of ['a', 'b', 'c']) {
 			const { head, body } = columnTransform(id)
@@ -66,6 +59,6 @@ describe('grid column reorder: header/body shift stay in phase (real browser)', 
 		// — proof the equality checks above aren't a vacuous both-untransformed pass.
 		expect(columnTransform('a').head).not.toBe('matrix(1, 0, 0, 1, 0, 0)')
 
-		await releaseDrag(grip, { clientX: 230, clientY: 10 })
+		await held.release()
 	})
 })
