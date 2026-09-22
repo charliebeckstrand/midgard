@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
-import { bySlot, renderUI, waitFor } from '../helpers'
+import { getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * Menu scroll-overflow affordance (real layout). The viewport's max-height,
@@ -13,16 +13,16 @@ import { bySlot, renderUI, waitFor } from '../helpers'
  */
 describe('Menu scroll overflow (real browser)', () => {
 	/**
-	 * The scroll viewport of a twelve-row menu, opened `static` so no pointer
-	 * work is needed. The cap is opt-in, so every affordance case passes
-	 * `capped`: the twelve rows only run past an edge while a cap holds the
-	 * viewport shorter than them.
+	 * The scroll viewport of a `count`-row menu, opened `static` so no pointer
+	 * work is needed. The cap is opt-in, so an affordance case passes `capped`:
+	 * the rows only run past an edge while a cap holds the viewport shorter
+	 * than them. Omit the flag to render the default menu.
 	 */
-	function viewportFor(capped?: boolean) {
+	function viewportFor(capped?: boolean, count = 12) {
 		const { container } = renderUI(
 			<Menu defaultOpen capped={capped}>
 				<MenuContent aria-label="Actions">
-					{Array.from({ length: 12 }, (_, index) => (
+					{Array.from({ length: count }, (_, index) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: static list
 						<MenuItem key={index}>Item {index + 1}</MenuItem>
 					))}
@@ -30,22 +30,8 @@ describe('Menu scroll overflow (real browser)', () => {
 			</Menu>,
 		)
 
-		const viewport = bySlot(container, 'menu-viewport')
-
-		if (!(viewport instanceof HTMLElement)) throw new Error('menu viewport not rendered')
-
-		return viewport
+		return getSlot(container, 'menu-viewport')
 	}
-
-	it('caps the viewport and stamps only the below edge at the top', async () => {
-		const viewport = viewportFor(true)
-
-		expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight)
-
-		await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
-
-		expect(viewport).not.toHaveAttribute('data-overflow-above')
-	})
 
 	it('flips the edge attributes as the viewport scrolls to the bottom', async () => {
 		const viewport = viewportFor(true)
@@ -74,7 +60,9 @@ describe('Menu scroll overflow (real browser)', () => {
 		expect(styles.getPropertyValue('--menu-fade-above').trim()).toBe('')
 	})
 
-	it('grows to its rows uncapped, leaving no edge to stamp', async () => {
+	it('grows to its rows on the default menu, leaving no edge to stamp', async () => {
+		// The flag is omitted, not passed `false`, so this is the tree a consumer
+		// gets by default. That default is what the gate keys off.
 		const viewport = viewportFor()
 
 		// Settle on the geometry rather than on an attribute: the panel fitting
@@ -86,4 +74,30 @@ describe('Menu scroll overflow (real browser)', () => {
 
 		expect(viewport).not.toHaveAttribute('data-overflow-above')
 	})
+
+	// The gate `MenuContent` puts on the watch rests on one invariant: an
+	// uncapped viewport never overflows, a capped one always does. The row
+	// counts match the open bench's ladder, so the test pins the range the
+	// finding measured over. See `__benchmarks__/browser/README.md` §Menus.
+	for (const count of [8, 24, 64]) {
+		it(`fits all ${count} rows uncapped and stamps neither edge`, async () => {
+			const viewport = viewportFor(false, count)
+
+			await waitFor(() => expect(viewport.scrollHeight).toBeLessThanOrEqual(viewport.clientHeight))
+
+			expect(viewport).not.toHaveAttribute('data-overflow-above')
+
+			expect(viewport).not.toHaveAttribute('data-overflow-below')
+		})
+
+		it(`overflows ${count} rows capped and stamps the below edge`, async () => {
+			const viewport = viewportFor(true, count)
+
+			expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight)
+
+			await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
+
+			expect(viewport).not.toHaveAttribute('data-overflow-above')
+		})
+	}
 })

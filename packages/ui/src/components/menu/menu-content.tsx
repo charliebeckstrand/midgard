@@ -59,7 +59,13 @@ export function MenuContent({
 
 	const viewport = (
 		<div
-			ref={scrollOverflowRef}
+			// `capped` emits the viewport's `max-h`. An uncapped viewport therefore
+			// has no height constraint, so it grows with its rows and never
+			// overflows. The watch would then force a layout read on the fresh node,
+			// and observe every row, to hold two attributes that cannot change.
+			// `browser/menu-scroll-overflow.test.tsx` pins both halves of that;
+			// `__benchmarks__/browser/README.md` §Menus prices it.
+			ref={capped ? scrollOverflowRef : undefined}
 			data-slot="menu-viewport"
 			className={k.viewport({ density, capped })}
 		>
