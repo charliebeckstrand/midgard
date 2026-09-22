@@ -61,7 +61,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `BENCH-03` | `packages/ui/src/__benchmarks__/browser/README.md` | §Menus figures | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `BENCH-05` | `packages/ui/src/__benchmarks__/browser/menu-open.bench.tsx` | `FLOOR_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-06` | `packages/ui/src/__benchmarks__/browser/README.md` | lever 2 | cleanliness | low | PLAUSIBLE | ◯ OPEN |
+| `BENCH-06` | `packages/ui/src/__benchmarks__/browser/README.md` | lever 2 | cleanliness | low | PLAUSIBLE | ◐ FIXED |
 | `BENCH-07` | `packages/ui/src/__benchmarks__/fixtures.ts` | `MENU_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ◯ OPEN |
