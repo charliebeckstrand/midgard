@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { reindent } from '../../derive-code/indent'
-import { collectSnippetImports, readSnippet } from '../../derive-code/internals'
+import { collectSnippetImports, readSnippet, readSnippetImports } from '../../derive-code/internals'
 import { makeContext } from './helpers'
 
 describe('readSnippet', () => {
@@ -43,6 +43,29 @@ describe('readSnippet', () => {
 		)
 
 		expect(readSnippet(Demo)).toBeNull()
+	})
+})
+
+describe('readSnippetImports', () => {
+	it('returns the `__imports` table attached beside `__code`', () => {
+		const Demo = Object.assign(
+			function Demo() {
+				return null
+			},
+			{ __code: 'x', __imports: { cn: { module: 'core' } } },
+		)
+
+		expect(readSnippetImports(Demo)).toEqual({ cn: { module: 'core' } })
+	})
+
+	it('returns an empty table for a function with none, or for a non-function', () => {
+		function Plain() {
+			return null
+		}
+
+		expect(readSnippetImports(Plain)).toEqual({})
+
+		expect(readSnippetImports({ __imports: { cn: { module: 'core' } } })).toEqual({})
 	})
 })
 
@@ -120,6 +143,19 @@ describe('collectSnippetImports', () => {
 		expect(context.imports.get('stack')).toEqual(new Set(['Stack']))
 
 		expect(context.imports.get('file-upload')).toEqual(new Set(['FileUpload']))
+	})
+
+	it('registers each entry of the attached import table', () => {
+		const context = makeContext()
+
+		collectSnippetImports('const rules = defaultPasswordRules', context, {
+			defaultPasswordRules: { module: 'password-strength' },
+			PasswordRule: { module: 'password-strength', type: true },
+		})
+
+		expect(context.imports.get('password-strength')).toEqual(
+			new Set(['defaultPasswordRules', 'type PasswordRule']),
+		)
 	})
 
 	it('ignores PascalCase tags that the registry does not recognize', () => {

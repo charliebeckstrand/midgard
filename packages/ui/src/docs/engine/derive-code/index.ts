@@ -125,7 +125,7 @@ export function hasDerivableCode(
 		if (classified.kind === 'recognized') return true
 
 		if (classified.kind === 'snippet') {
-			if (snippetHasImports(classified.code, registry)) return true
+			if (snippetHasImports(classified.code, registry, classified.imports)) return true
 
 			continue
 		}
@@ -261,7 +261,7 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 		// Self-closing helper with a build-time snippet attached by the docs
 		// plugin's `pre` transform: use the raw JSX verbatim.
 		case 'snippet':
-			collectSnippetImports(classified.code, context)
+			collectSnippetImports(classified.code, context, classified.imports)
 
 			return reindent(classified.code, indent)
 

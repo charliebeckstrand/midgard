@@ -252,8 +252,11 @@ function bodyStatements(fn: ts.FunctionLikeDeclaration): readonly ts.Statement[]
 /**
  * Map a demo's relative import to the library's public module name, mirroring
  * the barrel layout `moduleNameFor` tags (`components/fieldset` → `fieldset`,
- * `providers/locale` → `providers/locale`). Returns null for docs-internal or
- * otherwise unmapped paths; their identifiers get no import line.
+ * `providers/locale` → `providers/locale`). The `core` and `hooks` barrels and
+ * each `primitives/<name>` map too, because `package.json` exports them. A path
+ * below the `core` or `hooks` barrel has no export, so it stays unmapped.
+ * Returns null for docs-internal or otherwise unmapped paths; their
+ * identifiers get no import line.
  */
 function publicModuleFor(resolved: string, srcDir: string): string | null {
 	const rel = path.relative(srcDir, resolved).split(path.sep)
@@ -264,25 +267,48 @@ function publicModuleFor(resolved: string, srcDir: string): string | null {
 
 	if (rel[0] === 'modules' && rel[1]) return `modules/${rel[1]}`
 
+	if (rel[0] === 'primitives' && rel[1]) return `primitives/${rel[1]}`
+
 	if (rel[0] === 'layouts') return 'layouts'
+
+	if ((rel[0] === 'core' || rel[0] === 'hooks') && rel.length === 1) return rel[0]
 
 	return null
 }
 
 /**
+ * The named specifiers of an `import type { … }` declaration, or null for any
+ * other statement.
+ */
+function typeImportsOf(
+	stmt: ts.Statement,
+): { specifier: string; elements: readonly ts.ImportSpecifier[] } | null {
+	if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) return null
+
+	const bindings = stmt.importClause?.isTypeOnly ? stmt.importClause.namedBindings : undefined
+
+	if (!bindings || !ts.isNamedImports(bindings)) return null
+
+	return { specifier: stmt.moduleSpecifier.text, elements: bindings.elements }
+}
+
+/**
  * The identifiers a demo imports and where a reader would import them from:
  * relative specifiers map onto public library modules, bare specifiers stay
- * external. Aliased and type-only specifiers are skipped — an emitted import
- * line would misname or over-claim them.
+ * external. A type-only specifier carries `type`, so its line reads
+ * `type Name`. Aliased specifiers are skipped, because an emitted import line
+ * would misname them.
  */
-function importFacts(
+export function importFacts(
 	sf: ts.SourceFile,
 	{ filePath, srcDir }: SourceFactsOptions,
 ): Record<string, ImportFact> {
 	const facts: Record<string, ImportFact> = {}
 
 	for (const stmt of sf.statements) {
-		const named = namedImportsOf(stmt)
+		const typeOnly = typeImportsOf(stmt)
+
+		const named = typeOnly ?? namedImportsOf(stmt)
 
 		if (!named) continue
 
@@ -299,9 +325,9 @@ function importFacts(
 		const fact: ImportFact = isRelative ? { module } : { module, external: true }
 
 		for (const spec of elements) {
-			if (spec.isTypeOnly || spec.propertyName) continue
+			if (spec.propertyName) continue
 
-			facts[spec.name.text] = fact
+			facts[spec.name.text] = typeOnly || spec.isTypeOnly ? { ...fact, type: true } : fact
 		}
 	}
 
