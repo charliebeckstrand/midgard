@@ -53,9 +53,13 @@ describe('BreadcrumbLink', () => {
 			</Breadcrumb>,
 		)
 
-		const el = bySlot(container, 'breadcrumb-link')
+		// The APG keeps the current crumb a link, so it keeps both the role and the
+		// target, not only the attribute.
+		const link = screen.getByRole('link', { name: 'Here', current: 'page' })
 
-		expect(el).toHaveAttribute('aria-current', 'page')
+		expect(link).toHaveAttribute('href', '/here')
+
+		expect(link).toBe(bySlot(container, 'breadcrumb-link'))
 	})
 })
 
