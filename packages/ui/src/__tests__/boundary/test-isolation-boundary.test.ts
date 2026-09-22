@@ -59,10 +59,13 @@ const LOOSE_VIEWPORT = {
 // how the suite's most frequent intermittent failure read for twelve runs
 // before it was root-caused. `getSlot` states the slot name once and throws at
 // the query; `present` does the same for any other lookup. A cast to `T | null`
-// keeps the null and is honest, so it passes.
+// keeps the null and is honest, so it passes. The query can take a type
+// argument, and its arguments can span lines, because Biome wraps a long
+// query. They can hold one level of parentheses.
 const NULLABLE_CAST = {
 	label: 'non-null cast over a nullable query',
-	regex: /(?:bySlot|querySelector(?:All)?)\([^\n]*\)\s+as\s+(?:HTML|SVG)[A-Za-z]*Element(?!\s*\|)/g,
+	regex:
+		/(?:bySlot|querySelector(?:All)?)(?:<[^<>]*>)?\((?:[^()]|\([^()]*\))*\)\s+as\s+(?:HTML|SVG)[A-Za-z]*Element(?!\s*\|)/g,
 } as const
 
 describe('test isolation boundary', () => {

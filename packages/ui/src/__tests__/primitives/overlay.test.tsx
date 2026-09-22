@@ -107,9 +107,10 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = document.querySelector<HTMLElement>(
+		const backdrop = present(
+			document.querySelector('[data-slot="overlay-backdrop"]'),
 			'[data-slot="overlay-backdrop"]',
-		) as HTMLElement
+		)
 
 		expect(backdrop.className).toContain('bg-white/75')
 
@@ -126,9 +127,10 @@ describe('Overlay', () => {
 			</Overlay>,
 		)
 
-		const backdrop = document.querySelector<HTMLElement>(
+		const backdrop = present(
+			document.querySelector('[data-slot="overlay-backdrop"]'),
 			'[data-slot="overlay-backdrop"]',
-		) as HTMLElement
+		)
 
 		expect(backdrop.className).toBe('custom-backdrop')
 	})

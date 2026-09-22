@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, waitFor } from '../helpers'
+import { present, renderUI, waitFor } from '../helpers'
 
 /**
  * Leading header-affordance alignment against a real layout engine. The reorder
@@ -28,9 +28,10 @@ describe('grid header affordance alignment (real browser)', () => {
 	// svg box can be flush to the cell padding while the drawn glyph sits inset,
 	// so measure the glyph's user-space bbox mapped through the screen CTM.
 	function inkLeft(container: HTMLElement, columnId: string): number {
-		const svg = container.querySelector<SVGGraphicsElement>(
-			`th[data-grid-col="${columnId}"] svg`,
-		) as SVGGraphicsElement
+		const svg = present<SVGGraphicsElement>(
+			container.querySelector(`th[data-grid-col="${columnId}"] svg`),
+			'the header glyph',
+		)
 
 		const bbox = svg.getBBox()
 
@@ -48,9 +49,10 @@ describe('grid header affordance alignment (real browser)', () => {
 	}
 
 	function valueLeft(container: HTMLElement, columnId: string): number {
-		const span = container.querySelector<HTMLElement>(
-			`td[data-grid-col="${columnId}"] span`,
-		) as HTMLElement
+		const span = present(
+			container.querySelector(`td[data-grid-col="${columnId}"] span`),
+			'the cell value',
+		)
 
 		return span.getBoundingClientRect().left
 	}
