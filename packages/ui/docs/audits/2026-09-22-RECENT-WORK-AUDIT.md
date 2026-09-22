@@ -88,7 +88,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-09` | `packages/ui/src/__tests__/browser/floating-ui/grid-cell-truncate-tooltip.test.tsx` | the negative cases | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-10` | `packages/ui/src/__tests__/helpers/residue.ts` | the header, `guardResidue` | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
-| `TOOL-07` | `biome-plugins/no-camel-case-data-slot.grit` | the template-literal form | correctness | low | CONFIRMED | ◯ OPEN |
+| `TOOL-07` | `biome-plugins/no-camel-case-data-slot.grit` | the template-literal form | correctness | low | CONFIRMED | ◐ FIXED |
 | `TOOL-08` | `biome.json` | the two plugin excludes | correctness | low | CONFIRMED | ◯ OPEN |
 | `TOOL-09` | `packages/ui/docs/RECIPES.md`, `packages/ui/vitest.config.ts` | tooling prose | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `TOOL-10` | `.github/workflows/ci.yml`, `README.md` | the commit gate | correctness | low | PLAUSIBLE | ◯ OPEN |

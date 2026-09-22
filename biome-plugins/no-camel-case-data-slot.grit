@@ -6,17 +6,19 @@ language js
 //
 // `data-slot-boundary.test.ts` held this as a `\bdataSlot\b` scan over file
 // text, which matched the token in any position and so had to assemble its own
-// spelling to avoid flagging itself. This matches the syntax instead: the
-// identifier in a prop, a key, a type member or a member access, and the string
-// in a computed access. A mention in a comment is no longer a violation, which
-// is why this file can name the token plainly.
+// spelling to avoid flagging itself. This matches the syntax instead. It
+// matches the identifier in a prop, a key, a type member, or a member access.
+// It also matches the string or the template literal in a computed access. A
+// mention in a comment is no longer a violation, which is why this file can
+// name the token plainly.
 //
 // Reach is the whole package source, tests included — the scan it replaces
 // descended into `__tests__` on purpose, because the convention binds the call
 // sites too.
 or {
 	`dataSlot`,
-	`"dataSlot"`
+	`"dataSlot"`,
+	JsTemplateChunkElement() as $chunk where { $chunk <: r"dataSlot" }
 } where {
 	register_diagnostic(
 		span = $match,
