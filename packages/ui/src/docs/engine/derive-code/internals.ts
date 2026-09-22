@@ -406,7 +406,8 @@ export function renderOpenTag(
 /**
  * Record an import for `name` from `mod`. Allocates the inner Set on first
  * use. `external` marks `mod` as a bare package specifier (`lucide-react`);
- * `assemble` emits it without the library prefix.
+ * `assemble` emits it without the library prefix. `type` records a type-only
+ * import, which `assemble` writes as `type Name`.
  */
 export function addImport(
 	context: Context,
@@ -424,12 +425,6 @@ export function addImport(
 	if (external) context.externalModules.add(mod)
 }
 
-/**
- * Combine the imports accumulated on `context` with the preamble declarations
- * and the rendered JSX into the final code block. Sorts imports by module;
- * `react` and external packages keep their bare specifiers, everything else
- * uses the documented library's `<packageName>/*` layout.
- */
 /** The bare name of an import entry, without its `type ` marker. */
 const bareName = (entry: string) => entry.replace(/^type /, '')
 
@@ -449,6 +444,12 @@ function importNames(names: Set<string>): string[] {
 		})
 }
 
+/**
+ * Combine the imports accumulated on `context` with the preamble declarations
+ * and the rendered JSX into the final code block. Sorts imports by module;
+ * `react` and external packages keep their bare specifiers, everything else
+ * uses the documented library's `<packageName>/*` layout.
+ */
 export function assemble(context: Context, jsx: string, preamble: string[] = []): string {
 	const imports = [...context.imports.entries()]
 		.sort(([a], [b]) => a.localeCompare(b))
