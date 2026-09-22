@@ -12,8 +12,11 @@ export type SparklinePoint = { x: number; y: number }
 
 /**
  * One bar rectangle for the `bar` variant, in `viewBox` user units. `index` is
- * the datum's position in the series, not the bar's position in `bars`; a
- * non-finite datum emits no bar. @internal
+ * the datum's position in the series: a stable key, geometry-free, so a longer
+ * series never remounts the mark. A non-finite datum emits no bar, so `index`
+ * is not the bar's own position in `bars`.
+ *
+ * @internal
  */
 export type SparklineBar = { index: number; x: number; y: number; width: number; height: number }
 

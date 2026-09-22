@@ -157,9 +157,7 @@ function AnimatedSparklineMarks({
 	fillClass,
 }: SparklineMarksProps) {
 	if (shape === 'bar') {
-		// The key is the datum index, not `bar.x`. A longer series narrows the slot
-		// and moves every x, which would remount each rect and replay the entrance.
-		// The same index paces the stagger, so a bar rises on its own slot's beat.
+		// `bar.index` paces the stagger too, so a bar rises on its own slot's beat.
 		return geometry.bars.map((bar) => (
 			<motion.rect
 				key={bar.index}

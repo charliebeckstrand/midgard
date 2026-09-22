@@ -89,10 +89,32 @@ describe('Sparkline', () => {
 
 		expect(after).toHaveLength(5)
 
-		// A longer series narrows the slot, so every bar lands at a new x. Keyed on
-		// x, React remounts the whole row and each rect replays its entrance from
-		// the baseline. Keyed on the index, the original rects hold their nodes.
+		// Keyed on x, a longer series moves every key and remounts the whole row.
 		for (const [index, rect] of before.entries()) expect(after[index]).toBe(rect)
+	})
+
+	it('keeps the later bar rects mounted when an earlier datum goes non-finite', () => {
+		const { container, rerender } = renderUI(
+			<Sparkline data={[1, 4, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
+		)
+
+		const before = [...container.querySelectorAll('rect')]
+
+		rerender(
+			<Sparkline data={[1, Number.NaN, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
+		)
+
+		const after = [...container.querySelectorAll('rect')]
+
+		// The hole drops one bar. The datum index keys the rest, so the two bars
+		// after the hole hold their nodes; an array position would slide them.
+		expect(after).toHaveLength(3)
+
+		expect(after[0]).toBe(before[0])
+
+		expect(after[1]).toBe(before[2])
+
+		expect(after[2]).toBe(before[3])
 	})
 
 	it('renders an empty box for an empty series without throwing', () => {
