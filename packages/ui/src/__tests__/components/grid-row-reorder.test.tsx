@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, screen } from '../helpers'
 
@@ -104,13 +104,9 @@ describe('Grid row reorder', () => {
 	})
 
 	it('renders the inert grip when no rowReorder binding is supplied', () => {
-		const onReorder = vi.fn()
-
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} rowLabel={rowLabel} />)
 
 		// The handle column still renders, but every grip is inert without the binding.
 		for (const handle of grips()) expect(handle).toBeDisabled()
-
-		expect(onReorder).not.toHaveBeenCalled()
 	})
 })

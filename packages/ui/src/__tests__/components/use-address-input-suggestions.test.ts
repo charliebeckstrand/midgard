@@ -126,8 +126,10 @@ describe('useAddressInputSuggestions', () => {
 			}),
 		)
 
+		// Zero, not every pending timer: running them all fires the 200ms debounce
+		// too, so the case passed whatever the delay was.
 		await act(async () => {
-			await vi.runAllTimersAsync()
+			await vi.advanceTimersByTimeAsync(0)
 		})
 
 		expect(provider).toHaveBeenCalled()

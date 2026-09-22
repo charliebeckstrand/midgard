@@ -70,8 +70,6 @@ describe('useIsTruncated at the comparison boundary', () => {
 		restore?.()
 
 		restore = undefined
-
-		document.body.innerHTML = ''
 	})
 
 	it('treats exact equality as not truncated', () => {

@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'

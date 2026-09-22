@@ -1,10 +1,9 @@
-import type { ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { LngLat } from '../../modules/map'
-import { MapPlat, MapRoute } from '../../modules/map'
+import { MapRoute } from '../../modules/map'
 import { ROUTE_HIT_WIDTH, ROUTE_STROKE_WIDTH } from '../../modules/map/engine/map-constants'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
-import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { overlayPlat } from '../helpers/map-plat'
 
 const STOPS: LngLat[] = [
 	[2, 2],
@@ -12,17 +11,9 @@ const STOPS: LngLat[] = [
 	[28, 8],
 ]
 
-function plat(children: ReactNode) {
-	return (
-		<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
-			{children}
-		</MapPlat>
-	)
-}
-
 describe('MapRoute', () => {
 	it('draws the polyline with a wide invisible hit stroke', () => {
-		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} />))
+		const { container } = renderUI(overlayPlat(<MapRoute label="M6" stops={STOPS} />))
 
 		const route = bySlot(container, 'map-route')
 
@@ -45,7 +36,9 @@ describe('MapRoute', () => {
 	})
 
 	it('registers a legend entry carrying its label and detail', () => {
-		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} detail="230 mi" />))
+		const { container } = renderUI(
+			overlayPlat(<MapRoute label="M6" stops={STOPS} detail="230 mi" />),
+		)
 
 		const items = allBySlot(container, 'map-legend-item')
 
@@ -53,10 +46,12 @@ describe('MapRoute', () => {
 	})
 
 	it('prefers street-following path geometry over the straight stops', () => {
-		const straight = renderUI(plat(<MapRoute label="M6" stops={STOPS} />))
+		const straight = renderUI(overlayPlat(<MapRoute label="M6" stops={STOPS} />))
 
 		const routed = renderUI(
-			plat(<MapRoute label="M6" stops={[STOPS[0] as LngLat, STOPS[2] as LngLat]} path={STOPS} />),
+			overlayPlat(
+				<MapRoute label="M6" stops={[STOPS[0] as LngLat, STOPS[2] as LngLat]} path={STOPS} />,
+			),
 		)
 
 		expect(bySlot(routed.container, 'map-route')?.getAttribute('d')).toBe(
@@ -67,9 +62,9 @@ describe('MapRoute', () => {
 	it('falls back to the straight stops when the routed path is empty', () => {
 		// A totals-only routed leg (an `overview: 'false'` result) carries an empty
 		// path; the line must still draw from the stops, not vanish.
-		const empty = renderUI(plat(<MapRoute label="M6" stops={STOPS} path={[]} />))
+		const empty = renderUI(overlayPlat(<MapRoute label="M6" stops={STOPS} path={[]} />))
 
-		const straight = renderUI(plat(<MapRoute label="M6" stops={STOPS} />))
+		const straight = renderUI(overlayPlat(<MapRoute label="M6" stops={STOPS} />))
 
 		expect(bySlot(empty.container, 'map-route')?.getAttribute('d')).toBe(
 			bySlot(straight.container, 'map-route')?.getAttribute('d'),
@@ -77,13 +72,15 @@ describe('MapRoute', () => {
 	})
 
 	it('takes an explicit colour over its slot', () => {
-		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} color="rose" />))
+		const { container } = renderUI(overlayPlat(<MapRoute label="M6" stops={STOPS} color="rose" />))
 
 		expect(bySlot(container, 'map-route')?.getAttribute('class')).toContain('stroke-rose-600')
 	})
 
 	it('raises the tooltip with its name and detail from the hit stroke', () => {
-		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} detail="230 mi" />))
+		const { container } = renderUI(
+			overlayPlat(<MapRoute label="M6" stops={STOPS} detail="230 mi" />),
+		)
 
 		fireEvent.pointerEnter(bySlot(container, 'map-route-hit') as Element, {
 			clientX: 100,
@@ -98,7 +95,7 @@ describe('MapRoute', () => {
 	})
 
 	it('unmounts its marks while toggled off', () => {
-		const { container } = renderUI(plat(<MapRoute label="M6" stops={STOPS} />))
+		const { container } = renderUI(overlayPlat(<MapRoute label="M6" stops={STOPS} />))
 
 		fireEvent.click(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
@@ -111,7 +108,7 @@ describe('MapRoute', () => {
 
 	it('dims against a focused sibling entry', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapRoute label="M6" stops={STOPS} />
 
@@ -134,7 +131,7 @@ describe('MapRoute', () => {
 	})
 
 	it('clears emphasis when a focused route unmounts, so the map does not stay dimmed', () => {
-		const view = (show: boolean) => plat(show ? <MapRoute label="M6" stops={STOPS} /> : null)
+		const view = (show: boolean) => overlayPlat(show ? <MapRoute label="M6" stops={STOPS} /> : null)
 
 		const { container, rerender } = renderUI(view(true))
 

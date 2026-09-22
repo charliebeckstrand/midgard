@@ -1,6 +1,6 @@
 import { act, render, renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerMagnifierZoom } from '../../components/pdf-viewer'
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 import {
@@ -9,7 +9,7 @@ import {
 	resolveMagnifierChoice,
 	usePdfViewerMagnifier,
 } from '../../components/pdf-viewer/use-pdf-viewer-magnifier'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { attach, fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * The hover loupe's settled parts: what the boolean-or-object prop resolves to, and where the
@@ -355,11 +355,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		frame.getBoundingClientRect = () =>
 			({ left: 0, top: top(), width: 800, height: 1000 }) as DOMRect
 
-		document.body.append(frame)
-
-		onTestFinished(() => frame.remove())
-
-		return frame
+		return attach(frame)
 	}
 
 	function pointerOn(frame: HTMLElement, clientX: number, clientY: number) {
@@ -516,11 +512,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 				event: ReactPointerEvent<HTMLElement>,
 			) => void
 
-			const elsewhere = document.createElement('div')
-
-			document.body.append(elsewhere)
-
-			onTestFinished(() => elsewhere.remove())
+			const elsewhere = attach(document.createElement('div'))
 
 			const frame = frameAt(() => 0)
 

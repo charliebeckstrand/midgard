@@ -79,7 +79,7 @@ describe('Grid server-sort settle', () => {
 		expect(table().className).not.toContain(DIM)
 	})
 
-	it('never dims when the consumer swaps rows in the same commit as the sort', async () => {
+	it('never dims when the consumer swaps rows in the same commit as the sort', () => {
 		// A synchronous re-sort: the rows derive from the sort, so both change in one
 		// commit and the grid settles at once — no dim flash.
 		function SyncHarness() {
@@ -101,8 +101,15 @@ describe('Grid server-sort settle', () => {
 
 		sortByName()
 
-		// Give any settling effect a chance to run, then confirm the wash never applied.
-		await waitFor(() => expect(screen.getByText('Charlie')).toBeTruthy())
+		// The control: the rows swapped with the sort, so the sort landed. At rest
+		// they read Charlie, Alice, Bob. The click runs inside `act`, which also runs
+		// the settle effect, so a wash would already be on the table here.
+		expect(screen.getAllByRole('row').map((row) => row.textContent)).toEqual([
+			'Name',
+			'Bob',
+			'Alice',
+			'Charlie',
+		])
 
 		expect(table().className).not.toContain(PULSE)
 

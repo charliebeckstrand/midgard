@@ -6,6 +6,8 @@
 // modules; the boundary tests import `walk-source` (node:fs) directly.
 export { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
 export { default as userEvent } from '@testing-library/user-event'
+export { attach } from './attach'
+export { deferred } from './deferred'
 export { frames } from './frames'
 export { holdMouse } from './hold-mouse'
 // `axe`/`axePage` are intentionally not re-exported here: this barrel is imported

@@ -2,45 +2,20 @@ import { describe, expect, it, vi } from 'vitest'
 import { MapMarker, MapPlat, MapPoint, MapRoute } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { renderNavigable } from '../helpers/map-navigable'
+import { overlayPlat } from '../helpers/map-plat'
 
 /** The fixture spans lon 0–30, lat 0–10; these all project inside the frame. */
 const DEPOT: [number, number] = [5, 5]
 
 const YARD: [number, number] = [25, 5]
 
-function plat(children: React.ReactNode) {
-	return (
-		<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400}>
-			{children}
-		</MapPlat>
-	)
-}
-
-/** Gives the plot's SVG a real box, so a keyboard cursor can place its readout. */
-function boxed(container: HTMLElement) {
-	const svg = container.querySelector('svg')
-
-	if (svg === null) throw new Error('the plat drew no SVG')
-
-	vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
-		left: 0,
-		top: 0,
-		width: 400,
-		height: 200,
-		right: 400,
-		bottom: 200,
-		x: 0,
-		y: 0,
-		toJSON: () => ({}),
-	})
-}
-
 describe('overlay identity and click', () => {
 	it('reports the caller id from a click on a point', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
-			plat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={onClick} />),
+			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={onClick} />),
 		)
 
 		fireEvent.click(bySlot(container, 'map-point-hit') as Element)
@@ -54,7 +29,7 @@ describe('overlay identity and click', () => {
 		const onMarker = vi.fn()
 
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapRoute id="leg" label="Leg" stops={[DEPOT, YARD]} onClick={onRoute} />
 
@@ -76,7 +51,7 @@ describe('overlay identity and click', () => {
 		const onContextMenu = vi.fn()
 
 		const { container } = renderUI(
-			plat(<MapPoint id="depot" label="Depot" at={DEPOT} onContextMenu={onContextMenu} />),
+			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onContextMenu={onContextMenu} />),
 		)
 
 		fireEvent.contextMenu(bySlot(container, 'map-point-hit') as Element)
@@ -86,12 +61,12 @@ describe('overlay identity and click', () => {
 
 	it('carries a pointer affordance only where a click is answered', () => {
 		const { container } = renderUI(
-			plat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={() => {}} />),
+			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={() => {}} />),
 		)
 
 		expect(bySlot(container, 'map-point-hit')).toHaveClass('cursor-pointer')
 
-		const inert = renderUI(plat(<MapPoint id="depot" label="Depot" at={DEPOT} />))
+		const inert = renderUI(overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} />))
 
 		expect(bySlot(inert.container, 'map-point-hit')).not.toHaveClass('cursor-pointer')
 	})
@@ -99,7 +74,9 @@ describe('overlay identity and click', () => {
 	it('reports an opaque but stable identity when the caller names none', () => {
 		const onClick = vi.fn()
 
-		const { container } = renderUI(plat(<MapPoint label="Depot" at={DEPOT} onClick={onClick} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoint label="Depot" at={DEPOT} onClick={onClick} />),
+		)
 
 		fireEvent.click(bySlot(container, 'map-point-hit') as Element)
 
@@ -114,7 +91,7 @@ describe('overlay identity and click', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
-			plat(<MapMarker id="run" label="Run" start={DEPOT} end={YARD} onClick={onClick} />),
+			overlayPlat(<MapMarker id="run" label="Run" start={DEPOT} end={YARD} onClick={onClick} />),
 		)
 
 		for (const slot of ['map-marker-hit', 'map-marker-start-hit', 'map-marker-end-hit']) {
@@ -131,10 +108,10 @@ describe('overlay identity and click', () => {
 		// fresh identity every render, and a re-registration re-sorts the ledger
 		// and re-renders the legend.
 		const { container, rerender } = renderUI(
-			plat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={() => {}} />),
+			overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={() => {}} />),
 		)
 
-		rerender(plat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={() => {}} />))
+		rerender(overlayPlat(<MapPoint id="depot" label="Depot" at={DEPOT} onClick={() => {}} />))
 
 		expect(allBySlot(container, 'map-legend-item')).toHaveLength(1)
 	})
@@ -144,13 +121,9 @@ describe('overlay keyboard reach', () => {
 	it('steps onto an overlay and picks it with Enter', () => {
 		const onClick = vi.fn()
 
-		const { container } = renderUI(
-			plat(<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />),
+		const { plot } = renderNavigable(
+			overlayPlat(<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />),
 		)
-
-		boxed(container)
-
-		const plot = bySlot(container, 'map-plot') as Element
 
 		// The regions lead the stop list, so End reaches the overlay drawn over
 		// them — the mark a pointer-only click would have stranded.
@@ -162,11 +135,9 @@ describe('overlay keyboard reach', () => {
 	})
 
 	it('reads the overlay out as the cursor lands on it', () => {
-		const { container } = renderUI(plat(<MapPoint id="yard" label="Yard" at={YARD} detail="12" />))
-
-		boxed(container)
-
-		const plot = bySlot(container, 'map-plot') as Element
+		const { container, plot } = renderNavigable(
+			overlayPlat(<MapPoint id="yard" label="Yard" at={YARD} detail="12" />),
+		)
 
 		fireEvent.keyDown(plot, { key: 'End' })
 
@@ -183,15 +154,11 @@ describe('overlay keyboard reach', () => {
 		// unreachable by keyboard.
 		const onClick = vi.fn()
 
-		const { container } = renderUI(
+		const { plot } = renderNavigable(
 			<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400} tooltip={false}>
 				<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />
 			</MapPlat>,
 		)
-
-		boxed(container)
-
-		const plot = bySlot(container, 'map-plot') as Element
 
 		expect(plot).toHaveAttribute('tabindex', '0')
 
@@ -218,13 +185,9 @@ describe('overlay keyboard reach', () => {
 		// out, and pick it.
 		const onClick = vi.fn()
 
-		const { container } = renderUI(
-			plat(<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />),
+		const { container, plot } = renderNavigable(
+			overlayPlat(<MapPoint id="yard" label="Yard" at={YARD} onClick={onClick} />),
 		)
-
-		boxed(container)
-
-		const plot = bySlot(container, 'map-plot') as Element
 
 		fireEvent.keyDown(plot, { key: 'End' })
 
@@ -245,11 +208,9 @@ describe('overlay keyboard reach', () => {
 	})
 
 	it('picks nothing on a mark that answers no click', () => {
-		const { container } = renderUI(plat(<MapPoint id="yard" label="Yard" at={YARD} />))
-
-		boxed(container)
-
-		const plot = bySlot(container, 'map-plot') as Element
+		const { container, plot } = renderNavigable(
+			overlayPlat(<MapPoint id="yard" label="Yard" at={YARD} />),
+		)
 
 		fireEvent.keyDown(plot, { key: 'End' })
 

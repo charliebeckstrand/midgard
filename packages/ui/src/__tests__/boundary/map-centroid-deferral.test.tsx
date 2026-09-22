@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { MapPlat } from '../../modules/map'
 import { cachedRegionCentroids } from '../../modules/map/engine/map-geometry/cache'
 import { bySlot, fireEvent, renderUI } from '../helpers'
-import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { categoricalPlat } from '../helpers/map-plat'
 
 /**
  * The keyboard cursor's stops must stay off the mount and the resize paths.
@@ -26,22 +25,6 @@ vi.mock('../../modules/map/engine/map-geometry/cache', async (importActual) => {
 	return { ...actual, cachedRegionCentroids: vi.fn(actual.cachedRegionCentroids) }
 })
 
-type Row = (typeof FIXTURE_ROWS)[number]
-
-function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const props = {
-		'aria-label': 'Zones',
-		geography: FIXTURE_GEOJSON,
-		data: FIXTURE_ROWS,
-		regionKey: 'state',
-		categoryKey: 'zone',
-		width: 400,
-		...extra,
-	} as Parameters<typeof MapPlat<Row>>[0]
-
-	return <MapPlat {...props} />
-}
-
 describe('map centroid deferral', () => {
 	// A block body, not a concise one: `mockClear()` returns the mock, and a
 	// function returned from `beforeEach` is a teardown hook — vitest would call
@@ -51,13 +34,13 @@ describe('map centroid deferral', () => {
 	})
 
 	it('resolves no centroid on mount, on re-render, or on a resize', () => {
-		const { container, rerender } = renderUI(plat())
+		const { container, rerender } = renderUI(categoricalPlat())
 
 		expect(cachedRegionCentroids).not.toHaveBeenCalled()
 
 		// A re-render at a new frame width replaces the projector, which is the
 		// dependency a prebuilt stop list would have re-derived from.
-		rerender(plat({ width: 360 }))
+		rerender(categoricalPlat({ width: 360 }))
 
 		expect(cachedRegionCentroids).not.toHaveBeenCalled()
 
@@ -71,7 +54,7 @@ describe('map centroid deferral', () => {
 	})
 
 	it('resolves them once a reader navigates, and reuses that resolution', () => {
-		const { container } = renderUI(plat())
+		const { container } = renderUI(categoricalPlat())
 
 		const plot = bySlot(container, 'map-plot')
 

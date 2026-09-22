@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useScrollOverflow } from '../../hooks/use-scroll-overflow'
-import { mockDomGeometry, present, renderUI, screen } from '../helpers'
+import { attach, mockDomGeometry, present, renderUI, screen } from '../helpers'
 import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /**
@@ -25,9 +25,9 @@ import { stubResizeObserver } from '../helpers/stub-resize-observer'
 
 /** A scroller whose watch the case turns on and off. */
 function Probe({ enabled }: { enabled: boolean }) {
-	const attach = useScrollOverflow({ enabled })
+	const ref = useScrollOverflow({ enabled })
 
-	return <div ref={attach} data-testid="scroller" />
+	return <div ref={ref} data-testid="scroller" />
 }
 
 function buildScroller(geometry: {
@@ -35,11 +35,7 @@ function buildScroller(geometry: {
 	clientHeight: number
 	scrollHeight: number
 }) {
-	const node = document.createElement('div')
-
-	document.body.appendChild(node)
-
-	return mockDomGeometry(node, geometry)
+	return mockDomGeometry(attach(document.createElement('div')), geometry)
 }
 
 function scrollTo(node: HTMLElement, scrollTop: number) {
@@ -76,8 +72,6 @@ describe('useScrollOverflow', () => {
 		scrollTo(node, 199.6)
 
 		expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-		node.remove()
 	})
 
 	describe('enabled', () => {
@@ -105,8 +99,6 @@ describe('useScrollOverflow', () => {
 			scrollTo(node, 0)
 
 			expect(node.hasAttribute('data-overflow-below')).toBe(false)
-
-			node.remove()
 		})
 
 		it('starts the watch when the flag flips on, and clears it when it flips off', () => {

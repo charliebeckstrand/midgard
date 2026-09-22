@@ -1,13 +1,9 @@
 import { renderHook } from '@testing-library/react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { ThumbButtonRefs, ThumbIndex } from '../../components/slider/range/types'
 import { useRangePointer } from '../../components/slider/range/use-range-pointer'
-import { makePointerEvent } from '../helpers'
-
-afterEach(() => {
-	document.body.innerHTML = ''
-})
+import { attach, makePointerEvent } from '../helpers'
 
 function makeTrack() {
 	const el = document.createElement('div')
@@ -20,11 +16,9 @@ function makeTrack() {
 // The buttons attach to the document: a detached node takes no focus, so an
 // assertion against `activeElement` would pass for the wrong reason.
 function makeThumbs(): { refs: ThumbButtonRefs; buttons: [HTMLButtonElement, HTMLButtonElement] } {
-	const lo = document.createElement('button')
+	const lo = attach(document.createElement('button'))
 
-	const hi = document.createElement('button')
-
-	document.body.append(lo, hi)
+	const hi = attach(document.createElement('button'))
 
 	return { refs: [{ current: lo }, { current: hi }], buttons: [lo, hi] }
 }

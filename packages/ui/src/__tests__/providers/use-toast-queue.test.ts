@@ -181,11 +181,18 @@ describe('useToastTimer', () => {
 				result.current.resume()
 			})
 
+			// 700ms remain of the 1000. A full second would pass on a restart too.
 			act(() => {
-				vi.advanceTimersByTime(1000)
+				vi.advanceTimersByTime(699)
 			})
 
-			expect(start).toHaveBeenCalled()
+			expect(start).not.toHaveBeenCalled()
+
+			act(() => {
+				vi.advanceTimersByTime(1)
+			})
+
+			expect(start).toHaveBeenCalledOnce()
 		} finally {
 			vi.useRealTimers()
 		}

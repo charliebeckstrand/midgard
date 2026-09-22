@@ -2,24 +2,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { MapPlat } from '../../modules/map'
 import { MAP_PRELOAD_DWELL_MS } from '../../modules/map/engine/map-constants'
 import { allRegions, bySlot, fireEvent, renderUI, withFakeTime } from '../helpers'
-import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
+import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { renderNavigable } from '../helpers/map-navigable'
-
-type Row = (typeof FIXTURE_ROWS)[number]
-
-function plat(extra?: Partial<Parameters<typeof MapPlat<Row>>[0]>) {
-	const props = {
-		'aria-label': 'Zones',
-		geography: FIXTURE_GEOJSON,
-		data: FIXTURE_ROWS,
-		regionKey: 'state',
-		categoryKey: 'zone',
-		width: 400,
-		...extra,
-	} as Parameters<typeof MapPlat<Row>>[0]
-
-	return <MapPlat {...props} />
-}
+import { categoricalPlat } from '../helpers/map-plat'
 
 /** Points at a region, at coordinates the readout would anchor to. */
 function point(region: Element) {
@@ -36,7 +21,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { container } = renderUI(plat({ onRegionPreload: preload }))
+			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
 			const [alpha] = allRegions(container)
 
@@ -56,7 +41,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { container } = renderUI(plat({ onRegionPreload: preload }))
+			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
 			const [alpha, beta, gamma] = allRegions(container)
 
@@ -79,7 +64,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { container } = renderUI(plat({ onRegionPreload: preload }))
+			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
 			const [alpha] = allRegions(container)
 
@@ -97,7 +82,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { container } = renderUI(plat({ onRegionPreload: preload }))
+			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
 			const [alpha, beta] = allRegions(container)
 
@@ -127,7 +112,7 @@ describe('MapPlat onRegionPreload', () => {
 			// The inline arrow a consumer writes: a fresh identity on every render,
 			// which must not re-arm a region the reader already warmed.
 			const { container, rerender } = renderUI(
-				plat({ onRegionPreload: (id, index) => preload(id, index) }),
+				categoricalPlat({ onRegionPreload: (id, index) => preload(id, index) }),
 			)
 
 			const [alpha] = allRegions(container)
@@ -138,7 +123,7 @@ describe('MapPlat onRegionPreload', () => {
 
 			leave(container)
 
-			rerender(plat({ onRegionPreload: (id, index) => preload(id, index) }))
+			rerender(categoricalPlat({ onRegionPreload: (id, index) => preload(id, index) }))
 
 			point(allRegions(container)[0] as Element)
 
@@ -152,7 +137,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { container, rerender } = renderUI(plat({ onRegionPreload: preload }))
+			const { container, rerender } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
 			point(allRegions(container)[0] as Element)
 
@@ -163,7 +148,7 @@ describe('MapPlat onRegionPreload', () => {
 			// A feature index means nothing against features it did not come from, so
 			// the latch belongs to the geography and goes with it.
 			rerender(
-				plat({
+				categoricalPlat({
 					onRegionPreload: preload,
 					geography: { ...FIXTURE_GEOJSON, features: [...FIXTURE_GEOJSON.features] },
 				}),
@@ -184,7 +169,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { container } = renderUI(plat({ onRegionPreload: preload }))
+			const { container } = renderUI(categoricalPlat({ onRegionPreload: preload }))
 
 			// Gamma matches no row, so it takes no pointed emphasis. What it opens
 			// into is a different question, and it still answers this one.
@@ -227,7 +212,7 @@ describe('MapPlat onRegionPreload', () => {
 		await withFakeTime(async (clock) => {
 			const preload = vi.fn()
 
-			const { plot } = renderNavigable(plat({ onRegionPreload: preload }))
+			const { plot } = renderNavigable(categoricalPlat({ onRegionPreload: preload }))
 
 			// The arrow keys move the same hover target a pointer does, so the reader
 			// who navigates by keyboard warms what the pointing one warms.

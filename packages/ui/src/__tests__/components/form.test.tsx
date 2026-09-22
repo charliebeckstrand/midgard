@@ -12,6 +12,7 @@ import {
 } from '../../components/form'
 import {
 	bySlot,
+	deferred,
 	fireEvent,
 	getSlot,
 	makeChangeEvent,
@@ -261,14 +262,9 @@ describe('Form', () => {
 	})
 
 	it('disables the fieldset while onSubmit is pending', async () => {
-		let resolveSubmit: (() => void) | undefined
+		const submit = deferred()
 
-		const onSubmit = vi.fn(
-			() =>
-				new Promise<void>((resolve) => {
-					resolveSubmit = resolve
-				}),
-		)
+		const onSubmit = vi.fn(() => submit.promise)
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
@@ -287,21 +283,16 @@ describe('Form', () => {
 		expect(fieldset).toBeDisabled()
 
 		await act(async () => {
-			resolveSubmit?.()
+			submit.resolve()
 		})
 
 		expect(fieldset).not.toBeDisabled()
 	})
 
 	it('drops a slow submit that resolves after a reset', async () => {
-		let resolveSubmit: ((result: { fieldErrors: { name: string } }) => void) | undefined
+		const submit = deferred<{ fieldErrors: { name: string } }>()
 
-		const onSubmit = vi.fn(
-			() =>
-				new Promise<{ fieldErrors: { name: string } }>((resolve) => {
-					resolveSubmit = resolve
-				}),
-		)
+		const onSubmit = vi.fn(() => submit.promise)
 
 		// Captured during render so the reset can be driven programmatically; a
 		// reset button would sit inside the fieldset that submitting disables.
@@ -335,6 +326,12 @@ describe('Form', () => {
 			fireEvent.submit(form)
 		})
 
+		// The control: the submit is in flight. Without it, every assertion below
+		// also holds for a form that never submitted.
+		expect(onSubmit).toHaveBeenCalledOnce()
+
+		expect(container.querySelector('fieldset')).toBeDisabled()
+
 		// Reset supersedes the in-flight submit and clears its pending state.
 		await act(async () => {
 			actions?.reset()
@@ -342,7 +339,7 @@ describe('Form', () => {
 
 		// The handler resolves only now; its stale fieldErrors must be dropped.
 		await act(async () => {
-			resolveSubmit?.({ fieldErrors: { name: 'taken on the server' } })
+			submit.resolve({ fieldErrors: { name: 'taken on the server' } })
 		})
 
 		expect(screen.getByTestId('error').textContent).toBe('')

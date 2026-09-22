@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import { MapPlat, MapPoint, MapPoints } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { renderNavigable } from '../helpers/map-navigable'
+import { overlayPlat } from '../helpers/map-plat'
 
 /** The fixture spans lon 0–30, lat 0–10, so these project inside the frame. */
 const DEPOT: [number, number] = [5, 5]
@@ -28,36 +30,11 @@ const BUNCHED = [
 	{ at: SITE, label: 'Site' },
 ]
 
-function plat(children: React.ReactNode) {
-	return (
-		<MapPlat aria-label="Fleet" geography={FIXTURE_GEOJSON} width={400}>
-			{children}
-		</MapPlat>
-	)
-}
-
-/** Gives the plot's SVG a real box, so a keyboard cursor can place its readout. */
-function boxed(container: HTMLElement) {
-	const svg = container.querySelector('svg')
-
-	if (svg === null) throw new Error('the plat drew no SVG')
-
-	vi.spyOn(svg, 'getBoundingClientRect').mockReturnValue({
-		left: 0,
-		top: 0,
-		width: 400,
-		height: 200,
-		right: 400,
-		bottom: 200,
-		x: 0,
-		y: 0,
-		toJSON: () => ({}),
-	})
-}
-
 describe('MapPoints', () => {
 	it('draws every dot under a single legend entry', () => {
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={STOPS} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} />),
+		)
 
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(3)
 
@@ -70,7 +47,7 @@ describe('MapPoints', () => {
 		// The whole point of the plural mark: one ledger write, one sort, one row,
 		// one palette slot, however many dots.
 		const singular = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapPoint id="a" label="A" at={DEPOT} />
 
@@ -83,13 +60,15 @@ describe('MapPoints', () => {
 
 		expect(allBySlot(singular.container, 'map-legend-item')).toHaveLength(3)
 
-		const plural = renderUI(plat(<MapPoints id="fleet" label="Stops" points={STOPS} />))
+		const plural = renderUI(overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} />))
 
 		expect(allBySlot(plural.container, 'map-legend-item')).toHaveLength(1)
 	})
 
 	it('reads each dot out by its own name, falling back to the group', () => {
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={STOPS} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} />),
+		)
 
 		const hits = allBySlot(container, 'map-points-hit')
 
@@ -115,7 +94,7 @@ describe('MapPoints', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
-			plat(<MapPoints id="fleet" label="Stops" points={STOPS} onClick={onClick} />),
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} onClick={onClick} />),
 		)
 
 		fireEvent.click(allBySlot(container, 'map-points-hit')[1] as Element)
@@ -128,7 +107,9 @@ describe('MapPoints', () => {
 		const onContextMenu = vi.fn()
 
 		const { container } = renderUI(
-			plat(<MapPoints id="fleet" label="Stops" points={STOPS} onContextMenu={onContextMenu} />),
+			overlayPlat(
+				<MapPoints id="fleet" label="Stops" points={STOPS} onContextMenu={onContextMenu} />,
+			),
 		)
 
 		fireEvent.contextMenu(allBySlot(container, 'map-points-hit')[2] as Element)
@@ -139,13 +120,9 @@ describe('MapPoints', () => {
 	it('walks the dots one at a time with the keyboard and picks the one it stands on', () => {
 		const onClick = vi.fn()
 
-		const { container } = renderUI(
-			plat(<MapPoints id="fleet" label="Stops" points={STOPS} onClick={onClick} />),
+		const { plot } = renderNavigable(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} onClick={onClick} />),
 		)
-
-		boxed(container)
-
-		const plot = bySlot(container, 'map-plot') as Element
 
 		// End lands on the last dot, since the regions lead the stop list.
 		fireEvent.keyDown(plot, { key: 'End' })
@@ -166,7 +143,7 @@ describe('MapPoints', () => {
 		// The group is the mark: pointing one dot must not dim the rest of itself,
 		// which is what lets 200 dots draw under one wrapper and one dim class.
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<>
 					<MapPoints id="fleet" label="Stops" points={STOPS} />
 
@@ -194,7 +171,9 @@ describe('MapPoints', () => {
 			{ at: SITE, label: 'Site', color: 'amber' as const },
 		]
 
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={coloured} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={coloured} />),
+		)
 
 		// The far stop stands alone, so it wears the colour it was given.
 		const lone = allBySlot(container, 'map-points-dot')[0]
@@ -213,7 +192,9 @@ describe('MapPoints', () => {
 	})
 
 	it('draws nothing at all when the legend toggles it off', () => {
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={STOPS} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} />),
+		)
 
 		fireEvent.click(bySlot(container, 'map-legend-item') as Element)
 
@@ -225,7 +206,9 @@ describe('MapPoints', () => {
 		// readout the pointer gets from the tooltip, not one row named for the
 		// group. An unnamed dot is numbered within it, since a reader has no
 		// position to tell two unnamed dots apart by.
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={STOPS} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={STOPS} />),
+		)
 
 		const rows = container.querySelectorAll('table tbody tr')
 
@@ -239,7 +222,7 @@ describe('MapPoints', () => {
 	})
 
 	it('renders nothing for an empty set but keeps its legend row', () => {
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={[]} />))
+		const { container } = renderUI(overlayPlat(<MapPoints id="fleet" label="Stops" points={[]} />))
 
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(0)
 
@@ -247,7 +230,9 @@ describe('MapPoints', () => {
 	})
 
 	it('summarises the dots the frame draws on top of one another', () => {
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />),
+		)
 
 		// The pair reads as one graded mark carrying its count; the far dot keeps
 		// drawing as itself.
@@ -260,7 +245,7 @@ describe('MapPoints', () => {
 
 	it('draws every dot where the grouping is off', () => {
 		const { container } = renderUI(
-			plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} cluster={false} />),
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} cluster={false} />),
 		)
 
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(3)
@@ -272,7 +257,7 @@ describe('MapPoints', () => {
 		const onClick = vi.fn()
 
 		const { container } = renderUI(
-			plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} onClick={onClick} />),
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} onClick={onClick} />),
 		)
 
 		fireEvent.click(allBySlot(container, 'map-points-hit')[0] as Element)
@@ -290,7 +275,7 @@ describe('MapPoints', () => {
 
 	it('reads a summary out as the group, by the count and the spread it holds', () => {
 		const { container } = renderUI(
-			plat(
+			overlayPlat(
 				<MapPoints
 					id="fleet"
 					label="Stops"
@@ -318,7 +303,9 @@ describe('MapPoints', () => {
 	it('gives the hidden table the summary the map draws, not the dots inside it', () => {
 		// The table and the tooltip read one resolver, so what a reader gets is
 		// what the pointer gets: the mark that is on the map.
-		const { container } = renderUI(plat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />))
+		const { container } = renderUI(
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />),
+		)
 
 		const text = [...container.querySelectorAll('table tbody tr')].map(
 			(row) => row.textContent ?? '',

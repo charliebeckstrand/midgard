@@ -294,6 +294,12 @@ describe('Resizable: drag', () => {
 			</ResizableGroup>,
 		)
 
+		// The box the case above gives the group. With no box, every press fails
+		// the size guard, and the button filter decides nothing.
+		const group = getSlot(container, 'resizable-group')
+
+		group.getBoundingClientRect = () => DOMRect.fromRect({ width: 200, height: 20 })
+
 		const handle = getSlot(container, 'resizable-handle')
 
 		fireEvent.pointerDown(handle, { button: 2, clientX: 100, clientY: 0 })

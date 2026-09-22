@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { MapOverlaySelection } from '../../modules/map'
-import { MapMarker, MapPlat, MapPoint, MapPoints, MapRoute } from '../../modules/map'
+import { MapMarker, MapPoint, MapPoints, MapRoute } from '../../modules/map'
 import { allBySlot, bySlot, fireEvent, renderUI, tableRows } from '../helpers'
-import { FIXTURE_GEOJSON } from '../helpers/map-geography'
+import { overlayPlat } from '../helpers/map-plat'
 
 /** The fixture spans lon 0–30, lat 0–10; these all project inside the frame. */
 const DEPOT: [number, number] = [5, 5]
@@ -21,16 +21,7 @@ const BUNCHED = [
 ]
 
 function plat(children: React.ReactNode, selectedOverlay?: MapOverlaySelection | null) {
-	return (
-		<MapPlat
-			aria-label="Fleet"
-			geography={FIXTURE_GEOJSON}
-			width={400}
-			selectedOverlay={selectedOverlay}
-		>
-			{children}
-		</MapPlat>
-	)
+	return overlayPlat(children, { selectedOverlay })
 }
 
 describe('MapPlat selected overlay', () => {

@@ -1,12 +1,11 @@
 import { renderHook } from '@testing-library/react'
 import { createRef } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { useA11yAutoFocus } from '../../hooks/a11y/use-a11y-auto-focus'
+import { attach } from '../helpers'
 
 function mountTarget() {
-	const el = document.createElement('button')
-
-	document.body.append(el)
+	const el = attach(document.createElement('button'))
 
 	const ref = createRef<HTMLElement | null>()
 
@@ -14,10 +13,6 @@ function mountTarget() {
 
 	return { el, ref }
 }
-
-afterEach(() => {
-	document.body.innerHTML = ''
-})
 
 describe('useA11yAutoFocus', () => {
 	it('focuses the target when `when` is true', () => {

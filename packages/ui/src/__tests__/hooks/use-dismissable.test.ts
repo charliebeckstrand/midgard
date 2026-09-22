@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useDismissable } from '../../hooks/use-dismissable'
+import { attach } from '../helpers'
 
 describe('useDismissable', () => {
 	it('returns a ref object', () => {
@@ -44,13 +45,7 @@ describe('useDismissable', () => {
 
 		const { result, rerender } = renderHook(() => useDismissable({ open: true, onDismiss }))
 
-		const container = document.createElement('div')
-
-		document.body.appendChild(container)
-
-		// In `onTestFinished`, not after the assertion below: a failed assertion
-		// would otherwise leave the node on the shared body for the next file.
-		onTestFinished(() => container.remove())
+		const container = attach(document.createElement('div'))
 
 		Object.defineProperty(result.current, 'current', { value: container, writable: true })
 
@@ -64,7 +59,17 @@ describe('useDismissable', () => {
 	it('ignores outside pointer when outsidePointer is disabled', () => {
 		const onDismiss = vi.fn()
 
-		renderHook(() => useDismissable({ open: true, onDismiss, outsidePointer: false }))
+		const { result, rerender } = renderHook(() =>
+			useDismissable({ open: true, onDismiss, outsidePointer: false }),
+		)
+
+		// Attached as the case above attaches it, so the flag is the only
+		// difference. A ref with no node rejects every press on its own.
+		const container = attach(document.createElement('div'))
+
+		Object.defineProperty(result.current, 'current', { value: container, writable: true })
+
+		rerender()
 
 		document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 

@@ -90,9 +90,6 @@ describe('SignaturePad', () => {
 
 		expect(clearButton).toBeInTheDocument()
 
-		// pointerdown is swallowed so it doesn't start a stroke on the canvas underneath.
-		fireEvent.pointerDown(clearButton)
-
 		fireEvent.click(clearButton)
 
 		expect(onChange).toHaveBeenCalledWith(null)
