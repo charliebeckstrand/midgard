@@ -225,11 +225,11 @@ describe('ComboChart', () => {
 
 		expect(lineGroup.getAttribute('class')).toContain('opacity-25')
 
-		expect(
-			allBySlot(container, 'chart-bar').every((bar) =>
-				bar.getAttribute('class')?.includes('opacity-25'),
-			),
-		).toBe(true)
+		const bars = allBySlot(container, 'chart-bar')
+
+		expect(bars).toHaveLength(1)
+
+		expect(bars.every((bar) => bar.getAttribute('class')?.includes('opacity-25'))).toBe(true)
 
 		// And on the line's dot the resolution flips.
 		fireEvent.pointerMove(hit, { clientX: lineDot.x - plotX, clientY: lineDot.y - plotY })

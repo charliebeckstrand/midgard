@@ -351,7 +351,11 @@ describe('crowded marks divide their targets', () => {
 			),
 		)
 
-		for (const target of allBySlot(container, 'map-point-hit')) {
+		const targets = allBySlot(container, 'map-point-hit')
+
+		expect(targets).toHaveLength(2)
+
+		for (const target of targets) {
 			expect(clipOf(target)).toBeNull()
 		}
 	})
@@ -592,9 +596,13 @@ describe('a dot over regions that answer the pointer', () => {
 			),
 		)
 
+		const targets = allBySlot(container, 'map-points-hit')
+
+		expect(targets).toHaveLength(2)
+
 		// One rule, read by every mark through `markTargets` — the reason the third claimant needed no
 		// per-mark wiring.
-		for (const target of allBySlot(container, 'map-points-hit')) {
+		for (const target of targets) {
 			expect(fine(target)).toBe(true)
 		}
 	})

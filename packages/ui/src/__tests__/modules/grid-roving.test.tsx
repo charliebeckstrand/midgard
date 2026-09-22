@@ -83,6 +83,8 @@ describe('Grid row roving', () => {
 
 		const rowEls = bodyRows(screen.getByRole('table'))
 
+		expect(rowEls).toHaveLength(3)
+
 		expect(rowEls.every((r) => !r.hasAttribute('data-roving'))).toBe(true)
 
 		expect(rowEls.every((r) => r.tabIndex === -1)).toBe(true)
@@ -173,7 +175,11 @@ describe('Grid cell roving', () => {
 		// Cell mode: the cells are the roving items, the rows are not.
 		expect(rovingCells(table).length).toBe(6)
 
-		expect(bodyRows(table).every((r) => !r.hasAttribute('data-roving'))).toBe(true)
+		const rowEls = bodyRows(table)
+
+		expect(rowEls).toHaveLength(3)
+
+		expect(rowEls.every((r) => !r.hasAttribute('data-roving'))).toBe(true)
 	})
 
 	it('rings a rovable cell with an inset focus ring', () => {

@@ -8,7 +8,7 @@ import {
 	stackedBarSnapSeries,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
-import { act, allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
 
 /**
  * How many bars drew. Each visible series is one `chart-bar` path and each bar
@@ -772,7 +772,12 @@ describe('BarChart tickRotation', () => {
 	it('thins long labels by default instead of tilting them', () => {
 		const { container } = longChart()
 
-		const ticks = [...(bySlot(container, 'chart-axis-x')?.querySelectorAll('text') ?? [])]
+		// The frame width and the label length decide how many labels stay, so the case
+		// asks for one or more.
+		const ticks = nonEmpty(
+			getSlot(container, 'chart-axis-x').querySelectorAll('text'),
+			'x-axis label',
+		)
 
 		expect(ticks.length).toBeLessThan(LONG_CATEGORIES.length)
 

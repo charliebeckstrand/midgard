@@ -528,7 +528,11 @@ describe('LineChart keyboard navigation', () => {
 		// Escape drops the emphasis with the readout — every series reads at full strength.
 		fireEvent.keyDown(plot, { key: 'Escape' })
 
-		for (const mark of allBySlot(container, 'chart-line-series')) {
+		const settled = allBySlot(container, 'chart-line-series')
+
+		expect(settled).toHaveLength(2)
+
+		for (const mark of settled) {
 			expect(mark.getAttribute('class')).not.toContain('opacity-25')
 		}
 	})

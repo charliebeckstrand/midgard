@@ -51,7 +51,11 @@ describe('useGroup', () => {
 	it('stamps the orientation on every child', () => {
 		const { container } = renderUI(<Harness count={3} orientation="vertical" />)
 
-		for (const child of allBySlot(container, 'child')) {
+		const children = allBySlot(container, 'child')
+
+		expect(children).toHaveLength(3)
+
+		for (const child of children) {
 			expect(child).toHaveAttribute('data-group-orientation', 'vertical')
 		}
 	})

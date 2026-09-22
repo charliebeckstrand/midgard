@@ -148,6 +148,8 @@ describe('secondary y-axis', () => {
 			title.getAttribute('transform'),
 		)
 
+		expect(rotated).toHaveLength(2)
+
 		expect(rotated.every((transform) => transform?.startsWith('rotate('))).toBe(true)
 	})
 

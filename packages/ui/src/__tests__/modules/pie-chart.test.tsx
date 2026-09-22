@@ -104,7 +104,11 @@ describe('PieChart', () => {
 		// pie with nothing lifted against them.
 		fireEvent.pointerEnter(items[2] as Element)
 
-		for (const slice of allBySlot(container, 'chart-slice')) {
+		const slices = allBySlot(container, 'chart-slice')
+
+		expect(slices).toHaveLength(2)
+
+		for (const slice of slices) {
 			expect(slice.parentElement?.getAttribute('class') ?? '').not.toContain('opacity-25')
 		}
 	})

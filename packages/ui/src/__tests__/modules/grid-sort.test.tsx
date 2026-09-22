@@ -381,7 +381,11 @@ describe('Grid animated sorting', () => {
 			/>,
 		)
 
-		expect(dataRows().some((row) => row.hasAttribute('data-layout'))).toBe(false)
+		const rowEls = dataRows()
+
+		expect(rowEls).toHaveLength(3)
+
+		expect(rowEls.some((row) => row.hasAttribute('data-layout'))).toBe(false)
 	})
 
 	it('keeps each row element stable across a re-sort, so it can glide to its new slot', () => {

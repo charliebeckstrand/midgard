@@ -39,7 +39,11 @@ describe('ChatList', () => {
 
 		expect(list).toHaveAttribute('aria-label', 'Conversations')
 
-		for (const item of allBySlot(container, 'chat-list-item')) {
+		const items = allBySlot(container, 'chat-list-item')
+
+		expect(items).toHaveLength(3)
+
+		for (const item of items) {
 			expect(item.tagName).toBe('LI')
 		}
 	})

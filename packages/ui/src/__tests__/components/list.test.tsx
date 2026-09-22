@@ -379,8 +379,12 @@ describe('ListItem', () => {
 			</List>,
 		)
 
+		const contents = allBySlot(container, 'list-item-content')
+
+		expect(contents).toHaveLength(2)
+
 		// A row that suppresses the treatment gets no target it does not paint either.
-		for (const content of allBySlot(container, 'list-item-content')) {
+		for (const content of contents) {
 			expect(content.className).not.toContain('after:absolute')
 		}
 	})
