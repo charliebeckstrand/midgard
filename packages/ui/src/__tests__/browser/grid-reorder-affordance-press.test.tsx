@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
-import { releaseDrag } from './helpers/drag'
+import { renderUI, screen } from '../helpers'
+import { drag } from './helpers/drag'
 
 /**
  * A handle-less header (`reorder={{ handle: false }}`) *is* its own drag
@@ -45,27 +45,16 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 		return cell as HTMLElement
 	}
 
-	const raf = () =>
-		new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())))
-
 	/** Press `from` and drift 60px right — well past the sensor's 3px activation distance. */
-	async function pressAndDrift(from: HTMLElement) {
+	function pressAndDrift(from: HTMLElement) {
 		const box = from.getBoundingClientRect()
 
-		fireEvent.pointerDown(from, {
-			isPrimary: true,
-			button: 0,
-			clientX: box.x + 4,
-			clientY: box.y + 4,
-		})
+		const y = box.y + 4
 
-		fireEvent.pointerMove(from, { clientX: box.x + 20, clientY: box.y + 4 })
-
-		await raf()
-
-		fireEvent.pointerMove(from, { clientX: box.x + 60, clientY: box.y + 4 })
-
-		await raf()
+		return drag(from, { x: box.x + 4, y }, [
+			{ x: box.x + 20, y },
+			{ x: box.x + 60, y },
+		])
 	}
 
 	it('does not lift the column when the filter button is pressed and drifts', async () => {
@@ -75,11 +64,11 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 
 		const trigger = screen.getByRole('button', { name: 'Filter A' })
 
-		await pressAndDrift(trigger)
+		const held = await pressAndDrift(trigger)
 
 		expect(header('a')).not.toHaveAttribute('data-dragging')
 
-		await releaseDrag(trigger)
+		await held.release()
 	})
 
 	// The other half: the guard must cost the header nothing. The cell itself opens
@@ -91,10 +80,10 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 
 		const cell = header('a')
 
-		await pressAndDrift(cell)
+		const held = await pressAndDrift(cell)
 
 		expect(cell).toHaveAttribute('data-dragging')
 
-		await releaseDrag(cell)
+		await held.release()
 	})
 })

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
-import { releaseDrag } from './helpers/drag'
+import { renderUI, screen } from '../helpers'
+import { drag } from './helpers/drag'
 
 /**
  * The reorder grip must not begin a drag on a context-menu press. dnd-kit's
@@ -41,42 +41,36 @@ describe('grid reorder grip: context-menu press (real browser)', () => {
 	}
 
 	// Press the grip and travel past the 3px activation distance.
-	function pressAndMove(grip: Element, init: PointerEventInit) {
-		fireEvent.pointerDown(grip, { isPrimary: true, clientX: 50, clientY: 10, ...init })
-
-		fireEvent.pointerMove(grip, { clientX: 70, clientY: 10, ...init })
-	}
+	const pressAndMove = (grip: Element, init: PointerEventInit) =>
+		drag(grip, { x: 50, y: 10 }, [{ x: 70, y: 10 }], init)
 
 	it('does not start a drag on a plain right-click (button 2)', async () => {
 		const { grip, header } = gripHeader()
 
-		pressAndMove(grip, { button: 2 })
+		const held = await pressAndMove(grip, { button: 2 })
 
 		expect(header).not.toHaveAttribute('data-dragging')
 
-		await releaseDrag(grip)
+		await held.release()
 	})
 
 	it('does not start a drag on a macOS Ctrl+click (button 0 + ctrlKey)', async () => {
 		const { grip, header } = gripHeader()
 
-		pressAndMove(grip, { button: 0, ctrlKey: true })
+		const held = await pressAndMove(grip, { button: 0, ctrlKey: true })
 
 		expect(header).not.toHaveAttribute('data-dragging')
 
-		await releaseDrag(grip)
+		await held.release()
 	})
 
 	it('still starts a drag on a genuine primary press', async () => {
 		const { grip, header } = gripHeader()
 
-		pressAndMove(grip, { button: 0 })
+		const held = await pressAndMove(grip, { button: 0 })
 
 		expect(header).toHaveAttribute('data-dragging')
 
-		// The press stays live without this: dnd-kit's capture-phase click
-		// listener sits on the document until a release, and one page serves the
-		// whole instance.
-		await releaseDrag(grip)
+		await held.release()
 	})
 })
