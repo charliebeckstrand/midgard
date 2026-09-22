@@ -44,8 +44,10 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 
 	// Registration waits for the first open, so a closed popover renders once
 	// rather than twice. `Popover` wires `useClick`, and its outside-press is
-	// armed on `open`, so nothing binds to the node while it is shut. The
-	// fan-out is measured in `__benchmarks__/browser/popover-mount.bench.tsx`.
+	// armed on `open`, so nothing binds to the node while it is shut. `useClick`
+	// does read a typeable node on Space, so the hook registers that node at
+	// mount. The fan-out is measured in
+	// `__benchmarks__/browser/popover-mount.bench.tsx`.
 	const mergeRefs = useDeferredFloatingReference<HTMLElement>(
 		setReference,
 		open,

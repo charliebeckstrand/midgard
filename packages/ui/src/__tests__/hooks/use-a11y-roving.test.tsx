@@ -107,9 +107,9 @@ describe('setVirtualActive', () => {
 })
 
 describe('setVirtualActiveElement', () => {
-	// Attached, unlike the detached lists the index-addressed tests build:
-	// `aria-activedescendant` ids are document-unique by spec, so the lookup
-	// behind this path resolves through the document.
+	// Attached, unlike the detached lists the index-addressed tests build, as a
+	// menu's rows are. The decoy case needs a second element with a row's id
+	// elsewhere in the document.
 	const attached: HTMLElement[] = []
 
 	let panels = 0
@@ -146,19 +146,22 @@ describe('setVirtualActiveElement', () => {
 		return { panel, rows, owner, scope }
 	}
 
+	/** The selector a row of {@link makePanel} matches. */
+	const ROW = '[role="menuitem"]'
+
 	/** The options every menu call passes: `aria-selected` is not a `menuitem` state. */
 	const asCursor = { ariaSelected: false }
 
 	it('moves data-active off the previous row and repoints the owner', () => {
 		const { panel, rows, owner, scope } = makePanel(3)
 
-		setVirtualActiveElement(panel, rows[0] as HTMLElement, { current: owner }, asCursor)
+		setVirtualActiveElement(panel, rows[0] as HTMLElement, ROW, { current: owner }, asCursor)
 
 		expect(rows[0]?.hasAttribute('data-active')).toBe(true)
 
 		expect(owner.getAttribute('aria-activedescendant')).toBe(`${scope}-row-0`)
 
-		setVirtualActiveElement(panel, rows[2] as HTMLElement, { current: owner }, asCursor)
+		setVirtualActiveElement(panel, rows[2] as HTMLElement, ROW, { current: owner }, asCursor)
 
 		expect(rows[0]?.hasAttribute('data-active')).toBe(false)
 
@@ -170,7 +173,7 @@ describe('setVirtualActiveElement', () => {
 	it('leaves aria-selected alone, because it is not a menuitem state', () => {
 		const { panel, rows, owner } = makePanel(2)
 
-		setVirtualActiveElement(panel, rows[0] as HTMLElement, { current: owner }, asCursor)
+		setVirtualActiveElement(panel, rows[0] as HTMLElement, ROW, { current: owner }, asCursor)
 
 		expect(rows[0]?.hasAttribute('aria-selected')).toBe(false)
 	})
@@ -178,7 +181,7 @@ describe('setVirtualActiveElement', () => {
 	it('leaves the highlight where it is for a row carrying no id', () => {
 		const { panel, rows, owner, scope } = makePanel(2)
 
-		setVirtualActiveElement(panel, rows[0] as HTMLElement, { current: owner }, asCursor)
+		setVirtualActiveElement(panel, rows[0] as HTMLElement, ROW, { current: owner }, asCursor)
 
 		const anonymous = document.createElement('button')
 
@@ -186,13 +189,47 @@ describe('setVirtualActiveElement', () => {
 
 		panel.append(anonymous)
 
-		setVirtualActiveElement(panel, anonymous, { current: owner }, asCursor)
+		setVirtualActiveElement(panel, anonymous, ROW, { current: owner }, asCursor)
 
 		expect(rows[0]?.hasAttribute('data-active')).toBe(true)
 
 		expect(anonymous.hasAttribute('data-active')).toBe(false)
 
 		expect(owner.getAttribute('aria-activedescendant')).toBe(`${scope}-row-0`)
+	})
+
+	it('leaves a data-active that a consumer put inside a row', () => {
+		const { panel, rows, owner } = makePanel(2)
+
+		const dot = document.createElement('span')
+
+		dot.setAttribute('data-active', '')
+
+		rows[0]?.append(dot)
+
+		setVirtualActiveElement(panel, rows[1] as HTMLElement, ROW, { current: owner }, asCursor)
+
+		expect(dot.hasAttribute('data-active')).toBe(true)
+
+		expect(rows[1]?.hasAttribute('data-active')).toBe(true)
+	})
+
+	it('marks the row it is handed, not the first element with its id', () => {
+		const { panel, rows, owner, scope } = makePanel(2)
+
+		const decoy = document.createElement('div')
+
+		decoy.id = `${scope}-row-1`
+
+		document.body.prepend(decoy)
+
+		attached.push(decoy)
+
+		setVirtualActiveElement(panel, rows[1] as HTMLElement, ROW, { current: owner }, asCursor)
+
+		expect(rows[1]?.hasAttribute('data-active')).toBe(true)
+
+		expect(decoy.hasAttribute('data-active')).toBe(false)
 	})
 })
 

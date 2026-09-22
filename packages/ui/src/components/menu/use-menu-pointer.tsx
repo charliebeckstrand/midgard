@@ -241,9 +241,15 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 			// index would put three linear passes on a sweep that moves one
 			// attribute. `aria-selected` is not a `menuitem` state, so the
 			// highlight stays a pure cursor — matching the dropdown's own roving.
-			setVirtualActiveElement(row.closest<HTMLElement>('[role="menu"]'), row, owner, {
-				ariaSelected: false,
-			})
+			setVirtualActiveElement(
+				row.closest<HTMLElement>('[role="menu"]'),
+				row,
+				MENUITEM_SELECTOR,
+				owner,
+				{
+					ariaSelected: false,
+				},
+			)
 		},
 		[virtual, owner],
 	)

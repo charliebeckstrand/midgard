@@ -1,5 +1,6 @@
 'use client'
 
+import { isTypeableElement } from '@floating-ui/react/utils'
 import { type Ref, type RefCallback, useCallback, useLayoutEffect, useRef } from 'react'
 import { useComposedRef } from './use-composed-ref'
 
@@ -60,26 +61,33 @@ export function useFloatingReference<T extends HTMLElement>(
  * A closed disclosure has no use for a reference. Positioning, `autoUpdate`,
  * the escape layer, and outside-press all begin at the open. Registration at
  * mount instead renders every closed one twice, because `setReference` is a
- * state setter and the ref callback calls it during the commit. This hook
- * stashes the node and registers it in a layout effect on the first open. It
- * is a layout effect, not a passive one. The effect runs in the commit that
- * mounts the panel, so the engine holds the reference before that commit
- * paints.
+ * state setter and the ref callback calls it during the commit.
+ *
+ * This hook stashes the node, and a layout effect registers it at each open.
+ * The engine's setters bail out on a node that they already hold, so only the
+ * first open costs a render. It is a layout effect, not a passive one. It
+ * runs in the commit where `open` flips. The portal mounts the panel one
+ * synchronous commit later, so the engine holds the reference before the
+ * panel paints.
  *
  * The deferral moves one render rather than deleting it. The mount sheds a
  * render and the first open gains one, so it pays where closed instances
  * outnumber opens. `__benchmarks__/browser/README.md` holds the figures for
  * `Menu` and for `Popover`.
  *
- * @remarks Only for a trigger whose interactions begin at the open, such as
- * one wired with `useClick`. A trigger that binds listeners to the reference
- * node must register at mount. The engine keys `useHover`'s listener effect on
- * `elements.domReference`. A deferred {@link TooltipTrigger} would therefore
- * lose its hover close path and its safe-polygon handling. Such a trigger
- * calls {@link useFloatingReference} directly.
+ * @remarks Only for a trigger that the engine does not read while it is shut.
+ * `useClick` qualifies with one exception. Its key handlers read the
+ * reference, so that Space types into a typeable node rather than opening. A
+ * typeable node therefore registers at mount. A trigger that binds listeners
+ * to the reference node must register at mount too. The engine keys
+ * `useHover`'s listener effect on `elements.domReference`. A deferred
+ * {@link TooltipTrigger} would therefore lose its hover close path and its
+ * safe-polygon handling. Such a trigger calls {@link useFloatingReference}
+ * directly.
  *
  * @param setReference - The floating element's reference setter.
- * @param open - Whether the disclosure is open. The first `true` registers.
+ * @param open - Whether the disclosure is open. The first `true` registers a
+ * node that did not register at mount.
  * @param triggerRef - The trigger's own ref, or `undefined` where it keeps none.
  * @param childRef - A cloned child's `ref`, or `undefined` where there is no child.
  * @returns One callback ref for the trigger node.
@@ -102,6 +110,10 @@ export function useDeferredFloatingReference<T extends HTMLElement>(
 	const captureReference = useCallback(
 		(node: HTMLElement | null) => {
 			referenceNode.current = node
+
+			// `useClick` reads the reference on each key event, open or shut, and
+			// lets Space through to a typeable node. A deferred one reads as `null`.
+			if (isTypeableElement(node)) registered.current = true
 
 			if (registered.current) setReference(node)
 		},
