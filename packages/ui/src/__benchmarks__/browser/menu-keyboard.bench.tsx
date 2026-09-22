@@ -17,7 +17,7 @@
  * takes a menu of its own, so the rove rungs keep their own cursor.
  */
 
-import { bench, describe } from 'vitest'
+import { bench, describe, vi } from 'vitest'
 import { WINDOW } from './harness'
 import { MENU_ROWS, openDropdown, type Probe, pressKey } from './menu-probe'
 
@@ -71,6 +71,47 @@ describe('menu · keyboard rove · capped panel (a real scroller)', () => {
 	pressBenches((rung) => rung.capped, 'ArrowDown', 'ArrowDown')
 })
 
+/**
+ * A fake clock for the type-ahead buffer's timer alone, set up around each
+ * rung's warmup and run. Vitest hands a bench no hook that runs between
+ * iterations, so the reset runs inside the timed region, and the floor rung
+ * below prices it.
+ */
+const FAKE_CLOCK = {
+	setup: () => {
+		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+	},
+	teardown: () => {
+		vi.useRealTimers()
+	},
+}
+
 describe('menu · typeahead · uncapped panel', () => {
-	pressBenches((rung) => rung.uncapped, 'o', 'one letter')
+	// The buffer clears after an idle window, and each press restarts that timer.
+	// A bench presses far faster than the window, so on a real clock the query
+	// gains one letter on each iteration, and the match walks the whole of it.
+	// Each press here fires the reset after it, so every press starts from an
+	// empty buffer.
+	for (const rung of rungs) {
+		bench(
+			`${rung.count} rows · one letter`,
+			() => {
+				pressKey(rung.uncapped.trigger, 'o')
+
+				vi.runOnlyPendingTimers()
+			},
+			{ ...WINDOW.settled, ...FAKE_CLOCK },
+		)
+	}
+
+	// What the reset adds to each rung above: one fake timer, scheduled and fired.
+	bench(
+		'fake clock · one timer, scheduled and fired',
+		() => {
+			setTimeout(() => {}, 500)
+
+			vi.runOnlyPendingTimers()
+		},
+		{ ...WINDOW.settled, ...FAKE_CLOCK },
+	)
 })
