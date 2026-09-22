@@ -43,6 +43,11 @@
 			"dependencyDashboardApproval": true
 		},
 		{
+			"description": "The workspace overrides are advisory floors that a person sets; pnpm-workspace.yaml states why. Renovate reads them, and a major widened `>=7.29.0 <8` to `<9`, which drops the floor. Lock file maintenance still carries each range forward to its newest match.",
+			"matchDepTypes": ["pnpm-workspace.overrides"],
+			"enabled": false
+		},
+		{
 			"description": "hlidskjalf is first-party, so the supply-chain cooldown buys nothing.",
 			"matchPackageNames": ["hlidskjalf"],
 			"minimumReleaseAge": null
