@@ -62,9 +62,6 @@ import { Dropdown } from './menu-probe'
 /** Rows the open ladder walks. The empty panel is the shell every later rung contains. */
 const OPEN_ROWS = [0, 8, 24, 64] as const
 
-/** Rows the floor mounts, so it writes the same elements as the rung it is subtracted from. */
-const FLOOR_ROWS = 24
-
 /**
  * One iteration: mount a closed dropdown, address its trigger, open it, and
  * tear the root down.
@@ -86,10 +83,12 @@ function cycle(panel: string, count: number, click: boolean) {
 }
 
 describe('menu · one click, closed to panel', () => {
+	// A closed dropdown renders none of its rows, so the floor takes no row
+	// count, and one floor serves every rung below.
 	bench(
-		`${FLOOR_ROWS} rows · never opened (the floor)`,
+		'never opened (the floor)',
 		() => {
-			cycle('menu-open-floor', FLOOR_ROWS, false)
+			cycle('menu-open-floor', 0, false)
 		},
 		WINDOW.slow,
 	)

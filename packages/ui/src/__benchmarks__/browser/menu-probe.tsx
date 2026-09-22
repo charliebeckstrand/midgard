@@ -130,10 +130,22 @@ export async function openDropdown(count: number, capped: boolean, panel: string
 
 /**
  * Mounts one open dropdown whose first row is a submenu, and hovers that
- * submenu open. Every later arrival on a sibling row then runs the level's
+ * submenu open. Every arrival the probe hands back then runs the level's
  * travel test, which measures the open panel to read the pointer's course.
  *
- * @returns The sibling rows alone, so a sweep never lands back on the parent.
+ * @remarks The arrivals lie inside the corridor, on the course from the parent
+ * row to the panel's near edge. The level reads that course off the event's
+ * coordinates, not off the row it lands on. So each sibling row takes one
+ * arrival at a later point on the course. Each one passes the travel test, and
+ * the submenu stays open for the next. An arrival at a row's own centre shares
+ * the parent's x, so the first of them fails the test and closes the submenu.
+ * That leaves every later arrival nothing to measure.
+ *
+ * The probe runs one pass before it returns, and throws when the submenu has
+ * closed, so the rung cannot time a plain sweep under the corridor's name.
+ *
+ * @returns One arrival for each sibling row, so a sweep never lands back on
+ * the parent.
  */
 export async function openCorridor(panel: string): Promise<Probe> {
 	reactHost().render(<Dropdown count={CORRIDOR_ROWS} capped={false} panel={panel} submenu />)
@@ -142,11 +154,40 @@ export async function openCorridor(panel: string): Promise<Probe> {
 
 	const parent = document.querySelector<HTMLElement>(`.${panel}-sub`) as HTMLElement
 
-	pointerMove(parent, ...centre(parent))
+	const [x, y] = centre(parent)
+
+	pointerMove(parent, x, y)
 
 	await settle(3)
 
-	return readProbe(panel, parent)
+	const submenu = document.getElementById(parent.getAttribute('aria-controls') ?? '')
+
+	if (!submenu) throw new Error('the corridor probe did not open its submenu')
+
+	const rect = submenu.getBoundingClientRect()
+
+	const edge = rect.left >= x ? rect.left : rect.right
+
+	const { trigger, points } = readProbe(panel, parent)
+
+	const probe: Probe = {
+		trigger,
+		points: points.map(({ row }, index) => {
+			const progress = (index + 1) / (points.length + 1)
+
+			return { row, x: x + progress * (edge - x), y }
+		}),
+	}
+
+	for (const { row, x: px, y: py } of probe.points) pointerMove(row, px, py)
+
+	await settle(3)
+
+	if (parent.getAttribute('aria-expanded') !== 'true') {
+		throw new Error('a pass of the corridor probe closed its submenu')
+	}
+
+	return probe
 }
 
 /**

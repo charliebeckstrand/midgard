@@ -279,7 +279,6 @@ export function makeListItems(count: number): { id: string; title: string }[] {
 	return items
 }
 
-/** One selectable option, the shape Combobox, Listbox, and `VirtualOptions` all read. */
 /**
  * The row counts every Menu scenario sweeps: a toolbar menu, a column menu, an
  * overflowing one. Shared, because the jsdom suite and the browser suite read
@@ -287,6 +286,7 @@ export function makeListItems(count: number): { id: string; title: string }[] {
  */
 export const MENU_ROWS = [8, 24, 64] as const
 
+/** One selectable option, the shape Combobox, Listbox, and `VirtualOptions` all read. */
 export type Option = { value: string; label: string }
 
 function buildOptions(count: number): Option[] {

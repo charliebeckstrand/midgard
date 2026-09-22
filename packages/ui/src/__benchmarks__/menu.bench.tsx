@@ -36,7 +36,7 @@
 
 import { SquarePen } from 'lucide-react'
 import type { ReactElement, ReactNode } from 'react'
-import { bench, describe } from 'vitest'
+import { bench, describe, vi } from 'vitest'
 import { Icon } from '../components/icon'
 import {
 	Menu,
@@ -268,7 +268,7 @@ describe('Menu · fan-out (one menu per row of a page)', () => {
 })
 
 describe('Menu · submenus (24 rows, open)', () => {
-	// Every fourth row opens a submenu of its own, each one a `MenuPointerLevel`
+	// The last six rows open a submenu of their own, each one a `MenuPointerLevel`
 	// plus a second floating surface the closed panel still builds the shell for.
 	mountBenches(
 		[0, 6] as const,
@@ -415,14 +415,47 @@ describe('Menu · keyboard rove (dropdown, focus on trigger)', () => {
 })
 
 describe('Menu · typeahead (dropdown, focus on trigger)', () => {
-	// A printable key seeds the type-ahead buffer and scans the rows for a match.
-	// It reads the same mounted menus the rove scenario drives: typeahead seeds
-	// its own buffer and does not depend on where the cursor starts.
+	// A printable key extends the type-ahead buffer and scans the rows for a
+	// match. It reads the same mounted menus the rove scenario drives. Every label
+	// starts with the letter, so the scan stops at its first candidate wherever
+	// the cursor sits.
+	//
+	// The buffer clears after an idle window, and each press restarts that timer.
+	// A bench presses far faster than the window, so on a real clock the query
+	// gains one letter on each iteration, and the match walks the whole of it. A
+	// fake clock for that timer alone fires the reset after each press. Vitest
+	// hands a bench no hook between iterations, so the reset runs inside the
+	// timed region, and the last rung prices it.
+	const fakeClock = {
+		setup: () => {
+			vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+		},
+		teardown: () => {
+			vi.useRealTimers()
+		},
+	}
+
 	for (const count of MENU_ROWS) {
 		const { trigger } = probeAt(virtualProbes, count)
 
-		bench(`${count} rows · one letter`, () => {
-			pressKey(trigger, 'o')
-		})
+		bench(
+			`${count} rows · one letter`,
+			() => {
+				pressKey(trigger, 'o')
+
+				vi.runOnlyPendingTimers()
+			},
+			fakeClock,
+		)
 	}
+
+	bench(
+		'fake clock · one timer, scheduled and fired',
+		() => {
+			setTimeout(() => {}, 500)
+
+			vi.runOnlyPendingTimers()
+		},
+		fakeClock,
+	)
 })

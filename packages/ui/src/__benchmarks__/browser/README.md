@@ -248,29 +248,34 @@ Every probe ([`menu-probe.tsx`](menu-probe.tsx)) mounts one open dropdown. It se
 
 The open bench is the one exception. It mounts that same `Dropdown` closed, and clicks it open.
 
-- [`menu-keyboard.bench.tsx`](menu-keyboard.bench.tsx) — one `keydown` on the trigger. `dispatch only` carries a key no handler acts on, and is the floor to subtract. Each row count runs twice, capped and uncapped. A capped panel has a real scroller for the roving move to find. An uncapped one — the default — has none.
+- [`menu-keyboard.bench.tsx`](menu-keyboard.bench.tsx) — one `keydown` on the trigger. `dispatch only` carries a key no handler acts on, and is the floor to subtract. Each row count runs twice, capped and uncapped. A capped panel has a real scroller for the roving move to find. An uncapped one — the default — has none. The typeahead rung fires the buffer's idle reset after each press, on a fake clock, so each press starts from an empty buffer. A floor rung prices that clock.
 
-- [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then also measures that panel, to read the pointer's course.
+- [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) — one sweep, which visits every row of the panel once. The second scenario repeats the 24-row sweep with a submenu open. Each arrival then lies on the course into that panel, so it measures the panel, passes the travel test, and leaves the cursor where it is.
 
 - [`menu-open.bench.tsx`](menu-open.bench.tsx) — one click on a closed menu. The timed region is the commit the click drives, from the event to the panel in the DOM. It stops there, because the engine places the panel a frame later. A second scenario re-renders a panel that is already open, which is what a reposition does. A third prices one `cn` call on the panel classes, so a reader can weigh it against the first two.
 
 - [`menu-mount.bench.tsx`](menu-mount.bench.tsx) — fifty closed menus, mounted and torn down. Four rungs ladder the shell apart, each containing the one above it, so a step is what that layer costs across the whole fan-out. A second scenario mounts one open 24-row panel, plain and with six of its rows as submenus. The step over six is what one `MenuSub` costs above the `MenuItem` it replaces.
 
-### Findings (2026-09-21, this container)
+### Findings (2026-09-22, a third container)
 
-Mean ms per press, and per sweep, in Chromium.
+Mean ms per press, and per sweep, in Chromium, median of three runs. The whole table was measured in one session, on a container slower than the one the 2026-09-21 figures came from, so its rows read against each other only.
 
 | Scenario | 8 rows | 24 rows | 64 rows |
 | --- | ---: | ---: | ---: |
-| `keydown`, no handler acts | — | 0.017 | — |
-| ArrowDown · uncapped | 0.106 | 0.110 | 0.128 |
-| ArrowDown · capped | 0.111 | 0.119 | 0.132 |
-| typeahead · one letter | 0.224 | 0.182 | 0.191 |
-| pointer sweep · one pass | 0.106 | 0.324 | 0.903 |
+| `keydown`, no handler acts | — | 0.025 | — |
+| ArrowDown · uncapped | 0.178 | 0.176 | 0.207 |
+| ArrowDown · capped | 0.174 | 0.187 | 0.227 |
+| typeahead · one letter | 0.190 | 0.205 | 0.234 |
+| pointer sweep · one pass | 0.169 | 0.536 | 1.555 |
+| pointer sweep · submenu open | — | 0.433 | — |
 
-**The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.12 ms for the whole press, 0.10 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by under 0.02 ms. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
+The fake clock that the typeahead rung carries costs 0.003 ms a press.
 
-**The travel triangle is free.** A 24-row sweep costs 0.324 ms with no submenu open. With one open it costs 0.327 ms, though every arrival then measures the submenu panel. The geometry that replaces a hover timer therefore costs nothing a reader could feel.
+**The scroll-ancestor walk is a jsdom artifact.** The jsdom rove rung reads about 1.4 ms per arrow press. An ablation there puts nine tenths of that on the `getComputedStyle` walk which looks for a scroll container. Chromium charges 0.18 ms for the whole press, 0.15 ms of it above the dispatch floor. Giving the walk a scroller to find moves that by 0.02 ms or less. The jsdom engine resolves style in JavaScript, so it prices the walk far above the browser. No change is warranted, and `../menu.bench.tsx` now says so where a reader meets the number.
+
+**Typeahead costs about one arrow press.** Every label starts with the letter, so each press stops at its first candidate and moves the cursor one row. An earlier version of the rung let the buffer grow by one letter on each iteration, so the match walked a longer query each time. That is why the 2026-09-21 table read 8 rows as slower than 24.
+
+**The travel test costs less than the move it replaces.** With a submenu open, an arrival on the course into its panel reads the panel's rect, passes the test, and returns before it moves the cursor. A 24-row sweep then costs 0.433 ms, against 0.536 ms with no submenu open, where every arrival moves the cursor. The geometry that replaces a hover timer therefore costs nothing a reader could feel. An earlier version of the rung sent each arrival to its row's centre, which shares the parent row's x. The first arrival failed the test and closed the submenu, so the rung timed a plain sweep, and its 0.327 ms against 0.324 compared a sweep with itself.
 
 ### The open: what a click costs (2026-09-21, a slower container)
 
@@ -309,7 +314,7 @@ The call count is the rest of the answer, and it was counted rather than assumed
 
 ### Where the empty shell goes (2026-09-22, a slower container)
 
-The open table above leaves 2.65 ms on an empty panel and names no layer. [`menu-shell.bench.tsx`](menu-shell.bench.tsx) ablates it. Every rung mounts one empty open surface and tears it down, so a step is what that layer costs on one open. Mean ms, median of three runs.
+The open table above leaves 2.65 ms on an empty panel and names no layer. [`menu-shell.bench.tsx`](menu-shell.bench.tsx) ablates it. Every rung mounts one empty open surface and tears it down, so a step is what that layer costs on one open. Mean ms, median of three runs. These tables predate the gate in the next section, so the static and dropdown rungs still carry the overflow watch.
 
 | Rung | Median | Step |
 | --- | ---: | ---: |
@@ -333,7 +338,7 @@ Most of the floating layer is the engine, not the wrapper. These rungs read floa
 | 3 · useFloating + autoUpdate | 0.600 | 0.211 |
 | 4 · + FloatingPortal | 0.749 | 0.149 |
 
-**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.39 — is `FloatingSurface`, `PresencePortal`, and `MenuTrigger`.
+**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.41 — is `FloatingSurface`, `PresencePortal`, and `MenuTrigger`.
 
 The other 25% is `MenuContent`. Split at the `Menu` root:
 
@@ -369,7 +374,7 @@ That per-child `observe` makes the watch scale with the row count, so it lands i
 
 ### Gating the overflow watch (2026-09-22, this container)
 
-The watch is now gated on `capped` ([`menu-content.tsx`](../../components/menu/menu-content.tsx)). `MenuContent` reads that flag through `useMenuCapped`, and the flag is what emits the `max-h`. An uncapped viewport therefore attaches no ref, so the default menu wires no observer it can never use.
+The watch is now gated on `capped`. Since lever 6, [`MenuViewport`](../../components/menu/menu-viewport.tsx) reads that flag through `useMenuCapped` and passes it to the hook as `enabled`, and the flag is what emits the `max-h`. An uncapped viewport's ref therefore attaches and does nothing, so the default menu wires no observer it can never use.
 
 The open path was measured before and after, back to back in this session. The prior file was restored and re-run, rather than compared against a figure from an earlier hour. Mean ms for one open, median of three runs.
 
@@ -395,7 +400,7 @@ A tighter ablation toggles the ref in one process, so no cross-run drift enters 
 
 `MenuSub` now takes the same gate, and the gate itself moved into the hook as an `enabled` option ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts)). **That half is unmeasured, and no figure above stands in for it.** No bench in this suite opens a submenu: [`menu-mount.bench.tsx`](menu-mount.bench.tsx) prices a *closed* submenu row, and [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) sweeps with one *already* open. The mount bench is the wrong instrument besides. The reflow control above collapsed its 24-row gap from 0.749 ms to 0.028, so a figure quoted from it here would repeat the error this section corrects.
 
-The submenu gate therefore lands on the dead work alone. The invariant holds verbatim: `MenuSub` reads the same `capped` and renders the same `k.viewport({ density: space, capped })`. `FloatingSurface` mounts the panel per open through `PresencePortal`, so the watch was set up on every submenu open, to hold two attributes that cannot change.
+The submenu gate therefore lands on the dead work alone. The invariant holds verbatim: `MenuSub` renders the same `MenuViewport`, which reads the same `capped`. `FloatingSurface` mounts the panel per open through `PresencePortal`, so the watch was set up on every submenu open, to hold two attributes that cannot change.
 
 The submenu's teardown was a separate defect, and it closed first. `MenuSub` wrapped the hook's ref in a callback that discarded the return, so React held no ref cleanup and the observers outlived every closed panel. [#1171](https://github.com/charliebeckstrand/midgard/pull/1171) composed the two refs, and the watch now stops on detach.
 
@@ -410,13 +415,13 @@ A grid puts a filter menu on every column and an action menu on every row. The c
 | 3 · trigger only (no panel to build) | 3.127 | 1.768 | 0.831 | 0.0166 |
 | 4 · closed menus (the real thing) | 3.347 | 1.953 | 0.185 | 0.0037 |
 
-**A closed menu cost 0.064 ms, which was 22× a bare button. It now costs 0.036 ms, or 12×.** Fifty went from 3.3 ms of mount to 2.0 ms. This one was never a jsdom artifact. The jsdom suite read the same fan-out at 10× a bare button and the browser read 22×, so jsdom understated it.
+**A closed menu cost 0.064 ms, which was 22× a bare button. It now costs 0.036 ms, or 13×.** Fifty went from 3.3 ms of mount to 2.0 ms. This one was never a jsdom artifact. The jsdom suite read the same fan-out at 10× a bare button and the browser read 22×, so jsdom understated it.
 
 **Two thirds of the original figure was `MenuTrigger`, and most of that was one wasted render.** `setReference` is a state setter, and the ref callback called it during the commit, so every closed menu rendered twice. That was counted on the component itself rather than inferred: `MenuTrigger` ran twice per closed menu before the change and once after. Lever 2 below is the fix.
 
-**The panel tree the portal discards is the smallest term, at 7%.** `MenuContent` and `FloatingSurface` build a viewport, a `Density`, and a `PopoverPanel` on every render, for a portal that renders none of them. Gating that construction would save under 0.003 ms per menu. That sits inside the run-to-run spread of the rung, so it is not worth the branch.
+**The panel tree the portal discards is the smallest term, at 7%.** `MenuContent` and `FloatingSurface` build a viewport, a `Density`, and a `PopoverPanel` on every render, for a portal that renders none of them. Gating that construction would save about 0.004 ms per menu. That sits inside the run-to-run spread of the rung, so it is not worth the branch.
 
-What remains is the price of wiring floating-ui to a trigger. A page still pays it per menu, whether or not a reader opens one. The hook tree is now the largest term at 0.0157 ms. Reaching it means deferring the whole machinery to the first open, which is an architectural change to how `Menu` splits. It would need `useClick`'s trigger behaviour reproduced on the closed path, against a delicate keyboard model, for about another 0.016 ms per menu.
+What remains is the price of wiring floating-ui to a trigger. A page still pays it per menu, whether or not a reader opens one. The trigger and the hook tree are now the two largest terms, at 0.0166 and 0.0157 ms. Reaching the hook tree means deferring the whole machinery to the first open, which is an architectural change to how `Menu` splits. It would need `useClick`'s trigger behaviour reproduced on the closed path, against a delicate keyboard model, for about another 0.016 ms per menu.
 
 ### Submenu rows: the other multiplier (2026-09-21, this container)
 
@@ -430,13 +435,13 @@ A submenu row lives inside the panel, so a menu pays for it on every open rather
 
 **A `MenuSub` cost 0.159 ms above the `MenuItem` it replaces, and now costs 0.091 ms.** It rendered twice for the same reason the root trigger did, and lever 3 below is the same fix one level down. An open menu carrying six of them saves 0.44 ms per open.
 
-What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, and a closed floating surface. The `useScrollOverflow` this once listed left the closed row with lever 6, which moved it into `MenuViewport` — a component the shut panel never renders. That is per row, while the submenu is shut. That is four times what a closed root menu costs, and it is the largest single figure this suite holds for the component.
+What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` calls, and a closed floating surface. The `useScrollOverflow` this once listed left the closed row with lever 6, which moved it into `MenuViewport` — a component the shut panel never renders. That is per row, while the submenu is shut. That is two and a half times what a closed root menu costs.
 
 ### Optimization log
 
 1. **Element-addressed pointer cursor** ([`use-menu-pointer.tsx`](../../components/menu/use-menu-pointer.tsx), `setVirtualActiveElement` in [`use-a11y-roving.ts`](../../hooks/a11y/use-a11y-roving.ts)). An arrival used to read the panel's whole item list back out. It then found the row's index in that list, and `setVirtualActive` scanned the list twice more. That is three linear passes to move one attribute the event had already named. The arrival now addresses its row directly. Per move: 0.018 → 0.013 ms at 8 rows, 0.022 → 0.014 at 24, 0.031 → 0.014 at 64. The sweep is therefore flat in the row count, where it used to grow. One pass at 64 rows: 1.99 → 0.90 ms, **2.20× faster**. Both halves were measured against this bench as it now stands. The prior file was restored and re-run, rather than compared against a figure from an earlier session.
 
-2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency is unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe.
+2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency was unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe. That probe was a one-off in [#1168](https://github.com/charliebeckstrand/midgard/pull/1168), and the suite does not keep it: [`menu-open.bench.tsx`](menu-open.bench.tsx) stops at the commit, before placement, so no rung here reproduces the figure.
 
 3. **The same deferral on `MenuSub`** ([`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). A submenu row registered its own trigger with the engine at mount. Every one of them therefore rendered twice, inside a panel that had just opened. It now stashes the node and registers it on the submenu's first open, exactly as lever 2 does for the root. One `MenuSub`: 0.159 → 0.091 ms, **1.75× faster**, and a panel with six of them opens 0.44 ms sooner.
 
@@ -444,7 +449,7 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 
 5. **The gate moved into the hook, and `MenuSub` took it** ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts), [`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). Lever 4 gated `MenuContent` with a ternary at the ref. `useScrollOverflow` now takes an `enabled` option, and both menu call sites state the gate once, where the hook is called. `MenuSub` read the same `capped` and rendered the same capped viewport, so it wired the same dead watch on every submenu open. **Unmeasured.** No bench in this suite opens a submenu, and the mount bench overprices this class of change — see `Gating the overflow watch` above.
 
-6. **The viewport extracted, and the gate with it** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx)). Levers 4 and 5 left both panels stating the same three decisions: the `data-slot` anchor, `k.viewport({ density, capped })`, and the gated watch. `MenuViewport` now owns all three, and `MenuContent` and `MenuSub` render it. **No perf claim.** The work per open is unchanged. What changes is that one place states the gate, where two did.
+6. **The viewport extracted, and the gate with it** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx)). Levers 4 and 5 left both panels stating the same three decisions: the `data-slot` anchor, `k.viewport({ density, capped })`, and the gated watch. `MenuViewport` now owns all three, and `MenuContent` and `MenuSub` render it. **No perf claim for an open.** The work per open is unchanged. A closed `MenuSub` row no longer calls `useScrollOverflow`, because the hook moved into a component that the shut panel never renders; that saving is unmeasured. What changes otherwise is that one place states the gate, where two did.
 
 ## Popovers
 

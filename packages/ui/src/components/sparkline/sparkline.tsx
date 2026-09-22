@@ -22,7 +22,13 @@ type SparklineColor = keyof typeof k.color
  * sparkline is `role="img"`, so assistive tech needs a name for it.
  */
 export type SparklineProps = AccessibleName & {
-	/** The series to plot, oldest to newest. An empty array renders an empty box. */
+	/**
+	 * The series to plot, oldest to newest. An empty array renders an empty box.
+	 *
+	 * @remarks The projection is memoized on the identity of this array. To
+	 * change the series, pass a new array. A series changed in place keeps its
+	 * identity, so the sparkline goes on drawing the old values.
+	 */
 	data: number[]
 	/**
 	 * Draw the series as a connected line or as discrete bars.

@@ -9,7 +9,9 @@
  * every arrival on a sibling row measures that panel. The level reads the
  * pointer's course off that rect. The jsdom engine returns a 0×0 rect, so the
  * travel test exits before it reads anything. Here it does read, once per
- * move.
+ * move. Each arrival lies on the course into the open panel, so each one passes
+ * the test and the submenu stays open for the next (`openCorridor` holds the
+ * reason, and throws when a pass closes it).
  *
  * Each sweep visits every row once, so a rung's cost is its row count times
  * whatever one arrival pays. The points are resolved at mount, so no sample

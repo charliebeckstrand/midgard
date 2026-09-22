@@ -43,13 +43,13 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | Row | File | Symbol | Lens | Severity | Verdict | Status |
 |---|---|---|---|---|---|---|
 | `TOOL-01` | `packages/*/package.json`, `apps/*/package.json` | the `lint` script | correctness | high | CONFIRMED | ✅ RESOLVED ([#1179](https://github.com/charliebeckstrand/midgard/pull/1179)) |
-| `BENCH-01` | `packages/ui/src/__benchmarks__/browser/menu-pointer.bench.tsx` | the travel-test rung (`openCorridor`) | correctness | high | CONFIRMED | ◯ OPEN |
+| `BENCH-01` | `packages/ui/src/__benchmarks__/browser/menu-pointer.bench.tsx` | the travel-test rung (`openCorridor`) | correctness | high | CONFIRMED | ◐ FIXED |
 | `MENU-01` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
-| `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ◐ FIXED |
-| `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ◐ FIXED |
+| `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◯ OPEN |
-| `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ◯ OPEN |
+| `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ◐ FIXED |
 | `TOOL-02` | `biome.json` | the `hooks`, `primitives`, and `kiso` layer rules | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-03` | `renovate.json` | the `@floating-ui/react` approval rule | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-04` | `.github/dependabot.yml`, `renovate.json` | npm security updates | correctness | medium | PLAUSIBLE | ◯ OPEN |
@@ -58,14 +58,14 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `MENU-02` | `packages/ui/src/hooks/a11y/use-a11y-roving.ts` | `setVirtualActiveElement` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `MENU-03` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` (TSDoc) | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `MENU-04` | `packages/ui/src/__tests__/browser/menu-scroll-overflow.test.tsx` | the gate comment | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
-| `BENCH-03` | `packages/ui/src/__benchmarks__/browser/README.md` | §Menus figures | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `BENCH-05` | `packages/ui/src/__benchmarks__/browser/menu-open.bench.tsx` | `FLOOR_ROWS` | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `BENCH-06` | `packages/ui/src/__benchmarks__/browser/README.md` | lever 2 | cleanliness | low | PLAUSIBLE | ◯ OPEN |
-| `BENCH-07` | `packages/ui/src/__benchmarks__/fixtures.ts` | `MENU_ROWS` | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ◯ OPEN |
-| `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `BENCH-03` | `packages/ui/src/__benchmarks__/browser/README.md` | §Menus figures | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `BENCH-05` | `packages/ui/src/__benchmarks__/browser/menu-open.bench.tsx` | `FLOOR_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `BENCH-06` | `packages/ui/src/__benchmarks__/browser/README.md` | lever 2 | cleanliness | low | PLAUSIBLE | ◐ FIXED |
+| `BENCH-07` | `packages/ui/src/__benchmarks__/fixtures.ts` | `MENU_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ◐ FIXED |
+| `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◯ OPEN |
@@ -77,17 +77,17 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
-| `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ◐ FIXED |
-| `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `SRC-07` | `packages/ui/src/recipes/kiso/index.ts` | `IconSize` | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ◐ FIXED |
-| `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ◐ FIXED |
-| `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ◐ FIXED |
-| `TESTS-06` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `LOOSE_VIEWPORT` | correctness | low | CONFIRMED | ◐ FIXED |
-| `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `TESTS-09` | `packages/ui/src/__tests__/browser/floating-ui/grid-cell-truncate-tooltip.test.tsx` | the negative cases | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `TESTS-10` | `packages/ui/src/__tests__/helpers/residue.ts` | the header, `guardResidue` | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `TESTS-06` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `LOOSE_VIEWPORT` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `TESTS-09` | `packages/ui/src/__tests__/browser/floating-ui/grid-cell-truncate-tooltip.test.tsx` | the negative cases | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
+| `TESTS-10` | `packages/ui/src/__tests__/helpers/residue.ts` | the header, `guardResidue` | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TOOL-07` | `biome-plugins/no-camel-case-data-slot.grit` | the template-literal form | correctness | low | CONFIRMED | ◯ OPEN |
 | `TOOL-08` | `biome.json` | the two plugin excludes | correctness | low | CONFIRMED | ◯ OPEN |
 | `TOOL-09` | `packages/ui/docs/RECIPES.md`, `packages/ui/vitest.config.ts` | tooling prose | cleanliness | low | CONFIRMED | ◯ OPEN |

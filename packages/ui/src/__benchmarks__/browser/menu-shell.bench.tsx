@@ -77,8 +77,9 @@ const RUNGS: [string, () => React.ReactNode][] = [
 			</PopoverPanel>
 		),
 	],
-	// Adds the `Menu` root, the `Density`, and the viewport with its overflow
-	// observer. No portal and no positioning: the panel renders in place.
+	// Adds the `Menu` root, the `Density`, and the viewport. The menu is
+	// uncapped, so its overflow watch is gated off. No portal and no positioning:
+	// the panel renders in place.
 	[
 		'5 · static menu (no portal, no positioning)',
 		() => (
@@ -180,7 +181,8 @@ describe('floating-ui · the layer split, vendor only', () => {
  * dropdown, so this rung already carries that hook — it carries no positioning
  * pass, because neither element is registered. The step to the static panel is
  * therefore what `MenuContent` builds: the `Density`, the `PopoverPanel`, and
- * the viewport with its overflow observer.
+ * the viewport. The menu is uncapped, so the viewport's overflow watch is
+ * gated off.
  */
 const STATIC_RUNGS: [string, () => React.ReactNode][] = [
 	['1 · Menu root only (no panel to build)', () => <Menu defaultOpen>{null}</Menu>],
@@ -206,7 +208,7 @@ describe('menu · the static panel, split', () => {
 	}
 })
 
-/** One viewport div carrying the overflow watch `MenuContent` puts on it. */
+/** One viewport div carrying the overflow watch `MenuViewport` puts on a capped panel. */
 function Watched() {
 	const scrollOverflowRef = useScrollOverflow()
 
@@ -214,7 +216,7 @@ function Watched() {
 }
 
 /**
- * What `MenuContent` pays around the panel, measured on a bare `div`.
+ * What a capped panel's viewport pays around its rows, measured on a bare `div`.
  *
  * `useScrollOverflow` reads `scrollTop`, `clientHeight`, and `scrollHeight` as
  * soon as the ref attaches. Those reads force style and layout on a node the
