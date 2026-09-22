@@ -361,11 +361,37 @@ That per-child `observe` makes the watch scale with the row count, so it lands i
 | 64 rows · plain | 0.325 | — |
 | 64 rows · watched | 1.919 | 1.594 |
 
-**The overflow watch is about a third of what a row costs to open.** It runs 0.031 ms per row at 24 rows and 0.025 at 64, against the 0.09 ms the open table charges for a whole row. On a 24-row menu it is 0.75 ms of rows plus its own 0.13 ms.
+**The overflow watch reads as about a third of what a row costs to open.** It runs 0.031 ms per row at 24 rows and 0.025 at 64, against the 0.09 ms the open table charges for a whole row. On a 24-row menu it is 0.75 ms of rows plus its own 0.13 ms. This is a mount-bench figure, and it overstates the open path; the correction follows below.
 
-**On the default menu it can never fire.** `capped` defaults to `false`, and an uncapped viewport carries no `max-h`, so it grows with its content. Measured directly: at 8, 24, and 64 rows an uncapped viewport reads `clientHeight === scrollHeight`, and neither overflow attribute is ever stamped. Only a capped panel overflows, at any size. The watch therefore starts a `ResizeObserver` per row, a `MutationObserver`, and a forced layout read, to maintain two attributes that cannot change.
+**On the default menu it can never fire.** `capped` defaults to `false`, and an uncapped viewport carries no `max-h`, so it grows with its content. Measured directly, and pinned by [`menu-scroll-overflow.test.tsx`](../../__tests__/browser/menu-scroll-overflow.test.tsx): at 8, 24, and 64 rows an uncapped viewport reads `clientHeight === scrollHeight`, and neither overflow attribute is ever stamped. Only a capped panel overflows, at any size. The watch therefore starts a `ResizeObserver` per row, a `MutationObserver`, and a forced layout read, to maintain two attributes that cannot change.
 
-**This is the open path's largest addressable figure, and it is ours.** About 0.88 ms of a 24-row open, or 18%. The fix is to wire the watch only where a scroller exists — `MenuContent` already knows, because `capped` is what emits the `max-h`. No change is made here; this bench is the evidence for one.
+**The mount bench overprices the watch, and most of the gap is deferred layout.** The watched arm reads `clientHeight` as its ref attaches, which forces a layout the plain arm never triggers before its teardown. Force the same layout on both arms, and the gap collapses: the 24-row gap falls from 0.749 ms to 0.028, and the 64-row gap from 1.594 to 0.068. What the gate removes is the observer setup and one forced read, not a per-row layout pass. The layout itself is work the panel owes at paint either way.
+
+### Gating the overflow watch (2026-09-22, this container)
+
+The watch is now gated on `capped` ([`menu-content.tsx`](../../components/menu/menu-content.tsx)). `MenuContent` reads that flag through `useMenuCapped`, and the flag is what emits the `max-h`. An uncapped viewport therefore attaches no ref, so the default menu wires no observer it can never use.
+
+The open path was measured before and after, back to back in this session. The prior file was restored and re-run, rather than compared against a figure from an earlier hour. Mean ms for one open, median of three runs.
+
+| Open | Before | After |
+| --- | ---: | ---: |
+| empty panel | 3.182 | 3.214 |
+| 8 rows | 4.156 | 4.185 |
+| 24 rows | 5.843 | 5.778 |
+| 64 rows | 10.183 | 9.667 |
+
+**These medians read at the noise floor.** Each rung tears down what the open built, and the container drifts run to run, so the teardown and the drift swamp the saving. The 24-row and 64-row rungs move the right way; the empty and 8-row rungs do not.
+
+A tighter ablation toggles the ref in one process, so no cross-run drift enters and the empty shell is torn down the same way on both arms. It reads the open commit directly. Mean ms, median of five runs.
+
+| Open commit | Wired | Gated |
+| --- | ---: | ---: |
+| 24 rows | 4.690 | 4.474 |
+| 64 rows | 8.931 | 8.706 |
+
+**The gate saves about 0.22 ms of the open commit at both sizes, or 4.6% at 24 rows.** That is the forced read and the observer setup, removed from the synchronous region a click handler blocks on. The layout the watched arm forced still runs at paint, so the saving is the duplication, not a whole reflow.
+
+**The mount bench projected 0.88 ms, or 18% of a 24-row open, and that figure does not survive the reflow control.** The projection counted deferred layout as removed work. The real open-commit win is small. The change lands on two counts even so: the measured saving, and a dead watch struck from every default menu — with it, the lifetime `ResizeObserver` callbacks this suite never priced.
 
 ### Fan-out: what a closed menu costs (2026-09-21, this container)
 
@@ -407,6 +433,8 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 2. **Reference registered at the first open, not at mount** ([`menu-trigger.tsx`](../../components/menu/menu-trigger.tsx)). The trigger handed floating-ui its node through the ref callback, which calls a state setter, so every closed menu on a page rendered twice. It now stashes the node and registers it in a layout effect on the first open. Positioning, `autoUpdate`, the escape layer, and outside-press all begin there anyway. A node swap after that first open still forwards at once. Fifty closed menus: 3.35 → 1.95 ms, **1.71× faster**, and `MenuTrigger` runs once per closed menu instead of twice. Open latency is unchanged at 0.71 ms for a toggle read back to a placed panel, measured both ways on the same probe.
 
 3. **The same deferral on `MenuSub`** ([`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). A submenu row registered its own trigger with the engine at mount. Every one of them therefore rendered twice, inside a panel that had just opened. It now stashes the node and registers it on the submenu's first open, exactly as lever 2 does for the root. One `MenuSub`: 0.159 → 0.091 ms, **1.75× faster**, and a panel with six of them opens 0.44 ms sooner.
+
+4. **The overflow watch gated on `capped`** ([`menu-content.tsx`](../../components/menu/menu-content.tsx)). The watch attached to the viewport on every open, and observed the node and each row, to hold two edge attributes. On the uncapped default it can never fire: the viewport carries no `max-h`, so it never overflows. It now attaches only while `capped`, and [`menu-scroll-overflow.test.tsx`](../../__tests__/browser/menu-scroll-overflow.test.tsx) pins that invariant. The open-commit saving is about 0.22 ms at 24 rows, measured wired against gated in one process. The mount bench's 0.88 ms projection counted deferred layout as removed work, and the reflow control retired it. The larger prize is a dead watch struck from every default menu, with its lifetime observer callbacks. This lever measures the modest end of a change worth making for its correctness.
 
 ## Popovers
 
