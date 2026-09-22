@@ -1,3 +1,4 @@
+import { startTransition, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { act, renderUI, screen, userEvent } from '../helpers'
@@ -80,9 +81,10 @@ describe('Grid pagination', () => {
 				/>,
 			)
 
-			// Both clicks dispatch before React commits either, which is what a
-			// double-click on the control does. A control that reads its target from
-			// the rendered page index computes the same page twice and advances one.
+			// Both clicks dispatch in one task, before React commits either. A real
+			// double-click commits between its clicks, so this is the programmatic
+			// case. A control that reads its target from the rendered page index
+			// computes the same page twice and advances one.
 			await act(async () => {
 				screen.getByRole('button', { name: 'Next page' }).click()
 
@@ -90,6 +92,30 @@ describe('Grid pagination', () => {
 			})
 
 			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
+		})
+
+		it('stops at the last page when two clicks land on one render', async () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={many}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 1, pageSize: 10 } }}
+				/>,
+			)
+
+			// The second updater applies to the index the first one left, one past
+			// the last page. The engine sets no page count in client mode, so it
+			// clamps only the lower bound.
+			await act(async () => {
+				screen.getByRole('button', { name: 'Next page' }).click()
+
+				screen.getByRole('button', { name: 'Next page' }).click()
+			})
+
+			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
+
+			expect(screen.getByText('21–25 of 25')).toBeInTheDocument()
 		})
 	})
 
@@ -148,6 +174,71 @@ describe('Grid pagination', () => {
 			await user.click(screen.getByRole('button', { name: '3' }))
 
 			expect(onValueChange).toHaveBeenLastCalledWith({ pageIndex: 2, pageSize: 5 })
+		})
+
+		it('restores focus when the consumer commits the page in a transition', async () => {
+			const user = userEvent.setup()
+
+			function Deferred() {
+				const [pageIndex, setPageIndex] = useState(1)
+
+				return (
+					<Grid
+						columns={columns}
+						rows={many}
+						getKey={getKey}
+						pagination={{
+							value: { pageIndex, pageSize: 10 },
+							onValueChange: (next) => startTransition(() => setPageIndex(next.pageIndex)),
+						}}
+					/>
+				)
+			}
+
+			renderUI(<Deferred />)
+
+			// Page 2 of 3. The click commits once before the transition does, while
+			// Next is still enabled; the transition's commit then disables it.
+			await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+			expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled()
+
+			expect(document.activeElement).toBe(screen.getByRole('button', { current: 'page' }))
+		})
+
+		it('leaves focus outside the nav when a rejected navigation precedes a page change', async () => {
+			const user = userEvent.setup()
+
+			function Rejecting() {
+				const [pageIndex, setPageIndex] = useState(0)
+
+				return (
+					<>
+						<button type="button" onClick={() => setPageIndex(2)}>
+							Jump
+						</button>
+
+						<Grid
+							columns={columns}
+							rows={many}
+							getKey={getKey}
+							pagination={{ value: { pageIndex, pageSize: 10 }, onValueChange: () => {} }}
+						/>
+					</>
+				)
+			}
+
+			renderUI(<Rejecting />)
+
+			// The consumer drops the reader's Next, then drives a page change of its
+			// own from a control outside the nav.
+			await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+			await user.click(screen.getByRole('button', { name: 'Jump' }))
+
+			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
+
+			expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Jump' }))
 		})
 	})
 

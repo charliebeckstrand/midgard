@@ -1,4 +1,10 @@
-import type { ColumnPinningState, PaginationState, Table, Updater } from '@tanstack/react-table'
+import {
+	type ColumnPinningState,
+	functionalUpdate,
+	type PaginationState,
+	type Table,
+	type Updater,
+} from '@tanstack/react-table'
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import type { QueryField, QueryGroup } from '../../../query/engine/types'
@@ -121,7 +127,9 @@ export type GridPaginationView = {
 	 * Moves to a page, by absolute index or by an updater the engine applies to the
 	 * live index. Two navigations that land on one render compose under an updater;
 	 * an absolute index computed from the rendered page resolves both to the same
-	 * page. The engine clamps the result to the page count.
+	 * page. The result stays inside a known page count. The engine bounds it only
+	 * against an explicit `pageCount`, which client mode never sets, so the view
+	 * clamps it.
 	 */
 	setPageIndex: (index: Updater<number>) => void
 	setPageSize: (size: number) => void
@@ -373,7 +381,16 @@ export function buildPaginationView<T>(args: {
 		canPrevious: args.table.getCanPreviousPage(),
 		canNext: args.table.getCanNextPage(),
 		pageSizeOptions: args.config.pageSizeOptions,
-		setPageIndex: (index) => args.table.setPageIndex(index),
+		// The count is read when the updater runs, and `-1` (unknown) leaves the top
+		// open. The engine still clamps the floor at 0.
+		setPageIndex: (index) =>
+			args.table.setPageIndex((current) => {
+				const next = functionalUpdate(index, current)
+
+				const last = args.table.getPageCount() - 1
+
+				return last >= 0 ? clamp(next, 0, last) : next
+			}),
 		setPageSize: (size) => args.table.setPageSize(size),
 	}
 }

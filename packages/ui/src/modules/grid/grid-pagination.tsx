@@ -1,7 +1,7 @@
 'use client'
 
-import type { Updater } from '@tanstack/react-table'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { functionalUpdate, type Updater } from '@tanstack/react-table'
+import { useLayoutEffect, useRef } from 'react'
 import {
 	Pagination,
 	PaginationGap,
@@ -92,24 +92,28 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	// When a page change disables the control the user activated (reaching an
 	// extent), or scrolls its number out of the window, the browser drops focus to
 	// the body. Restore it to the current-page marker so focus stays in the nav
-	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `navigations`.
+	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `restoreFocus`.
 	const navRef = useRef<HTMLDivElement>(null)
 
-	// Counts the navigations the reader drives. The restore keys on this rather
-	// than on `pageIndex`, because a navigation onto the page already current
-	// changes no index: a latch keyed on `pageIndex` would stay armed and spend
-	// itself on a later change that the consumer drove.
-	const [navigations, setNavigations] = useState(0)
+	// Armed by a navigation the reader drives, and spent by the page change that
+	// follows it. That change can land a commit later, when a controlled consumer
+	// sets the page in a transition or after a fetch. A navigation onto the page
+	// already current changes no index, so it leaves the latch unarmed.
+	const restoreFocus = useRef(false)
 
 	const goToPage = (index: Updater<number>) => {
-		setNavigations((count) => count + 1)
+		restoreFocus.current = functionalUpdate(index, pageIndex) !== pageIndex
 
 		setPageIndex(index)
 	}
 
 	useLayoutEffect(() => {
-		// The first render drove nothing.
-		if (navigations === 0) return
+		// Re-run on each page change, so a restore follows a commit that lands late.
+		void pageIndex
+
+		if (!restoreFocus.current) return
+
+		restoreFocus.current = false
 
 		const nav = navRef.current
 
@@ -117,19 +121,21 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 		const active = document.activeElement
 
-		// Focus survived on an enabled control still in the nav — leave it. A control
-		// that just disabled is dropped (it can't hold focus, even if the browser's
-		// blur to the body lags this commit), as is one that unmounted (a number that
-		// scrolled out of the window).
-		const heldInNav =
-			active instanceof HTMLElement &&
-			nav.contains(active) &&
-			!(active instanceof HTMLButtonElement && active.disabled)
+		// Move only focus that the change dropped. That is the body, where a number
+		// that scrolled out of the window leaves it, or a nav control that just
+		// disabled, which cannot hold focus even if the browser's blur lags this
+		// commit. Focus that the reader moved elsewhere stays there. A consumer can
+		// reject a navigation, and the latch then waits for a later change; this
+		// check keeps that change from pulling focus back into the nav.
+		const dropped =
+			active === null ||
+			active === document.body ||
+			(active instanceof HTMLButtonElement && active.disabled && nav.contains(active))
 
-		if (heldInNav) return
+		if (!dropped) return
 
 		nav.querySelector<HTMLElement>('[aria-current="page"]')?.focus()
-	}, [navigations])
+	}, [pageIndex])
 
 	return (
 		<div data-slot="grid-pagination" className={cn(k.footer.bar)}>
