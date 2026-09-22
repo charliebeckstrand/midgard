@@ -141,8 +141,21 @@ function lineAt(content: string, index: number): number {
  * a narrowed `Declaration`. Every shape that carries a name puts it on `name` —
  * a function, a type, a destructured binding, an import specifier, an object
  * member, a parameter — so one read collects them all.
+ *
+ * Some references carry a `name` too: a property access, a JSX attribute and
+ * its namespaced name, and `import.meta`. They declare nothing, so they are
+ * skipped. Otherwise a link to a name that occurs only as `o.name` passes.
  */
 function declaredName(node: ts.Node): string | undefined {
+	if (
+		ts.isPropertyAccessExpression(node) ||
+		ts.isJsxAttribute(node) ||
+		ts.isJsxNamespacedName(node) ||
+		ts.isMetaProperty(node)
+	) {
+		return undefined
+	}
+
 	const { name } = node as ts.Node & { name?: ts.Node }
 
 	return name && ts.isIdentifier(name) ? name.text : undefined
