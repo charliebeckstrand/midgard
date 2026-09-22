@@ -43,13 +43,13 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | Row | File | Symbol | Lens | Severity | Verdict | Status |
 |---|---|---|---|---|---|---|
 | `TOOL-01` | `packages/*/package.json`, `apps/*/package.json` | the `lint` script | correctness | high | CONFIRMED | ✅ RESOLVED ([#1179](https://github.com/charliebeckstrand/midgard/pull/1179)) |
-| `BENCH-01` | `packages/ui/src/__benchmarks__/browser/menu-pointer.bench.tsx` | the travel-test rung (`openCorridor`) | correctness | high | CONFIRMED | ◐ FIXED |
+| `BENCH-01` | `packages/ui/src/__benchmarks__/browser/menu-pointer.bench.tsx` | the travel-test rung (`openCorridor`) | correctness | high | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `MENU-01` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◯ OPEN |
-| `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ◐ FIXED |
+| `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `TOOL-02` | `biome.json` | the `hooks`, `primitives`, and `kiso` layer rules | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-03` | `renovate.json` | the `@floating-ui/react` approval rule | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-04` | `.github/dependabot.yml`, `renovate.json` | npm security updates | correctness | medium | PLAUSIBLE | ◯ OPEN |
@@ -58,14 +58,14 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `MENU-02` | `packages/ui/src/hooks/a11y/use-a11y-roving.ts` | `setVirtualActiveElement` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `MENU-03` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` (TSDoc) | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
 | `MENU-04` | `packages/ui/src/__tests__/browser/menu-scroll-overflow.test.tsx` | the gate comment | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
-| `BENCH-03` | `packages/ui/src/__benchmarks__/browser/README.md` | §Menus figures | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-05` | `packages/ui/src/__benchmarks__/browser/menu-open.bench.tsx` | `FLOOR_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-06` | `packages/ui/src/__benchmarks__/browser/README.md` | lever 2 | cleanliness | low | PLAUSIBLE | ◐ FIXED |
-| `BENCH-07` | `packages/ui/src/__benchmarks__/fixtures.ts` | `MENU_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `BENCH-03` | `packages/ui/src/__benchmarks__/browser/README.md` | §Menus figures | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
+| `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
+| `BENCH-05` | `packages/ui/src/__benchmarks__/browser/menu-open.bench.tsx` | `FLOOR_ROWS` | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
+| `BENCH-06` | `packages/ui/src/__benchmarks__/browser/README.md` | lever 2 | cleanliness | low | PLAUSIBLE | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
+| `BENCH-07` | `packages/ui/src/__benchmarks__/fixtures.ts` | `MENU_ROWS` | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
+| `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
+| `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
+| `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◯ OPEN |
