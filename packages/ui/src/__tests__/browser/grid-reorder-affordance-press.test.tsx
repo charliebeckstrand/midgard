@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
+import { releaseDrag } from './helpers/drag'
 
 /**
  * A handle-less header (`reorder={{ handle: false }}`) *is* its own drag
@@ -78,7 +79,7 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 
 		expect(header('a')).not.toHaveAttribute('data-dragging')
 
-		fireEvent.pointerUp(trigger)
+		await releaseDrag(trigger)
 	})
 
 	// The other half: the guard must cost the header nothing. The cell itself opens
@@ -94,6 +95,6 @@ describe('grid column reorder: pressing a header affordance (real browser)', () 
 
 		expect(cell).toHaveAttribute('data-dragging')
 
-		fireEvent.pointerUp(cell)
+		await releaseDrag(cell)
 	})
 })

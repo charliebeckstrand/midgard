@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
+import { releaseDrag } from './helpers/drag'
 
 /**
  * Row drag-reorder over a real pointer drag: each row is a vertical @dnd-kit
@@ -78,7 +79,7 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 
 		await raf()
 
-		fireEvent.pointerUp(grip, { clientX: from.x + 5, clientY: target })
+		await releaseDrag(grip, { clientX: from.x + 5, clientY: target })
 
 		await raf()
 
