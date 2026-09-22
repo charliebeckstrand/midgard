@@ -187,20 +187,40 @@ function applyVirtualActiveDom(
  * the search go. It reads the previous row off `container` in one engine-side
  * query.
  *
+ * `itemSelector` holds that query to the rows, as the list holds
+ * {@link setVirtualActive}. An element inside a row can carry its own
+ * `data-active`, and this leaves it alone.
+ *
  * `row` must carry an `id`, because that is what `aria-activedescendant` points
- * at. A row without one leaves the highlight where it is.
+ * at. A row without one, or a row outside `container`, leaves the highlight
+ * where it is.
  *
  * @internal
  */
 export function setVirtualActiveElement(
 	container: HTMLElement | null,
 	row: HTMLElement,
+	itemSelector: string,
 	activeDescendantRef?: RefObject<HTMLElement | null>,
 	{ ariaSelected = true }: { ariaSelected?: boolean } = {},
 ): void {
-	if (!row.id) return
+	if (!row.id || !container?.contains(row)) return
 
-	applyVirtualActiveDom(container, row.id, activeDescendantRef, ariaSelected)
+	for (const prev of container.querySelectorAll<HTMLElement>('[data-active]')) {
+		if (prev === row || !prev.matches(itemSelector)) continue
+
+		prev.removeAttribute('data-active')
+
+		if (ariaSelected) prev.setAttribute('aria-selected', 'false')
+	}
+
+	if (row.dataset.active === undefined) {
+		row.setAttribute('data-active', '')
+
+		if (ariaSelected) row.setAttribute('aria-selected', 'true')
+	}
+
+	activeDescendantRef?.current?.setAttribute('aria-activedescendant', row.id)
 }
 
 /**
