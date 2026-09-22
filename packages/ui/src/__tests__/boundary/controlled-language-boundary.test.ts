@@ -10,11 +10,9 @@ import {
 } from '../helpers/controlled-language'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
-// every authored statement. The 2026-08-02 documentation audit swept its rules
-// by hand and closed none of them for good, because nothing held the tree to
-// the result. Rule 10 went from 41 sites back to 89 in six weeks. The audit
-// that found that regression named the missing gate as the reason it closed
-// fewer categories than it could.
+// every authored statement. A hand sweep of its rules closed none of them for
+// good, because nothing held the tree to the result. Rule 10 went from 41 sites
+// back to 89 in six weeks, and the missing gate was the reason.
 //
 // This test is that gate, in three shapes:
 //

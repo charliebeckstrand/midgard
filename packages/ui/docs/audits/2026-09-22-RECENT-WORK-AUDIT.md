@@ -235,7 +235,7 @@ These rows came up during the sweep. They predate `5c75a88`, so they sit outside
 | `ADJ-01` | `packages/ui/src/components/accordion/accordion.tsx` | `Accordion` | low | CONFIRMED | ◯ OPEN |
 | `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ◯ OPEN |
 | `ADJ-03` | `packages/ui/src/modules/grid/engine/grid-menu-targeting.ts` | the active-cell query | low | PLAUSIBLE | ◯ OPEN |
-| `ADJ-04` | several | dangling citations | low | CONFIRMED | ◯ OPEN |
+| `ADJ-04` | several | dangling citations | low | CONFIRMED | ◐ FIXED |
 
 **ADJ-01.** #1150 spread `...rest` onto the root `<div>`, but did not take `collapsible` out of it. Each `<Accordion collapsible>` writes an invalid attribute, and React warns; the warning shows in the stderr of the jsdom run. Fix: destructure `collapsible` with the other selection props.
 

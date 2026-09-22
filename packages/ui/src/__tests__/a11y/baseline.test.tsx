@@ -8,7 +8,7 @@ import { baseline, interactive, overlays, rows } from './cases'
 
 /**
  * Component a11y compliance gate (axe-core): every component, rendered in its
- * canonical correctly-wired form (`cases.tsx`), must be axe-clean. Catches static
+ * canonical correctly-wired form (`cases/`), must be axe-clean. Catches static
  * role/name/ARIA/label/structure defects; does not cover keyboard behavior,
  * focus management, live regions, contrast, or touch-target geometry. Rules
  * unevaluable in jsdom (color-contrast, target-size, region) are disabled in
@@ -25,7 +25,7 @@ describe('a11y baseline (axe)', () => {
 
 /**
  * Overlay gate: these components portal their content to `document.body`.
- * Renders each in its canonical open state (`cases.ts` → `overlays`) and
+ * Renders each in its canonical open state (`cases/overlays.tsx`) and
  * asserts the whole document is clean. Cleanup resets `document.body`
  * between cases.
  */

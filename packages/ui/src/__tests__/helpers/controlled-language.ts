@@ -3,9 +3,9 @@ import ts from 'typescript'
 import { srcDir, srcRelative, walkSource } from './walk-source'
 
 /**
- * The controlled-language scan the 2026-08-02 documentation audit ran by hand,
- * as a reusable reader. It reports the rule 4, rule 6, and rule 10 breaks in
- * the comments of the shipped tree (STE.md).
+ * The controlled-language scan, once run by hand, as a reusable reader. It
+ * reports the rule 6 and rule 10 breaks in the comments of the shipped tree
+ * (STE.md).
  *
  * @remarks
  * The scan reads comments only. Code is never prose, and a rule that bans a
@@ -238,7 +238,7 @@ export function fileBreaks(file: string, source: string): Break[] {
 	return breaks
 }
 
-// The audit's own scope: the shipped tree, less the demo pages. walkSource
+// The scan's scope: the shipped tree, less the demo pages. walkSource
 // prunes the test and benchmark trees already.
 const SKIP_ENTRIES = new Set(['demos'])
 
@@ -262,7 +262,7 @@ export function scanPackage(): Break[] {
 }
 
 /**
- * The living Markdown the audit scoped: the curated surface docs and the hub
+ * The living Markdown the scan covers: the curated surface docs and the hub
  * (CONVENTIONS.md §12.2). Paths are relative to the package root.
  */
 export const LIVING_MARKDOWN = [
