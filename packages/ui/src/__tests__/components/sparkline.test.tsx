@@ -76,6 +76,47 @@ describe('Sparkline', () => {
 		expect(bar.container.querySelectorAll('rect')).toHaveLength(4)
 	})
 
+	it('keeps the animated bar rects mounted when the series grows', () => {
+		const { container, rerender } = renderUI(
+			<Sparkline data={[1, 4, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
+		)
+
+		const before = [...container.querySelectorAll('rect')]
+
+		rerender(<Sparkline data={[1, 4, 2, 8, 5]} animate shape="bar" aria-label="Animated bars" />)
+
+		const after = [...container.querySelectorAll('rect')]
+
+		expect(after).toHaveLength(5)
+
+		// Keyed on x, a longer series would move every key and remount the whole row.
+		for (const [index, rect] of before.entries()) expect(after[index]).toBe(rect)
+	})
+
+	it('keeps the later bar rects mounted when an earlier datum goes non-finite', () => {
+		const { container, rerender } = renderUI(
+			<Sparkline data={[1, 4, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
+		)
+
+		const before = [...container.querySelectorAll('rect')]
+
+		rerender(
+			<Sparkline data={[1, Number.NaN, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
+		)
+
+		const after = [...container.querySelectorAll('rect')]
+
+		// The hole drops one bar. The datum index keys the rest, so the two bars
+		// after the hole hold their nodes; an array position would slide them.
+		expect(after).toHaveLength(3)
+
+		expect(after[0]).toBe(before[0])
+
+		expect(after[1]).toBe(before[2])
+
+		expect(after[2]).toBe(before[3])
+	})
+
 	it('renders an empty box for an empty series without throwing', () => {
 		const { container } = renderUI(<Sparkline data={[]} aria-label="No data" />)
 
@@ -159,6 +200,9 @@ describe('sparklineGeometry', () => {
 		expect(geo.line).toBe('M 2 38 L 98 2')
 
 		expect(geo.bars).toHaveLength(2)
+
+		// The surviving bars keep their datum positions, which is what the rects key on.
+		expect(geo.bars.map((bar) => bar.index)).toEqual([0, 2])
 	})
 
 	it('drops ±Infinity from the drawn marks instead of pinning a vertex to an edge', () => {

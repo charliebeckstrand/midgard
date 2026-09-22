@@ -10,8 +10,15 @@ import { clamp } from '../../utilities'
 /** A resolved point in the sparkline's coordinate box. @internal */
 export type SparklinePoint = { x: number; y: number }
 
-/** One bar rectangle for the `bar` variant, in `viewBox` user units. @internal */
-export type SparklineBar = { x: number; y: number; width: number; height: number }
+/**
+ * One bar rectangle for the `bar` variant, in `viewBox` user units. `index` is
+ * the datum's position in the series: a stable key, geometry-free, so a longer
+ * series never remounts the mark. A non-finite datum emits no bar, so `index`
+ * is not the bar's own position in `bars`.
+ *
+ * @internal
+ */
+export type SparklineBar = { index: number; x: number; y: number; width: number; height: number }
 
 /**
  * The resolved marks for one series: the polyline `points` and its `line`
@@ -151,6 +158,7 @@ export function sparklineGeometry(
 		const barHeight = Math.max(minBarHeight, norm(value) * innerHeight)
 
 		bars.push({
+			index,
 			x: padding + index * slot + (slot - barWidth) / 2,
 			y: baseline - barHeight,
 			width: barWidth,
