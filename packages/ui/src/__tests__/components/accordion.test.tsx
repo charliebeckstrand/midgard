@@ -485,6 +485,24 @@ describe('structure roots pass native props through', () => {
 		expect(root).toHaveAttribute('data-testid', 'acc')
 	})
 
+	// React drops a boolean on an unknown attribute, and it warns once for each
+	// name in a process, so neither shows a leak reliably. A string reaches the
+	// DOM whenever the prop does.
+	it('keeps `collapsible` off the root element', () => {
+		const leak = { collapsible: 'leak' } as unknown as { collapsible: boolean }
+
+		const { container } = renderUI(
+			<Accordion type="single" {...leak}>
+				<AccordionItem value="one">
+					<AccordionTrigger>One</AccordionTrigger>
+					<AccordionPanel>Body</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		expect(bySlot(container, 'accordion')).not.toHaveAttribute('collapsible')
+	})
+
 	it('keeps the resolved data-slot against a consumer that passes its own', () => {
 		const { container } = renderUI(
 			// `data-slot` types through as any other `data-*` attribute; the root

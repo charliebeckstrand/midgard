@@ -67,10 +67,10 @@ export type AccordionProps = (SingleProps | MultipleProps) &
  * @see {@link AccordionPanel}
  */
 export function Accordion(props: AccordionProps) {
-	// The selection triad comes out with the rest of the component's own props:
-	// `useAccordionSelection` reads it off `props` whole, and a `defaultValue`
-	// left in the rest would reach the `<div>` as the native attribute of the
-	// same name.
+	// The selection props come out with the rest of the component's own props.
+	// `useAccordionSelection` reads them off `props` whole. One left in the rest
+	// reaches the `<div>`: `defaultValue` as the native attribute of that name,
+	// and `collapsible` as an invalid one.
 	const {
 		variant,
 		mount = 'active',
@@ -81,6 +81,7 @@ export function Accordion(props: AccordionProps) {
 		value: _value,
 		defaultValue: _defaultValue,
 		onValueChange: _onValueChange,
+		collapsible: _collapsible,
 		...rest
 	} = props
 

@@ -28,6 +28,10 @@ export type MultipleProps = {
 	value?: string[]
 	defaultValue?: string[]
 	onValueChange?: (value: string[]) => void
+	// Single mode's own prop. Declared here so that the root can take it out of
+	// the rest in either mode. It stays undocumented, so the props table keeps
+	// the single-mode description alone.
+	collapsible?: never
 }
 
 /** The open-set query/command surface {@link Accordion} shares via context. */
