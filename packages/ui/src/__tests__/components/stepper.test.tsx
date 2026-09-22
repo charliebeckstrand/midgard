@@ -107,6 +107,28 @@ describe('StepperPanel', () => {
 		expect(screen.getByText('Panel Content')).toBeInTheDocument()
 	})
 
+	it('keeps its derived ids when a consumer supplies competing ones', () => {
+		const { container } = renderUI(
+			<Stepper value={1}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperPanels>
+					<StepperPanel value={1} id="mine" aria-labelledby="theirs">
+						Panel Content
+					</StepperPanel>
+				</StepperPanels>
+			</Stepper>,
+		)
+
+		const panel = bySlot(container, 'stepper-panel')
+
+		// The matching StepperStep derives the same pair, so the panel keeps them.
+		expect(panel).not.toHaveAttribute('id', 'mine')
+
+		expect(panel).not.toHaveAttribute('aria-labelledby', 'theirs')
+	})
+
 	it('returns null when value does not match the current step', () => {
 		renderUI(
 			<Stepper value={1}>

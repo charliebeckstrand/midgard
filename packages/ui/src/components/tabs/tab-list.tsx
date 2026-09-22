@@ -1,7 +1,7 @@
 'use client'
 
 import { type ComponentProps, useEffect, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { useDensity } from '../../primitives/density'
@@ -24,7 +24,7 @@ export type TabListProps = AccessibleName &
  * scrolls in place rather than widening the page. The active tab is scrolled
  * into view on mount and as focus roves.
  */
-export function TabList({ className, children, ...props }: TabListProps) {
+export function TabList({ className, children, onKeyDown, ...props }: TabListProps) {
 	const tabsContext = useTabsContext()
 
 	const isSegment = tabsContext?.variant === 'segment'
@@ -84,11 +84,15 @@ export function TabList({ className, children, ...props }: TabListProps) {
 			ref={ref}
 			data-slot="tab-list"
 			data-orientation={orientation}
-			role="tablist"
-			aria-orientation={orientation}
-			onKeyDown={handleKeyDown}
 			className={cn(isSegment ? k.segment.control({ size }) : k.list({ orientation }), className)}
 			{...props}
+			// Roving is the list's keyboard model, so it takes no gate: the
+			// consumer's handler runs first, then roving runs whatever it did.
+			onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+				checkForDefaultPrevented: false,
+			})}
+			role="tablist"
+			aria-orientation={orientation}
 		>
 			{children}
 		</div>

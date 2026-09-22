@@ -83,13 +83,15 @@ export function TabContent({ value, className, ...props }: TabContentProps) {
 			slotPrefix="tab"
 			value={value}
 			className={cn(k.panel, className)}
+			{...props}
+			// The auto-wiring is the panel's identity and its APG focus stop, so it
+			// sits below the spread rather than yielding to a stray consumer prop.
 			{...(auto && {
 				role: 'tabpanel',
 				id: panelId,
 				'aria-labelledby': triggerId,
 				tabIndex,
 			})}
-			{...props}
 		/>
 	)
 }

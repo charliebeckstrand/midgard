@@ -83,6 +83,27 @@ describe('MenuTrigger', () => {
 		expect(trigger).toHaveAttribute('aria-expanded', 'false')
 	})
 
+	it('keeps its type and menu wiring when a consumer supplies competing props', () => {
+		// The closed trigger's first paint: no open, so no autoUpdate runs.
+		renderUI(
+			<Menu>
+				{/* `type="submit"` would submit an enclosing form, and the ARIA pair
+				    is how assistive tech finds the menu. */}
+				<MenuTrigger type="submit" aria-haspopup="dialog" aria-expanded>
+					Open
+				</MenuTrigger>
+			</Menu>,
+		)
+
+		const trigger = screen.getByText('Open')
+
+		expect(trigger).toHaveAttribute('type', 'button')
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'menu')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+	})
+
 	it('toggles open state when the cloned child is clicked', () => {
 		renderUI(
 			<Menu placement="bottom-start">

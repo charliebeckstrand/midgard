@@ -59,6 +59,25 @@ describe('ShinyText', () => {
 		expect(el?.style.backgroundImage).toContain('red')
 	})
 
+	it('merges a consumer style rather than losing the gradient to it', () => {
+		const { container } = renderUI(
+			<ShinyText shineColor="red" style={{ marginInlineStart: 4 }}>
+				Shine
+			</ShinyText>,
+		)
+
+		const el = bySlot(container, 'shiny-text')
+
+		// The consumer's own key lands.
+		expect(el?.style.marginInlineStart).toBe('4px')
+
+		// The three keys that carry the sweep survive it.
+		expect(el?.style.backgroundImage).toContain('red')
+
+		// jsdom normalises `200% auto` to `200%`.
+		expect(el?.style.backgroundSize).toContain('200%')
+	})
+
 	it('starts the sweep when motion is allowed', () => {
 		renderUI(<ShinyText>Shine</ShinyText>)
 

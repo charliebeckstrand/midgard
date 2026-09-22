@@ -98,10 +98,7 @@ export function SidebarItem({
 
 	const inner = (
 		<Button
-			type="button"
-			data-slot="sidebar-item-inner"
 			data-current={dataAttr(item.current)}
-			aria-current={item.current ? 'page' : undefined}
 			className={cn(
 				k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
 				// In the mini rail this Button is the tooltip trigger; restore the nav
@@ -109,8 +106,15 @@ export function SidebarItem({
 				mini && '*:cursor-pointer',
 				className,
 			)}
+			// `handleClick` already runs the consumer's `onClick` first, so
+			// `onClick` never reaches `props` and cannot collide here.
 			onClick={item.handleClick}
 			{...props}
+			type="button"
+			// The Sidebar's roving selects on this anchor, so it sits below the
+			// spread and a consumer cannot rename it away.
+			data-slot="sidebar-item-inner"
+			aria-current={item.current ? 'page' : undefined}
 		>
 			<TouchTarget>
 				{icon && <Icon icon={icon} size={item.size} />}

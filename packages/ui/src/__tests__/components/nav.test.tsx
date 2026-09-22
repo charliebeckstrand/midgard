@@ -68,6 +68,28 @@ describe('NavList', () => {
 })
 
 describe('NavItem', () => {
+	it('keeps its type, current marker and anchor when a consumer supplies them', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					{/* A stray `type` would submit an enclosing form, and a renamed
+					    anchor would take the item out of the library's reach. */}
+					<NavItem current type="submit" aria-current="step" data-slot="theirs">
+						Home
+					</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		const inner = container.querySelector('[data-slot="nav-item-inner"]')
+
+		expect(inner).toBeInTheDocument()
+
+		expect(inner).toHaveAttribute('type', 'button')
+
+		expect(inner).toHaveAttribute('aria-current', 'page')
+	})
+
 	it('renders as a button by default', () => {
 		const { container } = renderUI(
 			<Nav>

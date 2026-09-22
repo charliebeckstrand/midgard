@@ -149,10 +149,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	return (
 		<button
 			ref={mergeRefs}
-			type="button"
-			aria-haspopup="menu"
-			aria-expanded={open}
-			aria-controls={open ? menuId : undefined}
 			data-slot="menu-trigger"
 			className={cn(className)}
 			{...getReferenceProps({
@@ -166,6 +162,13 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					handleTriggerKeyUp(event)
 				},
 			})}
+			// The trigger's own role and its wiring to the panel. They sit below the
+			// spread, so a stray consumer prop cannot submit a form or unname the
+			// menu. `role: null` keeps floating-ui off these keys.
+			type="button"
+			aria-haspopup="menu"
+			aria-expanded={open}
+			aria-controls={open ? menuId : undefined}
 		>
 			{children}
 		</button>

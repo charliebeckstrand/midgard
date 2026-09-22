@@ -66,13 +66,15 @@ export function NavItem({
 			)}
 			<HeadlessProvider>
 				<Button
-					type="button"
-					data-slot="nav-item-inner"
 					data-current={dataAttr(item.current)}
-					aria-current={item.current ? 'page' : undefined}
 					className={cn(k.item.button({ affix: hasAffix }), className)}
+					// `handleClick` already runs the consumer's `onClick` first, so
+					// `onClick` never reaches `props` and cannot collide here.
 					onClick={item.handleClick}
 					{...props}
+					type="button"
+					data-slot="nav-item-inner"
+					aria-current={item.current ? 'page' : undefined}
 				>
 					<TouchTarget>
 						{icon && <Icon icon={icon} />}
