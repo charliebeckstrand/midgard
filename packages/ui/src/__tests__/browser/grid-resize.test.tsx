@@ -208,9 +208,10 @@ describe('grid column resizing (real browser)', () => {
 
 		const wrapper = present(container.querySelector('[data-slot="grid"]'), '[data-slot="grid"]')
 
-		const ageHandle = container.querySelector(
+		const ageHandle = present(
+			container.querySelector('[role="separator"][aria-label="Resize Age"]'),
 			'[role="separator"][aria-label="Resize Age"]',
-		) as HTMLElement
+		)
 
 		const nameGrip = present(
 			separator.querySelector('span[aria-hidden="true"]'),

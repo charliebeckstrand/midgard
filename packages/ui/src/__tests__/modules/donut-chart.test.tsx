@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { DonutChart } from '../../modules/chart/donut-chart'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, present, renderUI } from '../helpers'
 
 const DATA = [
 	{ source: 'Search', visits: 60 },
@@ -51,9 +51,10 @@ describe('DonutChart', () => {
 	it('centers the content on the ring hole, following a callout shift', () => {
 		const plain = renderUI(chart({ children: <span>x</span> }))
 
-		const plainInner = plain.container.querySelector(
+		const plainInner = present(
+			plain.container.querySelector('[data-slot="chart-center"] > div'),
 			'[data-slot="chart-center"] > div',
-		) as HTMLElement
+		)
 
 		// No callouts: the hole sits at the plot-box center.
 		expect(plainInner.style.left).toBe('50%')
@@ -77,9 +78,10 @@ describe('DonutChart', () => {
 			}),
 		)
 
-		const shiftedInner = shifted.container.querySelector(
+		const shiftedInner = present(
+			shifted.container.querySelector('[data-slot="chart-center"] > div'),
 			'[data-slot="chart-center"] > div',
-		) as HTMLElement
+		)
 
 		expect(shiftedInner.style.left).not.toBe('50%')
 	})

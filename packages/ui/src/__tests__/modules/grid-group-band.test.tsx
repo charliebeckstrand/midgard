@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, present, renderUI, screen } from '../helpers'
 
 /**
  * The column-group band row the Grid draws above its column headers: the band
@@ -223,9 +223,10 @@ describe('Grid column-group onCollapsedChange', () => {
 	]
 
 	const bandToggle = (container: HTMLElement, expanded: boolean) =>
-		container.querySelector<HTMLButtonElement>(
-			`thead button[aria-expanded="${String(expanded)}"]`,
-		) as HTMLButtonElement
+		present<HTMLButtonElement>(
+			container.querySelector(`thead button[aria-expanded="${String(expanded)}"]`),
+			'the band toggle',
+		)
 
 	it('reports the collapsed band ids, and the set that reopening leaves', () => {
 		const onCollapsedChange = vi.fn()

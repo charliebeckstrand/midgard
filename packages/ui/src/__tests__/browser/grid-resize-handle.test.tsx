@@ -58,9 +58,10 @@ describe('grid resize handle geometry (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		const roleHeader = container.querySelector<HTMLElement>(
+		const roleHeader = present(
+			container.querySelector('th[data-grid-col="role"]'),
 			'th[data-grid-col="role"]',
-		) as HTMLElement
+		)
 
 		const grip = present(
 			present(
@@ -93,13 +94,15 @@ describe('grid resize handle geometry (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		const nameHandle = container.querySelector<HTMLElement>(
+		const nameHandle = present(
+			container.querySelector('[role="separator"][aria-label="Resize Name"]'),
 			'[role="separator"][aria-label="Resize Name"]',
-		) as HTMLElement
+		)
 
-		const nameHeader = container.querySelector<HTMLElement>(
+		const nameHeader = present(
+			container.querySelector('th[data-grid-col="name"]'),
 			'th[data-grid-col="name"]',
-		) as HTMLElement
+		)
 
 		// Header height, not full-column height.
 		expect(
@@ -130,18 +133,20 @@ describe('grid resize handle geometry (real browser)', () => {
 		// edge, so the scrollable extent is the table width (not table + overhang).
 		expect(scroll.scrollWidth).toBeLessThanOrEqual(Math.ceil(table.getBoundingClientRect().width))
 
-		const statusHandle = container.querySelector<HTMLElement>(
+		const statusHandle = present(
+			container.querySelector('[role="separator"][aria-label="Resize Status"]'),
 			'[role="separator"][aria-label="Resize Status"]',
-		) as HTMLElement
+		)
 
 		expect(statusHandle.getBoundingClientRect().right).toBeLessThanOrEqual(
 			table.getBoundingClientRect().right + 0.5,
 		)
 
 		// And the right-pinned header does not shift when scrolled to the end.
-		const statusHeader = container.querySelector<HTMLElement>(
+		const statusHeader = present(
+			container.querySelector('th[data-grid-col="status"]'),
 			'th[data-grid-col="status"]',
-		) as HTMLElement
+		)
 
 		const before = statusHeader.getBoundingClientRect().left
 

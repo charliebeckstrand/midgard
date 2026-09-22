@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { corpus } from '../a11y/cases'
+import type { LinkSubject, PassthroughSubject, SkeletonSubject } from '../a11y/cases/types'
 import { allBySlot, bySlot, getSlot, renderUI } from '../helpers'
 
 /**
@@ -25,13 +26,44 @@ const skeletons = corpus.flatMap((entry) => entry.skeleton ?? [])
 
 const links = corpus.flatMap((entry) => entry.link ?? [])
 
-describe('component pass-through', () => {
-	for (const { render, slot } of passThrough) {
-		it(`${slot} passes through HTML attributes`, () => {
-			const { container } = renderUI(render({ id: PASS_THROUGH_ID }))
+/** The pass-through sweep: the id it spreads reaches the subject's slot. */
+function passesThrough({ render, slot }: PassthroughSubject) {
+	const { container } = renderUI(render({ id: PASS_THROUGH_ID }))
 
-			expect(getSlot(container, slot)).toHaveAttribute('id', PASS_THROUGH_ID)
-		})
+	expect(getSlot(container, slot)).toHaveAttribute('id', PASS_THROUGH_ID)
+}
+
+/** The skeleton sweep: the silhouette draws placeholders, and never the real component. */
+function drawsSkeleton({ element, absentSlot, placeholders }: SkeletonSubject) {
+	const { container } = renderUI(element)
+
+	expect(bySlot(container, absentSlot)).not.toBeInTheDocument()
+
+	const drawn = allBySlot(container, 'placeholder')
+
+	expect(drawn.length).toBeGreaterThan(0)
+
+	// A silhouette whose count is part of its contract states it; the rest claim
+	// only that they draw something.
+	if (placeholders !== undefined) expect(drawn).toHaveLength(placeholders)
+}
+
+/** The link sweep: the subject's slot becomes an anchor to the href it sets. */
+function becomesLink({ render, slot }: LinkSubject) {
+	// `baseElement` is the document body, which holds the render container and
+	// anything portalled out of it alike.
+	const { baseElement } = renderUI(render(LINK_HREF))
+
+	const anchor = getSlot(baseElement, slot)
+
+	expect(anchor.tagName).toBe('A')
+
+	expect(anchor).toHaveAttribute('href', LINK_HREF)
+}
+
+describe('component pass-through', () => {
+	for (const subject of passThrough) {
+		it(`${subject.slot} passes through HTML attributes`, () => passesThrough(subject))
 	}
 
 	// A corpus that declared nothing would sweep nothing, and say so by passing.
@@ -41,20 +73,9 @@ describe('component pass-through', () => {
 })
 
 describe('component skeletons', () => {
-	for (const { element, absentSlot, placeholders } of skeletons) {
-		it(`${absentSlot} pairs with an explicit skeleton in loading trees`, () => {
-			const { container } = renderUI(element)
-
-			expect(bySlot(container, absentSlot)).not.toBeInTheDocument()
-
-			const drawn = allBySlot(container, 'placeholder')
-
-			expect(drawn.length).toBeGreaterThan(0)
-
-			// A silhouette whose count is part of its contract states it; the rest
-			// claim only that they draw something.
-			if (placeholders !== undefined) expect(drawn).toHaveLength(placeholders)
-		})
+	for (const subject of skeletons) {
+		it(`${subject.absentSlot} pairs with an explicit skeleton in loading trees`, () =>
+			drawsSkeleton(subject))
 	}
 
 	it('has subjects to sweep', () => {
@@ -63,18 +84,8 @@ describe('component skeletons', () => {
 })
 
 describe('component links', () => {
-	for (const { render, slot } of links) {
-		it(`${slot} renders as a link when href is provided`, () => {
-			// `baseElement` is the document body, which holds the render container
-			// and anything portalled out of it alike.
-			const { baseElement } = renderUI(render(LINK_HREF))
-
-			const anchor = getSlot(baseElement, slot)
-
-			expect(anchor.tagName).toBe('A')
-
-			expect(anchor).toHaveAttribute('href', LINK_HREF)
-		})
+	for (const subject of links) {
+		it(`${subject.slot} renders as a link when href is provided`, () => becomesLink(subject))
 	}
 
 	it('has subjects to sweep', () => {
@@ -85,29 +96,61 @@ describe('component links', () => {
 /**
  * Teeth checks: each sweep's assertion must be able to fail, or a corpus that
  * quietly stopped declaring subjects would read as green.
+ *
+ * Each check runs the sweep's own body on a subject built to break it, and
+ * expects the body to throw. A sweep assertion that grows weaker therefore
+ * fails here too.
  */
 describe('capability sweeps: teeth checks', () => {
-	function Dropping(_props: { id: string }) {
-		return <div data-slot="dropping" />
-	}
-
-	it('detects a component that drops the props it is given', () => {
-		const { container } = renderUI(<Dropping id={PASS_THROUGH_ID} />)
-
-		expect(bySlot(container, 'dropping')).not.toHaveAttribute('id', PASS_THROUGH_ID)
+	it('fails a component that drops the props it is given', () => {
+		expect(() =>
+			passesThrough({ render: () => <div data-slot="dropping" />, slot: 'dropping' }),
+		).toThrow()
 	})
 
-	it('detects a silhouette that leaks the real component, or draws nothing', () => {
-		const { container } = renderUI(<div data-slot="leaked" />)
-
-		expect(bySlot(container, 'leaked')).toBeInTheDocument()
-
-		expect(allBySlot(container, 'placeholder')).toHaveLength(0)
+	it('fails a silhouette that leaks the real component', () => {
+		expect(() =>
+			drawsSkeleton({
+				element: (
+					<div data-slot="leaked">
+						<div data-slot="placeholder" />
+					</div>
+				),
+				absentSlot: 'leaked',
+			}),
+		).toThrow()
 	})
 
-	it('detects a subject that does not become an anchor', () => {
-		const { container } = renderUI(<div data-slot="not-a-link" />)
+	it('fails a silhouette that draws nothing', () => {
+		expect(() => drawsSkeleton({ element: <div />, absentSlot: 'absent' })).toThrow()
+	})
 
-		expect(bySlot(container, 'not-a-link')?.tagName).not.toBe('A')
+	it('fails a silhouette that draws the wrong count', () => {
+		expect(() =>
+			drawsSkeleton({
+				element: <div data-slot="placeholder" />,
+				absentSlot: 'absent',
+				placeholders: 2,
+			}),
+		).toThrow()
+	})
+
+	it('fails a subject that does not become an anchor', () => {
+		expect(() =>
+			becomesLink({ render: () => <span data-slot="not-a-link" />, slot: 'not-a-link' }),
+		).toThrow()
+	})
+
+	it('fails an anchor that does not carry the href it was given', () => {
+		expect(() =>
+			becomesLink({
+				render: () => (
+					<a href="/elsewhere" data-slot="elsewhere">
+						Elsewhere
+					</a>
+				),
+				slot: 'elsewhere',
+			}),
+		).toThrow()
 	})
 })

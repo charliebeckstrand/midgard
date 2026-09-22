@@ -253,9 +253,10 @@ describe('grid column auto-sizing (real browser)', () => {
 		)
 
 		const leaf = () =>
-			container.querySelector<HTMLElement>(
+			present(
+				container.querySelector('td[data-grid-col="big"] [data-grid-content]'),
 				'td[data-grid-col="big"] [data-grid-content]',
-			) as HTMLElement
+			)
 
 		// The automatic fit holds the runaway column at the content cap, truncating it.
 		await waitFor(() => expect(leaf().scrollWidth).toBeGreaterThan(leaf().clientWidth + 1))
@@ -329,9 +330,10 @@ describe('grid column auto-sizing (real browser)', () => {
 		)
 
 		const leaf = () =>
-			container.querySelector<HTMLElement>(
+			present(
+				container.querySelector('td[data-grid-col="big"] [data-grid-content]'),
 				'td[data-grid-col="big"] [data-grid-content]',
-			) as HTMLElement
+			)
 
 		await waitFor(() => expect(leaf().scrollWidth).toBeGreaterThan(leaf().clientWidth + 1))
 

@@ -378,9 +378,10 @@ describe('TreeItem', () => {
 
 		const root = present(container.querySelector('[data-slot="tree"]'), '[data-slot="tree"]')
 
-		const row = container.querySelector<HTMLElement>(
+		const row = present(
+			container.querySelector('[data-slot="tree-item-content"]'),
 			'[data-slot="tree-item-content"]',
-		) as HTMLElement
+		)
 
 		// Initial tabIndex from the mount-time roving effect.
 		expect(row.tabIndex).toBe(0)

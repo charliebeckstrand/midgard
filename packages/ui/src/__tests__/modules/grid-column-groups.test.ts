@@ -322,20 +322,39 @@ describe('groupByColumn · properties', () => {
 })
 
 describe('collapsedHiddenIds · properties', () => {
-	test.prop([groupList(), fc.shuffledSubarray(['g0', 'g1', 'g2'], { minLength: 0 })])(
+	const collapsedIds = () => fc.shuffledSubarray(['g0', 'g1', 'g2'], { minLength: 0 })
+
+	test.prop([groupList(), collapsedIds()])(
 		'hides every member but the anchor of a collapsed group',
-		(groups, collapsedIds) => {
-			const collapsed = new Set<string | number>(collapsedIds)
+		(groups, ids) => {
+			const collapsed = new Set<string | number>(ids)
 
 			const hidden = collapsedHiddenIds(groups, collapsed)
 
-			const expected = new Set<string | number>()
+			const shut = groups.filter((group) => collapsed.has(group.id))
 
-			for (const group of groups) {
-				if (collapsed.has(group.id)) for (const id of group.columns.slice(1)) expected.add(id)
+			for (const group of shut) {
+				for (const [index, id] of group.columns.entries()) {
+					// Groups can share a column, so an anchor stays visible unless
+					// another collapsed group holds it past its own anchor.
+					const hides = index > 0 || shut.some((other) => other.columns.indexOf(id) > 0)
+
+					expect(hidden.has(id)).toBe(hides)
+				}
 			}
+		},
+	)
 
-			expect(hidden).toEqual(expected)
+	test.prop([groupList(), collapsedIds()])(
+		'hides only the members of a collapsed group',
+		(groups, ids) => {
+			const collapsed = new Set<string | number>(ids)
+
+			const members = new Set(
+				groups.filter((group) => collapsed.has(group.id)).flatMap((group) => group.columns),
+			)
+
+			for (const id of collapsedHiddenIds(groups, collapsed)) expect(members.has(id)).toBe(true)
 		},
 	)
 

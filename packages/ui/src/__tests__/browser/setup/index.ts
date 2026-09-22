@@ -3,7 +3,7 @@ import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
 import { afterEach, beforeEach, expect, inject } from 'vitest'
 import { commands } from 'vitest/browser'
-import { resetSingletons } from '../../helpers/reset-singletons'
+import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
 import { pageState } from './forensics'
 import './tailwind.css'
@@ -36,6 +36,9 @@ configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
 installResidueGuard()
 
+// Registered before the `afterEach` below, whose `cleanup` then runs first.
+installSingletonResets()
+
 // A case starts with the cursor off the page, whatever the case before it
 // hovered. See `parkPointer` in `vitest.browser.config.ts`. It runs before the
 // case renders, so a case that failed or timed out still hands on a clean page.
@@ -50,10 +53,4 @@ afterEach((ctx) => {
 	if (ctx.task.result?.state === 'fail') console.error(`page state at failure:\n  ${pageState()}`)
 
 	cleanup()
-
-	// The announcer's live region lives on document.body, outside React's tree;
-	// cleanup() won't remove it. This project runs `isolate: false`, so one page
-	// serves every file it runs and the region outlives its own file without
-	// this. `setup/index.ts` resets it for the jsdom projects for the same reason.
-	resetSingletons()
 })

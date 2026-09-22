@@ -45,9 +45,9 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TOOL-01` | `packages/*/package.json`, `apps/*/package.json` | the `lint` script | correctness | high | CONFIRMED | ✅ RESOLVED ([#1179](https://github.com/charliebeckstrand/midgard/pull/1179)) |
 | `BENCH-01` | `packages/ui/src/__benchmarks__/browser/menu-pointer.bench.tsx` | the travel-test rung (`openCorridor`) | correctness | high | CONFIRMED | ◯ OPEN |
 | `MENU-01` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
-| `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ◐ FIXED |
-| `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ◯ OPEN |
-| `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ◯ OPEN |
+| `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
+| `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ◐ FIXED |
+| `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ◐ FIXED |
 | `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◯ OPEN |
 | `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-02` | `biome.json` | the `hooks`, `primitives`, and `kiso` layer rules | correctness | medium | CONFIRMED | ◯ OPEN |
@@ -75,19 +75,19 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ◐ FIXED |
-| `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ◐ FIXED |
-| `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ◯ OPEN |
-| `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
+| `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
+| `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ◐ FIXED |
+| `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `SRC-07` | `packages/ui/src/recipes/kiso/index.ts` | `IconSize` | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-06` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `LOOSE_VIEWPORT` | correctness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-09` | `packages/ui/src/__tests__/browser/floating-ui/grid-cell-truncate-tooltip.test.tsx` | the negative cases | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `TESTS-10` | `packages/ui/src/__tests__/helpers/residue.ts` | the header, `guardResidue` | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `TESTS-03` | `packages/ui/src/__tests__/hooks/use-scroll-overflow.test.tsx` | the child-list case | correctness | low | CONFIRMED | ◐ FIXED |
+| `TESTS-04` | `packages/ui/src/__tests__/modules/grid-export-csv.test.ts` | the signed-number property | correctness | low | CONFIRMED | ◐ FIXED |
+| `TESTS-05` | `packages/ui/src/__tests__/sweeps/capabilities.test.tsx` | the teeth checks | correctness | low | CONFIRMED | ◐ FIXED |
+| `TESTS-06` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `LOOSE_VIEWPORT` | correctness | low | CONFIRMED | ◐ FIXED |
+| `TESTS-08` | `packages/ui/src/__tests__/modules/grid-column-groups.test.ts` | the `collapsedHiddenIds` oracle | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `TESTS-09` | `packages/ui/src/__tests__/browser/floating-ui/grid-cell-truncate-tooltip.test.tsx` | the negative cases | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `TESTS-10` | `packages/ui/src/__tests__/helpers/residue.ts` | the header, `guardResidue` | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `TOOL-07` | `biome-plugins/no-camel-case-data-slot.grit` | the template-literal form | correctness | low | CONFIRMED | ◯ OPEN |
 | `TOOL-08` | `biome.json` | the two plugin excludes | correctness | low | CONFIRMED | ◯ OPEN |
 | `TOOL-09` | `packages/ui/docs/RECIPES.md`, `packages/ui/vitest.config.ts` | tooling prose | cleanliness | low | CONFIRMED | ◯ OPEN |
@@ -116,7 +116,7 @@ Before #1168 and #1169, the press never opened the panel. `MenuTrigger` behaves 
 
 Focus stays on the disabled Next in jsdom, and falls to the body in Chromium (WCAG 2.4.3). A probe with the real Grid on page 2 of 3 showed this; the old latch put focus on page 3. Fix: key the effect on `[navigations, pageIndex]`, and disarm it only after a page commit follows the navigation, or when the navigation resolves to the current page.
 
-**TESTS-01 — The nullable-cast rule misses each cast that Biome wraps.** `NULLABLE_CAST` matches `\([^\n]*\)\s+as …`, so a call whose arguments wrap across lines passes it. Biome wraps each long query, and 16 such casts are live: ten in `browser/` and six in the jsdom tree. In `grid-resize.test.tsx`, #1162 converted a cast on one line and left the wrapped cast two lines below it. The 2026-09-11 test-architecture audit says that no such cast remains in the browser suite, which is false. Fix: let the pattern span lines, then convert the 16 sites to `present`.
+**TESTS-01 — The nullable-cast rule misses each cast that Biome wraps.** `NULLABLE_CAST` matches `\([^\n]*\)\s+as …`, so a call whose arguments wrap across lines passes it. Biome wraps each long query, and 16 such casts are live: ten in `browser/` and six in the jsdom tree. In `grid-resize.test.tsx`, #1162 converted a cast on one line and left the wrapped cast two lines below it. The 2026-09-11 test-architecture audit says that no such cast remains in the browser suite, which is false. The rule also missed a query with a type argument, `querySelector<T>(…) as T`, on one line or many, and 13 of the 16 sites took that form. Fix: let the pattern span lines and take the type argument, then convert the 16 sites to `present`.
 
 **TESTS-02 — A Breadcrumb assertion went with no replacement.** #1155 removed `expect(el?.tagName).toBe('A')` from "marks a current crumb that is still a link with aria-current". The breadcrumb subject of the link sweep passes no `current`, so nothing checks that a current crumb with an `href` stays an anchor. A mutant `BreadcrumbLink` that drops `href` when `current` is set passed both the test and the sweep. The removed assertion failed on it. Fix: restore the assertion, or query `getByRole('link', { current: 'page' })`.
 

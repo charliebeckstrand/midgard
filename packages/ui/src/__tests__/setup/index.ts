@@ -1,7 +1,7 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { afterEach, inject, vi } from 'vitest'
-import { resetSingletons } from '../helpers/reset-singletons'
+import { installSingletonResets } from '../helpers/reset-singletons'
 import { installResidueGuard } from '../helpers/residue'
 
 import './jsdom-stubs'
@@ -24,6 +24,9 @@ configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 // placement this registration depends on.
 installResidueGuard()
 
+// Registered before the `afterEach` below, whose `cleanup` then runs first.
+installSingletonResets()
+
 afterEach(() => {
 	// Fifteen files install a fake clock, and a `finally` in a case restores it
 	// when the body throws but not when the runner aborts the body at
@@ -34,8 +37,4 @@ afterEach(() => {
 	vi.useRealTimers()
 
 	cleanup()
-
-	// The announcer's live region lives on document.body, outside React's tree;
-	// cleanup() won't remove it. `__resetAnnouncer` clears it between tests.
-	resetSingletons()
 })

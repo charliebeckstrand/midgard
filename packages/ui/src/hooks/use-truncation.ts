@@ -122,7 +122,9 @@ function observeTruncation(el: Element, measure: () => void): () => void {
  * `observeTruncation` builds the observer from whichever `ResizeObserver` is
  * global at first use, and keeps it for the life of the module. A suite that
  * stubs that global leaves the stub cached here after it restores the real one.
- * Every project runs `isolate: false`, so the next file measures through it.
+ * A project that runs `isolate: false` shares this module across files, so the
+ * next file measures through it. Call it from a `beforeEach`: Vitest restores a
+ * stubbed global before each test, after every `afterEach`.
  */
 export function __resetTruncationObserver(): void {
 	// Only when the global has moved under the cache. A suite that stubs
