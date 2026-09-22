@@ -90,6 +90,30 @@ describe('assemble', () => {
 		expect(assemble(context, '')).toBe(`import { useState } from 'react'`)
 	})
 
+	it('writes a type-only import as `type Name`, sorted by the bare name', () => {
+		const context = makeContext()
+
+		addImport(context, 'password-strength', 'PasswordStrength')
+
+		addImport(context, 'password-strength', 'PasswordRule', false, true)
+
+		addImport(context, 'password-strength', 'defaultPasswordRules')
+
+		expect(assemble(context, '')).toBe(
+			`import { type PasswordRule, PasswordStrength, defaultPasswordRules } from 'ui/password-strength'`,
+		)
+	})
+
+	it('drops a type-only entry when the same name also imports as a value', () => {
+		const context = makeContext()
+
+		addImport(context, 'button', 'Button', false, true)
+
+		addImport(context, 'button', 'Button')
+
+		expect(assemble(context, '')).toBe(`import { Button } from 'ui/button'`)
+	})
+
 	it("prefixes non-react modules with 'ui/'", () => {
 		const context = makeContext()
 

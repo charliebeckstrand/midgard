@@ -7,7 +7,7 @@ import { type ApiExtractor, createApiExtractor } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { isPascalCase } from '../identifiers'
 import { collectHelpers } from './collect-helpers'
-import { injectSourceFacts } from './source-facts'
+import { importFacts, injectSourceFacts } from './source-facts'
 import { namedImportsOf, parseSource } from './ts-source'
 import { virtualJsonModules } from './virtual-json'
 
@@ -572,10 +572,11 @@ export function docsPlugin({
 
 		enforce: 'pre',
 
-		// Attach each demo helper's full source as a `__code` static, and inject
-		// per-Example `__facts` (authored prop sources, referenced declarations,
-		// import origins) for the walker's source-aware synthesis. Runs at
-		// `enforce: 'pre'` on raw TSX, before JSX lowering, over one shared parse.
+		// Attach each demo helper's snippet as a `__code` static, with the imports
+		// that the snippet uses as `__imports`, and inject per-Example `__facts`
+		// (authored prop sources, referenced declarations, import origins) for the
+		// walker's source-aware synthesis. Runs at `enforce: 'pre'` on raw TSX,
+		// before JSX lowering, over one shared parse.
 		transform(code, id) {
 			const cleanId = id.split('?')[0] ?? ''
 
@@ -583,14 +584,17 @@ export function docsPlugin({
 
 			const sf = parseSource(cleanId, code)
 
-			const helpers = collectHelpers(code, sf)
+			const helpers = collectHelpers(code, sf, importFacts(sf, { filePath: cleanId, srcDir }))
 
 			const withFacts = injectSourceFacts(code, { filePath: cleanId, srcDir }, sf)
 
 			if (helpers.length === 0 && withFacts === null) return
 
 			const tail = helpers
-				.map(({ name, code }) => `;Object.assign(${name}, { __code: ${JSON.stringify(code)} });`)
+				.map(
+					({ name, code, imports }) =>
+						`;Object.assign(${name}, { __code: ${JSON.stringify(code)}, __imports: ${JSON.stringify(imports)} });`,
+				)
 				.join('\n')
 
 			const base = withFacts ?? code

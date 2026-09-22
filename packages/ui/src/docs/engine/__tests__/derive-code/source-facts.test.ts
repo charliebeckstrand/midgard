@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { extractSourceFacts, injectSourceFacts } from '../../plugins/source-facts'
+import { extractSourceFacts, importFacts, injectSourceFacts } from '../../plugins/source-facts'
+import { parseSource } from '../../plugins/ts-source'
 
 // Paths mirror a real demo's layout so relative imports resolve against the
 // synthetic source root.
@@ -260,14 +261,52 @@ describe('extractSourceFacts imports', () => {
 		expect(imports.useState).toEqual({ module: 'react', external: true })
 	})
 
-	it('skips docs-internal, aliased, and type-only specifiers', () => {
+	it('skips docs-internal and aliased specifiers', () => {
 		const imports = extract(source)?.imports ?? {}
 
 		expect(imports.Example).toBeUndefined()
 
 		expect(imports.Masked).toBeUndefined()
+	})
 
-		expect(imports.LucideIcon).toBeUndefined()
+	it('marks a type-only specifier, inline or on an `import type` line', () => {
+		const file = parseSource(
+			OPTIONS.filePath,
+			[
+				`import { Star, type LucideIcon } from 'lucide-react'`,
+				`import type { PasswordRule } from '../../../components/password-strength'`,
+			].join('\n'),
+		)
+
+		const imports = importFacts(file, OPTIONS)
+
+		expect(imports.Star).toEqual({ module: 'lucide-react', external: true })
+
+		expect(imports.LucideIcon).toEqual({ module: 'lucide-react', external: true, type: true })
+
+		expect(imports.PasswordRule).toEqual({ module: 'password-strength', type: true })
+	})
+
+	it('maps the exported core, hooks, and primitive entry points, and no path below them', () => {
+		const file = parseSource(
+			OPTIONS.filePath,
+			[
+				`import { cn } from '../../../core'`,
+				`import type { Color } from '../../../core/recipe'`,
+				`import { useIsTruncated } from '../../../hooks'`,
+				`import { VirtualOptions } from '../../../primitives/virtual-options'`,
+			].join('\n'),
+		)
+
+		const imports = importFacts(file, OPTIONS)
+
+		expect(imports.cn).toEqual({ module: 'core' })
+
+		expect(imports.Color).toBeUndefined()
+
+		expect(imports.useIsTruncated).toEqual({ module: 'hooks' })
+
+		expect(imports.VirtualOptions).toEqual({ module: 'primitives/virtual-options' })
 	})
 })
 

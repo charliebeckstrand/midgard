@@ -112,7 +112,10 @@ describe('collectHelpers preamble inclusion', () => {
 		expect(bIndex).toBeGreaterThan(aIndex)
 	})
 
-	it('does not pull sibling JSX-returning helpers in as preamble', () => {
+	// The walker shows a snippet in place of the tree it renders, so a helper that
+	// another helper renders rides along. Without it, the snippet names a
+	// component it never defines.
+	it('pulls in a sibling helper that the snippet renders', () => {
 		const source = [
 			`function FilterOutput() {`,
 			`\treturn <div>output</div>`,
@@ -127,9 +130,48 @@ describe('collectHelpers preamble inclusion', () => {
 
 		const basic = helpers.find((h) => h.name === 'BasicExample')
 
-		expect(basic?.code.startsWith('function BasicExample')).toBe(true)
+		expect(basic?.code.startsWith('function FilterOutput')).toBe(true)
 
-		expect(basic?.code).not.toContain('function FilterOutput')
+		expect(basic?.code).toContain('function BasicExample')
+	})
+
+	it('follows a dependency of a dependency', () => {
+		const source = [
+			`type Person = { name: string }`,
+			``,
+			`const people: Person[] = [{ name: 'Ada' }]`,
+			``,
+			`function labels() {`,
+			`\treturn people.map((person) => person.name)`,
+			`}`,
+			``,
+			`function List() {`,
+			`\treturn <ul>{labels().map((label) => <li key={label}>{label}</li>)}</ul>`,
+			`}`,
+		].join('\n')
+
+		const [helper] = collectHelpers(source)
+
+		expect(helper?.code.startsWith('type Person')).toBe(true)
+
+		expect(helper?.code).toContain('const people')
+
+		expect(helper?.code).toContain('function labels')
+	})
+
+	it('carries the entries of the import table that its snippet uses', () => {
+		const source = [
+			`function Rules() {`,
+			`\treturn <PasswordStrength rules={defaultPasswordRules} />`,
+			`}`,
+		].join('\n')
+
+		const [helper] = collectHelpers(source, undefined, {
+			defaultPasswordRules: { module: 'password-strength' },
+			Unused: { module: 'button' },
+		})
+
+		expect(helper?.imports).toEqual({ defaultPasswordRules: { module: 'password-strength' } })
 	})
 
 	it('leaves helpers untouched when no preamble is referenced', () => {

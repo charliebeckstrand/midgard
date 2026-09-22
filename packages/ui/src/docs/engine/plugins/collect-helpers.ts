@@ -1,8 +1,14 @@
 import ts from 'typescript'
+import type { ImportFact } from '../derive-code/types'
 import { isPascalCase, wordRe } from '../identifiers'
 import { parseSource } from './ts-source'
 
-type Helper = { name: string; code: string }
+/**
+ * One helper component and its snippet. `code` is the helper's source, led by
+ * every sibling declaration it depends on. `imports` holds each imported name
+ * that `code` uses, keyed to where a reader imports it from.
+ */
+type Helper = { name: string; code: string; imports: Record<string, ImportFact> }
 
 // The demo page's entry export, loaded via `import.meta.glob(…, { import: 'Demo'
 // })`. It renders as the route body, never inside an `<Example>`, so its
@@ -106,12 +112,10 @@ function rendersJsx(
 }
 
 /**
- * A top-level declaration a helper can reference but which isn't itself a
- * JSX-returning helper: type aliases, interfaces, and plain consts. `names`
- * lists the identifiers introduced; `code` is the full statement source for
- * verbatim prepending.
+ * A top-level statement a helper can depend on. `names` lists the identifiers
+ * it introduces; `code` is the full statement source for verbatim prepending.
  */
-type Preamble = { names: string[]; code: string }
+type Declaration = { stmt: ts.Statement; names: string[]; code: string }
 
 /**
  * Returns the PascalCase name of a JSX-returning arrow / function-expression
@@ -141,10 +145,11 @@ function jsxHelperName(decl: ts.VariableDeclaration): string | null {
  *
  * @remarks
  * The one answer both readers take. {@link collectHelpers} attaches `__code`
- * to these. {@link isJsxHelperStatement} keeps them out of declaration
- * preambles, because pulling one into a snippet would duplicate a component
- * the walker already renders. Were the two to read different rules, a helper
- * would come out with a snippet and a preamble copy, or with neither.
+ * to these. {@link isJsxHelperStatement} keeps them out of the source-facts
+ * declaration table, because a fact copy would duplicate a component that the
+ * walker already renders from its snippet. Were the two to read different
+ * rules, a helper would come out with a snippet and a fact copy, or with
+ * neither.
  */
 function helperNames(stmt: ts.Statement): string[] {
 	if (ts.isFunctionDeclaration(stmt)) {
@@ -183,52 +188,105 @@ function isDefaultExported(stmt: ts.Statement): boolean {
 	return (flags & ts.ModifierFlags.ExportDefault) === ts.ModifierFlags.ExportDefault
 }
 
-function collectPreambles(sf: ts.SourceFile): Preamble[] {
-	const preambles: Preamble[] = []
+/** The identifiers a binding introduces, through any destructuring pattern. */
+function bindingNames(name: ts.BindingName): string[] {
+	if (ts.isIdentifier(name)) return [name.text]
 
-	for (const stmt of sf.statements) {
-		if (ts.isTypeAliasDeclaration(stmt) || ts.isInterfaceDeclaration(stmt)) {
-			preambles.push({ names: [stmt.name.text], code: stmt.getText(sf) })
+	return name.elements.flatMap((element) =>
+		ts.isOmittedExpression(element) ? [] : bindingNames(element.name),
+	)
+}
 
-			continue
-		}
-
-		if (ts.isVariableStatement(stmt)) {
-			// JSX-returning helper statements belong to `collectHelpers`, not the
-			// preamble.
-			if (isJsxHelperStatement(stmt)) continue
-
-			const names: string[] = []
-
-			for (const decl of stmt.declarationList.declarations) {
-				if (ts.isIdentifier(decl.name)) names.push(decl.name.text)
-			}
-
-			if (names.length === 0) continue
-
-			preambles.push({ names, code: stmt.getText(sf) })
-		}
+/** The names a top-level statement declares. Empty for an import or an expression. */
+export function declaredNames(stmt: ts.Statement): string[] {
+	if (
+		ts.isTypeAliasDeclaration(stmt) ||
+		ts.isInterfaceDeclaration(stmt) ||
+		ts.isEnumDeclaration(stmt)
+	) {
+		return [stmt.name.text]
 	}
 
-	return preambles
+	if (ts.isFunctionDeclaration(stmt) || ts.isClassDeclaration(stmt)) {
+		return stmt.name ? [stmt.name.text] : []
+	}
+
+	if (ts.isVariableStatement(stmt)) {
+		return stmt.declarationList.declarations.flatMap((decl) => bindingNames(decl.name))
+	}
+
+	return []
 }
 
 /**
- * Prepends every preamble whose declared names appear (as whole-word matches)
- * in the helper's source. `preambles` is in source order, so the matches are
- * too.
- *
- * This is a name scan, not a reference graph: a preamble whose name appears
- * inside a string literal or comment in the helper is included.
+ * Every top-level statement a helper can depend on, in source order. The demo
+ * page itself stays out: the entry export and a default export render as the
+ * route body, which no snippet shows.
  */
-function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): string {
-	const matched = preambles.filter((preamble) =>
-		preamble.names.some((name) => wordRe(name).test(helperCode)),
-	)
+function collectDeclarations(sf: ts.SourceFile): Declaration[] {
+	return sf.statements.flatMap((stmt) => {
+		const names = declaredNames(stmt)
 
-	if (matched.length === 0) return helperCode
+		if (names.length === 0 || names.includes(ENTRY_EXPORT) || isDefaultExported(stmt)) return []
 
-	return `${matched.map((p) => p.code).join('\n\n')}\n\n${helperCode}`
+		return [{ stmt, names, code: stmt.getText(sf) }]
+	})
+}
+
+/**
+ * The helper's source, led by every declaration it depends on. A declaration
+ * joins when one of its names appears in the text gathered so far. So the
+ * declarations that a joined one uses join too, until none is left. They keep
+ * their source order, and the helper comes last. Another helper joins like any
+ * declaration. The walker shows this snippet in place of the tree it renders,
+ * so nothing renders the other helper twice.
+ *
+ * @remarks
+ * This is a name scan, not a reference graph. A name inside a string literal
+ * or a comment pulls its declaration in. That errs toward a longer snippet,
+ * never toward a broken one.
+ */
+function closeOver(helper: ts.Statement, declarations: Declaration[], sf: ts.SourceFile): string {
+	const joined = new Set<Declaration>()
+
+	const texts = [helper.getText(sf)]
+
+	let grew = true
+
+	while (grew) {
+		grew = false
+
+		for (const declaration of declarations) {
+			if (declaration.stmt === helper || joined.has(declaration)) continue
+
+			const used = declaration.names.some((name) => {
+				const re = wordRe(name)
+
+				return texts.some((text) => re.test(text))
+			})
+
+			if (!used) continue
+
+			joined.add(declaration)
+
+			texts.push(declaration.code)
+
+			grew = true
+		}
+	}
+
+	return [
+		...declarations.filter((declaration) => joined.has(declaration)).map(({ code }) => code),
+		helper.getText(sf),
+	].join('\n\n')
+}
+
+/** The entries of `imports` whose name `code` uses, as a whole word. */
+function usedImports(
+	code: string,
+	imports: Record<string, ImportFact>,
+): Record<string, ImportFact> {
+	return Object.fromEntries(Object.entries(imports).filter(([name]) => wordRe(name).test(code)))
 }
 
 /**
@@ -237,14 +295,22 @@ function prependReferencedPreamble(helperCode: string, preambles: Preamble[]): s
  * and never inside `<Example>`, so attaching its source only bloats the chunk
  * with a `__code` string nothing reads.
  *
- * Prepends each helper's source with any sibling type alias, interface, or
- * `const` declaration it references by name, producing a self-contained
- * snippet.
+ * Each helper's snippet carries every sibling declaration it depends on,
+ * through any chain of them (see {@link closeOver}). It also carries the
+ * entries of `imports` that the snippet uses. A name imported from a module
+ * that no reader can import has no entry in `imports`. The docs engine and a
+ * sibling demo file are such modules, so the snippet stays short of that name.
+ *
+ * @param imports - The demo's import table, from `importFacts`.
  */
-export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Helper[] {
+export function collectHelpers(
+	source: string,
+	sourceFile?: ts.SourceFile,
+	imports: Record<string, ImportFact> = {},
+): Helper[] {
 	const sf = sourceFile ?? parseSource('demo.tsx', source)
 
-	const preambles = collectPreambles(sf)
+	const declarations = collectDeclarations(sf)
 
 	const helpers: Helper[] = []
 
@@ -254,7 +320,9 @@ export function collectHelpers(source: string, sourceFile?: ts.SourceFile): Help
 		for (const name of helperNames(stmt)) {
 			if (name === ENTRY_EXPORT) continue
 
-			helpers.push({ name, code: prependReferencedPreamble(stmt.getText(sf), preambles) })
+			const code = closeOver(stmt, declarations, sf)
+
+			helpers.push({ name, code, imports: usedImports(code, imports) })
 		}
 	}
 

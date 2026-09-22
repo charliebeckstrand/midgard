@@ -4,7 +4,14 @@ import * as ReactDOM from 'react-dom'
 import { wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { reindent } from './indent'
-import type { ComponentInfo, ComponentRegistry, Context, ElementFact, SourceFacts } from './types'
+import type {
+	ComponentInfo,
+	ComponentRegistry,
+	Context,
+	ElementFact,
+	ImportFact,
+	SourceFacts,
+} from './types'
 
 /**
  * Fragment and intrinsic HTML elements are transparent: styling/grouping
@@ -107,7 +114,7 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 export type ElementCase =
 	| { kind: 'recognized'; info: ComponentInfo }
 	| { kind: 'children'; nodes: ReactNode[] }
-	| { kind: 'snippet'; code: string }
+	| { kind: 'snippet'; code: string; imports: Record<string, ImportFact> }
 	| { kind: 'none' }
 
 /**
@@ -126,7 +133,9 @@ export function classifyElement(element: ReactElement, registry: ComponentRegist
 
 	const code = readSnippet(element.type)
 
-	return code === null ? { kind: 'none' } : { kind: 'snippet', code }
+	return code === null
+		? { kind: 'none' }
+		: { kind: 'snippet', code, imports: readSnippetImports(element.type) }
 }
 
 /**
@@ -397,16 +406,42 @@ export function renderOpenTag(
 /**
  * Record an import for `name` from `mod`. Allocates the inner Set on first
  * use. `external` marks `mod` as a bare package specifier (`lucide-react`);
- * `assemble` emits it without the library prefix.
+ * `assemble` emits it without the library prefix. `type` records a type-only
+ * import, which `assemble` writes as `type Name`.
  */
-export function addImport(context: Context, mod: string, name: string, external = false): void {
+export function addImport(
+	context: Context,
+	mod: string,
+	name: string,
+	external = false,
+	type = false,
+): void {
 	const set = context.imports.get(mod) ?? new Set<string>()
 
-	set.add(name)
+	set.add(type ? `type ${name}` : name)
 
 	context.imports.set(mod, set)
 
 	if (external) context.externalModules.add(mod)
+}
+
+/** The bare name of an import entry, without its `type ` marker. */
+const bareName = (entry: string) => entry.replace(/^type /, '')
+
+/**
+ * One module's import names, sorted by the bare name. A `type X` entry goes
+ * when `X` also imports as a value, because the value import covers the type.
+ */
+function importNames(names: Set<string>): string[] {
+	return [...names]
+		.filter((entry) => !entry.startsWith('type ') || !names.has(bareName(entry)))
+		.sort((a, b) => {
+			const left = bareName(a)
+
+			const right = bareName(b)
+
+			return left < right ? -1 : left > right ? 1 : 0
+		})
 }
 
 /**
@@ -422,7 +457,7 @@ export function assemble(context: Context, jsx: string, preamble: string[] = [])
 			const specifier =
 				mod === 'react' || context.externalModules.has(mod) ? mod : `${context.packageName}/${mod}`
 
-			return `import { ${[...names].sort().join(', ')} } from '${specifier}'`
+			return `import { ${importNames(names).join(', ')} } from '${specifier}'`
 		})
 		.join('\n')
 
@@ -535,7 +570,9 @@ export function resolvePreamble(context: Context): string[] {
 		collectSnippetImports(text, context)
 
 		for (const [name, imp] of Object.entries(facts.imports)) {
-			if (wordRe(name).test(text)) addImport(context, imp.module, name, imp.external ?? false)
+			if (wordRe(name).test(text)) {
+				addImport(context, imp.module, name, imp.external ?? false, imp.type ?? false)
+			}
 		}
 	}
 
@@ -550,9 +587,9 @@ export function resolvePreamble(context: Context): string[] {
 
 /**
  * Components decorated by the docs plugin's `pre` transform carry their
- * original source as `__code`.
+ * original source as `__code`, and the imports it uses as `__imports`.
  */
-type WithCode = { __code?: string }
+type WithCode = { __code?: string; __imports?: Record<string, ImportFact> }
 
 /**
  * Read the build-time-attached source snippet from a component. Returns null
@@ -564,6 +601,18 @@ export function readSnippet(type: unknown): string | null {
 	const code = (type as WithCode).__code
 
 	return typeof code === 'string' ? code : null
+}
+
+/**
+ * Read the import table the docs plugin attached beside `__code`. Empty for a
+ * component that carries none.
+ */
+export function readSnippetImports(type: unknown): Record<string, ImportFact> {
+	if (typeof type !== 'function') return {}
+
+	const imports = (type as WithCode).__imports
+
+	return imports && typeof imports === 'object' ? imports : {}
 }
 
 // `use` (the React 19 API) or a `use<Capital>` hook name.
@@ -604,20 +653,34 @@ const TAG_RE = /<([A-Z][\w]*)/g
  * Delegates to {@link collectSnippetImports} rather than re-scanning, so a new
  * import source inside that function counts here too.
  */
-export function snippetHasImports(snippet: string, registry: ComponentRegistry): boolean {
+export function snippetHasImports(
+	snippet: string,
+	registry: ComponentRegistry,
+	imports: Record<string, ImportFact> = {},
+): boolean {
 	const context = createContext(registry)
 
-	collectSnippetImports(snippet, context)
+	collectSnippetImports(snippet, context, imports)
 
 	return context.imports.size > 0
 }
 
 /**
- * Register imports for anything the snippet references: UI components via
- * JSX opening tags, and React hooks via bare identifier use. `addImport`
- * dedupes per-(module,name).
+ * Register imports for anything the snippet references. A UI component
+ * registers through its JSX opening tag, and a React hook through bare
+ * identifier use. Each entry of `imports` registers too: that is the table the
+ * docs plugin attached beside the snippet. `addImport` dedupes
+ * per-(module,name).
  */
-export function collectSnippetImports(snippet: string, context: Context): void {
+export function collectSnippetImports(
+	snippet: string,
+	context: Context,
+	imports: Record<string, ImportFact> = {},
+): void {
+	for (const [name, imp] of Object.entries(imports)) {
+		addImport(context, imp.module, name, imp.external ?? false, imp.type ?? false)
+	}
+
 	for (const [, name] of snippet.matchAll(TAG_RE)) {
 		if (!name) continue
 

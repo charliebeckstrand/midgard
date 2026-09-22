@@ -48,7 +48,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
-| `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◯ OPEN |
+| `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◐ FIXED |
 | `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `TOOL-02` | `biome.json` | the `hooks`, `primitives`, and `kiso` layer rules | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
 | `TOOL-03` | `renovate.json` | the `@floating-ui/react` approval rule | correctness | medium | CONFIRMED | ◯ OPEN |
@@ -232,9 +232,9 @@ These rows came up during the sweep. They predate `5c75a88`, so they sit outside
 
 | Row | File | Symbol | Severity | Verdict | Status |
 |---|---|---|---|---|---|
-| `ADJ-01` | `packages/ui/src/components/accordion/accordion.tsx` | `Accordion` | low | CONFIRMED | ◐ FIXED |
-| `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ◐ FIXED |
-| `ADJ-03` | `packages/ui/src/modules/grid/engine/grid-menu-targeting.ts` | the active-cell query | low | PLAUSIBLE | ◐ FIXED |
+| `ADJ-01` | `packages/ui/src/components/accordion/accordion.tsx` | `Accordion` | low | CONFIRMED | ✅ RESOLVED ([#1190](https://github.com/charliebeckstrand/midgard/pull/1190)) |
+| `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ✅ RESOLVED ([#1190](https://github.com/charliebeckstrand/midgard/pull/1190)) |
+| `ADJ-03` | `packages/ui/src/modules/grid/engine/grid-menu-targeting.ts` | the active-cell query | low | PLAUSIBLE | ✅ RESOLVED ([#1190](https://github.com/charliebeckstrand/midgard/pull/1190)) |
 | `ADJ-04` | several | dangling citations | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187), [#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
 
 **ADJ-01.** #1150 spread `...rest` onto the root `<div>`, but did not take `collapsible` out of it. Each `<Accordion collapsible>` writes an invalid attribute, and React warns; the warning shows in the stderr of the jsdom run. Fix: destructure `collapsible` with the other selection props.
@@ -300,5 +300,7 @@ Each item below was checked and found sound. The next sweep can start from here.
 ## Open questions
 
 **Q1 — DOCS-01.** Make each snippet complete, with a transitive closure and the imports from `importFacts`? Or narrow the TSDoc to the helper and the declarations that it names?
+
+*Settled.* Each snippet is complete. It closes over every sibling declaration that it depends on, another helper included, and it carries the imports that it uses, type-only ones included. A name from a module that no reader can import, such as the docs engine or a sibling data file, has no import line to take, so it stays out of reach.
 
 **Q2 — TOOL-04.** Is the Renovate app installed on the repository? Which bot owns npm security updates?

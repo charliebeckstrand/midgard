@@ -47,9 +47,10 @@ export type DeclarationFact = { names: string[]; code: string }
 /**
  * Where an identifier referenced by emitted source imports from. `module` is a
  * library module name (`fieldset`) unless `external` marks it a bare package
- * specifier (`lucide-react`, `react`).
+ * specifier (`lucide-react`, `react`). `type` marks a type-only import, which
+ * the import line writes as `type Name`.
  */
-export type ImportFact = { module: string; external?: boolean }
+export type ImportFact = { module: string; external?: boolean; type?: boolean }
 
 /**
  * Per-`Example` source knowledge extracted by the docs plugin's pre-transform
