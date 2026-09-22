@@ -70,7 +70,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-05` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `declaredName` | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ◯ OPEN |
+| `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-07` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the gate comment | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◯ OPEN |

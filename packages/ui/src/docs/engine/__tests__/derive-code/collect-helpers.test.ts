@@ -195,6 +195,20 @@ describe('collectHelpers JSX detection', () => {
 		expect(collectHelpers(source)).toHaveLength(0)
 	})
 
+	// A column list holds JSX in its cells, but a list of objects renders nothing.
+	it('skips a PascalCase function that returns JSX inside an object', () => {
+		const source = [`function MakeColumns() {`, `\treturn [{ cell: <Badge /> }]`, `}`].join('\n')
+
+		expect(collectHelpers(source)).toHaveLength(0)
+	})
+
+	// The same arrow, returned inline or through a name, is a factory both ways.
+	it('skips a PascalCase function that returns a render function', () => {
+		const source = [`function Factory() {`, `\treturn () => <Badge />`, `}`].join('\n')
+
+		expect(collectHelpers(source)).toHaveLength(0)
+	})
+
 	// A callback's returns belong to the callback. Read as the host's, the arrow
 	// below would make `Registry` a helper and attach it a `__code` nothing
 	// renders.
