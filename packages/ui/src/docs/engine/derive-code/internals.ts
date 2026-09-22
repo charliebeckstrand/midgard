@@ -666,10 +666,11 @@ export function snippetHasImports(
 }
 
 /**
- * Register imports for anything the snippet references: UI components via
- * JSX opening tags, React hooks via bare identifier use, and each entry of
- * `imports`, the table the docs plugin attached beside the snippet. `addImport`
- * dedupes per-(module,name).
+ * Register imports for anything the snippet references. A UI component
+ * registers through its JSX opening tag, and a React hook through bare
+ * identifier use. Each entry of `imports` registers too: that is the table the
+ * docs plugin attached beside the snippet. `addImport` dedupes
+ * per-(module,name).
  */
 export function collectSnippetImports(
 	snippet: string,

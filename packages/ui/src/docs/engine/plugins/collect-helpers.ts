@@ -235,16 +235,16 @@ function collectDeclarations(sf: ts.SourceFile): Declaration[] {
 
 /**
  * The helper's source, led by every declaration it depends on. A declaration
- * joins when one of its names appears in the text gathered so far, so the
+ * joins when one of its names appears in the text gathered so far. So the
  * declarations that a joined one uses join too, until none is left. They keep
  * their source order, and the helper comes last. Another helper joins like any
- * declaration: the walker shows this snippet in place of the tree it renders,
- * so nothing renders the other helper a second time.
+ * declaration. The walker shows this snippet in place of the tree it renders,
+ * so nothing renders the other helper twice.
  *
  * @remarks
- * This is a name scan, not a reference graph. A name that appears inside a
- * string literal or a comment pulls its declaration in, which errs toward a
- * longer snippet and never toward a broken one.
+ * This is a name scan, not a reference graph. A name inside a string literal
+ * or a comment pulls its declaration in. That errs toward a longer snippet,
+ * never toward a broken one.
  */
 function closeOver(helper: ts.Statement, declarations: Declaration[], sf: ts.SourceFile): string {
 	const joined = new Set<Declaration>()
@@ -297,9 +297,9 @@ function usedImports(
  *
  * Each helper's snippet carries every sibling declaration it depends on,
  * through any chain of them (see {@link closeOver}). It also carries the
- * entries of `imports` that the snippet uses. A name imported from a module no
- * reader can import, such as the docs engine or a sibling demo file, has no
- * entry in `imports`, so the snippet stays short of that one name.
+ * entries of `imports` that the snippet uses. A name imported from a module
+ * that no reader can import has no entry in `imports`. The docs engine and a
+ * sibling demo file are such modules, so the snippet stays short of that name.
  *
  * @param imports - The demo's import table, from `importFacts`.
  */
