@@ -39,7 +39,13 @@
       "inputs": ["src/docs/dist/**", "src/__benchmarks__/docs/bundle-*.ts"]
     },
     "lint": {
-      "inputs": ["src/**", "app/**", "*.config.ts", "$TURBO_ROOT$/biome.json"]
+      "inputs": [
+        "src/**",
+        "app/**",
+        "*.config.ts",
+        "$TURBO_ROOT$/biome.json",
+        "$TURBO_ROOT$/biome-plugins/**"
+      ]
     },
     "test": {
       "dependsOn": ["^build"],
