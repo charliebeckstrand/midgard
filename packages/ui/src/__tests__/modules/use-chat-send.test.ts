@@ -6,6 +6,7 @@ import {
 	type ChatTransport,
 	useChatSend,
 } from '../../modules/chat'
+import { deferred } from '../helpers'
 
 /** A transport that yields the given chunks in order: cumulative prose, or blocks. */
 function streamOf(...chunks: (string | ChatPart[])[]): ChatTransport {
@@ -323,15 +324,13 @@ describe('useChatSend', () => {
 	it('send/retry/edit no-op while a send is already in flight', async () => {
 		const calls: string[] = []
 
-		let releaseTransport: (() => void) | undefined
+		const transportGate = deferred()
 
 		const transport: ChatTransport = (content) => {
 			calls.push(content)
 
 			return (async function* () {
-				await new Promise<void>((resolve) => {
-					releaseTransport = resolve
-				})
+				await transportGate.promise
 
 				yield 'reply'
 			})()
@@ -367,7 +366,7 @@ describe('useChatSend', () => {
 
 		expect(result.current.messages[0]).toMatchObject({ content: 'hi' })
 
-		releaseTransport?.()
+		transportGate.resolve()
 
 		await act(async () => {
 			await firstSend
@@ -387,7 +386,7 @@ describe('useChatSend', () => {
 
 		let capturedSignal: AbortSignal | undefined
 
-		let yieldSecond: (() => void) | undefined
+		const secondGate = deferred()
 
 		const transport: ChatTransport = (_content, signal) => {
 			capturedSignal = signal
@@ -395,9 +394,7 @@ describe('useChatSend', () => {
 			return (async function* () {
 				yield 'first'
 
-				await new Promise<void>((resolve) => {
-					yieldSecond = resolve
-				})
+				await secondGate.promise
 
 				yield 'second'
 			})()
@@ -419,7 +416,7 @@ describe('useChatSend', () => {
 
 		expect(capturedSignal?.aborted).toBe(true)
 
-		yieldSecond?.()
+		secondGate.resolve()
 
 		await act(async () => {
 			await sendPromise
@@ -445,7 +442,7 @@ describe('useChatSend', () => {
 	})
 
 	it('a send after a stopped send still completes normally', async () => {
-		let releaseFirst: (() => void) | undefined
+		const firstGate = deferred()
 
 		let call = 0
 
@@ -454,9 +451,7 @@ describe('useChatSend', () => {
 
 			if (call === 1) {
 				return (async function* () {
-					await new Promise<void>((resolve) => {
-						releaseFirst = resolve
-					})
+					await firstGate.promise
 
 					yield 'first reply'
 				})()
@@ -479,7 +474,7 @@ describe('useChatSend', () => {
 			result.current.stop()
 		})
 
-		releaseFirst?.()
+		firstGate.resolve()
 
 		await act(async () => {
 			await firstSend
@@ -664,17 +659,13 @@ describe('useChatSend settling a running step', () => {
 	})
 
 	it('marks it failed when the reader stops the reply', async () => {
-		let release: (() => void) | undefined
-
-		const gate = new Promise<void>((resolve) => {
-			release = resolve
-		})
+		const gate = deferred()
 
 		const transport: ChatTransport = () =>
 			(async function* () {
 				yield [running]
 
-				await gate
+				await gate.promise
 
 				yield [{ ...running, status: 'done' } satisfies ChatToolPart]
 			})()
@@ -693,7 +684,7 @@ describe('useChatSend settling a running step', () => {
 			result.current.stop()
 		})
 
-		release?.()
+		gate.resolve()
 
 		await act(async () => {
 			await sending

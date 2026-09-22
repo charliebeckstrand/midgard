@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
 import { downloadCsv, rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
 import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
-import { fireEvent, renderUI, screen, waitFor, within } from '../helpers'
+import { deferred, fireEvent, renderUI, screen, waitFor, within } from '../helpers'
 import { captureDownload } from '../helpers/capture-download'
 
 describe('rowsToCsv', () => {
@@ -609,12 +609,7 @@ describe('Grid export', () => {
 	it('swaps the download icon for a spinner while an async export is in flight', async () => {
 		const download = captureDownload()
 
-		let release: (rows: Row[]) => void = () => {}
-
-		const fetchAll = () =>
-			new Promise<Row[]>((resolve) => {
-				release = resolve
-			})
+		const server = deferred<Row[]>()
 
 		renderUI(
 			<Grid
@@ -622,7 +617,7 @@ describe('Grid export', () => {
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
-				exportRows={fetchAll}
+				exportRows={() => server.promise}
 			/>,
 		)
 
@@ -647,7 +642,7 @@ describe('Grid export', () => {
 
 		expect(trigger).toBeDisabled()
 
-		release(fullList)
+		server.resolve(fullList)
 
 		// Settling restores the icon, drops the spinner, and re-enables the trigger.
 		await waitFor(() => expect(trigger.querySelector('[data-slot="loading-spinner"]')).toBeNull())
@@ -745,7 +740,7 @@ describe('Grid export', () => {
 	it('covers the grid with an Exporting overlay while a menu-fired export is in flight', async () => {
 		const download = captureDownload()
 
-		let release: (rows: Row[]) => void = () => {}
+		const server = deferred<Row[]>()
 
 		renderUI(
 			<Grid
@@ -754,11 +749,7 @@ describe('Grid export', () => {
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
-				exportRows={() =>
-					new Promise<Row[]>((resolve) => {
-						release = resolve
-					})
-				}
+				exportRows={() => server.promise}
 			/>,
 		)
 
@@ -776,7 +767,7 @@ describe('Grid export', () => {
 
 		expect(overlay()?.textContent).toContain('Exporting')
 
-		release(fullList)
+		server.resolve(fullList)
 
 		await waitFor(() => expect(overlay()).toBeNull())
 
@@ -786,7 +777,7 @@ describe('Grid export', () => {
 	it('lifts the overlay when an export fails, rather than covering the grid for good', async () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		let reject: (reason: Error) => void = () => {}
+		const server = deferred<Row[]>()
 
 		renderUI(
 			<Grid
@@ -794,11 +785,7 @@ describe('Grid export', () => {
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
-				exportRows={() =>
-					new Promise<Row[]>((_, fail) => {
-						reject = fail
-					})
-				}
+				exportRows={() => server.promise}
 			/>,
 		)
 
@@ -808,7 +795,7 @@ describe('Grid export', () => {
 
 		await waitFor(() => expect(overlay()).not.toBeNull())
 
-		reject(new Error('server down'))
+		server.reject(new Error('server down'))
 
 		await waitFor(() => expect(overlay()).toBeNull())
 
@@ -832,7 +819,7 @@ describe('Grid export', () => {
 	it('spins the toolbar trigger for an export fired from a right-click menu', async () => {
 		captureDownload()
 
-		let release: (rows: Row[]) => void = () => {}
+		const server = deferred<Row[]>()
 
 		renderUI(
 			<Grid
@@ -840,11 +827,7 @@ describe('Grid export', () => {
 				columns={columns}
 				rows={pageRow}
 				getKey={getKey}
-				exportRows={() =>
-					new Promise<Row[]>((resolve) => {
-						release = resolve
-					})
-				}
+				exportRows={() => server.promise}
 			/>,
 		)
 
@@ -864,7 +847,7 @@ describe('Grid export', () => {
 
 		expect(overlay()).not.toBeNull()
 
-		release(fullList)
+		server.resolve(fullList)
 
 		await waitFor(() => expect(overlay()).toBeNull())
 
@@ -1028,26 +1011,17 @@ describe('useGridExportActions', () => {
 	})
 
 	it('reports pending across an async round-trip, settling once it resolves', async () => {
-		let release: ((value: Row[]) => void) | undefined
+		const server = deferred<Row[]>()
 
 		const onExport = vi.fn()
 
-		renderUI(
-			<Probe
-				exportRows={() =>
-					new Promise<Row[]>((resolve) => {
-						release = resolve
-					})
-				}
-				onExport={onExport}
-			/>,
-		)
+		renderUI(<Probe exportRows={() => server.promise} onExport={onExport} />)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
 
 		await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('true'))
 
-		release?.(rows)
+		server.resolve(rows)
 
 		await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('false'))
 

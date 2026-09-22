@@ -9,6 +9,7 @@ import {
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
+import { deferred } from '../helpers'
 
 /**
  * The cache's loader seam, driven by hand.
@@ -21,21 +22,19 @@ import type { PdfViewerPage } from '../../components/pdf-viewer/types'
 function loader() {
 	let report: PdfLoadReport | undefined
 
-	let settle: (() => void) | undefined
+	const settled = deferred()
 
 	const run = vi.fn((next: PdfLoadReport) => {
 		report = next
 
-		return new Promise<void>((resolve) => {
-			settle = resolve
-		})
+		return settled.promise
 	})
 
 	return {
 		run,
 		page: (id: number) => report?.page(page(id)),
 		documentUrl: (url: string) => report?.documentUrl(url),
-		finish: () => settle?.(),
+		finish: () => settled.resolve(),
 	}
 }
 

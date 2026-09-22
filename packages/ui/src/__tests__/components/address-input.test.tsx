@@ -5,6 +5,7 @@ import { AddressInput, createPhotonProvider, photonProvider } from '../../compon
 import { Form, useFormState } from '../../components/form'
 import {
 	bySlot,
+	deferred,
 	fireEvent,
 	getSlot,
 	renderUI,
@@ -371,12 +372,9 @@ describe('AddressInput', () => {
 
 	it('pulses the field while a fetch is in flight, then settles', async () => {
 		await withFakeTime(async (clock) => {
-			let resolve: (suggestions: AddressSuggestion[]) => void = () => {}
+			const suggestions = deferred<AddressSuggestion[]>()
 
-			const provider: AddressProvider = () =>
-				new Promise<AddressSuggestion[]>((r) => {
-					resolve = r
-				})
+			const provider: AddressProvider = () => suggestions.promise
 
 			const { container } = renderUI(<AddressInput provider={provider} debounceMs={0} />)
 
@@ -390,7 +388,7 @@ describe('AddressInput', () => {
 
 			expect(field).toHaveClass('animate-pulse')
 
-			resolve([{ id: '1', label: '123 Main St' }])
+			suggestions.resolve([{ id: '1', label: '123 Main St' }])
 
 			await waitFor(() => {
 				expect(field).not.toHaveClass('animate-pulse')
