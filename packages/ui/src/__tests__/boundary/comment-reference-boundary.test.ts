@@ -283,15 +283,13 @@ describe('comment reference boundary', () => {
 			// this rule sat in a README rather than in a comment.
 			if (MARKDOWN_FILE.test(file)) collect(content, (index) => lineAt(content, index))
 			else if (SOURCE_FILE.test(file)) {
-				// `extractComments` rather than a raw `ts` scanner, which carries no
-				// parser context: a template literal holding a substitution — a
-				// `${number}/${number}` type is enough — desynchronizes it, and it then
-				// swallows every comment to the next backtick. That costs
-				// `chart-layout.ts` 118 of its 120 comments, and the tree 4,703 of
-				// 25,007. Reading comments alone is what keeps a synthetic path out of
-				// the result: the docs engine's api-extractor suite asserts on the path
-				// of a test file that is not supposed to exist.
-				for (const comment of extractComments(content)) collect(comment.text, () => comment.line)
+				// Comments only, read from the parse. `extractComments` gives the reason
+				// that a scan without parser context fails. Reading comments alone keeps
+				// a synthetic path out of the result: the docs engine's api-extractor
+				// suite asserts on the path of a test file that is not supposed to exist.
+				for (const comment of extractComments(file, content)) {
+					collect(comment.text, () => comment.line)
+				}
 			}
 		})
 

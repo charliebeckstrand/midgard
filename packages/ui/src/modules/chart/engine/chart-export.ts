@@ -187,10 +187,10 @@ function csvField(value: string): string {
 }
 
 /**
- * Builds a CSV from a chart's readout: a leading empty corner cell then one
- * column per series, and one row per category — the same category × series grid
- * the visually-hidden data table renders, so the export mirrors what assistive
- * tech reads. Values are the chart's formatted display strings.
+ * Builds a CSV from a chart's readout: a leading empty corner cell, then one
+ * column per series, and one row per category. It is the same category × series
+ * grid that the visually-hidden data table renders, so the export mirrors what
+ * assistive tech reads. Values are the chart's formatted display strings.
  *
  * @param readout - The values behind the marks.
  * @returns The CSV text, CRLF-delimited.

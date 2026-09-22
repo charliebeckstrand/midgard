@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+	extractComments,
 	LIVING_MARKDOWN,
 	markdownBreaks,
 	packageDir,
@@ -72,5 +73,35 @@ describe('controlled-language boundary', () => {
 			violations,
 			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, or drop the modal (STE.md rules 6 and 10):\n${violations.join('\n')}`,
 		).toEqual([])
+	})
+})
+
+// Both comment gates read through `extractComments`, so a comment it skips is
+// a comment neither gate checks.
+describe('comment reader', () => {
+	const texts = (file: string, source: string) =>
+		extractComments(file, source).map((comment) => comment.text.trim())
+
+	it('reads a comment after a regex literal that holds a quote', () => {
+		expect(texts('probe.ts', "const quote = /name: '/\n// after\n")).toEqual(['after'])
+	})
+
+	it('reads a comment after an apostrophe in JSX text', () => {
+		expect(texts('probe.tsx', "export const P = () => <p>Don't</p>\n// after\n")).toEqual(['after'])
+	})
+
+	it('reads a comment inside a JSX expression', () => {
+		expect(texts('probe.tsx', 'export const P = () => <p>{/* note */}</p>\n')).toEqual(['note'])
+	})
+
+	it('opens no comment inside a literal or JSX text', () => {
+		const source = [
+			"const a = 'https://a.dev'",
+			`const b = \`https://\${a}//b\``,
+			'const c = /\\/\\//',
+			'export const P = () => <p>https://c.dev</p>',
+		].join('\n')
+
+		expect(texts('probe.tsx', source)).toEqual([])
 	})
 })
