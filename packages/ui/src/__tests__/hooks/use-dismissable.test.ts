@@ -59,7 +59,17 @@ describe('useDismissable', () => {
 	it('ignores outside pointer when outsidePointer is disabled', () => {
 		const onDismiss = vi.fn()
 
-		renderHook(() => useDismissable({ open: true, onDismiss, outsidePointer: false }))
+		const { result, rerender } = renderHook(() =>
+			useDismissable({ open: true, onDismiss, outsidePointer: false }),
+		)
+
+		// Attached as the case above attaches it, so the flag is the only
+		// difference. A ref with no node rejects every press on its own.
+		const container = attach(document.createElement('div'))
+
+		Object.defineProperty(result.current, 'current', { value: container, writable: true })
+
+		rerender()
 
 		document.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))
 

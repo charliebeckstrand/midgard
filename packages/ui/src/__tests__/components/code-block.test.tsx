@@ -67,24 +67,27 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 
-	it('does not throw when unmounted before shiki resolves', async () => {
-		// The case asserted nothing at all, so it reported green whatever the
-		// component did. React reports an update on an unmounted tree through
-		// `console.error` rather than by throwing, which is the observable the
-		// contract actually has.
+	it('finishes a load that outlives its block, and reports nothing', async () => {
 		const reported = vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const { unmount } = renderUI(<CodeBlock code="unique-unmount-token" />)
 
-		// Tear the component down on the same tick; the cancelled flag inside the effect
-		// suppresses the trailing setHtml call.
+		// Tear the component down on the same tick, before shiki resolves.
 		unmount()
 
-		// Let pending microtasks settle so the effect cleanup runs.
-		await Promise.resolve()
+		// A macrotask lets the whole load chain run after the unmount. The chain is
+		// three promise hops deep, so one microtask ended the case before any of it
+		// ran, and nothing the case read could change.
+		await new Promise((resolve) => setTimeout(resolve, 0))
 
 		expect(reported).not.toHaveBeenCalled()
 
 		expect(screen.queryByText('unique-unmount-token')).toBeNull()
+
+		// The control that the chain did run: it filled the cache, so a second block
+		// with the same code draws the highlighted markup on its first render.
+		const { container } = renderUI(<CodeBlock code="unique-unmount-token" />)
+
+		expect(container.querySelector('pre.shiki')).not.toBeNull()
 	})
 })

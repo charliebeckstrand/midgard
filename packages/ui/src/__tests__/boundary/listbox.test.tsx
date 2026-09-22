@@ -312,9 +312,6 @@ describe('Listbox', () => {
 
 		const clear = screen.getByRole('button', { name: 'Clear selection' })
 
-		// mousedown is swallowed so the trigger doesn't toggle the listbox open.
-		fireEvent.mouseDown(clear)
-
 		fireEvent.click(clear)
 
 		// §7.3: a cleared single selection reports `null` (controlled with no

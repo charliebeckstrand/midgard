@@ -278,8 +278,11 @@ describe('Combobox', () => {
 
 		const clear = screen.getByRole('button', { name: 'Clear selection' })
 
-		// mousedown is swallowed so the trigger doesn't steal focus before the click lands.
+		// The suffix slot around the button opens the menu on mousedown. The button
+		// stops the press there, so the menu stays shut.
 		fireEvent.mouseDown(clear)
+
+		expect(getSlot(container, 'combobox-input')).toHaveAttribute('aria-expanded', 'false')
 
 		fireEvent.click(clear)
 

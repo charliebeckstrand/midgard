@@ -342,8 +342,10 @@ describe('AddressInput', () => {
 
 			const clear = screen.getByRole('button', { name: 'Clear selection' })
 
-			// mousedown is swallowed so the trigger doesn't steal focus before the click lands.
-			fireEvent.mouseDown(clear)
+			// The suffix slot around the button toggles the menu on mousedown, and its
+			// handler cancels the press. The button stops the press first, so it comes
+			// back uncancelled.
+			expect(fireEvent.mouseDown(clear)).toBe(true)
 
 			fireEvent.click(clear)
 

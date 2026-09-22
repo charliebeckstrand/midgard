@@ -326,6 +326,12 @@ describe('Form', () => {
 			fireEvent.submit(form)
 		})
 
+		// The control: the submit is in flight. Without it, every assertion below
+		// also holds for a form that never submitted.
+		expect(onSubmit).toHaveBeenCalledOnce()
+
+		expect(container.querySelector('fieldset')).toBeDisabled()
+
 		// Reset supersedes the in-flight submit and clears its pending state.
 		await act(async () => {
 			actions?.reset()
