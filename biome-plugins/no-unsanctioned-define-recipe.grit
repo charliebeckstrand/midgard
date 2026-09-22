@@ -6,10 +6,9 @@ language js
 // else, a recipe defined in place escapes the layering the package reads its
 // styling through.
 //
-// `kata-boundary.test.ts` held this as a `node:fs` scan over source text. The
-// specifier is matched by regex rather than by literal, because the scan it
-// replaces accepted any path ending in `core/recipe` — a deep relative path, a
-// package path, either quote style.
+// The specifier is matched by regex rather than by literal, so it accepts any
+// path that ends in `core/recipe`: a deep relative path, a package path, and
+// either quote style.
 //
 // The sanctioned files are the `includes` beside this plugin in `biome.json`:
 // the kata surface, the katakana applicators, and the per-layout variants file.

@@ -243,7 +243,7 @@ These rows came up during the sweep. They predate `5c75a88`, so they sit outside
 
 **ADJ-03.** `grid.querySelector('[data-active]')` can match the header filter button or the group-by button before the active cell, when the header sits inside `[role="grid"]`. This was not run.
 
-**ADJ-04.** Five citations dangle. `a11y/baseline.test.tsx` cites `cases.tsx` and `cases.ts`. `controlled-language.ts` and its boundary test name the deleted 2026-08-02 audit. `no-unsanctioned-define-recipe.grit` names the deleted `kata-boundary` test. The B07-C10 body of the bug audit cites a `variant` prop, but the prop is `shape`. `recipes/kata/README.md` still says "boundary-test list".
+**ADJ-04.** Five citations dangle. `a11y/baseline.test.tsx` cites `cases.tsx` and `cases.ts`. `controlled-language.ts` and its boundary test name the deleted 2026-08-02 audit. Each of the three `biome-plugins` files names the deleted test that it replaced, such as `kata-boundary`. The B07-C10 body of the bug audit cites a `variant` prop, but the prop is `shape`. `recipes/kata/README.md` still says "boundary-test list".
 
 ## Ruled out
 
