@@ -3,6 +3,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
+import type { BrowserCommand } from 'vitest/node'
 
 const CI = Boolean(process.env.CI)
 
@@ -42,6 +43,43 @@ function componentModulesStub(): Plugin {
 				? 'export default { packageName: "", names: {} }'
 				: null,
 	}
+}
+
+/**
+ * Moves the real mouse off the tester iframe, onto the runner's own page.
+ *
+ * The CDP cursor is page state, and one page serves every file an instance
+ * runs. A `userEvent.hover` leaves it where it pointed. The next case that
+ * renders a hover-driven element under that point opens it with no hover of
+ * its own. `grid-cell-truncate-tooltip` did exactly that: the case before it
+ * left the cursor over the same cell, and under load the tooltip opened after
+ * its 250ms delay and before the case's own hover.
+ *
+ * A point inside the iframe can end up under whatever a later case renders.
+ * A point outside it cannot, so the cursor parks in the strip that the scaled
+ * iframe leaves free on the right, or below it.
+ */
+const parkPointer: BrowserCommand<[]> = async (context) => {
+	const box = await (await context.frame()).frameElement().then((frame) => frame.boundingBox())
+
+	const page = context.page.viewportSize()
+
+	if (!box || !page) throw new Error('parkPointer: the tester iframe has no box on the page')
+
+	const spot =
+		box.x + box.width + 1 < page.width
+			? { x: page.width - 1, y: 1 }
+			: box.y + box.height + 1 < page.height
+				? { x: 1, y: page.height - 1 }
+				: null
+
+	if (!spot) {
+		throw new Error(
+			`parkPointer: the tester iframe fills the ${page.width}x${page.height} page, so no point lies outside it`,
+		)
+	}
+
+	await context.page.mouse.move(spot.x, spot.y)
 }
 
 /**
@@ -163,6 +201,8 @@ export default defineConfig({
 		],
 		browser: {
 			enabled: true,
+			// `browser/setup/index.ts` calls it before every case.
+			commands: { parkPointer },
 			provider: playwright(),
 			headless: true,
 			screenshotFailures: false,
