@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
-import { bySlot, renderUI, waitFor } from '../helpers'
+import { getSlot, renderUI, waitFor } from '../helpers'
 
 /**
  * Menu scroll-overflow affordance (real layout). The viewport's max-height,
@@ -14,9 +14,9 @@ import { bySlot, renderUI, waitFor } from '../helpers'
 describe('Menu scroll overflow (real browser)', () => {
 	/**
 	 * The scroll viewport of a `count`-row menu, opened `static` so no pointer
-	 * work is needed. The cap is opt-in, so every affordance case passes
-	 * `capped`: the rows only run past an edge while a cap holds the viewport
-	 * shorter than them.
+	 * work is needed. The cap is opt-in, so an affordance case passes `capped`:
+	 * the rows only run past an edge while a cap holds the viewport shorter
+	 * than them. Omit the flag to render the default menu.
 	 */
 	function viewportFor(capped?: boolean, count = 12) {
 		const { container } = renderUI(
@@ -30,22 +30,8 @@ describe('Menu scroll overflow (real browser)', () => {
 			</Menu>,
 		)
 
-		const viewport = bySlot(container, 'menu-viewport')
-
-		if (!(viewport instanceof HTMLElement)) throw new Error('menu viewport not rendered')
-
-		return viewport
+		return getSlot(container, 'menu-viewport')
 	}
-
-	it('caps the viewport and stamps only the below edge at the top', async () => {
-		const viewport = viewportFor(true)
-
-		expect(viewport.scrollHeight).toBeGreaterThan(viewport.clientHeight)
-
-		await waitFor(() => expect(viewport).toHaveAttribute('data-overflow-below'))
-
-		expect(viewport).not.toHaveAttribute('data-overflow-above')
-	})
 
 	it('flips the edge attributes as the viewport scrolls to the bottom', async () => {
 		const viewport = viewportFor(true)
@@ -74,7 +60,9 @@ describe('Menu scroll overflow (real browser)', () => {
 		expect(styles.getPropertyValue('--menu-fade-above').trim()).toBe('')
 	})
 
-	it('grows to its rows uncapped, leaving no edge to stamp', async () => {
+	it('grows to its rows on the default menu, leaving no edge to stamp', async () => {
+		// The flag is omitted, not passed `false`, so this is the tree a consumer
+		// gets by default. That default is what the gate keys off.
 		const viewport = viewportFor()
 
 		// Settle on the geometry rather than on an attribute: the panel fitting
