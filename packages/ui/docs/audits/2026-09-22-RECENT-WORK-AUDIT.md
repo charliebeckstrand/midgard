@@ -45,7 +45,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TOOL-01` | `packages/*/package.json`, `apps/*/package.json` | the `lint` script | correctness | high | CONFIRMED | ✅ RESOLVED ([#1179](https://github.com/charliebeckstrand/midgard/pull/1179)) |
 | `BENCH-01` | `packages/ui/src/__benchmarks__/browser/menu-pointer.bench.tsx` | the travel-test rung (`openCorridor`) | correctness | high | CONFIRMED | ◯ OPEN |
 | `MENU-01` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1181](https://github.com/charliebeckstrand/midgard/pull/1181)) |
-| `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ◐ FIXED |
+| `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ◯ OPEN |
 | `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◯ OPEN |
@@ -75,8 +75,8 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ◯ OPEN |
-| `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ◐ FIXED |
-| `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ◐ FIXED |
+| `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
+| `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ◯ OPEN |
 | `SRC-05` | `packages/ui/src/__tests__/setup/index.ts`, `helpers/reset-singletons.ts` | the reset comments | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `SRC-06` | `packages/ui/src/__tests__/helpers/reset-singletons.ts`, `helpers/residue.ts`, `packages/ui/vitest.browser.config.ts` | audit names in code | cleanliness | low | CONFIRMED | ◯ OPEN |
