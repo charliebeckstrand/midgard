@@ -65,7 +65,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `BENCH-07` | `packages/ui/src/__benchmarks__/fixtures.ts` | `MENU_ROWS` | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ◐ FIXED |
-| `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◯ OPEN |
