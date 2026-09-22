@@ -102,6 +102,22 @@ const TEST_FILE = /\.(?:test|bench)\.tsx?$/
 // checks names its file in full.
 const CITATION = /(?<![*-])\b[\w-][\w.-]*\.(?:test|bench)\.tsx?\b/g
 
+// Emphasis around a name, as in `**recipe-boundary.test.ts**`, is Markdown and
+// not a glob. The name opens after a `*`, which the lookbehind refuses, and an
+// underscore run takes away the word boundary. So the markers go before the
+// match. Each one turns into spaces of its own width, and an index keeps its
+// line.
+const EMPHASIZED = /(\*{1,2}|_{1,2})([\w-][\w.-]*\.(?:test|bench)\.tsx?)\1/g
+
+/** `text` with the emphasis markers around each citation blanked out. */
+function unemphasize(text: string): string {
+	return text.replace(EMPHASIZED, (_, mark: string, name: string) => {
+		const blank = ' '.repeat(mark.length)
+
+		return `${blank}${name}${blank}`
+	})
+}
+
 /** The 1-based line `index` falls on, for a violation the reader has to open. */
 function lineAt(content: string, index: number): number {
 	let line = 1
@@ -279,7 +295,7 @@ describe('comment reference boundary', () => {
 			if (!content.includes('.test.ts') && !content.includes('.bench.ts')) return
 
 			const collect = (text: string, line: (index: number) => number) => {
-				for (const match of text.matchAll(CITATION)) {
+				for (const match of unemphasize(text).matchAll(CITATION)) {
 					cited.push({ file: srcRelative(file), line: line(match.index), name: match[0] })
 				}
 			}
