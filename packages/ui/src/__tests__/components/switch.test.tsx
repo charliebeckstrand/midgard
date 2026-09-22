@@ -1,15 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { Switch, SwitchField } from '../../components/switch'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
-
-function FieldProbe({ name }: { name: string }) {
-	const field = useFormField(name)
-
-	return <output data-slot="probe">{String(field?.value)}</output>
-}
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Switch', () => {
 	it('keeps the switch role and synced aria-checked over consumer props', () => {
@@ -77,7 +72,7 @@ describe('Switch in a Form', () => {
 
 		expect(input).toHaveAttribute('aria-checked', 'true')
 
-		expect(bySlot(container, 'probe')?.textContent).toBe('true')
+		expect(getFieldProbe('dark').textContent).toBe('true')
 
 		expect(onChange).toHaveBeenCalled()
 	})
@@ -99,7 +94,7 @@ describe('Switch in a Form', () => {
 		fireEvent.click(input)
 
 		// The consumer's handler resolves; the store stays untouched.
-		expect(bySlot(container, 'probe')?.textContent).toBe('false')
+		expect(getFieldProbe('dark').textContent).toBe('false')
 
 		expect(onChange).toHaveBeenCalled()
 	})

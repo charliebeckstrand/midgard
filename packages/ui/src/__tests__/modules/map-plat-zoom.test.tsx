@@ -14,23 +14,13 @@ import { categoricalPlat } from '../helpers/map-plat'
  */
 
 /**
- * Renders the plat with a real SVG box and a plot region that answers pointer
- * capture. jsdom reports every rect as zero and implements none of the capture
- * API, and the gestures convert through both — without them a wheel would find
- * no focus and a drag would throw on its first press.
+ * Renders the plat with a real SVG box. jsdom reports every rect as zero, and
+ * the gestures convert through the box, so without it a wheel would find no
+ * focus. The pointer capture a drag takes is the setup's stub, which answers
+ * what the plot really took and released.
  */
 function renderZoomable(extra?: Parameters<typeof categoricalPlat>[0]) {
-	const view = renderNavigable(categoricalPlat({ zoom: true, ...extra }))
-
-	const { plot } = view
-
-	plot.setPointerCapture = vi.fn()
-
-	plot.releasePointerCapture = vi.fn()
-
-	plot.hasPointerCapture = vi.fn(() => true)
-
-	return view
+	return renderNavigable(categoricalPlat({ zoom: true, ...extra }))
 }
 
 /** The zoom layer's transform, or `null` where the plat drew no layer. */
@@ -559,6 +549,24 @@ describe('MapPlat pan', () => {
 		drag(plot, { x: 200, y: 100 }, { x: 160, y: 80 })
 
 		expect(transformOf(container)).not.toBe(before)
+	})
+
+	it('takes the pointer once the press becomes a pan, and lets it go on release', () => {
+		const { plot } = renderZoomable()
+
+		fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+
+		// A press is not a gesture yet. A capture here would retarget the click that
+		// a region pick needs.
+		expect(plot.hasPointerCapture(1)).toBe(false)
+
+		fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+
+		expect(plot.hasPointerCapture(1)).toBe(true)
+
+		fireEvent.pointerUp(plot, { pointerId: 1 })
+
+		expect(plot.hasPointerCapture(1)).toBe(false)
 	})
 
 	it('holds the view for a press that never travels', () => {

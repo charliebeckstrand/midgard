@@ -83,6 +83,8 @@ describe('Sparkline', () => {
 
 		const before = [...container.querySelectorAll('rect')]
 
+		expect(before).toHaveLength(4)
+
 		rerender(<Sparkline data={[1, 4, 2, 8, 5]} animate shape="bar" aria-label="Animated bars" />)
 
 		const after = [...container.querySelectorAll('rect')]

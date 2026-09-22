@@ -16,11 +16,9 @@ function makeNode() {
 
 	node.focus = vi.fn()
 
-	node.setPointerCapture = vi.fn()
-
-	node.releasePointerCapture = vi.fn()
-
-	node.hasPointerCapture = vi.fn(() => true)
+	// A spy over the setup's capture stub, so `hasPointerCapture` still answers
+	// what the drag took and released.
+	vi.spyOn(node, 'setPointerCapture')
 
 	return node
 }

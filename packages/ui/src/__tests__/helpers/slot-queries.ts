@@ -1,3 +1,4 @@
+import { nonEmpty } from './non-empty'
 import { present } from './present'
 
 /**
@@ -40,4 +41,28 @@ export function getSlot<T extends HTMLElement = HTMLElement>(
 	name: string,
 ): T {
 	return present<T>(bySlot(container, name), `[data-slot="${name}"]`)
+}
+
+/**
+ * Query every element by its `data-slot`, and throw when none matches.
+ *
+ * Use it where a case asserts on each match and the render does not fix the
+ * count. An assertion in a loop over `allBySlot` passes on an empty list, so a
+ * renamed slot leaves it green. `getAllSlots` reports that miss at the query.
+ *
+ * Where the render fixes the count, assert `toHaveLength(n)` on `allBySlot`
+ * instead. That check also fails when one match is missing.
+ *
+ * @param container - The subtree to search.
+ * @param name - The `data-slot` value.
+ * @returns Every match in document order, narrowed to `T`.
+ * @throws If nothing matches.
+ */
+export function getAllSlots<T extends HTMLElement = HTMLElement>(
+	container: HTMLElement,
+	name: string,
+): [T, ...T[]] {
+	const selector = `[data-slot="${name}"]`
+
+	return nonEmpty(container.querySelectorAll<T>(selector), selector)
 }

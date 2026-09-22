@@ -108,7 +108,11 @@ describe('Group', () => {
 			</Group>,
 		)
 
-		for (const child of allBySlot(container, 'child')) {
+		const children = allBySlot(container, 'child')
+
+		expect(children).toHaveLength(2)
+
+		for (const child of children) {
 			expect(child).toHaveAttribute('data-group-orientation', 'vertical')
 		}
 	})

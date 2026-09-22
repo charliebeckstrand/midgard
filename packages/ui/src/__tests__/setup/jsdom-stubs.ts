@@ -65,6 +65,39 @@ if (typeof Element.prototype.scrollIntoView !== 'function') {
 	Element.prototype.scrollIntoView = vi.fn()
 }
 
+// jsdom implements no pointer capture, so a drag handler that captures its
+// pointer throws on the first press. The stub keeps the captured pointer ids of
+// each element, so `hasPointerCapture` answers what the code set and released.
+// A stub that always answers `true` hides every path that takes the capture.
+//
+// Plain functions, not `vi.fn()`. A case that needs a spy calls
+// `vi.spyOn(el, 'setPointerCapture')`, and `restoreMocks` removes that spy. On a
+// member that is already a mock, `vi.spyOn` returns that mock, which every
+// element shares and nothing restores.
+//
+// A capture ends only on an explicit release. A browser also releases it after
+// `pointerup` and `pointercancel`, and fires `lostpointercapture`. jsdom fires
+// neither event, so the stub does not either.
+if (typeof Element.prototype.setPointerCapture !== 'function') {
+	const captured = new WeakMap<Element, Set<number>>()
+
+	Element.prototype.setPointerCapture = function setPointerCapture(pointerId: number) {
+		const ids = captured.get(this) ?? new Set<number>()
+
+		ids.add(pointerId)
+
+		captured.set(this, ids)
+	}
+
+	Element.prototype.releasePointerCapture = function releasePointerCapture(pointerId: number) {
+		captured.get(this)?.delete(pointerId)
+	}
+
+	Element.prototype.hasPointerCapture = function hasPointerCapture(pointerId: number) {
+		return captured.get(this)?.has(pointerId) ?? false
+	}
+}
+
 // jsdom defines window.scrollBy but logs a "Not implemented" jsdomError on every
 // call; the scroll-area scrollbar track falls back to it. The shared helper
 // neutralizes it here and stays importable for tests that want the spy.

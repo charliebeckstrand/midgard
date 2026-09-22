@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
 import { DensityProvider } from '../../providers/density'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, getAllSlots, renderUI, screen } from '../helpers'
 
 describe('Grid per-column filters', () => {
 	type Row = { id: number; name: string; role: string }
@@ -110,7 +110,7 @@ describe('Grid per-column filters', () => {
 		// Scoped to the column: no field picker, no nested groups.
 		expect(screen.queryByRole('menuitem', { name: 'Add group' })).not.toBeInTheDocument()
 
-		const labels = Array.from(document.querySelectorAll('[data-slot="listbox-button"]'), (el) =>
+		const labels = getAllSlots(document.body, 'listbox-button').map((el) =>
 			el.getAttribute('aria-label'),
 		)
 

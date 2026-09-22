@@ -1,8 +1,9 @@
 import { type ComponentProps, createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { ZipcodeInput } from '../../components/zipcode-input'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('ZipcodeInput', () => {
 	it('renders an input with data-slot="zipcode-input" and a map-pin icon prefix by default', () => {
@@ -164,16 +165,10 @@ describe('ZipcodeInput', () => {
 	})
 
 	it('marks the form field touched on blur', async () => {
-		function TouchedProbe() {
-			const field = useFormField('zip')
-
-			return <span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
-		}
-
 		const { container } = renderUI(
 			<Form defaultValues={{ zip: '' }}>
 				<ZipcodeInput name="zip" />
-				<TouchedProbe />
+				<FieldProbe name="zip" />
 			</Form>,
 		)
 
@@ -183,10 +178,10 @@ describe('ZipcodeInput', () => {
 
 		await user.click(input)
 
-		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+		expect(getFieldProbe('zip')).toHaveAttribute('data-touched', 'false')
 
 		await user.tab()
 
-		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(getFieldProbe('zip')).toHaveAttribute('data-touched', 'true')
 	})
 })

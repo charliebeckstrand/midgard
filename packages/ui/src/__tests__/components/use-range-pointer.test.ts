@@ -26,7 +26,7 @@ function makeThumbs(): { refs: ThumbButtonRefs; buttons: [HTMLButtonElement, HTM
 function makeEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
 	const target = document.createElement('div')
 
-	target.setPointerCapture = vi.fn()
+	vi.spyOn(target, 'setPointerCapture')
 
 	return makePointerEvent({ currentTarget: target, ...overrides })
 }

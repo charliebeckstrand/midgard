@@ -2,26 +2,17 @@ import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Field, Label } from '../../components/fieldset'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { Listbox } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { act, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 const option = (
 	<div role="option" tabIndex={-1} aria-selected="false">
 		Option
 	</div>
 )
-
-function FieldProbe({ name }: { name: string }) {
-	const field = useFormField(name)
-
-	return (
-		<output data-slot="probe" data-touched={field?.touched}>
-			{String(field?.value)}
-		</output>
-	)
-}
 
 describe('Listbox', () => {
 	it('renders trigger button with combobox role', () => {
@@ -445,7 +436,7 @@ describe('Listbox in a Form', () => {
 	})
 
 	it('writes back through the bound field', () => {
-		const { container } = renderUI(
+		renderUI(
 			<Form defaultValues={{ plan: 'pro' as string | undefined }}>
 				<Listbox<string> name="plan" clearable displayValue={(v) => v}>
 					<div>Option</div>
@@ -458,7 +449,7 @@ describe('Listbox in a Form', () => {
 		// without driving the floating panel (CONVENTIONS §10.3).
 		fireEvent.click(screen.getByRole('button', { name: 'Clear selection' }))
 
-		expect(bySlot(container, 'probe')?.textContent).toBe('undefined')
+		expect(getFieldProbe('plan').textContent).toBe('undefined')
 	})
 
 	it('lets an explicit value prop win over the form field', () => {
@@ -476,7 +467,7 @@ describe('Listbox in a Form', () => {
 	})
 
 	it('marks the bound field touched when the trigger blurs', () => {
-		const { container } = renderUI(
+		renderUI(
 			<Form defaultValues={{ plan: 'pro' }}>
 				<Listbox<string> name="plan" displayValue={(v) => v}>
 					<div>Option</div>
@@ -485,11 +476,11 @@ describe('Listbox in a Form', () => {
 			</Form>,
 		)
 
-		expect(bySlot(container, 'probe')?.dataset.touched).toBe('false')
+		expect(getFieldProbe('plan')).toHaveAttribute('data-touched', 'false')
 
 		fireEvent.blur(screen.getByRole('combobox'))
 
-		expect(bySlot(container, 'probe')?.dataset.touched).toBe('true')
+		expect(getFieldProbe('plan')).toHaveAttribute('data-touched', 'true')
 	})
 })
 

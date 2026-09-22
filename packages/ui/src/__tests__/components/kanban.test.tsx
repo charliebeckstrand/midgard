@@ -507,7 +507,11 @@ describe('KanbanColumn naming', () => {
 			</Kanban>,
 		)
 
-		for (const section of container.querySelectorAll('[data-slot="kanban-column"]')) {
+		const sections = container.querySelectorAll('[data-slot="kanban-column"]')
+
+		expect(sections).toHaveLength(2)
+
+		for (const section of sections) {
 			expect(section).not.toHaveAttribute('aria-labelledby')
 		}
 	})

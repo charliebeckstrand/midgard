@@ -20,6 +20,7 @@ import {
 	renderUI,
 	screen,
 } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { makeFormWrapper } from '../helpers/form-wrapper'
 
 describe('Form', () => {
@@ -645,17 +646,6 @@ describe('Form', () => {
 	})
 
 	it('preserves touched and errors across a controlled values sync', () => {
-		function TouchedProbe() {
-			const field = useFormField('name')
-
-			return (
-				<>
-					<span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
-					<span data-testid="error">{field?.errors?.[0] ?? ''}</span>
-				</>
-			)
-		}
-
 		function Host() {
 			const [values, setValues] = useState({ name: '' })
 
@@ -669,7 +659,7 @@ describe('Form', () => {
 						values={values}
 						validate={{ name: (v) => (v.length === 0 ? 'required' : undefined) }}
 					>
-						<TouchedProbe />
+						<FieldProbe name="name" />
 					</Form>
 				</>
 			)
@@ -684,17 +674,17 @@ describe('Form', () => {
 			fireEvent.submit(form)
 		})
 
-		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(getFieldProbe('name')).toHaveAttribute('data-touched', 'true')
 
-		expect(screen.getByTestId('error').textContent).toBe('required')
+		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'required')
 
 		act(() => {
 			screen.getByText('sync').click()
 		})
 
-		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(getFieldProbe('name')).toHaveAttribute('data-touched', 'true')
 
-		expect(screen.getByTestId('error').textContent).toBe('required')
+		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'required')
 	})
 
 	it('does not re-sync when the values reference is unchanged across renders', () => {
