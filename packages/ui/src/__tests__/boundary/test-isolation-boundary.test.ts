@@ -1,8 +1,13 @@
 import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { collectPatternViolations, srcDir } from '../helpers/walk-source'
+import {
+	collectPatternViolations,
+	srcDir,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
 // A project that runs `isolate: false` shares one module registry across every
 // file a worker runs; vitest.config.ts records what that buys. Two calls break
@@ -43,15 +48,39 @@ const FORBIDDEN_PATTERNS = [
 
 // The browser instances share one page, and `page.viewport` writes to it. A
 // call inside an `it` reaches every later case in the same file and nothing
-// can restore it there, which is how one block in `chart-aspect-legend` came
-// to pass on a width a sibling block above it had set. A call in a `beforeAll`
-// states the file's width once, before any case runs. Vitest resets the page
-// to `browser.viewport` before each file, so nothing crosses a file boundary
-// and no departure hook is needed.
+// can restore it there. A call in a `beforeAll` states the width before any
+// case runs. Vitest resets the page to `browser.viewport` before each file, so
+// nothing crosses a file boundary and no departure hook is needed.
+//
+// A `beforeAll` has the scope of its block, so a sibling block with no hook of
+// its own runs at the width the block above it left. That is how one block in
+// `chart-aspect-legend` came to pass on a width that it never stated. So a file
+// states its width once at file level, or at the head of each top-level block;
+// `unstatedViewports` below holds that half.
 const LOOSE_VIEWPORT = {
 	label: 'viewport set outside a beforeAll',
 	regex: /^(?!\s*beforeAll\(\(\) => page\.viewport\().*page\.viewport\(.*$/gm,
 } as const
+
+/** A viewport hook at file level, which covers every block in the file. */
+const FILE_VIEWPORT = /^beforeAll\(\(\) => page\.viewport\(/m
+
+/** A viewport hook at the head of a top-level block. */
+const BLOCK_VIEWPORT = /^\tbeforeAll\(\(\) => page\.viewport\(/m
+
+/**
+ * The top-level blocks of a browser file that set the viewport at block level,
+ * where one of them has no hook of its own. Each is named by its title.
+ */
+function unstatedViewports(text: string): string[] {
+	if (!/page\.viewport\(/.test(text) || FILE_VIEWPORT.test(text)) return []
+
+	return text
+		.split(/^(?=describe\b)/m)
+		.slice(1)
+		.filter((block) => !BLOCK_VIEWPORT.test(block))
+		.map((block) => block.slice(0, block.indexOf('\n')))
+}
 
 // `bySlot` and `querySelector` both return null, and a cast that says otherwise
 // moves the miss to whatever reads the result next: a `getBoundingClientRect`
@@ -123,6 +152,27 @@ describe('test isolation boundary', () => {
 		expect(
 			loose,
 			`a browser file states its width once, as \`beforeAll(() => page.viewport(w, h))\` — a call inside an \`it\` reaches the file's later cases, and nothing restores it there:\n  ${loose.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	it('states the viewport for every top-level block of a file that sets one', () => {
+		const gaps: string[] = []
+
+		walkSource(
+			join(testsDir, 'browser'),
+			(file, content) => {
+				if (!/\.tsx?$/.test(file)) return
+
+				for (const block of unstatedViewports(stripSourceComments(content))) {
+					gaps.push(`${relative(srcDir, file)} → ${block}`)
+				}
+			},
+			new Set(['setup']),
+		)
+
+		expect(
+			gaps,
+			`a block with no viewport hook runs at the width a block above it left — state it at file level, or at the head of each top-level block:\n  ${gaps.join('\n  ')}`,
 		).toEqual([])
 	})
 
