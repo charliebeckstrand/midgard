@@ -344,6 +344,18 @@ Two corrections came out of writing them. `contains` alone misses an aliased imp
 
 **Step 10 is blocked on a decision about the components rather than the tests**: density needs one observable before a sweep can read it, which is a change to the components, and the text-input legs need the near-miss wording settled. Both are as this document's step 5 entry describes them.
 
+**The intermittent failure is root-caused, and the cause is a document listener that outlives the test that installs it.** `@dnd-kit/core`'s pointer sensor adds a capture-phase `stopPropagation` on the document when a drag activates. It removes that listener 50ms after the release, in `AbstractPointerSensor.detach`. Nothing in `DndContext` detaches the sensor on unmount, so `cleanup` never reaches it. Both instances run `isolate: false`, so one page serves every file and the listener crosses the file boundary. While it sits there, every click on the page dies in the capture phase. No React root sees it, and an interaction silently does nothing.
+
+That is the shape every victim reads. `map-zoom-pick` clicks a mark, `list-item-hit-area` reads `wired: false` on the diagnostic this document added, and `grid-pagination-focus` finds Next still enabled after two presses. `current-rest` finds a panel still hidden after the tab press, and `scroll-overflow` reads the all-false state its hook writes when no re-render arrives. The forensics confirm it from the other side: a React root created fresh at the moment of failure drops a click of its own, and a click logged at the document in the capture phase never bubbles back.
+
+Four browser files leave a drag open. `grid-reorder-rightclick` presses the grip and never releases it, so its listener lives until an unrelated pointerup. `grid-reorder-affordance-press`, `grid-reorder-sync` and `grid-row-reorder` release and then end on the same tick, so each hands the next file a 50ms window. A probe in the setup's `afterEach` — a click on the body, read at the document — named all four in one run. It named `scroll-overflow` as that run's victim, with all five of its cases dead.
+
+Two things made the failure look random, and both are the reason a seed never reproduced. The file order is not fixed: the sequencer orders by cached duration, and two runs here put `grid-reorder-rightclick` before `grid-pagination-focus` and before `grid-edit-validation-visible`. The 50ms tail is a race against the next file's first click. So the victim moves with the order and with the machine, and every victim passes alone because no drag precedes it there.
+
+This corrects three entries above. "Still undiagnosed" is closed. "Six mechanisms are ruled out" stands, and none of them was near: the state shared across the page is a document listener, which no entry names. The reading that every failure reads a value that had not settled is wrong for this set — the value never arrives at all, because the click that would produce it is dropped.
+
+The fix is `releaseDrag` in [`browser/helpers/drag.ts`](../../src/__tests__/browser/helpers/drag.ts). It releases the pointer and then polls `swallowsClicks` until the page takes clicks again, so a green run pays one poll rather than a 50ms hold. The residue guard reads the same probe, so a case that leaves a drag open fails by name instead of the case after it. Sixteen full browser runs pass against a base rate near one run in three. Closed by [#1180](https://github.com/charliebeckstrand/midgard/pull/1180).
+
 ---
 
 **See also:** [`CONVENTIONS.md` §10](../../../../CONVENTIONS.md) · [`vitest.config.ts`](../../vitest.config.ts) · [`vitest.browser.config.ts`](../../vitest.browser.config.ts).

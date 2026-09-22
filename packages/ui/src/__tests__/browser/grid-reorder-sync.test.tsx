@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
+import { releaseDrag } from './helpers/drag'
 
 /**
  * During a column-reorder drag the body cells shift via a CSS variable their
@@ -65,6 +66,6 @@ describe('grid column reorder: header/body shift stay in phase (real browser)', 
 		// — proof the equality checks above aren't a vacuous both-untransformed pass.
 		expect(columnTransform('a').head).not.toBe('matrix(1, 0, 0, 1, 0, 0)')
 
-		fireEvent.pointerUp(grip, { clientX: 230, clientY: 10 })
+		await releaseDrag(grip, { clientX: 230, clientY: 10 })
 	})
 })
