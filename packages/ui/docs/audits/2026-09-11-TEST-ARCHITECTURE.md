@@ -354,7 +354,7 @@ Two things made the failure look random, and both are the reason a seed never re
 
 This corrects three entries above. "Still undiagnosed" is closed. "Six mechanisms are ruled out" stands, and none of them was near: the state shared across the page is a document listener, which no entry names. The reading that every failure reads a value that had not settled is wrong for this set — the value never arrives at all, because the click that would produce it is dropped.
 
-The fix is `releaseDrag` in [`browser/helpers/drag.ts`](../../src/__tests__/browser/helpers/drag.ts). It releases the pointer and then polls `swallowsClicks` until the page takes clicks again, so a green run pays one poll rather than a 50ms hold. The residue guard reads the same probe, so a case that leaves a drag open fails by name instead of the case after it. Sixteen full browser runs pass against a base rate near one run in three.
+The fix is `releaseDrag` in [`browser/helpers/drag.ts`](../../src/__tests__/browser/helpers/drag.ts). It releases the pointer and then polls `swallowsClicks` until the page takes clicks again, so a green run pays one poll rather than a 50ms hold. The residue guard reads the same probe, so a case that leaves a drag open fails by name instead of the case after it. Sixteen full browser runs pass against a base rate near one run in three. Closed by [#1180](https://github.com/charliebeckstrand/midgard/pull/1180).
 
 ---
 
