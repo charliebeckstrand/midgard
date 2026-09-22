@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { CodeBlock } from '../../components/code/code-block'
+import { CodeBlock, loadShiki } from '../../components/code/code-block'
 import { bySlot, renderUI, screen, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here
@@ -75,9 +75,13 @@ describe('CodeBlock', () => {
 		// Tear the component down on the same tick, before shiki resolves.
 		unmount()
 
-		// A macrotask lets the whole load chain run after the unmount. The chain is
-		// three promise hops deep, so one microtask ended the case before any of it
-		// ran, and nothing the case read could change.
+		// The whole load chain runs after the unmount. One microtask ended the case
+		// before any of it ran, so nothing the case read could change. The chain
+		// waits on the memoized load first, and a worker's first import of shiki
+		// takes more than one macrotask, so the case waits on that same load. One
+		// macrotask then runs the highlight and the cache write behind it.
+		await loadShiki()
+
 		await new Promise((resolve) => setTimeout(resolve, 0))
 
 		expect(reported).not.toHaveBeenCalled()
