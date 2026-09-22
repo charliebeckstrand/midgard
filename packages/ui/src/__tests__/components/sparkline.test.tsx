@@ -76,6 +76,25 @@ describe('Sparkline', () => {
 		expect(bar.container.querySelectorAll('rect')).toHaveLength(4)
 	})
 
+	it('keeps the animated bar rects mounted when the series grows', () => {
+		const { container, rerender } = renderUI(
+			<Sparkline data={[1, 4, 2, 8]} animate shape="bar" aria-label="Animated bars" />,
+		)
+
+		const before = [...container.querySelectorAll('rect')]
+
+		rerender(<Sparkline data={[1, 4, 2, 8, 5]} animate shape="bar" aria-label="Animated bars" />)
+
+		const after = [...container.querySelectorAll('rect')]
+
+		expect(after).toHaveLength(5)
+
+		// A longer series narrows the slot, so every bar lands at a new x. Keyed on
+		// x, React remounts the whole row and each rect replays its entrance from
+		// the baseline. Keyed on the index, the original rects hold their nodes.
+		for (const [index, rect] of before.entries()) expect(after[index]).toBe(rect)
+	})
+
 	it('renders an empty box for an empty series without throwing', () => {
 		const { container } = renderUI(<Sparkline data={[]} aria-label="No data" />)
 
@@ -159,6 +178,9 @@ describe('sparklineGeometry', () => {
 		expect(geo.line).toBe('M 2 38 L 98 2')
 
 		expect(geo.bars).toHaveLength(2)
+
+		// The surviving bars keep their datum positions, which is what the rects key on.
+		expect(geo.bars.map((bar) => bar.index)).toEqual([0, 2])
 	})
 
 	it('drops ±Infinity from the drawn marks instead of pinning a vertex to an edge', () => {

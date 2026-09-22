@@ -100,7 +100,7 @@ function SparklineMarks({
 	if (shape === 'bar') {
 		return geometry.bars.map((bar) => (
 			<rect
-				key={bar.x}
+				key={bar.index}
 				x={bar.x}
 				y={bar.y}
 				width={bar.width}
@@ -157,16 +157,19 @@ function AnimatedSparklineMarks({
 	fillClass,
 }: SparklineMarksProps) {
 	if (shape === 'bar') {
-		return geometry.bars.map((bar, index) => (
+		// The key is the datum index, not `bar.x`. A longer series narrows the slot
+		// and moves every x, which would remount each rect and replay the entrance.
+		// The same index paces the stagger, so a bar rises on its own slot's beat.
+		return geometry.bars.map((bar) => (
 			<motion.rect
-				key={bar.x}
+				key={bar.index}
 				x={bar.x}
 				width={bar.width}
 				rx={barRadius}
 				className={fillClass}
 				initial={{ y: geometry.baseline, height: 0 }}
 				animate={{ y: bar.y, height: bar.height }}
-				transition={{ ...k.motion.grow, delay: index * k.motion.stagger }}
+				transition={{ ...k.motion.grow, delay: bar.index * k.motion.stagger }}
 			/>
 		))
 	}
