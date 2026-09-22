@@ -1,0 +1,33 @@
+name: PR title
+
+# A squash merge takes the pull request title as the commit subject on main, so
+# the title is the message that commitlint.config.mjs governs. The local
+# `commit-msg` hook never sees it. A workflow of its own, not a step in
+# ci.yml's `gate`, because a retitle fires `edited`, and a full gate run on
+# every edit of the body buys nothing.
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  commitlint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      # The root package alone holds commitlint and its preset.
+      - run: pnpm install --frozen-lockfile --filter midgard
+      # The title goes through the environment. An inline expression would
+      # splice untrusted text into the script.
+      - run: printf '%s\n' "$TITLE" | pnpm exec commitlint
+        env:
+          TITLE: ${{ github.event.pull_request.title }}

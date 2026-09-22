@@ -1,8 +1,13 @@
 version: 2
 
 updates:
-  # GitHub Actions only. Renovate owns npm and pnpm; renovate.json states the
-  # split and enforces it.
+  # GitHub Actions only. Renovate owns npm and pnpm, their security updates
+  # included, through `vulnerabilityAlerts`; renovate.json states the split and
+  # enforces it. So the repository setting for Dependabot security updates
+  # stays off, with Dependabot alerts on for Renovate to read. That setting
+  # acts on every ecosystem, whatever this file says. When it is on, it opens a
+  # second npm pull request for each advisory, under a `chore(deps)` header
+  # that commitlint rejects.
   - package-ecosystem: github-actions
     directory: /
     schedule:

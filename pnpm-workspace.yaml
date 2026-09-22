@@ -37,8 +37,8 @@ allowBuilds:
 # These entries set a minimum safe version for transitive packages with known
 # advisories. Each entry is a range, not a pin. pnpm resolves the newest match,
 # so a lockfile refresh carries the floor forward without an edit here. Renovate
-# does not read this file, because its npm manager takes overrides from
-# package.json alone.
+# reads this block too, and its range edit drops the floor, so a rule in
+# renovate.json keeps it away from these entries.
 overrides:
   esbuild: '>=0.28.2 <0.29'
   postcss: '>=8.5.28 <9'
