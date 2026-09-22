@@ -4,7 +4,7 @@ import { Combobox, ComboboxLabel, ComboboxOption } from '../../components/combob
 import { ComboboxPanel } from '../../components/combobox/combobox-panel'
 import { Control } from '../../components/control'
 import { Description, Field, Label, Message } from '../../components/fieldset'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import {
 	act,
@@ -18,6 +18,7 @@ import {
 	waitFor,
 	within,
 } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Combobox', () => {
 	it('renders input with combobox role', () => {
@@ -736,12 +737,6 @@ describe('Combobox active-descendant keyboard model', () => {
 	it('marks the form field touched when focus leaves the combobox', async () => {
 		const user = userEvent.setup({ delay: null })
 
-		function TouchedProbe() {
-			const field = useFormField('fruit')
-
-			return <span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
-		}
-
 		renderUI(
 			<Form defaultValues={{ fruit: undefined }}>
 				<Combobox<string> name="fruit" displayValue={(v) => v} placeholder="Search">
@@ -749,7 +744,7 @@ describe('Combobox active-descendant keyboard model', () => {
 						<ComboboxLabel>Apple</ComboboxLabel>
 					</ComboboxOption>
 				</Combobox>
-				<TouchedProbe />
+				<FieldProbe name="fruit" />
 			</Form>,
 		)
 
@@ -759,11 +754,11 @@ describe('Combobox active-descendant keyboard model', () => {
 
 		screen.getByRole('listbox')
 
-		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+		expect(getFieldProbe('fruit')).toHaveAttribute('data-touched', 'false')
 
 		await user.tab()
 
-		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(getFieldProbe('fruit')).toHaveAttribute('data-touched', 'true')
 	})
 })
 

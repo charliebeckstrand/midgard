@@ -9,8 +9,9 @@ import {
 	formatExpiry,
 } from '../../components/credit-card-input'
 import { Field, Label } from '../../components/fieldset'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('CreditCardInput', () => {
 	it('renders an input with type text, numeric inputMode, and a credit card icon prefix', () => {
@@ -445,20 +446,14 @@ describe('Credit card trio + Form', () => {
 	})
 
 	it('marks each form field touched on its own blur', async () => {
-		function TouchedProbe({ name }: { name: string }) {
-			const field = useFormField(name)
-
-			return <span data-testid={`touched-${name}`}>{field?.touched ? 'touched' : 'untouched'}</span>
-		}
-
 		const { container } = renderUI(
 			<Form defaultValues={{ number: '', expiry: '', cvv: '' }}>
 				<CreditCardInput name="number" />
 				<CreditCardInputExpiry name="expiry" />
 				<CreditCardInputCvv name="cvv" brand="visa" />
-				<TouchedProbe name="number" />
-				<TouchedProbe name="expiry" />
-				<TouchedProbe name="cvv" />
+				<FieldProbe name="number" />
+				<FieldProbe name="expiry" />
+				<FieldProbe name="cvv" />
 			</Form>,
 		)
 
@@ -466,24 +461,24 @@ describe('Credit card trio + Form', () => {
 
 		await user.click(getSlot<HTMLInputElement>(container, 'credit-card-input'))
 
-		expect(screen.getByTestId('touched-number').textContent).toBe('untouched')
+		expect(getFieldProbe('number')).toHaveAttribute('data-touched', 'false')
 
 		// Tab number -> expiry -> cvv -> out; each blur touches only its own field.
 		await user.tab()
 
-		expect(screen.getByTestId('touched-number').textContent).toBe('touched')
+		expect(getFieldProbe('number')).toHaveAttribute('data-touched', 'true')
 
-		expect(screen.getByTestId('touched-expiry').textContent).toBe('untouched')
-
-		await user.tab()
-
-		expect(screen.getByTestId('touched-expiry').textContent).toBe('touched')
-
-		expect(screen.getByTestId('touched-cvv').textContent).toBe('untouched')
+		expect(getFieldProbe('expiry')).toHaveAttribute('data-touched', 'false')
 
 		await user.tab()
 
-		expect(screen.getByTestId('touched-cvv').textContent).toBe('touched')
+		expect(getFieldProbe('expiry')).toHaveAttribute('data-touched', 'true')
+
+		expect(getFieldProbe('cvv')).toHaveAttribute('data-touched', 'false')
+
+		await user.tab()
+
+		expect(getFieldProbe('cvv')).toHaveAttribute('data-touched', 'true')
 	})
 })
 

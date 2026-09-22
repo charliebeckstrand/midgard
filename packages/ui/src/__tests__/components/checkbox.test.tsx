@@ -2,15 +2,10 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
-
-function FieldProbe({ name }: { name: string }) {
-	const field = useFormField(name)
-
-	return <output data-slot="probe">{String(field?.value)}</output>
-}
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Checkbox', () => {
 	it('renders a checkbox input with data-slot="checkbox" and a check icon', () => {
@@ -89,7 +84,7 @@ describe('Checkbox in a Form', () => {
 
 		expect(input.checked).toBe(true)
 
-		expect(bySlot(container, 'probe')?.textContent).toBe('true')
+		expect(getFieldProbe('agree').textContent).toBe('true')
 
 		expect(onChange).toHaveBeenCalled()
 	})
@@ -111,7 +106,7 @@ describe('Checkbox in a Form', () => {
 		fireEvent.click(input)
 
 		// The consumer's handler resolves; the store stays untouched.
-		expect(bySlot(container, 'probe')?.textContent).toBe('false')
+		expect(getFieldProbe('agree').textContent).toBe('false')
 
 		expect(onChange).toHaveBeenCalled()
 	})

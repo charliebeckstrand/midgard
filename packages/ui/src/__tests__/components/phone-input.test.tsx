@@ -1,8 +1,9 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { PhoneInput } from '../../components/phone-input'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('PhoneInput', () => {
 	it('renders an input with type tel and a phone icon prefix by default', () => {
@@ -184,16 +185,10 @@ describe('PhoneInput', () => {
 	})
 
 	it('marks the form field touched on blur', async () => {
-		function TouchedProbe() {
-			const field = useFormField('phone')
-
-			return <span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
-		}
-
 		const { container } = renderUI(
 			<Form defaultValues={{ phone: '' }}>
 				<PhoneInput name="phone" />
-				<TouchedProbe />
+				<FieldProbe name="phone" />
 			</Form>,
 		)
 
@@ -203,10 +198,10 @@ describe('PhoneInput', () => {
 
 		await user.click(input)
 
-		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+		expect(getFieldProbe('phone')).toHaveAttribute('data-touched', 'false')
 
 		await user.tab()
 
-		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(getFieldProbe('phone')).toHaveAttribute('data-touched', 'true')
 	})
 })

@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Form, useFormField } from '../../components/form'
+import { Form } from '../../components/form'
 import { SearchInput } from '../../components/search-input'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('SearchInput', () => {
 	it('renders an input with data-slot="search-input" and a search icon prefix', () => {
@@ -152,16 +153,10 @@ describe('SearchInput', () => {
 	})
 
 	it('marks the form field touched on blur', async () => {
-		function TouchedProbe() {
-			const field = useFormField('q')
-
-			return <span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
-		}
-
 		const { container } = renderUI(
 			<Form defaultValues={{ q: '' }}>
 				<SearchInput name="q" />
-				<TouchedProbe />
+				<FieldProbe name="q" />
 			</Form>,
 		)
 
@@ -171,10 +166,10 @@ describe('SearchInput', () => {
 
 		await user.click(input)
 
-		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+		expect(getFieldProbe('q')).toHaveAttribute('data-touched', 'false')
 
 		await user.tab()
 
-		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(getFieldProbe('q')).toHaveAttribute('data-touched', 'true')
 	})
 })
