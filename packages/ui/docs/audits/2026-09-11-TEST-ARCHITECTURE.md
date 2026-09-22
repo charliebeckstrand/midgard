@@ -131,7 +131,7 @@ The speed gain is small: about 37ms of setup per file, or six seconds of worker 
 
 Set `experimental.fsModuleCache: true` in both configs and add its directory to the CI cache beside `.turbo`, keyed on the lockfile with a restore prefix. The warm path took 9.3s off the unit project on this machine and 31s off its transform phase; on CI the restore turns every run into a warm run. The option is experimental, so pin the Vitest version and drop the flag if a release note changes its semantics.
 
-*Applied in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) for `vitest.config.ts` and the CI cache. "Both configs" is wrong: the browser suite cannot use the cache, and the Ruled out entry below holds the measurement.*
+*Applied in [#1125](https://github.com/charliebeckstrand/midgard/pull/1125) for `vitest.config.ts` and the CI cache. "Both configs" is wrong: the browser suite cannot use the cache, and the Ruled out entry below holds the measurement. The restore prefix is wrong too. It handed a Vitest 4.1.10 cache to a 4.1.11 run, and every test file failed to import `vitest`. Since [#1161](https://github.com/charliebeckstrand/midgard/pull/1161), the key is the lockfile hash with no restore key, so the first run after a lockfile change starts cold.*
 
 ### 4. One component registry, every sweep derived
 

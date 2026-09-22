@@ -98,7 +98,7 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 
 ## Boundary
 
-Cross-layer value imports are illegal. Tests pin the rule: `recipe-boundary`, `kiso-boundary`, `katakana-purity-boundary`, `kata-boundary`, and `recipe-import-boundary`. The full list lives in [`src/recipes/README.md`](../src/recipes/README.md#3-boundary).
+Cross-layer value imports are illegal. Boundary tests and lint rules pin the rule. The full list lives in [`src/recipes/README.md`](../src/recipes/README.md#3-boundary).
 
 ---
 
