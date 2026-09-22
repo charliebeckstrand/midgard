@@ -56,7 +56,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TOOL-05` | `pnpm-workspace.yaml` | `overrides` | correctness | medium | CONFIRMED | ◯ OPEN |
 | `TOOL-06` | `turbo.json` | `lint.inputs` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1179](https://github.com/charliebeckstrand/midgard/pull/1179)) |
 | `MENU-02` | `packages/ui/src/hooks/a11y/use-a11y-roving.ts` | `setVirtualActiveElement` | correctness | low | CONFIRMED | ◯ OPEN |
-| `MENU-03` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` (TSDoc) | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `MENU-03` | `packages/ui/src/hooks/use-floating-reference.ts` | `useDeferredFloatingReference` (TSDoc) | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `MENU-04` | `packages/ui/src/__tests__/browser/menu-scroll-overflow.test.tsx` | the gate comment | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `BENCH-03` | `packages/ui/src/__benchmarks__/browser/README.md` | §Menus figures | cleanliness | low | CONFIRMED | ◯ OPEN |
 | `BENCH-04` | `packages/ui/src/__benchmarks__/browser/README.md`, `menu-shell.bench.tsx` | the overflow-gate prose | cleanliness | low | CONFIRMED | ◯ OPEN |

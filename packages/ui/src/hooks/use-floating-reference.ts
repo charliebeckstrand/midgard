@@ -61,11 +61,14 @@ export function useFloatingReference<T extends HTMLElement>(
  * A closed disclosure has no use for a reference. Positioning, `autoUpdate`,
  * the escape layer, and outside-press all begin at the open. Registration at
  * mount instead renders every closed one twice, because `setReference` is a
- * state setter and the ref callback calls it during the commit. This hook
- * stashes the node and registers it in a layout effect on the first open. It
- * is a layout effect, not a passive one. The effect runs in the commit that
- * mounts the panel, so the engine holds the reference before that commit
- * paints.
+ * state setter and the ref callback calls it during the commit.
+ *
+ * This hook stashes the node, and a layout effect registers it at each open.
+ * The engine's setters bail out on a node that they already hold, so only the
+ * first open costs a render. It is a layout effect, not a passive one. It
+ * runs in the commit where `open` flips. The portal mounts the panel one
+ * synchronous commit later, so the engine holds the reference before the
+ * panel paints.
  *
  * The deferral moves one render rather than deleting it. The mount sheds a
  * render and the first open gains one, so it pays where closed instances
