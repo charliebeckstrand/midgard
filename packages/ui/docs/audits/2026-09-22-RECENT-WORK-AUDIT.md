@@ -48,7 +48,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `SRC-01` | `packages/ui/src/modules/grid/grid-pagination.tsx` | `GridPagination` (focus restore) | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `TESTS-01` | `packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts` | `NULLABLE_CAST` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
 | `TESTS-02` | `packages/ui/src/__tests__/components/breadcrumb.test.tsx` | the current-link case | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
-| `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ◐ FIXED |
+| `DOCS-01` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `collectHelpers` | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1191](https://github.com/charliebeckstrand/midgard/pull/1191)) |
 | `BENCH-02` | `packages/ui/src/__benchmarks__/browser/menu-keyboard.bench.tsx` | the one-letter typeahead rung | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `TOOL-02` | `biome.json` | the `hooks`, `primitives`, and `kiso` layer rules | correctness | medium | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187)) |
 | `TOOL-03` | `renovate.json` | the `@floating-ui/react` approval rule | correctness | medium | CONFIRMED | ◯ OPEN |
