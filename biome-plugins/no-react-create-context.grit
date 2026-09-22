@@ -5,15 +5,12 @@ language js
 // optional mode (it returns a default). A direct import from React bypasses
 // both.
 //
-// `create-context-boundary.test.ts` held this as a `node:fs` scan over source
-// text until Biome's GritQL learned to match an import clause of more than one
-// name. The alternation below matches the alias form too: the scan it replaces
-// keyed on the token anywhere inside the braces, so `createContext as mine`
-// was a violation there and stays one here.
+// The alternation below matches the alias form too, so `createContext as mine`
+// is a violation.
 //
 // Reach is the `includes` beside this plugin in `biome.json` — the package
-// source, minus the test and benchmark trees, minus the one sanctioned file —
-// which reproduces what `walkSource` skipped.
+// source, minus each test and benchmark tree at any depth, minus the one
+// sanctioned file — which is the same set that `walkSource` skips.
 `import $clause from 'react'` where {
 	$clause <: contains or { `createContext`, `createContext as $_` }
 } where {

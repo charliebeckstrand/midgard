@@ -67,10 +67,10 @@ export default defineConfig({
 		// 4-core container over the `unit` project: 60.0s cold, 50.7s warm;
 		// transform fell from 40.0s to 8.9s and import from 57.1s to 24.2s. The
 		// cache lives under the workspace root's node_modules and is about
-		// 40 MB; CI restores it beside `.turbo` (ci.yml), so every agent run
-		// takes the warm path. The option
-		// is experimental — re-read its release note on each Vitest bump, and
-		// drop it if the invalidation contract changes.
+		// 40 MB. CI restores it on an exact lockfile-hash key with no restore
+		// key (ci.yml), so the first run after a lockfile change starts cold. The
+		// option is experimental — re-read its release note on each Vitest bump,
+		// and drop it if the invalidation contract changes.
 		experimental: { fsModuleCache: true },
 		// Machine speed must change when a test passes, never whether it passes:
 		// CI agents are slower and noisier than dev machines, so wall-clock

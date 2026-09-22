@@ -63,10 +63,15 @@
 								"patterns": [
 									{
 										"group": [
+											"**/components",
 											"**/components/**",
+											"**/layouts",
 											"**/layouts/**",
+											"**/providers",
 											"**/providers/**",
+											"**/recipes/kata",
 											"**/recipes/kata/**",
+											"**/recipes/katakana",
 											"**/recipes/katakana/**"
 										],
 										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, layouts, providers, or recipe-layer internals (kata / katakana). Importing from primitives is allowed; hooks may read context from primitive providers."
@@ -97,7 +102,7 @@
 										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
 									},
 									{
-										"group": ["**/components/**", "**/layouts/**"],
+										"group": ["**/components", "**/components/**", "**/layouts", "**/layouts/**"],
 										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components or layouts. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
 									}
 								]
@@ -118,12 +123,19 @@
 								"patterns": [
 									{
 										"group": [
-											"**/recipes/katakana/**",
-											"**/recipes/kata/**",
+											"**/katakana",
+											"**/katakana/**",
+											"**/kata",
+											"**/kata/**",
+											"**/components",
 											"**/components/**",
+											"**/layouts",
 											"**/layouts/**",
+											"**/primitives",
 											"**/primitives/**",
+											"**/hooks",
 											"**/hooks/**",
+											"**/providers",
 											"**/providers/**"
 										],
 										"message": "kiso holds the design-system tokens and sits at the bottom of the recipe stack. A kiso module may compose its siblings within kiso. An import from katakana, kata, components, layouts, primitives, hooks, or providers inverts the dependency direction. It can also pull stateful React context into the recipe substrate. Per-module consumer documentation is in recipes/kiso/README.md."
@@ -258,8 +270,8 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
-				"!packages/ui/src/__tests__/**",
-				"!packages/ui/src/__benchmarks__/**",
+				"!packages/ui/src/**/__tests__/**",
+				"!packages/ui/src/**/__benchmarks__/**",
 				"!packages/ui/src/core/create-context.ts"
 			],
 			"plugins": ["./biome-plugins/no-react-create-context.grit"]
@@ -267,8 +279,8 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
-				"!packages/ui/src/__tests__/**",
-				"!packages/ui/src/__benchmarks__/**",
+				"!packages/ui/src/**/__tests__/**",
+				"!packages/ui/src/**/__benchmarks__/**",
 				"!packages/ui/src/recipes/kata/**/*.ts",
 				"!packages/ui/src/recipes/katakana/**/*.ts",
 				"!packages/ui/src/layouts/*/variants.ts"
