@@ -71,7 +71,9 @@ describe('ShinyText', () => {
 		// The consumer's own key lands.
 		expect(el?.style.marginInlineStart).toBe('4px')
 
-		// The three keys that carry the sweep survive it.
+		// The keys that carry the sweep survive it. `backgroundPosition` is a
+		// MotionValue, which the motion mock strips, so only these two are
+		// observable here.
 		expect(el?.style.backgroundImage).toContain('red')
 
 		// jsdom normalises `200% auto` to `200%`.

@@ -106,13 +106,11 @@ export function SidebarItem({
 				mini && '*:cursor-pointer',
 				className,
 			)}
-			// `handleClick` already runs the consumer's `onClick` first, so
-			// `onClick` never reaches `props` and cannot collide here.
 			onClick={item.handleClick}
+			// Consumer props spread first; the type, the anchor the Sidebar's roving
+			// selects on, and the current marker below take precedence.
 			{...props}
 			type="button"
-			// The Sidebar's roving selects on this anchor, so it sits below the
-			// spread and a consumer cannot rename it away.
 			data-slot="sidebar-item-inner"
 			aria-current={item.current ? 'page' : undefined}
 		>

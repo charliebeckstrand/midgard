@@ -38,8 +38,7 @@ export function StepperPanel({ value, className, children, ...props }: StepperPa
 
 	return (
 		<Hold hold={hold} name="stepper-panel">
-			{/* `panelProps` is the panel's derived identity, so it sits below the
-			    spread: the matching StepperStep points at these ids. */}
+			{/* Consumer props spread first; the matching StepperStep points at these ids. */}
 			<section data-slot="stepper-panel" className={className} {...props} {...panelProps}>
 				{children}
 			</section>

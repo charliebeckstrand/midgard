@@ -151,6 +151,8 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 			ref={mergeRefs}
 			data-slot="menu-trigger"
 			className={cn(className)}
+			// Consumer props spread first; the type and the menu wiring below take
+			// precedence.
 			{...getReferenceProps({
 				...rest,
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -162,9 +164,6 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					handleTriggerKeyUp(event)
 				},
 			})}
-			// The trigger's own role and its wiring to the panel. They sit below the
-			// spread, so a stray consumer prop cannot submit a form or unname the
-			// menu. `role: null` keeps floating-ui off these keys.
 			type="button"
 			aria-haspopup="menu"
 			aria-expanded={open}

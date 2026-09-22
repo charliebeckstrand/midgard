@@ -341,17 +341,15 @@ describe('SidebarItem', () => {
 	it('keeps its type, current marker and roving anchor when a consumer supplies them', () => {
 		const { container } = renderUI(
 			<Sidebar>
-				{/* The Sidebar's roving selects on `sidebar-item-inner`, so a rename
-				    would drop the item out of the keyboard model. */}
 				<SidebarItem current type="submit" aria-current="step" data-slot="theirs">
 					Home
 				</SidebarItem>
 			</Sidebar>,
 		)
 
-		const inner = container.querySelector('[data-slot="sidebar-item-inner"]')
-
-		expect(inner).toBeInTheDocument()
+		// The Sidebar's roving selects on this anchor, so a rename would drop the
+		// item out of the keyboard model.
+		const inner = bySlot(container, 'sidebar-item-inner')
 
 		expect(inner).toHaveAttribute('type', 'button')
 

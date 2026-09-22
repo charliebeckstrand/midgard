@@ -72,8 +72,6 @@ describe('NavItem', () => {
 		const { container } = renderUI(
 			<Nav>
 				<NavList>
-					{/* A stray `type` would submit an enclosing form, and a renamed
-					    anchor would take the item out of the library's reach. */}
 					<NavItem current type="submit" aria-current="step" data-slot="theirs">
 						Home
 					</NavItem>
@@ -81,9 +79,9 @@ describe('NavItem', () => {
 			</Nav>,
 		)
 
-		const inner = container.querySelector('[data-slot="nav-item-inner"]')
-
-		expect(inner).toBeInTheDocument()
+		// A stray `type` would submit an enclosing form, and a renamed anchor
+		// would take the item out of the kata rule that reads it.
+		const inner = bySlot(container, 'nav-item-inner')
 
 		expect(inner).toHaveAttribute('type', 'button')
 

@@ -85,14 +85,15 @@ export function TabList({ className, children, onKeyDown, ...props }: TabListPro
 			data-slot="tab-list"
 			data-orientation={orientation}
 			className={cn(isSegment ? k.segment.control({ size }) : k.list({ orientation }), className)}
+			// Consumer props spread first; the role, the orientation and the roving
+			// handler below take precedence.
 			{...props}
-			// Roving is the list's keyboard model, so it takes no gate: the
-			// consumer's handler runs first, then roving runs whatever it did.
+			role="tablist"
+			aria-orientation={orientation}
+			// Roving takes no gate: the consumer's handler runs first, then roving.
 			onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
 				checkForDefaultPrevented: false,
 			})}
-			role="tablist"
-			aria-orientation={orientation}
 		>
 			{children}
 		</div>

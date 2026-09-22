@@ -123,10 +123,16 @@ describe('StepperPanel', () => {
 
 		const panel = bySlot(container, 'stepper-panel')
 
-		// The matching StepperStep derives the same pair, so the panel keeps them.
-		expect(panel).not.toHaveAttribute('id', 'mine')
+		// The StepperStep derives the same pair from the shared baseId, so the
+		// panel keeps them. Assert they are present, not merely that `mine` lost:
+		// a bare `not.toHaveAttribute` also passes when the attribute is gone.
+		expect(panel?.id).toBeTruthy()
 
-		expect(panel).not.toHaveAttribute('aria-labelledby', 'theirs')
+		expect(panel?.id).not.toBe('mine')
+
+		expect(panel?.getAttribute('aria-labelledby')).toBeTruthy()
+
+		expect(panel?.getAttribute('aria-labelledby')).not.toBe('theirs')
 	})
 
 	it('returns null when value does not match the current step', () => {

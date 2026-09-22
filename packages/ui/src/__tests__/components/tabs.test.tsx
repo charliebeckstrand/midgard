@@ -506,10 +506,11 @@ describe('TabContent (idiomatic)', () => {
 
 		const panel = container.querySelector('[role="tabpanel"]')
 
-		expect(panel).toBeInTheDocument()
+		// The tab points at the derived id, so the consumer's must not win. Assert
+		// the reciprocal pairing rather than the absence of `mine`.
+		expect(panel?.id).toBeTruthy()
 
-		// The tab points at the derived id, so the consumer's must not win.
-		expect(panel).not.toHaveAttribute('id', 'mine')
+		expect(panel?.id).not.toBe('mine')
 
 		expect(screen.getByRole('tab')).toHaveAttribute('aria-controls', panel?.id)
 	})
