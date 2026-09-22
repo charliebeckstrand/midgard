@@ -119,6 +119,10 @@ export default defineConfig({
 			'@dnd-kit/sortable',
 			'@dnd-kit/utilities',
 			'@floating-ui/react',
+			// A subpath is its own optimizer entry, as `jest-dom/vitest` below is.
+			// `use-floating-reference` imports it, and a cache built before that
+			// import discovers it lazily and reloads the page mid-run.
+			'@floating-ui/react/utils',
 			'@internationalized/date',
 			'@tanstack/react-virtual',
 			'card-validator',
