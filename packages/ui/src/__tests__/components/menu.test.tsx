@@ -737,10 +737,14 @@ describe('MenuSub', () => {
 	 * This reads attributes and one event, so it stays under jsdom. The hook's
 	 * own case covers the ref, and `browser/menu-scroll-overflow.test.tsx` covers
 	 * the real layout. Neither crosses this row's wrapper.
+	 *
+	 * `capped` is what wires the watch at all, so the case passes it. Without the
+	 * flag there is no watch to tear down, and the assertions below would read a
+	 * node that never carried an attribute.
 	 */
 	it('tears the viewport overflow watch down when the panel detaches', () => {
 		const { unmount } = renderUI(
-			<Menu defaultOpen>
+			<Menu defaultOpen capped>
 				<MenuContent>
 					<MenuSub label="More">
 						<MenuItem>Nested</MenuItem>
@@ -778,6 +782,44 @@ describe('MenuSub', () => {
 		fireEvent.scroll(viewport)
 
 		expect(viewport).not.toHaveAttribute('data-overflow-below')
+	})
+
+	/**
+	 * The gate, read from the other side. `capped` emits the viewport's `max-h`,
+	 * so an uncapped panel grows with its rows and can never overflow. The row
+	 * therefore passes `enabled: capped` to `useScrollOverflow`.
+	 *
+	 * Written geometry and one scroll event, so it stays under jsdom. A wired
+	 * watch would stamp the below edge here; `browser/menu-scroll-overflow.test.tsx`
+	 * holds the real-layout half of the invariant.
+	 */
+	it('wires no overflow watch on an uncapped submenu panel', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+
+		const viewport = present(
+			screen
+				.getByRole('menuitem', { name: 'Nested' })
+				.closest<HTMLElement>('[data-slot="menu-viewport"]'),
+			'submenu [data-slot="menu-viewport"]',
+		)
+
+		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
+
+		fireEvent.scroll(viewport)
+
+		expect(viewport).not.toHaveAttribute('data-overflow-below')
+
+		expect(viewport).not.toHaveAttribute('data-overflow-above')
 	})
 })
 

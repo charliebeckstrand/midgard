@@ -153,7 +153,9 @@ export function MenuSub({
 
 	// The panel's rows scroll in the same capped, edge-faded viewport
 	// {@link MenuContent} gives the root menu, so a long submenu reads alike.
-	const scrollOverflowRef = useScrollOverflow()
+	// The watch takes the same `capped` gate, for the same reason: an uncapped
+	// panel grows with its rows, so it never overflows.
+	const scrollOverflowRef = useScrollOverflow({ enabled: capped })
 
 	// The panel's row container once it mounts. State, not a ref: the portal
 	// renders its children a commit *after* `open` flips, so the focus-seating

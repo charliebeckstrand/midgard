@@ -55,17 +55,16 @@ export function MenuContent({
 	// The mask fading the scroll edges lives on this inner viewport, not the
 	// panel: masking the panel would dissolve its border and shadow with the
 	// content wherever a fade is open.
-	const scrollOverflowRef = useScrollOverflow()
+	//
+	// Gated on `capped`, the flag that emits the viewport's `max-h`. An uncapped
+	// viewport grows with its rows, so it never overflows.
+	// `browser/menu-scroll-overflow.test.tsx` pins that invariant, and
+	// `__benchmarks__/browser/README.md` §Menus prices the gate.
+	const scrollOverflowRef = useScrollOverflow({ enabled: capped })
 
 	const viewport = (
 		<div
-			// `capped` emits the viewport's `max-h`. An uncapped viewport therefore
-			// has no height constraint, so it grows with its rows and never
-			// overflows. The watch would then force a layout read on the fresh node,
-			// and observe every row, to hold two attributes that cannot change.
-			// `browser/menu-scroll-overflow.test.tsx` pins both halves of that;
-			// `__benchmarks__/browser/README.md` §Menus prices it.
-			ref={capped ? scrollOverflowRef : undefined}
+			ref={scrollOverflowRef}
 			data-slot="menu-viewport"
 			className={k.viewport({ density, capped })}
 		>
