@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { holdMouse, renderUI, screen, userEvent } from '../helpers'
 
 describe('Grid resizable columns', () => {
 	type Row = { id: number; name: string; age: number }
@@ -302,9 +302,11 @@ describe('Grid resizable columns', () => {
 
 		const handle = screen.getByRole('separator', { name: 'Resize Name' })
 
-		fireEvent.mouseDown(handle, { button: 0, clientX: 200 })
+		const held = holdMouse(handle, { button: 0, clientX: 200 })
 
 		expect(handle).toHaveAttribute('data-resizing')
+
+		held.release()
 	})
 
 	it('does not start a resize on a right-button press', () => {
@@ -312,9 +314,11 @@ describe('Grid resizable columns', () => {
 
 		const handle = screen.getByRole('separator', { name: 'Resize Name' })
 
-		fireEvent.mouseDown(handle, { button: 2, clientX: 200 })
+		const held = holdMouse(handle, { button: 2, clientX: 200 })
 
 		expect(handle).not.toHaveAttribute('data-resizing')
+
+		held.release()
 	})
 
 	it('does not start a resize on a macOS Ctrl+click (button 0 + ctrlKey)', () => {
@@ -322,9 +326,11 @@ describe('Grid resizable columns', () => {
 
 		const handle = screen.getByRole('separator', { name: 'Resize Name' })
 
-		fireEvent.mouseDown(handle, { button: 0, ctrlKey: true, clientX: 200 })
+		const held = holdMouse(handle, { button: 0, ctrlKey: true, clientX: 200 })
 
 		expect(handle).not.toHaveAttribute('data-resizing')
+
+		held.release()
 	})
 
 	// A column drag-resize sweeps the pointer across the rows; the shared
@@ -340,12 +346,14 @@ describe('Grid resizable columns', () => {
 		// The `hover` grid paints the shared `<Table hover>` wash at rest.
 		expect(table?.className).toContain('[&>tbody>tr]:hover:bg-zinc-950/5')
 
-		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize Name' }), {
+		const held = holdMouse(screen.getByRole('separator', { name: 'Resize Name' }), {
 			button: 0,
 			clientX: 200,
 		})
 
 		expect(table?.className).not.toContain('[&>tbody>tr]:hover:bg-zinc-950/5')
+
+		held.release()
 	})
 
 	// The drag lifecycle brackets a pointer resize: the engine flags the column on
@@ -365,7 +373,7 @@ describe('Grid resizable columns', () => {
 			/>,
 		)
 
-		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize Name' }), {
+		const held = holdMouse(screen.getByRole('separator', { name: 'Resize Name' }), {
 			button: 0,
 			clientX: 200,
 		})
@@ -377,7 +385,7 @@ describe('Grid resizable columns', () => {
 		expect(onResizeEnd).not.toHaveBeenCalled()
 
 		// The engine ends the drag on a document-level mouseup.
-		fireEvent.mouseUp(document)
+		held.release()
 
 		expect(onResizeEnd).toHaveBeenCalledOnce()
 

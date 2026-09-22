@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
-import { releaseDrag } from './helpers/drag'
+import { renderUI, screen } from '../helpers'
+import { drag } from './helpers/drag'
 
 /**
  * Row drag-reorder over a real pointer drag: each row is a vertical @dnd-kit
@@ -24,9 +24,6 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 		{ id: 2, name: 'Bob' },
 		{ id: 3, name: 'Carol' },
 	]
-
-	const raf = () =>
-		new Promise<void>((res) => requestAnimationFrame(() => requestAnimationFrame(() => res())))
 
 	it('moves the first row below the second on drop', async () => {
 		const onReorder = vi.fn()
@@ -64,24 +61,14 @@ describe('grid row reorder: a drag commits the new order (real browser)', () => 
 		// Lift Alice's grip and drag it just past Bob's midpoint — one slot down — then drop.
 		const target = bob.y + bob.height / 2 + 2
 
-		fireEvent.pointerDown(grip, {
-			isPrimary: true,
-			button: 0,
-			clientX: from.x + 5,
-			clientY: from.y + 5,
-		})
+		const x = from.x + 5
 
-		fireEvent.pointerMove(grip, { clientX: from.x + 5, clientY: from.y + 12 })
+		const held = await drag(grip, { x, y: from.y + 5 }, [
+			{ x, y: from.y + 12 },
+			{ x, y: target },
+		])
 
-		await raf()
-
-		fireEvent.pointerMove(grip, { clientX: from.x + 5, clientY: target })
-
-		await raf()
-
-		await releaseDrag(grip, { clientX: from.x + 5, clientY: target })
-
-		await raf()
+		await held.release()
 
 		expect(onReorder).toHaveBeenCalledTimes(1)
 

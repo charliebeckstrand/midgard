@@ -1,7 +1,8 @@
 import '@testing-library/jest-dom/vitest'
 import { cleanup, configure } from '@testing-library/react'
 import { toHaveNoViolations } from 'jest-axe'
-import { afterEach, expect, inject } from 'vitest'
+import { afterEach, beforeEach, expect, inject } from 'vitest'
+import { commands } from 'vitest/browser'
 import { installSingletonResets } from '../../helpers/reset-singletons'
 import { installResidueGuard } from '../../helpers/residue'
 import { pageState } from './forensics'
@@ -24,12 +25,24 @@ declare module 'vitest' {
 	}
 }
 
+declare module 'vitest/browser' {
+	interface BrowserCommands {
+		/** Moves the real mouse off the tester iframe. `vitest.browser.config.ts` defines it. */
+		parkPointer: () => Promise<void>
+	}
+}
+
 configure({ asyncUtilTimeout: inject('asyncUtilTimeout') })
 
 installResidueGuard()
 
 // Registered before the `afterEach` below, whose `cleanup` then runs first.
 installSingletonResets()
+
+// A case starts with the cursor off the page, whatever the case before it
+// hovered. See `parkPointer` in `vitest.browser.config.ts`. It runs before the
+// case renders, so a case that failed or timed out still hands on a clean page.
+beforeEach(() => commands.parkPointer())
 
 afterEach((ctx) => {
 	// Read before cleanup, so the dump describes the page the failing test left,

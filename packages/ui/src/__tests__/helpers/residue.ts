@@ -1,6 +1,7 @@
 import { beforeEach, onTestFinished } from 'vitest'
 
 import { describeNode } from './describe-node'
+import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from './global-listeners'
 
 /**
  * Fails a test that leaves page state behind.
@@ -18,8 +19,9 @@ import { describeNode } from './describe-node'
  * that passes 583 tests.
  *
  * What it watches is every surface a shipped module is known to write outside
- * a React tree, plus the document click gate {@link swallowsClicks} reads.
- * Appended body children cover portals and injected regions.
+ * a React tree, the document click gate {@link swallowsClicks} reads, and the
+ * listeners on the global targets. Appended body children cover portals and
+ * injected regions.
  * `body.style` covers `use-scroll-lock`, which sets `overflow` and a
  * compensating `paddingRight` under a reference count. The marked head style
  * covers `use-grabbing-cursor`, which appends one under a count of its own.
@@ -32,6 +34,11 @@ import { describeNode } from './describe-node'
  * open pointer drag is the cause, and this guard names the case that leaves
  * one (#1180). It also enforces a rule that nothing checked before: a test
  * removes what it leaves outside its container.
+ *
+ * The listener check generalises the click gate. A drag is one way to leave a
+ * listener on the document, and any hook that subscribes to `window` without
+ * a cleanup is another. The report names the stack that added the listener,
+ * so the case that fails also points at the line to fix.
  *
  * Extending it exposed a trap in its own placement. Called from the setup's
  * `afterEach`, where it began, it failed eleven cases in six jsdom files — and
@@ -56,6 +63,13 @@ let bodyClass = ''
 let rootStyle = ''
 
 let swallowed = false
+
+let listeners = new Set<GlobalListener>()
+
+/** One global listener, as the failure message names it. */
+function describeListener({ target, type, capture, origin }: GlobalListener): string {
+	return `a ${target} "${type}" listener${capture ? ' (capture)' : ''}, added at ${origin}`
+}
 
 /**
  * Whether the page drops a click before it reaches the document.
@@ -102,6 +116,8 @@ function absorbResidue(): void {
 	rootStyle = document.documentElement.style.cssText
 
 	swallowed = swallowsClicks()
+
+	listeners = liveGlobalListeners()
 }
 
 /** Every leak the test is answerable for, named for the message. */
@@ -130,6 +146,10 @@ function collect(): string[] {
 		leaks.push('an open pointer drag: its capture listener drops every click the page takes next')
 	}
 
+	for (const entry of liveGlobalListeners()) {
+		if (!listeners.has(entry)) leaks.push(describeListener(entry))
+	}
+
 	return leaks
 }
 
@@ -146,7 +166,7 @@ function assertNoResidue(): void {
 	if (leaks.length === 0) return
 
 	throw new Error(
-		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nRemove it in onTestFinished or an afterEach, render inside the container renderUI returns, or end a drag with releaseDrag.`,
+		`this test left page state the next test inherits:\n  ${leaks.join('\n  ')}\nRemove it in onTestFinished or an afterEach, render inside the container renderUI returns, remove the listener the test added, or release a drag through drag().`,
 	)
 }
 
@@ -172,5 +192,7 @@ function guardResidue(): void {
 
 /** Registers {@link guardResidue} for every test a setup file serves. */
 export function installResidueGuard(): void {
+	watchGlobalListeners()
+
 	beforeEach(guardResidue)
 }
