@@ -10,7 +10,7 @@ import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import { Box, type BoxPadding } from '../box'
-import { usePopoverContext } from './context'
+import { usePopoverContext, usePopoverPosition } from './context'
 
 // Surface padding scales with the resolved Density size.
 const paddingForSize = { sm: 'md', md: 'lg', lg: 'xl' } satisfies Record<Step, BoxPadding>
@@ -73,8 +73,9 @@ export function PopoverContent({
 	'aria-labelledby': ariaLabelledby,
 	children,
 }: PopoverContentProps) {
-	const { open, panelId, setFloating, floatingStyles, getFloatingProps, floatingContext } =
-		usePopoverContext()
+	const { open, panelId, setFloating, getFloatingProps } = usePopoverContext()
+
+	const { floatingStyles, floatingContext } = usePopoverPosition()
 
 	const contentRef = useRef<HTMLDivElement | null>(null)
 

@@ -19,11 +19,23 @@ type PopoverContextValue = {
 	triggerRef: RefObject<HTMLElement | null>
 	setReference: (node: HTMLElement | null) => void
 	setFloating: (node: HTMLElement | null) => void
-	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: object) => Record<string, unknown>
 	getFloatingProps: (userProps?: object) => Record<string, unknown>
+}
+
+type PopoverPositionValue = {
+	floatingStyles: CSSProperties
 	/** Floating-ui root context; `PopoverContent`'s `modal` trap mounts on it. */
 	floatingContext: FloatingRootContext
 }
 
 export const [PopoverContext, usePopoverContext] = createContext<PopoverContextValue>('Popover')
+
+/**
+ * Where the panel of the enclosing {@link Popover} sits. Split from
+ * {@link PopoverContext} because both members re-identify on every reposition
+ * while the panel is open. Only the panel reads them, so the trigger stays out
+ * of each `autoUpdate` tick.
+ */
+export const [PopoverPositionContext, usePopoverPosition] =
+	createContext<PopoverPositionValue>('Popover')

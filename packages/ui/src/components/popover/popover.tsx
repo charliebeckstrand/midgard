@@ -5,7 +5,7 @@ import { type ReactNode, useEffect, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { useFloatingDisclosure } from '../../hooks'
 import { notifyOverlaySignal } from '../../primitives/overlay'
-import { PopoverContext } from './context'
+import { PopoverContext, PopoverPositionContext } from './context'
 
 /** Props for {@link Popover}: floating `placement` and controlled or uncontrolled `open` state. */
 export type PopoverProps = {
@@ -69,10 +69,8 @@ export function Popover({
 			triggerRef,
 			setReference: refs.setReference,
 			setFloating: refs.setFloating,
-			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
-			floatingContext: context,
 		}),
 		[
 			open,
@@ -82,18 +80,25 @@ export function Popover({
 			triggerRef,
 			refs.setReference,
 			refs.setFloating,
-			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
-			context,
 		],
+	)
+
+	// Both members re-identify on every reposition, so they ride a context of
+	// their own that only the panel reads.
+	const position = useMemo(
+		() => ({ floatingStyles, floatingContext: context }),
+		[floatingStyles, context],
 	)
 
 	return (
 		<PopoverContext value={contextValue}>
-			<div data-slot="popover" className={cn(className)}>
-				{children}
-			</div>
+			<PopoverPositionContext value={position}>
+				<div data-slot="popover" className={cn(className)}>
+					{children}
+				</div>
+			</PopoverPositionContext>
 		</PopoverContext>
 	)
 }

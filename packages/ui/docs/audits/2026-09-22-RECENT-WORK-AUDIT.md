@@ -66,15 +66,15 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `BENCH-08` | `packages/ui/src/__benchmarks__/menu.bench.tsx` | the submenus describe | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
-| `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-05` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `declaredName` | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-07` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the gate comment | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ◐ FIXED |
+| `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-05` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `declaredName` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-07` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the gate comment | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-08` | `packages/ui/src/__tests__/docs/demo-code-block.test.ts` | the helper-tag check | correctness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-09` | `packages/ui/src/docs/demos/components/password-strength.tsx` | the demo rename | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
+| `DOCS-10` | `packages/ui/src/docs/engine/derive-code/internals.ts` | `resolveTypeIn` (TSDoc) | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
 | `SRC-02` | `packages/ui/src/modules/grid/engine/grid-table/views.ts` | `buildPaginationView` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `SRC-03` | `packages/ui/src/__tests__/modules/grid-pagination.test.tsx` | the double-click comment | correctness | low | CONFIRMED | ✅ RESOLVED ([#1182](https://github.com/charliebeckstrand/midgard/pull/1182)) |
 | `SRC-04` | `packages/ui/src/hooks/use-truncation.ts` | `__resetTruncationObserver` | correctness | low | CONFIRMED | ✅ RESOLVED ([#1185](https://github.com/charliebeckstrand/midgard/pull/1185)) |
@@ -232,16 +232,16 @@ These rows came up during the sweep. They predate `5c75a88`, so they sit outside
 
 | Row | File | Symbol | Severity | Verdict | Status |
 |---|---|---|---|---|---|
-| `ADJ-01` | `packages/ui/src/components/accordion/accordion.tsx` | `Accordion` | low | CONFIRMED | ◯ OPEN |
-| `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ◯ OPEN |
-| `ADJ-03` | `packages/ui/src/modules/grid/engine/grid-menu-targeting.ts` | the active-cell query | low | PLAUSIBLE | ◯ OPEN |
-| `ADJ-04` | several | dangling citations | low | CONFIRMED | ◐ FIXED |
+| `ADJ-01` | `packages/ui/src/components/accordion/accordion.tsx` | `Accordion` | low | CONFIRMED | ◐ FIXED |
+| `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ◐ FIXED |
+| `ADJ-03` | `packages/ui/src/modules/grid/engine/grid-menu-targeting.ts` | the active-cell query | low | PLAUSIBLE | ◐ FIXED |
+| `ADJ-04` | several | dangling citations | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187), [#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
 
 **ADJ-01.** #1150 spread `...rest` onto the root `<div>`, but did not take `collapsible` out of it. Each `<Accordion collapsible>` writes an invalid attribute, and React warns; the warning shows in the stderr of the jsdom run. Fix: destructure `collapsible` with the other selection props.
 
 **ADJ-02.** The `PopoverContext` memo keys on the whole floating `context`, so each consumer renders again on each reposition. #1168 fixed the same shape for Menu. The `FloatingFocusManager` needs the value, so the fix is a split, not a removal.
 
-**ADJ-03.** `grid.querySelector('[data-active]')` can match the header filter button or the group-by button before the active cell, when the header sits inside `[role="grid"]`. This was not run.
+**ADJ-03.** `grid.querySelector('[data-active]')` can match the header filter button or the group-by button before the active cell, when the header sits inside `[role="grid"]`. This was not run. A later jsdom case reproduced it: with a column filter applied, Shift+F10 opened no cell menu.
 
 **ADJ-04.** Five citations dangle. `a11y/baseline.test.tsx` cites `cases.tsx` and `cases.ts`. `controlled-language.ts` and its boundary test name the deleted 2026-08-02 audit. Each of the three `biome-plugins` files names the deleted test that it replaced, such as `kata-boundary`. The B07-C10 body of the bug audit cites a `variant` prop, but the prop is `shape`. `recipes/kata/README.md` still says "boundary-test list".
 
