@@ -91,6 +91,30 @@ describe('Grid pagination', () => {
 
 			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
 		})
+
+		it('stops at the last page when two clicks land on one render', async () => {
+			renderUI(
+				<Grid
+					columns={columns}
+					rows={many}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 1, pageSize: 10 } }}
+				/>,
+			)
+
+			// The second updater applies to the index the first one left, one past
+			// the last page. The engine sets no page count in client mode, so it
+			// clamps only the lower bound.
+			await act(async () => {
+				screen.getByRole('button', { name: 'Next page' }).click()
+
+				screen.getByRole('button', { name: 'Next page' }).click()
+			})
+
+			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
+
+			expect(screen.getByText('21–25 of 25')).toBeInTheDocument()
+		})
 	})
 
 	describe('server (manual) mode', () => {
