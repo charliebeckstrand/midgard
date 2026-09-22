@@ -92,7 +92,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `TOOL-08` | `biome.json` | the two plugin excludes | correctness | low | CONFIRMED | ◐ FIXED |
 | `TOOL-09` | `packages/ui/docs/RECIPES.md`, `packages/ui/vitest.config.ts` | tooling prose | cleanliness | low | CONFIRMED | ◐ FIXED |
 | `TOOL-10` | `.github/workflows/ci.yml`, `README.md` | the commit gate | correctness | low | PLAUSIBLE | ◯ OPEN |
-| `TOOL-11` | `turbo.json`, `pnpm-workspace.yaml` | `$schema`, `minimumReleaseAgeExclude` | cleanliness | low | CONFIRMED | ◯ OPEN |
+| `TOOL-11` | `turbo.json`, `pnpm-workspace.yaml` | `$schema`, `minimumReleaseAgeExclude` | cleanliness | low | CONFIRMED | ◐ FIXED |
 
 TESTS-07 and TOOL-07 found the same defect, so the table keeps it once as TOOL-07.
 
