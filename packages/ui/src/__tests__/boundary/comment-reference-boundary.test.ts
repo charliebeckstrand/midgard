@@ -11,12 +11,11 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // audit goes. These two cases hold that ground for the two references a scan
 // can check: the name of a test or benchmark file, and a `{@link}` target.
 //
-// The 2026-09-12 documentation audit closed thirteen rows across both
-// categories and added no gate, and both rotted inside a month. Steps 7 and 9
-// of the 2026-09-11 test architecture audit moved four boundary rules into
-// `biome.json` and `biome-plugins/`, and deleted the tests that had held them.
-// Nine comments still named those four files. The contracts survived the move;
-// only the pin changed, and no run said so.
+// A hand sweep closed thirteen rows across both categories and added no gate,
+// and both categories rotted inside a month. #1152 and #1164 moved eight
+// boundary rules into `biome.json` and `biome-plugins/`, and deleted the tests
+// that had held them. Comments still named the deleted files. The contracts
+// survived the move; only the pin changed, and no run said so.
 //
 // Both cases test membership against a set, not resolution in a scope. The
 // distinction decides the link case, so it is written down here:
@@ -27,8 +26,8 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //   "absent" for a symbol that is present in the package. Measured against a
 //   program over every barrel, that reads 1,255 of 3,759 sites as unresolved.
 //   Such a program is also blind to every file no barrel reaches, and
-//   `__benchmarks__/fixtures.ts` carried one of the five defects the audit
-//   found by hand.
+//   `__benchmarks__/fixtures.ts` carried one of the five defects that the hand
+//   sweep found.
 //
 // Membership answers the question the defect asks: does the package declare
 // this name anywhere? Two narrower questions it does not answer, both stated
@@ -66,8 +65,8 @@ const SKIP = new Set(['node_modules', 'dist'])
  * citation.
  *
  * Both halves of this rule need those trees. Three of the four citation defects
- * the 2026-09-12 audit found sat inside a pruned tree, and so did one of its
- * five dangling links.
+ * that the hand sweep found sat inside a pruned tree, and so did one of its five
+ * dangling links.
  */
 function eachFile(visit: (file: string, content: string) => void): void {
 	const walk = (dir: string) => {
