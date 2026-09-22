@@ -66,13 +66,15 @@ export function NavItem({
 			)}
 			<HeadlessProvider>
 				<Button
-					type="button"
-					data-slot="nav-item-inner"
 					data-current={dataAttr(item.current)}
-					aria-current={item.current ? 'page' : undefined}
 					className={cn(k.item.button({ affix: hasAffix }), className)}
 					onClick={item.handleClick}
+					// Consumer props spread first; the type, the anchor a kata
+					// `has-[]` rule reads, and the current marker below take precedence.
 					{...props}
+					type="button"
+					data-slot="nav-item-inner"
+					aria-current={item.current ? 'page' : undefined}
 				>
 					<TouchTarget>
 						{icon && <Icon icon={icon} />}

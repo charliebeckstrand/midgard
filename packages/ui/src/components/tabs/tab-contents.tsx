@@ -66,7 +66,7 @@ export function TabContents({ mount, ...props }: TabContentsProps) {
 export function TabContent({ value, className, ...props }: TabContentProps) {
 	const tabsContext = useTabsContext()
 
-	const { triggerId, panelId } = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
+	const { panelProps } = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
 
 	const auto = value !== undefined && tabsContext?.baseId !== undefined
 
@@ -83,13 +83,10 @@ export function TabContent({ value, className, ...props }: TabContentProps) {
 			slotPrefix="tab"
 			value={value}
 			className={cn(k.panel, className)}
-			{...(auto && {
-				role: 'tabpanel',
-				id: panelId,
-				'aria-labelledby': triggerId,
-				tabIndex,
-			})}
+			// Consumer props spread first; the panel's identity and its APG focus
+			// stop below take precedence, because the matching Tab points at these ids.
 			{...props}
+			{...(auto && { ...panelProps, role: 'tabpanel', tabIndex })}
 		/>
 	)
 }

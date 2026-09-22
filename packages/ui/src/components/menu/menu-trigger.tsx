@@ -149,12 +149,10 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	return (
 		<button
 			ref={mergeRefs}
-			type="button"
-			aria-haspopup="menu"
-			aria-expanded={open}
-			aria-controls={open ? menuId : undefined}
 			data-slot="menu-trigger"
 			className={cn(className)}
+			// Consumer props spread first; the type and the menu wiring below take
+			// precedence.
 			{...getReferenceProps({
 				...rest,
 				onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
@@ -166,6 +164,10 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 					handleTriggerKeyUp(event)
 				},
 			})}
+			type="button"
+			aria-haspopup="menu"
+			aria-expanded={open}
+			aria-controls={open ? menuId : undefined}
 		>
 			{children}
 		</button>

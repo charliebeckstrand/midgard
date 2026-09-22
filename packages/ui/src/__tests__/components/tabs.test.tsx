@@ -6,6 +6,43 @@ import { DensityProvider } from '../../providers/density'
 import { act, bySlot, fireEvent, getSlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 describe('TabList', () => {
+	it('keeps its role, orientation and roving when a consumer supplies them', async () => {
+		const onKeyDown = vi.fn()
+
+		const { container } = renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				{/* Every prop here is hostile: a stray role, the wrong orientation,
+				    and a handler that would replace the roving model. */}
+				<TabList
+					aria-label="Sections"
+					role="presentation"
+					aria-orientation="vertical"
+					onKeyDown={onKeyDown}
+				>
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		const list = bySlot(container, 'tab-list')
+
+		expect(list).toHaveAttribute('role', 'tablist')
+
+		expect(list).toHaveAttribute('aria-orientation', 'horizontal')
+
+		const tabs = screen.getAllByRole('tab')
+
+		tabs[0]?.focus()
+
+		await userEvent.keyboard('{ArrowRight}')
+
+		// The consumer's handler runs, and roving still moves the focus.
+		expect(onKeyDown).toHaveBeenCalled()
+
+		expect(document.activeElement).toBe(tabs[1])
+	})
+
 	it('forwards the full button surface to the tab', () => {
 		renderUI(
 			<Tabs value="a" onValueChange={() => {}}>
@@ -452,6 +489,31 @@ describe('TabContent (idiomatic)', () => {
 			</Tabs>,
 		)
 	}
+
+	it('keeps the auto-wiring when a consumer supplies a competing id and role', () => {
+		const { container } = renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="a" id="mine" role="region" tabIndex={-1}>
+						Panel A
+					</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+
+		const panel = container.querySelector('[role="tabpanel"]')
+
+		// The tab points at the derived id, so the consumer's must not win. Assert
+		// the reciprocal pairing rather than the absence of `mine`.
+		expect(panel?.id).toBeTruthy()
+
+		expect(panel?.id).not.toBe('mine')
+
+		expect(screen.getByRole('tab')).toHaveAttribute('aria-controls', panel?.id)
+	})
 
 	it('auto-wires each panel as a tabpanel reciprocally linked to its tab', () => {
 		renderContents()

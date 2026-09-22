@@ -107,6 +107,34 @@ describe('StepperPanel', () => {
 		expect(screen.getByText('Panel Content')).toBeInTheDocument()
 	})
 
+	it('keeps its derived ids when a consumer supplies competing ones', () => {
+		const { container } = renderUI(
+			<Stepper value={1}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+				<StepperPanels>
+					<StepperPanel value={1} id="mine" aria-labelledby="theirs">
+						Panel Content
+					</StepperPanel>
+				</StepperPanels>
+			</Stepper>,
+		)
+
+		const panel = bySlot(container, 'stepper-panel')
+
+		// The StepperStep derives the same pair from the shared baseId, so the
+		// panel keeps them. Assert they are present, not merely that `mine` lost:
+		// a bare `not.toHaveAttribute` also passes when the attribute is gone.
+		expect(panel?.id).toBeTruthy()
+
+		expect(panel?.id).not.toBe('mine')
+
+		expect(panel?.getAttribute('aria-labelledby')).toBeTruthy()
+
+		expect(panel?.getAttribute('aria-labelledby')).not.toBe('theirs')
+	})
+
 	it('returns null when value does not match the current step', () => {
 		renderUI(
 			<Stepper value={1}>

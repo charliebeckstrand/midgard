@@ -98,10 +98,7 @@ export function SidebarItem({
 
 	const inner = (
 		<Button
-			type="button"
-			data-slot="sidebar-item-inner"
 			data-current={dataAttr(item.current)}
-			aria-current={item.current ? 'page' : undefined}
 			className={cn(
 				k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
 				// In the mini rail this Button is the tooltip trigger; restore the nav
@@ -110,7 +107,12 @@ export function SidebarItem({
 				className,
 			)}
 			onClick={item.handleClick}
+			// Consumer props spread first; the type, the anchor the Sidebar's roving
+			// selects on, and the current marker below take precedence.
 			{...props}
+			type="button"
+			data-slot="sidebar-item-inner"
+			aria-current={item.current ? 'page' : undefined}
 		>
 			<TouchTarget>
 				{icon && <Icon icon={icon} size={item.size} />}

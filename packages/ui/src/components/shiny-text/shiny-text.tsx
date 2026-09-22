@@ -80,6 +80,7 @@ export function ShinyText({
 	ref,
 	className,
 	children,
+	style,
 	onMouseEnter,
 	onMouseLeave,
 	...props
@@ -128,15 +129,16 @@ export function ShinyText({
 				'[--shiny-text-color:var(--color-zinc-600)] dark:[--shiny-text-color:var(--color-zinc-400)]',
 				className,
 			)}
-			style={{
-				backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,
-				backgroundSize: '200% auto',
-				backgroundPosition,
-			}}
 			{...(props as Omit<
 				ComponentProps<'span'>,
 				'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
 			>)}
+			style={{
+				...style,
+				backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,
+				backgroundSize: '200% auto',
+				backgroundPosition,
+			}}
 			// Composed after the spread so a consumer handler can't clobber
 			// `pauseOnHover`; both run.
 			onMouseEnter={(event) => {

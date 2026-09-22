@@ -68,6 +68,26 @@ describe('NavList', () => {
 })
 
 describe('NavItem', () => {
+	it('keeps its type, current marker and anchor when a consumer supplies them', () => {
+		const { container } = renderUI(
+			<Nav>
+				<NavList>
+					<NavItem current type="submit" aria-current="step" data-slot="theirs">
+						Home
+					</NavItem>
+				</NavList>
+			</Nav>,
+		)
+
+		// A stray `type` would submit an enclosing form, and a renamed anchor
+		// would take the item out of the kata rule that reads it.
+		const inner = bySlot(container, 'nav-item-inner')
+
+		expect(inner).toHaveAttribute('type', 'button')
+
+		expect(inner).toHaveAttribute('aria-current', 'page')
+	})
+
 	it('renders as a button by default', () => {
 		const { container } = renderUI(
 			<Nav>
