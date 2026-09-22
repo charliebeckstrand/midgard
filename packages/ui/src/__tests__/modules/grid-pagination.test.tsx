@@ -1,3 +1,4 @@
+import { startTransition, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { act, renderUI, screen, userEvent } from '../helpers'
@@ -172,6 +173,71 @@ describe('Grid pagination', () => {
 			await user.click(screen.getByRole('button', { name: '3' }))
 
 			expect(onValueChange).toHaveBeenLastCalledWith({ pageIndex: 2, pageSize: 5 })
+		})
+
+		it('restores focus when the consumer commits the page in a transition', async () => {
+			const user = userEvent.setup()
+
+			function Deferred() {
+				const [pageIndex, setPageIndex] = useState(1)
+
+				return (
+					<Grid
+						columns={columns}
+						rows={many}
+						getKey={getKey}
+						pagination={{
+							value: { pageIndex, pageSize: 10 },
+							onValueChange: (next) => startTransition(() => setPageIndex(next.pageIndex)),
+						}}
+					/>
+				)
+			}
+
+			renderUI(<Deferred />)
+
+			// Page 2 of 3. The click commits once before the transition does, while
+			// Next is still enabled; the transition's commit then disables it.
+			await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+			expect(screen.getByRole('button', { name: 'Next page' })).toBeDisabled()
+
+			expect(document.activeElement).toBe(screen.getByRole('button', { current: 'page' }))
+		})
+
+		it('leaves focus outside the nav when a rejected navigation precedes a page change', async () => {
+			const user = userEvent.setup()
+
+			function Rejecting() {
+				const [pageIndex, setPageIndex] = useState(0)
+
+				return (
+					<>
+						<button type="button" onClick={() => setPageIndex(2)}>
+							Jump
+						</button>
+
+						<Grid
+							columns={columns}
+							rows={many}
+							getKey={getKey}
+							pagination={{ value: { pageIndex, pageSize: 10 }, onValueChange: () => {} }}
+						/>
+					</>
+				)
+			}
+
+			renderUI(<Rejecting />)
+
+			// The consumer drops the reader's Next, then drives a page change of its
+			// own from a control outside the nav.
+			await user.click(screen.getByRole('button', { name: 'Next page' }))
+
+			await user.click(screen.getByRole('button', { name: 'Jump' }))
+
+			expect(screen.getByRole('button', { current: 'page' })).toHaveTextContent('3')
+
+			expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Jump' }))
 		})
 	})
 
