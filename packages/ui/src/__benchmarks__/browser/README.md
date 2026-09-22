@@ -444,6 +444,8 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 
 5. **The gate moved into the hook, and `MenuSub` took it** ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts), [`menu-sub.tsx`](../../components/menu/menu-sub.tsx)). Lever 4 gated `MenuContent` with a ternary at the ref. `useScrollOverflow` now takes an `enabled` option, and both menu call sites state the gate once, where the hook is called. `MenuSub` read the same `capped` and rendered the same capped viewport, so it wired the same dead watch on every submenu open. **Unmeasured.** No bench in this suite opens a submenu, and the mount bench overprices this class of change — see `Gating the overflow watch` above.
 
+6. **The viewport extracted, and the gate with it** ([`menu-viewport.tsx`](../../components/menu/menu-viewport.tsx)). Levers 4 and 5 left both panels stating the same three decisions: the `data-slot` anchor, `k.viewport({ density, capped })`, and the gated watch. `MenuViewport` now owns all three, and `MenuContent` and `MenuSub` render it. **No perf claim.** The work per open is unchanged. What changes is that one place states the gate, where two did.
+
 ## Popovers
 
 `Popover` has no contender here either. It shares `Menu`'s trigger shape, so it shares one of `Menu`'s findings.
