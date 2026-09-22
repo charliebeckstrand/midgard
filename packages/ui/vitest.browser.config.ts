@@ -156,8 +156,8 @@ export default defineConfig({
 			// its own file. The jsdom projects have carried this guard since the
 			// shared worker landed; this suite shares a page on the same terms and
 			// did not. No browser file assigns `el.focus` today, so this is
-			// prevention rather than a fix — the 2026-09-11 document counts seven
-			// tests that hit the leak when it moved files into a browser.
+			// prevention rather than a fix — seven tests hit the leak when files
+			// moved into this suite.
 			'./src/__tests__/setup/restore-prototype-focus.ts',
 			'./src/__tests__/browser/setup/act-environment.ts',
 		],

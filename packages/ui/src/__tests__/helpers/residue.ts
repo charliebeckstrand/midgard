@@ -6,14 +6,16 @@ import { describeNode } from './describe-node'
  * Fails a test that leaves page state behind.
  *
  * Both browser instances run `isolate: false`, so one page serves every file
- * the instance runs. Testing Library's `cleanup` removes the containers React
- * owns and nothing else, so what a test leaves outside them outlives it.
+ * an instance runs, and `unit` shares one jsdom window across a worker's files
+ * on the same terms. Both setups therefore install this guard. Testing
+ * Library's `cleanup` removes the containers React owns and nothing else, so
+ * what a test leaves outside them outlives it.
  *
  * The check reports at the culprit and then absorbs the leak. The test that
  * left the state fails, and the tests after it are not punished for it. Without
  * that, a leak is only ever visible as a failure somewhere downstream. That is
- * how the missing `__resetAnnouncer` call in this file's sibling survived a
- * suite that passes 583 tests.
+ * how a missing `__resetAnnouncer` call in the browser setup survived a suite
+ * that passes 583 tests.
  *
  * What it watches is every surface a shipped module is known to write outside
  * a React tree, plus the document click gate {@link swallowsClicks} reads.
@@ -27,20 +29,16 @@ import { describeNode } from './describe-node'
  * It was written against the browser suite's intermittent failure, and it
  * stayed silent through a failing run. It watched the body and not the
  * document, which is where the cause sat. The click gate closes that gap. An
- * open pointer drag is the cause the 2026-09-11 test architecture document
- * records, and this guard names the case that leaves one. It also closes a
- * residue rule that document has stated since August, which nothing enforced.
- *
- * Both setups serve it now, because `unit` shares a window across a worker's
- * files on the same terms a browser instance shares a page.
+ * open pointer drag is the cause, and this guard names the case that leaves
+ * one (#1180). It also enforces a rule that nothing checked before: a test
+ * removes what it leaves outside its container.
  *
  * Extending it exposed a trap in its own placement. Called from the setup's
  * `afterEach`, where it began, it failed eleven cases in six jsdom files — and
  * not one was a leak. Every one reclaimed its node in `onTestFinished`, which
- * is what the message below and the 2026-09-11 document both instruct, and
- * `afterEach` runs first. So the guard failed the files that obeyed the rule it
- * enforces. No browser file clears a node that way, which is why the browser
- * suite never showed it.
+ * is what the message below instructs, and `afterEach` runs first. So the
+ * guard failed the files that obeyed the rule it enforces. No browser file
+ * clears a node that way, which is why the browser suite never showed it.
  */
 
 /** Node names a test may leave in the body: the page's own injected assets. */
@@ -139,8 +137,8 @@ function collect(): string[] {
  * Throws when the page carries state the test did not inherit.
  *
  * Both halves are private, because the order they run in is the whole contract
- * and a caller that could spell it could spell it wrong. {@link guardResidue}
- * is the only way in.
+ * and a caller that could spell it could spell it wrong.
+ * {@link installResidueGuard} is the only way in.
  */
 function assertNoResidue(): void {
 	const leaks = collect()
@@ -153,8 +151,8 @@ function assertNoResidue(): void {
 }
 
 /**
- * Guards the page for every test of a suite. Call it from a setup file's
- * `beforeEach`.
+ * Guards the page for one test. {@link installResidueGuard} registers it in a
+ * setup file's `beforeEach`.
  *
  * The snapshot is taken now, and the check is registered with
  * `onTestFinished` — the one placement that reads what every other teardown
@@ -166,7 +164,7 @@ function assertNoResidue(): void {
  * before any `onTestFinished` has, and so failed eleven cases that removed
  * their node exactly as the message above tells them to.
  */
-export function guardResidue(): void {
+function guardResidue(): void {
 	absorbResidue()
 
 	onTestFinished(assertNoResidue)
