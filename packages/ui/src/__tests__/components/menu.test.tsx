@@ -15,7 +15,16 @@ import {
 import { useMenuContext } from '../../components/menu/context'
 import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import {
+	bySlot,
+	fireEvent,
+	getSlot,
+	mockDomGeometry,
+	present,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 describe('MenuSection', () => {
 	it('renders with data-slot="menu-section"', () => {
@@ -716,6 +725,59 @@ describe('MenuSub', () => {
 		expect(onOpenChange).toHaveBeenLastCalledWith(false)
 
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
+	})
+
+	/**
+	 * The teardown the panel's viewport owes on detach.
+	 *
+	 * `useScrollOverflow` returns its cleanup from the callback ref, and React 19
+	 * keeps that return as the ref cleanup. A wrapper that drops the return
+	 * leaves React with nothing to run, so the watch outlives the panel.
+	 *
+	 * This reads attributes and one event, so it stays under jsdom. The hook's
+	 * own case covers the ref, and `browser/menu-scroll-overflow.test.tsx` covers
+	 * the real layout. Neither crosses this row's wrapper.
+	 */
+	it('tears the viewport overflow watch down when the panel detaches', () => {
+		const { unmount } = renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+
+		const viewport = present(
+			screen
+				.getByRole('menuitem', { name: 'Nested' })
+				.closest<HTMLElement>('[data-slot="menu-viewport"]'),
+			'submenu [data-slot="menu-viewport"]',
+		)
+
+		// jsdom reports a zero scroll extent, so write one and scroll. The watch
+		// then stamps an edge, which gives the teardown something to remove.
+		mockDomGeometry(viewport, { scrollTop: 0, clientHeight: 100, scrollHeight: 400 })
+
+		fireEvent.scroll(viewport)
+
+		expect(viewport).toHaveAttribute('data-overflow-below')
+
+		unmount()
+
+		// One cleanup block drops the attributes, the scroll listener, and both
+		// observers. The attributes are the half a detached node still shows.
+		expect(viewport).not.toHaveAttribute('data-overflow-below')
+
+		expect(viewport).not.toHaveAttribute('data-overflow-above')
+
+		// And the listener is gone with them: a later scroll stamps nothing.
+		fireEvent.scroll(viewport)
+
+		expect(viewport).not.toHaveAttribute('data-overflow-below')
 	})
 })
 

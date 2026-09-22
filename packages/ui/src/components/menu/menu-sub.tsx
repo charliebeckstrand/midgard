@@ -14,7 +14,7 @@ import {
 	useState,
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { useFloatingUI, useScrollOverflow } from '../../hooks'
+import { useComposedRef, useFloatingUI, useScrollOverflow } from '../../hooks'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useDensity } from '../../primitives/density'
@@ -161,14 +161,13 @@ export function MenuSub({
 	// would run against an empty panel.
 	const [rows, setRows] = useState<HTMLElement | null>(null)
 
-	const setRowContainer = useCallback(
-		(node: HTMLElement | null) => {
-			setRows(node)
-
-			scrollOverflowRef(node)
-		},
-		[scrollOverflowRef],
-	)
+	// Composed rather than wrapped by hand: `useScrollOverflow` returns its
+	// teardown from the ref, and React 19 keeps that return as the ref cleanup.
+	// A hand-written wrapper returns nothing, so React falls back to a `null`
+	// call — which the hook ignores — and the watch outlives the panel.
+	// `useComposedRef` forwards each ref's own cleanup, and nulls `rows` on the
+	// same detach.
+	const setRowContainer = useComposedRef<HTMLElement>(setRows, scrollOverflowRef)
 
 	const triggerId = useId()
 
