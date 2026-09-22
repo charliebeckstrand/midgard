@@ -63,7 +63,7 @@ function setup({
 function pointerEvent(overrides: Partial<ReactPointerEvent> = {}): ReactPointerEvent {
 	const target = document.createElement('div')
 
-	target.setPointerCapture = vi.fn()
+	vi.spyOn(target, 'setPointerCapture')
 
 	return makePointerEvent({
 		clientX: 10,

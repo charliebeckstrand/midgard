@@ -235,22 +235,6 @@ describe('Example minWidth', () => {
 	})
 })
 
-// jsdom ships no pointer-capture methods; stub them per element (no prototype
-// pollution) so the drag handlers, which capture the pointer, run.
-function stubPointerCapture(el: HTMLElement) {
-	let captured = false
-
-	el.setPointerCapture = () => {
-		captured = true
-	}
-
-	el.releasePointerCapture = () => {
-		captured = false
-	}
-
-	el.hasPointerCapture = () => captured
-}
-
 describe('Example resize drag', () => {
 	// `min: 0` keeps the jsdom-measured base width (0) from clamping, so the
 	// applied width is exactly the pointer delta.
@@ -258,8 +242,6 @@ describe('Example resize drag', () => {
 		const { container } = renderExample({ min: 0 })
 
 		const handle = getSlot(container, 'example-resize-handle')
-
-		stubPointerCapture(handle)
 
 		const frame = getSlot(container, 'example-frame')
 
