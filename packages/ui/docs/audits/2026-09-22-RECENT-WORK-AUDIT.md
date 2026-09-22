@@ -67,7 +67,7 @@ The `Status` cell takes `◯ OPEN` for a row with no fix, `◐ FIXED` for a fix 
 | `BENCH-09` | `packages/ui/src/components/sparkline/sparkline.tsx` | the geometry memo | correctness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `BENCH-10` | `packages/ui/docs/audits/2026-09-13-BUG-AUDIT.md` | the Q2 settlement | cleanliness | low | CONFIRMED | ✅ RESOLVED ([#1186](https://github.com/charliebeckstrand/midgard/pull/1186)) |
 | `DOCS-02` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `extractComments` | correctness | low | CONFIRMED | ◐ FIXED |
-| `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◯ OPEN |
+| `DOCS-03` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `CITATION` | correctness | low | CONFIRMED | ◐ FIXED |
 | `DOCS-04` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | the citation lookbehind | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-05` | `packages/ui/src/__tests__/boundary/comment-reference-boundary.test.ts` | `declaredName` | correctness | low | CONFIRMED | ◯ OPEN |
 | `DOCS-06` | `packages/ui/src/docs/engine/plugins/collect-helpers.ts` | `returnsJsx` | correctness | low | CONFIRMED | ◯ OPEN |

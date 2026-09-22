@@ -95,6 +95,11 @@ const TEST_FILE = /\.(?:test|bench)\.tsx?$/
 // `*-boundary.test.ts` in a config matches from its `b` and reports a file that
 // was never named. No real citation opens after a `*` or a `-`, because a name
 // that carries one matches from its own first character.
+//
+// A bare stem, with no extension, stays out of reach. Prose uses the same
+// `-boundary` compound as a plain word, as in "calendar-boundary ticks", so a
+// stem match cannot tell a citation from a word. A citation that this rule
+// checks names its file in full.
 const CITATION = /(?<![*-])\b[\w-][\w.-]*\.(?:test|bench)\.tsx?\b/g
 
 /** The 1-based line `index` falls on, for a violation the reader has to open. */
@@ -258,7 +263,7 @@ function libraryGlobals(): Set<string> {
 }
 
 describe('comment reference boundary', () => {
-	it('every test or benchmark file a comment names exists', () => {
+	it('every test or benchmark file a comment names in full exists', () => {
 		const existing = new Set<string>()
 
 		const cited: { file: string; line: number; name: string }[] = []
