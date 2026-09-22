@@ -233,7 +233,7 @@ These rows came up during the sweep. They predate `5c75a88`, so they sit outside
 | Row | File | Symbol | Severity | Verdict | Status |
 |---|---|---|---|---|---|
 | `ADJ-01` | `packages/ui/src/components/accordion/accordion.tsx` | `Accordion` | low | CONFIRMED | ◐ FIXED |
-| `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ◯ OPEN |
+| `ADJ-02` | `packages/ui/src/components/popover/popover.tsx` | the context memo | low | PLAUSIBLE | ◐ FIXED |
 | `ADJ-03` | `packages/ui/src/modules/grid/engine/grid-menu-targeting.ts` | the active-cell query | low | PLAUSIBLE | ◯ OPEN |
 | `ADJ-04` | several | dangling citations | low | CONFIRMED | ✅ RESOLVED ([#1187](https://github.com/charliebeckstrand/midgard/pull/1187), [#1188](https://github.com/charliebeckstrand/midgard/pull/1188)) |
 
