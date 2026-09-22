@@ -37,8 +37,9 @@
 			"dependencyDashboardApproval": true
 		},
 		{
-			"description": "Patched at an exact version; the patchedDependencies comment in pnpm-workspace.yaml states what a bump costs. Approval rather than `enabled: false`, so a security alert still reaches the dashboard instead of going silent.",
+			"description": "Patched at an exact version; the patchedDependencies comment in pnpm-workspace.yaml states what a bump costs. Approval rather than `enabled: false`, so a security alert still reaches the dashboard instead of going silent. A group of its own, because a branch waits for approval when any upgrade in it needs one: inside `non-major`, this one rule held the whole minor and patch tail.",
 			"matchPackageNames": ["@floating-ui/react"],
+			"groupName": "floating-ui",
 			"dependencyDashboardApproval": true
 		},
 		{
