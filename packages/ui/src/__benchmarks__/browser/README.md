@@ -307,6 +307,66 @@ The call count is the rest of the answer, and it was counted rather than assumed
 
 **No change is warranted.** The saving is two orders of magnitude below the run-to-run spread of the rung it would land in, so no bench in this suite could show it. The `cn` doccomment's ~13% figure is a ten-thousand-row grid, where the call runs once per row per render. A panel is one element, and the arithmetic does not carry across.
 
+### Where the empty shell goes (2026-09-22, a slower container)
+
+The open table above leaves 2.65 ms on an empty panel and names no layer. [`menu-shell.bench.tsx`](menu-shell.bench.tsx) ablates it. Every rung mounts one empty open surface and tears it down, so a step is what that layer costs on one open. Mean ms, median of three runs.
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · plain div | 0.106 | — |
+| 2 · motion.div | 0.229 | 0.123 |
+| 3 · AnimatePresence + motion.div | 0.258 | 0.030 |
+| 4 · PopoverPanel | 0.252 | — |
+| 5 · static menu (no portal, no positioning) | 0.744 | 0.493 |
+| 6 · open dropdown (the real thing) | 1.800 | 1.056 |
+
+**The floating layer is 62% of the shell.** It costs 1.06 ms of the 1.69 ms an open dropdown spends above a plain div. `static menu` is the ablation the library already ships: `MenuContent` gates the portal on `isStatic`, so that rung builds the same panel with no portal, no positioned wrapper, and no `autoUpdate`.
+
+**`PopoverPanel`'s own hooks are free.** The roving handler, the scroll-within helper, and the autofocus effect do not separate from the rung below them. Its cost is the `motion.div`, at 0.123 ms, and `AnimatePresence` at 0.030. Motion was the first suspect and it is 9% of the shell.
+
+Most of the floating layer is the engine, not the wrapper. These rungs read floating-ui directly, against a plain `div`, so nothing of this package is in them.
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · button + plain div | 0.104 | — |
+| 2 · useFloating, no autoUpdate | 0.389 | 0.285 |
+| 3 · useFloating + autoUpdate | 0.600 | 0.211 |
+| 4 · + FloatingPortal | 0.749 | 0.149 |
+
+**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.39 — is `FloatingSurface`, `PresencePortal`, and `MenuTrigger`.
+
+The other 25% is `MenuContent`. Split at the `Menu` root:
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · Menu root only (no panel to build) | 0.183 | — |
+| 2 · + MenuContent, static | 0.754 | 0.571 |
+
+The root's whole hook tree is 0.077 ms above a plain div, so `MenuContent` is 0.571 of it. `PopoverPanel` accounts for 0.146. One hook accounts for most of the rest.
+
+| Rung | Median | Step |
+| --- | ---: | ---: |
+| 1 · plain div | 0.099 | — |
+| 2 · + useScrollOverflow | 0.233 | 0.134 |
+| 3 · + Density around it | 0.222 | — |
+
+**`Density` is free. The overflow watch is not.** `useScrollOverflow` reads `scrollTop`, `clientHeight`, and `scrollHeight` the moment its ref attaches, which forces style and layout on a node the browser has just inserted. It then starts a `ResizeObserver` over the node **and each of its children**, a `MutationObserver`, and a scroll listener.
+
+That per-child `observe` makes the watch scale with the row count, so it lands in the open table's per-row figure as well.
+
+| Rung | Median | Watch |
+| --- | ---: | ---: |
+| 24 rows · plain | 0.189 | — |
+| 24 rows · watched | 0.938 | 0.749 |
+| 64 rows · plain | 0.325 | — |
+| 64 rows · watched | 1.919 | 1.594 |
+
+**The overflow watch is about a third of what a row costs to open.** It runs 0.031 ms per row at 24 rows and 0.025 at 64, against the 0.09 ms the open table charges for a whole row. On a 24-row menu it is 0.75 ms of rows plus its own 0.13 ms.
+
+**On the default menu it can never fire.** `capped` defaults to `false`, and an uncapped viewport carries no `max-h`, so it grows with its content. Measured directly: at 8, 24, and 64 rows an uncapped viewport reads `clientHeight === scrollHeight`, and neither overflow attribute is ever stamped. Only a capped panel overflows, at any size. The watch therefore starts a `ResizeObserver` per row, a `MutationObserver`, and a forced layout read, to maintain two attributes that cannot change.
+
+**This is the open path's largest addressable figure, and it is ours.** About 0.88 ms of a 24-row open, or 18%. The fix is to wire the watch only where a scroller exists — `MenuContent` already knows, because `capped` is what emits the `max-h`. No change is made here; this bench is the evidence for one.
+
 ### Fan-out: what a closed menu costs (2026-09-21, this container)
 
 A grid puts a filter menu on every column and an action menu on every row. The closed menu is therefore the one a page multiplies. Mean ms for 50, median of three runs.
