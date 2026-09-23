@@ -18,8 +18,9 @@ import type { MapLegendPlacement } from '../types'
  * - The `'range'` discriminator that swaps in the continuous scale bar.
  * - The object form `{ placement }` naming that bar's placement.
  *
- * It is the same shape a chart's range legend takes, so the choropleth and
- * heatmap read alike.
+ * It shares the object form `{ placement }` with the heatmap's `legend` prop.
+ * On the map, `'range'` or the object form selects the bar. A boolean or a
+ * placement selects the switchboard.
  */
 export type MapLegendInput = boolean | MapLegendPlacement | MapRangeLegendInput
 

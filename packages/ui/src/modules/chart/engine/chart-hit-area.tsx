@@ -123,7 +123,7 @@ function ChartHitRect({
 
 /**
  * Whether a cartesian chart mounts its hit area. Something must read the
- * pointer: a tooltip, a snapping crosshair, or a band-click handler. There must
+ * pointer: a tooltip, a crosshair, or a band-click handler. There must
  * also be data under it. The one gate the four cartesian charts share
  * before their own mark hit-test.
  *

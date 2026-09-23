@@ -142,7 +142,7 @@ export type RangeLegendProps = RangeScale & {
 	onProbe?: (bin: number | null) => void
 	/**
 	 * A glyph pinned into the track — a {@link RangeArrow} the host wires to its
-	 * own mark hover, marking the hovered mark's class on the bar.
+	 * own mark hover. It marks the exact value of the hovered mark on the bar.
 	 */
 	arrow?: ReactNode
 	/**
@@ -402,7 +402,7 @@ function RangeTrack({
  * to high at the top. It is the interactive counterpart to a binned
  * switchboard, shared by the `HeatmapChart` and the `ChoroplethChart`. The
  * choropleth reaches it through the map module's `MapRangeLegend` wrapper. The
- * two colour-scaled charts therefore read and behave identically.
+ * two colour-scaled charts therefore share one slider and one probe behaviour.
  *
  * @remarks A slider read precisely. A pointer on the bar tracks the exact value
  * under the cursor, with a thumb that follows it and a live value readout. The
@@ -441,7 +441,8 @@ export function RangeLegend({
 
 	const step = span / bins
 
-	// The equal-interval class a value lands in — the host's own binning.
+	// The equal-interval class that a value lands in. This agrees with the host
+	// only when the host bins by `'linear'`.
 	const binOf = (value: number): number =>
 		span > 0 ? Math.min(bins - 1, Math.max(0, Math.floor((value - min) / step))) : 0
 

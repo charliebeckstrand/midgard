@@ -85,7 +85,7 @@ import {
  * @internal
  */
 export type ScatterFrameProps = {
-	/** Resolves against enclosing Density; sets the default frame height and tick count. */
+	/** Resolves against enclosing Density; sets the tick-count target. */
 	size?: Step
 	/**
 	 * The chart's axes. `true` (the default) draws both value axes at their
@@ -143,10 +143,8 @@ type ScatterMeta = {
 
 /**
  * Every series parsed and resolved: paint, points, and the bubble radius
- * scaling. A scatter series names only a palette slot, with no raw colour,
- * unlike the band-axis series. Its colour therefore resolves directly to the
- * slot in the fixed order. That is the way the cartesian series did before a
- * raw colour became an option there.
+ * scaling. A series takes its explicit `color` (a palette slot or a raw CSS
+ * colour), else its slot in the fixed order.
  *
  * @internal
  */
@@ -327,14 +325,6 @@ function scatterTitles(
 }
 
 /**
- * Both scales resolved, y from the frame height first, so its tick labels can
- * size the left gutter. Then x fills the plot width the labels leave, inset so
- * its extreme discs and end labels clear the frame. The end ticks are then
- * anchored inward, so those labels don't crowd the corner they sit in.
- *
- * @internal
- */
-/**
  * The inset a spark plot needs on every edge, so its largest disc clears the
  * frame rather than clipping. It is the widest disc radius across the visible
  * points, plus the half of the surface ring that strokes outside that radius.
@@ -353,6 +343,14 @@ function sparkMarkInset(visible: ScatterMeta[]): number {
 	return widest + MARKER_RING_WIDTH / 2
 }
 
+/**
+ * Both scales resolved, y from the frame height first, so its tick labels can
+ * size the left gutter. Then x fills the plot width the labels leave, inset so
+ * its extreme discs and end labels clear the frame. The end ticks are then
+ * anchored inward, so those labels don't crowd the corner they sit in.
+ *
+ * @internal
+ */
 function scatterScales(args: {
 	visible: ScatterMeta[]
 	frameWidth: number
@@ -497,7 +495,8 @@ function ScatterChrome(props: {
 
 /**
  * The scatter's pointer hit layer, mounted only where the chart is interactive.
- * It mounts over the columns when a tooltip or crosshair asks for the pointer.
+ * It mounts over the columns when a tooltip, a crosshair, or `onPointClick`
+ * asks for the pointer.
  * It never mounts at the spark tier, read through {@link ChartTierContext}, so
  * the frame decides. There a sparkline is non-interactive: its marks take no
  * hover or click. The crosshair and tooltip that ride this hover stand down
@@ -637,8 +636,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
 	// the density target above, so only the tier and its legend budget are taken.
-	// A scatter carries no header, so the chrome is the legend alone; chartFramePolicy
-	// resolves the tier against the figure's `width / ratio` less that legend.
+	// The policy counts no header lines, so the chrome reserve holds the legend
+	// alone; chartFramePolicy resolves the tier against the figure's
+	// `width / ratio` less that legend.
 	const policy = chartFramePolicy({
 		width: frameWidth,
 		height: frameHeight,

@@ -140,8 +140,8 @@ function comboMarkAt(
  * the chart's `axes.y2` config shapes. A count therefore plots beside a currency
  * at its natural size. Bars sit at the back, the translucent area washes ride
  * over them, and lines draw on top. Every series reads a zero-baseline domain.
- * The frame is the cartesian standard: axes, grid, legend, crosshair tooltip,
- * and the visually-hidden data table.
+ * The frame is the cartesian standard: axes, grid, legend, hover tooltip, and
+ * the visually-hidden data table. The tooltip snaps when the `crosshair` snaps.
  *
  * @remarks Under `animate`, the bars rise, the area washes fade, and the lines
  * draw together — one synchronized reveal across the x and y motions. Focus the

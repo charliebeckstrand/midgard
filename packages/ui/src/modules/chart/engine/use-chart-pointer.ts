@@ -24,7 +24,7 @@ function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number)
  * shared hover index, and records the exact frame point the tooltip tracks. The
  * index is the category `resolveIndex` returns for the frame point. That is a
  * band for the cartesian charts, or the nearest unique-x column for a scatter.
- * Leaving the layer, or a cancelled pointer, clears both. The chart's `onData`
+ * Leaving the layer clears both. The chart's `onData`
  * hit test rides along, gating the
  * tooltip to the marks while the index keeps the crosshair tracking everywhere.
  *

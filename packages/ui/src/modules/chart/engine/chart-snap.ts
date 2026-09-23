@@ -42,9 +42,9 @@ export function snapTargets(
 /**
  * The position in `candidates` of the stop nearest `value`, or `null` when the
  * category has none. The first of two equidistant stops wins. The one
- * nearest-by-distance primitive: {@link nearestValue} and the scatter's
- * `nearestCenterIndex` both read through it, so the tooltip anchor and the mark
- * isolation can never disagree.
+ * nearest-by-distance primitive: {@link nearestValue}, `scatterSnappedStop`, and
+ * the scatter hit area all read through it. The tooltip anchor and the mark
+ * isolation therefore never disagree.
  *
  * @internal
  */

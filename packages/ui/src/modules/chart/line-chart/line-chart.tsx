@@ -65,9 +65,9 @@ export type LineChartProps<T = never> = CartesianChartProps<T> & {
 /**
  * A multi-series line chart on the shared cartesian frame. It draws 2px
  * round-joined lines that break at missing values, plus an optional area wash
- * and point markers. It also carries a crosshair-snapped tooltip reading every
- * series at the pointed category, and a visually-hidden data table for
- * assistive tech.
+ * and point markers. It also carries a hover tooltip that reads every series at
+ * the pointed category, and a visually-hidden data table for assistive tech.
+ * The tooltip snaps when the `crosshair` snaps.
  *
  * @remarks The value domain follows the data; pin `min` / `max` to compare
  * charts on one scale. Focus the plot to drive the crosshair and tooltip by
