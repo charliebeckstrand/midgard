@@ -10,7 +10,7 @@
  * a fill also needs no glass allowance, so this never carries the group-scoped
  * half `glassItem` adds. The caller emits one wash or the other, not both.
  *
- * Guarded against disabled and `data-disabled` descendants, like every wash here.
+ * Guarded against a disabled or `data-disabled` element, like the other hover washes here.
  *
  * Layer: kiso · Concern: hover/focus tint
  */

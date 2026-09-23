@@ -1,8 +1,8 @@
 /**
  * Iro bare: colour at the muted text shade with a darken-on-hover.
- * Renders at the ramp's `onSurface` role at rest and steps to `onTint`
- * (the max-emphasis neutral for zinc) on hover. Both are written as full
- * literals for Tailwind's scanner.
+ * Renders at the ramp's `onSurface` role at rest and steps to `onTint` on
+ * hover. Zinc steps to `strong`, the max-emphasis neutral, instead. Both are
+ * written as full literals for Tailwind's scanner.
  *
  * Layer: kiso · Concern: bare palette
  */

@@ -73,7 +73,7 @@ describe('palette', () => {
 	})
 
 	it('derives the colour axis from the matrix keys, scaffolding extended colours', () => {
-		// A wide-keyed matrix (the `iro.spectrum` shape) expands the `color` axis
+		// A wide-keyed matrix (the `iro.extendedPalette` shape) expands the `color` axis
 		// to the extended set; the engine reads keys, not a fixed list.
 		const recipe = defineRecipe({
 			palette: definePalette({
