@@ -59,7 +59,7 @@ type BarrelState = {
 /** Persisted whole-record cache: the extracted record under the hash of all input files that produced it. */
 type DiskCache = { version: number; hash: string; record: Record<string, ComponentApi[]> }
 
-const CACHE_VERSION = 4
+const CACHE_VERSION = 5
 
 const CACHE_FILE = 'api.json'
 
@@ -496,10 +496,10 @@ function linkNames(api: ComponentApi[] | null): Set<string> {
 	if (!api) return names
 
 	for (const component of api) {
-		if (component.links) for (const name of Object.keys(component.links)) names.add(name)
+		for (const name of component.links ?? []) names.add(name)
 
 		for (const prop of component.props) {
-			if (prop.links) for (const name of Object.keys(prop.links)) names.add(name)
+			for (const name of prop.links ?? []) names.add(name)
 		}
 	}
 

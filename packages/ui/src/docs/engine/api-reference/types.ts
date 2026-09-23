@@ -1,24 +1,15 @@
-/**
- * A resolved `{@link}` target lifted out of a TSDoc description, keyed in
- * `links` by the target name written in the comment. The renderer shows each
- * symbol reference as plain text and reads no `DocLink`. The extractor uses the
- * keys only to track the source file of each target.
- */
-export type DocLink = {
-	/** One-line signature header, e.g. `type KbdProps` or `function Item(…): …`. */
-	signature?: string
-	/** The target's own TSDoc summary. */
-	summary?: string
-}
-
 export type PropDef = {
 	name: string
 	/** Type expression as written in source, e.g. `GridColumn<T>[]`. */
 	type: string
-	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. `{@link}` tokens are normalized; their resolved detail lives in `links`. */
+	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. `{@link}` tokens are normalized; their resolved targets are in `links`. */
 	description?: string
-	/** Resolved `{@link}` targets referenced in `description`, keyed by target name. */
-	links?: Record<string, DocLink>
+	/**
+	 * The names of the `{@link}` targets in `description` that the link index
+	 * resolves. The renderer shows each symbol reference as plain text. The
+	 * extractor uses the names only to track the source file of each target.
+	 */
+	links?: string[]
 	/** Present and `true` only for required props; absent reads as optional. */
 	required?: boolean
 	/**
@@ -46,10 +37,10 @@ export type PassThrough = {
 
 export type ComponentApi = {
 	name: string
-	/** Component-level TSDoc summary: the `/** … *\/` above the function. `{@link}` tokens are normalized; their resolved detail lives in `links`. */
+	/** Component-level TSDoc summary: the `/** … *\/` above the function. `{@link}` tokens are normalized; their resolved targets are in `links`. */
 	description?: string
-	/** Resolved `{@link}` targets referenced in `description`, keyed by target name. */
-	links?: Record<string, DocLink>
+	/** The names of the resolved `{@link}` targets in `description`. See {@link PropDef.links}. */
+	links?: string[]
 	props: PropDef[]
 	passThrough?: PassThrough[]
 }

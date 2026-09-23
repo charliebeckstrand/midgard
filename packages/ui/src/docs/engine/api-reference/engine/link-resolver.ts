@@ -1,13 +1,10 @@
-import { Node, type Project, ts } from 'ts-morph'
+import { Node, type Project } from 'ts-morph'
 import { isPascalCase } from '../../identifiers'
-import { stripLinks } from '../link-syntax'
-import type { DocLink } from '../types'
 import type { LinkResolver } from './extract-doc'
-import { unaliasSymbol } from './ts-utils'
 
 /** One extraction pass's link index: two lookups over one walk of the program. */
 export type LinkIndex = {
-	/** A name's hover card, or `null` when nothing indexes it. Memoized, misses included. */
+	/** Whether the index holds a name. */
 	resolve: LinkResolver
 	/** The source file that declares a name, or `undefined` when nothing indexes it. */
 	targetFile: (name: string) => string | undefined
@@ -17,8 +14,9 @@ export type LinkIndex = {
  * Index every declaration a `{@link}` can target, keyed by name. TSDoc links
  * resolve across files without an import, so resolution can't lean on lexical
  * scope. This maps every PascalCase top-level declaration in project source to
- * its symbol, and `resolve` turns that into hover detail (signature and
- * summary) on demand.
+ * the file that declares it. `resolve` tells whether a name is indexed. The
+ * renderer shows a symbol reference as plain text, so the index computes no
+ * signature or summary for a target.
  *
  * One build serves both lookups, because the walk covers every file in the
  * program. `extraction.bench.ts` measures it; measure there rather than through
@@ -26,44 +24,21 @@ export type LinkIndex = {
  * how long a build lives.
  */
 export function createLinkIndex(project: Project): LinkIndex {
-	const checker = project.getTypeChecker().compilerObject
-
 	const index = buildIndex(project)
 
-	const cache = new Map<string, DocLink | null>()
-
-	const resolve: LinkResolver = (name) => {
-		const cached = cache.get(name)
-
-		if (cached !== undefined) return cached
-
-		const target = index.get(name)
-
-		const link = target ? toDocLink(name, target.symbol, checker) : null
-
-		cache.set(name, link)
-
-		return link
-	}
-
-	return { resolve, targetFile: (name) => index.get(name)?.file }
+	return { resolve: (name) => index.has(name), targetFile: (name) => index.get(name) }
 }
 
-/** One indexed link target: its resolved symbol and the source file that declares it. */
-type IndexedTarget = { symbol: ts.Symbol; file: string }
-
-/** Map every PascalCase top-level declaration in project source to its symbol; first declaration wins. */
-function buildIndex(project: Project): Map<string, IndexedTarget> {
-	const index = new Map<string, IndexedTarget>()
+/** Map every PascalCase top-level declaration in project source to the file that declares it; first declaration wins. */
+function buildIndex(project: Project): Map<string, string> {
+	const index = new Map<string, string>()
 
 	// `file` is loop-invariant across a source file's declarations, so it comes
 	// from the loop rather than a `node.getSourceFile()` call for each name.
 	const add = (name: string | undefined, node: Node, file: string) => {
 		if (!name || !isPascalCase(name) || index.has(name)) return
 
-		const symbol = node.getSymbol()?.compilerSymbol
-
-		if (symbol) index.set(name, { symbol, file })
+		if (node.getSymbol()) index.set(name, file)
 	}
 
 	for (const sf of project.getSourceFiles()) {
@@ -87,57 +62,4 @@ function buildIndex(project: Project): Map<string, IndexedTarget> {
 	}
 
 	return index
-}
-
-/** Turn an indexed symbol into the hover card's signature header and summary. */
-function toDocLink(name: string, symbol: ts.Symbol, checker: ts.TypeChecker): DocLink | null {
-	const aliased = unaliasSymbol(symbol, checker)
-
-	const link: DocLink = {}
-
-	const signature = signatureOf(name, aliased, checker)
-
-	if (signature) link.signature = signature
-
-	const summary = stripLinks(
-		ts.displayPartsToString(aliased.getDocumentationComment(checker)),
-	).trim()
-
-	if (summary) link.summary = summary
-
-	return link.signature || link.summary ? link : null
-}
-
-/** A one-line signature header for the resolved target, by declaration kind. */
-function signatureOf(name: string, symbol: ts.Symbol, checker: ts.TypeChecker): string | undefined {
-	for (const decl of symbol.getDeclarations() ?? []) {
-		if (ts.isTypeAliasDeclaration(decl)) return `type ${name}`
-
-		if (ts.isInterfaceDeclaration(decl)) return `interface ${name}`
-
-		if (ts.isClassDeclaration(decl)) return `class ${name}`
-
-		if (ts.isEnumDeclaration(decl)) return `enum ${name}`
-
-		if (ts.isFunctionDeclaration(decl)) return functionSignature(name, decl, checker)
-
-		if (ts.isVariableDeclaration(decl)) return `const ${name}`
-	}
-
-	return undefined
-}
-
-/** `function name(params): return` via the checker, falling back to the bare keyword form. */
-function functionSignature(
-	name: string,
-	decl: ts.FunctionDeclaration,
-	checker: ts.TypeChecker,
-): string {
-	try {
-		const signature = checker.getSignatureFromDeclaration(decl)
-
-		if (signature) return `function ${name}${checker.signatureToString(signature)}`
-	} catch {}
-
-	return `function ${name}`
 }

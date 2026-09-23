@@ -1,20 +1,18 @@
 import type { ts } from 'ts-morph'
 import { LINK_RE, parseLinkToken } from '../link-syntax'
-import type { DocLink } from '../types'
 
-type ExtractedDoc = { description?: string; links?: Record<string, DocLink> }
+type ExtractedDoc = { description?: string; links?: string[] }
 
 /**
- * Resolves a `{@link}` target name to its hover detail, or `null` when the name
- * is unknown. Backed by a package-wide export index ({@link createLinkIndex})
- * rather than lexical scope, because TSDoc links resolve across files without
+ * Tells whether a `{@link}` target name is a known declaration. Backed by a
+ * package-wide export index ({@link createLinkIndex}) rather than lexical scope, because TSDoc links resolve across files without
  * an import. `CommandPaletteItem` referenced from a sibling file's comment
  * therefore still resolves, even though the comment's file never imports it.
  */
-export type LinkResolver = (name: string) => DocLink | null
+export type LinkResolver = (name: string) => boolean
 
 /**
- * Build a description plus a resolved `{@link}` map from a symbol's
+ * Build a description plus the resolved `{@link}` target names from a symbol's
  * documentation display parts. `displayPartsToString` concatenates the link
  * parts with no separator (`KbdProps` + `the kbd props` → `KbdPropsthe kbd
  * props`), so the parts are re-serialized here into canonical `{@link target}` /
@@ -28,7 +26,7 @@ export function extractDocFromParts(
 }
 
 /**
- * Build a description plus a resolved `{@link}` map from raw comment text.
+ * Build a description plus the resolved `{@link}` target names from raw comment text.
  * Component summaries arrive as already-lossless source text (ts-morph's
  * `getDescription()` preserves `{@link}` verbatim), so they skip the part
  * re-serialization and go straight to resolution.
@@ -75,29 +73,25 @@ function partsToText(parts: readonly ts.SymbolDisplayPart[]): string {
 	return out
 }
 
-/** Normalize `{@link}` tokens to canonical form and resolve each symbol target to its hover detail. */
+/** Normalize `{@link}` tokens to canonical form and collect each symbol target that resolves. */
 function processDoc(text: string, resolve: LinkResolver): ExtractedDoc {
 	const trimmed = text.trim()
 
 	if (!trimmed) return {}
 
-	const links: Record<string, DocLink> = {}
+	const links: string[] = []
 
 	const description = trimmed.replace(LINK_RE, (_match, inner: string) => {
 		const { target, label, url } = parseLinkToken(inner)
 
-		if (!url && !(target in links)) {
-			const resolved = resolve(target)
-
-			if (resolved) links[target] = resolved
-		}
+		if (!url && !links.includes(target) && resolve(target)) links.push(target)
 
 		return label ? `{@link ${target}|${label}}` : `{@link ${target}}`
 	})
 
 	const doc: ExtractedDoc = { description }
 
-	if (Object.keys(links).length > 0) doc.links = links
+	if (links.length > 0) doc.links = links
 
 	return doc
 }
