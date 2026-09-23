@@ -140,6 +140,39 @@ describe('Toolbar', () => {
 		expect(c.tabIndex).toBe(-1)
 	})
 
+	it('moves along document order when element kinds interleave', () => {
+		// A comma-list selector matches by arm in jsdom, so the anchor sorts
+		// first. The arrow order must follow the DOM order.
+		const { container } = renderUI(
+			<Toolbar aria-label="Editor">
+				<button type="button">A</button>
+				<a href="/b">B</a>
+				<button type="button">C</button>
+			</Toolbar>,
+		)
+
+		const toolbar = getSlot(container, 'toolbar')
+
+		const a = screen.getByRole('button', { name: 'A' })
+
+		const b = screen.getByRole('link', { name: 'B' })
+
+		const c = screen.getByRole('button', { name: 'C' })
+
+		// The resting Tab stop is the first control in the DOM.
+		expect(a.tabIndex).toBe(0)
+
+		a.focus()
+
+		fireEvent.keyDown(toolbar, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(b)
+
+		fireEvent.keyDown(toolbar, { key: 'ArrowRight' })
+
+		expect(document.activeElement).toBe(c)
+	})
+
 	it('keeps a custom [tabindex] item in the roving query after demotion', () => {
 		// Roving demotes non-resting items to tabindex="-1". The item selector
 		// still matches a demoted custom item, keeping it reachable by arrow keys.
