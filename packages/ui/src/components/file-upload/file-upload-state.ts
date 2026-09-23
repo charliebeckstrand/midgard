@@ -98,9 +98,9 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 export function useFileUploadState(props: FileUploadSharedProps): FileUploadRenderState {
 	const { multiple, disabled, maxSize, maxCount, onAccept, onReject, onDragOverChange } = props
 
-	// Mirrors Control/Field invalid + required + error-message wiring onto the
-	// hidden `<input type="file">`, the real control in each component. The
-	// input one's visible `<Input>` self-resolves the same context.
+	// Mirrors Control/Field id + invalid + required + error-message wiring onto
+	// the hidden `<input type="file">`, the real control in each component. The
+	// visible `<Input>` of FileUploadInput opts out of this context.
 	const control = useControl()
 
 	const handlers = useFileUploadHandlers({

@@ -1,8 +1,16 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { Description, Message } from '../../components/fieldset'
+import { Description, Field, Label, Message } from '../../components/fieldset'
 import { FileUploadButton, FileUploadDrop, FileUploadInput } from '../../components/file-upload'
-import { expectAnnouncement, fireEvent, makeFileList, present, renderUI, screen } from '../helpers'
+import {
+	expectAnnouncement,
+	fireEvent,
+	getSlot,
+	makeFileList,
+	present,
+	renderUI,
+	screen,
+} from '../helpers'
 
 describe('FileUpload', () => {
 	it('renders a visually hidden file input', () => {
@@ -308,6 +316,43 @@ describe('FileUpload + Control', () => {
 		expect(describedBy).toContain('doc-description')
 
 		expect(describedBy).toContain('doc-error')
+	})
+
+	it('puts the Field identity on the hidden input, not on the display field', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Field severity="error">
+					<Label>Resume</Label>
+					<FileUploadInput />
+					<Message>A file is required</Message>
+				</Field>
+			</Control>,
+		)
+
+		const hidden = present<HTMLInputElement>(
+			container.querySelector('input[type="file"]'),
+			'input[type="file"]',
+		)
+
+		const display = screen.getByPlaceholderText('Choose a file')
+
+		const label = getSlot<HTMLLabelElement>(container, 'label')
+
+		const messageId = getSlot(container, 'message').id
+
+		expect(hidden.id).not.toBe('')
+
+		expect(label.htmlFor).toBe(hidden.id)
+
+		expect(hidden).toBeRequired()
+
+		expect(hidden.getAttribute('aria-describedby')).toContain(messageId)
+
+		expect(display.id).not.toBe(hidden.id)
+
+		expect(display).not.toBeRequired()
+
+		expect(display).not.toHaveAttribute('aria-describedby')
 	})
 })
 

@@ -9,7 +9,9 @@ import {
 	hsvaToRgba,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import { Control } from '../../components/control'
+import { Field, Label, Message } from '../../components/fieldset'
+import { allBySlot, bySlot, fireEvent, getAllSlots, getSlot, present, renderUI } from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -106,6 +108,32 @@ describe('color conversions', () => {
 })
 
 describe('ColorPanel', () => {
+	it('keeps the Field identity off the channel inputs', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Field severity="error">
+					<Label>Brand colour</Label>
+					<ColorPanel defaultValue="#3b82f6" />
+					<Message>Pick a colour</Message>
+				</Field>
+			</Control>,
+		)
+
+		const label = getSlot<HTMLLabelElement>(container, 'label')
+
+		const channels = getAllSlots<HTMLInputElement>(container, 'color-channel-input')
+
+		for (const channel of channels) {
+			expect(channel.id).not.toBe(label.htmlFor)
+
+			expect(channel).not.toBeRequired()
+
+			expect(channel).not.toHaveAttribute('aria-describedby')
+
+			expect(channel).not.toHaveAttribute('aria-invalid')
+		}
+	})
+
 	it('renders the area, a hue slider, hex input, and swatches', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 

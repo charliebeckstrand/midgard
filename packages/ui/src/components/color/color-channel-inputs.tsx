@@ -5,6 +5,7 @@ import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/color-panel'
 import { clamp } from '../../utilities'
+import { ControlContext, useControl } from '../control/context'
 import { Input } from '../input'
 import { hsvaToRgba, rgbaToHsva } from './color-utilities'
 import { useColorPanelContext } from './context'
@@ -14,9 +15,17 @@ type Channel = 'r' | 'g' | 'b' | 'a'
 
 const RGB: ReadonlyArray<'r' | 'g' | 'b'> = ['r', 'g', 'b']
 
-/** Per-channel RGB(A) numeric entry, two-way bound to the panel's colour. */
+/**
+ * Per-channel RGB(A) numeric entry, two-way bound to the panel's colour.
+ *
+ * @remarks The channel inputs are sub-parts, not the field control. They opt
+ * out of an enclosing `<Control>` / `<Field>`, so they do not take its
+ * `required`, `aria-describedby` or validation state. They keep its variant.
+ */
 export function ColorChannelInputs() {
 	const { hsva, setHsva, alpha, disabled, size } = useColorPanelContext()
+
+	const control = useControl()
 
 	const scope = useIdScope()
 
@@ -73,6 +82,7 @@ export function ColorChannelInputs() {
 				onMouseDown={(event) => event.stopPropagation()}
 				disabled={disabled}
 				size={size}
+				variant={control?.variant}
 				data-slot="color-channel-input"
 				data-channel={channel}
 				type="number"
@@ -86,9 +96,11 @@ export function ColorChannelInputs() {
 	)
 
 	return (
-		<div className={cn('grid gap-2', alpha ? 'grid-cols-4' : 'grid-cols-3')}>
-			{RGB.map((channel) => field(channel))}
-			{alpha && field('a')}
-		</div>
+		<ControlContext value={undefined}>
+			<div className={cn('grid gap-2', alpha ? 'grid-cols-4' : 'grid-cols-3')}>
+				{RGB.map((channel) => field(channel))}
+				{alpha && field('a')}
+			</div>
+		</ControlContext>
 	)
 }
