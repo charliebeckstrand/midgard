@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Grid,
@@ -2668,8 +2669,11 @@ describe('Grid commitOn', () => {
 					editable={{ session: 'managed', onCommit, onReject, ...editable }}
 				/>
 				<div data-floating-ui-portal="">
-					<button type="button">in-surface</button>
+					<button type="button">unrelated-surface</button>
 				</div>
+				<button type="button" aria-expanded="true">
+					expanded-elsewhere
+				</button>
 			</>,
 		)
 
@@ -2768,17 +2772,90 @@ describe('Grid commitOn', () => {
 				expect(grid.getAttribute('aria-activedescendant')).toBe(cursor)
 			})
 
-			it('keeps the session while focus is in a floating surface', () => {
-				const view = renderCommitOn({ scope, commitOn: 'leaveEditor' })
+			it('keeps the session while focus is in a floating surface that the editor renders', () => {
+				// A slot that renders its own portaled surface, as a date picker or a
+				// listbox does. The surface is outside the table in the DOM, and
+				// inside the grid in the React tree.
+				const cols: GridColumn<SessionRow>[] = [
+					{
+						...(sessionColumns[0] as GridColumn<SessionRow>),
+						editCell: ({ value, onValueUpdate, ariaLabel }) => (
+							<>
+								<input
+									data-slot="slot-input"
+									aria-label={ariaLabel}
+									value={String(value)}
+									onChange={(event) => onValueUpdate(event.target.value)}
+								/>
+								{createPortal(
+									<div data-floating-ui-portal="">
+										<button type="button">owned-surface</button>
+										<span data-slot="owned-text">Owned text</span>
+									</div>,
+									document.body,
+								)}
+							</>
+						),
+					},
+					sessionColumns[1] as GridColumn<SessionRow>,
+				]
 
-				const input = editName(view)
+				for (const commitOn of ['leaveEditor', 'leaveGrid'] as const) {
+					const view = renderCommitOn({ scope, commitOn }, cols)
 
-				moveFocus(view.button('in-surface'))
+					fireEvent.doubleClick(view.cell('name'))
 
-				expect(view.onCommit).not.toHaveBeenCalled()
+					const input = getSlot<HTMLInputElement>(view.container, 'slot-input')
 
-				expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+					moveFocus(input)
+
+					fireEvent.change(input, { target: { value: 'Alicia' } })
+
+					moveFocus(view.button('owned-surface'))
+
+					// A press in the surface reaches the cell through the React tree. It
+					// must not pull focus onto the grid.
+					act(() => {
+						fireEvent.mouseDown(getSlot(document.body, 'owned-text'))
+					})
+
+					expect(view.button('owned-surface')).toHaveFocus()
+
+					expect(view.onCommit).not.toHaveBeenCalled()
+
+					// Back from the surface into the editor is no leave either.
+					moveFocus(input)
+
+					expect(view.onCommit).not.toHaveBeenCalled()
+
+					// Out of the surface to a place outside the grid leaves.
+					moveFocus(view.button('owned-surface'))
+
+					moveFocus(view.button('outside'))
+
+					expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+
+					view.unmount()
+				}
 			})
+
+			for (const commitOn of ['leaveEditor', 'leaveGrid'] as const) {
+				for (const target of ['unrelated-surface', 'expanded-elsewhere']) {
+					it(`commits under '${commitOn}' when focus moves to an ${target} element outside the grid`, () => {
+						const view = renderCommitOn({ scope, commitOn })
+
+						editName(view)
+
+						moveFocus(view.button(target))
+
+						// The surface is not the editor's: it is not in the grid's React
+						// tree, so the move leaves the grid.
+						expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+
+						expect(view.button(target)).toHaveFocus()
+					})
+				}
+			}
 
 			it('keeps the session when the window loses focus', () => {
 				const view = renderCommitOn({ scope, commitOn: 'leaveEditor' })

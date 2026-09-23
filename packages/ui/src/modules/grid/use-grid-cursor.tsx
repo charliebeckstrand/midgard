@@ -376,11 +376,18 @@ export function useGridCursor<T>({
 			},
 			onBlur: sessionLeave
 				? (event) => {
-						sessionLeave(event)
+						sessionLeave.blur(event)
 
 						base.onBlur(event)
 					}
 				: base.onBlur,
+			onFocus: sessionLeave
+				? (event) => {
+						sessionLeave.focus(event)
+
+						base.onFocus(event)
+					}
+				: base.onFocus,
 		}
 	}, [nav.navTableProps, editing.sessionKeys, editing.sessionLeave, sessionEntryKeys])
 

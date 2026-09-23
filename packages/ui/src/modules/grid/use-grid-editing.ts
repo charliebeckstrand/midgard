@@ -65,12 +65,19 @@ export type GridEditingApi = {
 	sessionKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 	/**
 	 * The session's commit on leave, layered onto the grid `<table>`'s focus
-	 * loss by {@link useGridCursor}. It reads each focus move out of an editor,
-	 * or out of the grid, against `commitOn`. When the move leaves what that
-	 * policy watches, it commits the session. `undefined` unless the grid owns
-	 * the session and `commitOn` is not `'explicit'`.
+	 * handlers by {@link useGridCursor}. `blur` reads each focus move out of an
+	 * editor, or out of the grid, against `commitOn`. When the move leaves what
+	 * that policy watches, it commits the session. `focus` tells a surface that
+	 * the grid renders from an unrelated element, through the React tree.
+	 * `undefined` unless the grid owns the session and `commitOn` is not
+	 * `'explicit'`.
 	 */
-	sessionLeave: ((event: ReactFocusEvent<HTMLTableElement>) => void) | undefined
+	sessionLeave:
+		| {
+				blur: (event: ReactFocusEvent<HTMLTableElement>) => void
+				focus: (event: ReactFocusEvent<HTMLTableElement>) => void
+		  }
+		| undefined
 }
 
 /** The commit policy of a grid-owned session, {@link GridEditableConfig.commitOn}. @internal */
@@ -106,8 +113,10 @@ function restoreGridFocus(grid: HTMLElement | null): void {
  * Whether `node` is in a floating surface that an editor opened. That is a
  * portaled panel, such as an open listbox's options or the date picker's
  * calendar. It is also an open disclosure's own trigger or input
- * (`aria-expanded="true"`), such as a combobox with its panel open. The key
- * surface and the commit on leave share this rule. @internal
+ * (`aria-expanded="true"`), such as a combobox with its panel open. Only the
+ * key surface reads this rule, because a key reaches the table only from its
+ * own React tree. The commit on leave must not read it for the element that
+ * takes focus: an unrelated surface on the page matches it too. @internal
  */
 function inFloatingSurface(node: Element): boolean {
 	return node.closest(FLOATING_PORTAL) !== null || node.closest('[aria-expanded="true"]') !== null
@@ -431,37 +440,65 @@ function useCommitOnWithoutSessionWarning(requested: boolean, managed: boolean):
 }
 
 /**
- * Whether a focus move out of `from` into `next` leaves what a `commitOn`
- * policy watches, for the grid `grid`. `inEditors` tells whether an element
- * is one of the session's open editors, or in its held cell.
- *
- * - A move into a floating surface does not leave, and neither does a window
- *   blur. That blur names no `next` element while the document has no focus.
- * - `'leaveGrid'` watches the grid. The move must start in the grid or in a
- *   surface, and end outside the grid.
- * - `'leaveEditor'` watches the editors. The move must start in an editor or
- *   in a surface, and end outside the editors.
+ * Whether `node`, an element in the DOM of the table `grid`, is inside what a
+ * `commitOn` policy watches. `'leaveGrid'` watches the grid, by the
+ * nearest-grid rule. `'leaveEditor'` watches the editors, which `inEditors`
+ * names.
  *
  * @internal
  */
-function leavesSession(args: {
+function inWatched(args: {
+	commitOn: CommitOn
+	grid: HTMLElement
+	node: Element
+	inEditors: (node: Element) => boolean
+}): boolean {
+	const { commitOn, grid, node, inEditors } = args
+
+	return commitOn === 'leaveGrid' ? isInGrid(node, grid) : inEditors(node)
+}
+
+/**
+ * What a focus move out of `from` into `next` means to a `commitOn` policy,
+ * for the table `grid`: `'stay'`, `'leave'`, or `'ask'`.
+ *
+ * - A move that does not start inside what the policy watches stays. A
+ *   `from` outside the table's DOM reached the table through the React tree.
+ *   It is in a surface that the grid renders, so it counts as inside.
+ * - A window blur stays. It names no `next` element while the document has
+ *   no focus. Any other move with no `next` element goes to the page body,
+ *   and leaves.
+ * - A `next` in the table's DOM reads by {@link inWatched}.
+ * - A `next` outside the table's DOM is `'ask'`. Only the React tree can tell
+ *   a surface that the grid renders from an unrelated element, so the focus
+ *   event that follows decides.
+ *
+ * @internal
+ */
+function readLeave(args: {
 	commitOn: CommitOn
 	grid: HTMLElement
 	from: Element
 	next: Element | null
 	inEditors: (node: Element) => boolean
-}): boolean {
-	const { commitOn, grid, from, next, inEditors } = args
+}): 'stay' | 'leave' | 'ask' {
+	const { grid, from, next } = args
 
-	if (next === null ? !document.hasFocus() : inFloatingSurface(next)) return false
+	if (grid.contains(from) && !inWatched({ ...args, node: from })) return 'stay'
 
-	const fromSurface = inFloatingSurface(from)
+	if (next === null) return document.hasFocus() ? 'leave' : 'stay'
 
-	if (commitOn === 'leaveGrid')
-		return (fromSurface || isInGrid(from, grid)) && !(next && isInGrid(next, grid))
+	if (!grid.contains(next)) return 'ask'
 
-	return (fromSurface || inEditors(from)) && !(next && inEditors(next))
+	return inWatched({ ...args, node: next }) ? 'stay' : 'leave'
 }
+
+/**
+ * A focus move out of the table's DOM that waits for its focus event. The
+ * table's `onFocus` marks it `owned` when the event reaches the table through
+ * the React tree. @internal
+ */
+type PendingLeave = { next: Element; rowKey: string | number; owned: boolean }
 
 /** The development warning for a consumer's cell that is not editable. @internal */
 const UNEDITABLE_CELL_WARNING =
@@ -1600,10 +1637,11 @@ export function useGridEditing<T>({
 
 	// The row a focus move out of `from` would commit: the editing row that
 	// `from` sits in, else the row the grid-owned session holds. A move from a
-	// row that is not editing, or from a floating surface, names the held row.
+	// row that is not editing, or from a surface outside the table's DOM, names
+	// the held row.
 	const leaveRow = useCallback(
-		(from: Element): string | number | null => {
-			const hit = inFloatingSurface(from) ? null : sessionTarget(from)
+		(from: Element, grid: HTMLElement): string | number | null => {
+			const hit = grid.contains(from) ? sessionTarget(from) : null
 
 			if (hit) return hit.rowKey
 
@@ -1614,25 +1652,47 @@ export function useGridEditing<T>({
 		[sessionTarget],
 	)
 
+	// A focus move out of the table's DOM, while its focus event is due.
+	const pendingLeaveRef = useRef<PendingLeave | null>(null)
+
+	// Settles a pending leave once its focus event has run. A surface that the
+	// grid renders owns the move, and the session stays. Anything else leaves.
+	const settleLeave = useCallback(
+		(pending: PendingLeave) => {
+			if (pendingLeaveRef.current !== pending) return
+
+			pendingLeaveRef.current = null
+
+			if (!pending.owned) exitSession(pending.rowKey, 'save', false)
+		},
+		[exitSession],
+	)
+
 	// Commits the session when focus leaves what `commitOn` watches (see
-	// `leavesSession`). The commit is the commit of Enter, without the cursor
-	// move and without the focus reseat: focus stays where the user sent it. The
+	// `readLeave`). The commit is the commit of Enter, without the cursor move
+	// and without the focus reseat: focus stays where the user sent it. The
 	// grid's own reseat is not a leave. Under `'leaveEditor'`, the editors of the
 	// row are the open editors of the committed row, which is only the held
 	// cell under cell scope. The settle controls sit in that cell.
+	//
+	// A move to an element outside the table's DOM waits for its `focusin`. The
+	// browser fires `focusin` in the same task, after this `focusout`. React
+	// gives it to the table's `onFocus` from its own listener on the root or on
+	// the portal container, below the document. A one-time `focusin` listener
+	// on the document therefore runs after that `onFocus`, and settles the move.
+	// A microtask is not reliable. After a click, the browser runs microtasks
+	// between the two events.
 	const sessionLeave = useCallback(
 		(event: ReactFocusEvent<HTMLTableElement>) => {
 			if (reseatingRef.current || commitOn === 'explicit') return
 
 			const from = event.target
 
-			if (!(from instanceof Element)) return
+			const grid = event.currentTarget
 
-			const rowKey = leaveRow(from)
+			const rowKey = leaveRow(from, grid)
 
 			if (rowKey === null) return
-
-			const grid = event.currentTarget
 
 			const inEditors = (node: Element) => {
 				const hit = isInGrid(node, grid) ? sessionTarget(node) : null
@@ -1642,11 +1702,28 @@ export function useGridEditing<T>({
 
 			const next = event.relatedTarget instanceof Element ? event.relatedTarget : null
 
-			if (leavesSession({ commitOn, grid, from, next, inEditors }))
-				exitSession(rowKey, 'save', false)
+			const verdict = readLeave({ commitOn, grid, from, next, inEditors })
+
+			if (verdict === 'leave') exitSession(rowKey, 'save', false)
+
+			if (verdict !== 'ask' || next === null) return
+
+			const pending: PendingLeave = { next, rowKey, owned: false }
+
+			pendingLeaveRef.current = pending
+
+			document.addEventListener('focusin', () => settleLeave(pending), { once: true })
 		},
-		[commitOn, leaveRow, sessionTarget, exitSession],
+		[commitOn, leaveRow, sessionTarget, exitSession, settleLeave],
 	)
+
+	// Marks a pending leave as owned when its focus event reaches the table
+	// through the React tree. Only a surface that the grid renders does that.
+	const sessionFocus = useCallback((event: ReactFocusEvent<HTMLTableElement>) => {
+		const pending = pendingLeaveRef.current
+
+		if (pending && event.target === pending.next) pending.owned = true
+	}, [])
 
 	// The settle controls a cell shows, decided here rather than in the cell. The
 	// cell a cell-scoped session holds shows them. Under `'leaveEditor'` a move
@@ -1707,6 +1784,6 @@ export function useGridEditing<T>({
 		session,
 		enterEdit,
 		sessionKeys: managed ? sessionKeys : undefined,
-		sessionLeave: commitOn === 'explicit' ? undefined : sessionLeave,
+		sessionLeave: commitOn === 'explicit' ? undefined : { blur: sessionLeave, focus: sessionFocus },
 	}
 }
