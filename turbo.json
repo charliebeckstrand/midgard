@@ -7,7 +7,12 @@
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/postcss.config.mjs"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
+    "transit": {
+      "dependsOn": ["^transit"],
+      "inputs": ["src/**", "!src/**/__tests__/**", "package.json"]
+    },
     "check-types": {
+      "dependsOn": ["transit"],
       "inputs": [
         "src/**",
         "app/**",

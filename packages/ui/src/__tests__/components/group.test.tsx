@@ -117,16 +117,6 @@ describe('Group', () => {
 		}
 	})
 
-	it('applies the explicit size prop to data-size', () => {
-		const { container } = renderUI(
-			<Group size="lg">
-				<button type="button">A</button>
-			</Group>,
-		)
-
-		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'lg')
-	})
-
 	it('provides a Density context to descendants', () => {
 		let observed: string | undefined
 

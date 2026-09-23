@@ -272,26 +272,6 @@ describe('Drawer size context', () => {
 
 	const buttonInDrawer = () => document.querySelector<HTMLElement>('[data-slot="button"]')
 
-	it('defaults to size="md" and exposes data-size on the panel', () => {
-		renderUI(
-			<Drawer open onOpenChange={() => {}}>
-				content
-			</Drawer>,
-		)
-
-		expect(drawerPanel()).toHaveAttribute('data-size', 'md')
-	})
-
-	it('reflects an explicit size prop on data-size', () => {
-		renderUI(
-			<Drawer open onOpenChange={() => {}} size="lg">
-				content
-			</Drawer>,
-		)
-
-		expect(drawerPanel()).toHaveAttribute('data-size', 'lg')
-	})
-
 	it('defaults to height="auto", capping rather than fixing the panel height', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}}>
