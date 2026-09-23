@@ -21,7 +21,9 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * What it watches is every surface a shipped module is known to write outside
  * a React tree, the document click gate {@link swallowsClicks} reads, and the
  * listeners on the global targets. Appended body children cover portals and
- * injected regions.
+ * injected regions. A `<style>`, `<link>`, or `<script>` counts as well: a
+ * leaked stylesheet changes the computed layout of every later file and leaves
+ * the body clean by every other measure here.
  * `body.style` covers `use-scroll-lock`, which sets `overflow` and a
  * compensating `paddingRight` under a reference count. The marked head style
  * covers `use-grabbing-cursor`, which appends one under a count of its own.
@@ -47,9 +49,6 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * guard failed the files that obeyed the rule it enforces. No browser file
  * clears a node that way, which is why the browser suite never showed it.
  */
-
-/** Node names a test may leave in the body: the page's own injected assets. */
-const INJECTED = new Set(['STYLE', 'LINK', 'SCRIPT'])
 
 /** The grabbing cursor's marker; `use-grabbing-cursor` stamps it on its style. */
 const GRABBING = '[data-grabbing-cursor]'
@@ -125,7 +124,7 @@ function collect(): string[] {
 	const leaks: string[] = []
 
 	for (const node of document.body.children) {
-		if (!children.has(node) && !INJECTED.has(node.tagName)) leaks.push(describeNode(node))
+		if (!children.has(node)) leaks.push(describeNode(node))
 	}
 
 	if (document.body.style.cssText !== bodyStyle) {
