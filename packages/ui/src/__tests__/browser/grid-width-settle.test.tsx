@@ -3,13 +3,11 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, waitFor } from '../helpers'
 
 /**
- * The column jump, in the environment that produces it.
+ * The width gate, in the environment that produces the column jump.
  *
- * A reload paints the server's HTML, which has measured nothing; the fit at hydration
- * then corrects it. With a cold query cache — which a reload always has — that first fit
- * sees a header and no rows, so it is *provisional* by the same test `freezeOnRowChange`
- * uses, and the real widths only arrive once the rows do. Revealing on the provisional
- * pass is what still let the columns move.
+ * The gate holds the table's paint until a width pass reads real body cells. A body
+ * with no data cells to read — the loading skeleton, the error slot, an empty result —
+ * opens it at once, because that body is the state to show.
  *
  * Needs a real `ResizeObserver` and real layout, so it lives here: under jsdom the grid
  * takes the "nothing will ever fit these columns" bail and settles immediately.
@@ -32,26 +30,24 @@ describe('grid width settling (real browser)', () => {
 	/** The gate is a class on the table itself — see `GridData`'s width-settling comment. */
 	const hidden = () => document.querySelector('table')?.className.includes('invisible') ?? null
 
-	it('holds the table hidden until a fit has measured real rows', async () => {
-		const view = renderUI(<Grid columns={columns} rows={[]} getKey={getKey} loading />)
+	it('shows the loading skeleton before any rows have been measured', () => {
+		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} loading />)
 
-		// Header-only: nothing has been measured, and the consumer says more is coming.
-		expect(hidden()).toBe(true)
-
-		view.rerender(<Grid columns={columns} rows={rows} getKey={getKey} />)
-
-		await waitFor(() => expect(hidden()).toBe(false))
+		// The skeleton is the state to show while the fetch runs; a hidden one shows nothing.
+		expect(hidden()).toBe(false)
 	})
 
-	it('reveals an empty result rather than hanging hidden', async () => {
-		const view = renderUI(<Grid columns={columns} rows={[]} getKey={getKey} loading />)
+	it('shows the error slot, which leaves no body cells to measure', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} error="Couldn't load" />)
 
-		expect(hidden()).toBe(true)
+		// The error replaces the rows, so no width pass ever reads a body cell.
+		expect(hidden()).toBe(false)
+	})
 
-		// No rows will ever arrive, so there is nothing left to wait for.
-		view.rerender(<Grid columns={columns} rows={[]} getKey={getKey} />)
+	it('reveals an empty result rather than hanging hidden', () => {
+		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} />)
 
-		await waitFor(() => expect(hidden()).toBe(false))
+		expect(hidden()).toBe(false)
 	})
 
 	it('stays revealed when a later fetch starts', async () => {
