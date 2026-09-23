@@ -3,6 +3,7 @@
 import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react'
 
+import { validationAttrs } from '../../core'
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
@@ -275,13 +276,20 @@ export function useDatePickerState({
 		onFooterActivate,
 	})
 
+	const invalid = control?.severity === 'error' || fieldInvalid
+
+	// Invalid wins the ring. Otherwise a warning or success severity shows, as
+	// `useControlProps` resolves it for the other controls.
+	const validation = validationAttrs(invalid ? 'error' : control?.severity)
+
 	return {
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: control?.required,
-		invalid: control?.severity === 'error' || fieldInvalid,
+		invalid,
+		validation,
 		value,
 		setValue: writeValue,
 		hasValue: value != null,

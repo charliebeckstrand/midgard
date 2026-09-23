@@ -696,6 +696,34 @@ describe('MenuItem', () => {
 		expect(onAction).toHaveBeenCalled()
 	})
 
+	// Keyboard activation is the activation the item exists to perform, as the
+	// click and the link-row Space are, so a consumer `preventDefault()` does
+	// not cancel it (CONVENTIONS §3.9).
+	it.each(['Enter', ' '])('activates on %j after a consumer onKeyDown prevents default', (key) => {
+		const calls: string[] = []
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem
+						onAction={() => calls.push('action')}
+						onKeyDown={(event) => {
+							calls.push('consumer')
+
+							event.preventDefault()
+						}}
+					>
+						Item
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.keyDown(screen.getByText('Item'), { key })
+
+		expect(calls).toEqual(['consumer', 'action'])
+	})
+
 	it('ignores non-Enter/Space keys', () => {
 		const onAction = vi.fn()
 

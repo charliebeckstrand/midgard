@@ -3,7 +3,7 @@
 import { Calendar as CalendarIcon, X } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
-import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
@@ -37,10 +37,14 @@ type DatePickerTriggerProps = GroupStampProps & {
 	 */
 	children?: ReactNode
 	disabled?: boolean
-	/** Hides the clear button, as on Listbox/Combobox, because a read-only value cannot change. */
+	/**
+	 * Marks the trigger with `aria-readonly` and `data-readonly`, as on Listbox.
+	 * It also hides the clear button, because a read-only value cannot change.
+	 */
 	readOnly?: boolean
 	required?: boolean
-	invalid?: boolean
+	/** The resolved validation attributes. The frame paints its ring from them. */
+	validation?: ValidationAttrs
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	/** Renders a clear button in place of the calendar icon while `hasValue`. */
 	clearable?: boolean
@@ -77,7 +81,7 @@ export function DatePickerTrigger({
 	disabled = false,
 	readOnly = false,
 	required = false,
-	invalid = false,
+	validation,
 	onKeyDown,
 	clearable = false,
 	hasValue = false,
@@ -127,10 +131,12 @@ export function DatePickerTrigger({
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						aria-describedby={describedBy}
+						aria-readonly={ariaAttr(readOnly)}
 						aria-required={ariaAttr(required)}
 						data-slot="datepicker-button"
 						disabled={disabled}
-						{...invalidAttrs(invalid)}
+						data-readonly={dataAttr(readOnly)}
+						{...validation}
 						onClick={() => onOpenChange(!open)}
 						onKeyDown={onKeyDown}
 						className={cn(k.button({ density: size, size }))}

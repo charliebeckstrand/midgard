@@ -138,6 +138,34 @@ describe('ColorPanel', () => {
 		}
 	})
 
+	it('keeps the Field identity off the hex input and its label', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Field severity="error">
+					<Label>Brand colour</Label>
+					<ColorPanel defaultValue="#3b82f6" />
+					<Message>Pick a colour</Message>
+				</Field>
+			</Control>,
+		)
+
+		const [fieldLabel, ...others] = getAllSlots<HTMLLabelElement>(container, 'label')
+
+		const hex = getSlot<HTMLInputElement>(container, 'color-hex-input')
+
+		expect(hex.tagName).toBe('INPUT')
+
+		expect(hex).not.toBeRequired()
+
+		expect(hex).not.toHaveAttribute('aria-describedby')
+
+		expect(hex).not.toHaveAttribute('aria-invalid')
+
+		expect(hex).toHaveAccessibleName('Hex')
+
+		for (const label of others) expect(label.id).not.toBe(fieldLabel?.id)
+	})
+
 	it('renders the area, a hue slider, hex input, and swatches', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 

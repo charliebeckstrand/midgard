@@ -20,9 +20,12 @@ export function handleMenuItemClick<E extends HTMLElement>(
 
 /**
  * Keyboard counterpart to {@link handleMenuItemClick}: runs the consumer's
- * `onKeyDown` first, then activates selection on Enter / Space unless the
- * consumer already handled the event (`defaultPrevented`). A no-op when
+ * `onKeyDown` first, then activates selection on Enter / Space. A no-op when
  * disabled, so disabled items stay inert on the keyboard path too.
+ *
+ * @remarks
+ * Selection is the activation that the item exists to perform, so a consumer
+ * `preventDefault()` does not cancel it (CONVENTIONS §3.9).
  *
  * @internal
  */
@@ -34,13 +37,17 @@ export function handleMenuItemKeyDown<E extends HTMLElement>(
 ): void {
 	if (disabled) return
 
-	composeEventHandlers(consumerOnKeyDown, (keyEvent) => {
-		if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
-			keyEvent.preventDefault()
+	composeEventHandlers(
+		consumerOnKeyDown,
+		(keyEvent) => {
+			if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+				keyEvent.preventDefault()
 
-			onSelect()
-		}
-	})(event)
+				onSelect()
+			}
+		},
+		{ checkForDefaultPrevented: false },
+	)(event)
 }
 
 /**
