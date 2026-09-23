@@ -126,6 +126,36 @@ describe('Grid preferences', () => {
 		expect(screen.getByRole('button', { name: 'Auto-size columns' })).toBeInTheDocument()
 	})
 
+	it('confirms "Reset column widths" while a sizing preference is in play', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				preferences={{ columnSizing: { name: 240 } }}
+			/>,
+		)
+
+		const header = screen
+			.getAllByRole('columnheader')
+			.find((th) => th.textContent?.includes('Name'))
+
+		if (!header) throw new Error('no Name header')
+
+		fireEvent.contextMenu(header)
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size' }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Reset column widths' }))
+
+		// The reset discards the saved widths too, so it confirms with its own copy.
+		expect(screen.getByText('Reset column widths?')).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Keep my widths' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: 'Reset widths' })).toBeInTheDocument()
+	})
+
 	it('runs "Auto-size all columns" unprompted without a sizing preference', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
@@ -142,7 +172,7 @@ describe('Grid preferences', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Auto-size all columns' }))
 
-		// No confirmation — the fit executes (and establishes the preference).
+		// No confirmation — the action runs (and saves the widths it sets).
 		expect(screen.queryByText('Auto-size all columns?')).not.toBeInTheDocument()
 	})
 

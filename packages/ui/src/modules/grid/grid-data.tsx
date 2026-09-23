@@ -973,9 +973,11 @@ export function GridData<T>({
 		sortColumn,
 		clearSort,
 		autoSizeColumns,
-		autoSizeConfirmOpen,
-		setAutoSizeConfirmOpen,
-		confirmAutoSize,
+		resetColumnWidths,
+		widthConfirmOpen,
+		setWidthConfirmOpen,
+		widthAction,
+		confirmWidthAction,
 		autoSizeColumn,
 		chooseColumns,
 	} = useGridMenuActions<T>({
@@ -984,8 +986,9 @@ export function GridData<T>({
 		resize,
 		setSort,
 		hasData,
-		// A seeded sizing (a restored preference, or an explicit binding seed)
-		// makes "Auto-size all columns" confirm before replacing those widths.
+		// A seeded sizing (a restored preference, or an explicit binding seed) makes
+		// "Auto-size all columns" and "Reset column widths" confirm before they
+		// discard those widths.
 		hasSizingPreference:
 			Object.keys(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue ?? {}).length > 0,
 	})
@@ -1348,11 +1351,12 @@ export function GridData<T>({
 
 						<GridRowManagerRegionDialog region={rowManager} />
 
-						{confirmAutoSize && (
+						{confirmWidthAction && (
 							<GridAutoSizeConfirmDialog
-								open={autoSizeConfirmOpen}
-								onOpenChange={setAutoSizeConfirmOpen}
-								onConfirm={confirmAutoSize}
+								open={widthConfirmOpen}
+								onOpenChange={setWidthConfirmOpen}
+								action={widthAction}
+								onConfirm={confirmWidthAction}
 							/>
 						)}
 
@@ -1390,6 +1394,7 @@ export function GridData<T>({
 								groupBy={groupByContext}
 								autoSizeColumns={autoSizeColumns}
 								autoSizeColumn={autoSizeColumn}
+								resetColumnWidths={resetColumnWidths}
 								chooseColumns={chooseColumns}
 								exportActions={exportActions.contextMenu}
 								rowGroupMenu={rowManager.rowGroupMenu}

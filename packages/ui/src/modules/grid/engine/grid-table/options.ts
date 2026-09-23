@@ -254,7 +254,7 @@ function deriveColumnBehavior<T>(col: GridColumn<T>, smartSortingFn: SortingFn<u
  * An `actions` column deliberately gets none. Its content is the consumer's: one text button,
  * a save/discard pair, a lone icon. Any number here would be a guess that is wrong for most of
  * them. The consequence is worth knowing before you write one. An `actions` column sits out
- * the autosizer's fit ({@link measureColumnIntrinsics}). A `resizable` grid takes the engine
+ * the autosizer's fit ({@link isAutoSized}). A `resizable` grid takes the engine
  * width verbatim through its fixed-layout colgroup, so the `w-px` on the cell never gets to
  * shrink anything. **A width-less `actions` column therefore renders at
  * {@link DEFAULT_COLUMN_SIZE}, not at its content width** — declare a `width` unless that is

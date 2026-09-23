@@ -505,17 +505,22 @@ describe('Grid context menus', () => {
 		expect(onValueChange).toHaveBeenCalledWith([])
 	})
 
-	it('gathers both fits under one Auto-size menu when resizable', () => {
+	it('gathers the width actions under one Auto-size menu when resizable', () => {
 		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
 
 		rightClick('columnheader', 'Name')
 
 		openSubmenu('Auto-size')
 
-		// The per-column fit leads; the grid-wide one follows.
-		expect(screen.getByRole('menuitem', { name: 'Auto-size this column' })).toBeInTheDocument()
+		// The per-column fit leads, the grid-wide one follows, and the reset closes them out.
+		const labels = ['Auto-size this column', 'Auto-size all columns', 'Reset column widths']
 
-		expect(screen.getByRole('menuitem', { name: 'Auto-size all columns' })).toBeInTheDocument()
+		const items = screen
+			.getAllByRole('menuitem')
+			.map((item) => item.textContent?.trim())
+			.filter((label) => labels.includes(label ?? ''))
+
+		expect(items).toEqual(labels)
 	})
 
 	it('omits the Auto-size menu when resizable is off', () => {
@@ -584,6 +589,30 @@ describe('Grid context menus', () => {
 				contextMenu={{
 					column: (context, defaults) => {
 						seen.push(context.autoSizeColumn)
+
+						return defaults
+					},
+				}}
+			/>,
+		)
+
+		rightClick('columnheader', 'Name')
+
+		expect(seen.at(-1)).toBeTypeOf('function')
+	})
+
+	it('hands a builder a bound "Reset column widths" when resizable', () => {
+		const seen: Array<(() => void) | undefined> = []
+
+		renderUI(
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				contextMenu={{
+					column: (context, defaults) => {
+						seen.push(context.resetColumnWidths)
 
 						return defaults
 					},

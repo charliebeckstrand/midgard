@@ -16,6 +16,7 @@ import {
 	Pin,
 	PinOff,
 	Printer,
+	RotateCcw,
 	StretchHorizontal,
 	Ungroup,
 } from 'lucide-react'
@@ -139,10 +140,12 @@ function sortMenuItems<T>(args: {
 }
 
 /**
- * The auto-size rows for a column's menu. "Auto-size this column" is a
- * per-column fit, offered only on a resizable data column, since a selection or
- * actions column has no content to fit. The grid-wide "Auto-size all columns"
- * follows it. Empty when the grid is not resizable.
+ * The width rows for a column's menu. "Auto-size this column" sizes one column
+ * to its content. It shows only on a resizable data column, because a
+ * selection or actions column has no content to fit. "Auto-size all columns"
+ * applies the same rule to every data column. "Reset column widths" gives the
+ * widths back to the grid's automatic fit. Empty when the grid is not
+ * resizable.
  *
  * @internal
  */
@@ -150,8 +153,9 @@ function autoSizeMenuItems<T>(args: {
 	column: GridColumn<T>
 	autoSizeColumn: ((column: string | number) => void) | null
 	autoSizeColumns: (() => void) | null
+	resetColumnWidths: (() => void) | null
 }): GridMenuItem[] {
-	const { column, autoSizeColumn, autoSizeColumns } = args
+	const { column, autoSizeColumn, autoSizeColumns, resetColumnWidths } = args
 
 	const items: GridMenuItem[] = []
 
@@ -170,6 +174,15 @@ function autoSizeMenuItems<T>(args: {
 			label: 'Auto-size all columns',
 			icon: <StretchHorizontal />,
 			onAction: autoSizeColumns,
+		})
+	}
+
+	if (resetColumnWidths) {
+		items.push({
+			key: 'reset-widths',
+			label: 'Reset column widths',
+			icon: <RotateCcw />,
+			onAction: resetColumnWidths,
 		})
 	}
 
@@ -237,8 +250,10 @@ type ColumnMenuDefaultArgs<T> = {
 	/** The group-by toggle, or `null` when the group button is off. */
 	groupBy: GridGroupByMenu | null
 	autoSizeColumns: (() => void) | null
-	/** Re-fits a single column to its content, or `null` when the grid is not resizable. */
+	/** Sizes a single column to its content, or `null` when the grid is not resizable. */
 	autoSizeColumn: ((column: string | number) => void) | null
+	/** Gives the widths back to the automatic fit, or `null` when the grid is not resizable. */
+	resetColumnWidths: (() => void) | null
 	chooseColumns: (() => void) | null
 	exportActions: GridExportAction[]
 	/** The column's filter affordance, or `null` when the grid has no column filters. */
@@ -342,7 +357,7 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
  *   once it is the sorted one).
  * - Pin (Pin left / Pin right / Unpin).
  * - The group-by toggle, a single action so it stays a plain row.
- * - Auto-size (this column, then all columns).
+ * - Auto-size (this column, all columns, then Reset column widths).
  *
  * Export (one row per active export type) closes them out.
  *
@@ -363,6 +378,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		groupBy,
 		autoSizeColumns,
 		autoSizeColumn,
+		resetColumnWidths,
 		chooseColumns,
 		exportActions,
 		filter,
@@ -393,7 +409,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'auto-size-menu',
 			label: 'Auto-size',
 			icon: <StretchHorizontal />,
-			items: autoSizeMenuItems({ column, autoSizeColumn, autoSizeColumns }),
+			items: autoSizeMenuItems({ column, autoSizeColumn, autoSizeColumns, resetColumnWidths }),
 		}),
 		...submenuItems({
 			key: 'export',

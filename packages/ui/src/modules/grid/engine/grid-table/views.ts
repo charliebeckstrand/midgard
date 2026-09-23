@@ -37,11 +37,22 @@ export type GridColumnResize = {
 	bounds: (id: string | number) => { min: number; max: number }
 	/** Adjust a column's width by `delta` px (keyboard), clamped to its bounds. */
 	nudge: (id: string | number, delta: number) => void
-	/** Auto-size data columns to fill the container width, re-arming auto-fit. */
-	sizeToFit: () => void
-	/** Re-fit one column to its content. A `width` seed is released, as "Auto-size all columns" releases it. */
-	reset: (id: string | number) => void
+	/**
+	 * "Auto-size this column": sizes one column to its content and holds every
+	 * other column where it sits. A `width` seed is released.
+	 */
+	autoSizeColumn: (id: string | number) => void
+	/**
+	 * "Auto-size all columns": sizes every data column to its content, as
+	 * `autoSizeColumn` sizes each one, and holds them there.
+	 */
+	autoSizeAll: () => void
+	/** "Reset column widths": gives the widths back to the grid's automatic fit, as on a fresh mount. */
+	resetWidths: () => void
 }
+
+/** The width actions that the sizing hook adds to {@link buildColumnResize}'s controls. @internal */
+type GridColumnWidthActions = 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'
 
 /**
  * Frozen-column controls: one lookup from a column id to the chrome it draws.
@@ -217,8 +228,8 @@ export function deriveVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
 		.flatMap((leaf) => leaf.columnDef.meta?.gridColumn ?? [])
 }
 /**
- * Assembles the table-backed {@link GridColumnResize} controls (all but
- * `sizeToFit` and `reset`, which the hook adds); every method reads it live. `columnFloors`
+ * Assembles the table-backed {@link GridColumnResize} controls (all but the
+ * width actions, which the hook adds); every method reads it live. `columnFloors`
  * carries the autosizer's per-column hard floor, so the resize `min` matches the
  * width the header needs. A single-word header reports (and can't be dragged
  * below) its full width, and a multi-word one its icons. A column the autosizer
@@ -229,7 +240,7 @@ export function deriveVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
 export function buildColumnResize<T>(
 	table: Table<T>,
 	columnFloors: ReadonlyMap<string, number>,
-): Omit<GridColumnResize, 'sizeToFit' | 'reset'> {
+): Omit<GridColumnResize, GridColumnWidthActions> {
 	const bounds = (id: string | number) => {
 		const column = table.getColumn(String(id))
 
