@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { holdMouse, renderUI, screen, userEvent } from '../helpers'
+import { fireEvent, holdMouse, renderUI, screen, userEvent } from '../helpers'
 
 describe('Grid resizable columns', () => {
 	type Row = { id: number; name: string; age: number }
@@ -331,6 +331,32 @@ describe('Grid resizable columns', () => {
 		expect(handle).not.toHaveAttribute('data-resizing')
 
 		held.release()
+	})
+
+	// The engine tracks a drag through document-level listeners. Without a capture,
+	// the element under the pointer sets the cursor. A cell or a control with its
+	// own cursor then replaces the resize cursor mid-drag.
+	it('captures the pointer on the handle for a primary-button press', () => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		fireEvent.pointerDown(handle, { pointerId: 1, button: 0, clientX: 200 })
+
+		expect(handle.hasPointerCapture(1)).toBe(true)
+	})
+
+	it.each([
+		['a right-button press', { button: 2 }],
+		['a macOS Ctrl+click', { button: 0, ctrlKey: true }],
+	])('does not capture the pointer on %s', (_, init) => {
+		renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)
+
+		const handle = screen.getByRole('separator', { name: 'Resize Name' })
+
+		fireEvent.pointerDown(handle, { pointerId: 1, clientX: 200, ...init })
+
+		expect(handle.hasPointerCapture(1)).toBe(false)
 	})
 
 	// A column drag-resize sweeps the pointer across the rows; the shared
