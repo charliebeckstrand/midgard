@@ -94,4 +94,40 @@ describe('AvatarGroup', () => {
 
 		expect(screen.getByRole('img', { name: '3 more' })).toBeInTheDocument()
 	})
+
+	it('projects the ring onto the avatar circle, not the status wrapper', () => {
+		const { container } = renderUI(
+			<AvatarGroup>
+				<Avatar initials="A" status="active" />
+			</AvatarGroup>,
+		)
+
+		const group = bySlot(container, 'avatar-group')
+
+		// A status child's direct node is the square wrapper, so a `*:` ring misses the circle.
+		expect(group).toHaveClass('**:data-[slot=avatar]:ring-2')
+
+		expect(group?.className).not.toMatch(/(^|\s)\*:ring-2/)
+
+		expect(
+			bySlot(container, 'avatar-with-status')?.querySelector('[data-slot="avatar"]'),
+		).not.toBeNull()
+	})
+
+	it.each([
+		['sm', 'size-2'],
+		['md', 'size-2.5'],
+		['lg', 'size-3'],
+	] as const)('projects the %s size onto a child status dot', (size, dot) => {
+		const { container } = renderUI(
+			<AvatarGroup size={size}>
+				<Avatar initials="A" status="active" />
+			</AvatarGroup>,
+		)
+
+		// The child passes its own md size to the dot, so the group must override it.
+		expect(bySlot(container, 'avatar-group')).toHaveClass(`**:data-[slot=status-dot]:${dot}`)
+
+		expect(bySlot(container, 'status-dot')).toBeInTheDocument()
+	})
 })

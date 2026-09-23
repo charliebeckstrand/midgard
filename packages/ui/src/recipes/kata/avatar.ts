@@ -30,7 +30,11 @@ export const k = defineRecipe(
 		/** Avatar-group container classes. */
 		group: {
 			base: flex.row,
-			ring: '*:ring-2 *:ring-white dark:*:ring-zinc-900',
+			/**
+			 * Ring on each descendant avatar circle. `**:` reaches an avatar inside
+			 * its with-status wrapper, so the ring follows the round box.
+			 */
+			ring: '**:data-[slot=avatar]:ring-2 **:data-[slot=avatar]:ring-white dark:**:data-[slot=avatar]:ring-zinc-900',
 			spacing: {
 				sm: '-space-x-1.5',
 				md: '-space-x-2',
@@ -46,6 +50,16 @@ export const k = defineRecipe(
 				sm: '**:data-[slot=avatar]:size-7',
 				md: '**:data-[slot=avatar]:size-9',
 				lg: '**:data-[slot=avatar]:size-11',
+			},
+			/**
+			 * Child status-dot size projection. Avatar passes its own `size` to the
+			 * StatusDot, so the group overrides the dot as it overrides the box.
+			 * Mirrors the Swatch `circle` compounds in `swatch.ts`.
+			 */
+			dot: {
+				sm: '**:data-[slot=status-dot]:size-2',
+				md: '**:data-[slot=status-dot]:size-2.5',
+				lg: '**:data-[slot=status-dot]:size-3',
 			},
 		},
 		/** Ring around an avatar's status indicator. */

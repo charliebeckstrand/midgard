@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/avatar'
 
-/** Props for {@link AvatarGroup}; `size` projects onto descendant avatars. */
+/** Props for {@link AvatarGroup}; `size` projects onto descendant avatars and status dots. */
 export type AvatarGroupProps = {
 	size?: Step
 	className?: string
@@ -12,8 +12,9 @@ export type AvatarGroupProps = {
 
 /**
  * Overlapping row of avatars. Static leaf: renders in React Server
- * Components. The group projects its `size` onto descendant avatars, so
- * children need no size of their own. Append an overflow count as a final
+ * Components. The group projects its `size` onto descendant avatars and their
+ * status dots, so children need no size of their own. The ring lands on each
+ * avatar circle, also inside a with-status wrapper. Append an overflow count as a final
  * `<Avatar initials="+N" alt="N more" />` child.
  */
 export function AvatarGroup({ size = 'md', className, children }: AvatarGroupProps) {
@@ -25,6 +26,7 @@ export function AvatarGroup({ size = 'md', className, children }: AvatarGroupPro
 				k.group.ring,
 				k.group.spacing[size],
 				k.group.size[size],
+				k.group.dot[size],
 				className,
 			)}
 		>
