@@ -34,7 +34,7 @@ export type GridEditInputProps = {
 	 * editor lets them bubble past it. Under a consumer-owned session the editor
 	 * keeps Escape, which reverts this cell, and nothing saves on Enter.
 	 */
-	sessionOwned: boolean
+	managed: boolean
 }
 
 /**
@@ -47,9 +47,9 @@ export type GridEditInputProps = {
  * @internal
  */
 const editorKeys =
-	({ cancel, sessionOwned }: Pick<GridEditInputProps, 'cancel' | 'sessionOwned'>) =>
+	({ cancel, managed }: Pick<GridEditInputProps, 'cancel' | 'managed'>) =>
 	(event: KeyboardEvent<HTMLElement>) => {
-		if (event.key !== 'Escape' || sessionOwned) return
+		if (event.key !== 'Escape' || managed) return
 
 		event.preventDefault()
 
@@ -65,7 +65,7 @@ function GridTextEditInput({
 	error,
 	errorId,
 	required,
-	sessionOwned,
+	managed,
 }: GridEditInputProps) {
 	const value = typeof draft === 'string' ? draft : draft == null ? '' : String(draft)
 
@@ -79,7 +79,7 @@ function GridTextEditInput({
 			className={k.edit.input}
 			value={value}
 			onChange={(event) => onValueUpdate(event.target.value)}
-			onKeyDown={editorKeys({ cancel, sessionOwned })}
+			onKeyDown={editorKeys({ cancel, managed })}
 		/>
 	)
 }
@@ -93,7 +93,7 @@ function GridNumberEditInput({
 	error,
 	errorId,
 	required,
-	sessionOwned,
+	managed,
 }: GridEditInputProps) {
 	return (
 		<NumberInput
@@ -105,7 +105,7 @@ function GridNumberEditInput({
 			className={k.edit.input}
 			value={typeof draft === 'number' ? draft : null}
 			onValueChange={(next) => onValueUpdate(next ?? undefined)}
-			onKeyDown={editorKeys({ cancel, sessionOwned })}
+			onKeyDown={editorKeys({ cancel, managed })}
 		/>
 	)
 }

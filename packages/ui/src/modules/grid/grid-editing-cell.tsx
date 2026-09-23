@@ -41,7 +41,7 @@ type GridEditingCellProps<T> = {
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
 	Pick<
 		GridEditingSession,
-		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'sessionOwned'
+		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'managed'
 	> & {
 		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
 		held: boolean
@@ -115,7 +115,7 @@ function GridCellEditor<T>({
 	unstageDraft,
 	endSession,
 	entrySeed,
-	sessionOwned,
+	managed,
 	held,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
@@ -183,7 +183,7 @@ function GridCellEditor<T>({
 			commit: (next) => {
 				if (next !== undefined) update(next)
 
-				if (sessionOwned) endSession(rowKey, 'save')
+				if (managed) endSession(rowKey, 'save')
 			},
 			cancel,
 			ariaLabel,
@@ -199,7 +199,7 @@ function GridCellEditor<T>({
 			error={error}
 			errorId={errorId}
 			required={column.required}
-			sessionOwned={sessionOwned}
+			managed={managed}
 		/>
 	)
 
@@ -254,7 +254,7 @@ export function GridEditingCell<T>({
 		unstageDraft,
 		endSession,
 		entrySeed,
-		sessionOwned,
+		managed,
 	} = useGridEditingSession()
 
 	const columnId = column.id
@@ -284,7 +284,7 @@ export function GridEditingCell<T>({
 				unstageDraft={unstageDraft}
 				endSession={endSession}
 				entrySeed={entrySeed}
-				sessionOwned={sessionOwned}
+				managed={managed}
 				held={flag === CELL_HELD}
 			/>
 		)

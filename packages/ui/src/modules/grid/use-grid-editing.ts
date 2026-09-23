@@ -296,16 +296,16 @@ function flushClosedCells<T>(args: {
  * inert rather than wrong, because the row's editors mount as under row scope.
  * It therefore fails silently, which is what the warning is for. @internal
  */
-function useCellScopeWithoutSessionWarning(scoped: boolean, sessionOwned: boolean): void {
+function useCellScopeWithoutSessionWarning(scoped: boolean, managed: boolean): void {
 	useEffect(() => {
 		if (process.env.NODE_ENV === 'production') return
 
-		if (!scoped || sessionOwned) return
+		if (!scoped || managed) return
 
 		console.warn(
 			"Grid: `editable.scope: 'cell'` narrows a session the grid owns, but `editable.trigger` is 'manual', where the consumer names a row and never a cell. The row's editors all mount, as under scope 'row' — set `trigger: 'doubleClick'` to scope a session to one cell.",
 		)
-	}, [scoped, sessionOwned])
+	}, [scoped, managed])
 }
 
 /**
@@ -364,16 +364,16 @@ export function useGridEditing<T>({
 	// Grid-owned session lifecycle (enter on double-click / cursor Enter, exit on
 	// an editor's Enter/Escape); the default 'manual' mode leaves it entirely to
 	// the consumer.
-	const sessionOwned = enabled && config?.trigger === 'doubleClick'
+	const managed = enabled && config?.trigger === 'doubleClick'
 
 	// Cell scope narrows a grid-owned session to the entered cell. It needs that
 	// session: under 'manual' the consumer names a row and never a cell, so there
 	// is no cell to narrow to and the row's editors all mount.
 	const scopeRequested = enabled && config?.scope === 'cell'
 
-	const cellScoped = sessionOwned && scopeRequested
+	const cellScoped = managed && scopeRequested
 
-	useCellScopeWithoutSessionWarning(scopeRequested, sessionOwned)
+	useCellScopeWithoutSessionWarning(scopeRequested, managed)
 
 	// The cell a cell-scoped session edits; null under row scope. Held twice. The
 	// state drives this hook's own effects: the commit sweep and the focus hand-off.
@@ -814,10 +814,10 @@ export function useGridEditing<T>({
 			unstageDraft,
 			endSession,
 			entrySeed,
-			sessionOwned,
+			managed,
 		}),
-		[editableRows, activeEditStore, stageDraft, unstageDraft, sessionOwned, endSession, entrySeed],
+		[editableRows, activeEditStore, stageDraft, unstageDraft, managed, endSession, entrySeed],
 	)
 
-	return { session, enterEdit, sessionKeys: sessionOwned ? sessionKeys : undefined }
+	return { session, enterEdit, sessionKeys: managed ? sessionKeys : undefined }
 }

@@ -60,7 +60,7 @@ export type GridEditingSession = {
 	 */
 	entrySeed: (rowKey: string | number, columnId: string | number) => string | number | undefined
 	/** Whether the grid owns entry and the session keys (`trigger: 'doubleClick'`). */
-	sessionOwned: boolean
+	managed: boolean
 }
 
 const [GridEditingSessionContext, useSession] = createContext<GridEditingSession | null>(

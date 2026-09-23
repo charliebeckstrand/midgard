@@ -155,7 +155,7 @@ export function useGridCursor<T>({
 
 	// Grid-owned edit sessions: the grid begins one on a cell double-click or the
 	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
-	const sessionOwned = editingEnabled && editable.trigger === 'doubleClick'
+	const managed = editingEnabled && editable.trigger === 'doubleClick'
 
 	const {
 		rowsRef,
@@ -174,7 +174,7 @@ export function useGridCursor<T>({
 	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number) => void>(() => {})
 
 	const onCellActivateWithEdit = useMemo<GridCellActivate | undefined>(() => {
-		if (!sessionOwned) return onCellActivate
+		if (!managed) return onCellActivate
 
 		return (rowIdx, colIdx, event) => {
 			// The consumer's cell click fires first — the same order the pointer path
@@ -183,7 +183,7 @@ export function useGridCursor<T>({
 
 			if (event.key === 'Enter') enterEditAtRef.current(rowIdx, colIdx)
 		}
-	}, [sessionOwned, onCellActivate])
+	}, [managed, onCellActivate])
 
 	const nav = useGridNavigation({
 		enabled: cursorEnabled,
@@ -316,10 +316,10 @@ export function useGridCursor<T>({
 	// (so the interactive-content guard and data-cell resolution apply). The event
 	// already names the cell, so this path never touches display indices.
 	const editOnCellDoubleClick = useMemo<GridCellClick<T> | undefined>(() => {
-		if (!sessionOwned) return undefined
+		if (!managed) return undefined
 
 		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
-	}, [sessionOwned, enterEditAtCell])
+	}, [managed, enterEditAtCell])
 
 	// Cursor-only augmentation for a plain navigable grid; editing-aware
 	// augmentation (which mounts the editors) for an editable one.
