@@ -43,11 +43,11 @@ export type ChatEmbedRegistry = {
 	 * `lazy` — the default — holds a renderer back until its block is near the
 	 * viewport, then keeps it. A transcript's embeds are mostly scrolled away
 	 * above the newest reply, and a view is the most expensive thing a reply can
-	 * carry. A bar chart on every reply of a 500-message transcript measured
-	 * 1,568 ms to mount, against 300 ms for the same transcript carrying none.
+	 * carry. A bar chart on every reply of a 500-message transcript costs about
+	 * seven times as much to mount as the same transcript carrying none.
 	 *
-	 * `always` mounts every renderer up front, for a caller who would rather pay
-	 * that than reserve space for one. `active` unmounts a renderer that scrolls
+	 * `always` mounts every renderer up front and live, for a caller who would
+	 * rather pay that than reserve space for one. It takes no viewport observer. `active` unmounts a renderer that scrolls
 	 * away, trading a remount — and whatever state the view held — for the
 	 * memory of a long transcript.
 	 *

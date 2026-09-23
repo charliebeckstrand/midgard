@@ -1,4 +1,5 @@
 import { act } from '@testing-library/react'
+import { useEffect } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChatEmbedProvider, ChatMessage } from '../../modules/chat'
 import type { ChatEmbedPart } from '../../modules/chat/engine/chat-content/types'
@@ -164,7 +165,9 @@ describe('a held-back embed', () => {
 			</ChatEmbedProvider>,
 		)
 
-		reveal?.()
+		report?.(true)
+
+		report?.(false)
 
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
@@ -179,6 +182,28 @@ describe('the mount policy', () => {
 		)
 
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
+	})
+
+	it('mounts every view live under `always`, before the reader reaches it', () => {
+		// The observer here never reports, so every block stays out of view. A view
+		// under `always` must still show and run its effects, not wait hidden.
+		const mounted = vi.fn()
+
+		function LiveView() {
+			useEffect(() => mounted(), [])
+
+			return <div data-testid="live">drawn</div>
+		}
+
+		renderUI(
+			<ChatEmbedProvider renderers={{ trend: () => <LiveView /> }} mount="always">
+				<ChatMessage>{[embed()]}</ChatMessage>
+			</ChatEmbedProvider>,
+		)
+
+		expect(screen.getByTestId('live')).toBeVisible()
+
+		expect(mounted).toHaveBeenCalledTimes(1)
 	})
 
 	it('reserves no space under `always`, because nothing is held back', () => {
@@ -209,20 +234,6 @@ describe('the mount policy', () => {
 		expect(getSlot(container, 'chat-embed')).toHaveAttribute('data-deferred')
 
 		report?.(true)
-
-		expect(screen.getByTestId('chart')).toBeInTheDocument()
-	})
-
-	it('keeps a view that scrolls away under `lazy`', () => {
-		renderUI(
-			<ChatEmbedProvider renderers={renderers}>
-				<ChatMessage>{[embed()]}</ChatMessage>
-			</ChatEmbedProvider>,
-		)
-
-		report?.(true)
-
-		report?.(false)
 
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
