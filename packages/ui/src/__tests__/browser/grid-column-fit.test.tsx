@@ -315,6 +315,31 @@ describe('grid column auto-sizing (real browser)', () => {
 		expect(header('role').getBoundingClientRect().width).toBeGreaterThan(250)
 	})
 
+	it('"Auto-size this column" re-fits a width-seeded column to its content', async () => {
+		const { header } = render(600, [
+			{ id: 'fixed', title: 'Fixed', cell: (row) => row.tiny, width: '250px' },
+			{ id: 'role', title: 'Role', cell: (row) => row.tiny },
+		])
+
+		// The seed holds the column at 250px while the other column fills the rest.
+		await waitFor(() => expect(header('fixed').getBoundingClientRect().width).toBeCloseTo(250, 0))
+
+		fireEvent.contextMenu(header('fixed'))
+
+		openAutoSizeMenu()
+
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
+			el.textContent?.includes('Auto-size this column'),
+		)
+
+		if (!item) throw new Error('no Auto-size this column item')
+
+		fireEvent.click(item)
+
+		// The reset releases the seed, so the column drops to what its content needs.
+		await waitFor(() => expect(header('fixed').getBoundingClientRect().width).toBeLessThan(150))
+	})
+
 	it('"Auto-size this column" grows a truncated column until its content shows whole', async () => {
 		const huge = `${tinyRows[0]?.big} and then keeps going well past the automatic runaway-cell cap`
 

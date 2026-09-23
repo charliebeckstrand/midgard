@@ -39,7 +39,7 @@ export type GridColumnResize = {
 	nudge: (id: string | number, delta: number) => void
 	/** Auto-size data columns to fill the container width, re-arming auto-fit. */
 	sizeToFit: () => void
-	/** Reset one column to its default width — re-fit from content, or re-seat a `width`-seeded column. */
+	/** Re-fit one column to its content. A `width` seed is released, as "Auto-size all columns" releases it. */
 	reset: (id: string | number) => void
 }
 

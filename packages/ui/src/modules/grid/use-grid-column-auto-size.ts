@@ -203,7 +203,8 @@ function sizingMoved(prev: Record<string, number>, next: Record<string, number>)
  * or shrinks freely (trailing space or a horizontal scroll), rather than
  * re-fitting. Auto-fit re-arms only through `sizeToFit` (the "Auto-size all
  * columns" action), which clears every hold and re-fits. `resetColumn` re-fits a
- * single column to its content, while the rest stay held.
+ * single column to its content, while the rest stay held. It releases the
+ * column's `width` seed as `sizeToFit` does.
  *
  * @internal
  */
@@ -554,9 +555,10 @@ export function useGridColumnAutoSize<T>({
 	// treated as auto-sized (so its intrinsic width resolves even while the others
 	// are held) and uncapped (a user-invoked fit shows the content whole, past the
 	// automatic fit's runaway cap), then holds it at that width; clearing its
-	// running max first so the re-measure isn't floored by a stale wider row, and
-	// its `width` release so a `width`-seeded column re-measures from content
-	// rather than snapping back.
+	// running max first so the re-measure isn't floored by a stale wider row. The
+	// reset also releases a `width` seed, as `sizeToFit` does, so a seeded column
+	// re-measures from content. An unreleased seed makes the column sit out the
+	// measure, and the reset then writes nothing.
 	const resetColumn = useCallback(
 		(id: string | number) => {
 			const container = containerRef?.current
@@ -567,7 +569,7 @@ export function useGridColumnAutoSize<T>({
 
 			const key = String(id)
 
-			widthReleasedRef.current.delete(key)
+			widthReleasedRef.current.add(key)
 
 			runningContentRef.current.delete(key)
 

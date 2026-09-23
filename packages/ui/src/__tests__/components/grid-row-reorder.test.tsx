@@ -89,6 +89,21 @@ describe('Grid row reorder', () => {
 		for (const handle of grips()) expect(handle).toBeDisabled()
 	})
 
+	it('disables the grip while master-detail is active (detail rows are not sortable items)', () => {
+		renderUI(
+			<Grid
+				columns={[{ id: 'expand', expander: true }, ...columns]}
+				rows={rows}
+				getKey={getKey}
+				rowLabel={rowLabel}
+				expandable={{ render: (row) => <div>{row.name}</div> }}
+				rowReorder={{ onReorder: () => {} }}
+			/>,
+		)
+
+		for (const handle of grips()) expect(handle).toBeDisabled()
+	})
+
 	it('disables the grip when the binding is disabled', () => {
 		renderUI(
 			<Grid
