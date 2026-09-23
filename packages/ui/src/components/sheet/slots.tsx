@@ -1,11 +1,15 @@
 import {
 	createPanel,
 	type PanelBodyProps,
+	PanelClose,
+	type PanelCloseProps,
 	type PanelContentProps,
 	type PanelDescriptionProps,
 	type PanelFooterProps,
 	type PanelHeaderProps,
 	type PanelTitleProps,
+	PanelTrigger,
+	type PanelTriggerProps,
 } from '../../primitives/panel'
 import { k } from '../../recipes/kata/sheet'
 
@@ -47,6 +51,19 @@ export {
 	Footer as SheetFooter,
 	/** `<div>` grouping the sheet's title and description. */
 	Header as SheetHeader,
+	/**
+	 * Wraps a single child so clicking it dismisses the enclosing {@link Sheet}; the child's own
+	 * `onClick` runs first, then the sheet closes. Aliases the shared `PanelClose` primitive.
+	 */
+	PanelClose as SheetClose,
+	type PanelCloseProps as SheetCloseProps,
+	/**
+	 * Wraps a single child so clicking it opens the controlled {@link Sheet}; stamps the child
+	 * `aria-haspopup="dialog"` and, when `open` is supplied, `aria-expanded`. Aliases the shared
+	 * `PanelTrigger` primitive.
+	 */
+	PanelTrigger as SheetTrigger,
+	type PanelTriggerProps as SheetTriggerProps,
 	/** `<h2>` heading; registers as the sheet's `aria-labelledby` target with density-scaled type. */
 	Title as SheetTitle,
 }

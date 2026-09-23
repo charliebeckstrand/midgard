@@ -1,11 +1,15 @@
 import {
 	createPanel,
 	type PanelBodyProps,
+	PanelClose,
+	type PanelCloseProps,
 	type PanelContentProps,
 	type PanelDescriptionProps,
 	type PanelFooterProps,
 	type PanelHeaderProps,
 	type PanelTitleProps,
+	PanelTrigger,
+	type PanelTriggerProps,
 } from '../../primitives/panel'
 import { k } from '../../recipes/kata/drawer'
 
@@ -41,6 +45,19 @@ export {
 	Footer as DrawerFooter,
 	/** `<div>` grouping the drawer's title and description. */
 	Header as DrawerHeader,
+	/**
+	 * Wraps a single child so clicking it dismisses the enclosing {@link Drawer}; the child's own
+	 * `onClick` runs first, then the drawer closes. Aliases the shared `PanelClose` primitive.
+	 */
+	PanelClose as DrawerClose,
+	type PanelCloseProps as DrawerCloseProps,
+	/**
+	 * Wraps a single child so clicking it opens the controlled {@link Drawer}; stamps the child
+	 * `aria-haspopup="dialog"` and, when `open` is supplied, `aria-expanded`. Aliases the shared
+	 * `PanelTrigger` primitive.
+	 */
+	PanelTrigger as DrawerTrigger,
+	type PanelTriggerProps as DrawerTriggerProps,
 	/** `<h2>` heading; registers as the drawer's `aria-labelledby` target with density-scaled type. */
 	Title as DrawerTitle,
 }

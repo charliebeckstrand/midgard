@@ -1,11 +1,15 @@
 import {
 	createPanel,
 	type PanelBodyProps,
+	PanelClose,
+	type PanelCloseProps,
 	type PanelContentProps,
 	type PanelDescriptionProps,
 	type PanelFooterProps,
 	type PanelHeaderProps,
 	type PanelTitleProps,
+	PanelTrigger,
+	type PanelTriggerProps,
 } from '../../primitives/panel'
 
 const { Title, Description, Header, Body, Footer, Content } = createPanel('dialog')
@@ -34,6 +38,19 @@ export {
 	Footer as DialogFooter,
 	/** `<div>` grouping the dialog's title and description. */
 	Header as DialogHeader,
+	/**
+	 * Wraps a single child so clicking it dismisses the enclosing {@link Dialog}; the child's own
+	 * `onClick` runs first, then the dialog closes. Aliases the shared `PanelClose` primitive.
+	 */
+	PanelClose as DialogClose,
+	type PanelCloseProps as DialogCloseProps,
+	/**
+	 * Wraps a single child so clicking it opens the controlled {@link Dialog}; stamps the child
+	 * `aria-haspopup="dialog"` and, when `open` is supplied, `aria-expanded`. Aliases the shared
+	 * `PanelTrigger` primitive.
+	 */
+	PanelTrigger as DialogTrigger,
+	type PanelTriggerProps as DialogTriggerProps,
 	/** `<h2>` heading; registers as the dialog's `aria-labelledby` target with density-scaled type. */
 	Title as DialogTitle,
 }
