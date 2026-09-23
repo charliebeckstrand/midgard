@@ -50,7 +50,9 @@ export type ChatEmbedProps = {
 export function ChatEmbed({ part, className }: ChatEmbedProps) {
 	const { renderers, fallback, mount = 'lazy' } = useChatEmbeds()
 
-	const { ref, inView } = useInView()
+	// `active` must see a block leave the viewport, so its observer stays
+	// connected. `lazy` and `always` need only the first sight.
+	const { ref, inView } = useInView({ once: mount !== 'active' })
 
 	const hold = useMountHold(inView, mount)
 
