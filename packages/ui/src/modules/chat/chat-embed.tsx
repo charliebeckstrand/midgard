@@ -76,7 +76,16 @@ export function ChatEmbed({ part, className }: ChatEmbedProps) {
 		)
 	}
 
-	return <HeldChatEmbed part={part} className={className} mount={mount} render={render} />
+	return (
+		<HeldChatEmbed
+			part={part}
+			className={className}
+			mount={mount}
+			render={render}
+			address={address}
+			reached={reached}
+		/>
+	)
 }
 
 /** Props for {@link HeldChatEmbed}. @internal */
@@ -85,6 +94,10 @@ type HeldChatEmbedProps = ChatEmbedProps & {
 	mount: Exclude<Mount, 'always'>
 	/** The renderer that draws the part. */
 	render: ChatEmbedRenderer
+	/** The block's address in the transcript. Absent outside a transcript row. */
+	address?: string
+	/** The provider's set of reached addresses. Absent with no provider above. */
+	reached?: Set<string>
 }
 
 /**
@@ -93,7 +106,7 @@ type HeldChatEmbedProps = ChatEmbedProps & {
  *
  * @internal
  */
-function HeldChatEmbed({ part, className, mount, render }: HeldChatEmbedProps) {
+function HeldChatEmbed({ part, className, mount, render, address, reached }: HeldChatEmbedProps) {
 	// `active` must see a block leave the viewport, so its observer stays
 	// connected. `lazy` needs only the first sight.
 	const { ref, inView } = useInView({ once: mount !== 'active' })
