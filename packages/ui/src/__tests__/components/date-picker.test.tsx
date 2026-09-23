@@ -492,6 +492,41 @@ describe('DatePicker open state', () => {
 
 		expect(document.activeElement).toBe(trigger)
 	})
+
+	// ListboxButton marks a read-only trigger, so the DatePicker trigger does too.
+	it.each([
+		['single', <DatePicker key="single" readOnly aria-label="Due date" />],
+		['range', <DatePicker key="range" range readOnly aria-label="Stay" />],
+		['relative', <DatePicker key="relative" relative readOnly aria-label="Window" />],
+	])('marks the %s trigger read-only', (_, node) => {
+		const { container } = renderUI(node)
+
+		const trigger = getSlot(container, 'datepicker-button')
+
+		expect(trigger).toHaveAttribute('aria-readonly', 'true')
+
+		expect(trigger).toHaveAttribute('data-readonly')
+	})
+
+	it('marks a read-only Control trigger read-only', () => {
+		const { container } = renderUI(
+			<Control readOnly>
+				<DatePicker aria-label="Due date" />
+			</Control>,
+		)
+
+		expect(getSlot(container, 'datepicker-button')).toHaveAttribute('aria-readonly', 'true')
+	})
+
+	it('leaves an editable trigger unmarked', () => {
+		const { container } = renderUI(<DatePicker aria-label="Due date" />)
+
+		const trigger = getSlot(container, 'datepicker-button')
+
+		expect(trigger).not.toHaveAttribute('aria-readonly')
+
+		expect(trigger).not.toHaveAttribute('data-readonly')
+	})
 })
 
 describe('DatePicker footer', () => {

@@ -37,7 +37,10 @@ type DatePickerTriggerProps = GroupStampProps & {
 	 */
 	children?: ReactNode
 	disabled?: boolean
-	/** Hides the clear button, as on Listbox/Combobox, because a read-only value cannot change. */
+	/**
+	 * Marks the trigger with `aria-readonly` and `data-readonly`, as on Listbox.
+	 * It also hides the clear button, because a read-only value cannot change.
+	 */
 	readOnly?: boolean
 	required?: boolean
 	invalid?: boolean
@@ -127,9 +130,11 @@ export function DatePickerTrigger({
 						aria-haspopup="dialog"
 						aria-expanded={open}
 						aria-describedby={describedBy}
+						aria-readonly={ariaAttr(readOnly)}
 						aria-required={ariaAttr(required)}
 						data-slot="datepicker-button"
 						disabled={disabled}
+						data-readonly={dataAttr(readOnly)}
 						{...invalidAttrs(invalid)}
 						onClick={() => onOpenChange(!open)}
 						onKeyDown={onKeyDown}
