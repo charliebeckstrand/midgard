@@ -1,8 +1,8 @@
 /**
- * Sparkline kata: object-literal surface for the in-cell trend chart. The root
- * is a bare inline box (the SVG sizes itself from its `viewBox`). The only axis
- * is `color`, a local per-colour `stroke` / `fill` table authored inline with
- * `mode()`. The line and end-point read `stroke`, the bars and area fill read
+ * Sparkline kata: recipe-shaped surface for the in-cell trend chart. The root
+ * is a bare inline box (the SVG sizes itself from its `viewBox`). The recipe has
+ * no axis. `color` is an extras table of per-colour `stroke` / `fill` classes,
+ * authored inline with `mode()`. The line and end-point read `stroke`, the bars and area fill read
  * `fill`. The shades track `kata/progress` so a sparkline and a progress bar in
  * the same colour read as one family.
  */

@@ -3,7 +3,7 @@
  * axes:
  *
  * - `shape`: the mark geometry — `square` box, `circle` dot, `line` bar
- * - `variant`: the fill treatment — `solid` / `outline` / `soft`
+ * - `variant`: the fill treatment — `solid` / `outline` / `soft` / `dashed`
  * - `size`: `xs`–`xl`, one scale shared by legends, tooltips, and StatusDot
  *
  * The hue is a caller-supplied `currentColor` value applied on top: a `text-*`

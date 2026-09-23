@@ -4,7 +4,7 @@
 
 ## 1. Boundary
 
-`kata/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. **Kata is the only recipe funnel for consumers, and the only layer that touches kiso**: every value a component or primitive reads from the design system flows through its kata, and every kiso token reaches the system through a kata. Consumers reach kata via relative path: `from '../../recipes/kata/<name>'`. Sideways composition between kata is forbidden — shared concerns promote by role: shared *data* to a kiso semantic bundle, shared *wiring* to a katakana bridge. The contract is pinned by `recipe-boundary.test.ts` and `recipe-import-boundary.test.ts`; the full list of boundary tests and lint rules lives in [`../README.md`](../README.md#3-boundary).
+`kata/` is internal — omitted from `package.json` `exports` and not re-exported from `src/recipes/index.ts`. **Kata is the only recipe funnel for consumers, and the only layer that touches kiso**: every value a component or primitive reads from the design system flows through its kata, and every kiso token reaches the system through a kata. Consumers reach kata via relative path: `from '../../recipes/kata/<name>'`. Sideways composition between kata is forbidden — shared concerns promote by role: shared *data* to a kiso semantic bundle, shared *wiring* to a katakana bridge. `recipe-boundary.test.ts` pins the `exports` omission and the types-only barrel, and `recipe-import-boundary.test.ts` pins the kata funnel. No test or lint rule checks imports between kata, and `map.ts` and `status.ts` import from sibling kata. The full list of boundary tests and lint rules lives in [`../README.md`](../README.md#3-boundary).
 
 The three ways a kata reaches the layers below — a katakana bridge, `defineRecipe` directly, or a `kiso/<archetype>` bundle directly — are described in [`../README.md`](../README.md#2-direction). All three compose [`kiso/`](../kiso/README.md) freely for tokens.
 
@@ -12,7 +12,7 @@ When a component and primitive share the same UI surface (e.g. `components/popov
 
 ## 2. Shape
 
-Every kata exports exactly one runtime value, `k`. The shape `k` takes depends on how the kata reaches the recipe layer:
+Each kata exports its runtime surface as `k`. Some kata also export helpers (`heading.ts`), and `status.ts` exports named values in place of `k`. The shape `k` takes depends on how the kata reaches the recipe layer:
 
 - **Archetype kata** (`k = bridge.<archetype>(tokens, {...})`) — the kata reads the token bundle from `kiso/<archetype>` and hands it to the bridge, which builds and returns the `k` surface. The bridge owns the recipe construction; the kata supplies the tokens and per-call overlays.
 - **Recipe-shaped kata** (`k = defineRecipe(...)`) — `k` is a `defineRecipe(...)` callable, used as `k({ variant, size, … })`. Slots and sibling sub-recipes attach as direct properties (`k.title`, `k.thumb`) via the `defineRecipe(config, extras)` form. Default size resolves from any enclosing Density context.

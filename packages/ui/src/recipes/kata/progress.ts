@@ -1,5 +1,5 @@
 /**
- * Progress kata: object-literal surface serving both the linear `<ProgressBar>`
+ * Progress kata: recipe-shaped surface serving both the linear `<ProgressBar>`
  * and the radial `<ProgressGauge>`. Carries a local per-colour `bg` / `stroke`
  * table authored inline with `mode()`, rather than the shared `iro.palette`.
  * The SVG gauge needs a `stroke` variant the palette doesn't provide. The bar

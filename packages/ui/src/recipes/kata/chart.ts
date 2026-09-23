@@ -1,9 +1,9 @@
 /**
- * Chart kata: object-literal surface for the chart module (Bar / Line / Pie /
- * Combo). Carries the categorical series palette: eight fixed slots plus the
- * `zinc` de-emphasis colour. It also carries the chart chrome inks (gridlines,
- * axis baseline, tick labels, legend/tooltip text) and the tooltip surface.
- * Every chart kind therefore reads one colour system.
+ * Chart kata: object-literal surface for every chart in the chart module.
+ * Carries the categorical series palette: eight fixed slots plus the `zinc`
+ * de-emphasis colour. It also carries the chart chrome inks (gridlines, axis
+ * baseline, tick labels, legend/tooltip text). Every chart kind therefore reads
+ * one colour system.
  *
  * Slot shades track `kata/progress` and `kata/sparkline` (600 light / 500
  * dark, per-hue dark steps where the 500 leaves the dark lightness band). The

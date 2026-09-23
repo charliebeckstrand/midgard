@@ -5,8 +5,8 @@ const { marker, text } = iro
 const { size, weight } = ji
 
 /**
- * Per-colour marker appearance. `dot` uses the `iro.marker` shade (600 light /
- * 500 dark), clearing non-text 3:1 on the page. `line.before` / `line.after`
+ * Per-colour marker appearance. `dot` uses the `iro.marker` shade, which clears
+ * non-text 3:1 on the page. That is 600 light / 500 dark, and 500 / 400 for zinc. `line.before` / `line.after`
  * paint the inbound / outbound rail at the same shade (zinc uses a subtle
  * structural rail). The `before:` / `after:` prefixes are verbatim class
  * literals: Tailwind's scanner requires literal strings for class discovery.
@@ -66,7 +66,7 @@ const item = defineRecipe({
 	base: 'relative overflow-hidden',
 	orientation: {
 		vertical: 'grid grid-cols-[0.875rem_1fr] gap-x-4 pb-8 last:pb-0',
-		// 6.5px centers content on the rail: half the 14px marker minus half the 2px rail.
+		// 6.5px aligns the content with the rail. It matches the marker's `left-[6.5px]`.
 		horizontal: 'flex flex-col pl-[6.5px] pt-8 pr-8 last:pr-0',
 	},
 	defaults: { orientation: 'vertical' },
