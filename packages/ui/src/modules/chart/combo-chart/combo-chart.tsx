@@ -200,12 +200,13 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		// theirs — so the inset stands only where such a series exists to need it.
 		markInset: series.some((entry) => entry.type !== 'bar') ? lineMarkReach(points) : 0,
 		// Reserve the room the point labels need past the data extremes. Only the
-		// line and area series carry labels, so only they count toward the
+		// visible line and area series carry labels, so only they count toward the
 		// single-series gate. The room widens the value axis the bars share.
-		valueHeadroom: valueLabelHeadroom(
-			labels,
-			series.filter((entry) => entry.type !== 'bar').length,
-		),
+		valueHeadroom: (visible) =>
+			valueLabelHeadroom(
+				labels,
+				visible.filter((meta) => series[meta.index]?.type !== 'bar').length,
+			),
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and

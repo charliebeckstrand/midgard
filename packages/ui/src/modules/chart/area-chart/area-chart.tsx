@@ -296,7 +296,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		markInset: lineMarkReach(points),
 		// Reserve the room the point labels need past the data extremes, so a
 		// label at an edge sits clear of the band edge rather than flip onto it.
-		valueHeadroom: valueLabelHeadroom(labels, series.length),
+		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and

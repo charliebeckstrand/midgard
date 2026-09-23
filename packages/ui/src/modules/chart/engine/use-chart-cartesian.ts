@@ -138,12 +138,13 @@ export type CartesianConfig<T> = {
 	markInset?: number
 	/**
 	 * Pixels of clear room to reserve past a data extreme on the value axis — see
-	 * {@link CartesianLayoutInput.valueHeadroom}. The line, area, and combo charts
-	 * set it when they draw single-series point value labels. The label then sits clear
-	 * of its edge, instead of flipping onto the line.
-	 * @defaultValue 0
+	 * {@link CartesianLayoutInput.valueHeadroom}. The hook calls it with the
+	 * visible series, because the labels draw for the visible series and a legend
+	 * toggle changes them. The line, area, and combo charts set it when they draw
+	 * single-series point value labels. The label then sits clear of its edge,
+	 * instead of flipping onto the line. Absent, no room is reserved.
 	 */
-	valueHeadroom?: number
+	valueHeadroom?: (visible: readonly SeriesMeta[]) => number
 	/**
 	 * Where the category axis rules. `'zero'` draws it at the value scale's zero,
 	 * which is what a chart whose marks stand on that zero wants. That is bars, and
@@ -920,7 +921,7 @@ export function useChartCartesian<T>(
 		locale,
 		count: data.length,
 		markInset: config.markInset,
-		valueHeadroom: config.valueHeadroom,
+		valueHeadroom: config.valueHeadroom?.(visible) ?? 0,
 		visibleValues: visible.map((meta) => ({
 			values: meta.values,
 			axis: meta.axis,
