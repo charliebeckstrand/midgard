@@ -29,6 +29,10 @@ export type GridCellChange = {
  * One cell whose commit the consumer refused, as an async
  * {@link GridEditableConfig.onCommit} reports it. `error` is the message that
  * the cell shows. Without one, the cell shows a generic message.
+ *
+ * @remarks The grid keeps the refused value as an edit while the cell can
+ * open again. It drops the value when the row cannot open again. See
+ * {@link GridEditableConfig.onCommit} for the cases.
  */
 export type GridCellRefusal = GridCellRef & {
 	/** The message that explains the refusal, shown under the cell's editor. */
@@ -349,6 +353,13 @@ export type GridEditableConfig = {
 	 * editor opens beside the session, and focus into it moves the session there.
 	 * Focus does not move. The next edit clears the error. A discard drops the
 	 * edit and the error. The grid announces each settled batch politely.
+	 *
+	 * The grid drops a refused edit, and announces the count, in three cases.
+	 * A controlled `rows` declines to open the row again. Apply the write in
+	 * the same event that reports it, or the grid reads it as a decline. You
+	 * close the row of a held cell under `scope: 'cell'`. You delete the row of
+	 * a held cell; the next session transition drops it. Under server-side
+	 * pagination a held cell on another page drops too.
 	 *
 	 * @remarks A synchronous return keeps the synchronous behaviour: the cells
 	 * commit, and the grid announces them, in the same pass. A promise that

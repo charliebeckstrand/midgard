@@ -15,7 +15,7 @@ import {
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
-import { describeCommit, describeSettle } from './engine/grid-announcements'
+import { describeCommit, describeDiscard, describeSettle } from './engine/grid-announcements'
 import { EMPTY_SET, FLOATING_PORTAL } from './engine/grid-constants'
 import {
 	createDraftStore,
@@ -445,6 +445,49 @@ function settleDrafts(args: {
 	return { saved, failed }
 }
 
+/**
+ * Drops each reopened draft of a cell-scoped session whose row the consumer
+ * closed or deleted, and returns the count. A row that left the set between
+ * two sweeps, `before` and `after`, was closed by the consumer unless the
+ * grid closed it (`gridClosed`). A row that is no longer in the source rows
+ * is deleted. Neither row opens again for the refusal, so its draft would
+ * otherwise wait forever. It also forgets each grid close whose row left.
+ *
+ * @remarks Under server-side pagination a row on another page is absent from
+ * the source rows too, and the grid cannot tell it from a deleted row. A held
+ * draft there drops as well, because its editor cannot mount. @internal
+ */
+function dropStrandedHolds<T>(args: {
+	drafts: GridDraftStore
+	before: Set<string | number>
+	after: Set<string | number>
+	gridClosed: Set<string | number>
+	source: GridEditSource<T>
+}): number {
+	const { before, after, gridClosed, source } = args
+
+	let keys: Set<string | number> | null = null
+
+	const gone = (rowKey: string | number) => {
+		keys ??= new Set(source.rows.map((row, index) => source.getKey(row, index)))
+
+		return !keys.has(rowKey)
+	}
+
+	const closed = (rowKey: string | number) =>
+		before.has(rowKey) && !after.has(rowKey) && !gridClosed.has(rowKey)
+
+	const dropped = args.drafts.drop(
+		(rowKey, _, draft) => draft.reopened && (closed(rowKey) || gone(rowKey)),
+	)
+
+	// A grid close is spent once its row leaves the set. A close that has not
+	// landed yet, as under a controlled `cell`, stays for a later sweep.
+	for (const rowKey of before) if (!after.has(rowKey)) gridClosed.delete(rowKey)
+
+	return dropped
+}
+
 /** The error a refused cell shows when the consumer gives none. @internal */
 const COMMIT_REFUSED = 'Change not saved'
 
@@ -853,13 +896,20 @@ function settleOn(
  * entry into a row that is not open is two writes, the exit and then the
  * entry. That is the order of Enter under an uncontrolled cell. A `rows`
  * binding that declines the entry therefore keeps the commit of the exit.
- * Any other plan is one write. @internal
+ * Any other plan is one write. Each row that the plan closes goes into
+ * `gridClosed`, so the sweep does not read it as closed by the consumer.
+ * @internal
  */
 function writeRowsPlan(
 	plan: TransitionPlan,
 	setRows: (update: (prev: Set<string | number> | undefined) => Set<string | number>) => void,
+	gridClosed: Set<string | number>,
 ): void {
 	if (!plan.writesRows) return
+
+	for (const row of plan.endRows) gridClosed.add(row)
+
+	if (plan.leaving !== null) gridClosed.add(plan.leaving)
 
 	if (plan.opens && plan.endRows.size > 0) {
 		setRows((prev) => applyRowsPlan(prev, plan, 'exit'))
@@ -1303,6 +1353,11 @@ export function useGridEditing<T>({
 
 	const [tick, bump] = useReducer((count: number) => count + 1, 0)
 
+	// The rows that the grid itself closed since the last sweep: a session exit,
+	// or an acquired row that the session leaves. The sweep reads any other row
+	// that left the set as closed by the consumer.
+	const gridClosedRef = useRef(new Set<string | number>())
+
 	// Asks a controlled binding for a move: it reports the cell, and records what
 	// the move needs once the consumer applies it. `exit` names the row that an
 	// exit on the way closes. The counter forces the render that settles it.
@@ -1424,7 +1479,11 @@ export function useGridEditing<T>({
 
 				// The row a cell-scoped session leaves exits the set, and the flush
 				// sweep commits what it staged there.
-				if (leaving !== null) next.delete(leaving)
+				if (leaving !== null) {
+					gridClosedRef.current.add(leaving)
+
+					next.delete(leaving)
+				}
 
 				return next.add(rowKey)
 			})
@@ -1475,6 +1534,8 @@ export function useGridEditing<T>({
 			if (outcome === 'discard') discardDrafts(rowKey, cell)
 
 			if (sessionRowRef.current?.rowKey === rowKey) sessionRowRef.current = null
+
+			gridClosedRef.current.add(rowKey)
 
 			// Two things end a session, and each clears the coord its own way. This
 			// exit is one. The other is a consumer withdrawing the row from under it,
@@ -1542,7 +1603,7 @@ export function useGridEditing<T>({
 			if (!plan.opens) sessionRowRef.current = plan.sessionRow
 			else if (sessionRow && plan.endRows.has(sessionRow.rowKey)) sessionRowRef.current = null
 
-			writeRowsPlan(plan, setEditableRows)
+			writeRowsPlan(plan, setEditableRows, gridClosedRef.current)
 
 			// The render held the settled cell while this value waited for its row. A
 			// render must follow, even where the consumer declines the rows write.
@@ -1914,6 +1975,38 @@ export function useGridEditing<T>({
 		}
 	}, [])
 
+	// The refused rows that a settle asked `rows` to open again, and a counter
+	// that forces the render which tells an applied write from a declined one.
+	const awaitingReopenRef = useRef(new Set<string | number>())
+
+	const [, rerender] = useReducer((count: number) => count + 1, 0)
+
+	// A controlled `rows` that declines to open a refused row again chose to
+	// close it, so the refused drafts of that row drop. Without this, they
+	// would commit again at the next sweep of an unrelated transition.
+	useEffect(() => {
+		const awaiting = awaitingReopenRef.current
+
+		if (awaiting.size === 0) return
+
+		const declined = new Set([...awaiting].filter((row) => !editableRows.has(row)))
+
+		awaiting.clear()
+
+		if (declined.size === 0) return
+
+		const dropped = drafts.drop(
+			(rowKey, _, draft) => declined.has(rowKey) && draft.error !== undefined,
+		)
+
+		// A dropped draft can change what a cell shows, so the cells read again.
+		if (dropped > 0) {
+			activeEditStore.notify()
+
+			announce(describeDiscard(dropped))
+		}
+	})
+
 	// Settles one async batch. An accepted draft leaves the store, and the cell
 	// reads the row again. A refused draft is staged again, with its error, and
 	// focus stays where it is. Under row scope the refused row opens again.
@@ -1942,8 +2035,15 @@ export function useGridEditing<T>({
 
 			activeEditStore.notify()
 
-			if (failed > 0 && !cellScoped && !editableRowsRef.current.has(rowKey))
+			if (failed > 0 && !cellScoped && !editableRowsRef.current.has(rowKey)) {
+				awaitingReopenRef.current.add(rowKey)
+
 				setEditableRows((prev) => new Set(prev ?? EMPTY_SET).add(rowKey))
+
+				// A render must follow even when a controlled `rows` declines the
+				// write, so the check below sees the decline.
+				rerender()
+			}
 
 			announce(describeSettle(saved, failed))
 		},
@@ -1976,6 +2076,21 @@ export function useGridEditing<T>({
 	// open state answers it on its own, so no copy of the last render is kept to
 	// diff against.
 	useEffect(() => {
+		const dropped = dropStrandedHolds({
+			drafts,
+			before: sweptRef.current.rows,
+			after: editableRows,
+			gridClosed: gridClosedRef.current,
+			source: editSourceRef.current,
+		})
+
+		// A dropped draft can change what a cell shows, so the cells read again.
+		if (dropped > 0) {
+			activeEditStore.notify()
+
+			announce(describeDiscard(dropped))
+		}
+
 		sweptRef.current = { rows: editableRows, cell: activeEdit }
 
 		const { saved, inFlight } = flushClosedCells({
@@ -1992,7 +2107,7 @@ export function useGridEditing<T>({
 		if (saved > 0) announce(describeCommit(saved))
 
 		for (const batch of inFlight) trackBatchRef.current(batch)
-	}, [drafts, editableRows, activeEdit, editSourceRef])
+	}, [drafts, editableRows, activeEdit, editSourceRef, activeEditStore])
 
 	const session = useMemo<GridEditingSession>(
 		() => ({

@@ -3555,8 +3555,19 @@ describe('Grid async commit', () => {
 		})
 	}
 
-	function renderAsyncGrid(editable: Partial<GridEditableConfig> = {}) {
+	/**
+	 * Renders the async harness. With `controlRows`, the harness binds `rows`,
+	 * and `declineWhen` decides which rows writes of the grid it refuses.
+	 */
+	function renderAsyncGrid(
+		editable: Partial<GridEditableConfig> = {},
+		{ controlRows = false }: { controlRows?: boolean } = {},
+	) {
 		const flights: Flight[] = []
+
+		let decline: (next: Set<string | number>) => boolean = () => false
+
+		let setOpen: (next: Set<string | number>) => void = () => {}
 
 		const onCommit = vi.fn()
 
@@ -3618,7 +3629,22 @@ describe('Grid async commit', () => {
 		function Harness() {
 			const [rows, set] = useState(sessionRows)
 
+			const [open, setOpenState] = useState<Set<string | number>>(new Set())
+
 			setRows = set
+
+			setOpen = setOpenState
+
+			const bound: Partial<GridEditableConfig> = controlRows
+				? {
+						rows: open,
+						onRowsChange: (next) => {
+							onRowsChange(next)
+
+							if (!decline(next)) setOpenState(next)
+						},
+					}
+				: { onRowsChange }
 
 			return (
 				<Grid
@@ -3627,9 +3653,9 @@ describe('Grid async commit', () => {
 					getKey={(row) => row.id}
 					editable={{
 						session: 'managed',
-						onRowsChange,
 						onReject,
 						onCommit: commit,
+						...bound,
 						...editable,
 					}}
 				/>
@@ -3643,7 +3669,22 @@ describe('Grid async commit', () => {
 				rowIndex
 			] as HTMLElement
 
-		return { ...view, flights, onCommit, onRowsChange, onReject, cell }
+		return {
+			...view,
+			flights,
+			onCommit,
+			onRowsChange,
+			onReject,
+			cell,
+			/** Sets which rows writes of the grid the bound `rows` refuses. */
+			declineWhen: (rule: (next: Set<string | number>) => boolean) => {
+				decline = rule
+			},
+			/** Writes the bound `rows` from outside, as a consumer save does. */
+			setOpenRows: (next: Set<string | number>) => act(() => setOpen(next)),
+			/** Replaces the grid's data rows. */
+			setData: (update: (rows: SessionRow[]) => SessionRow[]) => act(() => setRows(update)),
+		}
 	}
 
 	/** Opens the cell, types `value`, and commits with `key` from the editor. */
@@ -4023,6 +4064,157 @@ describe('Grid async commit', () => {
 		expect(typed).toHaveFocus()
 
 		expect(view.queryByRole('alert')).toBeNull()
+	})
+
+	it('drops the refused drafts when a controlled rows declines to open the row again', async () => {
+		const view = renderAsyncGrid({}, { controlRows: true })
+
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		// The consumer refuses to open row 1 again.
+		view.declineWhen((next) => next.has(1))
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		await expectAnnouncement('1 change discarded')
+
+		// An unrelated session on row 2 opens and closes. Its sweep must not send
+		// the refused draft of row 1 again.
+		view.declineWhen(() => false)
+
+		fireEvent.doubleClick(view.cell('name', 1))
+
+		fireEvent.keyDown(editorAt(view, view.cell('name', 1)), { key: 'Escape' })
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		// The draft is gone: row 1 opens on its own value.
+		fireEvent.doubleClick(view.cell('name'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alice')
+	})
+
+	it('drops a held cell of a cell-scoped session when the consumer closes its row', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' }, { controlRows: true })
+
+		editAndCommit(view, 'name', 'Alicia', 'Tab')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+
+		// The consumer closes row 1, which also closes the count cell of the session.
+		view.setOpenRows(new Set())
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		await expectAnnouncement('1 change discarded')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps a held cell when the grid itself closes its row', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' }, { controlRows: true })
+
+		editAndCommit(view, 'name', 'Alicia', 'Tab')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		// F2 from the count editor ends the session, which closes row 1.
+		fireEvent.keyDown(editorAt(view, view.cell('count')), { key: 'F2' })
+
+		expect(view.onRowsChange).toHaveBeenLastCalledWith(new Set())
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+	})
+
+	it('frees a held cell whose row the consumer deletes, at the next sweep', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		// Enter moves the session to row 2, so row 1 holds no session.
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+
+		view.setData((rows) => rows.filter((row) => row.id !== 1))
+
+		// A Tab moves the session, which runs the sweep.
+		fireEvent.keyDown(editorAt(view, view.cell('name')), { key: 'Tab' })
+
+		await expectAnnouncement('1 change discarded')
+
+		// The row comes back, and nothing of the refused draft is left.
+		view.setData(() => sessionRows)
+
+		expect(editorIn(view, view.cell('name'))).toBeUndefined()
+
+		expect(view.cell('name')).toHaveTextContent('Alice')
+	})
+
+	it('keeps the prototype of a class row in the pending display', () => {
+		class Member {
+			id: number
+
+			name: string
+
+			constructor(id: number, name: string) {
+				this.id = id
+
+				this.name = name
+			}
+
+			shout() {
+				return this.name.toUpperCase()
+			}
+
+			get initial() {
+				return this.name.charAt(0)
+			}
+		}
+
+		const members = [new Member(1, 'Alice'), new Member(2, 'Bob')]
+
+		const columns: GridColumn<Member>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => `${row.shout()} (${row.initial})`,
+			},
+		]
+
+		const view = renderUI(
+			<Grid
+				columns={columns}
+				rows={members}
+				getKey={(row) => row.id}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					onCommit: () => new Promise<void>(() => {}),
+				}}
+			/>,
+		)
+
+		const cell = present(view.container.querySelector('td[data-grid-col="name"]'), 'the name cell')
+
+		fireEvent.doubleClick(cell)
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+
+		expect(cell).toHaveAttribute('aria-busy', 'true')
+
+		expect(cell).toHaveTextContent('ALICIA (A)')
 	})
 
 	it('changes nothing, and warns of nothing, when a batch settles after the unmount', async () => {

@@ -369,14 +369,29 @@ function GridPendingCell({ children }: { children: ReactNode }) {
 /**
  * The row that a pending cell renders: `row` with the committed value in the
  * column's field. A consumer that applied the change already needs no copy.
- * A column with no `field` renders the row as it is. @internal
+ * A column with no `field` renders the row as it is.
+ *
+ * @remarks The copy keeps the row's prototype and its own property
+ * descriptors, so the methods and getters of a class row still work. The
+ * committed value is an own property that shadows a getter of the same name.
+ * A private class field does not copy, so a method that reads one fails on
+ * the copy. @internal
  */
 function pendingRow<T>(row: T, column: GridColumn<T>, value: unknown): T {
 	const field = column.field
 
 	if (field == null || Object.is(row[field], value)) return row
 
-	return { ...row, [field]: value }
+	const copy: T = Object.create(Object.getPrototypeOf(row), Object.getOwnPropertyDescriptors(row))
+
+	Object.defineProperty(copy, field, {
+		value,
+		writable: true,
+		enumerable: true,
+		configurable: true,
+	})
+
+	return copy
 }
 
 /** A data cell that shows its display content, not an editor. @internal */

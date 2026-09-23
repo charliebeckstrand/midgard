@@ -111,6 +111,18 @@ export function describeCommit(cells: number): string {
 }
 
 /**
+ * The polite announcement for refused edits that the grid drops (WCAG 4.1.3):
+ * `1 change discarded`. That happens when the consumer declines to open the
+ * row of a refused edit again, closes it, or deletes it. The caller gates on
+ * a non-zero count.
+ *
+ * @internal
+ */
+export function describeDiscard(changes: number): string {
+	return `${changes} ${changes === 1 ? 'change' : 'changes'} discarded`
+}
+
+/**
  * The polite announcement for an async inline-edit commit as it settles (WCAG
  * 4.1.3). An accepted batch reads as {@link describeCommit} does (`2 cells
  * updated`). A refused batch counts the refused cells (`1 cell not saved`). A

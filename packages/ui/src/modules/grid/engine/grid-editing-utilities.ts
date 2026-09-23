@@ -209,6 +209,13 @@ export type GridDraftStore = {
 		draft: GridDraft,
 		refusal: { error: string; reopen: boolean } | null,
 	) => boolean
+	/**
+	 * Removes each staged draft that `match` names, and returns the count. A
+	 * pending draft stays, because its commit is in flight.
+	 */
+	drop: (
+		match: (rowKey: string | number, columnId: string | number, draft: GridDraft) => boolean,
+	) => number
 }
 
 /** The records of a {@link GridDraftStore}, keyed by row and then by column. @internal */
@@ -302,6 +309,28 @@ function takeClosed(
 	return taken
 }
 
+/** Removes the staged records that `match` names, and returns the count. @internal */
+function dropMatching(
+	rows: DraftRows,
+	match: (rowKey: string | number, columnId: string | number, draft: GridDraft) => boolean,
+): number {
+	let dropped = 0
+
+	for (const [rowKey, row] of rows) {
+		for (const [columnId, draft] of row) {
+			if (draft.status === 'pending' || !match(rowKey, columnId, draft)) continue
+
+			row.delete(columnId)
+
+			dropped++
+		}
+
+		if (row.size === 0) rows.delete(rowKey)
+	}
+
+	return dropped
+}
+
 /**
  * Builds an empty {@link GridDraftStore}. `accepts` answers whether the
  * session holds a cell open, and the store ignores a write to any other cell.
@@ -365,6 +394,7 @@ export function createDraftStore(
 
 			return true
 		},
+		drop: (match) => dropMatching(rows, match),
 	}
 }
 
