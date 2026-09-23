@@ -68,8 +68,14 @@ type VirtualWindow = {
 	topSpacer: number
 	/** Pixel height of the spacer standing in for rows below the viewport. */
 	bottomSpacer: number
-	/** Scrolls the item at `index` into the window, mounting it if it was outside it. */
-	scrollToIndex: (index: number, options?: { align?: 'auto' | 'center' | 'end' | 'start' }) => void
+	/**
+	 * Scrolls the item at `index` into the window, mounting it if it was outside
+	 * it. `behavior: 'smooth'` glides there, and the default jumps.
+	 */
+	scrollToIndex: (
+		index: number,
+		options?: { align?: 'auto' | 'center' | 'end' | 'start'; behavior?: 'auto' | 'smooth' },
+	) => void
 }
 
 type MeasuredVirtualWindow = VirtualWindow & {

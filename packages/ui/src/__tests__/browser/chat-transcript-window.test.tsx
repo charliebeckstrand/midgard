@@ -231,6 +231,81 @@ describe('the transcript window', () => {
 
 		expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
 	})
+
+	it('takes the reader to the end when their message and its reply arrive in one commit', async () => {
+		const messages = history(200)
+
+		const { container, rerender } = renderUI(<Frame messages={messages} />)
+
+		const transcript = transcriptOf(container)
+
+		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+
+		await scrollTo(transcript, transcript.scrollTop - 1_000)
+
+		expect(distanceFromEnd(transcript)).toBeGreaterThan(HEIGHT)
+
+		// A transport that resolves at once lands the reply beside the message.
+		rerender(
+			<Frame
+				messages={[
+					...messages,
+					{ id: 'sent', role: 'user', content: 'Sent.' },
+					{ id: 'reply', role: 'assistant', content: 'Reply.' },
+				]}
+			/>,
+		)
+
+		await waitFor(() => {
+			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+
+			expect(showsEnd(transcript, 'Reply.')).toBe(true)
+		})
+	})
+
+	it('glides, not jumps, when a reader at the end sends a message', async () => {
+		const messages = history(200)
+
+		const { container, rerender } = renderUI(<Frame messages={messages} />)
+
+		const transcript = transcriptOf(container)
+
+		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+
+		const start = transcript.scrollTop
+
+		const offsets: number[] = []
+
+		let sampling = true
+
+		const sample = () => {
+			offsets.push(transcript.scrollTop)
+
+			if (sampling) requestAnimationFrame(sample)
+		}
+
+		requestAnimationFrame(sample)
+
+		// Tall enough that a smooth travel takes more than one frame.
+		rerender(
+			<Frame
+				messages={[
+					...messages,
+					{ id: 'sent', role: 'user', content: `Sent. ${filler(4).repeat(3)}` },
+				]}
+			/>,
+		)
+
+		await waitFor(() => {
+			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+
+			expect(showsEnd(transcript, 'Sent.')).toBe(true)
+		})
+
+		sampling = false
+
+		expect(hasIntermediate(offsets, start, transcript.scrollTop)).toBe(true)
+	})
 })
 
 describe('an embed under the window', () => {

@@ -66,7 +66,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useInView` | True when `ref.current` is in (or near) the viewport, over one `IntersectionObserver`. It disconnects on first sight by default, and reads true where nothing can observe, so a gate never hides content. |
 | `useScrollOverflow` | Callback ref stamping `data-overflow-above`/`-below` on a scroll container while content extends past an edge, for CSS scroll affordances. Gate it off with `enabled: false` where the container cannot overflow. |
 | `useScrollWithin` | Returns a scroll-into-view fn scoped to the nearest scrollable ancestor, stopping at clipping boundaries. `block` (default `'nearest'`) and opt-in `inline` align each axis. |
-| `useVirtualWindow` | Drives a vertical windowed list off `@tanstack/react-virtual`: visible items plus top/bottom spacer heights, over uniform rows or, with a `getItemKey`, over measured rows. A measured list can hold its end in view. |
+| `useVirtualWindow` | Drives a vertical windowed list off `@tanstack/react-virtual`: visible items plus top/bottom spacer heights, over uniform rows or, with a `getItemKey`, over measured rows. A measured list can hold its end in view. `scrollToIndex` takes an `align` and a `behavior`. |
 
 ## Drag & drop
 

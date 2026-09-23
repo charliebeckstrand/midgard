@@ -151,9 +151,17 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 
 		if (!opened.current || count <= before.count || newestKey === before.key) return
 
-		if (messages[count - 1]?.role !== 'user') return
+		// One commit can hold the reader's message and the reply that opened
+		// after it, so every row after the old newest counts, not just the last.
+		let start = count
 
-		scrollToIndex(count - 1, { align: 'end' })
+		while (start > 0 && getItemKey(start - 1) !== before.key) start--
+
+		if (!messages.slice(start).some((message) => message.role === 'user')) return
+
+		// Smooth, so a reader already at the end glides with the virtualizer's own
+		// follow and does not jump.
+		scrollToIndex(count - 1, { align: 'end', behavior: 'smooth' })
 	})
 
 	useA11yAnnouncements(describeTranscript(messages, streaming))
