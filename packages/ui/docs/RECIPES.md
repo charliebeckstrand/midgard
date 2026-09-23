@@ -74,7 +74,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 
 | Export | Summary |
 |---|---|
-| `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `slots` pre-merge and attach as properties. `palette` expands into an implicit `color` axis, and `extras` attach arbitrary siblings (`motion`, sub-recipes). |
+| `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `slots` pre-merge and attach as properties. `palette` expands into an implicit `color` axis, and `extras` attach arbitrary siblings (`motion`, sub-recipes). A slot or extra name that collides with a recipe property throws. |
 | `definePalette` | Declares a recipe's colour × variant matrix (single or merged per-colour records, plus per-colour overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys. A kata that takes the wide `iro.extendedPalette` bundle gains the extended colours with no engine change. |
 | `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config and extras. It preserves key-type inference, then hands the result to `defineRecipe`. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. `mode` takes a scalar pair; `defineColors` works across a multi-key map. The dark class carries its own `dark:` prefix. |

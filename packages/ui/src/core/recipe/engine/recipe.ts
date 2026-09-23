@@ -106,6 +106,8 @@ type Expansion = {
  * @throws If a slot name collides with a recipe property — a function
  * built-in (`name`, `length`, `call`, …) or the engine-attached `config` /
  * `skeleton`.
+ * @throws If an extras key collides with a slot, the `skeleton`, a function
+ * built-in, or `config`.
  * @see {@link expandPalette}
  */
 export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
@@ -160,7 +162,16 @@ export function defineRecipe<C extends RecipeConfig, X extends Record<string, un
 
 	if (config.skeleton !== undefined) Object.assign(recipe, { skeleton: config.skeleton })
 
-	if (extras) Object.assign(recipe, extras)
+	if (extras) {
+		// An extra must not overwrite a slot, the skeleton, a function built-in or `config`.
+		for (const key of Object.keys(extras)) {
+			if (key in recipe || key === 'config') {
+				throw new Error(`defineRecipe: extra name "${key}" collides with a recipe property`)
+			}
+		}
+
+		Object.assign(recipe, extras)
+	}
 
 	Object.defineProperty(recipe, 'config', { value: resolved, enumerable: false })
 
