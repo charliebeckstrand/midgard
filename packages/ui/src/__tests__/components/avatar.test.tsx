@@ -54,6 +54,23 @@ describe('Avatar', () => {
 		expect(container.querySelector('img')).toHaveAttribute('alt', 'User')
 	})
 
+	it('names an avatar with alt but no src and no initials', () => {
+		const { container } = renderUI(<Avatar alt="Ada Lovelace" />)
+
+		const img = screen.getByRole('img', { name: 'Ada Lovelace' })
+
+		// The name sits on an inner node; the root stays a plain span.
+		expect(bySlot(container, 'avatar')).toContainElement(img)
+
+		expect(bySlot(container, 'avatar')).not.toHaveAttribute('role')
+	})
+
+	it('hides the empty avatar node when alt is empty', () => {
+		renderUI(<Avatar />)
+
+		expect(screen.queryByRole('img')).toBeNull()
+	})
+
 	it('applies className and spread props to the same element when status is set', () => {
 		const { container } = renderUI(
 			<Avatar initials="AB" status="active" className="custom" id="me" />,

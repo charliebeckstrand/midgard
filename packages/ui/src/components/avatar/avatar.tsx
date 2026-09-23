@@ -20,9 +20,11 @@ export type AvatarProps = AvatarVariants & {
 
 /**
  * User image, initials, or fallback in a sized circle. Pair with `status` to
- * overlay a corner StatusDot. Static leaf: renders in React Server
- * Components. `size` is explicit (default `md`) and passes through to the
- * StatusDot; compose `<AvatarSkeleton>` in the loading tree.
+ * overlay a corner StatusDot. With no `src` and no `initials`, the circle is
+ * empty, and an inner `role="img"` node carries `alt` as its name. Static
+ * leaf: renders in React Server Components. `size` is explicit (default `md`)
+ * and passes through to the StatusDot; compose `<AvatarSkeleton>` in the
+ * loading tree.
  */
 export function Avatar({
 	src,
@@ -65,6 +67,10 @@ export function Avatar({
 				</svg>
 			)}
 			{src && <img className={k.image} src={src} alt={alt} />}
+			{/* With no source, this node carries `alt`, as the svg and the img do. */}
+			{!src && !initials && (
+				<span role="img" aria-label={alt || undefined} aria-hidden={alt ? undefined : 'true'} />
+			)}
 		</>
 	)
 
