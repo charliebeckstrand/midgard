@@ -1,5 +1,8 @@
+/// <reference types="@vitest/browser-playwright" />
+
 import { useEffect, useState } from 'react'
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { cdp } from 'vitest/browser'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, present, renderUI, waitFor } from '../helpers'
@@ -513,4 +516,120 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 		// frame and never shift under the reader afterwards.
 		expect([...widths]).toHaveLength(1)
 	})
+})
+
+/**
+ * The fit at a device pixel ratio of 2, with no tolerance. The layout reads
+ * text widths as fractions of a pixel, and the column widths are integers.
+ * `measureColumns` rounds each width up, so that the fraction never clips.
+ * The cases above allow 1px, which hides a clip smaller than one pixel. This
+ * block allows none, and it runs at the ratio of a high-density screen.
+ *
+ * The text values have fractional widths in Chromium. Without the round-up in
+ * `measureColumns`, cells of this shape clipped by up to 0.7px at ratios 1,
+ * 1.5, and 2.
+ */
+describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () => {
+	beforeAll(() =>
+		cdp().send('Emulation.setDeviceMetricsOverride', {
+			width: 0,
+			height: 0,
+			deviceScaleFactor: 2,
+			mobile: false,
+		}),
+	)
+
+	// The page is shared with the files that run after this one, so the ratio
+	// must go back to the value that Playwright set.
+	afterAll(() => cdp().send('Emulation.clearDeviceMetricsOverride'))
+
+	type Row = { id: number; text: string[] }
+
+	const values = [
+		['sed tempor amet consecteturl', 'ipsum sit loremII', 'aliqua amet amet doIi'],
+		[
+			'lorem consectetur labore laboreWi',
+			'incididunt adipiscing et dolorll',
+			'ipsum elit lorem ipsum incididuntlIwI',
+		],
+		[
+			'eiusmod labore ipsum dolor sedIwwI',
+			'dolor et adipiscing consecteturwlW',
+			'amet consectetur ipsum ipsum sitIWI',
+		],
+	]
+
+	const rows: Row[] = values.map((text, i) => ({ id: i + 1, text }))
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'a', title: 'Identifier', cell: (row) => row.text[0] },
+		{ id: 'b', title: 'Description', cell: (row) => row.text[1] },
+		{ id: 'c', title: 'Status', cell: (row) => <Badge>{row.text[2]}</Badge> },
+	]
+
+	/** Every leaf whose content is wider than its box, by any fraction of a pixel. */
+	function clipped(root: HTMLElement): string[] {
+		return Array.from(root.querySelectorAll<HTMLElement>('[data-grid-content]')).flatMap((leaf) => {
+			const range = document.createRange()
+
+			range.selectNodeContents(leaf)
+
+			const content = range.getBoundingClientRect().width
+
+			const box = leaf.getBoundingClientRect().width
+
+			return content > box ? [`${leaf.textContent}: ${content} > ${box}`] : []
+		})
+	}
+
+	const frames = () =>
+		new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+
+	function menuAction(root: HTMLElement, id: string, label: string) {
+		fireEvent.contextMenu(
+			present(root.querySelector(`th[data-grid-col="${id}"]`), `th[data-grid-col="${id}"]`),
+		)
+
+		openAutoSizeMenu()
+
+		const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find((el) =>
+			el.textContent?.includes(label),
+		)
+
+		if (!item) throw new Error(`no ${label} item`)
+
+		fireEvent.click(item)
+	}
+
+	for (const frame of [200, 1400]) {
+		it(`clips no header and no cell in a ${frame}px frame`, async () => {
+			expect(window.devicePixelRatio).toBe(2)
+
+			const { container } = renderUI(
+				<div style={{ width: `${frame}px` }}>
+					<Grid columns={columns} rows={rows} getKey={(row) => row.id} />
+				</div>,
+			)
+
+			const table = present(container.querySelector('table'), 'table')
+
+			await waitFor(() => expect(table.style.width).not.toBe(''))
+
+			await frames()
+
+			expect(clipped(container)).toEqual([])
+
+			menuAction(container, 'b', 'Auto-size this column')
+
+			await frames()
+
+			expect(clipped(container)).toEqual([])
+
+			menuAction(container, 'a', 'Auto-size all columns')
+
+			await frames()
+
+			expect(clipped(container)).toEqual([])
+		})
+	}
 })
