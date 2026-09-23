@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
 import { stackedAreas } from '../../modules/chart/engine/chart-geometry/area'
-import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 const DATA = [
 	{ day: 'Mon', organic: 20, paid: 10 },
@@ -140,6 +140,45 @@ describe('AreaChart', () => {
 		expect(bySlot(container, 'chart-crosshair-y')).not.toBeNull()
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('reads an empty stacked series list the way it reads an empty unstacked one', () => {
+		// A literal `series={[]}` resolves no series, but the band still spans the
+		// data rows. The stacked stops count their columns from the band, and the
+		// unstacked stops do too. Nothing draws and nothing takes a stop. Each
+		// pointer column and each key reads the same as in the unstacked chart.
+		const readout = (stacked: boolean) => {
+			const { container } = renderUI(chart({ series: [], stacked }))
+
+			const hit = getSlot(container, 'chart-hit')
+
+			const reads = [100, 200, 300].map((clientX) => {
+				fireEvent.pointerMove(hit, { clientX, clientY: 100 })
+
+				return [
+					bySlot(container, 'chart-crosshair-y') !== null,
+					bySlot(container, 'tooltip-content')?.textContent ?? null,
+				]
+			})
+
+			fireEvent.pointerLeave(hit)
+
+			fireEvent.keyDown(getSlot(container, 'chart'), { key: 'ArrowRight' })
+
+			return {
+				areas: allBySlot(container, 'chart-area').length,
+				reads,
+				keyed: bySlot(container, 'tooltip-content')?.textContent ?? null,
+			}
+		}
+
+		const stacked = readout(true)
+
+		expect(stacked.areas).toBe(0)
+
+		expect(stacked.keyed).toBeNull()
+
+		expect(stacked).toEqual(readout(false))
 	})
 
 	it('still renders under animate', () => {

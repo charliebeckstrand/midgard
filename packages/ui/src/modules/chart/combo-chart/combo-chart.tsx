@@ -31,7 +31,6 @@ import {
 import type { ChartMarkRef } from '../engine/context'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
 import {
-	bandCenters,
 	barProjection,
 	cartesianData,
 	drawnSeries,
@@ -238,7 +237,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	// Lines and areas share the polyline geometry; an area is a line that also
 	// fills down to the baseline.
-	const xs = bandCenters(chart)
+	const xs = chart.bandPositions
 
 	const lines = lineSeriesOf(lineEntries, xs, floor, interpolation, points)
 

@@ -700,16 +700,6 @@ export function drawnSeries(chart: CartesianChart): DrawnSeries[] {
 }
 
 /**
- * Every category's band center, shared across a chart's series since they all
- * span the same categories — one array instead of one per series.
- *
- * @internal
- */
-export function bandCenters(chart: CartesianChart): number[] {
-	return chart.metas[0]?.values.map((_, index) => chart.band.center(index)) ?? []
-}
-
-/**
  * Per-series projection callbacks for `barMarks`, read off the drawn list so
  * each bar series maps and grows through its own axis's scale. `fallback`
  * answers an index past the list, which the geometry never emits marks for.
