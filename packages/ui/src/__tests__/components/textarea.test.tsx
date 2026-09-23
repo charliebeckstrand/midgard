@@ -14,14 +14,6 @@ describe('Textarea', () => {
 		expect(el?.tagName).toBe('TEXTAREA')
 	})
 
-	it('passes through placeholder', () => {
-		const { container } = renderUI(<Textarea placeholder="Enter text" />)
-
-		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
-
-		expect(el.placeholder).toBe('Enter text')
-	})
-
 	it('fires onChange handler', async () => {
 		const onChange = vi.fn()
 

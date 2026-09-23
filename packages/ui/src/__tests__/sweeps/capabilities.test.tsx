@@ -1,6 +1,14 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
+import { Density } from '../../primitives/density'
 import { corpus } from '../a11y/cases'
-import type { LinkSubject, PassthroughSubject, SkeletonSubject } from '../a11y/cases/types'
+import type {
+	DensitySubject,
+	LinkSubject,
+	PassthroughSubject,
+	SkeletonSubject,
+	TextInputSubject,
+} from '../a11y/cases/types'
 import { allBySlot, bySlot, getSlot, renderUI } from '../helpers'
 
 /**
@@ -9,7 +17,7 @@ import { allBySlot, bySlot, getSlot, renderUI } from '../helpers'
  * column rather than a copy of the test
  * ([CONVENTIONS.md](../../../../../CONVENTIONS.md) §10.5).
  *
- * The three sweeps share one file because they share one input. The corpus
+ * The sweeps share one file because they share one input. The corpus
  * reaches most of the component tree, so each file that imports it makes
  * another worker build that graph.
  *
@@ -20,11 +28,36 @@ const PASS_THROUGH_ID = 'pass-through-subject'
 
 const LINK_HREF = '/swept-link'
 
+const PLACEHOLDER = 'Swept placeholder'
+
+// Three distinct steps, so each density leg can tell its answer from the other two.
+const AMBIENT = 'lg'
+
+const EXPLICIT = 'sm'
+
+const FALLBACK = 'md'
+
 const passThrough = corpus.flatMap((entry) => entry.passthrough ?? [])
 
 const skeletons = corpus.flatMap((entry) => entry.skeleton ?? [])
 
 const links = corpus.flatMap((entry) => entry.link ?? [])
+
+// Two columns reuse a slot across entries (`control` for the three toggles,
+// `input` for Input and TagInput), so these titles name the entry as well.
+const densities = corpus.flatMap((entry) =>
+	(entry.density ?? []).map((subject) => ({
+		...subject,
+		title: `${entry.name} (${subject.slot})`,
+	})),
+)
+
+const textInputs = corpus.flatMap((entry) =>
+	(entry.textInput ?? []).map((subject) => ({
+		...subject,
+		title: `${entry.name} (${subject.slot})`,
+	})),
+)
 
 /** The pass-through sweep: the id it spreads reaches the subject's slot. */
 function passesThrough({ render, slot }: PassthroughSubject) {
@@ -61,6 +94,58 @@ function becomesLink({ render, slot }: LinkSubject) {
 	expect(anchor).toHaveAttribute('href', LINK_HREF)
 }
 
+/** Renders `element` and reads the `data-size` its slot publishes. */
+function publishedSize(element: ReactElement, slot: string) {
+	// `baseElement` is the document body, so a portalled overlay is in reach.
+	const { baseElement } = renderUI(element)
+
+	return getSlot(baseElement, slot).getAttribute('data-size')
+}
+
+/** The density sweep, ambient leg: with no size, the subject takes the enclosing Density. */
+function inheritsDensity({ render, slot }: DensitySubject) {
+	expect(publishedSize(<Density scale={AMBIENT}>{render()}</Density>, slot)).toBe(AMBIENT)
+}
+
+/** The density sweep, explicit leg: a size prop wins over the enclosing Density. */
+function explicitSizeWins({ render, slot }: DensitySubject) {
+	expect(publishedSize(<Density scale={AMBIENT}>{render(EXPLICIT)}</Density>, slot)).toBe(EXPLICIT)
+}
+
+/** The density sweep, fallback leg: with no Density and no size, the subject is `md`. */
+function fallsBackToMd({ render, slot }: DensitySubject) {
+	expect(publishedSize(render(), slot)).toBe(FALLBACK)
+}
+
+/** The text-input sweep, ref leg: the ref reaches the editable element. */
+function forwardsRef({ render, slot }: TextInputSubject) {
+	let received: HTMLElement | null = null
+
+	const { container } = renderUI(
+		render({
+			ref: (element) => {
+				received = element
+			},
+		}),
+	)
+
+	expect(received).toBe(getSlot(container, slot))
+}
+
+/** The text-input sweep, placeholder leg: the placeholder reaches the editable element. */
+function passesPlaceholder({ render, slot }: TextInputSubject) {
+	const { container } = renderUI(render({ placeholder: PLACEHOLDER }))
+
+	expect(getSlot(container, slot)).toHaveAttribute('placeholder', PLACEHOLDER)
+}
+
+/** The text-input sweep, disabled leg: `disabled` disables the editable element. */
+function disablesInput({ render, slot }: TextInputSubject) {
+	const { container } = renderUI(render({ disabled: true }))
+
+	expect(getSlot(container, slot)).toBeDisabled()
+}
+
 describe('component pass-through', () => {
 	for (const subject of passThrough) {
 		it(`${subject.slot} passes through HTML attributes`, () => passesThrough(subject))
@@ -90,6 +175,35 @@ describe('component links', () => {
 
 	it('has subjects to sweep', () => {
 		expect(links).not.toHaveLength(0)
+	})
+})
+
+describe('component density', () => {
+	for (const subject of densities) {
+		it(`${subject.title} inherits its size from an ambient Density`, () => inheritsDensity(subject))
+
+		it(`${subject.title} lets an explicit size win over an ambient Density`, () =>
+			explicitSizeWins(subject))
+
+		it(`${subject.title} falls back to md outside any Density`, () => fallsBackToMd(subject))
+	}
+
+	it('has subjects to sweep', () => {
+		expect(densities).not.toHaveLength(0)
+	})
+})
+
+describe('component text inputs', () => {
+	for (const subject of textInputs) {
+		it(`${subject.title} forwards its ref to the editable element`, () => forwardsRef(subject))
+
+		it(`${subject.title} passes through placeholder`, () => passesPlaceholder(subject))
+
+		it(`${subject.title} disables the editable element when disabled`, () => disablesInput(subject))
+	}
+
+	it('has subjects to sweep', () => {
+		expect(textInputs).not.toHaveLength(0)
 	})
 })
 
@@ -138,6 +252,45 @@ describe('capability sweeps: teeth checks', () => {
 	it('fails a subject that does not become an anchor', () => {
 		expect(() =>
 			becomesLink({ render: () => <span data-slot="not-a-link" />, slot: 'not-a-link' }),
+		).toThrow()
+	})
+
+	it('fails a subject that ignores the ambient Density', () => {
+		expect(() =>
+			inheritsDensity({ render: () => <div data-slot="fixed" data-size="md" />, slot: 'fixed' }),
+		).toThrow()
+	})
+
+	it('fails a subject that lets the ambient Density beat its size prop', () => {
+		expect(() =>
+			explicitSizeWins({
+				render: () => <div data-slot="ambient-only" data-size={AMBIENT} />,
+				slot: 'ambient-only',
+			}),
+		).toThrow()
+	})
+
+	it('fails a subject that falls back to a size other than md', () => {
+		expect(() =>
+			fallsBackToMd({ render: () => <div data-slot="large" data-size="lg" />, slot: 'large' }),
+		).toThrow()
+	})
+
+	it('fails a text input that keeps its ref', () => {
+		expect(() =>
+			forwardsRef({ render: () => <input data-slot="unreffed" />, slot: 'unreffed' }),
+		).toThrow()
+	})
+
+	it('fails a text input that drops its placeholder', () => {
+		expect(() =>
+			passesPlaceholder({ render: () => <input data-slot="bare" />, slot: 'bare' }),
+		).toThrow()
+	})
+
+	it('fails a text input that stays enabled', () => {
+		expect(() =>
+			disablesInput({ render: () => <input data-slot="enabled" />, slot: 'enabled' }),
 		).toThrow()
 	})
 

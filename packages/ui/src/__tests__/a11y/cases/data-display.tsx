@@ -287,6 +287,12 @@ export const dataDisplayCases: readonly Case[] = [
 			<Sparkline key="sp" data={[3, 5, 4, 8, 7, 11]} aria-label="Revenue, up over 6 periods" />
 		),
 		skeleton: [{ element: <SparklineSkeleton />, absentSlot: 'sparkline' }],
+		density: [
+			{
+				render: (size) => <Sparkline data={[1, 2, 3]} size={size} aria-label="Trend" />,
+				slot: 'sparkline',
+			},
+		],
 	},
 	{
 		// Charts: a role="img" plot with legend and a hidden data table beside it.

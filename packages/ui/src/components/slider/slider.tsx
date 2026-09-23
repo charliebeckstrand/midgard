@@ -103,6 +103,7 @@ export function Slider({
 		<input
 			type="range"
 			data-slot="slider"
+			data-size={resolvedSize}
 			ref={ref}
 			id={scope.id}
 			disabled={controlProps.disabled}

@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
 import { settleResize, speedOf } from '../../hooks/use-panel-resize'
-import { DensityProvider } from '../../providers/density'
 import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Drawer', () => {
@@ -366,30 +365,6 @@ describe('Drawer size context', () => {
 
 		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg'
 		expect(buttonInDrawer()?.className).toContain('text-lg')
-	})
-
-	it('inherits an ambient Density when no size prop is given', () => {
-		renderUI(
-			<DensityProvider density="compact">
-				<Drawer open onOpenChange={() => {}}>
-					content
-				</Drawer>
-			</DensityProvider>,
-		)
-
-		expect(drawerPanel()).toHaveAttribute('data-size', 'sm')
-	})
-
-	it('explicit size prop wins over an ambient Density', () => {
-		renderUI(
-			<DensityProvider density="compact">
-				<Drawer open onOpenChange={() => {}} size="lg">
-					content
-				</Drawer>
-			</DensityProvider>,
-		)
-
-		expect(drawerPanel()).toHaveAttribute('data-size', 'lg')
 	})
 })
 

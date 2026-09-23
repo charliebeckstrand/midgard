@@ -2,13 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { Sparkline } from '../../components/sparkline'
 import { sparklineGeometry } from '../../components/sparkline/sparkline-geometry'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, screen } from '../helpers'
 
 /** The SVG width a sparkline draws at, keyed to its resolved density step. */
 const WIDTH_SM = '64'
-
-const WIDTH_MD = '96'
 
 describe('Sparkline', () => {
 	it('renders a role="img" wrapper carrying the accessible name over a hidden SVG', () => {
@@ -273,29 +270,6 @@ describe('Sparkline in a Grid cell', () => {
 })
 
 describe('Sparkline density', () => {
-	it('resolves its size from the ambient Density when none is given', () => {
-		const compact = renderUI(
-			<DensityProvider density="compact">
-				<Sparkline data={[1, 2, 3]} aria-label="Compact" />
-			</DensityProvider>,
-		)
-
-		expect(bySlot(compact.container, 'sparkline')?.querySelector('svg')).toHaveAttribute(
-			'width',
-			WIDTH_SM,
-		)
-	})
-
-	it('lets an explicit size override the ambient Density', () => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<Sparkline data={[1, 2, 3]} size="md" aria-label="Pinned" />
-			</DensityProvider>,
-		)
-
-		expect(bySlot(container, 'sparkline')?.querySelector('svg')).toHaveAttribute('width', WIDTH_MD)
-	})
-
 	it('scales to a density-aware Grid, so a cell sparkline tracks the grid', () => {
 		const columns: GridColumn<{ id: number; trend: number[] }>[] = [
 			{

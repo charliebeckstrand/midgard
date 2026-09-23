@@ -211,6 +211,7 @@ export function RangeSlider({
 			ref={ref}
 			id={scope.id}
 			data-slot="slider-range"
+			data-size={resolvedSize}
 			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(k.root({ size: resolvedSize, color }), className)}
 			style={style}

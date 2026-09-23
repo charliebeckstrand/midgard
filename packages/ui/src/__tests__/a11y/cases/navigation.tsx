@@ -206,6 +206,18 @@ export const navigationCases: readonly Case[] = [
 			</Tabs>
 		),
 		skeleton: [{ element: <TabListSkeleton tabs={4} />, absentSlot: 'tab', placeholders: 4 }],
+		density: [
+			{
+				render: (size) => (
+					<Tabs defaultValue="a" size={size}>
+						<TabList aria-label="Sections">
+							<Tab value="a">A</Tab>
+						</TabList>
+					</Tabs>
+				),
+				slot: 'tab',
+			},
+		],
 	},
 	{
 		// Process steps with separators between them; current step marked via the

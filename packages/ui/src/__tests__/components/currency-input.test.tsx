@@ -1,4 +1,3 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
 import { Form } from '../../components/form'
@@ -23,14 +22,6 @@ describe('CurrencyInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input?.tagName).toBe('INPUT')
-	})
-
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<CurrencyInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
 	it('uses inputMode="decimal"', () => {
@@ -195,14 +186,6 @@ describe('CurrencyInput', () => {
 		rerender(<CurrencyInput value={42} onValueChange={() => {}} />)
 
 		expect(input.value).toBe('42.00')
-	})
-
-	it('disables the input when disabled', () => {
-		const { container } = renderUI(<CurrencyInput disabled />)
-
-		const input = bySlot(container, 'currency-input')
-
-		expect(input).toBeDisabled()
 	})
 
 	it('blurs the input when Enter is pressed', async () => {
