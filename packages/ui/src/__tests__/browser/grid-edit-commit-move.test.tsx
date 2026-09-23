@@ -48,7 +48,8 @@ describe('grid commit-and-move keys (real browser)', () => {
 
 		await userEvent.dblClick(cell('name'))
 
-		await userEvent.keyboard('{Control>}a{/Control}Alicia')
+		// Select-all is Meta+A on macOS. There, Playwright maps Control+A to a move to the line start.
+		await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}Alicia')
 
 		await userEvent.keyboard('{Tab}')
 
@@ -142,7 +143,7 @@ describe('grid commit-and-move keys (real browser)', () => {
 
 		expect(first).toHaveFocus()
 
-		await userEvent.keyboard('{Control>}a{/Control}Alicia')
+		await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}Alicia')
 
 		// The browser moves focus to the second control, and nothing commits.
 		await userEvent.keyboard('{Tab}')
