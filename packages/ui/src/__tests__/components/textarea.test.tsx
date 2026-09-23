@@ -117,4 +117,28 @@ describe('Textarea', () => {
 
 		expect(el.value).toBe('hi there')
 	})
+
+	it('drops defaultValue from a bound textarea (§7.2)', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { container } = renderUI(
+			<Form defaultValues={{ bio: '' }}>
+				<Textarea name="bio" defaultValue="seed" />
+			</Form>,
+		)
+
+		const el = getSlot<HTMLTextAreaElement>(container, 'textarea')
+
+		expect(el.value).toBe('')
+
+		expect(el.defaultValue).not.toBe('seed')
+
+		const warned = error.mock.calls.some(([message]) =>
+			String(message).includes('both value and defaultValue'),
+		)
+
+		expect(warned).toBe(false)
+
+		error.mockRestore()
+	})
 })

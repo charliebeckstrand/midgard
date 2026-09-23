@@ -1,5 +1,6 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+import { Form } from '../../components/form'
 import { Input } from '../../components/input'
 import { Density } from '../../primitives/density'
 import { bySlot, getSlot, renderUI, userEvent } from '../helpers'
@@ -123,5 +124,41 @@ describe('Input size resolution', () => {
 		const { container } = renderUI(<Input />)
 
 		expect(bySlot(container, 'input')?.className).toContain(textClassFor.md)
+	})
+})
+
+describe('Input defaultValue under a binding (§7.2)', () => {
+	it('drops defaultValue from a bound input', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { container } = renderUI(
+			<Form defaultValues={{ email: '' }}>
+				<Input name="email" defaultValue="me@example.com" />
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'input')
+
+		expect(input.value).toBe('')
+
+		expect(input.defaultValue).not.toBe('me@example.com')
+
+		const warned = error.mock.calls.some(([message]) =>
+			String(message).includes('both value and defaultValue'),
+		)
+
+		expect(warned).toBe(false)
+
+		error.mockRestore()
+	})
+
+	it('keeps defaultValue on an unbound input', () => {
+		const { container } = renderUI(<Input defaultValue="seed" />)
+
+		const input = getSlot<HTMLInputElement>(container, 'input')
+
+		expect(input.value).toBe('seed')
+
+		expect(input.defaultValue).toBe('seed')
 	})
 })

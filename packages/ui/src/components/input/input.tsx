@@ -35,6 +35,8 @@ export type InputProps = GroupStampProps &
  *
  * @remarks Follows the §7.3 value contract and the resolution order
  * (explicit prop > bound field > internal state) owned by {@link useInputValue}.
+ * `defaultValue` reaches the element only while the input is uncontrolled, so
+ * a bound input ignores it (§7.2).
  * `invalid` OR's the prop, the bound field, and any ambient Control error.
  * Under headless context the affix frame and recipe classes are all skipped.
  * @see {@link InputFrame}
@@ -54,6 +56,7 @@ export function Input({
 	invalid,
 	name,
 	value,
+	defaultValue,
 	onChange,
 	onBlur,
 	ref,
@@ -100,6 +103,7 @@ export function Input({
 			required={sharedAttrs.required}
 			readOnly={sharedAttrs.readOnly}
 			value={valueState.value}
+			defaultValue={valueState.value === undefined ? defaultValue : undefined}
 			onChange={valueState.onChange}
 			onBlur={valueState.onBlur}
 			aria-describedby={sharedAttrs['aria-describedby']}
