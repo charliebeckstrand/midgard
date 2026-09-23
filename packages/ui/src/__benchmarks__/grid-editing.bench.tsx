@@ -3,13 +3,14 @@
  * measure the editing augmentation's per-cell overhead — each cell wired for
  * editing — without mounting an editor per cell. Against the same rungs in
  * `grid.bench.tsx`, the difference is what `editable` costs a grid nobody is
- * editing. The session scenario is the exception: it opens a cell-scoped
- * session and moves it, which is the path the commit-and-move keys drive.
+ * editing. The session scenarios are the exception: they open a cell-scoped
+ * session and move it, which is the path the commit-and-move keys drive.
  */
 
 import { fireEvent } from '@testing-library/react'
+import { useState } from 'react'
 import { bench, describe } from 'vitest'
-import { Grid, type GridColumn } from '../modules/grid'
+import { Grid, type GridCellRef, type GridColumn } from '../modules/grid'
 import { noop } from '../utilities/noop'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, persistentTree } from './harness'
@@ -93,6 +94,51 @@ describe('Grid · cell-scoped session move', () => {
 				editable={{ session: 'managed', scope: 'cell', onCommit: noop }}
 			/>,
 		)
+
+		const cells = ['reference', 'origin'].map(
+			(col) => container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,
+		)
+
+		fireEvent.doubleClick(cells[0] as HTMLElement)
+
+		let move = 0
+
+		bench(`${rows.length.toLocaleString()} rows × 8 cols · one move`, () => {
+			move++
+
+			fireEvent.doubleClick(cells[move % 2] as HTMLElement)
+		})
+	}
+})
+
+/**
+ * The session move above, under a controlled `activeCell`. The consumer applies
+ * each move in its own state, so each move also renders the consumer and the
+ * grid host. The cells still read the session's cell from the store, so only
+ * the two cells of the move render again.
+ */
+function ControlledSession({ rows }: { rows: Shipment[] }) {
+	const [activeCell, setActiveCell] = useState<GridCellRef | null>(null)
+
+	return (
+		<Grid
+			columns={COLUMNS}
+			rows={rows}
+			getKey={shipmentKey}
+			editable={{
+				session: 'managed',
+				scope: 'cell',
+				onCommit: noop,
+				activeCell,
+				onActiveCellChange: setActiveCell,
+			}}
+		/>
+	)
+}
+
+describe('Grid · cell-scoped session move · controlled', () => {
+	for (const rows of SIZES) {
+		const container = persistentTree(<ControlledSession rows={rows} />)
 
 		const cells = ['reference', 'origin'].map(
 			(col) => container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,

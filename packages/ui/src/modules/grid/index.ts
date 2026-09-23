@@ -43,6 +43,7 @@ export type {
 } from './grid-data-types'
 export type {
 	GridCellChange,
+	GridCellRef,
 	GridEditableConfig,
 	GridEditCell,
 	GridEditCellContext,

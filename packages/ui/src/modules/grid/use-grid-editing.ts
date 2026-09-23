@@ -7,6 +7,7 @@ import {
 	useEffect,
 	useLayoutEffect,
 	useMemo,
+	useReducer,
 	useRef,
 	useState,
 } from 'react'
@@ -16,6 +17,7 @@ import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeCommit } from './engine/grid-announcements'
 import { EMPTY_SET } from './engine/grid-constants'
 import {
+	EDITOR_FOCUSABLE,
 	type GridActiveEdit,
 	isCellEditing,
 	isColumnEditable,
@@ -40,7 +42,9 @@ export type GridEditingApi = {
 	 * commits, and a previous row leaves the set. A transition that changes which
 	 * rows edit goes through the controllable set, so `onRowsChange` reports it. A
 	 * move between cells of one row leaves that set alone. A `seed` opens the
-	 * editor with that value in place of the cell's own (type-to-edit).
+	 * editor with that value in place of the cell's own (type-to-edit). Under a
+	 * controlled `activeCell` the entry only asks. The move and its rows write
+	 * wait until the consumer applies the cell.
 	 */
 	enterEdit: (rowKey: string | number, columnId: string | number, seed?: string | number) => void
 	/**
@@ -53,9 +57,6 @@ export type GridEditingApi = {
 	 */
 	sessionKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 }
-
-/** Focusable editor content inside an editing cell, in preference order. @internal */
-const EDITOR_FOCUSABLE = 'input, select, textarea, button, [tabindex]'
 
 /**
  * Reseats focus on the grid's single tab stop when it currently sits inside the
@@ -124,15 +125,25 @@ function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): SessionMove | 
 	return null
 }
 
+/** Whether two coords name the same cell; two null coords do too. @internal */
+function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
+	return a === b || (b !== null && isSameCell(a, b))
+}
+
 /**
- * Builds the store behind {@link GridActiveEditStore}. `set` notifies only when
- * the coord names another cell, so a write that repeats the held cell renders
- * nothing. @internal
+ * Builds the store behind {@link GridActiveEditStore}. `seat` moves the coord
+ * without a notice, for the render that resolves it. The cells that render in
+ * that pass then read the new coord. `set` moves the coord and notifies the
+ * rest. It notifies only when the coord names another cell than the listeners
+ * last heard, so a write that repeats the held cell renders nothing. @internal
  */
 function createActiveEditStore(): GridActiveEditStore & {
+	seat: (next: GridActiveEdit | null) => void
 	set: (next: GridActiveEdit | null) => void
 } {
 	let coord: GridActiveEdit | null = null
+
+	let told: GridActiveEdit | null = null
 
 	const listeners = new Set<() => void>()
 
@@ -145,14 +156,32 @@ function createActiveEditStore(): GridActiveEditStore & {
 			}
 		},
 		get: () => coord,
-		set: (next) => {
-			if (next === coord || (next !== null && isSameCell(coord, next))) return
-
+		seat: (next) => {
 			coord = next
+		},
+		set: (next) => {
+			coord = next
+
+			if (sameCell(told, next)) return
+
+			told = next
 
 			for (const listener of listeners) listener()
 		},
 	}
+}
+
+/**
+ * Whether a cell that a consumer names can hold a session: its row is in the
+ * source rows, and its column is editable. The grid's own entries pass this by
+ * construction. A consumer's `activeCell` does not, so it is read here. @internal
+ */
+function isEditableCell<T>(cell: GridActiveEdit, source: GridEditSource<T>): boolean {
+	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+
+	if (!col || !isColumnEditable(col)) return false
+
+	return source.rows.some((row, index) => source.getKey(row, index) === cell.rowKey)
 }
 
 /** A row's staged cell values, keyed by column id. @internal */
@@ -309,6 +338,248 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, managed: boolean): v
 }
 
 /**
+ * Warns in development when `activeCell` or `defaultActiveCell` is set outside
+ * the cell-scoped, grid-owned session that it binds. The binding is inert there,
+ * so it fails silently, which is what the warning is for. @internal
+ */
+function useActiveCellWithoutScopeWarning(bound: boolean, cellScoped: boolean): void {
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (!bound || cellScoped) return
+
+		console.warn(
+			"Grid: `editable.activeCell` and `editable.defaultActiveCell` bind the cell of a cell-scoped session, and this grid has none. The binding has no effect — set `session: 'managed'` and `scope: 'cell'` to bind the cell.",
+		)
+	}, [bound, cellScoped])
+}
+
+/** The development warning for a consumer's cell that is not editable. @internal */
+const UNEDITABLE_CELL_WARNING =
+	'Grid: `editable.activeCell` names a cell that is not editable. Its row is unknown, or its column is `readOnly` or has no `field` or `editCell`. The cell reads as null and mounts no editor.'
+
+/**
+ * The cell a controlled binding last settled on. `raw` is the value as the
+ * consumer passed it; `cell` is that value after the editable check. @internal
+ */
+type SettledCell = { raw: GridActiveEdit | null; cell: GridActiveEdit | null }
+
+/**
+ * A move that the grid asked of a controlled `activeCell`, which waits for the
+ * consumer to apply it. `endRows` holds the rows that an exit on the way
+ * closes, and `discard` the cell whose draft an Escape drops. `blur` marks a
+ * key move that reseats focus before the cell it leaves commits, as the
+ * uncontrolled path does at event time. @internal
+ */
+type CellRequest = {
+	to: GridActiveEdit | null
+	endRows: Set<string | number>
+	discard: GridActiveEdit | null
+	blur: boolean
+}
+
+/** The row a grid-owned session holds, and whether the session put it in the set. @internal */
+type SessionRow = { rowKey: string | number; acquired: boolean }
+
+/**
+ * Moves the held session row onto the row of `rowKey`. A move within the held
+ * row keeps its provenance. A move onto another row records how the session
+ * came by it, before the set is written and can no longer answer. `leaving` is
+ * the held row when the session acquired it: only that row leaves the set with
+ * the session. A borrowed row stays, row-shaped. @internal
+ */
+function moveSessionRow(
+	held: SessionRow | null,
+	rowKey: string | number,
+	rows: Set<string | number>,
+): { leaving: string | number | null; row: SessionRow } {
+	if (held?.rowKey === rowKey) return { leaving: null, row: held }
+
+	return {
+		leaving: held?.acquired ? held.rowKey : null,
+		row: { rowKey, acquired: !rows.has(rowKey) },
+	}
+}
+
+/**
+ * The cell the binding opens the grid with, read once on mount: the controlled
+ * value, else the default. A cell that is not editable opens nothing, and is
+ * flagged for the development warning. @internal
+ */
+function readInitialCell<T>(
+	config: GridEditableConfig | undefined,
+	cellScoped: boolean,
+	source: GridEditSource<T>,
+): { cell: GridActiveEdit | null; uneditable: boolean } {
+	const named = config?.activeCell !== undefined ? config.activeCell : config?.defaultActiveCell
+
+	if (!cellScoped || named == null) return { cell: null, uneditable: false }
+
+	const editable = isEditableCell(named, source)
+
+	return { cell: editable ? named : null, uneditable: !editable }
+}
+
+/**
+ * The cell a controlled binding reads as in this render. A value the transition
+ * effect has settled reads as it settled. A new value reads at once when its row
+ * is open and its cell is editable. Otherwise the settled cell stays until the
+ * effect opens the row, so no row widens for a render. @internal
+ */
+function readControlledCell<T>(
+	raw: GridActiveEdit | null,
+	settled: SettledCell,
+	rows: Set<string | number>,
+	source: GridEditSource<T>,
+): GridActiveEdit | null {
+	if (sameCell(raw, settled.raw)) return settled.cell
+
+	return raw !== null && rows.has(raw.rowKey) && isEditableCell(raw, source) ? raw : settled.cell
+}
+
+/** What the transition effect does for one new value of a controlled binding. @internal */
+type TransitionPlan = {
+	/** The value after the editable check. */
+	next: GridActiveEdit | null
+	/** Whether the grid asked for this value, rather than the consumer set it. */
+	asked: boolean
+	/** The rows the transition closes, as a save does. */
+	endRows: Set<string | number>
+	/** The acquired row the session leaves. */
+	leaving: string | number | null
+	/** The session row after the transition. */
+	sessionRow: SessionRow | null
+	/** Whether the new cell's row is not open yet. */
+	opens: boolean
+	/** Whether the transition writes the set at all. */
+	writesRows: boolean
+	/** The cell whose draft an asked-for Escape drops. */
+	discard: GridActiveEdit | null
+}
+
+/**
+ * Plans the transition from the settled cell to a new controlled value. It
+ * follows the rules of a grid entry and exit. `null` closes the held row, as a
+ * save does. @internal
+ */
+function planTransition<T>(args: {
+	from: SettledCell
+	raw: GridActiveEdit | null
+	request: CellRequest | null
+	rows: Set<string | number>
+	sessionRow: SessionRow | null
+	source: GridEditSource<T>
+}): TransitionPlan {
+	const { from, raw, request, rows } = args
+
+	const next = raw !== null && isEditableCell(raw, args.source) ? raw : null
+
+	const asked = request !== null && sameCell(request.to, raw)
+
+	const endRows = new Set(asked ? request.endRows : [])
+
+	if (next === null && from.cell !== null && rows.has(from.cell.rowKey))
+		endRows.add(from.cell.rowKey)
+
+	const held =
+		args.sessionRow !== null && endRows.has(args.sessionRow.rowKey) ? null : args.sessionRow
+
+	const move = next === null ? null : moveSessionRow(held, next.rowKey, rows)
+
+	const leaving = move?.leaving ?? null
+
+	const opens = next !== null && !rows.has(next.rowKey)
+
+	return {
+		next,
+		asked,
+		endRows,
+		leaving,
+		sessionRow: move?.row ?? held,
+		opens,
+		writesRows: endRows.size > 0 || leaving !== null || opens,
+		discard: asked ? request.discard : null,
+	}
+}
+
+/** The editable-row set after a {@link TransitionPlan}. @internal */
+function applyRowsPlan(
+	prev: Set<string | number> | undefined,
+	plan: TransitionPlan,
+): Set<string | number> {
+	const set = new Set(prev ?? EMPTY_SET)
+
+	for (const row of plan.endRows) set.delete(row)
+
+	if (plan.leaving !== null) set.delete(plan.leaving)
+
+	return plan.next ? set.add(plan.next.rowKey) : set
+}
+
+/**
+ * Resolves the session's cell against the set. It owns the `activeCell`
+ * controllable, the value the transition effect settled, and the mask of an
+ * uncontrolled coord that stranded. @internal
+ */
+function useActiveCell<T>({
+	config,
+	cellScoped,
+	controlled,
+	initialCell,
+	editableRows,
+	editSourceRef,
+}: {
+	config: GridEditableConfig | undefined
+	cellScoped: boolean
+	controlled: boolean
+	initialCell: GridActiveEdit | null
+	editableRows: Set<string | number>
+	editSourceRef: RefObject<GridEditSource<T>>
+}) {
+	// The session's cell as the binding holds it, before the grid resolves it
+	// against the set. Uncontrolled, the grid writes it at event time. Controlled,
+	// the consumer writes it, and the grid only asks through the change report.
+	const [value, setValue] = useControllable<GridActiveEdit>({
+		value: cellScoped ? config?.activeCell : undefined,
+		defaultValue: initialCell ?? undefined,
+		onValueChange: (next) => config?.onActiveCellChange?.(next),
+	})
+
+	const raw = value ?? null
+
+	// The last value of a controlled binding that the transition effect acted on.
+	// A value past it is in flight: the effect has yet to write the rows it needs.
+	const settledRef = useRef<SettledCell>({ raw: initialCell, cell: initialCell })
+
+	const candidate = controlled
+		? readControlledCell(raw, settledRef.current, editableRows, editSourceRef.current)
+		: raw
+
+	// An uncontrolled coord that stranded once stays dropped. Masking alone would
+	// survive as state, so the same row re-entering the set later would revive a
+	// cell nobody opened and mount its editor alone. The grid cannot clear the
+	// state here without a change report, so it records the stranded value
+	// instead. A controlled value is the consumer's own, so it reads again when
+	// its row opens again.
+	const [maskedCell, setMaskedCell] = useState<GridActiveEdit | null>(null)
+
+	const masked = !controlled && candidate !== null && candidate === maskedCell
+
+	// Three things strand the coord. A binding can decline an entry, so the row
+	// never joins the set; a consumer save can drop an editing row from under the
+	// session; and `scope` or `session` can change under a live session, which
+	// leaves a coord the current config would never have written.
+	const stranded =
+		candidate !== null && !masked && (!cellScoped || !editableRows.has(candidate.rowKey))
+
+	// Adjusting the state here is React's answer to a value gone stale against its
+	// input, and it beats an effect that resynchronizes a render late.
+	if (stranded && !controlled) setMaskedCell(candidate)
+
+	return { raw, setValue, settledRef, activeEdit: stranded || masked ? null : candidate }
+}
+
+/**
  * Owns per-row inline editing: the editable rows (a controllable `Set<key>`,
  * consumer-driven by default) and the staged drafts of cells in those rows. A
  * row in the set renders all its editable cells as editors at once; each edit
@@ -324,6 +595,11 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, managed: boolean): v
  * cell re-points the session and flushes the cell it leaves, so each batch
  * carries one change. Both scopes read one predicate for what is open,
  * {@link isCellEditing}; the flush sweep commits whatever it stops holding for.
+ *
+ * The active cell is a controllable of its own (`activeCell`). Uncontrolled, the
+ * grid writes it at event time, as before. Controlled, the grid only asks for
+ * each move. A layout effect acts on each new value, from the grid or from the
+ * consumer. It writes the rows that the value needs.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -349,18 +625,6 @@ export function useGridEditing<T>({
 	/** The cursor's clamped move, which the commit-and-move keys ride. */
 	moveTo: (coord: Coord) => void
 }): GridEditingApi {
-	// The editable-row set is consumer-driven by default — the grid renders no
-	// built-in entry and only reads the binding (a row-action button flips a
-	// key). Under `session: 'managed'` the grid also writes it, through the
-	// session callbacks below, so every entry/exit still emits `onRowsChange`.
-	const [editableRowsRaw, setEditableRows] = useControllable<Set<string | number>>({
-		value: config?.rows,
-		defaultValue: config?.defaultRows ?? EMPTY_SET,
-		onValueChange: (next) => config?.onRowsChange?.(next ?? EMPTY_SET),
-	})
-
-	const editableRows = enabled ? (editableRowsRaw ?? EMPTY_SET) : EMPTY_SET
-
 	// Grid-owned session lifecycle (enter on double-click / cursor Enter, exit on
 	// an editor's Enter/Escape); the default 'manual' mode leaves it entirely to
 	// the consumer.
@@ -375,49 +639,70 @@ export function useGridEditing<T>({
 
 	useCellScopeWithoutSessionWarning(scopeRequested, managed)
 
-	// The cell a cell-scoped session edits; null under row scope. Held twice. The
-	// state drives this hook's own effects: the commit sweep and the focus hand-off.
-	// The store drives the cells, each subscribed to its own flag, so a move along
-	// a row renders two cells rather than the whole window.
-	const [activeEditRaw, setActiveEditState] = useState<GridActiveEdit | null>(null)
+	useActiveCellWithoutScopeWarning(
+		enabled && (config?.activeCell !== undefined || config?.defaultActiveCell !== undefined),
+		cellScoped,
+	)
 
+	// A consumer's `activeCell` decides each move of the session's cell. The
+	// binding applies only where that cell exists.
+	const controlled = cellScoped && config?.activeCell !== undefined
+
+	// The cell the session opens with, from the binding's first value. Read once:
+	// it seeds the uncontrolled state, and the row it needs seeds `defaultRows`.
+	const [initial] = useState(() => readInitialCell(config, cellScoped, editSourceRef.current))
+
+	// The editable-row set is consumer-driven by default — the grid renders no
+	// built-in entry and only reads the binding (a row-action button flips a
+	// key). Under `session: 'managed'` the grid also writes it, through the
+	// session callbacks below, so every entry/exit still emits `onRowsChange`.
+	// An initial active cell opens its row with the default, so the mount reports
+	// nothing. A controlled `rows` gets no such seed, and without the row the cell
+	// stays closed.
+	const [editableRowsRaw, setEditableRows] = useControllable<Set<string | number>>({
+		value: config?.rows,
+		defaultValue: () => {
+			const base = config?.defaultRows ?? EMPTY_SET
+
+			const cell = initial.cell
+
+			return cell === null || base.has(cell.rowKey) ? base : new Set(base).add(cell.rowKey)
+		},
+		onValueChange: (next) => config?.onRowsChange?.(next ?? EMPTY_SET),
+	})
+
+	const editableRows = enabled ? (editableRowsRaw ?? EMPTY_SET) : EMPTY_SET
+
+	const {
+		raw,
+		setValue: setActiveCellValue,
+		settledRef,
+		activeEdit,
+	} = useActiveCell({
+		config,
+		cellScoped,
+		controlled,
+		initialCell: initial.cell,
+		editableRows,
+		editSourceRef,
+	})
+
+	// The cell a cell-scoped session edits; null under row scope. The hook's own
+	// effects read `activeEdit`: the commit sweep and the transition. The cells
+	// read the store, each subscribed to its own flag, so a move along a row
+	// renders two cells rather than the whole window.
 	const storeRef = useRef<ReturnType<typeof createActiveEditStore> | null>(null)
 
 	if (storeRef.current === null) storeRef.current = createActiveEditStore()
 
 	const activeEditStore = storeRef.current
 
-	// Every write the session makes goes to both at event time. The cells and this
-	// hook then render in one pass, so the focus effect finds the entered editor
-	// already mounted.
-	const setActiveEdit = useCallback(
-		(next: GridActiveEdit | null) => {
-			setActiveEditState(next)
+	// Seat the resolved coord for the cells that render in this pass, such as the
+	// window that a change to the set re-renders. The other cells hear of it in
+	// the layout effect below. An uncontrolled write reached the store at event
+	// time already, so both are no-ops for it.
+	activeEditStore.seat(activeEdit)
 
-			activeEditStore.set(next)
-		},
-		[activeEditStore],
-	)
-
-	// Three things strand the raw coord. A controlled binding can decline an entry,
-	// so the row never joins the set; a consumer save can drop an editing row from
-	// under the session; and `scope` or `session` can change under a live session,
-	// which leaves a coord the current config would never have written.
-	const stranded =
-		activeEditRaw !== null && (!cellScoped || !editableRows.has(activeEditRaw.rowKey))
-
-	// Drop a stranded coord rather than only read past it. Masking alone survives
-	// as state, so the same row re-entering the set later would revive a cell
-	// nobody opened and mount its editor alone. Adjusting the state here is
-	// React's answer to a value gone stale against its input, and it beats an
-	// effect that resynchronizes a render late.
-	if (stranded) setActiveEditState(null)
-
-	const activeEdit = stranded ? null : activeEditRaw
-
-	// The derivation above clears a stranded coord during render, where the store
-	// must not notify. Mirror it here instead. Every other write already reached
-	// the store at event time, so this is a no-op for them.
 	useLayoutEffect(() => {
 		activeEditStore.set(activeEdit)
 	}, [activeEdit, activeEditStore])
@@ -462,9 +747,9 @@ export function useGridEditing<T>({
 		draftsRef.current.get(rowKey)?.delete(columnId)
 	}, [])
 
-	// The cell whose editor takes focus once it mounts, set by `enterEdit`. The
-	// effect below resolves it after the render that mounts the editor, which a
-	// controlled binding can delay by a consumer round-trip.
+	// The cell whose editor takes focus once it mounts. The entry sets it, and the
+	// editor claims it as it mounts or as the session comes to hold it. A
+	// controlled binding can delay that mount by a consumer round-trip.
 	const pendingFocusRef = useRef<GridActiveEdit | null>(null)
 
 	// The value a type-to-edit entry opens its editor with, beside the focus
@@ -477,14 +762,199 @@ export function useGridEditing<T>({
 		return pending && isSameCell(pending, { rowKey, columnId }) ? pending.value : undefined
 	}, [])
 
+	const dropIntents = useCallback(() => {
+		pendingFocusRef.current = null
+
+		pendingSeedRef.current = null
+	}, [])
+
+	// Called by an editor as it mounts, and as the session comes to hold it. It
+	// takes the focus intent when the intent names its cell and that cell is
+	// open. The editor then focuses itself. It knows its own element, so no
+	// display coord travels from the entry, and a re-sort cannot misplace it.
+	const claimFocus = useCallback(
+		(rowKey: string | number, columnId: string | number) => {
+			const pending = pendingFocusRef.current
+
+			if (!pending || !isSameCell(pending, { rowKey, columnId })) return false
+
+			const open = isCellEditing({
+				rowKey,
+				columnId,
+				editableRows: editableRowsRef.current,
+				activeEdit: activeEditRef.current,
+			})
+
+			if (open) dropIntents()
+
+			return open
+		},
+		[dropIntents],
+	)
+
+	// Set when a transition opens a row this commit, so the drop below waits one
+	// render for the row to arrive.
+	const awaitRowRef = useRef(false)
+
+	// Drop a focus intent whose cell the session does not hold, after each render.
+	// A binding declined the entry, or the session moved on. Without this the
+	// intent would steal focus at the next, unrelated open of that cell. An open
+	// cell keeps its intent: its editor claims it as it mounts, which under a
+	// controlled binding is the render after this one.
+	useEffect(() => {
+		if (awaitRowRef.current) {
+			awaitRowRef.current = false
+
+			return
+		}
+
+		const pending = pendingFocusRef.current
+
+		if (pending && !isCellEditing({ ...pending, editableRows, activeEdit })) dropIntents()
+	})
+
+	// Whether focus is inside this grid. Two cells locate the grid, because either
+	// can be out of the rendered window. @internal
+	const gridHasFocus = useCallback(
+		(cells: (GridActiveEdit | null)[]) => {
+			const focused = document.activeElement
+
+			for (const cell of cells) {
+				if (!cell) continue
+
+				const row = rowKeysRef.current.indexOf(cell.rowKey)
+
+				const col = dataColumnsRef.current.findIndex((column) => column.id === cell.columnId)
+
+				const grid =
+					row < 0 || col < 0
+						? null
+						: document.getElementById(cellId(row, col))?.closest('[role="grid"]')
+
+				if (grid) return focused !== null && grid.contains(focused)
+			}
+
+			return false
+		},
+		[cellId, rowKeysRef, dataColumnsRef],
+	)
+
+	// Moves focus for one transition of a controlled binding. A value set from
+	// outside replaces the intents of any entry, and focus follows it into the
+	// grid only when focus is already there (WCAG 3.2.1). The leaving editor
+	// blurs while it is still mounted, so a value it stages on blur reaches the
+	// draft before the sweep commits the cell. A move the grid asked for blurs
+	// where the uncontrolled path does: on a key move or an exit.
+	const settleFocus = useCallback(
+		(plan: TransitionPlan, from: SettledCell, blur: boolean) => {
+			const focused = gridHasFocus([from.cell, plan.next])
+
+			if (!plan.asked) {
+				dropIntents()
+
+				if (plan.next && focused) pendingFocusRef.current = plan.next
+			}
+
+			if (plan.asked ? blur : focused) restoreGridFocus()
+		},
+		[gridHasFocus, dropIntents],
+	)
+
+	// Warns once for a consumer's cell that is not editable: the initial value
+	// here, and each later value in the transition effect below.
+	const warnedRef = useRef(false)
+
+	const warnUneditable = useCallback(() => {
+		if (process.env.NODE_ENV === 'production' || warnedRef.current) return
+
+		warnedRef.current = true
+
+		console.warn(UNEDITABLE_CELL_WARNING)
+	}, [])
+
+	useEffect(() => {
+		if (initial.uneditable) warnUneditable()
+	}, [initial.uneditable, warnUneditable])
+
 	// The row the grid-owned session holds, with how it came by it. Row scope
 	// keeps no coord, and Escape has to reach the session from anywhere in the
 	// grid under both scopes, so the row is recorded here rather than read off
 	// `activeEdit`. Provenance rides the row because the row is its subject: read
 	// off the cell it would be recomputed on every move, and a move within an
 	// acquired row would find that row already in the set and forget the session
-	// had put it there.
-	const sessionRowRef = useRef<{ rowKey: string | number; acquired: boolean } | null>(null)
+	// had put it there. An initial cell's row counts as acquired when neither
+	// `rows` nor `defaultRows` held it.
+	const sessionRowRef = useRef<SessionRow | null>(
+		initial.cell && {
+			rowKey: initial.cell.rowKey,
+			acquired: !(config?.rows ?? config?.defaultRows ?? EMPTY_SET).has(initial.cell.rowKey),
+		},
+	)
+
+	// The move a controlled binding has yet to apply, and a counter that forces
+	// the render which tells an applied move from a declined one.
+	const requestRef = useRef<CellRequest | null>(null)
+
+	const [tick, bump] = useReducer((count: number) => count + 1, 0)
+
+	// Asks a controlled binding for a move: it reports the cell, and records what
+	// the move needs once the consumer applies it. `exit` names the row that an
+	// exit on the way closes. The counter forces the render that settles it.
+	const requestCell = useCallback(
+		(next: GridActiveEdit | null, exit?: { rowKey: string | number; discard: boolean }) => {
+			const current = activeEditRef.current
+
+			const request = requestRef.current ?? {
+				to: current,
+				endRows: new Set(),
+				discard: null,
+				blur: false,
+			}
+
+			request.to = next
+
+			// An exit reseats focus, as `endSession` does at event time uncontrolled.
+			if (exit) {
+				request.endRows.add(exit.rowKey)
+
+				request.blur = true
+			}
+
+			if (exit?.discard) request.discard = current
+
+			requestRef.current = request
+
+			activeEditRef.current = next
+
+			setActiveCellValue(next)
+
+			bump()
+		},
+		[setActiveCellValue],
+	)
+
+	// Writes the session's cell for a move the grid makes. Uncontrolled, the move
+	// lands now: the state, the store, and the report, ahead of any rows write.
+	// Controlled, the grid only asks, and the transition effect acts on the move
+	// once the consumer applies it.
+	const writeActiveCell = useCallback(
+		(next: GridActiveEdit | null) => {
+			if (sameCell(activeEditRef.current, next)) return
+
+			if (controlled) {
+				requestCell(next)
+
+				return
+			}
+
+			activeEditRef.current = next
+
+			setActiveCellValue(next)
+
+			activeEditStore.set(next)
+		},
+		[controlled, requestCell, setActiveCellValue, activeEditStore],
+	)
 
 	const enterEdit = useCallback(
 		(rowKey: string | number, columnId: string | number, seed?: string | number) => {
@@ -508,20 +978,24 @@ export function useGridEditing<T>({
 
 			pendingSeedRef.current = { rowKey, columnId, value: seed }
 
-			const held = sessionRowRef.current
+			// A controlled binding decides the move. The rows it needs follow once
+			// the consumer applies the cell, so a declined move writes nothing.
+			if (controlled) {
+				writeActiveCell(entering)
 
-			// Only a row the session acquired leaves the set with it. One it borrowed
-			// stays, and drops back to the row-shaped state the consumer asked for.
-			const leaving =
-				entering && held && held.rowKey !== rowKey && held.acquired ? held.rowKey : null
+				return
+			}
 
-			// A move within the held row keeps that row's provenance; a move onto
-			// another records how this one was come by, once, before the set is
-			// written and can no longer answer the question.
-			sessionRowRef.current =
-				held?.rowKey === rowKey ? held : { rowKey, acquired: !editableRows.has(rowKey) }
+			const move = moveSessionRow(sessionRowRef.current, rowKey, editableRows)
 
-			setActiveEdit(entering)
+			// Row scope names no cell, so it leaves no row behind.
+			const leaving = entering ? move.leaving : null
+
+			sessionRowRef.current = move.row
+
+			// The cell goes first, then the rows: `onActiveCellChange` reports ahead of
+			// the `onRowsChange` that opens its row.
+			writeActiveCell(entering)
 
 			// The set is unchanged when the session moves along one row, or moves off a
 			// borrowed row onto one already in the set. Writing it anyway would
@@ -539,52 +1013,16 @@ export function useGridEditing<T>({
 				return next.add(rowKey)
 			})
 		},
-		[cellScoped, setEditableRows, setActiveEdit],
+		[cellScoped, controlled, setEditableRows, writeActiveCell],
 	)
-
-	// Focus the entered cell's editor once the session carries it — after the
-	// editors mount.
-	useEffect(() => {
-		const pending = pendingFocusRef.current
-
-		if (!pending) return
-
-		pendingFocusRef.current = null
-
-		// The editor read its seed as it mounted, in the render just past.
-		pendingSeedRef.current = null
-
-		// The editor exists only once the session covers the entered cell: a
-		// controlled binding can decline the row, and a cell-scoped session can
-		// already point elsewhere. Either way the intent drops rather than stealing
-		// focus on a later, unrelated edit.
-		if (!isCellEditing({ ...pending, editableRows, activeEdit })) return
-
-		// The cell's display coord resolves here rather than travelling from the
-		// entry: `onCommit` can re-sort the consumer's rows on the way in, and this
-		// reads the order the editor actually mounted against.
-		const row = rowKeysRef.current.indexOf(pending.rowKey)
-
-		const col = dataColumnsRef.current.findIndex((column) => column.id === pending.columnId)
-
-		if (row < 0 || col < 0) return
-
-		const editor = document
-			.getElementById(cellId(row, col))
-			?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
-
-		// The editor sits inside its cell's truncation span; focusing it here fires a
-		// `focusin` that arms that span. This effect runs during React's commit, where
-		// the arm's synchronous `flushSync` cannot flush and warns — route the focus
-		// through the helper so the arm takes its no-flush path.
-		if (editor) focusWithoutReveal(editor)
-	}, [editableRows, activeEdit, cellId, rowKeysRef, dataColumnsRef])
 
 	/**
 	 * Ends a grid-owned session on `rowKey`. It reseats focus on the grid's tab
 	 * stop and drops the row from the set. The flush sweep then commits the
 	 * editors that closed with it. `'discard'` drops the session's staged values
-	 * ahead of the sweep, so it finds nothing left to emit.
+	 * ahead of the sweep, so it finds nothing left to emit. Under a controlled
+	 * `activeCell`, an exit from the held cell waits for the consumer to apply
+	 * `null`; the transition effect then does all of this.
 	 */
 	const endSession = useCallback(
 		(rowKey: string | number, outcome: 'save' | 'discard') => {
@@ -592,6 +1030,12 @@ export function useGridEditing<T>({
 
 			// The active cell only concerns this call when it sits on this row.
 			const cell = activeEditRef.current?.rowKey === rowKey ? activeEditRef.current : null
+
+			if (cell && controlled) {
+				requestCell(null, { rowKey, discard: outcome === 'discard' })
+
+				return
+			}
 
 			// Reseat focus ahead of the discard, not after. An editor blurred on the
 			// way out can stage one last value; `NumberInput` commits its typed text
@@ -611,8 +1055,8 @@ export function useGridEditing<T>({
 			// Two things end a session, and each clears the coord its own way. This
 			// exit is one. The other is a consumer withdrawing the row from under it,
 			// which the derivation above catches: a coord off the set reads as no
-			// session at all.
-			if (cell) setActiveEdit(null)
+			// session at all. The cell reports first, then the rows.
+			if (cell) writeActiveCell(null)
 
 			setEditableRows((prev) => {
 				const next = new Set(prev ?? EMPTY_SET)
@@ -622,8 +1066,80 @@ export function useGridEditing<T>({
 				return next
 			})
 		},
-		[unstageDraft, setEditableRows, setActiveEdit],
+		[controlled, requestCell, unstageDraft, setEditableRows, writeActiveCell],
 	)
+
+	// Acts on each new value of a controlled `activeCell`, whether the grid asked
+	// for it or the consumer set it. It runs as a layout effect, so the editor the
+	// value names is open before paint.
+	//
+	// - A value equal to the settled one moves nothing. A request that did not
+	//   land was declined, so its intents drop.
+	// - A value the grid asked for keeps the intents of its entry, and carries out
+	//   the exits and the discard recorded with it.
+	// - Any other value is a set from outside. Focus follows it into the grid only
+	//   when focus is already there (WCAG 3.2.1).
+	//
+	// The rows follow the rules of a grid entry. The new cell's row opens, and a
+	// row the session acquired closes as the session leaves it. `null` closes
+	// the held row, as a save does.
+	const applyTransition = useCallback(
+		(raw: GridActiveEdit | null, from: SettledCell, request: CellRequest | null) => {
+			const rows = editableRowsRef.current
+
+			const plan = planTransition({
+				from,
+				raw,
+				request,
+				rows,
+				sessionRow: sessionRowRef.current,
+				source: editSourceRef.current,
+			})
+
+			if (raw !== null && plan.next === null) warnUneditable()
+
+			settledRef.current = { raw, cell: plan.next }
+
+			settleFocus(plan, from, request?.blur === true)
+
+			if (plan.discard) unstageDraft(plan.discard.rowKey, plan.discard.columnId)
+
+			sessionRowRef.current = plan.sessionRow
+
+			if (plan.writesRows) setEditableRows((prev) => applyRowsPlan(prev, plan))
+
+			// The render held the settled cell while this value waited for its row. A
+			// render must follow, even where the consumer declines the rows write.
+			if (raw === null || !rows.has(raw.rowKey)) bump()
+
+			awaitRowRef.current = plan.opens
+		},
+		[settledRef, editSourceRef, warnUneditable, settleFocus, unstageDraft, setEditableRows],
+	)
+
+	const settleBinding = useCallback(
+		(raw: GridActiveEdit | null) => {
+			const request = requestRef.current
+
+			requestRef.current = null
+
+			if (!controlled) {
+				settledRef.current = { raw: activeEditRef.current, cell: activeEditRef.current }
+
+				return
+			}
+
+			const from = settledRef.current
+
+			// An equal value moves nothing. A request that did not land was declined.
+			if (!sameCell(raw, from.raw)) applyTransition(raw, from, request)
+			else if (request) dropIntents()
+		},
+		[controlled, settledRef, applyTransition, dropIntents],
+	)
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `tick` re-runs the transition after each request, so a declined move drops its intents.
+	useLayoutEffect(() => settleBinding(raw), [raw, tick, settleBinding])
 
 	// The session one key press names. The press names its row when it came from
 	// inside one, which is what picks the right row while several edit at once.
@@ -736,12 +1252,16 @@ export function useGridEditing<T>({
 			}
 
 			// Blur the editor while it is still mounted, so a value it stages on blur
-			// reaches the draft before the sweep commits the cell.
-			restoreGridFocus()
+			// reaches the draft before the sweep commits the cell. A controlled
+			// binding can decline the move, so the request marks the blur, and the
+			// transition effect does it once the move lands.
+			if (!controlled) restoreGridFocus()
 
 			enterEdit(rowKey, target.id)
+
+			if (requestRef.current) requestRef.current.blur = true
 		},
-		[cellScoped, cellId, commitHere, enterEdit, moveTo, rowKeysRef, dataColumnsRef],
+		[cellScoped, controlled, cellId, commitHere, enterEdit, moveTo, rowKeysRef, dataColumnsRef],
 	)
 
 	// Runs the move a key asked of the session from an open editor.
@@ -814,9 +1334,19 @@ export function useGridEditing<T>({
 			unstageDraft,
 			endSession,
 			entrySeed,
+			claimFocus,
 			managed,
 		}),
-		[editableRows, activeEditStore, stageDraft, unstageDraft, managed, endSession, entrySeed],
+		[
+			editableRows,
+			activeEditStore,
+			stageDraft,
+			unstageDraft,
+			managed,
+			endSession,
+			entrySeed,
+			claimFocus,
+		],
 	)
 
 	return { session, enterEdit, sessionKeys: managed ? sessionKeys : undefined }

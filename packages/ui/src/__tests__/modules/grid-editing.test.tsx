@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Grid, type GridColumn, type GridEditableConfig, type GridProps } from '../../modules/grid'
+import {
+	Grid,
+	type GridCellRef,
+	type GridColumn,
+	type GridEditableConfig,
+	type GridProps,
+} from '../../modules/grid'
 import {
 	allBySlot,
 	bySlot,
@@ -1617,6 +1623,495 @@ describe('Grid commit-and-move keys', () => {
 		fireEvent.keyDown(grid, { key: 'F2' })
 
 		fireEvent.keyDown(grid, { key: 'x' })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+	})
+})
+
+/**
+ * The active-cell binding of a cell-scoped session: `activeCell`,
+ * `defaultActiveCell`, and `onActiveCellChange`. A controlled binding decides
+ * each move; the grid enters a cell the consumer names, and reports each cell it
+ * enters. `rows` keeps its meaning beside it.
+ */
+describe('Grid active-cell binding', () => {
+	const keyColumns: GridColumn<SessionRow>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'id', title: 'ID', field: 'id', cell: (row) => String(row.id), readOnly: true },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	type Cell = GridCellRef | null
+
+	/**
+	 * A grid whose active cell is controlled. `accept` decides whether the
+	 * harness applies a move the grid asks for; each button sets the cell from
+	 * outside. `rows` stays uncontrolled unless `controlRows` binds it.
+	 */
+	function renderControlled({
+		accept = () => true,
+		initial = null,
+		acceptRows,
+	}: {
+		accept?: (cell: Cell) => boolean
+		initial?: Cell
+		acceptRows?: (rows: Set<string | number>) => boolean
+	} = {}) {
+		const onCommit = vi.fn()
+
+		const onRowsChange = vi.fn()
+
+		const onActiveCellChange = vi.fn()
+
+		function Harness() {
+			const [active, setActive] = useState<Cell>(initial)
+
+			const [rows, setRows] = useState<Set<string | number>>(new Set())
+
+			const rowsBinding = acceptRows
+				? {
+						rows,
+						onRowsChange: (next: Set<string | number>) => {
+							onRowsChange(next)
+
+							if (acceptRows(next)) setRows(next)
+						},
+					}
+				: { onRowsChange }
+
+			return (
+				<>
+					<button type="button" onClick={() => setActive({ rowKey: 2, columnId: 'name' })}>
+						row-2-name
+					</button>
+					<button type="button" onClick={() => setActive({ rowKey: 1, columnId: 'count' })}>
+						row-1-count
+					</button>
+					<button type="button" onClick={() => setActive({ rowKey: 1, columnId: 'id' })}>
+						row-1-id
+					</button>
+					<button type="button" onClick={() => setActive({ rowKey: 99, columnId: 'name' })}>
+						row-99-name
+					</button>
+					<button type="button" onClick={() => setActive(null)}>
+						clear
+					</button>
+					<Grid
+						columns={keyColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{
+							session: 'managed',
+							scope: 'cell',
+							onCommit,
+							...rowsBinding,
+							activeCell: active,
+							onActiveCellChange: (next) => {
+								onActiveCellChange(next)
+
+								if (accept(next)) setActive(next)
+							},
+						}}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		return {
+			...view,
+			onCommit,
+			onRowsChange,
+			onActiveCellChange,
+			press: (name: string) => fireEvent.click(view.getByRole('button', { name })),
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	it('keeps the held cell open and uncommitted when a controlled binding declines a move', () => {
+		const view = renderControlled({ accept: (cell) => cell?.columnId !== 'count' })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.doubleClick(view.cell('count'))
+
+		expect(view.onActiveCellChange).toHaveBeenLastCalledWith({ rowKey: 1, columnId: 'count' })
+
+		// The binding kept the name cell, so its editor stays mounted with the
+		// typed value, and nothing commits.
+		expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+
+		expect(input.value).toBe('Alicia')
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toBeNull()
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('keeps the held row open when a controlled binding declines a move to another row', () => {
+		const view = renderControlled({ accept: (cell) => cell?.rowKey !== 2 })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		expect(view.onRowsChange).toHaveBeenCalledTimes(1)
+
+		fireEvent.doubleClick(view.cell('name', 1))
+
+		// The rows write waits for the active cell. A declined move writes neither.
+		expect(view.onRowsChange).toHaveBeenCalledTimes(1)
+
+		expect(editorsIn(view.container)).toHaveLength(1)
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('enters a cell set from outside, committing the held cell and opening the new row', () => {
+		const view = renderControlled()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		view.press('row-2-name')
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(view.onRowsChange).toHaveBeenLastCalledWith(new Set([2]))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		expect(input.value).toBe('Bob')
+
+		expect(editorsIn(view.container)).toHaveLength(1)
+
+		// The consumer set the cell, so the grid does not report it back.
+		expect(view.onActiveCellChange).toHaveBeenCalledTimes(1)
+	})
+
+	it('writes no rows for a cell set from outside in the row the session holds', () => {
+		const view = renderControlled()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		view.press('row-1-count')
+
+		expect(view.onRowsChange).toHaveBeenCalledTimes(1)
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(bySlot(view.container, 'grid-edit-input')).toBeNull()
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toBeInTheDocument()
+	})
+
+	it('ends the session and commits the held cell when the binding clears to null', () => {
+		const view = renderControlled()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		view.press('clear')
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(view.onRowsChange).toHaveBeenLastCalledWith(new Set())
+	})
+
+	it('reports Tab and Enter moves in order, and a controlled binding follows them', () => {
+		const view = renderControlled()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		fireEvent.keyDown(getSlot(view.container, 'grid-edit-input'), { key: 'Tab' })
+
+		const number = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		expect(number).toHaveFocus()
+
+		fireEvent.change(number, { target: { value: '9' } })
+
+		fireEvent.keyDown(number, { key: 'Enter' })
+
+		// Enter is an exit and an entry, so it reports both.
+		expect(view.onActiveCellChange.mock.calls).toEqual([
+			[{ rowKey: 1, columnId: 'name' }],
+			[{ rowKey: 1, columnId: 'count' }],
+			[null],
+			[{ rowKey: 2, columnId: 'count' }],
+		])
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'count', value: 9 },
+		])
+
+		const next = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		expect(next.value).toBe('5')
+
+		expect(next).toHaveFocus()
+
+		expect(view.onRowsChange).toHaveBeenLastCalledWith(new Set([2]))
+	})
+
+	it('reports the active cell before the rows write that opens its row', () => {
+		const log: string[] = []
+
+		renderSessionGrid({
+			editable: {
+				scope: 'cell',
+				onRowsChange: () => log.push('rows'),
+				onActiveCellChange: () => log.push('cell'),
+			},
+		})
+
+		fireEvent.doubleClick(
+			present(document.querySelector('td[data-grid-col="name"]'), 'td[data-grid-col="name"]'),
+		)
+
+		expect(log).toEqual(['cell', 'rows'])
+	})
+
+	it('reports each cell an uncontrolled session enters and leaves', () => {
+		const onActiveCellChange = vi.fn()
+
+		const view = renderSessionGrid({ editable: { scope: 'cell', onActiveCellChange } })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		fireEvent.doubleClick(view.cell('count'))
+
+		fireEvent.keyDown(getSlot(view.container, 'grid-edit-number-input'), { key: 'Escape' })
+
+		expect(onActiveCellChange.mock.calls).toEqual([
+			[{ rowKey: 1, columnId: 'name' }],
+			[{ rowKey: 1, columnId: 'count' }],
+			[null],
+		])
+	})
+
+	it('opens a default active cell on mount, reporting nothing', () => {
+		const onActiveCellChange = vi.fn()
+
+		const view = renderSessionGrid({
+			editable: {
+				scope: 'cell',
+				defaultActiveCell: { rowKey: 2, columnId: 'name' },
+				onActiveCellChange,
+			},
+		})
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		expect(input.value).toBe('Bob')
+
+		expect(editorsIn(view.container)).toHaveLength(1)
+
+		expect(input).not.toHaveFocus()
+
+		expect(view.onRowsChange).not.toHaveBeenCalled()
+
+		expect(onActiveCellChange).not.toHaveBeenCalled()
+	})
+
+	it('warns once and stays inert outside a cell-scoped grid-owned session', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const onActiveCellChange = vi.fn()
+
+		const view = renderSessionGrid({
+			editable: {
+				scope: 'row',
+				activeCell: { rowKey: 1, columnId: 'name' },
+				onActiveCellChange,
+			},
+		})
+
+		// The binding names no cell under row scope, so no editor mounts for it.
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		expect(onActiveCellChange).not.toHaveBeenCalled()
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.activeCell'))
+
+		warn.mockRestore()
+	})
+
+	it('reads a cell that is not editable as null, renders no editor, and warns', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const view = renderControlled()
+
+		view.press('row-1-id')
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		view.press('row-99-name')
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(view.onRowsChange).not.toHaveBeenCalled()
+
+		expect(warn).toHaveBeenCalledOnce()
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.activeCell'))
+
+		warn.mockRestore()
+	})
+
+	it('does not take focus for a cell set from outside while focus is outside the grid', () => {
+		const view = renderControlled()
+
+		const button = view.getByRole('button', { name: 'row-2-name' })
+
+		button.focus()
+
+		fireEvent.click(button)
+
+		expect(getSlot(view.container, 'grid-edit-input')).not.toHaveFocus()
+
+		expect(button).toHaveFocus()
+	})
+
+	it('moves focus into the entered editor while focus is inside the grid', () => {
+		const view = renderControlled()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		expect(getSlot(view.container, 'grid-edit-input')).toHaveFocus()
+
+		// The press arrives by a route that leaves focus in the editor, as a
+		// consumer's keyboard shortcut does.
+		view.press('row-2-name')
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		expect(input.value).toBe('Bob')
+
+		expect(input).toHaveFocus()
+	})
+
+	it('keeps the cell and its focus when a controlled binding declines a Tab move', () => {
+		const view = renderControlled({ accept: (cell) => cell?.columnId !== 'count' })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		// The move asked for the count cell and was declined. The name cell holds,
+		// with focus still in its editor, and nothing commits.
+		expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+
+		expect(input).toHaveFocus()
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('keeps the commit of an Enter whose entry below a controlled binding declines', () => {
+		const view = renderControlled({ accept: (cell) => cell?.rowKey !== 2 })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		// Enter is two writes: the exit, then the entry. The binding applied the
+		// exit and declined the entry, so the commit stands and no editor opens.
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(view.getByRole('grid')).toHaveFocus()
+	})
+
+	it('re-renders only the two cells a controlled move along the row touches', () => {
+		const display = vi.fn((row: SessionRow, col: 'name' | 'count') => String(row[col]))
+
+		// Stable across the consumer's renders, as a real consumer's columns are.
+		const columns: GridColumn<SessionRow>[] = [
+			{ id: 'name', title: 'Name', field: 'name', cell: (row) => display(row, 'name') },
+			{ id: 'count', title: 'Count', field: 'count', cell: (row) => display(row, 'count') },
+		]
+
+		function Harness() {
+			const [active, setActive] = useState<GridCellRef | null>(null)
+
+			return (
+				<Grid
+					columns={columns}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						onCommit: vi.fn(),
+						activeCell: active,
+						onActiveCellChange: setActive,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const cells = view.container.querySelectorAll<HTMLElement>('td[data-grid-col]')
+
+		fireEvent.doubleClick(present(cells[0], 'the name cell'))
+
+		display.mockClear()
+
+		fireEvent.doubleClick(present(cells[1], 'the count cell'))
+
+		// The consumer's render reaches the grid, but the cells read the session's
+		// cell from the store, so only the cell the move left reads again.
+		expect(display).toHaveBeenCalledExactlyOnceWith(sessionRows[0], 'name')
+	})
+
+	it('reads the cell as null when a controlled rows binding declines its row', () => {
+		const view = renderControlled({ acceptRows: (rows) => !rows.has(2) })
+
+		fireEvent.doubleClick(view.cell('name', 1))
+
+		// The active cell went first and was applied; the rows write that follows
+		// was declined, so no editor opens and nothing reports the strand.
+		expect(view.onActiveCellChange).toHaveBeenCalledExactlyOnceWith({ rowKey: 2, columnId: 'name' })
+
+		expect(view.onRowsChange).toHaveBeenCalledOnce()
 
 		expect(editorsIn(view.container)).toHaveLength(0)
 	})

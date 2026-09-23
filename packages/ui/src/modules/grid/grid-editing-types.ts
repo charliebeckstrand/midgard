@@ -1,6 +1,17 @@
 import type { ReactNode } from 'react'
 
 /**
+ * Names one data cell by the key of its row and the id of its column. The
+ * active-cell binding of a cell-scoped session reads and reports this shape.
+ */
+export type GridCellRef = {
+	/** The key of the row, from {@link GridDataProps.getKey}. */
+	rowKey: string | number
+	/** The id of the column. */
+	columnId: string | number
+}
+
+/**
  * A single committed cell write: the new `value` for `columnId` on the row keyed
  * by `rowKey`. Cells commit when their editor closes, batched per row into a
  * single {@link GridEditableConfig.onCommit} call. A saved row therefore emits
@@ -85,7 +96,8 @@ export type GridRowActionsContext = {
  * A grid-owned session ({@link GridEditableConfig.session} `'managed'`) can
  * narrow to the entered cell instead of its whole row through {@link
  * GridEditableConfig.scope}. The set and the batch sink stay the model either
- * way.
+ * way. A cell-scoped session adds one binding for its cell, {@link
+ * GridEditableConfig.activeCell}.
  *
  * @remarks The editable-row set is a controllable `Set<key>`, mirroring
  * {@link GridSelection}. Flip a row in (e.g. from a row-action pencil) to put
@@ -111,7 +123,8 @@ export type GridEditableConfig = {
 	 * {@link GridDataProps.onCellDoubleClick} still fires. Entering and leaving a row flows through `rows`/`onRowsChange`,
 	 * so a controlled binding stays the source of truth for which rows edit. Under
 	 * {@link GridEditableConfig.scope} `'cell'` a move between cells of one row
-	 * leaves that set alone, and the grid holds the active cell itself.
+	 * leaves that set alone. The cell itself flows through
+	 * {@link GridEditableConfig.activeCell} and `onActiveCellChange`.
 	 *
 	 * `'managed'` also turns on the spreadsheet keys. On the keyboard cursor's
 	 * active cell, Enter and F2 enter edit mode. A printable character enters it
@@ -159,10 +172,59 @@ export type GridEditableConfig = {
 	 * session, and nothing else on screen ends it. The pair is for a pointer and
 	 * sits outside the tab order, because Tab commits and moves. Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
-	 * granularity that matches.
+	 * granularity that matches. The session's cell is a binding of its own,
+	 * {@link GridEditableConfig.activeCell}, beside `rows`.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'
+	/**
+	 * The controlled active cell of a cell-scoped session: the one cell with an
+	 * open editor. Pair it with {@link GridEditableConfig.onActiveCellChange}.
+	 * `null` keeps the binding controlled with no open cell.
+	 *
+	 * A move that the grid asks for takes effect only when you apply it. If you
+	 * do not apply it, the held cell stays open and does not commit. Set a new
+	 * cell to enter it. The grid commits the held cell, and opens the new row
+	 * through `onRowsChange` if necessary. Set `null` to end the session. The
+	 * held cell then commits, as a save through `rows` does.
+	 *
+	 * @remarks The binding needs {@link GridEditableConfig.session} `'managed'`
+	 * and {@link GridEditableConfig.scope} `'cell'`. Anywhere else it has no
+	 * effect, and it warns in development. This is the cell of the edit session,
+	 * not the cell of the keyboard cursor, which {@link GridDataProps.onActiveCellChange}
+	 * reports. A cell that is not editable reads as `null`, and it warns once in
+	 * development. That is a cell of an unknown row, or of a `readOnly` or
+	 * display-only column. The cell also reads as `null` while its row is out
+	 * of `rows`. Focus moves into the new editor only when focus is already in
+	 * the grid (WCAG 3.2.1). Apply a move in the same event that reports it. A
+	 * later value reads as a set from outside.
+	 */
+	activeCell?: GridCellRef | null
+	/**
+	 * The initial active cell for the uncontrolled case. The grid opens its row
+	 * and its editor on mount, and reports neither. The editor does not take
+	 * focus. A controlled `rows` without the row keeps the cell closed.
+	 */
+	defaultActiveCell?: GridCellRef | null
+	/**
+	 * Fires with the next active cell of a cell-scoped session, or with `null`
+	 * when the session ends.
+	 *
+	 * The grid reports each cell that it enters, in controlled and in
+	 * uncontrolled mode. A move along one row reports only the cell. A move into
+	 * a row that is not open reports the cell first, and then
+	 * {@link GridEditableConfig.onRowsChange} opens the row. An exit reports
+	 * `null` first, and then `onRowsChange` closes the row. Enter is an exit and
+	 * an entry, so it reports `null` and then the cell below.
+	 *
+	 * @remarks The grid does not report a change that comes from you. A cell that
+	 * you set, and a cell that reads as `null` because your `rows` closed its
+	 * row, report nothing. A `rows` binding that declines the row of an entry
+	 * also strands the cell without a report. Under a controlled
+	 * {@link GridEditableConfig.activeCell}, the rows write waits until you
+	 * apply the cell.
+	 */
+	onActiveCellChange?: (cell: GridCellRef | null) => void
 	/**
 	 * Called when staged cells commit, with one {@link GridCellChange} per changed cell
 	 * of a row, batched into a single call. Cells commit when their editor closes.

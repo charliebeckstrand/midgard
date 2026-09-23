@@ -13,9 +13,11 @@ import {
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
+import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/grid'
 import { columnLabel } from './engine/grid-column/label'
 import {
+	EDITOR_FOCUSABLE,
 	inferEditorKind,
 	isCellEditing,
 	isColumnEditable,
@@ -41,7 +43,7 @@ type GridEditingCellProps<T> = {
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
 	Pick<
 		GridEditingSession,
-		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'managed'
+		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'claimFocus' | 'managed'
 	> & {
 		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
 		held: boolean
@@ -115,6 +117,7 @@ function GridCellEditor<T>({
 	unstageDraft,
 	endSession,
 	entrySeed,
+	claimFocus,
 	managed,
 	held,
 }: GridCellEditorProps<T>) {
@@ -131,6 +134,21 @@ function GridCellEditor<T>({
 	useEffect(() => {
 		if (entry !== undefined) stageDraft(rowKey, column.id, entry)
 	}, [entry, stageDraft, rowKey, column.id])
+
+	const hostRef = useRef<HTMLSpanElement>(null)
+
+	// Take the focus an entry left for this cell, as the editor mounts or as the
+	// session comes to hold it. The editor sits inside its cell's truncation span,
+	// and this effect runs during React's commit. The helper keeps the span's
+	// arm off its synchronous flush, which cannot run here and warns.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `held` re-runs the claim when the session comes to hold an editor that is already mounted.
+	useEffect(() => {
+		if (!claimFocus(rowKey, column.id)) return
+
+		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
+
+		if (editor) focusWithoutReveal(editor)
+	}, [held, claimFocus, rowKey, column.id])
 
 	const update = (next: unknown) => {
 		setDraft(next)
@@ -204,7 +222,7 @@ function GridCellEditor<T>({
 	)
 
 	return (
-		<span className={cn(k.edit.host, error && k.edit.errorRing)}>
+		<span ref={hostRef} className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
 
 			{held && (
@@ -254,6 +272,7 @@ export function GridEditingCell<T>({
 		unstageDraft,
 		endSession,
 		entrySeed,
+		claimFocus,
 		managed,
 	} = useGridEditingSession()
 
@@ -284,6 +303,7 @@ export function GridEditingCell<T>({
 				unstageDraft={unstageDraft}
 				endSession={endSession}
 				entrySeed={entrySeed}
+				claimFocus={claimFocus}
 				managed={managed}
 				held={flag === CELL_HELD}
 			/>
