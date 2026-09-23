@@ -22,6 +22,13 @@ const transcript: ChatMessageData[] = [
 	{ id: 'a1', role: 'assistant', content: 'Late stops rose from **4** to **14**.' },
 ]
 
+/** A history long enough that the window holds a slice of it, not all of it. */
+const longTranscript: ChatMessageData[] = Array.from({ length: 60 }, (_, index) => ({
+	id: `h${index}`,
+	role: index % 2 === 0 ? ('user' as const) : ('assistant' as const),
+	content: `Stop ${index} is late by ${index % 7} minutes.`,
+}))
+
 // A reply naming a renderer nothing is registered under, so the stated fallback
 // draws. It is muted text on the assistant bubble's fill, which is a contrast
 // pair no other case covers.
@@ -69,9 +76,17 @@ export const specializedCases: readonly Case[] = [
 	},
 	{
 		// The `log` region increment 6 gave the transcript, with its own aria-live
-		// off so the shared announcer stays the one channel.
+		// off so the shared announcer stays the one channel. A history this short
+		// fits the window, so the log holds every message.
 		name: 'chat transcript',
 		element: <ChatTranscript key="ct" messages={transcript} />,
+	},
+	{
+		// A reader who walks a long log finds a slice: the rows near the viewport,
+		// newest last, between two spacers hidden from assistive technology. Where
+		// nothing lays out, as in jsdom, the slice is the newest twenty messages.
+		name: 'chat transcript, windowed',
+		element: <ChatTranscript key="ctw" messages={longTranscript} />,
 	},
 	{
 		name: 'chat transcript with an unclaimed embed',

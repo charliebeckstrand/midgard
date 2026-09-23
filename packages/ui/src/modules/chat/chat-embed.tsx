@@ -1,10 +1,11 @@
 'use client'
 
+import { useEffect } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
 import { Hold, type Mount, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
-import { type ChatEmbedRenderer, useChatEmbeds } from './context'
+import { type ChatEmbedRenderer, useChatEmbeds, useChatRowKey } from './context'
 import type { ChatEmbedPart } from './engine/chat-content/types'
 
 /**
@@ -45,10 +46,22 @@ export type ChatEmbedProps = {
  * there. That covers a transcript with no {@link ChatEmbedProvider} above it at
  * all. A provider's own `fallback` replaces the module's line.
  *
+ * Under `lazy`, the block defers once. When it first comes into view, the
+ * provider records its address. A windowed transcript unmounts the row when it
+ * leaves the window. When the row returns, the block draws at once rather than
+ * through its reserved height again.
+ *
  * @internal
  */
 export function ChatEmbed({ part, className }: ChatEmbedProps) {
-	const { renderers, fallback, mount = 'lazy' } = useChatEmbeds()
+	const { renderers, fallback, mount = 'lazy', reached } = useChatEmbeds()
+
+	const row = useChatRowKey()
+
+	// The block's address in the transcript. A part id is unique only in its
+	// message, so the row key comes first. Outside a transcript there is no row
+	// and no address, and the block keeps no memory across a remount.
+	const address = row === undefined ? undefined : `${row}\u0000${part.id}`
 
 	const render = renderers[part.name] ?? fallback ?? statedFallback
 
@@ -63,7 +76,16 @@ export function ChatEmbed({ part, className }: ChatEmbedProps) {
 		)
 	}
 
-	return <HeldChatEmbed part={part} className={className} mount={mount} render={render} />
+	return (
+		<HeldChatEmbed
+			part={part}
+			className={className}
+			mount={mount}
+			render={render}
+			address={address}
+			reached={reached}
+		/>
+	)
 }
 
 /** Props for {@link HeldChatEmbed}. @internal */
@@ -72,6 +94,10 @@ type HeldChatEmbedProps = ChatEmbedProps & {
 	mount: Exclude<Mount, 'always'>
 	/** The renderer that draws the part. */
 	render: ChatEmbedRenderer
+	/** The block's address in the transcript. Absent outside a transcript row. */
+	address?: string
+	/** The provider's set of reached addresses. Absent with no provider above. */
+	reached?: Set<string>
 }
 
 /**
@@ -80,12 +106,21 @@ type HeldChatEmbedProps = ChatEmbedProps & {
  *
  * @internal
  */
-function HeldChatEmbed({ part, className, mount, render }: HeldChatEmbedProps) {
+function HeldChatEmbed({ part, className, mount, render, address, reached }: HeldChatEmbedProps) {
 	// `active` must see a block leave the viewport, so its observer stays
 	// connected. `lazy` needs only the first sight.
 	const { ref, inView } = useInView({ once: mount !== 'active' })
 
-	const hold = useMountHold(inView, mount)
+	// Under `lazy`, a block the reader reached before is active on its first
+	// render. Its row left the window and came back, and it must not defer again.
+	const returning = mount === 'lazy' && address !== undefined && reached?.has(address) === true
+
+	const hold = useMountHold(inView || returning, mount)
+
+	// Written after the commit, so a render that React discards records nothing.
+	useEffect(() => {
+		if (inView && address !== undefined) reached?.add(address)
+	}, [inView, address, reached])
 
 	return (
 		<div

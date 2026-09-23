@@ -1,6 +1,6 @@
 'use client'
 
-import { useVirtualizer, type VirtualItem } from '@tanstack/react-virtual'
+import { useVirtualizer, type VirtualItem, type VirtualizerOptions } from '@tanstack/react-virtual'
 import { useEffect, useMemo, useReducer } from 'react'
 
 /** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
@@ -32,6 +32,27 @@ export type MeasuredVirtualWindowOptions = VirtualWindowOptions & {
 	 * rebuilds every row position, and a stale one keeps the old keys.
 	 */
 	getItemKey: (index: number) => VirtualItem['key']
+	/**
+	 * The edge the window holds when rows change size or the list changes
+	 * length. With `'end'`, a row that grows while the reader sits at the end
+	 * keeps the end in view. A list that is pinned to its newest row, such as a
+	 * chat transcript, sets it.
+	 *
+	 * @remarks The anchor has no mount arm. A list that must open at its end
+	 * calls `scrollToIndex(count - 1, { align: 'end' })` once its window holds rows.
+	 *
+	 * @defaultValue 'start'
+	 */
+	anchorTo?: VirtualizerOptions<HTMLElement, Element>['anchorTo']
+	/**
+	 * How the window follows a row appended at the end. It follows only when the
+	 * reader sat at the end before the append, so a reader who scrolled up stays
+	 * where they are. `true` jumps, and a `ScrollBehavior` names the motion.
+	 * It acts only with `anchorTo: 'end'`.
+	 *
+	 * @defaultValue false
+	 */
+	followOnAppend?: VirtualizerOptions<HTMLElement, Element>['followOnAppend']
 }
 
 type VirtualWindow = {
@@ -47,8 +68,14 @@ type VirtualWindow = {
 	topSpacer: number
 	/** Pixel height of the spacer standing in for rows below the viewport. */
 	bottomSpacer: number
-	/** Scrolls the item at `index` into the window, mounting it if it was outside it. */
-	scrollToIndex: (index: number, options?: { align?: 'auto' | 'center' | 'end' | 'start' }) => void
+	/**
+	 * Scrolls the item at `index` into the window, mounting it if it was outside
+	 * it. `behavior: 'smooth'` glides there, and the default jumps.
+	 */
+	scrollToIndex: (
+		index: number,
+		options?: { align?: 'auto' | 'center' | 'end' | 'start'; behavior?: 'auto' | 'smooth' },
+	) => void
 }
 
 type MeasuredVirtualWindow = VirtualWindow & {
@@ -81,6 +108,11 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * it. A height cached against an index goes stale when rows are inserted
  * above it.
  *
+ * The measured path also takes the virtualizer's end anchor. `anchorTo: 'end'`
+ * and `followOnAppend` pass through as they are, so a list pinned to its newest
+ * row holds the pin through the virtualizer. It does not write `scrollTop` from
+ * outside, because the total height moves as rows measure.
+ *
  * The grid stays on the uniform path. `resolveGroupingGates` stands
  * virtualization down whenever grouping or master-detail is active, because
  * each renders its own body of mixed-height rows. The measured path does not
@@ -99,6 +131,8 @@ export function useVirtualWindow({
 	estimateSize,
 	overscan,
 	getItemKey,
+	anchorTo,
+	followOnAppend,
 }: VirtualWindowOptions & Partial<MeasuredVirtualWindowOptions>): MeasuredVirtualWindow {
 	// `@tanstack/react-virtual` reads these getters off the options object each
 	// cycle; a fresh closure per render busts its internal option identity. A
@@ -109,13 +143,16 @@ export function useVirtualWindow({
 	)
 
 	// An undefined `getItemKey` leaves the library's index key in place: the
-	// virtualizer drops undefined options rather than writing them over its defaults.
+	// virtualizer drops undefined options rather than writing them over its
+	// defaults. The same rule keeps the start anchor and no follow on the uniform path.
 	const virtualizer = useVirtualizer({
 		count,
 		getScrollElement,
 		estimateSize: getSize,
 		overscan,
 		getItemKey,
+		anchorTo,
+		followOnAppend,
 	})
 
 	// Re-sync guard: the virtualizer captures its scroll element in a layout

@@ -1,3 +1,4 @@
+import { act } from '@testing-library/react'
 import { describe } from 'vitest'
 import { BarChart } from '../modules/chart/bar-chart'
 import type { ChatEmbedRenderer, ChatMessageData } from '../modules/chat'
@@ -18,7 +19,99 @@ import { mountBenches, rerenderBench } from './harness'
  * a number: if the memo works, its cost tracks the transcript's length only
  * through the `.map` that rebuilds the element list, not through five thousand
  * Markdown lexes.
+ *
+ * The transcript is a window now, so the stream scenario must render the rows
+ * a reader sees. jsdom lays nothing out: every height reads zero, and a window
+ * over a zero-height viewport holds no rows. {@link modelLayout} gives the
+ * transcript a viewport and each row a height. The window then resolves as it
+ * does in a browser, and the pin puts the streaming reply inside it.
  */
+
+/** The modelled viewport of the transcript, in pixels. */
+const VIEWPORT = 600
+
+/** The modelled height of every row, in pixels. It matches the transcript's own estimate. */
+const ROW = 96
+
+/** The transcript's scroll offset, per element, as the modelled layout stores it. */
+const offsets = new WeakMap<Element, number>()
+
+/**
+ * Gives the transcript and its rows the geometry a browser would.
+ *
+ * @remarks
+ * The model is small on purpose. The viewport has a fixed height, every row
+ * has the same height, and a spacer has the height its style names. A scroll
+ * write stores the offset and fires `scroll` in a microtask, which is the event
+ * the virtualizer reads. Nothing else in this file reads geometry.
+ */
+function modelLayout() {
+	const slot = (element: HTMLElement) => element.dataset.slot
+
+	/** The content height: each spacer's own height, plus one row height per row. */
+	const contentHeight = (element: HTMLElement) => {
+		let height = 0
+
+		for (const child of Array.from(element.firstElementChild?.children ?? [])) {
+			const node = child as HTMLElement
+
+			height +=
+				slot(node) === 'chat-transcript-row' ? ROW : Number.parseFloat(node.style.height) || 0
+		}
+
+		return height
+	}
+
+	const define = (key: string, get: (element: HTMLElement) => number) => {
+		Object.defineProperty(HTMLElement.prototype, key, {
+			configurable: true,
+			get(this: HTMLElement) {
+				return get(this)
+			},
+		})
+	}
+
+	define('offsetHeight', (element) =>
+		slot(element) === 'chat-transcript'
+			? VIEWPORT
+			: slot(element) === 'chat-transcript-row'
+				? ROW
+				: 0,
+	)
+
+	define('offsetWidth', (element) => (slot(element) === 'chat-transcript' ? 800 : 0))
+
+	define('clientHeight', (element) => (slot(element) === 'chat-transcript' ? VIEWPORT : 0))
+
+	define('scrollHeight', (element) =>
+		slot(element) === 'chat-transcript' ? contentHeight(element) : 0,
+	)
+
+	Object.defineProperty(HTMLElement.prototype, 'scrollTop', {
+		configurable: true,
+		get(this: HTMLElement) {
+			return offsets.get(this) ?? 0
+		},
+		set(this: HTMLElement, value: number) {
+			offsets.set(this, value)
+		},
+	})
+
+	HTMLElement.prototype.scrollTo = function scrollTo(this: HTMLElement, options?: ScrollToOptions) {
+		const top = options?.top ?? 0
+
+		const max = Math.max(this.scrollHeight - this.clientHeight, 0)
+
+		this.scrollTop = Math.min(Math.max(top, 0), max)
+
+		// A browser fires `scroll` after the write, never inside it. A synchronous
+		// event would land inside React's commit, which a browser never does.
+		// The event re-renders the window, so it goes through `act` as a mount does.
+		queueMicrotask(() => act(() => void this.dispatchEvent(new Event('scroll'))))
+	} as HTMLElement['scrollTo']
+}
+
+modelLayout()
 
 const SIZES = [50, 500, 5_000] as const
 
@@ -73,8 +166,11 @@ describe(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)`, () 
  * different one from the stream scenario above — that transcript holds no embed
  * at all, so its per-chunk cost is text bubbles and cannot be moved by
  * deferring a renderer. The pair below is what says how much deferring is
- * worth: a mounted embed is whatever its renderer costs, and a transcript of
- * fifty pays fifty of them before a reader has scrolled to one.
+ * worth: a mounted embed is whatever its renderer costs.
+ *
+ * The window now bounds both rows of the pair. Only the rows in the modelled
+ * viewport render, so `always` pays for about a dozen charts at every size,
+ * not one per reply. The gap between the two rows is now the handful in view.
  *
  * `BarChart` stands in for that renderer, because the seam exists for the
  * heaviest modules in the package and a light stand-in answers the wrong
