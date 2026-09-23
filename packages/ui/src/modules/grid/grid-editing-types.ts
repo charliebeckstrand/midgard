@@ -186,7 +186,10 @@ export type GridEditableConfig = {
 	 * `null` keeps the binding controlled with no open cell.
 	 *
 	 * A move that the grid asks for takes effect only when you apply it. If you
-	 * do not apply it, the held cell stays open and does not commit. Set a new
+	 * do not apply it, the held cell stays open and does not commit. Enter is
+	 * the exception: it reports `null` and then the cell below. Apply the `null`,
+	 * and the held cell commits even when you, or your `rows`, decline the cell
+	 * below (see {@link GridEditableConfig.onCellChange}). Set a new
 	 * cell to enter it. The grid commits the held cell, and opens the new row
 	 * through `onRowsChange` if necessary. Set `null` to end the session. The
 	 * held cell then commits, as a save through `rows` does.
@@ -231,6 +234,12 @@ export type GridEditableConfig = {
 	 * declined move changes nothing. Under a controlled
 	 * {@link GridEditableConfig.cell}, the rows write waits until you
 	 * apply the cell.
+	 *
+	 * Enter is the other exception. It means "commit, then move", so a declined
+	 * move keeps the commit, in controlled and in uncontrolled mode. The exit and
+	 * the entry are two rows writes. A `rows` binding that declines the row below
+	 * declines only the entry. The held cell commits, the cursor lands on the
+	 * declined cell, and focus goes to the grid's tab stop.
 	 */
 	onCellChange?: (cell: GridCellRef | null) => void
 	/**

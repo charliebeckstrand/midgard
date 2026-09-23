@@ -2393,6 +2393,39 @@ describe('Grid active-cell binding', () => {
 		expect(view.getByRole('grid')).toHaveFocus()
 	})
 
+	it('keeps the commit of an Enter whose entry below a controlled rows binding declines', () => {
+		const view = renderControlled({ acceptRows: (rows) => !rows.has(2) })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		// Enter is an exit and then an entry, as it is under an uncontrolled cell.
+		// The rows binding declines the entry only, so the commit stands.
+		expect(view.onCellChange.mock.calls).toEqual([
+			[{ rowKey: 1, columnId: 'name' }],
+			[null],
+			[{ rowKey: 2, columnId: 'name' }],
+		])
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		// The cursor lands on the declined cell, and focus rests on the tab stop.
+		const grid = view.getByRole('grid')
+
+		expect(grid).toHaveFocus()
+
+		expect(grid).toHaveAttribute('aria-activedescendant', view.cell('name', 1).id)
+	})
+
 	it('re-renders only the two cells a controlled move along the row touches', () => {
 		const display = vi.fn((row: SessionRow, col: 'name' | 'count') => String(row[col]))
 

@@ -572,18 +572,70 @@ function planTransition<T>(args: {
 	}
 }
 
-/** The editable-row set after a {@link TransitionPlan}. @internal */
+/**
+ * The editable-row set after a {@link TransitionPlan}, or after one part of
+ * it. The `'exit'` step closes only the rows of the exits. The `'entry'` step
+ * applies the rest. @internal
+ */
 function applyRowsPlan(
 	prev: Set<string | number> | undefined,
 	plan: TransitionPlan,
+	step: 'exit' | 'entry' | 'all',
 ): Set<string | number> {
 	const set = new Set(prev ?? EMPTY_SET)
 
-	for (const row of plan.endRows) set.delete(row)
+	if (step !== 'entry') for (const row of plan.endRows) set.delete(row)
+
+	if (step === 'exit') return set
 
 	if (plan.leaving !== null) set.delete(plan.leaving)
 
 	return plan.next ? set.add(plan.next.rowKey) : set
+}
+
+/**
+ * The settled cell after a {@link TransitionPlan} acts on `raw`. `held` is the
+ * cell that the session held before. A value whose row is not open yet waits
+ * for it. The session keeps its held cell until that row opens, so a declined
+ * rows write changes nothing. An exit on the way still closes its row, so the
+ * session does not keep a cell that the exit closed. @internal
+ */
+function settleOn(
+	plan: TransitionPlan,
+	raw: GridActiveEdit | null,
+	held: GridActiveEdit | null,
+): SettledCell {
+	if (!plan.opens || !plan.next) return { raw, cell: plan.next }
+
+	return {
+		raw,
+		cell: held && plan.endRows.has(held.rowKey) ? null : held,
+		wait: { cell: plan.next, sessionRow: plan.sessionRow },
+	}
+}
+
+/**
+ * Writes the rows of a {@link TransitionPlan}. An exit that comes with an
+ * entry into a row that is not open is two writes, the exit and then the
+ * entry. That is the order of Enter under an uncontrolled cell. A `rows`
+ * binding that declines the entry therefore keeps the commit of the exit.
+ * Any other plan is one write. @internal
+ */
+function writeRowsPlan(
+	plan: TransitionPlan,
+	setRows: (update: (prev: Set<string | number> | undefined) => Set<string | number>) => void,
+): void {
+	if (!plan.writesRows) return
+
+	if (plan.opens && plan.endRows.size > 0) {
+		setRows((prev) => applyRowsPlan(prev, plan, 'exit'))
+
+		setRows((prev) => applyRowsPlan(prev, plan, 'entry'))
+
+		return
+	}
+
+	setRows((prev) => applyRowsPlan(prev, plan, 'all'))
 }
 
 /**
@@ -1172,25 +1224,20 @@ export function useGridEditing<T>({
 
 			if (raw !== null && plan.next === null) warnUneditable()
 
-			// A value whose row is not open yet waits for it. The session keeps its
-			// cell and its row until the row opens, so a declined rows write changes
-			// nothing.
-			settledRef.current =
-				plan.opens && plan.next
-					? {
-							raw,
-							cell: readSettled(from, rows),
-							wait: { cell: plan.next, sessionRow: plan.sessionRow },
-						}
-					: { raw, cell: plan.next }
+			settledRef.current = settleOn(plan, raw, readSettled(from, rows))
 
 			settleFocus(plan, request?.blur === true)
 
 			if (plan.discard) unstageDraft(plan.discard.rowKey, plan.discard.columnId)
 
-			if (!plan.opens) sessionRowRef.current = plan.sessionRow
+			// A waiting value keeps the session row until its row opens. An exit on
+			// the way still takes the row that it closes.
+			const sessionRow = sessionRowRef.current
 
-			if (plan.writesRows) setEditableRows((prev) => applyRowsPlan(prev, plan))
+			if (!plan.opens) sessionRowRef.current = plan.sessionRow
+			else if (sessionRow && plan.endRows.has(sessionRow.rowKey)) sessionRowRef.current = null
+
+			writeRowsPlan(plan, setEditableRows)
 
 			// The render held the settled cell while this value waited for its row. A
 			// render must follow, even where the consumer declines the rows write.
