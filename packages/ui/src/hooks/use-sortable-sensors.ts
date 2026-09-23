@@ -9,7 +9,7 @@ import {
 	useSensors,
 } from '@dnd-kit/core'
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
-import type { PointerEvent as ReactPointerEvent } from 'react'
+import { type PointerEvent as ReactPointerEvent, useMemo } from 'react'
 
 /**
  * Pointer sensor that activates a drag only on a genuine primary press.
@@ -74,6 +74,9 @@ export type SortableSensorsOptions = {
  *
  * @returns dnd-kit's `SensorDescriptor[]` to pass to `<DndContext sensors>`;
  * the keyboard sensor is omitted when `keyboard` is false.
+ *
+ * @remarks The array keeps its identity across renders until `keyboard` or
+ * `keyboardCoordinateGetter` changes.
  */
 export function useSortableSensors({
 	keyboard = true,
@@ -81,9 +84,13 @@ export function useSortableSensors({
 }: SortableSensorsOptions = {}) {
 	const pointer = useSensor(PrimaryPointerSensor, POINTER_ACTIVATION)
 
-	const keyboardSensor = useSensor(KeyboardSensor, {
-		coordinateGetter: keyboardCoordinateGetter,
-	})
+	// Memoised for the same reason as `POINTER_ACTIVATION`: a fresh literal misses the `useSensor` memo.
+	const keyboardOptions = useMemo(
+		() => ({ coordinateGetter: keyboardCoordinateGetter }),
+		[keyboardCoordinateGetter],
+	)
+
+	const keyboardSensor = useSensor(KeyboardSensor, keyboardOptions)
 
 	return useSensors(pointer, keyboard ? keyboardSensor : null)
 }

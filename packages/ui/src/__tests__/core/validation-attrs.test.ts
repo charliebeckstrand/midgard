@@ -26,4 +26,12 @@ describe('validationAttrs', () => {
 
 		expect(validationAttrs('error')).toBe(validationAttrs('error'))
 	})
+
+	it('returns frozen objects', () => {
+		expect(Object.isFrozen(validationAttrs('warning'))).toBe(true)
+
+		expect(Object.isFrozen(validationAttrs('success'))).toBe(true)
+
+		expect(Object.isFrozen(validationAttrs('error'))).toBe(true)
+	})
 })

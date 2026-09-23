@@ -33,6 +33,11 @@ export type ToastProviderProps = {
  * behaviour, and exposes `useToast()` to any descendant. Render a `<Toast>`
  * viewport (from `ui/toast`) anywhere inside the provider to display the
  * queued toasts.
+ *
+ * @remarks
+ * Each toast counts down its own `duration`, and leaves with `'timeout'` when its own time is
+ * up. A new toast does not change the time left on the others. A hover or focus on any toast
+ * pauses all the countdowns (WCAG 2.2.1).
  */
 export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: ToastProviderProps) {
 	const toastsRef = useRef<ToastData[]>([])
@@ -52,12 +57,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const { start, stop, handleExitComplete } = useToastQueue(toastsRef, sync, handleRemove)
 
-	const { startTimer, pause, resume, resetRemaining, reset } = useToastTimer(
-		toastsRef,
-		duration,
-		start,
-		stop,
-	)
+	const { arm, pause, resume } = useToastTimer(toastsRef, start, stop)
 
 	const dismiss = useCallback(
 		(id: string, reason: ToastDismissReason = 'dismissed') => {
@@ -93,8 +93,6 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 	const toast = useCallback(
 		(data: ToastInput) => {
-			stop()
-
 			const id = data.id ?? crypto.randomUUID()
 
 			toastsRef.current = [
@@ -110,15 +108,13 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 				}
 			}
 
-			resetRemaining(data.duration ?? duration)
-
-			if (!data.persist) startTimer()
+			if (!data.persist) arm(id, data.duration ?? duration)
 
 			sync()
 
 			return id
 		},
-		[maxToasts, duration, startTimer, stop, resetRemaining, dismiss],
+		[maxToasts, duration, arm, dismiss],
 	)
 
 	const resetToast = useCallback(
@@ -127,12 +123,17 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			if (!target || target.dismissed || target.persist) return
 
-			reset(target.duration)
+			arm(id, target.duration)
 		},
-		[reset],
+		[arm],
 	)
 
-	const publicValue = useMemo<ToastContextValue>(() => ({ toast, dismiss }), [toast, dismiss])
+	// A closure of its own, with one parameter. A caller that passes `dismiss` by reference,
+	// as in `ids.forEach(dismiss)`, cannot put a second argument into the reason.
+	const publicValue = useMemo<ToastContextValue>(
+		() => ({ toast, dismiss: (id: string) => dismiss(id) }),
+		[toast, dismiss],
+	)
 
 	// Viewport value recomputes every render (toasts array); only the viewport
 	// consumes it and re-renders on each push.

@@ -48,7 +48,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useA11yAutoFocus` | Moves focus to `ref.current` whenever `when` flips true; re-focuses on false→true. |
 | `useA11yHasTabbable` | Whether a node holds a tab-order descendant, re-measured as its subtree changes; gates a tabpanel's tab stop and an interactive Tooltip's focus trap. |
 | `useA11yLiveRegion` | Props for a consumer-filled live region: status/alert landmark with matching `aria-live`/`aria-atomic`. |
-| `useA11yAnnouncements` | Declaratively narrates a changing status string to the live-region announcer, skipping initial and dupes. |
+| `useA11yAnnouncements` | Declaratively narrates a changing status string to the live-region announcer, skipping initial and consecutive dupes; a status that clears and comes back speaks again. |
 | `useAriaIds` | Composes the space-separated id list for `aria-labelledby`/`describedby`; falsy tokens drop, undefined if empty. |
 | `useComposedRef` | Merges several refs into one callback ref; honors React 19 ref cleanup and identity swaps. |
 | `useIdScope` | Stable scoped id plus a `sub(suffix)` deriver for related ids; falls back to a `useId` base. |

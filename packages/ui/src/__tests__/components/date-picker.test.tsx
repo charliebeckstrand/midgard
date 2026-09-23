@@ -399,6 +399,31 @@ describe('DatePicker clearable', () => {
 		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
 	})
 
+	// Listbox, Combobox, and DateInput hide the clear under readOnly, so every
+	// DatePicker variant hides it too.
+	it('omits the trigger clear button when readOnly', () => {
+		const { rerender } = renderUI(<DatePicker clearable readOnly value={new Date(2025, 0, 15)} />)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+
+		rerender(
+			<DatePicker range clearable readOnly value={[new Date(2025, 5, 1), new Date(2025, 5, 3)]} />,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+
+		rerender(
+			<DatePicker
+				relative
+				clearable
+				readOnly
+				value={[{ from: new Date(2025, 5, 1), to: new Date(2025, 5, 3) }]}
+			/>,
+		)
+
+		expect(screen.queryByRole('button', { name: 'Clear selection' })).not.toBeInTheDocument()
+	})
+
 	it('clears a range from the trigger clear button', async () => {
 		const user = userEvent.setup({ delay: null })
 
@@ -860,6 +885,106 @@ describe('DatePicker input', () => {
 		await user.click(day)
 
 		expect(getSlot<HTMLInputElement>(container, 'datepicker-input').value).toBe('06/20/2025')
+	})
+
+	it('makes the typed input read-only and drops its clear when readOnly', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<DatePicker
+				input
+				readOnly
+				clearable
+				defaultValue={new Date(2026, 5, 15)}
+				onValueChange={onChange}
+			/>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		expect(input).toHaveAttribute('readonly')
+
+		expect(screen.queryByRole('button', { name: 'Clear date' })).not.toBeInTheDocument()
+
+		await user.type(input, '1')
+
+		expect(input.value).toBe('06/15/2026')
+
+		expect(onChange).not.toHaveBeenCalled()
+	})
+
+	// The Calendar and the trigger label follow the ambient locale, so the typed
+	// field must follow it too. It was pinned to month-first before.
+	it('masks and parses the typed date in the ambient locale layout', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const onChange = vi.fn()
+
+		const { container } = renderUI(
+			<LocaleProvider locale="en-GB">
+				<DatePicker input onValueChange={onChange} />
+			</LocaleProvider>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		expect(input).toHaveAttribute('placeholder', 'DD/MM/YYYY')
+
+		await user.type(input, '10062026')
+
+		expect(input.value).toBe('10/06/2026')
+
+		const emitted = onChange.mock.lastCall?.[0] as Date
+
+		expect(emitted.getMonth()).toBe(5)
+
+		expect(emitted.getDate()).toBe(10)
+	})
+
+	it('keeps a pinned format over the ambient locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="en-GB">
+				<DatePicker input format="YYYY-MM-DD" defaultValue={new Date(2026, 5, 10)} />
+			</LocaleProvider>,
+		)
+
+		expect(getSlot<HTMLInputElement>(container, 'datepicker-input').value).toBe('2026-06-10')
+	})
+
+	it('marks the typed input invalid from a bound field error', async () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ when: undefined as Date | undefined }}
+				validate={{ when: (value) => (value ? undefined : 'required') }}
+			>
+				<DatePicker input name="when" aria-label="When" />
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'datepicker-input')
+
+		expect(input).not.toHaveAttribute('aria-invalid', 'true')
+
+		await act(async () => {
+			fireEvent.submit(getSlot<HTMLFormElement>(container, 'form'))
+		})
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
+	it('marks the typed input invalid from an enclosing Control error', () => {
+		const { container } = renderUI(
+			<Control severity="error">
+				<DatePicker input aria-label="When" />
+			</Control>,
+		)
+
+		expect(getSlot<HTMLInputElement>(container, 'datepicker-input')).toHaveAttribute(
+			'aria-invalid',
+			'true',
+		)
 	})
 
 	it('disables the input and the calendar button when disabled', () => {

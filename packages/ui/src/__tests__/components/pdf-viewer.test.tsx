@@ -1,3 +1,4 @@
+import { renderToString } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
@@ -60,7 +61,20 @@ describe('PdfViewer', () => {
 	it('shows the total page count', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		expect(bySlot(container, 'pdf-viewer-page-status')).toHaveTextContent('3')
+		expect(bySlot(container, 'pdf-viewer-page-total')).toHaveTextContent('3')
+	})
+
+	// One anchor for each node. The status anchor names the live region, not the toolbar count.
+	it('anchors the page status on the live region alone', () => {
+		const { container } = renderUI(<PdfViewer pages={pages} />)
+
+		const status = allBySlot(container, 'pdf-viewer-page-status')
+
+		expect(status).toHaveLength(1)
+
+		expect(status[0]).toHaveTextContent('Page 1 of 3')
+
+		expect(allBySlot(container, 'pdf-viewer-page-total')).toHaveLength(1)
 	})
 
 	it('renders a thumbnail per page in the sidebar', () => {
@@ -170,6 +184,19 @@ describe('PdfViewer', () => {
 		expect(bySlot(container, 'pdf-viewer-viewport')).toHaveTextContent('No pages to display')
 	})
 
+	/*
+	 * The load starts in an effect, so the server render and the first client render of a cold
+	 * `src` see no pages and no load. Asserted on the server render: no effect runs there, so it
+	 * is the one frame nothing can repair.
+	 */
+	it('paints the loading placeholder, not the empty state, before a src load starts', () => {
+		const html = renderToString(<PdfViewer src="/cold.pdf" />)
+
+		expect(html).toContain('aria-label="Loading PDF"')
+
+		expect(html).not.toContain('No pages to display')
+	})
+
 	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
@@ -233,18 +260,26 @@ describe('PdfViewer', () => {
 		expect(rail.className).toContain('transition-[margin]')
 	})
 
-	it('opens the mobile thumbnails sheet when toggled', async () => {
+	/*
+	 * A dialog opener, not a disclosure toggle. The name states the one action the button has,
+	 * and `aria-expanded` reports the state of the dialog it opens.
+	 */
+	it('opens the mobile thumbnails sheet from a dialog opener', async () => {
 		stubMatchMedia(() => false)
 
 		renderUI(<PdfViewer pages={pages} />)
 
-		const toggle = screen.getByLabelText('Show thumbnails')
+		const opener = screen.getByLabelText('Show thumbnails')
 
-		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+		expect(opener).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(opener).toHaveAttribute('aria-expanded', 'false')
 
 		const user = userEvent.setup()
 
-		await user.click(toggle)
+		await user.click(opener)
+
+		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-haspopup', 'dialog')
 
 		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'true')
 	})

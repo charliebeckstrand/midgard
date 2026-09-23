@@ -60,6 +60,35 @@ describe('usePdfViewerDocument', () => {
 		expect(result.current.error).toBeNull()
 	})
 
+	it('reports no pending load when no src is provided', () => {
+		const { result } = renderHook(() => usePdfViewerDocument(undefined))
+
+		expect(result.current.pending).toBe(false)
+	})
+
+	/*
+	 * The load starts in an effect, so the first render of a cold `src` reads the empty snapshot.
+	 * That render must not read as a settled document with no pages.
+	 */
+	it('reports a cold src as pending on its first render', () => {
+		// Never settles, so the effect's load stays in flight and drives no pdf.js work.
+		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+
+		const renders: ReturnType<typeof usePdfViewerDocument>[] = []
+
+		renderHook(() => {
+			const state = usePdfViewerDocument('/cold.pdf')
+
+			renders.push(state)
+
+			return state
+		})
+
+		expect(renders[0]?.pending).toBe(true)
+
+		expect(renders[0]?.loading).toBe(false)
+	})
+
 	it('resets to the empty state when src is removed after a value', () => {
 		globalThis.fetch = vi.fn().mockResolvedValue(new Response(null, { status: 500 }))
 
@@ -140,6 +169,43 @@ describe('usePdfViewerDocument · parked and restored', () => {
 		expect(result.current.loading).toBe(false)
 
 		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('reports a resident document as not pending', async () => {
+		globalThis.fetch = vi.fn()
+
+		await seed('/invoice.pdf')
+
+		const { result } = renderHook(() => usePdfViewerDocument('/invoice.pdf'))
+
+		expect(result.current.pending).toBe(false)
+	})
+
+	/*
+	 * A load that rasterized no page settles with the same shape as the empty snapshot. Only the
+	 * identity tells them apart. A `pending` test on the shape shows the skeleton for ever here.
+	 */
+	it('reports a settled load with no pages as not pending', async () => {
+		ensureDocumentLoad('/blank.pdf', () => Promise.resolve())
+
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
+		// The mount retries a zero-page document. A fetch that never settles holds that retry.
+		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))
+
+		const renders: ReturnType<typeof usePdfViewerDocument>[] = []
+
+		renderHook(() => {
+			const state = usePdfViewerDocument('/blank.pdf')
+
+			renders.push(state)
+
+			return state
+		})
+
+		expect(renders[0]?.pages).toEqual([])
+
+		expect(renders[0]?.pending).toBe(false)
 	})
 
 	it('survives an unmount and remount without re-fetching or re-rasterizing', async () => {

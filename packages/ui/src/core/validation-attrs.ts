@@ -3,9 +3,9 @@ import { type InvalidAttrs, invalidAttrs } from './invalid-attrs'
 /** Field-level validation / status severity: a blocking `error`, an advisory `warning`, or a positive `success`. */
 export type Severity = 'error' | 'warning' | 'success'
 
-const WARNING = { 'data-warning': '' } as const
+const WARNING = Object.freeze({ 'data-warning': '' } as const)
 
-const VALID = { 'data-valid': '' } as const
+const VALID = Object.freeze({ 'data-valid': '' } as const)
 
 /** The data / aria attribute object spread onto a control for a {@link Severity}, or undefined for none. */
 export type ValidationAttrs = InvalidAttrs | typeof WARNING | typeof VALID

@@ -68,7 +68,19 @@ async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
 }
 
 /** State returned by {@link usePdfViewerDocument}: the rasterized pages, a download/print URL, and load progress. @internal */
-type PdfDocumentResult = PdfDocumentSnapshot
+type PdfDocumentResult = PdfDocumentSnapshot & {
+	/**
+	 * True while a `src` has no load yet: the snapshot is still the frozen empty one.
+	 *
+	 * @remarks The load starts in an effect, so the first render of a cold `src` reads the empty
+	 * snapshot. The server render reads it too. Without this flag, that render reads as a
+	 * settled document with no pages. `loading` keeps its meaning: a run is in flight.
+	 *
+	 * Identity is the exact test. Every publish makes a new snapshot, so a settled load never
+	 * matches, even one that rasterized no pages.
+	 */
+	pending: boolean
+}
 
 /** The pdf.js handles one rasterization holds, so the `finally` can free them from one place. @internal */
 type PdfRasterController = {
@@ -223,8 +235,9 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 /**
  * Loads a PDF from `src` and rasterizes its pages to blob-URL images for the viewer.
  *
- * @returns `{ pages, documentUrl, loading, error }`: the rendered pages, a same-origin blob URL
- * for the source document (download / print), plus load progress and failure state.
+ * @returns `{ pages, documentUrl, loading, error, pending }`: the rendered pages, a same-origin
+ * blob URL for the source document (download / print), plus load progress and failure state.
+ * `pending` marks a `src` whose load has not started yet.
  * @remarks **The pages outlive this hook.** They live in a bounded module cache keyed on `src`
  * (`pdf-viewer-document-cache.ts`). A viewer that unmounts and comes back on the same
  * document re-reads the pages it already had, instead of re-fetching and re-rasterizing them.
@@ -254,5 +267,7 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 		ensureDocumentLoad(src, (report) => rasterizeDocument(src, report))
 	}, [src])
 
-	return useSyncExternalStore(subscribe, snapshot, serverSnapshot)
+	const current = useSyncExternalStore(subscribe, snapshot, serverSnapshot)
+
+	return { ...current, pending: !!src && current === EMPTY_DOCUMENT_SNAPSHOT }
 }

@@ -40,7 +40,9 @@ export type DatePickerSingleProps = {
 	/**
 	 * Pattern for the typed date while `input` is set.
 	 *
-	 * @defaultValue 'MM/DD/YYYY'
+	 * @defaultValue The layout matching the ambient `<LocaleProvider>` locale, as
+	 * on {@link DateInput}. The typed field then agrees with the Calendar and the
+	 * trigger label.
 	 */
 	format?: DateInputFormat
 }
@@ -168,7 +170,11 @@ export type DatePickerBaseProps = GroupStampProps & {
 	footer?: DatePickerFooterConfig
 	className?: string
 	disabled?: boolean
-	/** Keeps the trigger focusable and the value submitted, but blocks opening the calendar and changing the value. */
+	/**
+	 * Keeps the trigger focusable and the value submitted, but blocks opening the
+	 * calendar and changing the value. The clear button does not show, and the
+	 * typed `input` field is read-only.
+	 */
 	readOnly?: boolean
 	/** Controlled calendar open state. Pair with `onOpenChange`. */
 	open?: boolean
@@ -249,7 +255,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		size = 'md',
 		truncate = true,
 		input = false,
-		format = 'MM/DD/YYYY',
+		format,
 		clearable = false,
 		className,
 		'aria-label': ariaLabel,
@@ -332,6 +338,10 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						max={props.max}
 						size={size}
 						disabled={state.disabled}
+						readOnly={state.readOnly}
+						// A field or Control error marks the input. Without one, `undefined`
+						// lets DateInput report its own typed-entry error.
+						invalid={state.invalid || undefined}
 						clearable={clearable}
 						placeholder={props.placeholder}
 						aria-label={ariaLabel}
@@ -371,6 +381,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				truncate={truncate}
 				aria-label={ariaLabel}
 				disabled={state.disabled}
+				readOnly={state.readOnly}
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}

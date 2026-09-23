@@ -150,6 +150,15 @@ describe('aggregateRow / aggregateColumn / aggregateAll', () => {
 		expect(aggregateAll(groups, 'sum')).toBe(50)
 	})
 
+	it('aggregateAll collects a bucket larger than the engine argument limit', () => {
+		// An argument spread of this bucket throws a RangeError under V8.
+		const size = 2_000_000
+
+		const oversized = new Map([['r', new Map([['c', new Array<number>(size).fill(1)]])]])
+
+		expect(aggregateAll(oversized, 'sum')).toBe(size)
+	})
+
 	it('aggregateAll returns undefined for an empty groups map', () => {
 		expect(aggregateAll(new Map(), 'sum')).toBeUndefined()
 	})

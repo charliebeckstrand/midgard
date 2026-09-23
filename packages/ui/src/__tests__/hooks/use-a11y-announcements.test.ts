@@ -57,6 +57,35 @@ describe('useA11yAnnouncements', () => {
 		expect(announce).not.toHaveBeenCalled()
 	})
 
+	// A string, then a clear, then the same string is not a consecutive duplicate.
+	it('announces a message again after a clear', () => {
+		const { rerender } = renderHook(({ m }: { m: string | null }) => useA11yAnnouncements(m), {
+			initialProps: { m: 'a' as string | null },
+		})
+
+		rerender({ m: 'b' })
+
+		rerender({ m: null })
+
+		rerender({ m: 'b' })
+
+		expect(announce).toHaveBeenCalledTimes(2)
+
+		expect(announce).toHaveBeenLastCalledWith('b', { assertive: false })
+	})
+
+	it('announces the first message again after a clear', () => {
+		const { rerender } = renderHook(({ m }: { m: string | null }) => useA11yAnnouncements(m), {
+			initialProps: { m: 'a' as string | null },
+		})
+
+		rerender({ m: null })
+
+		rerender({ m: 'a' })
+
+		expect(announce).toHaveBeenCalledWith('a', { assertive: false })
+	})
+
 	it('forwards the assertive option', () => {
 		const { rerender } = renderHook(({ m }) => useA11yAnnouncements(m, { assertive: true }), {
 			initialProps: { m: 'a' },

@@ -35,21 +35,19 @@ describe('useListDrag', () => {
 	it('falls back to indexed keys when no getKey is provided', () => {
 		const { result } = renderHook(() => useListDrag<Item>({ items, orientation: 'vertical' }))
 
-		const [a, b, c] = items
-
-		expect(result.current.effectiveGetKey(a as Item)).toBe('0')
-
-		expect(result.current.effectiveGetKey(b as Item)).toBe('1')
-
-		expect(result.current.effectiveGetKey(c as Item)).toBe('2')
+		expect(items.map(result.current.effectiveGetKey)).toEqual(['0', '1', '2'])
 	})
 
-	it('returns -1 from the fallback key extractor for unknown items', () => {
-		const { result } = renderHook(() => useListDrag<Item>({ items, orientation: 'vertical' }))
+	it('keys duplicate primitives by position when no getKey is provided', () => {
+		const labels = ['draft', 'draft', 'sent']
 
-		const unknown: Item = { id: 'z', label: 'Z' }
+		const { result } = renderHook(() =>
+			useListDrag<string>({ items: labels, orientation: 'vertical' }),
+		)
 
-		expect(result.current.effectiveGetKey(unknown)).toBe('-1')
+		expect(labels.map(result.current.effectiveGetKey)).toEqual(['0', '1', '2'])
+
+		expect(result.current.itemIds).toEqual(['0', '1', '2'])
 	})
 
 	it('reports no active item when none is being dragged', () => {

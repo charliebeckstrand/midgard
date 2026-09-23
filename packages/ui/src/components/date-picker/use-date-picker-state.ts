@@ -19,8 +19,8 @@ import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyb
  * open/active wiring, the virtual-highlight keyboard handler, and the
  * clear/today footer.
  *
- * @returns Trigger props (`triggerId`, `displayValue`, `disabled`, `invalid`,
- * …) and popover plumbing (`open`, `onOpenChange`, `setReference`,
+ * @returns Trigger props (`triggerId`, `displayValue`, `disabled`, `readOnly`,
+ * `invalid`, …) and popover plumbing (`open`, `onOpenChange`, `setReference`,
  * `setFloating`, `floatingStyles`, floating-ui prop getters, `context`). It
  * also returns the keyboard handler `onTriggerKeyDown`, and the
  * `calendar`/`footer` prop bundles for the open dialog.
@@ -140,22 +140,33 @@ export function useDatePickerState({
 		setTouched()
 	}, [setTouched, setOpen])
 
+	// readOnly blocks every value write, not only the open paths. A controlled
+	// `open` can still show the calendar, and the typed input reaches this too.
+	const writeValue = useCallback(
+		(next: Date | null | undefined) => {
+			if (resolvedReadOnly) return
+
+			setValue(next)
+		},
+		[resolvedReadOnly, setValue],
+	)
+
 	const handleSelect = useCallback(
 		(date: Date | null) => {
 			if (date === null) return
 
-			setValue(date)
+			writeValue(date)
 
 			closeCalendar()
 		},
-		[closeCalendar, setValue],
+		[closeCalendar, writeValue],
 	)
 
 	const handleClear = useCallback(() => {
-		setValue(undefined)
+		writeValue(undefined)
 
 		closeCalendar()
-	}, [closeCalendar, setValue])
+	}, [closeCalendar, writeValue])
 
 	const handleSelectToday = useCallback(() => {
 		// Clamp so the footer Today action can never commit a date outside the
@@ -268,10 +279,11 @@ export function useDatePickerState({
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
 		required: control?.required,
 		invalid: control?.severity === 'error' || fieldInvalid,
 		value,
-		setValue,
+		setValue: writeValue,
 		hasValue: value != null,
 		onClear: handleClear,
 		displayValue: value ? formatDate(value, ambient.locale, ambient.dateFormat) : '',

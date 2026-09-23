@@ -327,4 +327,60 @@ describe('matchRelativePreset with an explicit pick (span collisions)', () => {
 		// Without the pick, single-select reads 'today' as active and re-commits the span.
 		expect(togglePresetValue([span], preset('this-year'), presets, NEW_YEAR, false)).toEqual([span])
 	})
+
+	// Multi-select walks the picks the way the state hook does: each toggle reads
+	// the picks before it, and the next picks add or drop the toggled id.
+	it('commits a colliding multi-select pick once and highlights both picks', () => {
+		const first = togglePresetValue(undefined, preset('today'), presets, NEW_YEAR, true, new Set())
+
+		const both = new Set(['today', 'this-month'])
+
+		const second = togglePresetValue(
+			first,
+			preset('this-month'),
+			presets,
+			NEW_YEAR,
+			true,
+			new Set(['today']),
+		)
+
+		expect(second).toEqual([span])
+
+		expect(selectedPresetIds(second, presets, NEW_YEAR, both)).toEqual(both)
+
+		expect(relativeChips(second, presets, NEW_YEAR, both)).toEqual([
+			{ key: 'preset-this-month', label: 'This month' },
+		])
+	})
+
+	it('toggles off one colliding multi-select pick and keeps the other', () => {
+		const both = new Set(['today', 'this-month'])
+
+		const third = togglePresetValue([span], preset('today'), presets, NEW_YEAR, true, both)
+
+		expect(third).toEqual([span])
+
+		const remaining = new Set(['this-month'])
+
+		expect(selectedPresetIds(third, presets, NEW_YEAR, remaining)).toEqual(remaining)
+
+		expect(
+			togglePresetValue(third, preset('this-month'), presets, NEW_YEAR, true, remaining),
+		).toBeUndefined()
+	})
+
+	it('keys each chip once for a hydrated value that repeats a span', () => {
+		const chips = relativeChips([span, span], presets, NEW_YEAR)
+
+		expect(chips).toEqual([{ key: 'preset-today', label: 'Today' }])
+
+		expect(relativeSummary(chips)).toBe('Today')
+	})
+
+	it('drops a repeated span from a hydrated value on the next multi-select commit', () => {
+		expect(togglePresetValue([span, span], preset('yesterday'), presets, NEW_YEAR, true)).toEqual([
+			span,
+			preset('yesterday').resolve(NEW_YEAR),
+		])
+	})
 })

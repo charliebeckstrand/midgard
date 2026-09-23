@@ -75,7 +75,7 @@ App-root toast state; pairs with the `Toast` component which portals the queue.
 
 | Export | Summary |
 |---|---|
-| `ToastProvider` | App-root toast state: manages queue, timers, and pause/resume; exposes `useToast()` to descendants. |
+| `ToastProvider` | App-root toast state: manages queue, timers, and pause/resume; exposes `useToast()` to descendants. Each toast times out on its own `duration`, and a hover or focus on any toast pauses them all. |
 | `ToastProviderProps` *(type)* | Props for `ToastProvider`. |
 | `useToast` | Caller-facing toast API (`toast(data)` enqueues and returns id, `dismiss(id)` removes); throws outside a provider. |
 | `ToastInput` *(type)* | A toast to enqueue via `useToast().toast(...)`: `title` plus optional `description` / `severity` / `actions` / `duration` / `id` / `closable` / `persist` / `onDismiss`. |

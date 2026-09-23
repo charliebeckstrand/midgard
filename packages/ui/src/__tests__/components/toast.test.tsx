@@ -837,5 +837,74 @@ describe('Toast: useToast behavior', () => {
 
 			expect(onSecond).not.toHaveBeenCalled()
 		})
+
+		it('times each toast out on its own duration, not the newest', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onLong = vi.fn()
+			const onShort = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			act(() => {
+				api?.toast({ title: 'Long', duration: 10000, onDismiss: onLong })
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			act(() => {
+				api?.toast({ title: 'Short', duration: 1000, onDismiss: onShort })
+			})
+
+			// The short toast's time is up. The long toast has 8000 ms left.
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(onShort).toHaveBeenCalledExactlyOnceWith('timeout')
+
+			expect(onLong).not.toHaveBeenCalled()
+
+			expect(screen.getByText('Long')).toBeInTheDocument()
+		})
+
+		it('keeps the reason when dismiss is passed by reference', () => {
+			let api: ReturnType<typeof useToast> | undefined
+
+			const onFirst = vi.fn()
+			const onSecond = vi.fn()
+
+			renderUI(
+				<ToastProvider>
+					<Trigger onReady={(c) => (api = c)} />
+					<Toast />
+				</ToastProvider>,
+			)
+
+			let ids: string[] = []
+
+			act(() => {
+				ids = [
+					api?.toast({ title: 'First', onDismiss: onFirst }) ?? '',
+					api?.toast({ title: 'Second', onDismiss: onSecond }) ?? '',
+				]
+			})
+
+			// `forEach` gives the index as a second argument. It must not become the reason.
+			act(() => {
+				if (api) ids.forEach(api.dismiss)
+			})
+
+			expect(onFirst).toHaveBeenCalledExactlyOnceWith('dismissed')
+
+			expect(onSecond).toHaveBeenCalledExactlyOnceWith('dismissed')
+		})
 	})
 })

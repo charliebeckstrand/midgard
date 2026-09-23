@@ -5,6 +5,7 @@ import { Highlighter, PanelLeft, PanelLeftDashed, RotateCw, ScanSearch } from 'l
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Listbox, ListboxLabel, ListboxOption } from '../listbox'
+import { SheetTrigger } from '../sheet'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../toolbar'
 import { usePdfViewerContext } from './context'
 import { PdfViewerDocumentActions } from './pdf-viewer-document-actions'
@@ -13,11 +14,12 @@ import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'
 import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
 
 /**
- * The viewer's top control bar. It carries the thumbnail toggle, page
- * navigation, zoom and rotate, and the download and print actions. The
- * thumbnail toggle collapses the desktop sidebar and opens the mobile Sheet.
- * The highlight visibility toggle appears when there are regions, and the
- * magnifier control when the consumer asked for a loupe.
+ * The viewer's top control bar. It carries the thumbnail control, page
+ * navigation, zoom and rotate, and the download and print actions. On desktop,
+ * the thumbnail control toggles the sidebar. Below the desktop breakpoint, it
+ * opens the thumbnails in a Sheet. The highlight visibility toggle appears when
+ * there are regions, and the magnifier control when the consumer asked for a
+ * loupe.
  *
  * Reads everything from {@link PdfViewerContext}. Controls disable while
  * loading or empty.
@@ -77,14 +79,18 @@ export function PdfViewerToolbar() {
 							/>
 						)}
 
+						{/* A dialog opener, unlike the desktop toggle above it. The modal Sheet covers this
+						    button while open and carries its own close, so the button has one action and
+						    one name. `SheetTrigger` stamps `aria-haspopup` and the `aria-expanded` that
+						    reports the Sheet. */}
 						{!isDesktop && (
-							<PdfViewerToolbarButton
-								label="Show thumbnails"
-								icon={<PanelLeft />}
-								aria-expanded={thumbsOpen}
-								disabled={loading}
-								onClick={() => setThumbsOpen(true)}
-							/>
+							<SheetTrigger open={thumbsOpen} onClick={() => setThumbsOpen(true)}>
+								<PdfViewerToolbarButton
+									label="Show thumbnails"
+									icon={<PanelLeft />}
+									disabled={loading}
+								/>
+							</SheetTrigger>
 						)}
 
 						<ToolbarGroup aria-label="Page navigation">
@@ -109,7 +115,8 @@ export function PdfViewerToolbar() {
 								})}
 							</Listbox>
 							<span className="mx-1 select-none">/</span>
-							<span data-slot="pdf-viewer-page-status" className={cn(k.toolbar.pageStatus)}>
+							{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
+							<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.pageStatus)}>
 								{total}
 							</span>
 						</ToolbarGroup>

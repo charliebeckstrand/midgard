@@ -6,10 +6,13 @@ import type { ToastData, ToastDismissReason, ToastInput } from './types'
 export type ToastContextValue = {
 	toast: (data: ToastInput) => string
 	/**
-	 * Takes no reason, deliberately. The same closure sits on the viewport context, which
+	 * Takes no reason, deliberately. The viewport context has its own `dismiss`, which
 	 * does take one. The reason vocabulary, however, belongs to the provider: an
 	 * application dismissal is `'dismissed'` by definition. A caller that claims
 	 * `'timeout'` or `'evicted'` would turn a closed set into an open one.
+	 *
+	 * The provider gives this context a separate one-parameter closure. Thus a call with
+	 * extra arguments, as from `ids.forEach(dismiss)`, still reports `'dismissed'`.
 	 */
 	dismiss: (id: string) => void
 }

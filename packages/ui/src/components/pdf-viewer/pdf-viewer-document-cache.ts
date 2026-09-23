@@ -248,6 +248,10 @@ export type PdfLoadRun = (report: PdfLoadReport) => Promise<void>
  * A failure is reported to current subscribers but not remembered: the record keeps its error
  * for them to render, and the next mount retries. So a transient network failure is recovered
  * by parking and maximizing rather than cached as a permanent one.
+ *
+ * A failure that left partial pages is the exception while another viewer holds them. Those
+ * pages are live `<img>` sources, so a retry does not revoke them. That error recovers only
+ * when its last holder unmounts. The evictor keeps the same holder rule.
  * @internal
  */
 export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
@@ -265,12 +269,18 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 	 * rasterized zero pages and threw nothing. That is every page skipped for want of a 2D
 	 * context or a `toBlob` refusal. The next mount retries it, rather than caching an empty
 	 * document forever. That is also what the hook did before the cache existed.
+	 *
+	 * A failed attempt's partial pages stay too while a viewer holds them. A retry would revoke
+	 * the blob URLs that viewer renders, and blank its page. The hook runs this before it
+	 * subscribes, so the listeners here are the other viewers only.
 	 */
-	if (held.snapshot.pages.length > 0 && !held.snapshot.error) return
+	const resident = held.snapshot
+
+	if (resident.pages.length > 0 && (!resident.error || held.listeners.size > 0)) return
 
 	// A previous attempt's partial pages, which this run is about to replace. Revoked rather
-	// than left to the evictor: nothing will hold them again, and appending to them would show
-	// the failed attempt's pages twice.
+	// than left to the evictor: no viewer holds them, and appending to them would show the
+	// failed attempt's pages twice.
 	revoke(held.snapshot)
 
 	held.loading = true

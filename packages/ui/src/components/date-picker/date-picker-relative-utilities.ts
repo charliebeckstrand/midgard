@@ -200,7 +200,16 @@ export function matchRelativePreset(
 	return presets.find((preset) => isSameSpan(preset.resolve(now), span)) ?? null
 }
 
-/** Ids of presets whose resolved span appears in `value` (drives highlight). @internal */
+/**
+ * Ids of presets whose resolved span appears in `value` (drives highlight).
+ *
+ * A committed span that one or more picks resolve to selects every one of those
+ * picks. Two picks can collide on one span, and the commit keeps only one copy
+ * of it, so the picks carry the highlight. A span with no pick behind it, as in
+ * a hydrated value, selects its first list match.
+ *
+ * @internal
+ */
 export function selectedPresetIds(
 	value: DatePickerRelativeValue[] | undefined,
 	presets: DatePickerRelativePreset[],
@@ -211,8 +220,16 @@ export function selectedPresetIds(
 
 	if (value === undefined) return ids
 
+	const picked = presets.filter((preset) => preferredIds?.has(preset.id))
+
 	for (const span of value) {
-		const preset = matchRelativePreset(span, presets, now, preferredIds)
+		const matches = picked.filter((preset) => isSameSpan(preset.resolve(now), span))
+
+		for (const preset of matches) ids.add(preset.id)
+
+		if (matches.length > 0) continue
+
+		const preset = matchRelativePreset(span, presets, now)
 
 		if (preset) ids.add(preset.id)
 	}
@@ -232,11 +249,20 @@ export function isCustomActive(
 	return value.some((span) => matchRelativePreset(span, presets, now, preferredIds) === null)
 }
 
+/** `spans` without a later span that equals an earlier one day-for-day. */
+function uniqueSpans(spans: DatePickerRelativeValue[]): DatePickerRelativeValue[] {
+	return spans.filter(
+		(span, index) => spans.findIndex((other) => isSameSpan(other, span)) === index,
+	)
+}
+
 /**
  * Returns the (always-array) value with `preset` toggled. Single-select
  * (`multiple` false) holds one preset: picking another replaces it, re-picking
  * the active one clears to `undefined`. Multi-select adds or removes the preset
  * and rebuilds the result in preset order so chips stay stable and deduped.
+ * Two selected presets can resolve to the same span on a given day. The result
+ * then holds that span once.
  * Presets and a custom range are mutually exclusive, so toggling any preset while
  * a custom span is active starts fresh from that preset. An empty result is
  * `undefined`.
@@ -264,9 +290,9 @@ export function togglePresetValue(
 	if (selected.has(preset.id)) selected.delete(preset.id)
 	else selected.add(preset.id)
 
-	const next = presets
-		.filter((option) => selected.has(option.id))
-		.map((option) => option.resolve(now))
+	const next = uniqueSpans(
+		presets.filter((option) => selected.has(option.id)).map((option) => option.resolve(now)),
+	)
 
 	return next.length === 0 ? undefined : next
 }
@@ -274,6 +300,10 @@ export function togglePresetValue(
 /**
  * Trigger chips for the committed value, in selection order: a matched preset's
  * label, or the formatted absolute range for a custom span.
+ *
+ * A preset chip keys on the preset id, so each key must occur once. A value can
+ * hold one span more than once, for example from a shared link. The chips then
+ * show that span once.
  *
  * @internal
  */
@@ -287,13 +317,30 @@ export function relativeChips(
 ): RelativeChip[] {
 	if (value === undefined) return []
 
-	return value.map((span, index) => {
+	const chips: RelativeChip[] = []
+
+	const shown = new Set<string>()
+
+	value.forEach((span, index) => {
 		const preset = matchRelativePreset(span, presets, now, preferredIds)
 
-		if (preset) return { key: `preset-${preset.id}`, label: preset.label }
+		if (preset === null) {
+			chips.push({
+				key: `custom-${index}`,
+				label: formatRange(span.from, span.to, locale, dateFormat),
+			})
 
-		return { key: `custom-${index}`, label: formatRange(span.from, span.to, locale, dateFormat) }
+			return
+		}
+
+		if (shown.has(preset.id)) return
+
+		shown.add(preset.id)
+
+		chips.push({ key: `preset-${preset.id}`, label: preset.label })
 	})
+
+	return chips
 }
 
 /**

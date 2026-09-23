@@ -272,4 +272,28 @@ describe('useDatePickerState', () => {
 			expect(result.current.footer.footerButtons).toEqual([])
 		})
 	})
+
+	describe('readOnly', () => {
+		// A controlled `open` shows the calendar past the open gate, so each writer
+		// must refuse the value on its own.
+		it('blocks every value write while the calendar is open', () => {
+			const onChange = vi.fn()
+
+			const { result } = renderHook(() =>
+				useDatePickerState({ readOnly: true, open: true, value: Jan15, onValueChange: onChange }),
+			)
+
+			act(() => result.current.calendar.onValueChange(Feb1))
+
+			act(() => result.current.footer.onToday())
+
+			act(() => result.current.onClear())
+
+			act(() => result.current.setValue(Feb1))
+
+			expect(onChange).not.toHaveBeenCalled()
+
+			expect(result.current.readOnly).toBe(true)
+		})
+	})
 })

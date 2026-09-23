@@ -461,6 +461,24 @@ describe('List keyboard reordering', () => {
 		expect(container.querySelectorAll('[tabindex]')).toHaveLength(items.length)
 	})
 
+	it('keeps one Tab stop on a link row that suppresses the interactive treatment', () => {
+		const { container } = renderUI(
+			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+				{(item) => (
+					<ListItem href={`/${item.id}`} interactive={false}>
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		// The prop sets only the treatment. The link stays focusable, so the stop stays on it.
+		expect(bySlot(container, 'list-item-content')).toHaveAttribute('tabindex')
+		expect(bySlot(container, 'list-item')).not.toHaveAttribute('tabindex')
+
+		expect(container.querySelectorAll('[tabindex]')).toHaveLength(items.length)
+	})
+
 	it('keeps the stop on the row when its content only displays', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
@@ -700,6 +718,18 @@ describe('List: static (non-interactive) mode', () => {
 
 		// Static list still renders one item per input.
 		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
+	})
+
+	it('gives duplicate primitive items distinct positional ids', () => {
+		const { container } = renderUI(
+			<List items={['draft', 'draft', 'sent']} sortable={false}>
+				{(item) => <ListItem>{item}</ListItem>}
+			</List>,
+		)
+
+		const ids = allBySlot(container, 'list-item').map((row) => row.getAttribute('data-item-id'))
+
+		expect(ids).toEqual(['0', '1', '2'])
 	})
 
 	it('renders a non-interactive list when sortable is true but onReorder is omitted', () => {

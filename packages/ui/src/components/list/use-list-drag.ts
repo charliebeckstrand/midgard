@@ -15,17 +15,17 @@ type Options<T> = {
 /**
  * DnD orchestration for `<List>`. It derives a stable key extractor, wraps
  * `useSortableList`, and resolves the active item being dragged. A read-only
- * list falls back to the item index for that key. Pairs with `useListKeyboard`; mirrors
+ * list falls back to the render position for that key. Pairs with `useListKeyboard`; mirrors
  * `useKanbanDrag`.
  */
 export function useListDrag<T>({ items, getKey, onReorder, orientation, disabled }: Options<T>) {
-	const effectiveGetKey = useMemo<(item: T) => string>(() => {
-		if (getKey) return getKey
-
-		const indexByItem = new Map(items.map((item, index) => [item, index] as const))
-
-		return (item: T) => String(indexByItem.get(item) ?? -1)
-	}, [getKey, items])
+	// The fallback reads the position, not the item, so duplicate primitives get
+	// distinct keys. Only the read-only arm reaches it. There, no drag or keyboard
+	// lookup calls the extractor without the index.
+	const effectiveGetKey = useMemo<(item: T, index?: number) => string>(
+		() => getKey ?? ((_item, index) => String(index)),
+		[getKey],
+	)
 
 	const { itemIds, strategy, interactive, activeId, dndContextProps } = useSortableList({
 		items,

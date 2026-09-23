@@ -155,14 +155,20 @@ export function useDatePickerRangeState({
 		setTouched()
 	}, [setTouched, setOpen])
 
+	// readOnly blocks every value write, not only the open paths, because a
+	// controlled `open` can still show the calendar.
 	const handleClear = useCallback(() => {
+		if (resolvedReadOnly) return
+
 		setValue(undefined)
 
 		closeCalendar()
-	}, [closeCalendar, setValue])
+	}, [closeCalendar, resolvedReadOnly, setValue])
 
 	const handleSelect = useCallback(
 		(date: Date) => {
+			if (resolvedReadOnly) return
+
 			if (rangeStart === null) {
 				dispatch({ type: 'startRange', date })
 			} else {
@@ -182,7 +188,7 @@ export function useDatePickerRangeState({
 				closeCalendar()
 			}
 		},
-		[closeCalendar, rangeStart, setValue],
+		[closeCalendar, rangeStart, resolvedReadOnly, setValue],
 	)
 
 	const handleOpenChange = useCallback(
@@ -266,6 +272,7 @@ export function useDatePickerRangeState({
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
 		required: control?.required,
 		invalid: control?.severity === 'error' || fieldInvalid,
 		hasValue: value != null,

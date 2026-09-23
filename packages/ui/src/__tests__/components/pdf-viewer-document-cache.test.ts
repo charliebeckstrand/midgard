@@ -227,6 +227,62 @@ describe('pdf viewer document cache', () => {
 	})
 })
 
+describe('pdf viewer document cache · a failed load with holders', () => {
+	/** Leaves `/a.pdf` resident with one partial page and an error, the way a mid-render throw does. */
+	async function failedPartial() {
+		let captured: PdfLoadReport | undefined
+
+		ensureDocumentLoad('/a.pdf', (report) => {
+			captured = report
+
+			return Promise.reject(new Error('died mid-render'))
+		})
+
+		captured?.page(page(1))
+
+		await flush()
+	}
+
+	it('does not retry, or revoke the partial pages, while another viewer holds them', async () => {
+		await failedPartial()
+
+		const listener = vi.fn()
+
+		subscribeDocument('/a.pdf', listener)
+
+		const retry = loader()
+
+		ensureDocumentLoad('/a.pdf', retry.run)
+
+		// The holder renders `blob:page-1` as a live `<img>`. A revoke blanks its page.
+		expect(retry.run).not.toHaveBeenCalled()
+
+		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalledWith('blob:page-1')
+
+		expect(getDocumentSnapshot('/a.pdf').pages.map((entry) => entry.id)).toEqual([1])
+
+		expect(getDocumentSnapshot('/a.pdf').error?.message).toBe('died mid-render')
+
+		expect(listener).not.toHaveBeenCalled()
+	})
+
+	it('retries once the last holder leaves', async () => {
+		await failedPartial()
+
+		const unsubscribe = subscribeDocument('/a.pdf', vi.fn())
+
+		unsubscribe()
+
+		const retry = loader()
+
+		ensureDocumentLoad('/a.pdf', retry.run)
+
+		expect(retry.run).toHaveBeenCalledTimes(1)
+
+		expect(globalThis.URL.revokeObjectURL).toHaveBeenCalledWith('blob:page-1')
+	})
+})
+
 describe('pdf viewer document cache · bound', () => {
 	/** Rasterizes `src` to one page and settles, leaving it resident and unheld. */
 	async function resident(src: string) {

@@ -48,6 +48,31 @@ describe('announce', () => {
 		expect(regionBy('polite')).toHaveTextContent('two')
 	})
 
+	it('changes the region text when the same message repeats', async () => {
+		announce('Copied')
+
+		await flush()
+
+		const first = regionBy('polite')?.textContent
+
+		announce('Copied')
+
+		await flush()
+
+		const second = regionBy('polite')?.textContent
+
+		announce('Copied')
+
+		await flush()
+
+		// A live region speaks only a real change, so each repeat must differ from the text before it.
+		expect(first).toBe('Copied')
+
+		expect(second).toBe('Copied\u00A0')
+
+		expect(regionBy('polite')?.textContent).toBe('Copied')
+	})
+
 	it('ignores an empty message', async () => {
 		announce('')
 

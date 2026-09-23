@@ -84,6 +84,11 @@ export type PdfViewerResult = {
 	documentSrc: string | undefined
 	filename: string | undefined
 	loading: boolean
+	/**
+	 * True while a `src` load has not started yet. The viewport paints its loading placeholder
+	 * for it, so a cold `src` never shows the empty state first.
+	 */
+	pending: boolean
 	error: Error | null
 	/** True at the desktop breakpoint (≥ 1024px): pins the thumbnail sidebar instead of the Sheet. */
 	isDesktop: boolean
@@ -295,6 +300,7 @@ export function usePdfViewer({
 		pages: loadedPages,
 		documentUrl,
 		loading,
+		pending,
 		error,
 	} = usePdfViewerDocument(shouldLoadFromSrc ? src : undefined)
 
@@ -476,6 +482,7 @@ export function usePdfViewer({
 			documentSrc,
 			filename,
 			loading,
+			pending,
 			error,
 			isDesktop,
 			sidebarOpen,
@@ -513,6 +520,7 @@ export function usePdfViewer({
 			documentSrc,
 			filename,
 			loading,
+			pending,
 			error,
 			isDesktop,
 			sidebarOpen,
