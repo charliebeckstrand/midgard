@@ -86,25 +86,50 @@ export const [ChartMarkEmphasisContext, useChartMarkEmphasis] = createContext<Ch
 )
 
 /**
- * Resolves the shared {@link ChartMarkEmphasis}: the pointed mark takes the
- * emphasis, else the legend / keyboard series lifts to a whole-series reference.
- * Else nothing is emphasised, and every mark reads lit. The frame builds it from
- * its own pointer state and the emphasis its chart passes down.
+ * Whether a datum sits in the held category selection. A group-level query
+ * passes no `datum`, and a selection by category never dims a whole series. An
+ * empty selection holds nothing, so each datum reads lit. @internal
+ */
+function selectionLights(
+	selected: ReadonlySet<number> | null,
+	datum: number | null | undefined,
+): boolean {
+	return selected === null || selected.size === 0 || datum == null || selected.has(datum)
+}
+
+/**
+ * Resolves the shared {@link ChartMarkEmphasis}. The pointed mark takes the
+ * emphasis, unless a category selection is held. The legend or keyboard series
+ * lifts to a whole-series reference, and the held selection lights only its own
+ * data. Else nothing is emphasised, and every mark reads lit. The frame builds it from its own pointer
+ * state and the emphasis and selection that its chart passes down.
  *
+ * @param selected - The data indices of the held category selection, or `null`.
  * @internal
  */
 export function chartMarkEmphasis(
 	pointed: ChartMarkRef | null,
 	legendSeries: number | null,
 	setPointed: (mark: ChartMarkRef | null) => void,
+	selected: ReadonlySet<number> | null = null,
 ): ChartMarkEmphasis {
-	const mark = pointed ?? (legendSeries !== null ? { series: legendSeries, datum: null } : null)
+	const held = legendSeries !== null ? { series: legendSeries, datum: null } : null
 
-	return {
-		mark,
-		lit: (series, datum) => mark === null || markLights(mark, series, datum),
-		setPointed,
+	const mark = pointed ?? held
+
+	// A held selection is the stable picture, so the pointer never re-lights marks
+	// while one is held. The tooltip still reads the pointed mark.
+	const holding = selected !== null && selected.size > 0
+
+	const lit = (series: number, datum?: number | null) => {
+		if (pointed !== null && !holding) return markLights(pointed, series, datum)
+
+		if (held !== null && !markLights(held, series, datum)) return false
+
+		return selectionLights(selected, datum)
 	}
+
+	return { mark, lit, setPointed }
 }
 
 /** Whether two mark references coincide, so a redundant pointed write can bail. @internal */

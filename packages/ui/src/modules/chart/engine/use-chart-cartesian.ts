@@ -33,6 +33,7 @@ import {
 	formatChartValue,
 	formatChartValueCompact,
 	type SeriesMeta,
+	selectedIndices,
 	seriesValues,
 } from './chart-series'
 import { type ChartChrome, type ChartTier, chartFramePolicy, headerLineCount } from './chart-tier'
@@ -52,6 +53,7 @@ export type CartesianData<T> = Pick<
 	| 'axes'
 	| 'reference'
 	| 'onCategoryClick'
+	| 'selectedCategories'
 	| 'formatValue'
 	| 'title'
 	| 'subtitle'
@@ -95,6 +97,7 @@ export function cartesianData<T>(
 		reference: props.reference,
 		tickRotation: categoryTickRotation(props.axes),
 		onCategoryClick: props.onCategoryClick,
+		selectedCategories: props.selectedCategories,
 		formatValue: props.formatValue,
 		title: props.title,
 		subtitle: props.subtitle,
@@ -307,6 +310,12 @@ export type CartesianChart = {
 	 * even with the tooltip off.
 	 */
 	onBandClick?: (index: number) => void
+	/**
+	 * The consumer's `selectedCategories` resolved to data indices, or `null` when
+	 * nothing is selected. Pass it to the frame, which lights these data and
+	 * recedes the rest.
+	 */
+	selected: ReadonlySet<number> | null
 }
 
 /**
@@ -893,6 +902,12 @@ export function useChartCartesian<T>(
 		? (index: number) => onCategoryClick(rawCategories[index] ?? '', index)
 		: undefined
 
+	// The held selection keys off the same raw category that a click reports.
+	const selected = useMemo(
+		() => selectedIndices(rawCategories, props.selectedCategories),
+		[rawCategories, props.selectedCategories],
+	)
+
 	const layout: CartesianLayout = (
 		orientation === 'horizontal' ? horizontalLayout : verticalLayout
 	)({
@@ -1002,5 +1017,6 @@ export function useChartCartesian<T>(
 		formatAxisValue,
 		orientation,
 		onBandClick,
+		selected,
 	}
 }

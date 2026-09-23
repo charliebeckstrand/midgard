@@ -65,6 +65,35 @@ function showsEnd(transcript: HTMLElement, text: string) {
 	return rect.bottom <= box.bottom + 1 && rect.bottom > box.top
 }
 
+/**
+ * Waits until the transcript sits at its end, and its window knows that.
+ *
+ * The window reads its offset from the `scroll` event, not from `scrollTop`.
+ * The browser sends the event at the next frame after the pin writes
+ * `scrollTop`, so until then the window holds the old offset. It places its
+ * rows for that offset, and it does not follow an append. Call this straight
+ * after the render, so that the listener is in place before the event.
+ */
+async function landed(transcript: HTMLElement) {
+	let reported: number | null = null
+
+	const record = () => {
+		reported = transcript.scrollTop
+	}
+
+	transcript.addEventListener('scroll', record)
+
+	try {
+		await waitFor(() => {
+			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+
+			expect(reported).toBe(transcript.scrollTop)
+		})
+	} finally {
+		transcript.removeEventListener('scroll', record)
+	}
+}
+
 /** Scrolls the transcript to `top` and waits for the window to follow. */
 async function scrollTo(transcript: HTMLElement, top: number) {
 	transcript.scrollTop = top
@@ -137,7 +166,8 @@ describe('the transcript window', () => {
 
 		const transcript = transcriptOf(container)
 
-		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+		// The follow acts only when the window knows that the reader sits at the end.
+		await landed(transcript)
 
 		const start = transcript.scrollTop
 
@@ -385,7 +415,8 @@ describe('an embed under the window', () => {
 
 		const transcript = transcriptOf(container)
 
-		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+		// The window places its rows for the offset it knows, so it must know the pin.
+		await landed(transcript)
 
 		// Pinned to the end, the row with the view is outside the window.
 		expect(container.querySelector('[data-slot="chat-embed"]')).toBeNull()

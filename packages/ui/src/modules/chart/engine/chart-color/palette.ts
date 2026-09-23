@@ -35,6 +35,28 @@ export function paletteSlot(index: number): ChartColorSlot {
 }
 
 /**
+ * The palette slot of each category in `labels`. Without `categories`, a label
+ * takes the slot of its position, the default order. With `categories`, a label
+ * takes the slot of its place in that list. A filter that removes a category
+ * therefore never moves the colours of the rest. A label outside the list takes
+ * a slot after the listed ones.
+ *
+ * @internal
+ */
+export function categorySlots(
+	labels: readonly string[],
+	categories: readonly string[] | undefined,
+): ChartColorSlot[] {
+	if (categories === undefined || categories.length === 0) {
+		return labels.map((_, index) => paletteSlot(index))
+	}
+
+	const place = new Map(categories.map((category, index) => [category, index]))
+
+	return labels.map((label, index) => paletteSlot(place.get(label) ?? categories.length + index))
+}
+
+/**
  * Resolves a series' colour: its explicit `color` — a palette slot or a raw CSS
  * colour — else its slot in the fixed categorical order.
  *

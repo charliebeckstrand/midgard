@@ -496,6 +496,27 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'chart-legend-item')?.className).toContain('focus-visible:ring-2')
 	})
 
+	it('holds the selected categories lit, and recedes the rest', () => {
+		const { container } = renderUI(chart({ selectedCategories: ['Q2'] }))
+
+		for (const series of allBySlot(container, 'chart-bar')) {
+			expect(series.getAttribute('class')).toContain('opacity-25')
+		}
+
+		// One lit bar re-draws over each dimmed series: Q2 of revenue and of costs.
+		expect(spots(container).map((spot) => spot.getAttribute('d')?.match(/M/g)?.length)).toEqual([
+			1, 1,
+		])
+	})
+
+	it('selects nothing for an empty list', () => {
+		const { container } = renderUI(chart({ selectedCategories: [] }))
+
+		expect(allBySlot(container, 'chart-bar')[0]?.getAttribute('class')).not.toContain('opacity-25')
+
+		expect(spots(container)).toHaveLength(0)
+	})
+
 	it('dims the other series while a legend entry is hovered', () => {
 		const { container } = renderUI(chart())
 

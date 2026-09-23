@@ -38,7 +38,7 @@ type GridSkeletonCellsProps<T> = {
  *
  * A placeholder carries no `data-grid-col`, unlike every cell holding content.
  * That attribute is what the autosizer's body scan collects (see
- * `measureColumnIntrinsics`). A leafless skeleton cell measures at its own
+ * `measureColumns`). A leafless skeleton cell measures at its own
  * current width. To fold that into a column's running-max content width would
  * hold the columns at whatever the loading state happened to be.
  *

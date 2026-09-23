@@ -51,12 +51,13 @@ function barClass(
  * opaque and never overlap, so the concatenation reads identically to separate
  * paths.
  *
- * Isolation stays per-datum without re-drawing the series. A pointed bar
- * recedes every other, so the whole series path dims and the one lit bar
- * re-draws over it. That is a single overlay path, not a rebuild. The series
- * paths are memoised on `marks`, so a pointer crossing rebuilds nothing. Such a
- * crossing re-runs this component only through the emphasis context, never the
- * chart body.
+ * Isolation stays per-datum without re-drawing the series. A pointed bar, a
+ * legend hover, or a held category selection can leave some bars of a series
+ * unlit. The whole series path then dims, and the lit bars re-draw over it as one
+ * overlay path, not a rebuild. The series paths are
+ * memoised on `marks`, so an emphasis change rebuilds only the overlay. Such a
+ * change re-runs this component through the emphasis context, never the chart
+ * body.
  *
  * @internal
  */
@@ -67,7 +68,11 @@ export function ChartBarMarks({
 	fills,
 	textureActive = false,
 }: ChartBarMarksProps) {
-	const { mark } = useChartMarkEmphasis()
+	const { mark, lit } = useChartMarkEmphasis()
+
+	// A pointed bar isolates one datum, so its series lifts even when that bar is
+	// the only one: the path dims and the bar re-draws over it.
+	const isolating = mark !== null && mark.datum !== null
 
 	// Stable across emphasis changes — the chart body holds `marks` steady while
 	// the pointer moves, so a crossing never rebuilds these strings.
@@ -87,15 +92,7 @@ export function ChartBarMarks({
 
 		const series = indices[seriesIndex] ?? seriesIndex
 
-		// A whole-series emphasis (a legend hover, `datum: null`) lights its series
-		// and dims the rest; a single pointed bar (`datum` set) dims every series,
-		// its own included, and the lit bar re-draws over the dim below.
-		const seriesLit = mark !== null && mark.series === series && mark.datum === null
-
-		const dimmed = mark !== null && !seriesLit
-
-		const spot =
-			mark !== null && mark.series === series && mark.datum !== null ? row[mark.datum] : undefined
+		const { dimmed, overlay } = litOverlay(row, (datum) => lit(series, datum), isolating)
 
 		return (
 			<g key={series} data-slot="chart-bar-series">
@@ -107,10 +104,10 @@ export function ChartBarMarks({
 					className={barClass(paint, dimmed, textureActive, fills?.[seriesIndex])}
 				/>
 
-				{spot && (
+				{overlay && (
 					<path
 						data-slot="chart-bar-spot"
-						d={spot.d}
+						d={overlay}
 						fill={paint && rawColor(paint)}
 						style={textureStyle(fills?.[seriesIndex])}
 						className={barClass(paint, false, textureActive, fills?.[seriesIndex])}
@@ -119,6 +116,37 @@ export function ChartBarMarks({
 			</g>
 		)
 	})
+}
+
+/**
+ * How one series of bars paints under an emphasis. When each bar is lit and
+ * nothing isolates a datum, the series path stands alone. Otherwise the series
+ * path dims, and the lit bars join into one overlay path over it, or no overlay
+ * when none is lit.
+ *
+ * @param isolating - Whether the emphasis isolates one datum, such as a pointed
+ * bar. The lift then draws even when each bar of the series is lit.
+ * @internal
+ */
+export function litOverlay(
+	row: readonly ({ d: string } | null)[],
+	isLit: (datum: number) => boolean,
+	isolating = false,
+): { dimmed: boolean; overlay: string | null } {
+	const lit: string[] = []
+
+	let unlit = false
+
+	row.forEach((bar, datum) => {
+		if (bar === null) return
+
+		if (isLit(datum)) lit.push(bar.d)
+		else unlit = true
+	})
+
+	if (!unlit && !isolating) return { dimmed: false, overlay: null }
+
+	return { dimmed: true, overlay: lit.length > 0 ? lit.join(' ') : null }
 }
 
 /** The Framer Motion bars, growing from the baseline along the value axis in sequence — and shrinking back to it on a data change. @internal */

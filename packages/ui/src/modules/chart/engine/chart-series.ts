@@ -114,3 +114,27 @@ export function chartReadout<T>(
 		})),
 	}
 }
+
+/**
+ * The data indices whose raw category sits in `selected`, compared as text, or
+ * `null` when nothing is selected. A category that no datum carries selects
+ * nothing.
+ *
+ * @internal
+ */
+export function selectedIndices(
+	categories: readonly unknown[],
+	selected: readonly string[] | undefined,
+): ReadonlySet<number> | null {
+	if (selected === undefined || selected.length === 0) return null
+
+	const wanted = new Set(selected)
+
+	const indices = new Set<number>()
+
+	categories.forEach((category, index) => {
+		if (wanted.has(String(category ?? ''))) indices.add(index)
+	})
+
+	return indices
+}

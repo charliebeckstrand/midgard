@@ -74,8 +74,10 @@ type GridRegionProps<T> = {
 	/** The group-by wiring, or `null` when the group button is off; backs the header menu's "Group by …" item. */
 	groupBy: GridGroupByContextValue | null
 	autoSizeColumns: (() => void) | null
-	/** Re-fits a single column to its content; backs the header menu's "Auto-size this column" item. */
+	/** Sizes a single column to its content; backs the header menu's "Auto-size this column" item. */
 	autoSizeColumn: ((column: string | number) => void) | null
+	/** Gives the widths back to the automatic fit; backs the header menu's "Reset column widths" item. */
+	resetColumnWidths: (() => void) | null
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. */
 	exportActions: GridExportAction[]
@@ -114,6 +116,7 @@ export function GridRegion<T>({
 	groupBy,
 	autoSizeColumns,
 	autoSizeColumn,
+	resetColumnWidths,
 	chooseColumns,
 	exportActions,
 	rowGroupMenu,
@@ -147,6 +150,7 @@ export function GridRegion<T>({
 			groupBy={groupBy}
 			autoSizeColumns={autoSizeColumns}
 			autoSizeColumn={autoSizeColumn}
+			resetColumnWidths={resetColumnWidths}
 			chooseColumns={chooseColumns}
 			exportActions={exportActions}
 			rowGroupMenu={rowGroupMenu}

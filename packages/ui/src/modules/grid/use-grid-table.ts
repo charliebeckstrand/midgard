@@ -90,7 +90,7 @@ import type {
 	GridPaginationState,
 	GridSearch,
 } from './types'
-import { useGridColumnAutoSize } from './use-grid-column-auto-size'
+import { useGridColumnSizing } from './use-grid-column-sizing'
 import { useGridPinnedOffsets } from './use-grid-pinned-offsets'
 
 export type {
@@ -212,7 +212,7 @@ type GridTableResult<T> = {
 	 *
 	 * `false` only between hydration and that pass, and only for a grid whose widths this
 	 * hook sizes. The table holds its paint until it flips, so a reload never shows the
-	 * declared widths and then replaces them with fitted ones — see `useGridColumnAutoSize`.
+	 * declared widths and then replaces them with fitted ones — see `useGridColumnSizing`.
 	 */
 	widthsSettled: boolean
 	/** Global-filter view, or `null` when filtering is not configured. */
@@ -625,7 +625,7 @@ export function useGridTable<T>({
 		[setPaginationState],
 	)
 
-	// Held true by the autosizer around its own writes (see `useGridColumnAutoSize`),
+	// Held true by the autosizer around its own writes (see `useGridColumnSizing`),
 	// so the content fit updates the engine's sizing state without surfacing through
 	// the consumer's `onValueChange` — that binding reflects user/consumer intent
 	// (a drag, a keyboard nudge, a controlled write), not the internal auto-fit.
@@ -642,6 +642,14 @@ export function useGridTable<T>({
 	})
 
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
+
+	// The consumer's binding, read at call time, so "Reset column widths" can clear
+	// the saved widths without a new callback on each render.
+	const onSizingValueChangeRef = useRef(columnSizingConfig?.onValueChange)
+
+	onSizingValueChangeRef.current = columnSizingConfig?.onValueChange
+
+	const clearSizingPreference = useCallback(() => onSizingValueChangeRef.current?.({}), [])
 
 	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
 	// autosizer can hold them on reload rather than measuring over them.
@@ -856,15 +864,16 @@ export function useGridTable<T>({
 				})
 			: null
 
-	// Auto-size resizable columns to fill the container, unless widths are
-	// controlled; `sizeToFit` also backs the header "Auto-size all columns" action.
+	// Size resizable columns to their content and fill the container, unless widths
+	// are controlled. The hook also backs the header menu's width actions.
 	const {
-		sizeToFit,
-		resetColumn,
-		holdManualWidths,
+		autoSizeColumn,
+		autoSizeAll,
+		resetWidths,
+		takeControl,
 		fitRenderedRows,
 		settled: widthsSettled,
-	} = useGridColumnAutoSize<T>({
+	} = useGridColumnSizing<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
 		table,
@@ -883,6 +892,7 @@ export function useGridTable<T>({
 		// writes so they stay off the consumer's `onValueChange`.
 		initialSizing: initialSizingRef.current,
 		autoSizingRef,
+		clearPreference: clearSizingPreference,
 	})
 
 	const resize = useMemo<GridColumnResize | null>(() => {
@@ -898,12 +908,13 @@ export function useGridTable<T>({
 			nudge: (id, delta) => {
 				base.nudge(id, delta)
 
-				holdManualWidths()
+				takeControl()
 			},
-			sizeToFit,
-			reset: resetColumn,
+			autoSizeColumn,
+			autoSizeAll,
+			resetWidths,
 		}
-	}, [resizable, table, sizeToFit, resetColumn, holdManualWidths])
+	}, [resizable, table, autoSizeColumn, autoSizeAll, resetWidths, takeControl])
 
 	useColumnResizeLifecycle(
 		table,

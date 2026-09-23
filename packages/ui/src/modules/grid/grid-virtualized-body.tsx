@@ -93,7 +93,7 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	infiniteScroll: ResolvedInfiniteScroll | null
 	/**
 	 * Re-fits the columns once this window's rows render, for the fit that had no
-	 * rows to measure (see `useGridColumnAutoSize`). Called from a layout effect, so
+	 * rows to measure (see `useGridColumnSizing`). Called from a layout effect, so
 	 * the widths land before those rows paint; a no-op once a fit has read rows.
 	 */
 	fitRenderedRows: () => void
