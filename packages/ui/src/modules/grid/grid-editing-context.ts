@@ -59,6 +59,12 @@ export type GridEditingSession = {
 	 * mounts, and stages it as the cell's draft.
 	 */
 	entrySeed: (rowKey: string | number, columnId: string | number) => string | number | undefined
+	/**
+	 * Whether this cell's editor takes focus now. An editor asks as it mounts,
+	 * and as the session comes to hold it. It is `true` once, for the cell an
+	 * entry named, while the session holds that cell open.
+	 */
+	claimFocus: (rowKey: string | number, columnId: string | number) => boolean
 	/** Whether the grid owns entry and the session keys (`session: 'managed'`). */
 	managed: boolean
 }

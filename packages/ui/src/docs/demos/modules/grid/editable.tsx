@@ -20,10 +20,12 @@ import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
 import { NumberInput } from '../../../../components/number-input'
 import { Stack } from '../../../../components/stack'
+import { Text } from '../../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import {
 	Grid,
 	type GridCellChange,
+	type GridCellRef,
 	type GridColumn,
 	type GridEditCellContext,
 } from '../../../../modules/grid'
@@ -270,23 +272,44 @@ export function EditableExample() {
 	)
 }
 
+// Names the session's cell for the readout: its column title and its row's
+// position in the data.
+function describeCell(cell: GridCellRef | null, people: Person[]): string {
+	if (!cell) return 'Not editing'
+
+	const column = personColumns.find((col) => col.id === cell.columnId)
+
+	const row = people.findIndex((person) => person.id === cell.rowKey) + 1
+
+	return `Editing: ${column?.title ?? cell.columnId}, row ${row}`
+}
+
 export function CellScopeExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	const [editingCell, setEditingCell] = useState<GridCellRef | null>(null)
 
 	// `scope: 'cell'` narrows the grid-owned session to the cell the user entered:
 	// one editor at a time, the cell committing as the session moves on. The
 	// columns are the ones the row-scoped example shows, over the same batch sink,
 	// so only the reach of a session changes. Enter and Tab move the session by
-	// key, which is the spreadsheet flow this scope exists for.
+	// key, which is the spreadsheet flow this scope exists for. The session's cell
+	// is a binding of its own: `onCellChange` reports each move, and drives
+	// the readout above the grid.
 	return (
 		<>
-			<EditHelp label="Editing help">
-				Double-click a cell, press Enter or F2 on the cursor's cell, or start typing to edit that
-				cell alone. Enter saves and moves down a row. Tab and Shift+Tab save and move along the row.
-				F2 saves and stays, and Escape discards. Role and Active keep Enter for their own listbox
-				menus, so Tab is their keyboard save. The check and cross beside the editor settle it with
-				the pointer.
-			</EditHelp>
+			<Flex justify="between" align="center">
+				<Text size="sm" tone="muted">
+					{describeCell(editingCell, people)}
+				</Text>
+				<EditHelp label="Editing help">
+					Double-click a cell, press Enter or F2 on the cursor's cell, or start typing to edit that
+					cell alone. Enter saves and moves down a row. Tab and Shift+Tab save and move along the
+					row. F2 saves and stays, and Escape discards. Role and Active keep Enter for their own
+					listbox menus, so Tab is their keyboard save. The check and cross beside the editor settle
+					it with the pointer. The line at the left names the cell that you edit.
+				</EditHelp>
+			</Flex>
 			<Grid
 				columns={personColumns}
 				rows={people}
@@ -294,6 +317,7 @@ export function CellScopeExample() {
 				editable={{
 					session: 'managed',
 					scope: 'cell',
+					onCellChange: setEditingCell,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>

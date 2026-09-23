@@ -1,3 +1,5 @@
+import type { GridCellRef } from '../grid-editing-types'
+
 /** The primitive-typed inline editor the grid mounts when a column supplies no `editCell` slot. @internal */
 export type EditorKind = 'text' | 'number' | 'boolean'
 
@@ -116,11 +118,14 @@ export function seedFromKey(press: GridKeyPress, kind: EditorKind): string | num
 	return null
 }
 
-/** The one cell a cell-scoped edit session sits on. @internal */
-export type GridActiveEdit = {
-	rowKey: string | number
-	columnId: string | number
-}
+/**
+ * The one cell a cell-scoped edit session sits on: the public
+ * {@link GridCellRef}, under the name the engine reads. @internal
+ */
+export type GridActiveEdit = GridCellRef
+
+/** Focusable editor content inside an editing cell, in preference order. @internal */
+export const EDITOR_FOCUSABLE = 'input, select, textarea, button, [tabindex]'
 
 /** Whether a coord names this cell; a null coord names none. @internal */
 export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): boolean {
