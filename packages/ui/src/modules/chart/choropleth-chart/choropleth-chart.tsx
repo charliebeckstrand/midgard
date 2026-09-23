@@ -36,7 +36,11 @@ export type ChoroplethChartSeries<T> = {
 	 * paints it as a continuous bar.
 	 */
 	colorRange: string[]
-	/** Fixed `[min, max]`; derived from the data extent when omitted. AG Charts' `colorDomain`. */
+	/**
+	 * Fixed `[min, max]`; derived from the data extent when omitted. AG Charts'
+	 * `colorDomain`. It applies to `'linear'` binning. Quantile bins cut the data,
+	 * so under `'quantile'` the scale spans the data extent and this is ignored.
+	 */
 	colorDomain?: [number, number]
 	/** The value's display name; the legend caption / table header. AG Charts' `colorName`. */
 	colorName?: string

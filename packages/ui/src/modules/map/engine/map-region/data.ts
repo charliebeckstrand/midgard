@@ -91,7 +91,11 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	 * @defaultValue 'linear'
 	 */
 	binning?: 'linear' | 'quantile'
-	/** Fixed `[min, max]` for the ramp; derived from the data extent when omitted. `ChoroplethChartSeries` spells it the same. */
+	/**
+	 * Fixed `[min, max]` for the ramp; derived from the data extent when omitted.
+	 * It applies to `'linear'` binning. Under `'quantile'` the scale spans the
+	 * data extent and this is ignored. `ChoroplethChartSeries` spells it the same.
+	 */
 	colorDomain?: [number, number]
 	/** Formats the bin-range labels, the tooltip value, and the table cell. `ChoroplethChart` spells it the same. */
 	formatValue?: (value: number) => string
