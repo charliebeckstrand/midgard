@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { noop } from './noop'
 
 type StubMatchMediaOverrides = Partial<
 	Pick<MediaQueryList, 'addEventListener' | 'removeEventListener'>
@@ -6,8 +7,15 @@ type StubMatchMediaOverrides = Partial<
 
 /**
  * Build an inert `MediaQueryList` for `query`: every listener method is a
- * `vi.fn()` spy and `matches` is the given verdict. The one shape behind the
+ * {@link noop} and `matches` is the given verdict. The one shape behind the
  * global jsdom stub (`setup/jsdom-stubs.ts`) and {@link stubMatchMedia}.
+ *
+ * The methods are not `vi.fn()` spies. Every render that reads a media query
+ * builds a list, and Vitest keeps each `vi.fn()` in one registry for the life
+ * of the worker. Under `isolate: false` that registry grows across every file
+ * the worker runs, and `clearMocks` walks all of it before each test. Five
+ * spies for each list made that walk a quarter of the `unit` project's CPU
+ * time. A case that asserts on a listener passes its own spy in `overrides`.
  */
 export function makeMediaQueryList(
 	query: string,
@@ -18,11 +26,11 @@ export function makeMediaQueryList(
 		matches,
 		media: query,
 		onchange: null,
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		addListener: vi.fn(),
-		removeListener: vi.fn(),
-		dispatchEvent: vi.fn(),
+		addEventListener: noop,
+		removeEventListener: noop,
+		addListener: noop,
+		removeListener: noop,
+		dispatchEvent: () => false,
 		...overrides,
 	} as MediaQueryList
 }

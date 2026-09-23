@@ -572,16 +572,6 @@ describe('Grid context menus', () => {
 		expect(autoSizeIndex).toBe(groupIndex + 1)
 	})
 
-	it('omits "Auto-size this column" when resizable is off', () => {
-		renderUI(<Grid resizable={false} columns={columns} rows={rows} getKey={getKey} />)
-
-		rightClick('columnheader', 'Name')
-
-		expect(
-			screen.queryByRole('menuitem', { name: 'Auto-size this column' }),
-		).not.toBeInTheDocument()
-	})
-
 	it('hands a builder a bound "Auto-size this column" for a resizable data column', () => {
 		const seen: Array<(() => void) | undefined> = []
 

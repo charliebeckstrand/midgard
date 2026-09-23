@@ -32,22 +32,48 @@ jobs:
       # package's. Restored after install so the directory lands inside a
       # populated node_modules.
       #
-      # The key is the lockfile, and there is no restore key. Entries hold
-      # absolute paths into the pnpm virtual store, and the cache carries no
-      # marker of the tree that wrote it, so a cache from one dependency tree
-      # is wrong for every other. A prefix restore key handed a vitest 4.1.10
-      # cache to a 4.1.11 run, and all 500 test files failed to import
-      # `vitest`.
+      # Entries hold absolute paths into the pnpm virtual store, and the cache
+      # carries no marker of the tree that wrote it, so a cache from one
+      # dependency tree is wrong for every other. A prefix restore key across
+      # lockfiles handed a vitest 4.1.10 cache to a 4.1.11 run, and all 500
+      # test files failed to import `vitest`. The restore key below therefore
+      # stops at the lockfile hash.
+      #
+      # Vitest hashes the text of every file `vitest.config.ts` imports into
+      # each entry's key, and the config imports the docs engine plugins. An
+      # edit to any of them makes every entry miss. The key was the lockfile
+      # alone, and actions/cache does not save on an exact hit, so the cache
+      # froze at the first run after a lockfile change. The next edit to the
+      # docs engine made it useless, and each run transformed the suite cold.
+      # The second hash starts a new cache when those files change, and the
+      # SHA makes each run save what it wrote for the next run to restore.
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why.
-      - run: pnpm turbo run lint check-types test knip build bundle:budget
+      - run: pnpm turbo run lint check-types test knip build bundle:budget --summarize
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
+      # Turbo never evicts from its local cache, and the restore key above
+      # carries every entry forward, so each run saved all the entries before
+      # it plus its own. It reached 1.4 GB, which the job downloads and
+      # uploads each run. Keep only the entries this run hit or wrote: those
+      # are the ones the next run can hit. The run summary names their hashes.
+      - name: Prune the Turbo cache to this run's tasks
+        run: |
+          keep=$(jq -r '.tasks[].hash' .turbo/runs/*.json | sort -u)
+          for entry in .turbo/cache/*; do
+            hash=$(basename "$entry")
+            hash=${hash%%[-.]*}
+            grep -qxF "$hash" <<< "$keep" || rm -f "$entry"
+          done
+          rm -rf .turbo/runs
+          du -sh .turbo/cache
 
   # A separate job, not a step in `gate`: the browser suite needs a Chromium
   # download that would otherwise serialize into every gate run. What it covers

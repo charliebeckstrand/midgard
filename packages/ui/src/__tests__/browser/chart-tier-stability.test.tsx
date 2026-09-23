@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { frames, renderUI } from '../helpers'
+import { renderUI } from '../helpers'
 
 /**
  * Tier stability at the spark boundary under a real engine. A legended, titled
@@ -36,12 +36,20 @@ function chart() {
 	)
 }
 
-/** Samples the resolved tier over ~40 frames and returns the run of values. */
+/**
+ * Samples the resolved tier once a frame over 40 frames and returns the run of
+ * values.
+ *
+ * One frame, not the two `frames()` waits. A loop that feeds back through
+ * `ResizeObserver` can flip once a frame, and a sample every second frame reads
+ * that loop at the same phase each time, so it sees one steady tier. It also
+ * spent 80 frames at each stop, which made this file the longest in the suite.
+ */
 async function sampleTiers(chartEl: HTMLElement): Promise<string[]> {
 	const seen: string[] = []
 
 	for (let i = 0; i < 40; i++) {
-		await frames()
+		await new Promise(requestAnimationFrame)
 
 		seen.push(chartEl.dataset.tier ?? 'none')
 	}
@@ -63,9 +71,9 @@ describe('chart tier stability at the spark boundary (real browser)', () => {
 
 		const seen = await sampleTiers(chartEl)
 
-		// The first sample may still carry the pre-measurement tier; after that the
+		// The first frames may still carry the pre-measurement tier; after that the
 		// run must hold one value. A loop would flip every couple of frames.
-		const settled = seen.slice(2)
+		const settled = seen.slice(4)
 
 		const transitions = settled.filter((tier, index) => index > 0 && tier !== settled[index - 1])
 
@@ -92,7 +100,7 @@ describe('chart tier stability at the spark boundary (real browser)', () => {
 
 			const seen = await sampleTiers(chartEl)
 
-			const settled = seen.slice(3)
+			const settled = seen.slice(6)
 
 			const transitions = settled.filter((tier, index) => index > 0 && tier !== settled[index - 1])
 

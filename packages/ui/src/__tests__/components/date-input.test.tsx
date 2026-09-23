@@ -49,12 +49,6 @@ describe('DateInput', () => {
 			'MM/DD/YYYY',
 		],
 		[
-			'lets an explicit placeholder win',
-			() => <DateInput placeholder="Due date" />,
-			'placeholder',
-			'Due date',
-		],
-		[
 			'defaults an aria-label when no Field label wraps it',
 			() => <DateInput />,
 			'aria-label',

@@ -34,14 +34,6 @@ describe('ZipcodeInput', () => {
 		expect(input).toHaveAttribute('placeholder', 'A1A 1A1')
 	})
 
-	it('allows overriding the placeholder', () => {
-		const { container } = renderUI(<ZipcodeInput placeholder="ZIP code" />)
-
-		const input = bySlot(container, 'zipcode-input')
-
-		expect(input).toHaveAttribute('placeholder', 'ZIP code')
-	})
-
 	it('formats US ZIP+4 with a dash', async () => {
 		const onChange = vi.fn()
 

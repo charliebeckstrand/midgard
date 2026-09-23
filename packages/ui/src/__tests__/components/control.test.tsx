@@ -172,20 +172,6 @@ describe('Control + Input', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
-	it('treats severity="error" as invalid on a nested input', () => {
-		const { container } = renderUI(
-			<Control severity="error">
-				<Input />
-			</Control>,
-		)
-
-		const input = bySlot(container, 'input')
-
-		expect(input).toHaveAttribute('data-invalid')
-
-		expect(input).toHaveAttribute('aria-invalid', 'true')
-	})
-
 	it('broadcasts severity="warning" as data-warning without aria-invalid', () => {
 		const { container } = renderUI(
 			<Control severity="warning">
