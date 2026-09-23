@@ -392,6 +392,7 @@ export function GridCellEditor<T>({
 			errorId={errorId}
 			required={column.required}
 			managed={managed}
+			unset={newRow}
 		/>
 	)
 

@@ -419,7 +419,9 @@ export type GridEditableConfig = {
 	 * shows. `values` maps the `field` of each editable column to the value
 	 * that the user entered, or the column id for a column with no `field`.
 	 * It holds only the cells with a value. An empty text, `null`, and no entry
-	 * are no value, and a row with no value adds nothing. Add the record to
+	 * are no value, and a row with no value adds nothing. A yes/no editor shows
+	 * no choice until the user picks Yes or No, so it adds only a choice that
+	 * the user made. Add the record to
 	 * your data, and feed it back through the grid's `rows`.
 	 *
 	 * Each {@link GridColumn.validate} of a cell with a value reads the value

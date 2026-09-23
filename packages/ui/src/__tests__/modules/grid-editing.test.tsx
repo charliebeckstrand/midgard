@@ -4855,6 +4855,102 @@ describe('Grid new row', () => {
 		})
 	})
 
+	/**
+	 * The yes/no editor of the slot shows no choice until the user picks one.
+	 * What it shows is what adds: no choice adds no value, and a pick adds it.
+	 */
+	describe('a yes/no column', () => {
+		const doneColumn: GridColumn<SessionRow> = {
+			id: 'done',
+			title: 'Done',
+			field: 'done',
+			cell: (row) => (row.done ? 'Yes' : 'No'),
+		}
+
+		/** The listbox trigger of the slot's `done` cell. */
+		const trigger = (view: ReturnType<typeof renderNewRow>) =>
+			getSlot<HTMLButtonElement>(view.slotCell('done'), 'listbox-button')
+
+		/** Opens the slot's yes/no listbox and picks `choice`. */
+		const pick = (view: ReturnType<typeof renderNewRow>, choice: 'Yes' | 'No') => {
+			fireEvent.click(trigger(view))
+
+			fireEvent.click(view.getByRole('option', { name: choice }))
+		}
+
+		it('shows no choice untouched, and an add of the other fields omits it', () => {
+			const view = renderNewRow({}, {}, [...sessionColumns, doneColumn])
+
+			expect(trigger(view)).not.toHaveTextContent(/yes|no/i)
+
+			expect(trigger(view)).toHaveTextContent('Select')
+
+			view.type('name', 'Carol')
+
+			view.press('name', 'Enter')
+
+			expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+		})
+
+		it('adds false for a pick of No', () => {
+			const view = renderNewRow({}, {}, [...sessionColumns, doneColumn])
+
+			pick(view, 'No')
+
+			expect(trigger(view)).toHaveTextContent('No')
+
+			view.type('name', 'Carol')
+
+			view.press('name', 'Enter')
+
+			expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol', done: false })
+		})
+
+		it('is empty again after a pick and an Escape', () => {
+			const view = renderNewRow({}, {}, [...sessionColumns, doneColumn])
+
+			pick(view, 'Yes')
+
+			fireEvent.keyDown(view.slotEditor('name'), { key: 'Escape' })
+
+			expect(trigger(view)).toHaveTextContent('Select')
+
+			fireEvent.click(view.getByRole('button', { name: 'Add row' }))
+
+			expect(view.onRowAdd).not.toHaveBeenCalled()
+		})
+
+		it('makes no add from an untouched row with only a yes/no column', () => {
+			const view = renderNewRow({}, {}, [
+				{ id: 'name', title: 'Name', cell: (row) => row.name },
+				doneColumn,
+			])
+
+			fireEvent.click(view.getByRole('button', { name: 'Add row' }))
+
+			fireEvent.keyDown(view.slotCell('done'), { key: 'Enter' })
+
+			expect(view.onRowAdd).not.toHaveBeenCalled()
+
+			pick(view, 'No')
+
+			fireEvent.click(view.getByRole('button', { name: 'Add row' }))
+
+			expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ done: false })
+		})
+
+		it('keeps the data rows showing No for a false value', () => {
+			const view = renderNewRow({ rows: new Set([1]) }, {}, [...sessionColumns, doneColumn])
+
+			const dataCell = present(
+				view.container.querySelector<HTMLElement>('td[data-grid-col="done"]'),
+				'data done cell',
+			)
+
+			expect(getSlot(dataCell, 'listbox-button')).toHaveTextContent('No')
+		})
+	})
+
 	describe('config warnings', () => {
 		it("warns and renders no row under session 'manual'", () => {
 			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
