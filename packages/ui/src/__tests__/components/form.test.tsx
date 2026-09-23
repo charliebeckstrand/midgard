@@ -23,6 +23,13 @@ import {
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 import { makeFormWrapper } from '../helpers/form-wrapper'
 
+/** Renders the form-level `valid` flag, which no field probe can show. */
+function ValidProbe() {
+	const status = useFormStatus()
+
+	return <span data-testid="valid">{String(status?.valid)}</span>
+}
+
 describe('Form', () => {
 	it('renders with data-slot="form"', () => {
 		const { container } = renderUI(
@@ -126,19 +133,13 @@ describe('Form', () => {
 	it('skips onSubmit and keeps errors when validation fails on submit', async () => {
 		const onSubmit = vi.fn()
 
-		function Consumer() {
-			const status = useFormStatus()
-
-			return <span data-testid="valid">{String(status?.valid)}</span>
-		}
-
 		const { container } = renderUI(
 			<Form
 				defaultValues={{ name: '' }}
 				validate={{ name: (value) => (value ? undefined : 'required') }}
 				onSubmit={onSubmit}
 			>
-				<Consumer />
+				<ValidProbe />
 				<button type="submit">Submit</button>
 			</Form>,
 		)
@@ -181,24 +182,22 @@ describe('Form', () => {
 			const field = useFormField('name')
 
 			return (
-				<>
-					<span data-testid="value">{String(field?.value)}</span>
-					<button type="button" onClick={() => field?.setValue('Changed')}>
-						Change
-					</button>
-				</>
+				<button type="button" onClick={() => field?.setValue('Changed')}>
+					Change
+				</button>
 			)
 		}
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Initial' }}>
 				<Consumer />
+				<FieldProbe name="name" />
 			</Form>,
 		)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Change' }))
 
-		expect(screen.getByTestId('value').textContent).toBe('Changed')
+		expect(getFieldProbe('name').textContent).toBe('Changed')
 
 		const form = getSlot<HTMLFormElement>(container, 'form')
 
@@ -206,7 +205,7 @@ describe('Form', () => {
 			fireEvent.reset(form)
 		})
 
-		expect(screen.getByTestId('value').textContent).toBe('Initial')
+		expect(getFieldProbe('name').textContent).toBe('Initial')
 	})
 
 	it('runs validation on change when validateOn="change"', () => {
@@ -240,15 +239,9 @@ describe('Form', () => {
 			},
 		)
 
-		function Consumer() {
-			const field = useFormField('name')
-
-			return <span data-testid="error">{field?.errors?.[0] ?? ''}</span>
-		}
-
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
-				<Consumer />
+				<FieldProbe name="name" />
 				<button type="submit">Submit</button>
 			</Form>,
 		)
@@ -259,7 +252,7 @@ describe('Form', () => {
 			fireEvent.submit(form)
 		})
 
-		expect(screen.getByTestId('error').textContent).toBe('taken')
+		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken')
 	})
 
 	it('disables the fieldset while onSubmit is pending', async () => {
@@ -299,24 +292,17 @@ describe('Form', () => {
 		// reset button would sit inside the fieldset that submitting disables.
 		let actions: ReturnType<typeof useFormActions>
 
-		function Probe() {
-			const field = useFormField('name')
-
-			const status = useFormStatus()
-
+		function ActionsCapture() {
 			actions = useFormActions()
 
-			return (
-				<>
-					<span data-testid="error">{field?.errors?.[0] ?? ''}</span>
-					<span data-testid="valid">{String(status?.valid)}</span>
-				</>
-			)
+			return null
 		}
 
 		const { container } = renderUI(
 			<Form defaultValues={{ name: 'Ada' }} onSubmit={onSubmit}>
-				<Probe />
+				<ActionsCapture />
+				<FieldProbe name="name" />
+				<ValidProbe />
 				<button type="submit">Submit</button>
 			</Form>,
 		)
@@ -343,7 +329,11 @@ describe('Form', () => {
 			submit.resolve({ fieldErrors: { name: 'taken on the server' } })
 		})
 
-		expect(screen.getByTestId('error').textContent).toBe('')
+		// The value proves that the probe reads a live field. Without it, the missing
+		// error below also holds for a probe outside the `Form`.
+		expect(getFieldProbe('name').textContent).toBe('Ada')
+
+		expect(getFieldProbe('name')).not.toHaveAttribute('data-error')
 
 		expect(screen.getByTestId('valid').textContent).toBe('true')
 
@@ -480,18 +470,12 @@ describe('Form', () => {
 	})
 
 	it('applies fieldErrors returned from onSubmit', async () => {
-		function ErrorProbe() {
-			const field = useFormField('name')
-
-			return <span data-testid="field-error">{field?.errors?.[0] ?? ''}</span>
-		}
-
 		const { container } = renderUI(
 			<Form
 				defaultValues={{ name: 'Ada' }}
 				onSubmit={() => ({ fieldErrors: { name: 'taken on the server' } })}
 			>
-				<ErrorProbe />
+				<FieldProbe name="name" />
 				<button type="submit">Submit</button>
 			</Form>,
 		)
@@ -502,16 +486,10 @@ describe('Form', () => {
 			fireEvent.submit(form)
 		})
 
-		expect(screen.getByTestId('field-error').textContent).toBe('taken on the server')
+		expect(getFieldProbe('name')).toHaveAttribute('data-error', 'taken on the server')
 	})
 
 	it('reports valid=false once server fieldErrors are applied, with no client validator', async () => {
-		function ValidProbe() {
-			const status = useFormStatus()
-
-			return <span data-testid="valid">{String(status?.valid)}</span>
-		}
-
 		const { container } = renderUI(
 			<Form
 				defaultValues={{ name: 'Ada' }}
@@ -536,12 +514,6 @@ describe('Form', () => {
 	})
 
 	it('marks an object-valued field clean after restoring its structural value', () => {
-		function DirtyProbe() {
-			const field = useFormField('tags')
-
-			return <span data-testid="dirty">{field?.dirty ? 'dirty' : 'clean'}</span>
-		}
-
 		function Controls() {
 			const field = useFormField('tags')
 
@@ -559,33 +531,27 @@ describe('Form', () => {
 
 		renderUI(
 			<Form defaultValues={{ tags: [] as string[] }}>
-				<DirtyProbe />
+				<FieldProbe name="tags" />
 				<Controls />
 			</Form>,
 		)
 
-		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+		expect(getFieldProbe('tags')).toHaveAttribute('data-dirty', 'false')
 
 		act(() => {
 			screen.getByText('mutate').click()
 		})
 
-		expect(screen.getByTestId('dirty').textContent).toBe('dirty')
+		expect(getFieldProbe('tags')).toHaveAttribute('data-dirty', 'true')
 
 		act(() => {
 			screen.getByText('restore').click()
 		})
 
-		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+		expect(getFieldProbe('tags')).toHaveAttribute('data-dirty', 'false')
 	})
 
 	it('replaces values when the controlled `values` prop reference changes', () => {
-		function ValueProbe() {
-			const field = useFormField('name')
-
-			return <span data-testid="value">{String(field?.value ?? '')}</span>
-		}
-
 		function Host() {
 			const [values, setValues] = useState({ name: 'Ada' })
 
@@ -595,7 +561,7 @@ describe('Form', () => {
 						sync
 					</button>
 					<Form defaultValues={{ name: '' }} values={values}>
-						<ValueProbe />
+						<FieldProbe name="name" />
 					</Form>
 				</>
 			)
@@ -603,22 +569,16 @@ describe('Form', () => {
 
 		renderUI(<Host />)
 
-		expect(screen.getByTestId('value').textContent).toBe('Ada')
+		expect(getFieldProbe('name').textContent).toBe('Ada')
 
 		act(() => {
 			screen.getByText('sync').click()
 		})
 
-		expect(screen.getByTestId('value').textContent).toBe('Grace')
+		expect(getFieldProbe('name').textContent).toBe('Grace')
 	})
 
 	it('shifts the dirty baseline after a controlled values sync', () => {
-		function DirtyProbe() {
-			const field = useFormField('name')
-
-			return <span data-testid="dirty">{field?.dirty ? 'dirty' : 'clean'}</span>
-		}
-
 		function Host() {
 			const [values, setValues] = useState({ name: 'Ada' })
 
@@ -628,7 +588,7 @@ describe('Form', () => {
 						sync
 					</button>
 					<Form defaultValues={{ name: '' }} values={values}>
-						<DirtyProbe />
+						<FieldProbe name="name" />
 					</Form>
 				</>
 			)
@@ -636,13 +596,13 @@ describe('Form', () => {
 
 		renderUI(<Host />)
 
-		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+		expect(getFieldProbe('name')).toHaveAttribute('data-dirty', 'false')
 
 		act(() => {
 			screen.getByText('sync').click()
 		})
 
-		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+		expect(getFieldProbe('name')).toHaveAttribute('data-dirty', 'false')
 	})
 
 	it('preserves touched and errors across a controlled values sync', () => {
@@ -688,12 +648,6 @@ describe('Form', () => {
 	})
 
 	it('does not re-sync when the values reference is unchanged across renders', () => {
-		function ValueProbe() {
-			const field = useFormField('name')
-
-			return <span data-testid="value">{String(field?.value ?? '')}</span>
-		}
-
 		const stableValues = { name: 'Ada' }
 
 		function Host() {
@@ -705,7 +659,7 @@ describe('Form', () => {
 						bump · {tick}
 					</button>
 					<Form defaultValues={{ name: '' }} values={stableValues}>
-						<ValueProbe />
+						<FieldProbe name="name" />
 					</Form>
 				</>
 			)
@@ -713,23 +667,17 @@ describe('Form', () => {
 
 		renderUI(<Host />)
 
-		expect(screen.getByTestId('value').textContent).toBe('Ada')
+		expect(getFieldProbe('name').textContent).toBe('Ada')
 
 		act(() => {
 			screen.getByText(/bump/).click()
 		})
 
 		// Same reference → no sync triggered, value still reflects the initial sync.
-		expect(screen.getByTestId('value').textContent).toBe('Ada')
+		expect(getFieldProbe('name').textContent).toBe('Ada')
 	})
 
 	it('re-syncs to defaultValues when controlled values transitions back to undefined', () => {
-		function ValueProbe() {
-			const field = useFormField('name')
-
-			return <span data-testid="value">{String(field?.value ?? '')}</span>
-		}
-
 		function Host() {
 			const [values, setValues] = useState<{ name: string } | undefined>({ name: 'Ada' })
 
@@ -739,7 +687,7 @@ describe('Form', () => {
 						clear
 					</button>
 					<Form defaultValues={{ name: 'baseline' }} values={values}>
-						<ValueProbe />
+						<FieldProbe name="name" />
 					</Form>
 				</>
 			)
@@ -747,31 +695,23 @@ describe('Form', () => {
 
 		renderUI(<Host />)
 
-		expect(screen.getByTestId('value').textContent).toBe('Ada')
+		expect(getFieldProbe('name').textContent).toBe('Ada')
 
 		act(() => {
 			screen.getByText('clear').click()
 		})
 
-		expect(screen.getByTestId('value').textContent).toBe('baseline')
+		expect(getFieldProbe('name').textContent).toBe('baseline')
 	})
 
 	it('reset(nextDefaults) shifts the baseline and clears errors and touched', () => {
-		function Probe() {
-			const field = useFormField('name')
-
+		function Consumer() {
 			const actions = useFormActions()
 
 			return (
-				<>
-					<span data-testid="value">{String(field?.value ?? '')}</span>
-					<span data-testid="dirty">{field?.dirty ? 'dirty' : 'clean'}</span>
-					<span data-testid="touched">{field?.touched ? 'touched' : 'untouched'}</span>
-					<span data-testid="error">{field?.errors?.[0] ?? ''}</span>
-					<button type="button" onClick={() => actions?.reset({ name: 'Grace' })}>
-						reset-new
-					</button>
-				</>
+				<button type="button" onClick={() => actions?.reset({ name: 'Grace' })}>
+					reset-new
+				</button>
 			)
 		}
 
@@ -780,7 +720,8 @@ describe('Form', () => {
 				defaultValues={{ name: 'Ada' }}
 				validate={{ name: (v) => (v.length === 0 ? 'required' : undefined) }}
 			>
-				<Probe />
+				<Consumer />
+				<FieldProbe name="name" />
 			</Form>,
 		)
 
@@ -791,30 +732,27 @@ describe('Form', () => {
 			fireEvent.submit(form)
 		})
 
-		expect(screen.getByTestId('touched').textContent).toBe('touched')
+		expect(getFieldProbe('name')).toHaveAttribute('data-touched', 'true')
 
 		act(() => {
 			screen.getByText('reset-new').click()
 		})
 
-		expect(screen.getByTestId('value').textContent).toBe('Grace')
+		expect(getFieldProbe('name').textContent).toBe('Grace')
 
-		expect(screen.getByTestId('dirty').textContent).toBe('clean')
+		expect(getFieldProbe('name')).toHaveAttribute('data-dirty', 'false')
 
-		expect(screen.getByTestId('touched').textContent).toBe('untouched')
+		expect(getFieldProbe('name')).toHaveAttribute('data-touched', 'false')
 
-		expect(screen.getByTestId('error').textContent).toBe('')
+		expect(getFieldProbe('name')).not.toHaveAttribute('data-error')
 	})
 
 	it('reset() with no args reverts to the original defaultValues', () => {
-		function Probe() {
-			const field = useFormField('name')
-
+		function Consumer() {
 			const actions = useFormActions()
 
 			return (
 				<>
-					<span data-testid="value">{String(field?.value ?? '')}</span>
 					<button type="button" onClick={() => actions?.setValue('name', 'Grace')}>
 						mutate
 					</button>
@@ -827,7 +765,8 @@ describe('Form', () => {
 
 		renderUI(
 			<Form defaultValues={{ name: 'Ada' }}>
-				<Probe />
+				<Consumer />
+				<FieldProbe name="name" />
 			</Form>,
 		)
 
@@ -835,13 +774,13 @@ describe('Form', () => {
 			screen.getByText('mutate').click()
 		})
 
-		expect(screen.getByTestId('value').textContent).toBe('Grace')
+		expect(getFieldProbe('name').textContent).toBe('Grace')
 
 		act(() => {
 			screen.getByText('reset').click()
 		})
 
-		expect(screen.getByTestId('value').textContent).toBe('Ada')
+		expect(getFieldProbe('name').textContent).toBe('Ada')
 	})
 })
 

@@ -6,9 +6,11 @@ import { present } from './present'
  * through the DOM. Put it inside the `Form`, beside the control under test.
  *
  * The text is the value through `String`, so an unset value reads
- * `"undefined"`. `data-touched` holds the touched flag, and `data-error` holds
- * the first error. Outside a `Form` there is no field, so the probe omits both
- * attributes, and a check on either one fails.
+ * `"undefined"`. `data-touched` and `data-dirty` hold the two flags, and
+ * `data-error` holds the first error while there is one. Outside a `Form` there
+ * is no field, so the probe omits all three. A check on a flag then fails,
+ * whatever it expects. A check that `data-error` is absent still passes, so
+ * pair it with a read that proves the field is there.
  *
  * The file stays off the `helpers` barrel for the reason that
  * `form-wrapper.tsx` does. It imports the form module, and only the
@@ -22,6 +24,7 @@ export function FieldProbe({ name }: { name: string }) {
 			data-slot="field-probe"
 			data-field={name}
 			data-touched={field?.touched}
+			data-dirty={field?.dirty}
 			data-error={field?.errors?.[0]}
 		>
 			{String(field?.value)}
