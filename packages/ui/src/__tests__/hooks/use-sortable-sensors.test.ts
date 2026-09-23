@@ -29,4 +29,27 @@ describe('useSortableSensors', () => {
 
 		expect(keyboardSensor?.options).toMatchObject({ coordinateGetter: keyboardCoordinateGetter })
 	})
+
+	it('keeps the sensors array stable across renders with the keyboard sensor on', () => {
+		const { result, rerender } = renderHook(() => useSortableSensors())
+
+		const first = result.current
+
+		rerender()
+
+		expect(result.current).toBe(first)
+	})
+
+	it('rebuilds the sensors array when the keyboard coordinate getter changes', () => {
+		const { result, rerender } = renderHook(
+			({ getter }) => useSortableSensors({ keyboardCoordinateGetter: getter }),
+			{ initialProps: { getter: () => undefined } },
+		)
+
+		const first = result.current
+
+		rerender({ getter: () => undefined })
+
+		expect(result.current).not.toBe(first)
+	})
 })
