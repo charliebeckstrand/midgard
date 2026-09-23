@@ -63,6 +63,17 @@ describe('Checkbox', () => {
 
 		expect(input.indeterminate).toBe(true)
 	})
+
+	it('keeps the indeterminate flag after an activation while the prop stays true', () => {
+		const { container } = renderUI(<Checkbox indeterminate />)
+
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
+
+		// The browser clears the property on activation; the prop did not change.
+		fireEvent.click(input)
+
+		expect(input.indeterminate).toBe(true)
+	})
 })
 
 describe('Checkbox in a Form', () => {

@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, Minus } from 'lucide-react'
-import { type ComponentProps, useLayoutEffect, useRef } from 'react'
+import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
@@ -66,6 +66,18 @@ export function Checkbox({
 		if (internalRef.current) internalRef.current.indeterminate = !!indeterminate
 	}, [indeterminate])
 
+	// An activation clears the property. The prop does not change, so the effect
+	// does not run again. The wrapper writes the property, then calls the resolved
+	// handler. It attaches only while the prop is true, so React keeps its warning
+	// for a `checked` input with no `onChange` in the other case.
+	const handleChange: ChangeEventHandler<HTMLInputElement> | undefined = indeterminate
+		? (event) => {
+				event.currentTarget.indeterminate = !!indeterminate
+
+				resolvedOnChange?.(event)
+			}
+		: resolvedOnChange
+
 	const checkClass = cn(
 		'pointer-events-none absolute stroke-(--check-mark) opacity-0',
 		k.checkSize[resolvedSize],
@@ -91,7 +103,7 @@ export function Checkbox({
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
 				checked={resolvedChecked}
-				onChange={resolvedOnChange}
+				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
 				className={k.input()}
