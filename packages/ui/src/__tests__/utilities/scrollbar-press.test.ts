@@ -95,6 +95,19 @@ describe('isScrollbarPress', () => {
 		expect(isScrollbarPress(press(3), target)).toBe(false)
 	})
 
+	it('includes the boundary pixel at the horizontal gutter edge', () => {
+		const target = scroller({})
+
+		target.style.overflowX = 'auto'
+
+		Object.defineProperty(target, 'scrollWidth', { configurable: true, value: 800 })
+
+		// The client height is 100, so the horizontal gutter starts at offset 100.
+		expect(isScrollbarPress(press(50, 100), target)).toBe(true)
+
+		expect(isScrollbarPress(press(50, 99), target)).toBe(false)
+	})
+
 	it('reports no press on an axis that cannot scroll', () => {
 		const target = scroller({ direction: 'rtl', borderLeft: 7, borderRight: 3, gutter: 15 })
 
