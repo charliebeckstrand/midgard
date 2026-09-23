@@ -2,7 +2,7 @@
 
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
-import { Hold, useMountHold } from '../../primitives/mount'
+import { Hold, type Mount, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
 import { type ChatEmbedRenderer, useChatEmbeds } from './context'
 import type { ChatEmbedPart } from './engine/chat-content/types'
@@ -50,13 +50,42 @@ export type ChatEmbedProps = {
 export function ChatEmbed({ part, className }: ChatEmbedProps) {
 	const { renderers, fallback, mount = 'lazy' } = useChatEmbeds()
 
+	const render = renderers[part.name] ?? fallback ?? statedFallback
+
+	// `always` pays the mount up front, so the view is live from the first render.
+	// It takes no observer and no hold: a held view would sit hidden, with its
+	// effects paused and no space reserved, until the reader reached it.
+	if (mount === 'always') {
+		return (
+			<div data-slot="chat-embed" data-embed={part.name} className={cn(k.embed, className)}>
+				{render(part)}
+			</div>
+		)
+	}
+
+	return <HeldChatEmbed part={part} className={className} mount={mount} render={render} />
+}
+
+/** Props for {@link HeldChatEmbed}. @internal */
+type HeldChatEmbedProps = ChatEmbedProps & {
+	/** The policy that holds the view: `lazy` or `active`. */
+	mount: Exclude<Mount, 'always'>
+	/** The renderer that draws the part. */
+	render: ChatEmbedRenderer
+}
+
+/**
+ * Draws one `embed` block behind the viewport gate. `lazy` mounts it near the
+ * viewport and keeps it. `active` also unmounts it when it scrolls away.
+ *
+ * @internal
+ */
+function HeldChatEmbed({ part, className, mount, render }: HeldChatEmbedProps) {
 	// `active` must see a block leave the viewport, so its observer stays
-	// connected. `lazy` and `always` need only the first sight.
+	// connected. `lazy` needs only the first sight.
 	const { ref, inView } = useInView({ once: mount !== 'active' })
 
 	const hold = useMountHold(inView, mount)
-
-	const render = renderers[part.name] ?? fallback ?? statedFallback
 
 	return (
 		<div

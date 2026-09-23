@@ -140,10 +140,11 @@ const EMBED_TRANSCRIPTS = EMBED_SIZES.map((size) => ({
 }))
 
 describe('ChatTranscript · initial render, every reply carrying a view', () => {
-	// `always` against `lazy` is the saving deferring a renderer buys. The bench
-	// env reports every block as in view, so `lazy` here measures the machinery
-	// rather than a scrolled transcript — the honest floor. A real viewport shows
-	// a handful, and the gap widens to nearly the whole `always` cost.
+	// `always` against `lazy` is the saving deferring a renderer buys. Nothing
+	// intersects here (`NeverInView` above), so `lazy` measures the floor: a
+	// reader at the newest reply, with every view scrolled away. `always` mounts
+	// every view live, so it measures the full cost. A real viewport shows a
+	// handful, far nearer the floor.
 	mountBenches(
 		EMBED_TRANSCRIPTS,
 		({ label }) => `${label} · always`,
