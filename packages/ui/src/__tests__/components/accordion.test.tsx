@@ -414,6 +414,34 @@ describe('Accordion mount policy', () => {
 
 		expect(screen.getByText('Second body')).not.toBeVisible()
 	})
+
+	it('mount="always" references each closed panel via aria-controls', () => {
+		renderUI(<Panels mount="always" />)
+
+		// Every panel is present, so each closed header can point at its panel.
+		const controls = screen.getByRole('button', { name: 'Second' }).getAttribute('aria-controls')
+
+		expect(controls).toBeTruthy()
+
+		expect(document.getElementById(controls as string)).toContainElement(
+			screen.getByText('Second body'),
+		)
+	})
+
+	it('mount="lazy" drops aria-controls from a closed header', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(<Panels mount="lazy" />)
+
+		const first = screen.getByRole('button', { name: 'First' })
+
+		await user.click(first)
+
+		await user.click(first)
+
+		// The held panel stays in the DOM, but `lazy` gives no presence guarantee.
+		expect(first).not.toHaveAttribute('aria-controls')
+	})
 })
 
 // Held branch, for the reason the Collapse suite records.

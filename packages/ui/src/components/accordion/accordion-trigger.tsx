@@ -3,9 +3,10 @@
 import { ChevronDown } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
-import { useAccordionItem } from './context'
+import { useAccordion, useAccordionItem } from './context'
 
 /** Props for {@link AccordionTrigger}. */
 export type AccordionTriggerProps = ComponentProps<'button'> & {
@@ -33,6 +34,7 @@ export function AccordionTrigger({
 	onClick,
 	...props
 }: AccordionTriggerProps) {
+	const { mount } = useAccordion()
 	const { open, toggle, disabled, triggerProps } = useAccordionItem()
 
 	// Tailwind preflight zeroes heading font and margin; the wrapper is
@@ -49,9 +51,9 @@ export function AccordionTrigger({
 				type="button"
 				data-slot="accordion-trigger"
 				{...triggerProps}
-				// The panel unmounts while closed (AnimatePresence); the reference
-				// is set only while its target id exists.
-				aria-controls={open ? triggerProps['aria-controls'] : undefined}
+				// The reference needs its target id in the DOM. An open panel is
+				// present, and a closed panel is present only under `mount="always"`.
+				aria-controls={open || mountsEveryPanel(mount) ? triggerProps['aria-controls'] : undefined}
 				disabled={disabled}
 				onClick={(event) => {
 					toggle()

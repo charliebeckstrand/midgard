@@ -228,6 +228,32 @@ describe('Collapse', () => {
 			expect(screen.getByTestId('field')).not.toBeVisible()
 		})
 
+		it('mount="always" references the closed panel via aria-controls', () => {
+			renderUI(<Panel mount="always" />)
+
+			// The panel is present from the start, so the closed trigger can point at it.
+			const controls = screen.getByText('Toggle').getAttribute('aria-controls')
+
+			expect(controls).toBeTruthy()
+
+			expect(document.getElementById(controls as string)).toContainElement(
+				screen.getByTestId('field'),
+			)
+		})
+
+		it('mount="lazy" drops aria-controls from the closed trigger', async () => {
+			const user = userEvent.setup({ delay: null })
+
+			renderUI(<Panel mount="lazy" />)
+
+			await user.click(screen.getByText('Toggle'))
+
+			await user.click(screen.getByText('Toggle'))
+
+			// The held panel stays in the DOM, but `lazy` gives no presence guarantee.
+			expect(screen.getByText('Toggle')).not.toHaveAttribute('aria-controls')
+		})
+
 		it('holds the panel without motion when animate is false', async () => {
 			const user = userEvent.setup({ delay: null })
 
