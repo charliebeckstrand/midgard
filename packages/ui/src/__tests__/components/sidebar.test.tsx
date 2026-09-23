@@ -526,7 +526,9 @@ describe('SidebarItem', () => {
 		expect(bySlot(container, 'sidebar-item')?.className).toContain('hover:bg-zinc-950/5')
 	})
 
-	it('lets an explicit suffix prop win over a SidebarItemActions child', () => {
+	it('lets an explicit suffix prop win over a SidebarItemActions child, and warns', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
 		renderUI(
 			<Sidebar>
 				<SidebarItem suffix={<button type="button">from-prop</button>}>
@@ -541,6 +543,30 @@ describe('SidebarItem', () => {
 		expect(screen.getByRole('button', { name: 'from-prop' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('button', { name: 'from-child' })).toBeNull()
+
+		// The dropped controls must not vanish with no signal.
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('SidebarItemActions'))
+
+		warn.mockRestore()
+	})
+
+	it('does not warn when a SidebarItemActions child has the slot alone', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		renderUI(
+			<Sidebar>
+				<SidebarItem>
+					<SidebarLabel>Home</SidebarLabel>
+					<SidebarItemActions>
+						<button type="button">from-child</button>
+					</SidebarItemActions>
+				</SidebarItem>
+			</Sidebar>,
+		)
+
+		expect(warn).not.toHaveBeenCalled()
+
+		warn.mockRestore()
 	})
 })
 
