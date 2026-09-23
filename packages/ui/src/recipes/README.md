@@ -39,7 +39,7 @@ The contract is pinned by:
 - `__tests__/boundary/recipe-boundary.test.ts` — barrel is types-only; `package.json` `exports` never lists `./recipes`.
 - `biome.json`, the `recipes/kiso/**` override — kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, or providers.
 - `biome.json`, the `recipes/katakana/**` override — katakana imports nothing from kiso (neither values nor types).
-- `biome-plugins/no-unsanctioned-define-recipe.grit` — `defineRecipe` is invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`.
+- `biome/plugins/no-unsanctioned-define-recipe.grit` — `defineRecipe` is invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`.
 - `__tests__/boundary/recipe-import-boundary.test.ts` — components, modules, and primitives import values only via `recipes/kata/<name>`, and a kata imports no value from a sibling kata.
 
 ---
