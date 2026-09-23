@@ -461,6 +461,24 @@ describe('List keyboard reordering', () => {
 		expect(container.querySelectorAll('[tabindex]')).toHaveLength(items.length)
 	})
 
+	it('keeps one Tab stop on a link row that suppresses the interactive treatment', () => {
+		const { container } = renderUI(
+			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>
+				{(item) => (
+					<ListItem href={`/${item.id}`} interactive={false}>
+						{item.label}
+					</ListItem>
+				)}
+			</List>,
+		)
+
+		// The prop sets only the treatment. The link stays focusable, so the stop stays on it.
+		expect(bySlot(container, 'list-item-content')).toHaveAttribute('tabindex')
+		expect(bySlot(container, 'list-item')).not.toHaveAttribute('tabindex')
+
+		expect(container.querySelectorAll('[tabindex]')).toHaveLength(items.length)
+	})
+
 	it('keeps the stop on the row when its content only displays', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id} sortable onReorder={() => {}}>

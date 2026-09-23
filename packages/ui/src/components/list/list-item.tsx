@@ -32,7 +32,8 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
 	 * @remarks
 	 * The row-wide hit area follows the row's own handler, not this prop. A forced
 	 * `interactive` on a row whose handler sits on a child leaves that child the
-	 * target, rather than covering it.
+	 * target, rather than covering it. The Tab stop of a reorderable row also
+	 * follows the handler, not this prop.
 	 */
 	interactive?: boolean
 	/**
@@ -78,11 +79,11 @@ export type ListItemProps<Fallback extends ElementType = 'div'> = {
  * overlay also takes the pointer off the label text, so such a row gives up text
  * selection.
  *
- * A reorderable row has exactly ONE Tab stop. An interactive content area is
- * natively focusable, so the reorder keys ride it and the `<li>` takes no focus.
- * The `<li>` keeps only the drag node and the transform. A display-only row has nothing
- * focusable inside, so there the `<li>` is the stop. Wiring both put two
- * indistinguishable stops on every row: one to move it, one to activate it.
+ * A reorderable row adds exactly one Tab stop of its own. A content area with
+ * `href` or `onClick` is focusable, so the reorder keys ride it and the `<li>`
+ * takes no focus. The `<li>` keeps only the drag node and the transform. In a row
+ * with no such handler, the `<li>` is the stop. The `interactive` prop does not
+ * move the stop. A focusable child, such as a checkbox, keeps its own stop.
  *
  * @typeParam Fallback - Element the content area renders when no `href` is
  *   given; selected via `as`.
@@ -144,13 +145,13 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	// keep the focus/aria hints.
 	const { role: _role, tabIndex, ...dragAttrs } = attributes
 
-	// One row, one Tab stop. An activatable content area is ALREADY focusable, so the
-	// reorder gestures ride it rather than the `<li>` — wiring the `<li>` too put two
-	// indistinguishable stops on every row of a reorderable list, one to move it and
-	// one to open it. A row whose content only displays has nothing focusable inside,
-	// so there the `<li>` is the stop, as before.
-	const stopOnContent = reorderable && interactive
-	const stopOnRow = reorderable && !interactive
+	// One row, one Tab stop of its own. An activatable content area is focusable
+	// already, so the reorder gestures ride it rather than the `<li>`. Wiring both
+	// put two stops on each row: one to move it, one to open it. Read `activates`,
+	// not `interactive`. The prop sets the treatment, and a link stays focusable
+	// when the prop is false.
+	const stopOnContent = reorderable && activates
+	const stopOnRow = reorderable && !activates
 
 	// The content area is also where `props` lands, so the row's own handlers are read out and
 	// composed rather than left to fight the spread: whichever order they went in, one side would
