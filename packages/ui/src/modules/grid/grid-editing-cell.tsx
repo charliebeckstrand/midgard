@@ -47,7 +47,13 @@ type GridEditingCellProps<T> = {
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
 	Pick<
 		GridEditingSession,
-		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'claimFocus' | 'managed'
+		| 'stageDraft'
+		| 'unstageDraft'
+		| 'readDraft'
+		| 'endSession'
+		| 'entrySeed'
+		| 'claimFocus'
+		| 'managed'
 	> & {
 		/** The settle controls beside the editor, as the session decides them. */
 		settle: SettleControls
@@ -126,9 +132,11 @@ function GridSettleControls({
 
 /**
  * A cell's in-place editor while its row is in edit mode. It owns its live
- * display value, and mirrors each change into the grid's staged drafts. The
- * value starts as the cell's current value, or as the typed character of a
- * type-to-edit entry. The grid stays unrendered as the user types. Renders the
+ * display value, and mirrors each change into the session's staged drafts.
+ * The value starts as the typed character of a type-to-edit entry, else as the
+ * cell's staged draft, else as the cell's current value. The session owns the
+ * draft, so an unmount neither commits nor drops it. The grid stays unrendered
+ * as the user types. Renders the
  * column's {@link GridColumn.editCell} slot, or the editor inferred from the cell
  * value's primitive type. A failed `validate` rings the editor and shows the
  * message beneath the cell; Escape reverts the cell.
@@ -142,6 +150,7 @@ function GridCellEditor<T>({
 	column,
 	stageDraft,
 	unstageDraft,
+	readDraft,
 	endSession,
 	entrySeed,
 	claimFocus,
@@ -154,13 +163,27 @@ function GridCellEditor<T>({
 	// the focus hand-off, so a later render must not read it again.
 	const [entry] = useState(() => entrySeed(rowKey, column.id))
 
-	const [draft, setDraft] = useState<unknown>(entry === undefined ? seed : entry)
+	// A typed entry replaces the cell's value. Otherwise the editor shows the
+	// cell's staged draft when it has one. The draft belongs to the session, so
+	// an editor that mounts again, after a page change or a scroll, shows the
+	// value that will commit, not the row's value.
+	const [draft, setDraft] = useState<unknown>(() => {
+		if (entry !== undefined) return entry
+
+		const staged = readDraft(rowKey, column.id)
+
+		return staged === undefined ? seed : staged.value
+	})
 
 	// A typed character is an edit, so it stages like one. Staging here rather
-	// than at entry keeps a declined entry from leaving a draft behind.
+	// than at entry keeps a declined entry from leaving a draft behind. The row
+	// is the one the editor mounted with, so a new row object from the consumer
+	// does not stage the entry a second time.
+	const [mountRow] = useState(row)
+
 	useEffect(() => {
-		if (entry !== undefined) stageDraft(rowKey, column.id, entry)
-	}, [entry, stageDraft, rowKey, column.id])
+		if (entry !== undefined) stageDraft(rowKey, column.id, entry, mountRow)
+	}, [entry, stageDraft, rowKey, column.id, mountRow])
 
 	const hostRef = useRef<HTMLSpanElement>(null)
 
@@ -180,7 +203,7 @@ function GridCellEditor<T>({
 	const update = (next: unknown) => {
 		setDraft(next)
 
-		stageDraft(rowKey, column.id, next)
+		stageDraft(rowKey, column.id, next, row)
 	}
 
 	const cancel = () => {
@@ -295,6 +318,7 @@ export function GridEditingCell<T>({
 		activeEditStore,
 		stageDraft,
 		unstageDraft,
+		readDraft,
 		endSession,
 		entrySeed,
 		claimFocus,
@@ -328,6 +352,7 @@ export function GridEditingCell<T>({
 				column={column}
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
+				readDraft={readDraft}
 				endSession={endSession}
 				entrySeed={entrySeed}
 				claimFocus={claimFocus}

@@ -13,10 +13,10 @@ export type GridCellRef = {
 
 /**
  * A single committed cell write: the new `value` for `columnId` on the row keyed
- * by `rowKey`. Cells commit when their editor closes, batched per row into a
- * single {@link GridEditableConfig.onCommit} call. A saved row therefore emits
- * one per changed cell. A cell-scoped session emits one per move, because it
- * holds one editor open. A session that narrowed a row already open is the
+ * by `rowKey`. Cells commit when the edit session closes them, batched per row
+ * into a single {@link GridEditableConfig.onCommit} call. A saved row therefore
+ * emits one per changed cell. A cell-scoped session emits one per move, because
+ * it holds one cell open. A session that narrowed a row already open is the
  * exception: the editors it closes emit together.
  */
 export type GridCellChange = {
@@ -36,7 +36,11 @@ export type GridCellChange = {
 export type GridEditCellContext<T> = {
 	/** The row under edit. */
 	row: T
-	/** The cell's current value (`row[field]` when the column binds a `field`, else `undefined`). */
+	/**
+	 * The value the editor shows. That is the cell's staged draft when it has
+	 * one, else `row[field]` when the column binds a `field`, else `undefined`.
+	 * An editor that mounts again while its cell is open shows its draft.
+	 */
 	value: unknown
 	/** Stage the next value without committing — call on each keystroke or selection change. */
 	onValueUpdate: (next: unknown) => void
@@ -107,7 +111,23 @@ export type GridRowActionsContext = {
  * vice versa.
  */
 export type GridEditableConfig = {
-	/** Controlled set of row keys whose cells are editable; pair with {@link GridEditableConfig.onRowsChange}. */
+	/**
+	 * Controlled set of row keys whose cells are editable; pair with {@link GridEditableConfig.onRowsChange}.
+	 *
+	 * @remarks A row's staged edits belong to the session, not to its editors.
+	 * They commit when the row leaves this set. While the row stays in the set,
+	 * an editor that unmounts keeps its edit. A page change, a virtualized
+	 * scroll, and a hidden column all unmount editors. The row's editors show the
+	 * edits again when they mount.
+	 *
+	 * A row can be absent from the grid's `rows` when it leaves this set. Under
+	 * server-side pagination it is on another page, and it can also be a row you
+	 * deleted. The grid cannot tell the two apart, and it never drops a user
+	 * edit by default. The edits commit against the row object that each was
+	 * first staged against, with the row's key. Ignore a change for a row that
+	 * you deleted. A row whose key changed during the session is the same case:
+	 * its edits commit under the old key.
+	 */
 	rows?: Set<string | number>
 	/** Initial editable row keys for the uncontrolled case. */
 	defaultRows?: Set<string | number>
@@ -162,7 +182,9 @@ export type GridEditableConfig = {
 	 * session to the entered cell alone. Only that cell mounts an editor, and
 	 * moving to another cell commits the one it leaves. A session that opened its
 	 * own row therefore commits one {@link GridCellChange} at a time: the spreadsheet
-	 * shape. Narrowing a row the consumer had already opened is the exception: the
+	 * shape. The held cell commits when the session leaves it, not when its
+	 * editor unmounts. A page change, a scroll, or a hidden column keeps the
+	 * draft, and the editor shows it when it mounts again. Narrowing a row the consumer had already opened is the exception: the
 	 * editors that close with the narrowing commit together, in one batch. Escape under
 	 * `'cell'` drops the active cell's draft alone, because the cells before it
 	 * already committed. The setting needs a grid-owned session ({@link
@@ -230,7 +252,8 @@ export type GridEditableConfig = {
 	 * below (see {@link GridEditableConfig.onCellChange}). Set a new
 	 * cell to enter it. The grid commits the held cell, and opens the new row
 	 * through `onRowsChange` if necessary. Set `null` to end the session. The
-	 * held cell then commits, as a save through `rows` does.
+	 * held cell then commits, as a save through `rows` does. It commits even
+	 * when its editor is not mounted, because the draft belongs to the session.
 	 *
 	 * @remarks The binding needs {@link GridEditableConfig.session} `'managed'`
 	 * and {@link GridEditableConfig.scope} `'cell'`. Anywhere else it has no
@@ -282,14 +305,19 @@ export type GridEditableConfig = {
 	onCellChange?: (cell: GridCellRef | null) => void
 	/**
 	 * Called when staged cells commit, with one {@link GridCellChange} per changed cell
-	 * of a row, batched into a single call. Cells commit when their editor closes.
-	 * Saving a row — removing it from the set — closes all of them at once; a
-	 * cell-scoped session usually closes one as it moves on. Read the batch rather
-	 * than its first entry: a session narrowing an already-open row closes several
-	 * at once. Three kinds of cell are dropped: unchanged ones, and ones whose
-	 * {@link GridColumn.validate} rejects the value. So are ones whose column
-	 * stopped being editable while the editor was open. Apply each change to your
-	 * own row data and feed it back as `rows`.
+	 * of a row, batched into a single call. Cells commit when the session closes
+	 * them, not when their editors unmount. Saving a row — removing it from the
+	 * set — closes all of them at once; a cell-scoped session usually closes one
+	 * as it moves on. A row or a column out of view still commits. Read the
+	 * batch rather than its first entry: a session narrowing an already-open row
+	 * closes several at once. Three kinds of cell are dropped: unchanged ones, and
+	 * ones whose {@link GridColumn.validate} rejects the value. So are ones whose
+	 * column stopped being editable while the editor was open. A row that is no
+	 * longer in the grid's `rows` still commits. The grid compares and
+	 * validates against the row object that the edit was first staged against
+	 * (see {@link GridEditableConfig.rows}). Apply each change to your own row
+	 * data and feed it back as `rows`. Ignore a change for a row that you
+	 * deleted.
 	 */
 	onCommit: (changes: GridCellChange[]) => void
 	/**

@@ -180,3 +180,34 @@ describe('Grid · cell-scoped session Tab move', () => {
 		})
 	}
 })
+
+/**
+ * One keystroke in an editor of an open row-scoped session. The row's seven
+ * editors are open before the timed region starts. A keystroke stages its
+ * value in the session's draft store, which no cell subscribes to. So only the
+ * editor that takes the keystroke renders again, at every size.
+ */
+describe('Grid · row session keystroke', () => {
+	for (const rows of SIZES) {
+		let key = 0
+
+		persistentTree(
+			<Grid
+				columns={COLUMNS}
+				rows={rows}
+				getKey={shipmentKey}
+				editable={{
+					session: 'managed',
+					defaultRows: new Set([shipmentKey(rows[0] as Shipment)]),
+					onCommit: noop,
+				}}
+			/>,
+			(container) =>
+				container.querySelector('td[data-grid-col="reference"] input') as HTMLInputElement,
+		).bench(`${rows.length.toLocaleString()} rows × 8 cols · one keystroke`, (input) => {
+			key++
+
+			fireEvent.change(input, { target: { value: `REF-${key}` } })
+		})
+	}
+})
