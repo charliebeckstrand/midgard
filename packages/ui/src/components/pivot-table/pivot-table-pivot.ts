@@ -112,9 +112,9 @@ export function aggregateAll(
 	groups: Map<string, Map<string, number[]>>,
 	op: PivotAggregation,
 ): number | undefined {
-	const values: number[] = []
-
-	for (const row of groups.values()) for (const bucket of row.values()) values.push(...bucket)
+	// Collect as the siblings do. An argument spread (`push(...bucket)`) throws a
+	// `RangeError` when one bucket passes the engine's argument limit.
+	const values = [...groups.values()].flatMap((row) => [...row.values()].flat())
 
 	return values.length > 0 ? aggregate(values, op) : undefined
 }
