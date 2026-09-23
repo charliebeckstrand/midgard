@@ -201,7 +201,9 @@ export function useDatePickerRangeState({
 	)
 
 	// `footer.clear` (default on) gates the only footer button this variant has.
-	const showClear = footer?.clear !== false && rangeStart === null && value != null
+	// readOnly drops it, because the button cannot write a value.
+	const showClear =
+		!resolvedReadOnly && footer?.clear !== false && rangeStart === null && value != null
 
 	const footerButtons = useMemo<FooterButton[]>(() => (showClear ? ['clear'] : []), [showClear])
 

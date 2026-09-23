@@ -172,8 +172,9 @@ export type DatePickerBaseProps = GroupStampProps & {
 	disabled?: boolean
 	/**
 	 * Keeps the trigger focusable and the value submitted, but blocks opening the
-	 * calendar and changing the value. The clear button does not show, and the
-	 * typed `input` field is read-only.
+	 * calendar and changing the value. The trigger clear button does not show,
+	 * and the typed `input` field is read-only. A controlled `open` still shows
+	 * the calendar, but without the footer Clear and Today buttons.
 	 */
 	readOnly?: boolean
 	/** Controlled calendar open state. Pair with `onOpenChange`. */
