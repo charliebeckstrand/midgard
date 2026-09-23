@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { keyByOccurrence } from '../../utilities/key-by-occurrence'
 
-// Repeats are suffixed with a NUL separator + occurrence index; build the
+// Repeats are keyed as NUL + occurrence index + NUL + value; build the
 // expected key the same way instead of embedding a control character.
 const SEP = String.fromCharCode(0)
 
@@ -22,9 +22,9 @@ describe('keyByOccurrence', () => {
 	it('suffixes repeat occurrences so duplicate values get distinct keys', () => {
 		expect(keyByOccurrence(['a', 'a', 'b', 'a'])).toEqual([
 			{ key: 'a', value: 'a' },
-			{ key: `a${SEP}1`, value: 'a' },
+			{ key: `${SEP}1${SEP}a`, value: 'a' },
 			{ key: 'b', value: 'b' },
-			{ key: `a${SEP}2`, value: 'a' },
+			{ key: `${SEP}2${SEP}a`, value: 'a' },
 		])
 	})
 
@@ -32,6 +32,20 @@ describe('keyByOccurrence', () => {
 		const keys = keyByOccurrence(['x', 'x', 'x']).map((entry) => entry.key)
 
 		expect(new Set(keys).size).toBe(keys.length)
+	})
+
+	it('produces a unique key when a value spells a synthesised key', () => {
+		const inputs = [
+			['a', 'a', `a${SEP}1`],
+			['a', 'a', `${SEP}1${SEP}a`],
+			[`${SEP}0${SEP}a`, `${SEP}0${SEP}a`, `${SEP}1${SEP}${SEP}0${SEP}a`],
+		]
+
+		for (const values of inputs) {
+			const keys = keyByOccurrence(values).map((entry) => entry.key)
+
+			expect(new Set(keys).size).toBe(keys.length)
+		}
 	})
 
 	it('preserves input order', () => {

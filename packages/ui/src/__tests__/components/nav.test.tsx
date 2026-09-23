@@ -1,6 +1,15 @@
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { Button } from '../../components/button'
-import { Nav, NavBar, NavContent, NavContents, NavItem, NavList } from '../../components/nav'
+import {
+	Nav,
+	NavBar,
+	NavContent,
+	NavContents,
+	type NavContextValue,
+	NavItem,
+	NavList,
+	useNavContext,
+} from '../../components/nav'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
@@ -274,5 +283,11 @@ describe('NavContent / NavContents', () => {
 		)
 
 		expect(screen.getByText('Home panel')).toBeInTheDocument()
+	})
+})
+
+describe('useNavContext', () => {
+	it('returns the exported NavContextValue, or undefined outside a Nav', () => {
+		expectTypeOf(useNavContext).returns.toEqualTypeOf<NavContextValue | undefined>()
 	})
 })

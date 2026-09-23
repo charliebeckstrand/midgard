@@ -42,23 +42,21 @@ function collapseExtraDecimals(value: string, decimal: string) {
 
 // Strips redundant leading zeros and applies locale digit grouping. An empty
 // integer part renders as '0' only when a fraction follows, else stays empty.
+// `disallowedRe` leaves only ASCII digits here, so `BigInt` cannot throw. It
+// groups every digit as typed: a `Number` loses digits past 2^53.
 function groupIntegerPart(intPart: string, hasFraction: boolean, locale: string | undefined) {
 	const trimmed = intPart.replace(/^0+(?=\d)/, '')
 
 	if (trimmed === '') return hasFraction ? '0' : ''
 
-	const n = Number(trimmed)
-
-	return Number.isFinite(n)
-		? // `numberingSystem: 'latn'` keeps grouped output in ASCII digits so the
-			// editing parser (which only recognizes 0-9) and the caret restore stay
-			// aligned in non-latn-default locales (ar-EG, fa-IR, ne-NP, bn-IN).
-			n.toLocaleString(locale, {
-				useGrouping: true,
-				maximumFractionDigits: 0,
-				numberingSystem: 'latn',
-			})
-		: trimmed
+	// `numberingSystem: 'latn'` keeps grouped output in ASCII digits so the
+	// editing parser (which only recognizes 0-9) and the caret restore stay
+	// aligned in non-latn-default locales (ar-EG, fa-IR, ne-NP, bn-IN).
+	return BigInt(trimmed).toLocaleString(locale, {
+		useGrouping: true,
+		maximumFractionDigits: 0,
+		numberingSystem: 'latn',
+	})
 }
 
 export function formatEditing(
