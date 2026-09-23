@@ -6,11 +6,10 @@
  * transition.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, type Step, sen, ugoki } from '../kiso'
+import { hannou, iro, kasane, narabi, type Step, sen, stepSize, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
-const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
@@ -33,11 +32,7 @@ const itemContent = defineRecipe(
 			'select-none',
 			...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
 		],
-		size: {
-			sm: size.sm,
-			md: size.md,
-			lg: size.lg,
-		},
+		size: stepSize,
 		defaults: { size: 'md' },
 	},
 	{ current: text.default },

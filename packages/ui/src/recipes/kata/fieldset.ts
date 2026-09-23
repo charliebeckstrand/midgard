@@ -5,11 +5,11 @@
  * slots are static, threading the disabled state down through the group.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi } from '../kiso'
+import { hannou, iro, ji, narabi, stepSize } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { field } = narabi
 
 const label = defineRecipe({
@@ -21,31 +21,19 @@ const label = defineRecipe({
 		text.default,
 		...disabled,
 	],
-	size: {
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-	},
+	size: stepSize,
 	defaults: { size: 'md' },
 })
 
 const description = defineRecipe({
 	base: [text.muted, ...disabled],
-	size: {
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-	},
+	size: stepSize,
 	defaults: { size: 'md' },
 })
 
 const message = defineRecipe({
 	base: [...disabled],
-	size: {
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-	},
+	size: stepSize,
 	severity: {
 		error: text.error,
 		warning: text.warning,
@@ -56,11 +44,7 @@ const message = defineRecipe({
 
 const legend = defineRecipe({
 	base: [weight.semibold, text.default, ...disabled],
-	size: {
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-	},
+	size: stepSize,
 	defaults: { size: 'md' },
 })
 

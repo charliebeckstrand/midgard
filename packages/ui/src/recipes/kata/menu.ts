@@ -7,7 +7,7 @@
  * `separator` divider join them.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, sen } from '../kiso'
+import { hannou, iro, ji, narabi, sen, stepSize } from '../kiso'
 
 const { onWash, text } = iro
 const { size, weight } = ji
@@ -28,11 +28,7 @@ const item = defineRecipe({
 		md: 'gap-3 px-3 py-1.5',
 		lg: 'gap-3 px-3.5 py-2.5',
 	},
-	size: {
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-	},
+	size: stepSize,
 	defaults: { density: 'md', size: 'md' },
 })
 
