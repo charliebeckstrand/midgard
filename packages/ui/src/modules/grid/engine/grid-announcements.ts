@@ -109,3 +109,20 @@ export function describeResize(label: string, width: number): string {
 export function describeCommit(cells: number): string {
 	return `${cells} ${cells === 1 ? 'cell' : 'cells'} updated`
 }
+
+/**
+ * The polite announcement for an async inline-edit commit as it settles (WCAG
+ * 4.1.3). An accepted batch reads as {@link describeCommit} does (`2 cells
+ * updated`). A refused batch counts the refused cells (`1 cell not saved`). A
+ * partial acceptance speaks both parts in one message. The caller announces
+ * once for each batch.
+ *
+ * @internal
+ */
+export function describeSettle(saved: number, refused: number): string {
+	if (refused === 0) return describeCommit(saved)
+
+	const failed = `${refused} ${refused === 1 ? 'cell' : 'cells'} not saved`
+
+	return saved === 0 ? failed : `${describeCommit(saved)}, ${failed}`
+}

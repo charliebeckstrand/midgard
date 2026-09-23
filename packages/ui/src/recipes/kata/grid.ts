@@ -799,6 +799,10 @@ export const k = {
 		// overriding it here would drop the pair under the 24x24 target minimum
 		// (WCAG 2.5.8) at every density, worst in a condensed grid.
 		settle: [flex.row, 'ml-1 shrink-0 gap-0.5'],
+		// A cell whose async commit is in flight. It signals busy the way
+		// `body.settling` does for a server sort: a `motion-safe` pulse, or a
+		// static 50% dim for a reduced-motion user, never both.
+		pending: [css.pulse, 'motion-reduce:opacity-50'],
 		// A failed validation rings the editor and anchors a small message below it.
 		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [

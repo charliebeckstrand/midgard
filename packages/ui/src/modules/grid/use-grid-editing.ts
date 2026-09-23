@@ -15,7 +15,7 @@ import {
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
-import { describeCommit } from './engine/grid-announcements'
+import { describeCommit, describeSettle } from './engine/grid-announcements'
 import { EMPTY_SET, FLOATING_PORTAL } from './engine/grid-constants'
 import {
 	createDraftStore,
@@ -36,7 +36,7 @@ import type {
 	GridEditingSession,
 	GridSettleControls,
 } from './grid-editing-context'
-import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
+import type { GridCellChange, GridCellRefusal, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
 
@@ -191,11 +191,13 @@ function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
  * without a notice, for the render that resolves it. The cells that render in
  * that pass then read the new coord. `set` moves the coord and notifies the
  * rest. It notifies only when the coord names another cell than the listeners
- * last heard, so a write that repeats the held cell renders nothing. @internal
+ * last heard, so a write that repeats the held cell renders nothing. `notify`
+ * tells every listener that a draft changed status. @internal
  */
 function createActiveEditStore(): GridActiveEditStore & {
 	seat: (next: GridActiveEdit | null) => void
 	set: (next: GridActiveEdit | null) => void
+	notify: () => void
 } {
 	let coord: GridActiveEdit | null = null
 
@@ -222,6 +224,9 @@ function createActiveEditStore(): GridActiveEditStore & {
 
 			told = next
 
+			for (const listener of listeners) listener()
+		},
+		notify: () => {
 			for (const listener of listeners) listener()
 		},
 	}
@@ -311,13 +316,34 @@ function flushRow<T>(
 	return { changes, refused }
 }
 
+/** The sink of a commit, {@link GridEditableConfig.onCommit}. @internal */
+type CommitSink = GridEditableConfig['onCommit']
+
+/**
+ * One `onCommit` batch that returned a promise: the row, the drafts of its
+ * changed cells, and the promise. The drafts go back to the store as pending
+ * until the promise settles. @internal
+ */
+type InFlightBatch = {
+	rowKey: string | number
+	drafts: RowDrafts
+	result: PromiseLike<unknown>
+}
+
+/** Whether a sink's return value is a promise, by the thenable rule. @internal */
+function isThenable(value: unknown): value is PromiseLike<unknown> {
+	return value != null && typeof (value as { then?: unknown }).then === 'function'
+}
+
 /**
  * Commits every staged cell that the session closed, one `onCommit` batch per
  * row. It hands the cells `validate` refused to `onReject`, and returns the
  * cells saved across them (for the commit announcement). A row with no sink to
  * reach counts nothing, so the announcement never speaks a commit that did
  * not happen. Each closed draft leaves the store. A draft of a cell that is
- * still open stays staged.
+ * still open stays staged. A batch whose sink returns a promise is not saved
+ * yet, so it is not counted. It returns in `inFlight`, with the drafts of its
+ * changed cells.
  *
  * @remarks One rule covers every way a session ends, because each is the same
  * event seen from the cell. A consumer's save and a grid-owned exit close a whole
@@ -339,10 +365,12 @@ function flushClosedCells<T>(args: {
 	editableRows: Set<string | number>
 	activeEdit: GridActiveEdit | null
 	source: GridEditSource<T>
-	onCommit: ((changes: GridCellChange[]) => void) | undefined
+	onCommit: CommitSink | undefined
 	onReject: ((refused: GridCellChange[]) => void) | undefined
-}): number {
+}): { saved: number; inFlight: InFlightBatch[] } {
 	let saved = 0
+
+	const inFlight: InFlightBatch[] = []
 
 	const closed = args.drafts.take(
 		(rowKey, columnId) =>
@@ -363,12 +391,96 @@ function flushClosedCells<T>(args: {
 
 		if (!changes.length || !args.onCommit) continue
 
-		args.onCommit(changes)
+		const result = args.onCommit(changes)
 
-		saved += changes.length
+		if (!isThenable(result)) {
+			saved += changes.length
+
+			continue
+		}
+
+		const drafts: RowDrafts = new Map()
+
+		for (const change of changes) {
+			const draft = rowDrafts.get(change.columnId)
+
+			if (draft) drafts.set(change.columnId, draft)
+		}
+
+		inFlight.push({ rowKey, drafts, result })
 	}
 
-	return saved
+	return { saved, inFlight }
+}
+
+/**
+ * Settles each draft of `batch` in the store: accepted, or refused with the
+ * error that `refused` names for its column. `reopen` answers whether a
+ * refused cell opens beside the session. A draft that the cell no longer holds
+ * counts nothing. It returns the counts, for the announcement. @internal
+ */
+function settleDrafts(args: {
+	batch: InFlightBatch
+	refused: Map<string | number, string>
+	drafts: GridDraftStore
+	reopen: (columnId: string | number) => boolean
+}): { saved: number; failed: number } {
+	const { batch, refused, drafts } = args
+
+	let saved = 0
+
+	let failed = 0
+
+	for (const [columnId, draft] of batch.drafts) {
+		const error = refused.get(columnId)
+
+		const refusal = error === undefined ? null : { error, reopen: args.reopen(columnId) }
+
+		if (!drafts.settle(batch.rowKey, columnId, draft, refusal)) continue
+
+		if (refusal === null) saved++
+		else failed++
+	}
+
+	return { saved, failed }
+}
+
+/** The error a refused cell shows when the consumer gives none. @internal */
+const COMMIT_REFUSED = 'Change not saved'
+
+/**
+ * The error of each refused cell of a settled batch, keyed by column id. A
+ * resolved value lists the refused cells, and an empty or absent list accepts
+ * the batch. A refusal of a cell outside the batch changes nothing. A
+ * rejection refuses every cell, with the reason's `message` when that is a
+ * non-empty string. Any other error falls back to {@link COMMIT_REFUSED}.
+ * @internal
+ */
+function readRefusals(
+	batch: InFlightBatch,
+	outcome: { value: unknown } | { reason: unknown },
+): Map<string | number, string> {
+	const refused = new Map<string | number, string>()
+
+	if ('reason' in outcome) {
+		const message = (outcome.reason as { message?: unknown } | null)?.message
+
+		const error = typeof message === 'string' && message !== '' ? message : COMMIT_REFUSED
+
+		for (const columnId of batch.drafts.keys()) refused.set(columnId, error)
+
+		return refused
+	}
+
+	const refusals: GridCellRefusal[] = Array.isArray(outcome.value) ? outcome.value : []
+
+	for (const refusal of refusals) {
+		if (refusal.rowKey !== batch.rowKey || !batch.drafts.has(refusal.columnId)) continue
+
+		refused.set(refusal.columnId, refusal.error || COMMIT_REFUSED)
+	}
+
+	return refused
 }
 
 /**
@@ -863,6 +975,8 @@ function useActiveCell<T>({
  * nor drops it. An editor that mounts again shows it. A row that left the
  * grid's data when its session closes commits against the row snapshot that
  * each draft keeps. A write to a cell that the session closed is ignored.
+ * An async `onCommit` holds its batch's drafts in the same store as pending
+ * until the promise settles. A refused draft is staged again, with its error.
  *
  * The active cell is a controllable of its own (`cell`). Uncontrolled, the
  * grid writes it at event time, as before. Controlled, the grid only asks for
@@ -1040,6 +1154,13 @@ export function useGridEditing<T>({
 	const unstageDraft = drafts.unstage
 
 	const readDraft = drafts.read
+
+	// Whether the cell's commit is in flight. Such a cell cannot open.
+	const isPending = useCallback(
+		(rowKey: string | number, columnId: string | number) =>
+			drafts.read(rowKey, columnId)?.status === 'pending',
+		[drafts],
+	)
 
 	// The cell whose editor takes focus once it mounts. The entry sets it, and the
 	// editor claims it as it mounts or as the session comes to hold it. A
@@ -1259,7 +1380,11 @@ export function useGridEditing<T>({
 			// mount question: it holds for every cell of a row the consumer opened,
 			// so it would refuse to narrow one. A session that has not started is not
 			// a reason to decline starting it.
-			if (entering ? isSameCell(active, entering) : editableRows.has(rowKey)) return
+			const here = entering ? isSameCell(active, entering) : editableRows.has(rowKey)
+
+			// A cell whose commit is in flight cannot open, so no second batch for
+			// it can start before the first settles.
+			if (here || isPending(rowKey, columnId)) return
 
 			pendingFocusRef.current = { rowKey, columnId }
 
@@ -1304,7 +1429,7 @@ export function useGridEditing<T>({
 				return next.add(rowKey)
 			})
 		},
-		[cellScoped, controlled, setEditableRows, writeActiveCell],
+		[cellScoped, controlled, isPending, setEditableRows, writeActiveCell],
 	)
 
 	// Drops the drafts that a discard abandons. A cell-scoped session abandons
@@ -1568,7 +1693,10 @@ export function useGridEditing<T>({
 
 			const col = columns.findIndex((column) => column.id === columnId)
 
-			const next = stepEditableColumn(columns, col, step)
+			// A cell whose commit is in flight cannot open, so the move steps past it.
+			const next = stepEditableColumn(columns, col, step, (index) =>
+				isPending(rowKey, columns[index]?.id ?? ''),
+			)
 
 			const target = columns[next]
 
@@ -1605,6 +1733,7 @@ export function useGridEditing<T>({
 			controlled,
 			cellId,
 			commitHere,
+			isPending,
 			enterEdit,
 			moveTo,
 			rowKeysRef,
@@ -1759,6 +1888,89 @@ export function useGridEditing<T>({
 		[cellScoped, commitOn, activeEditStore],
 	)
 
+	// Moves a cell-scoped session onto a refused cell that the refusal opened
+	// beside it, as focus moves into its editor. Focus is already there, so the
+	// entry leaves no focus intent.
+	const resumeCell = useCallback(
+		(rowKey: string | number, columnId: string | number) => {
+			if (!cellScoped) return
+
+			enterEdit(rowKey, columnId)
+
+			dropIntents()
+		},
+		[cellScoped, enterEdit, dropIntents],
+	)
+
+	// Whether the grid is mounted. A commit that settles after the unmount
+	// changes nothing and announces nothing.
+	const mountedRef = useRef(false)
+
+	useEffect(() => {
+		mountedRef.current = true
+
+		return () => {
+			mountedRef.current = false
+		}
+	}, [])
+
+	// Settles one async batch. An accepted draft leaves the store, and the cell
+	// reads the row again. A refused draft is staged again, with its error, and
+	// focus stays where it is. Under row scope the refused row opens again.
+	// Under cell scope a refused cell opens beside the session, unless the
+	// session holds it. One polite announcement speaks the batch.
+	const settleBatch = useCallback(
+		(batch: InFlightBatch, refused: Map<string | number, string>) => {
+			if (!mountedRef.current) return
+
+			const { rowKey } = batch
+
+			// A cell-scoped session holds one cell, so a refused cell opens beside
+			// it. A cell that the session holds already needs no mark.
+			const reopen = (columnId: string | number) =>
+				cellScoped &&
+				!isCellEditing({
+					rowKey,
+					columnId,
+					editableRows: editableRowsRef.current,
+					activeEdit: activeEditRef.current,
+				})
+
+			const { saved, failed } = settleDrafts({ batch, refused, drafts, reopen })
+
+			if (saved + failed === 0) return
+
+			activeEditStore.notify()
+
+			if (failed > 0 && !cellScoped && !editableRowsRef.current.has(rowKey))
+				setEditableRows((prev) => new Set(prev ?? EMPTY_SET).add(rowKey))
+
+			announce(describeSettle(saved, failed))
+		},
+		[cellScoped, drafts, activeEditStore, setEditableRows],
+	)
+
+	// Puts the drafts of an async batch back as pending, and settles them when
+	// the promise does. A rejection refuses the whole batch.
+	const trackBatch = useCallback(
+		(batch: InFlightBatch) => {
+			for (const [columnId, draft] of batch.drafts) drafts.pend(batch.rowKey, columnId, draft)
+
+			activeEditStore.notify()
+
+			batch.result.then(
+				(value) => settleBatch(batch, readRefusals(batch, { value })),
+				(reason: unknown) => settleBatch(batch, readRefusals(batch, { reason })),
+			)
+		},
+		[drafts, activeEditStore, settleBatch],
+	)
+
+	// Read by the sweep, so a new callback does not run the sweep again.
+	const trackBatchRef = useRef(trackBatch)
+
+	trackBatchRef.current = trackBatch
+
 	// Commit the cells that the session closed in the render just past. The
 	// drafts belong to the session, and this is where they land in the sink. The
 	// open state answers it on its own, so no copy of the last render is kept to
@@ -1766,7 +1978,7 @@ export function useGridEditing<T>({
 	useEffect(() => {
 		sweptRef.current = { rows: editableRows, cell: activeEdit }
 
-		const saved = flushClosedCells({
+		const { saved, inFlight } = flushClosedCells({
 			drafts,
 			editableRows,
 			activeEdit,
@@ -1775,8 +1987,11 @@ export function useGridEditing<T>({
 			onReject: onRejectRef.current,
 		})
 
-		// Announce the commit politely, without moving focus (WCAG 4.1.3).
+		// Announce the commit politely, without moving focus (WCAG 4.1.3). An
+		// async batch announces as it settles.
 		if (saved > 0) announce(describeCommit(saved))
+
+		for (const batch of inFlight) trackBatchRef.current(batch)
 	}, [drafts, editableRows, activeEdit, editSourceRef])
 
 	const session = useMemo<GridEditingSession>(
@@ -1790,6 +2005,7 @@ export function useGridEditing<T>({
 			entrySeed,
 			claimFocus,
 			settleControls,
+			resumeCell,
 			managed,
 		}),
 		[
@@ -1803,6 +2019,7 @@ export function useGridEditing<T>({
 			entrySeed,
 			claimFocus,
 			settleControls,
+			resumeCell,
 		],
 	)
 

@@ -7,6 +7,7 @@ import {
 	useCallback,
 	useEffect,
 	useId,
+	useLayoutEffect,
 	useRef,
 	useState,
 	useSyncExternalStore,
@@ -53,10 +54,16 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'>
 		| 'endSession'
 		| 'entrySeed'
 		| 'claimFocus'
+		| 'resumeCell'
 		| 'managed'
 	> & {
 		/** The settle controls beside the editor, as the session decides them. */
 		settle: SettleControls
+		/**
+		 * Whether a refusal holds this editor open beside a cell-scoped session.
+		 * Focus into it then moves the session onto the cell.
+		 */
+		held: boolean
 	}
 
 /** The two ways a cell-scoped session ends, as the controls that end it. @internal */
@@ -139,7 +146,8 @@ function GridSettleControls({
  * as the user types. Renders the
  * column's {@link GridColumn.editCell} slot, or the editor inferred from the cell
  * value's primitive type. A failed `validate` rings the editor and shows the
- * message beneath the cell; Escape reverts the cell.
+ * message beneath the cell; Escape reverts the cell. A draft that an async
+ * commit refused shows its error on the same surface, until the next edit.
  *
  * @internal
  */
@@ -154,8 +162,10 @@ function GridCellEditor<T>({
 	endSession,
 	entrySeed,
 	claimFocus,
+	resumeCell,
 	managed,
 	settle,
+	held,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -185,7 +195,51 @@ function GridCellEditor<T>({
 		if (entry !== undefined) stageDraft(rowKey, column.id, entry, mountRow)
 	}, [entry, stageDraft, rowKey, column.id, mountRow])
 
+	// The error of a commit that the consumer refused, read once as the editor
+	// mounts. A typed entry is an edit, so it clears the error.
+	const [refusal, setRefusal] = useState(() =>
+		entry === undefined ? readDraft(rowKey, column.id)?.error : undefined,
+	)
+
+	const update = (next: unknown) => {
+		setDraft(next)
+
+		setRefusal(undefined)
+
+		stageDraft(rowKey, column.id, next, row)
+	}
+
+	// A held editor is already mounted when the session comes to hold it, so a
+	// type-to-edit entry reaches it here rather than at mount. This runs before
+	// the focus claim below, which drops the entry's intents.
+	const wasHeld = useRef(held)
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: only the change of `held` asks for the seed; `update` is a new closure on each render.
+	useEffect(() => {
+		const released = wasHeld.current && !held
+
+		wasHeld.current = held
+
+		const typed = released ? entrySeed(rowKey, column.id) : undefined
+
+		if (typed !== undefined) update(typed)
+	}, [held])
+
 	const hostRef = useRef<HTMLSpanElement>(null)
+
+	// Focus into a held editor moves the session onto its cell, so the session
+	// keys and the settle controls act on the cell that has focus.
+	useEffect(() => {
+		const host = hostRef.current
+
+		if (!held || !host) return
+
+		const resume = () => resumeCell(rowKey, column.id)
+
+		host.addEventListener('focusin', resume)
+
+		return () => host.removeEventListener('focusin', resume)
+	}, [held, resumeCell, rowKey, column.id])
 
 	// Take the focus an entry left for this cell, as the editor mounts or as the
 	// session comes to hold it. The editor sits inside its cell's truncation span,
@@ -200,14 +254,10 @@ function GridCellEditor<T>({
 		if (editor) focusWithoutReveal(editor)
 	}, [settle, claimFocus, rowKey, column.id])
 
-	const update = (next: unknown) => {
-		setDraft(next)
-
-		stageDraft(rowKey, column.id, next, row)
-	}
-
 	const cancel = () => {
 		setDraft(seed)
+
+		setRefusal(undefined)
 
 		unstageDraft(rowKey, column.id)
 	}
@@ -220,7 +270,7 @@ function GridCellEditor<T>({
 
 	const ariaLabel = `Edit ${label}`
 
-	const error = column.validate ? column.validate(draft, row) : null
+	const error = (column.validate ? column.validate(draft, row) : null) ?? refusal ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).
@@ -290,15 +340,61 @@ function GridCellEditor<T>({
 	)
 }
 
+/**
+ * A data cell whose commit is in flight. It shows the committed value, marks
+ * the cell `aria-busy`, and pulses. The attribute goes on the cell itself,
+ * the `role="gridcell"` element around this content, the way
+ * {@link GridNavCell} writes `data-active`. @internal
+ */
+function GridPendingCell({ children }: { children: ReactNode }) {
+	const ref = useRef<HTMLSpanElement>(null)
+
+	useLayoutEffect(() => {
+		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
+
+		cell?.setAttribute('aria-busy', 'true')
+
+		return () => {
+			cell?.removeAttribute('aria-busy')
+		}
+	}, [])
+
+	return (
+		<span ref={ref} data-slot="grid-edit-pending" className={cn(k.edit.pending)}>
+			{children}
+		</span>
+	)
+}
+
+/**
+ * The row that a pending cell renders: `row` with the committed value in the
+ * column's field. A consumer that applied the change already needs no copy.
+ * A column with no `field` renders the row as it is. @internal
+ */
+function pendingRow<T>(row: T, column: GridColumn<T>, value: unknown): T {
+	const field = column.field
+
+	if (field == null || Object.is(row[field], value)) return row
+
+	return { ...row, [field]: value }
+}
+
 /** A data cell that shows its display content, not an editor. @internal */
 const CELL_READING = 'reading'
+
+/** A data cell whose commit is in flight. @internal */
+const CELL_PENDING = 'pending'
+
+/** A refused cell that the refusal holds open beside a cell-scoped session. @internal */
+const CELL_HELD = 'held'
 
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}. Otherwise it
  * renders the column's display content through {@link GridNavCell}, which carries
  * the active-cursor ring. A cell-scoped session (`scope: 'cell'`) narrows that
- * to the one cell it names. The cell reads that coord from the session's store
+ * to the one cell it names. A cell whose commit is in flight shows the value
+ * as pending and mounts no editor, whatever the session holds. The cell reads that coord from the session's store
  * through its own flag, so a session move re-renders the two cells whose flag
  * flipped. The editable set flips only on a session transition, so cells don't
  * re-render as the user types.
@@ -323,25 +419,45 @@ export function GridEditingCell<T>({
 		entrySeed,
 		claimFocus,
 		settleControls,
+		resumeCell,
 		managed,
 	} = useGridEditingSession()
 
 	const columnId = column.id
 
-	// `isCellEditing` leads because it bails on the editable-set lookup. A cell of
-	// a row nobody is editing — every cell, most of the time — costs one probe.
-	// An open editor then reads its settle controls from the session, which owns
-	// that policy. The flag is a string, so the store's notice re-renders only a
-	// cell whose answer changed.
-	const readFlag = useCallback((): SettleControls | typeof CELL_READING => {
+	// The draft leads: a pending cell shows its value whatever the session
+	// holds. A cell with no draft — every cell, most of the time — costs one probe
+	// of an empty store and one of the editable set. An open editor then reads
+	// its settle controls from the session, which owns that policy. The flag is
+	// a string, so the store's notice re-renders only a cell whose answer changed.
+	const readFlag = useCallback(():
+		| SettleControls
+		| typeof CELL_READING
+		| typeof CELL_PENDING
+		| typeof CELL_HELD => {
+		const draft = readDraft(rowKey, columnId)
+
+		if (draft?.status === 'pending') return CELL_PENDING
+
 		const activeEdit = activeEditStore.get()
 
-		if (!isCellEditing({ rowKey, columnId, editableRows, activeEdit })) return CELL_READING
+		if (!isCellEditing({ rowKey, columnId, editableRows, activeEdit }))
+			return draft?.reopened ? CELL_HELD : CELL_READING
 
 		return settleControls(rowKey, columnId)
-	}, [activeEditStore, settleControls, rowKey, columnId, editableRows])
+	}, [activeEditStore, settleControls, readDraft, rowKey, columnId, editableRows])
 
 	const flag = useSyncExternalStore(activeEditStore.subscribe, readFlag, readFlag)
+
+	if (flag === CELL_PENDING) {
+		const value = readDraft(rowKey, columnId)?.value
+
+		return (
+			<GridNavCell row={rowIdx} col={colIdx}>
+				<GridPendingCell>{render?.(pendingRow(row, column, value))}</GridPendingCell>
+			</GridNavCell>
+		)
+	}
 
 	if (flag !== CELL_READING && isColumnEditable(column)) {
 		return (
@@ -356,8 +472,10 @@ export function GridEditingCell<T>({
 				endSession={endSession}
 				entrySeed={entrySeed}
 				claimFocus={claimFocus}
+				resumeCell={resumeCell}
 				managed={managed}
-				settle={flag}
+				settle={flag === CELL_HELD ? 'none' : flag}
+				held={flag === CELL_HELD}
 			/>
 		)
 	}

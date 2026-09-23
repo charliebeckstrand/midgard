@@ -27,6 +27,7 @@ import {
 	Grid,
 	type GridCellChange,
 	type GridCellRef,
+	type GridCellRefusal,
 	type GridColumn,
 	type GridEditableConfig,
 	type GridEditCellContext,
@@ -159,8 +160,8 @@ const roleOptions = ['Developer', 'Designer', 'Manager', 'Analyst'].map((role) =
 	value: role,
 }))
 
-// The data columns both scope examples show, so the pair reads as one grid under
-// two settings rather than two grids that drifted apart. `name`/`email` infer a
+// The data columns the scope examples show, so they read as one grid under
+// several settings rather than grids that drifted apart. `name`/`email` infer a
 // text editor and `active` a yes/no listbox from their value type; `role`
 // overrides with a listbox slot. Module-level because nothing here closes over
 // component state — a fresh array each render would rebuild every column and
@@ -350,6 +351,68 @@ export function CellScopeExample() {
 					onCellChange: setEditingCell,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
+			/>
+		</>
+	)
+}
+
+/** How long the demo's save takes, so the pending state is visible. */
+const SAVE_DELAY_MS = 800
+
+/**
+ * The demo's server check: it refuses an empty name, and the name "Error".
+ * Each refused cell carries the message that the grid shows under it.
+ */
+function refuseNames(changes: GridCellChange[]): GridCellRefusal[] {
+	return changes
+		.filter((change) => change.columnId === 'name')
+		.filter((change) => {
+			const name = String(change.value ?? '').trim()
+
+			return name === '' || name === 'Error'
+		})
+		.map((change) => ({
+			rowKey: change.rowKey,
+			columnId: change.columnId,
+			error: String(change.value ?? '').trim() === '' ? 'A name is required' : 'Name refused',
+		}))
+}
+
+export function AsyncCommitExample() {
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	// An async sink: the promise holds the batch's cells pending until it
+	// settles. The demo applies the accepted cells when the save lands, and
+	// resolves with the refused ones. The grid keeps a refused value as an
+	// edit, with the error under it, rather than drop it.
+	const onCommit = async (changes: GridCellChange[]) => {
+		await new Promise((resolve) => setTimeout(resolve, SAVE_DELAY_MS))
+
+		const refused = refuseNames(changes)
+
+		const accepted = changes.filter(
+			(change) =>
+				!refused.some((cell) => cell.rowKey === change.rowKey && cell.columnId === change.columnId),
+		)
+
+		setPeople((prev) => applyChanges(prev, accepted))
+
+		return refused
+	}
+
+	return (
+		<>
+			<EditHelp label="Async commit help">
+				Each save takes a moment, as a save to a server does. While it runs, the cell pulses and
+				cannot open. You can edit other cells meanwhile. The save refuses an empty name and the name
+				Error. A refused cell opens again with your value and the reason under it. Edit the value to
+				clear the reason, or press Escape to drop it.
+			</EditHelp>
+			<Grid
+				columns={personColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>
 		</>
 	)

@@ -34,13 +34,16 @@ export function isColumnEditable(col: {
 /**
  * The next editable column along a row from display index `from`, one `step`
  * to the right (`1`) or the left (`-1`). The walk wraps at the edges, and skips
- * each column {@link isColumnEditable} refuses. It returns `from` itself when
- * no other column is editable, and `-1` when none is. @internal
+ * each column {@link isColumnEditable} refuses. It also skips each index that
+ * `blocked` names, such as a cell whose commit is in flight. It returns `from`
+ * itself when no other column is open to a move, and `-1` when none is.
+ * @internal
  */
 export function stepEditableColumn(
 	columns: readonly { readOnly?: boolean; field?: unknown; editCell?: unknown }[],
 	from: number,
 	step: 1 | -1,
+	blocked?: (index: number) => boolean,
 ): number {
 	const count = columns.length
 
@@ -49,7 +52,7 @@ export function stepEditableColumn(
 
 		const column = columns[index]
 
-		if (column && isColumnEditable(column)) return index
+		if (column && isColumnEditable(column) && !blocked?.(index)) return index
 	}
 
 	return -1
@@ -127,22 +130,34 @@ export type GridActiveEdit = GridCellRef
 
 /**
  * Where a draft is in its life. A draft is `'staged'` from the first edit
- * until its session closes the cell.
+ * until its session closes the cell. It is `'pending'` while a commit that
+ * `onCommit` returned as a promise is in flight.
  *
- * @remarks This is the seam for the async commit of increment 5. That
- * increment adds `'pending'`, for a draft whose commit is in flight, and a
- * settled state. The same records carry them, so a pending draft keeps its
- * cell address and its value. @internal
+ * @remarks A pending draft stays in the store, at its cell address. Its cell
+ * cannot open, so no edit can stage over it. An accepted commit removes the
+ * draft. A refused commit sets it back to `'staged'`, with its error, so the
+ * editor that mounts again shows the value and the error. @internal
  */
-export type GridDraftStatus = 'staged'
+export type GridDraftStatus = 'staged' | 'pending'
 
 /**
  * One cell's draft: the value that the user typed, its status, and `row`, the
  * row object that the first write staged it against. The commit reads `row`
  * only when the row is no longer in the grid's `rows`, as for a row on
- * another server page. @internal
+ * another server page.
+ *
+ * `error` is the message of a commit that the consumer refused. The next edit
+ * clears it. `reopened` marks a refused cell that the refusal holds open
+ * beside a cell-scoped session. The cell then shows its editor, and the
+ * commit sweep leaves the draft until the session holds the cell. @internal
  */
-export type GridDraft = { value: unknown; status: GridDraftStatus; row: unknown }
+export type GridDraft = {
+	value: unknown
+	status: GridDraftStatus
+	row: unknown
+	error: string | undefined
+	reopened: boolean
+}
 
 /**
  * The drafts of one edit session, keyed by cell. The session owns them, not
@@ -157,23 +172,43 @@ export type GridDraft = { value: unknown; status: GridDraftStatus; row: unknown 
 export type GridDraftStore = {
 	/**
 	 * Stages `value` as the draft of the cell, against the row object `row`. A
-	 * later value replaces the value and keeps the first row snapshot. A write
-	 * to a cell that the store does not accept is ignored.
+	 * later value replaces the value, clears a refusal error, and keeps the
+	 * first row snapshot. A write to a cell that the store does not accept is
+	 * ignored, and so is a write to a pending draft.
 	 */
 	stage: (rowKey: string | number, columnId: string | number, value: unknown, row: unknown) => void
-	/** Removes the draft of the cell, if there is one. */
+	/** Removes the draft of the cell, if there is one and it is not pending. */
 	unstage: (rowKey: string | number, columnId: string | number) => void
-	/** Removes every draft of the row. */
+	/** Removes every draft of the row that is not pending. */
 	unstageRow: (rowKey: string | number) => void
 	/** The draft of the cell, or `undefined` when the cell has none. */
 	read: (rowKey: string | number, columnId: string | number) => GridDraft | undefined
 	/**
-	 * Removes the drafts of each cell that `closed` names, and returns them,
-	 * grouped by row. A row with no closed cell is not in the result.
+	 * Removes the staged drafts of each cell that `closed` names, and returns
+	 * them, grouped by row. A row with no closed cell is not in the result. A
+	 * pending draft stays. A reopened draft stays while its cell is closed, and
+	 * loses the mark when `closed` reads its cell as open.
 	 */
 	take: (
 		closed: (rowKey: string | number, columnId: string | number) => boolean,
 	) => Map<string | number, Map<string | number, GridDraft>>
+	/**
+	 * Puts `draft`, which {@link GridDraftStore.take} returned, back at its cell
+	 * as `'pending'`, while its commit is in flight.
+	 */
+	pend: (rowKey: string | number, columnId: string | number, draft: GridDraft) => void
+	/**
+	 * Settles the pending `draft` of the cell. A `null` error accepts it, and the
+	 * draft leaves the store. An error refuses it: the draft is staged again,
+	 * with the error, and `reopen` sets its mark. It returns `false`, and
+	 * changes nothing, when the cell no longer holds this pending draft.
+	 */
+	settle: (
+		rowKey: string | number,
+		columnId: string | number,
+		draft: GridDraft,
+		refusal: { error: string; reopen: boolean } | null,
+	) => boolean
 }
 
 /** The records of a {@link GridDraftStore}, keyed by row and then by column. @internal */
@@ -196,31 +231,48 @@ function rowOf<V>(
 }
 
 /**
- * Writes `value` as the draft of a cell. A keystroke rewrites the cell's
- * record in place, so typing allocates nothing per key. @internal
+ * Writes `value` as the draft of a cell, when `accepts` takes the write. A
+ * keystroke rewrites the cell's record in place, so typing allocates nothing
+ * per key, and the record is looked up once. A pending record takes no
+ * write. A reopened record takes one without `accepts`, because the refusal
+ * holds its cell open. @internal
  */
 function writeDraft(
 	rows: DraftRows,
 	cell: { rowKey: string | number; columnId: string | number },
-	value: unknown,
-	snapshot: unknown,
+	write: { value: unknown; snapshot: unknown },
+	accepts: (rowKey: string | number, columnId: string | number) => boolean,
 ): void {
-	const row = rowOf(rows, cell.rowKey)
+	const draft = rows.get(cell.rowKey)?.get(cell.columnId)
 
-	const draft = row.get(cell.columnId)
+	if (draft) {
+		if (draft.status === 'pending') return
 
-	if (!draft) {
-		row.set(cell.columnId, { value, status: 'staged', row: snapshot })
+		if (!draft.reopened && !accepts(cell.rowKey, cell.columnId)) return
+
+		draft.value = write.value
+
+		draft.error = undefined
 
 		return
 	}
 
-	draft.value = value
+	if (!accepts(cell.rowKey, cell.columnId)) return
 
-	draft.status = 'staged'
+	rowOf(rows, cell.rowKey).set(cell.columnId, {
+		value: write.value,
+		status: 'staged',
+		row: write.snapshot,
+		error: undefined,
+		reopened: false,
+	})
 }
 
-/** Removes the closed records from `rows`, and returns their values. @internal */
+/**
+ * Removes the closed records from `rows`, and returns their values. A pending
+ * record is in flight, so it stays. A reopened record stays while its cell is
+ * closed. When the session holds its cell, the mark goes. @internal
+ */
 function takeClosed(
 	rows: DraftRows,
 	closed: (rowKey: string | number, columnId: string | number) => boolean,
@@ -229,7 +281,15 @@ function takeClosed(
 
 	for (const [rowKey, row] of rows) {
 		for (const [columnId, draft] of row) {
-			if (!closed(rowKey, columnId)) continue
+			if (draft.status === 'pending') continue
+
+			if (!closed(rowKey, columnId)) {
+				draft.reopened = false
+
+				continue
+			}
+
+			if (draft.reopened) continue
 
 			rowOf(taken, rowKey).set(columnId, draft)
 
@@ -253,21 +313,58 @@ export function createDraftStore(
 	const rows: DraftRows = new Map()
 
 	return {
-		stage: (rowKey, columnId, value, row) => {
-			if (accepts(rowKey, columnId)) writeDraft(rows, { rowKey, columnId }, value, row)
-		},
+		stage: (rowKey, columnId, value, row) =>
+			writeDraft(rows, { rowKey, columnId }, { value, snapshot: row }, accepts),
 		unstage: (rowKey, columnId) => {
 			const row = rows.get(rowKey)
+
+			if (row?.get(columnId)?.status === 'pending') return
 
 			row?.delete(columnId)
 
 			if (row?.size === 0) rows.delete(rowKey)
 		},
 		unstageRow: (rowKey) => {
-			rows.delete(rowKey)
+			const row = rows.get(rowKey)
+
+			if (!row) return
+
+			for (const [columnId, draft] of row) if (draft.status !== 'pending') row.delete(columnId)
+
+			if (row.size === 0) rows.delete(rowKey)
 		},
 		read: (rowKey, columnId) => rows.get(rowKey)?.get(columnId),
 		take: (closed) => takeClosed(rows, closed),
+		pend: (rowKey, columnId, draft) => {
+			draft.status = 'pending'
+
+			draft.error = undefined
+
+			draft.reopened = false
+
+			rowOf(rows, rowKey).set(columnId, draft)
+		},
+		settle: (rowKey, columnId, draft, refusal) => {
+			const row = rows.get(rowKey)
+
+			if (row?.get(columnId) !== draft || draft.status !== 'pending') return false
+
+			if (refusal === null) {
+				row.delete(columnId)
+
+				if (row.size === 0) rows.delete(rowKey)
+
+				return true
+			}
+
+			draft.status = 'staged'
+
+			draft.error = refusal.error
+
+			draft.reopened = refusal.reopen
+
+			return true
+		},
 	}
 }
 

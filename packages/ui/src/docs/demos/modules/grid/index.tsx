@@ -20,7 +20,13 @@ import {
 	type GridSortState,
 } from '../../../../modules/grid'
 import { code, Example } from '../../../engine'
-import { BulkEditExample, CellScopeExample, EditableExample, EditorTypesExample } from './editable'
+import {
+	AsyncCommitExample,
+	BulkEditExample,
+	CellScopeExample,
+	EditableExample,
+	EditorTypesExample,
+} from './editable'
 import { ServerGroupingExample } from './server-grouping'
 
 type Person = {
@@ -1759,6 +1765,13 @@ export function Demo() {
 							code={code`<Grid editable={{ session: 'managed', scope: 'cell', commitOn, onCommit }} />`}
 						>
 							<CellScopeExample />
+						</Example>
+
+						<Example
+							title="Async commit"
+							code={code`<Grid editable={{ session: 'managed', scope: 'cell', onCommit: async (changes) => refused }} />`}
+						>
+							<AsyncCommitExample />
 						</Example>
 
 						<Example

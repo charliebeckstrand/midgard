@@ -7,7 +7,9 @@ import type { GridActiveEdit, GridDraft } from './engine/grid-editing-utilities'
  * An external store over the one cell a cell-scoped session edits. Each data
  * cell subscribes to its own flag through `useSyncExternalStore`, the way
  * `GridNavCell` reads the cursor. A session move therefore re-renders the cell
- * it leaves and the cell it enters, not the whole mounted window.
+ * it leaves and the cell it enters, not the whole mounted window. The store
+ * also notifies when a draft changes status, as a commit goes pending or
+ * settles. Each cell then reads its own status again.
  *
  * @internal
  */
@@ -99,6 +101,12 @@ export type GridEditingSession = {
 	 * pass as its flag.
 	 */
 	settleControls: (rowKey: string | number, columnId: string | number) => GridSettleControls
+	/**
+	 * Moves a cell-scoped session onto a refused cell that the refusal opened
+	 * beside it, as focus moves into that cell's editor. Focus is already
+	 * there, so the move claims no focus. The cell the session leaves commits.
+	 */
+	resumeCell: (rowKey: string | number, columnId: string | number) => void
 	/** Whether the grid owns entry and the session keys (`session: 'managed'`). */
 	managed: boolean
 }
