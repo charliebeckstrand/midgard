@@ -22,8 +22,8 @@ const root = defineRecipe({
  * `<DescriptionList>` inside a `dd` independent.
  *
  * Tailwind scans whole class literals; these rows can't be interpolated
- * from the unprefixed values they mirror (`sen.border.subtleColor`, the old
- * per-leaf orientation classes). Keep them in step by hand.
+ * from the unprefixed values they mirror (the old per-leaf orientation
+ * classes). Keep them in step by hand.
  */
 const projection = {
 	horizontal: [

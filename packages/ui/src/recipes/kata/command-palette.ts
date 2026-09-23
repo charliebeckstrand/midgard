@@ -1,8 +1,9 @@
 /**
  * Command-palette kata: object-literal surface for `<CommandPalette>`'s grouped
  * result listbox. Static slots only, no variants axis: `group` / `list` (the
- * listbox, hidden when empty), and the peer-driven `empty` status. Each result
- * row adds `title`, `item`, `label`, `description`, and `shortcut`.
+ * listbox, hidden when empty), and the peer-driven `empty` status. `title` is
+ * the group heading. Each result row adds `item`, `label`, `description`, and
+ * `shortcut`.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kara, narabi } from '../kiso'

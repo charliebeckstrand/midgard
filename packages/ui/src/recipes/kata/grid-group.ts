@@ -2,8 +2,8 @@
  * Column-group band kata: layout for the header row of group bands the Grid
  * draws above its column headers. Color is not here. The band's tint comes from
  * the {@link Badge} it renders (standard + extended palette). This surface
- * carries only the band's flex layout, the collapse toggle, and the separating
- * rule beneath the row.
+ * carries the band's flex layout, the separating rule, and the `+N` count. It
+ * also carries the column-manager group editor (`manager`, `cardOutline`).
  */
 import type { PaletteColor } from '../../core/recipe'
 import { hannou, iro, kasane, narabi, omote, sen } from '../kiso'
@@ -64,8 +64,9 @@ export const k = {
 	// the rule spans the cell's content width — inset by the header's cell padding,
 	// so it lines up with the column titles and leaves a gap between groups.
 	content: [flex.col, 'gap-2'],
-	// A colored group's 2px underline rule: a rounded bar spanning the band content
-	// width, under the Badge. Only a group with a `color` draws it.
+	// A group's 2px underline rule: a rounded bar spanning the band content width,
+	// under the Badge. Every group draws it. A colored group takes `band.color`,
+	// and a colorless group takes `band.neutral`.
 	rule: ['h-0.5', rounded.full],
 	band: {
 		// A group band's row: the colored Badge, then the bare chevron toggle when
@@ -87,14 +88,14 @@ export const k = {
 		// drop-over state lifts its border to signal the target.
 		zone: {
 			root: [flex.col, 'gap-1'],
-			// A group zone's header row: the name Input, the color Listbox, and the
-			// remove button, kept inline on one row.
+			// A group zone's header row: the reorder handle, the name Input, the color
+			// Menu, and the remove button, on one row.
 			header: [flex.row, 'items-center', 'gap-2'],
-			// The name Input grows to fill the header row; the color Listbox holds a
-			// natural width beside it.
+			// The name Input grows to fill the header row. The color Menu keeps its
+			// natural width.
 			name: 'grow',
-			// The color Listbox's trigger: a fixed width so the name Input and Menu
-			// have consistent width.
+			// A fixed width for a color trigger. No component in the group manager
+			// reads this slot.
 			color: 'shrink-0 w-32',
 			// Empty-zone hint shown when a group has no columns yet.
 			empty: [text.muted],

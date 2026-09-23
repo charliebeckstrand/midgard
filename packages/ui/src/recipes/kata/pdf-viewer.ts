@@ -189,7 +189,11 @@ export const k = {
 			// ink at every zoom and rotation, with no per-region math.
 			highlights: {
 				layer: [centred],
-				/** No accessible name on any region, so the layer is decoration: nothing to press. */
+				/**
+				 * The layer without `onActiveHighlightChange`. Its regions are decoration inside an
+				 * `aria-hidden` layer, so there is nothing to press. Every region still has its
+				 * required `label`.
+				 */
 				inert: ['pointer-events-none'],
 				/**
 				 * The name drawn over the selected region.

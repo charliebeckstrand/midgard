@@ -52,7 +52,7 @@ const header = defineRecipe({
  * out-cascades the non-interactive 2.5% `striped` wash on the hovered row.
  *
  * Tailwind scans whole class literals. These rows can't be interpolated
- * from the unprefixed values they mirror (`cellDensity`, `sen.border.subtle`),
+ * from the unprefixed values they mirror (`density`, `sen.border.subtle`),
  * or from each other (the `odd`/`even` `striped` parity below). Keep them in
  * step by hand.
  */
