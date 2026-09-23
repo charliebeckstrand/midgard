@@ -4,7 +4,7 @@
 
 ## Status
 
-Increment 3 shipped the verdict below. `ChatMessageData.content` is `string | ChatPart[]`, the union holds `text` alone, every part carries an `id`, and `dropEmptyReply` reads the content's structure. The requirements and the refutations in this file stand for the increments that come after.
+Increment 3 shipped the verdict below, with `text` as the only kind. `ChatMessageData.content` is `string | ChatPart[]`, every part carries an `id`, and `dropEmptyReply` reads the content's structure. Increments 4 and 8 added `embed` and `tool` to the union. The requirements and the refutations in this file stand for the increments that come after.
 
 ## Requirements the later increments place on the model
 

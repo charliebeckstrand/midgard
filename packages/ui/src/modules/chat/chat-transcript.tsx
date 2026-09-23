@@ -12,7 +12,7 @@ import { useChatScroll } from './use-chat-scroll'
 export type ChatTranscriptProps = {
 	/** The transcript, oldest first. */
 	messages: ChatMessageData[]
-	/** Whether a reply is currently streaming; marks the latest assistant bubble. */
+	/** Whether a reply is currently streaming; marks the last message when it is an assistant bubble. */
 	streaming?: boolean
 	className?: string
 }
@@ -23,9 +23,10 @@ export type ChatTranscriptProps = {
  * @remarks
  * Each message's `role` reaches {@link ChatMessage} unchanged, because the data
  * and the component spell the speaker axis the same way. When `streaming`, only
- * the last assistant bubble pulses. Opens already scrolled to the bottom (no
- * animation), then smooth-scrolls there on every subsequent `messages` change
- * via {@link useChatScroll}, so streamed chunks stay in view. Mount this fresh
+ * the last message pulses, and only when it is an assistant bubble. Opens
+ * already scrolled to the bottom (no animation), then smooth-scrolls there on
+ * every subsequent `messages` change via {@link useChatScroll}, so streamed
+ * chunks stay in view. Mount this fresh
  * per conversation (e.g. `key`d on its id) so switching chats doesn't animate
  * from the old scroll position.
  *
