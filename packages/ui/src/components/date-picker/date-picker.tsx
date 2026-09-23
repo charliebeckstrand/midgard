@@ -383,7 +383,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 				disabled={state.disabled}
 				readOnly={state.readOnly}
 				required={state.required}
-				invalid={state.invalid}
+				validation={state.validation}
 				onKeyDown={state.onTriggerKeyDown}
 				clearable={clearable}
 				hasValue={state.hasValue}

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { DatePicker } from '../../components/date-picker'
 import { useDatePickerState } from '../../components/date-picker/use-date-picker-state'
+import { Field } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { LocaleProvider } from '../../providers/locale'
 import {
@@ -1338,6 +1339,56 @@ describe('DatePicker input', () => {
 
 		// aria-controls persists while the calendar is open.
 		expect(input).toHaveAttribute('aria-controls')
+	})
+})
+
+describe('DatePicker validation', () => {
+	// The frame paints the ring from a descendant `data-*` attribute, so the
+	// trigger button must carry each resolved severity, as ListboxButton does.
+	const variants = [
+		['single', {}],
+		['range', { range: true }],
+		['relative', { relative: true }],
+	] as const
+
+	it.each(variants)('marks the %s trigger for a warning severity', (_, variant) => {
+		const { container } = renderUI(
+			<Field severity="warning">
+				<DatePicker {...variant} aria-label="Due date" />
+			</Field>,
+		)
+
+		const trigger = getSlot(container, 'datepicker-button')
+
+		expect(trigger).toHaveAttribute('data-warning')
+
+		expect(trigger).not.toHaveAttribute('aria-invalid')
+	})
+
+	it.each(variants)('marks the %s trigger for a success severity', (_, variant) => {
+		const { container } = renderUI(
+			<Field severity="success">
+				<DatePicker {...variant} aria-label="Due date" />
+			</Field>,
+		)
+
+		expect(getSlot(container, 'datepicker-button')).toHaveAttribute('data-valid')
+	})
+
+	it('keeps the error pair for an error severity', () => {
+		const { container } = renderUI(
+			<Field severity="error">
+				<DatePicker aria-label="Due date" />
+			</Field>,
+		)
+
+		const trigger = getSlot(container, 'datepicker-button')
+
+		expect(trigger).toHaveAttribute('data-invalid')
+
+		expect(trigger).toHaveAttribute('aria-invalid', 'true')
+
+		expect(trigger).not.toHaveAttribute('data-warning')
 	})
 })
 

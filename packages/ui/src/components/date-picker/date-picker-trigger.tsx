@@ -3,7 +3,7 @@
 import { Calendar as CalendarIcon, X } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
-import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
@@ -43,7 +43,8 @@ type DatePickerTriggerProps = GroupStampProps & {
 	 */
 	readOnly?: boolean
 	required?: boolean
-	invalid?: boolean
+	/** The resolved validation attributes. The frame paints its ring from them. */
+	validation?: ValidationAttrs
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
 	/** Renders a clear button in place of the calendar icon while `hasValue`. */
 	clearable?: boolean
@@ -80,7 +81,7 @@ export function DatePickerTrigger({
 	disabled = false,
 	readOnly = false,
 	required = false,
-	invalid = false,
+	validation,
 	onKeyDown,
 	clearable = false,
 	hasValue = false,
@@ -135,7 +136,7 @@ export function DatePickerTrigger({
 						data-slot="datepicker-button"
 						disabled={disabled}
 						data-readonly={dataAttr(readOnly)}
-						{...invalidAttrs(invalid)}
+						{...validation}
 						onClick={() => onOpenChange(!open)}
 						onKeyDown={onKeyDown}
 						className={cn(k.button({ density: size, size }))}

@@ -3,6 +3,7 @@
 import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef } from 'react'
 
+import { validationAttrs } from '../../core'
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
@@ -268,13 +269,20 @@ export function useDatePickerRangeState({
 		onFooterActivate,
 	})
 
+	const invalid = control?.severity === 'error' || fieldInvalid
+
+	// Invalid wins the ring. Otherwise a warning or success severity shows, as
+	// `useControlProps` resolves it for the other controls.
+	const validation = validationAttrs(invalid ? 'error' : control?.severity)
+
 	return {
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: control?.required,
-		invalid: control?.severity === 'error' || fieldInvalid,
+		invalid,
+		validation,
 		hasValue: value != null,
 		onClear: handleClear,
 		displayValue: value ? formatRange(value[0], value[1], ambient.locale, ambient.dateFormat) : '',
