@@ -1533,6 +1533,105 @@ describe('Grid commit-and-move keys', () => {
 		expect(cursorOn(view)).toBe(view.cell('name').id)
 	})
 
+	describe('Tab through an editCell slot with two controls', () => {
+		// The name slot holds two inputs. A disabled button and a button out of the
+		// tab order sit between them, and neither is a Tab target.
+		const slotColumns: GridColumn<SessionRow>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				editCell: ({ value, onValueUpdate }) => (
+					<span>
+						<input
+							data-slot="slot-first"
+							aria-label="First"
+							value={String(value)}
+							onChange={(event) => onValueUpdate(event.target.value)}
+						/>
+						<button type="button" disabled>
+							disabled
+						</button>
+						<button type="button" tabIndex={-1}>
+							untabbable
+						</button>
+						<input data-slot="slot-last" aria-label="Last" defaultValue="" />
+					</span>
+				),
+			},
+			{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+		]
+
+		it.each(['cell', 'row'] as const)(
+			'leaves Tab to the next control in the cell under %s scope',
+			(scope) => {
+				const view = renderSessionGrid({ editable: { scope }, cols: slotColumns })
+
+				fireEvent.doubleClick(view.cell('name'))
+
+				const first = getSlot<HTMLInputElement>(view.container, 'slot-first')
+
+				const last = getSlot<HTMLInputElement>(view.container, 'slot-last')
+
+				fireEvent.change(first, { target: { value: 'Alicia' } })
+
+				// Tab from the first control is the browser's: the session keeps the cell.
+				expect(fireEvent.keyDown(first, { key: 'Tab' })).toBe(true)
+
+				expect(bySlot(view.container, 'slot-first')).toBe(first)
+
+				// Shift+Tab from the last control goes back to the first, in the cell.
+				expect(fireEvent.keyDown(last, { key: 'Tab', shiftKey: true })).toBe(true)
+
+				expect(view.onCommit).not.toHaveBeenCalled()
+
+				// Tab from the last control commits and moves to the next editable cell.
+				expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false)
+
+				expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+			},
+		)
+
+		it('commits on Shift+Tab from the first control and moves to the previous cell', () => {
+			const view = renderSessionGrid({ editable: { scope: 'cell' }, cols: slotColumns })
+
+			fireEvent.doubleClick(view.cell('name'))
+
+			const first = getSlot<HTMLInputElement>(view.container, 'slot-first')
+
+			fireEvent.change(first, { target: { value: 'Alicia' } })
+
+			expect(fireEvent.keyDown(first, { key: 'Tab', shiftKey: true })).toBe(false)
+
+			expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+			// The row wraps, so the previous editable cell is the count cell.
+			expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+		})
+
+		it('still commits on Tab from the listbox editor, whose settle pair is out of the tab order', () => {
+			const view = renderSessionGrid({
+				editable: { scope: 'cell' },
+				cols: [
+					{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
+					...sessionColumns,
+				],
+			})
+
+			fireEvent.doubleClick(view.cell('done'))
+
+			const trigger = present(
+				view.container.querySelector<HTMLElement>('td[data-grid-col="done"] button[aria-haspopup]'),
+				'the listbox trigger',
+			)
+
+			expect(fireEvent.keyDown(trigger, { key: 'Tab' })).toBe(false)
+
+			expect(bySlot(view.container, 'grid-edit-input')).toHaveFocus()
+		})
+	})
+
 	it('commits on Tab where the row has no other editable cell', () => {
 		const view = renderSessionGrid({
 			editable: { scope: 'cell' },

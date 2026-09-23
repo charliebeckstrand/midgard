@@ -133,9 +133,11 @@ export type GridEditableConfig = {
 	 *
 	 * - Enter commits and moves the cursor down one row. Under `scope: 'cell'` it
 	 *   enters the cell below. On the last row the cursor stays.
-	 * - Tab and Shift+Tab move along the row's editable cells, and wrap at the
-	 *   edges. Under `scope: 'cell'` the cell left behind commits. Under `'row'`
-	 *   the row commits when it closes.
+	 * - Tab and Shift+Tab move to the next control in the same cell when there
+	 *   is one, as in an `editCell` slot with several controls. Tab from the
+	 *   last control, or Shift+Tab from the first, moves along the row's
+	 *   editable cells, and wraps at the edges. Under `scope: 'cell'` the cell
+	 *   left behind commits. Under `'row'` the row commits when it closes.
 	 * - F2 commits and leaves the cursor on the cell.
 	 * - Escape abandons the session's staged edits.
 	 *
@@ -170,7 +172,8 @@ export type GridEditableConfig = {
 	 * a row the session added to `rows` itself leaves with it. The held cell
 	 * carries a save and a discard control beside its editor. The grid owns this
 	 * session, and nothing else on screen ends it. The pair is for a pointer and
-	 * sits outside the tab order, because Tab commits and moves. Row scope shows
+	 * sits outside the tab order, so Tab from the editor still commits and moves.
+	 * Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
 	 * granularity that matches. The session's cell is a binding of its own,
 	 * {@link GridEditableConfig.cell}, beside `rows`.

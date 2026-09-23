@@ -24,6 +24,7 @@ import {
 	isSameCell,
 	readKeyPress,
 	stepEditableColumn,
+	tabStaysInCell,
 } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridActiveEditStore, GridEditingSession } from './grid-editing-context'
@@ -50,8 +51,9 @@ export type GridEditingApi = {
 	/**
 	 * The session's keys, layered onto the grid `<table>`'s key handler by
 	 * {@link useGridCursor}. Escape abandons the session. From an open editor,
-	 * Enter commits and moves down, Tab and Shift+Tab commit and move along the
-	 * row, and F2 commits and stays. Every editor (inferred input, listbox,
+	 * Enter commits and moves down, and F2 commits and stays. Tab and Shift+Tab
+	 * move between the controls of one cell first, and past the last control
+	 * they commit and move along the row. Every editor (inferred input, listbox,
 	 * `editCell` slot) therefore inherits the keys without wiring of its own.
 	 * `undefined` unless the grid owns the session (`session: 'managed'`).
 	 */
@@ -112,7 +114,9 @@ type SessionMove = 'down' | 'next' | 'previous' | 'here'
  * The move a key press asks of the session from an open editor, or `null` when
  * the press is not the session's. The tab stop's own keys are the cursor's,
  * which enter a cell. A key with Ctrl, Cmd, or Alt is the editor's shortcut.
- * Enter on an element that acts on it natively stays with that element.
+ * Enter on an element that acts on it natively stays with that element. Tab
+ * that has a next control in the same cell stays with the browser (see
+ * {@link tabStaysInCell}).
  *
  * @internal
  */
@@ -121,7 +125,13 @@ function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): SessionMove | 
 
 	if (target === event.currentTarget || event.ctrlKey || event.metaKey || event.altKey) return null
 
-	if (event.key === 'Tab') return event.shiftKey ? 'previous' : 'next'
+	// Tab moves between the controls of one cell first. Only Tab past the last
+	// control, or Shift+Tab past the first, commits and moves.
+	if (event.key === 'Tab') {
+		if (tabStaysInCell(target, event.shiftKey)) return null
+
+		return event.shiftKey ? 'previous' : 'next'
+	}
 
 	if (event.key === 'F2') return 'here'
 
