@@ -109,7 +109,8 @@ export function PdfViewerToolbar() {
 								})}
 							</Listbox>
 							<span className="mx-1 select-none">/</span>
-							<span data-slot="pdf-viewer-page-status" className={cn(k.toolbar.pageStatus)}>
+							{/* `-total`, not `-status`: the viewport's live region owns that anchor. */}
+							<span data-slot="pdf-viewer-page-total" className={cn(k.toolbar.pageStatus)}>
 								{total}
 							</span>
 						</ToolbarGroup>

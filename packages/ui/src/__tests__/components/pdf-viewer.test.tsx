@@ -61,7 +61,20 @@ describe('PdfViewer', () => {
 	it('shows the total page count', () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
-		expect(bySlot(container, 'pdf-viewer-page-status')).toHaveTextContent('3')
+		expect(bySlot(container, 'pdf-viewer-page-total')).toHaveTextContent('3')
+	})
+
+	// One anchor for each node. The status anchor names the live region, not the toolbar count.
+	it('anchors the page status on the live region alone', () => {
+		const { container } = renderUI(<PdfViewer pages={pages} />)
+
+		const status = allBySlot(container, 'pdf-viewer-page-status')
+
+		expect(status).toHaveLength(1)
+
+		expect(status[0]).toHaveTextContent('Page 1 of 3')
+
+		expect(allBySlot(container, 'pdf-viewer-page-total')).toHaveLength(1)
 	})
 
 	it('renders a thumbnail per page in the sidebar', () => {
