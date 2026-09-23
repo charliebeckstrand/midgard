@@ -1,6 +1,6 @@
 # Chat roadmap
 
-> **Goal: an agent surface for logistics dashboards, where a reply can carry a chart, a grid, or a map.** The module ships `ChatTranscript`, `ChatMessage`, `ChatPrompt`, and the `ChatList` sidebar, over three hooks and an injected transport. All nine increments have landed: it has a pure core, a settled vocabulary, a message built from parts, an embed seam that defers what it draws, a transport that streams those parts, an announcement for the reader who cannot see them, benchmarks that say where it stops holding, and a reply that can show its working. This file records what ships today and what the module must absorb next.
+> **Goal: an agent surface for logistics dashboards, where a reply can carry a chart, a grid, or a map.** The module ships `ChatTranscript`, `ChatMessage`, `ChatPrompt`, and the `ChatList` sidebar, over three hooks and an injected transport. All ten increments have landed: it has a pure core, a settled vocabulary, a message built from parts, an embed seam that defers what it draws, a transport that streams those parts, an announcement for the reader who cannot see them, benchmarks that say where it stops holding, a reply that can show its working, and a transcript that renders only the rows near its viewport. This file records what ships today and what the module must absorb next.
 
 ## Status
 
@@ -26,7 +26,7 @@ The proof under all four is in [`chat-stream.test.ts`](../../__tests__/modules/c
 
 A view waits until a reader reaches it. Increment 9 put `ChatEmbedProvider` over the `Mount` policy the package's disclosure panels already use, so an embed's renderer mounts near the viewport and then stays: a `BarChart` on every reply of a 500-message transcript falls from 1,568 ms to 352 ms, which is what the same transcript costs carrying no view at all.
 
-The transcript is measured, and it does not hold at 5,000 messages. Increment 7's benches put a streamed chunk at 0.88 ms over 50 messages, 3.4 ms over 500, and 41 ms over 5,000, against a 16 ms frame; a mount at 5,000 takes 1.9 s. The engine under it is clear — the worst pure transform on the streaming path costs 0.054 ms at 5,000, and the announcement is flat at every size. The cost that remains is the transcript rebuilding every element per chunk, which no further memoization reaches, so virtualization is now a measured requirement rather than an assumption, and it heads the backlog.
+The transcript holds at 5,000 messages. Increment 7's benches put a streamed chunk at 41 ms over 5,000 messages, against a 16 ms frame. Increment 10 windows the transcript, so a chunk re-renders the rows near the viewport and not the whole list. On the machine that took both runs, a chunk over 5,000 messages now costs about 1 ms, under the 500-message cost it had before. The window keys its rows by message id, pins through the virtualizer, and remembers each embed a reader reached.
 
 ## Engine — the substrate
 
@@ -152,21 +152,32 @@ That default reserve is the honest weak point. A view of another height makes th
 This is the increment that makes virtualization optional for a dashboard chat rather than required. It does not replace it, and the entry below says where the line falls.
 
 
+### 10. Window the transcript — done
+
+Increment 7 put a number on the transcript: a streamed chunk at 5,000 messages cost 41 ms, and the bar was to hold the 500-message cost, about 3.4 ms, out to 5,000. The design lives in [`docs/plans/2026-08-12-VARIABLE-HEIGHT-VIRTUALIZATION-PLAN.md`](../../../docs/plans/2026-08-12-VARIABLE-HEIGHT-VIRTUALIZATION-PLAN.md), because the limit was in the package's one virtualizer and not in the chat.
+
+The transcript now renders a window through the measured path of [`useVirtualWindow`](../../hooks/use-virtual-window.ts). Each row carries its message id as its key, and each row measures its real height. A bubble that wraps, a step a reader opens, and an embed that draws all move the rows below them, and the spacers follow. A streamed chunk re-renders the rows in the window and does not map the whole list.
+
+The pin moved off `scrollTop`. Under a measured window the total height changes as rows measure, so a pin written against `scrollHeight` drifts. The transcript passes `anchorTo: 'end'` and `followOnAppend: 'smooth'` to the virtualizer. A row that grows keeps the end in view, and a new row scrolls into view. Both act only while the reader sits at the end, so a reader who scrolled up stays where they are. The anchor has no mount arm, so the first window that holds rows calls `scrollToIndex(count - 1, { align: 'end' })` once, before paint. [`useChatScroll`](use-chat-scroll.ts) is unchanged and no longer used by the transcript.
+
+The embed memory moved above the window. A row that leaves the window unmounts, and the latch in `useInView` and `useMountHold` goes with it. [`ChatEmbedProvider`](chat-embed-provider.tsx) now owns a set of the embeds a reader reached, addressed by row key and part id, because a part id is unique only in its message. A returning embed draws at once. Under a window, `lazy` means "no second deferral", not "held", and the transcript documents that `always` cannot be honoured.
+
+The `log` region now holds a slice. A reader who walks it finds the rows near the viewport, newest last, between two spacers hidden from assistive technology. The announcer is unaffected, because it speaks a string. The a11y corpus holds a long transcript beside the short one. Where nothing lays out — a server render, jsdom, a `display: none` panel — the window is empty, and the newest twenty messages stand in.
+
+The benches are the acceptance test. The render bench now models a 600 px viewport and 96 px rows, because a window in jsdom holds no rows. On one machine, before and after, a streamed chunk costs:
+
+| Messages | Before | After |
+|---|---|---|
+| 50 | 0.55 ms | 0.59 ms |
+| 500 | 2.37 ms | 0.74 ms |
+| 5,000 | 24.6 ms | 1.02 ms |
+
+Mount falls from 1,174 ms to about 10 ms at 5,000 messages. The proof beside the benches is [`chat-transcript-window.test.tsx`](../../__tests__/browser/chat-transcript-window.test.tsx) in Chromium: the pin on mount, a chunk that grows the last row, a smooth follow while rows measure, a reader who scrolled up, and an embed that does not defer a second time.
+
+
 ## Backlog
 
 In priority order, after the increments. Each entry names the gap, the shape of the fix, and where it lands.
-
-- **Virtualize the transcript.** Increment 7 measured what this costs to skip: a streamed chunk at 5,000 messages re-renders in 41 ms, past a frame by more than double, and a mount takes 1.9 s. It is the only backlog entry a number put here. The bar it has to clear is the one the same benches already print — hold the 500-message chunk cost, about 3.4 ms, out to 5,000 — and the benches are the acceptance test, not a follow-up.
-
-  The design now lives in [`docs/plans/2026-08-12-VARIABLE-HEIGHT-VIRTUALIZATION-PLAN.md`](../../../docs/plans/2026-08-12-VARIABLE-HEIGHT-VIRTUALIZATION-PLAN.md), because the limit under this entry is not the transcript's. The wrapper the whole package windows through takes one `estimateSize` number, so the same change answers the grid's grouped and master-detail bodies, which stand windowing down for the same reason. Status stays here; the plan holds the rule, the two open decisions, and the increments.
-
-  Increment 9 narrowed what this is for without removing it, and the distinction is worth keeping straight. Lazy embeds answer the cost of *what a reply carries*; virtualization answers the cost of *how many replies there are*. The measured transcript holds prose and no embed, so deferring a renderer cannot move its 41 ms — that number is five thousand bubbles being rebuilt. A dashboard chat running to hundreds of messages is now comfortable whatever it carries; one running to thousands still is not, and only this entry fixes that.
-
-  Four things make this harder than virtualizing a grid, and an entry that does not name them is understating it. A chat row has no fixed height, and by three routes rather than one: a bubble wraps to its content, a `tool` step's disclosure opens and closes at the reader's whim, and a deferred embed swaps its reserved height for its drawn one the first time it is reached. Only the first is a function of the message data, so a measurement cache keyed on the transcript would miss the other two entirely. [`use-virtual-window.ts`](../../hooks/use-virtual-window.ts) does not help yet either: its `estimateSize` is a single number and every row must match it, so the package's one virtualizer has no variable-height mode at all. The transcript also pins itself to the bottom through [`use-chat-scroll.ts`](use-chat-scroll.ts), and a window whose items resize as they measure fights a container that scrolls itself to its bottom. And the `role="log"` region increment 6 added addresses the whole transcript, so a reader who navigates it must not find only the visible slice — the announcer is unaffected, since it speaks a string rather than the DOM, but the region's contents are.
-
-  Say what `mount` means under a window before building one, because increment 9's contract does not survive it unstated. `always` / `lazy` / `active` are implemented through [`useMountHold`](../../primitives/mount/mount.ts), which keeps a held subtree in the tree under `Activity`. Grid's virtualizer works the other way: a row outside the window is not rendered at all. Window the transcript row-wise and every policy collapses to `active` — a chart that `lazy` promised to keep flickers back through its deferred state on each scroll-past — because the row holding it is gone rather than held. Either the window has to hold rows the way `Mount` does, or the policy has to be documented as row-local and subordinate to windowing. The plan takes that decision up, and rules the holding arm out on the bench's own evidence: an `Activity`-hidden subtree still renders, so held rows still rebuild.
-
-  Grid already virtualizes, so read its window before writing a second one; the honest question this entry opens is whether that machinery generalizes to variable heights or only looks like it should.
 
 - **One selection across the chat and the dashboard.** This is the feature a logistics chat exists for, and it is the largest item here rather than a cheap one. An agent says twelve stops are late; a point on that sentence must ring those twelve stops on the map beside it. The shape is a `citation` carrying an embed name and a selector, and an adapter per module that maps the selector onto that module's own selection prop. It must read one direction first: the chat drives the dashboard, and the reverse — a picked region that writes a message — waits for a second consumer to ask.
 
@@ -194,7 +205,7 @@ Extract before extending. The module's backlog was blocked on two things — a c
 
 Do not ship the dependency the caller did not ask for. A chat that imports chart, grid, and map to support an embed nobody used is the failure mode this design exists to avoid, and the registry is what prevents it.
 
-Measure before rebuilding. Virtualization was the obvious answer to a long transcript for as long as this file has existed, and it stayed out of the increments until a bench said which size breaks and by how much. It is in the backlog now because 41 ms against a 16 ms frame put it there, and the same benches are what will say whether the rebuild worked.
+Measure before rebuilding. Virtualization was the obvious answer to a long transcript for as long as this file has existed, and it stayed out of the increments until a bench said which size breaks and by how much. It went into the backlog because 41 ms against a 16 ms frame put it there, and the same benches then said the rebuild worked.
 
 ---
 
