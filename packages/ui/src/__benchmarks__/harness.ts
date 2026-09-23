@@ -1,7 +1,7 @@
 /**
  * The shared scenario harness for the jsdom suite: mount-plus-teardown benches
  * over a case list, re-render benches that mount once and time the update
- * alone, and the run-lifetime mount the cascade scenarios drive. The browser
+ * alone, and the bench-lifetime mount the cascade scenarios drive. The browser
  * suite keeps its own harness — its contenders, sized hosts, and paint-probe
  * settle are a different measurement, not a variation of this one.
  *
@@ -67,11 +67,58 @@ function mount(element: ReactElement): Mounted {
 }
 
 /**
- * Mounts a tree that stands for the whole run, and returns its container — for
- * a scenario that drives one mounted tree across every iteration (a hover
- * cascade, a resize burst) rather than remounting per sample.
+ * A tree that one or more benches drive across every iteration (a hover
+ * cascade, a resize burst), rather than remounting per sample. Each bench
+ * registered through `bench` mounts its own copy of the tree in its cycle
+ * setup, runs `prepare` on the container, and tears the tree down in its cycle
+ * teardown. The timed body gets the prepared state.
+ *
+ * @remarks The tree mounts only while its own bench runs. A tree that mounted
+ * at collection time stayed in the one document for the whole file, so each
+ * figure depended on what else the file mounted. Now the figures in one file
+ * are independent of each other.
+ *
+ * `prepare` runs after the mount and outside the timed region. Put there the
+ * lookups and the start state that the timed body needs, such as the cells to
+ * move between or an open session.
  */
-export function persistentTree(element: ReactElement): HTMLElement {
+export function persistentTree<S>(
+	element: ReactElement,
+	prepare: (container: HTMLElement) => S,
+): { bench: (name: string, fn: (state: S) => void) => void } {
+	return {
+		bench(name, fn) {
+			let mounted: Mounted | null = null
+
+			let state: S | undefined
+
+			bench(name, () => fn(state as S), {
+				setup() {
+					mounted = mount(element)
+
+					state = prepare(mounted.container)
+				},
+				teardown() {
+					mounted?.unmount()
+
+					mounted = null
+
+					state = undefined
+				},
+			})
+		},
+	}
+}
+
+/**
+ * Mounts a tree at collection time, for the whole run of the file, and returns
+ * its container. Several benches can drive the same mount.
+ *
+ * @remarks Prefer {@link persistentTree}. A tree here stays in the one document
+ * while every other bench of the file runs, so it changes their figures. Only a
+ * file that shares its mounts on purpose uses this.
+ */
+export function sharedTree(element: ReactElement): HTMLElement {
 	return mount(element).container
 }
 

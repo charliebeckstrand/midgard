@@ -9,7 +9,7 @@
 
 import { fireEvent } from '@testing-library/react'
 import { useState } from 'react'
-import { bench, describe } from 'vitest'
+import { describe } from 'vitest'
 import { Grid, type GridCellRef, type GridColumn } from '../modules/grid'
 import { noop } from '../utilities/noop'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
@@ -79,6 +79,21 @@ describe('Grid · editable virtualized initial render', () => {
 })
 
 /**
+ * Opens a cell-scoped session on the first row's reference cell, outside the
+ * timed region. Returns the two cells of that row that the move scenarios
+ * alternate between.
+ */
+function openSession(container: HTMLElement): HTMLElement[] {
+	const cells = ['reference', 'origin'].map(
+		(col) => container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,
+	)
+
+	fireEvent.doubleClick(cells[0] as HTMLElement)
+
+	return cells
+}
+
+/**
  * A cell-scoped session moving between two cells of one row. The row is in the
  * set before the timed region starts, so each move changes only the session's
  * cell. That is the cost the commit-and-move keys pay on each keystroke. The
@@ -86,24 +101,17 @@ describe('Grid · editable virtualized initial render', () => {
  */
 describe('Grid · cell-scoped session move', () => {
 	for (const rows of SIZES) {
-		const container = persistentTree(
+		let move = 0
+
+		persistentTree(
 			<Grid
 				columns={COLUMNS}
 				rows={rows}
 				getKey={shipmentKey}
 				editable={{ session: 'managed', scope: 'cell', onCommit: noop }}
 			/>,
-		)
-
-		const cells = ['reference', 'origin'].map(
-			(col) => container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,
-		)
-
-		fireEvent.doubleClick(cells[0] as HTMLElement)
-
-		let move = 0
-
-		bench(`${rows.length.toLocaleString()} rows × 8 cols · one move`, () => {
+			openSession,
+		).bench(`${rows.length.toLocaleString()} rows × 8 cols · one move`, (cells) => {
 			move++
 
 			fireEvent.doubleClick(cells[move % 2] as HTMLElement)
@@ -138,20 +146,37 @@ function ControlledSession({ rows }: { rows: Shipment[] }) {
 
 describe('Grid · cell-scoped session move · controlled', () => {
 	for (const rows of SIZES) {
-		const container = persistentTree(<ControlledSession rows={rows} />)
-
-		const cells = ['reference', 'origin'].map(
-			(col) => container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,
-		)
-
-		fireEvent.doubleClick(cells[0] as HTMLElement)
-
 		let move = 0
 
-		bench(`${rows.length.toLocaleString()} rows × 8 cols · one move`, () => {
-			move++
+		persistentTree(<ControlledSession rows={rows} />, openSession).bench(
+			`${rows.length.toLocaleString()} rows × 8 cols · one move`,
+			(cells) => {
+				move++
 
-			fireEvent.doubleClick(cells[move % 2] as HTMLElement)
+				fireEvent.doubleClick(cells[move % 2] as HTMLElement)
+			},
+		)
+	}
+})
+
+/**
+ * An uncontrolled cell-scoped session that Tab moves along one row. Each press
+ * commits the cell it leaves, reseats focus on the tab stop, and focuses the
+ * next editor. The last column wraps to the first, so every press moves the
+ * session.
+ */
+describe('Grid · cell-scoped session Tab move', () => {
+	for (const rows of SIZES) {
+		persistentTree(
+			<Grid
+				columns={COLUMNS}
+				rows={rows}
+				getKey={shipmentKey}
+				editable={{ session: 'managed', scope: 'cell', onCommit: noop }}
+			/>,
+			openSession,
+		).bench(`${rows.length.toLocaleString()} rows × 8 cols · one Tab`, () => {
+			fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Tab' })
 		})
 	}
 })

@@ -98,4 +98,68 @@ describe('grid commit-and-move keys (real browser)', () => {
 
 		expect(screen.getByRole('grid')).toHaveFocus()
 	})
+
+	it('walks Tab through each control of a two-input slot before it commits', async () => {
+		const onCommit = vi.fn()
+
+		const slotColumns: GridColumn<Row>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (r) => r.name,
+				editCell: ({ value, onValueUpdate }) => (
+					// Narrow controls, so that the slot fits its cell and does not truncate.
+					<span>
+						<input
+							data-slot="slot-first"
+							aria-label="First"
+							size={3}
+							value={String(value)}
+							onChange={(event) => onValueUpdate(event.target.value)}
+						/>
+						<input data-slot="slot-last" aria-label="Last" size={3} defaultValue="" />
+					</span>
+				),
+			},
+			columns[1] as GridColumn<Row>,
+		]
+
+		const view = renderUI(
+			<Grid
+				columns={slotColumns}
+				rows={rows}
+				getKey={(r) => r.id}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
+			/>,
+		)
+
+		await userEvent.dblClick(
+			present(view.container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'name'),
+		)
+
+		const first = getSlot<HTMLInputElement>(view.container, 'slot-first')
+
+		expect(first).toHaveFocus()
+
+		await userEvent.keyboard('{Control>}a{/Control}Alicia')
+
+		// The browser moves focus to the second control, and nothing commits.
+		await userEvent.keyboard('{Tab}')
+
+		expect(getSlot(view.container, 'slot-last')).toHaveFocus()
+
+		await userEvent.keyboard('{Shift>}{Tab}{/Shift}')
+
+		expect(first).toHaveFocus()
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		// Tab past the last control commits the cell and moves to the next one.
+		await userEvent.keyboard('{Tab}{Tab}')
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+	})
 })
