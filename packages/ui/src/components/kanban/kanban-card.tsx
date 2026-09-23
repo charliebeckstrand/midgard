@@ -11,10 +11,10 @@ export type KanbanCardProps = {
 	/** Stable key matching an entry in the parent column's `items`; the keyed-child `value` every compound in the library takes. */
 	value: string
 	/**
-	 * Overrides the card's accessible name. By default the card is named by its
-	 * own content; dnd-kit already announces draggability (`aria-roledescription`)
-	 * and keyboard instructions (`aria-describedby`). Only set this when the
-	 * content doesn't yield a usable name.
+	 * Overrides the card's accessible name on each arm of the board. By default
+	 * the card is named by its own content; dnd-kit already announces draggability
+	 * (`aria-roledescription`) and keyboard instructions (`aria-describedby`).
+	 * Only set this when the content doesn't yield a usable name.
 	 */
 	'aria-label'?: string
 	children?: ReactNode
@@ -30,7 +30,9 @@ export type KanbanCardProps = {
  * @remarks
  * Client component. Drag affordances (`role`, `aria-roledescription`,
  * keyboard instructions) come from dnd-kit; set `aria-label` only when the
- * content yields no usable name. Memoized: the card reads only the card-facing
+ * content yields no usable name. A read-only or disabled card is a
+ * `role="listitem"` in its column body's list, so the name stays valid there
+ * too. ARIA prohibits a name on an element with no role. Memoized: the card reads only the card-facing
  * {@link KanbanContext}, so a pointer drag doesn't re-render the whole board.
  */
 function KanbanCardImpl({
@@ -86,11 +88,13 @@ function KanbanCardImpl({
 		<div
 			ref={interactive ? setNodeRef : undefined}
 			style={interactive ? style : undefined}
+			// Before the spread: an interactive card takes dnd-kit's `button` role.
+			role={interactive ? undefined : 'listitem'}
 			{...(interactive ? attributes : {})}
 			{...(interactive ? listeners : {})}
 			onKeyDown={interactive ? (event) => onCardKeyDown(cardId, event) : undefined}
 			onBlur={interactive ? onCardBlur : undefined}
-			aria-label={interactive ? ariaLabel : undefined}
+			aria-label={ariaLabel}
 			data-slot="kanban-card"
 			data-card-id={cardId}
 			data-active={dataAttr(dragging)}
