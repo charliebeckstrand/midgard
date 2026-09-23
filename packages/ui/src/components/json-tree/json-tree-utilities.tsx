@@ -123,8 +123,9 @@ export function filterEntries(
 }
 
 /**
- * Paths of every branch whose subtree contains a search match; the seed set
- * for `expanded`. Prunes on the index: a branch without a match has no
+ * Paths of every branch whose subtree contains a search match. The virtualized
+ * tree seeds a controlled `expanded` set with them, or opens them by default
+ * when uncontrolled. Prunes on the index: a branch without a match has no
  * matching descendants.
  *
  * @internal
@@ -227,20 +228,22 @@ export type FlatNode =
 type FlattenTreeOptions = {
 	data: JsonValue
 	rootKey: string | undefined
-	expanded: Set<string>
+	/** Resolves whether the branch at `path` is open. The root has depth 0. */
+	isOpen: (path: string, depth: number) => boolean
 	search: string
 	filter: boolean
 	searchIndex: SearchIndex
 }
 
 /**
- * Walk a tree following `expanded` paths and return a flat list of rows in
- * render order. Each open branch emits a `branch-open` row, its (possibly
- * filtered) children, and a `branch-close` row.
+ * Walk a tree and return a flat list of rows in render order. `isOpen` decides
+ * each branch, so the caller resolves open state per render. Each open branch
+ * emits a `branch-open` row, its (possibly filtered) children, and a
+ * `branch-close` row.
  *
  * When `search` is set and `filter` is true, non-matching leaves are omitted
  * and each branch keeps only children on a match path. A branch's open state
- * still follows `expanded`. (Unlike the recursive renderer, this flatten pass
+ * still follows `isOpen`. (Unlike the recursive renderer, this flatten pass
  * does not force match-free branches closed.)
  *
  * @internal
@@ -248,7 +251,7 @@ type FlattenTreeOptions = {
 export function flattenTree({
 	data,
 	rootKey,
-	expanded,
+	isOpen,
 	search,
 	filter,
 	searchIndex,
@@ -274,7 +277,7 @@ export function flattenTree({
 		const entries =
 			filter && search ? filterEntries(getEntries(value), search, searchIndex) : getEntries(value)
 
-		const open = expanded.has(path)
+		const open = isOpen(path, depth)
 
 		const count = entries.length
 

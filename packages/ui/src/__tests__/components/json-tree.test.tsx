@@ -279,7 +279,9 @@ describe('JsonTree', () => {
 			expect(bySlot(container, 'json-tree')).toBeInTheDocument()
 		})
 
-		it('auto-expands branches containing a match in virtualized mode', () => {
+		// The uncontrolled arm resolves search matches per render, and the hook
+		// tests cover it. A controlled tree takes the matches as one seed.
+		it('seeds the branches containing a match into a controlled set', () => {
 			const onExpandedChange = vi.fn()
 
 			// jsdom's zero-size viewport renders no rows, so the expansion seeding
@@ -287,9 +289,9 @@ describe('JsonTree', () => {
 			renderUI(
 				<JsonTree
 					data={{ outer: { inner: { needle: 'match' } } }}
-					defaultExpandDepth={0}
 					virtualize={{ maxHeight: '200px' }}
 					search={{ value: 'needle' }}
+					expanded={new Set()}
 					onExpandedChange={onExpandedChange}
 				/>,
 			)
@@ -301,6 +303,39 @@ describe('JsonTree', () => {
 			expect(seeded.has('$.outer')).toBe(true)
 
 			expect(seeded.has('$.outer.inner')).toBe(true)
+		})
+
+		// B06-C14: the seed adds nothing to a fully expanded set, so the tree
+		// must not report a change.
+		it('does not report a search seed that adds no branch', () => {
+			const onExpandedChange = vi.fn()
+
+			renderUI(
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					virtualize={{ maxHeight: '200px' }}
+					search={{ value: 'needle' }}
+					expanded={new Set(['$', '$.outer'])}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			expect(onExpandedChange).not.toHaveBeenCalled()
+		})
+
+		it('does not report expansion from an uncontrolled tree', () => {
+			const onExpandedChange = vi.fn()
+
+			renderUI(
+				<JsonTree
+					data={{ outer: { needle: 'match' } }}
+					virtualize={{ maxHeight: '200px' }}
+					search={{ value: 'needle' }}
+					onExpandedChange={onExpandedChange}
+				/>,
+			)
+
+			expect(onExpandedChange).not.toHaveBeenCalled()
 		})
 
 		it('never renders more rows than the flattened node count', () => {
