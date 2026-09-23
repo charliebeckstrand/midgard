@@ -20,11 +20,14 @@ import {
 	isCellEditing,
 	isColumnEditable,
 	isSameCell,
+	readKeyPress,
+	stepEditableColumn,
 } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridActiveEditStore, GridEditingSession } from './grid-editing-context'
 import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
+import type { Coord } from './use-grid-navigation'
 
 /** The editing layer's surface, consumed by {@link useGridCursor}. @internal */
 export type GridEditingApi = {
@@ -36,15 +39,17 @@ export type GridEditingApi = {
 	 * no-op. Under `scope: 'cell'` it re-points the session: the cell it leaves
 	 * commits, and a previous row leaves the set. A transition that changes which
 	 * rows edit goes through the controllable set, so `onRowsChange` reports it. A
-	 * move between cells of one row leaves that set alone.
+	 * move between cells of one row leaves that set alone. A `seed` opens the
+	 * editor with that value in place of the cell's own (type-to-edit).
 	 */
-	enterEdit: (rowKey: string | number, columnId: string | number) => void
+	enterEdit: (rowKey: string | number, columnId: string | number, seed?: string | number) => void
 	/**
 	 * The session's keys, layered onto the grid `<table>`'s key handler by
-	 * {@link useGridCursor}. Escape abandons the session, and Enter from an open
-	 * editor saves it. Every editor (inferred input, listbox, `editCell` slot)
-	 * therefore inherits the keys without wiring of its own. `undefined` unless
-	 * the grid owns the session (`trigger: 'doubleClick'`).
+	 * {@link useGridCursor}. Escape abandons the session. From an open editor,
+	 * Enter commits and moves down, Tab and Shift+Tab commit and move along the
+	 * row, and F2 commits and stays. Every editor (inferred input, listbox,
+	 * `editCell` slot) therefore inherits the keys without wiring of its own.
+	 * `undefined` unless the grid owns the session (`trigger: 'doubleClick'`).
 	 */
 	sessionKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 }
@@ -93,6 +98,31 @@ function claimedBySurface(event: ReactKeyboardEvent<HTMLTableElement>): boolean 
  * keeps the Enter that opens it. @internal
  */
 const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable="true"]'
+
+/** Where a move key takes the session from an open editor. @internal */
+type SessionMove = 'down' | 'next' | 'previous' | 'here'
+
+/**
+ * The move a key press asks of the session from an open editor, or `null` when
+ * the press is not the session's. The tab stop's own keys are the cursor's,
+ * which enter a cell. A key with Ctrl, Cmd, or Alt is the editor's shortcut.
+ * Enter on an element that acts on it natively stays with that element.
+ *
+ * @internal
+ */
+function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): SessionMove | null {
+	const target = event.target as Element
+
+	if (target === event.currentTarget || event.ctrlKey || event.metaKey || event.altKey) return null
+
+	if (event.key === 'Tab') return event.shiftKey ? 'previous' : 'next'
+
+	if (event.key === 'F2') return 'here'
+
+	if (event.key === 'Enter' && !target.closest(NATIVE_ENTER)) return 'down'
+
+	return null
+}
 
 /**
  * Builds the store behind {@link GridActiveEditStore}. `set` notifies only when
@@ -305,6 +335,7 @@ export function useGridEditing<T>({
 	rowKeysRef,
 	dataColumnsRef,
 	cellId,
+	moveTo,
 }: {
 	enabled: boolean
 	config: GridEditableConfig | undefined
@@ -315,6 +346,8 @@ export function useGridEditing<T>({
 	dataColumnsRef: RefObject<GridColumn<T>[]>
 	/** The cursor's per-cell id deriver; locates the entered cell's editor to focus it. */
 	cellId: (row: number, col: number) => string
+	/** The cursor's clamped move, which the commit-and-move keys ride. */
+	moveTo: (coord: Coord) => void
 }): GridEditingApi {
 	// The editable-row set is consumer-driven by default — the grid renders no
 	// built-in trigger and only reads the binding (a row-action button flips a
@@ -434,6 +467,16 @@ export function useGridEditing<T>({
 	// controlled binding can delay by a consumer round-trip.
 	const pendingFocusRef = useRef<GridActiveEdit | null>(null)
 
+	// The value a type-to-edit entry opens its editor with, beside the focus
+	// intent and cleared with it. The editor reads it once, as it mounts.
+	const pendingSeedRef = useRef<(GridActiveEdit & { value?: string | number }) | null>(null)
+
+	const entrySeed = useCallback((rowKey: string | number, columnId: string | number) => {
+		const pending = pendingSeedRef.current
+
+		return pending && isSameCell(pending, { rowKey, columnId }) ? pending.value : undefined
+	}, [])
+
 	// The row the grid-owned session holds, with how it came by it. Row scope
 	// keeps no coord, and Escape has to reach the session from anywhere in the
 	// grid under both scopes, so the row is recorded here rather than read off
@@ -444,7 +487,7 @@ export function useGridEditing<T>({
 	const sessionRowRef = useRef<{ rowKey: string | number; acquired: boolean } | null>(null)
 
 	const enterEdit = useCallback(
-		(rowKey: string | number, columnId: string | number) => {
+		(rowKey: string | number, columnId: string | number, seed?: string | number) => {
 			const active = activeEditRef.current
 
 			const editableRows = editableRowsRef.current
@@ -462,6 +505,8 @@ export function useGridEditing<T>({
 			if (entering ? isSameCell(active, entering) : editableRows.has(rowKey)) return
 
 			pendingFocusRef.current = { rowKey, columnId }
+
+			pendingSeedRef.current = { rowKey, columnId, value: seed }
 
 			const held = sessionRowRef.current
 
@@ -505,6 +550,9 @@ export function useGridEditing<T>({
 		if (!pending) return
 
 		pendingFocusRef.current = null
+
+		// The editor read its seed as it mounted, in the render just past.
+		pendingSeedRef.current = null
 
 		// The editor exists only once the session covers the entered cell: a
 		// controlled binding can decline the row, and a cell-scoped session can
@@ -613,28 +661,117 @@ export function useGridEditing<T>({
 		[rowKeysRef, dataColumnsRef],
 	)
 
+	// Enter commits the session and moves the cursor down one row. Under cell
+	// scope it enters the next row's cell, which is the column-wise fill flow of a
+	// spreadsheet. On the last row the cursor stays, and focus rests on the tab
+	// stop. The exit and the entry are two writes, so a controlled binding can
+	// decline the entry and keep the commit.
+	const commitDown = useCallback(
+		(rowKey: string | number, columnId: string | number) => {
+			const rowKeys = rowKeysRef.current
+
+			const row = rowKeys.indexOf(rowKey)
+
+			const col = dataColumnsRef.current.findIndex((column) => column.id === columnId)
+
+			endSession(rowKey, 'save')
+
+			const next = rowKeys[row + 1]
+
+			moveTo({ row: next === undefined ? row : row + 1, col })
+
+			if (cellScoped && next !== undefined) enterEdit(next, columnId)
+		},
+		[cellScoped, endSession, enterEdit, moveTo, rowKeysRef, dataColumnsRef],
+	)
+
+	// F2 commits the session and leaves the cursor on the cell, with focus back on
+	// the tab stop. It toggles edit off, as F2 on the tab stop toggles it on.
+	const commitHere = useCallback(
+		(rowKey: string | number, columnId: string | number) => {
+			const row = rowKeysRef.current.indexOf(rowKey)
+
+			const col = dataColumnsRef.current.findIndex((column) => column.id === columnId)
+
+			endSession(rowKey, 'save')
+
+			moveTo({ row, col })
+		},
+		[endSession, moveTo, rowKeysRef, dataColumnsRef],
+	)
+
+	// Tab and Shift+Tab move along the row's editable columns, and wrap at the
+	// edges. Under cell scope the move re-points the session, so the cell it
+	// leaves commits. Under row scope every editor of the row is open, so focus
+	// moves and the row commits when it closes. A row with one editable column
+	// has nowhere to go, so the key commits there, as F2 does.
+	const commitAlong = useCallback(
+		(rowKey: string | number, columnId: string | number, step: 1 | -1) => {
+			const columns = dataColumnsRef.current
+
+			const row = rowKeysRef.current.indexOf(rowKey)
+
+			const col = columns.findIndex((column) => column.id === columnId)
+
+			const next = stepEditableColumn(columns, col, step)
+
+			const target = columns[next]
+
+			if (next === col || !target) {
+				commitHere(rowKey, columnId)
+
+				return
+			}
+
+			moveTo({ row, col: next })
+
+			if (!cellScoped) {
+				const editor = document
+					.getElementById(cellId(row, next))
+					?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
+
+				if (editor) focusWithoutReveal(editor)
+
+				return
+			}
+
+			// Blur the editor while it is still mounted, so a value it stages on blur
+			// reaches the draft before the sweep commits the cell.
+			restoreGridFocus()
+
+			enterEdit(rowKey, target.id)
+		},
+		[cellScoped, cellId, commitHere, enterEdit, moveTo, rowKeysRef, dataColumnsRef],
+	)
+
+	// Runs the move a key asked of the session from an open editor.
+	const runMove = useCallback(
+		(move: SessionMove, rowKey: string | number, columnId: string | number) => {
+			if (move === 'down') commitDown(rowKey, columnId)
+			else if (move === 'here') commitHere(rowKey, columnId)
+			else commitAlong(rowKey, columnId, move === 'previous' ? -1 : 1)
+		},
+		[commitDown, commitAlong, commitHere],
+	)
+
 	// Escape anywhere in an editing grid abandons its session, so it never reads
-	// as dead while a draft stands. Enter from an open editor saves the session,
-	// unless the focused element owns Enter natively. Both keys stand down while
-	// the press belongs to a floating surface (see `claimedBySurface`), so the
-	// first press closes that surface and the next reaches the session.
+	// as dead while a draft stands. The move keys act only from an open editor
+	// (see `editorMove`). Every key stands down while the press belongs to a
+	// floating surface (see `claimedBySurface`) or to an input method. The first
+	// press closes that surface, and the next reaches the session.
 	const sessionKeys = useCallback(
 		(event: ReactKeyboardEvent<HTMLTableElement>) => {
-			if (event.key !== 'Escape' && event.key !== 'Enter') return
-
-			if (claimedBySurface(event)) return
+			if (claimedBySurface(event) || readKeyPress(event).composing) return
 
 			const target = event.target as Element
 
-			// Enter on the tab stop itself is the cursor's, which enters a cell.
-			if (event.key === 'Enter' && (target === event.currentTarget || target.closest(NATIVE_ENTER)))
-				return
+			const move = event.key === 'Escape' ? 'abandon' : editorMove(event)
 
-			const session = sessionTarget(target)
+			const session = move === null ? null : sessionTarget(target)
 
-			if (session === null) return
+			if (move === null || session === null) return
 
-			if (event.key === 'Escape') {
+			if (move === 'abandon') {
 				event.preventDefault()
 
 				endSession(session.rowKey, 'discard')
@@ -646,9 +783,9 @@ export function useGridEditing<T>({
 
 			event.preventDefault()
 
-			endSession(session.rowKey, 'save')
+			runMove(move, session.rowKey, session.columnId)
 		},
-		[endSession, sessionTarget],
+		[endSession, sessionTarget, runMove],
 	)
 
 	// Commit the cells whose editors closed in the render just past: the drafts
@@ -676,9 +813,10 @@ export function useGridEditing<T>({
 			stageDraft,
 			unstageDraft,
 			endSession,
+			entrySeed,
 			sessionOwned,
 		}),
-		[editableRows, activeEditStore, stageDraft, unstageDraft, sessionOwned, endSession],
+		[editableRows, activeEditStore, stageDraft, unstageDraft, sessionOwned, endSession, entrySeed],
 	)
 
 	return { session, enterEdit, sessionKeys: sessionOwned ? sessionKeys : undefined }

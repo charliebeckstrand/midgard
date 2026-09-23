@@ -31,8 +31,8 @@ export type GridEditInputProps = {
 	/**
 	 * Whether the grid owns the edit session (`trigger: 'doubleClick'`). A
 	 * grid-owned session handles its keys on the grid table's key surface, so the
-	 * editor lets Enter and Escape bubble past it. Under a consumer-owned session
-	 * the editor keeps Escape, which reverts this cell, and nothing saves on Enter.
+	 * editor lets them bubble past it. Under a consumer-owned session the editor
+	 * keeps Escape, which reverts this cell, and nothing saves on Enter.
 	 */
 	sessionOwned: boolean
 }

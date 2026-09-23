@@ -53,6 +53,12 @@ export type GridEditingSession = {
 	 * {@link GridRowActionsContext.discard} hands them.
 	 */
 	endSession: (rowKey: string | number, outcome: 'save' | 'discard') => void
+	/**
+	 * The value a type-to-edit entry opens this cell's editor with, or
+	 * `undefined` for an entry that seeds nothing. The editor reads it once, as it
+	 * mounts, and stages it as the cell's draft.
+	 */
+	entrySeed: (rowKey: string | number, columnId: string | number) => string | number | undefined
 	/** Whether the grid owns entry and the session keys (`trigger: 'doubleClick'`). */
 	sessionOwned: boolean
 }

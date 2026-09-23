@@ -884,7 +884,9 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 
 		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
 
-		expect(getByRole('grid')).toHaveFocus()
+		// Enter commits and moves down, so the session re-enters the same column
+		// one row below rather than handing focus back to the grid.
+		expect(getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name', 1).id)
 
 		await expectAnnouncement('1 cell updated')
 	})
@@ -1216,6 +1218,407 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// Inert rather than wrong, so it fails silently — which is what the
 		// development warning is for.
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining("editable.scope: 'cell'"))
+	})
+})
+
+/**
+ * Commit-and-move keys under a grid-owned session: Enter commits and moves down,
+ * Tab and Shift+Tab commit and move along the row's editable cells, F2 toggles
+ * edit on the cursor's cell, and a printable key on the tab stop enters edit
+ * seeded with that character. The keys ride the table's key surface, so the
+ * focus moves they cause are asserted here only as far as jsdom shows them.
+ */
+describe('Grid commit-and-move keys', () => {
+	// A read-only column between the two editable ones, so Tab has one to skip.
+	const keyColumns: GridColumn<SessionRow>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+		{ id: 'id', title: 'ID', field: 'id', cell: (row) => String(row.id), readOnly: true },
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+	]
+
+	const renderKeysGrid = (editable: Partial<GridEditableConfig> = {}) =>
+		renderSessionGrid({ editable: { scope: 'cell', ...editable }, cols: keyColumns })
+
+	/** The cell the cursor sits on, as `aria-activedescendant` names it. */
+	const cursorOn = (view: ReturnType<typeof renderKeysGrid>) =>
+		view.getByRole('grid').getAttribute('aria-activedescendant')
+
+	it('commits the cell on Enter and enters the same column one row down', () => {
+		const view = renderKeysGrid()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(cursorOn(view)).toBe(view.cell('name', 1).id)
+
+		const next = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		expect(next.value).toBe('Bob')
+
+		expect(next).toHaveFocus()
+	})
+
+	it('commits on Enter from the last row and leaves the cursor there', () => {
+		const view = renderKeysGrid()
+
+		fireEvent.doubleClick(view.cell('name', 1))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Robert' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 2, columnId: 'name', value: 'Robert' }])
+
+		// There is no row below, so the session ends where it was rather than
+		// re-entering the cell it just committed.
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(cursorOn(view)).toBe(view.cell('name', 1).id)
+
+		expect(view.getByRole('grid')).toHaveFocus()
+	})
+
+	it('saves the row on Enter under row scope and moves the cursor down without entering', () => {
+		const view = renderKeysGrid({ scope: 'row' })
+
+		fireEvent.doubleClick(view.cell('count'))
+
+		const number = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		fireEvent.change(number, { target: { value: '7' } })
+
+		fireEvent.keyDown(number, { key: 'Enter' })
+
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'count', value: 7 }])
+
+		// Row scope opens a record, not a column, so the move lands the cursor only.
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(cursorOn(view)).toBe(view.cell('count', 1).id)
+
+		expect(view.getByRole('grid')).toHaveFocus()
+	})
+
+	it('commits on Tab and enters the next editable cell, skipping a read-only one', () => {
+		const view = renderKeysGrid()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+
+		expect(cursorOn(view)).toBe(view.cell('count').id)
+	})
+
+	it('wraps Tab and Shift+Tab at the edges of the row', () => {
+		const view = renderKeysGrid()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		// Shift+Tab from the first editable cell wraps to the last.
+		fireEvent.keyDown(getSlot(view.container, 'grid-edit-input'), { key: 'Tab', shiftKey: true })
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+
+		// Tab from the last wraps back to the first, on the same row.
+		fireEvent.keyDown(getSlot(view.container, 'grid-edit-number-input'), { key: 'Tab' })
+
+		expect(bySlot(view.container, 'grid-edit-input')).toHaveFocus()
+
+		expect(cursorOn(view)).toBe(view.cell('name').id)
+	})
+
+	it('commits on Tab where the row has no other editable cell', () => {
+		const view = renderSessionGrid({
+			editable: { scope: 'cell' },
+			cols: [keyColumns[0] as GridColumn<SessionRow>, keyColumns[1] as GridColumn<SessionRow>],
+		})
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		// A Tab with nowhere to go would otherwise leave the grid with the draft
+		// staged and the editor open behind it.
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(view.getByRole('grid')).toHaveFocus()
+	})
+
+	it('moves focus on Tab under row scope without committing the row', () => {
+		const view = renderKeysGrid({ scope: 'row' })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		// Every editor of the row is open, so Tab walks them and the row commits
+		// when it closes, as one batch.
+		expect(bySlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('toggles edit on the cursor cell with F2', () => {
+		const view = renderKeysGrid()
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'F2' })
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		expect(input).toHaveFocus()
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(grid).toHaveFocus()
+
+		expect(cursorOn(view)).toBe(view.cell('name').id)
+	})
+
+	it('enters edit on a printable key, seeded with that character', () => {
+		const view = renderKeysGrid()
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'x' })
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		// The character replaces the value, as a spreadsheet does, and the caret
+		// sits after it so the next key extends it.
+		expect(input.value).toBe('x')
+
+		expect(input).toHaveFocus()
+
+		expect(input.selectionStart).toBe(1)
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(view.onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'x' }])
+	})
+
+	it('seeds a number cell with a digit and ignores a letter there', () => {
+		const view = renderKeysGrid()
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(grid, { key: 'q' })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		fireEvent.keyDown(grid, { key: '4' })
+
+		expect(getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input').value).toBe('4')
+	})
+
+	it.each([
+		['Ctrl', { ctrlKey: true }],
+		['Cmd', { metaKey: true }],
+		['Alt', { altKey: true }],
+		['an input method', { keyCode: 229 }],
+		['a composing input method', { isComposing: true }],
+	])('does not seed a letter pressed with %s', (_, modifier) => {
+		const view = renderKeysGrid()
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'c', ...modifier })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+	})
+
+	it('does not seed on Space, which stays with the cursor', () => {
+		const view = renderKeysGrid()
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+	})
+
+	it('does not seed a yes/no cell or an editCell slot, which F2 still opens', () => {
+		const view = renderSessionGrid({
+			editable: { scope: 'cell' },
+			cols: [
+				{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
+				{
+					id: 'name',
+					title: 'Name',
+					field: 'name',
+					cell: (row) => row.name,
+					editCell: () => <input data-slot="custom-edit" />,
+				},
+			],
+		})
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'y' })
+
+		expect(bySlot(view.container, 'grid-edit-boolean-input')).toBeNull()
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(grid, { key: 'y' })
+
+		expect(bySlot(view.container, 'custom-edit')).toBeNull()
+
+		fireEvent.keyDown(grid, { key: 'F2' })
+
+		expect(bySlot(view.container, 'custom-edit')).toHaveFocus()
+	})
+
+	it('leaves Enter to an input method that composes it', () => {
+		const view = renderKeysGrid()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+
+		// The Enter confirms the composed text; the session stays where it is.
+		expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+	})
+
+	it('leaves Tab and Enter to an open floating surface in the cell', () => {
+		const view = renderSessionGrid({
+			editable: { scope: 'cell' },
+			cols: [
+				{
+					id: 'name',
+					title: 'Name',
+					field: 'name',
+					cell: (row) => row.name,
+					editCell: () => <input data-slot="open-combobox" role="combobox" aria-expanded="true" />,
+				},
+				keyColumns[2] as GridColumn<SessionRow>,
+			],
+		})
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const surface = getSlot(view.container, 'open-combobox')
+
+		fireEvent.keyDown(surface, { key: 'Tab' })
+
+		fireEvent.keyDown(surface, { key: 'Enter' })
+
+		// Both presses belong to the open panel, which picks or closes with them.
+		expect(bySlot(view.container, 'open-combobox')).toBeInTheDocument()
+
+		expect(bySlot(view.container, 'grid-edit-number-input')).toBeNull()
+	})
+
+	it('keeps the commit and lands the cursor when a binding declines the entry below', () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			return (
+				<Grid
+					columns={keyColumns}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{
+						trigger: 'doubleClick',
+						scope: 'cell',
+						rows: editing,
+						// A guard that lets rows close but lets no second row open.
+						onRowsChange: (next) => {
+							if (!next.has(2)) setEditing(next)
+						},
+						onCommit,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.doubleClick(
+			view.container.querySelectorAll('td[data-grid-col="name"]')[0] as HTMLElement,
+		)
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(view.getByRole('grid')).toHaveFocus()
+	})
+
+	it('stays inert under a consumer-owned session', () => {
+		const view = renderKeysGrid({ trigger: 'manual', scope: 'row' })
+
+		const grid = view.getByRole('grid')
+
+		fireEvent.focus(grid)
+
+		fireEvent.keyDown(grid, { key: 'F2' })
+
+		fireEvent.keyDown(grid, { key: 'x' })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
 	})
 })
 

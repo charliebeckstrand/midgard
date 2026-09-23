@@ -39,7 +39,10 @@ type GridEditingCellProps<T> = {
 
 /** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
-	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession' | 'sessionOwned'> & {
+	Pick<
+		GridEditingSession,
+		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'sessionOwned'
+	> & {
 		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
 		held: boolean
 	}
@@ -55,8 +58,13 @@ const SETTLE_ACTIONS = [
  * holds. Row scope shows none: its whole row edits at once. The settle control
  * there is the consumer's own row action, at the granularity that matches. Here
  * the grid owns the session and nothing else on screen ends it, so this is the
- * only visible way out. It is also the only keyboard commit available to an
- * editor that spends its own Enter, which the inline listbox does.
+ * only visible way out for a pointer.
+ *
+ * @remarks The pair sits outside the tab order. The keyboard settles a session
+ * on the grid table's key surface instead: Tab, Enter, and F2 commit, and Escape
+ * discards. Tab from the editor commits and moves, so it cannot also reach the
+ * pair. Tab is also the keyboard commit of the inline listbox, which spends its
+ * own Enter on its menu (WCAG 2.1.1).
  *
  * @internal
  */
@@ -77,6 +85,7 @@ function GridSettleControls({
 					variant="bare"
 					color={action.color}
 					aria-label={`${action.verb} ${label}`}
+					tabIndex={-1}
 					onClick={() => settle(action.outcome)}
 				>
 					<Icon icon={action.icon} />
@@ -88,8 +97,9 @@ function GridSettleControls({
 
 /**
  * A cell's in-place editor while its row is in edit mode. It owns its live
- * display value (seeded from the cell's current value), and mirrors each change
- * into the grid's staged drafts. The grid stays unrendered as the user types. Renders the
+ * display value, and mirrors each change into the grid's staged drafts. The
+ * value starts as the cell's current value, or as the typed character of a
+ * type-to-edit entry. The grid stays unrendered as the user types. Renders the
  * column's {@link GridColumn.editCell} slot, or the editor inferred from the cell
  * value's primitive type. A failed `validate` rings the editor and shows the
  * message beneath the cell; Escape reverts the cell.
@@ -104,12 +114,23 @@ function GridCellEditor<T>({
 	stageDraft,
 	unstageDraft,
 	endSession,
+	entrySeed,
 	sessionOwned,
 	held,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
-	const [draft, setDraft] = useState<unknown>(seed)
+	// Read once, as the editor mounts. The entry that typed it clears it after
+	// the focus hand-off, so a later render must not read it again.
+	const [entry] = useState(() => entrySeed(rowKey, column.id))
+
+	const [draft, setDraft] = useState<unknown>(entry === undefined ? seed : entry)
+
+	// A typed character is an edit, so it stages like one. Staging here rather
+	// than at entry keeps a declined entry from leaving a draft behind.
+	useEffect(() => {
+		if (entry !== undefined) stageDraft(rowKey, column.id, entry)
+	}, [entry, stageDraft, rowKey, column.id])
 
 	const update = (next: unknown) => {
 		setDraft(next)
@@ -226,8 +247,15 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, activeEditStore, stageDraft, unstageDraft, endSession, sessionOwned } =
-		useGridEditingSession()
+	const {
+		editableRows,
+		activeEditStore,
+		stageDraft,
+		unstageDraft,
+		endSession,
+		entrySeed,
+		sessionOwned,
+	} = useGridEditingSession()
 
 	const columnId = column.id
 
@@ -255,6 +283,7 @@ export function GridEditingCell<T>({
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
 				endSession={endSession}
+				entrySeed={entrySeed}
 				sessionOwned={sessionOwned}
 				held={flag === CELL_HELD}
 			/>
