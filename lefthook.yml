@@ -1,12 +1,10 @@
+# No tests run here. The pre-push branch gate runs each test that the branch's
+# diff reaches, and that set holds each commit's related tests. A test job here
+# ran those files twice: 261 files for one helper edit.
 pre-commit:
-  parallel: true
   jobs:
     - name: biome check
       run: pnpm biome check --staged --no-errors-on-unmatched
-    - name: ui related tests
-      root: packages/ui/
-      glob: '**/*.{ts,tsx}'
-      run: pnpm test:related --passWithNoTests {staged_files}
 
 pre-push:
   parallel: true

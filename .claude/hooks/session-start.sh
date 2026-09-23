@@ -21,8 +21,9 @@ fi
 pnpm install --prefer-offline
 
 # Warm the turbo cache, then Vitest, in one detached background chain.
-# check-types dependsOn ^build, so the first pre-commit gate in a fresh
-# container otherwise pays cold tsup/tsc builds — racing this very warmup
+# The pre-push gate runs check-types and test:changed, and test:changed
+# dependsOn ^build, so the first push in a fresh container otherwise pays
+# cold tsup/tsc builds — racing this very warmup
 # for CPU/memory. Sequencing both warmups in a single chain keeps them
 # from contending with each other, and the hook still returns as soon as
 # install finishes.
