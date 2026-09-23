@@ -33,9 +33,9 @@ type GridHeadProps<T> = {
 	 */
 	selectAllLabel?: string
 	/**
-	 * When the rendered body is a window onto a larger set, the header is row 1 of
-	 * the full `aria-rowcount` set. Virtualization and pagination each open such a
-	 * window. Each cell carries an `aria-colindex`.
+	 * Whether grid semantics hold: under virtualization, pagination, or the
+	 * navigable cursor. The header is then row 1 of the full `aria-rowcount` set,
+	 * or row 2 below a band row. Each cell carries an `aria-colindex`.
 	 */
 	gridSemantics?: boolean
 	/**
@@ -57,7 +57,7 @@ type GridHeadProps<T> = {
 	 * their width from the engine and gain a resize separator. `null` otherwise.
 	 */
 	resize?: GridColumnResize | null
-	/** Per-column filter controls; renders a filter row beneath the header when present. */
+	/** Per-column filter controls; each filterable header shows a filter button when present. */
 	filters?: GridColumnFilter | null
 	/** Frozen-column controls; pins matching headers sticky to an edge. `null` when none. */
 	pinning?: GridColumnPinning | null
@@ -248,8 +248,8 @@ function GridHeaderCell<T>({
 		pinning,
 		// Unpins a column; backs the pin button a (non-locked) frozen header shows.
 		pinColumn,
-		// A locked column is frozen but immutable: its header shows a static edge
-		// arrow (pointing to the frozen edge) rather than an unpin button.
+		// A locked column is frozen and immutable. Its header shows no unpin button,
+		// and the boundary border marks its edge.
 		locked: isLocked(column),
 	}
 

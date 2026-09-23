@@ -73,8 +73,8 @@ export function useGridColumns<T>({
 	})
 
 	// A manager-controlled column: a non-frozen data column, the set the column
-	// manager (and thus the group editor) reorders. Selection/actions and frozen
-	// columns hold their slots.
+	// manager (and thus the group editor) reorders. The non-data columns (selection,
+	// actions, drag handle, expander) and frozen columns hold their slots.
 	const isOrderable = useCallback(
 		(id: string | number) => {
 			const col = columnById.get(id)

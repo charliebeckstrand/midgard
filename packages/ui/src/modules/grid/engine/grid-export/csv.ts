@@ -45,7 +45,7 @@ function escapeCsvField(value: string): string {
 /**
  * Serializes rows to RFC 4180 CSV. A header row holds the labels of the data
  * columns, and one row per datum follows it. Each cell reads through the
- * column's export value. Non-data columns (selection, actions) are skipped. Rows are joined
+ * column's export value. Non-data columns (selection, actions, drag handle, expander) are skipped. Rows are joined
  * with CRLF; an empty `rows` yields the header line alone.
  *
  * @typeParam T - Shape of a single row.

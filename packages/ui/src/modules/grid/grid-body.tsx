@@ -50,9 +50,9 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	 */
 	rowSortable: GridRowSortableContext | null
 	/**
-	 * The engine's grouped display rows (group headers interleaved with expanded
-	 * leaves) when grouping is active; `null` otherwise. Rendered in place of the
-	 * flat row map, group headers as full-width disclosure rows.
+	 * The top-level group-header rows in display order, each with all its leaves
+	 * on `subRows`, when grouping is active; `null` otherwise. Rendered in place of
+	 * the flat row map, group headers as full-width disclosure rows.
 	 */
 	groupedRows: Row<T>[] | null
 	/**
@@ -92,8 +92,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	/**
 	 * The row manager's overlay presentation, or `null` when the grid isn't
 	 * client-grouped. It holds the per-group color, which tints the header
-	 * aggregates, total footer, and rail. It also holds the manual group / leaf
-	 * order the grouped body applies.
+	 * aggregates, total footer, and rail. It also holds the manual group order the
+	 * grouped body applies.
 	 */
 	rowGroupPresentation: GridRowGroupPresentation | null
 	virtualize: {
@@ -357,8 +357,8 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// virtualization / pagination / grid semantics (see `GridData`), so this
 	// precedes the virtualized branch and needs no aria-row bookkeeping.
 	if (groupedRows && groupColumnId != null) {
-		// Apply the manual group order (kept only until the overlay covers every
-		// group; then the engine's group order stands).
+		// Apply the manual group order while the overlay covers every group.
+		// Otherwise the engine's group order stands.
 		const ordered = applyRowKeyOrder(
 			groupedRows,
 			rowGroupPresentation?.groupOrder ?? undefined,

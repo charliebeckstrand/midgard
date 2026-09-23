@@ -88,8 +88,7 @@ export function applyRowKeyOrder<I>(
 /**
  * Builds the row manager's natural-order view model from the engine's grouped
  * rows. There is one entry per group header: its shared value, formatted label,
- * and leaf count. Its leaves are keyed by {@link GridDataProps.getKey} and
- * labeled by `rowLabel`. Empty outside client grouping. The overlay's color and ordering are
+ * and leaf count. Empty outside client grouping. The overlay's color and ordering are
  * layered on later by {@link useGridRowManager}.
  *
  * @internal
@@ -120,8 +119,8 @@ type GridRowManagerOptions = {
 /**
  * Resolves the {@link GridRowGroups} overlay into what the grid runs on:
  *
- * - the body {@link GridRowGroupPresentation}: a color lookup plus the manual
- *   group/leaf order, each standing down under a sort;
+ * - the body {@link GridRowGroupPresentation}: a color lookup and the manual
+ *   group order;
  * - the display-ordered {@link GridRowManagerGroup} list the manager renders;
  * - the recolor / reorder handlers that commit a *complete* snapshot, an entry
  *   per current group, back through the binding.

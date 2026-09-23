@@ -68,7 +68,7 @@ type GridContextMenuProps<T> = {
 	/**
 	 * The group-by toggle for a right-clicked `groupable` column — the active
 	 * grouped column id and the write-back — or `null` when the group button is
-	 * off. Backs the menu's "Group by …" / "Ungroup …" item.
+	 * off. Backs the menu's "Group by …" / "Ungroup" item.
 	 */
 	groupBy: GridGroupByMenu | null
 	/** Auto-sizes resizable columns to fill the width, or `null` when the grid is not resizable. */

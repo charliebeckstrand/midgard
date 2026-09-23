@@ -230,10 +230,6 @@ export function useGridColumnAutoSize<T>({
 } {
 	const enabled = resizable && !controlled
 
-	// Columns held out of the fit at their current width. A manual resize (drag or
-	// keyboard) adds every column here at once, so resizing one never reflows the
-	// rest; `sizeToFit` clears the set to re-arm auto-fit. Seeded from any restored
-	// `columnSizing` so persisted widths hold on reload instead of being re-fit.
 	/**
 	 * Whether the first width pass has happened, so the table can be held back until it
 	 * has.
@@ -255,6 +251,10 @@ export function useGridColumnAutoSize<T>({
 	// non-resizable and consumer-controlled grid until hydration for no reason.
 	const [settled, setSettled] = useState(!enabled)
 
+	// Columns held out of the fit at their current width. A manual resize (drag or
+	// keyboard) adds every column here at once, so resizing one never reflows the
+	// rest; `sizeToFit` clears the set to re-arm auto-fit. Seeded from any restored
+	// `columnSizing` so persisted widths hold on reload instead of being re-fit.
 	const manualPinnedRef = useRef<Set<string>>(new Set(Object.keys(initialSizing ?? {})))
 
 	// `width`-seeded columns the user released via "Auto-size all columns"; they rejoin

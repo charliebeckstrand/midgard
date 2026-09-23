@@ -87,7 +87,7 @@ export const COLUMN_RESIZE_STEP = 16
 /** Pixels a keyboard PageUp/PageDown jumps a column resize handle — a coarse step over the arrow nudge. @internal */
 export const COLUMN_RESIZE_PAGE_STEP = 64
 
-/** Rows a PageUp/PageDown jumps the read-only cell cursor. @internal */
+/** Fallback rows for a PageUp/PageDown cursor jump when the viewport or row height cannot be measured. @internal */
 export const NAV_PAGE_STEP = 10
 
 /** Debounce (ms) before the busy live region announces a settled row count, so a fast filter/search doesn't chatter. @internal */

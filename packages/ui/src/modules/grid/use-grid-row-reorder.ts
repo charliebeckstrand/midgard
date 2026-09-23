@@ -18,7 +18,8 @@ type GridRowReorderOptions<T> = {
 	rowReorder: GridRowReorder<T> | undefined
 	/**
 	 * Whether the grid's current state permits a manual row order: no active
-	 * column sort, filter/search, pagination, or virtualization, and it has data.
+	 * column sort, filter/search, pagination, virtualization, or row grouping. The
+	 * grid also has data and is not loading.
 	 * The caller resolves this (it owns that state); the hook layers the binding's
 	 * own gates (`disabled`, at least two rows) on top.
 	 */

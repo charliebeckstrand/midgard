@@ -137,7 +137,7 @@ type GridColumnHeaderProps = {
 	pinning: GridColumnPinning | null
 	/** Pins/unpins a column; a frozen header's pin button calls it with `false` to unpin. */
 	pinColumn: (column: string | number, side: 'left' | 'right' | false) => void
-	/** Whether this column is locked (frozen but immutable); its header shows a static edge arrow, not an unpin button. */
+	/** Whether this column is locked (frozen and immutable). Its header shows no unpin button, and the boundary border marks its edge. */
 	locked: boolean
 }
 
@@ -211,10 +211,9 @@ function sortDirectionIcon(
  * header and its column clip in step. An untruncated title renders just the span;
  * the closed tooltip adds no surface.
  *
- * @remarks Like {@link GridCellContent}, the span stays mounted, and the tooltip
- * is gated by `enabled` rather than mounted only while truncated. The overflow
- * `ResizeObserver` therefore never detaches, and a widened column re-measures
- * and closes the tooltip.
+ * @remarks Unlike {@link GridCellContent}, the header always mounts the tooltip
+ * and gates it through `disabled`. The overflow `ResizeObserver` therefore never
+ * detaches, and a widened column re-measures and closes the tooltip.
  * @internal
  */
 function GridHeaderTitle({ title }: { title: ReactNode }): ReactElement {

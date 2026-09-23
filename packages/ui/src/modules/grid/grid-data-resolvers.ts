@@ -274,9 +274,10 @@ export type GridSemantics = { enabled: boolean; rowOffset: number; selectAllLabe
 /**
  * Derives grid semantics from the rendered-window mode and the cursor. The body
  * is a window onto a larger set under virtualization (DOM windowing) or
- * pagination (one page of many). Both need `role="grid"`, `aria-rowcount`, and
- * a page-/window-aware global row offset, so assistive tech reports position in
- * the full set. A `navigable` grid is also `role="grid"` (the keyboard cursor)
+ * pagination (one page of many). Both need `aria-rowcount` and a page- or
+ * window-aware global row offset, so assistive tech reports position in the full
+ * set. The role becomes `grid` only under a keyboard cursor. A `navigable` grid
+ * is `role="grid"` (the keyboard cursor)
  * even when it renders the whole set. It therefore carries the same row/column
  * counts and indices the role implies. The counts and per-cell indices follow
  * the role, not just the windowing. Under pagination the select-all checkbox

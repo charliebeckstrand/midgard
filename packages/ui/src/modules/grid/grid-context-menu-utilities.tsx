@@ -347,6 +347,7 @@ export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
  * columns" (when a manager is reachable) leads, then the clicked column's own
  * concerns:
  *
+ * - Filter, under the `'menu'` affordance.
  * - Sort (the directions the column doesn't already hold, with "Clear sort"
  *   once it is the sorted one).
  * - Pin (Pin left / Pin right / Unpin).

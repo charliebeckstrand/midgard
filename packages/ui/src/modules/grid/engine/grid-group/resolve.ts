@@ -9,7 +9,7 @@ import type { GridGroupHeader, GridGroupResult } from '../../use-grid-group'
 import type { GridColumnPinning } from '../../use-grid-table'
 import { isManualPagination } from '../grid-pagination-utilities'
 
-/** Whether `id` names a groupable column — a present data column (not selection / actions / drag-handle). @internal */
+/** Whether `id` names a groupable column — a present data column, not one of the non-data columns (selection, actions, drag handle, expander). @internal */
 export function isGroupableColumnId<T>(columns: GridColumn<T>[], id: string | number): boolean {
 	return columns.some((col) => col.id === id && isDataColumn(col))
 }

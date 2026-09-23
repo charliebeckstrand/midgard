@@ -32,7 +32,8 @@ type GridGroupRowProps<T> = {
 /**
  * A group-header row carrying a bare disclosure button that toggles the group's
  * expansion. The group's shared value and row count (`Developer (3)`) sit at the
- * start. A chevron at the trailing edge rotates as the group opens. A
+ * start. A chevron at the trailing edge points right while collapsed and down
+ * while expanded. A
  * {@link GridGroupBy.renderHeader} override replaces the value/count label; the
  * toggle and chevron stay. Without aggregation the row is one full-width cell.
  * Once any column aggregates, the label spans only the columns before the first

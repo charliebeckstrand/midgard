@@ -294,14 +294,14 @@ export function toColumnDef<T>(
 
 	return {
 		id: String(col.id),
-		// Only data columns resize; select/actions hold their width.
+		// Only data columns resize; non-data columns (selection, actions, drag handle, expander) hold their width.
 		enableResizing: isDataColumn(col),
 		enableColumnFilter: Boolean(col.filterable && col.value),
 		// Quick search stays scoped to columns that declare `value`.
 		enableGlobalFilter: Boolean(col.value),
 		enableSorting: Boolean(col.sortable),
 		// Only data columns group (they carry the accessor grouping keys on); the
-		// selection / actions / drag-handle columns can't be a `groupBy` target.
+		// non-data columns (selection, actions, drag handle, expander) can't be a `groupBy` target.
 		enableGrouping: isDataColumn(col),
 		// The accessor feeds sort/filter without changing how the cell renders.
 		...(accessorFn ? { accessorFn } : {}),
