@@ -18,4 +18,8 @@ describe('invalidAttrs', () => {
 	it('returns the same INVALID reference on repeated truthy calls', () => {
 		expect(invalidAttrs(true)).toBe(invalidAttrs(true))
 	})
+
+	it('returns a frozen object', () => {
+		expect(Object.isFrozen(invalidAttrs(true))).toBe(true)
+	})
 })

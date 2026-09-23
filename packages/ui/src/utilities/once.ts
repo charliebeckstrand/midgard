@@ -4,6 +4,9 @@
  * describes an expensive derivation (a ten-thousand-cell readout) as a thunk.
  * Whichever consumer needs it first — a hover's tooltip, the deferred data
  * table — pays for it off the mount-critical render. The rest read the cache.
+ *
+ * @remarks A `compute` that throws caches nothing. The error goes to the
+ * caller, and the next call runs `compute` again.
  */
 export function once<T>(compute: () => T): () => T {
 	let computed = false

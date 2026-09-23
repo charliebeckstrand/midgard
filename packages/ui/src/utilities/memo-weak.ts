@@ -6,6 +6,8 @@
  * @param key - The object the value is memoized against.
  * @param compute - Builds the value on a miss.
  * @returns The cached value, computing it first when absent.
+ * @remarks A stored `undefined` is a hit. The `has` check runs only when `get`
+ * returns `undefined`, so a hit on a defined value costs one lookup.
  */
 export function memoWeak<K extends object, V>(
 	cache: WeakMap<K, V>,
@@ -14,7 +16,7 @@ export function memoWeak<K extends object, V>(
 ): V {
 	const hit = cache.get(key)
 
-	if (hit !== undefined) return hit
+	if (hit !== undefined || cache.has(key)) return hit as V
 
 	const computed = compute(key)
 

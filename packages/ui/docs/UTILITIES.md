@@ -104,7 +104,7 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
 | `isDataColumn` | True for content columns; false for the selection-checkbox and row-actions columns. |
 | `noop` | No-op function. |
-| `once` | Wraps a thunk so it computes at most once; a later call returns the cached first result. This is the lazy seam behind a deferred derivation like the charts' readout. |
+| `once` | Wraps a thunk so it computes at most once; a later call returns the cached first result. A throw caches nothing, so the next call runs the thunk again. This is the lazy seam behind a deferred derivation like the charts' readout. |
 
 ---
 
