@@ -199,6 +199,12 @@ export function useResizablePanel({
 			// collapsed to <= handle size) leaves the still-live drag intact.
 			cleanupRef.current?.()
 
+			// Capture holds the handle as the pointer target for the whole drag, so
+			// its resize cursor stays when the pointer leaves it for a panel, and
+			// the panel content under the pointer shows no hover. The browser
+			// releases the capture on pointerup and pointercancel.
+			event.currentTarget.setPointerCapture(event.pointerId)
+
 			const startPos = orient === 'horizontal' ? event.clientX : event.clientY
 
 			dragRef.current = {
