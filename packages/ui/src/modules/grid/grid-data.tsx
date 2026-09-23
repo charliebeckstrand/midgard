@@ -115,8 +115,9 @@ import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
  * order only holds against the natural row order, so reordering stands down
  * whenever the rendered rows diverge from the source set. That covers an active
  * column sort and a filtered/searched view (fewer rendered rows than source). It
- * also covers pagination, virtualization, an active row grouping, and an empty or
- * loading grid. The rendered-length check
+ * also covers pagination, virtualization, an active row grouping, active
+ * master-detail, and an empty or loading grid. A detail row is not a sortable
+ * item, so a drag would move its row away from it. The rendered-length check
  * catches client filtering, search, and client pagination in one; the pagination
  * and virtualization flags catch the server-page and windowed cases.
  *
@@ -129,6 +130,7 @@ function rowReorderPermitted(args: {
 	paginated: boolean
 	virtualized: boolean
 	grouped: boolean
+	expanded: boolean
 	sorted: boolean
 	renderedCount: number
 	sourceCount: number
@@ -139,6 +141,7 @@ function rowReorderPermitted(args: {
 		!args.paginated &&
 		!args.virtualized &&
 		!args.grouped &&
+		!args.expanded &&
 		!args.sorted &&
 		args.renderedCount === args.sourceCount
 	)
@@ -1021,6 +1024,7 @@ export function GridData<T>({
 			virtualized: virtualizeEnabled,
 			// Either grouping mode renders its own body; both stand reordering down.
 			grouped: groupingMode.active,
+			expanded: detail.active,
 			sorted: sort.length > 0,
 			renderedCount: renderRows.length,
 			sourceCount: rows.length,
