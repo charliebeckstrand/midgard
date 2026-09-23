@@ -152,8 +152,12 @@ export function useDatePickerRelativeState({
 	// user re-enters custom mode so an existing custom range shows pre-filled.
 	const customSpan = customActive && value && value.length > 0 ? value[0] : undefined
 
+	// readOnly blocks every value write, not only the open paths, because a
+	// controlled `open` can still show the preset list.
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {
+			if (resolvedReadOnly) return
+
 			const now = nowRef.current
 
 			// Which presets read as selected right now, biased by the existing picks so a
@@ -183,7 +187,7 @@ export function useDatePickerRelativeState({
 
 			setPickedIds(nextPicked)
 		},
-		[multiple, pickedIds, presets, setValue, value],
+		[multiple, pickedIds, presets, resolvedReadOnly, setValue, value],
 	)
 
 	const openPicker = useCallback(() => {
@@ -210,6 +214,8 @@ export function useDatePickerRelativeState({
 	// edited after a reset, so the dialog stays put (dismiss closes it). Also wipes
 	// the custom draft so the Start/End inputs empty alongside the committed value.
 	const handleClear = useCallback(() => {
+		if (resolvedReadOnly) return
+
 		draftRef.current = {}
 
 		setDraft({})
@@ -217,7 +223,7 @@ export function useDatePickerRelativeState({
 		setPickedIds(new Set())
 
 		setValue(undefined)
-	}, [setValue])
+	}, [resolvedReadOnly, setValue])
 
 	const handleOpenChange = useCallback(
 		(nextOpen: boolean) => {
@@ -269,6 +275,8 @@ export function useDatePickerRelativeState({
 	// custom span replaces any preset selection (they are mutually exclusive).
 	const applyDraft = useCallback(
 		(next: { from?: Date; to?: Date }) => {
+			if (resolvedReadOnly) return
+
 			draftRef.current = next
 
 			setDraft(next)
@@ -286,7 +294,7 @@ export function useDatePickerRelativeState({
 
 			setValue([span])
 		},
-		[setValue],
+		[resolvedReadOnly, setValue],
 	)
 
 	const setCustomStart = useCallback(
@@ -405,6 +413,7 @@ export function useDatePickerRelativeState({
 		triggerId: scope.id,
 		describedBy: control?.describedBy,
 		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
 		required: control?.required,
 		invalid: control?.severity === 'error' || fieldInvalid,
 		value,

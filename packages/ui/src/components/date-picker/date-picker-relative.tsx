@@ -77,6 +77,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 				truncate={truncate}
 				aria-label={ariaLabel}
 				disabled={state.disabled}
+				readOnly={state.readOnly}
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}
@@ -162,6 +163,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								clearable={false}
 								value={state.custom.start ?? undefined}
 								onValueChange={state.custom.onStartChange}
+								readOnly={state.readOnly}
 								onMonthChange={props.onMonthChange}
 								min={props.min}
 								max={state.custom.end ?? props.max}
@@ -175,6 +177,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 								clearable={false}
 								value={state.custom.end ?? undefined}
 								onValueChange={state.custom.onEndChange}
+								readOnly={state.readOnly}
 								onMonthChange={props.onMonthChange}
 								min={state.custom.start ?? props.min}
 								max={props.max}

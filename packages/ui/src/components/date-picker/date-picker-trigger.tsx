@@ -37,6 +37,8 @@ type DatePickerTriggerProps = GroupStampProps & {
 	 */
 	children?: ReactNode
 	disabled?: boolean
+	/** Hides the clear button, as on Listbox/Combobox, because a read-only value cannot change. */
+	readOnly?: boolean
 	required?: boolean
 	invalid?: boolean
 	onKeyDown: (event: KeyboardEvent<HTMLElement>) => void
@@ -73,6 +75,7 @@ export function DatePickerTrigger({
 	'aria-label': ariaLabel,
 	truncate = true,
 	disabled = false,
+	readOnly = false,
 	required = false,
 	invalid = false,
 	onKeyDown,
@@ -94,8 +97,9 @@ export function DatePickerTrigger({
 
 	// Mirrors the Listbox/Combobox affordance: the clear button stands in for the
 	// calendar icon while a value is set, clearing on click and returning focus
-	// to the trigger as it unmounts (WCAG 2.4.3).
-	const showClear = clearable && hasValue && !disabled
+	// to the trigger as it unmounts (WCAG 2.4.3). A read-only value cannot
+	// change, so the clear button does not show.
+	const showClear = clearable && hasValue && !disabled && !readOnly
 
 	const valueNode = (
 		<span

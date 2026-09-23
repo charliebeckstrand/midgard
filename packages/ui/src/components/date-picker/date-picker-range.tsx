@@ -43,6 +43,7 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				truncate={truncate}
 				aria-label={ariaLabel}
 				disabled={state.disabled}
+				readOnly={state.readOnly}
 				required={state.required}
 				invalid={state.invalid}
 				onKeyDown={state.onTriggerKeyDown}

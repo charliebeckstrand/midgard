@@ -355,4 +355,34 @@ describe('useDatePickerRangeState', () => {
 			).not.toThrow()
 		})
 	})
+
+	describe('readOnly', () => {
+		// A controlled `open` shows the calendar past the open gate, so each writer
+		// must refuse the value on its own.
+		it('blocks every value write while the calendar is open', () => {
+			const onChange = vi.fn()
+
+			const { result } = renderHook(() =>
+				useDatePickerRangeState({
+					range: true,
+					readOnly: true,
+					open: true,
+					value: [Jan1, Jan31],
+					onValueChange: onChange,
+				}),
+			)
+
+			act(() => result.current.calendar.onValueChange(Jan10))
+
+			act(() => result.current.calendar.onValueChange(Jan20))
+
+			act(() => result.current.onClear())
+
+			expect(onChange).not.toHaveBeenCalled()
+
+			expect(result.current.calendar.rangeStart).toEqual(Jan1)
+
+			expect(result.current.readOnly).toBe(true)
+		})
+	})
 })
