@@ -55,13 +55,36 @@ export type ChatEmbedRegistry = {
 	 * gate is an optimization, and the safe answer when the environment cannot
 	 * tell is to draw.
 	 *
+	 * A {@link ChatTranscript} windows its rows, and a row outside the window is
+	 * not rendered. Under the window, `lazy` means "no second deferral", not
+	 * "held". An embed the reader reached draws at once when its row returns,
+	 * but the state the view held is gone. `always` cannot be honoured under a
+	 * window: a renderer mounts only while its row is rendered.
+	 *
 	 * @defaultValue 'lazy'
 	 */
 	mount?: Mount
 }
 
+/**
+ * The registry as the context carries it, with the memory of the embeds a
+ * reader has reached.
+ *
+ * @remarks
+ * `reached` holds one address for each embed that came into view. The
+ * outermost {@link ChatEmbedProvider} owns it, so it outlives a row that a
+ * windowed transcript unmounts. A returning embed then draws at once and does
+ * not defer a second time. It is not a prop, because only the provider writes it.
+ *
+ * @internal
+ */
+export type ChatEmbedScope = ChatEmbedRegistry & {
+	/** Addresses of the embeds a reader has reached. Absent with no provider above. */
+	reached?: Set<string>
+}
+
 /** The registry with nothing in it: every embed falls back. @internal */
-const NO_EMBEDS: ChatEmbedRegistry = { renderers: {} }
+const NO_EMBEDS: ChatEmbedScope = { renderers: {} }
 
 /**
  * The embed renderers in scope, as {@link ChatEmbedProvider} supplied them.
@@ -74,7 +97,24 @@ const NO_EMBEDS: ChatEmbedRegistry = { renderers: {} }
  *
  * @internal
  */
-export const [ChatEmbedContext, useChatEmbeds] = createContext<ChatEmbedRegistry>(
+export const [ChatEmbedContext, useChatEmbeds] = createContext<ChatEmbedScope>(
 	'ChatEmbedProvider',
 	{ default: NO_EMBEDS },
+)
+
+/**
+ * The key of the transcript row that holds a message, or `undefined` outside a
+ * {@link ChatTranscript}.
+ *
+ * @remarks
+ * A part id is unique in its message and not in the transcript. An embed
+ * therefore joins this key to its part id to get an address in the transcript.
+ * A {@link ChatMessage} with no transcript around it has no row, so it keeps
+ * no memory across a remount.
+ *
+ * @internal
+ */
+export const [ChatRowContext, useChatRowKey] = createContext<string | number | undefined>(
+	'ChatTranscriptRow',
+	{ default: undefined },
 )

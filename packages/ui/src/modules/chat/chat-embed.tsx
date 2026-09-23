@@ -1,10 +1,11 @@
 'use client'
 
+import { useEffect } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
 import { Hold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
-import { type ChatEmbedRenderer, useChatEmbeds } from './context'
+import { type ChatEmbedRenderer, useChatEmbeds, useChatRowKey } from './context'
 import type { ChatEmbedPart } from './engine/chat-content/types'
 
 /**
@@ -45,16 +46,37 @@ export type ChatEmbedProps = {
  * there. That covers a transcript with no {@link ChatEmbedProvider} above it at
  * all. A provider's own `fallback` replaces the module's line.
  *
+ * Under `lazy`, the block defers once. When it first comes into view, the
+ * provider records its address. A windowed transcript unmounts the row when it
+ * leaves the window. When the row returns, the block draws at once rather than
+ * through its reserved height again.
+ *
  * @internal
  */
 export function ChatEmbed({ part, className }: ChatEmbedProps) {
-	const { renderers, fallback, mount = 'lazy' } = useChatEmbeds()
+	const { renderers, fallback, mount = 'lazy', reached } = useChatEmbeds()
+
+	const row = useChatRowKey()
+
+	// The block's address in the transcript. A part id is unique only in its
+	// message, so the row key comes first. Outside a transcript there is no row
+	// and no address, and the block keeps no memory across a remount.
+	const address = row === undefined ? undefined : `${row}\u0000${part.id}`
 
 	// `active` must see a block leave the viewport, so its observer stays
 	// connected. `lazy` and `always` need only the first sight.
 	const { ref, inView } = useInView({ once: mount !== 'active' })
 
-	const hold = useMountHold(inView, mount)
+	// Under `lazy`, a block the reader reached before is active on its first
+	// render. Its row left the window and came back, and it must not defer again.
+	const returning = mount === 'lazy' && address !== undefined && reached?.has(address) === true
+
+	const hold = useMountHold(inView || returning, mount)
+
+	// Written after the commit, so a render that React discards records nothing.
+	useEffect(() => {
+		if (inView && address !== undefined) reached?.add(address)
+	}, [inView, address, reached])
 
 	const render = renderers[part.name] ?? fallback ?? statedFallback
 

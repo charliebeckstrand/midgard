@@ -1,7 +1,12 @@
 'use client'
 
-import { type ReactNode, useMemo } from 'react'
-import { ChatEmbedContext, type ChatEmbedRegistry, useChatEmbeds } from './context'
+import { type ReactNode, useMemo, useState } from 'react'
+import {
+	ChatEmbedContext,
+	type ChatEmbedRegistry,
+	type ChatEmbedScope,
+	useChatEmbeds,
+} from './context'
 
 /** Props for {@link ChatEmbedProvider}. */
 export type ChatEmbedProviderProps = ChatEmbedRegistry & {
@@ -28,6 +33,12 @@ export type ChatEmbedProviderProps = ChatEmbedRegistry & {
  * in only where it sets one. A second entry point can then ship the adapters
  * for the three modules while an app adds one embed of its own around them.
  *
+ * The provider also remembers each embed a reader has reached. A windowed
+ * {@link ChatTranscript} unmounts a row that leaves its window, and the row's
+ * own state goes with it. The memory lives here instead, so an embed whose row
+ * returns draws at once and does not defer a second time. Nested providers
+ * share the outermost memory.
+ *
  * Hoist `renderers` out of the render, as a module constant or a `useMemo`. A
  * fresh object each render is a fresh registry, which re-renders every bubble
  * that reads it.
@@ -47,13 +58,20 @@ export function ChatEmbedProvider({
 }: ChatEmbedProviderProps) {
 	const outer = useChatEmbeds()
 
-	const value = useMemo<ChatEmbedRegistry>(
+	// One memory for the whole tree: a nested provider shares the outer set, so
+	// an embed stays reached whichever provider is nearest to it.
+	const [own] = useState(() => new Set<string>())
+
+	const reached = outer.reached ?? own
+
+	const value = useMemo<ChatEmbedScope>(
 		() => ({
 			renderers: { ...outer.renderers, ...renderers },
 			fallback: fallback ?? outer.fallback,
 			mount: mount ?? outer.mount,
+			reached,
 		}),
-		[outer, renderers, fallback, mount],
+		[outer, renderers, fallback, mount, reached],
 	)
 
 	return <ChatEmbedContext value={value}>{children}</ChatEmbedContext>
