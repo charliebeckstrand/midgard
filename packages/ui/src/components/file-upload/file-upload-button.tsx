@@ -22,8 +22,8 @@ import { triggerLabel } from './file-upload-utilities'
 export function FileUploadButton(props: FileUploadButtonProps) {
 	const state = useFileUploadState(props)
 
-	const { accept, multiple, disabled, className, children, size, color } = props
-	const { control, inputRef, hasFiles, handleChange, openPicker, clearFiles } = state
+	const { accept, multiple, className, children, size, color } = props
+	const { control, disabled, inputRef, hasFiles, handleChange, openPicker, clearFiles } = state
 
 	// The upload trigger always stays; a selection adds `Reset` beside it, so a
 	// different file can be picked — or the selection cleared — without the

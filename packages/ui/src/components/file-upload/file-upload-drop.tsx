@@ -124,9 +124,10 @@ function DropSelection({
 export function FileUploadDrop(props: FileUploadDropProps) {
 	const state = useFileUploadState(props)
 
-	const { accept, multiple, disabled, className, children } = props
+	const { accept, multiple, className, children } = props
 	const {
 		control,
+		disabled,
 		inputRef,
 		files,
 		hasFiles,

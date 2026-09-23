@@ -373,6 +373,39 @@ describe('FileUpload + Control', () => {
 		expect(hidden).not.toHaveAttribute('aria-label')
 	})
 
+	it.each([
+		['drop', <FileUploadDrop key="drop">Upload</FileUploadDrop>],
+		['input', <FileUploadInput key="input" />],
+		['button', <FileUploadButton key="button">Upload</FileUploadButton>],
+	])('disables the hidden input and the %s trigger from a disabled Control', (_, node) => {
+		const { container } = renderUI(<Control disabled>{node}</Control>)
+
+		const hidden = present<HTMLInputElement>(
+			container.querySelector('input[type="file"]'),
+			'input[type="file"]',
+		)
+
+		expect(hidden).toBeDisabled()
+
+		for (const trigger of screen.getAllByRole('button')) expect(trigger).toBeDisabled()
+	})
+
+	it('ignores dropped files under a disabled Control', () => {
+		const onAccept = vi.fn()
+
+		const { container } = renderUI(
+			<Control disabled>
+				<FileUploadDrop onAccept={onAccept}>Upload</FileUploadDrop>
+			</Control>,
+		)
+
+		const zone = getSlot(container, 'file-upload')
+
+		fireEvent.drop(zone, { dataTransfer: { files: makeFileList([new File(['x'], 'resume.pdf')]) } })
+
+		expect(onAccept).not.toHaveBeenCalled()
+	})
+
 	it('keeps the trigger name on the hidden input outside a Field', () => {
 		const { container } = renderUI(<FileUploadInput placeholder="Pick a resume" />)
 

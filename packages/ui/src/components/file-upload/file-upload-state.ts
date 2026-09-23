@@ -12,6 +12,7 @@ type FileUploadSharedProps = {
 	accept?: string
 	/** Allow selecting multiple files. */
 	multiple?: boolean
+	/** Disables the picker. Without the prop, the component takes the disabled state of the enclosing Control. */
 	disabled?: boolean
 	/** Maximum size per file, in bytes. Oversized files are routed to `onReject`. */
 	maxSize?: number
@@ -76,6 +77,8 @@ export type FileUploadButtonProps = FileUploadSharedProps & {
 /** Hook output plus the derived selection flags every variant renderer shares. */
 export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
 	control: ReturnType<typeof useControl>
+	/** The `disabled` prop, else the disabled state of the enclosing Control. */
+	disabled: boolean | undefined
 	hasFiles: boolean
 	/** Forces the selection tooltip open for the "x files selected" summary,
 	 * whose collapsed count hides the names. A single name needs it only when
@@ -96,12 +99,15 @@ export type FileUploadRenderState = ReturnType<typeof useFileUploadHandlers> & {
  * @internal
  */
 export function useFileUploadState(props: FileUploadSharedProps): FileUploadRenderState {
-	const { multiple, disabled, maxSize, maxCount, onAccept, onReject, onDragOverChange } = props
+	const { multiple, maxSize, maxCount, onAccept, onReject, onDragOverChange } = props
 
 	// Mirrors Control/Field id + invalid + required + error-message wiring onto
 	// the hidden `<input type="file">`, the real control in each component. The
 	// visible `<Input>` of FileUploadInput opts out of this context.
 	const control = useControl()
+
+	// The same cascade as `useControlProps`: an explicit prop wins over the Control.
+	const disabled = props.disabled ?? control?.disabled
 
 	const handlers = useFileUploadHandlers({
 		disabled,
@@ -115,6 +121,7 @@ export function useFileUploadState(props: FileUploadSharedProps): FileUploadRend
 	return {
 		...handlers,
 		control,
+		disabled,
 		hasFiles: handlers.files.length > 0,
 		showTooltip: Boolean(multiple && handlers.files.length > 1),
 	}

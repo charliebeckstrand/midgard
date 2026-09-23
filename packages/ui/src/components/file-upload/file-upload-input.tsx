@@ -34,9 +34,18 @@ import { activateOnEnterSpace, formatFileNames, selectionSummary } from './file-
 export function FileUploadInput(props: FileUploadInputProps) {
 	const state = useFileUploadState(props)
 
-	const { accept, multiple, disabled, className, size, placeholder } = props
-	const { control, inputRef, files, hasFiles, showTooltip, handleChange, openPicker, clearFiles } =
-		state
+	const { accept, multiple, className, size, placeholder } = props
+	const {
+		control,
+		disabled,
+		inputRef,
+		files,
+		hasFiles,
+		showTooltip,
+		handleChange,
+		openPicker,
+		clearFiles,
+	} = state
 
 	const label = selectionSummary(files, multiple)
 
@@ -62,7 +71,7 @@ export function FileUploadInput(props: FileUploadInputProps) {
 							readOnly
 							size={size}
 							variant={control?.variant}
-							disabled={disabled ?? control?.disabled}
+							disabled={disabled}
 							invalid={control?.severity === 'error' || undefined}
 							value={label ?? ''}
 							placeholder={placeholder ?? 'Choose a file'}
