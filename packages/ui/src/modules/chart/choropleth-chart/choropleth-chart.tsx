@@ -71,7 +71,10 @@ export type ChoroplethChartProps<T = never> = AccessibleName & {
 	 * Empty draws the data-less map, every region in the one neutral fill.
 	 */
 	series: [] | [ChoroplethChartSeries<T>]
-	/** Formats the tooltip value, table cell, and legend labels. */
+	/**
+	 * Formats the tooltip value, table cell, legend labels, and the CSV and copy
+	 * actions. Absent, the chart family's locale default formats them all.
+	 */
 	formatValue?: (value: number) => string
 	/**
 	 * The geometry to draw: a TopoJSON topology or a GeoJSON feature collection.
@@ -280,7 +283,9 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			colorName: primary?.colorName,
 			bins: primary?.bins,
 			binning: primary?.binning,
-			formatValue,
+			// The chart family's default, not the map's `String`: the tooltip, table,
+			// and legend then read the same numbers as the CSV and copy actions.
+			formatValue: format,
 		}),
 	} satisfies MapPlatProps<T>
 

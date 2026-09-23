@@ -14,7 +14,7 @@ import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { seriesDataKey } from '../engine/chart-motion'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { formatChartValue, seriesValues } from '../engine/chart-series'
-import { chartFramePolicy } from '../engine/chart-tier'
+import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
 import type { ChartBaseProps, ChartItemClick, PieChartSeries } from '../engine/types'
@@ -181,14 +181,14 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
 	// ticks, so the density ceiling the tick target would clamp is moot here.
-	// The policy counts no header lines, so the chrome reserve holds the legend
-	// alone; chartFramePolicy resolves the tier against the figure's
-	// `width / ratio` less that legend.
+	// The frame draws the title and subtitle inside the aspect box, so the chrome
+	// reserve holds their lines and the legend. chartFramePolicy resolves the tier
+	// against the figure's `width / ratio` less that chrome.
 	const policy = chartFramePolicy({
 		width: frameWidth,
 		height: frameHeight,
 		aspect: frameAspect,
-		chrome: { headerLines: 0, legend: stackedLegend },
+		chrome: { headerLines: headerLineCount(props.title, props.subtitle), legend: stackedLegend },
 		tickTarget: CHART_METRICS.md.tickTarget,
 		fill: frameSizing.mode === 'fill',
 	})
@@ -328,7 +328,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			tooltip={showTooltip}
-			tooltipTrigger={trigger}
 			focus={{ points: focusPoints }}
 			className={className}
 			overlay={

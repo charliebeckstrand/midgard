@@ -203,7 +203,8 @@ export type GridColumn<T> = {
 	 * The column's width. In a non-resizable grid this is its fixed CSS width. In a
 	 * resizable grid ({@link GridProps.resizable}) a `px` value seeds the column's
 	 * initial width. The column holds it, sitting out the automatic content sizing,
-	 * until the header's "Auto-size all columns" releases it to content. A manual
+	 * until the header's "Auto-size all columns" or "Auto-size this column"
+	 * releases it to content. A manual
 	 * resize overrides the seed, and, like any manual resize, holds every column
 	 * where it sits. A drag can't cross the {@link GridColumn.minWidth} floor, so a
 	 * single-word header stays whole. Omit it to size to content from the first

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
+import { ComboChart } from '../../modules/chart/combo-chart'
 import { resolvePaint } from '../../modules/chart/engine/chart-color/paint'
 import {
 	labelPoints,
@@ -9,7 +10,7 @@ import {
 	valueLabels,
 } from '../../modules/chart/engine/chart-value-labels'
 import { LineChart } from '../../modules/chart/line-chart'
-import { allBySlot, bySlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 const PLOT = { x: 0, y: 0, width: 200, height: 100 }
 
@@ -383,5 +384,104 @@ describe('AreaChart stacked value labels', () => {
 		expect(drawn).toContain('20')
 
 		expect(drawn).not.toContain('0')
+	})
+})
+
+describe('AreaChart value-label headroom', () => {
+	it('keeps the extreme labels on their natural sides, above the peak', () => {
+		const { container } = renderUI(
+			<AreaChart
+				aria-label="Revenue"
+				width={400}
+				points
+				labels={{ extremes: true }}
+				data={[
+					{ m: 'Jan', r: 40 },
+					{ m: 'Feb', r: 100 },
+					{ m: 'Mar', r: 65 },
+				]}
+				series={[{ xKey: 'm', yKey: 'r', yName: 'Revenue' }]}
+			/>,
+		)
+
+		const label = allBySlot(container, 'chart-value-label').find((n) => n.textContent === '100')
+
+		const peak = allBySlot(container, 'chart-point')[1]
+
+		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(peak?.getAttribute('cy')))
+	})
+})
+
+describe('value-label headroom with a series hidden from the legend', () => {
+	// Two series, then the second hidden: one series draws, so its labels show.
+	// The headroom must count that one visible series, not the two in `series`.
+	const data = [
+		{ m: 'Jan', r: 40, s: 1 },
+		{ m: 'Feb', r: 100, s: 2 },
+		{ m: 'Mar', r: 65, s: 3 },
+	]
+
+	const peakLabelAbovePeak = (container: HTMLElement) => {
+		fireEvent.click(allBySlot(container, 'chart-legend-item')[1] as HTMLElement)
+
+		const label = allBySlot(container, 'chart-value-label').find((n) => n.textContent === '100')
+
+		const peak = allBySlot(container, 'chart-point')[1]
+
+		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(peak?.getAttribute('cy')))
+	}
+
+	it('reserves the room on a LineChart', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Revenue"
+				width={400}
+				points
+				labels={{ extremes: true }}
+				data={data}
+				series={[
+					{ xKey: 'm', yKey: 'r', yName: 'Revenue' },
+					{ xKey: 'm', yKey: 's', yName: 'Spend' },
+				]}
+			/>,
+		)
+
+		peakLabelAbovePeak(container)
+	})
+
+	it('reserves the room on an AreaChart', () => {
+		const { container } = renderUI(
+			<AreaChart
+				aria-label="Revenue"
+				width={400}
+				points
+				labels={{ extremes: true }}
+				data={data}
+				series={[
+					{ xKey: 'm', yKey: 'r', yName: 'Revenue' },
+					{ xKey: 'm', yKey: 's', yName: 'Spend' },
+				]}
+			/>,
+		)
+
+		peakLabelAbovePeak(container)
+	})
+
+	it('reserves the room on a ComboChart, counting only its line and area series', () => {
+		const { container } = renderUI(
+			<ComboChart
+				aria-label="Revenue"
+				width={400}
+				points
+				labels={{ extremes: true }}
+				data={data}
+				series={[
+					{ type: 'line', xKey: 'm', yKey: 'r', yName: 'Revenue' },
+					{ type: 'line', xKey: 'm', yKey: 's', yName: 'Spend' },
+				]}
+			/>,
+		)
+
+		peakLabelAbovePeak(container)
 	})
 })

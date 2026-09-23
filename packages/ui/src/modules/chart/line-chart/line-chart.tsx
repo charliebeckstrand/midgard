@@ -120,7 +120,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		markInset: lineMarkReach(points),
 		// Reserve the room the point labels need past the data extremes, so a
 		// label at an edge sits clear of the line rather than flip onto it.
-		valueHeadroom: valueLabelHeadroom(labels, series.length),
+		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
@@ -193,7 +193,6 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			tex={tex}
 			fullscreen={<LineChart {...props} />}
 			showTooltip={showTooltip}
-			tooltipTrigger={trigger}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,

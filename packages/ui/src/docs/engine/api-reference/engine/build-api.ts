@@ -141,7 +141,8 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
  * `resolveSourceFileDependencies` is the expensive half and looks like the next
  * thing to cut. Do not cut it. It alone pulls `primitives`, `hooks`, and `core`
  * into the project, and the link index walks `project.getSourceFiles()`. Every
- * cross-root TSDoc link therefore loses its hover card without it. A wider seed is
+ * cross-root TSDoc link therefore drops out of `links` without it, and the
+ * extractor stops tracking the file that declares the target. A wider seed is
  * no help either — measured over alternating cold processes, the two are within
  * noise. See `project-construction.bench.ts`.
  */

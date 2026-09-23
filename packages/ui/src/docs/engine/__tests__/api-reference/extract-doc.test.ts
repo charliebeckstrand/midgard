@@ -9,10 +9,7 @@ import {
 import { createInMemoryProgram } from './helpers'
 
 /** A resolver that knows only `KbdProps`, so tests exercise hit and miss paths. */
-const resolve: LinkResolver = (name) =>
-	name === 'KbdProps'
-		? { signature: 'type KbdProps', summary: 'Props for the kbd component.' }
-		: null
+const resolve: LinkResolver = (name) => name === 'KbdProps'
 
 describe('extractDocFromText', () => {
 	it('resolves a known link and keys it by target name', () => {
@@ -20,10 +17,7 @@ describe('extractDocFromText', () => {
 
 		expect(doc.description).toBe('Hint built on {@link KbdProps}.')
 
-		expect(doc.links?.KbdProps).toEqual({
-			signature: 'type KbdProps',
-			summary: 'Props for the kbd component.',
-		})
+		expect(doc.links).toEqual(['KbdProps'])
 	})
 
 	it('normalizes the pipe-label form while keying the link by its target', () => {
@@ -31,7 +25,7 @@ describe('extractDocFromText', () => {
 
 		expect(doc.description).toBe('Same as {@link KbdProps|the kbd props}.')
 
-		expect(doc.links?.KbdProps?.signature).toBe('type KbdProps')
+		expect(doc.links).toEqual(['KbdProps'])
 	})
 
 	it('normalizes the legacy space-label form', () => {
@@ -97,6 +91,6 @@ describe('extractDocFromParts', () => {
 		// rebuilt token keeps the target and label apart.
 		expect(doc.description).toBe('Same as {@link KbdProps|the kbd props}.')
 
-		expect(doc.links?.KbdProps?.signature).toBe('type KbdProps')
+		expect(doc.links).toEqual(['KbdProps'])
 	})
 })

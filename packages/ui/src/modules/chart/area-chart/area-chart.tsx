@@ -29,6 +29,7 @@ import {
 	axisLabelFormats,
 	ChartValueLabels,
 	resolveValueLabels,
+	valueLabelHeadroom,
 } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
 import {
@@ -293,6 +294,9 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		swatch: () => 'line',
 		stack: stacked,
 		markInset: lineMarkReach(points),
+		// Reserve the room the point labels need past the data extremes, so a
+		// label at an edge sits clear of the band edge rather than flip onto it.
+		valueHeadroom: (visible) => valueLabelHeadroom(labels, visible.length),
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
@@ -331,18 +335,22 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const labelMetas = drawn.map(({ meta }) => meta)
 
-	const valueLabelItems = resolveValueLabels(
-		labels,
-		list,
-		labelMetas,
-		chart.plot,
-		formatValue,
-		axisLabelFormats(labelMetas, chart.formatAxisValue),
-		// Stacked ribbons carry a top-edge point per category (nulls included), not
-		// the gap-skipped points a line's geometry emits, so the labels read each
-		// category's value by index rather than zipping the gap-filtered values.
-		!stacked,
-	)
+	// A plot too short to afford the reserved label room sheds the point labels
+	// whole, as a `LineChart` does.
+	const valueLabelItems = chart.valueLabelRoom
+		? resolveValueLabels(
+				labels,
+				list,
+				labelMetas,
+				chart.plot,
+				formatValue,
+				axisLabelFormats(labelMetas, chart.formatAxisValue),
+				// Stacked ribbons carry a top-edge point per category (nulls included), not
+				// the gap-skipped points a line's geometry emits, so the labels read each
+				// category's value by index rather than zipping the gap-filtered values.
+				!stacked,
+			)
+		: []
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks
@@ -381,7 +389,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			tex={tex}
 			fullscreen={<AreaChart {...props} />}
 			showTooltip={showTooltip}
-			tooltipTrigger={trigger}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,

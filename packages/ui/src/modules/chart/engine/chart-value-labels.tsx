@@ -19,10 +19,11 @@ import { useChartTier } from './context'
  *
  * `endpoints` and `extremes` apply only to a single-series chart. With more than
  * one series the numbers would crowd between the lines with nowhere reliable to
- * sit. They therefore stand down, and the tooltip carries the readout. On a
- * `LineChart`, the chart reserves value-axis room past the data extremes. A
- * label at an edge therefore sits clear of the line, instead of flipping onto
- * it. A plot too short to afford that room sheds the point labels whole, rather
+ * sit. They therefore stand down, and the tooltip carries the readout. The
+ * chart reserves value-axis room past the data extremes. A label at an edge
+ * therefore sits clear of the line, instead of flipping onto it. A
+ * `ComboChart` counts only its line and area series, and the room widens the
+ * value axis its bars share. A plot too short to afford that room sheds the point labels whole, rather
  * than render them crowded. `references` is unaffected by either rule.
  */
 export type ChartValueLabelConfig = {

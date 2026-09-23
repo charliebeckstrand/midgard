@@ -75,6 +75,8 @@ export function resolveValueBins<T>(
 	domain: [number, number] | null
 	/** Maps a raw value to its bin index; `null` is the no-data fill. */
 	assign: (value: number) => number | null
+	/** The class edges `assign` reads under `'quantile'` binning; absent under `'linear'`. */
+	thresholds?: number[]
 } {
 	const values = data.map((datum) => toNumericCell(datum[valueKey]))
 
@@ -85,13 +87,14 @@ export function resolveValueBins<T>(
 	// One resolution per mode, each yielding both the painted bins and the
 	// assignment the regions read — so the fills and the legend can't disagree on
 	// where the buckets fall.
-	const { colorBins, assign } =
+	const { colorBins, assign, thresholds } =
 		binning === 'quantile'
 			? (() => {
 					const { bins: quantileBins, thresholds } = resolveQuantileBins(values, colorRange, bins)
 
 					return {
 						colorBins: quantileBins,
+						thresholds,
 						assign: (value: number) => quantileBinIndex(value, thresholds),
 					}
 				})()
@@ -100,6 +103,7 @@ export function resolveValueBins<T>(
 
 					return {
 						colorBins: linearBins,
+						thresholds: undefined,
 						assign: (value: number) => binIndex(value, resolved, linearBins.length),
 					}
 				})()
@@ -110,7 +114,7 @@ export function resolveValueBins<T>(
 		return { value: String(index), label, paint: { kind: 'value', color: bin.color } }
 	})
 
-	return { metas, domain: resolved, assign }
+	return { metas, domain: resolved, assign, thresholds }
 }
 
 /** The per-region readout {@link regionValueJoin} resolves, index-aligned with the region ids. @internal */

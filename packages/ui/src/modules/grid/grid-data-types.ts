@@ -402,7 +402,7 @@ export type GridRowReorder<T> = {
 	 * mutation is in flight. The grid also stands reordering down on its own
 	 * whenever a manual order wouldn't be meaningful. That covers an active column
 	 * sort, pagination, virtualization, an empty or loading grid, a filtered
-	 * view, and an active row grouping.
+	 * view, an active row grouping, and active master-detail.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -1032,8 +1032,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * it down whenever that order isn't what's shown. The handles then turn inert.
 	 * That covers an active column {@link GridProps.sort | sort}, a filtered or
 	 * searched view, {@link GridProps.pagination | pagination},
-	 * {@link GridProps.virtualize | virtualization}, an active row grouping, and an
-	 * empty or loading grid.
+	 * {@link GridProps.virtualize | virtualization}, an active row grouping, active
+	 * {@link GridProps.expandable | master-detail}, and an empty or loading grid.
 	 * Not combinable with column
 	 * {@link GridProps.reorder} on the same grid (row reorder takes precedence).
 	 *
