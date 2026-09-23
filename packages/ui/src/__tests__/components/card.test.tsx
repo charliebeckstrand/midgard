@@ -85,18 +85,23 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-header')?.className ?? '').not.toMatch(/\bpb-\d/)
 	})
 
-	it('keeps the header gap when a body does not directly follow it', () => {
+	it.each([
+		['a footer', <CardFooter key="footer">footer</CardFooter>],
+		['a body', <CardBody key="body">body</CardBody>],
+	])('keeps the header gap when %s follows it', (_, sibling) => {
 		const { container } = renderUI(
 			<Card>
 				<CardHeader>header</CardHeader>
-				<CardFooter>footer</CardFooter>
+				{sibling}
 			</Card>,
 		)
 
-		// The header-collapse rule only matches a CardBody next sibling; it's
-		// present in the class list but its `:has()` guard won't fire here, so
-		// the plain md gap projection from the section table is what applies.
-		expect(bySlot(container, 'card')?.className).toContain('*:data-[slot=card-header]:pb-3')
+		// The recipe has no sibling rule, so the md gap applies before any sibling.
+		const className = bySlot(container, 'card')?.className ?? ''
+
+		expect(className).toContain('*:data-[slot=card-header]:pb-3')
+
+		expect(className).not.toMatch(/card-header[^\s]*(\+|:has\()/)
 	})
 
 	it('CardTitle text size follows its explicit size prop, bumped one step up', () => {

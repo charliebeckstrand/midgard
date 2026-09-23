@@ -25,7 +25,7 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py'> & {
  * The frame owns the outer padding for every child, bare or structural. A
  * section pads only the inner edge it shares with a sibling (header below,
  * footer above). Padding therefore has a single source on each edge. A header
- * directly followed by a body collapses that gap to zero — the two sit flush.
+ * keeps its projected gap whatever sibling follows it, a body included.
  */
 export function Card({
 	size,

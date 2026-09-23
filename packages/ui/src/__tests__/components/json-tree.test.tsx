@@ -358,6 +358,7 @@ describe('JsonTreeNodeRow', () => {
 	it('renders a leaf node with its key and value', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'leaf',
 					path: 'root.a',
@@ -380,6 +381,7 @@ describe('JsonTreeNodeRow', () => {
 	it('marks the root leaf as focusable', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'leaf',
 					path: 'root',
@@ -400,6 +402,7 @@ describe('JsonTreeNodeRow', () => {
 	it('marks deeper leaves as not tab-navigable', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'leaf',
 					path: 'root.a',
@@ -418,6 +421,7 @@ describe('JsonTreeNodeRow', () => {
 	it('renders a branch-close row with the matching bracket for an array', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{ type: 'branch-close', path: 'root.a', depth: 1, value: [1, 2] }}
 				onToggle={() => {}}
 			/>,
@@ -433,6 +437,7 @@ describe('JsonTreeNodeRow', () => {
 	it('renders a branch-close row with the matching bracket for an object', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{ type: 'branch-close', path: 'root.a', depth: 1, value: { x: 1 } }}
 				onToggle={() => {}}
 			/>,
@@ -444,6 +449,7 @@ describe('JsonTreeNodeRow', () => {
 	it('renders a closed branch-open row with summary and closing bracket when count > 0', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'branch-open',
 					path: 'root',
@@ -470,6 +476,7 @@ describe('JsonTreeNodeRow', () => {
 	it('renders a closed branch-open row without a summary when count = 0', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'branch-open',
 					path: 'root',
@@ -492,6 +499,7 @@ describe('JsonTreeNodeRow', () => {
 	it('pluralises the summary for exactly one item', () => {
 		renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'branch-open',
 					path: 'root',
@@ -514,6 +522,7 @@ describe('JsonTreeNodeRow', () => {
 
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'branch-open',
 					path: 'root.a',
@@ -538,6 +547,7 @@ describe('JsonTreeNodeRow', () => {
 	it('sets data-open when the branch is open and omits the summary', () => {
 		const { container } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{
 					type: 'branch-open',
 					path: 'root',
@@ -564,6 +574,7 @@ describe('JsonTreeNodeRow tab stop', () => {
 		// stop must be assignable to whichever rendered row comes first.
 		const { container, rerender } = renderUI(
 			<JsonTreeNodeRow
+				index={0}
 				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
 				onToggle={() => {}}
 				tabbable
@@ -574,6 +585,7 @@ describe('JsonTreeNodeRow tab stop', () => {
 
 		rerender(
 			<JsonTreeNodeRow
+				index={0}
 				node={{ type: 'leaf', path: 'r.a.b', keyName: 'b', value: 1, depth: 2, highlighted: false }}
 				onToggle={() => {}}
 			/>,

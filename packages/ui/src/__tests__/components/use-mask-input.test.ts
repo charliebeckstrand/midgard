@@ -52,12 +52,38 @@ describe('useMaskInput', () => {
 		expect(onChange).toHaveBeenCalledWith('ABC')
 	})
 
-	it('uses the controlled value prop when provided', () => {
+	it('formats the controlled value prop when provided', () => {
 		const { result } = renderHook(() =>
 			useMaskInput({ value: 'locked', defaultValue: 'fallback', format: upper }),
 		)
 
-		expect(result.current.value).toBe('locked')
+		expect(result.current.value).toBe('LOCKED')
+	})
+
+	it('formats a new controlled value on each render', () => {
+		const { result, rerender } = renderHook(
+			({ value }: { value: string | null }) => useMaskInput({ value, format: upper }),
+			{ initialProps: { value: 'abc' as string | null } },
+		)
+
+		expect(result.current.value).toBe('ABC')
+
+		rerender({ value: 'def' })
+
+		expect(result.current.value).toBe('DEF')
+
+		rerender({ value: null })
+
+		expect(result.current.value).toBe('')
+	})
+
+	it('reads the bound field value without a format', () => {
+		// The Form stores and submits this text, so the display must match it.
+		const wrapper = makeFormWrapper({ defaultValues: { code: 'abc' } })
+
+		const { result } = renderHook(() => useMaskInput({ name: 'code', format: upper }), { wrapper })
+
+		expect(result.current.value).toBe('abc')
 	})
 
 	it('returns no invalid flag outside a Form', () => {

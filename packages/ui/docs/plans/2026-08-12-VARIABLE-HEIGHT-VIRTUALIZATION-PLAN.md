@@ -48,17 +48,21 @@ Holding the rows the way `Mount` does is not the answer, and the bench says why.
 
 This is the call worth pressure-testing before it is written; it is a `/council` question under [`CLAUDE.md`](../../../../CLAUDE.md) §3.2, not a `/debate` one, because the competing costs are not two sides of one axis.
 
+**Decided (2026-09-23).** The user took the recommendation above without a council. A set of reached part ids, owned by `ChatEmbedProvider`, survives the row's unmount, so a returning embed draws at once and does not defer a second time. Under a window, `lazy` means "no second deferral", not "held". The transcript documents that `always` cannot be honoured under a window.
+
 ### 2. Whether the pin survives measurement
 
 `useChatScroll` writes raw `scrollTop`. Under a measured window the container's `scrollHeight` at mount is `count × estimate` rather than the real total, and it changes as rows measure, so a pin written against it drifts while the reader watches.
 
 The fix is to stop writing `scrollTop` and to pin through the virtualizer, which already knows the total: `scrollToIndex(count - 1, { align: 'end' })`, the value the wrapper already returns. That reaches into `useChatScroll`'s contract, and the hook is public, so this is an API change rather than an internal swap. Decide whether `useChatScroll` grows a windowed arm or the transcript stops using it for the pin.
 
+**Decided (2026-09-23).** The transcript stops using `useChatScroll` for the pin, and `useChatScroll` stays unchanged for non-windowed containers. Its only non-test importer is `chat-transcript.tsx`, so this changes no public signature. The pin goes through the virtualizer. The installed `@tanstack/virtual-core` 3.16.0 has `anchorTo: 'end'` and `followOnAppend`, so the measured overload of `useVirtualWindow` passes them through, and the transcript does not hand-write the pin. Two cases need a browser proof before the pin is trusted: a streamed chunk that grows the last row with no count change, and a smooth follow while rows measure. If `anchorTo` does not hold, the fallback is `scrollToIndex(count - 1, { align: 'end' })`.
+
 ## Increments
 
 Each lands on its own and leaves the package whole.
 
-Increment 1 is **shipped**. Passing `getItemKey` starts the measured path, and the hook then also returns `measureRef`. Two overloads keep the uniform call and its return shape as they were, so the grid and JSON-tree bodies compile and run unedited. A number `estimateSize` gets the same getter it got before, and a function passes through as it is. [`virtualization.test.tsx`](../../src/__tests__/browser/virtualization.test.tsx) holds the measured path in Chromium. Each of its three measured cases fails when its mechanism is removed: with no `measureRef` all three fail, and with an index key the prepend case fails. The prepend case must insert above a scrolled window. A rendered row that goes stale heals itself, because React keeps its node and the node's `ResizeObserver` fires when the height changes. Only a row above the window keeps a stale height. Increments 2 and 3 still wait on the two decisions above.
+Increment 1 is **shipped**. Passing `getItemKey` starts the measured path, and the hook then also returns `measureRef`. Two overloads keep the uniform call and its return shape as they were, so the grid and JSON-tree bodies compile and run unedited. A number `estimateSize` gets the same getter it got before, and a function passes through as it is. [`virtualization.test.tsx`](../../src/__tests__/browser/virtualization.test.tsx) holds the measured path in Chromium. Each of its three measured cases fails when its mechanism is removed: with no `measureRef` all three fail, and with an index key the prepend case fails. The prepend case must insert above a scrolled window. A rendered row that goes stale heals itself, because React keeps its node and the node's `ResizeObserver` fires when the height changes. Only a row above the window keeps a stale height. Both decisions are now taken, so increment 2 can start. Increment 3 still starts with its probe.
 
 1. **The measured mode, with no consumer (shipped).** `estimateSize` widens, `getItemKey` and a `measureRef` join the returned shape, and the uniform path stays the default. The re-sync guard and the spacer math both have to hold with measured sizes, because `bottomSpacer` is derived from `getTotalSize()`, which now moves per measurement. Proof: a new suite over both modes, plus the grid and JSON-tree suites green and unedited.
 

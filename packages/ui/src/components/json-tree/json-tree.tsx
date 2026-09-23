@@ -44,7 +44,9 @@ export type JsonTreeProps = {
  * `onExpandedChange`; `search` highlights and auto-expands matching nodes (and
  * hides non-matches in filter mode). Roving-focus keyboard navigation moves
  * between tree items. Under `virtualize`, flattens the visible tree to a linear
- * list and renders only the viewport slice plus overscan.
+ * list and renders only the viewport slice plus overscan. There, Home, End and
+ * the arrows also reach rows outside the window: the tree scrolls the row in and
+ * focuses it when it mounts.
  *
  * @remarks
  * Client component. `virtualize` carries its own `maxHeight` and

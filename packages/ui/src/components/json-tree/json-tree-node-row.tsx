@@ -8,6 +8,8 @@ import type { FlatNode } from './json-tree-utilities'
 
 type JsonNodeRowProps = {
 	node: FlatNode
+	/** The row's position in the flat node list. The tree reads it to move focus to a row outside the window. */
+	index: number
 	onToggle: (path: string) => void
 	/** Carries the tree's single Tab stop. Windowing decides per render which mounted row holds it. */
 	tabbable?: boolean
@@ -16,11 +18,20 @@ type JsonNodeRowProps = {
 /**
  * Flat, non-recursive renderer for a single row in the virtualized JsonTree.
  * Shares visual slots (`json-node`, `json-node-toggle`, `json-close`) and
- * classes with the recursive {@link JsonTreeNode}.
+ * classes with the recursive {@link JsonTreeNode}. The row root carries
+ * `data-index`, so the keyboard handler can map a focused row to its flat index.
  *
  * @internal
  */
-export function JsonTreeNodeRow({ node, onToggle, tabbable }: JsonNodeRowProps) {
+export function JsonTreeNodeRow({ node, index, onToggle, tabbable }: JsonNodeRowProps) {
+	return (
+		<div data-index={index}>
+			<JsonTreeNodeRowContent node={node} onToggle={onToggle} tabbable={tabbable} />
+		</div>
+	)
+}
+
+function JsonTreeNodeRowContent({ node, onToggle, tabbable }: Omit<JsonNodeRowProps, 'index'>) {
 	if (node.type === 'leaf') {
 		return (
 			<JsonTreeLeafRow
