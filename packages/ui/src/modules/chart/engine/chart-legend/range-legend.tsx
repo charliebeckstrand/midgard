@@ -203,9 +203,21 @@ function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext):
 
 	const current = probe === null ? 0 : binOf(probe)
 
-	if (key === 'ArrowUp' || key === 'ArrowRight') return centre(current + 1)
+	// Tied thresholds leave a class with no width, whose centre reads back into
+	// a neighbour. A step walks on until it reaches a class it can land in.
+	const step = (direction: 1 | -1) => {
+		for (let bin = current + direction; bin >= 0 && bin < bins; bin += direction) {
+			const value = centre(bin)
 
-	if (key === 'ArrowDown' || key === 'ArrowLeft') return centre(current - 1)
+			if (binOf(value) !== current) return value
+		}
+
+		return centre(current)
+	}
+
+	if (key === 'ArrowUp' || key === 'ArrowRight') return step(1)
+
+	if (key === 'ArrowDown' || key === 'ArrowLeft') return step(-1)
 
 	if (key === 'Home') return min
 
@@ -301,7 +313,8 @@ function probePercent(
 
 	if (probe === null || span <= 0) return 0
 
-	const fraction = (probe - min) / span
+	// A value outside the domain pins to its end of the bar, not past it.
+	const fraction = Math.min(1, Math.max(0, (probe - min) / span))
 
 	return (orientation === 'horizontal' ? fraction : 1 - fraction) * 100
 }

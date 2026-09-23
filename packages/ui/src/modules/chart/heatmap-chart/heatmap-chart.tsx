@@ -546,7 +546,12 @@ function useHeatmap<T>(
 		[matrix],
 	)
 
-	const domain = useMemo(() => valueExtent(values, primary?.colorDomain), [values, primary])
+	// `colorDomain` applies to linear binning. Quantile bins cut the data, so the
+	// bar spans the data extent, where the bins sit.
+	const domain = useMemo(
+		() => valueExtent(values, primary?.binning === 'quantile' ? undefined : primary?.colorDomain),
+		[values, primary],
+	)
 
 	// One resolution per mode, each yielding both the painted bins and the
 	// assignment the cells read, so the fills and the legend cannot disagree on

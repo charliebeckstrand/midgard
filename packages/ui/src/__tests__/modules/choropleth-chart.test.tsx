@@ -322,3 +322,36 @@ describe('the range legend under quantile binning', () => {
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(2)
 	})
 })
+
+describe('the range legend domain under quantile binning', () => {
+	it('spans the data extent, not an explicit colorDomain', () => {
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				legend="range"
+				data={[
+					{ region: 'A', pop: 10 },
+					{ region: 'B', pop: 15 },
+					{ region: 'C', pop: 20 },
+				]}
+				series={[
+					{
+						idKey: 'region',
+						colorKey: 'pop',
+						colorRange: ['#fff', '#000'],
+						colorDomain: [0, 100],
+						binning: 'quantile',
+					},
+				]}
+			/>,
+		)
+
+		const track = getSlot(container, 'map-range-track')
+
+		expect(track).toHaveAttribute('aria-valuemin', '10')
+
+		expect(track).toHaveAttribute('aria-valuemax', '20')
+	})
+})
