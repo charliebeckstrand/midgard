@@ -31,7 +31,7 @@ export type GridEditCellContext<T> = {
 	onValueUpdate: (next: unknown) => void
 	/**
 	 * Stage `next` (when given) and, when the grid owns the edit session
-	 * ({@link GridEditableConfig.trigger} `'doubleClick'`), end that session. That
+	 * ({@link GridEditableConfig.session} `'managed'`), end that session. That
 	 * is the same one-batch commit, removing the row from the editable set. Under the
 	 * default consumer-owned session it only stages: the row's save flushes the
 	 * staged values, so there is no per-cell close.
@@ -82,7 +82,7 @@ export type GridRowActionsContext = {
  * at once. Edits stage live; removing the row from the set saves its changed
  * cells as one batch through `onCommit` (Escape reverts a cell).
  *
- * A grid-owned session ({@link GridEditableConfig.trigger} `'doubleClick'`) can
+ * A grid-owned session ({@link GridEditableConfig.session} `'managed'`) can
  * narrow to the entered cell instead of its whole row through {@link
  * GridEditableConfig.scope}. The set and the batch sink stay the model either
  * way.
@@ -102,19 +102,18 @@ export type GridEditableConfig = {
 	/** Fires with the next editable-row set. The grid coalesces an internal clear to an empty set, so the payload is never `undefined`. */
 	onRowsChange?: (rows: Set<string | number>) => void
 	/**
-	 * How a row enters (and leaves) edit mode from the grid itself, alongside the
-	 * consumer-driven `rows` binding. `'manual'` — the default — renders no
-	 * built-in trigger: the consumer flips rows in and out (a pencil / check row
-	 * action). `'doubleClick'` hands the session to the grid. A double-click on an
-	 * editable data cell puts its row into edit mode, and focuses that cell's
-	 * editor. That is the grid's built-in cell double-click event, so a consumer
-	 * {@link GridDataProps.onCellDoubleClick} still fires. Entering and leaving a
-	 * row flows through `rows`/`onRowsChange`, so a controlled binding stays the
-	 * source of truth for which rows edit. Under {@link GridEditableConfig.scope}
-	 * `'cell'` a move between cells of one row leaves that set alone, and the grid
-	 * holds the active cell itself.
+	 * Who owns the edit session. `'manual'` — the default — leaves it to the
+	 * consumer, and the grid renders no built-in entry. The consumer flips rows in
+	 * and out through `rows`, for example with a pencil / check row action.
+	 * `'managed'` hands the session to the grid. A double-click on an editable
+	 * data cell puts its row into edit mode, and focuses that cell's editor. That
+	 * is the grid's built-in cell double-click event, so a consumer
+	 * {@link GridDataProps.onCellDoubleClick} still fires. Entering and leaving a row flows through `rows`/`onRowsChange`,
+	 * so a controlled binding stays the source of truth for which rows edit. Under
+	 * {@link GridEditableConfig.scope} `'cell'` a move between cells of one row
+	 * leaves that set alone, and the grid holds the active cell itself.
 	 *
-	 * `'doubleClick'` also turns on the spreadsheet keys. On the keyboard cursor's
+	 * `'managed'` also turns on the spreadsheet keys. On the keyboard cursor's
 	 * active cell, Enter and F2 enter edit mode. A printable character enters it
 	 * too, with that character in place of the value. From an open editor, the
 	 * keys work as follows:
@@ -136,7 +135,7 @@ export type GridEditableConfig = {
 	 * `editCell` slot and the yes/no editor open with F2 or Enter instead.
 	 * @defaultValue 'manual'
 	 */
-	trigger?: 'manual' | 'doubleClick'
+	session?: 'manual' | 'managed'
 	/**
 	 * How much of a grid-owned session enters edit mode. `'row'` — the default —
 	 * mounts an editor in every editable cell of the entered row at once. That is
@@ -148,7 +147,7 @@ export type GridEditableConfig = {
 	 * editors that close with the narrowing commit together, in one batch. Escape under
 	 * `'cell'` drops the active cell's draft alone, because the cells before it
 	 * already committed. The setting needs a grid-owned session ({@link
-	 * GridEditableConfig.trigger} `'doubleClick'`). Under `'manual'` the consumer
+	 * GridEditableConfig.session} `'managed'`). Under `'manual'` the consumer
 	 * names a row, never a cell, so the row's editors all mount as under `'row'`.
 	 * A row the consumer opens through `rows` reads the same way until the grid
 	 * narrows it. Its editors all mount, and entering one of its cells starts the

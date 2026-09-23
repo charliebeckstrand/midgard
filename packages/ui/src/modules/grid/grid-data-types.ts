@@ -1268,7 +1268,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * The editor is inferred from the value's primitive type, unless the column
 	 * supplies an {@link GridColumn.editCell} slot.
 	 *
-	 * Set {@link GridEditableConfig.trigger} to `'doubleClick'` for grid-owned edit
+	 * Set {@link GridEditableConfig.session} to `'managed'` for grid-owned edit
 	 * sessions. Double-clicking an editable cell starts its row's edit, as does
 	 * Enter on the keyboard cursor's active cell. An editor's Enter saves the row,
 	 * and Escape abandons it. Such a session can narrow to the entered cell

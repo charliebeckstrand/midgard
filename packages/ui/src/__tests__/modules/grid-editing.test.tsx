@@ -35,7 +35,7 @@ function editorsIn(container: HTMLElement) {
 /**
  * Renders a grid over the spies the grid-owned suites assert on. `editable`
  * takes the scope under test and any per-case binding, and spreads last, so a
- * case can hand back the session by passing `trigger: 'manual'`. `cols` takes
+ * case can hand back the session by passing `session: 'manual'`. `cols` takes
  * the column shape a case needs. `rows` stays uncontrolled unless a case binds
  * it, so `onRowsChange` here reports the grid's own writes.
  */
@@ -55,7 +55,7 @@ function renderSessionGrid({
 			columns={cols}
 			rows={sessionRows}
 			getKey={(row) => row.id}
-			editable={{ trigger: 'doubleClick', onRowsChange, onCommit, ...editable }}
+			editable={{ session: 'managed', onRowsChange, onCommit, ...editable }}
 		/>,
 	)
 
@@ -603,7 +603,7 @@ describe('Grid per-row editing', () => {
 })
 
 /**
- * Grid-owned edit sessions (`editable.trigger: 'doubleClick'`): double-clicking
+ * Grid-owned edit sessions (`editable.session: 'managed'`): double-clicking
  * an editable data cell — through the grid's built-in cell double-click event —
  * or pressing Enter on the keyboard cursor's active cell puts its row into edit
  * mode and focuses that cell's editor; an editor's Enter saves the row as the
@@ -611,7 +611,7 @@ describe('Grid per-row editing', () => {
  * to the grid's tab stop either way. Entry and exit flow through the same
  * controllable set, so `onRowsChange` reports every transition.
  */
-describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
+describe("Grid double-click-to-edit (session: 'managed')", () => {
 	it("puts the row into edit mode on an editable cell double-click and focuses that cell's editor", () => {
 		const { container, cell, onRowsChange } = renderSessionGrid()
 
@@ -1056,7 +1056,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 						rows={sessionRows}
 						getKey={(row) => row.id}
 						editable={{
-							trigger: 'doubleClick',
+							session: 'managed',
 							scope: 'cell',
 							rows: editing,
 							onRowsChange: setEditing,
@@ -1095,7 +1095,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 						columns={sessionColumns}
 						rows={sessionRows}
 						getKey={(row) => row.id}
-						editable={{ trigger: 'doubleClick', scope, onCommit: vi.fn() }}
+						editable={{ session: 'managed', scope, onCommit: vi.fn() }}
 					/>
 				</>
 			)
@@ -1170,7 +1170,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 						rows={sessionRows}
 						getKey={(row) => row.id}
 						editable={{
-							trigger: 'doubleClick',
+							session: 'managed',
 							scope: 'cell',
 							rows: editing,
 							onRowsChange: setEditing,
@@ -1208,7 +1208,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// `scope` narrows a grid-owned session. Under 'manual' the consumer flips a
 		// row and the grid never learns a cell, so the row's editors all mount.
 		const { container } = renderSessionGrid({
-			editable: { trigger: 'manual', scope: 'cell', rows: new Set([1]) },
+			editable: { session: 'manual', scope: 'cell', rows: new Set([1]) },
 		})
 
 		expect(bySlot(container, 'grid-edit-input')).toBeInTheDocument()
@@ -1575,7 +1575,7 @@ describe('Grid commit-and-move keys', () => {
 					rows={sessionRows}
 					getKey={(row) => row.id}
 					editable={{
-						trigger: 'doubleClick',
+						session: 'managed',
 						scope: 'cell',
 						rows: editing,
 						// A guard that lets rows close but lets no second row open.
@@ -1608,7 +1608,7 @@ describe('Grid commit-and-move keys', () => {
 	})
 
 	it('stays inert under a consumer-owned session', () => {
-		const view = renderKeysGrid({ trigger: 'manual', scope: 'row' })
+		const view = renderKeysGrid({ session: 'manual', scope: 'row' })
 
 		const grid = view.getByRole('grid')
 

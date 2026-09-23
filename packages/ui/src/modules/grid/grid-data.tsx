@@ -631,7 +631,7 @@ export function GridData<T>({
 		},
 	})
 
-	// Double-click-to-edit (under `editable.trigger: 'doubleClick'`) rides the
+	// Double-click-to-edit (under `editable.session: 'managed'`) rides the
 	// built-in cell double-click event, ahead of the consumer's handler.
 	const cellDoubleClick = useMemo(
 		() => composeCellDoubleClick(cursor.editOnCellDoubleClick, handleCellDoubleClick),

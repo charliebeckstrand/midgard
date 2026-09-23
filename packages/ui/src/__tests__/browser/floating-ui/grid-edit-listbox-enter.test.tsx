@@ -28,7 +28,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(r) => r.id}
-				editable={{ trigger: 'doubleClick', scope: 'cell', onCommit }}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)
 
@@ -59,7 +59,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(r) => r.id}
-				editable={{ trigger: 'doubleClick', scope: 'cell', onCommit }}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)
 

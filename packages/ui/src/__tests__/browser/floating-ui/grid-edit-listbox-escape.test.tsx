@@ -29,7 +29,7 @@ describe('grid edit session Escape vs an open listbox (real floating engine)', (
 				columns={columns}
 				rows={rows}
 				getKey={(r) => r.id}
-				editable={{ trigger: 'doubleClick', scope: 'cell', onCommit }}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)
 

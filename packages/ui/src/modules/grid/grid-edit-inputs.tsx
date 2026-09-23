@@ -29,7 +29,7 @@ export type GridEditInputProps = {
 	/** Marks the editor `aria-required` (the programmatic cue; enforcement stays with `validate`). */
 	required?: boolean
 	/**
-	 * Whether the grid owns the edit session (`trigger: 'doubleClick'`). A
+	 * Whether the grid owns the edit session (`session: 'managed'`). A
 	 * grid-owned session handles its keys on the grid table's key surface, so the
 	 * editor lets them bubble past it. Under a consumer-owned session the editor
 	 * keeps Escape, which reverts this cell, and nothing saves on Enter.
