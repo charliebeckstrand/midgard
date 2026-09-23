@@ -97,14 +97,15 @@ describe('static geometry · cold vs warm (states-10m)', () => {
 /** Pointer moves per iteration — enough that per-move cascade work accumulates. */
 const MOVES = 10
 
-/** Mounts a plat for the whole run and hands back the elements the cascade scenarios drive. */
+/**
+ * Registers a plat through the harness. Each bench mounts its own plat while it
+ * runs, and gets the elements the cascade scenarios drive.
+ */
 function cascade(node: ReactElement) {
-	const container = persistentTree(node)
-
-	return {
+	return persistentTree(node, (container) => ({
 		region: container.querySelector('[data-region-index]') as Element,
 		legendItem: container.querySelector('[data-slot="map-legend-item"]') as Element,
-	}
+	}))
 }
 
 /** One sweep of `MOVES` pointer moves across a single region. */
@@ -122,24 +123,24 @@ function emphasize(legendItem: Element) {
 }
 
 describe('MapPlat · hover cascade (states, 52 regions)', () => {
-	const { region, legendItem } = cascade(statesPlat())
+	const plat = cascade(statesPlat())
 
-	bench(`${MOVES} pointermoves over one region`, () => sweep(region))
+	plat.bench(`${MOVES} pointermoves over one region`, ({ region }) => sweep(region))
 
-	bench('legend emphasis enter + leave', () => emphasize(legendItem))
+	plat.bench('legend emphasis enter + leave', ({ legendItem }) => emphasize(legendItem))
 })
 
 describe('MapPlat · hover cascade (counties, 3143 regions)', () => {
-	const { region } = cascade(countiesPlat())
-
-	bench(`${MOVES} pointermoves over one region`, () => sweep(region))
+	cascade(countiesPlat()).bench(`${MOVES} pointermoves over one region`, ({ region }) =>
+		sweep(region),
+	)
 })
 
 describe('MapPlat · legend cascade (counties, 3143 regions + legend)', () => {
 	// A legend emphasis re-renders the plat: the region layer must repaint (its
 	// fills dim) but the visually-hidden table reads neither hidden nor
 	// emphasis, so its memo holds a 3143-row re-map on every enter and leave.
-	const { legendItem } = cascade(
+	const plat = cascade(
 		<MapPlat
 			aria-label="Counties"
 			geography={countiesGeo}
@@ -150,5 +151,5 @@ describe('MapPlat · legend cascade (counties, 3143 regions + legend)', () => {
 		/>,
 	)
 
-	bench('legend emphasis enter + leave', () => emphasize(legendItem))
+	plat.bench('legend emphasis enter + leave', ({ legendItem }) => emphasize(legendItem))
 })
