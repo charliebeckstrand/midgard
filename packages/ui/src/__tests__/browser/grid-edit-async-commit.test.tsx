@@ -43,9 +43,13 @@ describe('grid async commit (real browser)', () => {
 
 		await userEvent.dblClick(cell)
 
-		await userEvent.keyboard('{Control>}a{/Control}Alicia{F2}')
+		// Select-all is Meta+A on macOS. There, Playwright maps Control+A to a move to the line start.
+		await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}Alicia{F2}')
 
-		expect(onCommit).toHaveBeenCalledOnce()
+		// The text match below also accepts "AliciaAlice", so this line pins the value.
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
 
 		const pending = present(bySlot(cell, 'grid-edit-pending'), 'the pending content')
 

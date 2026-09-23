@@ -54,7 +54,8 @@ describe('grid commit on leave (real browser)', () => {
 
 		expect(bySlot(view.container, 'grid-edit-input')).toHaveFocus()
 
-		await userEvent.keyboard('{Control>}a{/Control}Alicia')
+		// Select-all is Meta+A on macOS. There, Playwright maps Control+A to a move to the line start.
+		await userEvent.keyboard('{ControlOrMeta>}a{/ControlOrMeta}Alicia')
 	}
 
 	const alicia = [{ rowKey: 1, columnId: 'name', value: 'Alicia' }]
