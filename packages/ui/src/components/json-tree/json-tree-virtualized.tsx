@@ -15,7 +15,7 @@ import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
 import { JsonTreeNodeRow } from './json-tree-node-row'
-import { type buildSearchIndex, collectMatchPaths, flattenTree } from './json-tree-utilities'
+import { collectMatchPaths, flattenTree, type SearchIndex } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
@@ -98,7 +98,7 @@ type JsonTreeVirtualizedProps = {
 	onExpandedChange: ((expanded: Set<string>) => void) | undefined
 	searchValue: string
 	filter: boolean
-	searchIndex: ReturnType<typeof buildSearchIndex>
+	searchIndex: SearchIndex
 	virtualize: { estimateSize?: number; overscan?: number }
 	maxHeight: string
 	onKeyDown: KeyboardEventHandler<HTMLDivElement>
@@ -174,15 +174,6 @@ export function JsonTreeVirtualized({
 		estimateSize,
 		overscan,
 	})
-
-	// The window is empty until the virtualizer measures a scroller of some
-	// height. A scroller that only `maxHeight` bounds sizes to its content, and
-	// with no rows it measures zero, so the window stays empty for good. While
-	// the window is empty, the bottom spacer holds the height of every row. The
-	// scroller then grows to its cap, and the virtualizer measures a window.
-	const warming = flatNodes.length > 0 && virtualItems.length === 0
-
-	const trailing = warming ? flatNodes.length * estimateSize : bottomSpacer
 
 	// The Tab stop rides the first focusable rendered row; windowing can
 	// scroll the depth-0 root out of the DOM.
@@ -264,12 +255,12 @@ export function JsonTreeVirtualized({
 					/>
 				)
 			})}
-			{trailing > 0 && (
+			{bottomSpacer > 0 && (
 				<div
 					role="presentation"
 					data-slot="json-tree-spacer"
 					className={k.spacer}
-					style={{ height: trailing }}
+					style={{ height: bottomSpacer }}
 				/>
 			)}
 		</div>

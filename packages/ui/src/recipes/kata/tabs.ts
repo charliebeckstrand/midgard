@@ -7,12 +7,12 @@
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen, stepSize } from '../kiso'
 import { segment } from '../kiso/segment'
 
 const { cursor, disabled, fg } = hannou
 const { text } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border, focus } = sen
@@ -85,11 +85,7 @@ const tab = defineRecipe({
 		horizontal: ['after:inset-x-0 after:-bottom-px after:h-0.5'],
 		vertical: ['after:inset-y-0 after:-left-px after:w-0.5'],
 	},
-	size: {
-		sm: size.sm,
-		md: size.md,
-		lg: size.lg,
-	},
+	size: stepSize,
 	compound: [
 		{ orientation: 'horizontal', size: 'sm', class: 'px-2 pb-3' },
 		{ orientation: 'horizontal', size: 'md', class: 'px-3 pb-4' },

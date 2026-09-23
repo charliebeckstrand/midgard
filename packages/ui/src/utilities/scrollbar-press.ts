@@ -30,7 +30,8 @@ function verticalGutterWidth(target: HTMLElement, style: CSSStyleDeclaration): n
  * overflow has no gutter to press. The vertical gutter sits on the inline-start edge under
  * `direction: rtl`, which is why the test is not simply "past the content box on the right".
  * `offsetX` starts at the inner border edge. The RTL gutter therefore starts at zero, and the
- * borders are not part of it.
+ * borders are not part of it. The LTR gutter starts at `clientWidth`, and the horizontal gutter
+ * starts at `clientHeight`. Each of these pixels is part of its gutter.
  */
 export function isScrollbarPress(
 	event: Pick<MouseEvent, 'offsetX' | 'offsetY'>,
@@ -54,8 +55,8 @@ export function isScrollbarPress(
 		canScrollY &&
 		(style.direction === 'rtl'
 			? event.offsetX < verticalGutterWidth(target, style)
-			: event.offsetX > target.clientWidth)
-	const onHorizontalScrollbar = canScrollX && event.offsetY > target.clientHeight
+			: event.offsetX >= target.clientWidth)
+	const onHorizontalScrollbar = canScrollX && event.offsetY >= target.clientHeight
 
 	return onVerticalScrollbar || onHorizontalScrollbar
 }

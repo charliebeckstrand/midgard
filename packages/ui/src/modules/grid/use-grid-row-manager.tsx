@@ -74,9 +74,7 @@ export function applyRowKeyOrder<I>(
 
 	const byKey = new Map(items.map((item) => [String(keyOf(item)), item]))
 
-	const ordered = order
-		.map((key) => byKey.get(String(key)))
-		.filter((item): item is I => item != null)
+	const ordered = order.map((key) => byKey.get(String(key))).filter((item) => item != null)
 
 	const listed = new Set(order.map(String))
 

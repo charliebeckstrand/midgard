@@ -1,35 +1,12 @@
 /**
  * Tagged template literal for example code blocks. Auto-dedents to the
- * minimum indentation, trims leading and trailing blank lines, and joins
- * array interpolations with newlines while preserving the surrounding
- * indentation.
+ * minimum indentation, and trims leading and trailing blank lines.
+ *
+ * @remarks The tag takes no interpolation, so `${…}` in a sample is a `tsc`
+ * error. Escape it as `\${…}` to show it as text.
  */
-export function code(strings: TemplateStringsArray, ...values: (string | string[])[]) {
-	let result = ''
-
-	for (let i = 0; i < strings.length; i++) {
-		result += strings[i]
-
-		if (i < values.length) {
-			const val = values[i]
-
-			const joined = Array.isArray(val) ? val.join('\n') : (val ?? '')
-
-			// Find the indentation at the interpolation point
-			// (everything after the last newline in result so far)
-			const lastNewline = result.lastIndexOf('\n')
-
-			const currentLine = lastNewline === -1 ? result : result.slice(lastNewline + 1)
-
-			const indent = currentLine.match(/^(\s*)/)?.[1] ?? ''
-
-			// Apply that indentation to every line after the first
-			result += joined
-				.split('\n')
-				.map((line, j) => (j === 0 ? line : indent + line))
-				.join('\n')
-		}
-	}
+export function code(strings: TemplateStringsArray) {
+	const result = strings[0] ?? ''
 
 	const lines = result.split('\n')
 

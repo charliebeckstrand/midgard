@@ -30,14 +30,14 @@ import {
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
 import { ChartContextMenu } from '../engine/chart-context-menu'
-import { cellAt, heatmapCells } from '../engine/chart-geometry/heatmap'
+import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
 import { resolveRangeLegend } from '../engine/chart-legend/range'
 import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
-import { bandScale } from '../engine/chart-scale'
+import { type BandScale, bandScale } from '../engine/chart-scale'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import { ChartTable } from '../engine/chart-table'
 import { isSparkBox } from '../engine/chart-tier'
@@ -125,7 +125,7 @@ function HeatmapFocusProvider({ children }: { children: ReactNode }) {
 
 /** Props for {@link HeatmapCells}: the resolved cells, their fills, and their bins. @internal */
 type HeatmapCellsProps = {
-	cells: ReturnType<typeof heatmapCells>
+	cells: HeatmapCell[]
 	/** The fill per cell, index-aligned; `null` paints the no-data neutral. */
 	fills: (string | null)[]
 	/** The bin per cell, index-aligned; `null` for a no-data cell. Dims against the legend probe. */
@@ -250,8 +250,8 @@ type HeatmapHitLayerProps = {
 	plot: PlotRect
 	rows: number
 	cols: number
-	xBand: ReturnType<typeof bandScale>
-	yBand: ReturnType<typeof bandScale>
+	xBand: BandScale
+	yBand: BandScale
 	/**
 	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`.
 	 * A pinning click also gives the layer a pointer cursor, and toggles the
@@ -430,8 +430,8 @@ function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapT
 /** The x (column) and y (row) band-axis tick labels, thinned to fit their axes. @internal */
 function heatmapTicks(
 	matrix: HeatmapMatrix,
-	xBand: ReturnType<typeof bandScale>,
-	yBand: ReturnType<typeof bandScale>,
+	xBand: BandScale,
+	yBand: BandScale,
 	plot: PlotRect,
 ): { x: ChartAxisTick[]; y: ChartAxisTick[] } {
 	const widestCol = matrix.columns.reduce((widest, label) => Math.max(widest, label.length), 0)
@@ -479,12 +479,12 @@ type HeatmapModel = {
 	/** The measured box is small enough to strip to bare cells — no labels, no readout. */
 	spark: boolean
 	plot: PlotRect
-	xBand: ReturnType<typeof bandScale>
-	yBand: ReturnType<typeof bandScale>
+	xBand: BandScale
+	yBand: BandScale
 	matrix: HeatmapMatrix
 	cols: number
 	rows: number
-	cells: ReturnType<typeof heatmapCells>
+	cells: HeatmapCell[]
 	fills: (string | null)[]
 	cellBins: (number | null)[]
 	bins: ColorBin[]
@@ -541,10 +541,7 @@ function useHeatmap<T>(
 
 	// The extent and the quantile thresholds read the same cells, so the grid is
 	// flattened once. Each did its own pass over every row before this.
-	const values = useMemo(
-		() => matrix.values.flat().filter((value): value is number => value !== null),
-		[matrix],
-	)
+	const values = useMemo(() => matrix.values.flat().filter((value) => value !== null), [matrix])
 
 	// `colorDomain` applies to linear binning. Quantile bins cut the data, so the
 	// bar spans the data extent, where the bins sit.

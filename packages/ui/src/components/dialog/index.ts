@@ -1,10 +1,10 @@
 export type { DialogPanelVariants } from '../../recipes/kata/dialog'
 export { Dialog, type DialogProps } from './dialog'
-export { DialogClose, type DialogCloseProps } from './dialog-close'
-export { DialogTrigger, type DialogTriggerProps } from './dialog-trigger'
 export {
 	DialogBody,
 	type DialogBodyProps,
+	DialogClose,
+	type DialogCloseProps,
 	DialogContent,
 	type DialogContentProps,
 	DialogDescription,
@@ -15,4 +15,6 @@ export {
 	type DialogHeaderProps,
 	DialogTitle,
 	type DialogTitleProps,
+	DialogTrigger,
+	type DialogTriggerProps,
 } from './slots'

@@ -392,7 +392,7 @@ function domainValuesFor<T>(args: {
 		? bound.length > 0
 			? data.map((_, index) => bound.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
 			: []
-		: bound.flatMap((meta) => meta.values.filter((value): value is number => value !== null))
+		: bound.flatMap((meta) => meta.values.filter((value) => value !== null))
 
 	const referenceValues = (reference ?? []).flatMap((line, index) =>
 		(line.axis ?? 'y') === axis && !referenceHidden.has(index) ? [line.value] : [],
@@ -697,16 +697,6 @@ export function drawnSeries(chart: CartesianChart): DrawnSeries[] {
 
 		return scale ? [{ meta, scale, baseline }] : []
 	})
-}
-
-/**
- * Every category's band center, shared across a chart's series since they all
- * span the same categories — one array instead of one per series.
- *
- * @internal
- */
-export function bandCenters(chart: CartesianChart): number[] {
-	return chart.metas[0]?.values.map((_, index) => chart.band.center(index)) ?? []
 }
 
 /**

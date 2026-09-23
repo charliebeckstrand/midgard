@@ -75,7 +75,7 @@ export function ChartBarMarks({
 		() =>
 			marks.map((row) =>
 				row
-					.filter((bar): bar is BarMark => bar !== null)
+					.filter((bar) => bar !== null)
 					.map((bar) => bar.d)
 					.join(' '),
 			),

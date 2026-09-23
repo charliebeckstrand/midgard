@@ -8,6 +8,7 @@ import { ChatMessage } from './chat-message'
 import { ChatRowContext } from './context'
 import { describeTranscript } from './engine/chat-announcements'
 import type { ChatMessageData } from './engine/types'
+import { useChatTranscriptItemKey } from './use-chat-transcript-item-key'
 
 /**
  * The first guess at a row's height, in pixels: one short bubble, its
@@ -60,7 +61,8 @@ export type ChatTranscriptProps = {
  * below. Each row measures its real height. A bubble that wraps, a step a
  * reader opens, and an embed that draws thus move the rows below them. A
  * streamed chunk re-renders the rows in the window, not the whole transcript.
- * The window keys each row by its message `id`.
+ * The window keys each row by its message `id`. A chunk keeps the ids, so the
+ * window keeps each row position and does not rebuild them.
  *
  * The pin goes through the window, not through `scrollTop`. The total height
  * moves as rows measure, so a pin written against `scrollHeight` drifts. The
@@ -108,9 +110,8 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 
 	const count = messages.length
 
-	// A new list is a new key getter, which the window reads as a change of keys.
-	// The list changes per chunk, and the rebuild costs one pass over the keys.
-	const getItemKey = useCallback((index: number) => messages[index]?.id ?? index, [messages])
+	// A streamed chunk keeps the ids, so the key getter keeps its identity.
+	const getItemKey = useChatTranscriptItemKey(messages)
 
 	const getScrollElement = useCallback(() => containerRef.current, [])
 

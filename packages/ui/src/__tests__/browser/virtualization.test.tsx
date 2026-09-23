@@ -14,8 +14,8 @@ import { act, renderUI, waitFor } from '../helpers'
  * hook Grid's virtualized body delegates to, exercised in a minimal real
  * table on its uniform path and in a list of mixed-height rows on its measured
  * path) and `VirtualOptions` (the primitive that windows Combobox/Listbox
- * options). Both require a viewport of definite height; the harnesses supply a
- * fixed height rather than relying on `max-height`.
+ * options). Most harnesses supply a fixed height. One list has only a
+ * `max-height`, which sizes the scroller from its content.
  *
  * The full Grid component is not driven here: its render lifecycle never
  * initialises the virtualizer on an isolated headless mount (CONVENTIONS §10.3).
@@ -264,6 +264,64 @@ describe('useVirtualWindow measured windowing', () => {
 
 			expect(first?.start).toBe(MIXED_ESTIMATE + realOffset(id))
 		})
+	})
+})
+
+const CAP = 240
+
+/**
+ * Minimal list over `useVirtualWindow` whose scroller has only a `max-height`. It draws no
+ * stand-in rows, so the bottom spacer alone gives the scroller its height before the first window.
+ */
+function CappedList({ estimateSize }: { estimateSize: number | ((index: number) => number) }) {
+	const scrollRef = useRef<HTMLDivElement>(null)
+
+	const { virtualItems, topSpacer, bottomSpacer } = useVirtualWindow({
+		count: 500,
+		getScrollElement: () => scrollRef.current,
+		estimateSize,
+		overscan: 2,
+	})
+
+	return (
+		<div ref={scrollRef} data-slot="capped-list" style={{ maxHeight: CAP, overflow: 'auto' }}>
+			<div style={{ height: topSpacer }} />
+			{virtualItems.map((virtualItem) => (
+				<div key={virtualItem.index} data-slot="capped-row" style={{ height: virtualItem.size }}>
+					Row {virtualItem.index}
+				</div>
+			))}
+			<div style={{ height: bottomSpacer }} />
+		</div>
+	)
+}
+
+/** A function estimate: rows alternate between 20 and 40 pixels. */
+const alternating = (index: number) => (index % 2 === 0 ? 20 : 40)
+
+describe('useVirtualWindow under a max-height cap alone', () => {
+	it.each([
+		['a number estimate', 30, 500 * 30],
+		['a function estimate', alternating, 250 * 20 + 250 * 40],
+	])('renders a window and spans every row with %s', async (_, estimateSize, total) => {
+		const { container } = renderUI(<CappedList estimateSize={estimateSize} />)
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="capped-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		await waitFor(() => {
+			const rows = container.querySelectorAll('[data-slot="capped-row"]').length
+
+			expect(rows).toBeGreaterThan(0)
+
+			expect(rows).toBeLessThan(100)
+		})
+
+		// The scroller stops at its cap, and its content holds the height of every row.
+		expect(scroller.getBoundingClientRect().height).toBeCloseTo(CAP, 0)
+
+		expect(scroller.scrollHeight).toBe(total)
 	})
 })
 

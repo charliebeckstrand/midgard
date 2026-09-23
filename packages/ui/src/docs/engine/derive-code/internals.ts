@@ -21,7 +21,7 @@ export function isPassThrough(element: ReactElement): boolean {
 	return element.type === Fragment || typeof element.type === 'string'
 }
 
-export function isPrimitive(value: unknown): value is string | number | boolean {
+export function isPrimitive(value: unknown) {
 	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
 }
 

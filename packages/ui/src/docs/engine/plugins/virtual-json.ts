@@ -40,7 +40,7 @@ type FamilyEntry = {
 	loaded: Set<string>
 }
 
-function isFamily(spec: VirtualJsonSpec | VirtualJsonFamilySpec): spec is VirtualJsonFamilySpec {
+function isFamily(spec: VirtualJsonSpec | VirtualJsonFamilySpec) {
 	return 'prefix' in spec
 }
 

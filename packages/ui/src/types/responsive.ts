@@ -29,7 +29,7 @@ export const BREAKPOINT_WIDTHS = {
 } as const satisfies Record<MinBreakpoint, string>
 
 /** A prop value that is either a single `T` or a per-breakpoint map of `T`, applied mobile-first. */
-export type Responsive<T> = T | { initial?: T; sm?: T; md?: T; lg?: T; xl?: T; '2xl'?: T }
+export type Responsive<T> = T | Partial<Record<Breakpoint, T>>
 
 /**
  * Resolves a {@link Responsive} value to an ordered list of classes by calling

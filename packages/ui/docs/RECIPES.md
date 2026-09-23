@@ -19,7 +19,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | Token | Concern |
 |---|---|
 | `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. `palette` is the standard five-colour set; `extendedPalette` is the opt-in wide palette (standard + rose / violet / sky). |
-| `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. |
+| `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. `stepSize` is the three-step (`sm` / `md` / `lg`) size axis. |
 | `ma` 間 | Named spacing scale projected as Tailwind padding, margin, and gap utilities — all-sides and axis variants. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncation, flex primitives. |
 | `omote` 面 | Generic surface fills and chromes (`bg`, `blur`, `surface`, `popover`, `glass`, `backdrop`, `content`, `skeleton`). |

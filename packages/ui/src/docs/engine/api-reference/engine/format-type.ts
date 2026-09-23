@@ -198,8 +198,7 @@ function namedTypeShortName(
 	const declarations = symbol.getDeclarations() ?? []
 
 	const namedDecl = declarations.find(
-		(d): d is ts.InterfaceDeclaration | ts.ClassDeclaration =>
-			ts.isInterfaceDeclaration(d) || ts.isClassDeclaration(d),
+		(d) => ts.isInterfaceDeclaration(d) || ts.isClassDeclaration(d),
 	)
 
 	if (!namedDecl) return null

@@ -181,7 +181,8 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	// been dropped in those frames (`loading` went false with the rows), so
 	// continuing it keeps the skeleton → rows swap atomic, landing in the same
 	// commit as the fit that sizes their columns; without it the body paints as a
-	// headers-only, rowless table for a frame or two.
+	// headers-only, rowless table for a frame or two. The skeleton also gives the
+	// scroller its height, so the bottom spacer stays out until rows render.
 	const warming = rows.length > 0 && virtualItems.length === 0
 
 	return (
@@ -209,7 +210,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 					),
 				)
 			)}
-			{bottomSpacer > 0 && (
+			{!warming && bottomSpacer > 0 && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
 				<tr data-slot="grid-spacer" aria-hidden="true">
 					<td

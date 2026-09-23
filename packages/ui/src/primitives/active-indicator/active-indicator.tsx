@@ -1,7 +1,7 @@
 'use client'
 
 import { LayoutGroup, type MotionStyle, motion, useAnimate } from 'motion/react'
-import { type ReactNode, type Ref, useCallback, useId, useMemo } from 'react'
+import { type ReactNode, type Ref, useCallback, useId } from 'react'
 import { cn, createContext } from '../../core'
 import { k } from '../../recipes/kata/active-indicator'
 import { ReducedMotion } from '../reduced-motion'
@@ -33,9 +33,7 @@ const [ActiveIndicatorScopeContext, useActiveIndicatorScope] = createContext<str
  * @see {@link useActiveIndicatorScope}
  */
 export function ActiveIndicatorScope({ children }: { children: ReactNode }) {
-	const scopeId = useId()
-
-	const layoutId = useMemo(() => `current-indicator-${scopeId}`, [scopeId])
+	const layoutId = `current-indicator-${useId()}`
 
 	return (
 		<ActiveIndicatorScopeContext value={layoutId}>

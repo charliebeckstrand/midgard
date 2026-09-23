@@ -9,6 +9,10 @@ const downloadBlob = vi.fn()
 vi.mock('../../modules/chart/engine/chart-export', async (importOriginal) => ({
 	...(await importOriginal<typeof import('../../modules/chart/engine/chart-export')>()),
 	rasterizeChartImage: (...args: unknown[]) => rasterizeChartImage(...args),
+}))
+
+vi.mock('../../utilities/export-output', async (importOriginal) => ({
+	...(await importOriginal<typeof import('../../utilities/export-output')>()),
 	downloadBlob: (...args: unknown[]) => downloadBlob(...args),
 }))
 

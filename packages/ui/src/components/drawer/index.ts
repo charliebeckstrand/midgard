@@ -1,10 +1,10 @@
 export type { DrawerPanelVariants } from '../../recipes/kata/drawer'
 export { Drawer, type DrawerProps } from './drawer'
-export { DrawerClose, type DrawerCloseProps } from './drawer-close'
-export { DrawerTrigger, type DrawerTriggerProps } from './drawer-trigger'
 export {
 	DrawerBody,
 	type DrawerBodyProps,
+	DrawerClose,
+	type DrawerCloseProps,
 	DrawerContent,
 	type DrawerContentProps,
 	DrawerDescription,
@@ -15,4 +15,6 @@ export {
 	type DrawerHeaderProps,
 	DrawerTitle,
 	type DrawerTitleProps,
+	DrawerTrigger,
+	type DrawerTriggerProps,
 } from './slots'

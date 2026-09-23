@@ -1,12 +1,20 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useEffect, useRef } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/chrome'
 import { registerChrome } from './chrome-registry'
 
 /** Props for {@link PersistentChrome}: the region's `children`, plus any div attributes. */
 export type PersistentChromeProps = ComponentProps<'div'> & { children: ReactNode }
+
+/**
+ * Registers the region; React 19 runs the returned unregister on detach. Module
+ * scope keeps the ref stable, so a render does not register the node again. @internal
+ */
+function registerRegion(node: HTMLDivElement | null) {
+	return node ? registerChrome(node) : undefined
+}
 
 /**
  * Marks a region as application chrome that a modal surface must not seal off.
@@ -45,12 +53,13 @@ export type PersistentChromeProps = ComponentProps<'div'> & { children: ReactNod
  * ```
  */
 export function PersistentChrome({ className, children, ...props }: PersistentChromeProps) {
-	const ref = useRef<HTMLDivElement>(null)
-
-	useEffect(() => (ref.current ? registerChrome(ref.current) : undefined), [])
-
 	return (
-		<div ref={ref} data-slot="persistent-chrome" className={cn(k.region, className)} {...props}>
+		<div
+			ref={registerRegion}
+			data-slot="persistent-chrome"
+			className={cn(k.region, className)}
+			{...props}
+		>
 			{children}
 		</div>
 	)

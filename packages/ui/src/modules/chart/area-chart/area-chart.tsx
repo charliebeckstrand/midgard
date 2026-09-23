@@ -33,7 +33,6 @@ import {
 } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
 import {
-	bandCenters,
 	cartesianData,
 	type DrawnSeries,
 	drawnSeries,
@@ -304,7 +303,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 	// themselves down through ChartTierContext.
 	const floor = chart.plot.y + chart.plot.height
 
-	const xs = bandCenters(chart)
+	const xs = chart.bandPositions
 
 	// A stack binds to one axis (the side its series agree on, else the left),
 	// so its ribbons read that one scale; unstacked series each read their own.

@@ -149,7 +149,7 @@ export function useChartTexture(active: boolean, slots: (ChartColorSlot | null)[
 
 	const idFor = (slot: ChartColorSlot) => `chart-tx-${base}-${slot}`
 
-	const distinct = new Set(slots.filter((slot): slot is ChartColorSlot => slot !== null))
+	const distinct = new Set(slots.filter((slot) => slot !== null))
 
 	const entries = [...distinct].map((slot) => ({
 		color: slot,

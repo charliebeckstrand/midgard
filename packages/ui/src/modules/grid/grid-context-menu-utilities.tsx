@@ -196,16 +196,6 @@ export type GridGroupByMenu = {
 	setGrouping: (next: (string | number) | null) => void
 }
 
-/** Writes text to the clipboard when the API is available. @internal */
-export function copyText(text: string): void {
-	// Swallow a rejected write (a denied permission, an unfocused document): the
-	// copy silently no-ops rather than surfacing an unhandled rejection, matching
-	// the fire-and-forget intent — there's no copy-failed affordance to drive. The
-	// optional chain short-circuits the whole expression when the API is absent, so
-	// `.catch` is never reached on a nullish clipboard.
-	navigator.clipboard?.writeText(text).catch(() => {})
-}
-
 /**
  * The table-wide column manager as a menu row, or nothing when no manager is
  * reachable — the same withhold-when-empty shape the column's own concerns take.

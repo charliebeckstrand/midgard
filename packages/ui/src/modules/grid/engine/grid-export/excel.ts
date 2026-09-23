@@ -1,7 +1,7 @@
 import { strToU8, zipSync } from 'fflate'
+import { downloadBlob } from '../../../../utilities/export-output'
 import type { GridColumn } from '../../types'
 import { cellText, escapeXml, exportFields } from './accessor'
-import { downloadBlob } from './download'
 
 /** A1-style column letter for a 0-based index (0 → A, 25 → Z, 26 → AA). @internal */
 function columnLetter(index: number): string {
@@ -100,8 +100,9 @@ export function rowsToXlsx<T>(columns: GridColumn<T>[], rows: T[]): Uint8Array {
  */
 export function downloadExcel(filename: string, workbook: Uint8Array): void {
 	downloadBlob(
+		new Blob([workbook as BlobPart], {
+			type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+		}),
 		filename,
-		[workbook as BlobPart],
-		'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
 	)
 }

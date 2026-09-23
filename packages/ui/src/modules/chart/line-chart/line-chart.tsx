@@ -22,12 +22,7 @@ import {
 	valueLabelHeadroom,
 } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
-import {
-	bandCenters,
-	cartesianData,
-	drawnSeries,
-	useChartCartesian,
-} from '../engine/use-chart-cartesian'
+import { cartesianData, drawnSeries, useChartCartesian } from '../engine/use-chart-cartesian'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 
 /**
@@ -129,7 +124,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 	const floor = chart.plot.y + chart.plot.height
 
 	// One band-center array for every series — they all span the same categories.
-	const xs = bandCenters(chart)
+	const xs = chart.bandPositions
 
 	// Each visible series draws through its own axis's scale; a series whose
 	// scale never resolved takes no marks.

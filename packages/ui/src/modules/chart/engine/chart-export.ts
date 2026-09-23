@@ -5,6 +5,7 @@
  * `document` only when called.
  */
 
+import { downloadBlob } from '../../../utilities/export-output'
 import type { ChartReadout } from './types'
 
 /** The bitmap formats the chart exports to; {@link ChartExportOutcome} names the one a download asked for. */
@@ -222,35 +223,7 @@ export function chartFileName(title: string | undefined, extension: string): str
 	return `${fileStem(title)}.${extension}`
 }
 
-/** Downloads a blob under `filename` via a transient object URL. @internal */
-export function downloadBlob(blob: Blob, filename: string): void {
-	const url = URL.createObjectURL(blob)
-
-	const anchor = document.createElement('a')
-
-	anchor.href = url
-
-	anchor.download = filename
-
-	anchor.rel = 'noopener'
-
-	document.body.append(anchor)
-
-	anchor.click()
-
-	anchor.remove()
-
-	// Revoke on the next tick, after the click has been handed to the browser's
-	// download machinery — revoking synchronously can cancel the download.
-	setTimeout(() => URL.revokeObjectURL(url), 0)
-}
-
 /** Downloads text as a UTF-8 file of the given MIME type. @internal */
 export function downloadText(text: string, filename: string, mime: string): void {
 	downloadBlob(new Blob([text], { type: `${mime};charset=utf-8` }), filename)
-}
-
-/** Writes text to the clipboard; a rejected write no-ops. @internal */
-export function copyText(text: string): void {
-	navigator.clipboard?.writeText(text).catch(() => {})
 }

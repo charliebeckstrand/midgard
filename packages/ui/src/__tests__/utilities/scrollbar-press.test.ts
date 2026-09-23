@@ -48,6 +48,24 @@ describe('isScrollbarPress', () => {
 		expect(isScrollbarPress(press(170), target)).toBe(false)
 	})
 
+	it('includes the boundary pixel at the ltr gutter edge', () => {
+		const target = scroller({ gutter: 15 })
+
+		// The client width is 185, so the gutter starts at offset 185.
+		expect(isScrollbarPress(press(185), target)).toBe(true)
+
+		expect(isScrollbarPress(press(184), target)).toBe(false)
+	})
+
+	it('measures the ltr gutter from the inner border edge of a bordered box', () => {
+		const target = scroller({ borderLeft: 7, borderRight: 3, gutter: 15 })
+
+		// The left border is not in the offset. The gutter starts at the client width, 175.
+		expect(isScrollbarPress(press(175), target)).toBe(true)
+
+		expect(isScrollbarPress(press(174.5), target)).toBe(false)
+	})
+
 	it('reads a press inside the inline-start gutter as a gutter press under rtl', () => {
 		const target = scroller({ direction: 'rtl', borderLeft: 7, borderRight: 3, gutter: 15 })
 
@@ -75,6 +93,19 @@ describe('isScrollbarPress', () => {
 		const target = scroller({ direction: 'rtl', borderLeft: 7, borderRight: 3 })
 
 		expect(isScrollbarPress(press(3), target)).toBe(false)
+	})
+
+	it('includes the boundary pixel at the horizontal gutter edge', () => {
+		const target = scroller({})
+
+		target.style.overflowX = 'auto'
+
+		Object.defineProperty(target, 'scrollWidth', { configurable: true, value: 800 })
+
+		// The client height is 100, so the horizontal gutter starts at offset 100.
+		expect(isScrollbarPress(press(50, 100), target)).toBe(true)
+
+		expect(isScrollbarPress(press(50, 99), target)).toBe(false)
 	})
 
 	it('reports no press on an axis that cannot scroll', () => {
