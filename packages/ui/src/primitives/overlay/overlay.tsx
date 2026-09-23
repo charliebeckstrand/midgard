@@ -10,7 +10,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
@@ -85,6 +85,9 @@ export type OverlayProps = {
 	 * staying interactive. The backdrop inherits the wrapper's
 	 * `pointer-events-none`, so it never intercepts a press.
 	 *
+	 * The flag changes paint only. A modal overlay with `backdrop={false}` still
+	 * closes on a press outside the panel, unless `dismissOnBackdrop` is `false`.
+	 *
 	 * @defaultValue `modal`
 	 */
 	backdrop?: boolean
@@ -116,6 +119,7 @@ export function Overlay({
 	backdrop = modal,
 	animateOnMount = true,
 	className,
+	onClick,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
@@ -134,24 +138,37 @@ export function Overlay({
 	useDismissable({
 		open,
 		onDismiss: () => onOpenChange(false),
-		// Modal overlays own outside-press dismissal via the blocking backdrop's
-		// click handler; non-modal overlays render no backdrop, so outside
-		// pointer presses dismiss directly.
+		// A modal overlay owns outside-press dismissal through a click on the
+		// backdrop, or on its root when no backdrop renders. A non-modal overlay
+		// blocks nothing, so an outside pointer press dismisses it directly.
 		outsidePointer: !modal && dismissOnBackdrop,
 		containerRef,
 	})
 
 	useScrollLock(open && !scoped && modal)
 
+	// With no backdrop, the root is what a modal press outside the panel lands on.
+	// A press that bubbles up from the panel has another target, so it stays open.
+	const dismissOnRoot = modal && !backdrop && dismissOnBackdrop
+
 	useEffect(() => {
 		if (open) notifyOverlaySignal()
 	}, [open])
 
 	const panel = (
+		// biome-ignore lint/a11y/noStaticElementInteractions: the root stands in for the absent backdrop, a pointer target and not a control. Escape is the keyboard route.
+		// biome-ignore lint/a11y/useKeyWithClickEvents: Escape through `useDismissable` is the keyboard route, as it is for the backdrop.
 		<div
 			ref={setPanel}
 			data-slot="overlay"
 			{...props}
+			onClick={
+				dismissOnRoot
+					? composeEventHandlers(onClick, (event) => {
+							if (event.target === event.currentTarget) onOpenChange(false)
+						})
+					: onClick
+			}
 			className={cn(
 				k.root,
 				scoped ? 'absolute' : 'fixed',

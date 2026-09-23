@@ -45,7 +45,9 @@ export type PanelOverlayProps = {
 	/**
 	 * Paint the dimming backdrop independently of modality. A non-modal panel
 	 * renders none by default; opt in to blur and dim the page behind it. The
-	 * scrim stays non-interactive, so the page stays usable.
+	 * scrim stays non-interactive, so the page stays usable. A modal panel with
+	 * no backdrop still closes on a press outside it, unless `dismissOnBackdrop`
+	 * is `false`.
 	 * @defaultValue `modal`
 	 */
 	backdrop?: boolean
