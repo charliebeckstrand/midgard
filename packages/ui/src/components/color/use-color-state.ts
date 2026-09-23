@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 import { DEFAULT_HSVA } from './color-constants'
 import { clampHsva, sameColorValue, serializeColor, toHsva } from './color-utilities'
 import type { ColorFormat, Hsva } from './types'
@@ -29,9 +29,14 @@ export type ColorState = {
  * `setHsva` clamps, pins alpha to `1` when `alpha` is off, and emits the
  * serialised value through `onValueChange`.
  * @remarks
- * Reconciliation runs in an effect keyed on `value`, so an external change
- * lands after commit. `format`/`alpha`/`onValueChange` are read through refs,
- * keeping `setHsva` stable across renders.
+ * A controlled `value` wins (CONVENTIONS §7.2). Reconciliation runs in a
+ * layout effect keyed on `value` and `hsva`, before paint. A `value` that
+ * differs from the last emission snaps the HSVA back, so an owner that does
+ * not adopt an emission keeps its colour. An owner that echoes the emission
+ * is skipped, so the HSVA keeps the hue that hex drops. An owner that adopts
+ * after a delay sees each change snap back until its value arrives.
+ * `format`/`alpha`/`onValueChange` are read through refs, keeping `setHsva`
+ * stable across renders.
  * @internal
  */
 export function useColorState({
@@ -59,7 +64,10 @@ export function useColorState({
 	const onChangeRef = useRef(onValueChange)
 	onChangeRef.current = onValueChange
 
-	useEffect(() => {
+	// Keyed on `hsva` too: an owner that does not adopt an emission keeps the
+	// same `value`, and the check must still run to snap the HSVA back (§7.2).
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `hsva` is the trigger for an internal write; the body compares `value` with the cache.
+	useLayoutEffect(() => {
 		if (value === undefined) return
 
 		// Skip echoes of the last adopted or emitted value.
@@ -72,7 +80,7 @@ export function useColorState({
 		cacheRef.current = value
 		hsvaRef.current = parsed
 		setInternal(parsed)
-	}, [value])
+	}, [value, hsva])
 
 	const setHsva = useCallback((next: Hsva | ((prev: Hsva) => Hsva)) => {
 		const prev = hsvaRef.current
