@@ -1,8 +1,9 @@
 /**
  * Map kata: object-literal surface for the geography map module. The series
- * palette, legend chrome, and readout inks come straight from `kata/chart`. The
- * two data-viz modules read as one colour system, and the CVD-validated slot
- * order must never fork. The map's own region tokens sit beside them:
+ * palette, frame inks, readout inks, and reveal motion come from the kiso `zu`
+ * bundle, which the chart kata reads too. The two data-viz modules read as one
+ * colour system, and the CVD-validated slot order must never fork. The map's
+ * own region tokens sit beside them:
  *
  * - The no-data fill.
  * - The surface-colour boundary seam.
@@ -10,11 +11,12 @@
  * - The hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { kokkaku, sen, ugoki } from '../kiso'
-import { type ChartColorSlot, k as chart } from './chart'
+import { kokkaku, type SeriesSlot, sen, ugoki, zu } from '../kiso'
 
-/** A named map mark colour: the chart module's eight categorical slots plus `zinc`. */
-export type MapSeriesColor = ChartColorSlot
+const { palette, ink, motion } = zu
+
+/** A named map mark colour: the eight categorical data-viz slots plus `zinc`. */
+export type MapSeriesColor = SeriesSlot
 
 /** The map's one pointer affordance, shared by the region layer and the overlay marks. */
 const CLICKABLE = 'cursor-pointer'
@@ -69,13 +71,13 @@ export const k = {
 	 * geography and its overlays in two different colours.
 	 */
 	selected: SELECTED,
-	/** Shared data-viz palette: same slots, same order, same validation as `kata/chart`. */
-	series: chart.series,
-	order: chart.order,
+	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
+	series: palette.series,
+	order: palette.order,
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
-	label: chart.label,
+	label: ink.label,
 	/** Tooltip value ink: the strong element, values lead. */
-	value: chart.value,
+	value: ink.value,
 	/** The map's own region tokens beside the shared data-viz palette. */
 	region: {
 		/** A region with no matching datum — and a toggled-off category's fallback. */
@@ -132,9 +134,9 @@ export const k = {
 	 */
 	chrome: {
 		/** Meridian and parallel hairlines: the chart gridline. */
-		graticule: chart.grid,
+		graticule: ink.grid,
 		/** The globe's own edge: the chart's axis baseline. */
-		sphere: chart.axis.line,
+		sphere: ink.axisLine,
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the
@@ -163,7 +165,7 @@ export const k = {
 		row: 'min-h-4',
 		panel: ['min-h-4', 'shrink-0', 'lg:w-48'],
 	},
-	/** Motion vocabulary for the mount reveals: the chart kata's, verbatim, so the two modules' reveals never drift. */
-	motion: chart.motion,
+	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
+	motion,
 	skeleton: kokkaku.map,
 } as const
