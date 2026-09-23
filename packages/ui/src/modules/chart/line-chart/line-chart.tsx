@@ -193,7 +193,6 @@ export function LineChart<T>(props: LineChartProps<T>) {
 			tex={tex}
 			fullscreen={<LineChart {...props} />}
 			showTooltip={showTooltip}
-			tooltipTrigger={trigger}
 			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,

@@ -39,8 +39,8 @@ function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number)
  * clears it. Pointer movement leaves the readout be, so the tooltip (and any
  * crosshair) stay put until dismissed. Movement only points the cursor, marking
  * the marks a click can read (a snapping chart reads anywhere, so its whole plot
- * stays a pointer). The scroll rescue stands down there; floating-ui's own
- * autoUpdate keeps the pinned readout anchored across a scroll.
+ * stays a pointer). The scroll rescue stands down there. The pinned readout
+ * keeps its document position, so it scrolls with the plot.
  *
  * An `onIndexClick` rides either trigger. A click that resolves to a category
  * reports its index. The report comes after the `'click'` trigger's own
@@ -250,8 +250,9 @@ export function useChartPointer(
 		}
 	}, [set, point])
 
-	// The scroll rescue is a hover affordance; a pinned click readout stays put and
-	// lets floating-ui's autoUpdate re-anchor it, so it stands down under `'click'`.
+	// The scroll rescue is a hover affordance. A pinned click readout keeps its
+	// document position and scrolls with the plot, so the rescue stands down
+	// under `'click'`.
 	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
 	if (trigger === 'click') {

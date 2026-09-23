@@ -328,7 +328,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			tooltip={showTooltip}
-			tooltipTrigger={trigger}
 			focus={{ points: focusPoints }}
 			className={className}
 			overlay={

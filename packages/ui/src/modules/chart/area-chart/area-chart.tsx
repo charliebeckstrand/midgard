@@ -389,7 +389,6 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 			tex={tex}
 			fullscreen={<AreaChart {...props} />}
 			showTooltip={showTooltip}
-			tooltipTrigger={trigger}
 			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
 			focus={cartesianFocus(
 				chart.bandPositions,
