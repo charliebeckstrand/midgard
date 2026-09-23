@@ -131,7 +131,8 @@ export function GridNavCell({
  * projections: a stable per-cell id, `role="gridcell"`, and a click-to-seat
  * `onMouseDown`. That handler moves the cursor to this cell, and pulls focus onto
  * the grid container. It stands down where the click landed on focusable cell
- * content: links, buttons, an editor. Merged over the consumer's own `cellProps` and any `extra`
+ * content: links, buttons, an editor. It also stands down for a press in a
+ * portal that the cell renders. Merged over the consumer's own `cellProps` and any `extra`
  * attributes the caller layers on (the editable projection adds `aria-readonly`).
  *
  * @internal
@@ -159,7 +160,12 @@ export function seatingCellProps<T>(args: {
 		id: cellId(rowIdx, colIdx),
 		role: 'gridcell',
 		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-			if (!fromInteractiveContent(event.target)) {
+			// A press in a portal that the cell renders, such as an editor's open
+			// listbox, reaches the cell through the React tree. It is not a press
+			// on the cell, so it must not pull focus onto the grid.
+			const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
+
+			if (inCell && !fromInteractiveContent(event.target)) {
 				event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
 
 				moveTo({ row: rowIdx, col: colIdx })

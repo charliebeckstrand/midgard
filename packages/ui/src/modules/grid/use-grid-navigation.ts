@@ -12,7 +12,7 @@ import {
 import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
 import { clamp } from '../../utilities'
-import { NAV_PAGE_STEP } from './engine/grid-constants'
+import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 
 /** Zero-based cursor position over the grid's data cells, in display order. @internal */
 export type Coord = { row: number; col: number }
@@ -396,7 +396,7 @@ export function useGridNavigation({
 			// Focus returning from a transient floating overlay (e.g. a context menu
 			// portaled after the table) is not a Tab-into the grid; leave the cursor
 			// unseated rather than seeding the last cell behind the dismissed menu.
-			if (rel instanceof Element && rel.closest('[data-floating-ui-portal]')) return
+			if (rel instanceof Element && rel.closest(FLOATING_PORTAL)) return
 
 			const rowCount = rowsRef.current.length
 
@@ -425,7 +425,7 @@ export function useGridNavigation({
 		// Keep it seated, too, while focus is in a floating overlay opened from the
 		// grid (e.g. its context menu), so the active cell is restored on close —
 		// mirrors the `onFocus` portal guard that declines to re-seed on return.
-		if (next instanceof Element && next.closest('[data-floating-ui-portal]')) return
+		if (next instanceof Element && next.closest(FLOATING_PORTAL)) return
 
 		setActive(null)
 	}, [])

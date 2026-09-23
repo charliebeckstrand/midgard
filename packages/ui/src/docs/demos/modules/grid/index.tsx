@@ -1756,7 +1756,7 @@ export function Demo() {
 
 						<Example
 							title="Cell scope and spreadsheet keys"
-							code={code`<Grid editable={{ session: 'managed', scope: 'cell', onCommit }} />`}
+							code={code`<Grid editable={{ session: 'managed', scope: 'cell', commitOn, onCommit }} />`}
 						>
 							<CellScopeExample />
 						</Example>

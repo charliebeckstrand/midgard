@@ -2,6 +2,7 @@
 
 import { Check, X } from 'lucide-react'
 import {
+	type MouseEvent,
 	type ReactNode,
 	useCallback,
 	useEffect,
@@ -21,10 +22,13 @@ import {
 	inferEditorKind,
 	isCellEditing,
 	isColumnEditable,
-	isSameCell,
 } from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
-import { type GridEditingSession, useGridEditingSession } from './grid-editing-context'
+import {
+	type GridEditingSession,
+	type GridSettleControls as SettleControls,
+	useGridEditingSession,
+} from './grid-editing-context'
 import type { GridColumn } from './types'
 import { GridNavCell } from './use-grid-navigation-columns'
 
@@ -45,8 +49,8 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'>
 		GridEditingSession,
 		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'claimFocus' | 'managed'
 	> & {
-		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
-		held: boolean
+		/** The settle controls beside the editor, as the session decides them. */
+		settle: SettleControls
 	}
 
 /** The two ways a cell-scoped session ends, as the controls that end it. @internal */
@@ -56,13 +60,26 @@ const SETTLE_ACTIONS = [
 ] as const
 
 /**
- * The save and discard pair beside the editor on the cell a cell-scoped session
- * holds. Row scope shows none: its whole row edits at once. The settle control
- * there is the consumer's own row action, at the granularity that matches. Here
- * the grid owns the session and nothing else on screen ends it, so this is the
- * only visible way out for a pointer.
+ * Keeps focus where it is on a press of a settle control. The press then
+ * settles the session that holds focus, and it is not a focus move that a
+ * commit on leave reads. Some browsers do not focus a button on a click, and
+ * move focus to the grid's tab stop instead. @internal
+ */
+function keepFocus(event: MouseEvent<HTMLButtonElement>) {
+	event.preventDefault()
+}
+
+/**
+ * The settle controls beside the editor on the cell a cell-scoped session
+ * holds: a save and a discard, or a discard alone. The session decides which
+ * (see {@link GridEditingSession.settleControls}). Row scope shows none: its
+ * whole row edits at once. The settle control there is the consumer's own row
+ * action, at the granularity that matches. Here the grid owns the session and
+ * nothing else on screen ends it, so this is the only visible way out for a
+ * pointer. Under `commitOn: 'leaveEditor'` a move away saves, so only discard
+ * shows.
  *
- * @remarks The pair sits outside the tab order. The keyboard settles a session
+ * @remarks The controls sit outside the tab order. The keyboard settles a session
  * on the grid table's key surface instead: Tab, Enter, and F2 commit, and Escape
  * discards. Tab from the last control of the editor commits and moves. A
  * tabbable pair would take that Tab instead, and the editor would lose its
@@ -73,15 +90,23 @@ const SETTLE_ACTIONS = [
  */
 function GridSettleControls({
 	label,
+	controls,
 	settle,
 }: {
 	/** Names the cell, so each control reads as belonging to the editor beside it. */
 	label: string
+	/** Which controls show; `'none'` renders nothing. */
+	controls: SettleControls
 	settle: (outcome: 'save' | 'discard') => void
 }) {
+	if (controls === 'none') return null
+
+	const actions =
+		controls === 'both' ? SETTLE_ACTIONS : SETTLE_ACTIONS.filter((a) => a.outcome === 'discard')
+
 	return (
 		<span className={cn(k.edit.settle)}>
-			{SETTLE_ACTIONS.map((action) => (
+			{actions.map((action) => (
 				<Button
 					key={action.outcome}
 					type="button"
@@ -89,6 +114,7 @@ function GridSettleControls({
 					color={action.color}
 					aria-label={`${action.verb} ${label}`}
 					tabIndex={-1}
+					onMouseDown={keepFocus}
 					onClick={() => settle(action.outcome)}
 				>
 					<Icon icon={action.icon} />
@@ -120,7 +146,7 @@ function GridCellEditor<T>({
 	entrySeed,
 	claimFocus,
 	managed,
-	held,
+	settle,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -142,14 +168,14 @@ function GridCellEditor<T>({
 	// session comes to hold it. The editor sits inside its cell's truncation span,
 	// and this effect runs during React's commit. The helper keeps the span's
 	// arm off its synchronous flush, which cannot run here and warns.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `held` re-runs the claim when the session comes to hold an editor that is already mounted.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `settle` changes as the session comes to hold an editor that is already mounted, and that re-runs the claim.
 	useEffect(() => {
 		if (!claimFocus(rowKey, column.id)) return
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
 		if (editor) focusWithoutReveal(editor)
-	}, [held, claimFocus, rowKey, column.id])
+	}, [settle, claimFocus, rowKey, column.id])
 
 	const update = (next: unknown) => {
 		setDraft(next)
@@ -226,9 +252,11 @@ function GridCellEditor<T>({
 		<span ref={hostRef} className={cn(k.edit.host, error && k.edit.errorRing)}>
 			{body}
 
-			{held && (
-				<GridSettleControls label={label} settle={(outcome) => endSession(rowKey, outcome)} />
-			)}
+			<GridSettleControls
+				label={label}
+				controls={settle}
+				settle={(outcome) => endSession(rowKey, outcome)}
+			/>
 
 			{error && (
 				<span ref={messageRef} id={errorId} role="alert" className={cn(k.edit.error)}>
@@ -239,12 +267,8 @@ function GridCellEditor<T>({
 	)
 }
 
-/** What a data cell shows: its display content, an editor, or an editor the session holds. @internal */
-const CELL_READING = 0
-
-const CELL_EDITING = 1
-
-const CELL_HELD = 2
+/** A data cell that shows its display content, not an editor. @internal */
+const CELL_READING = 'reading'
 
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
@@ -274,6 +298,7 @@ export function GridEditingCell<T>({
 		endSession,
 		entrySeed,
 		claimFocus,
+		settleControls,
 		managed,
 	} = useGridEditingSession()
 
@@ -281,15 +306,16 @@ export function GridEditingCell<T>({
 
 	// `isCellEditing` leads because it bails on the editable-set lookup. A cell of
 	// a row nobody is editing — every cell, most of the time — costs one probe.
-	// The flag is a number, so the store's notice re-renders only a cell whose
-	// answer changed.
-	const readFlag = useCallback(() => {
+	// An open editor then reads its settle controls from the session, which owns
+	// that policy. The flag is a string, so the store's notice re-renders only a
+	// cell whose answer changed.
+	const readFlag = useCallback((): SettleControls | typeof CELL_READING => {
 		const activeEdit = activeEditStore.get()
 
 		if (!isCellEditing({ rowKey, columnId, editableRows, activeEdit })) return CELL_READING
 
-		return isSameCell(activeEdit, { rowKey, columnId }) ? CELL_HELD : CELL_EDITING
-	}, [activeEditStore, rowKey, columnId, editableRows])
+		return settleControls(rowKey, columnId)
+	}, [activeEditStore, settleControls, rowKey, columnId, editableRows])
 
 	const flag = useSyncExternalStore(activeEditStore.subscribe, readFlag, readFlag)
 
@@ -306,7 +332,7 @@ export function GridEditingCell<T>({
 				entrySeed={entrySeed}
 				claimFocus={claimFocus}
 				managed={managed}
-				held={flag === CELL_HELD}
+				settle={flag}
 			/>
 		)
 	}
