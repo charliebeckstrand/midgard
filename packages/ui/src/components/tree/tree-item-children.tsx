@@ -1,33 +1,60 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { Children, createElement, isValidElement, type ReactNode, useMemo } from 'react'
+import { Children, createElement, Fragment, isValidElement, type ReactNode, useMemo } from 'react'
 import { Hold, useMountHold } from '../../primitives/mount'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/tree'
 import { TreeContext, TreePositionContext, useTreeContext } from './context'
 
+type FlatChild = { node: ReactNode; key: string }
+
+// Recurse into Fragments, because a Fragment adds no tree level: its items are
+// rendered siblings of the items around it. `Children.forEach` keeps the slot
+// index of a `false` child, so a sibling key does not shift when a conditional
+// item toggles. Each key carries its Fragment path, so keys stay unique in one
+// flat list. Mirrors `flattenChildren` in `use-group.ts`.
+function flattenTreeChildren(children: ReactNode, prefix = ''): FlatChild[] {
+	const result: FlatChild[] = []
+
+	Children.forEach(children, (child, index) => {
+		if (isValidElement(child) && child.type === Fragment) {
+			result.push(
+				...flattenTreeChildren(
+					(child.props as { children?: ReactNode }).children,
+					`${prefix}${index}.`,
+				),
+			)
+
+			return
+		}
+
+		const ownKey = isValidElement(child) && child.key != null ? child.key : String(index)
+
+		result.push({ node: child, key: `${prefix}${ownKey}` })
+	})
+
+	return result
+}
+
 /**
  * Stamps each element child with its 1-based sibling position via
  * `TreePositionContext`, feeding the items' `aria-posinset`/`aria-setsize`.
+ * The children of a Fragment count as siblings at this level.
  */
 export function stampTreePositions(children: ReactNode): ReactNode {
-	const items = Children.toArray(children)
+	const items = flattenTreeChildren(children)
 
-	const setsize = items.filter((child) => isValidElement(child)).length
+	const setsize = items.filter(({ node }) => isValidElement(node)).length
 
 	let index = 0
 
-	return items.map((child) => {
-		if (!isValidElement(child)) return child
+	return items.map(({ node, key }) => {
+		if (!isValidElement(node)) return node
 
 		index += 1
 
-		return createElement(
-			TreePositionContext,
-			{ key: child.key ?? index, value: { posinset: index, setsize } },
-			child,
-		)
+		return createElement(TreePositionContext, { key, value: { posinset: index, setsize } }, node)
 	})
 }
 
