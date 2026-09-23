@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Grid,
@@ -553,6 +553,81 @@ describe('Grid per-row editing', () => {
 		fireEvent.click(view.getAllByRole('button', { name: 'save-row' })[0] as HTMLElement)
 
 		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'name', value: 'Alicia' }])
+	})
+
+	describe('focus after an exit while focus is in another grid', () => {
+		/** Grid A edits row 1 and carries a save action for it. */
+		function GridA({ detail }: { detail?: (row: SessionRow) => ReactNode }) {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<Grid
+					tableProps={{ 'aria-label': 'Grid A' }}
+					columns={[
+						...sessionColumns,
+						{
+							id: 'actions',
+							actions: (_row, ctx) => (
+								<button type="button" onClick={ctx.save}>
+									save-a
+								</button>
+							),
+						},
+					]}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{ rows: editing, onRowsChange: setEditing, onCommit: vi.fn() }}
+					expandable={detail ? { defaultValue: new Set([1]), render: detail } : undefined}
+				/>
+			)
+		}
+
+		/** Grid B edits row 1, so its editor can hold focus. */
+		function GridB() {
+			return (
+				<Grid
+					tableProps={{ 'aria-label': 'Grid B' }}
+					columns={sessionColumns}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{ rows: new Set([1]), onCommit: vi.fn() }}
+				/>
+			)
+		}
+
+		/** Focuses grid B's first editor, then ends grid A's session. */
+		function exitAWithFocusInB(view: ReturnType<typeof renderUI>) {
+			const gridB = view.getByRole('grid', { name: 'Grid B' })
+
+			const editorB = getSlot<HTMLInputElement>(gridB, 'grid-edit-input')
+
+			editorB.focus()
+
+			fireEvent.click(view.getAllByRole('button', { name: 'save-a' })[0] as HTMLElement)
+
+			return editorB
+		}
+
+		it('keeps focus in a sibling grid', () => {
+			const view = renderUI(
+				<>
+					<GridA />
+					<GridB />
+				</>,
+			)
+
+			const editorB = exitAWithFocusInB(view)
+
+			expect(document.activeElement).toBe(editorB)
+		})
+
+		it('keeps focus in a grid nested in a detail row', () => {
+			const view = renderUI(<GridA detail={() => <GridB />} />)
+
+			const editorB = exitAWithFocusInB(view)
+
+			expect(document.activeElement).toBe(editorB)
+		})
 	})
 
 	it('reports no editing to an actions column on a grid with no editable binding', () => {

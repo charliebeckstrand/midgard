@@ -59,16 +59,21 @@ export type GridEditingApi = {
 }
 
 /**
- * Reseats focus on the grid's single tab stop when it currently sits inside the
+ * Reseats focus on the grid's single tab stop, `grid`, when focus sits in this
  * grid. Called before a grid-owned session exit unmounts the focused editor, so
  * the keyboard lands back on the cursor rather than falling to `<body>`.
  *
+ * @remarks Focus in another grid stays where it is. That includes a grid nested
+ * in a detail row of this one, because none of its elements unmount with the
+ * exit. The nearest `role="grid"` ancestor of the focused element tells the two
+ * apart.
+ *
  * @internal
  */
-function restoreGridFocus(): void {
+function restoreGridFocus(grid: HTMLElement | null): void {
 	const active = document.activeElement
 
-	if (active instanceof HTMLElement) active.closest<HTMLElement>('[role="grid"]')?.focus()
+	if (grid && active?.closest('[role="grid"]') === grid) grid.focus()
 }
 
 /**
@@ -610,6 +615,7 @@ export function useGridEditing<T>({
 	editSourceRef,
 	rowKeysRef,
 	dataColumnsRef,
+	tableRef,
 	cellId,
 	moveTo,
 }: {
@@ -620,6 +626,8 @@ export function useGridEditing<T>({
 	rowKeysRef: RefObject<(string | number)[]>
 	/** Visible data columns in display order. */
 	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The grid `<table>`, the tab stop that a session exit reseats focus on. */
+	tableRef: RefObject<HTMLTableElement | null>
 	/** The cursor's per-cell id deriver; locates the entered cell's editor to focus it. */
 	cellId: (row: number, col: number) => string
 	/** The cursor's clamped move, which the commit-and-move keys ride. */
@@ -855,9 +863,9 @@ export function useGridEditing<T>({
 				if (plan.next && focused) pendingFocusRef.current = plan.next
 			}
 
-			if (plan.asked ? blur : focused) restoreGridFocus()
+			if (plan.asked ? blur : focused) restoreGridFocus(tableRef.current)
 		},
-		[gridHasFocus, dropIntents],
+		[gridHasFocus, dropIntents, tableRef],
 	)
 
 	// Warns once for a consumer's cell that is not editable: the initial value
@@ -1040,7 +1048,7 @@ export function useGridEditing<T>({
 			// Reseat focus ahead of the discard, not after. An editor blurred on the
 			// way out can stage one last value; `NumberInput` commits its typed text
 			// there. That write must not outlive the values being dropped.
-			restoreGridFocus()
+			restoreGridFocus(tableRef.current)
 
 			// A cell-scoped session abandons the cell it sits on; the cells it visited
 			// before that one committed as it left them, so their values are not the
@@ -1066,7 +1074,7 @@ export function useGridEditing<T>({
 				return next
 			})
 		},
-		[controlled, requestCell, unstageDraft, setEditableRows, writeActiveCell],
+		[controlled, requestCell, unstageDraft, setEditableRows, writeActiveCell, tableRef],
 	)
 
 	// Acts on each new value of a controlled `cell`, whether the grid asked
@@ -1255,13 +1263,23 @@ export function useGridEditing<T>({
 			// reaches the draft before the sweep commits the cell. A controlled
 			// binding can decline the move, so the request marks the blur, and the
 			// transition effect does it once the move lands.
-			if (!controlled) restoreGridFocus()
+			if (!controlled) restoreGridFocus(tableRef.current)
 
 			enterEdit(rowKey, target.id)
 
 			if (requestRef.current) requestRef.current.blur = true
 		},
-		[cellScoped, controlled, cellId, commitHere, enterEdit, moveTo, rowKeysRef, dataColumnsRef],
+		[
+			cellScoped,
+			controlled,
+			cellId,
+			commitHere,
+			enterEdit,
+			moveTo,
+			rowKeysRef,
+			dataColumnsRef,
+			tableRef,
+		],
 	)
 
 	// Runs the move a key asked of the session from an open editor.

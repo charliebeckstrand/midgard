@@ -136,6 +136,31 @@ function ControlledSession({ rows }: { rows: Shipment[] }) {
 	)
 }
 
+/**
+ * An uncontrolled cell-scoped session that Tab moves along one row. Each press
+ * commits the cell it leaves, reseats focus on the tab stop, and focuses the
+ * next editor. The last column wraps to the first, so every press moves the
+ * session.
+ */
+describe('Grid · cell-scoped session Tab move', () => {
+	for (const rows of SIZES) {
+		const container = persistentTree(
+			<Grid
+				columns={COLUMNS}
+				rows={rows}
+				getKey={shipmentKey}
+				editable={{ session: 'managed', scope: 'cell', onCommit: noop }}
+			/>,
+		)
+
+		fireEvent.doubleClick(container.querySelector('td[data-grid-col="reference"]') as HTMLElement)
+
+		bench(`${rows.length.toLocaleString()} rows × 8 cols · one Tab`, () => {
+			fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Tab' })
+		})
+	}
+})
+
 describe('Grid · cell-scoped session move · controlled', () => {
 	for (const rows of SIZES) {
 		const container = persistentTree(<ControlledSession rows={rows} />)
