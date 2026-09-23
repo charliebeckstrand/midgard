@@ -1,6 +1,20 @@
 const SCROLLABLE_RE = /auto|scroll/
 
 /**
+ * The width of the vertical gutter: the border-box width less the client width and both borders.
+ *
+ * @remarks The border widths come from computed style. `clientLeft` is not used, because under
+ * `direction: rtl` it also holds a left-side scrollbar.
+ */
+function verticalGutterWidth(target: HTMLElement, style: CSSStyleDeclaration): number {
+	const borders =
+		(Number.parseFloat(style.borderLeftWidth) || 0) +
+		(Number.parseFloat(style.borderRightWidth) || 0)
+
+	return target.offsetWidth - target.clientWidth - borders
+}
+
+/**
  * Whether a press landed on `target`'s own scrollbar gutter rather than on its content.
  *
  * A press there is the start of a pan, so it must not read as a press on what the scroller
@@ -15,6 +29,8 @@ const SCROLLABLE_RE = /auto|scroll/
  * @remarks An axis is only tested where it can actually scroll, so a bordered box that does not
  * overflow has no gutter to press. The vertical gutter sits on the inline-start edge under
  * `direction: rtl`, which is why the test is not simply "past the content box on the right".
+ * `offsetX` starts at the inner border edge. The RTL gutter therefore starts at zero, and the
+ * borders are not part of it.
  */
 export function isScrollbarPress(
 	event: Pick<MouseEvent, 'offsetX' | 'offsetY'>,
@@ -37,7 +53,7 @@ export function isScrollbarPress(
 	const onVerticalScrollbar =
 		canScrollY &&
 		(style.direction === 'rtl'
-			? event.offsetX <= target.offsetWidth - target.clientWidth
+			? event.offsetX < verticalGutterWidth(target, style)
 			: event.offsetX > target.clientWidth)
 	const onHorizontalScrollbar = canScrollX && event.offsetY > target.clientHeight
 

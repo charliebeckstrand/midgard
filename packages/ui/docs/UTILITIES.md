@@ -74,7 +74,7 @@ The sequential-scale primitives the data-driven colour charts share — the chor
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
-| `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content. A gutter press starts a pan, so a floating surface does not dismiss for it and no selection follows it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. |
+| `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content. A gutter press starts a pan, so a floating surface does not dismiss for it and no selection follows it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. The border widths are not part of the gutter. |
 | `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop, and on either failure route. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`). The optional `onFail` says what to do besides reclaiming, and its absence lets a blocked `print()` propagate. |
 
 ## Measurement
