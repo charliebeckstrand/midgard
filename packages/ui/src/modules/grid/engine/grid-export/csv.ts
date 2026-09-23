@@ -1,6 +1,6 @@
+import { downloadBlob } from '../../../../utilities/export-output'
 import type { GridColumn } from '../../types'
 import { cellText, exportFields } from './accessor'
-import { downloadBlob } from './download'
 
 /** A leading character a spreadsheet unconditionally reads as a formula/command start. @internal */
 const FORMULA_LEAD = /^[=@\t\r]/
@@ -75,5 +75,8 @@ export function rowsToCsv<T>(columns: GridColumn<T>[], rows: T[]): string {
  * @internal
  */
 export function downloadCsv(filename: string, csv: string): void {
-	downloadBlob(filename, [String.fromCharCode(0xfeff), csv], 'text/csv;charset=utf-8')
+	downloadBlob(
+		new Blob([String.fromCharCode(0xfeff), csv], { type: 'text/csv;charset=utf-8' }),
+		filename,
+	)
 }

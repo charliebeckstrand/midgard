@@ -12,6 +12,7 @@ import {
 import { ContextMenuList } from '../../components/context-menu'
 import { Menu, MenuContent, useMenuActions } from '../../components/menu'
 import { isDataColumn, isNativeContextMenuRequest } from '../../utilities'
+import { copyText } from '../../utilities/export-output'
 import type { GridSortState } from './context'
 import type { GridExportAction } from './engine/grid-export/types'
 import {
@@ -26,7 +27,6 @@ import {
 	buildColumnGroupMenu,
 	cellMenuDefaults,
 	columnMenuDefaults,
-	copyText,
 	type GridGroupByMenu,
 	type PinColumn,
 	type SortColumn,
