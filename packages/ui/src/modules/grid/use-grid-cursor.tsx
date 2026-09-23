@@ -353,11 +353,15 @@ export function useGridCursor<T>({
 	// `role="grid"` tab stop) sees every editor's keys — portaled panels
 	// included, since portal events propagate through the React tree — so no
 	// editor wires its own save or abandon. The entry keys follow, and the
-	// cursor's own keys come last.
+	// cursor's own keys come last. The session's commit on leave goes ahead of
+	// the cursor's own focus loss in the same way, and only under a `commitOn`
+	// that asks for it.
 	const navTableProps = useMemo<GridNavTableProps | undefined>(() => {
 		const base = nav.navTableProps
 
 		const sessionKeys = editing.sessionKeys
+
+		const sessionLeave = editing.sessionLeave
 
 		if (!base || !sessionKeys) return base
 
@@ -370,8 +374,15 @@ export function useGridCursor<T>({
 
 				base.onKeyDown(event)
 			},
+			onBlur: sessionLeave
+				? (event) => {
+						sessionLeave(event)
+
+						base.onBlur(event)
+					}
+				: base.onBlur,
 		}
-	}, [nav.navTableProps, editing.sessionKeys, sessionEntryKeys])
+	}, [nav.navTableProps, editing.sessionKeys, editing.sessionLeave, sessionEntryKeys])
 
 	const wrap = useMemo(
 		() =>

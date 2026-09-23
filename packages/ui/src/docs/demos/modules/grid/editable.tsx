@@ -19,6 +19,7 @@ import { Form, useFormField } from '../../../../components/form'
 import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
 import { NumberInput } from '../../../../components/number-input'
+import { Segment, SegmentControl, SegmentItem } from '../../../../components/segment'
 import { Stack } from '../../../../components/stack'
 import { Text } from '../../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
@@ -27,6 +28,7 @@ import {
 	type GridCellChange,
 	type GridCellRef,
 	type GridColumn,
+	type GridEditableConfig,
 	type GridEditCellContext,
 } from '../../../../modules/grid'
 import { useFormat } from '../../../../providers/locale'
@@ -284,10 +286,21 @@ function describeCell(cell: GridCellRef | null, people: Person[]): string {
 	return `Editing: ${column?.title ?? cell.columnId}, row ${row}`
 }
 
+type CommitOn = NonNullable<GridEditableConfig['commitOn']>
+
+// The `commitOn` choices the example offers, with the label each segment shows.
+const commitOnOptions: { value: CommitOn; label: string }[] = [
+	{ value: 'explicit', label: 'Keys' },
+	{ value: 'leaveEditor', label: 'Leave cell' },
+	{ value: 'leaveGrid', label: 'Leave grid' },
+]
+
 export function CellScopeExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
 
 	const [editingCell, setEditingCell] = useState<GridCellRef | null>(null)
+
+	const [commitOn, setCommitOn] = useState<CommitOn>('explicit')
 
 	// `scope: 'cell'` narrows the grid-owned session to the cell the user entered:
 	// one editor at a time, the cell committing as the session moves on. The
@@ -295,9 +308,22 @@ export function CellScopeExample() {
 	// so only the reach of a session changes. Enter and Tab move the session by
 	// key, which is the spreadsheet flow this scope exists for. The session's cell
 	// is a binding of its own: `onCellChange` reports each move, and drives
-	// the readout above the grid.
+	// the readout above the grid. The segment sets `commitOn`: what else, beside
+	// the keys, commits the cell.
 	return (
 		<>
+			<Segment
+				value={commitOn}
+				onValueChange={(next) => setCommitOn((next as CommitOn | null) ?? 'explicit')}
+			>
+				<SegmentControl aria-label="Commit on">
+					{commitOnOptions.map((option) => (
+						<SegmentItem key={option.value} value={option.value}>
+							{option.label}
+						</SegmentItem>
+					))}
+				</SegmentControl>
+			</Segment>
 			<Flex justify="between" align="center">
 				<Text size="sm" tone="muted">
 					{describeCell(editingCell, people)}
@@ -307,7 +333,10 @@ export function CellScopeExample() {
 					cell alone. Enter saves and moves down a row. Tab and Shift+Tab save and move along the
 					row. F2 saves and stays, and Escape discards. Role and Active keep Enter for their own
 					listbox menus, so Tab is their keyboard save. The check and cross beside the editor settle
-					it with the pointer. The line at the left names the cell that you edit.
+					it with the pointer. The line at the left names the cell that you edit. The segment sets
+					what else saves the cell. Keys saves only on these keys, a move, or the check. Leave cell
+					also saves when you click or tab away from the cell, so only the cross shows. Leave grid
+					also saves when focus leaves the grid.
 				</EditHelp>
 			</Flex>
 			<Grid
@@ -317,6 +346,7 @@ export function CellScopeExample() {
 				editable={{
 					session: 'managed',
 					scope: 'cell',
+					commitOn,
 					onCellChange: setEditingCell,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}

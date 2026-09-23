@@ -8,6 +8,7 @@ import {
 	type GridProps,
 } from '../../modules/grid'
 import {
+	act,
 	allBySlot,
 	bySlot,
 	expectAnnouncement,
@@ -2632,5 +2633,364 @@ describe('Grid editing onReject', () => {
 		expect(onCommit).not.toHaveBeenCalled()
 
 		expect(onReject).not.toHaveBeenCalled()
+	})
+})
+
+/**
+ * The commit policy of a grid-owned session (`editable.commitOn`). The default
+ * commits only on the keys, a move, or the settle pair. `'leaveGrid'` also
+ * commits when focus leaves the grid, and `'leaveEditor'` when focus leaves
+ * the session's editors. jsdom moves focus through `focus()`, which reports
+ * the element that takes focus, as a real focus move does. The pointer and
+ * Tab paths are in the browser suite.
+ */
+describe('Grid commitOn', () => {
+	const scopes = ['cell', 'row'] as const
+
+	/** Moves focus to `element`, and flushes the commit that the move causes. */
+	const moveFocus = (element: HTMLElement) => act(() => element.focus())
+
+	function renderCommitOn(
+		editable: Partial<GridEditableConfig> = {},
+		cols: GridColumn<SessionRow>[] = sessionColumns,
+	) {
+		const onCommit = vi.fn()
+
+		const onReject = vi.fn()
+
+		const view = renderUI(
+			<>
+				<button type="button">outside</button>
+				<Grid
+					columns={cols}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{ session: 'managed', onCommit, onReject, ...editable }}
+				/>
+				<div data-floating-ui-portal="">
+					<button type="button">in-surface</button>
+				</div>
+			</>,
+		)
+
+		return {
+			...view,
+			onCommit,
+			onReject,
+			grid: () => view.getByRole('grid'),
+			button: (name: string) => view.getByRole('button', { name }),
+			cell: (col: string, rowIndex = 0) =>
+				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+					rowIndex
+				] as HTMLElement,
+		}
+	}
+
+	/** Opens the name cell of the first row and stages `Alicia` in it. */
+	function editName(view: ReturnType<typeof renderCommitOn>) {
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		return input
+	}
+
+	const alicia = [{ rowKey: 1, columnId: 'name', value: 'Alicia' }]
+
+	for (const scope of scopes) {
+		describe(`under scope '${scope}'`, () => {
+			it("commits nothing when focus leaves the grid under the default 'explicit'", () => {
+				const view = renderCommitOn({ scope })
+
+				editName(view)
+
+				moveFocus(view.button('outside'))
+
+				expect(view.onCommit).not.toHaveBeenCalled()
+
+				expect(bySlot(view.container, 'grid-edit-input')).toBeInTheDocument()
+			})
+
+			it("commits the session when focus leaves the grid under 'leaveGrid'", () => {
+				const view = renderCommitOn({ scope, commitOn: 'leaveGrid' })
+
+				editName(view)
+
+				const outside = view.button('outside')
+
+				moveFocus(outside)
+
+				expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+
+				expect(editorsIn(view.container)).toHaveLength(0)
+
+				// The commit does not pull focus back into the grid.
+				expect(outside).toHaveFocus()
+			})
+
+			it("commits nothing while focus stays in the grid under 'leaveGrid'", () => {
+				const view = renderCommitOn({ scope, commitOn: 'leaveGrid' })
+
+				editName(view)
+
+				moveFocus(view.grid())
+
+				expect(view.onCommit).not.toHaveBeenCalled()
+
+				expect(bySlot(view.container, 'grid-edit-input')).toBeInTheDocument()
+
+				// Focus that then leaves from the tab stop leaves the grid too.
+				moveFocus(view.button('outside'))
+
+				expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+			})
+
+			it("commits the session when focus moves to the tab stop under 'leaveEditor'", () => {
+				const view = renderCommitOn({ scope, commitOn: 'leaveEditor' })
+
+				editName(view)
+
+				const grid = view.grid()
+
+				const cursor = grid.getAttribute('aria-activedescendant')
+
+				moveFocus(grid)
+
+				expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+
+				expect(editorsIn(view.container)).toHaveLength(0)
+
+				// Focus stays where the user sent it, and the cursor does not move.
+				expect(grid).toHaveFocus()
+
+				expect(grid.getAttribute('aria-activedescendant')).toBe(cursor)
+			})
+
+			it('keeps the session while focus is in a floating surface', () => {
+				const view = renderCommitOn({ scope, commitOn: 'leaveEditor' })
+
+				const input = editName(view)
+
+				moveFocus(view.button('in-surface'))
+
+				expect(view.onCommit).not.toHaveBeenCalled()
+
+				expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+			})
+
+			it('keeps the session when the window loses focus', () => {
+				const view = renderCommitOn({ scope, commitOn: 'leaveEditor' })
+
+				const input = editName(view)
+
+				// A window blur fires a focus loss that names no next element, while
+				// the document has no focus.
+				const hasFocus = vi.spyOn(document, 'hasFocus').mockReturnValue(false)
+
+				fireEvent.focusOut(input, { relatedTarget: null })
+
+				hasFocus.mockRestore()
+
+				expect(view.onCommit).not.toHaveBeenCalled()
+
+				expect(bySlot(view.container, 'grid-edit-input')).toBe(input)
+			})
+
+			it('refuses an invalid draft on leave, as Enter does', () => {
+				const cols: GridColumn<SessionRow>[] = [
+					{
+						...(sessionColumns[0] as GridColumn<SessionRow>),
+						validate: (value) => (String(value).length > 0 ? null : 'Required'),
+					},
+					sessionColumns[1] as GridColumn<SessionRow>,
+				]
+
+				const view = renderCommitOn({ scope, commitOn: 'leaveGrid' }, cols)
+
+				fireEvent.doubleClick(view.cell('name'))
+
+				fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+					target: { value: '' },
+				})
+
+				moveFocus(view.button('outside'))
+
+				// The session ends, and the refused cell goes to `onReject`.
+				expect(view.onReject).toHaveBeenCalledExactlyOnceWith([
+					{ rowKey: 1, columnId: 'name', value: '' },
+				])
+
+				expect(view.onCommit).not.toHaveBeenCalled()
+
+				expect(editorsIn(view.container)).toHaveLength(0)
+			})
+
+			it('discards on Escape without a commit on the way out', () => {
+				const view = renderCommitOn({ scope, commitOn: 'leaveEditor' })
+
+				const input = editName(view)
+
+				fireEvent.keyDown(input, { key: 'Escape' })
+
+				expect(view.onCommit).not.toHaveBeenCalled()
+
+				expect(editorsIn(view.container)).toHaveLength(0)
+
+				expect(view.grid()).toHaveFocus()
+			})
+		})
+	}
+
+	it("keeps a row session while Tab moves between the row's editors under 'leaveEditor'", () => {
+		const view = renderCommitOn({ scope: 'row', commitOn: 'leaveEditor' })
+
+		const input = editName(view)
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		const number = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		expect(number).toHaveFocus()
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		fireEvent.change(number, { target: { value: '9' } })
+
+		moveFocus(view.button('outside'))
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			...alicia,
+			{ rowKey: 1, columnId: 'count', value: 9 },
+		])
+	})
+
+	it("commits once on a Tab move under 'leaveEditor', as under the default", () => {
+		const onCellChange = vi.fn()
+
+		const view = renderCommitOn({ scope: 'cell', commitOn: 'leaveEditor', onCellChange })
+
+		const input = editName(view)
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+
+		expect(onCellChange.mock.calls).toEqual([
+			[{ rowKey: 1, columnId: 'name' }],
+			[{ rowKey: 1, columnId: 'count' }],
+		])
+
+		expect(getSlot(view.container, 'grid-edit-number-input')).toHaveFocus()
+	})
+
+	it("shows only the discard control under 'leaveEditor'", () => {
+		const view = renderCommitOn({ scope: 'cell', commitOn: 'leaveEditor' })
+
+		editName(view)
+
+		expect(view.queryByRole('button', { name: 'Save Name, row 1' })).toBeNull()
+
+		const discard = view.button('Discard Name, row 1')
+
+		// Focus that moves to the settle control does not leave the session, so
+		// the press discards rather than commits first.
+		moveFocus(discard)
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		fireEvent.click(discard)
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+	})
+
+	it("keeps the save and discard pair under 'leaveGrid'", () => {
+		const view = renderCommitOn({ scope: 'cell', commitOn: 'leaveGrid' })
+
+		editName(view)
+
+		expect(view.button('Save Name, row 1')).toBeInTheDocument()
+
+		expect(view.button('Discard Name, row 1')).toBeInTheDocument()
+	})
+
+	it('commits a controlled cell on leave, reporting null, without a focus move', () => {
+		const onCommit = vi.fn()
+
+		const onCellChange = vi.fn()
+
+		function Harness() {
+			const [active, setActive] = useState<GridCellRef | null>(null)
+
+			return (
+				<>
+					<button type="button">outside</button>
+					<Grid
+						columns={sessionColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{
+							session: 'managed',
+							scope: 'cell',
+							commitOn: 'leaveGrid',
+							onCommit,
+							cell: active,
+							onCellChange: (next) => {
+								onCellChange(next)
+
+								setActive(next)
+							},
+						}}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.doubleClick(
+			present(view.container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'name'),
+		)
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		const outside = view.getByRole('button', { name: 'outside' })
+
+		moveFocus(outside)
+
+		expect(onCellChange).toHaveBeenLastCalledWith(null)
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith(alicia)
+
+		expect(outside).toHaveFocus()
+	})
+
+	it('warns once and stays inert outside a grid-owned session', () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const view = renderCommitOn({
+			session: 'manual',
+			commitOn: 'leaveGrid',
+			defaultRows: new Set([1]),
+		})
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		moveFocus(view.button('outside'))
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		expect(warn).toHaveBeenCalledOnce()
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.commitOn'))
+
+		warn.mockRestore()
 	})
 })

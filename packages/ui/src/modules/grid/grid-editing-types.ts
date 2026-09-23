@@ -141,6 +141,10 @@ export type GridEditableConfig = {
 	 * - F2 commits and leaves the cursor on the cell.
 	 * - Escape abandons the session's staged edits.
 	 *
+	 * Beside the keys, a move to another cell and the settle pair commit. By
+	 * default nothing else does. {@link GridEditableConfig.commitOn} also
+	 * commits the session when focus leaves its editors or the grid.
+	 *
 	 * @remarks The keys live on the grid's own key surface, so an `editCell` slot
 	 * inherits them. Enter on a button, a link, or a text area stays with that
 	 * element. So does a key with Ctrl, Cmd, or Alt, and a key that an input
@@ -173,13 +177,47 @@ export type GridEditableConfig = {
 	 * carries a save and a discard control beside its editor. The grid owns this
 	 * session, and nothing else on screen ends it. The pair is for a pointer and
 	 * sits outside the tab order, so Tab from the editor still commits and moves.
-	 * Row scope shows
+	 * Under {@link GridEditableConfig.commitOn} `'leaveEditor'` the held cell
+	 * shows discard alone, because a move away saves. Under that setting, focus
+	 * that leaves the held cell commits it. Under row scope, focus that leaves
+	 * the open editors of the row commits the row. Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
 	 * granularity that matches. The session's cell is a binding of its own,
 	 * {@link GridEditableConfig.cell}, beside `rows`.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'
+	/**
+	 * What else commits a grid-owned session, beside the keys. The options nest,
+	 * because focus that leaves the grid also leaves the editor.
+	 *
+	 * - `'explicit'`, the default, commits only on Enter, Tab, F2, a move to
+	 *   another cell, the settle pair, or your own `rows` or `cell` write.
+	 * - `'leaveGrid'` also commits the session when focus leaves the grid, by
+	 *   pointer or by keyboard. Focus in a grid nested in a detail row is
+	 *   outside this grid.
+	 * - `'leaveEditor'` also commits the session when focus leaves its editors,
+	 *   for a place inside or outside the grid. Under `scope: 'cell'` that is
+	 *   the held cell. Under `scope: 'row'` it is the open editors of the row,
+	 *   so Tab between them does not commit.
+	 *
+	 * A commit on leave is the commit of Enter. It ends the session, and a cell
+	 * that {@link GridColumn.validate} refuses goes to
+	 * {@link GridEditableConfig.onReject}, not to `onCommit`. It does not move
+	 * the cursor, and focus stays where the user sent it.
+	 *
+	 * @remarks Three kinds of focus move do not leave. The first is a move into
+	 * a floating surface that an editor opens, such as a listbox panel or a
+	 * date picker's calendar. The second is a move to the settle controls of the
+	 * session, so a press on discard discards. The third is a window blur, such
+	 * as a switch to another tab or app. Only a focus move inside the document
+	 * leaves. Under `'leaveEditor'` the held cell shows only its discard control,
+	 * because a move away saves. The setting needs {@link
+	 * GridEditableConfig.session} `'managed'`. Anywhere else it has no effect,
+	 * and it warns in development.
+	 * @defaultValue 'explicit'
+	 */
+	commitOn?: 'explicit' | 'leaveEditor' | 'leaveGrid'
 	/**
 	 * The controlled active cell of a cell-scoped session: the one cell with an
 	 * open editor. Pair it with {@link GridEditableConfig.onCellChange}.

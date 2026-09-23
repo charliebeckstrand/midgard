@@ -17,6 +17,14 @@ export const ROW_HEIGHT_BY_DENSITY = {
 /** Rows rendered beyond the viewport on each side under virtualization, when unset. @internal */
 export const DEFAULT_OVERSCAN = 10
 
+/**
+ * The selector for a portaled floating surface, such as a menu, a listbox
+ * panel, or a date picker's calendar. Focus in one is not focus that left the
+ * grid. The cursor keeps its seat for it, and an edit session does not commit
+ * for it. @internal
+ */
+export const FLOATING_PORTAL = '[data-floating-ui-portal]'
+
 /** Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it. @internal */
 export const EMPTY_SET: Set<string | number> = new Set()
 

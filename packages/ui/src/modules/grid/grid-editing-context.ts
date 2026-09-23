@@ -22,6 +22,13 @@ export type GridActiveEditStore = {
 }
 
 /**
+ * The settle controls beside an open editor. `'both'` is the save and discard
+ * pair, `'discard'` is the discard control alone, and `'none'` shows no
+ * control. @internal
+ */
+export type GridSettleControls = 'none' | 'discard' | 'both'
+
+/**
  * The editing session shared with the data cells. A row in `editableRows` puts
  * every editable cell of that row into edit mode at once. A cell-scoped session
  * (`scope: 'cell'`) narrows that to the cell in `activeEditStore`. The row still
@@ -65,6 +72,15 @@ export type GridEditingSession = {
 	 * entry named, while the session holds that cell open.
 	 */
 	claimFocus: (rowKey: string | number, columnId: string | number) => boolean
+	/**
+	 * The settle controls that this cell's editor shows. The hook decides the
+	 * policy, and the cell only renders it. The cell that a cell-scoped session
+	 * holds shows them, and every other cell shows none. Under `commitOn:
+	 * 'leaveEditor'` a move away saves, so that cell shows discard alone. The
+	 * answer reads {@link GridActiveEditStore}, so a cell reads it in the same
+	 * pass as its flag.
+	 */
+	settleControls: (rowKey: string | number, columnId: string | number) => GridSettleControls
 	/** Whether the grid owns entry and the session keys (`session: 'managed'`). */
 	managed: boolean
 }
