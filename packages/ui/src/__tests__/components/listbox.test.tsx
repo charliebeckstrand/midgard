@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { Listbox } from '../../components/listbox'
+import { Listbox, ListboxOption } from '../../components/listbox'
 import { VirtualOptions } from '../../primitives/virtual-options'
 import { act, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
@@ -683,5 +683,17 @@ describe('Listbox onBlur', () => {
 		fireEvent.blur(screen.getByRole('combobox'), { relatedTarget: panel })
 
 		expect(onBlur).not.toHaveBeenCalled()
+	})
+})
+
+describe('ListboxOption outside a Listbox', () => {
+	// The host context is required. An orphan option must fail at render with
+	// a message that names the missing host, not at the first click.
+	it('throws a message that names the missing host', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		expect(() => renderUI(<ListboxOption value="apple">Apple</ListboxOption>)).toThrow(
+			'ListboxOption must be used within <Listbox> or <Select>',
+		)
 	})
 })

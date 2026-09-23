@@ -15,8 +15,12 @@ type ComboboxContextValue<T = unknown> = {
 /**
  * Selection state shared from the {@link Combobox} root to its options. It
  * carries the frozen `value`, the `multiple` flag, the `onSelect` callback, and
- * the `capitalize` flag for string option labels.
+ * the `capitalize` flag for string option labels. The hook throws outside a
+ * provider, with a message that names the host.
  *
  * @internal
  */
-export const [ComboboxContext] = createContext<ComboboxContextValue>('Combobox')
+export const [ComboboxContext, useComboboxContext] = createContext<ComboboxContextValue>(
+	'Combobox',
+	{ error: 'ComboboxOption must be used within <Combobox>' },
+)

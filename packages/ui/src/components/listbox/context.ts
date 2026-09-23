@@ -9,4 +9,12 @@ type ListboxContextValue<T = unknown> = {
 	capitalize: boolean
 }
 
-export const [ListboxContext] = createContext<ListboxContextValue>('Listbox')
+/**
+ * Selection state shared from the {@link Listbox} root to its options. The
+ * hook throws outside a provider, with a message that names the host.
+ *
+ * @internal
+ */
+export const [ListboxContext, useListboxContext] = createContext<ListboxContextValue>('Listbox', {
+	error: 'ListboxOption must be used within <Listbox> or <Select>',
+})

@@ -26,7 +26,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 |---|---|---|
 | `polymorphic` | `href`-driven link switch with element polymorphism: renders the registered router link when `href` is present, the `as` element otherwise. | `Polymorphic`, `PolymorphicStatic`, `PolymorphicProps`, `PolymorphicStaticProps` |
 | `link` | Link context exposing the framework link component an app registers (e.g. `next/link`), or the `'a'` fallback. | `LinkContext`, `useLink`, `LinkComponent`, `LinkContextValue` |
-| `option` | Selectable list-item primitive for select-like widgets: option row, label, description, and a factory binding them to a host's selection context. | `BaseOption`, `OptionLabel`, `OptionDescription`, `createSelectOption`, `OptionSelectionContext` |
+| `option` | Selectable list-item primitive for select-like widgets: option row, label, description, and a factory that binds them to a host's selection hook. The hook throws a named error outside its host. | `BaseOption`, `OptionLabel`, `OptionDescription`, `createSelectOption`, `OptionSelectionContext` |
 | `select-trigger` | Presentational trigger chrome for the select family (Listbox, Combobox); wraps `ControlFrame` and steps Affix down for the chevron. | `SelectTrigger`, `SelectTriggerProps` |
 | `virtual-options` | Windowed option list (TanStack virtualizer) for `PopoverPanel` listboxes. It renders viewport and overscan rows with top/bottom spacers and `aria-setsize`/`aria-posinset`. An optional item source reaches options outside the window for the keyboard. | `VirtualOptions`, `VirtualOptionMeta` |
 

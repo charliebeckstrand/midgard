@@ -1060,3 +1060,15 @@ describe('Combobox readOnly', () => {
 		)
 	})
 })
+
+describe('ComboboxOption outside a Combobox', () => {
+	// The host context is required. An orphan option must fail at render with
+	// a message that names the missing host, not at the first click.
+	it('throws a message that names the missing host', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		expect(() => renderUI(<ComboboxOption value="apple">Apple</ComboboxOption>)).toThrow(
+			'ComboboxOption must be used within <Combobox>',
+		)
+	})
+})

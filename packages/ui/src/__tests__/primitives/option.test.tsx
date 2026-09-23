@@ -1,4 +1,4 @@
-import { createContext, type FC, type ReactNode } from 'react'
+import { createContext, type FC, type ReactNode, use } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Density } from '../../primitives/density'
 import { BaseOption, createSelectOption } from '../../primitives/option'
@@ -178,7 +178,7 @@ const TestContext: FC<{ children: ReactNode; value?: unknown; multiple?: boolean
 
 const { Option, Label, Description } = createSelectOption({
 	slotPrefix: 'test',
-	context: SelectionContext,
+	useSelection: () => use(SelectionContext),
 })
 
 describe('createSelectOption', () => {
