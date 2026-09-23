@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, X } from 'lucide-react'
+import { Check, Plus, X } from 'lucide-react'
 import {
 	type MouseEvent,
 	type ReactNode,
@@ -20,9 +20,13 @@ import { k } from '../../recipes/kata/grid'
 import { columnLabel } from './engine/grid-column/label'
 import {
 	EDITOR_FOCUSABLE,
+	type EditorKind,
+	type GridDraftKey,
 	inferEditorKind,
+	isBlankDraft,
 	isCellEditing,
 	isColumnEditable,
+	NEW_ROW_KEY,
 } from './engine/grid-editing-utilities'
 import { GridEditInputs } from './grid-edit-inputs'
 import {
@@ -44,9 +48,19 @@ type GridEditingCellProps<T> = {
 	render: ((row: T) => ReactNode) | undefined
 }
 
-/** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
-type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
-	Pick<
+/**
+ * Props for the mounted editor: the cell plus the session's staging and exit
+ * callbacks. The row key of the new-row slot is {@link NEW_ROW_KEY}. @internal
+ */
+type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx' | 'rowKey'> & {
+	rowKey: GridDraftKey
+	/** The editor to infer, where the row holds no value to infer it from, as in the new-row slot. */
+	kind?: EditorKind
+	/** Adds the new-row slot, for its Add control. */
+	addRow?: () => void
+	/** Whether the editor of this column of the new-row slot takes focus now. */
+	claimSlot?: (columnId: string | number) => boolean
+} & Pick<
 		GridEditingSession,
 		| 'stageDraft'
 		| 'unstageDraft'
@@ -65,6 +79,43 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'>
 		 */
 		held: boolean
 	}
+
+/** The Add control of the new-row slot. @internal */
+const ADD_ROW_LABEL = 'Add row'
+
+/**
+ * The Add control of the new-row slot, on its last editable cell. Unlike the
+ * settle pair, it is in the tab order. Tab does not commit in the slot, so the
+ * control takes no key from an editor. It is also the keyboard route to an
+ * add from a listbox, or from a slot that keeps Enter. While an add is in
+ * flight it is `aria-disabled`, and a press does nothing.
+ *
+ * @internal
+ */
+export function GridAddRowButton({
+	addRow,
+	pending = false,
+}: {
+	addRow: () => void
+	pending?: boolean
+}) {
+	return (
+		<span className={cn(k.edit.settle)}>
+			<Button
+				type="button"
+				variant="bare"
+				color="green"
+				aria-label={ADD_ROW_LABEL}
+				aria-disabled={pending || undefined}
+				data-slot="grid-new-row-add"
+				onMouseDown={keepFocus}
+				onClick={addRow}
+			>
+				<Icon icon={<Plus />} />
+			</Button>
+		</span>
+	)
+}
 
 /** The two ways a cell-scoped session ends, as the controls that end it. @internal */
 const SETTLE_ACTIONS = [
@@ -110,9 +161,11 @@ function GridSettleControls({
 	label: string
 	/** Which controls show; `'none'` renders nothing. */
 	controls: SettleControls
-	settle: (outcome: 'save' | 'discard') => void
+	settle: (outcome: 'save' | 'discard' | 'add') => void
 }) {
 	if (controls === 'none') return null
+
+	if (controls === 'add') return <GridAddRowButton addRow={() => settle('add')} />
 
 	const actions =
 		controls === 'both' ? SETTLE_ACTIONS : SETTLE_ACTIONS.filter((a) => a.outcome === 'discard')
@@ -149,9 +202,13 @@ function GridSettleControls({
  * message beneath the cell; Escape reverts the cell. A draft that an async
  * commit refused shows its error on the same surface, until the next edit.
  *
+ * @remarks The new-row slot mounts it too, under {@link NEW_ROW_KEY}. There
+ * its label names the new row, and `validate` reads a cell only once it holds
+ * a value, so an empty row shows no error.
+ *
  * @internal
  */
-function GridCellEditor<T>({
+export function GridCellEditor<T>({
 	rowIdx,
 	rowKey,
 	row,
@@ -166,12 +223,21 @@ function GridCellEditor<T>({
 	managed,
 	settle,
 	held,
+	kind,
+	addRow,
+	claimSlot,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
+	// The key of a data row, or `null` in the new-row slot. The slot is in no
+	// session, so the session's entry, focus, and exit calls skip it.
+	const dataKey = rowKey === NEW_ROW_KEY ? null : rowKey
+
+	const newRow = dataKey === null
+
 	// Read once, as the editor mounts. The entry that typed it clears it after
 	// the focus hand-off, so a later render must not read it again.
-	const [entry] = useState(() => entrySeed(rowKey, column.id))
+	const [entry] = useState(() => (dataKey === null ? undefined : entrySeed(dataKey, column.id)))
 
 	// A typed entry replaces the cell's value. Otherwise the editor shows the
 	// cell's staged draft when it has one. The draft belongs to the session, so
@@ -220,7 +286,7 @@ function GridCellEditor<T>({
 
 		wasHeld.current = held
 
-		const typed = released ? entrySeed(rowKey, column.id) : undefined
+		const typed = released && dataKey !== null ? entrySeed(dataKey, column.id) : undefined
 
 		if (typed !== undefined) update(typed)
 	}, [held])
@@ -232,14 +298,14 @@ function GridCellEditor<T>({
 	useEffect(() => {
 		const host = hostRef.current
 
-		if (!held || !host) return
+		if (!held || !host || dataKey === null) return
 
-		const resume = () => resumeCell(rowKey, column.id)
+		const resume = () => resumeCell(dataKey, column.id)
 
 		host.addEventListener('focusin', resume)
 
 		return () => host.removeEventListener('focusin', resume)
-	}, [held, resumeCell, rowKey, column.id])
+	}, [held, resumeCell, dataKey, column.id])
 
 	// Take the focus an entry left for this cell, as the editor mounts or as the
 	// session comes to hold it. The editor sits inside its cell's truncation span,
@@ -247,12 +313,14 @@ function GridCellEditor<T>({
 	// arm off its synchronous flush, which cannot run here and warns.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: `settle` changes as the session comes to hold an editor that is already mounted, and that re-runs the claim.
 	useEffect(() => {
-		if (!claimFocus(rowKey, column.id)) return
+		const claimed = dataKey === null ? claimSlot?.(column.id) : claimFocus(dataKey, column.id)
+
+		if (!claimed) return
 
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
 		if (editor) focusWithoutReveal(editor)
-	}, [settle, claimFocus, rowKey, column.id])
+	}, [settle, claimFocus, claimSlot, dataKey, column.id])
 
 	const cancel = () => {
 		setDraft(seed)
@@ -266,11 +334,15 @@ function GridCellEditor<T>({
 	// read as one thing to a screen reader rather than unrelated widgets.
 	// `columnLabel` is the module's one column-naming rule, and it degrades to the
 	// column id rather than to a position that shifts as columns move.
-	const label = `${columnLabel(column)}, row ${rowIdx + 1}`
+	const label = `${columnLabel(column)}, ${newRow ? 'new row' : `row ${rowIdx + 1}`}`
 
 	const ariaLabel = `Edit ${label}`
 
-	const error = (column.validate ? column.validate(draft, row) : null) ?? refusal ?? null
+	// A cell of the new-row slot with no value adds nothing, so it has nothing
+	// for `validate` to refuse yet.
+	const checked = column.validate && !(newRow && isBlankDraft(draft))
+
+	const error = (checked ? column.validate?.(draft, row) : null) ?? refusal ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).
@@ -301,7 +373,9 @@ function GridCellEditor<T>({
 			commit: (next) => {
 				if (next !== undefined) update(next)
 
-				if (managed) endSession(rowKey, 'save')
+				// The new-row slot adds only on an explicit add, so a slot's
+				// commit there only stages.
+				if (managed && dataKey !== null) endSession(dataKey, 'save')
 			},
 			cancel,
 			ariaLabel,
@@ -309,7 +383,7 @@ function GridCellEditor<T>({
 		})
 	) : (
 		<GridEditInputs
-			kind={inferEditorKind(seed)}
+			kind={kind ?? inferEditorKind(seed)}
 			draft={draft}
 			onValueUpdate={update}
 			cancel={cancel}
@@ -318,6 +392,7 @@ function GridCellEditor<T>({
 			errorId={errorId}
 			required={column.required}
 			managed={managed}
+			unset={newRow}
 		/>
 	)
 
@@ -328,7 +403,9 @@ function GridCellEditor<T>({
 			<GridSettleControls
 				label={label}
 				controls={settle}
-				settle={(outcome) => endSession(rowKey, outcome)}
+				settle={(outcome) =>
+					outcome === 'add' ? addRow?.() : dataKey !== null && endSession(dataKey, outcome)
+				}
 			/>
 
 			{error && (
@@ -346,7 +423,7 @@ function GridCellEditor<T>({
  * the `role="gridcell"` element around this content, the way
  * {@link GridNavCell} writes `data-active`. @internal
  */
-function GridPendingCell({ children }: { children: ReactNode }) {
+export function GridPendingCell({ children }: { children: ReactNode }) {
 	const ref = useRef<HTMLSpanElement>(null)
 
 	useLayoutEffect(() => {

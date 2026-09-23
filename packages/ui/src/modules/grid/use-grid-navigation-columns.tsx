@@ -21,7 +21,9 @@ import { type Coord, useGridNavContext } from './use-grid-navigation'
 /**
  * The insets that the grid's own sticky chrome would lay over a cell scrolled to
  * the viewport edge. Those are the sticky header's height (top) and the pinned
- * columns' widths (left/right), measured from the header row's sticky cells. Applied as
+ * columns' widths (left/right), measured from the header row's sticky cells.
+ * The new-row slot of an editable grid sticks too. Its height adds to the top
+ * or the bottom inset of each other cell (see {@link slotInsets}). Applied as
  * the active cell's `scroll-margin` so `scrollIntoView` keeps it clear of that
  * chrome (WCAG 2.4.11, Focus Not Obscured). Zero on every side for a grid with
  * neither, so the margin is cleared.
@@ -34,7 +36,12 @@ import { type Coord, useGridNavContext } from './use-grid-navigation'
  *
  * @internal
  */
-function obscuringInsets(cell: HTMLElement): { top: number; left: number; right: number } {
+function obscuringInsets(cell: HTMLElement): {
+	top: number
+	bottom: number
+	left: number
+	right: number
+} {
 	const headRow = cell.closest('table')?.querySelector<HTMLElement>('thead > tr')
 
 	let top = 0
@@ -58,7 +65,43 @@ function obscuringInsets(cell: HTMLElement): { top: number; left: number; right:
 		}
 	}
 
-	return { top, left, right }
+	const slot = slotInsets(cell)
+
+	return { top: top + slot.top, bottom: slot.bottom, left, right }
+}
+
+/**
+ * The height that the sticky new-row slot lays over the top or the bottom edge
+ * of the scroll container, for a cell outside the slot. The slot is the one of
+ * this table, not of a grid nested in a detail row. @internal
+ */
+function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
+	// The body sections of the table are few, so the walk reads a handful of
+	// elements, not the rows of the data body.
+	const bodies = cell.closest('table')?.tBodies ?? []
+
+	const slot = Array.from(bodies).find((body) => body.dataset.slot === 'grid-new-row-body')?.rows[0]
+
+	if (!slot || slot.contains(cell)) return { top: 0, bottom: 0 }
+
+	const height = slot.getBoundingClientRect().height
+
+	return slot.dataset.position === 'top' ? { top: height, bottom: 0 } : { top: 0, bottom: height }
+}
+
+/**
+ * Sets a `scroll-margin` side of `cell` to `inset` pixels, or clears it at
+ * zero. A value that does not change is not written, because each write sets
+ * the `style` attribute again. @internal
+ */
+function setScrollMargin(
+	cell: HTMLElement,
+	side: 'scrollMarginTop' | 'scrollMarginBottom' | 'scrollMarginLeft' | 'scrollMarginRight',
+	inset: number,
+): void {
+	const value = inset ? `${inset}px` : ''
+
+	if (cell.style[side] !== value) cell.style[side] = value
 }
 
 /**
@@ -102,13 +145,15 @@ export function GridNavCell({
 		if (isActive) {
 			// Hold the cell clear of the grid's sticky header and pinned columns as it
 			// scrolls into view, so the focus indicator is never obscured (WCAG 2.4.11).
-			const { top, left, right } = obscuringInsets(cell)
+			const { top, bottom, left, right } = obscuringInsets(cell)
 
-			cell.style.scrollMarginTop = top ? `${top}px` : ''
+			setScrollMargin(cell, 'scrollMarginTop', top)
 
-			cell.style.scrollMarginLeft = left ? `${left}px` : ''
+			setScrollMargin(cell, 'scrollMarginBottom', bottom)
 
-			cell.style.scrollMarginRight = right ? `${right}px` : ''
+			setScrollMargin(cell, 'scrollMarginLeft', left)
+
+			setScrollMargin(cell, 'scrollMarginRight', right)
 
 			cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 		}

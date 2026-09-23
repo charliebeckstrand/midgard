@@ -26,6 +26,7 @@ import {
 	CellScopeExample,
 	EditableExample,
 	EditorTypesExample,
+	NewRowExample,
 } from './editable'
 import { ServerGroupingExample } from './server-grouping'
 
@@ -1772,6 +1773,13 @@ export function Demo() {
 							code={code`<Grid editable={{ session: 'managed', scope: 'cell', onCommit: async (changes) => refused }} />`}
 						>
 							<AsyncCommitExample />
+						</Example>
+
+						<Example
+							title="New row"
+							code={code`<Grid editable={{ session: 'managed', newRow: 'bottom', onRowAdd, onCommit }} />`}
+						>
+							<NewRowExample />
 						</Example>
 
 						<Example

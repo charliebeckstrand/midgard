@@ -14,8 +14,57 @@ import { useIdScope } from '../../hooks'
 import { clamp } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 
-/** Zero-based cursor position over the grid's data cells, in display order. @internal */
+/**
+ * Zero-based cursor position over the grid's data cells, in display order.
+ * The new-row slot is the row {@link NEW_ROW_INDEX}. @internal
+ */
 export type Coord = { row: number; col: number }
+
+/**
+ * The cursor row of the new-row slot ({@link GridEditableConfig.newRow}). It
+ * stays the same while the data rows change, so a cursor on the slot stays
+ * there when a row is added. It is not `-1`, which a cell of an unknown row
+ * reads as. @internal
+ */
+export const NEW_ROW_INDEX = -2
+
+/** Where the new-row slot sits in the cursor's order, or `null` for no slot. @internal */
+export type GridNewRowPosition = 'top' | 'bottom' | null
+
+/**
+ * The place of a cursor row in the cursor's order. The order is the data rows,
+ * with the new-row slot first or last. A data row below zero reads as the
+ * first data row. @internal
+ */
+function toPosition(row: number, count: number, slot: GridNewRowPosition): number {
+	if (row === NEW_ROW_INDEX) return slot === 'top' ? 0 : count
+
+	const data = Math.max(row, 0)
+
+	return slot === 'top' ? data + 1 : data
+}
+
+/** The cursor row at a place in the cursor's order (see {@link toPosition}). @internal */
+function fromPosition(position: number, count: number, slot: GridNewRowPosition): number {
+	if (slot === 'top') return position === 0 ? NEW_ROW_INDEX : position - 1
+
+	if (slot === 'bottom' && position === count) return NEW_ROW_INDEX
+
+	return position
+}
+
+/**
+ * The cursor row nearest to `row` that exists: the row itself, or the row at
+ * the edge of the cursor's order. It is `null` when the order is empty.
+ * @internal
+ */
+function clampRow(row: number, count: number, slot: GridNewRowPosition): number | null {
+	const span = count + (slot === null ? 0 : 1)
+
+	if (span === 0) return null
+
+	return fromPosition(clamp(toPosition(row, count, slot), 0, span - 1), count, slot)
+}
 
 /**
  * Activates the row under the cursor on Enter/Space. The originating event is
@@ -95,6 +144,8 @@ function navTarget(
 	toGrid: boolean,
 	pageStep: number,
 ): Coord | null {
+	// `base.row` and the result are places in the cursor's order here, not
+	// cursor rows (see `toPosition`).
 	switch (key) {
 		case 'ArrowUp':
 			return { row: base.row - 1, col: base.col }
@@ -117,6 +168,57 @@ function navTarget(
 		default:
 			return null
 	}
+}
+
+/**
+ * The cursor coord a movement key moves to from `base`, or `null` when the key
+ * does not move the cursor. The move runs over places in the cursor's order
+ * (see {@link toPosition}), so the new-row slot is one row of it, first or
+ * last. The result is clamped to the rows that exist. @internal
+ */
+function keyTarget(
+	key: string,
+	base: Coord,
+	order: { count: number; slot: GridNewRowPosition; colCount: number },
+	toGrid: boolean,
+	pageStep: number,
+): Coord | null {
+	const { count, slot, colCount } = order
+
+	const span = count + (slot === null ? 0 : 1)
+
+	const target = navTarget(
+		key,
+		{ row: toPosition(base.row, count, slot), col: base.col },
+		span,
+		colCount,
+		toGrid,
+		pageStep,
+	)
+
+	if (!target) return null
+
+	return { row: fromPosition(clamp(target.row, 0, span - 1), count, slot), col: target.col }
+}
+
+/**
+ * The cell a focus into the grid seats the cursor on. That is the first cell
+ * of the cursor's order, or the last one for a focus from after the grid. It
+ * is `null` when the grid has no cell. @internal
+ */
+function seedCoord(
+	fromAfter: boolean,
+	order: { count: number; slot: GridNewRowPosition; colCount: number },
+): Coord | null {
+	const { count, slot, colCount } = order
+
+	const span = count + (slot === null ? 0 : 1)
+
+	if (span === 0 || colCount === 0) return null
+
+	return fromAfter
+		? { row: fromPosition(span - 1, count, slot), col: colCount - 1 }
+		: { row: fromPosition(0, count, slot), col: 0 }
 }
 
 /**
@@ -177,6 +279,7 @@ export function useGridNavigation({
 	toggleActiveRow,
 	scrollRowIntoViewRef,
 	scrollContainerRef,
+	newRowRef,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
@@ -195,6 +298,8 @@ export function useGridNavigation({
 	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
 	/** The grid's scroll container, measured for the viewport-relative PageUp/Down step; null when the grid doesn't scroll. */
 	scrollContainerRef: RefObject<HTMLElement | null>
+	/** Where the new-row slot sits in the cursor's order, read at event time. */
+	newRowRef: RefObject<GridNewRowPosition>
 }): {
 	active: Coord | null
 	store: GridNavStore
@@ -263,42 +368,44 @@ export function useGridNavigation({
 
 	const moveTo = useCallback(
 		(coord: Coord) => {
-			const rowCount = rowsRef.current.length
-
 			const colCount = colCountRef.current
 
-			if (rowCount === 0 || colCount === 0) return
+			const row = clampRow(coord.row, rowsRef.current.length, newRowRef.current)
 
-			const row = clamp(coord.row, 0, rowCount - 1)
+			if (row === null || colCount === 0) return
 
 			const col = clamp(coord.col, 0, colCount - 1)
 
 			// Bring the target row into the virtualized window so its cell mounts
 			// before `aria-activedescendant` points at it; a no-op when unwindowed.
-			scrollRowIntoViewRef.current?.(row)
+			// The new-row slot sits outside the window, and is always mounted.
+			if (row !== NEW_ROW_INDEX) scrollRowIntoViewRef.current?.(row)
 
 			setActive({ row, col })
 		},
-		[rowsRef, colCountRef, scrollRowIntoViewRef],
+		[rowsRef, colCountRef, scrollRowIntoViewRef, newRowRef],
 	)
 
 	// Re-clamp the cursor to the current bounds when the data shrinks (filter,
 	// paginate, hide a column), so the active cell — and the `aria-activedescendant`
 	// it drives — never dangles past the rendered grid; clears it when the grid
 	// empties. A no-op while in bounds (returns the same coord, so no re-render).
-	const reconcile = useCallback((rowCount: number, colCount: number) => {
-		setActive((current) => {
-			if (current === null) return null
+	const reconcile = useCallback(
+		(rowCount: number, colCount: number) => {
+			setActive((current) => {
+				if (current === null) return null
 
-			if (rowCount === 0 || colCount === 0) return null
+				const row = clampRow(current.row, rowCount, newRowRef.current)
 
-			const row = clamp(current.row, 0, rowCount - 1)
+				if (row === null || colCount === 0) return null
 
-			const col = clamp(current.col, 0, colCount - 1)
+				const col = clamp(current.col, 0, colCount - 1)
 
-			return row === current.row && col === current.col ? current : { row, col }
-		})
-	}, [])
+				return row === current.row && col === current.col ? current : { row, col }
+			})
+		},
+		[newRowRef],
+	)
 
 	// Activates the cell then the row under the cursor through the grid's
 	// click bridges — the same cell-first order a pointer click fires in.
@@ -348,22 +455,26 @@ export function useGridNavigation({
 			// to that control — hijacking it freezes the caret and jumps the cursor.
 			if (event.target !== event.currentTarget) return
 
-			const rowCount = rowsRef.current.length
+			const order = {
+				count: rowsRef.current.length,
+				slot: newRowRef.current,
+				colCount: colCountRef.current,
+			}
 
-			const colCount = colCountRef.current
+			// A grid with no cell takes no key. The cursor seeds at the first cell when
+			// a key arrives before focus has.
+			const first = seedCoord(false, order)
 
-			if (rowCount === 0 || colCount === 0) return
+			if (!first) return
 
-			// The cursor seeds at the first cell when a key arrives before focus has.
-			const base = activeRef.current ?? { row: 0, col: 0 }
+			const base = activeRef.current ?? first
 
 			// `event.currentTarget` is the `<table>`; the page step is viewport-relative
 			// (a no-op layout read for non-page keys, see `resolvePageStep`).
-			const target = navTarget(
+			const target = keyTarget(
 				event.key,
 				base,
-				rowCount,
-				colCount,
+				order,
 				event.metaKey || event.ctrlKey,
 				resolvePageStep(event.key, scrollContainerRef.current, event.currentTarget),
 			)
@@ -380,7 +491,7 @@ export function useGridNavigation({
 				setActive(null)
 			}
 		},
-		[moveTo, activateOrSelectRow, rowsRef, colCountRef, scrollContainerRef],
+		[moveTo, activateOrSelectRow, rowsRef, colCountRef, scrollContainerRef, newRowRef],
 	)
 
 	const onFocus = useCallback(
@@ -398,21 +509,21 @@ export function useGridNavigation({
 			// unseated rather than seeding the last cell behind the dismissed menu.
 			if (rel instanceof Element && rel.closest(FLOATING_PORTAL)) return
 
-			const rowCount = rowsRef.current.length
-
-			const colCount = colCountRef.current
-
-			if (rowCount === 0 || colCount === 0) return
-
 			// Entering backwards (Shift+Tab from after the grid) lands on the last cell;
-			// forwards lands on the first.
+			// forwards lands on the first. The new-row slot counts as a row of the order.
 			const cameFromAfter =
 				rel instanceof Node &&
 				!!(event.currentTarget.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
 
-			setActive(cameFromAfter ? { row: rowCount - 1, col: colCount - 1 } : { row: 0, col: 0 })
+			const seed = seedCoord(cameFromAfter, {
+				count: rowsRef.current.length,
+				slot: newRowRef.current,
+				colCount: colCountRef.current,
+			})
+
+			if (seed) setActive(seed)
 		},
-		[rowsRef, colCountRef],
+		[rowsRef, colCountRef, newRowRef],
 	)
 
 	const onBlur = useCallback((event: FocusEvent<HTMLTableElement>) => {

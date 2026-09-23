@@ -18,14 +18,20 @@ import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeCommit, describeDiscard, describeSettle } from './engine/grid-announcements'
 import { EMPTY_SET, FLOATING_PORTAL } from './engine/grid-constants'
 import {
+	COMMIT_REFUSED,
 	createDraftStore,
 	EDITOR_FOCUSABLE,
+	type EditorKind,
 	type GridActiveEdit,
 	type GridDraft,
 	type GridDraftStore,
 	isCellEditing,
 	isColumnEditable,
+	isInGrid,
 	isSameCell,
+	isThenable,
+	NATIVE_ENTER,
+	NEW_ROW_KEY,
 	readKeyPress,
 	stepEditableColumn,
 	tabStaysInCell,
@@ -34,11 +40,13 @@ import type { GridEditSource } from './grid-data-types'
 import type {
 	GridActiveEditStore,
 	GridEditingSession,
+	GridNewRowSession,
 	GridSettleControls,
 } from './grid-editing-context'
 import type { GridCellChange, GridCellRefusal, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
-import type { Coord } from './use-grid-navigation'
+import type { Coord, GridNewRowPosition } from './use-grid-navigation'
+import { resolveNewRow, useGridNewRow } from './use-grid-new-row'
 
 /** The editing layer's surface, consumed by {@link useGridCursor}. @internal */
 export type GridEditingApi = {
@@ -81,21 +89,21 @@ export type GridEditingApi = {
 				focus: (event: ReactFocusEvent<HTMLTableElement>) => void
 		  }
 		| undefined
+	/** The new-row slot ({@link GridEditableConfig.newRow}). */
+	newRow: {
+		/** Where the slot shows, or `null` when the grid shows none. */
+		position: GridNewRowPosition
+		/** The slot as its cells read it, or `null` when the grid shows none. */
+		session: GridNewRowSession | null
+		/** Opens a cell of the slot from the keyboard cursor, with an optional typed seed. */
+		enter: (columnId: string | number, seed?: string | number) => void
+		/** The editor that the grid infers for a column of the slot. */
+		editorKind: (column: { id: string | number; field?: PropertyKey }) => EditorKind
+	}
 }
 
 /** The commit policy of a grid-owned session, {@link GridEditableConfig.commitOn}. @internal */
 type CommitOn = NonNullable<GridEditableConfig['commitOn']>
-
-/**
- * Whether `node` is inside `grid`, the grid's `role="grid"` tab stop. The
- * nearest `role="grid"` ancestor of the node must be `grid` itself. A grid
- * nested in a detail row of this one is therefore another grid.
- *
- * @internal
- */
-function isInGrid(node: Element | null, grid: HTMLElement | null): boolean {
-	return grid !== null && node?.closest('[role="grid"]') === grid
-}
 
 /**
  * Reseats focus on the grid's single tab stop, `grid`, when focus sits in this
@@ -139,14 +147,6 @@ function claimedBySurface(event: ReactKeyboardEvent<HTMLTableElement>): boolean 
 
 	return inFloatingSurface(event.target)
 }
-
-/**
- * The elements whose own Enter does something native: a button or link
- * activates, a text area breaks the line, and a select opens. The session's
- * Enter leaves them alone. The inline listbox's trigger is a button, so it
- * keeps the Enter that opens it. @internal
- */
-const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable="true"]'
 
 /** Where a move key takes the session from an open editor. @internal */
 type SessionMove = 'down' | 'next' | 'previous' | 'here'
@@ -330,11 +330,6 @@ type InFlightBatch = {
 	result: PromiseLike<unknown>
 }
 
-/** Whether a sink's return value is a promise, by the thenable rule. @internal */
-function isThenable(value: unknown): value is PromiseLike<unknown> {
-	return value != null && typeof (value as { then?: unknown }).then === 'function'
-}
-
 /**
  * Commits every staged cell that the session closed, one `onCommit` batch per
  * row. It hands the cells `validate` refused to `onReject`, and returns the
@@ -372,8 +367,11 @@ function flushClosedCells<T>(args: {
 
 	const inFlight: InFlightBatch[] = []
 
+	// The new-row slot is always open. Its drafts leave through an add, never
+	// through this sweep.
 	const closed = args.drafts.take(
 		(rowKey, columnId) =>
+			rowKey !== NEW_ROW_KEY &&
 			!isCellEditing({
 				rowKey,
 				columnId,
@@ -383,6 +381,8 @@ function flushClosedCells<T>(args: {
 	)
 
 	for (const [rowKey, rowDrafts] of closed) {
+		if (rowKey === NEW_ROW_KEY) continue
+
 		const { changes, refused } = flushRow(rowKey, rowDrafts, args.source)
 
 		// Reported per row, like the commit batch beside it, and independent of it:
@@ -478,7 +478,8 @@ function dropStrandedHolds<T>(args: {
 		before.has(rowKey) && !after.has(rowKey) && !gridClosed.has(rowKey)
 
 	const dropped = args.drafts.drop(
-		(rowKey, _, draft) => draft.reopened && (closed(rowKey) || gone(rowKey)),
+		(rowKey, _, draft) =>
+			draft.reopened && rowKey !== NEW_ROW_KEY && (closed(rowKey) || gone(rowKey)),
 	)
 
 	// A grid close is spent once its row leaves the set. A close that has not
@@ -487,9 +488,6 @@ function dropStrandedHolds<T>(args: {
 
 	return dropped
 }
-
-/** The error a refused cell shows when the consumer gives none. @internal */
-const COMMIT_REFUSED = 'Change not saved'
 
 /**
  * The error of each refused cell of a settled batch, keyed by column id. A
@@ -1081,6 +1079,14 @@ export function useGridEditing<T>({
 
 	const commitOn = useCommitOn(enabled ? config?.commitOn : undefined, managed)
 
+	// The new-row slot, where the config can show it. Its cells always take a
+	// write, so the draft store reads this at write time.
+	const newRowPosition = resolveNewRow(config, managed)
+
+	const newRowOpenRef = useRef(false)
+
+	newRowOpenRef.current = newRowPosition !== null
+
 	// A consumer's `cell` decides each move of the session's cell. The
 	// binding applies only where that cell exists.
 	const controlled = cellScoped && config?.cell !== undefined
@@ -1181,20 +1187,21 @@ export function useGridEditing<T>({
 	const draftsRef = useRef<GridDraftStore | null>(null)
 
 	if (draftsRef.current === null)
-		draftsRef.current = createDraftStore(
-			(rowKey, columnId) =>
-				isCellEditing({
-					rowKey,
-					columnId,
-					editableRows: editableRowsRef.current,
-					activeEdit: activeEditRef.current,
-				}) ||
-				isCellEditing({
-					rowKey,
-					columnId,
-					editableRows: sweptRef.current.rows,
-					activeEdit: sweptRef.current.cell,
-				}),
+		draftsRef.current = createDraftStore((rowKey, columnId) =>
+			rowKey === NEW_ROW_KEY
+				? newRowOpenRef.current
+				: isCellEditing({
+						rowKey,
+						columnId,
+						editableRows: editableRowsRef.current,
+						activeEdit: activeEditRef.current,
+					}) ||
+					isCellEditing({
+						rowKey,
+						columnId,
+						editableRows: sweptRef.current.rows,
+						activeEdit: sweptRef.current.cell,
+					}),
 		)
 
 	const drafts = draftsRef.current
@@ -1293,6 +1300,19 @@ export function useGridEditing<T>({
 			reseatingRef.current = false
 		}
 	}, [tableRef])
+
+	const newRow = useGridNewRow<T>({
+		config,
+		managed,
+		position: newRowPosition,
+		drafts,
+		editSourceRef,
+		dataColumnsRef,
+		tableRef,
+		reseat,
+		cellId,
+		moveTo,
+	})
 
 	// Moves focus for one transition of a controlled binding. A value set from
 	// outside replaces the intents of any entry, and focus follows it into the
@@ -1820,7 +1840,8 @@ export function useGridEditing<T>({
 	// press closes that surface, and the next reaches the session.
 	const sessionKeys = useCallback(
 		(event: ReactKeyboardEvent<HTMLTableElement>) => {
-			if (claimedBySurface(event) || readKeyPress(event).composing) return
+			// The new-row slot keeps its own keys, and no data session reads them.
+			if (claimedBySurface(event) || readKeyPress(event).composing || newRow.keys(event)) return
 
 			const target = event.target as Element
 
@@ -1844,7 +1865,7 @@ export function useGridEditing<T>({
 
 			runMove(move, session.rowKey, session.columnId)
 		},
-		[endSession, sessionTarget, runMove],
+		[endSession, sessionTarget, runMove, newRow.keys],
 	)
 
 	// The row a focus move out of `from` would commit: the editing row that
@@ -1996,7 +2017,8 @@ export function useGridEditing<T>({
 		if (declined.size === 0) return
 
 		const dropped = drafts.drop(
-			(rowKey, _, draft) => declined.has(rowKey) && draft.error !== undefined,
+			(rowKey, _, draft) =>
+				rowKey !== NEW_ROW_KEY && declined.has(rowKey) && draft.error !== undefined,
 		)
 
 		// A dropped draft can change what a cell shows, so the cells read again.
@@ -2143,5 +2165,11 @@ export function useGridEditing<T>({
 		enterEdit,
 		sessionKeys: managed ? sessionKeys : undefined,
 		sessionLeave: commitOn === 'explicit' ? undefined : { blur: sessionLeave, focus: sessionFocus },
+		newRow: {
+			position: newRowPosition,
+			session: newRow.session,
+			enter: newRow.enter,
+			editorKind: newRow.editorKind,
+		},
 	}
 }

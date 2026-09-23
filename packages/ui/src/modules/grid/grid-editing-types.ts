@@ -383,4 +383,70 @@ export type GridEditableConfig = {
 	 * and shows the error itself.
 	 */
 	onReject?: (refused: GridCellChange[]) => void
+	/**
+	 * Adds a blank editor row, pinned at the top or the bottom of the body, for
+	 * the entry of a new record. Its editable cells are always editors. Fill
+	 * them, then press Enter in the row, or its Add control, to call
+	 * {@link GridEditableConfig.onRowAdd}. Escape clears the row, and F2 keeps
+	 * its values. Both put focus back on the grid, with the keyboard cursor on
+	 * the cell. The row also shows over an empty grid.
+	 *
+	 * The row is not a data row. Sort, filter, grouping, pagination, and
+	 * aggregation do not apply to it, and selection and export do not include
+	 * it. It stays in view while the body scrolls, and a virtualized body keeps
+	 * it outside its window. It is the first or the last row of the keyboard
+	 * cursor, so the arrow keys reach it from the data row next to it.
+	 *
+	 * @remarks An add is always explicit. Focus that leaves the row does not
+	 * add it, whatever {@link GridEditableConfig.commitOn} says, because a
+	 * half-filled row must not create a record. Its values stay until an add
+	 * or an Escape clears them. Tab and Shift+Tab move between the controls of
+	 * the row in the tab order. They do not wrap, so Tab from the last control
+	 * leaves the row.
+	 *
+	 * The row counts in `aria-rowcount` where the grid sets it. At the top it
+	 * takes the first index after the header rows, and the data rows move down
+	 * one. At the bottom it takes the index after the last data row, before a
+	 * grand-total row. Its name is "New row".
+	 *
+	 * The row needs {@link GridEditableConfig.session} `'managed'` and
+	 * {@link GridEditableConfig.onRowAdd}. Without either, the grid renders no
+	 * row, and it warns in development.
+	 */
+	newRow?: 'top' | 'bottom'
+	/**
+	 * Called when the user adds the row that {@link GridEditableConfig.newRow}
+	 * shows. `values` maps the `field` of each editable column to the value
+	 * that the user entered, or the column id for a column with no `field`.
+	 * It holds only the cells with a value. An empty text, `null`, and no entry
+	 * are no value, and a row with no value adds nothing. A yes/no editor shows
+	 * no choice until the user picks Yes or No, so it adds only a choice that
+	 * the user made. Add the record to
+	 * your data, and feed it back through the grid's `rows`.
+	 *
+	 * Each {@link GridColumn.validate} of a cell with a value reads the value
+	 * and `values` as the row. A refusal blocks the add, and the error shows on
+	 * the cell. A synchronous return accepts the add. The row then clears, and
+	 * focus goes to its first editable cell.
+	 *
+	 * Return a promise to add asynchronously. The row is then pending until the
+	 * promise settles, and a second add waits for it.
+	 *
+	 * - Resolve with nothing, or with an empty array, to accept the add.
+	 * - Resolve with a {@link GridCellRefusal} for each cell that you refuse.
+	 *   The grid ignores its `rowKey`.
+	 * - Reject to refuse each cell with a value. A non-empty `message` of the
+	 *   reason is the error.
+	 *
+	 * A refusal refuses the whole add. The values come back with the errors,
+	 * and focus does not move. An accepted async add moves focus to the first
+	 * editable cell only when focus is still in the grid. The grid announces
+	 * "Row added", or the refusal, politely.
+	 *
+	 * @remarks This is a sibling of {@link GridEditableConfig.onCommit}, not
+	 * part of it, because a new record has no row key yet. {@link
+	 * GridEditableConfig.onReject} does not report the new row.
+	 */
+	// biome-ignore lint/suspicious/noConfusingVoidType: `void` lets an `async` function with no `return` pass as the callback; `undefined` would refuse its `Promise<void>`.
+	onRowAdd?: (values: Record<string, unknown>) => void | Promise<void | GridCellRefusal[]>
 }

@@ -1,7 +1,15 @@
 'use client'
 
 import { useReducedMotion } from 'motion/react'
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements, useComposedRef, useControllable } from '../../hooks'
@@ -81,6 +89,7 @@ import { GridGroupByContext } from './grid-group-by-button'
 import { GridHead } from './grid-head'
 import { GridManagerDialog } from './grid-manager-dialog'
 import { useGridMenuActions } from './grid-menu-actions'
+import { GridNewRow } from './grid-new-row'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import {
 	DensityCascade,
@@ -109,6 +118,52 @@ import { useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
 import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
+
+/**
+ * Where the new-row slot renders, or `null` when it does not. The slot shows
+ * over a body that shows data or its empty state, and not over the loading
+ * skeleton or an error. @internal
+ */
+function placeNewRow(
+	position: 'top' | 'bottom' | null,
+	loading: boolean,
+	showingError: boolean,
+): 'top' | 'bottom' | null {
+	return loading || showingError ? null : position
+}
+
+/** The new-row slot's node when it renders at `where`, else `null`. @internal */
+function slotAt(
+	place: 'top' | 'bottom' | null,
+	where: 'top' | 'bottom',
+	slot: ReactNode,
+): ReactNode {
+	return place === where ? slot : null
+}
+
+/**
+ * The `aria-rowindex` of the new-row slot, or `undefined` where the grid sets
+ * no row indexes. At the top the slot is the first row after the header rows.
+ * At the bottom it is the last row before a grand-total row. An indeterminate
+ * row count cannot name that index, so the slot there takes none.
+ *
+ * @internal
+ */
+function resolveNewRowIndex(args: {
+	position: 'top' | 'bottom' | null
+	gridSemantics: boolean
+	/** Whether the body shows data rows. Over the empty state the grid sets no row count. */
+	hasRows: boolean
+	groupRowOffset: number
+	ariaRowCount: number
+	grandTotal: boolean
+}): number | undefined {
+	if (!args.gridSemantics || !args.hasRows || args.position === null) return undefined
+
+	if (args.position === 'top') return args.groupRowOffset + 2
+
+	return args.ariaRowCount > 0 ? args.ariaRowCount - Number(args.grandTotal) : undefined
+}
 
 /**
  * Whether the grid's current state permits a manual row drag-reorder. A manual
@@ -832,9 +887,13 @@ export function GridData<T>({
 	// Re-clamp the cursor whenever the rendered bounds change (filter, paginate,
 	// hide a column), so its active cell and `aria-activedescendant` never dangle
 	// past the new extent; inert for a non-cursor grid (active stays unseated).
+	// The new-row slot counts as a row of the cursor's order, so a change to it
+	// clamps too.
 	useLayoutEffect(() => {
+		void cursor.newRow
+
 		cursor.reconcile(renderRows.length, dataColumns.length)
-	}, [cursor.reconcile, renderRows.length, dataColumns.length])
+	}, [cursor.reconcile, cursor.newRow, renderRows.length, dataColumns.length])
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0
@@ -1085,10 +1144,14 @@ export function GridData<T>({
 	// the whole extent — unless the binding's `totalRows` states it — so the count
 	// goes ARIA-indeterminate (`-1`) rather than advertising the loaded window as
 	// the full set (see `resolveAriaRowCount`).
+	// The new-row slot of an editable grid is a real row of the grid, so it
+	// counts too. It shows only over a body that shows data or its empty state.
+	const newRowPlace = placeNewRow(cursor.newRow, loading, showingError)
+
 	const ariaRowCount = resolveAriaRowCount(
 		pagination,
 		renderRows.length,
-		groupRowOffset + Number(grandTotal.active),
+		groupRowOffset + Number(grandTotal.active) + Number(newRowPlace !== null),
 		infiniteScroll,
 	)
 
@@ -1179,6 +1242,25 @@ export function GridData<T>({
 		[groupByConfig?.groupButton, grouping, setGrouping, hasData],
 	)
 
+	// The new-row slot, in a body section of its own beside the data body (see
+	// `GridNewRow`). At the top it takes the first index after the header rows,
+	// and the data rows shift down one. At the bottom it takes the last index
+	// before a grand-total row, which an indeterminate count cannot name.
+	const newRowSlot = (
+		<GridNewRow<T>
+			columns={visibleColumns}
+			pinning={pinning}
+			ariaRowIndex={resolveNewRowIndex({
+				position: newRowPlace,
+				gridSemantics,
+				hasRows,
+				groupRowOffset,
+				ariaRowCount,
+				grandTotal: grandTotal.active,
+			})}
+		/>
+	)
+
 	// The cursor store is always provided (inert when not navigable/editable); only
 	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
 	const tableContent = (
@@ -1225,6 +1307,8 @@ export function GridData<T>({
 					groups={groupHeader}
 				/>
 
+				{slotAt(newRowPlace, 'top', newRowSlot)}
+
 				<GridBody<T>
 					loading={loading}
 					rows={renderRows}
@@ -1244,7 +1328,7 @@ export function GridData<T>({
 					empty={empty}
 					error={error}
 					gridSemantics={gridSemantics}
-					rowIndexOffset={pageRowOffset + groupRowOffset}
+					rowIndexOffset={pageRowOffset + groupRowOffset + Number(newRowPlace === 'top')}
 					selection={selection}
 					toggleRow={toggleRow}
 					selectable={hasSelectionColumn}
@@ -1279,6 +1363,8 @@ export function GridData<T>({
 							: null
 					}
 				/>
+
+				{slotAt(newRowPlace, 'bottom', newRowSlot)}
 
 				<GridGrandTotalBody<T>
 					grandTotal={grandTotal}

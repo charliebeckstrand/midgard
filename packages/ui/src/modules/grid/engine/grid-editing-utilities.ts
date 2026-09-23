@@ -129,6 +129,27 @@ export function seedFromKey(press: GridKeyPress, kind: EditorKind): string | num
 export type GridActiveEdit = GridCellRef
 
 /**
+ * The reserved row key of the new-row slot ({@link GridEditableConfig.newRow}).
+ * A symbol cannot equal a key that `getKey` returns. The drafts of the slot
+ * therefore share the draft store with the data rows, and never collide with
+ * one. The key never reaches `rows`, `cell`, `onCommit`, or `onRowAdd`.
+ * @internal
+ */
+export const NEW_ROW_KEY: unique symbol = Symbol('grid-new-row')
+
+/** The row key of a draft: a data row's key, or {@link NEW_ROW_KEY}. @internal */
+export type GridDraftKey = string | number | typeof NEW_ROW_KEY
+
+/**
+ * Whether a drafted value counts as no value. The new-row slot adds only the
+ * cells that hold a value, so a text cell typed and then cleared adds
+ * nothing. @internal
+ */
+export function isBlankDraft(value: unknown): boolean {
+	return value === undefined || value === null || value === ''
+}
+
+/**
  * Where a draft is in its life. A draft is `'staged'` from the first edit
  * until its session closes the cell. It is `'pending'` while a commit that
  * `onCommit` returned as a promise is in flight.
@@ -176,13 +197,15 @@ export type GridDraftStore = {
 	 * first row snapshot. A write to a cell that the store does not accept is
 	 * ignored, and so is a write to a pending draft.
 	 */
-	stage: (rowKey: string | number, columnId: string | number, value: unknown, row: unknown) => void
+	stage: (rowKey: GridDraftKey, columnId: string | number, value: unknown, row: unknown) => void
 	/** Removes the draft of the cell, if there is one and it is not pending. */
-	unstage: (rowKey: string | number, columnId: string | number) => void
+	unstage: (rowKey: GridDraftKey, columnId: string | number) => void
 	/** Removes every draft of the row that is not pending. */
-	unstageRow: (rowKey: string | number) => void
+	unstageRow: (rowKey: GridDraftKey) => void
 	/** The draft of the cell, or `undefined` when the cell has none. */
-	read: (rowKey: string | number, columnId: string | number) => GridDraft | undefined
+	read: (rowKey: GridDraftKey, columnId: string | number) => GridDraft | undefined
+	/** The drafts of the row, keyed by column id, or `undefined` when it has none. */
+	readRow: (rowKey: GridDraftKey) => ReadonlyMap<string | number, GridDraft> | undefined
 	/**
 	 * Removes the staged drafts of each cell that `closed` names, and returns
 	 * them, grouped by row. A row with no closed cell is not in the result. A
@@ -190,41 +213,43 @@ export type GridDraftStore = {
 	 * loses the mark when `closed` reads its cell as open.
 	 */
 	take: (
-		closed: (rowKey: string | number, columnId: string | number) => boolean,
-	) => Map<string | number, Map<string | number, GridDraft>>
+		closed: (rowKey: GridDraftKey, columnId: string | number) => boolean,
+	) => Map<GridDraftKey, Map<string | number, GridDraft>>
 	/**
 	 * Puts `draft`, which {@link GridDraftStore.take} returned, back at its cell
 	 * as `'pending'`, while its commit is in flight.
 	 */
-	pend: (rowKey: string | number, columnId: string | number, draft: GridDraft) => void
+	pend: (rowKey: GridDraftKey, columnId: string | number, draft: GridDraft) => void
 	/**
-	 * Settles the pending `draft` of the cell. A `null` error accepts it, and the
-	 * draft leaves the store. An error refuses it: the draft is staged again,
-	 * with the error, and `reopen` sets its mark. It returns `false`, and
-	 * changes nothing, when the cell no longer holds this pending draft.
+	 * Settles the pending `draft` of the cell. A `null` refusal accepts it, and
+	 * the draft leaves the store. A refusal stages the draft again, with its
+	 * error, and `reopen` sets its mark. A refusal with no error stages the
+	 * draft again without a message. A refused new row does that for each cell
+	 * that the consumer did not name. It returns `false`, and changes nothing, when
+	 * the cell no longer holds this pending draft.
 	 */
 	settle: (
-		rowKey: string | number,
+		rowKey: GridDraftKey,
 		columnId: string | number,
 		draft: GridDraft,
-		refusal: { error: string; reopen: boolean } | null,
+		refusal: { error: string | undefined; reopen: boolean } | null,
 	) => boolean
 	/**
 	 * Removes each staged draft that `match` names, and returns the count. A
 	 * pending draft stays, because its commit is in flight.
 	 */
 	drop: (
-		match: (rowKey: string | number, columnId: string | number, draft: GridDraft) => boolean,
+		match: (rowKey: GridDraftKey, columnId: string | number, draft: GridDraft) => boolean,
 	) => number
 }
 
 /** The records of a {@link GridDraftStore}, keyed by row and then by column. @internal */
-type DraftRows = Map<string | number, Map<string | number, GridDraft>>
+type DraftRows = Map<GridDraftKey, Map<string | number, GridDraft>>
 
 /** The inner map of `outer` at `key`, created empty when it is absent. @internal */
 function rowOf<V>(
-	outer: Map<string | number, Map<string | number, V>>,
-	key: string | number,
+	outer: Map<GridDraftKey, Map<string | number, V>>,
+	key: GridDraftKey,
 ): Map<string | number, V> {
 	let row = outer.get(key)
 
@@ -246,9 +271,9 @@ function rowOf<V>(
  */
 function writeDraft(
 	rows: DraftRows,
-	cell: { rowKey: string | number; columnId: string | number },
+	cell: { rowKey: GridDraftKey; columnId: string | number },
 	write: { value: unknown; snapshot: unknown },
-	accepts: (rowKey: string | number, columnId: string | number) => boolean,
+	accepts: (rowKey: GridDraftKey, columnId: string | number) => boolean,
 ): void {
 	const draft = rows.get(cell.rowKey)?.get(cell.columnId)
 
@@ -282,7 +307,7 @@ function writeDraft(
  */
 function takeClosed(
 	rows: DraftRows,
-	closed: (rowKey: string | number, columnId: string | number) => boolean,
+	closed: (rowKey: GridDraftKey, columnId: string | number) => boolean,
 ): DraftRows {
 	const taken: DraftRows = new Map()
 
@@ -312,7 +337,7 @@ function takeClosed(
 /** Removes the staged records that `match` names, and returns the count. @internal */
 function dropMatching(
 	rows: DraftRows,
-	match: (rowKey: string | number, columnId: string | number, draft: GridDraft) => boolean,
+	match: (rowKey: GridDraftKey, columnId: string | number, draft: GridDraft) => boolean,
 ): number {
 	let dropped = 0
 
@@ -337,7 +362,7 @@ function dropMatching(
  * @internal
  */
 export function createDraftStore(
-	accepts: (rowKey: string | number, columnId: string | number) => boolean,
+	accepts: (rowKey: GridDraftKey, columnId: string | number) => boolean,
 ): GridDraftStore {
 	const rows: DraftRows = new Map()
 
@@ -363,6 +388,7 @@ export function createDraftStore(
 			if (row.size === 0) rows.delete(rowKey)
 		},
 		read: (rowKey, columnId) => rows.get(rowKey)?.get(columnId),
+		readRow: (rowKey) => rows.get(rowKey),
 		take: (closed) => takeClosed(rows, closed),
 		pend: (rowKey, columnId, draft) => {
 			draft.status = 'pending'
@@ -400,6 +426,25 @@ export function createDraftStore(
 
 /** Focusable editor content inside an editing cell, in preference order. @internal */
 export const EDITOR_FOCUSABLE = 'input, select, textarea, button, [tabindex]'
+
+/**
+ * The elements whose own Enter does something native: a button or link
+ * activates, a text area breaks the line, and a select opens. The session's
+ * Enter leaves them alone. The inline listbox's trigger is a button, so it
+ * keeps the Enter that opens it. @internal
+ */
+export const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable="true"]'
+
+/**
+ * Whether `node` is inside `grid`, the grid's `role="grid"` tab stop. The
+ * nearest `role="grid"` ancestor of the node must be `grid` itself. A grid
+ * nested in a detail row of this one is therefore another grid.
+ *
+ * @internal
+ */
+export function isInGrid(node: Element | null, grid: HTMLElement | null): boolean {
+	return grid !== null && node?.closest('[role="grid"]') === grid
+}
 
 /**
  * The elements of `root` in the tab order, in document order.
@@ -472,4 +517,85 @@ export function isCellEditing(args: {
 	if (active === null || active.rowKey !== args.rowKey) return true
 
 	return isSameCell(active, args)
+}
+
+/** The error a refused cell shows when the consumer gives none. @internal */
+export const COMMIT_REFUSED = 'Change not saved'
+
+/** Whether a sink's return value is a promise, by the thenable rule. @internal */
+export function isThenable(value: unknown): value is PromiseLike<unknown> {
+	return value != null && typeof (value as { then?: unknown }).then === 'function'
+}
+
+/** A column as the new-row slot reads it. @internal */
+type NewRowColumn = {
+	id: string | number
+	field?: PropertyKey
+	readOnly?: boolean
+	editCell?: unknown
+}
+
+/**
+ * The values of the new-row slot, from its drafts. `values` maps the `field`
+ * of each editable column to its drafted value, or the column id when the
+ * column has no `field`. It holds only the cells with a value (see
+ * {@link isBlankDraft}), in column order. `values` is also the draft row
+ * that `validate` reads. `cells` lists the same cells with their records.
+ * @internal
+ */
+export function collectNewRow<C extends NewRowColumn>(
+	drafts: ReadonlyMap<string | number, GridDraft> | undefined,
+	columns: readonly C[],
+): { values: Record<string, unknown>; cells: { column: C; draft: GridDraft }[] } {
+	const values: Record<string, unknown> = {}
+
+	const cells: { column: C; draft: GridDraft }[] = []
+
+	for (const column of columns) {
+		const draft = drafts?.get(column.id)
+
+		if (!draft || !isColumnEditable(column) || isBlankDraft(draft.value)) continue
+
+		values[String(column.field ?? column.id)] = draft.value
+
+		cells.push({ column, draft })
+	}
+
+	return { values, cells }
+}
+
+/**
+ * The error of each refused cell of a settled new-row add, keyed by column
+ * id. A rejection refuses each drafted cell, with the reason's `message` when
+ * that is a non-empty string, else {@link COMMIT_REFUSED}. A resolved list
+ * refuses the cells it names. A name that is not an editable column of the
+ * slot is ignored, and so is the `rowKey` of each entry. An empty result
+ * accepts the add. @internal
+ */
+export function readNewRowRefusals(
+	outcome: { value: unknown } | { reason: unknown },
+	drafted: readonly (string | number)[],
+	editable: (columnId: string | number) => boolean,
+): Map<string | number, string> {
+	const refused = new Map<string | number, string>()
+
+	if ('reason' in outcome) {
+		const message = (outcome.reason as { message?: unknown } | null)?.message
+
+		const error = typeof message === 'string' && message !== '' ? message : COMMIT_REFUSED
+
+		for (const columnId of drafted) refused.set(columnId, error)
+
+		return refused
+	}
+
+	const list: { columnId: string | number; error?: string }[] = Array.isArray(outcome.value)
+		? outcome.value
+		: []
+
+	for (const refusal of list) {
+		if (editable(refusal.columnId)) refused.set(refusal.columnId, refusal.error || COMMIT_REFUSED)
+	}
+
+	return refused
 }

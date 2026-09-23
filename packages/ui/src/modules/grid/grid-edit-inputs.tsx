@@ -35,6 +35,13 @@ export type GridEditInputProps = {
 	 * keeps Escape, which reverts this cell, and nothing saves on Enter.
 	 */
 	managed: boolean
+	/**
+	 * Whether the editor can hold no value, as in the new-row slot. The yes/no
+	 * editor then shows the listbox placeholder until the user picks. A choice
+	 * that the user did not make would add nothing, so it must not show.
+	 * Elsewhere a cell with no `true` value shows No.
+	 */
+	unset?: boolean
 }
 
 /**
@@ -128,16 +135,26 @@ const BOOLEAN_OPTIONS = [
  * own panel while it is open.
  * @internal
  */
-function GridBooleanEditInput({ draft, onValueUpdate, ariaLabel, required }: GridEditInputProps) {
+function GridBooleanEditInput({
+	draft,
+	onValueUpdate,
+	ariaLabel,
+	required,
+	unset,
+}: GridEditInputProps) {
+	// `null` keeps the listbox controlled with no selection, so it shows its
+	// placeholder (CONVENTIONS §7.3).
+	const value = draft === true ? 'true' : unset && draft !== false ? null : 'false'
+
 	return (
 		<Listbox<string>
 			data-slot="grid-edit-boolean-input"
 			aria-label={ariaLabel}
 			aria-required={required || undefined}
 			className={k.edit.input}
-			value={draft === true ? 'true' : 'false'}
-			onValueChange={(next) => onValueUpdate(next === 'true')}
-			displayValue={(value) => (value === 'true' ? 'Yes' : 'No')}
+			value={value}
+			onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}
+			displayValue={(option) => BOOLEAN_OPTIONS.find((o) => o.value === option)?.label ?? ''}
 		>
 			{BOOLEAN_OPTIONS.map((option) => (
 				<ListboxOption key={option.value} value={option.value}>
