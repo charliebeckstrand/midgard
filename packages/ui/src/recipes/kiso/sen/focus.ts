@@ -18,8 +18,9 @@
  *   - `outline`   2 px outline on a `:has(:focus-visible)` wrapper,
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
- *   - `indicator` background-paint marker (option items mark `aria-current`
- *                 with the same colour as the focus ring)
+ *   - `indicator` background-paint marker on `::after`, in the focus-ring
+ *                 colour, for a focused tab or segment item that does not
+ *                 carry `data-current`
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
  *                 `raise` and one entry per indicator shape, because the host
@@ -37,10 +38,9 @@ export const focus = {
 	ring: [
 		// CSS outline, not a box-shadow ring: one crisp stroke along the radius.
 		// `outline-offset` opens a transparent gap exposing the surface behind;
-		// the stroke reads against the element's fill even when the fill IS
-		// the accent colour. The accent brightens one step in dark mode and
-		// holds ≥3:1 against zinc-900. Mouse-focus outlines are suppressed
-		// globally (:focus:not(:focus-visible)).
+		// the stroke reads against the element's fill even when the fill IS the
+		// accent colour. The accent is `blue-600` in both modes. Mouse-focus
+		// outlines are suppressed globally (:focus:not(:focus-visible)).
 		'focus-visible:outline-2 focus-visible:outline-offset-2',
 		'focus-visible:outline-blue-600',
 	],
@@ -52,7 +52,7 @@ export const focus = {
 	inset: ['outline-none', 'focus-visible:ring-2 ring-inset focus-visible:ring-blue-600'],
 	outline: [
 		'has-focus-visible:outline-2 has-focus-visible:outline-blue-600 has-focus-visible:outline-offset-2',
-		/** Swaps to an inset ring inside `[data-scroll-region]` ancestors, where `overflow-y-auto` clips an outset outline. */
+		/** Swaps to a 2 px border inside `[data-scroll-region]` ancestors, where `overflow-y-auto` clips an outset outline. */
 		'[[data-scroll-region]_&]:has-focus-visible:outline-none [[data-scroll-region]_&]:has-focus-visible:border-2 [[data-scroll-region]_&]:has-focus-visible:border-blue-600',
 	],
 	indicator: 'not-data-current:focus-visible:after:bg-blue-600',

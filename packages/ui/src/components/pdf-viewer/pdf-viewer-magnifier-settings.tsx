@@ -161,9 +161,8 @@ type PdfViewerMagnifierChoiceProps<T extends string> = {
  * `<legend>`, and again names the `radiogroup` the `RadioGroup` renders through
  * `aria-labelledby`. Both are needed, because a legend does not reach a `radiogroup` div.
  *
- * Local rather than a file of its own, the way `ToolbarToggle` is. It says nothing outside
- * this dialog, and a lift would only put three call sites further from the thing they
- * configure.
+ * It is local rather than in a file of its own. It has no meaning outside this dialog. A move
+ * would only put three call sites further from the settings that they configure.
  * @internal
  */
 function PdfViewerMagnifierChoice<T extends string>({

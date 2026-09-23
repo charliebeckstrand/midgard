@@ -12,7 +12,7 @@
  * A surface needs no glass allowance either, so this never carries the
  * group-scoped half `glassItem` adds; the caller emits one wash or the other.
  *
- * Guarded against disabled and `data-disabled` descendants, like every wash here.
+ * Guarded against a disabled or `data-disabled` element, like the other hover washes here.
  *
  * Layer: kiso · Concern: hover/focus tint
  */

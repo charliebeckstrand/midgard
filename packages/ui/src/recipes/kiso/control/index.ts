@@ -1,8 +1,8 @@
 /**
  * Control archetype: the framed surface that wraps a user-input element.
  *
- * Consumed by input, textarea, listbox, combobox, date-picker, checkbox,
- * radio, and ControlFrame. Exposes class fragments (frame, surface, reset,
+ * Consumed by input, textarea, select, listbox, combobox, date-picker,
+ * color-picker, checkbox, radio, switch, rating, and ControlFrame. Exposes class fragments (frame, surface, reset,
  * input, density, size, affix, resets, check) that each kata composes into
  * its own recipe.
  */

@@ -6,10 +6,10 @@ import { TooltipAnchor } from '../tooltip/tooltip-anchor'
 /**
  * The name of the selected region, drawn above it.
  *
- * Because the boxes are the one thing on the page that cannot say what they are. A reviewer
- * arrives here from a list beside the viewer, where hovering a field's label selects its
- * region. On a dense page the ring and the deeper wash say *which* box was picked, without
- * saying which of twenty fields picked it. The name is already required of every highlight and
+ * Because the boxes are the one thing on the page that cannot say what they are. A reader
+ * often arrives from a list beside the viewer, where a selection picks a region. On a dense
+ * page the ring and the deeper wash say *which* box was picked, without saying which of
+ * twenty fields picked it. The name is already required of every highlight and
  * already on the region as its `aria-label`; this is the sighted reader's copy of it.
  *
  * @remarks **A leaf, deliberately, and the layer must keep it that way.** Floating-ui commits

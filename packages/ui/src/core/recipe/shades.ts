@@ -20,7 +20,7 @@ type ShadeSpec<C extends string> = Record<C, string | readonly [light: string, d
 /**
  * Generic over the colour set: defaults to {@link Color} (the standard
  * palette) and widens to the extended set when called with an extended-keyed
- * spec, e.g. `shades<ExtendedColor>({ rose: …, sky: … })` in `iro/spectrum`.
+ * spec, e.g. `shades<ExtendedColor>({ rose: …, sky: … })` in `iro/extended-palette`.
  */
 export function shades<C extends string = Color>(spec: ShadeSpec<C>): Record<C, string[]> {
 	return Object.fromEntries(

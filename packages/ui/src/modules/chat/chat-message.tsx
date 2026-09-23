@@ -77,8 +77,9 @@ export type ChatMessageProps = ChatMessageVariants & {
  * steady bubble the moment streaming ends. The kata holds the whole look.
  *
  * A part list draws one block per part, each keyed by the part's own id. A text
- * block is its own {@link Markdown}, and an `embed` block is whatever renderer
- * {@link ChatEmbedProvider} registered under its name. The string arm still
+ * block is its own {@link Markdown}. An `embed` block is the renderer that
+ * {@link ChatEmbedProvider} registered under its name. A `tool` block is a step
+ * line that {@link ChatTool} draws. The string arm still
  * draws exactly one {@link Markdown} over the string itself. A transcript of
  * prose therefore allocates nothing per render and lexes once, as it did before
  * parts existed.

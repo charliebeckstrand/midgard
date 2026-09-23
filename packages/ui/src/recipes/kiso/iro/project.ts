@@ -3,8 +3,8 @@
  * `[light, dark]` map the recipe engine consumes. The colour-major ramp holds
  * one row per colour, each naming the `[light, dark]` shades it plays per
  * foreground role. Shared by the
- * standard `ramp` and the extended `spectrum`, which differ only in their
- * colour key set.
+ * standard `ramp` and the extended ramp in `extended-palette.ts`, which differ
+ * only in their colour key set.
  *
  * Layer: kiso · Concern: colour projection
  */
