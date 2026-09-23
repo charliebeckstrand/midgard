@@ -67,9 +67,11 @@ export type ChatTranscriptProps = {
  * transcript opens at its newest row with no animation. The virtualizer then
  * anchors to the end: a row that grows keeps the end in view, and a new row
  * smooth-scrolls into view. Both happen only while the reader sits at the end,
- * so a reader who scrolled up to read is not pulled down. Mount this fresh per
- * conversation (e.g. `key`ed on its id), so a switch does not start from the
- * old scroll position.
+ * so a reader who scrolled up to read is not pulled down. The reader's own
+ * message is the exception. A new `user` row at the end pins the transcript to
+ * it, wherever the reader had scrolled, because the reader sent it. Mount this
+ * fresh per conversation (e.g. `key`ed on its id), so a switch does not start
+ * from the old scroll position.
  *
  * The window changes what an embed's `mount` policy can promise. A row that
  * leaves the window unmounts, with the views in it. Under `lazy`, an embed the
@@ -130,6 +132,26 @@ export function ChatTranscript({ messages, streaming, className }: ChatTranscrip
 		if (opened.current || virtualItems.length === 0) return
 
 		opened.current = true
+
+		scrollToIndex(count - 1, { align: 'end' })
+	})
+
+	// The newest row as the last commit held it. A row appended at the end
+	// changes the newest key, and a row inserted above it does not.
+	const newestKey = count > 0 ? getItemKey(count - 1) : undefined
+
+	const newest = useRef({ count, key: newestKey })
+
+	// The follow acts only at the end, so the reader's own message pins here.
+	// The reader sent it, so they expect to see it, wherever they had scrolled.
+	useLayoutEffect(() => {
+		const before = newest.current
+
+		newest.current = { count, key: newestKey }
+
+		if (!opened.current || count <= before.count || newestKey === before.key) return
+
+		if (messages[count - 1]?.role !== 'user') return
 
 		scrollToIndex(count - 1, { align: 'end' })
 	})

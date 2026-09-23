@@ -10,8 +10,8 @@ import { frames, hasIntermediate, renderUI, waitFor } from '../helpers'
  * through the virtualizer. Each rule here is layout: a row height, a scroll
  * offset, a view that comes into sight. jsdom lays nothing out, so its window
  * never holds a row. These cases prove the pin on mount, the pin through a
- * streamed chunk, the follow while new rows measure, and the embed memory
- * that outlives a row.
+ * streamed chunk, the follow while new rows measure, and the pin on the
+ * reader's own message. They also prove the embed memory that outlives a row.
  */
 
 const HEIGHT = 300
@@ -203,6 +203,33 @@ describe('the transcript window', () => {
 		await frames()
 
 		expect(Math.abs(transcript.scrollTop - reading)).toBeLessThanOrEqual(1)
+	})
+
+	it('takes a reader who scrolled up to the end when their own message arrives', async () => {
+		const messages = history(200)
+
+		const { container, rerender } = renderUI(<Frame messages={messages} />)
+
+		const transcript = transcriptOf(container)
+
+		await waitFor(() => expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1))
+
+		await scrollTo(transcript, transcript.scrollTop - 1_000)
+
+		expect(distanceFromEnd(transcript)).toBeGreaterThan(HEIGHT)
+
+		rerender(<Frame messages={[...messages, { id: 'sent', role: 'user', content: 'Sent.' }]} />)
+
+		await waitFor(() => {
+			expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
+
+			expect(showsEnd(transcript, 'Sent.')).toBe(true)
+		})
+
+		// It stays landed once the new row has measured.
+		await frames()
+
+		expect(distanceFromEnd(transcript)).toBeLessThanOrEqual(1)
 	})
 })
 

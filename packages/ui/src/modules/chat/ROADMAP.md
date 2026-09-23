@@ -160,7 +160,7 @@ Increment 7 put a number on the transcript: a streamed chunk at 5,000 messages c
 
 The transcript now renders a window through the measured path of [`useVirtualWindow`](../../hooks/use-virtual-window.ts). Each row carries its message id as its key, and each row measures its real height. A bubble that wraps, a step a reader opens, and an embed that draws all move the rows below them, and the spacers follow. A streamed chunk re-renders the rows in the window and does not map the whole list.
 
-The pin moved off `scrollTop`. Under a measured window the total height changes as rows measure, so a pin written against `scrollHeight` drifts. The transcript passes `anchorTo: 'end'` and `followOnAppend: 'smooth'` to the virtualizer. A row that grows keeps the end in view, and a new row scrolls into view. Both act only while the reader sits at the end, so a reader who scrolled up stays where they are. The anchor has no mount arm, so the first window that holds rows calls `scrollToIndex(count - 1, { align: 'end' })` once, before paint. [`useChatScroll`](use-chat-scroll.ts) is unchanged and no longer used by the transcript.
+The pin moved off `scrollTop`. Under a measured window the total height changes as rows measure, so a pin written against `scrollHeight` drifts. The transcript passes `anchorTo: 'end'` and `followOnAppend: 'smooth'` to the virtualizer. A row that grows keeps the end in view, and a new row scrolls into view. Both act only while the reader sits at the end, so a reader who scrolled up stays where they are. The reader's own message is the exception: a new `user` row at the end calls `scrollToIndex(count - 1, { align: 'end' })`, wherever the reader had scrolled. A reply, a streamed chunk, and a row inserted above the end keep the rule. The anchor has no mount arm, so the first window that holds rows calls `scrollToIndex(count - 1, { align: 'end' })` once, before paint. [`useChatScroll`](use-chat-scroll.ts) is unchanged and no longer used by the transcript.
 
 The embed memory moved above the window. A row that leaves the window unmounts, and the latch in `useInView` and `useMountHold` goes with it. [`ChatEmbedProvider`](chat-embed-provider.tsx) now owns a set of the embeds a reader reached, addressed by row key and part id, because a part id is unique only in its message. A returning embed draws at once. Under a window, `lazy` means "no second deferral", not "held", and the transcript documents that `always` cannot be honoured.
 
@@ -174,7 +174,7 @@ The benches are the acceptance test. The render bench now models a 600 px viewpo
 | 500 | 2.37 ms | 0.74 ms |
 | 5,000 | 24.6 ms | 1.02 ms |
 
-Mount falls from 1,174 ms to about 10 ms at 5,000 messages. The proof beside the benches is [`chat-transcript-window.test.tsx`](../../__tests__/browser/chat-transcript-window.test.tsx) in Chromium: the pin on mount, a chunk that grows the last row, a smooth follow while rows measure, a reader who scrolled up, and an embed that does not defer a second time.
+Mount falls from 1,174 ms to about 10 ms at 5,000 messages. The proof beside the benches is [`chat-transcript-window.test.tsx`](../../__tests__/browser/chat-transcript-window.test.tsx) in Chromium: the pin on mount, a chunk that grows the last row, a smooth follow while rows measure, a reader who scrolled up, a reader who sends from above the end, and an embed that does not defer a second time.
 
 
 ## Backlog
