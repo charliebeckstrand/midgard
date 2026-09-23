@@ -41,12 +41,14 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //   as plain text, resolved or not, so the stricter index gates nothing a
 //   reader sees.
 //
-// Scope stops at `src`, and `docs/` stays out on purpose. An audit records the
-// dangling citation it fixed by quoting it, and a plan names the test file it
-// proposes to add; nine such references sit under `docs/audits` and
-// `docs/plans` today, every one of them deliberate. Those documents keep their
-// authored voice. The curated surface docs beside them carry no citation at
-// all, so the rule would buy nothing there either.
+// Scope stops at `src`, and `docs/` stays out on purpose. An audit quotes the
+// dangling citation it fixed, or records a test that does not exist, and a
+// plan names the test file it proposes to add. A recount on 2026-09-23 found
+// eight such references under `docs/audits` and `docs/plans`, and each one was
+// deliberate. A gate there would report authored prose as drift, and those
+// documents keep their authored voice. The curated surface docs beside them
+// cite no test file, and `surface-index.test.ts` already holds their export
+// rows. What stays unguarded is narrow: a future curated doc that cites a test.
 
 // Entries that hold no authored comment of this package's own.
 const SKIP = new Set(['node_modules', 'dist'])
