@@ -66,6 +66,7 @@ export const k = defineRecipe(
 		},
 		color,
 		defaults: { size: 'md', color: 'amber' },
+		skeleton: kokkaku.rating,
 	},
 	{
 		star,
@@ -99,7 +100,6 @@ export const k = defineRecipe(
 		clearing: 'opacity-40',
 		/** Visually-hidden native radio, overlaying its own star. */
 		input: control.check.hidden,
-		skeleton: kokkaku.rating,
 	},
 )
 

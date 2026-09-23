@@ -317,7 +317,9 @@ export function useDatePickerRelativeState({
 	// (entering custom mode alone changes nothing); list mode requires any
 	// committed span. Either way Clear runs the same `handleClear`, so one footer
 	// bundle covers both. `footer.clear` (default on) suppresses it outright.
-	const showFooterClear = footer?.clear !== false && (mode === 'custom' ? customComplete : hasValue)
+	// readOnly drops it too, because the button cannot write a value.
+	const showFooterClear =
+		!resolvedReadOnly && footer?.clear !== false && (mode === 'custom' ? customComplete : hasValue)
 
 	const footerButtons = useMemo<FooterButton[]>(
 		() => (showFooterClear ? ['clear'] : []),

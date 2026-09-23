@@ -28,11 +28,17 @@ export type JsonTreeProps = {
 	/** Search term to highlight and auto-expand matching nodes. Pass a string or `{ value, filter }` to also hide non-matching nodes. */
 	search?: Search
 	/**
-	 * Enables row virtualization with `{ maxHeight }` (the scroll-container
-	 * height) plus optional `estimateSize` / `overscan`. Flattens the visible
+	 * Enables row virtualization with `{ maxHeight }` (the cap on the scroll
+	 * container) plus optional `estimateSize` / `overscan`. Flattens the visible
 	 * tree into a linear list and renders only the viewport slice plus overscan.
 	 * Expand/collapse is instant (no animation); leave this off when the
 	 * animation matters.
+	 *
+	 * @remarks
+	 * `maxHeight` alone is enough. The tree sizes itself from its content, up to
+	 * the cap, and then scrolls. A fixed height from `className` also works, under
+	 * the same cap. `estimateSize` must match the rendered row height, because the
+	 * spacers and the first window use it.
 	 */
 	virtualize?: JsonTreeVirtualize
 	className?: string

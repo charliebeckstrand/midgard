@@ -175,6 +175,15 @@ export function JsonTreeVirtualized({
 		overscan,
 	})
 
+	// The window is empty until the virtualizer measures a scroller of some
+	// height. A scroller that only `maxHeight` bounds sizes to its content, and
+	// with no rows it measures zero, so the window stays empty for good. While
+	// the window is empty, the bottom spacer holds the height of every row. The
+	// scroller then grows to its cap, and the virtualizer measures a window.
+	const warming = flatNodes.length > 0 && virtualItems.length === 0
+
+	const trailing = warming ? flatNodes.length * estimateSize : bottomSpacer
+
 	// The Tab stop rides the first focusable rendered row; windowing can
 	// scroll the depth-0 root out of the DOM.
 	const firstFocusable = useMemo(
@@ -233,7 +242,12 @@ export function JsonTreeVirtualized({
 			onKeyDown={handleKeyDown}
 		>
 			{topSpacer > 0 && (
-				<div role="presentation" data-slot="json-tree-spacer" style={{ height: topSpacer }} />
+				<div
+					role="presentation"
+					data-slot="json-tree-spacer"
+					className={k.spacer}
+					style={{ height: topSpacer }}
+				/>
 			)}
 			{virtualItems.map((virtualItem) => {
 				const node = flatNodes[virtualItem.index]
@@ -250,8 +264,13 @@ export function JsonTreeVirtualized({
 					/>
 				)
 			})}
-			{bottomSpacer > 0 && (
-				<div role="presentation" data-slot="json-tree-spacer" style={{ height: bottomSpacer }} />
+			{trailing > 0 && (
+				<div
+					role="presentation"
+					data-slot="json-tree-spacer"
+					className={k.spacer}
+					style={{ height: trailing }}
+				/>
 			)}
 		</div>
 	)

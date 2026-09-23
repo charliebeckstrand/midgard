@@ -2,9 +2,11 @@
 
 import { type CSSProperties, type FocusEvent, type Ref, useRef } from 'react'
 import { cn, dataAttr, invalidAttrs } from '../../../core'
+import { useIdScope } from '../../../hooks/use-id-scope'
 import { useDensity } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
+import { useControl } from '../../control/context'
 import { useControlProps } from '../../control/use-control-props'
 import { useFormValue } from '../../form/use-form-value'
 import type { ThumbButtonRefs, ThumbIndex } from './types'
@@ -13,6 +15,8 @@ import { useRangePointer } from './use-range-pointer'
 
 /** Props for {@link RangeSlider}: the `[start, end]` controllable triad, `min`/`max`/`step` bounds, `allowCross` overlap policy, the pointer-drag bracket, per-thumb `labels` and `getValueText` for assistive tech, plus `size`/`color` variants. */
 export type RangeSliderProps = {
+	/** Id of the root. Without the prop, the root takes the id of the enclosing Control, else a generated id. */
+	id?: string
 	/** Binds the range to an enclosing Form field. Seed `Form.defaultValues` with a `[number, number]`. */
 	name?: string
 	value?: [number, number]
@@ -35,7 +39,8 @@ export type RangeSliderProps = {
 	allowCross?: boolean
 	/**
 	 * Accessible names for the `[start, end]` thumbs; name what each thumb
-	 * bounds (e.g. `['Min price', 'Max price']`).
+	 * bounds (e.g. `['Min price', 'Max price']`). In a Field with a Label, each
+	 * thumb name starts with the Label text, for example "Price Minimum".
 	 *
 	 * @defaultValue `['Range start', 'Range end']`
 	 */
@@ -83,8 +88,13 @@ export type RangeSliderProps = {
  * focus leaves the widget. A move from one thumb to the other does not mark it. An error
  * on the field, or an `error` severity on an enclosing Control, marks each thumb invalid.
  * Each thumb also takes the `disabled` state and the `aria-describedby` of the Control.
+ *
+ * The root takes `id`, else the id of the enclosing Control. In a Field with a Label, each
+ * thumb takes `aria-labelledby`. It points at the Label, then at a hidden span with the
+ * `labels` entry. Without a Field Label, each thumb takes its `labels` entry as `aria-label`.
  */
 export function RangeSlider({
+	id,
 	name,
 	value,
 	defaultValue,
@@ -123,7 +133,18 @@ export function RangeSlider({
 
 	// The root has no role, so the validation state and the description go on
 	// each `role="slider"` thumb.
-	const controlProps = useControlProps({ disabled, invalid })
+	const controlProps = useControlProps({ id, disabled, invalid })
+
+	const scope = useIdScope({ id: controlProps.id })
+
+	// A Field Label names each thumb together with the thumb label. The thumb
+	// label then needs an element with an id, so it renders as a hidden span.
+	const fieldLabelledBy = useControl()?.labelledBy
+
+	const thumbName = (thumb: ThumbIndex) =>
+		fieldLabelledBy
+			? { 'aria-labelledby': `${fieldLabelledBy} ${scope.sub(`thumb-${thumb}-label`)}` }
+			: { 'aria-label': labels[thumb] }
 
 	const resolvedDisabled = controlProps.disabled === true
 
@@ -188,6 +209,7 @@ export function RangeSlider({
 		// biome-ignore lint/a11y/noStaticElementInteractions: the root only hears the focus that leaves its two role="slider" thumbs. The thumbs carry the widget semantics.
 		<div
 			ref={ref}
+			id={scope.id}
 			data-slot="slider-range"
 			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(k.root({ size: resolvedSize, color }), className)}
@@ -224,7 +246,7 @@ export function RangeSlider({
 				aria-valuemax={current[1]}
 				aria-valuenow={current[0]}
 				aria-valuetext={getValueText?.(current[0], 0)}
-				aria-label={labels[0]}
+				{...thumbName(0)}
 				aria-describedby={describedBy}
 				{...validation}
 				data-slot="slider-range-thumb"
@@ -244,7 +266,7 @@ export function RangeSlider({
 				aria-valuemax={max}
 				aria-valuenow={current[1]}
 				aria-valuetext={getValueText?.(current[1], 1)}
-				aria-label={labels[1]}
+				{...thumbName(1)}
 				aria-describedby={describedBy}
 				{...validation}
 				data-slot="slider-range-thumb"
@@ -252,6 +274,17 @@ export function RangeSlider({
 				style={{ left: `${hi}%` }}
 				onKeyDown={handleKeyDown(1)}
 			/>
+
+			{fieldLabelledBy && (
+				<>
+					<span id={scope.sub('thumb-0-label')} hidden>
+						{labels[0]}
+					</span>
+					<span id={scope.sub('thumb-1-label')} hidden>
+						{labels[1]}
+					</span>
+				</>
+			)}
 		</div>
 	)
 }

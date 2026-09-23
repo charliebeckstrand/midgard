@@ -85,13 +85,15 @@ describe('component internals boundary', () => {
 
 	// Rendering `<XxxContext value={…}>` makes the module a client module: the
 	// package's subpath exports resolve to raw source, so a missing directive
-	// surfaces as an RSC crash only at runtime in a consuming Next app.
+	// surfaces as an RSC crash only at runtime in a consuming Next app. A
+	// provider without a directive renders a small client leaf that writes the
+	// context, as `DensityProvider` renders the `Density` primitive.
 	it("a module that renders a Context provider carries 'use client'", () => {
 		const violations: string[] = []
 
 		const PROVIDER_JSX = /<[A-Z][A-Za-z]*Context[\s>]/
 
-		for (const dir of [componentsDir, modulesDir])
+		for (const dir of [componentsDir, modulesDir, providersDir])
 			walkSource(dir, (file, content) => {
 				if (!file.endsWith('.tsx')) return
 

@@ -193,11 +193,14 @@ export function useDatePickerState({
 
 	// Footer toggles default on; a `false` drops the button from the rendered
 	// toolbar and the keyboard model alike, since `footerButtons` feeds both.
+	// readOnly drops the whole footer, because its buttons cannot write a value.
 	const showClear = footer?.clear !== false
 
 	const showToday = footer?.today !== false
 
 	const footerButtons = useMemo<FooterButton[]>(() => {
+		if (resolvedReadOnly) return []
+
 		const today = new Date()
 
 		// Offer Today only when today is selectable; out of range it would commit
@@ -211,7 +214,7 @@ export function useDatePickerState({
 		if (showToday && todayInRange) buttons.push('today')
 
 		return buttons
-	}, [value, min, max, showClear, showToday])
+	}, [resolvedReadOnly, value, min, max, showClear, showToday])
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
 		placement,

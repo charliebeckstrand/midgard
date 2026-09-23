@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Control } from '../../components/control'
-import { Description, Message } from '../../components/fieldset'
+import { Description, Field, Label, Message } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
@@ -356,6 +356,51 @@ describe('RangeSlider + Control', () => {
 
 			expect(describedBy).toContain('price-error')
 		}
+	})
+
+	it('puts the Control id on the root', () => {
+		const { container } = renderUI(
+			<Control id="price">
+				<RangeSlider />
+			</Control>,
+		)
+
+		expect(getSlot(container, 'slider-range')).toHaveAttribute('id', 'price')
+	})
+
+	it('keeps an explicit id over the Control id', () => {
+		const { container } = renderUI(
+			<Control id="price">
+				<RangeSlider id="band" />
+			</Control>,
+		)
+
+		expect(getSlot(container, 'slider-range')).toHaveAttribute('id', 'band')
+	})
+
+	it('names each thumb from the Field label, then the thumb label', () => {
+		const { container } = renderUI(
+			<Field>
+				<Label>Price</Label>
+				<RangeSlider labels={['Minimum', 'Maximum']} />
+			</Field>,
+		)
+
+		const [loThumb, hiThumb] = allBySlot(container, 'slider-range-thumb')
+
+		expect(loThumb).toHaveAccessibleName('Price Minimum')
+
+		expect(hiThumb).toHaveAccessibleName('Price Maximum')
+	})
+
+	it('names each thumb from the thumb label alone outside a Field', () => {
+		const { container } = renderUI(<RangeSlider labels={['Minimum', 'Maximum']} />)
+
+		const [loThumb, hiThumb] = allBySlot(container, 'slider-range-thumb')
+
+		expect(loThumb).toHaveAccessibleName('Minimum')
+
+		expect(hiThumb).toHaveAccessibleName('Maximum')
 	})
 })
 

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Field, Label } from '../../components/fieldset'
 import { Form, useFormState } from '../../components/form'
-import { Rating } from '../../components/rating'
+import { Rating, RatingSkeleton } from '../../components/rating'
 import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
 
 /** The stars' own radios, in draw order. */
@@ -219,5 +219,30 @@ describe('Rating', () => {
 		expect(bySlot(container, 'rating')).toHaveAttribute('data-disabled')
 
 		expect(stars(container)).toHaveLength(0)
+	})
+})
+
+describe('RatingSkeleton', () => {
+	// The class strings came from the render before the skeleton moved from the
+	// extras into the config. A change in them is a change in the silhouette.
+	const placeholder = 'bg-zinc-200 dark:bg-zinc-700 motion-safe:animate-pulse block rounded-sm'
+
+	const row =
+		'inline-flex items-center w-fit disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50 motion-safe:transition-opacity motion-safe:duration-150'
+
+	const hue = 'text-amber-600 dark:text-amber-500'
+
+	it.each([
+		['sm', 'gap-0.5', 'size-4'],
+		['md', 'gap-0.5', 'size-5'],
+		['lg', 'gap-1', 'size-6'],
+	] as const)('keeps the %s silhouette classes', (size, gap, glyph) => {
+		const { container } = renderUI(<RatingSkeleton size={size} count={2} />)
+
+		expect((container.firstElementChild as HTMLElement).className).toBe(`${row} ${gap} ${hue}`)
+
+		const classes = allBySlot(container, 'placeholder').map((star) => star.className)
+
+		expect(classes).toEqual([`${placeholder} ${glyph}`, `${placeholder} ${glyph}`])
 	})
 })

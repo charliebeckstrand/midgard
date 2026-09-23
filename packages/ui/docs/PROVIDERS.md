@@ -39,7 +39,7 @@ Sets the ambient glass flag so glass-aware chrome switches to its glass variant.
 
 | Export | Summary |
 |---|---|
-| `GlassProvider` | Sets the ambient glass flag for the subtree, switching every glass-aware descendant to its glass variant. |
+| `GlassProvider` | Sets the ambient glass flag for the subtree, switching every glass-aware descendant to its glass variant. It has no `'use client'`, so an RSC tree can host it; a client leaf writes the context. |
 | `GlassProviderProps` *(type)* | Props for `GlassProvider`. |
 | `GlassContext` | Ambient glass-mode context (default `false`); read via `useGlass()` at the leaf. |
 | `useGlass` | Reads the ambient glass flag; `false` outside a `<GlassProvider>`. |

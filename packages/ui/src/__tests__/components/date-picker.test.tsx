@@ -589,6 +589,38 @@ describe('DatePicker footer', () => {
 
 		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
 	})
+
+	// A controlled `open` still shows the calendar under readOnly. The footer
+	// buttons do nothing there, so every variant hides the footer.
+	it.each([
+		['single', <DatePicker key="single" readOnly open value={new Date(2025, 5, 15)} />],
+		[
+			'range',
+			<DatePicker
+				key="range"
+				range
+				readOnly
+				open
+				value={[new Date(2025, 5, 1), new Date(2025, 5, 3)]}
+			/>,
+		],
+		[
+			'relative',
+			<DatePicker
+				key="relative"
+				relative
+				readOnly
+				open
+				value={[{ from: new Date(2025, 5, 1), to: new Date(2025, 5, 3) }]}
+			/>,
+		],
+	])('hides the %s footer when readOnly', (_, node) => {
+		renderUI(node)
+
+		expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+		expect(screen.queryByRole('toolbar', { name: 'Date picker actions' })).not.toBeInTheDocument()
+	})
 })
 
 // Focus stays on the trigger while an aria-activedescendant model drives the
