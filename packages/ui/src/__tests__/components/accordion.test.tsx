@@ -352,6 +352,26 @@ describe('Accordion keyboard navigation', () => {
 
 		expect(trigger('First')).toHaveFocus()
 	})
+
+	it('keeps every enabled header in the Tab sequence', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderAccordion()
+
+		act(() => trigger('First').focus())
+
+		// The WAI-ARIA accordion pattern makes each header a Tab stop.
+		await user.tab()
+
+		expect(trigger('Third')).toHaveFocus()
+
+		await user.keyboard('{ArrowUp}')
+
+		// An arrow press moves focus, but seats no single Tab stop.
+		expect(trigger('First')).toHaveFocus()
+
+		expect(trigger('Third').tabIndex).toBe(0)
+	})
 })
 
 describe('Accordion mount policy', () => {

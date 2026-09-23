@@ -22,7 +22,8 @@ export type AccordionTriggerProps = ComponentProps<'button'> & {
 /**
  * Header button that toggles its {@link AccordionItem}. Wraps itself in an
  * `h{level}` element and renders a rotating chevron indicator, per the WAI-ARIA
- * accordion pattern. Participates in the parent's roving tabindex.
+ * accordion pattern. Is a Tab stop, and takes part in the parent's arrow-key
+ * navigation.
  *
  * @see {@link Accordion}
  * @see {@link AccordionPanel}
@@ -44,9 +45,8 @@ export function AccordionTrigger({
 	return (
 		<Heading data-slot="accordion-heading" className="m-0">
 			<button
-				// Consumer props spread first; the type, a11y id wiring, roving
-				// tabindex, context-driven disabled, and data-slot below take
-				// precedence.
+				// Consumer props spread first; the type, a11y id wiring,
+				// context-driven disabled, and data-slot below take precedence.
 				{...props}
 				type="button"
 				data-slot="accordion-trigger"
