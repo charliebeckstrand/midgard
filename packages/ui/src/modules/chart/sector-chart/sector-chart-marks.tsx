@@ -18,9 +18,22 @@ export type SectorSegmentLabel = {
 	text: string
 }
 
-/** A slice group's dim classes — on the wrapper, so motion's inline opacity composes. @internal */
-export function sliceGroupClass(emphasis: number | null, index: number): string {
-	return cn('transition-opacity', emphasis !== null && emphasis !== index && 'opacity-25')
+/**
+ * A slice group's dim classes — on the wrapper, so motion's inline opacity
+ * composes. A held selection wins: it lights only its own slices, and a hover
+ * never re-lights them. Else the emphasised slice lights alone. @internal
+ */
+export function sliceGroupClass(
+	emphasis: number | null,
+	index: number,
+	selected: ReadonlySet<number> | null = null,
+): string {
+	const dim =
+		selected !== null && selected.size > 0
+			? !selected.has(index)
+			: emphasis !== null && emphasis !== index
+
+	return cn('transition-opacity', dim && 'opacity-25')
 }
 
 /**
@@ -40,6 +53,8 @@ type SectorSegmentLabelsProps = {
 	animate: boolean
 	/** The legend-emphasised slice; other labels dim with their slices. */
 	emphasis: number | null
+	/** The held selection, or `null`; unselected labels dim with their slices. */
+	selected?: ReadonlySet<number> | null
 }
 
 /**
@@ -56,6 +71,7 @@ export function SectorSegmentLabels({
 	paints,
 	animate,
 	emphasis,
+	selected = null,
 }: SectorSegmentLabelsProps) {
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
@@ -70,7 +86,7 @@ export function SectorSegmentLabels({
 				}
 
 				return (
-					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
+					<g key={slice.index} className={sliceGroupClass(emphasis, slice.index, selected)}>
 						{animate ? (
 							<motion.text
 								{...shared}
@@ -132,6 +148,8 @@ type SectorChartMarksProps = {
 	radius: number
 	/** The legend-emphasised slice; the others dim against it. */
 	emphasis: number | null
+	/** The held selection, or `null`; unselected slices dim until an emphasis wins. */
+	selected?: ReadonlySet<number> | null
 	/** Per-slice texture-tile fill URLs, indexed like `paints`; a flat mode leaves the slot empty. */
 	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
@@ -182,6 +200,7 @@ export function SectorChartMarks({
 	center,
 	radius,
 	emphasis,
+	selected = null,
 	fills,
 	textureActive = false,
 	trigger = 'hover',
@@ -270,7 +289,7 @@ export function SectorChartMarks({
 							}
 
 					return (
-						<g key={slice.index} className={sliceGroupClass(emphasis, slice.index)}>
+						<g key={slice.index} className={sliceGroupClass(emphasis, slice.index, selected)}>
 							{/* The gapless wedge sits behind the visible slice and takes the
 							    pointer only where the slice recedes: its half of each channel.
 							    A sweep across the gap therefore keeps the tooltip instead of

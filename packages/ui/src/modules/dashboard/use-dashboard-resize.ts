@@ -1,0 +1,227 @@
+'use client'
+
+import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { type DashboardCell, minColumns, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import {
+	type DashboardResizeEdge,
+	drivesHeight,
+	drivesWidth,
+	resizePreview,
+	samePreview,
+} from './engine/dashboard-resize'
+import type { DashboardStore } from './engine/dashboard-store'
+import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
+
+/** Options for {@link useDashboardResize}. @internal */
+export type DashboardResizeOptions = {
+	/** The store of the dashboard. */
+	store: DashboardStore
+	/** The canvas element, which gives the column pitch. */
+	canvasRef: RefObject<HTMLElement | null>
+	/** Commits the cells of a preview, and returns the saved layout. */
+	commit: (cells: readonly DashboardCell[]) => DashboardGestureEndEvent['layout']
+	/** Receives the start of each pointer resize. */
+	onResizeStart?: (event: DashboardGestureStartEvent) => void
+	/** Receives the end of each pointer resize. */
+	onResizeEnd?: (event: DashboardGestureEndEvent) => void
+}
+
+/** What {@link useDashboardResize} returns. @internal */
+export type DashboardResizeHandlers = {
+	/** Starts a pointer resize from the `pointerdown` of a handle. */
+	beginResize: (
+		id: string,
+		edge: DashboardResizeEdge,
+		event: ReactPointerEvent<HTMLElement>,
+	) => void
+	/** Applies one keyboard step, and commits it at once. */
+	resizeBy: (id: string, edge: DashboardResizeEdge, dw: number, dh: number) => void
+}
+
+/** The pitch and the limits of one resize of the tile `id`, or `null` when the tile cannot resize. */
+function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: string) {
+	const view = store.getView()
+
+	const { columns, gap, demands } = store.getState()
+
+	const origin = view.cells.get(id)
+
+	const width = canvas?.clientWidth ?? 0
+
+	if (!view.editable || origin === undefined || origin.static || width <= 0) return null
+
+	const pitch = width / columns
+
+	const demand = demands.get(id)
+
+	const minW = demand?.minWidth === undefined ? 1 : minColumns(demand.minWidth, gap, pitch, columns)
+
+	return {
+		origin,
+		pitch,
+		snapshot: [...view.cells.values()],
+		limits: { columns, minW, ratio: demand?.ratio },
+	}
+}
+
+/**
+ * Ends a pointer resize. A kept preview enters the settle phase and commits; a
+ * cancel, or a resize that changed nothing, returns to the snapshot.
+ */
+function settleResize(
+	store: DashboardStore,
+	id: string,
+	keep: boolean,
+	callbacks: Pick<DashboardResizeOptions, 'commit' | 'onResizeEnd'>,
+): void {
+	const { gesture, layout } = store.getState()
+
+	const preview = gesture?.kind === 'resize' ? gesture.preview : null
+
+	if (!keep || gesture === null || preview === null) {
+		store.setState({ gesture: null })
+
+		callbacks.onResizeEnd?.({ id, canceled: true, layout })
+
+		return
+	}
+
+	store.setState({ gesture: { ...gesture, kind: 'settle' } })
+
+	const next = callbacks.commit(preview)
+
+	callbacks.onResizeEnd?.({ id, canceled: false, layout: next })
+}
+
+/**
+ * The resize gestures of the dashboard: a pointer drag on a splitter, and one
+ * arrow-key step on a focused splitter. The pure {@link resizePreview} decides
+ * each preview, so a tile grows until it meets a neighbour or an edge.
+ *
+ * @internal
+ */
+export function useDashboardResize({
+	store,
+	canvasRef,
+	commit,
+	onResizeStart,
+	onResizeEnd,
+}: DashboardResizeOptions): DashboardResizeHandlers {
+	const callbacks = useRef({ commit, onResizeStart, onResizeEnd })
+
+	callbacks.current = { commit, onResizeStart, onResizeEnd }
+
+	const beginResize = useCallback(
+		(id: string, edge: DashboardResizeEdge, event: ReactPointerEvent<HTMLElement>) => {
+			if (event.button !== 0) return
+
+			const context = resizeContext(store, canvasRef.current, id)
+
+			if (context === null) return
+
+			event.preventDefault()
+
+			const { origin, pitch, snapshot, limits } = context
+
+			const handle = event.currentTarget
+
+			const pointerId = event.pointerId
+
+			const start = { x: event.clientX, y: event.clientY }
+
+			handle.setPointerCapture(pointerId)
+
+			const { width, layout } = store.getState()
+
+			store.setState({
+				gesture: {
+					kind: 'resize',
+					id,
+					snapshot,
+					preview: null,
+					change: null,
+					partner: null,
+					width,
+					pitch,
+				},
+			})
+
+			callbacks.current.onResizeStart?.({ id, layout })
+
+			const move = (moveEvent: PointerEvent) => {
+				const gesture = store.getState().gesture
+
+				if (gesture?.kind !== 'resize') return
+
+				const dw = drivesWidth(edge) ? (moveEvent.clientX - start.x) / pitch : 0
+
+				const dh = drivesHeight(edge, limits.ratio)
+					? ((moveEvent.clientY - start.y) * ROW_SUBDIVISION) / pitch
+					: 0
+
+				const preview = resizePreview(snapshot, id, origin.w + dw, origin.h + dh, limits)
+
+				if (samePreview(preview, gesture.preview)) return
+
+				store.setState({ gesture: { ...gesture, preview } })
+			}
+
+			// One signal detaches each listener that the gesture added.
+			const listening = new AbortController()
+
+			const finish = (keep: boolean) => {
+				if (listening.signal.aborted) return
+
+				listening.abort()
+
+				if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId)
+
+				settleResize(store, id, keep, callbacks.current)
+			}
+
+			const onKey = (keyEvent: KeyboardEvent) => {
+				if (keyEvent.key !== 'Escape') return
+
+				keyEvent.preventDefault()
+
+				keyEvent.stopPropagation()
+
+				finish(false)
+			}
+
+			const { signal } = listening
+
+			handle.addEventListener('pointermove', move, { signal })
+
+			handle.addEventListener('pointerup', () => finish(true), { signal })
+
+			handle.addEventListener('pointercancel', () => finish(false), { signal })
+
+			handle.addEventListener('lostpointercapture', () => finish(false), { signal })
+
+			window.addEventListener('keydown', onKey, { capture: true, signal })
+		},
+		[store, canvasRef],
+	)
+
+	const resizeBy = useCallback(
+		(id: string, edge: DashboardResizeEdge, dw: number, dh: number) => {
+			const context = resizeContext(store, canvasRef.current, id)
+
+			if (context === null) return
+
+			const { origin, snapshot, limits } = context
+
+			const w = drivesWidth(edge) ? origin.w + dw : origin.w
+
+			const h = drivesHeight(edge, limits.ratio) ? origin.h + dh : origin.h
+
+			const preview = resizePreview(snapshot, id, w, h, limits)
+
+			if (preview !== null) callbacks.current.commit(preview)
+		},
+		[store, canvasRef],
+	)
+
+	return { beginResize, resizeBy }
+}

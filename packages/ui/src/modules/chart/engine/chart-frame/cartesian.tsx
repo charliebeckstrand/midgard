@@ -87,6 +87,7 @@ export function ChartCartesianFrame({
 			snap={snap}
 			focus={focus}
 			onActiveSeries={chart.setEmphasis}
+			selected={chart.selected}
 			orientation={chart.orientation}
 			className={className}
 			annotations={

@@ -361,6 +361,17 @@ export type CartesianFrameProps = {
 	 * pointer cursor across the plot, so the marks read as clickable.
 	 */
 	onCategoryClick?: ChartItemClick
+	/**
+	 * The categories that read as selected. Their marks keep full strength, and
+	 * the marks of each other category recede with the dim of a legend hover. A
+	 * hover never re-lights a mark while a selection is held; the tooltip still reads it.
+	 *
+	 * Pair it with {@link CartesianFrameProps.onCategoryClick | onCategoryClick}
+	 * to hold a selection, for example the source of a dashboard cross-filter.
+	 * Each value matches the raw category that `onCategoryClick` reports, as text.
+	 * An empty list, or no list, selects nothing, and each mark reads at full strength.
+	 */
+	selectedCategories?: readonly string[]
 }
 
 /**

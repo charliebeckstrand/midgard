@@ -113,6 +113,30 @@ describe('PieChart', () => {
 		}
 	})
 
+	it('holds the selected slices lit, and recedes the rest', () => {
+		const { container } = renderUI(chart({ selectedCategories: ['Direct'] }))
+
+		const dimmed = allBySlot(container, 'chart-slice').map((slice) =>
+			slice.closest('g')?.getAttribute('class')?.includes('opacity-25'),
+		)
+
+		expect(dimmed).toEqual([true, false, true])
+	})
+
+	it('keeps a slice colour when a filter removes the other slices', () => {
+		const categories = DATA.map((row) => row.source)
+
+		const whole = renderUI(chart({ categories }))
+
+		const directFill = allBySlot(whole.container, 'chart-slice')[1]?.getAttribute('class')
+
+		whole.unmount()
+
+		const { container } = renderUI(chart({ data: [DATA[1] as (typeof DATA)[number]], categories }))
+
+		expect(allBySlot(container, 'chart-slice')[0]?.getAttribute('class')).toBe(directFill)
+	})
+
 	it('names the pointed slice in the tooltip', () => {
 		const { container } = renderUI(chart())
 
