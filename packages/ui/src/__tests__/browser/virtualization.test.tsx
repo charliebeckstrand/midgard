@@ -1,8 +1,8 @@
-import { useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { renderUI, waitFor } from '../helpers'
+import { act, renderUI, waitFor } from '../helpers'
 
 /**
  * Virtualization windowing (real browser). With a real layout engine the
@@ -12,7 +12,8 @@ import { renderUI, waitFor } from '../helpers'
  *
  * Coverage spans the two production windowing seams: `useVirtualWindow` (the
  * hook Grid's virtualized body delegates to, exercised in a minimal real
- * table) and `VirtualOptions` (the primitive that windows Combobox/Listbox
+ * table on its uniform path and in a list of mixed-height rows on its measured
+ * path) and `VirtualOptions` (the primitive that windows Combobox/Listbox
  * options). Both require a viewport of definite height; the harnesses supply a
  * fixed height rather than relying on `max-height`.
  *
@@ -107,6 +108,161 @@ describe('useVirtualWindow table windowing', () => {
 			expect(container.textContent).toContain('Row 200')
 
 			expect(container.textContent).not.toContain('Row 0')
+		})
+	})
+})
+
+/** Real height of a mixed-height row: 30, 60 or 90 pixels by its id, never the estimate of 45. */
+const mixedHeight = (id: number) => 30 + (id % 3) * 30
+
+const MIXED_ESTIMATE = 45
+
+type MeasuredListHandle = { prepend: (ids: number[]) => void }
+
+/** Minimal measured list over `useVirtualWindow`: mixed-height rows keyed by their ids. */
+function MeasuredList({ count, handle }: { count: number; handle?: MeasuredListHandle }) {
+	const scrollRef = useRef<HTMLDivElement>(null)
+
+	const [ids, setIds] = useState(() => Array.from({ length: count }, (_, i) => i))
+
+	if (handle) handle.prepend = (next) => setIds((current) => [...next, ...current])
+
+	const getItemKey = useCallback((index: number) => ids[index] ?? index, [ids])
+
+	const { virtualItems, topSpacer, bottomSpacer, measureRef } = useVirtualWindow({
+		count: ids.length,
+		getScrollElement: () => scrollRef.current,
+		estimateSize: MIXED_ESTIMATE,
+		overscan: 2,
+		getItemKey,
+	})
+
+	return (
+		<div ref={scrollRef} data-slot="measured-list" style={{ height: 300, overflow: 'auto' }}>
+			<div style={{ height: topSpacer }} />
+			{virtualItems.map((virtualItem) => {
+				const id = ids[virtualItem.index] ?? -1
+
+				return (
+					<div
+						key={virtualItem.key}
+						ref={measureRef}
+						data-index={virtualItem.index}
+						data-slot="measured-row"
+						data-start={virtualItem.start}
+						style={{ height: mixedHeight(id) }}
+					>
+						Row {id}
+					</div>
+				)
+			})}
+			<div style={{ height: bottomSpacer }} />
+		</div>
+	)
+}
+
+describe('useVirtualWindow measured windowing', () => {
+	/** Each rendered row's real offset in the content, beside the start the window gave it. */
+	function placements(root: ParentNode) {
+		const scroller = root.querySelector<HTMLElement>('[data-slot="measured-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		const origin = scroller.getBoundingClientRect().top - scroller.scrollTop
+
+		return Array.from(root.querySelectorAll<HTMLElement>('[data-slot="measured-row"]')).map(
+			(row) => ({
+				text: row.textContent,
+				offset: Math.round(row.getBoundingClientRect().top - origin),
+				start: Number(row.dataset.start),
+			}),
+		)
+	}
+
+	/** Pixel offset of row `id` when every row above it has its real height. */
+	function realOffset(id: number) {
+		let offset = 0
+
+		for (let i = 0; i < id; i++) offset += mixedHeight(i)
+
+		return offset
+	}
+
+	it('places each row at the start its measured neighbours give it', async () => {
+		const { container } = renderUI(<MeasuredList count={500} />)
+
+		await waitFor(() => {
+			const rows = placements(container)
+
+			expect(rows.length).toBeGreaterThan(0)
+
+			expect(rows.length).toBeLessThan(100)
+
+			for (const row of rows) expect(row.start).toBe(row.offset)
+		})
+	})
+
+	it('keeps the window on the rows in view after a scroll past measured rows', async () => {
+		const { container } = renderUI(<MeasuredList count={500} />)
+
+		await waitFor(() => expect(placements(container).length).toBeGreaterThan(0))
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="measured-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		scroller.scrollTop = 200 * MIXED_ESTIMATE
+
+		scroller.dispatchEvent(new Event('scroll'))
+
+		// The rows the window renders overlap the viewport, and each sits where its start says.
+		await waitFor(() => {
+			const rows = placements(container)
+
+			const top = scroller.scrollTop
+
+			expect(rows.some((row) => row.offset <= top + 300 && row.offset >= top - 90)).toBe(true)
+
+			for (const row of rows) expect(row.start).toBe(row.offset)
+		})
+	})
+
+	it('keeps each measured height with its key when a row is prepended above the window', async () => {
+		const handle: MeasuredListHandle = { prepend: () => {} }
+
+		const { container } = renderUI(<MeasuredList count={500} handle={handle} />)
+
+		await waitFor(() => expect(placements(container).length).toBeGreaterThan(0))
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="measured-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		// The mount measured the head of the list, so every row above this window has its real height.
+		scroller.scrollTop = 300
+
+		scroller.dispatchEvent(new Event('scroll'))
+
+		await waitFor(() => {
+			const rows = placements(container)
+
+			expect(rows[0]?.text).not.toBe('Row 0')
+
+			for (const row of rows) expect(row.start).toBe(row.offset)
+		})
+
+		// The prepended row never renders, so it keeps the estimate. A height
+		// cached against an index would stay on the index and shift one row down.
+		act(() => handle.prepend([1000]))
+
+		await waitFor(() => {
+			const [first] = placements(container)
+
+			const id = Number(first?.text?.replace('Row ', ''))
+
+			expect(id).not.toBe(1000)
+
+			expect(first?.start).toBe(MIXED_ESTIMATE + realOffset(id))
 		})
 	})
 })
