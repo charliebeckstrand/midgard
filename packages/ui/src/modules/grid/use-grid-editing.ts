@@ -365,9 +365,40 @@ const UNEDITABLE_CELL_WARNING =
 
 /**
  * The cell a controlled binding last settled on. `raw` is the value as the
- * consumer passed it; `cell` is that value after the editable check. @internal
+ * consumer passed it; `cell` is that value after the editable check.
+ *
+ * `wait` is set when `raw` names a cell whose row the transition asked to
+ * open. Until that row opens, `cell` is still the cell that the session held
+ * before, so a declined rows write leaves the session on it. `wait` holds the
+ * new cell and the session row that it lands with. @internal
  */
-type SettledCell = { raw: GridActiveEdit | null; cell: GridActiveEdit | null }
+type SettledCell = {
+	raw: GridActiveEdit | null
+	cell: GridActiveEdit | null
+	wait?: { cell: GridActiveEdit; sessionRow: SessionRow | null }
+}
+
+/**
+ * The cell that a settled value reads as: the cell it waits for once that
+ * row is open, else the cell the session held. @internal
+ */
+function readSettled(settled: SettledCell, rows: Set<string | number>): GridActiveEdit | null {
+	const wait = settled.wait
+
+	return wait && rows.has(wait.cell.rowKey) ? wait.cell : settled.cell
+}
+
+/**
+ * An uncontrolled entry into a row that is not open yet, made while the
+ * session holds a cell. A controlled `rows` can decline the rows write that
+ * opens the row. The session then goes back to `from` and its session row,
+ * so the declined move changes nothing. @internal
+ */
+type CrossRowEntry = {
+	to: GridActiveEdit
+	from: GridActiveEdit
+	sessionRow: SessionRow | null
+}
 
 /**
  * A move that the grid asked of a controlled `cell`, which waits for the
@@ -385,6 +416,19 @@ type CellRequest = {
 
 /** The row a grid-owned session holds, and whether the session put it in the set. @internal */
 type SessionRow = { rowKey: string | number; acquired: boolean }
+
+/**
+ * The {@link CrossRowEntry} of an uncontrolled entry, or `null` when the entry
+ * opens no row or leaves no held cell. @internal
+ */
+function crossRowEntry(
+	to: GridActiveEdit | null,
+	from: GridActiveEdit | null,
+	rows: Set<string | number>,
+	sessionRow: SessionRow | null,
+): CrossRowEntry | null {
+	return to && from && !rows.has(to.rowKey) ? { to, from, sessionRow } : null
+}
 
 /**
  * Moves the held session row onto the row of `rowKey`. A move within the held
@@ -427,9 +471,10 @@ function readInitialCell<T>(
 
 /**
  * The cell a controlled binding reads as in this render. A value the transition
- * effect has settled reads as it settled. A new value reads at once when its row
- * is open and its cell is editable. Otherwise the settled cell stays until the
- * effect opens the row, so no row widens for a render. @internal
+ * effect has settled reads as it settled (see {@link readSettled}). A new value
+ * reads at once when its row is open and its cell is editable. Otherwise the
+ * settled cell stays until the effect opens the row, so no row widens for a
+ * render. @internal
  */
 function readControlledCell<T>(
 	raw: GridActiveEdit | null,
@@ -437,9 +482,11 @@ function readControlledCell<T>(
 	rows: Set<string | number>,
 	source: GridEditSource<T>,
 ): GridActiveEdit | null {
-	if (sameCell(raw, settled.raw)) return settled.cell
+	const held = readSettled(settled, rows)
 
-	return raw !== null && rows.has(raw.rowKey) && isEditableCell(raw, source) ? raw : settled.cell
+	if (sameCell(raw, settled.raw)) return held
+
+	return raw !== null && rows.has(raw.rowKey) && isEditableCell(raw, source) ? raw : held
 }
 
 /** What the transition effect does for one new value of a controlled binding. @internal */
@@ -533,6 +580,7 @@ function useActiveCell<T>({
 	initialCell,
 	editableRows,
 	editSourceRef,
+	entryRef,
 }: {
 	config: GridEditableConfig | undefined
 	cellScoped: boolean
@@ -540,6 +588,7 @@ function useActiveCell<T>({
 	initialCell: GridActiveEdit | null
 	editableRows: Set<string | number>
 	editSourceRef: RefObject<GridEditSource<T>>
+	entryRef: RefObject<CrossRowEntry | null>
 }) {
 	// The session's cell as the binding holds it, before the grid resolves it
 	// against the set. Uncontrolled, the grid writes it at event time. Controlled,
@@ -577,11 +626,26 @@ function useActiveCell<T>({
 	const stranded =
 		candidate !== null && !masked && (!cellScoped || !editableRows.has(candidate.rowKey))
 
+	// A cross-row entry that the rows binding declined reads as the cell it left,
+	// while that cell's row is still open. The transition effect then writes the
+	// state back to it, so no mask is necessary.
+	const entry = entryRef.current
+
+	const declined =
+		stranded &&
+		!controlled &&
+		cellScoped &&
+		entry !== null &&
+		sameCell(candidate, entry.to) &&
+		editableRows.has(entry.from.rowKey)
+
 	// Adjusting the state here is React's answer to a value gone stale against its
 	// input, and it beats an effect that resynchronizes a render late.
-	if (stranded && !controlled) setMaskedCell(candidate)
+	if (stranded && !controlled && !declined) setMaskedCell(candidate)
 
-	return { raw, setValue, settledRef, activeEdit: stranded || masked ? null : candidate }
+	const activeEdit = declined ? entry.from : stranded || masked ? null : candidate
+
+	return { raw, setValue, settledRef, activeEdit }
 }
 
 /**
@@ -681,6 +745,10 @@ export function useGridEditing<T>({
 
 	const editableRows = enabled ? (editableRowsRaw ?? EMPTY_SET) : EMPTY_SET
 
+	// The last uncontrolled cross-row entry, until the transition effect sees
+	// whether the rows binding applied it.
+	const entryRef = useRef<CrossRowEntry | null>(null)
+
 	const {
 		raw,
 		setValue: setActiveCellValue,
@@ -693,6 +761,7 @@ export function useGridEditing<T>({
 		initialCell: initial.cell,
 		editableRows,
 		editSourceRef,
+		entryRef,
 	})
 
 	// The cell a cell-scoped session edits; null under row scope. The hook's own
@@ -999,6 +1068,10 @@ export function useGridEditing<T>({
 			// Row scope names no cell, so it leaves no row behind.
 			const leaving = entering ? move.leaving : null
 
+			// A controlled `rows` can decline the row that this entry opens. Record
+			// where the session was, so that a decline puts it back there.
+			entryRef.current = crossRowEntry(entering, active, editableRows, sessionRowRef.current)
+
 			sessionRowRef.current = move.row
 
 			// The cell goes first, then the rows: `onCellChange` reports ahead of
@@ -1106,13 +1179,23 @@ export function useGridEditing<T>({
 
 			if (raw !== null && plan.next === null) warnUneditable()
 
-			settledRef.current = { raw, cell: plan.next }
+			// A value whose row is not open yet waits for it. The session keeps its
+			// cell and its row until the row opens, so a declined rows write changes
+			// nothing.
+			settledRef.current =
+				plan.opens && plan.next
+					? {
+							raw,
+							cell: readSettled(from, rows),
+							wait: { cell: plan.next, sessionRow: plan.sessionRow },
+						}
+					: { raw, cell: plan.next }
 
 			settleFocus(plan, from, request?.blur === true)
 
 			if (plan.discard) unstageDraft(plan.discard.rowKey, plan.discard.columnId)
 
-			sessionRowRef.current = plan.sessionRow
+			if (!plan.opens) sessionRowRef.current = plan.sessionRow
 
 			if (plan.writesRows) setEditableRows((prev) => applyRowsPlan(prev, plan))
 
@@ -1125,6 +1208,22 @@ export function useGridEditing<T>({
 		[settledRef, editSourceRef, warnUneditable, settleFocus, unstageDraft, setEditableRows],
 	)
 
+	// Lands a settled value that waits for its row, once that row is open. The
+	// session then holds the new cell and the session row that it planned.
+	const landWait = useCallback((): SettledCell => {
+		const settled = settledRef.current
+
+		const wait = settled.wait
+
+		if (!wait || !editableRowsRef.current.has(wait.cell.rowKey)) return settled
+
+		sessionRowRef.current = wait.sessionRow
+
+		settledRef.current = { raw: settled.raw, cell: wait.cell }
+
+		return settledRef.current
+	}, [settledRef])
+
 	const settleBinding = useCallback(
 		(raw: GridActiveEdit | null) => {
 			const request = requestRef.current
@@ -1132,22 +1231,34 @@ export function useGridEditing<T>({
 			requestRef.current = null
 
 			if (!controlled) {
+				const entry = entryRef.current
+
+				entryRef.current = null
+
+				// The render read a declined entry as the cell it left. Write the
+				// state back to that cell, and report it, as the entry was reported.
+				if (entry && sameCell(raw, entry.to) && sameCell(activeEditRef.current, entry.from)) {
+					sessionRowRef.current = entry.sessionRow
+
+					setActiveCellValue(entry.from)
+				}
+
 				settledRef.current = { raw: activeEditRef.current, cell: activeEditRef.current }
 
 				return
 			}
 
-			const from = settledRef.current
+			const from = landWait()
 
 			// An equal value moves nothing. A request that did not land was declined.
 			if (!sameCell(raw, from.raw)) applyTransition(raw, from, request)
 			else if (request) dropIntents()
 		},
-		[controlled, settledRef, applyTransition, dropIntents],
+		[controlled, settledRef, applyTransition, dropIntents, landWait, setActiveCellValue],
 	)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `tick` re-runs the transition after each request, so a declined move drops its intents.
-	useLayoutEffect(() => settleBinding(raw), [raw, tick, settleBinding])
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `tick` re-runs the transition after each request, so a declined move drops its intents. `editableRows` lands a waiting value once its row opens.
+	useLayoutEffect(() => settleBinding(raw), [raw, tick, editableRows, settleBinding])
 
 	// The session one key press names. The press names its row when it came from
 	// inside one, which is what picks the right row while several edit at once.

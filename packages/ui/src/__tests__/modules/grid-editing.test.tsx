@@ -1283,6 +1283,66 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		]).toHaveLength(2)
 	})
 
+	it('keeps the held cell when a controlled rows binding declines a move to another row', () => {
+		const onCommit = vi.fn()
+
+		const onCellChange = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			return (
+				<Grid
+					columns={sessionColumns}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						rows: editing,
+						// A guard that lets no second row open.
+						onRowsChange: (next) => {
+							if (!next.has(2)) setEditing(next)
+						},
+						onCellChange,
+						onCommit,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const names = view.container.querySelectorAll<HTMLElement>('td[data-grid-col="name"]')
+
+		fireEvent.doubleClick(present(names[0], 'the first name cell'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.doubleClick(present(names[1], 'the second name cell'))
+
+		// The move changed nothing: the held cell keeps its editor and its draft,
+		// and its row stays narrowed to it.
+		expect(editorsIn(view.container)).toEqual([input])
+
+		expect(input.value).toBe('Alicia')
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		// The grid reported the move before the rows write, so it reports the
+		// return to the held cell.
+		expect(onCellChange).toHaveBeenLastCalledWith({ rowKey: 1, columnId: 'name' })
+
+		// The session still holds its row, so Escape from the tab stop reaches it.
+		fireEvent.keyDown(view.getByRole('grid'), { key: 'Escape' })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
 	it('falls back to the row under a consumer-owned session, which names no cell', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -2189,6 +2249,35 @@ describe('Grid active-cell binding', () => {
 		expect(view.onRowsChange).toHaveBeenCalledOnce()
 
 		expect(editorsIn(view.container)).toHaveLength(0)
+	})
+
+	it('keeps the held cell narrowed when a controlled rows binding declines a move to another row', () => {
+		const view = renderControlled({ acceptRows: (rows) => !rows.has(2) })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.doubleClick(view.cell('name', 1))
+
+		// The binding applied the cell and declined its row. The held cell keeps
+		// its editor and its draft, and its row stays narrowed to it.
+		expect(view.onCellChange).toHaveBeenLastCalledWith({ rowKey: 2, columnId: 'name' })
+
+		expect(editorsIn(view.container)).toEqual([input])
+
+		expect(input.value).toBe('Alicia')
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		// The session still holds its row, so Escape from the tab stop reaches it.
+		fireEvent.keyDown(view.getByRole('grid'), { key: 'Escape' })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(view.onCommit).not.toHaveBeenCalled()
 	})
 })
 

@@ -195,9 +195,11 @@ export type GridEditableConfig = {
 	 * reports. A cell that is not editable reads as `null`, and it warns once in
 	 * development. That is a cell of an unknown row, or of a `readOnly` or
 	 * display-only column. The cell also reads as `null` while its row is out
-	 * of `rows`. Focus moves into the new editor only when focus is already in
-	 * the grid (WCAG 3.2.1). Apply a move in the same event that reports it. A
-	 * later value reads as a set from outside.
+	 * of `rows`. A cell whose row a controlled `rows` declines to open is the
+	 * exception. The session then stays on the cell that it held, and your cell
+	 * waits until its row opens. Focus moves into the new editor only when focus
+	 * is already in the grid (WCAG 3.2.1). Apply a move in the same event that
+	 * reports it. A later value reads as a set from outside.
 	 */
 	cell?: GridCellRef | null
 	/**
@@ -220,7 +222,9 @@ export type GridEditableConfig = {
 	 * @remarks The grid does not report a change that comes from you. A cell that
 	 * you set, and a cell that reads as `null` because your `rows` closed its
 	 * row, report nothing. A `rows` binding that declines the row of an entry
-	 * also strands the cell without a report. Under a controlled
+	 * also strands the cell without a report. An entry from a held cell is the
+	 * exception. The session goes back to the held cell and reports it, so the
+	 * declined move changes nothing. Under a controlled
 	 * {@link GridEditableConfig.cell}, the rows write waits until you
 	 * apply the cell.
 	 */
