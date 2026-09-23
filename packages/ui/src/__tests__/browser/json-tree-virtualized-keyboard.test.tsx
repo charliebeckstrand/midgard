@@ -14,18 +14,17 @@ const LEAF_COUNT = 500
 const DATA = { list: Array.from({ length: LEAF_COUNT }, (_, i) => `v${i}`) }
 
 /**
- * A tree whose scroller holds about ten rows, with every branch open. The scroller takes a
- * fixed height, because the virtualizer renders no rows into a box that measures zero. The
- * tree root is a flex column, so its children must not shrink, or the spacers collapse.
+ * A tree whose scroller holds about ten rows, with every branch open. Only `maxHeight` bounds
+ * the scroller, unless `className` gives it a height of its own.
  */
-function mountTree() {
+function mountTree(className?: string) {
 	renderUI(
 		<JsonTree
 			data={DATA}
 			rootKey="root"
 			defaultExpandDepth={Number.POSITIVE_INFINITY}
 			virtualize={{ maxHeight: '240px', overscan: 2 }}
-			className="h-60 *:shrink-0"
+			className={className}
 		/>,
 	)
 
@@ -100,5 +99,27 @@ describe('JsonTree under virtualize: keyboard reach past the window', () => {
 		await userEvent.keyboard('{ArrowDown}')
 
 		await waitFor(() => expect(focusedLabel()).toMatch(new RegExp(`v${index + 1}\\b`)))
+	})
+})
+
+describe('JsonTree under virtualize: the scroller', () => {
+	it.each([
+		['only maxHeight', undefined],
+		['a fixed height', 'h-60'],
+	])('renders rows and scrolls to the last node under %s', async (_, className) => {
+		const tree = mountTree(className)
+
+		await waitFor(() => expect(rows(tree).length).toBeGreaterThan(0))
+
+		// The scroller stops at its cap, and the spacers hold the height of every row.
+		expect(tree.getBoundingClientRect().height).toBeCloseTo(240, 0)
+
+		expect(tree.scrollHeight).toBeGreaterThan(LEAF_COUNT * 20)
+
+		tree.scrollTop = tree.scrollHeight
+
+		await waitFor(() => expect(rowIndexAfter(tree, LEAF_COUNT - 2)).toBe(true))
+
+		expect(tree.scrollTop + tree.clientHeight).toBeCloseTo(tree.scrollHeight, 0)
 	})
 })

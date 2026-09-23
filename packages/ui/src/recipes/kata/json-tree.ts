@@ -39,6 +39,13 @@ const row = [
 
 export const k = {
 	base: ['inline-flex flex-col', family.mono],
+	/**
+	 * A spacer of the windowed tree. It holds the height of the rows outside the
+	 * window. It has no content, so in the `base` flex column it shrinks to zero
+	 * when the tree has a bounded height. Then the tree cannot scroll past its
+	 * first window. `shrink-0` keeps its size.
+	 */
+	spacer: 'shrink-0',
 	row,
 	leaf: [flex.row, flex.fill, 'min-w-0 outline-none', 'gap-1'],
 	toggle: [
