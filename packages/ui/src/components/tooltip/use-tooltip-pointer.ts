@@ -29,10 +29,11 @@ export type TooltipPointerOptions = {
 	axis?: 'x' | 'y' | 'both'
 	/**
 	 * Reposition strategy while open, forwarded to {@link useFloatingPanel}.
-	 * `'auto'` keeps `autoUpdate` — the parity default a pinned readout needs to
-	 * re-anchor across a scroll that fires no pointer event. `'point'` drops it
-	 * for a purely pointer-tracked surface that repositions on every move; a perf
-	 * lever to flip per-surface only once a benchmark proves it.
+	 * `'auto'` keeps `autoUpdate`, the parity default. `'point'` drops it, and
+	 * the panel keeps its document position until `point` changes. The anchor is
+	 * a fixed client point, so `autoUpdate` cannot follow content that scrolls
+	 * under it. A readout pinned in place therefore takes `'point'` too, and
+	 * scrolls with its content.
 	 * @defaultValue 'auto'
 	 */
 	track?: 'auto' | 'point'
@@ -49,7 +50,7 @@ export type TooltipPointerOptions = {
  * chain). Composes only `useClientPoint` — no role, dismiss, or overlay-signal —
  * so nothing stamps `role="tooltip"`/`aria-describedby`; the readout is a pointer
  * enhancement the consumer marks `aria-hidden`. `track` defaults to `'auto'`
- * (parity with `autoUpdate`); the point-driven `'point'` lever is opt-in.
+ * (parity with `autoUpdate`); every current caller opts into `'point'`.
  * @internal
  * @see {@link useFloatingPanel}
  */

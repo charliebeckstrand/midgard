@@ -100,16 +100,6 @@ export type ChartTooltipProps = {
 	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
 	 */
 	emphasis?: number | null
-	/**
-	 * How the readout is summoned, forwarded from the chart. `'hover'` tracks the
-	 * pointer. The tooltip repositions on every move, so it drops `autoUpdate`
-	 * (`track: 'point'`). A scroll under a stationary pointer is handled by the
-	 * chart's own hover-across-scroll rescue, not `autoUpdate`. `'click'` pins the
-	 * readout, which relies on `autoUpdate` to re-anchor across a scroll that fires
-	 * no pointer event, so it keeps `track: 'auto'`. Undefined keeps the
-	 * `autoUpdate` parity default.
-	 */
-	trigger?: ChartTooltipTrigger
 }
 
 /** The readout's rows in the caller's display order, or as they are without one. @internal */
@@ -162,7 +152,6 @@ export function ChartTooltip({
 	orientation = 'vertical',
 	order,
 	emphasis = null,
-	trigger,
 }: ChartTooltipProps) {
 	const { index, point, onData } = useChartHover()
 
@@ -207,7 +196,13 @@ export function ChartTooltip({
 			open={open}
 			point={clientPoint}
 			offset={TRACK_OFFSET}
-			track={trigger === 'hover' ? 'point' : 'auto'}
+			// `track="point"` under both triggers. A hover readout repositions on every
+			// move, and the chart's hover-across-scroll rescue handles a scroll under a
+			// still pointer. A pin anchors to the client point of this render, so
+			// autoUpdate would re-place it at that viewport point on a window scroll,
+			// off its mark. Without autoUpdate, the pin keeps its document position and
+			// scrolls with the plot.
+			track="point"
 			size="sm"
 		>
 			{index !== null && readout !== null && (
