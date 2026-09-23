@@ -13,30 +13,6 @@ import { useFloatingPanel } from '../../hooks'
 import type { PdfViewerMagnifierOptions } from './types'
 
 /**
- * The hover loupe's state:
- *
- * - Whether it is open.
- * - Where on the page the pointer is.
- * - The floating-ui plumbing that puts the lens beside the cursor.
- *
- * @remarks Hovering comes from floating-ui rather than from timers and listeners written
- * here. `useHover`'s open delay is the dwell, and `useClientPoint` is what makes the cursor
- * the positioning reference. The lens therefore follows the pointer with the same collision
- * handling (`shift`, `flip`) every other floating surface in the package gets. It stays on
- * screen at the edges of the page, instead of hanging off them.
- *
- * The one thing floating-ui does not supply is where the pointer is *within the page*. That
- * is what decides which part of the scan the lens shows. It is tracked here, in the frame's
- * own coordinate space, so it composes with the page transform without knowing the rotation.
- *
- * Which is also why the pan is handled here and cannot be (see {@link handlePan}). The
- * floating-ui library reasons about pointers, and a pan is the one gesture that moves the
- * page *without* one.
- *
- * @internal
- */
-
-/**
  * The loupe's three settings, in the named steps the prop and the config dialog both speak.
  * @internal
  */
@@ -173,9 +149,28 @@ export type PdfViewerMagnifierResult = {
 /**
  * Drives the hover loupe over the page.
  *
- * @param settings - Resolved settings, or `null` when the consumer did not ask for a loupe.
- * In that case every interaction hook is disabled and the reference props are empty. A viewer
- * without one therefore pays nothing but a disabled hook.
+ * @param settings - Resolved settings, or `null` when the consumer did not ask for a loupe or
+ * the reader turned it off. In that case every interaction hook is disabled and the reference
+ * props are empty. A viewer without one therefore pays nothing but a disabled hook.
+ * @returns The hover loupe's state:
+ *
+ * - Whether it is open.
+ * - Where on the page the pointer is.
+ * - The floating-ui plumbing that puts the lens beside the cursor.
+ *
+ * @remarks Hovering comes from floating-ui rather than from timers and listeners written
+ * here. `useHover`'s open delay is the dwell, and `useClientPoint` is what makes the cursor
+ * the positioning reference. The lens therefore follows the pointer with the same collision
+ * handling (`shift`, `flip`) every other floating surface in the package gets. It stays on
+ * screen at the edges of the page, instead of hanging off them.
+ *
+ * The one thing floating-ui does not supply is where the pointer is *within the page*. That
+ * is what decides which part of the scan the lens shows. It is tracked here, in the frame's
+ * own coordinate space, so it composes with the page transform without knowing the rotation.
+ *
+ * The pan is handled here for the same reason, and floating-ui cannot handle it (see
+ * {@link handlePan}). Floating-ui reasons about pointers, and a pan moves the page with no
+ * pointer movement.
  * @internal
  */
 export function usePdfViewerMagnifier(
@@ -196,14 +191,13 @@ export function usePdfViewerMagnifier(
 	 * read from the same event and must never disagree. A lens positioned from one move and
 	 * filled from another would show the wrong ink for exactly one frame.
 	 *
-	 * **The ref holds the client point until the lens is open, and only then does state carry
-	 * both.** This hook lives in `usePdfViewer`, so a state write here re-renders the whole
-	 * viewer. That is the toolbar (ten floating stacks and a per-page Listbox), the thumbnail
-	 * rail, the highlight provider, and every region on the page. A pointer merely crossing the
-	 * scan on its way to the toolbar does that 60-120 times a second, for a lens that never
-	 * appears. The dwell is 300ms, so most crossings never open one. The client point is all
-	 * the open edge needs: {@link locate} derives the frame-local one from it against a fresh
-	 * rect. A closed lens therefore pays no `getBoundingClientRect` per move.
+	 * **The ref holds the client point until the lens is open. Only then does state carry
+	 * both.** This hook lives in `PdfViewerMagnifierProvider`, so a state write here re-renders
+	 * that provider, the page frame, and the lens. A pointer that crosses the scan does that
+	 * 60-120 times a second. Usually the lens never opens, because the dwell stops most
+	 * crossings. The open edge needs only the client point: {@link locate} gets the frame-local
+	 * point from it against a fresh rect. Thus a closed lens does no `getBoundingClientRect` for
+	 * each move.
 	 */
 	const trackingRef = useRef<MagnifierPoint | null>(null)
 
@@ -338,8 +332,8 @@ export function usePdfViewerMagnifier(
 	/*
 	 * Both bags are memoized, and `leave` is a callback rather than a literal, because they are
 	 * dependencies of the result below. An inline handler — or a bare `getReferenceProps()` call
-	 * — allocates on every render, which would defeat that memo and, through it, the context
-	 * memo in `usePdfViewer`. The floating-ui getters are stable until an interaction's own
+	 * — allocates on every render, which would defeat that memo and, through it, the value
+	 * of `PdfViewerMagnifierContext`. The floating-ui getters are stable until an interaction's own
 	 * inputs move, so these hold across every render that leaves the lens alone.
 	 */
 	const referenceProps = useMemo(
@@ -439,10 +433,8 @@ export function usePdfViewerMagnifier(
 	}, [enabled, handlePan])
 
 	/*
-	 * Memoized because this object is a dependency of `usePdfViewer`'s context memo. That
-	 * memo's whole purpose is to keep the viewer's context identity stable across renders that
-	 * touch none of its fields. A fresh literal here would retire that guarantee for every
-	 * consumer, magnifier or not.
+	 * Memoized because this object is the value of `PdfViewerMagnifierContext`. A fresh literal
+	 * here would re-render the page frame and the lens on each render of the provider.
 	 */
 	return useMemo(
 		() => ({

@@ -92,8 +92,7 @@ const documents = new Map<string, Held>()
  * Frees the blob URLs a snapshot owns.
  *
  * @remarks A finished snapshot owns no pdf.js resources. The rasterizer destroys the loading
- * task as soon as the last page renders. By the time anything is cached the document and its
- * worker channel are already gone. Blob URLs are all that is left to release. Safe on a partial
+ * task after the last page. Blob URLs are all that remain to release. Safe on a partial
  * snapshot too, which is what a failed load leaves behind.
  * @internal
  */
@@ -108,9 +107,9 @@ function revoke(snapshot: PdfDocumentSnapshot) {
  *
  * @remarks Skips anything a viewer is watching, and anything mid-load. A watched entry's blob
  * URLs are live `<img>` sources, and revoking one blanks the page a reader is looking at. The
- * holders therefore outrank the cap, and a run with every entry held frees nothing. That cannot
- * grow without bound in practice: a viewer subscribes only while mounted, and the app mounts
- * one scan at a time.
+ * holders therefore outrank the cap, and a run with every entry held frees nothing. A viewer
+ * subscribes only while it is mounted. Thus the held set is only as large as the number of
+ * viewers that a consumer mounts.
  * @internal
  */
 function evict() {
@@ -242,7 +241,7 @@ export type PdfLoadRun = (report: PdfLoadReport) => Promise<void>
  *
  * A load is **not** cancelled when the viewer that started it unmounts. Parking
  * mid-rasterization therefore keeps rasterizing, and the maximize finds a finished document
- * where cancelling meant starting over — the window `resolveWorker` already documents as
+ * where cancelling meant starting over. The doc on `sharedWorker` shows that this window is
  * reachable. The cost is CPU spent on a document nobody is watching, for as long as the park
  * lasts. That is the right trade for a scan the reader is on their way back to.
  *

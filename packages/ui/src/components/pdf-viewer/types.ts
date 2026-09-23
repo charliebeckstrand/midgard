@@ -133,9 +133,8 @@ export type PdfViewerMagnifierDelay = 'none' | 'default'
 /**
  * Hover-loupe settings for {@link PdfViewerProps.magnifier}.
  *
- * @remarks Boolean-or-object, the same shape `Button`'s `loading` takes. The bare
- * `magnifier` is the common case. An object is there for the page that needs a different
- * power, a different lens, or the dialog.
+ * @remarks Boolean-or-object. The bare `magnifier` is the common case. An object is there
+ * for the page that needs a different power, a different lens, or the dialog.
  *
  * Every setting is a named step rather than a raw number. The config dialog offers a fixed
  * set, and has to show which of them is current. Each `'md'` is the value the loupe

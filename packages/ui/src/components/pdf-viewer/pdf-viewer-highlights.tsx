@@ -22,7 +22,7 @@ const regionClasses = new Map<string, string>()
 /**
  * The region's classes for one `(color, active)` pair, computed once.
  *
- * @remarks `cn` memoises only when every argument is a string, and three of these four are
+ * @remarks `cn` memoises only when every argument is a string, and these arguments are
  * arrays (`shades()` returns `string[]`). Each call would otherwise run the full
  * clsx + tailwind-merge over ~14 tokens. There are five colours and two states, so ten
  * results cover every document. Measured, this cuts ~142 µs per layer render at 40 regions
@@ -132,8 +132,8 @@ export function PdfViewerHighlights() {
  * total. One delegated press handler serves every region, so the layer allocates one
  * closure rather than one per region.
  *
- * A named region is a real `<button>`. A set with no names is decoration inside an
- * `aria-hidden` layer, because a box with no accessible name cannot be a control.
+ * When `onActiveHighlightChange` is set, each region is a real `<button>`. Without it, the
+ * regions are decoration inside an `aria-hidden` layer, because a press has nothing to report to.
  * @internal
  */
 function PdfViewerHighlightLayer() {
@@ -411,7 +411,7 @@ function PdfViewerHighlightLayer() {
 			ref={layerRef}
 			data-slot="pdf-viewer-highlights"
 			className={cn(layer.layer, !interactive && layer.inert)}
-			// Hidden, not unmounted: a reviewer reading the page under the boxes comes back
+			// Hidden, not unmounted: a reader who reads the page under the boxes comes back
 			// to the same selection.
 			hidden={!highlightsVisible}
 			style={{ width: imageWidth, height: imageHeight, transform }}
