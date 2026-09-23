@@ -138,6 +138,36 @@ export function valuesEqual(a: unknown, b: unknown): boolean {
 	return false
 }
 
+/**
+ * Applies the `set-touched` action: marks the field touched, then validates
+ * that one field unless `validateOn` is `'submit'`.
+ *
+ * @internal
+ */
+function touchField<T extends Record<string, unknown>>(
+	state: FormState<T>,
+	action: Extract<FormAction<T>, { type: 'set-touched' }>,
+): FormState<T> {
+	if (state.touched[action.name]) return state
+
+	const nextTouched = { ...state.touched, [action.name]: true }
+
+	// The `fields` argument below forces the run, so guard the submit mode here.
+	if (action.validateOn === 'submit') {
+		return { ...state, touched: nextTouched }
+	}
+
+	const newErrors = runValidators(action.validate, state.values, nextTouched, action.validateOn, [
+		action.name,
+	])
+
+	return {
+		...state,
+		errors: { ...state.errors, ...newErrors },
+		touched: nextTouched,
+	}
+}
+
 /** Reducer for {@link Form} state: applies value/touched/error/sync/reset/submit actions, re-validating per `validateOn`. @internal */
 export function formReducer<T extends Record<string, unknown>>(
 	state: FormState<T>,
@@ -160,25 +190,8 @@ export function formReducer<T extends Record<string, unknown>>(
 					Object.keys(newErrors).length > 0 ? { ...state.errors, ...newErrors } : state.errors,
 			}
 		}
-		case 'set-touched': {
-			if (state.touched[action.name]) return state
-
-			const nextTouched = { ...state.touched, [action.name]: true }
-
-			const newErrors = runValidators(
-				action.validate,
-				state.values,
-				nextTouched,
-				action.validateOn,
-				[action.name],
-			)
-
-			return {
-				...state,
-				errors: { ...state.errors, ...newErrors },
-				touched: nextTouched,
-			}
-		}
+		case 'set-touched':
+			return touchField(state, action)
 		case 'set-errors-external': {
 			const nextErrors = { ...state.errors, ...action.errors }
 			const nextTouched = { ...state.touched }
