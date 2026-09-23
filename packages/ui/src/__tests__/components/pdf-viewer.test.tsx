@@ -313,6 +313,63 @@ describe('PdfViewer', () => {
 		// 800/600 ratio until the new image fires its own load event.
 		expect(viewport.style.aspectRatio).toBe('8.5 / 11')
 	})
+
+	it('keeps the rotation when the parent renders the same pages as a new array', async () => {
+		const inline = () => pages.map((entry) => ({ ...entry }))
+
+		const { container, rerender } = renderUI(<PdfViewer pages={inline()} />)
+
+		const img = present<HTMLImageElement>(
+			getSlot(container, 'pdf-viewer-viewport').querySelector('img'),
+			'img',
+		)
+
+		await userEvent.setup().click(screen.getByLabelText('Rotate'))
+
+		expect(img.style.transform).toContain('rotate(90deg)')
+
+		rerender(<PdfViewer pages={inline()} />)
+
+		expect(img.style.transform).toContain('rotate(90deg)')
+	})
+
+	it('resets the rotation when the pages change to a different document', async () => {
+		const { container, rerender } = renderUI(<PdfViewer pages={pages} />)
+
+		await userEvent.setup().click(screen.getByLabelText('Rotate'))
+
+		rerender(<PdfViewer pages={[{ id: 'a', src: 'other-1.png' }]} />)
+
+		const img = present<HTMLImageElement>(
+			getSlot(container, 'pdf-viewer-viewport').querySelector('img'),
+			'img',
+		)
+
+		expect(img.style.transform).toContain('rotate(0deg)')
+	})
+
+	it("does not size a new document's page with the previous document's natural dimensions", () => {
+		const { container, rerender } = renderUI(<PdfViewer pages={[{ src: 'first.png' }]} />)
+
+		const viewport = getSlot(container, 'pdf-viewer-viewport')
+
+		const img = present<HTMLImageElement>(viewport.querySelector('img'), 'img')
+
+		Object.defineProperty(img, 'naturalWidth', { value: 800, configurable: true })
+
+		Object.defineProperty(img, 'naturalHeight', { value: 600, configurable: true })
+
+		act(() => {
+			fireEvent.load(img)
+		})
+
+		expect(viewport.style.aspectRatio).toBe('800 / 600')
+
+		// The pages carry no `id`, so only the document identity tells the two apart.
+		rerender(<PdfViewer pages={[{ src: 'second.png' }]} />)
+
+		expect(viewport.style.aspectRatio).toBe('8.5 / 11')
+	})
 })
 
 describe('downloadPdf', () => {

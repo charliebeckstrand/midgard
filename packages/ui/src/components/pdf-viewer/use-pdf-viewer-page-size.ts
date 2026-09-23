@@ -20,6 +20,8 @@ type PageSizeResult = {
  * a new page does not inherit the previous page's aspect ratio while its
  * `<img>` loads.
  *
+ * @param documentKey - Identity of the current document. A change resets the measured
+ * size, also when the page index and the page `id` stay the same.
  * @returns `{ pageSize, onImageLoad }` — the resolved size and the `<img>`
  * `onLoad` handler that measures the natural size.
  * @internal
@@ -27,14 +29,17 @@ type PageSizeResult = {
 export function usePdfViewerPageSize(
 	activePage: PdfViewerPage | undefined,
 	safePage: number,
+	documentKey?: unknown,
 ): PageSizeResult {
 	const [naturalSize, setNaturalSize] = useState<Size | null>(null)
 
 	const resetKey = `${activePage?.id ?? ''}:${safePage}`
 	const prevResetKey = useRef(resetKey)
+	const prevDocumentKey = useRef(documentKey)
 
-	if (prevResetKey.current !== resetKey) {
+	if (prevResetKey.current !== resetKey || prevDocumentKey.current !== documentKey) {
 		prevResetKey.current = resetKey
+		prevDocumentKey.current = documentKey
 		setNaturalSize(null)
 	}
 

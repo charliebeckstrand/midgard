@@ -23,6 +23,10 @@ export type PdfViewerProps = {
 	/**
 	 * Pre-rendered page images, in order. When provided, drives what's rendered.
 	 * When omitted, pages are rendered from `src` via pdf.js.
+	 *
+	 * @remarks Identity need not be stable. The viewer compares the `id` and `src` of each
+	 * page, and a new array with the same entries keeps the rotations of the reader. To
+	 * show a different document at the same page URLs, remount the viewer with a new `key`.
 	 */
 	pages?: PdfViewerPage[]
 	/**
