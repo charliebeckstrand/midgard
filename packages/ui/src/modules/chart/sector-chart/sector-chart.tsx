@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { usePlotFrame } from '../../../hooks'
 import { k } from '../../../recipes/kata/chart'
 import { once } from '../../../utilities'
-import { paletteSlot } from '../engine/chart-color/palette'
+import { categorySlots } from '../engine/chart-color/palette'
 import { CHART_METRICS, MARK_GAP } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
 import { CALLOUT_LEADER, CALLOUT_LINE, pieSlices } from '../engine/chart-geometry/pie'
@@ -13,7 +13,7 @@ import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { seriesDataKey } from '../engine/chart-motion'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import { formatChartValue, seriesValues } from '../engine/chart-series'
+import { formatChartValue, selectedIndices, seriesValues } from '../engine/chart-series'
 import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
@@ -87,6 +87,22 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * cursor over the slices so they read as clickable.
 	 */
 	onCategoryClick?: ChartItemClick
+	/**
+	 * The slices that read as selected, by their `xKey` label. Their slices keep
+	 * full strength, and each other slice recedes with the dim of a legend hover.
+	 * A hover never re-lights a slice while a selection is held. Pair it with
+	 * `onCategoryClick` to hold a selection, for example the source of a
+	 * dashboard cross-filter. An empty list, or no list, selects nothing.
+	 */
+	selectedCategories?: readonly string[]
+	/**
+	 * Every category that the data can hold, by `xKey` label, in palette order. A
+	 * slice takes the colour of its place in this list, not of its row. A filter
+	 * that removes a category therefore never moves the colours of the rest, so
+	 * Coffee stays orange when it is the only slice left. Omitted, each slice
+	 * takes the colour of its row position.
+	 */
+	categories?: readonly string[]
 }
 
 /** Props for {@link SectorChart}: the shared pie base plus the hole size and center content. @internal */
@@ -122,6 +138,8 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		texture = false,
 		labels,
 		onCategoryClick,
+		selectedCategories,
+		categories,
 		formatValue,
 		className,
 		children,
@@ -198,7 +216,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
 
-	const colors = values.map((_, index) => paletteSlot(index))
+	const colors = categorySlots(sliceLabels, categories)
 
 	const paints = colors.map((color) => k.series[color])
 
@@ -233,6 +251,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// against them. Clamp the mark emphasis to a slice-bearing row — the keyboard
 	// cursor already steps over the rest.
 	const sliceEmphasis = slices.some((slice) => slice.index === emphasis) ? emphasis : null
+
+	// The held selection keys off the same label that a slice click reports.
+	const selectedSlices = selectedIndices(sliceLabels, selectedCategories)
 
 	const calloutItems =
 		drawCallouts && radius > 0
@@ -277,6 +298,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 				center={center}
 				radius={radius}
 				emphasis={sliceEmphasis}
+				selected={selectedSlices}
 				fills={sliceFills}
 				textureActive={tex.active}
 				trigger={trigger}
@@ -290,11 +312,17 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 					paints={paints}
 					animate={animate}
 					emphasis={sliceEmphasis}
+					selected={selectedSlices}
 				/>
 			)}
 
 			{calloutItems.length > 0 && (
-				<SectorChartCallouts items={calloutItems} animate={animate} emphasis={sliceEmphasis} />
+				<SectorChartCallouts
+					items={calloutItems}
+					animate={animate}
+					emphasis={sliceEmphasis}
+					selected={selectedSlices}
+				/>
 			)}
 		</>
 	)

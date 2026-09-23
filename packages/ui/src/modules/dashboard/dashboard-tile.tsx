@@ -8,6 +8,7 @@ import { k } from '../../recipes/kata/dashboard'
 import { DashboardTileContext, useDashboardActions } from './context'
 import { DashboardHandle } from './dashboard-handle'
 import { DashboardTileBoundary } from './dashboard-tile-boundary'
+import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileEdges } from './dashboard-tile-edges'
 import { DashboardTileHeader } from './dashboard-tile-header'
 import { gridArea } from './engine/dashboard-layout'
@@ -154,14 +155,18 @@ export function DashboardTile({
 				size="sm"
 				bg="surface"
 				{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
-				className={cn(k.card({ editable, dragging: drag.dragging }))}
+				{...(movable ? drag.surface : {})}
+				className={cn(k.card({ editable: movable, dragging: drag.dragging }))}
 			>
+				{!hasHeader && handle}
+
 				{hasHeader && (
 					<DashboardTileHeader
 						titleId={titleId}
 						title={title}
 						description={description}
 						actions={actions}
+						clear={<DashboardTileClear id={id} label={label} />}
 						handle={handle}
 					/>
 				)}
@@ -176,8 +181,6 @@ export function DashboardTile({
 					</DashboardTileContext>
 				</div>
 			</Card>
-
-			{!hasHeader && handle}
 
 			{movable && (
 				<DashboardTileEdges

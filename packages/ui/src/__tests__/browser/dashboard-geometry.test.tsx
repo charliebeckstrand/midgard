@@ -54,6 +54,37 @@ describe('dashboard geometry (real browser)', () => {
 		expect(c?.height).toBeCloseTo(200, 0)
 	})
 
+	it('lines the outer cards up with the container edges, and keeps the gutter', () => {
+		const { container } = renderUI(
+			<div style={{ width: 960 }}>
+				<Dashboard aria-label="Sales" layout={{ defaultValue: layout }}>
+					<DashboardTile id="a" ratio={16 / 9} minWidth={120}>
+						<div />
+					</DashboardTile>
+
+					<DashboardTile id="b" ratio={16 / 9} minWidth={120}>
+						<div />
+					</DashboardTile>
+				</Dashboard>
+			</div>,
+		)
+
+		const board = container.querySelector('[data-slot="dashboard"]')?.getBoundingClientRect()
+
+		const [a, b] = Array.from(
+			container.querySelectorAll('[data-slot="dashboard-tile"] > [data-slot="card"]'),
+		).map((card) => card.getBoundingClientRect())
+
+		expect(a?.left).toBeCloseTo(board?.left ?? 0, 0)
+
+		expect(b?.right).toBeCloseTo(board?.right ?? 0, 0)
+
+		expect(a?.top).toBeCloseTo(board?.top ?? 0, 0)
+
+		// The default gutter stays between the two cards.
+		expect((b?.left ?? 0) - (a?.right ?? 0)).toBeCloseTo(12, 0)
+	})
+
 	it('re-packs into a stack when the container starves the tiles', async () => {
 		const { container } = renderUI(
 			<div style={{ width: 360 }}>

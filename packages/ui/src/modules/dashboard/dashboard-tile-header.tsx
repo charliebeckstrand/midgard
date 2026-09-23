@@ -15,6 +15,8 @@ export type DashboardTileHeaderProps = {
 	description?: ReactNode
 	/** The controls at the far end of the row. */
 	actions?: ReactNode
+	/** The control that clears the selection of the tile, before the actions. */
+	clear?: ReactNode
 	/** The drag grip in edit mode, or `null`. */
 	handle: ReactNode
 }
@@ -31,6 +33,7 @@ export function DashboardTileHeader({
 	title,
 	description,
 	actions,
+	clear,
 	handle,
 }: DashboardTileHeaderProps) {
 	return (
@@ -49,11 +52,11 @@ export function DashboardTileHeader({
 				)}
 			</div>
 
-			{actions !== undefined && (
-				<div data-slot="dashboard-tile-actions" className={cn(k.actions)}>
-					{actions}
-				</div>
-			)}
+			<div data-slot="dashboard-tile-actions" className={cn(k.actions)}>
+				{clear}
+
+				{actions}
+			</div>
 		</div>
 	)
 }

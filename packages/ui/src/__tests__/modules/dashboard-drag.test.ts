@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { dragPreview, dragTravel } from '../../modules/dashboard/engine/dashboard-drag'
+import { dragPreview, dragTravel, nearestFit } from '../../modules/dashboard/engine/dashboard-drag'
 import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
 
 const cell = (
@@ -62,14 +62,29 @@ describe('dragPreview', () => {
 		expect(dragPreview(board, 'a', 3, 0, 24)).toBeNull()
 	})
 
-	it('blocks an unequal partner, a static partner, and no change', () => {
-		expect(dragPreview(board, 'a', 0, 10, 24)).toBeNull()
+	it('snaps past an unequal partner to the nearest free origin', () => {
+		// The target covers c, which is wider, so no reorder. Row 20 under c is free,
+		// and from row 12 it is nearer than the start cell.
+		const preview = dragPreview(board, 'a', 0, 12, 24)
 
+		expect(preview?.kind).toBe('move')
+
+		expect(position(preview?.cells).a).toEqual([0, 20])
+	})
+
+	it('snaps past a static partner, and never moves it', () => {
 		const locked = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10, true)]
 
-		expect(dragPreview(locked, 'a', 8, 0, 24)).toBeNull()
+		const preview = dragPreview(locked, 'a', 8, 0, 24)
 
+		expect(position(preview?.cells)).toEqual({ a: [8, 10], b: [8, 0] })
+	})
+
+	it('snaps home, which changes nothing, when the start cell is nearest', () => {
 		expect(dragPreview(board, 'a', 0, 0, 24)).toBeNull()
+
+		// One column over, the target overlaps b; the start cell is the nearest fit.
+		expect(dragPreview(board, 'a', 1, 0, 24)).toBeNull()
 	})
 
 	it('never moves a static tile', () => {
@@ -92,5 +107,20 @@ describe('dragTravel', () => {
 		expect(dragTravel(board, 'a', 24)).toEqual({ maxX: 16, maxY: 20 })
 
 		expect(dragTravel(board, 'c', 24)).toEqual({ maxX: 8, maxY: 10 })
+	})
+})
+
+describe('nearestFit', () => {
+	it('prefers the nearest free origin, counting a column as four rows', () => {
+		// Free at (8, 10) and at (16, 0): the row move of 10 is nearer than 8 columns.
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10), cell('c', 0, 10, 8, 10)]
+
+		expect(nearestFit(board, 'a', 8, 1, 24)).toEqual({ x: 8, y: 10 })
+	})
+
+	it('always finds a place, under the lowest tile at worst', () => {
+		const board = [cell('a', 0, 0, 4, 4), cell('wall', 4, 0, 20, 40)]
+
+		expect(nearestFit(board, 'a', 20, 0, 24)).toEqual({ x: 20, y: 40 })
 	})
 })

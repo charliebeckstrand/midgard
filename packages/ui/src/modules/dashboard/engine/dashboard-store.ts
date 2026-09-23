@@ -74,7 +74,7 @@ export type DashboardView = {
 	cells: ReadonlyMap<string, DashboardCell>
 	/** The saved entries by id, for a tile that has not registered yet. */
 	entries: ReadonlyMap<string, DashboardLayoutItem>
-	/** The cell where a dragged tile lands, or `null` when a drop changes nothing. */
+	/** The cell where a dragged tile lands, which is its start cell when a drop changes nothing. */
 	placeholder: DashboardCell | null
 	/** The travel range of the dragged tile, or `null` at rest. */
 	travel: DashboardDragTravel | null
@@ -154,14 +154,20 @@ function paintedCells(
 	return cells
 }
 
-/** The landing cell of the dragged tile in the preview, or `null`. */
+/**
+ * The landing cell of the dragged tile: its cell in the preview, else its start
+ * cell, where a drop changes nothing. A drag therefore always shows where the
+ * tile lands. It returns `null` when no drag is live.
+ */
 function landingCell(
 	gesture: DashboardGesture | null,
 	previous: DashboardCell | null | undefined,
 ): DashboardCell | null {
 	const dragged = draggedId(gesture)
 
-	const landing = gesture?.preview?.find((cell) => cell.id === dragged)
+	if (dragged === null) return null
+
+	const landing = (gesture?.preview ?? gesture?.snapshot)?.find((cell) => cell.id === dragged)
 
 	return landing === undefined ? null : intern(previous, landing)
 }

@@ -70,7 +70,7 @@ Each layer depends only on the layers under it.
 | File | Content |
 | --- | --- |
 | `dashboard-layout.ts` | The cell type, collision, fit, move, swap, shift, append, and resolution |
-| `dashboard-drag.ts` | The drag policy: a move into free cells, else a reorder, else blocked |
+| `dashboard-drag.ts` | The drag policy: a move into free cells, else a reorder, else the nearest free origin |
 | `dashboard-resize.ts` | The resize clamp: a tile grows until it meets a neighbour or an edge |
 | `dashboard-responsive.ts` | The content-first re-pack, when a tile falls under its `minWidth` |
 | `dashboard-scope.ts` | Selections, the effective query for a tile, and the row predicate |
@@ -94,6 +94,11 @@ The board is a CSS grid inside an inline-size container. The rows are `calc(100c
 The board height follows the lowest tile, with no JavaScript. The server markup is therefore
 correct for each tile that has a layout entry.
 
+Each tile insets half the gutter on each side, and the canvas reaches half a gutter past the
+container on each side. The outer cards therefore line up with the content around the board. The
+row unit divides that wider span. The column guides of edit mode draw only on the interior column
+boundaries, in the gutters.
+
 CSS cannot animate a change of grid position. A tile animates its own move with a FLIP. It
 computes the offset in grid units, multiplies it by the pitch that it measures on itself, and
 plays one transform through the Web Animations API. It animates a move only. A change of size, a
@@ -107,9 +112,14 @@ snapshot and the target cell of the travelling tile:
 1. The target cell is free. The tile moves there.
 2. An equal-span tile covers at least half of the target. The two reorder: a shift in the same
    row, else a swap.
-3. Anything else is blocked. The preview clears, and a drop changes nothing.
+3. Else the tile snaps to the nearest free origin on the board. A column counts as four rows, so
+   the distance is round on screen. The drag therefore needs no precise aim.
+4. When that nearest origin is the start cell, a drop changes nothing. The placeholder then shows
+   the start cell, so a drag always shows where the tile lands.
 
-A tile can travel one row band below the lowest tile, so a drag can open a new row.
+A tile can travel one row band below the lowest tile, so a drag can open a new row. That row is
+always free, so a free origin always exists. In edit mode a pointer drag starts anywhere on the
+card, because the content is inert; the grip is the keyboard activator and the touch handle.
 
 **Resize.** A pointer-captured splitter on the east edge, on the south edge of a free-form tile,
 and on the corner. Each axis grows until it meets a neighbour or the edge, and it never shrinks
@@ -123,6 +133,11 @@ The scope has two parts:
   `QueryBuilder`, through the `filter` binding.
 - **The selections** come from the tiles. A tile calls `select(field, value)`, for example from a
   chart's `onCategoryClick`. Each selection records the tile that made it.
+
+The source chart keeps its selection visible. The app passes `scope.selected(field)` to the
+chart's `selectedCategories`, a generic chart prop: the selected marks stay lit, the others
+recede, and a hover does not re-light them. The chart does not know about the dashboard. A pie
+or donut also takes `categories`, the full category list, so a filter never moves a slice colour.
 
 A tile sees the filter plus the selections of the other tiles. It does not see its own selection,
 so a chart does not filter itself down to the bar that the user clicked. `useDashboardRows` applies

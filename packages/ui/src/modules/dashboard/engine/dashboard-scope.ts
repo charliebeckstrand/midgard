@@ -90,13 +90,21 @@ export function clearSelection(
 	)
 }
 
-/** The values that `source` selected in `field`. */
+/** The empty selection, shared so that a miss keeps one identity. */
+const NO_VALUES: readonly string[] = []
+
+/**
+ * The values that `source` selected in `field`. A miss returns one shared empty
+ * list, so a widget that takes the result as a prop sees no change.
+ */
 export function selectedValues(
 	selections: readonly DashboardSelection[],
 	source: string,
 	field: string,
 ): readonly string[] {
-	return selections.find((item) => item.source === source && item.field === field)?.values ?? []
+	return (
+		selections.find((item) => item.source === source && item.field === field)?.values ?? NO_VALUES
+	)
 }
 
 /** One selection as a query group: an `equals` rule for each value, joined with `or`. */

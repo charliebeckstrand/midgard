@@ -9,14 +9,19 @@ import { iro, sen } from '../kiso'
 const { text } = iro
 
 /**
- * The column guides in edit mode: a hairline at the left edge of each column.
- * The root sets `background-size` inline, because the column count is a prop.
+ * The column guides in edit mode: a hairline on each interior column boundary,
+ * at the centre of a gutter. A layer inset by half a gutter carries them, so no
+ * guide draws on the outer edge of the board. The root sets the gutter and the
+ * column count as CSS variables, because both are props.
  */
 const guides = [
-	'rounded-lg',
+	"before:pointer-events-none before:absolute before:content-['']",
+	'before:inset-[calc(var(--dashboard-gap)/2)]',
+	'before:[background-size:calc((100%_+_var(--dashboard-gap))_/_var(--dashboard-columns))_100%]',
+	'before:[background-position:calc(var(--dashboard-gap)_/_-2)_0]',
 	...mode(
-		'[background-image:linear-gradient(to_right,var(--color-zinc-100)_1px,transparent_1px)]',
-		'dark:[background-image:linear-gradient(to_right,var(--color-zinc-800)_1px,transparent_1px)]',
+		'before:[background-image:linear-gradient(to_right,var(--color-zinc-100)_1px,transparent_1px)]',
+		'dark:before:[background-image:linear-gradient(to_right,var(--color-zinc-800)_1px,transparent_1px)]',
 	),
 ]
 
@@ -25,7 +30,9 @@ const guides = [
  * root is the inline-size container that the row unit reads.
  */
 const canvas = defineRecipe({
-	base: ['relative grid w-full'],
+	// No explicit width: a block grows into its negative margins, which is how the
+	// canvas reaches half a gutter past the container on each side.
+	base: ['relative grid'],
 	editable: { true: guides, false: '' },
 	defaults: { editable: false },
 })
@@ -40,11 +47,19 @@ const tile = defineRecipe({
 	defaults: { lifted: false },
 })
 
-/** The card of a tile: a column of the header row and the content box. */
+/**
+ * The card of a tile: a column of the header row and the content box. A movable
+ * card in edit mode is a drag surface, so it takes the grab cursor. It keeps
+ * touch scrolling, and the grip is the handle on a touch screen.
+ */
 const card = defineRecipe({
-	base: ['flex size-full min-h-0 flex-col'],
+	base: ['relative flex size-full min-h-0 flex-col'],
 	editable: {
-		true: ['outline-dashed', ...mode('outline-zinc-300', 'dark:outline-zinc-700')],
+		true: [
+			'cursor-grab select-none active:cursor-grabbing',
+			'outline-dashed',
+			...mode('outline-zinc-300', 'dark:outline-zinc-700'),
+		],
 		false: '',
 	},
 	dragging: { true: 'shadow-xl', false: '' },

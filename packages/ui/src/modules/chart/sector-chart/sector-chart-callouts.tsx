@@ -188,6 +188,8 @@ type SectorChartCalloutsProps = {
 	items: CalloutLabel[]
 	animate: boolean
 	emphasis: number | null
+	/** The held selection, or `null`; unselected callouts dim with their slices. */
+	selected?: ReadonlySet<number> | null
 }
 
 /**
@@ -198,7 +200,12 @@ type SectorChartCalloutsProps = {
  *
  * @internal
  */
-export function SectorChartCallouts({ items, animate, emphasis }: SectorChartCalloutsProps) {
+export function SectorChartCallouts({
+	items,
+	animate,
+	emphasis,
+	selected = null,
+}: SectorChartCalloutsProps) {
 	return (
 		<g data-slot="chart-callouts" pointerEvents="none">
 			{items.map((item) => {
@@ -226,7 +233,7 @@ export function SectorChartCallouts({ items, animate, emphasis }: SectorChartCal
 				)
 
 				return (
-					<g key={item.index} className={sliceGroupClass(emphasis, item.index)}>
+					<g key={item.index} className={sliceGroupClass(emphasis, item.index, selected)}>
 						{animate ? (
 							<motion.g
 								initial={{ opacity: 0 }}

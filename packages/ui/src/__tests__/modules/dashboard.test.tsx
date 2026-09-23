@@ -284,6 +284,32 @@ describe('Dashboard scope', () => {
 		expect(screen.getByTestId('total')).toHaveTextContent('60')
 	})
 
+	it('offers a clear control on the tile that holds a selection', () => {
+		renderUI(
+			<Dashboard aria-label="Sales">
+				<DashboardTile id="regions" title="Regions">
+					<Regions />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		expect(screen.queryByRole('button', { name: /Clear the selection/ })).not.toBeInTheDocument()
+
+		fireEvent.click(screen.getByRole('button', { name: 'West' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Clear the selection in Regions' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('60')
+
+		expect(screen.queryByRole('button', { name: /Clear the selection/ })).not.toBeInTheDocument()
+	})
+
 	it('applies the filter that the app owns to each tile', () => {
 		renderUI(
 			<Dashboard

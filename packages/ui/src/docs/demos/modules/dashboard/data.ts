@@ -14,7 +14,8 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
 
 const regions = ['North', 'South', 'East', 'West']
 
-const products = ['Tea', 'Coffee', 'Cocoa']
+/** Every product, in palette order, so a filter never moves a product's colour. */
+export const products = ['Tea', 'Coffee', 'Cocoa']
 
 /** A deterministic set of sales, so the demo renders the same on each load. */
 export const sales: Sale[] = months.flatMap((month, m) =>

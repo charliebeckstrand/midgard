@@ -2,6 +2,7 @@
 
 import { DndContext } from '@dnd-kit/core'
 import {
+	type CSSProperties,
 	type ReactNode,
 	useCallback,
 	useLayoutEffect,
@@ -44,6 +45,22 @@ const EMPTY_LAYOUT: readonly DashboardLayoutItem[] = []
 
 /** The empty selection list, shared for the same reason. */
 const EMPTY_SELECTIONS: readonly DashboardSelection[] = []
+
+/**
+ * The inline style of the canvas. Each tile insets half the gutter on each side,
+ * so the canvas reaches half a gutter past the container on each side. The outer
+ * cards then line up with the content around the dashboard. The row unit divides
+ * that wider span, so a row stays a quarter of the column pitch.
+ */
+function canvasStyle(columns: number, gap: number): CSSProperties {
+	return {
+		margin: -gap / 2,
+		gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+		gridAutoRows: `calc((100cqi + ${gap}px) / ${columns * ROW_SUBDIVISION})`,
+		['--dashboard-gap' as string]: `${gap}px`,
+		['--dashboard-columns' as string]: columns,
+	}
+}
 
 /**
  * Props for {@link Dashboard}. Requires an accessible name (`aria-label` or
@@ -216,10 +233,12 @@ export function Dashboard({
 
 	const canvasRef = useRef<HTMLDivElement>(null)
 
+	// The canvas is the measured box: it spans the container plus the two outer
+	// half-gutters, so its width divides into the true column pitch.
 	useResizeObserver(
-		containerRef,
+		canvasRef,
 		useCallback(() => {
-			const width = containerRef.current?.clientWidth ?? 0
+			const width = canvasRef.current?.clientWidth ?? 0
 
 			if (width !== store.getState().width) store.setState({ width })
 		}, [store]),
@@ -269,11 +288,7 @@ export function Dashboard({
 						<div
 							ref={canvasRef}
 							data-slot="dashboard-canvas"
-							style={{
-								gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-								gridAutoRows: `calc(100cqi / ${columns * ROW_SUBDIVISION})`,
-								...(editable && { backgroundSize: `calc(100% / ${columns}) 100%` }),
-							}}
+							style={canvasStyle(columns, gap)}
 							className={cn(k.canvas({ editable }))}
 						>
 							{children}

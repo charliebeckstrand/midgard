@@ -5,7 +5,7 @@ import {
 	type DraggableSyntheticListeners,
 	useDraggable,
 } from '@dnd-kit/core'
-import { useMemo } from 'react'
+import { type PointerEventHandler, type PointerEvent as ReactPointerEvent, useMemo } from 'react'
 import { clamp } from '../../utilities'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import { useDashboardStore } from './use-dashboard-store'
@@ -21,12 +21,14 @@ export type DashboardTileDrag = {
 	carried: Offset | null
 	/** The ref for the tile shell. */
 	setNodeRef: (element: HTMLElement | null) => void
-	/** The props for the drag grip. */
+	/** The props for the drag grip: the keyboard activator. */
 	grip: {
 		attributes: DraggableAttributes
 		listeners: DraggableSyntheticListeners
 		setActivatorNodeRef: (element: HTMLElement | null) => void
 	}
+	/** The pointer listener for the card, so a drag can start anywhere on the tile. */
+	surface: { onPointerDown?: PointerEventHandler<HTMLElement> }
 }
 
 /**
@@ -50,7 +52,8 @@ function carriedOffset(
 }
 
 /**
- * The drag state of one tile. Only the grip starts a drag. During a drag, the
+ * The drag state of one tile. A pointer starts a drag anywhere on the card, and
+ * the keyboard starts one from the grip. During a drag, the
  * tile reads the travel range and the pitch of the gesture from the store. It
  * clamps the pointer offset with them.
  *
@@ -73,10 +76,25 @@ export function useDashboardTileDrag(
 		[isDragging, cell, transform, travel, pitch],
 	)
 
-	const grip = useMemo(
-		() => ({ attributes, listeners, setActivatorNodeRef }),
-		[attributes, listeners, setActivatorNodeRef],
-	)
+	// The pointer sensor rides the card and the keyboard sensor rides the grip, so
+	// neither event reaches the same sensor twice.
+	const grip = useMemo(() => {
+		const onKeyDown = listeners?.onKeyDown
 
-	return { dragging: isDragging, carried, setNodeRef, grip }
+		return {
+			attributes,
+			listeners: onKeyDown === undefined ? undefined : { onKeyDown },
+			setActivatorNodeRef,
+		}
+	}, [attributes, listeners, setActivatorNodeRef])
+
+	const surface = useMemo(() => {
+		const onPointerDown = listeners?.onPointerDown
+
+		if (onPointerDown === undefined) return {}
+
+		return { onPointerDown: (event: ReactPointerEvent<HTMLElement>) => onPointerDown(event) }
+	}, [listeners])
+
+	return { dragging: isDragging, carried, setNodeRef, grip, surface }
 }

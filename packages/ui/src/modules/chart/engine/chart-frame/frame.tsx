@@ -207,6 +207,11 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	onActiveSeries?: (series: number | null) => void
 	/**
+	 * The data indices of the held category selection, or `null`. Their marks keep
+	 * full strength and the others recede, until a hover takes the emphasis.
+	 */
+	selected?: ReadonlySet<number> | null
+	/**
 	 * Which way a cartesian chart faces, so the snapped tooltip anchor transposes.
 	 * @defaultValue 'vertical'
 	 */
@@ -261,6 +266,7 @@ export function ChartFrame({
 	snap,
 	focus,
 	onActiveSeries = ignoreActiveSeries,
+	selected = null,
 	orientation,
 	className,
 	overlay,
@@ -376,9 +382,10 @@ export function ChartFrame({
 
 	// The mark emphasis the marks and tooltip both read: the pointed mark, else the
 	// series the legend or keyboard passed down, lifted to a whole-series reference.
+	// The held category selection lights only its own data under either.
 	const markEmphasis = useMemo(
-		() => chartMarkEmphasis(pointedMark, seriesEmphasis, pointMark),
-		[pointedMark, seriesEmphasis, pointMark],
+		() => chartMarkEmphasis(pointedMark, seriesEmphasis, pointMark, selected),
+		[pointedMark, seriesEmphasis, pointMark, selected],
 	)
 
 	// The SVG renders at its committed pixel size and anchors to the box's
