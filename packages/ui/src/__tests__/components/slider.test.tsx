@@ -307,6 +307,58 @@ describe('Slider + Control', () => {
 	})
 })
 
+describe('RangeSlider + Control', () => {
+	it('inherits disabled from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<RangeSlider />
+			</Control>,
+		)
+
+		expect(getSlot(container, 'slider-range')).toHaveAttribute('data-disabled')
+
+		for (const thumb of allBySlot(container, 'slider-range-thumb')) {
+			expect(thumb).toBeDisabled()
+
+			expect(thumb).toHaveAttribute('tabindex', '-1')
+		}
+	})
+
+	it('keeps an explicit disabled={false} over a disabled Control', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<RangeSlider disabled={false} />
+			</Control>,
+		)
+
+		for (const thumb of allBySlot(container, 'slider-range-thumb')) {
+			expect(thumb).not.toBeDisabled()
+		}
+	})
+
+	it('points each thumb aria-describedby at the control description and message', () => {
+		const { container } = renderUI(
+			<Control id="price" severity="error">
+				<Description>Pick a band</Description>
+				<RangeSlider />
+				<Message>Required</Message>
+			</Control>,
+		)
+
+		const thumbs = allBySlot(container, 'slider-range-thumb')
+
+		expect(thumbs).toHaveLength(2)
+
+		for (const thumb of thumbs) {
+			const describedBy = thumb.getAttribute('aria-describedby')
+
+			expect(describedBy).toContain('price-description')
+
+			expect(describedBy).toContain('price-error')
+		}
+	})
+})
+
 describe('Slider + Form', () => {
 	it('binds to a Form field by name', async () => {
 		const onSubmit = vi.fn()

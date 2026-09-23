@@ -23,6 +23,7 @@ export type RangeSliderProps = {
 	step?: number
 	size?: RangeSliderVariants['size']
 	color?: RangeSliderVariants['color']
+	/** Disables both thumbs. Without the prop, the slider takes the disabled state of the enclosing Control. */
 	disabled?: boolean
 	/**
 	 * Whether moving a thumb past the other swaps their roles. When `false`,
@@ -81,6 +82,7 @@ export type RangeSliderProps = {
  * @remarks Bound to a Form field through `name`, the slider marks the field touched when
  * focus leaves the widget. A move from one thumb to the other does not mark it. An error
  * on the field, or an `error` severity on an enclosing Control, marks each thumb invalid.
+ * Each thumb also takes the `disabled` state and the `aria-describedby` of the Control.
  */
 export function RangeSlider({
 	name,
@@ -92,7 +94,7 @@ export function RangeSlider({
 	step = 1,
 	size,
 	color,
-	disabled = false,
+	disabled,
 	allowCross = true,
 	labels = ['Range start', 'Range end'],
 	getValueText,
@@ -119,8 +121,13 @@ export function RangeSlider({
 
 	const current = range ?? [min, max]
 
-	// The root has no role, so the validation state goes on each `role="slider"` thumb.
-	const controlProps = useControlProps({ invalid })
+	// The root has no role, so the validation state and the description go on
+	// each `role="slider"` thumb.
+	const controlProps = useControlProps({ disabled, invalid })
+
+	const resolvedDisabled = controlProps.disabled === true
+
+	const describedBy = controlProps['aria-describedby']
 
 	const validation = invalidAttrs(controlProps.invalid)
 
@@ -154,7 +161,7 @@ export function RangeSlider({
 			min,
 			max,
 			step,
-			disabled,
+			disabled: resolvedDisabled,
 			current,
 			trackRef,
 			setRange,
@@ -182,7 +189,7 @@ export function RangeSlider({
 		<div
 			ref={ref}
 			data-slot="slider-range"
-			data-disabled={dataAttr(disabled)}
+			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(k.root({ size: resolvedSize, color }), className)}
 			style={style}
 			onPointerDown={onPointerDown}
@@ -211,13 +218,14 @@ export function RangeSlider({
 				ref={loThumbRef}
 				type="button"
 				role="slider"
-				tabIndex={disabled ? -1 : 0}
-				disabled={disabled}
+				tabIndex={resolvedDisabled ? -1 : 0}
+				disabled={resolvedDisabled}
 				aria-valuemin={min}
 				aria-valuemax={current[1]}
 				aria-valuenow={current[0]}
 				aria-valuetext={getValueText?.(current[0], 0)}
 				aria-label={labels[0]}
+				aria-describedby={describedBy}
 				{...validation}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
@@ -230,13 +238,14 @@ export function RangeSlider({
 				ref={hiThumbRef}
 				type="button"
 				role="slider"
-				tabIndex={disabled ? -1 : 0}
-				disabled={disabled}
+				tabIndex={resolvedDisabled ? -1 : 0}
+				disabled={resolvedDisabled}
 				aria-valuemin={current[0]}
 				aria-valuemax={max}
 				aria-valuenow={current[1]}
 				aria-valuetext={getValueText?.(current[1], 1)}
 				aria-label={labels[1]}
+				aria-describedby={describedBy}
 				{...validation}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
