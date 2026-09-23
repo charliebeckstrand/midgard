@@ -64,7 +64,7 @@ function resolveTabState(opts: {
 	id: string | undefined
 	value: string | undefined
 	currentProp: boolean | undefined
-	contextValue: string | undefined
+	contextValue: string | null | undefined
 	baseId: string | undefined
 	isSegment: boolean
 	disclosure: { triggerId: string; panelId: string }

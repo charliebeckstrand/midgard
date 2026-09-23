@@ -3,7 +3,10 @@
 import { createContext } from '../../core'
 import { CurrentContext, type CurrentContextValue, useCurrent } from '../../primitives/current'
 
-/** Value broadcast by {@link NavContext}: the active `value` and its change callback. */
+/**
+ * Value broadcast by {@link NavContext}: the active `value` and its change
+ * callback. `value` is `null` when the `Nav` is controlled with no item current.
+ */
 export type NavContextValue = CurrentContextValue
 
 /** Context carrying the {@link Nav} selection state to descendant items. */

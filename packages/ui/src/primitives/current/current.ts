@@ -7,7 +7,12 @@ import type { Mount } from '../mount'
 
 /** Value carried by `CurrentContext`: the active panel `value` and its change handler. */
 export type CurrentContextValue = {
-	value: string | undefined
+	/**
+	 * The active panel value. `null` means controlled with none active, so no
+	 * valued panel is current. `undefined` means an unvalued context, so every
+	 * panel is current.
+	 */
+	value: string | null | undefined
 	/** Fires with the newly active value, or `null` once none is active (CONVENTIONS §7.3). */
 	onValueChange: ((value: string | null) => void) | undefined
 }
@@ -31,7 +36,7 @@ export const [CurrentContext, useCurrent] = createContext<CurrentContextValue | 
  *
  * @returns A memoized {@link CurrentContextValue} to pass straight into
  * {@link CurrentContext}; `value` follows the controlled prop or internal state
- * via `useControllable`.
+ * via `useControllable`. A controlled `null` stays `null`.
  */
 export function useCurrentState(props: {
 	/** Controlled active value. `undefined` leaves it uncontrolled; `null` keeps it controlled with none active (CONVENTIONS §7.3). */
@@ -45,7 +50,14 @@ export function useCurrentState(props: {
 		onValueChange: props.onValueChange,
 	})
 
-	return useMemo<CurrentContextValue>(() => ({ value, onValueChange: setValue }), [value, setValue])
+	// `useControllable` folds `null` into `undefined`. Carry the controlled
+	// `null` past it, so "none active" does not read as an unvalued context.
+	const contextValue = props.value === null ? null : value
+
+	return useMemo<CurrentContextValue>(
+		() => ({ value: contextValue, onValueChange: setValue }),
+		[contextValue, setValue],
+	)
 }
 
 /**
