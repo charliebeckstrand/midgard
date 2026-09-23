@@ -66,7 +66,10 @@ type VirtualWindow = {
 	virtualItems: VirtualItem[]
 	/** Pixel height of the spacer standing in for rows above the viewport. */
 	topSpacer: number
-	/** Pixel height of the spacer standing in for rows below the viewport. */
+	/**
+	 * Pixel height of the spacer standing in for rows below the viewport. While
+	 * the window is empty, it holds the height of every row.
+	 */
 	bottomSpacer: number
 	/**
 	 * Scrolls the item at `index` into the window, mounting it if it was outside
@@ -112,6 +115,13 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * and `followOnAppend` pass through as they are, so a list pinned to its newest
  * row holds the pin through the virtualizer. It does not write `scrollTop` from
  * outside, because the total height moves as rows measure.
+ *
+ * The window is empty until the virtualizer measures a scroller of some
+ * height. While the window is empty, `bottomSpacer` holds the height of every
+ * row: `count` times a number estimate, or the sum of a function estimate. A
+ * scroller that only `maxHeight` bounds thus grows to its cap, and the first
+ * window can resolve. A caller that draws stand-in rows while the window is
+ * empty, such as a skeleton, can leave this spacer out until rows render.
  *
  * The grid stays on the uniform path. `resolveGroupingGates` stands
  * virtualization down whenever grouping or master-detail is active, because
@@ -178,7 +188,10 @@ export function useVirtualWindow({
 
 	const lastItem = virtualItems.at(-1)
 
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : 0
+	// An empty window has no row to measure from, so the bottom spacer holds the
+	// full height. A scroller that only `maxHeight` bounds then grows to its cap.
+	// Without this it measures zero, and the window stays empty for good.
+	const bottomSpacer = lastItem ? totalSize - lastItem.end : totalSize
 
 	return {
 		virtualItems,
