@@ -48,8 +48,18 @@ export type GridEditingSession = {
 	editableRows: Set<string | number>
 	/** The cell a cell-scoped session edits, as a store each data cell subscribes to. */
 	activeEditStore: GridActiveEditStore
-	/** Stage a cell's pending value (held until the session closes the cell and the value commits). */
-	stageDraft: (rowKey: string | number, columnId: string | number, value: unknown) => void
+	/**
+	 * Stage a cell's pending value, against the row object the editor shows.
+	 * The session holds it until it closes the cell and the value commits. The
+	 * first write keeps `row` as the snapshot that a commit reads when the row
+	 * is no longer in `rows`. A write to a closed cell is ignored.
+	 */
+	stageDraft: (
+		rowKey: string | number,
+		columnId: string | number,
+		value: unknown,
+		row: unknown,
+	) => void
 	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
 	unstageDraft: (rowKey: string | number, columnId: string | number) => void
 	/**

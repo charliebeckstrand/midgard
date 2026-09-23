@@ -118,9 +118,15 @@ export type GridEditableConfig = {
 	 * They commit when the row leaves this set. While the row stays in the set,
 	 * an editor that unmounts keeps its edit. A page change, a virtualized
 	 * scroll, and a hidden column all unmount editors. The row's editors show the
-	 * edits again when they mount. A row that is no longer in the grid's `rows` when it
-	 * leaves this set has nothing to commit into. Its edits are discarded and
-	 * announced, and the grid warns once in development.
+	 * edits again when they mount.
+	 *
+	 * A row can be absent from the grid's `rows` when it leaves this set. Under
+	 * server-side pagination it is on another page, and it can also be a row you
+	 * deleted. The grid cannot tell the two apart, and it never drops a user
+	 * edit by default. The edits commit against the row object that each was
+	 * first staged against, with the row's key. Ignore a change for a row that
+	 * you deleted. A row whose key changed during the session is the same case:
+	 * its edits commit under the old key.
 	 */
 	rows?: Set<string | number>
 	/** Initial editable row keys for the uncontrolled case. */
@@ -306,10 +312,12 @@ export type GridEditableConfig = {
 	 * batch rather than its first entry: a session narrowing an already-open row
 	 * closes several at once. Three kinds of cell are dropped: unchanged ones, and
 	 * ones whose {@link GridColumn.validate} rejects the value. So are ones whose
-	 * column stopped being editable while the editor was open. A row that left
-	 * the grid's `rows` before its session closed reaches no sink: its edits are
-	 * discarded and announced. Apply each change to your own row data and feed
-	 * it back as `rows`.
+	 * column stopped being editable while the editor was open. A row that is no
+	 * longer in the grid's `rows` still commits. The grid compares and
+	 * validates against the row object that the edit was first staged against
+	 * (see {@link GridEditableConfig.rows}). Apply each change to your own row
+	 * data and feed it back as `rows`. Ignore a change for a row that you
+	 * deleted.
 	 */
 	onCommit: (changes: GridCellChange[]) => void
 	/**

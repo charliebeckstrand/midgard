@@ -422,7 +422,7 @@ describe('Grid per-row editing', () => {
 		expect(onCommit).toHaveBeenCalledWith(NAME_EDIT)
 	})
 
-	it('drops a staged value for a row the consumer removed while its editor was open', () => {
+	it('commits a staged value for a row the consumer removed while its editor was open', () => {
 		const { onCommit, disturb, save } = renderStagedEdit((removed) => ({
 			rows: removed ? [sessionRows[1] as SessionRow] : sessionRows,
 		}))
@@ -431,9 +431,11 @@ describe('Grid per-row editing', () => {
 
 		save()
 
-		// The counterpart to the two above: a row the consumer really took out is
-		// absent from `rows` as well, so its draft has nothing to write to.
-		expect(onCommit).not.toHaveBeenCalled()
+		// A row absent from `rows` can be a deleted row or a row on another server
+		// page, and the grid cannot tell the two apart. A user edit is never
+		// dropped by default, so the draft commits against the row it was staged
+		// on. A consumer that deleted the row ignores the change.
+		expect(onCommit).toHaveBeenCalledWith(NAME_EDIT)
 	})
 
 	it('announces nothing when the editing binding goes away with drafts staged', async () => {
@@ -3248,32 +3250,143 @@ describe('Grid session-owned drafts', () => {
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
 	})
 
-	it('discards, announces, and warns once for a row gone from the data when its session closes', async () => {
+	it('commits a row gone from the data against its snapshot, with no warning', async () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 		const { click, type, onCommit } = renderDraftGrid()
 
-		for (let round = 0; round < 2; round++) {
-			click('restore')
+		click('edit')
 
-			click('edit')
+		type('Alicia')
 
-			type('Alicia')
+		click('drop')
 
-			click('drop')
+		click('save')
 
-			click('save')
-		}
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
 
-		expect(onCommit).not.toHaveBeenCalled()
+		await expectAnnouncement('1 cell updated')
 
-		await expectAnnouncement('1 edit discarded, row removed')
-
-		expect(warn).toHaveBeenCalledOnce()
-
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining('no longer in `rows`'))
+		expect(warn).not.toHaveBeenCalled()
 
 		warn.mockRestore()
+	})
+
+	it('commits the edit of a row on another server page, validated against its snapshot', () => {
+		const onCommit = vi.fn()
+
+		const validate = vi.fn(() => null)
+
+		function Harness() {
+			const [pageIndex, setPageIndex] = useState(0)
+
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={[
+							{ ...sessionColumns[0], validate } as GridColumn<SessionRow>,
+							sessionColumns[1] as GridColumn<SessionRow>,
+						]}
+						// The consumer holds one server page at a time.
+						rows={sessionRows.slice(pageIndex, pageIndex + 1)}
+						getKey={(row) => row.id}
+						pagination={{
+							value: { pageIndex, pageSize: 1 },
+							rowCount: 2,
+							onValueChange: (next) => setPageIndex(next.pageIndex),
+						}}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'Next page' }))
+
+		expect(view.getByText('Bob')).toBeInTheDocument()
+
+		validate.mockClear()
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
+
+		expect(validate).toHaveBeenCalledWith('Alicia', sessionRows[0])
+	})
+
+	it('ignores a late write to a cell that a save already closed', () => {
+		const onCommit = vi.fn()
+
+		// The slot keeps its staging callback, so the test can call it after the
+		// save, as a NumberInput blur that fires after the row closed does.
+		let late: ((next: unknown) => void) | null = null
+
+		const cols: GridColumn<SessionRow>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => row.name,
+				editCell: ({ value, onValueUpdate, ariaLabel, row }) => {
+					if (row.id === 1) late = onValueUpdate
+
+					return (
+						<input
+							aria-label={ariaLabel}
+							data-slot="slot-name"
+							value={String(value ?? '')}
+							onChange={(event) => onValueUpdate(event.target.value)}
+						/>
+					)
+				},
+			},
+		]
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<button type="button" onClick={() => setEditing(new Set([2]))}>
+						edit-2
+					</button>
+					<Grid
+						columns={cols}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const click = (name: string) => fireEvent.click(view.getByRole('button', { name }))
+
+		click('save')
+
+		act(() => late?.('Late'))
+
+		click('edit-2')
+
+		click('save')
+
+		expect(onCommit).not.toHaveBeenCalled()
 	})
 
 	it.each(['row', 'cell'] as const)(

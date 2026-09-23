@@ -15,12 +15,13 @@ import {
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
-import { describeCommit, describeDiscard } from './engine/grid-announcements'
+import { describeCommit } from './engine/grid-announcements'
 import { EMPTY_SET, FLOATING_PORTAL } from './engine/grid-constants'
 import {
 	createDraftStore,
 	EDITOR_FOCUSABLE,
 	type GridActiveEdit,
+	type GridDraft,
 	type GridDraftStore,
 	isCellEditing,
 	isColumnEditable,
@@ -239,27 +240,32 @@ function isEditableCell<T>(cell: GridActiveEdit, source: GridEditSource<T>): boo
 	return source.rows.some((row, index) => source.getKey(row, index) === cell.rowKey)
 }
 
-/** A row's staged cell values, keyed by column id. @internal */
-type RowDrafts = Map<string | number, unknown>
+/** A row's staged drafts, keyed by column id. @internal */
+type RowDrafts = Map<string | number, GridDraft>
 
 /**
  * Resolves a row's staged drafts into committed {@link GridCellChange}s. It keeps
- * each changed cell (its draft differs from the row's current value) that
- * passes the column's {@link GridColumn.validate}, dropping unchanged and
- * invalid ones. Module-level so the flush effect stays within its complexity
- * budget.
+ * each changed cell (its draft differs from the row's value) that passes the
+ * column's {@link GridColumn.validate}, dropping unchanged and invalid ones.
+ * Module-level so the flush effect stays within its complexity budget.
  *
  * @remarks The walk is over the drafts, not the columns, so every staged cell is
  * visited whether or not its column is still on screen. Both lookups read
  * {@link GridEditSource} rather than the render window. A row that pages out
  * and a column that hides still commit. A column the consumer removed resolves
- * to nothing and drops. A row the consumer removed returns `null`, so the
- * caller can report the drafts that it discards.
+ * to nothing and drops.
+ *
+ * A row that is not in `rows` resolves to the snapshot of its draft: the row
+ * object that the draft was first staged against. Under server-side
+ * pagination a row on another page is absent from `rows`, and the grid cannot
+ * tell it from a deleted row. A user edit is never dropped by default, so the
+ * cell commits against its snapshot, and the consumer decides.
  *
  * Two reads here are deliberately live rather than taken when the cell staged. A
  * column can lock mid-session, and `onCommit` on an earlier cell can hand back
  * new rows before a later one flushes. A snapshot would answer for the state the
- * editor opened against instead of the state it commits into.
+ * editor opened against instead of the state it commits into. The row snapshot
+ * applies only where no live row exists.
  *
  * @internal
  */
@@ -267,26 +273,28 @@ function flushRow<T>(
 	rowKey: string | number,
 	drafts: RowDrafts,
 	source: GridEditSource<T>,
-): { changes: GridCellChange[]; refused: GridCellChange[] } | null {
+): { changes: GridCellChange[]; refused: GridCellChange[] } {
 	const { rows, columns, getKey } = source
 
 	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
 	// index a positional `getKey` reads is the one the engine gave the row.
-	const row = rows.find((candidate, index) => getKey(candidate, index) === rowKey)
-
-	if (row == null) return null
+	const live = rows.find((candidate, index) => getKey(candidate, index) === rowKey)
 
 	const changes: GridCellChange[] = []
 
 	const refused: GridCellChange[] = []
 
-	for (const [columnId, value] of drafts) {
+	for (const [columnId, draft] of drafts) {
 		const col = columns.find((candidate) => candidate.id === columnId)
 
 		// The mount predicate closes a locked column's editor on the next render,
 		// so the staged value must not write either — the two gates answer to the
 		// same `readOnly`. A column the consumer removed resolves to nothing.
 		if (!col || !isColumnEditable(col)) continue
+
+		const row = live ?? (draft.row as T)
+
+		const value = draft.value
 
 		const original = col.field != null ? row[col.field] : undefined
 
@@ -304,18 +312,12 @@ function flushRow<T>(
 }
 
 /**
- * What one commit sweep did: the cells that it saved, and the drafts that it
- * discarded because their row left the grid's data. @internal
- */
-type SweepResult = { saved: number; discarded: { cells: number; rows: number } }
-
-/**
  * Commits every staged cell that the session closed, one `onCommit` batch per
- * row. It hands the cells `validate` refused to `onReject`. It returns the
- * cells saved across the batches, and the drafts of rows that are gone (for
- * the announcement). A row with no sink to reach counts nothing, so the
- * announcement never speaks a commit that did not happen. Each closed draft
- * leaves the store. A draft of a cell that is still open stays staged.
+ * row. It hands the cells `validate` refused to `onReject`, and returns the
+ * cells saved across them (for the commit announcement). A row with no sink to
+ * reach counts nothing, so the announcement never speaks a commit that did
+ * not happen. Each closed draft leaves the store. A draft of a cell that is
+ * still open stays staged.
  *
  * @remarks One rule covers every way a session ends, because each is the same
  * event seen from the cell. A consumer's save and a grid-owned exit close a whole
@@ -328,8 +330,8 @@ type SweepResult = { saved: number; discarded: { cells: number; rows: number } }
  *
  * The open state is the session's, not the render's. An editor that unmounts
  * for virtualization, a page change, or a hidden column leaves its cell open,
- * so its draft stays staged. A row that left the grid's data has nothing to
- * commit into, so its drafts are discarded and counted.
+ * so its draft stays staged. A row that left the grid's data commits against
+ * its snapshot (see {@link flushRow}).
  * @internal
  */
 function flushClosedCells<T>(args: {
@@ -339,8 +341,8 @@ function flushClosedCells<T>(args: {
 	source: GridEditSource<T>
 	onCommit: ((changes: GridCellChange[]) => void) | undefined
 	onReject: ((refused: GridCellChange[]) => void) | undefined
-}): SweepResult {
-	const result: SweepResult = { saved: 0, discarded: { cells: 0, rows: 0 } }
+}): number {
+	let saved = 0
 
 	const closed = args.drafts.take(
 		(rowKey, columnId) =>
@@ -353,17 +355,7 @@ function flushClosedCells<T>(args: {
 	)
 
 	for (const [rowKey, rowDrafts] of closed) {
-		const flushed = flushRow(rowKey, rowDrafts, args.source)
-
-		if (flushed === null) {
-			result.discarded.cells += rowDrafts.size
-
-			result.discarded.rows++
-
-			continue
-		}
-
-		const { changes, refused } = flushed
+		const { changes, refused } = flushRow(rowKey, rowDrafts, args.source)
 
 		// Reported per row, like the commit batch beside it, and independent of it:
 		// a row whose every cell was refused reaches no sink at all otherwise.
@@ -373,18 +365,11 @@ function flushClosedCells<T>(args: {
 
 		args.onCommit(changes)
 
-		result.saved += changes.length
+		saved += changes.length
 	}
 
-	return result
+	return saved
 }
-
-/**
- * The development warning for drafts whose row left the grid's data before
- * its session closed. @internal
- */
-const VANISHED_ROW_WARNING =
-	'Grid: an edit session closed on a row that is no longer in `rows`. Its staged edits were discarded, not committed. Keep the row in `rows` until its session closes, or close the session first.'
 
 /**
  * Warns in development when `scope: 'cell'` is set without the grid-owned session
@@ -876,7 +861,8 @@ function useActiveCell<T>({
  * cell. A draft lives while its cell is open. An editor that unmounts, for
  * virtualization, a page change, a hidden column, or grouping, neither commits
  * nor drops it. An editor that mounts again shows it. A row that left the
- * grid's data when its session closes has its drafts discarded and announced.
+ * grid's data when its session closes commits against the row snapshot that
+ * each draft keeps. A write to a cell that the session closed is ignored.
  *
  * The active cell is a controllable of its own (`cell`). Uncontrolled, the
  * grid writes it at event time, as before. Controlled, the grid only asks for
@@ -1016,12 +1002,36 @@ export function useGridEditing<T>({
 
 	onRejectRef.current = config?.onReject
 
+	// The open state that the last commit sweep saw. A cell that it saw open
+	// has not committed yet, so a write to it still counts.
+	const sweptRef = useRef<{ rows: Set<string | number>; cell: GridActiveEdit | null }>({
+		rows: EMPTY_SET,
+		cell: null,
+	})
+
 	// The session's drafts, keyed by cell. The session owns them, not the
 	// editors: a draft lives while its cell is open, mounted or not. The store
-	// has no subscribers, so staging never re-renders the grid.
+	// has no subscribers, so staging never re-renders the grid. It takes a
+	// write only for a cell that is open now, or that the last sweep saw open.
+	// A later write, such as a blur after a save, is too late to commit.
 	const draftsRef = useRef<GridDraftStore | null>(null)
 
-	if (draftsRef.current === null) draftsRef.current = createDraftStore()
+	if (draftsRef.current === null)
+		draftsRef.current = createDraftStore(
+			(rowKey, columnId) =>
+				isCellEditing({
+					rowKey,
+					columnId,
+					editableRows: editableRowsRef.current,
+					activeEdit: activeEditRef.current,
+				}) ||
+				isCellEditing({
+					rowKey,
+					columnId,
+					editableRows: sweptRef.current.rows,
+					activeEdit: sweptRef.current.cell,
+				}),
+		)
 
 	const drafts = draftsRef.current
 
@@ -1749,15 +1759,14 @@ export function useGridEditing<T>({
 		[cellScoped, commitOn, activeEditStore],
 	)
 
-	// Set once the vanished-row warning has fired, so it fires once per grid.
-	const warnedVanishedRef = useRef(false)
-
 	// Commit the cells that the session closed in the render just past. The
 	// drafts belong to the session, and this is where they land in the sink. The
 	// open state answers it on its own, so no copy of the last render is kept to
 	// diff against.
 	useEffect(() => {
-		const { saved, discarded } = flushClosedCells({
+		sweptRef.current = { rows: editableRows, cell: activeEdit }
+
+		const saved = flushClosedCells({
 			drafts,
 			editableRows,
 			activeEdit,
@@ -1766,23 +1775,8 @@ export function useGridEditing<T>({
 			onReject: onRejectRef.current,
 		})
 
-		if (
-			discarded.cells > 0 &&
-			process.env.NODE_ENV !== 'production' &&
-			!warnedVanishedRef.current
-		) {
-			warnedVanishedRef.current = true
-
-			console.warn(VANISHED_ROW_WARNING)
-		}
-
-		// Announce the result politely, without moving focus (WCAG 4.1.3).
-		const message = [
-			saved > 0 ? describeCommit(saved) : null,
-			discarded.cells > 0 ? describeDiscard(discarded.cells, discarded.rows) : null,
-		].filter((part) => part !== null)
-
-		if (message.length > 0) announce(message.join('. '))
+		// Announce the commit politely, without moving focus (WCAG 4.1.3).
+		if (saved > 0) announce(describeCommit(saved))
 	}, [drafts, editableRows, activeEdit, editSourceRef])
 
 	const session = useMemo<GridEditingSession>(

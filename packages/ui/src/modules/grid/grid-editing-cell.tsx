@@ -176,10 +176,14 @@ function GridCellEditor<T>({
 	})
 
 	// A typed character is an edit, so it stages like one. Staging here rather
-	// than at entry keeps a declined entry from leaving a draft behind.
+	// than at entry keeps a declined entry from leaving a draft behind. The row
+	// is the one the editor mounted with, so a new row object from the consumer
+	// does not stage the entry a second time.
+	const [mountRow] = useState(row)
+
 	useEffect(() => {
-		if (entry !== undefined) stageDraft(rowKey, column.id, entry)
-	}, [entry, stageDraft, rowKey, column.id])
+		if (entry !== undefined) stageDraft(rowKey, column.id, entry, mountRow)
+	}, [entry, stageDraft, rowKey, column.id, mountRow])
 
 	const hostRef = useRef<HTMLSpanElement>(null)
 
@@ -199,7 +203,7 @@ function GridCellEditor<T>({
 	const update = (next: unknown) => {
 		setDraft(next)
 
-		stageDraft(rowKey, column.id, next)
+		stageDraft(rowKey, column.id, next, row)
 	}
 
 	const cancel = () => {

@@ -136,8 +136,13 @@ export type GridActiveEdit = GridCellRef
  */
 export type GridDraftStatus = 'staged'
 
-/** One cell's draft: the value that the user typed, and its status. @internal */
-export type GridDraft = { value: unknown; status: GridDraftStatus }
+/**
+ * One cell's draft: the value that the user typed, its status, and `row`, the
+ * row object that the first write staged it against. The commit reads `row`
+ * only when the row is no longer in the grid's `rows`, as for a row on
+ * another server page. @internal
+ */
+export type GridDraft = { value: unknown; status: GridDraftStatus; row: unknown }
 
 /**
  * The drafts of one edit session, keyed by cell. The session owns them, not
@@ -150,8 +155,12 @@ export type GridDraft = { value: unknown; status: GridDraftStatus }
  * because the commit is one batch for each row. @internal
  */
 export type GridDraftStore = {
-	/** Stages `value` as the draft of the cell. A later value replaces it. */
-	stage: (rowKey: string | number, columnId: string | number, value: unknown) => void
+	/**
+	 * Stages `value` as the draft of the cell, against the row object `row`. A
+	 * later value replaces the value and keeps the first row snapshot. A write
+	 * to a cell that the store does not accept is ignored.
+	 */
+	stage: (rowKey: string | number, columnId: string | number, value: unknown, row: unknown) => void
 	/** Removes the draft of the cell, if there is one. */
 	unstage: (rowKey: string | number, columnId: string | number) => void
 	/** Removes every draft of the row. */
@@ -159,12 +168,12 @@ export type GridDraftStore = {
 	/** The draft of the cell, or `undefined` when the cell has none. */
 	read: (rowKey: string | number, columnId: string | number) => GridDraft | undefined
 	/**
-	 * Removes the drafts of each cell that `closed` names, and returns their
-	 * values, grouped by row. A row with no closed cell is not in the result.
+	 * Removes the drafts of each cell that `closed` names, and returns them,
+	 * grouped by row. A row with no closed cell is not in the result.
 	 */
 	take: (
 		closed: (rowKey: string | number, columnId: string | number) => boolean,
-	) => Map<string | number, Map<string | number, unknown>>
+	) => Map<string | number, Map<string | number, GridDraft>>
 }
 
 /** The records of a {@link GridDraftStore}, keyed by row and then by column. @internal */
@@ -192,16 +201,16 @@ function rowOf<V>(
  */
 function writeDraft(
 	rows: DraftRows,
-	rowKey: string | number,
-	columnId: string | number,
+	cell: { rowKey: string | number; columnId: string | number },
 	value: unknown,
+	snapshot: unknown,
 ): void {
-	const row = rowOf(rows, rowKey)
+	const row = rowOf(rows, cell.rowKey)
 
-	const draft = row.get(columnId)
+	const draft = row.get(cell.columnId)
 
 	if (!draft) {
-		row.set(columnId, { value, status: 'staged' })
+		row.set(cell.columnId, { value, status: 'staged', row: snapshot })
 
 		return
 	}
@@ -215,14 +224,14 @@ function writeDraft(
 function takeClosed(
 	rows: DraftRows,
 	closed: (rowKey: string | number, columnId: string | number) => boolean,
-): Map<string | number, Map<string | number, unknown>> {
-	const taken = new Map<string | number, Map<string | number, unknown>>()
+): DraftRows {
+	const taken: DraftRows = new Map()
 
 	for (const [rowKey, row] of rows) {
 		for (const [columnId, draft] of row) {
 			if (!closed(rowKey, columnId)) continue
 
-			rowOf(taken, rowKey).set(columnId, draft.value)
+			rowOf(taken, rowKey).set(columnId, draft)
 
 			row.delete(columnId)
 		}
@@ -233,12 +242,20 @@ function takeClosed(
 	return taken
 }
 
-/** Builds an empty {@link GridDraftStore}. @internal */
-export function createDraftStore(): GridDraftStore {
+/**
+ * Builds an empty {@link GridDraftStore}. `accepts` answers whether the
+ * session holds a cell open, and the store ignores a write to any other cell.
+ * @internal
+ */
+export function createDraftStore(
+	accepts: (rowKey: string | number, columnId: string | number) => boolean,
+): GridDraftStore {
 	const rows: DraftRows = new Map()
 
 	return {
-		stage: (rowKey, columnId, value) => writeDraft(rows, rowKey, columnId, value),
+		stage: (rowKey, columnId, value, row) => {
+			if (accepts(rowKey, columnId)) writeDraft(rows, { rowKey, columnId }, value, row)
+		},
 		unstage: (rowKey, columnId) => {
 			const row = rows.get(rowKey)
 
