@@ -4,7 +4,7 @@ import { useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
-import { useA11yAnnouncements, useControllable } from '../../hooks'
+import { useA11yAnnouncements, useComposedRef, useControllable } from '../../hooks'
 import { useDensity } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
@@ -582,6 +582,10 @@ export function GridData<T>({
 	// (see `useGridRoving`), attached below through `resolveTableProps`.
 	const tableRef = useRef<HTMLTableElement>(null)
 
+	// The consumer's `tableProps.ref` and the grid's own ref, on one node. The
+	// cursor reads the grid's ref to reseat focus on its own tab stop.
+	const tableElementRef = useComposedRef(tableRef, tableProps?.ref)
+
 	// Stable click handlers so the memoized rows don't churn when the consumer
 	// passes inline callbacks; the cursor also activates its cell/row on Enter.
 	const handleRowClick = useStableHandler(onRowClick)
@@ -630,6 +634,7 @@ export function GridData<T>({
 		toggleActiveRow,
 		scrollRowIntoViewRef,
 		scrollContainerRef: scrollRef,
+		tableRef,
 		refs: {
 			rowsRef,
 			colCountRef,
@@ -1185,7 +1190,7 @@ export function GridData<T>({
 					cn(tableClassName, bodyStateClass, outlineTableClass(outline), widthGateClass(showTable)),
 				)}
 				tableProps={resolveTableProps({
-					tableProps,
+					tableProps: { ...tableProps, ref: tableElementRef },
 					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
 					navTableProps: cursor.navTableProps,
 					// Row/cell roving: the table ref and the arrow-key handler (exclusive

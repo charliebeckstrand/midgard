@@ -44,7 +44,7 @@
         "app/**",
         "*.config.ts",
         "$TURBO_ROOT$/biome.json",
-        "$TURBO_ROOT$/biome/plugins/**"
+        "$TURBO_ROOT$/.biome/plugins/**"
       ]
     },
     "test": {

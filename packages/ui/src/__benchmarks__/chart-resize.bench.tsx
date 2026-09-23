@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { bench, describe } from 'vitest'
+import { describe } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../components/tabs'
 import { BarChart } from '../modules/chart/bar-chart'
 import { PieChart } from '../modules/chart/pie-chart'
@@ -54,19 +54,14 @@ window.ResizeObserver = class CapturingResizeObserver {
 } as unknown as typeof ResizeObserver
 
 /**
- * Mounts one scenario tree and scopes notification delivery to the observers
- * it constructed — every describe's tree stays mounted for the whole run, so
- * without the slice each scenario would also drive its neighbours' observers.
+ * The drive of one mounted scenario tree. Delivery goes only to the observers
+ * that watch an element of this tree. An observer of an earlier bench's tree
+ * was disconnected with that tree, so it watches nothing.
  */
-function mountScenario(node: ReactElement) {
-	const from = observers.length
-
-	// Through the harness, so the tree is one this file owns rather than one the
-	// testing library holds: every describe's tree stays up for the whole run,
-	// and a `mountBench` added beside them must not be able to reach it.
-	const container = persistentTree(node)
-
-	const mine = observers.slice(from)
+function driveScenario(container: HTMLElement) {
+	const mine = observers.filter((observer) =>
+		observer.targets.some((target) => container.contains(target)),
+	)
 
 	/** One observer frame: every observed box reports a size derived from `width`. */
 	function fire(width: number) {
@@ -95,6 +90,15 @@ function mountScenario(node: ReactElement) {
 	}
 
 	return { fire, burst }
+}
+
+/**
+ * Registers the scenario tree through the harness. Each bench then mounts its
+ * own copy of the tree only while it runs, so the figures of one scenario do
+ * not depend on the trees of the others.
+ */
+function mountScenario(node: ReactElement) {
+	return persistentTree(node, driveScenario)
 }
 
 /**
@@ -147,16 +151,16 @@ describe('BarChart · resize', () => {
 
 	const nextSpan = spanner()
 
-	bench('burst of 60 notifications', () => {
+	scenario.bench('burst of 60 notifications', ({ burst }) => {
 		const [from, to] = nextSpan()
 
-		scenario.burst(from, to)
+		burst(from, to)
 	})
 
-	bench('single notification', () => {
+	scenario.bench('single notification', ({ fire }) => {
 		const [, to] = nextSpan()
 
-		scenario.fire(to)
+		fire(to)
 	})
 })
 
@@ -171,16 +175,16 @@ describe('PieChart · resize', () => {
 
 	const nextSpan = spanner()
 
-	bench('burst of 60 notifications', () => {
+	scenario.bench('burst of 60 notifications', ({ burst }) => {
 		const [from, to] = nextSpan()
 
-		scenario.burst(from, to)
+		burst(from, to)
 	})
 
-	bench('single notification', () => {
+	scenario.bench('single notification', ({ fire }) => {
 		const [, to] = nextSpan()
 
-		scenario.fire(to)
+		fire(to)
 	})
 })
 
@@ -209,15 +213,15 @@ describe('three charts in fading tab host · resize', () => {
 
 	const nextSpan = spanner()
 
-	bench('burst of 60 notifications', () => {
+	scenario.bench('burst of 60 notifications', ({ burst }) => {
 		const [from, to] = nextSpan()
 
-		scenario.burst(from, to)
+		burst(from, to)
 	})
 
-	bench('single notification', () => {
+	scenario.bench('single notification', ({ fire }) => {
 		const [, to] = nextSpan()
 
-		scenario.fire(to)
+		fire(to)
 	})
 })

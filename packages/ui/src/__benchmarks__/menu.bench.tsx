@@ -52,7 +52,7 @@ import {
 	MenuTrigger,
 } from '../components/menu'
 import { comboboxOptions, MENU_ROWS } from './fixtures'
-import { mountBench, mountBenches, persistentTree, rerenderBench } from './harness'
+import { mountBench, mountBenches, rerenderBench, sharedTree } from './harness'
 
 /** Rows per section in the sectioned composition, and children per submenu. */
 const GROUP = 6
@@ -348,7 +348,7 @@ type Probe = { trigger: HTMLElement; rows: HTMLElement[] }
 function openMenu(count: number, model: 'virtual' | 'focus'): Probe {
 	const panel = `menu-bench-${model}-${count}`
 
-	const container = persistentTree(
+	const container = sharedTree(
 		model === 'virtual' ? (
 			<Dropdown open className={panel}>
 				<Rows count={count} />

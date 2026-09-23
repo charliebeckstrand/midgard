@@ -133,9 +133,11 @@ export type GridEditableConfig = {
 	 *
 	 * - Enter commits and moves the cursor down one row. Under `scope: 'cell'` it
 	 *   enters the cell below. On the last row the cursor stays.
-	 * - Tab and Shift+Tab move along the row's editable cells, and wrap at the
-	 *   edges. Under `scope: 'cell'` the cell left behind commits. Under `'row'`
-	 *   the row commits when it closes.
+	 * - Tab and Shift+Tab move to the next control in the same cell when there
+	 *   is one, as in an `editCell` slot with several controls. Tab from the
+	 *   last control, or Shift+Tab from the first, moves along the row's
+	 *   editable cells, and wraps at the edges. Under `scope: 'cell'` the cell
+	 *   left behind commits. Under `'row'` the row commits when it closes.
 	 * - F2 commits and leaves the cursor on the cell.
 	 * - Escape abandons the session's staged edits.
 	 *
@@ -170,7 +172,8 @@ export type GridEditableConfig = {
 	 * a row the session added to `rows` itself leaves with it. The held cell
 	 * carries a save and a discard control beside its editor. The grid owns this
 	 * session, and nothing else on screen ends it. The pair is for a pointer and
-	 * sits outside the tab order, because Tab commits and moves. Row scope shows
+	 * sits outside the tab order, so Tab from the editor still commits and moves.
+	 * Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
 	 * granularity that matches. The session's cell is a binding of its own,
 	 * {@link GridEditableConfig.cell}, beside `rows`.
@@ -195,9 +198,11 @@ export type GridEditableConfig = {
 	 * reports. A cell that is not editable reads as `null`, and it warns once in
 	 * development. That is a cell of an unknown row, or of a `readOnly` or
 	 * display-only column. The cell also reads as `null` while its row is out
-	 * of `rows`. Focus moves into the new editor only when focus is already in
-	 * the grid (WCAG 3.2.1). Apply a move in the same event that reports it. A
-	 * later value reads as a set from outside.
+	 * of `rows`. A cell whose row a controlled `rows` declines to open is the
+	 * exception. The session then stays on the cell that it held, and your cell
+	 * waits until its row opens. Focus moves into the new editor only when focus
+	 * is already in the grid (WCAG 3.2.1). Apply a move in the same event that
+	 * reports it. A later value reads as a set from outside.
 	 */
 	cell?: GridCellRef | null
 	/**
@@ -220,7 +225,9 @@ export type GridEditableConfig = {
 	 * @remarks The grid does not report a change that comes from you. A cell that
 	 * you set, and a cell that reads as `null` because your `rows` closed its
 	 * row, report nothing. A `rows` binding that declines the row of an entry
-	 * also strands the cell without a report. Under a controlled
+	 * also strands the cell without a report. An entry from a held cell is the
+	 * exception. The session goes back to the held cell and reports it, so the
+	 * declined move changes nothing. Under a controlled
 	 * {@link GridEditableConfig.cell}, the rows write waits until you
 	 * apply the cell.
 	 */

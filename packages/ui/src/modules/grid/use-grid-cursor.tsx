@@ -109,6 +109,7 @@ export function useGridCursor<T>({
 	toggleActiveRow,
 	scrollRowIntoViewRef,
 	scrollContainerRef,
+	tableRef,
 	refs,
 }: {
 	navigable: boolean
@@ -128,6 +129,8 @@ export function useGridCursor<T>({
 	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
 	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */
 	scrollContainerRef: RefObject<HTMLElement | null>
+	/** The grid `<table>`, the cursor's tab stop. The editing layer reseats focus on it. */
+	tableRef: RefObject<HTMLTableElement | null>
 	refs: GridCursorRefs<T>
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
@@ -246,6 +249,7 @@ export function useGridCursor<T>({
 		editSourceRef,
 		rowKeysRef,
 		dataColumnsRef,
+		tableRef,
 		cellId: nav.cellId,
 		moveTo: nav.moveTo,
 	})

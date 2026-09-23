@@ -64,8 +64,9 @@ const SETTLE_ACTIONS = [
  *
  * @remarks The pair sits outside the tab order. The keyboard settles a session
  * on the grid table's key surface instead: Tab, Enter, and F2 commit, and Escape
- * discards. Tab from the editor commits and moves, so it cannot also reach the
- * pair. Tab is also the keyboard commit of the inline listbox, which spends its
+ * discards. Tab from the last control of the editor commits and moves. A
+ * tabbable pair would take that Tab instead, and the editor would lose its
+ * commit key. Tab is also the keyboard commit of the inline listbox, which spends its
  * own Enter on its menu (WCAG 2.1.1).
  *
  * @internal

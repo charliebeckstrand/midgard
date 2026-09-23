@@ -24,6 +24,7 @@ import {
 	isSameCell,
 	readKeyPress,
 	stepEditableColumn,
+	tabStaysInCell,
 } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
 import type { GridActiveEditStore, GridEditingSession } from './grid-editing-context'
@@ -50,8 +51,9 @@ export type GridEditingApi = {
 	/**
 	 * The session's keys, layered onto the grid `<table>`'s key handler by
 	 * {@link useGridCursor}. Escape abandons the session. From an open editor,
-	 * Enter commits and moves down, Tab and Shift+Tab commit and move along the
-	 * row, and F2 commits and stays. Every editor (inferred input, listbox,
+	 * Enter commits and moves down, and F2 commits and stays. Tab and Shift+Tab
+	 * move between the controls of one cell first, and past the last control
+	 * they commit and move along the row. Every editor (inferred input, listbox,
 	 * `editCell` slot) therefore inherits the keys without wiring of its own.
 	 * `undefined` unless the grid owns the session (`session: 'managed'`).
 	 */
@@ -59,16 +61,21 @@ export type GridEditingApi = {
 }
 
 /**
- * Reseats focus on the grid's single tab stop when it currently sits inside the
+ * Reseats focus on the grid's single tab stop, `grid`, when focus sits in this
  * grid. Called before a grid-owned session exit unmounts the focused editor, so
  * the keyboard lands back on the cursor rather than falling to `<body>`.
  *
+ * @remarks Focus in another grid stays where it is. That includes a grid nested
+ * in a detail row of this one, because none of its elements unmount with the
+ * exit. The nearest `role="grid"` ancestor of the focused element tells the two
+ * apart.
+ *
  * @internal
  */
-function restoreGridFocus(): void {
+function restoreGridFocus(grid: HTMLElement | null): void {
 	const active = document.activeElement
 
-	if (active instanceof HTMLElement) active.closest<HTMLElement>('[role="grid"]')?.focus()
+	if (grid && active?.closest('[role="grid"]') === grid) grid.focus()
 }
 
 /**
@@ -107,7 +114,9 @@ type SessionMove = 'down' | 'next' | 'previous' | 'here'
  * The move a key press asks of the session from an open editor, or `null` when
  * the press is not the session's. The tab stop's own keys are the cursor's,
  * which enter a cell. A key with Ctrl, Cmd, or Alt is the editor's shortcut.
- * Enter on an element that acts on it natively stays with that element.
+ * Enter on an element that acts on it natively stays with that element. Tab
+ * that has a next control in the same cell stays with the browser (see
+ * {@link tabStaysInCell}).
  *
  * @internal
  */
@@ -116,7 +125,13 @@ function editorMove(event: ReactKeyboardEvent<HTMLTableElement>): SessionMove | 
 
 	if (target === event.currentTarget || event.ctrlKey || event.metaKey || event.altKey) return null
 
-	if (event.key === 'Tab') return event.shiftKey ? 'previous' : 'next'
+	// Tab moves between the controls of one cell first. Only Tab past the last
+	// control, or Shift+Tab past the first, commits and moves.
+	if (event.key === 'Tab') {
+		if (tabStaysInCell(target, event.shiftKey)) return null
+
+		return event.shiftKey ? 'previous' : 'next'
+	}
 
 	if (event.key === 'F2') return 'here'
 
@@ -360,9 +375,40 @@ const UNEDITABLE_CELL_WARNING =
 
 /**
  * The cell a controlled binding last settled on. `raw` is the value as the
- * consumer passed it; `cell` is that value after the editable check. @internal
+ * consumer passed it; `cell` is that value after the editable check.
+ *
+ * `wait` is set when `raw` names a cell whose row the transition asked to
+ * open. Until that row opens, `cell` is still the cell that the session held
+ * before, so a declined rows write leaves the session on it. `wait` holds the
+ * new cell and the session row that it lands with. @internal
  */
-type SettledCell = { raw: GridActiveEdit | null; cell: GridActiveEdit | null }
+type SettledCell = {
+	raw: GridActiveEdit | null
+	cell: GridActiveEdit | null
+	wait?: { cell: GridActiveEdit; sessionRow: SessionRow | null }
+}
+
+/**
+ * The cell that a settled value reads as: the cell it waits for once that
+ * row is open, else the cell the session held. @internal
+ */
+function readSettled(settled: SettledCell, rows: Set<string | number>): GridActiveEdit | null {
+	const wait = settled.wait
+
+	return wait && rows.has(wait.cell.rowKey) ? wait.cell : settled.cell
+}
+
+/**
+ * An uncontrolled entry into a row that is not open yet, made while the
+ * session holds a cell. A controlled `rows` can decline the rows write that
+ * opens the row. The session then goes back to `from` and its session row,
+ * so the declined move changes nothing. @internal
+ */
+type CrossRowEntry = {
+	to: GridActiveEdit
+	from: GridActiveEdit
+	sessionRow: SessionRow | null
+}
 
 /**
  * A move that the grid asked of a controlled `cell`, which waits for the
@@ -380,6 +426,19 @@ type CellRequest = {
 
 /** The row a grid-owned session holds, and whether the session put it in the set. @internal */
 type SessionRow = { rowKey: string | number; acquired: boolean }
+
+/**
+ * The {@link CrossRowEntry} of an uncontrolled entry, or `null` when the entry
+ * opens no row or leaves no held cell. @internal
+ */
+function crossRowEntry(
+	to: GridActiveEdit | null,
+	from: GridActiveEdit | null,
+	rows: Set<string | number>,
+	sessionRow: SessionRow | null,
+): CrossRowEntry | null {
+	return to && from && !rows.has(to.rowKey) ? { to, from, sessionRow } : null
+}
 
 /**
  * Moves the held session row onto the row of `rowKey`. A move within the held
@@ -422,9 +481,10 @@ function readInitialCell<T>(
 
 /**
  * The cell a controlled binding reads as in this render. A value the transition
- * effect has settled reads as it settled. A new value reads at once when its row
- * is open and its cell is editable. Otherwise the settled cell stays until the
- * effect opens the row, so no row widens for a render. @internal
+ * effect has settled reads as it settled (see {@link readSettled}). A new value
+ * reads at once when its row is open and its cell is editable. Otherwise the
+ * settled cell stays until the effect opens the row, so no row widens for a
+ * render. @internal
  */
 function readControlledCell<T>(
 	raw: GridActiveEdit | null,
@@ -432,9 +492,11 @@ function readControlledCell<T>(
 	rows: Set<string | number>,
 	source: GridEditSource<T>,
 ): GridActiveEdit | null {
-	if (sameCell(raw, settled.raw)) return settled.cell
+	const held = readSettled(settled, rows)
 
-	return raw !== null && rows.has(raw.rowKey) && isEditableCell(raw, source) ? raw : settled.cell
+	if (sameCell(raw, settled.raw)) return held
+
+	return raw !== null && rows.has(raw.rowKey) && isEditableCell(raw, source) ? raw : held
 }
 
 /** What the transition effect does for one new value of a controlled binding. @internal */
@@ -528,6 +590,7 @@ function useActiveCell<T>({
 	initialCell,
 	editableRows,
 	editSourceRef,
+	entryRef,
 }: {
 	config: GridEditableConfig | undefined
 	cellScoped: boolean
@@ -535,6 +598,7 @@ function useActiveCell<T>({
 	initialCell: GridActiveEdit | null
 	editableRows: Set<string | number>
 	editSourceRef: RefObject<GridEditSource<T>>
+	entryRef: RefObject<CrossRowEntry | null>
 }) {
 	// The session's cell as the binding holds it, before the grid resolves it
 	// against the set. Uncontrolled, the grid writes it at event time. Controlled,
@@ -572,11 +636,26 @@ function useActiveCell<T>({
 	const stranded =
 		candidate !== null && !masked && (!cellScoped || !editableRows.has(candidate.rowKey))
 
+	// A cross-row entry that the rows binding declined reads as the cell it left,
+	// while that cell's row is still open. The transition effect then writes the
+	// state back to it, so no mask is necessary.
+	const entry = entryRef.current
+
+	const declined =
+		stranded &&
+		!controlled &&
+		cellScoped &&
+		entry !== null &&
+		sameCell(candidate, entry.to) &&
+		editableRows.has(entry.from.rowKey)
+
 	// Adjusting the state here is React's answer to a value gone stale against its
 	// input, and it beats an effect that resynchronizes a render late.
-	if (stranded && !controlled) setMaskedCell(candidate)
+	if (stranded && !controlled && !declined) setMaskedCell(candidate)
 
-	return { raw, setValue, settledRef, activeEdit: stranded || masked ? null : candidate }
+	const activeEdit = declined ? entry.from : stranded || masked ? null : candidate
+
+	return { raw, setValue, settledRef, activeEdit }
 }
 
 /**
@@ -610,6 +689,7 @@ export function useGridEditing<T>({
 	editSourceRef,
 	rowKeysRef,
 	dataColumnsRef,
+	tableRef,
 	cellId,
 	moveTo,
 }: {
@@ -620,6 +700,8 @@ export function useGridEditing<T>({
 	rowKeysRef: RefObject<(string | number)[]>
 	/** Visible data columns in display order. */
 	dataColumnsRef: RefObject<GridColumn<T>[]>
+	/** The grid `<table>`, the tab stop that a session exit reseats focus on. */
+	tableRef: RefObject<HTMLTableElement | null>
 	/** The cursor's per-cell id deriver; locates the entered cell's editor to focus it. */
 	cellId: (row: number, col: number) => string
 	/** The cursor's clamped move, which the commit-and-move keys ride. */
@@ -673,6 +755,10 @@ export function useGridEditing<T>({
 
 	const editableRows = enabled ? (editableRowsRaw ?? EMPTY_SET) : EMPTY_SET
 
+	// The last uncontrolled cross-row entry, until the transition effect sees
+	// whether the rows binding applied it.
+	const entryRef = useRef<CrossRowEntry | null>(null)
+
 	const {
 		raw,
 		setValue: setActiveCellValue,
@@ -685,6 +771,7 @@ export function useGridEditing<T>({
 		initialCell: initial.cell,
 		editableRows,
 		editSourceRef,
+		entryRef,
 	})
 
 	// The cell a cell-scoped session edits; null under row scope. The hook's own
@@ -855,9 +942,9 @@ export function useGridEditing<T>({
 				if (plan.next && focused) pendingFocusRef.current = plan.next
 			}
 
-			if (plan.asked ? blur : focused) restoreGridFocus()
+			if (plan.asked ? blur : focused) restoreGridFocus(tableRef.current)
 		},
-		[gridHasFocus, dropIntents],
+		[gridHasFocus, dropIntents, tableRef],
 	)
 
 	// Warns once for a consumer's cell that is not editable: the initial value
@@ -991,6 +1078,10 @@ export function useGridEditing<T>({
 			// Row scope names no cell, so it leaves no row behind.
 			const leaving = entering ? move.leaving : null
 
+			// A controlled `rows` can decline the row that this entry opens. Record
+			// where the session was, so that a decline puts it back there.
+			entryRef.current = crossRowEntry(entering, active, editableRows, sessionRowRef.current)
+
 			sessionRowRef.current = move.row
 
 			// The cell goes first, then the rows: `onCellChange` reports ahead of
@@ -1040,7 +1131,7 @@ export function useGridEditing<T>({
 			// Reseat focus ahead of the discard, not after. An editor blurred on the
 			// way out can stage one last value; `NumberInput` commits its typed text
 			// there. That write must not outlive the values being dropped.
-			restoreGridFocus()
+			restoreGridFocus(tableRef.current)
 
 			// A cell-scoped session abandons the cell it sits on; the cells it visited
 			// before that one committed as it left them, so their values are not the
@@ -1066,7 +1157,7 @@ export function useGridEditing<T>({
 				return next
 			})
 		},
-		[controlled, requestCell, unstageDraft, setEditableRows, writeActiveCell],
+		[controlled, requestCell, unstageDraft, setEditableRows, writeActiveCell, tableRef],
 	)
 
 	// Acts on each new value of a controlled `cell`, whether the grid asked
@@ -1098,13 +1189,23 @@ export function useGridEditing<T>({
 
 			if (raw !== null && plan.next === null) warnUneditable()
 
-			settledRef.current = { raw, cell: plan.next }
+			// A value whose row is not open yet waits for it. The session keeps its
+			// cell and its row until the row opens, so a declined rows write changes
+			// nothing.
+			settledRef.current =
+				plan.opens && plan.next
+					? {
+							raw,
+							cell: readSettled(from, rows),
+							wait: { cell: plan.next, sessionRow: plan.sessionRow },
+						}
+					: { raw, cell: plan.next }
 
 			settleFocus(plan, from, request?.blur === true)
 
 			if (plan.discard) unstageDraft(plan.discard.rowKey, plan.discard.columnId)
 
-			sessionRowRef.current = plan.sessionRow
+			if (!plan.opens) sessionRowRef.current = plan.sessionRow
 
 			if (plan.writesRows) setEditableRows((prev) => applyRowsPlan(prev, plan))
 
@@ -1117,6 +1218,22 @@ export function useGridEditing<T>({
 		[settledRef, editSourceRef, warnUneditable, settleFocus, unstageDraft, setEditableRows],
 	)
 
+	// Lands a settled value that waits for its row, once that row is open. The
+	// session then holds the new cell and the session row that it planned.
+	const landWait = useCallback((): SettledCell => {
+		const settled = settledRef.current
+
+		const wait = settled.wait
+
+		if (!wait || !editableRowsRef.current.has(wait.cell.rowKey)) return settled
+
+		sessionRowRef.current = wait.sessionRow
+
+		settledRef.current = { raw: settled.raw, cell: wait.cell }
+
+		return settledRef.current
+	}, [settledRef])
+
 	const settleBinding = useCallback(
 		(raw: GridActiveEdit | null) => {
 			const request = requestRef.current
@@ -1124,22 +1241,34 @@ export function useGridEditing<T>({
 			requestRef.current = null
 
 			if (!controlled) {
+				const entry = entryRef.current
+
+				entryRef.current = null
+
+				// The render read a declined entry as the cell it left. Write the
+				// state back to that cell, and report it, as the entry was reported.
+				if (entry && sameCell(raw, entry.to) && sameCell(activeEditRef.current, entry.from)) {
+					sessionRowRef.current = entry.sessionRow
+
+					setActiveCellValue(entry.from)
+				}
+
 				settledRef.current = { raw: activeEditRef.current, cell: activeEditRef.current }
 
 				return
 			}
 
-			const from = settledRef.current
+			const from = landWait()
 
 			// An equal value moves nothing. A request that did not land was declined.
 			if (!sameCell(raw, from.raw)) applyTransition(raw, from, request)
 			else if (request) dropIntents()
 		},
-		[controlled, settledRef, applyTransition, dropIntents],
+		[controlled, settledRef, applyTransition, dropIntents, landWait, setActiveCellValue],
 	)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `tick` re-runs the transition after each request, so a declined move drops its intents.
-	useLayoutEffect(() => settleBinding(raw), [raw, tick, settleBinding])
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `tick` re-runs the transition after each request, so a declined move drops its intents. `editableRows` lands a waiting value once its row opens.
+	useLayoutEffect(() => settleBinding(raw), [raw, tick, editableRows, settleBinding])
 
 	// The session one key press names. The press names its row when it came from
 	// inside one, which is what picks the right row while several edit at once.
@@ -1255,13 +1384,23 @@ export function useGridEditing<T>({
 			// reaches the draft before the sweep commits the cell. A controlled
 			// binding can decline the move, so the request marks the blur, and the
 			// transition effect does it once the move lands.
-			if (!controlled) restoreGridFocus()
+			if (!controlled) restoreGridFocus(tableRef.current)
 
 			enterEdit(rowKey, target.id)
 
 			if (requestRef.current) requestRef.current.blur = true
 		},
-		[cellScoped, controlled, cellId, commitHere, enterEdit, moveTo, rowKeysRef, dataColumnsRef],
+		[
+			cellScoped,
+			controlled,
+			cellId,
+			commitHere,
+			enterEdit,
+			moveTo,
+			rowKeysRef,
+			dataColumnsRef,
+			tableRef,
+		],
 	)
 
 	// Runs the move a key asked of the session from an open editor.

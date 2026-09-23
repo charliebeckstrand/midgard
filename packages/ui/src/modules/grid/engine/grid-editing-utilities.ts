@@ -1,3 +1,4 @@
+import { FOCUSABLE_SELECTOR } from '../../../utilities'
 import type { GridCellRef } from '../grid-editing-types'
 
 /** The primitive-typed inline editor the grid mounts when a column supplies no `editCell` slot. @internal */
@@ -126,6 +127,44 @@ export type GridActiveEdit = GridCellRef
 
 /** Focusable editor content inside an editing cell, in preference order. @internal */
 export const EDITOR_FOCUSABLE = 'input, select, textarea, button, [tabindex]'
+
+/**
+ * The elements of `root` in the tab order, in document order.
+ *
+ * @remarks {@link FOCUSABLE_SELECTOR} also matches a native control with
+ * `tabindex="-1"` and a hidden input, so this filter drops both. The walk
+ * matches each element in turn, because jsdom returns a selector list grouped
+ * by branch, not in document order. @internal
+ */
+function tabbablesIn(root: Element): HTMLElement[] {
+	return Array.from(root.querySelectorAll<HTMLElement>('*')).filter(
+		(el) =>
+			el.matches(FOCUSABLE_SELECTOR) &&
+			el.tabIndex >= 0 &&
+			!(el instanceof HTMLInputElement && el.type === 'hidden'),
+	)
+}
+
+/**
+ * Whether Tab from `target` stays inside its editing cell. That is so when
+ * the cell has a tabbable element after the one that holds `target`, or one
+ * before it for Shift+Tab. The browser then moves focus there. Only Tab from
+ * the last element, or Shift+Tab from the first, leaves the cell. A single
+ * control therefore always leaves it (WCAG 2.1.1). @internal
+ */
+export function tabStaysInCell(target: Element, backward: boolean): boolean {
+	const cell = target.closest('td[data-grid-col]')
+
+	if (!cell) return false
+
+	const tabbables = tabbablesIn(cell)
+
+	const at = tabbables.findIndex((el) => el.contains(target))
+
+	if (at < 0) return false
+
+	return backward ? at > 0 : at < tabbables.length - 1
+}
 
 /** Whether a coord names this cell; a null coord names none. @internal */
 export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): boolean {
