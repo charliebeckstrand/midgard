@@ -1,5 +1,6 @@
-import { Children, cloneElement, Fragment, isValidElement, type ReactNode, useMemo } from 'react'
+import { cloneElement, isValidElement, type ReactNode, useMemo } from 'react'
 import type { GroupOrientation, GroupPosition } from '../../recipes'
+import { flattenChildren } from '../../utilities/flatten-children'
 
 function positionAt(index: number, length: number): GroupPosition {
 	if (length === 1) return 'only'
@@ -7,36 +8,6 @@ function positionAt(index: number, length: number): GroupPosition {
 	if (index === length - 1) return 'end'
 
 	return 'middle'
-}
-
-type FlatChild = { node: ReactNode; key: string }
-
-// Recurse into fragments, flattening them into the position-stamping pass.
-// `Children.toArray` treats a fragment as a single opaque child. Each entry
-// carries a key namespaced by its fragment path; keys unique within a fragment
-// stay unique once hoisted into one list. Non-element children (text/number)
-// stay in place.
-function flattenChildren(children: ReactNode, prefix = ''): FlatChild[] {
-	const result: FlatChild[] = []
-
-	Children.forEach(children, (child, index) => {
-		if (isValidElement(child) && child.type === Fragment) {
-			result.push(
-				...flattenChildren(
-					(child.props as { children?: ReactNode }).children,
-					`${prefix}${index}.`,
-				),
-			)
-
-			return
-		}
-
-		const ownKey = isValidElement(child) && child.key != null ? child.key : String(index)
-
-		result.push({ node: child, key: `${prefix}${ownKey}` })
-	})
-
-	return result
 }
 
 /**
