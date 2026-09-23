@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Sheet, SheetClose, SheetTrigger } from '../../components/sheet'
 import { panelAxis } from '../../hooks/use-panel-resize'
+import { k } from '../../recipes/kata/sheet'
+import { shaku } from '../../recipes/kiso'
 import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Sheet', () => {
@@ -199,6 +201,30 @@ describe('SheetClose', () => {
 
 		expect(screen.getByText('Bottom sheet')).toBeInTheDocument()
 	})
+
+	// A `top` or `bottom` sheet spans the screen. A width step is a cap across a
+	// side-docked panel, so no step can apply here, the default `md` included.
+	it.each(['top', 'bottom'] as const)('keeps a %s sheet full-width at every step', (side) => {
+		renderUI(
+			<Sheet open side={side} onOpenChange={() => {}} aria-label="Banner">
+				content
+			</Sheet>,
+		)
+
+		expect(getSlot(document.body, 'sheet').className).not.toMatch(/sm:max-w-/)
+
+		for (const width of Object.keys(shaku.panel) as (keyof typeof shaku.panel)[]) {
+			expect(k.panel({ side, width })).not.toMatch(/sm:max-w-/)
+		}
+	})
+
+	it.each(['right', 'left'] as const)('caps a %s sheet at the step it asks for', (side) => {
+		expect(k.panel({ side })).toContain(shaku.panel.md)
+
+		expect(k.panel({ side, width: 'xs' })).toContain(shaku.panel.xs)
+
+		expect(k.panel({ side, width: 'xs' })).not.toContain(shaku.panel.md)
+	})
 })
 
 describe('Sheet uncontrolled', () => {
@@ -324,6 +350,20 @@ describe('Sheet handle', () => {
 		expect(panel.style.height).not.toBe('')
 
 		expect(panel.style.width).toBe('')
+	})
+
+	// A grip on a sheet docked across is a strip on the edge. A full-height area
+	// there would put a `touch-none` separator over every control in the panel.
+	it.each(['top', 'bottom'] as const)('keeps the %s grip to a strip on its edge', (side) => {
+		const { handle } = renderHandled(side)
+
+		expect(handle).toHaveClass('inset-x-0')
+
+		expect(handle).not.toHaveClass('inset-y-0')
+	})
+
+	it.each(['right', 'left'] as const)('gives the %s grip the full height', (side) => {
+		expect(renderHandled(side).handle).toHaveClass('inset-y-0')
 	})
 
 	it('renders no handle unless asked, and a window splitter when asked', () => {

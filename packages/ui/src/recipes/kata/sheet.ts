@@ -22,6 +22,23 @@ const { glass, backdrop } = omote
  */
 const CAP = 'sm:max-w-[calc(100%-2rem)]'
 
+/** The named `width` steps, each empty on the axis. The compounds give each step its cap. */
+const STEPS = Object.fromEntries(Object.keys(shaku.panel).map((width) => [width, []])) as Record<
+	keyof typeof shaku.panel,
+	never[]
+>
+
+/**
+ * Each named step, as its cap on the two sides that a width docks across.
+ *
+ * A `top` or `bottom` sheet gets no cap. Its span is the screen, and a cap
+ * would pull it into a corner.
+ */
+const DOCKED_STEPS = Object.entries(shaku.panel).flatMap(([width, cap]) => [
+	{ side: 'right', width, class: cap },
+	{ side: 'left', width, class: cap },
+])
+
 export const k = {
 	...bridge.panel(panel, {
 		panel: defineRecipe({
@@ -50,16 +67,17 @@ export const k = {
 			// what it holds — so it is stated here rather than pushed into a scale
 			// Dialog also reads.
 			//
-			// Empty on the axis, because a width the panel shrink-wraps to only means
-			// something on the sides it is docked across. The compounds below give it
-			// to `right` and `left`; a `top` or `bottom` sheet spans the screen, and
-			// shrink-wrapping one would pull a full-width panel into a corner.
-			width: { ...shaku.panel, fit: [] },
+			// Every step is empty on the axis, because a width only means something on
+			// the sides it is docked across. The compounds below give each step to
+			// `right` and `left`. A `top` or `bottom` sheet spans the screen, and a cap
+			// or a shrink-wrap would pull a full-width panel into a corner.
+			width: { ...STEPS, fit: [] },
 			surface: {
 				glass: [...glass],
 				flat: [...panel.surface.bg],
 			},
 			compound: [
+				...DOCKED_STEPS,
 				{ side: 'right', width: 'full', class: `sm:left-4 ${CAP}` },
 				{ side: 'left', width: 'full', class: `sm:right-4 ${CAP}` },
 				// Below `sm` the side's own `w-full` still wins, so a phone keeps a
@@ -82,8 +100,10 @@ export const k = {
 	 *
 	 * It rides the panel's inline edge rather than sitting in the flow, because a
 	 * sheet resizes across its own scrolling body. Laid out in the column with
-	 * the slots, the grip would scroll away from the edge it moves. The area is
-	 * the full height, so the reach is the panel's rather than the bar's.
+	 * the slots, the grip would scroll away from the edge it moves. On a sheet
+	 * docked to a side, the area is the full height, so the reach is the panel's
+	 * rather than the bar's. A sheet docked across gets a strip on its edge, not
+	 * a cover over the whole panel.
 	 * `hannou.grab` carries the rest, including the `touch-none` that makes the
 	 * gesture work at all under a finger.
 	 *
@@ -96,7 +116,7 @@ export const k = {
 			// The same reach the drawer's grip has, turned on its side: `px-3` around
 			// a `w-1.5` bar is the `py-3` around its `h-1.5` one, so both panels are
 			// grabbed by a strip of the same thickness.
-			'absolute inset-y-0 z-10 px-3 items-center justify-center',
+			'absolute z-10 px-3 items-center justify-center',
 			...hannou.grab,
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
@@ -104,8 +124,10 @@ export const k = {
 			panel.grip.GROUP,
 		],
 		side: {
-			right: 'left-0',
-			left: 'right-0',
+			// The full-height reach belongs to the two side arms only. In the base, it
+			// survives the `bottom-0` of a cross arm, and the strip covers the panel.
+			right: 'inset-y-0 left-0',
+			left: 'inset-y-0 right-0',
 			top: 'inset-x-0 bottom-0 py-3 w-full',
 			bottom: 'inset-x-0 top-0 py-3 w-full',
 		},
