@@ -36,7 +36,8 @@ type SignatureDrawingOptions = {
  * `handlePointerDown` ignores non-primary mouse buttons and captures the pointer
  * so a stroke continues past the canvas edge. `commit` writes the snapshot into
  * `lastEmittedRef` before `setCurrent`, letting the state hook's value-sync effect
- * skip its own repaint of a value it just drew.
+ * skip its own repaint of a value it just drew. `commit` returns `true` only
+ * when it committed a stroke, and `false` when no stroke was in progress.
  */
 export function useSignaturePadDrawing({
 	canvasRef,
@@ -126,8 +127,8 @@ export function useSignaturePadDrawing({
 		if (empty) setEmpty(false)
 	}
 
-	const commit = () => {
-		if (!drawingRef.current) return
+	const commit = (): boolean => {
+		if (!drawingRef.current) return false
 
 		drawingRef.current = false
 
@@ -135,13 +136,15 @@ export function useSignaturePadDrawing({
 
 		const canvas = canvasRef.current
 
-		if (!canvas) return
+		if (!canvas) return false
 
 		const next = canvas.toDataURL()
 
 		lastEmittedRef.current = next
 
 		setCurrent(next)
+
+		return true
 	}
 
 	return { handlePointerDown, handlePointerMove, commit }

@@ -48,9 +48,10 @@ export type SignaturePadStateOptions = {
  * the `handlePointerDown`/`handlePointerMove`/`commit`/`clear` handlers.
  * @remarks
  * `commit` (stroke end) and `clear` both mark the bound field touched — the
- * pad's analogue of blur. A controlled `current` change that differs from the
- * last emitted value repaints from the snapshot via an effect. External resets
- * therefore stay in sync without re-emitting.
+ * pad's analogue of blur. `commit` marks it only when a stroke ends, not on a
+ * pointer release or leave with no stroke. A controlled `current` change that
+ * differs from the last emitted value repaints from the snapshot via an
+ * effect. External resets therefore stay in sync without re-emitting.
  */
 export function useSignaturePadState({
 	name,
@@ -136,11 +137,10 @@ export function useSignaturePadState({
 	})
 
 	// A stroke ending or a clear is the field's "blur" — the user has acted on
-	// the pad, so mark the bound Form field touched (no-op outside a Form).
+	// the pad, so mark the bound Form field touched (no-op outside a Form). A
+	// pointer release or leave with no stroke is not a stroke end.
 	const commit = useCallback(() => {
-		commitStroke()
-
-		setTouched()
+		if (commitStroke()) setTouched()
 	}, [commitStroke, setTouched])
 
 	const clear = useCallback(() => {

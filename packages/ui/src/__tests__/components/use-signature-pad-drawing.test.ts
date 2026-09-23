@@ -234,6 +234,28 @@ describe('useSignaturePadDrawing', () => {
 		expect(setCurrent).not.toHaveBeenCalled()
 	})
 
+	it('reports whether commit() committed a stroke', () => {
+		const { result } = setup()
+
+		let committed: boolean | undefined
+
+		act(() => {
+			committed = result.current.commit()
+		})
+
+		expect(committed).toBe(false)
+
+		act(() => {
+			result.current.handlePointerDown(pointerEvent({ clientX: 0, clientY: 0 }))
+		})
+
+		act(() => {
+			committed = result.current.commit()
+		})
+
+		expect(committed).toBe(true)
+	})
+
 	it('ignores a second commit with no further drawing', () => {
 		const { result, setCurrent } = setup()
 
