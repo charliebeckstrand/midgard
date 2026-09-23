@@ -48,18 +48,27 @@ function region(assertive: boolean): HTMLElement {
  * natural focus or DOM home, such as "Copied" or "Tag added". To narrate a
  * changing value, prefer the declarative `useA11yAnnouncements`. No-op during SSR and
  * for empty messages.
+ *
+ * @remarks
+ * A message equal to the current region text gets a trailing no-break space
+ * (` `), so that the repeat is a real change of text. A read of the region
+ * text must allow for this suffix.
  */
 export function announce(message: string, { assertive = false }: AnnounceOptions = {}): void {
 	if (typeof document === 'undefined' || !message) return
 
 	const node = region(assertive)
 
-	// Clears, then sets on the next microtask; live regions announce only
-	// observed mutations, even for identical messages.
+	// A live region speaks only a real change of text. The clear and the set run in one task,
+	// so the region shows no empty state between them. Thus a repeat of the current text gets
+	// a trailing no-break space, which screen readers do not speak. The repeat after that
+	// writes the plain text again.
+	const text = node.textContent === message ? `${message} ` : message
+
 	node.textContent = ''
 
 	queueMicrotask(() => {
-		node.textContent = message
+		node.textContent = text
 	})
 }
 
