@@ -125,6 +125,135 @@ export function seedFromKey(press: GridKeyPress, kind: EditorKind): string | num
  */
 export type GridActiveEdit = GridCellRef
 
+/**
+ * Where a draft is in its life. A draft is `'staged'` from the first edit
+ * until its session closes the cell.
+ *
+ * @remarks This is the seam for the async commit of increment 5. That
+ * increment adds `'pending'`, for a draft whose commit is in flight, and a
+ * settled state. The same records carry them, so a pending draft keeps its
+ * cell address and its value. @internal
+ */
+export type GridDraftStatus = 'staged'
+
+/** One cell's draft: the value that the user typed, and its status. @internal */
+export type GridDraft = { value: unknown; status: GridDraftStatus }
+
+/**
+ * The drafts of one edit session, keyed by cell. The session owns them, not
+ * the editors. A draft lives while the session holds its cell open, and an
+ * editor that mounts or unmounts does not change it. An editor that mounts
+ * for a cell with a draft shows the draft.
+ *
+ * @remarks The store has no subscribers. A keystroke writes one record and
+ * renders nothing but the editor that took it. The records group by row,
+ * because the commit is one batch for each row. @internal
+ */
+export type GridDraftStore = {
+	/** Stages `value` as the draft of the cell. A later value replaces it. */
+	stage: (rowKey: string | number, columnId: string | number, value: unknown) => void
+	/** Removes the draft of the cell, if there is one. */
+	unstage: (rowKey: string | number, columnId: string | number) => void
+	/** Removes every draft of the row. */
+	unstageRow: (rowKey: string | number) => void
+	/** The draft of the cell, or `undefined` when the cell has none. */
+	read: (rowKey: string | number, columnId: string | number) => GridDraft | undefined
+	/**
+	 * Removes the drafts of each cell that `closed` names, and returns their
+	 * values, grouped by row. A row with no closed cell is not in the result.
+	 */
+	take: (
+		closed: (rowKey: string | number, columnId: string | number) => boolean,
+	) => Map<string | number, Map<string | number, unknown>>
+}
+
+/** The records of a {@link GridDraftStore}, keyed by row and then by column. @internal */
+type DraftRows = Map<string | number, Map<string | number, GridDraft>>
+
+/** The inner map of `outer` at `key`, created empty when it is absent. @internal */
+function rowOf<V>(
+	outer: Map<string | number, Map<string | number, V>>,
+	key: string | number,
+): Map<string | number, V> {
+	let row = outer.get(key)
+
+	if (!row) {
+		row = new Map()
+
+		outer.set(key, row)
+	}
+
+	return row
+}
+
+/**
+ * Writes `value` as the draft of a cell. A keystroke rewrites the cell's
+ * record in place, so typing allocates nothing per key. @internal
+ */
+function writeDraft(
+	rows: DraftRows,
+	rowKey: string | number,
+	columnId: string | number,
+	value: unknown,
+): void {
+	const row = rowOf(rows, rowKey)
+
+	const draft = row.get(columnId)
+
+	if (!draft) {
+		row.set(columnId, { value, status: 'staged' })
+
+		return
+	}
+
+	draft.value = value
+
+	draft.status = 'staged'
+}
+
+/** Removes the closed records from `rows`, and returns their values. @internal */
+function takeClosed(
+	rows: DraftRows,
+	closed: (rowKey: string | number, columnId: string | number) => boolean,
+): Map<string | number, Map<string | number, unknown>> {
+	const taken = new Map<string | number, Map<string | number, unknown>>()
+
+	for (const [rowKey, row] of rows) {
+		for (const [columnId, draft] of row) {
+			if (!closed(rowKey, columnId)) continue
+
+			rowOf(taken, rowKey).set(columnId, draft.value)
+
+			row.delete(columnId)
+		}
+
+		if (row.size === 0) rows.delete(rowKey)
+	}
+
+	return taken
+}
+
+/** Builds an empty {@link GridDraftStore}. @internal */
+export function createDraftStore(): GridDraftStore {
+	const rows: DraftRows = new Map()
+
+	return {
+		stage: (rowKey, columnId, value) => writeDraft(rows, rowKey, columnId, value),
+		unstage: (rowKey, columnId) => {
+			const row = rows.get(rowKey)
+
+			row?.delete(columnId)
+
+			if (row?.size === 0) rows.delete(rowKey)
+		},
+		unstageRow: (rowKey) => {
+			rows.delete(rowKey)
+		},
+		read: (rowKey, columnId) => rows.get(rowKey)?.get(columnId),
+		take: (closed) => takeClosed(rows, closed),
+	}
+}
+
 /** Focusable editor content inside an editing cell, in preference order. @internal */
 export const EDITOR_FOCUSABLE = 'input, select, textarea, button, [tabindex]'
 

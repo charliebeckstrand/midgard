@@ -109,3 +109,14 @@ export function describeResize(label: string, width: number): string {
 export function describeCommit(cells: number): string {
 	return `${cells} ${cells === 1 ? 'cell' : 'cells'} updated`
 }
+
+/**
+ * The polite announcement for inline edits that could not commit, because
+ * their row left the grid's data before the session closed it (WCAG 4.1.3):
+ * `2 edits discarded, row removed`. The caller gates on a non-zero count.
+ *
+ * @internal
+ */
+export function describeDiscard(cells: number, rows: number): string {
+	return `${cells} ${cells === 1 ? 'edit' : 'edits'} discarded, ${rows === 1 ? 'row' : 'rows'} removed`
+}

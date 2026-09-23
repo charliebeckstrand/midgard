@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { GridActiveEdit } from './engine/grid-editing-utilities'
+import type { GridActiveEdit, GridDraft } from './engine/grid-editing-utilities'
 
 /**
  * An external store over the one cell a cell-scoped session edits. Each data
@@ -34,10 +34,12 @@ export type GridSettleControls = 'none' | 'discard' | 'both'
  * (`scope: 'cell'`) narrows that to the cell in `activeEditStore`. The row still
  * enters the set, but only the named cell mounts an editor. Each editor
  * stages its pending value through `stageDraft`, held in the grid rather than
- * re-rendering it, and the staged values commit when their editor closes. The
- * set flips only on a session transition, so cells read it without churning as
- * the user types. The cell rides a store, so a move along a row leaves this
- * context unchanged.
+ * re-rendering it. The staged values belong to the session, not to the
+ * editors, and commit when the session closes their cell. An editor that
+ * unmounts while its cell is open keeps its draft, and shows it when it mounts
+ * again. The set flips only on a session transition, so cells read it without
+ * churning as the user types. The cell rides a store, so a move along a row
+ * leaves this context unchanged.
  *
  * @internal
  */
@@ -46,10 +48,16 @@ export type GridEditingSession = {
 	editableRows: Set<string | number>
 	/** The cell a cell-scoped session edits, as a store each data cell subscribes to. */
 	activeEditStore: GridActiveEditStore
-	/** Stage a cell's pending value (held until its editor closes and the value commits). */
+	/** Stage a cell's pending value (held until the session closes the cell and the value commits). */
 	stageDraft: (rowKey: string | number, columnId: string | number, value: unknown) => void
 	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
 	unstageDraft: (rowKey: string | number, columnId: string | number) => void
+	/**
+	 * The cell's staged draft, or `undefined` when it has none. An editor reads
+	 * it once, as it mounts, so an editor that mounts again shows the value
+	 * that will commit.
+	 */
+	readDraft: (rowKey: string | number, columnId: string | number) => GridDraft | undefined
 	/**
 	 * Ends the grid-owned session on a row under `session: 'managed'` —
 	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the

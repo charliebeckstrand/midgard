@@ -3071,3 +3071,340 @@ describe('Grid commitOn', () => {
 		warn.mockRestore()
 	})
 })
+
+/**
+ * A draft belongs to the session, not to the editor that shows it. It lives
+ * while the session holds its cell open. An editor that unmounts for a page
+ * change, a hidden column, or a row that leaves `rows` for a moment neither
+ * commits nor drops it. An editor that mounts again shows it, and the session's
+ * close commits it.
+ */
+describe('Grid session-owned drafts', () => {
+	const NAME_EDIT = [{ rowKey: 1, columnId: 'name', value: 'Alicia' }]
+
+	/**
+	 * Renders a grid with one row on each page. The harness owns the editable
+	 * rows, the data rows, and the hidden columns, and its buttons change each.
+	 * `save` empties the editable rows, which is the consumer's own save.
+	 */
+	function renderDraftGrid(editable: Partial<GridEditableConfig> = {}) {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+			const [dropped, setDropped] = useState(false)
+
+			const [hidden, setHidden] = useState(false)
+
+			const actions = {
+				edit: () => setEditing(new Set([1])),
+				save: () => setEditing(new Set()),
+				drop: () => setDropped(true),
+				restore: () => setDropped(false),
+				hide: () => setHidden(true),
+				show: () => setHidden(false),
+			}
+
+			return (
+				<>
+					{Object.entries(actions).map(([name, run]) => (
+						<button key={name} type="button" onClick={run}>
+							{name}
+						</button>
+					))}
+					<Grid
+						columns={sessionColumns}
+						rows={dropped ? sessionRows.slice(1) : sessionRows}
+						getKey={(row) => row.id}
+						pagination={{ defaultValue: { pageIndex: 0, pageSize: 1 } }}
+						columnManager={{ hidden: hidden ? new Set(['name']) : new Set() }}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit, ...editable }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const click = (name: string) => fireEvent.click(view.getByRole('button', { name }))
+
+		const nameInput = () =>
+			view.container.querySelector<HTMLInputElement>('[data-slot="grid-edit-input"]')
+
+		return {
+			...view,
+			onCommit,
+			click,
+			nameInput,
+			type: (value: string) =>
+				fireEvent.change(present(nameInput(), 'grid-edit-input'), { target: { value } }),
+			enterName: () =>
+				fireEvent.doubleClick(
+					present(view.container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'name'),
+				),
+		}
+	}
+
+	it('shows the draft, not the row, after a page away and back, and commits what it showed', () => {
+		const { click, nameInput, type, onCommit } = renderDraftGrid()
+
+		click('edit')
+
+		type('Alicia')
+
+		click('Next page')
+
+		expect(nameInput()).toBeNull()
+
+		click('Previous page')
+
+		// The user reads the value that will commit.
+		expect(nameInput()?.value).toBe('Alicia')
+
+		click('save')
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
+	})
+
+	it('shows the draft after its row leaves the data rows and comes back', () => {
+		const { click, nameInput, type, onCommit } = renderDraftGrid()
+
+		click('edit')
+
+		type('Alicia')
+
+		click('drop')
+
+		expect(nameInput()).toBeNull()
+
+		click('restore')
+
+		expect(nameInput()?.value).toBe('Alicia')
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		click('save')
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
+	})
+
+	it.each(['row', 'cell'] as const)(
+		'commits the draft of a row paged away, under a grid-owned %s session',
+		(scope) => {
+			const { click, enterName, type, onCommit } = renderDraftGrid({ session: 'managed', scope })
+
+			enterName()
+
+			type('Alicia')
+
+			click('Next page')
+
+			expect(onCommit).not.toHaveBeenCalled()
+
+			click('save')
+
+			expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
+		},
+	)
+
+	it.each(['row', 'cell'] as const)(
+		'commits the draft of a hidden column, under a grid-owned %s session',
+		(scope) => {
+			const { click, enterName, type, onCommit } = renderDraftGrid({ session: 'managed', scope })
+
+			enterName()
+
+			type('Alicia')
+
+			click('hide')
+
+			expect(onCommit).not.toHaveBeenCalled()
+
+			click('save')
+
+			expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
+		},
+	)
+
+	it('shows the draft in the held cell after its column hides and shows again', () => {
+		const { click, enterName, nameInput, type, onCommit } = renderDraftGrid({
+			session: 'managed',
+			scope: 'cell',
+		})
+
+		enterName()
+
+		type('Alicia')
+
+		click('hide')
+
+		click('show')
+
+		expect(nameInput()?.value).toBe('Alicia')
+
+		click('save')
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
+	})
+
+	it('discards, announces, and warns once for a row gone from the data when its session closes', async () => {
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		const { click, type, onCommit } = renderDraftGrid()
+
+		for (let round = 0; round < 2; round++) {
+			click('restore')
+
+			click('edit')
+
+			type('Alicia')
+
+			click('drop')
+
+			click('save')
+		}
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		await expectAnnouncement('1 edit discarded, row removed')
+
+		expect(warn).toHaveBeenCalledOnce()
+
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('no longer in `rows`'))
+
+		warn.mockRestore()
+	})
+
+	it.each(['row', 'cell'] as const)(
+		'drops the draft of a paged-away row on Escape, under a %s session',
+		(scope) => {
+			const { click, enterName, nameInput, type, onCommit, getByRole } = renderDraftGrid({
+				session: 'managed',
+				scope,
+			})
+
+			enterName()
+
+			type('Alicia')
+
+			click('Next page')
+
+			fireEvent.keyDown(getByRole('grid'), { key: 'Escape' })
+
+			click('Previous page')
+
+			expect(onCommit).not.toHaveBeenCalled()
+
+			expect(nameInput()).toBeNull()
+
+			// The session is closed, so an editor that opens again reads the row.
+			click('edit')
+
+			expect(nameInput()?.value).toBe('Alice')
+
+			click('save')
+
+			expect(onCommit).not.toHaveBeenCalled()
+		},
+	)
+
+	it("drops the draft of a hidden column on a row action's discard", () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [hidden, setHidden] = useState(false)
+
+			return (
+				<>
+					<button type="button" onClick={() => setHidden((was) => !was)}>
+						toggle
+					</button>
+					<Grid
+						columns={[
+							...sessionColumns,
+							{
+								id: 'actions',
+								actions: (_row, ctx) => (
+									<button type="button" onClick={ctx.discard}>
+										discard-row
+									</button>
+								),
+							},
+						]}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						columnManager={{ hidden: hidden ? new Set(['name']) : new Set() }}
+						editable={{ defaultRows: new Set([1]), onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'toggle' }))
+
+		fireEvent.click(view.getAllByRole('button', { name: 'discard-row' })[0] as HTMLElement)
+
+		fireEvent.click(view.getByRole('button', { name: 'toggle' }))
+
+		expect(onCommit).not.toHaveBeenCalled()
+
+		expect(bySlot(view.container, 'grid-edit-input')).toBeNull()
+	})
+
+	it('renders only the editor that takes a keystroke', () => {
+		const renders = { name: 0, count: 0, display: 0 }
+
+		const slot =
+			(id: 'name' | 'count'): GridColumn<SessionRow>['editCell'] =>
+			({ value, onValueUpdate, ariaLabel }) => {
+				renders[id]++
+
+				return (
+					<input
+						aria-label={ariaLabel}
+						data-slot={`slot-${id}`}
+						value={String(value ?? '')}
+						onChange={(event) => onValueUpdate(event.target.value)}
+					/>
+				)
+			}
+
+		const cols: GridColumn<SessionRow>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => {
+					renders.display++
+
+					return row.name
+				},
+				editCell: slot('name'),
+			},
+			{ id: 'count', title: 'Count', field: 'count', editCell: slot('count') },
+		]
+
+		const { container } = renderSessionGrid({ cols, editable: { defaultRows: new Set([1]) } })
+
+		const before = { ...renders }
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'slot-name'), {
+			target: { value: 'Alicia' },
+		})
+
+		// The typed editor renders again. The other editor of the row and the
+		// display cell of the other row do not.
+		expect(renders.name).toBe(before.name + 1)
+
+		expect(renders.count).toBe(before.count)
+
+		expect(renders.display).toBe(before.display)
+	})
+})
