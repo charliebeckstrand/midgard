@@ -51,7 +51,7 @@ function region(assertive: boolean): HTMLElement {
  *
  * @remarks
  * A message equal to the current region text gets a trailing no-break space
- * (` `), so that the repeat is a real change of text. A read of the region
+ * (`U+00A0`), so that the repeat is a real change of text. A read of the region
  * text must allow for this suffix.
  */
 export function announce(message: string, { assertive = false }: AnnounceOptions = {}): void {
@@ -63,7 +63,7 @@ export function announce(message: string, { assertive = false }: AnnounceOptions
 	// so the region shows no empty state between them. Thus a repeat of the current text gets
 	// a trailing no-break space, which screen readers do not speak. The repeat after that
 	// writes the plain text again.
-	const text = node.textContent === message ? `${message} ` : message
+	const text = node.textContent === message ? `${message}\u00A0` : message
 
 	node.textContent = ''
 

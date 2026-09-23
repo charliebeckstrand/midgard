@@ -68,7 +68,7 @@ describe('announce', () => {
 		// A live region speaks only a real change, so each repeat must differ from the text before it.
 		expect(first).toBe('Copied')
 
-		expect(second).toBe('Copied ')
+		expect(second).toBe('Copied\u00A0')
 
 		expect(regionBy('polite')?.textContent).toBe('Copied')
 	})
