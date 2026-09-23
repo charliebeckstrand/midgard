@@ -94,9 +94,6 @@ export const k = {
 			// The name Input grows to fill the header row. The color Menu keeps its
 			// natural width.
 			name: 'grow',
-			// A fixed width for a color trigger. No component in the group manager
-			// reads this slot.
-			color: 'shrink-0 w-32',
 			// Empty-zone hint shown when a group has no columns yet.
 			empty: [text.muted],
 		},
