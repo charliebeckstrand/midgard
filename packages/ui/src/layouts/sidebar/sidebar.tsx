@@ -25,10 +25,10 @@ import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
-	size?: Step
+	space?: Step
 }>('SidebarLayout', { default: {} })
 
-/** Mobile navbar padding per Density step. @internal */
+/** Mobile navbar padding per step of the Density `space` axis. @internal */
 const NAVBAR_PADDING = { sm: 'p-4', md: 'p-6', lg: 'p-8' } satisfies Record<Step, string>
 
 /** Props for {@link SidebarLayout}: the sidebar content and the slots beside it. */
@@ -56,7 +56,8 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
- * @remarks Sizes its padding and panel from ambient Density. The floating
+ * @remarks Takes its padding from the ambient Density `space` axis. The
+ * desktop panel holds text, so its width follows the `size` axis. The floating
  * sidebar is non-modal, so its peek never steals focus or locks body scroll,
  * but `backdrop` still dims the page behind it.
  */
@@ -80,11 +81,11 @@ export function SidebarLayout({
 
 	const scrollWithin = useScrollWithin()
 
-	const { size } = useDensity()
+	const { space, size } = useDensity()
 
 	const offcanvasValue = useMemo(() => ({ close }), [close])
 
-	const layoutValue = useMemo(() => ({ actions, size }), [actions, size])
+	const layoutValue = useMemo(() => ({ actions, space }), [actions, space])
 
 	return (
 		<div className={k.layout()}>
@@ -156,7 +157,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex align="center" className={cn('lg:p-0 lg:hidden', NAVBAR_PADDING[size])}>
+			<Flex align="center" className={cn('lg:p-0 lg:hidden', NAVBAR_PADDING[space])}>
 				<Button
 					type="button"
 					variant="bare"
@@ -171,7 +172,7 @@ export function SidebarLayout({
 			{/* Content */}
 			<SidebarLayoutContext value={layoutValue}>
 				<div className={k.contentWrapper({ floating })}>
-					<div className={k.content({ size, stickyHeader })}>{children}</div>
+					<div className={k.content({ density: space, stickyHeader })}>{children}</div>
 				</div>
 			</SidebarLayoutContext>
 		</div>
@@ -189,10 +190,10 @@ export type SidebarLayoutHeaderProps = PropsWithChildren<{
  * layout's `actions` alongside its children on desktop.
  */
 export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutHeaderProps) {
-	const { actions, size } = useSidebarLayoutContext()
+	const { actions, space } = useSidebarLayoutContext()
 
 	return (
-		<header ref={ref} data-slot="header" className={cn(k.header({ size }), className)}>
+		<header ref={ref} data-slot="header" className={cn(k.header({ density: space }), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
 		</header>
