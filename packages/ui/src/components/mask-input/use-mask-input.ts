@@ -27,10 +27,14 @@ type MaskedInputOptions = {
 
 /**
  * Controlled/uncontrolled string state for masked text inputs. Applies `format`
- * to the seed and to every subsequent change, returning props ready to spread
- * onto an `Input`. Restores the caret to its pre-format position when the
- * returned `ref` is attached. It also binds to an enclosing Form field by
+ * to the seed, to a controlled `value` on each render, and to every subsequent
+ * change. It returns props ready to spread onto an `Input`. Restores the caret
+ * to its pre-format position when the returned `ref` is attached. It also binds to an enclosing Form field by
  * `name` (value, touched on blur, and error state via `invalid`).
+ *
+ * @remarks A controlled `value` shows formatted before the consumer's state
+ * holds the formatted text. The next change sends the formatted text back. A
+ * bound Form field value is not formatted on read, so supply it pre-formatted.
  *
  * @returns The `value` (formatted, never `undefined`), the composed `ref` to
  * attach for caret restoration, and the bound field's `invalid` flag. Plus a
@@ -55,7 +59,8 @@ export function useMaskInput({
 		setTouched,
 		invalid,
 	} = useFormValue<string>(name, {
-		value,
+		// Format the controlled arm on read. The bound arm stays raw, because the Form submits it.
+		value: typeof value === 'string' ? format(value) : value,
 		defaultValue: defaultValue !== undefined ? format(defaultValue) : '',
 		onValueChange: onChange ? (v) => onChange(v ?? '') : undefined,
 	})
