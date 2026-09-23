@@ -26,8 +26,8 @@ export type GridRevealHold = {
  * `<Activity mode="hidden">` instead of rendering behind a zero-height reveal.
  *
  * @remarks
- * A grouped body stands virtualization down, so every leaf, detail, and total
- * row is mounted whatever its group's expansion. Each body render walks all of
+ * A grouped or master-detail body stands virtualization down. Every leaf, total,
+ * and detail row is therefore mounted whatever its expansion. Each body render walks all of
  * them. Resting the collapsed ones moves that work off the visible commit. It
  * still runs, at the lower priority a hidden Activity renders under. The commit
  * the user waits on carries the expanded rows alone.

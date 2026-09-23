@@ -156,7 +156,7 @@ export type GridColumn<T> = {
 	 */
 	cellTooltip?: (row: T) => ReactNode
 	/**
-	 * Raw value for engine operations — filtering today, sorting/grouping ahead —
+	 * Raw value for engine operations: sort, filter, aggregation, and export. It is
 	 * distinct from {@link GridColumn.cell}, which renders. A column needs `value`
 	 * to be searchable.
 	 */
@@ -235,9 +235,7 @@ export type GridColumn<T> = {
 	 * sticking it there. `'left'` / `'right'` pick the edge; `true` is `'left'`.
 	 * A pinned column can't be reordered or hidden. It shows in the column
 	 * manager's matching pinned group, left columns prepended and right appended.
-	 * It marks its header with a pin button that unpins it on click. Multi-column
-	 * stacking needs known widths (a `resizable`/fixed-layout grid, or a column
-	 * `width`); a lone pinned column on a side needs neither. This is the column's
+	 * It marks its header with a pin button that unpins it on click. This is the column's
 	 * initial pin. The user moves it at runtime through the header context menu's
 	 * Pin left / Pin right / Unpin items, and the column manager's per-column pin
 	 * control.
@@ -442,7 +440,8 @@ export type GridColumnFilterState = { id: string; value: QueryGroup }
  * {@link GridProps.columnFilters}, backed by the grid's TanStack Table engine.
  *
  * @remarks Columns opt in with {@link GridColumn.filterable} (which needs a
- * {@link GridColumn.value} accessor), surfacing a filter row of text inputs.
+ * {@link GridColumn.value} accessor). Each filterable column shows a filter
+ * button in its header. The button opens a query-builder sheet.
  * Client-side by default; `manual` defers filtering to the consumer, which
  * shares the table-wide filter mode with {@link GridSearch}.
  */
@@ -542,8 +541,8 @@ export type GridColumnMenuContext<T> = {
 	autoSizeColumns: (() => void) | undefined
 	/**
 	 * Re-fits this column to its content ("Auto-size this column"). It is
-	 * `undefined` when the grid is not resizable, or this column carries no data (a
-	 * selection / actions column). The rest of the columns hold where they sit.
+	 * `undefined` when the grid is not resizable, or for one of the non-data
+	 * columns (selection, actions, drag handle, expander). The rest of the columns hold where they sit.
 	 */
 	autoSizeColumn: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
@@ -555,14 +554,18 @@ export type GridColumnMenuContext<T> = {
 /**
  * Header context-menu config: `true` (or omit) for the default items, or a
  * builder receiving the {@link GridColumnMenuContext} and those defaults. The
- * defaults are:
+ * defaults are, in order:
  *
+ * - Manage columns, when the column manager is reachable.
+ * - Filter, under the `'menu'` filter affordance.
  * - The Sort menu (Sort ascending / Sort descending, less the direction the
  *   column already holds, plus Clear sort once the column is sorted).
  * - The Pin menu (Pin left / Pin right / Unpin).
  * - Group by …, when groupable.
  * - The Auto-size menu (this column, then all columns), when resizing is on.
- * - Manage columns and the Export menu, under a separator.
+ * - The Export menu.
+ *
+ * No separator divides them.
  *
  * The builder returns the final list to
  * extend, reorder, or replace them. `false` omits the header menu entirely.
@@ -594,10 +597,10 @@ export type GridCellMenuContext<T> = {
 }
 
 /**
- * Body-cell context-menu config: `true` (or omit / `false`) for the default
- * items, or a builder receiving the {@link GridCellMenuContext} and those
- * defaults, returning the final item list. The defaults are Copy, plus one item
- * per active export type when {@link GridProps.exportable} is on.
+ * Body-cell context-menu config: `true` for the default items, or a builder
+ * that receives the {@link GridCellMenuContext} and the defaults. The builder
+ * returns the final item list. The defaults are Copy, then the Export menu when
+ * {@link GridProps.exportable} is on.
  *
  * @typeParam T - Shape of a single row.
  */

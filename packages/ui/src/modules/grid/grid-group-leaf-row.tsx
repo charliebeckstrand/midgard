@@ -173,8 +173,8 @@ function GridGroupLeafCell<T>({
 }: GridGroupLeafCellProps<T>) {
 	const chrome = leafCellChrome(col)
 
-	// Only data cells rove (the selection / actions / drag-handle leaf cells stay
-	// plain); `cellRovingAttrs` returns the marker + Enter/Space activation.
+	// Only data cells rove; the non-data columns (selection, actions, drag handle,
+	// expander) stay plain. `cellRovingAttrs` returns the marker + Enter/Space activation.
 	const dataCell = isDataColumn(col)
 
 	const pinned = pinnedCellProps(pinning, col)

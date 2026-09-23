@@ -69,7 +69,7 @@ export type GridRowsProps<T> = {
 	toggleRow: (key: string | number) => void
 	/** Whether the grid renders a selection column, so each row exposes its `aria-selected` state. */
 	selectable: boolean
-	/** Registers each non-pinned data cell against the column sortable for whole-column reorder drags. */
+	/** Renders each non-pinned data cell as a reordering cell that follows its header's shift through a CSS variable. */
 	reorderable: boolean
 	/**
 	 * Whether rows are drag-reorderable right now. When true each row renders as a
@@ -98,9 +98,9 @@ export type GridRowsProps<T> = {
 	settleWidths: (number | undefined)[]
 	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
 	pinning: GridColumnPinning | null
-	/** When the rendered body is a window onto a larger set (virtualization/pagination), rows carry global `aria-rowindex`. */
+	/** Under grid semantics (virtualization, pagination, or the navigable cursor), rows carry global `aria-rowindex`. */
 	gridSemantics: boolean
-	/** Global row-index base added to each rendered row's index (the page offset under pagination, else 0). */
+	/** Global row-index base added to each rendered row's index: the page offset, plus one when a band row shows. */
 	rowIndexOffset: number
 	/**
 	 * Master-detail wiring, or `null` when the grid isn't expandable: the
@@ -119,7 +119,7 @@ export type GridRowsProps<T> = {
 /**
  * Renders one engine row through {@link GridRow}, resolving its cells, key, and
  * per-row flags from the shared body wiring. `rowIndex` is the 1-based aria
- * position, set only when the body is virtualized.
+ * position. It is set only under grid semantics.
  *
  * @internal
  */
@@ -236,8 +236,8 @@ type GridRowProps<T> = {
 	 */
 	selectable: boolean
 	/**
-	 * When true, each non-pinned data cell registers against the table's column
-	 * sortable (matching its header's id) so the whole column drags as one.
+	 * When true, each non-pinned data cell renders as a reordering cell. It follows
+	 * its header's shift through a CSS variable, so the whole column drags as one.
 	 * @defaultValue false
 	 */
 	reorderable?: boolean
@@ -266,8 +266,9 @@ type GridRowProps<T> = {
 	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
 	cellActivate?: GridCellRovingActivate<T>
 	/**
-	 * 1-based position in the full row set (header = 1). Set when the rendered
-	 * body is a window onto a larger set: virtualization or pagination. Assistive
+	 * 1-based position in the full row set (header = 1, or 2 below a band row).
+	 * Set under grid semantics: virtualization, pagination, or the navigable
+	 * cursor. Assistive
 	 * tech then reports position in the full set, not the rendered slice.
 	 * Omitted for a plain, whole-set table.
 	 */
@@ -323,8 +324,8 @@ type GridRowProps<T> = {
 const MotionTableRow = motion.create(TableRow)
 
 /**
- * One data row: maps `columns` to cells (selection checkbox, actions, or `cell`
- * content).
+ * One data row: maps `columns` to cells: drag handle, selection checkbox,
+ * expander, actions, or `cell` content.
  *
  * @internal
  */
@@ -411,8 +412,8 @@ function GridRowImpl<T>({
 			)}
 		>
 			{columns.map((col, colIdx) => {
-				// Cell column indices accompany aria-rowindex under virtualization
-				// (rowIndex is only set then).
+				// Cell column indices accompany `aria-rowindex`, which grid semantics
+				// set (rowIndex is only set then).
 				const colIndex = rowIndex !== undefined ? colIdx + 1 : undefined
 
 				if (col.dragHandle) {

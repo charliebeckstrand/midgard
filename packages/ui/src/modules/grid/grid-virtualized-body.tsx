@@ -19,7 +19,7 @@ export type GridScrollRowIntoView = (rowIndex: number) => void
  * The single trailing row below the loaded rows for the infinite-scroll terminal
  * states, resolved in precedence order:
  *
- * - a failed load (`error`) shows a `Text severity="error"` message;
+ * - a failed load (`error`) shows a `Text tone="error"` message;
  * - an in-flight batch shows the opt-in loading indicator: the custom
  *   `loadingIndicator`, else a per-column skeleton run;
  * - the reached end (`hasMore` false) shows the muted `endMessage`.

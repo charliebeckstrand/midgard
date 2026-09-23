@@ -15,8 +15,8 @@ import { seatingCellProps } from './use-grid-navigation-columns'
  * Its content renders through {@link GridEditingCell}: the column's display
  * value, or its editor when the session has the cell open. Display-order indices
  * and the row key resolve from the live maps at cell-render time, so the columns
- * stay referentially stable across cursor moves and edits. Select/actions
- * columns, and a non-editable grid (`enabled` false), pass through untouched.
+ * stay referentially stable across cursor moves and edits. The non-data columns
+ * (selection, actions, drag handle, expander), and a non-editable grid (`enabled` false), pass through untouched.
  *
  * @returns The augmented `GridColumn<T>[]` to feed the engine.
  * @internal

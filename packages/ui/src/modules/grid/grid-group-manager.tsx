@@ -184,7 +184,7 @@ export function GridGroupManager({
 
 	const activeItem = mgr.activeId ? byId.get(mgr.activeId) : undefined
 
-	// The group zones (sortable) and the fixed ungrouped pool that trails them.
+	// The group zones (sortable) and the fixed ungrouped pool that leads them.
 	const groupZones = mgr.zones.filter((zone) => zone.group)
 
 	const ungroupedZone = mgr.zones.find((zone) => !zone.group)

@@ -10,7 +10,7 @@ import type { PaletteColor } from '../../core/recipe'
  * @remarks The band's color accepts any {@link PaletteColor}, rendered through
  * {@link Badge}, so the presets match the Badge surface exactly. That is the
  * standard palette (`zinc` / `red` / `amber` / `green` / `blue`) plus the
- * extended set (`mist` / `rose` / `violet` / `sky`).
+ * extended set (`rose` / `violet` / `sky`).
  */
 export type GridColumnGroup = {
 	/** Stable identity for the group; keys its band and its column-manager zone. */

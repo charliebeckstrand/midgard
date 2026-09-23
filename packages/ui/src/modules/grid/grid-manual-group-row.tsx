@@ -38,7 +38,8 @@ type GridManualGroupRowProps<T> = {
 /**
  * A manual-mode group-header row, with the same disclosure chrome as the client
  * {@link GridGroupRow}. The group's value and child count (`Developer (3)`) sit
- * at the start, and a rotating chevron at the trailing edge. Every figure comes
+ * at the start. A chevron at the trailing edge points right while collapsed and
+ * down while expanded. Every figure comes
  * from the consumer's row rather than the engine. The label reads the
  * {@link GridGroupHeaderRow} descriptor (the backend's child count), and
  * expansion is the binding's controlled key set. Once any column aggregates,

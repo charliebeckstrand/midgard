@@ -47,8 +47,8 @@ export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): 
  * session runs.
  *
  * @remarks This is the module's one definition of "editing here". Three
- * questions read it. Which cell mounts an editor. Which entry is the no-op of
- * re-entering the cell already open. Which staged drafts a commit sweep must
+ * questions read it. Which cell mounts an editor. Which editor takes focus
+ * after an entry. Which staged drafts a commit sweep must
  * flush — the cells this stops holding for. One predicate answering all three
  * keeps an editor's lifetime and its value's commit in step. @internal
  */

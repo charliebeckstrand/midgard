@@ -48,7 +48,7 @@ export type GridVirtualize = boolean | { estimateSize?: number; overscan?: numbe
  * The trailing row below the loaded rows resolves the terminal states in
  * precedence order:
  *
- * - An `error` (a failed load) shows a `Text severity="error"` message.
+ * - An `error` (a failed load) shows a `Text tone="error"` message.
  * - An in-flight batch shows the opt-in loading indicator.
  * - The reached end (`hasMore` false) shows the muted `endMessage`.
  *
@@ -124,7 +124,7 @@ export type GridInfiniteScroll = {
 	 */
 	endMessage?: ReactNode
 	/**
-	 * Message shown in a `Text severity="error"` on the trailing row when a
+	 * Message shown in a `Text tone="error"` on the trailing row when a
 	 * load-more fetch fails, leaving the already-loaded rows in place. Takes
 	 * precedence over the loading indicator and `endMessage`; unset shows no error
 	 * row. Clear it (and re-arm `hasMore`) when a retry succeeds.
@@ -334,8 +334,9 @@ export type GridGroupBy<T = unknown> = {
 	 */
 	groupButton?: boolean
 	/**
-	 * Per-group presentation overlay the row manager edits — a palette color and a
-	 * manual leaf order keyed by each group's value (see {@link GridRowGroup}). The
+	 * Per-group presentation overlay the row manager edits. It holds a palette color
+	 * and the group's slot in the manual group order, keyed by each group's value
+	 * (see {@link GridRowGroup}). The
 	 * plain-array shorthand seeds it uncontrolled; the `{ value, onValueChange }`
 	 * form persists it. Client grouping only — under {@link GridGroupBy.manual} the
 	 * backend owns the sequence and the overlay stands down.
@@ -343,8 +344,8 @@ export type GridGroupBy<T = unknown> = {
 	rowGroups?: GridRowGroups
 	/**
 	 * The row manager, a "Manage rows" dialog reached from the group-header
-	 * right-click menu. Each group takes a color and reorders there, and its rows
-	 * reorder within it. The dialog commits through {@link GridGroupBy.rowGroups}. On by
+	 * right-click menu. Each group takes a color and a place in the group order
+	 * there. Rows keep the engine order. The dialog commits through {@link GridGroupBy.rowGroups}. On by
 	 * default whenever client grouping and the header context menu are both live;
 	 * `false` is the off switch — no "Manage rows" item, no dialog.
 	 * @defaultValue true
@@ -400,8 +401,8 @@ export type GridRowReorder<T> = {
 	 * Turns the drag handles off without dropping the handle column, e.g. while a
 	 * mutation is in flight. The grid also stands reordering down on its own
 	 * whenever a manual order wouldn't be meaningful. That covers an active column
-	 * sort, pagination, virtualization, an empty or loading grid, and a filtered
-	 * view.
+	 * sort, pagination, virtualization, an empty or loading grid, a filtered
+	 * view, and an active row grouping.
 	 * @defaultValue false
 	 */
 	disabled?: boolean
@@ -648,14 +649,6 @@ export type GridFooter = {
 }
 
 /**
- * Props for a read-only data {@link Grid}. `T` is the row datum type;
- * `columns` and the various renderers are keyed to it.
- *
- * @typeParam T - Shape of a single row.
- *
- * @internal
- */
-/**
  * The grid's own rows and columns, before the render window narrows them. The
  * editing layer's commit path reads these because a draft can outlive the view
  * that its editor mounted in. A row can page out, a filter can drop it, or a
@@ -666,6 +659,14 @@ export type GridFooter = {
  */
 export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'getKey'>
 
+/**
+ * Props for a data {@link Grid}. `T` is the row datum type;
+ * `columns` and the various renderers are keyed to it.
+ *
+ * @typeParam T - Shape of a single row.
+ *
+ * @internal
+ */
 export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	/**
 	 * Density level driving cell padding and grid-internal metrics (resize
@@ -900,17 +901,19 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	search?: GridSearch
 
 	/**
-	 * Per-column filter binding; columns opting in via {@link GridColumn.filterable}
-	 * (with a {@link GridColumn.value} accessor) surface a filter row of text
-	 * inputs. Shares the table-wide filter mode with {@link GridDataProps.search}.
+	 * Per-column filter binding. Columns opt in through {@link GridColumn.filterable},
+	 * with a {@link GridColumn.value} accessor. Each filterable column shows a filter
+	 * button in its header, which opens a query-builder sheet. Shares the table-wide
+	 * filter mode with {@link GridDataProps.search}.
 	 *
 	 * @see {@link GridColumnFilters}
 	 */
 	columnFilters?: GridColumnFilters
 
 	/**
-	 * Right-click context menus. A `column` menu on headers carries the Sort, Pin,
-	 * and Auto-size menus plus Group by, then Manage columns and the Export menu. A
+	 * Right-click context menus. A `column` menu on headers carries Manage columns,
+	 * then Filter (under the `'menu'` affordance), Sort, Pin, Group by, Auto-size,
+	 * and Export. A
 	 * `cell` menu on body cells carries Copy, then the Export menu. Related actions
 	 * are consolidated into hover-opened submenus, so the menu opens one row per
 	 * concern. On by default; pass `false` to disable. Each side takes the
@@ -955,8 +958,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Each row reads a column's {@link GridColumn.value}, falling back to the row
 	 * field named by the column id; columns without either export an empty field.
 	 *
-	 * Only the `true` shorthand adds print, which stays opt-in because it opens
-	 * the browser print dialog rather than downloading a file.
+	 * Print stays opt-in: add it through the `true` shorthand or an explicit entry.
+	 * It opens the browser print dialog and downloads no file.
 	 *
 	 * @see {@link GridExportConfig}
 	 * @defaultValue `['csv', 'excel']`
@@ -988,7 +991,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 
 	/**
 	 * Lets the user reorder columns by pointer or keyboard across every visible,
-	 * non-pinned data column — `select`, `actions`, and `pinned` columns hold
+	 * non-pinned data column. The non-data, pinned, locked, and hidden columns hold
 	 * their position. Commits through `columnOrder`; nothing renders until at
 	 * least two columns are reorderable.
 	 *
@@ -1029,7 +1032,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * it down whenever that order isn't what's shown. The handles then turn inert.
 	 * That covers an active column {@link GridProps.sort | sort}, a filtered or
 	 * searched view, {@link GridProps.pagination | pagination},
-	 * {@link GridProps.virtualize | virtualization}, and an empty or loading grid.
+	 * {@link GridProps.virtualize | virtualization}, an active row grouping, and an
+	 * empty or loading grid.
 	 * Not combinable with column
 	 * {@link GridProps.reorder} on the same grid (row reorder takes precedence).
 	 *

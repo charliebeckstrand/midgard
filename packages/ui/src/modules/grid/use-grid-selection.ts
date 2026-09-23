@@ -100,7 +100,7 @@ export function useGridSelectionActions({
  * Owns the data table's selection: the controllable `Set<key>`, the row/all
  * toggles, and the `allSelected` / `someSelected` flags derived from the current
  * rowKeys. A thin composition of {@link useGridSelectionState} and
- * {@link useGridSelectionActions}, which {@link Grid} calls directly so the
+ * {@link useGridSelectionActions}, which {@link GridData} calls directly so the
  * selection state can sit above the engine. This composed form is the file's
  * single entry point for callers that don't need that split.
  *

@@ -20,7 +20,8 @@ export type GridContextValue = {
 	 * Cycles a column's sort. The `additive` (a Shift-click) folds the column into
 	 * the existing sort, and leaves the others in place. It appends the column,
 	 * flips its direction, then drops it. Otherwise the sort collapses to this
-	 * column alone, cycling ascending → descending → unsorted.
+	 * column alone and cycles per `GridSort.cycle`. The default cycle is ascending
+	 * → descending → unsorted.
 	 */
 	toggleSort: (column: string | number, additive: boolean) => void
 	/**
