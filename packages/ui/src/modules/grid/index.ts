@@ -44,6 +44,7 @@ export type {
 export type {
 	GridCellChange,
 	GridCellRef,
+	GridCellRefusal,
 	GridEditableConfig,
 	GridEditCell,
 	GridEditCellContext,

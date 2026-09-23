@@ -26,6 +26,20 @@ export type GridCellChange = {
 }
 
 /**
+ * One cell whose commit the consumer refused, as an async
+ * {@link GridEditableConfig.onCommit} reports it. `error` is the message that
+ * the cell shows. Without one, the cell shows a generic message.
+ *
+ * @remarks The grid keeps the refused value as an edit while the cell can
+ * open again. It drops the value when the row cannot open again. See
+ * {@link GridEditableConfig.onCommit} for the cases.
+ */
+export type GridCellRefusal = GridCellRef & {
+	/** The message that explains the refusal, shown under the cell's editor. */
+	error?: string
+}
+
+/**
  * Context handed to a column's {@link GridColumn.editCell} slot when its cell
  * enters edit mode. The grid owns the draft buffer and the commit/cancel
  * lifecycle. The slot decides how to render the control, and when to stage or
@@ -318,8 +332,41 @@ export type GridEditableConfig = {
 	 * (see {@link GridEditableConfig.rows}). Apply each change to your own row
 	 * data and feed it back as `rows`. Ignore a change for a row that you
 	 * deleted.
+	 *
+	 * Return a promise to commit asynchronously, for example to save to a
+	 * server. The cells of the batch are then pending until the promise
+	 * settles. Each shows the committed value with `aria-busy`, and cannot
+	 * enter edit mode. The other cells stay editable, and other batches can
+	 * commit at the same time.
+	 *
+	 * - Resolve with nothing, or with an empty array, to accept the batch. Apply
+	 *   the changes to `rows` before the promise resolves, or at once for an
+	 *   optimistic update. The cells then show the row's value.
+	 * - Resolve with a {@link GridCellRefusal} for each cell that you refuse,
+	 *   to accept the rest of the batch.
+	 * - Reject to refuse the whole batch. A non-empty `message` of the rejection
+	 *   reason is the error of each cell.
+	 *
+	 * A refused cell gets its value back as a staged edit. It shows the error
+	 * where a `validate` error shows. Under row scope its row opens again
+	 * through {@link GridEditableConfig.onRowsChange}. Under `scope: 'cell'` its
+	 * editor opens beside the session, and focus into it moves the session there.
+	 * Focus does not move. The next edit clears the error. A discard drops the
+	 * edit and the error. The grid announces each settled batch politely.
+	 *
+	 * The grid drops a refused edit, and announces the count, in three cases.
+	 * A controlled `rows` declines to open the row again. Apply the write in
+	 * the same event that reports it, or the grid reads it as a decline. You
+	 * close the row of a held cell under `scope: 'cell'`. You delete the row of
+	 * a held cell; the next session transition drops it. Under server-side
+	 * pagination a held cell on another page drops too.
+	 *
+	 * @remarks A synchronous return keeps the synchronous behaviour: the cells
+	 * commit, and the grid announces them, in the same pass. A promise that
+	 * settles after the grid unmounts changes nothing.
 	 */
-	onCommit: (changes: GridCellChange[]) => void
+	// biome-ignore lint/suspicious/noConfusingVoidType: `void` lets an `async` function with no `return` pass as the sink; `undefined` would refuse its `Promise<void>`.
+	onCommit: (changes: GridCellChange[]) => void | Promise<void | GridCellRefusal[]>
 	/**
 	 * Fires with the cells that {@link GridColumn.validate} refused, one batch per
 	 * row, beside the {@link GridEditableConfig.onCommit} batch of the same flush.
@@ -330,6 +377,10 @@ export type GridEditableConfig = {
 	 * no sink. Use this callback to keep the typed value, to mark the row, or to
 	 * explain the refusal. Cells dropped for other reasons stay out: an unchanged
 	 * cell is no refusal, and a column that stopped being editable refused nothing.
+	 *
+	 * @remarks Only a `validate` refusal calls this. A refusal from an async
+	 * `onCommit` does not, because the grid keeps that value as a staged edit
+	 * and shows the error itself.
 	 */
 	onReject?: (refused: GridCellChange[]) => void
 }

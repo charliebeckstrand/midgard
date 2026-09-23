@@ -109,3 +109,32 @@ export function describeResize(label: string, width: number): string {
 export function describeCommit(cells: number): string {
 	return `${cells} ${cells === 1 ? 'cell' : 'cells'} updated`
 }
+
+/**
+ * The polite announcement for refused edits that the grid drops (WCAG 4.1.3):
+ * `1 change discarded`. That happens when the consumer declines to open the
+ * row of a refused edit again, closes it, or deletes it. The caller gates on
+ * a non-zero count.
+ *
+ * @internal
+ */
+export function describeDiscard(changes: number): string {
+	return `${changes} ${changes === 1 ? 'change' : 'changes'} discarded`
+}
+
+/**
+ * The polite announcement for an async inline-edit commit as it settles (WCAG
+ * 4.1.3). An accepted batch reads as {@link describeCommit} does (`2 cells
+ * updated`). A refused batch counts the refused cells (`1 cell not saved`). A
+ * partial acceptance speaks both parts in one message. The caller announces
+ * once for each batch.
+ *
+ * @internal
+ */
+export function describeSettle(saved: number, refused: number): string {
+	if (refused === 0) return describeCommit(saved)
+
+	const failed = `${refused} ${refused === 1 ? 'cell' : 'cells'} not saved`
+
+	return saved === 0 ? failed : `${describeCommit(saved)}, ${failed}`
+}

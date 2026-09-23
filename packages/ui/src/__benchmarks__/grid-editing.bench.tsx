@@ -4,10 +4,12 @@
  * editing — without mounting an editor per cell. Against the same rungs in
  * `grid.bench.tsx`, the difference is what `editable` costs a grid nobody is
  * editing. The session scenarios are the exception: they open a cell-scoped
- * session and move it, which is the path the commit-and-move keys drive.
+ * session and move it, which is the path the commit-and-move keys drive. The
+ * Tab commit pair stages a value on each move, so each move commits a batch,
+ * through a sync sink and through an async one.
  */
 
-import { fireEvent } from '@testing-library/react'
+import { act, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
 import { describe } from 'vitest'
 import { Grid, type GridCellRef, type GridColumn } from '../modules/grid'
@@ -178,6 +180,46 @@ describe('Grid · cell-scoped session Tab move', () => {
 		).bench(`${rows.length.toLocaleString()} rows × 8 cols · one Tab`, () => {
 			fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Tab' })
 		})
+	}
+})
+
+/** An async sink that accepts each batch at once, in a microtask. */
+const acceptAsync = () => Promise.resolve()
+
+/**
+ * A cell-scoped session that stages a new value and commits it with Tab, so
+ * each press sends one batch to the sink. The sync variant is the base. The
+ * async variant holds the cell pending, and the timed body waits for the
+ * settle, so it also times the pending and settled renders of that cell.
+ */
+describe('Grid · cell-scoped Tab commit', () => {
+	for (const [label, onCommit] of [
+		['sync', noop],
+		['async', acceptAsync],
+	] as const) {
+		for (const rows of SIZES) {
+			let key = 0
+
+			persistentTree(
+				<Grid
+					columns={COLUMNS}
+					rows={rows}
+					getKey={shipmentKey}
+					editable={{ session: 'managed', scope: 'cell', onCommit }}
+				/>,
+				openSession,
+			).bench(`${rows.length.toLocaleString()} rows × 8 cols · one ${label} commit`, async () => {
+				const input = document.activeElement as HTMLInputElement
+
+				key++
+
+				fireEvent.change(input, { target: { value: String(key) } })
+
+				await act(async () => {
+					fireEvent.keyDown(input, { key: 'Tab' })
+				})
+			})
+		}
 	}
 })
 

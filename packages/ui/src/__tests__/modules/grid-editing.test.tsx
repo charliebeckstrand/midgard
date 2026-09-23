@@ -3,7 +3,9 @@ import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Grid,
+	type GridCellChange,
 	type GridCellRef,
+	type GridCellRefusal,
 	type GridColumn,
 	type GridEditableConfig,
 	type GridProps,
@@ -3519,5 +3521,806 @@ describe('Grid session-owned drafts', () => {
 		expect(renders.count).toBe(before.count)
 
 		expect(renders.display).toBe(before.display)
+	})
+})
+
+/**
+ * An async `onCommit` (increment 5). A promise holds the batch's cells
+ * pending. It settles them as accepted, refused in part, or refused whole.
+ * The harness keeps `rows` as state and applies a change only when the test
+ * accepts it, so a pending cell's text proves that the grid shows the
+ * committed value, not the row's value.
+ */
+describe('Grid async commit', () => {
+	type Flight = {
+		changes: GridCellChange[]
+		/** Applies the batch to `rows`, then resolves with nothing. */
+		accept: (value?: GridCellRefusal[]) => Promise<void>
+		/** Applies the cells not named, then resolves with the refusals. */
+		refuse: (refusals: GridCellRefusal[]) => Promise<void>
+		/** Rejects the promise, and applies nothing. */
+		reject: (reason: unknown) => Promise<void>
+	}
+
+	function applyChanges(rows: SessionRow[], changes: GridCellChange[]): SessionRow[] {
+		return rows.map((row) => {
+			const mine = changes.filter((change) => change.rowKey === row.id)
+
+			if (mine.length === 0) return row
+
+			return Object.assign(
+				{ ...row },
+				Object.fromEntries(mine.map((change) => [change.columnId, change.value])),
+			)
+		})
+	}
+
+	/**
+	 * Renders the async harness. With `controlRows`, the harness binds `rows`,
+	 * and `declineWhen` decides which rows writes of the grid it refuses.
+	 */
+	function renderAsyncGrid(
+		editable: Partial<GridEditableConfig> = {},
+		{ controlRows = false }: { controlRows?: boolean } = {},
+	) {
+		const flights: Flight[] = []
+
+		let decline: (next: Set<string | number>) => boolean = () => false
+
+		let setOpen: (next: Set<string | number>) => void = () => {}
+
+		const onCommit = vi.fn()
+
+		const onRowsChange = vi.fn()
+
+		const onReject = vi.fn()
+
+		let setRows: (update: (rows: SessionRow[]) => SessionRow[]) => void = () => {}
+
+		const commit = (changes: GridCellChange[]) => {
+			onCommit(changes)
+
+			let resolve: (value?: GridCellRefusal[]) => void = () => {}
+
+			let fail: (reason: unknown) => void = () => {}
+
+			const promise = new Promise<GridCellRefusal[] | undefined>((res, rej) => {
+				resolve = res
+
+				fail = rej
+			})
+
+			const refuse = async (refusals: GridCellRefusal[]) => {
+				const refused = (change: GridCellChange) =>
+					refusals.some((r) => r.rowKey === change.rowKey && r.columnId === change.columnId)
+
+				await act(async () => {
+					setRows((rows) =>
+						applyChanges(
+							rows,
+							changes.filter((change) => !refused(change)),
+						),
+					)
+
+					resolve(refusals)
+				})
+			}
+
+			flights.push({
+				changes,
+				accept: async (value) => {
+					await act(async () => {
+						setRows((rows) => applyChanges(rows, changes))
+
+						resolve(value)
+					})
+				},
+				refuse,
+				reject: async (reason) => {
+					await act(async () => {
+						fail(reason)
+					})
+				},
+			})
+
+			return promise
+		}
+
+		function Harness() {
+			const [rows, set] = useState(sessionRows)
+
+			const [open, setOpenState] = useState<Set<string | number>>(new Set())
+
+			setRows = set
+
+			setOpen = setOpenState
+
+			const bound: Partial<GridEditableConfig> = controlRows
+				? {
+						rows: open,
+						onRowsChange: (next) => {
+							onRowsChange(next)
+
+							if (!decline(next)) setOpenState(next)
+						},
+					}
+				: { onRowsChange }
+
+			return (
+				<Grid
+					columns={sessionColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{
+						session: 'managed',
+						onReject,
+						onCommit: commit,
+						...bound,
+						...editable,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const cell = (col: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+				rowIndex
+			] as HTMLElement
+
+		return {
+			...view,
+			flights,
+			onCommit,
+			onRowsChange,
+			onReject,
+			cell,
+			/** Sets which rows writes of the grid the bound `rows` refuses. */
+			declineWhen: (rule: (next: Set<string | number>) => boolean) => {
+				decline = rule
+			},
+			/** Writes the bound `rows` from outside, as a consumer save does. */
+			setOpenRows: (next: Set<string | number>) => act(() => setOpen(next)),
+			/** Replaces the grid's data rows. */
+			setData: (update: (rows: SessionRow[]) => SessionRow[]) => act(() => setRows(update)),
+		}
+	}
+
+	/** Opens the cell, types `value`, and commits with `key` from the editor. */
+	function editAndCommit(
+		view: ReturnType<typeof renderAsyncGrid>,
+		col: string,
+		value: string,
+		key = 'F2',
+	) {
+		fireEvent.doubleClick(view.cell(col))
+
+		const input = editorsIn(view.container).find((el) => view.cell(col).contains(el))
+
+		if (!input) throw new Error(`no editor in ${col}`)
+
+		fireEvent.change(input, { target: { value } })
+
+		fireEvent.keyDown(input, { key })
+	}
+
+	/** The one editor inside `td`, or `undefined` when the cell reads. */
+	const editorIn = (view: ReturnType<typeof renderAsyncGrid>, td: HTMLElement) =>
+		editorsIn(view.container).find((el) => td.contains(el)) as HTMLInputElement | undefined
+
+	/** The one editor inside `td`; fails when the cell reads. */
+	const editorAt = (view: ReturnType<typeof renderAsyncGrid>, td: HTMLElement) =>
+		present<HTMLInputElement>(editorIn(view, td), 'an editor in the cell')
+
+	it('keeps a synchronous onCommit synchronous: no pending state, and an announcement at once', async () => {
+		const { container, cell, onCommit } = renderSessionGrid({ editable: { scope: 'cell' } })
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		expect(cell('name')).not.toHaveAttribute('aria-busy')
+
+		expect(bySlot(container, 'grid-edit-pending')).toBeNull()
+
+		await expectAnnouncement('1 cell updated')
+	})
+
+	it('shows a pending cell busy, with the committed value, and lets no entry open it', () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		editAndCommit(view, 'name', 'Alicia')
+
+		const grid = view.getByRole('grid')
+
+		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
+
+		// The row still holds 'Alice'. The cell shows the value in flight.
+		expect(view.cell('name')).toHaveTextContent('Alicia')
+
+		expect(
+			present(bySlot(view.cell('name'), 'grid-edit-pending'), 'the pending content'),
+		).toBeTruthy()
+
+		// F2, Enter, and a typed character on the tab stop, and a double-click,
+		// all do nothing on the pending cell. The cursor sits on it after F2.
+		fireEvent.keyDown(grid, { key: 'F2' })
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		fireEvent.keyDown(grid, { key: 'x' })
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		expect(editorIn(view, view.cell('name'))).toBeUndefined()
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		// Another cell stays editable while the first is in flight.
+		fireEvent.doubleClick(view.cell('count'))
+
+		expect(editorIn(view, view.cell('count'))).toHaveFocus()
+	})
+
+	it('accepts a batch on resolve: the cell reads the row, and the grid announces the batch', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		editAndCommit(view, 'name', 'Alicia')
+
+		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
+
+		// Nothing is saved yet, so nothing is announced yet.
+		await act(async () => {})
+
+		expect(liveRegion()?.textContent ?? '').not.toContain('updated')
+
+		await view.flights[0]?.accept()
+
+		expect(view.cell('name')).not.toHaveAttribute('aria-busy')
+
+		expect(bySlot(view.container, 'grid-edit-pending')).toBeNull()
+
+		expect(view.cell('name')).toHaveTextContent('Alicia')
+
+		await expectAnnouncement('1 cell updated')
+	})
+
+	it('accepts a batch that resolves with an empty list', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		editAndCommit(view, 'name', 'Alicia')
+
+		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
+
+		await view.flights[0]?.accept([])
+
+		expect(view.cell('name')).not.toHaveAttribute('aria-busy')
+
+		expect(editorIn(view, view.cell('name'))).toBeUndefined()
+
+		await expectAnnouncement('1 cell updated')
+	})
+
+	it('refuses only the cells a resolve names, and restores their drafts with the error', async () => {
+		const view = renderAsyncGrid()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const [name, count] = editorsIn(view.container)
+
+		fireEvent.change(present(name, 'the name editor'), { target: { value: 'Alicia' } })
+
+		fireEvent.change(present(count, 'the count editor'), { target: { value: '9' } })
+
+		fireEvent.keyDown(present(name, 'the name editor'), { key: 'Enter' })
+
+		expect(view.onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+			{ rowKey: 1, columnId: 'count', value: 9 },
+		])
+
+		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
+
+		expect(view.cell('count')).toHaveAttribute('aria-busy', 'true')
+
+		view.onRowsChange.mockClear()
+
+		await view.flights[0]?.refuse([{ rowKey: 1, columnId: 'name', error: 'Name taken' }])
+
+		// The row is back in the session, so both editors mount.
+		expect(view.onRowsChange).toHaveBeenLastCalledWith(new Set([1]))
+
+		const nameEditor = editorAt(view, view.cell('name'))
+
+		expect(nameEditor.value).toBe('Alicia')
+
+		expect(nameEditor).toHaveAttribute('aria-invalid', 'true')
+
+		const message = present(
+			document.getElementById(nameEditor.getAttribute('aria-describedby') ?? ''),
+			'the error message',
+		)
+
+		expect(message).toHaveAttribute('role', 'alert')
+
+		expect(message).toHaveTextContent('Name taken')
+
+		// The accepted cell reads the row the consumer applied, with no error.
+		const countEditor = editorAt(view, view.cell('count'))
+
+		expect(countEditor.value).toBe('9')
+
+		expect(countEditor).not.toHaveAttribute('aria-invalid')
+
+		expect(view.cell('name')).not.toHaveAttribute('aria-busy')
+
+		// A server refusal is not a `validate` refusal.
+		expect(view.onReject).not.toHaveBeenCalled()
+
+		await expectAnnouncement('1 cell updated, 1 cell not saved')
+	})
+
+	it('refuses the whole batch on a rejection, with the error message', async () => {
+		const view = renderAsyncGrid()
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const [name, count] = editorsIn(view.container)
+
+		fireEvent.change(present(name, 'the name editor'), { target: { value: 'Alicia' } })
+
+		fireEvent.change(present(count, 'the count editor'), { target: { value: '9' } })
+
+		fireEvent.keyDown(present(name, 'the name editor'), { key: 'Enter' })
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+
+		expect(editorAt(view, view.cell('count')).value).toBe('9')
+
+		expect(view.getAllByRole('alert').map((el) => el.textContent)).toEqual([
+			'Server down',
+			'Server down',
+		])
+
+		await expectAnnouncement('2 cells not saved')
+	})
+
+	it.each([
+		['an error with an empty message', new Error('')],
+		['a reason with no message', 'offline'],
+		['no reason at all', undefined],
+	])('falls back to a generic error for %s', async (_, reason) => {
+		const view = renderAsyncGrid()
+
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		await view.flights[0]?.reject(reason)
+
+		expect(view.getByRole('alert')).toHaveTextContent('Change not saved')
+	})
+
+	it('re-opens a refused row without a focus move', async () => {
+		const view = renderAsyncGrid()
+
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		const grid = view.getByRole('grid')
+
+		expect(grid).toHaveFocus()
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+
+		expect(grid).toHaveFocus()
+	})
+
+	it('re-opens a refused cell beside the session, and leaves focus in the held editor', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		editAndCommit(view, 'name', 'Alicia', 'Tab')
+
+		const countEditor = editorAt(view, view.cell('count'))
+
+		expect(countEditor).toHaveFocus()
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		const nameEditor = editorAt(view, view.cell('name'))
+
+		expect(nameEditor.value).toBe('Alicia')
+
+		expect(view.getByRole('alert')).toHaveTextContent('Server down')
+
+		// The session still holds the count cell, and focus stays in its editor.
+		expect(countEditor).toHaveFocus()
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+	})
+
+	it('clears the error when the user edits the refused cell again', async () => {
+		const view = renderAsyncGrid()
+
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		const nameEditor = editorAt(view, view.cell('name'))
+
+		fireEvent.change(nameEditor, { target: { value: 'Alicia B' } })
+
+		expect(view.queryByRole('alert')).toBeNull()
+
+		expect(nameEditor).not.toHaveAttribute('aria-invalid')
+
+		// The edited draft commits again when the row closes.
+		fireEvent.keyDown(nameEditor, { key: 'Enter' })
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia B' },
+		])
+	})
+
+	it('drops a refused draft and its error on Escape in a re-opened row', async () => {
+		const view = renderAsyncGrid()
+
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		fireEvent.keyDown(editorAt(view, view.cell('name')), { key: 'Escape' })
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		expect(view.cell('name')).toHaveTextContent('Alice')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		// The draft is gone: the next session opens on the row's value.
+		fireEvent.doubleClick(view.cell('name'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alice')
+
+		expect(view.queryByRole('alert')).toBeNull()
+	})
+
+	it('moves a cell-scoped session onto a held cell as focus enters it, and Escape drops it', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		editAndCommit(view, 'name', 'Alicia', 'Tab')
+
+		const countEditor = editorAt(view, view.cell('count'))
+
+		fireEvent.change(countEditor, { target: { value: '9' } })
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		const nameEditor = editorAt(view, view.cell('name'))
+
+		act(() => nameEditor.focus())
+
+		// The session left the count cell, so its draft committed.
+		expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 9 }])
+
+		expect(editorIn(view, view.cell('count'))).toBeUndefined()
+
+		fireEvent.keyDown(nameEditor, { key: 'Escape' })
+
+		expect(editorIn(view, view.cell('name'))).toBeUndefined()
+
+		expect(view.cell('name')).toHaveTextContent('Alice')
+
+		expect(view.queryByRole('alert')).toBeNull()
+	})
+
+	it('enters a held cell from the tab stop: F2 keeps the draft, a typed key replaces it', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		const grid = view.getByRole('grid')
+
+		editAndCommit(view, 'name', 'Alicia')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		// F2 left the cursor on the cell, and the refusal did not move focus.
+		expect(grid).toHaveFocus()
+
+		fireEvent.keyDown(grid, { key: 'F2' })
+
+		const held = editorAt(view, view.cell('name'))
+
+		expect(held).toHaveFocus()
+
+		expect(held.value).toBe('Alicia')
+
+		expect(view.getByRole('alert')).toHaveTextContent('Server down')
+
+		// Leave the cell unedited, and a second refusal holds it open again.
+		fireEvent.keyDown(held, { key: 'F2' })
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([
+			{ rowKey: 1, columnId: 'name', value: 'Alicia' },
+		])
+
+		await view.flights[1]?.reject(new Error('Server down'))
+
+		fireEvent.keyDown(grid, { key: 'Z' })
+
+		const typed = editorAt(view, view.cell('name'))
+
+		expect(typed.value).toBe('Z')
+
+		expect(typed).toHaveFocus()
+
+		expect(view.queryByRole('alert')).toBeNull()
+	})
+
+	it('drops the refused drafts when a controlled rows declines to open the row again', async () => {
+		const view = renderAsyncGrid({}, { controlRows: true })
+
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		// The consumer refuses to open row 1 again.
+		view.declineWhen((next) => next.has(1))
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		await expectAnnouncement('1 change discarded')
+
+		// An unrelated session on row 2 opens and closes. Its sweep must not send
+		// the refused draft of row 1 again.
+		view.declineWhen(() => false)
+
+		fireEvent.doubleClick(view.cell('name', 1))
+
+		fireEvent.keyDown(editorAt(view, view.cell('name', 1)), { key: 'Escape' })
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		// The draft is gone: row 1 opens on its own value.
+		fireEvent.doubleClick(view.cell('name'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alice')
+	})
+
+	it('drops a held cell of a cell-scoped session when the consumer closes its row', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' }, { controlRows: true })
+
+		editAndCommit(view, 'name', 'Alicia', 'Tab')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+
+		// The consumer closes row 1, which also closes the count cell of the session.
+		view.setOpenRows(new Set())
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		await expectAnnouncement('1 change discarded')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+	})
+
+	it('keeps a held cell when the grid itself closes its row', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' }, { controlRows: true })
+
+		editAndCommit(view, 'name', 'Alicia', 'Tab')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		// F2 from the count editor ends the session, which closes row 1.
+		fireEvent.keyDown(editorAt(view, view.cell('count')), { key: 'F2' })
+
+		expect(view.onRowsChange).toHaveBeenLastCalledWith(new Set())
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+	})
+
+	it('frees a held cell whose row the consumer deletes, at the next sweep', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		// Enter moves the session to row 2, so row 1 holds no session.
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		await view.flights[0]?.reject(new Error('Server down'))
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+
+		view.setData((rows) => rows.filter((row) => row.id !== 1))
+
+		// A Tab moves the session, which runs the sweep.
+		fireEvent.keyDown(editorAt(view, view.cell('name')), { key: 'Tab' })
+
+		await expectAnnouncement('1 change discarded')
+
+		// The row comes back, and nothing of the refused draft is left.
+		view.setData(() => sessionRows)
+
+		expect(editorIn(view, view.cell('name'))).toBeUndefined()
+
+		expect(view.cell('name')).toHaveTextContent('Alice')
+	})
+
+	it('keeps the prototype of a class row in the pending display', () => {
+		class Member {
+			id: number
+
+			name: string
+
+			constructor(id: number, name: string) {
+				this.id = id
+
+				this.name = name
+			}
+
+			shout() {
+				return this.name.toUpperCase()
+			}
+
+			get initial() {
+				return this.name.charAt(0)
+			}
+		}
+
+		const members = [new Member(1, 'Alice'), new Member(2, 'Bob')]
+
+		const columns: GridColumn<Member>[] = [
+			{
+				id: 'name',
+				title: 'Name',
+				field: 'name',
+				cell: (row) => `${row.shout()} (${row.initial})`,
+			},
+		]
+
+		const view = renderUI(
+			<Grid
+				columns={columns}
+				rows={members}
+				getKey={(row) => row.id}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					onCommit: () => new Promise<void>(() => {}),
+				}}
+			/>,
+		)
+
+		const cell = present(view.container.querySelector('td[data-grid-col="name"]'), 'the name cell')
+
+		fireEvent.doubleClick(cell)
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.change(input, { target: { value: 'Alicia' } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+
+		expect(cell).toHaveAttribute('aria-busy', 'true')
+
+		expect(cell).toHaveTextContent('ALICIA (A)')
+	})
+
+	it('changes nothing, and warns of nothing, when a batch settles after the unmount', async () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+		try {
+			const first = renderAsyncGrid()
+
+			editAndCommit(first, 'name', 'Alicia', 'Enter')
+
+			const second = renderAsyncGrid()
+
+			editAndCommit(second, 'name', 'Alicia', 'Enter')
+
+			first.unmount()
+
+			second.unmount()
+
+			// Start from a silent region, so any text below is a late settle's.
+			await act(async () => {})
+
+			const region = liveRegion()
+
+			if (region) region.textContent = ''
+
+			await first.flights[0]?.accept()
+
+			await second.flights[0]?.reject(new Error('Server down'))
+
+			expect(error).not.toHaveBeenCalled()
+
+			expect(warn).not.toHaveBeenCalled()
+
+			expect(liveRegion()?.textContent ?? '').not.toMatch(/updated|not saved/)
+		} finally {
+			error.mockRestore()
+
+			warn.mockRestore()
+		}
+	})
+
+	it('runs two batches of one cell-scoped session at once, and settles each on its own', async () => {
+		const onCellChange = vi.fn()
+
+		const view = renderAsyncGrid({ scope: 'cell', onCellChange })
+
+		editAndCommit(view, 'name', 'Alicia', 'Tab')
+
+		const countEditor = editorAt(view, view.cell('count'))
+
+		fireEvent.change(countEditor, { target: { value: '9' } })
+
+		// Tab has no other open cell to reach, because the name cell is pending,
+		// so it commits the count cell in place.
+		fireEvent.keyDown(countEditor, { key: 'Tab' })
+
+		expect(view.onCommit).toHaveBeenCalledTimes(2)
+
+		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
+
+		expect(view.cell('count')).toHaveAttribute('aria-busy', 'true')
+
+		expect(onCellChange).toHaveBeenLastCalledWith(null)
+
+		// The later batch settles first.
+		await view.flights[1]?.accept()
+
+		expect(view.cell('count')).not.toHaveAttribute('aria-busy')
+
+		expect(view.cell('count')).toHaveTextContent('9')
+
+		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
+
+		await expectAnnouncement('1 cell updated')
+
+		await view.flights[0]?.refuse([{ rowKey: 1, columnId: 'name', error: 'Name taken' }])
+
+		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
+
+		await expectAnnouncement('1 cell not saved')
+	})
+
+	it('keeps a later cell move working while an earlier cell is pending', async () => {
+		const view = renderAsyncGrid({ scope: 'cell' })
+
+		editAndCommit(view, 'name', 'Alicia', 'Enter')
+
+		// Enter moved the session down one row.
+		const bob = editorAt(view, view.cell('name', 1))
+
+		expect(bob).toHaveFocus()
+
+		fireEvent.change(bob, { target: { value: 'Robert' } })
+
+		fireEvent.keyDown(bob, { key: 'Tab' })
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([
+			{ rowKey: 2, columnId: 'name', value: 'Robert' },
+		])
+
+		expect(editorAt(view, view.cell('count', 1))).toHaveFocus()
+
+		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
+
+		expect(view.cell('name', 1)).toHaveAttribute('aria-busy', 'true')
 	})
 })
