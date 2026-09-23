@@ -439,3 +439,45 @@ describe('HeatmapChart cell clicks', () => {
 		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
 	})
 })
+
+describe('the range legend under quantile binning', () => {
+	it('emphasises the class the host assigns the probed value to', () => {
+		// Quantile binning puts the threshold at 2.5, so a probe at 3 falls in the
+		// upper class with 100. Equal intervals over 1–100 would put it with 1 and 2.
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Load"
+				width={400}
+				data={[
+					{ day: 'Mon', hour: '9', n: 1 },
+					{ day: 'Mon', hour: '10', n: 2 },
+					{ day: 'Tue', hour: '9', n: 3 },
+					{ day: 'Tue', hour: '10', n: 100 },
+				]}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'n',
+						colorRange: ['#fff', '#000'],
+						binning: 'quantile',
+					},
+				]}
+			/>,
+		)
+
+		const track = getSlot(container, 'heatmap-range-track')
+
+		track.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+
+		// Value 3 sits at (3 − 1) / 99 of the track, measured up from the bottom.
+		fireEvent.pointerMove(track, { clientY: 97 })
+
+		const dimmed = [...container.querySelectorAll('[data-slot="heatmap-cells"] rect')].map(
+			(cell) => cell.getAttribute('class')?.includes('opacity-25') ?? false,
+		)
+
+		expect(dimmed).toEqual([true, true, false, false])
+	})
+})

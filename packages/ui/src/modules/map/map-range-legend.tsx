@@ -63,6 +63,7 @@ export function MapRangeLegend({
 	format,
 	label,
 	bins,
+	thresholds,
 	regionNumbers,
 	onFocus,
 	orientation = 'vertical',
@@ -78,6 +79,7 @@ export function MapRangeLegend({
 				format={format}
 				label={label}
 				bins={bins}
+				thresholds={thresholds}
 				orientation={orientation}
 				onProbe={(bin) => onFocus(bin === null ? null : binEmphasisId(bin))}
 				arrow={

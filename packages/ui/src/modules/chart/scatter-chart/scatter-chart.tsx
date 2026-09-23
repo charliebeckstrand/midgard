@@ -64,7 +64,7 @@ import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { type LinearScale, linearScale } from '../engine/chart-scale'
 import { formatChartValue } from '../engine/chart-series'
 import { snapTargets } from '../engine/chart-snap'
-import { chartFramePolicy } from '../engine/chart-tier'
+import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
 import { useChartTier } from '../engine/context'
 import type { ChartBaseProps, ChartReadout, ScatterChartSeries } from '../engine/types'
@@ -636,15 +636,15 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
 	// the density target above, so only the tier and its legend budget are taken.
-	// The policy counts no header lines, so the chrome reserve holds the legend
-	// alone; chartFramePolicy resolves the tier against the figure's
-	// `width / ratio` less that legend.
+	// The frame draws the title and subtitle inside the aspect box, so the chrome
+	// reserve holds their lines and the legend. chartFramePolicy resolves the tier
+	// against the figure's `width / ratio` less that chrome.
 	const policy = chartFramePolicy({
 		width: frameWidth,
 		height: frameHeight,
 		aspect: frameAspect,
 		chrome: {
-			headerLines: 0,
+			headerLines: headerLineCount(props.title, props.subtitle),
 			legend: legendBands(resolvedLegend.value, series.length),
 		},
 		tickTarget: metrics.tickTarget,

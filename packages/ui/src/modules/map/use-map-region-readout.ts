@@ -35,6 +35,8 @@ type MapRegionReadout = {
 	regionNumbers: (number | null)[]
 	/** The numeric value extent in the numeric (choropleth) mode; `null` otherwise. Feeds the range legend. */
 	domain: [number, number] | null
+	/** The class edges the bins assign by under `'quantile'` binning; absent otherwise. Feeds the range legend. */
+	thresholds?: number[]
 }
 
 /**
@@ -92,8 +94,13 @@ export function useMapRegionReadout<T>(
 		regionValues,
 		regionNumbers,
 		domain: extent,
+		thresholds,
 	} = useMemo<
-		RegionValueJoin & { categoryMetas: MapCategoryMeta[]; domain: [number, number] | null }
+		RegionValueJoin & {
+			categoryMetas: MapCategoryMeta[]
+			domain: [number, number] | null
+			thresholds?: number[]
+		}
 	>(() => {
 		// The all-null column, shared by every field a branch leaves empty:
 		// nothing downstream mutates the readout arrays, so one allocation
@@ -119,6 +126,7 @@ export function useMapRegionReadout<T>(
 				metas,
 				domain: resolved,
 				assign,
+				thresholds: edges,
 			} = resolveValueBins(data, valueKey, {
 				colorRange,
 				bins,
@@ -134,6 +142,7 @@ export function useMapRegionReadout<T>(
 				categoryMetas: metas,
 				...regionValueJoin(regionIds, data, regionKey, valueKey, assign, format),
 				domain: resolved,
+				thresholds: edges,
 			}
 		}
 
@@ -165,5 +174,13 @@ export function useMapRegionReadout<T>(
 		regionIds,
 	])
 
-	return { categoryMetas, regionNames, regionCategory, regionValues, regionNumbers, domain: extent }
+	return {
+		categoryMetas,
+		regionNames,
+		regionCategory,
+		regionValues,
+		regionNumbers,
+		domain: extent,
+		thresholds,
+	}
 }

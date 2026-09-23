@@ -95,6 +95,8 @@ function resolveLegendPlacement(
 type MapRangeScale = {
 	colorRange: string[] | undefined
 	valueExtent: [number, number] | null
+	/** The class edges the regions are binned by under `'quantile'`; absent otherwise. */
+	valueThresholds: number[] | undefined
 	formatValue: ((value: number) => string) | undefined
 	colorName: string | undefined
 	/** Each region's raw value — the bar's hover arrow marks the pointed one. */
@@ -180,6 +182,7 @@ export function planMapLegend(
 					format: resolveValueFormat(scale.formatValue),
 					label: scale.colorName,
 					bins: switchboard.categoryCount,
+					thresholds: scale.valueThresholds,
 					regionNumbers: scale.regionNumbers,
 					onFocus: scale.onFocus,
 					orientation: resolved.orientation,

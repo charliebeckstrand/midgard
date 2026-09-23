@@ -26,6 +26,7 @@ import {
 	axisLabelFormats,
 	ChartValueLabels,
 	resolveValueLabels,
+	valueLabelHeadroom,
 } from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
@@ -60,8 +61,10 @@ export type ComboChartProps<T = never> = ChartBaseProps<T> &
 		interpolation?: LineInterpolation
 		/**
 		 * Draw selective value labels — each line and area series' `endpoints` and /
-		 * or `extremes`, bars excluded — overlaps dropped by priority. Off by
-		 * default; the tooltip and data table carry the full readout.
+		 * or `extremes`, bars excluded — overlaps dropped by priority. With
+		 * `references`, each reference rule's value draws beside it in place of its
+		 * hover tooltip. Off by default; the tooltip and data table carry the full
+		 * readout.
 		 */
 		labels?: ChartValueLabelConfig
 	}
@@ -196,6 +199,13 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		// Only the line and area series paint past their coordinate — bars end at
 		// theirs — so the inset stands only where such a series exists to need it.
 		markInset: series.some((entry) => entry.type !== 'bar') ? lineMarkReach(points) : 0,
+		// Reserve the room the point labels need past the data extremes. Only the
+		// line and area series carry labels, so only they count toward the
+		// single-series gate. The room widens the value axis the bars share.
+		valueHeadroom: valueLabelHeadroom(
+			labels,
+			series.filter((entry) => entry.type !== 'bar').length,
+		),
 	})
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert, and
@@ -238,14 +248,18 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	const labelMetas = labelled.map(({ meta }) => meta)
 
-	const valueLabelItems = resolveValueLabels(
-		labels,
-		[...areas, ...lines],
-		labelMetas,
-		chart.plot,
-		formatValue,
-		axisLabelFormats(labelMetas, chart.formatAxisValue),
-	)
+	// A plot too short to afford the reserved label room sheds the point labels
+	// whole, as a `LineChart` does.
+	const valueLabelItems = chart.valueLabelRoom
+		? resolveValueLabels(
+				labels,
+				[...areas, ...lines],
+				labelMetas,
+				chart.plot,
+				formatValue,
+				axisLabelFormats(labelMetas, chart.formatAxisValue),
+			)
+		: []
 
 	const barPaints = barEntries.map((entry) => entry.meta.paint)
 
@@ -334,7 +348,8 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				chart.bandPositions,
 				chart.snapPoints,
 				chart.orientation,
-				chart.referencePositions,
+				// A labelled rule reads its value without the rove, so it sheds its stop.
+				labels?.references ? undefined : chart.referencePositions,
 				chart.snapSeries,
 			)}
 			reference={reference}
@@ -392,6 +407,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				reference={reference}
 				format={chart.formatAxisValue}
 				animate={animate}
+				labels={labels?.references}
 				hidden={chart.referenceHidden}
 			/>
 		</ChartCartesianFrame>
