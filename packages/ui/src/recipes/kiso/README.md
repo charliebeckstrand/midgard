@@ -45,6 +45,7 @@ Bundles compose primitive atoms into the multi-fragment shape an archetype share
 | `segment/` | Segmented control — `control` / `item` size maps plus `indicator` colour fragments.                                                  | `bridge.segment`.                                                                                                                                      |
 | `panel/`   | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer arrangement), and `grip` (the drag bar).                  | `bridge.panel`; `kata/dialog`, `kata/drawer`, `kata/sheet`, `kata/box`, `kata/panel`, `kata/grid` (subset reach).                                                   |
 | `slider/`  | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour. *No bridge.*                                  | `kata/slider`, `kata/slider-range`.                                                                                                                      |
+| `zu/` (図)  | Data-viz substrate — the CVD-validated categorical series `palette` (slots + order), the chrome and readout `ink`, and the reveal `motion`. Composes `iro` and `ugoki`. *No bridge.* | `kata/chart`, `kata/map`.                                                                                                                      |
 
 ## 5. Rules
 
