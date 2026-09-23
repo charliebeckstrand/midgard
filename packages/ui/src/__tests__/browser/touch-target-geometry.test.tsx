@@ -1,8 +1,4 @@
-// The provider types augment `CDPSession` with `send`; nothing else in the
-// suite loads them, because no other file reaches the raw protocol.
-import type {} from '@vitest/browser-playwright'
-import { afterEach, describe, expect, it } from 'vitest'
-import { cdp } from 'vitest/browser'
+import { describe, expect, it } from 'vitest'
 import { TouchTarget } from '../../primitives/touch-target'
 import { present, renderUI, screen } from '../helpers'
 
@@ -15,6 +11,12 @@ import { present, renderUI, screen } from '../helpers'
  *
  * Axe cannot stand in for this pin. Its target-size rule measures the host's
  * own border-box and never sees the span.
+ *
+ * The 44px coarse floor has no case here, and none can hold in this suite.
+ * `Emulation.setTouchEmulationEnabled` makes `pointer: coarse` match, but
+ * turning it off does not restore `hover: hover` or `pointer: fine`. The suite
+ * runs with `isolate: false`, so every later file on the page loses its
+ * `hover:` variants. The jsdom suite asserts the coarse class instead.
  */
 describe('TouchTarget activation region (real browser)', () => {
 	/** A host under the 24px floor, laid out the way `Button` lays out its host. */
@@ -45,10 +47,6 @@ describe('TouchTarget activation region (real browser)', () => {
 	/** Whether a point resolves to the host, through the span or directly. */
 	const hitsHost = (host: HTMLElement, x: number, y: number) =>
 		document.elementFromPoint(x, y)?.closest('button') === host
-
-	afterEach(async () => {
-		await cdp().send('Emulation.setTouchEmulationEnabled', { enabled: false })
-	})
 
 	it('floors the activation region at 24px on a fine pointer, centred on the host', () => {
 		expect(matchMedia('(pointer: fine)').matches).toBe(true)
@@ -85,21 +83,5 @@ describe('TouchTarget activation region (real browser)', () => {
 		expect(box.width).toBe(hostBox.width)
 
 		expect(box.height).toBe(hostBox.height)
-	})
-
-	it('raises the floor to 44px on a coarse pointer', async () => {
-		await cdp().send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 })
-
-		expect(matchMedia('(pointer: coarse)').matches).toBe(true)
-
-		renderHost(16)
-
-		const { host, box, hostBox } = measure()
-
-		expect(box.width).toBe(44)
-
-		expect(box.height).toBe(44)
-
-		expect(hitsHost(host, hostBox.right + 12, hostBox.top + 8)).toBe(true)
 	})
 })
