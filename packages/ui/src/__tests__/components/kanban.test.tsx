@@ -380,6 +380,47 @@ describe('KanbanCard', () => {
 })
 
 describe('KanbanColumnBody', () => {
+	// Conditional card slots that are all false render nothing. The body must
+	// count rendered children, not slots, so the placeholder shows and the
+	// read-only list role drops.
+	function EmptyBody({ show, pair }: { show: boolean; pair: boolean }) {
+		return (
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
+					{pair ? (
+						<KanbanColumnBody empty="No cards">
+							{show && <KanbanCard value="1">One</KanbanCard>}
+							{show && <KanbanCard value="2">Two</KanbanCard>}
+						</KanbanColumnBody>
+					) : (
+						<KanbanColumnBody empty="No cards">
+							{show && <KanbanCard value="1">One</KanbanCard>}
+						</KanbanColumnBody>
+					)}
+				</KanbanColumn>
+			</Kanban>
+		)
+	}
+
+	it.each([
+		['two false slots', true],
+		['one false slot', false],
+	])('shows the empty placeholder for %s', (_name, pair) => {
+		const { container } = renderUI(<EmptyBody show={false} pair={pair} />)
+
+		expect(screen.getByText('No cards')).toBeInTheDocument()
+
+		expect(bySlot(container, 'kanban-column-body')).not.toHaveAttribute('role')
+	})
+
+	it('keeps the list role for a rendered slot on a read-only board', () => {
+		const { container } = renderUI(<EmptyBody show pair />)
+
+		expect(screen.queryByText('No cards')).not.toBeInTheDocument()
+
+		expect(bySlot(container, 'kanban-column-body')).toHaveAttribute('role', 'list')
+	})
+
 	it('renders children when the column has cards, omitting the empty fallback', () => {
 		const { container } = renderUI(<Board />)
 
