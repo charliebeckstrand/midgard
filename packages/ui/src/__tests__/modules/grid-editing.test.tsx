@@ -761,6 +761,59 @@ describe("Grid double-click-to-edit (trigger: 'doubleClick')", () => {
 		expect(onCommit).not.toHaveBeenCalled()
 	})
 
+	it("saves the row on Enter from an editCell slot's own input", () => {
+		const { container, cell, onCommit } = renderSessionGrid({
+			cols: [
+				{
+					id: 'name',
+					title: 'Name',
+					field: 'name',
+					cell: (row) => row.name,
+					editCell: ({ value, onValueUpdate }) => (
+						<input
+							data-slot="custom-edit"
+							value={String(value ?? '')}
+							onChange={(event) => onValueUpdate(event.target.value)}
+						/>
+					),
+				},
+			],
+		})
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = getSlot<HTMLInputElement>(container, 'custom-edit')
+
+		fireEvent.change(input, { target: { value: 'Slotted' } })
+
+		// Enter lives on the table's key surface, as Escape does, so a slot inherits
+		// it with no wiring and no call to `ctx.commit`.
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 1, columnId: 'name', value: 'Slotted' },
+		])
+	})
+
+	it('leaves Enter to a button inside an editor, such as the listbox trigger', () => {
+		const { container, cell, onCommit } = renderSessionGrid({
+			cols: [
+				{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+				{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
+			],
+		})
+
+		fireEvent.doubleClick(cell('name'))
+
+		fireEvent.keyDown(getSlot(container, 'listbox-button'), { key: 'Enter' })
+
+		// A button activates on its own Enter; the listbox opens on it. Saving here
+		// would take the one key the listbox has to open with.
+		expect(bySlot(container, 'grid-edit-boolean-input')).toBeInTheDocument()
+
+		expect(onCommit).not.toHaveBeenCalled()
+	})
+
 	it('defers Escape to an open floating surface inside the cell', () => {
 		const { container, cell } = renderSessionGrid({
 			cols: [

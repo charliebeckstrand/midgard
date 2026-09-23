@@ -109,9 +109,12 @@ export type GridEditableConfig = {
 	 * editable data cell puts its row into edit mode, and focuses that cell's
 	 * editor. That is the grid's built-in cell double-click event, so a consumer
 	 * {@link GridDataProps.onCellDoubleClick} still fires. Enter on the keyboard
-	 * cursor's active cell does the same. Enter in an inferred text/number editor
-	 * then saves the row (the same one-batch commit), and Escape abandons the
-	 * row's staged edits. Entering and leaving a row flows through
+	 * cursor's active cell does the same. Enter in an editor then saves the row
+	 * (the same one-batch commit), and Escape abandons the row's staged edits.
+	 * Both keys live on the grid's own key surface, so an `editCell` slot
+	 * inherits them. Enter on a button, a link, or a text area stays with that
+	 * element, and an open floating surface keeps its keys. Entering and leaving
+	 * a row flows through
 	 * `rows`/`onRowsChange`, so a controlled binding stays the source of truth for
 	 * which rows edit. Under {@link GridEditableConfig.scope} `'cell'` a move
 	 * between cells of one row leaves that set alone, and the grid holds the

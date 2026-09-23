@@ -39,13 +39,13 @@ export type GridEditingApi = {
 	 */
 	enterEdit: (rowKey: string | number, columnId: string | number) => void
 	/**
-	 * Abandons an editing row's session when an Escape bubbles up from one of its
-	 * editors. It is layered onto the grid `<table>`'s key handler by
-	 * {@link useGridCursor}. Every editor (inferred input, listbox, `editCell`
-	 * slot) therefore inherits it without wiring of its own. `undefined` unless the
-	 * grid owns the session (`trigger: 'doubleClick'`).
+	 * The session's keys, layered onto the grid `<table>`'s key handler by
+	 * {@link useGridCursor}. Escape abandons the session, and Enter from an open
+	 * editor saves it. Every editor (inferred input, listbox, `editCell` slot)
+	 * therefore inherits the keys without wiring of its own. `undefined` unless
+	 * the grid owns the session (`trigger: 'doubleClick'`).
 	 */
-	sessionEscape: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
+	sessionKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 }
 
 /** Focusable editor content inside an editing cell, in preference order. @internal */
@@ -63,6 +63,35 @@ function restoreGridFocus(): void {
 
 	if (active instanceof HTMLElement) active.closest<HTMLElement>('[role="grid"]')?.focus()
 }
+
+/**
+ * Whether a key press belongs to a floating surface inside the grid rather than
+ * to the session. Three kinds of press qualify. The first is a press already
+ * consumed (`defaultPrevented`). The second comes from focus inside a portaled
+ * panel, such as an open listbox's options or the date picker's calendar. The
+ * third lands on an open disclosure's own trigger or input
+ * (`aria-expanded="true"`), such as a combobox with its panel open. The
+ * surface's own document-level key layer runs after the table's handler, so the
+ * session stands down and lets that layer take the press.
+ *
+ * @internal
+ */
+function claimedBySurface(event: ReactKeyboardEvent<HTMLTableElement>): boolean {
+	if (event.defaultPrevented || !(event.target instanceof Element)) return true
+
+	return (
+		event.target.closest('[data-floating-ui-portal]') !== null ||
+		event.target.closest('[aria-expanded="true"]') !== null
+	)
+}
+
+/**
+ * The elements whose own Enter does something native: a button or link
+ * activates, a text area breaks the line, and a select opens. The session's
+ * Enter leaves them alone. The inline listbox's trigger is a button, so it
+ * keeps the Enter that opens it. @internal
+ */
+const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable="true"]'
 
 /** A row's staged cell values, keyed by column id. @internal */
 type RowDrafts = Map<string | number, unknown>
@@ -223,7 +252,7 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, sessionOwned: boolea
  * row in the set renders all its editable cells as editors at once; each edit
  * stages into a grid-held ref (no per-keystroke grid render). A row leaves the
  * set on the consumer's save action, or on a grid-owned session exit under
- * `trigger: 'doubleClick'` (an editor's Enter saves, Escape abandons). Its
+ * `trigger: 'doubleClick'` (Enter in an editor saves, Escape abandons). Its
  * drafts then flush as a single {@link GridCellChange} batch through `onCommit`,
  * dropping unchanged and invalid cells. Inert when `enabled` is false, so a
  * read-only grid pays nothing.
@@ -489,46 +518,78 @@ export function useGridEditing<T>({
 		[unstageDraft, setEditableRows],
 	)
 
-	// Escape from any of an editing row's editors abandons its session. It stands
-	// down while the press belongs to an inner floating surface, whose
-	// document-level escape layer runs *after* this React handler: a press
-	// already consumed (`defaultPrevented`), one fired from focus inside a
-	// portaled panel (an open listbox's options, the date picker's calendar), or
-	// one on an open disclosure's own trigger/input (`aria-expanded="true"`, a
-	// combobox typing with its panel open) — each closes that surface instead,
-	// and the next press abandons. The row resolves from the event's `<tr>`
-	// (`data-row-index` into the display order), so only an editing row's Escape
-	// is consumed and every other press keeps bubbling.
-	const sessionEscape = useCallback(
-		(event: ReactKeyboardEvent<HTMLTableElement>) => {
-			if (event.key !== 'Escape' || event.defaultPrevented) return
-
-			if (!(event.target instanceof Element)) return
-
-			if (event.target.closest('[data-floating-ui-portal]')) return
-
-			if (event.target.closest('[aria-expanded="true"]')) return
-
-			// The press names its row when it came from inside one, which is what picks
-			// the right row while several edit at once. Elsewhere in the grid — the
-			// tab stop after a Tab back, a header control, a cell of a row that is not
-			// editing — it names none, and the session the grid opened is the one to
-			// end. Without that fallback Escape reads as dead everywhere but the
-			// editor, while the draft stays staged with nothing to say so.
-			const rowIndex = event.target.closest('tr[data-row-index]')?.getAttribute('data-row-index')
+	// The session one key press names. The press names its row when it came from
+	// inside one, which is what picks the right row while several edit at once.
+	// Elsewhere in the grid — the tab stop after a Tab back, a header control —
+	// it names none, and the session the grid opened is the one it means. The
+	// column comes from the press's cell, and only an open editor's cell names
+	// one. Escape reads the row alone; Enter needs the editor.
+	const sessionTarget = useCallback(
+		(target: Element): { rowKey: string | number; columnId: string | number | null } | null => {
+			const rowIndex = target.closest('tr[data-row-index]')?.getAttribute('data-row-index')
 
 			const rowKey =
 				rowIndex === null || rowIndex === undefined
 					? sessionRowRef.current?.rowKey
 					: rowKeysRef.current[Number(rowIndex)]
 
-			if (rowKey == null || !editableRowsRef.current.has(rowKey)) return
+			if (rowKey == null || !editableRowsRef.current.has(rowKey)) return null
+
+			const colAttr = target.closest('td[data-grid-col]')?.getAttribute('data-grid-col')
+
+			const col = dataColumnsRef.current.find((candidate) => String(candidate.id) === colAttr)
+
+			const open =
+				col !== undefined &&
+				isColumnEditable(col) &&
+				isCellEditing({
+					rowKey,
+					columnId: col.id,
+					editableRows: editableRowsRef.current,
+					activeEdit: activeEditRef.current,
+				})
+
+			return { rowKey, columnId: open ? col.id : null }
+		},
+		[rowKeysRef, dataColumnsRef],
+	)
+
+	// Escape anywhere in an editing grid abandons its session, so it never reads
+	// as dead while a draft stands. Enter from an open editor saves the session,
+	// unless the focused element owns Enter natively. Both keys stand down while
+	// the press belongs to a floating surface (see `claimedBySurface`), so the
+	// first press closes that surface and the next reaches the session.
+	const sessionKeys = useCallback(
+		(event: ReactKeyboardEvent<HTMLTableElement>) => {
+			if (event.key !== 'Escape' && event.key !== 'Enter') return
+
+			if (claimedBySurface(event)) return
+
+			const target = event.target as Element
+
+			// Enter on the tab stop itself is the cursor's, which enters a cell.
+			if (event.key === 'Enter' && (target === event.currentTarget || target.closest(NATIVE_ENTER)))
+				return
+
+			const session = sessionTarget(target)
+
+			if (session === null) return
+
+			if (event.key === 'Escape') {
+				event.preventDefault()
+
+				endSession(session.rowKey, 'discard')
+
+				return
+			}
+
+			if (session.columnId === null) return
 
 			event.preventDefault()
 
-			endSession(rowKey, 'discard')
+			endSession(session.rowKey, 'save')
 		},
-		[endSession, rowKeysRef],
+		[endSession, sessionTarget],
 	)
 
 	// Commit the cells whose editors closed in the render just past: the drafts
@@ -561,5 +622,5 @@ export function useGridEditing<T>({
 		[editableRows, activeEdit, stageDraft, unstageDraft, sessionOwned, endSession],
 	)
 
-	return { session, enterEdit, sessionEscape: sessionOwned ? sessionEscape : undefined }
+	return { session, enterEdit, sessionKeys: sessionOwned ? sessionKeys : undefined }
 }

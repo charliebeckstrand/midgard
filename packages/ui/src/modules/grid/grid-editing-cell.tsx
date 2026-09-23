@@ -115,16 +115,6 @@ function GridCellEditor<T>({
 		unstageDraft(rowKey, column.id)
 	}
 
-	// The grid-owned save (`trigger: 'doubleClick'`), bound to this row;
-	// `undefined` under a consumer-owned session, standing the session keys down.
-	// There is no matching abandon here: Escape reaches the session through the
-	// grid table's key surface, which every editor inherits without wiring.
-	// Gated on who owns the session, not on `endSession` being defined — the grid
-	// can always end a session, but only a grid-owned one claims Enter. Under a
-	// consumer-owned session Enter belongs to nobody here and Escape reverts the
-	// cell, which is what the absent callback tells the editor.
-	const commitRow = sessionOwned ? () => endSession(rowKey, 'save') : undefined
-
 	// Names the cell for every control in it, so the editor and the settle pair
 	// read as one thing to a screen reader rather than unrelated widgets.
 	// `columnLabel` is the module's one column-naming rule, and it degrades to the
@@ -158,11 +148,13 @@ function GridCellEditor<T>({
 			onValueUpdate: update,
 			// A slot can stage a final value in one call (e.g. a select's pick); the
 			// row's save flushes the staged values, so there is no per-cell close.
-			// Under a grid-owned session the slot's commit also saves the row.
+			// Under a grid-owned session the slot's commit also saves the row. The
+			// session keys need no wiring here: Enter and Escape reach the session
+			// through the grid table's key surface, as from every other editor.
 			commit: (next) => {
 				if (next !== undefined) update(next)
 
-				commitRow?.()
+				if (sessionOwned) endSession(rowKey, 'save')
 			},
 			cancel,
 			ariaLabel,
@@ -178,7 +170,7 @@ function GridCellEditor<T>({
 			error={error}
 			errorId={errorId}
 			required={column.required}
-			commitRow={commitRow}
+			sessionOwned={sessionOwned}
 		/>
 	)
 
