@@ -1629,8 +1629,8 @@ describe('Grid commit-and-move keys', () => {
 })
 
 /**
- * The active-cell binding of a cell-scoped session: `activeCell`,
- * `defaultActiveCell`, and `onActiveCellChange`. A controlled binding decides
+ * The active-cell binding of a cell-scoped session: `cell`,
+ * `defaultCell`, and `onCellChange`. A controlled binding decides
  * each move; the grid enters a cell the consumer names, and reports each cell it
  * enters. `rows` keeps its meaning beside it.
  */
@@ -1661,7 +1661,7 @@ describe('Grid active-cell binding', () => {
 
 		const onRowsChange = vi.fn()
 
-		const onActiveCellChange = vi.fn()
+		const onCellChange = vi.fn()
 
 		function Harness() {
 			const [active, setActive] = useState<Cell>(initial)
@@ -1705,9 +1705,9 @@ describe('Grid active-cell binding', () => {
 							scope: 'cell',
 							onCommit,
 							...rowsBinding,
-							activeCell: active,
-							onActiveCellChange: (next) => {
-								onActiveCellChange(next)
+							cell: active,
+							onCellChange: (next) => {
+								onCellChange(next)
 
 								if (accept(next)) setActive(next)
 							},
@@ -1723,7 +1723,7 @@ describe('Grid active-cell binding', () => {
 			...view,
 			onCommit,
 			onRowsChange,
-			onActiveCellChange,
+			onCellChange,
 			press: (name: string) => fireEvent.click(view.getByRole('button', { name })),
 			cell: (col: string, rowIndex = 0) =>
 				view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
@@ -1743,7 +1743,7 @@ describe('Grid active-cell binding', () => {
 
 		fireEvent.doubleClick(view.cell('count'))
 
-		expect(view.onActiveCellChange).toHaveBeenLastCalledWith({ rowKey: 1, columnId: 'count' })
+		expect(view.onCellChange).toHaveBeenLastCalledWith({ rowKey: 1, columnId: 'count' })
 
 		// The binding kept the name cell, so its editor stays mounted with the
 		// typed value, and nothing commits.
@@ -1797,7 +1797,7 @@ describe('Grid active-cell binding', () => {
 		expect(editorsIn(view.container)).toHaveLength(1)
 
 		// The consumer set the cell, so the grid does not report it back.
-		expect(view.onActiveCellChange).toHaveBeenCalledTimes(1)
+		expect(view.onCellChange).toHaveBeenCalledTimes(1)
 	})
 
 	it('writes no rows for a cell set from outside in the row the session holds', () => {
@@ -1858,7 +1858,7 @@ describe('Grid active-cell binding', () => {
 		fireEvent.keyDown(number, { key: 'Enter' })
 
 		// Enter is an exit and an entry, so it reports both.
-		expect(view.onActiveCellChange.mock.calls).toEqual([
+		expect(view.onCellChange.mock.calls).toEqual([
 			[{ rowKey: 1, columnId: 'name' }],
 			[{ rowKey: 1, columnId: 'count' }],
 			[null],
@@ -1885,7 +1885,7 @@ describe('Grid active-cell binding', () => {
 			editable: {
 				scope: 'cell',
 				onRowsChange: () => log.push('rows'),
-				onActiveCellChange: () => log.push('cell'),
+				onCellChange: () => log.push('cell'),
 			},
 		})
 
@@ -1897,9 +1897,9 @@ describe('Grid active-cell binding', () => {
 	})
 
 	it('reports each cell an uncontrolled session enters and leaves', () => {
-		const onActiveCellChange = vi.fn()
+		const onCellChange = vi.fn()
 
-		const view = renderSessionGrid({ editable: { scope: 'cell', onActiveCellChange } })
+		const view = renderSessionGrid({ editable: { scope: 'cell', onCellChange } })
 
 		fireEvent.doubleClick(view.cell('name'))
 
@@ -1907,7 +1907,7 @@ describe('Grid active-cell binding', () => {
 
 		fireEvent.keyDown(getSlot(view.container, 'grid-edit-number-input'), { key: 'Escape' })
 
-		expect(onActiveCellChange.mock.calls).toEqual([
+		expect(onCellChange.mock.calls).toEqual([
 			[{ rowKey: 1, columnId: 'name' }],
 			[{ rowKey: 1, columnId: 'count' }],
 			[null],
@@ -1915,13 +1915,13 @@ describe('Grid active-cell binding', () => {
 	})
 
 	it('opens a default active cell on mount, reporting nothing', () => {
-		const onActiveCellChange = vi.fn()
+		const onCellChange = vi.fn()
 
 		const view = renderSessionGrid({
 			editable: {
 				scope: 'cell',
-				defaultActiveCell: { rowKey: 2, columnId: 'name' },
-				onActiveCellChange,
+				defaultCell: { rowKey: 2, columnId: 'name' },
+				onCellChange,
 			},
 		})
 
@@ -1935,19 +1935,19 @@ describe('Grid active-cell binding', () => {
 
 		expect(view.onRowsChange).not.toHaveBeenCalled()
 
-		expect(onActiveCellChange).not.toHaveBeenCalled()
+		expect(onCellChange).not.toHaveBeenCalled()
 	})
 
 	it('warns once and stays inert outside a cell-scoped grid-owned session', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-		const onActiveCellChange = vi.fn()
+		const onCellChange = vi.fn()
 
 		const view = renderSessionGrid({
 			editable: {
 				scope: 'row',
-				activeCell: { rowKey: 1, columnId: 'name' },
-				onActiveCellChange,
+				cell: { rowKey: 1, columnId: 'name' },
+				onCellChange,
 			},
 		})
 
@@ -1956,9 +1956,9 @@ describe('Grid active-cell binding', () => {
 
 		fireEvent.doubleClick(view.cell('name'))
 
-		expect(onActiveCellChange).not.toHaveBeenCalled()
+		expect(onCellChange).not.toHaveBeenCalled()
 
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.activeCell'))
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.cell'))
 
 		warn.mockRestore()
 	})
@@ -1980,7 +1980,7 @@ describe('Grid active-cell binding', () => {
 
 		expect(warn).toHaveBeenCalledOnce()
 
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.activeCell'))
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining('editable.cell'))
 
 		warn.mockRestore()
 	})
@@ -2080,8 +2080,8 @@ describe('Grid active-cell binding', () => {
 						session: 'managed',
 						scope: 'cell',
 						onCommit: vi.fn(),
-						activeCell: active,
-						onActiveCellChange: setActive,
+						cell: active,
+						onCellChange: setActive,
 					}}
 				/>
 			)
@@ -2109,7 +2109,7 @@ describe('Grid active-cell binding', () => {
 
 		// The active cell went first and was applied; the rows write that follows
 		// was declined, so no editor opens and nothing reports the strand.
-		expect(view.onActiveCellChange).toHaveBeenCalledExactlyOnceWith({ rowKey: 2, columnId: 'name' })
+		expect(view.onCellChange).toHaveBeenCalledExactlyOnceWith({ rowKey: 2, columnId: 'name' })
 
 		expect(view.onRowsChange).toHaveBeenCalledOnce()
 

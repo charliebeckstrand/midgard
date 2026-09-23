@@ -294,7 +294,7 @@ export function CellScopeExample() {
 	// columns are the ones the row-scoped example shows, over the same batch sink,
 	// so only the reach of a session changes. Enter and Tab move the session by
 	// key, which is the spreadsheet flow this scope exists for. The session's cell
-	// is a binding of its own: `onActiveCellChange` reports each move, and drives
+	// is a binding of its own: `onCellChange` reports each move, and drives
 	// the readout above the grid.
 	return (
 		<>
@@ -317,7 +317,7 @@ export function CellScopeExample() {
 				editable={{
 					session: 'managed',
 					scope: 'cell',
-					onActiveCellChange: setEditingCell,
+					onCellChange: setEditingCell,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>

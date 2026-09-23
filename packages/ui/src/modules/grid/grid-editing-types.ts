@@ -97,7 +97,7 @@ export type GridRowActionsContext = {
  * narrow to the entered cell instead of its whole row through {@link
  * GridEditableConfig.scope}. The set and the batch sink stay the model either
  * way. A cell-scoped session adds one binding for its cell, {@link
- * GridEditableConfig.activeCell}.
+ * GridEditableConfig.cell}.
  *
  * @remarks The editable-row set is a controllable `Set<key>`, mirroring
  * {@link GridSelection}. Flip a row in (e.g. from a row-action pencil) to put
@@ -124,7 +124,7 @@ export type GridEditableConfig = {
 	 * so a controlled binding stays the source of truth for which rows edit. Under
 	 * {@link GridEditableConfig.scope} `'cell'` a move between cells of one row
 	 * leaves that set alone. The cell itself flows through
-	 * {@link GridEditableConfig.activeCell} and `onActiveCellChange`.
+	 * {@link GridEditableConfig.cell} and `onCellChange`.
 	 *
 	 * `'managed'` also turns on the spreadsheet keys. On the keyboard cursor's
 	 * active cell, Enter and F2 enter edit mode. A printable character enters it
@@ -173,13 +173,13 @@ export type GridEditableConfig = {
 	 * sits outside the tab order, because Tab commits and moves. Row scope shows
 	 * none: its settle control is the consumer's own row action, at the
 	 * granularity that matches. The session's cell is a binding of its own,
-	 * {@link GridEditableConfig.activeCell}, beside `rows`.
+	 * {@link GridEditableConfig.cell}, beside `rows`.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'
 	/**
 	 * The controlled active cell of a cell-scoped session: the one cell with an
-	 * open editor. Pair it with {@link GridEditableConfig.onActiveCellChange}.
+	 * open editor. Pair it with {@link GridEditableConfig.onCellChange}.
 	 * `null` keeps the binding controlled with no open cell.
 	 *
 	 * A move that the grid asks for takes effect only when you apply it. If you
@@ -199,13 +199,13 @@ export type GridEditableConfig = {
 	 * the grid (WCAG 3.2.1). Apply a move in the same event that reports it. A
 	 * later value reads as a set from outside.
 	 */
-	activeCell?: GridCellRef | null
+	cell?: GridCellRef | null
 	/**
 	 * The initial active cell for the uncontrolled case. The grid opens its row
 	 * and its editor on mount, and reports neither. The editor does not take
 	 * focus. A controlled `rows` without the row keeps the cell closed.
 	 */
-	defaultActiveCell?: GridCellRef | null
+	defaultCell?: GridCellRef | null
 	/**
 	 * Fires with the next active cell of a cell-scoped session, or with `null`
 	 * when the session ends.
@@ -221,10 +221,10 @@ export type GridEditableConfig = {
 	 * you set, and a cell that reads as `null` because your `rows` closed its
 	 * row, report nothing. A `rows` binding that declines the row of an entry
 	 * also strands the cell without a report. Under a controlled
-	 * {@link GridEditableConfig.activeCell}, the rows write waits until you
+	 * {@link GridEditableConfig.cell}, the rows write waits until you
 	 * apply the cell.
 	 */
-	onActiveCellChange?: (cell: GridCellRef | null) => void
+	onCellChange?: (cell: GridCellRef | null) => void
 	/**
 	 * Called when staged cells commit, with one {@link GridCellChange} per changed cell
 	 * of a row, batched into a single call. Cells commit when their editor closes.

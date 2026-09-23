@@ -112,7 +112,7 @@ describe('Grid · cell-scoped session move', () => {
 })
 
 /**
- * The session move above, under a controlled `activeCell`. The consumer applies
+ * The session move above, under a controlled `cell`. The consumer applies
  * each move in its own state, so each move also renders the consumer and the
  * grid host. The cells still read the session's cell from the store, so only
  * the two cells of the move render again.
@@ -129,8 +129,8 @@ function ControlledSession({ rows }: { rows: Shipment[] }) {
 				session: 'managed',
 				scope: 'cell',
 				onCommit: noop,
-				activeCell,
-				onActiveCellChange: setActiveCell,
+				cell: activeCell,
+				onCellChange: setActiveCell,
 			}}
 		/>
 	)
