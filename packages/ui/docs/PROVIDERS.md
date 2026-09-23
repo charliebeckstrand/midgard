@@ -27,7 +27,7 @@ Broadcasts ambient density to size-aware client components.
 |---|---|
 | `DensityProvider` | Friendly t-shirt-named (`compact` / `snug` / `loose`) wrapper that broadcasts ambient density to size-aware client components. |
 | `DensityProviderProps` *(type)* | Props for `DensityProvider`. |
-| `useDensityLevel` | Resolves `explicit ?? ambient ?? 'snug'` for a client component whose props speak `DensityLevel` (e.g. `Grid`) but that must still inherit an enclosing `DensityProvider`. |
+| `useDensityLevel` | Resolves `explicit ?? ambient ?? 'snug'` for a client component whose props speak `DensityLevel` (e.g. `Grid`) but that must still inherit an enclosing `DensityProvider`. It has its own `'use client'` module, so `DensityProvider` stays server-renderable. |
 | `DensityLevel` *(type)* | Friendly density level a `<DensityProvider>` broadcasts; `'snug'` is the baseline. |
 | `densityLevels` | Selectable density levels with display labels, ordered loose → compact, for density pickers. |
 | `densityToSize` | Maps each friendly density level to the `Step` carried by the Density primitive (loose→lg, snug→md, compact→sm). |

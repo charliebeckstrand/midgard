@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 // Two invariants keep components composing through their public surface
 // rather than reaching into each other's files:
@@ -18,6 +18,8 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 const componentsDir = join(srcDir, 'components')
 
 const modulesDir = join(srcDir, 'modules')
+
+const providersDir = join(srcDir, 'providers')
 
 const REEXPORT_FROM = /export\s+(?:\*|\{[^}]*\}|type\s+\{[^}]*\})\s+from\s+['"]([^'"]+)['"]/g
 
@@ -103,6 +105,29 @@ describe('component internals boundary', () => {
 		expect(
 			violations,
 			`Context provider rendered without 'use client' (crashes in RSC):\n  ${violations.join('\n  ')}`,
+		).toEqual([])
+	})
+
+	// A provider file with no directive stays server-renderable, so an RSC tree
+	// can host its provider (REFERENCE.md §2). A hook in that file is a client
+	// read that the server graph can import with no signal. Put the hook in its
+	// own 'use client' file, as `glass/context.ts` and `locale/use-format.ts` do.
+	it("a provider file without 'use client' holds no hook", () => {
+		const violations: string[] = []
+
+		const HOOK = /\buse(?:[A-Z]\w*)?\(/
+
+		walkSource(providersDir, (file, content) => {
+			if (!/\.tsx?$/.test(file)) return
+
+			if (content.startsWith("'use client'")) return
+
+			if (HOOK.test(stripSourceComments(content))) violations.push(srcRelative(file))
+		})
+
+		expect(
+			violations,
+			`hook in a provider file without 'use client' (move it to a client file):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })
