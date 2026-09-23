@@ -85,6 +85,25 @@ describe('compareSmart', () => {
 		expect(compareSmart(false, true)).toBeLessThan(0)
 	})
 
+	it('ranks dates ahead of text, so a mixed column cannot cycle', () => {
+		// `String(date)` opens with the weekday: 2020 starts on a Wednesday and
+		// 2021 on a Friday. A collator over those strings puts 'Mon' between the
+		// two, against the order the dates keep by time.
+		const earlier = new Date(2020, 0, 1)
+
+		const later = new Date(2021, 0, 1)
+
+		expect(asc(['Mon', later, earlier])).toEqual([earlier, later, 'Mon'])
+
+		expect(compareSmart(earlier, 'Mon')).toBeLessThan(0)
+
+		expect(compareSmart(later, 'Mon')).toBeLessThan(0)
+	})
+
+	it('keeps numbers ahead of dates', () => {
+		expect(compareSmart(5, new Date(2020, 0, 1))).toBeLessThan(0)
+	})
+
 	it('treats equal values as equal', () => {
 		expect(compareSmart('x', 'x')).toBe(0)
 
@@ -255,15 +274,15 @@ const dateCell = () =>
 	)
 
 /**
- * Cells of one kind at a time, where the comparator is a true order.
+ * Cells of any kind, mixed in one column.
  *
- * A column that mixes `Date` values with strings is not such a domain. Two
- * dates compare by time, and a date against a string falls to the collator over
- * `String(date)`. The two orders disagree, so three such values can cycle. The
- * ordering properties below therefore read one kind at a time.
+ * A mix of `Date` values and strings once made three values cycle: two dates
+ * compared by time, and a date against a string fell to the collator over
+ * `String(date)`. A date now ranks ahead of every other non-number, so the mix
+ * is a true order too.
  */
 const orderableRows = () =>
-	fc.oneof(rowsOf(plainCell()), rowsOf(dateCell())).filter((rows) => rows.length > 0)
+	rowsOf(fc.oneof(plainCell(), dateCell())).filter((rows) => rows.length > 0)
 
 /** Rows built from a cell generator, each carrying its original index. */
 function rowsOf(cell: fc.Arbitrary<unknown>) {
@@ -300,7 +319,7 @@ describe('compareSmart · properties', () => {
 		expect(Math.sign(compareSmart(a, b)) === -Math.sign(compareSmart(b, a))).toBe(true)
 	})
 
-	test.prop([orderableRows()])('orders one kind of value transitively', (rows) => {
+	test.prop([orderableRows()])('orders a mixed column transitively', (rows) => {
 		const cells = rows.map((row) => row.a)
 
 		for (const a of cells) {

@@ -140,12 +140,27 @@ export function toSortKey(value: unknown): SortKey {
 }
 
 /**
+ * The rank a non-empty {@link SortKey} sorts in: numbers, then dates, then the
+ * rest. A lone date needs its own rank. Without it, a date against a string
+ * falls to the collator over `String(date)`, which disagrees with the
+ * date-vs-date order, and three such values can cycle.
+ *
+ * @internal
+ */
+function kindRank(key: SortKey): number {
+	if (key.numeric !== null) return 0
+
+	return key.isDate ? 1 : 2
+}
+
+/**
  * Orders two {@link SortKey}s with the exact precedence of
  * {@link compareSmart}, and without reparsing either value:
  *
  * - Empties last.
- * - Then date-vs-date, and boolean-vs-boolean.
- * - Then numeric, a lone number ahead of a non-number.
+ * - Then by {@link kindRank}: numbers, then dates, then the rest.
+ * - Within a rank, numbers and dates compare by value, and two booleans by
+ *   value.
  * - Last, a natural locale-aware string compare.
  *
  * @internal
@@ -157,15 +172,15 @@ export function compareSortKeys(a: SortKey, b: SortKey): number {
 		return a.empty ? 1 : -1
 	}
 
-	if (a.isDate && b.isDate) return a.time - b.time
+	const rank = kindRank(a) - kindRank(b)
 
-	if (a.isBoolean && b.isBoolean) return a.boolean - b.boolean
+	if (rank !== 0) return rank
 
 	if (a.numeric !== null && b.numeric !== null) return a.numeric - b.numeric
 
-	if (a.numeric !== null) return -1
+	if (a.isDate && b.isDate) return a.time - b.time
 
-	if (b.numeric !== null) return 1
+	if (a.isBoolean && b.isBoolean) return a.boolean - b.boolean
 
 	return NATURAL_COLLATOR.compare(a.text, b.text)
 }
@@ -177,7 +192,8 @@ export function compareSortKeys(a: SortKey, b: SortKey): number {
  * - Empty/nullish values sink to the end.
  * - Two numbers (via {@link parseNumeric}) compare numerically, and sort ahead
  *   of non-numbers.
- * - Dates and booleans compare by their natural order.
+ * - Dates and booleans compare by their natural order, and a date sorts ahead
+ *   of any other non-number.
  * - Everything else falls back to a natural, locale-aware string compare (so
  *   `Item 2` precedes `Item 10`).
  *
