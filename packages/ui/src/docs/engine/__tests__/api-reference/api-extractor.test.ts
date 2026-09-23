@@ -349,8 +349,8 @@ describe('buildApi', () => {
 	it('resolves a link to a target outside the seeded roots', () => {
 		const { srcDir } = fixture(FOO_LINKS_OUTSIDE_ROOTS)
 
-		expect(buildApi(srcDir).foo?.[0]?.props[0]?.links).toEqual({
-			Tone: { signature: 'type Tone', summary: 'A tone.' },
-		})
+		// The entry holds the name only. Nothing renders a target's signature or
+		// summary, so the extractor does not compute them.
+		expect(buildApi(srcDir).foo?.[0]?.props[0]?.links).toEqual(['Tone'])
 	})
 })

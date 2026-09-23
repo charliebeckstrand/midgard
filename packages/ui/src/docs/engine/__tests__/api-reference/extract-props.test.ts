@@ -35,7 +35,7 @@ function propsOf(
 
 	const propsType = checker.getTypeOfSymbolAtLocation(param, fn)
 
-	return extractProps(fn, propsType, null, defaults, checker, () => null)
+	return extractProps(fn, propsType, null, defaults, checker, () => false)
 }
 
 function prop(props: PropDef[], name: string): PropDef {

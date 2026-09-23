@@ -5,7 +5,7 @@ import { createLinkIndex } from '../../api-reference/engine/link-resolver'
 
 /**
  * A ts-morph project spanning several files, mirroring the package's
- * cross-file layout. Link resolution reads declarations and JSDoc, never the
+ * cross-file layout. Link resolution reads declarations only, never the
  * checker's lib types, so skipping lib loading cuts most of the per-test
  * Project construction cost.
  */
@@ -31,48 +31,13 @@ describe('createLinkIndex', () => {
 			}),
 		)
 
-		const link = resolve('CommandPaletteItem')
-
-		expect(link?.signature).toMatch(/^function CommandPaletteItem\(/)
-
-		expect(link?.summary).toBe('Selectable palette entry.')
+		expect(resolve('CommandPaletteItem')).toBe(true)
 	})
 
-	it('resolves a type alias to its keyword signature header', () => {
-		const { resolve } = createLinkIndex(
-			project({
-				'kbd.ts': [
-					`/** Props for the kbd component. */`,
-					`export type KbdProps = { keys: string }`,
-				].join('\n'),
-			}),
-		)
-
-		expect(resolve('KbdProps')).toEqual({
-			signature: 'type KbdProps',
-			summary: 'Props for the kbd component.',
-		})
-	})
-
-	it('flattens nested `{@link}` tokens inside a resolved summary', () => {
-		const { resolve } = createLinkIndex(
-			project({
-				'a.ts': [
-					`/** Same as {@link KbdProps}. */`,
-					`export type AlertProps = { tone: string }`,
-				].join('\n'),
-			}),
-		)
-
-		expect(resolve('AlertProps')?.summary).toBe('Same as KbdProps.')
-	})
-
-	it('returns null for an unknown target and memoizes the miss', () => {
+	it('resolves no unknown target', () => {
 		const { resolve } = createLinkIndex(project({ 'a.ts': `export const x = 1` }))
 
-		expect(resolve('Nope')).toBeNull()
-
-		expect(resolve('Nope')).toBeNull()
+		expect(resolve('Nope')).toBe(false)
 	})
 
 	it('skips lowercase top-level declarations', () => {
@@ -80,7 +45,7 @@ describe('createLinkIndex', () => {
 			project({ 'a.ts': `/** helper */ export function helper() {}` }),
 		)
 
-		expect(resolve('helper')).toBeNull()
+		expect(resolve('helper')).toBe(false)
 	})
 
 	it('reports the file that declares an indexed name', () => {
