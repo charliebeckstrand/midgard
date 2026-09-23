@@ -5,7 +5,7 @@ import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * A grid edit session's Escape against this library's own `Listbox` (real
- * floating engine). `sessionEscape` stands down while a floating surface is
+ * floating engine). `sessionKeys` stands down while a floating surface is
  * open, so the first press closes the panel and the session survives it. The
  * jsdom suite cannot assert this: its `@floating-ui/react` mock renders
  * `FloatingPortal` inline and stamps no `data-floating-ui-portal`, so the guard

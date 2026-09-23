@@ -204,9 +204,9 @@ export function EditableExample() {
 
 	// The pencil swaps the whole row into edit mode (every cell becomes an editor);
 	// the check saves the row's edits together. `trigger: 'doubleClick'` adds the
-	// grid-owned session over the same binding: double-click a cell (or press Enter
-	// on the cursor's active cell) to start editing its row, Enter in an editor to
-	// save, Escape to discard.
+	// grid-owned session over the same binding: double-click a cell, or press
+	// Enter, F2, or a character on the cursor's active cell, to start editing its
+	// row. Enter in an editor saves and moves down, and Escape discards.
 	const columns: GridColumn<Person>[] = [
 		...personColumns,
 		{
@@ -251,8 +251,9 @@ export function EditableExample() {
 	return (
 		<>
 			<EditHelp label="Editing help">
-				Double-click a cell (or click the pencil) to edit its row: every cell becomes an editor at
-				once. Enter saves the row's changes together — as does the check — and Escape discards them.
+				Double-click a cell, press F2, start typing, or click the pencil to edit its row: every cell
+				becomes an editor at once. Tab moves between them. Enter saves the row's changes together
+				and moves down a row, as the check saves them in place. Escape discards them.
 			</EditHelp>
 			<Grid
 				columns={columns}
@@ -275,14 +276,16 @@ export function CellScopeExample() {
 	// `scope: 'cell'` narrows the grid-owned session to the cell the user entered:
 	// one editor at a time, the cell committing as the session moves on. The
 	// columns are the ones the row-scoped example shows, over the same batch sink,
-	// so only the reach of a session changes.
+	// so only the reach of a session changes. Enter and Tab move the session by
+	// key, which is the spreadsheet flow this scope exists for.
 	return (
 		<>
 			<EditHelp label="Editing help">
-				Double-click a cell (or press Enter on the cursor's cell) to edit that cell alone. The check
-				and cross beside the editor settle it either way, and Tab reaches them. Enter also saves a
-				text or number cell, and Escape discards from anywhere in the grid. Role and Active keep
-				Enter for their own listbox menus, so the check is their save.
+				Double-click a cell, press Enter or F2 on the cursor's cell, or start typing to edit that
+				cell alone. Enter saves and moves down a row. Tab and Shift+Tab save and move along the row.
+				F2 saves and stays, and Escape discards. Role and Active keep Enter for their own listbox
+				menus, so Tab is their keyboard save. The check and cross beside the editor settle it with
+				the pointer.
 			</EditHelp>
 			<Grid
 				columns={personColumns}

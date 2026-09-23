@@ -108,14 +108,32 @@ export type GridEditableConfig = {
 	 * action). `'doubleClick'` hands the session to the grid. A double-click on an
 	 * editable data cell puts its row into edit mode, and focuses that cell's
 	 * editor. That is the grid's built-in cell double-click event, so a consumer
-	 * {@link GridDataProps.onCellDoubleClick} still fires. Enter on the keyboard
-	 * cursor's active cell does the same. Enter in an inferred text/number editor
-	 * then saves the row (the same one-batch commit), and Escape abandons the
-	 * row's staged edits. Entering and leaving a row flows through
-	 * `rows`/`onRowsChange`, so a controlled binding stays the source of truth for
-	 * which rows edit. Under {@link GridEditableConfig.scope} `'cell'` a move
-	 * between cells of one row leaves that set alone, and the grid holds the
-	 * active cell itself.
+	 * {@link GridDataProps.onCellDoubleClick} still fires. Entering and leaving a
+	 * row flows through `rows`/`onRowsChange`, so a controlled binding stays the
+	 * source of truth for which rows edit. Under {@link GridEditableConfig.scope}
+	 * `'cell'` a move between cells of one row leaves that set alone, and the grid
+	 * holds the active cell itself.
+	 *
+	 * `'doubleClick'` also turns on the spreadsheet keys. On the keyboard cursor's
+	 * active cell, Enter and F2 enter edit mode. A printable character enters it
+	 * too, with that character in place of the value. From an open editor, the
+	 * keys work as follows:
+	 *
+	 * - Enter commits and moves the cursor down one row. Under `scope: 'cell'` it
+	 *   enters the cell below. On the last row the cursor stays.
+	 * - Tab and Shift+Tab move along the row's editable cells, and wrap at the
+	 *   edges. Under `scope: 'cell'` the cell left behind commits. Under `'row'`
+	 *   the row commits when it closes.
+	 * - F2 commits and leaves the cursor on the cell.
+	 * - Escape abandons the session's staged edits.
+	 *
+	 * @remarks The keys live on the grid's own key surface, so an `editCell` slot
+	 * inherits them. Enter on a button, a link, or a text area stays with that
+	 * element. So does a key with Ctrl, Cmd, or Alt, and a key that an input
+	 * method composes. An open floating surface keeps its keys, and the next press
+	 * reaches the session. A character seeds only an editor the grid infers: a
+	 * text editor takes any character, and a number editor takes a digit. An
+	 * `editCell` slot and the yes/no editor open with F2 or Enter instead.
 	 * @defaultValue 'manual'
 	 */
 	trigger?: 'manual' | 'doubleClick'
@@ -139,9 +157,10 @@ export type GridEditableConfig = {
 	 * on. A row the session found in `rows` returns to its row-shaped state. Only
 	 * a row the session added to `rows` itself leaves with it. The held cell
 	 * carries a save and a discard control beside its editor. The grid owns this
-	 * session, and nothing else on screen ends it. Row scope shows none:
-	 * its settle control is the consumer's own row action, at the granularity that
-	 * matches.
+	 * session, and nothing else on screen ends it. The pair is for a pointer and
+	 * sits outside the tab order, because Tab commits and moves. Row scope shows
+	 * none: its settle control is the consumer's own row action, at the
+	 * granularity that matches.
 	 * @defaultValue 'row'
 	 */
 	scope?: 'row' | 'cell'

@@ -1,7 +1,15 @@
 'use client'
 
 import { Check, X } from 'lucide-react'
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useId,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
@@ -31,7 +39,10 @@ type GridEditingCellProps<T> = {
 
 /** Props for the mounted editor: the cell plus the session's staging and exit callbacks. @internal */
 type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx'> &
-	Pick<GridEditingSession, 'stageDraft' | 'unstageDraft' | 'endSession' | 'sessionOwned'> & {
+	Pick<
+		GridEditingSession,
+		'stageDraft' | 'unstageDraft' | 'endSession' | 'entrySeed' | 'managed'
+	> & {
 		/** Whether a cell-scoped session holds this cell; shows the settle pair. */
 		held: boolean
 	}
@@ -47,8 +58,13 @@ const SETTLE_ACTIONS = [
  * holds. Row scope shows none: its whole row edits at once. The settle control
  * there is the consumer's own row action, at the granularity that matches. Here
  * the grid owns the session and nothing else on screen ends it, so this is the
- * only visible way out. It is also the only keyboard commit available to an
- * editor that spends its own Enter, which the inline listbox does.
+ * only visible way out for a pointer.
+ *
+ * @remarks The pair sits outside the tab order. The keyboard settles a session
+ * on the grid table's key surface instead: Tab, Enter, and F2 commit, and Escape
+ * discards. Tab from the editor commits and moves, so it cannot also reach the
+ * pair. Tab is also the keyboard commit of the inline listbox, which spends its
+ * own Enter on its menu (WCAG 2.1.1).
  *
  * @internal
  */
@@ -69,6 +85,7 @@ function GridSettleControls({
 					variant="bare"
 					color={action.color}
 					aria-label={`${action.verb} ${label}`}
+					tabIndex={-1}
 					onClick={() => settle(action.outcome)}
 				>
 					<Icon icon={action.icon} />
@@ -80,8 +97,9 @@ function GridSettleControls({
 
 /**
  * A cell's in-place editor while its row is in edit mode. It owns its live
- * display value (seeded from the cell's current value), and mirrors each change
- * into the grid's staged drafts. The grid stays unrendered as the user types. Renders the
+ * display value, and mirrors each change into the grid's staged drafts. The
+ * value starts as the cell's current value, or as the typed character of a
+ * type-to-edit entry. The grid stays unrendered as the user types. Renders the
  * column's {@link GridColumn.editCell} slot, or the editor inferred from the cell
  * value's primitive type. A failed `validate` rings the editor and shows the
  * message beneath the cell; Escape reverts the cell.
@@ -96,12 +114,23 @@ function GridCellEditor<T>({
 	stageDraft,
 	unstageDraft,
 	endSession,
-	sessionOwned,
+	entrySeed,
+	managed,
 	held,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
-	const [draft, setDraft] = useState<unknown>(seed)
+	// Read once, as the editor mounts. The entry that typed it clears it after
+	// the focus hand-off, so a later render must not read it again.
+	const [entry] = useState(() => entrySeed(rowKey, column.id))
+
+	const [draft, setDraft] = useState<unknown>(entry === undefined ? seed : entry)
+
+	// A typed character is an edit, so it stages like one. Staging here rather
+	// than at entry keeps a declined entry from leaving a draft behind.
+	useEffect(() => {
+		if (entry !== undefined) stageDraft(rowKey, column.id, entry)
+	}, [entry, stageDraft, rowKey, column.id])
 
 	const update = (next: unknown) => {
 		setDraft(next)
@@ -114,16 +143,6 @@ function GridCellEditor<T>({
 
 		unstageDraft(rowKey, column.id)
 	}
-
-	// The grid-owned save (`trigger: 'doubleClick'`), bound to this row;
-	// `undefined` under a consumer-owned session, standing the session keys down.
-	// There is no matching abandon here: Escape reaches the session through the
-	// grid table's key surface, which every editor inherits without wiring.
-	// Gated on who owns the session, not on `endSession` being defined — the grid
-	// can always end a session, but only a grid-owned one claims Enter. Under a
-	// consumer-owned session Enter belongs to nobody here and Escape reverts the
-	// cell, which is what the absent callback tells the editor.
-	const commitRow = sessionOwned ? () => endSession(rowKey, 'save') : undefined
 
 	// Names the cell for every control in it, so the editor and the settle pair
 	// read as one thing to a screen reader rather than unrelated widgets.
@@ -158,11 +177,13 @@ function GridCellEditor<T>({
 			onValueUpdate: update,
 			// A slot can stage a final value in one call (e.g. a select's pick); the
 			// row's save flushes the staged values, so there is no per-cell close.
-			// Under a grid-owned session the slot's commit also saves the row.
+			// Under a grid-owned session the slot's commit also saves the row. The
+			// session keys need no wiring here: Enter and Escape reach the session
+			// through the grid table's key surface, as from every other editor.
 			commit: (next) => {
 				if (next !== undefined) update(next)
 
-				commitRow?.()
+				if (managed) endSession(rowKey, 'save')
 			},
 			cancel,
 			ariaLabel,
@@ -178,7 +199,7 @@ function GridCellEditor<T>({
 			error={error}
 			errorId={errorId}
 			required={column.required}
-			commitRow={commitRow}
+			managed={managed}
 		/>
 	)
 
@@ -199,13 +220,22 @@ function GridCellEditor<T>({
 	)
 }
 
+/** What a data cell shows: its display content, an editor, or an editor the session holds. @internal */
+const CELL_READING = 0
+
+const CELL_EDITING = 1
+
+const CELL_HELD = 2
+
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}. Otherwise it
  * renders the column's display content through {@link GridNavCell}, which carries
  * the active-cursor ring. A cell-scoped session (`scope: 'cell'`) narrows that
- * to the one cell it names. The editable set and the active cell flip only on a
- * session transition, so cells don't re-render as the user types.
+ * to the one cell it names. The cell reads that coord from the session's store
+ * through its own flag, so a session move re-renders the two cells whose flag
+ * flipped. The editable set flips only on a session transition, so cells don't
+ * re-render as the user types.
  *
  * @internal
  */
@@ -217,15 +247,33 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, activeEdit, stageDraft, unstageDraft, endSession, sessionOwned } =
-		useGridEditingSession()
+	const {
+		editableRows,
+		activeEditStore,
+		stageDraft,
+		unstageDraft,
+		endSession,
+		entrySeed,
+		managed,
+	} = useGridEditingSession()
+
+	const columnId = column.id
 
 	// `isCellEditing` leads because it bails on the editable-set lookup. A cell of
 	// a row nobody is editing — every cell, most of the time — costs one probe.
-	if (
-		isCellEditing({ rowKey, columnId: column.id, editableRows, activeEdit }) &&
-		isColumnEditable(column)
-	) {
+	// The flag is a number, so the store's notice re-renders only a cell whose
+	// answer changed.
+	const readFlag = useCallback(() => {
+		const activeEdit = activeEditStore.get()
+
+		if (!isCellEditing({ rowKey, columnId, editableRows, activeEdit })) return CELL_READING
+
+		return isSameCell(activeEdit, { rowKey, columnId }) ? CELL_HELD : CELL_EDITING
+	}, [activeEditStore, rowKey, columnId, editableRows])
+
+	const flag = useSyncExternalStore(activeEditStore.subscribe, readFlag, readFlag)
+
+	if (flag !== CELL_READING && isColumnEditable(column)) {
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}
@@ -235,8 +283,9 @@ export function GridEditingCell<T>({
 				stageDraft={stageDraft}
 				unstageDraft={unstageDraft}
 				endSession={endSession}
-				sessionOwned={sessionOwned}
-				held={isSameCell(activeEdit, { rowKey, columnId: column.id })}
+				entrySeed={entrySeed}
+				managed={managed}
+				held={flag === CELL_HELD}
 			/>
 		)
 	}

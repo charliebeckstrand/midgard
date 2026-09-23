@@ -1755,7 +1755,7 @@ export function Demo() {
 						</Example>
 
 						<Example
-							title="Cell scope"
+							title="Cell scope and spreadsheet keys"
 							code={code`<Grid editable={{ trigger: 'doubleClick', scope: 'cell', onCommit }} />`}
 						>
 							<CellScopeExample />

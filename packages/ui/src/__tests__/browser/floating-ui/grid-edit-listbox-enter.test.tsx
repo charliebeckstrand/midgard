@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { bySlot, present, renderUI, screen } from '../../helpers'
+import { bySlot, present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Why the inline listbox editor has no Enter-to-commit, recorded as a test
  * rather than a comment: Enter on the closed trigger is how the listbox opens,
- * so there is no spare Enter for a session to commit with. Hoisting Enter onto
- * the grid table's key surface — the way Escape is hoisted — would contend with
- * this rather than fix it, which is what makes a visible settle control the
- * route to a keyboard commit for this editor (WCAG 2.1.1).
+ * so there is no spare Enter for a session to commit with. The grid table's key
+ * surface leaves Enter on a button to that button for this reason. Tab is the
+ * keyboard commit this editor has instead, because the surface claims it to
+ * commit and move (WCAG 2.1.1).
  */
 describe('listbox editor and Enter (real floating engine)', () => {
 	type Row = { id: number; done: boolean }
@@ -51,7 +51,7 @@ describe('listbox editor and Enter (real floating engine)', () => {
 		expect(onCommit).not.toHaveBeenCalled()
 	})
 
-	it('reaches the settle control by keyboard, which is the commit Enter cannot be', async () => {
+	it('commits the listbox value on Tab, which Enter cannot do', async () => {
 		const onCommit = vi.fn()
 
 		const view = renderUI(
@@ -71,13 +71,23 @@ describe('listbox editor and Enter (real floating engine)', () => {
 
 		trigger.focus()
 
-		// Tab walks forward out of the editor into the pair, in real tab order.
-		await userEvent.tab()
-
-		expect(screen.getByRole('button', { name: 'Save Done, row 1' })).toHaveFocus()
-
 		await userEvent.keyboard('{Enter}')
 
+		await userEvent.click(await screen.findByRole('option', { name: 'Yes' }))
+
+		await waitFor(() => expect(screen.queryByRole('option', { name: 'Yes' })).toBeNull())
+
+		trigger.focus()
+
+		// The column is the row's only editable one, so Tab has nowhere to move and
+		// commits in place. The settle pair sits outside the tab order, so Tab
+		// cannot land on it instead.
+		await userEvent.keyboard('{Tab}')
+
+		expect(onCommit).toHaveBeenCalledWith([{ rowKey: 1, columnId: 'done', value: true }])
+
 		expect(bySlot(view.container, 'grid-edit-boolean-input')).toBeNull()
+
+		expect(screen.getByRole('grid')).toHaveFocus()
 	})
 })

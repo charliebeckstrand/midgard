@@ -1,8 +1,21 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef } from 'react'
+import {
+	type KeyboardEvent,
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useMemo,
+	useRef,
+} from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
-import { isColumnEditable } from './engine/grid-editing-utilities'
+import {
+	type GridKeyPress,
+	inferEditorKind,
+	isColumnEditable,
+	readKeyPress,
+	seedFromKey,
+} from './engine/grid-editing-utilities'
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
@@ -24,6 +37,29 @@ import { useGridNavigationColumns } from './use-grid-navigation-columns'
 /** Whether two cursor positions name the same cell; `moveTo` mints a fresh `Coord` per move. @internal */
 function sameCoord(a: Coord | null, b: Coord | null): boolean {
 	return a?.row === b?.row && a?.col === b?.col
+}
+
+/** Whether a press carries no modifier and no input method. @internal */
+function isPlainKey(press: GridKeyPress): boolean {
+	return !press.composing && !press.ctrlKey && !press.metaKey && !press.altKey
+}
+
+/**
+ * The value a printable key seeds into the cursor cell's editor, or `null` when
+ * the key must not open it. Only a cell whose editor the grid infers takes a
+ * seed, because the grid knows the value type there. An `editCell` slot and the
+ * yes/no listbox open with F2, Enter, or a double-click instead.
+ *
+ * @internal
+ */
+function typedSeed<T>(
+	press: GridKeyPress,
+	col: GridColumn<T> | undefined,
+	row: T | undefined,
+): string | number | null {
+	if (!col || row == null || col.editCell || !isColumnEditable(col)) return null
+
+	return seedFromKey(press, inferEditorKind(col.field != null ? row[col.field] : undefined))
 }
 
 /**
@@ -119,7 +155,7 @@ export function useGridCursor<T>({
 
 	// Grid-owned edit sessions: the grid begins one on a cell double-click or the
 	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
-	const sessionOwned = editingEnabled && editable.trigger === 'doubleClick'
+	const managed = editingEnabled && editable.trigger === 'doubleClick'
 
 	const {
 		rowsRef,
@@ -138,7 +174,7 @@ export function useGridCursor<T>({
 	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number) => void>(() => {})
 
 	const onCellActivateWithEdit = useMemo<GridCellActivate | undefined>(() => {
-		if (!sessionOwned) return onCellActivate
+		if (!managed) return onCellActivate
 
 		return (rowIdx, colIdx, event) => {
 			// The consumer's cell click fires first — the same order the pointer path
@@ -147,7 +183,7 @@ export function useGridCursor<T>({
 
 			if (event.key === 'Enter') enterEditAtRef.current(rowIdx, colIdx)
 		}
-	}, [sessionOwned, onCellActivate])
+	}, [managed, onCellActivate])
 
 	const nav = useGridNavigation({
 		enabled: cursorEnabled,
@@ -211,18 +247,19 @@ export function useGridCursor<T>({
 		rowKeysRef,
 		dataColumnsRef,
 		cellId: nav.cellId,
+		moveTo: nav.moveTo,
 	})
 
 	// Begins the edit session on a named cell, gating on an editable column: a
 	// `readOnly` or slotless/fieldless one never enters. The editing layer focuses
 	// the cell's editor once that mounts.
 	const enterEditAtCell = useCallback(
-		(rowKey: string | number, columnId: string | number) => {
+		(rowKey: string | number, columnId: string | number, seed?: string | number) => {
 			const col = dataColumnsRef.current.find((candidate) => candidate.id === columnId)
 
 			if (!col || !isColumnEditable(col)) return
 
-			editing.enterEdit(rowKey, columnId)
+			editing.enterEdit(rowKey, columnId, seed)
 		},
 		[editing.enterEdit, dataColumnsRef],
 	)
@@ -230,28 +267,59 @@ export function useGridCursor<T>({
 	// The keyboard entry starts from cursor indices, so it resolves them to the
 	// cell's identity first — the one place that conversion belongs.
 	const enterEditAt = useCallback(
-		(rowIdx: number, colIdx: number) => {
+		(rowIdx: number, colIdx: number, seed?: string | number) => {
 			const rowKey = rowKeysRef.current[rowIdx]
 
 			const col = dataColumnsRef.current[colIdx]
 
 			if (rowKey === undefined || !col) return
 
-			enterEditAtCell(rowKey, col.id)
+			enterEditAtCell(rowKey, col.id, seed)
 		},
 		[enterEditAtCell, rowKeysRef, dataColumnsRef],
 	)
 
 	enterEditAtRef.current = enterEditAt
 
+	// Read at event time by the entry keys below, which stay referentially stable.
+	const activeRef = useRef(nav.active)
+
+	activeRef.current = nav.active
+
+	// The keyboard entries beside the cursor's Enter, on the tab stop alone: F2
+	// opens the active cell, and a printable key opens it with that character in
+	// place of its value (see `typedSeed`). A press from inside the grid belongs
+	// to its control, never to type-to-edit.
+	const sessionEntryKeys = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>) => {
+			const active = activeRef.current
+
+			if (event.target !== event.currentTarget || event.defaultPrevented || !active) return
+
+			const press = readKeyPress(event)
+
+			const seed =
+				event.key === 'F2'
+					? undefined
+					: typedSeed(press, dataColumnsRef.current[active.col], rowsRef.current[active.row])
+
+			if (seed === null || (seed === undefined && !isPlainKey(press))) return
+
+			event.preventDefault()
+
+			enterEditAt(active.row, active.col, seed)
+		},
+		[enterEditAt, rowsRef, dataColumnsRef],
+	)
+
 	// The pointer entry, fired through the grid's built-in cell double-click event
 	// (so the interactive-content guard and data-cell resolution apply). The event
 	// already names the cell, so this path never touches display indices.
 	const editOnCellDoubleClick = useMemo<GridCellClick<T> | undefined>(() => {
-		if (!sessionOwned) return undefined
+		if (!managed) return undefined
 
 		return (cell) => enterEditAtCell(cell.rowKey, cell.columnId)
-	}, [sessionOwned, enterEditAtCell])
+	}, [managed, enterEditAtCell])
 
 	// Cursor-only augmentation for a plain navigable grid; editing-aware
 	// augmentation (which mounts the editors) for an editable one.
@@ -276,27 +344,30 @@ export function useGridCursor<T>({
 
 	const { session } = editing
 
-	// The `<table>` cursor props, with the session's Escape layered ahead of
+	// The `<table>` cursor props, with the session's keys layered ahead of
 	// navigation when the grid owns the edit session: the table (the cursor's
 	// `role="grid"` tab stop) sees every editor's keys — portaled panels
 	// included, since portal events propagate through the React tree — so no
-	// editor wires its own abandon.
+	// editor wires its own save or abandon. The entry keys follow, and the
+	// cursor's own keys come last.
 	const navTableProps = useMemo<GridNavTableProps | undefined>(() => {
 		const base = nav.navTableProps
 
-		const sessionEscape = editing.sessionEscape
+		const sessionKeys = editing.sessionKeys
 
-		if (!base || !sessionEscape) return base
+		if (!base || !sessionKeys) return base
 
 		return {
 			...base,
 			onKeyDown: (event) => {
-				sessionEscape(event)
+				sessionKeys(event)
+
+				sessionEntryKeys(event)
 
 				base.onKeyDown(event)
 			},
 		}
-	}, [nav.navTableProps, editing.sessionEscape])
+	}, [nav.navTableProps, editing.sessionKeys, sessionEntryKeys])
 
 	const wrap = useMemo(
 		() =>

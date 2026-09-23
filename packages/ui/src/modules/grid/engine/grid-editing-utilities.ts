@@ -28,6 +28,94 @@ export function isColumnEditable(col: {
 	return !col.readOnly && (col.field != null || col.editCell != null)
 }
 
+/**
+ * The next editable column along a row from display index `from`, one `step`
+ * to the right (`1`) or the left (`-1`). The walk wraps at the edges, and skips
+ * each column {@link isColumnEditable} refuses. It returns `from` itself when
+ * no other column is editable, and `-1` when none is. @internal
+ */
+export function stepEditableColumn(
+	columns: readonly { readOnly?: boolean; field?: unknown; editCell?: unknown }[],
+	from: number,
+	step: 1 | -1,
+): number {
+	const count = columns.length
+
+	for (let offset = 1; offset <= count; offset++) {
+		const index = (((from + step * offset) % count) + count) % count
+
+		const column = columns[index]
+
+		if (column && isColumnEditable(column)) return index
+	}
+
+	return -1
+}
+
+/** The facts of one key press that a type-to-edit decision reads. @internal */
+export type GridKeyPress = {
+	key: string
+	ctrlKey: boolean
+	metaKey: boolean
+	altKey: boolean
+	/** Whether an input method composes the press, including the key that starts it. */
+	composing: boolean
+	/** Whether AltGr made the character. Some platforms also report Ctrl and Alt for it. */
+	altGraph: boolean
+}
+
+/**
+ * Reads a {@link GridKeyPress} off a keyboard event. The key that starts an
+ * input-method composition reports `keyCode` 229 before `isComposing` turns
+ * true, so both count as composing. The shape is structural, so the engine
+ * reads a React event without a runtime import of React. @internal
+ */
+export function readKeyPress(event: {
+	key: string
+	ctrlKey: boolean
+	metaKey: boolean
+	altKey: boolean
+	keyCode: number
+	nativeEvent: { isComposing: boolean }
+	getModifierState: (key: 'AltGraph') => boolean
+}): GridKeyPress {
+	return {
+		key: event.key,
+		ctrlKey: event.ctrlKey,
+		metaKey: event.metaKey,
+		altKey: event.altKey,
+		composing: event.nativeEvent.isComposing || event.keyCode === 229,
+		altGraph: event.getModifierState('AltGraph'),
+	}
+}
+
+/**
+ * The value a printable key seeds into an editor that it opens, or `null` when
+ * the key must not open one. The seed replaces the cell's value, as in a
+ * spreadsheet. A text editor takes the character. A number editor takes a
+ * digit only, because it cannot hold a lone sign or point. A yes/no editor
+ * takes no seed.
+ *
+ * @remarks Four kinds of press seed nothing. A press that an input method
+ * composes must reach the method, not the grid. A shortcut with Ctrl, Cmd, or
+ * Alt is not typing, but AltGr is. A named key (`Tab`, `F2`, `Dead`) has a name
+ * longer than one character. Space stays with the cursor, which selects or
+ * activates with it. @internal
+ */
+export function seedFromKey(press: GridKeyPress, kind: EditorKind): string | number | null {
+	if (press.composing || press.metaKey) return null
+
+	if ((press.ctrlKey || press.altKey) && !press.altGraph) return null
+
+	if ([...press.key].length !== 1 || press.key === ' ') return null
+
+	if (kind === 'text') return press.key
+
+	if (kind === 'number' && /^\d$/.test(press.key)) return Number(press.key)
+
+	return null
+}
+
 /** The one cell a cell-scoped edit session sits on. @internal */
 export type GridActiveEdit = {
 	rowKey: string | number
