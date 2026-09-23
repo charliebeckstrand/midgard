@@ -6,7 +6,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
-import { vi } from 'vitest'
+import { noop } from '../helpers/noop'
 
 /**
  * `motion/react` mock applied globally via `setup/module-mocks.ts`.
@@ -154,8 +154,11 @@ function MotionConfig({ children }: { children: ReactNode }) {
 	return children
 }
 
+// A stable no-op, as the real hook's `animate` is stable. A `vi.fn()` here was
+// a new spy on every render, and each one stays in Vitest's worker-wide mock
+// registry, which `clearMocks` walks before every test.
 function useAnimate(): [{ current: null }, (...args: unknown[]) => void] {
-	return [{ current: null }, vi.fn()]
+	return [{ current: null }, noop]
 }
 
 function useMotionValue<T>(initial: T) {
