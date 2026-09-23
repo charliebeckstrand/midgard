@@ -708,6 +708,50 @@ describe("Grid double-click-to-edit (session: 'managed')", () => {
 		expect(onRowsChange).toHaveBeenCalledWith(new Set([1]))
 	})
 
+	it.each(['row', 'cell'] as const)(
+		'drops the focus of an entry that a controlled rows binding declines, under %s scope',
+		(scope) => {
+			function Harness() {
+				const [editing, setEditing] = useState<Set<string | number>>(new Set())
+
+				return (
+					<>
+						<button type="button" onClick={() => setEditing(new Set([1]))}>
+							open-1
+						</button>
+						<Grid
+							columns={sessionColumns}
+							rows={sessionRows}
+							getKey={(row) => row.id}
+							// A binding that declines every entry the grid asks for.
+							editable={{ session: 'managed', scope, rows: editing, onCommit: vi.fn() }}
+						/>
+					</>
+				)
+			}
+
+			const view = renderUI(<Harness />)
+
+			const grid = view.getByRole('grid')
+
+			fireEvent.focus(grid)
+
+			// F2 enters the cursor's cell. It moves no cursor, so the grid renders
+			// again only if the entry itself makes it.
+			fireEvent.keyDown(grid, { key: 'F2' })
+
+			expect(editorsIn(view.container)).toHaveLength(0)
+
+			// The consumer opens the row later, for its own reason. The declined entry
+			// must not take focus now.
+			fireEvent.click(view.getByRole('button', { name: 'open-1' }))
+
+			expect(editorsIn(view.container)).not.toHaveLength(0)
+
+			for (const editor of editorsIn(view.container)) expect(editor).not.toHaveFocus()
+		},
+	)
+
 	it('ignores a double-click on a readOnly column', () => {
 		const { container, cell } = renderSessionGrid({
 			cols: [
