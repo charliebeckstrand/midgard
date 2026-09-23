@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -21,7 +22,7 @@ import {
 	isSameCell,
 } from './engine/grid-editing-utilities'
 import type { GridEditSource } from './grid-data-types'
-import type { GridEditingSession } from './grid-editing-context'
+import type { GridActiveEditStore, GridEditingSession } from './grid-editing-context'
 import type { GridCellChange, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 
@@ -92,6 +93,37 @@ function claimedBySurface(event: ReactKeyboardEvent<HTMLTableElement>): boolean 
  * keeps the Enter that opens it. @internal
  */
 const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable="true"]'
+
+/**
+ * Builds the store behind {@link GridActiveEditStore}. `set` notifies only when
+ * the coord names another cell, so a write that repeats the held cell renders
+ * nothing. @internal
+ */
+function createActiveEditStore(): GridActiveEditStore & {
+	set: (next: GridActiveEdit | null) => void
+} {
+	let coord: GridActiveEdit | null = null
+
+	const listeners = new Set<() => void>()
+
+	return {
+		subscribe: (listener) => {
+			listeners.add(listener)
+
+			return () => {
+				listeners.delete(listener)
+			}
+		},
+		get: () => coord,
+		set: (next) => {
+			if (next === coord || (next !== null && isSameCell(coord, next))) return
+
+			coord = next
+
+			for (const listener of listeners) listener()
+		},
+	}
+}
 
 /** A row's staged cell values, keyed by column id. @internal */
 type RowDrafts = Map<string | number, unknown>
@@ -310,9 +342,29 @@ export function useGridEditing<T>({
 
 	useCellScopeWithoutSessionWarning(scopeRequested, sessionOwned)
 
-	// The cell a cell-scoped session edits; null under row scope. Held as state
-	// because it gates which cell mounts an editor.
-	const [activeEditRaw, setActiveEdit] = useState<GridActiveEdit | null>(null)
+	// The cell a cell-scoped session edits; null under row scope. Held twice. The
+	// state drives this hook's own effects: the commit sweep and the focus hand-off.
+	// The store drives the cells, each subscribed to its own flag, so a move along
+	// a row renders two cells rather than the whole window.
+	const [activeEditRaw, setActiveEditState] = useState<GridActiveEdit | null>(null)
+
+	const storeRef = useRef<ReturnType<typeof createActiveEditStore> | null>(null)
+
+	if (storeRef.current === null) storeRef.current = createActiveEditStore()
+
+	const activeEditStore = storeRef.current
+
+	// Every write the session makes goes to both at event time. The cells and this
+	// hook then render in one pass, so the focus effect finds the entered editor
+	// already mounted.
+	const setActiveEdit = useCallback(
+		(next: GridActiveEdit | null) => {
+			setActiveEditState(next)
+
+			activeEditStore.set(next)
+		},
+		[activeEditStore],
+	)
 
 	// Three things strand the raw coord. A controlled binding can decline an entry,
 	// so the row never joins the set; a consumer save can drop an editing row from
@@ -326,9 +378,16 @@ export function useGridEditing<T>({
 	// nobody opened and mount its editor alone. Adjusting the state here is
 	// React's answer to a value gone stale against its input, and it beats an
 	// effect that resynchronizes a render late.
-	if (stranded) setActiveEdit(null)
+	if (stranded) setActiveEditState(null)
 
 	const activeEdit = stranded ? null : activeEditRaw
+
+	// The derivation above clears a stranded coord during render, where the store
+	// must not notify. Mirror it here instead. Every other write already reached
+	// the store at event time, so this is a no-op for them.
+	useLayoutEffect(() => {
+		activeEditStore.set(activeEdit)
+	}, [activeEdit, activeEditStore])
 
 	// Read by the [] -stable session callbacks at event time.
 	const editableRowsRef = useRef(editableRows)
@@ -435,7 +494,7 @@ export function useGridEditing<T>({
 				return next.add(rowKey)
 			})
 		},
-		[cellScoped, setEditableRows],
+		[cellScoped, setEditableRows, setActiveEdit],
 	)
 
 	// Focus the entered cell's editor once the session carries it — after the
@@ -515,7 +574,7 @@ export function useGridEditing<T>({
 				return next
 			})
 		},
-		[unstageDraft, setEditableRows],
+		[unstageDraft, setEditableRows, setActiveEdit],
 	)
 
 	// The session one key press names. The press names its row when it came from
@@ -613,13 +672,13 @@ export function useGridEditing<T>({
 	const session = useMemo<GridEditingSession>(
 		() => ({
 			editableRows,
-			activeEdit,
+			activeEditStore,
 			stageDraft,
 			unstageDraft,
 			endSession,
 			sessionOwned,
 		}),
-		[editableRows, activeEdit, stageDraft, unstageDraft, sessionOwned, endSession],
+		[editableRows, activeEditStore, stageDraft, unstageDraft, sessionOwned, endSession],
 	)
 
 	return { session, enterEdit, sessionKeys: sessionOwned ? sessionKeys : undefined }

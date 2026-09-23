@@ -1,7 +1,15 @@
 'use client'
 
 import { Check, X } from 'lucide-react'
-import { type ReactNode, useEffect, useId, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useId,
+	useRef,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
@@ -191,13 +199,22 @@ function GridCellEditor<T>({
 	)
 }
 
+/** What a data cell shows: its display content, an editor, or an editor the session holds. @internal */
+const CELL_READING = 0
+
+const CELL_EDITING = 1
+
+const CELL_HELD = 2
+
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}. Otherwise it
  * renders the column's display content through {@link GridNavCell}, which carries
  * the active-cursor ring. A cell-scoped session (`scope: 'cell'`) narrows that
- * to the one cell it names. The editable set and the active cell flip only on a
- * session transition, so cells don't re-render as the user types.
+ * to the one cell it names. The cell reads that coord from the session's store
+ * through its own flag, so a session move re-renders the two cells whose flag
+ * flipped. The editable set flips only on a session transition, so cells don't
+ * re-render as the user types.
  *
  * @internal
  */
@@ -209,15 +226,26 @@ export function GridEditingCell<T>({
 	column,
 	render,
 }: GridEditingCellProps<T>) {
-	const { editableRows, activeEdit, stageDraft, unstageDraft, endSession, sessionOwned } =
+	const { editableRows, activeEditStore, stageDraft, unstageDraft, endSession, sessionOwned } =
 		useGridEditingSession()
+
+	const columnId = column.id
 
 	// `isCellEditing` leads because it bails on the editable-set lookup. A cell of
 	// a row nobody is editing — every cell, most of the time — costs one probe.
-	if (
-		isCellEditing({ rowKey, columnId: column.id, editableRows, activeEdit }) &&
-		isColumnEditable(column)
-	) {
+	// The flag is a number, so the store's notice re-renders only a cell whose
+	// answer changed.
+	const readFlag = useCallback(() => {
+		const activeEdit = activeEditStore.get()
+
+		if (!isCellEditing({ rowKey, columnId, editableRows, activeEdit })) return CELL_READING
+
+		return isSameCell(activeEdit, { rowKey, columnId }) ? CELL_HELD : CELL_EDITING
+	}, [activeEditStore, rowKey, columnId, editableRows])
+
+	const flag = useSyncExternalStore(activeEditStore.subscribe, readFlag, readFlag)
+
+	if (flag !== CELL_READING && isColumnEditable(column)) {
 		return (
 			<GridCellEditor
 				rowIdx={rowIdx}
@@ -228,7 +256,7 @@ export function GridEditingCell<T>({
 				unstageDraft={unstageDraft}
 				endSession={endSession}
 				sessionOwned={sessionOwned}
-				held={isSameCell(activeEdit, { rowKey, columnId: column.id })}
+				held={flag === CELL_HELD}
 			/>
 		)
 	}

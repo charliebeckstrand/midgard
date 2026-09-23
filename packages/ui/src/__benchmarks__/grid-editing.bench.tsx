@@ -1,16 +1,18 @@
 /**
- * The at-rest editable grid: no row is in edit mode, so every scenario
- * measures the editing augmentation's per-cell overhead — each cell wired for
+ * The at-rest editable grid: no row is in edit mode, so the mount scenarios
+ * measure the editing augmentation's per-cell overhead — each cell wired for
  * editing — without mounting an editor per cell. Against the same rungs in
  * `grid.bench.tsx`, the difference is what `editable` costs a grid nobody is
- * editing.
+ * editing. The session scenario is the exception: it opens a cell-scoped
+ * session and moves it, which is the path the commit-and-move keys drive.
  */
 
-import { describe } from 'vitest'
+import { fireEvent } from '@testing-library/react'
+import { bench, describe } from 'vitest'
 import { Grid, type GridColumn } from '../modules/grid'
 import { noop } from '../utilities/noop'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
-import { mountBench, mountBenches } from './harness'
+import { mountBench, mountBenches, persistentTree } from './harness'
 
 const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) =>
 	// The identity column stays read-only; every other column binds its field so
@@ -73,4 +75,37 @@ describe('Grid · editable virtualized initial render', () => {
 			/>
 		),
 	)
+})
+
+/**
+ * A cell-scoped session moving between two cells of one row. The row is in the
+ * set before the timed region starts, so each move changes only the session's
+ * cell. That is the cost the commit-and-move keys pay on each keystroke. The
+ * cells to move between are found once, outside the timed region.
+ */
+describe('Grid · cell-scoped session move', () => {
+	for (const rows of SIZES) {
+		const container = persistentTree(
+			<Grid
+				columns={COLUMNS}
+				rows={rows}
+				getKey={shipmentKey}
+				editable={{ trigger: 'doubleClick', scope: 'cell', onCommit: noop }}
+			/>,
+		)
+
+		const cells = ['reference', 'origin'].map(
+			(col) => container.querySelector(`td[data-grid-col="${col}"]`) as HTMLElement,
+		)
+
+		fireEvent.doubleClick(cells[0] as HTMLElement)
+
+		let move = 0
+
+		bench(`${rows.length.toLocaleString()} rows × 8 cols · one move`, () => {
+			move++
+
+			fireEvent.doubleClick(cells[move % 2] as HTMLElement)
+		})
+	}
 })

@@ -940,6 +940,30 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
 	})
 
+	it('re-renders only the cell a move along the row leaves, not the window', () => {
+		const display = vi.fn((row: SessionRow, col: 'name' | 'count') => String(row[col]))
+
+		const { cell } = renderSessionGrid({
+			editable: { scope: 'cell' },
+			cols: [
+				{ id: 'name', title: 'Name', field: 'name', cell: (row) => display(row, 'name') },
+				{ id: 'count', title: 'Count', field: 'count', cell: (row) => display(row, 'count') },
+			],
+		})
+
+		fireEvent.doubleClick(cell('name'))
+
+		display.mockClear()
+
+		fireEvent.doubleClick(cell('count'))
+
+		// The cell the session left reads again, and the one it entered mounts an
+		// editor, which calls no display renderer. Every other cell keeps its
+		// render: the session's cell rides a store each cell subscribes to, not
+		// the context the whole window reads.
+		expect(display).toHaveBeenCalledExactlyOnceWith(sessionRows[0], 'name')
+	})
+
 	it('holds one row in the set, committing the row the session leaves', () => {
 		const { container, cell, onCommit, onRowsChange } = renderCellGrid()
 
