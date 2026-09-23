@@ -130,7 +130,6 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 						color={group.color}
 						colorOptions={colorOptions}
 						onRecolor={(next) => onRecolor(group.key, next)}
-						className={cn(k.zone.color)}
 					/>
 				</div>
 			</Card>

@@ -56,6 +56,49 @@ describe('recipe-import boundary', () => {
 	})
 })
 
+// Kata never import values from a sibling kata: shared data promotes to a kiso
+// bundle, and shared wiring to a katakana bridge (`recipes/kata/README.md`). A
+// type-only import carries no value, so it stays allowed. `map.ts` reads the
+// chart palette, inks, and motion from `chart.ts` so a map and a chart on one
+// board match. That one edge is a named exception until the palette promotes
+// to kiso.
+const KATA_VALUE_EXCEPTIONS: Record<string, readonly string[]> = {
+	'map.ts': ['./chart'],
+}
+
+describe('kata sibling-import boundary', () => {
+	it('kata import no values from a sibling kata, except the named exceptions', () => {
+		const kataDir = join(srcDir, 'recipes/kata')
+
+		const violations: string[] = []
+
+		walkSource(kataDir, (file, content) => {
+			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
+
+			const rel = relative(kataDir, file)
+
+			for (const match of content.matchAll(IMPORT_RE)) {
+				const head = match[1] ?? ''
+
+				const path = match[2] ?? ''
+
+				if (!path.startsWith('./') && !/\/kata(?:\/|$)/.test(path)) continue
+
+				if (/\bimport\s+type\b/.test(head) || isAllTypeNamed(match[0])) continue
+
+				if (KATA_VALUE_EXCEPTIONS[rel]?.includes(path)) continue
+
+				violations.push(`${rel}: value import from a sibling kata — ${match[0]}`)
+			}
+		})
+
+		expect(
+			violations,
+			`a kata imports a value from a sibling kata:\n  ${violations.join('\n  ')}`,
+		).toEqual([])
+	})
+})
+
 function isAllTypeNamed(importStmt: string): boolean {
 	const inner = importStmt.match(/\{([^}]*)\}/)?.[1]
 

@@ -1,9 +1,10 @@
 /**
  * Column-group band kata: layout for the header row of group bands the Grid
- * draws above its column headers. Color is not here. The band's tint comes from
- * the {@link Badge} it renders (standard + extended palette). This surface
- * carries the band's flex layout, the separating rule, and the `+N` count. It
- * also carries the column-manager group editor (`manager`, `cardOutline`).
+ * draws above its column headers. The band's label tint comes from the
+ * {@link Badge} it renders (standard + extended palette). This surface carries
+ * the band's flex layout, the `+N` count, and the underline rule with its fills
+ * (`band.color`, `band.neutral`). It also carries the column-manager group
+ * editor (`manager`) and its Card outline colors (`cardOutline`).
  */
 import type { PaletteColor } from '../../core/recipe'
 import { hannou, iro, kasane, narabi, omote, sen } from '../kiso'
