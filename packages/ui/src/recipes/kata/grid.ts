@@ -145,10 +145,7 @@ export const k = {
 	// the tie and paints over it). Portaled surfaces (the column-manager dialog,
 	// context menus, tooltips) render at the body, outside this context, so they
 	// still overlay the page.
-	// While a column drag-resize is in flight the wrapper carries `data-resizing`,
-	// which paints the resize cursor grid-wide; head and cells read the matching
-	// `resizing` context flag to drop their hover wash and truncation tooltips.
-	wrapper: ['relative', 'isolate', flex.col, 'gap-2', 'data-[resizing]:cursor-col-resize'],
+	wrapper: ['relative', 'isolate', flex.col, 'gap-2'],
 	// `maxHeight="fill"`: the grid takes its parent's box instead of a fixed cap —
 	// the wrapper stretches to the parent's height and the scroll region flexes to
 	// the remainder under the toolbar/footer (`min-h-0` lets each shrink below its

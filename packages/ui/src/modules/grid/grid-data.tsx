@@ -1312,9 +1312,10 @@ export function GridData<T>({
 					<div
 						ref={wrapperRef}
 						data-slot="grid"
-						// Flags an in-flight column drag-resize so the grid paints the resize
-						// cursor grid-wide (see `k.wrapper`); head and cells read the matching
-						// `resizing` context flag to drop their hover wash and truncation tooltips.
+						// Flags an in-flight column drag-resize on the grid root. The resize
+						// cursor comes from the handle, which captures the pointer for the drag.
+						// Head and cells read the matching `resizing` context flag to drop their
+						// hover wash and truncation tooltips.
 						data-resizing={dataAttr(resizing)}
 						className={gridWrapperClass(maxHeight === 'fill')}
 					>
