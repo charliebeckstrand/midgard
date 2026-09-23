@@ -1,9 +1,10 @@
 /**
  * Grammar for the TSDoc inline-link tokens carried in API-reference
  * descriptions. The build-time extractor normalizes every `{@link …}` it
- * resolves into this canonical form; the renderer parses it back out to
- * interleave reference chips with prose. Pure string handling, no `ts-morph`,
- * so it imports cleanly into both the engine and the client renderer.
+ * resolves into this canonical form. The renderer parses it back out, and shows
+ * a symbol reference as plain text and a URL as a link. Pure string handling,
+ * no `ts-morph`, so it imports cleanly into both the engine and the client
+ * renderer.
  */
 
 /** Matches one `{@link …}` token; the capture group is its raw inner text. */
