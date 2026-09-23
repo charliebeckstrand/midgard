@@ -13,11 +13,10 @@ import { srcDir } from './paths'
 // most of what a cold extraction pays before it reaches a component, so each
 // bench builds a Project a different way and includes checker creation.
 //
-// Read the last row as a ceiling, not as headroom. A glob seed plus
-// `skipFileDependencyResolution` makes it fast by dropping cross-root link
-// targets, which fails a `buildApi` output diff; `openProject` states the rule.
-// The tsconfig row above it keeps those files, because the tsconfig includes
-// `src` itself.
+// Read the last row as a ceiling, not as headroom. It is fast because it skips
+// dependency resolution, and the checker then loads those files during
+// extraction. `openProject` without the resolution gave a byte-identical
+// manifest and no faster cold pass end to end; `openProject` states the rule.
 //
 // Constructions run for seconds; fixed low iteration counts replace time-boxed
 // sampling. Wall clock here carries ±15-30% run to run — compare medians across
@@ -75,7 +74,7 @@ describe('docs: ts-morph project construction', () => {
 	)
 
 	bench(
-		'glob-scoped + skipFileDependencyResolution (drops cross-root links)',
+		'glob-scoped + skipFileDependencyResolution (defers the dependency load)',
 		() => {
 			const project = new Project({
 				tsConfigFilePath,

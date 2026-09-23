@@ -30,16 +30,10 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //   sweep found.
 //
 // Membership answers the question the defect asks: does the package declare
-// this name anywhere? Two narrower questions it does not answer, both stated
-// here so the failure message does not have to overreach:
-//
-//   Whether the target names the right symbol of several, which nothing in the
-//   tree answers today. And whether the renderer's own index holds the target.
-//   `docs/engine/api-reference/engine/link-resolver.ts` indexes only PascalCase
-//   top-level declarations outside `docs/`, so 652 of 2,515 targets miss it.
-//   That miss changes no page. The API reference renders every symbol target
-//   as plain text, resolved or not, so the stricter index gates nothing a
-//   reader sees.
+// this name anywhere? It does not answer whether the target names the right
+// symbol of several, which nothing in the tree answers today. The API
+// reference renders every symbol target as plain text and resolves none, so
+// no renderer index gates what a reader sees.
 //
 // Scope stops at `src`, and `docs/` stays out on purpose. An audit quotes the
 // dangling citation it fixed, or records a test that does not exist, and a
