@@ -18,6 +18,7 @@ import {
 	renderUI,
 	screen,
 } from '../helpers'
+import { axe } from '../helpers/axe'
 
 type Item = { id: string; title: string }
 
@@ -262,6 +263,87 @@ describe('KanbanCard', () => {
 		)
 
 		expect(bySlot(container, 'kanban-card')).toHaveAttribute('aria-label', 'Card One')
+	})
+
+	it('names a read-only card as a list item of its column body', () => {
+		const { container } = renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1" aria-label="Card One">
+							One
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		const card = bySlot(container, 'kanban-card')
+
+		expect(card).toHaveAttribute('role', 'listitem')
+
+		expect(card).toHaveAttribute('aria-label', 'Card One')
+
+		expect(bySlot(container, 'kanban-column-body')).toHaveAttribute('role', 'list')
+	})
+
+	it('names a disabled card, and leaves no ARIA result for axe to review', async () => {
+		const { container } = renderUI(
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				disabled
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo" aria-label="Todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1" aria-label="Card One">
+							One
+						</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(bySlot(container, 'kanban-card')).toHaveAttribute('aria-label', 'Card One')
+
+		// A name on an element with no role reads as "incomplete", not as a
+		// violation, so the check reads both result types.
+		const results = await axe(container)
+
+		expect(results.violations).toEqual([])
+
+		expect(results.incomplete.map((result) => result.id)).not.toContain('aria-prohibited-attr')
+	})
+
+	it('keeps no list role on an interactive body or on an empty body', () => {
+		const { container } = renderUI(
+			<Kanban
+				columns={columns}
+				getKey={(item: Item) => item.id}
+				onReorder={() => {}}
+				aria-label="Board"
+			>
+				<KanbanColumn value="todo">
+					<KanbanColumnBody>
+						<KanbanCard value="1">One</KanbanCard>
+					</KanbanColumnBody>
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(bySlot(container, 'kanban-column-body')).not.toHaveAttribute('role')
+
+		const empty = renderUI(
+			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+				<KanbanColumn value="todo">
+					<KanbanColumnBody empty="No cards" />
+				</KanbanColumn>
+			</Kanban>,
+		)
+
+		expect(bySlot(empty.container, 'kanban-column-body')).not.toHaveAttribute('role')
 	})
 
 	it('marks an interactive card as lifted after pressing Space', async () => {
