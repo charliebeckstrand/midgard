@@ -141,8 +141,8 @@ export function useGridCursor<T>({
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
 	/**
-	 * The grid's own double-click-to-edit intent under `editable.trigger:
-	 * 'doubleClick'` — {@link GridData} composes it ahead of the consumer's
+	 * The grid's own double-click-to-edit intent under `editable.session:
+	 * 'managed'` — {@link GridData} composes it ahead of the consumer's
 	 * handler on the built-in cell double-click event. `undefined` otherwise.
 	 */
 	editOnCellDoubleClick: GridCellClick<T> | undefined
@@ -155,7 +155,7 @@ export function useGridCursor<T>({
 
 	// Grid-owned edit sessions: the grid begins one on a cell double-click or the
 	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
-	const managed = editingEnabled && editable.trigger === 'doubleClick'
+	const managed = editingEnabled && editable.session === 'managed'
 
 	const {
 		rowsRef,

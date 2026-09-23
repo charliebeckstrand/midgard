@@ -90,7 +90,7 @@ describe('Grid · cell-scoped session move', () => {
 				columns={COLUMNS}
 				rows={rows}
 				getKey={shipmentKey}
-				editable={{ trigger: 'doubleClick', scope: 'cell', onCommit: noop }}
+				editable={{ session: 'managed', scope: 'cell', onCommit: noop }}
 			/>,
 		)
 

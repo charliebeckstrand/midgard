@@ -44,7 +44,7 @@ export type GridEditingSession = {
 	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
 	unstageDraft: (rowKey: string | number, columnId: string | number) => void
 	/**
-	 * Ends the grid-owned session on a row under `trigger: 'doubleClick'` —
+	 * Ends the grid-owned session on a row under `session: 'managed'` —
 	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the
 	 * staged values the session owns. Under cell scope that is the active cell
 	 * alone, because the cells it visited before that one already committed.
@@ -59,7 +59,7 @@ export type GridEditingSession = {
 	 * mounts, and stages it as the cell's draft.
 	 */
 	entrySeed: (rowKey: string | number, columnId: string | number) => string | number | undefined
-	/** Whether the grid owns entry and the session keys (`trigger: 'doubleClick'`). */
+	/** Whether the grid owns entry and the session keys (`session: 'managed'`). */
 	managed: boolean
 }
 

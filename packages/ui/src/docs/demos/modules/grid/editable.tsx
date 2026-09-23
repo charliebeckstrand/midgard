@@ -203,7 +203,7 @@ export function EditableExample() {
 		})
 
 	// The pencil swaps the whole row into edit mode (every cell becomes an editor);
-	// the check saves the row's edits together. `trigger: 'doubleClick'` adds the
+	// the check saves the row's edits together. `session: 'managed'` adds the
 	// grid-owned session over the same binding: double-click a cell, or press
 	// Enter, F2, or a character on the cursor's active cell, to start editing its
 	// row. Enter in an editor saves and moves down, and Escape discards.
@@ -262,7 +262,7 @@ export function EditableExample() {
 				editable={{
 					rows: editing,
 					onRowsChange: setEditing,
-					trigger: 'doubleClick',
+					session: 'managed',
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>
@@ -292,7 +292,7 @@ export function CellScopeExample() {
 				rows={people}
 				getKey={(row) => row.id}
 				editable={{
-					trigger: 'doubleClick',
+					session: 'managed',
 					scope: 'cell',
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}

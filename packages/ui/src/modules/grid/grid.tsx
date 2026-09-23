@@ -29,7 +29,7 @@ export type GridProps<T> = GridDataProps<T>
  * column's {@link GridColumn.editCell} slot. Edits stage live; removing the row from the
  * set saves its changed cells as one batch through
  * {@link GridEditableConfig.onCommit} (Escape reverts a cell). A grid-owned
- * session ({@link GridEditableConfig.trigger}) can narrow to one cell instead
+ * session ({@link GridEditableConfig.session}) can narrow to one cell instead
  * through {@link GridEditableConfig.scope}.
  *
  * Renders:

@@ -30,7 +30,7 @@ describe('grid commit-and-move keys (real browser)', () => {
 				columns={columns}
 				rows={rows}
 				getKey={(r) => r.id}
-				editable={{ trigger: 'doubleClick', scope: 'cell', onCommit }}
+				editable={{ session: 'managed', scope: 'cell', onCommit }}
 			/>,
 		)
 

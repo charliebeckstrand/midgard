@@ -34,7 +34,7 @@ export type GridEditingApi = {
 	session: GridEditingSession
 	/**
 	 * Opens the named cell for editing and focuses its editor once that mounts —
-	 * the grid-owned entry behind `trigger: 'doubleClick'`. Under row scope the
+	 * the grid-owned entry behind `session: 'managed'`. Under row scope the
 	 * cell names the row to open, and re-entering a row already editing is a
 	 * no-op. Under `scope: 'cell'` it re-points the session: the cell it leaves
 	 * commits, and a previous row leaves the set. A transition that changes which
@@ -49,7 +49,7 @@ export type GridEditingApi = {
 	 * Enter commits and moves down, Tab and Shift+Tab commit and move along the
 	 * row, and F2 commits and stays. Every editor (inferred input, listbox,
 	 * `editCell` slot) therefore inherits the keys without wiring of its own.
-	 * `undefined` unless the grid owns the session (`trigger: 'doubleClick'`).
+	 * `undefined` unless the grid owns the session (`session: 'managed'`).
 	 */
 	sessionKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 }
@@ -303,7 +303,7 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, managed: boolean): v
 		if (!scoped || managed) return
 
 		console.warn(
-			"Grid: `editable.scope: 'cell'` narrows a session the grid owns, but `editable.trigger` is 'manual', where the consumer names a row and never a cell. The row's editors all mount, as under scope 'row' — set `trigger: 'doubleClick'` to scope a session to one cell.",
+			"Grid: `editable.scope: 'cell'` narrows a session the grid owns, but `editable.session` is 'manual', where the consumer names a row and never a cell. The row's editors all mount, as under scope 'row' — set `session: 'managed'` to scope a session to one cell.",
 		)
 	}, [scoped, managed])
 }
@@ -314,7 +314,7 @@ function useCellScopeWithoutSessionWarning(scoped: boolean, managed: boolean): v
  * row in the set renders all its editable cells as editors at once; each edit
  * stages into a grid-held ref (no per-keystroke grid render). A row leaves the
  * set on the consumer's save action, or on a grid-owned session exit under
- * `trigger: 'doubleClick'` (Enter in an editor saves, Escape abandons). Its
+ * `session: 'managed'` (Enter in an editor saves, Escape abandons). Its
  * drafts then flush as a single {@link GridCellChange} batch through `onCommit`,
  * dropping unchanged and invalid cells. Inert when `enabled` is false, so a
  * read-only grid pays nothing.
@@ -350,8 +350,8 @@ export function useGridEditing<T>({
 	moveTo: (coord: Coord) => void
 }): GridEditingApi {
 	// The editable-row set is consumer-driven by default — the grid renders no
-	// built-in trigger and only reads the binding (a row-action button flips a
-	// key). Under `trigger: 'doubleClick'` the grid also writes it, through the
+	// built-in entry and only reads the binding (a row-action button flips a
+	// key). Under `session: 'managed'` the grid also writes it, through the
 	// session callbacks below, so every entry/exit still emits `onRowsChange`.
 	const [editableRowsRaw, setEditableRows] = useControllable<Set<string | number>>({
 		value: config?.rows,
@@ -364,7 +364,7 @@ export function useGridEditing<T>({
 	// Grid-owned session lifecycle (enter on double-click / cursor Enter, exit on
 	// an editor's Enter/Escape); the default 'manual' mode leaves it entirely to
 	// the consumer.
-	const managed = enabled && config?.trigger === 'doubleClick'
+	const managed = enabled && config?.session === 'managed'
 
 	// Cell scope narrows a grid-owned session to the entered cell. It needs that
 	// session: under 'manual' the consumer names a row and never a cell, so there
@@ -401,7 +401,7 @@ export function useGridEditing<T>({
 
 	// Three things strand the raw coord. A controlled binding can decline an entry,
 	// so the row never joins the set; a consumer save can drop an editing row from
-	// under the session; and `scope` or `trigger` can change under a live session,
+	// under the session; and `scope` or `session` can change under a live session,
 	// which leaves a coord the current config would never have written.
 	const stranded =
 		activeEditRaw !== null && (!cellScoped || !editableRows.has(activeEditRaw.rowKey))

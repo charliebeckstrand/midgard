@@ -106,7 +106,7 @@ export function buildRovingCellActivate<T>(
 
 /**
  * Composes the grid's own cell double-click intent (double-click-to-edit, see
- * {@link GridEditableConfig.trigger}) with the consumer's handler on the one
+ * {@link GridEditableConfig.session}) with the consumer's handler on the one
  * built-in event. The internal intent fires first, then the consumer is
  * notified. Either alone passes through untouched; `undefined` when neither is
  * set, so an inert row attaches no handler.
