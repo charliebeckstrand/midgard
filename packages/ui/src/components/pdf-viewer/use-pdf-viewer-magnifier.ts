@@ -148,6 +148,8 @@ export type MagnifierPoint = { x: number; y: number }
  * Pure, and exported for the same reason {@link toFractionRect} is. It is the one seam where
  * this arithmetic is provable without a measured DOM and a real floating engine, neither of
  * which jsdom has.
+ *
+ * @internal
  */
 export function lensOffset(point: MagnifierPoint, zoom: number, size: number): MagnifierPoint {
 	const centre = size / 2

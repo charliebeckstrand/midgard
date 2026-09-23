@@ -9,8 +9,12 @@ export type NavContextValue = CurrentContextValue
 /** Context carrying the {@link Nav} selection state to descendant items. */
 export const NavContext = CurrentContext
 
-/** Reads the enclosing {@link Nav} selection state ({@link NavContextValue}). */
-export function useNavContext() {
+/**
+ * Reads the enclosing {@link Nav} selection state ({@link NavContextValue}).
+ *
+ * @returns The selection state, or `undefined` outside a {@link Nav}.
+ */
+export function useNavContext(): NavContextValue | undefined {
 	return useCurrent()
 }
 

@@ -42,6 +42,10 @@ describe('isMeaningful', () => {
 })
 
 describe('formatEditing', () => {
+	it('keeps every digit of an integer run past 2^53', () => {
+		expect(formatEditing('12345678901234567', 'en-US', '.', 2)).toBe('12,345,678,901,234,567')
+	})
+
 	it('applies locale digit grouping to the integer part', () => {
 		expect(formatEditing('1234567', 'en-US', '.', 2)).toBe('1,234,567')
 	})

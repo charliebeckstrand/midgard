@@ -17,6 +17,8 @@ const POINTS_PER_INCH = 72
  *
  * Pure, and exported for that reason: it is the one seam where this arithmetic is
  * provable without a measured DOM, which jsdom cannot give.
+ *
+ * @internal
  */
 export function toFractionRect(
 	rect: PdfViewerHighlightRect,

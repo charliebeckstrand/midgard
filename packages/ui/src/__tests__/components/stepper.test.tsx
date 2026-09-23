@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
 	Stepper,
 	StepperDescription,
+	StepperIndicator,
 	StepperPanel,
 	StepperPanels,
 	StepperStep,
@@ -88,6 +89,19 @@ describe('StepperIndicator', () => {
 		expect(steps[1]).toHaveAccessibleName(expect.stringContaining('current step'))
 
 		expect(steps[2]).toHaveAccessibleName(expect.stringContaining('not started'))
+	})
+
+	it('renders its children ahead of the state suffix', () => {
+		const { container } = renderUI(
+			<Stepper value={1}>
+				<StepperStep value={1}>
+					<StepperIndicator>1</StepperIndicator>
+					<StepperTitle>One</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		expect(bySlot(container, 'stepper-indicator')).toHaveTextContent(/^1, current step$/)
 	})
 })
 

@@ -28,9 +28,10 @@ const STATE_TEXT = {
  * State reads visually through color and the checkmark glyph alone, so an
  * `sr-only` suffix ("completed"/"current step"/"not started") names it for
  * assistive tech (WCAG 1.4.1). `<StepperStep>` injects a default instance when
- * the consumer omits one.
+ * the consumer omits one, and that default draws no glyph. Pass the number or
+ * checkmark as `children`; it renders ahead of the `sr-only` suffix.
  */
-export function StepperIndicator({ className, ...props }: StepperIndicatorProps) {
+export function StepperIndicator({ className, children, ...props }: StepperIndicatorProps) {
 	const { onValueChange } = useStepper()
 	const { state } = useStepperStep()
 
@@ -45,6 +46,7 @@ export function StepperIndicator({ className, ...props }: StepperIndicatorProps)
 			{state === 'current' && (
 				<ActiveIndicator className={cn(k.indicator.active)} style={{ borderRadius: '9999px' }} />
 			)}
+			{children}
 			<span className="sr-only">, {STATE_TEXT[state]}</span>
 		</span>
 	)
