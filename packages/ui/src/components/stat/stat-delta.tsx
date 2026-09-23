@@ -8,7 +8,7 @@ export type StatDeltaProps = StatDeltaVariants & {
 } & Omit<ComponentProps<'div'>, 'className'>
 
 /**
- * Period-over-period change indicator, tinted by `trend` (up/down/flat). Static
+ * Period-over-period change indicator, tinted by `trend` (up/down/neutral). Static
  * leaf: renders in React Server Components. Compose `<StatDeltaSkeleton>` in the
  * loading tree.
  *
