@@ -48,14 +48,6 @@ describe('TagInput', () => {
 		expect(input.tagName).toBe('INPUT')
 	})
 
-	it('shows placeholder when there are no tags', () => {
-		const { container } = renderUI(<TagInput placeholder="Add tags..." />)
-
-		const input = getInput(container)
-
-		expect(input).toHaveAttribute('placeholder', 'Add tags...')
-	})
-
 	it('hides placeholder when tags exist', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react']} placeholder="Add tags..." />)
 

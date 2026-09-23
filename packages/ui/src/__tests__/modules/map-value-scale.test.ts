@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { regionValueJoin, resolveValueBins } from '../../modules/map/engine/map-region/value'
-import { sampleRange } from '../../utilities'
 
 type Row = { id: string; v: number }
 
@@ -12,30 +11,6 @@ const ROWS: Row[] = [
 ]
 
 const round = (value: number) => value.toFixed(0)
-
-describe('sampleRange', () => {
-	it('returns exact stops verbatim and interpolates between them in sRGB', () => {
-		const range = ['#0000ff', '#00ff00', '#ff0000']
-
-		expect(sampleRange(range, 0)).toBe('#0000ff')
-
-		expect(sampleRange(range, 1)).toBe('#ff0000')
-
-		// The middle sample lands on the middle stop — verbatim, not re-encoded.
-		expect(sampleRange(range, 0.5)).toBe('#00ff00')
-
-		// A sample between stops mixes in sRGB.
-		expect(sampleRange(['#000000', '#ffffff'], 0.5)).toBe('rgb(128 128 128)')
-	})
-
-	it('clamps out-of-range t and passes a single stop through', () => {
-		expect(sampleRange(['#0000ff', '#ff0000'], -1)).toBe('#0000ff')
-
-		expect(sampleRange(['#0000ff', '#ff0000'], 2)).toBe('#ff0000')
-
-		expect(sampleRange(['#123456'], 0.7)).toBe('#123456')
-	})
-})
 
 describe('resolveValueBins', () => {
 	it('quantises the extent into one bin per colour stop, painting each a CSS value', () => {

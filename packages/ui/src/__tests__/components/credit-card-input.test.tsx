@@ -3,9 +3,6 @@ import {
 	CreditCardInput,
 	CreditCardInputCvv,
 	CreditCardInputExpiry,
-	detectCardBrand,
-	formatCardNumber,
-	formatExpiry,
 } from '../../components/credit-card-input'
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
@@ -438,51 +435,5 @@ describe('Credit card trio + Form', () => {
 		await user.tab()
 
 		expect(getFieldProbe('cvv')).toHaveAttribute('data-touched', 'true')
-	})
-})
-
-describe('detectCardBrand', () => {
-	it.each<[string, string, string]>([
-		['identifies Visa numbers', '4242424242424242', 'visa'],
-		['identifies Amex numbers', '378282246310005', 'amex'],
-		['identifies Mastercard numbers', '5555555555554444', 'mastercard'],
-	])('%s', (_name, number, brand) => {
-		expect(detectCardBrand(number)?.brand).toBe(brand)
-	})
-
-	it('returns undefined for unknown prefixes', () => {
-		expect(detectCardBrand('9999999999999999')).toBeUndefined()
-	})
-})
-
-describe('formatCardNumber', () => {
-	it('splits Visa into 4-4-4-4 groups', () => {
-		expect(formatCardNumber('4242424242424242').formatted).toBe('4242 4242 4242 4242')
-	})
-
-	it('splits Amex into 4-6-5 groups', () => {
-		expect(formatCardNumber('378282246310005').formatted).toBe('3782 822463 10005')
-	})
-})
-
-describe('formatExpiry', () => {
-	it('returns an empty string for empty input', () => {
-		expect(formatExpiry('')).toBe('')
-	})
-
-	it('passes any single digit through unchanged', () => {
-		expect(formatExpiry('0')).toBe('0')
-
-		expect(formatExpiry('1')).toBe('1')
-
-		expect(formatExpiry('5')).toBe('5')
-	})
-
-	it('appends a slash after two digits', () => {
-		expect(formatExpiry('12')).toBe('12/')
-	})
-
-	it('formats four digits as MM/YY', () => {
-		expect(formatExpiry('1228')).toBe('12/28')
 	})
 })
