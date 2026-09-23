@@ -172,7 +172,7 @@ builds a bare `YYYY-MM-DD` instant with `new Date(Number(y), Number(m) - 1, Numb
 year rule renders `0042-01-01` as 1942-01-01. The package documents this exact trap at
 `components/calendar/calendar-utilities.ts:23-32` and routes around it through `CalendarDate`, and
 `chart-time.ts`'s own header states that boundary stepping goes through `@internationalized/date`. This one
-parse does not. It is not in [2026-09-13](2026-09-13-BUG-AUDIT.md).
+parse does not. It was not in the 2026-09-13 bug audit, which is now closed.
 
 **`PersistentChrome` lets a consumer's ref silence it.** `primitives/chrome/chrome.tsx:53` spreads
 `{...props}` after `ref={ref}`, and `ComponentProps<'div'>` carries `ref` in React 19. A consumer that
