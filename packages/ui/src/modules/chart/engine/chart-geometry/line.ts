@@ -296,8 +296,8 @@ export function lineGeometry(
  * The line render-series for a set of drawn cartesian series. Each entry's
  * values are projected through its own axis's scale into {@link lineGeometry}.
  * Each entry carries the meta's paint, label, and dash, so the marks, hit-test,
- * and value labels all read one aligned list. Bar/line/area charts build their line-kind
- * marks through this instead of repeating the map.
+ * and value labels all read one aligned list. The line and combo charts build
+ * their line-kind marks through this instead of repeating the map.
  *
  * @internal
  */

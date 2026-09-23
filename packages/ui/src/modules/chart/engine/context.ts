@@ -32,8 +32,7 @@ export const [ChartHoverContext, useChartHover] = createContext<ChartHover>('Cha
 
 /**
  * A reference to one drawn mark: its series index, and the datum within that
- * series. A slice's own index is the series index for the pies, and a bar's or
- * point's position is the datum. `null` names the whole series, which is what a
+ * series. A bar's or point's position is the datum. `null` names the whole series, which is what a
  * line, an area, and legend or keyboard emphasis all point at.
  *
  * @internal
@@ -117,8 +116,8 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
  * Marks emphasis shared between a chart's reference layer and its marks. A
  * pointed reference rule — or the keyboard cursor roved onto it — recedes the
  * data marks to it, and its sibling rules with them. It is the same focus the
- * legend applies to a series. Its own context so a rule's hover re-renders only
- * the marks and rules, never the frame.
+ * legend applies to a series. Its own context, so a rule's hover reaches only
+ * the marks and the rules that read it.
  *
  * @internal
  */

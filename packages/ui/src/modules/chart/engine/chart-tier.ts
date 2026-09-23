@@ -91,7 +91,7 @@ export const SPARK_HEIGHT = 96
 /** Width below which the frame runs compact — a gutter, but end-only band labels. @internal */
 export const COMPACT_WIDTH = 384
 
-/** Height below which the frame runs compact — one tick row target, one legend row. @internal */
+/** Height below which the tier reads `compact`; it sets only the tier label. @internal */
 export const COMPACT_HEIGHT = 176
 
 /** Width at or above which the frame reads `expanded` — a styling label, not an anatomy change. @internal */

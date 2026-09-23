@@ -21,12 +21,11 @@ export type ChartAxisTick = {
 	/** Degrees the label tilts about `at`; unset draws it flat. Category ticks only. */
 	rotate?: number
 	/**
-	 * Horizontal text anchor along a band (x) axis, overriding the centered
-	 * default. A band's end labels anchor `'start'` (first) and `'end'` (last).
-	 * They therefore read inward from their position, and clear the frame edge
-	 * without a width estimate. These are the compact tier's first-and-last band
-	 * labels. Ignored on a
-	 * value (y) axis, whose gutter labels always right- (or left-) align, and
+	 * Horizontal text anchor along an x axis, overriding the centered default.
+	 * The end labels anchor `'start'` (first) and `'end'` (last). They therefore
+	 * read inward from their position, and clear the frame edge without a width
+	 * estimate. The compact band axis and the scatter x axis set it. Ignored on a
+	 * y axis, whose gutter labels always right- (or left-) align, and
 	 * where a `rotate` is set, which anchors its own way.
 	 */
 	anchor?: 'start' | 'middle' | 'end'
@@ -156,7 +155,8 @@ export type ChartAxisTitlesProps = {
 }
 
 /**
- * The value-axis titles, drawn in the bands the layout reserved for them. A
+ * The axis titles (value and band), drawn in the bands that the layout reserved
+ * for them. A
  * rotated label runs along each titled vertical gutter, and a horizontal one
  * under (or over) each titled band axis. Pure chrome — non-interactive, and outside the
  * readout, which names series through the legend and tooltip instead.

@@ -93,7 +93,7 @@ export const X_AXIS_HEIGHT = 24
 export const BAND_EDGE_PAD = 16
 
 /**
- * Degrees a category label tilts under {@link CartesianFrameProps.tickRotation},
+ * Degrees a category label tilts under {@link ChartCategoryAxis.tickRotation},
  * once it would otherwise be thinned. It is negative, so the label reads rising
  * left to right, its near end tucked under the tick.
  *
@@ -112,7 +112,7 @@ export const TICK_ROTATION_ANGLE = -35
 export const TICK_ROTATION_HEIGHT = 56
 
 /**
- * Vertical footprint of one `text-xs` category label stacked in a horizontal
+ * Vertical footprint of one `text-sm` category label stacked in a horizontal
  * chart's left axis. It is the label's line box, for thinning band labels by
  * column room the way {@link TICK_CHAR_WIDTH} thins them by row room.
  *
@@ -140,7 +140,7 @@ export const AXIS_TITLE_BAND = 16
 /** Air between a value-axis title and the tick labels it sits beside, so the two never crowd. @internal */
 export const AXIS_TITLE_GAP = 8
 
-/** Smallest bubble diameter: never under the marker size, so the least point stays legible. @internal */
+/** Smallest bubble diameter, so the least point stays legible. @internal */
 export const BUBBLE_MIN_DIAMETER = 8
 
 /** Largest bubble diameter: roomy enough to read, small enough that bubbles rarely swallow the plot. @internal */

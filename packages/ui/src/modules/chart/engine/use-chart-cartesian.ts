@@ -138,8 +138,8 @@ export type CartesianConfig<T> = {
 	markInset?: number
 	/**
 	 * Pixels of clear room to reserve past a data extreme on the value axis — see
-	 * {@link CartesianLayoutInput.valueHeadroom}. The line-bearing charts set it
-	 * when they draw single-series extreme value labels. The label then sits clear
+	 * {@link CartesianLayoutInput.valueHeadroom}. The `LineChart` sets it when it
+	 * draws single-series extreme value labels. The label then sits clear
 	 * of its edge, instead of flipping onto the line.
 	 * @defaultValue 0
 	 */
@@ -247,7 +247,7 @@ export type CartesianChart = {
 	 */
 	readoutOrder: number[]
 	legendItems: ChartLegendItem[] | null
-	/** The reference lines' legend chips, when the legend shows; empty otherwise. */
+	/** The reference lines' legend chips; the frame shows them only when `legendItems` is not null. */
 	referenceItems: ChartLegendReference[]
 	/** Reference indexes toggled off — their rules are pulled and their chips struck through. */
 	referenceHidden: ReadonlySet<number>

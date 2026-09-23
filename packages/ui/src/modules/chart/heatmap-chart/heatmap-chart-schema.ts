@@ -7,7 +7,8 @@
  * `colorKey` / `colorRange` / `colorDomain` / `colorName`). The two
  * colour-scaled charts therefore read the same.
  *
- * The frame props reuse {@link ChartBaseProps} unchanged. A heatmap adds no
+ * The frame props reuse {@link ChartBaseProps}, less five props that the heatmap
+ * does not wire. A heatmap adds no
  * value axis (both axes are categorical), so it takes none of the cartesian
  * value-domain or crosshair switches.
  */
@@ -34,8 +35,8 @@ export type HeatmapChartSeries<T> = {
 	colorKey: DataKey<T>
 	/**
 	 * The colour scale as ordered CSS colour stops, low → high — the data-driven
-	 * range (AG Charts' `colorRange`). The bins sample it; the `'range'` legend
-	 * paints it as a continuous bar, matching the choropleth.
+	 * range (AG Charts' `colorRange`). The bins sample it. The range legend paints
+	 * it as a continuous bar, as the choropleth's range legend does.
 	 */
 	colorRange: string[]
 	/** Fixed `[min, max]`; derived from the data extent when omitted. AG Charts' `colorDomain`. */
@@ -54,8 +55,8 @@ export type HeatmapChartSeries<T> = {
 	 * colour.
 	 *
 	 * The choropleth takes the same option, under the same name. Under
-	 * `'quantile'` the colour-to-value mapping is non-linear, so a `'range'`
-	 * legend bar reads as an approximation of where the breaks fall.
+	 * `'quantile'` the colour-to-value mapping is non-linear, so the range legend
+	 * bar shows only an approximation of where the breaks fall.
 	 *
 	 * @defaultValue 'linear'
 	 */
@@ -69,9 +70,9 @@ export type HeatmapChartSeries<T> = {
  * full value parity without the pointer, the way every chart in the module does.
  *
  * @remarks The grid wires neither `animate` nor `texture`, and the heatmap
- * draws no series header, so it takes neither those nor `subtitle`. `legend` drives
- * the continuous range scale bar — the heatmap's only legend, so the object
- * form's `type` is always `'range'` and only its `placement` matters.
+ * draws no series header, so it takes neither those nor `subtitle`. `legend`
+ * controls the continuous range scale bar, which is the only legend of the
+ * heatmap. The object form holds only a `placement`.
  */
 export type HeatmapChartProps<T = never> = Omit<
 	ChartBaseProps<T>,

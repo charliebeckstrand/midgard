@@ -19,11 +19,11 @@ import { useChartTier } from './context'
  *
  * `endpoints` and `extremes` apply only to a single-series chart. With more than
  * one series the numbers would crowd between the lines with nowhere reliable to
- * sit. They therefore stand down, and the tooltip carries the readout. When they
- * draw, the chart reserves value-axis room past the data extremes. A label at an
- * edge therefore sits clear of the line, instead of flipping onto it. A plot too
- * short to afford that room sheds the point labels whole, rather than render
- * them crowded. `references` is unaffected by either rule.
+ * sit. They therefore stand down, and the tooltip carries the readout. On a
+ * `LineChart`, the chart reserves value-axis room past the data extremes. A
+ * label at an edge therefore sits clear of the line, instead of flipping onto
+ * it. A plot too short to afford that room sheds the point labels whole, rather
+ * than render them crowded. `references` is unaffected by either rule.
  */
 export type ChartValueLabelConfig = {
 	/**
@@ -37,8 +37,9 @@ export type ChartValueLabelConfig = {
 	 */
 	extremes?: boolean
 	/**
-	 * Draw each reference line's value — prefixed by its label where it has one —
-	 * beside the rule at its far end, inked to match the rule. The standing
+	 * Draw a standing label beside each reference rule at its far end, inked to
+	 * match the rule. It shows the rule's own label when it has one, else the
+	 * rule's value. The standing
 	 * readout replaces the rule's hover tooltip. With it on, the rules shed their
 	 * pointer target and keyboard stop, since the label already reads what the
 	 * tooltip would. The visually-hidden reference list keeps the assistive-tech

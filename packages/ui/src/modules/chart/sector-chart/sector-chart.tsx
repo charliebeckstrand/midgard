@@ -181,8 +181,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
 	// ticks, so the density ceiling the tick target would clamp is moot here.
-	// A pie carries no header, so the chrome is the legend alone; chartFramePolicy
-	// resolves the tier against the figure's `width / ratio` less that legend.
+	// The policy counts no header lines, so the chrome reserve holds the legend
+	// alone; chartFramePolicy resolves the tier against the figure's
+	// `width / ratio` less that legend.
 	const policy = chartFramePolicy({
 		width: frameWidth,
 		height: frameHeight,
